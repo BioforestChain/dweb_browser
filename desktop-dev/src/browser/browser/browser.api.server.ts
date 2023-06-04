@@ -4,7 +4,10 @@ import { getAllApps } from "../jmm/jmm.api.serve.ts"
 import { exec } from "node:child_process";
 import path from "node:path";
 import process from "node:process";
+import { JsMicroModule, JsMMMetadata } from "../jmm/micro-module.js.ts"
 import type { BrowserNMM } from "./browser.ts";
+import { $MMID } from "../../helper/types.ts";
+
 
 export async function createAPIServer(this: BrowserNMM) {
   // 为 下载页面做 准备
@@ -48,6 +51,9 @@ async function onRequest(this: BrowserNMM, request: IpcRequest, ipc: Ipc) {
       break;
     case "/external":
       external.bind(this)(request, ipc);
+      break;
+    case "/open":
+      open.bind(this)(request, ipc);
       break;
     default: console.error("browser", "还有没有匹配的 api 请求 pathname ===", pathname)
   }
@@ -263,3 +269,60 @@ async function external(
     )
   }
 }
+
+async function open(
+  this: BrowserNMM, 
+  request: IpcRequest, 
+  ipc: Ipc
+){
+  console.always("request", request.parsed_url)
+  const searchParams = request.parsed_url.searchParams;
+  const mmid = searchParams.get("app_id")
+  const root = searchParams.get('root')
+  const entry = searchParams.get('entry');
+  const postMessage = async (statusCode: number, message: string) => {
+    ipc.postMessage(
+      await IpcResponse.fromText(
+        request.req_id, 
+        statusCode, 
+        new IpcHeaders({
+          "Content-Type": "application/json"
+        }),
+        JSON.stringify({
+          value: message
+        }),
+        ipc, 
+      )
+    )
+  }
+
+  if(mmid === null){
+    return postMessage(400, "缺少 app_id 参数")
+  }
+  if(root === null){
+    return postMessage(400, "缺少 root 参数")
+  }
+  if(entry === null){
+    return postMessage(400, "缺少 entry 参数")
+  }
+
+  const jsMM = new JsMicroModule(
+    new JsMMMetadata({
+      id: mmid as $MMID,
+      server: {
+        root: root,
+        entry: entry
+      }
+    })
+  )
+
+  this.context?.dns.install(jsMM);
+  const res = await this.nativeFetch(
+    `file://dns.sys.dweb/open?app_id=${mmid}`
+  )
+  return postMessage(200, "o,")
+}
+
+ 
+
+ 

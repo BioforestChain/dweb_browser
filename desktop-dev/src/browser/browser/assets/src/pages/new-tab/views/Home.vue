@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { $AppMetaData } from "@/types/app.type"
 import jmm from "../components/JMM.vue";
+import { CONST } from "@/const";
 import { onBeforeMount, reactive } from 'vue'
 
 const state: {
@@ -26,7 +27,9 @@ function updateAppsInfo(value: $AppMetaData[]){
 }
 
 function jmmOnClick(appMetaData: $AppMetaData){
-  console.log('点击了 metadata: ', appMetaData)
+  const search = `?app_id=${appMetaData.id}&root=${appMetaData.server.root}&entry=${appMetaData.server.entry}`;
+  const url = `${CONST.BASR_URL}/open${search}`
+  fetch(url)
 }
 
 </script>
