@@ -2,7 +2,7 @@ import { ipcMain, IpcMainEvent } from "electron";
 import type { Ipc } from "../../../core/ipc/ipc.ts";
 import { IpcEvent } from "../../../core/ipc/IpcEvent.ts";
 import { NativeMicroModule } from "../../../core/micro-module.native.ts";
-import { safeAreaGetState } from "../../multi-webview/multi-webview.mobile.handler.ts";
+import { safeAreaGetState, safeAreaSetState } from "../../multi-webview/multi-webview.mobile.handler.ts";
 import { startObserve, stopObserve } from "./handlers.ts";
 
 export class SafeAreaNMM extends NativeMicroModule {
@@ -49,7 +49,7 @@ export class SafeAreaNMM extends NativeMicroModule {
       matchMode: "full",
       input: {},
       output: "object",
-      handler: safeAreaGetState.bind(this),
+      handler: safeAreaSetState.bind(this),
     });
 
     this.registerCommonIpcOnMessageHandler({
