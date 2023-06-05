@@ -356,7 +356,7 @@ private fun SearchBox(
     }
     //SearchTextField(viewModel, inputText, baseView.focus)
     val search =
-      if (inputText.value.isEmpty() || inputText.value.startsWith("file:///android_asset/dweb/")) {
+      if (inputText.value.isEmpty() || inputText.value.startsWith("file:///android_asset/")) {
         Triple(
           stringResource(id = R.string.browser_search_hint),
           TextAlign.Start,

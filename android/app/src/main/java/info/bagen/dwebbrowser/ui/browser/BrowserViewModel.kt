@@ -5,6 +5,7 @@ import android.net.Uri
 import android.os.Build
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -29,6 +30,7 @@ import info.bagen.dwebbrowser.datastore.DefaultAllWebEngine
 import info.bagen.dwebbrowser.datastore.WebEngine
 import info.bagen.dwebbrowser.microService.browser.BrowserController
 import info.bagen.dwebbrowser.microService.browser.BrowserNMM
+import info.bagen.dwebbrowser.microService.browser.debugBrowser
 import info.bagen.dwebbrowser.microService.helper.Mmid
 import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
 import info.bagen.dwebbrowser.microService.helper.mainAsyncExceptionHandler
@@ -36,10 +38,16 @@ import info.bagen.dwebbrowser.microService.browser.jmm.JmmMetadata
 import info.bagen.dwebbrowser.microService.browser.jmm.JmmNMM
 import info.bagen.dwebbrowser.microService.browser.jmm.JsMicroModule
 import info.bagen.dwebbrowser.microService.browser.webview.DWebView
+import info.bagen.dwebbrowser.microService.helper.runBlockingCatching
+import info.bagen.dwebbrowser.microService.sys.dns.nativeFetch
+import info.bagen.dwebbrowser.microService.sys.http.CORS_HEADERS
 import info.bagen.dwebbrowser.ui.entity.BrowserWebView
 import info.bagen.dwebbrowser.ui.qrcode.QRCodeScanState
 import info.bagen.dwebbrowser.util.*
 import kotlinx.coroutines.*
+import org.http4k.core.Method
+import org.http4k.core.Request
+import org.http4k.lens.Header
 import java.util.concurrent.atomic.AtomicInteger
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
@@ -342,6 +350,35 @@ internal class DwebBrowserWebViewClient : AccompanistWebViewClient() {
       val param = request.url?.let { uri -> "?text=${uri.host}${uri.path}" } ?: ""
       view.loadUrl("file:///android_asset/error.html$param")
     }
+  }
+
+  override fun shouldInterceptRequest(
+    view: WebView,
+    request: WebResourceRequest
+  ): WebResourceResponse? {
+    debugBrowser("shouldInterceptRequest =>", request.url)
+    if (request.url.scheme == "dweb") {
+      val response = runBlockingCatching(ioAsyncExceptionHandler) {
+        BrowserNMM.browserController?.browserNMM?.nativeFetch(
+          Request(
+            Method.GET, request.url.toString()
+          ).headers(request.requestHeaders.toList())
+        )
+      }.getOrThrow()
+
+      if (response !== null) {
+        val contentType = Header.CONTENT_TYPE(response)
+        return WebResourceResponse(
+          contentType?.value,
+          contentType?.directives?.find { it.first == "charset" }?.second,
+          response.status.code,
+          response.status.description,
+          CORS_HEADERS.toMap(),
+          response.body.stream,
+        )
+      }
+    }
+    return super.shouldInterceptRequest(view, request)
   }
 }
 

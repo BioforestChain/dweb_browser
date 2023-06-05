@@ -4,8 +4,6 @@ import android.annotation.SuppressLint
 import android.os.Build
 import android.view.MotionEvent
 import android.view.ViewGroup
-import android.webkit.WebResourceRequest
-import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
 import android.webkit.WebView
 import androidx.compose.foundation.background
@@ -19,24 +17,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalFocusManager
-import com.google.accompanist.web.AccompanistWebViewClient
 import com.google.accompanist.web.LoadingState
 import com.google.accompanist.web.WebView
-import info.bagen.dwebbrowser.microService.browser.BrowserNMM.Companion.browserController
-import info.bagen.dwebbrowser.microService.browser.debugBrowser
-import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
-import info.bagen.dwebbrowser.microService.helper.runBlockingCatching
-import info.bagen.dwebbrowser.microService.sys.dns.nativeFetch
-import info.bagen.dwebbrowser.microService.sys.http.CORS_HEADERS
 import info.bagen.dwebbrowser.ui.entity.BrowserWebView
 import info.bagen.dwebbrowser.ui.view.drawToBitmapPostLaidOut
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
-import org.http4k.core.Method
-import org.http4k.core.Request
-import org.http4k.lens.Header
 
 @SuppressLint("ClickableViewAccessibility")
 @Composable
@@ -71,41 +59,10 @@ internal fun BrowserWebView(viewModel: BrowserViewModel, browserWebView: Browser
         }.launchIn(this)
     }
 
-    class BrowserWebViewClient : AccompanistWebViewClient() {
-
-        override fun shouldInterceptRequest(
-            view: WebView, request: WebResourceRequest
-        ): WebResourceResponse? {
-            debugBrowser("shouldInterceptRequest =>", request.url)
-            if (request.url.scheme == "dweb") {
-                val response = runBlockingCatching(ioAsyncExceptionHandler) {
-                    browserController?.browserNMM?.nativeFetch(
-                        Request(
-                            Method.GET, request.url.toString()
-                        ).headers(request.requestHeaders.toList())
-                    )
-                }.getOrThrow()
-
-                if (response !== null) {
-                    val contentType = Header.CONTENT_TYPE(response)
-                    return WebResourceResponse(
-                        contentType?.value,
-                        contentType?.directives?.find { it.first == "charset" }?.second,
-                        response.status.code,
-                        response.status.description,
-                        CORS_HEADERS.toMap(),
-                        response.body.stream,
-                    )
-                }
-            }
-            return super.shouldInterceptRequest(view, request)
-        }
-    }
-
     val background = MaterialTheme.colorScheme.background
     val isDark = isSystemInDarkTheme()
+    //val webViewClient = BrowserWebViewClient()
     WebView(
-        client = BrowserWebViewClient(),
         state = browserWebView.state,
         modifier = Modifier
             .fillMaxSize()
@@ -113,6 +70,7 @@ internal fun BrowserWebView(viewModel: BrowserViewModel, browserWebView: Browser
         navigator = browserWebView.navigator,
         factory = {
             browserWebView.webView.parent?.let { (it as ViewGroup).removeAllViews() }
+           // browserWebView.webView.webViewClient = webViewClient
             browserWebView.webView.apply {
                 setDarkMode(isDark, background) // 设置深色主题
                 setOnTouchListener { v, event ->
