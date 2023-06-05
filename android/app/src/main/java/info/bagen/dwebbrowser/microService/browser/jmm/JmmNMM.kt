@@ -87,7 +87,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb") {
             }
         }
     }
-    val queryMetadataUrl = Query.string().required("metadataUrl")
+    val queryMetadataUrl = Query.string().required("url")
     val queryMmid = Query.string().required("mmid")
 
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {

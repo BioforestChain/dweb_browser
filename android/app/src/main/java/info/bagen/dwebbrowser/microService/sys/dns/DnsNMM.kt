@@ -21,7 +21,7 @@ inline fun debugDNS(tag: String, msg: Any = "", err: Throwable? = null) =
     printdebugln("fetch", tag, msg, err)
 
 class DnsNMM : NativeMicroModule("dns.sys.dweb") {
-    override val dweb_deeplinks  = mutableListOf<DWEB_DEEPLINK>("dweb:install")
+    override val dweb_deeplinks = mutableListOf<DWEB_DEEPLINK>("dweb:open")
     private val installApps = mutableMapOf<Mmid, MicroModule>() // 已安装的应用
     private val runningApps = mutableMapOf<Mmid, PromiseOut<MicroModule>>() // 正在运行的应用
 
@@ -67,7 +67,7 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
                     }
                     po.resolve(connectResult)
 
-                        // 如果可以，反向存储
+                    // 如果可以，反向存储
                     if (connectResult.ipcForToMM != null) {
                         val mmKey2 = MM.from(toMmid, fromMM.mmid)
                         mmConnectsMapLock.withLock {
@@ -162,6 +162,22 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
                 } ?: Response(Status.BAD_GATEWAY).body(request.uri.toString())
             } else null
         })
+        /** dwebDeepLink 适配器*/
+        _afterShutdownSignal.listen(nativeFetchAdaptersManager.append { fromMM, request ->
+            if (request.uri.scheme == "dweb" && request.uri.host == "") {
+                debugFetch(
+                    "DNS/webDeepLink",
+                    "path=${request.uri.path} host = ${request.uri.host}"
+                )
+                for (microModule in installApps) {
+                    if (microModule.value.dweb_deeplinks.contains("dweb:${request.uri.path}")) {
+                        val (fromIpc) = connectTo(fromMM, microModule.key, request)
+                        return@append fromIpc.request(request)
+                    }
+                }
+                return@append Response(Status.BAD_GATEWAY).body(request.uri.toString())
+            } else null
+        })
 
 
         val query_app_id = Query.string().required("app_id")
@@ -246,7 +262,7 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
                 val microModule = microModulePo.waitPromise()
                 // 这里只需要移除
                 mmConnectsMap.remove(MM.from(microModule.mmid, "js.browser.dweb"))
-                mmConnectsMap.remove(MM.from( "js.browser.dweb",microModule.mmid))
+                mmConnectsMap.remove(MM.from("js.browser.dweb", microModule.mmid))
                 microModule.shutdown()
                 1
             }.getOrDefault(0)

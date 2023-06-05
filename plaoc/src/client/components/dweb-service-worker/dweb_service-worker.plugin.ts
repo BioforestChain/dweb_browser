@@ -16,10 +16,10 @@ class UpdateControllerPlugin extends BasePlugin {
 
   /**下载 */
   @bindThis
-  async download(metadataUrl: string): Promise<BFSMetaData> {
+  async download(url: string): Promise<BFSMetaData> {
     return await this.fetchApi(`/install`, {
       search: {
-        metadataUrl,
+        url,
       },
     }).object();
   }
