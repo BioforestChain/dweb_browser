@@ -753,6 +753,7 @@
   },
   "npm": {
     "specifiers": {
+      "@types/node": "@types/node@18.11.18",
       "chalk": "chalk@5.2.0",
       "jszip": "jszip@3.10.1",
       "lmdb": "lmdb@2.8.0",
@@ -805,6 +806,10 @@
       },
       "@msgpackr-extract/msgpackr-extract-win32-x64@3.0.2": {
         "integrity": "sha512-O+6Gs8UeDbyFpbSh2CPEz/UOrrdWPTBYNblZK5CxxLisYt4kGX3Sc+czffFonyjiGSq3jWLwJS/CCJc7tBr4sQ==",
+        "dependencies": {}
+      },
+      "@types/node@18.11.18": {
+        "integrity": "sha512-DHQpWGjyQKSHj3ebjFI/wRKcqQcdR+MoFBygntYOZytCqNfkd2ZC4ARDJ2DQqhjH5p85Nnd3jhUJIXrszFX/JA==",
         "dependencies": {}
       },
       "chalk@5.2.0": {
