@@ -2,14 +2,16 @@
 
 namespace DwebBrowser.MicroService.Core;
 
-public abstract partial class MicroModule : Ipc.MicroModuleInfo
+public abstract partial class MicroModule : Ipc.IMicroModuleInfo
 {
     public Mmid Mmid { get; init; }
     public MicroModule(Mmid mmid)
     {
-        this.Mmid = mmid;
+        Mmid = mmid;
     }
     public Router? Router = null;
+    public virtual IpcSupportProtocols IpcSupportProtocols { get; init; }
+    public virtual List<string> Dweb_deeplinks { get; init; }
 
     private PromiseOut<bool> _runningStateLock = PromiseOut<bool>.StaticResolve(false);
     public bool Running { get => _runningStateLock.Value; }
@@ -111,7 +113,7 @@ public abstract partial class MicroModule : Ipc.MicroModuleInfo
         await _bootstrapContext!.Dns.BootstrapAsync(mmid);
         return await _bootstrapContext!.Dns.ConnectAsync(mmid);
     }
-        
+
 
     /**
      * <summary>

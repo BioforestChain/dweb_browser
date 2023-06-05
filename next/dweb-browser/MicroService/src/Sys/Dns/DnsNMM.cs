@@ -1,6 +1,4 @@
-﻿
-using System.Collections.Generic;
-using DwebBrowser.MicroService.Http;
+﻿using DwebBrowser.MicroService.Sys.Http;
 
 namespace DwebBrowser.MicroService.Sys.Dns;
 
@@ -12,6 +10,7 @@ public class DnsNMM : NativeMicroModule
 
     // 正在运行的应用
     private Dictionary<Mmid, PromiseOut<MicroModule>> _runningApps = new();
+    public new List<string> Dweb_deeplinks = new() { "dweb:open" };
 
     public DnsNMM() : base("dns.sys.dweb")
     {
@@ -184,6 +183,22 @@ public class DnsNMM : NativeMicroModule
 
             return null;
         });
+        var deeplinkCb = NativeFetch.NativeFetchAdaptersManager.Append(async (fromMM, request) =>
+        {
+            if (request.ParsedUrl is not null and var parsedUrl && parsedUrl.Scheme is "dweb")
+            {
+                //var connectResult = await _connectTo(fromMM, mmid, request);
+                //Console.Log("NativeFetch", "DNS/request/{0} => {1} [{2}] {3}", fromMM.Mmid, mmid, request.Method.Method, parsedUrl.Path);
+                //return await connectResult.IpcForFromMM.Request(request);
+                foreach (var app in _installApps.Values)
+                {
+                    app.Dweb_deeplinks.Find(dl => parsedUrl.ToString().StartsWith(dl));
+                }
+            }
+
+            return null;
+        });
+        
         _onAfterShutdown += async (_) => { cb(); };
 
         var Query_appId = (URL parsedUrl) => parsedUrl.SearchParams.Get("app_id") ?? throw new ArgumentException("no found app_id");
@@ -203,7 +218,16 @@ public class DnsNMM : NativeMicroModule
         {
             var parsedUrl = request.SafeUrl;
             Console.Log("Close", "{0} {1}", Mmid, parsedUrl.Path);
-            await Open(parsedUrl.SearchParams.ForceGet("app_id"));
+            await Close(parsedUrl.SearchParams.ForceGet("app_id"));
+            return true;
+        });
+
+        // deeplink
+        HttpRouter.AddRoute(new Gateway.RouteConfig("open/", IpcMethod.Get), async (request, _) =>
+        {
+            var parsedUrl = request.SafeUrl;
+            var app_id = parsedUrl.Path.Replace("open/", "");
+            await Open(app_id);
             return true;
         });
     }

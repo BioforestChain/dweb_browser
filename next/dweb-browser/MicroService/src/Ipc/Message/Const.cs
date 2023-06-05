@@ -71,3 +71,13 @@ public record EIpcEvent(string Event)
     public static readonly EIpcEvent Activity = new("activity");
     public static readonly EIpcEvent Close = new("close");
 }
+
+/// <summary>
+/// 通讯支持的传输协议
+/// </summary>
+public class IpcSupportProtocols
+{
+    public bool Cbor { get; init; }
+    public bool Protobuf { get; init; }
+    public bool Raw { get; init; }
+}

@@ -35,7 +35,7 @@ public class JsProcessWebApi
         string env_script_url,
         string metadata_json,
         string env_json,
-        Ipc.MicroModuleInfo remoteModule,
+        Ipc.IMicroModuleInfo remoteModule,
         string host)
     {
         var channel = await this.DWebView.CreateWebMessageChannel();

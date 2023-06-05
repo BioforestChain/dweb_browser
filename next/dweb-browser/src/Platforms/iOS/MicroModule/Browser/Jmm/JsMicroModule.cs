@@ -178,7 +178,7 @@ public class JsMicroModule : MicroModule
 
     class JmmIpc : Native2JsIpc
     {
-        public JmmIpc(int port_id, MicroModuleInfo remote) : base(port_id, remote)
+        public JmmIpc(int port_id, IMicroModuleInfo remote) : base(port_id, remote)
         {
         }
     }

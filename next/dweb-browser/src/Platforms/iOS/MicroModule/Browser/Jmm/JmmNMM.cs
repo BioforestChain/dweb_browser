@@ -6,6 +6,7 @@ public class JmmNMM : NativeMicroModule
 {
     private static Dictionary<Mmid, JsMicroModule> s_apps = new();
     public static Dictionary<Mmid, JsMicroModule> GetAndUpdateJmmNmmApps() => s_apps;
+    public new List<string> Dweb_deeplinks = new() { "dweb:install" };
 
     /// <summary>
     /// 获取当前App的数据配置

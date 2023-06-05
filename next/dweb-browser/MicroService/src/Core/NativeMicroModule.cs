@@ -7,6 +7,13 @@ public abstract class NativeMicroModule : MicroModule
 {
     static readonly Debugger Console = new("NMM");
     protected HttpRouter HttpRouter = new();
+    public new List<string> Dweb_deeplinks = new();
+    public new IpcSupportProtocols IpcSupportProtocols = new()
+    {
+        Cbor = true,
+        Protobuf = true,
+        Raw = true
+    };
 
     static NativeMicroModule()
     {

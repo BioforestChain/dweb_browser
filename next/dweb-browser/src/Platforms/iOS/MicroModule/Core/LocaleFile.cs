@@ -46,7 +46,7 @@ public static class LocaleFile
     static LocaleFile()
     {
         // 将本地资源文件读取添加到适配器中
-        NativeFetch.NativeFetchAdaptersManager.Append((mm, request) => LocaleFile.LocaleFileFetch(mm, request));
+        NativeFetch.NativeFetchAdaptersManager.Append(LocaleFileFetch);
     }
 
     public static async Task<PureResponse?> LocaleFileFetch(MicroModule remote, PureRequest request)
@@ -61,7 +61,7 @@ public static class LocaleFile
                 var chunk = query["chunk"]?.ToIntOrNull() ?? 1024 * 1024;
                 //var preRead = query["pre-read"]?.ToBooleanStrictOrNull() ?? false;
 
-                var src = parsedUrl.Path.Substring(5); // 移除 '/sys/'
+                var src = parsedUrl.Path[5..]; // 移除 '/jmm/'
 
                 Console.Log("LocaleFileFetch", "OPEN {0}", src);
                 string dirname = Path.GetDirectoryName(src) ?? "";

@@ -75,8 +75,9 @@
 	  <Folder Include="Platforms\iOS\MicroModule\Sys\" />
 	  <Folder Include="Platforms\iOS\MicroModule\Browser\" />
 	  <Folder Include="Platforms\iOS\MicroModule\Browser\Jmm\" />
-	  <Folder Include="Platforms\iOS\MicroModule\Browser\Js\" />
+	  <Folder Include="Platforms\iOS\MicroModule\Browser\JsProcess\" />
 	  <Folder Include="Platforms\iOS\MicroModule\Browser\Mwebview\" />
+	  <Folder Include="Platforms\iOS\MicroModule\Browser\NativeUI\" />
 	  <Folder Include="Platforms\iOS\MicroModule\Sys\Barcode\" />
 	  <Folder Include="Platforms\iOS\MicroModule\Sys\Biometrics\" />
 	  <Folder Include="Platforms\iOS\MicroModule\Sys\Clipboard\" />
@@ -84,7 +85,6 @@
 	  <Folder Include="Platforms\iOS\MicroModule\Sys\Notification\" />
 	  <Folder Include="Platforms\iOS\MicroModule\Sys\Share\" />
 	  <Folder Include="Platforms\iOS\MicroModule\Sys\Toast\" />
-	  <Folder Include="Platforms\iOS\MicroModule\Browser\NativeUI\" />
 	</ItemGroup>
 	<ItemGroup>
 	  <BundleResource Include="Resources\Assets\**\*.*" />

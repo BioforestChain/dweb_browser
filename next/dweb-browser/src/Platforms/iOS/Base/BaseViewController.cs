@@ -1,5 +1,4 @@
 ﻿using UIKit;
-using DwebBrowser.Helper;
 using CoreGraphics;
 
 #nullable enable
@@ -51,13 +50,13 @@ public static class UIViewExtendsions
         {
             if (pointSize is not 0)
             {
-                this.PointSize = pointSize;
+                PointSize = pointSize;
             }
             if (pointColor is not null)
             {
-                this.PointColor = pointColor;
+                PointColor = pointColor;
             }
-            this.AutoresizingMask = UIViewAutoresizing.FlexibleWidth | UIViewAutoresizing.FlexibleHeight;
+            AutoresizingMask = UIViewAutoresizing.FlexibleWidth | UIViewAutoresizing.FlexibleHeight;
         }
         public override void LayoutSubviews()
         {

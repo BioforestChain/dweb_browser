@@ -8,7 +8,7 @@ public class Native2JsIpc: MessagePortIpc
     public int PortId { get; init; }
 	public Native2JsIpc(
         int port_id,
-        Ipc.MicroModuleInfo remote,
+        Ipc.IMicroModuleInfo remote,
         IPC_ROLE role = IPC_ROLE.CLIENT
         ): base(
             IpcWebMessageCache.ALL_MESSAGE_PORT_CACHE.GetValueOrDefault(port_id)

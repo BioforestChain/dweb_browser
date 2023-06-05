@@ -15,11 +15,11 @@ public class MessagePortIpc : Ipc
 
     public MessagePort Port { get; init; }
     private IPC_ROLE _role_type { get; init; }
-    public override MicroModuleInfo Remote { get; set; }
+    public override IMicroModuleInfo Remote { get; set; }
 
     public override string Role { get => System.Enum.GetName(_role_type)!; }
 
-    public MessagePortIpc(MessagePort port, Ipc.MicroModuleInfo remote, IPC_ROLE role_type)
+    public MessagePortIpc(MessagePort port, IMicroModuleInfo remote, IPC_ROLE role_type)
     {
         Port = port;
         Remote = remote;
@@ -67,7 +67,7 @@ public class MessagePortIpc : Ipc
         _ = Port.Start();
     }
 
-    public MessagePortIpc(WebMessagePort port, Ipc.MicroModuleInfo remote, IPC_ROLE rote_type)
+    public MessagePortIpc(WebMessagePort port, Ipc.IMicroModuleInfo remote, IPC_ROLE rote_type)
         : this(MessagePort.From(port), remote, rote_type) { }
 
 

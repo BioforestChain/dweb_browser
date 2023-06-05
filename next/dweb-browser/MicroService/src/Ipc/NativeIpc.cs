@@ -5,10 +5,10 @@ namespace DwebBrowser.MicroService;
 public class NativeIpc : Ipc
 {
     public NativePort<IpcMessage, IpcMessage> Port;
-    public override MicroModuleInfo Remote { get; set; }
+    public override IMicroModuleInfo Remote { get; set; }
     private IPC_ROLE _role_type { get; set; }
 
-    public NativeIpc(NativePort<IpcMessage, IpcMessage> port, Ipc.MicroModuleInfo remote, IPC_ROLE role)
+    public NativeIpc(NativePort<IpcMessage, IpcMessage> port, IMicroModuleInfo remote, IPC_ROLE role)
     {
         Port = port;
         Remote = remote;

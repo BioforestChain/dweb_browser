@@ -5,7 +5,7 @@ public class ReadableStreamIpc : Ipc
 {
     static readonly Debugger Console = new("ReadableStreamIpc");
 
-    public ReadableStreamIpc(MicroModuleInfo remote, string role)
+    public ReadableStreamIpc(IMicroModuleInfo remote, string role)
     {
         Remote = remote;
         Role = role;
@@ -18,7 +18,7 @@ public class ReadableStreamIpc : Ipc
            );
     }
 
-    public override MicroModuleInfo Remote { get; set; }
+    public override IMicroModuleInfo Remote { get; set; }
     public override string Role { get; }
 
     public override Task DoClose() => Task.Run(_controller.Close);
