@@ -9,7 +9,7 @@ export const openNativeWindow = async (
 ) => {
   const { MainPortToRenderPort } = await import("./electronPortMessage.ts");
   await Electron.app.whenReady();
-
+  
   options.webPreferences = {
     ...options.webPreferences,
     // preload: resolveTo("./openNativeWindow.preload.cjs"),
@@ -19,7 +19,7 @@ export const openNativeWindow = async (
     nodeIntegration: true,
     contextIsolation: false,
   };
-
+   
   const win = new Electron.BrowserWindow(options) as $ExtendsBrowserWindow;
   if (webContentsConfig.userAgent) {
     win.webContents.setUserAgent(
@@ -31,7 +31,6 @@ export const openNativeWindow = async (
   win.once("ready-to-show", () => {
     win.show();
     // 是否显示 multi-webview devTools;
-    // win.webContents.openDevTools();
     // 这个只是在开发 desktop-dev 的阶段才需要之后是不需要的
     const devToolsWin = openDevToolsAtBrowserWindowByWebContents(
       win.webContents,
@@ -96,7 +95,6 @@ function openDevToolsAtBrowserWindowByWebContents(
   title: string,
   y?: number
 ) {
-  const content_wcs = webContents;
   const diaplay = Electron.screen.getPrimaryDisplay();
   const space = 10;
   const devTools = new Electron.BrowserWindow({
@@ -110,10 +108,8 @@ function openDevToolsAtBrowserWindowByWebContents(
       partition: "devtools",
     },
   });
-  content_wcs.setDevToolsWebContents(devTools.webContents);
-  // devTools.loadURL("devtools://devtools/bundled/inspector.html"); // 不能缺少否则会报一个 js 导入文件的错误
-
-  content_wcs.openDevTools();
+  webContents.setDevToolsWebContents(devTools.webContents);
+  webContents.openDevTools({mode: "detach"});
   devTools.webContents.executeJavaScript(
     `(()=>{
       document.title = ${JSON.stringify(`for: ${title}`)}
