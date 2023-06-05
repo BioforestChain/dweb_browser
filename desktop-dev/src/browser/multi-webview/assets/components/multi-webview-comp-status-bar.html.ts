@@ -85,7 +85,9 @@ export class MultiWebviewCompStatusBar extends LitElement {
     const backgroundStyleMap = this.createBackgroundStyleMap();
     const containerStyleMap = this.createContainerStyleMap();
     return html`
-      <div class="comp-container">
+      <div 
+        class="comp-container" 
+      >
         <div class="background" style=${styleMap(backgroundStyleMap)}></div>
         <div class="container" style=${styleMap(containerStyleMap)}>
           ${when(
@@ -183,6 +185,8 @@ function createAllCSS() {
         flex-shrink: 0;
         width: 100%;
         height: 38px;
+        -webkit-app-region: drag;
+        -webkit-user-select: none;
       }
 
       .comp-container {

@@ -146,6 +146,8 @@ function createAllCSS() {
         bottom: 0px;
         margin: 0px;
         width: 100%;
+        -webkit-app-region: drag;
+        -webkit-user-select: none;
       }
 
       .container {
