@@ -1,4 +1,5 @@
 // 地址栏 browsrVeiw
+import process from "node:process";
 import path from "node:path";
 import { $BW } from "./browser.bw.ts";
 import Electron from "electron";
@@ -37,6 +38,10 @@ export function createAddressBrowserVeiw(
     width: width,
     height: barHeight,
   })
-  bv.webContents.openDevTools();
+
+  // 调试状态显示 开发工具栏
+  process.argv.includes("--inspect")
+  ? bv.webContents.openDevTools()
+  : "";
   return bv;
 }
