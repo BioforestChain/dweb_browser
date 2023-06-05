@@ -211,6 +211,8 @@ function createAllCSS() {
         display: flex;
         justify-content: center;
         align-items: center;
+        cursor: pointer;
+        -webkit-app-region: no-drag;
       }
 
       .icon_svg {
