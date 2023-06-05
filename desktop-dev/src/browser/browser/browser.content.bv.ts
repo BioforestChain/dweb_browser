@@ -1,4 +1,5 @@
 // 内容的 browserView
+import process from "node:process";
 import path from "node:path";
 import { $BW } from "./browser.bw.ts";
 import Electron from "electron";
@@ -72,7 +73,11 @@ export function createCBV(
     width:  width,
     height: height - barHeight
   })
-  bv.webContents.openDevTools();
+  
+  // 调试状态下显示 开发工具栏
+  process.argv.includes("--inspect") 
+  ? bv.webContents.openDevTools()
+  : '';
   
   {
     // 设置 userAgent 会导致 bv.webContents.canGoBack() canGoForward() 这样的方法无法返回正确的值
