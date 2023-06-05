@@ -21,7 +21,10 @@ export function createBrowserWindow(
     },
   }
   const bw = new Electron.BrowserWindow(options) as Electron.BrowserWindow;
-
+  bw.on('close', () => {
+    // 关闭browser就是关闭全部的进程
+    Electron.app.quit()
+  })
   Reflect.set(
     bw, 
     "getTitleBarHeight",
