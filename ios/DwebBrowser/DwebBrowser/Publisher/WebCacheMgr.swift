@@ -103,10 +103,10 @@ class WebCacheMgr: ObservableObject{
     
     func remove(webCache: WebCache){
         guard let index = store.firstIndex(of: webCache) else { return }
+        UIImage.removeImage(with: webCache.snapshotUrl)
         let _ = withAnimation(.easeInOut){
             store.remove(at:index)
         }
-        // remove snapshot
         
         //    if selectedTabIndex >= newStores.count{
         //        selectedTabIndex = newStores.count-1

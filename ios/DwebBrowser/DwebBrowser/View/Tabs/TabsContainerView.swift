@@ -9,7 +9,7 @@ import SwiftUI
 import WebKit
 
 struct TabsContainerView: View{
-    @EnvironmentObject var browser: BrowerVM
+    @EnvironmentObject var selectedTab: SelectedTab
     
     @EnvironmentObject var tabState: TabState
     
@@ -19,7 +19,7 @@ struct TabsContainerView: View{
     @StateObject var animation = Animation()
     
     private var selectedCellFrame: CGRect {
-        cellFrames[browser.selectedTabIndex]
+        cellFrames[selectedTab.curIndex]
     }
     private var topSafeArea: CGFloat{
         if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
@@ -50,8 +50,6 @@ struct TabsContainerView: View{
                 }
                 if animation.progress.isAnimating(){
                     animationImage
-//                        .transition(.slide)
-                        
                 }
             }
             .onAppear{
@@ -62,7 +60,7 @@ struct TabsContainerView: View{
                 if shouldShowGrid{
                     animation.progress = .initial
                 }else{
-                    animation.snapshotImage = UIImage.snapshotImage(from: WebCacheMgr.shared.store[browser.selectedTabIndex].snapshotUrl)
+                    animation.snapshotImage = UIImage.snapshotImage(from: WebCacheMgr.shared.store[selectedTab.curIndex].snapshotUrl)
                     animation.progress = .startExpanding
                 }
                 
@@ -161,7 +159,7 @@ struct WebHScrollView: View{
 struct TabHStackView_Previews: PreviewProvider {
     static var previews: some View {
         TabsContainerView()
-            .environmentObject(BrowerVM())
+            .environmentObject(SelectedTab())
     }
 }
 

@@ -9,7 +9,7 @@ import SwiftUI
 import UIKit
 
 struct BrowserView: View {
-    @ObservedObject var browser = BrowerVM()
+    @ObservedObject var selectedTab = SelectedTab()
     @ObservedObject var addressBar = AddressBarState()
     @State var wrapperCount:Int = 1
     var body: some View {
@@ -20,10 +20,10 @@ struct BrowserView: View {
                     TabsContainerView()
                     Divider().background(Color(.darkGray))
                     AddressBarHStack()
-                    ToolbarView(selectedTabIndex: $browser.selectedTabIndex)
+                    ToolbarView()
                 }
                 .coordinateSpace(name: "Root")
-                .environmentObject(browser)
+                .environmentObject(selectedTab)
 //                VStack{
 //                    ZStack{
 //                        VStack{
@@ -34,10 +34,10 @@ struct BrowserView: View {
 //                        OverlayMaskView(isEditing: Binding(get: { addressBar.isFocused }, set: { addressBar.isFocused = $0 }))
 //                    }
 //                    AddressBarHStack()
-//                    ToolbarView(selectedTabIndex: $browser.selectedTabIndex)
+//                    ToolbarView(selectedTabIndex: $selectedTab.selectedTabIndex)
 //                }
 //                .coordinateSpace(name: "Root")
-//                .environmentObject(browser)
+//                .environmentObject(selectedTab)
 //                .environmentObject(addressBar)
             }
         }

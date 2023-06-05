@@ -22,14 +22,13 @@ struct CellFramePreferenceKey: PreferenceKey {
 }
 
 struct TabGridView: View {
-    @EnvironmentObject var browser: BrowerVM
+    @EnvironmentObject var selectedTab: SelectedTab
     @EnvironmentObject var addrBarOffset: AddrBarOffset
     @EnvironmentObject var tabState: TabState
     
     @ObservedObject var cacheStore = WebCacheMgr.shared
 
     @State var frames: [CellFrameInfo] = []
-    
     @Binding var cellFrames: [CGRect]
     
     var body: some View {
@@ -41,7 +40,7 @@ struct TabGridView: View {
                         GridItem(.adaptive(minimum: (screen_width/3.0),maximum: screen_width/2.0), spacing: gridHSpace)
                     ], spacing: gridVSpace, content: {
                         ForEach(cacheStore.store, id: \.id) { webCache in
-                            GridCell(webCache: webCache)
+                            GridCell(webCache: webCache, isSelected: isSelected(webCache: webCache) )
                                 .id(webCache.id)
                                 .background(GeometryReader { geometry in
                                     Color.clear
@@ -55,13 +54,11 @@ struct TabGridView: View {
                                     if geoFrame.minY <= currentFrame.minY, geoFrame.maxY >= currentFrame.maxY{
                                         print("inside of grid")
 
-                                        browser.selectedTabIndex = index
-//                                        addrBarOffset.onX = -CGFloat (index) * screen_width
+                                        selectedTab.curIndex = index
                                         tabState.showTabGrid = false
                                     }else{
                                         print("outside of grid")
-                                        browser.selectedTabIndex = index
-                                        addrBarOffset.onX = -CGFloat (index) * screen_width
+                                        selectedTab.curIndex = index
 
                                         withAnimation(.easeInOut(duration: 0.3),{
                                             scrollproxy.scrollTo(webCache.id)
@@ -85,7 +82,10 @@ struct TabGridView: View {
             }
         }
     }
-    
+    func isSelected(webCache: WebCache) -> Bool{
+        cacheStore.store.firstIndex(of: webCache) == selectedTab.curIndex
+    }
+
     func cellFrame(at index: Int) -> CGRect {
         guard index >= 0 && index < frames.count else {
             return .zero

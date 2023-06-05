@@ -12,6 +12,12 @@ import FaviconFinder
 struct GridCell: View {
     @State var runCount = 0
     @ObservedObject var webCache: WebCache
+//    @Binding var isSelected: Bool
+    
+//    @State private var isSelected: Bool
+    var isSelected: Bool
+
+    
     var body: some View {
         ZStack(alignment: .topTrailing){
             VStack(spacing: 0) {
@@ -24,6 +30,7 @@ struct GridCell: View {
                     .overlay(
                             RoundedRectangle(cornerRadius: 10)
                                 .stroke(Color.dwebTint, lineWidth: 2)
+                                .opacity(isSelected ? 1:0)
                         )
                 HStack{
                     webIconImage
@@ -72,7 +79,8 @@ struct GridCell: View {
 }
 struct GridCell_Previews: PreviewProvider {
     static var previews: some View {
-        GridCell(webCache: WebCache.example)
-            .frame(width: 200,height: 300)
+//        GridCell(webCache: WebCache.example,isSelected: )
+//            .frame(width: 200,height: 300)
+        Text("")
     }
 }

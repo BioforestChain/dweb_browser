@@ -8,15 +8,13 @@
 import SwiftUI
 
 struct AddressBarHStack: View {
-    @EnvironmentObject var browser: BrowerVM
+    @EnvironmentObject var selectedTab: SelectedTab
     @EnvironmentObject var tabState: TabState
     @EnvironmentObject var addrBarOffset: AddrBarOffset
 
     var body: some View {
-        print("offset onX: \(addrBarOffset.onX)")
-        return
-        PagingScroll(contentSize: WebWrapperMgr.shared.store.count, content: AddressBarHContainer(), offsetX: $addrBarOffset.onX, indexInEvrm: $browser.selectedTabIndex)
-
+        PagingScroll(contentSize: WebWrapperMgr.shared.store.count, content: AddressBarHContainer(), offsetX: $addrBarOffset.onX, indexInEvrm: $selectedTab.curIndex)
+        
             .frame(height: tabState.addressBarHeight)
             .animation(.easeInOut, value: tabState.addressBarHeight)
             .transition(.slide)

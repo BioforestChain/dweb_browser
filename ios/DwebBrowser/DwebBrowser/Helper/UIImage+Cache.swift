@@ -12,20 +12,35 @@ private let snapshotId = "_snapshot"
 
 //保存页面快照到本地文件，以便下次打开app使用
 extension UIImage {
-    
+    static var defaultSnapShotImage = UIImage(named: "snapshot")!
+
     // 保存图片到本地文件
     static func createLocalUrl(withImage image: UIImage, imageName: String) -> URL {
-        guard let documentsPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first else {
-            return URL.defaultSnapshotURL
-        }
-        let filePath = (documentsPath as NSString).appendingPathComponent(imageName + snapshotId)
+        let fileManager = FileManager.default
+         
+         do {
+             let documentsDirectory = try fileManager.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: false)
+             let filePath = documentsDirectory.appendingPathComponent(imageName + snapshotId + ".jpg")
+             
+             try image.jpegData(compressionQuality: 1.0)?.write(to: filePath, options: .atomic)
+             
+             return filePath
+         } catch {
+             print("Writing image data went wrong! Error: \(error)")
+             return URL.defaultSnapshotURL
+         }
+    }
+    
+    // 删除缓存的图片
+    static func removeImage(with url: URL) {
+        let fileManager = FileManager.default
+        
         do {
-            try image.jpegData(compressionQuality: 1.0)?.write(to: URL(fileURLWithPath: filePath), options: [.atomic])
-        }catch{
-            print("writing image data went wrong!")
-            return URL.defaultSnapshotURL
+            try fileManager.removeItem(at: imageUrl)
+            print("Successfully removed file at \(imageUrl)")
+        } catch {
+            print("Error removing file at \(imageUrl): \(error)")
         }
-        return URL(fileURLWithPath: filePath)
     }
     
     // 根据文件名读取本地图片
@@ -55,7 +70,4 @@ extension UIImage {
         
         return image!
     }
-    
-    static var defaultSnapShotImage = UIImage(named: "snapshot")!
-    
 }

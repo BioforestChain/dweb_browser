@@ -14,7 +14,7 @@ struct TabPageView: View {
     @ObservedObject var webWrapper: WebWrapper
     @ObservedObject var tabState: TabState
     
-    @EnvironmentObject var browser: BrowerVM
+    @EnvironmentObject var selectedTab: SelectedTab
     //    @EnvironmentObject var animation: Animation
     @ObservedObject var animation: Animation
     
@@ -43,12 +43,12 @@ struct TabPageView: View {
             }
             
             .onChange(of: webWrapper.canGoBack, perform: { canGoBack in
-                if let index = WebWrapperMgr.shared.store.firstIndex(of: webWrapper), index == browser.selectedTabIndex{
+                if let index = WebWrapperMgr.shared.store.firstIndex(of: webWrapper), index == selectedTab.curIndex{
                     tabState.canGoBack = canGoBack
                 }
             })
             .onChange(of: webWrapper.canGoForward, perform: { canGoForward in
-                if let index = WebWrapperMgr.shared.store.firstIndex(of: webWrapper), index == browser.selectedTabIndex{
+                if let index = WebWrapperMgr.shared.store.firstIndex(of: webWrapper), index == selectedTab.curIndex{
                     tabState.canGoForward = canGoForward
                 }
             })
@@ -71,8 +71,8 @@ struct TabPageView: View {
             .onReceive(animation.$progress, perform: { progress in
                 if progress == .initial, tabState.showTabGrid, !hasTook{
                     let index = WebWrapperMgr.shared.store.firstIndex(of: webWrapper)
-                    if index == browser.selectedTabIndex{
-                        if let image = self.environmentObject(browser).snapshot(){
+                    if index == selectedTab.curIndex{
+                        if let image = self.environmentObject(selectedTab).snapshot(){
                             print(image)
                             let scale = image.scale
                             let cropRect = CGRect(x: 0, y: 0, width: screen_width * scale, height: 788.666 * scale)
@@ -80,7 +80,7 @@ struct TabPageView: View {
                                 let croppedImage = UIImage(cgImage: croppedCGImage)
                                 animation.snapshotImage = croppedImage
                             }
-                            hasTook = true  //avoid a dead runloop
+                            hasTook = true  //avoid a dead run loop
                             webCache.snapshotUrl = UIImage.createLocalUrl(withImage: image, imageName: webCache.id.uuidString)
                             animation.progress = .startShrinking
                             DispatchQueue.main.asyncAfter(deadline: .now()+0.1){hasTook = false} // reset the state var once this time animation

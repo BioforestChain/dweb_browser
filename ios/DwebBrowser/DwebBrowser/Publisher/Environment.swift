@@ -9,19 +9,32 @@ import Foundation
 import SwiftUI
 import Combine
 
-class SelectTabIndex: ObservableObject {
-    var cancellables = Set<AnyCancellable>()
-//    @Published var currentSnapshotImage: UIImage = UIImage.defaultSnapShotImage
-    
-    @Published var selectedTabIndex = 0
-//    {
-//        didSet{
+class SelectedTab: ObservableObject {
+//    @Published private var _curIndex: Int = 0
 //
-//            currentSnapshotImage = UIImage.snapshotImage(from: WebCacheMgr.shared.store[selectedTabIndex].snapshotUrl)
+//    var curIndex: Int {
+//            get {
+//                if !isValid(_curIndex) {
+//                    _curIndex = 0 // 设置为合法的默认值
+//                }
+//                return _curIndex
+//            }
+//            set {
+//                _curIndex = newValue
+//            }
+//        }
+//    private func isValid(_ value: Int) -> Bool {
+//        // 根据需要进行属性校验的逻辑
+//        return value >= WebCacheMgr.shared.store.count
+//    }
+    
+    @Published var curIndex:Int = 0
+//    {
+//        get{
+//
 //        }
 //    }
 }
-
 
 class AddrBarOffset: ObservableObject {
     @Published var onX: CGFloat = 0

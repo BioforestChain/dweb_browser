@@ -10,12 +10,11 @@ import UIKit
 
 struct ToolbarView: View {
     @EnvironmentObject var tabstate: TabState
-    @EnvironmentObject var browser: BrowerVM
+    @EnvironmentObject var selectedTab: SelectedTab
 
     @State var moreTapped = false
     @ObservedObject var wrapperMgr = WebWrapperMgr.shared
     
-    @Binding var selectedTabIndex: Int
     private let itemSize = CGSize(width: 28, height: 28)
 
     var body: some View {
@@ -64,7 +63,7 @@ struct ToolbarView: View {
                 }
             }
             .frame(height: toolBarHeight)
-            .onChange(of: browser.selectedTabIndex, perform: { index in
+            .onChange(of: selectedTab.curIndex, perform: { index in
                 let currentWrapper = wrapperMgr.store[index]
                 tabstate.canGoBack = currentWrapper.canGoBack
                 tabstate.canGoForward = currentWrapper.canGoForward
