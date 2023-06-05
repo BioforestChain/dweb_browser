@@ -7,6 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		461B8F722A2D6F2F004812A2 /* FaviconFinder.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 461B8F6F2A2D6F2F004812A2 /* FaviconFinder.xcframework */; };
+		461B8F732A2D6F2F004812A2 /* FaviconFinder.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 461B8F6F2A2D6F2F004812A2 /* FaviconFinder.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		461B8F742A2D6F2F004812A2 /* Kingfisher.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 461B8F702A2D6F2F004812A2 /* Kingfisher.xcframework */; };
+		461B8F752A2D6F2F004812A2 /* Kingfisher.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 461B8F702A2D6F2F004812A2 /* Kingfisher.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		461B8F762A2D6F2F004812A2 /* SwiftSoup.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 461B8F712A2D6F2F004812A2 /* SwiftSoup.xcframework */; };
+		461B8F772A2D6F2F004812A2 /* SwiftSoup.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 461B8F712A2D6F2F004812A2 /* SwiftSoup.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F33F29302A28A791002EB729 /* StableForEach.swift in Sources */ = {isa = PBXBuildFile; fileRef = F33F29072A28A78F002EB729 /* StableForEach.swift */; };
 		F33F29312A28A791002EB729 /* MultipleWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F33F29082A28A78F002EB729 /* MultipleWebView.swift */; };
 		F33F29322A28A791002EB729 /* ObservableObjectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F33F29092A28A78F002EB729 /* ObservableObjectView.swift */; };
@@ -40,24 +46,18 @@
 		F33F294E2A28A791002EB729 /* AddressBarHStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = F33F292C2A28A790002EB729 /* AddressBarHStack.swift */; };
 		F33F294F2A28A791002EB729 /* BrowserManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F33F292D2A28A790002EB729 /* BrowserManager.swift */; };
 		F33F29502A28A791002EB729 /* ShiftAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = F33F292F2A28A791002EB729 /* ShiftAnimation.swift */; };
-		F33F29552A28A9D0002EB729 /* SwiftSoup.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = F33F29522A28A9D0002EB729 /* SwiftSoup.xcframework */; };
-		F33F29562A28A9D0002EB729 /* SwiftSoup.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F33F29522A28A9D0002EB729 /* SwiftSoup.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		F33F29572A28A9D0002EB729 /* Kingfisher.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = F33F29532A28A9D0002EB729 /* Kingfisher.xcframework */; };
-		F33F29582A28A9D0002EB729 /* Kingfisher.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F33F29532A28A9D0002EB729 /* Kingfisher.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		F33F29592A28A9D0002EB729 /* FaviconFinder.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = F33F29542A28A9D0002EB729 /* FaviconFinder.xcframework */; };
-		F33F295A2A28A9D0002EB729 /* FaviconFinder.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F33F29542A28A9D0002EB729 /* FaviconFinder.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		F33F295B2A28A9D0002EB729 /* Embed Frameworks */ = {
+		461B8F782A2D6F2F004812A2 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				F33F29562A28A9D0002EB729 /* SwiftSoup.xcframework in Embed Frameworks */,
-				F33F29582A28A9D0002EB729 /* Kingfisher.xcframework in Embed Frameworks */,
-				F33F295A2A28A9D0002EB729 /* FaviconFinder.xcframework in Embed Frameworks */,
+				461B8F732A2D6F2F004812A2 /* FaviconFinder.xcframework in Embed Frameworks */,
+				461B8F772A2D6F2F004812A2 /* SwiftSoup.xcframework in Embed Frameworks */,
+				461B8F752A2D6F2F004812A2 /* Kingfisher.xcframework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -65,6 +65,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		461B8F6F2A2D6F2F004812A2 /* FaviconFinder.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = FaviconFinder.xcframework; path = Resources/FaviconFinder.xcframework; sourceTree = "<group>"; };
+		461B8F702A2D6F2F004812A2 /* Kingfisher.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Kingfisher.xcframework; path = Resources/Kingfisher.xcframework; sourceTree = "<group>"; };
+		461B8F712A2D6F2F004812A2 /* SwiftSoup.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = SwiftSoup.xcframework; path = Resources/SwiftSoup.xcframework; sourceTree = "<group>"; };
 		F33F28FC2A28A72B002EB729 /* BrowserFramework.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = BrowserFramework.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F33F29072A28A78F002EB729 /* StableForEach.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StableForEach.swift; sourceTree = "<group>"; };
 		F33F29082A28A78F002EB729 /* MultipleWebView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MultipleWebView.swift; sourceTree = "<group>"; };
@@ -99,9 +102,6 @@
 		F33F292C2A28A790002EB729 /* AddressBarHStack.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddressBarHStack.swift; sourceTree = "<group>"; };
 		F33F292D2A28A790002EB729 /* BrowserManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BrowserManager.swift; sourceTree = "<group>"; };
 		F33F292F2A28A791002EB729 /* ShiftAnimation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ShiftAnimation.swift; sourceTree = "<group>"; };
-		F33F29522A28A9D0002EB729 /* SwiftSoup.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = SwiftSoup.xcframework; path = ../../22/Carthage/Build/SwiftSoup.xcframework; sourceTree = "<group>"; };
-		F33F29532A28A9D0002EB729 /* Kingfisher.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Kingfisher.xcframework; path = ../../22/Carthage/Build/Kingfisher.xcframework; sourceTree = "<group>"; };
-		F33F29542A28A9D0002EB729 /* FaviconFinder.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = FaviconFinder.xcframework; path = ../../22/Carthage/Build/FaviconFinder.xcframework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -109,9 +109,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F33F29552A28A9D0002EB729 /* SwiftSoup.xcframework in Frameworks */,
-				F33F29572A28A9D0002EB729 /* Kingfisher.xcframework in Frameworks */,
-				F33F29592A28A9D0002EB729 /* FaviconFinder.xcframework in Frameworks */,
+				461B8F722A2D6F2F004812A2 /* FaviconFinder.xcframework in Frameworks */,
+				461B8F762A2D6F2F004812A2 /* SwiftSoup.xcframework in Frameworks */,
+				461B8F742A2D6F2F004812A2 /* Kingfisher.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -250,9 +250,9 @@
 		F33F29512A28A9D0002EB729 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				F33F29542A28A9D0002EB729 /* FaviconFinder.xcframework */,
-				F33F29532A28A9D0002EB729 /* Kingfisher.xcframework */,
-				F33F29522A28A9D0002EB729 /* SwiftSoup.xcframework */,
+				461B8F6F2A2D6F2F004812A2 /* FaviconFinder.xcframework */,
+				461B8F702A2D6F2F004812A2 /* Kingfisher.xcframework */,
+				461B8F712A2D6F2F004812A2 /* SwiftSoup.xcframework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -278,7 +278,7 @@
 				F33F28F82A28A72B002EB729 /* Sources */,
 				F33F28F92A28A72B002EB729 /* Frameworks */,
 				F33F28FA2A28A72B002EB729 /* Resources */,
-				F33F295B2A28A9D0002EB729 /* Embed Frameworks */,
+				461B8F782A2D6F2F004812A2 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
