@@ -27,7 +27,6 @@ print_help(){
   echo "-all or --all\t\t - builds all parts (like without parameters)"
   echo "-ios or --ios\t\t - builds Swift framework"
   echo "-b or --bindings\t - builds Bindings library"
-  echo "-m or --maui\t\t - builds MAUI library"
   echo "-r or --release\t\t - builds dotnet parts in release"
   echo "-h or --help\t\t - shows help"  
   echo "\nExample:"
@@ -44,7 +43,6 @@ print_green "SCRIPT STARTED at $(timestamp)"
 all=true
 ios=false
 bindings=false
-maui=false
 isRelease=false
 
 #read parameters one by one
@@ -59,9 +57,6 @@ case $1 in
     -b|--bindings)
       all=false
       bindings=true;;
-    -m|--maui)
-      all=false
-      maui=true;;
     -h|--help)
       print_help
       all=false;;
@@ -78,17 +73,15 @@ done
 if [[ "$all" = true ]]; then
   ios=true
   bindings=true
-  maui=true
 fi
 
-if [[ "$ios" = false ]] && [[ "$bindings" = false ]] && [[ "$maui" = false ]]; then
+if [[ "$ios" = false ]] && [[ "$bindings" = false ]]; then
   exit 0
 fi
 
 print_yellow "\nBUILD TARGETS:\n"
 print_yellow "BrowserFramework = $ios\n"
 print_yellow "SwiftUIBindingMAUI = $bindings\n"
-print_yellow "SwiftUIMAUILibrary = $maui\n"
 
 #GO TO ROOT DIRECTORY
 
@@ -112,12 +105,6 @@ if [[ "$bindings" = true ]]; then
   printf "Clean SwiftUIBindingMAUI...\n"
   rm -r SwiftUIBindingMAUI/SwiftUIBindingMAUI/bin
   rm -r SwiftUIBindingMAUI/SwiftUIBindingMAUI/obj
-fi
-
-if [[ "$maui" = true ]]; then
-  printf "Clean SwiftUIMAUILibrary...\n"
-  rm -r SwiftUIMAUILibrary/SwiftUIMAUILibrary/bin
-  rm -r SwiftUIMAUILibrary/SwiftUIMAUILibrary/obj
 fi
 
 #CREATE XCFramework
@@ -182,20 +169,3 @@ then
 else
   print_yellow "\nBuild bindings skipped...\n"
 fi
-
-#BUILD MAUI library
-
-if [[ "$maui" = true ]]
-then
-  cd SwiftUIMAUILibrary
-
-  print_yellow "\n[Build MAUI library]\n"
-
-  build $isRelease
-
-  cd ..
-else
-  print_yellow "\n[Build MAUI library skipped...]\n"
-fi
-
-print_green "\nSCRIPT FINISHED at $(timestamp)!\n"

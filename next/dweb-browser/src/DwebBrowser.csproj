@@ -67,6 +67,11 @@
 		<ProjectReference Include="..\DWebView\src\DwebBrowser.DWebView.csproj" />
 	</ItemGroup>
 	<ItemGroup>
+	  <Reference Include="SwiftUIBindingMAUI">
+	    <HintPath>..\..\..\ios\SwiftUIToMAUI\SwiftUIBindingMAUI\SwiftUIBindingMAUI\bin\Debug\net7.0-ios\SwiftUIBindingMAUI.dll</HintPath>
+	  </Reference>
+	</ItemGroup>
+	<ItemGroup>
 	  <Folder Include="Helper\" />
 	  <Folder Include="Resources\Assets\" />
 	  <Folder Include="Platforms\iOS\Base\" />

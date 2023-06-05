@@ -8,9 +8,6 @@ ios/SwiftUIToMAUI/XCFrameworks
 ios/SwiftUIToMAUI/MAUIProject/.vs
 ios/SwiftUIToMAUI/MAUIProject/MAUIProject/bin
 ios/SwiftUIToMAUI/MAUIProject/MAUIProject/obj
-ios/SwiftUIToMAUI/SwiftUIMAUILibrary/.vs
-ios/SwiftUIToMAUI/SwiftUIMAUILibrary/SwiftUIMAUILibrary/bin
-ios/SwiftUIToMAUI/SwiftUIMAUILibrary/SwiftUIMAUILibrary/obj
 ios/SwiftUIToMAUI/SwiftUIBindingMAUI/.vs
 ios/SwiftUIToMAUI/SwiftUIBindingMAUI/SwiftUIBindingMAUI/bin
 ios/SwiftUIToMAUI/SwiftUIBindingMAUI/SwiftUIBindingMAUI/obj

@@ -1,6 +1,8 @@
 ﻿using UIKit;
+using WebKit;
 using Foundation;
 using CoreGraphics;
+using BrowserFramework;
 
 namespace DwebBrowser.Platforms.iOS;
 
@@ -40,21 +42,15 @@ public class AppDelegate : MauiUIApplicationDelegate
         {
             base.ViewDidLoad();
 
-            // 设置视图控制器的背景颜色
-            View.BackgroundColor = UIColor.Yellow;
+            var manager = new BrowserManager();
+            var webview = new WKWebView(new CGRect(0, 100, 100, 100), new());
+            webview.LoadRequest(new NSUrlRequest(new NSUrl("https://www.baidu.com")));
+            manager.WebViewList = new WKWebView[] { webview };
+            var swiftView = manager.SwiftView;
 
-            // 创建一个UILabel实例
-            var label = new UILabel
-            {
-                Text = "Hello, worldxxxx!",
-                TextColor = UIColor.Black,
-                TextAlignment = UITextAlignment.Center
-            };
-            label.Frame = new CGRect(100, 100, 200, 30);
-
-            // 将UILabel添加到视图控制器的视图中
-            View.AddSubview(label);
-
+            swiftView.Frame = UIScreen.MainScreen.Bounds;
+            //View = manager.SwiftView;
+            View.AddSubview(swiftView);
         }
     }
 
