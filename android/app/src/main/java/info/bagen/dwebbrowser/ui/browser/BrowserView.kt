@@ -439,6 +439,7 @@ fun BrowserSearchView(viewModel: BrowserViewModel) {
       }
     }
 
+    val inputTextState = LocalInputText.current;
 
     SearchView(
       text = text,
@@ -449,7 +450,7 @@ fun BrowserSearchView(viewModel: BrowserViewModel) {
       },
       onSearch = { url -> // 第一个是搜索关键字，第二个是搜索地址
         showSearchView = false
-        viewModel.saveLastKeyword(url)
+        browserViewModelHelper.saveLastKeyword(inputTextState, url)
         viewModel.handleIntent(BrowserIntent.SearchWebView(url))
       })
   }

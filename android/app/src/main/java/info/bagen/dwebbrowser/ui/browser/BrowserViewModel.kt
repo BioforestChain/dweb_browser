@@ -1,5 +1,6 @@
 package info.bagen.dwebbrowser.ui.browser
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -11,6 +12,7 @@ import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableStateListOf
@@ -63,16 +65,41 @@ data class BrowserUIState(
   val bottomSheetScaffoldState: BottomSheetScaffoldState = BottomSheetScaffoldState(
     bottomSheetState = SheetState(
       skipPartiallyExpanded = false, initialValue = SheetValue.Hidden, skipHiddenState = false
-    ),
-    snackbarHostState = SnackbarHostState()
+    ), snackbarHostState = SnackbarHostState()
   ),
   val inputText: MutableState<String> = mutableStateOf(""), // 用于指定输入的内容
   val currentInsets: MutableState<WindowInsetsCompat>, // 获取当前界面区域
   val showSearchEngine: MutableTransitionState<Boolean> = MutableTransitionState(false), // 用于在输入内容后，显示本地检索以及提供搜索引擎
   val qrCodeScanState: QRCodeScanState = QRCodeScanState(), // 用于判断桌面的显示隐藏
-)
 
-val LocalShowSearchView = compositionLocalOf { mutableStateOf(false) }
+) {
+
+
+  @SuppressLint("UnrememberedMutableState")
+  @Composable
+  fun initStats() {
+    LocalInputText.provides(mutableStateOf(""))
+    LocalShowSearchView.provides(mutableStateOf(false))
+  }
+}
+
+/**
+ * 用于指定输入的内容
+ */
+val LocalInputText = compositionLocalOf<MutableState<String>> {
+  noLocalProvidedFor("LocalInputText")
+}
+
+/**
+ * 用于显示搜索的界面，也就是点击搜索框后界面
+ */
+val LocalShowSearchView = compositionLocalOf<MutableState<Boolean>> {
+  noLocalProvidedFor("LocalShowSearchView")
+}
+
+private fun noLocalProvidedFor(name: String): Nothing {
+  error("CompositionLocal $name not present")
+}
 
 sealed class BrowserIntent {
   object ShowMainView : BrowserIntent()
@@ -183,8 +210,7 @@ class BrowserViewModel(private val browserController: BrowserController) : ViewM
 
         is BrowserIntent.SearchWebView -> {
           uiState.showSearchEngine.targetState = false // 到搜索功能了，搜索引擎必须关闭
-          uiState.currentBrowserBaseView.value.state.content = WebContent.Url(action.url)
-          /*when (val itemView = uiState.currentBrowserBaseView.value) {
+          uiState.currentBrowserBaseView.value.state.content = WebContent.Url(action.url)/*when (val itemView = uiState.currentBrowserBaseView.value) {
             is BrowserWebView -> {
               itemView.state.content = WebContent.Url(action.url)
             }
@@ -295,28 +321,25 @@ class BrowserViewModel(private val browserController: BrowserController) : ViewM
 
         is BrowserIntent.ShowSnackbarMessage -> {
           withContext(mainAsyncExceptionHandler) {
-            uiState.bottomSheetScaffoldState.snackbarHostState
-              .showSnackbar(action.message, action.actionLabel)
+            uiState.bottomSheetScaffoldState.snackbarHostState.showSnackbar(
+              action.message,
+              action.actionLabel
+            )
           }
         }
       }
     }
   }
 
-  private fun createDwebView(url: String): DWebView =
-    DWebView(
-      App.appContext,
-      browserController.browserNMM,
-      browserController.browserNMM,
-      DWebView.Options(
-        url = url,
-        /// 我们会完全控制页面将如何离开，所以这里兜底默认为留在页面
-        onDetachedFromWindowStrategy = DWebView.Options.DetachedFromWindowStrategy.Ignore,
-      ),
-      null
-    ).also {
-      it.webViewClient = DwebBrowserWebViewClient()
-    }
+  private fun createDwebView(url: String): DWebView = DWebView(
+    App.appContext, browserController.browserNMM, browserController.browserNMM, DWebView.Options(
+      url = url,
+      /// 我们会完全控制页面将如何离开，所以这里兜底默认为留在页面
+      onDetachedFromWindowStrategy = DWebView.Options.DetachedFromWindowStrategy.Ignore,
+    ), null
+  ).also {
+    it.webViewClient = DwebBrowserWebViewClient()
+  }
 
   val isNoTrace = mutableStateOf(App.appContext.getBoolean(KEY_NO_TRACE, false))
   fun saveBrowserMode(noTrace: Boolean) {
@@ -324,18 +347,21 @@ class BrowserViewModel(private val browserController: BrowserController) : ViewM
     App.appContext.saveBoolean(KEY_NO_TRACE, noTrace)
   }
 
-  fun saveLastKeyword(url: String) {
-    App.appContext.saveString(KEY_LAST_SEARCH_KEY, url)
-    uiState.inputText.value = url
-  }
 
   val isShowKeyboard
-    get() =
-      uiState.currentInsets.value.getInsets(WindowInsetsCompat.Type.ime()).bottom > 0
+    get() = uiState.currentInsets.value.getInsets(WindowInsetsCompat.Type.ime()).bottom > 0
 
   val canMoveToBackground
-    get() = !uiState.currentBrowserBaseView.value.navigator.canGoBack &&
-        uiState.qrCodeScanState.isHidden
+    get() = !uiState.currentBrowserBaseView.value.navigator.canGoBack && uiState.qrCodeScanState.isHidden
+}
+
+class browserViewModelHelper {
+  companion object {
+    fun saveLastKeyword(inputText: MutableState<String>, url: String) {
+      App.appContext.saveString(KEY_LAST_SEARCH_KEY, url)
+      inputText.value = url
+    }
+  }
 }
 
 internal class DwebBrowserWebViewClient : AccompanistWebViewClient() {
@@ -360,9 +386,7 @@ internal class DwebBrowserWebViewClient : AccompanistWebViewClient() {
   }
 
   override fun onReceivedError(
-    view: WebView,
-    request: WebResourceRequest?,
-    error: WebResourceError?
+    view: WebView, request: WebResourceRequest?, error: WebResourceError?
   ) {
     // super.onReceivedError(view, request, error)
     if (error?.errorCode == -2 && App.appContext.getString(KEY_LAST_SEARCH_KEY) == request?.url?.toString()) { // net::ERR_NAME_NOT_RESOLVED
@@ -372,8 +396,7 @@ internal class DwebBrowserWebViewClient : AccompanistWebViewClient() {
   }
 
   override fun shouldInterceptRequest(
-    view: WebView,
-    request: WebResourceRequest
+    view: WebView, request: WebResourceRequest
   ): WebResourceResponse? {
     debugBrowser("shouldInterceptRequest =>", request.url)
     if (request.url.scheme == "dweb") {
