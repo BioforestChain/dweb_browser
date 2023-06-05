@@ -56,7 +56,7 @@ struct TabGridView: View {
                                         print("inside of grid")
 
                                         browser.selectedTabIndex = index
-                                        addrBarOffset.onX = -CGFloat (index) * screen_width
+//                                        addrBarOffset.onX = -CGFloat (index) * screen_width
                                         tabState.showTabGrid = false
                                     }else{
                                         print("outside of grid")

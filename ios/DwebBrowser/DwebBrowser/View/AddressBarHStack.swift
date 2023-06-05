@@ -8,24 +8,18 @@
 import SwiftUI
 
 struct AddressBarHStack: View {
+    @EnvironmentObject var browser: BrowerVM
     @EnvironmentObject var tabState: TabState
     @EnvironmentObject var addrBarOffset: AddrBarOffset
 
-    @Binding var selectedTabIndex: Int
-//    @State var scrolltoIndex: Int = 0
-//    @ObservedObject var scrollXoffset: CGFloat
-
     var body: some View {
-        PagingScroll(contentSize: WebWrapperMgr.shared.store.count, content: AddressBarHContainer(), currentPage: $selectedTabIndex, offsetX: $addrBarOffset.onX)
-//            .onChange(of: selectedTabIndex) { newValue in
-//                addrBarOffset.onX = -screen_width * CGFloat( selectedTabIndex)
-//            }
-//            .onChange(of: scrollXoffset) { newValue in
-//                xoffset.offset = scrollXoffset
-//            }
-//            .offset(x: xoffset.offset)
+        print("offset onX: \(addrBarOffset.onX)")
+        return
+        PagingScroll(contentSize: WebWrapperMgr.shared.store.count, content: AddressBarHContainer(), offsetX: $addrBarOffset.onX, indexInEvrm: $browser.selectedTabIndex)
+
             .frame(height: tabState.addressBarHeight)
             .animation(.easeInOut, value: tabState.addressBarHeight)
+            .transition(.slide)
     }
 }
 
@@ -43,10 +37,11 @@ struct AddressBarHContainer:View{
 }
 
 struct AddressBar: View {
-//    @State var inputText: String = "inputText is empty"
     @FocusState var isAdressBarFocused: Bool
     @ObservedObject var webWrapper: WebWrapper
     @ObservedObject var addressBar: AddressBarState
+    
+    private var shouldShowProgress: Bool { webWrapper.estimatedProgress > 0.0 && webWrapper.estimatedProgress < 1.0 }
     
     var body: some View {
         GeometryReader{ geometry in
@@ -55,7 +50,7 @@ struct AddressBar: View {
                 Color(.white)
                 RoundedRectangle(cornerRadius: 8)
 //                    .fill(colors[WebWrapperMgr.shared.store.firstIndex(of: webWrapper) ?? 0])
-                    .fill(Color(.darkGray))
+                    .fill(colors[WebWrapperMgr.shared.store.firstIndex(of: webWrapper) ?? 0])
                     .frame(width:screen_width - 48 ,height: 40)
                     .overlay {
                         GeometryReader { geometry in
@@ -69,14 +64,12 @@ struct AddressBar: View {
                                     .alignmentGuide(.leading) { d in
                                         d[.leading]
                                     }
-                                    .opacity(webWrapper.estimatedProgress > 0.0 && webWrapper.estimatedProgress < 1.0 ? 1 : 0)
-                                
+                                    .opacity(shouldShowProgress ? 1 : 0)
                             }
                             .frame(width: geometry.size.width, height: geometry.size.height, alignment: .bottom)
                             .clipShape(RoundedRectangle(cornerRadius: 8))
                         }
                     }
-                
                 
                 TextField("", text: $addressBar.inputText)
                     .placeholder(when: addressBar.inputText.isEmpty) {
@@ -96,11 +89,10 @@ struct AddressBar: View {
                         isAdressBarFocused = true
                     }
                     .onChange(of: isAdressBarFocused) { focused in
-                        addressBar.searchTFFocused = focused
+                        addressBar.isFocused = focused
                     }
             }
             .frame(height: addressBarH)
-            
         }
     }
 }

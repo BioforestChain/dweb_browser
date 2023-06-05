@@ -78,12 +78,10 @@ struct TabPageView: View {
                             let cropRect = CGRect(x: 0, y: 0, width: screen_width * scale, height: 788.666 * scale)
                             if let croppedCGImage = image.cgImage?.cropping(to: cropRect) {
                                 let croppedImage = UIImage(cgImage: croppedCGImage)
-                                // do something with croppedImage
                                 animation.snapshotImage = croppedImage
                             }
                             hasTook = true  //avoid a dead runloop
                             webCache.snapshotUrl = UIImage.createLocalUrl(withImage: image, imageName: webCache.id.uuidString)
-                            //                            animation.snapshotImage = image
                             animation.progress = .startShrinking
                             DispatchQueue.main.asyncAfter(deadline: .now()+0.1){hasTook = false} // reset the state var once this time animation
                         }

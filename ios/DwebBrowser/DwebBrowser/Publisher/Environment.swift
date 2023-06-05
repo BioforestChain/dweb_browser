@@ -9,7 +9,7 @@ import Foundation
 import SwiftUI
 import Combine
 
-class BrowerVM: ObservableObject {
+class SelectTabIndex: ObservableObject {
     var cancellables = Set<AnyCancellable>()
 //    @Published var currentSnapshotImage: UIImage = UIImage.defaultSnapShotImage
     
@@ -28,7 +28,7 @@ class AddrBarOffset: ObservableObject {
 }
 
 class AddressBarState: ObservableObject{
-    @Published var searchTFFocused = false
+    @Published var isFocused = false
     @Published var inputText: String = ""
 }
 

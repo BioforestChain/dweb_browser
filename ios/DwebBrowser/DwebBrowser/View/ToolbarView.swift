@@ -43,11 +43,7 @@ struct ToolbarView: View {
                     BiColorButton(size: itemSize, imageName: "shift", disabled: false) {
                         print("shift tab was clicked")
                         tabstate.showTabGrid = true
-
-                        
                     }
-                    
-                    
                     Spacer()
                     
                     BiColorButton(size: itemSize, imageName: "more", disabled: false) {
@@ -97,9 +93,7 @@ struct ToolbarView: View {
             }
             .frame(height: toolBarHeight)
         }
-        
     }
-    
 }
 
 struct ToolbarView_Previews: PreviewProvider {

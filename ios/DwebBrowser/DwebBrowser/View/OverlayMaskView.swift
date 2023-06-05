@@ -44,8 +44,6 @@ struct OverlayMaskTest: View {
     @FocusState var isAdressBarFocused: Bool
     
     var body: some View {
-        
-        
         VStack{
             ZStack{
                 VStack{

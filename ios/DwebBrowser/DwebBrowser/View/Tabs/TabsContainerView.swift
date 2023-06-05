@@ -81,7 +81,6 @@ struct TabsContainerView: View{
             .cornerRadius(animation.progress.imageIsSmall() ? gridcellCornerR : 0)
             .clipped()
             .position(x: imageXcenter(),y: imageYcenter())
-//            .opacity(animation.progress == .invisible ? 0:1)
             .onReceive(animation.$progress, perform: { progress in
                 if progress == .startShrinking || progress == .startExpanding{
                     withAnimation(.easeInOut){
@@ -92,6 +91,7 @@ struct TabsContainerView: View{
                     }
                 }
             })
+
     }
     
     func imageXcenter()-> CGFloat{

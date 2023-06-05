@@ -10,6 +10,7 @@ import UIKit
 
 struct BrowserView: View {
     @ObservedObject var browser = BrowerVM()
+    @ObservedObject var addressBar = AddressBarState()
     @State var wrapperCount:Int = 1
     var body: some View {
         ZStack{
@@ -18,16 +19,29 @@ struct BrowserView: View {
                     Color.clear.frame(height: 0.1)  //如果没有这个 向上滚动的时候会和状态栏重合
                     TabsContainerView()
                     Divider().background(Color(.darkGray))
-                    AddressBarHStack(selectedTabIndex: $browser.selectedTabIndex)
+                    AddressBarHStack()
                     ToolbarView(selectedTabIndex: $browser.selectedTabIndex)
                 }
                 .coordinateSpace(name: "Root")
                 .environmentObject(browser)
-//                .background(Color(white: 0.7))
+//                VStack{
+//                    ZStack{
+//                        VStack{
+//                            Color.clear.frame(height: 0.1)  //如果没有这个 向上滚动的时候会和状态栏重合
+//                            TabsContainerView()
+//                            Divider().background(Color(.darkGray))
+//                        }
+//                        OverlayMaskView(isEditing: Binding(get: { addressBar.isFocused }, set: { addressBar.isFocused = $0 }))
+//                    }
+//                    AddressBarHStack()
+//                    ToolbarView(selectedTabIndex: $browser.selectedTabIndex)
+//                }
+//                .coordinateSpace(name: "Root")
+//                .environmentObject(browser)
+//                .environmentObject(addressBar)
             }
         }
     }
-
 }
 
 struct MainContainerView_Previews: PreviewProvider {
