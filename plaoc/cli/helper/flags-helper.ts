@@ -49,6 +49,7 @@ export class MetadataFlagHelper {
     for (const filepath of this.metadataFilepaths) {
       try {
         return JSON.parse(fs.readFileSync(filepath, "utf-8"));
+      // deno-lint-ignore no-empty
       } catch {}
     }
 
@@ -78,7 +79,7 @@ export class BundleFlagHelper {
     throw new Error("no implement");
   };
   readonly www_dir: undefined | string;
-  constructor(readonly flags: $BundleFlagHelperOptions) {
+  constructor(readonly flags: $BundleFlagHelperOptions, readonly metadataFlagHelper: MetadataFlagHelper) {
     const bundleTarget = flags._?.[0]?.toString();
     /// 实时预览模式，使用代理html
     if (

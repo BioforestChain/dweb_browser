@@ -13,7 +13,7 @@ class DesktopJMM : JsMicroModule(
             entry = "public.service.worker.js"
         ),
         icon = "https://www.bfmeta.info/imgs/logo3.webp",
-        title = "desktop"
+        name = "desktop"
     )
 ) {
     init {

@@ -30,7 +30,7 @@ suspend fun MicroModule.startHttpDwebServer(options: DwebHttpServerOptions) =
         Uri.of("file://http.sys.dweb/start")
             .query("port", options.port.toString())
             .query("subdomain", options.subdomain)
-    ).json<HttpNMM.ServerStartResult>(info.bagen.dwebbrowser.microService.sys.http.HttpNMM.ServerStartResult::class.java)
+    ).json<HttpNMM.ServerStartResult>(HttpNMM.ServerStartResult::class.java)
 
 
 suspend fun MicroModule.listenHttpDwebServer(
@@ -45,7 +45,7 @@ suspend fun MicroModule.listenHttpDwebServer(
                     Uri.of("file://http.sys.dweb/listen")
                         .query("host", startResult.urlInfo.host)
                         .query("token", startResult.token)
-                        .query("routes", info.bagen.dwebbrowser.microService.helper.gson.toJson(routes))
+                        .query("routes", gson.toJson(routes))
                 ).body(it.stream)
             ).stream()
         )

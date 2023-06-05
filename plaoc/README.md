@@ -1,4 +1,4 @@
-# bfex-std
+# plaoc
 
 1. 在 Dweb Browser 中，MutilWebview 作为前端载具，没有对全局变量的污染，所有的扩展都是通过网络通讯来实现功能（fetch/websocket）。
 2. 在 Dweb Browser 中，JsProcess 作为后端的载具，可以跟各个模块直接 IPC 通讯而不通过传统意义上的网络层。
@@ -7,38 +7,13 @@
    2. MutilWebview 的前端代码，对后端的网络请求进行进一步封装，简化成 WebComponent 的声明式模块，使得接口更加符合前端开发者的思维直觉。
       > 额外地，我们会基于这些 WebComponent 做一个进一步的封装，使得能够尽可能兼容 capacitor、cordova 等传统前端应用开发框架
 
-## Dev / Get Start
-
-1.  install deno
-2.  install node
-3.  install pnpm
-4.  run `deno task dev:src`,
-
-## Test / Demo
-
-1. run `deno task init:demo`
-1. after print `Process finished`,
-1. then run `deno task dev`
-   > `http://localhost:3000/` will be open
-   >
-   > the `demo/dist` will auto sync to android/desktop
 
 ## Build
 
-```bash
-deno task build
-```
-
-## Publish npm
+到 dweb_browser 根目录。
 
 ```bash
-deno task pub
+deno task plaoc serve ./plaoc/demo/dist
 ```
 
-```ts
-const wwwServer = await http.createHttpDwebServer(jsProcess, {
-  subdomain: "www",
-  port: 443,
-});
-(await wwwServer.listen()).onRequest();
-```
+> `./plaoc/demo/dist` 指向一个 build 之后的应用目录

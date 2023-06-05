@@ -154,7 +154,7 @@ private fun DropdownMenuForInstallApp(viewModel: BrowserViewModel, jmmMetadata: 
   Box {
     IconView(
       model = jmmMetadata.icon,
-      text = jmmMetadata.title,
+      text = jmmMetadata.name,
       onLongClick = { expand = true },
       onClick = { viewModel.handleIntent(BrowserIntent.OpenDwebBrowser(jmmMetadata.id)) }
     )

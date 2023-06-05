@@ -134,7 +134,7 @@ fun MALLBrowserView(viewModel: JmmManagerViewModel, onBack: () -> Unit) {
         previewState.showPreview.targetState = true
       }
     }
-    TopAppBar(topBarAlpha, jmmMetadata.title, onBack)
+    TopAppBar(topBarAlpha, jmmMetadata.name, onBack)
     BottomDownloadButton(viewModel)
     ImagePreview(jmmMetadata, previewState)
   }
@@ -222,11 +222,11 @@ private fun BoxScope.BottomDownloadButton(viewModel: JmmManagerViewModel) {
     var showLinearProgress = false
     val text = when (downLoadInfo.downLoadStatus) {
       DownLoadStatus.IDLE, DownLoadStatus.CANCEL -> {
-        "下载 (${downLoadInfo.jmmMetadata.size.toSpaceSize()})"
+        "下载 (${downLoadInfo.jmmMetadata.bundleSize.toSpaceSize()})"
       }
 
       DownLoadStatus.NewVersion -> {
-        "更新 (${downLoadInfo.jmmMetadata.size.toSpaceSize()})"
+        "更新 (${downLoadInfo.jmmMetadata.bundleSize.toSpaceSize()})"
       }
 
       DownLoadStatus.DownLoading -> {
@@ -356,7 +356,7 @@ private fun AppInfoHeadView(jmmMetadata: JmmMetadata) {
         .height(size)
     ) {
       Text(
-        text = jmmMetadata.title,
+        text = jmmMetadata.name,
         maxLines = 2,
         fontWeight = FontWeight(500),
         fontSize = 22.sp,
@@ -367,7 +367,7 @@ private fun AppInfoHeadView(jmmMetadata: JmmMetadata) {
       Spacer(modifier = Modifier.height(8.dp))
 
       Text(
-        text = jmmMetadata.subtitle,
+        text = jmmMetadata.short_name,
         maxLines = 1,
         color = MaterialTheme.colorScheme.outlineVariant,
         overflow = TextOverflow.Ellipsis,
@@ -410,7 +410,7 @@ private fun AppInfoLazyRow(jmmMetadata: JmmMetadata) {
       DoubleRowItem(first = "18+", second = "年满 18 周岁")
     }
     item { // 大小
-      DoubleRowItem(first = jmmMetadata.size.toSpaceSize(), second = "大小")
+      DoubleRowItem(first = jmmMetadata.bundleSize.toSpaceSize(), second = "大小")
     }
   }
 }
@@ -480,7 +480,7 @@ private fun AppIntroductionView(jmmMetadata: JmmMetadata) {
       .animateContentSize()
       .clickable { expanded.value = !expanded.value }) {
       Text(
-        text = jmmMetadata.introduction,
+        text = jmmMetadata.description,
         maxLines = if (expanded.value) Int.MAX_VALUE else 2,
         overflow = TextOverflow.Ellipsis,
         color = MaterialTheme.colorScheme.onSurface
@@ -537,7 +537,7 @@ private fun OtherInfoView(jmmMetadata: JmmMetadata) {
     )
     Spacer(modifier = Modifier.height(HorizontalPadding))
     OtherItemView(type = "开发者", content = jmmMetadata.author?.toContent() ?: "me")
-    OtherItemView(type = "大小", content = jmmMetadata.size.toSpaceSize())
+    OtherItemView(type = "大小", content = jmmMetadata.bundleSize.toSpaceSize())
     OtherItemView(type = "类别", content = "娱乐")
     OtherItemView(type = "语言", content = "中文")
     OtherItemView(type = "年龄分级", content = "18+")

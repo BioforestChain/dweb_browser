@@ -1,5 +1,4 @@
 import { DetailedDiff, detailedDiff } from "npm:deep-object-diff";
-import { HttpDwebServer } from "../deps.ts";
 import { EVENT, WebViewState } from "./tool.event.ts";
 
 // 管理webView

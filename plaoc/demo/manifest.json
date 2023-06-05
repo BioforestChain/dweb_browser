@@ -1,7 +1,7 @@
 {
   "name":"game",
-  "subName":"vue3-game",
-  "introduction":"这是一个实例应用，包含了dweb_plugins全部组件的实例。",
+  "short_name":"vue3-game",
+  "description":"这是一个实例应用，包含了dweb_plugins全部组件的实例。",
   "icon":"https://www.bfmeta.info/imgs/logo3.webp",
   "images": [
     "http://qiniu-waterbang.waterbang.top/bfm/cot-home_2058.webp",

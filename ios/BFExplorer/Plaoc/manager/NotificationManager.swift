@@ -26,8 +26,8 @@ class NotificationManager: NSObject {
     func sendLocalNotification() {
         
         let content = UNMutableNotificationContent()
-        content.title = "测试本地通知"
-        content.subtitle = "自标题"
+        content.name = "测试本地通知"
+        content.short_name = "自标题"
         content.body = "提高认知，方有可为"
         content.sound = .default
         content.userInfo = ["info":"haha"]

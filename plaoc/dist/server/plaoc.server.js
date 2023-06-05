@@ -1923,7 +1923,7 @@ var observeFactory = (mmid) => {
     result.ipc.resolve(jsProcess2.connect(mmid2));
     result.ipc.promise.then((ipc2) => {
       ipc2.onEvent((event) => {
-        if (event.name !== "observe" /* State */ && event.name !== "observeUpdateProgress" /* UpdateProgress */) {
+        if (event.name !== "observe" /* State */) {
           return;
         }
         const observers2 = ipcObserversMap.get(ipc2.remote.mmid);

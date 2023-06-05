@@ -130,15 +130,15 @@ export interface $State {
 }
 
 export interface $AppMetaData {
-  title: string;
-  subtitle: string;
+  name: string;
+  short_name: string;
   id: $MMID;
   bundleUrl: string;
   bundleHash: string;
   bundleSize: number;
   icon: string;
   images: string[];
-  introduction: string;
+  description: string;
   author: string[];
   version: string;
   keywords: string[];

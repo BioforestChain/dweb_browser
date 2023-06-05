@@ -69,13 +69,13 @@ class DwebBrowserService : Service() {
     }
     downloadMap[downLoadInfo.jmmMetadata.id] = downLoadInfo
     NotificationUtil.INSTANCE.createNotificationForProgress(
-      downLoadInfo.jmmMetadata.id, downLoadInfo.notificationId, downLoadInfo.jmmMetadata.title
+      downLoadInfo.jmmMetadata.id, downLoadInfo.notificationId, downLoadInfo.jmmMetadata.name
     ) // 显示通知
     DownLoadObserver.emit(downLoadInfo.jmmMetadata.id, DownLoadStatus.DownLoading) // 同步更新所有注册
     GlobalScope.launch(Dispatchers.IO) {
       sendStatusToEmitEvent(downLoadInfo.jmmMetadata.id, DownloadControllerEvent.Start.event) // 通知前台，开始下载
       ApiService.instance.downloadAndSave(
-        downLoadInfo.jmmMetadata.downloadUrl, File(downLoadInfo.path),
+        downLoadInfo.jmmMetadata.bundleUrl, File(downLoadInfo.path),
         isStop = {
           when (downLoadInfo.downLoadStatus) {
             DownLoadStatus.PAUSE -> {
@@ -105,7 +105,7 @@ class DwebBrowserService : Service() {
     GlobalScope.launch(Dispatchers.IO) {
       sendStatusToEmitEvent(downLoadInfo.jmmMetadata.id, DownloadControllerEvent.Start.event) // 通知前台，开始下载
       ApiService.instance.breakpointDownloadAndSave(
-        downLoadInfo.jmmMetadata.downloadUrl, File(downLoadInfo.path), downLoadInfo.size,
+        downLoadInfo.jmmMetadata.bundleUrl, File(downLoadInfo.path), downLoadInfo.size,
         isStop = {
           when (downLoadInfo.downLoadStatus) {
             DownLoadStatus.PAUSE -> {

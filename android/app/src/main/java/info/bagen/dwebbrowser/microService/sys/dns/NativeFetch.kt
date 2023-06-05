@@ -27,7 +27,7 @@ inline fun debugFetchFile(tag: String, msg: Any? = "", err: Throwable? = null) =
 
 /**
  *
- * file:/// => /usr & /jmm as const
+ * file:/// => /usr & /sys as const
  * file://file.sys.dweb/ => /home & /tmp & /share as userData
  */
 val nativeFetchAdaptersManager = AdapterManager<FetchAdapter>()
@@ -231,7 +231,7 @@ private fun localeFileFetch(remote: MicroModule, request: Request) = when {
 
         var src = request.uri.path.substring(1)
         // 如果是sys需要移除sys 然后 转发到assets
-        if (path.startsWith("/jmm/")) {
+        if (path.startsWith("/sys/")) {
             src = src.substring(4)
         }
 

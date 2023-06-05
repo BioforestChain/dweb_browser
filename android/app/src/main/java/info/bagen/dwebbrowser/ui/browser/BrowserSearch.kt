@@ -131,7 +131,7 @@ internal fun BoxScope.BrowserTextField(
   val focusRequester = remember { FocusRequester() }
   val focusManager = LocalFocusManager.current
   val keyboardController = LocalSoftwareKeyboardController.current
-  var inputText by remember { mutableStateOf(text.value) }
+  var inputText by remember { mutableStateOf("dweb.waterbang.top") }
 
   LaunchedEffect(focusRequester) {
     delay(100)

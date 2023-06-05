@@ -167,10 +167,7 @@ const observeFactory = (mmid: $MMID) => {
     result.ipc.resolve(jsProcess.connect(mmid));
     result.ipc.promise.then((ipc) => {
       ipc.onEvent((event) => {
-        if (
-          event.name !== OBSERVE.State &&
-          event.name !== OBSERVE.UpdateProgress
-        ) {
+        if (event.name !== OBSERVE.State) {
           return;
         }
         const observers = ipcObserversMap.get(ipc.remote.mmid);

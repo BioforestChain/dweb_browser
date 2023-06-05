@@ -13,16 +13,16 @@ public class JmmMetadata
     public MainServer Server { get; set; }      // 打开应用地址
     [JsonPropertyName("title")]
     public string Title { get; set; }       // 应用名称
-    [JsonPropertyName("subtitle")]
-    public string Subtitle { get; set; }        // 应用副标题
+    [JsonPropertyName("shortName")]
+    public string ShortName { get; set; }        // 应用副标题
     [JsonPropertyName("icon")]
     public string Icon { get; set; }        // 应用图标
     [JsonPropertyName("downloadUrl")]
     public string DownloadUrl { get; set; }     // 下载应用地址
     [JsonPropertyName("images")]
     public List<string>? Images { get; set; }       // 应用截图
-    [JsonPropertyName("introduction")]
-    public string Introduction { get; set; }        // 应用描述
+    [JsonPropertyName("description")]
+    public string Description { get; set; }        // 应用描述
     [JsonPropertyName("author")]
     public List<string>? Author { get; set; }       // 开发者，作者
     [JsonPropertyName("version")]
@@ -48,11 +48,11 @@ public class JmmMetadata
         Mmid id,
         MainServer server,
         string title = "",
-        string subtitle = "",
+        string shortName = "",
         string icon = "",
         string downloadUrl = "",
         List<string>? images = null,
-        string introduction = "",
+        string description = "",
         List<string>? author = null,
         string version = "",
         string newFeature = "",
@@ -67,11 +67,11 @@ public class JmmMetadata
         Id = id;
         Server = server;
         Title = title;
-        Subtitle = subtitle;
+        ShortName = shortName;
         Icon = icon;
         DownloadUrl = downloadUrl;
         Images = images;
-        Introduction = introduction;
+        Description = description;
         Author = author;
         Version = version;
         NewFeature = newFeature;

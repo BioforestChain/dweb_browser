@@ -13,7 +13,6 @@ export enum EVENT {
 
 export enum OBSERVE {
   State = "observe",
-  UpdateProgress = "observeUpdateProgress",
 }
 
 export type WebViewState = {

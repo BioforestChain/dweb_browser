@@ -23,6 +23,7 @@ import org.http4k.lens.Query
 import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
+import java.net.URL
 
 /**
  * 获取 map 值，如果不存在，则使用defaultValue; 如果replace 为true也替换为defaultValue
@@ -97,9 +98,9 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb") {
                 val metadataUrl = queryMetadataUrl(request)
                 val jmmMetadata =
                     nativeFetch(metadataUrl).json<JmmMetadata>(JmmMetadata::class.java)
-                debugJMM("install",jmmMetadata)
+                val url = URL(metadataUrl)
                 // 根据 jmmMetadata 打开一个应用信息的界面，用户阅读界面信息后，可以点击"安装"
-                openJmmMetadataInstallPage(jmmMetadata)
+                openJmmMetadataInstallPage(jmmMetadata,url)
                 return@defineHandler jmmMetadata
             },
             "/uninstall" bind Method.GET to defineHandler { request, ipc ->
@@ -144,7 +145,11 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb") {
     data class InstallingAppInfo(var progress: Float, val jmmMetadata: JmmMetadata)
 
     private val installingApps = mutableMapOf<Mmid, InstallingAppInfo>()
-    private  fun openJmmMetadataInstallPage(jmmMetadata: JmmMetadata) {
+    private  fun openJmmMetadataInstallPage(jmmMetadata: JmmMetadata,url:URL) {
+        if (!jmmMetadata.bundleUrl.startsWith("http")) {
+             jmmMetadata.bundleUrl = URL(url,jmmMetadata.bundleUrl).toString()
+        }
+        debugJMM("openJmmMetadataInstallPage",jmmMetadata.bundleUrl)
         // 打开安装的界面
         JmmManagerActivity.startActivity(jmmMetadata)
     }

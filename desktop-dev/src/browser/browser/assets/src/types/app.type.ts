@@ -1,13 +1,13 @@
 export interface $AppMetaData {
   title: string;
-  subtitle: string;
+  short_name: string;
   id: string;
   bundleUrl: string;
   bundleHash: string;
   bundleSize: number;
   icon: string;
   images: string[];
-  introduction: string;
+  description: string;
   author: string[];
   version: string;
   keywords: string[];

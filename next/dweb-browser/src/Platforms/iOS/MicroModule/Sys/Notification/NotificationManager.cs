@@ -21,7 +21,7 @@ public static class NotificationManager
         var content = new UNMutableNotificationContent()
         {
             Title = options.title,
-            Subtitle = options.subTitle ?? "",
+            ShortName = options.shortName ?? "",
             Body = options.bigText ?? options.text,
             Sound = UNNotificationSound.Default,
         };
@@ -63,7 +63,7 @@ public sealed record NotificationOptions(
     string title,
     string text,
     string? smallIcon,
-    string? subTitle,
+    string? shortName,
     string? bigText,
     int? badge,
     NotificationManager.ChannelType channelType);

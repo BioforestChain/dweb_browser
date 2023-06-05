@@ -14,6 +14,7 @@ import info.bagen.dwebbrowser.ui.view.DialogInfo
 import info.bagen.dwebbrowser.util.DwebBrowserUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.net.URL
 
 data class DownLoadUIState(
     val downLoadState: MutableState<DownLoadStatus> = mutableStateOf(DownLoadStatus.IDLE),
@@ -64,11 +65,11 @@ class DownLoadViewModel(val mmid: Mmid, val url: String) : ViewModel() {
       id = mmid,
       server = JmmMetadata.MainServer(
         root = "/sys",
-        entry = "public.service.worker.js"
+        entry = "/server/plaoc.server.js"
       ),
-      downloadUrl = url,
-      title = "测试",
-      subtitle = "测试",
+      bundleUrl = url,
+      name = "测试",
+      short_name = "测试",
       icon = "https://www.bfmeta.info/imgs/logo3.webp",
       images = listOf(
         "http://qiniu-waterbang.waterbang.top/bfm/cot-home_2058.webp",

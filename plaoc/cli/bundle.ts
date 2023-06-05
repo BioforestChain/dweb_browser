@@ -17,7 +17,7 @@ export const doBundle = async (args = Deno.args) => {
   });
 
   const metadataFlagHelper = new MetadataFlagHelper(flags);
-  const bundleFlagHelper = new BundleFlagHelper(flags);
+  const bundleFlagHelper = new BundleFlagHelper(flags,metadataFlagHelper);
   const nameFlagHelper = new NameFlagHelper(flags, metadataFlagHelper);
 
   const outDir = path.resolve(Deno.cwd(), flags.out);

@@ -43,9 +43,9 @@ async function setAppInfoByAppInfo(
   appInfo = typeof metadata === "object" ? metadata : JSON.parse(metadata);
   fromUrl = metadataUrl;
   elIcon.style.backgroundImage = `url(${JSON.stringify(metadata.icon)})`;
-  elMainTitle.innerHTML = appInfo.title;
-  elMainExplain.innerHTML = appInfo.subtitle;
-  elDetailtext.innerHTML = appInfo.introduction;
+  elMainTitle.innerHTML = appInfo.name;
+  elMainExplain.innerHTML = appInfo.short_name;
+  elDetailtext.innerHTML = appInfo.description;
   elDeveloperName.innerText = appInfo.author[0];
 
   const imgs = appInfo.images.map((item) => {
