@@ -72,16 +72,16 @@ export class MultiWebviewNMM extends NativeMicroModule {
     });
 
     // 用来关闭webview标签
-    this.registerCommonIpcOnMessageHandler({
-      pathname: "/close",
-      matchMode: "full",
-      input: { webview_id: "number" },
-      output: "boolean",
-      handler: async (args, client_ipc) => {
-        const wapis = await forceGetWapis(client_ipc, root_url);
-        return wapis.apis.closeWebview(args.webview_id);
-      },
-    });
+    // this.registerCommonIpcOnMessageHandler({
+    //   pathname: "/close",
+    //   matchMode: "full",
+    //   input: { webview_id: "number" },
+    //   output: "boolean",
+    //   handler: async (args, client_ipc) => {
+    //     const wapis = await forceGetWapis(client_ipc, root_url);
+    //     return wapis.apis.webveiws_deleteById(args.webview_id);
+    //   },
+    // });
 
     /**
      * 关闭当前激活的window
@@ -105,20 +105,7 @@ export class MultiWebviewNMM extends NativeMicroModule {
       output: "boolean",
       handler: async (args) => {
         for (const [_, wapis] of getAllWapis()) {
-          await wapis.apis.destroyWebviewByHost(args.host);
-        }
-        return true;
-      },
-    });
-
-    this.registerCommonIpcOnMessageHandler({
-      pathname: "/restart_webview_by_host",
-      matchMode: "full",
-      input: { host: "string" },
-      output: "boolean",
-      handler: async (args) => {
-        for (const [_, wapis] of getAllWapis()) {
-          await wapis.apis.restartWebviewByHost(args.host);
+          await wapis.apis.webivews_deleteByHost(args.host);
         }
         return true;
       },
@@ -198,7 +185,7 @@ export class MultiWebviewNMM extends NativeMicroModule {
       clientIpc,
       root_url
     );
-    const webview_id = await wapis.apis.openWebview(args.url);
+    const webview_id = await wapis.apis.webveiws_unshift(args.url);
     return webview_id;
   }
 

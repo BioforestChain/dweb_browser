@@ -82,6 +82,11 @@ export class ViewTree extends LitElement {
   };
   @state() torchState = { isOpen: false };
   @state() preloadAbsolutePath = "";
+  nativeCloseWatcherKitData = {
+    tokenToId: new Map<string, number>(),
+    idToToken: new Map<number, string>(),
+    allocId: 0,
+  };
 
   barSetState<
     $PropertyName extends keyof Pick<
@@ -328,6 +333,15 @@ export class ViewTree extends LitElement {
   }
 
   /**
+  * 删除 state 现阶段是删除第一个 还需要修改为 
+  */
+  private state_delete() {
+    this.statusBarState = this.statusBarState.slice(1);
+    this.navigationBarState = this.navigationBarState.slice(1);
+    this.safeAreaState = this.safeAreaState.slice(1);
+  }
+
+  /**
    * navigation-bar 点击 back 的事件处理器
    * 业务逻辑：
    * 检查 watchers的数据是否有没返回的；
@@ -364,44 +378,101 @@ export class ViewTree extends LitElement {
     this.executeJavascriptByHost(origin, code);
   };
 
-  /** 对webview视图进行状态整理 */
-  private _restateWebviews() {
-    let index_acc = 0;
-    let closing_acc = 0;
-    let opening_acc = 0;
-    let scale_sub = 0.05;
-    let scale_acc = 1 + scale_sub;
-    const opacity_sub = 0.1;
-    let opacity_acc = 1 + opacity_sub;
-    for (const webview of this.webviews) {
-      webview.state.zIndex = this.webviews.length - ++index_acc;
-      if (webview.closing) {
-        webview.state.closingIndex = closing_acc++;
-      } else {
-        {
-          webview.state.scale = scale_acc -= scale_sub;
-          scale_sub = Math.max(0, scale_sub - 0.01);
-        }
-        {
-          webview.state.opacity = opacity_acc - opacity_sub;
-          opacity_acc = Math.max(0, opacity_acc - opacity_sub);
-        }
-        {
-          webview.state.openingIndex = opening_acc++;
-        }
-      }
+  webviewTag_onIpcMessage = (e: Event) => {
+    const channel = Reflect.get(e, "channel");
+    const args = Reflect.get(e, "args");
+    switch (channel) {
+      case "virtual_keyboard_open":
+        this.isShowVirtualKeyboard = true;
+        break;
+      case "virtual_keyboard_close":
+        this.virtualKeyboardState = {
+          ...this.virtualKeyboardState,
+          visible: false,
+        };
+        break;
+      case "back":
+        this.webviewTag_onIpcMessage_back();
+        break;
+      case "__native_close_watcher_kit__":
+        this.nativeCloseWatcherKit(
+          (args as { action: string; value: string | number }[])[0]
+        );
+        break;
+      default:
+        throw new Error(
+          `webview ipc-message 还有没有处理的channel===${channel}`
+        );
     }
+  };
 
-    this.requestUpdate("webviews");
+  webviewTag_onIpcMessage_back = () => {
+    const len = this.webviews.length;
+    if (len > 1) {
+      this.webveiws_deleteById(this.webviews[0].id)
+      return;
+    }
+    console.error("是否应该需要关闭 当前window了？？？ 还没有决定");
+    mainApis.closedBrowserWindow();
+  };
+
+  private webviewTag_onDomReady(webview: Webview, ele: WebviewTag) {
+    webview.webContentId = ele.getWebContentsId();
+    // webview.doReady(ele);
+    // mainApis.denyWindowOpenHandler(
+    //   webview.webContentId,
+    //   proxy((detail) => {
+    //     this.webveiws_unshift(detail.url);
+    //   })
+    // );
+    // mainApis.onDestroy(
+    //   webview.webContentId,
+    //   proxy(() => {
+    //     this.webveiws_deleteById(webview.id);
+    //     console.log("Destroy!!");
+    //   })
+    // );
+    
+    // 打开devtools
+    mainApis.openDevToolsAtBrowserWindowByWebContentsId(
+      webview.webContentId,
+      webview.src
+    );
+
+    // 添加事件监听器
+    ele?.addEventListener(
+      "ipc-message",
+      this.webviewTag_onIpcMessage
+    );
   }
 
-  // 打开一个新的webview标签
-  // 在html中执行 open() 也会调用这个方法
-  openWebview(src: string) {
+  /**
+   * 根据host执行 javaScript
+   * @param host
+   * @param code
+   */
+  executeJavascriptByHost(host: string, code: string) {
+    this._multiWebviewContent?.forEach((el) => {
+      const webview_url = new URL(el.src.split("?")[0]).origin;
+      const target_url = new URL(host).origin;
+      if (el.src.includes(host) || webview_url === target_url) {
+        el.executeJavascript(code);
+        return;
+      }
+    });
+  }
+
+  /**
+   * 向 webveiws 数据中插入新的数据
+   * 新的数据在 webviews 数据中顶部
+   * 会自动更新 UI
+   * @param src 
+   * @returns 
+   */
+  webveiws_unshift(src: string) {
     const webview_id = this._id_acc++;
     // 都从最前面插入
     this.webviews = [new Webview(webview_id, src), ...this.webviews];
-    this._restateWebviews();
     if (this.webviews.length === 1) {
       this.statusBarState = [
         createDefaultBarState("statusbar", this.statusBarHeight),
@@ -431,214 +502,142 @@ export class ViewTree extends LitElement {
         ...this.safeAreaState,
       ];
     }
+    // this.webviews_restate();
     // 还需要报 webview 状态同步到指定 worker.js
-    this.syncWebviewToMian();
+    this.webviews_syncToMainProcess();
     return webview_id;
   }
 
-  syncWebviewToMian() {
+  /**
+   * 根据传递的 webvdiew_id 数据
+   * 从 webviews 数据中删除匹配的项
+   * 关闭 匹配的 devTools window
+   * 同步 最新的 webveiws 数据到主进程
+   * 删除 state
+   * 同步 state 到主进程
+   * @param webview_id  
+   * @returns 
+   */
+  webveiws_deleteById(webview_id: number) {
+    const deleteIndex = this.webviews.findIndex((webview) => webview.id === webview_id)
+    const [deleteWebview] = this.webviews.splice(deleteIndex, 1);
+    this.webviews_syncToMainProcess();
+    // 关闭 devTools window
+    mainApis.closeDevToolsAtBrowserWindowByWebContentsId(deleteWebview.webContentId)
+    console.error(`error`, "this.state_delete() 必须要调整为 通过 webview_id 删除 需要把state 同webview 关联起来")
+    this.state_delete();
+    // 把 navigationBarState statusBarStte safe-area 的改变发出
+    ipcRenderer.send("safe_are_insets_change");
+    ipcRenderer.send("navigation_bar_state_change");
+    ipcRenderer.send("status_bar_state_change");
+    return true;
+  }
+
+  webivews_deleteByHost(host: string) {
+    this.webviews.forEach((webview) => {
+      const _url = new URL(webview.src);
+      if (_url.host === host) {
+        this.webveiws_deleteById(webview.id)
+      }
+    });
+    return true;
+  }
+
+  webivews_deleteByOrigin(origin: string) {
+    this.webviews.forEach((webview) => {
+      if (webview.src.includes(origin)) {
+        this.webveiws_deleteById(webview.id)
+      }
+    });
+    return true;
+  }
+  /**
+  * webviws 的数据同步到 主进程
+  */
+  webviews_syncToMainProcess(): void {
     const uid = new URL(location.href).searchParams.get("uid");
     const allWebviewState: $AllWebviewState = {};
     this.webviews.forEach((item, index) => {
-      // const statusBarState = this.statusBarState[index];
-      // const navigationBarState = this.navigationBarState[index];
-      // const bottomBarState = getButtomBarState(
-      //   navigationBarState,
-      //   this.isShowVirtualKeyboard,
-      //   this.virtualKeyboardState
-      // );
       allWebviewState[item.id] = {
         webviewId: item.id,
         isActivated: index === 0 ? true : false,
-        // statusBarState: statusBarState,
-        // navigationBarState: navigationBarState,
-        // safeAreaState: this.safeAreaGetStateByBar(
-        //   statusBarState,
-        //   bottomBarState,
-        //   this.safeAreaState[index]
-        // ),
         src: item.src
       };
     });
     ipcRenderer.send("sync:webview_state", uid, allWebviewState);
   }
 
-  closeWebview(webview_id: number) {
-    const webview = this.webviews.find((dialog) => dialog.id === webview_id);
-    if (webview === undefined) {
-      return false;
-    }
-    webview.closing = true;
-    this._restateWebviews();
-    return true;
-  }
+  // /** 
+  //  * 对webview视图进行状态整理
+  //  * 整理完成后会强制更新 UI
+  //  * */
+  // private webviews_restate() {
+  //   let index_acc = 0;
+  //   let closing_acc = 0;
+  //   let opening_acc = 0;
+  //   let scale_sub = 0.05;
+  //   let scale_acc = 1 + scale_sub;
+  //   const opacity_sub = 0.1;
+  //   let opacity_acc = 1 + opacity_sub;
+  //   for (const webview of this.webviews) {
+  //     webview.state.zIndex = this.webviews.length - ++index_acc;
+  //     if (webview.closing) {
+  //       webview.state.closingIndex = closing_acc++;
+  //     } else {
+  //       {
+  //         webview.state.scale = scale_acc -= scale_sub;
+  //         scale_sub = Math.max(0, scale_sub - 0.01);
+  //       }
+  //       {
+  //         webview.state.opacity = opacity_acc - opacity_sub;
+  //         opacity_acc = Math.max(0, opacity_acc - opacity_sub);
+  //       }
+  //       {
+  //         webview.state.openingIndex = opening_acc++;
+  //       }
+  //     }
+  //   }
 
-  closeWindow() {
+  //   // 显示的调用更新内容
+  //   this.requestUpdate("webviews");
+  // }
+
+  /**
+   * 关闭当前 window
+   */
+  window_close() {
     mainApis.closedBrowserWindow();
   }
 
-  private _removeWebview(webview: Webview) {
-    const index = this.webviews.indexOf(webview);
-    if (index === -1) {
-      return false;
-    }
-    this.webviews.splice(index, 1);
-    this.webviews = [...this.webviews];
-    this.syncWebviewToMian();
-    this._restateWebviews();
-    return true;
-  }
+  // private _removeWebview(webview: Webview) {
+  //   const index = this.webviews.indexOf(webview);
+  //   if (index === -1) {
+  //     return false;
+  //   }
+  //   this.webviews.splice(index, 1);
+  //   this.webviews = [...this.webviews];
+  //   this.webviews_syncToMainProcess();
+  //   this.webviews_restate();
+  //   return true;
+  // }
 
-  private onWebviewReady(webview: Webview, ele: WebviewTag) {
-    webview.webContentId = ele.getWebContentsId();
-    webview.doReady(ele);
-    mainApis.denyWindowOpenHandler(
-      webview.webContentId,
-      proxy((detail) => {
-        this.openWebview(detail.url);
-      })
-    );
-    mainApis.onDestroy(
-      webview.webContentId,
-      proxy(() => {
-        this.closeWebview(webview.id);
-        console.log("Destroy!!");
-      })
-    );
-
-    mainApis.openDevToolsAtBrowserWindowByWebContentsId(
-      webview.webContentId,
-      webview.src
-    );
-
-    ele?.addEventListener(
-      "ipc-message",
-      this.webviewTagOnIpcMessageHandlerNormal
-    );
-  }
-
-  private async onDevtoolReady(webview: Webview, ele_devTool: WebviewTag) {
-    await webview.ready();
-    if (webview.webContentId_devTools === ele_devTool.getWebContentsId()) {
-      return;
-    }
-    webview.webContentId_devTools = ele_devTool.getWebContentsId();
-    await mainApis.openDevTools(
-      webview.webContentId,
-      undefined,
-      webview.webContentId_devTools
-    );
-  }
-
-  private deleteTopBarState() {
-    this.statusBarState = this.statusBarState.slice(1);
-    this.navigationBarState = this.navigationBarState.slice(1);
-  }
-
-  private deleteTopSafeAreaState() {
-    this.safeAreaState = this.safeAreaState.slice(1);
-  }
-
-  private async destroyWebview(webview: Webview) {
-    await mainApis.destroy(webview.webContentId);
-    // 可能出现越界的情况
-    this.webviews = this.webviews.slice(1);
-    this.syncWebviewToMian();
-  }
-
-  destroyWebviewByHost(host: string) {
-    this.webviews.forEach((webview) => {
-      const _url = new URL(webview.src);
-      if (_url.host === host) {
-        this.destroyWebview(webview);
-      }
-    });
-    return true;
-  }
-
-  destroyWebviewByOrigin(origin: string) {
-    this.webviews.forEach((webview) => {
-      if (webview.src.includes(origin)) {
-        this.destroyWebview(webview);
-      }
-    });
-    return true;
-  }
-
-  restartWebviewByHost(_host: string) {
-    this._restateWebviews();
-    return true;
-  }
-
-  /**
-   * 根据host执行 javaScript
-   * @param host
-   * @param code
-   */
-  executeJavascriptByHost(host: string, code: string) {
-    this._multiWebviewContent?.forEach((el) => {
-      const webview_url = new URL(el.src.split("?")[0]).origin;
-      const target_url = new URL(host).origin;
-      if (el.src.includes(host) || webview_url === target_url) {
-        el.executeJavascript(code);
-        return;
-      }
-    });
-  }
+  // private async onDevtoolReady(webview: Webview, ele_devTool: WebviewTag) {
+  //   // await webview.ready();
+  //   // if (webview.webContentId_devTools === ele_devTool.getWebContentsId()) {
+  //   //   return;
+  //   // }
+  //   // webview.webContentId_devTools = ele_devTool.getWebContentsId();
+  //   // await mainApis.openDevTools(
+  //   //   webview.webContentId,
+  //   //   undefined,
+  //   //   webview.webContentId_devTools
+  //   // );
+  // }
 
   preloadAbsolutePathSet(path: string) {
     this.preloadAbsolutePath = path;
   }
 
-  webviewTagOnIpcMessageHandlerBack = () => {
-    const len = this.webviews.length;
-    if (len > 1) {
-      this.deleteTopBarState();
-      this.deleteTopSafeAreaState();
-      this.destroyWebview(this.webviews[0]);
-      // 把 navigationBarState statusBarStte safe-area 的改变发出
-      ipcRenderer.send("safe_are_insets_change");
-      ipcRenderer.send("navigation_bar_state_change");
-      ipcRenderer.send("status_bar_state_change");
-      return;
-    }
-    console.error("是否应该需要关闭 当前window了？？？ 还没有决定");
-    mainApis.closedBrowserWindow();
-  };
-
-  webviewTagOnIpcMessageHandlerNormal = (e: Event) => {
-    const channel = Reflect.get(e, "channel");
-    const args = Reflect.get(e, "args");
-    switch (channel) {
-      case "virtual_keyboard_open":
-        this.isShowVirtualKeyboard = true;
-        break;
-      case "virtual_keyboard_close":
-        this.virtualKeyboardState = {
-          ...this.virtualKeyboardState,
-          visible: false,
-        };
-        break;
-      case "back":
-        this.webviewTagOnIpcMessageHandlerBack();
-        break;
-      case "__native_close_watcher_kit__":
-        this.nativeCloseWatcherKit(
-          (args as { action: string; value: string | number }[])[0]
-        );
-        break;
-      default:
-        throw new Error(
-          `webview ipc-message 还有没有处理的channel===${channel}`
-        );
-    }
-  };
-
-  nativeCloseWatcherKitData = {
-    tokenToId: new Map<string, number>(),
-    idToToken: new Map<number, string>(),
-    allocId: 0,
-  };
   nativeCloseWatcherKit = ({
     action,
     value,
@@ -731,13 +730,14 @@ export class ViewTree extends LitElement {
                       event.detail.event.animationName === "slideOut" &&
                       event.detail.customWebview.closing
                     ) {
-                      this._removeWebview(webview);
+                      // this._removeWebview(webview);
+                      this.webveiws_deleteById(webview.id)
                     }
                   }}
                   @dom-ready=${(
                     event: CustomEvent<CustomEventDomReadyDetail>
                   ) => {
-                    this.onWebviewReady(
+                    this.webviewTag_onDomReady(
                       webview,
                       event.detail.event.target as WebviewTag
                     );
@@ -820,12 +820,12 @@ export class ViewTree extends LitElement {
               .customWebviewId=${webview.id}
               style="${_styleMap}"
               @dom-ready=${(event: CustomEvent & { target: WebviewTag }) => {
-                this.onDevtoolReady(
-                  webview,
-                  event.detail.event.target as WebviewTag
-                );
+                // this.onDevtoolReady(
+                //   webview,
+                //   event.detail.event.target as WebviewTag
+                // );
               }}
-              @destroy-webview=${() => this.destroyWebview(webview)}
+              @destroy-webview=${() => this.webveiws_deleteById(webview.id)}
             ></multi-webview-devtools>
           `;
         }
@@ -840,11 +840,10 @@ const viewTree = new ViewTree();
 document.body.appendChild(viewTree);
 
 export const APIS = {
-  openWebview: viewTree.openWebview.bind(viewTree),
-  closeWebview: viewTree.closeWebview.bind(viewTree),
-  closeWindow: viewTree.closeWindow.bind(viewTree),
-  destroyWebviewByHost: viewTree.destroyWebviewByHost.bind(viewTree),
-  restartWebviewByHost: viewTree.restartWebviewByHost.bind(viewTree),
+  webveiws_unshift: viewTree.webveiws_unshift.bind(viewTree),
+  webveiws_deleteById: viewTree.webveiws_deleteById.bind(viewTree),
+  window_close: viewTree.window_close.bind(viewTree),
+  webivews_deleteByHost: viewTree.webivews_deleteByHost.bind(viewTree),
   executeJavascriptByHost: viewTree.executeJavascriptByHost.bind(viewTree),
   statusBarSetState: viewTree.barSetState.bind(viewTree, "statusBarState"),
   statusBarGetState: viewTree.barGetState.bind(viewTree, "statusBarState"),

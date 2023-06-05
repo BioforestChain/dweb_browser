@@ -35,8 +35,6 @@ export class MultiWebViewContent extends LitElement {
     );
     console.log("onDomReady");
     this.webviewDidStartLoading(event)
-    // 打开一个分离的 devTools 能够实现调试功能 但是位置不好确定
-    // this.elWebview?.openDevTools()
   }
 
   webviewDidStartLoading(e: Event) {

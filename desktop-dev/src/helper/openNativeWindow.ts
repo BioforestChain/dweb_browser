@@ -138,25 +138,41 @@ export class ForRenderApi {
     );
   }
 
-  openDevTools(
+  /**
+   * 根据 devTools window 匹配的 webContentsId
+   * 关闭 devTools window 
+   * 从保存的 列表中删除
+   * @param webContentsId 
+   */
+  closeDevToolsAtBrowserWindowByWebContentsId(
     webContentsId: number,
-    options?: Electron.OpenDevToolsOptions,
-    devToolsId?: number
-  ) {
-    // 原始代码
-    const content_wcs = Electron.webContents.fromId(webContentsId);
-    if (content_wcs === undefined) throw new Error(`content_wcs === undefined`);
-    if (devToolsId) {
-      const devTools_wcs = Electron.webContents.fromId(devToolsId);
-      if (devTools_wcs === undefined)
-        throw new Error(`content_wcs === undefined`);
-      content_wcs.setDevToolsWebContents(devTools_wcs);
-      queueMicrotask(() => {
-        devTools_wcs.executeJavaScript("window.location.reload()");
-      });
-    }
-    content_wcs.openDevTools(options);
+  ){
+    const devToolsWin = this.win._devToolsWin.get(webContentsId)
+    if(devToolsWin === undefined) throw new Error(`devToolsWin === undefined`)
+    devToolsWin.close();
+    this.win._devToolsWin.delete(webContentsId)
   }
+
+  // openDevTools(
+  //   webContentsId: number,
+  //   options?: Electron.OpenDevToolsOptions,
+  //   devToolsId?: number
+  // ) {
+  //   // 原始代码
+  //   const content_wcs = Electron.webContents.fromId(webContentsId);
+  //   if (content_wcs === undefined) throw new Error(`content_wcs === undefined`);
+  //   if (devToolsId) {
+  //     const devTools_wcs = Electron.webContents.fromId(devToolsId);
+  //     if (devTools_wcs === undefined)
+  //       throw new Error(`content_wcs === undefined`);
+  //     content_wcs.setDevToolsWebContents(devTools_wcs);
+  //     queueMicrotask(() => {
+  //       devTools_wcs.executeJavaScript("window.location.reload()");
+  //     });
+  //   }
+  //   content_wcs.openDevTools(options);
+  // }
+
   denyWindowOpenHandler(
     webContentsId: number,
     onDeny: (details: Electron.HandlerDetails) => unknown
@@ -168,6 +184,7 @@ export class ForRenderApi {
       return { action: "deny" };
     });
   }
+
   destroy(webContentsId: number, options?: Electron.CloseOpts) {
     const contents = Electron.webContents.fromId(webContentsId);
     if (contents === undefined) throw new Error(`contents === undefined`);
@@ -176,6 +193,7 @@ export class ForRenderApi {
     devToolsWin.close();
     return contents.close(options);
   }
+
   onDestroy(webContentsId: number, onDestroy: () => unknown) {
     const contents = Electron.webContents.fromId(webContentsId);
     if (contents === undefined) throw new Error(`contents === undefined`);
@@ -183,6 +201,7 @@ export class ForRenderApi {
       onDestroy();
     });
   }
+
   getWenContents(webContentsId: number) {
     const contents = Electron.webContents.fromId(webContentsId);
     if (contents === undefined) throw new Error(`contents === undefined`);

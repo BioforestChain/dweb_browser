@@ -26,7 +26,7 @@ export async function open(
   _request: IpcRequest
 ) {
   const wapis = await forceGetWapis(clientIpc, root_url);
-  const webview_id = await wapis.apis.openWebview(args.url);
+  const webview_id = await wapis.apis.webveiws_unshift(args.url);
   return webview_id;
 }
 
@@ -61,7 +61,7 @@ export async function openDownloadPage(
   const metadataUrl = JSON.parse(await request.body.text())?.metadataUrl;
   const targetUrl = `${args.url}&metadataUrl=${metadataUrl}`;
   const wapi = await forceGetWapis(_clientIpc, root_url);
-  const webview_id = await wapi.apis.openWebview(targetUrl);
+  const webview_id = await wapi.apis.webveiws_unshift(targetUrl);
   return { webview_id };
 }
 
