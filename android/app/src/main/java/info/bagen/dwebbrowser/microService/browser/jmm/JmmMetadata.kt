@@ -38,29 +38,26 @@ data class JmmMetadata(
 
 }
 
-
-val defaultJmmMetadata = JmmMetadata(
-    id = "default.user.dweb",
-    dweb_deeplinks = mutableListOf(),
-    downloadUrl = "https://dweb.waterbang.top/game.dweb.waterbang.top.dweb.jmm",
-    permissions = arrayListOf("camera.sys.dweb", "jmm.sys.dweb", "???.sys.dweb"),
-    icon = "https://www.bfmeta.info/imgs/logo3.webp",
-    title = "默认测试数据",
-    subtitle = "该测试数据包含了相关具体信息，请仔细查阅",
-    introduction = "这是一个实例应用，包含了dweb_plugins全部组件的实例。",
-    size = "2726400",
-    version = "1.2.0",
-    images = listOf(
-        "http://qiniu-waterbang.waterbang.top/bfm/cot-home_2058.webp",
-        "http://qiniu-waterbang.waterbang.top/bfm/defi.png",
-        "http://qiniu-waterbang.waterbang.top/bfm/nft.png"
-    ),
-    home = "https://www.bfmeta.info/",
-    server = JmmMetadata.MainServer(
-        root = "dweb:///sys",
-        entry = "/bfs_worker/public.service.worker.js"
-    ),
-    author = listOf("bfs", "bfs@bfs.com"),
-    keywords = listOf("demo", "vue3"),
-    releaseDate = "2023-05-22T09:01:38.318Z",
+val defaultJmmMetadata =  JmmMetadata(
+  id = "default.user.dweb",
+  downloadUrl = "https://dweb.waterbang.top/game.dweb.waterbang.top.dweb.jmm",
+  permissions = arrayListOf("camera.sys.dweb", "jmm.sys.dweb", "???.sys.dweb"),
+  icon = "https://www.bfmeta.info/imgs/logo3.webp",
+  title = "默认测试数据",
+  subtitle = "该测试数据包含了相关具体信息，请仔细查阅",
+  introduction = "这是一个实例应用，包含了dweb_plugins全部组件的实例。",
+  size = "2726400",
+  version = "1.2.0",
+  images = listOf(
+    "http://qiniu-waterbang.waterbang.top/bfm/cot-home_2058.webp",
+    "http://qiniu-waterbang.waterbang.top/bfm/defi.png",
+    "http://qiniu-waterbang.waterbang.top/bfm/nft.png",
+    "http://qiniu-waterbang.waterbang.top/bfm/nft.png",
+    "http://qiniu-waterbang.waterbang.top/bfm/nft.png"
+  ),
+  home = "https://www.bfmeta.info/",
+  server = JmmMetadata.MainServer(root = "dweb:///sys", entry = "/bfs_worker/public.service.worker.js"),
+  author = listOf("bfs", "bfs@bfs.com"),
+  keywords = listOf("demo", "vue3"),
+  releaseDate = "2023-05-22T09:01:38.318Z",
 )

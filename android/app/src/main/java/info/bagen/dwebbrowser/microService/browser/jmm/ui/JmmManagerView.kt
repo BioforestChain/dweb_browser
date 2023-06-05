@@ -1,6 +1,5 @@
 package info.bagen.dwebbrowser.microService.browser.jmm.ui
 
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
@@ -38,8 +37,10 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.SpanStyle
@@ -48,11 +49,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.microService.browser.jmm.JmmMetadata
+import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
+import info.bagen.dwebbrowser.microService.helper.runBlockingCatching
 import kotlinx.coroutines.launch
 import java.text.DecimalFormat
 
@@ -73,16 +78,33 @@ private data class PreviewState(
   //val firstVisible: MutableState<Int> = mutableStateOf(0), // 用于记录第一个有效显示的照片
   //val firstVisibleOffset: MutableState<Int> = mutableStateOf(0), // 用于记录第一个有效显示的照片偏移量
   val offset: MutableState<Offset> = mutableStateOf(Offset.Zero), // 用于保存当前选中图片的中心坐标
+  var imageLazy: LazyListState? = null,
+  var outsideLazy: LazyListState,
+  var screenWidth: Int,
+  var screenHeight: Int,
+  var statusBarHeight: Int,
+  var density: Float,
 )
 
 @Composable
 fun MALLBrowserView(viewModel: JmmManagerViewModel, onBack: () -> Unit) {
   val jmmMetadata = viewModel.uiState.downloadInfo.value.jmmMetadata
-  val lazyListState = rememberLazyListState()
   val topBarAlpha = remember { mutableStateOf(0f) }
+  val lazyListState = rememberLazyListState()
+  val screenWidth = LocalConfiguration.current.screenWidthDp
+  val screenHeight = LocalConfiguration.current.screenHeightDp
   val density = LocalContext.current.resources.displayMetrics.density
+  val statusBarHeight = WindowInsets.statusBars.getTop(Density(App.appContext))
+  val previewState = remember {
+    PreviewState(
+      outsideLazy = lazyListState,
+      screenWidth = screenWidth,
+      screenHeight = screenHeight,
+      statusBarHeight = statusBarHeight,
+      density = density
+    )
+  }
   val firstHeightPx = HeadHeight.value * density / 2 // 头部item的高度是128.dp
-  val previewState = remember { PreviewState() }
   val scope = rememberCoroutineScope()
 
   LaunchedEffect(lazyListState) {
@@ -104,23 +126,11 @@ fun MALLBrowserView(viewModel: JmmManagerViewModel, onBack: () -> Unit) {
       .fillMaxSize()
       .background(MaterialTheme.colorScheme.background)
   ) {
-    AppInfoContentView(lazyListState, jmmMetadata) { index, firstVisible, firstVisibleOffset ->
+    AppInfoContentView(lazyListState, jmmMetadata) { index, imageLazyListState ->
       scope.launch {
         previewState.selectIndex.value = index
-        // 计算图片中心点的坐标
-        val top = when (lazyListState.firstVisibleItemIndex) {
-          0 -> { (TopBarHeight + HeadHeight + AppInfoHeight).value * density - lazyListState.firstVisibleItemScrollOffset }
-          1 -> { (TopBarHeight + AppInfoHeight).value * density - lazyListState.firstVisibleItemScrollOffset }
-          2 -> { TopBarHeight.value * density - lazyListState.firstVisibleItemScrollOffset }
-          else -> { 0f }
-        }
-        val left = if (index > firstVisible) {
-          //((index - firstVisible - 1) * (ImageWidth + HorizontalPadding) + HorizontalPadding + ImageWidth / 2 ).value * density
-          0.5f
-        } else {
-          firstVisibleOffset.toFloat()
-        }
-        previewState.offset.value = Offset(top, left)
+        previewState.imageLazy = imageLazyListState
+        previewState.offset.value = measureCenterOffset(index, previewState)
         previewState.showPreview.targetState = true
       }
     }
@@ -128,6 +138,46 @@ fun MALLBrowserView(viewModel: JmmManagerViewModel, onBack: () -> Unit) {
     BottomDownloadButton(viewModel)
     ImagePreview(jmmMetadata, previewState)
   }
+}
+
+private suspend fun measureCenterOffset(index: Int, previewState: PreviewState): Offset {
+  val firstVisible = previewState.imageLazy?.firstVisibleItemIndex ?: 0
+  val firstVisibleOffset = previewState.imageLazy?.firstVisibleItemScrollOffset ?: 0
+  val density = previewState.density
+  val statusBarHeight = previewState.statusBarHeight
+  val screenWidth = previewState.screenWidth
+  val screenHeight = previewState.screenHeight
+  // 计算图片中心点的坐标
+  val totalTop = when (previewState.outsideLazy.firstVisibleItemIndex) {
+    0 -> { // 状态栏，顶部工具栏，头部栏，评分栏
+      (TopBarHeight + HeadHeight + AppInfoHeight + ImageHeight / 2 + VerticalPadding).value * density + statusBarHeight
+    }
+
+    1 -> {
+      (TopBarHeight + AppInfoHeight + ImageHeight / 2 + VerticalPadding).value * density + statusBarHeight
+    }
+
+    2 -> {
+      (TopBarHeight + ImageHeight / 2 + VerticalPadding).value * density + statusBarHeight
+    }
+
+    else -> {
+      statusBarHeight.toFloat()
+    }
+  }
+  val realTop =
+    (totalTop - previewState.outsideLazy.firstVisibleItemScrollOffset) / (screenHeight * density)
+
+  val realLeft = if (index > firstVisible) {
+    val left1 = (HorizontalPadding + ImageWidth).value * density - firstVisibleOffset // 第一格减去移动量
+    val left2 = (index - firstVisible - 1) * (ImageWidth + HorizontalPadding).value * density // 中间间隔多少个图片
+    val left3 = (ImageWidth / 2 + HorizontalPadding).value * density // 点击的图片本身
+    (left1 + left2 + left3) / (screenWidth * density)
+  } else {
+    val left = (ImageWidth / 2 + HorizontalPadding).value * density - firstVisibleOffset
+    left / (screenWidth * density)
+  }
+  return Offset(realLeft, realTop)
 }
 
 @Composable
@@ -225,7 +275,7 @@ private fun BoxScope.BottomDownloadButton(viewModel: JmmManagerViewModel) {
 
 @Composable
 private fun AppInfoContentView(
-  lazyListState: LazyListState, jmmMetadata: JmmMetadata, onSelectPic: (Int, Int, Int) -> Unit
+  lazyListState: LazyListState, jmmMetadata: JmmMetadata, onSelectPic: (Int, LazyListState) -> Unit
 ) {
   LazyColumn(
     state = lazyListState,
@@ -390,28 +440,17 @@ private fun DoubleRowItem(first: String, second: String) {
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun CaptureListView(jmmMetadata: JmmMetadata, onSelectPic: (Int, Int, Int) -> Unit) {
+private fun CaptureListView(jmmMetadata: JmmMetadata, onSelectPic: (Int, LazyListState) -> Unit) {
   jmmMetadata.images?.let { images ->
     val lazyListState = rememberLazyListState()
-
-    LaunchedEffect(lazyListState) {
-      snapshotFlow { lazyListState.firstVisibleItemScrollOffset }.collect {
-        Log.e("lin.huang", "CaptureListView -> $it,, ${lazyListState.firstVisibleItemIndex}")
-      }
-    }
-
     LazyRow(
       modifier = Modifier.padding(vertical = VerticalPadding),
       state = lazyListState,
-      contentPadding = PaddingValues(HorizontalPadding)
+      contentPadding = PaddingValues(horizontal = HorizontalPadding)
     ) {
       itemsIndexed(images) { index, item ->
         Card(
-          onClick = {
-            onSelectPic(
-              index, lazyListState.firstVisibleItemIndex, lazyListState.firstVisibleItemScrollOffset
-            )
-          },
+          onClick = { onSelectPic(index, lazyListState) },
           modifier = Modifier
             .padding(end = 16.dp)
             .size(ImageWidth, ImageHeight)
@@ -550,14 +589,25 @@ private fun ImagePreview(
 ) {
   AnimatedVisibility(
     visibleState = previewState.showPreview,
-    enter = scaleIn() + fadeIn(),
-    exit = scaleOut() + fadeOut(),
-    //enter = scaleIn(transformOrigin = TransformOrigin(offset.value.x, offset.value.y)) + fadeIn(),
-    //exit = scaleOut(transformOrigin = TransformOrigin(offset.value.x, offset.value.y)) + fadeOut(),
+    enter = scaleIn(
+      initialScale = 0.3f,
+      transformOrigin = TransformOrigin(previewState.offset.value.x, previewState.offset.value.y)
+    ) + fadeIn(),
+    exit = scaleOut(
+      targetScale = 0.3f,
+      transformOrigin = TransformOrigin(previewState.offset.value.x, previewState.offset.value.y)
+    ) + fadeOut(),
   ) {
     BackHandler { previewState.showPreview.targetState = false }
     val pagerState = rememberPagerState(previewState.selectIndex.value)
     val imageList = jmmMetadata.images ?: listOf()
+
+    LaunchedEffect(previewState) { // 为了滑动图片后，刷新后端的图片中心点位置
+      snapshotFlow { pagerState.currentPage }.collect { pager ->
+        previewState.offset.value = measureCenterOffset(pager, previewState)
+      }
+    }
+
     Box(
       modifier = Modifier
         .fillMaxSize()
