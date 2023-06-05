@@ -1,3 +1,4 @@
+import process from "node:process";
 import { transfer, type Remote } from "comlink";
 import { MessagePortIpc } from "../../core/ipc-web/MessagePortIpc.ts";
 import { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.ts";
@@ -168,7 +169,7 @@ export class JsProcessNMM extends NativeMicroModule {
     ).href;
 
     this._after_shutdown_signal.listen(mainServer.close);
-
+    
     // 从 渲染进程的 主线程中获取到 暴露的 apis
     const apis = await (async () => {
       const urlInfo = mainServer.startResult.urlInfo;
@@ -178,8 +179,10 @@ export class JsProcessNMM extends NativeMicroModule {
           url.pathname = "/index.html";
         }).href,
         {
-          /// 如果起始界面是html，说明是调试模式，那么这个窗口也一同展示
-          show: true, // require.main?.filename.endsWith(".html"),
+          // 是否需要显示 js-process 的窗口 
+          // 不显示
+          show: process.argv.includes("--inspect") ? true : false, // require.main?.filename.endsWith(".html"),
+          transparent: process.argv.includes("--inspect") ? false : true,
         },
         { userAgent: (userAgent) => userAgent + ` dweb-host/${urlInfo.host}` }
       );
