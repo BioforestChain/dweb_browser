@@ -40,6 +40,7 @@ import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.ui.entity.BrowserBaseView
 import info.bagen.dwebbrowser.ui.entity.BrowserWebView
 import info.bagen.dwebbrowser.ui.qrcode.QRCodeScanView
+import info.bagen.dwebbrowser.ui.qrcode.rememberQRCodeScanState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -335,6 +336,7 @@ private fun SearchBox(
   viewModel: BrowserViewModel,
   baseView: BrowserBaseView,
 ) {
+  var showSearchView by LocalShowSearchView.current;
   Box(modifier = Modifier
     .padding(horizontal = dimenSearchHorizontalAlign, vertical = dimenSearchVerticalAlign)
     .fillMaxWidth()
@@ -345,13 +347,14 @@ private fun SearchBox(
     .clip(RoundedCornerShape(dimenSearchRoundedCornerShape))
     .background(MaterialTheme.colorScheme.surface)
     .clickable {
-      viewModel.uiState.showSearchView.value = true
+      showSearchView = true;
     }) {
     val inputText = when (baseView) {
       is BrowserWebView -> {
         ShowLinearProgressIndicator(baseView)
         mutableStateOf(baseView.state.lastLoadedUrl ?: "")
       }
+
       else -> mutableStateOf("")
     }
     //SearchTextField(viewModel, inputText, baseView.focus)
@@ -406,6 +409,7 @@ private fun BoxScope.ShowLinearProgressIndicator(browserWebView: BrowserWebView?
           color = MaterialTheme.colorScheme.primary
         )
       }
+
       else -> {}
     }
   }
@@ -416,7 +420,9 @@ private fun BoxScope.ShowLinearProgressIndicator(browserWebView: BrowserWebView?
  */
 @Composable
 fun BrowserSearchView(viewModel: BrowserViewModel) {
-  if (viewModel.uiState.showSearchView.value) {
+  var showSearchView by LocalShowSearchView.current;
+
+  if (showSearchView) {
     val inputText = viewModel.uiState.currentBrowserBaseView.value.state.lastLoadedUrl ?: ""
     val text = if (inputText.startsWith("file:///android_asset") ||
       inputText == stringResource(id = R.string.browser_search_hint)
@@ -433,15 +439,16 @@ fun BrowserSearchView(viewModel: BrowserViewModel) {
       }
     }
 
+
     SearchView(
       text = text,
       imeShowed = imeShowed,
       homePreview = { HomeWebviewPage(viewModel) },
       onClose = {
-        viewModel.uiState.showSearchView.value = false
+        showSearchView = false
       },
       onSearch = { url -> // 第一个是搜索关键字，第二个是搜索地址
-        viewModel.uiState.showSearchView.value = false
+        showSearchView = false
         viewModel.saveLastKeyword(url)
         viewModel.handleIntent(BrowserIntent.SearchWebView(url))
       })
@@ -455,7 +462,9 @@ internal fun HomeWebviewPage(viewModel: BrowserViewModel) {
   val isDark = isSystemInDarkTheme()
   WebView(
     state = webView.state,
-    modifier = Modifier.fillMaxSize().background(background),
+    modifier = Modifier
+      .fillMaxSize()
+      .background(background),
     navigator = webView.navigator,
     factory = {
       webView.webView.parent?.let { (it as ViewGroup).removeAllViews() }

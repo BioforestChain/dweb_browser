@@ -12,6 +12,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.material3.*
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.asImageBitmap
@@ -51,26 +52,27 @@ import org.http4k.lens.Header
 import java.util.concurrent.atomic.AtomicInteger
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
-data class BrowserUIState (
-    val browserViewList: MutableList<BrowserWebView> = mutableStateListOf(), // 多浏览器列表
-    val currentBrowserBaseView: MutableState<BrowserWebView>,
-    val pagerStateContent: PagerState = PagerState(0), // 用于表示展示内容
-    val pagerStateNavigator: PagerState = PagerState(0), // 用于表示下面搜索框等内容
-    val myInstallApp: MutableMap<Mmid, JsMicroModule> = JmmNMM.getAndUpdateJmmNmmApps(), // 系统安装的应用
-    val multiViewShow: MutableTransitionState<Boolean> = MutableTransitionState(false),
-    val showBottomBar: MutableTransitionState<Boolean> = MutableTransitionState(true), // 用于网页上滑或者下滑时，底下搜索框和导航栏的显示
-    val bottomSheetScaffoldState: BottomSheetScaffoldState = BottomSheetScaffoldState(
+data class BrowserUIState(
+  val browserViewList: MutableList<BrowserWebView> = mutableStateListOf(), // 多浏览器列表
+  val currentBrowserBaseView: MutableState<BrowserWebView>,
+  val pagerStateContent: PagerState = PagerState(0), // 用于表示展示内容
+  val pagerStateNavigator: PagerState = PagerState(0), // 用于表示下面搜索框等内容
+  val myInstallApp: MutableMap<Mmid, JsMicroModule> = JmmNMM.getAndUpdateJmmNmmApps(), // 系统安装的应用
+  val multiViewShow: MutableTransitionState<Boolean> = MutableTransitionState(false),
+  val showBottomBar: MutableTransitionState<Boolean> = MutableTransitionState(true), // 用于网页上滑或者下滑时，底下搜索框和导航栏的显示
+  val bottomSheetScaffoldState: BottomSheetScaffoldState = BottomSheetScaffoldState(
     bottomSheetState = SheetState(
       skipPartiallyExpanded = false, initialValue = SheetValue.Hidden, skipHiddenState = false
     ),
     snackbarHostState = SnackbarHostState()
   ),
-    val inputText: MutableState<String> = mutableStateOf(""), // 用于指定输入的内容
-    val currentInsets: MutableState<WindowInsetsCompat>, // 获取当前界面区域
-    val showSearchView: MutableState<Boolean> = mutableStateOf(false), // 用于显示搜索的界面，也就是点击搜索框后界面
-    val showSearchEngine: MutableTransitionState<Boolean> = MutableTransitionState(false), // 用于在输入内容后，显示本地检索以及提供搜索引擎
-    val qrCodeScanState: QRCodeScanState = QRCodeScanState(), // 用于判断桌面的显示隐藏
+  val inputText: MutableState<String> = mutableStateOf(""), // 用于指定输入的内容
+  val currentInsets: MutableState<WindowInsetsCompat>, // 获取当前界面区域
+  val showSearchEngine: MutableTransitionState<Boolean> = MutableTransitionState(false), // 用于在输入内容后，显示本地检索以及提供搜索引擎
+  val qrCodeScanState: QRCodeScanState = QRCodeScanState(), // 用于判断桌面的显示隐藏
 )
+
+val LocalShowSearchView = compositionLocalOf { mutableStateOf(false) }
 
 sealed class BrowserIntent {
   object ShowMainView : BrowserIntent()
@@ -113,7 +115,8 @@ class BrowserViewModel(private val browserController: BrowserController) : ViewM
     // return info.bagen.dwebbrowser.ui.entity.BrowserMainView() // 打开原生的主界面
     // 打开webview
     val webviewId = "#web${webviewId_acc.getAndAdd(1)}"
-    val state = WebViewState(WebContent.Url(url ?: "file:///android_asset/browser/newtab/index.html"))
+    val state =
+      WebViewState(WebContent.Url(url ?: "file:///android_asset/browser/newtab/index.html"))
     val coroutineScope = CoroutineScope(CoroutineName(webviewId))
     val navigator = WebViewNavigator(coroutineScope)
     return BrowserWebView(
@@ -134,17 +137,21 @@ class BrowserViewModel(private val browserController: BrowserController) : ViewM
             it.show.value = true
           }
         }
+
         is BrowserIntent.WebViewGoBack -> {
           uiState.currentBrowserBaseView.value.navigator.navigateBack()
         }
+
         is BrowserIntent.UpdateCurrentBaseView -> {
           if (action.currentPage >= 0 && action.currentPage < uiState.browserViewList.size) {
             uiState.currentBrowserBaseView.value = uiState.browserViewList[action.currentPage]
           }
         }
+
         is BrowserIntent.UpdateBottomViewState -> {
           uiState.showBottomBar.targetState = action.show
         }
+
         is BrowserIntent.UpdateMultiViewState -> {
           if (action.show) {
             uiState.currentBrowserBaseView.value.controller.capture()
@@ -157,9 +164,11 @@ class BrowserViewModel(private val browserController: BrowserController) : ViewM
             }
           }
         }
+
         is BrowserIntent.UpdateSearchEngineState -> {
           uiState.showSearchEngine.targetState = action.show
         }
+
         is BrowserIntent.AddNewMainView -> {
           withContext(mainAsyncExceptionHandler) {
             val itemView = getNewTabBrowserView()
@@ -171,6 +180,7 @@ class BrowserViewModel(private val browserController: BrowserController) : ViewM
             uiState.pagerStateContent.scrollToPage(uiState.browserViewList.size - 1)
           }
         }
+
         is BrowserIntent.SearchWebView -> {
           uiState.showSearchEngine.targetState = false // 到搜索功能了，搜索引擎必须关闭
           uiState.currentBrowserBaseView.value.state.content = WebContent.Url(action.url)
@@ -212,9 +222,11 @@ class BrowserViewModel(private val browserController: BrowserController) : ViewM
             }
           }*/
         }
+
         is BrowserIntent.OpenDwebBrowser -> {
           BrowserNMM.browserController?.openApp(action.mmid)
         }
+
         is BrowserIntent.RemoveBaseView -> {
           uiState.browserViewList.removeAt(action.id)
           if (uiState.browserViewList.size == 0) {
@@ -227,6 +239,7 @@ class BrowserViewModel(private val browserController: BrowserController) : ViewM
             }
           }
         }
+
         is BrowserIntent.SaveHistoryWebSiteInfo -> {
           action.url?.let {
             if (!isNoTrace.value && !it.startsWith("file:///android_asset/")) { // 无痕模式，不保存历史搜索记录
@@ -236,6 +249,7 @@ class BrowserViewModel(private val browserController: BrowserController) : ViewM
             }
           }
         }
+
         is BrowserIntent.SaveBookWebSiteInfo -> {
           uiState.currentBrowserBaseView.value.let {
             val url = it.state.lastLoadedUrl ?: ""
@@ -254,6 +268,7 @@ class BrowserViewModel(private val browserController: BrowserController) : ViewM
             handleIntent(BrowserIntent.ShowSnackbarMessage("添加书签成功"))
           }
         }
+
         is BrowserIntent.ShareWebSiteInfo -> {
           uiState.currentBrowserBaseView.value.let {
             if (it.state.lastLoadedUrl?.startsWith("file:///android_asset") == true) {
@@ -269,12 +284,15 @@ class BrowserViewModel(private val browserController: BrowserController) : ViewM
             browserController.activity?.startActivity(Intent.createChooser(shareIntent, "分享到"))
           }
         }
+
         is BrowserIntent.UpdateInputText -> {
           uiState.inputText.value = action.text
         }
+
         is BrowserIntent.UninstallJmmMetadata -> {
           browserController.uninstallJMM(action.jmmMetadata)
         }
+
         is BrowserIntent.ShowSnackbarMessage -> {
           withContext(mainAsyncExceptionHandler) {
             uiState.bottomSheetScaffoldState.snackbarHostState
@@ -315,8 +333,9 @@ class BrowserViewModel(private val browserController: BrowserController) : ViewM
     get() =
       uiState.currentInsets.value.getInsets(WindowInsetsCompat.Type.ime()).bottom > 0
 
-  val canMoveToBackground get() = !uiState.currentBrowserBaseView.value.navigator.canGoBack &&
-      uiState.qrCodeScanState.isHidden
+  val canMoveToBackground
+    get() = !uiState.currentBrowserBaseView.value.navigator.canGoBack &&
+        uiState.qrCodeScanState.isHidden
 }
 
 internal class DwebBrowserWebViewClient : AccompanistWebViewClient() {
