@@ -46,11 +46,11 @@ export const openNativeWindow = async (
   
   win.on("close", () => {
     const devToolsWin = win._devToolsWin.values()
-    if(devToolsWin !== undefined){
-      Array.from(devToolsWin).forEach(item => {
-        item.close();
-      })
-    }
+    const devToolsWinArr = Array.from(devToolsWin);
+    devToolsWinArr.forEach(item => {
+      item.close();
+      win._devToolsWin.delete(item.webContents.id)
+    })
   })
 
   win.webContents.setWindowOpenHandler((_detail) => {
@@ -196,8 +196,6 @@ export class ForRenderApi {
   // 关闭 Browserwindow
   closedBrowserWindow() {
     this.win.close();
-    const devToolsWin = Reflect.get(this.win, "devToolsWin");
-    if (devToolsWin) devToolsWin.close();
   }
 }
 

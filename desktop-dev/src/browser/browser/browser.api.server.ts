@@ -1,12 +1,10 @@
 import { Ipc, IpcRequest, IpcResponse, IpcHeaders } from "../../core/ipc/index.ts";
 import { createHttpDwebServer } from "../../sys/http-server/$createHttpDwebServer.ts";
 import { getAllApps } from "../jmm/jmm.api.serve.ts"
-import { exec } from "node:child_process";
-import path from "node:path";
-import process from "node:process";
 import { JsMicroModule, JsMMMetadata } from "../jmm/micro-module.js.ts"
 import type { BrowserNMM } from "./browser.ts";
 import { $MMID } from "../../helper/types.ts";
+import { IpcEvent } from "../../core/ipc/index.ts";
 
 
 export async function createAPIServer(this: BrowserNMM) {
@@ -275,7 +273,6 @@ async function open(
   request: IpcRequest, 
   ipc: Ipc
 ){
-  console.always("request", request.parsed_url)
   const searchParams = request.parsed_url.searchParams;
   const mmid = searchParams.get("app_id")
   const root = searchParams.get('root')
@@ -316,10 +313,14 @@ async function open(
     })
   )
 
+  // 需要检查是否已经安装了应用 如果已经安装了就不要再安装了
+  // 还需要判断 应用是否已经更新了 
+
   this.context?.dns.install(jsMM);
-  const res = await this.nativeFetch(
-    `file://dns.sys.dweb/open?app_id=${mmid}`
-  )
+  const [jsIpc] = await this.context?.dns.connect(mmid as $MMID)!
+  // 如果 对应app的全部 devTools 中有没有关闭的，就无法再次打开
+  jsIpc.postMessage(IpcEvent.fromText("activity", ""));
+  console.always('activity', mmid)
   return postMessage(200, "o,")
 }
 

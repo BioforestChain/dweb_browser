@@ -460,7 +460,6 @@ export class ViewTree extends LitElement {
         src: item.src
       };
     });
-    debugger;
     ipcRenderer.send("sync:webview_state", uid, allWebviewState);
   }
 
@@ -596,6 +595,7 @@ export class ViewTree extends LitElement {
     if (len > 1) {
       this.deleteTopBarState();
       this.deleteTopSafeAreaState();
+      this.destroyWebview(this.webviews[0]);
       // 把 navigationBarState statusBarStte safe-area 的改变发出
       ipcRenderer.send("safe_are_insets_change");
       ipcRenderer.send("navigation_bar_state_change");
@@ -603,7 +603,6 @@ export class ViewTree extends LitElement {
       return;
     }
     console.error("是否应该需要关闭 当前window了？？？ 还没有决定");
-    this.destroyWebview(this.webviews[0]);
     mainApis.closedBrowserWindow();
   };
 
