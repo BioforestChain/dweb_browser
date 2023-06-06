@@ -13,22 +13,22 @@ import type { $BarState, $ToastPosition } from "./types.ts";
 
 type $APIS = typeof import("./assets/multi-webview.html.ts")["APIS"];
 
-/**
- * 打开 应用
- * 如果 是由 jsProcdss 调用 会在当前的 browserWindow 打开一个新的 webview
- * 如果 是由 NMM 调用的 会打开一个新的 borserWindow 同时打开一个新的 webview
- */
-export async function open(
-  this: MicroModule,
-  root_url: string,
-  args: $Schema1ToType<{ url: "string" }>,
-  clientIpc: Ipc,
-  _request: IpcRequest
-) {
-  const wapis = await forceGetWapis(clientIpc, root_url);
-  const webview_id = await wapis.apis.webveiws_unshift(args.url);
-  return webview_id;
-}
+// /**
+//  * 打开 应用
+//  * 如果 是由 jsProcdss 调用 会在当前的 browserWindow 打开一个新的 webview
+//  * 如果 是由 NMM 调用的 会打开一个新的 borserWindow 同时打开一个新的 webview
+//  */
+// export async function open(
+//   this: MicroModule,
+//   root_url: string,
+//   args: $Schema1ToType<{ url: "string" }>,
+//   clientIpc: Ipc,
+//   _request: IpcRequest
+// ) {
+//   const wapis = await forceGetWapis(clientIpc, root_url);
+//   const webview_id = await wapis.apis.webveiws_unshift(args.url);
+//   return webview_id;
+// }
 
 /**
  * 关闭当前激活项
@@ -60,7 +60,7 @@ export async function openDownloadPage(
 ) {
   const metadataUrl = JSON.parse(await request.body.text())?.metadataUrl;
   const targetUrl = `${args.url}&metadataUrl=${metadataUrl}`;
-  const wapi = await forceGetWapis(_clientIpc, root_url);
+  const wapi = await forceGetWapis.bind(this)(_clientIpc, root_url);
   const webview_id = await wapi.apis.webveiws_unshift(targetUrl);
   return { webview_id };
 }

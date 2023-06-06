@@ -14,13 +14,11 @@ import { $ReqMatcher, $isMatchReq } from "../../helper/$ReqMatcher.ts";
 import { once } from "../../helper/$once.ts";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
-// import { openNativeWindow } from "../../helper/openNativeWindow.ts";
 import type { $PromiseMaybe } from "../../helper/types.ts";
 import { createHttpDwebServer } from "../../sys/http-server/$createHttpDwebServer.ts";
 import { saveNative2JsIpcPort } from "./ipc.native2js.ts";
 import { jsProcessOpenWindow } from "./js-process.openWindow.ts"
 import type { $NWW } from "./js-process.openWindow.ts"
-import { bgWhite } from "https://deno.land/std@0.140.0/fmt/colors.ts";
 
 type $APIS = typeof import("./assets/js-process.web.ts")["APIS"];
 
@@ -177,25 +175,6 @@ export class JsProcessNMM extends NativeMicroModule {
     // 从 渲染进程的 主线程中获取到 暴露的 apis
     const apis = await (async () => {
       const urlInfo = mainServer.startResult.urlInfo;
-      // v1
-      // const nww = await openNativeWindow(
-      //   // 如果下面的 show === false 那么这个窗口是不会出现的
-      //   mainServer.startResult.urlInfo.buildInternalUrl((url) => {
-      //     url.pathname = "/index.html";
-      //   }).href,
-      //   {
-      //     // 是否需要显示 js-process 的窗口 
-      //     // 不显示
-      //     show: process.argv.includes("--inspect") ? true : false, // require.main?.filename.endsWith(".html"),
-      //     transparent: process.argv.includes("--inspect") ? false : true,
-      //   },
-      //   { userAgent: (userAgent) => userAgent + ` dweb-host/${urlInfo.host}` }
-      // );
-      // this._after_shutdown_signal.listen(() => {
-      //   nww.close();
-      // });
-      // return nww.getApis<$APIS>();
-      // v2
       nww = await jsProcessOpenWindow(
         // 如果下面的 show === false 那么这个窗口是不会出现的
         mainServer.startResult.urlInfo.buildInternalUrl((url) => {
@@ -203,7 +182,6 @@ export class JsProcessNMM extends NativeMicroModule {
         }).href,
         {
           // 是否需要显示 js-process 的窗口 
-          // 不显示
           show: process.argv.includes("--inspect") ? true : false, // require.main?.filename.endsWith(".html"),
         },
         { userAgent: (userAgent) => userAgent + ` dweb-host/${urlInfo.host}` }
@@ -356,28 +334,6 @@ export class JsProcessNMM extends NativeMicroModule {
             /// TODO 对代码进行翻译处理
             // 暂时是使用来同 woker.js 功能
             const response = await streamIpc.request(url.href);
-            // 补丁用来暂时处理 streamIpc 无法正常放回的情况
-            // 无法正常返回的情况描述
-            // 在worker中通过监听创建和监听 httpDwebServer返回的stremIpc
-            // onRequest 之后 通过 这个 steamIpc.postMessage() 无法把数据正常返回；
-            // 但是 只要每次 woker 执行 创建和监听httpDwebServer比上一次woker要多一次
-            // 就不会出现 streamIpc 无法返回的情况
-            // const preStr = new Array(pre)
-            //   .fill(undefined)
-            //   .map((_, index) => {
-            //     return `
-            //     ;(async () => {
-            //       const server = await http.createHttpDwebServer(jsProcess,{subdomain: ${pre}, port: parseInt(${
-            //       10 + index
-            //     })})
-            //       const streamIpc = await server.listen();
-            //       // 一定要关闭
-            //       server.close();
-            //       streamIpc.close();
-            //     })();
-            //   `;
-            //   })
-            //   .join("\n");
             const preStr = "";
             const data = `${preStr};${await response.body.text()}`;
             return {
@@ -489,5 +445,4 @@ export class JsProcessNMM extends NativeMicroModule {
     // 把一个messageChange保存到全局对象
     return saveNative2JsIpcPort(channel_for_worker.port1);
   }
-  // static singleton = once(() => new JsProcessManager());
 }
