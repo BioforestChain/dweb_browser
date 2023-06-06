@@ -1,9 +1,7 @@
 package info.bagen.dwebbrowser.ui.browser
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.os.Build
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.DrawableRes
@@ -28,7 +26,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Alignment.Companion.BottomEnd
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Alignment.Companion.CenterEnd
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
@@ -41,13 +38,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -61,6 +56,7 @@ import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.database.WebSiteDatabase
 import info.bagen.dwebbrowser.database.WebSiteInfo
 import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
+import info.bagen.dwebbrowser.ui.browser.book.BookRecentList
 import info.bagen.dwebbrowser.ui.entity.BrowserBaseView
 import info.bagen.dwebbrowser.ui.entity.BrowserMainView
 import info.bagen.dwebbrowser.ui.entity.BrowserWebView
@@ -353,7 +349,6 @@ private fun PopContentView(
   viewModel: BrowserViewModel,
   openBookManager: (WebSiteInfo) -> Unit
 ) {
-  val bookViewModel = remember { BookViewModel() }
   val historyViewModel = remember { HistoryViewModel() }
   val scope = rememberCoroutineScope()
 
@@ -364,15 +359,16 @@ private fun PopContentView(
       .navigationBarsPadding()
   ) {
     when (popupViewState.value) {
-      PopupViewState.BookList -> BrowserListOfBook(
-        bookViewModel,
-        onOpenSetting = { openBookManager(it) }
-      ) {
-        scope.launch {
-          viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.hide()
-          viewModel.handleIntent(BrowserIntent.SearchWebView(it))
+      PopupViewState.BookList -> BookRecentList(
+        Modifier.padding(16.dp),
+        onOpenSetting = { openBookManager(it) },
+        onSearch = {
+          scope.launch {
+            viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.hide()
+            viewModel.handleIntent(BrowserIntent.SearchWebView(it))
+          }
         }
-      }
+      )
 
       PopupViewState.HistoryList -> BrowserListOfHistory(historyViewModel) {
         scope.launch {
@@ -399,9 +395,11 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel) {
       })
   LazyColumn(modifier = Modifier.fillMaxSize()) {
     item {
-      Column(modifier = Modifier
-        .fillMaxWidth()
-        .padding(horizontal = 16.dp, vertical = 12.dp)) {
+      Column(
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(horizontal = 16.dp, vertical = 12.dp)
+      ) {
         RowItemMenuView(text = "添加书签", trailingIcon = R.drawable.ic_main_book) {
           viewModel.handleIntent(BrowserIntent.SaveBookWebSiteInfo)
         } // 添加书签

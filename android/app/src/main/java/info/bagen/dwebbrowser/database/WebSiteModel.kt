@@ -12,10 +12,12 @@ import io.ktor.util.date.*
 import java.io.ByteArrayOutputStream
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.time.temporal.TemporalField
 import java.util.*
 
 
 internal const val WebSiteTableName = "website"
+
 /**
  * 定义数据实体
  */
@@ -26,12 +28,14 @@ internal const val WebSiteTableName = "website"
 data class WebSiteInfo(
   @PrimaryKey(autoGenerate = true) val id: Long = 0L,
   var title: String,
-  var url: String,
+//  var parent: Int = 0,
+  var url: String = "",
   val type: WebSiteType,
   val timeMillis: Long = LocalDate.now().toEpochDay(),
   val icon: ImageBitmap? = null,
+//  val time: Long = System.currentTimeMillis(),
 ) {
-  fun getStickyName() : String {
+  fun getStickyName(): String {
     val currentOfEpochDay = LocalDate.now().toEpochDay()
     return if (timeMillis >= currentOfEpochDay) {
       "今天"
@@ -113,7 +117,7 @@ class Converters {
   }
 
   @TypeConverter
-  fun byteArrayToImageBitmap(byteArray: ByteArray?) : ImageBitmap? {
+  fun byteArrayToImageBitmap(byteArray: ByteArray?): ImageBitmap? {
     return byteArray?.let {
       if (it.isNotEmpty()) {
         BitmapFactory.decodeByteArray(it, 0, it.size).asImageBitmap()
@@ -122,7 +126,7 @@ class Converters {
   }
 
   @TypeConverter
-  fun fromImageBitmap(imageBitmap: ImageBitmap?) : ByteArray? {
+  fun fromImageBitmap(imageBitmap: ImageBitmap?): ByteArray? {
     return imageBitmap?.asAndroidBitmap()?.let {
       val baos = ByteArrayOutputStream()
       it.compress(Bitmap.CompressFormat.PNG, 100, baos)

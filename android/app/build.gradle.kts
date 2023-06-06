@@ -38,7 +38,8 @@ android {
                     "proguard-rules.pro"
                 )
             )
-            isShrinkResources = true //移除无用的resource文件
+            isShrinkResources = true
+            signingConfig = signingConfigs.getByName("debug")//移除无用的resource文件
         }
         create("sit") {
             isDebuggable = true
