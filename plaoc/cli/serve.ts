@@ -3,9 +3,9 @@ import http from "node:http";
 import os from "node:os";
 import { Flags } from "../deps.ts";
 import {
-    BundleFlagHelper,
-    MetadataFlagHelper,
-    NameFlagHelper,
+  BundleFlagHelper,
+  MetadataFlagHelper,
+  NameFlagHelper,
 } from "./helper/flags-helper.ts";
 import { staticServe } from "./helper/http-static-helper.ts";
 
@@ -30,7 +30,8 @@ export const doServe = (args = Deno.args) => {
   }
 
   const metadataFlagHelper = new MetadataFlagHelper(flags);
-  const bundleFlagHelper = new BundleFlagHelper(flags);
+  const id = metadataFlagHelper.readMetadata().id
+  const bundleFlagHelper = new BundleFlagHelper(flags,id);
   const nameFlagHelper = new NameFlagHelper(flags, metadataFlagHelper);
 
   http
@@ -74,7 +75,7 @@ export const doServe = (args = Deno.args) => {
         console.log(
           `metadata: \thttp://${info?.address}:${port}/${nameFlagHelper.metadataName}`
         );
-        // console.log(`package: \thttp://${info?.address}:${port}/${nameFlagHelper.metadataFlagHelper.baseMetadata.bundle_url}`)
+        console.log(`package: \thttp://${info?.address}:${port}/${nameFlagHelper.bundleName}`)
       }
     });
 };

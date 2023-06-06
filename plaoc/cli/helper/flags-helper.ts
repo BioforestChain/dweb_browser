@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import JSZip from "npm:jszip";
-import { $AppMetaData } from "../../deps.ts";
+import { $AppMetaData, $MMID } from "../../deps.ts";
 import { SERVE_MODE, defaultMetadata } from "./const.ts";
 import { GenerateTryFilepaths } from "./util.ts";
 import { $ZipEntry, walkDirToZipEntries, zipEntriesToZip } from "./zip.ts";
@@ -82,7 +82,7 @@ export class BundleFlagHelper {
     throw new Error("no implement");
   };
   readonly www_dir: undefined | string;
-  constructor(readonly flags: $MetadataFlagHelperOptions) {
+  constructor(readonly flags: $MetadataFlagHelperOptions,readonly id: $MMID) {
     const bundleTarget = flags._?.[0]?.toString();
     /// 实时预览模式，使用代理html
     if (
@@ -97,7 +97,7 @@ export class BundleFlagHelper {
       }
       const index_html_file_entry = {
         dir: false,
-        path: "usr/www/index.html",
+        path: `${this.id}/usr/www/index.html`,
         data: `<head><meta http-equiv="refresh" content="0;url=${liveUrl}"></head>`,
         time: new Date(0),
       } satisfies $ZipEntry;
@@ -129,7 +129,7 @@ export class BundleFlagHelper {
           ...walkDirToZipEntries(www_dir).map((entry) => {
             return {
               ...entry,
-              path: "usr/www/" + entry.path,
+              path: `${this.id}/usr/www/` + entry.path,
             };
           }),
         ]);
@@ -139,19 +139,23 @@ export class BundleFlagHelper {
     return [
       {
         dir: true,
-        path: "usr",
+        path: this.id,
       },
       {
         dir: true,
-        path: "usr/server",
+        path: `${this.id}/usr`,
       },
       {
         dir: true,
-        path: "usr/www",
+        path: `${this.id}/usr/server`,
+      },
+      {
+        dir: true,
+        path: `${this.id}/usr/www`,
       },
       {
         dir: false,
-        path: "usr/server/plaoc.server.js",
+        path: `${this.id}/usr/server/plaoc.server.js`,
         data: fs.readFileSync(
           fileURLToPath(
             import.meta.resolve("../../dist/server/plaoc.server.js")
