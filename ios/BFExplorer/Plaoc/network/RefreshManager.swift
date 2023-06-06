@@ -66,7 +66,7 @@ class RefreshManager: NSObject {
         dict["version"] = "4.5"
         dict["releaseNotes"] = "test"
         dict["releaseName"] = "测试"
-        dict["releaseDate"] = "2022.08.06"
+        dict["release_date"] = "2022.08.06"
         dict["files"] = [["url":"http://dldir1.qq.com/qqfile/qq/QQ7.9/16621/QQ7.9.exe",
                          "size": 102984,
                          "sha512": "haha"]]

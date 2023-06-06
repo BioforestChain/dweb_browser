@@ -1,6 +1,6 @@
 ### cli
 
-1. `deno install -A https://deno.land/x/plaoc/cli/index.ts`
+1. `deno install -A https://deno.land/x/plaoc/cli/plaoc.ts`
 
 1. `plaoc bundle ./dir`
    会打包成以下的文件夹结构，并输出压缩文件 `.zip` 和一个 `plaoc.metadata.json`

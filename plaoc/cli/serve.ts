@@ -3,9 +3,9 @@ import http from "node:http";
 import os from "node:os";
 import { Flags } from "../deps.ts";
 import {
-  BundleFlagHelper,
-  MetadataFlagHelper,
-  NameFlagHelper,
+    BundleFlagHelper,
+    MetadataFlagHelper,
+    NameFlagHelper,
 } from "./helper/flags-helper.ts";
 import { staticServe } from "./helper/http-static-helper.ts";
 
@@ -52,9 +52,9 @@ export const doServe = (args = Deno.args) => {
 
         const zipData = await zip.generateAsync({ type: "uint8array" });
         const hasher = crypto.createHash("sha256").update(zipData);
-        metadata.bundleSize = zipData.byteLength;
-        metadata.bundleHash = "sha256:" + hasher.digest("hex");
-        metadata.bundleUrl = `./${nameFlagHelper.bundleName}`;
+        metadata.bundle_size = zipData.byteLength;
+        metadata.bundle_hash = "sha256:" + hasher.digest("hex");
+        metadata.bundle_url = `./${nameFlagHelper.bundleName}`;
 
         res.end(JSON.stringify(metadata, null, 2));
         return;
@@ -74,6 +74,7 @@ export const doServe = (args = Deno.args) => {
         console.log(
           `metadata: \thttp://${info?.address}:${port}/${nameFlagHelper.metadataName}`
         );
+        // console.log(`package: \thttp://${info?.address}:${port}/${nameFlagHelper.metadataFlagHelper.baseMetadata.bundle_url}`)
       }
     });
 };

@@ -222,11 +222,11 @@ private fun BoxScope.BottomDownloadButton(viewModel: JmmManagerViewModel) {
     var showLinearProgress = false
     val text = when (downLoadInfo.downLoadStatus) {
       DownLoadStatus.IDLE, DownLoadStatus.CANCEL -> {
-        "下载 (${downLoadInfo.jmmMetadata.bundleSize.toSpaceSize()})"
+        "下载 (${downLoadInfo.jmmMetadata.bundle_size.toSpaceSize()})"
       }
 
       DownLoadStatus.NewVersion -> {
-        "更新 (${downLoadInfo.jmmMetadata.bundleSize.toSpaceSize()})"
+        "更新 (${downLoadInfo.jmmMetadata.bundle_size.toSpaceSize()})"
       }
 
       DownLoadStatus.DownLoading -> {
@@ -410,7 +410,7 @@ private fun AppInfoLazyRow(jmmMetadata: JmmMetadata) {
       DoubleRowItem(first = "18+", second = "年满 18 周岁")
     }
     item { // 大小
-      DoubleRowItem(first = jmmMetadata.bundleSize.toSpaceSize(), second = "大小")
+      DoubleRowItem(first = jmmMetadata.bundle_size.toSpaceSize(), second = "大小")
     }
   }
 }
@@ -537,7 +537,7 @@ private fun OtherInfoView(jmmMetadata: JmmMetadata) {
     )
     Spacer(modifier = Modifier.height(HorizontalPadding))
     OtherItemView(type = "开发者", content = jmmMetadata.author?.toContent() ?: "me")
-    OtherItemView(type = "大小", content = jmmMetadata.bundleSize.toSpaceSize())
+    OtherItemView(type = "大小", content = jmmMetadata.bundle_size.toSpaceSize())
     OtherItemView(type = "类别", content = "娱乐")
     OtherItemView(type = "语言", content = "中文")
     OtherItemView(type = "年龄分级", content = "18+")

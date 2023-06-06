@@ -69,10 +69,10 @@ elBtnDownload.addEventListener("click", async (e) => {
     console.log("fetch_url:", install_url);
     /// 将下载链接进行补全
     if (
-      (appInfo.bundleUrl.startsWith("http:") ||
-        appInfo.bundleUrl.startsWith("https:")) === false
+      (appInfo.bundle_url.startsWith("http:") ||
+        appInfo.bundle_url.startsWith("https:")) === false
     ) {
-      appInfo.bundleUrl = new URL(appInfo.bundleUrl, fromUrl).href;
+      appInfo.bundle_url = new URL(appInfo.bundle_url, fromUrl).href;
     }
     const res = await fetch(install_url, {
       method: "POST",

@@ -63,7 +63,7 @@ public sealed record NotificationOptions(
     string title,
     string text,
     string? smallIcon,
-    string? shortName,
+    string? short_name,
     string? bigText,
     int? badge,
     NotificationManager.ChannelType channelType);

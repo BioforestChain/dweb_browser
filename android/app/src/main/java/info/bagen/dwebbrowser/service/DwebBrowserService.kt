@@ -75,7 +75,7 @@ class DwebBrowserService : Service() {
     GlobalScope.launch(Dispatchers.IO) {
       sendStatusToEmitEvent(downLoadInfo.jmmMetadata.id, DownloadControllerEvent.Start.event) // 通知前台，开始下载
       ApiService.instance.downloadAndSave(
-        downLoadInfo.jmmMetadata.bundleUrl, File(downLoadInfo.path),
+        downLoadInfo.jmmMetadata.bundle_url, File(downLoadInfo.path),
         isStop = {
           when (downLoadInfo.downLoadStatus) {
             DownLoadStatus.PAUSE -> {
@@ -105,7 +105,7 @@ class DwebBrowserService : Service() {
     GlobalScope.launch(Dispatchers.IO) {
       sendStatusToEmitEvent(downLoadInfo.jmmMetadata.id, DownloadControllerEvent.Start.event) // 通知前台，开始下载
       ApiService.instance.breakpointDownloadAndSave(
-        downLoadInfo.jmmMetadata.bundleUrl, File(downLoadInfo.path), downLoadInfo.size,
+        downLoadInfo.jmmMetadata.bundle_url, File(downLoadInfo.path), downLoadInfo.size,
         isStop = {
           when (downLoadInfo.downLoadStatus) {
             DownLoadStatus.PAUSE -> {

@@ -26,13 +26,13 @@ export interface BFSMetaData {
   description: string; // 应用描述
   author: string[]; // 开发者，作者
   version: string; // 应用版本
-  keywords: string[]; // 关键词
+  categories: string[]; // 关键词
   home: string; // 首页地址
   size: string; // 应用大小
   fileHash: string;
   permissions: string[];
   plugins: string[];
-  releaseDate: string; // 发布时间
+  release_date: string; // 发布时间
 }
 
 interface MainServer {

@@ -2,15 +2,15 @@ export interface $AppMetaData {
   title: string;
   short_name: string;
   id: string;
-  bundleUrl: string;
-  bundleHash: string;
-  bundleSize: number;
+  bundle_url: string;
+  bundle_hash: string;
+  bundle_size: number;
   icon: string;
   images: string[];
   description: string;
   author: string[];
   version: string;
-  keywords: string[];
+  categories: string[];
   home: string;
   mainUrl: string;
   server: {
@@ -22,7 +22,7 @@ export interface $AppMetaData {
   openWebViewList: [];
   permissions: string[];
   plugins: string[];
-  releaseDate: string;
+  release_date: string;
 }
 
 export interface $StaticWebServers {

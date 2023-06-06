@@ -46,7 +46,7 @@ var metaData = metaConfig({
         description: "Awasome DWeb",
         maxAge: 1,
         // 应用搜索的关键字
-        keywords: ["demo"],
+        categories: ["demo"],
         // 私钥文件，用于最终的应用签名
         privateKey: "bmr9vohvtvbvwrs3p4bwgzsmolhtphsvvj",
         homepage: "docs.plaoc.com",
@@ -58,7 +58,7 @@ var metaData = metaConfig({
         //  本次发布的标题，用于展示更新信息时的标题
         releaseName: "xxx",
         // 发布日期
-        releaseDate: "xxx",
+        release_date: "xxx",
     },
     //  这里配置的白名单将不被拦截
     whitelist: ["https://unpkg.com", "https://cn.vitejs.dev"],

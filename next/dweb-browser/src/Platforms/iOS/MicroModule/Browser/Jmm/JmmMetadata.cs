@@ -15,7 +15,7 @@ public class JmmMetadata
     public List<Dweb_DeepLink>? Dweb_DeepLinks { get; set; }       // dweb-deeplinks
     [JsonPropertyName("name")]
     public string Name { get; set; }       // 应用名称
-    [JsonPropertyName("shortName")]
+    [JsonPropertyName("short_name")]
     public string ShortName { get; set; }        // 应用副标题
     [JsonPropertyName("icon")]
     public string Icon { get; set; }        // 应用图标
@@ -27,10 +27,10 @@ public class JmmMetadata
     public List<string>? Author { get; set; }       // 开发者，作者
     [JsonPropertyName("version")]
     public string Version { get; set; }     // 应用版本
-    [JsonPropertyName("newFeature")]
+    [JsonPropertyName("new_feature")]
     public string NewFeature { get; set; }      // 新特性，新功能
-    [JsonPropertyName("keywords")]
-    public List<string>? Keywords { get; set; }     // 关键词
+    [JsonPropertyName("categories")]
+    public List<string>? Categories { get; set; }     // 关键词
     [JsonPropertyName("home")]
     public string Home { get; set; }        // 首页地址
     [JsonPropertyName("bundleUrl")]
@@ -43,49 +43,48 @@ public class JmmMetadata
     public List<string>? Permissions { get; set; }      // app使用权限情况
     [JsonPropertyName("plugins")]
     public List<string>? Plugins { get; set; }      // app使用插件情况
-    [JsonPropertyName("releaseDate")]
-    public string ReleaseDate { get; set; }     // 发布时间
+    [JsonPropertyName("release_date")]
+    public string release_date { get; set; }     // 发布时间
 
     public JmmMetadata(
         Mmid id,
         MainServer server,
         List<Dweb_DeepLink>? dwebDeeplinks = null,
         string name = "",
-        string shortName = "",
+        string short_name = "",
         string icon = "",
         List<string>? images = null,
         string description = "",
         List<string>? author = null,
         string version = "",
-        string newFeature = "",
-        List<string>? keywords = null,
+        string new_feature = "",
+        List<string>? categories = null,
         string home = "",
         string bundleUrl = "",
         string bundleSize = "",
         string bundleHash = "",
         List<string>? permissions = null,
         List<string>? plugins = null,
-        string releaseDate = "")
+        string release_date = "")
     {
         Id = id;
         Server = server;
         Name = name;
-        ShortName = shortName;
+        short_name = shortName;
         Icon = icon;
         Images = images;
         Description = description;
         Author = author;
         Version = version;
-        NewFeature = newFeature;
-        Keywords = keywords;
+        new_feature = new_feature;
+        categories = categories;
         Home = home;
         BundleUrl = bundleUrl;
         BundleSize = bundleSize;
         BundleHash = bundleHash;
         Permissions = permissions;
         Plugins = plugins;
-        ReleaseDate = releaseDate;
-
+        ReleaseDate = release_date;
         if (dwebDeeplinks is null)
         {
             Dweb_DeepLinks = new();

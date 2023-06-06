@@ -67,7 +67,7 @@ class DownLoadViewModel(val mmid: Mmid, val url: String) : ViewModel() {
         root = "/sys",
         entry = "/server/plaoc.server.js"
       ),
-      bundleUrl = url,
+      bundle_url = url,
       name = "测试",
       shortName = "测试",
       icon = "https://www.bfmeta.info/imgs/logo3.webp",

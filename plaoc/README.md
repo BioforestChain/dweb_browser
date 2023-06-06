@@ -17,3 +17,12 @@ deno task plaoc serve ./plaoc/demo/dist
 ```
 
 > `./plaoc/demo/dist` 指向一个 build 之后的应用目录
+
+
+## publish
+
+- 打标签，然后推送到github 
+
+```bash
+git tag -a 0.0.1 -m "feat: xxx"
+```

@@ -1,4 +1,5 @@
 {
+  "id":"game.dweb.waterbang.top.dweb",
   "name":"game",
   "short_name":"vue3-game",
   "description":"这是一个实例应用，包含了dweb_plugins全部组件的实例。",
@@ -8,10 +9,9 @@
     "http://qiniu-waterbang.waterbang.top/bfm/defi.png",
     "http://qiniu-waterbang.waterbang.top/bfm/nft.png"
     ],
-  "downloadUrl":"https://dweb.waterbang.top/game.dweb.waterbang.top.dweb.bfsa",
   "author": ["bfs","bfs@bfs.com"],
   "version": "1.0.0",
-  "newFeature":"船新版本，等你来玩！",
-  "keywords": ["demo","vue3"],
+  "new_feature":"船新版本，等你来玩！",
+  "categories": ["demo","vue3"],
   "home": "https://dweb.waterbang.top"
 }

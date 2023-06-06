@@ -7,9 +7,15 @@ import {
   NameFlagHelper,
 } from "./helper/flags-helper.ts";
 
+/**
+ * --out 指定输出目录(可选)
+ * --version 指定app版本(可选)
+ * --id 指定 appId(可选)
+ * --dir 指定项目根目录(可选)
+ */
 export const doBundle = async (args = Deno.args) => {
   const flags = Flags.parse(args, {
-    string: ["out", "version", "id"],
+    string: ["out", "version", "id","dir"],
     boolean: ["clear"],
     default: {
       out: "bundle",
@@ -17,7 +23,7 @@ export const doBundle = async (args = Deno.args) => {
   });
 
   const metadataFlagHelper = new MetadataFlagHelper(flags);
-  const bundleFlagHelper = new BundleFlagHelper(flags,metadataFlagHelper);
+  const bundleFlagHelper = new BundleFlagHelper(flags);
   const nameFlagHelper = new NameFlagHelper(flags, metadataFlagHelper);
 
   const outDir = path.resolve(Deno.cwd(), flags.out);

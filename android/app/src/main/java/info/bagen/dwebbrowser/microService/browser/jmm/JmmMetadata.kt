@@ -13,16 +13,16 @@ data class JmmMetadata(
     val images: List<String>? = null, // 应用截图
     val description: String = "", // 应用描述
     val author: List<String>? = null, // 开发者，作者
+    val categories: List<String>? = null, // 应用类型 https://github.com/w3c/manifest/wiki/Categories
     val version: String = "", // 应用版本
-    val newFeature: String = "", // 新特性，新功能
-    val keywords: List<String>? = null, // 关键词
+    val new_feature: String = "", // 新特性，新功能
     val home: String = "", // 首页地址
-    var bundleUrl: String = "", // 下载应用地址
-    val bundleSize: String = "", // 应用大小
-    val bundleHash: String = "", // 文件hash
+    var bundle_url: String = "", // 下载应用地址
+    val bundle_size: String = "", // 应用大小
+    val bundle_hash: String = "", // 文件hash
     val permissions: List<String>? = null, // app使用权限的情况
     val plugins: List<String>? = null, // app使用插件的情况
-    val releaseDate: String = "", // 发布时间
+    val release_date: String = "", // 发布时间
 ) : java.io.Serializable {
     data class MainServer(
         /**
@@ -46,9 +46,9 @@ val defaultJmmMetadata = JmmMetadata(
     name = "默认测试数据",
     shortName = "该测试数据包含了相关具体信息，请仔细查阅",
     description = "这是一个实例应用，包含了dweb_plugins全部组件的实例。",
-    bundleUrl = "https://dweb.waterbang.top/app.plaoc.dweb-1.0.0.zip",
-    bundleSize = "2726400",
-    bundleHash = "", // 文件hash
+    bundle_url = "https://dweb.waterbang.top/app.plaoc.dweb-1.0.0.zip",
+    bundle_size = "2726400",
+    bundle_hash = "", // 文件hash
     version = "1.2.0",
     images = listOf(
         "http://qiniu-waterbang.waterbang.top/bfm/cot-home_2058.webp",
@@ -61,6 +61,6 @@ val defaultJmmMetadata = JmmMetadata(
         entry = "/bfs_worker/public.service.worker.js"
     ),
     author = listOf("bfs", "bfs@bfs.com"),
-    keywords = listOf("demo", "vue3"),
-    releaseDate = "2023-05-22T09:01:38.318Z",
+    categories = listOf("demo", "vue3"),
+    release_date = "2023-05-22T09:01:38.318Z",
 )

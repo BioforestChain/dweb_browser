@@ -146,10 +146,10 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb") {
 
     private val installingApps = mutableMapOf<Mmid, InstallingAppInfo>()
     private  fun openJmmMetadataInstallPage(jmmMetadata: JmmMetadata,url:URL) {
-        if (!jmmMetadata.bundleUrl.startsWith("http")) {
-             jmmMetadata.bundleUrl = URL(url,jmmMetadata.bundleUrl).toString()
+        if (!jmmMetadata.bundle_url.startsWith("http")) {
+             jmmMetadata.bundle_url = URL(url,jmmMetadata.bundle_url).toString()
         }
-        debugJMM("openJmmMetadataInstallPage",jmmMetadata.bundleUrl)
+        debugJMM("openJmmMetadataInstallPage",jmmMetadata.bundle_url)
         // 打开安装的界面
         JmmManagerActivity.startActivity(jmmMetadata)
     }

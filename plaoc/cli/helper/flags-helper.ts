@@ -12,6 +12,7 @@ export type $MetadataFlagHelperOptions = {
   mode?: unknown;
   version?: string;
   id?: string;
+  dir?:string;
   _?: unknown[];
 };
 
@@ -25,8 +26,8 @@ export class MetadataFlagHelper {
       ) ??
       (() => {
         const tryFilenames = ["manifest.json", "package.json"];
-
-        let dirs = [Deno.cwd()];
+        // 如果指定了项目目录，到项目目录里面搜索配置文件
+        let dirs = [path.resolve(Deno.cwd(),flags.dir?? "")];
         if (flags.mode === SERVE_MODE.USR_WWW) {
           const www_dir = flags._?.[0]?.toString();
           if (www_dir) {
@@ -38,7 +39,7 @@ export class MetadataFlagHelper {
       })();
     this.baseMetadata = {};
     const { baseMetadata } = this;
-
+    
     for (const key of ["id", "version"] as const) {
       if (flags[key] !== undefined) {
         baseMetadata[key] = flags[key] as never;
@@ -48,7 +49,9 @@ export class MetadataFlagHelper {
   tryReadMetadata() {
     for (const filepath of this.metadataFilepaths) {
       try {
-        return JSON.parse(fs.readFileSync(filepath, "utf-8"));
+        const manifest = JSON.parse(fs.readFileSync(filepath, "utf-8"));
+        manifest.host
+        return manifest
       // deno-lint-ignore no-empty
       } catch {}
     }
@@ -79,7 +82,7 @@ export class BundleFlagHelper {
     throw new Error("no implement");
   };
   readonly www_dir: undefined | string;
-  constructor(readonly flags: $BundleFlagHelperOptions, readonly metadataFlagHelper: MetadataFlagHelper) {
+  constructor(readonly flags: $MetadataFlagHelperOptions) {
     const bundleTarget = flags._?.[0]?.toString();
     /// 实时预览模式，使用代理html
     if (

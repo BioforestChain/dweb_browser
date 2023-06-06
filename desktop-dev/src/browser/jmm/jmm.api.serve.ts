@@ -1,3 +1,4 @@
+import Electron from "electron";
 import crypto from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
@@ -8,21 +9,20 @@ import { open } from "npm:lmdb";
 import mime from "npm:mime";
 import tar from "tar";
 import {
-  Ipc,
-  IpcEvent,
-  IpcHeaders,
-  IpcRequest,
-  IpcResponse,
+    Ipc,
+    IpcEvent,
+    IpcHeaders,
+    IpcRequest,
+    IpcResponse,
 } from "../../core/ipc/index.ts";
-import { JsMMMetadata, JsMicroModule } from "./micro-module.js.ts";
 import { simpleEncoder } from "../../helper/encoding.ts";
 import { locks } from "../../helper/locksManager.ts";
 import { ReadableStreamOut } from "../../helper/readableStreamHelper.ts";
 import { $MMID } from "../../helper/types.ts";
 import { nativeFetchAdaptersManager } from "../../sys/dns/nativeFetch.ts";
 import { createHttpDwebServer } from "../../sys/http-server/$createHttpDwebServer.ts";
-import Electron from "electron";
 import type { $AppMetaData, JmmNMM } from "./jmm.ts";
+import { JsMMMetadata, JsMicroModule } from "./micro-module.js.ts";
 
 export const JMM_APPS_PATH = path.join(Electron.app.getAppPath(), "apps");
 fs.mkdirSync(JMM_APPS_PATH, { recursive: true });
@@ -106,7 +106,7 @@ async function _appInstall(
   if (
     fs.existsSync(tempFilePath) &&
     fs.existsSync(hashFilePath) &&
-    fs.readFileSync(hashFilePath, "utf-8") === appInfo.bundleHash &&
+    fs.readFileSync(hashFilePath, "utf-8") === appInfo.bundle_hash &&
     ipcRequest.headers.get("Accept-Ranges") === "bytes"
   ) {
     bundleWritedSize = fs.statSync(tempFilePath).size;
@@ -115,7 +115,7 @@ async function _appInstall(
     };
   }
 
-  const downloadTask = await this.nativeFetch(appInfo.bundleUrl, {
+  const downloadTask = await this.nativeFetch(appInfo.bundle_url, {
     headers: downloadHeaders,
   }).ok();
   /// 再次确认这个下载是支持 Range:bytes 的
@@ -139,7 +139,7 @@ async function _appInstall(
        * Content-Length: 4300047
        */
       downloadTask.headers.get("Content-Length") ??
-      appInfo.bundleSize + ""
+      appInfo.bundle_size + ""
   );
   /**
    * 下载进度的响应流
@@ -187,7 +187,7 @@ async function _appInstall(
     new WritableStream({
       start: () => {
         /// 下载开始，就写入hash
-        fs.writeFileSync(hashFilePath, appInfo.bundleHash);
+        fs.writeFileSync(hashFilePath, appInfo.bundle_hash);
       },
       write: (chunk, controller) => {
         /// 流量进度监控
@@ -208,9 +208,9 @@ async function _appInstall(
   for await (const chunk of fs.createReadStream(tempFilePath)) {
     hashVerifyer.update(chunk);
   }
-  const bundleHash = "sha256:" + hashVerifyer.digest("hex");
+  const bundle_hash = "sha256:" + hashVerifyer.digest("hex");
   /// hash 校验失败，删除下载的文件，并且结束安装任务
-  if (bundleHash !== appInfo.bundleHash) {
+  if (bundle_hash !== appInfo.bundle_hash) {
     console.log("hash 校验失败");
     /// 移除文件
     fs.rmSync(tempFilePath);
@@ -219,7 +219,7 @@ async function _appInstall(
       "download",
       0,
       true,
-      `hash verifiy failed, actua:${bundleHash} expect:${appInfo.bundleHash}`
+      `hash verifiy failed, actua:${bundle_hash} expect:${appInfo.bundle_hash}`
     );
   }
 

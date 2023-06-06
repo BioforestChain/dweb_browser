@@ -20,7 +20,7 @@ import info.bagen.dwebbrowser.util.APP_DIR_TYPE
  *            sha512: {string} 校验码
  *        releaseNotes: {string} 本次发布的信息，一般存放更新信息
  *        releaseName: {string} 本次发布的标题，用于展示更新信息时的标题
- *        releaseDate: {Date} 发布日期
+ *        release_date: {Date} 发布日期
  */
 
 data class FileInfo(
@@ -30,7 +30,7 @@ data class FileInfo(
   val sha512: String, // 校验码
   val releaseNotes: String? = null, // 本次发布的信息，一般存放更新信息
   val releaseName: String? = null, // 本次发布的标题，用于展示更新信息时的标题
-  val releaseDate: String? = null, // 发布日期
+  val release_date: String? = null, // 发布日期
 )
 
 data class AppVersion(
@@ -40,7 +40,7 @@ data class AppVersion(
   val files: List<FileInfo>? = null, // 文件列表
   val releaseNotes: String? = null, // 本次发布的信息，一般存放更新信息
   val releaseName: String? = null, // 本次发布的标题，用于展示更新信息时的标题
-  val releaseDate: String? = null, // 发布日期
+  val release_date: String? = null, // 发布日期
 )
 
 data class AutoUpdateInfo(
@@ -90,14 +90,14 @@ data class MANIFEST(
   val origin: String, // 唯一标识。和 link.json 中的 bfsAppId 一样
   val author: List<String>, // 作者名称与TA的链接，用“,”进行分割，比如： ["kzf,kezhaofeng@bnqkl.cn,https://bnqkl.cn/developer/kzf"]
   val description: String,
-  val keywords: List<String>,
+  val categories: List<String>,
   val privateKey: String,
   val homepage: String,
   val maxAge: Int,
   val enters: List<String>,
   val releaseNotes: String,
   val releaseName: String,
-  val releaseDate: String,
+  val release_date: String,
   val bfsaEntry: String,
   val appType: String? = null, // 如果当前内容为 web时，直接使用 url 地址
   val url: String? = null, // 如果 appType 为 web 时，跳转该地址

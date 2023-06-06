@@ -30,7 +30,7 @@ export class JmmNMM extends NativeMicroModule {
   };
 
   async _bootstrap(context: $BootstrapContext) {
-    console.always(`[${this.mmid}] _bootstrap`);
+    // console.always(`[${this.mmid}] _bootstrap`);
 
     await createWWWServer.bind(this)();
     await createApiServer.bind(this)();
@@ -72,7 +72,7 @@ export class JmmNMM extends NativeMicroModule {
       matchMode: "full",
       input: {},
       output: "object",
-      handler: async (args, client_ipc, request) => {
+      handler: async (_args, _client_ipc, _request) => {
         const appsInfo = await getAllApps();
         return appsInfo;
       },
@@ -133,27 +133,23 @@ export interface $AppMetaData {
   name: string;
   short_name: string;
   id: $MMID;
-  bundleUrl: string;
-  bundleHash: string;
-  bundleSize: number;
+  bundle_url: string;
+  bundle_hash: string;
+  bundle_size: number;
   icon: string;
   images: string[];
   description: string;
   author: string[];
   version: string;
-  keywords: string[];
+  categories: string[];
   home: string;
-  mainUrl: string;
   server: {
     root: string;
     entry: string;
   };
-  splashScreen: { entry: string };
-  staticWebServers: $StaticWebServers[];
-  openWebViewList: [];
   permissions: string[];
   plugins: string[];
-  releaseDate: string;
+  release_date: string;
 }
 
 export interface $StaticWebServers {
