@@ -37,7 +37,7 @@ struct PagingScroll<Content: View>: UIViewRepresentable {
                 childView.frame = CGRect(x: xOffset, y: 0, width: screen_width, height: 50)
                 uiView.addSubview(childView)
             }
-            uiView.setContentOffset(CGPoint(x: CGFloat(indexInEvrm) * screen_width, y: 0), animated: false)
+            uiView.setContentOffset(CGPoint(x: CGFloat(indexInEvrm) * screen_width, y: 0), animated: true)
         }
     }
     

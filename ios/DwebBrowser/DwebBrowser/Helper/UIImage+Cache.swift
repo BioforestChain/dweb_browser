@@ -32,14 +32,14 @@ extension UIImage {
     }
     
     // 删除缓存的图片
-    static func removeImage(with url: URL) {
+    static func removeImage(with fileUrl: URL) {
         let fileManager = FileManager.default
         
         do {
-            try fileManager.removeItem(at: imageUrl)
-            print("Successfully removed file at \(imageUrl)")
+            try fileManager.removeItem(at: fileUrl)
+            print("Successfully removed file at \(fileUrl)")
         } catch {
-            print("Error removing file at \(imageUrl): \(error)")
+            print("Error removing file at \(fileUrl): \(error)")
         }
     }
     

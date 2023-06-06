@@ -12,11 +12,7 @@ import FaviconFinder
 struct GridCell: View {
     @State var runCount = 0
     @ObservedObject var webCache: WebCache
-//    @Binding var isSelected: Bool
-    
-//    @State private var isSelected: Bool
     var isSelected: Bool
-
     
     var body: some View {
         ZStack(alignment: .topTrailing){
