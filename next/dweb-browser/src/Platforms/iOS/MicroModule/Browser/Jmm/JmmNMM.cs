@@ -58,7 +58,7 @@ public class JmmNMM : NativeMicroModule
         HttpRouter.AddRoute(IpcMethod.Get, "/install", async (request, _) =>
         {
             var searchParams = request.SafeUrl.SearchParams;
-            var metadataUrl = searchParams.ForceGet("metadataUrl");
+            var metadataUrl = searchParams.ForceGet("url");
             var jmmMetadata = await (await NativeFetchAsync(metadataUrl)).JsonAsync<JmmMetadata>()!;
             _openJmmMetadataInstallPage(jmmMetadata);
 

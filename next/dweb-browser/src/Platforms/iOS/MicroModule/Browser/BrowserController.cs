@@ -6,11 +6,11 @@ namespace DwebBrowser.MicroService.Browser;
 public class BrowserController : BaseViewController
 {
     static readonly Debugger Console = new("BrowserController");
-    private BrowserNMM _browserNMM { get; init; }
+    public BrowserNMM BrowserNMM { get; init; }
 
     public BrowserController(BrowserNMM browserNMM)
     {
-        _browserNMM = browserNMM;
+        BrowserNMM = browserNMM;
     }
 
     public State<bool> ShowLoading = new(false);
@@ -22,7 +22,7 @@ public class BrowserController : BaseViewController
         ShowLoading.Set(true);
         var ipc = await _openIpcMap.GetValueOrPutAsync(mmid, async () =>
         {
-            var connectResult = await _browserNMM.ConnectAsync(mmid);
+            var connectResult = await BrowserNMM.ConnectAsync(mmid);
             connectResult.IpcForFromMM.OnEvent += async (Event, _, _) =>
             {
                 if (Event.Name == EIpcEvent.Ready.Event)
@@ -39,6 +39,6 @@ public class BrowserController : BaseViewController
     }
 
     public Task UninstallJMM(JmmMetadata jmmMetadata) =>
-        _browserNMM.NativeFetchAsync(new URL("file://jmm.browser.dweb/uninstall").SearchParamsSet("mmid", jmmMetadata.Id));
+        BrowserNMM.NativeFetchAsync(new URL("file://jmm.browser.dweb/uninstall").SearchParamsSet("mmid", jmmMetadata.Id));
 }
 

@@ -183,23 +183,30 @@ public class DnsNMM : NativeMicroModule
 
             return null;
         });
+
+        /// dweb-deeplinks
         var deeplinkCb = NativeFetch.NativeFetchAdaptersManager.Append(async (fromMM, request) =>
         {
-            if (request.ParsedUrl is not null and var parsedUrl && parsedUrl.Scheme is "dweb")
+            if (request.ParsedUrl is not null and var parsedUrl && parsedUrl.Scheme is "dweb" && parsedUrl.Hostname == "")
             {
-                //var connectResult = await _connectTo(fromMM, mmid, request);
-                //Console.Log("NativeFetch", "DNS/request/{0} => {1} [{2}] {3}", fromMM.Mmid, mmid, request.Method.Method, parsedUrl.Path);
-                //return await connectResult.IpcForFromMM.Request(request);
+                Console.Log("NativeFetch", "DNS/dwebDeepLinks path={0}, host={1}", parsedUrl.Path, parsedUrl.Hostname);
+
                 foreach (var app in _installApps.Values)
                 {
-                    app.Dweb_deeplinks.Find(dl => parsedUrl.ToString().StartsWith(dl));
+                    if (app.Dweb_deeplinks.Contains(string.Format("dweb:{0}", parsedUrl.Path)))
+                    {
+                        var connectResult = await _connectTo(fromMM, app.Mmid, request);
+                        return await connectResult.IpcForFromMM.Request(request);
+                    }
                 }
+
+                return new PureResponse(HttpStatusCode.BadGateway, Body: new PureUtf8StringBody(request.Url));
             }
 
             return null;
         });
-        
-        _onAfterShutdown += async (_) => { cb(); };
+
+        _onAfterShutdown += async (_) => { cb(); deeplinkCb(); };
 
         var Query_appId = (URL parsedUrl) => parsedUrl.SearchParams.Get("app_id") ?? throw new ArgumentException("no found app_id");
 
@@ -275,7 +282,7 @@ public class DnsNMM : NativeMicroModule
             Task.Run(async () =>
             {
                 try
-                    {
+                {
 
                     var app = Query(mmid);
                     if (app is not null)
@@ -286,9 +293,10 @@ public class DnsNMM : NativeMicroModule
                     else
                     {
                         po.Reject(string.Format("no found app: {0}", mmid));
-                        }
                     }
-                catch (Exception e) {
+                }
+                catch (Exception e)
+                {
                     Console.Error("Open", "{0}", e);
                 }
             });
