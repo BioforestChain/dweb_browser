@@ -74,27 +74,30 @@ data class BrowserUIState(
 
 ) {
 
-
-  @SuppressLint("UnrememberedMutableState")
-  @Composable
-  fun initStats() {
-    LocalInputText.provides(mutableStateOf(""))
-    LocalShowSearchView.provides(mutableStateOf(false))
-  }
+//  init {
+//    initStats()
+//  }
+//
+//
+//  @SuppressLint("UnrememberedMutableState")
+//  fun initStats() {
+//    LocalInputText.provides(mutableStateOf(""))
+//    LocalShowSearchView.provides(mutableStateOf(false))
+//  }
 }
 
 /**
  * 用于指定输入的内容
  */
 val LocalInputText = compositionLocalOf<MutableState<String>> {
-  noLocalProvidedFor("LocalInputText")
+  mutableStateOf("")
 }
 
 /**
  * 用于显示搜索的界面，也就是点击搜索框后界面
  */
 val LocalShowSearchView = compositionLocalOf<MutableState<Boolean>> {
-  noLocalProvidedFor("LocalShowSearchView")
+  mutableStateOf(false)
 }
 
 private fun noLocalProvidedFor(name: String): Nothing {
