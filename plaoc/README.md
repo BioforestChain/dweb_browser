@@ -26,3 +26,7 @@ deno task plaoc serve ./plaoc/demo/dist
 ```bash
 git tag -a 0.0.1 -m "feat: xxx"
 ```
+
+```bash
+git push origin <tag-name>
+```

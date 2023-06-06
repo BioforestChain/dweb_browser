@@ -6,16 +6,16 @@ import info.bagen.dwebbrowser.microService.helper.Mmid
 data class JmmMetadata(
     val id: Mmid, // jmmApp的id
     val server: MainServer, // 打开应用地址
-    val dwebDeeplinks: MutableList<DWEB_DEEPLINK> = mutableListOf(),
+    val dweb_deeplinks: MutableList<DWEB_DEEPLINK> = mutableListOf(),
     val name: String = "", // 应用名称
-    val shortName: String = "", // 应用副标题
+    val short_name: String = "", // 应用副标题
     val icon: String = "", // 应用图标
     val images: List<String>? = null, // 应用截图
     val description: String = "", // 应用描述
     val author: List<String>? = null, // 开发者，作者
     val categories: List<String>? = null, // 应用类型 https://github.com/w3c/manifest/wiki/Categories
     val version: String = "", // 应用版本
-    val new_feature: String = "", // 新特性，新功能
+    val new_feature: String? = null, // 新特性，新功能
     val home: String = "", // 首页地址
     var bundle_url: String = "", // 下载应用地址
     val bundle_size: String = "", // 应用大小
@@ -41,10 +41,10 @@ data class JmmMetadata(
 
 val defaultJmmMetadata = JmmMetadata(
     id = "default.user.dweb",
-    dwebDeeplinks = mutableListOf(),
+    dweb_deeplinks = mutableListOf(),
     icon = "https://www.bfmeta.info/imgs/logo3.webp",
     name = "默认测试数据",
-    shortName = "该测试数据包含了相关具体信息，请仔细查阅",
+    short_name = "该测试数据包含了相关具体信息，请仔细查阅",
     description = "这是一个实例应用，包含了dweb_plugins全部组件的实例。",
     bundle_url = "https://dweb.waterbang.top/app.plaoc.dweb-1.0.0.zip",
     bundle_size = "2726400",

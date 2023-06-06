@@ -367,7 +367,7 @@ private fun AppInfoHeadView(jmmMetadata: JmmMetadata) {
       Spacer(modifier = Modifier.height(8.dp))
 
       Text(
-        text = jmmMetadata.shortName,
+        text = jmmMetadata.short_name,
         maxLines = 1,
         color = MaterialTheme.colorScheme.outlineVariant,
         overflow = TextOverflow.Ellipsis,
@@ -514,7 +514,7 @@ private fun NewVersionInfoView(jmmMetadata: JmmMetadata) {
       .animateContentSize()
       .clickable { expanded.value = !expanded.value }) {
       Text(
-        text = "运用全新的功能，让使用更加安全便捷",
+        text = jmmMetadata.new_feature ?: "运用全新的功能，让使用更加安全便捷",
         maxLines = if (expanded.value) Int.MAX_VALUE else 2,
         overflow = TextOverflow.Ellipsis,
         color = MaterialTheme.colorScheme.onSurface
@@ -538,10 +538,10 @@ private fun OtherInfoView(jmmMetadata: JmmMetadata) {
     Spacer(modifier = Modifier.height(HorizontalPadding))
     OtherItemView(type = "开发者", content = jmmMetadata.author?.toContent() ?: "me")
     OtherItemView(type = "大小", content = jmmMetadata.bundle_size.toSpaceSize())
-    OtherItemView(type = "类别", content = "娱乐")
+    OtherItemView(type = "类别", content = jmmMetadata.categories?.toContent()?: "娱乐")
     OtherItemView(type = "语言", content = "中文")
     OtherItemView(type = "年龄分级", content = "18+")
-    OtherItemView(type = "版权", content = "bgwl")
+    OtherItemView(type = "版权", content = "@${jmmMetadata.author?.get(0) ?:"dweb_browser"}")
   }
 }
 

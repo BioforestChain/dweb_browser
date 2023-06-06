@@ -19,7 +19,7 @@ fun debugJMM(tag: String, msg: Any? = "", err: Throwable? = null) =
 open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
 
     override val dweb_deeplinks: MutableList<DWEB_DEEPLINK>
-        get() = this.metadata.dwebDeeplinks
+        get() = this.metadata.dweb_deeplinks
 
 
     companion object {
