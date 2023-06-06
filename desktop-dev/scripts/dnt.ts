@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { dnt } from "../../scripts/deps.ts";
-import { WalkFiles } from "../../scripts/helper/WalkDir.ts";
+import { WalkFiles } from "./WalkDir.ts";
 // await emptyDir("./npm");
 
 /// before build

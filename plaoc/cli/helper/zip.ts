@@ -1,7 +1,7 @@
 import JSZip from "npm:jszip";
-import { WalkAny } from "../../../scripts/helper/WalkDir.ts";
+import { WalkAny } from "./WalkDir.ts";
 
-export const bundleDirToZip = async (bundleDir: string, zip?: JSZip) => {
+export const bundleDirToZip =  (bundleDir: string, zip?: JSZip) => {
   return zipEntriesToZip(walkDirToZipEntries(bundleDir), zip);
 };
 

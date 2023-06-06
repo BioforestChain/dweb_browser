@@ -11,7 +11,7 @@ import { staticServe } from "./helper/http-static-helper.ts";
 
 export const doServe = (args = Deno.args) => {
   const flags = Flags.parse(args, {
-    string: ["port", "name", "mode"],
+    string: ["port", "mode","dir"],
     collect: ["metadata"],
     default: {
       port: 8096,
@@ -75,7 +75,7 @@ export const doServe = (args = Deno.args) => {
         console.log(
           `metadata: \thttp://${info?.address}:${port}/${nameFlagHelper.metadataName}`
         );
-        console.log(`package: \thttp://${info?.address}:${port}/${nameFlagHelper.bundleName}`)
+        // console.log(`package: \thttp://${info?.address}:${port}/${nameFlagHelper.bundleName}`)
       }
     });
 };

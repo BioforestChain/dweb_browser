@@ -2,7 +2,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { WalkFiles } from "../../scripts/helper/WalkDir.ts";
+import { WalkFiles } from "./WalkDir.ts";
 
 const resolveTo = (to: string) => fileURLToPath(import.meta.resolve(to));
 const easyWriteFile = (filepath: string, content: string | Uint8Array) => {
@@ -18,6 +18,7 @@ emptyDir(resolveTo("./src"));
 
 for (const entry of WalkFiles(resolveTo("../../desktop/src"))) {
   ///  资源文件夹的东西直接迁移
+  // deno-lint-ignore no-constant-condition
   if (entry.relativepath.includes("/assets/") && false) {
     const [dir, ...rels] = entry.relativepath.split("/assets/");
     const projectName = path.basename(dir);
