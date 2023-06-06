@@ -76,16 +76,9 @@ struct AddressBar: View {
                     .background(Color(.darkGray))
                     .foregroundColor(.white)
                     .padding(.horizontal,30)
-                    .zIndex(1)
                     .keyboardType(.webSearch)
                     .focused($isAdressBarFocused)
-                    .onAppear{
-                        print("aaaaaa")
-                    }
-                    .onTapGesture {
-                        print("tapped")
-                        isAdressBarFocused = true
-                    }
+
                     .onChange(of: isAdressBarFocused) { focused in
                         addressBar.isFocused = focused
                     }

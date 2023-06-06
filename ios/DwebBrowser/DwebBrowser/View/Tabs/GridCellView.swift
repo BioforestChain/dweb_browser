@@ -13,6 +13,7 @@ struct GridCell: View {
     @State var runCount = 0
     @ObservedObject var webCache: WebCache
     var isSelected: Bool
+    @EnvironmentObject var selectedTab: SelectedTab
     
     var body: some View {
         ZStack(alignment: .topTrailing){
@@ -55,6 +56,9 @@ struct GridCell: View {
             Button {
                 print("delete this tab, remove data from cache")
                 WebCacheMgr.shared.remove(webCache: webCache)
+                if selectedTab.curIndex >= WebCacheMgr.shared.store.count{
+                    selectedTab.curIndex = WebCacheMgr.shared.store.count-1
+                }
             } label: {
                 Image("tab_close")
             }

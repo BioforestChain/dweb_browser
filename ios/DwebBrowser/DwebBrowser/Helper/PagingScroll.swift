@@ -17,7 +17,6 @@ struct PagingScroll<Content: View>: UIViewRepresentable {
         let scrollView = UIScrollView()
         scrollView.isPagingEnabled = true
         scrollView.showsHorizontalScrollIndicator = false
-        scrollView.contentSize = CGSize(width: screen_width * CGFloat(contentSize), height: 0)
         scrollView.delegate = context.coordinator
         
         return scrollView
@@ -25,7 +24,9 @@ struct PagingScroll<Content: View>: UIViewRepresentable {
     
     func updateUIView(_ uiView: UIScrollView, context: Context) {
         let actualOffsetX = $offsetX.wrappedValue
-        if abs(actualOffsetX / screen_width).truncatingRemainder(dividingBy: 1) == 0 {
+        if abs(actualOffsetX / screen_width).truncatingRemainder(dividingBy: 1) == 0
+            {
+            
             uiView.subviews.forEach { $0.removeFromSuperview() }
             let hostingController = UIHostingController(rootView: content)
             for i in 0..<contentSize {
@@ -37,6 +38,8 @@ struct PagingScroll<Content: View>: UIViewRepresentable {
                 childView.frame = CGRect(x: xOffset, y: 0, width: screen_width, height: 50)
                 uiView.addSubview(childView)
             }
+
+            uiView.contentSize = CGSize(width: screen_width * CGFloat(contentSize), height: 0)
             uiView.setContentOffset(CGPoint(x: CGFloat(indexInEvrm) * screen_width, y: 0), animated: true)
         }
     }

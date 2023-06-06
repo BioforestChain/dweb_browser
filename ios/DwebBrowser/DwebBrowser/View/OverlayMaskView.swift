@@ -8,14 +8,16 @@
 import SwiftUI
 
 struct OverlayMaskView: View {
-    @Binding var isEditing: Bool
+//    @EnvironmentObject var addressBar: AddressBarState
+    @Binding var isFocused: Bool
+//    @Binding var isEditing: Bool
     var body: some View {
-        if isEditing {
+        if isFocused {
             VStack{
                 Color.black.opacity(0.7)
                     .edgesIgnoringSafeArea(.all)
                     .onTapGesture {
-                        isEditing = false
+                        isFocused = false
                         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                     }
                     .overlay(alignment: .top) {
@@ -24,7 +26,7 @@ struct OverlayMaskView: View {
                             .frame(height: 40)
                             .overlay(alignment: .bottomTrailing) {
                                 Button {
-                                    isEditing = false
+                                    isFocused = false
                                     UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                                     
                                 } label: {
@@ -50,7 +52,7 @@ struct OverlayMaskTest: View {
                     Color.red
                     Color.blue
                 }
-                OverlayMaskView(isEditing: Binding(get: { isAdressBarFocused }, set: { isAdressBarFocused = $0 }))
+                OverlayMaskView(isFocused: .constant(false))
             }
             TextField("input something!", text: $inputText)
                 .focused($isAdressBarFocused)
