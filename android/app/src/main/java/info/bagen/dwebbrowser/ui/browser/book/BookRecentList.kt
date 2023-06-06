@@ -31,6 +31,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.OpenInNew
 
 val DefaultEmptyBookListContent = @Composable { modifier: Modifier ->
   Text(
@@ -107,6 +108,7 @@ fun BookRecentList(
         }
       }
     }
+    /// 列表
     Column(
       Modifier
         .verticalScroll(rememberScrollState())
@@ -121,7 +123,7 @@ fun BookRecentList(
               modifier = Modifier.height(height = 2.dp)
             )
           }
-          RowItemBook(webSiteInfo, { onSearch(it.url) }, onOpenSetting = onOpenSetting)
+          RowItemBook(webSiteInfo, onClick = { onSearch(it.url) })
         }
       }
     }
@@ -209,51 +211,42 @@ internal fun ListSwipeItem(
 }
 
 @Composable
-private fun RowItemBook(
+fun RowItemBook(
   webSiteInfo: WebSiteInfo,
   onClick: (WebSiteInfo) -> Unit,
-  onOpenSetting: (WebSiteInfo) -> Unit
 ) {
-  Row(
-    modifier = Modifier
-      .fillMaxWidth()
-      .height(50.dp)
-      .background(MaterialTheme.colorScheme.surface)
-      .clickable { onClick(webSiteInfo) },
-    verticalAlignment = Alignment.CenterVertically
-  ) {
-    webSiteInfo.icon?.let { imageBitmap ->
-      Image(
-        bitmap = imageBitmap,
-        contentDescription = "Icon",
-        modifier = Modifier
-          .padding(horizontal = 12.dp, vertical = 11.dp)
-          .size(28.dp)
-      )
-    } ?: run {
+  ListItem(
+    modifier = Modifier.clickable(onClick = { onClick(webSiteInfo) }),
+    leadingContent = {
+      val modifier = Modifier
+//        .padding(horizontal = 12.dp)
+        .size(40.dp)
+      if (webSiteInfo.icon == null) {
+        Icon(
+          imageVector = ImageVector.vectorResource(R.drawable.ic_main_book),
+          contentDescription = "Favorite",
+          modifier = modifier,
+          tint = MaterialTheme.colorScheme.onSurface
+        )
+      } else {
+        Image(
+          bitmap = webSiteInfo.icon,
+          contentDescription = "Favorite",
+          modifier = modifier
+        )
+      }
+    },
+    headlineContent = {
+      Text(text = webSiteInfo.title)
+    },
+//    supportingContent = {
+//      Text(text = webSiteInfo.url)
+//    },
+    trailingContent = {
       Icon(
-        imageVector = ImageVector.vectorResource(R.drawable.ic_main_book),
-        contentDescription = "Book",
-        modifier = Modifier
-          .padding(horizontal = 12.dp, vertical = 11.dp)
-          .size(28.dp),
-        tint = MaterialTheme.colorScheme.onSurface
+        imageVector = Icons.Filled.OpenInNew,
+        contentDescription = "Open",
       )
-    }
-
-    Text(
-      text = webSiteInfo.title,
-      modifier = Modifier.weight(1f),
-      maxLines = 1,
-      overflow = TextOverflow.Ellipsis
-    )
-    Icon(imageVector = ImageVector.vectorResource(R.drawable.ic_more),
-      contentDescription = "Manager",
-      modifier = Modifier
-        .clickable { onOpenSetting(webSiteInfo) }
-        .padding(horizontal = 12.dp, vertical = 15.dp)
-        .size(20.dp)
-        .graphicsLayer(rotationZ = -90f),
-      tint = MaterialTheme.colorScheme.outlineVariant)
-  }
+    },
+  )
 }

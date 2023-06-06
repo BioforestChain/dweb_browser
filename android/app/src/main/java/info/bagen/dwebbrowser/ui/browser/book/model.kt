@@ -15,11 +15,15 @@ import kotlinx.coroutines.launch
 class BookViewModel : ViewModel() {
   val bookList: MutableList<WebSiteInfo> = mutableStateListOf()
   var currentWebSiteInfo: WebSiteInfo? = null
+  var stopObserve = false;
 
   init {
     viewModelScope.launch(mainAsyncExceptionHandler) {
       WebSiteDatabase.INSTANCE.websiteDao().loadAllByTypeAscObserve(WebSiteType.Book)
         .observeForever {
+          if (stopObserve) {
+            return@observeForever
+          }
           bookList.clear()
           it.forEach { webSiteInfo ->
             bookList.add(webSiteInfo)
