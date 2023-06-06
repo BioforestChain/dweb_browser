@@ -44,8 +44,17 @@
 		F33F294C2A28A791002EB729 /* HistoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F33F29292A28A790002EB729 /* HistoryStore.swift */; };
 		F33F294D2A28A791002EB729 /* Grid.swift in Sources */ = {isa = PBXBuildFile; fileRef = F33F292B2A28A790002EB729 /* Grid.swift */; };
 		F33F294E2A28A791002EB729 /* AddressBarHStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = F33F292C2A28A790002EB729 /* AddressBarHStack.swift */; };
-		F33F294F2A28A791002EB729 /* BrowserManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F33F292D2A28A790002EB729 /* BrowserManager.swift */; };
 		F33F29502A28A791002EB729 /* ShiftAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = F33F292F2A28A791002EB729 /* ShiftAnimation.swift */; };
+		F3B5589D2A2F3D44000169B6 /* BrowserManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B558932A2F3D44000169B6 /* BrowserManager.swift */; };
+		F3B5589E2A2F3D44000169B6 /* NotificationName_extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B558952A2F3D44000169B6 /* NotificationName_extension.swift */; };
+		F3B5589F2A2F3D44000169B6 /* APPModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B558962A2F3D44000169B6 /* APPModel.swift */; };
+		F3B558A02A2F3D44000169B6 /* DownloadImageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B558972A2F3D44000169B6 /* DownloadImageViewModel.swift */; };
+		F3B558A12A2F3D44000169B6 /* DownloadButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B558982A2F3D44000169B6 /* DownloadButtonView.swift */; };
+		F3B558A22A2F3D44000169B6 /* CustomUIScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B558992A2F3D44000169B6 /* CustomUIScrollView.swift */; };
+		F3B558A32A2F3D44000169B6 /* DownloadAppView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B5589A2A2F3D44000169B6 /* DownloadAppView.swift */; };
+		F3B558A42A2F3D44000169B6 /* EventEnum.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B5589B2A2F3D44000169B6 /* EventEnum.swift */; };
+		F3B558A52A2F3D44000169B6 /* DownloadAppManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B5589C2A2F3D44000169B6 /* DownloadAppManager.swift */; };
+		F3B558A72A2F3D5E000169B6 /* CombinePublisher.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B558A62A2F3D5E000169B6 /* CombinePublisher.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -100,8 +109,17 @@
 		F33F29292A28A790002EB729 /* HistoryStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HistoryStore.swift; sourceTree = "<group>"; };
 		F33F292B2A28A790002EB729 /* Grid.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Grid.swift; sourceTree = "<group>"; };
 		F33F292C2A28A790002EB729 /* AddressBarHStack.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddressBarHStack.swift; sourceTree = "<group>"; };
-		F33F292D2A28A790002EB729 /* BrowserManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BrowserManager.swift; sourceTree = "<group>"; };
 		F33F292F2A28A791002EB729 /* ShiftAnimation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ShiftAnimation.swift; sourceTree = "<group>"; };
+		F3B558932A2F3D44000169B6 /* BrowserManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BrowserManager.swift; sourceTree = "<group>"; };
+		F3B558952A2F3D44000169B6 /* NotificationName_extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotificationName_extension.swift; sourceTree = "<group>"; };
+		F3B558962A2F3D44000169B6 /* APPModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = APPModel.swift; sourceTree = "<group>"; };
+		F3B558972A2F3D44000169B6 /* DownloadImageViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadImageViewModel.swift; sourceTree = "<group>"; };
+		F3B558982A2F3D44000169B6 /* DownloadButtonView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadButtonView.swift; sourceTree = "<group>"; };
+		F3B558992A2F3D44000169B6 /* CustomUIScrollView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomUIScrollView.swift; sourceTree = "<group>"; };
+		F3B5589A2A2F3D44000169B6 /* DownloadAppView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadAppView.swift; sourceTree = "<group>"; };
+		F3B5589B2A2F3D44000169B6 /* EventEnum.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EventEnum.swift; sourceTree = "<group>"; };
+		F3B5589C2A2F3D44000169B6 /* DownloadAppManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadAppManager.swift; sourceTree = "<group>"; };
+		F3B558A62A2F3D5E000169B6 /* CombinePublisher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CombinePublisher.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -138,8 +156,10 @@
 		F33F28FE2A28A72B002EB729 /* BrowserFramework */ = {
 			isa = PBXGroup;
 			children = (
-				F33F292D2A28A790002EB729 /* BrowserManager.swift */,
+				F3B558932A2F3D44000169B6 /* BrowserManager.swift */,
+				F3B5589C2A2F3D44000169B6 /* DownloadAppManager.swift */,
 				F33F291E2A28A790002EB729 /* BrowserView.swift */,
+				F3B558942A2F3D44000169B6 /* DoanloadApp */,
 				F33F29062A28A78F002EB729 /* Example */,
 				F33F29152A28A790002EB729 /* Helper */,
 				F33F292E2A28A791002EB729 /* Model */,
@@ -171,6 +191,7 @@
 				F33F29102A28A790002EB729 /* Environment.swift */,
 				F33F29112A28A790002EB729 /* WebWrapperMgr.swift */,
 				F33F29122A28A790002EB729 /* WebWrapper.swift */,
+				F3B558A62A2F3D5E000169B6 /* CombinePublisher.swift */,
 			);
 			path = Publisher;
 			sourceTree = "<group>";
@@ -257,6 +278,20 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		F3B558942A2F3D44000169B6 /* DoanloadApp */ = {
+			isa = PBXGroup;
+			children = (
+				F3B558952A2F3D44000169B6 /* NotificationName_extension.swift */,
+				F3B558962A2F3D44000169B6 /* APPModel.swift */,
+				F3B558972A2F3D44000169B6 /* DownloadImageViewModel.swift */,
+				F3B558982A2F3D44000169B6 /* DownloadButtonView.swift */,
+				F3B558992A2F3D44000169B6 /* CustomUIScrollView.swift */,
+				F3B5589A2A2F3D44000169B6 /* DownloadAppView.swift */,
+				F3B5589B2A2F3D44000169B6 /* EventEnum.swift */,
+			);
+			path = DoanloadApp;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -338,11 +373,15 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F3B558A22A2F3D44000169B6 /* CustomUIScrollView.swift in Sources */,
 				F33F29462A28A791002EB729 /* TabsContainerView.swift in Sources */,
+				F3B558A32A2F3D44000169B6 /* DownloadAppView.swift in Sources */,
 				F33F29342A28A791002EB729 /* simplePublisher.swift in Sources */,
 				F33F294D2A28A791002EB729 /* Grid.swift in Sources */,
 				F33F29392A28A791002EB729 /* WebWrapperMgr.swift in Sources */,
+				F3B558A72A2F3D5E000169B6 /* CombinePublisher.swift in Sources */,
 				F33F29382A28A791002EB729 /* Environment.swift in Sources */,
+				F3B558A52A2F3D44000169B6 /* DownloadAppManager.swift in Sources */,
 				F33F29482A28A791002EB729 /* TabGridView.swift in Sources */,
 				F33F29472A28A791002EB729 /* TabPageView.swift in Sources */,
 				F33F29442A28A791002EB729 /* BrowserView.swift in Sources */,
@@ -351,12 +390,16 @@
 				F33F294E2A28A791002EB729 /* AddressBarHStack.swift in Sources */,
 				F33F293B2A28A791002EB729 /* const.swift in Sources */,
 				F33F293F2A28A791002EB729 /* View+AnimationObserver.swift in Sources */,
+				F3B5589F2A2F3D44000169B6 /* APPModel.swift in Sources */,
 				F33F29502A28A791002EB729 /* ShiftAnimation.swift in Sources */,
+				F3B558A02A2F3D44000169B6 /* DownloadImageViewModel.swift in Sources */,
+				F3B5589D2A2F3D44000169B6 /* BrowserManager.swift in Sources */,
 				F33F293D2A28A791002EB729 /* PagingScroll.swift in Sources */,
 				F33F294A2A28A791002EB729 /* HistoryItem.swift in Sources */,
 				F33F29492A28A791002EB729 /* ToolbarView.swift in Sources */,
+				F3B558A42A2F3D44000169B6 /* EventEnum.swift in Sources */,
 				F33F293E2A28A791002EB729 /* View+placeholder.swift in Sources */,
-				F33F294F2A28A791002EB729 /* BrowserManager.swift in Sources */,
+				F3B5589E2A2F3D44000169B6 /* NotificationName_extension.swift in Sources */,
 				F33F29372A28A791002EB729 /* WebCacheMgr.swift in Sources */,
 				F33F29352A28A791002EB729 /* AutoFillView.swift in Sources */,
 				F33F29302A28A791002EB729 /* StableForEach.swift in Sources */,
@@ -365,6 +408,7 @@
 				F33F294C2A28A791002EB729 /* HistoryStore.swift in Sources */,
 				F33F29312A28A791002EB729 /* MultipleWebView.swift in Sources */,
 				F33F29452A28A791002EB729 /* HomeView.swift in Sources */,
+				F3B558A12A2F3D44000169B6 /* DownloadButtonView.swift in Sources */,
 				F33F29432A28A791002EB729 /* UIImage+Cache.swift in Sources */,
 				F33F29412A28A791002EB729 /* Url+Validator.swift in Sources */,
 				F33F29402A28A791002EB729 /* View+ancesterTree.swift in Sources */,
