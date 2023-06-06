@@ -8,6 +8,7 @@ using DwebBrowser.MicroService.Sys.Haptics;
 using DwebBrowser.MicroService.Sys.Barcode;
 using DwebBrowser.MicroService.Sys.Clipboard;
 using DwebBrowser.MicroService.Sys.Biometrics;
+using DwebBrowser.MicroService.Browser;
 using DwebBrowser.MicroService.Browser.Mwebview;
 using DwebBrowser.MicroService.Browser.NativeUI;
 using DwebBrowser.MicroService.Browser.JsProcess;
@@ -85,6 +86,9 @@ public class MicroService
         var httpNMM = new HttpNMM().InstallBy(dnsNMM);
         var mwebiewNMM = new MultiWebViewNMM().InstallBy(dnsNMM);
 
+        /// 安装系统桌面
+        var browserNMM = new BrowserNMM().InstallBy(dnsNMM);
+
         /// 安装平台模块
         new ShareNMM().InstallBy(dnsNMM);
         new ClipboardNMM().InstallBy(dnsNMM);
@@ -103,8 +107,9 @@ public class MicroService
 
         var bootMmidList = new List<Mmid>
         {
-            cotDemoJMM.Mmid
+            //cotDemoJMM.Mmid
             //desktopJMM.Mmid
+            browserNMM.Mmid
         };
         /// 启动程序
         var bootNMM = new BootNMM(

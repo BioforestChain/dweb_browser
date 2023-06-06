@@ -3,6 +3,7 @@ using WebKit;
 using Foundation;
 using CoreGraphics;
 using BrowserFramework;
+using DwebBrowser.MicroService.Browser;
 
 namespace DwebBrowser.Platforms.iOS;
 
@@ -18,8 +19,7 @@ public class AppDelegate : MauiUIApplicationDelegate
         Window = application.KeyWindow;
 
         // create a UIViewController with a single UILabel
-        var vc = new MyViewController();
-        var nav = new UINavigationController(vc);
+        var nav = new UINavigationController(BrowserNMM.BrowserController);
         nav.SetNavigationBarHidden(true, false);
 
         Window.RootViewController = nav;
@@ -32,27 +32,5 @@ public class AppDelegate : MauiUIApplicationDelegate
 
         return true;
     }
-
-    /// <summary>
-    /// 缺省的启动屏幕
-    /// </summary>
-    public class MyViewController : UIViewController
-    {
-        public override void ViewDidLoad()
-        {
-            base.ViewDidLoad();
-
-            var manager = new BrowserManager();
-            var webview = new WKWebView(new CGRect(0, 100, 100, 100), new());
-            webview.LoadRequest(new NSUrlRequest(new NSUrl("https://www.baidu.com")));
-            manager.WebViewList = new WKWebView[] { webview };
-            var swiftView = manager.SwiftView;
-
-            swiftView.Frame = UIScreen.MainScreen.Bounds;
-            //View = manager.SwiftView;
-            View.AddSubview(swiftView);
-        }
-    }
-
 }
 
