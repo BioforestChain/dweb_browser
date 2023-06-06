@@ -354,8 +354,12 @@ class BrowserViewModel(private val browserController: BrowserController) : ViewM
   val isShowKeyboard
     get() = uiState.currentInsets.value.getInsets(WindowInsetsCompat.Type.ime()).bottom > 0
 
+  @OptIn(ExperimentalMaterial3Api::class)
   val canMoveToBackground
-    get() = !uiState.currentBrowserBaseView.value.navigator.canGoBack && uiState.qrCodeScanState.isHidden
+    get() = !uiState.currentBrowserBaseView.value.navigator.canGoBack &&
+        uiState.qrCodeScanState.isHidden &&
+        !uiState.multiViewShow.targetState &&
+        uiState.bottomSheetScaffoldState.bottomSheetState.targetValue == SheetValue.Hidden
 }
 
 class browserViewModelHelper {

@@ -156,6 +156,8 @@ fun QRCodeScanView(
     }
   },
 ) {
+  if (qrCodeScanState.state.value == QRCodeScanState.QRCodeState.Hide) return
+
   BackHandler {
     val type = when (qrCodeScanState.state.value) {
       QRCodeScanState.QRCodeState.Completed -> QRCodeScanState.QRCodeState.Scanning
@@ -519,7 +521,6 @@ private fun BoxScope.FlashlightIcon(camera: Camera) {
 private fun AnalyzePhotoView(
   uri: Uri, onBackHandler: () -> Unit, onBarcodeDetected: (Bitmap, Bitmap, List<Barcode>) -> Unit
 ) {
-  BackHandler { onBackHandler() }
   val context = LocalContext.current
   val bitmap = remember { BitmapFactory.decodeStream(context.contentResolver.openInputStream(uri)) }
   var showAlert by remember { mutableStateOf(true) }

@@ -1,6 +1,7 @@
 package info.bagen.dwebbrowser.ui.browser
 
 import android.annotation.SuppressLint
+import android.view.MotionEvent
 import android.view.ViewGroup
 import androidx.activity.compose.BackHandler
 import androidx.annotation.DrawableRes
@@ -40,7 +41,6 @@ import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.ui.entity.BrowserBaseView
 import info.bagen.dwebbrowser.ui.entity.BrowserWebView
 import info.bagen.dwebbrowser.ui.qrcode.QRCodeScanView
-import info.bagen.dwebbrowser.ui.qrcode.rememberQRCodeScanState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -69,7 +69,7 @@ private val bottomExitAnimator = slideOutVertically(animationSpec = tween(300),/
 fun BrowserView(viewModel: BrowserViewModel) {
   val scope = rememberCoroutineScope()
   BackHandler {
-    if (viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.isVisible) {
+    if (viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.targetValue != SheetValue.Hidden) {
       scope.launch {
         viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.hide()
       }
@@ -243,7 +243,7 @@ private fun BrowserViewSearch(viewModel: BrowserViewModel) {
     pageCount = viewModel.uiState.browserViewList.size,
     contentPadding = PaddingValues(horizontal = dimenHorizontalPagerHorizontal),
   ) { currentPage ->
-    SearchBox(viewModel, viewModel.uiState.browserViewList[currentPage])
+    SearchBox(viewModel.uiState.browserViewList[currentPage])
   }
 }
 
@@ -332,10 +332,7 @@ private fun BrowserViewContentWeb(viewModel: BrowserViewModel, browserWebView: B
 
 @SuppressLint("UnrememberedMutableState")
 @Composable
-private fun SearchBox(
-  viewModel: BrowserViewModel,
-  baseView: BrowserBaseView,
-) {
+private fun SearchBox(baseView: BrowserBaseView) {
   var showSearchView by LocalShowSearchView.current;
   Box(modifier = Modifier
     .padding(horizontal = dimenSearchHorizontalAlign, vertical = dimenSearchVerticalAlign)
@@ -357,7 +354,6 @@ private fun SearchBox(
 
       else -> mutableStateOf("")
     }
-    //SearchTextField(viewModel, inputText, baseView.focus)
     val search =
       if (inputText.value.isEmpty() || inputText.value.startsWith("file:///android_asset/")) {
         Triple(
@@ -444,7 +440,9 @@ fun BrowserSearchView(viewModel: BrowserViewModel) {
     SearchView(
       text = text,
       imeShowed = imeShowed,
-      homePreview = { HomeWebviewPage(viewModel) },
+      homePreview = { onMove ->
+        HomeWebviewPage(viewModel, onMove)
+      },
       onClose = {
         showSearchView = false
       },
@@ -456,11 +454,13 @@ fun BrowserSearchView(viewModel: BrowserViewModel) {
   }
 }
 
+@SuppressLint("ClickableViewAccessibility")
 @Composable
-internal fun HomeWebviewPage(viewModel: BrowserViewModel) {
+internal fun HomeWebviewPage(viewModel: BrowserViewModel, onClickOrMove:(Boolean) -> Unit) {
   val webView = viewModel.getNewTabBrowserView()
   val background = MaterialTheme.colorScheme.background
   val isDark = isSystemInDarkTheme()
+  var isRemove = false
   WebView(
     state = webView.state,
     modifier = Modifier
@@ -469,6 +469,11 @@ internal fun HomeWebviewPage(viewModel: BrowserViewModel) {
     navigator = webView.navigator,
     factory = {
       webView.webView.parent?.let { (it as ViewGroup).removeAllViews() }
+      webView.webView.setOnTouchListener { _, event ->
+        if (event.action == MotionEvent.ACTION_MOVE) { isRemove = true }
+        else if (event.action == MotionEvent.ACTION_UP) { onClickOrMove(isRemove) }
+        false
+      }
       webView.webView.setDarkMode(isDark, background) // 为了保证浏览器背景色和系统主题一致
       webView.webView
     }

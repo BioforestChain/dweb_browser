@@ -104,7 +104,7 @@ fun WebView.setDarkMode(isDark: Boolean, background: Color) {
         settings.isAlgorithmicDarkeningAllowed = isDark
     } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
         settings.forceDark = if (isDark) WebSettings.FORCE_DARK_ON else WebSettings.FORCE_DARK_OFF
-    } else {
+    } //else {
         setBackgroundColor(background.value.toInt())
-    }
+    //}
 }

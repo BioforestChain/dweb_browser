@@ -2,6 +2,7 @@ package info.bagen.dwebbrowser.ui.browser
 
 import android.Manifest
 import android.os.Build
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.DrawableRes
@@ -477,6 +478,9 @@ internal fun BrowserMultiPopupView(viewModel: BrowserViewModel) {
   val browserViewList = viewModel.uiState.browserViewList
 
   AnimatedVisibility(visibleState = viewModel.uiState.multiViewShow) {
+    BackHandler {
+      viewModel.handleIntent(BrowserIntent.UpdateMultiViewState(false))
+    }
     // 高斯模糊做背景
     Box(
       modifier = Modifier

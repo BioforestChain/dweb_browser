@@ -2,6 +2,7 @@ package info.bagen.dwebbrowser.ui.browser
 
 import android.annotation.SuppressLint
 import android.view.KeyEvent
+import androidx.activity.compose.BackHandler
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.Image
@@ -56,7 +57,7 @@ import kotlinx.coroutines.delay
 internal fun SearchView(
   text: String,
   imeShowed: MutableState<Boolean> = mutableStateOf(false),
-  homePreview: (@Composable () -> Unit)? = null,
+  homePreview: (@Composable (onMove: (Boolean) -> Unit) -> Unit)? = null,
   searchPreview: (@Composable () -> Unit)? = null,
   onClose: () -> Unit,
   onSearch: (String) -> Unit,
@@ -66,13 +67,18 @@ internal fun SearchView(
   val searchPreviewState = remember { MutableTransitionState(false) }
   val webEngine = findWebEngine(text)
 
+  BackHandler {
+    focusManager.clearFocus()
+    onClose()
+  }
+
   Box(
     modifier = Modifier
       .fillMaxSize()
       .background(MaterialTheme.colorScheme.background.copy(0.5f))
       .clickable(
         indication = null,
-        onClick = { /*focusManager.clearFocus(); onClose()*/ },
+        onClick = { focusManager.clearFocus(); onClose() },
         interactionSource = remember { MutableInteractionSource() }
       )
   ) {
@@ -83,7 +89,7 @@ internal fun SearchView(
         .navigationBarsPadding()
         .padding(bottom = dimenBottomHeight)
     ) {
-      homePreview?.let { it() }
+      homePreview?.let { it {moved -> focusManager.clearFocus(); if (!moved) onClose()} }
 
       Text(
         text = "取消",
@@ -131,7 +137,7 @@ internal fun BoxScope.BrowserTextField(
   val focusRequester = remember { FocusRequester() }
   val focusManager = LocalFocusManager.current
   val keyboardController = LocalSoftwareKeyboardController.current
-  var inputText by remember { mutableStateOf("dweb.waterbang.top") }
+  var inputText by remember { mutableStateOf(text.value) }
 
   LaunchedEffect(focusRequester) {
     delay(100)
@@ -143,7 +149,7 @@ internal fun BoxScope.BrowserTextField(
     onValueChange = { inputText = it.trim(); onValueChanged(inputText) },
     modifier = Modifier
       .fillMaxWidth()
-      .background(MaterialTheme.colorScheme.surfaceVariant)
+      .background(MaterialTheme.colorScheme.background)
       .navigationBarsPadding()
       .imePadding()
       .align(Alignment.BottomCenter)
@@ -155,7 +161,7 @@ internal fun BoxScope.BrowserTextField(
       )
       .height(dimenSearchHeight)
       .clip(RoundedCornerShape(8.dp))
-      .background(MaterialTheme.colorScheme.background)
+      .background(MaterialTheme.colorScheme.surface)
       .focusRequester(focusRequester)
       .onKeyEvent {
         if (it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER) {
@@ -262,6 +268,11 @@ internal fun SearchPreview( // 输入搜索内容后，显示的搜索信息
         .fillMaxSize()
         .background(MaterialTheme.colorScheme.outlineVariant)
         .padding(horizontal = 20.dp)
+        .clickable(
+          indication = null,
+          onClick = { },
+          interactionSource = remember { MutableInteractionSource() }
+        )
     ) {
       item {
         Box(

@@ -6,16 +6,20 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.core.view.WindowCompat
 import info.bagen.dwebbrowser.microService.browser.BrowserNMM.Companion.browserController
 import info.bagen.dwebbrowser.ui.browser.BrowserView
+import info.bagen.dwebbrowser.ui.browser.LocalShowSearchView
 import info.bagen.dwebbrowser.ui.loading.LoadingView
 import info.bagen.dwebbrowser.ui.theme.RustApplicationTheme
 
 class BrowserActivity : AppCompatActivity() {
   fun getContext() = this
+  private var showSearchView = false
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -24,6 +28,13 @@ class BrowserActivity : AppCompatActivity() {
       WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightStatusBars =
         !isSystemInDarkTheme() // 设置状态栏颜色跟着主题走
       RustApplicationTheme {
+        val localShowSearchView = LocalShowSearchView.current
+        LaunchedEffect(Unit) {
+          snapshotFlow { localShowSearchView.value }.collect {
+            showSearchView = it
+          }
+        }
+
         browserController?.apply {
           effect(activity = this@BrowserActivity)
           Box(modifier = Modifier.background(Color.Black)) {
@@ -37,7 +48,7 @@ class BrowserActivity : AppCompatActivity() {
 
   @Deprecated("Deprecated in Java")
   override fun onBackPressed() {
-    if (browserController?.browserViewModel?.canMoveToBackground == true) {
+    if (browserController?.browserViewModel?.canMoveToBackground == true && !showSearchView) {
       moveTaskToBack(false)
       return // 如果没有直接return，会导致重新打开app时，webview都是显示首页
     }

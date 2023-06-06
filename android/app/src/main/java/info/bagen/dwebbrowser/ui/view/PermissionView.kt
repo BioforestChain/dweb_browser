@@ -45,7 +45,7 @@ fun PermissionSingleView(
       }
 
       is PermissionStatus.Denied -> {
-        if (permissionState.status.shouldShowRationale) { // 可以请求权限
+        if (!permissionState.status.shouldShowRationale) { // 可以请求权限
           permissionState.launchPermissionRequest()
         } else {
           permissionNotAvailableContent(permissionState.permission)
