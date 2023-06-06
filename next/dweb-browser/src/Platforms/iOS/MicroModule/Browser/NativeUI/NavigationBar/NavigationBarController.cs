@@ -22,7 +22,7 @@ public class NavigationBarController : BarController, IToJsonAble
         overlayState: new(mwebviewController.NavigationBarView.Alpha >= 1 ? false : true),
         areaState: new(mwebviewController.NavigationBarView.Frame.ToAreaJson()))
     {
-        Observer = new State<NavigationBarState>(GetState);
+        Observer = new(GetState);
         StateObserver = new(ToJson);
         NativeUiController = nativeUiController;
 

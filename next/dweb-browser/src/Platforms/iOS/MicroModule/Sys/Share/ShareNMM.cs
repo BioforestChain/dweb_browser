@@ -1,6 +1,6 @@
 ﻿using UIKit;
 using Foundation;
-using DwebBrowser.Helper.Extensions;
+using DwebBrowser.Helper;
 using DwebBrowser.MicroService.Browser.Mwebview;
 
 #nullable enable

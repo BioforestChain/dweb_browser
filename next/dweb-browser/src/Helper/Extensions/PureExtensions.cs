@@ -14,7 +14,7 @@ using Microsoft.Extensions.Primitives;
 using Microsoft.Maui.Controls.Compatibility;
 using Microsoft.Net.Http.Headers;
 
-namespace DwebBrowser.Helper.Extensions;
+namespace DwebBrowser.Helper;
 
 /// <summary>
 ///

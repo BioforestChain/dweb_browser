@@ -110,6 +110,8 @@ public class URL
         SearchParams.Set(name, value);
         return this;
     }
+
+    public override string ToString() => uriBuilder.ToString();
 }
 
 

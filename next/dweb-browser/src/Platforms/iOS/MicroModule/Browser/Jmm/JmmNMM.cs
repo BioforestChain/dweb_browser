@@ -58,9 +58,12 @@ public class JmmNMM : NativeMicroModule
         HttpRouter.AddRoute(IpcMethod.Get, "/install", async (request, _) =>
         {
             var searchParams = request.SafeUrl.SearchParams;
-            var metadataUrl = searchParams.ForceGet("url");
+            var metadataUrl = request.QueryStringRequired("url");
             var jmmMetadata = await (await NativeFetchAsync(metadataUrl)).JsonAsync<JmmMetadata>()!;
-            _openJmmMetadataInstallPage(jmmMetadata);
+            var url = new URL(metadataUrl);
+            
+
+            _openJmmMetadataInstallPage(jmmMetadata, url);
 
             return jmmMetadata;
         });
@@ -100,7 +103,7 @@ public class JmmNMM : NativeMicroModule
         });
     }
 
-    private void _openJmmMetadataInstallPage(JmmMetadata jmmMetadata)
+    private void _openJmmMetadataInstallPage(JmmMetadata jmmMetadata, URL url)
     { }
 
     private void _openJmmMetadataUninstallPage(JmmMetadata jmmMetadata)

@@ -17,17 +17,6 @@ public static class LocaleFile
     {
         Console.Log("Init", "init!!!");
     }
-    /// <summary>
-    /// 应用根目录
-    /// </summary>
-    /// <returns></returns>
-    public static string RootPath() => AppContext.BaseDirectory;
-
-    /// <summary>
-    /// 资源文件目录
-    /// </summary>
-    /// <returns></returns>
-    public static string AssetsPath() => Path.Combine(RootPath(), "Assets");
 
     /// <summary>
     /// 获取文件MimeType
@@ -69,7 +58,7 @@ public static class LocaleFile
 
 
                 /// 尝试打开文件，如果打开失败就走 404 no found 响应
-                var absoluteDir = Path.Combine(AssetsPath(), dirname);
+                var absoluteDir = Path.Combine(PathHelper.GetIOSAppAssetsPath(), dirname);
                 var absoluteDirFiles = new string[0].Try((arr) => arr.Concat(Directory.GetFileSystemEntries(absoluteDir)).ToArray());
 
 

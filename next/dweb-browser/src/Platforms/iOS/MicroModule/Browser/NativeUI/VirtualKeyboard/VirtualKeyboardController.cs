@@ -22,8 +22,8 @@ public class VirtualKeyboardController : AreaController, IToJsonAble
             overlayState: new(mwebviewController.VirtualKeyboardView.Alpha >= 1 ? false : true),
             areaState: new(mwebviewController.VirtualKeyboardView.Frame.ToAreaJson()))
     {
-        Observer = new(() => GetState());
-        StateObserver = new(() => ToJson());
+        Observer = new(GetState);
+        StateObserver = new(ToJson);
         NativeUiController = nativeUiController;
 
         Observer.OnChange += async (value, oldValue, _) =>

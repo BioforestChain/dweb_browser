@@ -23,7 +23,7 @@ public class StatusBarController : BarController, IToJsonAble
         areaState: new(mwebviewController.StatusBarView.Frame.ToAreaJson())
     )
     {
-        Observer = new State<StatusBarState>(GetState);
+        Observer = new(GetState);
         StateObserver = new(ToJson);
         NativeUiController = nativeUiController;
 

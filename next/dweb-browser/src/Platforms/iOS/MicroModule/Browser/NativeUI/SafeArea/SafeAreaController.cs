@@ -36,8 +36,8 @@ public class SafeAreaController : AreaController, IToJsonAble
             0,
             mwebviewController.webviewContainer.Frame.GetMaxY().Value
             - webviewFrame.Bottom.Value));
-        Observer = new State<SafeAreaState>(() => GetState());
-        StateObserver = new(() => ToJson());
+        Observer = new(GetState);
+        StateObserver = new(ToJson);
         NativeUiController = nativeUiController;
 
         var statusBar = NativeUiController.StatusBar;
