@@ -367,7 +367,7 @@ private fun AppInfoHeadView(jmmMetadata: JmmMetadata) {
       Spacer(modifier = Modifier.height(8.dp))
 
       Text(
-        text = jmmMetadata.short_name,
+        text = jmmMetadata.shortName,
         maxLines = 1,
         color = MaterialTheme.colorScheme.outlineVariant,
         overflow = TextOverflow.Ellipsis,

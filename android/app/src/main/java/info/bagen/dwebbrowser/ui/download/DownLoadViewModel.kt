@@ -69,7 +69,7 @@ class DownLoadViewModel(val mmid: Mmid, val url: String) : ViewModel() {
       ),
       bundleUrl = url,
       name = "测试",
-      short_name = "测试",
+      shortName = "测试",
       icon = "https://www.bfmeta.info/imgs/logo3.webp",
       images = listOf(
         "http://qiniu-waterbang.waterbang.top/bfm/cot-home_2058.webp",
