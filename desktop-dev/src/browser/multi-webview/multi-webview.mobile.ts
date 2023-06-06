@@ -181,7 +181,7 @@ export class MultiWebviewNMM extends NativeMicroModule {
     clientIpc.onClose(() => {
       this._all_open_ipc.delete(clientIpc.uid);
     });
-    const wapis = await forceGetWapis(
+    const wapis = await forceGetWapis.bind(this)(
       clientIpc,
       root_url
     );

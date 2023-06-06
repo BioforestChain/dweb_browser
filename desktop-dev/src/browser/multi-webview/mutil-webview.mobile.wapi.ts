@@ -8,6 +8,7 @@ import {
   openNativeWindow,
 } from "../../helper/openNativeWindow.ts";
 import { $MMID } from "../../helper/types.ts";
+import type { MicroModule } from "../../core/micro-module.ts";
 
 type $APIS = typeof import("./assets/multi-webview.html.ts")["APIS"];
 
@@ -35,7 +36,7 @@ export const nwwGetFromMmid = (mmid: $MMID) => {
   return _mmid_wapis_map.get(mmid)?.nww;
 };
 
-export const forceGetWapis = (ipc: Ipc, root_url: string) => {
+export function forceGetWapis(this: MicroModule, ipc: Ipc, root_url: string){
   ipc.onClose(() => {
     // 是否会出现 一个 JsMicroModule 打开其他的 JsMicroModule
     // 的情况，如果是这样的话会出现一个 borserWindow 内会包含连个应用
@@ -50,6 +51,7 @@ export const forceGetWapis = (ipc: Ipc, root_url: string) => {
     async () => {
       let wapi = _mmid_wapis_map.get(ipc.remote.mmid);
       if (wapi === undefined) {
+        this.nativeFetch(`file://js.browser.dweb/bw?action=show`)
         const diaplay = Electron.screen.getPrimaryDisplay();
         const nww = await openNativeWindow(root_url + `&uid=${ipc.uid}`, {
           webPreferences: {
@@ -66,6 +68,9 @@ export const forceGetWapis = (ipc: Ipc, root_url: string) => {
 
         nww.on("close", () => {
           _mmid_wapis_map.delete(ipc.remote.mmid);
+          if(_mmid_wapis_map.size <= 0){
+            this.nativeFetch(`file://js.browser.dweb/bw?action=hide`)
+          }
         });
 
         const apis = nww.getApis<$APIS>();
@@ -75,7 +80,6 @@ export const forceGetWapis = (ipc: Ipc, root_url: string) => {
         /// TIP: 这里通过类型强行引用 preload，目的是确保依赖关系，使得最终能产生编译内容
         type _Preload = typeof import("./assets/preload.ts");
         apis.preloadAbsolutePathSet(absolutePath);
-
         _mmid_wapis_map.set(ipc.remote.mmid, (wapi = { nww, apis }));
       }
       return wapi;

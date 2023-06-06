@@ -14,10 +14,13 @@ import { $ReqMatcher, $isMatchReq } from "../../helper/$ReqMatcher.ts";
 import { once } from "../../helper/$once.ts";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
-import { openNativeWindow } from "../../helper/openNativeWindow.ts";
+// import { openNativeWindow } from "../../helper/openNativeWindow.ts";
 import type { $PromiseMaybe } from "../../helper/types.ts";
 import { createHttpDwebServer } from "../../sys/http-server/$createHttpDwebServer.ts";
 import { saveNative2JsIpcPort } from "./ipc.native2js.ts";
+import { jsProcessOpenWindow } from "./js-process.openWindow.ts"
+import type { $NWW } from "./js-process.openWindow.ts"
+import { bgWhite } from "https://deno.land/std@0.140.0/fmt/colors.ts";
 
 type $APIS = typeof import("./assets/js-process.web.ts")["APIS"];
 
@@ -170,10 +173,30 @@ export class JsProcessNMM extends NativeMicroModule {
 
     this._after_shutdown_signal.listen(mainServer.close);
     
+    let nww: $NWW | undefined;
     // 从 渲染进程的 主线程中获取到 暴露的 apis
     const apis = await (async () => {
       const urlInfo = mainServer.startResult.urlInfo;
-      const nww = await openNativeWindow(
+      // v1
+      // const nww = await openNativeWindow(
+      //   // 如果下面的 show === false 那么这个窗口是不会出现的
+      //   mainServer.startResult.urlInfo.buildInternalUrl((url) => {
+      //     url.pathname = "/index.html";
+      //   }).href,
+      //   {
+      //     // 是否需要显示 js-process 的窗口 
+      //     // 不显示
+      //     show: process.argv.includes("--inspect") ? true : false, // require.main?.filename.endsWith(".html"),
+      //     transparent: process.argv.includes("--inspect") ? false : true,
+      //   },
+      //   { userAgent: (userAgent) => userAgent + ` dweb-host/${urlInfo.host}` }
+      // );
+      // this._after_shutdown_signal.listen(() => {
+      //   nww.close();
+      // });
+      // return nww.getApis<$APIS>();
+      // v2
+      nww = await jsProcessOpenWindow(
         // 如果下面的 show === false 那么这个窗口是不会出现的
         mainServer.startResult.urlInfo.buildInternalUrl((url) => {
           url.pathname = "/index.html";
@@ -182,18 +205,16 @@ export class JsProcessNMM extends NativeMicroModule {
           // 是否需要显示 js-process 的窗口 
           // 不显示
           show: process.argv.includes("--inspect") ? true : false, // require.main?.filename.endsWith(".html"),
-          transparent: process.argv.includes("--inspect") ? false : true,
         },
         { userAgent: (userAgent) => userAgent + ` dweb-host/${urlInfo.host}` }
       );
       this._after_shutdown_signal.listen(() => {
         nww.close();
       });
-      return nww.getApis<$APIS>();
+      return nww.getApis();
     })();
 
     const ipcProcessIdMap = new WeakMap<Ipc, Map<string, PromiseOut<number>>>();
-
     /// 创建 web worker
     this.registerCommonIpcOnMessageHandler({
       method: "POST",
@@ -258,6 +279,26 @@ export class JsProcessNMM extends NativeMicroModule {
         return port_id;
       },
     });
+
+    this.registerCommonIpcOnMessageHandler({
+      pathname: "/bw",
+      matchMode: "full",
+      input: {
+        action: "string"
+      },
+      output: 'boolean',
+      handler: async (args, ipc, request) => {
+        if(nww === undefined) return false;
+        args.action === "show" 
+        ? nww.isVisible() ? "" : nww.show() 
+        : nww.hide();
+        ipc.onClose(() => {
+          /** 暂无 */
+        })
+        return true;
+      }
+    })
+
   }
   async _shutdown() {}
 
