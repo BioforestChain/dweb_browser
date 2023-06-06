@@ -12,6 +12,7 @@ global using static DwebBrowser.Helper.Prelude;
 global using MatchMode = System.String;
 
 global using Mmid = System.String;
+global using Dweb_DeepLink = System.String;
 
 global using Router = System.Collections.Generic.Dictionary<
     string, System.Func<System.Collections.Generic.Dictionary<string, string>, object>>;

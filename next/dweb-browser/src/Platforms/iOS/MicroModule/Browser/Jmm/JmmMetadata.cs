@@ -11,14 +11,14 @@ public class JmmMetadata
     public Mmid Id { get; set; }    // jmmApp的id
     [JsonPropertyName("server")]
     public MainServer Server { get; set; }      // 打开应用地址
-    [JsonPropertyName("title")]
-    public string Title { get; set; }       // 应用名称
+    [JsonPropertyName("dwebDeeplinks")]
+    public List<Dweb_DeepLink>? Dweb_DeepLinks { get; set; }       // dweb-deeplinks
+    [JsonPropertyName("name")]
+    public string Name { get; set; }       // 应用名称
     [JsonPropertyName("shortName")]
     public string ShortName { get; set; }        // 应用副标题
     [JsonPropertyName("icon")]
     public string Icon { get; set; }        // 应用图标
-    [JsonPropertyName("downloadUrl")]
-    public string DownloadUrl { get; set; }     // 下载应用地址
     [JsonPropertyName("images")]
     public List<string>? Images { get; set; }       // 应用截图
     [JsonPropertyName("description")]
@@ -33,10 +33,12 @@ public class JmmMetadata
     public List<string>? Keywords { get; set; }     // 关键词
     [JsonPropertyName("home")]
     public string Home { get; set; }        // 首页地址
-    [JsonPropertyName("size")]
-    public string Size { get; set; }        // 应用大小
-    [JsonPropertyName("fileHash")]
-    public string FileHash { get; set; }        // 文件hash
+    [JsonPropertyName("bundleUrl")]
+    public string BundleUrl { get; set; }     // 下载应用地址
+    [JsonPropertyName("bundleSize")]
+    public string BundleSize { get; set; }        // 应用大小
+    [JsonPropertyName("bundleHash")]
+    public string BundleHash { get; set; }        // 文件hash
     [JsonPropertyName("permissions")]
     public List<string>? Permissions { get; set; }      // app使用权限情况
     [JsonPropertyName("plugins")]
@@ -47,10 +49,10 @@ public class JmmMetadata
     public JmmMetadata(
         Mmid id,
         MainServer server,
-        string title = "",
+        List<Dweb_DeepLink>? dwebDeeplinks = null,
+        string name = "",
         string shortName = "",
         string icon = "",
-        string downloadUrl = "",
         List<string>? images = null,
         string description = "",
         List<string>? author = null,
@@ -58,18 +60,18 @@ public class JmmMetadata
         string newFeature = "",
         List<string>? keywords = null,
         string home = "",
-        string size = "",
-        string fileHash = "",
+        string bundleUrl = "",
+        string bundleSize = "",
+        string bundleHash = "",
         List<string>? permissions = null,
         List<string>? plugins = null,
         string releaseDate = "")
     {
         Id = id;
         Server = server;
-        Title = title;
+        Name = name;
         ShortName = shortName;
         Icon = icon;
-        DownloadUrl = downloadUrl;
         Images = images;
         Description = description;
         Author = author;
@@ -77,11 +79,17 @@ public class JmmMetadata
         NewFeature = newFeature;
         Keywords = keywords;
         Home = home;
-        Size = size;
-        FileHash = fileHash;
+        BundleUrl = bundleUrl;
+        BundleSize = bundleSize;
+        BundleHash = bundleHash;
         Permissions = permissions;
         Plugins = plugins;
         ReleaseDate = releaseDate;
+
+        if (dwebDeeplinks is null)
+        {
+            Dweb_DeepLinks = new();
+        }
     }
 
     public struct MainServer

@@ -15,7 +15,7 @@ public static class IntExtensions
 		{
 			return (int)self;
 		}
-		catch(Exception e)
+		catch
 		{
 			throw;
 		}

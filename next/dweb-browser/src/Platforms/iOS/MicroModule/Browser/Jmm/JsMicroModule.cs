@@ -9,6 +9,10 @@ namespace DwebBrowser.MicroService.Browser.Jmm;
 public class JsMicroModule : MicroModule
 {
     static readonly Debugger Console = new("JsMicroModule");
+
+    public override List<Dweb_DeepLink> Dweb_deeplinks { get; init; }
+    public override IpcSupportProtocols IpcSupportProtocols { get; init; }
+
     record JsMM(JsMicroModule jmm, Mmid remoteMmid);
     static JsMicroModule()
     {
@@ -50,6 +54,13 @@ public class JsMicroModule : MicroModule
     public JsMicroModule(JmmMetadata metadata) : base(metadata.Id)
     {
         Metadata = metadata;
+        Dweb_deeplinks = Metadata.Dweb_DeepLinks ?? new();
+        IpcSupportProtocols = new()
+        {
+            Cbor = true,
+            Protobuf = false,
+            Raw = true
+        };
     }
 
     public JmmMetadata Metadata { get; init; }

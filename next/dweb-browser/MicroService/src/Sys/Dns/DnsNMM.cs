@@ -10,7 +10,7 @@ public class DnsNMM : NativeMicroModule
 
     // 正在运行的应用
     private Dictionary<Mmid, PromiseOut<MicroModule>> _runningApps = new();
-    public new List<string> Dweb_deeplinks = new() { "dweb:open" };
+    public new List<Dweb_DeepLink> Dweb_deeplinks = new() { "dweb:open" };
 
     public DnsNMM() : base("dns.sys.dweb")
     {

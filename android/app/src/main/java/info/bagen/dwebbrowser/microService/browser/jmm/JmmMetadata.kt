@@ -6,9 +6,9 @@ import info.bagen.dwebbrowser.microService.helper.Mmid
 data class JmmMetadata(
     val id: Mmid, // jmmApp的id
     val server: MainServer, // 打开应用地址
-    val dweb_deeplinks: MutableList<DWEB_DEEPLINK> = mutableListOf(),
+    val dwebDeeplinks: MutableList<DWEB_DEEPLINK> = mutableListOf(),
     val name: String = "", // 应用名称
-    val short_name: String = "", // 应用副标题
+    val shortName: String = "", // 应用副标题
     val icon: String = "", // 应用图标
     val images: List<String>? = null, // 应用截图
     val description: String = "", // 应用描述
@@ -41,10 +41,10 @@ data class JmmMetadata(
 
 val defaultJmmMetadata = JmmMetadata(
     id = "default.user.dweb",
-    dweb_deeplinks = mutableListOf(),
+    dwebDeeplinks = mutableListOf(),
     icon = "https://www.bfmeta.info/imgs/logo3.webp",
     name = "默认测试数据",
-    short_name = "该测试数据包含了相关具体信息，请仔细查阅",
+    shortName = "该测试数据包含了相关具体信息，请仔细查阅",
     description = "这是一个实例应用，包含了dweb_plugins全部组件的实例。",
     bundleUrl = "https://dweb.waterbang.top/app.plaoc.dweb-1.0.0.zip",
     bundleSize = "2726400",

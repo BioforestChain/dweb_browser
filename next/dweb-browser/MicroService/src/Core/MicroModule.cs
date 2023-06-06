@@ -10,8 +10,8 @@ public abstract partial class MicroModule : Ipc.IMicroModuleInfo
         Mmid = mmid;
     }
     public Router? Router = null;
-    public virtual IpcSupportProtocols IpcSupportProtocols { get; init; }
-    public virtual List<string> Dweb_deeplinks { get; init; }
+    public abstract IpcSupportProtocols IpcSupportProtocols { get; init; }
+    public abstract List<Dweb_DeepLink> Dweb_deeplinks { get; init; }
 
     private PromiseOut<bool> _runningStateLock = PromiseOut<bool>.StaticResolve(false);
     public bool Running { get => _runningStateLock.Value; }

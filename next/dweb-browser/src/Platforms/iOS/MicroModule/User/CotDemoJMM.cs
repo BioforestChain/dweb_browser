@@ -8,7 +8,7 @@ public class CotDemoJMM : JsMicroModule
         version: "1.0.0",
         server: new JmmMetadata.MainServer() { Root = "file:///jmm", Entry = "/public.service.worker.js" },
         icon: "https://www.bfmeta.info/imgs/logo3.webp",
-        title: "game"
+        name: "game"
 ))
     {
         JmmNMM.GetAndUpdateJmmNmmApps().Add(Mmid, this);

@@ -7,13 +7,8 @@ public abstract class NativeMicroModule : MicroModule
 {
     static readonly Debugger Console = new("NMM");
     protected HttpRouter HttpRouter = new();
-    public new List<string> Dweb_deeplinks = new();
-    public new IpcSupportProtocols IpcSupportProtocols = new()
-    {
-        Cbor = true,
-        Protobuf = true,
-        Raw = true
-    };
+    public override List<Dweb_DeepLink> Dweb_deeplinks { get; init; }
+    public override IpcSupportProtocols IpcSupportProtocols { get; init; }
 
     static NativeMicroModule()
     {
@@ -36,6 +31,13 @@ public abstract class NativeMicroModule : MicroModule
 
     public NativeMicroModule(Mmid mmid) : base(mmid)
     {
+        Dweb_deeplinks = new();
+        IpcSupportProtocols = new()
+        {
+            Cbor = true,
+            Protobuf = true,
+            Raw = true
+        };
         OnConnect += async (clientIpc, _, _) =>
         {
             clientIpc.OnRequest += async (ipcRequest, _, _) =>

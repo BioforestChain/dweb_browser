@@ -32,8 +32,7 @@ public class Debugger
     }
     public void WriteIf(Func<string> style, string tag, string msg)
     {
-        //Debug.WriteLine(style() + scopePrefix + tag.TabEnd() + "┊ " + msg);
-        var _bool = DebugTags.Count > 0 && DebugTags.FindIndex(scopePrefix.StartsWith) > -1;
+        var _bool = (DebugTags.Count > 0 && DebugTags.FindIndex(scopePrefix.StartsWith) > -1) || DebugTags.Contains("*");
         Debug.WriteLineIf(_bool, style() + scopePrefix + tag.TabEnd() + "┊ " + msg);
     }
     public void Write(Func<string> style, string tag, string format, params object?[] args)

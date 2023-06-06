@@ -21,45 +21,6 @@ public class HttpRouter
         _routes.Clear();
     }
 
-    // public async Task RouterHandler(HttpListenerContext context, Ipc? ipc = null)
-    // {
-    //     var request = context.Request;
-    //     var response = context.Response;
-
-    //     var result = await RouterHandler(request.ToHttpRequestMessage(), ipc);
-
-    //     if (result is not null && response is not null)
-    //     {
-    //         switch (result)
-    //         {
-    //             case HttpResponseMessage res:
-    //                 (await res.ToHttpListenerResponse(response)).Close();
-    //                 break;
-    //             case byte[] byteResult:
-    //                 response.StatusCode = (int)HttpStatusCode.OK;
-    //                 Stream outputStream = response.OutputStream;
-    //                 outputStream.Write(byteResult, 0, byteResult.Length);
-    //                 outputStream.Close();
-    //                 response.Close();
-    //                 break;
-    //             case Stream stream:
-    //                 response.StatusCode = (int)HttpStatusCode.OK;
-    //                 stream.CopyTo(response.OutputStream);
-    //                 response.Close();
-    //                 break;
-    //             default:
-    //                 response.StatusCode = (int)HttpStatusCode.OK;
-    //                 response.Close();
-    //                 break;
-    //         }
-    //     }
-    //     else
-    //     {
-    //         response!.StatusCode = (int)HttpStatusCode.NotFound;
-    //         response.Close();
-    //     }
-    // }
-
     public async Task<object?> RouterHandler(PureRequest request, Ipc? ipc)
     {
         foreach (var (route, handler) in _routes)

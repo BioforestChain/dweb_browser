@@ -62,7 +62,7 @@ public abstract class Ipc
         /// 
         /// dweb_deeplinks 由 dns 模块进行统一管理，也由它提供相关的管理界面、控制策略
         /// </summary>
-        public List<string> Dweb_deeplinks { get; init; }
+        public List<Dweb_DeepLink> Dweb_deeplinks { get; init; }
     }
 
     public MicroModule? AsRemoteInstance() => Remote is MicroModule microModule ? microModule : null;
