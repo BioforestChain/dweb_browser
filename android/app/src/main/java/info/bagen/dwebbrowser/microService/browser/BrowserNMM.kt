@@ -3,6 +3,7 @@ package info.bagen.dwebbrowser.microService.browser
 import android.content.Intent
 import android.os.Bundle
 import info.bagen.dwebbrowser.App
+import info.bagen.dwebbrowser.microService.browser.jmm.JmmNMM.Companion.getAndUpdateJmmNmmApps
 import info.bagen.dwebbrowser.microService.core.BootstrapContext
 import info.bagen.dwebbrowser.microService.core.NativeMicroModule
 import info.bagen.dwebbrowser.microService.core.ipc.Ipc
@@ -16,7 +17,6 @@ import org.http4k.routing.routes
 
 fun debugBrowser(tag: String, msg: Any? = "", err: Throwable? = null) =
   printdebugln("browser", tag, msg, err)
-
 class BrowserNMM : NativeMicroModule("browser.dweb") {
   companion object {
     val controllerList = mutableListOf<BrowserController>()
@@ -28,14 +28,28 @@ class BrowserNMM : NativeMicroModule("browser.dweb") {
   }
 
   val queryAppId = Query.string().required("app_id")
+  data class AppInfo(val id:String,val icon:String,val name:String,val short_name:String)
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
+    bootstrapContext.dns.bootstrap("jmm.browser.dweb")
     apiRouting = routes(
       "/openApp" bind Method.GET to defineHandler { request ->
         val mmid = queryAppId(request)
+        debugBrowser("openApp",mmid)
         return@defineHandler browserController?.openApp(mmid) // 直接调这个后端没启动
       },
     "/appsInfo" bind Method.GET to defineHandler { request ->
-      return@defineHandler browserController?.openApp(mmid) // 直接调这个后端没启动
+      val apps = getAndUpdateJmmNmmApps()
+      debugBrowser("appInfo",apps.size)
+      val responseApps = mutableListOf<AppInfo>()
+      apps.forEach { item ->
+        val meta = item.value.metadata
+        responseApps.add(
+          AppInfo(meta.id,
+            meta.icon,
+            meta.name,
+            meta.short_name))
+      }
+      return@defineHandler responseApps
     })
   }
 

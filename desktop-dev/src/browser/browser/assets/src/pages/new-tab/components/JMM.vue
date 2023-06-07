@@ -19,7 +19,7 @@ onMounted(() => {
 })
 
 function clickApp(id: string){
-  const url = `${CONST.BASR_URL}/open?app_id=${id}`
+  const url = `${CONST.BASR_URL}/openApp?app_id=${id}`
   console.log("jmmOnclick")
   fetch(url)
 }
@@ -37,17 +37,17 @@ function clickApp(id: string){
 
 .app {
   display: flex;
-  flex-shrink: 0;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  margin: 10px;
   cursor: pointer;
+  /* margin: 0 auto; */
+  margin-bottom: 10px;
 }
 
 .app-icon {
-  width: 66px;
-  height: 66px;
+  width: 60px;
+  height: 60px;
   border-radius: 15px;
   background-color: #fff;
   display: flex;
@@ -67,5 +67,8 @@ function clickApp(id: string){
   color: #333;
   margin-top: 10px;
   text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; /* 超出部分显示省略号 */
 }
 </style>

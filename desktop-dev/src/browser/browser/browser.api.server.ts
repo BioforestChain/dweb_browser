@@ -49,7 +49,7 @@ async function onRequest(this: BrowserNMM, request: IpcRequest, ipc: Ipc) {
     case "/external":
       external.bind(this)(request, ipc);
       break;
-    case "/open":
+    case "/openApp":
       open.bind(this)(request, ipc);
       break;
     default: console.error("browser", "还有没有匹配的 api 请求 pathname ===", pathname)

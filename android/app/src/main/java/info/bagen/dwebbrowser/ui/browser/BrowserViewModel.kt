@@ -51,6 +51,7 @@ import info.bagen.dwebbrowser.util.*
 import kotlinx.coroutines.*
 import org.http4k.core.Method
 import org.http4k.core.Request
+import org.http4k.core.Response
 import org.http4k.lens.Header
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -349,13 +350,13 @@ class BrowserViewModel(private val browserController: BrowserController) : ViewM
     it.settings.domStorageEnabled = true
     it.settings.javaScriptEnabled = true
     it.settings.databaseEnabled = true
-    it. settings.safeBrowsingEnabled = true
+    it.settings.safeBrowsingEnabled = true
     it.settings.loadWithOverviewMode = true
     it.settings.loadsImagesAutomatically = true
     it.settings.setSupportMultipleWindows(true)
     it.settings.allowFileAccess = true
     it.settings.javaScriptCanOpenWindowsAutomatically = true
-    it. settings.allowContentAccess = true
+    it.settings.allowContentAccess = true
   }
 
   val isNoTrace = mutableStateOf(App.appContext.getBoolean(KEY_NO_TRACE, false))
@@ -412,27 +413,28 @@ internal class DwebBrowserWebViewClient : AccompanistWebViewClient() {
   override fun shouldInterceptRequest(
     view: WebView, request: WebResourceRequest
   ): WebResourceResponse? {
-    debugBrowser("shouldInterceptRequest =>", request.url)
-    if (request.url.scheme == "dweb") {
-      val response = runBlockingCatching(ioAsyncExceptionHandler) {
-        BrowserNMM.browserController?.browserNMM?.nativeFetch(
-          Request(
-            Method.GET, request.url.toString()
-          ).headers(request.requestHeaders.toList())
-        )
+    var response: Response? = null
+    if (request.url.host == "localhost") { // 拦截 browser web
+      debugBrowser("shouldInterceptRequest localhost=>", "${request.url} path:${request.url.path}?${request.url.query}")
+      response = runBlockingCatching(ioAsyncExceptionHandler) {
+        BrowserNMM.browserController?.browserNMM?.nativeFetch("file://browser.dweb${request.url.path}?${request.url.query}")
       }.getOrThrow()
-
-      if (response !== null) {
-        val contentType = Header.CONTENT_TYPE(response)
-        return WebResourceResponse(
-          contentType?.value,
-          contentType?.directives?.find { it.first == "charset" }?.second,
-          response.status.code,
-          response.status.description,
-          CORS_HEADERS.toMap(),
-          response.body.stream,
-        )
-      }
+    } else if (request.url.scheme == "dweb") { // 负责拦截browser的dweb_deeplink
+      debugBrowser("shouldInterceptRequest dweb=>", request.url)
+      response = runBlockingCatching(ioAsyncExceptionHandler) {
+        BrowserNMM.browserController?.browserNMM?.nativeFetch(request.url.toString())
+      }.getOrThrow()
+    }
+    if (response !== null) {
+      val contentType = Header.CONTENT_TYPE(response)
+      return WebResourceResponse(
+        contentType?.value,
+        contentType?.directives?.find { it.first == "charset" }?.second,
+        response.status.code,
+        response.status.description,
+        CORS_HEADERS.toMap(),
+        response.body.stream,
+      )
     }
     return super.shouldInterceptRequest(view, request)
   }
