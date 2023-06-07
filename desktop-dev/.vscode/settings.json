@@ -1,7 +1,7 @@
 {
     "deno.enable": true,
     "files.exclude": {
-        "build/": true,
+        "build/": false,
         "electxron/": true,
         "node_modules/": true,
         "**/.git": true,
