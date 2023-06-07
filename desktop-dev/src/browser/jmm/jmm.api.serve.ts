@@ -31,7 +31,7 @@ export const JMM_DB = open<$AppMetaData, $MMID>({
   path: path.join(JMM_APPS_PATH, "jmm"),
   encoding: "json",
 });
-
+ 
 export const JMM_TMP_DIR = path.join(os.tmpdir(), "jmm");
 fs.mkdirSync(JMM_TMP_DIR, { recursive: true });
 
@@ -245,7 +245,7 @@ async function _appInstall(
     // const jszip = await JSZip.loadAsync(fs.createReadStream(tempFilePath));
     const jszip = await JSZip.loadAsync(fs.readFileSync(tempFilePath));
     for (const [filePath, fileZipObj] of Object.entries(jszip.files)) {
-      const targetFilePath = path.join(installDir, filePath);
+      const targetFilePath = path.join(installDir, filePath.slice(appInfo.id.length));
       if (fileZipObj.dir) {
         fs.mkdirSync(targetFilePath, { recursive: true });
       } else {
