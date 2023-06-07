@@ -137,7 +137,7 @@ struct DownloadAppView: View {
                 .cornerRadius(20)
             
             VStack(alignment: .leading, spacing: 8) {
-                Text(defaultApp?.title ?? "")
+                Text(defaultApp?.name ?? "")
                     .font(.system(size: 20,weight: .bold))
                 Spacer()
                 DownloadButtonView(urlString: defaultApp?.downloadUrl ?? "", content: $content, btn_width: $btn_width, backColor: $backColor, isRotate: $isRotate, isWaiting: $isWaiting, progress: $progress)
@@ -230,8 +230,7 @@ struct DownloadAppView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.bottom, 10)
             
-            //defaultApp?.newFeature ?? []
-            ForEach(["可以按照群成员和日期搜索聊天记录","修复了一些已知问题"], id: \.self) { content in
+            ForEach(defaultApp?.new_feature ?? [], id: \.self) { content in
                 Text("- \(content)")
             }
         }
@@ -246,7 +245,7 @@ struct DownloadAppView: View {
                 .font(.title2.bold())
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.bottom, 10)
-            Text(defaultApp?.introduction ?? "")
+            Text(defaultApp?.description ?? "")
         }
         .padding(.leading,20)
     }
@@ -300,13 +299,13 @@ struct DownloadAppView: View {
         
         guard defaultApp != nil else { return "" }
         
-        if defaultApp!.size > 1024 * 1024 {
-            return String(format: "%.2f MB", CGFloat(defaultApp!.size) / (1024.0 * 1024.0))
+        if defaultApp!.bundle_size > 1024 * 1024 {
+            return String(format: "%.2f MB", CGFloat(defaultApp!.bundle_size) / (1024.0 * 1024.0))
         }
-        if defaultApp!.size > 1024 {
-            return String(format: "%.2f KB", CGFloat(defaultApp!.size) / 1024.0)
+        if defaultApp!.bundle_size > 1024 {
+            return String(format: "%.2f KB", CGFloat(defaultApp!.bundle_size) / 1024.0)
         }
-        return "\(defaultApp!.size)B"
+        return "\(defaultApp!.bundle_size)B"
     }
     
     private func loadAppInfo() {

@@ -52,7 +52,6 @@
 		F3B558A12A2F3D44000169B6 /* DownloadButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B558982A2F3D44000169B6 /* DownloadButtonView.swift */; };
 		F3B558A22A2F3D44000169B6 /* CustomUIScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B558992A2F3D44000169B6 /* CustomUIScrollView.swift */; };
 		F3B558A32A2F3D44000169B6 /* DownloadAppView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B5589A2A2F3D44000169B6 /* DownloadAppView.swift */; };
-		F3B558A42A2F3D44000169B6 /* EventEnum.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B5589B2A2F3D44000169B6 /* EventEnum.swift */; };
 		F3B558A52A2F3D44000169B6 /* DownloadAppManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B5589C2A2F3D44000169B6 /* DownloadAppManager.swift */; };
 		F3B558A72A2F3D5E000169B6 /* CombinePublisher.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B558A62A2F3D5E000169B6 /* CombinePublisher.swift */; };
 /* End PBXBuildFile section */
@@ -117,7 +116,6 @@
 		F3B558982A2F3D44000169B6 /* DownloadButtonView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadButtonView.swift; sourceTree = "<group>"; };
 		F3B558992A2F3D44000169B6 /* CustomUIScrollView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomUIScrollView.swift; sourceTree = "<group>"; };
 		F3B5589A2A2F3D44000169B6 /* DownloadAppView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadAppView.swift; sourceTree = "<group>"; };
-		F3B5589B2A2F3D44000169B6 /* EventEnum.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EventEnum.swift; sourceTree = "<group>"; };
 		F3B5589C2A2F3D44000169B6 /* DownloadAppManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadAppManager.swift; sourceTree = "<group>"; };
 		F3B558A62A2F3D5E000169B6 /* CombinePublisher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CombinePublisher.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -287,7 +285,6 @@
 				F3B558982A2F3D44000169B6 /* DownloadButtonView.swift */,
 				F3B558992A2F3D44000169B6 /* CustomUIScrollView.swift */,
 				F3B5589A2A2F3D44000169B6 /* DownloadAppView.swift */,
-				F3B5589B2A2F3D44000169B6 /* EventEnum.swift */,
 			);
 			path = DoanloadApp;
 			sourceTree = "<group>";
@@ -397,7 +394,6 @@
 				F33F293D2A28A791002EB729 /* PagingScroll.swift in Sources */,
 				F33F294A2A28A791002EB729 /* HistoryItem.swift in Sources */,
 				F33F29492A28A791002EB729 /* ToolbarView.swift in Sources */,
-				F3B558A42A2F3D44000169B6 /* EventEnum.swift in Sources */,
 				F33F293E2A28A791002EB729 /* View+placeholder.swift in Sources */,
 				F3B5589E2A2F3D44000169B6 /* NotificationName_extension.swift in Sources */,
 				F33F29372A28A791002EB729 /* WebCacheMgr.swift in Sources */,

@@ -10,20 +10,22 @@ import Foundation
 struct APPModel: Identifiable, Codable {
     
     var id = UUID().uuidString
-    let server: [String: String]
+    var server: [String: String]
+    var dweb_deeplinks: [String]
     var icon: String
-    var title: String
-    var subtitle: String
-    var introduction: String
+    var name: String
+    var short_name: String
+    var description: String
     var images: [String]
     var downloadUrl: String
     var author: [String]
     var version: String
-//    var newFeature: [String]
-    var keywords: [String]
-    var size: Int
+    var categories: [String]
+    var new_feature: [String]
+    var bundle_size: Int
     var home: String
-    var fileHash: String
+    var bundle_hash: String
     var plugins: [String]
-    var releaseDate: String
+    var release_date: String
+    var permissions: [String]
 }
