@@ -18,6 +18,7 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateColor
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -28,6 +29,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.animation.with
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -135,7 +137,7 @@ fun rememberQRCodeScanState(): QRCodeScanState {
   return remember { QRCodeScanState() }
 }
 
-@OptIn(ExperimentalPermissionsApi::class)
+@OptIn(ExperimentalPermissionsApi::class, ExperimentalAnimationApi::class)
 @Composable
 fun QRCodeScanView(
   qrCodeScanState: QRCodeScanState = rememberQRCodeScanState(),
@@ -171,10 +173,10 @@ fun QRCodeScanView(
   AnimatedContent(targetState = qrCodeScanState.state.value.type, label = "", transitionSpec = {
     if (targetState > initialState) {
       // 数字变大时，进入的界面从右向左变深划入，退出的界面从右向左变浅划出
-      slideInHorizontally { fullWidth -> fullWidth } + fadeIn() with slideOutHorizontally { fullWidth -> -fullWidth } + fadeOut()
+      (slideInHorizontally { fullWidth -> fullWidth } + fadeIn()).togetherWith(slideOutHorizontally { fullWidth -> -fullWidth } + fadeOut())
     } else {
       // 数字变小时，进入的数字从左向右变深划入，退出的数字从左向右变浅划出
-      slideInHorizontally { fullWidth -> -fullWidth } + fadeIn() with slideOutHorizontally { fullWidth -> fullWidth } + fadeOut()
+      (slideInHorizontally { fullWidth -> -fullWidth } + fadeIn()).togetherWith(slideOutHorizontally { fullWidth -> fullWidth } + fadeOut())
     }
   }) { state ->
     when (state) {

@@ -9,10 +9,12 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.animation.with
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -102,7 +104,7 @@ class TabItem(
 /**
  * 弹出主界面，包括了三个tab和一个书签管理界面 TODO 目前缺少切换到书签管理界面后的展开问题
  */
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
 internal fun BrowserPopView(viewModel: BrowserViewModel) {
   val selectedTabIndex = remember { mutableStateOf(0) }
@@ -123,10 +125,12 @@ internal fun BrowserPopView(viewModel: BrowserViewModel) {
     transitionSpec = {
       if (targetState.value > initialState.value) {
         // 数字变大时，进入的界面从右向左变深划入，退出的界面从右向左变浅划出
-        slideInHorizontally { fullWidth -> fullWidth } + fadeIn() with slideOutHorizontally { fullWidth -> -fullWidth } + fadeOut()
+        (slideInHorizontally { fullWidth -> fullWidth } + fadeIn()).togetherWith(
+          slideOutHorizontally { fullWidth -> -fullWidth } + fadeOut())
       } else {
         // 数字变小时，进入的数字从左向右变深划入，退出的数字从左向右变浅划出
-        slideInHorizontally { fullWidth -> -fullWidth } + fadeIn() with slideOutHorizontally { fullWidth -> fullWidth } + fadeOut()
+        (slideInHorizontally { fullWidth -> -fullWidth } + fadeIn()).togetherWith(
+          slideOutHorizontally { fullWidth -> fullWidth } + fadeOut())
       }
     }
   ) { targetPage ->

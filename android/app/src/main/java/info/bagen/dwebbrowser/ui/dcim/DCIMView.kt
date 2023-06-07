@@ -16,7 +16,9 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerScope
 import androidx.compose.foundation.pager.PagerState
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -127,6 +129,7 @@ fun DCIMItemView(dcimInfo: DCIMInfo, dcimVM: DCIMViewModel, onClick: (DCIMInfo) 
           }
         }
       }
+
       else -> {
         null
       }
@@ -200,21 +203,29 @@ fun DCIMHorizontalPager(dcimVM: DCIMViewModel) {
     checkPoint++
   }
   if (exists) {
-    val pagerState = PagerState(checkPoint)
+    val pagerState = rememberPagerState { checkPoint }
     // 监听页面更改, 使用 snapshotFlow 函数来观察流的变化
     LaunchedEffect(pagerState) {
       snapshotFlow { pagerState.currentPage }.collect { page ->
         dcimVM.handlerIntent(DCIMIntent.SetCurrentDCIMInfo(curShowlist[page]))
       }
     }
+    // 该区块有三个参数：currentPage表示当前显示的界面，currentPageOffset表示滑动偏移量，loadPage表示加载界面
     HorizontalPager(
-      pageCount = curShowlist.size, state = pagerState, modifier = Modifier.fillMaxSize()
-    ) { loadPage ->
-      // 该区块有三个参数：currentPage表示当前显示的界面，currentPageOffset表示滑动偏移量，loadPage表示加载界面
-      if (loadPage >= 0 && loadPage < curShowlist.size) {
-        DCIMPager(dcimVM = dcimVM, curDCIMInfo = curShowlist[loadPage], loadPage)
+      modifier = Modifier.fillMaxSize(),
+      state = pagerState,
+      pageSpacing = 0.dp,
+      userScrollEnabled = true,
+      reverseLayout = false,
+      contentPadding = PaddingValues(0.dp),
+      beyondBoundsPageCount = 0,
+      pageContent = { loadPage ->
+        // 该区块有三个参数：currentPage表示当前显示的界面，currentPageOffset表示滑动偏移量，loadPage表示加载界面
+        if (loadPage >= 0 && loadPage < curShowlist.size) {
+          DCIMPager(dcimVM = dcimVM, curDCIMInfo = curShowlist[loadPage], loadPage)
+        }
       }
-    }
+    )
   } else {
     DCIMPager(dcimVM = dcimVM, curDCIMInfo = dcimVM.uiState.value.curDCIMInfo.value, 0)
   }
@@ -243,10 +254,12 @@ fun DCIMPager(dcimVM: DCIMViewModel, curDCIMInfo: DCIMInfo, page: Int) {
           alignment = Alignment.TopStart
         )
       }
+
       DCIMType.VIDEO -> {
         VideoScreen(dcimVM, curDCIMInfo.path)
         //ExoPlayerView(path = curDCIMInfo.path, page)
       }
+
       DCIMType.OTHER -> {
         throw UnknownError()
       }

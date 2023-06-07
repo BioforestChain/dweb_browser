@@ -19,6 +19,9 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PageSize
+import androidx.compose.foundation.pager.PagerDefaults
+import androidx.compose.foundation.pager.PagerScope
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -170,7 +173,8 @@ private suspend fun measureCenterOffset(index: Int, previewState: PreviewState):
 
   val realLeft = if (index > firstVisible) {
     val left1 = (HorizontalPadding + ImageWidth).value * density - firstVisibleOffset // 第一格减去移动量
-    val left2 = (index - firstVisible - 1) * (ImageWidth + HorizontalPadding).value * density // 中间间隔多少个图片
+    val left2 =
+      (index - firstVisible - 1) * (ImageWidth + HorizontalPadding).value * density // 中间间隔多少个图片
     val left3 = (ImageWidth / 2 + HorizontalPadding).value * density // 点击的图片本身
     (left1 + left2 + left3) / (screenWidth * density)
   } else {
@@ -538,10 +542,10 @@ private fun OtherInfoView(jmmMetadata: JmmMetadata) {
     Spacer(modifier = Modifier.height(HorizontalPadding))
     OtherItemView(type = "开发者", content = jmmMetadata.author?.toContent() ?: "me")
     OtherItemView(type = "大小", content = jmmMetadata.bundle_size.toSpaceSize())
-    OtherItemView(type = "类别", content = jmmMetadata.categories?.toContent()?: "娱乐")
+    OtherItemView(type = "类别", content = jmmMetadata.categories?.toContent() ?: "娱乐")
     OtherItemView(type = "语言", content = "中文")
     OtherItemView(type = "年龄分级", content = "18+")
-    OtherItemView(type = "版权", content = "@${jmmMetadata.author?.get(0) ?:"dweb_browser"}")
+    OtherItemView(type = "版权", content = "@${jmmMetadata.author?.get(0) ?: "dweb_browser"}")
   }
 }
 
@@ -599,7 +603,11 @@ private fun ImagePreview(
     ) + fadeOut(),
   ) {
     BackHandler { previewState.showPreview.targetState = false }
-    val pagerState = rememberPagerState(previewState.selectIndex.value)
+    val pagerState = rememberPagerState(
+      initialPage = previewState.selectIndex.value,
+      initialPageOffsetFraction = 0f,
+      pageCount = { 1 }
+    )
     val imageList = jmmMetadata.images ?: listOf()
 
     LaunchedEffect(previewState) { // 为了滑动图片后，刷新后端的图片中心点位置
@@ -614,23 +622,28 @@ private fun ImagePreview(
         .background(Color.Black)
     ) {
       HorizontalPager(
-        pageCount = imageList.size,
+        modifier = Modifier.fillMaxSize(),
         state = pagerState,
-        modifier = Modifier.fillMaxSize()
-      ) { index ->
-        AsyncImage(
-          model = imageList[index],
-          contentDescription = "Picture",
-          alignment = Alignment.Center,
-          contentScale = ContentScale.FillWidth,
-          modifier = Modifier
-            .fillMaxSize()
-            .clickable(indication = null,
-              onClick = { previewState.showPreview.targetState = false },
-              interactionSource = remember { MutableInteractionSource() }
-            )
-        )
-      }
+        pageSpacing = 0.dp,
+        userScrollEnabled = true,
+        reverseLayout = false,
+        contentPadding = PaddingValues(0.dp),
+        beyondBoundsPageCount = 0,
+        pageContent = { index ->
+          AsyncImage(
+            model = imageList[index],
+            contentDescription = "Picture",
+            alignment = Alignment.Center,
+            contentScale = ContentScale.FillWidth,
+            modifier = Modifier
+              .fillMaxSize()
+              .clickable(indication = null,
+                onClick = { previewState.showPreview.targetState = false },
+                interactionSource = remember { MutableInteractionSource() }
+              )
+          )
+        }
+      )
       Row(
         Modifier
           .height(50.dp)

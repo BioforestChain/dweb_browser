@@ -9,6 +9,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerScope
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
@@ -46,7 +47,7 @@ import java.io.File
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SplashView(paths: ArrayList<String>) {
-  val pagerState = rememberPagerState()
+  val pagerState = rememberPagerState { paths.size }
 
   Box(
     modifier = Modifier
@@ -54,27 +55,35 @@ fun SplashView(paths: ArrayList<String>) {
       .background(Color.Black)
   ) {
     HorizontalPager(
-      pageCount = paths.size, state = pagerState, modifier = Modifier.fillMaxSize()
-    ) { loadPage ->
-      val path = paths[loadPage]
-      when (FilesUtil.getFileType(path)) {
-        MediaType.Video.name -> {
-          SplashVideoView(path = path)
-        }
-        else -> {
-          AsyncImage(
-            model = path,
-            contentDescription = null,
-            imageLoader = ImageLoader(App.appContext).newBuilder().components {
-              add(SvgDecoder.Factory())
-            }.build(),
-            contentScale = ContentScale.FillWidth,
-            modifier = Modifier.fillMaxWidth(),
-            alignment = Alignment.TopCenter
-          )
+      modifier = Modifier.fillMaxSize(),
+      state = pagerState,
+      pageSpacing = 0.dp,
+      userScrollEnabled = true,
+      reverseLayout = false,
+      contentPadding = PaddingValues(0.dp),
+      beyondBoundsPageCount = 0,
+      pageContent = { loadPage ->
+        val path = paths[loadPage]
+        when (FilesUtil.getFileType(path)) {
+          MediaType.Video.name -> {
+            SplashVideoView(path = path)
+          }
+
+          else -> {
+            AsyncImage(
+              model = path,
+              contentDescription = null,
+              imageLoader = ImageLoader(App.appContext).newBuilder().components {
+                add(SvgDecoder.Factory())
+              }.build(),
+              contentScale = ContentScale.FillWidth,
+              modifier = Modifier.fillMaxWidth(),
+              alignment = Alignment.TopCenter
+            )
+          }
         }
       }
-    }
+    )
   }
 }
 
@@ -117,10 +126,11 @@ fun SplashPrivacyDialog(
   val showPrivacyDeny = remember { mutableStateOf(false) }
 
   val transition = updateTransition(showPrivacyDeny.value, "")
-  Box(modifier = Modifier
-    .fillMaxSize()
-    .navigationBarsPadding()
-    .background(Color.Black.copy(0.5f))
+  Box(
+    modifier = Modifier
+      .fillMaxSize()
+      .navigationBarsPadding()
+      .background(Color.Black.copy(0.5f))
   ) {
     Box(
       modifier = Modifier

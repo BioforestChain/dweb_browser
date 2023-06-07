@@ -11,6 +11,7 @@ import android.webkit.WebView
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.pager.PagerState
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -57,8 +58,8 @@ import java.util.concurrent.atomic.AtomicInteger
 data class BrowserUIState(
   val browserViewList: MutableList<BrowserWebView> = mutableStateListOf(), // 多浏览器列表
   val currentBrowserBaseView: MutableState<BrowserWebView>,
-  val pagerStateContent: PagerState = PagerState(0), // 用于表示展示内容
-  val pagerStateNavigator: PagerState = PagerState(0), // 用于表示下面搜索框等内容
+  val pagerStateContent: MutableState<PagerState?> = mutableStateOf(null), // 用于表示展示内容
+  val pagerStateNavigator: MutableState<PagerState?> = mutableStateOf(null), // 用于表示下面搜索框等内容
   val myInstallApp: MutableMap<Mmid, JsMicroModule> = JmmNMM.getAndUpdateJmmNmmApps(), // 系统安装的应用
   val multiViewShow: MutableTransitionState<Boolean> = MutableTransitionState(false),
   val showBottomBar: MutableTransitionState<Boolean> = MutableTransitionState(true), // 用于网页上滑或者下滑时，底下搜索框和导航栏的显示
@@ -124,6 +125,7 @@ sealed class BrowserIntent {
   class ShowSnackbarMessage(val message: String, val actionLabel: String? = null) : BrowserIntent()
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 class BrowserViewModel(private val browserController: BrowserController) : ViewModel() {
   val uiState: BrowserUIState
 
@@ -189,8 +191,8 @@ class BrowserViewModel(private val browserController: BrowserController) : ViewM
           uiState.multiViewShow.targetState = action.show
           action.index?.let {
             withContext(mainAsyncExceptionHandler) {
-              uiState.pagerStateNavigator.scrollToPage(it)
-              uiState.pagerStateContent.scrollToPage(it)
+              uiState.pagerStateNavigator.value?.scrollToPage(it)
+              uiState.pagerStateContent.value?.scrollToPage(it)
             }
           }
         }
@@ -206,8 +208,8 @@ class BrowserViewModel(private val browserController: BrowserController) : ViewM
             uiState.currentBrowserBaseView.value = itemView
             delay(100)
             uiState.multiViewShow.targetState = false
-            uiState.pagerStateNavigator.scrollToPage(uiState.browserViewList.size - 1)
-            uiState.pagerStateContent.scrollToPage(uiState.browserViewList.size - 1)
+            uiState.pagerStateNavigator.value?.scrollToPage(uiState.browserViewList.size - 1)
+            uiState.pagerStateContent.value?.scrollToPage(uiState.browserViewList.size - 1)
           }
         }
 

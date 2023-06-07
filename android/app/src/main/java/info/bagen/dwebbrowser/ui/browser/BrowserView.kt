@@ -15,7 +15,9 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerScope
 import androidx.compose.foundation.pager.PagerState
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FormatSize
@@ -151,17 +153,22 @@ private fun BrowserMaskView(viewModel: BrowserViewModel, onClick: () -> Unit) {
 @Composable
 private fun BrowserViewContent(viewModel: BrowserViewModel) {
   val localFocusManager = LocalFocusManager.current
-  LaunchedEffect(viewModel.uiState.pagerStateNavigator) {
-    snapshotFlow { viewModel.uiState.pagerStateNavigator.currentPageOffsetFraction }.collect { currentPageOffset ->
-      viewModel.uiState.pagerStateContent.scrollToPage(
-        viewModel.uiState.pagerStateNavigator.currentPage, currentPageOffset
-      )
-    }
+  val pagerStateNavigator = rememberPagerState {
+    viewModel.uiState.browserViewList.size
   }
-  LaunchedEffect(viewModel.uiState.pagerStateContent) {
-    snapshotFlow { viewModel.uiState.pagerStateContent.currentPage }.collect { currentPage ->
-      viewModel.handleIntent(BrowserIntent.UpdateCurrentBaseView(currentPage))
-    }
+  val pagerStateContent = rememberPagerState {
+    viewModel.uiState.browserViewList.size
+  }
+  viewModel.uiState.pagerStateNavigator.value = pagerStateNavigator
+  viewModel.uiState.pagerStateContent.value = pagerStateContent
+
+  LaunchedEffect(pagerStateNavigator.currentPageOffsetFraction) {
+    pagerStateContent.scrollToPage(
+      pagerStateNavigator.currentPage, pagerStateNavigator.currentPageOffsetFraction
+    )
+  }
+  LaunchedEffect(pagerStateContent.currentPage) {
+    viewModel.handleIntent(BrowserIntent.UpdateCurrentBaseView(pagerStateContent.currentPage))
   }
   Box(
     modifier = Modifier
@@ -172,18 +179,27 @@ private fun BrowserViewContent(viewModel: BrowserViewModel) {
       )
   ) {
     // 创建一个不可滑动的 HorizontalPager , 然后由底下的 Search 来控制滑动效果
-    HorizontalPager(
-      state = viewModel.uiState.pagerStateContent,
-      pageCount = viewModel.uiState.browserViewList.size,
-      beyondBoundsPageCount = 5,
-      userScrollEnabled = false
-    ) { currentPage ->
-      BrowserViewContentWeb(viewModel, viewModel.uiState.browserViewList[currentPage])
-      /*when (val item = viewModel.uiState.browserViewList[currentPage]) {
+    /*when (val item = viewModel.uiState.browserViewList[currentPage]) {
         is BrowserMainView -> BrowserViewContentMain(viewModel, item)
         is BrowserWebView -> BrowserViewContentWeb(viewModel, item)
       }*/
-    }
+    HorizontalPager(
+      modifier = Modifier,
+      state = pagerStateContent,
+      pageSpacing = 0.dp,
+      userScrollEnabled = false,
+      reverseLayout = false,
+      contentPadding = PaddingValues(0.dp),
+      beyondBoundsPageCount = 5,
+
+      pageContent = { currentPage ->
+        BrowserViewContentWeb(viewModel, viewModel.uiState.browserViewList[currentPage])
+        /*when (val item = viewModel.uiState.browserViewList[currentPage]) {
+          is BrowserMainView -> BrowserViewContentMain(viewModel, item)
+          is BrowserWebView -> BrowserViewContentWeb(viewModel, item)
+        }*/
+      }
+    )
   }
 }
 
@@ -226,25 +242,29 @@ private fun BoxScope.BrowserViewBottomBar(viewModel: BrowserViewModel) {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun BrowserViewSearch(viewModel: BrowserViewModel) {
-  LaunchedEffect(PagerState) { // 为了修复隐藏搜索框后，重新加载时重新显示的问题，会显示第一页
+  val pagerStateNavigator = viewModel.uiState.pagerStateNavigator.value ?: return
+  LaunchedEffect(pagerStateNavigator.settledPage) { // 为了修复隐藏搜索框后，重新加载时重新显示的问题，会显示第一页
     delay(100)
-    viewModel.uiState.pagerStateNavigator.scrollToPage(viewModel.uiState.pagerStateNavigator.settledPage)
+    pagerStateNavigator.scrollToPage(pagerStateNavigator.settledPage)
   }
   val localFocus = LocalFocusManager.current
   LaunchedEffect(viewModel.isShowKeyboard) {
-    snapshotFlow { viewModel.isShowKeyboard }.collect {
-      if (!it && !viewModel.uiState.showSearchEngine.targetState) {
-        localFocus.clearFocus()
-      }
+    if (!viewModel.isShowKeyboard && !viewModel.uiState.showSearchEngine.targetState) {
+      localFocus.clearFocus()
     }
   }
   HorizontalPager(
-    state = viewModel.uiState.pagerStateNavigator,
-    pageCount = viewModel.uiState.browserViewList.size,
+    modifier = Modifier,
+    state = pagerStateNavigator,
+    pageSpacing = 0.dp,
+    userScrollEnabled = true,
+    reverseLayout = false,
     contentPadding = PaddingValues(horizontal = dimenHorizontalPagerHorizontal),
-  ) { currentPage ->
-    SearchBox(viewModel.uiState.browserViewList[currentPage])
-  }
+    beyondBoundsPageCount = 0,
+    pageContent = { currentPage ->
+      SearchBox(viewModel.uiState.browserViewList[currentPage])
+    }
+  )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -456,7 +476,7 @@ fun BrowserSearchView(viewModel: BrowserViewModel) {
 
 @SuppressLint("ClickableViewAccessibility")
 @Composable
-internal fun HomeWebviewPage(viewModel: BrowserViewModel, onClickOrMove:(Boolean) -> Unit) {
+internal fun HomeWebviewPage(viewModel: BrowserViewModel, onClickOrMove: (Boolean) -> Unit) {
   val webView = viewModel.getNewTabBrowserView()
   val background = MaterialTheme.colorScheme.background
   val isDark = isSystemInDarkTheme()
@@ -470,8 +490,11 @@ internal fun HomeWebviewPage(viewModel: BrowserViewModel, onClickOrMove:(Boolean
     factory = {
       webView.webView.parent?.let { (it as ViewGroup).removeAllViews() }
       webView.webView.setOnTouchListener { _, event ->
-        if (event.action == MotionEvent.ACTION_MOVE) { isRemove = true }
-        else if (event.action == MotionEvent.ACTION_UP) { onClickOrMove(isRemove) }
+        if (event.action == MotionEvent.ACTION_MOVE) {
+          isRemove = true
+        } else if (event.action == MotionEvent.ACTION_UP) {
+          onClickOrMove(isRemove)
+        }
         false
       }
       webView.webView.setDarkMode(isDark, background) // 为了保证浏览器背景色和系统主题一致
