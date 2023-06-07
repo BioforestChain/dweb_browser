@@ -16,7 +16,8 @@ export class BrowserNMM extends NativeMicroModule {
   bw: Electron.BrowserWindow | undefined;
   contentBV: $CBV | undefined;
   addressBV: Electron.BrowserView | undefined;
-  addressBVHeight = 38
+  // addressBVHeight = 38
+  addressBVHeight = 0 // 没有地址栏
   
   protected async _bootstrap(context: $BootstrapContext) {
     await createAPIServer.bind(this)()
@@ -24,13 +25,14 @@ export class BrowserNMM extends NativeMicroModule {
     await Electron.app.whenReady();
     this.bw = createBrowserWindow.bind(this)()
     this.contentBV = createCBV.bind(this)(this.bw, addressBarHeight);
-    this.addressBV = createAddressBrowserVeiw.bind(this)(this.bw, addressBarHeight)
+    // this.addressBV = createAddressBrowserVeiw.bind(this)(this.bw, addressBarHeight)
   }
 
   private _addressBarHeight(){
     // argv 有 --inspect === 调试状态 增加 addressBar 的高度; 
     // 非调试状态选用标准高度
-    return process.argv.includes("--inspect") ? 138 : this.addressBVHeight;
+    // return process.argv.includes("--inspect") ? 138 : this.addressBVHeight;
+    return this.addressBVHeight;
   }
   protected _shutdown() {}
 }

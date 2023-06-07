@@ -36,8 +36,7 @@ export function createBrowserWindow(
     // 拦截全部 devtools:// 协议发起的请求
     // urls: ["devtools://*/*"]
     urls: [
-      "http://browser.dweb/*",
-      "https://shop.plaoc.com/*.json"
+      "http://browser.dweb/*"
     ]
   }
   
@@ -50,10 +49,10 @@ export function createBrowserWindow(
       return;
     }
 
-    if(_url.hostname === "shop.plaoc.com" && details.method === 'GET'){
-      relayExternalGetRequest.bind(this)(details, callback)
-      return;
-    }
+    // if(_url.hostname === "shop.plaoc.com" && details.method === 'GET'){
+    //   relayExternalGetRequest.bind(this)(details, callback)
+    //   return;
+    // }
 
     throw new Error(`还有被拦截但没有转发的请求 ${details.url}`)
   })
