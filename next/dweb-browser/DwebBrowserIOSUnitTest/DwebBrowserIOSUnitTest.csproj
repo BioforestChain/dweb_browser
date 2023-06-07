@@ -35,4 +35,9 @@
   <ItemGroup>
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
   </ItemGroup>
+  <ItemGroup>
+    <Reference Include="SwiftUIBindingMAUI">
+      <HintPath>..\..\..\ios\SwiftUIToMAUI\SwiftUIBindingMAUI\SwiftUIBindingMAUI\bin\Debug\net7.0-ios\SwiftUIBindingMAUI.dll</HintPath>
+    </Reference>
+  </ItemGroup>
 </Project>

@@ -36,9 +36,10 @@ public class BrowserNMM : IOSNativeMicroModule
         await MainThread.InvokeOnMainThreadAsync(async () =>
         {
             var manager = new BrowserManager();
-            var webview = new WKWebView(CGRect.Empty, new());
-            webview.LoadRequest(new NSUrlRequest(new NSUrl("https://www.baidu.com")));
-            manager.WebViewList = new WKWebView[] { webview };
+            var webview = new BrowserWeb();
+            webview.LoadRequest(new NSUrlRequest(new NSUrl("https://dweb.waterbang.top/")));
+            //manager.WebViewList = new WKWebView[] { webview };
+            manager.ShowWebViewListDataWithList(new WKWebView[] { webview });
             var swiftView = manager.SwiftView;
             swiftView.Frame = UIScreen.MainScreen.Bounds;
             BrowserController.View.AddSubview(swiftView);

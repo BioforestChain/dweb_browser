@@ -5,82 +5,64 @@ using System.Runtime.Versioning;
 using DwebBrowser.MicroService.Http;
 using DwebBrowser.MicroService.Core;
 using DwebBrowser.MicroService.Sys.Http;
+using ObjCRuntime;
+using Microsoft.Maui.Platform;
 
 namespace DwebBrowser.MicroService.Browser;
 
 public partial class BrowserWeb : WKWebView
 {
+    static Debugger Console = new("BrowserWeb");
     public BrowserWeb(CGRect frame, WKWebViewConfiguration configuration) : base(frame, configuration)
     {
-        configuration.SetUrlSchemeHandler(new DwebSchemeHandler(), "dweb");
+        var script = new WKUserScript(new NSString($$"""
+            var originalFetch = fetch;
+            function nativeFetch(input, init) {
+              if (input.startsWith('dweb:')) {
+                window.location.href = input;
+              }
+              return originalFetch(input, init);  
+            }
+            window.fetch = nativeFetch;
+        """), WKUserScriptInjectionTime.AtDocumentEnd, true);
+        configuration.UserContentController.AddUserScript(script);
+        this.NavigationDelegate = new DwebNavigationDelegate();
     }
+
+    public BrowserWeb() : this(CGRect.Empty, new())
+    { }
 }
 
-#region 添加拦截dweb-deeplinks
-public class DwebSchemeHandler : NSObject, IWKUrlSchemeHandler
+sealed class DwebNavigationDelegate : WKNavigationDelegate
 {
-    [Export("webView:startURLSchemeTask:")]
-    [SupportedOSPlatform("ios11.0")]
-    async void IWKUrlSchemeHandler.StartUrlSchemeTask(WKWebView webView, IWKUrlSchemeTask urlSchemeTask)
+    [Export("webView:decidePolicyForNavigationAction:decisionHandler:")]
+    public override async void DecidePolicy(
+        WKWebView webView,
+        WKNavigationAction navigationAction,
+        Action<WKNavigationActionPolicy> decisionHandler)
     {
 
-        if (urlSchemeTask.Request.Url.Scheme == "dweb")
+        if (navigationAction.Request.Url.Scheme == "dweb")
         {
             await MainThread.InvokeOnMainThreadAsync(async () =>
             {
-                /// 获得响应
-                var pureResponse = await BrowserNMM.BrowserController?.BrowserNMM.NativeFetchAsync(
-                    new PureRequest(
-                        urlSchemeTask.Request.Url.AbsoluteString,
-                        IpcMethod.Get,
-                        /// 构建请求的 Headers
-                        urlSchemeTask.Request.Headers.Select((kv) =>
-                        {
-                            return KeyValuePair.Create((string)(NSString)kv.Key, (string)(NSString)kv.Value);
-                        }).ToIpcHeaders()));
-
-                /// 获得响应的状态码
-                var nsStatusCode = new IntPtr((int)pureResponse.StatusCode);
-                /// 构建响应的头部
-                var nsHeaders = new NSMutableDictionary<NSString, NSString>();
-                foreach (var (key, value) in pureResponse.Headers)
+                try
                 {
-                    nsHeaders.Add(new NSString(key), new NSString(value));
+                    /// 获得响应
+                    var pureResponse = await BrowserNMM.BrowserController?.BrowserNMM.NativeFetchAsync(
+                        navigationAction.Request.Url.AbsoluteString);
                 }
-                using var nsResponse = new NSHttpUrlResponse(urlSchemeTask.Request.Url, nsStatusCode, "HTTP/1.1", nsHeaders);
-
-                /// 写入响应头
-                urlSchemeTask.DidReceiveResponse(nsResponse);
-
-                // 写入响应体：将响应体发送到urlSchemeTask
-                switch (pureResponse.Body)
+                catch(Exception e)
                 {
-                    case PureEmptyBody: break;
-                    case PureStreamBody streamBody:
-                        await foreach (var chunk in streamBody.Data.ReadBytesStream())
-                        {
-                            urlSchemeTask.DidReceiveData(NSData.FromArray(chunk));
-                        }
-                        break;
-                    case PureBody body:
-                        var data = body.ToByteArray();
-                        if (data.Length > 0)
-                        {
-                            urlSchemeTask.DidReceiveData(NSData.FromArray(data));
-                        }
-                        break;
-                };
+                    Console.WriteLine(e.Message);
+                    Console.WriteLine(e.StackTrace);
+                }
 
-                /// 写入完成
-                urlSchemeTask.DidFinish();
+                decisionHandler(WKNavigationActionPolicy.Cancel);
+                return;
             });
         }
-    }
 
-    [Export("webView:stopURLSchemeTask:")]
-    void IWKUrlSchemeHandler.StopUrlSchemeTask(WKWebView webView, IWKUrlSchemeTask urlSchemeTask)
-    {
-        urlSchemeTask.DidFinish();
+        decisionHandler(WKNavigationActionPolicy.Allow);
     }
 }
-#endregion
