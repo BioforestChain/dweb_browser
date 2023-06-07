@@ -1,14 +1,14 @@
-﻿using BrowserFramework;
-using CoreGraphics;
-using Foundation;
-using GameController;
-using UIKit;
+﻿using UIKit;
 using WebKit;
+using Foundation;
+using CoreGraphics;
+using BrowserFramework;
 
 namespace DwebBrowser.MicroService.Browser;
 
 public class BrowserNMM : IOSNativeMicroModule
 {
+    static Debugger Console = new("BrowserNMM");
     public BrowserNMM() : base("browser.dweb")
     {
         s_controllerList.Add(new(this));
@@ -29,14 +29,14 @@ public class BrowserNMM : IOSNativeMicroModule
         });
     }
 
-    public override async Task OpenActivity(Mmid remoteMmid)
+    public override async void OpenActivity(Mmid remoteMmid)
     {
         var vc = await RootViewController.WaitPromiseAsync();
 
         await MainThread.InvokeOnMainThreadAsync(async () =>
         {
             var manager = new BrowserManager();
-            var webview = new WKWebView(new CGRect(0, 100, 100, 100), new());
+            var webview = new WKWebView(CGRect.Empty, new());
             webview.LoadRequest(new NSUrlRequest(new NSUrl("https://www.baidu.com")));
             manager.WebViewList = new WKWebView[] { webview };
             var swiftView = manager.SwiftView;
@@ -45,6 +45,9 @@ public class BrowserNMM : IOSNativeMicroModule
         });
     }
 
-    protected override Task _onActivityAsync(IpcEvent Event, Ipc ipc) => OpenActivity(ipc.Remote.Mmid);
+    protected override async Task _onActivityAsync(IpcEvent Event, Ipc ipc) 
+    {
+        OpenActivity(ipc.Remote.Mmid);
+    }
 }
 

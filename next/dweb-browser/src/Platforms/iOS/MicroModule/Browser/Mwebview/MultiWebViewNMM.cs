@@ -47,13 +47,13 @@ public class MultiWebViewNMM : IOSNativeMicroModule
             var webViewId = request.QueryStringRequired("webview_id");
 
             Console.Log("REOPEN-WEBVIEW", "remote-mmid: {0} ==> {1}", remoteMmid, webViewId);
-            await OpenActivity(remoteMmid);
+            OpenActivity(remoteMmid);
 
             return new HttpResponseMessage(HttpStatusCode.OK).Also(it => it.Content = new StringContent(webViewId));
         });
     }
 
-    public override async Task OpenActivity(Mmid remoteMmid)
+    public override async void OpenActivity(Mmid remoteMmid)
     {
         if (s_controllerMap.TryGetValue(remoteMmid, out var controller))
         {
@@ -86,7 +86,7 @@ public class MultiWebViewNMM : IOSNativeMicroModule
 
         var controller = await MainThread.InvokeOnMainThreadAsync(() => s_controllerMap.GetValueOrPut(remoteMmid, () => new MultiWebViewController(remoteMmid, this, remoteMM)));
 
-        await OpenActivity(remoteMmid);
+        OpenActivity(remoteMmid);
         await _OnActivityEmit(remoteMmid, controller);
         return await controller.OpenWebViewAsync(url);
     }

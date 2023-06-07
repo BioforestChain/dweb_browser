@@ -20,7 +20,7 @@ public abstract class IOSNativeMicroModule : NativeMicroModule
 
     protected UIViewController? _getActivity(Mmid mmid) => s_activityMap.GetValueOrDefault(mmid);
 
-    public abstract Task OpenActivity(Mmid remoteMmid);
+    public abstract void OpenActivity(Mmid remoteMmid);
 
     protected event Signal<Mmid, BaseViewController> _OnActivity;
     protected Task _OnActivityEmit(Mmid mmid, BaseViewController controller) => (_OnActivity?.Emit(mmid, controller)).ForAwait();

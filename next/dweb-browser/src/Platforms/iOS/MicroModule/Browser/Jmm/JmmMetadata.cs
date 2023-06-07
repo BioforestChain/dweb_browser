@@ -44,14 +44,14 @@ public class JmmMetadata
     [JsonPropertyName("plugins")]
     public List<string>? Plugins { get; set; }      // app使用插件情况
     [JsonPropertyName("release_date")]
-    public string release_date { get; set; }     // 发布时间
+    public string ReleaseDate { get; set; }     // 发布时间
 
     public JmmMetadata(
         Mmid id,
         MainServer server,
         List<Dweb_DeepLink>? dwebDeeplinks = null,
         string name = "",
-        string short_name = "",
+        string shortName = "",
         string icon = "",
         List<string>? images = null,
         string description = "",
@@ -70,14 +70,14 @@ public class JmmMetadata
         Id = id;
         Server = server;
         Name = name;
-        short_name = shortName;
+        ShortName = shortName;
         Icon = icon;
         Images = images;
         Description = description;
         Author = author;
         Version = version;
-        new_feature = new_feature;
-        categories = categories;
+        NewFeature = new_feature;
+        Categories = categories;
         Home = home;
         BundleUrl = bundleUrl;
         BundleSize = bundleSize;
@@ -104,67 +104,6 @@ public class JmmMetadata
         /// </summary>
         [JsonPropertyName("entry")]
         public string Entry { get; set; }
-    }
-
-    /**
-     * <summary>
-     * 静态网络服务定义
-     * 它将按配置托管一个静态网页服务
-     * </summary>
-     */
-    public struct StaticWebServer
-    {
-        /// <summary>
-        /// 应用文件夹的目录
-        /// </summary>
-        [JsonPropertyName("root")]
-        public string Root { get; set; }
-
-        /// <summary>
-        /// 入口文件
-        /// </summary>
-        [JsonPropertyName("entry")]
-        public string Entry { get; set; }
-
-        [JsonPropertyName("subdomain")]
-        public string Subdomain { get; set; }
-
-        [JsonPropertyName("port")]
-        public int Port { get; set; }
-
-        public StaticWebServer(
-            string root,
-            string entry = "index.html",
-            string subdomain = "cotdemo.bfs.dweb",
-            int port = 80)
-        {
-            Root = root;
-            Entry = entry;
-            Subdomain = subdomain;
-            Port = port;
-        }
-    }
-
-    public struct OpenWebView
-    {
-        [JsonPropertyName("url")]
-        public string Url { get; set; }
-
-        public OpenWebView(string url = "")
-        {
-            Url = url;
-        }
-    }
-
-    public struct SSplashScreen
-    {
-        [JsonPropertyName("entry")]
-        public string? Entry { get; set; }
-
-        public SSplashScreen(string? entry = null)
-        {
-            Entry = entry;
-        }
     }
 
     public string ToJson() => JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true });

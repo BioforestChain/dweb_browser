@@ -19,7 +19,7 @@ public class BrowserController : BaseViewController
 
     public async Task OpenApp(Mmid mmid)
     {
-        ShowLoading.Set(true);
+        //ShowLoading.Set(true);
         var ipc = await _openIpcMap.GetValueOrPutAsync(mmid, async () =>
         {
             var connectResult = await BrowserNMM.ConnectAsync(mmid);
@@ -27,7 +27,7 @@ public class BrowserController : BaseViewController
             {
                 if (Event.Name == EIpcEvent.Ready.Event)
                 {
-                    BrowserNMM.BrowserController?.ShowLoading.Set(false);
+                    //BrowserNMM.BrowserController?.ShowLoading.Set(false);
                     Console.Log("openApp", "event::{0} ==> {1} from ==> {2}", Event.Name, Event.Data, mmid);
                 }
             };
@@ -39,6 +39,7 @@ public class BrowserController : BaseViewController
     }
 
     public Task UninstallJMM(JmmMetadata jmmMetadata) =>
-        BrowserNMM.NativeFetchAsync(new URL("file://jmm.browser.dweb/uninstall").SearchParamsSet("mmid", jmmMetadata.Id));
+        BrowserNMM.NativeFetchAsync(new URL("file://jmm.browser.dweb/uninstall")
+            .SearchParamsSet("mmid", jmmMetadata.Id));
 }
 

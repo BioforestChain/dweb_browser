@@ -1,6 +1,8 @@
-﻿namespace DwebBrowser.MicroService.Browser.Jmm;
+﻿using DwebBrowser.Base;
 
-public class JmmController
+namespace DwebBrowser.MicroService.Browser.Jmm;
+
+public class JmmController: BaseViewController
 {
     static readonly Debugger Console = new("JmmController");
     private JmmNMM _jmmNMM { get; init; }

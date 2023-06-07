@@ -21,7 +21,7 @@ public static class NotificationManager
         var content = new UNMutableNotificationContent()
         {
             Title = options.title,
-            Subtitle = options.shortName ?? "",
+            Subtitle = options.short_name ?? "",
             Body = options.bigText ?? options.text,
             Sound = UNNotificationSound.Default,
         };
