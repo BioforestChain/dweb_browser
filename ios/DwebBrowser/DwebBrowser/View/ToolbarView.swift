@@ -9,7 +9,7 @@ import SwiftUI
 import UIKit
 
 struct ToolbarView: View {
-    @EnvironmentObject var tabstate: TabState
+    @EnvironmentObject var tabstate: BottomViewState
     @EnvironmentObject var selectedTab: SelectedTab
 
     @State var moreTapped = false

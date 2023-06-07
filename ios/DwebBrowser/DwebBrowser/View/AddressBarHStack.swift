@@ -9,7 +9,7 @@ import SwiftUI
 
 struct AddressBarHStack: View {
     @EnvironmentObject var selectedTab: SelectedTab
-    @EnvironmentObject var tabState: TabState
+    @EnvironmentObject var tabState: BottomViewState
     @EnvironmentObject var addrBarOffset: AddrBarOffset
 
     var body: some View {
@@ -25,7 +25,7 @@ struct AddressBarHContainer:View{
     @StateObject var addressBar = AddressBarState()
     var body: some View{
         HStack(spacing: 0) {
-            ForEach(WebWrapperMgr.shared.store){ webWrapper in
+            ForEach(WebWrapperMgr.shared.store, id: \.id){ webWrapper in
                 AddressBar(webWrapper: webWrapper, addressBar: addressBar)
                     .frame(width: screen_width)
             }

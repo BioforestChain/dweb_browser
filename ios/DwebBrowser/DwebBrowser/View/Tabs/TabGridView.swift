@@ -24,7 +24,7 @@ struct CellFramePreferenceKey: PreferenceKey {
 struct TabGridView: View {
     @EnvironmentObject var selectedTab: SelectedTab
     @EnvironmentObject var addrBarOffset: AddrBarOffset
-    @EnvironmentObject var tabState: TabState
+    @EnvironmentObject var tabState: BottomViewState
     
     @ObservedObject var cacheStore = WebCacheMgr.shared
 

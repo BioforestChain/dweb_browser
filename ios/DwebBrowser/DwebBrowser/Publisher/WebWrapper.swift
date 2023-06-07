@@ -69,20 +69,16 @@ public struct WebView: View, UIViewRepresentable {
         self.webView = webView
         self.url = url
         webViews.insert(webView)
-//        print("using a webView: \(self.webView)")
-//        print("\(webViews.count) have been made")
     }
     
     public func makeUIView(context: UIViewRepresentableContext<WebView>) -> WKWebView {
         if webView.estimatedProgress < 0.2{
             webView.load(URLRequest(url:url))
-//            print("in WebView makeUIView.....")
         }
         return webView
     }
     
     public func updateUIView(_ uiView: WKWebView, context: UIViewRepresentableContext<WebView>) {
-//        uiView.load(URLRequest(url:url))
-//        print("in WebView updateUIView.....")
+
     }
 }

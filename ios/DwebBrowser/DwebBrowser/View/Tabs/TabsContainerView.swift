@@ -11,7 +11,7 @@ import WebKit
 struct TabsContainerView: View{
     @EnvironmentObject var selectedTab: SelectedTab
     
-    @EnvironmentObject var tabState: TabState
+    @EnvironmentObject var tabState: BottomViewState
     
     @State var cellFrames: [CGRect] = [.zero]
     @State var geoRect: CGRect = .zero // 定义一个变量来存储geoInGlobal的值
@@ -136,14 +136,14 @@ struct TabsContainerView: View{
 
 struct WebHScrollView: View{
     @EnvironmentObject var addrBarOffset: AddrBarOffset
-    @EnvironmentObject var state: TabState
+    @EnvironmentObject var state: BottomViewState
     @ObservedObject var animation: Animation
     
     var body: some View{
         GeometryReader{ geo in
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 0) {
-                    ForEach(WebCacheMgr.shared.store){ webCache in
+                    ForEach(WebCacheMgr.shared.store, id: \.id){ webCache in
                         TabPageView(webCache: webCache, webWrapper: WebWrapperMgr.shared.webWrapper(of: webCache.id),tabState: state, animation: animation)
                             .id(webCache.id)
                             .frame(width: screen_width)

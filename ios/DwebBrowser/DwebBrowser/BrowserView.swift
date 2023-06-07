@@ -11,7 +11,6 @@ import UIKit
 struct BrowserView: View {
     @StateObject var selectedTab = SelectedTab()
     @StateObject var addressBar = AddressBarState()
-    @State var wrapperCount:Int = 1
     var body: some View {
         ZStack{
             GeometryReader{ sGgeometry in

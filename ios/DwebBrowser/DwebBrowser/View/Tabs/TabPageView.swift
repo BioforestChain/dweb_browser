@@ -12,7 +12,7 @@ import Combine
 struct TabPageView: View {
     @ObservedObject var webCache: WebCache
     @ObservedObject var webWrapper: WebWrapper
-    @ObservedObject var tabState: TabState
+    @ObservedObject var tabState: BottomViewState
     
     @EnvironmentObject var selectedTab: SelectedTab
     //    @EnvironmentObject var animation: Animation

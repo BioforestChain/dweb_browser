@@ -107,12 +107,6 @@ class WebCacheMgr: ObservableObject{
         let _ = withAnimation(.easeInOut){
             store.remove(at:index)
         }
-        
-        //    if selectedTabIndex >= newStores.count{
-        //        selectedTabIndex = newStores.count-1
-        //    }
-        
-        
         saveCaches()
     }
     var saveCacheTimes = 0
