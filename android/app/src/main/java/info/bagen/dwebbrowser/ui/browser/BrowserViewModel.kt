@@ -344,6 +344,18 @@ class BrowserViewModel(private val browserController: BrowserController) : ViewM
     ), null
   ).also {
     it.webViewClient = DwebBrowserWebViewClient()
+    it.settings.allowFileAccessFromFileURLs = true
+    it.settings.allowUniversalAccessFromFileURLs = true
+    it.settings.domStorageEnabled = true
+    it.settings.javaScriptEnabled = true
+    it.settings.databaseEnabled = true
+    it. settings.safeBrowsingEnabled = true
+    it.settings.loadWithOverviewMode = true
+    it.settings.loadsImagesAutomatically = true
+    it.settings.setSupportMultipleWindows(true)
+    it.settings.allowFileAccess = true
+    it.settings.javaScriptCanOpenWindowsAutomatically = true
+    it. settings.allowContentAccess = true
   }
 
   val isNoTrace = mutableStateOf(App.appContext.getBoolean(KEY_NO_TRACE, false))

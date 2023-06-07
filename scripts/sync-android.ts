@@ -1,5 +1,5 @@
 import { SyncTask } from "./helper/SyncTask.ts";
-import { syncTask as desktopSyncTask } from "./sync-desktop.ts";
+// import { syncTask as desktopSyncTask } from "./sync-desktop.ts";
 
 export const syncTask = SyncTask.from(
   {
@@ -9,6 +9,6 @@ export const syncTask = SyncTask.from(
   [{ from: "assets", to: "assets" }]
 );
 if (import.meta.main) {
-  desktopSyncTask.auto();
+  // desktopSyncTask.auto();
   syncTask.auto();
 }

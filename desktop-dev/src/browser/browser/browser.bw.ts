@@ -1,7 +1,7 @@
 // browserWindow 
 import Electron from "electron";
-import type { $Details, $Callback } from "./types.ts";
 import type { BrowserNMM } from "./browser.ts";
+import type { $Callback, $Details } from "./types.ts";
 
 export function createBrowserWindow(
   this: BrowserNMM
@@ -36,15 +36,16 @@ export function createBrowserWindow(
     // 拦截全部 devtools:// 协议发起的请求
     // urls: ["devtools://*/*"]
     urls: [
-      "http://browser.dweb/*"
+      "http://localhost/*",
+      "https://shop.plaoc.com/*.json"
     ]
   }
   
-  session.webRequest.onBeforeRequest(filter, async (details: $Details, callback: $Callback) => {
+  session.webRequest.onBeforeRequest(filter, (details: $Details, callback: $Callback) => {
     const _url = new URL(details.url)
     // console.always("browser.content.bv.ts 拦截到了请求", _url)
     // 不能够直接返回只能够重新定向 broser.dweb 的 apiServer 服务器
-    if(_url.hostname === "browser.dweb" && details.method === "GET"){
+    if(_url.hostname === "localhost" && details.method === "GET"){
       relayGerRequest.bind(this)(details, callback)
       return;
     }

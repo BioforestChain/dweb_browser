@@ -33,7 +33,10 @@ class BrowserNMM : NativeMicroModule("browser.dweb") {
       "/openApp" bind Method.GET to defineHandler { request ->
         val mmid = queryAppId(request)
         return@defineHandler browserController?.openApp(mmid) // 直接调这个后端没启动
-      })
+      },
+    "/appsInfo" bind Method.GET to defineHandler { request ->
+      return@defineHandler browserController?.openApp(mmid) // 直接调这个后端没启动
+    })
   }
 
   override suspend fun onActivity(event: IpcEvent, ipc: Ipc) {

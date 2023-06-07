@@ -3,8 +3,6 @@
 </template>
 
 <script lang="ts" setup>
-console.log("appvue")
-//
 </script>
 <style scoped>
 /* 隐藏滚动条 */

@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import type { $AppMetaData } from "@/types/app.type"
-import jmm from "../components/JMM.vue";
 import { CONST } from "@/const";
-import { onBeforeMount, reactive } from 'vue'
+import type { $AppMetaData } from "@/types/app.type";
+import { onMounted, reactive } from 'vue';
+import jmm from "../components/JMM.vue";
 
 const state: {
   appsInfo: $AppMetaData[]
@@ -10,8 +10,8 @@ const state: {
   appsInfo: []
 })
 
-onBeforeMount(async () => {
-  const url = `http://browser.dweb/appsinfo`
+onMounted(async () => {
+  const url = `http://localhost/appsInfo`
   const res = await fetch(url)
   if(res.status !== 200){
     console.error('请求失败：', res.statusText)
@@ -27,7 +27,7 @@ function updateAppsInfo(value: $AppMetaData[]){
 }
 
 function jmmOnClick(appMetaData: $AppMetaData){
-  const search = `?app_id=${appMetaData.id}&root=${appMetaData.server.root}&entry=${appMetaData.server.entry}`;
+  const search = `?app_id=${appMetaData.id}`;
   const url = `${CONST.BASR_URL}/open${search}`
   fetch(url)
 }

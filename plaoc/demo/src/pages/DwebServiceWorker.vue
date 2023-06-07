@@ -77,6 +77,7 @@ const download = defineLogAction(
   { name: "cancel", args: [], logPanel: $logPanel }
 );
 const message = ref("这里显示收到的消息")
+
 // 向desktop.dweb.waterbang.top.dweb 发送消息
 // external.desktop.dweb.waterbang.top.dweb%3A443
 const sayHi = async () => {

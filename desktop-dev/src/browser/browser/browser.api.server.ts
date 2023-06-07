@@ -1,10 +1,9 @@
-import { Ipc, IpcRequest, IpcResponse, IpcHeaders } from "../../core/ipc/index.ts";
-import { createHttpDwebServer } from "../../sys/http-server/$createHttpDwebServer.ts";
-import { getAllApps } from "../jmm/jmm.api.serve.ts"
-import { JsMicroModule, JsMMMetadata } from "../jmm/micro-module.js.ts"
-import type { BrowserNMM } from "./browser.ts";
+import { Ipc, IpcEvent, IpcHeaders, IpcRequest, IpcResponse } from "../../core/ipc/index.ts";
 import { $MMID } from "../../helper/types.ts";
-import { IpcEvent } from "../../core/ipc/index.ts";
+import { createHttpDwebServer } from "../../sys/http-server/$createHttpDwebServer.ts";
+import { getAllApps } from "../jmm/jmm.api.serve.ts";
+import { JsMMMetadata, JsMicroModule } from "../jmm/micro-module.js.ts";
+import type { BrowserNMM } from "./browser.ts";
 
 
 export async function createAPIServer(this: BrowserNMM) {
@@ -26,7 +25,7 @@ export async function createAPIServer(this: BrowserNMM) {
 async function onRequest(this: BrowserNMM, request: IpcRequest, ipc: Ipc) {
   const pathname = request.parsed_url.pathname;
   switch(pathname){
-    case "/appsinfo":
+    case "/appsInfo":
       getAppsInfo.bind(this)(request, ipc);
       break;
     case "/update/content":
@@ -274,9 +273,7 @@ async function open(
   ipc: Ipc
 ){
   const searchParams = request.parsed_url.searchParams;
-  const mmid = searchParams.get("app_id")
-  const root = searchParams.get('root')
-  const entry = searchParams.get('entry');
+  const mmid = searchParams.get("app_id") as $MMID|null
   const postMessage = async (statusCode: number, message: string) => {
     ipc.postMessage(
       await IpcResponse.fromText(
@@ -296,19 +293,18 @@ async function open(
   if(mmid === null){
     return postMessage(400, "缺少 app_id 参数")
   }
-  if(root === null){
-    return postMessage(400, "缺少 root 参数")
+  // 应该到jmm去找
+  const microModule = await this.context?.dns.query(mmid)as JsMicroModule| undefined
+  if(!microModule) {
+    return postMessage(400, "不存在该app")
   }
-  if(entry === null){
-    return postMessage(400, "缺少 entry 参数")
-  }
-
+  const { root, entry} = microModule.metadata.config.server
   const jsMM = new JsMicroModule(
     new JsMMMetadata({
       id: mmid as $MMID,
       server: {
-        root: root,
-        entry: entry
+        root,
+        entry
       }
     })
   )
