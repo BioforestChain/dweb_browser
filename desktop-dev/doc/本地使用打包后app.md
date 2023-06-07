@@ -1,0 +1,2 @@
+# 彭小华 macbookPro 测试指令
+open /Users/pengxiaohua/project/dweb_browser/desktop-dev/build/dweb-browser-devtools-darwin-arm64/dweb-browser-devtools.app --args -- --start install --url http://127.0.0.1:8096/metadata.json
