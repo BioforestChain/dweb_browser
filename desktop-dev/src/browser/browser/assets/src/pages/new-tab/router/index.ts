@@ -16,6 +16,7 @@ const routes = [
         component: () => import(/* webpackChunkName: "home" */ '@/pages/new-tab/views/Home.vue'),
       },
     ],
+    alias: '/'
   }
 ]
 

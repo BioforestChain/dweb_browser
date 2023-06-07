@@ -1,53 +1,43 @@
 <script lang="ts" setup>
 import { CONST } from "@/const";
 import type { $AppMetaData } from "@/types/app.type";
-import { onMounted, reactive } from 'vue';
+import { Ref, onMounted, ref } from 'vue';
 import jmm from "../components/JMM.vue";
 
-const state: {
-  appsInfo: $AppMetaData[]
-} = reactive({
-  appsInfo: []
-})
+const appsInfo:Ref<$AppMetaData[]> = ref([{
+  title :"xx",
+  short_name: "app",
+  id: "id",
+  icon: "https://dweb.waterbang.top/logo.svg",
+}])
 
 onMounted(async () => {
-  const url = `http://localhost/appsInfo`
+  const url = `${CONST.BASR_URL}/appsInfo`
   const res = await fetch(url)
   if(res.status !== 200){
     console.error('请求失败：', res.statusText)
     return;
   }
-  const appsInfo = await res.json()
-  console.log('appInfo: ', appsInfo)
-  updateAppsInfo(appsInfo)
+  const data = await res.json()
+  console.log('appInfo: ', data)
+  appsInfo.value = data
 })
-
-function updateAppsInfo(value: $AppMetaData[]){
-  state.appsInfo = value
-}
-
-function jmmOnClick(appMetaData: $AppMetaData){
-  const search = `?app_id=${appMetaData.id}`;
-  const url = `${CONST.BASR_URL}/open${search}`
-  fetch(url)
-}
 
 </script>
 <template>
-  <div :class="$style.logo">
+  <div class="logo">
       <img src="@/assets/logo.svg" alt="Dweb Browser" class="icon" />
-      <div :class="$style.gradient_text">Dweb Browser</div>
+      <div class="gradient_text">Dweb Browser</div>
     </div>
-  <div :class="$style.jmm_container">
-  <jmm
-    v-for="(item, index) in state.appsInfo"
+  <div class="jmm_container">
+    <jmm
+    v-for="(app, index) in appsInfo"
     :key="index"
-    :src="item.icon"
-    @click="() => jmmOnClick(item)"
-  >{{ item }}</jmm>
+    :app-meta-data="app"
+  ></jmm>
   </div>
 </template>
-<style module>
+<style scoped>
 .container {
   display: flex;
   flex-direction: column;
@@ -57,7 +47,6 @@ function jmmOnClick(appMetaData: $AppMetaData){
   width: 100%;
   padding: 10px;
 }
-
 
 .logo {
   width: 100%;

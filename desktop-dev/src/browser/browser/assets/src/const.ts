@@ -1,3 +1,3 @@
 export enum CONST {
-  BASR_URL = "http://browser.dweb"
+  BASR_URL = "http://localhost"
 }

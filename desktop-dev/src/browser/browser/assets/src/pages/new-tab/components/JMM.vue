@@ -1,9 +1,14 @@
 <script lang="ts" setup>
+import { CONST } from '@/const';
+import type { $AppMetaData } from "@/types/app.type";
 import { onMounted, ref } from 'vue';
 import { DragSortableList } from '../plugins/dragSortableList';
 const refContainer = ref<HTMLDivElement>()
-const props = defineProps({
-  src: String,
+defineProps({
+  appMetaData: {
+      type: Object as () => $AppMetaData,
+      required: true
+    }
 })
 
 onMounted(() => {
@@ -12,14 +17,20 @@ onMounted(() => {
     new DragSortableList(refContainer.value);
   }
 })
+
+function clickApp(id: string){
+  const url = `${CONST.BASR_URL}/open?app_id=${id}`
+  console.log("jmmOnclick")
+  fetch(url)
+}
 </script>
 
 <template>
-  <div class="app" draggable="true"  ref="refContainer">
+  <div class="app" draggable="true"  ref="refContainer" @click="clickApp(appMetaData.id)">
     <div class="app-icon">
-      <img class="img" :src="props.src"/>
+      <img class="img" :src="appMetaData.icon"/>
     </div>
-    <div class="app-name">JMM1</div>
+    <div class="app-name">{{ appMetaData.short_name }}</div>
   </div>
 </template>
 <style scoped>
@@ -28,13 +39,15 @@ onMounted(() => {
   display: flex;
   flex-shrink: 0;
   flex-direction: column;
-  margin: 12px;
+  justify-content: center;
+  align-items: center;
+  margin: 10px;
   cursor: pointer;
 }
 
 .app-icon {
-  width: 76px;
-  height: 76px;
+  width: 66px;
+  height: 66px;
   border-radius: 15px;
   background-color: #fff;
   display: flex;
