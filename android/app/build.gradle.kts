@@ -20,7 +20,6 @@ android {
     vectorDrawables {
       useSupportLibrary = true
     }
-    signingConfig = signingConfigs.getByName("debug")
   }
 
   sourceSets {
@@ -34,9 +33,13 @@ android {
   buildTypes {
     release {
       isMinifyEnabled = true //开启代码混淆
-      setProguardFiles(listOf("proguard-rules.pro"))
-      isShrinkResources = true
-      signingConfig = signingConfigs.getByName("debug")//移除无用的resource文件
+      setProguardFiles(
+        listOf(
+          getDefaultProguardFile("proguard-android-optimize.txt"),
+          "proguard-rules.pro"
+        )
+      )
+      isShrinkResources = true //移除无用的resource文件
     }
     create("benchmark") {
       matchingFallbacks += listOf("debug")

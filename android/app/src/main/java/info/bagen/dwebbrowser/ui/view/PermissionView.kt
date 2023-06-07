@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
@@ -38,6 +39,7 @@ fun PermissionSingleView(
   },
   content: @Composable BoxScope.() -> Unit
 ) {
+
   Box(modifier = modifier ?: Modifier.fillMaxSize()) {
     when (permissionState.status) {
       is PermissionStatus.Granted -> {
@@ -51,8 +53,6 @@ fun PermissionSingleView(
           permissionNotAvailableContent(permissionState.permission)
         }
       }
-
-      else -> {}
     }
   }
 }
@@ -100,7 +100,7 @@ fun DeniedView(permission: String, onCancel: () -> Unit) {
 
   if (show) {
     AlertDialog(
-      onDismissRequest = { show = false },
+      onDismissRequest = { /*show = false 点击空白区域不隐藏*/ },
       title = { Text(text = "请手动配置权限") },
       text = { Text(permissionMaps[permission] ?: "请手动配置权限") },
       confirmButton = {

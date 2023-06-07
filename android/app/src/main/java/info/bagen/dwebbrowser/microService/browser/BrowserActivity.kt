@@ -12,8 +12,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.core.view.WindowCompat
 import info.bagen.dwebbrowser.microService.browser.BrowserNMM.Companion.browserController
-import info.bagen.dwebbrowser.ui.browser.BrowserView
 import info.bagen.dwebbrowser.ui.browser.LocalShowSearchView
+import info.bagen.dwebbrowser.ui.browser.BrowserView
 import info.bagen.dwebbrowser.ui.loading.LoadingView
 import info.bagen.dwebbrowser.ui.theme.RustApplicationTheme
 
@@ -44,15 +44,6 @@ class BrowserActivity : AppCompatActivity() {
         }
       }
     }
-  }
-
-  @Deprecated("Deprecated in Java")
-  override fun onBackPressed() {
-    if (browserController?.browserViewModel?.canMoveToBackground == true && !showSearchView) {
-      moveTaskToBack(false)
-      return // 如果没有直接return，会导致重新打开app时，webview都是显示首页
-    }
-    super.onBackPressed()
   }
 
   override fun onStop() {

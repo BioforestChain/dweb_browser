@@ -28,6 +28,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -35,12 +36,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowInsetsCompat
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.web.LoadingState
 import com.google.accompanist.web.WebView
 import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.ui.entity.BrowserBaseView
 import info.bagen.dwebbrowser.ui.entity.BrowserWebView
 import info.bagen.dwebbrowser.ui.qrcode.QRCodeScanView
+import info.bagen.dwebbrowser.ui.view.findActivity
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -64,10 +67,11 @@ private val bottomExitAnimator = slideOutVertically(animationSpec = tween(300),/
     it//初始位置在负一屏的位置，也就是说初始位置我们看不到，动画动起来的时候会从负一屏位置滑动到屏幕位置
   })
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun BrowserView(viewModel: BrowserViewModel) {
   val scope = rememberCoroutineScope()
+  val context = LocalContext.current
   BackHandler {
     if (viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.targetValue != SheetValue.Hidden) {
       scope.launch {
@@ -77,6 +81,8 @@ fun BrowserView(viewModel: BrowserViewModel) {
       val browserWebView = viewModel.uiState.currentBrowserBaseView.value
       if (browserWebView.navigator.canGoBack) {
         browserWebView.navigator.navigateBack()
+      } else {
+        context.findActivity().moveTaskToBack(false) // 将界面转移到后台
       }
     }
   }
@@ -293,7 +299,7 @@ private fun BrowserViewNavigatorBar(viewModel: BrowserViewModel) {
       if (navigator.canGoBack) {
         viewModel.handleIntent(BrowserIntent.AddNewMainView)
       } else {
-        viewModel.uiState.qrCodeScanState.show()
+        scope.launch { viewModel.uiState.qrCodeScanState.show() }
       }
     }
     NavigatorButton(

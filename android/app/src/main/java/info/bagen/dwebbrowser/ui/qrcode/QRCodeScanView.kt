@@ -30,7 +30,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
-import androidx.compose.animation.with
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -89,6 +88,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.PermissionState
+import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.mlkit.vision.barcode.common.Barcode
 import java.util.concurrent.Executors
@@ -121,7 +122,9 @@ data class QRCodeScanState(
     analyzeResult.barcodes = barcodes
   }
 
-  fun show() {
+  suspend fun show() { // 由于权限请求界面是系统系统，并且点击空白会自动隐藏，而compose没有收到消息，所以这边操作需要自行隐藏再显示
+    state.value = QRCodeState.Hide
+    delay(15)
     state.value = QRCodeState.Scanning
   }
 
@@ -144,6 +147,7 @@ fun QRCodeScanView(
   @SuppressLint("ModifierParameter") modifier: Modifier = Modifier.fillMaxSize(),
   onDataCallback: (String) -> Unit, // 返回数据
   enableBeep: Boolean = true, // 扫码成功后是否打开提示音
+  launchCamera: PermissionState = rememberPermissionState(permission = PERMISSION_CAMERA),
   scanningContent: @Composable (Camera) -> Unit = {
     DefaultScanningView(camera = it, onSelect = { uri ->
       qrCodeScanState.uri = uri
@@ -159,30 +163,36 @@ fun QRCodeScanView(
   },
 ) {
   if (qrCodeScanState.state.value == QRCodeScanState.QRCodeState.Hide) return
+  val enableBackHandler = qrCodeScanState.state.value != QRCodeScanState.QRCodeState.Scanning ||
+      launchCamera.status == PermissionStatus.Granted
 
-  BackHandler {
+  BackHandler(enabled = enableBackHandler) {
     val type = when (qrCodeScanState.state.value) {
       QRCodeScanState.QRCodeState.Completed -> QRCodeScanState.QRCodeState.Scanning
-      else -> QRCodeScanState.QRCodeState.Hide
+      else -> { QRCodeScanState.QRCodeState.Hide }
     }
     qrCodeScanState.state.value = type
   }
-  val launchCamera = rememberPermissionState(permission = PERMISSION_CAMERA)
   val context = LocalContext.current
 
-  AnimatedContent(targetState = qrCodeScanState.state.value.type, label = "", transitionSpec = {
-    if (targetState > initialState) {
-      // 数字变大时，进入的界面从右向左变深划入，退出的界面从右向左变浅划出
-      (slideInHorizontally { fullWidth -> fullWidth } + fadeIn()).togetherWith(slideOutHorizontally { fullWidth -> -fullWidth } + fadeOut())
-    } else {
-      // 数字变小时，进入的数字从左向右变深划入，退出的数字从左向右变浅划出
-      (slideInHorizontally { fullWidth -> -fullWidth } + fadeIn()).togetherWith(slideOutHorizontally { fullWidth -> fullWidth } + fadeOut())
-    }
-  }) { state ->
-    when (state) {
-      QRCodeScanState.QRCodeState.Scanning.type -> {
-        PermissionSingleView(permissionState = launchCamera,
-          onPermissionDenied = { qrCodeScanState.state.value = QRCodeScanState.QRCodeState.Hide }) {
+  PermissionSingleView(
+    permissionState = launchCamera,
+    onPermissionDenied = { qrCodeScanState.state.value = QRCodeScanState.QRCodeState.Hide }
+  ) {
+
+    AnimatedContent(targetState = qrCodeScanState.state.value.type, label = "", transitionSpec = {
+      if (targetState > initialState) {
+        // 数字变大时，进入的界面从右向左变深划入，退出的界面从右向左变浅划出
+        (slideInHorizontally { fullWidth -> fullWidth } + fadeIn()).togetherWith(
+          slideOutHorizontally { fullWidth -> -fullWidth } + fadeOut())
+      } else {
+        // 数字变小时，进入的数字从左向右变深划入，退出的数字从左向右变浅划出
+        (slideInHorizontally { fullWidth -> -fullWidth } + fadeIn()).togetherWith(
+          slideOutHorizontally { fullWidth -> fullWidth } + fadeOut())
+      }
+    }) { state ->
+      when (state) {
+        QRCodeScanState.QRCodeState.Scanning.type -> {
           Box(modifier = modifier.background(Color.Black)) {
             CameraSurfaceView(onBarcodeDetected = { preview, bitmap, barcodes ->
               if (enableBeep) beepAudio(context)
@@ -191,32 +201,32 @@ fun QRCodeScanView(
             }) { scanningContent(it) }
           }
         }
-      }
 
-      QRCodeScanState.QRCodeState.AnalyzePhoto.type -> {
-        qrCodeScanState.uri?.let { uri ->
-          Box(modifier = modifier.background(Color.Black)) {
-            AnalyzePhotoView(uri = uri,
-              onBackHandler = {
-                qrCodeScanState.state.value = QRCodeScanState.QRCodeState.Scanning
-              }) { preview, bitmap, barcodes ->
-              if (enableBeep) beepAudio(context)
-              qrCodeScanState.updateAnalyzeResult(bitmap, preview, barcodes)
-              qrCodeScanState.state.value = QRCodeScanState.QRCodeState.Completed
+        QRCodeScanState.QRCodeState.AnalyzePhoto.type -> {
+          qrCodeScanState.uri?.let { uri ->
+            Box(modifier = modifier.background(Color.Black)) {
+              AnalyzePhotoView(uri = uri,
+                onBackHandler = {
+                  qrCodeScanState.state.value = QRCodeScanState.QRCodeState.Scanning
+                }) { preview, bitmap, barcodes ->
+                if (enableBeep) beepAudio(context)
+                qrCodeScanState.updateAnalyzeResult(bitmap, preview, barcodes)
+                qrCodeScanState.state.value = QRCodeScanState.QRCodeState.Completed
+              }
             }
+          } ?: run {
+            qrCodeScanState.state.value = QRCodeScanState.QRCodeState.Scanning
           }
-        } ?: run {
-          qrCodeScanState.state.value = QRCodeScanState.QRCodeState.Scanning
         }
-      }
 
-      QRCodeScanState.QRCodeState.Completed.type -> {
-        Box(modifier = modifier.background(Color.Black)) {
-          scanResultContent(qrCodeScanState.analyzeResult)
+        QRCodeScanState.QRCodeState.Completed.type -> {
+          Box(modifier = modifier.background(Color.Black)) {
+            scanResultContent(qrCodeScanState.analyzeResult)
+          }
         }
-      }
 
-      else -> {}
+        else -> {}
+      }
     }
   }
 }

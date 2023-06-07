@@ -355,6 +355,7 @@ private fun PopContentView(
   openBookManager: (WebSiteInfo) -> Unit
 ) {
   val historyViewModel = remember { HistoryViewModel() }
+  val bookViewModel = remember { BookViewModel() }
   val scope = rememberCoroutineScope()
 
   Box(
@@ -364,8 +365,7 @@ private fun PopContentView(
       .navigationBarsPadding()
   ) {
     when (popupViewState.value) {
-      PopupViewState.BookList -> BookRecentList(
-        Modifier.padding(16.dp),
+      PopupViewState.BookList -> BrowserListOfBook(bookViewModel,
         onOpenSetting = { openBookManager(it) },
         onSearch = {
           scope.launch {
