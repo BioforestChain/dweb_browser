@@ -34,6 +34,8 @@ export class BrowserNMM extends NativeMicroModule {
     return this.addressBVHeight;
   }
   protected _shutdown() {}
+
+
 }
 
 // enum $TitleBarStyle {

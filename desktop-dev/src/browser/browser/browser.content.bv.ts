@@ -9,6 +9,9 @@ export function createCBV(this: BrowserNMM, bw: $BW, barHeight: number): $CBV {
     Electron.app.getAppPath(),
     "assets/browser/newtab/index.html"
   );
+  const preloadSrc = path.resolve(__dirname, "./browser.content.bv.preload.js")
+  // 强制引入一起编译
+  type _Preload = typeof import("./browser.content.bv.preload.ts");
   const options = {
     webPreferences: {
       devTools: true,

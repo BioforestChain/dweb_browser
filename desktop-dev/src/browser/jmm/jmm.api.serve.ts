@@ -306,6 +306,8 @@ async function _appInstall(
   const metadata = new JsMMMetadata(appInfo);
   const jmm = new JsMicroModule(metadata);
   this.context!.dns.install(jmm);
+  // 同步给 broser.dweb
+  this.nativeFetch(`file://browser.dweb/apps_info/updated`)
   return enqueueInstallProgress("install", 0, true);
 }
 
