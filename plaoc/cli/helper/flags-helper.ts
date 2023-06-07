@@ -49,9 +49,7 @@ export class MetadataFlagHelper {
   tryReadMetadata() {
     for (const filepath of this.metadataFilepaths) {
       try {
-        const manifest = JSON.parse(fs.readFileSync(filepath, "utf-8"));
-        manifest.host
-        return manifest
+        return JSON.parse(fs.readFileSync(filepath, "utf-8"));
       // deno-lint-ignore no-empty
       } catch {}
     }

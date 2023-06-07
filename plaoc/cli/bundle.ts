@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { Flags } from "../deps.ts";
@@ -15,7 +16,7 @@ import {
  */
 export const doBundle = async (args = Deno.args) => {
   const flags = Flags.parse(args, {
-    string: ["out", "version", "id","dir"],
+    string: ["out", "version", "id", "dir"],
     boolean: ["clear"],
     default: {
       out: "bundle",
@@ -23,8 +24,8 @@ export const doBundle = async (args = Deno.args) => {
   });
 
   const metadataFlagHelper = new MetadataFlagHelper(flags);
-  const id = metadataFlagHelper.readMetadata().id
-  const bundleFlagHelper = new BundleFlagHelper(flags,id);
+  const id = metadataFlagHelper.readMetadata().id;
+  const bundleFlagHelper = new BundleFlagHelper(flags, id);
   const nameFlagHelper = new NameFlagHelper(flags, metadataFlagHelper);
 
   const outDir = path.resolve(Deno.cwd(), flags.out);
@@ -39,17 +40,25 @@ export const doBundle = async (args = Deno.args) => {
     fs.mkdirSync(outDir, { recursive: true });
   }
 
-  /// 写入metadata.json
-  fs.writeFileSync(
-    path.resolve(outDir, nameFlagHelper.metadataName),
-    JSON.stringify(metadataFlagHelper.readMetadata(), null, 2)
-  );
-  /// 写入bundle.zip
+  /// 先写入bundle.zip
   fs.writeFileSync(
     path.resolve(outDir, nameFlagHelper.bundleName),
     await (
       await bundleFlagHelper.bundleZip()
     ).generateAsync({ type: "nodebuffer" })
+  );
+  // 生成打包文件名称，大小
+  const zip = await bundleFlagHelper.bundleZip(true);
+  const zipData = await zip.generateAsync({ type: "uint8array" });
+  const hasher = crypto.createHash("sha256").update(zipData);
+  const metadata = metadataFlagHelper.readMetadata(true);
+  metadata.bundle_size = zipData.byteLength;
+  metadata.bundle_hash = "sha256:" + hasher.digest("hex");
+  metadata.bundle_url = `./${nameFlagHelper.bundleName}`;
+  /// 写入metadata.json
+  fs.writeFileSync(
+    path.resolve(outDir, nameFlagHelper.metadataName),
+    JSON.stringify(metadata, null, 2)
   );
   /// jszip 会导致程序一直开着，需要手动关闭
   Deno.exit();
