@@ -14,6 +14,8 @@ public class BrowserNMM : IOSNativeMicroModule
         s_controllerList.Add(new(this));
     }
 
+    public static BrowserWeb webview = new();
+
     private static readonly List<BrowserController> s_controllerList = new();
     public static BrowserController BrowserController
     {
@@ -22,6 +24,7 @@ public class BrowserNMM : IOSNativeMicroModule
 
     protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)
     {
+        await bootstrapContext.Dns.BootstrapAsync("jmm.browser.dweb");
         HttpRouter.AddRoute(IpcMethod.Get, "/openApp", async (request, ipc) =>
         {
             var mmid = request.QueryStringRequired("app_id");
@@ -31,18 +34,17 @@ public class BrowserNMM : IOSNativeMicroModule
 
     public override async void OpenActivity(Mmid remoteMmid)
     {
-        var vc = await RootViewController.WaitPromiseAsync();
-
         await MainThread.InvokeOnMainThreadAsync(async () =>
         {
             var manager = new BrowserManager();
-            var webview = new BrowserWeb();
+            //var webview = new BrowserWeb();
             webview.LoadRequest(new NSUrlRequest(new NSUrl("https://dweb.waterbang.top/")));
             //manager.WebViewList = new WKWebView[] { webview };
             manager.ShowWebViewListDataWithList(new WKWebView[] { webview });
             var swiftView = manager.SwiftView;
             swiftView.Frame = UIScreen.MainScreen.Bounds;
             BrowserController.View.AddSubview(swiftView);
+            webview.LoadRequest(new NSUrlRequest(new NSUrl("dweb:install?url=https://dweb.waterbang.top/metadata.json")));
         });
     }
 

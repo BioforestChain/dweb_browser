@@ -44,23 +44,11 @@ sealed class DwebNavigationDelegate : WKNavigationDelegate
 
         if (navigationAction.Request.Url.Scheme == "dweb")
         {
-            await MainThread.InvokeOnMainThreadAsync(async () =>
-            {
-                try
-                {
-                    /// 获得响应
-                    var pureResponse = await BrowserNMM.BrowserController?.BrowserNMM.NativeFetchAsync(
-                        navigationAction.Request.Url.AbsoluteString);
-                }
-                catch(Exception e)
-                {
-                    Console.WriteLine(e.Message);
-                    Console.WriteLine(e.StackTrace);
-                }
+            await BrowserNMM.BrowserController?.BrowserNMM.NativeFetchAsync(
+                    navigationAction.Request.Url.AbsoluteString);
 
-                decisionHandler(WKNavigationActionPolicy.Cancel);
-                return;
-            });
+            decisionHandler(WKNavigationActionPolicy.Cancel);
+            return;
         }
 
         decisionHandler(WKNavigationActionPolicy.Allow);

@@ -193,6 +193,11 @@ public class DnsNMM : NativeMicroModule
 
                 foreach (var app in _installApps.Values)
                 {
+                    Console.Log("NativeFetch", app.Mmid);
+                    if (app.Mmid == "jmm.browser.dweb")
+                    {
+                        Console.Log("NativeFetch", app.Dweb_deeplinks.FirstOrDefault());
+                    }
                     if (app.Dweb_deeplinks.Contains(string.Format("dweb:{0}", parsedUrl.Path)))
                     {
                         var connectResult = await _connectTo(fromMM, app.Mmid, request);

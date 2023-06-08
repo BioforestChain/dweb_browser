@@ -1,11 +1,15 @@
-﻿#nullable enable
+﻿using System.Text.Json;
+using Foundation;
+using BrowserFramework;
 
 namespace DwebBrowser.MicroService.Browser.Jmm;
 
 public class JmmNMM : NativeMicroModule
 {
     private static Dictionary<Mmid, JsMicroModule> s_apps = new();
+    private static readonly List<JmmController> s_controllerList = new();
     public static Dictionary<Mmid, JsMicroModule> GetAndUpdateJmmNmmApps() => s_apps;
+
     public new List<Dweb_DeepLink> Dweb_deeplinks = new() { "dweb:install" };
 
     /// <summary>
@@ -15,55 +19,62 @@ public class JmmNMM : NativeMicroModule
     /// <returns></returns>
     public static JmmMetadata? GetBfsMetaData(Mmid mmid) => s_apps.GetValueOrDefault(mmid)?.Metadata;
 
+    public static JmmController JmmController
+    {
+        get => s_controllerList.FirstOrDefault();
+    }
 
     public JmmNMM() : base("jmm.browser.dweb")
+    {
+        s_controllerList.Add(new(this));
+    }
+
+    private void _recoverAppData()
     {
         // 启动的时候，从数据库中恢复 s_apps 对象
         Task.Run(async () =>
         {
-            while (true)
-            {
-                await Task.Delay(1000);
+            //while (true)
+            //{
+            //    await Task.Delay(1000);
 
-                try
-                {
-                    await NativeFetchAsync(new URL("file://dns.sys.dweb/open").SearchParamsSet("app_id", "jmm.browser.dweb".EncodeURIComponent()).Uri);
-                    break;
-                }
-                catch
-                { }
-            }
+            //    try
+            //    {
+            //        await NativeFetchAsync(new URL("file://dns.sys.dweb/open").SearchParamsSet("app_id", "jmm.browser.dweb".EncodeURIComponent()).Uri);
+            //        break;
+            //    }
+            //    catch
+            //    { }
+            //}
 
-            JmmMetadataDB.QueryJmmMetadataList().Also(it =>
+            foreach (var entry in JmmMetadataDB.GetJmmMetadataEnumerator())
             {
-                it.ForEach(entry =>
-                {
-                    s_apps.GetValueOrPut(entry.Key, () =>
-                        new JsMicroModule(entry.Value).Also(jsMicroModule =>
+                s_apps.GetValueOrPut(entry.Key, () =>
+                    new JsMicroModule(entry.Value).Also(jsMicroModule =>
+                    {
+                        try
                         {
-                            try
-                            {
-                                BootstrapContext.Dns.Install(jsMicroModule);
-                            }
-                            catch { }
-                        })
-                    );
-                });
-            });
+                            BootstrapContext.Dns.Install(jsMicroModule);
+                        }
+                        catch { }
+                    }));
+            }
         });
     }
 
     protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)
     {
+        _recoverAppData();
+
         HttpRouter.AddRoute(IpcMethod.Get, "/install", async (request, _) =>
         {
             var searchParams = request.SafeUrl.SearchParams;
             var metadataUrl = request.QueryStringRequired("url");
             var jmmMetadata = await (await NativeFetchAsync(metadataUrl)).JsonAsync<JmmMetadata>()!;
             var url = new URL(metadataUrl);
-            
 
-            _openJmmMetadataInstallPage(jmmMetadata, url);
+
+            await _openJmmMetadataInstallPage(jmmMetadata, url);
 
             return jmmMetadata;
         });
@@ -103,8 +114,18 @@ public class JmmNMM : NativeMicroModule
         });
     }
 
-    private void _openJmmMetadataInstallPage(JmmMetadata jmmMetadata, URL url)
-    { }
+    private async Task _openJmmMetadataInstallPage(JmmMetadata jmmMetadata, URL url)
+    {
+        var vc = await IOSNativeMicroModule.RootViewController.WaitPromiseAsync();
+
+        await MainThread.InvokeOnMainThreadAsync(async () =>
+        {
+            var data = new NSData(jmmMetadata.ToJson(), NSDataBase64DecodingOptions.None);
+            var manager = new DownloadAppManager(data, false, false);
+            JmmController.View.AddSubview(manager.DownloadView);
+            vc.PushViewController(JmmController, true);
+        });
+    }
 
     private void _openJmmMetadataUninstallPage(JmmMetadata jmmMetadata)
     { }

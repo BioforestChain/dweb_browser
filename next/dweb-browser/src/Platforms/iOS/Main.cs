@@ -9,6 +9,7 @@ using DwebBrowser.MicroService.Sys.Barcode;
 using DwebBrowser.MicroService.Sys.Clipboard;
 using DwebBrowser.MicroService.Sys.Biometrics;
 using DwebBrowser.MicroService.Browser;
+using DwebBrowser.MicroService.Browser.Jmm;
 using DwebBrowser.MicroService.Browser.Mwebview;
 using DwebBrowser.MicroService.Browser.NativeUI;
 using DwebBrowser.MicroService.Browser.JsProcess;
@@ -121,6 +122,9 @@ public class MicroService
 
         /// NativeUi 是将众多原生UI在一个视图中组合的复合组件
         new NativeUiNMM().InstallBy(dnsNMM);
+
+        /// 安装Jmm
+        new JmmNMM().InstallBy(dnsNMM);
 
         /// 安装用户应用
         var desktopJMM = new DesktopJMM().InstallBy(dnsNMM);

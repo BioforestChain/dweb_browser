@@ -48,10 +48,10 @@ namespace BrowserFramework
 		[NullAllowed, Export ("downloadView", ArgumentSemantic.Strong)]
 		UIView DownloadView { get; set; }
 
-		// -(instancetype _Nonnull)initWithData:(NSDictionary<NSString *,id> * _Nonnull)data isLoaded:(BOOL)isLoaded __attribute__((objc_designated_initializer));
-		[Export ("initWithData:isLoaded:")]
+		// -(instancetype _Nonnull)initWithData:(NSData * _Nonnull)data isLoaded:(BOOL)isLoaded isUpdate:(BOOL)isUpdate __attribute__((objc_designated_initializer));
+		[Export ("initWithData:isLoaded:isUpdate:")]
 		[DesignatedInitializer]
-		NativeHandle Constructor (NSDictionary<NSString, NSObject> data, bool isLoaded);
+		NativeHandle Constructor (NSData data, bool isLoaded, bool isUpdate);
 
 		// -(void)onListenProgressWithProgress:(float)progress;
 		[Export ("onListenProgressWithProgress:")]
