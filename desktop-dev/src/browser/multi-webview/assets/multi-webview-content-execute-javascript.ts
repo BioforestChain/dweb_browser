@@ -86,7 +86,6 @@ const code = () => {
       };
       let observer: MutationObserver | null = new MutationObserver(callback);
       observer.observe(el, observerOptions);
-      console.error("observer 在什么时候会被回收");
       // observer 会在 元素被移除的时候回收
       Reflect.set(el, "removeObserver", () => {
         console.log("回收了");

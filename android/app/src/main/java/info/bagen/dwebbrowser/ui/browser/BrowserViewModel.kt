@@ -415,9 +415,9 @@ internal class DwebBrowserWebViewClient : AccompanistWebViewClient() {
   ): WebResourceResponse? {
     var response: Response? = null
     if (request.url.host == "localhost") { // 拦截 browser web
-      debugBrowser("shouldInterceptRequest localhost=>", "${request.url} path:${request.url.path}?${request.url.query}")
+      debugBrowser("shouldInterceptRequest localhost=>", " path:${request.url.path}?${request.url.query}")
       response = runBlockingCatching(ioAsyncExceptionHandler) {
-        BrowserNMM.browserController?.browserNMM?.nativeFetch("file://browser.dweb${request.url.path}?${request.url.query}")
+        BrowserNMM.browserController?.browserNMM?.nativeFetch("file:/${request.url.path}?${request.url.query}")
       }.getOrThrow()
     } else if (request.url.scheme == "dweb") { // 负责拦截browser的dweb_deeplink
       debugBrowser("shouldInterceptRequest dweb=>", request.url)

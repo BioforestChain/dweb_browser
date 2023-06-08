@@ -210,7 +210,6 @@ export class DnsNMM extends NativeMicroModule {
         if (mm === undefined) return false;
         const metadata = Reflect.get(mm, "metadata");
         if (!metadata) {
-          console.error("dns", "没有dmetaata");
           return false;
         }
         await this.close(args.app_id);

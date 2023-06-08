@@ -105,6 +105,15 @@ const drawer_controller = ref(false);
   </v-app>
 </template>
 <style scoped>
+/* 隐藏滚动条 */
+html {
+    -ms-overflow-style:none;
+    overflow:-moz-scrollbars-none;
+}
+html::-webkit-scrollbar{
+    width:0px
+}
+/* 隐藏滚动条结束 */
 .app-bg {
   background: url("../assets/bg.png");
   background-size: cover;

@@ -86,7 +86,7 @@ dns.install(new JmmNMM());
 dns.install(
   new BootNMM([
     //
-    dwebBrowser.mmid,
+    // dwebBrowser.mmid,
   ])
 );
 
