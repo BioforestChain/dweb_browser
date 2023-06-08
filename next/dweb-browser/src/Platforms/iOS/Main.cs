@@ -24,9 +24,27 @@ static class MicroModuleExtendions
         return self;
     }
 }
+
+/// <summary>
+/// 全局自治任务异常捕获
+/// </summary>
+public static class UnobservedTaskExceptionCatch
+{
+    static Debugger Console = new("UnobservedTaskExceptionCatch");
+
+    public static void Init()
+    {
+        TaskScheduler.UnobservedTaskException += (sender, e) =>
+        {
+            Console.Error("Unobserved exception", e.Exception.Message);
+        };
+    }
+}
+
 public class MicroService
 {
     #region 日志tag标识
+    /// UnobservedTaskExceptionCatch
     /// BiometricsManager
     /// BiometricsNMM
     /// BootNMM
@@ -69,6 +87,7 @@ public class MicroService
     // 添加debug日志过滤
     private static readonly List<string> _debugTags = new()
     {
+        "UnobservedTaskExceptionCatch",
         "JsMicroModule",
         "HttpNMM",
         "LocaleFile",
@@ -80,6 +99,8 @@ public class MicroService
     {
         Debugger.DebugTags = _debugTags;
         LocaleFile.Init();
+        UnobservedTaskExceptionCatch.Init();
+
         var dnsNMM = new DnsNMM();
         /// 安装系统应用
         var jsProcessNMM = new JsProcessNMM().InstallBy(dnsNMM);
