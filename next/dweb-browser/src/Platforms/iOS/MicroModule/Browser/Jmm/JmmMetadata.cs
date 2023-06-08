@@ -11,7 +11,7 @@ public class JmmMetadata
     public Mmid Id { get; set; }    // jmmApp的id
     [JsonPropertyName("server")]
     public MainServer Server { get; set; }      // 打开应用地址
-    [JsonPropertyName("dwebDeeplinks")]
+    [JsonPropertyName("dweb_deeplinks")]
     public List<Dweb_DeepLink>? Dweb_DeepLinks { get; set; }       // dweb-deeplinks
     [JsonPropertyName("name")]
     public string Name { get; set; }       // 应用名称
@@ -33,11 +33,11 @@ public class JmmMetadata
     public List<string>? Categories { get; set; }     // 关键词
     [JsonPropertyName("home")]
     public string Home { get; set; }        // 首页地址
-    [JsonPropertyName("bundleUrl")]
+    [JsonPropertyName("bundle_url")]
     public string BundleUrl { get; set; }     // 下载应用地址
-    [JsonPropertyName("bundleSize")]
-    public string BundleSize { get; set; }        // 应用大小
-    [JsonPropertyName("bundleHash")]
+    [JsonPropertyName("bundle_size")]
+    public long BundleSize { get; set; }        // 应用大小
+    [JsonPropertyName("bundle_hash")]
     public string BundleHash { get; set; }        // 文件hash
     [JsonPropertyName("permissions")]
     public List<string>? Permissions { get; set; }      // app使用权限情况
@@ -46,10 +46,18 @@ public class JmmMetadata
     [JsonPropertyName("release_date")]
     public string ReleaseDate { get; set; }     // 发布时间
 
+    [Obsolete("使用带参数的构造函数", true)]
+#pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
+    public JmmMetadata()
+#pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
+    {
+        /// 给JSON反序列化用的空参数构造函数
+    }
+
     public JmmMetadata(
         Mmid id,
         MainServer server,
-        List<Dweb_DeepLink>? dwebDeeplinks = null,
+        List<Dweb_DeepLink>? dweb_deeplinks = null,
         string name = "",
         string shortName = "",
         string icon = "",
@@ -60,9 +68,9 @@ public class JmmMetadata
         string new_feature = "",
         List<string>? categories = null,
         string home = "",
-        string bundleUrl = "",
-        string bundleSize = "",
-        string bundleHash = "",
+        string bundle_url = "",
+        long bundle_size = 0L,
+        string bundle_hash = "",
         List<string>? permissions = null,
         List<string>? plugins = null,
         string release_date = "")
@@ -79,15 +87,19 @@ public class JmmMetadata
         NewFeature = new_feature;
         Categories = categories;
         Home = home;
-        BundleUrl = bundleUrl;
-        BundleSize = bundleSize;
-        BundleHash = bundleHash;
+        BundleUrl = bundle_url;
+        BundleSize = bundle_size;
+        BundleHash = bundle_hash;
         Permissions = permissions;
         Plugins = plugins;
         ReleaseDate = release_date;
-        if (dwebDeeplinks is null)
+        if (dweb_deeplinks is null)
         {
             Dweb_DeepLinks = new();
+        }
+        else
+        {
+            Dweb_DeepLinks = dweb_deeplinks;
         }
     }
 
@@ -108,5 +120,5 @@ public class JmmMetadata
 
     public string ToJson() => JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true });
     public static JmmMetadata? FromJson(string json) =>
-        JsonSerializer.Deserialize<JmmMetadata>(json);
+        JsonSerializer.Deserialize<JmmMetadata>(json, new JsonSerializerOptions { IncludeFields = true });
 }
