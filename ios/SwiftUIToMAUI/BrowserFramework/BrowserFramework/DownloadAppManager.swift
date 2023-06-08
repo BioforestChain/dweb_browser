@@ -16,9 +16,9 @@ public class DownloadAppManager: NSObject {
     
     private var callback: onStartDownload?
     
-    @objc public init(data: [String:Any], isLoaded: Bool) {
+    @objc public init(data: Data, isLoaded: Bool, isUpdate: Bool) {
         super.init()
-        let controller = UIHostingController(rootView: DownloadAppView(modelDict: data, isLoaded: isLoaded))
+        let controller = UIHostingController(rootView: DownloadAppView(modelData: data, isLoaded: isLoaded, isUpdate: isUpdate))
         downloadView = controller.view
         
         _ = downloadPublisher.sink { value in

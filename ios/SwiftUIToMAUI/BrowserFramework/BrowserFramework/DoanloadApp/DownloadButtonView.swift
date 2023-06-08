@@ -17,6 +17,7 @@ struct DownloadButtonView: View {
     @Binding private var isWaiting: Bool
     @Binding private var progress: CGFloat
     private var urlString: String = ""
+    @State var oldContent: String = ""
     
     init(urlString: String, content: Binding<String>, btn_width: Binding<CGFloat>, backColor: Binding<SwiftUI.Color>, isRotate: Binding<Bool>, isWaiting: Binding<Bool>, progress: Binding<CGFloat>) {
         self._content = content
@@ -37,7 +38,8 @@ struct DownloadButtonView: View {
                 LoadingWaitCircle()
             } else {
                 Button {
-                    if content == "获取" {
+                    if content == "获取" || content == "更新"{
+                        self.oldContent = content
                         withAnimation {
                             btn_width = 50
                             content = ""
@@ -97,7 +99,7 @@ struct DownloadButtonView: View {
                         self.isWaiting = false
                         withAnimation {
                             btn_width = 80
-                            content = "获取"
+                            content = self.oldContent
                             backColor = SwiftUI.Color.blue
                         }
                     }

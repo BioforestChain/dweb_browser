@@ -10,9 +10,9 @@ import Combine
 
 struct DownloadAppView: View {
     
-    var urlString: String = ""
-    var modelDict: [String:Any] = [:]
+    var modelData: Data
     var isLoaded: Bool = false
+    var isUpdate: Bool = false
     private let images: [String] = ["post3","post3","post3"]
     @State var offset: CGPoint = .zero
     @ObservedObject var viewModel = DownloadImageViewModel()
@@ -77,7 +77,11 @@ struct DownloadAppView: View {
         .onAppear {
             loadAppInfo()
             if isLoaded {
-                content = "打开"
+                if isUpdate {
+                    content = "更新"
+                } else {
+                    content = "打开"
+                }
             }
         }
         .sheet(isPresented: $isPresented) {
@@ -92,7 +96,7 @@ struct DownloadAppView: View {
             HStack(alignment: .center) {
                 Spacer()
                 
-                DownloadButtonView(urlString: defaultApp?.downloadUrl ?? "", content: $content, btn_width: $btn_width, backColor: $backColor, isRotate: $isRotate, isWaiting: $isWaiting, progress: $progress)
+                DownloadButtonView(urlString: defaultApp?.bundle_url ?? "", content: $content, btn_width: $btn_width, backColor: $backColor, isRotate: $isRotate, isWaiting: $isWaiting, progress: $progress)
                     .padding(.trailing, 20)
                     .padding(.bottom, 5)
             }
@@ -140,7 +144,7 @@ struct DownloadAppView: View {
                 Text(defaultApp?.name ?? "")
                     .font(.system(size: 20,weight: .bold))
                 Spacer()
-                DownloadButtonView(urlString: defaultApp?.downloadUrl ?? "", content: $content, btn_width: $btn_width, backColor: $backColor, isRotate: $isRotate, isWaiting: $isWaiting, progress: $progress)
+                DownloadButtonView(urlString: defaultApp?.bundle_url ?? "", content: $content, btn_width: $btn_width, backColor: $backColor, isRotate: $isRotate, isWaiting: $isWaiting, progress: $progress)
             }
             .padding(.leading,10)
             
@@ -254,7 +258,7 @@ struct DownloadAppView: View {
     func InfoDataView() -> some View {
         
         let titles = ["销售商","大小"]
-        let contents = [defaultApp?.author.joined(separator: ", ") ?? "", calculateAppSize()]
+        let contents = [defaultApp?.author?.joined(separator: ", ") ?? "", calculateAppSize()]
         VStack(alignment: .leading, spacing: 10) {
             
             Text("信息")
@@ -311,39 +315,14 @@ struct DownloadAppView: View {
     private func loadAppInfo() {
         
         do {
-            let data = try JSONSerialization.data(withJSONObject: modelDict, options: [])
             let decoder = JSONDecoder()
-            self.defaultApp = try decoder.decode(APPModel.self, from: data)
+            self.defaultApp = try decoder.decode(APPModel.self, from: modelData)
             self.viewModel.loadIcon(urlString: self.defaultApp?.icon ?? "", placeHoldImage: UIImage(named: "360")!)
             self.viewModel.loadImages(imageNames: self.defaultApp?.images ?? [], placeHoldImage: UIImage(named: "post3")!)
         } catch {
             fatalError("could load fail. \n\(error.localizedDescription)")
         }
-        /*
-        //从网络下载
-        guard let url = URL(string: urlString) else { return }
-        let request = URLRequest(url: url)
-        let task = URLSession.shared.dataTask(with: request) { data, response, error in
-            if data != nil {
-                DispatchQueue.main.async {
-                    do {
-                        let decoder = JSONDecoder()
-                        self.defaultApp = try decoder.decode(APPModel.self, from: data!)
-                        self.viewModel.loadIcon(urlString: self.defaultApp?.icon ?? "", placeHoldImage: UIImage(named: "360")!)
-                        self.viewModel.loadImages(imageNames: self.defaultApp?.images ?? [], placeHoldImage: UIImage(named: "post3")!)
-                    } catch {
-                        fatalError("could load fail. \n\(error)")
-                    }
-                }
-            }
-        }
-        task.resume()*/
     }
 }
 
-struct DownloadAppView_Previews: PreviewProvider {
-    static var previews: some View {
-        DownloadAppView()
-    }
-}
 
