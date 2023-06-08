@@ -56,8 +56,6 @@ import coil.compose.AsyncImage
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.microService.browser.jmm.JmmMetadata
-import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
-import info.bagen.dwebbrowser.microService.helper.runBlockingCatching
 import kotlinx.coroutines.launch
 import java.text.DecimalFormat
 
@@ -584,10 +582,7 @@ private fun CustomerDivider(modifier: Modifier = Modifier) =
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun ImagePreview(
-  jmmMetadata: JmmMetadata,
-  previewState: PreviewState,
-) {
+private fun ImagePreview(jmmMetadata: JmmMetadata, previewState: PreviewState, ) {
   AnimatedVisibility(
     visibleState = previewState.showPreview,
     enter = scaleIn(
@@ -603,7 +598,7 @@ private fun ImagePreview(
     val pagerState = rememberPagerState(
       initialPage = previewState.selectIndex.value,
       initialPageOffsetFraction = 0f,
-      pageCount = { 1 }
+      pageCount = { jmmMetadata.images?.size ?: 0 }
     )
     val imageList = jmmMetadata.images ?: listOf()
 
