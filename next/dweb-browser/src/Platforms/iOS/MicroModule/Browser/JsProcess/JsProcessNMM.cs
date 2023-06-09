@@ -194,7 +194,7 @@ public class JsProcessNMM : NativeMicroModule
 
             /// 确保 OnReady 函数绑定上后，再执行 LoadURL 
             var mainUrl = urlInfo.BuildInternalUrl().Path("/index.html");
-            dwebview.LoadURL(mainUrl).Background();
+            dwebview.LoadURL(mainUrl).NoThrow();
         });
         var apis = await afterReadyPo.WaitPromiseAsync();
         return apis;

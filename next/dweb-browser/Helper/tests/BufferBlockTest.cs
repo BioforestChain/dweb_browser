@@ -18,7 +18,7 @@ public class BufferBlockTest
                 Debug.WriteLine("got data: {0}", data);
                 acc += data;
             }
-        }).Background();
+        }).NoThrow();
 
         await Task.Delay(100);
 

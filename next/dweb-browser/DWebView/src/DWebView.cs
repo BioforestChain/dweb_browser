@@ -86,7 +86,7 @@ public partial class DWebView : WKWebView
         /// 加载页面
         if (options.LoadUrl is not null and var loadUrl)
         {
-            LoadURL(loadUrl).Background();
+            LoadURL(loadUrl).NoThrow();
         }
         this.UIDelegate = new DWebViewUIDelegate(this);
 

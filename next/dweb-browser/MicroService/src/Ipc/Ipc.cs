@@ -176,7 +176,7 @@ public abstract class Ipc
             {
                 await (OnStream?.Emit(ipcStreamMessage, ipc)).ForAwait();
             }
-        }).Background();
+        }).NoThrow();
 
         OnClose += (_) =>
         {

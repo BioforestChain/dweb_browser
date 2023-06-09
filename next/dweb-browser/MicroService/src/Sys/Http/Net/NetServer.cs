@@ -90,7 +90,7 @@ public static class NetServer
                         response.OutputStream.Write(e.Message.ToUtf8ByteArray());
                         response.StatusCode = 502;
                     }
-                }).Background();
+                }).NoThrow();
             }
         });
 

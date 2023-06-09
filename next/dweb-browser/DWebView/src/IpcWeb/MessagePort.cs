@@ -26,7 +26,7 @@ public class MessagePort
             {
                 await (OnWebMessage?.Emit(message)).ForAwait();
             }
-        }).Background();
+        }).NoThrow();
 
         _port.OnMessage += (message, _) => MessageChannel.SendAsync(message);
     }

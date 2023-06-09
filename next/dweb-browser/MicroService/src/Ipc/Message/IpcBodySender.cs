@@ -384,7 +384,7 @@ public class IpcBodySender : IpcBody
             {
                 streamStatusSignal?.Emit(signal);
             }
-        }).Background();
+        }).NoThrow();
 
         Task.Run(async () =>
         {
@@ -415,7 +415,7 @@ public class IpcBodySender : IpcBody
                     }
                 };
 
-            }).Background();
+            }).NoThrow();
 
 
             // 等待流开始被拉取

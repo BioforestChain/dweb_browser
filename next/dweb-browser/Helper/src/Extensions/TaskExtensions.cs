@@ -37,6 +37,32 @@ public static class TaskExtensions
         });
     }
 
+    public static async Task NoThrow(this Task task)
+    {
+        await new NoThrowAwaiter(task);
+    }
 }
 
-
+/// <summary>
+/// 允许以一种不抛出任何异常的方式等待一个Task任务完成
+/// </summary>
+/// <seealso cref="https://github.com/dotnet/aspnetcore/blob/main/src/SignalR/common/Http.Connections/src/Internal/TaskExtensions.cs"/>
+internal readonly struct NoThrowAwaiter : ICriticalNotifyCompletion
+{
+    static Debugger Console = new("NoThrowAwaiter");
+    private readonly Task _task;
+    public NoThrowAwaiter(Task task) { _task = task; }
+    public NoThrowAwaiter GetAwaiter() => this;
+    public bool IsCompleted => _task.IsCompleted;
+    // Observe exception
+    public void GetResult()
+    {
+        _task.Exception?.Flatten().Handle(ex =>
+        {
+            Console.Error("Handle", "Exception: {0}", ex.Message);
+            return true;
+        });
+    }
+    public void OnCompleted(Action continuation) => _task.GetAwaiter().OnCompleted(continuation);
+    public void UnsafeOnCompleted(Action continuation) => _task.GetAwaiter().UnsafeOnCompleted(continuation);
+}
