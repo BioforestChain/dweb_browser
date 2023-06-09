@@ -313,15 +313,14 @@ struct DownloadAppView: View {
     
     private func loadAppInfo() {
         
-        
-//        do {
-//            let decoder = JSONDecoder()
-//            self.defaultApp = try decoder.decode(APPModel.self, from: modelData)
-//            self.viewModel.loadIcon(urlString: self.defaultApp?.icon ?? "", placeHoldImageName: "360")
-//            self.viewModel.loadImages(imageNames: self.defaultApp?.images ?? [], placeHoldImageName: "post")
-//        } catch {
-//            fatalError("could load fail. \n\(error.localizedDescription)")
-//        }
+        do {
+            let decoder = JSONDecoder()
+            self.defaultApp = try decoder.decode(APPModel.self, from: modelData)
+            self.viewModel.loadIcon(urlString: self.defaultApp?.icon ?? "", placeHoldImageName: "360")
+            self.viewModel.loadImages(imageNames: self.defaultApp?.images ?? [], placeHoldImageName: "post")
+        } catch {
+            fatalError("could load fail. \n\(error.localizedDescription)")
+        }
     }
 }
 
