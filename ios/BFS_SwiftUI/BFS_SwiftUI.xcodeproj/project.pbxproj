@@ -63,6 +63,7 @@
 		F3BF42532A048BAE004C05D0 /* Tools.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3BF42522A048BAE004C05D0 /* Tools.swift */; };
 		F3BF42552A048DE7004C05D0 /* NotificationName_extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3BF42542A048DE7004C05D0 /* NotificationName_extension.swift */; };
 		F3C1C98E2A1B55AB0014F5D3 /* DownloadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3C1C98D2A1B55AB0014F5D3 /* DownloadView.swift */; };
+		F3CB3AD92A32BC550042E520 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3CB3AD82A32BC550042E520 /* AppModel.swift */; };
 		F3CFDCE72A209E27007770B8 /* DownloadButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3CFDCE62A209E27007770B8 /* DownloadButtonView.swift */; };
 		F3CFDCE92A20B41F007770B8 /* DownloadAppViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3CFDCE82A20B41F007770B8 /* DownloadAppViewModel.swift */; };
 		F3D75D1A29F60D8C00DE6EC6 /* SwiftUIWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3D75D1929F60D8C00DE6EC6 /* SwiftUIWebView.swift */; };
@@ -148,6 +149,7 @@
 		F3BF42522A048BAE004C05D0 /* Tools.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Tools.swift; sourceTree = "<group>"; };
 		F3BF42542A048DE7004C05D0 /* NotificationName_extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotificationName_extension.swift; sourceTree = "<group>"; };
 		F3C1C98D2A1B55AB0014F5D3 /* DownloadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadView.swift; sourceTree = "<group>"; };
+		F3CB3AD82A32BC550042E520 /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
 		F3CFDCE62A209E27007770B8 /* DownloadButtonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadButtonView.swift; sourceTree = "<group>"; };
 		F3CFDCE82A20B41F007770B8 /* DownloadAppViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadAppViewModel.swift; sourceTree = "<group>"; };
 		F3D75D1929F60D8C00DE6EC6 /* SwiftUIWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftUIWebView.swift; sourceTree = "<group>"; };
@@ -493,6 +495,7 @@
 				F3ED45E42A1F023E00C0D41B /* DownloadAppView.swift */,
 				F3ED45EB2A1F65CC00C0D41B /* DownloadImageViewModel.swift */,
 				F3CFDCE82A20B41F007770B8 /* DownloadAppViewModel.swift */,
+				F3CB3AD82A32BC550042E520 /* AppModel.swift */,
 			);
 			path = DownloadAppView;
 			sourceTree = "<group>";
@@ -656,6 +659,7 @@
 				F3D75D4229F67DB500DE6EC6 /* HotSearchView.swift in Sources */,
 				F3AF3D7129F913FC0081A60A /* ScrollView_extension.swift in Sources */,
 				F396E93529F37FCB00F1E21F /* HomeView.swift in Sources */,
+				F3CB3AD92A32BC550042E520 /* AppModel.swift in Sources */,
 				F396E92D29F3699E00F1E21F /* HistoryViewModel.swift in Sources */,
 				F38A9E912A0B796D00B285A7 /* CustomContainerView.swift in Sources */,
 				F3CFDCE72A209E27007770B8 /* DownloadButtonView.swift in Sources */,

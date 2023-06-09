@@ -317,8 +317,8 @@ struct DownloadAppView: View {
         do {
             let decoder = JSONDecoder()
             self.defaultApp = try decoder.decode(APPModel.self, from: modelData)
-            self.viewModel.loadIcon(urlString: self.defaultApp?.icon ?? "", placeHoldImage: UIImage(named: "360")!)
-            self.viewModel.loadImages(imageNames: self.defaultApp?.images ?? [], placeHoldImage: UIImage(named: "post3")!)
+            self.viewModel.loadIcon(urlString: self.defaultApp?.icon ?? "", placeHoldImageName: "360")
+            self.viewModel.loadImages(imageNames: self.defaultApp?.images ?? [], placeHoldImageName: "post")
         } catch {
             fatalError("could load fail. \n\(error.localizedDescription)")
         }

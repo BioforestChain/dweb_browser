@@ -13,18 +13,26 @@ class DownloadImageViewModel: ObservableObject {
     @Published var iconImage: UIImage?
     @Published var images: [UIImage] = []
     
-    func loadIcon(urlString: String, placeHoldImage: UIImage) {
+    func loadIcon(urlString: String, placeHoldImageName: String) {
+        
+        let bundle = Bundle(for: BrowserManager.self)
+        let placeHoldImage = UIImage(named: placeHoldImageName, in: bundle, compatibleWith: nil)
         Task {
             iconImage = await loadImage(urlString: urlString) ?? placeHoldImage
         }
     }
     
-    func loadImages(imageNames: [String], placeHoldImage: UIImage) {
+    func loadImages(imageNames: [String], placeHoldImageName: String) {
+        
+        let bundle = Bundle(for: BrowserManager.self)
+        let placeHoldImage = UIImage(named: placeHoldImageName, in: bundle, compatibleWith: nil)
         Task {
             for name in imageNames {
                 let image = await loadImage(urlString: name)
                 if image == nil {
-                    images.append(placeHoldImage)
+                    if placeHoldImage != nil {
+                        images.append(placeHoldImage!)
+                    }
                 } else {
                     images.append(image!)
                 }
