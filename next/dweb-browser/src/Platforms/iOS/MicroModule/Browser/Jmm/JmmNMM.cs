@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+﻿using UIKit;
 using Foundation;
 using BrowserFramework;
 
@@ -6,11 +6,12 @@ namespace DwebBrowser.MicroService.Browser.Jmm;
 
 public class JmmNMM : NativeMicroModule
 {
+    static Debugger Console = new("JmmNMM");
     private static Dictionary<Mmid, JsMicroModule> s_apps = new();
     private static readonly List<JmmController> s_controllerList = new();
     public static Dictionary<Mmid, JsMicroModule> GetAndUpdateJmmNmmApps() => s_apps;
 
-    public new List<Dweb_DeepLink> Dweb_deeplinks = new() { "dweb:install" };
+    public override List<Dweb_DeepLink> Dweb_deeplinks { get; init; } = new() { "dweb:install" };
 
     /// <summary>
     /// 获取当前App的数据配置
@@ -34,19 +35,6 @@ public class JmmNMM : NativeMicroModule
         // 启动的时候，从数据库中恢复 s_apps 对象
         Task.Run(async () =>
         {
-            //while (true)
-            //{
-            //    await Task.Delay(1000);
-
-            //    try
-            //    {
-            //        await NativeFetchAsync(new URL("file://dns.sys.dweb/open").SearchParamsSet("app_id", "jmm.browser.dweb".EncodeURIComponent()).Uri);
-            //        break;
-            //    }
-            //    catch
-            //    { }
-            //}
-
             foreach (var entry in JmmMetadataDB.GetJmmMetadataEnumerator())
             {
                 s_apps.GetValueOrPut(entry.Key, () =>
@@ -74,7 +62,7 @@ public class JmmNMM : NativeMicroModule
             var url = new URL(metadataUrl);
 
 
-            await _openJmmMetadataInstallPage(jmmMetadata, url);
+            _openJmmMetadataInstallPage(jmmMetadata, url);
 
             return jmmMetadata;
         });
@@ -114,16 +102,33 @@ public class JmmNMM : NativeMicroModule
         });
     }
 
-    private async Task _openJmmMetadataInstallPage(JmmMetadata jmmMetadata, URL url)
+    private async void _openJmmMetadataInstallPage(JmmMetadata jmmMetadata, URL url)
     {
         var vc = await IOSNativeMicroModule.RootViewController.WaitPromiseAsync();
 
         await MainThread.InvokeOnMainThreadAsync(async () =>
         {
-            var data = new NSData(jmmMetadata.ToJson(), NSDataBase64DecodingOptions.None);
-            var manager = new DownloadAppManager(data, false, false);
-            JmmController.View.AddSubview(manager.DownloadView);
-            vc.PushViewController(JmmController, true);
+            try
+            {
+                var data = NSData.FromString(jmmMetadata.ToJson(), NSStringEncoding.UTF8);
+
+                var manager = new DownloadAppManager(data, false, false);
+                //JmmController.View.AddSubview(manager.DownloadView);
+                //vc.PushViewController(JmmController, true);
+                var view = new UIView();
+                view.BackgroundColor = UIColor.Blue;
+                view.Frame = UIScreen.MainScreen.Bounds;
+                //JmmController.View.AddSubview(view);
+                manager.DownloadView.Frame = view.Frame;
+                JmmController.View.AddSubview(manager.DownloadView);
+                vc.PushViewController(JmmController, true);
+                Console.Log("_openJmmMetadataInstallPage", "later");
+            }
+            catch(Exception e)
+            {
+                Console.Log("_openJmmMetadataInstallPage", e.Message);
+                Console.Log("_openJmmMetadataInstallPage", e.StackTrace);
+            }
         });
     }
 

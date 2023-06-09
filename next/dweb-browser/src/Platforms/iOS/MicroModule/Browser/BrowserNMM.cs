@@ -48,7 +48,7 @@ public class BrowserNMM : IOSNativeMicroModule
         });
     }
 
-    protected override async Task _onActivityAsync(IpcEvent Event, Ipc ipc) 
+    protected override async Task _onActivityAsync(IpcEvent Event, Ipc ipc)
     {
         OpenActivity(ipc.Remote.Mmid);
     }

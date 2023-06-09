@@ -66,6 +66,7 @@ public class MicroService
     /// VibrateManager
     /// VirtualKeyboardController
     /// VirtualKeyboardNMM
+    /// JmmNMM
     #endregion
 
     // 添加debug日志过滤
@@ -75,7 +76,8 @@ public class MicroService
         "HttpNMM",
         "LocaleFile",
         "DnsNMM",
-        "MessagePortIpc"
+        "MessagePortIpc",
+        "JmmNMM"
     };
 
     public static async Task<DnsNMM> Start()

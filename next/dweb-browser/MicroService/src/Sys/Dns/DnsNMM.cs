@@ -10,7 +10,7 @@ public class DnsNMM : NativeMicroModule
 
     // 正在运行的应用
     private Dictionary<Mmid, PromiseOut<MicroModule>> _runningApps = new();
-    public new List<Dweb_DeepLink> Dweb_deeplinks = new() { "dweb:open" };
+    public override List<Dweb_DeepLink> Dweb_deeplinks { get; init; } = new() { "dweb:open" };
 
     public DnsNMM() : base("dns.sys.dweb")
     {
@@ -193,13 +193,10 @@ public class DnsNMM : NativeMicroModule
 
                 foreach (var app in _installApps.Values)
                 {
-                    Console.Log("NativeFetch", app.Mmid);
-                    if (app.Mmid == "jmm.browser.dweb")
-                    {
-                        Console.Log("NativeFetch", app.Dweb_deeplinks.FirstOrDefault());
-                    }
                     if (app.Dweb_deeplinks.Contains(string.Format("dweb:{0}", parsedUrl.Path)))
                     {
+                        /// 加上///的原因：不修改url的话，不符合url标准，会异常，加上///可以进行路由匹配
+                        request.Url = request.Url.Replace("dweb:", "dweb:///");
                         var connectResult = await _connectTo(fromMM, app.Mmid, request);
                         return await connectResult.IpcForFromMM.Request(request);
                     }

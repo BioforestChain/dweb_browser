@@ -15,6 +15,7 @@ public partial class BrowserWeb : WKWebView
     static Debugger Console = new("BrowserWeb");
     public BrowserWeb(CGRect frame, WKWebViewConfiguration configuration) : base(frame, configuration)
     {
+        /// 注入脚本，修改dweb_deeplinks的fetch为window.location.href，否则webview无法拦截到
         var script = new WKUserScript(new NSString($$"""
             var originalFetch = fetch;
             function nativeFetch(input, init) {

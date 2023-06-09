@@ -14,6 +14,13 @@ public static class JmmMetadataDB
     public static IEnumerable<KeyValuePair<Mmid, JmmMetadata>> GetJmmMetadataEnumerator()
     {
         var nsDic = NSUserDefaults.StandardUserDefaults.DictionaryForKey(PREFERENCE_NAME);
+
+        if (nsDic is null)
+        {
+            nsDic = new NSMutableDictionary<NSString, NSString>();
+            NSUserDefaults.StandardUserDefaults.SetValueForKey(nsDic, new NSString(PREFERENCE_NAME));
+        }
+
         var dic = new Dictionary<Mmid, JmmMetadata>();
 
         foreach (NSString key in nsDic.Keys)

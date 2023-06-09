@@ -16,7 +16,7 @@ public class JsMicroModule : MicroModule
     record JsMM(JsMicroModule jmm, Mmid remoteMmid);
     static JsMicroModule()
     {
-        var nativeToWhiteList = new List<Mmid>() { "js.browser.dweb" };
+        var nativeToWhiteList = new List<Mmid> { "js.browser.dweb" };
         NativeConnect.ConnectAdapterManager.Append(async (fromMM, toMM, reason) =>
         {
             JsMM? jsMM = null;
