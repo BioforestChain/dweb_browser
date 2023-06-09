@@ -13,7 +13,6 @@ struct DownloadAppView: View {
     var modelData: Data
     var isLoaded: Bool = false
     var isUpdate: Bool = false
-    private let images: [String] = ["post3","post3","post3"]
     @State var offset: CGPoint = .zero
     @ObservedObject var viewModel = DownloadImageViewModel()
     
@@ -34,32 +33,32 @@ struct DownloadAppView: View {
             CustomUIScrollView(content: {
                 VStack(spacing: 0) {
                     
-                    HeaderView()
+//                    HeaderView()
                     
                     AppTitleView()
-                    
+
                     Divider().frame(height: 0.5).background(.white.opacity(0.35))
                         .padding(.bottom, 20)
                         .padding(.horizontal,16)
-                    
+
                     AppHistoryDataView()
-                    
+
                     Divider().frame(height: 0.5).background(.white.opacity(0.35))
                         .padding(.vertical, 20)
                         .padding(.horizontal,16)
-                    
+
                     AppImagesView()
-                    
+
                     Divider().frame(height: 0.5).background(.white.opacity(0.35))
                         .padding(.vertical, 20)
                         .padding(.horizontal,16)
-                    
+
                     AppIntroductionView()
-                    
+
                     Divider().frame(height: 0.5).background(.white.opacity(0.35))
                         .padding(.vertical, 20)
                         .padding(.horizontal,16)
-                    
+
                     InfoDataView()
                     
                 }
@@ -100,7 +99,7 @@ struct DownloadAppView: View {
                     .padding(.trailing, 20)
                     .padding(.bottom, 5)
             }
-            Image(uiImage: viewModel.iconImage ?? UIImage(named: "360")!)
+            Image(uiImage: viewModel.iconImage ?? UIImage.image(for: "360"))
                 .resizable()
                 .aspectRatio(contentMode: .fill)
                 .frame(width: 40, height: 40)
@@ -119,10 +118,10 @@ struct DownloadAppView: View {
             let size = proxy.size
             let height = size.height + minY
             
-            Image("post2")
+            Image(uiImage: UIImage.image(for: "post"))
                 .resizable()
                 .aspectRatio(contentMode: .fill)
-                .frame(width: size.width, height: height > 0 ? height : 0, alignment: .top)
+                .frame(width: size.width, height: height > 0 ? height : 150, alignment: .top)
                 .cornerRadius(15)
                 .offset(y: -minY)
         }
@@ -132,7 +131,7 @@ struct DownloadAppView: View {
     @ViewBuilder
     func AppTitleView() -> some View {
         HStack(alignment: .top) {
-            Image(uiImage: viewModel.iconImage ?? UIImage(named: "360")!)
+            Image(uiImage: viewModel.iconImage ?? UIImage.image(for: "360"))
                 .resizable()
                 .aspectRatio(contentMode: .fill)
                 .frame(width: 80, height: 80)
@@ -314,14 +313,15 @@ struct DownloadAppView: View {
     
     private func loadAppInfo() {
         
-        do {
-            let decoder = JSONDecoder()
-            self.defaultApp = try decoder.decode(APPModel.self, from: modelData)
-            self.viewModel.loadIcon(urlString: self.defaultApp?.icon ?? "", placeHoldImageName: "360")
-            self.viewModel.loadImages(imageNames: self.defaultApp?.images ?? [], placeHoldImageName: "post")
-        } catch {
-            fatalError("could load fail. \n\(error.localizedDescription)")
-        }
+        
+//        do {
+//            let decoder = JSONDecoder()
+//            self.defaultApp = try decoder.decode(APPModel.self, from: modelData)
+//            self.viewModel.loadIcon(urlString: self.defaultApp?.icon ?? "", placeHoldImageName: "360")
+//            self.viewModel.loadImages(imageNames: self.defaultApp?.images ?? [], placeHoldImageName: "post")
+//        } catch {
+//            fatalError("could load fail. \n\(error.localizedDescription)")
+//        }
     }
 }
 
