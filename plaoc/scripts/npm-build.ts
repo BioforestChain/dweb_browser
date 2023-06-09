@@ -45,6 +45,7 @@ export const doBuidCore = async (config: {
     importMap: importMap,
     entryPoints: entryPoints,
     outDir: buildToRootDir,
+    declaration: "separate",
     scriptModule: false,
     /**
      * @TODO should ignore errors:
@@ -79,6 +80,7 @@ export const doBuidCore = async (config: {
       bugs: {
         url: "https://github.com/BioforestChain/dweb_browser/issues",
       },
+      keywords: ["plaoc","dweb"],
       devDependencies: config.devDependencies ?? {},
     },
   });

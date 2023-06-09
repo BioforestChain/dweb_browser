@@ -611,10 +611,10 @@ private fun MultiItemView(
         }
 
         is BrowserWebView -> {
-          if (browserBaseView.state.lastLoadedUrl?.startsWith("file:///android_asset") == true) {
+          if (browserBaseView.viewItem.state.lastLoadedUrl?.startsWith("file:///android_asset") == true) {
             Pair("起始页", BitmapUtil.decodeBitmapFromResource(R.drawable.ic_main_star))
           } else {
-            Pair(browserBaseView.state.pageTitle, browserBaseView.state.pageIcon)
+            Pair(browserBaseView.viewItem.state.pageTitle, browserBaseView.viewItem.state.pageIcon)
           }
         }
 

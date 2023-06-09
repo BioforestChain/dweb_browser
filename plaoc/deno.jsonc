@@ -8,7 +8,7 @@
     "dev:demo": "cd ./demo && pnpm dev",
     "build:demo": "cd ./demo && pnpm build",
     "build:watch:demo": "cd ./demo && pnpm build:watch",
-    "pub": "deno run -A ./scripts/pub_npm.ts",
+    "pub": "deno run -A ./scripts/npm-pub.ts",
     "test": "deno test -A --unstable --no-check  ./test"
   },
   "importMap": "import_map.json",

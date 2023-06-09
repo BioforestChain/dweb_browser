@@ -91,8 +91,7 @@ class MutilWebViewChromeClient(
 
     //#region NewWindow & CloseWatcher
 
-    val closeWatcherController =
-        info.bagen.dwebbrowser.microService.browser.mwebview.CloseWatcher.CloseWatcher(viewItem)
+    val closeWatcherController = CloseWatcher(viewItem)
 
     override fun onCreateWindow(
         view: WebView, isDialog: Boolean, isUserGesture: Boolean, resultMsg: Message

@@ -52,14 +52,14 @@ class CloseWatcher(
                 }
 
         },
-            info.bagen.dwebbrowser.microService.browser.mwebview.CloseWatcher.CloseWatcher.Companion.JS_POLYFILL_KIT
+            JS_POLYFILL_KIT
         )
     }
 
-    private val watchers = mutableListOf<info.bagen.dwebbrowser.microService.browser.mwebview.CloseWatcher.CloseWatcher.Watcher>()
+    private val watchers = mutableListOf<Watcher>()
 
     inner class Watcher {
-        val id = info.bagen.dwebbrowser.microService.browser.mwebview.CloseWatcher.CloseWatcher.Companion.acc_id.getAndAdd(1).toString()
+        val id = acc_id.getAndAdd(1).toString()
         private var _destroy = AtomicBoolean(false)
         private val closeMutex = Mutex()
         suspend fun tryClose(): Boolean = closeMutex.withLock {
@@ -90,7 +90,7 @@ class CloseWatcher(
             withContext(mainAsyncExceptionHandler) {
                 viewItem.webView.evaluateJavascript(
                     """
-                    ${info.bagen.dwebbrowser.microService.browser.mwebview.CloseWatcher.CloseWatcher.Companion.JS_POLYFILL_KIT}._watchers?.get("$id")?.dispatchEvent(new CloseEvent('close'));
+                    ${JS_POLYFILL_KIT}._watchers?.get("$id")?.dispatchEvent(new CloseEvent('close'));
                     """.trimIndent()
                 ) {}
             }
@@ -107,17 +107,17 @@ class CloseWatcher(
     /**
      * 申请一个 CloseWatcher
      */
-    fun apply(isUserGesture: Boolean): info.bagen.dwebbrowser.microService.browser.mwebview.CloseWatcher.CloseWatcher.Watcher {
+    fun apply(isUserGesture: Boolean): Watcher {
         if (isUserGesture || watchers.size == 0) {
             watchers.add(Watcher())
         }
         return watchers.last()
     }
 
-    fun resolveToken(consumeToken: String, watcher: info.bagen.dwebbrowser.microService.browser.mwebview.CloseWatcher.CloseWatcher.Watcher) {
+    fun resolveToken(consumeToken: String, watcher: Watcher) {
         viewItem.webView.evaluateJavascript(
             """
-            ${info.bagen.dwebbrowser.microService.browser.mwebview.CloseWatcher.CloseWatcher.Companion.JS_POLYFILL_KIT}._tasks?.get("$consumeToken")("${watcher.id}");
+            ${JS_POLYFILL_KIT}._tasks?.get("$consumeToken")("${watcher.id}");
             """.trimIndent()
         ) {};
     }
@@ -130,7 +130,7 @@ class CloseWatcher(
     /**
      * 关闭指定的 CloseWatcher
      */
-    suspend fun close(watcher: info.bagen.dwebbrowser.microService.browser.mwebview.CloseWatcher.CloseWatcher.Watcher = watchers.last()): Boolean {
+    suspend fun close(watcher: Watcher = watchers.last()): Boolean {
         if (watcher.tryClose()) {
             return watchers.remove(watcher)
         }

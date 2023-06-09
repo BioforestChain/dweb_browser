@@ -17,4 +17,34 @@ export function clickApp(id:string) {
   })
 }
 
+/** 重击手势的反馈振动, 比如菜单键/惨案/3Dtouch */
+export function vibrateHeavyClick() {
+  return nativeFetch("/vibrateHeavyClick",{
+    mmid:"haptics.sys.dweb"
+  })
+}
 
+/**长按的退出按钮，这个会退出后端 */
+export function quitApp(id:string) {
+  nativeFetch("/deleteApp",{
+    search:{
+      app_id:id
+    }
+  })
+}
+
+export function deleteApp(id:string) {
+  nativeFetch("/deleteApp",{
+    search:{
+      app_id:id
+    }
+  })
+}
+
+export function shareApp(id:string) {
+  nativeFetch("/shareApp",{
+    search:{
+      app_id:id
+    }
+  })
+}

@@ -79,8 +79,8 @@ fun BrowserView(viewModel: BrowserViewModel) {
       }
     } else {
       val browserWebView = viewModel.uiState.currentBrowserBaseView.value
-      if (browserWebView.navigator.canGoBack) {
-        browserWebView.navigator.navigateBack()
+      if (browserWebView.viewItem.navigator.canGoBack) {
+        browserWebView.viewItem.navigator.navigateBack()
       } else {
         context.findActivity().moveTaskToBack(false) // 将界面转移到后台
       }
@@ -210,7 +210,7 @@ private fun BrowserViewContent(viewModel: BrowserViewModel) {
 @Composable
 fun ColumnScope.MiniTitle(viewModel: BrowserViewModel) {
   val browserBaseView = viewModel.uiState.currentBrowserBaseView.value
-  val inputText = parseInputText(browserBaseView.state.lastLoadedUrl ?: "")
+  val inputText = parseInputText(browserBaseView.viewItem.state.lastLoadedUrl ?: "")
 
   Text(
     text = inputText, fontSize = 12.sp, modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -280,7 +280,7 @@ private fun BrowserViewNavigatorBar(viewModel: BrowserViewModel) {
       .fillMaxWidth()
       .height(dimenNavigationHeight)
   ) {
-    val navigator = viewModel.uiState.currentBrowserBaseView.value.navigator
+    val navigator = viewModel.uiState.currentBrowserBaseView.value.viewItem.navigator
     NavigatorButton(
       resId = R.drawable.ic_main_back,
       resName = R.string.browser_nav_back,
@@ -343,7 +343,7 @@ private fun RowScope.NavigatorButton(
 
 @Composable
 private fun BrowserViewContentWeb(viewModel: BrowserViewModel, browserWebView: BrowserWebView) {
-  key(browserWebView.webViewId) {
+  key(browserWebView.viewItem.webviewId) {
     Box(
       modifier = Modifier
         .fillMaxSize()
@@ -373,7 +373,7 @@ private fun SearchBox(baseView: BrowserBaseView) {
     val inputText = when (baseView) {
       is BrowserWebView -> {
         ShowLinearProgressIndicator(baseView)
-        mutableStateOf(baseView.state.lastLoadedUrl ?: "")
+        mutableStateOf(baseView.viewItem.state.lastLoadedUrl ?: "")
       }
 
       else -> mutableStateOf("")
@@ -418,7 +418,7 @@ private fun SearchBox(baseView: BrowserBaseView) {
 @Composable
 private fun BoxScope.ShowLinearProgressIndicator(browserWebView: BrowserWebView?) {
   browserWebView?.let {
-    when (val loadingState = it.state.loadingState) {
+    when (val loadingState = it.viewItem.state.loadingState) {
       is LoadingState.Loading -> {
         LinearProgressIndicator(
           progress = loadingState.progress,
@@ -443,7 +443,7 @@ fun BrowserSearchView(viewModel: BrowserViewModel) {
   var showSearchView by LocalShowSearchView.current;
 
   if (showSearchView) {
-    val inputText = viewModel.uiState.currentBrowserBaseView.value.state.lastLoadedUrl ?: ""
+    val inputText = viewModel.uiState.currentBrowserBaseView.value.viewItem.state.lastLoadedUrl ?: ""
     val text = if (inputText.startsWith("file:///android_asset") ||
       inputText == stringResource(id = R.string.browser_search_hint)
     ) {
@@ -486,14 +486,14 @@ internal fun HomeWebviewPage(viewModel: BrowserViewModel, onClickOrMove: (Boolea
   val isDark = isSystemInDarkTheme()
   var isRemove = false
   WebView(
-    state = webView.state,
+    state = webView.viewItem.state,
     modifier = Modifier
       .fillMaxSize()
       .background(background),
-    navigator = webView.navigator,
+    navigator = webView.viewItem.navigator,
     factory = {
-      webView.webView.parent?.let { (it as ViewGroup).removeAllViews() }
-      webView.webView.setOnTouchListener { _, event ->
+      webView.viewItem.webView.parent?.let { (it as ViewGroup).removeAllViews() }
+      webView.viewItem.webView.setOnTouchListener { _, event ->
         if (event.action == MotionEvent.ACTION_MOVE) {
           isRemove = true
         } else if (event.action == MotionEvent.ACTION_UP) {
@@ -501,8 +501,8 @@ internal fun HomeWebviewPage(viewModel: BrowserViewModel, onClickOrMove: (Boolea
         }
         false
       }
-      webView.webView.setDarkMode(isDark, background) // 为了保证浏览器背景色和系统主题一致
-      webView.webView
+      webView.viewItem.webView.setDarkMode(isDark, background) // 为了保证浏览器背景色和系统主题一致
+      webView.viewItem.webView
     }
   )
 }

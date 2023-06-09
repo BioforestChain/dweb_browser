@@ -31,8 +31,8 @@ import kotlinx.coroutines.flow.onEach
 internal fun BrowserWebView(viewModel: BrowserViewModel, browserWebView: BrowserWebView) {
     val localFocusManager = LocalFocusManager.current
     val webViewY = 0 // 用于截图的时候进行定位截图
-    LaunchedEffect(browserWebView.state) { // 点击跳转时，加载状态变化，将底部栏显示
-        snapshotFlow { browserWebView.state.loadingState }.collect {
+    LaunchedEffect(browserWebView.viewItem.state) { // 点击跳转时，加载状态变化，将底部栏显示
+        snapshotFlow { browserWebView.viewItem.state.loadingState }.collect {
             if (it is LoadingState.Loading) {
                 viewModel.handleIntent(BrowserIntent.UpdateBottomViewState(true))
             }
@@ -40,7 +40,7 @@ internal fun BrowserWebView(viewModel: BrowserViewModel, browserWebView: Browser
                 delay(500)
                 viewModel.handleIntent(
                     BrowserIntent.SaveHistoryWebSiteInfo(
-                        browserWebView.state.pageTitle, browserWebView.state.lastLoadedUrl
+                        browserWebView.viewItem.state.pageTitle, browserWebView.viewItem.state.lastLoadedUrl
                     )
                 )
                 browserWebView.controller.capture()
@@ -51,7 +51,7 @@ internal fun BrowserWebView(viewModel: BrowserViewModel, browserWebView: Browser
     LaunchedEffect(browserWebView.controller) {
         browserWebView.controller.captureRequests.mapNotNull {
             delay(500)
-            browserWebView.webView.drawToBitmapPostLaidOut(webViewY)
+            browserWebView.viewItem.webView.drawToBitmapPostLaidOut(webViewY)
         }.onEach {
             it.first?.let { bitmap ->
                 browserWebView.bitmap = bitmap.asImageBitmap()
@@ -63,15 +63,15 @@ internal fun BrowserWebView(viewModel: BrowserViewModel, browserWebView: Browser
     val isDark = isSystemInDarkTheme()
     //val webViewClient = BrowserWebViewClient()
     WebView(
-        state = browserWebView.state,
+        state = browserWebView.viewItem.state,
         modifier = Modifier
             .fillMaxSize()
             .background(background),
-        navigator = browserWebView.navigator,
+        navigator = browserWebView.viewItem.navigator,
         factory = {
-            browserWebView.webView.parent?.let { (it as ViewGroup).removeAllViews() }
+            browserWebView.viewItem.webView.parent?.let { (it as ViewGroup).removeAllViews() }
            // browserWebView.webView.webViewClient = webViewClient
-            browserWebView.webView.apply {
+            browserWebView.viewItem.webView.apply {
                 setDarkMode(isDark, background) // 设置深色主题
                 setOnTouchListener { v, event ->
                     if (event.action == MotionEvent.ACTION_UP) {
@@ -91,7 +91,7 @@ internal fun BrowserWebView(viewModel: BrowserViewModel, browserWebView: Browser
                   }
                 }*/
             }
-            browserWebView.webView
+            browserWebView.viewItem.webView
         })
 }
 

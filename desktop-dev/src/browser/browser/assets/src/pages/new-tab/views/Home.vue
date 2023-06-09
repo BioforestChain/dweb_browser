@@ -1,53 +1,41 @@
 <script lang="ts" setup>
-import { getAppInfo } from "@/api/new-tab";
+import { getAppInfo, vibrateHeavyClick } from "@/api/new-tab";
 import type { $AppMetaData } from "@/types/app.type";
-import { onMounted, Ref, ref } from "vue";
+import { Ref, onMounted, ref } from "vue";
 import jmm from "../components/JMM.vue";
 const $appContainer = ref<HTMLDivElement>();
 //控制背景虚化
 const filter = ref(false)
 
-const appsInfo: Ref<$AppMetaData[]> = ref([
-  {
-    title: "xx",
-    short_name: "app",
-    id: "id",
-    icon: "https://dweb.waterbang.top/logo.svg",
-  },
-  {
-    title: "xx",
-    short_name: "app",
-    id: "id",
-    icon: "https://dweb.waterbang.top/logo.svg",
-  },
-]);
+const appsInfo: Ref<$AppMetaData[]> = ref([]);
 
 onMounted(async () => {
   appsInfo.value = await getAppInfo()
 });
 // 长按事件
 function onLongPress(value:boolean,index:number) {
+  vibrateHeavyClick() //震动
   filter.value = value
   const appsDom = $appContainer.value
   if(!appsDom) return
   const apps: NodeListOf<HTMLDivElement> = appsDom.querySelectorAll(".app")
-  console.log(apps.length,index)
   apps.forEach((item,i) => {
     if (index !== i) {
       item.style.filter = "blur(5px)";
+      item.style.pointerEvents = "none"
     }
   })
 const appElement = apps[index]
 // 监听页面点击事件用来取消模糊
 document.addEventListener("click", function(event) {
   // 检查点击的目标元素是否是 app 元素或其子元素
-  var isClickedInsideApp = appElement.contains(event.target as Node);
-
+  const isClickedInsideApp = appElement.contains(event.target as Node);
   // 如果点击的目标元素不是 app 元素或其子元素，则移除模糊效果
   if (!isClickedInsideApp) {
     filter.value = false
     apps.forEach((item) => {
       item.style.filter = "none";
+      item.style.pointerEvents = "auto"
   })
   }
 });
@@ -62,7 +50,6 @@ document.addEventListener("click", function(event) {
     </div>
     <div class="jmm_container" ref="$appContainer">
       <jmm
-        ref="$appHtmlRefHook"
         v-for="(app, index) in appsInfo"
         :key="index"
         :index="index"
@@ -78,11 +65,11 @@ document.addEventListener("click", function(event) {
 }
 
 .container {
+  position: relative;
+  min-height: 100%;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  height: 100%;
-  width: 100%;
 }
 
 .logo {
@@ -96,15 +83,6 @@ document.addEventListener("click", function(event) {
   opacity: 0.5;
 }
 
-/* .jmm_container {
-  width: 100%;
-  position: absolute;
-  z-index: 1;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-evenly;
-  padding: 10px;
-} */
 .jmm_container {
   margin: 10px auto;
   width: 100%;

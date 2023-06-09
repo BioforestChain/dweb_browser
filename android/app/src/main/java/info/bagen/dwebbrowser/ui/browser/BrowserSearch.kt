@@ -340,7 +340,7 @@ private fun SearchItemEngines(text: String, onSearch: (String) -> Unit) {
 private fun SearchItemForTab(viewModel: BrowserViewModel, text: String) {
   var firstIndex: Int? = null
   viewModel.uiState.browserViewList.filterIndexed { index, browserBaseView ->
-    if (browserBaseView.state.pageTitle?.contains(text) == true) {
+    if (browserBaseView.viewItem.state.pageTitle?.contains(text) == true) {
       if (firstIndex == null) firstIndex = index
       true
     } else {
@@ -348,7 +348,7 @@ private fun SearchItemForTab(viewModel: BrowserViewModel, text: String) {
     }
   }.firstOrNull()?.also { browserBaseView ->
     if (browserBaseView === viewModel.uiState.currentBrowserBaseView.value) return@also // TODO 如果搜索到的界面就是我当前显示的界面，就不显示该项
-    val website = browserBaseView.state.let {
+    val website = browserBaseView.viewItem.state.let {
       WebSiteInfo(
         title = it.pageTitle ?: "无标题",
         url = it.lastLoadedUrl ?: "localhost",

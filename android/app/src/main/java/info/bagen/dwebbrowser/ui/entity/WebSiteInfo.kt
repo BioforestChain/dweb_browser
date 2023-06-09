@@ -12,6 +12,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.sp
 import com.google.accompanist.web.WebViewNavigator
 import com.google.accompanist.web.WebViewState
+import info.bagen.dwebbrowser.microService.browser.mwebview.MultiWebViewController
 import info.bagen.dwebbrowser.microService.browser.webview.DWebView
 import info.bagen.dwebbrowser.ui.view.CaptureController
 import kotlinx.coroutines.CoroutineScope
@@ -44,11 +45,12 @@ data class BrowserWebView(
     override val focus: MutableState<Boolean> = mutableStateOf(false),
     override val controller: CaptureController = CaptureController(),
     override var bitmap: ImageBitmap? = null,
-    val webView: DWebView,
-    val webViewId: String,
-    val state: WebViewState,
-    val navigator: WebViewNavigator,
-    val coroutineScope: CoroutineScope
+//    val webView: DWebView,
+//    val webViewId: String,
+//    val state: WebViewState,
+//    val navigator: WebViewNavigator,
+//    val coroutineScope: CoroutineScope
+  val viewItem: MultiWebViewController.ViewItem
 ) : BrowserBaseView
 
 data class HotspotInfo(
