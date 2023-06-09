@@ -2,7 +2,8 @@
 <br />
 
 <p align="center">
-<img src="scripts/images/logo.png" width="240">
+<h2>Dweb-Browser</h2>
+<!-- <img src="scripts/images/logo.png" width="240"> -->
 </p>
 
 <br />

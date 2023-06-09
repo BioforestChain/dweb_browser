@@ -1,6 +1,5 @@
 package info.bagen.dwebbrowser.ui.browser
 
-import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -12,9 +11,7 @@ import android.webkit.WebView
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.pager.PagerState
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableStateListOf
@@ -47,8 +44,6 @@ import info.bagen.dwebbrowser.microService.browser.mwebview.CloseWatcher.CloseWa
 import info.bagen.dwebbrowser.microService.browser.mwebview.MultiWebViewController
 import info.bagen.dwebbrowser.microService.browser.mwebview.debugMultiWebView
 import info.bagen.dwebbrowser.microService.browser.webview.DWebView
-import info.bagen.dwebbrowser.microService.helper.Callback
-import info.bagen.dwebbrowser.microService.helper.Signal
 import info.bagen.dwebbrowser.microService.helper.runBlockingCatching
 import info.bagen.dwebbrowser.microService.sys.dns.nativeFetch
 import info.bagen.dwebbrowser.microService.sys.http.CORS_HEADERS
@@ -56,8 +51,6 @@ import info.bagen.dwebbrowser.ui.entity.BrowserWebView
 import info.bagen.dwebbrowser.ui.qrcode.QRCodeScanState
 import info.bagen.dwebbrowser.util.*
 import kotlinx.coroutines.*
-import org.http4k.core.Method
-import org.http4k.core.Request
 import org.http4k.core.Response
 import org.http4k.lens.Header
 import java.util.concurrent.atomic.AtomicInteger
@@ -148,16 +141,40 @@ class BrowserViewModel(private val browserController: BrowserController) : ViewM
         currentInsets = browserController.currentInsets
       )
       uiState.browserViewList.add(browserView)
+      browserView.viewItem.coroutineScope.launch {
+        withContext(mainAsyncExceptionHandler)  {
+          val dWebView = browserView.viewItem.webView
+          // 它是有内部链接的，所以等到它ok了再说
+          var url = dWebView.getUrlInMain()
+          if (url?.isEmpty() != true) {
+            dWebView.waitReady()
+            url = dWebView.getUrlInMain()
+          }
+          debugMultiWebView("opened ${uiState.browserViewList}", url)
+          /// 内部特殊行为，有时候，我们需要知道 isUserGesture 这个属性，所以需要借助 onCreateWindow 这个回调来实现
+          /// 实现 CloseWatcher 提案 https://github.com/WICG/close-watcher/blob/main/README.mdÏ
+          if (browserView.closeWatcher.consuming.remove(url)) {
+            val consumeToken = url!!
+            browserView.closeWatcher.apply(true).also {
+              browserView.viewItem.webView.destroy()
+              browserView.closeWatcher.resolveToken(consumeToken, it)
+            }
+          }
+        }
+      }
     }
   }
 
   fun getNewTabBrowserView(url: String? = null): BrowserWebView {
-    return BrowserWebView(
-      viewItem = appendWebViewAsItem(
-        createDwebView(
-          url ?: "file:///android_asset/browser/newtab/index.html"
-        )
+    debugBrowser("getNewTabBrowserView", url)
+    val viewItem = appendWebViewAsItem(
+      createDwebView(
+        url ?: "https://browser.dweb/sys/browser/newtab/index.html"
       )
+    )
+    return BrowserWebView(
+      viewItem = viewItem,
+      closeWatcher = CloseWatcher(viewItem)
     )
   }
 
@@ -339,14 +356,13 @@ class BrowserViewModel(private val browserController: BrowserController) : ViewM
 
 
   fun createDwebView(url: String): DWebView {
-    val dWebView = DWebView(
+   return DWebView(
       App.appContext, browserController.browserNMM, browserController.browserNMM, DWebView.Options(
         url = url,
         /// 我们会完全控制页面将如何离开，所以这里兜底默认为留在页面
         onDetachedFromWindowStrategy = DWebView.Options.DetachedFromWindowStrategy.Ignore,
       ), null
     )
-    return dWebView
   }
 
   @Synchronized
@@ -364,7 +380,6 @@ class BrowserViewModel(private val browserController: BrowserController) : ViewM
     ).also { viewItem ->
       viewItem.webView.settings.setSupportMultipleWindows(false)
       viewItem.webView.webViewClient = DwebBrowserWebViewClient()
-      viewItem.webView.webChromeClient = DwebBrowserChromeClient(this@BrowserViewModel,viewItem)
     }
   }
 
@@ -387,51 +402,6 @@ class browserViewModelHelper {
       App.appContext.saveString(KEY_LAST_SEARCH_KEY, url)
       inputText.value = url
     }
-  }
-}
-
-internal class DwebBrowserChromeClient(
-  val wc: BrowserViewModel,
-  val viewItem: MultiWebViewController.ViewItem
-) : AccompanistWebChromeClient() {
-  val closeWatcherController = CloseWatcher(viewItem)
-  override fun onCreateWindow(
-    view: WebView,
-    isDialog: Boolean,
-    isUserGesture: Boolean,
-    resultMsg: Message
-  ): Boolean {
-    val transport = resultMsg.obj;
-    debugMultiWebView("opening",transport)
-    if (transport is WebView.WebViewTransport) {
-      viewItem.coroutineScope.launch {
-        debugMultiWebView("opening")
-        val dWebView = wc.createDwebView("")
-        transport.webView = dWebView;
-        resultMsg.sendToTarget();
-
-        // 它是有内部链接的，所以等到它ok了再说
-        var url = dWebView.getUrlInMain()
-        if (url?.isEmpty() != true) {
-          dWebView.waitReady()
-          url = dWebView.getUrlInMain()
-        }
-        debugMultiWebView("opened", url)
-
-        /// 内部特殊行为，有时候，我们需要知道 isUserGesture 这个属性，所以需要借助 onCreateWindow 这个回调来实现
-        /// 实现 CloseWatcher 提案 https://github.com/WICG/close-watcher/blob/main/README.md
-        if (closeWatcherController.consuming.remove(url)) {
-          val consumeToken = url!!
-          closeWatcherController.apply(isUserGesture).also {
-            withContext(mainAsyncExceptionHandler) {
-              dWebView.destroy()
-              closeWatcherController.resolveToken(consumeToken, it)
-            }
-          }
-        }
-      }
-    }
-    return true
   }
 }
 

@@ -40,6 +40,8 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.web.LoadingState
 import com.google.accompanist.web.WebView
 import info.bagen.dwebbrowser.R
+import info.bagen.dwebbrowser.microService.browser.mwebview.MultiWebViewController
+import info.bagen.dwebbrowser.microService.browser.mwebview.debugMultiWebView
 import info.bagen.dwebbrowser.ui.entity.BrowserBaseView
 import info.bagen.dwebbrowser.ui.entity.BrowserWebView
 import info.bagen.dwebbrowser.ui.qrcode.QRCodeScanView
@@ -73,11 +75,16 @@ fun BrowserView(viewModel: BrowserViewModel) {
   val scope = rememberCoroutineScope()
   val context = LocalContext.current
   BackHandler {
+    debugMultiWebView("BrowserView",viewModel.uiState.currentBrowserBaseView.value.closeWatcher.canClose)
     if (viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.targetValue != SheetValue.Hidden) {
       scope.launch {
         viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.hide()
       }
-    } else {
+    } else if (viewModel.uiState.currentBrowserBaseView.value.closeWatcher.canClose){
+      viewModel.uiState.currentBrowserBaseView.value.viewItem.coroutineScope.launch {
+        viewModel.uiState.currentBrowserBaseView.value.closeWatcher.close()
+      }
+    }else {
       val browserWebView = viewModel.uiState.currentBrowserBaseView.value
       if (browserWebView.viewItem.navigator.canGoBack) {
         browserWebView.viewItem.navigator.navigateBack()
@@ -136,6 +143,8 @@ fun BrowserView(viewModel: BrowserViewModel) {
     }
   }
 }
+
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

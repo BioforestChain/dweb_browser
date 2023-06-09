@@ -29,9 +29,9 @@ const onLongPressCallbackHook = () => {
   filter.value = true;
   emit("onLongPress", filter.value, props.index);
   const closer = new CloseWatcher();
-  console.log("CloseWatcherxxxxxxxx",closer)
+  console.log("mwebview",closer,(globalThis as any).__native_close_watcher_kit__._watchers.size,(globalThis as any).__native_close_watcher_kit__._tasks.size)
   closer.addEventListener("close", () => {
-    console.log("CloseWatcherxxxxxxxx")
+    console.log("mwebview")
     filter.value = false;
   });
 };

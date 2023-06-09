@@ -10,21 +10,10 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.sp
-import com.google.accompanist.web.WebViewNavigator
-import com.google.accompanist.web.WebViewState
+import info.bagen.dwebbrowser.microService.browser.mwebview.CloseWatcher.CloseWatcher
 import info.bagen.dwebbrowser.microService.browser.mwebview.MultiWebViewController
-import info.bagen.dwebbrowser.microService.browser.webview.DWebView
 import info.bagen.dwebbrowser.ui.view.CaptureController
-import kotlinx.coroutines.CoroutineScope
 
-/*data class WebSiteInfo(
-  var title: String,
-  var url: String,
-  val icon: ImageBitmap? = null,
-  var timeMillis: String = "",
-) {
-  //val expand: MutableState<Boolean> = mutableStateOf(false)
-}*/
 
 interface BrowserBaseView {
   val show: MutableState<Boolean> // 用于首页是否显示遮罩
@@ -41,16 +30,12 @@ data class BrowserMainView(
 ) : BrowserBaseView
 
 data class BrowserWebView(
-    override val show: MutableState<Boolean> = mutableStateOf(true),
-    override val focus: MutableState<Boolean> = mutableStateOf(false),
-    override val controller: CaptureController = CaptureController(),
-    override var bitmap: ImageBitmap? = null,
-//    val webView: DWebView,
-//    val webViewId: String,
-//    val state: WebViewState,
-//    val navigator: WebViewNavigator,
-//    val coroutineScope: CoroutineScope
-  val viewItem: MultiWebViewController.ViewItem
+  override val show: MutableState<Boolean> = mutableStateOf(true),
+  override val focus: MutableState<Boolean> = mutableStateOf(false),
+  override val controller: CaptureController = CaptureController(),
+  override var bitmap: ImageBitmap? = null,
+  val viewItem: MultiWebViewController.ViewItem,
+  val closeWatcher: CloseWatcher,
 ) : BrowserBaseView
 
 data class HotspotInfo(

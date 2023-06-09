@@ -34,6 +34,7 @@ class CloseWatcher(
              */
             @JavascriptInterface
             fun registryToken(consumeToken: String) {
+                println("mwebview registryToken $consumeToken")
                 if (consumeToken.isNullOrBlank()) {
                     throw Exception("CloseWatcher.registryToken invalid arguments");
                 }
