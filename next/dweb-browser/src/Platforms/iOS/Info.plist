@@ -36,5 +36,10 @@
 	<string>This app accesses and saves media in vour photo librarv.</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>This app uses the FaceID to unlock interface.</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
 </dict>
 </plist>
