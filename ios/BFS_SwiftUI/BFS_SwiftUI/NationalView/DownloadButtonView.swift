@@ -72,7 +72,7 @@ struct DownloadButtonView: View {
             Circle()
                 .stroke(lineWidth: 4)
                 .opacity(0.5)
-                .foregroundColor(SwiftUI.Color.white.opacity(0.5))
+                .foregroundColor(SwiftUI.Color.primary.opacity(0.2))
             
             Circle()
                 .trim(from: 0.0, to: CGFloat(progress))
@@ -104,7 +104,7 @@ struct DownloadButtonView: View {
         Circle()
             .trim(from: 0, to: 0.8)
             .stroke(lineWidth: 4)
-            .foregroundColor(SwiftUI.Color.white.opacity(0.5))
+            .foregroundColor(SwiftUI.Color.primary.opacity(0.2))
             .frame(width: 30, height: 30)
             .rotationEffect(.degrees(isRotate ? 360 : 0.0))
             .animation(Animation.linear(duration: 1).repeatForever(autoreverses: false), value: isRotate)

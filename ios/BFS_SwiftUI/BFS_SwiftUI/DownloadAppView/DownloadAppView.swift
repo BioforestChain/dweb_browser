@@ -66,7 +66,7 @@ struct DownloadAppView: View {
                 .padding(.top)
                 .background(SwiftUI.Color.black.opacity(calculateNavigationViewAlpha()))
         }
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(.light)
         .onReceive(downloadPublisher) { out in
             progress = CGFloat(out)
         }

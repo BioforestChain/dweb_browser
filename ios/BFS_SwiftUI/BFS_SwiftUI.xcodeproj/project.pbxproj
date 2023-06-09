@@ -44,7 +44,6 @@
 		F39F17842A088ABD0002EFD5 /* SearchHolderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F39F17832A088ABD0002EFD5 /* SearchHolderView.swift */; };
 		F39F178A2A0900540002EFD5 /* SearchEngineViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F39F17892A0900540002EFD5 /* SearchEngineViewModel.swift */; };
 		F3A1DAC92A0A260E00153453 /* KeyboardHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A1DAC82A0A260E00153453 /* KeyboardHelper.swift */; };
-		F3A1DACB2A0A289F00153453 /* Publisher_extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A1DACA2A0A289F00153453 /* Publisher_extension.swift */; };
 		F3A5718B29F7A5FF00786603 /* HotSearchModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A5718A29F7A5FF00786603 /* HotSearchModel.swift */; };
 		F3A5718F29F7A8A900786603 /* BFS.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = F3A5718D29F7A8A900786603 /* BFS.xcdatamodeld */; };
 		F3A5719129F7AA0300786603 /* DataController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A5719029F7AA0300786603 /* DataController.swift */; };
@@ -61,10 +60,10 @@
 		F3B8438B29FB7497008101C7 /* CoreDataError.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B8438A29FB7497008101C7 /* CoreDataError.swift */; };
 		F3B8438E29FBA9B1008101C7 /* HomeContentViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B8438D29FBA9B1008101C7 /* HomeContentViewModel.swift */; };
 		F3BF42532A048BAE004C05D0 /* Tools.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3BF42522A048BAE004C05D0 /* Tools.swift */; };
-		F3BF42552A048DE7004C05D0 /* NotificationName_extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3BF42542A048DE7004C05D0 /* NotificationName_extension.swift */; };
 		F3C1C98E2A1B55AB0014F5D3 /* DownloadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3C1C98D2A1B55AB0014F5D3 /* DownloadView.swift */; };
 		F3CB3AD92A32BC550042E520 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3CB3AD82A32BC550042E520 /* AppModel.swift */; };
 		F3CB3AE62A33187C0042E520 /* test.json in Resources */ = {isa = PBXBuildFile; fileRef = F3CB3AE52A33187C0042E520 /* test.json */; };
+		F3CB3AEA2A3333130042E520 /* NotificationName_extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3CB3AE92A3333130042E520 /* NotificationName_extension.swift */; };
 		F3CFDCE72A209E27007770B8 /* DownloadButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3CFDCE62A209E27007770B8 /* DownloadButtonView.swift */; };
 		F3CFDCE92A20B41F007770B8 /* DownloadAppViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3CFDCE82A20B41F007770B8 /* DownloadAppViewModel.swift */; };
 		F3D75D1A29F60D8C00DE6EC6 /* SwiftUIWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3D75D1929F60D8C00DE6EC6 /* SwiftUIWebView.swift */; };
@@ -128,7 +127,6 @@
 		F39F17832A088ABD0002EFD5 /* SearchHolderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchHolderView.swift; sourceTree = "<group>"; };
 		F39F17892A0900540002EFD5 /* SearchEngineViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchEngineViewModel.swift; sourceTree = "<group>"; };
 		F3A1DAC82A0A260E00153453 /* KeyboardHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardHelper.swift; sourceTree = "<group>"; };
-		F3A1DACA2A0A289F00153453 /* Publisher_extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Publisher_extension.swift; sourceTree = "<group>"; };
 		F3A5718529F77BEA00786603 /* SwiftSoup.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = SwiftSoup.xcframework; path = ../Test/Framework/Snapkit/Carthage/Build/SwiftSoup.xcframework; sourceTree = "<group>"; };
 		F3A5718A29F7A5FF00786603 /* HotSearchModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotSearchModel.swift; sourceTree = "<group>"; };
 		F3A5718E29F7A8A900786603 /* BFS.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = BFS.xcdatamodel; sourceTree = "<group>"; };
@@ -148,10 +146,10 @@
 		F3B8438D29FBA9B1008101C7 /* HomeContentViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeContentViewModel.swift; sourceTree = "<group>"; };
 		F3B8439829FBD081008101C7 /* SwiftSoup.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = SwiftSoup.xcframework; path = ../../../Test/Framework/Snapkit/Carthage/Build/SwiftSoup.xcframework; sourceTree = "<group>"; };
 		F3BF42522A048BAE004C05D0 /* Tools.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Tools.swift; sourceTree = "<group>"; };
-		F3BF42542A048DE7004C05D0 /* NotificationName_extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotificationName_extension.swift; sourceTree = "<group>"; };
 		F3C1C98D2A1B55AB0014F5D3 /* DownloadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadView.swift; sourceTree = "<group>"; };
 		F3CB3AD82A32BC550042E520 /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
 		F3CB3AE52A33187C0042E520 /* test.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = test.json; path = ../../SwiftUIToMAUI/BrowserFramework/BrowserFramework/Resources.bundle/test.json; sourceTree = "<group>"; };
+		F3CB3AE92A3333130042E520 /* NotificationName_extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotificationName_extension.swift; sourceTree = "<group>"; };
 		F3CFDCE62A209E27007770B8 /* DownloadButtonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadButtonView.swift; sourceTree = "<group>"; };
 		F3CFDCE82A20B41F007770B8 /* DownloadAppViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadAppViewModel.swift; sourceTree = "<group>"; };
 		F3D75D1929F60D8C00DE6EC6 /* SwiftUIWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftUIWebView.swift; sourceTree = "<group>"; };
@@ -387,8 +385,7 @@
 				F3A82ABB29F0CFBA00D777C7 /* StringExtension.swift */,
 				F3A5719629F7CCD900786603 /* Text_extension.swift */,
 				F3AF3D7029F913FC0081A60A /* ScrollView_extension.swift */,
-				F3BF42542A048DE7004C05D0 /* NotificationName_extension.swift */,
-				F3A1DACA2A0A289F00153453 /* Publisher_extension.swift */,
+				F3CB3AE92A3333130042E520 /* NotificationName_extension.swift */,
 				F34D63D92A04ABEC00E170FD /* View_extension.swift */,
 				F38E815F2A063D130047E31A /* Date_extension.swift */,
 				F3B4F24E2A220C1700D402F9 /* Color_extension.swift */,
@@ -606,9 +603,9 @@
 				F39A828929EFE8CE006305FB /* LinkHistoryViewModel.swift in Sources */,
 				F3B4F24F2A220C1700D402F9 /* Color_extension.swift in Sources */,
 				F39F17822A0884850002EFD5 /* SearchEngine.swift in Sources */,
+				F3CB3AEA2A3333130042E520 /* NotificationName_extension.swift in Sources */,
 				F3A5719529F7CC5900786603 /* HotSearchCell.swift in Sources */,
 				F38A9E8F2A0B365500B285A7 /* OverlayTextFieldView.swift in Sources */,
-				F3A1DACB2A0A289F00153453 /* Publisher_extension.swift in Sources */,
 				F378FCFA2A05110A00D7BC2F /* SheetHistoryCell.swift in Sources */,
 				F378FCF62A050C3400D7BC2F /* SheetHistoryView.swift in Sources */,
 				F3A5719129F7AA0300786603 /* DataController.swift in Sources */,
@@ -667,7 +664,6 @@
 				F396E92D29F3699E00F1E21F /* HistoryViewModel.swift in Sources */,
 				F38A9E912A0B796D00B285A7 /* CustomContainerView.swift in Sources */,
 				F3CFDCE72A209E27007770B8 /* DownloadButtonView.swift in Sources */,
-				F3BF42552A048DE7004C05D0 /* NotificationName_extension.swift in Sources */,
 				F3ED45E52A1F023E00C0D41B /* DownloadAppView.swift in Sources */,
 				F38E81582A05E3490047E31A /* MenuCell.swift in Sources */,
 				F39A825229EF7269006305FB /* BFS_SwiftUIApp.swift in Sources */,
