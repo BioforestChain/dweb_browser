@@ -64,6 +64,7 @@
 		F3BF42552A048DE7004C05D0 /* NotificationName_extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3BF42542A048DE7004C05D0 /* NotificationName_extension.swift */; };
 		F3C1C98E2A1B55AB0014F5D3 /* DownloadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3C1C98D2A1B55AB0014F5D3 /* DownloadView.swift */; };
 		F3CB3AD92A32BC550042E520 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3CB3AD82A32BC550042E520 /* AppModel.swift */; };
+		F3CB3AE62A33187C0042E520 /* test.json in Resources */ = {isa = PBXBuildFile; fileRef = F3CB3AE52A33187C0042E520 /* test.json */; };
 		F3CFDCE72A209E27007770B8 /* DownloadButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3CFDCE62A209E27007770B8 /* DownloadButtonView.swift */; };
 		F3CFDCE92A20B41F007770B8 /* DownloadAppViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3CFDCE82A20B41F007770B8 /* DownloadAppViewModel.swift */; };
 		F3D75D1A29F60D8C00DE6EC6 /* SwiftUIWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3D75D1929F60D8C00DE6EC6 /* SwiftUIWebView.swift */; };
@@ -150,6 +151,7 @@
 		F3BF42542A048DE7004C05D0 /* NotificationName_extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotificationName_extension.swift; sourceTree = "<group>"; };
 		F3C1C98D2A1B55AB0014F5D3 /* DownloadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadView.swift; sourceTree = "<group>"; };
 		F3CB3AD82A32BC550042E520 /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
+		F3CB3AE52A33187C0042E520 /* test.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = test.json; path = ../../SwiftUIToMAUI/BrowserFramework/BrowserFramework/Resources.bundle/test.json; sourceTree = "<group>"; };
 		F3CFDCE62A209E27007770B8 /* DownloadButtonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadButtonView.swift; sourceTree = "<group>"; };
 		F3CFDCE82A20B41F007770B8 /* DownloadAppViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadAppViewModel.swift; sourceTree = "<group>"; };
 		F3D75D1929F60D8C00DE6EC6 /* SwiftUIWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftUIWebView.swift; sourceTree = "<group>"; };
@@ -300,6 +302,7 @@
 		F39A825029EF7269006305FB /* BFS_SwiftUI */ = {
 			isa = PBXGroup;
 			children = (
+				F3CB3AE52A33187C0042E520 /* test.json */,
 				F3B4F2412A21FE8200D402F9 /* Tools */,
 				F39A825129EF7269006305FB /* BFS_SwiftUIApp.swift */,
 				F39A825329EF7269006305FB /* ContentView.swift */,
@@ -560,6 +563,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F39A825929EF726B006305FB /* Preview Assets.xcassets in Resources */,
+				F3CB3AE62A33187C0042E520 /* test.json in Resources */,
 				F3D75D2329F6210300DE6EC6 /* JSScript in Resources */,
 				F39A825629EF726B006305FB /* Assets.xcassets in Resources */,
 			);

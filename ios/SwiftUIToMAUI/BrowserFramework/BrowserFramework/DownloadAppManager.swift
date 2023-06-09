@@ -12,7 +12,7 @@ public class DownloadAppManager: NSObject {
     
     @objc public var downloadView: UIView?
     
-    public typealias onStartDownload = ([String:String]) -> Void
+    public typealias onStartDownload = (String) -> Void
     
     private var callback: onStartDownload?
     
@@ -21,8 +21,8 @@ public class DownloadAppManager: NSObject {
         let controller = UIHostingController(rootView: DownloadAppView(modelData: data, isLoaded: isLoaded, isUpdate: isUpdate))
         downloadView = controller.view
         
-        _ = downloadPublisher.sink { value in
-            self.callback?(value)
+        NotificationCenter.default.addObserver(forName: NSNotification.Name.downloadApp, object: nil, queue: .main) { noti in
+            self.callback?(noti.userInfo?["type"] as? String ?? "")
         }
     }
     

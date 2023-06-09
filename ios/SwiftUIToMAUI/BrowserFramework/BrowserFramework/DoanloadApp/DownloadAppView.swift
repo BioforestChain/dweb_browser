@@ -313,14 +313,30 @@ struct DownloadAppView: View {
     
     private func loadAppInfo() {
         
+//        let data = load("Resources.bundle/test")
         do {
             let decoder = JSONDecoder()
             self.defaultApp = try decoder.decode(APPModel.self, from: modelData)
             self.viewModel.loadIcon(urlString: self.defaultApp?.icon ?? "", placeHoldImageName: "360")
-            self.viewModel.loadImages(imageNames: self.defaultApp?.images ?? [], placeHoldImageName: "post")
+            self.viewModel.loadImages(imageNames: self.defaultApp?.images! ?? [], placeHoldImageName: "post")
         } catch {
             fatalError("could load fail. \n\(error.localizedDescription)")
         }
+    }
+    
+    func load(_ filename: String) -> Data {
+        let data: Data
+        let bundle = Bundle(for: BrowserManager.self)
+        guard let file = bundle.url(forResource: filename, withExtension: "json") else {
+            fatalError("could not load \(filename) in main bundle.")
+        }
+        
+        do {
+            data = try Data(contentsOf: file)
+        } catch {
+            fatalError("could not load \(filename) in main bundle. \n\(error)")
+        }
+        return data
     }
 }
 

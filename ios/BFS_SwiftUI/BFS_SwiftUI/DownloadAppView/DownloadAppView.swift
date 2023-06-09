@@ -303,6 +303,16 @@ struct DownloadAppView: View {
     
     private func loadAppInfo() {
         
+        let data = load("test")
+        do {
+            let decoder = JSONDecoder()
+            self.defaultApp = try decoder.decode(APPModel.self, from: data)
+            self.viewModel.loadIcon(urlString: self.defaultApp?.icon ?? "", placeHoldImage: UIImage(named: "360")!)
+            self.viewModel.loadImages(imageNames: self.defaultApp?.images! ?? [], placeHoldImage: UIImage(named: "post3")!)
+        } catch {
+            fatalError("could load fail. \n\(error.localizedDescription)")
+        }
+        /*
         guard let url = URL(string: "https://dweb.waterbang.top/metadata.json") else { return }
         let request = URLRequest(url: url)
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
@@ -321,7 +331,21 @@ struct DownloadAppView: View {
                 }
             }
         }
-        task.resume()
+        task.resume()*/
+    }
+    
+    func load(_ filename: String) -> Data {
+        let data: Data
+        guard let file = Bundle.main.url(forResource: filename, withExtension: "json") else {
+            fatalError("could not load \(filename) in main bundle.")
+        }
+        
+        do {
+            data = try Data(contentsOf: file)
+        } catch {
+            fatalError("could not load \(filename) in main bundle. \n\(error)")
+        }
+        return data
     }
 }
 

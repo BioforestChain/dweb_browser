@@ -40,6 +40,7 @@ class DownloadImageViewModel: ObservableObject {
         
         guard let url = URL(string: urlString) else { return nil }
         let resposne = try? await URLSession.shared.data(for: URLRequest(url: url))
+        print(resposne)
         guard let data = resposne?.0 else { return nil }
         let image = UIImage(data: data)
         self.cache.setObject(image as AnyObject, forKey: urlString as AnyObject)

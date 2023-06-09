@@ -46,8 +46,8 @@ struct DownloadButtonView: View {
                             backColor = .clear
                         }
                     } else {
-                        let dict = ["type": "open", "urlString": urlString]
-                        downloadPublisher.send(dict)
+                        let dict = ["type": "open"]
+                        NotificationCenter.default.post(name: NSNotification.Name.downloadApp, object: nil, userInfo: dict)
                     }
                 } label: {
                     Text(content)
@@ -123,9 +123,10 @@ struct DownloadButtonView: View {
             .animation(SwiftUI.Animation.linear(duration: 1).repeatForever(autoreverses: false), value: isRotate)
             .onAppear {
                 isRotate = true
+                print("circle")
                 DispatchQueue.main.async {
-                    let dict = ["type": "download", "urlString": urlString]
-                    downloadPublisher.send(dict)
+                    let dict = ["type": "download"]
+                    NotificationCenter.default.post(name: NSNotification.Name.downloadApp, object: nil, userInfo: dict)
                 }
             }
     }
