@@ -14,7 +14,10 @@ public class DownloadAppManager: NSObject {
     
     public typealias onStartDownload = (String) -> Void
     
+    public typealias backCallback = () -> Void
+    
     private var callback: onStartDownload?
+    private var backCallback: backCallback?
     
     @objc public init(data: Data, isLoaded: Bool, isUpdate: Bool) {
         super.init()
@@ -24,10 +27,16 @@ public class DownloadAppManager: NSObject {
         NotificationCenter.default.addObserver(forName: NSNotification.Name.downloadApp, object: nil, queue: .main) { noti in
             self.callback?(noti.userInfo?["type"] as? String ?? "")
         }
+        
+        NotificationCenter.default.addObserver(forName: NSNotification.Name.backToLastView, object: nil, queue: .main) { _ in
+            self.backCallback?()
+        }
     }
     
     @objc public func onListenProgress(progress: Float) {
-        progressPublisher.send(progress)
+        DispatchQueue.main.async {
+            progressPublisher.send(progress)
+        }
     }
     
     //点击下载按钮
@@ -41,5 +50,9 @@ public class DownloadAppManager: NSObject {
     //下载失败
     @objc public func downloadFail() {
         NotificationCenter.default.post(name: NSNotification.Name.downloadFail, object: nil)
+    }
+    
+    @objc public func onBackAction(callback: @escaping backCallback) {
+        self.backCallback = callback
     }
 }

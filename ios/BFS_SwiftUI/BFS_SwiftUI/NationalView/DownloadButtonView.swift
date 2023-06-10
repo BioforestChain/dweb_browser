@@ -114,7 +114,6 @@ struct DownloadButtonView: View {
                     downloadViewModel.downloadApp(urlString: self.downloadUrlString)
                 }
             }
-            
     }
 }
 

@@ -21,6 +21,7 @@ struct DownloadAppView: View {
     @State private var backColor: SwiftUI.Color = SwiftUI.Color.blue
     @State private var isRotate = false
     @State private var isWaiting = false
+    @State private var isLoading = false
     @State private var progress: CGFloat = 0.0
     @State private var defaultApp: APPModel?
     @State private var isPresented = false
@@ -28,48 +29,49 @@ struct DownloadAppView: View {
     
     var body: some View {
         
-        ZStack(alignment: .top) {
+        VStack(spacing: 0) {
+            
+            Spacer(minLength: UIApplication.shared.windows.first?.windowScene?.statusBarManager?.statusBarFrame.height ?? 0)
+            navigationView()
+                .frame(maxWidth: .infinity)
+                .background(.white)
             
             CustomUIScrollView(content: {
                 VStack(spacing: 0) {
                     
-//                    HeaderView()
+                    //                    HeaderView()
                     
                     AppTitleView()
-
+                    
                     Divider().frame(height: 0.5).background(.white.opacity(0.35))
                         .padding(.bottom, 20)
                         .padding(.horizontal,16)
-
+                    
                     AppHistoryDataView()
-
+                    
                     Divider().frame(height: 0.5).background(.white.opacity(0.35))
                         .padding(.vertical, 20)
                         .padding(.horizontal,16)
-
+                    
                     AppImagesView()
-
+                    
                     Divider().frame(height: 0.5).background(.white.opacity(0.35))
                         .padding(.vertical, 20)
                         .padding(.horizontal,16)
-
+                    
                     AppIntroductionView()
-
+                    
                     Divider().frame(height: 0.5).background(.white.opacity(0.35))
                         .padding(.vertical, 20)
                         .padding(.horizontal,16)
-
+                    
                     InfoDataView()
                     
+                    Spacer()
                 }
             }, offset: $offset, showIndication: false, axis: .vertical)
-           
-            navigationView()
-                .frame(maxWidth: .infinity)
-                .padding(.top)
-                .background(SwiftUI.Color.black.opacity(calculateNavigationViewAlpha()))
         }
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(.light)
         .onReceive(progressPublisher) { out in
             progress = CGFloat(out)
         }
@@ -93,11 +95,24 @@ struct DownloadAppView: View {
         
         ZStack(alignment: .center) {
             HStack(alignment: .center) {
+                
+                Button {
+                    NotificationCenter.default.post(name: NSNotification.Name.backToLastView, object: nil)
+                } label: {
+                    HStack {
+                        Image(systemName: "chevron.left")
+                        Text("返回")
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical)
+                }
+                
                 Spacer()
                 
-                DownloadButtonView(urlString: defaultApp?.bundle_url ?? "", content: $content, btn_width: $btn_width, backColor: $backColor, isRotate: $isRotate, isWaiting: $isWaiting, progress: $progress)
+                DownloadButtonView(content: $content, btn_width: $btn_width, backColor: $backColor, isRotate: $isRotate, isWaiting: $isWaiting, isLoading: $isLoading, progress: $progress)
                     .padding(.trailing, 20)
                     .padding(.bottom, 5)
+                    .opacity(calculateNavigationViewSubViewAlpha())
             }
             Image(uiImage: viewModel.iconImage ?? UIImage.image(for: "360"))
                 .resizable()
@@ -106,8 +121,9 @@ struct DownloadAppView: View {
                 .background(.white)
                 .cornerRadius(20)
                 .padding(.bottom,10)
+                .opacity(calculateNavigationViewSubViewAlpha())
         }
-        .opacity(calculateNavigationViewSubViewAlpha())
+        
     }
     
     @ViewBuilder
@@ -139,11 +155,14 @@ struct DownloadAppView: View {
                 .background(.white)
                 .cornerRadius(20)
             
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 0) {
                 Text(defaultApp?.name ?? "")
                     .font(.system(size: 20,weight: .bold))
+                Text(defaultApp?.short_name ?? "")
+                    .font(.system(size: 13))
+                    .foregroundColor(.primary.opacity(0.5))
                 Spacer()
-                DownloadButtonView(urlString: defaultApp?.bundle_url ?? "", content: $content, btn_width: $btn_width, backColor: $backColor, isRotate: $isRotate, isWaiting: $isWaiting, progress: $progress)
+                DownloadButtonView(content: $content, btn_width: $btn_width, backColor: $backColor, isRotate: $isRotate, isWaiting: $isWaiting, isLoading: $isLoading, progress: $progress)
             }
             .padding(.leading,10)
             
@@ -283,16 +302,16 @@ struct DownloadAppView: View {
         if offset.y <= 0 {
             return 0.0
         }
-        if offset.y >= 260 {
+        if offset.y >= 100 {
             return 1.0
         }
-        return offset.y / 260
+        return offset.y / 100
     }
     
     
     private func calculateNavigationViewSubViewAlpha() -> CGFloat {
         
-        if offset.y >= 260 {
+        if offset.y >= 100 {
             return 1.0
         }
         return 0
@@ -313,7 +332,7 @@ struct DownloadAppView: View {
     
     private func loadAppInfo() {
         
-//        let data = load("Resources.bundle/test")
+//        let modelData = load("Resources.bundle/test")
         do {
             let decoder = JSONDecoder()
             self.defaultApp = try decoder.decode(APPModel.self, from: modelData)

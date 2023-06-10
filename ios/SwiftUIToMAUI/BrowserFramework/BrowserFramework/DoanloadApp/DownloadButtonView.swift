@@ -16,17 +16,17 @@ struct DownloadButtonView: View {
     @Binding private var isRotate: Bool
     @Binding private var isWaiting: Bool
     @Binding private var progress: CGFloat
-    private var urlString: String = ""
+    @Binding private var isLoading: Bool
     @State var oldContent: String = ""
     
-    init(urlString: String, content: Binding<String>, btn_width: Binding<CGFloat>, backColor: Binding<SwiftUI.Color>, isRotate: Binding<Bool>, isWaiting: Binding<Bool>, progress: Binding<CGFloat>) {
+    init(content: Binding<String>, btn_width: Binding<CGFloat>, backColor: Binding<SwiftUI.Color>, isRotate: Binding<Bool>, isWaiting: Binding<Bool>, isLoading: Binding<Bool>, progress: Binding<CGFloat>) {
         self._content = content
         self._btn_width = btn_width
         self._backColor = backColor
         self._isRotate = isRotate
         self._isWaiting = isWaiting
         self._progress = progress
-        self.urlString = urlString
+        self._isLoading = isLoading
     }
     
     var body: some View {
@@ -84,9 +84,10 @@ struct DownloadButtonView: View {
                 .rotationEffect(Angle(degrees: -90.0))
                 .animation(.easeOut(duration: 0.25), value: progress)
                 .onAppear {
-                    NotificationCenter.default.addObserver(forName: Notification.Name.downloadComplete, object: nil, queue: nil) { _ in
+                    NotificationCenter.default.addObserver(forName: Notification.Name.downloadComplete, object: nil, queue: .main) { _ in
                         self.progress = 0
                         self.isWaiting = false
+                        self.isLoading = false
                         withAnimation {
                             btn_width = 80
                             content = "打开"
@@ -94,9 +95,10 @@ struct DownloadButtonView: View {
                         }
                     }
                     
-                    NotificationCenter.default.addObserver(forName: Notification.Name.downloadFail, object: nil, queue: nil) { _ in
+                    NotificationCenter.default.addObserver(forName: Notification.Name.downloadFail, object: nil, queue: .main) { _ in
                         self.progress = 0
                         self.isWaiting = false
+                        self.isLoading = false
                         withAnimation {
                             btn_width = 80
                             content = self.oldContent
@@ -123,10 +125,13 @@ struct DownloadButtonView: View {
             .animation(SwiftUI.Animation.linear(duration: 1).repeatForever(autoreverses: false), value: isRotate)
             .onAppear {
                 isRotate = true
-                print("circle")
-                DispatchQueue.main.async {
-                    let dict = ["type": "download"]
-                    NotificationCenter.default.post(name: NSNotification.Name.downloadApp, object: nil, userInfo: dict)
+                if !isLoading {
+                    print("download")
+                    isLoading = true
+                    DispatchQueue.main.async {
+                        let dict = ["type": "download"]
+                        NotificationCenter.default.post(name: NSNotification.Name.downloadApp, object: nil, userInfo: dict)
+                    }
                 }
             }
     }
