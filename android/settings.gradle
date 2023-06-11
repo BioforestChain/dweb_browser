@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 include ':benchmark'
-include ':browser'
+//include ':browser'
 include ':helper'
