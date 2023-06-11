@@ -5,8 +5,7 @@ import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
 import info.bagen.dwebbrowser.microService.core.BootstrapContext
 import info.bagen.dwebbrowser.microService.helper.Mmid
-import info.bagen.dwebbrowser.microService.helper.PromiseOut
-import info.bagen.dwebbrowser.microService.helper.printdebugln
+import org.dweb_browser.helper.*
 import info.bagen.dwebbrowser.microService.sys.fileSystem.EFileDirectory
 import info.bagen.dwebbrowser.microService.sys.share.ShareController.Companion.controller
 import org.http4k.core.Method
@@ -25,7 +24,7 @@ data class ShareOptions(
 )
 
 fun debugShare(tag: String, msg: Any? = "", err: Throwable? = null) =
-    printdebugln("Share", tag, msg, err)
+  printdebugln("Share", tag, msg, err)
 
 class ShareNMM : AndroidNativeMicroModule("share.sys.dweb") {
 

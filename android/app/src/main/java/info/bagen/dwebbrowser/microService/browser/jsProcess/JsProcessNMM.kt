@@ -11,17 +11,14 @@ import info.bagen.dwebbrowser.microService.core.ipc.IpcHeaders
 import info.bagen.dwebbrowser.microService.core.ipc.IpcResponse
 import info.bagen.dwebbrowser.microService.core.ipc.ReadableStreamIpc
 import info.bagen.dwebbrowser.microService.helper.Mmid
-import info.bagen.dwebbrowser.microService.helper.PromiseOut
 import info.bagen.dwebbrowser.microService.helper.encodeURI
 import info.bagen.dwebbrowser.microService.helper.gson
-import info.bagen.dwebbrowser.microService.helper.printdebugln
-import info.bagen.dwebbrowser.microService.helper.runBlockingCatching
+import org.dweb_browser.helper.*
 import info.bagen.dwebbrowser.microService.helper.text
 import info.bagen.dwebbrowser.microService.sys.http.DwebHttpServerOptions
 import info.bagen.dwebbrowser.microService.sys.http.HttpDwebServer
 import info.bagen.dwebbrowser.microService.sys.http.closeHttpDwebServer
 import info.bagen.dwebbrowser.microService.sys.http.createHttpDwebServer
-import info.bagen.dwebbrowser.microService.sys.http.debugHttp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -35,14 +32,14 @@ import org.http4k.routing.routes
 
 
 inline fun debugJsProcess(tag: String, msg: Any? = "", err: Throwable? = null) =
-    printdebugln("js-process", tag, msg, err)
+  printdebugln("js-process", tag, msg, err)
 
 
 class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
 
     private val JS_PROCESS_WORKER_CODE by lazy {
         runBlockingCatching {
-            nativeFetch("file:///sys/browser/js-process/worker-thread/js-process.worker.js").text()
+          nativeFetch("file:///sys/browser/js-process/worker-thread/js-process.worker.js").text()
         }.getOrThrow()
     }
 

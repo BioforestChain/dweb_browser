@@ -8,7 +8,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import com.google.accompanist.web.AccompanistWebChromeClient
-import info.bagen.dwebbrowser.microService.helper.mainAsyncExceptionHandler
+import org.dweb_browser.helper.*
 import info.bagen.dwebbrowser.microService.browser.mwebview.CloseWatcher.CloseWatcher
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext

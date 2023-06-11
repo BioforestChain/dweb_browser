@@ -2,7 +2,7 @@ package info.bagen.dwebbrowser.microService.sys.device
 
 import info.bagen.dwebbrowser.microService.core.BootstrapContext
 import info.bagen.dwebbrowser.microService.core.NativeMicroModule
-import info.bagen.dwebbrowser.microService.helper.printdebugln
+import org.dweb_browser.helper.*
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
@@ -10,7 +10,7 @@ import org.http4k.routing.bind
 import org.http4k.routing.routes
 
 inline fun debugDevice(tag: String, msg: Any? = "", err: Throwable? = null) =
-    printdebugln("Device", tag, msg, err)
+  printdebugln("Device", tag, msg, err)
 
 class DeviceNMM: NativeMicroModule("device.sys.dweb") {
 

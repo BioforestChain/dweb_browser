@@ -2,8 +2,7 @@ package info.bagen.dwebbrowser.microService.browser.mwebview.CloseWatcher
 
 import android.annotation.SuppressLint
 import android.webkit.JavascriptInterface
-import info.bagen.dwebbrowser.microService.helper.commonAsyncExceptionHandler
-import info.bagen.dwebbrowser.microService.helper.mainAsyncExceptionHandler
+import org.dweb_browser.helper.*
 import info.bagen.dwebbrowser.microService.browser.mwebview.MultiWebViewController
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch

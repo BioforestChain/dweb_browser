@@ -8,7 +8,7 @@ import info.bagen.dwebbrowser.util.JsonUtil
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.core.BootstrapContext
 import info.bagen.dwebbrowser.microService.core.NativeMicroModule
-import info.bagen.dwebbrowser.microService.helper.printdebugln
+import org.dweb_browser.helper.*
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
@@ -22,7 +22,7 @@ data class ClipboardWriteResponse(val success: Boolean, val errorManager: String
 data class ClipboardData(val value: String, val type: String)
 
 inline fun debugClipboard(tag: String, msg: Any? = "", err: Throwable? = null) =
-    printdebugln("Clipboard", tag, msg, err)
+  printdebugln("Clipboard", tag, msg, err)
 
 /** 剪切板微模块*/
 class ClipboardNMM : NativeMicroModule("clipboard.sys.dweb") {

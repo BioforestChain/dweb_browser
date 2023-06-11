@@ -107,6 +107,7 @@ dependencies {
 //    implementation("androidx.navigation:navigation-fragment-ktx:2.5.1")
   implementation("androidx.navigation:navigation-ui-ktx:2.5.3")
   implementation("androidx.gridlayout:gridlayout:1.0.0")
+  implementation(project(mapOf("path" to ":helper")))
   val accompanistVersion = "0.31.3-beta" // "0.29.2-rc"
   implementation("com.google.accompanist:accompanist-webview:$accompanistVersion")
   implementation("com.google.accompanist:accompanist-navigation-material:$accompanistVersion")
@@ -135,7 +136,6 @@ dependencies {
   implementation("androidx.activity:activity-compose:$activity_version")
 
   /// Compose 相关
-  val composeBom = platform("androidx.compose:compose-bom:2023.03.00")
   implementation("androidx.compose:compose-bom:2023.05.01")
   androidTestImplementation("androidx.compose:compose-bom:2023.05.01")
   implementation("androidx.compose.ui:ui")
@@ -208,7 +208,7 @@ dependencies {
   // 增加 room 存储列表数据
   val roomVersion = "2.5.1"
   implementation("androidx.room:room-runtime:$roomVersion")
-  kapt("androidx.room:room-compiler:2.5.1") // To use Kotlin annotation processing tool (kapt)
+  kapt("androidx.room:room-compiler:$roomVersion") // To use Kotlin annotation processing tool (kapt)
   //annotationProcessor("androidx.room:room-compiler:$roomVersion") // 注释处理工具
   implementation("androidx.room:room-ktx:$roomVersion") // kotlin扩展和协同程序对Room的支持
 }

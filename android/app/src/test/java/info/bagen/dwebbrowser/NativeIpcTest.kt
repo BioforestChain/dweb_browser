@@ -2,8 +2,15 @@ package info.bagen.dwebbrowser
 
 import info.bagen.dwebbrowser.microService.core.BootstrapContext
 import info.bagen.dwebbrowser.microService.core.NativeMicroModule
-import *
-import info.bagen.dwebbrowser.microService.helper.toUtf8
+import info.bagen.dwebbrowser.microService.core.ipc.IPC_ROLE
+import info.bagen.dwebbrowser.microService.core.ipc.IpcHeaders
+import info.bagen.dwebbrowser.microService.core.ipc.IpcMessage
+import info.bagen.dwebbrowser.microService.core.ipc.IpcResponse
+import info.bagen.dwebbrowser.microService.core.ipc.NativeIpc
+import info.bagen.dwebbrowser.microService.core.ipc.NativeMessageChannel
+import info.bagen.dwebbrowser.microService.core.ipc.ReadableStream
+import info.bagen.dwebbrowser.microService.core.ipc.ReadableStreamIpc
+import info.bagen.dwebbrowser.microService.core.ipc.debugStream
 import info.bagen.dwebbrowser.microService.helper.readByteArray
 import info.bagen.dwebbrowser.microService.helper.text
 import info.bagen.dwebbrowser.microService.sys.dns.DnsNMM

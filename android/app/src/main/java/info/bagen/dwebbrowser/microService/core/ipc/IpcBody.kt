@@ -1,12 +1,15 @@
 package info.bagen.dwebbrowser.microService.core.ipc
 
-import info.bagen.dwebbrowser.microService.helper.*
+import info.bagen.dwebbrowser.microService.helper.toBase64
+import info.bagen.dwebbrowser.microService.helper.toBase64ByteArray
+import info.bagen.dwebbrowser.microService.helper.toUtf8
+import org.dweb_browser.helper.printdebugln
 import java.io.InputStream
-import java.util.*
+import java.util.WeakHashMap
 
 
 inline fun debugIpcBody(tag: String, msg: Any = "", err: Throwable? = null) =
-    printdebugln("ipc-body", tag, msg, err)
+  printdebugln("ipc-body", tag, msg, err)
 
 abstract class IpcBody {
     /**

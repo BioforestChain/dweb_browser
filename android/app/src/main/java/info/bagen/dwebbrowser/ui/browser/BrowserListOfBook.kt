@@ -25,8 +25,7 @@ import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.database.WebSiteDatabase
 import info.bagen.dwebbrowser.database.WebSiteInfo
 import info.bagen.dwebbrowser.database.WebSiteType
-import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
-import info.bagen.dwebbrowser.microService.helper.mainAsyncExceptionHandler
+import org.dweb_browser.helper.*
 import kotlinx.coroutines.launch
 
 @Composable

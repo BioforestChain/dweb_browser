@@ -3,16 +3,14 @@ package info.bagen.dwebbrowser.microService.sys.share
 import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Intent
-import android.content.Intent.ACTION_OPEN_DOCUMENT
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.webkit.MimeTypeMap
 import androidx.core.content.FileProvider
-import com.google.android.datatransport.BuildConfig
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.helper.Mmid
-import info.bagen.dwebbrowser.microService.helper.PromiseOut
+import org.dweb_browser.helper.*
 import java.io.File
 
 object SharePlugin {
@@ -25,12 +23,12 @@ object SharePlugin {
      * @param files Array of file:// URLs of the files to be shared. Only supported on iOS and Android.
      */
     fun share(
-        controller: ShareController,
-        title: String? = null,
-        text: String? = null,
-        url: String? = null,
-        files: List<String>? = null,
-        po: PromiseOut<String>,
+      controller: ShareController,
+      title: String? = null,
+      text: String? = null,
+      url: String? = null,
+      files: List<String>? = null,
+      po: PromiseOut<String>,
     ) {
         debugShare(
             "open_share",

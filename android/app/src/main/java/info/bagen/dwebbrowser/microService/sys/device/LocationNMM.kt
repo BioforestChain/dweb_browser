@@ -2,7 +2,7 @@ package info.bagen.dwebbrowser.microService.sys.device
 
 import info.bagen.dwebbrowser.microService.core.BootstrapContext
 import info.bagen.dwebbrowser.microService.core.NativeMicroModule
-import info.bagen.dwebbrowser.microService.helper.printdebugln
+import org.dweb_browser.helper.*
 import info.bagen.dwebbrowser.microService.sys.device.model.LocationInfo
 import org.http4k.core.Method
 import org.http4k.core.Response
@@ -11,7 +11,7 @@ import org.http4k.routing.bind
 import org.http4k.routing.routes
 
 inline fun debugLocation(tag: String, msg: Any? = "", err: Throwable? = null) =
-    printdebugln("Location", tag, msg, err)
+  printdebugln("Location", tag, msg, err)
 
 class LocationNMM: NativeMicroModule("location.sys.dweb") {
 

@@ -4,7 +4,7 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.webkit.MimeTypeMap
-import info.bagen.dwebbrowser.microService.helper.printerrln
+import org.dweb_browser.helper.*
 import java.io.File
 
 
@@ -47,10 +47,16 @@ object FileOpener {
 //                        }
 //                    }
                 } catch (exception: ActivityNotFoundException) {
-                    printerrln("FileOpener", "FIleOpener::open ActivityNotFoundException->$exception")
+                  printerrln(
+                    "FileOpener",
+                    "FIleOpener::open ActivityNotFoundException->$exception"
+                  )
                     onErrorCallback("Activity not found: ${exception.message} --> 8 $exception")
                 } catch (exception: Throwable) {
-                    printerrln("FileOpener", "FIleOpener::open Exception->$exception")
+                  printerrln(
+                    "FileOpener",
+                    "FIleOpener::open Exception->$exception"
+                  )
                     onErrorCallback("${exception.localizedMessage} --> 1 $exception")
                 }
 

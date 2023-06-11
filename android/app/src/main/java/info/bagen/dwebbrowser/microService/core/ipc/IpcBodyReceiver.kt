@@ -1,6 +1,6 @@
 package info.bagen.dwebbrowser.microService.core.ipc
 
-import info.bagen.dwebbrowser.microService.helper.SIGNAL_CTOR
+import org.dweb_browser.helper.*
 import info.bagen.dwebbrowser.microService.helper.toBase64ByteArray
 import info.bagen.dwebbrowser.microService.helper.toUtf8ByteArray
 import java.io.InputStream

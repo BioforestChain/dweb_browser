@@ -4,9 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
-import info.bagen.dwebbrowser.microService.helper.Callback
-import info.bagen.dwebbrowser.microService.helper.Signal
-import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.*
 import info.bagen.dwebbrowser.microService.sys.share.ShareController.Companion.controller
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch

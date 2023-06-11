@@ -3,6 +3,7 @@ package info.bagen.dwebbrowser.microService.helper
 import info.bagen.dwebbrowser.microService.core.ipc.Ipc
 import info.bagen.dwebbrowser.microService.core.ipc.IpcEvent
 import info.bagen.dwebbrowser.util.IsChange
+import org.dweb_browser.helper.*
 
 open class StateObservable(
     needFirstCall: Boolean = false,
@@ -28,7 +29,7 @@ open class StateObservable(
 
     inline fun notifyObserver() {
         runBlockingCatching {
-            changeSignal.emit()
+          changeSignal.emit()
         }.getOrNull()
     }
 

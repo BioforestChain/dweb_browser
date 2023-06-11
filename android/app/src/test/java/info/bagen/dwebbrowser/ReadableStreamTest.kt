@@ -2,9 +2,13 @@ package info.bagen.dwebbrowser
 
 import info.bagen.dwebbrowser.microService.core.BootstrapContext
 import info.bagen.dwebbrowser.microService.core.NativeMicroModule
-import info.bagen.dwebbrowser.microService.helper.Signal
+import info.bagen.dwebbrowser.microService.core.ipc.IPC_ROLE
+import info.bagen.dwebbrowser.microService.core.ipc.IpcHeaders
+import info.bagen.dwebbrowser.microService.core.ipc.IpcResponse
+import info.bagen.dwebbrowser.microService.core.ipc.ReadableStream
+import info.bagen.dwebbrowser.microService.core.ipc.ReadableStreamIpc
+import org.dweb_browser.helper.*
 import info.bagen.dwebbrowser.microService.helper.text
-import *
 import info.bagen.dwebbrowser.microService.helper.toByteArray
 import kotlinx.coroutines.*
 import org.http4k.core.Method

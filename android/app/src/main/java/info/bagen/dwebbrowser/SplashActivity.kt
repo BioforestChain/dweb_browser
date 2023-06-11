@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import com.google.accompanist.web.*
-import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.*
 import info.bagen.dwebbrowser.ui.browser.setDarkMode
 import info.bagen.dwebbrowser.ui.loading.LoadingView
 import info.bagen.dwebbrowser.ui.splash.SplashPrivacyDialog

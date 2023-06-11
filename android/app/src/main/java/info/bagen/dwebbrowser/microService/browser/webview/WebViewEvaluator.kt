@@ -3,9 +3,7 @@ package info.bagen.dwebbrowser.microService.browser.webview
 import android.annotation.SuppressLint
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
-import info.bagen.dwebbrowser.microService.helper.PromiseOut
-import info.bagen.dwebbrowser.microService.helper.commonAsyncExceptionHandler
-import info.bagen.dwebbrowser.microService.helper.runBlockingCatching
+import org.dweb_browser.helper.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import java.util.concurrent.atomic.AtomicInteger
@@ -69,6 +67,7 @@ class WebViewEvaluator(
     /**
      * 执行异步JS代码，需要传入一个表达式
      */
+    @OptIn(DelicateCoroutinesApi::class)
     suspend fun evaluateAsyncJavascriptCode(
         script: String, afterEval: suspend () -> Unit = {}
     ): String {
@@ -76,7 +75,7 @@ class WebViewEvaluator(
         val channel: AsyncChannel = Channel()
         val id = idAcc.getAndAdd(1)
         channelMap[id] = channel
-        GlobalScope.launch(Dispatchers.Main + commonAsyncExceptionHandler) {
+        GlobalScope.launch(mainAsyncExceptionHandler) {
             webView.evaluateJavascript(
                 """
             void (async()=>{return ($script)})()
@@ -85,7 +84,7 @@ class WebViewEvaluator(
             """.trimMargin()
             ) {
                 runBlockingCatching {
-                    afterEval()
+                  afterEval()
                 }.getOrNull()
             };
 

@@ -5,9 +5,6 @@ import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import info.bagen.dwebbrowser.microService.helper.PromiseOut
-import info.bagen.dwebbrowser.microService.helper.ioAsyncExceptionHandler
-import info.bagen.dwebbrowser.microService.helper.runBlockingCatching
 import info.bagen.dwebbrowser.microService.startDwebBrowser
 import info.bagen.dwebbrowser.microService.sys.dns.DnsNMM
 import info.bagen.dwebbrowser.util.DwebBrowserUtil
@@ -15,12 +12,14 @@ import info.bagen.dwebbrowser.util.PlaocUtil
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import org.dweb_browser.helper.*
 
 class App : Application() {
   companion object {
     lateinit var appContext: Context
 
     val grant = PromiseOut<Boolean>()
+
     @OptIn(DelicateCoroutinesApi::class)
     fun <T> startActivity(cls: Class<T>, onIntent: (intent: Intent) -> Unit) {
       GlobalScope.launch(ioAsyncExceptionHandler) {

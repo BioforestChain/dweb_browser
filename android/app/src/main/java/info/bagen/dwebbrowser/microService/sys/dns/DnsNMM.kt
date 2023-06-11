@@ -16,9 +16,10 @@ import org.http4k.lens.Query
 import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
+import org.dweb_browser.helper.*
 
 inline fun debugDNS(tag: String, msg: Any = "", err: Throwable? = null) =
-    printdebugln("fetch", tag, msg, err)
+  printdebugln("fetch", tag, msg, err)
 
 class DnsNMM : NativeMicroModule("dns.sys.dweb") {
     override val dweb_deeplinks = mutableListOf<DWEB_DEEPLINK>("dweb:open")

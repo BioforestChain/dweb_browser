@@ -1,7 +1,7 @@
 package info.bagen.dwebbrowser.learn
 
 import info.bagen.dwebbrowser.AsyncBase
-import info.bagen.dwebbrowser.microService.helper.now
+import org.dweb_browser.helper.*
 import info.bagen.dwebbrowser.microService.helper.toByteArray
 import info.bagen.dwebbrowser.microService.helper.toInt
 import kotlinx.coroutines.async

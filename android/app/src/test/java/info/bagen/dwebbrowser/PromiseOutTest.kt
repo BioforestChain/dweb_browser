@@ -1,6 +1,6 @@
 package info.bagen.dwebbrowser
 
-import info.bagen.dwebbrowser.microService.helper.PromiseOut
+import org.dweb_browser.helper.*
 import kotlinx.coroutines.*
 import org.junit.jupiter.api.Test
 import java.util.concurrent.atomic.AtomicInteger

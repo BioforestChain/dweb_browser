@@ -6,7 +6,7 @@ import info.bagen.dwebbrowser.microService.core.BootstrapContext
 import info.bagen.dwebbrowser.microService.core.NativeMicroModule
 import info.bagen.dwebbrowser.microService.helper.byteArrayInputStream
 import info.bagen.dwebbrowser.microService.helper.gson
-import info.bagen.dwebbrowser.microService.helper.printdebugln
+import org.dweb_browser.helper.*
 import org.http4k.core.*
 import org.http4k.lens.*
 import org.http4k.routing.bind
@@ -16,7 +16,7 @@ import java.io.File
 
 
 inline fun debugVFileSystem(tag: String, msg: Any? = "", err: Throwable? = null) =
-    printdebugln("VirtualFileSystem", tag, msg, err)
+  printdebugln("VirtualFileSystem", tag, msg, err)
 
 class VirtualFileSystemNMM : NativeMicroModule("file.nativeui.browser.dweb") {
 

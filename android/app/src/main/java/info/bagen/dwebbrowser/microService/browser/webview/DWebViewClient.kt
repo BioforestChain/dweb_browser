@@ -5,8 +5,7 @@ import android.net.http.SslError
 import android.os.Message
 import android.view.KeyEvent
 import android.webkit.*
-import info.bagen.dwebbrowser.microService.helper.SimpleCallback
-import info.bagen.dwebbrowser.microService.helper.SimpleSignal
+import org.dweb_browser.helper.*
 import kotlinx.coroutines.runBlocking
 
 class DWebViewClient : WebViewClient() {

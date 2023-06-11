@@ -2,7 +2,7 @@ package info.bagen.dwebbrowser.microService.sys.share
 
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
-import info.bagen.dwebbrowser.microService.helper.PromiseOut
+import org.dweb_browser.helper.*
 
 class ShareController() {
 
@@ -11,7 +11,8 @@ class ShareController() {
     }
     var activity: ShareActivity? = null
 
-    private var activityResultLauncherTask = PromiseOut<ActivityResultLauncher<Intent>>()
+    private var activityResultLauncherTask =
+      PromiseOut<ActivityResultLauncher<Intent>>()
     suspend fun waitActivityResultLauncherCreated() = activityResultLauncherTask.waitPromise()
 
     var shareLauncher: ActivityResultLauncher<Intent>? = null

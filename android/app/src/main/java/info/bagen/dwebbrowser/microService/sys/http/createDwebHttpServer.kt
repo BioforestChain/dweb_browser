@@ -1,5 +1,6 @@
 package info.bagen.dwebbrowser.microService.sys.http
 
+import org.dweb_browser.helper.*
 import info.bagen.dwebbrowser.microService.helper.*
 import info.bagen.dwebbrowser.microService.core.MicroModule
 import info.bagen.dwebbrowser.microService.core.ipc.IpcMethod
@@ -72,12 +73,12 @@ class HttpDwebServer(
           Gateway.RouteConfig(pathname = "", method = IpcMethod.DELETE)
         ),
     ) = runBlockingCatching {
-        val po = PromiseOut<ReadableStreamIpc>()
-        GlobalScope.launch(ioAsyncExceptionHandler) {
-            val streamIpc = nmm.listenHttpDwebServer(startResult, routes)
-            po.resolve(streamIpc)
-        }
-        po.waitPromise()
+      val po = PromiseOut<ReadableStreamIpc>()
+      GlobalScope.launch(ioAsyncExceptionHandler) {
+        val streamIpc = nmm.listenHttpDwebServer(startResult, routes)
+        po.resolve(streamIpc)
+      }
+      po.waitPromise()
     }.getOrThrow()
 
 

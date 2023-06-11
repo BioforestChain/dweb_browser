@@ -3,8 +3,7 @@ package info.bagen.dwebbrowser.microService.sys.permission
 import info.bagen.dwebbrowser.microService.core.BootstrapContext
 import info.bagen.dwebbrowser.microService.core.NativeMicroModule
 import info.bagen.dwebbrowser.microService.helper.Mmid
-import info.bagen.dwebbrowser.microService.helper.PromiseOut
-import info.bagen.dwebbrowser.microService.helper.printdebugln
+import org.dweb_browser.helper.*
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
@@ -14,7 +13,7 @@ import org.http4k.routing.bind
 import org.http4k.routing.routes
 
 inline fun debugPermission(tag: String, msg: Any? = "", err: Throwable? = null) =
-    printdebugln("Permissions", tag, msg, err)
+  printdebugln("Permissions", tag, msg, err)
 
 class PermissionsNMM : NativeMicroModule("permission.sys.dweb") {
     /** 存储每个微应用的权限*/

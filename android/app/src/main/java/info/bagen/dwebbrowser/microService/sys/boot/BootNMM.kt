@@ -6,14 +6,14 @@ import info.bagen.dwebbrowser.microService.core.Router
 import info.bagen.dwebbrowser.microService.core.ipc.Ipc
 import info.bagen.dwebbrowser.microService.core.ipc.IpcEvent
 import info.bagen.dwebbrowser.microService.helper.Mmid
-import info.bagen.dwebbrowser.microService.helper.printdebugln
+import org.dweb_browser.helper.*
 import org.http4k.core.Method
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 
 
 inline fun debugBoot(tag: String, msg: Any? = "", err: Throwable? = null) =
-    printdebugln("boot", tag, msg, err)
+  printdebugln("boot", tag, msg, err)
 
 class BootNMM(initMmids: List<Mmid>? = null) : NativeMicroModule("boot.sys.dweb") {
     /**

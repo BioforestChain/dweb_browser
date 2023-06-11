@@ -4,6 +4,7 @@ import com.google.gson.*
 import com.google.gson.annotations.JsonAdapter
 import info.bagen.dwebbrowser.microService.helper.*
 import java.lang.reflect.Type
+import org.dweb_browser.helper.*
 
 data class IpcMessageArgs(val message: IpcMessage, val ipc: Ipc) {
     val component1 get() = message

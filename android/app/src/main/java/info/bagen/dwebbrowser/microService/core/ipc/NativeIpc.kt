@@ -1,6 +1,6 @@
 package info.bagen.dwebbrowser.microService.core.ipc
 
-import info.bagen.dwebbrowser.microService.helper.*
+import org.dweb_browser.helper.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
@@ -8,7 +8,7 @@ import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicInteger
 
 inline fun debugNativeIpc(tag: String, msg: Any = "", err: Throwable? = null) =
-    printdebugln("native-ipc", tag, msg, err)
+  printdebugln("native-ipc", tag, msg, err)
 
 class NativeIpc(
   val port: NativePort<IpcMessage, IpcMessage>,

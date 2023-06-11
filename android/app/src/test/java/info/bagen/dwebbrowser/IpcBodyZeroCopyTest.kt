@@ -2,7 +2,15 @@ package info.bagen.dwebbrowser
 
 import info.bagen.dwebbrowser.microService.core.BootstrapContext
 import info.bagen.dwebbrowser.microService.core.NativeMicroModule
-import *
+import info.bagen.dwebbrowser.microService.core.ipc.IPC_ROLE
+import info.bagen.dwebbrowser.microService.core.ipc.IpcBodySender
+import info.bagen.dwebbrowser.microService.core.ipc.IpcHeaders
+import info.bagen.dwebbrowser.microService.core.ipc.IpcMessage
+import info.bagen.dwebbrowser.microService.core.ipc.IpcMethod
+import info.bagen.dwebbrowser.microService.core.ipc.IpcRequest
+import info.bagen.dwebbrowser.microService.core.ipc.NativeIpc
+import info.bagen.dwebbrowser.microService.core.ipc.NativeMessageChannel
+import info.bagen.dwebbrowser.microService.core.ipc.ReadableStream
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals

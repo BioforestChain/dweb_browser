@@ -3,7 +3,7 @@ package info.bagen.dwebbrowser.microService.browser.nativeui.splashScreen
 import info.bagen.dwebbrowser.microService.core.BootstrapContext
 import info.bagen.dwebbrowser.microService.core.NativeMicroModule
 import info.bagen.dwebbrowser.microService.helper.Mmid
-import info.bagen.dwebbrowser.microService.helper.printdebugln
+import org.dweb_browser.helper.*
 import info.bagen.dwebbrowser.microService.browser.jmm.JmmMetadata
 import info.bagen.dwebbrowser.microService.browser.jmm.JsMicroModule
 import info.bagen.dwebbrowser.microService.browser.mwebview.MultiWebViewController
@@ -19,7 +19,7 @@ import org.http4k.routing.bind
 import org.http4k.routing.routes
 
 inline fun debugSplashScreen(tag: String, msg: Any? = "", err: Throwable? = null) =
-    printdebugln("SplashScreen", tag, msg, err)
+  printdebugln("SplashScreen", tag, msg, err)
 
 class SplashScreenNMM : NativeMicroModule("splash-screen.nativeui.browser.dweb") {
 

@@ -9,9 +9,10 @@ import kotlinx.coroutines.sync.withLock
 import java.io.IOException
 import java.io.InputStream
 import java.util.concurrent.atomic.AtomicInteger
+import org.dweb_browser.helper.*
 
 inline fun debugStream(tag: String, msg: Any = "", err: Throwable? = null) =
-    printdebugln("stream", tag, msg, err)
+  printdebugln("stream", tag, msg, err)
 
 /**
  * 模拟Web的 ReadableStream
@@ -54,13 +55,13 @@ class ReadableStream(
      */
     private fun _gc() {
         runBlockingCatching(writeDataScope.coroutineContext) {
-            _dataLock.withLock {
-                if (ptr >= 1 /*10240*/ || isClosed) {
-                    debugStream("GC/$uid", "-${ptr} ~> ${_data.size - ptr}")
-                    _data = _data.sliceArray(ptr until _data.size)
-                    ptr = 0
-                }
+          _dataLock.withLock {
+            if (ptr >= 1 /*10240*/ || isClosed) {
+              debugStream("GC/$uid", "-${ptr} ~> ${_data.size - ptr}")
+              _data = _data.sliceArray(ptr until _data.size)
+              ptr = 0
             }
+          }
         }.getOrNull()
     }
 
@@ -76,7 +77,7 @@ class ReadableStream(
 
     init {
         runBlockingCatching {//(writeDataScope.coroutineContext)
-            onStart(controller)
+          onStart(controller)
         }.getOrThrow()
         writeDataScope.launch {
             // 一直等待数据
@@ -121,35 +122,37 @@ class ReadableStream(
         }
 
         runBlockingCatching(readDataScope.coroutineContext) {// (readDataScope.coroutineContext)
-            val wait = PromiseOut<Unit>()
-            val counterJob = launch {
-                dataChangeObserver.observe { count ->
-                    when {
-                        count == -1 -> {
-                            debugStream("REQUEST-DATA/END/$uid", "${canReadSize}/$requestSize")
-                            wait.resolve(Unit) // 不需要抛出错误
-                        }
-                        canReadSize >= requestSize -> {
-                            debugStream(
-                                "REQUEST-DATA/CHANGED/$uid", "${canReadSize}/$requestSize"
-                            )
-                            wait.resolve(Unit)
-                        }
-                        else -> {
-                            debugStream(
-                                "REQUEST-DATA/WAITING-&-PULL/$uid", "${canReadSize}/$requestSize"
-                            )
-                            writeDataScope.launch {
-                                val desiredSize = requestSize - canReadSize
-                                onPull(Pair(desiredSize, controller))
-                            }
-                        }
-                    }
+          val wait = PromiseOut<Unit>()
+          val counterJob = launch {
+            dataChangeObserver.observe { count ->
+              when {
+                count == -1 -> {
+                  debugStream("REQUEST-DATA/END/$uid", "${canReadSize}/$requestSize")
+                  wait.resolve(Unit) // 不需要抛出错误
                 }
+
+                canReadSize >= requestSize -> {
+                  debugStream(
+                    "REQUEST-DATA/CHANGED/$uid", "${canReadSize}/$requestSize"
+                  )
+                  wait.resolve(Unit)
+                }
+
+                else -> {
+                  debugStream(
+                    "REQUEST-DATA/WAITING-&-PULL/$uid", "${canReadSize}/$requestSize"
+                  )
+                  writeDataScope.launch {
+                    val desiredSize = requestSize - canReadSize
+                    onPull(Pair(desiredSize, controller))
+                  }
+                }
+              }
             }
-            wait.waitPromise()
-            counterJob.cancel()
-            debugStream("REQUEST-DATA/DONE/$uid", _data.size)
+          }
+          wait.waitPromise()
+          counterJob.cancel()
+          debugStream("REQUEST-DATA/DONE/$uid", _data.size)
         }.getOrNull()
 
         return _data

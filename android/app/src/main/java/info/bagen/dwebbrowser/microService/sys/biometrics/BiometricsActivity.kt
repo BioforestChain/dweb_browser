@@ -13,9 +13,8 @@ import androidx.biometric.BiometricPrompt
 import androidx.biometric.BiometricPrompt.AUTHENTICATION_RESULT_TYPE_BIOMETRIC
 import androidx.biometric.BiometricPrompt.AUTHENTICATION_RESULT_TYPE_DEVICE_CREDENTIAL
 import androidx.core.content.ContextCompat
-import androidx.core.content.getSystemService
 import androidx.fragment.app.FragmentActivity
-import info.bagen.dwebbrowser.microService.helper.PromiseOut
+import org.dweb_browser.helper.*
 import info.bagen.dwebbrowser.microService.sys.biometrics.BiometricsController.Companion.biometricsController
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

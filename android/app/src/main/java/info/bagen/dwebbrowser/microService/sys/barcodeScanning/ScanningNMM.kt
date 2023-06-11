@@ -7,8 +7,7 @@ import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
 import info.bagen.dwebbrowser.microService.core.BootstrapContext
 import info.bagen.dwebbrowser.microService.core.NativeMicroModule
-import info.bagen.dwebbrowser.microService.helper.PromiseOut
-import info.bagen.dwebbrowser.microService.helper.printdebugln
+import org.dweb_browser.helper.*
 import io.ktor.util.*
 import org.http4k.core.Method
 import org.http4k.lens.Query
@@ -17,7 +16,7 @@ import org.http4k.routing.bind
 import org.http4k.routing.routes
 
 fun debugScanning(tag: String, msg: Any? = "", err: Throwable? = null) =
-    printdebugln("Scanning", tag, msg, err)
+  printdebugln("Scanning", tag, msg, err)
 
 class ScanningNMM() : NativeMicroModule("barcode-scanning.sys.dweb") {
 
@@ -66,7 +65,7 @@ class ScanningNMM() : NativeMicroModule("barcode-scanning.sys.dweb") {
     class BarcodeResult(val data: ByteArray, val boundingBox: Rect, val cornerPoints: List<Point>)
 
     private suspend fun process(image: InputImage): List<info.bagen.dwebbrowser.microService.sys.barcodeScanning.ScanningNMM.BarcodeResult> {
-        val task = PromiseOut<List<info.bagen.dwebbrowser.microService.sys.barcodeScanning.ScanningNMM.BarcodeResult>>()
+        val task = PromiseOut<List<BarcodeResult>>()
         BarcodeScanning.getClient().process(image)
             .addOnSuccessListener { barcodes ->
                 task.resolve(barcodes.map {

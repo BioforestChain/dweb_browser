@@ -1,13 +1,19 @@
 package info.bagen.dwebbrowser.microService.core.ipc
 
-import info.bagen.dwebbrowser.microService.helper.*
+import info.bagen.dwebbrowser.microService.helper.readByteArray
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
+import org.dweb_browser.helper.SimpleCallback
+import org.dweb_browser.helper.SimpleSignal
+import org.dweb_browser.helper.debugger
+import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.printerrln
+import org.dweb_browser.helper.runBlockingCatching
 import java.io.InputStream
-import java.util.*
+import java.util.WeakHashMap
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -154,8 +160,8 @@ class IpcBodySender(
                 }
             }
         } else {
-            printerrln("useByIpc", "should not happend");
-            debugger()
+          printerrln("useByIpc", "should not happend");
+          debugger()
             null
         }
     } else null
@@ -214,8 +220,8 @@ class IpcBodySender(
             if (field != value) {
                 field = value
                 runBlockingCatching {
-                    openSignal.emit(Unit)
-                    openSignal.clear()
+                  openSignal.emit(Unit)
+                  openSignal.clear()
                 }.getOrThrow()
             }
         }
@@ -224,8 +230,8 @@ class IpcBodySender(
             if (field != value) {
                 field = value
                 runBlockingCatching {
-                    closeSignal.emit(Unit)
-                    closeSignal.clear()
+                  closeSignal.emit(Unit)
+                  closeSignal.clear()
                 }.getOrThrow()
             }
         }

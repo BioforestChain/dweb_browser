@@ -5,7 +5,7 @@ import android.webkit.MimeTypeMap
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.core.MicroModule
 import info.bagen.dwebbrowser.microService.helper.AdapterManager
-import info.bagen.dwebbrowser.microService.helper.printdebugln
+import org.dweb_browser.helper.*
 import info.bagen.dwebbrowser.microService.helper.readByteArray
 import info.bagen.dwebbrowser.microService.core.ipc.PreReadableInputStream
 import info.bagen.dwebbrowser.util.APP_DIR_TYPE
@@ -20,10 +20,10 @@ typealias FetchAdapter = suspend (remote: MicroModule, request: Request) -> Resp
 
 
 inline fun debugFetch(tag: String, msg: Any? = "", err: Throwable? = null) =
-    printdebugln("fetch", tag, msg, err)
+  printdebugln("fetch", tag, msg, err)
 
 inline fun debugFetchFile(tag: String, msg: Any? = "", err: Throwable? = null) =
-    printdebugln("fetch-file", tag, msg, err)
+  printdebugln("fetch-file", tag, msg, err)
 
 /**
  *

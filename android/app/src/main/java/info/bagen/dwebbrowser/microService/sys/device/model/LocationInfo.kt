@@ -9,7 +9,7 @@ import android.location.LocationManager
 import android.os.Looper
 import info.bagen.dwebbrowser.util.JsonUtil
 import info.bagen.dwebbrowser.App
-import info.bagen.dwebbrowser.microService.helper.printerrln
+import org.dweb_browser.helper.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.util.*
@@ -60,7 +60,7 @@ class LocationInfo : LocationListener {
                 return locationData
             }
         } catch (e: Throwable) {
-            printerrln("", "Unable connect to Geocoder", e)
+          printerrln("", "Unable connect to Geocoder", e)
         } finally {
             return locationData
         }
