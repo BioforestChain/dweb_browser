@@ -89,7 +89,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb") {
         }
     }
     val queryMetadataUrl = Query.string().required("url")
-    val queryMmid = Query.string().required("mmid")
+    val queryMmid = Query.string().required("app_id")
 
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
         recoverAppData()
@@ -103,8 +103,9 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb") {
                 openJmmMetadataInstallPage(jmmMetadata,url)
                 return@defineHandler jmmMetadata
             },
-            "/uninstall" bind Method.GET to defineHandler { request, ipc ->
+            "/uninstall" bind Method.GET to defineHandler { request ->
                 val mmid = queryMmid(request)
+                debugJMM("uninstall",mmid)
                 apps[mmid]?.let { jsMicroModule ->
                     openJmmMetadataUninstallPage(jsMicroModule)
                 } ?: return@defineHandler false
@@ -154,11 +155,13 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb") {
         JmmManagerActivity.startActivity(jmmMetadata)
     }
 
-    private fun openJmmMetadataUninstallPage(jsMicroModule: JsMicroModule) {
+    private suspend fun openJmmMetadataUninstallPage(jsMicroModule: JsMicroModule) {
         // 先从列表移除，然后删除文件
-        apps.remove(jsMicroModule.metadata.id)
+        val mmid = jsMicroModule.metadata.id
+        apps.remove(mmid)
         bootstrapContext.dns.uninstall(jsMicroModule)
-        FilesUtil.uninstallApp(jsMicroModule.metadata.id)
+        JmmMetadataDB.deleteApp(mmid)
+        FilesUtil.uninstallApp(mmid)
     }
     override suspend fun _shutdown() {
 

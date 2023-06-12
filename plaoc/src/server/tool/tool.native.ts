@@ -50,3 +50,12 @@ export const closeWindow = async () => {
     .nativeFetch(`file://mwebview.browser.dweb/close/app`)
     .boolean();
 };
+
+/**
+ * 关闭app(这个会伴随后端一起关闭，能否关闭app只能由app自己决定)
+ * */
+export const closeApp = async () => {
+  return await jsProcess
+    .nativeFetch(`file://dns.sys.dweb/close?app_id=${jsProcess.mmid}`)
+    .boolean();
+};

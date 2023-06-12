@@ -215,7 +215,7 @@ export class JsProcessMicroModule implements $MicroModule {
     this.fetchIpc.postMessage(IpcEvent.fromText("restart", "")); // 发送指令
   }
   // 关闭信号
-  private closeSignal = createSignal<() => unknown>();
+  readonly closeSignal = createSignal<() => unknown>();
   private _activitySignal = createSignal<$OnIpcEventMessage>();
   private _closeSignal = createSignal<$OnIpcEventMessage>();
   private _dwebviewStateSignal = createSignal<$OnIpcEventMessage>();

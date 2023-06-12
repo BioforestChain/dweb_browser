@@ -1,10 +1,11 @@
 <script lang="ts" setup>
-import { clickApp } from "@/api/new-tab";
+import { clickApp, deleteApp, detailApp, quitApp } from "@/api/new-tab";
 import type { $AppMetaData } from "@/types/app.type";
-import { CloseWatcher } from "@dweb-browser/plaoc";
+// import { CloseWatcher } from "@dweb-browser/plaoc";
 import { onLongPress } from "@vueuse/core";
 import { onMounted, ref } from "vue";
 const $appHtmlRefHook = ref<HTMLDivElement | null>(null);
+
 //控制背景虚化
 const filter = ref(false);
 
@@ -20,6 +21,7 @@ const props = defineProps({
 });
 const emit = defineEmits<{
   (onLongPress: "onLongPress", filter: boolean, index: number): void;
+  (onLongPress: "onUninstall", index: number): void;
 }>();
 
 onMounted(() => {});
@@ -28,12 +30,10 @@ onMounted(() => {});
 const onLongPressCallbackHook = () => {
   filter.value = true;
   emit("onLongPress", filter.value, props.index);
-  const closer = new CloseWatcher();
-  console.log("mwebview",closer,(globalThis as any).__native_close_watcher_kit__._watchers.size,(globalThis as any).__native_close_watcher_kit__._tasks.size)
-  closer.addEventListener("close", () => {
-    console.log("mwebview")
-    filter.value = false;
-  });
+  // const closer = new CloseWatcher();
+  // closer.addEventListener("close", () => {
+  //   filter.value = false;
+  // });
 };
 
 onLongPress($appHtmlRefHook, onLongPressCallbackHook, {
@@ -50,32 +50,32 @@ document.addEventListener("click", function (event) {
     filter.value = false;
   }
 });
+// 卸载app
+async function uninstall() {
+  const response = await deleteApp(props.appMetaData.id);
+  if (response.ok) {
+    emit("onUninstall", props.index);
+  }
+}
 </script>
 
 <template>
   <div ref="$appHtmlRefHook" class="app" draggable="true">
-    <v-tooltip activator="parent" location="start">Tooltip</v-tooltip>
     <div class="app-icon" @click="clickApp(appMetaData.id)">
       <img class="img" :src="appMetaData.icon" />
     </div>
     <div class="app-name">{{ appMetaData.short_name }}</div>
-    <v-tooltip
-      class="toolbar"
-      activator="parent"
-      location="start"
-      v-model="filter"
-      close-on-bac="true"
-    >
-      <!-- <div class="share"><img src="../../../assets/images/share.svg" alt="分享"><p>分享</p></div> -->
-      <div class="quit">
+    <!-- <div class="share"><img src="../../../assets/images/share.svg" alt="分享"><p>分享</p></div> -->
+    <v-tooltip activator="parent" location="start" v-model="filter">
+      <div class="quit" @click="quitApp(appMetaData.id)">
         <img src="../../../assets/images/quit.svg" alt="退出" />
         <p>退出</p>
       </div>
-      <div class="details">
+      <div class="details" @click="detailApp(appMetaData.id)">
         <img src="../../../assets/images/details.svg" alt="详情" />
         <p>详情</p>
       </div>
-      <div class="delete">
+      <div class="delete" @click="uninstall">
         <img src="../../../assets/images/delete.svg" alt="卸载" />
         <p>卸载</p>
       </div>
@@ -119,14 +119,24 @@ document.addEventListener("click", function (event) {
   text-overflow: ellipsis; /* 超出部分显示省略号 */
 }
 
-.toolbar div {
+.quit,
+.details,
+.delete {
   margin: 2px 5px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
-.toolbar div img {
+.quit img,
+.details img,
+.delete img {
   width: 20px;
   height: 20px;
 }
-.toolbar div p {
+.quit p,
+.details p,
+.delete p {
   font-size: 12px;
   white-space: nowrap;
   color: #151515;

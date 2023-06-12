@@ -55,7 +55,7 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
     return this.updateController;
   }
 
-  /**关闭前后端 */
+  /**关闭前端 */
   @bindThis
   async close(): Promise<boolean> {
     return await this.fetchApi("/close").boolean();

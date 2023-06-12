@@ -1804,6 +1804,9 @@ var nativeOpen = async (url) => {
 var closeWindow = async () => {
   return await jsProcess.nativeFetch(`file://mwebview.browser.dweb/close/app`).boolean();
 };
+var closeApp = async () => {
+  return await jsProcess.nativeFetch(`file://dns.sys.dweb/close?app_id=${jsProcess.mmid}`).boolean();
+};
 
 // src/server/tool/tool.request.ts
 var { jsProcess: jsProcess2, ipc } = navigator.dweb;
@@ -2074,13 +2077,19 @@ var main = async () => {
     }
     return "no action for serviceWorker Factory !!!";
   };
-  console.error(">>>>>>>>>>>>>>>>>>> jsProcess.onActivity");
   jsProcess3.onActivity(async (_ipcEvent, ipc2) => {
     await tryOpenView();
     ipc2.postMessage(IpcEvent.fromText("ready", "activity"));
   });
-  jsProcess3.onClose(() => {
+  jsProcess3.onClose(async (_ipcEvent, ipc2) => {
     closeWindow();
+    if (ipc2.remote.mmid === "browser.dweb") {
+      await apiServer.close();
+      await wwwServer.close();
+      await externalServer.close();
+      jsProcess3.closeSignal.emit();
+      closeApp();
+    }
   });
   const interUrl = wwwServer.startResult.urlInfo.buildInternalUrl((url) => {
     url.pathname = "/index.html";

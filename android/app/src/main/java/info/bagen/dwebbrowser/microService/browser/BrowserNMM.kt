@@ -4,12 +4,15 @@ import android.content.Intent
 import android.os.Bundle
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.browser.jmm.JmmNMM.Companion.getAndUpdateJmmNmmApps
+import info.bagen.dwebbrowser.microService.browser.jmm.ui.JmmManagerActivity
 import info.bagen.dwebbrowser.microService.core.BootstrapContext
 import info.bagen.dwebbrowser.microService.core.NativeMicroModule
 import info.bagen.dwebbrowser.microService.core.ipc.Ipc
 import info.bagen.dwebbrowser.microService.core.ipc.IpcEvent
 import org.dweb_browser.helper.*
 import org.http4k.core.Method
+import org.http4k.core.Response
+import org.http4k.core.Status
 import org.http4k.lens.Query
 import org.http4k.lens.string
 import org.http4k.routing.bind
@@ -37,7 +40,6 @@ class BrowserNMM : NativeMicroModule("browser.dweb") {
     apiRouting = routes(
       "/openApp" bind Method.GET to defineHandler { request ->
         val mmid = queryAppId(request)
-        debugBrowser("openApp", mmid)
         return@defineHandler browserController?.openApp(mmid) // 直接调这个后端没启动
       },
       "/appsInfo" bind Method.GET to defineHandler { request ->
@@ -56,7 +58,24 @@ class BrowserNMM : NativeMicroModule("browser.dweb") {
           )
         }
         return@defineHandler responseApps
-      })
+      },
+      // 关闭app后端
+      "/closeApp" bind Method.GET to defineHandler { request->
+        val mmid = queryAppId(request)
+        debugBrowser("closeApp",mmid)
+        browserController?.closeApp(mmid)
+      },
+      // app详情
+      "/detailApp" bind Method.GET to defineHandler{ request ->
+        val mmid = queryAppId(request)
+        debugBrowser("detailApp",mmid)
+        val apps = getAndUpdateJmmNmmApps()
+        val metadata = apps[mmid]?.metadata
+          ?: return@defineHandler Response(Status.NOT_FOUND).body("not found ${mmid}")
+        JmmManagerActivity.startActivity(metadata)
+        return@defineHandler  true
+      },
+    )
   }
 
   override suspend fun onActivity(event: IpcEvent, ipc: Ipc) {

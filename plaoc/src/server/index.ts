@@ -1,9 +1,5 @@
 import { IpcEvent, IpcResponse, PromiseOut } from "./deps.ts";
-import {
-  closeWindow,
-  cros,
-  nativeOpen,
-} from "./tool/tool.native.ts";
+import { closeApp, closeWindow, cros, nativeOpen } from "./tool/tool.native.ts";
 import { fetchSignal, onApiRequest } from "./tool/tool.request.ts";
 
 const main = async () => {
@@ -179,14 +175,23 @@ const main = async () => {
     return "no action for serviceWorker Factory !!!";
   };
 
-  console.error(">>>>>>>>>>>>>>>>>>> jsProcess.onActivity");
   /// 如果有人来激活，那我就唤醒我的界面
   jsProcess.onActivity(async (_ipcEvent, ipc) => {
     await tryOpenView();
     ipc.postMessage(IpcEvent.fromText("ready", "activity"));
   });
-  jsProcess.onClose(() => {
+  // 监听关闭
+  jsProcess.onClose(async (_ipcEvent, ipc) => {
     closeWindow();
+    // 只有browser.dweb才能关闭后端
+    if (ipc.remote.mmid === "browser.dweb") {
+      // 关闭全部的服务
+      await apiServer.close();
+      await wwwServer.close();
+      await externalServer.close();
+      jsProcess.closeSignal.emit()
+      closeApp()
+    }
   });
 
   const interUrl = wwwServer.startResult.urlInfo.buildInternalUrl((url) => {

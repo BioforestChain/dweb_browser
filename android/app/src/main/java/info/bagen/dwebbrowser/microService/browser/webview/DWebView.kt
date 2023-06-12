@@ -220,9 +220,9 @@ class DWebView(
             ).headers(request.requestHeaders.toList()).header("X-Dweb-Proxy-Id", localeMM.mmid)
           )
         }.getOrThrow()
-        debugDWebView("shouldInterceptRequest/RESPONSE", lazy {
-            "${request.url} [${response.headers.joinToString { "${it.first}=${it.second} " }}]"
-        })
+//        debugDWebView("shouldInterceptRequest/RESPONSE", lazy {
+//            "${request.url} [${response.headers.joinToString { "${it.first}=${it.second} " }}]"
+//        })
         val contentType = Header.CONTENT_TYPE(response)
         return WebResourceResponse(
             contentType?.value,

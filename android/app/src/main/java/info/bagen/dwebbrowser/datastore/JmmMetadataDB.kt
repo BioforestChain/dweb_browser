@@ -71,4 +71,9 @@ object JmmMetadataDB {
       }
     }
   }
+  suspend fun deleteApp(mmid: Mmid) {
+    App.appContext.dataStore.edit { pref ->
+      pref.remove(stringPreferencesKey(mmid))
+    }
+  }
 }

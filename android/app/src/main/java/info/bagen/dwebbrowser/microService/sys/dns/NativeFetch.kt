@@ -299,13 +299,7 @@ private fun localeFileFetch(remote: MicroModule, request: Request) = when {
       return@runCatching getLocalFetch(remote,request)
     }.getOrElse {
         Response(Status.INTERNAL_SERVER_ERROR)
-    }
-    request.uri.scheme == "https" && request.uri.host == "browser.dweb" -> runCatching {
-        return@runCatching getLocalFetch(remote,request)
-    }.getOrElse {
-        Response(Status.INTERNAL_SERVER_ERROR)
-    }
-    else -> null
+    }else -> null
 }
 
 val networkFetch =

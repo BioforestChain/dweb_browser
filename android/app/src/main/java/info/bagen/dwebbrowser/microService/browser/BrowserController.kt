@@ -13,6 +13,7 @@ import org.dweb_browser.helper.*
 import info.bagen.dwebbrowser.microService.helper.*
 import info.bagen.dwebbrowser.microService.sys.dns.nativeFetch
 import info.bagen.dwebbrowser.microService.browser.jmm.JmmMetadata
+import info.bagen.dwebbrowser.microService.browser.jmm.debugJMM
 import info.bagen.dwebbrowser.microService.core.ipc.Ipc
 import info.bagen.dwebbrowser.microService.core.ipc.IpcEvent
 import info.bagen.dwebbrowser.ui.browser.BrowserViewModel
@@ -44,7 +45,6 @@ class BrowserController(val browserNMM: BrowserNMM) {
             activity!!.window.decorView.rootWindowInsets
         ))
     }
-    // mutableStateOf(WindowInsetsCompat.toWindowInsetsCompat(activity!!.window.decorView.rootWindowInsets))
 
     @Composable
     fun effect(activity: BrowserActivity): BrowserController {
@@ -85,7 +85,7 @@ class BrowserController(val browserNMM: BrowserNMM) {
     }
 
     suspend fun openApp(mmid: Mmid) {
-        showLoading.value = true
+//        showLoading.value = true
         openIPCMap.getOrPut(mmid) {
             val (ipc) = browserNMM.connect(mmid)
             ipc.onEvent {
@@ -96,8 +96,19 @@ class BrowserController(val browserNMM: BrowserNMM) {
             }
             ipc
         }.also { ipc ->
-            debugBrowser("openApp", "postMessage==>activity  $mmid, ${ipc.remote.mmid}")
+            debugBrowser("openApp", "postMessage==>activity${ipc.remote.mmid}")
             ipc.postMessage(IpcEvent.fromUtf8(EIpcEvent.Activity.event, ""))
+        }
+    }
+
+    suspend fun closeApp(mmid: Mmid) {
+        openIPCMap.getOrPut(mmid) {
+            val (ipc) = browserNMM.connect(mmid)
+            ipc
+        }.also { ipc ->
+            debugJMM("close APP", "postMessage==>close  $mmid, ${ipc.remote.mmid}")
+            openIPCMap.remove(mmid)
+            ipc.postMessage(IpcEvent.fromUtf8(EIpcEvent.Close.event, ""))
         }
     }
 

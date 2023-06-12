@@ -117,7 +117,7 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
                 // 关闭后端连接
                 dnsMM.close(mmid)
                 // TODO 防止启动过快出现闪屏
-                delay(200)
+                delay(1000)
                 dnsMM.open(mmid)
             }
         }
@@ -182,21 +182,22 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
 
 
         val query_app_id = Query.string().required("app_id")
-        val query_jmm_metadata = Query.string().required("jmmMetadata")
 
         /// 定义路由功能
         apiRouting = routes(
             // 打开应用
             "/open" bind Method.GET to defineHandler { request ->
+                val mmid = query_app_id(request)
                 debugDNS("open/$mmid", request.uri.path)
-                open(query_app_id(request))
+                open(mmid)
                 true
             },
             // 关闭应用
             // TODO 能否关闭一个应该应该由应用自己决定
             "/close" bind Method.GET to defineHandler { request ->
+                val mmid = query_app_id(request)
                 debugDNS("close/$mmid", request.uri.path)
-                close(query_app_id(request))
+                close(mmid)
                 true
             },
         )

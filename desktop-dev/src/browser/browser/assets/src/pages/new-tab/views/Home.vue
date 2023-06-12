@@ -7,7 +7,12 @@ const $appContainer = ref<HTMLDivElement>();
 //控制背景虚化
 const filter = ref(false)
 
-const appsInfo: Ref<$AppMetaData[]> = ref([]);
+const appsInfo: Ref<$AppMetaData[]> = ref([{
+  title:"app",
+  short_name:"app name",
+  icon:"",
+  id:"waterbang.dweb"
+}]);
 
 onMounted(async () => {
   appsInfo.value = await getAppInfo()
@@ -40,6 +45,10 @@ document.addEventListener("click", function(event) {
   }
 });
 }
+//删除app
+function onUninstall(index:number) {
+  appsInfo.value.splice(index,1)
+}
 
 </script>
 <template>
@@ -55,6 +64,7 @@ document.addEventListener("click", function(event) {
         :index="index"
         :app-meta-data="app"
         @on-long-press="onLongPress"
+        @on-uninstall="onUninstall"
       ></jmm>
     </div>
   </div>
