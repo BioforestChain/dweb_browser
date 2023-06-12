@@ -27,7 +27,7 @@ struct DownloadAppView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            Spacer(minLength: statusBarHeight())
+            Spacer()
             navigationView()
                 .frame(maxWidth: .infinity)
                 .background(.white)
