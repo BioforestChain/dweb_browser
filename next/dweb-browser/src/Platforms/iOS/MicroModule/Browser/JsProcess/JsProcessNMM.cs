@@ -72,7 +72,7 @@ public class JsProcessNMM : NativeMicroModule
                 }
                 else
                 {
-                    var response = await NativeFetchAsync(String.Format("file:///jmm/js-process{0}", request.Uri.AbsolutePath));
+                    var response = await NativeFetchAsync(String.Format("file:///sys/browser/js-process/main-thread{0}", request.Uri.AbsolutePath));
                     /// 加入跨域支持
                     foreach (var (key, value) in _CORS_HEADERS)
                     {

@@ -60,19 +60,19 @@ public partial class MultiWebViewController : BaseViewController
     public override void ViewDidAppear(bool animated)
     {
         base.ViewDidAppear(animated);
-        Task.Run(async () =>
+        _ = Task.Run(async () =>
         {
             await ServiceWorker.EmitEventAsync(RemoteMM.Mmid, ServiceWorkerEvent.Resume.Event);
-        });
+        }).NoThrow();
     }
 
     public override void ViewWillDisappear(bool animated)
     {
         base.ViewWillDisappear(animated);
-        Task.Run(async () =>
+        _ = Task.Run(async () =>
         {
             await ServiceWorker.EmitEventAsync(RemoteMM.Mmid, ServiceWorkerEvent.Pause.Event, "new Event(\"pause\")");
-        });
+        }).NoThrow();
     }
 
     private static int s_webviewId_acc = 0;
@@ -136,10 +136,10 @@ public partial class MultiWebViewController : BaseViewController
                 await CloseWebViewAsync(webviewId);
             };
 
-            Task.Run(async () =>
+            _ = Task.Run(async () =>
             {
                 await (_OnWebViewOpen?.Emit(webviewId)).ForAwait();
-            });
+            }).NoThrow();
         }));
     }
 

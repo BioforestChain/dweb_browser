@@ -2,6 +2,7 @@
 using System.Web;
 using DwebBrowser.MicroService.Http;
 using Microsoft.AspNetCore.StaticFiles;
+using DwebBrowser.MicroService.Browser.Jmm;
 
 #nullable enable
 
@@ -39,29 +40,42 @@ public static class LocaleFile
     }
 
     public static async Task<PureResponse?> LocaleFileFetch(MicroModule remote, PureRequest request)
+        => request.ParsedUrl?.Scheme switch
+        {
+            string schema when schema == Uri.UriSchemeFile => await GetLocalFetch(remote, request),
+            _ => null
+        };
+
+    public static async Task<PureResponse?> GetLocalFetch(MicroModule remote, PureRequest request)
     {
         try
         {
-            if (request.ParsedUrl is not null and var parsedUrl && parsedUrl.Scheme is "file" && parsedUrl.FullHost is "" && parsedUrl.Path.StartsWith("/jmm/"))
+            if (request.ParsedUrl is not null and var parsedUrl && parsedUrl.Scheme is "file" && parsedUrl.FullHost is "")
             {
                 var query = HttpUtility.ParseQueryString(parsedUrl.Query);
-
                 var mode = query["mode"] ?? "auto";
                 var chunk = query["chunk"]?.ToIntOrNull() ?? 1024 * 1024;
-                //var preRead = query["pre-read"]?.ToBooleanStrictOrNull() ?? false;
 
-                var src = parsedUrl.Path[5..]; // 移除 '/jmm/'
+                var src = string.Empty;
+                var dirname = string.Empty;
+
+                if (parsedUrl.Path.StartsWith("/usr/"))
+                {
+                    src = parsedUrl.Path;
+                    dirname = Path.Combine(JmmDwebService.DWEB_APP_DIR, remote.Mmid);
+                } else if (parsedUrl.Path.StartsWith("/sys/"))
+                {
+                    src = parsedUrl.Path[5..]; // 移除 '/sys/'
+                    dirname = PathHelper.GetIOSAppAssetsPath();
+                }
 
                 Console.Log("LocaleFileFetch", "OPEN {0}", src);
-                string dirname = Path.GetDirectoryName(src) ?? "";
-                string filename = Path.GetFileName(src) ?? "";
-
 
                 /// 尝试打开文件，如果打开失败就走 404 no found 响应
-                var absoluteDir = Path.Combine(PathHelper.GetIOSAppAssetsPath(), dirname);
+                var absoluteDir = Path.Join(dirname, Path.GetDirectoryName(src) ?? "");
                 var absoluteDirFiles = new string[0].Try((arr) => arr.Concat(Directory.GetFileSystemEntries(absoluteDir)).ToArray());
 
-
+                var filename = Path.GetFileName(src) ?? "";
                 var absoluteFile = Path.Combine(absoluteDir, filename);
 
                 /// 文件不存在
@@ -72,13 +86,11 @@ public static class LocaleFile
                     return notFoundResponse;
                 }
 
-
                 /// 开始读取文件来响应内容
 
                 //var okResponse = new HttpResponseMessage(HttpStatusCode.OK);
                 var fs = File.OpenRead(absoluteFile);
                 Console.Log("LocaleFileFetch", "Mode: {0}", mode);
-
 
                 PureBody responseBody;
                 var ipcHeaders = new IpcHeaders()
