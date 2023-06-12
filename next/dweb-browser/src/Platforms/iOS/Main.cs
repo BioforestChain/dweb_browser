@@ -77,7 +77,9 @@ public class MicroService
         "LocaleFile",
         "DnsNMM",
         "MessagePortIpc",
-        "JmmNMM"
+        "JmmNMM",
+        "JmmDwebService",
+        "JmmDownload"
     };
 
     public static async Task<DnsNMM> Start()
@@ -111,7 +113,7 @@ public class MicroService
 
         /// 安装用户应用
         var desktopJMM = new DesktopJMM().InstallBy(dnsNMM);
-        var cotDemoJMM = new CotDemoJMM().InstallBy(dnsNMM);
+        //var cotDemoJMM = new CotDemoJMM().InstallBy(dnsNMM);
 
         var bootMmidList = new List<Mmid>
         {
