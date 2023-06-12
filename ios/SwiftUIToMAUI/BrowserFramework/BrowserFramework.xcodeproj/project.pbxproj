@@ -51,10 +51,10 @@
 		F3B558A02A2F3D44000169B6 /* DownloadImageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B558972A2F3D44000169B6 /* DownloadImageViewModel.swift */; };
 		F3B558A12A2F3D44000169B6 /* DownloadButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B558982A2F3D44000169B6 /* DownloadButtonView.swift */; };
 		F3B558A22A2F3D44000169B6 /* CustomUIScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B558992A2F3D44000169B6 /* CustomUIScrollView.swift */; };
-		F3B558A32A2F3D44000169B6 /* DownloadAppView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B5589A2A2F3D44000169B6 /* DownloadAppView.swift */; };
 		F3B558A52A2F3D44000169B6 /* DownloadAppManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B5589C2A2F3D44000169B6 /* DownloadAppManager.swift */; };
 		F3B558A72A2F3D5E000169B6 /* CombinePublisher.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B558A62A2F3D5E000169B6 /* CombinePublisher.swift */; };
 		F3CB3AE12A32D4320042E520 /* ImageTools.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3CB3AE02A32D4320042E520 /* ImageTools.swift */; };
+		F3CFF05D2A36ABF200800332 /* DownloadAppView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3CFF05C2A36ABF200800332 /* DownloadAppView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -116,11 +116,11 @@
 		F3B558972A2F3D44000169B6 /* DownloadImageViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadImageViewModel.swift; sourceTree = "<group>"; };
 		F3B558982A2F3D44000169B6 /* DownloadButtonView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadButtonView.swift; sourceTree = "<group>"; };
 		F3B558992A2F3D44000169B6 /* CustomUIScrollView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomUIScrollView.swift; sourceTree = "<group>"; };
-		F3B5589A2A2F3D44000169B6 /* DownloadAppView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadAppView.swift; sourceTree = "<group>"; };
 		F3B5589C2A2F3D44000169B6 /* DownloadAppManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadAppManager.swift; sourceTree = "<group>"; };
 		F3B558A62A2F3D5E000169B6 /* CombinePublisher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CombinePublisher.swift; sourceTree = "<group>"; };
 		F3CB3AE02A32D4320042E520 /* ImageTools.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageTools.swift; sourceTree = "<group>"; };
 		F3CB3AE42A3317970042E520 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		F3CFF05C2A36ABF200800332 /* DownloadAppView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadAppView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -289,7 +289,7 @@
 				F3B558972A2F3D44000169B6 /* DownloadImageViewModel.swift */,
 				F3B558982A2F3D44000169B6 /* DownloadButtonView.swift */,
 				F3B558992A2F3D44000169B6 /* CustomUIScrollView.swift */,
-				F3B5589A2A2F3D44000169B6 /* DownloadAppView.swift */,
+				F3CFF05C2A36ABF200800332 /* DownloadAppView.swift */,
 			);
 			path = DoanloadApp;
 			sourceTree = "<group>";
@@ -377,7 +377,6 @@
 			files = (
 				F3B558A22A2F3D44000169B6 /* CustomUIScrollView.swift in Sources */,
 				F33F29462A28A791002EB729 /* TabsContainerView.swift in Sources */,
-				F3B558A32A2F3D44000169B6 /* DownloadAppView.swift in Sources */,
 				F33F29342A28A791002EB729 /* simplePublisher.swift in Sources */,
 				F33F294D2A28A791002EB729 /* Grid.swift in Sources */,
 				F33F29392A28A791002EB729 /* WebWrapperMgr.swift in Sources */,
@@ -390,6 +389,7 @@
 				F33F294B2A28A791002EB729 /* HistoryView.swift in Sources */,
 				F33F29332A28A791002EB729 /* TestView.swift in Sources */,
 				F33F294E2A28A791002EB729 /* AddressBarHStack.swift in Sources */,
+				F3CFF05D2A36ABF200800332 /* DownloadAppView.swift in Sources */,
 				F33F293B2A28A791002EB729 /* const.swift in Sources */,
 				F33F293F2A28A791002EB729 /* View+AnimationObserver.swift in Sources */,
 				F3B5589F2A2F3D44000169B6 /* APPModel.swift in Sources */,

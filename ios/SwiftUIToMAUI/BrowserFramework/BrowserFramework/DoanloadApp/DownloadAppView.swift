@@ -27,7 +27,7 @@ struct DownloadAppView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            Spacer(minLength: UIApplication.shared.windows.first?.windowScene?.statusBarManager?.statusBarFrame.height ?? 0)
+            Spacer(minLength: statusBarHeight())
             navigationView()
                 .frame(maxWidth: .infinity)
                 .background(.white)
@@ -311,6 +311,12 @@ struct DownloadAppView: View {
             return String(format: "%.2f KB", CGFloat(defaultApp!.bundle_size) / 1024.0)
         }
         return "\(defaultApp!.bundle_size)B"
+    }
+    
+    private func statusBarHeight() -> CGFloat {
+        
+        guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene else { return 0 }
+        return scene.statusBarManager?.statusBarFrame.height ?? 0
     }
     
     private func loadAppInfo() {
