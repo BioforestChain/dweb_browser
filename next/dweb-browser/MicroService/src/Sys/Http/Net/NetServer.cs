@@ -70,12 +70,12 @@ public static class NetServer
         listener.Prefixes.Add(origin);
         listener.Start();
 
-        Task.Run(async () =>
+        _ = Task.Run(async () =>
         {
             while (true)
             {
                 var context = await listener.GetContextAsync();
-                Task.Run(async () =>
+                _ = Task.Run(async () =>
                 {
                     var request = context.Request;
                     using var response = context.Response;
@@ -92,7 +92,7 @@ public static class NetServer
                     }
                 }).NoThrow();
             }
-        });
+        }).NoThrow();
 
         return new HttpServerInfo(
             listener,

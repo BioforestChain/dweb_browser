@@ -22,7 +22,7 @@ public class NativeIpc : Ipc
             await _OnMessageEmit(message, this);
         };
 
-        Task.Run(Port.StartAsync);
+        _ = Task.Run(Port.StartAsync).NoThrow();
     }
 
     public override string Role
@@ -37,7 +37,7 @@ public class NativeIpc : Ipc
 
     public override Task _doPostMessageAsync(IpcMessage data) => Port.PostMessageAsync(data);
 
-    public override Task DoClose() => Task.Run(() => Port.Close());
+    public override Task DoClose() => Task.Run(() => Port.Close()).NoThrow();
 }
 
 public class NativePort<I, O>
@@ -56,13 +56,13 @@ public class NativePort<I, O>
         /**
          * 等待 close 信号被发出，那么就关闭出口、触发事件
          */
-        Task.Run(async () =>
+        _ = Task.Run(async () =>
         {
             await _closePo.WaitPromiseAsync();
             _channel_out.Complete();
             await (OnClose?.Emit()).ForAwait();
             Console.Log("OnClose", "port-closed/{0}", this);
-        });
+        }).NoThrow();
     }
 
     private static int s_uid_acc = 0;

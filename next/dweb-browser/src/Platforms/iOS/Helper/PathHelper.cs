@@ -6,7 +6,7 @@ namespace DwebBrowser.Helper;
 
 public static class PathHelper
 {
-    private static readonly string ASSETS = "Assets";
+    private const string ASSETS = "Assets";
 
     /// <summary>
     /// 获取 iOS App 根目录
@@ -18,6 +18,6 @@ public static class PathHelper
     /// iOS App 资源文件目录
     /// </summary>
     /// <returns></returns>
-    public static string GetIOSAppAssetsPath() => Path.Combine(GetIOSAppRootDirectory(), ASSETS);    
+    public static string GetIOSAppAssetsPath() => Path.Combine(GetIOSAppRootDirectory(), ASSETS);
 }
 

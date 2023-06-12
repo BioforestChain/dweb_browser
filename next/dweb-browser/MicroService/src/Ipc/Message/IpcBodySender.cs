@@ -378,7 +378,7 @@ public class IpcBodySender : IpcBody
 
         Console.Log("StreamAsMeta", "sender/INIT/{0:H} {1}", stream, stream_id);
 
-        Task.Run(async () =>
+        _ = Task.Run(async () =>
         {
             await foreach (var signal in _streamStatusSignal.ReceiveAllAsync())
             {
@@ -386,14 +386,14 @@ public class IpcBodySender : IpcBody
             }
         }).NoThrow();
 
-        Task.Run(async () =>
+        _ = Task.Run(async () =>
         {
             /**
              * 只有等到 Pulling 指令的时候才能读取并发送
              */
             var pullingPo = new PromiseOut<Unit>();
 
-            Task.Run(async () =>
+            _ = Task.Run(async () =>
             {
                 streamStatusSignal += async (signal, self) =>
                 {
@@ -448,7 +448,7 @@ public class IpcBodySender : IpcBody
                 }
             }
 
-        });
+        }).NoThrow();
 
         // 写入第一帧数据
         var streamType = MetaBody.IPC_META_BODY_TYPE.STREAM_ID;

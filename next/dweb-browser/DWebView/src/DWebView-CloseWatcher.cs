@@ -28,7 +28,7 @@ public class CloseWatcher
         var watcher = _watchers.FirstOrDefault(w => w.Id == id);
         if (watcher != null)
         {
-            Task.Run(() => CloseAsync(watcher));
+            _ = Task.Run(() => CloseAsync(watcher)).NoThrow();
         }
     }
 

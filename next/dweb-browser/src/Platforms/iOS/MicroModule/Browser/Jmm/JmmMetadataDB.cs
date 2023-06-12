@@ -51,7 +51,7 @@ public static class JmmMetadataDB
             nsDictionary.Add(new NSString(entry.Key), new NSString(entry.Value.ToJson()));
         }
 
-        nsDictionary.Add(new NSString(mmid), new NSString(jmmMetadata.ToJson()));   
+        nsDictionary.Add(new NSString(mmid), new NSString(jmmMetadata.ToJson()));
 
         NSUserDefaults.StandardUserDefaults.SetValueForKey(nsDictionary, new NSString(PREFERENCE_NAME));
     }

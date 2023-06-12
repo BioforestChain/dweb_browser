@@ -170,7 +170,7 @@ public abstract class Ipc
         };
 
 
-        Task.Run(async () =>
+        _ = Task.Run(async () =>
         {
             await foreach (var (ipcStreamMessage, ipc) in streamChannel.ReceiveAllAsync())
             {

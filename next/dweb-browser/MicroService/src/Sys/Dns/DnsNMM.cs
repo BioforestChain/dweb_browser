@@ -137,14 +137,14 @@ public class DnsNMM : NativeMicroModule
 
         public void Restart(Mmid mmid)
         {
-            Task.Run(async () =>
+            _ = Task.Run(async () =>
             {
                 // 关闭后端连接
                 await _dnsMM.Close(mmid);
                 // TODO 防止启动过快出现闪屏
                 await Task.Delay(200);
                 await _dnsMM.Open(mmid);
-            });
+            }).NoThrow();
         }
 
         public Task<ConnectResult> ConnectAsync(string mmid, PureRequest? reason = null)
@@ -267,7 +267,7 @@ public class DnsNMM : NativeMicroModule
     }
 
     /** <summary>安装应用</summary> */
-    public void Install(MicroModule mm) => _installApps.Add(mm.Mmid, mm);
+    public void Install(MicroModule mm) => _installApps.TryAdd(mm.Mmid, mm);
 
     /** <summary>卸载应用</summary> */
     public void UnInstall(MicroModule mm) => _installApps.Remove(mm.Mmid);
@@ -281,7 +281,7 @@ public class DnsNMM : NativeMicroModule
         if (!_runningApps.TryGetValue(mmid, out var po))
         {
             _runningApps[mmid] = po = new();
-            Task.Run(async () =>
+            _ = Task.Run(async () =>
             {
                 try
                 {
@@ -301,7 +301,7 @@ public class DnsNMM : NativeMicroModule
                 {
                     Console.Error("Open", "{0}", e);
                 }
-            });
+            }).NoThrow();
         }
         return po;
     }

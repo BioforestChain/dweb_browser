@@ -26,10 +26,10 @@ public abstract class BaseViewController : UIViewController
     public override void ViewWillDisappear(bool animated)
     {
         base.ViewWillDisappear(animated);
-        Task.Run(async () =>
+        _ = Task.Run(async () =>
         {
             await (OnDestroyController?.Emit()).ForAwait();
-        });
+        }).NoThrow();
     }
 
 

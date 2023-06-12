@@ -20,7 +20,7 @@ public class MessagePort
     {
         _port = port;
 
-        Task.Run(async () =>
+        _ = Task.Run(async () =>
         {
             await foreach (var message in MessageChannel.ReceiveAllAsync())
             {
