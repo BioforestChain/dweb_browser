@@ -48,25 +48,25 @@ namespace BrowserFramework
 		[NullAllowed, Export ("downloadView", ArgumentSemantic.Strong)]
 		UIView DownloadView { get; set; }
 
-		// -(instancetype _Nonnull)initWithData:(NSData * _Nonnull)data isLoaded:(BOOL)isLoaded isUpdate:(BOOL)isUpdate __attribute__((objc_designated_initializer));
-		[Export ("initWithData:isLoaded:isUpdate:")]
+		// -(instancetype _Nonnull)initWithData:(NSData * _Nonnull)data downloadStatus:(NSInteger)downloadStatus __attribute__((objc_designated_initializer));
+		[Export ("initWithData:downloadStatus:")]
 		[DesignatedInitializer]
-		NativeHandle Constructor (NSData data, bool isLoaded, bool isUpdate);
+		NativeHandle Constructor (NSData data, nint downloadStatus);
 
 		// -(void)onListenProgressWithProgress:(float)progress;
 		[Export ("onListenProgressWithProgress:")]
 		void OnListenProgressWithProgress (float progress);
 
-		// -(void)clickDownloadActionWithCallback:(void (^ _Nonnull)(NSDictionary<NSString *,NSString *> * _Nonnull))callback;
+		// -(void)clickDownloadActionWithCallback:(void (^ _Nonnull)(NSString * _Nonnull))callback;
 		[Export ("clickDownloadActionWithCallback:")]
-		void ClickDownloadActionWithCallback (Action<NSDictionary<NSString, NSString>> callback);
+		void ClickDownloadActionWithCallback (Action<NSString> callback);
 
-		// -(void)downloadComplete;
-		[Export ("downloadComplete")]
-		void DownloadComplete ();
+		// -(void)onDownloadChangeWithDownloadStatus:(NSInteger)downloadStatus;
+		[Export ("onDownloadChangeWithDownloadStatus:")]
+		void OnDownloadChangeWithDownloadStatus (nint downloadStatus);
 
-		// -(void)downloadFail;
-		[Export ("downloadFail")]
-		void DownloadFail ();
+		// -(void)onBackActionWithCallback:(void (^ _Nonnull)(void))callback;
+		[Export ("onBackActionWithCallback:")]
+		void OnBackActionWithCallback (Action callback);
 	}
 }

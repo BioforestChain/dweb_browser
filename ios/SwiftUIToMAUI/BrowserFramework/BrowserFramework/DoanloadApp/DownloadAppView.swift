@@ -5,20 +5,18 @@
 //  Created by ui03 on 2023/5/25.
 //
 
-import SwiftUI
 import Combine
+import SwiftUI
 
 struct DownloadAppView: View {
-    
     var modelData: Data
-    var isLoaded: Bool = false
-    var isUpdate: Bool = false
+    var downloadStatus: DownloadStatus = .IDLE
     @State var offset: CGPoint = .zero
     @ObservedObject var viewModel = DownloadImageViewModel()
     
     @State private var content: String = "获取"
     @State private var btn_width: CGFloat = 80
-    @State private var backColor: SwiftUI.Color = SwiftUI.Color.blue
+    @State private var backColor: SwiftUI.Color = .blue
     @State private var isRotate = false
     @State private var isWaiting = false
     @State private var isLoading = false
@@ -28,9 +26,7 @@ struct DownloadAppView: View {
     @State private var currentImageIndex: Int = 0
     
     var body: some View {
-        
         VStack(spacing: 0) {
-            
             Spacer(minLength: UIApplication.shared.windows.first?.windowScene?.statusBarManager?.statusBarFrame.height ?? 0)
             navigationView()
                 .frame(maxWidth: .infinity)
@@ -38,32 +34,31 @@ struct DownloadAppView: View {
             
             CustomUIScrollView(content: {
                 VStack(spacing: 0) {
-                    
                     //                    HeaderView()
                     
                     AppTitleView()
                     
                     Divider().frame(height: 0.5).background(.white.opacity(0.35))
                         .padding(.bottom, 20)
-                        .padding(.horizontal,16)
+                        .padding(.horizontal, 16)
                     
                     AppHistoryDataView()
                     
                     Divider().frame(height: 0.5).background(.white.opacity(0.35))
                         .padding(.vertical, 20)
-                        .padding(.horizontal,16)
+                        .padding(.horizontal, 16)
                     
                     AppImagesView()
                     
                     Divider().frame(height: 0.5).background(.white.opacity(0.35))
                         .padding(.vertical, 20)
-                        .padding(.horizontal,16)
+                        .padding(.horizontal, 16)
                     
                     AppIntroductionView()
                     
                     Divider().frame(height: 0.5).background(.white.opacity(0.35))
                         .padding(.vertical, 20)
-                        .padding(.horizontal,16)
+                        .padding(.horizontal, 16)
                     
                     InfoDataView()
                     
@@ -77,12 +72,14 @@ struct DownloadAppView: View {
         }
         .onAppear {
             loadAppInfo()
-            if isLoaded {
-                if isUpdate {
-                    content = "更新"
-                } else {
-                    content = "打开"
-                }
+
+            switch downloadStatus {
+            case .Installed:
+                content = "打开"
+            case .NewVersion:
+                content = "更新"
+            default:
+                break
             }
         }
         .sheet(isPresented: $isPresented) {
@@ -92,10 +89,8 @@ struct DownloadAppView: View {
     
     @ViewBuilder
     func navigationView() -> some View {
-        
         ZStack(alignment: .center) {
             HStack(alignment: .center) {
-                
                 Button {
                     NotificationCenter.default.post(name: NSNotification.Name.backToLastView, object: nil)
                 } label: {
@@ -120,15 +115,13 @@ struct DownloadAppView: View {
                 .frame(width: 40, height: 40)
                 .background(.white)
                 .cornerRadius(20)
-                .padding(.bottom,10)
+                .padding(.bottom, 10)
                 .opacity(calculateNavigationViewSubViewAlpha())
         }
-        
     }
     
     @ViewBuilder
     func HeaderView() -> some View {
-        
         GeometryReader { proxy in
             let minY = proxy.frame(in: .named("SCROLL")).minY
             let size = proxy.size
@@ -157,24 +150,23 @@ struct DownloadAppView: View {
             
             VStack(alignment: .leading, spacing: 0) {
                 Text(defaultApp?.name ?? "")
-                    .font(.system(size: 20,weight: .bold))
+                    .font(.system(size: 20, weight: .bold))
                 Text(defaultApp?.short_name ?? "")
                     .font(.system(size: 13))
                     .foregroundColor(.primary.opacity(0.5))
                 Spacer()
                 DownloadButtonView(content: $content, btn_width: $btn_width, backColor: $backColor, isRotate: $isRotate, isWaiting: $isWaiting, isLoading: $isLoading, progress: $progress)
             }
-            .padding(.leading,10)
+            .padding(.leading, 10)
             
             Spacer()
         }
-        .padding(.horizontal,20)
-        .padding(.vertical,20)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 20)
     }
     
     @ViewBuilder
     func AppImagesView() -> some View {
-        
         VStack {
             Text("预览")
                 .font(.title2.bold())
@@ -196,13 +188,12 @@ struct DownloadAppView: View {
                     }
                 }
             }
-            .padding(.horizontal,10)
+            .padding(.horizontal, 10)
         }
     }
     
     @ViewBuilder
     func presentImageController(index: Int) -> some View {
-        
         GeometryReader { geometry in
             VStack(alignment: .trailing) {
                 Button {
@@ -230,7 +221,7 @@ struct DownloadAppView: View {
                             proxy.scrollTo(currentImageIndex)
                         }
                     }
-                    .padding(.horizontal,10)
+                    .padding(.horizontal, 10)
                 }
                 
                 Spacer()
@@ -240,7 +231,6 @@ struct DownloadAppView: View {
     
     @ViewBuilder
     func AppHistoryDataView() -> some View {
-        
         VStack(alignment: .leading, spacing: 10) {
             Text("新功能")
                 .font(.title2.bold())
@@ -256,12 +246,11 @@ struct DownloadAppView: View {
                 Text("- \(content)")
             }
         }
-        .padding(.leading,20)
+        .padding(.leading, 20)
     }
     
     @ViewBuilder
     func AppIntroductionView() -> some View {
-        
         VStack(alignment: .leading, spacing: 10) {
             Text("简介")
                 .font(.title2.bold())
@@ -269,36 +258,33 @@ struct DownloadAppView: View {
                 .padding(.bottom, 10)
             Text(defaultApp?.description ?? "")
         }
-        .padding(.leading,20)
+        .padding(.leading, 20)
     }
     
     @ViewBuilder
     func InfoDataView() -> some View {
-        
-        let titles = ["销售商","大小"]
+        let titles = ["销售商", "大小"]
         let contents = [defaultApp?.author?.joined(separator: ", ") ?? "", calculateAppSize()]
         VStack(alignment: .leading, spacing: 10) {
-            
             Text("信息")
                 .font(.title2.bold())
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.bottom, 10)
             
-            ForEach(0..<titles.count, id: \.self) { index in
+            ForEach(0 ..< titles.count, id: \.self) { index in
                 
                 HStack {
                     Text(titles[index])
                     Spacer()
                     Text(contents[index])
                 }
-                .padding(.vertical,10)
+                .padding(.vertical, 10)
             }
         }
         .padding(.horizontal, 20)
     }
     
     private func calculateNavigationViewAlpha() -> CGFloat {
-        
         if offset.y <= 0 {
             return 0.0
         }
@@ -308,9 +294,7 @@ struct DownloadAppView: View {
         return offset.y / 100
     }
     
-    
     private func calculateNavigationViewSubViewAlpha() -> CGFloat {
-        
         if offset.y >= 100 {
             return 1.0
         }
@@ -318,7 +302,6 @@ struct DownloadAppView: View {
     }
     
     private func calculateAppSize() -> String {
-        
         guard defaultApp != nil else { return "" }
         
         if defaultApp!.bundle_size > 1024 * 1024 {
@@ -331,13 +314,12 @@ struct DownloadAppView: View {
     }
     
     private func loadAppInfo() {
-        
 //        let modelData = load("Resources.bundle/test")
         do {
             let decoder = JSONDecoder()
-            self.defaultApp = try decoder.decode(APPModel.self, from: modelData)
-            self.viewModel.loadIcon(urlString: self.defaultApp?.icon ?? "", placeHoldImageName: "360")
-            self.viewModel.loadImages(imageNames: self.defaultApp?.images! ?? [], placeHoldImageName: "post")
+            defaultApp = try decoder.decode(APPModel.self, from: modelData)
+            viewModel.loadIcon(urlString: defaultApp?.icon ?? "", placeHoldImageName: "360")
+            viewModel.loadImages(imageNames: defaultApp?.images! ?? [], placeHoldImageName: "post")
         } catch {
             fatalError("could load fail. \n\(error.localizedDescription)")
         }
@@ -358,5 +340,3 @@ struct DownloadAppView: View {
         return data
     }
 }
-
-

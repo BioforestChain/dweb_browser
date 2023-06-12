@@ -27,7 +27,7 @@ struct APPModel: Codable {
     var plugins: [String]?
     var release_date: String
     var permissions: [String]?
-    
+
     init(id: String, server: [String: String], dweb_deeplinks: [String], icon: String, name: String, short_name: String, description: String, images: [String]? = nil, bundle_url: String, author: [String]? = nil, version: String, categories: [String]? = nil, new_feature: [String]? = nil, bundle_size: Int, home: String, bundle_hash: String, plugins: [String]? = nil, release_date: String, permissions: [String]? = nil) {
         self.id = id
         self.server = server
@@ -49,7 +49,7 @@ struct APPModel: Codable {
         self.release_date = release_date
         self.permissions = permissions
     }
-    
+
     enum CodingKeys: String, CodingKey {
         case id
         case server
@@ -71,7 +71,7 @@ struct APPModel: Codable {
         case release_date
         case permissions
     }
-    
+
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(id, forKey: .id)
@@ -94,7 +94,7 @@ struct APPModel: Codable {
         try container.encode(release_date, forKey: .release_date)
         try container.encode(permissions, forKey: .permissions)
     }
-    
+
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let id = try? container.decode(String.self, forKey: .id)
@@ -118,4 +118,16 @@ struct APPModel: Codable {
         let permissions = try? container.decode([String].self, forKey: .permissions)
         self.init(id: id ?? "", server: server ?? [:], dweb_deeplinks: dweb_deeplinks ?? [], icon: icon ?? "", name: name ?? "", short_name: short_name ?? "", description: description ?? "", images: images, bundle_url: bundle_url ?? "", author: author, version: version ?? "", categories: categories, new_feature: new_feature, bundle_size: bundle_size ?? 0, home: home ?? "", bundle_hash: bundle_hash ?? "", plugins: plugins, release_date: release_date ?? "", permissions: permissions)
     }
+}
+
+// 下载状态
+enum DownloadStatus: Int {
+    case IDLE
+    case Downloading
+    case DownloadComplete
+    case Pause
+    case Installed
+    case Fail
+    case Cancel
+    case NewVersion
 }
