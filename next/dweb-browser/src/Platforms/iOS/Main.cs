@@ -1,5 +1,4 @@
-﻿using DwebBrowser.MicroService.User;
-using DwebBrowser.MicroService.Sys.Dns;
+﻿using DwebBrowser.MicroService.Sys.Dns;
 using DwebBrowser.MicroService.Sys.Http;
 using DwebBrowser.MicroService.Sys.Boot;
 using DwebBrowser.MicroService.Sys.Share;
@@ -111,14 +110,8 @@ public class MicroService
         /// 安装Jmm
         new JmmNMM().InstallBy(dnsNMM);
 
-        /// 安装用户应用
-        var desktopJMM = new DesktopJMM().InstallBy(dnsNMM);
-        //var cotDemoJMM = new CotDemoJMM().InstallBy(dnsNMM);
-
         var bootMmidList = new List<Mmid>
         {
-            //cotDemoJMM.Mmid
-            //desktopJMM.Mmid
             browserNMM.Mmid
         };
         /// 启动程序

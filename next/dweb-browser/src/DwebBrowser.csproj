@@ -78,7 +78,6 @@
 	  <Folder Include="Helper\" />
 	  <Folder Include="Resources\Assets\" />
 	  <Folder Include="Platforms\iOS\Base\" />
-	  <Folder Include="Platforms\iOS\MicroModule\User\" />
 	  <Folder Include="Platforms\iOS\MicroModule\Core\" />
 	  <Folder Include="Platforms\iOS\MicroModule\Sys\" />
 	  <Folder Include="Platforms\iOS\MicroModule\Browser\" />
