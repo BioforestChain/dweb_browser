@@ -10,9 +10,9 @@ android {
     applicationId = "info.bagen.dwebbrowser"
     minSdk = 28
     targetSdk = 33
-    versionCode = 3
-    versionName = "1.1.2"
-
+    versionCode = 4
+    versionName = "1.1.3"
+//  project = "Scanner"
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
     //ndk.abiFilters.addAll(listOf("armeabi-v7a", "x86", "x86_64"))
