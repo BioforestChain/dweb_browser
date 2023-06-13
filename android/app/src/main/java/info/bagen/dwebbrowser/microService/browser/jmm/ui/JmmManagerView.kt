@@ -123,6 +123,7 @@ fun MALLBrowserView(viewModel: JmmManagerViewModel, onBack: () -> Unit) {
     modifier = Modifier
       .fillMaxSize()
       .background(MaterialTheme.colorScheme.background)
+      .navigationBarsPadding()
   ) {
     AppInfoContentView(lazyListState, jmmMetadata) { index, imageLazyListState ->
       scope.launch {
@@ -244,7 +245,7 @@ private fun BoxScope.BottomDownloadButton(viewModel: JmmManagerViewModel) {
     }
 
     val modifier = Modifier
-      .padding(horizontal = 64.dp, vertical = 32.dp)
+      .padding(horizontal = 64.dp, vertical = 16.dp)
       .shadow(elevation = 2.dp, shape = RoundedCornerShape(ShapeCorner))
       .fillMaxWidth()
       .height(50.dp)

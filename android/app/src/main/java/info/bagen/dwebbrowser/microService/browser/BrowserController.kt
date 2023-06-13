@@ -65,7 +65,6 @@ class BrowserController(val browserNMM: BrowserNMM) {
         return this
     }
 
-    private val openIPCMap = mutableMapOf<Mmid, Ipc>()
     private val dWebViewList = mutableListOf<View>()
 
     fun appendView(view: View) = dWebViewList.add(view)
@@ -82,31 +81,6 @@ class BrowserController(val browserNMM: BrowserNMM) {
             return false
         }
         return true
-    }
-
-    suspend fun openApp(mmid: Mmid) {
-//        showLoading.value = true
-        openIPCMap.getOrPut(mmid) {
-            val (ipc) = browserNMM.connect(mmid)
-            ipc.onEvent {
-                if (it.event.name == EIpcEvent.Ready.event) { // webview加载完成，可以隐藏加载框
-                    BrowserNMM.browserController?.showLoading?.value = false
-                    debugBrowser("openApp", "event::${it.event.name}==>${it.event.data}  from==> $mmid ")
-                }
-            }
-            ipc
-        }.also { ipc ->
-            debugBrowser("openApp", "postMessage==>activity${ipc.remote.mmid}")
-            ipc.postMessage(IpcEvent.fromUtf8(EIpcEvent.Activity.event, ""))
-        }
-    }
-    // 如果已经关闭了，就不需要再建立连接关闭
-    suspend fun closeApp(mmid: Mmid) {
-        openIPCMap[mmid]?.let { ipc ->
-            debugJMM("close APP", "postMessage==>close  $mmid, ${ipc.remote.mmid}")
-            openIPCMap.remove(mmid)
-            ipc.postMessage(IpcEvent.fromUtf8(EIpcEvent.Close.event, ""))
-        }
     }
 
     suspend fun uninstallJMM(jmmMetadata: JmmMetadata) = browserNMM.nativeFetch(

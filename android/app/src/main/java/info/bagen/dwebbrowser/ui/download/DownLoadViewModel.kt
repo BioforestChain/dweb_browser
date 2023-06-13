@@ -14,7 +14,6 @@ import info.bagen.dwebbrowser.ui.view.DialogInfo
 import info.bagen.dwebbrowser.util.DwebBrowserUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.net.URL
 
 data class DownLoadUIState(
     val downLoadState: MutableState<DownLoadStatus> = mutableStateOf(DownLoadStatus.IDLE),

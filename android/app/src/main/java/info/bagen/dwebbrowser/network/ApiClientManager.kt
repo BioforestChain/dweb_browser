@@ -1,11 +1,11 @@
 package info.bagen.dwebbrowser.network
 
-import org.http4k.client.OkHttp
+import org.http4k.client.ApacheClient
 import org.http4k.core.*
 
 class HttpClient {
-  private val mClientMemory = OkHttp()
-  private val mClientStream = OkHttp(bodyMode = BodyMode.Stream)
+  private val mClientMemory = ApacheClient()
+  private val mClientStream = ApacheClient(responseBodyMode = BodyMode.Stream, requestBodyMode = BodyMode.Stream)
 
   companion object {
     private const val RootPath = "https://shop.plaoc.com/"

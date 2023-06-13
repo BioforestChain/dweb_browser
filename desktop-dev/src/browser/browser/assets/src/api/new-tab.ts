@@ -34,6 +34,7 @@ export function quitApp(id: string) {
 }
 
 export async function deleteApp(id: string) {
+  quitApp(id)
   return await nativeFetch("/uninstall", {
     search: {
       app_id: id,

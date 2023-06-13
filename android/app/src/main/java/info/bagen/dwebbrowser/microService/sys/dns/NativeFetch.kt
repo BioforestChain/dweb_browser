@@ -80,15 +80,6 @@ class ChunkAssetsFileStream(
             if (readLen == -1) {
                 readEnd = true
             }
-//            else if (src.endsWith(".js")) {
-//                debugFetchFile(
-//                    "READ-CONTENT", "$id/$src: ${
-//                        b.slice(0 until readLen).toByteArray().toByteArray().replace(
-//                            Regex("\n", RegexOption.MULTILINE), " ↩ "
-//                        )
-//                    }"
-//                )
-//            }
             ptr += readLen
         }
 
