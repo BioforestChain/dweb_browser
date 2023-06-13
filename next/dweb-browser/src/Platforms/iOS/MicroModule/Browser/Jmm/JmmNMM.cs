@@ -9,7 +9,8 @@ public class JmmNMM : NativeMicroModule
     static Debugger Console = new("JmmNMM");
     private static Dictionary<Mmid, JsMicroModule> s_apps = new();
     private static readonly List<JmmController> s_controllerList = new();
-    public static Dictionary<Mmid, JsMicroModule> GetAndUpdateJmmNmmApps() => s_apps;
+
+    public static Dictionary<Mmid, JsMicroModule> JmmApps => s_apps;
 
     public override List<Dweb_DeepLink> Dweb_deeplinks { get; init; } = new() { "dweb:install" };
 
@@ -28,6 +29,17 @@ public class JmmNMM : NativeMicroModule
     public JmmNMM() : base("jmm.browser.dweb")
     {
         s_controllerList.Add(new(this));
+
+        JmmMetadataDB.JmmMetadataUpdate.OnChange += async (value, oldValue, _) =>
+        {
+            if (value > oldValue)
+            {
+                foreach (var entry in JmmMetadataDB.GetJmmMetadataEnumerator())
+                {
+                    _recoverAppData();
+                }
+            }
+        };
     }
 
     private void _recoverAppData()
@@ -138,7 +150,7 @@ public class JmmNMM : NativeMicroModule
                 }
 
                 var manager = new DownloadAppManager(data, (nint)initDownloadStatus);
-                
+
                 manager.DownloadView.Frame = UIScreen.MainScreen.Bounds;
                 JmmController.View.AddSubview(manager.DownloadView);
                 vc.PushViewController(JmmController, true);
@@ -189,11 +201,13 @@ public class JmmNMM : NativeMicroModule
         });
     }
 
-    private void _openJmmMetadataUninstallPage(JsMicroModule jsMicroModule)
+    private async void _openJmmMetadataUninstallPage(JsMicroModule jsMicroModule)
     {
-        s_apps.Remove(jsMicroModule.Metadata.Id);
+        var mmid = jsMicroModule.Metadata.Id;
+        s_apps.Remove(mmid);
         BootstrapContext.Dns.UnInstall(jsMicroModule);
-        JmmDwebService.UnInstall(jsMicroModule.Metadata.Id);
+        JmmDwebService.UnInstall(mmid);
+        JmmMetadataDB.RemoveJmmMetadata(mmid);
     }
 
     public record AppQueryResult(List<JmmMetadata> InstalledAppList, List<InstallingAppInfo> InstallingAppList);

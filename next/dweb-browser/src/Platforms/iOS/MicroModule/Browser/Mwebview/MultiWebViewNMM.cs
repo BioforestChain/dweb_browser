@@ -40,6 +40,19 @@ public class MultiWebViewNMM : IOSNativeMicroModule
             return await _closeDwebViewAsync(remoteMmid, webviewId);
         });
 
+        HttpRouter.AddRoute(IpcMethod.Get, "/close/app", async (request, ipc) =>
+        {
+            var controller = s_controllerMap.GetValueOrDefault(ipc!.Remote.Mmid);
+
+            if (controller is not null)
+            {
+                await controller.DismissViewControllerAsync(true);
+                return controller.DestroyWebView();
+            }
+
+            return false;
+        });
+
         // 界面没有关闭，用于重新唤醒
         HttpRouter.AddRoute(IpcMethod.Get, "/activate", async (request, ipc) =>
         {
@@ -58,7 +71,7 @@ public class MultiWebViewNMM : IOSNativeMicroModule
         if (s_controllerMap.TryGetValue(remoteMmid, out var controller))
         {
             var vc = await RootViewController.WaitPromiseAsync();
-            
+
             await MainThread.InvokeOnMainThreadAsync(() =>
             {
                 // 无法push同一个UIViewController的实例两次

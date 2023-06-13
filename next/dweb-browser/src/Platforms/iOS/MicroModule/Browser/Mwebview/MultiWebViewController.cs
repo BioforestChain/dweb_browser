@@ -153,7 +153,10 @@ public partial class MultiWebViewController : BaseViewController
 
             if (WebViewList.Update((list) => list!.Remove(viewItem)))
             {
-                viewItem.webView.Dispose();
+                if (viewItem.webView is not null)
+                {
+                    viewItem.webView.Dispose();
+                }
                 await (_OnWebViewClose?.Emit(webviewId)).ForAwait();
                 return true;
             }
@@ -166,7 +169,20 @@ public partial class MultiWebViewController : BaseViewController
     /// <summary>
     /// 移除webview所有列表
     /// </summary>
-    public void DestroyWebView() => WebViewList.Update(list => list!.Clear());
+    public bool DestroyWebView()
+    {
+        WebViewList.Get().ForEach(viewItem =>
+        {
+            if (viewItem.webView is not null)
+            {
+                viewItem.webView.Dispose();
+            }
+        });
+
+        WebViewList.Update(list => list!.Clear());
+
+        return true;
+    }
 
 
     private event Signal<string>? _OnWebViewClose;

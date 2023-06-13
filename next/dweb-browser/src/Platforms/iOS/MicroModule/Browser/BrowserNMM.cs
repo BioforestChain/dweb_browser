@@ -3,6 +3,11 @@ using WebKit;
 using Foundation;
 using CoreGraphics;
 using BrowserFramework;
+using System.Net;
+using DwebBrowser.MicroService.Http;
+using DwebBrowser.MicroService.Browser.Jmm;
+using MetricKit;
+using static CoreFoundation.DispatchSource;
 
 namespace DwebBrowser.MicroService.Browser;
 
@@ -25,10 +30,46 @@ public class BrowserNMM : IOSNativeMicroModule
     protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)
     {
         await bootstrapContext.Dns.BootstrapAsync("jmm.browser.dweb");
+
         HttpRouter.AddRoute(IpcMethod.Get, "/openApp", async (request, ipc) =>
         {
             var mmid = request.QueryStringRequired("app_id");
             return BrowserController?.OpenApp(mmid);
+        });
+
+        // 关闭App后端
+        HttpRouter.AddRoute(IpcMethod.Get, "/closeApp", async (request, ipc) =>
+        {
+            var mmid = request.QueryStringRequired("app_id");
+            return BrowserController?.CloseApp(mmid);
+        });
+
+        // App详情
+        HttpRouter.AddRoute(IpcMethod.Get, "/detailApp", async (request, ipc) =>
+        {
+            var mmid = request.QueryStringRequired("app_id");
+            var jmmApps = JmmNMM.JmmApps;
+            var jsMicroModule = jmmApps.GetValueOrDefault(mmid);
+
+            if (jsMicroModule is not null)
+            {
+                var data = NSData.FromString(jsMicroModule.Metadata.ToJson(), NSStringEncoding.UTF8);
+                var initDownloadStatus = DownloadStatus.Installed;
+
+                var vc = await RootViewController.WaitPromiseAsync();
+                await MainThread.InvokeOnMainThreadAsync(async () =>
+                {
+                    var manager = new DownloadAppManager(data, (nint)initDownloadStatus);
+
+                    manager.DownloadView.Frame = UIScreen.MainScreen.Bounds;
+                    JmmNMM.JmmController.View.AddSubview(manager.DownloadView);
+                    vc.PushViewController(JmmNMM.JmmController, true);
+                });
+
+                return true;
+            }
+
+            return new PureResponse(HttpStatusCode.NotFound, Body: new PureUtf8StringBody("not found " + mmid));
         });
     }
 

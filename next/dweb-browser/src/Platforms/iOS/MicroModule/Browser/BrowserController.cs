@@ -19,7 +19,6 @@ public class BrowserController : BaseViewController
 
     public async Task OpenApp(Mmid mmid)
     {
-        //ShowLoading.Set(true);
         var ipc = await _openIpcMap.GetValueOrPutAsync(mmid, async () =>
         {
             var connectResult = await BrowserNMM.ConnectAsync(mmid);
@@ -27,7 +26,6 @@ public class BrowserController : BaseViewController
             {
                 if (Event.Name == EIpcEvent.Ready.Event)
                 {
-                    //BrowserNMM.BrowserController?.ShowLoading.Set(false);
                     Console.Log("openApp", "event::{0} ==> {1} from ==> {2}", Event.Name, Event.Data, mmid);
                 }
             };
@@ -36,6 +34,17 @@ public class BrowserController : BaseViewController
 
         Console.Log("openApp", "postMessage ==> activity {0}, {1}", mmid, ipc.Remote.Mmid);
         await ipc.PostMessageAsync(IpcEvent.FromUtf8(EIpcEvent.Activity.Event, ""));
+    }
+
+    public async Task CloseApp(Mmid mmid)
+    {
+        var ipc = _openIpcMap.GetValueOrDefault(mmid);
+
+        if (ipc is not null)
+        {
+            Console.Log("CloseApp", "postMessage ==> activity {0}, {1}", mmid, ipc.Remote.Mmid);
+            await ipc.PostMessageAsync(IpcEvent.FromUtf8(EIpcEvent.Close.Event, ""));
+        }
     }
 
     public Task UninstallJMM(JmmMetadata jmmMetadata) =>

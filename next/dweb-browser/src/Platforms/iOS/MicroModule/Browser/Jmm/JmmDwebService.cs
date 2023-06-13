@@ -273,7 +273,7 @@ public class JmmDownload
             File.Delete(_downloadFile);
             onDownloadProgressChange((float)1.0);
             _downloadStatus.Set(DownloadStatus.Installed);
-            JmmMetadataDB.SaveJmmMetadata(JmmMetadata.Id, JmmMetadata);
+            JmmMetadataDB.AddJmmMetadata(JmmMetadata.Id, JmmMetadata);
             Console.Log("CompressZip", "success!!!");
         }).NoThrow();
     }
