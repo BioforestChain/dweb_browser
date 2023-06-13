@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { clickApp, deleteApp, detailApp, quitApp } from "@/api/new-tab";
+import { clickApp, detailApp, quitApp, vibrateHeavyClick } from "@/api/new-tab";
 import type { $AppMetaData } from "@/types/app.type";
 // import { CloseWatcher } from "@dweb-browser/plaoc";
 import { onLongPress } from "@vueuse/core";
@@ -34,8 +34,8 @@ onMounted(() => {});
 
 //长按事件的回调
 const onLongPressCallbackHook = () => {
+  vibrateHeavyClick() // 震动
   show.value = true;
-  emit("onLongPress", show.value);
   // const closer = new CloseWatcher();
   // closer.addEventListener("close", () => {
   //   filter.value = false;
@@ -46,27 +46,12 @@ onLongPress($appHtmlRefHook, onLongPressCallbackHook, {
   modifiers: { prevent: true },
 });
 function showUninstall() {
-  snackbar.text = `确定卸载 ${props.appMetaData.short_name} 吗 ？`;
-  snackbar.timeOut = 3000;
-  snackbar.type = "primary";
-  snackbar.show = true;
-}
-// 卸载app
-async function uninstall() {
-  snackbar.show = false;
-  const response = await deleteApp(props.appMetaData.id);
-  if (response.ok) {
-    emit("onUninstall", props.index);
-    snackbar.text = `卸载成功！`;
-    snackbar.type = "success";
-    snackbar.timeOut = 1000;
-    snackbar.show = true;
-  }
+  emit("onUninstall", props.index);
 }
 function showQuit() {
   quitApp(props.appMetaData.id);
   snackbar.text = `${props.appMetaData.short_name} 已退出后台。`;
-  snackbar.timeOut = 1000;
+  snackbar.timeOut = 1500;
   snackbar.type = "primary";
   snackbar.show = true;
 }
@@ -129,12 +114,9 @@ function menuOpen() {
     v-model="snackbar.show"
     :color="snackbar.type"
     :timeout="snackbar.timeOut"
-    variant="outlined"
+    variant="tonal"
   >
-    {{ snackbar.text }}
-    <template v-slot:actions>
-      <v-btn color="indigo" variant="text" @click="uninstall" v-show="snackbar.timeOut === 3000"> 卸载 </v-btn>
-    </template>
+    <div class="text-center">{{ snackbar.text }}</div>
   </v-snackbar>
 </template>
 <style scoped lang="scss">
@@ -184,8 +166,8 @@ function menuOpen() {
       }
     }
     .app-name {
-      font-size: 14px;
       width: 76px;
+      font-size: 14px;
       font-weight: bold;
       color: #333;
       margin-top: 10px;
