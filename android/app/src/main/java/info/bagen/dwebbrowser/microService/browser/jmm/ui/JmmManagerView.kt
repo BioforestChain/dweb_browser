@@ -663,16 +663,16 @@ private fun String.displayDownLoad(total: Long, progress: Long): String {
   val MB = 1024 * 1024 // 定义MB的计算常量
   val KB = 1024 // 定义KB的计算常量
   val df = DecimalFormat("0.0");//格式化小数
-  var dValue: String
+  val dValue: String
   val totalValue = if (total / GB >= 1) {
-    dValue = df.format(1.0 * progress / GB)
-    df.format(total / GB) + " GB";
-  } else if (total / MB >= 1) {
-    dValue = df.format(1.0 * progress / MB)
-    df.format(total / MB) + " MB";
-  } else if (total / KB >= 1) { //如果当前Byte的值大于等于1KB
-    dValue = df.format(1.0 * progress / KB)
-    df.format(total / KB) + " KB";
+    dValue = df.format(progress.toFloat() / GB)
+    df.format(total.toFloat() / GB) + " GB";
+  } else if (total.toFloat() / MB >= 1) {
+    dValue = df.format(progress.toFloat() / MB)
+    df.format(total.toFloat() / MB) + " MB";
+  } else if (total.toFloat() / KB >= 1) { //如果当前Byte的值大于等于1KB
+    dValue = df.format(progress.toFloat() / KB)
+    df.format(total.toFloat() / KB) + " KB";
   } else {
     dValue = "$progress"
     "$total B";

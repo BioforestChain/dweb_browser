@@ -91,11 +91,7 @@ class JmmManagerViewModel(
                 ) {// TODO 为了规避更新被IDLE重置
                     return@observe
                 }
-                uiState.downloadInfo.value = uiState.downloadInfo.value.copy(
-                    downLoadStatus = it.downLoadStatus,
-                    dSize = it.downLoadSize,
-                    size = it.totalSize
-                )
+
                 when (it.downLoadStatus) {
                     DownLoadStatus.DownLoading -> {
                         uiState.downloadInfo.value = uiState.downloadInfo.value.copy(
