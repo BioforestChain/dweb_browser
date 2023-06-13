@@ -11,18 +11,11 @@ import UIKit
 struct BrowserView: View {
     @StateObject var selectedTab = SelectedTab()
     @StateObject var addressBar = AddressBarState()
+    @EnvironmentObject var toolBar: ToolBarState
+    @State var showsheet = true
     var body: some View {
         ZStack{
             GeometryReader{ sGgeometry in
-//                VStack(spacing: 0){
-//                    Color.clear.frame(height: 0.1)  //如果没有这个 向上滚动的时候会和状态栏重合
-//                    TabsContainerView()
-//                    Divider().background(Color(.darkGray))
-//                    AddressBarHStack()
-//                    ToolbarView()
-//                }
-//                .coordinateSpace(name: "Root")
-//                .environmentObject(selectedTab)
                 VStack{
                     ZStack{
                         VStack{
@@ -30,14 +23,24 @@ struct BrowserView: View {
                             TabsContainerView()
                             Divider().background(Color(.darkGray))
                         }
-                        OverlayMaskView(isFocused: $addressBar.isFocused)
+                        KeyBoardShowingView(isFocused: $addressBar.isFocused)
                     }
-                    AddressBarHStack()
+                    AddressBarHStack ()
                     ToolbarView()
                 }
-//                .coordinateSpace(name: "Root")
                 .environmentObject(selectedTab)
                 .environmentObject(addressBar)
+                
+                .halfSheet(showSheet: $toolBar.moreTapped) {
+                    ZStack {
+                        SwiftUI.Color.white
+                        HalfSheetPickerView()
+                            .environmentObject(selectedTab)
+                    }
+                    .padding(.top, 28)
+                    .background(.white)
+                    .cornerRadius(10)
+                }
             }
         }
     }

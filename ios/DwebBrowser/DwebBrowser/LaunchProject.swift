@@ -19,7 +19,7 @@ public class Entry: NSObject{
         }
         let vc = UIHostingController(rootView: BrowserView()
             .environmentObject(AddrBarOffset())
-            .environmentObject(BottomViewState())
+            .environmentObject(ToolBarState())
         )
         return vc
     }

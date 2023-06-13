@@ -9,7 +9,7 @@ import SwiftUI
 import UIKit
 
 struct ToolbarView: View {
-    @EnvironmentObject var tabstate: BottomViewState
+    @EnvironmentObject var toolbarState: ToolBarState
     @EnvironmentObject var selectedTab: SelectedTab
 
     @State var moreTapped = false
@@ -18,18 +18,18 @@ struct ToolbarView: View {
     private let itemSize = CGSize(width: 28, height: 28)
 
     var body: some View {
-        if !tabstate.showTabGrid{
+        if !toolbarState.showTabGrid{
             HStack(spacing: 5){
                 Group{
                     Spacer()
                         .frame(width: 25)
-                    BiColorButton(size: itemSize, imageName: "back", disabled: !tabstate.canGoBack) {
-                        tabstate.goBackTapped = true
+                    BiColorButton(size: itemSize, imageName: "back", disabled: !toolbarState.canGoBack) {
+                        toolbarState.goBackTapped = true
                     }
                     
                     Spacer()
-                    BiColorButton(size: itemSize, imageName: "forward", disabled: !tabstate.canGoForward) {
-                        tabstate.goForwardTapped = true
+                    BiColorButton(size: itemSize, imageName: "forward", disabled: !toolbarState.canGoForward) {
+                        toolbarState.goForwardTapped = true
                     }
                     Spacer()
                     BiColorButton(size: itemSize, imageName: "add", disabled: false) {
@@ -41,22 +41,23 @@ struct ToolbarView: View {
                     Spacer()
                     BiColorButton(size: itemSize, imageName: "shift", disabled: false) {
                         print("shift tab was clicked")
-                        tabstate.showTabGrid = true
+                        toolbarState.showTabGrid = true
                     }
                     Spacer()
                     
                     BiColorButton(size: itemSize, imageName: "more", disabled: false) {
                         withAnimation {
-                            moreTapped = true
+                            toolbarState.moreTapped = true
                         }
                         print("more menu was clicked")
-                    }.sheet(isPresented: $moreTapped) {
-                        withAnimation {
-                            moreTapped = false
-                        }
-                    } content: {
-                        HistoryView()
                     }
+//                    .sheet(isPresented: $moreTapped) {
+//                        withAnimation {
+//                            moreTapped = false
+//                        }
+//                    } content: {
+//                        HistoryView()
+//                    }
                     
                     Spacer()
                         .frame(width: 25)
@@ -65,8 +66,8 @@ struct ToolbarView: View {
             .frame(height: toolBarHeight)
             .onChange(of: selectedTab.curIndex, perform: { index in
                 let currentWrapper = wrapperMgr.store[index]
-                tabstate.canGoBack = currentWrapper.canGoBack
-                tabstate.canGoForward = currentWrapper.canGoForward
+                toolbarState.canGoBack = currentWrapper.canGoBack
+                toolbarState.canGoForward = currentWrapper.canGoForward
             })
             
         }else{
@@ -84,7 +85,7 @@ struct ToolbarView: View {
                 Spacer()
                 
                 ToolbarItem(title: "完成") {
-                    tabstate.showTabGrid = false
+                    toolbarState.showTabGrid = false
                 }
                 .fontWeight(.semibold)
                 Spacer()

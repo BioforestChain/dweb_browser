@@ -24,7 +24,7 @@ struct CellFramePreferenceKey: PreferenceKey {
 struct TabGridView: View {
     @EnvironmentObject var selectedTab: SelectedTab
     @EnvironmentObject var addrBarOffset: AddrBarOffset
-    @EnvironmentObject var tabState: BottomViewState
+    @EnvironmentObject var toolbarState: ToolBarState
     
     @ObservedObject var cacheStore = WebCacheMgr.shared
 
@@ -40,7 +40,7 @@ struct TabGridView: View {
                         GridItem(.adaptive(minimum: (screen_width/3.0),maximum: screen_width/2.0), spacing: gridHSpace)
                     ], spacing: gridVSpace, content: {
                         ForEach(cacheStore.store, id: \.id) { webCache in
-                            GridCell(webCache: webCache, isSelected: isSelected(webCache: webCache) )
+                            GridCell(webCache: webCache, isSelected: isSelected(webCache: webCache))
                                 .id(webCache.id)
                                 .background(GeometryReader { geometry in
                                     Color.clear
@@ -53,18 +53,20 @@ struct TabGridView: View {
                                     print("\(geoFrame.minY) - \(currentFrame.minY), \(geoFrame.maxY) - \(currentFrame.maxY)")
                                     if geoFrame.minY <= currentFrame.minY, geoFrame.maxY >= currentFrame.maxY{
                                         print("inside of grid")
-
-                                        selectedTab.curIndex = index
-                                        tabState.showTabGrid = false
+                                        if selectedTab.curIndex != index{
+                                            selectedTab.curIndex = index
+                                        }
+                                        toolbarState.showTabGrid = false
                                     }else{
                                         print("outside of grid")
-                                        selectedTab.curIndex = index
-
+                                        if selectedTab.curIndex != index{
+                                            selectedTab.curIndex = index
+                                        }
                                         withAnimation(.easeInOut(duration: 0.3),{
                                             scrollproxy.scrollTo(webCache.id)
                                         })
                                         DispatchQueue.main.asyncAfter(deadline: .now()+0.4, execute: {
-                                            tabState.showTabGrid = false
+                                            toolbarState.showTabGrid = false
                                         })
                                     }
                                 }
@@ -73,7 +75,7 @@ struct TabGridView: View {
                     })
                     .padding(gridHSpace)
                     .onPreferenceChange(CellFramePreferenceKey.self) { newFrames in
-                        if tabState.showTabGrid{
+                        if toolbarState.showTabGrid{
                             self.frames = newFrames
                             cellFrames = newFrames.map{ $0.frame }
                         }

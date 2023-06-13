@@ -9,10 +9,10 @@ import SwiftUI
 
 struct PagingScroll<Content: View>: UIViewRepresentable {
     var contentSize: Int
-    var content: Content
     @Binding var offsetX: CGFloat
     @Binding var indexInEvrm: Int
-    
+    var content: ()-> Content
+
     func makeUIView(context: Context) -> UIScrollView {
         let scrollView = UIScrollView()
         scrollView.isPagingEnabled = true
@@ -28,7 +28,7 @@ struct PagingScroll<Content: View>: UIViewRepresentable {
             {
             
             uiView.subviews.forEach { $0.removeFromSuperview() }
-            let hostingController = UIHostingController(rootView: content)
+            let hostingController = UIHostingController(rootView: content())
             for i in 0..<contentSize {
                 let childView = hostingController.view!
                 // There must be an adjustment to fix an unknown bug that causes a strange offset problem.

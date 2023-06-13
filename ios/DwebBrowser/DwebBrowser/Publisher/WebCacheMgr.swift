@@ -24,6 +24,7 @@ let websites = [
 class WebCache: ObservableObject, Identifiable, Hashable, Codable, Equatable{
     enum CodingKeys: String, CodingKey {
         case id
+//        case showWeb
         case webIconUrl
         case lastVisitedUrl
         case title
@@ -31,8 +32,27 @@ class WebCache: ObservableObject, Identifiable, Hashable, Codable, Equatable{
     }
     
     public var id = UUID()
+    
+    private var _showWeb: Bool = false           // show webview or homeview
+    var showWebPublisher = PassthroughSubject<Bool, Never>()
+    var showWeb:Bool{
+        set{
+            _showWeb = newValue
+            showWebPublisher.send(newValue)
+        }
+        get{
+            return _showWeb
+        }
+    }
+    
     @Published var webIconUrl: URL            // url to the source of somewhere in internet
     @Published var lastVisitedUrl: URL     //the website that user has opened on webview
+    {
+        didSet{
+            updateShowWeb()
+        }
+    }
+    
     @Published var title: String            // page title
     @Published var snapshotUrl: URL           //local file path is direct to the image has saved in document dir
     {
@@ -40,11 +60,17 @@ class WebCache: ObservableObject, Identifiable, Hashable, Codable, Equatable{
             WebCacheMgr.shared.saveCaches()
         }
     }
-    public init(icon: URL = URL.defaultWebIconURL, lastVisitedUrl: URL = testURL, title: String = "", snapshotUrl: URL = URL.defaultSnapshotURL) {
+    
+    private func updateShowWeb() {
+        showWeb = lastVisitedUrl == testURL
+    }
+    
+    public init(icon: URL = URL.defaultWebIconURL, showWeb: Bool = false, lastVisitedUrl: URL = testURL, title: String = "", snapshotUrl: URL = URL.defaultSnapshotURL) {
         self.webIconUrl = icon
         self.lastVisitedUrl = lastVisitedUrl
         self.title = title
         self.snapshotUrl = snapshotUrl
+        self.showWeb = lastVisitedUrl != testURL
     }
     
     required init(from decoder: Decoder) throws {
@@ -54,11 +80,13 @@ class WebCache: ObservableObject, Identifiable, Hashable, Codable, Equatable{
         lastVisitedUrl = try container.decodeIfPresent(URL.self, forKey: .lastVisitedUrl) ?? testURL
         title = try container.decode(String.self, forKey: .title)
         snapshotUrl = try container.decodeIfPresent(URL.self, forKey: .snapshotUrl) ?? URL.defaultSnapshotURL
+//        showWeb = try container.decodeIfPresent(Bool.self, forKey: .showWeb) ?? (lastVisitedUrl != testURL)
     }
     
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(id, forKey: .id)
+//        try container.encode(showWeb, forKey: .showWeb)
         try container.encodeIfPresent(webIconUrl, forKey: .webIconUrl)
         try container.encodeIfPresent(lastVisitedUrl, forKey: .lastVisitedUrl)
         try container.encode(title, forKey: .title)
@@ -70,8 +98,9 @@ class WebCache: ObservableObject, Identifiable, Hashable, Codable, Equatable{
         lhs.webIconUrl == rhs.webIconUrl &&
         lhs.lastVisitedUrl == rhs.lastVisitedUrl &&
         lhs.title == rhs.title &&
-        lhs.snapshotUrl == rhs.snapshotUrl
-        
+        lhs.snapshotUrl == rhs.snapshotUrl &&
+        lhs.showWeb == rhs.showWeb
+
     }
     
     public func hash(into hasher: inout Hasher) {
@@ -80,6 +109,7 @@ class WebCache: ObservableObject, Identifiable, Hashable, Codable, Equatable{
         hasher.combine(lastVisitedUrl)
         hasher.combine(title)
         hasher.combine(snapshotUrl)
+        hasher.combine(showWeb)
     }
     
     static var example: WebCache{

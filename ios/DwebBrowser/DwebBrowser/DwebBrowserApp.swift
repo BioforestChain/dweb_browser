@@ -14,7 +14,7 @@ struct DwebBrowserApp: App {
         WindowGroup {
             BrowserView()
                 .environmentObject(AddrBarOffset())
-                .environmentObject(TabState())
+                .environmentObject(ToolBarState())
         }
     }
 }

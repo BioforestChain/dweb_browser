@@ -30,3 +30,12 @@ lerna-debug.log*
 
 #plugins
 plugins/build
+ios/DwebBrowser/DwebBrowser/Example/CheckCellInGrid.swift
+ios/DwebBrowser/DwebBrowser/Example/CombinePublisherR.swift
+ios/DwebBrowser/DwebBrowser/Example/DelayAnimation.swift
+ios/DwebBrowser/DwebBrowser/Example/MultipleWebView.swift
+ios/DwebBrowser/DwebBrowser/Example/SafariKeyboard.swift
+ios/DwebBrowser/DwebBrowser/Example/StableForEach.swift
+ios/DwebBrowser/DwebBrowser/Example/SwiftUIView.swift
+ios/DwebBrowser/DwebBrowser.xcodeproj/xcuserdata/ui06.xcuserdatad/xcdebugger/Breakpoints_v2.xcbkptlist
+ios/DwebBrowser/DwebBrowser.xcodeproj/xcuserdata/ui06.xcuserdatad/xcdebugger/Breakpoints_v2.xcbkptlist

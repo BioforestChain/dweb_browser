@@ -22,12 +22,13 @@ class AddressBarState: ObservableObject{
     @Published var inputText: String = ""
 }
 
-class BottomViewState: ObservableObject {
+class ToolBarState: ObservableObject {
     @Published var showTabGrid = true
     @Published var canGoBack = false
     @Published var canGoForward = false
     @Published var goBackTapped = false
     @Published var goForwardTapped = false
+    @Published var moreTapped = false
 
     var addressBarHeight: CGFloat{
         showTabGrid ? 0 : addressBarH
@@ -37,4 +38,18 @@ class BottomViewState: ObservableObject {
 class Animation: ObservableObject{
     @Published var snapshotImage: UIImage = UIImage.defaultSnapShotImage
     @Published var progress: AnimationProgress = .invisible
+}
+
+class TraceLessMode{
+    static var shared = TraceLessMode()
+    private let tracelessKEY = "tracelessKEY"
+    var isON: Bool{
+        willSet{
+            UserDefaults.standard.setValue(newValue, forKey: tracelessKEY)
+        }
+    }
+    
+    private init(){
+        isON = UserDefaults.standard.bool(forKey: tracelessKEY)
+    }
 }
