@@ -25,8 +25,8 @@ export function vibrateHeavyClick() {
 }
 
 /**长按的退出按钮，这个会退出后端 */
-export function quitApp(id: string) {
-  nativeFetch("/closeApp", {
+export async function quitApp(id: string) {
+  await nativeFetch("/closeApp", {
     search: {
       app_id: id,
     },
@@ -34,7 +34,7 @@ export function quitApp(id: string) {
 }
 
 export async function deleteApp(id: string) {
-  quitApp(id)
+  await quitApp(id)
   return await nativeFetch("/uninstall", {
     search: {
       app_id: id,
