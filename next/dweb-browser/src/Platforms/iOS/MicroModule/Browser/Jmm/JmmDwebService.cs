@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using Foundation;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using DwebBrowser.Helper;
@@ -22,14 +23,14 @@ public static class JmmDwebService
     /// <summary>
     /// 下载目录
     /// </summary>
-    public static readonly string DOWNLOAD_DIR = Path.Combine(
+    public static readonly string DOWNLOAD_DIR = Path.Join(
         PathHelper.GetIOSAppAssetsPath(), JmmDwebService.DOWNLOAD);
 
     /// <summary>
     /// dweb应用目录
     /// </summary>
-    public static readonly string DWEB_APP_DIR = Path.Combine(
-        PathHelper.GetIOSAppAssetsPath(), DWEB_APP);
+    public static readonly string DWEB_APP_DIR = Path.Join(
+        PathHelper.GetIOSDocumentDirectory(), DWEB_APP);
 
     static event Signal? _onStart;
 
@@ -100,7 +101,7 @@ public static class JmmDwebService
     /// <param name="mmid">JmmMetadata id</param>
     public static void UnInstall(Mmid mmid)
     {
-        Directory.Delete(Path.Combine(DWEB_APP_DIR, mmid), true);
+        Directory.Delete(Path.Join(DWEB_APP_DIR, mmid), true);
     }
 }
 

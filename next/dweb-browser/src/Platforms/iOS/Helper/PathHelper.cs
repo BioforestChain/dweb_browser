@@ -1,5 +1,5 @@
-﻿
-using System.IO;
+﻿using System.IO;
+using Foundation;
 using DwebBrowser.MicroService.Browser.Jmm;
 
 namespace DwebBrowser.Helper;
@@ -19,5 +19,11 @@ public static class PathHelper
     /// </summary>
     /// <returns></returns>
     public static string GetIOSAppAssetsPath() => Path.Combine(GetIOSAppRootDirectory(), ASSETS);
+
+    /// <summary>
+    /// 获取 iOS 资源目录
+    /// </summary>
+    public static string GetIOSDocumentDirectory() =>
+        NSSearchPath.GetDirectories(NSSearchPathDirectory.DocumentDirectory, NSSearchPathDomain.User, true).First();
 }
 
