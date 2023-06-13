@@ -100,12 +100,9 @@ class BrowserController(val browserNMM: BrowserNMM) {
             ipc.postMessage(IpcEvent.fromUtf8(EIpcEvent.Activity.event, ""))
         }
     }
-
+    // 如果已经关闭了，就不需要再建立连接关闭
     suspend fun closeApp(mmid: Mmid) {
-        openIPCMap.getOrPut(mmid) {
-            val (ipc) = browserNMM.connect(mmid)
-            ipc
-        }.also { ipc ->
+        openIPCMap[mmid]?.let { ipc ->
             debugJMM("close APP", "postMessage==>close  $mmid, ${ipc.remote.mmid}")
             openIPCMap.remove(mmid)
             ipc.postMessage(IpcEvent.fromUtf8(EIpcEvent.Close.event, ""))

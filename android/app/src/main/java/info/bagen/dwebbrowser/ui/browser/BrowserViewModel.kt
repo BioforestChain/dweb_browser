@@ -165,9 +165,8 @@ class BrowserViewModel(private val browserController: BrowserController) : ViewM
   fun getNewTabBrowserView(url: String? = null): BrowserWebView {
     debugBrowser("getNewTabBrowserView", url)
     val viewItem = appendWebViewAsItem(
-      createDwebView(
-        url ?: "file:///android_asset/browser/newtab/index.html"
-      )
+      createDwebView(""),
+      url ?: "file:///android_asset/browser/newtab/index.html"
     )
     return BrowserWebView(
       viewItem = viewItem,
@@ -363,9 +362,9 @@ class BrowserViewModel(private val browserController: BrowserController) : ViewM
   }
 
   @Synchronized
-  fun appendWebViewAsItem(dWebView: DWebView): MultiWebViewController.ViewItem {
+  fun appendWebViewAsItem(dWebView: DWebView,url:String): MultiWebViewController.ViewItem {
     val webviewId = "#w${webviewId_acc.getAndAdd(1)}"
-    val state = WebViewState(WebContent.Url(dWebView.url ?: ""))
+    val state = WebViewState(WebContent.Url(url))
     val coroutineScope = CoroutineScope(CoroutineName(webviewId))
     val navigator = WebViewNavigator(coroutineScope)
     return MultiWebViewController.ViewItem(

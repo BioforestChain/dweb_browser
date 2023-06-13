@@ -40,7 +40,6 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.web.LoadingState
 import com.google.accompanist.web.WebView
 import info.bagen.dwebbrowser.R
-import info.bagen.dwebbrowser.microService.browser.mwebview.MultiWebViewController
 import info.bagen.dwebbrowser.microService.browser.mwebview.debugMultiWebView
 import info.bagen.dwebbrowser.ui.entity.BrowserBaseView
 import info.bagen.dwebbrowser.ui.entity.BrowserWebView
@@ -198,11 +197,11 @@ private fun BrowserViewContent(viewModel: BrowserViewModel) {
       }*/
     HorizontalPager(
       modifier = Modifier,
-      state = pagerStateContent,
-      pageSpacing = 0.dp,
-      userScrollEnabled = false,
-      reverseLayout = false,
-      contentPadding = PaddingValues(0.dp),
+        state = pagerStateContent,
+        pageSpacing = 0.dp,
+        userScrollEnabled = false,
+        reverseLayout = false,
+        contentPadding = PaddingValues(0.dp),
       beyondBoundsPageCount = 5,
 
       pageContent = { currentPage ->

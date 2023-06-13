@@ -61,7 +61,7 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.browser.dweb") {
                 val remoteMmid = ipc.remote.mmid
                 closeDwebView(remoteMmid, webviewId)
             },
-            "close/app" bind Method.GET to defineHandler { request, ipc ->
+            "/close/app" bind Method.GET to defineHandler { request, ipc ->
                 val controller = controllerMap[ipc.remote.mmid] ?: return@defineHandler false;
                 controller.destroyWebView()
             },
