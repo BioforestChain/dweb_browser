@@ -58,7 +58,7 @@ public partial class DWebView : WKWebView
             var url = navigationAction.Request.Url.AbsoluteString;
             Action CreateAction = () =>
             {
-                if (dWebView.CloseWatcherController.Consuming.Remove(url))
+                if (url is not null && dWebView.CloseWatcherController.Consuming.Remove(url))
                 {
                     var consumeToken = url!;
                     var watcher = dWebView.CloseWatcherController.Apply(

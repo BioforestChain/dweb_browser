@@ -43,6 +43,7 @@ public class JmmController: BaseViewController
 
         Console.Log("closeApp", "postMessage ==> activity {0}, {1}", mmid, ipc.Remote.Mmid);
         await ipc.PostMessageAsync(IpcEvent.FromUtf8(EIpcEvent.Close.Event, ""));
+        _openIpcMap.Remove(mmid);
     }
 }
 

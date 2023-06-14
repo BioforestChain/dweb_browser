@@ -17,8 +17,7 @@ public partial class MultiWebViewController : BaseViewController
     async void BindWebViewItems()
     {
         // 设置视图控制器的背景颜色
-        webviewContainer.BackgroundColor = UIColor.Green;
-        //webviewContainer.BackgroundColor = UIColor.White;
+        webviewContainer.BackgroundColor = UIColor.White;
         WebviewFrame.Set(webviewContainer.Frame);
 
         /// 视图绑定

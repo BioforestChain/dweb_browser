@@ -46,7 +46,14 @@ public class MultiWebViewNMM : IOSNativeMicroModule
 
             if (controller is not null)
             {
-                await controller.DismissViewControllerAsync(true);
+                var vc = await RootViewController.WaitPromiseAsync();
+
+                await MainThread.InvokeOnMainThreadAsync(async () =>
+                {
+                    await controller.DismissViewControllerAsync(true);
+                    vc.PopViewController(true);
+                });
+
                 return controller.DestroyWebView();
             }
 
@@ -110,8 +117,13 @@ public class MultiWebViewNMM : IOSNativeMicroModule
 
         if (controller is not null)
         {
-            await controller.CloseWebViewAsync(webviewId);
-            await controller.DismissViewControllerAsync(true);
+            var vc = await RootViewController.WaitPromiseAsync();
+            await MainThread.InvokeOnMainThreadAsync(async () =>
+            {
+                await controller.CloseWebViewAsync(webviewId);
+                await controller.DismissViewControllerAsync(true);
+                vc.PopViewController(true);
+            });
         }
 
         return false;

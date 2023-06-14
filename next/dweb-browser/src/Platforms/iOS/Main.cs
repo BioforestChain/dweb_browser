@@ -66,6 +66,7 @@ public class MicroService
     /// VirtualKeyboardController
     /// VirtualKeyboardNMM
     /// JmmNMM
+    /// StreamExtensions
     #endregion
 
     // 添加debug日志过滤
@@ -77,8 +78,9 @@ public class MicroService
         "DnsNMM",
         "MessagePortIpc",
         "JmmNMM",
-        "JmmDwebService",
-        "JmmDownload"
+        "StreamExtensions",
+        "ReadableStreamIpc",
+        "JsProcessNMM"
     };
 
     public static async Task<DnsNMM> Start()

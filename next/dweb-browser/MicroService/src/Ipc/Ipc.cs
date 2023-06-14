@@ -107,6 +107,10 @@ public abstract class Ipc
 
         _closed = true;
         await DoClose();
+        await OnClose.Emit().ForAwait();
+        OnClose = null;
+
+        await Destroy(false);
     }
 
     public bool IsClosed

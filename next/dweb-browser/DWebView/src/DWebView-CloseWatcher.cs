@@ -165,7 +165,7 @@ public partial class DWebView : WKWebView
     public override WKNavigation? GoBack()
     {
         if (CloseWatcherController.CanClose) {
-            CloseWatcherController.CloseAsync().NoThrow();
+            _ = CloseWatcherController.CloseAsync().NoThrow();
             return null;
         }
         return base.GoBack();

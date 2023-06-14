@@ -100,7 +100,7 @@ public class JsProcessNMM : NativeMicroModule
         {
             var searchParams = request.SafeUrl.SearchParams;
             _ = ipc ?? throw new Exception("no found ipc");
-            processIpcMap.Add(ipc.Remote.Mmid, ipc);
+            processIpcMap.TryAdd(ipc.Remote.Mmid, ipc);
             PromiseOut<int> po = null!;
 
             var processId = searchParams.ForceGet("process_id");
@@ -164,6 +164,7 @@ public class JsProcessNMM : NativeMicroModule
         {
             await CloseHttpDwebServer(new DwebHttpServerOptions(80, ipc.Remote.Mmid));
             var processIpc = processIpcMap.GetValueOrDefault(ipc.Remote.Mmid);
+            Console.Log("close-process", "{0}", processIpc?.Remote?.Mmid);
             processIpc?.Close();
             return true;
         });
