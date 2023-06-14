@@ -1,6 +1,5 @@
 package info.bagen.dwebbrowser.ui.splash
 
-import android.net.Uri
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
@@ -9,13 +8,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.PagerScope
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -23,26 +20,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
 import coil.ImageLoader
 import coil.compose.AsyncImage
 import coil.decode.SvgDecoder
-import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.SimpleExoPlayer
-import com.google.android.exoplayer2.ui.AspectRatioFrameLayout
-import com.google.android.exoplayer2.ui.PlayerView
+//import com.google.android.exoplayer2.MediaItem
+//import com.google.android.exoplayer2.SimpleExoPlayer
+//import com.google.android.exoplayer2.ui.AspectRatioFrameLayout
+//import com.google.android.exoplayer2.ui.PlayerView
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.ui.entity.MediaType
 import info.bagen.dwebbrowser.util.FilesUtil
-import java.io.File
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -66,7 +60,7 @@ fun SplashView(paths: ArrayList<String>) {
         val path = paths[loadPage]
         when (FilesUtil.getFileType(path)) {
           MediaType.Video.name -> {
-            SplashVideoView(path = path)
+            // SplashVideoView(path = path)
           }
 
           else -> {
@@ -87,7 +81,7 @@ fun SplashView(paths: ArrayList<String>) {
   }
 }
 
-@Composable
+/*@Composable
 fun SplashVideoView(path: String) {
   val context = LocalContext.current
   val exoPlayer = remember {
@@ -116,7 +110,7 @@ fun SplashVideoView(path: String) {
       exoPlayer.release()
     }
   }
-}
+}*/
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable

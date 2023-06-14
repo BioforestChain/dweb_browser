@@ -9,10 +9,10 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        jcenter()
         maven { url 'https://jitpack.io' }
     }
 }
 include ':benchmark'
 //include ':browser'
 include ':helper'
+includeBuild("version-plugin")
