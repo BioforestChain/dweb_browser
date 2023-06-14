@@ -1,0 +1,5 @@
+// Reflect.
+new Proxy(() => {}, {});
+
+
+

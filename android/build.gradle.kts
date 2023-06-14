@@ -15,7 +15,7 @@ buildscript {
     maven("https://jitpack.io")
   }
   dependencies {
-    classpath("com.android.tools.build:gradle:8.0.1")
+    classpath("com.android.tools.build:gradle:8.0.2")
     val kotlin_version = "1.8.10"
     classpath(kotlin("gradle-plugin", version = kotlin_version))
   }

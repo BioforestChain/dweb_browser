@@ -1,0 +1,8 @@
+{
+    "imports": {
+        "lit": "npm:lit@3.0.0-pre.0",
+        "lit/decorators.js": "npm:lit@3.0.0-pre.0/decorators.js",
+        "lit/directives/ref.js": "npm:lit@3.0.0-pre.0/directives/ref.js",
+        "vite": "npm:vite"
+    }
+}
