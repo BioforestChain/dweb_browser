@@ -74,19 +74,23 @@ fun BrowserView(viewModel: BrowserViewModel) {
   val scope = rememberCoroutineScope()
   val context = LocalContext.current
   BackHandler {
-    debugMultiWebView("BrowserView",viewModel.uiState.currentBrowserBaseView.value.closeWatcher.canClose)
-    if (viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.targetValue != SheetValue.Hidden) {
+    val watcher = viewModel.uiState.currentBrowserBaseView.value.closeWatcher;
+    val bottomState = viewModel.uiState.bottomSheetScaffoldState.bottomSheetState;
+    debugMultiWebView("BrowserView",watcher.canClose)
+
+    if (bottomState.targetValue != SheetValue.Hidden) {
       scope.launch {
-        viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.hide()
+        bottomState.hide()
       }
-    } else if (viewModel.uiState.currentBrowserBaseView.value.closeWatcher.canClose){
-      viewModel.uiState.currentBrowserBaseView.value.viewItem.coroutineScope.launch {
-        viewModel.uiState.currentBrowserBaseView.value.closeWatcher.close()
+    } else if (watcher.canClose){
+      scope.launch {
+        watcher.close()
       }
     }else {
       val browserWebView = viewModel.uiState.currentBrowserBaseView.value
-      if (browserWebView.viewItem.navigator.canGoBack) {
-        browserWebView.viewItem.navigator.navigateBack()
+      val navigator = browserWebView.viewItem.navigator
+      if (navigator.canGoBack) {
+        navigator.navigateBack()
       } else {
         context.findActivity().moveTaskToBack(false) // 将界面转移到后台
       }
@@ -473,7 +477,7 @@ fun BrowserSearchView(viewModel: BrowserViewModel) {
       text = text,
       imeShowed = imeShowed,
       homePreview = { onMove ->
-        HomeWebviewPage(viewModel, onMove)
+          HomeWebViewPage(viewModel, onMove)
       },
       onClose = {
         showSearchView = false
@@ -488,7 +492,7 @@ fun BrowserSearchView(viewModel: BrowserViewModel) {
 
 @SuppressLint("ClickableViewAccessibility")
 @Composable
-internal fun HomeWebviewPage(viewModel: BrowserViewModel, onClickOrMove: (Boolean) -> Unit) {
+internal fun HomeWebViewPage(viewModel: BrowserViewModel, onClickOrMove: (Boolean) -> Unit) {
   val webView = viewModel.getNewTabBrowserView()
   val background = MaterialTheme.colorScheme.background
   val isDark = isSystemInDarkTheme()

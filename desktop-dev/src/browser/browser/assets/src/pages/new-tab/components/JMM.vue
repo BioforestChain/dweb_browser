@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { clickApp, detailApp, quitApp, vibrateHeavyClick } from "@/api/new-tab";
 import type { $AppMetaData } from "@/types/app.type";
-// import { CloseWatcher } from "@dweb-browser/plaoc";
+import { CloseWatcher } from "@dweb-browser/plaoc";
 import { onLongPress } from "@vueuse/core";
 import { onMounted, reactive, ref } from "vue";
 const $appHtmlRefHook = ref<HTMLDivElement | null>(null);
@@ -36,10 +36,11 @@ onMounted(() => {});
 const onLongPressCallbackHook = () => {
   vibrateHeavyClick() // 震动
   show.value = true;
-  // const closer = new CloseWatcher();
-  // closer.addEventListener("close", () => {
-  //   filter.value = false;
-  // });
+  const closer = new CloseWatcher();
+  console.log("closeWatch=>",closer)
+  closer.addEventListener("close", () => {
+    show.value = false;
+  });
 };
 
 onLongPress($appHtmlRefHook, onLongPressCallbackHook, {
