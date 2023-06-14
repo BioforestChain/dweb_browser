@@ -1,7 +1,7 @@
 import { SyncTask } from "./helper/SyncTask.ts";
-// import { syncTask as desktopSyncTask } from "./sync-desktop.ts";
+// import { desktopSyncTask } from "./sync-desktop.ts";
 
-export const syncTask = SyncTask.from(
+export const nextSyncTask = SyncTask.from(
   {
     from: import.meta.resolve("../desktop-dev/electron"),
     to: import.meta.resolve("../next/dweb-browser/src/Resources"),
@@ -10,5 +10,5 @@ export const syncTask = SyncTask.from(
 );
 if (import.meta.main) {
   // desktopSyncTask.auto();
-  syncTask.auto();
+  nextSyncTask.auto();
 }

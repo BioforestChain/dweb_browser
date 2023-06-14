@@ -109,8 +109,7 @@ suspend fun startDwebBrowser(): DnsNMM {
 
   /// 安装Jmm
   val jmmNMM = JmmNMM().also { dnsNMM.install(it) }
-
-
+  // 测试使用，打包成apk需要删除
   /**
    *
    * browserNMM.mmid,
@@ -132,7 +131,6 @@ suspend fun startDwebBrowser(): DnsNMM {
 
     DEVELOPER.WaterBang -> listOf(
       browserNMM.mmid,
-//            desktopJMM.mmid
     )
 
     DEVELOPER.Kingsword09 -> listOf(

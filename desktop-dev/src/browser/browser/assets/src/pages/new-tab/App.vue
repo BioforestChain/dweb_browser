@@ -1,6 +1,5 @@
 <template>
   <router-view />
-  <dweb-config></dweb-config>
 </template>
 
 <script lang="ts" setup>

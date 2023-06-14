@@ -19,7 +19,7 @@ ios/SwiftUIToMAUI/SwiftUIBindingMAUI/SwiftUIBindingMAUI/obj
 local.properties
 build/
 *.log
-android/app/src/main/assets/cot-demo/
+android/app/src/main/assets/plaoc-demo/
 
 # desktop
 

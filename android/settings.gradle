@@ -1,7 +1,4 @@
 rootProject.name = "plaoc"
-//include ':mlkit-barcode-scanning'
-//include ':mlkit-camera-core'
-//include ':writeintercept'
 include ':app'
 
 dependencyResolutionManagement {

@@ -1,14 +1,15 @@
 import { SyncTask } from "./helper/SyncTask.ts";
-import { syncTask as androidSyncTask } from "./sync-android.ts";
-// import { syncTask as desktopSyncTask } from "./sync-desktop.ts";
-import { syncTask as nextSyncTask } from "./sync-next.ts";
+import { androidSyncTask } from "./sync-android.ts";
+// import { desktopSyncTask } from "./sync-desktop.ts";
+import { nextSyncTask } from "./sync-next.ts";
 
 export const syncTask = SyncTask.concat(
+  // syncServerTask,
   /// 1
   // desktopSyncTask,
   /// 2
   androidSyncTask,
-  nextSyncTask
+  nextSyncTask,
 );
 if (import.meta.main) {
   syncTask.auto();

@@ -31,13 +31,12 @@ const emit = defineEmits<{
 }>();
 
 onMounted(() => {});
-
+let closer:CloseWatcher|null = null;
 //长按事件的回调
 const onLongPressCallbackHook = () => {
-  vibrateHeavyClick() // 震动
+  vibrateHeavyClick(); // 震动
   show.value = true;
-  const closer = new CloseWatcher();
-  console.log("closeWatch=>",closer)
+  closer = new CloseWatcher();
   closer.addEventListener("close", () => {
     show.value = false;
   });
@@ -58,6 +57,7 @@ function showQuit() {
 }
 function menuOpen() {
   show.value = false;
+  closer?.close()
 }
 </script>
 <template>
@@ -82,7 +82,7 @@ function menuOpen() {
           </div>
         </div>
         <Transition name="fade">
-          <div class="overlay" v-show="show" @click="show = false"></div>
+          <div class="overlay" v-show="show" @click="menuOpen"></div>
         </Transition>
       </template>
 

@@ -40,27 +40,27 @@ data class JmmMetadata(
 
 
 val defaultJmmMetadata = JmmMetadata(
-    id = "default.user.dweb",
+    id = "demo.user.dweb",
     dweb_deeplinks = mutableListOf(),
     icon = "https://www.bfmeta.info/imgs/logo3.webp",
-    name = "默认测试数据",
-    short_name = "该测试数据包含了相关具体信息，请仔细查阅",
+    name = "plaoc demo",
+    short_name = "demo",
     description = "这是一个实例应用，包含了dweb_plugins全部组件的实例。",
-    bundle_url = "https://dweb.waterbang.top/app.plaoc.dweb-1.0.0.zip",
-    bundle_size = "2726400",
-    bundle_hash = "", // 文件hash
+    bundle_url = "https://dweb.waterbang.top/game.dweb.waterbang.top.dweb-1.0.0.zip",
+    bundle_size = "2742079",
+    bundle_hash = "sha256:966251757d12a7f4021a0b40031ff4b2b60ae08b63de516b572eb572bfd90886", // 文件hash
     version = "1.2.0",
     images = listOf(
         "http://qiniu-waterbang.waterbang.top/bfm/cot-home_2058.webp",
         "http://qiniu-waterbang.waterbang.top/bfm/defi.png",
         "http://qiniu-waterbang.waterbang.top/bfm/nft.png"
     ),
-    home = "https://www.bfmeta.info/",
+    home = "https://dweb-browser.org/",
     server = JmmMetadata.MainServer(
-        root = "dweb:///sys",
-        entry = "/bfs_worker/public.service.worker.js"
+        root = "/sys",
+        entry = "/server/plaoc.server.js"
     ),
     author = listOf("bfs", "bfs@bfs.com"),
-    categories = listOf("demo", "vue3"),
+    categories = listOf("demo", "vue3","plaoc"),
     release_date = "2023-05-22T09:01:38.318Z",
 )
