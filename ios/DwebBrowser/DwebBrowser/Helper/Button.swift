@@ -43,7 +43,7 @@ struct BiColorButton: View {
                     .renderingMode(.template)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .background(.white)
+                    .background(Color.bkColor)
                     .foregroundColor(disabled ? Color.gray : Color.black)
                     .frame(width: size.width, height: size.height)
             }

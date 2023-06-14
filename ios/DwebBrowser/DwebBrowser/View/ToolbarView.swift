@@ -11,12 +11,15 @@ import UIKit
 struct ToolbarView: View {
     @EnvironmentObject var toolbarState: ToolBarState
     @EnvironmentObject var selectedTab: SelectedTab
-
+    
+    @EnvironmentObject var addressBarState: AddressBarState
+    
     @Binding var shouldShowSheet: Bool
     @ObservedObject var wrapperMgr = WebWrapperMgr.shared
     
     private let itemSize = CGSize(width: 28, height: 28)
-
+    @State private var toolbarHeight: CGFloat = toolBarH
+    
     var body: some View {
         if !toolbarState.showTabGrid{
             HStack(spacing: 5){
@@ -51,24 +54,23 @@ struct ToolbarView: View {
                         }
                         print("more menu was clicked")
                     }
-//                    .sheet(isPresented: $moreTapped) {
-//                        withAnimation {
-//                            moreTapped = false
-//                        }
-//                    } content: {
-//                        HistoryView()
-//                    }
                     
                     Spacer()
                         .frame(width: 25)
                 }
             }
-            .frame(height: toolBarHeight)
+            .frame(height: toolbarHeight)
             .onChange(of: selectedTab.curIndex, perform: { index in
                 let currentWrapper = wrapperMgr.store[index]
                 toolbarState.canGoBack = currentWrapper.canGoBack
                 toolbarState.canGoForward = currentWrapper.canGoForward
             })
+            .onReceive(addressBarState.$isFocused) { isFocused in
+                withAnimation {
+                    toolbarHeight = isFocused ? 0 : toolBarH
+                }
+            }
+            .clipped()
             
         }else{
             HStack(spacing: 5){
@@ -91,14 +93,14 @@ struct ToolbarView: View {
                 Spacer()
                     .frame(width: 25)
             }
-            .frame(height: toolBarHeight)
+            .frame(height: toolbarHeight)
         }
     }
 }
 
 struct ToolbarView_Previews: PreviewProvider {
     static var previews: some View {
-//        ToolbarView()
+        //        ToolbarView()
         Text("aa")
     }
 }

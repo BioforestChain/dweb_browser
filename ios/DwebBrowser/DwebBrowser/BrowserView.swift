@@ -16,20 +16,21 @@ struct BrowserView: View {
     var body: some View {
         ZStack{
             GeometryReader{ sGgeometry in
-                VStack{
+                VStack(spacing: 0){
                     ZStack{
                         VStack{
                             Color.clear.frame(height: 0.1)  //如果没有这个 向上滚动的时候会和状态栏重合
                             TabsContainerView()
-                            Divider().background(Color(.darkGray))
+//                            Divider().background(Color(.darkGray))
                         }
                         KeyBoardShowingView(isFocused: $addressBar.isFocused)
                     }
-                    AddressBarHStack ()
+                    AddressBarHStack()
                     ToolbarView(shouldShowSheet: $shouldShowSheet)
                 }
                 .environmentObject(selectedTab)
                 .environmentObject(addressBar)
+                .background(Color.bkColor)
                 
                 .halfSheet(showSheet: $shouldShowSheet) {
                     ZStack { 

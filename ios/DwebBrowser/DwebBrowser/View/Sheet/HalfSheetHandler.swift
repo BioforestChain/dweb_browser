@@ -16,7 +16,7 @@ struct HalfSheetHelper<SheetView: View>: UIViewControllerRepresentable {
     
     func makeUIViewController(context: Context) -> UIViewController {
         
-        controller.view.backgroundColor = UIColor(red: 245.0/255, green: 246.0/255, blue: 247.0/255, alpha: 1)
+//        controller.view.backgroundColor = UIColor(red: 245.0/255, green: 246.0/255, blue: 247.0/255, alpha: 1)
         
         return controller
     }
