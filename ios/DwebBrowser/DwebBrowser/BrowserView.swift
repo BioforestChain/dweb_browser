@@ -12,7 +12,7 @@ struct BrowserView: View {
     @StateObject var selectedTab = SelectedTab()
     @StateObject var addressBar = AddressBarState()
     @EnvironmentObject var toolBar: ToolBarState
-    @State var showsheet = true
+    @State private var shouldShowSheet = false
     var body: some View {
         ZStack{
             GeometryReader{ sGgeometry in
@@ -26,14 +26,14 @@ struct BrowserView: View {
                         KeyBoardShowingView(isFocused: $addressBar.isFocused)
                     }
                     AddressBarHStack ()
-                    ToolbarView()
+                    ToolbarView(shouldShowSheet: $shouldShowSheet)
                 }
                 .environmentObject(selectedTab)
                 .environmentObject(addressBar)
                 
-                .halfSheet(showSheet: $toolBar.moreTapped) {
-                    ZStack {
-                        SwiftUI.Color.white
+                .halfSheet(showSheet: $shouldShowSheet) {
+                    ZStack { 
+                        Color.white
                         HalfSheetPickerView()
                             .environmentObject(selectedTab)
                     }

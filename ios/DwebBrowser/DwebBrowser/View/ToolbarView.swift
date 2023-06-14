@@ -12,7 +12,7 @@ struct ToolbarView: View {
     @EnvironmentObject var toolbarState: ToolBarState
     @EnvironmentObject var selectedTab: SelectedTab
 
-    @State var moreTapped = false
+    @Binding var shouldShowSheet: Bool
     @ObservedObject var wrapperMgr = WebWrapperMgr.shared
     
     private let itemSize = CGSize(width: 28, height: 28)
@@ -47,7 +47,7 @@ struct ToolbarView: View {
                     
                     BiColorButton(size: itemSize, imageName: "more", disabled: false) {
                         withAnimation {
-                            toolbarState.moreTapped = true
+                            shouldShowSheet = true
                         }
                         print("more menu was clicked")
                     }

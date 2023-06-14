@@ -28,7 +28,7 @@ class ToolBarState: ObservableObject {
     @Published var canGoForward = false
     @Published var goBackTapped = false
     @Published var goForwardTapped = false
-    @Published var moreTapped = false
+    @Published var shouldShowSheet = false
 
     var addressBarHeight: CGFloat{
         showTabGrid ? 0 : addressBarH

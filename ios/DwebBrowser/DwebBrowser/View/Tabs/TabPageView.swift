@@ -17,7 +17,6 @@ struct TabPageView: View {
     //    @EnvironmentObject var animation: Animation
     @ObservedObject var animation: Animation
     
-    @State var homeview = HomeView()
     @State var hasTook = false
     var  body: some View {
         ZStack{
