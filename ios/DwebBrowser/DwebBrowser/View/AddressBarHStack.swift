@@ -12,12 +12,12 @@ struct AddressBarHStack: View {
     @EnvironmentObject var toolbarState: ToolBarState
     @EnvironmentObject var addrBarOffset: AddrBarOffset
     @State var tappedPoint: CGPoint = .zero
-
+    
     var body: some View {
         PagingScroll(contentSize: WebWrapperMgr.shared.store.count, offsetX: $addrBarOffset.onX, selectedIndex: $selectedTab.curIndex, content: {
             HStack(spacing: 0) {
                 ForEach(WebWrapperMgr.shared.store, id: \.id){ webWrapper in
-                    AddressBar3(webWrapper: webWrapper, tappedPoint: $tappedPoint)
+                    AddressBar(webWrapper: webWrapper, tappedPoint: $tappedPoint)
                         .frame(width: screen_width)
                         .offset(y:5)
                         .background(Color.bkColor)
@@ -28,13 +28,15 @@ struct AddressBarHStack: View {
         .animation(.easeInOut, value: toolbarState.addressBarHeight)
         .transition(.slide)
         .onTapGesture { tapPoint in
-            print(tapPoint)
+            if tapPoint.y < screen_height - 160{
+                print(tapPoint)
                 tappedPoint = tapPoint
+            }
         }
     }
 }
 
-struct AddressBar3: View {
+struct AddressBar: View {
     @FocusState var isAdressBarFocused: Bool
     @ObservedObject var webWrapper: WebWrapper
     @EnvironmentObject var addressBar: AddressBarState
@@ -58,12 +60,12 @@ struct AddressBar3: View {
                 }
                 .padding(.horizontal)
                 .background(GeometryReader { geometry in
-                                    Color.clear
-                                        .onAppear {
-                                            textFieldFrame = geometry.frame(in: .local)
-                                            print("textFieldFrame: \(textFieldFrame)")
-                                        }
-                                })
+                    Color.clear
+                        .onAppear {
+                            textFieldFrame = geometry.frame(in: .local)
+                            print("textFieldFrame: \(textFieldFrame)")
+                        }
+                })
             HStack {
                 TextField("", text: $addressBar.inputText)
                     .placeholder(when: addressBar.inputText.isEmpty) {
@@ -96,11 +98,11 @@ struct AddressBar3: View {
                             .padding(.trailing, 18)
                     }
                     .background(GeometryReader { geometry in
-                                    Color.clear
-                                        .onAppear {
-                                            buttonFrame = geometry.frame(in: .local)
-                                        }
-                                })
+                        Color.clear
+                            .onAppear {
+                                buttonFrame = geometry.frame(in: .local)
+                            }
+                    })
                 }
             }
         }

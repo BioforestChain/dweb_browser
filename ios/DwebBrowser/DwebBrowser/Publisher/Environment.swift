@@ -28,7 +28,6 @@ class ToolBarState: ObservableObject {
     @Published var canGoForward = false
     @Published var goBackTapped = false
     @Published var goForwardTapped = false
-    @Published var shouldShowSheet = false
 
     var addressBarHeight: CGFloat{
         showTabGrid ? 0 : addressBarH
@@ -52,4 +51,13 @@ class TraceLessMode{
     private init(){
         isON = UserDefaults.standard.bool(forKey: tracelessKEY)
     }
+}
+
+
+class OpeningLink: ObservableObject{
+    @Published var clickedLink: URL = testURL
+}
+
+class ShowSheet: ObservableObject{
+    @Published var should: Bool = false
 }

@@ -11,8 +11,9 @@ import UIKit
 struct BrowserView: View {
     @StateObject var selectedTab = SelectedTab()
     @StateObject var addressBar = AddressBarState()
+    @StateObject var openingLink = OpeningLink()
+    @StateObject private var showSheet = ShowSheet()
     @EnvironmentObject var toolBar: ToolBarState
-    @State private var shouldShowSheet = false
     var body: some View {
         ZStack{
             GeometryReader{ sGgeometry in
@@ -21,27 +22,27 @@ struct BrowserView: View {
                         VStack{
                             Color.clear.frame(height: 0.1)  //如果没有这个 向上滚动的时候会和状态栏重合
                             TabsContainerView()
-//                            Divider().background(Color(.darkGray))
                         }
                         KeyBoardShowingView(isFocused: $addressBar.isFocused)
                     }
                     AddressBarHStack()
-                    ToolbarView(shouldShowSheet: $shouldShowSheet)
+                    ToolbarView()
                 }
+                .background(Color.bkColor)
+                .environmentObject(openingLink)
                 .environmentObject(selectedTab)
                 .environmentObject(addressBar)
-                .background(Color.bkColor)
+                .environmentObject(showSheet)
                 
-                .halfSheet(showSheet: $shouldShowSheet) {
-                    ZStack { 
-                        Color.white
-                        HalfSheetPickerView()
-                            .environmentObject(selectedTab)
-                    }
-                    .padding(.top, 28)
-                    .background(.white)
-                    .cornerRadius(10)
-                }
+                .background(
+                    HalfSheetPresentView( showSheet: $showSheet.should, sheetView: {
+                            SheetSegmentView()
+                            .padding(.top, 28)
+                                .environmentObject(selectedTab)
+                                .environmentObject(openingLink)
+                                .environmentObject(showSheet)
+                    })
+                )
             }
         }
     }

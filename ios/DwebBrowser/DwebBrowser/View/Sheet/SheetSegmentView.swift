@@ -13,19 +13,18 @@ enum SheetCategory: String{
     case history = "ico_menu_history"
 }
 
-struct HalfSheetPickerView: View {
-    
+struct SheetSegmentView: View {
     @State var selectedCategory = SheetCategory.bookmark
-      
+
     @EnvironmentObject var selectedTab:SelectedTab
     @ObservedObject var webcacheMgr = WebCacheMgr.shared
     var categoryList: [SheetCategory] {
         let showWeb = webcacheMgr.store[selectedTab.curIndex].lastVisitedUrl != testURL
         return showWeb ? [.menu, .bookmark, .history] : [.bookmark, .history]
     }
+    
     var body: some View {
-        
-        VStack {
+        VStack{
             Picker("Select image", selection: $selectedCategory) {
                 ForEach(categoryList, id: \.self) {
                     Image($0.rawValue)
@@ -39,17 +38,17 @@ struct HalfSheetPickerView: View {
                     .padding(.vertical, 16)
                 Spacer()
             } else if selectedCategory == .bookmark {
-                BookmarkView(viewModel: BookmarkViewModel())
+                BookmarkView()
             } else if selectedCategory == .history {
                 HistoryView()
             }
         }
-        .background(SwiftUI.Color.init(red: 245.0/255, green: 246.0/255, blue: 247.0/255, opacity: 1))
+        .background(Color.bkColor)
     }
 }
 
 struct HalfSheetPickerView_Previews: PreviewProvider {
     static var previews: some View {
-        HalfSheetPickerView()
+        SheetSegmentView()
     }
 }

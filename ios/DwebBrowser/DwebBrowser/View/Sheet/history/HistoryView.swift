@@ -10,6 +10,7 @@ import SwiftUI
 struct HistoryView: View {
     @State private var searchText = ""
     @ObservedObject var histories = HistoryMgr.shared
+
     var body: some View {
         
         if histories.sections.count > 0 {

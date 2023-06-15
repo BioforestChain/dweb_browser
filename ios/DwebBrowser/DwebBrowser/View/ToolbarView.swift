@@ -14,7 +14,7 @@ struct ToolbarView: View {
     
     @EnvironmentObject var addressBarState: AddressBarState
     
-    @Binding var shouldShowSheet: Bool
+    @EnvironmentObject var showSheet: ShowSheet
     @ObservedObject var wrapperMgr = WebWrapperMgr.shared
     
     private let itemSize = CGSize(width: 28, height: 28)
@@ -50,7 +50,7 @@ struct ToolbarView: View {
                     
                     BiColorButton(size: itemSize, imageName: "more", disabled: false) {
                         withAnimation {
-                            shouldShowSheet = true
+                            showSheet.should = true
                         }
                         print("more menu was clicked")
                     }

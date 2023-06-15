@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct BookmarkView: View {
-    @ObservedObject var viewModel: BookmarkViewModel
+    @StateObject var viewModel = BookmarkViewModel()
     
     var body: some View {
         if viewModel.dataSources.count > 0 {

@@ -14,10 +14,11 @@ struct TabPageView: View {
     @ObservedObject var toolbarState: ToolBarState
     
     @EnvironmentObject var selectedTab: SelectedTab
-    //    @EnvironmentObject var animation: Animation
     @ObservedObject var animation: Animation
+    @EnvironmentObject var openingLink: OpeningLink
     
     @State var hasTook = false
+    private var isVisible: Bool { let index = WebWrapperMgr.shared.store.firstIndex(of: webWrapper); return index == selectedTab.curIndex}
     var  body: some View {
         ZStack{
             HomePageView()
@@ -25,7 +26,7 @@ struct TabPageView: View {
                 
                 WebView(webView: webWrapper.webView, url: webCache.lastVisitedUrl)
                     .onChange(of: webWrapper.canGoBack, perform: { canGoBack in
-                        if let index = WebWrapperMgr.shared.store.firstIndex(of: webWrapper), index == selectedTab.curIndex{
+                        if isVisible{
                             toolbarState.canGoBack = canGoBack
                         }
                     })
@@ -65,6 +66,11 @@ struct TabPageView: View {
                         if tapped{
                             goBack()
                             toolbarState.goBackTapped = false
+                        }
+                    }
+                    .onChange(of: openingLink.clickedLink) { url in
+                        if isVisible{
+                            webWrapper.webView.load(URLRequest(url: url))
                         }
                     }
             }

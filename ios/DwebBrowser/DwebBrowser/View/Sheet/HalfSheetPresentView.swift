@@ -7,25 +7,18 @@
 
 import SwiftUI
 
-struct HalfSheetHelper<SheetView: View>: UIViewControllerRepresentable {
-    
-    var sheetView: SheetView
+struct HalfSheetPresentView<SheetView: View>: UIViewControllerRepresentable {
     @Binding var showSheet: Bool
-//    var onEnd: () -> ()
+    var sheetView: ()-> SheetView
     let controller = UIViewController()
     
     func makeUIViewController(context: Context) -> UIViewController {
-        
-//        controller.view.backgroundColor = UIColor(red: 245.0/255, green: 246.0/255, blue: 247.0/255, alpha: 1)
-        
         return controller
     }
     
-    
     func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
-        
         if showSheet {
-            let sheetController = CustomHostingController(rootView: sheetView)
+            let sheetController = CustomHostingController(rootView: sheetView())
             sheetController.presentationController?.delegate = context.coordinator
             uiViewController.present(sheetController, animated: true)
         } else {
@@ -38,20 +31,16 @@ struct HalfSheetHelper<SheetView: View>: UIViewControllerRepresentable {
     }
     
     class Coordinator: NSObject, UISheetPresentationControllerDelegate {
+        var parent: HalfSheetPresentView
         
-        var parent: HalfSheetHelper
-        
-        init(parent: HalfSheetHelper) {
+        init(parent: HalfSheetPresentView) {
             self.parent = parent
         }
-        
         func presentationControllerDidDismiss(_ presentationController: UIPresentationController) {
             parent.showSheet = false
-//            parent.onEnd()
         }
     }
 }
-
 
 class CustomHostingController<Content: View>: UIHostingController<Content> {
     

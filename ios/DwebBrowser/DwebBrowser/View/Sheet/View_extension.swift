@@ -8,17 +8,6 @@
 import SwiftUI
 
 extension View {
-    
-    //binding show variable
-    func halfSheet<SheetView: View>(showSheet: Binding<Bool>, @ViewBuilder sheetView: @escaping () -> SheetView) -> some View {
-        
-        //overlay: it will automatically use the swiftui frame size only
-        return self
-            .background(
-                HalfSheetHelper(sheetView: sheetView(), showSheet: showSheet)
-            )
-    }
-    
     func dismissKeyboard() -> some View {
         return modifier(ResignKeyboardOnDragGesture())
     }

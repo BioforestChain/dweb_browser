@@ -7,29 +7,25 @@
 import SwiftUI
 
 final class BookmarkViewModel: HistoryViewModel {
-    
     @Published var dataSources: [LinkRecord] = []
     private let coredataManager = BookmarkCoreDataManager()
     override init() {
         super.init()
-        DispatchQueue.main.async {
             self.loadHistoryData()
-        }
     }
 
     private func loadHistoryData() {
         Task {
-            dataSources = await coredataManager.fetchTotalBookmarks(offset: 0) ?? [.example]
+           let bookmarks = await coredataManager.fetchTotalBookmarks(offset: 0) ?? [.example]
+            DispatchQueue.main.async {
+                self.dataSources = bookmarks
+            }
         }
     }
     
     override func deleteSingleHistory(for uuid: String) {
         super.deleteSingleHistory(for: uuid)
         coredataManager.deleteBookmark(uuid: uuid)
-    }
-    
-    override func groupedSep() {
-        
     }
     
     override func loadMoreHistoryData()  {
