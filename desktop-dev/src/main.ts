@@ -1,7 +1,6 @@
 import process from "node:process";
 import "./sys/dns/localeFileFetch.ts";
 
-import { BrowserNMM } from "./browser/browser/browser.ts";
 import { JsProcessNMM } from "./browser/js-process/js-process.ts";
 import { MultiWebviewNMM } from "./browser/multi-webview/multi-webview.mobile.ts";
 import { NavigationBarNMM } from "./browser/native-ui/navigation-bar/navigation-bar.main.ts";
@@ -63,8 +62,8 @@ export const dns = new DnsNMM();
 dns.install(new MultiWebviewNMM());
 dns.install(new JsProcessNMM());
 dns.install(new HttpServerNMM());
-const dwebBrowser = new BrowserNMM();
-dns.install(dwebBrowser);
+// const dwebBrowser = new BrowserNMM();
+// dns.install(dwebBrowser);
 dns.install(new StatusbarNativeUiNMM());
 dns.install(new NavigationBarNMM());
 dns.install(new SafeAreaNMM());
@@ -77,22 +76,21 @@ dns.install(new HapticsNMM());
 dns.install(new ShareNMM());
 
 // 安装 file.sys.dweb
-import { FileNMM } from "./sys/file/file.ts";
-dns.install(new FileNMM());
+// import { FileNMM } from "./sys/file/file.ts";
+// dns.install(new FileNMM());
 
 import { JmmNMM } from "./browser/jmm/jmm.ts";
 dns.install(new JmmNMM());
 
 dns.install(
   new BootNMM([
-    //
     // dwebBrowser.mmid,
   ])
 );
 
 Object.assign(globalThis, { dns: dns });
 process.on("unhandledRejection", (error) => {
-  console.error("????", error);
+  console.error("on unhandledRejection=>", error);
 });
 
 import { webcrypto } from "node:crypto";

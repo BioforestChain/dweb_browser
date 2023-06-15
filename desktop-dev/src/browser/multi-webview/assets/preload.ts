@@ -46,7 +46,6 @@ contextBridge.exposeInMainWorld("__native_close_watcher_kit__", {
 // globalThis 和 window 指向的都是当前preload 里面的全局对象，和载入页面中的全局对象不是同一个；
 // 同时 这里的 this 指向的是函数本身
 // 雷士函数这样的原型是不会被继承的
-console.log('prload:')
 
 
 // declare namespace window{

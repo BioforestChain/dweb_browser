@@ -1,4 +1,4 @@
-import chalk from "chalk";
+import { red } from "colors";
 import Electron from "electron";
 import type { OutgoingMessage } from "node:http";
 import type { $BootstrapContext } from "../../core/bootstrapContext.ts";
@@ -122,7 +122,7 @@ export class MultiWebviewNMM extends NativeMicroModule {
         const host = request.headers.get("webview_url");
         if (host === null) {
           throw new Error(
-            chalk.red(`
+            red(`
             ${
               this.mmid
             } registerCommonIpcOnMessageHandler /webview_execute_javascript_by_webview_url host === null

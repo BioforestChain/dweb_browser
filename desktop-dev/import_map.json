@@ -2,7 +2,7 @@
   "imports": {  
     "@msgpack/msgpack": "https://esm.sh/v124/@msgpack/msgpack@2.8.0",
     "@types/node": "https://esm.sh/v124/@types/node",
-    "chalk": "https://esm.sh/v124/chalk@4.1.2",
+    "colors":"https://deno.land/std@0.191.0/fmt/colors.ts",
     "comlink": "https://esm.sh/v124/comlink@4.4.1",
     "electron": "https://esm.sh/v124/electron@24.3.1",
     "extract-zip": "https://esm.sh/v124/extract-zip@2.0.1",

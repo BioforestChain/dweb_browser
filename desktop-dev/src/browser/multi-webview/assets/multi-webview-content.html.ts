@@ -33,12 +33,10 @@ export class MultiWebViewContent extends LitElement {
         },
       })
     );
-    console.log("onDomReady");
     this.webviewDidStartLoading(event)
   }
 
   webviewDidStartLoading(e: Event) {
-    console.log("执行了 javascript")
     const el = e.target;
     if (el === null) throw new Error(`el === null`);
     (e.target as WebviewTag).executeJavaScript(

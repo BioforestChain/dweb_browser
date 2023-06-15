@@ -51,17 +51,15 @@ export const openNativeWindow = async (
       win._devToolsWin.delete(item.webContents.id)
     })
   })
-
+  // Emitted when the window gains focus.
   win.on('focus', () => {
     // 设置匹配的 worker 也进入到 top 层
-    const devToolsWin = win._devToolsWin.values()
-    const devToolsWinArr = Array.from(devToolsWin).reverse();
-    devToolsWinArr.forEach(item => {
-      item.showInactive();
-      win.show();
-      // item.moveTop()
-       
-    })
+    // const devToolsWin = win._devToolsWin.values()
+    // const devToolsWinArr = Array.from(devToolsWin).reverse();
+    // devToolsWinArr.forEach(item => {
+    //    item.showInactive()
+    // })
+    win.show();
   })
 
   win.webContents.setWindowOpenHandler((_detail) => {

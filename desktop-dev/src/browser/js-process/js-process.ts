@@ -1,4 +1,3 @@
-import process from "node:process";
 import { transfer, type Remote } from "comlink";
 import { MessagePortIpc } from "../../core/ipc-web/MessagePortIpc.ts";
 import { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.ts";
@@ -17,8 +16,8 @@ import { mapHelper } from "../../helper/mapHelper.ts";
 import type { $PromiseMaybe } from "../../helper/types.ts";
 import { createHttpDwebServer } from "../../sys/http-server/$createHttpDwebServer.ts";
 import { saveNative2JsIpcPort } from "./ipc.native2js.ts";
-import { jsProcessOpenWindow } from "./js-process.openWindow.ts"
-import type { $NWW } from "./js-process.openWindow.ts"
+import type { $NWW } from "./js-process.openWindow.ts";
+import { jsProcessOpenWindow } from "./js-process.openWindow.ts";
 
 type $APIS = typeof import("./assets/js-process.web.ts")["APIS"];
 
@@ -182,7 +181,7 @@ export class JsProcessNMM extends NativeMicroModule {
         }).href,
         {
           // 是否需要显示 js-process 的窗口 
-          show: process.argv.includes("--inspect") ? true : false, // require.main?.filename.endsWith(".html"),
+          show: false //process.argv.includes("--inspect") ? true : false, // require.main?.filename.endsWith(".html"),
         },
         { userAgent: (userAgent) => userAgent + ` dweb-host/${urlInfo.host}` }
       );

@@ -19,7 +19,7 @@ export function download(
   app_id: string,
   progress_callback: $ProgressCallback,
   appInfo: string
-): Promise<Boolean> {
+): Promise<boolean> {
   const tempPath = path.resolve(__dirname, `../../../temp/${app_id}.zip`);
   return new Promise((resolve, reject) => {
     progress(request(url), {})
