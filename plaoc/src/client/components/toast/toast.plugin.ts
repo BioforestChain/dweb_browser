@@ -6,8 +6,6 @@ import type { ToastShowOptions } from "./toast.type.ts";
  * 访问 toast 能力的插件
  */
 export class ToastPlugin extends BasePlugin {
-  readonly tagName = "dweb-toast";
-
   constructor() {
     super("toast.sys.dweb");
   }

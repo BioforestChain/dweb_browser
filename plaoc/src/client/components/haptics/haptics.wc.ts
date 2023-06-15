@@ -2,6 +2,7 @@ import { cacheGetter } from "../../helper/cacheGetter.ts";
 import { hapticsPlugin } from "./haptics.plugin.ts";
 
 export class HTMLDwebHapticsElement extends HTMLElement {
+  static readonly tagName = "dweb-haptics";
   readonly plugin = hapticsPlugin;
 
   @cacheGetter()
@@ -45,4 +46,9 @@ export class HTMLDwebHapticsElement extends HTMLElement {
   }
 }
 
-customElements.define(hapticsPlugin.tagName, HTMLDwebHapticsElement);
+customElements.define(HTMLDwebHapticsElement.tagName, HTMLDwebHapticsElement);
+declare global {
+  interface HTMLElementTagNameMap {
+    [HTMLDwebHapticsElement.tagName]: HTMLDwebHapticsElement;
+  }
+}

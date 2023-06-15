@@ -1,6 +1,7 @@
 import { cacheGetter } from "../../helper/cacheGetter.ts";
 import { splashScreenPlugin } from "./splash-screen.plugin.ts";
 export class HTMLDwebSplashScreenElement extends HTMLElement {
+  static readonly tagName = "dweb-splash-screen";
   readonly plugin = splashScreenPlugin;
 
   @cacheGetter()
@@ -14,4 +15,12 @@ export class HTMLDwebSplashScreenElement extends HTMLElement {
   }
 }
 
-customElements.define(splashScreenPlugin.tagName, HTMLDwebSplashScreenElement);
+customElements.define(
+  HTMLDwebSplashScreenElement.tagName,
+  HTMLDwebSplashScreenElement
+);
+declare global {
+  interface HTMLElementTagNameMap {
+    [HTMLDwebSplashScreenElement.tagName]: HTMLDwebSplashScreenElement;
+  }
+}

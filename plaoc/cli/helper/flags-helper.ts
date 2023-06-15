@@ -87,7 +87,7 @@ export class BundleFlagHelper {
       flags.mode === SERVE_MODE.LIVE ||
       (flags.mode === undefined &&
         bundleTarget !== undefined &&
-        /^http[s]:\/\//.test(bundleTarget))
+        /^http[s]{0,1}:\/\//.test(bundleTarget))
     ) {
       const liveUrl = bundleTarget;
       if (liveUrl === undefined) {

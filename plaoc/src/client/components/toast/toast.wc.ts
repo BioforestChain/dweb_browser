@@ -2,6 +2,7 @@ import { cacheGetter } from "../../helper/cacheGetter.ts";
 import { toastPlugin } from "./toast.plugin.ts";
 
 export class HTMLDwebToastElement extends HTMLElement {
+  static readonly tagName = "dweb-toast";
   readonly plugin = toastPlugin;
 
   @cacheGetter()
@@ -9,4 +10,9 @@ export class HTMLDwebToastElement extends HTMLElement {
     return toastPlugin.show;
   }
 }
-customElements.define(toastPlugin.tagName, HTMLDwebToastElement);
+customElements.define(HTMLDwebToastElement.tagName, HTMLDwebToastElement);
+declare global {
+  interface HTMLElementTagNameMap {
+    [HTMLDwebToastElement.tagName]: HTMLDwebToastElement;
+  }
+}

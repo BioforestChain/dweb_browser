@@ -2,6 +2,7 @@ import { cacheGetter } from "../../helper/cacheGetter.ts";
 import { clipboardPlugin } from "./clipboard.plugin.ts";
 
 export class HTMLDwebClipboardElement extends HTMLElement {
+  static readonly tagName = "dweb-clipboard";
   readonly plugin = clipboardPlugin;
 
   @cacheGetter()
@@ -15,4 +16,12 @@ export class HTMLDwebClipboardElement extends HTMLElement {
   }
 }
 
-customElements.define(clipboardPlugin.tagName, HTMLDwebClipboardElement);
+customElements.define(
+  HTMLDwebClipboardElement.tagName,
+  HTMLDwebClipboardElement
+);
+declare global {
+  interface HTMLElementTagNameMap {
+    [HTMLDwebClipboardElement.tagName]: HTMLDwebClipboardElement;
+  }
+}

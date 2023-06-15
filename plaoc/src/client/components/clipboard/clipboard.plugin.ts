@@ -3,7 +3,6 @@ import { BasePlugin } from "../base/BasePlugin.ts";
 import type { ClipboardWriteOptions, ReadResult } from "./clipboard.type.ts";
 
 export class ClipboardPlugin extends BasePlugin {
-  readonly tagName = "dweb-clipboard";
   constructor() {
     super("clipboard.sys.dweb");
   }

@@ -19,8 +19,6 @@ export class StatusBarPlugin extends BarPlugin<
   $StatusBarState,
   $StatusBarWritableState
 > {
-  readonly tagName = "dweb-status-bar";
-
   constructor() {
     super("status-bar.nativeui.browser.dweb");
   }

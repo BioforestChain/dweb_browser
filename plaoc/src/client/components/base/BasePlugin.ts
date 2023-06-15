@@ -5,7 +5,6 @@ import { fetchExtends } from "../../helper/$makeFetchExtends.ts";
 import { createSignal } from "../../helper/createSignal.ts";
 
 export abstract class BasePlugin {
-  abstract tagName: string;
   static internal_url: string = globalThis.location?.href ?? "http://localhost";
   static public_url: Promise<string> | string = "";
   static internal_url_useable?: boolean;

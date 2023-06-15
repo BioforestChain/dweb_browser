@@ -4,7 +4,6 @@ import { BasePlugin } from "../base/BasePlugin.ts";
  * TODO 挪到 nativeui 中控制
  */
 export class TorchPlugin extends BasePlugin {
-  readonly tagName = "dweb-torch";
   constructor() {
     super("torch.nativeui.browser.dweb");
   }

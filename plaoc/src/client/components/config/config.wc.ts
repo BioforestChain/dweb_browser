@@ -1,20 +1,11 @@
 import { configPlugin } from "./config.plugin.ts";
 
 export class HTMLDwebConfigElement extends HTMLElement {
+  static readonly tagName = "dweb-config";
   readonly plugin = configPlugin;
   get public_url() {
     return configPlugin.public_url;
   }
-
-  connectedCallback() {
-    const searchParams = new URL(location.href).searchParams;
-    const internalUrl = searchParams.get("X-Plaoc-Internal-Url");
-    const publicUrl = searchParams.get("X-Plaoc-Public-Url");
-
-    publicUrl && configPlugin.setPublicUrl(publicUrl);
-    internalUrl && configPlugin.setInternalUrl(internalUrl);
-  }
-
   getPublicUrl() {
     return configPlugin.updatePublicUrl();
   }
@@ -28,9 +19,9 @@ export class HTMLDwebConfigElement extends HTMLElement {
   }
 }
 
-// <dweb-config/>
-customElements.define(configPlugin.tagName, HTMLDwebConfigElement);
-// <meta is="dweb-config"/>
-// customElements.define(configPlugin.tagName, HTMLDwebConfigElement, {
-//   extends: "meta",
-// });
+customElements.define(HTMLDwebConfigElement.tagName, HTMLDwebConfigElement);
+declare global {
+  interface HTMLElementTagNameMap {
+    [HTMLDwebConfigElement.tagName]: HTMLDwebConfigElement;
+  }
+}

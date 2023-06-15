@@ -8,7 +8,6 @@ import type {
 } from "./file-system.type.ts";
 
 export class FileSystemPlugin extends BasePlugin {
-  readonly tagName = "dweb-file-system";
   constructor() {
     super("file.sys.dweb");
   }

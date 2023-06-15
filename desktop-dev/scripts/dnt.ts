@@ -26,7 +26,7 @@ await dnt.build({
   package: {
     // package.json properties
     name: "@dweb-browser/desktop-sdk",
-    version: Deno.args.filter((arg) => /^\d/.test(arg))[0],
+    version: Deno.args.filter((arg) => /^\d/.test(arg))[0] || "0.0.0",
     description: "Dweb Browser Development Kit",
     license: "MIT",
     config: {
@@ -67,6 +67,15 @@ await dnt.build({
         entry.writeJson(sourceMap);
       }
     }
+    const packageJson = JSON.parse(
+      fs.readFileSync("./electron/package.json", "utf-8")
+    );
+    packageJson.devDependencies.electron = packageJson.dependencies.electron;
+    delete packageJson.dependencies.electron;
+    fs.writeFileSync(
+      "./electron/package.json",
+      JSON.stringify(packageJson, null, 2)
+    );
 
     /// 启动
     new Deno.Command("pnpm", {

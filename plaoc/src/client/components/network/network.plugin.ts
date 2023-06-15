@@ -24,8 +24,6 @@ const _network_status: Tkit = {
 };
 
 export class NetworkPlugin extends BaseEvent<keyof NetworkStatusMap> {
-  readonly tagName = "dweb-network";
-
   constructor() {
     super(_network_status);
     if (typeof window !== "undefined") {

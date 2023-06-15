@@ -12,7 +12,6 @@ export class VirtualKeyboardPlugin extends InsetsPlugin<
   $VirtualKeyboardState,
   $VirtualKeyboardWritableState
 > {
-  readonly tagName = "dweb-virtual-keyboard";
   constructor() {
     super("virtual-keyboard.nativeui.browser.dweb");
   }

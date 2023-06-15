@@ -20,8 +20,6 @@ export class NavigationBarPlugin extends BarPlugin<
   $NavigationBarState,
   $NavigationBarWritableState
 > {
-  readonly tagName = "dweb-navigation-bar";
-
   constructor() {
     super("navigation-bar.nativeui.browser.dweb");
   }

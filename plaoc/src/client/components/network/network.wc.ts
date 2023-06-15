@@ -3,7 +3,8 @@ import { cacheGetter } from "../../helper/cacheGetter.ts";
 import { networkPlugin } from "./network.plugin.ts";
 
 export class HTMLDwebNetworkElement extends HTMLElement {
-  plugin = networkPlugin;
+  static readonly tagName = "dweb-network";
+  readonly plugin = networkPlugin;
 
   @cacheGetter()
   get getStatus() {
@@ -16,4 +17,9 @@ export class HTMLDwebNetworkElement extends HTMLElement {
   }
 }
 
-customElements.define(networkPlugin.tagName, HTMLDwebNetworkElement);
+customElements.define(HTMLDwebNetworkElement.tagName, HTMLDwebNetworkElement);
+declare global {
+  interface HTMLElementTagNameMap {
+    [HTMLDwebNetworkElement.tagName]: HTMLDwebNetworkElement;
+  }
+}

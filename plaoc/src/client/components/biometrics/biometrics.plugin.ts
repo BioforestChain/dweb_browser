@@ -3,7 +3,6 @@ import { BasePlugin } from "../base/BasePlugin.ts";
 import { BioetricsResult } from "./biometrics.type.ts";
 
 export class BiometricsPlugin extends BasePlugin {
-  readonly tagName = "dweb-biometrics";
   constructor() {
     super("biometrics.sys.dweb");
   }

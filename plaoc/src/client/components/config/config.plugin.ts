@@ -1,10 +1,22 @@
+/// <reference lib="dom"/>
 import { BasePlugin } from "../base/BasePlugin.ts";
 
 export class ConfigPlugin extends BasePlugin {
-  readonly tagName = "dweb-config";
   constructor() {
     super("internal");
+    if (typeof location === "object") {
+      this.initConfig();
+    }
   }
+  initConfig(href = location.href) {
+    const searchParams = new URL(href).searchParams;
+    const internalUrl = searchParams.get("X-Plaoc-Internal-Url");
+    const publicUrl = searchParams.get("X-Plaoc-Public-Url");
+
+    publicUrl && this.setPublicUrl(publicUrl);
+    internalUrl && this.setInternalUrl(internalUrl);
+  }
+
   getInternalUrl() {
     return BasePlugin.internal_url;
   }

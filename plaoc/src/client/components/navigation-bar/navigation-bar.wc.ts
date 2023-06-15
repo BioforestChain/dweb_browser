@@ -10,10 +10,11 @@ export class HTMLDwebNavigationBarElement extends HTMLStateObserverElement<
   $NavigationBarRawState,
   $NavigationBarState
 > {
+  static readonly tagName = "dweb-navigation-bar";
+  readonly plugin = navigationBarPlugin;
   constructor() {
     super(navigationBarPlugin.state);
   }
-  readonly plugin = navigationBarPlugin;
   @cacheGetter()
   get setColor() {
     return navigationBarPlugin.setColor;
@@ -61,6 +62,12 @@ export class HTMLDwebNavigationBarElement extends HTMLStateObserverElement<
 }
 
 customElements.define(
-  navigationBarPlugin.tagName,
+  HTMLDwebNavigationBarElement.tagName,
   HTMLDwebNavigationBarElement
 );
+
+declare global {
+  interface HTMLElementTagNameMap {
+    [HTMLDwebNavigationBarElement.tagName]: HTMLDwebNavigationBarElement;
+  }
+}

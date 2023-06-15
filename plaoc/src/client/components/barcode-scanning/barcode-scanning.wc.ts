@@ -10,7 +10,8 @@ import {
 } from "./barcode-scanning.type.ts";
 
 export class HTMLDwebBarcodeScanningElement extends HTMLElement {
-  plugin = barcodeScannerPlugin;
+  static readonly tagName = "dweb-barcode-scanning";
+  readonly plugin = barcodeScannerPlugin;
 
   private _video: HTMLVideoElement | null = null;
   private _canvas: HTMLCanvasElement | null = null;
@@ -328,6 +329,11 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
 }
 
 customElements.define(
-  barcodeScannerPlugin.tagName,
+  HTMLDwebBarcodeScanningElement.tagName,
   HTMLDwebBarcodeScanningElement
 );
+declare global {
+  interface HTMLElementTagNameMap{
+    [HTMLDwebBarcodeScanningElement.tagName]: HTMLDwebBarcodeScanningElement
+  }
+}

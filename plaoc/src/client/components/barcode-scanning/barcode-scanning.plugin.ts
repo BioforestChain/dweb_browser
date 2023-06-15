@@ -5,8 +5,6 @@ import { BasePlugin } from "../base/BasePlugin.ts";
 import { SupportedFormat } from "./barcode-scanning.type.ts";
 
 export class BarcodeScannerPlugin extends BasePlugin {
-  readonly tagName = "dweb-barcode-scanning";
-
   constructor() {
     super("barcode-scanning.sys.dweb");
   }

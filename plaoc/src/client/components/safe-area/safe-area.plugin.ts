@@ -13,7 +13,6 @@ export class SafeAreaPlugin extends InsetsPlugin<
   $SafeAreaState,
   $SafeAreaWritableState
 > {
-  readonly tagName = "dweb-safe-area";
   constructor() {
     super("safe-area.nativeui.browser.dweb");
   }

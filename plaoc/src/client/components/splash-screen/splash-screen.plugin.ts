@@ -6,7 +6,6 @@ import type {
 } from "./splash-screen.type.ts";
 
 export class SplashScreenPlugin extends BasePlugin {
-  readonly tagName = "dweb-splash-screen";
   constructor() {
     super("splash-screen.nativeui.browser.dweb");
   }

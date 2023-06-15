@@ -7,10 +7,11 @@ export class HTMLDwebStatusBarElement extends HTMLStateObserverElement<
   $StatusBarRawState,
   $StatusBarState
 > {
+  static readonly tagName = "dweb-status-bar";
+  readonly plugin = statusBarPlugin;
   constructor() {
     super(statusBarPlugin.state);
   }
-  readonly plugin = statusBarPlugin;
   @cacheGetter()
   get setColor() {
     return statusBarPlugin.setColor;
@@ -57,4 +58,13 @@ export class HTMLDwebStatusBarElement extends HTMLStateObserverElement<
   }
 }
 
-customElements.define(statusBarPlugin.tagName, HTMLDwebStatusBarElement);
+customElements.define(
+  HTMLDwebStatusBarElement.tagName,
+  HTMLDwebStatusBarElement
+);
+
+declare global {
+  interface HTMLElementTagNameMap {
+    [HTMLDwebStatusBarElement.tagName]: HTMLDwebStatusBarElement;
+  }
+}

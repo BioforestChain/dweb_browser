@@ -2,7 +2,8 @@ import { cacheGetter } from "../../helper/cacheGetter.ts";
 import { biometricsPlugin } from "./biometrics.plugin.ts";
 
 export class HTMLDwebBiometricsElement extends HTMLElement {
-  plugin = biometricsPlugin;
+  static readonly tagName = "dweb-biometrics";
+  readonly plugin = biometricsPlugin;
 
   @cacheGetter()
   get check() {
@@ -15,4 +16,9 @@ export class HTMLDwebBiometricsElement extends HTMLElement {
   }
 }
 
-customElements.define(biometricsPlugin.tagName, HTMLDwebBiometricsElement);
+customElements.define(HTMLDwebBiometricsElement.tagName, HTMLDwebBiometricsElement);
+declare global {
+  interface HTMLElementTagNameMap{
+   [HTMLDwebBiometricsElement.tagName]: HTMLDwebBiometricsElement
+  }
+}

@@ -7,7 +7,6 @@ import type {
 } from "./haptics.type.ts";
 
 export class HapticsPlugin extends BasePlugin {
-  readonly tagName = "dweb-haptics";
   constructor() {
     super("haptics.sys.dweb");
   }

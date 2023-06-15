@@ -1,6 +1,7 @@
 import { fileSystemPlugin } from "./file-system.plugin.ts";
 
 export class HTMLDwebFileSystemElement extends HTMLElement {
+  static readonly tagName = "dweb-file-system";
   readonly plugin = fileSystemPlugin;
 
   get writeFile() {
@@ -11,4 +12,9 @@ export class HTMLDwebFileSystemElement extends HTMLElement {
   }
 }
 
-customElements.define(fileSystemPlugin.tagName, HTMLDwebFileSystemElement);
+customElements.define(HTMLDwebFileSystemElement.tagName, HTMLDwebFileSystemElement);
+declare global {
+  interface HTMLElementTagNameMap {
+    [HTMLDwebFileSystemElement.tagName]: HTMLDwebFileSystemElement;
+  }
+}

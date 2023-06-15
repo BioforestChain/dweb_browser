@@ -10,6 +10,8 @@ export class HTMLDwebVirtualKeyboardElement extends HTMLStateObserverElement<
   $VirtualKeyboardRawState,
   $VirtualKeyboardState
 > {
+  static readonly tagName = "dweb-virtual-keyboard";
+  readonly plugin = virtualKeyboardPlugin;
   constructor() {
     super(virtualKeyboardPlugin.state);
   }
@@ -31,6 +33,11 @@ export class HTMLDwebVirtualKeyboardElement extends HTMLStateObserverElement<
   }
 }
 customElements.define(
-  virtualKeyboardPlugin.tagName,
+  HTMLDwebVirtualKeyboardElement.tagName,
   HTMLDwebVirtualKeyboardElement
 );
+declare global {
+  interface HTMLElementTagNameMap {
+    [HTMLDwebVirtualKeyboardElement.tagName]: HTMLDwebVirtualKeyboardElement;
+  }
+}

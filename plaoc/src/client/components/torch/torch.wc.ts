@@ -2,6 +2,7 @@ import { cacheGetter } from "../../helper/cacheGetter.ts";
 import { torchPlugin } from "./torch.plugin.ts";
 
 export class HTMLDwebTorchElement extends HTMLElement {
+  static readonly tagName = "dweb-torch";
   readonly plugin = torchPlugin;
 
   @cacheGetter()
@@ -13,4 +14,9 @@ export class HTMLDwebTorchElement extends HTMLElement {
     return torchPlugin.getTorchState;
   }
 }
-customElements.define(torchPlugin.tagName, HTMLDwebTorchElement);
+customElements.define(HTMLDwebTorchElement.tagName, HTMLDwebTorchElement);
+declare global {
+  interface HTMLElementTagNameMap {
+    [HTMLDwebTorchElement.tagName]: HTMLDwebTorchElement;
+  }
+}
