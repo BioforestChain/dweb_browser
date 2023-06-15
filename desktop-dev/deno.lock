@@ -821,6 +821,7 @@
       "lit@^2.6.1": "lit@2.7.5",
       "lmdb": "lmdb@2.8.0",
       "mime": "mime@3.0.0",
+      "source-map-support@^0.5.21": "source-map-support@0.5.21",
       "tar": "tar@6.1.15",
       "vite-plugin-electron-renderer@^0.12.1": "vite-plugin-electron-renderer@0.12.1",
       "vite@^4.3.9": "vite@4.3.9_@types+node@18.11.18"
@@ -1365,6 +1366,10 @@
       },
       "buffer-equal@0.0.1": {
         "integrity": "sha512-RgSV6InVQ9ODPdLWJ5UAqBqJBOg370Nz6ZQtRzpt6nUjc8v0St97uJ4PYC6NztqIScrAXafKM3mZPMygSe1ggA==",
+        "dependencies": {}
+      },
+      "buffer-from@1.1.2": {
+        "integrity": "sha512-E+XQCRwSbaaiChtv6k6Dwgc+bx+Bs6vuKJHHl5kox/BaKbhiXzqQOwK4cO22yElGp2OCmjwVhT3HmxgyPGnJfQ==",
         "dependencies": {}
       },
       "buffer@5.7.1": {
@@ -2176,6 +2181,17 @@
       },
       "source-map-js@1.0.2": {
         "integrity": "sha512-R0XvVJ9WusLiqTCEiGCmICCMplcCkIwwR11mOSD9CR5u+IXYdiseeEuXCVAjS54zqwkLcPNnmU4OeJ6tUrWhDw==",
+        "dependencies": {}
+      },
+      "source-map-support@0.5.21": {
+        "integrity": "sha512-uBHU3L3czsIyYXKX88fdrGovxdSCoTGDRZ6SYXtSRxLZUzHg5P/66Ht6uoUlHu9EZod+inXhKo3qQgwXUT/y1w==",
+        "dependencies": {
+          "buffer-from": "buffer-from@1.1.2",
+          "source-map": "source-map@0.6.1"
+        }
+      },
+      "source-map@0.6.1": {
+        "integrity": "sha512-UjgapumWlbMhkBgzT7Ykc5YXUT46F0iKu8SGXq0bcwP5dz/h0Plj6enJqjz1Zbq2l5WaqYnrVbwWOWMyF3F47g==",
         "dependencies": {}
       },
       "sprintf-js@1.1.2": {

@@ -1,5 +1,5 @@
 // 工具函数用来打开 js-process 的window
-import { wrap } from "comlink";
+import { Remote, wrap } from "comlink";
 import Electron from "electron";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
 
@@ -67,7 +67,7 @@ export async function jsProcessOpenWindow(
   devToolsBV.setBounds({
     x: options.show ? contentBounds.width / 2 : 0,
     y: titleBarHeight,
-    width: options.Show ? contentBounds.width / 2 : contentBounds.width,
+    width: options.show ? contentBounds.width / 2 : contentBounds.width,
     height: contentBounds.height,
   });
 
@@ -83,7 +83,7 @@ export async function jsProcessOpenWindow(
   });
 }
 
-export type $NWW = Electron.BroserWindow & $ExtendsBrowserWindow;
+export type $NWW = Electron.BrowserWindow & $ExtendsBrowserWindow;
 export interface $ExtendsBrowserWindow {
-  getApis<T>(): typeof wrap<T>;
+  getApis<T>(): Remote<T>;
 }

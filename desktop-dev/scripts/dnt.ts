@@ -37,7 +37,7 @@ await dnt.build({
       electron_mirror: "https://npm.taobao.org/mirrors/electron/",
     },
     scripts: {
-      start: "electron ./script/index.dev.js",
+      start: "electron ./bundle/index.js",
     },
     author: "Bnqkl Dweb Team",
     main: "./bundle/index.js",

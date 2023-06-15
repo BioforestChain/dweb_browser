@@ -35,7 +35,6 @@ export class MultiWebviewNMM extends NativeMicroModule {
     /// 从本地文件夹中读取数据返回，
     /// 如果是Android，则使用 AssetManager API 读取文件数据，并且需要手动绑定 mime 与 statusCode
     (await httpDwebServer.listen()).onRequest(async (request, ipc) => {
-      
       ipc.postMessage(
         await IpcResponse.fromResponse(
           request.req_id,
@@ -158,7 +157,10 @@ export class MultiWebviewNMM extends NativeMicroModule {
           return;
         } else {
           ipc.postMessage(
-            IpcEvent.fromText(MWEBVIEW_LIFECYCLE_EVENT.State, JSON.stringify(allWebviewState))
+            IpcEvent.fromText(
+              MWEBVIEW_LIFECYCLE_EVENT.State,
+              JSON.stringify(allWebviewState)
+            )
           );
         }
       }
@@ -181,10 +183,7 @@ export class MultiWebviewNMM extends NativeMicroModule {
     clientIpc.onClose(() => {
       this._all_open_ipc.delete(clientIpc.uid);
     });
-    const wapis = await forceGetWapis.bind(this)(
-      clientIpc,
-      root_url
-    );
+    const wapis = await forceGetWapis.bind(this)(clientIpc, root_url);
     const webview_id = await wapis.apis.webveiws_unshift(args.url);
     return webview_id;
   }
@@ -203,6 +202,6 @@ type $ObserveMapNwwItem = Map<string /** mmid */, $ObserveItem>;
 
 type $ObserveMapNww = Map<
   // nww
-  Electron.CrossProcessExports.BrowserWindow,
+  Electron.BrowserWindow,
   $ObserveMapNwwItem
 >;

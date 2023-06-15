@@ -2,10 +2,10 @@
 
 import Jimp from "npm:jimp";
 import jsQR from "npm:jsqr";
- 
+import { Buffer } from "node:buffer";
+import type { Ipc } from "../../core/ipc/ipc.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import type { HttpServerNMM } from "../http-server/http-server.ts";
-import type { Ipc } from "../../core/ipc/ipc.ts";
 
 export class BarcodeScanningNativeUiNMM extends NativeMicroModule {
   mmid = "barcode-scanning.sys.dweb" as const;
@@ -25,9 +25,13 @@ export class BarcodeScanningNativeUiNMM extends NativeMicroModule {
       output: "object",
       handler: async (_args, _client_ipc, ipcRequest) => {
         // 直接解析二维码
-        return await Jimp.read(Buffer.from(await ipcRequest.body.u8a()))
-        .then(({ bitmap }: Jimp) => {
-            const result = jsQR(bitmap.data as unknown as Uint8ClampedArray, bitmap.width, bitmap.height);
+        return await Jimp.read(Buffer.from(await ipcRequest.body.u8a())).then(
+          ({ bitmap }: Jimp) => {
+            const result = jsQR.default(
+              bitmap.data as unknown as Uint8ClampedArray,
+              bitmap.width,
+              bitmap.height
+            );
             return result === null ? [] : [result.data];
           }
         );

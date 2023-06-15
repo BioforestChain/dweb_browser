@@ -169,7 +169,7 @@ export class JsProcessNMM extends NativeMicroModule {
     ).href;
 
     this._after_shutdown_signal.listen(mainServer.close);
-    
+
     let nww: $NWW | undefined;
     // 从 渲染进程的 主线程中获取到 暴露的 apis
     const apis = await (async () => {
@@ -180,15 +180,15 @@ export class JsProcessNMM extends NativeMicroModule {
           url.pathname = "/index.html";
         }).href,
         {
-          // 是否需要显示 js-process 的窗口 
-          show: true //process.argv.includes("--inspect") ? true : false, // require.main?.filename.endsWith(".html"),
+          // 是否需要显示 js-process 的窗口
+          show: true, //process.argv.includes("--inspect") ? true : false, // require.main?.filename.endsWith(".html"),
         },
         { userAgent: (userAgent) => userAgent + ` dweb-host/${urlInfo.host}` }
       );
       this._after_shutdown_signal.listen(() => {
-        nww.close();
+        nww!.close();
       });
-      return nww.getApis();
+      return nww.getApis<$APIS>();
     })();
 
     const ipcProcessIdMap = new WeakMap<Ipc, Map<string, PromiseOut<number>>>();
@@ -261,21 +261,22 @@ export class JsProcessNMM extends NativeMicroModule {
       pathname: "/bw",
       matchMode: "full",
       input: {
-        action: "string"
+        action: "string",
       },
-      output: 'boolean',
+      output: "boolean",
       handler: async (args, ipc, request) => {
-        if(nww === undefined) return false;
-        args.action === "show" 
-        ? nww.isVisible() ? "" : nww.show() 
-        : nww.hide();
+        if (nww === undefined) return false;
+        args.action === "show"
+          ? nww.isVisible()
+            ? ""
+            : nww.show()
+          : nww.hide();
         ipc.onClose(() => {
           /** 暂无 */
-        })
+        });
         return true;
-      }
-    })
-
+      },
+    });
   }
   async _shutdown() {}
 
