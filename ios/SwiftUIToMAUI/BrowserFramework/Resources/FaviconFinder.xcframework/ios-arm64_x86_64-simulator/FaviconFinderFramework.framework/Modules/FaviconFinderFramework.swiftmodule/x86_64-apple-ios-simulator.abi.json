@@ -1,0 +1,3710 @@
+{
+  "ABIRoot": {
+    "kind": "Root",
+    "name": "TopLevel",
+    "printedName": "TopLevel",
+    "children": [
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "FaviconFinderFramework",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "FaviconFinderFramework",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "FaviconFinderFramework",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "FaviconFinderFramework",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "FaviconFinderFramework",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "FaviconError",
+        "printedName": "FaviconError",
+        "children": [
+          {
+            "kind": "Var",
+            "name": "emptyData",
+            "printedName": "emptyData",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(FaviconFinderFramework.FaviconError.Type) -> FaviconFinderFramework.FaviconError",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "FaviconError",
+                    "printedName": "FaviconFinderFramework.FaviconError",
+                    "usr": "s:22FaviconFinderFramework0A5ErrorO"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "FaviconFinderFramework.FaviconError.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "FaviconError",
+                        "printedName": "FaviconFinderFramework.FaviconError",
+                        "usr": "s:22FaviconFinderFramework0A5ErrorO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:22FaviconFinderFramework0A5ErrorO9emptyDatayA2CmF",
+            "mangledName": "$s22FaviconFinderFramework0A5ErrorO9emptyDatayA2CmF",
+            "moduleName": "FaviconFinderFramework"
+          },
+          {
+            "kind": "Var",
+            "name": "failedToParseHTML",
+            "printedName": "failedToParseHTML",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(FaviconFinderFramework.FaviconError.Type) -> FaviconFinderFramework.FaviconError",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "FaviconError",
+                    "printedName": "FaviconFinderFramework.FaviconError",
+                    "usr": "s:22FaviconFinderFramework0A5ErrorO"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "FaviconFinderFramework.FaviconError.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "FaviconError",
+                        "printedName": "FaviconFinderFramework.FaviconError",
+                        "usr": "s:22FaviconFinderFramework0A5ErrorO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:22FaviconFinderFramework0A5ErrorO17failedToParseHTMLyA2CmF",
+            "mangledName": "$s22FaviconFinderFramework0A5ErrorO17failedToParseHTMLyA2CmF",
+            "moduleName": "FaviconFinderFramework"
+          },
+          {
+            "kind": "Var",
+            "name": "failedToFindFavicon",
+            "printedName": "failedToFindFavicon",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(FaviconFinderFramework.FaviconError.Type) -> FaviconFinderFramework.FaviconError",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "FaviconError",
+                    "printedName": "FaviconFinderFramework.FaviconError",
+                    "usr": "s:22FaviconFinderFramework0A5ErrorO"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "FaviconFinderFramework.FaviconError.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "FaviconError",
+                        "printedName": "FaviconFinderFramework.FaviconError",
+                        "usr": "s:22FaviconFinderFramework0A5ErrorO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:22FaviconFinderFramework0A5ErrorO012failedToFindA0yA2CmF",
+            "mangledName": "$s22FaviconFinderFramework0A5ErrorO012failedToFindA0yA2CmF",
+            "moduleName": "FaviconFinderFramework"
+          },
+          {
+            "kind": "Var",
+            "name": "failedToDownloadFavicon",
+            "printedName": "failedToDownloadFavicon",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(FaviconFinderFramework.FaviconError.Type) -> FaviconFinderFramework.FaviconError",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "FaviconError",
+                    "printedName": "FaviconFinderFramework.FaviconError",
+                    "usr": "s:22FaviconFinderFramework0A5ErrorO"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "FaviconFinderFramework.FaviconError.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "FaviconError",
+                        "printedName": "FaviconFinderFramework.FaviconError",
+                        "usr": "s:22FaviconFinderFramework0A5ErrorO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:22FaviconFinderFramework0A5ErrorO016failedToDownloadA0yA2CmF",
+            "mangledName": "$s22FaviconFinderFramework0A5ErrorO016failedToDownloadA0yA2CmF",
+            "moduleName": "FaviconFinderFramework"
+          },
+          {
+            "kind": "Var",
+            "name": "emptyFavicon",
+            "printedName": "emptyFavicon",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(FaviconFinderFramework.FaviconError.Type) -> FaviconFinderFramework.FaviconError",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "FaviconError",
+                    "printedName": "FaviconFinderFramework.FaviconError",
+                    "usr": "s:22FaviconFinderFramework0A5ErrorO"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "FaviconFinderFramework.FaviconError.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "FaviconError",
+                        "printedName": "FaviconFinderFramework.FaviconError",
+                        "usr": "s:22FaviconFinderFramework0A5ErrorO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:22FaviconFinderFramework0A5ErrorO05emptyA0yA2CmF",
+            "mangledName": "$s22FaviconFinderFramework0A5ErrorO05emptyA0yA2CmF",
+            "moduleName": "FaviconFinderFramework"
+          },
+          {
+            "kind": "Var",
+            "name": "invalidImage",
+            "printedName": "invalidImage",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(FaviconFinderFramework.FaviconError.Type) -> FaviconFinderFramework.FaviconError",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "FaviconError",
+                    "printedName": "FaviconFinderFramework.FaviconError",
+                    "usr": "s:22FaviconFinderFramework0A5ErrorO"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "FaviconFinderFramework.FaviconError.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "FaviconError",
+                        "printedName": "FaviconFinderFramework.FaviconError",
+                        "usr": "s:22FaviconFinderFramework0A5ErrorO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:22FaviconFinderFramework0A5ErrorO12invalidImageyA2CmF",
+            "mangledName": "$s22FaviconFinderFramework0A5ErrorO12invalidImageyA2CmF",
+            "moduleName": "FaviconFinderFramework"
+          },
+          {
+            "kind": "Var",
+            "name": "other",
+            "printedName": "other",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(FaviconFinderFramework.FaviconError.Type) -> FaviconFinderFramework.FaviconError",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "FaviconError",
+                    "printedName": "FaviconFinderFramework.FaviconError",
+                    "usr": "s:22FaviconFinderFramework0A5ErrorO"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "FaviconFinderFramework.FaviconError.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "FaviconError",
+                        "printedName": "FaviconFinderFramework.FaviconError",
+                        "usr": "s:22FaviconFinderFramework0A5ErrorO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:22FaviconFinderFramework0A5ErrorO5otheryA2CmF",
+            "mangledName": "$s22FaviconFinderFramework0A5ErrorO5otheryA2CmF",
+            "moduleName": "FaviconFinderFramework"
+          },
+          {
+            "kind": "Var",
+            "name": "failedToFindWebApplicationManifestFile",
+            "printedName": "failedToFindWebApplicationManifestFile",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(FaviconFinderFramework.FaviconError.Type) -> FaviconFinderFramework.FaviconError",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "FaviconError",
+                    "printedName": "FaviconFinderFramework.FaviconError",
+                    "usr": "s:22FaviconFinderFramework0A5ErrorO"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "FaviconFinderFramework.FaviconError.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "FaviconError",
+                        "printedName": "FaviconFinderFramework.FaviconError",
+                        "usr": "s:22FaviconFinderFramework0A5ErrorO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:22FaviconFinderFramework0A5ErrorO38failedToFindWebApplicationManifestFileyA2CmF",
+            "mangledName": "$s22FaviconFinderFramework0A5ErrorO38failedToFindWebApplicationManifestFileyA2CmF",
+            "moduleName": "FaviconFinderFramework"
+          },
+          {
+            "kind": "Var",
+            "name": "failedToDownloadWebApplicationManifestFile",
+            "printedName": "failedToDownloadWebApplicationManifestFile",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(FaviconFinderFramework.FaviconError.Type) -> FaviconFinderFramework.FaviconError",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "FaviconError",
+                    "printedName": "FaviconFinderFramework.FaviconError",
+                    "usr": "s:22FaviconFinderFramework0A5ErrorO"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "FaviconFinderFramework.FaviconError.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "FaviconError",
+                        "printedName": "FaviconFinderFramework.FaviconError",
+                        "usr": "s:22FaviconFinderFramework0A5ErrorO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:22FaviconFinderFramework0A5ErrorO42failedToDownloadWebApplicationManifestFileyA2CmF",
+            "mangledName": "$s22FaviconFinderFramework0A5ErrorO42failedToDownloadWebApplicationManifestFileyA2CmF",
+            "moduleName": "FaviconFinderFramework"
+          },
+          {
+            "kind": "Var",
+            "name": "failedToParseWebApplicationManifestFile",
+            "printedName": "failedToParseWebApplicationManifestFile",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(FaviconFinderFramework.FaviconError.Type) -> FaviconFinderFramework.FaviconError",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "FaviconError",
+                    "printedName": "FaviconFinderFramework.FaviconError",
+                    "usr": "s:22FaviconFinderFramework0A5ErrorO"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "FaviconFinderFramework.FaviconError.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "FaviconError",
+                        "printedName": "FaviconFinderFramework.FaviconError",
+                        "usr": "s:22FaviconFinderFramework0A5ErrorO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:22FaviconFinderFramework0A5ErrorO39failedToParseWebApplicationManifestFileyA2CmF",
+            "mangledName": "$s22FaviconFinderFramework0A5ErrorO39failedToParseWebApplicationManifestFileyA2CmF",
+            "moduleName": "FaviconFinderFramework"
+          },
+          {
+            "kind": "Function",
+            "name": "==",
+            "printedName": "==(_:_:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Bool",
+                "printedName": "Swift.Bool",
+                "usr": "s:Sb"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "FaviconError",
+                "printedName": "FaviconFinderFramework.FaviconError",
+                "usr": "s:22FaviconFinderFramework0A5ErrorO"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "FaviconError",
+                "printedName": "FaviconFinderFramework.FaviconError",
+                "usr": "s:22FaviconFinderFramework0A5ErrorO"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:22FaviconFinderFramework0A5ErrorO2eeoiySbAC_ACtFZ",
+            "mangledName": "$s22FaviconFinderFramework0A5ErrorO2eeoiySbAC_ACtFZ",
+            "moduleName": "FaviconFinderFramework",
+            "static": true,
+            "implicit": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Var",
+            "name": "hashValue",
+            "printedName": "hashValue",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Int",
+                "printedName": "Swift.Int",
+                "usr": "s:Si"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:22FaviconFinderFramework0A5ErrorO9hashValueSivp",
+            "mangledName": "$s22FaviconFinderFramework0A5ErrorO9hashValueSivp",
+            "moduleName": "FaviconFinderFramework",
+            "implicit": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Int",
+                    "printedName": "Swift.Int",
+                    "usr": "s:Si"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:22FaviconFinderFramework0A5ErrorO9hashValueSivg",
+                "mangledName": "$s22FaviconFinderFramework0A5ErrorO9hashValueSivg",
+                "moduleName": "FaviconFinderFramework",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Function",
+            "name": "hash",
+            "printedName": "hash(into:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Hasher",
+                "printedName": "Swift.Hasher",
+                "paramValueOwnership": "InOut",
+                "usr": "s:s6HasherV"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:22FaviconFinderFramework0A5ErrorO4hash4intoys6HasherVz_tF",
+            "mangledName": "$s22FaviconFinderFramework0A5ErrorO4hash4intoys6HasherVz_tF",
+            "moduleName": "FaviconFinderFramework",
+            "implicit": true,
+            "funcSelfKind": "NonMutating"
+          }
+        ],
+        "declKind": "Enum",
+        "usr": "s:22FaviconFinderFramework0A5ErrorO",
+        "mangledName": "$s22FaviconFinderFramework0A5ErrorO",
+        "moduleName": "FaviconFinderFramework",
+        "declAttributes": [
+          "AccessControl"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Equatable",
+            "printedName": "Equatable",
+            "usr": "s:SQ",
+            "mangledName": "$sSQ"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Hashable",
+            "printedName": "Hashable",
+            "usr": "s:SH",
+            "mangledName": "$sSH"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Error",
+            "printedName": "Error",
+            "usr": "s:s5ErrorP",
+            "mangledName": "$ss5ErrorP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Sendable",
+            "printedName": "Sendable",
+            "usr": "s:s8SendableP",
+            "mangledName": "$ss8SendableP"
+          }
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "FaviconFinderFramework",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "FaviconFinderFramework",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "FaviconType",
+        "printedName": "FaviconType",
+        "children": [
+          {
+            "kind": "Var",
+            "name": "appleTouchIcon",
+            "printedName": "appleTouchIcon",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(FaviconFinderFramework.FaviconType.Type) -> FaviconFinderFramework.FaviconType",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "FaviconType",
+                    "printedName": "FaviconFinderFramework.FaviconType",
+                    "usr": "s:22FaviconFinderFramework0A4TypeO"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "FaviconFinderFramework.FaviconType.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "FaviconType",
+                        "printedName": "FaviconFinderFramework.FaviconType",
+                        "usr": "s:22FaviconFinderFramework0A4TypeO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:22FaviconFinderFramework0A4TypeO14appleTouchIconyA2CmF",
+            "mangledName": "$s22FaviconFinderFramework0A4TypeO14appleTouchIconyA2CmF",
+            "moduleName": "FaviconFinderFramework",
+            "declAttributes": [
+              "RawDocComment"
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "appleTouchIconPrecomposed",
+            "printedName": "appleTouchIconPrecomposed",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(FaviconFinderFramework.FaviconType.Type) -> FaviconFinderFramework.FaviconType",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "FaviconType",
+                    "printedName": "FaviconFinderFramework.FaviconType",
+                    "usr": "s:22FaviconFinderFramework0A4TypeO"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "FaviconFinderFramework.FaviconType.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "FaviconType",
+                        "printedName": "FaviconFinderFramework.FaviconType",
+                        "usr": "s:22FaviconFinderFramework0A4TypeO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:22FaviconFinderFramework0A4TypeO25appleTouchIconPrecomposedyA2CmF",
+            "mangledName": "$s22FaviconFinderFramework0A4TypeO25appleTouchIconPrecomposedyA2CmF",
+            "moduleName": "FaviconFinderFramework"
+          },
+          {
+            "kind": "Var",
+            "name": "shortcutIcon",
+            "printedName": "shortcutIcon",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(FaviconFinderFramework.FaviconType.Type) -> FaviconFinderFramework.FaviconType",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "FaviconType",
+                    "printedName": "FaviconFinderFramework.FaviconType",
+                    "usr": "s:22FaviconFinderFramework0A4TypeO"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "FaviconFinderFramework.FaviconType.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "FaviconType",
+                        "printedName": "FaviconFinderFramework.FaviconType",
+                        "usr": "s:22FaviconFinderFramework0A4TypeO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:22FaviconFinderFramework0A4TypeO12shortcutIconyA2CmF",
+            "mangledName": "$s22FaviconFinderFramework0A4TypeO12shortcutIconyA2CmF",
+            "moduleName": "FaviconFinderFramework"
+          },
+          {
+            "kind": "Var",
+            "name": "icon",
+            "printedName": "icon",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(FaviconFinderFramework.FaviconType.Type) -> FaviconFinderFramework.FaviconType",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "FaviconType",
+                    "printedName": "FaviconFinderFramework.FaviconType",
+                    "usr": "s:22FaviconFinderFramework0A4TypeO"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "FaviconFinderFramework.FaviconType.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "FaviconType",
+                        "printedName": "FaviconFinderFramework.FaviconType",
+                        "usr": "s:22FaviconFinderFramework0A4TypeO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:22FaviconFinderFramework0A4TypeO4iconyA2CmF",
+            "mangledName": "$s22FaviconFinderFramework0A4TypeO4iconyA2CmF",
+            "moduleName": "FaviconFinderFramework"
+          },
+          {
+            "kind": "Var",
+            "name": "ico",
+            "printedName": "ico",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(FaviconFinderFramework.FaviconType.Type) -> FaviconFinderFramework.FaviconType",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "FaviconType",
+                    "printedName": "FaviconFinderFramework.FaviconType",
+                    "usr": "s:22FaviconFinderFramework0A4TypeO"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "FaviconFinderFramework.FaviconType.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "FaviconType",
+                        "printedName": "FaviconFinderFramework.FaviconType",
+                        "usr": "s:22FaviconFinderFramework0A4TypeO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:22FaviconFinderFramework0A4TypeO3icoyA2CmF",
+            "mangledName": "$s22FaviconFinderFramework0A4TypeO3icoyA2CmF",
+            "moduleName": "FaviconFinderFramework",
+            "declAttributes": [
+              "RawDocComment"
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "launcherIcon1x",
+            "printedName": "launcherIcon1x",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(FaviconFinderFramework.FaviconType.Type) -> FaviconFinderFramework.FaviconType",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "FaviconType",
+                    "printedName": "FaviconFinderFramework.FaviconType",
+                    "usr": "s:22FaviconFinderFramework0A4TypeO"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "FaviconFinderFramework.FaviconType.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "FaviconType",
+                        "printedName": "FaviconFinderFramework.FaviconType",
+                        "usr": "s:22FaviconFinderFramework0A4TypeO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:22FaviconFinderFramework0A4TypeO14launcherIcon1xyA2CmF",
+            "mangledName": "$s22FaviconFinderFramework0A4TypeO14launcherIcon1xyA2CmF",
+            "moduleName": "FaviconFinderFramework",
+            "declAttributes": [
+              "RawDocComment"
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "launcherIcon2x",
+            "printedName": "launcherIcon2x",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(FaviconFinderFramework.FaviconType.Type) -> FaviconFinderFramework.FaviconType",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "FaviconType",
+                    "printedName": "FaviconFinderFramework.FaviconType",
+                    "usr": "s:22FaviconFinderFramework0A4TypeO"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "FaviconFinderFramework.FaviconType.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "FaviconType",
+                        "printedName": "FaviconFinderFramework.FaviconType",
+                        "usr": "s:22FaviconFinderFramework0A4TypeO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:22FaviconFinderFramework0A4TypeO14launcherIcon2xyA2CmF",
+            "mangledName": "$s22FaviconFinderFramework0A4TypeO14launcherIcon2xyA2CmF",
+            "moduleName": "FaviconFinderFramework"
+          },
+          {
+            "kind": "Var",
+            "name": "launcherIcon3x",
+            "printedName": "launcherIcon3x",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(FaviconFinderFramework.FaviconType.Type) -> FaviconFinderFramework.FaviconType",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "FaviconType",
+                    "printedName": "FaviconFinderFramework.FaviconType",
+                    "usr": "s:22FaviconFinderFramework0A4TypeO"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "FaviconFinderFramework.FaviconType.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "FaviconType",
+                        "printedName": "FaviconFinderFramework.FaviconType",
+                        "usr": "s:22FaviconFinderFramework0A4TypeO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:22FaviconFinderFramework0A4TypeO14launcherIcon3xyA2CmF",
+            "mangledName": "$s22FaviconFinderFramework0A4TypeO14launcherIcon3xyA2CmF",
+            "moduleName": "FaviconFinderFramework"
+          },
+          {
+            "kind": "Var",
+            "name": "launcherIcon4x",
+            "printedName": "launcherIcon4x",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(FaviconFinderFramework.FaviconType.Type) -> FaviconFinderFramework.FaviconType",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "FaviconType",
+                    "printedName": "FaviconFinderFramework.FaviconType",
+                    "usr": "s:22FaviconFinderFramework0A4TypeO"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "FaviconFinderFramework.FaviconType.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "FaviconType",
+                        "printedName": "FaviconFinderFramework.FaviconType",
+                        "usr": "s:22FaviconFinderFramework0A4TypeO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:22FaviconFinderFramework0A4TypeO14launcherIcon4xyA2CmF",
+            "mangledName": "$s22FaviconFinderFramework0A4TypeO14launcherIcon4xyA2CmF",
+            "moduleName": "FaviconFinderFramework"
+          },
+          {
+            "kind": "Constructor",
+            "name": "init",
+            "printedName": "init(rawValue:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "FaviconFinderFramework.FaviconType?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "FaviconType",
+                    "printedName": "FaviconFinderFramework.FaviconType",
+                    "usr": "s:22FaviconFinderFramework0A4TypeO"
+                  }
+                ],
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              }
+            ],
+            "declKind": "Constructor",
+            "usr": "s:22FaviconFinderFramework0A4TypeO8rawValueACSgSS_tcfc",
+            "mangledName": "$s22FaviconFinderFramework0A4TypeO8rawValueACSgSS_tcfc",
+            "moduleName": "FaviconFinderFramework",
+            "implicit": true,
+            "init_kind": "Designated"
+          },
+          {
+            "kind": "Var",
+            "name": "rawValue",
+            "printedName": "rawValue",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:22FaviconFinderFramework0A4TypeO8rawValueSSvp",
+            "mangledName": "$s22FaviconFinderFramework0A4TypeO8rawValueSSvp",
+            "moduleName": "FaviconFinderFramework",
+            "implicit": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:22FaviconFinderFramework0A4TypeO8rawValueSSvg",
+                "mangledName": "$s22FaviconFinderFramework0A4TypeO8rawValueSSvg",
+                "moduleName": "FaviconFinderFramework",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          }
+        ],
+        "declKind": "Enum",
+        "usr": "s:22FaviconFinderFramework0A4TypeO",
+        "mangledName": "$s22FaviconFinderFramework0A4TypeO",
+        "moduleName": "FaviconFinderFramework",
+        "declAttributes": [
+          "AccessControl"
+        ],
+        "enumRawTypeName": "String",
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Equatable",
+            "printedName": "Equatable",
+            "usr": "s:SQ",
+            "mangledName": "$sSQ"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Hashable",
+            "printedName": "Hashable",
+            "usr": "s:SH",
+            "mangledName": "$sSH"
+          },
+          {
+            "kind": "Conformance",
+            "name": "RawRepresentable",
+            "printedName": "RawRepresentable",
+            "children": [
+              {
+                "kind": "TypeWitness",
+                "name": "RawValue",
+                "printedName": "RawValue",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ]
+              }
+            ],
+            "usr": "s:SY",
+            "mangledName": "$sSY"
+          }
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "FaviconFinderFramework",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "SwiftSoup",
+        "printedName": "SwiftSoup",
+        "declKind": "Import",
+        "moduleName": "FaviconFinderFramework"
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "FaviconFinderFramework",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "FaviconDownloadType",
+        "printedName": "FaviconDownloadType",
+        "children": [
+          {
+            "kind": "Var",
+            "name": "html",
+            "printedName": "html",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(FaviconFinderFramework.FaviconDownloadType.Type) -> FaviconFinderFramework.FaviconDownloadType",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "FaviconDownloadType",
+                    "printedName": "FaviconFinderFramework.FaviconDownloadType",
+                    "usr": "s:22FaviconFinderFramework0A12DownloadTypeO"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "FaviconFinderFramework.FaviconDownloadType.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "FaviconDownloadType",
+                        "printedName": "FaviconFinderFramework.FaviconDownloadType",
+                        "usr": "s:22FaviconFinderFramework0A12DownloadTypeO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:22FaviconFinderFramework0A12DownloadTypeO4htmlyA2CmF",
+            "mangledName": "$s22FaviconFinderFramework0A12DownloadTypeO4htmlyA2CmF",
+            "moduleName": "FaviconFinderFramework"
+          },
+          {
+            "kind": "Var",
+            "name": "ico",
+            "printedName": "ico",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(FaviconFinderFramework.FaviconDownloadType.Type) -> FaviconFinderFramework.FaviconDownloadType",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "FaviconDownloadType",
+                    "printedName": "FaviconFinderFramework.FaviconDownloadType",
+                    "usr": "s:22FaviconFinderFramework0A12DownloadTypeO"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "FaviconFinderFramework.FaviconDownloadType.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "FaviconDownloadType",
+                        "printedName": "FaviconFinderFramework.FaviconDownloadType",
+                        "usr": "s:22FaviconFinderFramework0A12DownloadTypeO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:22FaviconFinderFramework0A12DownloadTypeO3icoyA2CmF",
+            "mangledName": "$s22FaviconFinderFramework0A12DownloadTypeO3icoyA2CmF",
+            "moduleName": "FaviconFinderFramework"
+          },
+          {
+            "kind": "Var",
+            "name": "webApplicationManifestFile",
+            "printedName": "webApplicationManifestFile",
+            "children": [
+              {
+                "kind": "TypeFunc",
+                "name": "Function",
+                "printedName": "(FaviconFinderFramework.FaviconDownloadType.Type) -> FaviconFinderFramework.FaviconDownloadType",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "FaviconDownloadType",
+                    "printedName": "FaviconFinderFramework.FaviconDownloadType",
+                    "usr": "s:22FaviconFinderFramework0A12DownloadTypeO"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Metatype",
+                    "printedName": "FaviconFinderFramework.FaviconDownloadType.Type",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "FaviconDownloadType",
+                        "printedName": "FaviconFinderFramework.FaviconDownloadType",
+                        "usr": "s:22FaviconFinderFramework0A12DownloadTypeO"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "declKind": "EnumElement",
+            "usr": "s:22FaviconFinderFramework0A12DownloadTypeO26webApplicationManifestFileyA2CmF",
+            "mangledName": "$s22FaviconFinderFramework0A12DownloadTypeO26webApplicationManifestFileyA2CmF",
+            "moduleName": "FaviconFinderFramework"
+          },
+          {
+            "kind": "Function",
+            "name": "==",
+            "printedName": "==(_:_:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Bool",
+                "printedName": "Swift.Bool",
+                "usr": "s:Sb"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "FaviconDownloadType",
+                "printedName": "FaviconFinderFramework.FaviconDownloadType",
+                "usr": "s:22FaviconFinderFramework0A12DownloadTypeO"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "FaviconDownloadType",
+                "printedName": "FaviconFinderFramework.FaviconDownloadType",
+                "usr": "s:22FaviconFinderFramework0A12DownloadTypeO"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:22FaviconFinderFramework0A12DownloadTypeO2eeoiySbAC_ACtFZ",
+            "mangledName": "$s22FaviconFinderFramework0A12DownloadTypeO2eeoiySbAC_ACtFZ",
+            "moduleName": "FaviconFinderFramework",
+            "static": true,
+            "implicit": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Var",
+            "name": "hashValue",
+            "printedName": "hashValue",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Int",
+                "printedName": "Swift.Int",
+                "usr": "s:Si"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:22FaviconFinderFramework0A12DownloadTypeO9hashValueSivp",
+            "mangledName": "$s22FaviconFinderFramework0A12DownloadTypeO9hashValueSivp",
+            "moduleName": "FaviconFinderFramework",
+            "implicit": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Int",
+                    "printedName": "Swift.Int",
+                    "usr": "s:Si"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:22FaviconFinderFramework0A12DownloadTypeO9hashValueSivg",
+                "mangledName": "$s22FaviconFinderFramework0A12DownloadTypeO9hashValueSivg",
+                "moduleName": "FaviconFinderFramework",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Function",
+            "name": "hash",
+            "printedName": "hash(into:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Hasher",
+                "printedName": "Swift.Hasher",
+                "paramValueOwnership": "InOut",
+                "usr": "s:s6HasherV"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:22FaviconFinderFramework0A12DownloadTypeO4hash4intoys6HasherVz_tF",
+            "mangledName": "$s22FaviconFinderFramework0A12DownloadTypeO4hash4intoys6HasherVz_tF",
+            "moduleName": "FaviconFinderFramework",
+            "implicit": true,
+            "funcSelfKind": "NonMutating"
+          }
+        ],
+        "declKind": "Enum",
+        "usr": "s:22FaviconFinderFramework0A12DownloadTypeO",
+        "mangledName": "$s22FaviconFinderFramework0A12DownloadTypeO",
+        "moduleName": "FaviconFinderFramework",
+        "declAttributes": [
+          "AccessControl"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Equatable",
+            "printedName": "Equatable",
+            "usr": "s:SQ",
+            "mangledName": "$sSQ"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Hashable",
+            "printedName": "Hashable",
+            "usr": "s:SH",
+            "mangledName": "$sSH"
+          }
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "UIKit",
+        "printedName": "UIKit",
+        "declKind": "Import",
+        "moduleName": "FaviconFinderFramework"
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "FaviconFinder",
+        "printedName": "FaviconFinder",
+        "children": [
+          {
+            "kind": "Constructor",
+            "name": "init",
+            "printedName": "init(url:preferredType:preferences:checkForMetaRefreshRedirect:downloadImage:logEnabled:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "FaviconFinder",
+                "printedName": "FaviconFinderFramework.FaviconFinder",
+                "usr": "c:@M@FaviconFinderFramework@objc(cs)FaviconFinder"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "URL",
+                "printedName": "Foundation.URL",
+                "usr": "s:10Foundation3URLV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "FaviconDownloadType",
+                "printedName": "FaviconFinderFramework.FaviconDownloadType",
+                "hasDefaultArg": true,
+                "usr": "s:22FaviconFinderFramework0A12DownloadTypeO"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Dictionary",
+                "printedName": "[FaviconFinderFramework.FaviconDownloadType : Swift.String]",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "FaviconDownloadType",
+                    "printedName": "FaviconFinderFramework.FaviconDownloadType",
+                    "usr": "s:22FaviconFinderFramework0A12DownloadTypeO"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:SD"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Bool",
+                "printedName": "Swift.Bool",
+                "hasDefaultArg": true,
+                "usr": "s:Sb"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Bool",
+                "printedName": "Swift.Bool",
+                "hasDefaultArg": true,
+                "usr": "s:Sb"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Bool",
+                "printedName": "Swift.Bool",
+                "hasDefaultArg": true,
+                "usr": "s:Sb"
+              }
+            ],
+            "declKind": "Constructor",
+            "usr": "s:22FaviconFinderFramework0aB0C3url13preferredType11preferences27checkForMetaRefreshRedirect13downloadImage10logEnabledAC10Foundation3URLV_AA0a8DownloadF0OSDyANSSGS3btcfc",
+            "mangledName": "$s22FaviconFinderFramework0aB0C3url13preferredType11preferences27checkForMetaRefreshRedirect13downloadImage10logEnabledAC10Foundation3URLV_AA0a8DownloadF0OSDyANSSGS3btcfc",
+            "moduleName": "FaviconFinderFramework",
+            "declAttributes": [
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "init_kind": "Designated"
+          },
+          {
+            "kind": "Function",
+            "name": "downloadFavicon",
+            "printedName": "downloadFavicon()",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Favicon",
+                "printedName": "FaviconFinderFramework.Favicon",
+                "usr": "s:22FaviconFinderFramework0A0V"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:22FaviconFinderFramework0aB0C08downloadA0AA0A0VyYaKF",
+            "mangledName": "$s22FaviconFinderFramework0aB0C08downloadA0AA0A0VyYaKF",
+            "moduleName": "FaviconFinderFramework",
+            "declAttributes": [
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "throwing": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Constructor",
+            "name": "init",
+            "printedName": "init()",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "FaviconFinder",
+                "printedName": "FaviconFinderFramework.FaviconFinder",
+                "usr": "c:@M@FaviconFinderFramework@objc(cs)FaviconFinder"
+              }
+            ],
+            "declKind": "Constructor",
+            "usr": "c:@M@FaviconFinderFramework@objc(cs)FaviconFinder(im)init",
+            "mangledName": "$s22FaviconFinderFramework0aB0CACycfc",
+            "moduleName": "FaviconFinderFramework",
+            "overriding": true,
+            "implicit": true,
+            "objc_name": "init",
+            "declAttributes": [
+              "Dynamic",
+              "ObjC",
+              "Override"
+            ],
+            "init_kind": "Designated"
+          }
+        ],
+        "declKind": "Class",
+        "usr": "c:@M@FaviconFinderFramework@objc(cs)FaviconFinder",
+        "mangledName": "$s22FaviconFinderFramework0aB0C",
+        "moduleName": "FaviconFinderFramework",
+        "declAttributes": [
+          "AccessControl",
+          "ObjC"
+        ],
+        "superclassUsr": "c:objc(cs)NSObject",
+        "superclassNames": [
+          "ObjectiveC.NSObject"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Equatable",
+            "printedName": "Equatable",
+            "usr": "s:SQ",
+            "mangledName": "$sSQ"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Hashable",
+            "printedName": "Hashable",
+            "usr": "s:SH",
+            "mangledName": "$sSH"
+          },
+          {
+            "kind": "Conformance",
+            "name": "CVarArg",
+            "printedName": "CVarArg",
+            "usr": "s:s7CVarArgP",
+            "mangledName": "$ss7CVarArgP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "_KeyValueCodingAndObservingPublishing",
+            "printedName": "_KeyValueCodingAndObservingPublishing",
+            "usr": "s:10Foundation37_KeyValueCodingAndObservingPublishingP",
+            "mangledName": "$s10Foundation37_KeyValueCodingAndObservingPublishingP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "_KeyValueCodingAndObserving",
+            "printedName": "_KeyValueCodingAndObserving",
+            "usr": "s:10Foundation27_KeyValueCodingAndObservingP",
+            "mangledName": "$s10Foundation27_KeyValueCodingAndObservingP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "CustomStringConvertible",
+            "printedName": "CustomStringConvertible",
+            "usr": "s:s23CustomStringConvertibleP",
+            "mangledName": "$ss23CustomStringConvertibleP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "CustomDebugStringConvertible",
+            "printedName": "CustomDebugStringConvertible",
+            "usr": "s:s28CustomDebugStringConvertibleP",
+            "mangledName": "$ss28CustomDebugStringConvertibleP"
+          }
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "FaviconFinderFramework",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "SwiftSoup",
+        "printedName": "SwiftSoup",
+        "declKind": "Import",
+        "moduleName": "FaviconFinderFramework"
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "FaviconFinderFramework",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "SwiftSoup",
+        "printedName": "SwiftSoup",
+        "declKind": "Import",
+        "moduleName": "FaviconFinderFramework"
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "FaviconFinderFramework",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "FaviconFinderFramework",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "Favicon",
+        "printedName": "Favicon",
+        "children": [
+          {
+            "kind": "Var",
+            "name": "image",
+            "printedName": "image",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "UIImage",
+                "printedName": "UIKit.UIImage",
+                "usr": "c:objc(cs)UIImage"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:22FaviconFinderFramework0A0V5imageSo7UIImageCvp",
+            "mangledName": "$s22FaviconFinderFramework0A0V5imageSo7UIImageCvp",
+            "moduleName": "FaviconFinderFramework",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "isLet": true,
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "UIImage",
+                    "printedName": "UIKit.UIImage",
+                    "usr": "c:objc(cs)UIImage"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:22FaviconFinderFramework0A0V5imageSo7UIImageCvg",
+                "mangledName": "$s22FaviconFinderFramework0A0V5imageSo7UIImageCvg",
+                "moduleName": "FaviconFinderFramework",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "data",
+            "printedName": "data",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Data",
+                "printedName": "Foundation.Data",
+                "usr": "s:10Foundation4DataV"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:22FaviconFinderFramework0A0V4data10Foundation4DataVvp",
+            "mangledName": "$s22FaviconFinderFramework0A0V4data10Foundation4DataVvp",
+            "moduleName": "FaviconFinderFramework",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "isLet": true,
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Data",
+                    "printedName": "Foundation.Data",
+                    "usr": "s:10Foundation4DataV"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:22FaviconFinderFramework0A0V4data10Foundation4DataVvg",
+                "mangledName": "$s22FaviconFinderFramework0A0V4data10Foundation4DataVvg",
+                "moduleName": "FaviconFinderFramework",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "url",
+            "printedName": "url",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "URL",
+                "printedName": "Foundation.URL",
+                "usr": "s:10Foundation3URLV"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:22FaviconFinderFramework0A0V3url10Foundation3URLVvp",
+            "mangledName": "$s22FaviconFinderFramework0A0V3url10Foundation3URLVvp",
+            "moduleName": "FaviconFinderFramework",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "isLet": true,
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "URL",
+                    "printedName": "Foundation.URL",
+                    "usr": "s:10Foundation3URLV"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:22FaviconFinderFramework0A0V3url10Foundation3URLVvg",
+                "mangledName": "$s22FaviconFinderFramework0A0V3url10Foundation3URLVvg",
+                "moduleName": "FaviconFinderFramework",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "type",
+            "printedName": "type",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "FaviconType",
+                "printedName": "FaviconFinderFramework.FaviconType",
+                "usr": "s:22FaviconFinderFramework0A4TypeO"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:22FaviconFinderFramework0A0V4typeAA0A4TypeOvp",
+            "mangledName": "$s22FaviconFinderFramework0A0V4typeAA0A4TypeOvp",
+            "moduleName": "FaviconFinderFramework",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "isLet": true,
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "FaviconType",
+                    "printedName": "FaviconFinderFramework.FaviconType",
+                    "usr": "s:22FaviconFinderFramework0A4TypeO"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:22FaviconFinderFramework0A0V4typeAA0A4TypeOvg",
+                "mangledName": "$s22FaviconFinderFramework0A0V4typeAA0A4TypeOvg",
+                "moduleName": "FaviconFinderFramework",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "downloadType",
+            "printedName": "downloadType",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "FaviconDownloadType",
+                "printedName": "FaviconFinderFramework.FaviconDownloadType",
+                "usr": "s:22FaviconFinderFramework0A12DownloadTypeO"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:22FaviconFinderFramework0A0V12downloadTypeAA0a8DownloadE0Ovp",
+            "mangledName": "$s22FaviconFinderFramework0A0V12downloadTypeAA0a8DownloadE0Ovp",
+            "moduleName": "FaviconFinderFramework",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "isLet": true,
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "FaviconDownloadType",
+                    "printedName": "FaviconFinderFramework.FaviconDownloadType",
+                    "usr": "s:22FaviconFinderFramework0A12DownloadTypeO"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:22FaviconFinderFramework0A0V12downloadTypeAA0a8DownloadE0Ovg",
+                "mangledName": "$s22FaviconFinderFramework0A0V12downloadTypeAA0a8DownloadE0Ovg",
+                "moduleName": "FaviconFinderFramework",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          }
+        ],
+        "declKind": "Struct",
+        "usr": "s:22FaviconFinderFramework0A0V",
+        "mangledName": "$s22FaviconFinderFramework0A0V",
+        "moduleName": "FaviconFinderFramework",
+        "declAttributes": [
+          "AccessControl"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "FaviconFinderFramework",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "FaviconFinderFramework",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "URL",
+        "printedName": "URL",
+        "children": [
+          {
+            "kind": "Var",
+            "name": "tlds",
+            "printedName": "tlds",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Array",
+                "printedName": "[Swift.String]",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "usr": "s:Sa"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:10Foundation3URLV22FaviconFinderFrameworkE4tldsSaySSGvp",
+            "mangledName": "$s10Foundation3URLV22FaviconFinderFrameworkE4tldsSaySSGvp",
+            "moduleName": "FaviconFinderFramework",
+            "declAttributes": [
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "isFromExtension": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Array",
+                    "printedName": "[Swift.String]",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ],
+                    "usr": "s:Sa"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:10Foundation3URLV22FaviconFinderFrameworkE4tldsSaySSGvg",
+                "mangledName": "$s10Foundation3URLV22FaviconFinderFrameworkE4tldsSaySSGvg",
+                "moduleName": "FaviconFinderFramework",
+                "isFromExtension": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "absoluteStringWithoutScheme",
+            "printedName": "absoluteStringWithoutScheme",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:10Foundation3URLV22FaviconFinderFrameworkE27absoluteStringWithoutSchemeSSSgvp",
+            "mangledName": "$s10Foundation3URLV22FaviconFinderFrameworkE27absoluteStringWithoutSchemeSSSgvp",
+            "moduleName": "FaviconFinderFramework",
+            "declAttributes": [
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "isFromExtension": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "Swift.String?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:10Foundation3URLV22FaviconFinderFrameworkE27absoluteStringWithoutSchemeSSSgvg",
+                "mangledName": "$s10Foundation3URLV22FaviconFinderFrameworkE27absoluteStringWithoutSchemeSSSgvg",
+                "moduleName": "FaviconFinderFramework",
+                "isFromExtension": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "urlWithoutSubdomains",
+            "printedName": "urlWithoutSubdomains",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Foundation.URL?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "URL",
+                    "printedName": "Foundation.URL",
+                    "usr": "s:10Foundation3URLV"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:10Foundation3URLV22FaviconFinderFrameworkE20urlWithoutSubdomainsACSgvp",
+            "mangledName": "$s10Foundation3URLV22FaviconFinderFrameworkE20urlWithoutSubdomainsACSgvp",
+            "moduleName": "FaviconFinderFramework",
+            "declAttributes": [
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "isFromExtension": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "Foundation.URL?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "URL",
+                        "printedName": "Foundation.URL",
+                        "usr": "s:10Foundation3URLV"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:10Foundation3URLV22FaviconFinderFrameworkE20urlWithoutSubdomainsACSgvg",
+                "mangledName": "$s10Foundation3URLV22FaviconFinderFrameworkE20urlWithoutSubdomainsACSgvg",
+                "moduleName": "FaviconFinderFramework",
+                "isFromExtension": true,
+                "accessorKind": "get"
+              }
+            ]
+          }
+        ],
+        "declKind": "Struct",
+        "usr": "s:10Foundation3URLV",
+        "mangledName": "$s10Foundation3URLV",
+        "moduleName": "Foundation",
+        "isExternal": true,
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "ReferenceConvertible",
+            "printedName": "ReferenceConvertible",
+            "children": [
+              {
+                "kind": "TypeWitness",
+                "name": "ReferenceType",
+                "printedName": "ReferenceType",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "NSURL",
+                    "printedName": "Foundation.NSURL",
+                    "usr": "c:objc(cs)NSURL"
+                  }
+                ]
+              }
+            ],
+            "usr": "s:10Foundation20ReferenceConvertibleP",
+            "mangledName": "$s10Foundation20ReferenceConvertibleP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Equatable",
+            "printedName": "Equatable",
+            "usr": "s:SQ",
+            "mangledName": "$sSQ"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Sendable",
+            "printedName": "Sendable",
+            "usr": "s:s8SendableP",
+            "mangledName": "$ss8SendableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Hashable",
+            "printedName": "Hashable",
+            "usr": "s:SH",
+            "mangledName": "$sSH"
+          },
+          {
+            "kind": "Conformance",
+            "name": "_ObjectiveCBridgeable",
+            "printedName": "_ObjectiveCBridgeable",
+            "children": [
+              {
+                "kind": "TypeWitness",
+                "name": "_ObjectiveCType",
+                "printedName": "_ObjectiveCType",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "NSURL",
+                    "printedName": "Foundation.NSURL",
+                    "usr": "c:objc(cs)NSURL"
+                  }
+                ]
+              }
+            ],
+            "usr": "s:s21_ObjectiveCBridgeableP",
+            "mangledName": "$ss21_ObjectiveCBridgeableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "CustomStringConvertible",
+            "printedName": "CustomStringConvertible",
+            "usr": "s:s23CustomStringConvertibleP",
+            "mangledName": "$ss23CustomStringConvertibleP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "CustomDebugStringConvertible",
+            "printedName": "CustomDebugStringConvertible",
+            "usr": "s:s28CustomDebugStringConvertibleP",
+            "mangledName": "$ss28CustomDebugStringConvertibleP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "_CustomPlaygroundQuickLookable",
+            "printedName": "_CustomPlaygroundQuickLookable",
+            "usr": "s:s30_CustomPlaygroundQuickLookableP",
+            "mangledName": "$ss30_CustomPlaygroundQuickLookableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Decodable",
+            "printedName": "Decodable",
+            "usr": "s:Se",
+            "mangledName": "$sSe"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Encodable",
+            "printedName": "Encodable",
+            "usr": "s:SE",
+            "mangledName": "$sSE"
+          },
+          {
+            "kind": "Conformance",
+            "name": "_ExpressibleByFileReferenceLiteral",
+            "printedName": "_ExpressibleByFileReferenceLiteral",
+            "usr": "s:s34_ExpressibleByFileReferenceLiteralP",
+            "mangledName": "$ss34_ExpressibleByFileReferenceLiteralP"
+          }
+        ]
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "String",
+        "printedName": "String",
+        "children": [
+          {
+            "kind": "Function",
+            "name": "removeEverythingAfter",
+            "printedName": "removeEverythingAfter(str:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:SS22FaviconFinderFrameworkE21removeEverythingAfter3strySS_tF",
+            "mangledName": "$sSS22FaviconFinderFrameworkE21removeEverythingAfter3strySS_tF",
+            "moduleName": "FaviconFinderFramework",
+            "declAttributes": [
+              "Mutating",
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "isFromExtension": true,
+            "funcSelfKind": "Mutating"
+          }
+        ],
+        "declKind": "Struct",
+        "usr": "s:SS",
+        "mangledName": "$sSS",
+        "moduleName": "Swift",
+        "declAttributes": [
+          "Frozen"
+        ],
+        "isExternal": true,
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Decodable",
+            "printedName": "Decodable",
+            "usr": "s:Se",
+            "mangledName": "$sSe"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Encodable",
+            "printedName": "Encodable",
+            "usr": "s:SE",
+            "mangledName": "$sSE"
+          },
+          {
+            "kind": "Conformance",
+            "name": "CodingKeyRepresentable",
+            "printedName": "CodingKeyRepresentable",
+            "usr": "s:s22CodingKeyRepresentableP",
+            "mangledName": "$ss22CodingKeyRepresentableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "_HasContiguousBytes",
+            "printedName": "_HasContiguousBytes",
+            "usr": "s:s19_HasContiguousBytesP",
+            "mangledName": "$ss19_HasContiguousBytesP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "CustomReflectable",
+            "printedName": "CustomReflectable",
+            "usr": "s:s17CustomReflectableP",
+            "mangledName": "$ss17CustomReflectableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "_CustomPlaygroundQuickLookable",
+            "printedName": "_CustomPlaygroundQuickLookable",
+            "usr": "s:s30_CustomPlaygroundQuickLookableP",
+            "mangledName": "$ss30_CustomPlaygroundQuickLookableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "TextOutputStream",
+            "printedName": "TextOutputStream",
+            "usr": "s:s16TextOutputStreamP",
+            "mangledName": "$ss16TextOutputStreamP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "TextOutputStreamable",
+            "printedName": "TextOutputStreamable",
+            "usr": "s:s20TextOutputStreamableP",
+            "mangledName": "$ss20TextOutputStreamableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Hashable",
+            "printedName": "Hashable",
+            "usr": "s:SH",
+            "mangledName": "$sSH"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Sendable",
+            "printedName": "Sendable",
+            "usr": "s:s8SendableP",
+            "mangledName": "$ss8SendableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "_ExpressibleByBuiltinUnicodeScalarLiteral",
+            "printedName": "_ExpressibleByBuiltinUnicodeScalarLiteral",
+            "usr": "s:s41_ExpressibleByBuiltinUnicodeScalarLiteralP",
+            "mangledName": "$ss41_ExpressibleByBuiltinUnicodeScalarLiteralP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "_ExpressibleByBuiltinExtendedGraphemeClusterLiteral",
+            "printedName": "_ExpressibleByBuiltinExtendedGraphemeClusterLiteral",
+            "usr": "s:s51_ExpressibleByBuiltinExtendedGraphemeClusterLiteralP",
+            "mangledName": "$ss51_ExpressibleByBuiltinExtendedGraphemeClusterLiteralP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "_ExpressibleByBuiltinStringLiteral",
+            "printedName": "_ExpressibleByBuiltinStringLiteral",
+            "usr": "s:s34_ExpressibleByBuiltinStringLiteralP",
+            "mangledName": "$ss34_ExpressibleByBuiltinStringLiteralP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "ExpressibleByStringLiteral",
+            "printedName": "ExpressibleByStringLiteral",
+            "children": [
+              {
+                "kind": "TypeWitness",
+                "name": "StringLiteralType",
+                "printedName": "StringLiteralType",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ]
+              }
+            ],
+            "usr": "s:s26ExpressibleByStringLiteralP",
+            "mangledName": "$ss26ExpressibleByStringLiteralP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "ExpressibleByExtendedGraphemeClusterLiteral",
+            "printedName": "ExpressibleByExtendedGraphemeClusterLiteral",
+            "children": [
+              {
+                "kind": "TypeWitness",
+                "name": "ExtendedGraphemeClusterLiteralType",
+                "printedName": "ExtendedGraphemeClusterLiteralType",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ]
+              }
+            ],
+            "usr": "s:s43ExpressibleByExtendedGraphemeClusterLiteralP",
+            "mangledName": "$ss43ExpressibleByExtendedGraphemeClusterLiteralP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "ExpressibleByUnicodeScalarLiteral",
+            "printedName": "ExpressibleByUnicodeScalarLiteral",
+            "children": [
+              {
+                "kind": "TypeWitness",
+                "name": "UnicodeScalarLiteralType",
+                "printedName": "UnicodeScalarLiteralType",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ]
+              }
+            ],
+            "usr": "s:s33ExpressibleByUnicodeScalarLiteralP",
+            "mangledName": "$ss33ExpressibleByUnicodeScalarLiteralP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "CustomDebugStringConvertible",
+            "printedName": "CustomDebugStringConvertible",
+            "usr": "s:s28CustomDebugStringConvertibleP",
+            "mangledName": "$ss28CustomDebugStringConvertibleP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "CustomStringConvertible",
+            "printedName": "CustomStringConvertible",
+            "usr": "s:s23CustomStringConvertibleP",
+            "mangledName": "$ss23CustomStringConvertibleP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "BidirectionalCollection",
+            "printedName": "BidirectionalCollection",
+            "children": [
+              {
+                "kind": "TypeWitness",
+                "name": "Element",
+                "printedName": "Element",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Character",
+                    "printedName": "Swift.Character",
+                    "usr": "s:SJ"
+                  }
+                ]
+              },
+              {
+                "kind": "TypeWitness",
+                "name": "Index",
+                "printedName": "Index",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Index",
+                    "printedName": "Swift.String.Index",
+                    "usr": "s:SS5IndexV"
+                  }
+                ]
+              },
+              {
+                "kind": "TypeWitness",
+                "name": "SubSequence",
+                "printedName": "SubSequence",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Substring",
+                    "printedName": "Swift.Substring",
+                    "usr": "s:Ss"
+                  }
+                ]
+              },
+              {
+                "kind": "TypeWitness",
+                "name": "Indices",
+                "printedName": "Indices",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "DefaultIndices",
+                    "printedName": "Swift.DefaultIndices<Swift.String>",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ],
+                    "usr": "s:SI"
+                  }
+                ]
+              }
+            ],
+            "usr": "s:SK",
+            "mangledName": "$sSK"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Collection",
+            "printedName": "Collection",
+            "children": [
+              {
+                "kind": "TypeWitness",
+                "name": "Element",
+                "printedName": "Element",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Character",
+                    "printedName": "Swift.Character",
+                    "usr": "s:SJ"
+                  }
+                ]
+              },
+              {
+                "kind": "TypeWitness",
+                "name": "Index",
+                "printedName": "Index",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Index",
+                    "printedName": "Swift.String.Index",
+                    "usr": "s:SS5IndexV"
+                  }
+                ]
+              },
+              {
+                "kind": "TypeWitness",
+                "name": "Iterator",
+                "printedName": "Iterator",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Iterator",
+                    "printedName": "Swift.String.Iterator",
+                    "usr": "s:SS8IteratorV"
+                  }
+                ]
+              },
+              {
+                "kind": "TypeWitness",
+                "name": "SubSequence",
+                "printedName": "SubSequence",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Substring",
+                    "printedName": "Swift.Substring",
+                    "usr": "s:Ss"
+                  }
+                ]
+              },
+              {
+                "kind": "TypeWitness",
+                "name": "Indices",
+                "printedName": "Indices",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "DefaultIndices",
+                    "printedName": "Swift.DefaultIndices<Swift.String>",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ],
+                    "usr": "s:SI"
+                  }
+                ]
+              }
+            ],
+            "usr": "s:Sl",
+            "mangledName": "$sSl"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Sequence",
+            "printedName": "Sequence",
+            "children": [
+              {
+                "kind": "TypeWitness",
+                "name": "Element",
+                "printedName": "Element",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Character",
+                    "printedName": "Swift.Character",
+                    "usr": "s:SJ"
+                  }
+                ]
+              },
+              {
+                "kind": "TypeWitness",
+                "name": "Iterator",
+                "printedName": "Iterator",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Iterator",
+                    "printedName": "Swift.String.Iterator",
+                    "usr": "s:SS8IteratorV"
+                  }
+                ]
+              }
+            ],
+            "usr": "s:ST",
+            "mangledName": "$sST"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Equatable",
+            "printedName": "Equatable",
+            "usr": "s:SQ",
+            "mangledName": "$sSQ"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Comparable",
+            "printedName": "Comparable",
+            "usr": "s:SL",
+            "mangledName": "$sSL"
+          },
+          {
+            "kind": "Conformance",
+            "name": "StringProtocol",
+            "printedName": "StringProtocol",
+            "children": [
+              {
+                "kind": "TypeWitness",
+                "name": "UTF8View",
+                "printedName": "UTF8View",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "UTF8View",
+                    "printedName": "Swift.String.UTF8View",
+                    "usr": "s:SS8UTF8ViewV"
+                  }
+                ]
+              },
+              {
+                "kind": "TypeWitness",
+                "name": "UTF16View",
+                "printedName": "UTF16View",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "UTF16View",
+                    "printedName": "Swift.String.UTF16View",
+                    "usr": "s:SS9UTF16ViewV"
+                  }
+                ]
+              },
+              {
+                "kind": "TypeWitness",
+                "name": "UnicodeScalarView",
+                "printedName": "UnicodeScalarView",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "UnicodeScalarView",
+                    "printedName": "Swift.String.UnicodeScalarView",
+                    "usr": "s:SS17UnicodeScalarViewV"
+                  }
+                ]
+              },
+              {
+                "kind": "TypeWitness",
+                "name": "SubSequence",
+                "printedName": "SubSequence",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Substring",
+                    "printedName": "Swift.Substring",
+                    "usr": "s:Ss"
+                  }
+                ]
+              }
+            ],
+            "usr": "s:Sy",
+            "mangledName": "$sSy"
+          },
+          {
+            "kind": "Conformance",
+            "name": "ExpressibleByStringInterpolation",
+            "printedName": "ExpressibleByStringInterpolation",
+            "children": [
+              {
+                "kind": "TypeWitness",
+                "name": "StringInterpolation",
+                "printedName": "StringInterpolation",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "DefaultStringInterpolation",
+                    "printedName": "Swift.DefaultStringInterpolation",
+                    "usr": "s:s26DefaultStringInterpolationV"
+                  }
+                ]
+              }
+            ],
+            "usr": "s:s32ExpressibleByStringInterpolationP",
+            "mangledName": "$ss32ExpressibleByStringInterpolationP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "LosslessStringConvertible",
+            "printedName": "LosslessStringConvertible",
+            "usr": "s:s25LosslessStringConvertibleP",
+            "mangledName": "$ss25LosslessStringConvertibleP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "RangeReplaceableCollection",
+            "printedName": "RangeReplaceableCollection",
+            "children": [
+              {
+                "kind": "TypeWitness",
+                "name": "SubSequence",
+                "printedName": "SubSequence",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Substring",
+                    "printedName": "Swift.Substring",
+                    "usr": "s:Ss"
+                  }
+                ]
+              }
+            ],
+            "usr": "s:Sm",
+            "mangledName": "$sSm"
+          },
+          {
+            "kind": "Conformance",
+            "name": "MirrorPath",
+            "printedName": "MirrorPath",
+            "usr": "s:s10MirrorPathP",
+            "mangledName": "$ss10MirrorPathP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "_ObjectiveCBridgeable",
+            "printedName": "_ObjectiveCBridgeable",
+            "children": [
+              {
+                "kind": "TypeWitness",
+                "name": "_ObjectiveCType",
+                "printedName": "_ObjectiveCType",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "NSString",
+                    "printedName": "Foundation.NSString",
+                    "usr": "c:objc(cs)NSString"
+                  }
+                ]
+              }
+            ],
+            "usr": "s:s21_ObjectiveCBridgeableP",
+            "mangledName": "$ss21_ObjectiveCBridgeableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "CVarArg",
+            "printedName": "CVarArg",
+            "usr": "s:s7CVarArgP",
+            "mangledName": "$ss7CVarArgP"
+          }
+        ]
+      }
+    ],
+    "json_format_version": 8
+  },
+  "ConstValues": [
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Extensions\/URL+Parsing.swift",
+      "kind": "Array",
+      "offset": 348,
+      "length": 89,
+      "value": "[\"com\", \"com.au\", \"net\", \"org\"]"
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Extensions\/URL+Parsing.swift",
+      "kind": "StringLiteral",
+      "offset": 796,
+      "length": 5,
+      "value": "\":\/\/\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Extensions\/URL+Parsing.swift",
+      "kind": "StringLiteral",
+      "offset": 809,
+      "length": 2,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Extensions\/URL+Parsing.swift",
+      "kind": "StringLiteral",
+      "offset": 876,
+      "length": 2,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Extensions\/URL+Parsing.swift",
+      "kind": "StringLiteral",
+      "offset": 1462,
+      "length": 3,
+      "value": "\"\/\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Extensions\/URL+Parsing.swift",
+      "kind": "StringLiteral",
+      "offset": 1619,
+      "length": 3,
+      "value": "\".\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Extensions\/URL+Parsing.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1688,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Extensions\/URL+Parsing.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2001,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Extensions\/URL+Parsing.swift",
+      "kind": "IntegerLiteral",
+      "offset": 2075,
+      "length": 1,
+      "value": "1"
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Extensions\/URL+Parsing.swift",
+      "kind": "StringLiteral",
+      "offset": 2329,
+      "length": 7,
+      "value": "\"https\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Extensions\/URL+Parsing.swift",
+      "kind": "StringLiteral",
+      "offset": 2364,
+      "length": 5,
+      "value": "\":\/\/\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Extensions\/URL+Parsing.swift",
+      "kind": "StringLiteral",
+      "offset": 2437,
+      "length": 3,
+      "value": "\".\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Extensions\/URL+Parsing.swift",
+      "kind": "StringLiteral",
+      "offset": 2713,
+      "length": 3,
+      "value": "\".\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Toolbox\/Logger.swift",
+      "kind": "StringLiteral",
+      "offset": 468,
+      "length": 42,
+      "value": "\"[\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Toolbox\/Logger.swift",
+      "kind": "StringLiteral",
+      "offset": 498,
+      "length": 1,
+      "value": "\"] \""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Toolbox\/Logger.swift",
+      "kind": "StringLiteral",
+      "offset": 509,
+      "length": 2,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/ICOFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 557,
+      "length": 13,
+      "value": "\"favicon.ico\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/ICOFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 1095,
+      "length": 3,
+      "value": "\"\/\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Extensions\/String+Removals.swift",
+      "kind": "StringLiteral",
+      "offset": 1034,
+      "length": 2,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Types\/FaviconType.swift",
+      "kind": "StringLiteral",
+      "offset": 265,
+      "length": 18,
+      "value": "\"apple-touch-icon\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Types\/FaviconType.swift",
+      "kind": "StringLiteral",
+      "offset": 321,
+      "length": 30,
+      "value": "\"apple-touch-icon-precomposed\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Types\/FaviconType.swift",
+      "kind": "StringLiteral",
+      "offset": 389,
+      "length": 15,
+      "value": "\"shortcut icon\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Types\/FaviconType.swift",
+      "kind": "StringLiteral",
+      "offset": 442,
+      "length": 6,
+      "value": "\"icon\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Types\/FaviconType.swift",
+      "kind": "StringLiteral",
+      "offset": 487,
+      "length": 5,
+      "value": "\"ico\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Types\/FaviconType.swift",
+      "kind": "StringLiteral",
+      "offset": 557,
+      "length": 22,
+      "value": "\"launcher-icon-1x.png\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Types\/FaviconType.swift",
+      "kind": "StringLiteral",
+      "offset": 606,
+      "length": 22,
+      "value": "\"launcher-icon-2x.png\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Types\/FaviconType.swift",
+      "kind": "StringLiteral",
+      "offset": 655,
+      "length": 22,
+      "value": "\"launcher-icon-3x.png\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Types\/FaviconType.swift",
+      "kind": "StringLiteral",
+      "offset": 704,
+      "length": 22,
+      "value": "\"launcher-icon-4x.png\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Types\/FaviconType.swift",
+      "kind": "StringLiteral",
+      "offset": 265,
+      "length": 18,
+      "value": "\"apple-touch-icon\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Types\/FaviconType.swift",
+      "kind": "StringLiteral",
+      "offset": 321,
+      "length": 30,
+      "value": "\"apple-touch-icon-precomposed\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Types\/FaviconType.swift",
+      "kind": "StringLiteral",
+      "offset": 389,
+      "length": 15,
+      "value": "\"shortcut icon\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Types\/FaviconType.swift",
+      "kind": "StringLiteral",
+      "offset": 442,
+      "length": 6,
+      "value": "\"icon\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Types\/FaviconType.swift",
+      "kind": "StringLiteral",
+      "offset": 487,
+      "length": 5,
+      "value": "\"ico\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Types\/FaviconType.swift",
+      "kind": "StringLiteral",
+      "offset": 557,
+      "length": 22,
+      "value": "\"launcher-icon-1x.png\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Types\/FaviconType.swift",
+      "kind": "StringLiteral",
+      "offset": 606,
+      "length": 22,
+      "value": "\"launcher-icon-2x.png\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Types\/FaviconType.swift",
+      "kind": "StringLiteral",
+      "offset": 655,
+      "length": 22,
+      "value": "\"launcher-icon-3x.png\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Types\/FaviconType.swift",
+      "kind": "StringLiteral",
+      "offset": 704,
+      "length": 22,
+      "value": "\"launcher-icon-4x.png\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Types\/FaviconType.swift",
+      "kind": "BooleanLiteral",
+      "offset": 1653,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Types\/FaviconType.swift",
+      "kind": "BooleanLiteral",
+      "offset": 1770,
+      "length": 4,
+      "value": "true"
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Types\/FaviconType.swift",
+      "kind": "BooleanLiteral",
+      "offset": 1823,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 1615,
+      "length": 68,
+      "value": "\"Could NOT get favicon from url: \""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 1659,
+      "length": 1,
+      "value": "\", could not parse HTML.\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 1895,
+      "length": 109,
+      "value": "\"Could NOT get manifest file from url: \""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 1945,
+      "length": 1,
+      "value": "\", failed to parse favicon from WebApplicationManifestFile.\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 2395,
+      "length": 90,
+      "value": "\"Could NOT get favicon from url: \""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 2439,
+      "length": 1,
+      "value": "\", failed to parse favicon from manifest data.\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 2591,
+      "length": 53,
+      "value": "\"Extracted favicon: \""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 2643,
+      "length": 2,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 3219,
+      "length": 63,
+      "value": "\"Could NOT parse HTML due to error: \""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 3263,
+      "length": 1,
+      "value": "\". HTML: \""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 3281,
+      "length": 2,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 3397,
+      "length": 46,
+      "value": "\"Could NOT parse HTML from string: \""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 3442,
+      "length": 2,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 3562,
+      "length": 51,
+      "value": "\"Could NOT parse HTML head from string: \""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 3612,
+      "length": 2,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 3856,
+      "length": 6,
+      "value": "\"link\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 3931,
+      "length": 63,
+      "value": "\"Could NOT parse HTML due to error: \""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 3975,
+      "length": 1,
+      "value": "\". HTML: \""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 3993,
+      "length": 2,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 4166,
+      "length": 5,
+      "value": "\"rel\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 4217,
+      "length": 6,
+      "value": "\"href\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 4303,
+      "length": 10,
+      "value": "\"manifest\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 4507,
+      "length": 63,
+      "value": "\"Could NOT parse HTML due to error: \""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 4551,
+      "length": 1,
+      "value": "\". HTML: \""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 4569,
+      "length": 2,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 4708,
+      "length": 65,
+      "value": "\"Could NOT find any HTML href tag that points to a manifest file\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "BooleanLiteral",
+      "offset": 5018,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 5204,
+      "length": 6,
+      "value": "\"base\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 5217,
+      "length": 6,
+      "value": "\"href\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 6499,
+      "length": 55,
+      "value": "\"Could not create URLResponse from URL: \""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 6553,
+      "length": 2,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 6668,
+      "length": 91,
+      "value": "\"Received URL response of \""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 6719,
+      "length": 3,
+      "value": "\" for URL: \""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 6758,
+      "length": 2,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 7514,
+      "length": 7,
+      "value": "\"icons\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 8550,
+      "length": 5,
+      "value": "\"src\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "BooleanLiteral",
+      "offset": 8571,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 8703,
+      "length": 5,
+      "value": "\"src\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 8957,
+      "length": 5,
+      "value": "\"src\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "BooleanLiteral",
+      "offset": 8978,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 9102,
+      "length": 5,
+      "value": "\"src\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 9356,
+      "length": 5,
+      "value": "\"src\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "BooleanLiteral",
+      "offset": 9377,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 9501,
+      "length": 5,
+      "value": "\"src\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 9755,
+      "length": 5,
+      "value": "\"src\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "BooleanLiteral",
+      "offset": 9776,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 9900,
+      "length": 5,
+      "value": "\"src\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 10154,
+      "length": 5,
+      "value": "\"src\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "BooleanLiteral",
+      "offset": 10175,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/WebApplicationManifestFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 10299,
+      "length": 5,
+      "value": "\"src\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/FaviconFinder.swift",
+      "kind": "Dictionary",
+      "offset": 1318,
+      "length": 3,
+      "value": "[]"
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/FaviconFinder.swift",
+      "kind": "BooleanLiteral",
+      "offset": 1367,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/FaviconFinder.swift",
+      "kind": "BooleanLiteral",
+      "offset": 1404,
+      "length": 4,
+      "value": "true"
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/FaviconFinder.swift",
+      "kind": "BooleanLiteral",
+      "offset": 1437,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/FaviconFinder.swift",
+      "kind": "BooleanLiteral",
+      "offset": 3108,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/FaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 423,
+      "length": 13,
+      "value": "\"FaviconFinderFramework.FaviconFinder\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/FaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 4587,
+      "length": 37,
+      "value": "\"Could NOT create favicon from data.\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Toolbox\/FaviconURLRequest.swift",
+      "kind": "BooleanLiteral",
+      "offset": 262,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Toolbox\/FaviconURLRequest.swift",
+      "kind": "StringLiteral",
+      "offset": 1063,
+      "length": 12,
+      "value": "\"http-equiv\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Toolbox\/FaviconURLRequest.swift",
+      "kind": "StringLiteral",
+      "offset": 1136,
+      "length": 12,
+      "value": "\"http-equiv\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Toolbox\/FaviconURLRequest.swift",
+      "kind": "StringLiteral",
+      "offset": 1158,
+      "length": 9,
+      "value": "\"refresh\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Toolbox\/FaviconURLRequest.swift",
+      "kind": "StringLiteral",
+      "offset": 1310,
+      "length": 9,
+      "value": "\"content\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Toolbox\/FaviconURLRequest.swift",
+      "kind": "StringLiteral",
+      "offset": 1424,
+      "length": 8,
+      "value": "\"0;URL=\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Toolbox\/FaviconURLRequest.swift",
+      "kind": "StringLiteral",
+      "offset": 1440,
+      "length": 2,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Toolbox\/FaviconURLRequest.swift",
+      "kind": "StringLiteral",
+      "offset": 2191,
+      "length": 3,
+      "value": "\"\/\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Toolbox\/FaviconURLRequest.swift",
+      "kind": "StringLiteral",
+      "offset": 2222,
+      "length": 3,
+      "value": "\"\/\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Toolbox\/FaviconURLRequest.swift",
+      "kind": "StringLiteral",
+      "offset": 2305,
+      "length": 41,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Toolbox\/FaviconURLRequest.swift",
+      "kind": "StringLiteral",
+      "offset": 2327,
+      "length": 1,
+      "value": "\"\/\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Toolbox\/FaviconURLRequest.swift",
+      "kind": "StringLiteral",
+      "offset": 2345,
+      "length": 1,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Toolbox\/FaviconURLRequest.swift",
+      "kind": "StringLiteral",
+      "offset": 2425,
+      "length": 40,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Toolbox\/FaviconURLRequest.swift",
+      "kind": "StringLiteral",
+      "offset": 2447,
+      "length": 1,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Toolbox\/FaviconURLRequest.swift",
+      "kind": "StringLiteral",
+      "offset": 2464,
+      "length": 1,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/HTMLFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 2129,
+      "length": 53,
+      "value": "\"Extracted favicon: \""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/HTMLFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 2181,
+      "length": 2,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/HTMLFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 2733,
+      "length": 63,
+      "value": "\"Could NOT parse HTML due to error: \""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/HTMLFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 2777,
+      "length": 1,
+      "value": "\". HTML: \""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/HTMLFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 2795,
+      "length": 2,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/HTMLFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 2911,
+      "length": 46,
+      "value": "\"Could NOT parse HTML from string: \""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/HTMLFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 2956,
+      "length": 2,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/HTMLFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 3076,
+      "length": 51,
+      "value": "\"Could NOT parse HTML head from string: \""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/HTMLFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 3126,
+      "length": 2,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/HTMLFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 3359,
+      "length": 6,
+      "value": "\"link\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/HTMLFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 3434,
+      "length": 63,
+      "value": "\"Could NOT parse HTML due to error: \""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/HTMLFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 3478,
+      "length": 1,
+      "value": "\". HTML: \""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/HTMLFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 3496,
+      "length": 2,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/HTMLFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 3722,
+      "length": 5,
+      "value": "\"rel\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/HTMLFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 3773,
+      "length": 6,
+      "value": "\"href\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/HTMLFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 3826,
+      "length": 7,
+      "value": "\"sizes\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/HTMLFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 4285,
+      "length": 63,
+      "value": "\"Could NOT parse HTML due to error: \""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/HTMLFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 4329,
+      "length": 1,
+      "value": "\". HTML: \""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/HTMLFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 4347,
+      "length": 2,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/HTMLFaviconFinder.swift",
+      "kind": "BooleanLiteral",
+      "offset": 4839,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/HTMLFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 5025,
+      "length": 6,
+      "value": "\"base\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/HTMLFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 5038,
+      "length": 6,
+      "value": "\"href\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/HTMLFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 7194,
+      "length": 3,
+      "value": "\"x\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/HTMLFaviconFinder.swift",
+      "kind": "StringLiteral",
+      "offset": 7208,
+      "length": 2,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Finders\/HTMLFaviconFinder.swift",
+      "kind": "IntegerLiteral",
+      "offset": 7215,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Toolbox\/Regex.swift",
+      "kind": "StringLiteral",
+      "offset": 503,
+      "length": 67,
+      "value": "\"Could NOT form regex from: \""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Toolbox\/Regex.swift",
+      "kind": "StringLiteral",
+      "offset": 546,
+      "length": 3,
+      "value": "\" due to error: \""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Toolbox\/Regex.swift",
+      "kind": "StringLiteral",
+      "offset": 569,
+      "length": 2,
+      "value": "\"\""
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Toolbox\/Regex.swift",
+      "kind": "BooleanLiteral",
+      "offset": 712,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Toolbox\/Regex.swift",
+      "kind": "IntegerLiteral",
+      "offset": 828,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Toolbox\/Regex.swift",
+      "kind": "IntegerLiteral",
+      "offset": 876,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/bfs-kingsword09\/src\/iOS\/FaviconFinderFramework\/FaviconFinder\/Classes\/Toolbox\/Regex.swift",
+      "kind": "StringLiteral",
+      "offset": 1027,
+      "length": 18,
+      "value": "\"^(http|https):\/\/\""
+    }
+  ]
+}

@@ -7,7 +7,7 @@
 
 import Foundation
 import UIKit
-import FaviconFinder
+import FaviconFinderFramework
 
 extension URL {
 

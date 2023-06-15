@@ -7,7 +7,7 @@
 
 import SwiftUI
 import Kingfisher
-import FaviconFinder
+import FaviconFinderFramework
 import Combine
 
 struct CellFrameInfo: Equatable{
