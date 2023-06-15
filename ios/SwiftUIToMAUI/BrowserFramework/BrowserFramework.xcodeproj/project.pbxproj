@@ -48,9 +48,9 @@
 		F3B558A52A2F3D44000169B6 /* DownloadAppManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B5589C2A2F3D44000169B6 /* DownloadAppManager.swift */; };
 		F3B558A72A2F3D5E000169B6 /* CombinePublisher.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B558A62A2F3D5E000169B6 /* CombinePublisher.swift */; };
 		F3CB3AE12A32D4320042E520 /* ImageTools.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3CB3AE02A32D4320042E520 /* ImageTools.swift */; };
-		F3CB6D432A3AA7010081D340 /* SwiftSoup.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3CB6D402A3AA7000081D340 /* SwiftSoup.xcframework */; };
-		F3CB6D452A3AA7010081D340 /* FaviconFinder.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3CB6D412A3AA7000081D340 /* FaviconFinder.xcframework */; };
-		F3CB6D472A3AA7010081D340 /* Kingfisher.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3CB6D422A3AA7010081D340 /* Kingfisher.xcframework */; };
+		F3CB6D4E2A3AA9E70081D340 /* Kingfisher.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3CB6D4B2A3AA9E60081D340 /* Kingfisher.xcframework */; };
+		F3CB6D4F2A3AA9E70081D340 /* SwiftSoup.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3CB6D4C2A3AA9E70081D340 /* SwiftSoup.xcframework */; };
+		F3CB6D502A3AA9E70081D340 /* FaviconFinder.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3CB6D4D2A3AA9E70081D340 /* FaviconFinder.xcframework */; };
 		F3CFF05D2A36ABF200800332 /* DownloadAppView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3CFF05C2A36ABF200800332 /* DownloadAppView.swift */; };
 /* End PBXBuildFile section */
 
@@ -98,9 +98,9 @@
 		F3B558A62A2F3D5E000169B6 /* CombinePublisher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CombinePublisher.swift; sourceTree = "<group>"; };
 		F3CB3AE02A32D4320042E520 /* ImageTools.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageTools.swift; sourceTree = "<group>"; };
 		F3CB3AE42A3317970042E520 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		F3CB6D402A3AA7000081D340 /* SwiftSoup.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = SwiftSoup.xcframework; path = Resources/SwiftSoup.xcframework; sourceTree = "<group>"; };
-		F3CB6D412A3AA7000081D340 /* FaviconFinder.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = FaviconFinder.xcframework; path = Resources/FaviconFinder.xcframework; sourceTree = "<group>"; };
-		F3CB6D422A3AA7010081D340 /* Kingfisher.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Kingfisher.xcframework; path = Resources/Kingfisher.xcframework; sourceTree = "<group>"; };
+		F3CB6D4B2A3AA9E60081D340 /* Kingfisher.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = Kingfisher.xcframework; sourceTree = "<group>"; };
+		F3CB6D4C2A3AA9E70081D340 /* SwiftSoup.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = SwiftSoup.xcframework; sourceTree = "<group>"; };
+		F3CB6D4D2A3AA9E70081D340 /* FaviconFinder.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = FaviconFinder.xcframework; sourceTree = "<group>"; };
 		F3CFF05C2A36ABF200800332 /* DownloadAppView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadAppView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -109,9 +109,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F3CB6D472A3AA7010081D340 /* Kingfisher.xcframework in Frameworks */,
-				F3CB6D452A3AA7010081D340 /* FaviconFinder.xcframework in Frameworks */,
-				F3CB6D432A3AA7010081D340 /* SwiftSoup.xcframework in Frameworks */,
+				F3CB6D4F2A3AA9E70081D340 /* SwiftSoup.xcframework in Frameworks */,
+				F3CB6D4E2A3AA9E70081D340 /* Kingfisher.xcframework in Frameworks */,
+				F3CB6D502A3AA9E70081D340 /* FaviconFinder.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -138,6 +138,7 @@
 		F33F28FE2A28A72B002EB729 /* BrowserFramework */ = {
 			isa = PBXGroup;
 			children = (
+				F3CB6D4A2A3AA98C0081D340 /* Resources */,
 				F3CB3AE42A3317970042E520 /* Info.plist */,
 				F3B558932A2F3D44000169B6 /* BrowserManager.swift */,
 				F3B5589C2A2F3D44000169B6 /* DownloadAppManager.swift */,
@@ -255,9 +256,6 @@
 		F33F29512A28A9D0002EB729 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				F3CB6D412A3AA7000081D340 /* FaviconFinder.xcframework */,
-				F3CB6D422A3AA7010081D340 /* Kingfisher.xcframework */,
-				F3CB6D402A3AA7000081D340 /* SwiftSoup.xcframework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -274,6 +272,16 @@
 			);
 			path = DoanloadApp;
 			sourceTree = "<group>";
+		};
+		F3CB6D4A2A3AA98C0081D340 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				F3CB6D4D2A3AA9E70081D340 /* FaviconFinder.xcframework */,
+				F3CB6D4B2A3AA9E60081D340 /* Kingfisher.xcframework */,
+				F3CB6D4C2A3AA9E70081D340 /* SwiftSoup.xcframework */,
+			);
+			path = Resources;
+			sourceTree = SOURCE_ROOT;
 		};
 /* End PBXGroup section */
 

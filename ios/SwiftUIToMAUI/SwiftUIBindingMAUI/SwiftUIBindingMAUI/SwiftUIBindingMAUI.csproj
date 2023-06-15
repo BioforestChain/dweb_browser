@@ -20,7 +20,6 @@
   <ItemGroup>
     <NativeReference Include="..\..\XCFrameworks\BrowserFramework.xcframework">
       <Kind>Framework</Kind>
-      <LinkerFlags>L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator/ -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos -Wl,-rpath -Wl,@executable_path/Frameworks </LinkerFlags>
       <Frameworks>Foundation UIKit</Frameworks>
     </NativeReference>
   </ItemGroup>
