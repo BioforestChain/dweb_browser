@@ -62,7 +62,7 @@ public partial class DWebView : WKWebView
                 {
                     var consumeToken = url!;
                     var watcher = dWebView.CloseWatcherController.Apply(
-                        navigationAction.TargetFrame == null || !navigationAction.TargetFrame.MainFrame);
+                        navigationAction.TargetFrame is null || !navigationAction.TargetFrame.MainFrame);
                     dWebView.InvokeOnMainThread(() =>
                     {
                         dWebView.Dispose();

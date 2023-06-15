@@ -304,11 +304,11 @@ public class DnsNMM : NativeMicroModule
             try
             {
                 var microModule = await microModulePo.WaitPromiseAsync();
-                //_mmConnectsMap.Remove(MM.From(microModule.Mmid, "js.browser.dweb"));
-                //_mmConnectsMap.Remove(MM.From("js.browser.dweb", microModule.Mmid));
-                await microModule.ShutdownAsync();
                 _mmConnectsMap.Remove(MM.From(microModule.Mmid, "js.browser.dweb"));
                 _mmConnectsMap.Remove(MM.From("js.browser.dweb", microModule.Mmid));
+                await microModule.ShutdownAsync();
+                //_mmConnectsMap.Remove(MM.From(microModule.Mmid, "js.browser.dweb"));
+                //_mmConnectsMap.Remove(MM.From("js.browser.dweb", microModule.Mmid));
 
                 return 1;
             }

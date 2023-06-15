@@ -24,7 +24,7 @@ public static class JmmDwebService
     /// 下载目录
     /// </summary>
     public static readonly string DOWNLOAD_DIR = Path.Join(
-        PathHelper.GetIOSAppAssetsPath(), JmmDwebService.DOWNLOAD);
+        PathHelper.GetIOSDocumentDirectory(), DOWNLOAD);
 
     /// <summary>
     /// dweb应用目录
@@ -93,6 +93,18 @@ public static class JmmDwebService
         }
 
         return _bool;
+    }
+
+    public static Unit UpdateDownloadControlStatus(Mmid mmid, DownloadControlStatus downloadControlStatus)
+    {
+        var jmmDownload = s_downloadMap.GetValueOrDefault(mmid);
+
+        if (jmmDownload is not null)
+        {
+            jmmDownload.UpdateDownloadStatus(downloadControlStatus);
+        }
+
+        return unit;
     }
 
     /// <summary>
@@ -278,6 +290,29 @@ public class JmmDownload
             Console.Log("CompressZip", "success!!!");
         }).NoThrow();
     }
+
+    public void UpdateDownloadStatus(DownloadControlStatus downloadControlStatus)
+    {
+        switch (downloadControlStatus)
+        {
+            case DownloadControlStatus.Pause:
+                _isPause.Set(true);
+                break;
+            case DownloadControlStatus.Resume:
+                _isPause.Set(false);
+                break;
+            case DownloadControlStatus.Cancel:
+                _isPause.Set(true);
+                _downloadStatus.Set(DownloadStatus.Cancel);
+
+                if (File.Exists(_downloadFile))
+                {
+                    File.Delete(_downloadFile);
+                }
+                
+                break;
+        }
+    }
 }
 
 public enum DownloadStatus : int
@@ -290,4 +325,11 @@ public enum DownloadStatus : int
     Fail,
     Cancel,
     NewVersion
+}
+
+public enum DownloadControlStatus
+{
+    Pause,
+    Resume,
+    Cancel
 }

@@ -98,7 +98,7 @@ public static class PureExtensions
                         }
                         file.Headers = new HeaderDictionary(section.Headers);
 
-                        if (files == null)
+                        if (files is null)
                         {
                             files = new FormFileCollection();
                         }
@@ -173,7 +173,7 @@ public static class PureExtensions
     {
         // UTF-7 is insecure and should not be honored. UTF-8 will succeed for most cases.
         // https://learn.microsoft.com/en-us/dotnet/core/compatibility/syslib-warnings/syslib0001
-        if (encoding == null || encoding.CodePage == 65000)
+        if (encoding is null || encoding.CodePage == 65000)
         {
             return Encoding.UTF8;
         }

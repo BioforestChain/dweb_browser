@@ -2,7 +2,7 @@
 
 namespace DwebBrowser.MicroService.Browser.Jmm;
 
-public class JmmController: BaseViewController
+public class JmmController : BaseViewController
 {
     static readonly Debugger Console = new("JmmController");
     private JmmNMM _jmmNMM { get; init; }
@@ -20,9 +20,10 @@ public class JmmController: BaseViewController
             var connectResult = await _jmmNMM.ConnectAsync(mmid);
             connectResult.IpcForFromMM.OnEvent += async (Event, _, _) =>
             {
-                if (Event.Name == EIpcEvent.Ready.Event)
+                if (Event.Name == EIpcEvent.Close.Event)
                 {
                     Console.Log("openApp", "event::{0}==>{1} from==> {2}", Event.Name, Event.Data, mmid);
+                    _openIpcMap.Remove(mmid);
                 }
             };
 

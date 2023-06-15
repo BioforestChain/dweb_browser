@@ -1,6 +1,7 @@
 ﻿using UIKit;
 using Foundation;
 using BrowserFramework;
+using GameController;
 
 namespace DwebBrowser.MicroService.Browser.Jmm;
 
@@ -99,20 +100,17 @@ public class JmmNMM : NativeMicroModule
 
         HttpRouter.AddRoute(IpcMethod.Get, "/pause", async (_, ipc) =>
         {
-            // TODO: 未实现JmmNMM暂停路由
-            throw new NotImplementedException();
+            return JmmDwebService.UpdateDownloadControlStatus(ipc.Remote.Mmid, DownloadControlStatus.Pause);
         });
 
         HttpRouter.AddRoute(IpcMethod.Get, "/resume", async (_, ipc) =>
         {
-            // TODO: 未实现JmmNMM恢复路由
-            throw new NotImplementedException();
+            return JmmDwebService.UpdateDownloadControlStatus(ipc.Remote.Mmid, DownloadControlStatus.Resume);
         });
 
         HttpRouter.AddRoute(IpcMethod.Get, "/cancel", async (_, ipc) =>
         {
-            // TODO: 未实现JmmNMM取消路由
-            throw new NotImplementedException();
+            return JmmDwebService.UpdateDownloadControlStatus(ipc.Remote.Mmid, DownloadControlStatus.Cancel);
         });
     }
 
@@ -153,12 +151,26 @@ public class JmmNMM : NativeMicroModule
 
                 manager.DownloadView.Frame = UIScreen.MainScreen.Bounds;
                 JmmController.View.AddSubview(manager.DownloadView);
-                vc.PushViewController(JmmController, true);
+
+                // 无法push同一个UIViewController的实例两次
+                var index = vc.ViewControllers?.ToList().FindIndex(uvc => uvc == JmmController);
+                if (index >= 0)
+                {
+                    // 不是当前controller时，推到最新
+                    if (index != vc.ViewControllers!.Length - 1)
+                    {
+                        vc.PopToViewController(JmmController, true);
+                    }
+                }
+                else
+                {
+                    vc.PushViewController(JmmController, true);
+                }
 
                 await Task.Run(() =>
                 {
                     // 点击下载
-                    manager.ClickDownloadActionWithCallback(d =>
+                    manager.ClickDownloadActionWithCallback(async d =>
                     {
                         switch (d.ToString())
                         {
@@ -180,6 +192,7 @@ public class JmmNMM : NativeMicroModule
                                     BootstrapContext.Dns.Install(jsMicroModule);
                                 });
                                 JmmController?.OpenApp(jmmMetadata.Id);
+
                                 break;
                             default:
                                 break;

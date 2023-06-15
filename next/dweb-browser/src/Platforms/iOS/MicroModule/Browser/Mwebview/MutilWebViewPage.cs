@@ -61,6 +61,19 @@ public partial class MultiWebViewController : BaseViewController
         View.AddSubview(EdgeView);
 
         BindWebViewItems();
+
+        _OnWebViewClose += async (_, _) =>
+        {
+            // 如果webView实例都销毁完了，那就关闭自己
+            if (LastViewOrNull is null)
+            {
+                var vc = await IOSNativeMicroModule.RootViewController.WaitPromiseAsync();
+                await MainThread.InvokeOnMainThreadAsync(async () =>
+                {
+                    vc.PopViewController(true);
+                });
+            }
+        };
     }
 
     #endregion
