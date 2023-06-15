@@ -169,10 +169,4 @@ struct GridCell: View {
     }
 }
 
-struct TabsCollectionView_Previews: PreviewProvider {
-    static var previews: some View {
-        Text("")
-//        WebPreViewGrid(cellFrames: .constant([.zero]))
-//            .frame(height: 754)
-    }
-}
+

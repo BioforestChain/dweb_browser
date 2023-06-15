@@ -7,12 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		461B8F722A2D6F2F004812A2 /* FaviconFinder.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 461B8F6F2A2D6F2F004812A2 /* FaviconFinder.xcframework */; };
-		461B8F732A2D6F2F004812A2 /* FaviconFinder.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 461B8F6F2A2D6F2F004812A2 /* FaviconFinder.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		461B8F742A2D6F2F004812A2 /* Kingfisher.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 461B8F702A2D6F2F004812A2 /* Kingfisher.xcframework */; };
-		461B8F752A2D6F2F004812A2 /* Kingfisher.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 461B8F702A2D6F2F004812A2 /* Kingfisher.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		461B8F762A2D6F2F004812A2 /* SwiftSoup.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 461B8F712A2D6F2F004812A2 /* SwiftSoup.xcframework */; };
-		461B8F772A2D6F2F004812A2 /* SwiftSoup.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 461B8F712A2D6F2F004812A2 /* SwiftSoup.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F33F29302A28A791002EB729 /* StableForEach.swift in Sources */ = {isa = PBXBuildFile; fileRef = F33F29072A28A78F002EB729 /* StableForEach.swift */; };
 		F33F29312A28A791002EB729 /* MultipleWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F33F29082A28A78F002EB729 /* MultipleWebView.swift */; };
 		F33F29322A28A791002EB729 /* ObservableObjectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F33F29092A28A78F002EB729 /* ObservableObjectView.swift */; };
@@ -54,29 +48,13 @@
 		F3B558A52A2F3D44000169B6 /* DownloadAppManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B5589C2A2F3D44000169B6 /* DownloadAppManager.swift */; };
 		F3B558A72A2F3D5E000169B6 /* CombinePublisher.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3B558A62A2F3D5E000169B6 /* CombinePublisher.swift */; };
 		F3CB3AE12A32D4320042E520 /* ImageTools.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3CB3AE02A32D4320042E520 /* ImageTools.swift */; };
+		F3CB6D382A3A9B2A0081D340 /* FaviconFinder.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3CB6D372A3A9B2A0081D340 /* FaviconFinder.xcframework */; };
+		F3CB6D3B2A3A9B430081D340 /* Kingfisher.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3CB6D3A2A3A9B420081D340 /* Kingfisher.xcframework */; };
+		F3CB6D3E2A3A9B500081D340 /* SwiftSoup.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3CB6D3D2A3A9B500081D340 /* SwiftSoup.xcframework */; };
 		F3CFF05D2A36ABF200800332 /* DownloadAppView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3CFF05C2A36ABF200800332 /* DownloadAppView.swift */; };
 /* End PBXBuildFile section */
 
-/* Begin PBXCopyFilesBuildPhase section */
-		461B8F782A2D6F2F004812A2 /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				461B8F732A2D6F2F004812A2 /* FaviconFinder.xcframework in Embed Frameworks */,
-				461B8F772A2D6F2F004812A2 /* SwiftSoup.xcframework in Embed Frameworks */,
-				461B8F752A2D6F2F004812A2 /* Kingfisher.xcframework in Embed Frameworks */,
-			);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXCopyFilesBuildPhase section */
-
 /* Begin PBXFileReference section */
-		461B8F6F2A2D6F2F004812A2 /* FaviconFinder.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = FaviconFinder.xcframework; path = Resources/FaviconFinder.xcframework; sourceTree = "<group>"; };
-		461B8F702A2D6F2F004812A2 /* Kingfisher.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Kingfisher.xcframework; path = Resources/Kingfisher.xcframework; sourceTree = "<group>"; };
-		461B8F712A2D6F2F004812A2 /* SwiftSoup.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = SwiftSoup.xcframework; path = Resources/SwiftSoup.xcframework; sourceTree = "<group>"; };
 		F33F28FC2A28A72B002EB729 /* BrowserFramework.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = BrowserFramework.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F33F29072A28A78F002EB729 /* StableForEach.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StableForEach.swift; sourceTree = "<group>"; };
 		F33F29082A28A78F002EB729 /* MultipleWebView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MultipleWebView.swift; sourceTree = "<group>"; };
@@ -120,6 +98,9 @@
 		F3B558A62A2F3D5E000169B6 /* CombinePublisher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CombinePublisher.swift; sourceTree = "<group>"; };
 		F3CB3AE02A32D4320042E520 /* ImageTools.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageTools.swift; sourceTree = "<group>"; };
 		F3CB3AE42A3317970042E520 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		F3CB6D372A3A9B2A0081D340 /* FaviconFinder.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = FaviconFinder.xcframework; path = ../../../../../Downloads/framework/FaviconFinderFramework/XCFrameworks/FaviconFinder.xcframework; sourceTree = "<group>"; };
+		F3CB6D3A2A3A9B420081D340 /* Kingfisher.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Kingfisher.xcframework; path = ../../../../../Downloads/framework/Kingfisher/XCFrameworks/Kingfisher.xcframework; sourceTree = "<group>"; };
+		F3CB6D3D2A3A9B500081D340 /* SwiftSoup.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = SwiftSoup.xcframework; path = ../../../../../Downloads/framework/SwiftSoup/XCFrameworks/SwiftSoup.xcframework; sourceTree = "<group>"; };
 		F3CFF05C2A36ABF200800332 /* DownloadAppView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadAppView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -128,9 +109,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				461B8F722A2D6F2F004812A2 /* FaviconFinder.xcframework in Frameworks */,
-				461B8F762A2D6F2F004812A2 /* SwiftSoup.xcframework in Frameworks */,
-				461B8F742A2D6F2F004812A2 /* Kingfisher.xcframework in Frameworks */,
+				F3CB6D382A3A9B2A0081D340 /* FaviconFinder.xcframework in Frameworks */,
+				F3CB6D3E2A3A9B500081D340 /* SwiftSoup.xcframework in Frameworks */,
+				F3CB6D3B2A3A9B430081D340 /* Kingfisher.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -274,9 +255,9 @@
 		F33F29512A28A9D0002EB729 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				461B8F6F2A2D6F2F004812A2 /* FaviconFinder.xcframework */,
-				461B8F702A2D6F2F004812A2 /* Kingfisher.xcframework */,
-				461B8F712A2D6F2F004812A2 /* SwiftSoup.xcframework */,
+				F3CB6D3D2A3A9B500081D340 /* SwiftSoup.xcframework */,
+				F3CB6D3A2A3A9B420081D340 /* Kingfisher.xcframework */,
+				F3CB6D372A3A9B2A0081D340 /* FaviconFinder.xcframework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -315,7 +296,6 @@
 				F33F28F82A28A72B002EB729 /* Sources */,
 				F33F28F92A28A72B002EB729 /* Frameworks */,
 				F33F28FA2A28A72B002EB729 /* Resources */,
-				461B8F782A2D6F2F004812A2 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -547,9 +527,11 @@
 			buildSettings = {
 				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = 6MVC78QU7T;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -583,9 +565,11 @@
 			buildSettings = {
 				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = 6MVC78QU7T;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
