@@ -1,14 +1,16 @@
 import type { Remote } from "comlink";
+import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import type { Ipc } from "../../core/ipc/index.ts";
+import type { MicroModule } from "../../core/micro-module.ts";
+import { isElectronDev } from "../../helper/electronIsDev.ts";
 import { locks } from "../../helper/locksManager.ts";
 import {
   $NativeWindow,
   openNativeWindow,
 } from "../../helper/openNativeWindow.ts";
 import { $MMID } from "../../helper/types.ts";
-import type { MicroModule } from "../../core/micro-module.ts";
 
 type $APIS = typeof import("./assets/multi-webview.html.ts")["APIS"];
 
@@ -36,7 +38,27 @@ export const nwwGetFromMmid = (mmid: $MMID) => {
   return _mmid_wapis_map.get(mmid)?.nww;
 };
 
-export function forceGetWapis(this: MicroModule, ipc: Ipc, root_url: string){
+const init_preload_js = (async () => {
+  console.log(Electron.app.getPath("appData"));
+  const preload_js_path = path.join(
+    Electron.app.getPath("appData"),
+    `${Electron.app.getName()}/internal/${Electron.app.getVersion()}/mutil-webview.preload.js`,
+    "mutil-webview.preload.js"
+  );
+  console.log(preload_js_path);
+  /// preload.js 在启动后，进行第一次写入；如果在开发模式下，那么每次启动都强制写入
+  if (isElectronDev || fs.existsSync(preload_js_path) === false) {
+    /// 引入代码，编译后的，然后保存到外部文件中
+    const preloadCode = (
+      await import("./assets/mutil-webview.preload.ts")
+    ).default.toString();
+    fs.mkdirSync(path.dirname(preload_js_path), { recursive: true });
+    fs.writeFileSync(preload_js_path, `(${preloadCode})()`);
+  }
+  return pathToFileURL(preload_js_path).href;
+})();
+
+export function forceGetWapis(this: MicroModule, ipc: Ipc, root_url: string) {
   ipc.onClose(() => {
     // 是否会出现 一个 JsMicroModule 打开其他的 JsMicroModule
     // 的情况，如果是这样的话会出现一个 borserWindow 内会包含连个应用
@@ -51,7 +73,7 @@ export function forceGetWapis(this: MicroModule, ipc: Ipc, root_url: string){
     async () => {
       let wapi = _mmid_wapis_map.get(ipc.remote.mmid);
       if (wapi === undefined) {
-        this.nativeFetch(`file://js.browser.dweb/bw?action=show`)
+        this.nativeFetch(`file://js.browser.dweb/bw?action=show`);
         const diaplay = Electron.screen.getPrimaryDisplay();
         const nww = await openNativeWindow(root_url + `&uid=${ipc.uid}`, {
           webPreferences: {
@@ -68,21 +90,18 @@ export function forceGetWapis(this: MicroModule, ipc: Ipc, root_url: string){
 
         nww.on("close", () => {
           _mmid_wapis_map.delete(ipc.remote.mmid);
-          if(_mmid_wapis_map.size <= 0){
-            this.nativeFetch(`file://js.browser.dweb/bw?action=hide`)
+          if (_mmid_wapis_map.size <= 0) {
+            this.nativeFetch(`file://js.browser.dweb/bw?action=hide`);
           }
         });
 
         const apis = nww.getApis<$APIS>();
-        const absolutePath = pathToFileURL(
-          path.resolve(__dirname, "./assets/preload.js")
-        ).href;
-        /// TIP: 这里通过类型强行引用 preload，目的是确保依赖关系，使得最终能产生编译内容
-        type _Preload = typeof import("./assets/preload.ts");
-        apis.preloadAbsolutePathSet(absolutePath);
+
+        apis.preloadAbsolutePathSet(await init_preload_js);
+
         _mmid_wapis_map.set(ipc.remote.mmid, (wapi = { nww, apis }));
       }
       return wapi;
     }
   );
-};
+}

@@ -1,4 +1,5 @@
 // 下载
+import Electron from "electron";
 import extract from "extract-zip";
 import fs from "node:fs";
 import fsPromises from "node:fs/promises";
@@ -20,7 +21,10 @@ export function download(
   progress_callback: $ProgressCallback,
   appInfo: string
 ): Promise<boolean> {
-  const tempPath = path.resolve(__dirname, `../../../temp/${app_id}.zip`);
+  const tempPath = path.resolve(
+    Electron.app.getPath("cache"),
+    `../../../temp/${app_id}.zip`
+  );
   return new Promise((resolve, reject) => {
     progress(request(url), {})
       .on("progress", createOnProgress(progress_callback))

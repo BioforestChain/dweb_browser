@@ -4,16 +4,16 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { Readable } from "node:stream";
+import Nedb from "npm:@seald-io/nedb";
 import JSZip from "npm:jszip";
-import { open } from "npm:lmdb";
 import mime from "npm:mime";
-import tar from "tar";
+import tar from "npm:tar";
 import {
-    Ipc,
-    IpcEvent,
-    IpcHeaders,
-    IpcRequest,
-    IpcResponse,
+  Ipc,
+  IpcEvent,
+  IpcHeaders,
+  IpcRequest,
+  IpcResponse,
 } from "../../core/ipc/index.ts";
 import { simpleEncoder } from "../../helper/encoding.ts";
 import { locks } from "../../helper/locksManager.ts";
@@ -24,14 +24,29 @@ import { createHttpDwebServer } from "../../sys/http-server/$createHttpDwebServe
 import type { $AppMetaData, JmmNMM } from "./jmm.ts";
 import { JsMMMetadata, JsMicroModule } from "./micro-module.js.ts";
 
-export const JMM_APPS_PATH = path.join(Electron.app.getAppPath(), "apps");
+export const JMM_APPS_PATH = path.join(
+  // Electron.app.getPath("userData"),
+  // Electron.app.getName(),
+  Electron.app.getAppPath(),
+  "jmm-apps"
+);
 fs.mkdirSync(JMM_APPS_PATH, { recursive: true });
 
-export const JMM_DB = open<$AppMetaData, $MMID>({
-  path: path.join(JMM_APPS_PATH, "jmm"),
-  encoding: "json",
+const JMM_DB_PATH = path.join(JMM_APPS_PATH, ".db");
+/**
+ * @type {import("npm:@seald-io/nedb").Nedb<$AppMetaData>}
+ */
+// @ts-ignore: this is commonjs
+export const JMM_DB = new Nedb<$AppMetaData>({
+  filename: JMM_DB_PATH,
+  autoload: true,
 });
- 
+JMM_DB.ensureIndexAsync({ fieldName: ["id"], unique: true });
+// open<$AppMetaData, $MMID>({
+//   path: path.join(JMM_APPS_PATH, "jmm"),
+//   encoding: "json",
+// });
+
 export const JMM_TMP_DIR = path.join(os.tmpdir(), "jmm");
 fs.mkdirSync(JMM_TMP_DIR, { recursive: true });
 
@@ -245,7 +260,10 @@ async function _appInstall(
     // const jszip = await JSZip.loadAsync(fs.createReadStream(tempFilePath));
     const jszip = await JSZip.loadAsync(fs.readFileSync(tempFilePath));
     for (const [filePath, fileZipObj] of Object.entries(jszip.files)) {
-      const targetFilePath = path.join(installDir, filePath.slice(appInfo.id.length));
+      const targetFilePath = path.join(
+        installDir,
+        filePath.slice(appInfo.id.length)
+      );
       if (fileZipObj.dir) {
         fs.mkdirSync(targetFilePath, { recursive: true });
       } else {
@@ -272,7 +290,12 @@ async function _appInstall(
   await fs.unlinkSync(hashFilePath);
 
   /// 下载完成，开始安装
-  if ((await JMM_DB.put(appInfo.id, appInfo)) === false) {
+  const result = await JMM_DB.updateAsync({ id: appInfo.id }, appInfo, {
+    upsert: true,
+    returnUpdatedDocs: false,
+  });
+  console.log("update result", result);
+  if (result.numAffected === 0) {
     return enqueueInstallProgress(
       "install",
       0,
@@ -280,6 +303,7 @@ async function _appInstall(
       `fail to save app info to database: ${appInfo.id}`
     );
   }
+
   const metadata = new JsMMMetadata(appInfo);
   const jmm = new JsMicroModule(metadata);
   this.context!.dns.install(jmm);
@@ -291,7 +315,7 @@ async function _appInstall(
  * @returns
  */
 export async function getAllApps() {
-  const apps = await JMM_DB.getMany(JMM_DB.getKeys().asArray);
+  const apps = await JMM_DB.getAllData();
   return apps as $AppMetaData[];
 }
 

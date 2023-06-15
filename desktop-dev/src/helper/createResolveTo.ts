@@ -1,11 +1,12 @@
+import Electron from "electron";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 export const createResolveTo =
-  (__dirname: string) =>
+  (dirname: string) =>
   (...paths: string[]) =>
-    path.resolve(__dirname, ...paths);
-
-export const ROOT = createResolveTo(__dirname)("../../");
+    path.resolve(dirname, ...paths);
+    
+export const ROOT = Electron.app.getAppPath();
 export const resolveToRoot = createResolveTo(ROOT);
 
 export const resolveToRootFile = (...paths: string[]) =>

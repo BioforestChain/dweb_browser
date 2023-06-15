@@ -181,7 +181,7 @@ export class JsProcessNMM extends NativeMicroModule {
         }).href,
         {
           // 是否需要显示 js-process 的窗口 
-          show: false //process.argv.includes("--inspect") ? true : false, // require.main?.filename.endsWith(".html"),
+          show: true //process.argv.includes("--inspect") ? true : false, // require.main?.filename.endsWith(".html"),
         },
         { userAgent: (userAgent) => userAgent + ` dweb-host/${urlInfo.host}` }
       );

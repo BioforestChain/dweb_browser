@@ -1,3 +1,4 @@
+import { Buffer } from "node:buffer";
 import crypto from "node:crypto";
 import type http from "node:http";
 import type { IncomingMessage, OutgoingMessage } from "node:http";

@@ -1,7 +1,7 @@
 // 模拟状态栏模块-用来提供状态UI的模块
 
-import Jimp from "jimp";
-import jsQR from "jsqr";
+import Jimp from "npm:jimp";
+import jsQR from "npm:jsqr";
  
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import type { HttpServerNMM } from "../http-server/http-server.ts";

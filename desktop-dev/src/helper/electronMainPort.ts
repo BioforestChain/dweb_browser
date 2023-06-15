@@ -1,17 +1,12 @@
-import type {
-  MessageEvent as MessageEventMain,
-  MessagePortMain,
-} from "electron";
-
 const wm_mainListener = new WeakMap<Function, Function>();
 const resolveMainMessageListener = <
-  T extends (messageEvent: MessageEventMain) => void
+  T extends (messageEvent: Electron.MessageEvent) => void
 >(
   listener: T
 ) => {
   let resolveListener = wm_mainListener.get(listener);
   if (resolveListener === undefined) {
-    resolveListener = function (this: any, event: MessageEventMain) {
+    resolveListener = function (this: any, event: Electron.MessageEvent) {
       JSON.stringify(event.data, function resolver(key, value) {
         if (Array.isArray(value) && value[0] === "#PORT#") {
           this[key] = event.ports[value[1]];
@@ -27,8 +22,8 @@ const resolveMainMessageListener = <
 };
 
 export const updateMainMessageListener = (
-  target: MessagePortMain,
-  method: keyof MessagePortMain,
+  target: Electron.MessagePortMain,
+  method: keyof Electron.MessagePortMain,
   listener_index: number
 ) => {
   const source_method = target[method] as Function;
@@ -39,7 +34,7 @@ export const updateMainMessageListener = (
   return target;
 };
 
-export const updateMainPostMessage = (target: MessagePortMain) => {
+export const updateMainPostMessage = (target: Electron.MessagePortMain) => {
   const postMessage = target.postMessage;
   target.postMessage = function (message, transfer) {
     if (Array.isArray(transfer)) {
