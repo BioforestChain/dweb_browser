@@ -2,27 +2,27 @@ package info.bagen.dwebbrowser.microService.browser.jsProcess
 
 import android.webkit.WebView
 import info.bagen.dwebbrowser.App
-import info.bagen.dwebbrowser.microService.core.BootstrapContext
-import info.bagen.dwebbrowser.microService.core.NativeMicroModule
-import info.bagen.dwebbrowser.microService.sys.dns.nativeFetch
+import org.dweb_browser.microservice.sys.dns.nativeFetch
 import info.bagen.dwebbrowser.microService.browser.webview.DWebView
-import info.bagen.dwebbrowser.microService.core.ipc.Ipc
-import info.bagen.dwebbrowser.microService.core.ipc.IpcHeaders
-import info.bagen.dwebbrowser.microService.core.ipc.IpcResponse
-import info.bagen.dwebbrowser.microService.core.ipc.ReadableStreamIpc
-import info.bagen.dwebbrowser.microService.helper.Mmid
-import info.bagen.dwebbrowser.microService.helper.encodeURI
-import info.bagen.dwebbrowser.microService.helper.gson
+import org.dweb_browser.microservice.ipc.Ipc
+import org.dweb_browser.microservice.ipc.message.IpcHeaders
+import org.dweb_browser.microservice.ipc.message.IpcResponse
+import org.dweb_browser.microservice.ipc.ReadableStreamIpc
+import org.dweb_browser.microservice.help.Mmid
+import org.dweb_browser.helper.encodeURI
 import org.dweb_browser.helper.*
-import info.bagen.dwebbrowser.microService.helper.text
-import info.bagen.dwebbrowser.microService.sys.http.DwebHttpServerOptions
-import info.bagen.dwebbrowser.microService.sys.http.HttpDwebServer
-import info.bagen.dwebbrowser.microService.sys.http.closeHttpDwebServer
-import info.bagen.dwebbrowser.microService.sys.http.createHttpDwebServer
+import org.dweb_browser.microservice.sys.http.DwebHttpServerOptions
+import org.dweb_browser.microservice.sys.http.HttpDwebServer
+import org.dweb_browser.microservice.sys.http.closeHttpDwebServer
+import org.dweb_browser.microservice.sys.http.createHttpDwebServer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import org.dweb_browser.microservice.core.BootstrapContext
+import org.dweb_browser.microservice.core.NativeMicroModule
+import org.dweb_browser.microservice.help.gson
+import org.dweb_browser.microservice.help.text
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.lens.Query
@@ -30,8 +30,7 @@ import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 
-
-inline fun debugJsProcess(tag: String, msg: Any? = "", err: Throwable? = null) =
+fun debugJsProcess(tag: String, msg: Any? = "", err: Throwable? = null) =
   printdebugln("js-process", tag, msg, err)
 
 
@@ -187,11 +186,11 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
     }
 
     private suspend fun createProcessAndRun(
-        ipc: Ipc,
-        apis: JsProcessWebApi,
-        bootstrap_url: String,
-        entry: String?,
-        requestMessage: Request,
+      ipc: Ipc,
+      apis: JsProcessWebApi,
+      bootstrap_url: String,
+      entry: String?,
+      requestMessage: Request,
     ): CreateProcessAndRunResult {
         /**
          * 用自己的域名的权限为它创建一个子域名
@@ -304,7 +303,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
     )
 
     private suspend fun createIpc(
-        ipc: Ipc, apis: JsProcessWebApi, process_id: Int, mmid: Mmid
+      ipc: Ipc, apis: JsProcessWebApi, process_id: Int, mmid: Mmid
     ): Int {
         return apis.createIpc(process_id, mmid)
     }

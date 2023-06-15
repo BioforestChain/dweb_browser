@@ -1,6 +1,6 @@
 package info.bagen.dwebbrowser.microService.browser.nativeui.helper
 
-import info.bagen.dwebbrowser.microService.helper.Mmid
+import org.dweb_browser.microservice.help.Mmid
 import info.bagen.dwebbrowser.microService.browser.nativeui.NativeUiController
 
 fun NativeUiController.Companion.fromMultiWebView(mmid: Mmid) =

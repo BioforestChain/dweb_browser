@@ -2,3 +2,4 @@
 /src/main/libs
 /src/main/jni
 /src/main/assets/
+*.jks

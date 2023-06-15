@@ -2,14 +2,14 @@ package info.bagen.dwebbrowser.microService.browser.nativeui.helper
 
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.ui.graphics.Color
-import info.bagen.dwebbrowser.microService.core.NativeMicroModule
 import info.bagen.dwebbrowser.microService.helper.ColorJson
-import info.bagen.dwebbrowser.microService.helper.gson
 import info.bagen.dwebbrowser.microService.helper.toJsonAble
 import info.bagen.dwebbrowser.microService.browser.nativeui.navigationBar.NavigationBarController
 import info.bagen.dwebbrowser.microService.browser.nativeui.safeArea.SafeAreaController
 import info.bagen.dwebbrowser.microService.browser.nativeui.statusBar.StatusBarController
 import info.bagen.dwebbrowser.microService.browser.nativeui.virtualKeyboard.VirtualKeyboardController
+import org.dweb_browser.microservice.core.NativeMicroModule
+import org.dweb_browser.microservice.help.gson
 import org.http4k.core.Request
 import org.http4k.lens.Query
 import org.http4k.lens.boolean
@@ -34,16 +34,16 @@ class QueryHelper {
         val query_style = Query.string().optional("style")
         val query_visible = Query.boolean().optional("visible")
         val query_overlay = Query.boolean().optional("overlay")
-        inline fun color(req: Request) = query_color(req)?.let {
+        fun color(req: Request) = query_color(req)?.let {
             gson.fromJson(it, ColorJson::class.java).toColor()
         }
 
-        inline fun style(req: Request) = query_style(req)?.let {
+        fun style(req: Request) = query_style(req)?.let {
           BarStyle.from(it)
         }
 
-        inline fun visible(req: Request) = query_visible(req)
-        inline fun overlay(req: Request) = query_overlay(req)
+        fun visible(req: Request) = query_visible(req)
+        fun overlay(req: Request) = query_overlay(req)
     }
 }
 

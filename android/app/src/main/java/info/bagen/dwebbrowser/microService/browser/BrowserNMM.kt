@@ -6,11 +6,11 @@ import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.browser.jmm.JmmNMM.Companion.getAndUpdateJmmNmmApps
 import info.bagen.dwebbrowser.microService.browser.jmm.JmmNMM.Companion.jmmController
 import info.bagen.dwebbrowser.microService.browser.jmm.ui.JmmManagerActivity
-import info.bagen.dwebbrowser.microService.core.BootstrapContext
-import info.bagen.dwebbrowser.microService.core.NativeMicroModule
-import info.bagen.dwebbrowser.microService.core.ipc.Ipc
-import info.bagen.dwebbrowser.microService.core.ipc.IpcEvent
+import org.dweb_browser.microservice.ipc.Ipc
+import org.dweb_browser.microservice.ipc.message.IpcEvent
 import org.dweb_browser.helper.*
+import org.dweb_browser.microservice.core.BootstrapContext
+import org.dweb_browser.microservice.core.NativeMicroModule
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status

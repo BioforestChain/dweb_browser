@@ -1,12 +1,12 @@
 package info.bagen.dwebbrowser.microService.browser.nativeui
 
-import info.bagen.dwebbrowser.microService.core.BootstrapContext
-import info.bagen.dwebbrowser.microService.core.NativeMicroModule
 import info.bagen.dwebbrowser.microService.browser.nativeui.navigationBar.NavigationBarNMM
 import info.bagen.dwebbrowser.microService.browser.nativeui.safeArea.SafeAreaNMM
 import info.bagen.dwebbrowser.microService.browser.nativeui.splashScreen.SplashScreenNMM
 import info.bagen.dwebbrowser.microService.browser.nativeui.statusBar.StatusBarNMM
 import info.bagen.dwebbrowser.microService.browser.nativeui.virtualKeyboard.VirtualKeyboardNMM
+import org.dweb_browser.microservice.core.BootstrapContext
+import org.dweb_browser.microservice.core.NativeMicroModule
 
 class NativeUiNMM : NativeMicroModule("nativeui.browser.dweb") {
     private val navigationBarNMM = NavigationBarNMM()

@@ -1,6 +1,9 @@
+import com.version.manager.BuildConfig
+
 plugins {
   id("java-library")
   id("org.jetbrains.kotlin.jvm")
+  id("com.version.manager")
 }
 
 java {
@@ -12,8 +15,8 @@ kotlin {
   version = "1.8.10"
 }
 
-
 dependencies {
   implementation(kotlin("stdlib"))
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.1")
+  implementation(BuildConfig.kotlinxCoroutines)
+  testImplementation("junit:junit:4.13.2")
 }

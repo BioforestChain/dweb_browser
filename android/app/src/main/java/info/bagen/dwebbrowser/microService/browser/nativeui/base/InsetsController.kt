@@ -6,9 +6,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import info.bagen.dwebbrowser.microService.helper.InsetsJson
 import info.bagen.dwebbrowser.microService.helper.StateObservable
-import info.bagen.dwebbrowser.microService.helper.gson
 import info.bagen.dwebbrowser.microService.browser.nativeui.NativeUiController
 import info.bagen.dwebbrowser.util.IsChange
+import org.dweb_browser.microservice.help.gson
 
 abstract class InsetsController(
   val activity: ComponentActivity,

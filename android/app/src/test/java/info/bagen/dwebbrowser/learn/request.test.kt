@@ -1,6 +1,6 @@
 package info.bagen.dwebbrowser.learn
 
-import info.bagen.dwebbrowser.microService.core.ipc.ReadableStream
+import org.dweb_browser.microservice.ipc.message.ReadableStream
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking

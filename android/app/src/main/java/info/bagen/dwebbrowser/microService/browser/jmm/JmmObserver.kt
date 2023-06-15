@@ -1,6 +1,6 @@
 package info.bagen.dwebbrowser.microService.browser.jmm
 
-import info.bagen.dwebbrowser.microService.helper.Mmid
+import org.dweb_browser.microservice.help.Mmid
 import org.dweb_browser.helper.*
 import info.bagen.dwebbrowser.microService.browser.jmm.ui.DownLoadStatus
 import info.bagen.dwebbrowser.util.moreThanTwoDigits
@@ -21,7 +21,7 @@ class DownLoadObserver(private val mmid: Mmid) {
     private val downloadMap = mutableMapOf<Mmid, MutableList<DownLoadObserver>>()
 
     fun emit(
-        mmid: Mmid, status: DownLoadStatus, downLoadSize: Long = 0L, totalSize: Long = 1L
+      mmid: Mmid, status: DownLoadStatus, downLoadSize: Long = 0L, totalSize: Long = 1L
     ) {
       runBlockingCatching(ioAsyncExceptionHandler) {
         val listener = DownLoadObserverListener(status, downLoadSize, totalSize)

@@ -2,14 +2,11 @@ package info.bagen.dwebbrowser.microService.browser.jmm
 
 import androidx.compose.runtime.mutableStateMapOf
 import info.bagen.dwebbrowser.datastore.JmmMetadataDB
-import info.bagen.dwebbrowser.microService.core.BootstrapContext
-import info.bagen.dwebbrowser.microService.core.NativeMicroModule
-import info.bagen.dwebbrowser.microService.helper.Mmid
+import org.dweb_browser.microservice.help.Mmid
 import org.dweb_browser.helper.*
-import info.bagen.dwebbrowser.microService.helper.json
-import info.bagen.dwebbrowser.microService.sys.dns.nativeFetch
+import org.dweb_browser.microservice.sys.dns.nativeFetch
 import info.bagen.dwebbrowser.microService.browser.jmm.ui.JmmManagerActivity
-import info.bagen.dwebbrowser.microService.helper.DWEB_DEEPLINK
+import org.dweb_browser.microservice.help.DWEB_DEEPLINK
 import info.bagen.dwebbrowser.service.DownLoadController
 import info.bagen.dwebbrowser.service.compareAppVersionHigh
 import info.bagen.dwebbrowser.util.DwebBrowserUtil
@@ -18,6 +15,9 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import org.dweb_browser.microservice.core.BootstrapContext
+import org.dweb_browser.microservice.core.NativeMicroModule
+import org.dweb_browser.microservice.help.json
 import org.http4k.core.Method
 import org.http4k.lens.Query
 import org.http4k.lens.string

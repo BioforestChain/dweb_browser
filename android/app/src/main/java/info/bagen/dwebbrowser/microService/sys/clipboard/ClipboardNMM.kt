@@ -6,9 +6,9 @@ import android.content.ClipboardManager
 import android.content.Context
 import info.bagen.dwebbrowser.util.JsonUtil
 import info.bagen.dwebbrowser.App
-import info.bagen.dwebbrowser.microService.core.BootstrapContext
-import info.bagen.dwebbrowser.microService.core.NativeMicroModule
 import org.dweb_browser.helper.*
+import org.dweb_browser.microservice.core.BootstrapContext
+import org.dweb_browser.microservice.core.NativeMicroModule
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
@@ -17,11 +17,10 @@ import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 
-
 data class ClipboardWriteResponse(val success: Boolean, val errorManager: String = "")
 data class ClipboardData(val value: String, val type: String)
 
-inline fun debugClipboard(tag: String, msg: Any? = "", err: Throwable? = null) =
+fun debugClipboard(tag: String, msg: Any? = "", err: Throwable? = null) =
   printdebugln("Clipboard", tag, msg, err)
 
 /** 剪切板微模块*/

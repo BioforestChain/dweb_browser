@@ -6,7 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import info.bagen.dwebbrowser.microService.startDwebBrowser
-import info.bagen.dwebbrowser.microService.sys.dns.DnsNMM
+import org.dweb_browser.microservice.sys.dns.DnsNMM
 import info.bagen.dwebbrowser.util.DwebBrowserUtil
 import info.bagen.dwebbrowser.util.PlaocUtil
 import kotlinx.coroutines.DelicateCoroutinesApi

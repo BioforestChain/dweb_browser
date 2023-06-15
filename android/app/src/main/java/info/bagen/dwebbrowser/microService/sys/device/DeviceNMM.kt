@@ -1,15 +1,15 @@
 package info.bagen.dwebbrowser.microService.sys.device
 
-import info.bagen.dwebbrowser.microService.core.BootstrapContext
-import info.bagen.dwebbrowser.microService.core.NativeMicroModule
 import org.dweb_browser.helper.*
+import org.dweb_browser.microservice.core.BootstrapContext
+import org.dweb_browser.microservice.core.NativeMicroModule
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 
-inline fun debugDevice(tag: String, msg: Any? = "", err: Throwable? = null) =
+fun debugDevice(tag: String, msg: Any? = "", err: Throwable? = null) =
   printdebugln("Device", tag, msg, err)
 
 class DeviceNMM: NativeMicroModule("device.sys.dweb") {

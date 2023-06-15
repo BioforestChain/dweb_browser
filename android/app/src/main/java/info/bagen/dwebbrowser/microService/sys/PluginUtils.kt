@@ -7,7 +7,7 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
-import info.bagen.dwebbrowser.microService.helper.Mmid
+import org.dweb_browser.microservice.help.Mmid
 
 enum class PluginType(
   val mmid: Mmid, private val typeName:String, val  description: String, val icon: ImageVector

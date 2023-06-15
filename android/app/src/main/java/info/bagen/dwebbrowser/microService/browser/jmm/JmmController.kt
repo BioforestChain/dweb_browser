@@ -1,12 +1,17 @@
 package info.bagen.dwebbrowser.microService.browser.jmm
 
-import info.bagen.dwebbrowser.microService.core.ipc.Ipc
-import info.bagen.dwebbrowser.microService.core.ipc.IpcEvent
-import info.bagen.dwebbrowser.microService.helper.EIpcEvent
-import info.bagen.dwebbrowser.microService.helper.Mmid
+import org.dweb_browser.microservice.ipc.Ipc
+import org.dweb_browser.microservice.ipc.message.IpcEvent
+import org.dweb_browser.microservice.help.Mmid
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
+enum class EIpcEvent(val event:String){
+  State("state"),
+  Ready("ready"),
+  Activity("activity"),
+  Close("close")
+}
 
 class JmmController(private val jmmNMM: JmmNMM) {
 

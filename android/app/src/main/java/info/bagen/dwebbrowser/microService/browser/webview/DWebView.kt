@@ -9,10 +9,9 @@ import android.webkit.*
 import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
 import info.bagen.dwebbrowser.microService.browser.mwebview.MultiWebViewActivity
-import info.bagen.dwebbrowser.microService.core.MicroModule
 import info.bagen.dwebbrowser.microService.helper.*
-import info.bagen.dwebbrowser.microService.sys.dns.nativeFetch
-import info.bagen.dwebbrowser.microService.sys.http.getFullAuthority
+import org.dweb_browser.microservice.sys.dns.nativeFetch
+import org.dweb_browser.microservice.sys.http.getFullAuthority
 import info.bagen.dwebbrowser.microService.sys.permission.debugPermission
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -21,6 +20,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.dweb_browser.helper.*
+import org.dweb_browser.microservice.core.MicroModule
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Uri
@@ -28,8 +28,7 @@ import org.http4k.lens.Header
 import java.io.File
 import java.util.*
 
-
-inline fun debugDWebView(tag: String, msg: Any? = "", err: Throwable? = null) =
+fun debugDWebView(tag: String, msg: Any? = "", err: Throwable? = null) =
   printdebugln("dwebview", tag, msg, err)
 
 /**

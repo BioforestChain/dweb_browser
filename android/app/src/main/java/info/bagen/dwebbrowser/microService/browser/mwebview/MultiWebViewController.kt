@@ -13,10 +13,6 @@ import com.google.accompanist.web.WebViewState
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.browser.nativeui.NativeUiController
 import info.bagen.dwebbrowser.microService.browser.webview.DWebView
-import info.bagen.dwebbrowser.microService.core.MicroModule
-import info.bagen.dwebbrowser.microService.core.ipc.Ipc
-import info.bagen.dwebbrowser.microService.core.ipc.IpcEvent
-import info.bagen.dwebbrowser.microService.helper.Mmid
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -27,6 +23,10 @@ import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.runBlockingCatching
+import org.dweb_browser.microservice.core.MicroModule
+import org.dweb_browser.microservice.help.Mmid
+import org.dweb_browser.microservice.ipc.Ipc
+import org.dweb_browser.microservice.ipc.message.IpcEvent
 import org.json.JSONObject
 import java.util.concurrent.atomic.AtomicInteger
 

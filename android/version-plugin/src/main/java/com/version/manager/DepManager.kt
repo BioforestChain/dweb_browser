@@ -103,4 +103,16 @@ object BuildConfig {
   const val coilSVG = "io.coil-kt:coil-svg:$coilVersion"
   const val coilVideo = "io.coil-kt:coil-video:$coilVersion"
   const val coilGif = "io.coil-kt:coil-gif:$coilVersion"
+
+  const val kotlinxCoroutines = "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.1"
+
+  //////// 测试相关
+  /// 测试相关
+  const val testKotlinCoroutinesTest = "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.1"
+  const val testKotlinCoroutinesDebug = "org.jetbrains.kotlinx:kotlinx-coroutines-debug:1.7.1"
+  const val testJUnitBom = "org.junit:junit-bom:5.9.2"
+  const val testJUnitPlatformLauncher = "org.junit.platform:junit-platform-launcher"
+  const val testJUnitJupiter = "org.junit.jupiter:junit-jupiter"
+  const val testJUnitJupiterEngine = "org.junit.jupiter:junit-jupiter-engine"
+  const val testJUnitVintageEngine = "org.junit.vintage:junit-vintage-engine"
 }

@@ -1,11 +1,11 @@
 package info.bagen.dwebbrowser.microService.browser.nativeui.navigationBar
 
-import info.bagen.dwebbrowser.microService.core.BootstrapContext
-import info.bagen.dwebbrowser.microService.core.NativeMicroModule
-import info.bagen.dwebbrowser.microService.helper.Mmid
+import org.dweb_browser.microservice.help.Mmid
 import info.bagen.dwebbrowser.microService.browser.nativeui.NativeUiController
 import info.bagen.dwebbrowser.microService.browser.nativeui.helper.QueryHelper
 import info.bagen.dwebbrowser.microService.browser.nativeui.helper.fromMultiWebView
+import org.dweb_browser.microservice.core.BootstrapContext
+import org.dweb_browser.microservice.core.NativeMicroModule
 import org.http4k.core.Method
 import org.http4k.routing.bind
 import org.http4k.routing.routes

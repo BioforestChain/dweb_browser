@@ -4,7 +4,7 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import info.bagen.dwebbrowser.App
-import info.bagen.dwebbrowser.microService.helper.gson
+import org.dweb_browser.microservice.help.gson
 
 data class AppData(
     var versionCode: Int = 0,

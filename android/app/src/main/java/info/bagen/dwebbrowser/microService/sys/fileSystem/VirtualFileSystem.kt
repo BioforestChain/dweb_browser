@@ -2,9 +2,9 @@ package info.bagen.dwebbrowser.microService.sys.fileSystem
 
 import android.util.Log
 import info.bagen.dwebbrowser.App
-import info.bagen.dwebbrowser.microService.helper.iterator
-import info.bagen.dwebbrowser.microService.helper.readByteArray
-import info.bagen.dwebbrowser.microService.helper.readInt
+import org.dweb_browser.helper.iterator
+import org.dweb_browser.helper.readByteArray
+import org.dweb_browser.helper.readInt
 import info.bagen.dwebbrowser.util.JsonUtil
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers

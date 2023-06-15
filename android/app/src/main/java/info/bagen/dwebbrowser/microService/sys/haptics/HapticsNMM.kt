@@ -1,15 +1,13 @@
 package info.bagen.dwebbrowser.microService.sys.haptics
 
 import com.google.gson.reflect.TypeToken
-import info.bagen.dwebbrowser.microService.core.BootstrapContext
-import info.bagen.dwebbrowser.microService.core.NativeMicroModule
-import info.bagen.dwebbrowser.microService.helper.gson
-import info.bagen.dwebbrowser.microService.sys.http.Gateway
+import org.dweb_browser.microservice.core.BootstrapContext
+import org.dweb_browser.microservice.core.NativeMicroModule
+import org.dweb_browser.microservice.help.gson
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
 import org.http4k.lens.Query
-import org.http4k.lens.long
 import org.http4k.lens.string
 
 import org.http4k.routing.bind

@@ -1,8 +1,8 @@
 package info.bagen.dwebbrowser.network
 
-import info.bagen.dwebbrowser.microService.helper.gson
 import info.bagen.dwebbrowser.network.base.*
 import info.bagen.dwebbrowser.ui.entity.AppVersion
+import org.dweb_browser.microservice.help.gson
 import org.http4k.core.BodyMode.Stream
 import org.http4k.core.Request
 import java.io.File

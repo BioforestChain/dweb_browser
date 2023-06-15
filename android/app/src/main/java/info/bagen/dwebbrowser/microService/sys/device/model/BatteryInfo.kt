@@ -4,7 +4,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.BatteryManager
 import info.bagen.dwebbrowser.App
-import info.bagen.dwebbrowser.microService.helper.gson
+import org.dweb_browser.microservice.help.gson
 
 data class Battery(
     var batteryPercent: Int = 0,

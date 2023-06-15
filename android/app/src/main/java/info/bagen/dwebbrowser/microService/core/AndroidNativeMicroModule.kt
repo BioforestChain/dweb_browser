@@ -1,10 +1,10 @@
 package info.bagen.dwebbrowser.microService.core
 
-
 import androidx.activity.ComponentActivity
 import info.bagen.dwebbrowser.base.BaseActivity
 import org.dweb_browser.helper.*
-import info.bagen.dwebbrowser.microService.helper.Mmid
+import org.dweb_browser.microservice.core.NativeMicroModule
+import org.dweb_browser.microservice.help.Mmid
 
 abstract class AndroidNativeMicroModule(override val mmid: Mmid) : NativeMicroModule(mmid) {
 

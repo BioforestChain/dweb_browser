@@ -1,9 +1,9 @@
 package info.bagen.dwebbrowser.microService.sys.permission
 
-import info.bagen.dwebbrowser.microService.core.BootstrapContext
-import info.bagen.dwebbrowser.microService.core.NativeMicroModule
-import info.bagen.dwebbrowser.microService.helper.Mmid
+import org.dweb_browser.microservice.help.Mmid
 import org.dweb_browser.helper.*
+import org.dweb_browser.microservice.core.BootstrapContext
+import org.dweb_browser.microservice.core.NativeMicroModule
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
@@ -12,7 +12,7 @@ import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 
-inline fun debugPermission(tag: String, msg: Any? = "", err: Throwable? = null) =
+fun debugPermission(tag: String, msg: Any? = "", err: Throwable? = null) =
   printdebugln("Permissions", tag, msg, err)
 
 class PermissionsNMM : NativeMicroModule("permission.sys.dweb") {

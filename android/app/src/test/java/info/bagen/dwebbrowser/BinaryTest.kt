@@ -1,7 +1,7 @@
 package info.bagen.dwebbrowser
 
-import info.bagen.dwebbrowser.microService.helper.toByteArray
-import info.bagen.dwebbrowser.microService.helper.toInt
+import org.dweb_browser.helper.toByteArray
+import org.dweb_browser.helper.toInt
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 

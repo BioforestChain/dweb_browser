@@ -1,5 +1,12 @@
 rootProject.name = "plaoc"
+includeBuild("version-plugin")
 include ':app'
+include ':helper'
+include ':nextbrowser'
+include ':benchmark'
+include ':MicroService'
+include ':DWebView'
+//include ':browser'
 
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
@@ -9,8 +16,3 @@ dependencyResolutionManagement {
         maven { url 'https://jitpack.io' }
     }
 }
-include ':benchmark'
-//include ':browser'
-include ':helper'
-include ':nextbrowser'
-includeBuild("version-plugin")

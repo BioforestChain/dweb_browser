@@ -10,7 +10,7 @@ import androidx.core.app.NotificationCompat
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.microService.browser.BrowserActivity
-import info.bagen.dwebbrowser.microService.helper.Mmid
+import org.dweb_browser.microservice.help.Mmid
 
 class NotificationUtil {
   private val mNormalChannelId = "渠道id" // 唯一性

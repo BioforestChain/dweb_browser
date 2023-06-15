@@ -1,9 +1,8 @@
 package info.bagen.dwebbrowser.microService.core.ipc.ipcWeb
 
 import android.webkit.WebMessagePort
-import info.bagen.dwebbrowser.microService.core.ipc.IPC_ROLE
+import org.dweb_browser.microservice.ipc.message.IPC_ROLE
 import java.util.concurrent.atomic.AtomicInteger
-
 
 val ALL_MESSAGE_PORT_CACHE = mutableMapOf<Int, MessagePort>();
 private var all_ipc_id_acc = AtomicInteger(1);
@@ -23,9 +22,9 @@ fun saveNative2JsIpcPort(port: WebMessagePort) = all_ipc_id_acc.getAndAdd(1).als
  * 那么连接发起方就可以通过这个 id(number) 和 Native2JsIpc 构造器来实现与 js-worker 的直连
  */
 open class Native2JsIpc(
-    val port_id: Int,
-    remote: MicroModuleInfo,
-    role: IPC_ROLE = IPC_ROLE.CLIENT,
+  val port_id: Int,
+  remote: MicroModuleInfo,
+  role: IPC_ROLE = IPC_ROLE.CLIENT,
 ) : MessagePortIpc(
     ALL_MESSAGE_PORT_CACHE[port_id]
         ?: throw Exception("no found port2(js-process) by id: $port_id"), remote, role

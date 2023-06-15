@@ -2,14 +2,15 @@ package info.bagen.dwebbrowser.microService
 
 import info.bagen.dwebbrowser.microService.browser.BrowserNMM
 import org.dweb_browser.helper.*
-import info.bagen.dwebbrowser.microService.sys.boot.BootNMM
-import info.bagen.dwebbrowser.microService.sys.dns.DnsNMM
-import info.bagen.dwebbrowser.microService.sys.http.HttpNMM
+import org.dweb_browser.microservice.sys.boot.BootNMM
+import org.dweb_browser.microservice.sys.dns.DnsNMM
+import org.dweb_browser.microservice.sys.http.HttpNMM
 import info.bagen.dwebbrowser.microService.browser.jmm.JmmNMM
 import info.bagen.dwebbrowser.microService.browser.jsProcess.JsProcessNMM
 import info.bagen.dwebbrowser.microService.browser.mwebview.MultiWebViewNMM
 import info.bagen.dwebbrowser.microService.browser.nativeui.NativeUiNMM
 import info.bagen.dwebbrowser.microService.browser.nativeui.torch.TorchNMM
+import info.bagen.dwebbrowser.microService.sys.LocalFileFetch
 import info.bagen.dwebbrowser.microService.sys.biometrics.BiometricsNMM
 import info.bagen.dwebbrowser.microService.sys.clipboard.ClipboardNMM
 import info.bagen.dwebbrowser.microService.sys.device.*
@@ -64,6 +65,7 @@ suspend fun startDwebBrowser(): DnsNMM {
     )
   }
 
+  LocalFileFetch.INSTANCE // 注入 localFileFetch
   val dnsNMM = DnsNMM()
 
   /// 安装系统应用

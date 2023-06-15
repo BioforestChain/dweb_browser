@@ -1,7 +1,7 @@
 package info.bagen.dwebbrowser.microService.browser.nativeui.torch
 
-import info.bagen.dwebbrowser.microService.core.BootstrapContext
-import info.bagen.dwebbrowser.microService.core.NativeMicroModule
+import org.dweb_browser.microservice.core.BootstrapContext
+import org.dweb_browser.microservice.core.NativeMicroModule
 import org.http4k.core.Method
 import org.http4k.routing.bind
 import org.http4k.routing.routes

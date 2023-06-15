@@ -97,7 +97,6 @@ dependencies {
   implementation(BuildConfig.coreSplashScreen)
   implementation(BuildConfig.navigationUiKotlin)
   implementation(BuildConfig.gridLayout)
-  implementation(project(mapOf("path" to ":helper")))
 
   implementation(BuildConfig.accompanistWebview)
   implementation(BuildConfig.accompanistNavigationMaterial)
@@ -108,7 +107,6 @@ dependencies {
   implementation(BuildConfig.accompanistInsetsUI)
 
   implementation(BuildConfig.profileInstaller)
-  testImplementation("org.junit.jupiter:junit-jupiter")
   implementation(BuildConfig.appcompat)
   implementation(BuildConfig.appcompatResources)
 
@@ -147,14 +145,15 @@ dependencies {
 
   /// 测试相关
   testImplementation(kotlin("test"))
-  testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.1")
-  testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:1.7.1")
-  testImplementation(platform("org.junit:junit-bom:5.9.2"))
-  testRuntimeOnly("org.junit.platform:junit-platform-launcher") {
+  testImplementation(BuildConfig.testKotlinCoroutinesTest)
+  testImplementation(BuildConfig.testKotlinCoroutinesDebug)
+  testImplementation(platform(BuildConfig.testJUnitBom))
+  testRuntimeOnly(BuildConfig.testJUnitPlatformLauncher) {
     because("Only needed to run tests in a version of IntelliJ IDEA that bundles older versions")
   }
-  testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
-  testRuntimeOnly("org.junit.vintage:junit-vintage-engine")
+  testImplementation(BuildConfig.testJUnitJupiter)
+  testRuntimeOnly(BuildConfig.testJUnitJupiterEngine)
+  testRuntimeOnly(BuildConfig.testJUnitVintageEngine)
 
   // 解压文件
   implementation(BuildConfig.commonsCompress)
@@ -176,6 +175,9 @@ dependencies {
   implementation(BuildConfig.roomRuntime)
   kapt(BuildConfig.roomCompiler) // To use Kotlin annotation processing tool (kapt)
   implementation(BuildConfig.roomKotlin) // kotlin扩展和协同程序对Room的支持
+
+  implementation(project(mapOf("path" to ":helper")))
+  implementation(project(mapOf("path" to ":MicroService")))
 }
 
 tasks.withType<Test> {

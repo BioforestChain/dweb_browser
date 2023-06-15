@@ -2,14 +2,13 @@ package info.bagen.dwebbrowser.microService.core.ipc.ipcWeb
 
 import android.webkit.WebMessage
 import android.webkit.WebMessagePort
-import info.bagen.dwebbrowser.microService.core.ipc.IPC_ROLE
-import info.bagen.dwebbrowser.microService.core.ipc.Ipc
-import info.bagen.dwebbrowser.microService.core.ipc.IpcMessage
-import info.bagen.dwebbrowser.microService.core.ipc.IpcMessageArgs
-import info.bagen.dwebbrowser.microService.core.ipc.IpcRequest
-import info.bagen.dwebbrowser.microService.core.ipc.IpcResponse
-import info.bagen.dwebbrowser.microService.core.ipc.IpcStreamData
-import info.bagen.dwebbrowser.microService.helper.gson
+import org.dweb_browser.microservice.ipc.message.IPC_ROLE
+import org.dweb_browser.microservice.ipc.Ipc
+import org.dweb_browser.microservice.ipc.message.IpcMessage
+import org.dweb_browser.microservice.ipc.message.IpcMessageArgs
+import org.dweb_browser.microservice.ipc.message.IpcRequest
+import org.dweb_browser.microservice.ipc.message.IpcResponse
+import org.dweb_browser.microservice.ipc.message.IpcStreamData
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
@@ -18,9 +17,11 @@ import org.dweb_browser.helper.Callback
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printdebugln
+import org.dweb_browser.microservice.help.gson
+import org.dweb_browser.microservice.ipc.message.jsonToIpcMessage
 import java.util.WeakHashMap
 
-inline fun debugMessagePortIpc(tag: String, msg: Any = "", err: Throwable? = null) =
+fun debugMessagePortIpc(tag: String, msg: Any = "", err: Throwable? = null) =
   printdebugln("message-port-ipc", tag, msg, err)
 
 class MessagePort {

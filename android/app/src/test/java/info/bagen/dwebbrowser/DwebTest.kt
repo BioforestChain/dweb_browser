@@ -2,15 +2,15 @@ package info.bagen.dwebbrowser
 
 import info.bagen.dwebbrowser.microService.core.BootstrapContext
 import info.bagen.dwebbrowser.microService.core.NativeMicroModule
-import info.bagen.dwebbrowser.microService.core.ipc.IpcHeaders
-import info.bagen.dwebbrowser.microService.core.ipc.IpcResponse
-import info.bagen.dwebbrowser.microService.helper.text
-import info.bagen.dwebbrowser.microService.sys.boot.BootNMM
-import info.bagen.dwebbrowser.microService.sys.dns.DnsNMM
-import info.bagen.dwebbrowser.microService.sys.dns.nativeFetch
-import info.bagen.dwebbrowser.microService.sys.http.DwebHttpServerOptions
-import info.bagen.dwebbrowser.microService.sys.http.HttpNMM
-import info.bagen.dwebbrowser.microService.sys.http.createHttpDwebServer
+import org.dweb_browser.microservice.ipc.message.IpcHeaders
+import org.dweb_browser.microservice.ipc.message.IpcResponse
+import org.dweb_browser.helper.text
+import org.dweb_browser.microservice.sys.boot.BootNMM
+import org.dweb_browser.microservice.sys.dns.DnsNMM
+import org.dweb_browser.microservice.sys.dns.nativeFetch
+import org.dweb_browser.microservice.sys.http.DwebHttpServerOptions
+import org.dweb_browser.microservice.sys.http.HttpNMM
+import org.dweb_browser.microservice.sys.http.createHttpDwebServer
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
@@ -57,7 +57,8 @@ class DwebTest : AsyncBase() {
                     delay(20)
                     println("第 $i 次发送数据")
                     val data = "/hi-$i"
-                    val res = nativeFetch(dwebServer.startResult.urlInfo.internal_origin + data)
+                    val res =
+                        org.dweb_browser.microservice.sys.dns.nativeFetch(dwebServer.startResult.urlInfo.internal_origin + data)
                     assertEquals("ECHO: $data", res.text())
                 }
             }
@@ -66,7 +67,8 @@ class DwebTest : AsyncBase() {
                     delay(20)
                     println("第 $i 次发送数据")
                     val data = "/hi-$i"
-                    val res = nativeFetch(internalServer.startResult.urlInfo.internal_origin + data)
+                    val res =
+                        org.dweb_browser.microservice.sys.dns.nativeFetch(internalServer.startResult.urlInfo.internal_origin + data)
                     assertEquals("ECHO/INTERNAL: $data", res.text())
                 }
             }

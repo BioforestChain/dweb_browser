@@ -1,16 +1,23 @@
 package info.bagen.dwebbrowser.microService.browser.jmm
 
-import info.bagen.dwebbrowser.microService.core.BootstrapContext
-import info.bagen.dwebbrowser.microService.core.ConnectResult
-import info.bagen.dwebbrowser.microService.core.MicroModule
-import info.bagen.dwebbrowser.microService.core.connectAdapterManager
-import info.bagen.dwebbrowser.microService.core.ipc.*;
 import info.bagen.dwebbrowser.microService.core.ipc.ipcWeb.Native2JsIpc
-import info.bagen.dwebbrowser.microService.helper.*
-import info.bagen.dwebbrowser.microService.sys.dns.nativeFetch
+import org.dweb_browser.microservice.sys.dns.nativeFetch
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.*
+import org.dweb_browser.microservice.core.BootstrapContext
+import org.dweb_browser.microservice.core.ConnectResult
+import org.dweb_browser.microservice.core.MicroModule
+import org.dweb_browser.microservice.core.connectAdapterManager
+import org.dweb_browser.microservice.help.DWEB_DEEPLINK
+import org.dweb_browser.microservice.help.Mmid
+import org.dweb_browser.microservice.help.gson
+import org.dweb_browser.microservice.help.int
+import org.dweb_browser.microservice.help.stream
+import org.dweb_browser.microservice.ipc.Ipc
+import org.dweb_browser.microservice.ipc.ReadableStreamIpc
+import org.dweb_browser.microservice.ipc.message.IpcMessageArgs
+import org.dweb_browser.microservice.ipc.message.IpcResponse
 import org.http4k.core.*
 import java.util.*
 
@@ -194,7 +201,7 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
 
     private val fromMmid_originIpc_WM = mutableMapOf<Mmid, PromiseOut<Ipc>>();
 
-    class JmmIpc(port_id: Int, remote: MicroModuleInfo) : Native2JsIpc(port_id, remote) {}
+    class JmmIpc(port_id: Int, remote: Ipc.MicroModuleInfo) : Native2JsIpc(port_id, remote) {}
 
     /**
      * 桥接ipc到js内部：

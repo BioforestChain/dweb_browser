@@ -5,10 +5,10 @@ import android.graphics.Point
 import android.graphics.Rect
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
-import info.bagen.dwebbrowser.microService.core.BootstrapContext
-import info.bagen.dwebbrowser.microService.core.NativeMicroModule
 import org.dweb_browser.helper.*
 import io.ktor.util.*
+import org.dweb_browser.microservice.core.BootstrapContext
+import org.dweb_browser.microservice.core.NativeMicroModule
 import org.http4k.core.Method
 import org.http4k.lens.Query
 import org.http4k.lens.int
@@ -18,7 +18,7 @@ import org.http4k.routing.routes
 fun debugScanning(tag: String, msg: Any? = "", err: Throwable? = null) =
   printdebugln("Scanning", tag, msg, err)
 
-class ScanningNMM() : NativeMicroModule("barcode-scanning.sys.dweb") {
+class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb") {
 
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
         val query_rotationDegrees = Query.int().defaulted("rotation", 0)

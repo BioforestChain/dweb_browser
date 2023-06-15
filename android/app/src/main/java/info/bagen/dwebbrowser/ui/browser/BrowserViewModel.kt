@@ -3,8 +3,6 @@ package info.bagen.dwebbrowser.ui.browser
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
-import android.os.Handler
-import android.os.Looper
 import android.os.Message
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
@@ -23,7 +21,6 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.accompanist.web.AccompanistWebChromeClient
 import com.google.accompanist.web.AccompanistWebViewClient
 import com.google.accompanist.web.WebContent
 import com.google.accompanist.web.WebViewNavigator
@@ -37,7 +34,7 @@ import info.bagen.dwebbrowser.datastore.WebEngine
 import info.bagen.dwebbrowser.microService.browser.BrowserController
 import info.bagen.dwebbrowser.microService.browser.BrowserNMM
 import info.bagen.dwebbrowser.microService.browser.debugBrowser
-import info.bagen.dwebbrowser.microService.helper.Mmid
+import org.dweb_browser.microservice.help.Mmid
 import org.dweb_browser.helper.*
 import info.bagen.dwebbrowser.microService.browser.jmm.JmmMetadata
 import info.bagen.dwebbrowser.microService.browser.jmm.JmmNMM
@@ -45,10 +42,9 @@ import info.bagen.dwebbrowser.microService.browser.jmm.JmmNMM.Companion.jmmContr
 import info.bagen.dwebbrowser.microService.browser.jmm.JsMicroModule
 import info.bagen.dwebbrowser.microService.browser.mwebview.CloseWatcher.CloseWatcher
 import info.bagen.dwebbrowser.microService.browser.mwebview.MultiWebViewController
-import info.bagen.dwebbrowser.microService.browser.mwebview.debugMultiWebView
 import info.bagen.dwebbrowser.microService.browser.webview.DWebView
-import info.bagen.dwebbrowser.microService.sys.dns.nativeFetch
-import info.bagen.dwebbrowser.microService.sys.http.CORS_HEADERS
+import org.dweb_browser.microservice.sys.dns.nativeFetch
+import org.dweb_browser.microservice.sys.http.CORS_HEADERS
 import info.bagen.dwebbrowser.ui.entity.BrowserWebView
 import info.bagen.dwebbrowser.ui.qrcode.QRCodeScanState
 import info.bagen.dwebbrowser.util.*

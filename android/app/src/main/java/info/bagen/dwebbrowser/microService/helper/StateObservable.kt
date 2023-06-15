@@ -1,7 +1,7 @@
 package info.bagen.dwebbrowser.microService.helper
 
-import info.bagen.dwebbrowser.microService.core.ipc.Ipc
-import info.bagen.dwebbrowser.microService.core.ipc.IpcEvent
+import org.dweb_browser.microservice.ipc.Ipc
+import org.dweb_browser.microservice.ipc.message.IpcEvent
 import info.bagen.dwebbrowser.util.IsChange
 import org.dweb_browser.helper.*
 

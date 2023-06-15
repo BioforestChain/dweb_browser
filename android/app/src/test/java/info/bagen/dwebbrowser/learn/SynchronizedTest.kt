@@ -2,8 +2,8 @@ package info.bagen.dwebbrowser.learn
 
 import info.bagen.dwebbrowser.AsyncBase
 import org.dweb_browser.helper.*
-import info.bagen.dwebbrowser.microService.helper.toByteArray
-import info.bagen.dwebbrowser.microService.helper.toInt
+import org.dweb_browser.helper.toByteArray
+import org.dweb_browser.helper.toInt
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test

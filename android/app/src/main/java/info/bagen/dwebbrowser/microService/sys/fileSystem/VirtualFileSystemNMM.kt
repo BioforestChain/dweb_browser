@@ -2,11 +2,11 @@ package info.bagen.dwebbrowser.microService.sys.fileSystem
 
 import android.system.Os
 import androidx.core.net.toUri
-import info.bagen.dwebbrowser.microService.core.BootstrapContext
-import info.bagen.dwebbrowser.microService.core.NativeMicroModule
-import info.bagen.dwebbrowser.microService.helper.byteArrayInputStream
-import info.bagen.dwebbrowser.microService.helper.gson
-import org.dweb_browser.helper.*
+import org.dweb_browser.helper.byteArrayInputStream
+import org.dweb_browser.helper.printdebugln
+import org.dweb_browser.microservice.core.BootstrapContext
+import org.dweb_browser.microservice.core.NativeMicroModule
+import org.dweb_browser.microservice.help.gson
 import org.http4k.core.*
 import org.http4k.lens.*
 import org.http4k.routing.bind
@@ -14,8 +14,7 @@ import org.http4k.routing.routes
 import org.json.JSONObject
 import java.io.File
 
-
-inline fun debugVFileSystem(tag: String, msg: Any? = "", err: Throwable? = null) =
+fun debugVFileSystem(tag: String, msg: Any? = "", err: Throwable? = null) =
   printdebugln("VirtualFileSystem", tag, msg, err)
 
 class VirtualFileSystemNMM : NativeMicroModule("file.nativeui.browser.dweb") {
@@ -105,10 +104,7 @@ class VirtualFileSystemNMM : NativeMicroModule("file.nativeui.browser.dweb") {
                 val path = Query.string().required("path")(request)
                 // TODO 这里是不是应该改成POST请求让LsFilter用body传递呢？ Body.auto<Array<LsFilter>>().toLens()
                 val filter = Query.string().multi.required("lsFilter")(request).map {
-                    gson.fromJson(
-                        it,
-                        LsFilter::class.java
-                    )
+                    gson.fromJson(it, LsFilter::class.java)
                 }.toTypedArray()
 
                 val recursive = Query.boolean().optional("recursive")(request)

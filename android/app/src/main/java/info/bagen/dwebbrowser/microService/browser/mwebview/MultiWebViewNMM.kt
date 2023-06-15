@@ -4,10 +4,10 @@ import android.content.Intent
 import android.os.Bundle
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
-import info.bagen.dwebbrowser.microService.core.BootstrapContext
-import info.bagen.dwebbrowser.microService.core.MicroModule
-import info.bagen.dwebbrowser.microService.helper.Mmid
+import org.dweb_browser.microservice.help.Mmid
 import org.dweb_browser.helper.*
+import org.dweb_browser.microservice.core.BootstrapContext
+import org.dweb_browser.microservice.core.MicroModule
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
@@ -16,7 +16,7 @@ import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 
-inline fun debugMultiWebView(tag: String, msg: Any? = "", err: Throwable? = null) =
+fun debugMultiWebView(tag: String, msg: Any? = "", err: Throwable? = null) =
   printdebugln("mwebview", tag, msg, err)
 
 class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.browser.dweb") {
