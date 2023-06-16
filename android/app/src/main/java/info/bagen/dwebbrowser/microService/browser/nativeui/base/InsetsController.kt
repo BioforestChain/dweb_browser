@@ -4,8 +4,8 @@ import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
-import info.bagen.dwebbrowser.microService.helper.InsetsJson
-import info.bagen.dwebbrowser.microService.helper.StateObservable
+import info.bagen.dwebbrowser.microService.sys.helper.InsetsJson
+import info.bagen.dwebbrowser.microService.sys.helper.StateObservable
 import info.bagen.dwebbrowser.microService.browser.nativeui.NativeUiController
 import info.bagen.dwebbrowser.util.IsChange
 import org.dweb_browser.microservice.help.gson

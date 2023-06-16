@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.microService.helper
+package info.bagen.dwebbrowser.microService.sys.helper
 
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.ui.graphics.Color

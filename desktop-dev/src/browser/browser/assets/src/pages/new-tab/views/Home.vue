@@ -6,12 +6,12 @@ import jmm from "../components/JMM.vue";
 const $appContainer = ref<HTMLDivElement>();
 
 const appsInfo: Ref<$AppMetaData[]> = ref([
-  {
-    title: "app",
-    short_name: "app name",
-    icon: "https://dweb.waterbang.top/logo.svg",
-    id: "waterbang.dweb",
-  },
+  // {
+  //   title: "app",
+  //   short_name: "app name",
+  //   icon: "https://dweb.waterbang.top/logo.svg",
+  //   id: "waterbang.dweb",
+  // },
 ]);
 const showDialog = ref(false);
 const dialogData = reactive({

@@ -250,7 +250,9 @@ class BrowserViewModel(private val browserController: BrowserController) : ViewM
         }
 
         is BrowserIntent.RemoveBaseView -> {
-          uiState.browserViewList.removeAt(action.id)
+          uiState.browserViewList.removeAt(action.id).also {
+            it.viewItem.webView.display
+          }
           if (uiState.browserViewList.size == 0) {
             withContext(mainAsyncExceptionHandler) {
               getNewTabBrowserView().also {
@@ -413,12 +415,9 @@ class BrowserViewModel(private val browserController: BrowserController) : ViewM
     App.appContext.saveBoolean(KEY_NO_TRACE, noTrace)
   }
 
-
   val isShowKeyboard
-    get() = uiState!!.currentInsets.value.getInsets(WindowInsetsCompat.Type.ime()).bottom > 0
-
+    get() = uiState.currentInsets.value.getInsets(WindowInsetsCompat.Type.ime()).bottom > 0
 }
-
 
 class browserViewModelHelper {
   companion object {
@@ -453,10 +452,14 @@ internal class DwebBrowserWebViewClient : AccompanistWebViewClient() {
   override fun onReceivedError(
     view: WebView, request: WebResourceRequest?, error: WebResourceError?
   ) {
-    // super.onReceivedError(view, request, error)
-    if (error?.errorCode == -2 && App.appContext.getString(KEY_LAST_SEARCH_KEY) == request?.url?.toString()) { // net::ERR_NAME_NOT_RESOLVED
-      val param = request.url?.let { uri -> "?text=${uri.host}${uri.path}" } ?: ""
-      view.loadUrl("file:///android_asset/error.html$param")
+    if (error?.errorCode == -2) { // net::ERR_NAME_NOT_RESOLVED
+      var param = request?.url?.let { uri -> "?not_found=${uri.host}${uri.path}" } ?: ""
+      param = if (param !== "") {
+        param.dropLast(1)
+      } else {
+        param
+      }
+      view.loadUrl("file:///android_asset/browser/newtab/error.html$param")
     }
   }
 

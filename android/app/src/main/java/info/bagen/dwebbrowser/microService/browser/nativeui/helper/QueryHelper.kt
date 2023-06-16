@@ -2,8 +2,8 @@ package info.bagen.dwebbrowser.microService.browser.nativeui.helper
 
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.ui.graphics.Color
-import info.bagen.dwebbrowser.microService.helper.ColorJson
-import info.bagen.dwebbrowser.microService.helper.toJsonAble
+import info.bagen.dwebbrowser.microService.sys.helper.ColorJson
+import info.bagen.dwebbrowser.microService.sys.helper.toJsonAble
 import info.bagen.dwebbrowser.microService.browser.nativeui.navigationBar.NavigationBarController
 import info.bagen.dwebbrowser.microService.browser.nativeui.safeArea.SafeAreaController
 import info.bagen.dwebbrowser.microService.browser.nativeui.statusBar.StatusBarController

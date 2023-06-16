@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.microService.helper
+package info.bagen.dwebbrowser.microService.sys.helper
 
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.message.IpcEvent

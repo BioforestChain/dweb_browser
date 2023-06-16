@@ -6,9 +6,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.luminance
 import androidx.core.view.WindowInsetsCompat
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import info.bagen.dwebbrowser.microService.helper.ColorJson
-import info.bagen.dwebbrowser.microService.helper.InsetsJson
-import info.bagen.dwebbrowser.microService.helper.toJsonAble
+import info.bagen.dwebbrowser.microService.sys.helper.ColorJson
+import info.bagen.dwebbrowser.microService.sys.helper.InsetsJson
+import info.bagen.dwebbrowser.microService.sys.helper.toJsonAble
 import info.bagen.dwebbrowser.microService.browser.nativeui.NativeUiController
 import info.bagen.dwebbrowser.microService.browser.nativeui.base.BarController
 import info.bagen.dwebbrowser.microService.browser.nativeui.helper.BarStyle

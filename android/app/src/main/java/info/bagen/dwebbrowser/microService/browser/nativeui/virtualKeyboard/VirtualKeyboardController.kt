@@ -9,8 +9,8 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.core.view.*
 import com.google.gson.*
-import info.bagen.dwebbrowser.microService.helper.InsetsJson
-import info.bagen.dwebbrowser.microService.helper.toJsonAble
+import info.bagen.dwebbrowser.microService.sys.helper.InsetsJson
+import info.bagen.dwebbrowser.microService.sys.helper.toJsonAble
 import info.bagen.dwebbrowser.microService.helper.*
 import info.bagen.dwebbrowser.microService.browser.nativeui.NativeUiController
 import info.bagen.dwebbrowser.microService.browser.nativeui.base.InsetsController

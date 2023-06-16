@@ -9,8 +9,8 @@ import androidx.compose.foundation.layout.union
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import info.bagen.dwebbrowser.microService.helper.InsetsJson
-import info.bagen.dwebbrowser.microService.helper.toJsonAble
+import info.bagen.dwebbrowser.microService.sys.helper.InsetsJson
+import info.bagen.dwebbrowser.microService.sys.helper.toJsonAble
 import info.bagen.dwebbrowser.microService.browser.nativeui.NativeUiController
 import info.bagen.dwebbrowser.microService.browser.nativeui.base.InsetsController
 import info.bagen.dwebbrowser.microService.browser.nativeui.helper.debugNativeUi

@@ -15,7 +15,8 @@ export default defineConfig({
       input: {
         index: path.resolve(__dirname, "/index.html"),
         setting: path.resolve(__dirname, "/setting.html"),
-        address: path.resolve(__dirname, "/address.html")
+        address: path.resolve(__dirname, "/address.html"),
+        error:path.resolve(__dirname,"/error.html")
       },
     },
   },
