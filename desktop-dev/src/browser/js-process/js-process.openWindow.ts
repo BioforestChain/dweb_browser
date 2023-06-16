@@ -1,6 +1,5 @@
 // 工具函数用来打开 js-process 的window
 import { Remote, wrap } from "comlink";
-import Electron from "electron";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
 
 export async function jsProcessOpenWindow(

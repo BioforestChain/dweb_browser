@@ -1,15 +1,12 @@
-// browserWindow 
-import Electron from "electron";
+// browserWindow
 import type { BrowserNMM } from "./browser.ts";
 import type { $Callback, $Details } from "./types.ts";
 
-export function createBrowserWindow(
-  this: BrowserNMM
-): $BW{
-  const { x, y, width, height} = getInitSize()
+export function createBrowserWindow(this: BrowserNMM): $BW {
+  const { x, y, width, height } = getInitSize();
   // 放到页面居中的位置
   const options = {
-    x: x, 
+    x: x,
     y: y,
     width: width,
     height: height,
@@ -19,34 +16,26 @@ export function createBrowserWindow(
       webSecurity: false,
       safeDialogs: true,
     },
-  }
+  };
   const bw = new Electron.BrowserWindow(options) as Electron.BrowserWindow;
-  bw.on('close', () => {
+  bw.on("close", () => {
     // 关闭browser就是关闭全部的进程
-    Electron.app.quit()
-  })
-  Reflect.set(
-    bw, 
-    "getTitleBarHeight",
-    getTitleBarHeight
-  )
+    Electron.app.quit();
+  });
 
   const session = bw.webContents.session;
   const filter = {
     // 拦截全部 devtools:// 协议发起的请求
     // urls: ["devtools://*/*"]
-    urls: [
-      "http://localhost/*",
-      "https://shop.plaoc.com/*.json"
-    ]
-  }
-  
-  session.webRequest.onBeforeRequest(filter, (details: $Details, callback: $Callback) => {
-    const _url = new URL(details.url)
+    urls: ["http://localhost/*", "https://shop.plaoc.com/*.json"],
+  };
+
+  session.webRequest.onBeforeRequest(filter, (details, callback) => {
+    const _url = new URL(details.url);
     // console.always("browser.content.bv.ts 拦截到了请求", _url)
     // 不能够直接返回只能够重新定向 broser.dweb 的 apiServer 服务器
-    if(_url.hostname === "localhost" && details.method === "GET"){
-      relayGerRequest.bind(this)(details, callback)
+    if (_url.hostname === "localhost" && details.method === "GET") {
+      relayGerRequest.bind(this)(details, callback);
       return;
     }
 
@@ -55,39 +44,47 @@ export function createBrowserWindow(
     //   return;
     // }
 
-    throw new Error(`还有被拦截但没有转发的请求 ${details.url}`)
-  })
+    throw new Error(`还有被拦截但没有转发的请求 ${details.url}`);
+  });
 
-  return bw;
+  return Object.assign(bw, { getTitleBarHeight });
 }
 
-function getInitSize(){
-  const size = Electron.screen.getPrimaryDisplay().size
+function getInitSize() {
+  const size = Electron.screen.getPrimaryDisplay().size;
   const width = parseInt(size.width * 0.8 + "");
-  const height = parseInt(size.height * 0.8 + "")
+  const height = parseInt(size.height * 0.8 + "");
   const x = 0;
-  const y = (size.height - height) / 2
-  return {width, height, x, y}
+  const y = (size.height - height) / 2;
+  return { width, height, x, y };
 }
 
-function getTitleBarHeight(this: Electron.BrowserWindow){
+function getTitleBarHeight(this: Electron.BrowserWindow) {
   return this.getBounds().height - this.getContentBounds().height;
 }
 
-async function relayGerRequest(this: BrowserNMM,details: $Details, callback: $Callback){
-  const _url = new URL(details.url)
+async function relayGerRequest(
+  this: BrowserNMM,
+  details: $Details,
+  callback: $Callback
+) {
+  const _url = new URL(details.url);
   const url = `${this.apiServer?.startResult.urlInfo.internal_origin}${_url.pathname}${_url.search}`;
-  callback({ cancel: false, redirectURL: url })
+  callback({ cancel: false, redirectURL: url });
 }
 
 /** 用来转发特定的外部 get 请求 */
-async function relayExternalGetRequest(this: BrowserNMM, details: $Details, callback: $Callback){
+async function relayExternalGetRequest(
+  this: BrowserNMM,
+  details: $Details,
+  callback: $Callback
+) {
   const url = `${this.apiServer?.startResult.urlInfo.internal_origin}/external?url=${details.url}`;
-  callback({ cancel: false, redirectURL: url })
+  callback({ cancel: false, redirectURL: url });
 }
 
 export type $BW = Electron.BrowserWindow & $ExtendsBrowserWindow;
 
-export interface $ExtendsBrowserWindow{
+export interface $ExtendsBrowserWindow {
   getTitleBarHeight(): number;
 }

@@ -1,4 +1,3 @@
-import Electron from "electron";
 import process from "node:process";
 
 const isEnvSet = "ELECTRON_IS_DEV" in process.env;

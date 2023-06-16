@@ -1,8 +1,4 @@
-import type {
-  MessageEvent as MessageEventMain,
-  MessagePortMain,
-} from "electron";
-import { MessageChannelMain } from "electron";
+const { MessageChannelMain } = Electron;
 import {
   updateMainMessageListener,
   updateMainPostMessage,
@@ -13,9 +9,9 @@ import {
 } from "./electronRenderPort.ts";
 
 export const postMainMesasgeToRenderMessage = (
-  from_port: MessagePortMain,
+  from_port: Electron.MessagePortMain,
   to_port: MessagePort,
-  event: MessageEventMain
+  event: Electron.MessageEvent
 ) => {
   let transfer: undefined | Transferable[];
   if (event.ports.length > 0) {
@@ -30,10 +26,10 @@ export const postMainMesasgeToRenderMessage = (
 
 export const postRenderMessageToMainMesasge = (
   from_port: MessagePort,
-  to_port: MessagePortMain,
+  to_port: Electron.MessagePortMain,
   event: MessageEvent
 ) => {
-  let ports: undefined | MessagePortMain[];
+  let ports: undefined | Electron.MessagePortMain[];
   if (event.ports.length > 0) {
     ports = event.ports.map(RenderPortToMainPort);
   }
@@ -44,7 +40,7 @@ export const postRenderMessageToMainMesasge = (
   }
 };
 
-export const MainPortToRenderPort = (main_port: MessagePortMain) => {
+export const MainPortToRenderPort = (main_port: Electron.MessagePortMain) => {
   const render_channel = new MessageChannel();
   main_port.addListener(
     "message",

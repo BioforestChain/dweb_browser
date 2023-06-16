@@ -1,8 +1,8 @@
-import { ipcRenderer } from "electron";
 import { css, html, LitElement, PropertyValueMap } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { styleMap } from "lit/directives/style-map.js";
 import { hexaToRGBA } from "../../../../helper/color.ts";
+const { ipcRenderer } = Electron;
 
 @customElement("multi-webview-comp-navigation-bar")
 export class MultiWebviewCompNavigationBar extends LitElement {

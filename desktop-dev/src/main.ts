@@ -71,10 +71,6 @@ dns.install(new BiometricsNMM());
 dns.install(new HapticsNMM());
 dns.install(new ShareNMM());
 
-// 安装 file.sys.dweb
-// import { FileNMM } from "./sys/file/file.ts";
-// dns.install(new FileNMM());
-
 import { JmmNMM } from "./browser/jmm/jmm.ts";
 dns.install(new JmmNMM());
 

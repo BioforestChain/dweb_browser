@@ -1,7 +1,7 @@
-import { protocol } from "electron";
+import "./helper/electron.ts"; /// 全局导入
 
 try {
-  protocol.registerSchemesAsPrivileged([
+  Electron.protocol.registerSchemesAsPrivileged([
     {
       scheme: "http",
       privileges: {

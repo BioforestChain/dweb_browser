@@ -1,4 +1,4 @@
-import { ipcMain, IpcMainEvent } from "electron";
+const { ipcMain } = Electron;
 import { IpcEvent } from "../../../core/ipc/index.ts";
 import type { Ipc } from "../../../core/ipc/ipc.ts";
 import { NativeMicroModule } from "../../../core/micro-module.native.ts";
@@ -21,11 +21,7 @@ export class VirtualKeyboardNMM extends NativeMicroModule {
       // 监听从 multi-webview-comp-status-bar.html.mts 通过 ipcRenderer 发送过来的 监听数据
       ipcMain.on(
         "virtual_keyboard_state_change",
-        (
-          _ipcMainEvent: IpcMainEvent,
-          host: string,
-          statusbarState: Record<string, unknown>
-        ) => {
+        (_ipcMainEvent, host, statusbarState) => {
           const b = this.observesState.get(host);
           if (b === true) {
             const ipc = this.observes.get(host);
@@ -74,9 +70,9 @@ export class VirtualKeyboardNMM extends NativeMicroModule {
   override _onConnect(ipc: Ipc) {
     this.observes.set(ipc.remote.mmid, ipc);
     ipc.onClose(() => {
-      this.observes.delete(ipc.remote.mmid)
-      this.observesState.delete(ipc.remote.mmid)
-    })
+      this.observes.delete(ipc.remote.mmid);
+      this.observesState.delete(ipc.remote.mmid);
+    });
   }
 
   _shutdown = () => {

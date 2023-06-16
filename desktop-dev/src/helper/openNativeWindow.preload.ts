@@ -1,4 +1,4 @@
-import { ipcRenderer } from "electron";
+const { ipcRenderer } = Electron;
 import { updateRenderPort } from "./electronRenderPort.ts";
 const once = <F extends (...args: any[]) => any>(fn: F) => {
   let runed = false;
@@ -66,7 +66,7 @@ const renderPortToObjectPort = <T extends MessagePort>(port: T) => {
 
 export const mainPort = export_port;
 
-let apis: object = {};
+let apis: unknown = {};
 const start = () => {
   expose(apis, mainPort);
 };
@@ -76,7 +76,7 @@ Object.assign(globalThis, { mainPort, start });
 
 import { expose, wrap } from "comlink";
 
-export const exportApis = once((APIS: object) => {
+export const exportApis = once((APIS: unknown) => {
   apis = APIS;
   start(); // 可以注释掉这行，手动启动，方便调试
 });

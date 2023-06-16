@@ -1,13 +1,12 @@
-import Electron from "electron";
+import Nedb from "@seald-io/nedb";
+import JSZip from "jszip";
+import mime from "mime";
 import crypto from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { Readable } from "node:stream";
-import Nedb from "npm:@seald-io/nedb";
-import JSZip from "npm:jszip";
-import mime from "npm:mime";
-import tar from "npm:tar";
+import tar from "tar";
 import {
   Ipc,
   IpcEvent,

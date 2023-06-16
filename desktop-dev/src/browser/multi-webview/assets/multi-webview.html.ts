@@ -1,6 +1,5 @@
 /// <reference lib="DOM"/>
-import { proxy } from "comlink";
-import { ipcRenderer } from "electron";
+const { ipcRenderer } = Electron;
 import { css, html, LitElement } from "lit";
 import {
   customElement,
@@ -12,6 +11,7 @@ import {
 import { repeat } from "lit/directives/repeat.js";
 import { styleMap } from "lit/directives/style-map.js";
 import { when } from "lit/directives/when.js";
+import "../../../helper/electron.ts";
 import {
   exportApis,
   mainApis,
@@ -66,9 +66,12 @@ export class ViewTree extends LitElement {
     | MultiWebviewCompNavigationBar
     | undefined;
   @property() name?: string = "Multi Webview";
-  @property({ type: Object }) statusBarState: WeakMap<Webview, $BarState>  = new WeakMap();
-  @property({ type: Object }) navigationBarState: WeakMap<Webview, $BarState>  = new WeakMap();
-  @property({ type: Object }) safeAreaState: WeakMap<Webview, $OverlayState>  = new WeakMap();
+  @property({ type: Object }) statusBarState: WeakMap<Webview, $BarState> =
+    new WeakMap();
+  @property({ type: Object }) navigationBarState: WeakMap<Webview, $BarState> =
+    new WeakMap();
+  @property({ type: Object }) safeAreaState: WeakMap<Webview, $OverlayState> =
+    new WeakMap();
   @property({ type: Boolean }) isShowVirtualKeyboard = false;
   @property({ type: Object }) virtualKeyboardState: $VirtualKeyboardState = {
     insets: {
@@ -90,10 +93,10 @@ export class ViewTree extends LitElement {
 
   /**
    * 设置state指挥设置最顶层的 state
-   * @param propertyName 
-   * @param key 
-   * @param value 
-   * @returns 
+   * @param propertyName
+   * @param key
+   * @param value
+   * @returns
    */
   barSetState<
     $PropertyName extends keyof Pick<
@@ -105,22 +108,22 @@ export class ViewTree extends LitElement {
   >(propertyName: $PropertyName, key: K, value: V) {
     const barState = this[propertyName];
     const state = barState.get(this.webviews[0]);
-    if(state === undefined) throw new Error("state === undefined")
+    if (state === undefined) throw new Error("state === undefined");
     state[key] = value;
     // 如果改变的 navigationBarState.visible
     // 还需要改变 insets.bottom 的值
     if (propertyName === "navigationBarState" && key === "visible") {
       state.insets.bottom = value ? parseInt(this.navigationBarHeight) : 0;
     }
-    this.requestUpdate(propertyName)
+    this.requestUpdate(propertyName);
     return state;
   }
 
   /**
    * 获取当前的状态
    * 就是获取 最顶层的状态
-   * @param propertyName 
-   * @returns 
+   * @param propertyName
+   * @returns
    */
   barGetState<
     $PropertyName extends keyof Pick<
@@ -128,8 +131,8 @@ export class ViewTree extends LitElement {
       "statusBarState" | "navigationBarState"
     >
   >(propertyName: $PropertyName) {
-    const state = this[propertyName].get(this.webviews[0])
-    if(state === undefined) throw new Error(`state === undefined`)
+    const state = this[propertyName].get(this.webviews[0]);
+    if (state === undefined) throw new Error(`state === undefined`);
     return state;
   }
 
@@ -142,9 +145,11 @@ export class ViewTree extends LitElement {
     const height =
       this.multiWebviewCompVirtualKeyboard?.getBoundingClientRect().height;
     if (height === undefined) throw new Error(`height === undefined`);
-    const currentNavigationBarHeight =
-      this.navigationBarState.get(this.webviews[0])?.insets.bottom;
-    if(currentNavigationBarHeight === undefined) throw new Error(`currentNavigationBarHeight === undefined`)
+    const currentNavigationBarHeight = this.navigationBarState.get(
+      this.webviews[0]
+    )?.insets.bottom;
+    if (currentNavigationBarHeight === undefined)
+      throw new Error(`currentNavigationBarHeight === undefined`);
     this.virtualKeyboardState = {
       ...this.virtualKeyboardState,
       insets: {
@@ -192,13 +197,16 @@ export class ViewTree extends LitElement {
   }
 
   safeAreaGetState = () => {
-    const webview = this.webviews[0]
+    const webview = this.webviews[0];
     const navigationBarState = this.navigationBarState.get(webview);
-    if(navigationBarState === undefined) throw new Error(`navigationBarState === undefined`);
+    if (navigationBarState === undefined)
+      throw new Error(`navigationBarState === undefined`);
     const statusbarState = this.statusBarState.get(webview);
-    if(statusbarState === undefined) throw new Error(`statusbarState === undefined`);
-    const safeareaState = this.safeAreaState.get(webview)
-    if(safeareaState === undefined) throw new Error('safeareaState === undefined')
+    if (statusbarState === undefined)
+      throw new Error(`statusbarState === undefined`);
+    const safeareaState = this.safeAreaState.get(webview);
+    if (safeareaState === undefined)
+      throw new Error("safeareaState === undefined");
     const bottomBarState = getButtomBarState(
       navigationBarState,
       this.isShowVirtualKeyboard,
@@ -296,17 +304,17 @@ export class ViewTree extends LitElement {
 
   safeAreaSetOverlay = (overlay: boolean) => {
     const state = this.safeAreaState.get(this.webviews[0]);
-    if(state === undefined) throw new Error(`state === undefined`)
+    if (state === undefined) throw new Error(`state === undefined`);
     state.overlay = overlay;
     this.barSetState("statusBarState", "overlay", overlay);
     this.barSetState("navigationBarState", "overlay", overlay);
     this.virtualKeyboardSetOverlay(overlay);
-    this.requestUpdate('statusBarState')
+    this.requestUpdate("statusBarState");
     return this.safeAreaGetState();
   };
 
   safeAreaNeedUpdate = () => {
-    ipcRenderer.send(
+    Electron.ipcRenderer.send(
       "safe_area_update",
       new URL(this.webviews[this.webviews.length - 1].src).host.replace(
         "www.",
@@ -354,13 +362,13 @@ export class ViewTree extends LitElement {
   }
 
   /**
-  * 删除 state 现阶段是删除第一个 还需要修改为 
-  */
+   * 删除 state 现阶段是删除第一个 还需要修改为
+   */
   private state_delete() {
-    const webveiw = this.webviews[0]
-    this.statusBarState.delete(webveiw)
-    this.navigationBarState.delete(webveiw)
-    this.safeAreaState.delete(webveiw)
+    const webveiw = this.webviews[0];
+    this.statusBarState.delete(webveiw);
+    this.navigationBarState.delete(webveiw);
+    this.safeAreaState.delete(webveiw);
   }
 
   /**
@@ -431,7 +439,7 @@ export class ViewTree extends LitElement {
   webviewTag_onIpcMessage_back = () => {
     const len = this.webviews.length;
     if (len > 1) {
-      this.webveiws_deleteById(this.webviews[0].id)
+      this.webveiws_deleteById(this.webviews[0].id);
       return;
     }
     console.error("是否应该需要关闭 当前window了？？？ 还没有决定");
@@ -441,28 +449,34 @@ export class ViewTree extends LitElement {
   private webviewTag_onDomReady(webview: Webview, ele: WebviewTag) {
     webview.webContentId = ele.getWebContentsId();
     // 把 state 数据同 webview 关联起来;
-    if(this.webviews.length === 1){ /*** 采用默认的值 */
+    if (this.webviews.length === 1) {
+      /*** 采用默认的值 */
       this.statusBarState.set(
-        webview, createDefaultBarState("statusbar", this.statusBarHeight)
-      )
+        webview,
+        createDefaultBarState("statusbar", this.statusBarHeight)
+      );
       this.navigationBarState.set(
-        webview, createDefaultBarState("navigationbar", this.navigationBarHeight)
-      )
-      this.safeAreaState.set(
-        webview, createDefaultSafeAreaState()
-      )
-    }else{
+        webview,
+        createDefaultBarState("navigationbar", this.navigationBarHeight)
+      );
+      this.safeAreaState.set(webview, createDefaultSafeAreaState());
+    } else {
       this.statusBarState.set(
-        webview, JSON.parse(JSON.stringify(this.statusBarState.get(this.webviews[1])!))
-      )
+        webview,
+        JSON.parse(JSON.stringify(this.statusBarState.get(this.webviews[1])!))
+      );
       this.navigationBarState.set(
-        webview, JSON.parse(JSON.stringify(this.navigationBarState.get(this.webviews[1])!))
-      )
+        webview,
+        JSON.parse(
+          JSON.stringify(this.navigationBarState.get(this.webviews[1])!)
+        )
+      );
       this.safeAreaState.set(
-        webview, JSON.parse(JSON.stringify(this.safeAreaState.get(this.webviews[1])!))
-      )
+        webview,
+        JSON.parse(JSON.stringify(this.safeAreaState.get(this.webviews[1])!))
+      );
     }
-   
+
     // 打开devtools
     mainApis.openDevToolsAtBrowserWindowByWebContentsId(
       webview.webContentId,
@@ -470,10 +484,7 @@ export class ViewTree extends LitElement {
     );
 
     // 添加事件监听器
-    ele?.addEventListener(
-      "ipc-message",
-      this.webviewTag_onIpcMessage
-    );
+    ele?.addEventListener("ipc-message", this.webviewTag_onIpcMessage);
   }
 
   /**
@@ -496,36 +507,42 @@ export class ViewTree extends LitElement {
    * 向 webveiws 数据中插入新的数据
    * 新的数据在 webviews 数据中顶部
    * 会自动更新 UI
-   * @param src 
-   * @returns 
+   * @param src
+   * @returns
    */
   webveiws_unshift(src: string) {
     const webview_id = this._id_acc++;
-    const webview = new Webview(webview_id, src)
+    const webview = new Webview(webview_id, src);
     // 都从最前面插入
     this.webviews = [webview, ...this.webviews];
-    if(this.webviews.length === 1){ /*** 采用默认的值 */
+    if (this.webviews.length === 1) {
+      /*** 采用默认的值 */
       this.statusBarState.set(
-        webview, createDefaultBarState("statusbar", this.statusBarHeight)
-      )
+        webview,
+        createDefaultBarState("statusbar", this.statusBarHeight)
+      );
       this.navigationBarState.set(
-        webview, createDefaultBarState("navigationbar", this.navigationBarHeight)
-      )
-      this.safeAreaState.set(
-        webview, createDefaultSafeAreaState()
-      )
-    }else{
+        webview,
+        createDefaultBarState("navigationbar", this.navigationBarHeight)
+      );
+      this.safeAreaState.set(webview, createDefaultSafeAreaState());
+    } else {
       this.statusBarState.set(
-        webview, JSON.parse(JSON.stringify(this.statusBarState.get(this.webviews[1])!))
-      )
+        webview,
+        JSON.parse(JSON.stringify(this.statusBarState.get(this.webviews[1])!))
+      );
       this.navigationBarState.set(
-        webview, JSON.parse(JSON.stringify(this.navigationBarState.get(this.webviews[1])!))
-      )
+        webview,
+        JSON.parse(
+          JSON.stringify(this.navigationBarState.get(this.webviews[1])!)
+        )
+      );
       this.safeAreaState.set(
-        webview, JSON.parse(JSON.stringify(this.safeAreaState.get(this.webviews[1])!))
-      )
+        webview,
+        JSON.parse(JSON.stringify(this.safeAreaState.get(this.webviews[1])!))
+      );
     }
-    
+
     // this.webviews_restate();
     // 还需要报 webview 状态同步到指定 worker.js
     // this.webviews_syncToMainProcess();
@@ -539,16 +556,23 @@ export class ViewTree extends LitElement {
    * 同步 最新的 webveiws 数据到主进程
    * 删除 state
    * 同步 state 到主进程
-   * @param webview_id  
-   * @returns 
+   * @param webview_id
+   * @returns
    */
   webveiws_deleteById(webview_id: number) {
-    const deleteIndex = this.webviews.findIndex((webview) => webview.id === webview_id)
+    const deleteIndex = this.webviews.findIndex(
+      (webview) => webview.id === webview_id
+    );
     const [deleteWebview] = this.webviews.splice(deleteIndex, 1);
     this.webviews_syncToMainProcess();
     // 关闭 devTools window
-    mainApis.closeDevToolsAtBrowserWindowByWebContentsId(deleteWebview.webContentId)
-    console.error(`error`, "this.state_delete() 必须要调整为 通过 webview_id 删除 需要把state 同webview 关联起来")
+    mainApis.closeDevToolsAtBrowserWindowByWebContentsId(
+      deleteWebview.webContentId
+    );
+    console.error(
+      `error`,
+      "this.state_delete() 必须要调整为 通过 webview_id 删除 需要把state 同webview 关联起来"
+    );
     this.state_delete();
     // 把 navigationBarState statusBarStte safe-area 的改变发出
     ipcRenderer.send("safe_are_insets_change");
@@ -561,7 +585,7 @@ export class ViewTree extends LitElement {
     this.webviews.forEach((webview) => {
       const _url = new URL(webview.src);
       if (_url.host === host) {
-        this.webveiws_deleteById(webview.id)
+        this.webveiws_deleteById(webview.id);
       }
     });
     return true;
@@ -570,14 +594,14 @@ export class ViewTree extends LitElement {
   webivews_deleteByOrigin(origin: string) {
     this.webviews.forEach((webview) => {
       if (webview.src.includes(origin)) {
-        this.webveiws_deleteById(webview.id)
+        this.webveiws_deleteById(webview.id);
       }
     });
     return true;
   }
   /**
-  * webviws 的数据同步到 主进程
-  */
+   * webviws 的数据同步到 主进程
+   */
   webviews_syncToMainProcess(): void {
     const uid = new URL(location.href).searchParams.get("uid");
     const allWebviewState: $AllWebviewState = {};
@@ -585,13 +609,13 @@ export class ViewTree extends LitElement {
       allWebviewState[item.id] = {
         webviewId: item.id,
         isActivated: index === 0 ? true : false,
-        src: item.src
+        src: item.src,
       };
     });
     ipcRenderer.send("sync:webview_state", uid, allWebviewState);
   }
 
-  // /** 
+  // /**
   //  * 对webview视图进行状态整理
   //  * 整理完成后会强制更新 UI
   //  * */
@@ -698,12 +722,14 @@ export class ViewTree extends LitElement {
 
   // Render the UI as a function of component state
   override render() {
-    const _webveiw = this.webviews[0]
-    if(_webveiw === undefined) return null;
+    const _webveiw = this.webviews[0];
+    if (_webveiw === undefined) return null;
     const statusbarState = this.statusBarState.get(_webveiw);
-    if(statusbarState === undefined) throw new Error(`statusbarState === undefined`)
+    if (statusbarState === undefined)
+      throw new Error(`statusbarState === undefined`);
     const navigationBarState = this.navigationBarState.get(_webveiw);
-    if(navigationBarState === undefined) throw new Error(`navigationBarState === undefined`);
+    if (navigationBarState === undefined)
+      throw new Error(`navigationBarState === undefined`);
     return html`
       <div class="app-container">
         <multi-webview-comp-mobile-shell
@@ -759,7 +785,7 @@ export class ViewTree extends LitElement {
                       event.detail.customWebview.closing
                     ) {
                       // this._removeWebview(webview);
-                      this.webveiws_deleteById(webview.id)
+                      this.webveiws_deleteById(webview.id);
                     }
                   }}
                   @dom-ready=${(
@@ -786,7 +812,8 @@ export class ViewTree extends LitElement {
                     () => html`
                       <multi-webview-comp-virtual-keyboard
                         slot="bottom-bar"
-                        ._navigation_bar_height=${navigationBarState.insets.bottom}
+                        ._navigation_bar_height=${navigationBarState.insets
+                          .bottom}
                         ._visible=${this.virtualKeyboardState.visible}
                         ._overlay=${this.virtualKeyboardState.overlay}
                         ._webview_src=${webview.src}

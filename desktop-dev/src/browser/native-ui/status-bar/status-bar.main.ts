@@ -1,5 +1,5 @@
+const { ipcMain } = Electron;
 // 模拟状态栏模块-用来提供状态UI的模块
-import { ipcMain, IpcMainEvent } from "electron";
 import type { Ipc } from "../../../core/ipc/ipc.ts";
 import { IpcEvent } from "../../../core/ipc/IpcEvent.ts";
 import { NativeMicroModule } from "../../../core/micro-module.native.ts";
@@ -22,11 +22,7 @@ export class StatusbarNativeUiNMM extends NativeMicroModule {
       // 监听从 multi-webview-comp-status-bar.html.mts 通过 ipcRenderer 发送过来的 监听数据
       ipcMain.on(
         "status_bar_state_change",
-        (
-          _ipcMainEvent: IpcMainEvent,
-          host: string,
-          statusbarState: Record<string, unknown>
-        ) => {
+        (_ipcMainEvent, host, statusbarState) => {
           const b = this.observesState.get(host);
           if (b === true) {
             const ipc = this.observes.get(host);

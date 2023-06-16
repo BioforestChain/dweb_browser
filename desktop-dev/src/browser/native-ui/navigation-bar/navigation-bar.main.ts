@@ -1,5 +1,5 @@
 // 模拟状态栏模块-用来提供状态UI的模块
-import { ipcMain, IpcMainEvent } from "electron";
+const { ipcMain } = Electron;
 import type { Ipc } from "../../../core/ipc/ipc.ts";
 import { IpcEvent } from "../../../core/ipc/IpcEvent.ts";
 import { NativeMicroModule } from "../../../core/micro-module.native.ts";
@@ -21,23 +21,16 @@ export class NavigationBarNMM extends NativeMicroModule {
 
     {
       // 监听从 multi-webview-comp-status-bar.html.mts 通过 ipcRenderer 发送过来的 监听数据
-      ipcMain.on(
-        "navigation_bar_state_change",
-        (
-          _: IpcMainEvent,
-          host: string,
-          statusbarState: { [key: string]: unknown }
-        ) => {
-          const b = this.observesState.get(host);
-          if (b === true) {
-            const ipc = this.observes.get(host);
-            if (ipc === undefined) throw new Error(`ipc === undefined`);
-            ipc.postMessage(
-              IpcEvent.fromText("observe", `${JSON.stringify(statusbarState)}`)
-            );
-          }
+      ipcMain.on("navigation_bar_state_change", (_, host, statusbarState) => {
+        const b = this.observesState.get(host);
+        if (b === true) {
+          const ipc = this.observes.get(host);
+          if (ipc === undefined) throw new Error(`ipc === undefined`);
+          ipc.postMessage(
+            IpcEvent.fromText("observe", `${JSON.stringify(statusbarState)}`)
+          );
         }
-      );
+      });
     }
 
     this.registerCommonIpcOnMessageHandler({
@@ -76,9 +69,9 @@ export class NavigationBarNMM extends NativeMicroModule {
   override _onConnect(ipc: Ipc) {
     this.observes.set(ipc.remote.mmid, ipc);
     ipc.onClose(() => {
-      this.observes.delete(ipc.remote.mmid)
-      this.observesState.delete(ipc.remote.mmid)
-    })
+      this.observes.delete(ipc.remote.mmid);
+      this.observesState.delete(ipc.remote.mmid);
+    });
   }
 
   _shutdown = () => {

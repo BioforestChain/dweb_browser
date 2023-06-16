@@ -13,7 +13,6 @@ import {
 } from "../../core/nativeConnect.ts";
 import { $readRequestAsIpcRequest } from "../../helper/$readRequestAsIpcRequest.ts";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
-import "../../helper/electron.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
 import type { $DWEB_DEEPLINK, $MMID } from "../../helper/types.ts";
 import { nativeFetchAdaptersManager } from "./nativeFetch.ts";

@@ -1,22 +1,21 @@
 {
   "imports": {
-    "@msgpack/msgpack": "npm:@msgpack/msgpack@^2.8.0",
-    "@types/node": "npm:@types/node",
+    "@msgpack/msgpack": "https://esm.sh/v124/@msgpack/msgpack@2.8.0",
+    "@seald-io/nedb": "https://esm.sh/v124/@seald-io/nedb@4.0.2",
     "colors": "https://deno.land/std@0.191.0/fmt/colors.ts",
-    "comlink": "npm:comlink@^4.4.1",
-    "electron": "npm:electron@^24.3.1",
-    "extract-zip": "npm:extract-zip@^2.0.1",
-    "jimp": "npm:jimp@^0.22.8",
-    "jsqr": "npm:jsqr@^1.4.0",
-    "lit": "https://esm.sh/v124/lit@^2.7.4",
-    "lit/": "https://esm.sh/v124/lit@^2.7.4/",
-    "mime": "npm:mime@^3.0.0",
-    "node-forge": "npm:node-forge@1.3.1",
-    "request-progress": "npm:request-progress@^3.0.0",
-    "request": "npm:request@^2.88.2",
-    "source-map-support": "https://esm.sh/v124/source-map-support@^0.5.21",
-    "source-map-support/register": "https://esm.sh/v124/source-map-support@^0.5.21/register.js",
-    "tar": "npm:tar@^6.1.15"
+    "comlink": "https://esm.sh/v124/comlink@4.4.1",
+    "electron": "https://esm.sh/v124/electron@24.5.1",
+    "extract-zip": "https://esm.sh/v124/extract-zip@2.0.1",
+    "jszip": "https://esm.sh/v124/jszip@3.10.1",
+    "jimp": "https://esm.sh/v124/jimp@0.22.8",
+    "jsqr": "https://esm.sh/v124/jsqr@1.4.0",
+    "lit": "https://esm.sh/v124/lit@2.7.4",
+    "lit/": "https://esm.sh/v124/lit@2.7.4/",
+    "mime": "https://esm.sh/v124/mime@3.0.0",
+    "node-forge": "https://esm.sh/v124/node-forge@1.3.1",
+    "source-map-support": "https://esm.sh/v124/source-map-support@0.5.21",
+    "source-map-support/register": "https://esm.sh/v124/source-map-support@0.5.21/register.js",
+    "tar": "https://esm.sh/v124/tar@6.1.15"
   },
   "scopes": {}
 }

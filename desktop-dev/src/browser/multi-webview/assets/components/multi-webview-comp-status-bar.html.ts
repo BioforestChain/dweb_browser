@@ -1,10 +1,10 @@
 // 状态栏
-import { ipcRenderer } from "electron";
 import { css, html, LitElement, PropertyValueMap } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { styleMap } from "lit/directives/style-map.js";
 import { when } from "lit/directives/when.js";
 import { hexaToRGBA } from "../../../../helper/color.ts";
+const { ipcRenderer } = Electron;
 
 @customElement("multi-webview-comp-status-bar")
 export class MultiWebviewCompStatusBar extends LitElement {
@@ -85,9 +85,7 @@ export class MultiWebviewCompStatusBar extends LitElement {
     const backgroundStyleMap = this.createBackgroundStyleMap();
     const containerStyleMap = this.createContainerStyleMap();
     return html`
-      <div 
-        class="comp-container" 
-      >
+      <div class="comp-container">
         <div class="background" style=${styleMap(backgroundStyleMap)}></div>
         <div class="container" style=${styleMap(containerStyleMap)}>
           ${when(

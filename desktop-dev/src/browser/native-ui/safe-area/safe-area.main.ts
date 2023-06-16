@@ -1,8 +1,11 @@
-import { ipcMain, IpcMainEvent } from "electron";
+const { ipcMain } = Electron;
 import type { Ipc } from "../../../core/ipc/ipc.ts";
 import { IpcEvent } from "../../../core/ipc/IpcEvent.ts";
 import { NativeMicroModule } from "../../../core/micro-module.native.ts";
-import { safeAreaGetState, safeAreaSetState } from "../../multi-webview/multi-webview.mobile.handler.ts";
+import {
+  safeAreaGetState,
+  safeAreaSetState,
+} from "../../multi-webview/multi-webview.mobile.handler.ts";
 import { startObserve, stopObserve } from "./handlers.ts";
 
 export class SafeAreaNMM extends NativeMicroModule {
@@ -15,25 +18,18 @@ export class SafeAreaNMM extends NativeMicroModule {
     console.always(`[${this.mmid} _bootstrap]`);
     {
       // 监听从 multi-webview-comp-status-bar.html.mts 通过 ipcRenderer 发送过来的 监听数据
-      ipcMain.on(
-        "safe_area_update",
-        (
-          _ipcMainEvent: IpcMainEvent,
-          host: string,
-          state: Record<string, unknown>
-        ) => {
-          const b = this.observesState.get(host);
-          if (b === true) {
-            const ipc = this.observes.get(host);
-            if (ipc === undefined) {
-              throw new Error(`ipc === undefined`);
-            }
-            ipc.postMessage(
-              IpcEvent.fromText("observe", `${JSON.stringify(state)}`)
-            );
+      ipcMain.on("safe_area_update", (_ipcMainEvent, host, state) => {
+        const b = this.observesState.get(host);
+        if (b === true) {
+          const ipc = this.observes.get(host);
+          if (ipc === undefined) {
+            throw new Error(`ipc === undefined`);
           }
+          ipc.postMessage(
+            IpcEvent.fromText("observe", `${JSON.stringify(state)}`)
+          );
         }
-      );
+      });
     }
 
     this.registerCommonIpcOnMessageHandler({
@@ -72,9 +68,9 @@ export class SafeAreaNMM extends NativeMicroModule {
   override _onConnect(ipc: Ipc) {
     this.observes.set(ipc.remote.mmid, ipc);
     ipc.onClose(() => {
-      this.observes.delete(ipc.remote.mmid)
-      this.observesState.delete(ipc.remote.mmid)
-    })
+      this.observes.delete(ipc.remote.mmid);
+      this.observesState.delete(ipc.remote.mmid);
+    });
   }
 
   _shutdown = () => {

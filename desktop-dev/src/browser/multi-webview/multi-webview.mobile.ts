@@ -1,5 +1,4 @@
 import { red } from "colors";
-import Electron from "electron";
 import type { OutgoingMessage } from "node:http";
 import type { $BootstrapContext } from "../../core/bootstrapContext.ts";
 import { IpcResponse } from "../../core/ipc/IpcResponse.ts";
