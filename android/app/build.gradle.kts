@@ -178,6 +178,7 @@ dependencies {
 
   implementation(project(mapOf("path" to ":helper")))
   implementation(project(mapOf("path" to ":MicroService")))
+  implementation(project(mapOf("path" to ":DWebView")))
 }
 
 tasks.withType<Test> {

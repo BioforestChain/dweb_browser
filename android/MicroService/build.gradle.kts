@@ -19,12 +19,12 @@ dependencies {
   implementation(kotlin("stdlib"))
   implementation(BuildConfig.kotlinxCoroutines)
 
-  implementation(platform(BuildConfig.http4kBom))
-  implementation(BuildConfig.http4kCore)
-  implementation(BuildConfig.http4kClientApache)
-  implementation(BuildConfig.http4kServerKtorcio)
+  api(platform(BuildConfig.http4kBom))
+  api(BuildConfig.http4kCore)
+  api(BuildConfig.http4kClientApache)
+  api(BuildConfig.http4kServerKtorcio)
 
-  implementation(BuildConfig.gson)
+  api(BuildConfig.gson)
   implementation(BuildConfig.moshiPack)
 
   /// 测试相关

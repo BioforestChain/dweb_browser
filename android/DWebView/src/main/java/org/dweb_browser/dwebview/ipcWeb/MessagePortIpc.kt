@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.microService.core.ipc.ipcWeb
+package org.dweb_browser.dwebview.ipcWeb
 
 import android.webkit.WebMessage
 import android.webkit.WebMessagePort

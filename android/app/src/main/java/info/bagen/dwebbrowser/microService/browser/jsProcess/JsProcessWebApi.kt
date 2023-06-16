@@ -6,8 +6,8 @@ import org.dweb_browser.microservice.help.Mmid
 import info.bagen.dwebbrowser.microService.browser.webview.DWebView
 import org.dweb_browser.microservice.ipc.message.IPC_ROLE
 import org.dweb_browser.microservice.ipc.Ipc
-import info.bagen.dwebbrowser.microService.core.ipc.ipcWeb.MessagePortIpc
-import info.bagen.dwebbrowser.microService.core.ipc.ipcWeb.saveNative2JsIpcPort
+import org.dweb_browser.dwebview.ipcWeb.MessagePortIpc
+import org.dweb_browser.dwebview.ipcWeb.saveNative2JsIpcPort
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.dweb_browser.microservice.help.gson
