@@ -1,6 +1,6 @@
-﻿using DwebBrowser.MicroService.Browser.NativeUI.SafeArea;
+﻿using DwebBrowser.MicroService.Browser.NativeUI.NavigationBar;
+using DwebBrowser.MicroService.Browser.NativeUI.SafeArea;
 using DwebBrowser.MicroService.Browser.NativeUI.StatusBar;
-using DwebBrowser.MicroService.Browser.NativeUI.NavigationBar;
 using DwebBrowser.MicroService.Browser.NativeUI.VirtualKeyboard;
 
 namespace DwebBrowser.MicroService.Browser.NativeUI;

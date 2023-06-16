@@ -1,6 +1,4 @@
-﻿
-using DwebBrowser.MicroService.Http;
-using static DwebBrowser.MicroService.Sys.Http.Gateway;
+﻿using static DwebBrowser.MicroService.Sys.Http.Gateway;
 
 namespace DwebBrowser.MicroService.Core;
 

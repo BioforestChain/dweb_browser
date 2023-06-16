@@ -1,5 +1,4 @@
-﻿using System;
-namespace DwebBrowser.MicroService.Http;
+﻿namespace DwebBrowser.MicroService.Http;
 
 public record PureResponse(
     HttpStatusCode StatusCode = HttpStatusCode.OK,

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Net;
-using System.Net.Http;
-namespace DwebBrowser.MicroService.Message;
+﻿namespace DwebBrowser.MicroService.Message;
 
 public class IpcResponse : IpcMessage
 {

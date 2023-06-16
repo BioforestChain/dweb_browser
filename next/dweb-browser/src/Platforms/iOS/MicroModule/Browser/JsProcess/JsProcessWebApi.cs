@@ -1,5 +1,5 @@
-﻿using Foundation;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
+using Foundation;
 
 namespace DwebBrowser.MicroService.Browser.JsProcess;
 
@@ -69,10 +69,10 @@ public class JsProcessWebApi
     public record RunProcessMainOptions(string MainUrl);
 
     public Task RunProcessMain(int process_id, RunProcessMainOptions options) =>
-        this.DWebView.EvaluateJavaScriptAsync("void runProcessMain(" + process_id + ", {main_url:`" + options.MainUrl + "`})");
+        this.DWebView.EvaluateJavaScriptAsync("void runProcessMain(" + process_id + ", {main_url:`" + options.MainUrl + "`})").NoThrow();
 
     public Task DestroyProcess(int process_id) =>
-        this.DWebView.EvaluateJavaScriptAsync(string.Format("void destroy({0})", process_id).Trim());
+        this.DWebView.EvaluateJavaScriptAsync(string.Format("void destroyProcess({0})", process_id).Trim()).NoThrow();
 
     public async Task<int> CreateIpc(int process_id, Mmid mmid)
     {

@@ -1,5 +1,5 @@
-﻿using CoreHaptics;
-using AudioToolbox;
+﻿using AudioToolbox;
+using CoreHaptics;
 
 #nullable enable
 
@@ -111,7 +111,8 @@ public static class VibrateManager
                 return false;
             }
 
-            var player = engine.CreateAdvancedPlayer(pattern, out var createError);
+            //var player = engine.CreateAdvancedPlayer(pattern, out var createError);
+            var player = engine.CreatePlayer(pattern, out var createError);
 
             if (createError is not null)
             {
@@ -131,7 +132,7 @@ public static class VibrateManager
         }
         catch (Exception e)
         {
-            Console.Log("Vibrate", "exception: {0}", e.Message);
+            Console.Error("Vibrate", "exception: {0}", e.Message);
             await SystemSound.Vibrate.PlayAlertSoundAsync();
             return false;
         }

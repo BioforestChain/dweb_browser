@@ -27,7 +27,7 @@ public class DnsNMM : NativeMicroModule
     }
 
     public Task BootstrapMicroModule(MicroModule fromMM) =>
-        fromMM.BootstrapAsync(new MyBootstrapContext(new MyDnsMicroModule(this, fromMM)));
+        fromMM.BootstrapAsync(new MyBootstrapContext(new MyDnsMicroModule(this, fromMM))).NoThrow();
 
     public class MyBootstrapContext : IBootstrapContext
     {
@@ -153,7 +153,7 @@ public class DnsNMM : NativeMicroModule
                 _fromMM, mmid, reason ?? new PureRequest(string.Format("file://{0}", mmid), IpcMethod.Get));
         }
 
-        public Task BootstrapAsync(string mmid) => _dnsMM.Open(mmid);
+        public Task BootstrapAsync(string mmid) => _dnsMM.Open(mmid).NoThrow();
     }
 
     protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)

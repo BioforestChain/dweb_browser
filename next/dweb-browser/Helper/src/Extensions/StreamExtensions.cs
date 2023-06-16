@@ -45,6 +45,10 @@ public static class StreamExtensions
         catch(Exception e)
         {
             _console.Error("ReadIntAsync", "exception: {0}", e);
+            if (e is EndOfStreamException)
+            {
+                self.Close();
+            }
         }
         return buffer.ToInt();
     }

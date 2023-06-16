@@ -1,7 +1,4 @@
-﻿using System.Web;
-using System;
-
-namespace DwebBrowser.Helper;
+﻿namespace DwebBrowser.Helper;
 
 public static class UriExtensions
 {

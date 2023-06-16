@@ -1,6 +1,4 @@
-﻿using System.IO;
-
-namespace DwebBrowser.MicroService.Message;
+﻿namespace DwebBrowser.MicroService.Message;
 
 public class IpcEvent : IpcMessage
 {

@@ -1,19 +1,6 @@
-﻿using Foundation;
-using System;
-using WebKit;
-using UIKit;
-using DwebBrowser.MicroService;
-using DwebBrowser.Helper;
-using DwebBrowser.MicroService.Sys.Dns;
+﻿using DwebBrowser.Helper;
 using DwebBrowser.MicroService.Core;
-using System.Xml;
-using DwebBrowser.MicroService.Sys.Http;
-using ObjCRuntime;
-using HttpMethod = System.Net.Http.HttpMethod;
-using SystemConfiguration;
-using System.Runtime.Versioning;
-using static CoreFoundation.DispatchSource;
-using System.Reflection;
+using WebKit;
 
 namespace DwebBrowser.DWebView;
 

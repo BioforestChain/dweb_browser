@@ -1,12 +1,6 @@
-﻿using WebKit;
+﻿using CoreGraphics;
 using Foundation;
-using CoreGraphics;
-using System.Runtime.Versioning;
-using DwebBrowser.MicroService.Http;
-using DwebBrowser.MicroService.Core;
-using DwebBrowser.MicroService.Sys.Http;
-using ObjCRuntime;
-using Microsoft.Maui.Platform;
+using WebKit;
 
 namespace DwebBrowser.MicroService.Browser;
 

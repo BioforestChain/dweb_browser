@@ -1,7 +1,5 @@
-﻿using UIKit;
+﻿using DwebBrowser.Helper;
 using WebKit;
-using DwebBrowser.Helper;
-using System;
 
 namespace DwebBrowser.DWebView;
 

@@ -21,7 +21,11 @@ public class ReadableStreamIpc : Ipc
     public override IMicroModuleInfo Remote { get; set; }
     public override string Role { get; }
 
-    public override Task DoClose() => Task.Run(_controller.Close).NoThrow();
+    public override async Task DoClose()
+    {
+        _controller.Close();
+        _incomeStream?.Close();
+    }
 
     public override Task _doPostMessageAsync(IpcMessage data)
     {

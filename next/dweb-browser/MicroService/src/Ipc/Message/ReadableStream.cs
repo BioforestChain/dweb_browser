@@ -45,6 +45,7 @@ public class ReadableStream
                 if (isClosed) { return; }
                 isClosed = true;
                 output.Close();
+                input.Close();
                 onWriteClose?.Invoke();
             }
         }
@@ -75,6 +76,7 @@ public class ReadableStream
 
         private bool hasFirstRead = false;
         private bool isEndRead = false;
+        private bool isClose = false;
 
         public override int Read(byte[] buffer, int offset, int count)
         {
@@ -107,12 +109,14 @@ public class ReadableStream
         public override void Write(byte[] buffer, int offset, int count) => pipeStream.Write(buffer, offset, count);
         public override void Close()
         {
-            if (isEndRead)
+            if (isClose && isEndRead)
             {
                 return;
             }
+            isClose = true;
             isEndRead = true;
             pipeStream.Close();
+            Dispose();
         }
     }
 

@@ -1,7 +1,4 @@
-﻿using System;
-using DwebBrowser.MicroService.Http;
-
-namespace DwebBrowser.MicroService.Core;
+﻿namespace DwebBrowser.MicroService.Core;
 
 
 // TODO: ResponseRegistry 静态初始化问题未解决

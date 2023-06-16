@@ -59,7 +59,7 @@ internal readonly struct NoThrowAwaiter : ICriticalNotifyCompletion
     {
         _task.Exception?.Flatten().Handle(ex =>
         {
-            Console.Error("Handle", "Exception: {0}", ex.Message);
+            Console.Error("Handle", "{0}", ex);
             return true;
         });
     }

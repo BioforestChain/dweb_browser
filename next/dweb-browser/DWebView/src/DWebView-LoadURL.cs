@@ -160,7 +160,7 @@ public partial class DWebView : WKWebView
 
 
 
-    public Task LoadURL(string url) => LoadURL(new Uri(url));
+    public Task LoadURL(string url) => LoadURL(new Uri(url)).NoThrow();
 
     //HtmlParser htmlParser = new HtmlParser(new()
     //{

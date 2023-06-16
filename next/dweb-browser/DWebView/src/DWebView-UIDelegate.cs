@@ -1,9 +1,6 @@
-﻿using System;
-using AVFoundation;
+﻿using AVFoundation;
 using DwebBrowser.Helper;
-using UIKit;
 using WebKit;
-using static System.Net.Mime.MediaTypeNames;
 using static DwebBrowser.Helper.Prelude;
 
 namespace DwebBrowser.DWebView;

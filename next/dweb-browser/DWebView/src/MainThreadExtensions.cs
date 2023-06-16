@@ -1,5 +1,4 @@
 ﻿using DwebBrowser.Helper;
-using System;
 using WebKit;
 
 namespace DwebBrowser.DWebView;

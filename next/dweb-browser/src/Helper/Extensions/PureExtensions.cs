@@ -1,17 +1,11 @@
 ﻿#nullable enable
-using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Security.Claims;
 using System.Text;
-using System.Threading;
 using DwebBrowser.MicroService.Http;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Authentication;
-using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Primitives;
-using Microsoft.Maui.Controls.Compatibility;
 using Microsoft.Net.Http.Headers;
 
 namespace DwebBrowser.Helper;

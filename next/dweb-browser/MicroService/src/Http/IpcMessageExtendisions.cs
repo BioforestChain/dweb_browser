@@ -1,7 +1,3 @@
-using System;
-using System.Reflection.PortableExecutable;
-using DwebBrowser.Helper;
-
 namespace DwebBrowser.MicroService.Http;
 
 
@@ -55,5 +51,5 @@ static public class IpcMessageExtendisions
         new PureResponse((HttpStatusCode)self.StatusCode, self.Headers, self.Body.ToPureBody());
 
     static public Task PostPureResponseAsync(this Ipc ipc, int req_id, PureResponse response) =>
-        ipc.PostMessageAsync(response.ToIpcResponse(req_id, ipc));
+        ipc.PostMessageAsync(response.ToIpcResponse(req_id, ipc)).NoThrow();
 }

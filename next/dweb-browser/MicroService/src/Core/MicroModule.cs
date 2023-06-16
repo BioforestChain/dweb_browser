@@ -1,6 +1,4 @@
-﻿using DwebBrowser.MicroService.Http;
-
-namespace DwebBrowser.MicroService.Core;
+﻿namespace DwebBrowser.MicroService.Core;
 
 public abstract partial class MicroModule : Ipc.IMicroModuleInfo
 {

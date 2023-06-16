@@ -1,5 +1,4 @@
-﻿using System;
-namespace DwebBrowser.Helper;
+﻿namespace DwebBrowser.Helper;
 
 public record ColorJson(double red, double green, double blue, double alpha)
 {

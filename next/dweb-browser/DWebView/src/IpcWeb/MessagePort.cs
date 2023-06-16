@@ -36,8 +36,8 @@ public class MessagePort
 
     public event Signal<WebMessage>? OnWebMessage;
 
-    public Task Start() => _port.Start();
-    public Task PostMessage(string data) => _port.PostMessage(WebMessage.From(data));
+    public Task Start() => _port.Start().NoThrow();
+    public Task PostMessage(string data) => _port.PostMessage(WebMessage.From(data)).NoThrow();
 
     private bool _isClosed = false;
 

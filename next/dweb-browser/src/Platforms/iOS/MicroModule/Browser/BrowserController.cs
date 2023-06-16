@@ -49,6 +49,6 @@ public class BrowserController : BaseViewController
 
     public Task UninstallJMM(JmmMetadata jmmMetadata) =>
         BrowserNMM.NativeFetchAsync(new URL("file://jmm.browser.dweb/uninstall")
-            .SearchParamsSet("mmid", jmmMetadata.Id));
+            .SearchParamsSet("mmid", jmmMetadata.Id)).NoThrow();
 }
 

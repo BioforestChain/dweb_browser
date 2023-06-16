@@ -1,7 +1,4 @@
-﻿
-using System.Reflection.PortableExecutable;
-
-namespace DwebBrowser.MicroService.Sys.Http;
+﻿namespace DwebBrowser.MicroService.Sys.Http;
 
 
 public static class MATCH_MODE

@@ -1,7 +1,7 @@
-﻿using UIKit;
-using System.Net;
+﻿using System.Net;
 using System.Text.Json;
 using DwebBrowser.MicroService.Http;
+using UIKit;
 
 namespace DwebBrowser.MicroService.Sys.Haptics;
 
@@ -40,7 +40,7 @@ public class HapticsNMM : NativeMicroModule
         /// 警告分隔的振动通知
         HttpRouter.AddRoute(IpcMethod.Get, "/notification", async (request, _) =>
         {
-            var type = request.QueryStringRequired("duration") switch
+            var type = request.QueryStringRequired("style") switch
             {
                 string t when t.EqualsIgnoreCase("SUCCESS") => UINotificationFeedbackType.Success,
                 string t when t.EqualsIgnoreCase("WARNING") => UINotificationFeedbackType.Warning,

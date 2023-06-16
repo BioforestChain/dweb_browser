@@ -1,6 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-namespace DwebBrowser.Helper;
+﻿namespace DwebBrowser.Helper;
 
 
 static class StateShared
