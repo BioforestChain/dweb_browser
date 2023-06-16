@@ -1,7 +1,6 @@
 import { cacheGetter } from "../../helper/cacheGetter.ts";
 import { CameraDirection } from "../camera/camera.type.ts";
-// import { CloseWatcher } from "../close-watcher/close-watcher.shim.ts";
-import { torchPlugin } from "../torch/torch.plugin.ts";
+import { CloseWatcher } from "../close-watcher/index.ts";
 import { barcodeScannerPlugin } from "./barcode-scanning.plugin.ts";
 import {
   BarcodeScannerPermission,
@@ -26,14 +25,14 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
   }
 
   private createClose() {
-    // const closer = new CloseWatcher();
+    const closer = new CloseWatcher();
     this._isCloceLock = true;
-    // closer.addEventListener("close", (_event) => {
-    //   this._isCloceLock = false;
-    //   if (this._activity) {
-    //     this.stopScanning();
-    //   }
-    // });
+    closer.addEventListener("close", (_event) => {
+      this._isCloceLock = false;
+      if (this._activity) {
+        this.stopScanning();
+      }
+    });
   }
 
   /**
@@ -58,31 +57,6 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
     return this.plugin.stop;
   }
 
-  @cacheGetter()
-  get toggleTorch() {
-    return torchPlugin.toggleTorch;
-  }
-
-  @cacheGetter()
-  get getTorchState() {
-    return torchPlugin.getTorchState;
-  }
-
-  // @cacheGetter()
-  // get getPhoto() {
-  //   return this.plugin.getPhoto
-  // }
-
-  /**
-   * 看看是否支持扫码
-   * @returns boolean
-   */
-  hasMedia = () => {
-    return (navigator.getUserMedia =
-      navigator.getUserMedia ||
-      navigator.mozGetUserMedia ||
-      navigator.webkitGetUserMedia);
-  };
   /**
    * 启动扫码
    * @returns
@@ -124,7 +98,7 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
    * 不断识图的任务
    * @returns
    */
-  private taskPhoto(
+  taskPhoto(
     rotation: number,
     formats: SupportedFormat
   ): Promise<string[]> {

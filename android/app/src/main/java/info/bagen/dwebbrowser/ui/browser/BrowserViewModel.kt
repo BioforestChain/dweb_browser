@@ -464,6 +464,7 @@ internal class DwebBrowserWebViewClient : AccompanistWebViewClient() {
     view: WebView, request: WebResourceRequest
   ): WebResourceResponse? {
     var response: Response? = null
+//    if(request.url.scheme == "data")
     if (request.url.host == "localhost") { // 拦截 browser web
 
       val mmid = request.url.getQueryParameter("mmid")

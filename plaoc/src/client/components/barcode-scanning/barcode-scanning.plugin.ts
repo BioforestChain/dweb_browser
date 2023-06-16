@@ -44,14 +44,6 @@ export class BarcodeScannerPlugin extends BasePlugin {
   async stop() {
     return await this.fetchApi(`/stop`).boolean();
   }
-
-  // /**
-  //  * 打开相册
-  //  */
-  // @bindThis
-  // getPhoto(options: ImageOptions = {}) {
-  //   return cameraPlugin.getPhoto(options);
-  // }
 }
 
 export const barcodeScannerPlugin = new BarcodeScannerPlugin();
