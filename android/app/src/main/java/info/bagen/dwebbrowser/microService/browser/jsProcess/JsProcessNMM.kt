@@ -3,7 +3,7 @@ package info.bagen.dwebbrowser.microService.browser.jsProcess
 import android.webkit.WebView
 import info.bagen.dwebbrowser.App
 import org.dweb_browser.microservice.sys.dns.nativeFetch
-import info.bagen.dwebbrowser.microService.browser.webview.DWebView
+import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.message.IpcHeaders
 import org.dweb_browser.microservice.ipc.message.IpcResponse

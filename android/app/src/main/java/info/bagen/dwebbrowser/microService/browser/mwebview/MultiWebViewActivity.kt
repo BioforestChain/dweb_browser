@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.view.ViewGroup
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.*
@@ -17,7 +16,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.web.WebView
 import info.bagen.dwebbrowser.base.BaseActivity
-import info.bagen.dwebbrowser.base.ExtensionResultContracts
 import org.dweb_browser.helper.*
 import info.bagen.dwebbrowser.microService.browser.mwebview.MultiWebViewNMM.Companion.controllerMap
 import info.bagen.dwebbrowser.microService.browser.mwebview.dwebServiceWorker.ServiceWorkerEvent
@@ -63,14 +61,6 @@ open class MultiWebViewActivity : BaseActivity() {
         super.onDestroy()
         controllerMap.remove(remoteMmid)
     }
-
-    val getContentLauncher = QueueResultLauncher(this, ActivityResultContracts.GetContent())
-    val getMultipleContentsLauncher =
-        QueueResultLauncher(this, ActivityResultContracts.GetMultipleContents())
-    val recordSoundLauncher = QueueResultLauncher(this, ExtensionResultContracts.RecordSound())
-
-    val captureVideoLauncher = QueueResultLauncher(this, ActivityResultContracts.CaptureVideo())
-    val takePictureLauncher = QueueResultLauncher(this, ActivityResultContracts.TakePicture())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

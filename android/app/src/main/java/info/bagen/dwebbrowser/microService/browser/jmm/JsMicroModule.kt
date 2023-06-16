@@ -3,6 +3,7 @@ package info.bagen.dwebbrowser.microService.browser.jmm
 import org.dweb_browser.microservice.sys.dns.nativeFetch
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import org.dweb_browser.dwebview.ipcWeb.Native2JsIpc
 import org.dweb_browser.helper.*
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.ConnectResult
@@ -14,7 +15,6 @@ import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.help.int
 import org.dweb_browser.microservice.help.stream
 import org.dweb_browser.microservice.ipc.Ipc
-import org.dweb_browser.dwebview.ipcWeb.Native2JsIpc
 import org.dweb_browser.microservice.ipc.ReadableStreamIpc
 import org.dweb_browser.microservice.ipc.message.IpcMessageArgs
 import org.dweb_browser.microservice.ipc.message.IpcResponse

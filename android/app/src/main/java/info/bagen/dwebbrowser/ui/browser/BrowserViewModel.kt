@@ -42,7 +42,7 @@ import info.bagen.dwebbrowser.microService.browser.jmm.JmmNMM.Companion.jmmContr
 import info.bagen.dwebbrowser.microService.browser.jmm.JsMicroModule
 import info.bagen.dwebbrowser.microService.browser.mwebview.CloseWatcher.CloseWatcher
 import info.bagen.dwebbrowser.microService.browser.mwebview.MultiWebViewController
-import info.bagen.dwebbrowser.microService.browser.webview.DWebView
+import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.dweb_browser.microservice.sys.http.CORS_HEADERS
 import info.bagen.dwebbrowser.ui.entity.BrowserWebView

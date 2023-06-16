@@ -12,7 +12,7 @@ import com.google.accompanist.web.WebViewNavigator
 import com.google.accompanist.web.WebViewState
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.browser.nativeui.NativeUiController
-import info.bagen.dwebbrowser.microService.browser.webview.DWebView
+import org.dweb_browser.dwebview.DWebView
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

@@ -6,8 +6,8 @@ import java.util.concurrent.atomic.AtomicInteger
 
 val ALL_MESSAGE_PORT_CACHE = mutableMapOf<Int, MessagePort>();
 private var all_ipc_id_acc = AtomicInteger(1);
-fun saveNative2JsIpcPort(port: WebMessagePort) = all_ipc_id_acc.getAndAdd(1).also { port_id ->
-    ALL_MESSAGE_PORT_CACHE[port_id] = MessagePort.from(port);
+fun saveNative2JsIpcPort(port: WebMessagePort) = all_ipc_id_acc.getAndAdd(1).also { portId ->
+  ALL_MESSAGE_PORT_CACHE[portId] = MessagePort.from(port);
 }
 
 
@@ -22,16 +22,17 @@ fun saveNative2JsIpcPort(port: WebMessagePort) = all_ipc_id_acc.getAndAdd(1).als
  * 那么连接发起方就可以通过这个 id(number) 和 Native2JsIpc 构造器来实现与 js-worker 的直连
  */
 open class Native2JsIpc(
-  val port_id: Int,
+  val portId: Int,
   remote: MicroModuleInfo,
   role: IPC_ROLE = IPC_ROLE.CLIENT,
 ) : MessagePortIpc(
-    ALL_MESSAGE_PORT_CACHE[port_id]
-        ?: throw Exception("no found port2(js-process) by id: $port_id"), remote, role
+  ALL_MESSAGE_PORT_CACHE[portId] ?: throw Exception("no found port2(js-process) by id: $portId"),
+  remote,
+  role
 ) {
-    init {
-        onClose {
-            ALL_MESSAGE_PORT_CACHE.remove(port_id)
-        }
+  init {
+    onClose {
+      ALL_MESSAGE_PORT_CACHE.remove(portId)
     }
+  }
 }
