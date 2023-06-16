@@ -9,7 +9,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Plaoc">
         <activity
-            android:name=".MainActivity"
+            android:name="org.dweb_browser.browserUI.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.Plaoc">

@@ -9,11 +9,11 @@ plugins {
 }
 
 android {
-  namespace = "org.dweb_browser.browser"
+  namespace = "org.dweb_browser.browserUI"
   compileSdk = BuildVersion.compileSdkVersion
 
   defaultConfig {
-    applicationId = "org.dweb_browser.browser"
+    applicationId = "org.dweb_browser.browserUI"
     minSdk = BuildVersion.minSdkVersion
     targetSdk = BuildVersion.targetSdkVersion
     versionCode = BuildVersion.versionCode

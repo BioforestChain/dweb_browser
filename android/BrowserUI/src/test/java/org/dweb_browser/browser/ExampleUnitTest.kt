@@ -1,4 +1,4 @@
-package org.dweb_browser.browser
+package org.dweb_browser.browserUI
 
 import org.junit.Test
 
