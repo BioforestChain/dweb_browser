@@ -41,5 +41,9 @@ public class WebMessagePort
     public event Signal<WebMessage>? OnMessage;
     internal Task _emitOnMessage(WebMessage msg) => (OnMessage?.Emit(msg)).ForAwait();
 
-
+    public async Task Close()
+    {
+        var arguments = new NSDictionary<NSString, NSObject>(new NSString[] { new NSString("portId"), }, new NSObject[] { new NSNumber(portId), });
+        await webview.InvokeOnMainThreadAsync(() => webview.CallAsyncJavaScriptAsync("nativeClose(portId)", arguments, null, DWebView.webMessagePortContentWorld));
+    }
 }

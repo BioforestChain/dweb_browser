@@ -1,9 +1,11 @@
 ﻿using System.Text.Json.Serialization;
+using DwebBrowser.DWebView;
 using Foundation;
+using static DwebBrowser.MicroService.Browser.JsProcess.JsProcessWebApi;
 
 namespace DwebBrowser.MicroService.Browser.JsProcess;
 
-public class JsProcessWebApi
+public class JsProcessWebApi : System.IDisposable
 {
     static readonly Debugger Console = new("JsProcessWebApi");
     public DWebView.DWebView DWebView { get; init; }
@@ -63,6 +65,7 @@ public class JsProcessWebApi
 
         var processId = (int)(NSNumber)nsProcessInfo.ValueForKey(new NSString("process_id"));
         var processInfo = new ProcessInfo(processId);
+
         return new ProcessHandler(processInfo, new MessagePortIpc(port2, remoteModule, IPC_ROLE.CLIENT));
     }
 
@@ -71,8 +74,10 @@ public class JsProcessWebApi
     public Task RunProcessMain(int process_id, RunProcessMainOptions options) =>
         this.DWebView.EvaluateJavaScriptAsync("void runProcessMain(" + process_id + ", {main_url:`" + options.MainUrl + "`})").NoThrow();
 
-    public Task DestroyProcess(int process_id) =>
-        this.DWebView.EvaluateJavaScriptAsync(string.Format("void destroyProcess({0})", process_id).Trim()).NoThrow();
+    public async Task DestroyProcess(int process_id)
+    {
+        await this.DWebView.EvaluateJavaScriptAsync(string.Format("void destroyProcess({0})", process_id).Trim()).NoThrow();
+    }
 
     public async Task<int> CreateIpc(int process_id, Mmid mmid)
     {
@@ -100,7 +105,9 @@ public class JsProcessWebApi
         return IpcWebMessageCache.SaveNative2JsIpcPort(port2);
     }
 
-    public void Destroy()
-    { }
+    public void Dispose()
+    {
+        //throw new NotImplementedException();
+    }
 }
 

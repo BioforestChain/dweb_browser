@@ -91,7 +91,7 @@ public class MessagePortIpc : Ipc
     public override async Task DoClose()
     {
         await Port.PostMessage("close");
-        Port.Close();
+        await Port.Close();
     }
 }
 

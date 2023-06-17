@@ -24,7 +24,7 @@ public class ReadableStreamIpc : Ipc
     public override async Task DoClose()
     {
         _controller.Close();
-        //_incomeStream?.Close();
+        _incomeStream?.Close();
     }
 
     public override Task _doPostMessageAsync(IpcMessage data)
@@ -136,6 +136,8 @@ public class ReadableStreamIpc : Ipc
         Console.Log("BindIncomeStream", "end/{0}", stream);
         Console.Log("RR", "END/{0}", stream);
 
+        // 流是双向的，对方关闭的时候，自己也要关闭掉
+        await this.Close();
     }
 }
 

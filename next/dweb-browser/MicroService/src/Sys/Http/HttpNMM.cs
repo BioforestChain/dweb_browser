@@ -259,7 +259,12 @@ public class HttpNMM : NativeMicroModule
         Console.Log("Listen", "host: {0}, token: {1}", gateway.UrlInfo.Host, token);
 
         var streamIpc = new ReadableStreamIpc(gateway.Listener.Ipc.Remote, string.Format("http-gateway/{0}", gateway.UrlInfo.Host));
+        /// 接收一个body，body在关闭的时候，fetchIpc也会一同关闭
         streamIpc.BindIncomeStream(request.Body.ToStream());
+        /// 自己nmm销毁的时候，ipc也会被全部销毁
+        this.addToIpcSet(streamIpc);
+        /// 自己创建的，就要自己销毁：这个listener被销毁的时候，streamIpc也要进行销毁
+        gateway.Listener.OnDestory += (_) => streamIpc.Close();
 
         foreach (var routeConfig in routes)
         {

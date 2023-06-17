@@ -57,7 +57,10 @@ public abstract partial class MicroModule : Ipc.IMicroModuleInfo
         _runningStateLock = new PromiseOut<bool>();
 
         /// 关闭所有的通讯
-        _ipcSet.ToList().ForEach(async it => await it.Close());
+        foreach(var ipc in _ipcSet)
+        {
+            await ipc.Close();
+        }
         _ipcSet.Clear();
     }
 
@@ -91,6 +94,14 @@ public abstract partial class MicroModule : Ipc.IMicroModuleInfo
      * </summary>
      */
     protected HashSet<Ipc> _ipcSet = new();
+    protected void addToIpcSet(Ipc ipc)
+    {
+        this._ipcSet.Add(ipc);
+        ipc.OnClose += async (_) =>
+        {
+            _ipcSet.Remove(ipc);
+        };
+    }
 
     /**
      * <summary>
@@ -120,8 +131,7 @@ public abstract partial class MicroModule : Ipc.IMicroModuleInfo
      */
     public Task BeConnectAsync(Ipc ipc, PureRequest reason)
     {
-        _ipcSet.Add(ipc);
-        ipc.OnClose += async (_) => _ipcSet.Remove(ipc);
+        this.addToIpcSet(ipc);
         ipc.OnEvent += async (ipcMessage, ipc, _) =>
         {
             if (ipcMessage.Name == "activity")

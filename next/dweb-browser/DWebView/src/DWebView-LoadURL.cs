@@ -84,10 +84,10 @@ public partial class DWebView : WKWebView
         [SupportedOSPlatform("ios11.0")]
         public async void StartUrlSchemeTask(WKWebView webView, IWKUrlSchemeTask urlSchemeTask)
         {
+            Console.Log("StartUrlSchemeTask", "Start: {0}", urlSchemeTask.Request.Url.AbsoluteString);
+            var url = new Uri(this.baseUri, urlSchemeTask.Request.Url.ResourceSpecifier);
             try
             {
-                Console.Log("StartUrlSchemeTask", "Start: {0}", urlSchemeTask.Request.Url.AbsoluteString);
-                var url = new Uri(this.baseUri, urlSchemeTask.Request.Url.ResourceSpecifier);
                 /// 构建请求
                 var pureRequest = new PureRequest(
                     url.AbsoluteUri,
@@ -138,12 +138,23 @@ public partial class DWebView : WKWebView
                         break;
                 };
 
+
                 /// 写入完成
                 urlSchemeTask.DidFinish();
+
                 Console.Log("StartUrlSchemeTask", "End: {0}", urlSchemeTask.Request.Url.AbsoluteString);
             }
             catch (Exception err)
             {
+                if (err is ObjCRuntime.ObjCException cerr)
+                {
+                    /// 
+                    if (cerr.Name == "NSInternalInconsistencyException" && cerr.Reason == "This task has already been stopped")
+                    {
+                        Console.Warn("StartUrlSchemeTask", "Request Aborted: {0}", urlSchemeTask.Request.Url.AbsoluteString);
+                        return;
+                    }
+                }
                 using var nsResponse = new NSHttpUrlResponse(urlSchemeTask.Request.Url, new IntPtr(502), "HTTP/1.1", new());
                 urlSchemeTask.DidReceiveResponse(nsResponse);
                 urlSchemeTask.DidReceiveData(NSData.FromString(err.Message));
@@ -154,7 +165,7 @@ public partial class DWebView : WKWebView
         [Export("webView:stopURLSchemeTask:")]
         public void StopUrlSchemeTask(WKWebView webView, IWKUrlSchemeTask urlSchemeTask)
         {
-            urlSchemeTask.DidFinish();
+            //urlSchemeTask.DidFinish();
         }
     }
 

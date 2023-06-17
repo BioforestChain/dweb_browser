@@ -107,6 +107,11 @@ public class IpcBodyReceiver : IpcBody
         var stream = new ReadableStream(string.Format("receiver-{0}", stream_id),
             onStart: async controller =>
             {
+                ipc.OnClose += async (self) =>
+                {
+                    controller.Close();
+                };
+
                 /// 如果有初始帧，直接存起来
                 var firstData = metaBody.Type_Encoding switch
                 {

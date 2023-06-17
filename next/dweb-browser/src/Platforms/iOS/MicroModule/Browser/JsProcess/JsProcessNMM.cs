@@ -90,9 +90,7 @@ public class JsProcessNMM : NativeMicroModule
 
         var apis = await _createJsProcessWeb(mainServer);
 
-        var ipcProcessIdMap = new Dictionary<Ipc, Dictionary<string, PromiseOut<int>>>();
-        var processIpcMap = new Dictionary<string, Ipc>();
-        //var ipcProcessIdMapLock = new Mutex();
+        var ipcProcessIdMap = new Dictionary<string, Dictionary<string, PromiseOut<int>>>();
 
         /// 创建 web worker
         /// request 需要携带一个流，来为 web worker 提供代码服务
@@ -100,15 +98,14 @@ public class JsProcessNMM : NativeMicroModule
         {
             var searchParams = request.SafeUrl.SearchParams;
             _ = ipc ?? throw new Exception("no found ipc");
-            processIpcMap.TryAdd(ipc.Remote.Mmid, ipc);
             PromiseOut<int> po = null!;
 
             var processId = searchParams.ForceGet("process_id");
             lock (ipcProcessIdMap)
             {
-                var processIdMap = ipcProcessIdMap.GetValueOrPut(ipc, () =>
+                var processIdMap = ipcProcessIdMap.GetValueOrPut(ipc.Remote.Mmid, () =>
                 {
-                    ipc.OnClose += async (_) => { ipcProcessIdMap.Remove(ipc); };
+                    ipc.OnClose += async (_) => { ipcProcessIdMap.Remove(ipc.Remote.Mmid); };
                     return new Dictionary<string, PromiseOut<int>>();
                 });
 
@@ -137,6 +134,7 @@ public class JsProcessNMM : NativeMicroModule
         /// 创建 web 通讯管道
         HttpRouter.AddRoute(IpcMethod.Get, "/create-ipc", async (request, ipc) =>
         {
+            _ = ipc ?? throw new Exception("no found ipc");
             var searchParams = request.SafeUrl.SearchParams;
             var processId = searchParams.ForceGet("process_id");
 
@@ -147,7 +145,7 @@ public class JsProcessNMM : NativeMicroModule
             var mmid = searchParams.ForceGet("mmid");
 
             int process_id;
-            if (!ipcProcessIdMap.TryGetValue(ipc, out var processIdMap) || !processIdMap.TryGetValue(processId, out var po))
+            if (!ipcProcessIdMap.TryGetValue(ipc.Remote.Mmid, out var processIdMap) || !processIdMap.TryGetValue(processId, out var po))
             {
                 throw new Exception(string.Format("ipc:{0}/processId:{1} invalid", ipc.Remote.Mmid, processId));
             }
@@ -159,14 +157,26 @@ public class JsProcessNMM : NativeMicroModule
             return js_port_id;
         });
 
-        /// 关闭 process
+        /// 关闭所有的 process
         HttpRouter.AddRoute(IpcMethod.Get, "/close-process", async (request, ipc) =>
         {
-            await CloseHttpDwebServer(new DwebHttpServerOptions(80, ipc.Remote.Mmid));
-            var processIpc = processIpcMap.GetValueOrDefault(ipc.Remote.Mmid);
-            Console.Log("close-process", "{0}", processIpc?.Remote?.Mmid);
-            processIpc?.Close();
-            return true;
+            _ = ipc ?? throw new Exception("no found ipc");
+
+            Console.Log("close-process", "{0}/processId", ipc.Remote.Mmid);
+            if (ipcProcessIdMap.Remove(ipc.Remote.Mmid, out var processMap))
+            {
+                /// 关闭程序
+                foreach (var (_processId, po) in processMap)
+                {
+                    var process_id = await po.WaitPromiseAsync();
+                    await apis.DestroyProcess(process_id);
+                }
+
+                /// 关闭代码通道
+                await CloseHttpDwebServer(new DwebHttpServerOptions(80, ipc.Remote.Mmid));
+                return true;
+            }
+            return false;
         });
     }
 
@@ -188,14 +198,14 @@ public class JsProcessNMM : NativeMicroModule
 
             var apis = new JsProcessWebApi(dwebview).Also(apis =>
             {
-                _onAfterShutdown += async (_) => { apis.Destroy(); };
+                _onAfterShutdown += async (_) => { apis.Dispose(); };
             });
             dwebview.OnReady += async (_) =>
                afterReadyPo.Resolve(apis);
 
             /// 确保 OnReady 函数绑定上后，再执行 LoadURL 
             var mainUrl = urlInfo.BuildInternalUrl().Path("/index.html");
-            dwebview.LoadURL(mainUrl).NoThrow();
+            _ = dwebview.LoadURL(mainUrl).NoThrow();
         });
         var apis = await afterReadyPo.WaitPromiseAsync();
         return apis;
@@ -219,6 +229,7 @@ public class JsProcessNMM : NativeMicroModule
          */
         var streamIpc = new ReadableStreamIpc(ipc.Remote, "code-proxy-server");
         streamIpc.BindIncomeStream(requestMessage.Body.ToStream());
+        this.addToIpcSet(streamIpc);
 
         /**
          * 代理监听
@@ -288,7 +299,7 @@ public class JsProcessNMM : NativeMicroModule
         /**
          * 开始执行代码
          */
-        await MainThread.InvokeOnMainThreadAsync(()=> apis.RunProcessMain(
+        await MainThread.InvokeOnMainThreadAsync(() => apis.RunProcessMain(
             processHandler.Info.ProcessId,
             new JsProcessWebApi.RunProcessMainOptions(
                 httpDwebServer.StartResult.urlInfo.BuildInternalUrl().Path(entry ?? "/index.js").ToPublicDwebHref()

@@ -14,7 +14,7 @@ public class MessagePort
     private static ConditionalWeakTable<WebMessagePort, MessagePort> s_wm = new();
     public static MessagePort From(WebMessagePort port) => s_wm.GetValue(port, (port) => new MessagePort(port));
 
-    private WebMessagePort _port = null!;
+    private WebMessagePort _port { init; get; }
 
     private MessagePort(WebMessagePort port)
     {
@@ -41,15 +41,16 @@ public class MessagePort
 
     private bool _isClosed = false;
 
-    public void Close()
+    public async Task Close()
     {
         if (_isClosed)
         {
-            MessageChannel.Complete();
             return;
         }
 
         _isClosed = true;
+        MessageChannel.Complete();
+        await _port.Close();
 
     }
 }

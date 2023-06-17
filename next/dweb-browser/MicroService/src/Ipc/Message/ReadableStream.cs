@@ -4,6 +4,7 @@ namespace DwebBrowser.MicroService.Message;
 
 public class ReadableStream
 {
+    static Debugger Console = new("ReadableStream");
     static int sidAcc = 0;
     string sid = "ReadableStream@" + Interlocked.Increment(ref sidAcc);
     public override string ToString()
@@ -98,7 +99,6 @@ public class ReadableStream
                 0 => count == buffer.Length ? buffer : buffer.AsSpan(0, count),
                 _ => buffer.AsSpan(offset, count),
             };
-
             var readLen = pipeStream.ReadAtLeast(bufferForWriter, 1, false);
             if (readLen == 0)
             {
@@ -118,13 +118,7 @@ public class ReadableStream
             }
             isClose = true;
             isEndRead = true;
-            pipeStream.Close();
             base.Close();
-        }
-        public new void Dispose()
-        {
-            pipeStream.Dispose();
-            base.Dispose();
         }
     }
 

@@ -53,3 +53,8 @@ function nativeWindowPostMessage(data: unknown, ports_id: number[]) {
   const ports = ports_id.map(forceGetPort);
   dispatchEvent(new MessageEvent('message', { data, ports }));
 }
+
+function nativeClose(port_id: number) {
+  const origin_port = forceGetPort(port_id);
+  origin_port.close();
+}

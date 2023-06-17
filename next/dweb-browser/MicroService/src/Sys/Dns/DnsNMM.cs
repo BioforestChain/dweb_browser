@@ -141,8 +141,6 @@ public class DnsNMM : NativeMicroModule
             {
                 // 关闭后端连接
                 await _dnsMM.Close(mmid);
-                // TODO 防止启动过快出现闪屏
-                await Task.Delay(200);
                 await _dnsMM.Open(mmid);
             }).NoThrow();
         }
@@ -304,11 +302,12 @@ public class DnsNMM : NativeMicroModule
             try
             {
                 var microModule = await microModulePo.WaitPromiseAsync();
-                _mmConnectsMap.Remove(MM.From(microModule.Mmid, "js.browser.dweb"));
-                _mmConnectsMap.Remove(MM.From("js.browser.dweb", microModule.Mmid));
                 await microModule.ShutdownAsync();
-                //_mmConnectsMap.Remove(MM.From(microModule.Mmid, "js.browser.dweb"));
-                //_mmConnectsMap.Remove(MM.From("js.browser.dweb", microModule.Mmid));
+                lock (_mmConnectsMap)
+                {
+                    _mmConnectsMap.Remove(MM.From(microModule.Mmid, "js.browser.dweb"));
+                    _mmConnectsMap.Remove(MM.From("js.browser.dweb", microModule.Mmid));
+                }
 
                 return 1;
             }

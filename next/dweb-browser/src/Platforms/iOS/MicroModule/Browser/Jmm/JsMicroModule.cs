@@ -96,6 +96,7 @@ public class JsMicroModule : MicroModule
             Body: new PureStreamBody(streamIpc.ReadableStream.Stream));
         var createIpc_res = await NativeFetchAsync(createIpc_req);
         streamIpc.BindIncomeStream(createIpc_res.Body.ToStream());
+        this.addToIpcSet(streamIpc);
 
         return streamIpc;
     }
@@ -178,7 +179,7 @@ public class JsMicroModule : MicroModule
             }
         };
 
-        _ipcSet.Add(streamIpc);
+        this.addToIpcSet(streamIpc);
         Console.Log("running!!", Mmid);
     }
 
