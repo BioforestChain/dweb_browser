@@ -17,7 +17,7 @@ public interface PureBody
     static public PureEmptyBody Empty = new();
 }
 
-public record PureStreamBody(Stream Data) : PureBody
+public record PureStreamBody(Stream Data) : PureBody, IDisposable
 {
     public dynamic? Raw => Data;
     public long? ContentLength => Data.TryReturn(data => (long?)data.Length, (data, err) => null);
@@ -29,6 +29,11 @@ public record PureStreamBody(Stream Data) : PureBody
 
     public string ToUtf8String() => Data.ToByteArray().ToUtf8();
     public async Task<string> ToUtf8StringAsync() => (await Data.ToByteArrayAsync()).ToUtf8();
+
+    public void Dispose()
+    {
+        Data.Dispose();
+    }
 }
 public record PureByteArrayBody(byte[] Data) : PureBody
 {

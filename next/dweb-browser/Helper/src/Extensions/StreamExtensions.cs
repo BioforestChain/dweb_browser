@@ -42,9 +42,9 @@ public static class StreamExtensions
             await self.ReadExactlyAsync(buffer);
             _console.Log("ReadIntAsync", "end:{0}", self);
         }
-        catch(Exception e)
+        catch (Exception e)
         {
-            _console.Error("ReadIntAsync", "exception: {0}", e);
+            _console.Error("ReadIntAsync", "exception: {0}/{1}", self, e);
             if (e is EndOfStreamException)
             {
                 self.Close();
@@ -71,12 +71,14 @@ public static class StreamExtensions
 
     public static async IAsyncEnumerable<byte[]> ReadBytesStream(this Stream stream, long usize = DefaultStreamChunkSize)
     {
+        _console.Log("RR", "START/{0}", stream);
         var bytes = new byte[usize]!;
         while (true)
         {
             var read = await stream.ReadAtLeastAsync(bytes, 1, false);
             if (read == 0)
             {
+                _console.Log("RR", "END/{0}", stream);
                 /// 流完成流
                 yield break;
             }

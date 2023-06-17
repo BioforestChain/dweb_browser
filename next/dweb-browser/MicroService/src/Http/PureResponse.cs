@@ -6,7 +6,7 @@ public record PureResponse(
     PureBody? Body = null,
     string? StatusText = null,
     string? Url = null
-)
+) : System.IDisposable
 {
     public IpcHeaders Headers = Headers ?? new();
     public PureBody Body = Body ?? PureBody.Empty;
@@ -18,5 +18,13 @@ public record PureResponse(
     public async Task<float?> FloatAsync() => (await TextAsync()).ToFloatOrNull();
     public async Task<double?> DoubleAsync() => (await TextAsync()).ToDoubleOrNull();
     public async Task<T> JsonAsync<T>() => JsonSerializer.Deserialize<T>(await TextAsync()) ?? throw new JsonException("fail parse to json");
+
+    public void Dispose()
+    {
+        if (Body is PureStreamBody streamBody)
+        {
+            streamBody.Dispose();
+        }
+    }
 }
 

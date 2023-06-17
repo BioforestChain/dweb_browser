@@ -12,10 +12,9 @@ public class ReadableStream
     }
     private AnonymousPipeServerStream pipeServer;
     private AnonymousPipeClientStream pipeClient;
-    private PipeStream myStream;
 
     private ReadableStreamController controller = null!;
-    public Stream Stream { get => myStream; }
+    public PipeStream Stream { init; get; }
 
     public class ReadableStreamController
     {
@@ -53,17 +52,21 @@ public class ReadableStream
 
     public class PipeStream : Stream
     {
-        static int sidAcc = 0;
-        string sid = "R::Stream@" + Interlocked.Increment(ref sidAcc);
+        internal static int sidAcc = 0;
+        internal int id { init; get; }
+        internal string sid { init; get; }
+        internal string output_sid = "";
         public override string ToString()
         {
-            return sid;
+            return sid + output_sid;
         }
 
         private AnonymousPipeClientStream pipeStream;
         private Action onStartRead;
         public PipeStream(AnonymousPipeClientStream pipeStream, Action onStartRead)
         {
+            this.id = Interlocked.Increment(ref sidAcc);
+            this.sid = "R::Stream@" + id;
             this.pipeStream = pipeStream;
             this.onStartRead = onStartRead;
         }
@@ -116,7 +119,12 @@ public class ReadableStream
             isClose = true;
             isEndRead = true;
             pipeStream.Close();
-            Dispose();
+            base.Close();
+        }
+        public new void Dispose()
+        {
+            pipeStream.Dispose();
+            base.Dispose();
         }
     }
 
@@ -129,11 +137,11 @@ public class ReadableStream
     {
         pipeServer = new AnonymousPipeServerStream(PipeDirection.Out);
         pipeClient = new AnonymousPipeClientStream(pipeServer.GetClientHandleAsString());
-        myStream = new PipeStream(pipeClient, delegate
+        Stream = new PipeStream(pipeClient, delegate
         {
             onPull?.Invoke((1, controller));
         });
-        controller = new ReadableStreamController(pipeServer, myStream, onClose);
+        controller = new ReadableStreamController(pipeServer, Stream, onClose);
 
         onStart?.Invoke(controller);
         this.onClose = onClose;

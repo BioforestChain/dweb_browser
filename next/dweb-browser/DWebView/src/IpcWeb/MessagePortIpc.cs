@@ -44,7 +44,7 @@ public class MessagePortIpc : Ipc
                             Console.Log("OnWebMessage", "PONG/{0}", ipc);
                             break;
                         case IpcMessage ipcMessage:
-                            Console.Log("OnWebMessage", "ON-MESSAGE/{0} {1}", ipc, message);
+                            Console.Log("OnWebMessage", "ON-MESSAGE/{0} {1}", ipc, jsonData);
                             await _OnMessageEmit(ipcMessage, ipc);
                             break;
                         default:

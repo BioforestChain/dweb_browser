@@ -24,7 +24,7 @@ public class ReadableStreamIpc : Ipc
     public override async Task DoClose()
     {
         _controller.Close();
-        _incomeStream?.Close();
+        //_incomeStream?.Close();
     }
 
     public override Task _doPostMessageAsync(IpcMessage data)
@@ -80,6 +80,11 @@ public class ReadableStreamIpc : Ipc
         {
             throw new Exception("income stream already binded.");
         }
+        _incomeStream = stream;
+        if(stream is ReadableStream.PipeStream rstream)
+        {
+            ReadableStream.Stream.output_sid = "<-" + rstream.id;
+        }
 
         if (SupportCbor)
         {
@@ -91,6 +96,7 @@ public class ReadableStreamIpc : Ipc
 
         var streamName = stream.ToString();
 
+        Console.Log("RR", "START/{0}", stream);
         //var reader = new BinaryReader(stream);
         while (stream.CanRead)
         {
@@ -128,8 +134,8 @@ public class ReadableStreamIpc : Ipc
         }
 
         Console.Log("BindIncomeStream", "end/{0}", stream);
+        Console.Log("RR", "END/{0}", stream);
 
-        _incomeStream = stream;
     }
 }
 

@@ -6,7 +6,7 @@ public record PureRequest(
     IpcMethod Method,
     IpcHeaders? Headers = null,
     PureBody? Body = null
-)
+) : System.IDisposable
 {
     static readonly Debugger Console = new("PureRequest");
 
@@ -49,4 +49,12 @@ public record PureRequest(
         }
     }
     public URL SafeUrl { get => ParsedUrl ?? throw new FormatException("invalid url: " + Url); }
+
+    public void Dispose()
+    {
+        if (Body is PureStreamBody streamBody)
+        {
+            streamBody.Dispose();
+        }
+    }
 }

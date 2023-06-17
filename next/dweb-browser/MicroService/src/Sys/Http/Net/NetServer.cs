@@ -82,7 +82,7 @@ public static class NetServer
                     try
                     {
                         var pureRequest = request.ToPureRequest();
-                        var pureReponse = await handler(pureRequest);
+                        using var pureReponse = await handler(pureRequest);
                         await pureReponse.WriteToHttpListenerResponse(response);
                     }
                     catch (Exception e)

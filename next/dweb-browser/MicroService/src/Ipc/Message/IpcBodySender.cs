@@ -18,7 +18,7 @@ namespace DwebBrowser.MicroService.Message;
  * </summary>
  */
 
-public class IpcBodySender : IpcBody
+public class IpcBodySender : IpcBody,System.IDisposable
 {
     static readonly Debugger Console = new("IpcBodySender");
     public override object? Raw { get; }
@@ -70,7 +70,7 @@ public class IpcBodySender : IpcBody
         ABORTED,
     }
 
-    private BufferBlock<StreamStatusSignal> _streamStatusSignal = new BufferBlock<StreamStatusSignal>(new DataflowBlockOptions { BoundedCapacity = DataflowBlockOptions.Unbounded });
+    private BufferBlock<StreamStatusSignal> _streamStatusSignal = new(new DataflowBlockOptions { BoundedCapacity = DataflowBlockOptions.Unbounded });
 
     public class IPC
     {
@@ -249,7 +249,7 @@ public class IpcBodySender : IpcBody
         /// 只要有一个开始读取，那么就可以开始
         var success = await _streamStatusSignal.SendAsync(StreamStatusSignal.PULLING);
 
-        Console.Log("EmitStreamPullAsync", "{0:H} {1}", _streamStatusSignal, success);
+        Console.Log("EmitStreamPullAsync", "{0} {1}", message.StreamId, success);
     }
 
     /// <summary>
@@ -377,13 +377,6 @@ public class IpcBodySender : IpcBody
 
         Console.Log("StreamAsMeta", "sender/INIT/{0:H} {1}", stream, stream_id);
 
-        _ = Task.Run(async () =>
-        {
-            await foreach (var signal in _streamStatusSignal.ReceiveAllAsync())
-            {
-                streamStatusSignal?.Emit(signal);
-            }
-        }).NoThrow();
 
         _ = Task.Run(async () =>
         {
@@ -392,30 +385,36 @@ public class IpcBodySender : IpcBody
              */
             var pullingPo = new PromiseOut<Unit>();
 
+            /// 先进行流控信号绑定
+            streamStatusSignal += async (signal, self) =>
+            {
+                switch (signal)
+                {
+                    case StreamStatusSignal.PULLING:
+                        pullingPo.Resolve(unit);
+                        break;
+                    case StreamStatusSignal.PAUSED:
+                        if (pullingPo.IsFinished)
+                        {
+                            pullingPo = new PromiseOut<Unit>();
+                        }
+                        break;
+                    case StreamStatusSignal.ABORTED:
+                        stream.Dispose();
+                        _emitStreamClose();
+                        break;
+                }
+            };
+
+            /// 然后开始异步监听流控信号
             _ = Task.Run(async () =>
             {
-                streamStatusSignal += async (signal, self) =>
+                Console.Log("StreamAsMeta", "sender/WAIT_PULL/{0:H} {1}", stream, stream_id);
+                await foreach (var signal in _streamStatusSignal.ReceiveAllAsync())
                 {
-                    switch (signal)
-                    {
-                        case StreamStatusSignal.PULLING:
-                            pullingPo.Resolve(unit);
-                            break;
-                        case StreamStatusSignal.PAUSED:
-                            if (pullingPo.IsFinished)
-                            {
-                                pullingPo = new PromiseOut<Unit>();
-                            }
-                            break;
-                        case StreamStatusSignal.ABORTED:
-                            stream.Dispose();
-                            _emitStreamClose();
-                            break;
-                    }
-                };
-
+                    streamStatusSignal?.Emit(signal);
+                }
             }).NoThrow();
-
 
             // 等待流开始被拉取
             await pullingPo.WaitPromiseAsync();
@@ -447,6 +446,7 @@ public class IpcBodySender : IpcBody
                 }
             }
 
+            Console.Log("StreamAsMeta", "sender/END/{0:H} {1}", stream, stream_id);
         }).NoThrow();
 
         // 写入第一帧数据
@@ -480,6 +480,11 @@ public class IpcBodySender : IpcBody
                 }
             };
         });
+    }
+
+    public void Dispose()
+    {
+        _streamStatusSignal.Complete();
     }
 }
 
