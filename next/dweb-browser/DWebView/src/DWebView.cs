@@ -80,9 +80,15 @@ public partial class DWebView : WKWebView
         /// closeWatcher 同一个ScriptName不能重复添加
         try
         {
+            var script = new WKUserScript(new NSString(webMessagePortPrepareCode), WKUserScriptInjectionTime.AtDocumentStart, false, webMessagePortContentWorld);
+            this.Configuration.UserContentController.AddUserScript(script);
             this.Configuration.UserContentController.AddScriptMessageHandler(CloseWatcherMessageHanlder, "closeWatcher");
+            this.Configuration.UserContentController.AddScriptMessageHandler(webMessagePortMessageHanlder, webMessagePortContentWorld, "webMessagePort");
         }
-        catch { }
+        catch(Exception e)
+        {
+            Console.Error("init", "{0}", e);
+        }
 
 
         /// 设置 ContentInsetAdjustment 的默认行为，这样 SafeArea 就不会注入到 WKWebView.ScrollView.ContentInset 中

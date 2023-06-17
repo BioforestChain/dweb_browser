@@ -55,6 +55,10 @@ public partial class DWebView : WKWebView
         const ports = ports_id.map(forceGetPort);
         dispatchEvent(new MessageEvent('message', { data, ports }));
     }
+    function nativeClose(port_id) {
+        const origin_port = forceGetPort(port_id);
+        origin_port.close();
+    }
     """;
     internal static readonly WKContentWorld webMessagePortContentWorld = WKContentWorld.Create("web-message-port");
     internal static Dictionary<int, WebMessagePort> allPorts = new Dictionary<int, WebMessagePort>();
@@ -88,12 +92,14 @@ public partial class DWebView : WKWebView
     public async Task<WebMessageChannel> CreateWebMessageChannel()
     {
         /// 页面可能会被刷新，所以需要重新判断：函数可不可用
-        var webMessagePortInited = (bool)(NSNumber)await base.EvaluateJavaScriptAsync("typeof nativeCreateMessageChannel==='function'", null, webMessagePortContentWorld);
-        if (!webMessagePortInited)
-        {
-            await base.EvaluateJavaScriptAsync(new NSString(webMessagePortPrepareCode), null, webMessagePortContentWorld);
-            base.Configuration.UserContentController.AddScriptMessageHandler(webMessagePortMessageHanlder, webMessagePortContentWorld, "webMessagePort");
-        }
+        //var webMessagePortInited = (bool)(NSNumber)await base.EvaluateJavaScriptAsync("typeof nativeCreateMessageChannel==='function'", null, webMessagePortContentWorld);
+        //if (!webMessagePortInited)
+        //{
+        //    //var script = new WKUserScript(new NSString(webMessagePortPrepareCode), WKUserScriptInjectionTime.AtDocumentStart, false, webMessagePortContentWorld);
+        //    //base.Configuration.UserContentController.AddUserScript(script);
+        //    await base.EvaluateJavaScriptAsync(new NSString(webMessagePortPrepareCode), null, webMessagePortContentWorld);
+        //    base.Configuration.UserContentController.AddScriptMessageHandler(webMessagePortMessageHanlder, webMessagePortContentWorld, "webMessagePort");
+        //}
         var ports_id = (NSArray)await base.EvaluateJavaScriptAsync("nativeCreateMessageChannel()", null, webMessagePortContentWorld);
 
         var port1_id = (int)ports_id.GetItem<NSNumber>(0);
