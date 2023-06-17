@@ -69,4 +69,14 @@ namespace BrowserFramework
 		[Export ("onBackActionWithCallback:")]
 		void OnBackActionWithCallback (Action callback);
 	}
+
+	// @interface HapticsHelper : NSObject
+	[BaseType (typeof(NSObject))]
+	interface HapticsHelper
+	{
+		// +(void)vibrateWithDurationArr:(NSArray<NSNumber *> * _Nonnull)durationArr;
+		[Static]
+		[Export ("vibrateWithDurationArr:")]
+		void VibrateWithDurationArr (NSNumber[] durationArr);
+	}
 }

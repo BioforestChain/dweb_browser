@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Text.Json;
 using DwebBrowser.MicroService.Http;
+using Foundation;
 using UIKit;
 
 namespace DwebBrowser.MicroService.Sys.Haptics;
@@ -119,7 +120,7 @@ public class HapticsNMM : NativeMicroModule
         {
             var duration = request.QueryStringRequired("duration");
             var durationType = typeof(List<double>)!;
-            var durationList = (List<double>)JsonSerializer.Deserialize(duration, durationType)!;
+            var durationList = (List<NSNumber>)JsonSerializer.Deserialize(duration, durationType)!;
 
             if (await VibrateManager.VibrateAsync(VibrateManager.VibrateType.Customize, durationList.ToArray()))
             {

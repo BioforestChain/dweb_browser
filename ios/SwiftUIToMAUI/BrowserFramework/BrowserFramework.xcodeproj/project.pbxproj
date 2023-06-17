@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		461143B82A3D34DA00896B81 /* HapticsHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 461143B72A3D34DA00896B81 /* HapticsHelper.swift */; };
 		F33F29302A28A791002EB729 /* StableForEach.swift in Sources */ = {isa = PBXBuildFile; fileRef = F33F29072A28A78F002EB729 /* StableForEach.swift */; };
 		F33F29312A28A791002EB729 /* MultipleWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F33F29082A28A78F002EB729 /* MultipleWebView.swift */; };
 		F33F29322A28A791002EB729 /* ObservableObjectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F33F29092A28A78F002EB729 /* ObservableObjectView.swift */; };
@@ -55,6 +56,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		461143B72A3D34DA00896B81 /* HapticsHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticsHelper.swift; sourceTree = "<group>"; };
 		F33F28FC2A28A72B002EB729 /* BrowserFramework.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = BrowserFramework.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F33F29072A28A78F002EB729 /* StableForEach.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StableForEach.swift; sourceTree = "<group>"; };
 		F33F29082A28A78F002EB729 /* MultipleWebView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MultipleWebView.swift; sourceTree = "<group>"; };
@@ -200,6 +202,7 @@
 				F33F291C2A28A790002EB729 /* DWButton.swift */,
 				F33F291D2A28A790002EB729 /* UIImage+Cache.swift */,
 				F3CB3AE02A32D4320042E520 /* ImageTools.swift */,
+				461143B72A3D34DA00896B81 /* HapticsHelper.swift */,
 			);
 			path = Helper;
 			sourceTree = "<group>";
@@ -393,6 +396,7 @@
 				F33F29372A28A791002EB729 /* WebCacheMgr.swift in Sources */,
 				F33F29352A28A791002EB729 /* AutoFillView.swift in Sources */,
 				F33F29302A28A791002EB729 /* StableForEach.swift in Sources */,
+				461143B82A3D34DA00896B81 /* HapticsHelper.swift in Sources */,
 				F33F293C2A28A791002EB729 /* View+snapshot.swift in Sources */,
 				F33F29422A28A791002EB729 /* DWButton.swift in Sources */,
 				F33F294C2A28A791002EB729 /* HistoryStore.swift in Sources */,
