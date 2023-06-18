@@ -1,6 +1,7 @@
 // 工具函数用来打开 js-process 的window
 import { Remote, wrap } from "comlink";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
+import { ElectronConfig } from "../../helper/electron-config.ts";
 
 declare global {
   interface ElectronConfig {
@@ -18,7 +19,7 @@ export async function jsProcessOpenWindow(
   );
   const browserWindow = new Electron.BrowserWindow({
     ...options,
-    ...Electron.config.get("js-process-bounds"),
+    ...ElectronConfig.get("js-process-bounds"),
   });
 
   options.webPreferences = {
