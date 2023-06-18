@@ -17,6 +17,7 @@ import { HapticsNMM } from "./sys/haptics/haptics.main.ts";
 import { HttpServerNMM } from "./sys/http-server/http-server.ts";
 import { ShareNMM } from "./sys/share/share.main.ts";
 import { ToastNMM } from "./sys/toast/toast.main.ts";
+import { BluetoothNMM } from "./std/bluetooth/bluetooth.main.ts"
 
 /**
  * 设置 debugger 过滤条件
@@ -70,6 +71,7 @@ dns.install(new BarcodeScanningNativeUiNMM());
 dns.install(new BiometricsNMM());
 dns.install(new HapticsNMM());
 dns.install(new ShareNMM());
+dns.install(new BluetoothNMM());
 
 import { JmmNMM } from "./browser/jmm/jmm.ts";
 dns.install(new JmmNMM());

@@ -5,6 +5,7 @@ export interface $AppMetaData {
   short_name: string;
   id: string;
   icon: string;
+  name: string;
 }
 declare global {
   interface Window  {

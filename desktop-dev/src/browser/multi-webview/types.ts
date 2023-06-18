@@ -105,3 +105,8 @@ export const enum MWEBVIEW_OBSERVE {
   State = "observe",
   UpdateProgress = "observeUpdateProgress",
 }
+
+export interface $BluetoothDevice{ 
+  deviceName: string;
+  deviceId: string; 
+}

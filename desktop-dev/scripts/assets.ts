@@ -42,6 +42,14 @@ export const assetsTasks = new ConTasks(
         false,
       devAppendArgs: "--minify=false --watch",
     },
+    "bluetooth.html": {
+      cmd: "npx",
+      args: "vite build src/std/bluetooth/assets/ --outDir=../../../../electron/assets/bluetooth --emptyOutDir -l info -c scripts/electron-vite.config.ts",
+      logLineFilter: (log) =>
+        log.includes("../../../../electron/assets/std/bluetooth/") ===
+        false,
+      devAppendArgs: "--minify=false --watch",
+    }
   },
   import.meta.resolve("../")
 );

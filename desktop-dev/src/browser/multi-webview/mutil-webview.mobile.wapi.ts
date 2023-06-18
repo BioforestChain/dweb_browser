@@ -20,7 +20,7 @@ export type $WApi = { nww: $NativeWindow; apis: Remote<$APIS> };
  *
  * 要实现也可以，这里的key需要额外有一个根据 mwebview 的归组逻辑，比如： file://mwebview.browser.dweb/uid 获得一个实例编号
  */
-const _mmid_wapis_map = new Map<$MMID, $WApi>();
+export const _mmid_wapis_map = new Map<$MMID, $WApi>();
 export const getAllWapis = () => _mmid_wapis_map.entries();
 export const deleteWapis = (filter: (wapi: $WApi, mmid: $MMID) => boolean) => {
   for (const [mmid, wapi] of _mmid_wapis_map) {

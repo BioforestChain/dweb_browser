@@ -1,8 +1,10 @@
 import fs from "node:fs";
 import path from "node:path";
+import process from "node:process";
 export function* WalkAny(rootpath: string) {
   const dirs = [rootpath];
   for (const dirpath of dirs) {
+    console.log('process: ', process.cwd(), dirpath)
     for (const entryname of fs.readdirSync(dirpath)) {
       if (entryname === ".DS_Store") {
         continue;

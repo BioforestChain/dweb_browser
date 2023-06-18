@@ -1,0 +1,21 @@
+{
+  "name": "demo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "tsc": "tsc -w",
+    "dev": "vite",
+    "build": "vite build",
+    "build:watch": "vite --watch build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "lit": "^2.6.1",
+    "typescript": "^5.1.3",
+    "vite": "^4.3.9"
+  }
+}

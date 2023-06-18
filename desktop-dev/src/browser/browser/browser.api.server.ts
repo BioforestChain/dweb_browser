@@ -255,6 +255,35 @@ async function open(this: BrowserNMM, request: IpcRequest, ipc: Ipc) {
   if (mmid === null) {
     return postMessage(400, "缺少 app_id 参数");
   }
+
+  // 测试 std 结束
+  if(mmid === "app.std.dweb"){
+    console.always('属于 std')
+
+    const jsMM = new JsMicroModule(
+      new JsMMMetadata({
+        id: mmid as $MMID,
+        server: {
+          root: "/usr",
+          entry: "server/std.server.js"
+        }
+      })
+    )
+  
+    // 需要检查是否已经安装了应用 如果已经安装了就不要再安装了
+    // 还需要判断 应用是否已经更新了 
+  
+    this.context?.dns.install(jsMM);
+    const [jsIpc] = await this.context?.dns.connect(mmid as $MMID)!
+    // 如果 对应app的全部 devTools 中有没有关闭的，就无法再次打开
+    console.always('jsIpc: ', jsIpc.remote.mmid)
+    jsIpc.postMessage(IpcEvent.fromText("activity", ""));
+    console.always('activity', mmid)
+    return postMessage(200, "o,")
+  }
+
+
+
   // 应该到jmm去找
   const microModule = (await this.context?.dns.query(mmid)) as
     | JsMicroModule

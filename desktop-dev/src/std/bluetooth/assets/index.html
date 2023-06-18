@@ -1,0 +1,41 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>bluetooth</title>
+  <style type="text/css">
+    body{
+      box-sizing: border-box;
+      padding-top: 38px;
+      background: #eee;
+    }
+
+    li{
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <button class="btn">打开蓝牙</button>
+  <ul>
+
+  </ul>
+  <script type="module">
+    import { requestDevice } from "./device.ts"
+    const btn = document.querySelector('.btn')
+    btn.addEventListener('click', requestDevice)
+  </script>
+  <script type="module" src="./expose.ts"></script>
+  <script type="text/javascript">
+
+    try {
+      const { ipcRenderer } = require("electron");
+      console.log(ipcRenderer);
+      Object.assign(globalThis, {
+        ipcRenderer,
+      });
+    } catch {}
+  </script>
+   <script type="module" src="./exportApis.ts"></script>
+</body>
+</html>
