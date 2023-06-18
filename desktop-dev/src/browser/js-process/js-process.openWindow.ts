@@ -2,6 +2,12 @@
 import { Remote, wrap } from "comlink";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
 
+declare global {
+  interface ElectronConfig {
+    "js-process-bounds": Electron.Rectangle;
+  }
+}
+
 export async function jsProcessOpenWindow(
   url: string,
   options: Electron.BrowserWindowConstructorOptions = {},
@@ -10,9 +16,10 @@ export async function jsProcessOpenWindow(
   const { MainPortToRenderPort } = await import(
     "../../helper/electronPortMessage.ts"
   );
-
-  const browserWindow = new Electron.BrowserWindow({ ...options, show: true });
-  // bw.setTitle(`for: ${url}`);
+  const browserWindow = new Electron.BrowserWindow({
+    ...options,
+    ...Electron.config.get("js-process-bounds"),
+  });
 
   options.webPreferences = {
     ...options.webPreferences,
@@ -22,9 +29,10 @@ export async function jsProcessOpenWindow(
     nodeIntegration: true, // 注入 ipcRenderer 对象
     contextIsolation: false,
   };
-  browserWindow.webContents.openDevTools({ mode: "right" });
+  browserWindow.webContents.openDevTools();
   browserWindow.webContents.once("devtools-opened", () => {
     browserWindow.loadURL(url);
+    browserWindow.webContents.disableDeviceEmulation();
     browserWindow.webContents.once("dom-ready", () => {
       show_po.resolve();
     });
@@ -64,6 +72,8 @@ export async function jsProcessOpenWindow(
     });
     /// 确定关闭
     if (res.response === 1) {
+      Electron.config.set("js-process-bounds", browserWindow.getBounds());
+
       /// 同意关闭，将会冒泡到 will-prevent-unload
       allowClose = true;
     }
@@ -87,37 +97,15 @@ export async function jsProcessOpenWindow(
     });
   });
 
-  const bounds = browserWindow.getBounds();
-  const contentBounds = browserWindow.getContentBounds();
-  const titleBarHeight = bounds.height - contentBounds.height;
-  // bw.addBrowserView(contentBV);
-  // bw.addBrowserView(devToolsBV);
-
   if (webContentsConfig.userAgent) {
     browserWindow.webContents.setUserAgent(
       webContentsConfig.userAgent(browserWindow.webContents.userAgent)
     );
   }
 
-  browserWindow.setBounds({
-    x: 0,
-    y: titleBarHeight,
-    width: options.show ? contentBounds.width / 2 : 0,
-    height: options.show ? contentBounds.height : 0,
-  });
-
-  // devToolsBV.setBounds({
-  //   x: options.show ? contentBounds.width / 2 : 0,
-  //   y: titleBarHeight,
-  //   width: options.show ? contentBounds.width / 2 : contentBounds.width,
-  //   height: contentBounds.height,
-  // });
-
-  // await contentBV.webContents.loadURL(url);
   await show_po.promise;
   const { import_port, export_port } = await ports_po.promise;
-  // js-process ui 没有获取主进程方法的需求
-  // expose(new ForRenderApi(win), export_port);
+
   return Object.assign(browserWindow, {
     getApis<T>() {
       return wrap<T>(import_port);

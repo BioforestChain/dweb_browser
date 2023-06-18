@@ -42,7 +42,6 @@ import type {
   CustomEventDomReadyDetail,
   MultiWebViewContent,
 } from "./multi-webview-content.html.ts";
-import "./multi-webview-devtools.html.ts";
 import { Webview } from "./multi-webview.ts";
 import WebviewTag = Electron.WebviewTag;
 
