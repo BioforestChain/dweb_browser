@@ -191,3 +191,7 @@ on_create_process_signal.listen(({ process_id, env_script_url }) => {
     <span>URL:${env_script_url}</span>
   </div>`;
 });
+
+window.onbeforeunload = (event) => {
+  return (event.returnValue = "666");
+};

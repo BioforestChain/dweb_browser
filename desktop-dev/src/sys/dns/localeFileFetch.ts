@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { Readable } from "node:stream";
-import mime from "npm:mime";
+import mime from "mime";
 import { ROOT } from "../../helper/createResolveTo.ts";
 import { nativeFetchAdaptersManager } from "./nativeFetch.ts";
 

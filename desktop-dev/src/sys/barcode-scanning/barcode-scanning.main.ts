@@ -1,7 +1,7 @@
 // 模拟状态栏模块-用来提供状态UI的模块
 
-import Jimp from "npm:jimp";
-import jsQR from "npm:jsqr";
+import Jimp from "jimp";
+import jsQR from "jsqr";
 import { Buffer } from "node:buffer";
 import type { Ipc } from "../../core/ipc/ipc.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
@@ -27,7 +27,7 @@ export class BarcodeScanningNativeUiNMM extends NativeMicroModule {
         // 直接解析二维码
         return await Jimp.read(Buffer.from(await ipcRequest.body.u8a())).then(
           ({ bitmap }: Jimp) => {
-            const result = jsQR.default(
+            const result = jsQR(
               bitmap.data as unknown as Uint8ClampedArray,
               bitmap.width,
               bitmap.height

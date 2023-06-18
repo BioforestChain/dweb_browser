@@ -2,7 +2,6 @@
 import process from "node:process";
 import path from "node:path";
 import { $BW } from "./browser.bw.ts";
-import Electron from "electron";
 import type { BrowserNMM } from "./browser.ts"
 
 export function createAddressBrowserVeiw(

@@ -33,7 +33,7 @@ fs.mkdirSync(JMM_APPS_PATH, { recursive: true });
 
 const JMM_DB_PATH = path.join(JMM_APPS_PATH, ".db");
 /**
- * @type {import("npm:@seald-io/nedb").Nedb<$AppMetaData>}
+ * @type {import("@seald-io/nedb").Nedb<$AppMetaData>}
  */
 // @ts-ignore: this is commonjs
 export const JMM_DB = new Nedb<$AppMetaData>({
