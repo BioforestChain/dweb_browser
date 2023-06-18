@@ -5,10 +5,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import org.dweb_browser.browserUI.ui.theme.Shapes
 
 @Composable
-fun RustApplicationTheme(
+fun BrowserUITheme(
   darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit
 ) {
   val colors = if (darkTheme) {

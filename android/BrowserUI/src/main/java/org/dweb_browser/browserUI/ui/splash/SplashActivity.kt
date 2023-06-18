@@ -5,7 +5,7 @@ import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import org.dweb_browser.browserUI.ui.theme.RustApplicationTheme
+import org.dweb_browser.browserUI.ui.theme.BrowserUITheme
 
 @SuppressLint("CustomSplashScreen")
 class SplashActivity : ComponentActivity() {
@@ -22,6 +22,6 @@ class SplashActivity : ComponentActivity() {
         list.add(cs.toString())
       }
     }
-    setContent { RustApplicationTheme { SplashView(paths = list) } }
+    setContent { BrowserUITheme { SplashView(paths = list) } }
   }
 }

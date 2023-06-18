@@ -9,8 +9,8 @@ import android.os.Environment
 import android.os.StatFs
 import android.provider.Settings
 import android.webkit.WebView
-import info.bagen.dwebbrowser.util.JsonUtil
 import info.bagen.dwebbrowser.App
+import org.dweb_browser.microservice.help.gson
 import java.util.*
 
 
@@ -36,14 +36,14 @@ object Device {
             name = getName(),
             webViewVersion = getWebViewVersion(),
         )
-        return JsonUtil.toJson(deviceInfo)
+        return gson.toJson(deviceInfo)
     }
 
     fun getBatteryInfo(): String {
         val batteryInfo = StructBatteryInfo(
             batteryLevel = getBatteryLevel(), isCharging = isCharging()
         )
-        return JsonUtil.toJson(batteryInfo)
+        return gson.toJson(batteryInfo)
     }
 
     fun getLanguageCode(): String {

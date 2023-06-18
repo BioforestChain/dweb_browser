@@ -45,8 +45,8 @@ import org.dweb_browser.browserUI.R
 import org.dweb_browser.browserUI.database.WebSiteDatabase
 import org.dweb_browser.browserUI.database.WebSiteInfo
 import org.dweb_browser.browserUI.database.WebSiteType
-import org.dweb_browser.browserUI.datastore.DefaultSearchWebEngine
-import org.dweb_browser.browserUI.datastore.WebEngine
+import org.dweb_browser.browserUI.database.DefaultSearchWebEngine
+import org.dweb_browser.browserUI.database.WebEngine
 import io.ktor.util.reflect.*
 import kotlinx.coroutines.delay
 

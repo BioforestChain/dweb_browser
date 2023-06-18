@@ -5,11 +5,11 @@ import info.bagen.dwebbrowser.App
 import org.dweb_browser.helper.iterator
 import org.dweb_browser.helper.readByteArray
 import org.dweb_browser.helper.readInt
-import info.bagen.dwebbrowser.util.JsonUtil
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import org.dweb_browser.microservice.help.gson
 import java.io.*
 import java.util.*
 import java.util.regex.PatternSyntaxException
@@ -110,7 +110,7 @@ class VirtualFileSystem {
                 }
             }
         }
-        return JsonUtil.toJson(fileList)
+        return gson.toJson(fileList)
     }
 
     /** 获取文件entry列表*/
@@ -130,7 +130,7 @@ class VirtualFileSystem {
             )
             fileList.add(fs)
         }
-        return JsonUtil.toJson(fileList)
+        return gson.toJson(fileList)
     }
 
     fun mkdir(path: String, recursive: Boolean = false): String {

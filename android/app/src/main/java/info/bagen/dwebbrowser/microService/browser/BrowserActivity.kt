@@ -12,10 +12,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.core.view.WindowCompat
 import info.bagen.dwebbrowser.microService.browser.BrowserNMM.Companion.browserController
-import info.bagen.dwebbrowser.ui.browser.LocalShowSearchView
-import info.bagen.dwebbrowser.ui.browser.BrowserView
-import info.bagen.dwebbrowser.ui.loading.LoadingView
-import info.bagen.dwebbrowser.ui.theme.RustApplicationTheme
+import info.bagen.dwebbrowser.ui.theme.DwebBrowserAppTheme
+import org.dweb_browser.browserUI.ui.browser.BrowserView
+import org.dweb_browser.browserUI.ui.browser.LocalShowSearchView
+import org.dweb_browser.browserUI.ui.loading.LoadingView
 
 class BrowserActivity : AppCompatActivity() {
   fun getContext() = this
@@ -27,7 +27,7 @@ class BrowserActivity : AppCompatActivity() {
     setContent {
       WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightStatusBars =
         !isSystemInDarkTheme() // 设置状态栏颜色跟着主题走
-      RustApplicationTheme {
+      DwebBrowserAppTheme {
         val localShowSearchView = LocalShowSearchView.current
         LaunchedEffect(Unit) {
           snapshotFlow { localShowSearchView.value }.collect {

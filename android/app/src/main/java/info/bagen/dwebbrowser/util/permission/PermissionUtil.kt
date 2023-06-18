@@ -10,7 +10,7 @@ import android.provider.Settings
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import info.bagen.dwebbrowser.App
-import info.bagen.dwebbrowser.util.JsonUtil
+import org.dweb_browser.microservice.help.gson
 
 object PermissionUtil {
   /*const val PERMISSION_CALENDAR = "info.bagen.rust.plaoc.CALENDAR"
@@ -43,7 +43,7 @@ object PermissionUtil {
 
   @Synchronized
   fun isPermissionsGranted(permissions: ArrayList<String>): Boolean {
-    var permissionList = getActualPermissions(permissions)
+    val permissionList = getActualPermissions(permissions)
     permissionList.forEach { pm ->
       if (!isPermissionGranted(pm)) return false
     }
@@ -81,7 +81,7 @@ object PermissionUtil {
   fun getActualPermissions(permission: String): ArrayList<String> {
     val actualPermissions = arrayListOf<String>()
     if (permission.contains("{")) {
-      val permissions = JsonUtil.fromJson(PermissionData::class.java, permission)
+      val permissions = gson.fromJson(permission, PermissionData::class.java)
       permissions?.permissions?.split(",")?.forEach {
         actualPermissions.addAll(getActualPermissions(it))
       }

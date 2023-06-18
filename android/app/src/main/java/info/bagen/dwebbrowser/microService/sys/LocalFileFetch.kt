@@ -3,10 +3,10 @@ package info.bagen.dwebbrowser.microService.sys
 import android.content.res.AssetManager
 import android.webkit.MimeTypeMap
 import info.bagen.dwebbrowser.App
-import info.bagen.dwebbrowser.util.APP_DIR_TYPE
-import info.bagen.dwebbrowser.util.FilesUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import org.dweb_browser.browserUI.util.APP_DIR_TYPE
+import org.dweb_browser.browserUI.util.FilesUtil
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.readByteArray
 import org.dweb_browser.microservice.core.MicroModule

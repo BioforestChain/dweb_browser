@@ -1,8 +1,11 @@
 package org.dweb_browser.browserUI.ui.browser
 
+import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
+import android.os.Message
+import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
@@ -16,48 +19,39 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.accompanist.web.AccompanistWebViewClient
 import com.google.accompanist.web.WebContent
 import com.google.accompanist.web.WebViewNavigator
 import com.google.accompanist.web.WebViewState
-import org.dweb_browser.browserUI.App
 import org.dweb_browser.browserUI.database.WebSiteDatabase
 import org.dweb_browser.browserUI.database.WebSiteInfo
 import org.dweb_browser.browserUI.database.WebSiteType
-import org.dweb_browser.browserUI.datastore.DefaultAllWebEngine
-import org.dweb_browser.browserUI.datastore.WebEngine
-import org.dweb_browser.browserUI.microService.browser.BrowserController
-import org.dweb_browser.browserUI.microService.browser.BrowserNMM
-import org.dweb_browser.browserUI.microService.browser.debugBrowser
-import org.dweb_browser.browserUI.microService.helper.Mmid
 import org.dweb_browser.helper.*
-import org.dweb_browser.browserUI.microService.browser.jmm.JmmMetadata
-import org.dweb_browser.browserUI.microService.browser.jmm.JmmNMM
-import org.dweb_browser.browserUI.microService.browser.jmm.JsMicroModule
-import org.dweb_browser.browserUI.microService.browser.mwebview.CloseWatcher.CloseWatcher
-import org.dweb_browser.browserUI.microService.browser.mwebview.MultiWebViewController
-import org.dweb_browser.browserUI.microService.browser.mwebview.debugMultiWebView
-import org.dweb_browser.browserUI.microService.browser.webview.DWebView
-import org.dweb_browser.browserUI.microService.sys.dns.nativeFetch
-import org.dweb_browser.browserUI.microService.sys.http.CORS_HEADERS
 import org.dweb_browser.browserUI.ui.entity.BrowserWebView
 import org.dweb_browser.browserUI.ui.qrcode.QRCodeScanState
 import org.dweb_browser.browserUI.util.*
 import kotlinx.coroutines.*
+import org.dweb_browser.browserUI.database.DefaultAllWebEngine
+import org.dweb_browser.browserUI.database.WebEngine
+import org.dweb_browser.dwebview.DWebView
+import org.dweb_browser.dwebview.base.ViewItem
+import org.dweb_browser.dwebview.closewatcher.CloseWatcher
+import org.dweb_browser.microservice.core.MicroModule
+import org.dweb_browser.microservice.help.Mmid
+import org.dweb_browser.microservice.sys.dns.nativeFetch
+import org.dweb_browser.microservice.sys.http.CORS_HEADERS
 import org.http4k.core.Response
 import org.http4k.lens.Header
 import java.util.concurrent.atomic.AtomicInteger
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 data class BrowserUIState(
-  val browserViewList: MutableList<BrowserWebView> = mutableStateListOf(), // 多浏览器列表
   val currentBrowserBaseView: MutableState<BrowserWebView>,
+  val browserViewList: MutableList<BrowserWebView> = mutableStateListOf(), // 多浏览器列表
   val pagerStateContent: MutableState<PagerState?> = mutableStateOf(null), // 用于表示展示内容
   val pagerStateNavigator: MutableState<PagerState?> = mutableStateOf(null), // 用于表示下面搜索框等内容
-  val myInstallApp: MutableMap<Mmid, JsMicroModule> = JmmNMM.getAndUpdateJmmNmmApps(), // 系统安装的应用
   val multiViewShow: MutableTransitionState<Boolean> = MutableTransitionState(false),
   val showBottomBar: MutableTransitionState<Boolean> = MutableTransitionState(true), // 用于网页上滑或者下滑时，底下搜索框和导航栏的显示
   val bottomSheetScaffoldState: BottomSheetScaffoldState = BottomSheetScaffoldState(
@@ -66,35 +60,21 @@ data class BrowserUIState(
     ), snackbarHostState = SnackbarHostState()
   ),
   val inputText: MutableState<String> = mutableStateOf(""), // 用于指定输入的内容
-  val currentInsets: MutableState<WindowInsetsCompat>, // 获取当前界面区域
   val showSearchEngine: MutableTransitionState<Boolean> = MutableTransitionState(false), // 用于在输入内容后，显示本地检索以及提供搜索引擎
   val qrCodeScanState: QRCodeScanState = QRCodeScanState(), // 用于判断桌面的显示隐藏
-
-) {
-
-//  init {
-//    initStats()
-//  }
-//
-//
-//  @SuppressLint("UnrememberedMutableState")
-//  fun initStats() {
-//    LocalInputText.provides(mutableStateOf(""))
-//    LocalShowSearchView.provides(mutableStateOf(false))
-//  }
-}
+)
 
 /**
  * 用于指定输入的内容
  */
-val LocalInputText = compositionLocalOf<MutableState<String>> {
+val LocalInputText = compositionLocalOf {
   mutableStateOf("")
 }
 
 /**
  * 用于显示搜索的界面，也就是点击搜索框后界面
  */
-val LocalShowSearchView = compositionLocalOf<MutableState<Boolean>> {
+val LocalShowSearchView = compositionLocalOf {
   mutableStateOf(false)
 }
 
@@ -115,15 +95,13 @@ sealed class BrowserIntent {
   class OpenDwebBrowser(val mmid: Mmid) : BrowserIntent()
   class SaveHistoryWebSiteInfo(val title: String?, val url: String?) : BrowserIntent()
   object SaveBookWebSiteInfo : BrowserIntent() // 直接获取当前的界面来保存
-  object ShareWebSiteInfo : BrowserIntent() // 直接获取当前的界面来保存
+  class ShareWebSiteInfo(val activity: Activity) : BrowserIntent() // 直接获取当前的界面来保存
   class UpdateInputText(val text: String) : BrowserIntent()
-
-  class UninstallJmmMetadata(val jmmMetadata: JmmMetadata) : BrowserIntent()
   class ShowSnackbarMessage(val message: String, val actionLabel: String? = null) : BrowserIntent()
 }
 
 @OptIn(ExperimentalFoundationApi::class)
-class BrowserViewModel(private val browserController: BrowserController) : ViewModel() {
+class BrowserViewModel(val microModule: MicroModule, val onOpenDweb:(Mmid) -> Unit) : ViewModel() {
   val uiState: BrowserUIState
 
   companion object {
@@ -131,46 +109,40 @@ class BrowserViewModel(private val browserController: BrowserController) : ViewM
   }
 
   init {
-    getNewTabBrowserView().also { browserView ->
-      uiState = BrowserUIState(
-        currentBrowserBaseView = mutableStateOf(browserView),
-        currentInsets = browserController.currentInsets
-      )
+    val browserWebView = getNewTabBrowserView().also {
+      uiState = BrowserUIState(currentBrowserBaseView = mutableStateOf(it))
+    }
+    uiState.browserViewList.add(browserWebView)
+    /*getNewTabBrowserView().also { browserView ->
+      uiState = BrowserUIState(currentBrowserBaseView = mutableStateOf(browserView))
       uiState.browserViewList.add(browserView)
-      browserView.viewItem.coroutineScope.launch {
-        withContext(mainAsyncExceptionHandler)  {
-          val dWebView = browserView.viewItem.webView
-          // 它是有内部链接的，所以等到它ok了再说
-          var url = dWebView.getUrlInMain()
-          if (url?.isEmpty() != true) {
-            dWebView.waitReady()
-            url = dWebView.getUrlInMain()
-          }
-          debugMultiWebView("opened ${uiState.browserViewList}", url)
-          /// 内部特殊行为，有时候，我们需要知道 isUserGesture 这个属性，所以需要借助 onCreateWindow 这个回调来实现
-          /// 实现 CloseWatcher 提案 https://github.com/WICG/close-watcher/blob/main/README.mdÏ
-          if (browserView.closeWatcher.consuming.remove(url)) {
-            val consumeToken = url!!
-            browserView.closeWatcher.apply(true).also {
-              browserView.viewItem.webView.destroy()
-              browserView.closeWatcher.resolveToken(consumeToken, it)
-            }
+      viewModelScope.launch(mainAsyncExceptionHandler) {
+        val dWebView = browserView.viewItem.webView
+        // 它是有内部链接的，所以等到它ok了再说
+        var url = dWebView.getUrlInMain()
+        if (url?.isEmpty() != true) {
+          dWebView.waitReady()
+          url = dWebView.getUrlInMain()
+        }
+        /// 内部特殊行为，有时候，我们需要知道 isUserGesture 这个属性，所以需要借助 onCreateWindow 这个回调来实现
+        /// 实现 CloseWatcher 提案 https://github.com/WICG/close-watcher/blob/main/README.mdÏ
+        if (browserView.closeWatcher.consuming.remove(url)) {
+          val consumeToken = url!!
+          browserView.closeWatcher.apply(true).also {
+            browserView.viewItem.webView.destroy()
+            browserView.closeWatcher.resolveToken(consumeToken, it)
           }
         }
       }
-    }
+    }*/
   }
 
   fun getNewTabBrowserView(url: String? = null): BrowserWebView {
-    debugBrowser("getNewTabBrowserView", url)
-    val viewItem = appendWebViewAsItem(
-      createDwebView(
-        url ?: "https://browser.dweb/sys/browser/newtab/index.html"
-      )
+    val (viewItem,closeWatcher) = appendWebViewAsItem(
+      createDwebView(""), url ?: "file:///android_asset/browser/newtab/index.html"
     )
     return BrowserWebView(
-      viewItem = viewItem,
-      closeWatcher = CloseWatcher(viewItem)
+      viewItem = viewItem, closeWatcher = closeWatcher
     )
   }
 
@@ -229,51 +201,18 @@ class BrowserViewModel(private val browserController: BrowserController) : ViewM
 
         is BrowserIntent.SearchWebView -> {
           uiState.showSearchEngine.targetState = false // 到搜索功能了，搜索引擎必须关闭
-          uiState.currentBrowserBaseView.value.viewItem.state.content = WebContent.Url(action.url)/*when (val itemView = uiState.currentBrowserBaseView.value) {
-            is BrowserWebView -> {
-              itemView.state.content = WebContent.Url(action.url)
-            }
-            else -> {
-              // 新增后，将主页界面置为 false，当搜索框右滑的时候，再重新置为 true
-              uiState.browserViewList.lastOrNull()?.let {
-                it.show.value = false
-              }
-              // 创建 webview 并且打开
-              withContext(mainAsyncExceptionHandler) {
-                val webviewId = "#web${webviewId_acc.getAndAdd(1)}"
-                val state = WebViewState(WebContent.Url(action.url))
-                val coroutineScope = CoroutineScope(CoroutineName(webviewId))
-                val navigator = WebViewNavigator(coroutineScope)
-                BrowserWebView(
-                  webViewId = webviewId,
-                  webView = createDwebView(action.url),
-                  state = state,
-                  coroutineScope = coroutineScope,
-                  navigator = navigator
-                ).also { item ->
-                  for (index in 0 until uiState.browserViewList.size) {
-                    val itemView = uiState.browserViewList[index]
-                    if (itemView === uiState.currentBrowserBaseView.value) {
-                      uiState.browserViewList.removeAt(index)
-                      uiState.browserViewList.add(index, item)
-                      uiState.currentBrowserBaseView.value = item
-                      break
-                    }
-                  }
-                  // uiState.browserViewList.add(uiState.browserViewList.size - 1, item)
-                  // uiState.currentBrowserBaseView.value = item
-                }
-              }
-            }
-          }*/
+          uiState.currentBrowserBaseView.value.viewItem.state.content = WebContent.Url(action.url)
         }
 
         is BrowserIntent.OpenDwebBrowser -> {
-          BrowserNMM.browserController?.openApp(action.mmid)
+          // BrowserNMM.browserController?.openApp(action.mmid)
+          onOpenDweb(action.mmid)
         }
 
         is BrowserIntent.RemoveBaseView -> {
-          uiState.browserViewList.removeAt(action.id)
+          uiState.browserViewList.removeAt(action.id).also {
+            it.viewItem.webView.display
+          }
           if (uiState.browserViewList.size == 0) {
             withContext(mainAsyncExceptionHandler) {
               getNewTabBrowserView().also {
@@ -326,7 +265,7 @@ class BrowserViewModel(private val browserController: BrowserController) : ViewM
               // putExtra(Intent.EXTRA_SUBJECT, "分享标题")
               putExtra(Intent.EXTRA_TITLE, it.viewItem.state.pageTitle) // 分享标题
             }
-            browserController.activity?.startActivity(Intent.createChooser(shareIntent, "分享到"))
+            action.activity.startActivity(Intent.createChooser(shareIntent, "分享到"))
           }
         }
 
@@ -334,15 +273,10 @@ class BrowserViewModel(private val browserController: BrowserController) : ViewM
           uiState.inputText.value = action.text
         }
 
-        is BrowserIntent.UninstallJmmMetadata -> {
-          browserController.uninstallJMM(action.jmmMetadata)
-        }
-
         is BrowserIntent.ShowSnackbarMessage -> {
           withContext(mainAsyncExceptionHandler) {
             uiState.bottomSheetScaffoldState.snackbarHostState.showSnackbar(
-              action.message,
-              action.actionLabel
+              action.message, action.actionLabel
             )
           }
         }
@@ -350,10 +284,17 @@ class BrowserViewModel(private val browserController: BrowserController) : ViewM
     }
   }
 
+  suspend fun asyncCreateDwebView(url: String): DWebView = withContext(mainAsyncExceptionHandler) {
+    DWebView(
+      BrowserUIApp.Instance.appContext, microModule, microModule, DWebView.Options(
+        url = url, onDetachedFromWindowStrategy = DWebView.Options.DetachedFromWindowStrategy.Ignore
+      ), null
+    )
+  }
 
   fun createDwebView(url: String): DWebView {
    return DWebView(
-      App.appContext, browserController.browserNMM, browserController.browserNMM, DWebView.Options(
+      BrowserUIApp.Instance.appContext, microModule, microModule, DWebView.Options(
         url = url,
         /// 我们会完全控制页面将如何离开，所以这里兜底默认为留在页面
         onDetachedFromWindowStrategy = DWebView.Options.DetachedFromWindowStrategy.Ignore,
@@ -362,46 +303,85 @@ class BrowserViewModel(private val browserController: BrowserController) : ViewM
   }
 
   @Synchronized
-  fun appendWebViewAsItem(dWebView: DWebView): MultiWebViewController.ViewItem {
+  fun appendWebViewAsItem(dWebView: DWebView, url: String): Pair<ViewItem, CloseWatcher> {
     val webviewId = "#w${webviewId_acc.getAndAdd(1)}"
-    val state = WebViewState(WebContent.Url(dWebView.url ?: ""))
+    val state = WebViewState(WebContent.Url(url))
     val coroutineScope = CoroutineScope(CoroutineName(webviewId))
     val navigator = WebViewNavigator(coroutineScope)
-    return MultiWebViewController.ViewItem(
+    val viewItem = ViewItem(
       webviewId = webviewId,
       webView = dWebView,
       state = state,
       coroutineScope = coroutineScope,
       navigator = navigator,
-    ).also { viewItem ->
-      viewItem.webView.settings.setSupportMultipleWindows(false)
-      viewItem.webView.webViewClient = DwebBrowserWebViewClient()
+    )
+    viewItem.webView.webViewClient = DwebBrowserWebViewClient(microModule)
+    val closeWatcherController = CloseWatcher(viewItem)
+
+    viewItem.webView.webChromeClient = object : WebChromeClient() {
+      override fun onCreateWindow(
+        view: WebView, isDialog: Boolean, isUserGesture: Boolean, resultMsg: Message
+      ): Boolean {
+        val transport = resultMsg.obj;
+        if (transport is WebView.WebViewTransport) {
+          viewItem.coroutineScope.launch {
+            val dWebView = asyncCreateDwebView("")
+            transport.webView = dWebView;
+            resultMsg.sendToTarget();
+
+            // 它是有内部链接的，所以等到它ok了再说
+            var mainUrl = dWebView.getUrlInMain()
+            if (mainUrl?.isEmpty() != true) {
+              dWebView.waitReady()
+              mainUrl = dWebView.getUrlInMain()
+            }
+
+            /// 内部特殊行为，有时候，我们需要知道 isUserGesture 这个属性，所以需要借助 onCreateWindow 这个回调来实现
+            /// 实现 CloseWatcher 提案 https://github.com/WICG/close-watcher/blob/main/README.md
+            if (closeWatcherController.consuming.remove(mainUrl)) {
+              val consumeToken = mainUrl!!
+              closeWatcherController.apply(isUserGesture).also {
+                withContext(mainAsyncExceptionHandler) {
+                  dWebView.destroy()
+                  closeWatcherController.resolveToken(consumeToken, it)
+                }
+              }
+            } else {
+              /// 打开一个新窗口
+              runBlockingCatching(Dispatchers.Main) {
+                appendWebViewAsItem(
+                  dWebView, mainUrl ?: "file:///android_asset/browser/newtab/index.html"
+                )
+              }
+            }
+          }
+          return true
+        }
+        return super.onCreateWindow(
+          view, isDialog, isUserGesture, resultMsg
+        )
+      }
     }
+    return Pair(viewItem,closeWatcherController)
   }
 
-  val isNoTrace = mutableStateOf(App.appContext.getBoolean(KEY_NO_TRACE, false))
+  val isNoTrace = mutableStateOf(BrowserUIApp.Instance.appContext.getBoolean(KEY_NO_TRACE, false))
   fun saveBrowserMode(noTrace: Boolean) {
     isNoTrace.value = noTrace
-    App.appContext.saveBoolean(KEY_NO_TRACE, noTrace)
+    BrowserUIApp.Instance.appContext.saveBoolean(KEY_NO_TRACE, noTrace)
   }
-
-
-  val isShowKeyboard
-    get() = uiState.currentInsets.value.getInsets(WindowInsetsCompat.Type.ime()).bottom > 0
-
 }
-
 
 class browserViewModelHelper {
   companion object {
     fun saveLastKeyword(inputText: MutableState<String>, url: String) {
-      App.appContext.saveString(KEY_LAST_SEARCH_KEY, url)
+      BrowserUIApp.Instance.appContext.saveString(KEY_LAST_SEARCH_KEY, url)
       inputText.value = url
     }
   }
 }
 
-internal class DwebBrowserWebViewClient : AccompanistWebViewClient() {
+internal class DwebBrowserWebViewClient(val microModule: MicroModule) : AccompanistWebViewClient() {
   override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
       request?.url?.let { uri ->
@@ -425,10 +405,14 @@ internal class DwebBrowserWebViewClient : AccompanistWebViewClient() {
   override fun onReceivedError(
     view: WebView, request: WebResourceRequest?, error: WebResourceError?
   ) {
-    // super.onReceivedError(view, request, error)
-    if (error?.errorCode == -2 && App.appContext.getString(KEY_LAST_SEARCH_KEY) == request?.url?.toString()) { // net::ERR_NAME_NOT_RESOLVED
-      val param = request.url?.let { uri -> "?text=${uri.host}${uri.path}" } ?: ""
-      view.loadUrl("file:///android_asset/error.html$param")
+    if (error?.errorCode == -2) { // net::ERR_NAME_NOT_RESOLVED
+      var param = request?.url?.let { uri -> "?not_found=${uri.host}${uri.path}" } ?: ""
+      param = if (param !== "") {
+        param.dropLast(1)
+      } else {
+        param
+      }
+      view.loadUrl("file:///android_asset/browser/newtab/error.html$param")
     }
   }
 
@@ -436,18 +420,20 @@ internal class DwebBrowserWebViewClient : AccompanistWebViewClient() {
     view: WebView, request: WebResourceRequest
   ): WebResourceResponse? {
     var response: Response? = null
+//    if(request.url.scheme == "data")
     if (request.url.host == "localhost") { // 拦截 browser web
-      debugBrowser(
-        "shouldInterceptRequest localhost=>",
-        " path:${request.url.path}?${request.url.query}"
-      )
+
+      val mmid = request.url.getQueryParameter("mmid")
+      var path = request.url.path
+      if (mmid !== null) {
+        path = path?.replace("browser.dweb", mmid)
+      }
       response = runBlockingCatching(ioAsyncExceptionHandler) {
-        BrowserNMM.browserController?.browserNMM?.nativeFetch("file:/${request.url.path}?${request.url.query}")
+        microModule.nativeFetch("file:/${path}?${request.url.query}")
       }.getOrThrow()
     } else if (request.url.scheme == "dweb") { // 负责拦截browser的dweb_deeplink
-      debugBrowser("shouldInterceptRequest dweb=>", request.url)
       response = runBlockingCatching(ioAsyncExceptionHandler) {
-        BrowserNMM.browserController?.browserNMM?.nativeFetch(request.url.toString())
+        microModule.nativeFetch(request.url.toString())
       }.getOrThrow()
     }
     if (response !== null) {

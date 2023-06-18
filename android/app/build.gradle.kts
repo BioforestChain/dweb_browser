@@ -111,8 +111,8 @@ dependencies {
   implementation(BuildConfig.appcompatResources)
 
   implementation(BuildConfig.coreKotlin)
-  implementation(BuildConfig.dataStore)
-  implementation(BuildConfig.dataStorePreferences)
+  //implementation(BuildConfig.dataStore)
+  //implementation(BuildConfig.dataStorePreferences)
 
   implementation(BuildConfig.activity) // Java language implementation
   implementation(BuildConfig.activityKotlin) // Kotlin
@@ -132,16 +132,16 @@ dependencies {
   implementation(BuildConfig.googleMaterial)
 
   // 工具库
-  implementation(kotlin("stdlib"))
-  implementation(BuildConfig.gson) // gson
-  implementation(BuildConfig.moshiPack) // message-pack
+  //implementation(kotlin("stdlib"))
+  //implementation(BuildConfig.gson) // gson
+  //implementation(BuildConfig.moshiPack) // message-pack
 
   //扫码核心库
   implementation(BuildConfig.barcodeScanning)
-  implementation(BuildConfig.cameraCore)
-  implementation(BuildConfig.cameraCamera2)
-  implementation(BuildConfig.cameraView)
-  implementation(BuildConfig.cameraLifecycle)
+  //implementation(BuildConfig.cameraCore)
+  //implementation(BuildConfig.cameraCamera2)
+  //implementation(BuildConfig.cameraView)
+  //implementation(BuildConfig.cameraLifecycle)
 
   /// 测试相关
   testImplementation(kotlin("test"))
@@ -156,7 +156,7 @@ dependencies {
   testRuntimeOnly(BuildConfig.testJUnitVintageEngine)
 
   // 解压文件
-  implementation(BuildConfig.commonsCompress)
+  //implementation(BuildConfig.commonsCompress)
 
   // 加载图片 coil
   implementation(BuildConfig.coil)
@@ -172,13 +172,14 @@ dependencies {
   implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 
   // 增加 room 存储列表数据
-  implementation(BuildConfig.roomRuntime)
-  kapt(BuildConfig.roomCompiler) // To use Kotlin annotation processing tool (kapt)
-  implementation(BuildConfig.roomKotlin) // kotlin扩展和协同程序对Room的支持
+  //implementation(BuildConfig.roomRuntime)
+  //kapt(BuildConfig.roomCompiler) // To use Kotlin annotation processing tool (kapt)
+  //implementation(BuildConfig.roomKotlin) // kotlin扩展和协同程序对Room的支持
 
   implementation(project(mapOf("path" to ":helper")))
   implementation(project(mapOf("path" to ":MicroService")))
   implementation(project(mapOf("path" to ":DWebView")))
+  implementation(project(mapOf("path" to ":BrowserUI")))
 }
 
 tasks.withType<Test> {

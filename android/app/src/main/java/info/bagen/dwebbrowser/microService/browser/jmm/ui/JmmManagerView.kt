@@ -57,6 +57,7 @@ import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.microService.browser.jmm.JmmMetadata
 import kotlinx.coroutines.launch
+import org.dweb_browser.browserUI.download.DownLoadStatus
 import java.text.DecimalFormat
 
 private val TopBarHeight = 44.dp
@@ -86,7 +87,7 @@ private data class PreviewState(
 
 @Composable
 fun MALLBrowserView(viewModel: JmmManagerViewModel, onBack: () -> Unit) {
-  val jmmMetadata = viewModel.uiState.downloadInfo.value.jmmMetadata
+  val jmmMetadata = viewModel.uiState.jmmMetadata
   val topBarAlpha = remember { mutableStateOf(0f) }
   val lazyListState = rememberLazyListState()
   val screenWidth = LocalConfiguration.current.screenWidthDp
@@ -211,6 +212,7 @@ private fun TopAppBar(alpha: MutableState<Float>, title: String, onBack: () -> U
 private fun BoxScope.BottomDownloadButton(viewModel: JmmManagerViewModel) {
   val background = MaterialTheme.colorScheme.surface
   val downLoadInfo = viewModel.uiState.downloadInfo.value
+  val jmmMetadata = viewModel.uiState.jmmMetadata
   Box(
     modifier = Modifier
       .fillMaxWidth()
@@ -222,11 +224,11 @@ private fun BoxScope.BottomDownloadButton(viewModel: JmmManagerViewModel) {
     var showLinearProgress = false
     val text = when (downLoadInfo.downLoadStatus) {
       DownLoadStatus.IDLE, DownLoadStatus.CANCEL -> {
-        "下载 (${downLoadInfo.jmmMetadata.bundle_size.toSpaceSize()})"
+        "下载 (${jmmMetadata.bundle_size.toSpaceSize()})"
       }
 
       DownLoadStatus.NewVersion -> {
-        "更新 (${downLoadInfo.jmmMetadata.bundle_size.toSpaceSize()})"
+        "更新 (${jmmMetadata.bundle_size.toSpaceSize()})"
       }
 
       DownLoadStatus.DownLoading -> {

@@ -3,7 +3,7 @@ package info.bagen.dwebbrowser.microService.sys.device.model
 import android.os.Build
 import android.os.Environment
 import android.os.StatFs
-import info.bagen.dwebbrowser.util.JsonUtil
+import org.dweb_browser.microservice.help.gson
 import java.io.IOException
 import java.io.RandomAccessFile
 
@@ -31,16 +31,16 @@ data class StorageSize(
 class MemoryInfo {
 
     fun getMemoryInfo(): String {
-        return JsonUtil.toJson(memoryData)
+        return gson.toJson(memoryData)
     }
 
     fun getStorageInfo(): String {
-        return JsonUtil.toJson(storageSize)
+        return gson.toJson(storageSize)
     }
 
     val storageSize: StorageSize
         get() {
-            var storageSize = StorageSize()
+            val storageSize = StorageSize()
             storageSize.internalTotalSize = totalInternalStorageSize
             storageSize.internalFreeSize = availableInternalStorageSize
             storageSize.hasExternalSDCard = hasExternalSDCard

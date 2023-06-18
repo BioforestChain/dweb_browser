@@ -43,6 +43,11 @@ dependencies {
   androidTestImplementation("androidx.test.ext:junit:1.1.5")
   androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 
+  api(BuildConfig.accompanistWebview)
+
+  implementation(platform(BuildConfig.composeBom))
+  implementation(BuildConfig.composeUI)
+
   implementation(project(mapOf("path" to ":MicroService")))
   implementation(project(mapOf("path" to ":helper")))
 }

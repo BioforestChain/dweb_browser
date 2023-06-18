@@ -9,16 +9,24 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
+import info.bagen.dwebbrowser.microService.browser.jmm.JmmController
 import org.dweb_browser.helper.*
 import org.dweb_browser.microservice.sys.dns.nativeFetch
 import info.bagen.dwebbrowser.microService.browser.jmm.JmmMetadata
-import info.bagen.dwebbrowser.ui.browser.BrowserViewModel
+import info.bagen.dwebbrowser.microService.browser.jmm.JmmNMM
+import kotlinx.coroutines.launch
+import org.dweb_browser.browserUI.ui.browser.BrowserViewModel
 import org.http4k.core.Uri
 import org.http4k.core.query
 
 class BrowserController(val browserNMM: BrowserNMM) {
     val showLoading: MutableState<Boolean> = mutableStateOf(false)
-    val browserViewModel by lazy { BrowserViewModel(this) }
+    val browserViewModel by lazy { BrowserViewModel(browserNMM) { mmid ->
+        activity?.lifecycleScope?.launch {
+            JmmNMM.jmmController?.openApp(mmid)
+        }
+    }}
 
     private var activityTask = PromiseOut<BrowserActivity>()
     suspend fun waitActivityCreated() = activityTask.waitPromise()

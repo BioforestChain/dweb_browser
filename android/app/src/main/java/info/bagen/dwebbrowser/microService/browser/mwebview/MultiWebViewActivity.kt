@@ -20,9 +20,10 @@ import org.dweb_browser.helper.*
 import info.bagen.dwebbrowser.microService.browser.mwebview.MultiWebViewNMM.Companion.controllerMap
 import info.bagen.dwebbrowser.microService.browser.mwebview.dwebServiceWorker.ServiceWorkerEvent
 import info.bagen.dwebbrowser.microService.browser.mwebview.dwebServiceWorker.emitEvent
-import info.bagen.dwebbrowser.ui.theme.RustApplicationTheme
+import info.bagen.dwebbrowser.ui.theme.DwebBrowserAppTheme
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import org.dweb_browser.dwebview.base.ViewItem
 
 open class MultiWebViewActivity : BaseActivity() {
     private var remoteMmid by mutableStateOf("")
@@ -66,19 +67,18 @@ open class MultiWebViewActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         upsetRemoteMmid()
         setContent {
-            RustApplicationTheme {
+            DwebBrowserAppTheme {
                 val wc = rememberViewController()
                 wc.effect()
                 wc.eachView { viewItem ->
                     key(viewItem.webviewId) {
-//                        wc.effectItem(viewItem)
                         val nativeUiController = viewItem.nativeUiController.effect()
 
                         val state = viewItem.state
                         val navigator = viewItem.navigator
 
                         val chromeClient = remember {
-                            MutilWebViewChromeClient(
+                            MultiWebViewChromeClient(
                                 wc,
                                 viewItem,
                                 wc.isLastView(viewItem)
@@ -131,7 +131,7 @@ open class MultiWebViewActivity : BaseActivity() {
     }
 
     @Composable
-    fun DebugPanel(viewItem: MultiWebViewController.ViewItem) {
+    fun DebugPanel(viewItem: ViewItem) {
         val nativeUiController = viewItem.nativeUiController.effect()
 
         Column(

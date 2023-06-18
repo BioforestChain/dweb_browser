@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalFocusManager
 import com.google.accompanist.web.LoadingState
+import com.google.accompanist.web.WebView
 import org.dweb_browser.browserUI.ui.entity.BrowserWebView
 import org.dweb_browser.browserUI.ui.view.drawToBitmapPostLaidOut
 import kotlinx.coroutines.delay

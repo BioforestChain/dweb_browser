@@ -1,6 +1,5 @@
 package org.dweb_browser.browserUI.ui.splash
 
-import android.net.Uri
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
@@ -9,13 +8,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.PagerScope
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -30,23 +27,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
 import coil.ImageLoader
 import coil.compose.AsyncImage
 import coil.decode.SvgDecoder
-import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.SimpleExoPlayer
-import com.google.android.exoplayer2.ui.AspectRatioFrameLayout
-import com.google.android.exoplayer2.ui.PlayerView
-import org.dweb_browser.browserUI.App
 import org.dweb_browser.browserUI.R
-import org.dweb_browser.browserUI.ui.entity.MediaType
-import org.dweb_browser.browserUI.util.FilesUtil
-import java.io.File
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SplashView(paths: ArrayList<String>) {
+  val context = LocalContext.current
   val pagerState = rememberPagerState { paths.size }
 
   Box(
@@ -64,30 +53,30 @@ fun SplashView(paths: ArrayList<String>) {
       beyondBoundsPageCount = 0,
       pageContent = { loadPage ->
         val path = paths[loadPage]
-        when (FilesUtil.getFileType(path)) {
+        /*when (FilesUtil.getFileType(path)) {
           MediaType.Video.name -> {
             SplashVideoView(path = path)
           }
 
-          else -> {
+          else -> {*/
             AsyncImage(
               model = path,
               contentDescription = null,
-              imageLoader = ImageLoader(App.appContext).newBuilder().components {
+              imageLoader = ImageLoader(context).newBuilder().components {
                 add(SvgDecoder.Factory())
               }.build(),
               contentScale = ContentScale.FillWidth,
               modifier = Modifier.fillMaxWidth(),
               alignment = Alignment.TopCenter
             )
-          }
-        }
+        /*  }
+        }*/
       }
     )
   }
 }
 
-@Composable
+/*@Composable
 fun SplashVideoView(path: String) {
   val context = LocalContext.current
   val exoPlayer = remember {
@@ -116,7 +105,7 @@ fun SplashVideoView(path: String) {
       exoPlayer.release()
     }
   }
-}
+}*/
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable

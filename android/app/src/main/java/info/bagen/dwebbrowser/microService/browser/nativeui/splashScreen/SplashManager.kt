@@ -3,9 +3,9 @@ package info.bagen.dwebbrowser.microService.browser.nativeui.splashScreen
 import android.content.Intent
 import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import androidx.compose.runtime.Composable
-import info.bagen.dwebbrowser.ui.splash.SplashActivity
-import info.bagen.dwebbrowser.ui.splash.SplashView
 import info.bagen.dwebbrowser.App
+import org.dweb_browser.browserUI.ui.splash.SplashActivity
+import org.dweb_browser.browserUI.ui.splash.SplashView
 
 object SplashManager {
     val SPLASH_LIST = SplashActivity.SPLASH_LIST

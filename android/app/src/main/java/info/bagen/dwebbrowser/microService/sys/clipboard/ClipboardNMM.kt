@@ -4,11 +4,11 @@ import android.content.ClipData
 import android.content.ClipDescription
 import android.content.ClipboardManager
 import android.content.Context
-import info.bagen.dwebbrowser.util.JsonUtil
 import info.bagen.dwebbrowser.App
 import org.dweb_browser.helper.*
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
+import org.dweb_browser.microservice.help.gson
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
@@ -81,7 +81,7 @@ class ClipboardNMM : NativeMicroModule("clipboard.sys.dweb") {
 
     fun read(): String {
         val clipboardData = readClipboard()
-        return JsonUtil.toJson(clipboardData)
+        return gson.toJson(clipboardData)
     }
 
     private val mClipboard =

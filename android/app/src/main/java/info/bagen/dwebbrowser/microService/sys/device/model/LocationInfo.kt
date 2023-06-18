@@ -7,13 +7,12 @@ import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Looper
-import info.bagen.dwebbrowser.util.JsonUtil
 import info.bagen.dwebbrowser.App
 import org.dweb_browser.helper.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import org.dweb_browser.microservice.help.gson
 import java.util.*
-
 
 data class LocationData(
     var latitude: Double? = null,
@@ -28,12 +27,12 @@ data class LocationData(
 class LocationInfo : LocationListener {
     @SuppressLint("MissingPermission") // 先忽略权限
     fun getLocationInfo(): String {
-        return JsonUtil.toJson(locationData)
+        return gson.toJson(locationData)
     }
 
     fun getLocationInfo(GetLocationData: (String) -> Unit) {
         GlobalScope.launch {
-            GetLocationData(JsonUtil.toJson(locationData))
+            GetLocationData(gson.toJson(locationData))
         }
     }
 

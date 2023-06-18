@@ -23,7 +23,7 @@ import kotlin.math.sin
 @Composable
 fun LoadingView(
   showLoading: MutableState<Boolean>,
-  viewModel: LoadingViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
+  viewModel: LoadingViewModel = LoadingViewModel(),
 ) {
   val whiteBackground = !isSystemInDarkTheme()
   if (showLoading.value) {

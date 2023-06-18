@@ -45,6 +45,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -65,6 +66,7 @@ import org.dweb_browser.browserUI.ui.theme.DimenBottomBarHeight
 import org.dweb_browser.browserUI.util.BitmapUtil
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.dweb_browser.browserUI.ui.view.findActivity
 
 private val screenHeight: Dp
   @Composable get() {
@@ -387,13 +389,14 @@ private fun PopContentView(
 
 @Composable
 private fun PopContentOptionItem(viewModel: BrowserViewModel) {
+  val activity = LocalContext.current.findActivity()
   // 判断权限
   val launcher =
     rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestPermission(),
       onResult = { isGranted ->
         //判断权限申请结果，并根据结果显示不同画面，由于 onResult 不是一个 @Composable lambda，所以不能直接显示 Composable 需要通过修改 state 等方式间接显示 Composable
         if (isGranted) {
-          viewModel.handleIntent(BrowserIntent.ShareWebSiteInfo)
+          viewModel.handleIntent(BrowserIntent.ShareWebSiteInfo(activity))
         }
       })
   LazyColumn(modifier = Modifier.fillMaxSize()) {
@@ -410,7 +413,7 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel) {
         Spacer(modifier = Modifier.height(12.dp))
         RowItemMenuView(text = "分享", trailingIcon = R.drawable.ic_main_share) {
           if (Build.VERSION.SDK_INT > Build.VERSION_CODES.S_V2) {
-            viewModel.handleIntent(BrowserIntent.ShareWebSiteInfo)
+            viewModel.handleIntent(BrowserIntent.ShareWebSiteInfo(activity))
           } else {
             launcher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)/*请求权限*/
           }

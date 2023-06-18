@@ -2,10 +2,8 @@ package info.bagen.dwebbrowser.microService.browser.mwebview
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshotFlow
 import com.google.accompanist.web.WebContent
 import com.google.accompanist.web.WebViewNavigator
@@ -18,6 +16,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.helper.Callback
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.Signal
@@ -77,7 +76,9 @@ class MultiWebViewController(
 
   private val mIpcMap = mutableMapOf<Mmid, Ipc>()
 
-  data class ViewItem(
+
+
+  /*data class ViewItem(
     val webviewId: String,
     val webView: DWebView,
     val state: WebViewState,
@@ -90,7 +91,7 @@ class MultiWebViewController(
       webView.activity?.let { NativeUiController(it) }
         ?: throw Exception("webview un attached to activity")
     }
-  }
+  }*/
 
   private var activityTask = PromiseOut<MultiWebViewActivity>()
   suspend fun waitActivityCreated() = activityTask.waitPromise()
@@ -196,7 +197,7 @@ class MultiWebViewController(
     webViewList.map {
       val viewItem = JSONObject()
       viewItem.put("webviewId", it.webviewId)
-      viewItem.put("isActivated", it.hidden.value)
+      viewItem.put("isActivated", it.hidden)
       viewItem.put("url", (it.state.content as WebContent.Url).url)
       currentState.put(it.webviewId, viewItem)
     }
@@ -218,3 +219,8 @@ class MultiWebViewController(
   fun onWebViewOpen(cb: Callback<String>) = webViewOpenSignal.listen(cb)
 
 }
+
+
+var ViewItem.nativeUiController: NativeUiController
+  get() = throw Exception("webview un attached to activity")
+  set(value) { }

@@ -10,10 +10,9 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.sp
-import org.dweb_browser.browserUI.microService.browser.mwebview.CloseWatcher.CloseWatcher
-import org.dweb_browser.browserUI.microService.browser.mwebview.MultiWebViewController
 import org.dweb_browser.browserUI.ui.view.CaptureController
-
+import org.dweb_browser.dwebview.base.ViewItem
+import org.dweb_browser.dwebview.closewatcher.CloseWatcher
 
 interface BrowserBaseView {
   val show: MutableState<Boolean> // 用于首页是否显示遮罩
@@ -34,7 +33,7 @@ data class BrowserWebView(
   override val focus: MutableState<Boolean> = mutableStateOf(false),
   override val controller: CaptureController = CaptureController(),
   override var bitmap: ImageBitmap? = null,
-  val viewItem: MultiWebViewController.ViewItem,
+  val viewItem: ViewItem,
   val closeWatcher: CloseWatcher,
 ) : BrowserBaseView
 

@@ -6,7 +6,7 @@ include ':nextbrowser'
 include ':benchmark'
 include ':MicroService'
 include ':DWebView'
-//include ':browser'
+include ':BrowserUI'
 
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)

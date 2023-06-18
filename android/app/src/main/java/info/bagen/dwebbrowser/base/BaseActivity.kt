@@ -5,7 +5,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.core.view.WindowCompat
-import info.bagen.dwebbrowser.ui.theme.RustApplicationTheme
+import info.bagen.dwebbrowser.ui.theme.DwebBrowserAppTheme
 
 abstract class BaseActivity : org.dweb_browser.dwebview.base.BaseActivity() {
 
@@ -13,7 +13,7 @@ abstract class BaseActivity : org.dweb_browser.dwebview.base.BaseActivity() {
     super.onCreate(savedInstanceState)
     initData()
     setContent {
-      RustApplicationTheme {
+      DwebBrowserAppTheme {
         WindowCompat.getInsetsController(window, window.decorView)
           .isAppearanceLightStatusBars = !isSystemInDarkTheme() // 设置状态栏颜色跟着主题走
         InitViews()

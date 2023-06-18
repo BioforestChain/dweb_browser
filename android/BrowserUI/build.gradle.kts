@@ -2,7 +2,7 @@ import com.version.manager.BuildConfig
 import com.version.manager.BuildVersion
 
 plugins {
-  id("com.android.application")
+  id("com.android.library")
   id("org.jetbrains.kotlin.android")
   id("com.google.devtools.ksp")
   id("com.version.manager")
@@ -11,13 +11,8 @@ plugins {
 android {
   namespace = "org.dweb_browser.browserUI"
   compileSdk = BuildVersion.compileSdkVersion
-
   defaultConfig {
-    applicationId = "org.dweb_browser.browserUI"
     minSdk = BuildVersion.minSdkVersion
-    targetSdk = BuildVersion.targetSdkVersion
-    versionCode = BuildVersion.versionCode
-    versionName = BuildVersion.versionName
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     vectorDrawables {
@@ -36,7 +31,7 @@ android {
     targetCompatibility = JavaVersion.VERSION_17
   }
   kotlinOptions {
-    jvmTarget = "1.8"
+    jvmTarget = "17"
   }
   buildFeatures {
     compose = true
@@ -47,12 +42,17 @@ android {
   packaging {
     resources {
       excludes += "/META-INF/{AL2.0,LGPL2.1}"
+      // 添加 http4k 框架后，会有异常报错，需要添加如下内容
+      excludes += "/META-INF/INDEX.LIST"
+      excludes += "/META-INF/io.netty.versions.properties"
+      excludes += "/META-INF/DEPENDENCIES"
     }
   }
 }
 
 dependencies {
   implementation(BuildConfig.coreKotlin)
+  implementation(BuildConfig.appcompat)
   implementation(BuildConfig.lifecycleRuntimeKotlin)
   implementation(BuildConfig.activityCompose)
 
@@ -71,8 +71,6 @@ dependencies {
   androidTestImplementation("androidx.test.ext:junit:1.1.5")
   androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 
-  implementation(project(mapOf("path" to ":helper")))
-
   // 增加 room 存储列表数据
   implementation(BuildConfig.roomRuntime)
   ksp(BuildConfig.roomCompiler)
@@ -84,4 +82,20 @@ dependencies {
   implementation(BuildConfig.coilSVG)
   implementation(BuildConfig.coilVideo)
   implementation(BuildConfig.coilGif)
+
+  implementation(BuildConfig.cameraCore)
+  implementation(BuildConfig.cameraView)
+  implementation(BuildConfig.cameraCamera2)
+  implementation(BuildConfig.cameraLifecycle)
+  implementation(BuildConfig.barcodeScanning)
+
+  implementation(BuildConfig.accompanistPermissions)
+
+  implementation(BuildConfig.commonsCompress)
+  api(BuildConfig.dataStore)
+  api(BuildConfig.dataStorePreferences)
+
+  implementation(project(mapOf("path" to ":helper")))
+  implementation(project(mapOf("path" to ":DWebView")))
+  implementation(project(mapOf("path" to ":MicroService")))
 }

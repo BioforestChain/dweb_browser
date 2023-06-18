@@ -27,15 +27,15 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import com.google.accompanist.web.*
 import org.dweb_browser.helper.*
-import info.bagen.dwebbrowser.ui.browser.setDarkMode
-import info.bagen.dwebbrowser.ui.loading.LoadingView
-import info.bagen.dwebbrowser.ui.splash.SplashPrivacyDialog
-import info.bagen.dwebbrowser.ui.theme.RustApplicationTheme
-import info.bagen.dwebbrowser.util.KEY_ENABLE_AGREEMENT
-import info.bagen.dwebbrowser.util.getBoolean
-import info.bagen.dwebbrowser.util.saveBoolean
+import info.bagen.dwebbrowser.ui.theme.DwebBrowserAppTheme
+import org.dweb_browser.browserUI.util.KEY_ENABLE_AGREEMENT
+import org.dweb_browser.browserUI.util.getBoolean
+import org.dweb_browser.browserUI.util.saveBoolean
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.dweb_browser.browserUI.ui.browser.setDarkMode
+import org.dweb_browser.browserUI.ui.loading.LoadingView
+import org.dweb_browser.browserUI.ui.splash.SplashPrivacyDialog
 import kotlin.system.exitProcess
 
 @SuppressLint("CustomSplashScreen")
@@ -61,7 +61,7 @@ class SplashActivity : AppCompatActivity() {
         }
       }
 
-      RustApplicationTheme {
+      DwebBrowserAppTheme {
         SideEffect { // 为了全屏
           WindowCompat.setDecorFitsSystemWindows(this@SplashActivity.window, false)
         }
@@ -70,7 +70,7 @@ class SplashActivity : AppCompatActivity() {
 
         SplashMainView()
         if (enable) {
-          return@RustApplicationTheme
+          return@DwebBrowserAppTheme
         }
 
         SplashPrivacyDialog(

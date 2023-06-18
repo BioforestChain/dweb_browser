@@ -6,8 +6,8 @@ import android.net.ConnectivityManager
 import android.net.wifi.WifiManager
 import android.os.Build
 import android.provider.Settings
-import info.bagen.dwebbrowser.util.JsonUtil
 import info.bagen.dwebbrowser.App
+import org.dweb_browser.microservice.help.gson
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileReader
@@ -31,7 +31,7 @@ data class NetWorkData(
 class NetWorkInfo {
 
     fun getNetWorkInfo(): String {
-        return JsonUtil.toJson(netWorkData)
+        return gson.toJson(netWorkData)
     }
 
     val netWorkData: NetWorkData

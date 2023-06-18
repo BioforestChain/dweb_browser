@@ -18,13 +18,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.MultiplePermissionsState
 import com.google.accompanist.permissions.PermissionState
 import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.shouldShowRationale
-import org.dweb_browser.browserUI.App
 import org.dweb_browser.browserUI.R
 
 @OptIn(ExperimentalPermissionsApi::class)
@@ -101,7 +101,7 @@ fun DeniedView(permission: String, onCancel: () -> Unit) {
     AlertDialog(
       onDismissRequest = { /*show = false 点击空白区域不隐藏*/ },
       title = { Text(text = "请手动配置权限") },
-      text = { Text(permissionMaps[permission] ?: "请手动配置权限") },
+      text = { Text(permissionMaps[permission]?.let { stringResource(id = it) } ?: "请手动配置权限") },
       confirmButton = {
         Button(onClick = { onCancel(); show = false; openSettingsPermission(context); }) {
           Text("设置")
@@ -124,18 +124,12 @@ fun openSettingsPermission(context: Context) {
   )
 }
 
-val permissionMaps: Map<String, String> = mutableMapOf<String, String>().also {
-  val context = App.appContext
-  it[android.Manifest.permission.READ_PHONE_STATE] =
-    context.getString(R.string.permission_deny_device)
-  it[android.Manifest.permission.CAMERA] = context.getString(R.string.permission_deny_camera)
-  it[android.Manifest.permission.READ_CALENDAR] =
-    context.getString(R.string.permission_deny_calendar)
-  it[android.Manifest.permission.WRITE_CALENDAR] =
-    context.getString(R.string.permission_deny_calendar)
-  it[android.Manifest.permission.RECORD_AUDIO] =
-    context.getString(R.string.permission_deny_record_audio)
-  it[android.Manifest.permission.ACCESS_COARSE_LOCATION] =
-    context.getString(R.string.permission_deny_location)
-  it[android.Manifest.permission.BODY_SENSORS] = context.getString(R.string.permission_deny_sensor)
+val permissionMaps: Map<String, Int> = mutableMapOf<String, Int>().also {
+  it[android.Manifest.permission.READ_PHONE_STATE] = R.string.permission_deny_device
+  it[android.Manifest.permission.CAMERA] = R.string.permission_deny_camera
+  it[android.Manifest.permission.READ_CALENDAR] = R.string.permission_deny_calendar
+  it[android.Manifest.permission.WRITE_CALENDAR] = R.string.permission_deny_calendar
+  it[android.Manifest.permission.RECORD_AUDIO] = R.string.permission_deny_record_audio
+  it[android.Manifest.permission.ACCESS_COARSE_LOCATION] = R.string.permission_deny_location
+  it[android.Manifest.permission.BODY_SENSORS] = R.string.permission_deny_sensor
 }

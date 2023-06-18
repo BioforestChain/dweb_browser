@@ -7,11 +7,11 @@ import android.content.Intent
 import android.os.Bundle
 import info.bagen.dwebbrowser.microService.startDwebBrowser
 import org.dweb_browser.microservice.sys.dns.DnsNMM
-import info.bagen.dwebbrowser.util.DwebBrowserUtil
 import info.bagen.dwebbrowser.util.PlaocUtil
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import org.dweb_browser.browserUI.util.BrowserUIApp
 import org.dweb_browser.helper.*
 
 class App : Application() {
@@ -57,7 +57,8 @@ class App : Application() {
     appContext = this
     PlaocUtil.addShortcut(this) // 添加桌面快捷方式
     // startService(Intent(this@App, DwebBrowserService::class.java))
-    DwebBrowserUtil.INSTANCE.bindDwebBrowserService()
+    // DwebBrowserUtil.INSTANCE.bindDwebBrowserService()
+    BrowserUIApp.Instance.setAppContext(this) // 初始化BrowserUI模块
   }
 
 

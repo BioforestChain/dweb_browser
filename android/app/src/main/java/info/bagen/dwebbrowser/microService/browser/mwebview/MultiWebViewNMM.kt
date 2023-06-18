@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
+import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.microservice.help.Mmid
 import org.dweb_browser.helper.*
 import org.dweb_browser.microservice.core.BootstrapContext
@@ -113,7 +114,7 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.browser.dweb") {
     private suspend fun openDwebView(
         remoteMm: MicroModule,
         url: String,
-    ): MultiWebViewController.ViewItem {
+    ): ViewItem {
         val remoteMmid = remoteMm.mmid
         debugMultiWebView("/open", "remote-mmid: $remoteMmid / url:$url")
         val controller = controllerMap.getOrPut(remoteMmid) {

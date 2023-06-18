@@ -1,20 +1,21 @@
 package info.bagen.dwebbrowser.microService.browser.jmm
 
 import androidx.compose.runtime.mutableStateMapOf
+import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.datastore.JmmMetadataDB
 import org.dweb_browser.microservice.help.Mmid
 import org.dweb_browser.helper.*
 import org.dweb_browser.microservice.sys.dns.nativeFetch
 import info.bagen.dwebbrowser.microService.browser.jmm.ui.JmmManagerActivity
 import org.dweb_browser.microservice.help.DWEB_DEEPLINK
-import info.bagen.dwebbrowser.service.DownLoadController
-import info.bagen.dwebbrowser.service.compareAppVersionHigh
-import info.bagen.dwebbrowser.util.DwebBrowserUtil
-import info.bagen.dwebbrowser.util.FilesUtil
+import org.dweb_browser.browserUI.download.DownLoadController
+import org.dweb_browser.browserUI.download.compareAppVersionHigh
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import org.dweb_browser.browserUI.util.BrowserUIApp
+import org.dweb_browser.browserUI.util.FilesUtil
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.json
@@ -122,20 +123,20 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb") {
           installingApps.map { it.value })
       },
       "/pause" bind Method.GET to defineHandler { _, ipc ->
-        DwebBrowserUtil.INSTANCE.mBinderService?.invokeUpdateDownloadStatus(
+        BrowserUIApp.Instance.mBinderService?.invokeUpdateDownloadStatus(
           ipc.remote.mmid, DownLoadController.PAUSE
         )
       },
       /**继续下载*/
       "/resume" bind Method.GET to defineHandler { _, ipc ->
         debugJMM("resume", ipc.remote.mmid)
-        DwebBrowserUtil.INSTANCE.mBinderService?.invokeUpdateDownloadStatus(
+        BrowserUIApp.Instance.mBinderService?.invokeUpdateDownloadStatus(
           ipc.remote.mmid, DownLoadController.RESUME
         )
       },
       "/cancel" bind Method.GET to defineHandler { _, ipc ->
         debugJMM("cancel", ipc.remote.mmid)
-        DwebBrowserUtil.INSTANCE.mBinderService?.invokeUpdateDownloadStatus(
+        BrowserUIApp.Instance.mBinderService?.invokeUpdateDownloadStatus(
           ipc.remote.mmid, DownLoadController.CANCEL
         )
       }
@@ -166,7 +167,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb") {
     apps.remove(mmid)
     bootstrapContext.dns.uninstall(jsMicroModule)
     JmmMetadataDB.deleteApp(mmid)
-    FilesUtil.uninstallApp(mmid)
+    FilesUtil.uninstallApp(App.appContext, mmid)
   }
 
   override suspend fun _shutdown() {

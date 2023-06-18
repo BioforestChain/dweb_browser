@@ -7,9 +7,9 @@ import android.os.Build
 import android.os.Build.MODEL
 import android.provider.Settings
 import android.telephony.TelephonyManager
-import info.bagen.dwebbrowser.util.JsonUtil
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.sys.device.model.*
+import org.dweb_browser.microservice.help.gson
 
 
 data class DeviceData(
@@ -38,7 +38,7 @@ class DeviceInfo {
     }
 
     fun getDeviceInfo(): String {
-        return JsonUtil.toJson(deviceData)
+        return gson.toJson(deviceData)
     }
 
     fun getMemory(): String {
@@ -46,7 +46,7 @@ class DeviceInfo {
     }
 
     fun getStorage():String {
-        return JsonUtil.toJson(deviceData.storage)
+        return gson.toJson(deviceData.storage)
     }
 
 

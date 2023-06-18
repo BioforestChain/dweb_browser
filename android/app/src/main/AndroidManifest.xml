@@ -45,7 +45,8 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/Theme.dwebbrowser"
-        android:usesCleartextTraffic="true">
+        android:usesCleartextTraffic="true"
+        tools:replace="android:theme">
         <profileable
             android:shell="true"
             tools:targetApi="29" />
@@ -118,7 +119,7 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".service.DwebBrowserService" />
+        <service android:name="org.dweb_browser.browserUI.download.DwebBrowserService" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

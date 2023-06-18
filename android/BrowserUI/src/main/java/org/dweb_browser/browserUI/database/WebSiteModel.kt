@@ -7,15 +7,14 @@ import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.lifecycle.LiveData
 import androidx.room.*
-import info.bagen.dwebbrowser.App
-import io.ktor.util.date.*
+import org.dweb_browser.browserUI.util.BrowserUIApp
 import java.io.ByteArrayOutputStream
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.*
 
-
 internal const val WebSiteTableName = "website"
+internal const val WebSiteFileName = "dweb_database.db"
 
 /**
  * 定义数据实体
@@ -144,7 +143,11 @@ abstract class WebSiteDatabase : RoomDatabase() {
 
   companion object {
     val INSTANCE by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-      Room.databaseBuilder(App.appContext, WebSiteDatabase::class.java, "dweb_database.db").build()
+      Room.databaseBuilder(
+        BrowserUIApp.Instance.appContext,
+        WebSiteDatabase::class.java,
+        WebSiteFileName
+      ).build()
     }
   }
 }

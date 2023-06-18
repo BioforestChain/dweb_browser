@@ -40,7 +40,6 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.web.LoadingState
 import com.google.accompanist.web.WebView
 import org.dweb_browser.browserUI.R
-import org.dweb_browser.browserUI.microService.browser.mwebview.debugMultiWebView
 import org.dweb_browser.browserUI.ui.entity.BrowserBaseView
 import org.dweb_browser.browserUI.ui.entity.BrowserWebView
 import org.dweb_browser.browserUI.ui.qrcode.QRCodeScanView
@@ -74,19 +73,21 @@ fun BrowserView(viewModel: BrowserViewModel) {
   val scope = rememberCoroutineScope()
   val context = LocalContext.current
   BackHandler {
-    debugMultiWebView("BrowserView",viewModel.uiState.currentBrowserBaseView.value.closeWatcher.canClose)
-    if (viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.targetValue != SheetValue.Hidden) {
+    val watcher = viewModel.uiState.currentBrowserBaseView.value.closeWatcher;
+    val bottomState = viewModel.uiState.bottomSheetScaffoldState.bottomSheetState;
+    if (bottomState.targetValue != SheetValue.Hidden) {
       scope.launch {
-        viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.hide()
+        bottomState.hide()
       }
-    } else if (viewModel.uiState.currentBrowserBaseView.value.closeWatcher.canClose){
-      viewModel.uiState.currentBrowserBaseView.value.viewItem.coroutineScope.launch {
-        viewModel.uiState.currentBrowserBaseView.value.closeWatcher.close()
+    } else if (watcher.canClose){
+      scope.launch {
+        watcher.close()
       }
     }else {
       val browserWebView = viewModel.uiState.currentBrowserBaseView.value
-      if (browserWebView.viewItem.navigator.canGoBack) {
-        browserWebView.viewItem.navigator.navigateBack()
+      val navigator = browserWebView.viewItem.navigator
+      if (navigator.canGoBack) {
+        navigator.navigateBack()
       } else {
         context.findActivity().moveTaskToBack(false) // 将界面转移到后台
       }
@@ -255,13 +256,19 @@ private fun BoxScope.BrowserViewBottomBar(viewModel: BrowserViewModel) {
 @Composable
 private fun BrowserViewSearch(viewModel: BrowserViewModel) {
   val pagerStateNavigator = viewModel.uiState.pagerStateNavigator.value ?: return
+  val activity = LocalContext.current.findActivity()
+  val currentInsets = remember {
+    mutableStateOf(WindowInsetsCompat.toWindowInsetsCompat(activity.window.decorView.rootWindowInsets))
+  }
+
   LaunchedEffect(pagerStateNavigator.settledPage) { // 为了修复隐藏搜索框后，重新加载时重新显示的问题，会显示第一页
     delay(100)
     pagerStateNavigator.scrollToPage(pagerStateNavigator.settledPage)
   }
   val localFocus = LocalFocusManager.current
-  LaunchedEffect(viewModel.isShowKeyboard) {
-    if (!viewModel.isShowKeyboard && !viewModel.uiState.showSearchEngine.targetState) {
+  LaunchedEffect(currentInsets) {
+    if (currentInsets.value.getInsets(WindowInsetsCompat.Type.ime()).bottom <= 0
+      && !viewModel.uiState.showSearchEngine.targetState) {
       localFocus.clearFocus()
     }
   }
@@ -448,8 +455,11 @@ private fun BoxScope.ShowLinearProgressIndicator(browserWebView: BrowserWebView?
  */
 @Composable
 fun BrowserSearchView(viewModel: BrowserViewModel) {
-  var showSearchView by LocalShowSearchView.current;
-
+  var showSearchView by LocalShowSearchView.current
+  val activity = LocalContext.current.findActivity()
+  val currentInsets = remember {
+    mutableStateOf(WindowInsetsCompat.toWindowInsetsCompat(activity.window.decorView.rootWindowInsets))
+  }
   if (showSearchView) {
     val inputText = viewModel.uiState.currentBrowserBaseView.value.viewItem.state.lastLoadedUrl ?: ""
     val text = if (inputText.startsWith("file:///android_asset") ||
@@ -462,7 +472,7 @@ fun BrowserSearchView(viewModel: BrowserViewModel) {
     val imeShowed = remember { mutableStateOf(false) }
 
     LaunchedEffect(imeShowed) {
-      snapshotFlow { viewModel.uiState.currentInsets.value }.collect {
+      snapshotFlow { currentInsets.value }.collect {
         imeShowed.value = it.getInsets(WindowInsetsCompat.Type.ime()).bottom > 0
       }
     }
