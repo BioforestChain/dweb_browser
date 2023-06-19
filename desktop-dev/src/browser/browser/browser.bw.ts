@@ -30,19 +30,14 @@ export function createBrowserWindow(this: BrowserNMM): $BW {
     urls: ["http://localhost/*", "https://shop.plaoc.com/*.json"],
   };
 
-  session.webRequest.onBeforeRequest(filter, (details, callback) => {
+  session.webRequest.onBeforeRequest(filter, (details: { url: string|URL; method: string; }, callback: $Callback) => {
     const _url = new URL(details.url);
-    // console.always("browser.content.bv.ts 拦截到了请求", _url)
+    console.always("browser.content.bv.ts 拦截到了请求", _url)
     // 不能够直接返回只能够重新定向 broser.dweb 的 apiServer 服务器
     if (_url.hostname === "localhost" && details.method === "GET") {
       relayGerRequest.bind(this)(details, callback);
       return;
     }
-
-    // if(_url.hostname === "shop.plaoc.com" && details.method === 'GET'){
-    //   relayExternalGetRequest.bind(this)(details, callback)
-    //   return;
-    // }
 
     throw new Error(`还有被拦截但没有转发的请求 ${details.url}`);
   });
@@ -64,24 +59,29 @@ function getTitleBarHeight(this: Electron.BrowserWindow) {
 }
 
 async function relayGerRequest(
-  this: BrowserNMM,
+  browser: BrowserNMM,
   details: $Details,
   callback: $Callback
 ) {
   const _url = new URL(details.url);
-  const url = `${this.apiServer?.startResult.urlInfo.internal_origin}${_url.pathname}${_url.search}`;
-  callback({ cancel: false, redirectURL: url });
+  // const url = `${this.apiServer?.startResult.urlInfo.internal_origin}${_url.pathname}${_url.search}`;
+  let pathname = _url.pathname;
+  let response = null
+  // dweb_deeplink 请求
+  if (_url.protocol === "dweb:") {
+   response =  await browser.nativeFetch(_url.href)
+  }
+
+  const mmid = _url.searchParams.get("mmid")
+  if (mmid)  {
+    pathname = pathname.replace("browser.dweb",mmid)
+  }
+  console.always("browser.content.bv.ts 拦截到了请求xx", `file:/${pathname}`)
+  response = await browser.nativeFetch(`file:/${pathname}`)
+  // callback({ cancel: false, redirectURL: response });
+  callback({ cancel: false, redirectURL: response });
 }
 
-/** 用来转发特定的外部 get 请求 */
-async function relayExternalGetRequest(
-  this: BrowserNMM,
-  details: $Details,
-  callback: $Callback
-) {
-  const url = `${this.apiServer?.startResult.urlInfo.internal_origin}/external?url=${details.url}`;
-  callback({ cancel: false, redirectURL: url });
-}
 
 export type $BW = Electron.BrowserWindow & $ExtendsBrowserWindow;
 

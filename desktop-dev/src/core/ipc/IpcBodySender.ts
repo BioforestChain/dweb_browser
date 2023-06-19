@@ -273,7 +273,7 @@ export class IpcBodySender extends IpcBody {
           for (const ipc of this.usedIpcMap.keys()) {
             ipc.postMessage(message);
           }
-
+          await stream.cancel();
           this.emitStreamClose();
           break;
         }

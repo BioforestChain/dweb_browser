@@ -6,38 +6,74 @@ import {
   IpcResponse,
 } from "../../core/ipc/index.ts";
 import { $MMID, $Schema1ToType } from "../../helper/types.ts";
-import { createHttpDwebServer } from "../../sys/http-server/$createHttpDwebServer.ts";
+// import { createHttpDwebServer } from "../../sys/http-server/$createHttpDwebServer.ts";
 import { getAllApps } from "../jmm/jmm.api.serve.ts";
 import { JsMMMetadata, JsMicroModule } from "../jmm/micro-module.js.ts";
 import type { BrowserNMM } from "./browser.ts";
 
-export async function createAPIServer(this: BrowserNMM) {
-  // 为 下载页面做 准备
-  this.apiServer = await createHttpDwebServer(this, {
-    subdomain: "api",
-    port: 433,
-  });
-  // 数据体
-  // ServerUrlInfo {
-  //   host: 'api.browser.dweb:433',
-  //   internal_origin: 'http://api.browser.dweb-433.localhost:22605',
-  //   public_origin: 'http://localhost:22605'
-  // }
-  const apiReadableStreamIpc = await this.apiServer.listen();
-  apiReadableStreamIpc.onRequest(onRequest.bind(this));
-}
+// export async function createAPIServer(this: BrowserNMM) {
+//   // 为 下载页面做 准备
+//   this.apiServer = await createHttpDwebServer(this, {
+//     subdomain: "api",
+//     port: 433,
+//   });
+//   // 数据体
+//   // ServerUrlInfo {
+//   //   host: 'api.browser.dweb:433',
+//   //   internal_origin: 'http://api.browser.dweb-433.localhost:22605',
+//   //   public_origin: 'http://localhost:22605'
+//   // }
+//   const apiReadableStreamIpc = await this.apiServer.listen();
+//   apiReadableStreamIpc.onRequest(onRequest.bind(this));
+// }
 
 async function onRequest(this: BrowserNMM, request: IpcRequest, ipc: Ipc) {
-  let href = request.parsed_url.href;
-  // dweb_deeplink 请求
-  if (request.parsed_url.protocol === "dweb:") {
-    return this.nativeFetch(href)
+  let pathname = request.parsed_url.pathname;
+  switch (pathname) {
+    case "/browser.dweb/appsInfo":
+      getAppsInfo.bind(this)({},ipc,request);
+      break;
+    case "/update/content":
+      updateContent.bind(this)({},ipc,request);
+      break;
+    case "/can-go-back":
+      canGoBack.bind(this)({},ipc,request);
+      break;
+    case "/can-go-forward":
+      canGoForward.bind(this)({},ipc,request);
+      break;
+    case "/go-back":
+      goBack.bind(this)({},ipc,request);
+      break;
+    case "/go-forward":
+      goForward.bind(this)({},ipc,request);
+      break;
+    case "/refresh":
+      refresh.bind(this);
+      break;
+    case "/browser.dweb/openApp":
+      open.bind(this);
+      break;
+    default:
+      console.error(
+        "browser",
+        "还有没有匹配的 api 请求 pathname ===",
+        pathname
+      );
   }
-  const mmid = request.parsed_url.searchParams.get("mmid")
-  if (mmid)  {
-    href = href.replace("browser.dweb",mmid)
-  }
-  return this.nativeFetch(href)
+  // console.log("哈哈哈哈哈哈嘻嘻嘻嘻",pathname)
+  // let response = null
+  // // dweb_deeplink 请求
+  // if (request.parsed_url.protocol === "dweb:") {
+  //  response =  await this.nativeFetch(request.parsed_url.href)
+  // }
+
+  // const mmid = request.parsed_url.searchParams.get("mmid")
+  // if (mmid)  {
+  //   pathname = pathname.replace("browser.dweb",mmid)
+  // }
+  // response = await this.nativeFetch(`file://${pathname}`)
+  // ipc.postMessage(await IpcResponse.fromResponse(request.req_id,response,ipc))
 }
 
 export async function getAppsInfo(
@@ -47,6 +83,7 @@ export async function getAppsInfo(
   ipc: Ipc,
   request: IpcRequest
 ) {
+  console.always("hhhh getAppsInfo")
   const appsInfo = await getAllApps();
   ipc.postMessage(
     IpcResponse.fromText(

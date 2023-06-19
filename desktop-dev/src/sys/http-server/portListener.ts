@@ -13,7 +13,6 @@ import {
 import { parseUrl } from "../../helper/urlHelper.ts";
 import { defaultErrorResponse } from "./defaultErrorResponse.ts";
 import type { WebServerRequest, WebServerResponse } from "./types.ts";
-import { parse } from "https://deno.land/std@0.177.0/flags/mod.ts";
 
 export interface $Router {
   routes: readonly $ReqMatcher[];

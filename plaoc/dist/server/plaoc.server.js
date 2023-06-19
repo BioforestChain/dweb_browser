@@ -1211,6 +1211,7 @@ var _IpcBodySender = class extends IpcBody {
           for (const ipc3 of this.usedIpcMap.keys()) {
             ipc3.postMessage(message);
           }
+          await stream.cancel();
           this.emitStreamClose();
           break;
         }

@@ -1,5 +1,6 @@
+import { webcrypto } from "node:crypto";
 import process from "node:process";
-import "./sys/dns/localeFileFetch.ts";
+import { BrowserNMM } from "./browser/browser/browser.ts";
 import { JsProcessNMM } from "./browser/js-process/js-process.ts";
 import { MultiWebviewNMM } from "./browser/multi-webview/multi-webview.mobile.ts";
 import { NavigationBarNMM } from "./browser/native-ui/navigation-bar/navigation-bar.main.ts";
@@ -8,16 +9,16 @@ import { StatusbarNativeUiNMM } from "./browser/native-ui/status-bar/status-bar.
 import { TorchNMM } from "./browser/native-ui/torch/torch.main.ts";
 import { VirtualKeyboardNMM } from "./browser/native-ui/virtual-keyboard/virtual-keyboard.main.ts";
 import { setFilter } from "./helper/devtools.ts";
+import { BluetoothNMM } from "./std/bluetooth/bluetooth.main.ts";
 import { BarcodeScanningNativeUiNMM } from "./sys/barcode-scanning/barcode-scanning.main.ts";
 import { BiometricsNMM } from "./sys/biometrics/biometrics.main.ts";
 import { BootNMM } from "./sys/boot/boot.ts";
 import { DnsNMM } from "./sys/dns/dns.ts";
+import "./sys/dns/localeFileFetch.ts";
 import { HapticsNMM } from "./sys/haptics/haptics.main.ts";
 import { HttpServerNMM } from "./sys/http-server/http-server.ts";
 import { ShareNMM } from "./sys/share/share.main.ts";
 import { ToastNMM } from "./sys/toast/toast.main.ts";
-import { BluetoothNMM } from "./std/bluetooth/bluetooth.main.ts"
-import { BrowserNMM } from "./browser/browser/browser.ts";
 
 /**
  * 设置 debugger 过滤条件
@@ -78,17 +79,15 @@ dns.install(new JmmNMM());
 
 dns.install(
   new BootNMM([
-    // dwebBrowser.mmid,
-    "bluetooth.std.dweb"
+    dwebBrowser.mmid,
+    // "bluetooth.std.dweb"
   ])
 );
 
 Object.assign(globalThis, { dns: dns });
-process.on("unhandledRejection", (error) => {
+process.on("unhandledRejection", (error:Error) => {
   console.error("on unhandledRejection=>", error);
 });
-
-import { webcrypto } from "node:crypto";
 
 if (typeof crypto === "undefined") {
   Object.assign(globalThis, { crypto: webcrypto });
