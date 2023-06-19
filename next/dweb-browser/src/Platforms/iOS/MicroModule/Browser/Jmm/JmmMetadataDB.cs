@@ -8,20 +8,26 @@ public static class JmmMetadataDB
 
     private static int s_id = 0;
     public static readonly State<int> JmmMetadataUpdate = new(s_id);
+    private static NSUserDefaults _userDefaults = NSUserDefaults.StandardUserDefaults;
+
+    static JmmMetadataDB()
+    {
+        var nsDic = _userDefaults.DictionaryForKey(PREFERENCE_NAME);
+
+        if (nsDic is null)
+        {
+            nsDic = new NSMutableDictionary<NSString, NSString>();
+            _userDefaults.SetValueForKey(nsDic, new NSString(PREFERENCE_NAME));
+        }
+        //_userDefaults.RegisterDefaults();
+    }
 
     public static JmmMetadata QueryJmmMetadata(Mmid key, JmmMetadata defaultValue = default) =>
         GetJmmMetadataEnumerator().ToList().Find(entry => entry.Key == key).Value ?? defaultValue;
 
     public static IEnumerable<KeyValuePair<Mmid, JmmMetadata>> GetJmmMetadataEnumerator()
     {
-        var nsDic = NSUserDefaults.StandardUserDefaults.DictionaryForKey(PREFERENCE_NAME);
-
-        if (nsDic is null)
-        {
-            nsDic = new NSMutableDictionary<NSString, NSString>();
-            NSUserDefaults.StandardUserDefaults.SetValueForKey(nsDic, new NSString(PREFERENCE_NAME));
-        }
-
+        var nsDic = _userDefaults.DictionaryForKey(PREFERENCE_NAME);
         var dic = new Dictionary<Mmid, JmmMetadata>();
 
         foreach (NSString key in nsDic.Keys)
@@ -46,13 +52,7 @@ public static class JmmMetadataDB
 
     public static IEnumerable<KeyValuePair<NSString, NSString>> GetJmmMetadataJsonEnumerator()
     {
-        var nsDic = NSUserDefaults.StandardUserDefaults.DictionaryForKey(PREFERENCE_NAME);
-
-        if (nsDic is null)
-        {
-            nsDic = new NSMutableDictionary<NSString, NSString>();
-            NSUserDefaults.StandardUserDefaults.SetValueForKey(nsDic, new NSString(PREFERENCE_NAME));
-        }
+        var nsDic = _userDefaults.DictionaryForKey(PREFERENCE_NAME);
 
         foreach (var entry in nsDic)
         {
@@ -71,7 +71,7 @@ public static class JmmMetadataDB
 
         nsDictionary.Add(new NSString(mmid), new NSString(jmmMetadata.ToJson()));
 
-        NSUserDefaults.StandardUserDefaults.SetValueForKey(nsDictionary, new NSString(PREFERENCE_NAME));
+        _userDefaults.SetValueForKey(nsDictionary, new NSString(PREFERENCE_NAME));
         JmmMetadataUpdate.Set(Interlocked.Increment(ref s_id));
     }
 
@@ -84,7 +84,7 @@ public static class JmmMetadataDB
             nsDictionary.Add(new NSString(entry.Key), new NSString(entry.Value.Metadata.ToJson()));
         }
 
-        NSUserDefaults.StandardUserDefaults.SetValueForKey(nsDictionary, new NSString(PREFERENCE_NAME));
+        _userDefaults.SetValueForKey(nsDictionary, new NSString(PREFERENCE_NAME));
         JmmMetadataUpdate.Set(Interlocked.Increment(ref s_id));
     }
 
@@ -97,7 +97,7 @@ public static class JmmMetadataDB
             nsDictionary.Add(new NSString(entry.Key), new NSString(entry.Value.ToJson()));
         }
 
-        NSUserDefaults.StandardUserDefaults.SetValueForKey(nsDictionary, new NSString(PREFERENCE_NAME));
+        _userDefaults.SetValueForKey(nsDictionary, new NSString(PREFERENCE_NAME));
         JmmMetadataUpdate.Set(Interlocked.Increment(ref s_id));
     }
 
@@ -114,7 +114,7 @@ public static class JmmMetadataDB
             }
         }
 
-        NSUserDefaults.StandardUserDefaults.SetValueForKey(nsDictionary, new NSString(PREFERENCE_NAME));
+        _userDefaults.SetValueForKey(nsDictionary, new NSString(PREFERENCE_NAME));
         JmmMetadataUpdate.Set(Interlocked.Decrement(ref s_id));
     }
 }

@@ -12,13 +12,10 @@ public static class JmmDwebService
     private static ConcurrentDictionary<Mmid, JmmDownload> s_downloadMap = new();
     private static ConcurrentQueue<Mmid> s_downloadQueue = new();
 
-
-
     static event Signal? _onStart;
 
     static JmmDwebService()
     {
-
         _onStart += async (_) =>
         {
             await foreach (var result in DownloadEnumerableAsync())
@@ -28,9 +25,12 @@ public static class JmmDwebService
         };
     }
 
+    private static Mutex _mutex = new();
     public static async void Start()
     {
+        _mutex.WaitOne();
         await _onStart.Emit();
+        _mutex.ReleaseMutex();
     }
 
     static async IAsyncEnumerable<bool> DownloadEnumerableAsync()

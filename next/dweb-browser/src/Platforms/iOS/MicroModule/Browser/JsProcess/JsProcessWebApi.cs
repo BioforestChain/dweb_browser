@@ -74,10 +74,12 @@ public class JsProcessWebApi : System.IDisposable
     public Task RunProcessMain(int process_id, RunProcessMainOptions options) =>
         this.DWebView.EvaluateJavaScriptAsync("void runProcessMain(" + process_id + ", {main_url:`" + options.MainUrl + "`})").NoThrow();
 
-    public async Task DestroyProcess(int process_id)
-    {
-        await this.DWebView.EvaluateJavaScriptAsync(string.Format("void destroyProcess({0})", process_id).Trim()).NoThrow();
-    }
+    public Task DestroyProcess(int process_id) =>
+        MainThread.InvokeOnMainThreadAsync(() =>
+        {
+            return this.DWebView.EvaluateJavaScriptAsync(string.Format("void destroyProcess({0})", process_id).Trim()).NoThrow();
+        });
+
 
     public async Task<int> CreateIpc(int process_id, Mmid mmid)
     {

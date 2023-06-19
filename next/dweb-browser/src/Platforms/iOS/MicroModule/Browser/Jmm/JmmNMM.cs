@@ -200,43 +200,41 @@ public class JmmNMM : NativeMicroModule
                     vc.PushViewController(JmmController, true);
                 }
 
-                await Task.Run(() =>
+                // 点击下载
+                manager.ClickDownloadActionWithCallback(async d =>
                 {
-                    // 点击下载
-                    manager.ClickDownloadActionWithCallback(async d =>
+                    switch (d.ToString())
                     {
-                        switch (d.ToString())
-                        {
-                            case "download":
-                                if (initDownloadStatus == DownloadStatus.NewVersion)
-                                {
-                                    JmmController?.CloseApp(jmmMetadata.Id);
-                                }
-                                var jmmDownload = JmmDwebService.Add(jmmMetadata,
-                                     manager.OnDownloadChangeWithDownloadStatus,
-                                     manager.OnListenProgressWithProgress);
+                        case "download":
+                            if (initDownloadStatus == DownloadStatus.NewVersion)
+                            {
+                                JmmController?.CloseApp(jmmMetadata.Id);
+                            }
+                            var jmmDownload = JmmDwebService.Add(jmmMetadata,
+                                 manager.OnDownloadChangeWithDownloadStatus,
+                                 manager.OnListenProgressWithProgress);
 
-                                JmmDwebService.Start();
-                                break;
-                            case "open":
-                                new JsMicroModule(jmmMetadata).Also((jsMicroModule) =>
-                                {
-                                    BootstrapContext.Dns.Install(jsMicroModule);
-                                });
-                                JmmController?.OpenApp(jmmMetadata.Id);
+                            JmmDwebService.Start();
+                            break;
+                        case "open":
+                            Console.Log("open", jmmMetadata.ToJson());
+                            new JsMicroModule(jmmMetadata).Also((jsMicroModule) =>
+                            {
+                                BootstrapContext.Dns.Install(jsMicroModule);
+                            });
+                            JmmController?.OpenApp(jmmMetadata.Id);
 
-                                break;
-                            default:
-                                break;
-                        }
-                    });
+                            break;
+                        default:
+                            break;
+                    }
+                });
 
-                    // 点击返回
-                    manager.OnBackActionWithCallback(() =>
-                    {
-                        vc.PopViewController(true);
-                    });
-                }).NoThrow();
+                // 点击返回
+                manager.OnBackActionWithCallback(() =>
+                {
+                    vc.PopViewController(true);
+                });
             }
             catch (Exception e)
             {
