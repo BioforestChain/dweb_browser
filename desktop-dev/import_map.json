@@ -2,6 +2,7 @@
   "imports": {
     "@msgpack/msgpack": "https://esm.sh/v124/@msgpack/msgpack@2.8.0",
     "@seald-io/nedb": "https://esm.sh/v124/@seald-io/nedb@4.0.2",
+    "popmotion": "https://esm.sh/v124/popmotion@11.0.5",
     "electron-store": "https://esm.sh/v124/electron-store@8.1.0",
     "colors": "https://deno.land/std@0.191.0/fmt/colors.ts",
     "comlink": "https://esm.sh/v124/comlink@4.4.1",
