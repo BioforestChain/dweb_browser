@@ -1,4 +1,4 @@
-package org.dweb_browser.dwebview.closewatcher
+package org.dweb_browser.dwebview.closeWatcher
 
 import android.annotation.SuppressLint
 import android.webkit.JavascriptInterface

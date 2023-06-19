@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.lifecycleScope
 import com.google.accompanist.web.WebView
 import info.bagen.dwebbrowser.base.BaseActivity
 import org.dweb_browser.helper.*
@@ -21,7 +22,6 @@ import info.bagen.dwebbrowser.microService.browser.mwebview.MultiWebViewNMM.Comp
 import info.bagen.dwebbrowser.microService.browser.mwebview.dwebServiceWorker.ServiceWorkerEvent
 import info.bagen.dwebbrowser.microService.browser.mwebview.dwebServiceWorker.emitEvent
 import info.bagen.dwebbrowser.ui.theme.DwebBrowserAppTheme
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.dwebview.base.ViewItem
 
@@ -46,14 +46,14 @@ open class MultiWebViewActivity : BaseActivity() {
 
     override fun onResume() {
         super.onResume()
-        GlobalScope.launch(ioAsyncExceptionHandler) {
+        lifecycleScope.launch(ioAsyncExceptionHandler) {
             emitEvent(remoteMmid, ServiceWorkerEvent.Resume.event)
         }
     }
 
     override fun onPause() {
         super.onPause()
-        GlobalScope.launch(ioAsyncExceptionHandler) {
+        lifecycleScope.launch(ioAsyncExceptionHandler) {
             emitEvent(remoteMmid, ServiceWorkerEvent.Pause.event, """new Event("pause")""")
         }
     }

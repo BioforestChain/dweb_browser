@@ -61,7 +61,6 @@ class DwebBrowserService : Service() {
     ) // 显示通知
     DownLoadObserver.emit(downLoadInfo.id, DownLoadStatus.DownLoading) // 同步更新所有注册
     GlobalScope.launch(Dispatchers.IO) {
-      ///sendStatusToEmitEvent(downLoadInfo.id, DownloadControllerEvent.Start.event) // 通知前台，开始下载
       ApiService.instance.downloadAndSave(
         path = downLoadInfo.url,
         file = File(downLoadInfo.path),
@@ -69,13 +68,11 @@ class DwebBrowserService : Service() {
           when (downLoadInfo.downLoadStatus) {
             DownLoadStatus.PAUSE -> {
               DownLoadObserver.emit(downLoadInfo.id, downLoadInfo.downLoadStatus)
-              ///sendStatusToEmitEvent(downLoadInfo.id, DownloadControllerEvent.Pause.event) // 通知前台，暂停下载
               true
             }
 
             DownLoadStatus.CANCEL -> {
               DownLoadObserver.emit(downLoadInfo.id, downLoadInfo.downLoadStatus)
-              ///sendStatusToEmitEvent(downLoadInfo.id, DownloadControllerEvent.Cancel.event) // 通知前台，取消下载
               downLoadInfo.downLoadStatus = DownLoadStatus.IDLE // 如果取消的话，那么就置为空
               true
             }
@@ -94,20 +91,17 @@ class DwebBrowserService : Service() {
   @OptIn(DelicateCoroutinesApi::class)
   private fun breakPointDownLoadAndSave(downLoadInfo: DownLoadInfo) {
     GlobalScope.launch(Dispatchers.IO) {
-      ///sendStatusToEmitEvent(downLoadInfo.id, DownloadControllerEvent.Start.event) // 通知前台，开始下载
       ApiService.instance.breakpointDownloadAndSave(
         path = downLoadInfo.url, file = File(downLoadInfo.path), total = downLoadInfo.size,
         isStop = {
           when (downLoadInfo.downLoadStatus) {
             DownLoadStatus.PAUSE -> {
               DownLoadObserver.emit(downLoadInfo.id, downLoadInfo.downLoadStatus)
-              ///sendStatusToEmitEvent(downLoadInfo.id, DownloadControllerEvent.Pause.event) // 通知前台，暂停下载
               true
             }
 
             DownLoadStatus.CANCEL -> {
               DownLoadObserver.emit(downLoadInfo.id, downLoadInfo.downLoadStatus)
-              //sendStatusToEmitEvent(downLoadInfo.id, DownloadControllerEvent.Cancel.event) // 通知前台，取消下载
               downLoadInfo.downLoadStatus = DownLoadStatus.IDLE // 如果取消的话，那么就置为空
               true
             }
@@ -126,7 +120,6 @@ class DwebBrowserService : Service() {
     if (current < 0) { // 专门针对下载异常情况，直接返回-1和0
       this.downLoadStatus = DownLoadStatus.FAIL
       DownLoadObserver.emit(this.id, DownLoadStatus.FAIL)
-      ///sendStatusToEmitEvent(this.id, DownloadControllerEvent.End.event)
       downloadMap.remove(id) // 下载失败后也需要移除
       DownLoadObserver.close(id) // 同时移除当前mmid所有关联推送
       return
@@ -138,7 +131,6 @@ class DwebBrowserService : Service() {
       (current * 1.0 / total * 100).toInt(), notificationId
     )
     DownLoadObserver.emit(this.id, DownLoadStatus.DownLoading, current, total)
-    ///sendStatusToEmitEvent(this.id, DownloadControllerEvent.Progress.event, "${(current * 1.0 / total * 100).toInt()}") // 通知前台，下载进度
 
     if (current == total) {
       this.downLoadStatus = DownLoadStatus.DownLoadComplete
@@ -172,11 +164,9 @@ class DwebBrowserService : Service() {
         ///JmmMetadataDB.saveJmmMetadata(id, jmmMetadata)
         // 删除下面的方法，调用saveJmmMetadata时，会自动更新datastore，而datastore在jmmNMM中有执行了installApp
         DownLoadObserver.emit(this.id, DownLoadStatus.INSTALLED)
-        ///sendStatusToEmitEvent(this.id, DownloadControllerEvent.End.event)
         this.downLoadStatus = DownLoadStatus.INSTALLED
       } else {
         DownLoadObserver.emit(this.id, DownLoadStatus.FAIL)
-        ///sendStatusToEmitEvent(this.id, DownloadControllerEvent.End.event)
         this.downLoadStatus = DownLoadStatus.FAIL
       }
       downloadMap.remove(id) // 下载完成后需要移除
@@ -222,13 +212,6 @@ class DwebBrowserService : Service() {
       }
     }
   }
-
-  /*private fun sendStatusToEmitEvent(mmid: Mmid, eventName: String, data: String = "") {
-//    debugJMM("sendStatusToEmitEvent=>","mmid=>$mmid eventName=>$eventName data=>$data")
-    runBlockingCatching(ioAsyncExceptionHandler) {
-      emitEvent(mmid, eventName, data) // 通知前台，下载进度
-    }
-  }*/
 }
 
 fun compareAppVersionHigh(localVersion: String, compareVersion: String): Boolean {

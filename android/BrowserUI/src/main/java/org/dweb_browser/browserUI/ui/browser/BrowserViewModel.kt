@@ -37,7 +37,7 @@ import org.dweb_browser.browserUI.database.DefaultAllWebEngine
 import org.dweb_browser.browserUI.database.WebEngine
 import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.dwebview.base.ViewItem
-import org.dweb_browser.dwebview.closewatcher.CloseWatcher
+import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
 import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.help.Mmid
 import org.dweb_browser.microservice.sys.dns.nativeFetch

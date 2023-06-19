@@ -12,7 +12,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.sp
 import org.dweb_browser.browserUI.ui.view.CaptureController
 import org.dweb_browser.dwebview.base.ViewItem
-import org.dweb_browser.dwebview.closewatcher.CloseWatcher
+import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
 
 interface BrowserBaseView {
   val show: MutableState<Boolean> // 用于首页是否显示遮罩

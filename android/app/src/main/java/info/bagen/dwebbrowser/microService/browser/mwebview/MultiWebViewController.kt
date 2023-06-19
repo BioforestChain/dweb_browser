@@ -16,6 +16,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.dweb_browser.browserUI.download.DownLoadObserver
 import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.helper.Callback
 import org.dweb_browser.helper.PromiseOut
@@ -76,8 +77,6 @@ class MultiWebViewController(
 
   private val mIpcMap = mutableMapOf<Mmid, Ipc>()
 
-
-
   /*data class ViewItem(
     val webviewId: String,
     val webView: DWebView,
@@ -112,6 +111,8 @@ class MultiWebViewController(
       }
     }
 
+  var downLoadObserver: DownLoadObserver? = null
+
   /**
    * 打开WebView
    */
@@ -144,6 +145,9 @@ class MultiWebViewController(
       coroutineScope = coroutineScope,
       navigator = navigator,
     ).also { viewItem ->
+      viewItem.webView.activity?.let { activity ->
+        viewItem.nativeUiController = NativeUiController(activity)
+      }
       webViewList.add(viewItem)
       dWebView.onCloseWindow {
         closeWebView(webviewId)
@@ -177,6 +181,7 @@ class MultiWebViewController(
       }
     }
     webViewList.clear()
+    this.downLoadObserver?.close() // 移除下载状态监听
     this.activity?.finish()
     return true
   }
@@ -217,9 +222,7 @@ class MultiWebViewController(
 
   fun onWebViewClose(cb: Callback<String>) = webViewCloseSignal.listen(cb)
   fun onWebViewOpen(cb: Callback<String>) = webViewOpenSignal.listen(cb)
-
 }
-
 
 var ViewItem.nativeUiController: NativeUiController
   get() = throw Exception("webview un attached to activity")

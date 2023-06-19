@@ -9,7 +9,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import com.google.accompanist.web.AccompanistWebChromeClient
 import org.dweb_browser.helper.*
-import org.dweb_browser.dwebview.closewatcher.CloseWatcher
+import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.dweb_browser.dwebview.base.ViewItem

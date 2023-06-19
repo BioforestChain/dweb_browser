@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import org.dweb_browser.dwebview.serviceWorker.DownloadControllerEvent
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.microservice.help.Mmid
@@ -11,7 +12,16 @@ import java.math.RoundingMode
 import java.text.DecimalFormat
 
 enum class DownLoadStatus {
-  IDLE, DownLoading, DownLoadComplete, PAUSE, INSTALLED, FAIL, CANCEL, NewVersion
+  IDLE, DownLoading, DownLoadComplete, PAUSE, INSTALLED, FAIL, CANCEL, NewVersion;
+
+  fun toServiceWorkerEvent() =
+    when (this) {
+      IDLE -> DownloadControllerEvent.Start.event
+      PAUSE -> DownloadControllerEvent.Pause.event
+      CANCEL -> DownloadControllerEvent.Cancel.event
+      DownLoading -> DownloadControllerEvent.Progress.event
+      else -> DownloadControllerEvent.End.event
+    }
 }
 
 data class DownLoadInfo(
