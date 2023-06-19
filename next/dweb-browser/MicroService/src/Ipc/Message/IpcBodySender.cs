@@ -67,7 +67,7 @@ public class IpcBodySender : IpcBody,System.IDisposable
     {
         PULLING,
         PAUSED,
-        ABORTED,
+        ABORTED
     }
 
     private BufferBlock<StreamStatusSignal> _streamStatusSignal = new(new DataflowBlockOptions { BoundedCapacity = DataflowBlockOptions.Unbounded });
@@ -101,23 +101,23 @@ public class IpcBodySender : IpcBody,System.IDisposable
 
             public async Task<IpcBodySender?> Remove(string streamId)
             {
-                var ipcBodySender = Get(streamId);
+                _map.Remove(streamId, out var ipcBodySender);
 
                 if (ipcBodySender is not null)
                 {
-                    _map.Remove(streamId);
+                    ipcBodySender.Dispose();
                 }
 
                 if (_map.Count == 0)
                 {
-                    OnDetroy?.Emit();
-                    OnDetroy = null;
+                    OnDestroy?.Emit();
+                    OnDestroy = null;
                 }
 
                 return ipcBodySender;
             }
 
-            public event Signal? OnDetroy;
+            public event Signal? OnDestroy;
 
         }
 
@@ -164,8 +164,7 @@ public class IpcBodySender : IpcBody,System.IDisposable
                 };
                 ipc.OnStream += cb;
 
-                mapper.OnDetroy += async (_) => ipc.OnStream -= cb;
-                mapper.OnDetroy += (_) => mapper.Remove(streamId);
+                mapper.OnDestroy += async (_) => ipc.OnStream -= cb;
 
                 return mapper;
             });
@@ -295,10 +294,16 @@ public class IpcBodySender : IpcBody,System.IDisposable
     public event Signal? OnStreamOpen;
 
 
-    private void _emitStreamClose()
+    private async Task _emitStreamClose()
     {
+        if (_isStreamClosed)
+        {
+            return;
+        }
+
         _isStreamOpened = true;
         _isStreamClosed = true;
+        await (OnStreamClose?.Emit()).ForAwait();
     }
 
     protected override BodyHubType BodyHub
@@ -400,8 +405,8 @@ public class IpcBodySender : IpcBody,System.IDisposable
                         }
                         break;
                     case StreamStatusSignal.ABORTED:
-                        stream.Dispose();
-                        _emitStreamClose();
+                        stream.Close();
+                        await _emitStreamClose();
                         break;
                 }
             };
@@ -443,6 +448,8 @@ public class IpcBodySender : IpcBody,System.IDisposable
                 foreach (Ipc ipc in _usedIpcMap.Keys)
                 {
                     await ipc.PostMessageAsync(ipcStreamEnd);
+                    stream.Close();
+                    await _emitStreamClose();
                 }
             }
 
