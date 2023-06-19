@@ -16,7 +16,7 @@
     }
   },
   "tasks": {
-    "dnt": "deno run -A ./scripts/dnt.ts",
+    "dnt": "deno run -A ./scripts/dnt.ts && deno task start --inspect",
     "start": "cd ./electron && pnpm start ",
     "pkg": "deno task pkg:win && deno task pkg:mac",
     "pkg:win": "npx --yes electron-packager ./electron dweb-browser-devtools --platform=win32 --arch=x64 --ignore=apps --out=build --overwrite ",
