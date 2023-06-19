@@ -35,7 +35,6 @@ export class BrowserNMM extends NativeMicroModule {
   }
   protected _shutdown() {}
 
-
 }
 
 // enum $TitleBarStyle {

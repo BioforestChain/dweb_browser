@@ -13,6 +13,10 @@
     li{
       cursor: pointer;
     }
+
+    .active{
+      color: red;
+    }
   </style>
 </head>
 <body>
@@ -25,16 +29,17 @@
     const btn = document.querySelector('.btn')
     btn.addEventListener('click', requestDevice)
   </script>
-  <script type="module" src="./expose.ts"></script>
+  <!-- <script type="module" src="./expose.ts"></script> -->
   <script type="text/javascript">
-
     try {
       const { ipcRenderer } = require("electron");
       console.log(ipcRenderer);
       Object.assign(globalThis, {
         ipcRenderer,
       });
-    } catch {}
+    } catch(err){
+      throw new error(err)
+    }
   </script>
    <script type="module" src="./exportApis.ts"></script>
 </body>

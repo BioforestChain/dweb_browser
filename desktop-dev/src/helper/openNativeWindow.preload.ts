@@ -1,4 +1,4 @@
-const { ipcRenderer } = Electron;
+import { ipcRenderer } from "electron";
 import { updateRenderPort } from "./electronRenderPort.ts";
 const once = <F extends (...args: any[]) => any>(fn: F) => {
   let runed = false;

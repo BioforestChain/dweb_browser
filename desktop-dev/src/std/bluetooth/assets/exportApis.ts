@@ -1,11 +1,9 @@
 
 
 import { $Device } from "../bluetooth.main.ts";
-import { requestDevice } from "./device.ts"
-import type Electron from "electron";
-import {
-  mainApis,
-} from "../../../helper/openNativeWindow.preload.ts";
+import { mainApis } from "../../../helper/openNativeWindow.preload.ts"
+// import { requestDevice } from "./device.ts"
+// import type Electron from "electron";
 
 let bluetoothDevice;
 const _map = new Map<string, {el: HTMLLIElement, device: $Device}>()
@@ -33,6 +31,10 @@ async function devicesUpdate(list: $Device[]){
     li.classList.add('option')
     li.addEventListener('click', async () => {
       ;(mainApis as any).deviceSelected(device);
+      Array.from(_map.values()).forEach(oldDevice => {
+        oldDevice.el.classList.remove('active')
+      })
+      li.classList.add('active')
     })
     fragment.appendChild(li)
     // 添加
@@ -48,7 +50,7 @@ Object.assign(globalThis, APIS);
 
 if ("ipcRenderer" in self) {
   (async () => {
-    const { exportApis, mainApis } = await import(
+    const { exportApis } = await import(
       "../../../helper/openNativeWindow.preload.ts"
     );
     exportApis(globalThis);

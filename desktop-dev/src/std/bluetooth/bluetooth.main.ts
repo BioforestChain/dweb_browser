@@ -5,6 +5,8 @@ import { createHttpDwebServer } from "../../sys/http-server/$createHttpDwebServe
 import { Ipc, IpcEvent, IpcRequest, IpcResponse } from "../../core/ipc/index.ts";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { Remote, expose, proxy, wrap } from "comlink";
+import { openNativeWindow } from "../../helper/openNativeWindow.ts";
+import { stat } from "https://deno.land/std@0.177.0/node/fs/promises.ts";
  
 type $APIS = typeof import("./assets/exportApis.ts")["APIS"];
 
@@ -16,8 +18,6 @@ export class BluetoothNMM extends NativeMicroModule {
   // _observeBluetoothDevice 
   _bootstrap = async () => {
     console.always(`[${this.mmid} _bootstrap]`);
-
-   
     const httpDwebServer = await createHttpDwebServer(this, {});
     (await httpDwebServer.listen()).onRequest(async (request, ipc) => {
       const url = "file:///sys/bluetooth" + request.parsed_url.pathname;
@@ -37,6 +37,16 @@ export class BluetoothNMM extends NativeMicroModule {
         url.pathname = "/index.html";
       }
     ).href;
+
+    await this._createBrowwerView(rootUrl)
+    const apis = this._bv.getApis();
+    this._bv.webContents.on('select-bluetooth-device', (event: Event, deviceList: $Device[], callback: {(id: string): void}) => {
+      console.always("select-bluetooth-device; ")
+      event.preventDefault()
+      this._selectBluetoothCallback = callback
+      console.log('deviceList: ', deviceList)
+      apis.devicesUpdate(deviceList);
+    })
     
 
 
@@ -50,7 +60,7 @@ export class BluetoothNMM extends NativeMicroModule {
       output: "object",
       handler: async (arg, ipc, request) => {
         // 打开一个browserView 
-        await this._createBrowwerView(ipc, rootUrl)
+        await this._createBrowwerView(rootUrl, ipc)
         const apis = this._bv.getApis();
         this._bv.webContents.on('select-bluetooth-device', (event: Event, deviceList: $Device[], callback: {(id: string): void}) => {
           console.always("select-bluetooth-device; ")
@@ -109,8 +119,11 @@ export class BluetoothNMM extends NativeMicroModule {
   
   };
 
-  _createBrowwerView = async (ipc: Ipc, url: string) =>{
-    const wapi = _mmid_wapis_map.get(ipc.remote.mmid);
+  _createBrowwerView = async (url: string, ipc?: Ipc) =>{
+    // 会出现两种情况
+    // 1: 由其他 broserWindow 的内容打开 -> 把 browserView 添加到 BrowserWindow 上
+    // 2：不是其他 browserWindow 的内容打开的 -> 需要创建一个 BrowserWindow 然后把 BrwoserView 添加到 BrowserWindow 上
+    const wapi = ipc ? _mmid_wapis_map.get(ipc.remote.mmid) : await this._openNativeWindow();
     if(wapi === undefined) throw new Error(`nww === undefined`)
     const { MainPortToRenderPort } = await import("../../helper/electronPortMessage.ts");
     this._bv = new BrowserView({
@@ -134,25 +147,26 @@ export class BluetoothNMM extends NativeMicroModule {
     this._bv.webContents.ipc.once("renderPort", (event: MessageEvent) => {
       const [import_port, export_port] = event.ports;
       ports_po.resolve({
-        import_port: MainPortToRenderPort(import_port),
-        export_port: MainPortToRenderPort(export_port),
+        import_port: MainPortToRenderPort(import_port as unknown as  Electron.MessagePortMain),
+        export_port: MainPortToRenderPort(export_port as unknown as  Electron.MessagePortMain),
       });
     });
 
-
     wapi.nww.addBrowserView(this._bv);
+    // wapi.nww.setTopBrowserView(this._bv);
     const bounds = wapi.nww.getBounds()
     const contentBounds = wapi.nww.getContentBounds();
-    console.always("bounds.height - contentBounds.height: ", bounds ,contentBounds)
+    const navigationBarState = await (await this.nativeFetch(`file://navigation-bar.nativeui.browser.dweb/getState`)).json()
+    const statusbarState = await (await this.nativeFetch(`file://status-bar.nativeui.browser.dweb/getState`)).json()
     await this._bv.webContents.loadURL(url)
     this._bv.setBounds({
       x: 0,
-      y: bounds.height - contentBounds.height,
+      y: statusbarState.insets.top,
       width: contentBounds.width,
-      height: contentBounds.height
+      // 高度要去除 系统栏的高度
+      // 
+      height: contentBounds.height - navigationBarState.insets.bottom - statusbarState.insets.top,
     })
-
-    this._bv.setTop
     await show_po.promise;
     this._bv.webContents.openDevTools({mode: "detach"})
     const { import_port, export_port } = await ports_po.promise;
@@ -167,6 +181,11 @@ export class BluetoothNMM extends NativeMicroModule {
         return wrap<T>(import_port);
       },
     });
+  }
+
+  async _openNativeWindow(){
+   await this.nativeFetch(`file://mwebview.browser.dweb/open?url=about:blank`)
+   return _mmid_wapis_map.get(this.mmid)
   }
 
   // _onConnect(_ipc: Ipc): void {

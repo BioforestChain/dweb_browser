@@ -316,6 +316,7 @@ async function _appInstall(
  * @returns
  */
 export async function getAllApps() {
+
   const apps = await JMM_DB.getAllData();
   return apps as $AppMetaData[];
 }
