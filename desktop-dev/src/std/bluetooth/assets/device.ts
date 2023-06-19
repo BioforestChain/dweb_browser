@@ -1,5 +1,6 @@
 let bluetoothDevice;
 export async function requestDevice(){
+  console.log('开启了蓝牙设备查询')
   bluetoothDevice = await (navigator as any).bluetooth.requestDevice({
     acceptAllDevices: true,
     optionalServices: [
@@ -7,6 +8,15 @@ export async function requestDevice(){
       0x1844, /**声音服务*/
     ]
   })
-  bluetoothDevice.gatt.connect();
-  requestDevice()
+  bluetoothDevice.gatt.connect()
+  .then(
+    (server: any) => {
+      console.log('连接成功了', server)
+    },
+    (err: Error) => {
+      console.log('连接失败了', err)
+    }
+  )
+  // console.log('连接了')
+  // requestDevice()
 }

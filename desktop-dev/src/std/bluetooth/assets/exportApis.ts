@@ -5,11 +5,23 @@ import { mainApis } from "../../../helper/openNativeWindow.preload.ts"
 // import { requestDevice } from "./device.ts"
 // import type Electron from "electron";
 
+const template: HTMLTemplateElement | null = document.querySelector(".template");
+/**
+ * 创建节点
+ */ 
+function createListItem(name: string, status: string): HTMLLIElement{
+  if(template === null) throw new Error('tempalte === null');
+  const fragment = template.content.cloneNode(true) as DocumentFragment;
+  (fragment.querySelector('.name') as HTMLElement).innerText = name;
+  (fragment.querySelector('.status') as HTMLElement).innerText = status;
+  return fragment.children[0] as HTMLLIElement
+}
+
 let bluetoothDevice;
 const _map = new Map<string, {el: HTMLLIElement, device: $Device}>()
 async function devicesUpdate(list: $Device[]){
-  console.log("接受到了额消息222")
-  const ul = document.querySelector('ul')
+  const ul = document.querySelector('.list_container');
+    
   if(ul === null) throw new Error('ul === null');
   
   // 从 已有的中间删除
@@ -21,26 +33,23 @@ async function devicesUpdate(list: $Device[]){
   // })
 
   // 添加新的
-  const fragment = document.createDocumentFragment()
   list.forEach(device => {
     if(_map.has(device.deviceId)){
       return;
     }
-    const li = document.createElement('li')
-    li.innerText = `${device.deviceName}`
-    li.classList.add('option')
+    const li = createListItem(device.deviceName, "未连接");
     li.addEventListener('click', async () => {
       ;(mainApis as any).deviceSelected(device);
       Array.from(_map.values()).forEach(oldDevice => {
-        oldDevice.el.classList.remove('active')
+        oldDevice.el.classList.remove('selected')
       })
-      li.classList.add('active')
+      li.classList.add('connecting')
     })
-    fragment.appendChild(li)
     // 添加
     _map.set(device.deviceId, {el: li, device: device})
+    ul.appendChild(li)
   })
-  ul.appendChild(fragment)
+  
 }
 
 export const APIS = {
