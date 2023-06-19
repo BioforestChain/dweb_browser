@@ -9,7 +9,7 @@ import SwiftUI
 
 struct HalfSheetPresentView<SheetView: View>: UIViewControllerRepresentable {
     @Binding var showSheet: Bool
-    var sheetView: ()-> SheetView
+    var sheetView: SheetView
     let controller = UIViewController()
     
     func makeUIViewController(context: Context) -> UIViewController {
@@ -18,7 +18,7 @@ struct HalfSheetPresentView<SheetView: View>: UIViewControllerRepresentable {
     
     func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
         if showSheet {
-            let sheetController = CustomHostingController(rootView: sheetView())
+            let sheetController = CustomHostingController(rootView: sheetView)
             sheetController.presentationController?.delegate = context.coordinator
             uiViewController.present(sheetController, animated: true)
         } else {

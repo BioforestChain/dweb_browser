@@ -24,7 +24,6 @@ let websites = [
 class WebCache: ObservableObject, Identifiable, Hashable, Codable, Equatable{
     enum CodingKeys: String, CodingKey {
         case id
-//        case showWeb
         case webIconUrl
         case lastVisitedUrl
         case title
@@ -32,26 +31,13 @@ class WebCache: ObservableObject, Identifiable, Hashable, Codable, Equatable{
     }
     
     public var id = UUID()
-    
-    private var _showWeb: Bool = false           // show webview or homeview
-    var showWebPublisher = PassthroughSubject<Bool, Never>()
-    var showWeb:Bool{
-        set{
-            _showWeb = newValue
-            showWebPublisher.send(newValue)
-        }
-        get{
-            return _showWeb
-        }
+    var shouldShowWeb: Bool{
+        lastVisitedUrl != emptyURL
     }
     
     @Published var webIconUrl: URL            // url to the source of somewhere in internet
     @Published var lastVisitedUrl: URL     //the website that user has opened on webview
-    {
-        didSet{
-            updateShowWeb()
-        }
-    }
+
     
     @Published var title: String            // page title
     @Published var snapshotUrl: URL           //local file path is direct to the image has saved in document dir
@@ -61,32 +47,25 @@ class WebCache: ObservableObject, Identifiable, Hashable, Codable, Equatable{
         }
     }
     
-    private func updateShowWeb() {
-        showWeb = lastVisitedUrl == testURL
-    }
-    
-    public init(icon: URL = URL.defaultWebIconURL, showWeb: Bool = false, lastVisitedUrl: URL = testURL, title: String = "", snapshotUrl: URL = URL.defaultSnapshotURL) {
+    public init(icon: URL = URL.defaultWebIconURL, showWeb: Bool = false, lastVisitedUrl: URL = emptyURL, title: String = "", snapshotUrl: URL = URL.defaultSnapshotURL) {
         self.webIconUrl = icon
         self.lastVisitedUrl = lastVisitedUrl
         self.title = title
         self.snapshotUrl = snapshotUrl
-        self.showWeb = lastVisitedUrl != testURL
     }
     
     required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(UUID.self, forKey: .id)
         webIconUrl = try container.decodeIfPresent(URL.self, forKey: .webIconUrl) ?? URL.defaultWebIconURL
-        lastVisitedUrl = try container.decodeIfPresent(URL.self, forKey: .lastVisitedUrl) ?? testURL
+        lastVisitedUrl = try container.decodeIfPresent(URL.self, forKey: .lastVisitedUrl) ?? emptyURL
         title = try container.decode(String.self, forKey: .title)
         snapshotUrl = try container.decodeIfPresent(URL.self, forKey: .snapshotUrl) ?? URL.defaultSnapshotURL
-//        showWeb = try container.decodeIfPresent(Bool.self, forKey: .showWeb) ?? (lastVisitedUrl != testURL)
     }
     
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(id, forKey: .id)
-//        try container.encode(showWeb, forKey: .showWeb)
         try container.encodeIfPresent(webIconUrl, forKey: .webIconUrl)
         try container.encodeIfPresent(lastVisitedUrl, forKey: .lastVisitedUrl)
         try container.encode(title, forKey: .title)
@@ -98,9 +77,7 @@ class WebCache: ObservableObject, Identifiable, Hashable, Codable, Equatable{
         lhs.webIconUrl == rhs.webIconUrl &&
         lhs.lastVisitedUrl == rhs.lastVisitedUrl &&
         lhs.title == rhs.title &&
-        lhs.snapshotUrl == rhs.snapshotUrl &&
-        lhs.showWeb == rhs.showWeb
-
+        lhs.snapshotUrl == rhs.snapshotUrl
     }
     
     public func hash(into hasher: inout Hasher) {
@@ -109,11 +86,10 @@ class WebCache: ObservableObject, Identifiable, Hashable, Codable, Equatable{
         hasher.combine(lastVisitedUrl)
         hasher.combine(title)
         hasher.combine(snapshotUrl)
-        hasher.combine(showWeb)
     }
     
     static var example: WebCache{
-        WebCache(lastVisitedUrl: URL(string: "https://www.apple.com")!, title: "2")
+        WebCache(lastVisitedUrl: URL(string: "https://www.apple.com")!, title: "apple")
     }
 }
 
@@ -155,7 +131,7 @@ class WebCacheMgr: ObservableObject{
         }
         if store.count == 0 {
             store = [
-                WebCache(lastVisitedUrl: testURL, title: "1"),
+                WebCache(lastVisitedUrl: emptyURL, title: "blank"),
                 WebCache(lastVisitedUrl: URL(string: "https://www.apple.com")!, title: "2"),
                 WebCache(lastVisitedUrl: URL(string: "https://www.163.com")!, title: "3"),
                 WebCache(lastVisitedUrl: URL(string: "https://www.douban.com")!, title: "4"),

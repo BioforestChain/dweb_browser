@@ -12,7 +12,7 @@ struct BrowserView: View {
     @StateObject var selectedTab = SelectedTab()
     @StateObject var addressBar = AddressBarState()
     @StateObject var openingLink = OpeningLink()
-    @StateObject private var showSheet = ShowSheet()
+    @StateObject var showSheet = ShowSheet()
     @EnvironmentObject var toolBar: ToolBarState
     var body: some View {
         ZStack{
@@ -27,6 +27,7 @@ struct BrowserView: View {
                     }
                     AddressBarHStack()
                     ToolbarView()
+
                 }
                 .background(Color.bkColor)
                 .environmentObject(openingLink)
@@ -36,12 +37,12 @@ struct BrowserView: View {
                 
                 .background(
                     HalfSheetPresentView( showSheet: $showSheet.should, sheetView: {
-                            SheetSegmentView()
+                        SheetSegmentView()
                             .padding(.top, 28)
-                                .environmentObject(selectedTab)
-                                .environmentObject(openingLink)
-                                .environmentObject(showSheet)
-                    })
+                            .environmentObject(selectedTab)
+                            .environmentObject(openingLink)
+                            .environmentObject(showSheet)
+                    }())
                 )
             }
         }

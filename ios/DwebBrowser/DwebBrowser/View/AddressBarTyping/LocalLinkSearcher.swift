@@ -16,7 +16,7 @@ struct LinkRecord: Hashable, Codable, Identifiable {
     var sectionTime: String = ""
     var id = UUID()
     
-    init(link: String = testLink, imageName: String = "defimage", title: String = "test link", createdDate: Int64 = currentTime64, sectionTime: String = "") {
+    init(link: String = emptyLink, imageName: String = "defimage", title: String = "test link", createdDate: Int64 = currentTime64, sectionTime: String = "") {
         self.link = link
         self.websiteIcon = imageName
         self.title = title

@@ -60,6 +60,7 @@ struct ToolbarView: View {
                 }
             }
             .frame(height: toolbarHeight)
+            .background(Color.bkColor)
             .onChange(of: selectedTab.curIndex, perform: { index in
                 let currentWrapper = wrapperMgr.store[index]
                 toolbarState.canGoBack = currentWrapper.canGoBack
@@ -94,6 +95,7 @@ struct ToolbarView: View {
                     .frame(width: 25)
             }
             .frame(height: toolbarHeight)
+            .background(Color.bkColor)
         }
     }
 }

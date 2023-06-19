@@ -21,8 +21,9 @@ let addressBarH: CGFloat = 60
 let gridcellCornerR: CGFloat = 10
 let gridcellBottomH: CGFloat = 35
 
-let testLink = "https://www.hackingwithswift.com/quick-start"
-let testURL = URL(string: testLink)!
+let emptyLink = "https://http.cat/404"
+let emptyURL = URL(string: emptyLink)!
+//let emptyURL = URL(string: "")
 
 let gridVSpace: CGFloat = 20.0
 let gridHSpace: CGFloat = 18.0

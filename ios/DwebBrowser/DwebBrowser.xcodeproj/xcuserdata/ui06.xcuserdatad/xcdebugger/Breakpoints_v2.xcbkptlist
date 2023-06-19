@@ -8,7 +8,7 @@
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
             uuid = "1051D99A-3584-440C-81B1-2061E8528005"
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "DwebBrowser/Example/webViewRedrawView.swift"
@@ -24,7 +24,7 @@
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
             uuid = "E3CB977F-7CC1-4A01-8E5D-F105ECBB90E1"
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "DwebBrowser/Example/webViewRedrawView.swift"
@@ -40,7 +40,7 @@
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
             uuid = "24D2316E-0D7C-45B7-8FFA-7086828FE55A"
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "DwebBrowser/Example/webViewRedrawView.swift"
@@ -136,7 +136,7 @@
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
             uuid = "61ED948A-CF09-4E9F-890E-0B0D7903786F"
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "../../../../../Library/Developer/Xcode/DerivedData/DwebBrowser-bhrkkewsbitefregqrtdwyawjzzy/SourcePackages/checkouts/QGrid/Sources/QGrid/QGrid.swift"
@@ -152,7 +152,7 @@
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
             uuid = "74BEC602-0D99-49DF-AE36-EEF9377AEE43"
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "DwebBrowser/MainContainer/TabsCollectionView.swift"
@@ -551,7 +551,7 @@
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
             uuid = "865A34F8-F233-44D7-994A-7AE0608D218F"
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "DwebBrowser/MainContainer/WebPreViewGrid.swift"
@@ -583,7 +583,7 @@
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
             uuid = "DE1F5BCB-96BD-4A0D-80E8-C097BAEBC26D"
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "DwebBrowser/Helper/View+AnimationObserver.swift"
@@ -599,7 +599,7 @@
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
             uuid = "2D446297-64F8-4934-AD5B-64FD841ABB35"
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "DwebBrowser/Helper/View+AnimationObserver.swift"
@@ -631,7 +631,7 @@
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
             uuid = "5696C466-7097-45F0-A3AD-F1E8AE7A2044"
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "DwebBrowser/Helper/View+AnimationObserver.swift"
@@ -647,7 +647,7 @@
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
             uuid = "44E5F167-D502-41E8-B3E1-DD4F30511988"
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "DwebBrowser/Helper/ImageManager.swift"
@@ -662,22 +662,6 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "D00EC153-AE5E-4BB2-8422-B333A6E455A0"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "DwebBrowser/ViewModel/WebCache.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "56"
-            endingLineNumber = "56"
-            landmarkName = "encode(to:)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
             uuid = "82213B7D-12F2-4C91-979C-697DDB2A6748"
             shouldBeEnabled = "No"
             ignoreCount = "0"
@@ -685,25 +669,9 @@
             filePath = "DwebBrowser/ViewModel/WebCache.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "88"
-            endingLineNumber = "88"
+            startingLineNumber = "95"
+            endingLineNumber = "95"
             landmarkName = "saveCaches(caches:)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "9C806C68-5A16-4C98-8A07-B8D0DA31CD4D"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "DwebBrowser/Helper/UIImage+Cache.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "18"
-            endingLineNumber = "18"
-            landmarkName = "createLocalUrl(withImage:imageName:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -717,8 +685,8 @@
             filePath = "DwebBrowser/ViewModel/WebCache.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "95"
-            endingLineNumber = "95"
+            startingLineNumber = "102"
+            endingLineNumber = "102"
             landmarkName = "loadCaches()"
             landmarkType = "7">
          </BreakpointContent>
@@ -733,58 +701,10 @@
             filePath = "DwebBrowser/View/ToolbarView.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "95"
-            endingLineNumber = "95"
+            startingLineNumber = "91"
+            endingLineNumber = "91"
             landmarkName = "body"
             landmarkType = "24">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "BB97A515-7EDF-493A-B94C-87743A9B6383"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "DwebBrowser/ViewModel/BrowerVM.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "75"
-            endingLineNumber = "75"
-            landmarkName = "saveCaches()"
-            landmarkType = "7">
-            <Locations>
-               <Location
-                  uuid = "BB97A515-7EDF-493A-B94C-87743A9B6383 - d61d98510632505f"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "DwebBrowser.BrowerVM.saveCaches() -&gt; ()"
-                  moduleName = "DwebBrowser"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/ViewModel/BrowerVM.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "84"
-                  endingLineNumber = "84"
-                  offsetFromSymbolStart = "39">
-               </Location>
-               <Location
-                  uuid = "BB97A515-7EDF-493A-B94C-87743A9B6383 - c75bf588ff413477"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "closure #1 (DwebBrowser.Page) -&gt; DwebBrowser.WebCache in DwebBrowser.BrowerVM.saveCaches() -&gt; ()"
-                  moduleName = "DwebBrowser"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/ViewModel/BrowerVM.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "84"
-                  endingLineNumber = "84"
-                  offsetFromSymbolStart = "33">
-               </Location>
-            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -806,102 +726,6 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "2CA8E9FA-F580-4EE2-95A4-8E61CCBD9B40"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "DwebBrowser/ViewModel/BrowerVM.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "66"
-            endingLineNumber = "66"
-            landmarkName = "addCapturedImageSubscriber()"
-            landmarkType = "7">
-            <Locations>
-               <Location
-                  uuid = "2CA8E9FA-F580-4EE2-95A4-8E61CCBD9B40 - c479403c5a7e0b86"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "DwebBrowser.BrowerVM.addCapturedImageSubscriber() -&gt; ()"
-                  moduleName = "DwebBrowser"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/ViewModel/BrowerVM.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "75"
-                  endingLineNumber = "75"
-                  offsetFromSymbolStart = "130">
-               </Location>
-               <Location
-                  uuid = "2CA8E9FA-F580-4EE2-95A4-8E61CCBD9B40 - d15317ca720592ba"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "closure #1 (Swift.Optional&lt;__C.UIImage&gt;) -&gt; () in DwebBrowser.BrowerVM.addCapturedImageSubscriber() -&gt; ()"
-                  moduleName = "DwebBrowser"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/ViewModel/BrowerVM.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "75"
-                  endingLineNumber = "75"
-                  offsetFromSymbolStart = "85">
-               </Location>
-            </Locations>
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "034F6FF6-F0B9-450A-860D-689CE24EA807"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "DwebBrowser/ViewModel/BrowerVM.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "67"
-            endingLineNumber = "67"
-            landmarkName = "addCapturedImageSubscriber()"
-            landmarkType = "7">
-            <Locations>
-               <Location
-                  uuid = "034F6FF6-F0B9-450A-860D-689CE24EA807 - d15317ca72059299"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "closure #1 (Swift.Optional&lt;__C.UIImage&gt;) -&gt; () in DwebBrowser.BrowerVM.addCapturedImageSubscriber() -&gt; ()"
-                  moduleName = "DwebBrowser"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/ViewModel/BrowerVM.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "76"
-                  endingLineNumber = "76"
-                  offsetFromSymbolStart = "97">
-               </Location>
-               <Location
-                  uuid = "034F6FF6-F0B9-450A-860D-689CE24EA807 - d15317ca72059299"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "closure #1 (Swift.Optional&lt;__C.UIImage&gt;) -&gt; () in DwebBrowser.BrowerVM.addCapturedImageSubscriber() -&gt; ()"
-                  moduleName = "DwebBrowser"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/ViewModel/BrowerVM.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "76"
-                  endingLineNumber = "76"
-                  offsetFromSymbolStart = "123">
-               </Location>
-            </Locations>
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
             uuid = "87DA5C02-422E-40D6-935E-E38BB5B039CD"
             shouldBeEnabled = "No"
             ignoreCount = "0"
@@ -909,8 +733,8 @@
             filePath = "DwebBrowser/Helper/UIImage+Cache.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "48"
-            endingLineNumber = "48"
+            startingLineNumber = "63"
+            endingLineNumber = "63"
             landmarkName = "snapshotImage(from:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -918,31 +742,15 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "AFBFDAEA-C5C0-4D68-AB9B-87F93C9A5A99"
+            uuid = "166C07EF-CD79-467C-AC54-A41ECD09E4DB"
             shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "DwebBrowser/ViewModel/BrowerVM.swift"
+            filePath = "DwebBrowser/Example/CheckCellInGrid.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "56"
-            endingLineNumber = "56"
-            landmarkName = "init()"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "07FEE0BE-D8DE-4A48-981D-12D8BB72C518"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "DwebBrowser/View/Tabs/TabsContainerView.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "196"
-            endingLineNumber = "196"
+            startingLineNumber = "19"
+            endingLineNumber = "19"
             landmarkName = "body"
             landmarkType = "24">
          </BreakpointContent>
@@ -950,23 +758,215 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "39DAEC7F-15E5-4DEB-8F34-9C2B0C86DC91"
+            uuid = "F5F0B182-1FFA-4457-B218-B7CF08799764"
             shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "DwebBrowser/ViewModel/WebCache.swift"
+            filePath = "DwebBrowser/View/Tabs/TabsContainerView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "206"
+            endingLineNumber = "206"
+            landmarkName = "body"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "DB7DF8B2-2DBB-4EB5-B703-BAB1F73A3BCA"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/Tabs/WebPreViewGrid.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "83"
+            endingLineNumber = "83"
+            landmarkName = "body"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "5C547A37-9BB7-4090-8E10-0D01CFA2D590"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/Helper/View+snapshot.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "52"
             endingLineNumber = "52"
-            landmarkName = "init(from:)"
+            landmarkName = "snapshot()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "C6462888-295C-4B7D-8261-A422543EC920"
+            uuid = "A45AAB6C-BCAE-4A87-8F79-ADD3CFF74E03"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/ViewModel/WebCache.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "100"
+            endingLineNumber = "100"
+            landmarkName = "loadCaches()"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  uuid = "A45AAB6C-BCAE-4A87-8F79-ADD3CFF74E03 - 9c48806c99350e5"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DwebBrowser.WebCacheStore.loadCaches() -&gt; ()"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/ViewModel/WebCache.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "93"
+                  endingLineNumber = "93"
+                  offsetFromSymbolStart = "237">
+               </Location>
+               <Location
+                  uuid = "A45AAB6C-BCAE-4A87-8F79-ADD3CFF74E03 - 9c48806c99350e5"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DwebBrowser.WebCacheStore.loadCaches() -&gt; ()"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/ViewModel/WebCache.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "93"
+                  endingLineNumber = "93"
+                  offsetFromSymbolStart = "419">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "DC0054D2-D9B6-4EBC-B480-D585B6F982C3"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/Tabs/WebPreViewGrid.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "161"
+            endingLineNumber = "161"
+            landmarkName = "updateIcon()"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  uuid = "DC0054D2-D9B6-4EBC-B480-D585B6F982C3 - a97b227c9e21f77f"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DwebBrowser.GridCell.updateIcon() -&gt; ()"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/View/Tabs/WebPreViewGrid.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "149"
+                  endingLineNumber = "149"
+                  offsetFromSymbolStart = "181">
+               </Location>
+               <Location
+                  uuid = "DC0054D2-D9B6-4EBC-B480-D585B6F982C3 - 7423d87a02f8748c"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 (Foundation.URL) -&gt; () in DwebBrowser.GridCell.updateIcon() -&gt; ()"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/View/Tabs/WebPreViewGrid.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "150"
+                  endingLineNumber = "150"
+                  offsetFromSymbolStart = "163">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "38B40A4E-8FC2-44DA-AD80-2AF8194ECA88"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/Tabs/WebPreViewGrid.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "162"
+            endingLineNumber = "162"
+            landmarkName = "updateIcon()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "41BF8A89-7DFB-4111-A948-6EE799FF467A"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/ViewModel/WebCache.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "88"
+            endingLineNumber = "88"
+            landmarkName = "remove(webCache:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "3FA7E470-4001-4C6C-9685-81F41A17009A"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/Tabs/WebView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "86"
+            endingLineNumber = "86"
+            landmarkName = "makeUIView(context:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "FB0A3CD0-F9F5-42BF-86AD-1FAFC22293CC"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/Example/MultipleWebView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "42"
+            endingLineNumber = "42"
+            landmarkName = "makeUIView(context:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "68F11CD3-9971-4176-940B-D04CB2BA8821"
             shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
@@ -982,127 +982,198 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "DE48CE86-A3BE-41E5-AE47-B2F47AE7D7A4"
+            uuid = "72B03D83-D842-4AB2-ADBB-A55CF5134C3C"
             shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "DwebBrowser/View/Tabs/TabsContainerView.swift"
+            filePath = "DwebBrowser/ViewModel/WebCache.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "89"
-            endingLineNumber = "89"
-            landmarkName = "body"
-            landmarkType = "24">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "D0A491B4-E919-4A53-BC34-8D4D65662D07"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "DwebBrowser/View/Tabs/TabsContainerView.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "85"
-            endingLineNumber = "85"
-            landmarkName = "body"
-            landmarkType = "24">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "DA8D8941-BC7A-4951-8E4D-D93EF1355964"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "DwebBrowser/View/Tabs/TabsContainerView.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "81"
-            endingLineNumber = "81"
-            landmarkName = "body"
-            landmarkType = "24">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "574596A5-BB73-41E3-93DA-11650A428148"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "DwebBrowser/View/Tabs/TabsContainerView.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "76"
-            endingLineNumber = "76"
-            landmarkName = "body"
-            landmarkType = "24">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "37A7F3DC-4F81-4632-A05E-3B9A6EBEDF67"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "DwebBrowser/Helper/PagingScroll.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "55"
-            endingLineNumber = "55"
-            landmarkName = "scrollViewDidEndDecelerating(_:)"
+            startingLineNumber = "52"
+            endingLineNumber = "52"
+            landmarkName = "init(from:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "D7FBD268-D646-4F23-906F-67394A70A275"
+            uuid = "0CE84330-4B77-4A8B-AFE0-3C01DCBA1D87"
             shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "DwebBrowser/Helper/PagingScroll.swift"
+            filePath = "DwebBrowser/ViewModel/WebViewVM.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "29"
-            endingLineNumber = "29"
-            landmarkName = "updateUIView(_:context:)"
-            landmarkType = "7">
+            startingLineNumber = "21"
+            endingLineNumber = "21"
+            landmarkName = "WebWrapperManager"
+            landmarkType = "3">
             <Locations>
                <Location
-                  uuid = "D7FBD268-D646-4F23-906F-67394A70A275 - 18881cb56f6fac9"
+                  uuid = "0CE84330-4B77-4A8B-AFE0-3C01DCBA1D87 - 84ee4f39ef93d66e"
                   shouldBeEnabled = "Yes"
                   ignoreCount = "0"
                   continueAfterRunningActions = "No"
-                  symbolName = "DwebBrowser.PagingScroll.updateUIView(_: __C.UIScrollView, context: SwiftUI.UIViewRepresentableContext&lt;DwebBrowser.PagingScroll&lt;&#x3c4;_0_0&gt;&gt;) -&gt; ()"
+                  symbolName = "property wrapper backing initializer of DwebBrowser.WebWrapperManager.wrapperStore : Swift.Array&lt;DwebBrowser.WebWrapper&gt;"
                   moduleName = "DwebBrowser"
                   usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/Helper/PagingScroll.swift"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/ViewModel/WebViewVM.swift"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "28"
-                  endingLineNumber = "28"
-                  offsetFromSymbolStart = "219">
+                  startingLineNumber = "21"
+                  endingLineNumber = "21"
+                  offsetFromSymbolStart = "28">
                </Location>
                <Location
-                  uuid = "D7FBD268-D646-4F23-906F-67394A70A275 - 1fadc3a277cc0f5a"
+                  uuid = "0CE84330-4B77-4A8B-AFE0-3C01DCBA1D87 - ddd17dd705d91f81"
                   shouldBeEnabled = "Yes"
                   ignoreCount = "0"
                   continueAfterRunningActions = "No"
-                  symbolName = "closure #1 (__C.UIView) -&gt; () in DwebBrowser.PagingScroll.updateUIView(_: __C.UIScrollView, context: SwiftUI.UIViewRepresentableContext&lt;DwebBrowser.PagingScroll&lt;&#x3c4;_0_0&gt;&gt;) -&gt; ()"
+                  symbolName = "DwebBrowser.WebWrapperManager.wrapperStore.getter : Swift.Array&lt;DwebBrowser.WebWrapper&gt;"
                   moduleName = "DwebBrowser"
                   usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/Helper/PagingScroll.swift"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/ViewModel/WebViewVM.swift"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "28"
-                  endingLineNumber = "28"
-                  offsetFromSymbolStart = "27">
+                  startingLineNumber = "21"
+                  endingLineNumber = "21"
+                  offsetFromSymbolStart = "96">
+               </Location>
+               <Location
+                  uuid = "0CE84330-4B77-4A8B-AFE0-3C01DCBA1D87 - 7f4e2773f98f13bd"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DwebBrowser.WebWrapperManager.wrapperStore.setter : Swift.Array&lt;DwebBrowser.WebWrapper&gt;"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/ViewModel/WebViewVM.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "21"
+                  endingLineNumber = "21"
+                  offsetFromSymbolStart = "126">
+               </Location>
+               <Location
+                  uuid = "0CE84330-4B77-4A8B-AFE0-3C01DCBA1D87 - cafce879c97f8e82"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DwebBrowser.WebWrapperManager.wrapperStore.modify : Swift.Array&lt;DwebBrowser.WebWrapper&gt;"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/ViewModel/WebViewVM.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "21"
+                  endingLineNumber = "21"
+                  offsetFromSymbolStart = "0">
+               </Location>
+               <Location
+                  uuid = "0CE84330-4B77-4A8B-AFE0-3C01DCBA1D87 - bd3b14c0a9dc2509"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DwebBrowser.WebWrapperManager.wrapperStore.modify : Swift.Array&lt;DwebBrowser.WebWrapper&gt; with unmangled suffix &quot;.resume.0&quot;"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/ViewModel/WebViewVM.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "21"
+                  endingLineNumber = "21"
+                  offsetFromSymbolStart = "18">
+               </Location>
+               <Location
+                  uuid = "0CE84330-4B77-4A8B-AFE0-3C01DCBA1D87 - 3927c41276f54dd2"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 (DwebBrowser.WebCache) -&gt; DwebBrowser.WebWrapper in variable initialization expression of DwebBrowser.WebWrapperManager._wrapperStore : Combine.Published&lt;Swift.Array&lt;DwebBrowser.WebWrapper&gt;&gt;"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/ViewModel/WebViewVM.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "21"
+                  endingLineNumber = "21"
+                  offsetFromSymbolStart = "90">
+               </Location>
+               <Location
+                  uuid = "0CE84330-4B77-4A8B-AFE0-3C01DCBA1D87 - b0f0bb19dbc22d94"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DwebBrowser.WebWrapperManager.$wrapperStore.getter : Combine.Published&lt;Swift.Array&lt;DwebBrowser.WebWrapper&gt;&gt;.Publisher"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/ViewModel/WebViewVM.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "21"
+                  endingLineNumber = "21"
+                  offsetFromSymbolStart = "94">
+               </Location>
+               <Location
+                  uuid = "0CE84330-4B77-4A8B-AFE0-3C01DCBA1D87 - fada3c26fcbdc980"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DwebBrowser.WebWrapperManager.$wrapperStore.setter : Combine.Published&lt;Swift.Array&lt;DwebBrowser.WebWrapper&gt;&gt;.Publisher"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/ViewModel/WebViewVM.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "21"
+                  endingLineNumber = "21"
+                  offsetFromSymbolStart = "180">
+               </Location>
+               <Location
+                  uuid = "0CE84330-4B77-4A8B-AFE0-3C01DCBA1D87 - e1ac168dd2f67983"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DwebBrowser.WebWrapperManager.$wrapperStore.modify : Combine.Published&lt;Swift.Array&lt;DwebBrowser.WebWrapper&gt;&gt;.Publisher"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/%3Ccompiler-generated%3E"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "0"
+                  endingLineNumber = "0"
+                  offsetFromSymbolStart = "44">
+               </Location>
+               <Location
+                  uuid = "0CE84330-4B77-4A8B-AFE0-3C01DCBA1D87 - f631c0181ec7f3df"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DwebBrowser.WebWrapperManager.$wrapperStore.modify : Combine.Published&lt;Swift.Array&lt;DwebBrowser.WebWrapper&gt;&gt;.Publisher with unmangled suffix &quot;.resume.0&quot;"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/ViewModel/WebViewVM.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "21"
+                  endingLineNumber = "21"
+                  offsetFromSymbolStart = "20">
+               </Location>
+               <Location
+                  uuid = "0CE84330-4B77-4A8B-AFE0-3C01DCBA1D87 - d51f962163ef21b8"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DwebBrowser.WebWrapperManager.() -&gt; DwebBrowser.WebWrapperManager.init() -&gt; DwebBrowser.WebWrapperManager"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/ViewModel/WebViewVM.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "21"
+                  endingLineNumber = "21"
+                  offsetFromSymbolStart = "85">
                </Location>
             </Locations>
          </BreakpointContent>
@@ -1110,16 +1181,1988 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "166C07EF-CD79-467C-AC54-A41ECD09E4DB"
-            shouldBeEnabled = "Yes"
+            uuid = "BCC5766A-F5F7-4832-B026-98DDBE0B5E87"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "DwebBrowser/Example/CheckCellInGrid.swift"
+            filePath = "DwebBrowser/ViewModel/WebView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "23"
+            endingLineNumber = "23"
+            landmarkName = "init(cacheID:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "03BFE6E5-08B9-440A-8A89-391BA3FB07B2"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/ViewModel/WebViewVM.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "32"
+            endingLineNumber = "32"
+            landmarkName = "WebWrapperManager"
+            landmarkType = "3">
+            <Locations>
+               <Location
+                  uuid = "03BFE6E5-08B9-440A-8A89-391BA3FB07B2 - f4dd684edaa59e80"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DwebBrowser.WebWrapperManager.__allocating_init() -&gt; DwebBrowser.WebWrapperManager"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/ViewModel/WebViewVM.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "0"
+                  endingLineNumber = "0"
+                  offsetFromSymbolStart = "10">
+               </Location>
+               <Location
+                  uuid = "03BFE6E5-08B9-440A-8A89-391BA3FB07B2 - d51f962163ef21b8"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DwebBrowser.WebWrapperManager.() -&gt; DwebBrowser.WebWrapperManager.init() -&gt; DwebBrowser.WebWrapperManager"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/ViewModel/WebViewVM.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "21"
+                  endingLineNumber = "21"
+                  offsetFromSymbolStart = "85">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "9476713A-259F-4C5A-BEAE-4F565C6B5149"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/ViewModel/WebViewVM.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "24"
+            endingLineNumber = "24"
+            landmarkName = "webWrapper(of:)"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  uuid = "9476713A-259F-4C5A-BEAE-4F565C6B5149 - 9911c42c22a2a153"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DwebBrowser.WebWrapperManager.webWrapper(of: Foundation.UUID) -&gt; DwebBrowser.WebWrapper"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/ViewModel/WebViewVM.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "24"
+                  endingLineNumber = "24"
+                  offsetFromSymbolStart = "161">
+               </Location>
+               <Location
+                  uuid = "9476713A-259F-4C5A-BEAE-4F565C6B5149 - 4ce4f926512ea93c"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 (DwebBrowser.WebWrapper) -&gt; Swift.Bool in DwebBrowser.WebWrapperManager.webWrapper(of: Foundation.UUID) -&gt; DwebBrowser.WebWrapper"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/ViewModel/WebViewVM.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "24"
+                  endingLineNumber = "24"
+                  offsetFromSymbolStart = "103">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "1AD3D018-FBE2-46ED-9218-0A43AD732A1D"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/ViewModel/WebWrapper.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "11"
+            endingLineNumber = "11"
+            landmarkName = "webView"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "172359A4-6651-41F8-870C-70B65C671341"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/ViewModel/WebWrapperManager.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "30"
+            endingLineNumber = "30"
+            landmarkName = "init()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "10603D2C-B065-4548-A72A-1E3E9AC054E1"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/ViewModel/WebWrapperManager.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "17"
+            endingLineNumber = "17"
+            landmarkName = "WebWrapperMgr"
+            landmarkType = "3">
+            <Locations>
+               <Location
+                  uuid = "10603D2C-B065-4548-A72A-1E3E9AC054E1 - 2df97bd17644807f"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "property wrapper backing initializer of DwebBrowser.WebWrapperManager.wrapperStore : Swift.Array&lt;DwebBrowser.WebWrapper&gt;"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/ViewModel/WebWrapperManager.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "25"
+                  endingLineNumber = "25"
+                  offsetFromSymbolStart = "28">
+               </Location>
+               <Location
+                  uuid = "10603D2C-B065-4548-A72A-1E3E9AC054E1 - 74c6493f9c0e4990"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DwebBrowser.WebWrapperManager.wrapperStore.getter : Swift.Array&lt;DwebBrowser.WebWrapper&gt;"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/ViewModel/WebWrapperManager.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "25"
+                  endingLineNumber = "25"
+                  offsetFromSymbolStart = "96">
+               </Location>
+               <Location
+                  uuid = "10603D2C-B065-4548-A72A-1E3E9AC054E1 - d659139b605845ac"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DwebBrowser.WebWrapperManager.wrapperStore.setter : Swift.Array&lt;DwebBrowser.WebWrapper&gt;"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/ViewModel/WebWrapperManager.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "25"
+                  endingLineNumber = "25"
+                  offsetFromSymbolStart = "126">
+               </Location>
+               <Location
+                  uuid = "10603D2C-B065-4548-A72A-1E3E9AC054E1 - 63ebdc9150a8d893"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DwebBrowser.WebWrapperManager.wrapperStore.modify : Swift.Array&lt;DwebBrowser.WebWrapper&gt;"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/ViewModel/WebWrapperManager.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "25"
+                  endingLineNumber = "25"
+                  offsetFromSymbolStart = "0">
+               </Location>
+               <Location
+                  uuid = "10603D2C-B065-4548-A72A-1E3E9AC054E1 - 142c2028300b7318"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DwebBrowser.WebWrapperManager.wrapperStore.modify : Swift.Array&lt;DwebBrowser.WebWrapper&gt; with unmangled suffix &quot;.resume.0&quot;"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/ViewModel/WebWrapperManager.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "25"
+                  endingLineNumber = "25"
+                  offsetFromSymbolStart = "18">
+               </Location>
+               <Location
+                  uuid = "10603D2C-B065-4548-A72A-1E3E9AC054E1 - 19e78ff142157b85"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DwebBrowser.WebWrapperManager.$wrapperStore.getter : Combine.Published&lt;Swift.Array&lt;DwebBrowser.WebWrapper&gt;&gt;.Publisher"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/ViewModel/WebWrapperManager.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "25"
+                  endingLineNumber = "25"
+                  offsetFromSymbolStart = "94">
+               </Location>
+               <Location
+                  uuid = "10603D2C-B065-4548-A72A-1E3E9AC054E1 - 53cd08ce656a9f91"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DwebBrowser.WebWrapperManager.$wrapperStore.setter : Combine.Published&lt;Swift.Array&lt;DwebBrowser.WebWrapper&gt;&gt;.Publisher"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/ViewModel/WebWrapperManager.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "25"
+                  endingLineNumber = "25"
+                  offsetFromSymbolStart = "180">
+               </Location>
+               <Location
+                  uuid = "10603D2C-B065-4548-A72A-1E3E9AC054E1 - e1ac168dd2f67983"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DwebBrowser.WebWrapperManager.$wrapperStore.modify : Combine.Published&lt;Swift.Array&lt;DwebBrowser.WebWrapper&gt;&gt;.Publisher"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/%3Ccompiler-generated%3E"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "0"
+                  endingLineNumber = "0"
+                  offsetFromSymbolStart = "44">
+               </Location>
+               <Location
+                  uuid = "10603D2C-B065-4548-A72A-1E3E9AC054E1 - 5f26f4f08710a5ce"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DwebBrowser.WebWrapperManager.$wrapperStore.modify : Combine.Published&lt;Swift.Array&lt;DwebBrowser.WebWrapper&gt;&gt;.Publisher with unmangled suffix &quot;.resume.0&quot;"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/ViewModel/WebWrapperManager.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "25"
+                  endingLineNumber = "25"
+                  offsetFromSymbolStart = "20">
+               </Location>
+               <Location
+                  uuid = "10603D2C-B065-4548-A72A-1E3E9AC054E1 - 7c08a2c9fa3877a9"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DwebBrowser.WebWrapperManager.() -&gt; DwebBrowser.WebWrapperManager.init() -&gt; DwebBrowser.WebWrapperManager"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/ViewModel/WebWrapperManager.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "25"
+                  endingLineNumber = "25"
+                  offsetFromSymbolStart = "195">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "668AA6BF-D77E-4531-A3D3-1DEA949F3450"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/ViewModel/WebWrapperManager.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "34"
+            endingLineNumber = "34"
+            landmarkName = "init()"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  uuid = "668AA6BF-D77E-4531-A3D3-1DEA949F3450 - 3bb4ba18e4e63b94"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 (Swift.Array&lt;DwebBrowser.WebCache&gt;) -&gt; () in DwebBrowser.WebWrapperManager.() -&gt; DwebBrowser.WebWrapperManager.init() -&gt; DwebBrowser.WebWrapperManager"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/ViewModel/WebWrapperManager.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "43"
+                  endingLineNumber = "43"
+                  offsetFromSymbolStart = "198">
+               </Location>
+               <Location
+                  uuid = "668AA6BF-D77E-4531-A3D3-1DEA949F3450 - 56b771f181987366"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #2 (Foundation.UUID) -&gt; DwebBrowser.WebWrapper in closure #1 (Swift.Array&lt;DwebBrowser.WebCache&gt;) -&gt; () in DwebBrowser.WebWrapperManager.() -&gt; DwebBrowser.WebWrapperManager.init() -&gt; DwebBrowser.WebWrapperManager"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/ViewModel/WebWrapperManager.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "40"
+                  endingLineNumber = "40"
+                  offsetFromSymbolStart = "125">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "A9B86BAB-9850-41D5-B38B-29A15248C13C"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/ViewModel/WebWrapperManager.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "37"
+            endingLineNumber = "37"
+            landmarkName = "init()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "8CADC799-54DC-40F5-BB8D-B27E59CB3690"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/Tabs/WebPreViewGrid.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "40"
+            endingLineNumber = "40"
+            landmarkName = "body"
+            landmarkType = "24">
+            <Locations>
+               <Location
+                  uuid = "8CADC799-54DC-40F5-BB8D-B27E59CB3690 - 9d23448f48d95ef6"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 (SwiftUI.GeometryProxy) -&gt; SwiftUI.ScrollViewReader&lt;SwiftUI.ScrollView&lt;&lt;&lt;opaque return type of SwiftUI.View.onAppear(perform: Swift.Optional&lt;() -&gt; ()&gt;) -&gt; some&gt;&gt;.0&gt;&gt; in DwebBrowser.WebPreViewGrid.body.getter : some"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/View/Tabs/WebPreViewGrid.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "41"
+                  endingLineNumber = "41"
+                  offsetFromSymbolStart = "143">
+               </Location>
+               <Location
+                  uuid = "8CADC799-54DC-40F5-BB8D-B27E59CB3690 - c619585642ac7edc"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 (SwiftUI.ScrollViewProxy) -&gt; SwiftUI.ScrollView&lt;&lt;&lt;opaque return type of SwiftUI.View.onAppear(perform: Swift.Optional&lt;() -&gt; ()&gt;) -&gt; some&gt;&gt;.0&gt; in closure #1 (SwiftUI.GeometryProxy) -&gt; SwiftUI.ScrollViewReader&lt;SwiftUI.ScrollView&lt;&lt;&lt;opaque return type of SwiftUI.View.onAppear(perform: Swift.Optional&lt;() -&gt; ()&gt;) -&gt; some&gt;&gt;.0&gt;&gt; in DwebBrowser.WebPreViewGrid.body.getter : some"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/View/Tabs/WebPreViewGrid.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "42"
+                  endingLineNumber = "42"
+                  offsetFromSymbolStart = "816">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "4A10E3C3-5A09-450E-B5E0-487C8BC61F9B"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/Tabs/WebPreViewGrid.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "45"
+            endingLineNumber = "45"
+            landmarkName = "body"
+            landmarkType = "24">
+            <Locations>
+               <Location
+                  uuid = "4A10E3C3-5A09-450E-B5E0-487C8BC61F9B - 127eafaced4e6e24"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 () -&gt; SwiftUI.ForEach&lt;Swift.Array&lt;DwebBrowser.WebCache&gt;, Foundation.UUID, &lt;&lt;opaque return type of SwiftUI.View.shadow(color: SwiftUI.Color, radius: CoreGraphics.CGFloat, x: CoreGraphics.CGFloat, y: CoreGraphics.CGFloat) -&gt; some&gt;&gt;.0&gt; in closure #1 () -&gt; &lt;&lt;opaque return type of SwiftUI.View.onAppear(perform: Swift.Optional&lt;() -&gt; ()&gt;) -&gt; some&gt;&gt;.0 in closure #1 (SwiftUI.ScrollViewProxy) -&gt; SwiftUI.ScrollView&lt;&lt;&lt;opaque return type of SwiftUI.View.onAppear(perform: Swift.Optional&lt;() -&gt; ()&gt;) -&gt; some&gt;&gt;.0&gt; in closure #1 (SwiftUI.GeometryProxy) -&gt; SwiftUI.ScrollViewReader&lt;SwiftUI.ScrollView&lt;&lt;&lt;opaque return type of SwiftUI.View.onAppear(perform: Swift.Optional&lt;() -&gt; ()&gt;) -&gt; some&gt;&gt;.0&gt;&gt; in DwebBrowser.WebPreViewGrid.body.getter : some"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/View/Tabs/WebPreViewGrid.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "45"
+                  endingLineNumber = "45"
+                  offsetFromSymbolStart = "337">
+               </Location>
+               <Location
+                  uuid = "4A10E3C3-5A09-450E-B5E0-487C8BC61F9B - e5725cacc0ae84f6"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 (DwebBrowser.WebCache) -&gt; &lt;&lt;opaque return type of SwiftUI.View.shadow(color: SwiftUI.Color, radius: CoreGraphics.CGFloat, x: CoreGraphics.CGFloat, y: CoreGraphics.CGFloat) -&gt; some&gt;&gt;.0 in closure #1 () -&gt; SwiftUI.ForEach&lt;Swift.Array&lt;DwebBrowser.WebCache&gt;, Foundation.UUID, &lt;&lt;opaque return type of SwiftUI.View.shadow(color: SwiftUI.Color, radius: CoreGraphics.CGFloat, x: CoreGraphics.CGFloat, y: CoreGraphics.CGFloat) -&gt; some&gt;&gt;.0&gt; in closure #1 () -&gt; &lt;&lt;opaque return type of SwiftUI.View.onAppear(perform: Swift.Optional&lt;() -&gt; ()&gt;) -&gt; some&gt;&gt;.0 in closure #1 (SwiftUI.ScrollViewProxy) -&gt; SwiftUI.ScrollView&lt;&lt;&lt;opaque return type of SwiftUI.View.onAppear(perform: Swift.Optional&lt;() -&gt; ()&gt;) -&gt; some&gt;&gt;.0&gt; in closure #1 (SwiftUI.GeometryProxy) -&gt; SwiftUI.ScrollViewReader&lt;SwiftUI.ScrollView&lt;&lt;&lt;opaque return type of SwiftUI.View.onAppear(perform: Swift.Optional&lt;() -&gt; ()&gt;) -&gt; some&gt;&gt;.0&gt;&gt; in DwebBrowser.WebPreViewGrid.body.getter : some"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/View/Tabs/WebPreViewGrid.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "48"
+                  endingLineNumber = "48"
+                  offsetFromSymbolStart = "645">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "36FFCA70-614F-4DE1-9698-D1E32EF86085"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/Tabs/WebPreViewGrid.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "112"
+            endingLineNumber = "112"
+            landmarkName = "GridCell"
+            landmarkType = "14">
+            <Locations>
+               <Location
+                  uuid = "36FFCA70-614F-4DE1-9698-D1E32EF86085 - d441f9cc022deb5"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "property wrapper backing initializer of DwebBrowser.GridCell.webCache : DwebBrowser.WebCache"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/View/Tabs/WebPreViewGrid.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "111"
+                  endingLineNumber = "111"
+                  offsetFromSymbolStart = "24">
+               </Location>
+               <Location
+                  uuid = "36FFCA70-614F-4DE1-9698-D1E32EF86085 - a146402fe33ddddf"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DwebBrowser.GridCell.webCache.getter : DwebBrowser.WebCache"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/View/Tabs/WebPreViewGrid.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "111"
+                  endingLineNumber = "111"
+                  offsetFromSymbolStart = "37">
+               </Location>
+               <Location
+                  uuid = "36FFCA70-614F-4DE1-9698-D1E32EF86085 - 926ff785e5f36dcb"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DwebBrowser.GridCell.webCache.setter : DwebBrowser.WebCache"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/View/Tabs/WebPreViewGrid.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "111"
+                  endingLineNumber = "111"
+                  offsetFromSymbolStart = "62">
+               </Location>
+               <Location
+                  uuid = "36FFCA70-614F-4DE1-9698-D1E32EF86085 - fbf19020149091da"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DwebBrowser.GridCell.webCache.modify : DwebBrowser.WebCache"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/View/Tabs/WebPreViewGrid.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "111"
+                  endingLineNumber = "111"
+                  offsetFromSymbolStart = "0">
+               </Location>
+               <Location
+                  uuid = "36FFCA70-614F-4DE1-9698-D1E32EF86085 - 4644f6510d2b1cb"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DwebBrowser.GridCell.webCache.modify : DwebBrowser.WebCache with unmangled suffix &quot;.resume.0&quot;"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/View/Tabs/WebPreViewGrid.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "111"
+                  endingLineNumber = "111"
+                  offsetFromSymbolStart = "4">
+               </Location>
+               <Location
+                  uuid = "36FFCA70-614F-4DE1-9698-D1E32EF86085 - ea9c6f4dda7ec617"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DwebBrowser.GridCell.$webCache.getter : SwiftUI.ObservedObject&lt;DwebBrowser.WebCache&gt;.Wrapper"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/View/Tabs/WebPreViewGrid.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "111"
+                  endingLineNumber = "111"
+                  offsetFromSymbolStart = "87">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "5BC2AF54-728F-402D-901F-865585DEDE5B"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/Tabs/WebPreViewGrid.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "121"
+            endingLineNumber = "121"
+            landmarkName = "body"
+            landmarkType = "24">
+            <Locations>
+               <Location
+                  uuid = "5BC2AF54-728F-402D-901F-865585DEDE5B - e6145d1bcbb02f62"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 () -&gt; SwiftUI.TupleView&lt;(&lt;&lt;opaque return type of SwiftUI.View.aspectRatio(_: Swift.Optional&lt;CoreGraphics.CGFloat&gt;, contentMode: SwiftUI.ContentMode) -&gt; some&gt;&gt;.0, &lt;&lt;opaque return type of SwiftUI.View.background&lt;&#x3c4;_0_0 where &#x3c4;_1_0: SwiftUI.ShapeStyle&gt;(_: &#x3c4;_1_0, ignoresSafeAreaEdges: SwiftUI.Edge.Set) -&gt; some&gt;&gt;.0)&gt; in DwebBrowser.GridCell.body.getter : some"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/View/Tabs/WebPreViewGrid.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "123"
+                  endingLineNumber = "123"
+                  offsetFromSymbolStart = "739">
+               </Location>
+               <Location
+                  uuid = "5BC2AF54-728F-402D-901F-865585DEDE5B - cd2ba88126f55d3a"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 () -&gt; SwiftUI.TupleView&lt;(&lt;&lt;opaque return type of SwiftUI.View.clipped(antialiased: Swift.Bool) -&gt; some&gt;&gt;.0, &lt;&lt;opaque return type of SwiftUI.View.frame(width: Swift.Optional&lt;CoreGraphics.CGFloat&gt;, height: Swift.Optional&lt;CoreGraphics.CGFloat&gt;, alignment: SwiftUI.Alignment) -&gt; some&gt;&gt;.0)&gt; in closure #1 () -&gt; SwiftUI.TupleView&lt;(&lt;&lt;opaque return type of SwiftUI.View.aspectRatio(_: Swift.Optional&lt;CoreGraphics.CGFloat&gt;, contentMode: SwiftUI.ContentMode) -&gt; some&gt;&gt;.0, &lt;&lt;opaque return type of SwiftUI.View.background&lt;&#x3c4;_0_0 where &#x3c4;_1_0: SwiftUI.ShapeStyle&gt;(_: &#x3c4;_1_0, ignoresSafeAreaEdges: SwiftUI.Edge.Set) -&gt; some&gt;&gt;.0)&gt; in DwebBrowser.GridCell.body.getter : some"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/View/Tabs/WebPreViewGrid.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "124"
+                  endingLineNumber = "124"
+                  offsetFromSymbolStart = "559">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "C1F2B80F-AEA6-496C-BA18-9AE8BF415D6C"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/Tabs/WebPreViewGrid.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "147"
+            endingLineNumber = "147"
+            landmarkName = "body"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "AE90C855-3109-4DD9-A369-8A8A7C3B75B4"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/Tabs/WebPreViewGrid.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "54"
+            endingLineNumber = "54"
+            landmarkName = "body"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "881CC8C1-F157-4783-B3FC-3FCAE749E95D"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/Tabs/WebPreViewGrid.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "117"
+            endingLineNumber = "117"
+            landmarkName = "init(webCache:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "75346E14-C231-45E5-9C6A-F6EB80F130DF"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/Tabs/WebPreViewGrid.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "135"
+            endingLineNumber = "135"
+            landmarkName = "body"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "3D1F7419-4AB8-44B1-A483-A117834A3665"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/ViewModel/BrowerVM.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "20"
+            endingLineNumber = "20"
+            landmarkName = "BrowerVM"
+            landmarkType = "3">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "E0A52AC1-A9F1-45D2-929A-5ABA76638FDB"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/Publisher/WebCacheMgr.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "120"
+            endingLineNumber = "120"
+            landmarkName = "saveCaches()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "E959E2DD-D939-4DD8-8E92-BC16EB2D6EF3"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/Publisher/WebCacheMgr.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "127"
+            endingLineNumber = "127"
+            landmarkName = "loadCaches()"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  uuid = "E959E2DD-D939-4DD8-8E92-BC16EB2D6EF3 - 92f6c6f7ba744d8f"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DwebBrowser.WebCacheMgr.loadCaches() -&gt; ()"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/Publisher/WebCacheMgr.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "123"
+                  endingLineNumber = "123"
+                  offsetFromSymbolStart = "237">
+               </Location>
+               <Location
+                  uuid = "E959E2DD-D939-4DD8-8E92-BC16EB2D6EF3 - 92f6c6f7ba744d8f"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DwebBrowser.WebCacheMgr.loadCaches() -&gt; ()"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/Publisher/WebCacheMgr.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "123"
+                  endingLineNumber = "123"
+                  offsetFromSymbolStart = "410">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "DFA53058-D948-40E1-A36F-681482B828E6"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/ToolbarView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "65"
+            endingLineNumber = "65"
+            landmarkName = "body"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "D870679A-D5D9-4561-81F8-C1E5AD42F91E"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/Tabs/TabsContainerView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "60"
+            endingLineNumber = "60"
+            landmarkName = "body"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "97DB3707-1356-4F62-B6B0-5F0322191AB2"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/Tabs/TabsContainerView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "61"
+            endingLineNumber = "61"
+            landmarkName = "body"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "B3683618-1A23-4ACF-9A27-E34C69A0CBE6"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/Tabs/TabsContainerView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "167"
+            endingLineNumber = "167"
+            landmarkName = "imageWidth()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "9B051BB5-B4B9-4AC9-AEC6-88E3327396C8"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/Tabs/TabsContainerView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "139"
+            endingLineNumber = "139"
+            landmarkName = "imageYcenter()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "30C8D6C3-5D13-4B5A-B113-7A7D5C0D2675"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/Tabs/TabsContainerView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "177"
+            endingLineNumber = "177"
+            landmarkName = "imageHeight()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "8350BA4D-C593-4F65-AD2E-C2F2A1EDB5D6"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/Tabs/TabsContainerView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "172"
+            endingLineNumber = "172"
+            landmarkName = "imageWidth()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "EBA98927-6C3F-427B-B36F-F691BD440863"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/Tabs/TabsContainerView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "144"
+            endingLineNumber = "144"
+            landmarkName = "imageYcenter()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "9A73A5A3-A6A0-44D2-9077-3230F1BD021B"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/Tabs/TabsContainerView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "182"
+            endingLineNumber = "182"
+            landmarkName = "imageHeight()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "5D7C12C8-058C-4DAE-B5B8-CE6D6DBFCDED"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/Example/AutoScrollView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "104"
+            endingLineNumber = "104"
+            landmarkName = "body"
+            landmarkType = "24">
+            <Locations>
+               <Location
+                  uuid = "5D7C12C8-058C-4DAE-B5B8-CE6D6DBFCDED - 784bdfaafc3bd93d"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #2 (SwiftUI.GeometryProxy) -&gt; &lt;&lt;opaque return type of SwiftUI.View.gesture&lt;&#x3c4;_0_0 where &#x3c4;_1_0: SwiftUI.Gesture&gt;(_: &#x3c4;_1_0, including: SwiftUI.GestureMask) -&gt; some&gt;&gt;.0 in closure #1 () -&gt; &lt;&lt;opaque return type of SwiftUI.View.background&lt;&#x3c4;_0_0 where &#x3c4;_1_0: SwiftUI.View&gt;(_: &#x3c4;_1_0, alignment: SwiftUI.Alignment) -&gt; some&gt;&gt;.0 in closure #1 (SwiftUI.GeometryProxy) -&gt; &lt;&lt;opaque return type of SwiftUI.View.frame(width: Swift.Optional&lt;CoreGraphics.CGFloat&gt;, height: Swift.Optional&lt;CoreGraphics.CGFloat&gt;, alignment: SwiftUI.Alignment) -&gt; some&gt;&gt;.0 in closure #1 () -&gt; SwiftUI.TupleView&lt;(&lt;&lt;opaque return type of SwiftUI.View.background&lt;&#x3c4;_0_0 where &#x3c4;_1_0: SwiftUI.ShapeStyle&gt;(_: &#x3c4;_1_0, ignoresSafeAreaEdges: SwiftUI.Edge.Set) -&gt; some&gt;&gt;.0, SwiftUI.Text)&gt; in DwebBrowser.AutoScrollView2.body.getter : some"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/Example/AutoScrollView.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "104"
+                  endingLineNumber = "104"
+                  offsetFromSymbolStart = "1314">
+               </Location>
+               <Location
+                  uuid = "5D7C12C8-058C-4DAE-B5B8-CE6D6DBFCDED - 722ea4247bfcf527"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #2 (SwiftUI.DragGesture.Value, inout DwebBrowser.DragState, inout SwiftUI.Transaction) -&gt; () in closure #2 (SwiftUI.GeometryProxy) -&gt; &lt;&lt;opaque return type of SwiftUI.View.gesture&lt;&#x3c4;_0_0 where &#x3c4;_1_0: SwiftUI.Gesture&gt;(_: &#x3c4;_1_0, including: SwiftUI.GestureMask) -&gt; some&gt;&gt;.0 in closure #1 () -&gt; &lt;&lt;opaque return type of SwiftUI.View.background&lt;&#x3c4;_0_0 where &#x3c4;_1_0: SwiftUI.View&gt;(_: &#x3c4;_1_0, alignment: SwiftUI.Alignment) -&gt; some&gt;&gt;.0 in closure #1 (SwiftUI.GeometryProxy) -&gt; &lt;&lt;opaque return type of SwiftUI.View.frame(width: Swift.Optional&lt;CoreGraphics.CGFloat&gt;, height: Swift.Optional&lt;CoreGraphics.CGFloat&gt;, alignment: SwiftUI.Alignment) -&gt; some&gt;&gt;.0 in closure #1 () -&gt; SwiftUI.TupleView&lt;(&lt;&lt;opaque return type of SwiftUI.View.background&lt;&#x3c4;_0_0 where &#x3c4;_1_0: SwiftUI.ShapeStyle&gt;(_: &#x3c4;_1_0, ignoresSafeAreaEdges: SwiftUI.Edge.Set) -&gt; some&gt;&gt;.0, SwiftUI.Text)&gt; in DwebBrowser.AutoScrollView2.body.getter : some"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/Example/AutoScrollView.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "105"
+                  endingLineNumber = "105"
+                  offsetFromSymbolStart = "120">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "311513F1-E968-41A7-A74D-A053BD886CA3"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/Example/AutoScrollView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "105"
+            endingLineNumber = "105"
+            landmarkName = "body"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "1D8E1C0B-9AFE-4D5C-ACCA-988E548F266F"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/Helper/PagingScroll.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "62"
+            endingLineNumber = "62"
+            landmarkName = "scrollViewDidEndDecelerating(_:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "56514E61-5FD7-46BB-A93F-6B340D060BF2"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/Helper/UIImage+Cache.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "19"
             endingLineNumber = "19"
+            landmarkName = "createLocalUrl(withImage:imageName:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "2EDE5421-05E1-4196-BEE1-8347B17826AB"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/Helper/UIImage+Cache.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "36"
+            endingLineNumber = "36"
+            landmarkName = "removeImage(with:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "F2D1BB52-3FAF-41E1-9AAC-9BF67CC2669A"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/Publisher/WebWrapperMgr.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "30"
+            endingLineNumber = "30"
+            landmarkName = "init()"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  uuid = "F2D1BB52-3FAF-41E1-9AAC-9BF67CC2669A - 7b21e1d52cc9331"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 (Swift.Array&lt;DwebBrowser.WebCache&gt;) -&gt; () in DwebBrowser.WebWrapperMgr.() -&gt; DwebBrowser.WebWrapperMgr.init() -&gt; DwebBrowser.WebWrapperMgr"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/Publisher/WebWrapperMgr.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "30"
+                  endingLineNumber = "30"
+                  offsetFromSymbolStart = "95">
+               </Location>
+               <Location
+                  uuid = "F2D1BB52-3FAF-41E1-9AAC-9BF67CC2669A - c83a4c19025e47ef"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 (DwebBrowser.WebCache) -&gt; Swift.String in closure #1 (Swift.Array&lt;DwebBrowser.WebCache&gt;) -&gt; () in DwebBrowser.WebWrapperMgr.() -&gt; DwebBrowser.WebWrapperMgr.init() -&gt; DwebBrowser.WebWrapperMgr"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/Publisher/WebWrapperMgr.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "30"
+                  endingLineNumber = "30"
+                  offsetFromSymbolStart = "33">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "18A5633C-A71A-4210-9739-2532F500BD39"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/Tabs/GridCellView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "81"
+            endingLineNumber = "81"
+            landmarkName = "deleteButton"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "0633770F-2781-495F-BF6E-A9CABC587991"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/Helper/PagingScroll.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "26"
+            endingLineNumber = "26"
+            landmarkName = "updateUIView(_:context:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "4548DB6A-971E-476E-9F8D-4C976DB2A7AD"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/Publisher/WebWrapper.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "75"
+            endingLineNumber = "75"
+            landmarkName = "makeUIView(context:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "303BFB50-DC68-4ED1-A595-53C6CA816AE5"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/Helper/PagingScroll.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "65"
+            endingLineNumber = "65"
+            landmarkName = "scrollViewDidScroll(_:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "D3FAF2CD-01DA-4BAC-A36F-4DE055E20003"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/HomePage/ShowSearchHolderView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "15"
+            endingLineNumber = "15"
             landmarkName = "body"
+            landmarkType = "24">
+            <Locations>
+               <Location
+                  uuid = "D3FAF2CD-01DA-4BAC-A36F-4DE055E20003 - 106487e0fad91407"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 () -&gt; SwiftUI.TupleView&lt;(&lt;&lt;opaque return type of SwiftUI.View.listRowSeparator(_: SwiftUI.Visibility, edges: SwiftUI.VerticalEdge.Set) -&gt; some&gt;&gt;.0, SwiftUI.Section&lt;SwiftUI.EmptyView, SwiftUI.ForEach&lt;Swift.Array&lt;DwebBrowser.LinkRecord&gt;, Foundation.UUID, SwiftUI.Button&lt;SwiftUI.HStack&lt;SwiftUI.TupleView&lt;(&lt;&lt;opaque return type of SwiftUI.View.frame(width: Swift.Optional&lt;CoreGraphics.CGFloat&gt;, height: Swift.Optional&lt;CoreGraphics.CGFloat&gt;, alignment: SwiftUI.Alignment) -&gt; some&gt;&gt;.0, SwiftUI.VStack&lt;SwiftUI.TupleView&lt;(&lt;&lt;opaque return type of SwiftUI.View.padding(SwiftUI.Edge.Set, Swift.Optional&lt;CoreGraphics.CGFloat&gt;) -&gt; some&gt;&gt;.0, &lt;&lt;opaque return type of SwiftUI.View.padding(SwiftUI.Edge.Set, Swift.Optional&lt;CoreGraphics.CGFloat&gt;) -&gt; some&gt;&gt;.0)&gt;&gt;)&gt;&gt;&gt;&gt;, SwiftUI.EmptyView&gt;)&gt; in DwebBrowser.SearcherList.body.getter : some"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/View/HomePage/ShowSearchHolderView.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "20"
+                  endingLineNumber = "20"
+                  offsetFromSymbolStart = "920">
+               </Location>
+               <Location
+                  uuid = "D3FAF2CD-01DA-4BAC-A36F-4DE055E20003 - f6ff71f3f4178ea2"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 () -&gt; SwiftUI.ForEach&lt;Swift.Range&lt;Swift.Int&gt;, Swift.Int, &lt;&lt;opaque return type of SwiftUI.View.frame(width: Swift.Optional&lt;CoreGraphics.CGFloat&gt;, height: Swift.Optional&lt;CoreGraphics.CGFloat&gt;, alignment: SwiftUI.Alignment) -&gt; some&gt;&gt;.0&gt; in closure #1 () -&gt; SwiftUI.TupleView&lt;(&lt;&lt;opaque return type of SwiftUI.View.listRowSeparator(_: SwiftUI.Visibility, edges: SwiftUI.VerticalEdge.Set) -&gt; some&gt;&gt;.0, SwiftUI.Section&lt;SwiftUI.EmptyView, SwiftUI.ForEach&lt;Swift.Array&lt;DwebBrowser.LinkRecord&gt;, Foundation.UUID, SwiftUI.Button&lt;SwiftUI.HStack&lt;SwiftUI.TupleView&lt;(&lt;&lt;opaque return type of SwiftUI.View.frame(width: Swift.Optional&lt;CoreGraphics.CGFloat&gt;, height: Swift.Optional&lt;CoreGraphics.CGFloat&gt;, alignment: SwiftUI.Alignment) -&gt; some&gt;&gt;.0, SwiftUI.VStack&lt;SwiftUI.TupleView&lt;(&lt;&lt;opaque return type of SwiftUI.View.padding(SwiftUI.Edge.Set, Swift.Optional&lt;CoreGraphics.CGFloat&gt;) -&gt; some&gt;&gt;.0, &lt;&lt;opaque return type of SwiftUI.View.padding(SwiftUI.Edge.Set, Swift.Optional&lt;CoreGraphics.CGFloat&gt;) -&gt; some&gt;&gt;.0)&gt;&gt;)&gt;&gt;&gt;&gt;, SwiftUI.EmptyView&gt;)&gt; in DwebBrowser.SearcherList.body.getter : some"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/View/HomePage/ShowSearchHolderView.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "21"
+                  endingLineNumber = "21"
+                  offsetFromSymbolStart = "364">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "56CB6F6E-9DFB-4557-81B0-9F3917571310"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/HomePage/ShowSearchHolderView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "16"
+            endingLineNumber = "16"
+            landmarkName = "body"
+            landmarkType = "24">
+            <Locations>
+               <Location
+                  uuid = "56CB6F6E-9DFB-4557-81B0-9F3917571310 - f6ff71f3f4178ea2"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 () -&gt; SwiftUI.ForEach&lt;Swift.Range&lt;Swift.Int&gt;, Swift.Int, &lt;&lt;opaque return type of SwiftUI.View.frame(width: Swift.Optional&lt;CoreGraphics.CGFloat&gt;, height: Swift.Optional&lt;CoreGraphics.CGFloat&gt;, alignment: SwiftUI.Alignment) -&gt; some&gt;&gt;.0&gt; in closure #1 () -&gt; SwiftUI.TupleView&lt;(&lt;&lt;opaque return type of SwiftUI.View.listRowSeparator(_: SwiftUI.Visibility, edges: SwiftUI.VerticalEdge.Set) -&gt; some&gt;&gt;.0, SwiftUI.Section&lt;SwiftUI.EmptyView, SwiftUI.ForEach&lt;Swift.Array&lt;DwebBrowser.LinkRecord&gt;, Foundation.UUID, SwiftUI.Button&lt;SwiftUI.HStack&lt;SwiftUI.TupleView&lt;(&lt;&lt;opaque return type of SwiftUI.View.frame(width: Swift.Optional&lt;CoreGraphics.CGFloat&gt;, height: Swift.Optional&lt;CoreGraphics.CGFloat&gt;, alignment: SwiftUI.Alignment) -&gt; some&gt;&gt;.0, SwiftUI.VStack&lt;SwiftUI.TupleView&lt;(&lt;&lt;opaque return type of SwiftUI.View.padding(SwiftUI.Edge.Set, Swift.Optional&lt;CoreGraphics.CGFloat&gt;) -&gt; some&gt;&gt;.0, &lt;&lt;opaque return type of SwiftUI.View.padding(SwiftUI.Edge.Set, Swift.Optional&lt;CoreGraphics.CGFloat&gt;) -&gt; some&gt;&gt;.0)&gt;&gt;)&gt;&gt;&gt;&gt;, SwiftUI.EmptyView&gt;)&gt; in DwebBrowser.SearcherList.body.getter : some"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/View/HomePage/ShowSearchHolderView.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "21"
+                  endingLineNumber = "21"
+                  offsetFromSymbolStart = "364">
+               </Location>
+               <Location
+                  uuid = "56CB6F6E-9DFB-4557-81B0-9F3917571310 - 79aaa3b0cd38fccb"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 (Swift.Int) -&gt; &lt;&lt;opaque return type of SwiftUI.View.frame(width: Swift.Optional&lt;CoreGraphics.CGFloat&gt;, height: Swift.Optional&lt;CoreGraphics.CGFloat&gt;, alignment: SwiftUI.Alignment) -&gt; some&gt;&gt;.0 in closure #1 () -&gt; SwiftUI.ForEach&lt;Swift.Range&lt;Swift.Int&gt;, Swift.Int, &lt;&lt;opaque return type of SwiftUI.View.frame(width: Swift.Optional&lt;CoreGraphics.CGFloat&gt;, height: Swift.Optional&lt;CoreGraphics.CGFloat&gt;, alignment: SwiftUI.Alignment) -&gt; some&gt;&gt;.0&gt; in closure #1 () -&gt; SwiftUI.TupleView&lt;(&lt;&lt;opaque return type of SwiftUI.View.listRowSeparator(_: SwiftUI.Visibility, edges: SwiftUI.VerticalEdge.Set) -&gt; some&gt;&gt;.0, SwiftUI.Section&lt;SwiftUI.EmptyView, SwiftUI.ForEach&lt;Swift.Array&lt;DwebBrowser.LinkRecord&gt;, Foundation.UUID, SwiftUI.Button&lt;SwiftUI.HStack&lt;SwiftUI.TupleView&lt;(&lt;&lt;opaque return type of SwiftUI.View.frame(width: Swift.Optional&lt;CoreGraphics.CGFloat&gt;, height: Swift.Optional&lt;CoreGraphics.CGFloat&gt;, alignment: SwiftUI.Alignment) -&gt; some&gt;&gt;.0, SwiftUI.VStack&lt;SwiftUI.TupleView&lt;(&lt;&lt;opaque return type of SwiftUI.View.padding(SwiftUI.Edge.Set, Swift.Optional&lt;CoreGraphics.CGFloat&gt;) -&gt; some&gt;&gt;.0, &lt;&lt;opaque return type of SwiftUI.View.padding(SwiftUI.Edge.Set, Swift.Optional&lt;CoreGraphics.CGFloat&gt;) -&gt; some&gt;&gt;.0)&gt;&gt;)&gt;&gt;&gt;&gt;, SwiftUI.EmptyView&gt;)&gt; in DwebBrowser.SearcherList.body.getter : some"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/View/HomePage/ShowSearchHolderView.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "22"
+                  endingLineNumber = "22"
+                  offsetFromSymbolStart = "512">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "BD53A782-2BA0-4214-B7E1-C37EA01F85D6"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/Tabs/GridCellView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "71"
+            endingLineNumber = "71"
+            landmarkName = "fetchIconUrl()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "90A5C3B5-AA28-4F06-B783-605DEF8FF72F"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/Tabs/GridCellView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "33"
+            endingLineNumber = "33"
+            landmarkName = "body"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "430CF7A6-FBD0-4E17-A68C-6E1C7E656D4D"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/HomePage/CoreData/HistoryCoreDataManager.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "16"
+            endingLineNumber = "16"
+            landmarkName = "insertHistory(history:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "0F47335B-1EF1-48BD-B490-F7A79B254D9B"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/HomePage/HistoryView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "15"
+            endingLineNumber = "15"
+            landmarkName = "body"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "4863D144-7640-4B6A-B154-42A144CE3324"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/Sheet/SearchEngineViewModel.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "49"
+            endingLineNumber = "49"
+            landmarkName = "fetchRecordList(placeHolder:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "06937699-2FE2-4849-A6E8-68B86631B75D"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/Sheet/ShowSearchHolderView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "103"
+            endingLineNumber = "103"
+            landmarkName = "body"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "B9FA2B86-4C57-4FF6-A654-56EE195A09AF"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/Sheet/View_extension.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "12"
+            endingLineNumber = "12"
+            landmarkName = "dismissKeyboard()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "84FB9FB5-4282-4E74-A3B1-35E4ECFDB36C"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/ToolbarView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "53"
+            endingLineNumber = "53"
+            landmarkName = "body"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "BE1AF12B-349D-42A0-942B-EB76344F62D1"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/Sheet/HalfSheetHandler.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "40"
+            endingLineNumber = "40"
+            landmarkName = "presentationControllerDidDismiss(_:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "D76C905E-54FA-476D-AB08-B74DFC22004E"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/ToolbarView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "73"
+            endingLineNumber = "73"
+            landmarkName = "body"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "817FF5D7-6F56-40EC-AF40-6AAC485800AF"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/AddressBarHStack.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "96"
+            endingLineNumber = "96"
+            landmarkName = "body"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "9B3367B0-9A3F-4882-A56A-ADA9ED655AA8"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/AddressBarHStack.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "47"
+            endingLineNumber = "47"
+            landmarkName = "AddressBar"
+            landmarkType = "14">
+            <Locations>
+               <Location
+                  uuid = "9B3367B0-9A3F-4882-A56A-ADA9ED655AA8 - 2999e73bf98dea7a"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DwebBrowser.AddressBar3.init(isAdressBarFocused: SwiftUI.FocusState&lt;Swift.Bool&gt;, webWrapper: DwebBrowser.WebWrapper, addressBar: SwiftUI.EnvironmentObject&lt;DwebBrowser.AddressBarState&gt;, selectedTab: SwiftUI.EnvironmentObject&lt;DwebBrowser.SelectedTab&gt;, tappedPoint: SwiftUI.Binding&lt;__C.CGPoint&gt;, tappedInTFArea: Swift.Bool) -&gt; DwebBrowser.AddressBar3"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/View/AddressBarHStack.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "44"
+                  endingLineNumber = "44"
+                  offsetFromSymbolStart = "171">
+               </Location>
+               <Location
+                  uuid = "9B3367B0-9A3F-4882-A56A-ADA9ED655AA8 - 4fe6228c144d319a"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "property wrapper backing initializer of DwebBrowser.AddressBar3.textFieldFrame : __C.CGRect"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/View/AddressBarHStack.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "44"
+                  endingLineNumber = "44"
+                  offsetFromSymbolStart = "43">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "2CB9558D-E43F-4DC1-AEFF-E763C147654A"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/AddressBarHStack.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "105"
+            endingLineNumber = "105"
+            landmarkName = "body"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "76E3152B-DFD3-4EC3-80F9-4CFBDB9F4EA1"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/AddressBarHStack.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "34"
+            endingLineNumber = "34"
+            landmarkName = "body"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "45BE1EAC-DD36-4761-923C-24F9357770E1"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/AddressBarHStack.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "115"
+            endingLineNumber = "115"
+            landmarkName = "body"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "7E20C522-4567-47FA-8F16-DA845BEE9E2C"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/AddressBarHStack.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "114"
+            endingLineNumber = "114"
+            landmarkName = "body"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "0004B602-B9AD-42CE-9CB8-C1D32C6B2BE0"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/Sheet/HalfSheetPickerView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "50"
+            endingLineNumber = "50"
+            landmarkName = "body"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "F87012FF-28CB-4B19-A423-FA9F21B71B9A"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/Sheet/HalfSheetHandler.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "21"
+            endingLineNumber = "21"
+            landmarkName = "updateUIViewController(_:context:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "B354F5A1-4673-419D-A637-F64F4485AA97"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/Sheet/Bookmark/BookmarkView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "14"
+            endingLineNumber = "14"
+            landmarkName = "body"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "7C3C002D-09AF-4758-B9C4-C0CBE08E2685"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/Sheet/Bookmark/BookmarkCell.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "21"
+            endingLineNumber = "21"
+            landmarkName = "body"
+            landmarkType = "24">
+            <Locations>
+               <Location
+                  uuid = "7C3C002D-09AF-4758-B9C4-C0CBE08E2685 - b252b325cc0fefc7"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "DwebBrowser.BookmarkCell.body.getter : some"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/View/Sheet/Bookmark/BookmarkCell.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "18"
+                  endingLineNumber = "18"
+                  offsetFromSymbolStart = "597">
+               </Location>
+               <Location
+                  uuid = "7C3C002D-09AF-4758-B9C4-C0CBE08E2685 - 96a90fa895f49dad"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 () -&gt; SwiftUI.HStack&lt;SwiftUI.TupleView&lt;(&lt;&lt;opaque return type of SwiftUI.View.padding(SwiftUI.Edge.Set, Swift.Optional&lt;CoreGraphics.CGFloat&gt;) -&gt; some&gt;&gt;.0, &lt;&lt;opaque return type of SwiftUI.View.lineLimit(Swift.Optional&lt;Swift.Int&gt;) -&gt; some&gt;&gt;.0)&gt;&gt; in DwebBrowser.BookmarkCell.body.getter : some"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/View/Sheet/Bookmark/BookmarkCell.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "19"
+                  endingLineNumber = "19"
+                  offsetFromSymbolStart = "194">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "3E748FBF-A03C-4AAD-AF0B-A2B0D7271CD8"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/Sheet/Bookmark/BookmarkCell.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "46"
+            endingLineNumber = "46"
+            landmarkName = "body"
+            landmarkType = "24">
+            <Locations>
+               <Location
+                  uuid = "3E748FBF-A03C-4AAD-AF0B-A2B0D7271CD8 - 81efeeca4a190e61"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 () -&gt; SwiftUI.TupleView&lt;(&lt;&lt;opaque return type of SwiftUI.View.onAppear(perform: Swift.Optional&lt;() -&gt; ()&gt;) -&gt; some&gt;&gt;.0, &lt;&lt;opaque return type of SwiftUI.View.onTapGesture(count: Swift.Int, perform: () -&gt; ()) -&gt; some&gt;&gt;.0)&gt; in DwebBrowser.BookmarkCell.body.getter : some"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/View/Sheet/Bookmark/BookmarkCell.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "49"
+                  endingLineNumber = "49"
+                  offsetFromSymbolStart = "1727">
+               </Location>
+               <Location
+                  uuid = "3E748FBF-A03C-4AAD-AF0B-A2B0D7271CD8 - eea667e96f3a0d95"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #3 () -&gt; () in closure #1 () -&gt; SwiftUI.TupleView&lt;(&lt;&lt;opaque return type of SwiftUI.View.onAppear(perform: Swift.Optional&lt;() -&gt; ()&gt;) -&gt; some&gt;&gt;.0, &lt;&lt;opaque return type of SwiftUI.View.onTapGesture(count: Swift.Int, perform: () -&gt; ()) -&gt; some&gt;&gt;.0)&gt; in DwebBrowser.BookmarkCell.body.getter : some"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/View/Sheet/Bookmark/BookmarkCell.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "50"
+                  endingLineNumber = "50"
+                  offsetFromSymbolStart = "253">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "8375D5CB-45CF-423F-9A17-97D434B3934F"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/Sheet/Bookmark/BookmarkCell.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "47"
+            endingLineNumber = "47"
+            landmarkName = "body"
+            landmarkType = "24">
+            <Locations>
+               <Location
+                  uuid = "8375D5CB-45CF-423F-9A17-97D434B3934F - eea667e96f3a0d70"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #3 () -&gt; () in closure #1 () -&gt; SwiftUI.TupleView&lt;(&lt;&lt;opaque return type of SwiftUI.View.onAppear(perform: Swift.Optional&lt;() -&gt; ()&gt;) -&gt; some&gt;&gt;.0, &lt;&lt;opaque return type of SwiftUI.View.onTapGesture(count: Swift.Int, perform: () -&gt; ()) -&gt; some&gt;&gt;.0)&gt; in DwebBrowser.BookmarkCell.body.getter : some"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/View/Sheet/Bookmark/BookmarkCell.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "47"
+                  endingLineNumber = "47"
+                  offsetFromSymbolStart = "253">
+               </Location>
+               <Location
+                  uuid = "8375D5CB-45CF-423F-9A17-97D434B3934F - eea667e96f3a0d70"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #3 () -&gt; () in closure #1 () -&gt; SwiftUI.TupleView&lt;(&lt;&lt;opaque return type of SwiftUI.View.onAppear(perform: Swift.Optional&lt;() -&gt; ()&gt;) -&gt; some&gt;&gt;.0, &lt;&lt;opaque return type of SwiftUI.View.onTapGesture(count: Swift.Int, perform: () -&gt; ()) -&gt; some&gt;&gt;.0)&gt; in DwebBrowser.BookmarkCell.body.getter : some"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/View/Sheet/Bookmark/BookmarkCell.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "47"
+                  endingLineNumber = "47"
+                  offsetFromSymbolStart = "354">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "0E5B9962-37A1-4D35-ADB7-14F88E307BE8"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/Sheet/Bookmark/BookmarkCell.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "48"
+            endingLineNumber = "48"
+            landmarkName = "body"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "BC01D677-4242-410F-B25B-C24F87106034"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/Sheet/history/HistoryCell.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "51"
+            endingLineNumber = "51"
+            landmarkName = "body"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "062D5D46-5021-42EE-BB83-3F16F5993889"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/AddressBarTyping/SearchResultView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "24"
+            endingLineNumber = "24"
+            landmarkName = "body"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "DBAE6022-A13A-4100-A4DD-7BB6B4A8A947"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/AddressBarTyping/SearchResultView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "22"
+            endingLineNumber = "22"
+            landmarkName = "body"
+            landmarkType = "24">
+            <Locations>
+               <Location
+                  uuid = "DBAE6022-A13A-4100-A4DD-7BB6B4A8A947 - c21332d8a3d19fa0"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 () -&gt; () in closure #1 (DwebBrowser.Searcher) -&gt; &lt;&lt;opaque return type of SwiftUI.View.frame(width: Swift.Optional&lt;CoreGraphics.CGFloat&gt;, height: Swift.Optional&lt;CoreGraphics.CGFloat&gt;, alignment: SwiftUI.Alignment) -&gt; some&gt;&gt;.0 in closure #1 () -&gt; SwiftUI.ForEach&lt;Swift.Array&lt;DwebBrowser.Searcher&gt;, DwebBrowser.Engine, &lt;&lt;opaque return type of SwiftUI.View.frame(width: Swift.Optional&lt;CoreGraphics.CGFloat&gt;, height: Swift.Optional&lt;CoreGraphics.CGFloat&gt;, alignment: SwiftUI.Alignment) -&gt; some&gt;&gt;.0&gt; in closure #1 () -&gt; SwiftUI.TupleView&lt;(&lt;&lt;opaque return type of SwiftUI.View.listRowSeparator(_: SwiftUI.Visibility, edges: SwiftUI.VerticalEdge.Set) -&gt; some&gt;&gt;.0, &lt;&lt;opaque return type of SwiftUI.View.onReceive&lt;&#x3c4;_0_0 where &#x3c4;_1_0: Combine.Publisher, &#x3c4;_1_0.Failure == Swift.Never&gt;(_: &#x3c4;_1_0, perform: (&#x3c4;_1_0.Output) -&gt; ()) -&gt; some&gt;&gt;.0)&gt; in DwebBrowser.SearchResultView.body.getter : some"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/View/AddressBarTyping/SearchResultView.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "22"
+                  endingLineNumber = "22"
+                  offsetFromSymbolStart = "319">
+               </Location>
+               <Location
+                  uuid = "DBAE6022-A13A-4100-A4DD-7BB6B4A8A947 - c21332d8a3d19fa0"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 () -&gt; () in closure #1 (DwebBrowser.Searcher) -&gt; &lt;&lt;opaque return type of SwiftUI.View.frame(width: Swift.Optional&lt;CoreGraphics.CGFloat&gt;, height: Swift.Optional&lt;CoreGraphics.CGFloat&gt;, alignment: SwiftUI.Alignment) -&gt; some&gt;&gt;.0 in closure #1 () -&gt; SwiftUI.ForEach&lt;Swift.Array&lt;DwebBrowser.Searcher&gt;, DwebBrowser.Engine, &lt;&lt;opaque return type of SwiftUI.View.frame(width: Swift.Optional&lt;CoreGraphics.CGFloat&gt;, height: Swift.Optional&lt;CoreGraphics.CGFloat&gt;, alignment: SwiftUI.Alignment) -&gt; some&gt;&gt;.0&gt; in closure #1 () -&gt; SwiftUI.TupleView&lt;(&lt;&lt;opaque return type of SwiftUI.View.listRowSeparator(_: SwiftUI.Visibility, edges: SwiftUI.VerticalEdge.Set) -&gt; some&gt;&gt;.0, &lt;&lt;opaque return type of SwiftUI.View.onReceive&lt;&#x3c4;_0_0 where &#x3c4;_1_0: Combine.Publisher, &#x3c4;_1_0.Failure == Swift.Never&gt;(_: &#x3c4;_1_0, perform: (&#x3c4;_1_0.Output) -&gt; ()) -&gt; some&gt;&gt;.0)&gt; in DwebBrowser.SearchResultView.body.getter : some"
+                  moduleName = "DwebBrowser"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ui06/Documents/GitHub/dweb_browser/ios/DwebBrowser/DwebBrowser/View/AddressBarTyping/SearchResultView.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "22"
+                  endingLineNumber = "22"
+                  offsetFromSymbolStart = "466">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "8F3C7B85-22C5-47A4-92FA-E7563149F1C0"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/AddressBarHStack.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "116"
+            endingLineNumber = "116"
+            landmarkName = "body"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "8076E014-28B2-411A-B5FF-D06823767527"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/AddressBarHStack.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "118"
+            endingLineNumber = "118"
+            landmarkName = "body"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "E7C42F7A-E557-4F6C-9980-AD50BB9DE881"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/Tabs/TabPageView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "108"
+            endingLineNumber = "108"
+            landmarkName = "webComponent"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "8257C5FB-E194-46B1-BA12-E921658E3385"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/Publisher/Environment.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "48"
+            endingLineNumber = "48"
+            landmarkName = "isON"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "DF9B2A51-8627-4C7D-BFB6-3BEF09B48691"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/Publisher/Environment.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "53"
+            endingLineNumber = "53"
+            landmarkName = "init()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "11838E30-1C85-4FE5-9CE2-771345F46468"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/Sheet/MenuView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "46"
+            endingLineNumber = "46"
+            landmarkName = "body"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "3C2C2F65-7A35-40EE-B33E-A8BF4F743E31"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/Tabs/TabPageView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "73"
+            endingLineNumber = "73"
+            landmarkName = "webComponent"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "C642FD98-8865-4F8B-8401-342D3544E3A8"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/Tabs/TabPageView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "106"
+            endingLineNumber = "106"
+            landmarkName = "webComponent"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "A1499EC2-0152-454E-B283-CE97C395371B"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/Tabs/TabPageView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "101"
+            endingLineNumber = "101"
+            landmarkName = "webComponent"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "399B2D99-A50B-49BD-920A-BF3018544506"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/Publisher/WebCacheMgr.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "35"
+            endingLineNumber = "35"
+            landmarkName = "shouldShowWeb"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "E8C7324A-95F7-4BFB-AB5E-8511923B686F"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "DwebBrowser/View/Tabs/TabPageView.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "100"
+            endingLineNumber = "100"
+            landmarkName = "webComponent"
             landmarkType = "24">
          </BreakpointContent>
       </BreakpointProxy>

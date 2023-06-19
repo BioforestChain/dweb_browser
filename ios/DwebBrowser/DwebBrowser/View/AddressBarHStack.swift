@@ -25,6 +25,7 @@ struct AddressBarHStack: View {
             }
         })
         .frame(height: toolbarState.addressBarHeight)
+        .background(Color.bkColor)
         .animation(.easeInOut, value: toolbarState.addressBarHeight)
         .transition(.slide)
         .onTapGesture { tapPoint in
@@ -51,71 +52,75 @@ struct AddressBar: View {
     var isVisible: Bool { return WebWrapperMgr.shared.store.firstIndex(of: webWrapper) ==  selectedTab.curIndex }
     private var shouldShowProgress: Bool { webWrapper.estimatedProgress > 0.0 && webWrapper.estimatedProgress < 1.0 }
     var body: some View {
-        ZStack(alignment: .leading) {
-            RoundedRectangle(cornerRadius: 10)
-                .foregroundColor(.white)
-                .frame(height: 40)
-                .overlay {
-                    progressV
-                }
-                .padding(.horizontal)
-                .background(GeometryReader { geometry in
-                    Color.clear
-                        .onAppear {
-                            textFieldFrame = geometry.frame(in: .local)
-                            print("textFieldFrame: \(textFieldFrame)")
-                        }
-                })
-            HStack {
-                TextField("", text: $addressBar.inputText)
-                    .placeholder(when: addressBar.inputText.isEmpty) {
-                        Text(searchTextFieldPlaceholder).foregroundColor(Color.lightTextColor)
+        GeometryReader{ _ in
+            ZStack(alignment: .leading) {
+                RoundedRectangle(cornerRadius: 10)
+                    .foregroundColor(.white)
+                    .frame(height: 40)
+                    .overlay {
+                        progressV
                     }
-                    .foregroundColor(.black)
-                    .padding(.horizontal, 25)
-                    .keyboardType(.webSearch)
-                    .focused($isAdressBarFocused)
-                    .onChange(of: tappedInTFArea) { focused in
-                        if isVisible, focused{
-                            isAdressBarFocused = focused
-                            addressBar.isFocused = true
-                            tappedInTFArea = false
-                        }
-                    }
-                    .onChange(of: addressBar.isFocused) { isFocused in
-                        if !isFocused{
-                            isAdressBarFocused = isFocused
-                        }
-                    }
-                
-                if !addressBar.inputText.isEmpty{
-                    Spacer()
-                    Button {
-                        addressBar.inputText = ""
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundColor(.gray)
-                            .padding(.trailing, 18)
-                    }
+                    .padding(.horizontal)
                     .background(GeometryReader { geometry in
                         Color.clear
                             .onAppear {
-                                buttonFrame = geometry.frame(in: .local)
+                                textFieldFrame = geometry.frame(in: .named("addressBar"))
+                                print("textField rect: \(textFieldFrame)")
                             }
                     })
+                HStack {
+                    TextField("", text: $addressBar.inputText)
+                        .placeholder(when: addressBar.inputText.isEmpty) {
+                            Text(searchTextFieldPlaceholder).foregroundColor(Color.lightTextColor)
+                        }
+                        .foregroundColor(.black)
+                        .padding(.horizontal, 25)
+                        .keyboardType(.webSearch)
+                        .focused($isAdressBarFocused)
+                        .onChange(of: tappedInTFArea) { focused in
+                            if isVisible, focused{
+                                isAdressBarFocused = focused
+                                addressBar.isFocused = true
+                                tappedInTFArea = false
+                            }
+                        }
+                        .onChange(of: addressBar.isFocused) { isFocused in
+                            if !isFocused{
+                                isAdressBarFocused = isFocused
+                            }
+                        }
+                    
+                    if isVisible, !addressBar.inputText.isEmpty{
+                        Spacer()
+                        Button {
+                            addressBar.inputText = ""
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundColor(.gray)
+                                .padding(.trailing, 20)
+                        }
+                        .background(GeometryReader { geometry in
+                            Color.clear
+                                .onAppear {
+                                    buttonFrame = geometry.frame(in: .named("addressBar"))
+                                    print("clear button rect: \(buttonFrame)")
+                                }
+                        })
+                    }
+                }
+            }
+            .padding()
+            .onChange(of: tappedPoint) { point in
+                if isVisible {
+                    if buttonFrame.contains(point){
+                        addressBar.inputText = ""
+                    }else if textFieldFrame.contains(point){
+                        tappedInTFArea = true
+                    }
                 }
             }
         }
-        .padding()
-        .onChange(of: tappedPoint) { point in
-            if isVisible {
-                if textFieldFrame.contains(point){
-                    tappedInTFArea = true
-                }else if buttonFrame.contains(point){
-                    addressBar.inputText = ""
-                }
-            }
-        }
+        .coordinateSpace(name: "addressBar")
     }
     
     var progressV: some View{

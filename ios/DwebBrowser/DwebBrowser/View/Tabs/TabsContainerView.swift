@@ -35,6 +35,9 @@ struct TabsContainerView: View{
     }
     
     var body: some View{
+        Self._printChanges()
+        
+        return
         GeometryReader { geo in
             //层级关系  最前<-- 快照(缩放动画）<-- collecitionview  <--  tabPage ( homepage & webview)
 

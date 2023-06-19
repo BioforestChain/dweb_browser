@@ -55,7 +55,7 @@ class TraceLessMode{
 
 
 class OpeningLink: ObservableObject{
-    @Published var clickedLink: URL = testURL
+    @Published var clickedLink: URL = emptyURL
 }
 
 class ShowSheet: ObservableObject{

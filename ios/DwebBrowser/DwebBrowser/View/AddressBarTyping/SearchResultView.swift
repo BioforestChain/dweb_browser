@@ -9,6 +9,7 @@ import SwiftUI
 
 struct SearchResultView: View {
     @EnvironmentObject var addressBar: AddressBarState
+    @EnvironmentObject var openingLink: OpeningLink
     @ObservedObject var localLinkSearcher = LocalLinkSearcher.shared
     @State private var inputText: String = ""
     var body: some View {
@@ -18,8 +19,11 @@ struct SearchResultView: View {
                 ForEach(WebSearcher.shared.searchers, id: \.id) { searcher in
                     Button {
                         printDate()
-                        let urlString = searcher.inputHandler("sss")
-                        print("search url is \(urlString)")
+                        guard let url = URL(string: searcher.inputHandler("sss")) else { return }
+                        DispatchQueue.main.async {
+                            openingLink.clickedLink = url
+                            addressBar.isFocused = false
+                        }
                     } label: {
                         VStack {
                             HStack(spacing: 12) {
@@ -66,7 +70,12 @@ struct SearchResultView: View {
             Section {
                 ForEach(localLinkSearcher.records) { record in
                     Button {
-                        print("click some where")
+                        guard let url = URL(string: record.link) else { return }
+                        DispatchQueue.main.async {
+                            openingLink.clickedLink = url
+                            addressBar.isFocused = false
+                        }
+                        
                     } label: {
                         HStack {
                             Image(record.websiteIcon)

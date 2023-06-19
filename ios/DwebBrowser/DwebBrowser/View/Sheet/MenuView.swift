@@ -32,7 +32,7 @@ struct MenuView: View {
                     MenuCell(title: titles[index], imageName: imagesNames[index])
                 }
                 .sheet(isPresented: $isShare) {
-                    ActivityViewController(urlString: testLink)
+                    ActivityViewController(urlString: emptyLink)
                 }
             }
             
