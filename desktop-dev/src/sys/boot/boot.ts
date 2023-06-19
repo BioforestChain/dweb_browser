@@ -10,6 +10,7 @@ export class BootNMM extends NativeMicroModule {
   // private registeredMmids = new Set<$MMID>(["desktop.sys.dweb"]); // 被优化
   private readonly registeredMmids: Set<$MMID>;
   async _bootstrap() {
+    console.always(`${this.mmid}`,"_bootstrap")
     this.registerCommonIpcOnMessageHandler({
       pathname: "/register",
       matchMode: "full",
@@ -29,9 +30,11 @@ export class BootNMM extends NativeMicroModule {
       },
     });
 
+    console.always("registeredMmids: ", this.registeredMmids)
     /// 开始启动开机项
     for (const mmid of this.registeredMmids) {
       /// TODO 这里应该使用总线进行通讯，而不是拿到core直接调用。在未来分布式系统中，core模块可能是远程模块
+      console.always('开机器启动项', mmid)
       await this.nativeFetch(`file://dns.sys.dweb/open?app_id=${mmid}`);
     }
   }

@@ -1,6 +1,5 @@
 import process from "node:process";
 import "./sys/dns/localeFileFetch.ts";
-
 import { JsProcessNMM } from "./browser/js-process/js-process.ts";
 import { MultiWebviewNMM } from "./browser/multi-webview/multi-webview.mobile.ts";
 import { NavigationBarNMM } from "./browser/native-ui/navigation-bar/navigation-bar.main.ts";
@@ -18,6 +17,7 @@ import { HttpServerNMM } from "./sys/http-server/http-server.ts";
 import { ShareNMM } from "./sys/share/share.main.ts";
 import { ToastNMM } from "./sys/toast/toast.main.ts";
 import { BluetoothNMM } from "./std/bluetooth/bluetooth.main.ts"
+import { BrowserNMM } from "./browser/browser/browser.ts";
 
 /**
  * 设置 debugger 过滤条件
@@ -59,8 +59,8 @@ export const dns = new DnsNMM();
 dns.install(new MultiWebviewNMM());
 dns.install(new JsProcessNMM());
 dns.install(new HttpServerNMM());
-// const dwebBrowser = new BrowserNMM();
-// dns.install(dwebBrowser);
+const dwebBrowser = new BrowserNMM();
+dns.install(dwebBrowser);
 dns.install(new StatusbarNativeUiNMM());
 dns.install(new NavigationBarNMM());
 dns.install(new SafeAreaNMM());
@@ -78,7 +78,7 @@ dns.install(new JmmNMM());
 
 dns.install(
   new BootNMM([
-    // dwebBrowser.mmid,
+    dwebBrowser.mmid,
   ])
 );
 
@@ -88,6 +88,7 @@ process.on("unhandledRejection", (error) => {
 });
 
 import { webcrypto } from "node:crypto";
+
 if (typeof crypto === "undefined") {
   Object.assign(globalThis, { crypto: webcrypto });
 }
