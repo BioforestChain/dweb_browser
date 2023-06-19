@@ -13,6 +13,7 @@ import org.dweb_browser.browserUI.download.DownLoadInfo
 import org.dweb_browser.browserUI.download.DownLoadObserver
 import org.dweb_browser.browserUI.download.DownLoadStatus
 import org.dweb_browser.browserUI.util.BrowserUIApp
+import org.dweb_browser.microservice.help.gson
 import java.util.*
 
 data class JmmUIState(
@@ -38,7 +39,8 @@ fun createDownLoadInfoByJmm(jmmMetadata: JmmMetadata): DownLoadInfo {
     url = jmmMetadata.bundle_url,
     name = jmmMetadata.name,
     path = "${App.appContext.cacheDir}/DL_${jmmMetadata.id}_${Calendar.MILLISECOND}.bfsa",
-    downLoadStatus = DownLoadStatus.IDLE
+    downLoadStatus = DownLoadStatus.IDLE,
+    appInfo = gson.toJson(jmmMetadata)
   )
   /*return if (JmmNMM.getAndUpdateJmmNmmApps().containsKey(jmmMetadata.id)) {
     // 表示当前mmid已存在，判断版本，如果是同一个版本，显示为打开；如果是更新的版本，显示为 更新

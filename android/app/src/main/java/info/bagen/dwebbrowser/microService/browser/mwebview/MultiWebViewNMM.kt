@@ -4,6 +4,8 @@ import android.content.Intent
 import android.os.Bundle
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.dweb_browser.browserUI.download.DownLoadObserver
 import org.dweb_browser.browserUI.download.DownLoadStatus
 import org.dweb_browser.dwebview.base.ViewItem
@@ -126,18 +128,21 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.browser.dweb") {
                 this,
                 remoteMm,
             ).also { controller -> // 注册监听
-                controller.downLoadObserver = DownLoadObserver(remoteMmid).apply {
-                    observe { listener ->
-                        controller.lastViewOrNull?.webView?.let { dWebView ->
-                            val progress = if (listener.downLoadStatus == DownLoadStatus.DownLoading) {
-                                (listener.downLoadSize * 1.0 / listener.totalSize * 100).toString()
-                            } else {
-                                ""
+                GlobalScope.launch(ioAsyncExceptionHandler) {
+                    controller.downLoadObserver = DownLoadObserver(remoteMmid).apply {
+                        observe { listener ->
+                            controller.lastViewOrNull?.webView?.let { dWebView ->
+                                val progress = if (listener.downLoadStatus == DownLoadStatus.DownLoading) {
+                                    (listener.downLoadSize * 1.0 / listener.totalSize * 100).toString()
+                                } else {
+                                    ""
+                                }
+                                emitEvent(dWebView, listener.downLoadStatus.toServiceWorkerEvent(), progress)
                             }
-                            emitEvent(dWebView, listener.downLoadStatus.toServiceWorkerEvent(), progress)
                         }
                     }
                 }
+
             }
         }
 

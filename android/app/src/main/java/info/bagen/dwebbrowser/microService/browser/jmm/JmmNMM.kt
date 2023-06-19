@@ -2,7 +2,6 @@ package info.bagen.dwebbrowser.microService.browser.jmm
 
 import androidx.compose.runtime.mutableStateMapOf
 import info.bagen.dwebbrowser.App
-import info.bagen.dwebbrowser.datastore.JmmMetadataDB
 import org.dweb_browser.microservice.help.Mmid
 import org.dweb_browser.helper.*
 import org.dweb_browser.microservice.sys.dns.nativeFetch
@@ -14,10 +13,12 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import org.dweb_browser.browserUI.database.AppInfoDataStore
 import org.dweb_browser.browserUI.util.BrowserUIApp
 import org.dweb_browser.browserUI.util.FilesUtil
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
+import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.help.json
 import org.http4k.core.Method
 import org.http4k.lens.Query
@@ -62,29 +63,30 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb") {
   private fun recoverAppData() {
     debugJMM("init/JmmNMM", "recoverAppData")
     GlobalScope.launch(ioAsyncExceptionHandler) {
-      JmmMetadataDB.queryJmmMetadataList().collectLatest { maps -> // TODO 只要datastore更新，这边就会实时更新
+      AppInfoDataStore.queryAppInfoList().collectLatest { maps -> // TODO 只要datastore更新，这边就会实时更新
         debugJMM("init/JmmNMM", "init Apps list -> ${maps.size}")
 
         maps.forEach { (key, value) ->
+          val jmmMetadata = gson.fromJson(value, JmmMetadata::class.java)
           apps.getOrPutOrReplace(key, replaceValue = { local ->
             debugJMM(
               "update getOrPutOrReplace",
-              "old version:${local.metadata.version} new:${value.version} ${
+              "old version:${local.metadata.version} new:${jmmMetadata.version} ${
                 compareAppVersionHigh(
                   local.metadata.version,
-                  value.version
+                  jmmMetadata.version
                 )
               }"
             )
-            if (compareAppVersionHigh(local.metadata.version, value.version)) {
+            if (compareAppVersionHigh(local.metadata.version, jmmMetadata.version)) {
               jmmController?.closeApp(local.mmid)
             }
-            JsMicroModule(value).also { jsMicroModule ->
+            JsMicroModule(jmmMetadata).also { jsMicroModule ->
               bootstrapContext.dns.install(jsMicroModule)
             }
           }) {
             apps.getOrPut(key) {
-              JsMicroModule(value).also { jsMicroModule ->
+              JsMicroModule(jmmMetadata).also { jsMicroModule ->
                 bootstrapContext.dns.install(jsMicroModule)
               }
             }
@@ -166,7 +168,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb") {
     val mmid = jsMicroModule.metadata.id
     apps.remove(mmid)
     bootstrapContext.dns.uninstall(jsMicroModule)
-    JmmMetadataDB.deleteApp(mmid)
+    AppInfoDataStore.deleteAppInfo(mmid)
     FilesUtil.uninstallApp(App.appContext, mmid)
   }
 
