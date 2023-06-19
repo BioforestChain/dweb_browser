@@ -21,138 +21,148 @@ import org.http4k.lens.Query
 import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
+import java.math.RoundingMode
+import java.text.DecimalFormat
 
 fun debugMultiWebView(tag: String, msg: Any? = "", err: Throwable? = null) =
   printdebugln("mwebview", tag, msg, err)
 
 class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.browser.dweb") {
-    class ActivityClass(var mmid: Mmid, val ctor: Class<out MultiWebViewActivity>)
+  class ActivityClass(var mmid: Mmid, val ctor: Class<out MultiWebViewActivity>)
 
-    companion object {
-        val activityClassList = mutableListOf(
-            ActivityClass("", MultiWebViewPlaceholder1Activity::class.java),
-            ActivityClass("", MultiWebViewPlaceholder2Activity::class.java),
-            ActivityClass("", MultiWebViewPlaceholder3Activity::class.java),
-            ActivityClass("", MultiWebViewPlaceholder4Activity::class.java),
-            ActivityClass("", MultiWebViewPlaceholder5Activity::class.java),
-        )
-        val controllerMap = mutableMapOf<Mmid, MultiWebViewController>()
+  companion object {
+    val activityClassList = mutableListOf(
+      ActivityClass("", MultiWebViewPlaceholder1Activity::class.java),
+      ActivityClass("", MultiWebViewPlaceholder2Activity::class.java),
+      ActivityClass("", MultiWebViewPlaceholder3Activity::class.java),
+      ActivityClass("", MultiWebViewPlaceholder4Activity::class.java),
+      ActivityClass("", MultiWebViewPlaceholder5Activity::class.java),
+    )
+    val controllerMap = mutableMapOf<Mmid, MultiWebViewController>()
 
-        /**获取当前的controller, 只能给nativeUI 使用，因为他们是和mwebview绑定在一起的*/
-        fun getCurrentWebViewController(mmid: Mmid): MultiWebViewController? {
-            return controllerMap[mmid]
-        }
+    /**获取当前的controller, 只能给nativeUI 使用，因为他们是和mwebview绑定在一起的*/
+    fun getCurrentWebViewController(mmid: Mmid): MultiWebViewController? {
+      return controllerMap[mmid]
     }
+  }
 
-    override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-        /// nativeui 与 mwebview 是伴生关系
-        bootstrapContext.dns.bootstrap("nativeui.browser.dweb")
+  override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
+    /// nativeui 与 mwebview 是伴生关系
+    bootstrapContext.dns.bootstrap("nativeui.browser.dweb")
 
-        // 打开webview
-        val queryUrl = Query.string().required("url")
-        val queryWebviewId = Query.string().required("webview_id")
+    // 打开webview
+    val queryUrl = Query.string().required("url")
+    val queryWebviewId = Query.string().required("webview_id")
 
-        apiRouting = routes(
-            // 打开一个 webview 作为窗口
-            "/open" bind Method.GET to defineHandler { request, ipc ->
-                val url = queryUrl(request)
-                val remoteMm = ipc.asRemoteInstance()
-                    ?: throw Exception("mwebview.browser.dweb/open should be call by locale")
-                val viewItem = openDwebView(remoteMm, url)
-                Response(Status.OK).body(viewItem.webviewId)
-            },
-            // 关闭指定 webview 窗口
-            "/close" bind Method.GET to defineHandler { request, ipc ->
-                val webviewId = queryWebviewId(request)
-                val remoteMmid = ipc.remote.mmid
-                closeDwebView(remoteMmid, webviewId)
-            },
-            "/close/app" bind Method.GET to defineHandler { request, ipc ->
-                val controller = controllerMap[ipc.remote.mmid] ?: return@defineHandler false;
-                controller.destroyWebView()
-            },
-            // 界面没有关闭，用于重新唤醒
-            "/activate" bind Method.GET to defineHandler { request, ipc ->
-                val remoteMmid = ipc.remote.mmid
-                val webViewId = queryWebviewId(request)
-                debugMultiWebView("/activate", "remote-mmid: $remoteMmid==>$webViewId")
-                activityClassList.find { it.mmid == remoteMmid }?.let { activityClass ->
-                    App.startActivity(activityClass.ctor) { intent ->
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-
-                        val b = Bundle()
-                        b.putString("mmid", remoteMmid)
-                        intent.putExtras(b)
-                    }
-                }
-                return@defineHandler Response(Status.OK).body(webViewId)
-            },
-        )
-    }
-
-    override suspend fun _shutdown() {
-        apiRouting = null
-    }
-
-
-    override fun openActivity(remoteMmid: Mmid) {
-        val flags = mutableListOf<Int>(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
-        val activityClass = activityClassList.find { it.mmid == remoteMmid } ?:
-        // 如果没有，从第一个挪出来，放到最后一个，并将至付给 remoteMmid
-        activityClassList.removeAt(0).also {
-            it.mmid = remoteMmid
-            activityClassList.add(it)
-            flags.add(Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
-        }
-        App.startActivity(activityClass.ctor) { intent ->
+    apiRouting = routes(
+      // 打开一个 webview 作为窗口
+      "/open" bind Method.GET to defineHandler { request, ipc ->
+        val url = queryUrl(request)
+        val remoteMm = ipc.asRemoteInstance()
+          ?: throw Exception("mwebview.browser.dweb/open should be call by locale")
+        val viewItem = openDwebView(remoteMm, url)
+        Response(Status.OK).body(viewItem.webviewId)
+      },
+      // 关闭指定 webview 窗口
+      "/close" bind Method.GET to defineHandler { request, ipc ->
+        val webviewId = queryWebviewId(request)
+        val remoteMmid = ipc.remote.mmid
+        closeDwebView(remoteMmid, webviewId)
+      },
+      "/close/app" bind Method.GET to defineHandler { request, ipc ->
+        val controller = controllerMap[ipc.remote.mmid] ?: return@defineHandler false;
+        controller.destroyWebView()
+      },
+      // 界面没有关闭，用于重新唤醒
+      "/activate" bind Method.GET to defineHandler { request, ipc ->
+        val remoteMmid = ipc.remote.mmid
+        val webViewId = queryWebviewId(request)
+        debugMultiWebView("/activate", "remote-mmid: $remoteMmid==>$webViewId")
+        activityClassList.find { it.mmid == remoteMmid }?.let { activityClass ->
+          App.startActivity(activityClass.ctor) { intent ->
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 
-            val b = Bundle();
-            b.putString("mmid", remoteMmid);
-            intent.putExtras(b);
+            val b = Bundle()
+            b.putString("mmid", remoteMmid)
+            intent.putExtras(b)
+          }
         }
+        return@defineHandler Response(Status.OK).body(webViewId)
+      },
+    )
+  }
+
+  override suspend fun _shutdown() {
+    apiRouting = null
+  }
+
+
+  override fun openActivity(remoteMmid: Mmid) {
+    val flags = mutableListOf<Int>(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
+    val activityClass = activityClassList.find { it.mmid == remoteMmid } ?:
+    // 如果没有，从第一个挪出来，放到最后一个，并将至付给 remoteMmid
+    activityClassList.removeAt(0).also {
+      it.mmid = remoteMmid
+      activityClassList.add(it)
+      flags.add(Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
     }
+    App.startActivity(activityClass.ctor) { intent ->
+      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
+      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+
+      val b = Bundle();
+      b.putString("mmid", remoteMmid);
+      intent.putExtras(b);
+    }
+  }
 
 
-    private suspend fun openDwebView(
-        remoteMm: MicroModule,
-        url: String,
-    ): ViewItem {
-        val remoteMmid = remoteMm.mmid
-        debugMultiWebView("/open", "remote-mmid: $remoteMmid / url:$url")
-        val controller = controllerMap.getOrPut(remoteMmid) {
-            MultiWebViewController(
-                remoteMmid,
-                this,
-                remoteMm,
-            ).also { controller -> // 注册监听
-                GlobalScope.launch(ioAsyncExceptionHandler) {
-                    controller.downLoadObserver = DownLoadObserver(remoteMmid).apply {
-                        observe { listener ->
-                            controller.lastViewOrNull?.webView?.let { dWebView ->
-                                val progress = if (listener.downLoadStatus == DownLoadStatus.DownLoading) {
-                                    (listener.downLoadSize * 1.0 / listener.totalSize * 100).toString()
-                                } else {
-                                    ""
-                                }
-                                emitEvent(dWebView, listener.downLoadStatus.toServiceWorkerEvent(), progress)
-                            }
-                        }
-                    }
+  private suspend fun openDwebView(
+    remoteMm: MicroModule,
+    url: String,
+  ): ViewItem {
+    val remoteMmid = remoteMm.mmid
+    debugMultiWebView("/open", "remote-mmid: $remoteMmid / url:$url")
+    val controller = controllerMap.getOrPut(remoteMmid) {
+      MultiWebViewController(
+        remoteMmid,
+        this,
+        remoteMm,
+      ).also { controller -> // 注册监听
+        GlobalScope.launch(ioAsyncExceptionHandler) {
+          controller.downLoadObserver = DownLoadObserver(remoteMmid).apply {
+            observe { listener ->
+              controller.lastViewOrNull?.webView?.let { dWebView ->
+                val progress = if (listener.downLoadStatus == DownLoadStatus.DownLoading) {
+                  (listener.downLoadSize * 1.0 / listener.totalSize * 100).toFloat().moreThanTwoDigits.toString()
+                } else {
+                  ""
                 }
-
+                emitEvent(dWebView, listener.downLoadStatus.toServiceWorkerEvent(), progress)
+              }
             }
+          }
         }
 
-        openActivity(remoteMmid)
-        activitySignal.emit(Pair(remoteMmid, controller.waitActivityCreated()))
-        return controller.openWebView(url)
+      }
     }
 
-    private suspend fun closeDwebView(remoteMmid: String, webviewId: String): Boolean {
-        return controllerMap[remoteMmid]?.closeWebView(webviewId) ?: false
-    }
+    openActivity(remoteMmid)
+    activitySignal.emit(Pair(remoteMmid, controller.waitActivityCreated()))
+    return controller.openWebView(url)
+  }
+
+  private suspend fun closeDwebView(remoteMmid: String, webviewId: String): Boolean {
+    return controllerMap[remoteMmid]?.closeWebView(webviewId) ?: false
+  }
 
 }
+
+val Float.moreThanTwoDigits: () -> String
+  get() = {
+    val format = DecimalFormat("#.##")
+    //舍弃规则，RoundingMode.FLOOR表示直接舍弃。
+    format.roundingMode = RoundingMode.FLOOR
+    format.format(this)
+  }
