@@ -420,9 +420,7 @@ internal class DwebBrowserWebViewClient(val microModule: MicroModule) : Accompan
     view: WebView, request: WebResourceRequest
   ): WebResourceResponse? {
     var response: Response? = null
-//    if(request.url.scheme == "data")
     if (request.url.host == "localhost") { // 拦截 browser web
-
       val mmid = request.url.getQueryParameter("mmid")
       var path = request.url.path
       if (mmid !== null) {
@@ -458,6 +456,9 @@ internal fun parseInputText(text: String, needHost: Boolean = true): String {
   val uri = Uri.parse(text)
   for (item in DefaultAllWebEngine) {
     if (item.fit(text)) return uri.getQueryParameter(item.queryName())!!
+  }
+  if (uri.scheme == "dweb") {
+    return text
   }
   return if (needHost && uri.host?.isNotEmpty() == true) {
     uri.host!!
