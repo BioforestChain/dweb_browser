@@ -181,7 +181,7 @@ object ZipUtil {
   @Throws(IOException::class)
   private fun unZip(file: File?, outputDir: String, mmid: String? = null): String {
     println("$TAG unZip->${file?.absolutePath}, $outputDir")
-    val dirName = "$outputDir/$mmid"
+    val dirName = mmid?.let { "$outputDir/$mmid" } ?: outputDir
     ZipFile(file, StandardCharsets.UTF_8).use { zipFile ->
       //创建输出目录
       createDirectory(outputDir, null)
@@ -192,12 +192,12 @@ object ZipUtil {
           entry.name // getEntryName(entry.name, mmid) { if (dirName.isEmpty()) dirName = it; dirName }
         if (entry.isDirectory) {
           //创建空目录
-          createDirectory(outputDir, name)
+          createDirectory(dirName, name)
         } else { //是文件
-          createDirectory(outputDir, name.substring(0, name.lastIndexOf("/"))) // 需要确保父级目录存在
+          createDirectory(dirName, name.substring(0, name.lastIndexOf("/"))) // 需要确保父级目录存在
           zipFile.getInputStream(entry).use { inputStream ->
             FileOutputStream(
-              File(outputDir + File.separator + name)
+              File(dirName + File.separator + name)
             ).use { out -> writeFile(inputStream, out) }
           }
         }
