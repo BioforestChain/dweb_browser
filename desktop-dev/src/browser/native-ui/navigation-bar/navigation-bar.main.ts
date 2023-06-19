@@ -21,7 +21,7 @@ export class NavigationBarNMM extends NativeMicroModule {
 
     {
       // 监听从 multi-webview-comp-status-bar.html.mts 通过 ipcRenderer 发送过来的 监听数据
-      ipcMain.on("navigation_bar_state_change", (_, host, statusbarState) => {
+      ipcMain.on("navigation_bar_state_change", (_: any, host: string, statusbarState: any) => {
         const b = this.observesState.get(host);
         if (b === true) {
           const ipc = this.observes.get(host);

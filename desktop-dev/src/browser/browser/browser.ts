@@ -1,7 +1,7 @@
 import { $BootstrapContext } from "../../core/bootstrapContext.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import { HttpDwebServer } from "../../sys/http-server/$createHttpDwebServer.ts";
-import { createAPIServer } from "./browser.api.server.ts";
+import { canGoBack, canGoForward, createAPIServer, getAppsInfo, goBack, goForward, openApp, refresh, updateContent } from "./browser.api.server.ts";
 import { createBrowserWindow } from "./browser.bw.ts";
 import { createCBV } from "./browser.content.bv.ts";
 
@@ -24,7 +24,62 @@ export class BrowserNMM extends NativeMicroModule {
     await Electron.app.whenReady();
     this.bw = createBrowserWindow.bind(this)();
     this.contentBV = createCBV.bind(this)(this.bw, addressBarHeight);
-    // this.addressBV = createAddressBrowserVeiw.bind(this)(this.bw, addressBarHeight)
+    this.registerCommonIpcOnMessageHandler({
+      pathname: "/appsInfo",
+      matchMode: "full",
+      input: {},
+      output: "object",
+      handler: getAppsInfo.bind(this,),
+    });
+    this.registerCommonIpcOnMessageHandler({
+      pathname: "/update/content",
+      matchMode: "full",
+      input: {},
+      output: "object",
+      handler: updateContent.bind(this),
+    });
+    this.registerCommonIpcOnMessageHandler({
+      pathname: "/can-go-back",
+      matchMode: "full",
+      input: {},
+      output: "object",
+      handler: canGoBack.bind(this),
+    });
+    this.registerCommonIpcOnMessageHandler({
+      pathname: "/can-go-forward",
+      matchMode: "full",
+      input: {},
+      output: "object",
+      handler: canGoForward.bind(this),
+    });
+    this.registerCommonIpcOnMessageHandler({
+      pathname: "/go-back",
+      matchMode: "full",
+      input: {},
+      output: "object",
+      handler: goBack.bind(this),
+    });
+    this.registerCommonIpcOnMessageHandler({
+      pathname: "/go-forward",
+      matchMode: "full",
+      input: {},
+      output: "object",
+      handler: goForward.bind(this),
+    });
+    this.registerCommonIpcOnMessageHandler({
+      pathname: "/refresh",
+      matchMode: "full",
+      input: {},
+      output: "object",
+      handler: refresh.bind(this),
+    });
+    this.registerCommonIpcOnMessageHandler({
+      pathname: "/openApp",
+      matchMode: "full",
+      input: {},
+      output: "object",
+      handler: openApp.bind(this),
+    });
   }
 
   private _addressBarHeight() {
@@ -36,10 +91,3 @@ export class BrowserNMM extends NativeMicroModule {
   protected _shutdown() {}
 
 }
-
-// enum $TitleBarStyle {
-//   HIDDEN = "hidden",
-//   DEFAULT = "default",
-//   HIDDEN_INSET = "hiddenInset",
-//   CUSTOM_BUTTON_ON_HOVER = "customButtonsOnHover"
-// }
