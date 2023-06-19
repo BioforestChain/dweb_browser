@@ -95,7 +95,7 @@ export class BundleFlagHelper {
       }
       const index_html_file_entry = {
         dir: false,
-        path: `${this.id}/usr/www/index.html`,
+        path: `usr/www/index.html`,
         data: `<head><meta http-equiv="refresh" content="0;url=${liveUrl}"></head>`,
         time: new Date(0),
       } satisfies $ZipEntry;
@@ -127,7 +127,7 @@ export class BundleFlagHelper {
           ...walkDirToZipEntries(www_dir).map((entry) => {
             return {
               ...entry,
-              path: `${this.id}/usr/www/` + entry.path,
+              path: `usr/www/` + entry.path,
             };
           }),
         ]);
@@ -137,23 +137,19 @@ export class BundleFlagHelper {
     return [
       {
         dir: true,
-        path: this.id,
+        path: `usr`,
       },
       {
         dir: true,
-        path: `${this.id}/usr`,
+        path: `usr/server`,
       },
       {
         dir: true,
-        path: `${this.id}/usr/server`,
-      },
-      {
-        dir: true,
-        path: `${this.id}/usr/www`,
+        path: `usr/www`,
       },
       {
         dir: false,
-        path: `${this.id}/usr/server/plaoc.server.js`,
+        path: `usr/server/plaoc.server.js`,
         data: fs.readFileSync(
           fileURLToPath(
             import.meta.resolve("../../dist/server/plaoc.server.js")
