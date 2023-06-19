@@ -99,6 +99,34 @@ public class State<T> : StateBase
 
     public event Signal<T, T?>? OnChange;
 
+    public Task<T> GetNext()
+    {
+        var res = new PromiseOut<T>();
+        this.OnChange += async (data, old, self) =>
+        {
+            res.Resolve(data);
+            this.OnChange -= self;
+        };
+        return res.WaitPromiseAsync();
+    }
+
+    public async Task Until(Func<T, bool> checker)
+    {
+        if (checker(Get()))
+        {
+            return;
+        }
+        var locker = new PromiseOut<T>();
+        this.OnChange += async (data, old, self) =>
+        {
+            if (checker(data)) {
+                this.OnChange -= self;
+                locker.Resolve(data);
+            }
+        };
+        await locker.WaitPromiseAsync();
+    }
+
     public T Get(bool? force = null)
     {
         lock (StateShared.ObsStack)
@@ -161,7 +189,6 @@ public class State<T> : StateBase
         return false;
     }
 
-    #region 仅适用于引用类型
     public bool Update(Func<T?, T> updater, bool force = true)
     {
         return Set(updater(cache), force);
@@ -175,7 +202,6 @@ public class State<T> : StateBase
         updater(cache);
         return cache is not null ? Set(cache, force) : false;
     }
-    #endregion
 
     public async IAsyncEnumerable<T> ToStream()
     {

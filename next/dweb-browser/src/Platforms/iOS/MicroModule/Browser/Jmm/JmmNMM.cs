@@ -1,4 +1,7 @@
-﻿using BrowserFramework;
+﻿using System.Net;
+using System.Web;
+using BrowserFramework;
+using DwebBrowser.MicroService.Http;
 using Foundation;
 using UIKit;
 
@@ -7,10 +10,39 @@ namespace DwebBrowser.MicroService.Browser.Jmm;
 public class JmmNMM : NativeMicroModule
 {
     static Debugger Console = new("JmmNMM");
-    private static Dictionary<Mmid, JsMicroModule> s_apps = new();
-    private static readonly List<JmmController> s_controllerList = new();
 
-    public static Dictionary<Mmid, JsMicroModule> JmmApps => s_apps;
+    private static readonly List<JmmController> s_controllerList = new();
+    public static Dictionary<Mmid, JsMicroModule> JmmApps = new();
+
+    static JmmNMM()
+    {
+        NativeFetch.NativeFetchAdaptersManager.Append(GetUsrFile);
+    }
+
+    public static async Task<PureResponse?> GetUsrFile(MicroModule remote, PureRequest request)
+    {
+
+        if (request.ParsedUrl is not null and var parsedUrl && parsedUrl.Scheme == Uri.UriSchemeFile && parsedUrl.FullHost is "" && parsedUrl.Path.StartsWith("/usr/"))
+        {
+            var query = HttpUtility.ParseQueryString(parsedUrl.Query);
+            var mode = query["mode"] ?? "auto";
+            var chunk = query["chunk"]?.ToIntOrNull() ?? 1024 * 1024;
+
+            var relativePath = string.Empty;
+            var baseDir = string.Empty;
+
+            if (JmmApps.TryGetValue(remote.Mmid, out var jsMicroModule))
+            {
+                relativePath = parsedUrl.Path;
+                baseDir = JsMicroModule.GetInstallPath(jsMicroModule.Metadata);
+                return await LocaleFile.ReadLocalFileAsResponse(baseDir, relativePath, mode, url: request.Url);
+            }
+            return new PureResponse(HttpStatusCode.InternalServerError, Url: request.Url);
+        }
+
+        return null;
+
+    }
 
     public override List<Dweb_DeepLink> Dweb_deeplinks { get; init; } = new() { "dweb:install" };
 
@@ -19,7 +51,7 @@ public class JmmNMM : NativeMicroModule
     /// </summary>
     /// <param name="mmid"></param>
     /// <returns></returns>
-    public static JmmMetadata? GetBfsMetaData(Mmid mmid) => s_apps.GetValueOrDefault(mmid)?.Metadata;
+    public static JmmMetadata? GetBfsMetaData(Mmid mmid) => JmmApps.GetValueOrDefault(mmid)?.Metadata;
 
     public static JmmController JmmController
     {
@@ -34,10 +66,7 @@ public class JmmNMM : NativeMicroModule
         {
             if (value > oldValue)
             {
-                foreach (var entry in JmmMetadataDB.GetJmmMetadataEnumerator())
-                {
-                    _recoverAppData();
-                }
+                _recoverAppData();
             }
         };
     }
@@ -47,18 +76,23 @@ public class JmmNMM : NativeMicroModule
         // 启动的时候，从数据库中恢复 s_apps 对象
         _ = Task.Run(async () =>
         {
-            foreach (var entry in JmmMetadataDB.GetJmmMetadataEnumerator())
+            lock (JmmApps)
             {
-                s_apps.GetValueOrPut(entry.Key, () =>
-                    new JsMicroModule(entry.Value).Also(jsMicroModule =>
-                    {
-                        try
+                JmmApps.Clear();
+                foreach (var entry in JmmMetadataDB.GetJmmMetadataEnumerator())
+                {
+                    JmmApps.GetValueOrPut(entry.Key, () =>
+                        new JsMicroModule(entry.Value).Also(jsMicroModule =>
                         {
-                            BootstrapContext.Dns.Install(jsMicroModule);
-                        }
-                        catch { }
-                    }));
+                            try
+                            {
+                                BootstrapContext.Dns.Install(jsMicroModule);
+                            }
+                            catch { }
+                        }));
+                }
             }
+
         }).NoThrow();
     }
 
@@ -85,7 +119,7 @@ public class JmmNMM : NativeMicroModule
         {
             var searchParams = request.SafeUrl.SearchParams;
             var mmid = searchParams.ForceGet("mmid");
-            var jmm = s_apps.GetValueOrDefault(mmid) ?? throw new Exception("");
+            var jmm = JmmApps.GetValueOrDefault(mmid) ?? throw new Exception("");
             _openJmmMetadataUninstallPage(jmm);
 
             return true;
@@ -94,7 +128,7 @@ public class JmmNMM : NativeMicroModule
         HttpRouter.AddRoute(IpcMethod.Get, "/query", async (request, _) =>
         {
             return new AppQueryResult(
-                s_apps.Values.Select(x => x.Metadata).ToList(), _installingApps.Values.ToList());
+                JmmApps.Values.Select(x => x.Metadata).ToList(), _installingApps.Values.ToList());
         });
 
         HttpRouter.AddRoute(IpcMethod.Get, "/pause", async (_, ipc) =>
@@ -178,10 +212,9 @@ public class JmmNMM : NativeMicroModule
                                 {
                                     JmmController?.CloseApp(jmmMetadata.Id);
                                 }
-                                JmmDwebService.Add(new(
-                                    jmmMetadata,
-                                    manager.OnDownloadChangeWithDownloadStatus,
-                                    manager.OnListenProgressWithProgress));
+                                var jmmDownload = JmmDwebService.Add(jmmMetadata,
+                                     manager.OnDownloadChangeWithDownloadStatus,
+                                     manager.OnListenProgressWithProgress);
 
                                 JmmDwebService.Start();
                                 break;
@@ -216,9 +249,9 @@ public class JmmNMM : NativeMicroModule
     private async void _openJmmMetadataUninstallPage(JsMicroModule jsMicroModule)
     {
         var mmid = jsMicroModule.Metadata.Id;
-        s_apps.Remove(mmid);
+        JmmApps.Remove(mmid);
         BootstrapContext.Dns.UnInstall(jsMicroModule);
-        JmmDwebService.UnInstall(mmid);
+        JmmDwebService.UnInstall(jsMicroModule.Metadata);
         JmmMetadataDB.RemoveJmmMetadata(mmid);
     }
 

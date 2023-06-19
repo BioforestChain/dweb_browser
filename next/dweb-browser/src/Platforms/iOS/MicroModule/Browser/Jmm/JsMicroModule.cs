@@ -10,12 +10,49 @@ public class JsMicroModule : MicroModule
 {
     static readonly Debugger Console = new("JsMicroModule");
 
+    private const string DWEB_APP = "dwebApps";
+    /// <summary>
+    /// dweb应用目录
+    /// </summary>
+    static readonly string DWEB_APP_DIR = Path.Join(
+       PathHelper.GetIOSDocumentDirectory(), DWEB_APP);
+
+    /// <summary>
+    /// 获取一个应用的安装路径
+    /// </summary>
+    /// <param name="metadata"></param>
+    /// <returns></returns>
+    public static string GetInstallPath(JmmMetadata metadata)
+    {
+        return Path.Join(DWEB_APP_DIR, metadata.Id, metadata.Version);
+    }
+    /// <summary>
+    /// 获取一个应用所有的安装版本
+    /// TODO 这里应该返回路径和metadata，所以metadata需要写入到文件里，比如 ${DWEB_APP_DIR}/${id}/sys/metadata.json
+    /// </summary>
+    /// <param name="metadata"></param>
+    /// <returns></returns>
+    public static MiniJmmInfo[] GetAllVersions(Mmid id)
+    {
+        return Directory.GetDirectories(Path.Join(DWEB_APP_DIR, id))
+            .Select(fullPath =>
+            {
+                return new MiniJmmInfo(id, Path.GetFileName(fullPath), fullPath);
+            }).ToArray();
+    }
+    public record class MiniJmmInfo(Mmid Id, string Version, string InstallPath);
+
     public override List<Dweb_DeepLink> Dweb_deeplinks { get; init; }
     public override IpcSupportProtocols IpcSupportProtocols { get; init; }
 
     record JsMM(JsMicroModule jmm, Mmid remoteMmid);
     static JsMicroModule()
     {
+        if (!Directory.Exists(DWEB_APP_DIR))
+        {
+            Directory.CreateDirectory(DWEB_APP_DIR);
+        }
+
         var nativeToWhiteList = new List<Mmid> { "js.browser.dweb" };
         NativeConnect.ConnectAdapterManager.Append(async (fromMM, toMM, reason) =>
         {
@@ -50,6 +87,7 @@ public class JsMicroModule : MicroModule
             return null;
         }, -1);
     }
+
 
     public JsMicroModule(JmmMetadata metadata) : base(metadata.Id)
     {

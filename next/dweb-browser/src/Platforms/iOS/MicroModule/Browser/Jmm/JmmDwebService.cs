@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.IO.Compression;
+using DwebBrowser.Helper;
 
 #nullable enable
 
@@ -11,33 +12,12 @@ public static class JmmDwebService
     private static ConcurrentDictionary<Mmid, JmmDownload> s_downloadMap = new();
     private static ConcurrentQueue<Mmid> s_downloadQueue = new();
 
-    private const string DOWNLOAD = "dwebDownloads";
-    private const string DWEB_APP = "dwebApps";
 
-    /// <summary>
-    /// 下载目录
-    /// </summary>
-    public static readonly string DOWNLOAD_DIR = Path.Join(
-        PathHelper.GetIOSDocumentDirectory(), DOWNLOAD);
-
-    /// <summary>
-    /// dweb应用目录
-    /// </summary>
-    public static readonly string DWEB_APP_DIR = Path.Join(
-        PathHelper.GetIOSDocumentDirectory(), DWEB_APP);
 
     static event Signal? _onStart;
 
     static JmmDwebService()
     {
-        if (!Directory.Exists(DOWNLOAD_DIR))
-        {
-            Directory.CreateDirectory(DOWNLOAD_DIR);
-        }
-        if (!Directory.Exists(DWEB_APP_DIR))
-        {
-            Directory.CreateDirectory(DWEB_APP_DIR);
-        }
 
         _onStart += async (_) =>
         {
@@ -66,13 +46,17 @@ public static class JmmDwebService
         }
     }
 
-    public static void Add(JmmDownload jmmDownload)
+    public static JmmDownload Add(JmmMetadata jmmMetadata, Action<nint> onDownloadStatusChange, Action<float> onDownloadProgressChange)
     {
-        if (!s_downloadMap.ContainsKey(jmmDownload.JmmMetadata.Id))
+        if (!s_downloadMap.TryGetValue(jmmMetadata.Id, out var jmmDownload))
         {
-            s_downloadMap.TryAdd(jmmDownload.JmmMetadata.Id, jmmDownload);
-            s_downloadQueue.Enqueue(jmmDownload.JmmMetadata.Id);
+            jmmDownload = new(jmmMetadata);
         }
+        s_downloadMap.TryAdd(jmmDownload.JmmMetadata.Id, jmmDownload);
+        s_downloadQueue.Enqueue(jmmDownload.JmmMetadata.Id);
+        jmmDownload.OnDownloadProgressChange += onDownloadProgressChange;
+        jmmDownload.OnDownloadStatusChange += onDownloadStatusChange;
+        return jmmDownload;
     }
 
     public static async Task<bool> Remove(JmmDownload? jmmDownload)
@@ -105,9 +89,9 @@ public static class JmmDwebService
     /// 卸载应用
     /// </summary>
     /// <param name="mmid">JmmMetadata id</param>
-    public static void UnInstall(Mmid mmid)
+    public static void UnInstall(JmmMetadata jmmMetadata)
     {
-        Directory.Delete(Path.Join(DWEB_APP_DIR, mmid), true);
+        Directory.Delete(JsMicroModule.GetInstallPath(jmmMetadata), true);
     }
 }
 
@@ -115,7 +99,21 @@ public class JmmDownload
 {
     static Debugger Console = new("JmmDownload");
 
-    private const long CHUNK_SIZE = 8 * 1024;
+    private const string DOWNLOAD = "dwebDownloads";
+
+    /// <summary>
+    /// 下载目录
+    /// </summary>
+    static readonly string DOWNLOAD_DIR = Path.Join(
+      PathHelper.GetIOSDocumentDirectory(), DOWNLOAD);
+
+    static JmmDownload()
+    {
+        if (!Directory.Exists(DOWNLOAD_DIR))
+        {
+            Directory.CreateDirectory(DOWNLOAD_DIR);
+        }
+    }
 
     private readonly State<bool> _isPause = new(true);
     private readonly State<long> _readBytes = new(0L);
@@ -126,43 +124,44 @@ public class JmmDownload
     public PromiseOut<bool> DownloadPo = new();
     public JmmMetadata JmmMetadata { get; init; }
 
-    public JmmDownload(
-        JmmMetadata jmmMetadata,
-        Action<nint> onDownloadStatusChange,
-        Action<float> onDownloadProgressChange)
+    public JmmDownload(JmmMetadata jmmMetadata)
     {
         JmmMetadata = jmmMetadata;
         var url = new URL(jmmMetadata.BundleUrl);
-        _downloadFile = Path.Join(JmmDwebService.DOWNLOAD_DIR, url.Path);
+        _downloadFile = Path.Join(DOWNLOAD_DIR, url.Path);
 
         _readBytes.OnChange += async (value, _, _) =>
         {
             // progress 进度汇报
-            onDownloadProgressChange((float)(value * 0.8 / _totalSize));
+            OnDownloadProgressChange?.Invoke((float)(value * 0.8 / _totalSize));
         };
         _downloadStatus.OnChange += async (value, _, _) =>
         {
             switch (value)
             {
                 case DownloadStatus.DownloadComplete:
-                    onDownloadProgressChange((float)0.8);
-                    CompressZip(onDownloadProgressChange);
+                    OnDownloadProgressChange?.Invoke((float)0.8);
+                    UnCompressZip();
                     break;
                 case DownloadStatus.Installed:
-                    onDownloadStatusChange((nint)DownloadStatus.Installed);
+                    OnDownloadStatusChange?.Invoke((nint)DownloadStatus.Installed);
                     DownloadPo.Resolve(true);
                     break;
                 case DownloadStatus.Fail:
-                    onDownloadStatusChange((nint)DownloadStatus.Fail);
+                    OnDownloadStatusChange?.Invoke((nint)DownloadStatus.Fail);
                     DownloadPo.Resolve(false);
                     break;
                 case DownloadStatus.Cancel:
-                    onDownloadStatusChange((nint)DownloadStatus.Cancel);
+                    OnDownloadStatusChange?.Invoke((nint)DownloadStatus.Cancel);
                     DownloadPo.Resolve(false);
                     break;
             }
         };
     }
+
+    public event Action<nint>? OnDownloadStatusChange = null;
+    public event Action<float>? OnDownloadProgressChange = null;
+
 
     private async Task _getTotalSizeAsync()
     {
@@ -179,12 +178,16 @@ public class JmmDownload
             return;
         }
 
-        using var client = new HttpClient();
-        using var response = await client.GetAsync(JmmMetadata.BundleUrl, HttpCompletionOption.ResponseHeadersRead);
+        using var response = await httpClient.GetAsync(JmmMetadata.BundleUrl, HttpCompletionOption.ResponseHeadersRead);
         using var content = response.Content;
 
         _totalSize = content.Headers.ContentLength ?? 0L;
     }
+    static HttpClient httpClient = new HttpClient().Also(it =>
+    {
+        /// 默认禁用缓存
+        it.DefaultRequestHeaders.CacheControl = new() { NoCache = true };
+    });
 
     /// <summary>
     /// 下载文件
@@ -196,9 +199,8 @@ public class JmmDownload
         {
             await _getTotalSizeAsync();
 
-            using var client = new HttpClient();
             //using var request = new HttpRequestMessage { RequestUri = _url.Uri };
-            using var response = await client.GetAsync(JmmMetadata.BundleUrl, HttpCompletionOption.ResponseHeadersRead);
+            using var response = await httpClient.GetAsync(JmmMetadata.BundleUrl, HttpCompletionOption.ResponseHeadersRead);
             //using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
             using var content = response.Content;
             using var stream = await content.ReadAsStreamAsync();
@@ -214,51 +216,28 @@ public class JmmDownload
                     throw new HttpRequestException(message);
                 }
             }
-
-            var isRunning = false;
-            var ms = new MemoryStream();
-            stream.CopyTo(ms);
-            ms.Position = 0;
-
-            _isPause.OnChange += async (value, _, _) =>
-            {
-                if (value)
-                {
-                    Console.Log("DownloadFile", "暂停下载");
-                    return;
-                }
-                else if (_readBytes.Get() >= _totalSize)
-                {
-                    return;
-                }
-                else if (isRunning)
-                {
-                    return;
-                }
-                isRunning = true;
-
-                using var fileStream = new FileStream(_downloadFile, FileMode.Append, FileAccess.Write);
-
-                do
-                {
-                    var buffer = new byte[CHUNK_SIZE];
-                    var bytesRead = await ms.ReadAsync(buffer);
-                    if (bytesRead == 0)
-                    {
-                        _downloadStatus.Set(DownloadStatus.DownloadComplete);
-                        ms.Dispose();
-                        ms = null;
-                        break;
-                    }
-
-                    await fileStream.WriteAsync(buffer.AsMemory(0, bytesRead));
-                    var readBytes = _readBytes.Get();
-                    _readBytes.Set(readBytes + bytesRead);
-                    Console.Log("DownloadFile", "readBytes: {0}, totalBytes: {1}", _readBytes.Get(), _totalSize);
-                } while (!_isPause.Get());
-                isRunning = false;
-            };
             _isPause.Set(false);
+
+
+            using var fileStream = new FileStream(_downloadFile, FileMode.Append, FileAccess.Write);
+
+            /// 等待开始的信号
+            await _isPause.Until((v) => !v);
+
+            _readBytes.Set(1L);
+
+            await foreach (var buffer in stream.ReadBytesStream())
+            {
+                await fileStream.WriteAsync(buffer);
+                _readBytes.Update(byteLen => byteLen + buffer.LongLength);
+                Console.Log("DownloadFile", "readBytes: {0}, totalBytes: {1}", _readBytes.Get(), _totalSize);
+
+                /// 如果暂停，等待信号恢复
+                await _isPause.Until((v) => !v);
+                /// TODO 页面销毁时，要销毁这些异步等待
+            }
+            _downloadStatus.Set(DownloadStatus.DownloadComplete);
+
         }
         catch (Exception e)
         {
@@ -271,17 +250,25 @@ public class JmmDownload
     /// <summary>
     /// 解压
     /// </summary>
-    public void CompressZip(Action<float> onDownloadProgressChange)
+    public void UnCompressZip()
     {
         _ = Task.Run(() =>
         {
-            ZipFile.ExtractToDirectory(_downloadFile, JmmDwebService.DWEB_APP_DIR);
-            Console.Log("CompressZip", JmmDwebService.DWEB_APP_DIR);
+            var outputDir = JsMicroModule.GetInstallPath(JmmMetadata);
+            Console.Log("UnCompressZip", outputDir);
+            ZipFile.ExtractToDirectory(_downloadFile, outputDir);
             File.Delete(_downloadFile);
-            onDownloadProgressChange((float)1.0);
+            foreach (var info in JsMicroModule.GetAllVersions(JmmMetadata.Id))
+            {
+                if (info.Version != JmmMetadata.Version)
+                {
+                    Directory.Delete(info.InstallPath, true);
+                }
+            }
+            OnDownloadProgressChange?.Invoke((float)1.0);
             _downloadStatus.Set(DownloadStatus.Installed);
             JmmMetadataDB.AddJmmMetadata(JmmMetadata.Id, JmmMetadata);
-            Console.Log("CompressZip", "success!!!");
+            Console.Log("UnCompressZip", "success!!!");
         }).NoThrow();
     }
 
@@ -303,7 +290,7 @@ public class JmmDownload
                 {
                     File.Delete(_downloadFile);
                 }
-                
+
                 break;
         }
     }

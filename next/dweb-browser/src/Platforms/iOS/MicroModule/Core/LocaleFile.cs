@@ -36,90 +36,89 @@ public static class LocaleFile
     static LocaleFile()
     {
         // 将本地资源文件读取添加到适配器中
-        NativeFetch.NativeFetchAdaptersManager.Append(LocaleFileFetch);
+        NativeFetch.NativeFetchAdaptersManager.Append(GetSysFile);
     }
 
-    public static async Task<PureResponse?> LocaleFileFetch(MicroModule remote, PureRequest request)
-        => request.ParsedUrl?.Scheme switch
-        {
-            string schema when schema == Uri.UriSchemeFile => await GetLocalFetch(remote, request),
-            _ => null
-        };
+    public static async Task<PureResponse?> GetSysFile(MicroModule remote, PureRequest request)
+    {
 
-    public static async Task<PureResponse?> GetLocalFetch(MicroModule remote, PureRequest request)
+        if (request.ParsedUrl is not null and var parsedUrl && parsedUrl.Scheme == Uri.UriSchemeFile && parsedUrl.FullHost is "" && parsedUrl.Path.StartsWith("/sys/"))
+        {
+            var query = HttpUtility.ParseQueryString(parsedUrl.Query);
+            var mode = query["mode"] ?? "auto";
+            var chunk = query["chunk"]?.ToIntOrNull() ?? 1024 * 1024;
+
+            var relativePath = string.Empty;
+            var baseDir = string.Empty;
+
+            //if (parsedUrl.Path.StartsWith("/usr/"))
+            //{
+            //    relativePath = parsedUrl.Path;
+            //    baseDir = Path.Combine(JmmDwebService.DWEB_APP_DIR, remote.Mmid);
+            //}
+
+            relativePath = parsedUrl.Path[5..]; // 移除 '/sys/'
+            baseDir = PathHelper.GetIOSAppAssetsPath();
+            return await ReadLocalFileAsResponse(baseDir, relativePath, mode, url: request.Url);
+
+        }
+
+        return null;
+
+    }
+    public static async Task<PureResponse> ReadLocalFileAsResponse(string baseDir, string relativePath, string mode = "auto", int chunk = 1024 * 1024, string? url = null)
     {
         try
         {
-            if (request.ParsedUrl is not null and var parsedUrl && parsedUrl.Scheme is "file" && parsedUrl.FullHost is "")
+
+            Console.Log("LocaleFileFetch", "OPEN {0}", relativePath);
+
+            /// 尝试打开文件，如果打开失败就走 404 no found 响应
+            var absoluteDir = Path.Join(baseDir, Path.GetDirectoryName(relativePath) ?? "");
+            var absoluteDirFiles = new string[0].Try((arr) => arr.Concat(Directory.GetFileSystemEntries(absoluteDir)).ToArray());
+
+            var filename = Path.GetFileName(relativePath) ?? "";
+            var absoluteFile = Path.Combine(absoluteDir, filename);
+
+            /// 文件不存在
+            if (absoluteDirFiles.Contains(absoluteFile) is false)
             {
-                var query = HttpUtility.ParseQueryString(parsedUrl.Query);
-                var mode = query["mode"] ?? "auto";
-                var chunk = query["chunk"]?.ToIntOrNull() ?? 1024 * 1024;
-
-                var src = string.Empty;
-                var dirname = string.Empty;
-
-                if (parsedUrl.Path.StartsWith("/usr/"))
-                {
-                    src = parsedUrl.Path;
-                    dirname = Path.Combine(JmmDwebService.DWEB_APP_DIR, remote.Mmid);
-                } else if (parsedUrl.Path.StartsWith("/sys/"))
-                {
-                    src = parsedUrl.Path[5..]; // 移除 '/sys/'
-                    dirname = PathHelper.GetIOSAppAssetsPath();
-                }
-
-                Console.Log("LocaleFileFetch", "OPEN {0}", src);
-
-                /// 尝试打开文件，如果打开失败就走 404 no found 响应
-                var absoluteDir = Path.Join(dirname, Path.GetDirectoryName(src) ?? "");
-                var absoluteDirFiles = new string[0].Try((arr) => arr.Concat(Directory.GetFileSystemEntries(absoluteDir)).ToArray());
-
-                var filename = Path.GetFileName(src) ?? "";
-                var absoluteFile = Path.Combine(absoluteDir, filename);
-
-                /// 文件不存在
-                if (absoluteDirFiles.Contains(absoluteFile) is false)
-                {
-                    Console.Log("LocaleFileFetch", "NO-FOUND {0}", parsedUrl.Path);
-                    var notFoundResponse = new PureResponse(HttpStatusCode.NotFound, Body: new PureUtf8StringBody(string.Format("not found file: {0}.", parsedUrl.Path)));
-                    return notFoundResponse;
-                }
-
-                /// 开始读取文件来响应内容
-
-                //var okResponse = new HttpResponseMessage(HttpStatusCode.OK);
-                var fs = File.OpenRead(absoluteFile);
-                Console.Log("LocaleFileFetch", "Mode: {0}", mode);
-
-                PureBody responseBody;
-                var ipcHeaders = new IpcHeaders()
-                    .Set("Content-Length", fs.Length.ToString())
-                    .Set("Content-Type", GetMimeType(filename));
-
-                // buffer 模式，就是直接全部读取出来
-                // TODO auto 模式就是在通讯次数和单次通讯延迟之间的一个取舍，如果分片次数少于2次，那么就直接发送，没必要分片
-                if (mode is "stream")
-                {
-                    /// 返回流
-                    responseBody = new PureStreamBody(fs);
-                }
-                else using (fs)
-                    {
-                        /// 一次性发送
-                        responseBody = new PureByteArrayBody(await fs.ReadBytesAsync(fs.Length));
-                    }
-
-                return new PureResponse(HttpStatusCode.OK, ipcHeaders, responseBody, Url: request.Url);
+                Console.Log("LocaleFileFetch", "NO-FOUND {0}", absoluteDir);
+                var notFoundResponse = new PureResponse(HttpStatusCode.NotFound, Body: new PureUtf8StringBody(string.Format("not found file: {0}.", absoluteDir)), Url: url);
+                return notFoundResponse;
             }
+
+            /// 开始读取文件来响应内容
+
+            //var okResponse = new HttpResponseMessage(HttpStatusCode.OK);
+            var fs = File.OpenRead(absoluteFile);
+            Console.Log("LocaleFileFetch", "Mode: {0}", mode);
+
+            PureBody responseBody;
+            var ipcHeaders = new IpcHeaders()
+                .Set("Content-Length", fs.Length.ToString())
+                .Set("Content-Type", GetMimeType(filename));
+
+            // buffer 模式，就是直接全部读取出来
+            // TODO auto 模式就是在通讯次数和单次通讯延迟之间的一个取舍，如果分片次数少于2次，那么就直接发送，没必要分片
+            if (mode is "stream")
+            {
+                /// 返回流
+                responseBody = new PureStreamBody(fs);
+            }
+            else using (fs)
+                {
+                    /// 一次性发送
+                    responseBody = new PureByteArrayBody(await fs.ReadBytesAsync(fs.Length));
+                }
+
+            return new PureResponse(HttpStatusCode.OK, ipcHeaders, responseBody, Url: url);
         }
         catch (Exception e)
         {
             Console.Warn("LocaleFileFetch", "Exception: {0}", e.Message);
-            return new PureResponse(HttpStatusCode.InternalServerError);
+            return new PureResponse(HttpStatusCode.InternalServerError, Url: url);
         }
-
-        return null;
     }
 }
 
