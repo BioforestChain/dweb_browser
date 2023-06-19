@@ -383,22 +383,12 @@ class browserViewModelHelper {
 
 internal class DwebBrowserWebViewClient(val microModule: MicroModule) : AccompanistWebViewClient() {
   override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
       request?.url?.let { uri ->
         val url = uri.toString()
         if (url.startsWith("http") || url.startsWith("file") || url.startsWith("ftp")) {
           return super.shouldOverrideUrlLoading(view, request)
         }
-        // 暂时不跳转
-        /*try {
-          App.appContext.startActivity(Intent(Intent.ACTION_VIEW, request.url).also {
-            it.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-          })
-        } catch (_: Exception) {
-        }*/
       }
-      return true
-    }
     return super.shouldOverrideUrlLoading(view, request)
   }
 

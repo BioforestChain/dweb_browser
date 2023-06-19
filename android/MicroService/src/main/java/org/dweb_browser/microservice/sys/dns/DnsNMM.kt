@@ -268,10 +268,10 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
     return runningApps.remove(mmid)?.let { microModulePo ->
       runCatching {
         val microModule = microModulePo.waitPromise()
+        microModule.shutdown()
         // 这里只需要移除
         mmConnectsMap.remove(MM.from(microModule.mmid, "js.browser.dweb"))
         mmConnectsMap.remove(MM.from("js.browser.dweb", microModule.mmid))
-        microModule.shutdown()
         1
       }.getOrDefault(0)
     } ?: -1

@@ -110,6 +110,7 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
                 ).body(streamIpc.stream)
             ).stream()
         )
+        this.addToIpcSet(streamIpc)
         return streamIpc
     }
 
@@ -196,7 +197,7 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
             }
             null
         }
-        _ipcSet.add(streamIpc);
+        this.addToIpcSet(streamIpc)
     }
 
     private val fromMmid_originIpc_WM = mutableMapOf<Mmid, PromiseOut<Ipc>>();

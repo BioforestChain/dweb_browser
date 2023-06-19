@@ -83,6 +83,13 @@ abstract class MicroModule : Ipc.MicroModuleInfo {
    */
   protected val _ipcSet = mutableSetOf<Ipc>();
 
+  fun addToIpcSet(ipc: Ipc) {
+    this._ipcSet.add(ipc)
+    ipc.onClose {
+      _ipcSet.remove(ipc)
+    }
+  }
+
   /**
    * 内部程序与外部程序通讯的方法
    * TODO 这里应该是可以是多个
@@ -111,10 +118,7 @@ abstract class MicroModule : Ipc.MicroModuleInfo {
    * 收到一个连接，触发相关事件
    */
   suspend fun beConnect(ipc: Ipc, reason: Request) {
-    this._ipcSet.add(ipc);
-    ipc.onClose {
-      this._ipcSet.remove(ipc);
-    };
+    this.addToIpcSet(ipc)
     ipc.onEvent { (event, ipc) ->
       if (event.name == "activity") {
         onActivity(event, ipc)

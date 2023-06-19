@@ -233,7 +233,14 @@ class HttpNMM : NativeMicroModule("http.sys.dweb") {
     val streamIpc = ReadableStreamIpc(
       gateway.listener.ipc.remote, "http-gateway/${gateway.urlInfo.host}"
     )
+    /// 接收一个body，body在关闭的时候，fetchIpc也会一同关闭
     streamIpc.bindIncomeStream(message.body.stream)
+    /// 自己nmm销毁的时候，ipc也会被全部销毁
+    this.addToIpcSet(streamIpc)
+    /// 自己创建的，就要自己销毁：这个listener被销毁的时候，streamIpc也要进行销毁
+    gateway.listener.onDestroy {
+      streamIpc.close()
+    }
     for (routeConfig in routes) {
       streamIpc.onClose(gateway.listener.addRouter(routeConfig, streamIpc))
     }

@@ -1,13 +1,16 @@
 package org.dweb_browser.microservice.ipc
 
+import com.sun.tools.javac.Main
 import org.dweb_browser.helper.readByteArray
 import org.dweb_browser.helper.readInt
 import org.dweb_browser.helper.toByteArray
 import org.dweb_browser.helper.toUtf8ByteArray
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
+import kotlinx.coroutines.withContext
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printdebugln
 import org.dweb_browser.microservice.help.gson
@@ -118,8 +121,9 @@ class ReadableStreamIpc(
                     else -> throw Exception("unknown message: $message")
                 }
             }
-//            j.cancel()
             debugStreamIpc("END/$stream")
+            // 流是双向的，对方关闭的时候，自己也要关闭掉
+            this.close()
         }
         _incomeStream = stream
         inComeStreamJob.getAndSet(incomeStreamCoroutineScope.async { readStream() })
@@ -143,5 +147,8 @@ class ReadableStreamIpc(
 
     override suspend fun _doClose() {
         controller.close()
+        withContext(Dispatchers.IO) {
+            _incomeStream?.close()
+        }
     }
 }

@@ -42,20 +42,23 @@ suspend fun MicroModule.startHttpDwebServer(options: DwebHttpServerOptions) =
 suspend fun MicroModule.listenHttpDwebServer(
   startResult: HttpNMM.ServerStartResult,
   routes: Array<Gateway.RouteConfig>
-) =
-    ReadableStreamIpc(this, "http-server/${startResult.urlInfo.host}").also {
-        it.bindIncomeStream(
-            this.nativeFetch(
-                Request(
-                    Method.POST,
-                    Uri.of("file://http.sys.dweb/listen")
-                        .query("host", startResult.urlInfo.host)
-                        .query("token", startResult.token)
-                        .query("routes", gson.toJson(routes))
-                ).body(it.stream)
-            ).stream()
-        )
-    }
+): ReadableStreamIpc {
+  var streamIpc = ReadableStreamIpc(this, "http-server/${startResult.urlInfo.host}").also {
+    it.bindIncomeStream(
+      this.nativeFetch(
+        Request(
+          Method.POST,
+          Uri.of("file://http.sys.dweb/listen")
+            .query("host", startResult.urlInfo.host)
+            .query("token", startResult.token)
+            .query("routes", gson.toJson(routes))
+        ).body(it.stream)
+      ).stream()
+    )
+  }
+  this.addToIpcSet(streamIpc)
+  return streamIpc
+}
 
 
 suspend fun MicroModule.closeHttpDwebServer(options: DwebHttpServerOptions) =

@@ -16,11 +16,6 @@ class IpcBodyReceiver(
   ipc: Ipc,
 ) : IpcBody() {
 
-  class IPC {
-    companion object {
-
-    }
-  }
 
   /// 因为是 abstract，所以得用 lazy 来延迟得到这些属性
   override val bodyHub by lazy {
@@ -76,6 +71,11 @@ class IpcBodyReceiver(
        */
       val paused = AtomicBoolean(true);
       val stream = ReadableStream(cid = "receiver-${stream_id}", onStart = { controller ->
+
+        // 注册关闭事件
+        ipc.onClose {
+          controller.close()
+        }
         /// 如果有初始帧，直接存起来
         when (metaBody.type.encoding) {
           IPC_DATA_ENCODING.UTF8 -> (metaBody.data as String).toUtf8ByteArray()

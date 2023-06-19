@@ -100,18 +100,16 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
         val query_process_id = Query.string().required("process_id")
         val query_mmid = Query.string().required("mmid")
 
-        val ipcProcessIdMap = mutableMapOf<Ipc, MutableMap<String, PromiseOut<Int>>>()
-        val processIpcMap = mutableMapOf<String, Ipc>()
+        val ipcProcessIdMap = mutableMapOf<String, MutableMap<String, PromiseOut<Int>>>()
         val ipcProcessIdMapLock = Mutex()
         apiRouting = routes(
             /// 创建 web worker
             // request 需要携带一个流，来为 web worker 提供代码服务
             "/create-process" bind Method.POST to defineHandler { request, ipc ->
-                processIpcMap[ipc.remote.mmid] = ipc
                 val po = ipcProcessIdMapLock.withLock {
                     val processId = query_process_id(request)
-                    val processIdMap = ipcProcessIdMap.getOrPut(ipc) {
-                        ipc.onClose { ipcProcessIdMap.remove(ipc) }
+                    val processIdMap = ipcProcessIdMap.getOrPut(ipc.remote.mmid) {
+                        ipc.onClose { ipcProcessIdMap.remove(ipc.remote.mmid) }
                         mutableMapOf()
                     }
 
@@ -135,14 +133,13 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
             /// 创建 web 通讯管道
             "/create-ipc" bind Method.GET to defineHandler { request, ipc ->
                 val processId = query_process_id(request)
-
                 /**
                  * 虽然 mmid 是从远程直接传来的，但风险与jsProcess无关，
                  * 因为首先我们是基于 ipc 来得到 processId 的，所以这个 mmid 属于 ipc 自己的定义
                  */
                 val mmid = query_mmid(request)
                 val process_id = ipcProcessIdMapLock.withLock {
-                    ipcProcessIdMap[ipc]?.get(processId)
+                    ipcProcessIdMap[ipc.remote.mmid]?.get(processId)
                         ?: throw Exception("ipc:${ipc.remote.mmid}/processId:$processId invalid")
                 }.waitPromise()
 
@@ -152,10 +149,19 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
             /// 关闭process
             "/close-process" bind Method.GET to defineHandler { request,ipc ->
                 closeHttpDwebServer(DwebHttpServerOptions(port = 80,subdomain = ipc.remote.mmid))
-                val processIpc = processIpcMap[ipc.remote.mmid]
-                debugJsProcess("close-process",processIpc?.remote?.mmid)
-                processIpc?.close()
+              val processMap = ipcProcessIdMap.remove(ipc.remote.mmid)
+              debugJsProcess("close-process",ipc.remote.mmid)
+              if (processMap !== null) {
+                // 关闭程序
+                for ((_processId, po) in processMap) {
+                  val processId = po.waitPromise()
+                  apis.destroyProcess(processId)
+                }
+                // 关闭代码通道
+                closeHttpDwebServer(DwebHttpServerOptions(80, ipc.remote.mmid))
                 return@defineHandler true
+              }
+                return@defineHandler false
             }
         )
     }
@@ -205,6 +211,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
         val streamIpc = ReadableStreamIpc(ipc.remote, "code-proxy-server").also {
             it.bindIncomeStream(requestMessage.body.stream);
         }
+        this.addToIpcSet(streamIpc)
 
         /**
          * 代理监听
