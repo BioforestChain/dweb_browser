@@ -73,7 +73,7 @@ export async function jsProcessOpenWindow(
     });
     /// 确定关闭
     if (res.response === 1) {
-      Electron.config.set("js-process-bounds", browserWindow.getBounds());
+      ElectronConfig.set("js-process-bounds", browserWindow.getBounds());
 
       /// 同意关闭，将会冒泡到 will-prevent-unload
       allowClose = true;

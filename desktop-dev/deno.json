@@ -16,12 +16,12 @@
     }
   },
   "tasks": {
-    "dnt": "deno run -A ./scripts/dnt.ts && deno task start --inspect",
-    "start": "cd ./electron && pnpm start ",
-    "pkg": "deno task pkg:win && deno task pkg:mac",
-    "pkg:win": "npx --yes electron-packager ./electron dweb-browser-devtools --platform=win32 --arch=x64 --ignore=apps --out=build --overwrite ",
-    "pkg:mac": "npx --yes electron-packager ./electron dweb-browser-devtools --ignore=apps --out=build --overwrite ",
-    "assets": "deno run -A ./scripts/assets.ts",
+    "dnt": "deno run -A ./scripts/dnt.ts",
+    "bundle": "deno run -A ./scripts/bundle.ts",
+    "start": "deno task dnt --start",
+    "pkg": "deno task dnt && npx --yes electron-builder build --project electron -wm",
+    "pkg:win": "deno task dnt && npx --yes electron-builder build --project electron --win",
+    "pkg:mac": "deno task dnt && npx --yes electron-builder build --project electron --mac",
     "esm:add": "deno run -A https://esm.sh/v124 add",
     "esm:update": "deno run -A https://esm.sh/v124 update",
     "esm:remove": "deno run -A https://esm.sh/v124 remove",
@@ -29,4 +29,3 @@
     "lock": "deno cache --reload --lock-write scripts/deps.ts src/index.ts"
   }
 }
-

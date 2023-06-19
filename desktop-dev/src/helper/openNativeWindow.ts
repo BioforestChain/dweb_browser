@@ -63,47 +63,37 @@ export const openNativeWindow = async (
     contextIsolation: false,
   };
 
-  const win = new Electron.BrowserWindow(options) as $ExtendsBrowserWindow;
+  const win = new Electron.BrowserWindow(options);
+
   if (webContentsConfig.userAgent) {
     win.webContents.setUserAgent(
       webContentsConfig.userAgent(win.webContents.userAgent)
     );
   }
-  win._devToolsWin = new Map();
   const show_po = new PromiseOut<void>();
   win.once("ready-to-show", () => {
     win.show();
     // 是否显示 multi-webview devTools;
     // 这个只是在开发 desktop-dev 的阶段才需要之后是不需要的
-    const devToolsWin = openDevToolsAtBrowserWindowByWebContents(
+    const devWin = openDevToolsAtBrowserWindowByWebContents(
       win.webContents,
       win.webContents.getTitle(),
       win
     );
-    devToolsWin.once("ready-to-show", () => {
-      win._devToolsWin.set(devToolsWin.webContents.id, devToolsWin);
-    });
+    // devWin.once("show", () => {
+    //   win.devToolsWins.add(devWin);
+    // });
+    // devWin.once("close", () => {
+    //   win.devToolsWins.delete(devWin);
+    // });
     show_po.resolve();
   });
 
-  win.on("close", () => {
-    const devToolsWin = win._devToolsWin.values();
-    const devToolsWinArr = Array.from(devToolsWin);
-    devToolsWinArr.forEach((item) => {
-      item.close();
-      win._devToolsWin.delete(item.webContents.id);
-    });
-  });
-  // Emitted when the window gains focus.
-  win.on("focus", () => {
-    // 设置匹配的 worker 也进入到 top 层
-    // const devToolsWin = win._devToolsWin.values()
-    // const devToolsWinArr = Array.from(devToolsWin).reverse();
-    // devToolsWinArr.forEach(item => {
-    //    item.showInactive()
-    // })
-    win.show();
-  });
+  // win.on("close", () => {
+  //   for (const devWin of win.devToolsWins) {
+  //     devWin.close();
+  //   }
+  // });
 
   win.webContents.setWindowOpenHandler((_detail) => {
     return { action: "deny" };
@@ -154,7 +144,7 @@ function openDevToolsAtBrowserWindowByWebContents(
   const diaplay = Electron.screen.getPrimaryDisplay();
   const space = 10;
   const winBounds = win.getBounds();
-  const devTools = new Electron.BrowserWindow({
+  const devWin = new Electron.BrowserWindow({
     title: title, // 好像没有效果
     autoHideMenuBar: true,
     width: Math.min(
@@ -166,12 +156,17 @@ function openDevToolsAtBrowserWindowByWebContents(
       // partition: "devtools",
     },
   });
-  devTools.webContents.on("destroyed", () => {
+
+  /// 绑定销毁关系
+  devWin.webContents.on("destroyed", () => {
     winDispose();
     webContentsDispose();
   });
+  webContents.on("destroyed", () => {
+    devWin.destroy();
+  });
 
-  webContents.setDevToolsWebContents(devTools.webContents);
+  webContents.setDevToolsWebContents(devWin.webContents);
   webContents.openDevTools({ mode: "detach" });
 
   /// 开发者工具的窗口进行跟随
@@ -197,14 +192,14 @@ function openDevToolsAtBrowserWindowByWebContents(
       preAniAborter = undefined;
 
       if (typeof animate === "boolean") {
-        devTools.setPosition(newDevPos.x, newDevPos.y, animate);
+        devWin.setPosition(newDevPos.x, newDevPos.y, animate);
         oldDevPos = newDevPos;
       } else {
         preAniAborter = animate(
           oldDevPos,
           newDevPos,
           (pos) => {
-            devTools.setPosition(Math.round(pos.x), Math.round(pos.y), false);
+            devWin.setPosition(Math.round(pos.x), Math.round(pos.y), false);
             oldDevPos = pos;
           },
           () => {
@@ -214,6 +209,11 @@ function openDevToolsAtBrowserWindowByWebContents(
       }
     }
   };
+  devWin.on("moved", () => {
+    const [x, y] = devWin.getPosition();
+    oldDevPos.x = x;
+    oldDevPos.y = y;
+  });
   win.on("resize", () => devWinFollow());
   /// TODO moved MACOS only
   win.on("moved", () =>
@@ -231,22 +231,22 @@ function openDevToolsAtBrowserWindowByWebContents(
     })
   );
   devWinFollow(true);
-  win.on("focus", () => devTools.moveTop());
-  devTools.on("focus", () => win.moveTop());
+  win.on("focus", () => devWin.moveTop());
+  devWin.on("focus", () => win.moveTop());
 
   webContents.on("did-start-navigation", () => {
-    webContents.setDevToolsWebContents(devTools.webContents);
+    webContents.setDevToolsWebContents(devWin.webContents);
   });
-  devTools.webContents.executeJavaScript(
+  devWin.webContents.executeJavaScript(
     `(()=>{
       document.title = ${JSON.stringify(`for: ${title}`)}
     })()`
   );
-  return devTools;
+  return devWin;
 }
 
 export class ForRenderApi {
-  constructor(private win: $ExtendsBrowserWindow) {}
+  constructor(private win: Electron.BrowserWindow) {}
   // private _devToolsWin: Map<number, Electron.BrowserWindow> = new Map();
 
   /**
@@ -259,10 +259,7 @@ export class ForRenderApi {
     title: string
   ) {
     const content_wcs = Electron.webContents.fromId(webContentsId)!;
-    this.win._devToolsWin.set(
-      webContentsId,
-      openDevToolsAtBrowserWindowByWebContents(content_wcs, title, this.win)
-    );
+    openDevToolsAtBrowserWindowByWebContents(content_wcs, title, this.win);
   }
 
   /**
@@ -272,10 +269,10 @@ export class ForRenderApi {
    * @param webContentsId
    */
   closeDevToolsAtBrowserWindowByWebContentsId(webContentsId: number) {
-    const devToolsWin = this.win._devToolsWin.get(webContentsId);
-    if (devToolsWin === undefined) throw new Error(`devToolsWin === undefined`);
-    devToolsWin.close();
-    this.win._devToolsWin.delete(webContentsId);
+    const content_wcs = Electron.webContents.fromId(webContentsId);
+    if (content_wcs) {
+      content_wcs.closeDevTools();
+    }
   }
 
   // openDevTools(
@@ -313,9 +310,9 @@ export class ForRenderApi {
   destroy(webContentsId: number, options?: Electron.CloseOpts) {
     const contents = Electron.webContents.fromId(webContentsId);
     if (contents === undefined) throw new Error(`contents === undefined`);
-    const devToolsWin = this.win._devToolsWin.get(webContentsId);
-    if (devToolsWin === undefined) throw new Error(`devToolsWin === undefined`);
-    devToolsWin.close();
+    // const devToolsWin = this.win._devToolsWin.get(webContentsId);
+    // if (devToolsWin === undefined) throw new Error(`devToolsWin === undefined`);
+    // devToolsWin.close();
     return contents.close(options);
   }
 
@@ -355,9 +352,9 @@ export class ForRenderApi {
 
 export type $NativeWindow = Awaited<ReturnType<typeof openNativeWindow>>;
 
-export interface $ExtendsBrowserWindow extends Electron.BrowserWindow {
-  _devToolsWin: Map<number, Electron.BrowserWindow>;
-}
+// {
+//   readonly devToolsWins = new Set<Electron.BrowserWindow>();
+// }
 // export interface $DevToolsWin {
 //   _devToolsWin: Map<number, Electron.BrowserWindow>
 // }
