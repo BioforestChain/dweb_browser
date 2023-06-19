@@ -2,8 +2,8 @@ import { expose, proxy, wrap } from "comlink";
 import { debounce } from "./$debounce.ts";
 import { PromiseOut } from "./PromiseOut.ts";
 import { animate, easeOut } from "./animate.ts";
-import { electronConfig } from "./electronConfig.ts";
 import "./electron.ts";
+import { electronConfig } from "./electronConfig.ts";
 
 /**
  * 事件绑定作用域
@@ -182,35 +182,61 @@ async function openDevToolsWindowAsFollower(
   _webContents: Electron.WebContents,
   followOptions: {
     position?: "left" | "right";
+    /**
+     * 跟随留白
+     */
+    space?: number;
+    devWebContent?: Electron.WebContents;
   } = {}
 ) {
+  try {
+    if (_webContents.devToolsWebContents) {
+      const devWin = Electron.BrowserWindow.fromWebContents(
+        _webContents.devToolsWebContents
+      )!;
+      devWin.moveTop();
+      return devWin;
+    }
+  } catch {}
+
   /// 使用最原始的方式打开webview，放在独立的窗口中
-  {
-    const devWin = new Electron.BrowserWindow();
-    _webContents.setDevToolsWebContents(devWin.webContents);
-  }
-  _webContents.openDevTools({ mode: "detach" });
   const devWinPo = new PromiseOut<Electron.BrowserWindow>();
-  _webContents.on("devtools-opened", () => {
-    const devToolsWebContents = _webContents.devToolsWebContents!;
-    devWinPo.resolve(
-      Electron.BrowserWindow.fromWebContents(devToolsWebContents)!
-    );
-  });
+  {
+    const { devWebContent } = followOptions;
+    /// 如果传入了自定义的devWebContent，那么使用传入的
+    if (devWebContent) {
+      _webContents.setDevToolsWebContents(devWebContent);
+    }
+    /// 否则创建一个新的窗口来承载
+    else {
+      const devWin = new Electron.BrowserWindow();
+      _webContents.setDevToolsWebContents(devWin.webContents);
+    }
+    /// 附加开发窗口
+    _webContents.once("devtools-opened", () => {
+      const devToolsWebContents = _webContents.devToolsWebContents!;
+      devWinPo.resolve(
+        Electron.BrowserWindow.fromWebContents(devToolsWebContents)!
+      );
+    });
+    _webContents.openDevTools({ mode: "detach" });
+  }
+
   const _win = Electron.BrowserWindow.fromWebContents(_webContents)!;
   const [winDispose, win] = eventScope(_win);
   const [webContentsDispose, webContents] = eventScope(_webContents);
 
-  const space = 10;
+  const { space = 10 } = followOptions;
 
-  const devWin = await devWinPo.promise;
-  console.always("devWin", devWin.id);
+  const _devWin = await devWinPo.promise;
+  const [devWinDispose, devWin] = eventScope(_devWin);
+
   /// 调整窗口大小
   {
-    const [width, height] = devWin.getSize();
+    const [width, height] = _devWin.getSize();
     const diaplay = Electron.screen.getPrimaryDisplay();
     const winBounds = win.getBounds();
-    devWin.setSize(
+    _devWin.setSize(
       Math.min(
         Math.max(400, width),
         diaplay.size.width - winBounds.width - space
@@ -220,12 +246,20 @@ async function openDevToolsWindowAsFollower(
   }
 
   /// 绑定销毁关系
-  devWin.webContents.on("destroyed", () => {
+  /// devTools 关闭时，解除绑定
+  _devWin.webContents.on("destroyed", () => {
+    /// 这里不需要调用 _webContents.closeDevTools，因为对于 setDevToolsWebContents 模式，_webContents.closeDevTools 是不会生效的
+    /// 当前的 devWin.webContents 本质就是 _webContents.devToolsWebContents，所以随着它被销毁， _webContents.devToolsWebContents 也就成 null了
     winDispose();
     webContentsDispose();
+    devWinDispose();
   });
+  /// web 销毁时，关闭 devTools
   webContents.on("destroyed", () => {
-    devWin.destroy();
+    /// 关闭 devToolsWebContents，主要，不是 devWin.close
+    /// 如果是独立的BrowserWindow，那么等价于 devWin.close
+    /// 如果是 webview-tag 或者 BrowserView，那么由调用者自己去处理视图的销毁，同时 devWin 并不会被关闭
+    _devWin.webContents.close();
   });
 
   /// 开发者工具的窗口进行跟随
@@ -246,7 +280,7 @@ async function openDevToolsWindowAsFollower(
     let newDevPos: Electron.Point;
     if (followPosition === "left") {
       newDevPos = {
-        x: winBounds.x - space - devWin.getSize()[0],
+        x: winBounds.x - space - _devWin.getSize()[0],
         y: winBounds.y,
       };
     } else {
@@ -261,14 +295,14 @@ async function openDevToolsWindowAsFollower(
       preAniAborter = undefined;
 
       if (typeof animate === "boolean") {
-        devWin.setPosition(newDevPos.x, newDevPos.y, animate);
+        _devWin.setPosition(newDevPos.x, newDevPos.y, animate);
         oldDevPos = newDevPos;
       } else {
         preAniAborter = animate(
           oldDevPos,
           newDevPos,
           (pos) => {
-            devWin.setPosition(Math.round(pos.x), Math.round(pos.y), false);
+            _devWin.setPosition(Math.round(pos.x), Math.round(pos.y), false);
             oldDevPos = pos;
           },
           () => {
@@ -279,9 +313,9 @@ async function openDevToolsWindowAsFollower(
     }
   };
   /// 只要不是同一个窗口，那么就可以使用跟随模式
-  if (devWin !== _win) {
+  if (_devWin !== _win) {
     devWin.on("moved", () => {
-      const [x, y] = devWin.getPosition();
+      const [x, y] = _devWin.getPosition();
       oldDevPos.x = x;
       oldDevPos.y = y;
     });
@@ -304,12 +338,11 @@ async function openDevToolsWindowAsFollower(
       })
     );
     devWinFollow(true);
+    win.on("focus", () => _devWin.moveTop());
+    _devWin.on("focus", () => win.moveTop());
   }
 
-  win.on("focus", () => devWin.moveTop());
-  devWin.on("focus", () => win.moveTop());
-
-  return devWin;
+  return _devWin;
 }
 
 export class ForRenderApi {
@@ -321,20 +354,45 @@ export class ForRenderApi {
    * @param webContentsId
    * @param src
    */
-  async openDevToolsWindowAsFollower(webContentsId: number, title: string) {
+  async openDevToolsWindowAsFollower(webContentsId: number, title?: string) {
     const content_wcs = Electron.webContents.fromId(webContentsId)!;
     const devWin = await openDevToolsWindowAsFollower(content_wcs, {});
+    if (title !== undefined) {
+      devWin.setTitle(title);
+    }
+    return proxy(devWin);
   }
 
   /**
-   * 根据 devTools window 匹配的 webContentsId
-   * 关闭 devTools window
-   * 从保存的 列表中删除
+   * 标准方法打开 devTools
+   * @param webContentsId
+   * @param options
+   */
+  async openDevTools(
+    webContentsId: number,
+    options?: Electron.OpenDevToolsOptions
+  ) {
+    const content_wcs = Electron.webContents.fromId(webContentsId)!;
+    content_wcs.openDevTools(options);
+  }
+
+  /**
+   * 关闭 devTools
    * @param webContentsId
    */
-  closeDevToolsAtBrowserWindowByWebContentsId(webContentsId: number) {
-    const content_wcs = Electron.webContents.fromId(webContentsId);
-    if (content_wcs) {
+  async closeDevTools(webContentsId: number) {
+    const content_wcs = Electron.webContents.fromId(webContentsId)!;
+    if (!content_wcs.devToolsWebContents) {
+      return;
+    }
+    const devWin = Electron.BrowserWindow.fromWebContents(
+      content_wcs.devToolsWebContents
+    );
+    /// 如果这个devTools被附加到其它窗口，那么就直接关闭那个窗口
+    if (devWin !== this.win) {
+      devWin?.close();
+    } else {
+      /// 如果是与当前窗口使用同一个具柄，那么调用原始的关闭即可
       content_wcs.closeDevTools();
     }
   }

@@ -1,5 +1,6 @@
 /// <reference lib="DOM"/>
 const { ipcRenderer } = Electron;
+import { proxy } from "comlink";
 import { css, html, LitElement } from "lit";
 import {
   customElement,
@@ -477,10 +478,20 @@ export class ViewTree extends LitElement {
     }
 
     // 打开devtools
-    mainApis.openDevToolsWindowAsFollower(
-      webview.webContentId,
-      webview.src
-    );
+    if (webview.devToolsWinId === -1) {
+      webview.devToolsWinId = -2; //
+      mainApis
+        .openDevToolsWindowAsFollower(webview.webContentId, webview.src)
+        .then(async (devWin) => {
+          webview.devToolsWinId = await devWin.id;
+          await (devWin as unknown as Electron.BrowserWindow).on(
+            "closed",
+            proxy(() => {
+              webview.devToolsWinId = -1;
+            })
+          );
+        });
+    }
 
     // 添加事件监听器
     ele?.addEventListener("ipc-message", this.webviewTag_onIpcMessage);
@@ -565,9 +576,7 @@ export class ViewTree extends LitElement {
     const [deleteWebview] = this.webviews.splice(deleteIndex, 1);
     this.webviews_syncToMainProcess();
     // 关闭 devTools window
-    mainApis.closeDevToolsAtBrowserWindowByWebContentsId(
-      deleteWebview.webContentId
-    );
+    mainApis.closeDevTools(deleteWebview.webContentId);
     console.error(
       `error`,
       "this.state_delete() 必须要调整为 通过 webview_id 删除 需要把state 同webview 关联起来"

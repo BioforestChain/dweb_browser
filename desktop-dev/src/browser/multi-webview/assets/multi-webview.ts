@@ -4,7 +4,7 @@ import WebviewTag = Electron.WebviewTag;
 class Webview {
   constructor(readonly id: number, readonly src: string) {}
   webContentId = -1;
-  webContentId_devTools = -1;
+  devToolsWinId = -1;
   private _api!: WebviewTag;
   get api(): WebviewTag {
     return this._api;

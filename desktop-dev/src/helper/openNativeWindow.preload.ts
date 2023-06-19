@@ -83,3 +83,5 @@ export const exportApis = once((APIS: unknown) => {
 
 export const mainApis =
   wrap<import("./openNativeWindow.ts").ForRenderApi>(import_port);
+
+Object.assign(globalThis, { mainApis });
