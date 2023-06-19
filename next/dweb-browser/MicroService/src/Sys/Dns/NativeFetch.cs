@@ -16,6 +16,11 @@ public class NativeFetch
 
 public abstract partial class MicroModule
 {
+    static HttpClient httpClient = new HttpClient().Also(it =>
+    {
+        /// 默认禁用缓存
+        it.DefaultRequestHeaders.CacheControl = new() { NoCache = true };
+    });
     public async Task<PureResponse> NativeFetchAsync(PureRequest pureRequest)
     {
         foreach (var fetchAdapter in NativeFetch.NativeFetchAdaptersManager.Adapters)
@@ -28,7 +33,7 @@ public abstract partial class MicroModule
             }
         }
 
-        var httpResponse = await new HttpClient().SendAsync(pureRequest.ToHttpRequestMessage());
+        var httpResponse = await httpClient.SendAsync(pureRequest.ToHttpRequestMessage());
         return await httpResponse.ToPureResponseAsync();
     }
     public Task<PureResponse> NativeFetchAsync(URL url) =>
