@@ -7,12 +7,15 @@ import androidx.lifecycle.viewModelScope
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.browser.jmm.JmmController
 import info.bagen.dwebbrowser.microService.browser.jmm.JmmMetadata
+import info.bagen.dwebbrowser.microService.browser.jmm.JmmNMM
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.dweb_browser.browserUI.download.DownLoadInfo
 import org.dweb_browser.browserUI.download.DownLoadObserver
 import org.dweb_browser.browserUI.download.DownLoadStatus
+import org.dweb_browser.browserUI.download.compareAppVersionHigh
 import org.dweb_browser.browserUI.util.BrowserUIApp
+import org.dweb_browser.browserUI.util.NotificationUtil
 import org.dweb_browser.microservice.help.gson
 import java.util.*
 
@@ -34,38 +37,46 @@ data class DownLoadInfo(
 */
 
 fun createDownLoadInfoByJmm(jmmMetadata: JmmMetadata): DownLoadInfo {
-  return DownLoadInfo(
+  /*return DownLoadInfo(
     id = jmmMetadata.id,
     url = jmmMetadata.bundle_url,
     name = jmmMetadata.name,
     path = "${App.appContext.cacheDir}/DL_${jmmMetadata.id}_${Calendar.MILLISECOND}.bfsa",
     downLoadStatus = DownLoadStatus.IDLE,
     appInfo = gson.toJson(jmmMetadata)
-  )
-  /*return if (JmmNMM.getAndUpdateJmmNmmApps().containsKey(jmmMetadata.id)) {
+  )*/
+  return if (JmmNMM.getAndUpdateJmmNmmApps().containsKey(jmmMetadata.id)) {
     // 表示当前mmid已存在，判断版本，如果是同一个版本，显示为打开；如果是更新的版本，显示为 更新
     val curJmmMetadata = JmmNMM.getAndUpdateJmmNmmApps()[jmmMetadata.id]!!.metadata
     if (compareAppVersionHigh(curJmmMetadata.version, jmmMetadata.version)) {
       DownLoadInfo(
-        jmmMetadata = jmmMetadata,
+        id = jmmMetadata.id,
+        url = jmmMetadata.bundle_url,
+        name = jmmMetadata.name,
         downLoadStatus = DownLoadStatus.NewVersion,
         path = "${App.appContext.cacheDir}/DL_${jmmMetadata.id}_${Calendar.MILLISECOND}.bfsa",
-        notificationId = (NotificationUtil.notificationId++)
+        notificationId = (NotificationUtil.notificationId++),
+        appInfo = gson.toJson(jmmMetadata),
       )
     } else {
       DownLoadInfo(
-        jmmMetadata = jmmMetadata,
+        id = jmmMetadata.id,
+        url = jmmMetadata.bundle_url,
+        name = jmmMetadata.name,
         downLoadStatus = DownLoadStatus.INSTALLED
       )
     }
   } else {
     DownLoadInfo(
-      jmmMetadata = jmmMetadata,
+      id = jmmMetadata.id,
+      url = jmmMetadata.bundle_url,
+      name = jmmMetadata.name,
       downLoadStatus = DownLoadStatus.IDLE,
       path = "${App.appContext.cacheDir}/DL_${jmmMetadata.id}_${Calendar.MILLISECOND}.bfsa",
       notificationId = (NotificationUtil.notificationId++),
+      appInfo = gson.toJson(jmmMetadata),
     )
-  }*/
+  }
 }
 
 sealed class JmmIntent {
