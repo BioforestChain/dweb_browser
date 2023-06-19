@@ -1,46 +1,35 @@
 // 工具函数用来打开 js-process 的window
-import { Remote, wrap } from "comlink";
-import { PromiseOut } from "../../helper/PromiseOut.ts";
-import { ElectronConfig } from "../../helper/electron-config.ts";
+import { Remote } from "comlink";
+import { electronConfig } from "../../helper/electronConfig.ts";
+import { openNativeWindow } from "../../helper/openNativeWindow.ts";
 
 declare global {
   interface ElectronConfig {
-    "js-process-bounds": Electron.Rectangle;
+    "js-process-bounds"?: Electron.Rectangle;
   }
 }
 
 export async function jsProcessOpenWindow(
   url: string,
-  options: Electron.BrowserWindowConstructorOptions = {},
+  _options: Electron.BrowserWindowConstructorOptions = {},
   webContentsConfig: { userAgent?: (userAgent: string) => string } = {}
 ): Promise<$NWW> {
   const { MainPortToRenderPort } = await import(
     "../../helper/electronPortMessage.ts"
   );
-  const browserWindow = new Electron.BrowserWindow({
-    ...options,
-    ...ElectronConfig.get("js-process-bounds"),
-  });
-
-  options.webPreferences = {
-    ...options.webPreferences,
-    sandbox: false,
-    devTools: true,
-    webSecurity: true, // 跨域限制
-    nodeIntegration: true, // 注入 ipcRenderer 对象
-    contextIsolation: false,
+  const options = {
+    ..._options,
+    webPreferences: {
+      ..._options.webPreferences,
+      sandbox: false,
+      devTools: true,
+      webSecurity: true, // 跨域限制
+      nodeIntegration: true, // 注入 ipcRenderer 对象
+      contextIsolation: false,
+    },
   };
-  browserWindow.webContents.openDevTools();
-  browserWindow.webContents.once("devtools-opened", () => {
-    browserWindow.loadURL(url);
-    browserWindow.webContents.disableDeviceEmulation();
-    browserWindow.webContents.once("dom-ready", () => {
-      show_po.resolve();
-    });
-  });
-  browserWindow.webContents.setWindowOpenHandler((_detail) => {
-    return { action: "allow" };
-  });
+  const browserWindow = await openNativeWindow(url, _options);
+
   browserWindow.webContents.on("will-prevent-unload", async (event) => {
     if (allowClose) {
       /// 来自 close 的指令
@@ -73,7 +62,7 @@ export async function jsProcessOpenWindow(
     });
     /// 确定关闭
     if (res.response === 1) {
-      ElectronConfig.set("js-process-bounds", browserWindow.getBounds());
+      electronConfig.set("js-process-bounds", browserWindow.getBounds());
 
       /// 同意关闭，将会冒泡到 will-prevent-unload
       allowClose = true;
@@ -84,34 +73,8 @@ export async function jsProcessOpenWindow(
       event.preventDefault();
     }
   });
-  const show_po = new PromiseOut<void>();
-  const ports_po = new PromiseOut<{
-    import_port: MessagePort;
-    export_port: MessagePort;
-  }>();
 
-  browserWindow.webContents.ipc.once("renderPort", (event) => {
-    const [import_port, export_port] = event.ports;
-    ports_po.resolve({
-      import_port: MainPortToRenderPort(import_port),
-      export_port: MainPortToRenderPort(export_port),
-    });
-  });
-
-  if (webContentsConfig.userAgent) {
-    browserWindow.webContents.setUserAgent(
-      webContentsConfig.userAgent(browserWindow.webContents.userAgent)
-    );
-  }
-
-  await show_po.promise;
-  const { import_port, export_port } = await ports_po.promise;
-
-  return Object.assign(browserWindow, {
-    getApis<T>() {
-      return wrap<T>(import_port);
-    },
-  });
+  return browserWindow;
 }
 
 export type $NWW = Electron.BrowserWindow & $ExtendsBrowserWindow;

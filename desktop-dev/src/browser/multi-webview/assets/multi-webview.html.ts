@@ -477,7 +477,7 @@ export class ViewTree extends LitElement {
     }
 
     // 打开devtools
-    mainApis.openDevToolsAtBrowserWindowByWebContentsId(
+    mainApis.openDevToolsWindowAsFollower(
       webview.webContentId,
       webview.src
     );

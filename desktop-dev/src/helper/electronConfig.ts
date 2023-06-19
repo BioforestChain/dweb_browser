@@ -1,8 +1,8 @@
 import Store from "npm:electron-store@8.1.0";
-export const ElectronConfig = new Store<ElectronConfig>({ name: "config" });
+export const electronConfig = new Store<ElectronConfig>({ name: "config" });
 declare global {
     interface ElectronConfig {
-      [key: string]: unknown;
+    //   [key: string]: unknown;
     }
 //   namespace Electron {
 //     const config: typeof ElectronConfig;
