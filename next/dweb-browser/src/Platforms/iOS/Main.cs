@@ -83,7 +83,8 @@ public class MicroService
         "ReadableStreamIpc",
         "JsProcessNMM",
         "MicroModule",
-        "JmmController"
+        "JmmController",
+        "JmmDownload"
     };
 
     public static async Task<DnsNMM> Start()

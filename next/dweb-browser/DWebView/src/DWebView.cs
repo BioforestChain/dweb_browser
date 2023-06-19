@@ -55,6 +55,9 @@ public partial class DWebView : WKWebView
         {
             TryRegistryUrlSchemeHandler(baseUri, remoteMM, configuration);
         }
+
+        /// 注入脚本
+        s_addUserScript(configuration);
     }))
     {
         this.localeMM = localeMM;
@@ -77,19 +80,8 @@ public partial class DWebView : WKWebView
         }
         this.UIDelegate = new DWebViewUIDelegate(this);
 
-        /// closeWatcher 同一个ScriptName不能重复添加
-        try
-        {
-            var script = new WKUserScript(new NSString(webMessagePortPrepareCode), WKUserScriptInjectionTime.AtDocumentStart, false, webMessagePortContentWorld);
-            this.Configuration.UserContentController.AddUserScript(script);
-            this.Configuration.UserContentController.AddScriptMessageHandler(CloseWatcherMessageHanlder, "closeWatcher");
-            this.Configuration.UserContentController.AddScriptMessageHandler(webMessagePortMessageHanlder, webMessagePortContentWorld, "webMessagePort");
-        }
-        catch(Exception e)
-        {
-            Console.Error("init", "{0}", e);
-        }
-
+        /// 添加JS交互代理
+        _addScriptMessageHandler();
 
         /// 设置 ContentInsetAdjustment 的默认行为，这样 SafeArea 就不会注入到 WKWebView.ScrollView.ContentInset 中
         this.ScrollView.ContentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentBehavior.Never;
@@ -154,6 +146,68 @@ public partial class DWebView : WKWebView
         //    ScrollView.ContentOffset = CGPoint.Empty;
         //    ScrollView.ContentSize = Frame.Size;
         //}
+    }
+
+    private static void s_addUserScript(WKWebViewConfiguration configuration)
+    {
+        try
+        {
+            var webMessagePortScript = new WKUserScript(
+                new NSString(webMessagePortPrepareCode),
+                WKUserScriptInjectionTime.AtDocumentEnd,
+                false,
+                webMessagePortContentWorld);
+            configuration.UserContentController.AddUserScript(webMessagePortScript);
+
+            var asyncCodeScript = new WKUserScript(
+                new NSString(asyncCodePrepareCode),
+                WKUserScriptInjectionTime.AtDocumentEnd,
+                false);
+            configuration.UserContentController.AddUserScript(asyncCodeScript);
+        }
+        catch (Exception e)
+        {
+            Console.Error("s_addUserScript", "{0}", e);
+        }
+    }
+
+    private void _addUserScript()
+    {
+        try
+        {
+            var asyncCodeScript = new WKUserScript(
+                new NSString(asyncCodePrepareCode),
+                WKUserScriptInjectionTime.AtDocumentEnd,
+                false,
+                webMessagePortContentWorld);
+            this.Configuration.UserContentController.AddUserScript(asyncCodeScript);
+
+            var webMessagePortScript = new WKUserScript(
+                new NSString(webMessagePortPrepareCode),
+                WKUserScriptInjectionTime.AtDocumentEnd,
+                false,
+                webMessagePortContentWorld);
+            this.Configuration.UserContentController.AddUserScript(webMessagePortScript);
+
+        }
+        catch (Exception e)
+        {
+            Console.Error("_addUserScript", "{0}", e);
+        }
+    }
+
+    private void _addScriptMessageHandler()
+    {
+        try
+        {
+            this.Configuration.UserContentController.AddScriptMessageHandler(asyncCodeMessageHanlder, "asyncCode");
+            this.Configuration.UserContentController.AddScriptMessageHandler(CloseWatcherMessageHanlder, "closeWatcher");
+            this.Configuration.UserContentController.AddScriptMessageHandler(webMessagePortMessageHanlder, webMessagePortContentWorld,  "webMessagePort");
+        }
+        catch (Exception e)
+        {
+            Console.Error("_addScriptMessageHandler", "{0}", e);
+        }
     }
 }
 

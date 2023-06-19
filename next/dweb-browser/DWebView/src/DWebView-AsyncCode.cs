@@ -15,7 +15,7 @@ public partial class DWebView : WKWebView
         },
         reject(id,err){
             console.error(err);
-            webkit.messageHandlers.asyncCode.postMessage([0,id,"QQQQ:"+(err instanceof Error?(err.stack||err.message):String(err))])
+            webkit.messageHandlers.asyncCode.postMessage([0,id,"QQQQ:"+(err instanceof Error?(err.message+"\n"+err.stack):String(err))])
         }
     };
     void 0;
@@ -48,13 +48,6 @@ public partial class DWebView : WKWebView
     }
     public async Task<NSObject> EvaluateAsyncJavascriptCode(string script, Func<Task>? afterEval = default)
     {
-        /// 页面可能会被刷新，所以需要重新判断：函数可不可用
-        var asyncCodeInited = (bool)(NSNumber)await base.EvaluateJavaScriptAsync("typeof " + JS_ASYNC_KIT + "==='object'");
-        if (!asyncCodeInited)
-        {
-            await base.EvaluateJavaScriptAsync(new NSString(asyncCodePrepareCode));
-            base.Configuration.UserContentController.AddScriptMessageHandler(asyncCodeMessageHanlder, "asyncCode");
-        }
         var id = Interlocked.Increment(ref asyncCodeIdAcc);
         var asyncTask = new PromiseOut<NSObject>();
         asyncTaskMap.Add(id, asyncTask);
