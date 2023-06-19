@@ -30,7 +30,7 @@ export async function createAPIServer(this: BrowserNMM) {
 async function onRequest(this: BrowserNMM, request: IpcRequest, ipc: Ipc) {
   const pathname = request.parsed_url.pathname;
   switch (pathname) {
-    case "/appsInfo":
+    case "/browser.dweb/appsInfo":
       getAppsInfo.bind(this)(request, ipc);
       break;
     case "/update/content":
