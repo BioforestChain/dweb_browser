@@ -10,7 +10,7 @@
     "http://qiniu-waterbang.waterbang.top/bfm/nft.png"
     ],
   "author": ["bfs","bfs@bfs.com"],
-  "version": "1.0.0",
+  "version": "1.0.8",
   "new_feature":"船新版本，等你来玩！",
   "categories": ["demo","vue3"],
   "home": "https://dweb.waterbang.top"

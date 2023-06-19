@@ -59,7 +59,7 @@ const hapticsVibrate = defineLogAction(
         </select>
       </FieldLabel>
       <div class="justify-end card-actions">
-        <button class="inline-block rounded-full btn btn-accent" @click="impactLight">impactLight</button>
+        <button class="inline-block rounded-full btn btn-accent" @touchstart="impactLight">impactLight</button>
       </div>
     </article>
     <article class="card-body">
@@ -72,35 +72,35 @@ const hapticsVibrate = defineLogAction(
         </select>
       </FieldLabel>
       <div class="justify-end card-actions">
-        <button class="inline-block rounded-full btn btn-accent" @click="notification">notification</button>
+        <button class="inline-block rounded-full btn btn-accent" @touchstart="notification">notification</button>
       </div>
     </article>
     <article class="card-body">
       <h2 class="card-title">单击手势的反馈振动</h2>
-      <button class="inline-block rounded-full btn btn-accent" @click="haptics.vibrateClick">vibrateClick</button>
+      <button class="inline-block rounded-full btn btn-accent" @touchstart="haptics.vibrateClick">vibrateClick</button>
     </article>
     <article class="card-body">
       <h2 class="card-title">禁用手势的反馈振动</h2>
-      <button class="inline-block rounded-full btn btn-accent" @click="haptics.vibrateDisabled">Disabled</button>
+      <button class="inline-block rounded-full btn btn-accent" @touchstart="haptics.vibrateDisabled">Disabled</button>
     </article>
     <article class="card-body">
       <h2 class="card-title">双击手势的反馈振动</h2>
-      <button class="inline-block rounded-full btn btn-accent" @click="haptics.vibrateDoubleClick">DoubleClick</button>
+      <button class="inline-block rounded-full btn btn-accent" @touchstart="haptics.vibrateDoubleClick">DoubleClick</button>
     </article>
     <article class="card-body">
       <h2 class="card-title">重击手势的反馈振动, 比如菜单键/惨案/3Dtouch</h2>
-      <button class="inline-block rounded-full btn btn-accent" @click="haptics.vibrateHeavyClick">HeavyClick</button>
+      <button class="inline-block rounded-full btn btn-accent" @touchstart="haptics.vibrateHeavyClick">HeavyClick</button>
     </article>
     <article class="card-body">
       <h2 class="card-title">滴答</h2>
-      <button class="inline-block rounded-full btn btn-accent" @click="haptics.vibrateTick">vibrateTick</button>
+      <button class="inline-block rounded-full btn btn-accent" @touchstart="haptics.vibrateTick">vibrateTick</button>
     </article>
     <article class="card-body">
       <h2 class="card-title">Haptics Vibrate</h2>
       <FieldLabel label="Vibrate Pattern:">
         <input type="text" id="haptics-vibrate-pattern" placeholder="1,20,1,30" v-model="vibrate" />
       </FieldLabel>
-      <button class="inline-block rounded-full btn btn-accent" @click="hapticsVibrate">Vibrate</button>
+      <button class="inline-block rounded-full btn btn-accent" @touchstart="hapticsVibrate">Vibrate</button>
     </article>
   </div>
 </template>
