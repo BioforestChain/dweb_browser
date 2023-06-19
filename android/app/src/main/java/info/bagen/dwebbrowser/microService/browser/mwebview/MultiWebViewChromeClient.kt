@@ -12,11 +12,10 @@ import org.dweb_browser.helper.*
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.dweb_browser.dwebview.base.ViewItem
 
 class MultiWebViewChromeClient(
   val wc: MultiWebViewController,
-  val viewItem: ViewItem,
+  val viewItem: MultiWebViewController.MultiViewItem,
   val isLast: Boolean
 ) : AccompanistWebChromeClient() {
 //    val viewItem = wc.currentView

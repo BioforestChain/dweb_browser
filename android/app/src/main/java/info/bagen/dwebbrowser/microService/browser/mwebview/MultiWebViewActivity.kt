@@ -131,7 +131,7 @@ open class MultiWebViewActivity : BaseActivity() {
     }
 
     @Composable
-    fun DebugPanel(viewItem: ViewItem) {
+    fun DebugPanel(viewItem: MultiWebViewController.MultiViewItem) {
         val nativeUiController = viewItem.nativeUiController.effect()
 
         Column(

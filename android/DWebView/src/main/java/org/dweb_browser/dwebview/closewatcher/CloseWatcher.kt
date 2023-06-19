@@ -12,7 +12,6 @@ import org.dweb_browser.dwebview.base.ViewItem
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
-
 @SuppressLint("JavascriptInterface")
 class CloseWatcher(val viewItem: ViewItem) {
 

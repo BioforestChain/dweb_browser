@@ -44,7 +44,7 @@ class MultiWebViewController(
     private var webviewId_acc = AtomicInteger(1)
   }
 
-  private var webViewList = mutableStateListOf<ViewItem>()
+  private var webViewList = mutableStateListOf<MultiViewItem>()
 
   //    @Composable
 //    fun effectItem(viewItem:ViewItem) {
@@ -65,32 +65,31 @@ class MultiWebViewController(
   }
 
   @Composable
-  fun eachView(action: @Composable (viewItem: ViewItem) -> Unit) {
+  fun eachView(action: @Composable (viewItem: MultiViewItem) -> Unit) {
     webViewList.forEachIndexed { _, viewItem ->
       action(viewItem)
     }
   }
 
-  fun isLastView(viewItem: ViewItem) = webViewList.lastOrNull() == viewItem
-  fun isFistView(viewItem: ViewItem) = webViewList.firstOrNull() == viewItem
+  fun isLastView(viewItem: MultiViewItem) = webViewList.lastOrNull() == viewItem
+  fun isFistView(viewItem: MultiViewItem) = webViewList.firstOrNull() == viewItem
   val lastViewOrNull get() = webViewList.lastOrNull()
 
   private val mIpcMap = mutableMapOf<Mmid, Ipc>()
 
-  /*data class ViewItem(
-    val webviewId: String,
-    val webView: DWebView,
-    val state: WebViewState,
-    val navigator: WebViewNavigator,
-    val coroutineScope: CoroutineScope,
-    var hidden: MutableState<Boolean> = mutableStateOf(false)
-  ) {
+  data class MultiViewItem(
+    override val webviewId: String,
+    override val webView: DWebView,
+    override val state: WebViewState,
+    override val navigator: WebViewNavigator,
+    override val coroutineScope: CoroutineScope,
+    override var hidden: Boolean = false
+  ): ViewItem {
     val nativeUiController by lazy {
-
       webView.activity?.let { NativeUiController(it) }
         ?: throw Exception("webview un attached to activity")
     }
-  }*/
+  }
 
   private var activityTask = PromiseOut<MultiWebViewActivity>()
   suspend fun waitActivityCreated() = activityTask.waitPromise()
@@ -138,16 +137,13 @@ class MultiWebViewController(
     val state = WebViewState(WebContent.Url(dWebView.url ?: ""))
     val coroutineScope = CoroutineScope(CoroutineName(webviewId))
     val navigator = WebViewNavigator(coroutineScope)
-    ViewItem(
+    MultiViewItem(
       webviewId = webviewId,
       webView = dWebView,
       state = state,
       coroutineScope = coroutineScope,
       navigator = navigator,
     ).also { viewItem ->
-      viewItem.webView.activity?.let { activity ->
-        viewItem.nativeUiController = NativeUiController(activity)
-      }
       webViewList.add(viewItem)
       dWebView.onCloseWindow {
         closeWebView(webviewId)
@@ -223,7 +219,3 @@ class MultiWebViewController(
   fun onWebViewClose(cb: Callback<String>) = webViewCloseSignal.listen(cb)
   fun onWebViewOpen(cb: Callback<String>) = webViewOpenSignal.listen(cb)
 }
-
-var ViewItem.nativeUiController: NativeUiController
-  get() = throw Exception("webview un attached to activity")
-  set(value) { }

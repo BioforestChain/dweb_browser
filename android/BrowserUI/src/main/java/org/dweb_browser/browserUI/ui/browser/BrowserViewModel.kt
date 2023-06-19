@@ -36,6 +36,7 @@ import kotlinx.coroutines.*
 import org.dweb_browser.browserUI.database.DefaultAllWebEngine
 import org.dweb_browser.browserUI.database.WebEngine
 import org.dweb_browser.dwebview.DWebView
+import org.dweb_browser.dwebview.base.DWebViewItem
 import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
 import org.dweb_browser.microservice.core.MicroModule
@@ -308,7 +309,7 @@ class BrowserViewModel(val microModule: MicroModule, val onOpenDweb:(Mmid) -> Un
     val state = WebViewState(WebContent.Url(url))
     val coroutineScope = CoroutineScope(CoroutineName(webviewId))
     val navigator = WebViewNavigator(coroutineScope)
-    val viewItem = ViewItem(
+    val viewItem = DWebViewItem(
       webviewId = webviewId,
       webView = dWebView,
       state = state,
