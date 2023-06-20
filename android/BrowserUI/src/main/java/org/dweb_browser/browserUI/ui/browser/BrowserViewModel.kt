@@ -19,6 +19,7 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.accompanist.web.AccompanistWebViewClient
@@ -35,6 +36,7 @@ import org.dweb_browser.browserUI.util.*
 import kotlinx.coroutines.*
 import org.dweb_browser.browserUI.database.DefaultAllWebEngine
 import org.dweb_browser.browserUI.database.WebEngine
+import org.dweb_browser.browserUI.ui.view.findActivity
 import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.dwebview.base.DWebViewItem
 import org.dweb_browser.dwebview.base.ViewItem
@@ -81,6 +83,10 @@ val LocalShowSearchView = compositionLocalOf {
 
 private fun noLocalProvidedFor(name: String): Nothing {
   error("CompositionLocal $name not present")
+}
+
+val LocalShowIme = compositionLocalOf {
+  mutableStateOf(false)
 }
 
 sealed class BrowserIntent {

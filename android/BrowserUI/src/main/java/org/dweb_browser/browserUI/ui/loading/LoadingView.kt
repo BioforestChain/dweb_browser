@@ -4,7 +4,6 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,6 +16,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
+import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -44,9 +44,7 @@ fun LoadingView(
     Box(modifier = Modifier
       .fillMaxSize()
       .background(MaterialTheme.colorScheme.background)
-      .clickable(
-        indication = null,
-        interactionSource = remember { MutableInteractionSource() }) {},
+      .clickableWithNoEffect {  },
       contentAlignment = Alignment.Center
     ) {
       //1284总宽度  菊花宽度：209    17宽 38长     106     17/53  38/53

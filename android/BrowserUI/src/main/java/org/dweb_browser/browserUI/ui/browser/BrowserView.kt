@@ -11,7 +11,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
@@ -35,7 +34,6 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.view.WindowInsetsCompat
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.web.LoadingState
 import com.google.accompanist.web.WebView
@@ -46,6 +44,7 @@ import org.dweb_browser.browserUI.ui.qrcode.QRCodeScanView
 import org.dweb_browser.browserUI.ui.view.findActivity
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
 
 internal val dimenTextFieldFontSize = 16.sp
 internal val dimenSearchHorizontalAlign = 5.dp
@@ -71,7 +70,8 @@ private val bottomExitAnimator = slideOutVertically(animationSpec = tween(300),/
 @Composable
 fun BrowserView(viewModel: BrowserViewModel) {
   val scope = rememberCoroutineScope()
-  val context = LocalContext.current
+  val activity = LocalContext.current.findActivity()
+
   BackHandler {
     val watcher = viewModel.uiState.currentBrowserBaseView.value.closeWatcher;
     val bottomState = viewModel.uiState.bottomSheetScaffoldState.bottomSheetState;
@@ -79,17 +79,17 @@ fun BrowserView(viewModel: BrowserViewModel) {
       scope.launch {
         bottomState.hide()
       }
-    } else if (watcher.canClose){
+    } else if (watcher.canClose) {
       scope.launch {
         watcher.close()
       }
-    }else {
+    } else {
       val browserWebView = viewModel.uiState.currentBrowserBaseView.value
       val navigator = browserWebView.viewItem.navigator
       if (navigator.canGoBack) {
         navigator.navigateBack()
       } else {
-        context.findActivity().moveTaskToBack(false) // 将界面转移到后台
+        activity.moveTaskToBack(false) // 将界面转移到后台
       }
     }
   }
@@ -145,7 +145,6 @@ fun BrowserView(viewModel: BrowserViewModel) {
 }
 
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun BrowserMaskView(viewModel: BrowserViewModel, onClick: () -> Unit) {
@@ -154,10 +153,7 @@ private fun BrowserMaskView(viewModel: BrowserViewModel, onClick: () -> Unit) {
     Box(modifier = Modifier
       .fillMaxSize()
       .background(MaterialTheme.colorScheme.onSurface.copy(0.2f))
-      .clickable(
-        indication = null,
-        interactionSource = remember { MutableInteractionSource() }
-      ) { onClick() }
+      .clickableWithNoEffect { onClick() }
     )
   }
 }
@@ -186,10 +182,7 @@ private fun BrowserViewContent(viewModel: BrowserViewModel) {
   Box(
     modifier = Modifier
       .fillMaxSize()
-      .clickable(indication = null,
-        onClick = { localFocusManager.clearFocus() },
-        interactionSource = remember { MutableInteractionSource() }
-      )
+      .clickableWithNoEffect { localFocusManager.clearFocus() }
   ) {
     // 创建一个不可滑动的 HorizontalPager , 然后由底下的 Search 来控制滑动效果
     /*when (val item = viewModel.uiState.browserViewList[currentPage]) {
@@ -256,19 +249,15 @@ private fun BoxScope.BrowserViewBottomBar(viewModel: BrowserViewModel) {
 @Composable
 private fun BrowserViewSearch(viewModel: BrowserViewModel) {
   val pagerStateNavigator = viewModel.uiState.pagerStateNavigator.value ?: return
-  val activity = LocalContext.current.findActivity()
-  val currentInsets = remember {
-    mutableStateOf(WindowInsetsCompat.toWindowInsetsCompat(activity.window.decorView.rootWindowInsets))
-  }
+  val localShowIme = LocalShowIme.current
 
   LaunchedEffect(pagerStateNavigator.settledPage) { // 为了修复隐藏搜索框后，重新加载时重新显示的问题，会显示第一页
     delay(100)
     pagerStateNavigator.scrollToPage(pagerStateNavigator.settledPage)
   }
   val localFocus = LocalFocusManager.current
-  LaunchedEffect(currentInsets) {
-    if (currentInsets.value.getInsets(WindowInsetsCompat.Type.ime()).bottom <= 0
-      && !viewModel.uiState.showSearchEngine.targetState) {
+  LaunchedEffect(Unit) {
+    if (!localShowIme.value && !viewModel.uiState.showSearchEngine.targetState) {
       localFocus.clearFocus()
     }
   }
@@ -456,12 +445,9 @@ private fun BoxScope.ShowLinearProgressIndicator(browserWebView: BrowserWebView?
 @Composable
 fun BrowserSearchView(viewModel: BrowserViewModel) {
   var showSearchView by LocalShowSearchView.current
-  val activity = LocalContext.current.findActivity()
-  val currentInsets = remember {
-    mutableStateOf(WindowInsetsCompat.toWindowInsetsCompat(activity.window.decorView.rootWindowInsets))
-  }
   if (showSearchView) {
-    val inputText = viewModel.uiState.currentBrowserBaseView.value.viewItem.state.lastLoadedUrl ?: ""
+    val inputText =
+      viewModel.uiState.currentBrowserBaseView.value.viewItem.state.lastLoadedUrl ?: ""
     val text = if (inputText.startsWith("file:///android_asset") ||
       inputText == stringResource(id = R.string.browser_search_hint)
     ) {
@@ -469,19 +455,11 @@ fun BrowserSearchView(viewModel: BrowserViewModel) {
     } else {
       inputText
     }
-    val imeShowed = remember { mutableStateOf(false) }
-
-    LaunchedEffect(imeShowed) {
-      snapshotFlow { currentInsets.value }.collect {
-        imeShowed.value = it.getInsets(WindowInsetsCompat.Type.ime()).bottom > 0
-      }
-    }
 
     val inputTextState = LocalInputText.current;
 
     SearchView(
       text = text,
-      imeShowed = imeShowed,
       homePreview = { onMove ->
         HomeWebviewPage(viewModel, onMove)
       },

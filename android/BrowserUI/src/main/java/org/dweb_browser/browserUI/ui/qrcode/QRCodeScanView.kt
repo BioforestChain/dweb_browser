@@ -35,7 +35,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
@@ -96,6 +95,7 @@ import java.util.concurrent.Executors
 import org.dweb_browser.browserUI.R
 import org.dweb_browser.browserUI.ui.view.PermissionSingleView
 import kotlinx.coroutines.delay
+import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
 
 internal const val PERMISSION_CAMERA = android.Manifest.permission.CAMERA
 internal const val PERMISSION_WRITE = android.Manifest.permission.WRITE_EXTERNAL_STORAGE
@@ -571,9 +571,7 @@ private fun AnalyzePhotoView(
             Text(
               text = "确认",
               modifier = Modifier
-                .clickable(indication = null,
-                  onClick = { showAlert = false; onBackHandler() },
-                  interactionSource = remember { MutableInteractionSource() })
+                .clickableWithNoEffect { showAlert = false; onBackHandler() }
                 .padding(20.dp),
               color = MaterialTheme.colorScheme.primary
             )

@@ -11,9 +11,11 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import info.bagen.dwebbrowser.microService.browser.BrowserNMM.Companion.browserController
 import info.bagen.dwebbrowser.ui.theme.DwebBrowserAppTheme
 import org.dweb_browser.browserUI.ui.browser.BrowserView
+import org.dweb_browser.browserUI.ui.browser.LocalShowIme
 import org.dweb_browser.browserUI.ui.browser.LocalShowSearchView
 import org.dweb_browser.browserUI.ui.loading.LoadingView
 
@@ -36,6 +38,12 @@ class BrowserActivity : AppCompatActivity() {
         }
 
         browserController?.apply {
+          val localShowIme = LocalShowIme.current
+          LaunchedEffect(Unit) {
+            snapshotFlow { currentInsets.value }.collect {
+              localShowIme.value = it.getInsets(WindowInsetsCompat.Type.ime()).bottom > 0
+            }
+          }
           effect(activity = this@BrowserActivity)
           Box(modifier = Modifier.background(Color.Black)) {
             BrowserView(viewModel = browserViewModel)

@@ -8,7 +8,6 @@ import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -49,6 +48,7 @@ import org.dweb_browser.browserUI.database.DefaultSearchWebEngine
 import org.dweb_browser.browserUI.database.WebEngine
 import io.ktor.util.reflect.*
 import kotlinx.coroutines.delay
+import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
 
 /**
  * 组件： 搜索组件
@@ -56,7 +56,6 @@ import kotlinx.coroutines.delay
 @Composable
 internal fun SearchView(
   text: String,
-  imeShowed: MutableState<Boolean> = mutableStateOf(false),
   homePreview: (@Composable (onMove: (Boolean) -> Unit) -> Unit)? = null,
   searchPreview: (@Composable () -> Unit)? = null,
   onClose: () -> Unit,
@@ -75,12 +74,8 @@ internal fun SearchView(
   Box(
     modifier = Modifier
       .fillMaxSize()
-      .background(MaterialTheme.colorScheme.background.copy(0.5f))
-      .clickable(
-        indication = null,
-        onClick = { focusManager.clearFocus(); onClose() },
-        interactionSource = remember { MutableInteractionSource() }
-      )
+      .background(MaterialTheme.colorScheme.background)
+      .clickableWithNoEffect { focusManager.clearFocus(); onClose() }
   ) {
     Box(
       modifier = Modifier
@@ -118,7 +113,6 @@ internal fun SearchView(
     BrowserTextField(
       text = inputText,
       webEngine = webEngine,
-      imeShowed = imeShowed,
       onSearch = { onSearch(it) },
       onValueChanged = { inputText.value = it; searchPreviewState.targetState = it.isNotEmpty() }
     )
@@ -130,7 +124,6 @@ internal fun SearchView(
 internal fun BoxScope.BrowserTextField(
   text: MutableState<String>,
   webEngine: WebEngine?,
-  imeShowed: MutableState<Boolean>,
   onSearch: (String) -> Unit,
   onValueChanged: (String) -> Unit
 ) {
@@ -138,6 +131,7 @@ internal fun BoxScope.BrowserTextField(
   val focusManager = LocalFocusManager.current
   val keyboardController = LocalSoftwareKeyboardController.current
   var inputText by remember { mutableStateOf(text.value) }
+  val localShowIme = LocalShowIme.current
 
   LaunchedEffect(focusRequester) {
     delay(100)
@@ -157,7 +151,7 @@ internal fun BoxScope.BrowserTextField(
         start = 25.dp,
         end = 25.dp,
         top = 10.dp,
-        bottom = if (imeShowed.value) 0.dp else 50.dp // 为了贴合当前的界面底部工具栏
+        bottom = if (localShowIme.value) 0.dp else 50.dp // 为了贴合当前的界面底部工具栏
       )
       .height(dimenSearchHeight)
       .clip(RoundedCornerShape(8.dp))
@@ -266,13 +260,9 @@ internal fun SearchPreview( // 输入搜索内容后，显示的搜索信息
     LazyColumn(
       modifier = Modifier
         .fillMaxSize()
-        .background(MaterialTheme.colorScheme.outlineVariant)
+        .background(MaterialTheme.colorScheme.background)
         .padding(horizontal = 20.dp)
-        .clickable(
-          indication = null,
-          onClick = { },
-          interactionSource = remember { MutableInteractionSource() }
-        )
+        .clickableWithNoEffect {  }
     ) {
       item {
         Box(

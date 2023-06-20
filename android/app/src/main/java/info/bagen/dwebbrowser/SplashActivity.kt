@@ -9,8 +9,6 @@ import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -33,6 +31,7 @@ import org.dweb_browser.browserUI.util.getBoolean
 import org.dweb_browser.browserUI.util.saveBoolean
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
 import org.dweb_browser.browserUI.ui.browser.setDarkMode
 import org.dweb_browser.browserUI.ui.loading.LoadingView
 import org.dweb_browser.browserUI.ui.splash.SplashPrivacyDialog
@@ -192,11 +191,7 @@ fun PrivacyView(url: MutableState<String>, showLoading: MutableState<Boolean>) {
     }
 
     Box(
-      modifier = Modifier.clickable(
-        indication = null,
-        onClick = { },
-        interactionSource = remember { MutableInteractionSource() }
-      )
+      modifier = Modifier.clickableWithNoEffect {  }
     ) {
       val background = MaterialTheme.colorScheme.background
       val isDark = isSystemInDarkTheme()

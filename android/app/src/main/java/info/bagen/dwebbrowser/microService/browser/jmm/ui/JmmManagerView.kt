@@ -11,7 +11,6 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -57,6 +56,7 @@ import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.microService.browser.jmm.JmmMetadata
 import kotlinx.coroutines.launch
+import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
 import org.dweb_browser.browserUI.download.DownLoadStatus
 import java.text.DecimalFormat
 
@@ -632,10 +632,7 @@ private fun ImagePreview(jmmMetadata: JmmMetadata, previewState: PreviewState, )
             contentScale = ContentScale.FillWidth,
             modifier = Modifier
               .fillMaxSize()
-              .clickable(indication = null,
-                onClick = { previewState.showPreview.targetState = false },
-                interactionSource = remember { MutableInteractionSource() }
-              )
+              .clickableWithNoEffect { previewState.showPreview.targetState = false }
           )
         }
       )
