@@ -30,6 +30,12 @@ export class JmmNMM extends NativeMicroModule {
   };
 
   async _bootstrap(context: $BootstrapContext) {
+    /// 注册所有已经下载的应用
+    for (const appInfo of await getAllApps()) {
+      const metadata = new JsMMMetadata(appInfo);
+      const jmm = new JsMicroModule(metadata);
+      context.dns.install(jmm);
+    }
     // console.always(`[${this.mmid}] _bootstrap`);
 
     await createWWWServer.bind(this)();
@@ -87,7 +93,6 @@ export class JmmNMM extends NativeMicroModule {
       output: "void",
       handler: async (args) => {
         console.log("jmm", "!!!! install", args);
-        await new Promise((resolve) => setTimeout(resolve, 1000));
         /// 安装应用并打开
         await install(this, { metadataUrl: args.url });
         const off = this.onInstalled.listen((info, fromUrl) => {

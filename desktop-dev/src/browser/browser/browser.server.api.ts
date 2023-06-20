@@ -6,7 +6,7 @@ import {
 } from "../../core/ipc/index.ts";
 import { $MMID, $Schema1ToType } from "../../helper/types.ts";
 import { getAllApps } from "../jmm/jmm.api.serve.ts";
-import { JsMMMetadata, JsMicroModule } from "../jmm/micro-module.js.ts";
+import { JsMicroModule } from "../jmm/micro-module.js.ts";
 import type { BrowserNMM } from "./browser.ts";
 
 export async function getAppsInfo() {
@@ -167,21 +167,8 @@ export async function openApp(this: BrowserNMM, mmid: $MMID) {
   if (!microModule) {
     return "不存在该app";
   }
-  const { root, entry } = microModule.metadata.config.server;
-  const jsMM = new JsMicroModule(
-    new JsMMMetadata({
-      id: mmid as $MMID,
-      server: {
-        root,
-        entry,
-      },
-    })
-  );
 
-  // 需要检查是否已经安装了应用 如果已经安装了就不要再安装了
   // 还需要判断 应用是否已经更新了
-
-  this.context?.dns.install(jsMM);
   const [jsIpc] = await this.context?.dns.connect(mmid as $MMID)!;
   // 如果 对应app的全部 devTools 中有没有关闭的，就无法再次打开
   jsIpc.postMessage(IpcEvent.fromText("activity", ""));

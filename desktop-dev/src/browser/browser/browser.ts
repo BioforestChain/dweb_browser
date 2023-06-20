@@ -1,6 +1,8 @@
 import { $BootstrapContext } from "../../core/bootstrapContext.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import { HttpDwebServer } from "../../sys/http-server/$createHttpDwebServer.ts";
+import { createBrowserWindow } from "./browser.bw.ts";
+import { createWWWServer } from "./browser.serve.www.ts";
 import {
   canGoBack,
   canGoForward,
@@ -11,8 +13,6 @@ import {
   refresh,
   updateContent,
 } from "./browser.server.api.ts";
-import { createBrowserWindow } from "./browser.bw.ts";
-import { createWWWServer } from "./browser.serve.www.ts";
 
 import type { $CBV } from "./browser.content.bv.ts";
 
@@ -26,8 +26,6 @@ export class BrowserNMM extends NativeMicroModule {
   addressBVHeight = 0; // 没有地址栏
 
   protected async _bootstrap(context: $BootstrapContext) {
-    // await createAPIServer.bind(this)();
-    const addressBarHeight = this._addressBarHeight();
     await Electron.app.whenReady();
     this.wwwServer = await createWWWServer.call(this);
     this.bw = await createBrowserWindow.bind(this)(
