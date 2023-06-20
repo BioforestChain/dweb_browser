@@ -152,13 +152,6 @@ export interface $AppMetaData {
   release_date: string;
 }
 
-export interface $StaticWebServers {
-  root: string;
-  entry: string;
-  subdomain: string;
-  port: number;
-}
-
 export enum DOWNLOAD_STATUS {
   DOWNLOAD,
   PAUSE,

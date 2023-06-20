@@ -66,8 +66,6 @@ elBtnDownload.addEventListener("click", async (e) => {
     // 通过返回一个 stream 实现 长连接
     const api_origin = location.origin.replace("www.", "api.");
     const install_url = `${api_origin}/app/install`;
-    console.log("fetch_url:", install_url);
-    console.log("appInfo=>",appInfo)
     /// 将下载链接进行补全
     if (
       (appInfo.bundle_url.startsWith("http:") ||
@@ -89,7 +87,6 @@ elBtnDownload.addEventListener("click", async (e) => {
       .pipeThrough(new JsonlinesStream<$InstallProgressInfo>());
 
     for await (const info of streamRead(installProgressStream)) {
-      console.log("info:", info);
       progress(+(info.progress * 100).toFixed(2));
       if (info.error) {
         alert(info.error);
@@ -188,7 +185,6 @@ function getApiOrigin() {
     throw new Error("miss params: metadataUrl");
   }
   console.log("metadataUrl: ", metadataUrl);
-  const url = getApiOrigin();
   const response = await fetch(metadataUrl);
   setAppInfoByAppInfo(await response.json(), metadataUrl);
 })();

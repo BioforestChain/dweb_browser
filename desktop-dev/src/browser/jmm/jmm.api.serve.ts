@@ -1,4 +1,5 @@
 import Nedb from "@seald-io/nedb";
+import { blue, red } from "colors";
 import JSZip from "jszip";
 import mime from "mime";
 import crypto from "node:crypto";
@@ -23,10 +24,7 @@ import { createHttpDwebServer } from "../../sys/http-server/$createHttpDwebServe
 import type { $AppMetaData, JmmNMM } from "./jmm.ts";
 import { JsMMMetadata, JsMicroModule } from "./micro-module.js.ts";
 
-export const JMM_APPS_PATH = path.join(
-  Electron.app.getAppPath(),
-  "jmm-apps"
-);
+export const JMM_APPS_PATH = path.join(Electron.app.getAppPath(), "jmm-apps");
 fs.mkdirSync(JMM_APPS_PATH, { recursive: true });
 
 const JMM_DB_PATH = path.join(JMM_APPS_PATH, ".db");
@@ -223,7 +221,7 @@ async function _appInstall(
   const bundle_hash = "sha256:" + hashVerifyer.digest("hex");
   /// hash 校验失败，删除下载的文件，并且结束安装任务
   if (bundle_hash !== appInfo.bundle_hash) {
-    console.log("hash 校验失败");
+    console.always(red("hash 校验失败"));
     /// 移除文件
     fs.rmSync(tempFilePath);
     fs.rmSync(hashFilePath);
@@ -235,7 +233,7 @@ async function _appInstall(
     );
   }
 
-  console.log("hash 校验通过，开始解压安装");
+  console.always(blue("hash 校验通过，开始解压安装"));
 
   /// 开始解压文件
   enqueueInstallProgress("install", 0);
@@ -251,16 +249,13 @@ async function _appInstall(
   else {
     fs.rmSync(installDir, { recursive: true });
   }
-
   const bundleMime = downloadTask.headers.get("Content-Type");
   if (bundleMime === "application/zip") {
     // const jszip = await JSZip.loadAsync(fs.createReadStream(tempFilePath));
     const jszip = await JSZip.loadAsync(fs.readFileSync(tempFilePath));
+
     for (const [filePath, fileZipObj] of Object.entries(jszip.files)) {
-      const targetFilePath = path.join(
-        installDir,
-        filePath.slice(appInfo.id.length)
-      );
+      const targetFilePath = path.join(installDir, filePath);
       if (fileZipObj.dir) {
         fs.mkdirSync(targetFilePath, { recursive: true });
       } else {
@@ -283,15 +278,14 @@ async function _appInstall(
       `invalid bundle-mime-type: ${bundleMime}`
     );
   }
-  await fs.unlinkSync(tempFilePath);
-  await fs.unlinkSync(hashFilePath);
+  fs.unlinkSync(tempFilePath);
+  fs.unlinkSync(hashFilePath);
 
   /// 下载完成，开始安装
   const result = await JMM_DB.updateAsync({ id: appInfo.id }, appInfo, {
     upsert: true,
     returnUpdatedDocs: false,
   });
-  console.log("update result", result);
   if (result.numAffected === 0) {
     return enqueueInstallProgress(
       "install",
@@ -305,7 +299,7 @@ async function _appInstall(
   const jmm = new JsMicroModule(metadata);
   this.context!.dns.install(jmm);
   // 同步给 broser.dweb
-  this.nativeFetch(`file://browser.dweb/apps_info/updated`)
+  // this.nativeFetch(`file://browser.dweb/apps_info/updated`)
   return enqueueInstallProgress("install", 0, true);
 }
 
@@ -314,7 +308,6 @@ async function _appInstall(
  * @returns
  */
 export async function getAllApps() {
-
   const apps = await JMM_DB.getAllData();
   return apps as $AppMetaData[];
 }
