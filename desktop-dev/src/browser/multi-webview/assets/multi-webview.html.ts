@@ -1,7 +1,7 @@
 /// <reference lib="DOM"/>
 const { ipcRenderer } = Electron;
 import { proxy } from "comlink";
-import { css, html, LitElement } from "lit";
+import { css, html, LitElement, PropertyValues } from "lit";
 import {
   customElement,
   property,
@@ -51,6 +51,28 @@ export class ViewTree extends LitElement {
   static override styles = createAllCSS();
   private _id_acc = 0;
   @state() webviews: Array<Webview> = [];
+  //  new Proxy([], {
+  //   get: (target, prop, receiver) => {
+  //     if (
+  //       prop === "push" ||
+  //       prop === "pop" ||
+  //       prop === "shift" ||
+  //       prop === "unshift" ||
+  //       prop === "split" ||
+  //       prop === "sort" ||
+  //       prop === "reverse"
+  //     ) {
+  //       return (...args: any[]) => {
+  //         try {
+  //           (target as any)[prop].apply(target, args);
+  //         } finally {
+  //           this.webviews_syncToMainProcess();
+  //         }
+  //       };
+  //     }
+  //     return Reflect.get(target, prop, receiver);
+  //   },
+  // });
   statusBarHeight = "38px";
   navigationBarHeight = "26px";
   virtualKeyboardAnimationSetIntervalId: unknown = 0;
@@ -118,6 +140,17 @@ export class ViewTree extends LitElement {
     this.requestUpdate(propertyName);
     return state;
   }
+
+  readonly statusBarSetState = this.barSetState.bind(this, "statusBarState");
+  readonly statusBarGetState = this.barGetState.bind(this, "statusBarState");
+  readonly navigationBarSetState = this.barSetState.bind(
+    this,
+    "navigationBarState"
+  );
+  readonly navigationBarGetState = this.barGetState.bind(
+    this,
+    "navigationBarState"
+  );
 
   /**
    * 获取当前的状态
@@ -553,9 +586,6 @@ export class ViewTree extends LitElement {
       );
     }
 
-    // this.webviews_restate();
-    // 还需要报 webview 状态同步到指定 worker.js
-    // this.webviews_syncToMainProcess();
     return webview_id;
   }
 
@@ -574,7 +604,6 @@ export class ViewTree extends LitElement {
       (webview) => webview.id === webview_id
     );
     const [deleteWebview] = this.webviews.splice(deleteIndex, 1);
-    this.webviews_syncToMainProcess();
     // 关闭 devTools window
     mainApis.closeDevTools(deleteWebview.webContentId);
     console.error(
@@ -623,40 +652,12 @@ export class ViewTree extends LitElement {
     ipcRenderer.send("sync:webview_state", uid, allWebviewState);
   }
 
-  // /**
-  //  * 对webview视图进行状态整理
-  //  * 整理完成后会强制更新 UI
-  //  * */
-  // private webviews_restate() {
-  //   let index_acc = 0;
-  //   let closing_acc = 0;
-  //   let opening_acc = 0;
-  //   let scale_sub = 0.05;
-  //   let scale_acc = 1 + scale_sub;
-  //   const opacity_sub = 0.1;
-  //   let opacity_acc = 1 + opacity_sub;
-  //   for (const webview of this.webviews) {
-  //     webview.state.zIndex = this.webviews.length - ++index_acc;
-  //     if (webview.closing) {
-  //       webview.state.closingIndex = closing_acc++;
-  //     } else {
-  //       {
-  //         webview.state.scale = scale_acc -= scale_sub;
-  //         scale_sub = Math.max(0, scale_sub - 0.01);
-  //       }
-  //       {
-  //         webview.state.opacity = opacity_acc - opacity_sub;
-  //         opacity_acc = Math.max(0, opacity_acc - opacity_sub);
-  //       }
-  //       {
-  //         webview.state.openingIndex = opening_acc++;
-  //       }
-  //     }
-  //   }
-
-  //   // 显示的调用更新内容
-  //   this.requestUpdate("webviews");
-  // }
+  override willUpdate(changedProperties: PropertyValues) {
+    super.willUpdate(changedProperties);
+    if (changedProperties.has("webviews")) {
+      this.webviews_syncToMainProcess();
+    }
+  }
 
   /**
    * 关闭当前 window
@@ -664,31 +665,6 @@ export class ViewTree extends LitElement {
   window_close() {
     mainApis.closedBrowserWindow();
   }
-
-  // private _removeWebview(webview: Webview) {
-  //   const index = this.webviews.indexOf(webview);
-  //   if (index === -1) {
-  //     return false;
-  //   }
-  //   this.webviews.splice(index, 1);
-  //   this.webviews = [...this.webviews];
-  //   this.webviews_syncToMainProcess();
-  //   this.webviews_restate();
-  //   return true;
-  // }
-
-  // private async onDevtoolReady(webview: Webview, ele_devTool: WebviewTag) {
-  //   // await webview.ready();
-  //   // if (webview.webContentId_devTools === ele_devTool.getWebContentsId()) {
-  //   //   return;
-  //   // }
-  //   // webview.webContentId_devTools = ele_devTool.getWebContentsId();
-  //   // await mainApis.openDevTools(
-  //   //   webview.webContentId,
-  //   //   undefined,
-  //   //   webview.webContentId_devTools
-  //   // );
-  // }
 
   preloadAbsolutePathSet(path: string) {
     this.preloadAbsolutePath = path;
@@ -901,34 +877,7 @@ export class ViewTree extends LitElement {
 const viewTree = new ViewTree();
 document.body.appendChild(viewTree);
 
-export const APIS = {
-  webveiws_unshift: viewTree.webveiws_unshift.bind(viewTree),
-  webveiws_deleteById: viewTree.webveiws_deleteById.bind(viewTree),
-  window_close: viewTree.window_close.bind(viewTree),
-  webivews_deleteByHost: viewTree.webivews_deleteByHost.bind(viewTree),
-  executeJavascriptByHost: viewTree.executeJavascriptByHost.bind(viewTree),
-  statusBarSetState: viewTree.barSetState.bind(viewTree, "statusBarState"),
-  statusBarGetState: viewTree.barGetState.bind(viewTree, "statusBarState"),
-  navigationBarSetState: viewTree.barSetState.bind(
-    viewTree,
-    "navigationBarState"
-  ),
-  navigationBarGetState: viewTree.barGetState.bind(
-    viewTree,
-    "navigationBarState"
-  ),
-  safeAreaSetOverlay: viewTree.safeAreaSetOverlay.bind(viewTree),
-  safeAreaGetState: viewTree.safeAreaGetState.bind(viewTree),
-  virtualKeyboardGetState: viewTree.virtualKeyboardGetState.bind(viewTree),
-  virtualKeyboardSetOverlay: viewTree.virtualKeyboardSetOverlay.bind(viewTree),
-  toastShow: viewTree.toastShow.bind(viewTree),
-  shareShare: viewTree.shareShare.bind(viewTree),
-  torchStateToggle: viewTree.torchStateToggle.bind(viewTree),
-  torchStateGet: viewTree.torchStateGet.bind(viewTree),
-  hapticsSet: viewTree.hapticsSet.bind(viewTree),
-  biometricsMock: viewTree.biometricsMock.bind(viewTree),
-  preloadAbsolutePathSet: viewTree.preloadAbsolutePathSet.bind(viewTree),
-};
+export const APIS = viewTree;
 
 exportApis(APIS);
 

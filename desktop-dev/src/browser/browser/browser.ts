@@ -10,7 +10,7 @@ import {
   openApp,
   refresh,
   updateContent,
-} from "./browser.api.server.ts";
+} from "./browser.server.api.ts";
 import { createBrowserWindow } from "./browser.bw.ts";
 import { createWWWServer } from "./browser.serve.www.ts";
 

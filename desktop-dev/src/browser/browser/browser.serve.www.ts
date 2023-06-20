@@ -15,10 +15,14 @@ export async function createWWWServer(this: BrowserNMM) {
 }
 
 async function onRequest(this: BrowserNMM, request: IpcRequest, ipc: Ipc) {
-  let pathname = request.parsed_url.pathname;
-  pathname = pathname === "/" ? "/index.html" : pathname;
-  const url = `file:///sys/browser/newtab${pathname}?mode=stream`;
-  // 打开首页的 路径
+  const { pathname, search } = request.parsed_url;
+  // pathname = pathname === "/" ? "/index.html" : pathname;
+  let url: string;
+  if (pathname.startsWith("/api/")) {
+    url = `file://${pathname.slice(5)}${search}`;
+  } else {
+    url = `file:///sys/browser/newtab${pathname}?mode=stream`;
+  }
   const response = await this.nativeFetch(url);
   ipc.postMessage(
     await IpcResponse.fromResponse(request.req_id, response, ipc)

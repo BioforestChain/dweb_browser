@@ -15,7 +15,7 @@ import {
   forceGetWapis,
   getAllWapis,
 } from "./mutil-webview.mobile.wapi.ts";
-import { $AllWebviewState, MWEBVIEW_LIFECYCLE_EVENT } from "./types.ts";
+import { $AllWebviewState } from "./types.ts";
 
 /**
  * 构建一个视图树
@@ -69,17 +69,18 @@ export class MultiWebviewNMM extends NativeMicroModule {
       handler: openDownloadPage.bind(this, root_url),
     });
 
-    // 用来关闭webview标签
-    // this.registerCommonIpcOnMessageHandler({
-    //   pathname: "/close",
-    //   matchMode: "full",
-    //   input: { webview_id: "number" },
-    //   output: "boolean",
-    //   handler: async (args, client_ipc) => {
-    //     const wapis = await forceGetWapis(client_ipc, root_url);
-    //     return wapis.apis.webveiws_deleteById(args.webview_id);
-    //   },
-    // });
+    // 激活窗口
+    this.registerCommonIpcOnMessageHandler({
+      pathname: "/activate",
+      matchMode: "full",
+      input: {},
+      output: "boolean",
+      handler: async (args, client_ipc) => {
+        const wapis = await forceGetWapis.call(this, client_ipc, root_url);
+        wapis.nww.focus();
+        return true;
+      },
+    });
 
     /**
      * 关闭当前激活的window
@@ -156,10 +157,7 @@ export class MultiWebviewNMM extends NativeMicroModule {
           return;
         } else {
           ipc.postMessage(
-            IpcEvent.fromText(
-              MWEBVIEW_LIFECYCLE_EVENT.State,
-              JSON.stringify(allWebviewState)
-            )
+            IpcEvent.fromText("state", JSON.stringify(allWebviewState))
           );
         }
       }

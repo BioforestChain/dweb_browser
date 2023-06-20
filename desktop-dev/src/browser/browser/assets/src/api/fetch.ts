@@ -1,10 +1,12 @@
 export const nativeFetch = (pathname: string, init?: $BuildRequestInit) => {
-  const url = new URL("http://localhost");
+  /// about:blank
+  /// about:newtab
+  const url = new URL(location.href);
   // 默认请求自己
-  const mmid = init?.mmid ?? "browser.dweb"
-  url.pathname = `${mmid}${pathname}`;
-  return buildRequest(url, init)
-}
+  const mmid = init?.mmid ?? "browser.dweb";
+  url.pathname = `/api/${mmid}${pathname}`;
+  return buildRequest(url, init);
+};
 
 function buildRequest(url: URL, init?: $BuildRequestInit) {
   const search = init?.search;
@@ -24,9 +26,7 @@ function buildRequest(url: URL, init?: $BuildRequestInit) {
           .map(([key, value]) => {
             return [
               key,
-              typeof value === "object"
-                ? JSON.stringify(value)
-                : String(value),
+              typeof value === "object" ? JSON.stringify(value) : String(value),
             ] as [string, string];
           })
       );
@@ -35,7 +35,7 @@ function buildRequest(url: URL, init?: $BuildRequestInit) {
       url.searchParams.append(key, value);
     });
   }
-  return fetch(url, init)
+  return fetch(url, init);
 }
 
 interface $BuildRequestInit extends RequestInit {
@@ -44,5 +44,5 @@ interface $BuildRequestInit extends RequestInit {
     // deno-lint-ignore no-explicit-any
     | Record<string, any>;
   base?: string;
-  mmid?:`${string}.dweb`
+  mmid?: `${string}.dweb`;
 }

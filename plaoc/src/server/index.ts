@@ -1,5 +1,12 @@
 import { IpcEvent, IpcResponse, PromiseOut } from "./deps.ts";
-import { closeApp, closeWindow, cros, nativeOpen } from "./tool/tool.native.ts";
+import { init, webViewMap } from "./tool/mwebview.ts";
+import {
+  closeApp,
+  closeWindow,
+  cros,
+  nativeActivate,
+  nativeOpen,
+} from "./tool/tool.native.ts";
 import { fetchSignal, onApiRequest } from "./tool/tool.request.ts";
 
 const main = async () => {
@@ -11,12 +18,20 @@ const main = async () => {
   const externalMap = new Map<number, PromiseOut<IpcResponse>>();
 
   /**尝试打开view */
-  const tryOpenView = async () => {
+  const _tryOpenView = async () => {
     console.log("tryOpenView... start");
     const url = await mainUrl.promise;
-    nativeOpen(url);
+    if (webViewMap.size === 0) {
+      await init();
+      await nativeOpen(url);
+    } else {
+      await nativeActivate();
+    }
     console.log("tryOpenView... end", url);
   };
+  let openwebview_queue = Promise.resolve();
+  const tryOpenView = () =>
+    (openwebview_queue = openwebview_queue.finally(() => _tryOpenView()));
 
   /**给前端的文件服务 */
   const wwwServer = await http.createHttpDwebServer(jsProcess, {
@@ -189,8 +204,8 @@ const main = async () => {
       await apiServer.close();
       await wwwServer.close();
       await externalServer.close();
-      jsProcess.closeSignal.emit()
-      closeApp()
+      jsProcess.closeSignal.emit();
+      closeApp();
     }
   });
 

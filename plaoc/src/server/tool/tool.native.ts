@@ -20,12 +20,14 @@ export const nativeOpen = async (url: string) => {
     .text();
 };
 
-export const nativeActivate = async (webview_id: string) => {
+/**
+ * 激活窗口
+ * @returns 
+ */
+export const nativeActivate = async () => {
   return await jsProcess
     .nativeFetch(
-      `file://mwebview.browser.dweb/activate?webview_id=${encodeURIComponent(
-        webview_id
-      )}`
+      `file://mwebview.browser.dweb/activate`
     )
     .text();
 };

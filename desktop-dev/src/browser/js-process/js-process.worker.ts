@@ -218,7 +218,6 @@ export class JsProcessMicroModule implements $MicroModule {
   readonly closeSignal = createSignal<() => unknown>();
   private _activitySignal = createSignal<$OnIpcEventMessage>();
   private _closeSignal = createSignal<$OnIpcEventMessage>();
-  private _dwebviewStateSignal = createSignal<$OnIpcEventMessage>();
   private _on_activity_inited = false;
   onActivity(cb: $OnIpcEventMessage) {
     if (this._on_activity_inited === false) {
@@ -231,9 +230,6 @@ export class JsProcessMicroModule implements $MicroModule {
           if (ipcEvent.name === MWEBVIEW_LIFECYCLE_EVENT.Close) {
             return this._closeSignal.emit(ipcEvent, ipc);
           }
-          if (ipcEvent.name === MWEBVIEW_LIFECYCLE_EVENT.State) {
-            return this._dwebviewStateSignal.emit(ipcEvent, ipc);
-          }
         });
         this.closeSignal.listen(() => {
           ipc.postMessage(IpcEvent.fromText("close", ipc.remote.mmid));
@@ -245,9 +241,6 @@ export class JsProcessMicroModule implements $MicroModule {
   }
   onClose(cb: $OnIpcEventMessage) {
     return this._closeSignal.listen(cb);
-  }
-  onDwebViewState(cb: $OnIpcEventMessage) {
-    return this._dwebviewStateSignal.listen(cb);
   }
 
   private _ipcConnectsMap = new Map<$MMID, PromiseOut<Ipc>>();

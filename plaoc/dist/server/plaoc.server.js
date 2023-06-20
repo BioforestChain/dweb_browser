@@ -2,8 +2,8 @@ var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __decorateClass = (decorators, target, key, kind) => {
   var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc(target, key) : target;
-  for (var i = decorators.length - 1, decorator; i >= 0; i--)
-    if (decorator = decorators[i])
+  for (var i2 = decorators.length - 1, decorator; i2 >= 0; i2--)
+    if (decorator = decorators[i2])
       result = (kind ? decorator(target, key, result) : decorator(result)) || result;
   if (kind && result)
     __defProp(target, key, result);
@@ -44,8 +44,8 @@ var simpleEncoder = (data, encoding) => {
   if (encoding === "base64") {
     const byteCharacters = atob(data);
     const binary = new Uint8Array(byteCharacters.length);
-    for (let i = 0; i < byteCharacters.length; i++) {
-      binary[i] = byteCharacters.charCodeAt(i);
+    for (let i2 = 0; i2 < byteCharacters.length; i2++) {
+      binary[i2] = byteCharacters.charCodeAt(i2);
     }
     return binary;
   }
@@ -465,9 +465,9 @@ var parseUrl = (url, base = getBaseUrl()) => {
 };
 
 // ../desktop-dev/src/helper/normalizeFetchArgs.ts
-var normalizeFetchArgs = (url, init) => {
+var normalizeFetchArgs = (url, init2) => {
   let _parsed_url;
-  let _request_init = init;
+  let _request_init = init2;
   if (typeof url === "string") {
     _parsed_url = parseUrl(url);
   } else if (url instanceof Request) {
@@ -494,7 +494,7 @@ var AdaptersManager = class {
     this.orderdAdapters = [];
   }
   _reorder() {
-    this.orderdAdapters = [...this.adapterOrderMap].sort((a, b) => b[1] - a[1]).map((a) => a[0]);
+    this.orderdAdapters = [...this.adapterOrderMap].sort((a2, b2) => b2[1] - a2[1]).map((a2) => a2[0]);
   }
   get adapters() {
     return this.orderdAdapters;
@@ -590,8 +590,8 @@ var MicroModule = class {
     });
     this._connectSignal.emit(ipc2, reason);
   }
-  async _nativeFetch(url, init) {
-    const args = normalizeFetchArgs(url, init);
+  async _nativeFetch(url, init2) {
+    const args = normalizeFetchArgs(url, init2);
     for (const adapter of nativeFetchAdaptersManager.adapters) {
       const response = await adapter(this, args.parsed_url, args.request_init);
       if (response !== void 0) {
@@ -600,11 +600,11 @@ var MicroModule = class {
     }
     return fetch(args.parsed_url, args.request_init);
   }
-  nativeFetch(url, init) {
-    if (init?.body instanceof ReadableStream) {
-      Reflect.set(init, "duplex", "half");
+  nativeFetch(url, init2) {
+    if (init2?.body instanceof ReadableStream) {
+      Reflect.set(init2, "duplex", "half");
     }
-    return Object.assign(this._nativeFetch(url, init), fetchExtends);
+    return Object.assign(this._nativeFetch(url, init2), fetchExtends);
   }
 };
 
@@ -1396,16 +1396,16 @@ var IpcRequest = class extends IpcMessage {
       ipc2
     );
   }
-  static fromRequest(req_id, ipc2, url, init = {}) {
-    const method = toIpcMethod(init.method);
-    const headers = init.headers instanceof IpcHeaders ? init.headers : new IpcHeaders(init.headers);
+  static fromRequest(req_id, ipc2, url, init2 = {}) {
+    const method = toIpcMethod(init2.method);
+    const headers = init2.headers instanceof IpcHeaders ? init2.headers : new IpcHeaders(init2.headers);
     let ipcBody;
-    if (isBinary(init.body)) {
-      ipcBody = IpcBodySender.fromBinary(init.body, ipc2);
-    } else if (init.body instanceof ReadableStream) {
-      ipcBody = IpcBodySender.fromStream(init.body, ipc2);
+    if (isBinary(init2.body)) {
+      ipcBody = IpcBodySender.fromBinary(init2.body, ipc2);
+    } else if (init2.body instanceof ReadableStream) {
+      ipcBody = IpcBodySender.fromStream(init2.body, ipc2);
     } else {
-      ipcBody = IpcBodySender.fromText(init.body ?? "", ipc2);
+      ipcBody = IpcBodySender.fromText(init2.body ?? "", ipc2);
     }
     return new IpcRequest(req_id, url, method, headers, ipcBody, ipc2);
   }
@@ -1415,15 +1415,15 @@ var IpcRequest = class extends IpcMessage {
     if ((method === "GET" /* GET */ || method === "HEAD" /* HEAD */) === false) {
       body = this.body.raw;
     }
-    const init = {
+    const init2 = {
       method,
       headers: this.headers,
       body
     };
     if (body) {
-      Reflect.set(init, "duplex", "half");
+      Reflect.set(init2, "duplex", "half");
     }
-    return new Request(this.url, init);
+    return new Request(this.url, init2);
   }
   toJSON() {
     const { method } = this;
@@ -1570,9 +1570,9 @@ var Ipc = class {
     return reqresMap;
   }
   /** 发起请求并等待响应 */
-  request(url, init) {
+  request(url, init2) {
     const req_id = this.allocReqId();
-    const ipcRequest = IpcRequest.fromRequest(req_id, this, url, init);
+    const ipcRequest = IpcRequest.fromRequest(req_id, this, url, init2);
     const result = this.registerReqId(req_id);
     this.postMessage(ipcRequest);
     return result.promise;
@@ -1791,6 +1791,81 @@ var mapHelper = new class {
   }
 }();
 
+// https://esm.sh/v122/deep-object-diff@1.1.9/deno/deep-object-diff.mjs
+var u = (t) => t instanceof Date;
+var m = (t) => Object.keys(t).length === 0;
+var i = (t) => t != null && typeof t == "object";
+var n = (t, ...e) => Object.prototype.hasOwnProperty.call(t, ...e);
+var d = (t) => i(t) && m(t);
+var p = () => /* @__PURE__ */ Object.create(null);
+var D = (t, e) => t === e || !i(t) || !i(e) ? {} : Object.keys(e).reduce((o, r) => {
+  if (n(t, r)) {
+    let f = D(t[r], e[r]);
+    return i(f) && m(f) || (o[r] = f), o;
+  }
+  return o[r] = e[r], o;
+}, p());
+var a = D;
+var x = (t, e) => t === e || !i(t) || !i(e) ? {} : Object.keys(t).reduce((o, r) => {
+  if (n(e, r)) {
+    let f = x(t[r], e[r]);
+    return i(f) && m(f) || (o[r] = f), o;
+  }
+  return o[r] = void 0, o;
+}, p());
+var b = x;
+var P = (t, e) => t === e ? {} : !i(t) || !i(e) ? e : u(t) || u(e) ? t.valueOf() == e.valueOf() ? {} : e : Object.keys(e).reduce((o, r) => {
+  if (n(t, r)) {
+    let f = P(t[r], e[r]);
+    return d(f) && !u(f) && (d(t[r]) || !d(e[r])) || (o[r] = f), o;
+  }
+  return o;
+}, p());
+var j = P;
+var E = (t, e) => ({ added: a(t, e), deleted: b(t, e), updated: j(t, e) });
+var W = E;
+
+// src/server/tool/mwebview.ts
+var webViewMap = new class extends Map {
+  last() {
+    return [...this.entries()].at(-1);
+  }
+  /**
+   * 对比状态的更新
+   * @param diff
+   */
+  diffFactory(diff) {
+    for (const id in diff.added) {
+      this.set(id, diff.added[id]);
+    }
+    for (const id in diff.deleted) {
+      this.delete(id);
+    }
+    for (const id in diff.updated) {
+      this.set(id, diff.updated[id]);
+    }
+  }
+}();
+var _false = true;
+var init = async () => {
+  if (_false === false) {
+    return;
+  }
+  _false = false;
+  const ipc2 = await navigator.dweb.jsProcess.connect("mwebview.browser.dweb");
+  let oldWebviewState = [];
+  ipc2.onEvent((ipcEvent) => {
+    if (ipcEvent.name === "state") {
+      const newState = JSON.parse(ipcEvent.text);
+      const diff = W(oldWebviewState, newState);
+      oldWebviewState = newState;
+      webViewMap.diffFactory(diff);
+    } else if (ipcEvent.name === "diff-state") {
+      throw new Error("no implement");
+    }
+  });
+};
+
 // src/server/tool/tool.native.ts
 var cros = (headers) => {
   headers.init("Access-Control-Allow-Origin", "*");
@@ -1801,6 +1876,11 @@ var cros = (headers) => {
 var { jsProcess } = navigator.dweb;
 var nativeOpen = async (url) => {
   return await jsProcess.nativeFetch(`file://mwebview.browser.dweb/open?url=${encodeURIComponent(url)}`).text();
+};
+var nativeActivate = async () => {
+  return await jsProcess.nativeFetch(
+    `file://mwebview.browser.dweb/activate`
+  ).text();
 };
 var closeWindow = async () => {
   return await jsProcess.nativeFetch(`file://mwebview.browser.dweb/close/app`).boolean();
@@ -1955,12 +2035,19 @@ var main = async () => {
   const mainUrl = new PromiseOut();
   const EXTERNAL_PREFIX = "/external/";
   const externalMap = /* @__PURE__ */ new Map();
-  const tryOpenView = async () => {
+  const _tryOpenView = async () => {
     console.log("tryOpenView... start");
     const url = await mainUrl.promise;
-    nativeOpen(url);
+    if (webViewMap.size === 0) {
+      await init();
+      await nativeOpen(url);
+    } else {
+      await nativeActivate();
+    }
     console.log("tryOpenView... end", url);
   };
+  let openwebview_queue = Promise.resolve();
+  const tryOpenView = () => openwebview_queue = openwebview_queue.finally(() => _tryOpenView());
   const wwwServer = await http.createHttpDwebServer(jsProcess3, {
     subdomain: "www",
     port: 443
