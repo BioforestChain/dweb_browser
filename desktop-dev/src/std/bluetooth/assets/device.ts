@@ -3,6 +3,7 @@ import type { $Device, $AllDeviceListItem } from "../types.ts";
 import type { BluetoothDevice } from "electron";
  
 export async function requestDevice(){
+  console.log('触发了')
   const bluetoothDevice: BluetoothDevice = await (navigator as any).bluetooth.requestDevice({
     acceptAllDevices: true,
     optionalServices: [

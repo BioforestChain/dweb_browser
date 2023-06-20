@@ -687,13 +687,25 @@ class BluetoothPlugin {
     return isOpen ? this.open() : this.close();
   }
   open() {
-    return fetch("./open");
+    const { baseurl, xDwebHost } = this.apiUrlGet();
+    const url = `${baseurl}/open?x-dweb-host=${xDwebHost}`;
+    return fetch(url);
   }
   close() {
-    return fetch("./close");
+    const { baseurl, xDwebHost } = this.apiUrlGet();
+    const url = `${baseurl}/close?x-dweb-host=${xDwebHost}`;
+    return fetch(url);
   }
   selected(device) {
-    return fetch(`./selected?device_id=${device.deviceId}&device_name=${device.deviceName}`);
+    const { baseurl, xDwebHost } = this.apiUrlGet();
+    const url = `${baseurl}/selected`;
+    return fetch(`${url}?x-dweb-host=${xDwebHost}&device_id=${device.deviceId}&device_name=${device.deviceName}`);
+  }
+  apiUrlGet() {
+    const host = location.host.replace("www.", "api.");
+    const baseurl = `http://${host}/${this.mmid}`;
+    const xDwebHost = host.split("-")[0];
+    return { baseurl, xDwebHost };
   }
 }
 const bluetoothPlugin = new BluetoothPlugin();
@@ -758,7 +770,7 @@ let App = class extends s {
   render() {
     return x`
       <std-bluetooth></std-bluetooth>
-      <button @click="${this.toggle}">${this.isOpen ? "close" : "open"} bluetooth</button>
+      <button @click="${this.toggle}">设置 bluetooth </button>
       <ul >
         ${this.deviceList.map((item) => x`
             <li class="li" @click="${() => this.selected(item)}">${item.deviceName}</li>

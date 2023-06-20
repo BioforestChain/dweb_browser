@@ -6,6 +6,7 @@
     "sync:desktop": "deno run -A ./scripts/sync-desktop.ts",
     "sync:next": "deno run -A ./scripts/sync-next.ts",
     "sync": "deno run -A ./scripts/sync.ts",
-    "plaoc": "deno run -A ./plaoc/cli/plaoc.ts"
+    "plaoc": "deno run -A ./plaoc/cli/plaoc.ts",
+    "std": "deno run -A ./std/cli/std.ts"
   }
 }

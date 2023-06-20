@@ -1,5 +1,5 @@
-import { bluetoothPlugin } from "./bluetooth.plugin"
-import { $Device } from "./bluetooth.type";
+import { bluetoothPlugin } from "./bluetooth.plugin.ts"
+import { $Device } from "./bluetooth.type.ts";
 export class HTMLBluetoothElement extends HTMLElement{
   plugin = bluetoothPlugin;
   

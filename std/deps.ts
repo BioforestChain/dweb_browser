@@ -1,5 +1,5 @@
-import type {} from "https://deno.land/x/dweb/src/browser/js-process/js-process.worker.ts";
 
+import type {} from "https://deno.land/x/dweb/src/browser/js-process/js-process.worker.ts";
 export * as Flags from "https://deno.land/std@0.184.0/flags/mod.ts";
 export type { $AppMetaData } from "https://deno.land/x/dweb/src/browser/jmm/jmm.ts";
 export * from "https://deno.land/x/dweb/src/core/ipc/index.ts";

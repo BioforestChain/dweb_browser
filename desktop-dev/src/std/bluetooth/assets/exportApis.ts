@@ -3,6 +3,7 @@
 import { $Device } from "../types.ts";
 import { mainApis } from "../../../helper/openNativeWindow.preload.ts"
 import { allDeviceListMap } from "./data.ts"
+import { requestDevice } from "./device.ts"
 // import { requestDevice } from "./device.ts"
 // import type Electron from "electron";
 
@@ -20,7 +21,7 @@ function createListItem(name: string, status: string): HTMLLIElement{
 
 async function devicesUpdate(list: $Device[]){
   const ul = document.querySelector('.list_container');
-    
+  console.log('接受到了更新：', list)
   if(ul === null) throw new Error('ul === null');
   
   // 从 已有的中间删除
@@ -65,6 +66,7 @@ async function devicesUpdate(list: $Device[]){
 
 export const APIS = {
   devicesUpdate,
+  requestDevice
 };
 Object.assign(globalThis, APIS);
 

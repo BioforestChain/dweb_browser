@@ -79,8 +79,8 @@ dns.install(new JmmNMM());
 
 dns.install(
   new BootNMM([
-    dwebBrowser.mmid,
-    // "bluetooth.std.dweb"
+    // dwebBrowser.mmid,
+    "bluetooth.std.dweb"
   ])
 );
 

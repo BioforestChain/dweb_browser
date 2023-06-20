@@ -48,6 +48,7 @@ export class BluetoothNMM extends NativeMicroModule {
       console.log('deviceList: ', deviceList)
       apis.devicesUpdate(deviceList);
     })
+
     
 
 
@@ -70,6 +71,8 @@ export class BluetoothNMM extends NativeMicroModule {
           console.log('deviceList: ', deviceList)
           apis.devicesUpdate(deviceList);
         })
+
+        apis.requestDevice()
 
         // apis.requestDevice();
         // console.always('open', rootUrl)
@@ -159,17 +162,33 @@ export class BluetoothNMM extends NativeMicroModule {
     const contentBounds = wapi.nww.getContentBounds();
     const navigationBarState = await (await this.nativeFetch(`file://navigation-bar.nativeui.browser.dweb/getState`)).json()
     const statusbarState = await (await this.nativeFetch(`file://status-bar.nativeui.browser.dweb/getState`)).json()
+    console.always('contentBounds: ',contentBounds)
+    console.always('statusbarState', statusbarState)
+    console.always('navigationBarState: ', navigationBarState)
+    // statusbar.top 38 
+    // 375 * 800
+    // 334 * 695
+    // 41  * 105
+
+    // 485 * 669
+    // 444 * 564
+    // 41 * 105
+    // wapi.nww.on('resize', () => {
+    //   const contentBounds = wapi.nww.getContentBounds();
+    //   this._bv.setBounds({
+    //     x: 21,
+    //     y: 58,
+    //     width: contentBounds.width - 42,
+    //     height: contentBounds.height - 116,
+    //   })
+    // })
     await this._bv.webContents.loadURL(url)
-    this._bv.setBounds({
-      x: 0,
-      y: statusbarState.insets.top + (bounds.height - contentBounds.height),
-      width: contentBounds.width,
-      // 高度要去除 系统栏的高度
-      // 
-      height: contentBounds.height 
-                - navigationBarState.insets.bottom
-                - statusbarState.insets.top,
-    })
+    // this._bv.setBounds({
+    //   x: 21,
+    //   y: 58,
+    //   width: contentBounds.width - 42,
+    //   height: contentBounds.height - 116,
+    // })
     await show_po.promise;
     this._bv.webContents.openDevTools({mode: "detach"})
     const { import_port, export_port } = await ports_po.promise;
