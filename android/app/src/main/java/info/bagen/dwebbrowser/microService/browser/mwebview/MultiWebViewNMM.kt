@@ -134,17 +134,13 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.browser.dweb") {
           controller.downLoadObserver = DownLoadObserver(remoteMmid).apply {
             observe { listener ->
               controller.lastViewOrNull?.webView?.let { dWebView ->
-                val progress = if (listener.downLoadStatus == DownLoadStatus.DownLoading) {
-                  (listener.downLoadSize * 1.0 / listener.totalSize * 100).toFloat().moreThanTwoDigits.toString()
-                } else {
-                  ""
-                }
-                emitEvent(dWebView, listener.downLoadStatus.toServiceWorkerEvent(), progress)
+                emitEvent(
+                  dWebView, listener.downLoadStatus.toServiceWorkerEvent(), listener.progress
+                )
               }
             }
           }
         }
-
       }
     }
 
@@ -156,13 +152,4 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.browser.dweb") {
   private suspend fun closeDwebView(remoteMmid: String, webviewId: String): Boolean {
     return controllerMap[remoteMmid]?.closeWebView(webviewId) ?: false
   }
-
 }
-
-val Float.moreThanTwoDigits: () -> String
-  get() = {
-    val format = DecimalFormat("#.##")
-    //舍弃规则，RoundingMode.FLOOR表示直接舍弃。
-    format.roundingMode = RoundingMode.FLOOR
-    format.format(this)
-  }

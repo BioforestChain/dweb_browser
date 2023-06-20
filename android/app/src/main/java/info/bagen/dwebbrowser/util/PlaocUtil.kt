@@ -81,11 +81,3 @@ fun hexStrToByteArray(str: String): ByteArray {
   }
   return byteArray
 }
-
-val Float.moreThanTwoDigits: () -> String
-  get() = {
-    val format = DecimalFormat("#.##")
-    //舍弃规则，RoundingMode.FLOOR表示直接舍弃。
-    format.roundingMode = RoundingMode.FLOOR
-    format.format(this)
-  }
