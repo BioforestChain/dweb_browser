@@ -38,16 +38,18 @@ public static class StreamExtensions
         var buffer = new byte[4];
         try
         {
-            _console.Log("ReadIntAsync", "start:{0}", self);
             await self.ReadExactlyAsync(buffer);
-            _console.Log("ReadIntAsync", "end:{0}", self);
         }
         catch (Exception e)
         {
-            _console.Error("ReadIntAsync", "exception: {0}/{1}", self, e);
             if (e is EndOfStreamException)
             {
+                _console.Warn("ReadIntAsync", "exception: {0}/{1}", self, e);
                 self.Close();
+            }
+            else
+            {
+                _console.Error("ReadIntAsync", "exception: {0}/{1}", self, e);
             }
         }
         return buffer.ToInt();

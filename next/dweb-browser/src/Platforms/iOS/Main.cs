@@ -27,7 +27,7 @@ static class MicroModuleExtendions
 
 public class MicroService
 {
-    #region 日志tag标识
+    #region 日志scope标识
     /// BiometricsManager
     /// BiometricsNMM
     /// BootNMM
@@ -70,8 +70,8 @@ public class MicroService
     /// MicroModule
     #endregion
 
-    // 添加debug日志过滤
-    private static readonly List<string> _debugTags = new()
+    // 添加debug日志scope过滤
+    private static readonly List<string> _debugScopes = new()
     {
         "JsMicroModule",
         "HttpNMM",
@@ -81,15 +81,24 @@ public class MicroService
         "JmmNMM",
         "StreamExtensions",
         "ReadableStreamIpc",
-        "JsProcessNMM",
-        "MicroModule",
-        "JmmController",
         "JmmDownload"
     };
 
+    // 添加debug日志tag过滤
+    private static readonly List<string> _debugTags = new()
+    {
+        "*"
+    };
+
+    private static void _loggerInit()
+    {
+        Debugger.DebugScopes = _debugScopes;
+        Debugger.DebugTags = _debugTags;
+    }
+
     public static async Task<DnsNMM> Start()
     {
-        Debugger.DebugTags = _debugTags;
+        _loggerInit();
         LocaleFile.Init();
 
         var dnsNMM = new DnsNMM();

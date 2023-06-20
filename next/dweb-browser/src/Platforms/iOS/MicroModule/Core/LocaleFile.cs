@@ -51,12 +51,6 @@ public static class LocaleFile
             var relativePath = string.Empty;
             var baseDir = string.Empty;
 
-            //if (parsedUrl.Path.StartsWith("/usr/"))
-            //{
-            //    relativePath = parsedUrl.Path;
-            //    baseDir = Path.Combine(JmmDwebService.DWEB_APP_DIR, remote.Mmid);
-            //}
-
             relativePath = parsedUrl.Path[5..]; // 移除 '/sys/'
             baseDir = PathHelper.GetIOSAppAssetsPath();
             return await ReadLocalFileAsResponse(baseDir, relativePath, mode, url: request.Url);

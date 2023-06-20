@@ -73,7 +73,7 @@ public class JmmNMM : NativeMicroModule
 
     private void _recoverAppData()
     {
-        // 启动的时候，从数据库中恢复 s_apps 对象
+        // 启动的时候，从数据库中恢复 JmmApps 对象
         _ = Task.Run(async () =>
         {
             lock (JmmApps)

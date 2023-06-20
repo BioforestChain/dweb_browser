@@ -17,6 +17,7 @@ public static class DebuggerExtensions
 }
 public class Debugger
 {
+    public static List<string> DebugScopes = new();
     public static List<string> DebugTags = new();
 
     readonly string scopePrefix;
@@ -32,7 +33,17 @@ public class Debugger
     }
     public void WriteIf(Func<string> style, string tag, string msg)
     {
-        var _bool = (DebugTags.Count > 0 && DebugTags.FindIndex(scopePrefix.StartsWith) > -1) || DebugTags.Contains("*");
+        var _bool = false;
+
+        // 过滤scope是否打印
+        var scopeBool = (DebugScopes.Count > 0 && DebugScopes.FindIndex(scopePrefix.StartsWith) > -1) || DebugScopes.Contains("*");
+
+        // 过滤标签是否打印
+        if (scopeBool && ((DebugTags.Count > 0 && DebugTags.Contains(tag)) || DebugTags.Contains("*")))
+        {
+            _bool = true;
+        }
+
         Debug.WriteLineIf(_bool, style() + scopePrefix + tag.TabEnd() + "┊ " + msg);
     }
     public void Write(Func<string> style, string tag, string format, params object?[] args)
@@ -82,11 +93,11 @@ public class Debugger
     static string WarnStyle() => DateTime.Now.ToLongTimeString() + " 🧡 ";
     public void Warn(string tag, string msg)
     {
-        Write(WarnStyle, tag, msg);
+        WriteIf(WarnStyle, tag, msg);
     }
     public void Warn(string tag, string format, params object?[] args)
     {
-        Write(WarnStyle, tag, format, args);
+        WriteIf(WarnStyle, tag, format, args);
     }
 
     static string ErrorStyle() => DateTime.Now.ToLongTimeString() + " 💔 ";
