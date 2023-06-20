@@ -739,8 +739,9 @@ export class ViewTree extends LitElement {
     if (navigationBarState === undefined)
       throw new Error(`navigationBarState === undefined`);
     return html`
-      <div class="app-container">
+      <div class="device-container">
         <multi-webview-comp-mobile-shell
+          class="device"
           @biometrices-pass=${() => this.biometricessPass(true)}
           @biometrices-no-pass=${() => this.biometricessPass(false)}
         >
@@ -940,14 +941,21 @@ function createAllCSS() {
         align-items: center;
         width: 100%;
         height: 100%;
-        background: #00000022;
+        background: rgba(255, 255, 255, 0.3);
       }
 
-      .app-container {
+      .device-container {
         flex-grow: 0;
         flex-shrink: 0;
         width: 100%;
         height: 100%;
+
+        display: flex;
+      }
+      .device-container > .device {
+        flex: 1;
+        margin: 0.5em;
+        /* box-shadow: 0 0 0.5em rgba(0, 0, 0, 0.3); */
       }
 
       .dev-tools-container {

@@ -31,11 +31,16 @@ export async function jsProcessOpenWindow(
   const browserWindow = await openNativeWindow(url, _options);
 
   browserWindow.webContents.on("will-prevent-unload", async (event) => {
-    if (allowClose) {
-      /// 来自 close 的指令
-      allowClose = false;
-      /// 取消 unload 的 prevent（拦截）
-      event.preventDefault();
+    if (allowClose !== undefined) {
+      if (allowClose) {
+        /// 来自 close 的指令
+        allowClose = false;
+        /// 取消 unload 的 prevent（拦截）
+        event.preventDefault();
+      }
+
+      /// 重置状态
+      allowClose = undefined;
       return;
     }
     console.always("unload event", event, event.returnValue);
@@ -51,7 +56,7 @@ export async function jsProcessOpenWindow(
       event.preventDefault();
     }
   });
-  let allowClose = false;
+  let allowClose: undefined | boolean;
   browserWindow.on("close", async (event) => {
     allowClose = false; // 重置
 
@@ -69,6 +74,7 @@ export async function jsProcessOpenWindow(
     }
     /// 取消关闭
     else {
+      allowClose = false;
       /// 阻止 close 的默认行为发生
       event.preventDefault();
     }

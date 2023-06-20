@@ -1,7 +1,8 @@
 // browserWindow
+import { openNativeWindow } from "../../helper/openNativeWindow.ts";
 import type { BrowserNMM } from "./browser.ts";
 
-export function createBrowserWindow(this: BrowserNMM): $BW {
+export async function createBrowserWindow(this: BrowserNMM, url: string) {
   const { x, y, width, height } = getInitSize();
   // 放到页面居中的位置
   const options = {
@@ -12,11 +13,14 @@ export function createBrowserWindow(this: BrowserNMM): $BW {
     movable: true,
     webPreferences: {
       devTools: true,
-      webSecurity: false,
+      webSecurity: false, // 跨域限制
       safeDialogs: true,
+      sandbox: false,
+      nodeIntegration: true, // 注入 ipcRenderer 对象
+      contextIsolation: false,
     },
   };
-  const bw = new Electron.BrowserWindow(options) as Electron.BrowserWindow;
+  const bw = await openNativeWindow(url, options);
   // 获取 BrowserWindow 的 session 对象
   const mainWindowSession = bw.webContents.session;
 
@@ -30,18 +34,18 @@ export function createBrowserWindow(this: BrowserNMM): $BW {
   //   }
   // });
 
-  Electron.protocol.registerBufferProtocol(
-    "http",
-    async (request, callback) => {
-      const _url = new URL(request.url);
-      const response = await relayGerRequest.bind(this)(_url);
-      callback({
-        statusCode: response.status,
-        mimeType: response.type,
-        data: Buffer.from(await response.arrayBuffer()),
-      });
-    }
-  );
+  // Electron.protocol.registerBufferProtocol(
+  //   "http",
+  //   async (request, callback) => {
+  //     const _url = new URL(request.url);
+  //     const response = await relayGerRequest.bind(this)(_url);
+  //     callback({
+  //       statusCode: response.status,
+  //       mimeType: response.type,
+  //       data: Buffer.from(await response.arrayBuffer()),
+  //     });
+  //   }
+  // );
   return Object.assign(bw, { getTitleBarHeight });
 }
 

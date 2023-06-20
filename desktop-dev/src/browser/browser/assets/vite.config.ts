@@ -1,5 +1,6 @@
 // Plugins
 import vue from "@vitejs/plugin-vue";
+import renderer from "vite-plugin-electron-renderer";
 import vuetify, { transformAssetUrls } from "vite-plugin-vuetify";
 
 // Utilities
@@ -16,11 +17,12 @@ export default defineConfig({
         index: path.resolve(__dirname, "/index.html"),
         setting: path.resolve(__dirname, "/setting.html"),
         address: path.resolve(__dirname, "/address.html"),
-        error:path.resolve(__dirname,"/error.html")
+        error: path.resolve(__dirname, "/error.html"),
       },
     },
   },
   plugins: [
+    renderer(),
     vue({
       template: { transformAssetUrls },
     }),

@@ -1,15 +1,13 @@
 // 内容的 browserView
 import path from "node:path";
 import process from "node:process";
+import { resolveToRoot } from "../../helper/createResolveTo.ts";
 import { $BW } from "./browser.bw.ts";
 import type { BrowserNMM } from "./browser.ts";
 
 export function createCBV(this: BrowserNMM, bw: $BW, barHeight: number): $CBV {
-  const index_html = path.resolve(
-    Electron.app.getAppPath(),
-    "assets/browser/newtab/index.html"
-  );
-  const preloadSrc = path.resolve(__dirname, "./browser.content.bv.preload.js")
+  const index_html = resolveToRoot("assets/browser/newtab/index.html");
+  const preloadSrc = path.resolve(__dirname, "./browser.content.bv.preload.js");
   // 强制引入一起编译
   type _Preload = typeof import("./browser.content.bv.preload.ts");
   const options = {

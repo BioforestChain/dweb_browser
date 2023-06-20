@@ -1,7 +1,6 @@
 import {
   Ipc,
   IpcEvent,
-  IpcHeaders,
   IpcRequest,
   IpcResponse,
 } from "../../core/ipc/index.ts";
@@ -56,15 +55,13 @@ export async function canGoBack(
   request: IpcRequest
 ) {
   ipc.postMessage(
-    await IpcResponse.fromText(
+    await IpcResponse.fromJson(
       request.req_id,
       200,
-      new IpcHeaders({
-        "Content-Type": "application/json",
-      }),
-      JSON.stringify({
+      undefined,
+      {
         value: this.contentBV?.canGoBack(),
-      }),
+      },
       ipc
     )
   );
@@ -78,15 +75,13 @@ export async function canGoForward(
   request: IpcRequest
 ) {
   ipc.postMessage(
-    await IpcResponse.fromText(
+    await IpcResponse.fromJson(
       request.req_id,
       200,
-      new IpcHeaders({
-        "Content-Type": "application/json",
-      }),
-      JSON.stringify({
+      undefined,
+      {
         value: this.contentBV?.canGoForward(),
-      }),
+      },
       ipc
     )
   );
@@ -101,15 +96,13 @@ export async function goBack(
 ) {
   this.contentBV?.goBack();
   ipc.postMessage(
-    IpcResponse.fromText(
+    IpcResponse.fromJson(
       request.req_id,
       200,
-      new IpcHeaders({
-        "Content-Type": "application/json",
-      }),
-      JSON.stringify({
+      undefined,
+      {
         value: "ok",
-      }),
+      },
       ipc
     )
   );
@@ -124,15 +117,13 @@ export async function goForward(
 ) {
   this.contentBV?.goForward();
   ipc.postMessage(
-    IpcResponse.fromText(
+    IpcResponse.fromJson(
       request.req_id,
       200,
-      new IpcHeaders({
-        "Content-Type": "application/json",
-      }),
-      JSON.stringify({
+      undefined,
+      {
         value: "ok",
-      }),
+      },
       ipc
     )
   );
@@ -153,30 +144,28 @@ export async function refresh(
   }
 
   ipc.postMessage(
-    IpcResponse.fromText(
+    IpcResponse.fromJson(
       request.req_id,
       200,
-      new IpcHeaders({
-        "Content-Type": "application/json",
-      }),
-      JSON.stringify({
+      undefined,
+      {
         value: "ok",
-      }),
+      },
       ipc
     )
   );
 }
 
-export async function openApp(this:BrowserNMM,mmid: $MMID) {
+export async function openApp(this: BrowserNMM, mmid: $MMID) {
   if (mmid === null) {
-    return "缺少 app_id 参数"
+    return "缺少 app_id 参数";
   }
   // 应该到jmm去找
   const microModule = (await this.context?.dns.query(mmid)) as
     | JsMicroModule
     | undefined;
   if (!microModule) {
-     return "不存在该app";
+    return "不存在该app";
   }
   const { root, entry } = microModule.metadata.config.server;
   const jsMM = new JsMicroModule(

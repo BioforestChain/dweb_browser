@@ -1,17 +1,25 @@
 import { $BootstrapContext } from "../../core/bootstrapContext.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import { HttpDwebServer } from "../../sys/http-server/$createHttpDwebServer.ts";
-import { canGoBack, canGoForward, getAppsInfo, goBack, goForward, openApp, refresh, updateContent } from "./browser.api.server.ts";
+import {
+  canGoBack,
+  canGoForward,
+  getAppsInfo,
+  goBack,
+  goForward,
+  openApp,
+  refresh,
+  updateContent,
+} from "./browser.api.server.ts";
 import { createBrowserWindow } from "./browser.bw.ts";
-import { createCBV } from "./browser.content.bv.ts";
+import { createWWWServer } from "./browser.serve.www.ts";
 
-import type { $BW } from "./browser.bw.ts";
 import type { $CBV } from "./browser.content.bv.ts";
 
 export class BrowserNMM extends NativeMicroModule {
   mmid = "browser.dweb" as const;
   wwwServer: HttpDwebServer | undefined;
-  bw: $BW | undefined;
+  bw: Awaited<ReturnType<typeof createBrowserWindow>> | undefined;
   contentBV: $CBV | undefined;
   addressBV: Electron.BrowserView | undefined;
   // addressBVHeight = 38
@@ -21,15 +29,21 @@ export class BrowserNMM extends NativeMicroModule {
     // await createAPIServer.bind(this)();
     const addressBarHeight = this._addressBarHeight();
     await Electron.app.whenReady();
-    this.bw = createBrowserWindow.bind(this)();
-    this.contentBV = createCBV.bind(this)(this.bw, addressBarHeight);
+    this.wwwServer = await createWWWServer.call(this);
+    this.bw = await createBrowserWindow.bind(this)(
+      this.wwwServer.startResult.urlInfo.buildInternalUrl((url) => {
+        url.pathname = "/index.html";
+      }).href
+    );
+    // this.contentBV = createCBV.bind(this)(this.bw, addressBarHeight);
+
     this.registerCommonIpcOnMessageHandler({
       pathname: "/appsInfo",
       matchMode: "full",
       input: {},
       output: "object",
       handler: async () => {
-       return await getAppsInfo()
+        return await getAppsInfo();
       },
     });
     this.registerCommonIpcOnMessageHandler({
@@ -77,10 +91,10 @@ export class BrowserNMM extends NativeMicroModule {
     this.registerCommonIpcOnMessageHandler({
       pathname: "/openApp",
       matchMode: "full",
-      input: {app_id:"mmid"},
+      input: { app_id: "mmid" },
       output: "object",
       handler: async (args) => {
-        return await openApp.bind(this)(args.app_id)
+        return await openApp.bind(this)(args.app_id);
       },
     });
   }
@@ -92,5 +106,4 @@ export class BrowserNMM extends NativeMicroModule {
     return this.addressBVHeight;
   }
   protected _shutdown() {}
-
 }

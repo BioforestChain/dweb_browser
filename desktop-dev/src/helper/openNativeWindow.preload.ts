@@ -1,3 +1,4 @@
+import * as Comlink from "comlink";
 import { ipcRenderer } from "electron";
 import { updateRenderPort } from "./electronRenderPort.ts";
 const once = <F extends (...args: any[]) => any>(fn: F) => {
@@ -68,13 +69,13 @@ export const mainPort = export_port;
 
 let apis: unknown = {};
 const start = () => {
-  expose(apis, mainPort);
+  Comlink.expose(apis, mainPort);
 };
 Object.assign(globalThis, { mainPort, start });
 
 // contextBridge.exposeInMainWorld("mainPort", renderPortToObjectPort(ipc_port));
 
-import { expose, wrap } from "comlink";
+// import { expose, wrap } from "comlink";
 
 export const exportApis = once((APIS: unknown) => {
   apis = APIS;
@@ -82,6 +83,6 @@ export const exportApis = once((APIS: unknown) => {
 });
 
 export const mainApis =
-  wrap<import("./openNativeWindow.ts").ForRenderApi>(import_port);
+  Comlink.wrap<import("./openNativeWindow.ts").ForRenderApi>(import_port);
 
-Object.assign(globalThis, { mainApis });
+Object.assign(globalThis, { mainApis, Comlink });
