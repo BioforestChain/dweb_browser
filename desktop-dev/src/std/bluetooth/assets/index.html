@@ -5,12 +5,25 @@
   <title>bluetooth</title>
   <style type="text/css">
     body{
+      position: relative;
       box-sizing: border-box;
       margin: 0px;
       padding: 0px 20px;
       width: 100%;
       height: 100%;
       background: #eee;
+    }
+
+    .prompt{
+      position: absolute;
+      left: 0px;
+      top: 0px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+      background: red;
     }
     
     .title{
@@ -101,6 +114,8 @@
       border-top: none;
     }
 
+
+
     .name{
       width: 100%;
       flex-grow: 100;
@@ -109,13 +124,31 @@
       color: #333;
     }
 
-    .status{
+    .status,
+    .status_connected{
       display: flex;
       justify-content: flex-end;
       align-items: center;
       width: 5em;
       height: 100%;
       color: #999;
+    }
+
+    .status_connected{
+      display: none;
+    }
+
+    .connected .name{
+      color: #1677ff;
+    }
+
+    .connected .status {
+      display: none;
+    }
+
+    .connected .status_connected{
+      display: flex;
+      color: #1677ff;
     }
 
     .space_bootom{
@@ -128,17 +161,31 @@
     }
 
     .loading{
+      --size: 22px;
       display: none;
       justify-content: center;
       align-items: center;
-      width: 30px;
-      height: 30px;
+      width: var(--size);
+      height: var(--size);
+      color: red;
+      animation: rotate 1s infinite;
     }
     
     .connecting .loading{
       display: flex;
     }
-  
+
+
+
+    @keyframes rotate {
+      0% { 
+        transform: rotateZ(0deg)
+      }
+      100% { 
+        transform: rotateZ(360deg);
+      }
+    }
+      
   </style>
 </head>
 <body class="">
@@ -152,11 +199,17 @@
   <p class="device_title">我的设备</p>
   <ul class="list_container">
   </ul>
+  <div class="prompt">
+    <div class="prompt_content_container">
+      <
+    </div>
+  </div>
   <div class="space_bootom"></div>
   <template class="template">
-    <li class="list_item connecting">
+    <li class="list_item">
       <span class="name">apple的MacBook Air</span>
       <span class="status">未连接</span>
+      <span class="status_connected">已连接</span>
       <span class="loading">
         <svg 
           t="1687161242311" 
