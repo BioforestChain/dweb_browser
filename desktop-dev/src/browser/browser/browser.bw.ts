@@ -1,6 +1,5 @@
 // browserWindow
 import type { BrowserNMM } from "./browser.ts";
-import type { $Callback, $Details } from "./types.ts";
 
 export function createBrowserWindow(this: BrowserNMM): $BW {
   const { x, y, width, height } = getInitSize();
@@ -18,30 +17,31 @@ export function createBrowserWindow(this: BrowserNMM): $BW {
     },
   };
   const bw = new Electron.BrowserWindow(options) as Electron.BrowserWindow;
-  bw.on("close", () => {
-    // 关闭browser就是关闭全部的进程
-    Electron.app.quit();
-  });
+  // 获取 BrowserWindow 的 session 对象
+  const mainWindowSession = bw.webContents.session;
 
-  const session = bw.webContents.session;
-  const filter = {
-    // 拦截全部 devtools:// 协议发起的请求
-    // urls: ["devtools://*/*"]
-    urls: ["http://localhost/*", "https://shop.plaoc.com/*.json"],
-  };
+  // 在 BrowserWindow 的 session 中拦截请求
+  // mainWindowSession.webRequest.onBeforeRequest(async (request, callback) => {
+  //   const _url = new URL(request.url);
+  //   if (_url.hostname === "localhost" && request.method === "GET") {
+  //    const pathname = _url.pathname.replace("/browser.dweb", "");
+  //    console.always("onBeforeRequest=>",`http://browser.dweb-80.localhost:22605${pathname}${_url.search}`)
+  //    callback({cancel:false,redirectURL:`http://browser.dweb-80.localhost:22605${pathname}${_url.search}`});
+  //   }
+  // });
 
-  session.webRequest.onBeforeRequest(filter, (details: { url: string|URL; method: string; }, callback: $Callback) => {
-    const _url = new URL(details.url);
-    console.always("browser.content.bv.ts 拦截到了请求", _url)
-    // 不能够直接返回只能够重新定向 broser.dweb 的 apiServer 服务器
-    if (_url.hostname === "localhost" && details.method === "GET") {
-      relayGerRequest.bind(this)(details, callback);
-      return;
+  Electron.protocol.registerBufferProtocol(
+    "http",
+    async (request, callback) => {
+      const _url = new URL(request.url);
+      const response = await relayGerRequest.bind(this)(_url);
+      callback({
+        statusCode: response.status,
+        mimeType: response.type,
+        data: Buffer.from(await response.arrayBuffer()),
+      });
     }
-
-    throw new Error(`还有被拦截但没有转发的请求 ${details.url}`);
-  });
-
+  );
   return Object.assign(bw, { getTitleBarHeight });
 }
 
@@ -58,30 +58,26 @@ function getTitleBarHeight(this: Electron.BrowserWindow) {
   return this.getBounds().height - this.getContentBounds().height;
 }
 
-async function relayGerRequest(
-  browser: BrowserNMM,
-  details: $Details,
-  callback: $Callback
-) {
-  const _url = new URL(details.url);
-  // const url = `${this.apiServer?.startResult.urlInfo.internal_origin}${_url.pathname}${_url.search}`;
+async function relayGerRequest(this: BrowserNMM, _url: URL) {
   let pathname = _url.pathname;
-  let response = null
+  let response: Response | null = null;
+  console.always("browser.content.bv.ts 拦截到了请求xx", _url.href);
+  if (_url.hostname !== "localhost") {
+    response = await this.nativeFetch(_url.href);
+    console.always("xxxxx", response);
+    return response;
+  }
   // dweb_deeplink 请求
   if (_url.protocol === "dweb:") {
-   response =  await browser.nativeFetch(_url.href)
+    response = await this.nativeFetch(_url.href);
   }
-
-  const mmid = _url.searchParams.get("mmid")
-  if (mmid)  {
-    pathname = pathname.replace("browser.dweb",mmid)
+  const mmid = _url.searchParams.get("mmid");
+  if (mmid) {
+    pathname = pathname.replace("browser.dweb", mmid);
   }
-  console.always("browser.content.bv.ts 拦截到了请求xx", `file:/${pathname}`)
-  response = await browser.nativeFetch(`file:/${pathname}`)
-  // callback({ cancel: false, redirectURL: response });
-  callback({ cancel: false, redirectURL: response });
+  response = await this.nativeFetch(`file:/${pathname}${_url.search}`);
+  return response;
 }
-
 
 export type $BW = Electron.BrowserWindow & $ExtendsBrowserWindow;
 

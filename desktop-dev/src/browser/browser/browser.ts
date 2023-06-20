@@ -11,7 +11,6 @@ import type { $CBV } from "./browser.content.bv.ts";
 export class BrowserNMM extends NativeMicroModule {
   mmid = "browser.dweb" as const;
   wwwServer: HttpDwebServer | undefined;
-  // apiServer: HttpDwebServer | undefined;
   bw: $BW | undefined;
   contentBV: $CBV | undefined;
   addressBV: Electron.BrowserView | undefined;
@@ -29,7 +28,9 @@ export class BrowserNMM extends NativeMicroModule {
       matchMode: "full",
       input: {},
       output: "object",
-      handler: getAppsInfo.bind(this,),
+      handler: async () => {
+       return await getAppsInfo()
+      },
     });
     this.registerCommonIpcOnMessageHandler({
       pathname: "/update/content",
@@ -76,9 +77,11 @@ export class BrowserNMM extends NativeMicroModule {
     this.registerCommonIpcOnMessageHandler({
       pathname: "/openApp",
       matchMode: "full",
-      input: {},
+      input: {app_id:"mmid"},
       output: "object",
-      handler: openApp.bind(this),
+      handler: async (args) => {
+        return await openApp.bind(this)(args.app_id)
+      },
     });
   }
 

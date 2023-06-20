@@ -78,14 +78,14 @@ export function createCBV(this: BrowserNMM, bw: $BW, barHeight: number): $CBV {
   // 调试状态下显示 开发工具栏
   process.argv.includes("--inspect") ? bv.webContents.openDevTools() : "";
 
-  {
-    // 设置 userAgent 会导致 bv.webContents.canGoBack() canGoForward() 这样的方法无法返回正确的值
-    // reload 这些都会不执行
-    const userAgent = bv.webContents.getUserAgent();
-    bv.webContents.setUserAgent(
-      `${userAgent} dweb-host/${this.apiServer?.startResult.urlInfo.host}`
-    );
-  }
+  // {
+  //   // 设置 userAgent 会导致 bv.webContents.canGoBack() canGoForward() 这样的方法无法返回正确的值
+  //   // reload 这些都会不执行
+  //   const userAgent = bv.webContents.getUserAgent();
+  //   bv.webContents.setUserAgent(
+  //     `${userAgent} dweb-host/${this.apiServer?.startResult.urlInfo.host}`
+  //   );
+  // }
 
   return bv;
 }

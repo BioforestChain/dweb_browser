@@ -24,8 +24,6 @@ import type { $AppMetaData, JmmNMM } from "./jmm.ts";
 import { JsMMMetadata, JsMicroModule } from "./micro-module.js.ts";
 
 export const JMM_APPS_PATH = path.join(
-  // Electron.app.getPath("userData"),
-  // Electron.app.getName(),
   Electron.app.getAppPath(),
   "jmm-apps"
 );
