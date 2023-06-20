@@ -4,6 +4,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import type { Ipc } from "../../core/ipc/index.ts";
 import type { MicroModule } from "../../core/micro-module.ts";
+import { resolveToDataRoot } from "../../helper/createResolveTo.ts";
 import { isElectronDev } from "../../helper/electronIsDev.ts";
 import { locks } from "../../helper/locksManager.ts";
 import {
@@ -39,11 +40,8 @@ export const nwwGetFromMmid = (mmid: $MMID) => {
 };
 
 const init_preload_js = (async () => {
-  console.log(Electron.app.getPath("appData"));
-  const preload_js_path = path.join(
-    Electron.app.getPath("appData"),
-    `${Electron.app.getName()}/internal/${Electron.app.getVersion()}/mutil-webview.preload.js`,
-    "mutil-webview.preload.js"
+  const preload_js_path = resolveToDataRoot(
+    `mwebview/${Electron.app.getVersion()}/mutil-webview.preload.js`
   );
   console.log(preload_js_path);
   /// preload.js 在启动后，进行第一次写入；如果在开发模式下，那么每次启动都强制写入

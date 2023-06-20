@@ -1,8 +1,8 @@
+import mime from "mime";
 import fs from "node:fs";
 import path from "node:path";
 import { Readable } from "node:stream";
-import mime from "mime";
-import { ROOT } from "../../helper/createResolveTo.ts";
+import { resolveToRoot } from "../../helper/createResolveTo.ts";
 import { nativeFetchAdaptersManager } from "./nativeFetch.ts";
 
 nativeFetchAdaptersManager.append(async (remote, parsedUrl) => {
@@ -13,7 +13,10 @@ nativeFetchAdaptersManager.append(async (remote, parsedUrl) => {
     parsedUrl.pathname.startsWith("/sys/")
   ) {
     try {
-      const filepath = ROOT + parsedUrl.pathname.replace("/sys/", "/assets/");
+      /// 读取 app.asar 里头的文件
+      const filepath = resolveToRoot(
+        parsedUrl.pathname.replace("/sys/", "/assets/")
+      );
       const stats = await fs.statSync(filepath);
       if (stats.isDirectory()) {
         throw stats;

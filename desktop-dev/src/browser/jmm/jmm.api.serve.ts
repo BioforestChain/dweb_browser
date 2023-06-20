@@ -15,6 +15,7 @@ import {
   IpcRequest,
   IpcResponse,
 } from "../../core/ipc/index.ts";
+import { resolveToDataRoot } from "../../helper/createResolveTo.ts";
 import { simpleEncoder } from "../../helper/encoding.ts";
 import { locks } from "../../helper/locksManager.ts";
 import { ReadableStreamOut } from "../../helper/readableStreamHelper.ts";
@@ -24,7 +25,7 @@ import { createHttpDwebServer } from "../../sys/http-server/$createHttpDwebServe
 import type { $AppMetaData, JmmNMM } from "./jmm.ts";
 import { JsMMMetadata, JsMicroModule } from "./micro-module.js.ts";
 
-export const JMM_APPS_PATH = path.join(Electron.app.getAppPath(), "jmm-apps");
+export const JMM_APPS_PATH = resolveToDataRoot("jmm-apps");
 fs.mkdirSync(JMM_APPS_PATH, { recursive: true });
 
 const JMM_DB_PATH = path.join(JMM_APPS_PATH, ".db");

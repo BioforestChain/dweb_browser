@@ -2,7 +2,7 @@ try {
   const { ipcRenderer } = require("electron");
   (async () => {
     const { exportApis } = await import(
-      "../../../../helper/openNativeWindow.preload"
+      "../../../../helper/openNativeWindow.preload.ts"
     );
     exportApis(globalThis);
   })();
