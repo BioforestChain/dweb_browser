@@ -23,13 +23,3 @@ window.oncontextmenu = (event)=>{
   event.preventDefault();
 }
 
-  // 暗色背景设置
-  const blackTheme = () => {
-    const bodyDom = document.querySelector("body")
-    console.log("blackTheme=>","暗色主题")
-    if (bodyDom) {
-      bodyDom.style.backgroundColor = "#000"
-    }
-  }
-  // 暴露给 javascriptInterface 调用
-  Object.assign(globalThis,{blackTheme})

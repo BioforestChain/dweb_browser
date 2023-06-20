@@ -241,8 +241,10 @@ class IpcBodySender(
     }
 
   private inline fun emitStreamClose() {
+    if (_isStreamClosed) return
     _isStreamOpened = true
     _isStreamClosed = true
+    streamCtorSignal.resetReplayCache()
   }
 
 
@@ -346,7 +348,7 @@ class IpcBodySender(
             for (ipc in usedIpcMap.keys) {
               ipc.postMessage(message)
             }
-
+            stream.close()
             emitStreamClose()
           }
 

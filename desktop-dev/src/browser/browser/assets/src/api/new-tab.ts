@@ -1,4 +1,4 @@
-import { nativeFetch } from "./fetch.ts";
+import { nativeFetch } from "./fetch";
 
 export async function getAppInfo() {
   const res = await nativeFetch("/appsInfo");

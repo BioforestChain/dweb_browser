@@ -1,10 +1,15 @@
+/// about:blank
+/// about:newtab
+const BASE_URL =
+  location.protocol === "about:"
+    ? new URL(`http://browser.dweb.localhost/${location.href.replace("about:", "")}`)
+    : location.protocol === "chrome:"
+    ? new URL(`http://browser.dweb.localhost/${location.href.replace("chrome://", "")}`)
+    : new URL(location.href);
 export const nativeFetch = (pathname: string, init?: $BuildRequestInit) => {
-  /// about:blank
-  /// about:newtab
-  const url = new URL(location.href);
   // 默认请求自己
   const mmid = init?.mmid ?? "browser.dweb";
-  url.pathname = `/api/${mmid}${pathname}`;
+  const url = new URL(`api/${mmid}${pathname}`, BASE_URL);
   return buildRequest(url, init);
 };
 

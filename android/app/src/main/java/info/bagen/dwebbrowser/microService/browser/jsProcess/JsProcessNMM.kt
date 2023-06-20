@@ -171,7 +171,6 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
         val afterReadyPo = PromiseOut<Unit>()
         /// WebView 实例
         val apis = withContext(Dispatchers.Main) {
-            WebView.setWebContentsDebuggingEnabled(true)
 
             val urlInfo = mainServer.startResult.urlInfo
             JsProcessWebApi(

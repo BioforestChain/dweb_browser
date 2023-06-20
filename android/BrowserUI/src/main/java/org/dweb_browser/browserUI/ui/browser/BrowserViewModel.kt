@@ -3,7 +3,6 @@ package org.dweb_browser.browserUI.ui.browser
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.os.Message
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
@@ -19,13 +18,16 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.findViewTreeLifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import com.google.accompanist.web.AccompanistWebViewClient
 import com.google.accompanist.web.WebContent
+import com.google.accompanist.web.WebView
 import com.google.accompanist.web.WebViewNavigator
 import com.google.accompanist.web.WebViewState
+import io.ktor.http.Url
 import org.dweb_browser.browserUI.database.WebSiteDatabase
 import org.dweb_browser.browserUI.database.WebSiteInfo
 import org.dweb_browser.browserUI.database.WebSiteType
@@ -36,18 +38,20 @@ import org.dweb_browser.browserUI.util.*
 import kotlinx.coroutines.*
 import org.dweb_browser.browserUI.database.DefaultAllWebEngine
 import org.dweb_browser.browserUI.database.WebEngine
-import org.dweb_browser.browserUI.ui.view.findActivity
 import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.dwebview.base.DWebViewItem
 import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
+import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.help.Mmid
 import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.dweb_browser.microservice.sys.http.CORS_HEADERS
 import org.http4k.core.Response
 import org.http4k.lens.Header
+import java.net.URL
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.coroutines.CoroutineContext
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 data class BrowserUIState(
@@ -108,7 +112,7 @@ sealed class BrowserIntent {
 }
 
 @OptIn(ExperimentalFoundationApi::class)
-class BrowserViewModel(val microModule: MicroModule, val onOpenDweb:(Mmid) -> Unit) : ViewModel() {
+class BrowserViewModel(val microModule: MicroModule, val onOpenDweb: (Mmid) -> Unit) : ViewModel() {
   val uiState: BrowserUIState
 
   companion object {
@@ -119,8 +123,7 @@ class BrowserViewModel(val microModule: MicroModule, val onOpenDweb:(Mmid) -> Un
     val browserWebView = getNewTabBrowserView().also {
       uiState = BrowserUIState(currentBrowserBaseView = mutableStateOf(it))
     }
-    uiState.browserViewList.add(browserWebView)
-    /*getNewTabBrowserView().also { browserView ->
+    uiState.browserViewList.add(browserWebView)/*getNewTabBrowserView().also { browserView ->
       uiState = BrowserUIState(currentBrowserBaseView = mutableStateOf(browserView))
       uiState.browserViewList.add(browserView)
       viewModelScope.launch(mainAsyncExceptionHandler) {
@@ -145,8 +148,8 @@ class BrowserViewModel(val microModule: MicroModule, val onOpenDweb:(Mmid) -> Un
   }
 
   fun getNewTabBrowserView(url: String? = null): BrowserWebView {
-    val (viewItem,closeWatcher) = appendWebViewAsItem(
-      createDwebView(""), url ?: "file:///android_asset/browser/newtab/index.html"
+    val (viewItem, closeWatcher) = appendWebViewAsItem(
+      createDwebView(""), url ?: "about:newtab"
     )
     return BrowserWebView(
       viewItem = viewItem, closeWatcher = closeWatcher
@@ -300,7 +303,7 @@ class BrowserViewModel(val microModule: MicroModule, val onOpenDweb:(Mmid) -> Un
   }
 
   fun createDwebView(url: String): DWebView {
-   return DWebView(
+    return DWebView(
       BrowserUIApp.Instance.appContext, microModule, microModule, DWebView.Options(
         url = url,
         /// 我们会完全控制页面将如何离开，所以这里兜底默认为留在页面
@@ -357,7 +360,7 @@ class BrowserViewModel(val microModule: MicroModule, val onOpenDweb:(Mmid) -> Un
               /// 打开一个新窗口
               runBlockingCatching(Dispatchers.Main) {
                 appendWebViewAsItem(
-                  dWebView, mainUrl ?: "file:///android_asset/browser/newtab/index.html"
+                  dWebView, mainUrl ?: "about:newtab"
                 )
               }
             }
@@ -369,7 +372,7 @@ class BrowserViewModel(val microModule: MicroModule, val onOpenDweb:(Mmid) -> Un
         )
       }
     }
-    return Pair(viewItem,closeWatcherController)
+    return Pair(viewItem, closeWatcherController)
   }
 
   val isNoTrace = mutableStateOf(BrowserUIApp.Instance.appContext.getBoolean(KEY_NO_TRACE, false))
@@ -390,41 +393,49 @@ class browserViewModelHelper {
 
 internal class DwebBrowserWebViewClient(val microModule: MicroModule) : AccompanistWebViewClient() {
   override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
-      request?.url?.let { uri ->
-        val url = uri.toString()
-        if (url.startsWith("http") || url.startsWith("file") || url.startsWith("ftp")) {
-          return super.shouldOverrideUrlLoading(view, request)
-        }
+    request?.url?.let { uri ->
+      val url = uri.toString()
+      if (url.startsWith("http") || url.startsWith("file") || url.startsWith("ftp")) {
+        return super.shouldOverrideUrlLoading(view, request)
       }
+    }
     return super.shouldOverrideUrlLoading(view, request)
   }
 
-  override fun onReceivedError(
-    view: WebView, request: WebResourceRequest?, error: WebResourceError?
-  ) {
-    if (error?.errorCode == -2) { // net::ERR_NAME_NOT_RESOLVED
-      var param = request?.url?.let { uri -> "?not_found=${uri.host}${uri.path}" } ?: ""
-      param = if (param !== "") {
-        param.dropLast(1)
-      } else {
-        param
-      }
-      view.loadUrl("file:///android_asset/browser/newtab/error.html$param")
-    }
-  }
+//  override fun onReceivedError(
+//    view: WebView, request: WebResourceRequest?, error: WebResourceError?
+//  ) {
+////    view.loadUrl("about:network-errors/${error?.errorCode ?: 0}?url=${request?.url}")
+//    return super.onReceivedError(view, request, error)
+//  }
 
   override fun shouldInterceptRequest(
     view: WebView, request: WebResourceRequest
   ): WebResourceResponse? {
     var response: Response? = null
-    if (request.url.host == "localhost") { // 拦截 browser web
-      val mmid = request.url.getQueryParameter("mmid")
-      var path = request.url.path
-      if (mmid !== null) {
-        path = path?.replace("browser.dweb", mmid)
+    val url = request.url.let {
+      when (it.scheme) {
+        "chrome" -> Url(it.toString().replace("chrome://", "http://browser.dweb/"))
+        "about" -> Url(it.toString().replace("about:", "http://browser.dweb/"))
+        else -> Url(it.toString())
       }
+    };
+
+    if (url.protocol.name == "http" && (url.host == "browser.dweb" || url.host == "browser.dweb.localhost")) {
       response = runBlockingCatching(ioAsyncExceptionHandler) {
-        microModule.nativeFetch("file:/${path}?${request.url.query}")
+        val urlPathSegments = url.pathSegments.filter { !it.isNullOrEmpty() }
+        if (urlPathSegments[0] == "newtab") {
+          val pathSegments = urlPathSegments.drop(1)
+          return@runBlockingCatching if (pathSegments.getOrNull(0) == "api") {
+            microModule.nativeFetch("file://${pathSegments.drop(1).joinToString("/")}?${request.url.query}")
+          } else {
+            microModule.nativeFetch(
+              "file:///sys/browser/newtab/${
+                if (pathSegments.isEmpty()) "index.html" else pathSegments.joinToString("/")
+              }"
+            )
+          }
+        } else null
       }.getOrThrow()
     } else if (request.url.scheme == "dweb") { // 负责拦截browser的dweb_deeplink
       response = runBlockingCatching(ioAsyncExceptionHandler) {

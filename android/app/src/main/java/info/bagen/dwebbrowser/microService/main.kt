@@ -1,5 +1,6 @@
 package info.bagen.dwebbrowser.microService
 
+import android.webkit.WebView
 import info.bagen.dwebbrowser.microService.browser.BrowserNMM
 import org.dweb_browser.helper.*
 import org.dweb_browser.microservice.sys.boot.BootNMM
@@ -147,6 +148,9 @@ suspend fun startDwebBrowser(): DnsNMM {
   val bootNMM = BootNMM(
     bootMmidList
   ).also { dnsNMM.install(it) }
+
+  /// 启动Web调试
+  WebView.setWebContentsDebuggingEnabled(true)
 
   /// 启动
   dnsNMM.bootstrap()

@@ -76,8 +76,7 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.browser.dweb") {
       // 界面没有关闭，用于重新唤醒
       "/activate" bind Method.GET to defineHandler { request, ipc ->
         val remoteMmid = ipc.remote.mmid
-        val webViewId = queryWebviewId(request)
-        debugMultiWebView("/activate", "remote-mmid: $remoteMmid==>$webViewId")
+        debugMultiWebView("/activate", "激活")
         activityClassList.find { it.mmid == remoteMmid }?.let { activityClass ->
           App.startActivity(activityClass.ctor) { intent ->
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
@@ -88,7 +87,7 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.browser.dweb") {
             intent.putExtras(b)
           }
         }
-        return@defineHandler Response(Status.OK).body(webViewId)
+        return@defineHandler Response(Status.OK)
       },
     )
   }
