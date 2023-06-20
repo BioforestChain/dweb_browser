@@ -487,9 +487,9 @@ internal fun HomeWebviewPage(viewModel: BrowserViewModel, onClickOrMove: (Boolea
       .fillMaxSize()
       .background(background),
     navigator = webView.viewItem.navigator,
-    factory = {
-      webView.viewItem.webView.parent?.let { (it as ViewGroup).removeAllViews() }
-      webView.viewItem.webView.setOnTouchListener { _, event ->
+    onCreated = {
+      it.setDarkMode(isDark, background) // 为了保证浏览器背景色和系统主题一致
+      it.setOnTouchListener { _, event ->
         if (event.action == MotionEvent.ACTION_MOVE) {
           isRemove = true
         } else if (event.action == MotionEvent.ACTION_UP) {
@@ -497,7 +497,9 @@ internal fun HomeWebviewPage(viewModel: BrowserViewModel, onClickOrMove: (Boolea
         }
         false
       }
-      webView.viewItem.webView.setDarkMode(isDark, background) // 为了保证浏览器背景色和系统主题一致
+    },
+    factory = {
+      webView.viewItem.webView.parent?.let { (it as ViewGroup).removeAllViews() }
       webView.viewItem.webView
     }
   )
