@@ -85,7 +85,7 @@ dns.install(
 );
 
 Object.assign(globalThis, { dns: dns });
-process.on("unhandledRejection", (error:Error) => {
+process.on("unhandledRejection", (error: Error) => {
   console.error("on unhandledRejection=>", error);
 });
 

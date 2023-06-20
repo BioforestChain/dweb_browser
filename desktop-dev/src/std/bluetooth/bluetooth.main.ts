@@ -7,6 +7,7 @@ import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { Remote, expose, proxy, wrap } from "comlink";
 import { openNativeWindow } from "../../helper/openNativeWindow.ts";
 import { stat } from "https://deno.land/std@0.177.0/node/fs/promises.ts";
+import type { $Device } from "./types.ts"
  
 type $APIS = typeof import("./assets/exportApis.ts")["APIS"];
 
@@ -161,11 +162,13 @@ export class BluetoothNMM extends NativeMicroModule {
     await this._bv.webContents.loadURL(url)
     this._bv.setBounds({
       x: 0,
-      y: statusbarState.insets.top,
+      y: statusbarState.insets.top + (bounds.height - contentBounds.height),
       width: contentBounds.width,
       // 高度要去除 系统栏的高度
       // 
-      height: contentBounds.height - navigationBarState.insets.bottom - statusbarState.insets.top,
+      height: contentBounds.height 
+                - navigationBarState.insets.bottom
+                - statusbarState.insets.top,
     })
     await show_po.promise;
     this._bv.webContents.openDevTools({mode: "detach"})
@@ -202,10 +205,4 @@ export class BluetoothNMM extends NativeMicroModule {
   _shutdown = () => {
     throw new Error(`_shutdown 还没有处理`);
   };
-}
-
-
-export interface $Device{
-  deviceId: string;
-  deviceName: string;
 }

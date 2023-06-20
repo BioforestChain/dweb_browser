@@ -1,7 +1,8 @@
 
 
-import { $Device } from "../bluetooth.main.ts";
+import { $Device } from "../types.ts";
 import { mainApis } from "../../../helper/openNativeWindow.preload.ts"
+import { allDeviceListMap } from "./data.ts"
 // import { requestDevice } from "./device.ts"
 // import type Electron from "electron";
 
@@ -17,8 +18,6 @@ function createListItem(name: string, status: string): HTMLLIElement{
   return fragment.children[0] as HTMLLIElement
 }
 
-let bluetoothDevice;
-const _map = new Map<string, {el: HTMLLIElement, device: $Device}>()
 async function devicesUpdate(list: $Device[]){
   const ul = document.querySelector('.list_container');
     
@@ -34,22 +33,34 @@ async function devicesUpdate(list: $Device[]){
 
   // 添加新的
   list.forEach(device => {
-    if(_map.has(device.deviceId)){
+    if(allDeviceListMap.has(device.deviceId)){
       return;
     }
     const li = createListItem(device.deviceName, "未连接");
     li.addEventListener('click', async () => {
       ;(mainApis as any).deviceSelected(device);
-      Array.from(_map.values()).forEach(oldDevice => {
-        oldDevice.el.classList.remove('selected')
+      Array.from(allDeviceListMap.values()).forEach(oldDevice => {
+        if(oldDevice.device.deviceId === device.deviceId){
+          li.classList.add('connecting')
+          oldDevice.isConnecting = true;
+        }else{
+          oldDevice.el.classList.remove('connecting')
+          oldDevice.isConnecting = false;
+        }
+
+        // 超时设置
+        setTimeout(() => {
+          oldDevice.el.classList.remove('connecting')
+          oldDevice.isConnecting = false;
+          // 超时提示框
+           
+        },6000)
       })
-      li.classList.add('connecting')
     })
     // 添加
-    _map.set(device.deviceId, {el: li, device: device})
+    allDeviceListMap.set(device.deviceId, {el: li, device: device, isConnecting: false, isConnected: false})
     ul.appendChild(li)
   })
-  
 }
 
 export const APIS = {
