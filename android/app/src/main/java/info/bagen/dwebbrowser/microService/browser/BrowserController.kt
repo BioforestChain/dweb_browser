@@ -10,13 +10,12 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
-import info.bagen.dwebbrowser.microService.browser.jmm.JmmController
 import org.dweb_browser.helper.*
 import org.dweb_browser.microservice.sys.dns.nativeFetch
 import info.bagen.dwebbrowser.microService.browser.jmm.JmmMetadata
-import info.bagen.dwebbrowser.microService.browser.jmm.JmmNMM
 import kotlinx.coroutines.launch
 import org.dweb_browser.browserUI.ui.browser.BrowserViewModel
+import org.dweb_browser.microservice.help.Mmid
 import org.http4k.core.Uri
 import org.http4k.core.query
 
@@ -24,7 +23,7 @@ class BrowserController(val browserNMM: BrowserNMM) {
     val showLoading: MutableState<Boolean> = mutableStateOf(false)
     val browserViewModel by lazy { BrowserViewModel(browserNMM) { mmid ->
         activity?.lifecycleScope?.launch {
-            JmmNMM.jmmController?.openApp(mmid)
+            openJmm(mmid)
         }
     }}
 
@@ -87,7 +86,13 @@ class BrowserController(val browserNMM: BrowserNMM) {
         return true
     }
 
+    suspend fun openJmm(mmid: Mmid) = browserNMM.nativeFetch(
+        Uri.of("file://jmm.browser.dweb/openApp").query("app_id", mmid)
+    )
+    suspend fun closeJmm(mmid: Mmid) = browserNMM.nativeFetch(
+        Uri.of("file://jmm.browser.dweb/closeApp").query("app_id", mmid)
+    )
     suspend fun uninstallJMM(jmmMetadata: JmmMetadata) = browserNMM.nativeFetch(
-        Uri.of("file://jmm.browser.dweb/uninstall").query("mmid", jmmMetadata.id)
+        Uri.of("file://jmm.browser.dweb/uninstall").query("app_id", jmmMetadata.id)
     )
 }

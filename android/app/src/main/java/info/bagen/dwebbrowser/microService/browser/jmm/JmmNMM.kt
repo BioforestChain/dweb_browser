@@ -124,6 +124,16 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb") {
           apps.map { it.value.metadata },
           installingApps.map { it.value })
       },
+      "/openApp" bind Method.GET to defineHandler { request ->
+        val mmid = queryMmid(request)
+        jmmController?.openApp(mmid)
+        return@defineHandler true
+      },
+      "/closeApp" bind Method.GET to defineHandler { request ->
+        val mmid = queryMmid(request)
+        jmmController?.closeApp(mmid)
+        return@defineHandler true
+      },
       "/pause" bind Method.GET to defineHandler { _, ipc ->
         BrowserUIApp.Instance.mBinderService?.invokeUpdateDownloadStatus(
           ipc.remote.mmid, DownLoadController.PAUSE

@@ -13,6 +13,13 @@ const appsInfo: Ref<$AppMetaData[]> = ref([
   //   id: "waterbang.dweb",
   // },
 ]);
+
+// 监听app消息的更新
+const updateApps  = async () => {
+  appsInfo.value = await getAppInfo();
+}
+Object.assign(globalThis,{updateApps})
+
 const showDialog = ref(false);
 const dialogData = reactive({
   title: "app",
@@ -21,7 +28,7 @@ const dialogData = reactive({
   index:0
 });
 onMounted(async () => {
-  appsInfo.value = await getAppInfo();
+  await updateApps()
 });
 
 //删除app

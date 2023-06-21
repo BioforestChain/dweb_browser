@@ -38,13 +38,12 @@ export async function deleteApp(id: string) {
   return await nativeFetch("/uninstall", {
     search: {
       app_id: id,
-      mmid: "jmm.browser.dweb",
     },
+    mmid: "jmm.browser.dweb",
   });
 }
 
 export async function detailApp(id: string) {
-  console.log("/detailAPp",id)
   return await nativeFetch("/detailApp", {
     search: {
       app_id: id,

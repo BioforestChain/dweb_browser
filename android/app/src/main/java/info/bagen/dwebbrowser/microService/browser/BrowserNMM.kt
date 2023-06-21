@@ -4,7 +4,6 @@ import android.content.Intent
 import android.os.Bundle
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.browser.jmm.JmmNMM.Companion.getAndUpdateJmmNmmApps
-import info.bagen.dwebbrowser.microService.browser.jmm.JmmNMM.Companion.jmmController
 import info.bagen.dwebbrowser.microService.browser.jmm.ui.JmmManagerActivity
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.message.IpcEvent
@@ -41,7 +40,7 @@ class BrowserNMM : NativeMicroModule("browser.dweb") {
     apiRouting = routes(
       "/openApp" bind Method.GET to defineHandler { request ->
         val mmid = queryAppId(request)
-        return@defineHandler jmmController?.openApp(mmid) // 直接调这个后端没启动
+        return@defineHandler browserController?.openJmm(mmid)
       },
       "/appsInfo" bind Method.GET to defineHandler { request ->
         val apps = getAndUpdateJmmNmmApps()
@@ -64,7 +63,7 @@ class BrowserNMM : NativeMicroModule("browser.dweb") {
       "/closeApp" bind Method.GET to defineHandler { request->
         val mmid = queryAppId(request)
         debugBrowser("closeApp",mmid)
-        jmmController?.closeApp(mmid)
+        browserController?.closeJmm(mmid)
       },
       // app详情
       "/detailApp" bind Method.GET to defineHandler{ request ->
