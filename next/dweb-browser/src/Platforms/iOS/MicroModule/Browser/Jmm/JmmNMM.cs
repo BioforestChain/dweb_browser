@@ -26,15 +26,12 @@ public class JmmNMM : NativeMicroModule
         {
             var query = HttpUtility.ParseQueryString(parsedUrl.Query);
             var mode = query["mode"] ?? "auto";
-            var chunk = query["chunk"]?.ToIntOrNull() ?? 1024 * 1024;
-
-            var relativePath = string.Empty;
-            var baseDir = string.Empty;
+            //var chunk = query["chunk"]?.ToIntOrNull() ?? 1024 * 1024;
 
             if (JmmApps.TryGetValue(remote.Mmid, out var jsMicroModule))
             {
-                relativePath = parsedUrl.Path;
-                baseDir = JsMicroModule.GetInstallPath(jsMicroModule.Metadata);
+                var relativePath = parsedUrl.Path;
+                var baseDir = JsMicroModule.GetInstallPath(jsMicroModule.Metadata);
                 return await LocaleFile.ReadLocalFileAsResponse(baseDir, relativePath, mode, url: request.Url);
             }
             return new PureResponse(HttpStatusCode.InternalServerError, Url: request.Url);
@@ -155,7 +152,7 @@ public class JmmNMM : NativeMicroModule
 
         if (!jmmMetadata.BundleUrl.StartsWith(Uri.UriSchemeHttp) && !jmmMetadata.BundleUrl.StartsWith(Uri.UriSchemeHttps))
         {
-            jmmMetadata.BundleUrl = (new URL(new Uri(url.Uri, jmmMetadata.BundleUrl))).ToString();
+            jmmMetadata.BundleUrl = (new URL(new Uri(url.Uri, jmmMetadata.BundleUrl))).Href;
         }
 
         await MainThread.InvokeOnMainThreadAsync(async () =>

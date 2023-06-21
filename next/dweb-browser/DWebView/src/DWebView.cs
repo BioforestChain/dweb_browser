@@ -171,38 +171,13 @@ public partial class DWebView : WKWebView
         }
     }
 
-    private void _addUserScript()
-    {
-        try
-        {
-            var asyncCodeScript = new WKUserScript(
-                new NSString(asyncCodePrepareCode),
-                WKUserScriptInjectionTime.AtDocumentEnd,
-                false,
-                webMessagePortContentWorld);
-            this.Configuration.UserContentController.AddUserScript(asyncCodeScript);
-
-            var webMessagePortScript = new WKUserScript(
-                new NSString(webMessagePortPrepareCode),
-                WKUserScriptInjectionTime.AtDocumentEnd,
-                false,
-                webMessagePortContentWorld);
-            this.Configuration.UserContentController.AddUserScript(webMessagePortScript);
-
-        }
-        catch (Exception e)
-        {
-            Console.Error("_addUserScript", "{0}", e);
-        }
-    }
-
     private void _addScriptMessageHandler()
     {
         try
         {
-            this.Configuration.UserContentController.AddScriptMessageHandler(asyncCodeMessageHanlder, "asyncCode");
-            this.Configuration.UserContentController.AddScriptMessageHandler(CloseWatcherMessageHanlder, "closeWatcher");
-            this.Configuration.UserContentController.AddScriptMessageHandler(webMessagePortMessageHanlder, webMessagePortContentWorld,  "webMessagePort");
+            Configuration.UserContentController.AddScriptMessageHandler(asyncCodeMessageHanlder, "asyncCode");
+            Configuration.UserContentController.AddScriptMessageHandler(CloseWatcherMessageHanlder, "closeWatcher");
+            Configuration.UserContentController.AddScriptMessageHandler(webMessagePortMessageHanlder, webMessagePortContentWorld, "webMessagePort");
         }
         catch (Exception e)
         {

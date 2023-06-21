@@ -256,6 +256,12 @@ public class JmmDownload
         {
             var outputDir = JsMicroModule.GetInstallPath(JmmMetadata);
             Console.Log("UnCompressZip", outputDir);
+
+            if (!Directory.Exists(outputDir))
+            {
+                Directory.CreateDirectory(outputDir);
+            }
+
             ZipFile.ExtractToDirectory(_downloadFile, outputDir);
             File.Delete(_downloadFile);
             foreach (var info in JsMicroModule.GetAllVersions(JmmMetadata.Id))

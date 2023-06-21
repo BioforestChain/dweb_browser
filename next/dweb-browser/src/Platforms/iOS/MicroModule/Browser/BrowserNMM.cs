@@ -4,7 +4,7 @@ using DwebBrowser.MicroService.Browser.Jmm;
 using DwebBrowser.MicroService.Http;
 using Foundation;
 using UIKit;
-using WebKit;
+using System.Text.Json.Serialization;
 
 namespace DwebBrowser.MicroService.Browser;
 
@@ -16,12 +16,39 @@ public class BrowserNMM : IOSNativeMicroModule
         s_controllerList.Add(new(this));
     }
 
-    public static BrowserWeb webview = new();
-
     private static readonly List<BrowserController> s_controllerList = new();
     public static BrowserController BrowserController
     {
         get => s_controllerList.FirstOrDefault();
+    }
+
+    //record AppInfo(string id, string icon, string name, string short_name);
+    class AppInfo
+    {
+        [JsonPropertyName("id")]
+        public string Id { get; set; }
+        [JsonPropertyName("icon")]
+        public string Icon { get; set; }
+        [JsonPropertyName("name")]
+        public string Name { get; set; }
+        [JsonPropertyName("short_name")]
+        public string ShortName { get; set; }
+
+        [Obsolete("使用带参数的构造函数", true)]
+#pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
+        public AppInfo()
+#pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
+        {
+            /// 给JSON反序列化用的空参数构造函数
+        }
+
+        public AppInfo(string id, string icon, string name, string short_name)
+        {
+            Id = id;
+            Icon = icon;
+            Name = name;
+            ShortName = short_name;
+        }
     }
 
     protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)
@@ -32,6 +59,21 @@ public class BrowserNMM : IOSNativeMicroModule
         {
             var mmid = request.QueryStringRequired("app_id");
             return BrowserController?.OpenApp(mmid);
+        });
+
+        HttpRouter.AddRoute(IpcMethod.Get, "/appsInfo", async (request, ipc) =>
+        {
+            var apps = JmmNMM.JmmApps;
+            Console.Log("appInfo", "size: {0}", apps.Count);
+            var responseApps = new List<AppInfo> { };
+
+            foreach (var app in apps)
+            {
+                var metadata = app.Value.Metadata;
+                responseApps.Add(new AppInfo(metadata.Id, metadata.Icon, metadata.Name, metadata.ShortName));
+            }
+
+            return responseApps;
         });
 
         // 关闭App后端
@@ -74,15 +116,21 @@ public class BrowserNMM : IOSNativeMicroModule
     {
         await MainThread.InvokeOnMainThreadAsync(async () =>
         {
+            BrowserManager.WebviewGeneratorCallbackWithCallback(configuration =>
+            {
+                return new BrowserWeb(this, configuration);
+            });
             var manager = new BrowserManager();
             //var webview = new BrowserWeb();
-            webview.LoadRequest(new NSUrlRequest(new NSUrl("https://dweb.waterbang.top/")));
+            //webview.LoadRequest(new NSUrlRequest(new NSUrl("https://dweb.waterbang.top/")));
             //manager.WebViewList = new WKWebView[] { webview };
-            manager.ShowWebViewListDataWithList(new WKWebView[] { webview });
+            //manager.ShowWebViewListDataWithList(new WKWebView[] { webview });
+            //manager.OpenWebViewUrlWithUrlString("https://dweb.waterbang.top/");
+            manager.OpenWebViewUrlWithUrlString("about://newtab");
             var swiftView = manager.SwiftView;
             swiftView.Frame = UIScreen.MainScreen.Bounds;
             BrowserController.View.AddSubview(swiftView);
-            webview.LoadRequest(new NSUrlRequest(new NSUrl("dweb:install?url=https://dweb.waterbang.top/metadata.json")));
+            //webview.LoadRequest(new NSUrlRequest(new NSUrl("dweb:install?url=https://dweb.waterbang.top/metadata.json")));
         });
     }
 

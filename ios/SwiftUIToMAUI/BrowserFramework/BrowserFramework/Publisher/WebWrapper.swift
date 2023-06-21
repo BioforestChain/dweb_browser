@@ -1,9 +1,9 @@
-import SwiftUI
 import Combine
+import SwiftUI
 import WebKit
 
 @dynamicMemberLookup
-class WebWrapper: ObservableObject, Identifiable,Hashable, Equatable{
+class WebWrapper: ObservableObject, Identifiable, Hashable, Equatable {
     public var id = UUID()
 
     @Published public var webView: WKWebView {
@@ -11,8 +11,10 @@ class WebWrapper: ObservableObject, Identifiable,Hashable, Equatable{
             setupObservers()
         }
     }
+
     init(cacheID: UUID) {
-        self.webView = WKWebView()
+//        self.webView = WKWebView()
+        self.webView = BrowserManager.webviewGenerator!(nil)
         self.id = cacheID
         print("making a WebWrapper: \(self)")
 
@@ -50,12 +52,12 @@ class WebWrapper: ObservableObject, Identifiable,Hashable, Equatable{
     
     public static func == (lhs: WebWrapper, rhs: WebWrapper) -> Bool {
         lhs.id == rhs.id
-     }
+    }
      
-     public func hash(into hasher: inout Hasher) {
-         hasher.combine(id)
-         hasher.combine(webView)
-     }
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+        hasher.combine(webView)
+    }
 }
 
 var webViews = Set<WKWebView>()
@@ -74,15 +76,14 @@ struct WebView: View, UIViewRepresentable {
     }
     
     public func makeUIView(context: UIViewRepresentableContext<WebView>) -> WKWebView {
-        if webView.estimatedProgress < 0.2{
-            webView.load(URLRequest(url:url))
-            print("in WebView makeUIView.....")
-        }
+        webView.load(URLRequest(url: url))
         return webView
     }
     
     public func updateUIView(_ uiView: WKWebView, context: UIViewRepresentableContext<WebView>) {
-//        uiView.load(URLRequest(url:url))
+        print("updateUIView: " + url.absoluteString)
+//        uiView.load(URLRequest(url: url))
+        
         print("in WebView updateUIView.....")
     }
 }

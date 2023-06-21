@@ -1,4 +1,5 @@
 using System;
+using BrowserFramework;
 using Foundation;
 using ObjCRuntime;
 using UIKit;
@@ -14,29 +15,18 @@ namespace BrowserFramework
 		[NullAllowed, Export ("swiftView", ArgumentSemantic.Strong)]
 		UIView SwiftView { get; set; }
 
-		// @property (nonatomic) NSInteger webViewCount;
-		[Export ("webViewCount")]
-		nint WebViewCount { get; set; }
-
-		// -(void)fetchHomeDataWithParam:(NSArray<NSDictionary<NSString *,NSString *> *> * _Nonnull)param webViewList:(NSArray<WKWebView *> * _Nonnull)webViewList;
-		[Export ("fetchHomeDataWithParam:webViewList:")]
-		void FetchHomeDataWithParam (NSDictionary<NSString, NSString>[] param, WKWebView[] webViewList);
-
 		// -(void)addNewWkWebViewWithWebView:(WKWebView * _Nonnull)webView;
 		[Export ("addNewWkWebViewWithWebView:")]
 		void AddNewWkWebViewWithWebView (WKWebView webView);
 
-		// -(void)showWebViewListDataWithList:(NSArray<WKWebView *> * _Nonnull)list;
-		[Export ("showWebViewListDataWithList:")]
-		void ShowWebViewListDataWithList (WKWebView[] list);
+		// -(void)openWebViewUrlWithUrlString:(NSString * _Nonnull)urlString;
+		[Export ("openWebViewUrlWithUrlString:")]
+		void OpenWebViewUrlWithUrlString (string urlString);
 
-		// -(void)clickAppActionWithCallback:(void (^ _Nonnull)(NSString * _Nonnull))callback;
-		[Export ("clickAppActionWithCallback:")]
-		void ClickAppActionWithCallback (Action<NSString> callback);
-
-		// -(void)clickAddNewHomePageActionWithCallback:(void (^ _Nonnull)(void))callback;
-		[Export ("clickAddNewHomePageActionWithCallback:")]
-		void ClickAddNewHomePageActionWithCallback (Action callback);
+		// +(void)webviewGeneratorCallbackWithCallback:(WKWebView * _Nonnull (^ _Nonnull)(WKWebViewConfiguration * _Nullable))callback;
+		[Static]
+		[Export ("webviewGeneratorCallbackWithCallback:")]
+		void WebviewGeneratorCallbackWithCallback (Func<WKWebViewConfiguration, WKWebView> callback);
 	}
 
 	// @interface DownloadAppManager : NSObject

@@ -94,8 +94,6 @@ public class ReadableStreamIpc : Ipc
             throw new Exception("还未实现 cbor 的编解码能力");
         }
 
-        var streamName = stream.ToString();
-
         Console.Log("RR", "START/{0}", stream);
         //var reader = new BinaryReader(stream);
         while (stream.CanRead)

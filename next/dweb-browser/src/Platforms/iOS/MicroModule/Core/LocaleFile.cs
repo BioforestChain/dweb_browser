@@ -46,13 +46,10 @@ public static class LocaleFile
         {
             var query = HttpUtility.ParseQueryString(parsedUrl.Query);
             var mode = query["mode"] ?? "auto";
-            var chunk = query["chunk"]?.ToIntOrNull() ?? 1024 * 1024;
+            //var chunk = query["chunk"]?.ToIntOrNull() ?? 1024 * 1024;
 
-            var relativePath = string.Empty;
-            var baseDir = string.Empty;
-
-            relativePath = parsedUrl.Path[5..]; // 移除 '/sys/'
-            baseDir = PathHelper.GetIOSAppAssetsPath();
+            var relativePath = parsedUrl.Path[5..]; // 移除 '/sys/'
+            var baseDir = PathHelper.GetIOSAppAssetsPath();
             return await ReadLocalFileAsResponse(baseDir, relativePath, mode, url: request.Url);
 
         }

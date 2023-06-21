@@ -13,7 +13,7 @@ public partial class DWebView : WKWebView
 
     public class DwebSchemeHandler : NSObject, IWKUrlSchemeHandler
     {
-        MicroModule microModule;
+        protected MicroModule microModule;
         public Uri baseUri;
         public string host;
         public string scheme;
@@ -80,12 +80,18 @@ public partial class DWebView : WKWebView
                 throw new NotSupportedException();
             }
         }
+
+        public virtual Uri ResetSchemeUrl(NSUrl nsurl)
+        {
+            return new Uri(baseUri, nsurl.ResourceSpecifier);
+        }
+
         [Export("webView:startURLSchemeTask:")]
         [SupportedOSPlatform("ios11.0")]
-        public async void StartUrlSchemeTask(WKWebView webView, IWKUrlSchemeTask urlSchemeTask)
+        public virtual async void StartUrlSchemeTask(WKWebView webView, IWKUrlSchemeTask urlSchemeTask)
         {
             Console.Log("StartUrlSchemeTask", "Start: {0}", urlSchemeTask.Request.Url.AbsoluteString);
-            var url = new Uri(this.baseUri, urlSchemeTask.Request.Url.ResourceSpecifier);
+            var url = ResetSchemeUrl(urlSchemeTask.Request.Url);
             try
             {
                 /// 构建请求
