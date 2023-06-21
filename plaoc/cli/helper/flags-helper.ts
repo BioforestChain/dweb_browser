@@ -3,7 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import JSZip from "npm:jszip";
 import { $AppMetaData, $MMID } from "../../deps.ts";
-import { SERVE_MODE, defaultMetadata } from "./const.ts";
+import { defaultMetadata, SERVE_MODE } from "./const.ts";
 import { GenerateTryFilepaths } from "./util.ts";
 import { $ZipEntry, walkDirToZipEntries, zipEntriesToZip } from "./zip.ts";
 
@@ -12,7 +12,7 @@ export type $MetadataFlagHelperOptions = {
   mode?: unknown;
   version?: string;
   id?: string;
-  dir?:string;
+  dir?: string;
   _?: unknown[];
 };
 
@@ -27,7 +27,7 @@ export class MetadataFlagHelper {
       (() => {
         const tryFilenames = ["manifest.json", "package.json"];
         // 如果指定了项目目录，到项目目录里面搜索配置文件
-        let dirs = [path.resolve(Deno.cwd(),flags.dir?? "")];
+        let dirs = [path.resolve(Deno.cwd(), flags.dir ?? "")];
         if (flags.mode === SERVE_MODE.USR_WWW) {
           const www_dir = flags._?.[0]?.toString();
           if (www_dir) {
@@ -39,7 +39,7 @@ export class MetadataFlagHelper {
       })();
     this.baseMetadata = {};
     const { baseMetadata } = this;
-    
+
     for (const key of ["id", "version"] as const) {
       if (flags[key] !== undefined) {
         baseMetadata[key] = flags[key] as never;
@@ -50,7 +50,7 @@ export class MetadataFlagHelper {
     for (const filepath of this.metadataFilepaths) {
       try {
         return JSON.parse(fs.readFileSync(filepath, "utf-8"));
-      // deno-lint-ignore no-empty
+        // deno-lint-ignore no-empty
       } catch {}
     }
 
@@ -80,7 +80,7 @@ export class BundleFlagHelper {
     throw new Error("no implement");
   };
   readonly www_dir: undefined | string;
-  constructor(readonly flags: $MetadataFlagHelperOptions,readonly id: $MMID) {
+  constructor(readonly flags: $MetadataFlagHelperOptions, readonly id: $MMID) {
     const bundleTarget = flags._?.[0]?.toString();
     /// 实时预览模式，使用代理html
     if (
@@ -93,14 +93,24 @@ export class BundleFlagHelper {
       if (liveUrl === undefined) {
         throw new Error(`no found live-url when serve-mode is '${flags.mode}'`);
       }
+
       const index_html_file_entry = {
         dir: false,
         path: `usr/www/index.html`,
-        data: `<head><meta http-equiv="refresh" content="0;url=${liveUrl}"></head>`,
+        data: `<script>
+        const liveUrl = new URL(${JSON.stringify(liveUrl)});
+        new URLSearchParams(location.search).forEach((value, key) => {
+          liveUrl.searchParams.set(key, value);
+        });
+        location.replace(liveUrl.href);
+        </script>`,
         time: new Date(0),
       } satisfies $ZipEntry;
       this.zipGetter = async () =>
-        zipEntriesToZip([...this.getBaseZipEntries(), index_html_file_entry]);
+        await zipEntriesToZip([
+          ...this.getBaseZipEntries(),
+          index_html_file_entry,
+        ]);
     }
     /// 生产模式
     else if (flags.mode === SERVE_MODE.PROD) {
@@ -122,7 +132,7 @@ export class BundleFlagHelper {
       }
       this.www_dir = www_dir;
       this.zipGetter = async () =>
-        zipEntriesToZip([
+        await zipEntriesToZip([
           ...this.getBaseZipEntries(),
           ...walkDirToZipEntries(www_dir).map((entry) => {
             return {
