@@ -17,5 +17,7 @@ export const routes = [
   { title: "Dweb ServiceWorker", path: "/serviceworker", component: () => import("./pages/DwebServiceWorker.vue") },
   { title: "Biometrics", path: "/biometrics", component: () => import("./pages/Biometrics.vue") },
   { title: "Network", path: "/network", component: () => import("./pages/Network.vue") },
+
+  { title: "bluetooth", path: "/bluetooth", component: () => import("./pages/Bluetooth.vue")}
 ];
 //satisfies (RouteRecordRaw & { title: string })[];

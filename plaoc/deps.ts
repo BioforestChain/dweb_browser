@@ -11,3 +11,6 @@ export { mapHelper } from "https://deno.land/x/dweb/src/helper/mapHelper.ts";
 export { ReadableStreamOut } from "https://deno.land/x/dweb/src/helper/readableStreamHelper.ts";
 export type { $MMID } from "https://deno.land/x/dweb/src/helper/types.ts";
 export * from "https://deno.land/x/dweb/src/sys/http-server/const.ts";
+
+export * from "https://deno.land/x/bluetooth/index.ts"
+

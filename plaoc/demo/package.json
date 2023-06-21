@@ -8,6 +8,7 @@
     "serve": "vite preview"
   },
   "dependencies": {
+    "@types/web-bluetooth": "^0.0.17",
     "vite-plugin-vuetify": "^1.0.2",
     "vue": "^3.3.2",
     "vue-router": "^4.2.0",

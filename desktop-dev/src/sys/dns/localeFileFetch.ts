@@ -7,6 +7,7 @@ import { nativeFetchAdaptersManager } from "./nativeFetch.ts";
 
 nativeFetchAdaptersManager.append(async (remote, parsedUrl) => {
   /// fetch("file:///sys") 匹配
+  console.always('接受到了查询本地文件的服务', parsedUrl)
   if (
     parsedUrl.protocol === "file:" &&
     parsedUrl.hostname === "" &&
@@ -14,13 +15,16 @@ nativeFetchAdaptersManager.append(async (remote, parsedUrl) => {
   ) {
     try {
       /// 读取 app.asar 里头的文件
-      const filepath = resolveToRoot(
+      console.always("path.dirnaem", path.resolve(__dirname))
+      const filepath = path.resolve(__dirname, resolveToRoot(
         parsedUrl.pathname.replace("/sys/", "/assets/")
-      );
+      ));
+      console.always('filepath: ', filepath)
       const stats = await fs.statSync(filepath);
       if (stats.isDirectory()) {
         throw stats;
       }
+      console.always('filepath: ', filepath)
       const ext = path.extname(filepath);
       return new Response(Readable.toWeb(fs.createReadStream(filepath)), {
         status: 200,

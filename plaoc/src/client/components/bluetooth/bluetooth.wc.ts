@@ -1,6 +1,7 @@
 import { bluetoothPlugin } from "./bluetooth.plugin.ts"
 import { $Device } from "./bluetooth.type.ts";
 export class HTMLBluetoothElement extends HTMLElement{
+  static readonly tagName = "dweb-bluetooth";
   plugin = bluetoothPlugin;
   
   toggle(isOpen: boolean){
@@ -13,10 +14,8 @@ export class HTMLBluetoothElement extends HTMLElement{
 }
 
 // 注册
-customElements.get(bluetoothPlugin.tagName)
-? ""
-: customElements.define(
-  bluetoothPlugin.tagName,
+customElements.define(
+  HTMLBluetoothElement.tagName,
   HTMLBluetoothElement
 )
 
