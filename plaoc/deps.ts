@@ -12,5 +12,3 @@ export { ReadableStreamOut } from "https://deno.land/x/dweb/src/helper/readableS
 export type { $MMID } from "https://deno.land/x/dweb/src/helper/types.ts";
 export * from "https://deno.land/x/dweb/src/sys/http-server/const.ts";
 
-export * from "https://deno.land/x/bluetooth/index.ts"
-

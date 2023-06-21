@@ -1,5 +1,6 @@
 import { $Device } from "./bluetooth.type.ts"
 import { BasePlugin } from "../base/BasePlugin.ts";
+import "../../@types/web-bluetooth/index.d.ts"
 export class BluetoothPlugin extends BasePlugin{
   constructor(){
     super("bluetooth.std.dweb");
