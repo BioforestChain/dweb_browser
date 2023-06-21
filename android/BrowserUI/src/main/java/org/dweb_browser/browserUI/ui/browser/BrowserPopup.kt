@@ -66,6 +66,7 @@ import org.dweb_browser.browserUI.ui.theme.DimenBottomBarHeight
 import org.dweb_browser.browserUI.util.BitmapUtil
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
 import org.dweb_browser.browserUI.ui.view.findActivity
 
 private val screenHeight: Dp
@@ -591,9 +592,7 @@ private fun MultiItemView(
     Triple(with, with * 9 / 6 - 40.dp, with * 9 / 6)
   }
   Box(modifier = Modifier.size(width = sizeTriple.first, height = sizeTriple.third)) {
-    Column(horizontalAlignment = CenterHorizontally, modifier = Modifier.clickable {
-      viewModel.handleIntent(BrowserIntent.UpdateMultiViewState(false, index))
-    }) {
+    Column(horizontalAlignment = CenterHorizontally) {
       Image(
         bitmap = browserBaseView.bitmap ?: ImageBitmap.imageResource(id = R.drawable.ic_launcher),
         contentDescription = null,
@@ -602,6 +601,9 @@ private fun MultiItemView(
           .size(width = sizeTriple.first, height = sizeTriple.second)
           .clip(RoundedCornerShape(16.dp))
           .background(MaterialTheme.colorScheme.surface)
+          .clickable {
+            viewModel.handleIntent(BrowserIntent.UpdateMultiViewState(false, index))
+          }
           .align(CenterHorizontally),
         contentScale = ContentScale.FillWidth, //ContentScale.FillBounds,
         alignment = if (browserBaseView is BrowserMainView) Center else TopStart
@@ -612,7 +614,7 @@ private fun MultiItemView(
         }
 
         is BrowserWebView -> {
-          if (browserBaseView.viewItem.state.lastLoadedUrl?.startsWith("file:///android_asset") == true) {
+          if (browserBaseView.viewItem.state.lastLoadedUrl?.isSystemUrl() == true) {
             Pair("起始页", BitmapUtil.decodeBitmapFromResource(R.drawable.ic_main_star))
           } else {
             Pair(browserBaseView.viewItem.state.pageTitle, browserBaseView.viewItem.state.pageIcon)

@@ -5,7 +5,6 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Message
 import android.webkit.WebChromeClient
-import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
@@ -19,12 +18,9 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.findViewTreeLifecycleOwner
-import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import com.google.accompanist.web.AccompanistWebViewClient
 import com.google.accompanist.web.WebContent
-import com.google.accompanist.web.WebView
 import com.google.accompanist.web.WebViewNavigator
 import com.google.accompanist.web.WebViewState
 import io.ktor.http.Url
@@ -42,16 +38,13 @@ import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.dwebview.base.DWebViewItem
 import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
-import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.help.Mmid
 import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.dweb_browser.microservice.sys.http.CORS_HEADERS
 import org.http4k.core.Response
 import org.http4k.lens.Header
-import java.net.URL
 import java.util.concurrent.atomic.AtomicInteger
-import kotlin.coroutines.CoroutineContext
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 data class BrowserUIState(
@@ -419,11 +412,11 @@ internal class DwebBrowserWebViewClient(val microModule: MicroModule) : Accompan
         "about" -> Url(it.toString().replace("about:", "http://browser.dweb/"))
         else -> Url(it.toString())
       }
-    };
+    }
 
     if (url.protocol.name == "http" && (url.host == "browser.dweb" || url.host == "browser.dweb.localhost")) {
       response = runBlockingCatching(ioAsyncExceptionHandler) {
-        val urlPathSegments = url.pathSegments.filter { !it.isNullOrEmpty() }
+        val urlPathSegments = url.pathSegments.filter { it.isNotEmpty() }
         if (urlPathSegments[0] == "newtab") {
           val pathSegments = urlPathSegments.drop(1)
           return@runBlockingCatching if (pathSegments.getOrNull(0) == "api") {
@@ -487,6 +480,9 @@ internal fun findWebEngine(url: String): WebEngine? {
   return null
 }
 
+/**
+ * 判断输入内容是否是域名或者有效的网址
+ */
 internal fun String.isUrlOrHost(): Boolean {
   // 只判断 host(长度1~63,结尾是.然后带2~6个字符如[.com]，没有端口判断)：val regex = "^((?!-)[A-Za-z0-9-]{1,63}(?<!-)\\.)+[A-Za-z]{2,6}\$".toRegex()
   // 以 http 或者 https 或者 ftp 打头，可以没有
@@ -497,10 +493,22 @@ internal fun String.isUrlOrHost(): Boolean {
   return regex.matches(this)
 }
 
+/**
+ * 将输入的内容补充为网址，如果本身就是网址直接返回
+ */
 internal fun String.toRequestUrl(): String {
   return if (this.startsWith("http://") || this.startsWith("https://") || this.startsWith("ftp://")) {
     this
   } else {
     "https://$this"
   }
+}
+
+/**
+ * 为了判断字符串是否是内置的地址
+ */
+internal fun String.isSystemUrl() : Boolean {
+  return this.startsWith("file:///android_asset") ||
+      this.startsWith("chrome://") ||
+      this.startsWith("about:")
 }
