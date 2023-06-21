@@ -30,3 +30,20 @@ let gridHSpace: CGFloat = 18.0
 
 let gridCellW: CGFloat = (screen_width - gridHSpace * 3.0) / 2
 let gridCellH: CGFloat = gridCellW * 1.3
+
+
+var safeAreaTopHeight: CGFloat{
+    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+       let topSafeAreaInset = windowScene.windows.first?.safeAreaInsets.top {
+        return topSafeAreaInset
+    }
+    return 0
+}
+
+var safeAreaBottomHeight: CGFloat{
+    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+       let topSafeAreaInset = windowScene.windows.first?.safeAreaInsets.bottom {
+        return topSafeAreaInset
+    }
+    return 0
+}

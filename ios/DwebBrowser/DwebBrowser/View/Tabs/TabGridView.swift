@@ -27,10 +27,16 @@ struct TabGridView: View {
     @EnvironmentObject var toolbarState: ToolBarState
     
     @ObservedObject var cacheStore = WebCacheMgr.shared
+    @ObservedObject var animation: ShiftAnimation
+    @ObservedObject var gridState: TabGridState
 
     @State var frames: [CellFrameInfo] = []
-    @Binding var cellFrames: [CGRect]
+    @Binding var selectedCellFrame: CGRect
     
+    @State var relocateIndex: Int?
+    @State var scrollOffset: CGFloat = 0
+
+    @State var visibleIndex: [Int] = []
     var body: some View {
         
         GeometryReader { geo in
@@ -46,6 +52,16 @@ struct TabGridView: View {
                                     Color.clear
                                         .preference(key: CellFramePreferenceKey.self, value: [ CellFrameInfo(index: cacheStore.store.firstIndex(of: webCache) ?? 0, frame: geometry.frame(in: .global))])
                                 })
+                                .onAppear{
+                                    guard let index = cacheStore.store.firstIndex(of: webCache) else { return }
+                                    visibleIndex.append(index)
+                                    print("add cell in grid: ", visibleIndex)
+                                }
+                                .onDisappear{
+                                    guard let index = cacheStore.store.firstIndex(of: webCache) else { return }
+                                    visibleIndex.removeAll(where: { $0 == index })
+                                    print("remove cell in grid: ", visibleIndex)
+                                }
                                 .onTapGesture {
                                     guard let index = cacheStore.store.firstIndex(of: webCache) else { return }
                                     let currentFrame = cellFrame(at: index)
@@ -56,6 +72,7 @@ struct TabGridView: View {
                                         if selectedTab.curIndex != index{
                                             selectedTab.curIndex = index
                                         }
+                                        selectedCellFrame = currentFrame
                                         toolbarState.showTabGrid = false
                                     }else{
                                         print("outside of grid")
@@ -63,27 +80,57 @@ struct TabGridView: View {
                                             selectedTab.curIndex = index
                                         }
                                         withAnimation(.easeInOut(duration: 0.3),{
-                                            scrollproxy.scrollTo(webCache.id)
+                                            scrollproxy.scrollTo(webCache.id,anchor: .center)
                                         })
-                                        DispatchQueue.main.asyncAfter(deadline: .now()+0.4, execute: {
+                                        DispatchQueue.main.asyncAfter(deadline: .now()+0.35, execute: {
+                                            selectedCellFrame = currentFrame
                                             toolbarState.showTabGrid = false
                                         })
                                     }
                                 }
                                 .shadow(color: Color.gray, radius: 6)
+                                
                         }
                     })
                     .padding(gridHSpace)
                     .onPreferenceChange(CellFramePreferenceKey.self) { newFrames in
                         if toolbarState.showTabGrid{
                             self.frames = newFrames
-                            cellFrames = newFrames.map{ $0.frame }
+                        }
+                    }
+                }
+                .offset(y:scrollOffset)
+                
+                .background(Color(white: 0, opacity: 0.2))
+                .onChange(of: animation.progress) { progress in
+                    if progress == .preparingShrink{
+                        //滚动到对应的位置
+                        let index =  selectedTab.curIndex
+                        let webCache = cacheStore.store[index]
+                        gridState.scale = 1
+                        gridState.opacity = 0.01
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1){
+                            scrollproxy.scrollTo(webCache.id,anchor: .center)
+                        }
+                        
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2){ //time for scroll to index
+                            guard let selectedFrame = self.frames.filter({$0.index == selectedTab.curIndex}).first?.frame else { return }
+                            selectedCellFrame = selectedFrame
+                          
+                            gridState.scale = 0.8
+                            gridState.opacity = 1
+                            animation.progress = .startShrinking
                         }
                     }
                 }
             }
         }
     }
+    
+//    func isInsideOfGrid(cellRect: CGRect, gridRect){
+//
+//    }
+    
     func isSelected(webCache: WebCache) -> Bool{
         cacheStore.store.firstIndex(of: webCache) == selectedTab.curIndex
     }

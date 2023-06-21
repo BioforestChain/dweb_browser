@@ -46,6 +46,7 @@
 		F0531F242A36BB55001FBE06 /* InstalledApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0531F232A36BB55001FBE06 /* InstalledApp.swift */; };
 		F0531F262A380E67001FBE06 /* LocalLinkMgr.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0531F252A380E67001FBE06 /* LocalLinkMgr.swift */; };
 		F0531F2F2A3B1E4D001FBE06 /* View_extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0531F2E2A3B1E4D001FBE06 /* View_extension.swift */; };
+		F06271A02A41912400E5B144 /* ScroolingProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F062719F2A41912400E5B144 /* ScroolingProgressView.swift */; };
 		F08E10402A04917600899DF8 /* WebCacheMgr.swift in Sources */ = {isa = PBXBuildFile; fileRef = F08E103F2A04917600899DF8 /* WebCacheMgr.swift */; };
 		F08E10452A04FBEE00899DF8 /* Button.swift in Sources */ = {isa = PBXBuildFile; fileRef = F08E10442A04FBEE00899DF8 /* Button.swift */; };
 		F08E10482A06569400899DF8 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = F08E10472A06569400899DF8 /* Kingfisher */; };
@@ -117,6 +118,7 @@
 		F0531F232A36BB55001FBE06 /* InstalledApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstalledApp.swift; sourceTree = "<group>"; };
 		F0531F252A380E67001FBE06 /* LocalLinkMgr.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalLinkMgr.swift; sourceTree = "<group>"; };
 		F0531F2E2A3B1E4D001FBE06 /* View_extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = View_extension.swift; sourceTree = "<group>"; };
+		F062719F2A41912400E5B144 /* ScroolingProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScroolingProgressView.swift; sourceTree = "<group>"; };
 		F08E103F2A04917600899DF8 /* WebCacheMgr.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebCacheMgr.swift; sourceTree = "<group>"; };
 		F08E10442A04FBEE00899DF8 /* Button.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Button.swift; sourceTree = "<group>"; };
 		F08E10522A08DC9C00899DF8 /* Environment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Environment.swift; sourceTree = "<group>"; };
@@ -333,6 +335,7 @@
 				F0B231C32A287FE3001EEFB8 /* SnakeAinmation.swift */,
 				F0B231CD2A287FF8001EEFB8 /* AttachStateComputeVar.swift */,
 				F0531ED82A333C2A001FBE06 /* ScaleAnimationSmooth.swift */,
+				F062719F2A41912400E5B144 /* ScroolingProgressView.swift */,
 			);
 			path = Example;
 			sourceTree = "<group>";
@@ -494,6 +497,7 @@
 				F0E984512A24AC5800F7180A /* GridCellView.swift in Sources */,
 				F0E984552A25EDD900F7180A /* KeyBoardShowingView.swift in Sources */,
 				F0531EF92A34587B001FBE06 /* DataController.swift in Sources */,
+				F06271A02A41912400E5B144 /* ScroolingProgressView.swift in Sources */,
 				F0B231E52A301EF4001EEFB8 /* SearchResultView.swift in Sources */,
 				F0BC1C0B2A0F86D50077BE0A /* View+AnimationObserver.swift in Sources */,
 				F028998F29F7C42300B8754A /* const.swift in Sources */,

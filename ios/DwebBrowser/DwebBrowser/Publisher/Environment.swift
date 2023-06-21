@@ -34,7 +34,7 @@ class ToolBarState: ObservableObject {
     }
 }
 
-class Animation: ObservableObject{
+class ShiftAnimation: ObservableObject{
     @Published var snapshotImage: UIImage = UIImage.defaultSnapShotImage
     @Published var progress: AnimationProgress = .invisible
 }
@@ -53,11 +53,15 @@ class TraceLessMode{
     }
 }
 
-
 class OpeningLink: ObservableObject{
     @Published var clickedLink: URL = emptyURL
 }
 
 class ShowSheet: ObservableObject{
     @Published var should: Bool = false
+}
+
+class TabGridState: ObservableObject{
+    @Published var scale = 1.0
+    @Published var opacity = 1.0
 }
