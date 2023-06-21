@@ -1,17 +1,16 @@
 // deno-lint-ignore-file ban-types
-import type { IpcRequest } from "../../core/ipc/IpcRequest.ts";
 import type { Ipc } from "../../core/ipc/index.ts";
+import type { IpcRequest } from "../../core/ipc/IpcRequest.ts";
 import { MicroModule } from "../../core/micro-module.ts";
 import { converRGBAToHexa, hexaToRGBA } from "../../helper/color.ts";
 import type { $Schema1ToType } from "../../helper/types.ts";
 import {
+  $RenderApi,
   apisGetFromMmid,
   deleteWapis,
   forceGetWapis,
-} from "./mutil-webview.mobile.wapi.ts";
+} from "./multi-webview.mobile.wapi.ts";
 import type { $BarState, $ToastPosition } from "./types.ts";
-
-type $APIS = typeof import("./assets/multi-webview.html.ts")["APIS"];
 
 // /**
 //  * 打开 应用
@@ -76,7 +75,7 @@ export async function openDownloadPage(
  */
 export async function barGetState<
   $ApiKeyName extends keyof Pick<
-    $APIS,
+    $RenderApi,
     "statusBarGetState" | "navigationBarGetState"
   >
 >(
@@ -106,7 +105,7 @@ export async function barGetState<
  */
 export async function barSetState<
   $ApiKeyName extends keyof Pick<
-    $APIS,
+    $RenderApi,
     "statusBarSetState" | "navigationBarSetState"
   >
 >(
@@ -330,5 +329,5 @@ export async function biometricsMock(
 ) {
   const apis = apisGetFromMmid(_clientIpc.remote.mmid);
   if (apis === undefined) throw new Error(`wapi === undefined`);
-  return (await apis.biometricsMock()) as boolean;
+  return await apis.biometricsMock();
 }

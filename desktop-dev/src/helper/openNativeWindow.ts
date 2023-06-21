@@ -1,9 +1,9 @@
 import { expose, proxy, wrap } from "comlink";
 import { debounce } from "./$debounce.ts";
-import { PromiseOut } from "./PromiseOut.ts";
 import { animate, easeOut } from "./animate.ts";
 import "./electron.ts";
 import { electronConfig } from "./electronConfig.ts";
+import { PromiseOut } from "./PromiseOut.ts";
 
 /**
  * 事件绑定作用域
@@ -374,6 +374,14 @@ export class ForRenderApi {
   ) {
     const content_wcs = Electron.webContents.fromId(webContentsId)!;
     content_wcs.openDevTools(options);
+  }
+
+  async isFullScreen() {
+    return this.win.isFullScreen();
+  }
+
+  async fullScreen(v: boolean) {
+    return (this.win.fullScreen = v);
   }
 
   /**

@@ -1791,7 +1791,7 @@ var mapHelper = new class {
   }
 }();
 
-// https://esm.sh/v126/deep-object-diff@1.1.9/denonext/deep-object-diff.mjs
+// https://esm.sh/v122/deep-object-diff@1.1.9/deno/deep-object-diff.mjs
 var u = (t) => t instanceof Date;
 var m = (t) => Object.keys(t).length === 0;
 var i = (t) => t != null && typeof t == "object";

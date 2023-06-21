@@ -1,10 +1,9 @@
 import { PromiseOut } from "../../../helper/PromiseOut.ts";
 import WebviewTag = Electron.WebviewTag;
 
-class Webview {
+export class ViewItem {
   constructor(readonly id: number, readonly src: string) {}
   webContentId = -1;
-  devToolsWinId = -1;
   private _api!: WebviewTag;
   get api(): WebviewTag {
     return this._api;
@@ -28,5 +27,3 @@ class Webview {
     // translateY: 0,
   };
 }
-
-export { Webview };

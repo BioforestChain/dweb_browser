@@ -1,5 +1,5 @@
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
-import { _mmid_wapis_map } from "../../browser/multi-webview/mutil-webview.mobile.wapi.ts"
+import { _mmid_wapis_map } from "../../browser/multi-webview/multi-webview.mobile.wapi.ts"
 import { BrowserView } from "electron";
 import { createHttpDwebServer } from "../../sys/http-server/$createHttpDwebServer.ts";
 import { Ipc, IpcEvent, IpcRequest, IpcResponse } from "../../core/ipc/index.ts";

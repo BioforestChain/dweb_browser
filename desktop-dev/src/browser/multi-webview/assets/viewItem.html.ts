@@ -1,39 +1,39 @@
+/// <reference lib="dom"/>
 // 效果 webview 容器
 import { css, html, LitElement } from "lit";
 import { customElement, property, query, state } from "lit/decorators.js";
 import { ifDefined } from "lit/directives/if-defined.js";
 import { styleMap } from "lit/directives/style-map.js";
-import ecxuteJavascriptCode from "./multi-webview-content-execute-javascript.ts";
-import { Webview } from "./multi-webview.ts";
+import ecxuteJavascriptCode from "./viewItem.domReady.ts";
 import WebviewTag = Electron.WebviewTag;
 
-@customElement("multi-webview-content")
-export class MultiWebViewContent extends LitElement {
-  static override styles = createAllCSS();
+const TAG = "mwebview-view-item";
 
-  @property({ type: Webview }) customWebview: Webview | undefined = undefined;
+@customElement(TAG)
+export class MultiWebViewContent extends LitElement {
+  static styles = createAllCSS();
+
   @property({ type: Boolean }) closing = false;
-  @property({ type: Number }) zIndex  = 0;
-  @property({ type: Number }) scale  = 0;
-  @property({ type: Number }) opacity  = 1;
-  @property({ type: Number }) customWebviewId  = 0;
-  @property({ type: String }) src  = "";
-  @property({ type: String }) preload  = "";
-  @state() statusbarHidden  = false;
-  @query("webview") elWebview: WebviewTag | undefined;
+  @property({ type: Number }) zIndex = 0;
+  @property({ type: Number }) scale = 0;
+  @property({ type: Number }) opacity = 1;
+  @property({ type: Number }) customWebviewId = 0;
+  @property({ type: String }) src = "";
+  @property({ type: String }) preload = "";
+  @state() statusbarHidden = false;
+  @query("webview") elWebview!: WebviewTag;
 
   onDomReady(event: Event) {
     this.dispatchEvent(
-      new CustomEvent("dom-ready", {
+      new CustomEvent<CustomEventDomReadyDetail>("dom-ready", {
         bubbles: true,
         detail: {
-          customWebview: this.customWebview,
           event: event,
-          from: event.target,
+          from: this.elWebview,
         },
       })
     );
-    this.webviewDidStartLoading(event)
+    this.webviewDidStartLoading(event);
   }
 
   webviewDidStartLoading(e: Event) {
@@ -49,7 +49,6 @@ export class MultiWebViewContent extends LitElement {
       new CustomEvent("animationend", {
         bubbles: true,
         detail: {
-          customWebview: this.customWebview,
           event: event,
           from: event.target,
         },
@@ -177,13 +176,17 @@ function createAllCSS() {
 }
 
 export interface CustomEventDomReadyDetail {
-  customWebview: Webview;
   event: Event;
   from: EventTarget & WebviewTag;
 }
 
 export interface CustomEventAnimationendDetail {
-  customWebview: Webview;
   event: AnimationEvent;
   from: EventTarget | null;
+}
+
+declare global {
+  interface HTMLElementTagNameMap {
+    [TAG]: MultiWebViewContent;
+  }
 }

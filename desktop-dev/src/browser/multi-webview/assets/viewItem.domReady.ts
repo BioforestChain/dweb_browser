@@ -1,9 +1,8 @@
 const code = () => {
-
-  // 需要重写 open 但是还没有处理
-  Reflect.set(window, "open", function(url: string){
-    console.log('open url: ', url)
-  })
+  // // 需要重写 open 但是还没有处理
+  // Reflect.set(window, "open", function(url: string){
+  //   console.log('open url: ', url)
+  // })
 
   const virtualkeyboard = {
     inputBindVirtualKeyboard(el: Element) {
@@ -13,10 +12,10 @@ const code = () => {
       el.addEventListener("focusout", this.bindVirtualKeyboardFocusout);
     },
     bindVirtualKeyboardFocusin() {
-      globalThis.electron.ipcRenderer.sendToHost("virtual_keyboard_open");
+      Electron.ipcRenderer.sendToHost("virtual_keyboard_open");
     },
     bindVirtualKeyboardFocusout() {
-      globalThis.electron.ipcRenderer.sendToHost("virtual_keyboard_close");
+      Electron.ipcRenderer.sendToHost("virtual_keyboard_close");
     },
     inputIsNeedBindVirtualKeyboard(node: HTMLInputElement) {
       return (
@@ -42,7 +41,7 @@ const code = () => {
                 if (el.shadowRoot) {
                   // 添加 监听
                   this.createMutationObserver(
-                    el.shadowRoot as unknown as Element, 
+                    el.shadowRoot as unknown as Element,
                     this.callback.bind(this)
                   );
                   return;
@@ -53,12 +52,12 @@ const code = () => {
                   : "";
               });
             });
-  
+
             mutationRecord.removedNodes.forEach((node) => {
               // 移除监听
-              if ((node as unknown as {shadowRoot: ShadowRoot}).shadowRoot) {
-                const el = ((node as unknown as {shadowRoot: ShadowRoot})
-                            .shadowRoot) as unknown as $RemoveObserver
+              if ((node as unknown as { shadowRoot: ShadowRoot }).shadowRoot) {
+                const el = (node as unknown as { shadowRoot: ShadowRoot })
+                  .shadowRoot as unknown as $RemoveObserver;
                 el.removeObserver();
               }
             });
@@ -67,18 +66,24 @@ const code = () => {
       });
     },
     getSub(root: Element) {
-      const sub = Array.from(root.children).reduce((pre: Element[], el: Element) => {
-        this.getSub(el);
-        return [...pre, ...this.getSub(el)];
-      }, []) as Element[];
+      const sub = Array.from(root.children).reduce(
+        (pre: Element[], el: Element) => {
+          this.getSub(el);
+          return [...pre, ...this.getSub(el)];
+        },
+        []
+      ) as Element[];
       if (root.shadowRoot) {
         return [...Array.from(root.shadowRoot.children), ...sub];
       }
       return [...Array.from(root.children), ...sub];
     },
-    createMutationObserver(el: Element | ShadowRoot, callback: MutationCallback) {
-      const removeObserver = Reflect.get(el, "removeObserver")
-      if(removeObserver) return; /** 之前已经注册过监听了 */
+    createMutationObserver(
+      el: Element | ShadowRoot,
+      callback: MutationCallback
+    ) {
+      const removeObserver = Reflect.get(el, "removeObserver");
+      if (removeObserver) return; /** 之前已经注册过监听了 */
 
       const observerOptions = {
         childList: true, // 观察目标子节点的变化，是否有添加或者删除
@@ -90,9 +95,9 @@ const code = () => {
       Reflect.set(el, "removeObserver", () => {
         console.log("回收了");
         observer = null;
-      })
+      });
     },
-    init(){
+    init() {
       this.createMutationObserver(document.body, this.callback.bind(this));
       const allEl = this.getSub(document.body);
       allEl.forEach((el: Element) => {
@@ -101,35 +106,37 @@ const code = () => {
           console.log("添加了 observe");
           return;
         }
-        this.inputIsNeedBindVirtualKeyboard(el as HTMLInputElement) ? this.inputBindVirtualKeyboard(el) : "";
+        this.inputIsNeedBindVirtualKeyboard(el as HTMLInputElement)
+          ? this.inputBindVirtualKeyboard(el)
+          : "";
       });
-    }
-  }
-  virtualkeyboard.init()
-  
-
+    },
+  };
+  virtualkeyboard.init();
 };
 export default code;
-export interface $RemoveObserver{
-  removeObserver: { (): void}
+export interface $RemoveObserver {
+  removeObserver: { (): void };
 }
-export interface $Electron{
+export interface $Electron {
   ipcRenderer: {
-    sendToHost(message: string, data?: unknown): void
-  }
+    sendToHost(message: string, data?: unknown): void;
+  };
 }
-export interface $Virtualkeyboard{
-  inputBindVirtualKeyboard(el: Element): void
-  bindVirtualKeyboardFocusin(): void
-  bindVirtualKeyboardFocusout(): void
-  inputIsNeedBindVirtualKeyboard(input: Element ): boolean
+export interface $Virtualkeyboard {
+  inputBindVirtualKeyboard(el: Element): void;
+  bindVirtualKeyboardFocusin(): void;
+  bindVirtualKeyboardFocusout(): void;
+  inputIsNeedBindVirtualKeyboard(input: Element): boolean;
   callback(mutationList: MutationRecord[], _observer: MutationObserver): void;
-  createMutationObserver(el: Element | ShadowRoot, callback: MutationCallback): void,
-  getSub(node: Node): Element[]
-  init():void;
+  createMutationObserver(
+    el: Element | ShadowRoot,
+    callback: MutationCallback
+  ): void;
+  getSub(node: Node): Element[];
+  init(): void;
 }
 
-declare namespace globalThis{
-  let electron: $Electron;
+declare namespace globalThis {
   let virtualkeyboard: $Virtualkeyboard;
 }

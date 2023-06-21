@@ -14,7 +14,7 @@ import {
   deleteWapis,
   forceGetWapis,
   getAllWapis,
-} from "./mutil-webview.mobile.wapi.ts";
+} from "./multi-webview.mobile.wapi.ts";
 import { $AllWebviewState } from "./types.ts";
 
 /**
@@ -105,34 +105,6 @@ export class MultiWebviewNMM extends NativeMicroModule {
       handler: async (args) => {
         for (const [_, wapis] of getAllWapis()) {
           await wapis.apis.webivews_deleteByHost(args.host);
-        }
-        return true;
-      },
-    });
-
-    // 通过 host 执行 javascript
-    this.registerCommonIpcOnMessageHandler({
-      pathname: "/webview_execute_javascript_by_webview_url",
-      method: "POST",
-      matchMode: "full",
-      input: {},
-      output: "boolean",
-      handler: async (args, client_ipc, request) => {
-        const host = request.headers.get("webview_url");
-        if (host === null) {
-          throw new Error(
-            red(`
-            ${
-              this.mmid
-            } registerCommonIpcOnMessageHandler /webview_execute_javascript_by_webview_url host === null
-            args: ${JSON.stringify(args)}
-            request: ${JSON.stringify(request)}
-          `)
-          );
-        }
-        const code = await request.body.text();
-        for (const [_, wapi] of getAllWapis()) {
-          wapi.apis.executeJavascriptByHost(host, code);
         }
         return true;
       },
