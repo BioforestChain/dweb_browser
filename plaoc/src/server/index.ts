@@ -1,4 +1,4 @@
-import { IpcEvent, IpcResponse, PromiseOut } from "./deps.ts";
+import { IpcEvent, IpcHeaders, IpcResponse, PromiseOut } from "./deps.ts";
 import { init, webViewMap } from "./tool/mwebview.ts";
 import {
   closeApp,
@@ -80,24 +80,59 @@ const main = async () => {
     if (pathname === "/") {
       pathname = "/index.html";
     }
-    const remoteIpcResponse = await jsProcess.nativeRequest(
-      `file:///usr/www${pathname}?mode=stream`
-    );
-    /**
-     * 流转发，是一种高性能的转发方式，等于没有真正意义上去读取response.body，
-     * 而是将response.body的句柄直接转发回去，那么根据协议，一旦流开始被读取，自己就失去了读取权。
-     *
-     * 如此数据就不会发给我，节省大量传输成本
-     */
-    ipc.postMessage(
-      new IpcResponse(
+    let xPlaocProxy = request.parsed_url.searchParams.get("X-Plaoc-Proxy");
+    if (xPlaocProxy === null) {
+      const xReferer = request.headers.get("Referer");
+      if (xReferer !== null) {
+        xPlaocProxy = new URL(xReferer).searchParams.get("X-Plaoc-Proxy");
+      }
+    }
+
+    let ipcResponse: IpcResponse;
+    if (xPlaocProxy === null) {
+      const remoteIpcResponse = await jsProcess.nativeRequest(
+        `file:///usr/www${pathname}?mode=stream`
+      );
+      /**
+       * 流转发，是一种高性能的转发方式，等于没有真正意义上去读取response.body，
+       * 而是将response.body的句柄直接转发回去，那么根据协议，一旦流开始被读取，自己就失去了读取权。
+       *
+       * 如此数据就不会发给我，节省大量传输成本
+       */
+      ipcResponse = new IpcResponse(
         request.req_id,
         remoteIpcResponse.statusCode,
         cros(remoteIpcResponse.headers),
         remoteIpcResponse.body,
         ipc
-      )
-    );
+      );
+    } else {
+      const remoteIpcResponse = await fetch(new URL(pathname, xPlaocProxy));
+      const headers = new IpcHeaders(remoteIpcResponse.headers);
+      /// 对 html 做强制代理，似的能加入一些特殊的头部信息，确保能正确访问内部的资源
+      if (remoteIpcResponse.headers.get("Content-Type") === "text/html") {
+        // 强制声明解除安全性限制
+        headers.init("Access-Control-Allow-Private-Network", "true");
+        ipcResponse = IpcResponse.fromStream(
+          request.req_id,
+          remoteIpcResponse.status,
+          headers,
+          remoteIpcResponse.body!,
+          ipc
+        );
+      } else {
+        headers.init("location", remoteIpcResponse.url);
+        ipcResponse = IpcResponse.fromText(
+          request.req_id,
+          301,
+          cros(headers),
+          "",
+          ipc
+        );
+      }
+    }
+
+    ipc.postMessage(ipcResponse);
   });
 
   // 提供APP之间通信的方法

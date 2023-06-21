@@ -76,6 +76,7 @@ export function forceGetWapis(this: MicroModule, ipc: Ipc, root_url: string) {
         const nww = await openNativeWindow(root_url + `&uid=${ipc.uid}`, {
           webPreferences: {
             webviewTag: true,
+            webSecurity: false,
           },
           transparent: true,
           autoHideMenuBar: true,

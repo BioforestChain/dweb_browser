@@ -16,19 +16,19 @@ const { jsProcess } = navigator.dweb;
 /**开启新页面 */
 export const nativeOpen = async (url: string) => {
   return await jsProcess
-    .nativeFetch(`file://mwebview.browser.dweb/open?url=${encodeURIComponent(url)}`)
+    .nativeFetch(
+      `file://mwebview.browser.dweb/open?url=${encodeURIComponent(url)}`
+    )
     .text();
 };
 
 /**
  * 激活窗口
- * @returns 
+ * @returns
  */
 export const nativeActivate = async () => {
   return await jsProcess
-    .nativeFetch(
-      `file://mwebview.browser.dweb/activate`
-    )
+    .nativeFetch(`file://mwebview.browser.dweb/activate`)
     .text();
 };
 

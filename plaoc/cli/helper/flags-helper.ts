@@ -3,7 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import JSZip from "npm:jszip";
 import { $AppMetaData, $MMID } from "../../deps.ts";
-import { defaultMetadata, SERVE_MODE } from "./const.ts";
+import { SERVE_MODE, defaultMetadata } from "./const.ts";
 import { GenerateTryFilepaths } from "./util.ts";
 import { $ZipEntry, walkDirToZipEntries, zipEntriesToZip } from "./zip.ts";
 
@@ -98,11 +98,9 @@ export class BundleFlagHelper {
         dir: false,
         path: `usr/www/index.html`,
         data: `<script>
-        const liveUrl = new URL(${JSON.stringify(liveUrl)});
-        new URLSearchParams(location.search).forEach((value, key) => {
-          liveUrl.searchParams.set(key, value);
-        });
-        location.replace(liveUrl.href);
+        const proxyUrl = new URL(location.href);
+        proxyUrl.searchParams.set("X-Plaoc-Proxy",${JSON.stringify(liveUrl)})
+        location.replace(proxyUrl.href);
         </script>`,
         time: new Date(0),
       } satisfies $ZipEntry;

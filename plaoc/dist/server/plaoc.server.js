@@ -1875,12 +1875,12 @@ var cros = (headers) => {
 };
 var { jsProcess } = navigator.dweb;
 var nativeOpen = async (url) => {
-  return await jsProcess.nativeFetch(`file://mwebview.browser.dweb/open?url=${encodeURIComponent(url)}`).text();
+  return await jsProcess.nativeFetch(
+    `file://mwebview.browser.dweb/open?url=${encodeURIComponent(url)}`
+  ).text();
 };
 var nativeActivate = async () => {
-  return await jsProcess.nativeFetch(
-    `file://mwebview.browser.dweb/activate`
-  ).text();
+  return await jsProcess.nativeFetch(`file://mwebview.browser.dweb/activate`).text();
 };
 var closeWindow = async () => {
   return await jsProcess.nativeFetch(`file://mwebview.browser.dweb/close/app`).boolean();
@@ -2084,18 +2084,49 @@ var main = async () => {
     if (pathname === "/") {
       pathname = "/index.html";
     }
-    const remoteIpcResponse = await jsProcess3.nativeRequest(
-      `file:///usr/www${pathname}?mode=stream`
-    );
-    ipc2.postMessage(
-      new IpcResponse(
+    let xPlaocProxy = request.parsed_url.searchParams.get("X-Plaoc-Proxy");
+    if (xPlaocProxy === null) {
+      const xReferer = request.headers.get("Referer");
+      if (xReferer !== null) {
+        xPlaocProxy = new URL(xReferer).searchParams.get("X-Plaoc-Proxy");
+      }
+    }
+    let ipcResponse;
+    if (xPlaocProxy === null) {
+      const remoteIpcResponse = await jsProcess3.nativeRequest(
+        `file:///usr/www${pathname}?mode=stream`
+      );
+      ipcResponse = new IpcResponse(
         request.req_id,
         remoteIpcResponse.statusCode,
         cros(remoteIpcResponse.headers),
         remoteIpcResponse.body,
         ipc2
-      )
-    );
+      );
+    } else {
+      const remoteIpcResponse = await fetch(new URL(pathname, xPlaocProxy));
+      const headers = new IpcHeaders(remoteIpcResponse.headers);
+      if (remoteIpcResponse.headers.get("Content-Type") === "text/html") {
+        headers.init("Access-Control-Allow-Private-Network", "true");
+        ipcResponse = IpcResponse.fromStream(
+          request.req_id,
+          remoteIpcResponse.status,
+          headers,
+          remoteIpcResponse.body,
+          ipc2
+        );
+      } else {
+        headers.init("location", remoteIpcResponse.url);
+        ipcResponse = IpcResponse.fromText(
+          request.req_id,
+          301,
+          cros(headers),
+          "",
+          ipc2
+        );
+      }
+    }
+    ipc2.postMessage(ipcResponse);
   });
   externalReadableStreamIpc.onRequest(async (request, ipc2) => {
     const url = request.parsed_url;
