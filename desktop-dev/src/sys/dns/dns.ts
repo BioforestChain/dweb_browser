@@ -12,9 +12,9 @@ import {
   connectMicroModules,
 } from "../../core/nativeConnect.ts";
 import { $readRequestAsIpcRequest } from "../../helper/$readRequestAsIpcRequest.ts";
-import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
 import type { $DWEB_DEEPLINK, $MMID } from "../../helper/types.ts";
+import { PromiseOut } from "./../../helper/PromiseOut.ts";
 import { nativeFetchAdaptersManager } from "./nativeFetch.ts";
 
 class MyDnsMicroModule implements $DnsMicroModule {
@@ -38,6 +38,10 @@ class MyDnsMicroModule implements $DnsMicroModule {
 
   query(mmid: $MMID) {
     return this.dnsNN.query(mmid);
+  }
+
+  async open(mmid: $MMID) {
+    await this.dnsNN.open(mmid);
   }
 }
 
@@ -70,7 +74,7 @@ export class DnsNMM extends NativeMicroModule {
   }
 
   // 拦截 nativeFetch
-  private mmConnectsMap = new WeakMap<
+  private mmConnectsMap = new Map<
     MicroModule,
     Map<$MMID, PromiseOut<$ConnectResult>>
   >();
@@ -123,7 +127,7 @@ export class DnsNMM extends NativeMicroModule {
           });
         }
         po.resolve(result);
-      })();
+      })().catch(po.reject);
       return po;
     });
     return po.promise;
@@ -131,7 +135,7 @@ export class DnsNMM extends NativeMicroModule {
 
   override async _bootstrap(context: $BootstrapContext) {
     this.install(this);
-    this.running_apps.set(this.mmid, this);
+    this.running_apps.set(this.mmid, Promise.resolve(this));
 
     this.registerCommonIpcOnMessageHandler({
       pathname: "/open",
@@ -328,28 +332,27 @@ export class DnsNMM extends NativeMicroModule {
     return this.apps.get(mmid);
   }
 
-  private running_apps = new Map<$MMID, MicroModule>();
+  private running_apps = new Map<$MMID, Promise<MicroModule>>();
   /** 打开应用 */
   async open(mmid: $MMID) {
-    let app = this.running_apps.get(mmid);
-    if (app === undefined) {
+    const app = await mapHelper.getOrPut(this.running_apps, mmid, async () => {
       const mm = await this.query(mmid);
       if (mm === undefined) {
         console.error("dns", "没有指定的 mm 抛出错误");
+        this.running_apps.delete(mmid);
         throw new Error(`no found app: ${mmid}`);
       }
-      this.running_apps.set(mmid, mm);
       // @TODO bootstrap 函数应该是 $singleton 修饰
       await this.bootstrapMicroModule(mm);
-      app = mm;
-    }
+      return mm;
+    });
 
     return app;
   }
 
   /** 关闭应用 */
   async close(mmid: $MMID) {
-    const app = this.running_apps.get(mmid);
+    const app = await this.running_apps.get(mmid);
     if (app === undefined) {
       // 关闭失败没有匹配的 microModule 运行
       return -1;

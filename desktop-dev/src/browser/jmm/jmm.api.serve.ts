@@ -1,4 +1,4 @@
-import Nedb from "@seald-io/nedb";
+// import Nedb from "@seald-io/nedb";
 import { blue, red } from "colors";
 import JSZip from "jszip";
 import mime from "mime";
@@ -7,6 +7,8 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { Readable } from "node:stream";
+import { isDeepStrictEqual } from "node:util";
+import Store from "npm:electron-store@8.1.0";
 import tar from "tar";
 import {
   Ipc,
@@ -32,12 +34,30 @@ const JMM_DB_PATH = path.join(JMM_APPS_PATH, ".db");
 /**
  * @type {import("@seald-io/nedb").Nedb<$AppMetaData>}
  */
-// @ts-ignore: this is commonjs
-export const JMM_DB = new Nedb<$AppMetaData>({
-  filename: JMM_DB_PATH,
-  autoload: true,
-});
-JMM_DB.ensureIndexAsync({ fieldName: ["id"], unique: true });
+
+export class JmmDatabase extends Store<{
+  apps?: { [key: $MMID]: $AppMetaData };
+}> {
+  private _apps = this.get("apps", {});
+  private _save() {
+    this.set("apps", this._apps);
+  }
+  async upsert(app: $AppMetaData) {
+    const oldApp = this._apps[app.id];
+    if (isDeepStrictEqual(oldApp, app)) {
+      return true;
+    }
+
+    this._apps[app.id] = app;
+    this._save();
+    return true;
+  }
+  async all() {
+    return Object.values(this._apps);
+  }
+}
+export const JMM_DB = new JmmDatabase();
+// JMM_DB.
 // open<$AppMetaData, $MMID>({
 //   path: path.join(JMM_APPS_PATH, "jmm"),
 //   encoding: "json",
@@ -283,11 +303,8 @@ async function _appInstall(
   fs.unlinkSync(hashFilePath);
 
   /// 下载完成，开始安装
-  const result = await JMM_DB.updateAsync({ id: appInfo.id }, appInfo, {
-    upsert: true,
-    returnUpdatedDocs: false,
-  });
-  if (result.numAffected === 0) {
+  const result = await JMM_DB.upsert(appInfo);
+  if (result === false) {
     return enqueueInstallProgress(
       "install",
       0,
@@ -309,7 +326,7 @@ async function _appInstall(
  * @returns
  */
 export async function getAllApps() {
-  const apps = await JMM_DB.getAllData();
+  const apps = await JMM_DB.all();
   return apps as $AppMetaData[];
 }
 

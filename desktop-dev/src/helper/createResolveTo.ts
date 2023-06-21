@@ -3,7 +3,7 @@ import { pathToFileURL } from "node:url";
 export const createResolveTo =
   (dirname: string) =>
   (...paths: string[]) =>
-    path.resolve(dirname, ...paths);
+    path.join(dirname, ...paths);
 
 export const ROOT = Electron.app.getAppPath();
 export const resolveToRoot = createResolveTo(ROOT);

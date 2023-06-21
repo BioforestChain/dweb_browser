@@ -9,4 +9,5 @@ export interface $DnsMicroModule {
   uninstall(mm: MicroModule): void;
   connect(mmid: $MMID, reason?: Request): $PromiseMaybe<$ConnectResult>;
   query(mmid: $MMID): Promise<MicroModule | undefined>;
+  open(mmid: $MMID): Promise<void>;
 }

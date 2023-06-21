@@ -6,7 +6,6 @@ import {
 } from "../../core/ipc/index.ts";
 import { $MMID, $Schema1ToType } from "../../helper/types.ts";
 import { getAllApps } from "../jmm/jmm.api.serve.ts";
-import { JsMicroModule } from "../jmm/micro-module.js.ts";
 import type { BrowserNMM } from "./browser.ts";
 
 export async function getAppsInfo() {
@@ -159,13 +158,6 @@ export async function refresh(
 export async function openApp(this: BrowserNMM, mmid: $MMID) {
   if (mmid === null) {
     return "缺少 app_id 参数";
-  }
-  // 应该到jmm去找
-  const microModule = (await this.context?.dns.query(mmid)) as
-    | JsMicroModule
-    | undefined;
-  if (!microModule) {
-    return "不存在该app";
   }
 
   // 还需要判断 应用是否已经更新了

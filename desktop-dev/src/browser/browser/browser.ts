@@ -27,6 +27,7 @@ export class BrowserNMM extends NativeMicroModule {
 
   protected async _bootstrap(context: $BootstrapContext) {
     await Electron.app.whenReady();
+     context.dns.connect("jmm.browser.dweb");
     this.wwwServer = await createWWWServer.call(this);
     this.bw = await createBrowserWindow.bind(this)(
       this.wwwServer.startResult.urlInfo.buildInternalUrl((url) => {
