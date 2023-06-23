@@ -3,10 +3,10 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { Flags } from "../deps.ts";
 import {
-  BundleFlagHelper,
-  MetadataFlagHelper,
+  BundleZipGenerator,
+  MetadataJsonGenerator,
   NameFlagHelper,
-} from "./helper/flags-helper.ts";
+} from "./helper/generator.ts";
 
 /**
  * --out 指定输出目录(可选)
@@ -17,15 +17,15 @@ import {
 export const doBundle = async (args = Deno.args) => {
   const flags = Flags.parse(args, {
     string: ["out", "version", "id", "dir"],
-    boolean: ["clear"],
+    boolean: ["clear", "dev"],
     default: {
       out: "bundle",
     },
   });
 
-  const metadataFlagHelper = new MetadataFlagHelper(flags);
+  const metadataFlagHelper = new MetadataJsonGenerator(flags);
   const id = metadataFlagHelper.readMetadata().id;
-  const bundleFlagHelper = new BundleFlagHelper(flags, id);
+  const bundleFlagHelper = new BundleZipGenerator(flags, id);
   const nameFlagHelper = new NameFlagHelper(flags, metadataFlagHelper);
 
   const outDir = path.resolve(Deno.cwd(), flags.out);

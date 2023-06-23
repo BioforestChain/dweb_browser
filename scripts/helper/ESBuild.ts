@@ -8,15 +8,33 @@ export type $BuildOptions = esbuild.BuildOptions & {
 };
 
 export class ESBuild {
+  /**
+   * 所有运行中的实例，目的是知道什么时候调用 stop 函数：
+   *
+   * Unlike node, Deno lacks the necessary APIs to clean up child processes
+   * automatically. You must manually call stop() in Deno when you're done
+   * using esbuild or Deno will continue running forever.
+   */
+  static _runnings = new Set<ESBuild>();
+  static start(origin: ESBuild) {
+    this._runnings.add(origin);
+  }
+  static dispose(origin: ESBuild) {
+    this._runnings.delete(origin);
+    if (this._runnings.size === 0) {
+      esbuild.stop();
+    }
+  }
+
   constructor(readonly options: $BuildOptions) {}
   mergeOptions(...optionsList: Partial<$BuildOptions>[]) {
     const esbuildOptions = { ...this.options };
     for (const options of optionsList) {
       Object.assign(esbuildOptions, options);
     }
-    esbuildOptions.plugins ??= [];
+    const plugins = (esbuildOptions.plugins ??= []);
     if (esbuildOptions.denoLoader) {
-      esbuildOptions.plugins!.push(
+      plugins.push(
         // ESBuild plugin to rewrite import starting "npm:" to "esm.sh" for https plugin
         {
           name: "the-npm-plugin",
@@ -41,13 +59,16 @@ export class ESBuild {
     return esbuildOptions as esbuild.BuildOptions &
       Required<Pick<esbuild.BuildOptions, "plugins">>;
   }
+
   async build(options: Partial<$BuildOptions> = {}) {
+    ESBuild.start(this);
     const result = await esbuild.build(this.mergeOptions(options));
-    this._logResult(result);
     options.signal?.addEventListener("abort", () => {
-      esbuild.stop();
+      ESBuild.dispose(this);
     });
-    esbuild.stop();
+
+    this._logResult(result);
+    ESBuild.dispose(this);
   }
   private _logResult(result: esbuild.BuildResult) {
     if (result.warnings) {
@@ -77,8 +98,10 @@ export class ESBuild {
       },
     });
     const context = await esbuild.context(esbuildOptions);
+    ESBuild.start(this);
     options.signal?.addEventListener("abort", async () => {
       await context.dispose();
+      ESBuild.dispose(this);
     });
 
     await context.watch();

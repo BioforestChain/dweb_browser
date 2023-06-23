@@ -1,5 +1,7 @@
 {
     "imports": {
-        "https://deno.land/x/dweb/src/": "./../desktop-dev/src/"
+        "https://deno.land/x/dweb/src/": "./../desktop-dev/src/",
+        "lit": "https://esm.sh/v124/lit@2.7.4",
+        "lit/": "https://esm.sh/v124/lit@2.7.4/"
     }
 }

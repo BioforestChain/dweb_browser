@@ -1,266 +1,72 @@
-import { IpcEvent, IpcHeaders, IpcResponse, PromiseOut } from "./deps.ts";
-import { init, webViewMap } from "./tool/mwebview.ts";
+import { X_PLAOC_QUERY } from "./const.ts";
+import { IpcEvent, jsProcess, PromiseOut, queue } from "./deps.ts";
+import { Server_api } from "./http-api-server.ts";
+import { Server_external } from "./http-external-server.ts";
+import { Server_www } from "./http-www-server.ts";
+
 import {
-  closeApp,
-  closeWindow,
-  cros,
-  nativeActivate,
-  nativeOpen,
-} from "./tool/tool.native.ts";
-import { fetchSignal, onApiRequest } from "./tool/tool.request.ts";
+  all_webview_status,
+  mwebview_activate,
+  mwebview_open,
+  sync_mwebview_status,
+} from "./mwebview-helper.ts";
 
-const main = async () => {
-  const { jsProcess, http } = navigator.dweb;
-  // 启动主页面的地址
-  const mainUrl = new PromiseOut<string>();
-  // 关闭信号
-  const EXTERNAL_PREFIX = "/external/";
-  const externalMap = new Map<number, PromiseOut<IpcResponse>>();
+export const main = async () => {
+  /**
+   * 启动主页面的地址
+   */
+  const indexUrlPo = new PromiseOut<string>();
 
-  /**尝试打开view */
-  const _tryOpenView = async () => {
-    console.log("tryOpenView... start");
-    const url = await mainUrl.promise;
-    if (webViewMap.size === 0) {
-      await init();
-      await nativeOpen(url);
+  /**
+   * 尝试打开gui，或者激活窗口
+   */
+  const tryOpenView = queue(async () => {
+    /// 等待http服务启动完毕，获得入口url
+    const url = await indexUrlPo.promise;
+    if (all_webview_status.size === 0) {
+      await sync_mwebview_status();
+      await mwebview_open(url);
     } else {
-      await nativeActivate();
-    }
-    console.log("tryOpenView... end", url);
-  };
-  let openwebview_queue = Promise.resolve();
-  const tryOpenView = () =>
-    (openwebview_queue = openwebview_queue.finally(() => _tryOpenView()));
-
-  /**给前端的文件服务 */
-  const wwwServer = await http.createHttpDwebServer(jsProcess, {
-    subdomain: "www",
-    port: 443,
-  });
-  /**给前端的api服务 */
-  const apiServer = await http.createHttpDwebServer(jsProcess, {
-    subdomain: "api",
-    port: 443,
-  });
-  /**给前端的api服务 */
-  const externalServer = await http.createHttpDwebServer(jsProcess, {
-    subdomain: "external",
-    port: 443,
-  });
-
-  // 自己api处理 Fetch
-  const apiReadableStreamIpc = await apiServer.listen();
-  // 文件服务处理
-  const wwwReadableStreamIpc = await wwwServer.listen();
-  // 别滴app发送到请求走这里发送到前端的DwebServiceWorker fetch
-  const externalReadableStreamIpc = await externalServer.listen();
-
-  apiReadableStreamIpc.onRequest(async (request, ipc) => {
-    const url = request.parsed_url;
-    // serviceWorker
-    if (url.pathname.startsWith("/dns.sys.dweb")) {
-      const result = await serviceWorkerFactory(url);
-      const ipcResponse = IpcResponse.fromText(
-        request.req_id,
-        200,
-        undefined,
-        result,
-        ipc
-      );
-      cros(ipcResponse.headers);
-      // 返回数据到前端
-      return ipc.postMessage(ipcResponse);
-    }
-    onApiRequest(apiServer.startResult.urlInfo, request, ipc);
-  });
-
-  wwwReadableStreamIpc.onRequest(async (request, ipc) => {
-    let pathname = request.parsed_url.pathname;
-    if (pathname === "/") {
-      pathname = "/index.html";
-    }
-    let xPlaocProxy = request.parsed_url.searchParams.get("X-Plaoc-Proxy");
-    if (xPlaocProxy === null) {
-      const xReferer = request.headers.get("Referer");
-      if (xReferer !== null) {
-        xPlaocProxy = new URL(xReferer).searchParams.get("X-Plaoc-Proxy");
-      }
-    }
-
-    let ipcResponse: IpcResponse;
-    if (xPlaocProxy === null) {
-      const remoteIpcResponse = await jsProcess.nativeRequest(
-        `file:///usr/www${pathname}?mode=stream`
-      );
-      /**
-       * 流转发，是一种高性能的转发方式，等于没有真正意义上去读取response.body，
-       * 而是将response.body的句柄直接转发回去，那么根据协议，一旦流开始被读取，自己就失去了读取权。
-       *
-       * 如此数据就不会发给我，节省大量传输成本
-       */
-      ipcResponse = new IpcResponse(
-        request.req_id,
-        remoteIpcResponse.statusCode,
-        cros(remoteIpcResponse.headers),
-        remoteIpcResponse.body,
-        ipc
-      );
-    } else {
-      const remoteIpcResponse = await fetch(new URL(pathname, xPlaocProxy));
-      const headers = new IpcHeaders(remoteIpcResponse.headers);
-      /// 对 html 做强制代理，似的能加入一些特殊的头部信息，确保能正确访问内部的资源
-      if (remoteIpcResponse.headers.get("Content-Type") === "text/html") {
-        // 强制声明解除安全性限制
-        headers.init("Access-Control-Allow-Private-Network", "true");
-        ipcResponse = IpcResponse.fromStream(
-          request.req_id,
-          remoteIpcResponse.status,
-          headers,
-          remoteIpcResponse.body!,
-          ipc
-        );
-      } else {
-        headers.init("location", remoteIpcResponse.url);
-        ipcResponse = IpcResponse.fromText(
-          request.req_id,
-          301,
-          cros(headers),
-          "",
-          ipc
-        );
-      }
-    }
-
-    ipc.postMessage(ipcResponse);
-  });
-
-  // 提供APP之间通信的方法
-  externalReadableStreamIpc.onRequest(async (request, ipc) => {
-    const url = request.parsed_url;
-    const xHost = decodeURIComponent(url.searchParams.get("X-Dweb-Host") ?? "");
-
-    // 处理serviceworker respondWith过来的请求,回复给别的app
-    if (url.pathname.startsWith(EXTERNAL_PREFIX)) {
-      const pathname = url.pathname.slice(EXTERNAL_PREFIX.length);
-      const externalReqId = parseInt(pathname);
-      // 验证传递的reqId
-      if (typeof externalReqId !== "number" || isNaN(externalReqId)) {
-        return ipc.postMessage(
-          IpcResponse.fromText(
-            request.req_id,
-            400,
-            request.headers,
-            "reqId is NAN",
-            ipc
-          )
-        );
-      }
-      const responsePOo = externalMap.get(externalReqId);
-      // 验证是否有外部请求
-      if (!responsePOo) {
-        return ipc.postMessage(
-          IpcResponse.fromText(
-            request.req_id,
-            500,
-            request.headers,
-            `not found external requst,req_id ${externalReqId}`,
-            ipc
-          )
-        );
-      }
-      // 转发给外部的app
-      responsePOo.resolve(
-        new IpcResponse(externalReqId, 200, request.headers, request.body, ipc)
-      );
-      externalMap.delete(externalReqId);
-      const icpResponse = IpcResponse.fromText(
-        request.req_id,
-        200,
-        request.headers,
-        "ok",
-        ipc
-      );
-      cros(icpResponse.headers);
-      // 告知自己的 respondWith 已经发送成功了
-      return ipc.postMessage(icpResponse);
-    }
-
-    // 别的app发送消息，触发一下前端注册的fetch
-    if (xHost === externalServer.startResult.urlInfo.host) {
-      fetchSignal.emit(request);
-      const awaitResponse = new PromiseOut<IpcResponse>();
-      externalMap.set(request.req_id, awaitResponse);
-      const ipcResponse = await awaitResponse.promise;
-      cros(ipcResponse.headers);
-      // 返回数据到发送者那边
-      ipc.postMessage(ipcResponse);
+      await mwebview_activate();
     }
   });
-
-  // 转发serviceWorker 请求
-  const serviceWorkerFactory = async (url: URL) => {
-    const pathname = url.pathname;
-    // 关闭的流程需要调整
-    // 向dns发送关闭当前 模块的消息
-    // woker.js -> dns -> JsMicroModule -> woker.js -> 其他的 NativeMicroModule
-
-    if (pathname.endsWith("restart")) {
-      // 关闭全部的服务
-      await apiServer.close();
-      await wwwServer.close();
-      await externalServer.close();
-      // 关闭所有的DwebView
-      await closeWindow();
-      // 这里只需要把请求发送过去，因为app已经被关闭，已经无法拿到返回值
-      jsProcess.restart();
-      return "restart ok";
-    }
-
-    // 只关闭 渲染一个渲染进程 不关闭 service
-    if (pathname.endsWith("close")) {
-      await closeWindow();
-      return "window close";
-    }
-    return "no action for serviceWorker Factory !!!";
-  };
-
   /// 如果有人来激活，那我就唤醒我的界面
   jsProcess.onActivity(async (_ipcEvent, ipc) => {
     await tryOpenView();
     ipc.postMessage(IpcEvent.fromText("ready", "activity"));
   });
-  // 监听关闭
-  jsProcess.onClose(async (_ipcEvent, ipc) => {
-    closeWindow();
-    // 只有browser.dweb才能关闭后端
-    if (ipc.remote.mmid === "browser.dweb") {
-      // 关闭全部的服务
-      await apiServer.close();
-      await wwwServer.close();
-      await externalServer.close();
-      jsProcess.closeSignal.emit();
-      closeApp();
-    }
-  });
-
-  const interUrl = wwwServer.startResult.urlInfo.buildInternalUrl((url) => {
-    url.pathname = "/index.html";
-  });
-  interUrl.searchParams.set(
-    "X-Plaoc-Internal-Url",
-    apiServer.startResult.urlInfo.buildInternalUrl().href
-  );
-  interUrl.searchParams.set(
-    "X-Plaoc-Public-Url",
-    apiServer.startResult.urlInfo.buildPublicUrl().href
-  );
-  mainUrl.resolve(interUrl.href);
-
-  /**
-   * 立刻自启动
-   */
+  /// 立刻自启动
   tryOpenView();
+
+  //#region 启动http服务
+  const wwwServer = new Server_www();
+  const externalServer = new Server_external();
+  const apiServer = await new Server_api();
+  void wwwServer.start();
+  void externalServer.start();
+  void apiServer.start(
+    await wwwServer.getServer(),
+    await externalServer.getServer()
+  );
+
+  /// 生成 index-url
+  {
+    const wwwStartResult = await wwwServer.getStartResult();
+    const apiStartResult = await apiServer.getStartResult();
+    const indexUrl = wwwStartResult.urlInfo.buildInternalUrl((url) => {
+      url.pathname = "/index.html";
+      url.searchParams.set(
+        X_PLAOC_QUERY.INTERNAL_URL,
+        apiStartResult.urlInfo.buildInternalUrl().href
+      );
+      url.searchParams.set(
+        X_PLAOC_QUERY.PUBLIC_URL,
+        apiStartResult.urlInfo.buildPublicUrl().href
+      );
+    });
+    indexUrlPo.resolve(indexUrl.href);
+  }
+  //#endregion
 };
 
 main();

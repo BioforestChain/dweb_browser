@@ -11,16 +11,31 @@ export class ServerUrlInfo {
     /**
      * 相对公网的链接（这里只是相对标准网络访问，当然目前本地只支持localhost链接，所以这里只是针对webview来使用）
      */
-    readonly public_origin: string
+    readonly public_origin: string,
+    /**
+     * 在buildUrl的时候，可以携带一些自定义的Querystring
+     * 这里默认是 `X-Dweb-Host=${host}`
+     * 如果你想自定义这个参数，建议补齐`X-Dweb-Host`，除非你很了解自己在做什么
+     *
+     * 如果在buildUrl的时候，填写了这个map中同名的参数，会以buildUrl的传入为高优先级
+     */
+    readonly buildExtQuerys = new Map([["X-Dweb-Host", host]])
   ) {}
 
+  private extUrl(url: URL) {
+    for (const [key, value] of this.buildExtQuerys) {
+      if (url.searchParams.has(key) === false) {
+        url.searchParams.set(key, value);
+      }
+    }
+    return url;
+  }
   private buildUrl(origin: string, builder?: $UrlBuilder) {
     if (typeof builder === "string") {
-      return new URL(builder, origin);
+      return this.extUrl(new URL(builder, origin));
     }
     const url = new URL(origin);
-    url.searchParams.set("X-Dweb-Host", this.host);
-    return builder?.(url) ?? url;
+    return this.extUrl(builder?.(url) ?? url);
   }
   buildPublicUrl(builder?: $UrlBuilder) {
     return this.buildUrl(this.public_origin, builder);

@@ -58,16 +58,17 @@ export async function openDownloadPage(
   request: IpcRequest
 ) {
   const metadataUrl = JSON.parse(await request.body.text())?.metadataUrl;
-  const targetUrl = `${args.url}&metadataUrl=${metadataUrl}`;
+  const targetUrl = new URL(args.url);
+  targetUrl.searchParams.set("metadataUrl", metadataUrl);
   const wapi = await forceGetWapis.bind(this)(_clientIpc, root_url);
-  const webview_id = await wapi.apis.webveiws_unshift(targetUrl);
+  const webview_id = await wapi.apis.webveiws_unshift(targetUrl.href);
   return { webview_id };
 }
 
 /**
  * 设置状态栏
  * @param this
- * @param _root_url
+ * @param _root_urlp
  * @param _args
  * @param _clientIpc
  * @param _request

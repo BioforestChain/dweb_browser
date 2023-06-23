@@ -10,6 +10,8 @@ Electron.ipcRenderer;
 /**
  * 在Web中渲染BrowserView，因为是原生的视图，所以它一定是渲染于整个视图上方
  * 这是给 Renderer 环境使用的，依赖于 openNativeWindow.preload 来加载 mainApis
+ *
+ * @TODO 这个组件应该脱离lit？用更加低运行时成本的方案来实现？
  */
 @customElement(TAG)
 export class ElectronBrowserView extends LitElement {

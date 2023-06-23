@@ -3,18 +3,20 @@ import http from "node:http";
 import os from "node:os";
 import { Flags } from "../deps.ts";
 import {
-  BundleFlagHelper,
-  MetadataFlagHelper,
+  BundleZipGenerator,
+  MetadataJsonGenerator,
   NameFlagHelper,
-} from "./helper/flags-helper.ts";
+} from "./helper/generator.ts";
 import { staticServe } from "./helper/http-static-helper.ts";
 
 export const doServe = (args = Deno.args) => {
   const flags = Flags.parse(args, {
     string: ["port", "mode"],
+    boolean: ["dev"],
     collect: ["metadata"],
     default: {
       port: 8096,
+      dev: true,
     },
   });
 
@@ -29,9 +31,9 @@ export const doServe = (args = Deno.args) => {
     throw new Error(`need input 'YOUR/FOLDER/FOR/BUNDLE'`);
   }
 
-  const metadataFlagHelper = new MetadataFlagHelper(flags);
-  const id = metadataFlagHelper.readMetadata().id
-  const bundleFlagHelper = new BundleFlagHelper(flags,id);
+  const metadataFlagHelper = new MetadataJsonGenerator(flags);
+  const id = metadataFlagHelper.readMetadata().id;
+  const bundleFlagHelper = new BundleZipGenerator(flags, id);
   const nameFlagHelper = new NameFlagHelper(flags, metadataFlagHelper);
 
   http

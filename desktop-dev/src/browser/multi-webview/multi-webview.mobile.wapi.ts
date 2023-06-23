@@ -73,7 +73,9 @@ export function forceGetWapis(this: MicroModule, ipc: Ipc, root_url: string) {
       if (wapi === undefined) {
         this.nativeFetch(`file://js.browser.dweb/bw?action=show`);
         const diaplay = Electron.screen.getPrimaryDisplay();
-        const nww = await openNativeWindow(root_url + `&uid=${ipc.uid}`, {
+        const url = new URL(root_url);
+        url.searchParams.set("uid", ipc.uid.toString());
+        const nww = await openNativeWindow(url.href, {
           webPreferences: {
             webviewTag: true,
           },

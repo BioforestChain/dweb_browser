@@ -2,7 +2,7 @@ import { assetsTasks } from "../desktop-dev/scripts/assets.ts";
 import { ConTasks } from "./helper/ConTasks.ts";
 export const devTasks = new ConTasks(
   {
-    "plaoc:server": {
+    "plaoc:bundle": {
       cmd: "deno",
       args: "task build:watch:server",
       cwd: "./plaoc",

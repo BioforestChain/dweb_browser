@@ -1,4 +1,5 @@
 /// <reference lib="dom"/>
+import { X_PLAOC_QUERY } from "../../../server/const.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
 
 export class ConfigPlugin extends BasePlugin {
@@ -10,8 +11,8 @@ export class ConfigPlugin extends BasePlugin {
   }
   initConfig(href = location.href) {
     const searchParams = new URL(href).searchParams;
-    const internalUrl = searchParams.get("X-Plaoc-Internal-Url");
-    const publicUrl = searchParams.get("X-Plaoc-Public-Url");
+    const internalUrl = searchParams.get(X_PLAOC_QUERY.INTERNAL_URL);
+    const publicUrl = searchParams.get(X_PLAOC_QUERY.PUBLIC_URL);
 
     publicUrl && this.setPublicUrl(publicUrl);
     internalUrl && this.setInternalUrl(internalUrl);

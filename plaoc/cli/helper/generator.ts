@@ -7,19 +7,20 @@ import { SERVE_MODE, defaultMetadata } from "./const.ts";
 import { GenerateTryFilepaths } from "./util.ts";
 import { $ZipEntry, walkDirToZipEntries, zipEntriesToZip } from "./zip.ts";
 
-export type $MetadataFlagHelperOptions = {
+export type $MetadataJsonGeneratorOptions = {
   metadata?: unknown[];
   mode?: unknown;
+  dev?: boolean;
   version?: string;
   id?: string;
   dir?: string;
   _?: unknown[];
 };
 
-export class MetadataFlagHelper {
+export class MetadataJsonGenerator {
   readonly metadataFilepaths: string[];
   readonly baseMetadata: Partial<$AppMetaData>;
-  constructor(readonly flags: $MetadataFlagHelperOptions) {
+  constructor(readonly flags: $MetadataJsonGeneratorOptions) {
     this.metadataFilepaths =
       flags.metadata?.map((filepath) =>
         path.resolve(Deno.cwd(), filepath + "")
@@ -70,17 +71,18 @@ export class MetadataFlagHelper {
   }
 }
 
-export type $BundleFlagHelperOptions = {
+export type $BundleZipGeneratorOptions = {
   mode?: unknown;
+  dev?: boolean;
   _?: unknown[];
 };
 
-export class BundleFlagHelper {
+export class BundleZipGenerator {
   private zipGetter: () => Promise<JSZip> = () => {
     throw new Error("no implement");
   };
   readonly www_dir: undefined | string;
-  constructor(readonly flags: $MetadataFlagHelperOptions, readonly id: $MMID) {
+  constructor(readonly flags: $BundleZipGeneratorOptions, readonly id: $MMID) {
     const bundleTarget = flags._?.[0]?.toString();
     /// 实时预览模式，使用代理html
     if (
@@ -106,7 +108,7 @@ export class BundleFlagHelper {
       } satisfies $ZipEntry;
       this.zipGetter = async () =>
         await zipEntriesToZip([
-          ...this.getBaseZipEntries(),
+          ...this.getBaseZipEntries(flags.dev),
           index_html_file_entry,
         ]);
     }
@@ -131,7 +133,7 @@ export class BundleFlagHelper {
       this.www_dir = www_dir;
       this.zipGetter = async () =>
         await zipEntriesToZip([
-          ...this.getBaseZipEntries(),
+          ...this.getBaseZipEntries(flags.dev),
           ...walkDirToZipEntries(www_dir).map((entry) => {
             return {
               ...entry,
@@ -141,8 +143,8 @@ export class BundleFlagHelper {
         ]);
     }
   }
-  getBaseZipEntries() {
-    return [
+  getBaseZipEntries(dev = false) {
+    const entries: $ZipEntry[] = [
       {
         dir: true,
         path: `usr`,
@@ -155,16 +157,23 @@ export class BundleFlagHelper {
         dir: true,
         path: `usr/www`,
       },
-      {
+    ];
+    const addFile_DistToUsr = (filepath: string, alias: string = filepath) => {
+      entries.push({
         dir: false,
-        path: `usr/server/plaoc.server.js`,
+        path: `usr/${alias}`,
         data: fs.readFileSync(
-          fileURLToPath(
-            import.meta.resolve("../../dist/server/plaoc.server.js")
-          )
+          fileURLToPath(import.meta.resolve(`../../dist/${filepath}`))
         ),
-      },
-    ] satisfies $ZipEntry[];
+      });
+    };
+    if (dev) {
+      addFile_DistToUsr("server/plaoc.server.dev.js", "server/plaoc.server.js");
+      addFile_DistToUsr("server/plaoc.emulator.js");
+    } else {
+      addFile_DistToUsr("server/plaoc.server.js");
+    }
+    return entries;
   }
   private zip: undefined | JSZip;
   /** 获得打包的zip文件 */
@@ -192,6 +201,6 @@ export class NameFlagHelper {
 
   constructor(
     readonly flags: $NameFlagHelperOptions,
-    readonly metadataFlagHelper: MetadataFlagHelper
+    readonly metadataFlagHelper: MetadataJsonGenerator
   ) {}
 }

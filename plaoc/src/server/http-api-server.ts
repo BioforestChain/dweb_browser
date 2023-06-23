@@ -1,21 +1,87 @@
 import {
+  $Ipc,
+  $IpcRequest,
+  $IpcResponse,
+  $ServerUrlInfo,
+  HttpDwebServer,
+  IpcRequest,
+  IpcResponse,
+  jsProcess,
+} from "./deps.ts";
+import { HttpServer, cros } from "./http-helper.ts";
+
+/**给前端的api服务 */
+export class Server_api extends HttpServer {
+  protected _getOptions(): $DwebHttpServerOptions {
+    return {
+      subdomain: "api",
+      port: 443,
+    };
+  }
+  async start(wwwServer: HttpDwebServer, externalServer: HttpDwebServer) {
+    const apiServer = await this._serverP;
+    const apiReadableStreamIpc = await apiServer.listen();
+
+    apiReadableStreamIpc.onRequest(async (request, ipc) => {
+      const url = request.parsed_url;
+      // serviceWorker
+      if (url.pathname.startsWith("/dns.sys.dweb")) {
+        const result = await serviceWorkerFactory(url);
+        const ipcResponse = IpcResponse.fromText(
+          request.req_id,
+          200,
+          undefined,
+          result,
+          ipc
+        );
+        cros(ipcResponse.headers);
+        // 返回数据到前端
+        return ipc.postMessage(ipcResponse);
+      }
+      onApiRequest(apiServer.startResult.urlInfo, request, ipc);
+    });
+
+    // 转发serviceWorker 请求
+    const serviceWorkerFactory = async (url: URL) => {
+      const pathname = url.pathname;
+      // 关闭的流程需要调整
+      // 向dns发送关闭当前 模块的消息
+      // woker.js -> dns -> JsMicroModule -> woker.js -> 其他的 NativeMicroModule
+
+      if (pathname.endsWith("restart")) {
+        // 关闭全部的服务
+        await apiServer.close();
+        await wwwServer.close();
+        await externalServer.close();
+        // 关闭所有的DwebView
+        await mwebview_destroy();
+        // 这里只需要把请求发送过去，因为app已经被关闭，已经无法拿到返回值
+        jsProcess.restart();
+        return "restart ok";
+      }
+
+      // 只关闭 渲染一个渲染进程 不关闭 service
+      if (pathname.endsWith("close")) {
+        await mwebview_destroy();
+        return "window close";
+      }
+      return "no action for serviceWorker Factory !!!";
+    };
+  }
+}
+
+import { $DwebHttpServerOptions } from "../../../desktop-dev/src/sys/http-server/net/createNetServer.ts";
+import { OBSERVE } from "./const.ts";
+import {
   $MMID,
   PromiseOut,
   ReadableStreamOut,
-  ServerUrlInfo,
   createSignal,
   mapHelper,
   simpleEncoder,
   u8aConcat,
-} from "../deps.ts";
-import { OBSERVE } from "./tool.event.ts";
-import { cros } from "./tool.native.ts";
-
-const { jsProcess, ipc } = navigator.dweb;
-const { IpcResponse, Ipc, IpcRequest } = ipc;
-type $IpcResponse = InstanceType<typeof IpcResponse>;
-export type $Ipc = InstanceType<typeof Ipc>;
-type $IpcRequest = InstanceType<typeof IpcRequest>;
+} from "./deps.ts";
+import { mwebview_destroy } from "./mwebview-helper.ts";
 
 const ipcObserversMap = new Map<
   $MMID,
@@ -33,7 +99,7 @@ export const fetchSignal = createSignal<$OnIpcRequestUrl>();
  * request 事件处理器
  */
 export async function onApiRequest(
-  serverurlInfo: ServerUrlInfo,
+  serverurlInfo: $ServerUrlInfo,
   request: $IpcRequest,
   httpServerIpc: $Ipc
 ) {
@@ -104,7 +170,7 @@ const internalFactory = (
   url: URL,
   req_id: number,
   httpServerIpc: $Ipc,
-  serverurlInfo: ServerUrlInfo
+  serverurlInfo: $ServerUrlInfo
 ) => {
   const pathname = url.pathname.slice(INTERNAL_PREFIX.length);
   // 转发public url
