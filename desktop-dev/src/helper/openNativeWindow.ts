@@ -1,9 +1,9 @@
-import { expose, proxy, wrap } from "comlink";
+import { expose, proxy, wrap,releaseProxy } from "comlink";
 import { debounce } from "./$debounce.ts";
+import { PromiseOut } from "./PromiseOut.ts";
 import { animate, easeOut } from "./animate.ts";
 import "./electron.ts";
 import { electronConfig } from "./electronConfig.ts";
-import { PromiseOut } from "./PromiseOut.ts";
 
 /**
  * 事件绑定作用域
@@ -379,9 +379,92 @@ export class ForRenderApi {
   async isFullScreen() {
     return this.win.isFullScreen();
   }
-
-  async fullScreen(v: boolean) {
+  async isFullScreenable() {
+    return this.win.isFullScreenable();
+  }
+  async setFullScreen(v: boolean) {
     return (this.win.fullScreen = v);
+  }
+
+  async maximize() {
+    this.win.maximize();
+  }
+  async isMaximized() {
+    return this.win.isMaximized();
+  }
+  async isMaximizable() {
+    return this.win.isMaximizable();
+  }
+
+  async minimize() {
+    this.win.minimize();
+  }
+  async isMinimized() {
+    return this.win.isMinimized();
+  }
+  async isMinimizable() {
+    return this.win.isMinimizable();
+  }
+
+  private allBrowserView: { view: Electron.BrowserView; zIndex: number }[] = [];
+  private _allBrowserViewReOrder() {
+    this.allBrowserView
+      /// 重新排序一遍
+      .sort((a, b) => a.zIndex - b.zIndex)
+      .forEach((item, index) => {
+        item.zIndex = index + 1;
+        /// 将排序结果反映到视图中
+        this.win.setTopBrowserView(item.view);
+      });
+  }
+
+  async createBrowserView(options?: Electron.BrowserViewConstructorOptions) {
+    const view = new Electron.BrowserView(options);
+    this.win.addBrowserView(view);
+    this.win.setTopBrowserView(view);
+    const item = { view: proxy(view), zIndex: this.allBrowserView.length + 1 };
+    this.allBrowserView.push(item);
+    return proxy(view);
+  }
+  async deleteBrowserView(view: Electron.BrowserView) {
+    const itemIndex = this.allBrowserView.findIndex(
+      (item) => item.view === view
+    );
+    if (!itemIndex) {
+      return false;
+    }
+    this.win.removeBrowserView(view);
+    view.webContents.close();
+
+    this.allBrowserView.splice(itemIndex, 1);
+    this._allBrowserViewReOrder();
+    return true;
+  }
+  /**
+   * 设定一个排序值，但是返回最终的位置序号
+   * @param view
+   * @param zIndex
+   * @returns
+   */
+  async setBrowserViewZIndex(view: Electron.BrowserView, zIndex: number) {
+    const item = this.allBrowserView.find((item) => item.view === view);
+    if (!item) {
+      return -1;
+    }
+
+    item.zIndex = zIndex + 0.5; /// 先设置一个虚高的值，确保不和其它同index的冲突
+    this._allBrowserViewReOrder();
+    return item.zIndex;
+  }
+  async getBrowserViewZIndex(view: Electron.BrowserView) {
+    const item = this.allBrowserView.find((item) => item.view === view);
+    if (!item) {
+      return -1;
+    }
+    return item.zIndex;
+  }
+  async setTopBrowserView(view: Electron.BrowserView) {
+    return this.setBrowserViewZIndex(view, this.allBrowserView.length);
   }
 
   /**

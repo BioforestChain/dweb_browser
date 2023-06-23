@@ -77,15 +77,15 @@ export function forceGetWapis(this: MicroModule, ipc: Ipc, root_url: string) {
           webPreferences: {
             webviewTag: true,
           },
-          transparent: true,
-          autoHideMenuBar: true,
+          // transparent: true,
+          // autoHideMenuBar: true,
           // 测试代码
           width: 375,
           height: 800,
           x: 0,
           y: (diaplay.size.height - 800) / 2,
           show: true,
-          frame: false,
+          // frame: false,
         });
 
         nww.on("close", () => {

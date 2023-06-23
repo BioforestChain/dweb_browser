@@ -19,7 +19,6 @@ import "./components/multi-webview-comp-share.html.ts";
 import "./components/multi-webview-comp-status-bar.html.ts";
 import "./components/multi-webview-comp-toast.html.ts";
 import "./components/multi-webview-comp-virtual-keyboard.html.ts";
-import "./titleBar.html.ts";
 import "./viewItem.html.ts";
 import type {
   CustomEventAnimationendDetail,
@@ -51,15 +50,6 @@ export class AppShellElement extends NativeUI {
 
         display: flex;
         flex-direction: column;
-      }
-
-      .device-container > .titlebar {
-        width: 100%;
-        align-self: center;
-
-        flex-shrink: 0;
-        flex-basis: content;
-        margin-bottom: 0.8em;
       }
 
       .device-container > .device {
@@ -114,34 +104,6 @@ export class AppShellElement extends NativeUI {
     }
   };
 
-  // webviewTag_onIpcMessage = (e: Event) => {
-  //   const channel = Reflect.get(e, "channel");
-  //   const args = Reflect.get(e, "args");
-  //   switch (channel) {
-  //     case "virtual_keyboard_open":
-  //       this.isShowVirtualKeyboard = true;
-  //       break;
-  //     case "virtual_keyboard_close":
-  //       this.virtualKeyboardState = {
-  //         ...this.virtualKeyboardState,
-  //         visible: false,
-  //       };
-  //       break;
-  //     case "back":
-  //       this.webviewTag_onIpcMessage_back();
-  //       break;
-  //     case "__native_close_watcher_kit__":
-  //       this.nativeCloseWatcherKit(
-  //         (args as { action: string; value: string | number }[])[0]
-  //       );
-  //       break;
-  //     default:
-  //       throw new Error(
-  //         `webview ipc-message 还有没有处理的channel===${channel}`
-  //       );
-  //   }
-  // };
-
   webviewTag_onIpcMessage_back = () => {
     const len = this.viewItems.length;
     if (len > 1) {
@@ -174,7 +136,6 @@ export class AppShellElement extends NativeUI {
       throw new Error(`navigationBarState === undefined`);
     return html`
       <div class="device-container">
-        <mwebview-title-bar class="titlebar"></mwebview-title-bar>
         <multi-webview-comp-mobile-shell
           class="device"
           @biometrices-pass=${() => this.biometricessPass(true)}
