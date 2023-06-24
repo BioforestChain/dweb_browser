@@ -1,4 +1,9 @@
 {
+  "exclude": [
+    "dist/",
+    "bundle/",
+    "build/"
+  ],
   "tasks": {
     "build": "deno task build:client && deno task build:server && deno task build:demo",
     "build:client": "deno run -A ./scripts/npm-build.ts client",

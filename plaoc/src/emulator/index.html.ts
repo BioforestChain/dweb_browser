@@ -281,72 +281,45 @@ export class RootComp extends LitElement {
 
   protected override render() {
     return html`
-      <div class="root_comp">
-        <multi-webview-comp-mobile-shell>
-          <multi-webview-comp-status-bar
-            slot="status-bar"
-            ._color=${this.statusBarState.color}
-            ._style=${this.statusBarState.style}
-            ._overlay=${this.statusBarState.overlay}
-            ._visible=${this.statusBarState.visible}
-            ._height=${this.statusBarHeight}
-            ._inserts=${this.statusBarState.insets}
-            ._torchIsOpen=${this.torchState.isOpen}
-          ></multi-webview-comp-status-bar>
-          <div class="role_app_content" slot="app_content">
-            插入的 app content 的内容
-            <button @click=${this.virtualKeyboardShow}>
-              显示 virtual keyboard
-            </button>
-            <button @click=${this.virtualKeyboardHide}>
-              隐藏 virtual keyboard
-            </button>
-            <button @click=${this.toast}>toast</button>
-            <button @click=${() => this.safeAreaSetOverlay(true)}>
-              设置 safe area overlay true
-            </button>
-            <button @click=${() => this.safeAreaSetOverlay(false)}>
-              设置 safe area overlay false
-            </button>
-            <button @click=${this.torchToggleTorch}>切换手电状态</button>
-            <button @click=${this.barcodeScanningGetPhoto}>
-              barcode scanning 选择文件
-            </button>
-            <button @click=${this.biometricsMock}>biometrics mock</button>
-            <button @click=${this.hapticsMock}>haptics mock</button>
-            <button @click=${this.testShare}>share</button>
-            <button @click=${this.testStatusbarSetBackground}>
-              设置 statusbar 背景色
-            </button>
-          </div>
-          ${when(
-            this.isShowVirtualKeyboard,
-            () => html`
-              <multi-webview-comp-virtual-keyboard
+      <multi-webview-comp-mobile-shell>
+        <multi-webview-comp-status-bar
+          slot="status-bar"
+          ._color=${this.statusBarState.color}
+          ._style=${this.statusBarState.style}
+          ._overlay=${this.statusBarState.overlay}
+          ._visible=${this.statusBarState.visible}
+          ._height=${this.statusBarHeight}
+          ._inserts=${this.statusBarState.insets}
+          ._torchIsOpen=${this.torchState.isOpen}
+        ></multi-webview-comp-status-bar>
+        <slot slot="shell-content"></slot>
+        ${when(
+          this.isShowVirtualKeyboard,
+          () => html`
+            <multi-webview-comp-virtual-keyboard
+              slot="bottom-bar"
+              ._visible=${this.virtualKeyboardState.visible}
+              ._overlay=${this.virtualKeyboardState.overlay}
+              @first-updated=${this.virtualKeyboardFirstUpdated}
+              @hide-completed=${this.virtualKeyboardHideCompleted}
+              @show-completed=${this.virtualKeyboardShowCompleted}
+            ></multi-webview-comp-virtual-keyboard>
+          `,
+          () => {
+            return html`
+              <multi-webview-comp-navigation-bar
                 slot="bottom-bar"
-                ._visible=${this.virtualKeyboardState.visible}
-                ._overlay=${this.virtualKeyboardState.overlay}
-                @first-updated=${this.virtualKeyboardFirstUpdated}
-                @hide-completed=${this.virtualKeyboardHideCompleted}
-                @show-completed=${this.virtualKeyboardShowCompleted}
-              ></multi-webview-comp-virtual-keyboard>
-            `,
-            () => {
-              return html`
-                <multi-webview-comp-navigation-bar
-                  slot="bottom-bar"
-                  ._color=${this.navigationBarState.color}
-                  ._style=${this.navigationBarState.style}
-                  ._overlay=${this.navigationBarState.overlay}
-                  ._visible=${this.navigationBarState.visible}
-                  ._height=${this.navigationBarHeight}
-                  ._inserts=${this.navigationBarState.insets}
-                ></multi-webview-comp-navigation-bar>
-              `;
-            }
-          )}
-        </multi-webview-comp-mobile-shell>
-      </div>
+                ._color=${this.navigationBarState.color}
+                ._style=${this.navigationBarState.style}
+                ._overlay=${this.navigationBarState.overlay}
+                ._visible=${this.navigationBarState.visible}
+                ._height=${this.navigationBarHeight}
+                ._inserts=${this.navigationBarState.insets}
+              ></multi-webview-comp-navigation-bar>
+            `;
+          }
+        )}
+      </multi-webview-comp-mobile-shell>
     `;
   }
 }
@@ -357,24 +330,6 @@ function createAllCSS() {
     css`
       :host {
         display: block;
-      }
-      .root_comp {
-        display: flex;
-        justify-content: flex-start;
-        align-items: center;
-        width: 100%;
-        height: 100%;
-      }
-    `,
-
-    css`
-      .role_app_content {
-        box-sizing: border-box;
-        margin: 0px;
-        padding: 0px;
-        width: 100%;
-        height: 100%;
-        border: 1px solid red;
       }
     `,
   ];

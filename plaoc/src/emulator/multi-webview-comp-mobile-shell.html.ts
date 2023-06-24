@@ -150,7 +150,7 @@ export class MultiWebViewCompMobileShell extends LitElement {
         <div class="shell_container">
           <slot name="status-bar"></slot>
           <div class="app_content_container">
-            <slot name="app_content"> ... 桌面 ... </slot>
+            <slot name="shell-content"> ... 桌面 ... </slot>
           </div>
           <slot name="bottom-bar"></slot>
         </div>

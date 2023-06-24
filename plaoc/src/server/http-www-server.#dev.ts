@@ -34,7 +34,12 @@ export class Server_www extends _Server_www {
       const emulatorJsResponse = await jsProcess.nativeRequest(
         `file:///usr/server/plaoc.emulator.js`
       );
-      const indexUrl = new URL(request.parsed_url);
+      const indexUrl = (await super.getStartResult()).urlInfo.buildInternalUrl(
+        (url) => {
+          url.pathname = request.parsed_url.pathname;
+          url.search = request.parsed_url.search;
+        }
+      );
       indexUrl.searchParams.delete(X_PLAOC_QUERY.EMULATOR);
       return IpcResponse.fromText(
         request.req_id,
@@ -69,7 +74,6 @@ export class Server_www extends _Server_www {
               <root-comp>
                 <iframe
                   style="width:100%;height:100%;border:0;"
-                  slot="app-content"
                   src="${indexUrl.href}"
                 ></iframe>
               </root-comp>

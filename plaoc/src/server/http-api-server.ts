@@ -6,9 +6,10 @@ import {
   HttpDwebServer,
   IpcRequest,
   IpcResponse,
+  IPC_METHOD,
   jsProcess,
 } from "./deps.ts";
-import { HttpServer, cros } from "./http-helper.ts";
+import { cros, HttpServer } from "./http-helper.ts";
 
 /**给前端的api服务 */
 export class Server_api extends HttpServer {
@@ -23,6 +24,20 @@ export class Server_api extends HttpServer {
     const apiReadableStreamIpc = await apiServer.listen();
 
     apiReadableStreamIpc.onRequest(async (request, ipc) => {
+      if (request.method === IPC_METHOD.OPTIONS) {
+        return ipc.postMessage(
+          IpcResponse.fromText(
+            request.req_id,
+            200,
+            new IpcHeaders()
+              .init("Access-Control-Allow-Origin", "*")
+              .init("Access-Control-Allow-Headers", "*")
+              .init("Access-Control-Allow-Methods", "*"),
+            "",
+            ipc
+          )
+        );
+      }
       const url = request.parsed_url;
       // serviceWorker
       if (url.pathname.startsWith("/dns.sys.dweb")) {
@@ -70,14 +85,15 @@ export class Server_api extends HttpServer {
   }
 }
 
+import { IpcHeaders } from "../../../desktop-dev/src/core/ipc/IpcHeaders.ts";
 import { $DwebHttpServerOptions } from "../../../desktop-dev/src/sys/http-server/net/createNetServer.ts";
 import { OBSERVE } from "./const.ts";
 import {
   $MMID,
-  PromiseOut,
-  ReadableStreamOut,
   createSignal,
   mapHelper,
+  PromiseOut,
+  ReadableStreamOut,
   simpleEncoder,
   u8aConcat,
 } from "./deps.ts";
