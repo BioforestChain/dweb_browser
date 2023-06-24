@@ -1,5 +1,5 @@
 // browserWindow
-import { openNativeWindow } from "../../helper/openNativeWindow.ts";
+import { createComlinkNativeWindow } from "../../helper/openNativeWindow.ts";
 import type { BrowserNMM } from "./browser.ts";
 
 export async function createBrowserWindow(this: BrowserNMM, url: string) {
@@ -20,7 +20,7 @@ export async function createBrowserWindow(this: BrowserNMM, url: string) {
       contextIsolation: false,
     },
   };
-  const bw = await openNativeWindow(url, options);
+  const bw = await createComlinkNativeWindow(url, options);
   // 获取 BrowserWindow 的 session 对象
   const mainWindowSession = bw.webContents.session;
 

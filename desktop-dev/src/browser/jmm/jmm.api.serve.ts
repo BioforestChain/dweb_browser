@@ -11,6 +11,7 @@ import { isDeepStrictEqual } from "node:util";
 import Store from "npm:electron-store@8.1.0";
 import tar from "tar";
 import {
+  IPC_METHOD,
   Ipc,
   IpcEvent,
   IpcHeaders,
@@ -77,17 +78,43 @@ export async function createApiServer(this: JmmNMM) {
 }
 
 function onRequest(this: JmmNMM, request: IpcRequest, ipc: Ipc) {
-  const path = request.parsed_url.pathname;
-  switch (path) {
-    case "/app/install":
-      return appInstall.call(this, request, ipc);
-    case "/close/self":
-      return appCloseSelf.call(this, request, ipc);
-    case "/app/open":
-      return appOpen.call(this, request, ipc);
-    default: {
-      throw new Error(`${this.mmid} 有没有处理的pathname === ${path}`);
+  try {
+    if (request.method === IPC_METHOD.OPTIONS) {
+      return ipc.postMessage(
+        IpcResponse.fromText(
+          request.req_id,
+          200,
+          new IpcHeaders()
+            .init("Access-Control-Allow-Origin", "*")
+            .init("Access-Control-Allow-Headers", "*")
+            .init("Access-Control-Allow-Methods", "*"),
+          "",
+          ipc
+        )
+      );
     }
+    const path = request.parsed_url.pathname;
+    switch (path) {
+      case "/app/install":
+        return appInstall.call(this, request, ipc);
+      case "/close/self":
+        return appCloseSelf.call(this, request, ipc);
+      case "/app/open":
+        return appOpen.call(this, request, ipc);
+      default: {
+        throw new Error(`${this.mmid} 有没有处理的pathname === ${path}`);
+      }
+    }
+  } catch (err) {
+    ipc.postMessage(
+      IpcResponse.fromText(
+        request.req_id,
+        502,
+        new IpcHeaders().init("Content-Type", "text/html,charset=utf-8"),
+        err instanceof Error ? err.message + "" + err.stack : String(err),
+        ipc
+      )
+    );
   }
 }
 

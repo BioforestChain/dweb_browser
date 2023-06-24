@@ -17,18 +17,13 @@ export async function install(
   // 需要同时查询参数传递进去
   if (jmm.wwwServer === undefined)
     throw new Error(`this.wwwServer === undefined`);
-  const interUrl = jmm.wwwServer.startResult.urlInfo.buildInternalUrl((url) => {
+  const indexUrl = jmm.wwwServer.startResult.urlInfo.buildInternalUrl((url) => {
     url.pathname = "/index.html";
+    url.searchParams.set("metadataUrl", args.metadataUrl);
   }).href;
-  const url = new URL(
-    `file://mwebview.browser.dweb/open_new_webveiw_at_focused`
-  );
-  url.searchParams.set("url", interUrl);
-  const body = JSON.stringify({ metadataUrl: args.metadataUrl });
-  await jmm.nativeFetch(url, {
-    method: "POST",
-    body,
-  });
+  const openUrl = new URL(`file://mwebview.browser.dweb/open`);
+  openUrl.searchParams.set("url", indexUrl);
+  await jmm.nativeFetch(openUrl);
   return true;
 }
 

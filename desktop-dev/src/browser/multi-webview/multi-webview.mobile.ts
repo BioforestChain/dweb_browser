@@ -1,19 +1,15 @@
-import { red } from "colors";
 import type { OutgoingMessage } from "node:http";
 import type { $BootstrapContext } from "../../core/bootstrapContext.ts";
-import { IpcResponse } from "../../core/ipc/IpcResponse.ts";
 import { Ipc, IpcEvent, IpcRequest } from "../../core/ipc/index.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import { $Schema1ToType } from "../../helper/types.ts";
-import { createHttpDwebServer } from "../../sys/http-server/$createHttpDwebServer.ts";
 import {
-  closeFocusedWindow,
-  openDownloadPage,
-} from "./multi-webview.mobile.handler.ts";
-import {
-  deleteWapis,
-  forceGetWapis,
-  getAllWapis,
+  ALL_MMID_MWEBVIEW_WINDOW_MAP,
+  getMWebViewWindow,
+  //   deleteWapis,
+  //   forceGetWapis,
+  //   getAllWapis,
+  getOrOpenMWebViewWindow,
 } from "./multi-webview.mobile.wapi.ts";
 import { $AllWebviewState } from "./types.ts";
 
@@ -29,44 +25,13 @@ export class MultiWebviewNMM extends NativeMicroModule {
 
   async _bootstrap(context: $BootstrapContext) {
     console.always(`${this.mmid} _bootstrap`);
-    const httpDwebServer = await createHttpDwebServer(this, {});
-    this._after_shutdown_signal.listen(() => httpDwebServer.close());
-    /// 从本地文件夹中读取数据返回，
-    /// 如果是Android，则使用 AssetManager API 读取文件数据，并且需要手动绑定 mime 与 statusCode
-    (await httpDwebServer.listen()).onRequest(async (request, ipc) => {
-      ipc.postMessage(
-        await IpcResponse.fromResponse(
-          request.req_id,
-          await this.nativeFetch(
-            "file:///sys/browser/multi-webview" + request.parsed_url.pathname
-          ),
-          ipc
-        )
-      );
-    });
-
-    const root_url = httpDwebServer.startResult.urlInfo.buildInternalUrl(
-      (url) => {
-        url.pathname = "/index.html";
-      }
-    ).href;
 
     this.registerCommonIpcOnMessageHandler({
       pathname: "/open",
       matchMode: "full",
       input: { url: "string" },
       output: "number",
-      handler: (...args) => this._open(root_url, ...args),
-    });
-
-    // 在当前焦点的 BrowserWindow对向上打开新的webveiw
-    this.registerCommonIpcOnMessageHandler({
-      method: "POST",
-      pathname: "/open_new_webveiw_at_focused",
-      matchMode: "full",
-      input: { url: "string" },
-      output: "object",
-      handler: openDownloadPage.bind(this, root_url),
+      handler: (...args) => this._open(...args),
     });
 
     // 激活窗口
@@ -75,9 +40,12 @@ export class MultiWebviewNMM extends NativeMicroModule {
       matchMode: "full",
       input: {},
       output: "boolean",
-      handler: async (args, client_ipc) => {
-        const wapis = await forceGetWapis.call(this, client_ipc, root_url);
-        wapis.nww.focus();
+      handler: async (_, client_ipc) => {
+        const wmm = await getMWebViewWindow(client_ipc);
+        if (wmm === undefined) {
+          return false;
+        }
+        wmm.win.focus();
         return true;
       },
     });
@@ -93,7 +61,14 @@ export class MultiWebviewNMM extends NativeMicroModule {
       matchMode: "full",
       input: {},
       output: "boolean",
-      handler: closeFocusedWindow.bind(this),
+      handler: async (_, client_ipc) => {
+        const wmm = await getMWebViewWindow(client_ipc);
+        if (wmm === undefined) {
+          return false;
+        }
+        wmm.win.close();
+        return true;
+      },
     });
 
     // 销毁指定的 webview
@@ -102,11 +77,19 @@ export class MultiWebviewNMM extends NativeMicroModule {
       matchMode: "full",
       input: { host: "string" },
       output: "boolean",
-      handler: async (args) => {
-        for (const [_, wapis] of getAllWapis()) {
-          await wapis.apis.webivews_deleteByHost(args.host);
+      handler: async (args, ipc) => {
+        const mww = await getMWebViewWindow(ipc);
+        let changed = false;
+        if (mww) {
+          for (const viewItem of mww.getAllBrowserView()) {
+            const url = new URL(viewItem.view.webContents.getURL());
+            if (url.host === args.host) {
+              changed = true;
+              mww.deleteBrowserView(viewItem.view);
+            }
+          }
         }
-        return true;
+        return changed;
       },
     });
 
@@ -143,22 +126,20 @@ export class MultiWebviewNMM extends NativeMicroModule {
    * 如果 是由 NMM 调用的 会打开一个新的 borserWindow 同时打开一个新的 webview
    */
   private async _open(
-    root_url: string,
     args: $Schema1ToType<{ url: "string" }>,
     clientIpc: Ipc,
     _request: IpcRequest
   ) {
-    this._all_open_ipc.set(clientIpc.uid, clientIpc);
-    clientIpc.onClose(() => {
-      this._all_open_ipc.delete(clientIpc.uid);
-    });
-    const wapis = await forceGetWapis.bind(this)(clientIpc, root_url);
-    const webview_id = await wapis.apis.webveiws_unshift(args.url);
-    return webview_id;
+    const mww = await getOrOpenMWebViewWindow(clientIpc);
+    const view = mww.createBrowserView(args.url);
+    return view.webContents.id;
   }
 
-  _shutdown() {
-    deleteWapis(() => true);
+  protected override async _shutdown() {
+    for (const [mmid, mwwP] of ALL_MMID_MWEBVIEW_WINDOW_MAP) {
+      const mww = await mwwP;
+      mww.win.close();
+    }
   }
 }
 

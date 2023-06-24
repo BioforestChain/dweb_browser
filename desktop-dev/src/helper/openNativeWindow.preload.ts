@@ -83,6 +83,6 @@ export const exportApis = once((APIS: unknown) => {
 });
 
 export const mainApis =
-  Comlink.wrap<import("./openNativeWindow.ts").ForRenderApi>(import_port);
+  Comlink.wrap<import("./openNativeWindow.ts").NativeWindowExtensions_BaseApi>(import_port);
 
 Object.assign(globalThis, { mainApis, Comlink });

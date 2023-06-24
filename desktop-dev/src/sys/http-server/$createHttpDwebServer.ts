@@ -30,30 +30,7 @@ export class HttpDwebServer {
     readonly startResult: ServerStartResult
   ) {}
   /** 开始处理请求 */
-  listen = async (
-    routes: $ReqMatcher[] = [
-      {
-        pathname: "/",
-        matchMode: "prefix",
-        method: "GET",
-      },
-      {
-        pathname: "/",
-        matchMode: "prefix",
-        method: "POST",
-      },
-      {
-        pathname: "/",
-        matchMode: "prefix",
-        method: "PUT",
-      },
-      {
-        pathname: "/",
-        matchMode: "prefix",
-        method: "DELETE",
-      },
-    ]
-  ) => {
+  listen = async (routes?: $ReqMatcher[],) => {
     return await listenHttpDwebServer(this.nmm, this.startResult, routes);
   };
   /** 关闭监听 */

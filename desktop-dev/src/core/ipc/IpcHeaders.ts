@@ -1,9 +1,8 @@
 export class IpcHeaders extends Headers {
   init(key: string, value: string) {
-    if (this.has(key)) {
-      return;
+    if (this.has(key) === false) {
+      this.set(key, value);
     }
-    this.set(key, value);
     return this;
   }
   toJSON() {

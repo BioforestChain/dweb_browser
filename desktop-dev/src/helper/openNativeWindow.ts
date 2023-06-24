@@ -1,4 +1,4 @@
-import { expose, proxy, wrap,releaseProxy } from "comlink";
+import { expose, proxy, wrap } from "comlink";
 import { debounce } from "./$debounce.ts";
 import { PromiseOut } from "./PromiseOut.ts";
 import { animate, easeOut } from "./animate.ts";
@@ -63,6 +63,62 @@ const saveNativeWindowStates = () => {
   electronConfig.set(DEVTOOLS_STATE, nativeWindowStates);
 };
 
+export interface $CreateNativeWindowOptions
+  extends Electron.BrowserWindowConstructorOptions {
+  userAgent?: (userAgent: string) => string;
+}
+export const createNativeWindow = async (
+  sessionId: string,
+  createOptions: $CreateNativeWindowOptions = {}
+) => {
+  await Electron.app.whenReady();
+  const { userAgent, ..._options } = createOptions;
+
+  const options: Electron.BrowserWindowConstructorOptions = {
+    ..._options,
+    webPreferences: {
+      ..._options.webPreferences,
+      sandbox: false,
+      devTools: !Electron.app.isPackaged,
+      webSecurity: false,
+      nodeIntegration: true,
+      contextIsolation: false,
+    },
+    ...nativeWindowStates[sessionId]?.bounds,
+  };
+
+  const win = new Electron.BrowserWindow(options);
+
+  const state = (nativeWindowStates[sessionId] ??= {
+    devtools: false,
+    bounds: win.getBounds(),
+  });
+
+  if (userAgent) {
+    win.webContents.setUserAgent(userAgent(win.webContents.userAgent));
+  }
+  /// 在开发模式下，显示 mwebview 的开发者工具
+  if (!Electron.app.isPackaged) {
+    if (state.devtools === true) {
+      win.webContents.openDevTools();
+    }
+    win.webContents.on("devtools-opened", () => {
+      state.devtools = true;
+      saveNativeWindowStates();
+    });
+    win.webContents.on("devtools-closed", () => {
+      state.devtools = false;
+      saveNativeWindowStates();
+    });
+  }
+
+  win.on("close", () => {
+    state.bounds = win.getBounds();
+    saveNativeWindowStates();
+  });
+  return win;
+};
+
 /**
  * 打开 BrowserWindow。
  * 这里会记录窗口的大小、位置
@@ -87,58 +143,16 @@ const saveNativeWindowStates = () => {
  * @param webContentsConfig
  * @returns
  */
-export const openNativeWindow = async (
+export const createComlinkNativeWindow = async <
+  E = NativeWindowExtensions_BaseApi
+>(
   url: string,
-  _options: Electron.BrowserWindowConstructorOptions = {},
-  webContentsConfig: { userAgent?: (userAgent: string) => string } = {}
+  createOptions?: $CreateNativeWindowOptions,
+  exportBuilder = async (win: Electron.BrowserWindow) => {
+    return new NativeWindowExtensions_BaseApi(win) as any as E;
+  }
 ) => {
-  const { MainPortToRenderPort } = await import("./electronPortMessage.ts");
-  await Electron.app.whenReady();
-
-  const options: Electron.BrowserWindowConstructorOptions = {
-    ..._options,
-    webPreferences: {
-      ..._options.webPreferences,
-      sandbox: false,
-      devTools: !Electron.app.isPackaged,
-      webSecurity: false,
-      nodeIntegration: true,
-      contextIsolation: false,
-    },
-    ...nativeWindowStates[url]?.bounds,
-  };
-
-  const win = new Electron.BrowserWindow(options);
-
-  const state = (nativeWindowStates[url] ??= {
-    devtools: false,
-    bounds: win.getBounds(),
-  });
-
-  if (webContentsConfig.userAgent) {
-    win.webContents.setUserAgent(
-      webContentsConfig.userAgent(win.webContents.userAgent)
-    );
-  }
-  /// 在开发模式下，显示 mwebview 的开发者工具
-  if (!Electron.app.isPackaged) {
-    if (state.devtools === true) {
-      win.webContents.openDevTools();
-    }
-    win.webContents.on("devtools-opened", () => {
-      state.devtools = true;
-      saveNativeWindowStates();
-    });
-    win.webContents.on("devtools-closed", () => {
-      state.devtools = false;
-      saveNativeWindowStates();
-    });
-  }
-
-  win.on("close", () => {
-    state.bounds = win.getBounds();
-    saveNativeWindowStates();
-  });
+  const win = await createNativeWindow(new URL("/", url).href, createOptions);
 
   // win.webContents.setWindowOpenHandler((_detail) => {
   //   return { action: "deny" };
@@ -149,6 +163,7 @@ export const openNativeWindow = async (
     export_port: MessagePort;
   }>();
 
+  const { MainPortToRenderPort } = await import("./electronPortMessage.ts");
   win.webContents.ipc.once("renderPort", (event) => {
     const [import_port, export_port] = event.ports;
 
@@ -162,8 +177,12 @@ export const openNativeWindow = async (
 
   const { import_port, export_port } = await ports_po.promise;
 
-  expose(new ForRenderApi(win), export_port);
+  const exportApis = await exportBuilder(win);
+  expose(exportApis, export_port);
   return Object.assign(win, {
+    getExport() {
+      return exportApis;
+    },
     getApis<T>() {
       return wrap<T>(import_port);
     },
@@ -345,7 +364,7 @@ async function openDevToolsWindowAsFollower(
   return _devWin;
 }
 
-export class ForRenderApi {
+export class NativeWindowExtensions_BaseApi {
   constructor(private win: Electron.BrowserWindow) {}
   // private _devToolsWin: Map<number, Electron.BrowserWindow> = new Map();
 
@@ -404,67 +423,6 @@ export class ForRenderApi {
   }
   async isMinimizable() {
     return this.win.isMinimizable();
-  }
-
-  private allBrowserView: { view: Electron.BrowserView; zIndex: number }[] = [];
-  private _allBrowserViewReOrder() {
-    this.allBrowserView
-      /// 重新排序一遍
-      .sort((a, b) => a.zIndex - b.zIndex)
-      .forEach((item, index) => {
-        item.zIndex = index + 1;
-        /// 将排序结果反映到视图中
-        this.win.setTopBrowserView(item.view);
-      });
-  }
-
-  async createBrowserView(options?: Electron.BrowserViewConstructorOptions) {
-    const view = new Electron.BrowserView(options);
-    this.win.addBrowserView(view);
-    this.win.setTopBrowserView(view);
-    const item = { view: proxy(view), zIndex: this.allBrowserView.length + 1 };
-    this.allBrowserView.push(item);
-    return proxy(view);
-  }
-  async deleteBrowserView(view: Electron.BrowserView) {
-    const itemIndex = this.allBrowserView.findIndex(
-      (item) => item.view === view
-    );
-    if (!itemIndex) {
-      return false;
-    }
-    this.win.removeBrowserView(view);
-    view.webContents.close();
-
-    this.allBrowserView.splice(itemIndex, 1);
-    this._allBrowserViewReOrder();
-    return true;
-  }
-  /**
-   * 设定一个排序值，但是返回最终的位置序号
-   * @param view
-   * @param zIndex
-   * @returns
-   */
-  async setBrowserViewZIndex(view: Electron.BrowserView, zIndex: number) {
-    const item = this.allBrowserView.find((item) => item.view === view);
-    if (!item) {
-      return -1;
-    }
-
-    item.zIndex = zIndex + 0.5; /// 先设置一个虚高的值，确保不和其它同index的冲突
-    this._allBrowserViewReOrder();
-    return item.zIndex;
-  }
-  async getBrowserViewZIndex(view: Electron.BrowserView) {
-    const item = this.allBrowserView.find((item) => item.view === view);
-    if (!item) {
-      return -1;
-    }
-    return item.zIndex;
-  }
-  async setTopBrowserView(view: Electron.BrowserView) {
-    return this.setBrowserViewZIndex(view, this.allBrowserView.length);
   }
 
   /**
@@ -543,7 +501,9 @@ export class ForRenderApi {
 //   }) as T;
 // };
 
-export type $NativeWindow = Awaited<ReturnType<typeof openNativeWindow>>;
+export type $NativeWindow = Awaited<
+  ReturnType<typeof createComlinkNativeWindow>
+>;
 
 // {
 //   readonly devToolsWins = new Set<Electron.BrowserWindow>();

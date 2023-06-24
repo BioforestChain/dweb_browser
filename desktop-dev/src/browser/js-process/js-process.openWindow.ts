@@ -1,7 +1,7 @@
 // 工具函数用来打开 js-process 的window
 import { Remote } from "comlink";
 import { electronConfig } from "../../helper/electronConfig.ts";
-import { openNativeWindow } from "../../helper/openNativeWindow.ts";
+import { createComlinkNativeWindow } from "../../helper/openNativeWindow.ts";
 
 declare global {
   interface ElectronConfig {
@@ -28,7 +28,7 @@ export async function jsProcessOpenWindow(
       contextIsolation: false,
     },
   };
-  const browserWindow = await openNativeWindow(url, _options);
+  const browserWindow = await createComlinkNativeWindow(url, _options);
 
   browserWindow.webContents.on("will-prevent-unload", async (event) => {
     if (allowClose !== undefined) {

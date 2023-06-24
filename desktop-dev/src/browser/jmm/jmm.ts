@@ -38,8 +38,8 @@ export class JmmNMM extends NativeMicroModule {
     }
     // console.always(`[${this.mmid}] _bootstrap`);
 
-    await createWWWServer.bind(this)();
-    await createApiServer.bind(this)();
+    await createWWWServer.call(this);
+    await createApiServer.call(this);
     //  安装 第三方 app
     this.registerCommonIpcOnMessageHandler({
       pathname: "/install",

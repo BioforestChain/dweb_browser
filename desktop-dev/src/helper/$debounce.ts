@@ -35,3 +35,18 @@ export const debounce = <F extends (...args: any[]) => Promise<any> | void>(
     return l.po.promise;
   }) as unknown as F;
 };
+
+const debounceNames = new Map<PropertyKey, () => any>();
+export const debounceQueueMicrotask = <T extends () => any>(
+  name: string,
+  fun: T
+) => {
+  if (debounceNames.has(name) === false) {
+    queueMicrotask(() => {
+      const fun = debounceNames.get(name)!;
+      debounceNames.delete(name);
+      fun();
+    });
+  }
+  debounceNames.set(name, fun);
+};

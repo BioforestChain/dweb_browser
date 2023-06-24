@@ -2,7 +2,8 @@
   "importMap": "import_map.json",
   "exclude": [
     "**/assets/",
-    "electron/"
+    "electron/",
+    "*.bak/"
   ],
   "lint": {
     "rules": {

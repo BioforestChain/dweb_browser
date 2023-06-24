@@ -38,7 +38,8 @@ export const doServe = (args = Deno.args) => {
 
   http
     .createServer(async (req, res) => {
-      if (req.url === "/" + nameFlagHelper.bundleName) {
+      const url = new URL(req.url ?? "/", "http://localhost");
+      if (url.pathname === "/" + nameFlagHelper.bundleName) {
         res.setHeader("Content-Type", nameFlagHelper.bundleMime);
         /// 尝试读取上次 metadata.json 生成的 zip 文件
         const zip = await bundleFlagHelper.bundleZip();
@@ -46,7 +47,7 @@ export const doServe = (args = Deno.args) => {
           .generateNodeStream({ compression: "STORE" })
           .pipe(res as NodeJS.WritableStream);
         return;
-      } else if (req.url === "/" + nameFlagHelper.metadataName) {
+      } else if (url.pathname === "/" + nameFlagHelper.metadataName) {
         /// 动态生成 合成 metadata
         res.setHeader("Content-Type", nameFlagHelper.metadataMime);
         /// 每次请求的 metadata.json 的时候，我们强制重新生成 metadata 与 zip 文件
@@ -59,6 +60,9 @@ export const doServe = (args = Deno.args) => {
         metadata.bundle_hash = "sha256:" + hasher.digest("hex");
         metadata.bundle_url = `./${nameFlagHelper.bundleName}`;
 
+        res.setHeader("Access-Control-Allow-Origin", "*");
+        res.setHeader("Access-Control-Allow-Headers", "*");
+        res.setHeader("Access-Control-Allow-Methods", "*");
         res.end(JSON.stringify(metadata, null, 2));
         return;
       }
