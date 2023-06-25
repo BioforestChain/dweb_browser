@@ -65,16 +65,6 @@ class BrowserNMM : NativeMicroModule("browser.dweb") {
         debugBrowser("closeApp",mmid)
         browserController?.closeJmm(mmid)
       },
-      // app详情
-      "/detailApp" bind Method.GET to defineHandler{ request ->
-        val mmid = queryAppId(request)
-        debugBrowser("detailApp",mmid)
-        val apps = getAndUpdateJmmNmmApps()
-        val metadata = apps[mmid]?.metadata
-          ?: return@defineHandler Response(Status.NOT_FOUND).body("not found ${mmid}")
-        JmmManagerActivity.startActivity(metadata)
-        return@defineHandler  true
-      },
     )
   }
 

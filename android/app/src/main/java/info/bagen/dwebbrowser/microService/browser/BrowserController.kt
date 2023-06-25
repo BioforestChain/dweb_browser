@@ -92,7 +92,4 @@ class BrowserController(val browserNMM: BrowserNMM) {
     suspend fun closeJmm(mmid: Mmid) = browserNMM.nativeFetch(
         Uri.of("file://jmm.browser.dweb/closeApp").query("app_id", mmid)
     )
-    suspend fun uninstallJMM(jmmMetadata: JmmMetadata) = browserNMM.nativeFetch(
-        Uri.of("file://jmm.browser.dweb/uninstall").query("app_id", jmmMetadata.id)
-    )
 }

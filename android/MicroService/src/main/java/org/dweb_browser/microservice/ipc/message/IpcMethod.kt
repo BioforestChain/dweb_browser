@@ -17,6 +17,7 @@ enum class IpcMethod(val method: String, val http4kMethod: Method) : JsonSeriali
   DELETE("DELETE", Method.DELETE),
   OPTIONS("OPTIONS", Method.OPTIONS),
   TRACE("TRACE", Method.TRACE),
+  CONNECT("CONNECT",Method.POST),
   PATCH("PATCH", Method.PATCH),
   PURGE("PURGE", Method.PURGE),
   HEAD("HEAD", Method.HEAD),

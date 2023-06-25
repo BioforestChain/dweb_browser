@@ -48,6 +48,7 @@ export async function detailApp(id: string) {
     search: {
       app_id: id,
     },
+    mmid: "jmm.browser.dweb",
   });
 }
 

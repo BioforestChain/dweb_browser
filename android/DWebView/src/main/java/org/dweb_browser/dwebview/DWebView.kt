@@ -202,7 +202,7 @@ class DWebView(
       view: WebView, request: WebResourceRequest
     ): WebResourceResponse? {
       // 转发请求
-      if (request.method == "GET" && request.url.host?.endsWith(".dweb") == true && (request.url.scheme == "http" || request.url.scheme == "https")) {
+      if (request.method == "GET" && request.url.host?.endsWith(".dweb") == true) {
         return dwebFactory(request)
       }
       return super.shouldInterceptRequest(view, request)

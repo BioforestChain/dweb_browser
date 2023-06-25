@@ -2,6 +2,7 @@ package info.bagen.dwebbrowser.microService.browser.jmm
 
 import androidx.compose.runtime.mutableStateMapOf
 import info.bagen.dwebbrowser.App
+import info.bagen.dwebbrowser.microService.browser.debugBrowser
 import org.dweb_browser.microservice.help.Mmid
 import org.dweb_browser.helper.*
 import org.dweb_browser.microservice.sys.dns.nativeFetch
@@ -21,6 +22,8 @@ import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.help.json
 import org.http4k.core.Method
+import org.http4k.core.Response
+import org.http4k.core.Status
 import org.http4k.lens.Query
 import org.http4k.lens.string
 import org.http4k.routing.bind
@@ -133,6 +136,16 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb") {
         val mmid = queryMmid(request)
         jmmController?.closeApp(mmid)
         return@defineHandler true
+      },
+      // app详情
+      "/detailApp" bind Method.GET to defineHandler{ request ->
+        val mmid = queryMmid(request)
+        debugBrowser("detailApp",mmid)
+        val apps = getAndUpdateJmmNmmApps()
+        val metadata = apps[mmid]?.metadata
+          ?: return@defineHandler Response(Status.NOT_FOUND).body("not found ${mmid}")
+        JmmManagerActivity.startActivity(metadata)
+        return@defineHandler  true
       },
       "/pause" bind Method.GET to defineHandler { _, ipc ->
         BrowserUIApp.Instance.mBinderService?.invokeUpdateDownloadStatus(
