@@ -1,5 +1,10 @@
-import { $DwebHttpServerOptions } from "../../../desktop-dev/src/sys/http-server/net/createNetServer.ts";
-import { $Ipc, $IpcRequest, IpcResponse, jsProcess } from "./deps.ts";
+import {
+  $DwebHttpServerOptions,
+  $Ipc,
+  $IpcRequest,
+  IpcResponse,
+  jsProcess,
+} from "./deps.ts";
 import { cros, HttpServer } from "./http-helper.ts";
 
 /**给前端的文件服务 */

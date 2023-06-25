@@ -210,7 +210,7 @@ export class JsProcessMicroModule implements $MicroModule {
   }
 
   /**重启 */
-  restart() {
+  async restart() {
     this.closeSignal.emit();
     this.fetchIpc.postMessage(IpcEvent.fromText("restart", "")); // 发送指令
   }

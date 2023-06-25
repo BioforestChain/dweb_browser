@@ -1,5 +1,4 @@
-import { $DwebHttpServerOptions } from "../../../desktop-dev/src/sys/http-server/net/createNetServer.ts";
-import { http, jsProcess } from "./deps.ts";
+import { $DwebHttpServerOptions, http, jsProcess } from "./deps.ts";
 
 const { IpcHeaders } = navigator.dweb.ipc;
 

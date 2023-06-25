@@ -1,5 +1,4 @@
-import { $DwebHttpServerOptions } from "../../../desktop-dev/src/sys/http-server/net/createNetServer.ts";
-import { $IpcRequest, $IpcResponse, IpcResponse, PromiseOut } from "./deps.ts";
+import { $DwebHttpServerOptions, $IpcRequest, $IpcResponse, IpcResponse, PromiseOut } from "./deps.ts";
 import { fetchSignal } from "./http-api-server.ts";
 import { HttpServer, cros } from "./http-helper.ts";
 

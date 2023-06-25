@@ -1,9 +1,11 @@
 import {
+  $DwebHttpServerOptions,
   $Ipc,
   $IpcRequest,
   $IpcResponse,
   $ServerUrlInfo,
   HttpDwebServer,
+  IpcHeaders,
   IpcRequest,
   IpcResponse,
   IPC_METHOD,
@@ -41,7 +43,9 @@ export class Server_api extends HttpServer {
       const url = request.parsed_url;
       // serviceWorker
       if (url.pathname.startsWith("/dns.sys.dweb")) {
-        const result = await serviceWorkerFactory(url);
+        const result = await serviceWorkerFactory(
+          new URL("file:/" + url.pathname + url.search)
+        );
         const ipcResponse = IpcResponse.fromText(
           request.req_id,
           200,
@@ -63,20 +67,20 @@ export class Server_api extends HttpServer {
       // 向dns发送关闭当前 模块的消息
       // woker.js -> dns -> JsMicroModule -> woker.js -> 其他的 NativeMicroModule
 
-      if (pathname.endsWith("restart")) {
+      if (pathname === "/restart") {
         // 关闭全部的服务
-        await apiServer.close();
         await wwwServer.close();
         await externalServer.close();
+        await apiServer.close();
         // 关闭所有的DwebView
         await mwebview_destroy();
         // 这里只需要把请求发送过去，因为app已经被关闭，已经无法拿到返回值
-        jsProcess.restart();
+        await jsProcess.restart();
         return "restart ok";
       }
 
       // 只关闭 渲染一个渲染进程 不关闭 service
-      if (pathname.endsWith("close")) {
+      if (pathname === "/close") {
         await mwebview_destroy();
         return "window close";
       }
@@ -85,8 +89,6 @@ export class Server_api extends HttpServer {
   }
 }
 
-import { IpcHeaders } from "../../../desktop-dev/src/core/ipc/IpcHeaders.ts";
-import { $DwebHttpServerOptions } from "../../../desktop-dev/src/sys/http-server/net/createNetServer.ts";
 import { OBSERVE } from "./const.ts";
 import {
   $MMID,
