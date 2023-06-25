@@ -3,11 +3,11 @@
 import { $Device } from "../types.ts";
 import { mainApis } from "../../../helper/openNativeWindow.preload.ts"
 import { allDeviceListMap } from "./data.ts"
-import { requestDevice } from "./device.ts"
 // import { requestDevice } from "./device.ts"
 // import type Electron from "electron";
 
 const template: HTMLTemplateElement | null = document.querySelector(".template");
+let setTimeoutId: number;
 /**
  * 创建节点
  */ 
@@ -50,10 +50,11 @@ async function devicesUpdate(list: $Device[]){
         }
 
         // 超时设置
-        setTimeout(() => {
+        setTimeoutId = setTimeout(() => {
           oldDevice.el.classList.remove('connecting')
           oldDevice.isConnecting = false;
           // 超时提示框
+          console.error('选择失败')
            
         },6000)
       })
@@ -64,9 +65,20 @@ async function devicesUpdate(list: $Device[]){
   })
 }
 
+const deviceSelected = async (device?:$Device) => {
+  if(device === undefined) return;
+  const deviceListItem = allDeviceListMap.get(device.deviceId)
+  if(deviceListItem === undefined) throw new Error(`deviceListItem === undefined`);
+  deviceListItem.el.classList.remove("connecting")
+  deviceListItem.el.classList.add("connected")
+  deviceListItem.isConnecting = false;
+  deviceListItem.isConnected = true;
+  clearTimeout(setTimeoutId);
+}
+
 export const APIS = {
   devicesUpdate,
-  requestDevice
+  deviceSelected,
 };
 Object.assign(globalThis, APIS);
 

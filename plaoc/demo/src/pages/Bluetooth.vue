@@ -46,9 +46,14 @@ onMounted(async () => {
 })
 
 async function toggleOpen(){
+  if(state.isOpen){
+    bluetooth.requestDeviceCancel()
+  }else{
+    bluetooth.requestDevice()
+  }
   state.isOpen = !state.isOpen
-  bluetoothDevice = await bluetooth.toggle(state.isOpen)
-  console.log("bluetoothDevice: ", bluetoothDevice)
+  // bluetoothDevice = await bluetooth.toggle(state.isOpen)
+  // console.log("bluetoothDevice: ", bluetoothDevice)
 }
 
 function allDeviceUpdate(list: $Device[]){
@@ -81,7 +86,7 @@ function deviceConnect(device: $Device){
       <h2 class="card-title">蓝牙</h2>
       <input class="toggle" type="checkbox" id="statusbar-overlay" v-model="state.isOpen"  @click="toggleOpen"/>
     </article>
-    <article class="card-body">
+    <!-- <article class="card-body">
       <h2 class="card-title">我的蓝牙设备</h2>
       <v-list lines="one" bg-color="#ffffff11">
         <v-list-item
@@ -118,7 +123,7 @@ function deviceConnect(device: $Device){
           </template>
         </v-list-item>
       </v-list>
-    </article>
+    </article> -->
   </div>
   <LogPanel ref="$logPanel"></LogPanel>
 </template>

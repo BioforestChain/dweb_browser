@@ -1,71 +1,85 @@
-import { $Device } from "./bluetooth.type.ts"
+import { bindThis } from "../../helper/bindThis.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
 import "../../@types/web-bluetooth/index.d.ts"
+
 export class BluetoothPlugin extends BasePlugin{
   constructor(){
     super("bluetooth.std.dweb");
   }
-  async toggle(isOpen: boolean){
-    if(isOpen){
-      console.log('触发了')
-      const bluetoothDevice = await navigator.bluetooth.requestDevice({
-        acceptAllDevices: true,
-        optionalServices: [
-          0x180F, /**获取电池信息*/
-          0x1844, /**声音服务*/
-        ]
-      })
-      return bluetoothDevice
-      // bluetoothDevice.gatt.connect()
-      // .then(
-      //   (server: any) => {
-      //     console.log("链接成功了")
-      //     return server;
-      //     // Array.from(allDeviceListMap.values()).forEach((item: $AllDeviceListItem) => {
-      //     //   if(item.isConnecting){
-      //     //     item.isConnecting = false;
-      //     //     item.el.classList.remove('connecting');
-      //     //     item.isConnected = true;
-      //     //     item.el.classList.add("connected")
-      //     //   }else{
-      //     //     item.el.classList.remove('connected');
-      //     //   }
-      //     // })
-      //   },
-      //   (err: Error) => {
-      //     console.log('连接失败了', err)
-      //     return undefined
-      //   }
-      // )
-    }else{
-      return undefined
-    }
+
+  requestDevice = async() => {
+    const bluetoothDevice = await navigator.bluetooth.requestDevice({
+      acceptAllDevices: true,
+      optionalServices: [
+        0x180F, /**获取电池信息*/
+        0x1844, /**声音服务*/
+      ]
+    })
+    console.log('bluetoothDevice: ', bluetoothDevice)
+    return bluetoothDevice
   }
 
+  @bindThis
+  requestDeviceCancel(){
+    return this.fetchApi("/close")
+  }
+  
+  // toggle = async (isOpen: boolean) => {
+  //   if(isOpen){
+  //     const bluetoothDevice = await navigator.bluetooth.requestDevice({
+  //       acceptAllDevices: true,
+  //       optionalServices: [
+  //         0x180F, /**获取电池信息*/
+  //         0x1844, /**声音服务*/
+  //       ]
+  //     })
+  //     console.log('bluetoothDevice: ', bluetoothDevice)
+  //     return bluetoothDevice
+  //   }else{ // 关闭 bluetooth
+  //     this.close()
+  //     return undefined
+  //   }
+  // }
+
+  @bindThis
   open(){
-    const {baseurl, xDwebHost} = this.apiUrlGet();
-    const url = `${baseurl}/open?x-dweb-host=${xDwebHost}`
-    return  fetch(url)
-  }
+    // this.fetchApi("/observe")
+    // .then(async (res) => {
+    //   const readableStream = res.body;
+    //   const reader = readableStream?.getReader()
+    //   if(reader === undefined) throw new Error('reader === undefined');
+    //   let loop = true
+    //   while(loop){
+    //     const { value, done} = await reader.read();
+    //     if(value){
+    //       console.log('value: ', value)
+    //     }
+    //     loop = !done
+    //   }
+    // })
 
+    // const {baseurl, xDwebHost} = this.apiUrlGet();
+    // const url = `${baseurl}/open?x-dweb-host=${xDwebHost}`
+    // return  fetch(url)
+  }
+ 
+  @bindThis
   close(){
-    const {baseurl, xDwebHost} = this.apiUrlGet();
-    const url = `${baseurl}/close?x-dweb-host=${xDwebHost}`
-    return fetch(url)
+    return this.fetchApi("/close")
   }
 
-  selected(device: $Device){
-    const {baseurl, xDwebHost} = this.apiUrlGet();
-    const url = `${baseurl}/selected`
-    return fetch(`${url}?x-dweb-host=${xDwebHost}&device_id=${device.deviceId}&device_name=${device.deviceName}`)
-  }
+  // selected(device: $Device){
+  //   const {baseurl, xDwebHost} = this.apiUrlGet();
+  //   const url = `${baseurl}/selected`
+  //   return fetch(`${url}?x-dweb-host=${xDwebHost}&device_id=${device.deviceId}&device_name=${device.deviceName}`)
+  // }
 
-  apiUrlGet(){
-    const host = location.host.replace("www.", "api.");
-    const baseurl = `http://${host}/${this.mmid}`
-    const xDwebHost = host.split("-")[0]
-    return {baseurl, xDwebHost}
-  }
+  // apiUrlGet(){
+  //   const host = location.host.replace("www.", "api.");
+  //   const baseurl = `http://${host}/${this.mmid}`
+  //   const xDwebHost = host.split("-")[0]
+  //   return {baseurl, xDwebHost}
+  // }
 }
 
 // http://

@@ -154,6 +154,8 @@ export const createComlinkNativeWindow = async <
 ) => {
   const win = await createNativeWindow(new URL("/", url).href, createOptions);
 
+  // 测试使用
+  win.webContents.openDevTools()
   // win.webContents.setWindowOpenHandler((_detail) => {
   //   return { action: "deny" };
   // });

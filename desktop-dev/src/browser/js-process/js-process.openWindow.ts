@@ -29,7 +29,8 @@ export async function jsProcessOpenWindow(
     },
   };
   const browserWindow = await createComlinkNativeWindow(url, _options);
-
+  // 测试  需要开启 devTools
+  browserWindow.webContents.openDevTools()
   browserWindow.webContents.on("will-prevent-unload", async (event) => {
     if (allowClose !== undefined) {
       if (allowClose) {
@@ -79,6 +80,10 @@ export async function jsProcessOpenWindow(
       event.preventDefault();
     }
   });
+
+  
+
+
 
   return browserWindow;
 }
