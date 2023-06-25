@@ -4,7 +4,6 @@ using DwebBrowser.MicroService.Browser.Jmm;
 using DwebBrowser.MicroService.Http;
 using Foundation;
 using UIKit;
-using System.Text.Json.Serialization;
 
 namespace DwebBrowser.MicroService.Browser;
 
@@ -31,7 +30,7 @@ public class BrowserNMM : IOSNativeMicroModule
         HttpRouter.AddRoute(IpcMethod.Get, "/openApp", async (request, ipc) =>
         {
             var mmid = request.QueryStringRequired("app_id");
-            return BrowserController?.OpenApp(mmid);
+            return await BrowserController?.OpenJMM(mmid);
         });
 
         HttpRouter.AddRoute(IpcMethod.Get, "/appsInfo", async (request, ipc) =>
@@ -53,7 +52,7 @@ public class BrowserNMM : IOSNativeMicroModule
         HttpRouter.AddRoute(IpcMethod.Get, "/closeApp", async (request, ipc) =>
         {
             var mmid = request.QueryStringRequired("app_id");
-            return BrowserController?.CloseApp(mmid);
+            return await BrowserController?.CloseJMM(mmid);
         });
 
         // App详情

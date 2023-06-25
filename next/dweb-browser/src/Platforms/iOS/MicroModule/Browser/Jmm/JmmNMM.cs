@@ -128,6 +128,20 @@ public class JmmNMM : NativeMicroModule
                 JmmApps.Values.Select(x => x.Metadata).ToList(), _installingApps.Values.ToList());
         });
 
+        HttpRouter.AddRoute(IpcMethod.Get, "/openApp", async (request, _) =>
+        {
+            var mmid = request.QueryStringRequired("app_id");
+            await JmmController?.OpenApp(mmid);
+            return true;
+        });
+
+        HttpRouter.AddRoute(IpcMethod.Get, "/closeApp", async (request, _) =>
+        {
+            var mmid = request.QueryStringRequired("app_id");
+            await JmmController?.CloseApp(mmid);
+            return true;
+        });
+
         HttpRouter.AddRoute(IpcMethod.Get, "/pause", async (_, ipc) =>
         {
             return JmmDwebService.UpdateDownloadControlStatus(ipc.Remote.Mmid, DownloadControlStatus.Pause);
