@@ -147,7 +147,9 @@ export class MWebviewController {
     const [_, height_with_titlebar] = this.win.getSize();
     view.setBounds({ height, width, x: 0, y: height_with_titlebar - height });
     view.setAutoResize({ width: true, height: true });
-    view.webContents.openDevTools({ mode: "detach" });
+    view.webContents.on("dom-ready", () => {
+      view.webContents.openDevTools({ mode: "detach" });
+    })
     if (url) {
       view.webContents.loadURL(url);
     }
