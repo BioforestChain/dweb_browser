@@ -20,17 +20,16 @@ import androidx.room.TypeConverters
 import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
 import org.dweb_browser.browserUI.database.Converters
-import org.dweb_browser.browserUI.database.WebSiteType
 import java.io.ByteArrayOutputStream
-import java.util.Date
 
 class BookmarkView {
   val bookList = mutableStateListOf<Bookmark>()
   var stopObserve = false;
 }
 
-val LocalBookmarkView =
-  compositionLocalOf<BookmarkView> { throw Exception("No provider of Bookmark") }
+val LocalBookmarkView = compositionLocalOf<BookmarkView> {
+  throw Exception("No provider of Bookmark")
+}
 
 
 @Entity(

@@ -1,4 +1,4 @@
-package org.dweb_browser.browserUI.bookmark.BookPage
+package org.dweb_browser.browserUI.bookmark.bookPage
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.compositionLocalOf

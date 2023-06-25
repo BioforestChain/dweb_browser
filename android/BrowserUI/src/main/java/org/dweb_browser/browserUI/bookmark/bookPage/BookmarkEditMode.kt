@@ -1,4 +1,4 @@
-package org.dweb_browser.browserUI.bookmark.BookPage
+package org.dweb_browser.browserUI.bookmark.bookPage
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -37,9 +37,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupProperties
 import org.dweb_browser.browserUI.bookmark.Bookmark
 
-
 @Composable
-inline fun BookmarkEditModeDropdownMenu(modifier: Modifier = Modifier) {
+fun BookmarkEditModeDropdownMenu(modifier: Modifier = Modifier) {
   var showEditOptions by LocalBookmarkEditModel.current.showMoreOptions
   var showEditDialog by LocalBookmarkEditModel.current.showEditDialog
   val surfaceColor = MaterialTheme.colorScheme.surface;

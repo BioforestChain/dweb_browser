@@ -127,7 +127,7 @@ fun Modifier.clickableWithNoEffect(onClick: () -> Unit) = this.clickable(indicat
 )
 
 @Composable
-private fun _PreviewBrowserListOfBook(size: Int) {
+private fun PreviewBrowserListOfBook(size: Int) {
   val viewModel = remember {
     BookmarkView()
   }
@@ -152,18 +152,18 @@ private fun _PreviewBrowserListOfBook(size: Int) {
 @Preview(showBackground = true, backgroundColor = 0x989a82)
 @Composable
 fun PreviewLongBrowserListOfBook() {
-  _PreviewBrowserListOfBook(10)
+  PreviewBrowserListOfBook(10)
 }
 
 @Preview(showBackground = true, backgroundColor = 0x989a82)
 @Composable
 fun PreviewShortBrowserListOfBook() {
-  _PreviewBrowserListOfBook(3)
+  PreviewBrowserListOfBook(3)
 }
 
 @Preview(showBackground = true, backgroundColor = 0x989a82)
 @Composable
 fun PreviewEmptyBrowserListOfBook() {
-  _PreviewBrowserListOfBook(0)
+  PreviewBrowserListOfBook(0)
 }
 

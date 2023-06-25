@@ -37,12 +37,12 @@ import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import org.dweb_browser.browserUI.R
-import org.dweb_browser.browserUI.bookmark.BookPage.BookPageModel
-import org.dweb_browser.browserUI.bookmark.BookPage.BookmarkEditModeDropdownMenu
-import org.dweb_browser.browserUI.bookmark.BookPage.BookmarkEditModeEditDialog
-import org.dweb_browser.browserUI.bookmark.BookPage.BookmarkEditModel
-import org.dweb_browser.browserUI.bookmark.BookPage.LocalBookPageModel
-import org.dweb_browser.browserUI.bookmark.BookPage.LocalBookmarkEditModel
+import org.dweb_browser.browserUI.bookmark.bookPage.BookPageModel
+import org.dweb_browser.browserUI.bookmark.bookPage.BookmarkEditModeDropdownMenu
+import org.dweb_browser.browserUI.bookmark.bookPage.BookmarkEditModeEditDialog
+import org.dweb_browser.browserUI.bookmark.bookPage.BookmarkEditModel
+import org.dweb_browser.browserUI.bookmark.bookPage.LocalBookPageModel
+import org.dweb_browser.browserUI.bookmark.bookPage.LocalBookmarkEditModel
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -120,7 +120,7 @@ fun BookPage() {
 
 
 @Composable
-fun _previewBookPage(pageModel: BookPageModel) {
+fun PreviewBookPage(pageModel: BookPageModel) {
   val viewModel = remember {
     BookmarkView()
   }
@@ -150,7 +150,7 @@ fun PreviewBookPage1() {
   val pageModel = remember {
     BookPageModel()
   }
-  _previewBookPage(pageModel)
+  PreviewBookPage(pageModel)
 }
 
 @Preview
@@ -161,7 +161,7 @@ fun PreviewBookPage2() {
   }
   pageModel.editMode.value = true
 
-  _previewBookPage(pageModel)
+  PreviewBookPage(pageModel)
 }
 
 @Composable
