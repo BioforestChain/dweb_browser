@@ -1,10 +1,7 @@
 package info.bagen.dwebbrowser
 
-import info.bagen.dwebbrowser.microService.core.BootstrapContext
-import info.bagen.dwebbrowser.microService.core.NativeMicroModule
 import org.dweb_browser.microservice.ipc.message.IpcHeaders
 import org.dweb_browser.microservice.ipc.message.IpcResponse
-import org.dweb_browser.helper.text
 import org.dweb_browser.microservice.sys.boot.BootNMM
 import org.dweb_browser.microservice.sys.dns.DnsNMM
 import org.dweb_browser.microservice.sys.dns.nativeFetch
@@ -15,6 +12,9 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import org.dweb_browser.microservice.core.BootstrapContext
+import org.dweb_browser.microservice.core.NativeMicroModule
+import org.dweb_browser.microservice.help.text
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
@@ -57,8 +57,7 @@ class DwebTest : AsyncBase() {
                     delay(20)
                     println("第 $i 次发送数据")
                     val data = "/hi-$i"
-                    val res =
-                        org.dweb_browser.microservice.sys.dns.nativeFetch(dwebServer.startResult.urlInfo.internal_origin + data)
+                    val res = nativeFetch(dwebServer.startResult.urlInfo.internal_origin + data)
                     assertEquals("ECHO: $data", res.text())
                 }
             }
@@ -67,8 +66,7 @@ class DwebTest : AsyncBase() {
                     delay(20)
                     println("第 $i 次发送数据")
                     val data = "/hi-$i"
-                    val res =
-                        org.dweb_browser.microservice.sys.dns.nativeFetch(internalServer.startResult.urlInfo.internal_origin + data)
+                    val res = nativeFetch(internalServer.startResult.urlInfo.internal_origin + data)
                     assertEquals("ECHO/INTERNAL: $data", res.text())
                 }
             }

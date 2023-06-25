@@ -383,8 +383,7 @@ private fun SearchBox(baseView: BrowserBaseView) {
       else -> mutableStateOf("")
     }
     val search =
-      if (inputText.value.isEmpty() || inputText.value.startsWith("file:///android_asset/") ||
-        inputText.value.startsWith("chrome://")) {
+      if (inputText.value.isEmpty() || inputText.value.isSystemUrl()) {
         Triple(
           stringResource(id = R.string.browser_search_hint),
           TextAlign.Start,

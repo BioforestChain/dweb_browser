@@ -229,7 +229,7 @@ class BrowserViewModel(val microModule: MicroModule, val onOpenDweb: (Mmid) -> U
 
         is BrowserIntent.SaveHistoryWebSiteInfo -> {
           action.url?.let {
-            if (!isNoTrace.value && !it.startsWith("file:///android_asset/")) { // 无痕模式，不保存历史搜索记录
+            if (!isNoTrace.value && !it.isSystemUrl()) { // 无痕模式，不保存历史搜索记录
               WebSiteDatabase.INSTANCE.websiteDao().insert(
                 WebSiteInfo(title = action.title ?: it, url = it, type = WebSiteType.History)
               )
@@ -240,7 +240,7 @@ class BrowserViewModel(val microModule: MicroModule, val onOpenDweb: (Mmid) -> U
         is BrowserIntent.SaveBookWebSiteInfo -> {
           uiState.currentBrowserBaseView.value.let {
             val url = it.viewItem.state.lastLoadedUrl ?: ""
-            if (url.isEmpty() || url.startsWith("file:///android_asset/")) {
+            if (url.isEmpty() || url.isSystemUrl()) {
               handleIntent(BrowserIntent.ShowSnackbarMessage("无效书签页"))
               return@let
             }
@@ -258,7 +258,7 @@ class BrowserViewModel(val microModule: MicroModule, val onOpenDweb: (Mmid) -> U
 
         is BrowserIntent.ShareWebSiteInfo -> {
           uiState.currentBrowserBaseView.value.let {
-            if (it.viewItem.state.lastLoadedUrl?.startsWith("file:///android_asset") == true) {
+            if (it.viewItem.state.lastLoadedUrl?.isSystemUrl() == true) {
               handleIntent(BrowserIntent.ShowSnackbarMessage("无效的分享"))
               return@let
             }
