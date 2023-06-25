@@ -70,29 +70,22 @@ public static class NetServer
         listener.Prefixes.Add(origin);
         listener.Start();
 
-        _ = Task.Run(async () =>
+        /// 使用Task.Factory.StartNew创建一个非线程池中的Task，使用LongRunning来启动一个长时间运行任务，避免每次都从线程池中取Task
+        /// HandlerAsync使用Wait来阻塞而不使用async/await的方式是因为：
+        /// 如果在StartNew中使用async/await的话，会导致第一次使用的是新创建的LongRunning Task，但是在之后再次运行HandlerAsync的时候，
+        /// 会从线程池中取出Task,而不是使用LongRunning Task，这样可以避免频繁的去线程池中取Task
+        Task.Factory.StartNew(() =>
         {
-            while (true)
+            while (listener.IsListening)
             {
-                var context = await listener.GetContextAsync();
-                _ = Task.Run(async () =>
+                var context = listener.GetContext();
+
+                Task.Factory.StartNew(() =>
                 {
-                    var request = context.Request;
-                    using var response = context.Response;
-                    try
-                    {
-                        var pureRequest = request.ToPureRequest();
-                        using var pureReponse = await handler(pureRequest);
-                        await pureReponse.WriteToHttpListenerResponse(response);
-                    }
-                    catch (Exception e)
-                    {
-                        response.OutputStream.Write(e.Message.ToUtf8ByteArray());
-                        response.StatusCode = 502;
-                    }
-                }).NoThrow();
+                    HandlerAsync(context, handler).Wait();
+                }, TaskCreationOptions.LongRunning);
             }
-        }).NoThrow();
+        }, TaskCreationOptions.LongRunning);
 
         return new HttpServerInfo(
             listener,
@@ -101,6 +94,23 @@ public static class NetServer
             listenOptions.Port,
             origin,
             new HttpProtocol("http://", "http:", 80));
+    }
+
+    private static async Task HandlerAsync(HttpListenerContext context, HttpHandler handler)
+    {
+        var request = context.Request;
+        using var response = context.Response;
+        try
+        {
+            var pureRequest = request.ToPureRequest();
+            using var pureReponse = await handler(pureRequest);
+            await pureReponse.WriteToHttpListenerResponse(response);
+        }
+        catch (Exception e)
+        {
+            response.OutputStream.Write(e.Message.ToUtf8ByteArray());
+            response.StatusCode = 502;
+        }
     }
 
 }
