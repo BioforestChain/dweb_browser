@@ -1,7 +1,5 @@
 ﻿using System.Runtime.Versioning;
 using CoreGraphics;
-using DwebBrowser.DWebView;
-using DwebBrowser.Helper;
 using DwebBrowser.MicroService.Http;
 using Foundation;
 using UIKit;
@@ -23,7 +21,7 @@ public partial class BrowserWeb : WKWebView
             // http://localhost/browser.dweb/appsInfo
             var browserSchemaHandler = new BrowserSchemaHandler(localeMM, new Uri("browser.dweb://browser.dweb"));
             configuration.SetUrlSchemeHandler(browserSchemaHandler, "browser.dweb");
-            configuration.UserContentController.AddScriptMessageHandler(new ConsoleMessageHandler(), "logging");
+            //configuration.UserContentController.AddScriptMessageHandler(new ConsoleMessageHandler(), "logging");
         }))
     {
         /// 注入脚本，修改dweb_deeplinks的fetch为window.location.href，否则webview无法拦截到
@@ -35,7 +33,6 @@ public partial class BrowserWeb : WKWebView
                   return;
                 } else if(input.toString().startsWith('http://localhost/browser.dweb/')) {
                   input = new URL(input.toString().replace('http://localhost/', 'browser.dweb://'));
-                  //window.webkit.messageHandlers.logging.postMessage({log:'dwebFetch1: ' + input});
                 }
 
                 return originalFetch(input, init);
@@ -79,30 +76,15 @@ public partial class BrowserWeb : WKWebView
         public async Task<DWebView.DWebView> CreateDWebViewAsync(string url) =>
             new DWebView.DWebView(_microModule, options: new DWebView.DWebView.Options(url));
 
-        public DWebView.DWebView CreateDWebView(string url) =>
-            new DWebView.DWebView(_microModule, options: new DWebView.DWebView.Options(url));
+        public DWebView.DWebView CreateDWebView(string url, WKWebViewConfiguration? configuration = null) =>
+            new DWebView.DWebView(_microModule, options: new DWebView.DWebView.Options(url), configuration: configuration);
 
 
         [Export("webView:createWebViewWithConfiguration:forNavigationAction:windowFeatures:")]
         public override WKWebView? CreateWebView(WKWebView webView, WKWebViewConfiguration configuration, WKNavigationAction navigationAction, WKWindowFeatures windowFeatures)
         {
-            var webview = CreateDWebView(navigationAction.Request.Url.AbsoluteString);
-            return webview;
+            return CreateDWebView("", configuration);
         }
-
-        //[Export("webView:runJavaScriptAlertPanelWithMessage:initiatedByFrame:completionHandler:")]
-        //public override async void RunJavaScriptAlertPanel(WKWebView webView, string message, WKFrameInfo frame, Action completionHandler)
-        //{
-        //    var alertController = UIAlertController.Create(webView.Title, message, UIAlertControllerStyle.Alert);
-        //    /// 点击确定
-        //    alertController.AddAction(UIAlertAction.Create("Ok", UIAlertActionStyle.Default, (action) => Console.Log("alert", "1")));
-
-        //    var vc = await IOSNativeMicroModule.RootViewController.WaitPromiseAsync();
-        //    await vc.PresentViewControllerAsync(alertController, true);
-
-        //    completionHandler();
-        //}
-
     }
 
     #region dweb-deeplinks 拦截
@@ -125,6 +107,30 @@ public partial class BrowserWeb : WKWebView
             }
 
             decisionHandler(WKNavigationActionPolicy.Allow);
+        }
+
+        /// 3D Touch功能控制
+        public override void DidFinishNavigation(WKWebView webView, WKNavigation navigation)
+        {
+            Console.Log("DidFinishNavigation", webView.Url.AbsoluteString);
+            if (webView.Url.Scheme is "about" or "about+ios")
+            {
+                webView.InvokeOnMainThread(async () =>
+                {
+                    await webView.EvaluateJavaScriptAsync("""
+                        document.documentElement.style.webkitTouchCallout = 'none';
+                        """);
+                });
+            }
+            else
+            {
+                webView.InvokeOnMainThread(async () =>
+                {
+                    await webView.EvaluateJavaScriptAsync("""
+                        document.documentElement.style.webkitTouchCallout = 'default';
+                        """);
+                });
+            }
         }
     }
     #endregion

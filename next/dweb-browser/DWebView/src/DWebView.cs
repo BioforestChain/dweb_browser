@@ -152,6 +152,7 @@ public partial class DWebView : WKWebView
     {
         try
         {
+            configuration.UserContentController.RemoveAllUserScripts();
             var webMessagePortScript = new WKUserScript(
                 new NSString(webMessagePortPrepareCode),
                 WKUserScriptInjectionTime.AtDocumentEnd,
@@ -175,6 +176,7 @@ public partial class DWebView : WKWebView
     {
         try
         {
+            Configuration.UserContentController.RemoveAllScriptMessageHandlers();
             Configuration.UserContentController.AddScriptMessageHandler(asyncCodeMessageHanlder, "asyncCode");
             Configuration.UserContentController.AddScriptMessageHandler(CloseWatcherMessageHanlder, "closeWatcher");
             Configuration.UserContentController.AddScriptMessageHandler(webMessagePortMessageHanlder, webMessagePortContentWorld, "webMessagePort");
