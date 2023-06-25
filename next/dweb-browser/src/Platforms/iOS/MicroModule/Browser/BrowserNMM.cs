@@ -22,34 +22,7 @@ public class BrowserNMM : IOSNativeMicroModule
         get => s_controllerList.FirstOrDefault();
     }
 
-    //record AppInfo(string id, string icon, string name, string short_name);
-    class AppInfo
-    {
-        [JsonPropertyName("id")]
-        public string Id { get; set; }
-        [JsonPropertyName("icon")]
-        public string Icon { get; set; }
-        [JsonPropertyName("name")]
-        public string Name { get; set; }
-        [JsonPropertyName("short_name")]
-        public string ShortName { get; set; }
-
-        [Obsolete("使用带参数的构造函数", true)]
-#pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
-        public AppInfo()
-#pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
-        {
-            /// 给JSON反序列化用的空参数构造函数
-        }
-
-        public AppInfo(string id, string icon, string name, string short_name)
-        {
-            Id = id;
-            Icon = icon;
-            Name = name;
-            ShortName = short_name;
-        }
-    }
+    record AppInfo(string id, string icon, string name, string short_name);
 
     protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)
     {

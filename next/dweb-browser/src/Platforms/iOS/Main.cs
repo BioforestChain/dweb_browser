@@ -82,7 +82,8 @@ public class MicroService
         "BrowserWeb",
         "JmmDownload",
         "StreamExtensions",
-        "BrowserNMM"
+        "BrowserNMM",
+        "BrowserWeb"
     };
 
     // 添加debug日志tag过滤

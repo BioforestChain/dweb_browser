@@ -1,4 +1,5 @@
 ﻿using System.Runtime.Versioning;
+using System.Text;
 using DwebBrowser.Helper;
 using DwebBrowser.MicroService.Core;
 using DwebBrowser.MicroService.Http;
@@ -81,7 +82,7 @@ public partial class DWebView : WKWebView
             }
         }
 
-        public virtual Uri ResetSchemeUrl(NSUrl nsurl)
+        public virtual Uri InternalSchemaUrl(NSUrl nsurl)
         {
             return new Uri(baseUri, nsurl.ResourceSpecifier);
         }
@@ -91,7 +92,7 @@ public partial class DWebView : WKWebView
         public virtual async void StartUrlSchemeTask(WKWebView webView, IWKUrlSchemeTask urlSchemeTask)
         {
             Console.Log("StartUrlSchemeTask", "Start: {0}", urlSchemeTask.Request.Url.AbsoluteString);
-            var url = ResetSchemeUrl(urlSchemeTask.Request.Url);
+            var url = InternalSchemaUrl(urlSchemeTask.Request.Url);
             try
             {
                 /// 构建请求

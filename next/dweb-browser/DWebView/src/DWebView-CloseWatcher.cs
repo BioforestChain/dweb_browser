@@ -8,10 +8,10 @@ public class CloseWatcher
     private static int s_acc_id = 0;
     private static readonly string JS_POLYFILL_KIT = "__native_close_watcher_kit__";
 
-    private DWebView _webview { get; init; }
+    private WKWebView _webview { get; init; }
     public readonly HashSet<string> Consuming = new();
 
-    public CloseWatcher(DWebView webview)
+    public CloseWatcher(WKWebView webview)
     {
         _webview = webview;
     }
@@ -37,9 +37,9 @@ public class CloseWatcher
         public string Id = Interlocked.Increment(ref s_acc_id).ToString();
         private long _destroy = 0;
         private Mutex _closeMutex = new Mutex(false);
-        private DWebView _webview { get; init; }
+        private WKWebView _webview { get; init; }
 
-        public Watcher(DWebView webview)
+        public Watcher(WKWebView webview)
         {
             _webview = webview;
         }
