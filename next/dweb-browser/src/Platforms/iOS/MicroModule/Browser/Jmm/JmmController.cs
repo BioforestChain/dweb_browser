@@ -36,14 +36,11 @@ public class JmmController : BaseViewController
 
     public async Task CloseApp(Mmid mmid)
     {
-        var ipc = await _openIpcMap.GetValueOrPutAsync(mmid, async () =>
+        if (_openIpcMap.TryGetValue(mmid, out var ipc))
         {
-            var connectResult = await _jmmNMM.ConnectAsync(mmid);
-            return connectResult.IpcForFromMM;
-        });
-
-        Console.Log("closeApp", "postMessage ==> activity {0}, {1}", mmid, ipc.Remote.Mmid);
-        await ipc.PostMessageAsync(IpcEvent.FromUtf8(EIpcEvent.Close.Event, ""));
+            Console.Log("closeApp", "postMessage ==> activity {0}, {1}", mmid, ipc.Remote.Mmid);
+            await ipc.PostMessageAsync(IpcEvent.FromUtf8(EIpcEvent.Close.Event, ""));
+        }
         _openIpcMap.Remove(mmid);
     }
 }
