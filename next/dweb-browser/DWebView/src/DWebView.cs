@@ -57,7 +57,7 @@ public partial class DWebView : WKWebView
         }
 
         /// 注入脚本
-        s_addUserScript(configuration);
+        AddUserScript(configuration);
     }))
     {
         this.localeMM = localeMM;
@@ -81,7 +81,7 @@ public partial class DWebView : WKWebView
         this.UIDelegate = new DWebViewUIDelegate(this);
 
         /// 添加JS交互代理
-        _addScriptMessageHandler();
+        AddScriptMessageHandler();
 
         /// 设置 ContentInsetAdjustment 的默认行为，这样 SafeArea 就不会注入到 WKWebView.ScrollView.ContentInset 中
         this.ScrollView.ContentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentBehavior.Never;
@@ -148,7 +148,7 @@ public partial class DWebView : WKWebView
         //}
     }
 
-    private static void s_addUserScript(WKWebViewConfiguration configuration)
+    private static void AddUserScript(WKWebViewConfiguration configuration)
     {
         try
         {
@@ -168,11 +168,11 @@ public partial class DWebView : WKWebView
         }
         catch (Exception e)
         {
-            Console.Error("s_addUserScript", "{0}", e);
+            Console.Error("AddUserScript", "{0}", e);
         }
     }
 
-    private void _addScriptMessageHandler()
+    private void AddScriptMessageHandler()
     {
         try
         {

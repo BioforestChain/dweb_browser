@@ -24,7 +24,6 @@ public partial class BrowserWeb : WKWebView
         var script = new WKUserScript(new NSString($$"""
             var originalFetch = fetch;
             function dwebFetch(input, init) {
-        webkit.messageHandlers.logging.postMessage({log: input});
                 if (input.toString().startsWith === 'dweb:') {
                   window.location.href = input;
                   return;

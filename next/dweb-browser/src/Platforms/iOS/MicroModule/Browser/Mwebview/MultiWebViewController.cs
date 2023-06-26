@@ -1,4 +1,5 @@
-﻿using DwebBrowser.Base;
+﻿using System.Text.Json;
+using DwebBrowser.Base;
 using DwebBrowser.MicroService.Browser.Mwebview.DwebServiceWorker;
 using DwebBrowser.MicroService.Browser.NativeUI;
 using UIKit;
@@ -29,6 +30,40 @@ public partial class MultiWebViewController : BaseViewController
         gesture.Edges = UIRectEdge.Left;
         gesture.CancelsTouchesInView = true;
         EdgeView.AddGestureRecognizer(gesture);
+
+        #region WebViewList OnChange
+
+        WebViewList.OnChange += async (value, oldValue, _) =>
+        {
+            var currentState = new Dictionary<string, Dictionary<string, object>>();
+            value.ForEach(it =>
+            {
+                var dic = new Dictionary<string, object>
+                {
+                    { "webviewId", it.webviewId },
+                    /// TODO 需要对webview的显示隐藏进行管理
+                    { "isActivated", it.webView.Hidden },
+                    { "url", it.webView.Url?.AbsoluteString ?? "" }
+                };
+
+                currentState.Add(it.webviewId, dic);
+            });
+
+            var ipc = await _mIpcMap.GetValueOrPutAsync(mmid, async () =>
+            {
+                var connectResult = await localeMM.ConnectAsync(mmid);
+                connectResult.IpcForFromMM.OnEvent += async (Event, _, _) =>
+                {
+                    Console.Log("event", "name={0}, data={1}", Event.Name, Event.Data);
+                };
+
+                return connectResult.IpcForFromMM;
+            });
+
+            await ipc.PostMessageAsync(IpcEvent.FromUtf8("state", JsonSerializer.Serialize(currentState)));
+        };
+
+        #endregion
     }
 
     UIGestureRecognizerState preState = UIGestureRecognizerState.Ended;
@@ -51,7 +86,7 @@ public partial class MultiWebViewController : BaseViewController
                 }
                 else
                 {
-                    await this.CloseWebViewAsync(LastViewOrNull.webviewId);
+                    await CloseWebViewAsync(LastViewOrNull.webviewId);
                 }
             }
         }
@@ -153,10 +188,7 @@ public partial class MultiWebViewController : BaseViewController
 
             if (WebViewList.Update((list) => list!.Remove(viewItem)))
             {
-                if (viewItem.webView is not null)
-                {
-                    viewItem.webView.Dispose();
-                }
+                viewItem.webView?.Dispose();
                 await (_OnWebViewClose?.Emit(webviewId)).ForAwait();
                 return true;
             }
