@@ -171,7 +171,7 @@ export class MultiWebviewNMM extends NativeMicroModule {
         deviceList: any[],
         callback: { (id: string): void }
       ) => {
-        // console.always("select-bluetooth-device; ", deviceList);
+        console.always("select-bluetooth-device; ", Date.now());
         event.preventDefault();
         this._bluetoothrequestdevicewatchSelectCallback = callback;
         this.nativeFetch(

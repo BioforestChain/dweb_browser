@@ -191,6 +191,109 @@ export const createComlinkNativeWindow = async <
   });
 };
 
+
+export const createBrowserView = async (
+  sessionId: string,
+  createOptions: $CreateNativeWindowOptions = {}
+) => {
+  await Electron.app.whenReady();
+  const { userAgent, ..._options } = createOptions;
+
+  const options: Electron.BrowserWindowConstructorOptions = {
+    ..._options,
+    webPreferences: {
+      ..._options.webPreferences,
+      sandbox: false,
+      devTools: !Electron.app.isPackaged,
+      webSecurity: false,
+      nodeIntegration: true,
+      contextIsolation: false,
+    },
+    ...nativeWindowStates[sessionId]?.bounds,
+  };
+
+  const bv = new Electron.BrowserView(options);
+
+  // const state = (nativeWindowStates[sessionId] ??= {
+  //   devtools: false,
+  //   bounds: win.getBounds(),
+  // });
+
+  // if (userAgent) {
+  //   win.webContents.setUserAgent(userAgent(win.webContents.userAgent));
+  // }
+  // /// 在开发模式下，显示 mwebview 的开发者工具
+  // if (!Electron.app.isPackaged) {
+  //   if (state.devtools === true) {
+  //     win.webContents.openDevTools();
+  //   }
+  //   win.webContents.on("devtools-opened", () => {
+  //     state.devtools = true;
+  //     saveNativeWindowStates();
+  //   });NativeWindowExtensions_BaseApi
+  //   win.webContents.on("devtools-closed", () => {
+  //     state.devtools = false;
+  //     saveNativeWindowStates();
+  //   });
+  // }
+
+  // win.on("close", () => {
+  //   state.bounds = win.getBounds();
+  //   saveNativeWindowStates();
+  // });
+  return bv;
+};
+
+export const createComlinkBrowserView = async <
+  E = NativeWindowExtensions_BaseApi
+>(
+  url: string,
+  createOptions?: $CreateNativeWindowOptions,
+  exportBuilder = async (win: Electron.BrowserWindow) => {
+    return new NativeWindowExtensions_BaseApi(win) as any as E;
+  }
+) => {
+  const bv = await createBrowserView(new URL("/", url).href, createOptions);
+
+  // 测试使用
+  bv.webContents.openDevTools()
+  // win.webContents.setWindowOpenHandler((_detail) => {
+  //   return { action: "deny" };
+  // });
+
+  const ports_po = new PromiseOut<{
+    import_port: MessagePort;
+    export_port: MessagePort;
+  }>();
+
+  const { MainPortToRenderPort } = await import("./electronPortMessage.ts");
+  bv.webContents.ipc.once("renderPort", (event) => {
+    const [import_port, export_port] = event.ports;
+
+    ports_po.resolve({
+      import_port: MainPortToRenderPort(import_port),
+      export_port: MainPortToRenderPort(export_port),
+    });
+  });
+
+  await bv.webContents.loadURL(url);
+
+  const { import_port, export_port } = await ports_po.promise;
+
+  const exportApis = await exportBuilder(bv as unknown as Electron.BrowserWindow);
+  expose(exportApis, export_port);
+  return Object.assign(bv, {
+    getExport() {
+      return exportApis;
+    },
+    getApis<T>() {
+      return wrap<T>(import_port);
+    },
+  });
+};
+
+
+
 /**
  * 根据 webContents 打开一个窗口对象用来承载 devTools，该窗口会跟随原有 webContents 所在的窗口
  * 这个方法是给 webview-tag 使用的，否则如果是BrowserView，请直接使用原生的开发者工具模式
