@@ -1,6 +1,16 @@
-import { $DwebHttpServerOptions, $IpcRequest, $IpcResponse, IpcResponse, PromiseOut } from "./deps.ts";
-import { fetchSignal } from "./http-api-server.ts";
-import { HttpServer, cros } from "./http-helper.ts";
+import {
+  $DwebHttpServerOptions,
+  $Ipc,
+  $IpcRequest,
+  $IpcResponse,
+  createSignal,
+  IpcResponse,
+  PromiseOut,
+  ReadableStreamOut,
+  simpleEncoder,
+  u8aConcat,
+} from "./deps.ts";
+import { cros, HttpError, HttpServer } from "./http-helper.ts";
 
 declare global {
   interface WindowEventMap {
@@ -8,56 +18,67 @@ declare global {
   }
 }
 
+type $OnIpcRequestUrl = (request: $IpcRequest) => void;
+
 export class Server_external extends HttpServer {
+  /**
+   * 这个token是内部使用的，就作为 特殊的 url.pathname 来处理内部操作
+   */
+  readonly token = crypto.randomUUID();
   protected _getOptions(): $DwebHttpServerOptions {
     return {
       subdomain: "external",
       port: 443,
     };
   }
-  async start() {
-    const externalServer = await this._serverP;
-    // 别滴app发送到请求走这里发送到前端的DwebServiceWorker fetch
-    const externalReadableStreamIpc = await externalServer.listen();
 
-    // 关闭信号
-    const EXTERNAL_PREFIX = "/external/";
-    const externalMap = new Map<number, PromiseOut<$IpcResponse>>();
+  readonly responseMap = new Map<number, PromiseOut<$IpcResponse>>();
+  readonly fetchSignal = createSignal<$OnIpcRequestUrl>();
 
-    // 提供APP之间通信的方法
-    externalReadableStreamIpc.onRequest(async (request, ipc) => {
-      const url = request.parsed_url;
-      const xHost = decodeURIComponent(
-        url.searchParams.get("X-Dweb-Host") ?? ""
-      );
+  start() {
+    return this._onRequest(this._provider.bind(this));
+  }
+
+  protected async _provider(request: $IpcRequest, ipc: $Ipc) {
+    const url = request.parsed_url;
+    const xHost = decodeURIComponent(url.searchParams.get("X-Dweb-Host") ?? "");
+
+    if (url.pathname === "/" + this.token) {
+      /**
+       * 这里会处理api的消息返回到前端serviceWorker 构建onFetchEvent 并触发fetch事件
+       */
+      const action = url.searchParams.get("action");
+      if (action === "listen") {
+        const streamPo = new ReadableStreamOut<Uint8Array>();
+        const ob = { controller: streamPo.controller };
+        this.fetchSignal.listen((ipcRequest) => {
+          const jsonlineEnd = simpleEncoder("\n", "utf8");
+          const json = ipcRequest.toJSON();
+          const uint8 = simpleEncoder(JSON.stringify(json), "utf8");
+          ob.controller.enqueue(u8aConcat([uint8, jsonlineEnd]));
+        });
+        return IpcResponse.fromStream(
+          request.req_id,
+          200,
+          undefined,
+          streamPo.stream,
+          ipc
+        );
+      }
 
       // 处理serviceworker respondWith过来的请求,回复给别的app
-      if (url.pathname.startsWith(EXTERNAL_PREFIX)) {
-        const pathname = url.pathname.slice(EXTERNAL_PREFIX.length);
-        const externalReqId = parseInt(pathname);
+      if (action === "response") {
+        const externalReqId = +(url.searchParams.get("id") ?? "");
         // 验证传递的reqId
-        if (typeof externalReqId !== "number" || isNaN(externalReqId)) {
-          return ipc.postMessage(
-            IpcResponse.fromText(
-              request.req_id,
-              400,
-              request.headers,
-              "reqId is NAN",
-              ipc
-            )
-          );
+        if (isNaN(externalReqId)) {
+          throw new HttpError(400, "reqId is NAN");
         }
-        const responsePOo = externalMap.get(externalReqId);
+        const responsePOo = this.responseMap.get(externalReqId);
         // 验证是否有外部请求
         if (!responsePOo) {
-          return ipc.postMessage(
-            IpcResponse.fromText(
-              request.req_id,
-              500,
-              request.headers,
-              `not found external requst,req_id ${externalReqId}`,
-              ipc
-            )
+          return new HttpError(
+            500,
+            `not found response by req_id ${externalReqId}`
           );
         }
         // 转发给外部的app
@@ -70,7 +91,7 @@ export class Server_external extends HttpServer {
             ipc
           )
         );
-        externalMap.delete(externalReqId);
+        this.responseMap.delete(externalReqId);
         const icpResponse = IpcResponse.fromText(
           request.req_id,
           200,
@@ -80,19 +101,21 @@ export class Server_external extends HttpServer {
         );
         cros(icpResponse.headers);
         // 告知自己的 respondWith 已经发送成功了
-        return ipc.postMessage(icpResponse);
+        return icpResponse;
       }
 
-      // 别的app发送消息，触发一下前端注册的fetch
-      if (xHost === externalServer.startResult.urlInfo.host) {
-        fetchSignal.emit(request);
-        const awaitResponse = new PromiseOut<$IpcResponse>();
-        externalMap.set(request.req_id, awaitResponse);
-        const ipcResponse = await awaitResponse.promise;
-        cros(ipcResponse.headers);
-        // 返回数据到发送者那边
-        ipc.postMessage(ipcResponse);
-      }
-    });
+      throw new HttpError(502, `unknown action: ${action}`);
+    }
+
+    // 别的app发送消息，触发一下前端注册的fetch
+    if (xHost === (await this.getStartResult()).urlInfo.host) {
+      this.fetchSignal.emit(request);
+      const awaitResponse = new PromiseOut<$IpcResponse>();
+      this.responseMap.set(request.req_id, awaitResponse);
+      const ipcResponse = await awaitResponse.promise;
+      cros(ipcResponse.headers);
+      // 返回数据到发送者那边
+      return ipcResponse;
+    }
   }
 }

@@ -5,7 +5,7 @@ import {
   IpcResponse,
   jsProcess,
 } from "./deps.ts";
-import { HttpServer, cros } from "./http-helper.ts";
+import { cros, HttpServer } from "./http-helper.ts";
 
 /**给前端的文件服务 */
 export class Server_www extends HttpServer {
@@ -15,14 +15,8 @@ export class Server_www extends HttpServer {
       port: 443,
     };
   }
-  async start() {
-    const wwwServer = await this._serverP;
-    // 文件服务处理
-    const wwwReadableStreamIpc = await wwwServer.listen();
-
-    wwwReadableStreamIpc.onRequest(async (request, ipc) => {
-      ipc.postMessage(await this._provider(request, ipc));
-    });
+  start() {
+    return this._onRequest(this._provider.bind(this));
   }
   protected async _provider(request: $IpcRequest, ipc: $Ipc) {
     let pathname = request.parsed_url.pathname;

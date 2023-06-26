@@ -3,6 +3,7 @@ import { IpcEvent, jsProcess, PromiseOut, queue } from "./deps.ts";
 import { Server_api } from "./http-api-server.ts";
 import { Server_external } from "./http-external-server.ts";
 import { Server_www } from "./http-www-server.ts";
+import "./polyfill.ts";
 
 import {
   all_webview_status,
@@ -44,10 +45,7 @@ export const main = async () => {
   const apiServer = new Server_api();
   void wwwServer.start();
   void externalServer.start();
-  void apiServer.start(
-    await wwwServer.getServer(),
-    await externalServer.getServer()
-  );
+  void apiServer.start();
 
   /// 生成 index-url
   {
@@ -63,6 +61,7 @@ export const main = async () => {
         X_PLAOC_QUERY.PUBLIC_URL,
         apiStartResult.urlInfo.buildPublicUrl().href
       );
+      url.searchParams.set(X_PLAOC_QUERY.EXTERNAL_URL, externalServer.token);
     });
     indexUrlPo.resolve(indexUrl.href);
   }
