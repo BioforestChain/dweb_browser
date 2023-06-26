@@ -135,7 +135,7 @@ suspend fun startDwebBrowser(): DnsNMM {
     )
 
     DEVELOPER.WaterBang -> listOf(
-//      browserNMM.mmid,
+      browserNMM.mmid,
       plaocDemoJMM.mmid
     )
 

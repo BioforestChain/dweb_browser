@@ -84,7 +84,7 @@ class MultiWebViewController(
     override val navigator: WebViewNavigator,
     override val coroutineScope: CoroutineScope,
     override var hidden: Boolean = false
-  ): ViewItem {
+  ) : ViewItem {
     val nativeUiController by lazy {
       webView.activity?.let { NativeUiController(it) }
         ?: throw Exception("webview un attached to activity")
@@ -171,8 +171,8 @@ class MultiWebViewController(
    * 移除所有列表
    */
   suspend fun destroyWebView(): Boolean {
-    webViewList.forEach { viewItem ->
-      withContext(Dispatchers.Main) {
+    withContext(Dispatchers.Main){
+      webViewList.forEach { viewItem ->
         viewItem.webView.destroy()
       }
     }

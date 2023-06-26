@@ -19,7 +19,7 @@ async function* _doRead<T extends unknown>(
 
 export const streamRead = <T extends unknown>(
   stream: ReadableStream<T>,
-  options: {
+  _options: {
     signal?: AbortSignal;
   } = {}
 ) => {
@@ -33,8 +33,8 @@ export const binaryStreamRead = (
   } = {}
 ) => {
   const reader = streamRead(stream, options);
-  var done = false;
-  var cache = new Uint8Array(0);
+  let done = false;
+  let cache = new Uint8Array(0);
   const appendToCache = async () => {
     const item = await reader.next();
     if (item.done) {
@@ -148,8 +148,10 @@ export class ReadableStreamOut<T> {
   }
 }
 export type $OnPull = () => unknown;
+// deno-lint-ignore no-explicit-any
 export type $OnCancel = (reason: any) => unknown;
 
+// deno-lint-ignore no-explicit-any
 export const streamFromCallback = <T extends (...args: any[]) => unknown>(
   cb: T,
   onCancel?: Promise<unknown>
@@ -157,6 +159,7 @@ export const streamFromCallback = <T extends (...args: any[]) => unknown>(
   const stream = new ReadableStream<Parameters<T>>({
     start(controller) {
       onCancel?.then(() => controller.close());
+      // deno-lint-ignore no-explicit-any
       cb((...args: any[]) => {
         controller.enqueue(args as Parameters<T>);
       });

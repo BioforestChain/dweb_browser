@@ -23,7 +23,6 @@ import info.bagen.dwebbrowser.microService.browser.mwebview.dwebServiceWorker.Se
 import info.bagen.dwebbrowser.microService.browser.mwebview.dwebServiceWorker.emitEvent
 import info.bagen.dwebbrowser.ui.theme.DwebBrowserAppTheme
 import kotlinx.coroutines.launch
-import org.dweb_browser.dwebview.base.ViewItem
 
 open class MultiWebViewActivity : BaseActivity() {
     private var remoteMmid by mutableStateOf("")

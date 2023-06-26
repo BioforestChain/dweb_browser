@@ -5,6 +5,7 @@ export const createSignal = <CB extends $Callback<any[]> = $Callback>() => {
   return signal;
 };
 
+// deno-lint-ignore no-explicit-any
 export class Signal<CB extends $Callback<any[]> = $Callback> {
   private _cbs = new Set<CB>();
   listen = (cb: CB): $OffListener => {
