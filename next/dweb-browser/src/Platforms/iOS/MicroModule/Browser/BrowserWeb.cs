@@ -17,10 +17,6 @@ public partial class BrowserWeb : WKWebView
             // 注册自定义schema about 用于打开新标签页
             var aboutSchemaHandler = new AboutSchemaHandler(localeMM, new Uri("about+ios://newtab"));
             configuration.SetUrlSchemeHandler(aboutSchemaHandler, aboutSchemaHandler.scheme);
-
-            // http://localhost/browser.dweb/appsInfo
-            var browserSchemaHandler = new BrowserSchemaHandler(localeMM, new Uri("browser.dweb://browser.dweb"));
-            configuration.SetUrlSchemeHandler(browserSchemaHandler, "browser.dweb");
             //configuration.UserContentController.AddScriptMessageHandler(new ConsoleMessageHandler(), "logging");
         }))
     {
@@ -28,11 +24,10 @@ public partial class BrowserWeb : WKWebView
         var script = new WKUserScript(new NSString($$"""
             var originalFetch = fetch;
             function dwebFetch(input, init) {
+        webkit.messageHandlers.logging.postMessage({log: input});
                 if (input.toString().startsWith === 'dweb:') {
                   window.location.href = input;
                   return;
-                } else if(input.toString().startsWith('http://localhost/browser.dweb/')) {
-                  input = new URL(input.toString().replace('http://localhost/', 'browser.dweb://'));
                 }
 
                 return originalFetch(input, init);
@@ -55,8 +50,9 @@ public partial class BrowserWeb : WKWebView
 
     public override WKNavigation LoadRequest(NSUrlRequest request)
     {
-        if (request.Url.AbsoluteString == "about://newtab")
+        if (request.Url.AbsoluteString == "about:newtab")
         {
+            // 如果about+ios:后面这个双斜线不添加的话，html页面中的脚本和样式不会发起请求，无法获取完整页面
             var _request = new NSUrlRequest(new NSUrl("about+ios://newtab"), request.CachePolicy, request.TimeoutInterval);
             return LoadRequest(_request);
         }
@@ -77,7 +73,7 @@ public partial class BrowserWeb : WKWebView
             new DWebView.DWebView(_microModule, options: new DWebView.DWebView.Options(url));
 
         public DWebView.DWebView CreateDWebView(string url, WKWebViewConfiguration? configuration = null) =>
-            new DWebView.DWebView(_microModule, options: new DWebView.DWebView.Options(url), configuration: configuration);
+            new(_microModule, options: new DWebView.DWebView.Options(url), configuration: configuration);
 
 
         [Export("webView:createWebViewWithConfiguration:forNavigationAction:windowFeatures:")]
@@ -146,8 +142,8 @@ public partial class BrowserWeb : WKWebView
         }
     }
 
-    #region browser.dweb:// 协议拦截
-    class BrowserSchemaHandler : DWebView.DWebView.DwebSchemeHandler
+    #region about: 协议拦截
+    class AboutSchemaHandler : DWebView.DWebView.DwebSchemeHandler
     {
         private Dictionary<string, string> _corsHeaders = new()
         {
@@ -156,16 +152,35 @@ public partial class BrowserWeb : WKWebView
             { "Access-Control-Allow-Methods", "*" }
         };
 
-        public BrowserSchemaHandler(MicroModule microModule, Uri url) : base(microModule, url)
+        public AboutSchemaHandler(MicroModule microModule, Uri url) : base(microModule, url)
         {
             scheme = url.Scheme;
         }
 
         public override Uri InternalSchemaUrl(NSUrl nsurl)
         {
-            var url = nsurl.AbsoluteString.Replace("browser.dweb://", "file://");
+            var url = new URL(nsurl.AbsoluteString.Replace("about+ios://", "http://browser.dweb/"));
+            var paths = url.Path.Split("/").ToList().FindAll(it => !string.IsNullOrEmpty(it));
 
-            return new(url);
+            if (paths[0] == "newtab")
+            {
+                paths = paths.Skip(1).ToList();
+
+                if (paths.Count > 0 && paths[0] == "api")
+                {
+                    var _url = string.Format("file://{0}?{1}", string.Join("/", paths.Skip(1)), nsurl.Query);
+                    return new(_url);
+                }
+                else
+                {
+                    return new(string.Format("file:///sys/browser/newtab/{0}",
+                        paths.Count == 0 ? "index.html" : string.Join("/", paths)));
+                }
+            }
+            else
+            {
+                return new("");
+            }
         }
 
         [Export("webView:startURLSchemeTask:")]
@@ -203,10 +218,13 @@ public partial class BrowserWeb : WKWebView
                     nsHeaders.Add(new NSString(key), new NSString(value));
                 }
 
-                /// 添加跨域头，否则fetch会失败
-                foreach (var (key, value) in _corsHeaders)
+                if (!string.IsNullOrEmpty(url.Host))
                 {
-                    nsHeaders.Add(new NSString(key), new NSString(value));
+                    /// 添加跨域头，否则fetch会失败
+                    foreach (var (key, value) in _corsHeaders)
+                    {
+                        nsHeaders.Add(new NSString(key), new NSString(value));
+                    }
                 }
 
                 using var nsResponse = new NSHttpUrlResponse(urlSchemeTask.Request.Url, nsStatusCode, "HTTP/1.1", nsHeaders);
@@ -255,31 +273,6 @@ public partial class BrowserWeb : WKWebView
                 urlSchemeTask.DidReceiveData(NSData.FromString(err.Message));
                 urlSchemeTask.DidFinish();
             }
-        }
-    }
-    #endregion
-
-    #region about:// 协议拦截
-    class AboutSchemaHandler : DWebView.DWebView.DwebSchemeHandler
-    {
-        public AboutSchemaHandler(MicroModule microModule, Uri url) : base(microModule, url)
-        {
-            scheme = url.Scheme;
-        }
-
-        public override Uri InternalSchemaUrl(NSUrl nsurl)
-        {
-            var url = nsurl.AbsoluteString;
-            if (url == "about+ios://newtab" || url == "about+ios://newtab/")
-            {
-                url = "about+ios://newtab/index.html";
-            }
-
-            if (url.StartsWith("about+ios://newtab"))
-            {
-                url = url.Replace("about+ios://newtab", "file:///sys/browser/newtab");
-            }
-            return new(url);
         }
     }
     #endregion

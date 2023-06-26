@@ -98,7 +98,7 @@ public class BrowserNMM : IOSNativeMicroModule
             //manager.WebViewList = new WKWebView[] { webview };
             //manager.ShowWebViewListDataWithList(new WKWebView[] { webview });
             //manager.OpenWebViewUrlWithUrlString("https://dweb.waterbang.top/");
-            manager.OpenWebViewUrlWithUrlString("about://newtab");
+            manager.OpenWebViewUrlWithUrlString("about:newtab");
             var swiftView = manager.SwiftView;
             swiftView.Frame = UIScreen.MainScreen.Bounds;
             BrowserController.View.AddSubview(swiftView);
