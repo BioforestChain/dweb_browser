@@ -3,8 +3,6 @@
 import { $Device } from "../types.ts";
 import { mainApis } from "../../../helper/openNativeWindow.preload.ts"
 import { allDeviceListMap } from "./data.ts"
-// import { requestDevice } from "./device.ts"
-// import type Electron from "electron";
 
 const template: HTMLTemplateElement | null = document.querySelector(".template");
 let setTimeoutId: number;
@@ -21,17 +19,8 @@ function createListItem(name: string, status: string): HTMLLIElement{
 
 async function devicesUpdate(list: $Device[]){
   const ul = document.querySelector('.list_container');
-  console.log('接受到了更新：', list)
   if(ul === null) throw new Error('ul === null');
   
-  // 从 已有的中间删除
-  // Array.from(_map.values()).forEach(oldDevice => {
-  //   if(list.findIndex(device => device.deviceId === oldDevice.device.deviceId) === -1){
-  //     _map.delete(oldDevice.device.deviceId)
-  //     oldDevice.el.remove();
-  //   }
-  // })
-
   // 添加新的
   list.forEach(device => {
     if(allDeviceListMap.has(device.deviceId)){
