@@ -227,6 +227,7 @@
     "https://deno.land/x/dweb@0.0.7/src/sys/http-server/$createHttpDwebServer.ts": "30c92aca57c691ecff5f5dbc194c87ab057405701baf0030f353a7c4b810b886",
     "https://deno.land/x/dweb@0.0.7/src/sys/http-server/const.ts": "f7b7a0157088fbdcb7283e541193de1a1aa03d832c71918ad6ead09e5240263f",
     "https://deno.land/x/dweb@0.0.7/src/sys/http-server/net/createNetServer.ts": "f8eb08129fd61e59e84cc968dd3e10f4a0ba70e05b6590f3c164d21c90f7b15d",
+    "https://deno.land/x/which@0.3.0/mod.ts": "3e10d07953c14e4ddc809742a3447cef14202cdfe9be6678a1dfc8769c4487e6",
     "https://esm.sh/v124/@types/node@18.16.9/buffer.d.ts": "bcea71b60847e8c945a5100eb80744cb65fb69d24419e8b5f21a142a78d50cda",
     "https://esm.sh/v124/@types/node@18.16.9/crypto.d.ts": "b27845e9b87827cb4cf0732ec7fbc71b4327092087aac36882633c511306de7c",
     "https://esm.sh/v124/@types/node@18.16.9/dns.d.ts": "5bf512ea3d12dc56ff9e034a98ca702a70336d659a11c029eaa49d6248412edf",
