@@ -12,7 +12,8 @@ public class WebWrapper: ObservableObject, Identifiable,Hashable, Equatable{
         }
     }
     init(cacheID: UUID) {
-        self.webView = WKWebView()
+        self.webView = BridgeManager.webviewGenerator!(nil)
+//        self.webView = WKWebView()
         self.id = cacheID
         print("making a WebWrapper: \(self)")
 

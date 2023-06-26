@@ -19,7 +19,7 @@ struct InstalledApp: Hashable, Codable, Identifiable {
 class InstalledAppMgr: ObservableObject {
     static var shared = InstalledAppMgr()
     
-    @Published var apps: [InstalledApp] = [InstalledApp.example]
+    @Published var apps: [InstalledApp] = []// [InstalledApp.example]
     
     init() {
         //从app列表数据库中取

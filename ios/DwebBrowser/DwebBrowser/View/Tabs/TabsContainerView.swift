@@ -86,14 +86,14 @@ struct TabsContainerView: View{
         .position(x: imageXcenter(),y: imageYcenter())
         .onReceive(animation.$progress, perform: { progress in
             if progress == .startShrinking || progress == .startExpanding{
-                withAnimation(.easeIn(duration: 5)){
+                withAnimation(.easeIn){
                     animation.progress = progress.next() // change to expanded or shrinked
                 }
-                withAnimation(.easeIn(duration: 5)){
+                withAnimation(.easeIn){
                     gridState.opacity = 1
                     gridState.scale = progress == .startShrinking ? 1:0.8
                 }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 5.05) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.55) {
                     animation.progress = .invisible // change to expanded or shrinked
                 }
             }
@@ -159,7 +159,6 @@ struct TabsContainerView: View{
             return selectedCellFrame.height
         }
     }
-    
 }
 
 var redrawcount = 0

@@ -14,12 +14,12 @@ struct HomePageView: View {
                     InnerAppGridView()
                 } else {
                     VStack {
-                        Image("defimage")
-                            .padding(.horizontal, 80)
+                        Image("initialicon")
+                            .resizable()
+                            .frame(width: 210, height: 210)
+                        Text("Dweb Browser")
+                            .font(.system(size: 23, weight: .medium))
                         
-                        Text("DwebBrowser")
-                            .font(.system(size: 20, weight: .medium))
-                            .foregroundColor(Color(hexString: "0A1626"))
                     }
                 }
             }

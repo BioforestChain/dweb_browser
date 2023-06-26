@@ -12,7 +12,7 @@ struct SearchTypingView: View {
     var body: some View {
         NavigationView {
             ZStack{
-                if addressBar.inputText == ""{
+                if addressBar.inputText == "" && !InstalledAppMgr.shared.apps.isEmpty{
                     VStack{
                         InnerAppGridView()
                         Spacer()
