@@ -25,7 +25,6 @@
 		F0531EC52A3028EF001FBE06 /* Tools.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0531EC42A3028EF001FBE06 /* Tools.swift */; };
 		F0531EC72A302918001FBE06 /* LocalLinkSearcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0531EC62A302918001FBE06 /* LocalLinkSearcher.swift */; };
 		F0531ECD2A33062A001FBE06 /* SearchTypingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0531ECC2A33062A001FBE06 /* SearchTypingView.swift */; };
-		F0531ED92A333C2A001FBE06 /* ScaleAnimationSmooth.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0531ED82A333C2A001FBE06 /* ScaleAnimationSmooth.swift */; };
 		F0531EF12A345804001FBE06 /* BFS.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = F0531EEF2A345804001FBE06 /* BFS.xcdatamodeld */; };
 		F0531EF32A34584E001FBE06 /* BookmarkCoreDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0531EF22A34584E001FBE06 /* BookmarkCoreDataManager.swift */; };
 		F0531EF72A34587B001FBE06 /* HistoryCoreDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0531EF42A34587B001FBE06 /* HistoryCoreDataManager.swift */; };
@@ -46,18 +45,13 @@
 		F0531F242A36BB55001FBE06 /* InstalledApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0531F232A36BB55001FBE06 /* InstalledApp.swift */; };
 		F0531F262A380E67001FBE06 /* LocalLinkMgr.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0531F252A380E67001FBE06 /* LocalLinkMgr.swift */; };
 		F0531F2F2A3B1E4D001FBE06 /* View_extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0531F2E2A3B1E4D001FBE06 /* View_extension.swift */; };
-		F06271A02A41912400E5B144 /* ScroolingProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F062719F2A41912400E5B144 /* ScroolingProgressView.swift */; };
-		F06271A22A493AAD00E5B144 /* BridgeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F06271A12A493AAD00E5B144 /* BridgeManager.swift */; };
 		F08E10402A04917600899DF8 /* WebCacheMgr.swift in Sources */ = {isa = PBXBuildFile; fileRef = F08E103F2A04917600899DF8 /* WebCacheMgr.swift */; };
 		F08E10452A04FBEE00899DF8 /* Button.swift in Sources */ = {isa = PBXBuildFile; fileRef = F08E10442A04FBEE00899DF8 /* Button.swift */; };
 		F08E10482A06569400899DF8 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = F08E10472A06569400899DF8 /* Kingfisher */; };
 		F08E104B2A065C1F00899DF8 /* FaviconFinder in Frameworks */ = {isa = PBXBuildFile; productRef = F08E104A2A065C1F00899DF8 /* FaviconFinder */; };
 		F08E10532A08DC9C00899DF8 /* Environment.swift in Sources */ = {isa = PBXBuildFile; fileRef = F08E10522A08DC9C00899DF8 /* Environment.swift */; };
 		F08E10592A0B3AD700899DF8 /* View+ancesterTree.swift in Sources */ = {isa = PBXBuildFile; fileRef = F08E10582A0B3AD700899DF8 /* View+ancesterTree.swift */; };
-		F0B231C52A287FE3001EEFB8 /* SafariKeyboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0B231BC2A287FE3001EEFB8 /* SafariKeyboard.swift */; };
-		F0B231CB2A287FE3001EEFB8 /* SpreadCycleAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0B231C22A287FE3001EEFB8 /* SpreadCycleAnimation.swift */; };
-		F0B231CC2A287FE3001EEFB8 /* SnakeAinmation.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0B231C32A287FE3001EEFB8 /* SnakeAinmation.swift */; };
-		F0B231CE2A287FF8001EEFB8 /* AttachStateComputeVar.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0B231CD2A287FF8001EEFB8 /* AttachStateComputeVar.swift */; };
+		F0A7EA0C2A49ABB5000310E7 /* BridgeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0A7EA0B2A49ABB5000310E7 /* BridgeManager.swift */; };
 		F0B231D02A2DDBFD001EEFB8 /* Color+Hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0B231CF2A2DDBFD001EEFB8 /* Color+Hex.swift */; };
 		F0B231D32A301EE0001EEFB8 /* Color_extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0B231D12A301EDE001EEFB8 /* Color_extension.swift */; };
 		F0B231E02A301EF4001EEFB8 /* InnerAppGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0B231D72A301EF4001EEFB8 /* InnerAppGridView.swift */; };
@@ -98,7 +92,6 @@
 		F0531EC42A3028EF001FBE06 /* Tools.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Tools.swift; sourceTree = "<group>"; };
 		F0531EC62A302918001FBE06 /* LocalLinkSearcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LocalLinkSearcher.swift; sourceTree = "<group>"; };
 		F0531ECC2A33062A001FBE06 /* SearchTypingView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchTypingView.swift; sourceTree = "<group>"; };
-		F0531ED82A333C2A001FBE06 /* ScaleAnimationSmooth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScaleAnimationSmooth.swift; sourceTree = "<group>"; };
 		F0531EF02A345804001FBE06 /* BFS.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = BFS.xcdatamodel; sourceTree = "<group>"; };
 		F0531EF22A34584E001FBE06 /* BookmarkCoreDataManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BookmarkCoreDataManager.swift; sourceTree = "<group>"; };
 		F0531EF42A34587B001FBE06 /* HistoryCoreDataManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HistoryCoreDataManager.swift; sourceTree = "<group>"; };
@@ -119,16 +112,11 @@
 		F0531F232A36BB55001FBE06 /* InstalledApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstalledApp.swift; sourceTree = "<group>"; };
 		F0531F252A380E67001FBE06 /* LocalLinkMgr.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalLinkMgr.swift; sourceTree = "<group>"; };
 		F0531F2E2A3B1E4D001FBE06 /* View_extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = View_extension.swift; sourceTree = "<group>"; };
-		F062719F2A41912400E5B144 /* ScroolingProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScroolingProgressView.swift; sourceTree = "<group>"; };
-		F06271A12A493AAD00E5B144 /* BridgeManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BridgeManager.swift; sourceTree = "<group>"; };
 		F08E103F2A04917600899DF8 /* WebCacheMgr.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebCacheMgr.swift; sourceTree = "<group>"; };
 		F08E10442A04FBEE00899DF8 /* Button.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Button.swift; sourceTree = "<group>"; };
 		F08E10522A08DC9C00899DF8 /* Environment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Environment.swift; sourceTree = "<group>"; };
 		F08E10582A0B3AD700899DF8 /* View+ancesterTree.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+ancesterTree.swift"; sourceTree = "<group>"; };
-		F0B231BC2A287FE3001EEFB8 /* SafariKeyboard.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SafariKeyboard.swift; sourceTree = "<group>"; };
-		F0B231C22A287FE3001EEFB8 /* SpreadCycleAnimation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SpreadCycleAnimation.swift; sourceTree = "<group>"; };
-		F0B231C32A287FE3001EEFB8 /* SnakeAinmation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SnakeAinmation.swift; sourceTree = "<group>"; };
-		F0B231CD2A287FF8001EEFB8 /* AttachStateComputeVar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachStateComputeVar.swift; sourceTree = "<group>"; };
+		F0A7EA0B2A49ABB5000310E7 /* BridgeManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BridgeManager.swift; sourceTree = "<group>"; };
 		F0B231CF2A2DDBFD001EEFB8 /* Color+Hex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+Hex.swift"; sourceTree = "<group>"; };
 		F0B231D12A301EDE001EEFB8 /* Color_extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Color_extension.swift; sourceTree = "<group>"; };
 		F0B231D72A301EF4001EEFB8 /* InnerAppGridView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InnerAppGridView.swift; sourceTree = "<group>"; };
@@ -182,11 +170,10 @@
 		F028997529F7C38500B8754A /* DwebBrowser */ = {
 			isa = PBXGroup;
 			children = (
-				F0B231BA2A287FE3001EEFB8 /* Example */,
+				F0A7EA0B2A49ABB5000310E7 /* BridgeManager.swift */,
 				F0E984342A248D8E00F7180A /* LaunchProject.swift */,
 				F028997629F7C38500B8754A /* DwebBrowserApp.swift */,
 				F028998529F7C3DA00B8754A /* BrowserView.swift */,
-				F06271A12A493AAD00E5B144 /* BridgeManager.swift */,
 				F028999C29F7CC5000B8754A /* Resource */,
 				F0BC1C092A0F66C50077BE0A /* Util */,
 				F028998D29F7C40B00B8754A /* Helper */,
@@ -330,19 +317,6 @@
 			path = Publisher;
 			sourceTree = "<group>";
 		};
-		F0B231BA2A287FE3001EEFB8 /* Example */ = {
-			isa = PBXGroup;
-			children = (
-				F0B231BC2A287FE3001EEFB8 /* SafariKeyboard.swift */,
-				F0B231C22A287FE3001EEFB8 /* SpreadCycleAnimation.swift */,
-				F0B231C32A287FE3001EEFB8 /* SnakeAinmation.swift */,
-				F0B231CD2A287FF8001EEFB8 /* AttachStateComputeVar.swift */,
-				F0531ED82A333C2A001FBE06 /* ScaleAnimationSmooth.swift */,
-				F062719F2A41912400E5B144 /* ScroolingProgressView.swift */,
-			);
-			path = Example;
-			sourceTree = "<group>";
-		};
 		F0B231D52A301EF4001EEFB8 /* Sheet */ = {
 			isa = PBXGroup;
 			children = (
@@ -454,6 +428,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F0A7EA0C2A49ABB5000310E7 /* BridgeManager.swift in Sources */,
 				F08E10532A08DC9C00899DF8 /* Environment.swift in Sources */,
 				F028999129F7C4AA00B8754A /* View+snapshot.swift in Sources */,
 				F0531F262A380E67001FBE06 /* LocalLinkMgr.swift in Sources */,
@@ -469,8 +444,6 @@
 				F0531EC72A302918001FBE06 /* LocalLinkSearcher.swift in Sources */,
 				F0531F1A2A346257001FBE06 /* HistoryCell.swift in Sources */,
 				F0531EF12A345804001FBE06 /* BFS.xcdatamodeld in Sources */,
-				F0B231CE2A287FF8001EEFB8 /* AttachStateComputeVar.swift in Sources */,
-				F0531ED92A333C2A001FBE06 /* ScaleAnimationSmooth.swift in Sources */,
 				F0531F192A346257001FBE06 /* HistoryView.swift in Sources */,
 				F0531F122A346219001FBE06 /* BookmarkViewModel.swift in Sources */,
 				F0531F112A346219001FBE06 /* BookmarkCell.swift in Sources */,
@@ -480,15 +453,12 @@
 				F028998A29F7C3DC00B8754A /* AddressBarHStack.swift in Sources */,
 				F0B68D032A123B4F00215036 /* Url+Validator.swift in Sources */,
 				F02899A329F91DF300B8754A /* View+placeholder.swift in Sources */,
-				F0B231CC2A287FE3001EEFB8 /* SnakeAinmation.swift in Sources */,
-				F0B231CB2A287FE3001EEFB8 /* SpreadCycleAnimation.swift in Sources */,
 				F0531EC32A3028CE001FBE06 /* WebSearcher.swift in Sources */,
 				F0531F012A345ACD001FBE06 /* SheetSegmentView.swift in Sources */,
 				F0531F162A346236001FBE06 /* HistoryViewModel.swift in Sources */,
 				F0531EF32A34584E001FBE06 /* BookmarkCoreDataManager.swift in Sources */,
 				F028999B29F7CC0000B8754A /* TabGridView.swift in Sources */,
 				F08E10452A04FBEE00899DF8 /* Button.swift in Sources */,
-				F0B231C52A287FE3001EEFB8 /* SafariKeyboard.swift in Sources */,
 				F08E10592A0B3AD700899DF8 /* View+ancesterTree.swift in Sources */,
 				F02899AC29FA882C00B8754A /* TabsContainerView.swift in Sources */,
 				F0B231D02A2DDBFD001EEFB8 /* Color+Hex.swift in Sources */,
@@ -500,7 +470,6 @@
 				F0E984512A24AC5800F7180A /* GridCellView.swift in Sources */,
 				F0E984552A25EDD900F7180A /* KeyBoardShowingView.swift in Sources */,
 				F0531EF92A34587B001FBE06 /* DataController.swift in Sources */,
-				F06271A02A41912400E5B144 /* ScroolingProgressView.swift in Sources */,
 				F0B231E52A301EF4001EEFB8 /* SearchResultView.swift in Sources */,
 				F0BC1C0B2A0F86D50077BE0A /* View+AnimationObserver.swift in Sources */,
 				F028998F29F7C42300B8754A /* const.swift in Sources */,
@@ -514,7 +483,6 @@
 				F028997729F7C38500B8754A /* DwebBrowserApp.swift in Sources */,
 				F0B231E62A301EF4001EEFB8 /* HomePageView.swift in Sources */,
 				F028998C29F7C3E400B8754A /* TabPageView.swift in Sources */,
-				F06271A22A493AAD00E5B144 /* BridgeManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

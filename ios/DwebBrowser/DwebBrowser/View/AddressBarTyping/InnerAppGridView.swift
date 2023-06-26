@@ -28,6 +28,7 @@ struct InnerAppGridView: View {
                 ForEach(appMgr.apps) { app in
                     Button {
                         print("opneing an app")
+                        BridgeManager.shared.clickApp(appUrl: app.link)
                     } label: {
                         VStack {
                             Image(app.icon)
