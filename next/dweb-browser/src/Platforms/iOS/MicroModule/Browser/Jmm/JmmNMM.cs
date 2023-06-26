@@ -115,7 +115,7 @@ public class JmmNMM : NativeMicroModule
         HttpRouter.AddRoute(IpcMethod.Get, "/uninstall", async (request, _) =>
         {
             var searchParams = request.SafeUrl.SearchParams;
-            var mmid = searchParams.ForceGet("mmid");
+            var mmid = searchParams.ForceGet("app_id");
             var jmm = JmmApps.GetValueOrDefault(mmid) ?? throw new Exception("");
             _openJmmMetadataUninstallPage(jmm);
 
