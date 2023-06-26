@@ -1,8 +1,5 @@
-﻿using System.Net;
-using BrowserFramework;
+﻿using BrowserFramework;
 using DwebBrowser.MicroService.Browser.Jmm;
-using DwebBrowser.MicroService.Http;
-using Foundation;
 using UIKit;
 
 namespace DwebBrowser.MicroService.Browser;
@@ -53,34 +50,6 @@ public class BrowserNMM : IOSNativeMicroModule
         {
             var mmid = request.QueryStringRequired("app_id");
             return await BrowserController?.CloseJMM(mmid);
-        });
-
-        // App详情
-        HttpRouter.AddRoute(IpcMethod.Get, "/detailApp", async (request, ipc) =>
-        {
-            var mmid = request.QueryStringRequired("app_id");
-            var jmmApps = JmmNMM.JmmApps;
-            var jsMicroModule = jmmApps.GetValueOrDefault(mmid);
-
-            if (jsMicroModule is not null)
-            {
-                var data = NSData.FromString(jsMicroModule.Metadata.ToJson(), NSStringEncoding.UTF8);
-                var initDownloadStatus = DownloadStatus.Installed;
-
-                var vc = await RootViewController.WaitPromiseAsync();
-                await MainThread.InvokeOnMainThreadAsync(async () =>
-                {
-                    var manager = new DownloadAppManager(data, (nint)initDownloadStatus);
-
-                    manager.DownloadView.Frame = UIScreen.MainScreen.Bounds;
-                    JmmNMM.JmmController.View.AddSubview(manager.DownloadView);
-                    vc.PushViewController(JmmNMM.JmmController, true);
-                });
-
-                return true;
-            }
-
-            return new PureResponse(HttpStatusCode.NotFound, Body: new PureUtf8StringBody("not found " + mmid));
         });
     }
 

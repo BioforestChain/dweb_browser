@@ -14,6 +14,9 @@ public partial class BrowserWeb : WKWebView
     public BrowserWeb(CGRect frame, WKWebViewConfiguration configuration, MicroModule localeMM) : base(
         frame, configuration.Also(configuration =>
         {
+            // 关闭自动播放功能
+            configuration.MediaTypesRequiringUserActionForPlayback = WKAudiovisualMediaTypes.All;
+
             // 注册自定义schema about 用于打开新标签页
             var aboutSchemaHandler = new AboutSchemaHandler(localeMM, new Uri("about+ios://newtab"));
             configuration.SetUrlSchemeHandler(aboutSchemaHandler, aboutSchemaHandler.scheme);

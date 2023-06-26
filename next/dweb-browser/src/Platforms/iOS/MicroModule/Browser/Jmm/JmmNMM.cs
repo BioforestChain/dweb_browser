@@ -142,6 +142,33 @@ public class JmmNMM : NativeMicroModule
             return true;
         });
 
+        // App详情
+        HttpRouter.AddRoute(IpcMethod.Get, "/detailApp", async (request, ipc) =>
+        {
+            var mmid = request.QueryStringRequired("app_id");
+            var jsMicroModule = JmmApps.GetValueOrDefault(mmid);
+
+            if (jsMicroModule is not null)
+            {
+                var data = NSData.FromString(jsMicroModule.Metadata.ToJson(), NSStringEncoding.UTF8);
+                var initDownloadStatus = DownloadStatus.Installed;
+
+                var vc = await IOSNativeMicroModule.RootViewController.WaitPromiseAsync();
+                await MainThread.InvokeOnMainThreadAsync(async () =>
+                {
+                    var manager = new DownloadAppManager(data, (nint)initDownloadStatus);
+
+                    manager.DownloadView.Frame = UIScreen.MainScreen.Bounds;
+                    JmmController.View.AddSubview(manager.DownloadView);
+                    vc.PushViewController(JmmController, true);
+                });
+
+                return true;
+            }
+
+            return new PureResponse(HttpStatusCode.NotFound, Body: new PureUtf8StringBody("not found " + mmid));
+        });
+
         HttpRouter.AddRoute(IpcMethod.Get, "/pause", async (_, ipc) =>
         {
             return JmmDwebService.UpdateDownloadControlStatus(ipc.Remote.Mmid, DownloadControlStatus.Pause);

@@ -21,9 +21,5 @@ public class BrowserController : BaseViewController
     public Task<PureResponse> CloseJMM(Mmid mmid) =>
         BrowserNMM.NativeFetchAsync(new URL("file://jmm.browser.dweb/closeApp")
             .SearchParamsSet("app_id", mmid));
-
-    public Task<PureResponse> UninstallJMM(JmmMetadata jmmMetadata) =>
-        BrowserNMM.NativeFetchAsync(new URL("file://jmm.browser.dweb/uninstall")
-            .SearchParamsSet("mmid", jmmMetadata.Id));
 }
 
