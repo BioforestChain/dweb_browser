@@ -214,28 +214,30 @@ export const createBrowserView = async (
 
   const bv = new Electron.BrowserView(options);
 
-  // const state = (nativeWindowStates[sessionId] ??= {
-  //   devtools: false,
-  //   bounds: win.getBounds(),
-  // });
+  // 在开发模式下显示开发工具
+  const state = (nativeWindowStates[sessionId] ??= {
+    devtools: !Electron.app.isPackaged, // 非打包模式就是 开发模式
+    bounds: bv.getBounds(),
+  });
 
-  // if (userAgent) {
-  //   win.webContents.setUserAgent(userAgent(win.webContents.userAgent));
-  // }
-  // /// 在开发模式下，显示 mwebview 的开发者工具
-  // if (!Electron.app.isPackaged) {
-  //   if (state.devtools === true) {
-  //     win.webContents.openDevTools();
-  //   }
-  //   win.webContents.on("devtools-opened", () => {
-  //     state.devtools = true;
-  //     saveNativeWindowStates();
-  //   });NativeWindowExtensions_BaseApi
-  //   win.webContents.on("devtools-closed", () => {
-  //     state.devtools = false;
-  //     saveNativeWindowStates();
-  //   });
-  // }
+  if (userAgent) {
+    bv.webContents.setUserAgent(userAgent(bv.webContents.userAgent));
+  }
+  /// 在开发模式下，显示 mwebview 的开发者工具
+
+  if (!Electron.app.isPackaged) {
+    if (state.devtools === true) {
+      bv.webContents.openDevTools();
+    }
+    bv.webContents.on("devtools-opened", () => {
+      state.devtools = true;
+      // saveNativeWindowStates();
+    });NativeWindowExtensions_BaseApi
+    bv.webContents.on("devtools-closed", () => {
+      state.devtools = false;
+      // saveNativeWindowStates();
+    });
+  }
 
   // win.on("close", () => {
   //   state.bounds = win.getBounds();
@@ -254,13 +256,6 @@ export const createComlinkBrowserView = async <
   }
 ) => {
   const bv = await createBrowserView(new URL("/", url).href, createOptions);
-
-  // 测试使用
-  bv.webContents.openDevTools()
-  // win.webContents.setWindowOpenHandler((_detail) => {
-  //   return { action: "deny" };
-  // });
-
   const ports_po = new PromiseOut<{
     import_port: MessagePort;
     export_port: MessagePort;
