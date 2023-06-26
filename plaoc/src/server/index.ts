@@ -41,7 +41,7 @@ export const main = async () => {
   //#region 启动http服务
   const wwwServer = new Server_www();
   const externalServer = new Server_external();
-  const apiServer = await new Server_api();
+  const apiServer = new Server_api();
   void wwwServer.start();
   void externalServer.start();
   void apiServer.start(

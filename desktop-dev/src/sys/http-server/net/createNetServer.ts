@@ -109,11 +109,13 @@ export interface $Protocol {
   port: number;
 }
 
+// deno-lint-ignore no-explicit-any
 export interface $NetServer<S extends $ServerInfo<any>> {
   create(): Promise<S>;
   destroy(): unknown;
   // getHost(options: $DwebHttpServerOptions): { host: string; origin: string };
 }
+// deno-lint-ignore no-explicit-any
 export abstract class NetServer<S extends $ServerInfo<any>>
   implements $NetServer<S>
 {

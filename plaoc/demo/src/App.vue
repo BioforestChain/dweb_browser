@@ -9,6 +9,7 @@ const router = useRouter();
 // router.push("/biometrics")
 // router.push("/share")
 router.push("/bluetooth")
+// router.push("/splashscreen")
 // router.push("/inputfile");
 // router.push("/barcodescanning");
 // router.push("/network");

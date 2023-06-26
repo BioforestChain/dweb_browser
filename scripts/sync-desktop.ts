@@ -15,6 +15,6 @@ export const desktopSyncTask = SyncTask.from(
 );
 
 if (import.meta.main) {
-  // syncServerTask.auto();
-  // desktopSyncTask.auto();
+  syncServerTask.auto();
+  desktopSyncTask.auto();
 }

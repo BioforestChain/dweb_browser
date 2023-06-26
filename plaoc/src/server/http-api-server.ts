@@ -3,12 +3,11 @@ import {
   $Ipc,
   $IpcRequest,
   $IpcResponse,
-  $ServerUrlInfo,
   HttpDwebServer,
+  IPC_METHOD,
   IpcHeaders,
   IpcRequest,
   IpcResponse,
-  IPC_METHOD,
   jsProcess,
 } from "./deps.ts";
 import { cros, HttpServer } from "./http-helper.ts";
@@ -43,48 +42,59 @@ export class Server_api extends HttpServer {
       const url = request.parsed_url;
       // serviceWorker
       if (url.pathname.startsWith("/dns.sys.dweb")) {
-        const result = await serviceWorkerFactory(
-          new URL("file:/" + url.pathname + url.search)
-        );
-        const ipcResponse = IpcResponse.fromText(
+        return await shutdownFactory(
+          new URL("file:/" + url.pathname + url.search),
           request.req_id,
-          200,
-          undefined,
-          result,
           ipc
         );
-        cros(ipcResponse.headers);
-        // 返回数据到前端
-        return ipc.postMessage(ipcResponse);
       }
-      onApiRequest(apiServer.startResult.urlInfo, request, ipc);
+      // 是否是内部请求
+      if (url.pathname.startsWith(INTERNAL_PREFIX)) {
+        const apiHref = apiServer.startResult.urlInfo.buildPublicUrl(
+          () => {}
+        ).href;
+        return internalRequest(request, ipc, apiHref);
+      }
+      onApiRequest(request, ipc);
     });
 
-    // 转发serviceWorker 请求
-    const serviceWorkerFactory = async (url: URL) => {
+    /**处理关闭和重启服务 */
+    const shutdownFactory = async (url: URL, req_id: number, ipc: $Ipc) => {
       const pathname = url.pathname;
       // 关闭的流程需要调整
       // 向dns发送关闭当前 模块的消息
       // woker.js -> dns -> JsMicroModule -> woker.js -> 其他的 NativeMicroModule
+      const result = async () => {
+        if (pathname === "/restart") {
+          // 关闭全部的服务
+          await wwwServer.close();
+          await externalServer.close();
+          await apiServer.close();
+          // 关闭所有的DwebView
+          await mwebview_destroy();
+          // 这里只需要把请求发送过去，因为app已经被关闭，已经无法拿到返回值
+          await jsProcess.restart();
+          return "restart ok";
+        }
 
-      if (pathname === "/restart") {
-        // 关闭全部的服务
-        await wwwServer.close();
-        await externalServer.close();
-        await apiServer.close();
-        // 关闭所有的DwebView
-        await mwebview_destroy();
-        // 这里只需要把请求发送过去，因为app已经被关闭，已经无法拿到返回值
-        await jsProcess.restart();
-        return "restart ok";
-      }
+        // 只关闭 渲染一个渲染进程 不关闭 service
+        if (pathname === "/close") {
+          await mwebview_destroy();
+          return "window close";
+        }
+        return "no action for serviceWorker Factory !!!";
+      };
 
-      // 只关闭 渲染一个渲染进程 不关闭 service
-      if (pathname === "/close") {
-        await mwebview_destroy();
-        return "window close";
-      }
-      return "no action for serviceWorker Factory !!!";
+      const ipcResponse = IpcResponse.fromText(
+        req_id,
+        200,
+        undefined,
+        await result(),
+        ipc
+      );
+      cros(ipcResponse.headers);
+      // 返回数据到前端
+      ipc.postMessage(ipcResponse);
     };
   }
 }
@@ -116,93 +126,73 @@ export const fetchSignal = createSignal<$OnIpcRequestUrl>();
 /**
  * request 事件处理器
  */
-export async function onApiRequest(
-  serverurlInfo: $ServerUrlInfo,
-  request: $IpcRequest,
-  httpServerIpc: $Ipc
-) {
-  let ipcResponse: undefined | $IpcResponse;
+export async function onApiRequest(request: $IpcRequest, httpServerIpc: $Ipc) {
   const url = request.parsed_url;
-  try {
-    // 是否是内部请求
-    if (url.pathname.startsWith(INTERNAL_PREFIX)) {
-      ipcResponse = internalFactory(
-        url,
-        request.req_id,
-        httpServerIpc,
-        serverurlInfo
-      );
-    } else {
-      // 转发file请求到目标NMM
-      const path = `file:/${url.pathname}${url.search}`;
-      const ipcProxyRequest = new IpcRequest(
-        jsProcess.fetchIpc.allocReqId(),
-        path,
-        request.method,
-        request.headers,
-        request.body,
-        jsProcess.fetchIpc
-      );
-      // 必须要直接向目标对发连接 通过这个 IPC 发送请求
-      const targetIpc = await jsProcess.connect(
-        ipcProxyRequest.parsed_url.host as $MMID
-      );
-      targetIpc.postMessage(ipcProxyRequest);
-      const ipcProxyResponse = await targetIpc.registerReqId(
-        ipcProxyRequest.req_id
-      ).promise;
-      ipcResponse = new IpcResponse(
-        request.req_id,
-        ipcProxyResponse.statusCode,
-        ipcProxyResponse.headers,
-        ipcProxyResponse.body,
-        httpServerIpc
-      );
-    }
-    if (!ipcResponse) {
-      throw new Error(`unknown gateway: ${url.search}`);
-    }
+  // 转发file请求到目标NMM
+  const path = `file:/${url.pathname}${url.search}`;
+  const ipcProxyRequest = new IpcRequest(
+    jsProcess.fetchIpc.allocReqId(),
+    path,
+    request.method,
+    request.headers,
+    request.body,
+    jsProcess.fetchIpc
+  );
+  // 必须要直接向目标对发连接 通过这个 IPC 发送请求
+  const targetIpc = await jsProcess.connect(
+    ipcProxyRequest.parsed_url.host as $MMID
+  );
+  targetIpc.postMessage(ipcProxyRequest);
+  const ipcProxyResponse = await targetIpc.registerReqId(ipcProxyRequest.req_id)
+    .promise;
+  const ipcResponse = new IpcResponse(
+    request.req_id,
+    ipcProxyResponse.statusCode,
+    ipcProxyResponse.headers,
+    ipcProxyResponse.body,
+    httpServerIpc
+  );
 
-    cros(ipcResponse.headers);
-    // 返回数据到前端
-    httpServerIpc.postMessage(ipcResponse);
-  } catch (err) {
-    if (ipcResponse === undefined) {
-      ipcResponse = await IpcResponse.fromText(
-        request.req_id,
-        502,
-        undefined,
-        String(err),
-        httpServerIpc
-      );
-      cros(ipcResponse.headers);
-      httpServerIpc.postMessage(ipcResponse);
-    } else {
-      throw err;
-    }
-  }
+  cros(ipcResponse.headers);
+  // 返回数据到前端
+  httpServerIpc.postMessage(ipcResponse);
 }
 
-/**处理内部的绑定流事件 */
-const internalFactory = (
-  url: URL,
-  req_id: number,
+/**内部请求事件 */
+export function internalRequest(
+  request: $IpcRequest,
   httpServerIpc: $Ipc,
-  serverurlInfo: $ServerUrlInfo
-) => {
-  const pathname = url.pathname.slice(INTERNAL_PREFIX.length);
+  serverHref: string
+) {
+  let ipcResponse: undefined | $IpcResponse;
+  const href = request.parsed_url.href.replace(INTERNAL_PREFIX, "");
+  console.log("INTERNAL_PREFIX=>",href)
+  const url = new URL(href);
+  console.log("INTERNAL_PREFIX url.path=>",url.pathname)
   // 转发public url
-  if (pathname === "/public-url") {
-    return IpcResponse.fromText(
-      req_id,
+  if (url.pathname === "/public-url") {
+    ipcResponse = IpcResponse.fromText(
+      request.req_id,
       200,
       undefined,
-      serverurlInfo.buildPublicUrl(() => {}).href,
+      serverHref,
       httpServerIpc
     );
+  } else {
+    ipcResponse = observerFactory(url, request.req_id, httpServerIpc);
   }
+  if (!ipcResponse) {
+    throw new Error(`unknown gateway: ${url.search}`);
+  }
+  cros(ipcResponse.headers);
+    // 返回数据到前端
+  httpServerIpc.postMessage(ipcResponse);
+}
+
+/**处理内部的监听流事件 */
+const observerFactory = (url: URL, req_id: number, httpServerIpc: $Ipc) => {
   // 监听属性
-  if (pathname === "/observe") {
+  if (url.pathname === "/observe") {
     const mmid = url.searchParams.get("mmid") as $MMID;
     if (mmid === null) {
       throw new Error("observe require mmid");
@@ -217,8 +207,7 @@ const internalFactory = (
     );
   }
   // 监听fetch
-  if (pathname === "/fetch") {
-    // serviceWorker fetch
+  if (url.pathname === "/fetch") {
     const streamPo = serviceWorkerFetch();
     return IpcResponse.fromStream(
       req_id,

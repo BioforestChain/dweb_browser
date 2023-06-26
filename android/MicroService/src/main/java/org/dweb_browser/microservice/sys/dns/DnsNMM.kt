@@ -123,7 +123,7 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
         // 关闭后端连接
         dnsMM.close(mmid)
         // TODO 防止启动过快出现闪屏
-        delay(1000)
+//        delay(1000)
         dnsMM.open(mmid)
       }
     }

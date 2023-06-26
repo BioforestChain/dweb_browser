@@ -20,6 +20,7 @@ import info.bagen.dwebbrowser.microService.sys.haptics.HapticsNMM
 import info.bagen.dwebbrowser.microService.sys.notification.NotificationNMM
 import info.bagen.dwebbrowser.microService.sys.share.ShareNMM
 import info.bagen.dwebbrowser.microService.sys.toast.ToastNMM
+import info.bagen.dwebbrowser.microService.test.PlaocDemoJMM
 
 val InternalBranch = when (DEVELOPER.CURRENT) {
   DEVELOPER.GAUBEE, DEVELOPER.HuangLin, DEVELOPER.HLOppo, DEVELOPER.WaterBang, DEVELOPER.HLVirtual -> true
@@ -113,11 +114,12 @@ suspend fun startDwebBrowser(): DnsNMM {
   /// 安装Jmm
   val jmmNMM = JmmNMM().also { dnsNMM.install(it) }
   // 测试使用，打包成apk需要删除
+  val plaocDemoJMM = PlaocDemoJMM().also { dnsNMM.install(it) }
   /**
    *
    * browserNMM.mmid,
    * desktopJMM.mmid,
-   * cotDemoJMM.mmid,
+   * plaocDemoJMM.mmid,
    * cotJMM.mmid,
    * toyJMM.mmid,
    */
@@ -133,7 +135,8 @@ suspend fun startDwebBrowser(): DnsNMM {
     )
 
     DEVELOPER.WaterBang -> listOf(
-      browserNMM.mmid,
+//      browserNMM.mmid,
+      plaocDemoJMM.mmid
     )
 
     DEVELOPER.Kingsword09 -> listOf(
@@ -141,7 +144,7 @@ suspend fun startDwebBrowser(): DnsNMM {
 //            desktopJMM.mmid
     )
 
-    else -> listOf(/*cotDemoJMM.mmid,*/ browserNMM.mmid)
+    else -> listOf(browserNMM.mmid)
   }
 
   /// 启动程序
