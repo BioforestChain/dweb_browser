@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, reactive } from "vue";
 import { HTMLBluetoothElement } from "../plugin";
-import LogPanel, { toConsole, defineLogAction } from "../components/LogPanel.vue";
+import LogPanel, { toConsole } from "../components/LogPanel.vue";
 
 export interface $Device{
   deviceId: string, 
@@ -50,10 +50,18 @@ async function toggleOpen(){
     bluetooth.requestDeviceCancel()
   }else{
     bluetooth.requestDevice()
+    .then(
+      res => {
+        console.log(`device: name === ${res.name}; id===${res.id}; `)
+      },
+      err => {
+        console.error('err: ', err)
+      }
+    )
+    
   }
   state.isOpen = !state.isOpen
-  // bluetoothDevice = await bluetooth.toggle(state.isOpen)
-  // console.log("bluetoothDevice: ", bluetoothDevice)
+   
 }
 
 function allDeviceUpdate(list: $Device[]){

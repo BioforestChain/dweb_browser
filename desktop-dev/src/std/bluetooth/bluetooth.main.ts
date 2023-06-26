@@ -19,24 +19,14 @@ export class BluetoothNMM extends NativeMicroModule {
   _wwwReadableStream: ReadableStreamIpc | undefined;
   _mountedWindow: Electron.BrowserWindow | null = null;
   private _browserView?: ReturnType<BluetoothNMM["_createBrowserView"]> | undefined;
+  _rootUrl = ""
  
   _bootstrap = async () => {
     console.always(`[${this.mmid} _bootstrap]`);
 
     // 创建服务
-    const rootUrl = await this._createHttpDwebServer()
-    this._mountedWindow = Electron.BrowserWindow.getFocusedWindow();
-    await (this._browserView = this._getBrowwerView(rootUrl));
-    if(this._browserView === undefined) throw new Error(`this._browserView === undefined`);
-    this._mountedWindow?.addBrowserView(await this._browserView);
-    (await this._browserView).setBounds({
-      x: 0,
-      y: 80,
-      width: 300,
-      height: 200
-    })
-   
-    this._apis = (await this._browserView)?.getApis();
+    this._rootUrl = await this._createHttpDwebServer()
+    this._openUI()
 
     // 先注册处理器
     this.registerCommonIpcOnMessageHandler({
@@ -47,18 +37,7 @@ export class BluetoothNMM extends NativeMicroModule {
       output: "object",
       handler: async (arg, ipc, request) => {
         if(this._browserView === undefined){
-          this._mountedWindow = Electron.BrowserWindow.getFocusedWindow();
-          await (this._browserView = this._getBrowwerView(rootUrl));
-          if(this._browserView === undefined) throw new Error(`this._browserView === undefined`);
-          this._mountedWindow?.addBrowserView(await this._browserView);
-          (await this._browserView).setBounds({
-            x: 0,
-            y: 80,
-            width: 300,
-            height: 200
-          })
-         
-          this._apis = (await this._browserView)?.getApis();
+          this._openUI()
         }
         const deviceList: any = JSON.parse(await request.body.text());
         if(this._apis === undefined) throw new Error('this._apis === undefined');
@@ -92,7 +71,6 @@ export class BluetoothNMM extends NativeMicroModule {
     this._wwwReadableStream = await this._httpDwebServer.listen();
     this._wwwReadableStream.onRequest(async (request, ipc) => {
       const url = "file:///sys/bluetooth" + request.parsed_url.pathname;
-      console.always("url: ", url);
       ipc.postMessage(
         await IpcResponse.fromResponse(
           request.req_id,
@@ -174,22 +152,37 @@ export class BluetoothNMM extends NativeMicroModule {
   // 关闭 UI 
   private _closeUI = async () => {
     if(this._browserView === undefined) throw new Error("this._browserWindow === undefined");
-    // (await this._browserWindow).destroy();
     (await this._browserView)?.webContents.close();
     this._mountedWindow?.removeBrowserView(await this._browserView)
     this._browserView = undefined;
-    
   }
 
+  // 打开 browseView
+  private _openUI = async () => {
+    this._mountedWindow = Electron.BrowserWindow.getFocusedWindow();
+    await (this._browserView = this._getBrowwerView(this._rootUrl));
+    if(this._browserView === undefined) throw new Error(`this._browserView === undefined`);
+    this._mountedWindow?.addBrowserView(await this._browserView);
+    const bounds = this._mountedWindow?.getBounds();
+    const contentBounds = this._mountedWindow?.getContentBounds();
+    if(contentBounds === undefined) throw new Error(`contentBounds === undefined`);
+    if(bounds === undefined) throw new Error(`bounds === undefined`);
+    const titleBarHeight = bounds.height - contentBounds.height;
+    (await this._browserView).setAutoResize({
+      width: true
+    })
+    ;(await this._browserView).setBounds({
+      x: 0,
+      y: titleBarHeight,
+      width: contentBounds?.width,
+      height: 200
+    })
+    this._apis = (await this._browserView)?.getApis();
+  }
   
   private _getBrowwerView = (url: string, ipc?: Ipc) => {
     return (this._browserView ??= this._createBrowserView(url, ipc));
   };
-
-  // async _openNativeWindow() {
-  //   await this.nativeFetch(`file://mwebview.browser.dweb/open?url=about:blank`);
-  //   return ALL_MMID_MWEBVIEW_WINDOW_MAP.get(this.mmid)!;
-  // }
 
   protected override _shutdown = async () => {
     this._httpDwebServer?.close();
@@ -197,7 +190,3 @@ export class BluetoothNMM extends NativeMicroModule {
     this._closeUI()
   }
 }
-
-
-// Type 'BrowserView & { getExport(): { deviceSelected: (device: $Device) => Promise<void>; }; getApis<T>(): Remote<T>; }' is not assignable to 
-// type 'Promise<BrowserView & { getExport(): { deviceSelected: (device: $Device) => Promise<void>; }; getApis<T>(): Remote<T>; }> | undefined'.

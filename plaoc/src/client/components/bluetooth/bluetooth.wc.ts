@@ -10,14 +10,6 @@ export class HTMLBluetoothElement extends HTMLElement{
   requestDeviceCancel = () => {
     return this.plugin.requestDeviceCancel();
   }
-
-  // toggle(isOpen: boolean){
-  //   return this.plugin.toggle(isOpen)
-  // }
-
-  // selected(device: $Device){
-  //   return this.plugin.selected(device)
-  // }
 }
 
 // 注册
