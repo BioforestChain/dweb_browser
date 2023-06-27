@@ -3,27 +3,31 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { ESBuild } from "../../scripts/helper/Esbuild.ts";
 
+const absWorkingDir = fileURLToPath(import.meta.resolve("../"));
+const importMapURL = import.meta.resolve("../import_map.json");
+
 export const prod = new ESBuild({
-  entryPoints: [fileURLToPath(import.meta.resolve("../src/server/index.ts"))],
-  outfile: fileURLToPath(import.meta.resolve("../dist/server/plaoc.server.js")),
+  absWorkingDir,
+  entryPoints: ["src/server/index.ts"],
+  outfile: "/dist/server/plaoc.server.js",
   bundle: true,
   format: "esm",
   denoLoader: true,
-  importMapURL: import.meta.resolve("../import_map.json"),
+  importMapURL,
 });
 export const emulator = new ESBuild({
-  entryPoints: [fileURLToPath(import.meta.resolve("../src/emulator/index.ts"))],
-  outfile: fileURLToPath(import.meta.resolve("../dist/server/plaoc.emulator.js")),
+  absWorkingDir,
+  entryPoints: ["src/emulator/index.ts"],
+  outfile: "dist/server/plaoc.emulator.js",
   bundle: true,
   format: "esm",
   denoLoader: true,
-  importMapURL: import.meta.resolve("../import_map.json"),
+  importMapURL,
 });
 export const dev = new ESBuild({
-  entryPoints: [fileURLToPath(import.meta.resolve("../src/server/index.ts"))],
-  outfile: fileURLToPath(
-    import.meta.resolve("../dist/server/plaoc.server.dev.js")
-  ),
+  absWorkingDir,
+  entryPoints: ["src/server/index.ts"],
+  outfile: "dist/server/plaoc.server.dev.js",
   plugins: [
     {
       name: "use-#dev-ext",
@@ -55,7 +59,7 @@ export const dev = new ESBuild({
   bundle: true,
   format: "esm",
   denoLoader: true,
-  importMapURL: import.meta.resolve("../import_map.json"),
+  importMapURL,
 });
 
 if (import.meta.main) {
