@@ -45,7 +45,6 @@ abstract class MicroModule : Ipc.MicroModuleInfo {
   }
 
   protected val _afterShutdownSignal = SimpleSignal();
-
   protected suspend fun beforeShutdown() {
     if (!this.runningStateLock.waitPromise()) {
       throw Exception("module $mmid already shutdown");

@@ -212,11 +212,11 @@ class DWebView(
   /** 处理Dweb域名的转发 */
   fun dwebFactory(request: WebResourceRequest): WebResourceResponse {
     /// http://*.dweb 由 MicroModule 来处理请求
-    debugDWebView("shouldInterceptRequest/REQUEST", lazy {
-      "${request.url} [${
-        request.requestHeaders.toList().joinToString { "${it.first}=${it.second} " }
-      }]"
-    })
+//    debugDWebView("shouldInterceptRequest/REQUEST", lazy {
+//      "${request.url} [${
+//        request.requestHeaders.toList().joinToString { "${it.first}=${it.second} " }
+//      }]"
+//    })
     val response = runBlockingCatching(ioAsyncExceptionHandler) {
       remoteMM.nativeFetch(
         Request(
@@ -470,9 +470,6 @@ class DWebView(
     _destroyed = true
     debugDWebView("DESTROY")
     super.destroy()
-    GlobalScope.launch(ioAsyncExceptionHandler) {
-      closeSignal.emit()
-    }
   }
 
   override fun onDetachedFromWindow() {

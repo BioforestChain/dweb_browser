@@ -59,7 +59,6 @@ class JsProcessWebApi(val dWebView: DWebView) {
                     WebMessage("js-process/create-process/$hid", arrayOf(port1)), Uri.EMPTY
                 );
             } catch (e: Exception) {
-                println("QQQQ");
                 e.printStackTrace()
             }
         })

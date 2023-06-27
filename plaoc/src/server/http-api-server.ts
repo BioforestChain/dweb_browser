@@ -3,10 +3,10 @@ import {
   $Ipc,
   $IpcRequest,
   $IpcResponse,
+  IPC_METHOD,
   IpcHeaders,
   IpcRequest,
   IpcResponse,
-  IPC_METHOD,
   jsProcess,
 } from "./deps.ts";
 import { cros, HttpServer } from "./http-helper.ts";
@@ -61,13 +61,13 @@ export class Server_api extends HttpServer {
     const result = async () => {
       if (pathname === "/restart") {
         // 这里只需要把请求发送过去，因为app已经被关闭，已经无法拿到返回值
-        await jsProcess.restart();
+        jsProcess.restart();
         return "restart ok";
       }
 
       // 只关闭 渲染一个渲染进程 不关闭 service
       if (pathname === "/close") {
-        await mwebview_destroy();
+        mwebview_destroy();
         return "window close";
       }
       return "no action for serviceWorker Factory !!!";
@@ -76,11 +76,10 @@ export class Server_api extends HttpServer {
     const ipcResponse = IpcResponse.fromText(
       request.req_id,
       200,
-      undefined,
+      cros(new IpcHeaders()),
       await result(),
       ipc
     );
-    cros(ipcResponse.headers);
     // 返回数据到前端
     ipc.postMessage(ipcResponse);
   }
@@ -89,9 +88,7 @@ export class Server_api extends HttpServer {
   protected async _onInternal(request: $IpcRequest, ipc: $Ipc) {
     let ipcResponse: undefined | $IpcResponse;
     const href = request.parsed_url.href.replace(INTERNAL_PREFIX, "/");
-    console.log("INTERNAL_PREFIX=>", href);
     const url = new URL(href);
-    console.log("INTERNAL_PREFIX url.path=>", url.pathname);
     // 转发public url
     if (url.pathname === "/public-url") {
       const apiServer = await this.getServer();

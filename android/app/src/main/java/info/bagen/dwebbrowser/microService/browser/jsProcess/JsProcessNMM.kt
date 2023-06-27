@@ -148,7 +148,6 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
             },
             /// 关闭process
             "/close-process" bind Method.GET to defineHandler { request,ipc ->
-                closeHttpDwebServer(DwebHttpServerOptions(port = 80,subdomain = ipc.remote.mmid))
               val processMap = ipcProcessIdMap.remove(ipc.remote.mmid)
               debugJsProcess("close-process",ipc.remote.mmid)
               if (processMap !== null) {

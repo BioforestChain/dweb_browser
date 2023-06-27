@@ -7,7 +7,6 @@ import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.browserUI.download.DownLoadObserver
-import org.dweb_browser.browserUI.download.DownLoadStatus
 import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.dwebview.serviceWorker.emitEvent
 import org.dweb_browser.microservice.help.Mmid
@@ -21,8 +20,6 @@ import org.http4k.lens.Query
 import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
-import java.math.RoundingMode
-import java.text.DecimalFormat
 
 fun debugMultiWebView(tag: String, msg: Any? = "", err: Throwable? = null) =
   printdebugln("mwebview", tag, msg, err)
@@ -60,6 +57,11 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.browser.dweb") {
         val url = queryUrl(request)
         val remoteMm = ipc.asRemoteInstance()
           ?: throw Exception("mwebview.browser.dweb/open should be call by locale")
+        ipc.onClose {
+          debugMultiWebView("/open", "listen ipc close destroy window")
+          val controller = controllerMap[ipc.remote.mmid]
+          controller?.destroyWebView()
+        }
         val viewItem = openDwebView(remoteMm, url)
         Response(Status.OK).body(viewItem.webviewId)
       },
@@ -69,10 +71,6 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.browser.dweb") {
         val remoteMmid = ipc.remote.mmid
         closeDwebView(remoteMmid, webviewId)
       },
-      "/close/app" bind Method.GET to defineHandler { request, ipc ->
-        val controller = controllerMap[ipc.remote.mmid] ?: return@defineHandler false;
-        controller.destroyWebView()
-      },
       // 界面没有关闭，用于重新唤醒
       "/activate" bind Method.GET to defineHandler { request, ipc ->
         val remoteMmid = ipc.remote.mmid
@@ -81,7 +79,6 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.browser.dweb") {
           App.startActivity(activityClass.ctor) { intent ->
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-
             val b = Bundle()
             b.putString("mmid", remoteMmid)
             intent.putExtras(b)
@@ -104,8 +101,8 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.browser.dweb") {
     activityClassList.removeAt(0).also {
       it.mmid = remoteMmid
       activityClassList.add(it)
-      flags.add(Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
     }
+    flags.add(Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
     App.startActivity(activityClass.ctor) { intent ->
       intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
       intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

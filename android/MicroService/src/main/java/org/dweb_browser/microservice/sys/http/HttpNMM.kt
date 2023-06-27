@@ -239,6 +239,7 @@ class HttpNMM : NativeMicroModule("http.sys.dweb") {
     this.addToIpcSet(streamIpc)
     /// 自己创建的，就要自己销毁：这个listener被销毁的时候，streamIpc也要进行销毁
     gateway.listener.onDestroy {
+      debugHttp("onDestroy","gateway.listener")
       streamIpc.close()
     }
     for (routeConfig in routes) {
@@ -252,8 +253,8 @@ class HttpNMM : NativeMicroModule("http.sys.dweb") {
     val serverUrlInfo = getServerUrlInfo(ipc, options)
     debugHttp("close", "mmid: ${ipc.remote.mmid} ${serverUrlInfo.host}")
     return gatewayMap.remove(serverUrlInfo.host)?.let { gateway ->
-      tokenMap.remove(gateway.token)
-      gateway.listener.destroy()
+      tokenMap.remove(gateway.token)?.let { it.listener.destroy() }
+//      gateway.listener.destroy()
       true
     } ?: false
   }

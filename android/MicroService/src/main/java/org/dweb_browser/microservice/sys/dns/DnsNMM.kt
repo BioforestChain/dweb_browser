@@ -121,8 +121,9 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
       // 调用重启
       GlobalScope.launch(ioAsyncExceptionHandler) {
         // 关闭后端连接
-        dnsMM.close(mmid)
-        dnsMM.open(mmid)
+          dnsMM.close(mmid)
+          delay(1000) // 林哥这里删除点击重启能复现
+          dnsMM.open(mmid)
       }
     }
 
