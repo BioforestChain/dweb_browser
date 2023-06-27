@@ -66,15 +66,8 @@ export class SyncTask {
         // https://deno.land/std@0.186.0/fs/mod.ts?s=existsSync
         // deno去掉了exists和existsSync方法，改用try/catch方式处理
         console.log("watching", task.from);
-        try {
-          return Deno.watchFs(task.from, { recursive });
-        } catch (error) {
-          if (error instanceof Deno.errors.NotFound) {
-            Deno.mkdirSync(task.from, { recursive: true });
-            return Deno.watchFs(task.from, { recursive });
-          }
-          throw error;
-        }
+        Deno.mkdirSync(task.from, { recursive: true });
+        return Deno.watchFs(task.from, { recursive });
       })();
       return {
         watcher,
