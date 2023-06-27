@@ -3,6 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { PromiseOut } from "../../desktop-dev/src/helper/PromiseOut.ts";
 import { mapHelper } from "../../desktop-dev/src/helper/mapHelper.ts";
+import { whichSync } from "./WhichCommand.ts";
 
 export type $Tasks = Record<string, $Task>;
 export type $Task = {
@@ -128,7 +129,10 @@ export class ConTasks {
         if (task.cmd === "npx") {
           args.unshift("--yes");
         }
-        const command = new Deno.Command(task.cmd, {
+
+        // 修复windows无法找到命令执行环境问题
+        const cmd = whichSync(task.cmd);
+        const command = new Deno.Command(cmd!, {
           args: args,
           cwd: task.cwd,
           stderr: "piped",
