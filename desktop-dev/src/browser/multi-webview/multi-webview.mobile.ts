@@ -91,30 +91,7 @@ export class MultiWebviewNMM extends NativeMicroModule {
         return changed;
       },
     });
-
-    // 选择指定的 蓝牙设备
-    this.registerCommonIpcOnMessageHandler({
-      pathname: "/bluetooth/device/selected",
-      matchMode: "full",
-      input: {id: "string"},
-      output: "boolean",
-      handler: async (args, ipc) => {
-        console.error("error",'args.id', args.id)
-        if(this._bluetoothrequestdevicewatchSelectCallback){
-          this._bluetoothrequestdevicewatchSelectCallback(args.id)
-          this._bluetoothrequestdevicewatchSelectCallback = undefined;
-          return true
-        }else{
-          return false
-        }
-      }
-    })
-
-    // 同步是否可以不需要要了？？
-    // 需要修改 通过 webview 需要 区分 ipc or window 来
-    // 需要根据 ipc.uid 决定向那个 ipc 发送同步的数据
-    // 需要需要包括 webview_id isActive statusbar 等状态
-    //
+   
     Electron.ipcMain.on(
       "sync:webview_state",
       (
@@ -149,9 +126,6 @@ export class MultiWebviewNMM extends NativeMicroModule {
   ) {
     const mww = await getOrOpenMWebViewWindow(clientIpc);
     const view = mww.createBrowserView(args.url);
-    // 测试代码部分
-    this._bluetoothrequestdevicewatch(view)
-    // 测试代码部分
     return view.webContents.id;
   }
 
@@ -161,29 +135,7 @@ export class MultiWebviewNMM extends NativeMicroModule {
       mww.win.close();
     }
   }
-
-  private _bluetoothrequestdevicewatchSelectCallback: {(deviceId: string): void} | undefined;
-  private _bluetoothrequestdevicewatch(veiw: Electron.BrowserView){
-    veiw.webContents.on(
-      "select-bluetooth-device",
-      async (
-        event: Event,
-        deviceList: any[],
-        callback: { (id: string): void }
-      ) => {
-        console.always("select-bluetooth-device; ", Date.now());
-        event.preventDefault();
-        this._bluetoothrequestdevicewatchSelectCallback = callback;
-        this.nativeFetch(
-          "file://bluetooth.std.dweb/device_list_update",
-          {
-            method: "POST",
-            body: JSON.stringify(deviceList)
-          }
-        )
-      }
-    );
-  }
+ 
 }
 
 export interface $ObserveItem {

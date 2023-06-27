@@ -1,11 +1,50 @@
 
+import "../index.d.ts";
+import type { $Device} from "../types.ts";
 
-import { $Device } from "../types.ts";
 import { mainApis } from "../../../helper/openNativeWindow.preload.ts"
 import { allDeviceListMap } from "./data.ts"
 
 const template: HTMLTemplateElement | null = document.querySelector(".template");
 let setTimeoutId: number;
+let bluetooth : BluetoothDevice
+let bluetoothRemoteGATTServer: BluetoothRemoteGATTServer | undefined
+let connectedSuccess: {(): void} | undefined;
+let connectedFail: {(): void} | undefined;
+
+/**
+ * 
+ * @returns Promise<null | Error>
+ */
+async function requestDevice(){
+  navigator.bluetooth.requestDevice({
+    acceptAllDevices: true,
+    // optionalServices: [
+    //   0x180F, /**获取电池信息*/
+    //   0x1844, /**声音服务*/
+    // ]
+  })
+  .then((_bluetooth) => {
+    if(_bluetooth !== undefined){
+      bluetooth = _bluetooth
+      return bluetooth.gatt?.connect();
+    }
+  })
+  .then((server: BluetoothRemoteGATTServer | undefined) => {
+    console.log("server", server)
+    bluetoothRemoteGATTServer = server;
+    if(connectedSuccess === undefined) throw new Error(`connectedSuccess === undefined`);
+    connectedSuccess()
+    clearTimeout(setTimeoutId)
+  })
+  .catch(err => {
+    if(connectedFail === undefined) throw new Error(`connectedFail === undefined`)
+    connectedFail();
+    clearTimeout(setTimeoutId)
+    console.error(`requestDevice fail: `, err)
+  })
+}
+
 /**
  * 创建节点
  */ 
@@ -28,24 +67,40 @@ async function devicesUpdate(list: $Device[]){
     }
     const li = createListItem(device.deviceName, "未连接");
     li.addEventListener('click', async () => {
+      console.log('click device: ', device)
       ;(mainApis as any).deviceSelected(device);
       Array.from(allDeviceListMap.values()).forEach(oldDevice => {
         if(oldDevice.device.deviceId === device.deviceId){
+          li.classList.remove('connected');
           li.classList.add('connecting')
           oldDevice.isConnecting = true;
+          oldDevice.isConnected = false;
+
+          connectedFail = () => {
+            oldDevice.el.classList.remove('connecting')
+            oldDevice.isConnecting = false;
+          }
+          
+          // 超时设置
+          setTimeoutId = setTimeout(() => {
+            oldDevice.el.classList.remove('connecting')
+            oldDevice.isConnecting = false;
+            console.error("连接超时")
+          },6000)
+
+          connectedSuccess = () => {
+            oldDevice.el.classList.remove("connecting")
+            oldDevice.el.classList.add("connected")
+            oldDevice.isConnecting = false;
+            oldDevice.isConnected = true;
+            
+          }
         }else{
           oldDevice.el.classList.remove('connecting')
+          oldDevice.el.classList.remove('connected');
           oldDevice.isConnecting = false;
+          oldDevice.isConnected = false;
         }
-
-        // 超时设置
-        setTimeoutId = setTimeout(() => {
-          oldDevice.el.classList.remove('connecting')
-          oldDevice.isConnecting = false;
-          // 超时提示框
-          console.error('选择失败')
-           
-        },6000)
       })
     })
     // 添加
@@ -54,20 +109,10 @@ async function devicesUpdate(list: $Device[]){
   })
 }
 
-const deviceSelected = async (device?:$Device) => {
-  if(device === undefined) return;
-  const deviceListItem = allDeviceListMap.get(device.deviceId)
-  if(deviceListItem === undefined) throw new Error(`deviceListItem === undefined`);
-  deviceListItem.el.classList.remove("connecting")
-  deviceListItem.el.classList.add("connected")
-  deviceListItem.isConnecting = false;
-  deviceListItem.isConnected = true;
-  clearTimeout(setTimeoutId);
-}
-
 export const APIS = {
   devicesUpdate,
-  deviceSelected,
+  // deviceSelected,
+  requestDevice,
 };
 Object.assign(globalThis, APIS);
 

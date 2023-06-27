@@ -46,22 +46,8 @@ onMounted(async () => {
 })
 
 async function toggleOpen(){
-  if(state.isOpen){
-    bluetooth.requestDeviceCancel()
-  }else{
-    bluetooth.requestDevice()
-    .then(
-      res => {
-        console.log(`device: name === ${res.name}; id===${res.id}; `)
-      },
-      err => {
-        console.error('err: ', err)
-      }
-    )
-    
-  }
+  bluetooth[state.isOpen ? "close" : "open"]()
   state.isOpen = !state.isOpen
-   
 }
 
 function allDeviceUpdate(list: $Device[]){
@@ -77,10 +63,10 @@ function deviceConnectedIdUpdate(deviceId: string){
   
 }
 
-function deviceConnect(device: $Device){
-  deviceConnecingIdUpdate(device.deviceId);
-  console.log('点击了列表')
-}
+// function deviceConnect(device: $Device){
+//   deviceConnecingIdUpdate(device.deviceId);
+//   console.log('点击了列表')
+// }
 
 
 </script>

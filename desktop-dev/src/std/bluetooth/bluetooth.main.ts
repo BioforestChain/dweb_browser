@@ -1,24 +1,25 @@
 import { BrowserView } from "electron";
-import { ALL_MMID_MWEBVIEW_WINDOW_MAP } from "../../browser/multi-webview/multi-webview.mobile.wapi.ts";
 import { Ipc, IpcResponse } from "../../core/ipc/index.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
-import { createComlinkNativeWindow, createComlinkBrowserView } from "../../helper/openNativeWindow.ts";
+import { createComlinkNativeWindow } from "../../helper/openNativeWindow.ts";
 import { createHttpDwebServer, type HttpDwebServer } from "../../sys/http-server/$createHttpDwebServer.ts";
 import type { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.ts"
 import type { $Device } from "./types.ts";
 import type { Remote } from "comlink";
+import type { $DWEB_DEEPLINK, $MMID } from "../../helper/types.ts";
 
 type $APIS = typeof import("./assets/exportApis.ts")["APIS"];
 
 export class BluetoothNMM extends NativeMicroModule {
   mmid = "bluetooth.std.dweb" as const;
+  dweb_deeplinks = ["dweb:bluetooth"] as $DWEB_DEEPLINK[];
   _bv: BrowserView | undefined;
   _apis: Remote<$APIS> | undefined;
   _selectBluetoothCallback: { (id: string): void } | undefined;
   _httpDwebServer: HttpDwebServer | undefined;
   _wwwReadableStream: ReadableStreamIpc | undefined;
   _mountedWindow: Electron.BrowserWindow | null = null;
-  private _browserView?: ReturnType<BluetoothNMM["_createBrowserView"]> | undefined;
+  private _browserWindow?: ReturnType<BluetoothNMM["_createBrowserWindow"]>;
   _rootUrl = ""
  
   _bootstrap = async () => {
@@ -26,22 +27,14 @@ export class BluetoothNMM extends NativeMicroModule {
 
     // 创建服务
     this._rootUrl = await this._createHttpDwebServer()
-    this._openUI()
 
-    // 先注册处理器
     this.registerCommonIpcOnMessageHandler({
-      method: "POST", 
-      pathname: "/device_list_update",
+      pathname: "/open",
       matchMode: "full",
       input: {},
-      output: "object",
-      handler: async (arg, ipc, request) => {
-        if(this._browserView === undefined){
-          this._openUI()
-        }
-        const deviceList: any = JSON.parse(await request.body.text());
-        if(this._apis === undefined) throw new Error('this._apis === undefined');
-        this._apis.devicesUpdate(deviceList);
+      output: "boolean",
+      handler: async () => {
+        this._openUI()
         return true;
       }
     })
@@ -55,9 +48,25 @@ export class BluetoothNMM extends NativeMicroModule {
       input: {},
       output: "boolean",
       handler: async (arg, ipc, request) => {
+        // if(this._bluetoothrequestdevicewatchSelectCallback !== undefined){
+        //   this._bluetoothrequestdevicewatchSelectCallback("");
+        //   this._bluetoothrequestdevicewatchSelectCallback = undefined;
+        // }
         this._closeUI();
-        const b = await this.nativeFetch(`file://mwebview.browser.dweb/bluetooth/device/selected?id=""`).boolean()
         return true;
+      },
+    });
+
+    /// dweb deeplink
+    this.registerCommonIpcOnMessageHandler({
+      protocol: "dweb:",
+      pathname: "bluetooth",
+      matchMode: "full",
+      input: {},
+      output: "void",
+      handler: async (args) => {
+        console.always("bluetooth");
+        this._openUI()
       },
     });
   };
@@ -97,92 +106,91 @@ export class BluetoothNMM extends NativeMicroModule {
    * @param ipc
    * @returns
    */
-  // private _createBrowserView = async (url: string, ipc?: Ipc) => createComlinkNativeWindow(
-  //   url,
-  //   {
-  //     webPreferences: {
-  //       sandbox: false,
-  //       devTools: true,
-  //       webSecurity: false,
-  //       nodeIntegration: true,
-  //       contextIsolation: false,
-  //     },
-  //     show: true,
-  //   },
-  //   async (win) => {
-  //     return {
-  //       deviceSelected: async (device: $Device) => {
-  //         console.always('接受到了选择 device', device)
-  //         const b = await this.nativeFetch(`file://mwebview.browser.dweb/bluetooth/device/selected?id=${device.deviceId}`).boolean()
-  //         if(this._apis === undefined) throw new Error('this._apis === undefined');
-  //         this._apis.deviceSelected(b ? device : undefined)
-  //         // 关闭UI
-  //         this._closeUI()
-  //       },
-  //     };
-  //   }
-  // );
-
-  private _createBrowserView = async (url: string, ipc?: Ipc) => createComlinkBrowserView(
-    url,
-    {
-      webPreferences: {
-        sandbox: false,
-        devTools: true,
-        webSecurity: false,
-        nodeIntegration: true,
-        contextIsolation: false,
-      },
-      show: true,
-    },
-    async (win) => {
-      return {
-        deviceSelected: async (device: $Device) => {
-          console.always('接受到了选择 device', device)
-          const b = await this.nativeFetch(`file://mwebview.browser.dweb/bluetooth/device/selected?id=${device.deviceId}`).boolean()
-          if(this._apis === undefined) throw new Error('this._apis === undefined');
-          this._apis.deviceSelected(b ? device : undefined)
-          // 关闭UI
-          this._closeUI()
+  private _createBrowserWindow = async (url: string, ipc?: Ipc) => {
+    const bw = await createComlinkNativeWindow(
+      url,
+      {
+        webPreferences: {
+          sandbox: false,
+          devTools: true,
+          webSecurity: false,
+          nodeIntegration: true,
+          contextIsolation: false,
         },
-      };
-    }
-  );
+        show: true,
+      },
+      async (win) => {
+        return {
+          deviceSelected: async (device: $Device) => {
+            console.always('接受到了选择 device', device)
+            if(this._bluetoothrequestdevicewatchSelectCallback === undefined){
+              throw new Error(`this._bluetoothrequestdevicewatchSelectCallback === undefined`);
+            }
+            this._bluetoothrequestdevicewatchSelectCallback(device.deviceId);
+            if(this._browserWindow === undefined) throw new Error(`this._browserWindow === undefined`);
+            (await this._browserWindow).webContents.executeJavaScript(
+              `requestDevice()`,
+              true
+            )
+            // 关闭UI
+            // this._closeUI()
+          },
+          requestDeviceFail: async () => {
+            console.always('requestDeviceFail device', )
+            if(this._browserWindow === undefined) throw new Error(`this._browserWindow === undefined`);
+            (await this._browserWindow).webContents.executeJavaScript(
+              `requestDevice()`,
+              true
+            )
+          }
+        };
+      }
+    ); 
+    bw.on('blur', () => {
+      this._closeUI();
+    })
+    return bw; 
+  }
 
   // 关闭 UI 
   private _closeUI = async () => {
-    if(this._browserView === undefined) throw new Error("this._browserWindow === undefined");
-    (await this._browserView)?.webContents.close();
-    this._mountedWindow?.removeBrowserView(await this._browserView)
-    this._browserView = undefined;
+    if(this._browserWindow === undefined) throw new Error("this._browserWindow === undefined");
+    (await this._browserWindow).close();
+    this._browserWindow = undefined;
   }
 
   // 打开 browseView
   private _openUI = async () => {
-    this._mountedWindow = Electron.BrowserWindow.getFocusedWindow();
-    await (this._browserView = this._getBrowwerView(this._rootUrl));
-    if(this._browserView === undefined) throw new Error(`this._browserView === undefined`);
-    this._mountedWindow?.addBrowserView(await this._browserView);
-    const bounds = this._mountedWindow?.getBounds();
-    const contentBounds = this._mountedWindow?.getContentBounds();
-    if(contentBounds === undefined) throw new Error(`contentBounds === undefined`);
-    if(bounds === undefined) throw new Error(`bounds === undefined`);
-    const titleBarHeight = bounds.height - contentBounds.height;
-    (await this._browserView).setAutoResize({
-      width: true
-    })
-    ;(await this._browserView).setBounds({
-      x: 0,
-      y: titleBarHeight,
-      width: contentBounds?.width,
-      height: 200
-    })
-    this._apis = (await this._browserView)?.getApis();
+    this._browserWindow = this._getBrowserWindow(this._rootUrl);
+    const bw = await this._browserWindow;
+    this._apis = bw?.getApis();
+    this._bluetoothrequestdevicewatch(bw);
+    (await this._browserWindow).webContents.executeJavaScript(
+      `requestDevice()`,
+      true
+    )
   }
   
-  private _getBrowwerView = (url: string, ipc?: Ipc) => {
-    return (this._browserView ??= this._createBrowserView(url, ipc));
+  private _getBrowserWindow = (url: string, ipc?: Ipc) => {
+    return (this._browserWindow ??= this._createBrowserWindow(url, ipc));
   };
+
+  private _bluetoothrequestdevicewatchSelectCallback: {(deviceId: string): void} | undefined;
+  private _bluetoothrequestdevicewatch = async (bw: Electron.BrowserWindow) => {
+    bw.webContents.on(
+      "select-bluetooth-device",
+      async (
+        event: Event,
+        deviceList: any[],
+        callback: { (id: string): void }
+      ) => {
+        console.always("select-bluetooth-device; ", Date.now());
+        event.preventDefault();
+        this._bluetoothrequestdevicewatchSelectCallback = callback;
+        this._apis?.devicesUpdate(deviceList);
+      }
+    );
+  }
 
   protected override _shutdown = async () => {
     this._httpDwebServer?.close();

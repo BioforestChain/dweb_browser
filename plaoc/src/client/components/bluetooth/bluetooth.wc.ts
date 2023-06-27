@@ -3,12 +3,11 @@ export class HTMLBluetoothElement extends HTMLElement{
   static readonly tagName = "dweb-bluetooth";
   plugin = bluetoothPlugin;
 
-  requestDevice = () => {
-    return this.plugin.requestDevice();
+  async open(){
+    return this.plugin.open()
   }
-
-  requestDeviceCancel = () => {
-    return this.plugin.requestDeviceCancel();
+  async close(){
+    return this.plugin.close()
   }
 }
 
