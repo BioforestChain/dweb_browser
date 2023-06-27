@@ -1,4 +1,0 @@
-framework module FaviconFinderFramework {
-  header "FaviconFinderFramework-Swift.h"
-  requires objc
-}
