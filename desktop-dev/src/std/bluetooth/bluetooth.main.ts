@@ -6,7 +6,7 @@ import { createHttpDwebServer, type HttpDwebServer } from "../../sys/http-server
 import type { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.ts"
 import type { $Device } from "./types.ts";
 import type { Remote } from "comlink";
-import type { $DWEB_DEEPLINK, $MMID } from "../../helper/types.ts";
+import type { $DWEB_DEEPLINK, $MMID } from "../../core/helper/types.ts";
 
 type $APIS = typeof import("./assets/exportApis.ts")["APIS"];
 
@@ -41,6 +41,7 @@ export class BluetoothNMM extends NativeMicroModule {
 
     /**
      * 关闭
+     * 只有在 接受到 /close 的请求 获 UI 失去焦点的时候关闭 ui
      */
     this.registerCommonIpcOnMessageHandler({
       pathname: "/close",
@@ -48,10 +49,6 @@ export class BluetoothNMM extends NativeMicroModule {
       input: {},
       output: "boolean",
       handler: async (arg, ipc, request) => {
-        // if(this._bluetoothrequestdevicewatchSelectCallback !== undefined){
-        //   this._bluetoothrequestdevicewatchSelectCallback("");
-        //   this._bluetoothrequestdevicewatchSelectCallback = undefined;
-        // }
         this._closeUI();
         return true;
       },
@@ -127,21 +124,10 @@ export class BluetoothNMM extends NativeMicroModule {
               throw new Error(`this._bluetoothrequestdevicewatchSelectCallback === undefined`);
             }
             this._bluetoothrequestdevicewatchSelectCallback(device.deviceId);
-            if(this._browserWindow === undefined) throw new Error(`this._browserWindow === undefined`);
-            (await this._browserWindow).webContents.executeJavaScript(
-              `requestDevice()`,
-              true
-            )
-            // 关闭UI
-            // this._closeUI()
+            this._requestDevice()
           },
           requestDeviceFail: async () => {
-            console.always('requestDeviceFail device', )
-            if(this._browserWindow === undefined) throw new Error(`this._browserWindow === undefined`);
-            (await this._browserWindow).webContents.executeJavaScript(
-              `requestDevice()`,
-              true
-            )
+            this._requestDevice()
           }
         };
       }
@@ -165,15 +151,20 @@ export class BluetoothNMM extends NativeMicroModule {
     const bw = await this._browserWindow;
     this._apis = bw?.getApis();
     this._bluetoothrequestdevicewatch(bw);
+    this._requestDevice()
+  }
+
+  private _getBrowserWindow = (url: string, ipc?: Ipc) => {
+    return (this._browserWindow ??= this._createBrowserWindow(url, ipc));
+  };
+
+  private _requestDevice = async () => {
+    if(this._browserWindow === undefined) throw new Error(`this._browserWindow === undefined`);
     (await this._browserWindow).webContents.executeJavaScript(
       `requestDevice()`,
       true
     )
   }
-  
-  private _getBrowserWindow = (url: string, ipc?: Ipc) => {
-    return (this._browserWindow ??= this._createBrowserWindow(url, ipc));
-  };
 
   private _bluetoothrequestdevicewatchSelectCallback: {(deviceId: string): void} | undefined;
   private _bluetoothrequestdevicewatch = async (bw: Electron.BrowserWindow) => {
