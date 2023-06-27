@@ -14,10 +14,10 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        index: path.resolve(__dirname, "/index.html"),
-        setting: path.resolve(__dirname, "/setting.html"),
-        address: path.resolve(__dirname, "/address.html"),
-        error: path.resolve(__dirname, "/error.html"),
+        index: path.join(__dirname, "/index.html"),
+        setting: path.join(__dirname, "/setting.html"),
+        address: path.join(__dirname, "/address.html"),
+        error: path.join(__dirname, "/error.html"),
       },
     },
   },
