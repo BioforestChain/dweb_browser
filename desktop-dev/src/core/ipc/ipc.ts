@@ -1,7 +1,7 @@
 import { cacheGetter } from "../../helper/cacheGetter.ts";
 import { createSignal } from "../../helper/createSignal.ts";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
-import type { $IpcMicroModuleInfo } from "../../helper/types.ts";
+import type { $IpcMicroModuleInfo } from ".././helper/types.ts";
 import { MicroModule } from "../micro-module.ts";
 import {
   $IpcMessage,

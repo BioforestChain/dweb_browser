@@ -3,7 +3,7 @@
 /// import 功能需要 chrome-80 才支持。我们明年再支持 import 吧，在此之前只能用 bundle 方案来解决问题
 
 declare global {
-  // type $MMID = import("../../helper/types.ts").$MMID;
+  // type $MMID = import("../../core/helper/types.ts").$MMID;
   // import { JsProcessMicroModule as JsProcessMicroModuleContructor } from "./js-process.worker.ts";
   type JsProcessMicroModuleContructor =
     import("./js-process.worker.ts").JsProcessMicroModule;
@@ -34,15 +34,15 @@ const workerGlobal = self as DedicatedWorkerGlobalScope;
 
 import { MessagePortIpc } from "../../core/ipc-web/MessagePortIpc.ts";
 import { $OnIpcEventMessage, Ipc, IPC_ROLE } from "../../core/ipc/index.ts";
-import { fetchExtends } from "../../helper/$makeFetchExtends.ts";
-import { $readRequestAsIpcRequest } from "../../helper/$readRequestAsIpcRequest.ts";
+import { fetchExtends } from "../../helper/fetchExtends/index.ts";
+import { $readRequestAsIpcRequest } from "../../core/helper/$readRequestAsIpcRequest.ts";
 import { normalizeFetchArgs } from "../../helper/normalizeFetchArgs.ts";
 import type {
   $DWEB_DEEPLINK,
   $IpcSupportProtocols,
   $MicroModule,
   $MMID,
-} from "../../helper/types.ts";
+} from "../../core/helper/types.ts";
 import { updateUrlOrigin } from "../../helper/urlHelper.ts";
 import type { $RunMainConfig } from "./assets/js-process.web.ts";
 

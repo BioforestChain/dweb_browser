@@ -1,4 +1,4 @@
-import { JsonlinesStream } from "./JsonlinesStream.ts";
+import { JsonlinesStream } from "../JsonlinesStream.ts";
 
 const $makeFetchExtends = <M extends unknown = unknown>(
   exts: $FetchExtends<M>

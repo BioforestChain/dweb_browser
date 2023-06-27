@@ -17,7 +17,6 @@ import { IpcStreamPulling } from "../ipc/IpcStreamPulling.ts";
 import { MetaBody } from "../ipc/MetaBody.ts";
 
 export type $JSON<T> = {
-  // deno-lint-ignore ban-types
   [key in keyof T]: T[key] extends Function ? never : T[key];
 };
 

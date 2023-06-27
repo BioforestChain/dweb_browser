@@ -9,11 +9,11 @@ import {
   IpcResponse,
 } from "../../core/ipc/index.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
-import { $ReqMatcher, $isMatchReq } from "../../helper/$ReqMatcher.ts";
+import { $ReqMatcher, $isMatchReq } from "../../core/helper/$ReqMatcher.ts";
 import { once } from "../../helper/$once.ts";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
-import type { $PromiseMaybe } from "../../helper/types.ts";
+import type { $PromiseMaybe } from "../../core/helper/types.ts";
 import { createHttpDwebServer } from "../../sys/http-server/$createHttpDwebServer.ts";
 import { saveNative2JsIpcPort } from "./ipc.native2js.ts";
 import type { $NWW } from "./js-process.openWindow.ts";

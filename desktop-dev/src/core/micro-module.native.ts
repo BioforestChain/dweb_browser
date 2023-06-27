@@ -1,6 +1,6 @@
-import { $deserializeRequestToParams } from "../helper/$deserializeRequestToParams.ts";
-import { $isMatchReq, $ReqMatcher } from "../helper/$ReqMatcher.ts";
-import { $serializeResultToResponse } from "../helper/$serializeResultToResponse.ts";
+import { $deserializeRequestToParams } from "./helper/$deserializeRequestToParams.ts";
+import { $isMatchReq, $ReqMatcher } from "./helper/$ReqMatcher.ts";
+import { $serializeResultToResponse } from "./helper/$serializeResultToResponse.ts";
 import type {
   $DWEB_DEEPLINK,
   $IpcSupportProtocols,
@@ -10,7 +10,7 @@ import type {
   $Schema1ToType,
   $Schema2,
   $Schema2ToType,
-} from "../helper/types.ts";
+} from "./helper/types.ts";
 import { NativeIpc } from "./ipc.native.ts";
 import { Ipc, IPC_ROLE, IpcRequest, IpcResponse } from "./ipc/index.ts";
 import { MicroModule } from "./micro-module.ts";

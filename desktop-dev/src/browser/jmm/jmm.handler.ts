@@ -1,4 +1,4 @@
-import type { $Schema1ToType } from "../../helper/types.ts";
+import type { $Schema1ToType } from "../../core/helper/types.ts";
 import type { JmmNMM } from "./jmm.ts";
 
 /**

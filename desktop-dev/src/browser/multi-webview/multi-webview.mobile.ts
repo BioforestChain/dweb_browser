@@ -2,7 +2,7 @@ import type { OutgoingMessage } from "node:http";
 import type { $BootstrapContext } from "../../core/bootstrapContext.ts";
 import { Ipc, IpcEvent, IpcRequest } from "../../core/ipc/index.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
-import { $Schema1ToType } from "../../helper/types.ts";
+import { $Schema1ToType } from "../../core/helper/types.ts";
 import {
   ALL_MMID_MWEBVIEW_WINDOW_MAP,
   getMWebViewWindow,

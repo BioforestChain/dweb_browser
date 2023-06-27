@@ -1,4 +1,4 @@
-import { fetchExtends } from "../helper/$makeFetchExtends.ts";
+import { fetchExtends } from "../helper/fetchExtends/index.ts";
 import { createSignal } from "../helper/createSignal.ts";
 import { normalizeFetchArgs } from "../helper/normalizeFetchArgs.ts";
 import { PromiseOut } from "../helper/PromiseOut.ts";
@@ -7,7 +7,7 @@ import type {
   $IpcSupportProtocols,
   $MicroModule,
   $MMID,
-} from "../helper/types.ts";
+} from "./helper/types.ts";
 import { nativeFetchAdaptersManager } from "../sys/dns/nativeFetch.ts";
 import type { $BootstrapContext } from "./bootstrapContext.ts";
 import type { Ipc } from "./ipc/index.ts";

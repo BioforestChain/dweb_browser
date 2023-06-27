@@ -9,7 +9,7 @@ import type {
   $DWEB_DEEPLINK,
   $IpcSupportProtocols,
   $MMID,
-} from "../../helper/types.ts";
+} from "../../core/helper/types.ts";
 import { buildUrl } from "../../helper/urlHelper.ts";
 import { Native2JsIpc } from "../js-process/ipc.native2js.ts";
 

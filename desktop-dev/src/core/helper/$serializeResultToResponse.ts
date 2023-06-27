@@ -1,5 +1,5 @@
-import { Ipc, IpcRequest, IpcResponse } from "../core/ipc/index.ts";
-import { isBinary } from "./binaryHelper.ts";
+import { Ipc, IpcRequest, IpcResponse } from "../ipc/index.ts";
+import { isBinary } from "../../helper/binaryHelper.ts";
 import type { $Schema2, $Schema2ToType } from "./types.ts";
 
 /**

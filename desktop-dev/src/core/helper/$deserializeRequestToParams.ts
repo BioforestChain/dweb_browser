@@ -1,4 +1,4 @@
-import type { IpcRequest } from "../core/ipc/index.ts";
+import type { IpcRequest } from "../ipc/index.ts";
 import { $typeNameParser } from "./$typeNameParser.ts";
 import type { $Schema1, $Schema1ToType, $TypeName2 } from "./types.ts";
 

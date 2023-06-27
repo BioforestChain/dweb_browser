@@ -1,6 +1,6 @@
-import { binaryToU8a, isBinary } from "./binaryHelper.ts";
-import { simpleEncoder } from "./encoding.ts";
-import { headersToRecord } from "./headersToRecord.ts";
+import { binaryToU8a, isBinary } from "../../helper/binaryHelper.ts";
+import { simpleEncoder } from "../../helper/encoding.ts";
+import { headersToRecord } from "../../helper/headersToRecord.ts";
 import { httpMethodCanOwnBody } from "./httpMethodCanOwnBody.ts";
 
 /** 将 request 参数解构 成 ipcRequest 的参数 */

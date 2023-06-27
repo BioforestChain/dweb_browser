@@ -11,9 +11,9 @@ import {
   $ConnectResult,
   connectMicroModules,
 } from "../../core/nativeConnect.ts";
-import { $readRequestAsIpcRequest } from "../../helper/$readRequestAsIpcRequest.ts";
+import { $readRequestAsIpcRequest } from "../../core/helper/$readRequestAsIpcRequest.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
-import type { $DWEB_DEEPLINK, $MMID } from "../../helper/types.ts";
+import type { $DWEB_DEEPLINK, $MMID } from "../../core/helper/types.ts";
 import { PromiseOut } from "./../../helper/PromiseOut.ts";
 import { nativeFetchAdaptersManager } from "./nativeFetch.ts";
 

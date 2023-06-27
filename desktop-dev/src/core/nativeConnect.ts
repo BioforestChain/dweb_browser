@@ -1,5 +1,5 @@
 import { AdaptersManager } from "../helper/AdaptersManager.ts";
-import type { $PromiseMaybe } from "../helper/types.ts";
+import type { $PromiseMaybe } from "./helper/types.ts";
 import type { Ipc } from "./ipc/ipc.ts";
 import type { MicroModule } from "./micro-module.ts";
 

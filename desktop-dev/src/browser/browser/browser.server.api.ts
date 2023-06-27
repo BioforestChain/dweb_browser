@@ -4,7 +4,7 @@ import {
   IpcRequest,
   IpcResponse,
 } from "../../core/ipc/index.ts";
-import { $MMID, $Schema1ToType } from "../../helper/types.ts";
+import { $MMID, $Schema1ToType } from "../../core/helper/types.ts";
 import { getAllApps } from "../jmm/jmm.api.serve.ts";
 import type { BrowserNMM } from "./browser.ts";
 
@@ -14,7 +14,6 @@ export async function getAppsInfo() {
 
 export async function updateContent(
   this: BrowserNMM,
-  // deno-lint-ignore ban-types
   _args: $Schema1ToType<{}>,
   ipc: Ipc,
   request: IpcRequest
@@ -48,7 +47,6 @@ export async function updateContent(
 
 export async function canGoBack(
   this: BrowserNMM,
-  // deno-lint-ignore ban-types
   _args: $Schema1ToType<{}>,
   ipc: Ipc,
   request: IpcRequest
@@ -68,7 +66,6 @@ export async function canGoBack(
 
 export async function canGoForward(
   this: BrowserNMM,
-  // deno-lint-ignore ban-types
   _args: $Schema1ToType<{}>,
   ipc: Ipc,
   request: IpcRequest
@@ -88,7 +85,6 @@ export async function canGoForward(
 
 export async function goBack(
   this: BrowserNMM,
-  // deno-lint-ignore ban-types
   _args: $Schema1ToType<{}>,
   ipc: Ipc,
   request: IpcRequest
@@ -109,7 +105,6 @@ export async function goBack(
 
 export async function goForward(
   this: BrowserNMM,
-  // deno-lint-ignore ban-types
   _args: $Schema1ToType<{}>,
   ipc: Ipc,
   request: IpcRequest
@@ -130,7 +125,6 @@ export async function goForward(
 
 export async function refresh(
   this: BrowserNMM,
-  // deno-lint-ignore ban-types
   _args: $Schema1ToType<{}>,
   ipc: Ipc,
   request: IpcRequest

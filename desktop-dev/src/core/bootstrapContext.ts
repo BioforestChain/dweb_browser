@@ -1,4 +1,4 @@
-import type { $MMID, $PromiseMaybe } from "../helper/types.ts";
+import type { $MMID, $PromiseMaybe } from "./helper/types.ts";
 import type { MicroModule } from "./micro-module.ts";
 import type { $ConnectResult } from "./nativeConnect.ts";
 export interface $BootstrapContext {

@@ -2,7 +2,7 @@ import type { OutgoingMessage } from "node:http";
 import type { $BootstrapContext } from "../../core/bootstrapContext.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import { $Callback, createSignal } from "../../helper/createSignal.ts";
-import { $DWEB_DEEPLINK, $MMID } from "../../helper/types.ts";
+import { $DWEB_DEEPLINK, $MMID } from "../../core/helper/types.ts";
 import type { HttpDwebServer } from "../../sys/http-server/$createHttpDwebServer.ts";
 import { createApiServer, getAllApps } from "./jmm.api.serve.ts";
 import { cancel, install, pause, resume } from "./jmm.handler.ts";
@@ -21,7 +21,6 @@ export class JmmNMM extends NativeMicroModule {
   apiServer: HttpDwebServer | undefined;
 
   resume: {
-    // deno-lint-ignore ban-types
     handler: Function;
     response: OutgoingMessage | undefined;
   } = {

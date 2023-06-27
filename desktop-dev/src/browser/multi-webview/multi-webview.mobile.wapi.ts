@@ -3,7 +3,7 @@ import type { Ipc } from "../../core/ipc/index.ts";
 import { debounceQueueMicrotask } from "../../helper/$debounce.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
 import { createNativeWindow } from "../../helper/openNativeWindow.ts";
-import { $MMID } from "../../helper/types.ts";
+import { $MMID } from "../../core/helper/types.ts";
 
 export type $MWebviewWindow = Awaited<ReturnType<typeof _createMWebViewWindow>>;
 

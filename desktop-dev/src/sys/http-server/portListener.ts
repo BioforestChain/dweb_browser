@@ -1,9 +1,9 @@
 import { Readable } from "node:stream";
+import { $isMatchReq, $ReqMatcher } from "../../core/helper/$ReqMatcher.ts";
+import { httpMethodCanOwnBody } from "../../core/helper/httpMethodCanOwnBody.ts";
 import type { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.ts";
 import type { Ipc } from "../../core/ipc/ipc.ts";
-import { $isMatchReq, $ReqMatcher } from "../../helper/$ReqMatcher.ts";
 import { createSignal } from "../../helper/createSignal.ts";
-import { httpMethodCanOwnBody } from "../../helper/httpMethodCanOwnBody.ts";
 import {
   ReadableStreamOut,
   streamFromCallback,
@@ -66,9 +66,7 @@ export class PortListener {
       return;
     }
 
-    console.always('接受到了请求', parsed_url.href)
-
-  
+    console.always("接受到了请求", parsed_url.href);
 
     /**
      * 要通过 ipc 传输过去的 req.body

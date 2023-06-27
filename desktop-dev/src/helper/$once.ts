@@ -1,4 +1,3 @@
-// deno-lint-ignore ban-types
 export const once = <T extends Function>(fn: T) => {
   let first = true;
   let resolved: any;

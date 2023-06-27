@@ -1,4 +1,4 @@
-import type { $MicroModule } from "../helper/types.ts";
+import type { $MicroModule } from "./helper/types.ts";
 import { MessagePortIpc } from "./ipc-web/MessagePortIpc.ts";
 import type { IPC_ROLE } from "./ipc/index.ts";
 
