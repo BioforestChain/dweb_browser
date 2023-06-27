@@ -1,9 +1,6 @@
-﻿using UIKit;
-using WebKit;
+﻿using DwebBrowser.MicroService.Browser;
 using Foundation;
-using CoreGraphics;
-using BrowserFramework;
-using DwebBrowser.MicroService.Browser;
+using UIKit;
 
 namespace DwebBrowser.Platforms.iOS;
 
@@ -31,6 +28,23 @@ public class AppDelegate : MauiUIApplicationDelegate
         Window.MakeKeyAndVisible();
 
         return true;
+    }
+
+    // 用于外部应用使用universal link调起应用时转为dweb-deeplink
+    public override bool OpenUrl(UIApplication application, NSUrl url, NSDictionary options)
+    {
+        if (url.Scheme is "dweb")
+        {
+            _ = Task.Run(async () =>
+            {
+                var deeplink = string.Format("dweb:{0}?{1}", url.Path[1..], url.Query);
+                await BrowserNMM.BrowserController.BrowserNMM.NativeFetchAsync(deeplink);
+            }).NoThrow();
+
+            return false;
+        }
+
+        return base.OpenUrl(application, url, options);
     }
 }
 

@@ -41,5 +41,18 @@
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>dweb</string>
+			</array>
+			<key>CFBundleURLName</key>
+			<string>com.instinctii.dd</string>
+		</dict>
+	</array>
+	<key>CFBundleIdentifier</key>
+	<string>com.instinctii.dd</string>
 </dict>
 </plist>
