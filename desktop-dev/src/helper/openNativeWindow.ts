@@ -1,4 +1,4 @@
-import { expose, proxy, wrap } from "comlink";
+import { Remote, expose, proxy, wrap } from "comlink";
 import { debounce } from "./$debounce.ts";
 import { PromiseOut } from "./PromiseOut.ts";
 import { animate, easeOut } from "./animate.ts";
@@ -155,7 +155,7 @@ export const createComlinkNativeWindow = async <
   const win = await createNativeWindow(new URL("/", url).host, createOptions);
 
   // 测试使用
-  win.webContents.openDevTools()
+  win.webContents.openDevTools();
   // win.webContents.setWindowOpenHandler((_detail) => {
   //   return { action: "deny" };
   // });
@@ -181,16 +181,16 @@ export const createComlinkNativeWindow = async <
 
   const exportApis = await exportBuilder(win);
   expose(exportApis, export_port);
+  let apis: unknown;
   return Object.assign(win, {
     getExport() {
       return exportApis;
     },
     getApis<T>() {
-      return wrap<T>(import_port);
+      return (apis ??= wrap<T>(import_port)) as Remote<T>;
     },
   });
 };
-
 
 export const createBrowserView = async (
   sessionId: string,
@@ -232,7 +232,8 @@ export const createBrowserView = async (
     bv.webContents.on("devtools-opened", () => {
       state.devtools = true;
       // saveNativeWindowStates();
-    });NativeWindowExtensions_BaseApi
+    });
+    NativeWindowExtensions_BaseApi;
     bv.webContents.on("devtools-closed", () => {
       state.devtools = false;
       // saveNativeWindowStates();
@@ -275,7 +276,9 @@ export const createComlinkBrowserView = async <
 
   const { import_port, export_port } = await ports_po.promise;
 
-  const exportApis = await exportBuilder(bv as unknown as Electron.BrowserWindow);
+  const exportApis = await exportBuilder(
+    bv as unknown as Electron.BrowserWindow
+  );
   expose(exportApis, export_port);
   return Object.assign(bv, {
     getExport() {
@@ -286,8 +289,6 @@ export const createComlinkBrowserView = async <
     },
   });
 };
-
-
 
 /**
  * 根据 webContents 打开一个窗口对象用来承载 devTools，该窗口会跟随原有 webContents 所在的窗口

@@ -1,32 +1,28 @@
-import { BrowserView } from "electron";
+import type { Remote } from "comlink";
+import type { $DWEB_DEEPLINK } from "../../core/helper/types.ts";
 import { Ipc, IpcResponse } from "../../core/ipc/index.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import { createComlinkNativeWindow } from "../../helper/openNativeWindow.ts";
-import { createHttpDwebServer, type HttpDwebServer } from "../../sys/http-server/$createHttpDwebServer.ts";
-import type { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.ts"
+import {
+  createHttpDwebServer,
+  type HttpDwebServer,
+} from "../../sys/http-server/$createHttpDwebServer.ts";
 import type { $Device } from "./types.ts";
-import type { Remote } from "comlink";
-import type { $DWEB_DEEPLINK, $MMID } from "../../core/helper/types.ts";
 
 type $APIS = typeof import("./assets/exportApis.ts")["APIS"];
 
 export class BluetoothNMM extends NativeMicroModule {
   mmid = "bluetooth.std.dweb" as const;
   dweb_deeplinks = ["dweb:bluetooth"] as $DWEB_DEEPLINK[];
-  _bv: BrowserView | undefined;
-  _apis: Remote<$APIS> | undefined;
-  _selectBluetoothCallback: { (id: string): void } | undefined;
-  _httpDwebServer: HttpDwebServer | undefined;
-  _wwwReadableStream: ReadableStreamIpc | undefined;
-  _mountedWindow: Electron.BrowserWindow | null = null;
-  private _browserWindow?: ReturnType<BluetoothNMM["_createBrowserWindow"]>;
-  _rootUrl = ""
- 
+  private _httpDwebServer: HttpDwebServer | undefined;
+  private _browserWindowP?: ReturnType<BluetoothNMM["_createBrowserWindow"]>;
+  _rootUrl = "";
+
   _bootstrap = async () => {
     console.always(`[${this.mmid} _bootstrap]`);
 
     // 创建服务
-    this._rootUrl = await this._createHttpDwebServer()
+    this._rootUrl = await this._createHttpDwebServer();
 
     this.registerCommonIpcOnMessageHandler({
       pathname: "/open",
@@ -34,10 +30,10 @@ export class BluetoothNMM extends NativeMicroModule {
       input: {},
       output: "boolean",
       handler: async () => {
-        this._openUI()
+        this._openUI();
         return true;
-      }
-    })
+      },
+    });
 
     /**
      * 关闭
@@ -63,19 +59,18 @@ export class BluetoothNMM extends NativeMicroModule {
       output: "void",
       handler: async (args) => {
         console.always("bluetooth");
-        this._openUI()
+        this._openUI();
       },
     });
   };
 
   /**
    * 创建服务
-   * @returns 
+   * @returns
    */
   private _createHttpDwebServer = async () => {
     this._httpDwebServer = await createHttpDwebServer(this, {});
-    this._wwwReadableStream = await this._httpDwebServer.listen();
-    this._wwwReadableStream.onRequest(async (request, ipc) => {
+    (await this._httpDwebServer.listen()).onRequest(async (request, ipc) => {
       const url = "file:///sys/bluetooth" + request.parsed_url.pathname;
       ipc.postMessage(
         await IpcResponse.fromResponse(
@@ -87,15 +82,15 @@ export class BluetoothNMM extends NativeMicroModule {
         )
       );
     });
-    
+
     const rootUrl = this._httpDwebServer.startResult.urlInfo.buildInternalUrl(
       (url) => {
         url.pathname = "/index.html";
       }
     ).href;
 
-    return rootUrl
-  }
+    return rootUrl;
+  };
 
   /**
    * 创建一个新的隐藏窗口装载webview，使用它的里头 web-bluetooth-api 来实现我们的需求
@@ -119,55 +114,68 @@ export class BluetoothNMM extends NativeMicroModule {
       async (win) => {
         return {
           deviceSelected: async (device: $Device) => {
-            console.always('接受到了选择 device', device)
-            if(this._bluetoothrequestdevicewatchSelectCallback === undefined){
-              throw new Error(`this._bluetoothrequestdevicewatchSelectCallback === undefined`);
+            console.always("接受到了选择 device", device);
+            if (this._bluetoothrequestdevicewatchSelectCallback === undefined) {
+              throw new Error(
+                `this._bluetoothrequestdevicewatchSelectCallback === undefined`
+              );
             }
             this._bluetoothrequestdevicewatchSelectCallback(device.deviceId);
-            this._requestDevice()
+            this._requestDevice();
           },
           requestDeviceFail: async () => {
-            this._requestDevice()
-          }
+            this._requestDevice();
+          },
         };
       }
-    ); 
-    bw.on('blur', () => {
-      this._closeUI();
-    })
-    return bw; 
-  }
+    );
+    bw.on("blur", () => {
+      this._closeUI(bw);
+    });
+    return bw;
+  };
 
-  // 关闭 UI 
-  private _closeUI = async () => {
-    if(this._browserWindow === undefined) throw new Error("this._browserWindow === undefined");
-    (await this._browserWindow).close();
-    this._browserWindow = undefined;
-  }
+  // 关闭 UI
+  private _closeUI = async (bw?: Electron.BrowserWindow) => {
+    if (bw === undefined) {
+      bw = await this._browserWindowP;
+    }
+    if (bw === undefined) {
+      return false;
+    }
+    bw.close();
+    this._browserWindowP = undefined;
+  };
 
   // 打开 browseView
   private _openUI = async () => {
-    this._browserWindow = this._getBrowserWindow(this._rootUrl);
-    const bw = await this._browserWindow;
-    this._apis = bw?.getApis();
-    this._bluetoothrequestdevicewatch(bw);
-    this._requestDevice()
-  }
+    this._browserWindowP = this._getBrowserWindow(this._rootUrl);
+    const bw = await this._browserWindowP;
+    const apis = bw.getApis<$APIS>();
+    this._bluetoothrequestdevicewatch(bw, apis);
+    this._requestDevice();
+  };
 
   private _getBrowserWindow = (url: string, ipc?: Ipc) => {
-    return (this._browserWindow ??= this._createBrowserWindow(url, ipc));
+    return (this._browserWindowP ??= this._createBrowserWindow(url, ipc));
   };
 
   private _requestDevice = async () => {
-    if(this._browserWindow === undefined) throw new Error(`this._browserWindow === undefined`);
-    (await this._browserWindow).webContents.executeJavaScript(
+    if (this._browserWindowP === undefined)
+      throw new Error(`this._browserWindow === undefined`);
+    (await this._browserWindowP).webContents.executeJavaScript(
       `requestDevice()`,
       true
-    )
-  }
+    );
+  };
 
-  private _bluetoothrequestdevicewatchSelectCallback: {(deviceId: string): void} | undefined;
-  private _bluetoothrequestdevicewatch = async (bw: Electron.BrowserWindow) => {
+  private _bluetoothrequestdevicewatchSelectCallback:
+    | { (deviceId: string): void }
+    | undefined;
+  private _bluetoothrequestdevicewatch = async (
+    bw: Electron.BrowserWindow,
+    apis: Remote<$APIS>
+  ) => {
     bw.webContents.on(
       "select-bluetooth-device",
       async (
@@ -178,14 +186,13 @@ export class BluetoothNMM extends NativeMicroModule {
         console.always("select-bluetooth-device; ", Date.now());
         event.preventDefault();
         this._bluetoothrequestdevicewatchSelectCallback = callback;
-        this._apis?.devicesUpdate(deviceList);
+        apis.devicesUpdate(deviceList);
       }
     );
-  }
+  };
 
   protected override _shutdown = async () => {
     this._httpDwebServer?.close();
-    this._wwwReadableStream?.close();
-    this._closeUI()
-  }
+    this._closeUI();
+  };
 }

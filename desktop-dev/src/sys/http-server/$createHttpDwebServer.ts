@@ -1,8 +1,8 @@
+import type { $ReqMatcher } from "../../core/helper/$ReqMatcher.ts";
+import type { $MicroModule } from "../../core/helper/types.ts";
 import { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.ts";
 import { IPC_ROLE } from "../../core/ipc/const.ts";
-import type { $ReqMatcher } from "../../core/helper/$ReqMatcher.ts";
 import { once } from "../../helper/$once.ts";
-import type { $MicroModule } from "../../core/helper/types.ts";
 import { buildUrl } from "../../helper/urlHelper.ts";
 import { ServerStartResult, ServerUrlInfo } from "./const.ts";
 import type { $DwebHttpServerOptions } from "./net/createNetServer.ts";
@@ -29,12 +29,25 @@ export class HttpDwebServer {
     private readonly options: $DwebHttpServerOptions,
     readonly startResult: ServerStartResult
   ) {}
+  private _listenIpcList: ReadableStreamIpc[] = [];
   /** 开始处理请求 */
-  listen = async (routes?: $ReqMatcher[],) => {
-    return await listenHttpDwebServer(this.nmm, this.startResult, routes);
+  listen = async (routes?: $ReqMatcher[]) => {
+    const listenIpc = await listenHttpDwebServer(
+      this.nmm,
+      this.startResult,
+      routes
+    );
+    this._listenIpcList.push(listenIpc);
+    return listenIpc;
   };
   /** 关闭监听 */
-  close = once(() => closeHttpDwebServer(this.nmm, this.options));
+  close = once(async () => {
+    for (const ipc of this._listenIpcList) {
+      ipc.close();
+    }
+    this._listenIpcList.length = 0;
+    await closeHttpDwebServer(this.nmm, this.options);
+  });
 }
 
 /** 开始处理请求 */
