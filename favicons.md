@@ -4,7 +4,9 @@
 
 ```js
 function getIosIcon(preference_size = 64) {
-  const iconLinks = [...document.querySelectorAll(`link[rel~="icon"]`).values()]
+  const iconLinks = [
+    ...document.head.querySelectorAll(`link[rel*="icon"]`).values(),
+  ]
     .map((ele) => {
       return {
         ele,
@@ -61,20 +63,27 @@ function getIosIcon(preference_size = 64) {
 2. 轮训获取图标
 
 ```js
-function watchIosIcon(
-  preference_size = 120,
-  message_hanlder_name = "favicons",
-  loop = 100
-) {
+function watchIosIcon(preference_size = 64, message_hanlder_name = "favicons") {
   let preIcon = "";
   const getAndPost = () => {
-    const curIcon = getIosIcon(watchIosIcon);
+    const curIcon = getIosIcon(preference_size);
     if (curIcon && preIcon !== curIcon) {
       preIcon = curIcon;
-      webkit.messageHanlders[message_hanlder_name].postMessage(curIcon);
+      if (typeof webkit !== "undefined") {
+        webkit.messageHanlders[message_hanlder_name].postMessage(curIcon);
+      } else {
+        console.log("favicon:", curIcon);
+      }
+      return true;
     }
+    return false;
   };
+
   getAndPost();
-  return setInterval(getAndPost, loop);
+  const config = { attributes: true, childList: true, subtree: true };
+  const observer = new MutationObserver(getAndPost);
+  observer.observe(document.head, config);
+
+  return () => observer.disconnect();
 }
 ```
