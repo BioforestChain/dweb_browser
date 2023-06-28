@@ -27,7 +27,7 @@ const $logPanel = ref<typeof LogPanel>();
 
 
 onMounted(async () => {
-  console = toConsole($logPanel);
+  // console = toConsole($logPanel);
   bluetooth = $bluetooth.value!;
 
   // 测试数据
@@ -46,7 +46,8 @@ onMounted(async () => {
 })
 
 async function toggleOpen(){
-  bluetooth[state.isOpen ? "close" : "open"]()
+  const result = await bluetooth[state.isOpen ? "close" : "open"]()
+  console.log('result: ', result)
   state.isOpen = !state.isOpen
 }
 

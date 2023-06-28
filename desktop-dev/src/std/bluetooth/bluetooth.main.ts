@@ -8,16 +8,24 @@ import {
   type HttpDwebServer,
 } from "../../sys/http-server/$createHttpDwebServer.ts";
 import type { $Device } from "./types.ts";
+import type { ReadableStreamIpc } from "../../core/ipc-web/index.ts"
+
 
 type $APIS = typeof import("./assets/exportApis.ts")["APIS"];
 
 export class BluetoothNMM extends NativeMicroModule {
   mmid = "bluetooth.std.dweb" as const;
   dweb_deeplinks = ["dweb:bluetooth"] as $DWEB_DEEPLINK[];
-  private _httpDwebServer: HttpDwebServer | undefined;
-  private _browserWindowP?: ReturnType<BluetoothNMM["_createBrowserWindow"]>;
-  _rootUrl = "";
-
+  _apis: Remote<$APIS> | undefined;
+  _selectBluetoothCallback: { (id: string): void } | undefined;
+  _httpDwebServer: HttpDwebServer | undefined;
+  _wwwReadableStreamIpc: ReadableStreamIpc | undefined;
+  _mountedWindow: Electron.BrowserWindow | null = null;
+  private _browserWindow?: ReturnType<BluetoothNMM["_createBrowserWindow"]>;
+  _rootUrl = ""
+  private _requestDeviceOptions: RequestDeviceOptions | undefined;
+  private _deviceConnectedResolve(value: unknown){}
+ 
   _bootstrap = async () => {
     console.always(`[${this.mmid} _bootstrap]`);
 
@@ -25,15 +33,19 @@ export class BluetoothNMM extends NativeMicroModule {
     this._rootUrl = await this._createHttpDwebServer();
 
     this.registerCommonIpcOnMessageHandler({
+      method: "POST",
       pathname: "/open",
       matchMode: "full",
       input: {},
-      output: "boolean",
-      handler: async () => {
-        this._openUI();
-        return true;
-      },
-    });
+      output: "object",
+      handler: async (_, ipc, request) => {
+        this._requestDeviceOptions = JSON.parse(await request.body.text());
+        if(this._requestDeviceOptions === undefined) throw new Error(`this._requestDeviceOptions === undefined`)
+        this._openUI()
+        const device = await new Promise((resolve) => this._deviceConnectedResolve = resolve)
+        return device;
+      }
+    })
 
     /**
      * 关闭
@@ -70,7 +82,8 @@ export class BluetoothNMM extends NativeMicroModule {
    */
   private _createHttpDwebServer = async () => {
     this._httpDwebServer = await createHttpDwebServer(this, {});
-    (await this._httpDwebServer.listen()).onRequest(async (request, ipc) => {
+    this._wwwReadableStreamIpc  = await this._httpDwebServer.listen();
+    this._wwwReadableStreamIpc.onRequest(async (request, ipc) => {
       const url = "file:///sys/bluetooth" + request.parsed_url.pathname;
       ipc.postMessage(
         await IpcResponse.fromResponse(
@@ -123,6 +136,11 @@ export class BluetoothNMM extends NativeMicroModule {
             this._bluetoothrequestdevicewatchSelectCallback(device.deviceId);
             this._requestDevice();
           },
+          // 设备连接成功
+          deviceConnectedSuccess: async (server: BluetoothRemoteGATTServer) => {
+            console.always('设备连接成功', server)
+            this._deviceConnectedResolve(server);
+          },
           requestDeviceFail: async () => {
             this._requestDevice();
           },
@@ -138,32 +156,32 @@ export class BluetoothNMM extends NativeMicroModule {
   // 关闭 UI
   private _closeUI = async (bw?: Electron.BrowserWindow) => {
     if (bw === undefined) {
-      bw = await this._browserWindowP;
+      bw = await this._browserWindow;
     }
     if (bw === undefined) {
       return false;
     }
     bw.close();
-    this._browserWindowP = undefined;
+    this._browserWindow = undefined;
   };
 
   // 打开 browseView
   private _openUI = async () => {
-    this._browserWindowP = this._getBrowserWindow(this._rootUrl);
-    const bw = await this._browserWindowP;
+    this._browserWindow = this._getBrowserWindow(this._rootUrl);
+    const bw = await this._browserWindow;
     const apis = bw.getApis<$APIS>();
     this._bluetoothrequestdevicewatch(bw, apis);
     this._requestDevice();
   };
 
   private _getBrowserWindow = (url: string, ipc?: Ipc) => {
-    return (this._browserWindowP ??= this._createBrowserWindow(url, ipc));
+    return (this._browserWindow ??= this._createBrowserWindow(url, ipc));
   };
 
   private _requestDevice = async () => {
-    if (this._browserWindowP === undefined)
+    if (this._browserWindow === undefined)
       throw new Error(`this._browserWindow === undefined`);
-    (await this._browserWindowP).webContents.executeJavaScript(
+    (await this._browserWindow).webContents.executeJavaScript(
       `requestDevice()`,
       true
     );
@@ -193,6 +211,19 @@ export class BluetoothNMM extends NativeMicroModule {
 
   protected override _shutdown = async () => {
     this._httpDwebServer?.close();
-    this._closeUI();
-  };
+    this._wwwReadableStreamIpc?.close();
+    this._closeUI()
+  }
 }
+
+// "TypeError: Invalid state: Controller is already closed\n   
+// at new NodeError (node:internal/errors:399:5)\n    
+// at ReadableStreamDefaultController.enqueue (node:internal/webstreams/readablestream:1036:13)\n    
+// at /Users/pengxiaohua/project/dweb_browser/desktop-dev/src/helper/readableStreamHelper.ts:164:20\n    
+// at Signal.value (/Users/pengxiaohua/project/dweb_browser/desktop-dev/src/helper/createSignal.ts:51:10)\n    
+// at Signal.value [as emit] (/Users/pengxiaohua/project/dweb_browser/desktop-dev/src/helper/createSignal.ts:44:12)\n   
+//  at Object.pull (/Users/pengxiaohua/project/dweb_browser/desktop-dev/src/helper/readableStreamHelper.ts:133:33)\n    
+//  at ensureIsPromise (node:internal/webstreams/util:192:19)\n    
+//  at readableStreamDefaultControllerCallPullIfNeeded (node:internal/webstreams/readablestream:2254:5)\n   
+//   at readableStreamDefaultControllerPullSteps (node:internal/webstreams/readablestream:2303:7)\n    
+//   at ReadableStreamDefaultController.[kPull] (node:internal/webstreams/readablestream:1052:5)"

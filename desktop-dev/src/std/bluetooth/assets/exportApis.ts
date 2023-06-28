@@ -9,21 +9,19 @@ const template: HTMLTemplateElement | null = document.querySelector(".template")
 let setTimeoutId: number;
 let bluetooth : BluetoothDevice
 let bluetoothRemoteGATTServer: BluetoothRemoteGATTServer | undefined
-let connectedSuccess: {(): void} | undefined;
+let connectedSuccess: {(server: BluetoothRemoteGATTServer): void} | undefined;
 let connectedFail: {(): void} | undefined;
 
 /**
  * 
  * @returns Promise<null | Error>
  */
-async function requestDevice(){
-  navigator.bluetooth.requestDevice({
-    acceptAllDevices: true,
-    // optionalServices: [
-    //   0x180F, /**获取电池信息*/
-    //   0x1844, /**声音服务*/
-    // ]
-  })
+async function requestDevice(requestDeviceOptions: RequestDeviceOptions){
+  // const requestDeviceOptions = JSON.parse(requestDeviceOptionsStr);
+  // bluetooth = await navigator.bluetooth.requestDevice(requestDeviceOptions)
+  // bluetoothRemoteGATTServer = await bluetooth.gatt?.connect()
+  // console.log('bluetooth: ', bluetooth, bluetoothRemoteGATTServer)
+  navigator.bluetooth.requestDevice(requestDeviceOptions)
   .then((_bluetooth) => {
     if(_bluetooth !== undefined){
       bluetooth = _bluetooth
@@ -34,7 +32,7 @@ async function requestDevice(){
     console.log("server", server)
     bluetoothRemoteGATTServer = server;
     if(connectedSuccess === undefined) throw new Error(`connectedSuccess === undefined`);
-    connectedSuccess()
+    connectedSuccess(server)
     clearTimeout(setTimeoutId)
   })
   .catch(err => {
@@ -88,11 +86,12 @@ async function devicesUpdate(list: $Device[]){
             console.error("连接超时")
           },6000)
 
-          connectedSuccess = () => {
+          connectedSuccess = (server: BluetoothRemoteGATTServer) => {
             oldDevice.el.classList.remove("connecting")
             oldDevice.el.classList.add("connected")
             oldDevice.isConnecting = false;
             oldDevice.isConnected = true;
+            ;(mainApis as any).deviceConnectedSuccess({ device: {id: server.device.id, name: server.device.name}});
             
           }
         }else{
