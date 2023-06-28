@@ -20,6 +20,7 @@ import info.bagen.dwebbrowser.microService.sys.haptics.HapticsNMM
 import info.bagen.dwebbrowser.microService.sys.notification.NotificationNMM
 import info.bagen.dwebbrowser.microService.sys.share.ShareNMM
 import info.bagen.dwebbrowser.microService.sys.toast.ToastNMM
+import info.bagen.dwebbrowser.microService.test.DesktopDemoJMM
 import info.bagen.dwebbrowser.microService.test.PlaocDemoJMM
 
 val InternalBranch = when (DEVELOPER.CURRENT) {
@@ -59,7 +60,7 @@ suspend fun startDwebBrowser(): DnsNMM {
     )
 
     DEVELOPER.WaterBang -> debugTags.addAll(
-      listOf("browser", "dwebview", "mwebview","jmm","http","fetch")
+      listOf( "dwebview", "mwebview","jmm","http","fetch")
     )
 
     else -> debugTags.addAll(
@@ -115,6 +116,7 @@ suspend fun startDwebBrowser(): DnsNMM {
   val jmmNMM = JmmNMM().also { dnsNMM.install(it) }
   // 测试使用，打包成apk需要删除
   val plaocDemoJMM = PlaocDemoJMM().also { dnsNMM.install(it) }
+  val desktopDemoJMM = DesktopDemoJMM().also { dnsNMM.install(it) }
   /**
    *
    * browserNMM.mmid,
@@ -135,8 +137,9 @@ suspend fun startDwebBrowser(): DnsNMM {
     )
 
     DEVELOPER.WaterBang -> listOf(
-      browserNMM.mmid,
-      plaocDemoJMM.mmid
+//      browserNMM.mmid,
+      plaocDemoJMM.mmid,
+//      desktopDemoJMM.mmid,
     )
 
     DEVELOPER.Kingsword09 -> listOf(

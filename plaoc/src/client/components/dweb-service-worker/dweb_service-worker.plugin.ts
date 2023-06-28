@@ -1,6 +1,7 @@
 import { bindThis } from "../../helper/bindThis.ts";
 import type { $BuildRequestWithBaseInit } from "../base/BasePlugin.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
+import { configPlugin } from "../index.ts";
 import { BFSMetaData } from "./dweb-service-worker.type.ts";
 
 class UpdateControllerPlugin extends BasePlugin {
@@ -75,14 +76,24 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
    * https://desktop.dweb.waterbang.top.dweb/say/hi?message="hi 今晚吃螃🦀️蟹吗？"
    */
   @bindThis
-  async externalFetch(hostname: $MMID, init: $ExterRequestWithBaseInit) {
+  async externalFetch(mmid: $MMID, init: $ExterRequestWithBaseInit) {
     // http://localhost:22206/?X-Dweb-Host=api.desktop.dweb.waterbang.top.dweb%3A443
-    const public_url = new URL(await BasePlugin.public_url);
-    public_url.searchParams.set("X-Dweb-Host", `external.${hostname}:443`);
-    const base = public_url.href;
+    let pub = await BasePlugin.public_url;
+    if (pub === "") {
+      pub = await configPlugin.updatePublicUrl();
+    }
+    pub = pub.replace("X-Dweb-Host=api", "X-Dweb-Host=external");
+    const X_Plaoc_Public_Url = new URL(location.href).searchParams.get(
+      "X-Plaoc-External-Url"
+    );
 
-    const config = Object.assign(init ?? {}, { base: base });
-    return await this.buildExternalApiRequest(init.pathname, config).fetch();
+    const search = Object.assign(init.search ?? {}, {
+      mmid: mmid,
+      action: "request",
+      pathname:init.pathname
+    });
+    const config = Object.assign(init, { search:search,base:pub})
+    return await this.buildExternalApiRequest(`/${X_Plaoc_Public_Url}`,config).fetch();
   }
   // http://localhost:22206/?X-Dweb-Host=external.demo.www.bfmeta.info.dweb%3A443
 }

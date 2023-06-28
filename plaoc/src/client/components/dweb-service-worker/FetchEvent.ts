@@ -18,7 +18,7 @@ export class FetchEvent extends Event {
   clientId: string | null;
   public_url = BasePlugin.public_url;
 
-  constructor(readonly type: $FetchEventType, init: FetchEventInit) {
+  constructor(type: $FetchEventType, init: FetchEventInit) {
     super(type);
     this.request = init.request;
     this.clientId = init.clientId || null;
@@ -37,8 +37,13 @@ export class FetchEvent extends Event {
       /X-Dweb-Host=api/,
       "X-Dweb-Host=external"
     );
-    return this.fetch(`/external/${this.clientId}`, {
+    const X_Plaoc_Public_Url = new URL(location.href).searchParams.get("X-Plaoc-External-Url")
+    return this.fetch(`/${X_Plaoc_Public_Url}`, {
       method: "POST",
+      search: {
+        id: this.clientId,
+        action:"response"
+      },
       body: response,
       base: base,
     });

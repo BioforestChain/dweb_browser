@@ -186,9 +186,7 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
                      */
                     val (targetIpc) = bootstrapContext.dns.connect(event.mmid)
                     /// 只要不是我们自己创建的直接连接的通道，就需要我们去创造直连并进行桥接
-                    if (targetIpc !is JmmIpc) {
-                        ipcBridge(event.mmid, targetIpc)
-                    }
+                    ipcBridge(event.mmid, targetIpc)
                 }
             }
             if (ipcEvent.name == "restart") {

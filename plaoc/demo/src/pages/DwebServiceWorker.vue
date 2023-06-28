@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import LogPanel, { defineLogAction, toConsole } from "../components/LogPanel.vue";
+import LogPanel, { defineLogAction } from "../components/LogPanel.vue";
 import { dwebServiceWorker as sw } from "../plugin";
 const $logPanel = ref<typeof LogPanel>();
-let console: Console;
+// let console: Console;
 
 const progress = ref(0);
 
 onMounted(async () => {
-  console = toConsole($logPanel);
+  // console = toConsole($logPanel);
   // app暂停触发事件（这个时候后台还会运行，前端界面被关闭）
   sw.addEventListener("pause", (event) => {
     console.log("app pause", event);
@@ -79,9 +79,8 @@ const download = defineLogAction(
 const message = ref("这里显示收到的消息")
 
 // 向desktop.dweb.waterbang.top.dweb 发送消息
-// external.desktop.dweb.waterbang.top.dweb%3A443
 const sayHi = async () => {
-  const result = await sw.externalFetch(`desktop.dweb.waterbang.top.dweb`,{
+  const result = await sw.externalFetch(`desktop.dweb-browser.org.dweb`,{
     pathname:"/say/hi",
     search: {
       message: "今晚吃螃🦀️蟹吗？"
@@ -90,7 +89,6 @@ const sayHi = async () => {
   message.value = await result.text();
   console.log("sayHi return => ",message.value);
 };
-
 sw.addEventListener("fetch", async (event) => {
   console.log("Dweb Service Worker fetch!", event);
   const url = new URL(event.request.url);

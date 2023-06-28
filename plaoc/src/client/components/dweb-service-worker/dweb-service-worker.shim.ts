@@ -10,8 +10,8 @@ import { configPlugin } from "../index.ts";
 import {
   $BodyData,
   DwebWorkerEventMap,
-  IpcRequest,
   IPC_METHOD,
+  IpcRequest,
   UpdateControllerMap,
 } from "./dweb-service-worker.type.ts";
 import { dwebServiceWorkerPlugin } from "./dweb_service-worker.plugin.ts";
@@ -92,7 +92,7 @@ class DwebServiceWorker extends BaseEvent<keyof DwebWorkerEventMap> {
   private decodeFetch = (ipcRequest: IpcRequest) => {
     return new FetchEvent("fetch", {
       request: this.toRequest(ipcRequest),
-      clientId: ipcRequest.req_id,
+      clientId: ipcRequest.req_id.toString(),
     });
   };
 
@@ -104,9 +104,13 @@ class DwebServiceWorker extends BaseEvent<keyof DwebWorkerEventMap> {
     if (pub === "") {
       pub = await configPlugin.updatePublicUrl();
     }
+    pub = pub.replace("X-Dweb-Host=api", "X-Dweb-Host=external");
+    const X_Plaoc_Public_Url = new URL(location.href).searchParams.get(
+      "X-Plaoc-External-Url"
+    );
     const jsonlines = await this.plugin
-      .buildInternalApiRequest(`/${eventName}`, {
-        search: { mmid: this.plugin.mmid },
+      .buildExternalApiRequest(`/${X_Plaoc_Public_Url}`, {
+        search: { mmid: this.plugin.mmid, action: "listen" },
         base: pub,
       })
       .fetch()
@@ -130,7 +134,6 @@ class DwebServiceWorker extends BaseEvent<keyof DwebWorkerEventMap> {
   ): EventTarget {
     // 用户需要的时候再去注册
     if (eventName === "fetch") {
-      //  || eventName === "onFetch"
       (async () => {
         for await (const _info of this.registerEvent(eventName)) {
           // console.log("registerFetch", _info);

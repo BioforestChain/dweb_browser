@@ -38,7 +38,12 @@ import { fetchExtends } from "../../helper/fetchExtends/index.ts";
 import { normalizeFetchArgs } from "../../helper/normalizeFetchArgs.ts";
 import { updateUrlOrigin } from "../../helper/urlHelper.ts";
 import type { $RunMainConfig } from "./assets/js-process.web.ts";
-import { $OnIpcEventMessage, Ipc, IPC_ROLE } from "./std-dweb-core.ts";
+import {
+  $OnIpcEventMessage,
+  $OnIpcRequestMessage,
+  Ipc,
+  IPC_ROLE,
+} from "./std-dweb-core.ts";
 
 import { IpcEvent } from "../../core/ipc/IpcEvent.ts";
 import { $Callback, createSignal } from "../../helper/createSignal.ts";
@@ -204,14 +209,18 @@ export class JsProcessMicroModule implements $MicroModule {
   }
 
   /**重启 */
-  async restart() {
-    this.closeSignal.emit();
+  restart() {
+    this._restartCloseIpcSignal.emit();
     this.fetchIpc.postMessage(IpcEvent.fromText("restart", "")); // 发送指令
   }
-  // 关闭信号
-  readonly closeSignal = createSignal<() => unknown>();
+  // 重启关闭ipc
+  private _restartCloseIpcSignal = createSignal<() => unknown>();
+  // 激活信号
   private _activitySignal = createSignal<$OnIpcEventMessage>();
-  private _closeSignal = createSignal<$OnIpcEventMessage>();
+  // app关闭信号
+  private _onCloseSignal = createSignal<$OnIpcEventMessage>();
+  // 外部request信号
+  private _onRequestSignal = createSignal<$OnIpcRequestMessage>();
   private _on_activity_inited = false;
   onActivity(cb: $OnIpcEventMessage) {
     if (this._on_activity_inited === false) {
@@ -222,10 +231,13 @@ export class JsProcessMicroModule implements $MicroModule {
             return this._activitySignal.emit(ipcEvent, ipc);
           }
           if (ipcEvent.name === MWEBVIEW_LIFECYCLE_EVENT.Close) {
-            return this._closeSignal.emit(ipcEvent, ipc);
+            return this._onCloseSignal.emit(ipcEvent, ipc);
           }
         });
-        this.closeSignal.listen(() => {
+        ipc.onRequest((ipcRequest, ipc) =>
+          this._onRequestSignal.emit(ipcRequest, ipc)
+        );
+        this._restartCloseIpcSignal.listen(() => {
           ipc.postMessage(IpcEvent.fromText("close", ipc.remote.mmid));
           ipc.close();
         });
@@ -233,8 +245,13 @@ export class JsProcessMicroModule implements $MicroModule {
     }
     return this._activitySignal.listen(cb);
   }
+
+  onRequest(request: $OnIpcRequestMessage) {
+    return this._onRequestSignal.listen(request);
+  }
+
   onClose(cb: $OnIpcEventMessage) {
-    return this._closeSignal.listen(cb);
+    return this._onCloseSignal.listen(cb);
   }
 
   private _ipcConnectsMap = new Map<$MMID, PromiseOut<Ipc>>();

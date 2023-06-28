@@ -1,14 +1,17 @@
+import { $MMID } from "../client/index.ts";
 import {
   $DwebHttpServerOptions,
   $Ipc,
   $IpcRequest,
   $IpcResponse,
   createSignal,
+  IpcHeaders,
   IpcResponse,
+  jsProcess,
   PromiseOut,
   ReadableStreamOut,
   simpleEncoder,
-  u8aConcat,
+  u8aConcat
 } from "./deps.ts";
 import { cros, HttpError, HttpServer } from "./http-helper.ts";
 
@@ -33,17 +36,17 @@ export class Server_external extends HttpServer {
   }
 
   readonly responseMap = new Map<number, PromiseOut<$IpcResponse>>();
+  // 拿到fetch的请求
   readonly fetchSignal = createSignal<$OnIpcRequestUrl>();
-
+  // 等待listen触发
+  readonly waitListener = new PromiseOut<boolean>()
   start() {
     return this._onRequest(this._provider.bind(this));
   }
 
   protected async _provider(request: $IpcRequest, ipc: $Ipc) {
     const url = request.parsed_url;
-    const xHost = decodeURIComponent(url.searchParams.get("X-Dweb-Host") ?? "");
-
-    if (url.pathname === "/" + this.token) {
+    if (url.pathname.startsWith(`/${this.token}`)) {
       /**
        * 这里会处理api的消息返回到前端serviceWorker 构建onFetchEvent 并触发fetch事件
        */
@@ -57,13 +60,47 @@ export class Server_external extends HttpServer {
           const uint8 = simpleEncoder(JSON.stringify(json), "utf8");
           ob.controller.enqueue(u8aConcat([uint8, jsonlineEnd]));
         });
+        this.waitListener.resolve(true)
         return IpcResponse.fromStream(
           request.req_id,
           200,
-          undefined,
+          cros(new IpcHeaders()),
           streamPo.stream,
           ipc
         );
+      }
+      // 发送对外请求
+      if (action === "request") {
+        const mmid = url.searchParams.get("mmid") as $MMID | null;
+        let pathname = url.searchParams.get("pathname")?? "";
+        // 删除不必要的search
+        url.searchParams.delete("mmid");
+        url.searchParams.delete("X-Dweb-Host")
+        url.searchParams.delete("action")
+        url.searchParams.delete("pathname")
+        pathname = pathname + url.search
+        if (!mmid) {
+          throw new HttpError(400, "mmid must be passed");
+        }
+
+        // 连接需要传递信息的jsMicroModule
+        const jsIpc = await jsProcess.connect(mmid);
+        const response = await jsIpc.request(pathname, {
+          method: request.method,
+          headers:request.headers,
+          body: request.body.raw
+        });
+        const ipcResponse = new IpcResponse(
+          request.req_id,
+          response.statusCode,
+          response.headers,
+          response.body,
+          ipc
+        );
+    
+        cros(ipcResponse.headers);
+        // 返回数据到前端
+        return ipcResponse
       }
 
       // 处理serviceworker respondWith过来的请求,回复给别的app
@@ -86,7 +123,7 @@ export class Server_external extends HttpServer {
           new IpcResponse(
             externalReqId,
             200,
-            request.headers,
+            cros(request.headers),
             request.body,
             ipc
           )
@@ -103,19 +140,7 @@ export class Server_external extends HttpServer {
         // 告知自己的 respondWith 已经发送成功了
         return icpResponse;
       }
-
       throw new HttpError(502, `unknown action: ${action}`);
-    }
-
-    // 别的app发送消息，触发一下前端注册的fetch
-    if (xHost === (await this.getStartResult()).urlInfo.host) {
-      this.fetchSignal.emit(request);
-      const awaitResponse = new PromiseOut<$IpcResponse>();
-      this.responseMap.set(request.req_id, awaitResponse);
-      const ipcResponse = await awaitResponse.promise;
-      cros(ipcResponse.headers);
-      // 返回数据到发送者那边
-      return ipcResponse;
     }
   }
 }

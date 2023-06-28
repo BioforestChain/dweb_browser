@@ -1,6 +1,8 @@
 package org.dweb_browser.microservice.sys.http
 
 import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.delay
+import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.ReadableStreamIpc
 import org.dweb_browser.helper.decodeURIComponent
@@ -13,6 +15,7 @@ import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.gson
+import org.dweb_browser.microservice.ipc.message.IpcEvent
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Response
@@ -98,7 +101,6 @@ class HttpNMM : NativeMicroModule("http.sys.dweb") {
     val response = gatewayMap[host]?.let { gateway ->
       gateway.listener.hookHttpRequest(request)
     }
-
     return response ?: Response(Status.NOT_FOUND)
   }
 /// 在网关中寻址能够处理该 host 的监听者
@@ -239,7 +241,7 @@ class HttpNMM : NativeMicroModule("http.sys.dweb") {
     this.addToIpcSet(streamIpc)
     /// 自己创建的，就要自己销毁：这个listener被销毁的时候，streamIpc也要进行销毁
     gateway.listener.onDestroy {
-      debugHttp("onDestroy","gateway.listener")
+      debugHttp("onDestroy", "gateway.listener")
       streamIpc.close()
     }
     for (routeConfig in routes) {
@@ -253,8 +255,8 @@ class HttpNMM : NativeMicroModule("http.sys.dweb") {
     val serverUrlInfo = getServerUrlInfo(ipc, options)
     debugHttp("close", "mmid: ${ipc.remote.mmid} ${serverUrlInfo.host}")
     return gatewayMap.remove(serverUrlInfo.host)?.let { gateway ->
-      tokenMap.remove(gateway.token)?.let { it.listener.destroy() }
-//      gateway.listener.destroy()
+      tokenMap.remove(gateway.token)
+      gateway.listener.destroy()
       true
     } ?: false
   }
