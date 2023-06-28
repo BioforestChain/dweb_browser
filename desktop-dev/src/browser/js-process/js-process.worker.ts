@@ -10,17 +10,11 @@ declare global {
   const JsProcessMicroModule: new (
     mmid: $MMID
   ) => JsProcessMicroModuleContructor;
-  // //  { JsProcessMicroModule } from "./js-process.worker.ts";
-  // const jsProcess: JsProcessMicroModuleContructor;
-  // const http: typeof import("../http-server/$createHttpDwebServer.ts");
-  // const ipc: typeof import("../../core/ipc/index.ts");
-  // const helper: typeof import("../../helper/PromiseOut.ts") &
-  //   typeof import("../../helper/readableStreamHelper.ts") &
-  //   typeof import("../../helper/JsonlinesStream.ts") &
-  //   typeof import("../../helper/createSignal.ts");
+
   interface DWebCore {
     jsProcess: JsProcessMicroModuleContructor;
-    ipc: typeof import("../../core/ipc/index.ts");
+    core: typeof import("./std-dweb-core.ts");
+    ipc: typeof import("./std-dweb-core.ts");
     http: typeof import("../../sys/http-server/index.ts");
   }
   interface WorkerNavigator {
@@ -32,27 +26,27 @@ declare global {
 }
 const workerGlobal = self as DedicatedWorkerGlobalScope;
 
-import { MessagePortIpc } from "../../core/ipc-web/MessagePortIpc.ts";
-import { $OnIpcEventMessage, Ipc, IPC_ROLE } from "../../core/ipc/index.ts";
-import { fetchExtends } from "../../helper/fetchExtends/index.ts";
 import { $readRequestAsIpcRequest } from "../../core/helper/$readRequestAsIpcRequest.ts";
-import { normalizeFetchArgs } from "../../helper/normalizeFetchArgs.ts";
 import type {
   $DWEB_DEEPLINK,
   $IpcSupportProtocols,
   $MicroModule,
   $MMID,
 } from "../../core/helper/types.ts";
+import { MessagePortIpc } from "../../core/ipc-web/MessagePortIpc.ts";
+import { fetchExtends } from "../../helper/fetchExtends/index.ts";
+import { normalizeFetchArgs } from "../../helper/normalizeFetchArgs.ts";
 import { updateUrlOrigin } from "../../helper/urlHelper.ts";
 import type { $RunMainConfig } from "./assets/js-process.web.ts";
+import { $OnIpcEventMessage, Ipc, IPC_ROLE } from "./std-dweb-core.ts";
 
-import * as ipc from "../../core/ipc/index.ts";
 import { IpcEvent } from "../../core/ipc/IpcEvent.ts";
 import { $Callback, createSignal } from "../../helper/createSignal.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
 import * as http from "../../sys/http-server/index.ts";
 import { MWEBVIEW_LIFECYCLE_EVENT } from "../multi-webview/types.ts";
+import * as core from "./std-dweb-core.ts";
 // import * as helper_createSignal from "../../helper/createSignal.ts";
 // import * as helper_JsonlinesStream from "../../helper/JsonlinesStream.ts";
 // import * as helper_PromiseOut from "../../helper/PromiseOut.ts";
@@ -293,15 +287,9 @@ export const installEnv = async (metadata: Metadata) => {
 
   const dweb = {
     jsProcess,
-    ipc,
-    // JsProcessMicroModule,
+    core,
+    ipc: core,
     http,
-    // helper: {
-    //   ...helper_PromiseOut,
-    //   ...helper_readableStreamHelper,
-    //   ...helper_JsonlinesStream,
-    //   ...helper_createSignal,
-    // },
   } satisfies DWebCore;
   // Object.assign(globalThis, dweb);
   Object.assign(navigator, { dweb });
