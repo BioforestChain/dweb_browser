@@ -185,8 +185,10 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
                      * TODO 如果有必要，未来需要让 connect 函数支持 force 操作，支持多次连接。
                      */
                     val (targetIpc) = bootstrapContext.dns.connect(event.mmid)
-                    /// 只要不是我们自己创建的直接连接的通道，就需要我们去创造直连并进行桥接
-                    ipcBridge(event.mmid, targetIpc)
+                    /// 只要不是我们自己创建的直接连接的通道，就需要我们去 创造直连并进行桥接
+                    if (targetIpc.remote.mmid != mmid) {
+                        ipcBridge(event.mmid, targetIpc)
+                    }
                 }
             }
             if (ipcEvent.name == "restart") {
@@ -262,48 +264,5 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
         nativeFetch("file://js.browser.dweb/close-process")
         closeJsProcessSignal.emit()
         processId = null
-    }
-
-
-    init {
-//        onConnect { (clientIpc, reason) ->
-//            return@onConnect null
-////            clientIpc.ro
-//            if (clientIpc.remote.mmid == "js.browser.dweb") {
-//                return@onConnect null
-//            }
-//
-//            /**
-//             * 我们需要建立一个到js环境里的ipc连接，来与外部通讯
-//             */
-//            val serverPortId = createConnectPortId(this, IPC_ROLE.SERVER)
-//            /**
-//             * 将这两个消息通道进行连接
-//             */
-//            /**
-//             * 如果 发起者也是 MessagePortIpc，那么我们可以直接销毁它在native的绑定，让这两个ipc直接通讯
-//             */
-//            if (clientIpc is MessagePortIpc) {
-//                val serverPort = ALL_MESSAGE_PORT_CACHE.remove(serverPortId)!!
-//                val clientPort = clientIpc.port
-//                /**
-//                 * 两个消息通道间接互联
-//                 */
-//                clientPort.onWebMessage { message -> serverPort.postMessage(message) }
-//                serverPort.onWebMessage { message -> clientPort.postMessage(message) }
-//                /**
-//                 * 只做简单的销毁，不做关闭，从而不在触发 native 侧的 onMessage，减少解码开销
-//                 */
-//                clientIpc.destroy(false)
-//            } else {
-//                val serverIpc = createConnectIpc(clientIpc.remote, this, serverPortId)
-//                /**
-//                 * 两个消息通道间接互联
-//                 */
-//                serverIpc.onMessage { (ipcMessage) -> clientIpc.postMessage(ipcMessage) }
-//                clientIpc.onMessage { (ipcMessage) -> serverIpc.postMessage(ipcMessage) }
-//            }
-//            null
-//        }
     }
 }

@@ -10,6 +10,7 @@ import { Readable } from "node:stream";
 import { isDeepStrictEqual } from "node:util";
 import Store from "npm:electron-store@8.1.0";
 import tar from "tar";
+import { $MMID } from "../../core/helper/types.ts";
 import {
   IPC_METHOD,
   Ipc,
@@ -17,12 +18,12 @@ import {
   IpcHeaders,
   IpcRequest,
   IpcResponse,
+  cros,
 } from "../../core/ipc/index.ts";
 import { resolveToDataRoot } from "../../helper/createResolveTo.ts";
 import { simpleEncoder } from "../../helper/encoding.ts";
 import { locks } from "../../helper/locksManager.ts";
 import { ReadableStreamOut } from "../../helper/readableStreamHelper.ts";
-import { $MMID } from "../../core/helper/types.ts";
 import { nativeFetchAdaptersManager } from "../../sys/dns/nativeFetch.ts";
 import { createHttpDwebServer } from "../../sys/http-server/$createHttpDwebServer.ts";
 import type { $AppMetaData, JmmNMM } from "./jmm.ts";
@@ -31,7 +32,6 @@ import { JsMMMetadata, JsMicroModule } from "./micro-module.js.ts";
 export const JMM_APPS_PATH = resolveToDataRoot("jmm-apps");
 fs.mkdirSync(JMM_APPS_PATH, { recursive: true });
 
-const JMM_DB_PATH = path.join(JMM_APPS_PATH, ".db");
 /**
  * @type {import("@seald-io/nedb").Nedb<$AppMetaData>}
  */
@@ -58,12 +58,6 @@ export class JmmDatabase extends Store<{
   }
 }
 export const JMM_DB = new JmmDatabase();
-// JMM_DB.
-// open<$AppMetaData, $MMID>({
-//   path: path.join(JMM_APPS_PATH, "jmm"),
-//   encoding: "json",
-// });
-
 export const JMM_TMP_DIR = path.join(os.tmpdir(), "jmm");
 fs.mkdirSync(JMM_TMP_DIR, { recursive: true });
 
@@ -84,10 +78,7 @@ function onRequest(this: JmmNMM, request: IpcRequest, ipc: Ipc) {
         IpcResponse.fromText(
           request.req_id,
           200,
-          new IpcHeaders()
-            .init("Access-Control-Allow-Origin", "*")
-            .init("Access-Control-Allow-Headers", "*")
-            .init("Access-Control-Allow-Methods", "*"),
+          cros(new IpcHeaders()),
           "",
           ipc
         )
