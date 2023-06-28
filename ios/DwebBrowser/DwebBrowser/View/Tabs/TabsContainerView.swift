@@ -17,7 +17,7 @@ struct TabsContainerView: View{
     
     @StateObject var animation = ShiftAnimation()
     @State var selectedCellFrame: CGRect = .zero
-
+    
     @StateObject var gridState = TabGridState()
     
     @State var gridScale: CGFloat = 1
@@ -27,17 +27,14 @@ struct TabsContainerView: View{
     }
     
     var body: some View{
-        Self._printChanges()
-        
-        return
         GeometryReader { geo in
             //层级关系  最前<-- 快照(缩放动画）<-- collecitionview  <--  tabPage ( homepage & webview)
-
+            
             ZStack{
                 TabGridView(animation: animation, gridState: gridState, selectedCellFrame: $selectedCellFrame)
                     .scaleEffect(x: gridState.scale, y: gridState.scale)
                     .opacity(gridState.opacity)
-
+                
                 if !toolbarState.showTabGrid, !animation.progress.isAnimating() {
                     Color(.white)
                 }
@@ -67,46 +64,40 @@ struct TabsContainerView: View{
             })
         }
     }
+    
     var animationImage: some View{
-            #if DEBUG
-            let _ = Self._printChanges()
-            #endif
-        
-        return Rectangle()
+        Rectangle()
             .overlay(
-            Image(uiImage: animation.snapshotImage)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: geoRect.width, height: geoRect.height, alignment: .center)
-                .scaleEffect(x: imageWidthScale(), y: imageWidthScale())
-                .cornerRadius(animation.progress.imageIsSmall() ? gridcellCornerR : 0)
-                .clipped()
-        )
-        .frame(width: imageWidth(), height: imageHeight(), alignment: .top)
-        .position(x: imageXcenter(), y: imageYcenter())
-        .onReceive(animation.$progress, perform: { progress in
-            if progress == .startShrinking || progress == .startExpanding{
-                withAnimation(.linear){
-                    animation.progress = progress.next() // change to expanded or shrinked
+                Image(uiImage: animation.snapshotImage)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: geoRect.width, height: geoRect.height, alignment: .top)
+                    .scaleEffect(x: imageWidthScale(), y: imageWidthScale())
+                
+            )
+            .frame(width: imageWidth(), height: imageHeight(), alignment: .top)
+            .position(x: imageXcenter(), y: imageYcenter())
+            .cornerRadius(animation.progress.imageIsSmall() ? gridcellCornerR : 0)
+            .clipped()
+            .background(Color.blue)
+            .onReceive(animation.$progress, perform: { progress in
+                if progress == .startShrinking || progress == .startExpanding{
+                    withAnimation(.linear(duration: 5)){
+                        animation.progress = progress.next() // change to expanded or shrinked
+                    }
+                    withAnimation(.linear(duration: 5)){
+                        gridState.opacity = 1
+                        gridState.scale = progress == .startShrinking ? 1:0.8
+                    }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 5.05) {
+                        animation.progress = .invisible // change to expanded or shrinked
+                    }
                 }
-                withAnimation(.linear){
-                    gridState.opacity = 1
-                    gridState.scale = progress == .startShrinking ? 1:0.8
-                }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.55) {
-                    animation.progress = .invisible // change to expanded or shrinked
-                }
-            }
-        })
-        .cornerRadius(animation.progress.imageIsSmall() ? gridcellCornerR : 0)
-        .clipped()
-        
+            })
     }
     
     func imageXcenter()-> CGFloat{
-        if animation.progress.imageIsSmall(){
-            return selectedCellFrame.minX + selectedCellFrame.width/2.0
-        }else if animation.progress.imageIsLarge(){
+        if animation.progress.imageIsLarge(){
             return geoRect.midX
         }else{
             return selectedCellFrame.minX + selectedCellFrame.width/2.0
@@ -114,12 +105,10 @@ struct TabsContainerView: View{
     }
     
     func imageYcenter()-> CGFloat{
-        if animation.progress.imageIsSmall(){
-            return selectedCellFrame.minY + (selectedCellFrame.height - gridcellBottomH)/2.0 - safeAreaTopHeight
-        }else if animation.progress.imageIsLarge(){
+        if animation.progress.imageIsLarge(){
             return geoRect.midY - geoRect.minY
         }else{
-            return selectedCellFrame.minY + (selectedCellFrame.height - gridcellBottomH)/2.0
+            return selectedCellFrame.minY + (selectedCellFrame.height - gridcellBottomH)/2.0 - safeAreaTopHeight
         }
     }
     
@@ -139,11 +128,8 @@ struct TabsContainerView: View{
         }
     }
     
-    
     func imageWidth()->CGFloat{
-        if animation.progress.imageIsSmall(){
-            return selectedCellFrame.width
-        }else if animation.progress.imageIsLarge(){
+        if animation.progress.imageIsLarge(){
             return geoRect.width
         }else {
             return selectedCellFrame.width
@@ -151,18 +137,13 @@ struct TabsContainerView: View{
     }
     
     func imageHeight()->CGFloat{
-        if animation.progress.imageIsSmall(){
-            return selectedCellFrame.height - gridcellBottomH
-        }else if animation.progress.imageIsLarge(){
+        if animation.progress.imageIsLarge(){
             return geoRect.height
         }else{
-            return selectedCellFrame.height
+            return selectedCellFrame.height - gridcellBottomH
         }
     }
 }
-
-var redrawcount = 0
-
 
 struct WebHScrollView: View{
     @EnvironmentObject var addrBarOffset: AddrBarOffset

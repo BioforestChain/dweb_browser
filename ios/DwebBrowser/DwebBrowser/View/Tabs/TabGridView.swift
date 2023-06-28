@@ -32,9 +32,8 @@ struct TabGridView: View {
 
     @State var frames: [CellFrameInfo] = []
     @Binding var selectedCellFrame: CGRect
-    
+
     var body: some View {
-        
         GeometryReader { geo in
             ScrollViewReader{ scrollproxy in
                 ScrollView{
@@ -48,6 +47,12 @@ struct TabGridView: View {
                                     Color.clear
                                         .preference(key: CellFramePreferenceKey.self, value: [ CellFrameInfo(index: cacheStore.store.firstIndex(of: webCache) ?? 0, frame: geometry.frame(in: .global))])
                                 })
+                                .onAppear{
+                                    if let index = WebCacheMgr.shared.store.firstIndex(of: webCache),
+                                       index == selectedTab.curIndex{
+                                        selectedCellFrame = cellFrame(at: index)
+                                    }
+                                }
                                 
                                 .onTapGesture {
                                     guard let index = cacheStore.store.firstIndex(of: webCache) else { return }

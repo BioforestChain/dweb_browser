@@ -69,20 +69,7 @@ struct TabPageView: View {
                     toolbarState.canGoForward = canGoForward
                 }
             })
-        
             .onChange(of: webWrapper.estimatedProgress){ newValue in
-                if newValue >= 1{
-                    webWrapper.webView.evaluateJavaScript(watchIosIconScript) { (iconUrl, error) in
-                        if let error = error {
-                            // 处理执行 JavaScript 错误
-                            print("JavaScript error: \(error)")
-                            return
-                        }
-                        guard let urlString = iconUrl as? String, let newUrl = URL(string: urlString) else { return }
-                        webCache.webIconUrl = newUrl
-                    }
-                }
-                
                 if newValue >= 1.0{
                     WebCacheMgr.shared.saveCaches()
                 }
@@ -90,6 +77,9 @@ struct TabPageView: View {
         
             .onChange(of: webWrapper.title!) { title in
                 webCache.title = title
+            }
+            .onChange(of: webWrapper.icon) { icon in
+                webCache.webIconUrl = URL(string: String(icon)) ?? .defaultWebIconURL
             }
             .onChange(of: webWrapper.url) { visitingUrl in
                 if let url = visitingUrl{
@@ -137,53 +127,3 @@ struct TabPageView_Previews: PreviewProvider {
         Text("problem")
     }
 }
-
-// 单次获取图标的 JavaScript 代码
-let getIosIconScript = """
-
-"""
-
-// 轮询获取图标的 JavaScript 代码
-let watchIosIconScript = """
-function getIosIcon(preference_size = 120) {
-        webkit.messageHandlers.testlog.postMessage(JSON.stringify([
-    ...document.querySelectorAll(`link[rel~="icon"]`).values(),
-  ]));
-
-        webkit.messageHandlers.testlog.postMessage(document.documentElement.outerHTML);
-  const iconLinks = [
-    ...document.querySelectorAll(`link[rel~="icon"]`).values(),
-  ].map((ele) => {
-    webkit.messageHandlers.testlog.postMessage(JSON.stringify(ele));
-    return {
-      ele,
-      rel: ele.getAttribute("rel"),
-      sizes: parseInt(ele.getAttribute("sizes")) || 0,
-    };
-  });
-
-  const href = (
-    iconLinks
-      .filter((link) => {
-        return link.rel === "apple-touch-icon" || link.rel === "apple-touch-icon-precomposed";
-      })
-      .sort(
-        (a, b) =>
-          Math.abs(a.size - preference_size) -
-          Math.abs(b.size - preference_size)
-      )[0] ??
-    iconLinks.findLast(
-      (link) => link.rel === "icon" || link.rel === "shortcut icon"
-    )
-  )?.ele.href ?? 'favicon.ico';
-
-  if (href) {
-    const iconUrl = new URL(href, document.baseURI);
-    return iconUrl.href;
-  }
-  return "";
-}
-
-
-getIosIcon()
-"""

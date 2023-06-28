@@ -29,11 +29,7 @@ public class BridgeManager: NSObject {
             .environment(\.managedObjectContext, DataController.shared.container.viewContext))
         
         self.browserView = controller.view
-        
-        NotificationCenter.default.addObserver(forName: NSNotification.Name(rawValue: "OpenApp"), object: nil, queue: .main) { noti in
-            guard let urlString = noti.object as? String else { return }
-            self.clickCallback?(urlString)
-        }
+
     }
     @objc public func clickApp(appUrl: String) {
         self.clickCallback?(appUrl)

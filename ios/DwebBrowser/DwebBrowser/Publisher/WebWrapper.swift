@@ -2,28 +2,116 @@ import SwiftUI
 import Combine
 import WebKit
 
-public class TestWebview : WKWebView {
+public class BrowserWebview : WKWebView {
+    @objc dynamic var icon = NSString("")
+
     public override init(frame: CGRect, configuration: WKWebViewConfiguration) {
         super.init(frame: frame, configuration: configuration)
-        configuration.userContentController.add(self, name: "testlog")
+        configuration.userContentController.add(self, name: "favicons")
+        self.navigationDelegate = self
     }
     
     convenience init() {
         self.init(frame:UIScreen.main.bounds, configuration:WKWebViewConfiguration())
+        
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 }
+// 监听获取图标的 JavaScript 代码
+let watchIosIconScript = """
+function getIosIcon(preference_size = 64) {
+  const iconLinks = [
+    ...document.head.querySelectorAll(`link[rel*="icon"]`).values(),
+  ]
+    .map((ele) => {
+      return {
+        ele,
+        rel: ele.getAttribute("rel"),
+      };
+    })
+    .filter((link) => {
+      return (
+        link.rel === "icon" ||
+        link.rel === "shortcut icon" ||
+        link.rel === "apple-touch-icon" ||
+        link.rel === "apple-touch-icon-precomposed"
+      );
+    })
+    .map((link, index) => {
+      const sizes = parseInt(link.ele.getAttribute("sizes")) || 32;
+      return {
+        ...link,
+        // 上古时代的图标默认大小是32
+        sizes,
+        weight: sizes * 100 + index,
+      };
+    })
+    .sort((a, b) => {
+      const a_diff = Math.abs(a.sizes - preference_size);
+      const b_diff = Math.abs(b.sizes - preference_size);
+      /// 和预期大小接近的排前面
+      if (a_diff !== b_diff) {
+        return a_diff - b_diff;
+      }
+      /// 权重大的排前面
+      return b.weight - a.weight;
+    });
 
-extension TestWebview :  WKScriptMessageHandler {
+  const href =
+    (
+      iconLinks
+        /// 优先获取 ios 的指定图标
+        .filter((link) => {
+          return (
+            link.rel === "apple-touch-icon" ||
+            link.rel === "apple-touch-icon-precomposed"
+          );
+        })[0] ??
+      /// 获取标准网页图标
+      iconLinks[0]
+    )?.ele.href ?? "favicon.ico";
+
+  const iconUrl = new URL(href, document.baseURI);
+  return iconUrl.href;
+}
+function watchIosIcon(preference_size = 64, message_hanlder_name = "favicons") {
+  let preIcon = "";
+  const getAndPost = () => {
+    const curIcon = getIosIcon(preference_size);
+    if (curIcon && preIcon !== curIcon) {
+      preIcon = curIcon;
+      if (typeof webkit !== "undefined") {
+        webkit.messageHandlers[message_hanlder_name].postMessage(curIcon);
+      } else {
+        console.log("favicon:", curIcon);
+      }
+      return true;
+    }
+    return false;
+  };
+
+  getAndPost();
+  const config = { attributes: true, childList: true, subtree: true };
+  const observer = new MutationObserver(getAndPost);
+  observer.observe(document.head, config);
+
+  return () => observer.disconnect();
+}
+void watchIosIcon()
+"""
+extension BrowserWebview :  WKScriptMessageHandler, WKNavigationDelegate {
     public func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-        if (message.body != nil)
-        {
-            print(message.body as! String)
-            
+        print("messageHandler: \(message.body as! String)")
+        if let value = message .body as? String {
+            icon = NSString(string: value.isEmpty ? URL.defaultWebIconURL.absoluteString : value )
         }
+    }
+    
+    public func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
+        evaluateJavaScript(watchIosIconScript)
     }
 }
 
@@ -31,14 +119,14 @@ extension TestWebview :  WKScriptMessageHandler {
 public class WebWrapper: ObservableObject, Identifiable, Hashable, Equatable{
     public var id = UUID()
 
-    @Published public var webView: TestWebview {
+    @Published public var webView: BrowserWebview {
         didSet {
             setupObservers()
         }
     }
     init(cacheID: UUID) {
 //        self.webView = BridgeManager.webviewGenerator!(nil)
-        self.webView = TestWebview()
+        self.webView = BrowserWebview()
         self.id = cacheID
         print("making a WebWrapper: \(self)")
 
@@ -46,7 +134,7 @@ public class WebWrapper: ObservableObject, Identifiable, Hashable, Equatable{
     }
     
     private func setupObservers() {
-        func subscriber<Value>(for keyPath: KeyPath<TestWebview, Value>) -> NSKeyValueObservation {
+        func subscriber<Value>(for keyPath: KeyPath<BrowserWebview, Value>) -> NSKeyValueObservation {
             return webView.observe(keyPath, options: [.prior]) { _, change in
                 if change.isPrior {
                     DispatchQueue.main.async {
@@ -65,12 +153,14 @@ public class WebWrapper: ObservableObject, Identifiable, Hashable, Equatable{
             subscriber(for: \.serverTrust),
             subscriber(for: \.canGoBack),
             subscriber(for: \.canGoForward),
+            subscriber(for: \.configuration),
+            subscriber(for: \.icon),
         ]
     }
     
     private var observers: [NSKeyValueObservation] = []
     
-    public subscript<T>(dynamicMember keyPath: KeyPath<WKWebView, T>) -> T {
+    public subscript<T>(dynamicMember keyPath: KeyPath<BrowserWebview, T>) -> T {
         webView[keyPath: keyPath]
     }
     
@@ -84,8 +174,7 @@ public class WebWrapper: ObservableObject, Identifiable, Hashable, Equatable{
      }
 }
 
-var webViews = Set<WKWebView>()
-/// A container for using a WKWebView in SwiftUI
+// A container for using a WKWebView in SwiftUI
 public struct WebView: View, UIViewRepresentable {
     /// The WKWebView to display
     let url: URL
@@ -94,13 +183,12 @@ public struct WebView: View, UIViewRepresentable {
     public init(webView: WKWebView, url: URL) {
         self.webView = webView
         self.url = url
-        webViews.insert(webView)
+        if url != self.webView.url {
+            webView.load(URLRequest(url:url))
+        }
     }
     
     public func makeUIView(context: UIViewRepresentableContext<WebView>) -> WKWebView {
-        if webView.estimatedProgress < 0.2{
-            webView.load(URLRequest(url:url))
-        }
         return webView
     }
     

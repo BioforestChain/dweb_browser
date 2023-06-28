@@ -131,14 +131,14 @@ class WebCacheMgr: ObservableObject{
         }
         if store.count == 0 {
             store = [
-                WebCache(lastVisitedUrl: emptyURL, title: "blank"),
+//                WebCache(lastVisitedUrl: emptyURL, title: "blank"),
                 WebCache(lastVisitedUrl: URL(string: "https://www.apple.com")!, title: "2"),
-                WebCache(lastVisitedUrl: URL(string: "https://www.163.com")!, title: "3"),
-                WebCache(lastVisitedUrl: URL(string: "https://www.douban.com")!, title: "4"),
-                WebCache(lastVisitedUrl: URL(string: "https://www.douyu.com")!, title: "5"),
-                WebCache(lastVisitedUrl: URL(string: "https://www.apple.com")!, title: "2"),
-                WebCache(lastVisitedUrl: URL(string: "https://www.163.com")!, title: "3"),
-                WebCache(lastVisitedUrl: URL(string: "https://www.douban.com")!, title: "4"),
+//                WebCache(lastVisitedUrl: URL(string: "https://www.163.com")!, title: "3"),
+//                WebCache(lastVisitedUrl: URL(string: "https://www.douban.com")!, title: "4"),
+//                WebCache(lastVisitedUrl: URL(string: "https://www.douyu.com")!, title: "5"),
+//                WebCache(lastVisitedUrl: URL(string: "https://www.apple.com")!, title: "2"),
+//                WebCache(lastVisitedUrl: URL(string: "https://www.163.com")!, title: "3"),
+//                WebCache(lastVisitedUrl: URL(string: "https://www.douban.com")!, title: "4"),
                 WebCache(lastVisitedUrl: URL(string: "https://www.douyu.com")!, title: "5"),
             ]
         }
