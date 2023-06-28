@@ -9,7 +9,7 @@ const importMapURL = import.meta.resolve("../import_map.json");
 export const prod = new ESBuild({
   absWorkingDir,
   entryPoints: ["src/server/index.ts"],
-  outfile: "/dist/server/plaoc.server.js",
+  outfile: "dist/server/plaoc.server.js",
   bundle: true,
   format: "esm",
   denoLoader: true,
