@@ -66,7 +66,7 @@ export class PortListener {
       return;
     }
 
-    console.always("接受到了请求", parsed_url.href);
+    // console.always("接受到了请求", parsed_url.href);
 
     /**
      * 要通过 ipc 传输过去的 req.body

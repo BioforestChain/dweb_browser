@@ -1,8 +1,8 @@
 import type { OutgoingMessage } from "node:http";
 import type { $BootstrapContext } from "../../core/bootstrapContext.ts";
+import { $DWEB_DEEPLINK, $MMID } from "../../core/helper/types.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import { $Callback, createSignal } from "../../helper/createSignal.ts";
-import { $DWEB_DEEPLINK, $MMID } from "../../core/helper/types.ts";
 import type { HttpDwebServer } from "../../sys/http-server/$createHttpDwebServer.ts";
 import { createApiServer, getAllApps } from "./jmm.api.serve.ts";
 import { cancel, install, pause, resume } from "./jmm.handler.ts";
@@ -35,7 +35,6 @@ export class JmmNMM extends NativeMicroModule {
       const jmm = new JsMicroModule(metadata);
       context.dns.install(jmm);
     }
-    // console.always(`[${this.mmid}] _bootstrap`);
 
     await createWWWServer.call(this);
     await createApiServer.call(this);

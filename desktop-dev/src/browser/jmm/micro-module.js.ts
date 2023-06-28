@@ -1,15 +1,15 @@
 import type { $BootstrapContext } from "../../core/bootstrapContext.ts";
+import type {
+  $DWEB_DEEPLINK,
+  $IpcSupportProtocols,
+  $MMID,
+} from "../../core/helper/types.ts";
 import { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.ts";
 import { Ipc, IPC_ROLE, IpcResponse } from "../../core/ipc/index.ts";
 import { MicroModule } from "../../core/micro-module.ts";
 import { connectAdapterManager } from "../../core/nativeConnect.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
-import type {
-  $DWEB_DEEPLINK,
-  $IpcSupportProtocols,
-  $MMID,
-} from "../../core/helper/types.ts";
 import { buildUrl } from "../../helper/urlHelper.ts";
 import { Native2JsIpc } from "../js-process/ipc.native2js.ts";
 
@@ -155,11 +155,6 @@ export class JsMicroModule extends MicroModule {
     });
 
     this._jsIpc.onEvent(async (ipcEvent) => {
-      // if (ipcEvent.name === "restart") {
-      //   //
-      //   // this.nativeFetch(`file://dns.sys.dweb/restart?app_id=${this.mmid}`);
-      //   return;
-      // } else
       if (ipcEvent.name === "dns/connect") {
         const { mmid } = JSON.parse(ipcEvent.text);
         /**
@@ -176,9 +171,13 @@ export class JsMicroModule extends MicroModule {
          */
         const [targetIpc] = await context.dns.connect(mmid);
         /// 只要不是我们自己创建的直接连接的通道，就需要我们去创造直连并进行桥接
-        if (targetIpc instanceof JmmIpc === false) {
+        if (targetIpc.remote.mmid != this.mmid) {
           await this.ipcBridge(mmid, targetIpc).promise;
         }
+      }
+      if (ipcEvent.name === "restart") {
+        // 调用重启
+        context.dns.restart(this.mmid);
       }
     });
   }

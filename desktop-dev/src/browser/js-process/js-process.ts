@@ -1,4 +1,6 @@
 import { transfer, type Remote } from "comlink";
+import { $ReqMatcher, $isMatchReq } from "../../core/helper/$ReqMatcher.ts";
+import type { $PromiseMaybe } from "../../core/helper/types.ts";
 import { MessagePortIpc } from "../../core/ipc-web/MessagePortIpc.ts";
 import { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.ts";
 import { IpcHeaders } from "../../core/ipc/IpcHeaders.ts";
@@ -9,11 +11,9 @@ import {
   IpcResponse,
 } from "../../core/ipc/index.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
-import { $ReqMatcher, $isMatchReq } from "../../core/helper/$ReqMatcher.ts";
 import { once } from "../../helper/$once.ts";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
-import type { $PromiseMaybe } from "../../core/helper/types.ts";
 import { createHttpDwebServer } from "../../sys/http-server/$createHttpDwebServer.ts";
 import { saveNative2JsIpcPort } from "./ipc.native2js.ts";
 import type { $NWW } from "./js-process.openWindow.ts";
@@ -132,13 +132,12 @@ export class JsProcessNMM extends NativeMicroModule {
   private INTERNAL_PATH = encodeURI("/<internal>");
 
   async _bootstrap() {
-    console.always("jsProcess", "[js-process _bootstrap]");
     const mainServer = await createHttpDwebServer(this, {});
     (await mainServer.listen()).onRequest(async (request, ipc) => {
       const pathname = request.parsed_url.pathname;
       if (pathname.endsWith("/bootstrap.js")) {
         return ipc.postMessage(
-          await IpcResponse.fromText(
+          IpcResponse.fromText(
             request.req_id,
             200,
             new IpcHeaders({

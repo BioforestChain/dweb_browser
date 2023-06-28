@@ -3,17 +3,15 @@ import type {
   $BootstrapContext,
   $DnsMicroModule,
 } from "../../core/bootstrapContext.ts";
-import { IpcHeaders } from "../../core/ipc/IpcHeaders.ts";
-import { IpcResponse } from "../../core/ipc/IpcResponse.ts";
+import { $readRequestAsIpcRequest } from "../../core/helper/$readRequestAsIpcRequest.ts";
+import type { $DWEB_DEEPLINK, $MMID } from "../../core/helper/types.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import type { MicroModule } from "../../core/micro-module.ts";
 import {
   $ConnectResult,
   connectMicroModules,
 } from "../../core/nativeConnect.ts";
-import { $readRequestAsIpcRequest } from "../../core/helper/$readRequestAsIpcRequest.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
-import type { $DWEB_DEEPLINK, $MMID } from "../../core/helper/types.ts";
 import { PromiseOut } from "./../../helper/PromiseOut.ts";
 import { nativeFetchAdaptersManager } from "./nativeFetch.ts";
 
@@ -42,6 +40,10 @@ class MyDnsMicroModule implements $DnsMicroModule {
 
   async open(mmid: $MMID) {
     await this.dnsNN.open(mmid);
+  }
+  async restart(mmid: $MMID) {
+    await this.dnsNN.close(mmid);
+    this.open(mmid);
   }
 }
 
@@ -142,18 +144,9 @@ export class DnsNMM extends NativeMicroModule {
       matchMode: "full",
       input: { app_id: "mmid" },
       output: "boolean",
-      handler: async (args, client_ipc, request) => {
-        /// TODO 询问用户是否授权该行为
-        const app = await this.open(args.app_id);
-        return IpcResponse.fromJson(
-          request.req_id,
-          200,
-          new IpcHeaders({
-            "Content-Type": "application/json; charset=UTF-8",
-          }),
-          JSON.stringify(app),
-          client_ipc
-        );
+      handler: async (args) => {
+        await this.open(args.app_id);
+        return true;
       },
     });
     /// dweb deeplink
@@ -186,47 +179,9 @@ export class DnsNMM extends NativeMicroModule {
       },
     });
 
-    // 检查工具 提供查询 mmConnectsMap  的结果
-    this.registerCommonIpcOnMessageHandler({
-      pathname: "/query/mm_connects_map",
-      matchMode: "full",
-      input: { app_id: "mmid" },
-      output: "object",
-      handler: async (args) => {
-        const mm = await this.query(args.app_id);
-        if (mm === undefined) {
-          throw new Error(`mm === undefined`);
-        }
-        const _map = this.mmConnectsMap.get(mm);
-        return {};
-      },
-    });
-
-    this.registerCommonIpcOnMessageHandler({
-      pathname: "/restart",
-      matchMode: "full",
-      input: { app_id: "mmid" },
-      output: "boolean",
-      handler: async (args, _ipc, _request) => {
-        // 需要停止匹配的 jsMicroModule
-        const mm = await this.query(args.app_id);
-        if (mm === undefined) return false;
-        const metadata = Reflect.get(mm, "metadata");
-        if (!metadata) {
-          return false;
-        }
-        await this.close(args.app_id);
-        await this.open(args.app_id);
-        return true;
-      },
-    });
-
     this._after_shutdown_signal.listen(
       nativeFetchAdaptersManager.append(
         async (fromMM, parsedUrl, requestInit) => {
-          // 测试代码
-          // Reflect.set(requestInit, "duplex", "half")
-          // fetch("file://xxx.dweb") 匹配
           if (
             parsedUrl.protocol === "file:" &&
             parsedUrl.hostname.endsWith(".dweb")
@@ -361,10 +316,8 @@ export class DnsNMM extends NativeMicroModule {
       this.running_apps.delete(mmid);
       await app.shutdown();
       this.uninstall(app);
-      // 关闭成功
       return 0;
     } catch {
-      // 关闭失败
       return 1;
     }
   }

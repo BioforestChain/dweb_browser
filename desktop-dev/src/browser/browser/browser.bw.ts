@@ -29,7 +29,6 @@ export async function createBrowserWindow(this: BrowserNMM, url: string) {
   //   const _url = new URL(request.url);
   //   if (_url.hostname === "localhost" && request.method === "GET") {
   //    const pathname = _url.pathname.replace("/browser.dweb", "");
-  //    console.always("onBeforeRequest=>",`http://browser.dweb-80.localhost:22605${pathname}${_url.search}`)
   //    callback({cancel:false,redirectURL:`http://browser.dweb-80.localhost:22605${pathname}${_url.search}`});
   //   }
   // });
@@ -65,10 +64,8 @@ function getTitleBarHeight(this: Electron.BrowserWindow) {
 async function relayGerRequest(this: BrowserNMM, _url: URL) {
   let pathname = _url.pathname;
   let response: Response | null = null;
-  console.always("browser.content.bv.ts 拦截到了请求xx", _url.href);
   if (_url.hostname !== "localhost") {
     response = await this.nativeFetch(_url.href);
-    console.always("xxxxx", response);
     return response;
   }
   // dweb_deeplink 请求

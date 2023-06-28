@@ -1,5 +1,6 @@
-import { NativeMicroModule } from "../../core/micro-module.native.ts";
+import { green } from "colors";
 import type { $MMID } from "../../core/helper/types.ts";
+import { NativeMicroModule } from "../../core/micro-module.native.ts";
 
 export class BootNMM extends NativeMicroModule {
   constructor(private initMmids?: Iterable<$MMID>) {
@@ -9,7 +10,6 @@ export class BootNMM extends NativeMicroModule {
   mmid = "boot.sys.dweb" as const;
   private readonly registeredMmids: Set<$MMID>;
   async _bootstrap() {
-    console.always(`${this.mmid}`, "_bootstrap");
     this.registerCommonIpcOnMessageHandler({
       pathname: "/register",
       matchMode: "full",
@@ -32,7 +32,7 @@ export class BootNMM extends NativeMicroModule {
     /// 开始启动开机项
     for (const mmid of this.registeredMmids) {
       /// TODO 这里应该使用总线进行通讯，而不是拿到core直接调用。在未来分布式系统中，core模块可能是远程模块
-      console.always("开机器启动项", mmid);
+      console.always("开机器启动项", green(mmid));
       await this.nativeFetch(`file://dns.sys.dweb/open?app_id=${mmid}`);
     }
   }

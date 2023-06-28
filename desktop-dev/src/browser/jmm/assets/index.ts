@@ -115,10 +115,12 @@ elBtnDownload.addEventListener("click", async (e) => {
   }
 
   if (downloadState === DOWNLOAD_STATUS.DONE) {
-    // closeSelf();
     // 然后打开指定的应用
     const mmid = appInfo.id;
     const res = await fetch(`${url}/app/open?mmid=${mmid}`);
+    if (res.ok) {
+      closeSelf();
+    }
     return;
   }
 });
@@ -177,15 +179,12 @@ function getApiOrigin() {
   return location.origin.replace("www.", "api.");
 }
 
-
 (async () => {
   const search = new URLSearchParams(location.search);
   const metadataUrl = search.get("metadataUrl");
   if (!metadataUrl) {
     throw new Error("miss params: metadataUrl");
   }
-  console.log("metadataUrl: ", metadataUrl);
   const response = await fetch(metadataUrl);
   setAppInfoByAppInfo(await response.json(), metadataUrl);
 })();
-
