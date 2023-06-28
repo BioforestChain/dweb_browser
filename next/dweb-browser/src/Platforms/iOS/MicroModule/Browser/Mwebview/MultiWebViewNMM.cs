@@ -26,6 +26,27 @@ public class MultiWebViewNMM : IOSNativeMicroModule
             var url = request.QueryStringRequired("url");
             var remoteMM = ipc?.AsRemoteInstance() ?? throw new Exception("mwebview.browser.dweb/open should be call by locale");
 
+            ipc.OnClose += async (_) =>
+            {
+                Console.Log("/open", "listen ipc close destroy window");
+
+                var controller = s_controllerMap.GetValueOrDefault(ipc!.Remote.Mmid);
+
+                if (controller is not null)
+                {
+                    var vc = await RootViewController.WaitPromiseAsync();
+
+                    await MainThread.InvokeOnMainThreadAsync(async () =>
+                    {
+                        await controller.DismissViewControllerAsync(true);
+                        vc.PopViewController(true);
+                    });
+
+                    controller.DestroyWebView();
+                }
+            };
+
+
             var viewItem = await _openDwebViewAsync(remoteMM, url);
             return new HttpResponseMessage(HttpStatusCode.OK).Also(it => it.Content = new StringContent(viewItem.webviewId));
         });
@@ -38,26 +59,6 @@ public class MultiWebViewNMM : IOSNativeMicroModule
             var remoteMmid = ipc!.Remote.Mmid;
 
             return await _closeDwebViewAsync(remoteMmid, webviewId);
-        });
-
-        HttpRouter.AddRoute(IpcMethod.Get, "/close/app", async (request, ipc) =>
-        {
-            var controller = s_controllerMap.GetValueOrDefault(ipc!.Remote.Mmid);
-
-            if (controller is not null)
-            {
-                var vc = await RootViewController.WaitPromiseAsync();
-
-                await MainThread.InvokeOnMainThreadAsync(async () =>
-                {
-                    await controller.DismissViewControllerAsync(true);
-                    vc.PopViewController(true);
-                });
-
-                return controller.DestroyWebView();
-            }
-
-            return false;
         });
 
         // 界面没有关闭，用于重新唤醒

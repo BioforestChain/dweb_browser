@@ -205,7 +205,9 @@ public class JsMicroModule : MicroModule
                  */
                 var connectResult = await bootstrapContext.Dns.ConnectAsync(Event.mmid);
                 var targetIpc = connectResult.IpcForFromMM;
-                if (targetIpc is not JmmIpc)
+
+                /// 只要不是我们自己创建的直接连接的通道，就需要我们去 创造直连并进行桥接
+                if (targetIpc.Remote.Mmid != Mmid)
                 {
                     await _ipcBridgeAsync(Event.mmid, targetIpc);
                 }
