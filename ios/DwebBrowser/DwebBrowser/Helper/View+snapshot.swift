@@ -9,11 +9,6 @@ import SwiftUI
 import Foundation
 import UIKit
 
-extension Date{
-    static func printPrecise(){
-        printDate()
-    }
-}
 
 func printDate(){
     let date = Date()

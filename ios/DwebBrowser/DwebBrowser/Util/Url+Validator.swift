@@ -7,7 +7,7 @@
 
 import Foundation
 import UIKit
-import FaviconFinder
+//import FaviconFinder
 
 extension URL {
 
@@ -56,19 +56,19 @@ extension URL{
     }
     
     
-    static func downloadWebsiteIcon(iconUrl: URL, with completion:@escaping (URL)->Void) {
-        Task{
-            do {
-                let favicon = try await FaviconFinder(url: iconUrl).downloadFavicon()
-                
-//                print("URL of Favicon: \(favicon.url)")
-//                DispatchQueue.main.async {
-                    completion(favicon.url)
-//                }
-            } catch let error {
-                print("Error: \(error)")
-            }
-        }
-    }
+//    static func downloadWebsiteIcon(iconUrl: URL, with completion:@escaping (URL)->Void) {
+//        Task{
+//            do {
+//                let favicon = try await FaviconFinder(url: iconUrl).downloadFavicon()
+//
+////                print("URL of Favicon: \(favicon.url)")
+////                DispatchQueue.main.async {
+//                    completion(favicon.url)
+////                }
+//            } catch let error {
+//                print("Error: \(error)")
+//            }
+//        }
+//    }
 }
     

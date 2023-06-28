@@ -8,9 +8,9 @@
 import SwiftUI
 
 enum SheetCategory: String{
-    case menu = "ico_menu_set"
-    case bookmark = "ico_menu_bookmark"
-    case history = "ico_menu_history"
+    case menu = "menu_set"
+    case bookmark = "bookmark"
+    case history = "history"
 }
 
 struct SheetSegmentView: View {

@@ -14,13 +14,13 @@ struct BookmarkCell: View {
     var isLast: Bool
     var loadMoreAction: ()->Void
     private var dividerWidth: CGFloat { isLast ? 0 : 1000.0 }
-    
+    var iconUrl: URL { URL(string: linkRecord.websiteIcon) ?? .defaultWebIconURL }
     var body: some View {
         ZStack(alignment: .leading){
 
             VStack{
                 HStack(spacing: 12) {
-                    WebsiteIconImage(iconUrl: URL(string: linkRecord.websiteIcon) ?? URL.defaultWebIconURL)
+                    WebsiteIconImage(iconUrl: iconUrl)
                         .frame(width: 28, height: 28)
                         .padding(.leading, 12)
                     

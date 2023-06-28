@@ -76,8 +76,8 @@ struct TabsContainerView: View{
             .overlay(
             Image(uiImage: animation.snapshotImage)
                 .resizable()
-                .aspectRatio(contentMode: .fill)
-                .frame(width: geoRect.width, height: geoRect.height, alignment: .top)
+                .aspectRatio(contentMode: .fit)
+                .frame(width: geoRect.width, height: geoRect.height, alignment: .center)
                 .scaleEffect(x: imageWidthScale(), y: imageWidthScale())
                 .cornerRadius(animation.progress.imageIsSmall() ? gridcellCornerR : 0)
                 .clipped()

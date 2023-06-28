@@ -6,20 +6,26 @@
 //
 
 import SwiftUI
-import Kingfisher
-import FaviconFinder
 
 struct WebsiteIconImage: View{
     var iconUrl: URL
     var body: some View{
-        KFImage.url(iconUrl)
-            .fade(duration: 0.1)
-            .onProgress { receivedSize, totalSize in print("dowloading icon right now \(receivedSize / totalSize) %") }
-            .onSuccess { result in print("dowload icon done \(result)") }
-            .onFailure { error in print("dowload icon failed \(error)") }
-            .resizable()
-            .aspectRatio(contentMode: .fit)
-            .frame(width: 22)
+        ZStack{
+            if iconUrl.isFileURL{
+                Image(uiImage: .defaultWebIconImage)
+                .resizable()
+            }else{
+                AsyncImage(url: iconUrl) { phase in
+                    if let image = phase.image{
+                        image.resizable()
+                            .aspectRatio(contentMode: .fit)
+                    }else{
+                        Image(uiImage: .defaultWebIconImage)
+                        .resizable()
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -28,22 +34,18 @@ struct GridCell: View {
     @ObservedObject var webCache: WebCache
     @EnvironmentObject var selectedTab: SelectedTab
     var isSelected: Bool
-
     var body: some View {
         Self._printChanges()
         
         return ZStack(alignment: .topTrailing){
             VStack(spacing: 0) {
-                
                 VStack{
-
                     Image(uiImage:  .snapshotImage(from: webCache.snapshotUrl))
                         .resizable()
                         .aspectRatio(contentMode: .fill)
                         .frame(width: gridCellW, height: gridCellH, alignment: .top)
                         .cornerRadius(gridcellCornerR)
                         .clipped()
-
                 }
                 
                 .overlay( RoundedRectangle(cornerRadius: 10)
@@ -52,9 +54,11 @@ struct GridCell: View {
                 )
                 HStack{
                     WebsiteIconImage(iconUrl: webCache.webIconUrl)
-                        .onAppear{
-                            fetchIconUrl()
-                        }
+                        .frame(width: 22,height:22)
+                        
+//                        .onAppear{
+//                            fetchIconUrl()
+//                        }
                     Text(webCache.title)
                         .fontWeight(.semibold)
                         .lineLimit(1)
@@ -64,14 +68,14 @@ struct GridCell: View {
         }
     }
     
-    func fetchIconUrl(){
-        URL.downloadWebsiteIcon(iconUrl: webCache.lastVisitedUrl) { url in
-            print("URL of Favicon: \(url)")
-            DispatchQueue.main.async {
-                webCache.webIconUrl = url
-            }
-        }
-    }
+//    func fetchIconUrl(){
+//        URL.downloadWebsiteIcon(iconUrl: webCache.lastVisitedUrl) { url in
+//            print("URL of Favicon: \(url)")
+//            DispatchQueue.main.async {
+//                webCache.webIconUrl = url
+//            }
+//        }
+//    }
     
     var deleteButton: some View{
         Button {
@@ -86,9 +90,8 @@ struct GridCell: View {
         .padding(.top, 8)
         .padding(.trailing, 8)
     }
-    
-    
 }
+
 struct GridCell_Previews: PreviewProvider {
     static var previews: some View {
         //        GridCell(webCache: WebCache.example,isSelected: )

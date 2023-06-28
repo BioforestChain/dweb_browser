@@ -2,18 +2,43 @@ import SwiftUI
 import Combine
 import WebKit
 
+public class TestWebview : WKWebView {
+    public override init(frame: CGRect, configuration: WKWebViewConfiguration) {
+        super.init(frame: frame, configuration: configuration)
+        configuration.userContentController.add(self, name: "testlog")
+    }
+    
+    convenience init() {
+        self.init(frame:UIScreen.main.bounds, configuration:WKWebViewConfiguration())
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+}
+
+extension TestWebview :  WKScriptMessageHandler {
+    public func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        if (message.body != nil)
+        {
+            print(message.body as! String)
+            
+        }
+    }
+}
+
 @dynamicMemberLookup
 public class WebWrapper: ObservableObject, Identifiable, Hashable, Equatable{
     public var id = UUID()
 
-    @Published public var webView: WKWebView {
+    @Published public var webView: TestWebview {
         didSet {
             setupObservers()
         }
     }
     init(cacheID: UUID) {
 //        self.webView = BridgeManager.webviewGenerator!(nil)
-        self.webView = WKWebView()
+        self.webView = TestWebview()
         self.id = cacheID
         print("making a WebWrapper: \(self)")
 
@@ -21,7 +46,7 @@ public class WebWrapper: ObservableObject, Identifiable, Hashable, Equatable{
     }
     
     private func setupObservers() {
-        func subscriber<Value>(for keyPath: KeyPath<WKWebView, Value>) -> NSKeyValueObservation {
+        func subscriber<Value>(for keyPath: KeyPath<TestWebview, Value>) -> NSKeyValueObservation {
             return webView.observe(keyPath, options: [.prior]) { _, change in
                 if change.isPrior {
                     DispatchQueue.main.async {

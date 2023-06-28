@@ -21,4 +21,17 @@ extension Color{
         let blue = Double(hex & 0xff) / 255.0
         self.init(red: red, green: green, blue: blue)
     }
+    
+    init(hexString: String) {
+        let scanner = Scanner(string: hexString)
+        scanner.currentIndex = scanner.string.startIndex
+        var rgbValue: UInt64 = 0
+        scanner.scanHexInt64(&rgbValue)
+        
+        let r = (rgbValue & 0xff0000) >> 16
+        let g = (rgbValue & 0xff00) >> 8
+        let b = rgbValue & 0xff
+        
+        self.init(red: Double(r) / 0xff, green: Double(g) / 0xff, blue: Double(b) / 0xff)
+    }
 }

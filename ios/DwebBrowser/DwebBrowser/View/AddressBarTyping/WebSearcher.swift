@@ -41,9 +41,9 @@ struct Searcher: Identifiable{
         return "https://www.so.com/s?q=\(query)"
     }
     
-    static var baidu = Searcher(id: .baidu, name: "baidu", icon: "defimage", slogan: "百度一下，你就知道")
-    static var sogou = Searcher(id: .sogou, name: "sogou", icon: "defimage", slogan: "上网从搜狗开始")
-    static var so360 = Searcher(id: .so360, name: "360so", icon: "defimage", slogan: "百毒不侵")
+    static var baidu = Searcher(id: .baidu, name: "baidu", icon: "baidu", slogan: "百度一下，你就知道")
+    static var sogou = Searcher(id: .sogou, name: "sogou", icon: "sougou", slogan: "上网从搜狗开始")
+    static var so360 = Searcher(id: .so360, name: "360so", icon: "360so", slogan: "百毒不侵")
 
 }
 

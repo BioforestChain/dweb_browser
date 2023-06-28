@@ -8,7 +8,7 @@
 import Foundation
 import UIKit
 import SwiftUI
-import FaviconFinder
+//import FaviconFinder
 import Combine
 
 let websites = [

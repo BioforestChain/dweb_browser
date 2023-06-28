@@ -13,7 +13,7 @@ struct MenuView: View {
     @State var isShare: Bool = false
     @State var isAlert: Bool = false
     private let titles: [String] = ["添加书签","分享"]
-    private let imagesNames: [String] = ["ico_menu_bookmark", "ico_menu_share"]
+    private let imagesNames: [String] = ["bookmark", "share"]
     
     @State private var offsetY: CGFloat = 300
     

@@ -8,13 +8,13 @@
 import SwiftUI
 struct HomePageView: View {
     var body: some View {
-        ScrollView(.vertical){
+//        ScrollView(.vertical){
             VStack {
                 if !InstalledAppMgr.shared.apps.isEmpty {
                     InnerAppGridView()
                 } else {
                     VStack {
-                        Image("initialicon")
+                        Image("dweb_icon")
                             .resizable()
                             .frame(width: 210, height: 210)
                         Text("Dweb Browser")
@@ -23,7 +23,7 @@ struct HomePageView: View {
                     }
                 }
             }
-        }
+//        }
     }
 }
 

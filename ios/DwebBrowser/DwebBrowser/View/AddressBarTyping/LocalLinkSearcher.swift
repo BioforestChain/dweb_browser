@@ -16,7 +16,7 @@ struct LinkRecord: Hashable, Codable, Identifiable {
     var sectionTime: String = ""
     var id = UUID()
     
-    init(link: String = emptyLink, imageName: String = "defimage", title: String = "test link", createdDate: Int64 = currentTime64, sectionTime: String = "") {
+    init(link: String = emptyLink, imageName: String = "baidu", title: String = "test link", createdDate: Int64 = currentTime64, sectionTime: String = "") {
         self.link = link
         self.websiteIcon = imageName
         self.title = title
@@ -48,9 +48,6 @@ class LocalLinkSearcher: ObservableObject {
 //        let historyList = historyManager.fetchHistoryData(with: placeHolder)
         let bookmarkList = bookmarnManager.fetchBookmarkData(with: placeHolder)
 
-//        if historyList != nil {
-//            tmpList = historyList!.map( { addImageType(with: "ico_menu_history_disabled", record: $0) })
-//        }
 
         if bookmarkList != nil {
             tmpList += bookmarkList!.map( { addImageType(with: "ico_bottomtab_book_disabled", record: $0) })
