@@ -12,7 +12,7 @@
 		<ApplicationTitle>dweb-browser</ApplicationTitle>
 
 		<!-- App Identifier -->
-		<ApplicationId>com.companyname.dweb_browser</ApplicationId>
+		<ApplicationId>com.instinctii.dd</ApplicationId>
 		<ApplicationIdGuid>4794f859-0c74-4b8d-aabe-c1ec32d16be4</ApplicationIdGuid>
 
 		<!-- Versions -->
@@ -38,17 +38,12 @@
 		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
 
 		<!-- Splash Screen -->
-		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#512BD4" BaseSize="128,128" />
+		<MauiSplashScreen Include="Resources\Splash\splash.svg" BaseSize="128,128" Color="white" />
 
-		<!-- Images -->
-		<MauiImage Include="Resources\Images\*" />
-		<MauiImage Update="Resources\Images\dotnet_bot.svg" BaseSize="168,208" />
-
-		<!-- Custom Fonts -->
 		<MauiFont Include="Resources\Fonts\*" />
 
 		<!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
-		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
+		<!--<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />-->
 	</ItemGroup>
 
 	<ItemGroup>
@@ -70,7 +65,7 @@
 	  <Reference Include="SwiftUIBindingMAUI" Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net7.0-ios|AnyCPU'">
 	    <HintPath>..\..\..\ios\SwiftUIToMAUI\SwiftUIBindingMAUI\SwiftUIBindingMAUI\bin\Release\net7.0-ios\SwiftUIBindingMAUI.dll</HintPath>
 	  </Reference>
-	  <Reference Include="SwiftUIBindingMAUI">
+	  <Reference Include="SwiftUIBindingMAUI" Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net7.0-ios|AnyCPU'">
 	    <HintPath>..\..\..\ios\SwiftUIToMAUI\SwiftUIBindingMAUI\SwiftUIBindingMAUI\bin\Debug\net7.0-ios\SwiftUIBindingMAUI.dll</HintPath>
 	  </Reference>
 	</ItemGroup>
