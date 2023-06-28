@@ -3,14 +3,14 @@ import { onMounted, ref, reactive } from "vue";
 import { HTMLBluetoothElement } from "../plugin";
 import LogPanel, { toConsole } from "../components/LogPanel.vue";
 
-export interface $Device{
-  deviceId: string, 
-  deviceName: string
+export interface $Device {
+  deviceId: string;
+  deviceName: string;
 }
 
 const state: {
-  isOpen: boolean,
-  deviceList: $Device[],
+  isOpen: boolean;
+  deviceList: $Device[];
   deviceConnectedId: string;
   deviceConnecingId: string;
 } = reactive({
@@ -18,58 +18,52 @@ const state: {
   deviceList: [],
   deviceConnectedId: "",
   deviceConnecingId: "",
-}) 
+});
 let bluetooth: HTMLBluetoothElement;
 let bluetoothDevice;
 
 const $bluetooth = ref<HTMLBluetoothElement>();
 const $logPanel = ref<typeof LogPanel>();
 
-
 onMounted(async () => {
   // console = toConsole($logPanel);
   bluetooth = $bluetooth.value!;
 
   // 测试数据
-  ;(() => {
-    
+  (() => {
     allDeviceUpdate([
-      {deviceId: "1", deviceName: "name-1"},
-      {deviceId: "2", deviceName: "name-2"},
-      {deviceId: "3", deviceName: "name-3"},
-    ])
-     
-    deviceConnectedIdUpdate("1")
-    deviceConnecingIdUpdate("2")
+      { deviceId: "1", deviceName: "name-1" },
+      { deviceId: "2", deviceName: "name-2" },
+      { deviceId: "3", deviceName: "name-3" },
+    ]);
 
+    deviceConnectedIdUpdate("1");
+    deviceConnecingIdUpdate("2");
   })();
-})
+});
 
-async function toggleOpen(){
-  const result = await bluetooth[state.isOpen ? "close" : "open"]()
-  console.log('result: ', result)
-  state.isOpen = !state.isOpen
+async function toggleOpen() {
+  const result = await bluetooth[state.isOpen ? "close" : "open"]();
+  console.log("result: ", result);
+  state.isOpen = !state.isOpen;
 }
 
-function allDeviceUpdate(list: $Device[]){
-  state.deviceList = list
+function allDeviceUpdate(list: $Device[]) {
+  state.deviceList = list;
 }
 
-function deviceConnecingIdUpdate(deviceId: string){
+function deviceConnecingIdUpdate(deviceId: string) {
   state.deviceConnecingId = deviceId;
 }
 
-function deviceConnectedIdUpdate(deviceId: string){
+function deviceConnectedIdUpdate(deviceId: string) {
   state.deviceConnectedId = deviceId;
-  
 }
 
 // function deviceConnect(device: $Device){
 //   deviceConnecingIdUpdate(device.deviceId);
 //   console.log('点击了列表')
 // }
-
-
 </script>
 <template>
   <dweb-bluetooth ref="$bluetooth"></dweb-bluetooth>
@@ -79,7 +73,7 @@ function deviceConnectedIdUpdate(deviceId: string){
     </figure>
     <article class="card-body">
       <h2 class="card-title">蓝牙</h2>
-      <input class="toggle" type="checkbox" id="statusbar-overlay" v-model="state.isOpen"  @click="toggleOpen"/>
+      <input class="toggle" type="checkbox" id="statusbar-overlay" v-model="state.isOpen" @click="toggleOpen" />
     </article>
     <!-- <article class="card-body">
       <h2 class="card-title">我的蓝牙设备</h2>
@@ -123,11 +117,10 @@ function deviceConnectedIdUpdate(deviceId: string){
   <LogPanel ref="$logPanel"></LogPanel>
 </template>
 <style module>
-
-.device_name_active{
+.device_name_active {
   color: #1296db;
 }
-.loading{
+.loading {
   display: block;
   width: 26px;
   height: 26px;
@@ -135,17 +128,15 @@ function deviceConnectedIdUpdate(deviceId: string){
 }
 
 @keyframes rotate {
-  0% { 
-    transform: rotateZ(0deg)
+  0% {
+    transform: rotateZ(0deg);
   }
-  100% { 
+  100% {
     transform: rotateZ(360deg);
   }
 }
 
-.label_connected{
+.label_connected {
   color: #1296db;
 }
-
-  
 </style>

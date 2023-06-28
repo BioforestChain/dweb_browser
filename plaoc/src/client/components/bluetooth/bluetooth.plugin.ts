@@ -8,10 +8,13 @@ export class BluetoothPlugin extends BasePlugin {
   }
 
   @bindThis
-  async open(options: RequestDeviceOptions = {acceptAllDevices: true}){
-    const res = await this.fetchApi("/open",{method: "POST", body: JSON.stringify(options)});
-    const deviceConnted = await res.json()
-    const server = new BluetoothRemoteGATTServer({...deviceConnted.device})
+  async open(options: RequestDeviceOptions = { acceptAllDevices: true }) {
+    const res = await this.fetchApi("/open", {
+      method: "POST",
+      body: JSON.stringify(options),
+    });
+    const deviceConnted = await res.json();
+    const server = new BluetoothRemoteGATTServer({ ...deviceConnted.device });
     // console.log('server: ', server, server.connected)
     // console.log("res: ", deviceConnted)
     return server;
@@ -28,86 +31,61 @@ export class BluetoothPlugin extends BasePlugin {
   }
 }
 
-
-export class BluetoothDevice extends EventTarget{
-
-  private _gatt: BluetoothRemoteGATTServer | undefined
+export class BluetoothDevice extends EventTarget {
+  private _gatt: BluetoothRemoteGATTServer | undefined;
   constructor(
     readonly id: string,
     readonly watchingAdvertisements: boolean,
-    readonly name?: string | undefined,
-    
-  ){
-    super()
-    if(watchingAdvertisements){
-      this.watchAdvertisements()
+    readonly name?: string | undefined
+  ) {
+    super();
+    if (watchingAdvertisements) {
+      this.watchAdvertisements();
     }
-    this._gatt = new BluetoothRemoteGATTServer(this)
+    this._gatt = new BluetoothRemoteGATTServer(this);
   }
 
-  get gatt(){
+  get gatt() {
     return this._gatt;
   }
 
   // 撤销访问的权限
   @bindThis
-  async forget(){
-
-  }
+  async forget() {}
 
   @bindThis
-  async watchAdvertisements(){
-  
-  }
+  async watchAdvertisements() {}
 }
 
-export class BluetoothRemoteGATTServer{
+export class BluetoothRemoteGATTServer {
   connected = false;
-  constructor(
-    readonly device: BluetoothDevice,
-    connected:boolean = true
-  ){
+  constructor(readonly device: BluetoothDevice, connected: boolean = true) {
     this.connected = connected;
   }
 
-  connect(){
-    console.error("默认是连接的 是否可以再次连接")
+  connect() {
+    console.error("默认是连接的 是否可以再次连接");
   }
 
-  disconnect(){
+  disconnect() {}
 
-  }
+  getPrimaryService(service: BluetoothServiceUUID) {}
 
-  getPrimaryService(service: BluetoothServiceUUID){
-    
-  }
-
-  getPrimaryServices(){
-
-  }
+  getPrimaryServices() {}
 }
 
- 
-
-class PrimaryService extends EventTarget{
- 
+class PrimaryService extends EventTarget {
   constructor(
     readonly device: BluetoothDevice,
     readonly uuid: string,
-    readonly isPrimary: boolean,
-  ){
-    super()
+    readonly isPrimary: boolean
+  ) {
+    super();
   }
 
   // async getCharacteristic(characteristic: BluetoothCharacteristicUUID): Promise<BluetoothRemoteGATTCharacteristic>{
 
   // }
-
 }
 
- 
-
-
-
 export const bluetoothPlugin = new BluetoothPlugin();
-

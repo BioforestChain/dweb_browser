@@ -10,5 +10,9 @@
         "**/CVS": true,
         "**/.DS_Store": true,
         "**/Thumbs.db": true
+    },
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "[javascript]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
     }
 }

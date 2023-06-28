@@ -1,4 +1,4 @@
-export interface $Device{
+export interface $Device {
   deviceId: string;
   deviceName: string;
 }

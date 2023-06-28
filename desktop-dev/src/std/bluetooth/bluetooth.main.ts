@@ -24,8 +24,8 @@ export class BluetoothNMM extends NativeMicroModule {
   private _browserWindow?: ReturnType<BluetoothNMM["_createBrowserWindow"]>;
   _rootUrl = ""
   private _requestDeviceOptions: RequestDeviceOptions | undefined;
-  private _deviceConnectedResolve(value: unknown){}
- 
+  private _deviceConnectedResolve(value: unknown) { }
+
   _bootstrap = async () => {
     console.always(`[${this.mmid} _bootstrap]`);
 
@@ -40,7 +40,7 @@ export class BluetoothNMM extends NativeMicroModule {
       output: "object",
       handler: async (_, ipc, request) => {
         this._requestDeviceOptions = JSON.parse(await request.body.text());
-        if(this._requestDeviceOptions === undefined) throw new Error(`this._requestDeviceOptions === undefined`)
+        if (this._requestDeviceOptions === undefined) throw new Error(`this._requestDeviceOptions === undefined`)
         this._openUI()
         const device = await new Promise((resolve) => this._deviceConnectedResolve = resolve)
         return device;
