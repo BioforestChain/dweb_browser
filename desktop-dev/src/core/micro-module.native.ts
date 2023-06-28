@@ -66,7 +66,7 @@ export abstract class NativeMicroModule extends MicroModule {
                 client_ipc,
                 request
               );
-
+              
               if (result instanceof IpcResponse) {
                 response = result;
               } else {
@@ -77,7 +77,7 @@ export abstract class NativeMicroModule extends MicroModule {
                 );
               }
             } catch (err) {
-              console.error("IPC-REQ-ERR:", err);
+              console.error("error", "IPC-REQ-ERR:", err);
               let body: string;
               if (err instanceof Error) {
                 body = err.stack ?? err.message;
