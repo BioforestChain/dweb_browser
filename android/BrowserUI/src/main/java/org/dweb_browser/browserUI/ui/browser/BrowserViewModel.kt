@@ -458,7 +458,7 @@ internal fun parseInputText(text: String, needHost: Boolean = true): String {
   for (item in DefaultAllWebEngine) {
     if (item.fit(text)) return uri.getQueryParameter(item.queryName())!!
   }
-  if (uri.scheme == "dweb") {
+  if (uri.scheme == "dweb" || uri.scheme == "about") {
     return text
   }
   return if (needHost && uri.host?.isNotEmpty() == true) {
