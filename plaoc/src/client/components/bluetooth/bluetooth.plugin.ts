@@ -14,16 +14,18 @@ export class BluetoothPlugin extends BasePlugin {
       body: JSON.stringify(options),
     });
     const deviceConnted = await res.json();
-    const server = new BluetoothRemoteGATTServer({ ...deviceConnted.device });
+    const server = new BluetoothRemoteGATTServer(this, {
+      ...deviceConnted.device,
+    });
     // console.log('server: ', server, server.connected)
     // console.log("res: ", deviceConnted)
     return server;
   }
 
-  @bindThis
-  async connect(id: string) {
-    return this.fetchApi(`/connect?id=${id}`);
-  }
+  // @bindThis
+  // async connect(id: string) {
+  //   return this.fetchApi(`/connect?id=${id}`);
+  // }
 
   @bindThis
   async close() {
@@ -31,35 +33,39 @@ export class BluetoothPlugin extends BasePlugin {
   }
 }
 
-export class BluetoothDevice extends EventTarget {
-  private _gatt: BluetoothRemoteGATTServer | undefined;
-  constructor(
-    readonly id: string,
-    readonly watchingAdvertisements: boolean,
-    readonly name?: string | undefined
-  ) {
-    super();
-    if (watchingAdvertisements) {
-      this.watchAdvertisements();
-    }
-    this._gatt = new BluetoothRemoteGATTServer(this);
-  }
+// export class BluetoothDevice extends EventTarget {
+//   private _gatt: BluetoothRemoteGATTServer | undefined;
+//   constructor(
+//     readonly id: string,
+//     readonly watchingAdvertisements: boolean,
+//     readonly name?: string | undefined
+//   ) {
+//     super();
+//     if (watchingAdvertisements) {
+//       this.watchAdvertisements();
+//     }
+//     this._gatt = new BluetoothRemoteGATTServer(this);
+//   }
 
-  get gatt() {
-    return this._gatt;
-  }
+//   get gatt() {
+//     return this._gatt;
+//   }
 
-  // 撤销访问的权限
-  @bindThis
-  async forget() {}
+//   // 撤销访问的权限
+//   @bindThis
+//   async forget() {}
 
-  @bindThis
-  async watchAdvertisements() {}
-}
+//   @bindThis
+//   async watchAdvertisements() {}
+// }
 
 export class BluetoothRemoteGATTServer {
   connected = false;
-  constructor(readonly device: BluetoothDevice, connected: boolean = true) {
+  constructor(
+    readonly plugin: BluetoothPlugin,
+    readonly device: BluetoothDevice,
+    connected: boolean = true
+  ) {
     this.connected = connected;
   }
 
@@ -67,7 +73,19 @@ export class BluetoothRemoteGATTServer {
     console.error("默认是连接的 是否可以再次连接");
   }
 
-  disconnect() {}
+  // 断开蓝牙连接
+  @bindThis
+  disconnect() {
+    const result = this.plugin.fetchApi(
+      `/bluetooth_remote_gatt_server/disconnect`,
+      {
+        search: {
+          id: this.device.id,
+        },
+      }
+    );
+    console.log("result: ", result);
+  }
 
   getPrimaryService(service: BluetoothServiceUUID) {}
 

@@ -2,6 +2,7 @@
 import { onMounted, ref, reactive } from "vue";
 import { HTMLBluetoothElement } from "../plugin";
 import LogPanel, { toConsole } from "../components/LogPanel.vue";
+import type { BluetoothRemoteGATTServer } from "../../../src/client/components/bluetooth/index";
 
 export interface $Device {
   deviceId: string;
@@ -13,14 +14,17 @@ const state: {
   deviceList: $Device[];
   deviceConnectedId: string;
   deviceConnecingId: string;
+  bluetoothRemoteGATTServer: BluetoothRemoteGATTServer | undefined;
 } = reactive({
   isOpen: false,
   deviceList: [],
   deviceConnectedId: "",
   deviceConnecingId: "",
+  bluetoothRemoteGATTServer: undefined,
 });
 let bluetooth: HTMLBluetoothElement;
 let bluetoothDevice;
+let _bluetoothRemoteGATTServer: BluetoothRemoteGATTServer;
 
 const $bluetooth = ref<HTMLBluetoothElement>();
 const $logPanel = ref<typeof LogPanel>();
@@ -28,24 +32,31 @@ const $logPanel = ref<typeof LogPanel>();
 onMounted(async () => {
   // console = toConsole($logPanel);
   bluetooth = $bluetooth.value!;
-
-  // 测试数据
-  (() => {
-    allDeviceUpdate([
-      { deviceId: "1", deviceName: "name-1" },
-      { deviceId: "2", deviceName: "name-2" },
-      { deviceId: "3", deviceName: "name-3" },
-    ]);
-
-    deviceConnectedIdUpdate("1");
-    deviceConnecingIdUpdate("2");
-  })();
 });
 
 async function toggleOpen() {
-  const result = await bluetooth[state.isOpen ? "close" : "open"]();
-  console.log("result: ", result);
+  if (!state.isOpen) {
+    open();
+  } else {
+    close();
+  }
   state.isOpen = !state.isOpen;
+}
+
+async function open() {
+  state.bluetoothRemoteGATTServer = await bluetooth.open();
+}
+
+async function disconnect() {
+  if (state.bluetoothRemoteGATTServer === undefined) {
+    console.error("state.bluetoothRemoteGATTServer === undefined");
+    return;
+  }
+  state.bluetoothRemoteGATTServer.disconnect();
+}
+
+async function close() {
+  bluetooth.close();
 }
 
 function allDeviceUpdate(list: $Device[]) {
@@ -74,6 +85,10 @@ function deviceConnectedIdUpdate(deviceId: string) {
     <article class="card-body">
       <h2 class="card-title">蓝牙</h2>
       <input class="toggle" type="checkbox" id="statusbar-overlay" v-model="state.isOpen" @click="toggleOpen" />
+    </article>
+    <article class="card-body" v-if="state.bluetoothRemoteGATTServer !== undefined">
+      <h2 class="card-title">断开 {{ state.bluetoothRemoteGATTServer.device.name }} 蓝牙</h2>
+      <v-btn color="indigo-darken-3" @click="disconnect">disconnect </v-btn>
     </article>
     <!-- <article class="card-body">
       <h2 class="card-title">我的蓝牙设备</h2>
