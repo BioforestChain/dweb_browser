@@ -82,7 +82,7 @@ export class BluetoothNMM extends NativeMicroModule {
    */
   private _createHttpDwebServer = async () => {
     this._httpDwebServer = await createHttpDwebServer(this, {});
-    this._wwwReadableStreamIpc  = await this._httpDwebServer.listen();
+    this._wwwReadableStreamIpc = await this._httpDwebServer.listen();
     this._wwwReadableStreamIpc.onRequest(async (request, ipc) => {
       const url = "file:///sys/bluetooth" + request.parsed_url.pathname;
       ipc.postMessage(
@@ -182,7 +182,7 @@ export class BluetoothNMM extends NativeMicroModule {
     if (this._browserWindow === undefined)
       throw new Error(`this._browserWindow === undefined`);
     (await this._browserWindow).webContents.executeJavaScript(
-      `requestDevice()`,
+      `requestDevice(${JSON.stringify(this._requestDeviceOptions)})`,
       true
     );
   };
