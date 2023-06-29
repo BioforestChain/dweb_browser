@@ -5,11 +5,13 @@ import { PromiseOut } from "../../desktop-dev/src/helper/PromiseOut.ts";
 import { mapHelper } from "../../desktop-dev/src/helper/mapHelper.ts";
 import { whichSync } from "./WhichCommand.ts";
 
+export const ExitAbortController = new AbortController();
 export type $Tasks = Record<string, $Task>;
 export type $Task = {
   cmd: string;
   args: string[] | string;
   cwd?: string;
+  signal?: AbortSignal;
   devArgs?: string[] | string;
   devAppendArgs?: string[] | string;
   /** 启动依赖项 */
@@ -92,6 +94,7 @@ export class ConTasks {
     }
     for (const task of Object.values(tasks)) {
       task.cwd = path.resolve(base, task.cwd ?? "./");
+      task.signal = ExitAbortController.signal;
     }
   }
   spawn(args = Deno.args) {
@@ -137,6 +140,7 @@ export class ConTasks {
           cwd: task.cwd,
           stderr: "piped",
           stdout: "piped",
+          stdin: "piped",
         });
         children[name] = {
           command,
@@ -191,12 +195,19 @@ export class ConTasks {
         console.log(chalk.gray(name + " "), chalk.cyan("---- begin ----"));
 
         const child = command.spawn();
+        const listener = () => {
+          try {
+            child.kill();
+          } catch (_) {}
+        };
+        task.signal?.addEventListener("abort", listener);
         child.stdout.pipeThrough(new TextDecoderStream()).pipeTo(stdoutLogger);
         await child.stderr
           .pipeThrough(new TextDecoderStream())
           .pipeTo(stderrLogger);
 
         console.log(chalk.gray(name + " "), chalk.cyan("---- done ----"));
+        task.signal?.removeEventListener("abort", listener);
       })();
       processTasks.push(processTask);
     }
