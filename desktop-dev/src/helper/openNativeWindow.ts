@@ -115,6 +115,8 @@ export const createNativeWindow = async (
   win.on("close", () => {
     state.bounds = win.getBounds();
     saveNativeWindowStates();
+
+    win.webContents.closeDevTools();
   });
   return win;
 };

@@ -61,7 +61,13 @@ export interface $MWebviewItem {
 }
 
 export class MWebviewController {
-  constructor(readonly win: Electron.BrowserWindow) {}
+  constructor(readonly win: Electron.BrowserWindow) {
+    this.win.on("close", () => {
+      for (const item of this._allBrowserView) {
+        item.view.webContents.closeDevTools();
+      }
+    });
+  }
   private _id(subfix: string) {
     return `MWebviewController-${this.win.id}-${subfix}`;
   }
