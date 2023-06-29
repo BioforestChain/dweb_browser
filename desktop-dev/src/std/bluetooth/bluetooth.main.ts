@@ -1,8 +1,8 @@
 import type { Remote } from "comlink";
-import type { $DWEB_DEEPLINK } from "../../core/helper/types.ts";
 import type { ReadableStreamIpc } from "../../core/ipc-web/index.ts";
 import { Ipc, IpcResponse } from "../../core/ipc/index.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
+import type { $DWEB_DEEPLINK } from "../../core/types.ts";
 import { createComlinkNativeWindow } from "../../helper/openNativeWindow.ts";
 import {
   createHttpDwebServer,

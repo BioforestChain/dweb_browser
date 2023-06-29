@@ -1,5 +1,5 @@
 import type { $ReqMatcher } from "../../core/helper/$ReqMatcher.ts";
-import { $MicroModule } from "../../core/helper/types.ts";
+import { $MicroModule } from "../../core/types.ts";
 import type { $DwebHttpServerOptions } from "./net/createNetServer.ts";
 
 import { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.ts";

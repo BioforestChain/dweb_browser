@@ -1,6 +1,6 @@
 import { green } from "colors";
-import type { $MMID } from "../../core/helper/types.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
+import type { $MMID } from "../../core/types.ts";
 
 export class BootNMM extends NativeMicroModule {
   constructor(private initMmids?: Iterable<$MMID>) {

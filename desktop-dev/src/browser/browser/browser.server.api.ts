@@ -1,10 +1,11 @@
+import { $Schema1ToType } from "../../core/helper/types.ts";
 import {
   Ipc,
   IpcEvent,
   IpcRequest,
   IpcResponse,
 } from "../../core/ipc/index.ts";
-import { $MMID, $Schema1ToType } from "../../core/helper/types.ts";
+import { $MMID } from "../../core/types.ts";
 import { getAllApps } from "../jmm/jmm.api.serve.ts";
 import type { BrowserNMM } from "./browser.ts";
 

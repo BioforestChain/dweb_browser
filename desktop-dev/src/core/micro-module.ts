@@ -4,13 +4,13 @@ import { normalizeFetchArgs } from "../helper/normalizeFetchArgs.ts";
 import { PromiseOut } from "../helper/PromiseOut.ts";
 import { nativeFetchAdaptersManager } from "../sys/dns/nativeFetch.ts";
 import type { $BootstrapContext } from "./bootstrapContext.ts";
+import type { Ipc, IpcEvent } from "./ipc/index.ts";
 import type {
   $DWEB_DEEPLINK,
   $IpcSupportProtocols,
   $MicroModule,
   $MMID,
-} from "./helper/types.ts";
-import type { Ipc, IpcEvent } from "./ipc/index.ts";
+} from "./types.ts";
 export abstract class MicroModule implements $MicroModule {
   abstract ipc_support_protocols: $IpcSupportProtocols;
   abstract dweb_deeplinks: $DWEB_DEEPLINK[];

@@ -4,13 +4,13 @@ import type {
   $DnsMicroModule,
 } from "../../core/bootstrapContext.ts";
 import { $readRequestAsIpcRequest } from "../../core/helper/$readRequestAsIpcRequest.ts";
-import type { $DWEB_DEEPLINK, $MMID } from "../../core/helper/types.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import type { MicroModule } from "../../core/micro-module.ts";
 import {
   $ConnectResult,
   connectMicroModules,
 } from "../../core/nativeConnect.ts";
+import type { $DWEB_DEEPLINK, $MMID } from "../../core/types.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
 import { PromiseOut } from "./../../helper/PromiseOut.ts";
 import { nativeFetchAdaptersManager } from "./nativeFetch.ts";

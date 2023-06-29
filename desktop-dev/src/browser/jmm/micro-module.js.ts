@@ -1,13 +1,13 @@
 import type { $BootstrapContext } from "../../core/bootstrapContext.ts";
-import type {
-  $DWEB_DEEPLINK,
-  $IpcSupportProtocols,
-  $MMID,
-} from "../../core/helper/types.ts";
 import { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.ts";
 import { IPC_ROLE, Ipc, IpcResponse } from "../../core/ipc/index.ts";
 import { MicroModule } from "../../core/micro-module.ts";
 import { connectAdapterManager } from "../../core/nativeConnect.ts";
+import type {
+  $DWEB_DEEPLINK,
+  $IpcSupportProtocols,
+  $MMID,
+} from "../../core/types.ts";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
 import { buildUrl } from "../../helper/urlHelper.ts";

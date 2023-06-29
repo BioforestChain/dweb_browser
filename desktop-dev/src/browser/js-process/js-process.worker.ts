@@ -1,10 +1,36 @@
 /// <reference lib="webworker"/>
 /// 该文件是给 js-worker 用的，worker 中是纯粹的一个runtime，没有复杂的 import 功能，所以这里要极力克制使用外部包。
 /// import 功能需要 chrome-80 才支持。我们明年再支持 import 吧，在此之前只能用 bundle 方案来解决问题
+import type {
+  $DWEB_DEEPLINK,
+  $IpcSupportProtocols,
+  $MicroModule,
+  $MMID,
+} from "../../core/types.ts";
+
+import { $readRequestAsIpcRequest } from "../../core/helper/$readRequestAsIpcRequest.ts";
+import { fetchExtends } from "../../helper/fetchExtends/index.ts";
+import { normalizeFetchArgs } from "../../helper/normalizeFetchArgs.ts";
+import { updateUrlOrigin } from "../../helper/urlHelper.ts";
+import type { $RunMainConfig } from "./assets/js-process.web.ts";
+
+import { $Callback, createSignal } from "../../helper/createSignal.ts";
+import { mapHelper } from "../../helper/mapHelper.ts";
+import { PromiseOut } from "../../helper/PromiseOut.ts";
+import * as http from "../../std/http/index.ts";
+
+import * as core from "./std-dweb-core.ts";
+import {
+  $OnIpcEventMessage,
+  $OnIpcRequestMessage,
+  Ipc,
+  IPC_ROLE,
+  IpcEvent,
+  MessagePortIpc,
+  MWEBVIEW_LIFECYCLE_EVENT,
+} from "./std-dweb-core.ts";
 
 declare global {
-  // type $MMID = import("../../core/helper/types.ts").$MMID;
-  // import { JsProcessMicroModule as JsProcessMicroModuleContructor } from "./js-process.worker.ts";
   type JsProcessMicroModuleContructor =
     import("./js-process.worker.ts").JsProcessMicroModule;
   const JsProcessMicroModule: new (
@@ -26,32 +52,6 @@ declare global {
 }
 const workerGlobal = self as DedicatedWorkerGlobalScope;
 
-import { $readRequestAsIpcRequest } from "../../core/helper/$readRequestAsIpcRequest.ts";
-import type {
-  $DWEB_DEEPLINK,
-  $IpcSupportProtocols,
-  $MicroModule,
-  $MMID,
-} from "../../core/helper/types.ts";
-import { MessagePortIpc } from "../../core/ipc-web/MessagePortIpc.ts";
-import { fetchExtends } from "../../helper/fetchExtends/index.ts";
-import { normalizeFetchArgs } from "../../helper/normalizeFetchArgs.ts";
-import { updateUrlOrigin } from "../../helper/urlHelper.ts";
-import type { $RunMainConfig } from "./assets/js-process.web.ts";
-import {
-  $OnIpcEventMessage,
-  $OnIpcRequestMessage,
-  Ipc,
-  IPC_ROLE,
-} from "./std-dweb-core.ts";
-
-import { IpcEvent } from "../../core/ipc/IpcEvent.ts";
-import { $Callback, createSignal } from "../../helper/createSignal.ts";
-import { mapHelper } from "../../helper/mapHelper.ts";
-import { PromiseOut } from "../../helper/PromiseOut.ts";
-import * as http from "../../std/http/index.ts";
-import { MWEBVIEW_LIFECYCLE_EVENT } from "../multi-webview/types.ts";
-import * as core from "./std-dweb-core.ts";
 // import * as helper_createSignal from "../../helper/createSignal.ts";
 // import * as helper_JsonlinesStream from "../../helper/JsonlinesStream.ts";
 // import * as helper_PromiseOut from "../../helper/PromiseOut.ts";

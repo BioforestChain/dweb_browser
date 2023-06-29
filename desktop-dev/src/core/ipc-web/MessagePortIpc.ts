@@ -1,13 +1,10 @@
 import { encode } from "@msgpack/msgpack";
 
-import type {
-  $IpcMicroModuleInfo,
-  $IpcSupportProtocols,
-} from ".././helper/types.ts";
-import { $IpcMessage, IPC_ROLE, IpcMessage } from "../ipc/const.ts";
-import { Ipc } from "../ipc/ipc.ts";
 import { IpcRequest } from "../ipc/IpcRequest.ts";
 import { IpcResponse } from "../ipc/IpcResponse.ts";
+import { $IpcMessage, IPC_ROLE, IpcMessage } from "../ipc/const.ts";
+import { Ipc } from "../ipc/ipc.ts";
+import type { $IpcMicroModuleInfo, $IpcSupportProtocols } from "../types.ts";
 import { $messagePackToIpcMessage } from "./$messagePackToIpcMessage.ts";
 import {
   $jsonToIpcMessage,

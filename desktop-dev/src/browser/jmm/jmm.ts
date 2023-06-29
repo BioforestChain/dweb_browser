@@ -1,7 +1,7 @@
 import type { OutgoingMessage } from "node:http";
 import type { $BootstrapContext } from "../../core/bootstrapContext.ts";
-import { $DWEB_DEEPLINK, $MMID } from "../../core/helper/types.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
+import { $DWEB_DEEPLINK, $MMID } from "../../core/types.ts";
 import { $Callback, createSignal } from "../../helper/createSignal.ts";
 import type { HttpDwebServer } from "../../std/http/$createHttpDwebServer.ts";
 import { createApiServer, getAllApps } from "./jmm.api.serve.ts";

@@ -10,7 +10,6 @@ import { Readable } from "node:stream";
 import { isDeepStrictEqual } from "node:util";
 import Store from "npm:electron-store@8.1.0";
 import tar from "tar";
-import { $MMID } from "../../core/helper/types.ts";
 import {
   IPC_METHOD,
   Ipc,
@@ -20,6 +19,7 @@ import {
   IpcResponse,
   cros,
 } from "../../core/ipc/index.ts";
+import { $MMID } from "../../core/types.ts";
 import { resolveToDataRoot } from "../../helper/createResolveTo.ts";
 import { simpleEncoder } from "../../helper/encoding.ts";
 import { locks } from "../../helper/locksManager.ts";

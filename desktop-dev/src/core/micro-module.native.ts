@@ -2,9 +2,6 @@ import { $deserializeRequestToParams } from "./helper/$deserializeRequestToParam
 import { $isMatchReq, $ReqMatcher } from "./helper/$ReqMatcher.ts";
 import { $serializeResultToResponse } from "./helper/$serializeResultToResponse.ts";
 import type {
-  $DWEB_DEEPLINK,
-  $IpcSupportProtocols,
-  $MMID,
   $PromiseMaybe,
   $Schema1,
   $Schema1ToType,
@@ -15,6 +12,7 @@ import { NativeIpc } from "./ipc.native.ts";
 import { Ipc, IPC_ROLE, IpcRequest, IpcResponse } from "./ipc/index.ts";
 import { MicroModule } from "./micro-module.ts";
 import { connectAdapterManager } from "./nativeConnect.ts";
+import type { $DWEB_DEEPLINK, $IpcSupportProtocols, $MMID } from "./types.ts";
 
 connectAdapterManager.append((fromMM, toMM, reason) => {
   // 测试代码

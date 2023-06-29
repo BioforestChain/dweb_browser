@@ -7,13 +7,10 @@ import {
   ReadableStreamOut,
   binaryStreamRead,
 } from "../../helper/readableStreamHelper.ts";
-import type {
-  $IpcMicroModuleInfo,
-  $IpcSupportProtocols,
-  $PromiseMaybe,
-} from ".././helper/types.ts";
+import { $PromiseMaybe } from "../helper/types.ts";
 import type { $IpcMessage, IPC_ROLE, IpcMessage } from "../ipc/const.ts";
 import { Ipc } from "../ipc/ipc.ts";
+import type { $IpcMicroModuleInfo, $IpcSupportProtocols } from "../types.ts";
 import { $messagePackToIpcMessage } from "./$messagePackToIpcMessage.ts";
 import { $jsonToIpcMessage } from "./$messageToIpcMessage.ts";
 
@@ -55,10 +52,10 @@ export class ReadableStreamIpc extends Ipc {
   });
 
   private CLOSE_DATA = once(() => {
-    const close = encode('close');
+    const close = encode("close");
     this._len[0] = close.length;
-    return u8aConcat([this._len_u8a, close])
-  })
+    return u8aConcat([this._len_u8a, close]);
+  });
 
   private _incomne_stream?: ReadableStream<Uint8Array>;
   /**
@@ -135,7 +132,7 @@ export class ReadableStreamIpc extends Ipc {
   }
 
   _doClose() {
-    this.controller.enqueue(this.CLOSE_DATA())
+    this.controller.enqueue(this.CLOSE_DATA());
     this.controller.close();
   }
 }

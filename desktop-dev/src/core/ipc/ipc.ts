@@ -1,8 +1,11 @@
+import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { cacheGetter } from "../../helper/cacheGetter.ts";
 import { createSignal } from "../../helper/createSignal.ts";
-import { PromiseOut } from "../../helper/PromiseOut.ts";
-import type { $IpcMicroModuleInfo } from ".././helper/types.ts";
 import { MicroModule } from "../micro-module.ts";
+import type { $IpcMicroModuleInfo } from "../types.ts";
+import type { IpcHeaders } from "./IpcHeaders.ts";
+import { IpcRequest } from "./IpcRequest.ts";
+import type { IpcResponse } from "./IpcResponse.ts";
 import {
   $IpcMessage,
   $OnIpcEventMessage,
@@ -11,9 +14,6 @@ import {
   IPC_MESSAGE_TYPE,
   type $OnIpcMessage,
 } from "./const.ts";
-import type { IpcHeaders } from "./IpcHeaders.ts";
-import { IpcRequest } from "./IpcRequest.ts";
-import type { IpcResponse } from "./IpcResponse.ts";
 
 let ipc_uid_acc = 0;
 export abstract class Ipc {

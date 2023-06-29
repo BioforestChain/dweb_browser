@@ -1,6 +1,7 @@
-import type { $MMID, $PromiseMaybe } from "./helper/types.ts";
+import type { $PromiseMaybe } from "./helper/types.ts";
 import type { MicroModule } from "./micro-module.ts";
 import type { $ConnectResult } from "./nativeConnect.ts";
+import type { $MMID } from "./types.ts";
 export interface $BootstrapContext {
   dns: $DnsMicroModule;
 }
