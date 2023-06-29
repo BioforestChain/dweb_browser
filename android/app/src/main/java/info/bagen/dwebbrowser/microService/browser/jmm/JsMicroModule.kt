@@ -64,7 +64,7 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
             /**
              * -1
              * connectAdapterManager   fromMM: dns.sys.dweb => toMM: boot.sys.dweb ==> jsMM:false
-             * connectAdapterManager   fromMM: js.browser.dweb => toMM: http.sys.dweb ==> jsMM:false
+             * connectAdapterManager   fromMM: js.browser.dweb => toMM: http.std.dweb ==> jsMM:false
              * connectAdapterManager   fromMM: demo.www.bfmeta.info.dweb => toMM: js.browser.dweb ==> jsMM:true
              */
             /**

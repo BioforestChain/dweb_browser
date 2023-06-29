@@ -1,14 +1,7 @@
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
-import type { HttpServerNMM } from "../http-server/http-server.ts";
 
 export class BiometricsNMM extends NativeMicroModule {
   mmid = "biometrics.sys.dweb" as const;
-  allocId = 0;
-  httpNMM: HttpServerNMM | undefined;
-  impactLightStyle: $ImpactLightStyle = "HEAVY";
-  notificationStyle: $NotificationStyle = "SUCCESS";
-  encoder = new TextEncoder();
-  // reqResMap: Map<number, $ReqRes> = new Map();
 
   protected _bootstrap() {
     console.log("biometrices", `[${this.mmid}] _bootstrap`);

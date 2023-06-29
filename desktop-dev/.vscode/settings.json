@@ -4,6 +4,7 @@
     "build/": false,
     "electxron/": true,
     "node_modules/": true,
+    "**/*.bak": true,
     "**/.git": true,
     "**/.svn": true,
     "**/.hg": true,

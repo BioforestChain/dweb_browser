@@ -34,7 +34,7 @@ fun debugHttp(tag: String, msg: Any = "", err: Throwable? = null) =
   printdebugln("http", tag, msg, err)
 
 
-class HttpNMM : NativeMicroModule("http.sys.dweb") {
+class HttpNMM : NativeMicroModule("http.std.dweb") {
   companion object {
     val dwebServer = Http1Server()
   }

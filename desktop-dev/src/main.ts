@@ -5,12 +5,12 @@ import { JsProcessNMM } from "./browser/js-process/js-process.ts";
 import { MultiWebviewNMM } from "./browser/multi-webview/multi-webview.mobile.ts";
 import { setFilter } from "./helper/devtools.ts";
 import { BluetoothNMM } from "./std/bluetooth/bluetooth.main.ts";
+import { HttpServerNMM } from "./std/http/http-server.ts";
 import { BarcodeScanningNativeUiNMM } from "./sys/barcode-scanning/barcode-scanning.main.ts";
 import { BiometricsNMM } from "./sys/biometrics/biometrics.main.ts";
 import { BootNMM } from "./sys/boot/boot.ts";
 import { DnsNMM } from "./sys/dns/dns.ts";
 import "./sys/dns/localeFileFetch.ts";
-import { HttpServerNMM } from "./sys/http-server/http-server.ts";
 // import { NavigationBarNMM } from "./browser/native-ui/navigation-bar/navigation-bar.main.ts";
 // import { SafeAreaNMM } from "./browser/native-ui/safe-area/safe-area.main.ts";
 // import { StatusbarNativeUiNMM } from "./browser/native-ui/status-bar/status-bar.main.ts";
@@ -79,7 +79,7 @@ dns.install(new JmmNMM());
 
 dns.install(
   new BootNMM([
-    // dwebBrowser.mmid,
+    dwebBrowser.mmid,
     // "bluetooth.std.dweb"
   ])
 );

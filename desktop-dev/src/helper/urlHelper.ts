@@ -20,6 +20,18 @@ export const updateUrlOrigin = (url: string | URL, new_origin: string) => {
   return new URL(new_origin + href.slice(origin.length));
 };
 
+export const appendUrlSearchs = (
+  url: URL,
+  extQuerys: Iterable<[string, string]>
+) => {
+  for (const [key, value] of extQuerys) {
+    if (url.searchParams.has(key) === false) {
+      url.searchParams.set(key, value);
+    }
+  }
+  return url;
+};
+
 export const buildUrl = (
   url: URL,
   ext: {

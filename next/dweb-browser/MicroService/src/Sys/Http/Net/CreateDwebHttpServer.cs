@@ -48,7 +48,7 @@ namespace DwebBrowser.MicroService.Core
     public abstract partial class MicroModule
     {
         public async Task<HttpNMM.ServerStartResult> StartHttpDwebServer(DwebHttpServerOptions options) =>
-            await (await NativeFetchAsync(new URL("file://http.sys.dweb/start")
+            await (await NativeFetchAsync(new URL("file://http.std.dweb/start")
                 .SearchParamsSet("port", options.port.ToString())
                 .SearchParamsSet("subdomain", options.subdomain)))
             .JsonAsync<HttpNMM.ServerStartResult>();
@@ -59,7 +59,7 @@ namespace DwebBrowser.MicroService.Core
             var streamIpc = new ReadableStreamIpc(this, string.Format("http-server/{0}", startResult.urlInfo.Host));
             var pureResponse = await NativeFetchAsync(
                 new PureRequest(
-                    new URL("file://http.sys.dweb/listen")
+                    new URL("file://http.std.dweb/listen")
                         .SearchParamsSet("host", startResult.urlInfo.Host)
                         .SearchParamsSet("token", startResult.token)
                         .SearchParamsSet("routes", JsonSerializer.Serialize(routes)).Href,
@@ -72,7 +72,7 @@ namespace DwebBrowser.MicroService.Core
         }
 
         public async Task<bool> CloseHttpDwebServer(DwebHttpServerOptions options) =>
-            await (await NativeFetchAsync(new URL("file://http.sys.dweb/close")
+            await (await NativeFetchAsync(new URL("file://http.std.dweb/close")
                 .SearchParamsSet("port", options.port.ToString())
                 .SearchParamsSet("subdomain", options.subdomain)))
             .BoolAsync();

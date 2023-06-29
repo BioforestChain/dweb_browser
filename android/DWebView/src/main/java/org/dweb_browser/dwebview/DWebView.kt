@@ -52,8 +52,8 @@ fun debugDWebView(tag: String, msg: Any? = "", err: Throwable? = null) =
  * 以上三种方式，优先级依此降低，都可以将 host 携带给 public_origin 背后的服务让其进行网关路由，
  *
  * 比如说：
- * 1. public_origin 是 http://localhost:22600 ，它由 http.sys.dweb 模块进行监听
- * 2. 一个 mmid 为 desktop.bfs.dweb 的应用，它通过 http.sys.dweb 来获得监听网络的服务，因此得到的 host 便是 desktop.bfs.dweb:80
+ * 1. public_origin 是 http://localhost:22600 ，它由 http.std.dweb 模块进行监听
+ * 2. 一个 mmid 为 desktop.bfs.dweb 的应用，它通过 http.std.dweb 来获得监听网络的服务，因此得到的 host 便是 desktop.bfs.dweb:80
  * 3. 在 Android 平台中，我们将 http://desktop.bfs.dweb:80 这个链接作为 internal_origin，它并不能直接访问，但我们实现了一些方法、一些拦截，将这个请求转译成：
  *      http://localhost:22600?X-Dweb-Host=desktop.bfs.dweb%3A80
  * 4. 在看 Desktop 平台，我们将 http://desktop.bfs.dweb-80.localhost:22600 这个链接作为 internal_origin，

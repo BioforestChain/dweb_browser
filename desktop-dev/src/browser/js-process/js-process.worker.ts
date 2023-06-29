@@ -15,7 +15,7 @@ declare global {
     jsProcess: JsProcessMicroModuleContructor;
     core: typeof import("./std-dweb-core.ts");
     ipc: typeof import("./std-dweb-core.ts");
-    http: typeof import("../../sys/http-server/index.ts");
+    http: typeof import("../../std/http/index.ts");
   }
   interface WorkerNavigator {
     readonly dweb: DWebCore;
@@ -49,7 +49,7 @@ import { IpcEvent } from "../../core/ipc/IpcEvent.ts";
 import { $Callback, createSignal } from "../../helper/createSignal.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
-import * as http from "../../sys/http-server/index.ts";
+import * as http from "../../std/http/index.ts";
 import { MWEBVIEW_LIFECYCLE_EVENT } from "../multi-webview/types.ts";
 import * as core from "./std-dweb-core.ts";
 // import * as helper_createSignal from "../../helper/createSignal.ts";

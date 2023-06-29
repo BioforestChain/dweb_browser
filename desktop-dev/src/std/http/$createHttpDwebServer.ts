@@ -70,7 +70,7 @@ export const listenHttpDwebServer = async (
 ) => {
   /// 创建一个基于 二进制流的 ipc 信道
   const httpServerIpc = new ReadableStreamIpc(microModule, IPC_ROLE.CLIENT);
-  const url = new URL(`file://http.sys.dweb`);
+  const url = new URL(`file://http.std.dweb`);
   const ext = {
     pathname: "/listen",
     search: {
@@ -94,7 +94,7 @@ export const startHttpDwebServer = async (
   microModule: $MicroModule,
   options: $DwebHttpServerOptions
 ) => {
-  const url = buildUrl(new URL(`file://http.sys.dweb/start`), {
+  const url = buildUrl(new URL(`file://http.std.dweb/start`), {
     search: options,
   });
   return await microModule
@@ -118,7 +118,7 @@ export const closeHttpDwebServer = async (
 ) => {
   return await microModule
     .nativeFetch(
-      buildUrl(new URL(`file://http.sys.dweb/close`), {
+      buildUrl(new URL(`file://http.std.dweb/close`), {
         search: options,
       })
     )

@@ -22,7 +22,7 @@ public class HttpNMM : NativeMicroModule
     private Dictionary</* token */string, Gateway> _tokenMap = new();
     private Dictionary</* host */string, Gateway> _gatewayMap = new();
 
-    public HttpNMM() : base("http.sys.dweb")
+    public HttpNMM() : base("http.std.dweb")
     {
     }
 

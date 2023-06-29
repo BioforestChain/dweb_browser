@@ -42,13 +42,4 @@ export class Http1Server extends NetServer<$HttpServerInfo> {
     this._info?.server.close();
     this._info = undefined;
   }
-
-  // _getHost(
-  //   subdomain: string,
-  //   mmid: string,
-  //   port: number,
-  //   info: $HttpServerInfo
-  // ): string {
-  //   return `${subdomain}${mmid}-${port}.localhost:${info.port}`;
-  // }
 }

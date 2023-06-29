@@ -1,5 +1,5 @@
 import { Ipc, IpcRequest, IpcResponse } from "../../core/ipc/index.ts";
-import { createHttpDwebServer } from "../../sys/http-server/$createHttpDwebServer.ts";
+import { createHttpDwebServer } from "../../std/http/$createHttpDwebServer.ts";
 import type { BrowserNMM } from "./browser.ts";
 
 export async function createWWWServer(this: BrowserNMM) {

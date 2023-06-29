@@ -1,6 +1,6 @@
 import { $BootstrapContext } from "../../core/bootstrapContext.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
-import { HttpDwebServer } from "../../sys/http-server/$createHttpDwebServer.ts";
+import { HttpDwebServer } from "../../std/http/$createHttpDwebServer.ts";
 import { createBrowserWindow } from "./browser.bw.ts";
 import { createWWWServer } from "./browser.serve.www.ts";
 import {
@@ -27,7 +27,7 @@ export class BrowserNMM extends NativeMicroModule {
 
   protected async _bootstrap(context: $BootstrapContext) {
     await Electron.app.whenReady();
-     context.dns.connect("jmm.browser.dweb");
+    context.dns.connect("jmm.browser.dweb");
     this.wwwServer = await createWWWServer.call(this);
     this.bw = await createBrowserWindow.bind(this)(
       this.wwwServer.startResult.urlInfo.buildInternalUrl((url) => {

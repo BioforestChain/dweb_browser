@@ -33,7 +33,7 @@ data class DwebHttpServerOptions(
 
 suspend fun MicroModule.startHttpDwebServer(options: DwebHttpServerOptions) =
     this.nativeFetch(
-        Uri.of("file://http.sys.dweb/start")
+        Uri.of("file://http.std.dweb/start")
             .query("port", options.port.toString())
             .query("subdomain", options.subdomain)
     ).json<HttpNMM.ServerStartResult>(HttpNMM.ServerStartResult::class.java)
@@ -48,7 +48,7 @@ suspend fun MicroModule.listenHttpDwebServer(
       this.nativeFetch(
         Request(
           Method.POST,
-          Uri.of("file://http.sys.dweb/listen")
+          Uri.of("file://http.std.dweb/listen")
             .query("host", startResult.urlInfo.host)
             .query("token", startResult.token)
             .query("routes", gson.toJson(routes))
@@ -63,7 +63,7 @@ suspend fun MicroModule.listenHttpDwebServer(
 
 suspend fun MicroModule.closeHttpDwebServer(options: DwebHttpServerOptions) =
     this.nativeFetch(
-        Uri.of("file://http.sys.dweb/close")
+        Uri.of("file://http.std.dweb/close")
             .query("port", options.port.toString())
             .query("subdomain", options.subdomain)
     ).boolean()

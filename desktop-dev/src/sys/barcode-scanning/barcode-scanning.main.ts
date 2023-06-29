@@ -3,16 +3,10 @@
 import Jimp from "jimp";
 import jsQR from "jsqr";
 import { Buffer } from "node:buffer";
-import type { Ipc } from "../../core/ipc/ipc.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
-import type { HttpServerNMM } from "../http-server/http-server.ts";
 
 export class BarcodeScanningNativeUiNMM extends NativeMicroModule {
   mmid = "barcode-scanning.sys.dweb" as const;
-  httpIpc: Ipc | undefined;
-  httpNMM: HttpServerNMM | undefined;
-  encoder = new TextEncoder();
-  allocId = 0;
 
   _bootstrap = () => {
     console.always(`[${this.mmid} _bootstrap]`);

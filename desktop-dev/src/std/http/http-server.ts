@@ -29,7 +29,7 @@ export interface $Listener {
  * 差别在于服务只在本地运作
  */
 export class HttpServerNMM extends NativeMicroModule {
-  mmid = `http.sys.dweb` as const;
+  mmid = `http.std.dweb` as const;
   private _dwebServer = new Http1Server();
 
   private _tokenMap = new Map</* token */ string, $Gateway>();
@@ -220,7 +220,7 @@ export class HttpServerNMM extends NativeMicroModule {
   }
 
   // 获取 host
-  getHostByReq = (req: IncomingMessage) => {
+  private getHostByReq = (req: IncomingMessage) => {
     /// 获取 host
     let header_host: string | null = null;
     let header_x_dweb_host: string | null = null;
@@ -230,65 +230,6 @@ export class HttpServerNMM extends NativeMicroModule {
       this._dwebServer.origin
     ).searchParams.get("X-Dweb-Host");
     for (const [key, value] of Object.entries(req.headers)) {
-      switch (key) {
-        case "host":
-        case "Host": {
-          if (typeof value === "string") {
-            header_host = value;
-            /// 桌面模式下，我们没有对链接进行拦截，将其转化为 `public_origin?X-Dweb-Host` 这种链接形式 ，因为支持 *.localhost 通配符这种域名
-            /// 所以这里只需要将 host 中的信息提取出来
-            if (value.endsWith(`.${this._dwebServer.authority}`)) {
-              query_x_web_host = value
-                .slice(0, -this._dwebServer.authority.length - 1)
-                .replace(/-(\d+)/, ":$1");
-            }
-          }
-          break;
-        }
-        case "x-dweb-host":
-        case "X-Dweb-Host": {
-          if (typeof value === "string") {
-            header_x_dweb_host = value;
-          }
-          break;
-        }
-        case "user-agent":
-        case "User-Agent": {
-          if (typeof value === "string") {
-            const host = value.match(/\sdweb-host\/(.+)\s*/)?.[1];
-            if (typeof host === "string") {
-              header_user_agent_host = host;
-            }
-          }
-        }
-      }
-    }
-
-    let host =
-      query_x_web_host ||
-      header_x_dweb_host ||
-      header_user_agent_host ||
-      header_host;
-    if (typeof host === "string" && host.includes(":") === false) {
-      host += ":" + this._info?.protocol.port;
-    }
-    if (typeof host !== "string") {
-      /** 如果有需要，可以内部实现这个 key 为 "*" 的 listener 来提供默认服务 */
-      host = "*";
-    }
-    return host;
-  };
-  // 获取 host
-  getHostByURLAndHeaders = (url: string, headers: Record<string, string>) => {
-    /// 获取 host
-    let header_host: string | null = null;
-    let header_x_dweb_host: string | null = null;
-    let header_user_agent_host: string | null = null;
-    let query_x_web_host: string | null = new URL(
-      url || "/",
-      this._dwebServer.origin
-    ).searchParams.get("X-Dweb-Host");
-    for (const [key, value] of Object.entries(headers)) {
       switch (key) {
         case "host":
         case "Host": {

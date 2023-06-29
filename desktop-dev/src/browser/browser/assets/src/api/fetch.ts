@@ -1,10 +1,13 @@
 /// about:blank
 /// about:newtab
 const BASE_URL =
-  location.protocol === "about:"
-    ? new URL(`http://browser.dweb.localhost/${location.href.replace("about:", "")}`)
-    : location.protocol === "chrome:"
-    ? new URL(`http://browser.dweb.localhost/${location.href.replace("chrome://", "")}`)
+  location.protocol === "about:" || location.protocol === "chrome:"
+    ? new URL(
+        `http://browser.dweb.localhost/${location.href.replace(
+          new RegExp(location.protocol + "/+"),
+          ""
+        )}`
+      )
     : new URL(location.href);
 export const nativeFetch = (pathname: string, init?: $BuildRequestInit) => {
   // 默认请求自己

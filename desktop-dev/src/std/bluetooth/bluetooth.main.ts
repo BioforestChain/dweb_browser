@@ -7,7 +7,7 @@ import { createComlinkNativeWindow } from "../../helper/openNativeWindow.ts";
 import {
   createHttpDwebServer,
   type HttpDwebServer,
-} from "../../sys/http-server/$createHttpDwebServer.ts";
+} from "../../std/http/$createHttpDwebServer.ts";
 import type { $Device } from "./types.ts";
 
 type $APIS = typeof import("./assets/exportApis.ts")["APIS"];

@@ -24,27 +24,6 @@ export async function createBrowserWindow(this: BrowserNMM, url: string) {
   // 获取 BrowserWindow 的 session 对象
   const mainWindowSession = bw.webContents.session;
 
-  // 在 BrowserWindow 的 session 中拦截请求
-  // mainWindowSession.webRequest.onBeforeRequest(async (request, callback) => {
-  //   const _url = new URL(request.url);
-  //   if (_url.hostname === "localhost" && request.method === "GET") {
-  //    const pathname = _url.pathname.replace("/browser.dweb", "");
-  //    callback({cancel:false,redirectURL:`http://browser.dweb-80.localhost:22605${pathname}${_url.search}`});
-  //   }
-  // });
-
-  // Electron.protocol.registerBufferProtocol(
-  //   "http",
-  //   async (request, callback) => {
-  //     const _url = new URL(request.url);
-  //     const response = await relayGerRequest.bind(this)(_url);
-  //     callback({
-  //       statusCode: response.status,
-  //       mimeType: response.type,
-  //       data: Buffer.from(await response.arrayBuffer()),
-  //     });
-  //   }
-  // );
   return Object.assign(bw, { getTitleBarHeight });
 }
 
