@@ -12,6 +12,7 @@ import {
 } from "../../core/nativeConnect.ts";
 import type { $DWEB_DEEPLINK, $MMID } from "../../core/types.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
+import { mmid, parseQuery, z } from "../../helper/zodHelper.ts";
 import { PromiseOut } from "./../../helper/PromiseOut.ts";
 import { nativeFetchAdaptersManager } from "./nativeFetch.ts";
 
@@ -137,17 +138,22 @@ export class DnsNMM extends NativeMicroModule {
   override async _bootstrap(context: $BootstrapContext) {
     this.install(this);
     this.running_apps.set(this.mmid, Promise.resolve(this));
+
+    const query_appId = z.object({
+      app_id: mmid,
+    });
+
     this.onFetch(
       async (event) => {
         if (event.url.pathname === "/open") {
-          const app_id = event.searchParams.get("app_id") ?? "";
-          await this.open(app_id as $MMID);
+          const { app_id } = parseQuery(event.searchParams, query_appId);
+          await this.open(app_id);
           return Response.json(true);
         }
       },
       async (event) => {
         if (event.url.pathname === "/close") {
-          const app_id = event.searchParams.get("app_id") ?? "";
+          const { app_id } = parseQuery(event.searchParams, query_appId);
           return Response.json(await this.close(app_id as $MMID));
         }
       },
