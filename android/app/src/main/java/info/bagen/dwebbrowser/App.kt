@@ -11,6 +11,8 @@ import info.bagen.dwebbrowser.util.PlaocUtil
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.browserUI.util.BrowserUIApp
 import org.dweb_browser.helper.*
 
@@ -19,18 +21,20 @@ class App : Application() {
     lateinit var appContext: Context
 
     val grant = PromiseOut<Boolean>()
+    private val lockActivityState = Mutex()
 
     @OptIn(DelicateCoroutinesApi::class)
     fun <T> startActivity(cls: Class<T>, onIntent: (intent: Intent) -> Unit) {
       GlobalScope.launch(ioAsyncExceptionHandler) {
-        if (!grant.waitPromise()) {
-          /// TODO 用户拒绝协议应该做的事情
-          return@launch
-        }
+        lockActivityState.withLock {
+          if (!grant.waitPromise()) {
+            return@withLock // TODO 用户拒绝协议应该做的事情
+          }
 
-        val intent = Intent(appContext, cls)
-        onIntent(intent)
-        appContext.startActivity(intent)
+          val intent = Intent(appContext, cls)
+          onIntent(intent)
+          appContext.startActivity(intent)
+        }
       }
     }
 
