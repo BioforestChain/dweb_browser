@@ -260,7 +260,7 @@ async function _appInstall(
   const bundle_hash = "sha256:" + hashVerifyer.digest("hex");
   /// hash 校验失败，删除下载的文件，并且结束安装任务
   if (bundle_hash !== appInfo.bundle_hash) {
-    console.always(red("hash 校验失败"));
+    console.always("jmm serve", red("hash 校验失败"));
     /// 移除文件
     fs.rmSync(tempFilePath);
     fs.rmSync(hashFilePath);
@@ -272,7 +272,7 @@ async function _appInstall(
     );
   }
 
-  console.always(blue("hash 校验通过，开始解压安装"));
+  console.always("jmm serve", blue("hash 校验通过，开始解压安装"));
 
   /// 开始解压文件
   enqueueInstallProgress("install", 0);
@@ -364,6 +364,9 @@ async function appOpen(this: JmmNMM, request: IpcRequest, ipc: Ipc) {
   const id = request.parsed_url.searchParams.get("mmid") as $MMID;
   const [opendAppIpc] = await this.context!.dns.connect(id);
   opendAppIpc.postMessage(IpcEvent.fromText("activity", ""));
+  return ipc.postMessage(
+    IpcResponse.fromText(request.req_id, 200, cros(new IpcHeaders()), "ok", ipc)
+  );
 }
 
 nativeFetchAdaptersManager.append((remote, parsedUrl) => {

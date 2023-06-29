@@ -1,8 +1,8 @@
 import type { OutgoingMessage } from "node:http";
 import type { $BootstrapContext } from "../../core/bootstrapContext.ts";
+import { $Schema1ToType } from "../../core/helper/types.ts";
 import { Ipc, IpcEvent, IpcRequest } from "../../core/ipc/index.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
-import { $Schema1ToType } from "../../core/helper/types.ts";
 import {
   ALL_MMID_MWEBVIEW_WINDOW_MAP,
   getMWebViewWindow,
@@ -23,8 +23,6 @@ export class MultiWebviewNMM extends NativeMicroModule {
   observeMap: $ObserveMapNww = new Map();
   encoder = new TextEncoder();
   async _bootstrap(_context: $BootstrapContext) {
-    console.always(`${this.mmid} _bootstrap`);
-
     this.registerCommonIpcOnMessageHandler({
       pathname: "/open",
       matchMode: "full",
@@ -91,7 +89,7 @@ export class MultiWebviewNMM extends NativeMicroModule {
         return changed;
       },
     });
-   
+
     Electron.ipcMain.on(
       "sync:webview_state",
       (
@@ -135,7 +133,6 @@ export class MultiWebviewNMM extends NativeMicroModule {
       mww.win.close();
     }
   }
- 
 }
 
 export interface $ObserveItem {

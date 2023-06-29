@@ -66,10 +66,10 @@ export abstract class NativeMicroModule extends MicroModule {
                 client_ipc,
                 request
               );
-              
+
               if (result instanceof IpcResponse) {
                 response = result;
-              } else {
+              } else if (result) {
                 response = await hanlder_schema.output(
                   request,
                   result,
@@ -97,7 +97,6 @@ export abstract class NativeMicroModule extends MicroModule {
         }
 
         if (response === undefined) {
-          console.always("response === undefined", request.parsed_url);
           response = IpcResponse.fromText(
             request.req_id,
             404,
