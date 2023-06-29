@@ -6,6 +6,7 @@ export class HTMLBluetoothElement extends HTMLElement {
   async open() {
     return this.plugin.open();
   }
+
   async close() {
     return this.plugin.close();
   }

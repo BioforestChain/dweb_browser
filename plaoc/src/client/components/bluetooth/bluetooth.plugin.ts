@@ -1,6 +1,7 @@
 import "../../@types/web-bluetooth/index.d.ts";
 import { bindThis } from "../../helper/bindThis.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
+import { $ResponseData } from "./bluetooth.type.ts";
 
 export class BluetoothPlugin extends BasePlugin {
   constructor() {
@@ -8,24 +9,26 @@ export class BluetoothPlugin extends BasePlugin {
   }
 
   @bindThis
-  async open(options: RequestDeviceOptions = { acceptAllDevices: true }) {
+  async open(
+    options: RequestDeviceOptions = {
+      acceptAllDevices: true,
+      optionalServices: ["00003802-0000-1000-8000-00805f9b34fb"],
+    }
+  ): Promise<$ResponseData<BluetoothRemoteGATTServer>> {
     const res = await this.fetchApi("/open", {
       method: "POST",
       body: JSON.stringify(options),
     });
     const deviceConnted = await res.json();
-    const server = new BluetoothRemoteGATTServer(this, {
-      ...deviceConnted.device,
-    });
+    if (deviceConnted.success) {
+      deviceConnted.data = new BluetoothRemoteGATTServer(this, {
+        ...deviceConnted.data.device,
+      });
+    }
     // console.log('server: ', server, server.connected)
     // console.log("res: ", deviceConnted)
-    return server;
+    return deviceConnted;
   }
-
-  // @bindThis
-  // async connect(id: string) {
-  //   return this.fetchApi(`/connect?id=${id}`);
-  // }
 
   @bindThis
   async close() {
@@ -68,9 +71,18 @@ export class BluetoothRemoteGATTServer {
   ) {
     this.connected = connected;
   }
-
+  @bindThis
   connect() {
-    console.error("默认是连接的 是否可以再次连接");
+    const result = this.plugin.fetchApi(
+      `/bluetooth_remote_gatt_server/connect`,
+      {
+        search: {
+          id: this.device.id,
+        },
+      }
+    );
+    console.log("再次连接");
+    return result;
   }
 
   // 断开蓝牙连接
@@ -84,16 +96,40 @@ export class BluetoothRemoteGATTServer {
         },
       }
     );
-    console.log("result: ", result);
+
+    return result;
   }
 
-  getPrimaryService(service: BluetoothServiceUUID) {}
-
-  getPrimaryServices() {}
+  @bindThis
+  async getPrimaryService(
+    uuid: BluetoothServiceUUID
+  ): Promise<$ResponseData<BluetoothRemoteGATTService>> {
+    const result = await this.plugin.fetchApi(
+      `/bluetooth_remote_gatt_server/get_primary_service`,
+      {
+        search: {
+          uuid: uuid,
+        },
+      }
+    );
+    const o = await result.json();
+    if (o.success === true) {
+      console.log("success", o.data);
+      const bluetoothRemoteGATTSefvice = new BluetoothRemoteGATTService(
+        this.plugin,
+        o.data.device,
+        o.data.uuid,
+        o.data.isPrimary
+      );
+      o.data = bluetoothRemoteGATTSefvice;
+    }
+    return o;
+  }
 }
 
-class PrimaryService extends EventTarget {
+export class BluetoothRemoteGATTService extends EventTarget {
   constructor(
+    readonly plugin: BluetoothPlugin,
     readonly device: BluetoothDevice,
     readonly uuid: string,
     readonly isPrimary: boolean
@@ -101,9 +137,85 @@ class PrimaryService extends EventTarget {
     super();
   }
 
+  @bindThis
+  async getCharacteristic(
+    bluetoothCharacteristicUUID: string
+  ): Promise<$ResponseData<BluetoothRemoteGATTCharacteristic>> {
+    const res = await this.plugin.fetchApi(
+      `/bluetooth_remote_gatt_service/get_characteristic`,
+      {
+        search: {
+          uuid: bluetoothCharacteristicUUID,
+        },
+      }
+    );
+    const o = await res.json();
+    if (o.success) {
+      o.data = new BluetoothRemoteGATTCharacteristic(
+        this.plugin,
+        this,
+        o.data.uuid,
+        o.data.properties,
+        o.data.value ? o.data.value : undefined
+      );
+    }
+    return o;
+  }
+
   // async getCharacteristic(characteristic: BluetoothCharacteristicUUID): Promise<BluetoothRemoteGATTCharacteristic>{
 
   // }
+}
+
+export class BluetoothRemoteGATTCharacteristic extends EventTarget {
+  constructor(
+    readonly plugin: BluetoothPlugin,
+    readonly service: BluetoothRemoteGATTService,
+    readonly uuid: string,
+    readonly properties: BluetoothCharacteristicProperties,
+    readonly value?: DataView | undefined
+  ) {
+    super();
+  }
+  @bindThis
+  async readValue() {
+    const res = await this.plugin.fetchApi(
+      `/bluetooth_remote_gatt_characteristic/read_value`
+    );
+    return res;
+  }
+
+  @bindThis
+  async getDescriptor(
+    uuid: string
+  ): Promise<$ResponseData<BluetoothRemoteGATTDescriptor>> {
+    const res = await this.plugin.fetchApi(
+      `/bluetooth_remote_gatt_characteristic/get_descriptor`,
+      {
+        search: { uuid: uuid },
+      }
+    );
+    const o = await res.json();
+    if (o.success) {
+      o.data = new BluetoothRemoteGATTDescriptor(this, uuid, o.data.value);
+    }
+    return o;
+  }
+}
+
+export class BluetoothRemoteGATTDescriptor {
+  constructor(
+    readonly characteristic: BluetoothRemoteGATTCharacteristic,
+    readonly uuid: string,
+    readonly value?: DataView
+  ) {}
+  @bindThis
+  async readValue() {
+    const res = await this.characteristic.plugin.fetchApi(
+      `/bluetooth_remote_gatt_descriptor/reaed_value`
+    );
+    return res;
+  }
 }
 
 export const bluetoothPlugin = new BluetoothPlugin();

@@ -2,7 +2,12 @@
 import { onMounted, ref, reactive } from "vue";
 import { HTMLBluetoothElement } from "../plugin";
 import LogPanel, { toConsole } from "../components/LogPanel.vue";
-import type { BluetoothRemoteGATTServer } from "../../../src/client/components/bluetooth/index";
+import type {
+  BluetoothRemoteGATTServer,
+  BluetoothRemoteGATTService,
+  BluetoothRemoteGATTCharacteristic,
+  BluetoothRemoteGATTDescriptor,
+} from "../../../src/client/components/bluetooth/index";
 
 export interface $Device {
   deviceId: string;
@@ -14,13 +19,26 @@ const state: {
   deviceList: $Device[];
   deviceConnectedId: string;
   deviceConnecingId: string;
-  bluetoothRemoteGATTServer: BluetoothRemoteGATTServer | undefined;
+  bluetoothRemoteGATTServer?: BluetoothRemoteGATTServer;
+  uuid: string;
+  bluetoothRemoteGATTService?: BluetoothRemoteGATTService;
+  bluetoothCharacteristicUUID: string;
+  bluetoothRemoteGATTCharacteristic?: BluetoothRemoteGATTCharacteristic;
+  bluetoothDescriptorUUID: string;
+  bluetoothRemoteGATTDescriptor?: BluetoothRemoteGATTDescriptor;
 } = reactive({
   isOpen: false,
   deviceList: [],
   deviceConnectedId: "",
   deviceConnecingId: "",
   bluetoothRemoteGATTServer: undefined,
+  // 测试 device HUAWEI WATCH FIT-090 提供的 uuid
+  uuid: "00003802-0000-1000-8000-00805f9b34fb",
+  bluetoothRemoteGATTService: undefined,
+  bluetoothCharacteristicUUID: "00004a02-0000-1000-8000-00805f9b34fb",
+  bluetoothRemoteGATTCharacteristic: undefined,
+  bluetoothDescriptorUUID: "00002902-0000-1000-8000-00805f9b34fb",
+  bluetoothRemoteGATTDescriptor: undefined,
 });
 let bluetooth: HTMLBluetoothElement;
 let bluetoothDevice;
@@ -44,7 +62,14 @@ async function toggleOpen() {
 }
 
 async function open() {
-  state.bluetoothRemoteGATTServer = await bluetooth.open();
+  // state.bluetoothRemoteGATTServer = await bluetooth.open();
+  const res = await bluetooth.open();
+  if (res.success) {
+    state.bluetoothRemoteGATTServer = res.data;
+    console.log(`bluetooth open success`);
+    return;
+  }
+  console.error(`bluetooth open fail`);
 }
 
 async function disconnect() {
@@ -52,11 +77,69 @@ async function disconnect() {
     console.error("state.bluetoothRemoteGATTServer === undefined");
     return;
   }
-  state.bluetoothRemoteGATTServer.disconnect();
+  const result = await state.bluetoothRemoteGATTServer.disconnect();
+  console.log("disconnect result", result);
+}
+
+async function getPrimaryService(uuid: string) {
+  const res = await state.bluetoothRemoteGATTServer?.getPrimaryService(state.uuid);
+  if (res === undefined) {
+    console.error("getPrimaryService res", undefined);
+    state.bluetoothRemoteGATTService = undefined;
+    return;
+  }
+
+  if (res.success) {
+    state.bluetoothRemoteGATTService = res.data;
+    console.log("getPrimaryService res: ", res);
+  } else {
+    state.bluetoothRemoteGATTService = undefined;
+    console.error("getPrimaryService res: ", res);
+  }
+}
+
+async function getCharacteristic() {
+  if (state.bluetoothRemoteGATTService === undefined) {
+    console.error("state.bluetoothRemoteGATTService === undefined");
+    return;
+  }
+  const res = await state.bluetoothRemoteGATTService?.getCharacteristic(state.bluetoothCharacteristicUUID);
+  state.bluetoothRemoteGATTCharacteristic = res.data;
+  console.log("getCharacteristic res: ", res);
+}
+
+async function readCharacteristicValue() {
+  if (state.bluetoothRemoteGATTCharacteristic === undefined) {
+    console.error(`state.bluetoothRemoteGATTCharacteristic === undefined`);
+    return;
+  }
+  const res = await state.bluetoothRemoteGATTCharacteristic.readValue();
+  console.log("readCharacteristicValue res; ", res);
+}
+
+async function readCharacteristicDescriptor() {
+  console.log("readCharacteristicDescriptor: ");
+  if (state.bluetoothRemoteGATTCharacteristic === undefined) {
+    console.error(`state.bluetoothRemoteGATTCharacteristic === undefined`);
+    return;
+  }
+  const res = await state.bluetoothRemoteGATTCharacteristic.getDescriptor(state.bluetoothDescriptorUUID);
+  console.log("readCharacteristicValue res; ", res);
+}
+
+async function readCharacteristicDescriptorValue() {
+  console.log("readCharacteristicDescriptorValue");
+  if (state.bluetoothRemoteGATTDescriptor === undefined) {
+    console.error(`state.bluetoothRemoteGATTDescriptor === undefined`);
+    return;
+  }
+  const res = await state.bluetoothRemoteGATTDescriptor?.readValue();
+  console.log("readCharacteristicDescriptorValue res ===", res);
 }
 
 async function close() {
   bluetooth.close();
+  state.bluetoothRemoteGATTServer = undefined;
 }
 
 function allDeviceUpdate(list: $Device[]) {
@@ -90,6 +173,30 @@ function deviceConnectedIdUpdate(deviceId: string) {
       <h2 class="card-title">断开 {{ state.bluetoothRemoteGATTServer.device.name }} 蓝牙</h2>
       <v-btn color="indigo-darken-3" @click="disconnect">disconnect </v-btn>
     </article>
+    <article class="card-body" v-if="state.bluetoothRemoteGATTServer !== undefined">
+      <h2 class="card-title">获取主服务</h2>
+      <v-input v-model="state.uuid">{{ state.uuid }}</v-input>
+      <v-btn color="indigo-darken-3" @click="getPrimaryService">getPrimaryService </v-btn>
+    </article>
+    <article class="card-body" v-if="state.bluetoothRemoteGATTService !== undefined">
+      <h2 class="card-title">获取特性</h2>
+      <v-input v-model="state.uuid">{{ state.bluetoothCharacteristicUUID }}</v-input>
+      <v-btn color="indigo-darken-3" @click="getCharacteristic">getCharacteristic </v-btn>
+    </article>
+    <article class="card-body" v-if="state.bluetoothRemoteGATTCharacteristic !== undefined">
+      <h2 class="card-title">读取特性的值</h2>
+      <v-btn color="indigo-darken-3" @click="readCharacteristicValue">readCharacteristicValue </v-btn>
+    </article>
+    <article class="card-body" v-if="state.bluetoothRemoteGATTCharacteristic !== undefined">
+      <h2 class="card-title">获取描述符</h2>
+      <v-input v-model="state.bluetoothDescriptorUUID">{{ state.bluetoothCharacteristicUUID }}</v-input>
+      <v-btn color="indigo-darken-3" @click="readCharacteristicDescriptor">getDescriptor </v-btn>
+    </article>
+    <article class="card-body" v-if="state.bluetoothRemoteGATTCharacteristic !== undefined">
+      <h2 class="card-title">获取描述符的值</h2>
+      <v-btn color="indigo-darken-3" @click="readCharacteristicDescriptorValue">read Descriptor Value </v-btn>
+    </article>
+
     <!-- <article class="card-body">
       <h2 class="card-title">我的蓝牙设备</h2>
       <v-list lines="one" bg-color="#ffffff11">
