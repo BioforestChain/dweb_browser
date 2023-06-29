@@ -14,7 +14,10 @@ import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import { once } from "../../helper/$once.ts";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
-import { createHttpDwebServer } from "../../sys/http-server/$createHttpDwebServer.ts";
+import {
+  closeHttpDwebServer,
+  createHttpDwebServer,
+} from "../../sys/http-server/$createHttpDwebServer.ts";
 import { saveNative2JsIpcPort } from "./ipc.native2js.ts";
 import type { $NWW } from "./js-process.openWindow.ts";
 import { jsProcessOpenWindow } from "./js-process.openWindow.ts";
@@ -256,22 +259,21 @@ export class JsProcessNMM extends NativeMicroModule {
     });
 
     this.registerCommonIpcOnMessageHandler({
-      pathname: "/bw",
+      pathname: "/close-process",
       matchMode: "full",
-      input: {
-        action: "string",
-      },
+      input: {},
       output: "boolean",
       handler: async (args, ipc, request) => {
         if (nww === undefined) return false;
-        args.action === "show"
-          ? nww.isVisible()
-            ? ""
-            : nww.show()
-          : nww.hide();
-        ipc.onClose(() => {
-          /** 暂无 */
+        const processMap = ipcProcessIdMap.get(ipc);
+        if (processMap == null) return true;
+        // 关闭程序
+        processMap.forEach(async (po, _processId) => {
+          const processId = await po.promise;
+          apis.destroyProcess(processId);
         });
+        // 关闭代码通道
+        closeHttpDwebServer(this, { port: 80, subdomain: ipc.remote.mmid });
         return true;
       },
     });
@@ -300,7 +302,7 @@ export class JsProcessNMM extends NativeMicroModule {
      */
     const streamIpc = new ReadableStreamIpc(ipc.remote, IPC_ROLE.CLIENT);
     void streamIpc.bindIncomeStream(requestMessage.body.stream());
-
+    this.addToIpcSet(streamIpc);
     /**
      * 让远端提供 esm 模块代码
      * 这里我们将请求转发给对方，要求对方以一定的格式提供代码回来，

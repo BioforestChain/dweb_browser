@@ -197,7 +197,6 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
             }
             null
         }
-        this.addToIpcSet(streamIpc)
     }
 
     private val fromMmid_originIpc_WM = mutableMapOf<Mmid, PromiseOut<Ipc>>();

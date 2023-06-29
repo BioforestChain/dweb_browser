@@ -362,7 +362,9 @@ async function appCloseSelf(this: JmmNMM, ipcRequest: IpcRequest, ipc: Ipc) {
 
 async function appOpen(this: JmmNMM, request: IpcRequest, ipc: Ipc) {
   const id = request.parsed_url.searchParams.get("mmid") as $MMID;
-  const [opendAppIpc] = await this.context!.dns.connect(id);
+  const connectResult = await this.context?.dns.connect(id);
+  if (!connectResult) throw new Error(`${id} not found!`);
+  const [opendAppIpc] = connectResult;
   opendAppIpc.postMessage(IpcEvent.fromText("activity", ""));
   return ipc.postMessage(
     IpcResponse.fromText(request.req_id, 200, cros(new IpcHeaders()), "ok", ipc)

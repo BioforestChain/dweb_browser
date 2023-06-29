@@ -5,11 +5,11 @@ import type {
   $MMID,
 } from "../../core/helper/types.ts";
 import { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.ts";
-import { Ipc, IPC_ROLE, IpcResponse } from "../../core/ipc/index.ts";
+import { IPC_ROLE, Ipc, IpcResponse } from "../../core/ipc/index.ts";
 import { MicroModule } from "../../core/micro-module.ts";
 import { connectAdapterManager } from "../../core/nativeConnect.ts";
-import { mapHelper } from "../../helper/mapHelper.ts";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
+import { mapHelper } from "../../helper/mapHelper.ts";
 import { buildUrl } from "../../helper/urlHelper.ts";
 import { Native2JsIpc } from "../js-process/ipc.native2js.ts";
 
@@ -17,16 +17,15 @@ type $JsMM = { jmm: JsMicroModule; remoteMm: MicroModule };
 
 const nativeToWhiteList = new Set<$MMID>(["js.browser.dweb"]);
 connectAdapterManager.append(async (fromMM, toMM, reason) => {
-  let jsmm: undefined | $JsMM;
+  let jsMM: null | $JsMM = null;
   if (nativeToWhiteList.has(toMM.mmid)) {
     /// 白名单，忽略
   } else if (toMM instanceof JsMicroModule) {
-    jsmm = { jmm: toMM, remoteMm: fromMM };
+    jsMM = { jmm: toMM, remoteMm: fromMM };
   } else if (fromMM instanceof JsMicroModule) {
-    jsmm = { jmm: fromMM, remoteMm: toMM };
+    jsMM = { jmm: fromMM, remoteMm: toMM };
   }
-  // 测试代码
-  if (jsmm !== undefined) {
+  if (jsMM != null) {
     /**
      * 与 NMM 相比，这里会比较难理解：
      * 因为这里是直接创建一个 Native2JsIpc 作为 ipcForFromMM，
@@ -35,7 +34,7 @@ connectAdapterManager.append(async (fromMM, toMM, reason) => {
      * 也就是说。如果是 jsMM 内部自己去执行一个 connect，那么这里返回的 ipcForFromMM，其实还是通往 js-context 的， 而不是通往 toMM的。
      * 也就是说，能跟 toMM 通讯的只有 js-context，这里无法通讯。
      */
-    const originIpc = await jsmm.jmm.ipcBridge(jsmm.remoteMm.mmid).promise;
+    const originIpc = await jsMM.jmm.ipcBridge(jsMM.remoteMm.mmid).promise;
     fromMM.beConnect(originIpc, reason);
     toMM.beConnect(originIpc, reason);
 
@@ -135,13 +134,12 @@ export class JsMicroModule extends MicroModule {
 
     [this._jsIpc] = await context.dns.connect("js.browser.dweb");
 
-    this._jsIpc.onRequest(async (ipcRequest) => {
+    this._jsIpc.onRequest(async (ipcRequest, ipc) => {
       /// WARN 这里不再受理 file://<domain>/ 的请求，只处理 http[s]:// | file:/// 这些原生的请求
-      if (
-        ipcRequest.parsed_url.protocol === "file:" &&
-        ipcRequest.parsed_url.hostname.endsWith(".dweb")
-      ) {
-        debugger;
+      const protocol = ipcRequest.parsed_url.protocol;
+      const host = ipcRequest.parsed_url.host;
+      if (protocol === "file:" && host.endsWith(".dweb")) {
+        // const [jsWebIpc] = connect(host);
       } else {
         const request = ipcRequest.toRequest();
         const response = await this.nativeFetch(request);
@@ -180,6 +178,7 @@ export class JsMicroModule extends MicroModule {
         context.dns.restart(this.mmid);
       }
     });
+    this.addToIpcSet(this._streamIpc);
   }
   private _fromMmid_originIpc_map = new Map<$MMID, PromiseOut<Ipc>>();
   ipcBridge(fromMmid: $MMID, targetIpc?: Ipc) {
@@ -244,8 +243,9 @@ export class JsMicroModule extends MicroModule {
     });
 
     /**
-     * @TODO 发送指令，关停js进程
+     * 发送指令，关停js进程
      */
+    this.nativeFetch("file://js.browser.dweb/close-process");
     this._process_id = undefined;
   }
 }

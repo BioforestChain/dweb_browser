@@ -1,5 +1,5 @@
 import type { $ReqMatcher } from "../../core/helper/$ReqMatcher.ts";
-import type { $MicroModule } from "../../core/helper/types.ts";
+import { $MicroModule } from "../../core/helper/types.ts";
 import type { $DwebHttpServerOptions } from "./net/createNetServer.ts";
 
 import { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.ts";
@@ -51,7 +51,6 @@ export class HttpDwebServer {
     await closeHttpDwebServer(this.nmm, this.options);
   });
 }
-
 /** 开始处理请求 */
 export const listenHttpDwebServer = async (
   microModule: $MicroModule,

@@ -1,3 +1,5 @@
+import { Ipc } from "../ipc/index.ts";
+
 export type $MMID = `${string}.dweb`;
 export type $DWEB_DEEPLINK = `dweb:${string}`;
 
@@ -61,6 +63,7 @@ export interface $IpcMicroModuleInfo {
   readonly dweb_deeplinks: $DWEB_DEEPLINK[];
 }
 export interface $MicroModule extends $IpcMicroModuleInfo {
+  addToIpcSet(httpServerIpc: Ipc): void;
   nativeFetch(
     input: RequestInfo | URL,
     init?: RequestInit

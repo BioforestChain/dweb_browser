@@ -1,16 +1,16 @@
-import { fetchExtends } from "../helper/fetchExtends/index.ts";
 import { createSignal } from "../helper/createSignal.ts";
+import { fetchExtends } from "../helper/fetchExtends/index.ts";
 import { normalizeFetchArgs } from "../helper/normalizeFetchArgs.ts";
 import { PromiseOut } from "../helper/PromiseOut.ts";
+import { nativeFetchAdaptersManager } from "../sys/dns/nativeFetch.ts";
+import type { $BootstrapContext } from "./bootstrapContext.ts";
 import type {
   $DWEB_DEEPLINK,
   $IpcSupportProtocols,
   $MicroModule,
   $MMID,
 } from "./helper/types.ts";
-import { nativeFetchAdaptersManager } from "../sys/dns/nativeFetch.ts";
-import type { $BootstrapContext } from "./bootstrapContext.ts";
-import type { Ipc } from "./ipc/index.ts";
+import type { Ipc, IpcEvent } from "./ipc/index.ts";
 export abstract class MicroModule implements $MicroModule {
   abstract ipc_support_protocols: $IpcSupportProtocols;
   abstract dweb_deeplinks: $DWEB_DEEPLINK[];
@@ -21,6 +21,14 @@ export abstract class MicroModule implements $MicroModule {
   private _running_state_lock = PromiseOut.resolve(false);
   protected readonly _after_shutdown_signal = createSignal<() => unknown>();
   protected _ipcSet = new Set<Ipc>();
+
+  public addToIpcSet(ipc: Ipc) {
+    this._ipcSet.add(ipc);
+    ipc.onClose(() => {
+      this._ipcSet.delete(ipc);
+    });
+  }
+
   /**
    * 内部程序与外部程序通讯的方法
    * TODO 这里应该是可以是多个
@@ -85,13 +93,29 @@ export abstract class MicroModule implements $MicroModule {
     return this._connectSignal.listen(cb);
   }
 
+  /**
+   * 尝试连接到指定对象
+   */
+
+  connect(mmid: $MMID) {
+    this.context?.dns.open(mmid);
+    return this.context?.dns.connect(mmid);
+  }
+
+  /**
+   * 收到一个连接，触发相关事件
+   */
   beConnect(ipc: Ipc, reason: Request) {
-    this._ipcSet.add(ipc);
-    ipc.onClose(() => {
-      this._ipcSet.delete(ipc);
+    this.addToIpcSet(ipc);
+    ipc.onEvent((event, ipc) => {
+      if (event.name == "activity") {
+        this.onActivity(event, ipc);
+      }
     });
     this._connectSignal.emit(ipc, reason);
   }
+
+  protected onActivity(event: IpcEvent, ipc: Ipc) {}
 
   private async _nativeFetch(url: RequestInfo | URL, init?: RequestInit) {
     const args = normalizeFetchArgs(url, init);

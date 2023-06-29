@@ -19,28 +19,30 @@ export class MultiWebviewCompNavigationBar extends LitElement {
     bottom: 20,
     left: 0,
   };
+  // deno-lint-ignore no-explicit-any
   @property() _webview_src: any = {};
 
   protected override updated(
+    // deno-lint-ignore no-explicit-any
     _changedProperties: PropertyValueMap<any> | Map<PropertyKey, unknown>
   ): void {
     const attributes = Array.from(_changedProperties.keys());
-    fetch(
-      // 数据格式 api.browser.dweb-443.localhost:22605
-      new URL("navigation_bar_state_change", this._webview_src).host.replace(
-        "www.",
-        "api."
-      ),
-      {
-        body: JSON.stringify({
-          color: hexaToRGBA(this._color),
-          style: this._style,
-          overlay: this._overlay,
-          visible: this._visible,
-          insets: this._insets,
-        }),
-      }
-    );
+    // 数据格式 api.browser.dweb-443.localhost:22605
+    const url = new URL(
+      "navigation_bar_state_change",
+      this._webview_src
+    ).host.replace("www.", "api.");
+    console.log("url=>", url);
+    fetch(url, {
+      method: "POST",
+      body: JSON.stringify({
+        color: hexaToRGBA(this._color),
+        style: this._style,
+        overlay: this._overlay,
+        visible: this._visible,
+        insets: this._insets,
+      }),
+    });
     // 在影响 safe-area 的情况下 需要报消息发送给 safe-area 模块
     if (attributes.includes("_visible") || attributes.includes("_overlay")) {
       this.dispatchEvent(new Event("safe_area_need_update"));
