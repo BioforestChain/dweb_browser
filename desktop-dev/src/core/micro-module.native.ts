@@ -67,7 +67,7 @@ export abstract class NativeMicroModule extends MicroModule {
 
               if (result instanceof IpcResponse) {
                 response = result;
-              } else if (result || result === 0) {
+              } else if (result !== null || result !== undefined) {
                 response = await hanlder_schema.output(
                   request,
                   result,
