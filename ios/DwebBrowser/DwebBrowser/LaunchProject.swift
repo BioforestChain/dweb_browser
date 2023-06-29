@@ -11,8 +11,8 @@ import WebKit
 import SwiftUI
 
 @objc
-public class Entry: NSObject{
-    public func rootviewcontroller(webviews: [WKWebView]) -> UIViewController{
+class Entry: NSObject{
+    func rootviewcontroller(webviews: [WKWebView]) -> UIViewController{
         WebCacheMgr.shared.store = webviews.map({WebCache(icon: URL.defaultSnapshotURL, lastVisitedUrl: $0.url!, title: "title of \(String(describing: $0.url))", snapshotUrl: URL.defaultSnapshotURL)})
         if WebCacheMgr.shared.store.count == 0{
             WebCacheMgr.shared.store = [WebCache.example]

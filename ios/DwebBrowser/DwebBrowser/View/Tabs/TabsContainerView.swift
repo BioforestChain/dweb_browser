@@ -8,7 +8,7 @@
 import SwiftUI
 import WebKit
 
-struct TabsContainerView: View{
+struct TabsContainerView: View {
     @EnvironmentObject var selectedTab: SelectedTab
     
     @EnvironmentObject var toolbarState: ToolBarState
@@ -22,136 +22,111 @@ struct TabsContainerView: View{
     
     @State var gridScale: CGFloat = 1
     
-    init(){
+    init() {
         print("visiting TabsContainerView init")
     }
     
-    var body: some View{
+    @State private var isExpand = false
+    
+    var body: some View {
         GeometryReader { geo in
-            //层级关系  最前<-- 快照(缩放动画）<-- collecitionview  <--  tabPage ( homepage & webview)
+            // 层级关系  最前<-- 快照(缩放动画）<-- collecitionview  <--  tabPage ( homepage & webview)
             
-            ZStack{
+            ZStack {
                 TabGridView(animation: animation, gridState: gridState, selectedCellFrame: $selectedCellFrame)
                     .scaleEffect(x: gridState.scale, y: gridState.scale)
                     .opacity(gridState.opacity)
-                
+
                 if !toolbarState.showTabGrid, !animation.progress.isAnimating() {
                     Color(.white)
                 }
-                if !toolbarState.showTabGrid, !animation.progress.isAnimating(){
+                if !toolbarState.showTabGrid, !animation.progress.isAnimating() {
                     WebHScrollView(animation: animation)
                         .environmentObject(animation)
                 }
-                if animation.progress.isAnimating(){
-                    animationImage
+                
+                if animation.progress.isAnimating() {
+                    if isExpand {
+                        profileView
+                            .transition(.identityHack)
+                            .matchedGeometryEffect(id: animationId, in: expandshrinkAnimation)
+                            .frame(width: geoRect.width, height: geoRect.height, alignment: .top)
+                            .position(x: geoRect.midX, y: geoRect.midY - geoRect.minY)
+                    } else {
+                        profileView
+                            .transition(.identityHack)
+
+                            .matchedGeometryEffect(id: animationId, in: expandshrinkAnimation)
+                            .frame(width: gridCellW, height: cellImageH, alignment: .top)
+                            .position(x: selectedCellFrame.minX + selectedCellFrame.width/2.0,
+                                      y: selectedCellFrame.minY + (selectedCellFrame.height - gridcellBottomH)/2.0 - safeAreaTopHeight)
+                    }
                 }
             }
-            .onAppear{
+            .onAppear {
                 geoRect = geo.frame(in: .global)
                 print("z geo: \(geoRect)")
             }
             .onChange(of: toolbarState.showTabGrid, perform: { shouldShowGrid in
-                if shouldShowGrid{
+                if shouldShowGrid {
                     animation.progress = .initial
-                }else{
+                } else {
                     animation.snapshotImage = UIImage.snapshotImage(from: WebCacheMgr.shared.store[selectedTab.curIndex].snapshotUrl)
                     animation.progress = .startExpanding
                 }
                 
-                withAnimation(.linear,{
+                withAnimation(.linear) {
                     gridScale = shouldShowGrid ? 1 : 0.8
-                })
+                }
             })
         }
     }
     
-    var animationImage: some View{
+    @Namespace private var expandshrinkAnimation
+    private let animationId = "expandshrinkAnimation"
+    
+    var profileView: some View {
         Rectangle()
             .overlay(
                 Image(uiImage: animation.snapshotImage)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
-                    .frame(width: geoRect.width, height: geoRect.height, alignment: .top)
-                    .scaleEffect(x: imageWidthScale(), y: imageWidthScale())
-                
+                    .frame(alignment: .top)
             )
-            .frame(width: imageWidth(), height: imageHeight(), alignment: .top)
-            .position(x: imageXcenter(), y: imageYcenter())
-            .cornerRadius(animation.progress.imageIsSmall() ? gridcellCornerR : 0)
+            .cornerRadius(gridcellCornerR)
+
             .clipped()
-            .background(Color.blue)
             .onReceive(animation.$progress, perform: { progress in
-                if progress == .startShrinking || progress == .startExpanding{
-                    withAnimation(.linear(duration: 5)){
-                        animation.progress = progress.next() // change to expanded or shrinked
+                if progress == .startShrinking || progress == .startExpanding {
+                    withAnimation(.easeInOut(duration: 0.8)) {
+                        isExpand = animation.progress == .startExpanding
                     }
-                    withAnimation(.linear(duration: 5)){
+                    withAnimation(.linear(duration: 0.8)) {
                         gridState.opacity = 1
-                        gridState.scale = progress == .startShrinking ? 1:0.8
+                        gridState.scale = progress == .startShrinking ? 1 : 0.8
                     }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 5.05) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.85) {
                         animation.progress = .invisible // change to expanded or shrinked
                     }
                 }
             })
     }
-    
-    func imageXcenter()-> CGFloat{
-        if animation.progress.imageIsLarge(){
-            return geoRect.midX
-        }else{
-            return selectedCellFrame.minX + selectedCellFrame.width/2.0
-        }
-    }
-    
-    func imageYcenter()-> CGFloat{
-        if animation.progress.imageIsLarge(){
-            return geoRect.midY - geoRect.minY
-        }else{
-            return selectedCellFrame.minY + (selectedCellFrame.height - gridcellBottomH)/2.0 - safeAreaTopHeight
-        }
-    }
-    
-    func imageWidthScale()->CGFloat{
-        if animation.progress.imageIsLarge(){
-            return 1
-        } else {
-            return selectedCellFrame.width/geoRect.width
-        }
-    }
-    
-    func imageHeightScale()->CGFloat{
-        if animation.progress.imageIsLarge(){
-            return 1
-        } else {
-            return selectedCellFrame.width/geoRect.width
-        }
-    }
-    
-    func imageWidth()->CGFloat{
-        if animation.progress.imageIsLarge(){
-            return geoRect.width
-        }else {
-            return selectedCellFrame.width
-        }
-    }
-    
-    func imageHeight()->CGFloat{
-        if animation.progress.imageIsLarge(){
-            return geoRect.height
-        }else{
-            return selectedCellFrame.height - gridcellBottomH
-        }
+}
+
+// The image in transition changes to fade out/fade in, make sure the image to stay solid and not transparent in the animation
+extension AnyTransition {
+    static var identityHack: AnyTransition {
+        .asymmetric(insertion: .identity, removal: .identity)
     }
 }
 
-struct WebHScrollView: View{
+struct WebHScrollView: View {
     @EnvironmentObject var addrBarOffset: AddrBarOffset
     @EnvironmentObject var toolbarState: ToolBarState
     @ObservedObject var animation: ShiftAnimation
     
-    var body: some View{
-        GeometryReader{ geo in
+    var body: some View {
+        GeometryReader { _ in
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(spacing: 0) {
                     ForEach(WebCacheMgr.shared.store, id: \.id) { webCache in
@@ -167,10 +142,67 @@ struct WebHScrollView: View{
     }
 }
 
-struct TabHStackView_Previews: PreviewProvider {
-    static var previews: some View {
-        TabsContainerView()
-            .environmentObject(SelectedTab())
+struct MatchGeometryView: View {
+    @State private var showExpand = false
+    
+    @Namespace private var expandshrinkAnimation
+    private let animationId = "expandshrinkAnimation"
+    
+    var body: some View {
+        VStack {
+            if showExpand {
+                expandedView
+            } else {
+                shrinkedView
+            }
+            Spacer()
+                .frame(height: 100)
+            
+            Text("Line 111111111111111")
+            Text("Line 22222222222222")
+            Text("Line 3333333333")
+        }
+    }
+    
+    var profileView: some View {
+        Image(uiImage: .bundleImage(name: "snapshot"))
+            .resizable()
+            .aspectRatio(contentMode: .fill)
+            .clipShape(Circle())
+            .onTapGesture {
+                withAnimation {
+                    showExpand.toggle()
+                }
+            }
+    }
+    
+    var expandedView: some View {
+        VStack {
+            profileView
+                .matchedGeometryEffect(id: animationId, in: expandshrinkAnimation)
+                .frame(width: 80, height: 80)
+            Text("Jason White")
+            Text("Wood worker")
+        }
+    }
+    
+    var shrinkedView: some View {
+        VStack(alignment: .leading) {
+            HStack {
+                profileView
+                    .matchedGeometryEffect(id: animationId, in: expandshrinkAnimation)
+                    .frame(width: 400, height: 400)
+                VStack {
+                    Text("Jason White")
+                    Text("Wood worker")
+                }
+            }
+        }
     }
 }
 
+struct TabHStackView_Previews: PreviewProvider {
+    static var previews: some View {
+        MatchGeometryView()
+    }
+}

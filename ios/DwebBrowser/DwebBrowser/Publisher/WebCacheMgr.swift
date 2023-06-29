@@ -30,7 +30,7 @@ class WebCache: ObservableObject, Identifiable, Hashable, Codable, Equatable{
         case snapshotUrl
     }
     
-    public var id = UUID()
+    var id = UUID()
     var shouldShowWeb: Bool{
         lastVisitedUrl != emptyURL
     }
@@ -47,7 +47,7 @@ class WebCache: ObservableObject, Identifiable, Hashable, Codable, Equatable{
         }
     }
     
-    public init(icon: URL = URL.defaultWebIconURL, showWeb: Bool = false, lastVisitedUrl: URL = emptyURL, title: String = "", snapshotUrl: URL = URL.defaultSnapshotURL) {
+    init(icon: URL = URL.defaultWebIconURL, showWeb: Bool = false, lastVisitedUrl: URL = emptyURL, title: String = "", snapshotUrl: URL = URL.defaultSnapshotURL) {
         self.webIconUrl = icon
         self.lastVisitedUrl = lastVisitedUrl
         self.title = title
@@ -72,7 +72,7 @@ class WebCache: ObservableObject, Identifiable, Hashable, Codable, Equatable{
         try container.encodeIfPresent(snapshotUrl, forKey: .snapshotUrl)
     }
     
-    public static func == (lhs: WebCache, rhs: WebCache) -> Bool {
+    static func == (lhs: WebCache, rhs: WebCache) -> Bool {
         return lhs.id == rhs.id &&
         lhs.webIconUrl == rhs.webIconUrl &&
         lhs.lastVisitedUrl == rhs.lastVisitedUrl &&
@@ -80,7 +80,7 @@ class WebCache: ObservableObject, Identifiable, Hashable, Codable, Equatable{
         lhs.snapshotUrl == rhs.snapshotUrl
     }
     
-    public func hash(into hasher: inout Hasher) {
+    func hash(into hasher: inout Hasher) {
         hasher.combine(id)
         hasher.combine(webIconUrl)
         hasher.combine(lastVisitedUrl)

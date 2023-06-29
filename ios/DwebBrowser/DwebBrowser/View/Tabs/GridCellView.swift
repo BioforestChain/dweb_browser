@@ -7,21 +7,21 @@
 
 import SwiftUI
 
-struct WebsiteIconImage: View{
+struct WebsiteIconImage: View {
     var iconUrl: URL
-    var body: some View{
-        ZStack{
-            if iconUrl.isFileURL{
+    var body: some View {
+        ZStack {
+            if iconUrl.isFileURL {
                 Image(uiImage: .defaultWebIconImage)
-                .resizable()
-            }else{
+                    .resizable()
+            } else {
                 AsyncImage(url: iconUrl) { phase in
-                    if let image = phase.image{
+                    if let image = phase.image {
                         image.resizable()
                             .aspectRatio(contentMode: .fit)
-                    }else{
+                    } else {
                         Image(uiImage: .defaultWebIconImage)
-                        .resizable()
+                            .resizable()
                     }
                 }
             }
@@ -36,26 +36,26 @@ struct GridCell: View {
     var isSelected: Bool
     var body: some View {
         Self._printChanges()
-        
-        return ZStack(alignment: .topTrailing){
+
+        return ZStack(alignment: .topTrailing) {
             VStack(spacing: 0) {
-                VStack{
-                    Image(uiImage:  .snapshotImage(from: webCache.snapshotUrl))
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: gridCellW, height: gridCellH, alignment: .top)
-                        .cornerRadius(gridcellCornerR)
-                        .clipped()
-                }
-                
-                .overlay( RoundedRectangle(cornerRadius: 10)
-                .stroke(Color.dwebTint, lineWidth: 2)
-                .opacity(isSelected ? 1:0)
-                )
-                HStack{
+//                VStack{
+                Image(uiImage: .snapshotImage(from: webCache.snapshotUrl))
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: gridCellW, height: cellImageH, alignment: .top)
+                    .cornerRadius(gridcellCornerR)
+                    .clipped()
+//                }
+
+                    .overlay(RoundedRectangle(cornerRadius: 10)
+                        .stroke(Color.dwebTint, lineWidth: 2)
+                        .opacity(isSelected ? 1 : 0)
+                    )
+                HStack {
                     WebsiteIconImage(iconUrl: webCache.webIconUrl)
-                        .frame(width: 22,height:22)
-                        
+                        .frame(width: 22, height: 22)
+
 //                        .onAppear{
 //                            fetchIconUrl()
 //                        }
@@ -67,7 +67,7 @@ struct GridCell: View {
             deleteButton
         }
     }
-    
+
 //    func fetchIconUrl(){
 //        URL.downloadWebsiteIcon(iconUrl: webCache.lastVisitedUrl) { url in
 //            print("URL of Favicon: \(url)")
@@ -76,13 +76,13 @@ struct GridCell: View {
 //            }
 //        }
 //    }
-    
-    var deleteButton: some View{
+
+    var deleteButton: some View {
         Button {
             print("delete this tab, remove data from cache")
             WebCacheMgr.shared.remove(webCache: webCache)
-            if selectedTab.curIndex >= WebCacheMgr.shared.store.count{
-                selectedTab.curIndex = WebCacheMgr.shared.store.count-1
+            if selectedTab.curIndex >= WebCacheMgr.shared.store.count {
+                selectedTab.curIndex = WebCacheMgr.shared.store.count - 1
             }
         } label: {
             Image("tab_close")

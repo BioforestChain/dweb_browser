@@ -29,7 +29,7 @@ let gridVSpace: CGFloat = 20.0
 let gridHSpace: CGFloat = 18.0
 
 let gridCellW: CGFloat = (screen_width - gridHSpace * 3.0) / 2
-let gridCellH: CGFloat = gridCellW * 1.3
+let cellImageH: CGFloat = gridCellW * 1.3
 
 
 var safeAreaTopHeight: CGFloat{
