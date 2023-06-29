@@ -10,14 +10,14 @@ import UIKit
 extension UIImage {
     static func bundleImage(name: String) -> UIImage {
         let bundle = Bundle(for: BridgeManager.self)
-        let image = UIImage(named: "Resources.bundle/\(name).png", in: bundle, compatibleWith: nil)
+        let image = UIImage(named: "resource.bundle/\(name).png", in: bundle, compatibleWith: nil)
         return image!
     }
     
     static func assetsImage(name: String) -> UIImage {
         let bundle = Bundle(for: BridgeManager.self)
         let image = UIImage(named: name, in: bundle, compatibleWith: nil)
-        return image ?? UIImage(imageLiteralResourceName: "snapshot")
+        return image!
     }
 }
 

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		F023CC192A4C40C700783586 /* resource.bundle in Resources */ = {isa = PBXBuildFile; fileRef = F023CC182A4C40C700783586 /* resource.bundle */; };
 		F028997729F7C38500B8754A /* DwebBrowserApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F028997629F7C38500B8754A /* DwebBrowserApp.swift */; };
 		F028997B29F7C38700B8754A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F028997A29F7C38700B8754A /* Assets.xcassets */; };
 		F028998829F7C3DC00B8754A /* BrowserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F028998529F7C3DA00B8754A /* BrowserView.swift */; };
@@ -46,8 +47,6 @@
 		F0AF2C1F2A4BD9100005619B /* HistoryCoreDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0AF2C172A4BD9100005619B /* HistoryCoreDataManager.swift */; };
 		F0AF2C202A4BD9100005619B /* BookmarkCoreDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0AF2C182A4BD9100005619B /* BookmarkCoreDataManager.swift */; };
 		F0AF2C222A4BD9100005619B /* BFS.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = F0AF2C1B2A4BD9100005619B /* BFS.xcdatamodeld */; };
-		F0AF2C252A4C079E0005619B /* defWebIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = F0AF2C232A4C079E0005619B /* defWebIcon.png */; };
-		F0AF2C262A4C079E0005619B /* snapshot.png in Resources */ = {isa = PBXBuildFile; fileRef = F0AF2C242A4C079E0005619B /* snapshot.png */; };
 		F0B231D02A2DDBFD001EEFB8 /* Color+Hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0B231CF2A2DDBFD001EEFB8 /* Color+Hex.swift */; };
 		F0B231E02A301EF4001EEFB8 /* InnerAppGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0B231D72A301EF4001EEFB8 /* InnerAppGridView.swift */; };
 		F0B231E52A301EF4001EEFB8 /* SearchResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0B231DC2A301EF4001EEFB8 /* SearchResultView.swift */; };
@@ -65,6 +64,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		F023CC182A4C40C700783586 /* resource.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = resource.bundle; sourceTree = "<group>"; };
 		F028997329F7C38500B8754A /* DwebBrowser.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DwebBrowser.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F028997629F7C38500B8754A /* DwebBrowserApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DwebBrowserApp.swift; sourceTree = "<group>"; };
 		F028997A29F7C38700B8754A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -105,8 +105,6 @@
 		F0AF2C172A4BD9100005619B /* HistoryCoreDataManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HistoryCoreDataManager.swift; sourceTree = "<group>"; };
 		F0AF2C182A4BD9100005619B /* BookmarkCoreDataManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BookmarkCoreDataManager.swift; sourceTree = "<group>"; };
 		F0AF2C1C2A4BD9100005619B /* BFS.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = BFS.xcdatamodel; sourceTree = "<group>"; };
-		F0AF2C232A4C079E0005619B /* defWebIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = defWebIcon.png; sourceTree = "<group>"; };
-		F0AF2C242A4C079E0005619B /* snapshot.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = snapshot.png; sourceTree = "<group>"; };
 		F0B231CF2A2DDBFD001EEFB8 /* Color+Hex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+Hex.swift"; sourceTree = "<group>"; };
 		F0B231D72A301EF4001EEFB8 /* InnerAppGridView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InnerAppGridView.swift; sourceTree = "<group>"; };
 		F0B231DC2A301EF4001EEFB8 /* SearchResultView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchResultView.swift; sourceTree = "<group>"; };
@@ -157,7 +155,6 @@
 				F0E984342A248D8E00F7180A /* LaunchProject.swift */,
 				F028997629F7C38500B8754A /* DwebBrowserApp.swift */,
 				F028998529F7C3DA00B8754A /* BrowserView.swift */,
-				F028999C29F7CC5000B8754A /* Resource */,
 				F0BC1C092A0F66C50077BE0A /* Util */,
 				F0AF2C0A2A4AC74C0005619B /* extension */,
 				F028998D29F7C40B00B8754A /* Helper */,
@@ -165,6 +162,7 @@
 				F08E104F2A08D85500899DF8 /* Model */,
 				F028998429F7C3B100B8754A /* View */,
 				F028997A29F7C38700B8754A /* Assets.xcassets */,
+				F023CC182A4C40C700783586 /* resource.bundle */,
 			);
 			path = DwebBrowser;
 			sourceTree = "<group>";
@@ -190,15 +188,6 @@
 				F0B68D062A162DF000215036 /* PagingScroll.swift */,
 			);
 			path = Helper;
-			sourceTree = "<group>";
-		};
-		F028999C29F7CC5000B8754A /* Resource */ = {
-			isa = PBXGroup;
-			children = (
-				F0AF2C232A4C079E0005619B /* defWebIcon.png */,
-				F0AF2C242A4C079E0005619B /* snapshot.png */,
-			);
-			path = Resource;
 			sourceTree = "<group>";
 		};
 		F0531F0C2A346219001FBE06 /* Bookmark */ = {
@@ -268,6 +257,7 @@
 		F0AF2C0A2A4AC74C0005619B /* extension */ = {
 			isa = PBXGroup;
 			children = (
+				F0B68D022A123B4F00215036 /* Url+Validator.swift */,
 				F0B231CF2A2DDBFD001EEFB8 /* Color+Hex.swift */,
 				F0531EFA2A3458AC001FBE06 /* Date+format.swift */,
 				F08E10582A0B3AD700899DF8 /* View+ancester+keyboard.swift */,
@@ -318,7 +308,6 @@
 		F0BC1C092A0F66C50077BE0A /* Util */ = {
 			isa = PBXGroup;
 			children = (
-				F0B68D022A123B4F00215036 /* Url+Validator.swift */,
 				F028998E29F7C42300B8754A /* const.swift */,
 			);
 			path = Util;
@@ -386,9 +375,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F0AF2C262A4C079E0005619B /* snapshot.png in Resources */,
+				F023CC192A4C40C700783586 /* resource.bundle in Resources */,
 				F028997B29F7C38700B8754A /* Assets.xcassets in Resources */,
-				F0AF2C252A4C079E0005619B /* defWebIcon.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

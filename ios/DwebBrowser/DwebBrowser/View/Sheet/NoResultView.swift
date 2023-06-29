@@ -16,7 +16,7 @@ struct NoResultView: View {
                 .edgesIgnoringSafeArea(.top)
             
             VStack(spacing: 24, content: {
-                Image(config.imageName)
+                Image(uiImage: .assetsImage(name: (config.imageName)))
                     .resizable()
                     .scaledToFit()
                     .frame(width: 120, height: 120)

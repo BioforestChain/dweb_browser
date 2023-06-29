@@ -27,7 +27,7 @@ struct SearchResultView: View {
                     } label: {
                         VStack {
                             HStack(spacing: 12) {
-                                Image(searcher.icon)
+                                Image(uiImage: .assetsImage(name: (searcher.icon)))
                                     .resizable()
                                     .frame(width: 30, height: 30)
                                     .padding(.leading, 16)
@@ -78,7 +78,7 @@ struct SearchResultView: View {
                         
                     } label: {
                         HStack {
-                            Image(record.websiteIcon)
+                            Image(uiImage: .assetsImage(name: (record.websiteIcon)))
                                 .foregroundColor(SwiftUI.Color.init(white: 138 / 255))
                                 .frame(width: 22, height: 22)
                             VStack(alignment: .leading, spacing: 4, content: {

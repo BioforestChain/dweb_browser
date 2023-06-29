@@ -19,16 +19,13 @@ struct MenuCell: View {
                 .foregroundColor(Color(hexString: "0A1626"))
                 .font(.system(size: 16))
             Spacer()
-            Image(imageName)
+            Image(uiImage: .assetsImage(name: (imageName)))
                 .padding(12)
-            
-            
         }
         .frame(height: 50)
         .background(.white)
         .cornerRadius(6)
         .padding(.horizontal, 16)
-        
     }
 }
 

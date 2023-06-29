@@ -10,7 +10,7 @@ import UIKit
 //import FaviconFinder
 
 extension URL {
-
+    
     static func makeURL(from text: String) -> URL? {
         let text = text.lowercased()
         guard isValidURL(text) else {
@@ -40,7 +40,7 @@ extension URL {
             return nil
         }
         let baiduSearchLink = "https://www.baidu.com/s?wd=\(encodedSearchString)"
-
+        
         return URL(string: baiduSearchLink)
     }
 }
@@ -48,27 +48,27 @@ extension URL {
 
 extension URL{
     static var defaultSnapshotURL: URL{
-        Bundle.main.url(forResource: "snapshot", withExtension: "png")!
+        bundleUrl.appendingPathComponent("snapshot.png")
     }
     
     static var defaultWebIconURL: URL {
-        Bundle.main.url(forResource: "defWebIcon", withExtension: "png")!
+        bundleUrl.appendingPathComponent("defWebIcon.png")
     }
     
     
-//    static func downloadWebsiteIcon(iconUrl: URL, with completion:@escaping (URL)->Void) {
-//        Task{
-//            do {
-//                let favicon = try await FaviconFinder(url: iconUrl).downloadFavicon()
-//
-////                print("URL of Favicon: \(favicon.url)")
-////                DispatchQueue.main.async {
-//                    completion(favicon.url)
-////                }
-//            } catch let error {
-//                print("Error: \(error)")
-//            }
-//        }
-//    }
+    //    static func downloadWebsiteIcon(iconUrl: URL, with completion:@escaping (URL)->Void) {
+    //        Task{
+    //            do {
+    //                let favicon = try await FaviconFinder(url: iconUrl).downloadFavicon()
+    //
+    ////                print("URL of Favicon: \(favicon.url)")
+    ////                DispatchQueue.main.async {
+    //                    completion(favicon.url)
+    ////                }
+    //            } catch let error {
+    //                print("Error: \(error)")
+    //            }
+    //        }
+    //    }
 }
-    
+

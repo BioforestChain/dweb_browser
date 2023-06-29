@@ -47,3 +47,6 @@ var safeAreaBottomHeight: CGFloat{
     }
     return 0
 }
+
+let bundlePath = Bundle.main.path(forResource: "resource", ofType: "bundle")!
+let bundleUrl = Bundle.main.url(forResource: "resource", withExtension: "bundle")!

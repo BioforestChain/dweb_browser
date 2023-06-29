@@ -12,8 +12,8 @@ private let snapshotId = "_snapshot"
 
 //保存页面快照到本地文件，以便下次打开app使用
 extension UIImage {
-    static var defaultSnapShotImage = UIImage(named: "snapshot")!
-    static var defaultWebIconImage = UIImage(named: "def_web_icon")!
+    static var defaultSnapShotImage = UIImage(contentsOfFile: "\(bundlePath)/snapshot.png")!
+    static var defaultWebIconImage = UIImage.assetsImage(name: "def_web_icon")
 
     // 保存图片到本地文件
     static func createLocalUrl(withImage image: UIImage, imageName: String) -> URL {
@@ -66,9 +66,8 @@ extension UIImage {
         do{
             image = UIImage(data: try Data(contentsOf: localUrl))!
         }catch{
-            image = UIImage(named: "snapshot")!
+            image = .bundleImage(name: "snapshot")
         }
-        
         return image!
     }
 }

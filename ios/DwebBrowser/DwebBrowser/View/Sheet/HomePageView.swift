@@ -14,7 +14,7 @@ struct HomePageView: View {
                     InnerAppGridView()
                 } else {
                     VStack {
-                        Image("dweb_icon")
+                        Image(uiImage: .assetsImage(name: ("dweb_icon")))
                             .resizable()
                             .frame(width: 210, height: 210)
                         Text("Dweb Browser")

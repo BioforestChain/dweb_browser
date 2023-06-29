@@ -39,7 +39,7 @@ struct BiColorButton: View {
     var body: some View {
         Button(action: action) {
             HStack {
-                Image(imageName)
+                Image(uiImage: .assetsImage(name: (imageName)))
                     .renderingMode(.template)
                     .resizable()
                     .aspectRatio(contentMode: .fit)

@@ -31,7 +31,7 @@ struct InnerAppGridView: View {
                         BridgeManager.shared.clickApp(appUrl: app.link)
                     } label: {
                         VStack {
-                            Image(app.icon)
+                            Image(uiImage: .assetsImage(name: (app.icon)))
                                 .resizable()
                                 .frame(width: imgWidth,height: imgWidth)
                                 .cornerRadius(12.0)

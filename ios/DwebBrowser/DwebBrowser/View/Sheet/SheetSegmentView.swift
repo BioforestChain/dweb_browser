@@ -27,7 +27,7 @@ struct SheetSegmentView: View {
         VStack{
             Picker("Select image", selection: $selectedCategory) {
                 ForEach(categoryList, id: \.self) {
-                    Image($0.rawValue)
+                    Image(uiImage: .assetsImage(name: ($0.rawValue)))
                 }
             }
             .pickerStyle(.segmented)
