@@ -76,6 +76,11 @@ export abstract class Ipc {
   abstract _doPostMessage(data: $IpcMessage): void;
   onMessage = this._messageSignal.listen;
 
+  /**
+   * 强制触发消息传入，而不是依赖远端的 postMessage
+   */
+  emitMessage = (args: IpcRequest) => this._messageSignal.emit(args, this);
+
   @cacheGetter()
   private get _onRequestSignal() {
     const signal = createSignal<$OnIpcRequestMessage>(false);

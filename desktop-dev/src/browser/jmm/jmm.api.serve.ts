@@ -290,7 +290,6 @@ async function _appInstall(
   }
   const bundleMime = downloadTask.headers.get("Content-Type");
   if (bundleMime === "application/zip") {
-    // const jszip = await JSZip.loadAsync(fs.createReadStream(tempFilePath));
     const jszip = await JSZip.loadAsync(fs.readFileSync(tempFilePath));
 
     for (const [filePath, fileZipObj] of Object.entries(jszip.files)) {
@@ -334,8 +333,6 @@ async function _appInstall(
   const metadata = new JsMMMetadata(appInfo);
   const jmm = new JsMicroModule(metadata);
   this.context!.dns.install(jmm);
-  // 同步给 broser.dweb
-  // this.nativeFetch(`file://browser.dweb/apps_info/updated`)
   return enqueueInstallProgress("install", 0, true);
 }
 
@@ -349,11 +346,8 @@ export async function getAllApps() {
 }
 
 async function appCloseSelf(this: JmmNMM, ipcRequest: IpcRequest, ipc: Ipc) {
-  const referer = ipcRequest.headers.get("referer");
-  if (referer === null) throw new Error(`${this.mmid} referer === null`);
-  const host = new URL(referer).host;
   const res = await this.nativeFetch(
-    `file://mwebview.browser.dweb/destroy_webview_by_host?host=${host}`
+    `file://mwebview.browser.dweb/close/window`
   );
   ipc.postMessage(
     await IpcResponse.fromResponse(ipcRequest.req_id, res, ipc, true)
@@ -362,9 +356,9 @@ async function appCloseSelf(this: JmmNMM, ipcRequest: IpcRequest, ipc: Ipc) {
 
 async function appOpen(this: JmmNMM, request: IpcRequest, ipc: Ipc) {
   const id = request.parsed_url.searchParams.get("mmid") as $MMID;
-  const connectResult = await this.context?.dns.connect(id);
+  const connectResult = this.context?.dns.connect(id);
   if (!connectResult) throw new Error(`${id} not found!`);
-  const [opendAppIpc] = connectResult;
+  const [opendAppIpc] = await connectResult;
   opendAppIpc.postMessage(IpcEvent.fromText("activity", ""));
   return ipc.postMessage(
     IpcResponse.fromText(request.req_id, 200, cros(new IpcHeaders()), "ok", ipc)

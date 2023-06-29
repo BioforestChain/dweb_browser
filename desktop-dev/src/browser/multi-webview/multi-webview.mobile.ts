@@ -6,9 +6,6 @@ import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import {
   ALL_MMID_MWEBVIEW_WINDOW_MAP,
   getMWebViewWindow,
-  //   deleteWapis,
-  //   forceGetWapis,
-  //   getAllWapis,
   getOrOpenMWebViewWindow,
 } from "./multi-webview.mobile.wapi.ts";
 import { $AllWebviewState } from "./types.ts";
@@ -70,7 +67,7 @@ export class MultiWebviewNMM extends NativeMicroModule {
 
     // 销毁指定的 webview
     this.registerCommonIpcOnMessageHandler({
-      pathname: "/destroy_webview_by_host",
+      pathname: "/close",
       matchMode: "full",
       input: { host: "string" },
       output: "boolean",

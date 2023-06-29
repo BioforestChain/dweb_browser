@@ -7,11 +7,7 @@ import type { HttpDwebServer } from "../../std/http/$createHttpDwebServer.ts";
 import { createApiServer, getAllApps } from "./jmm.api.serve.ts";
 import { cancel, install, pause, resume } from "./jmm.handler.ts";
 import { createWWWServer } from "./jmm.www.serve.ts";
-import {
-  $JsMMMetadata,
-  JsMMMetadata,
-  JsMicroModule,
-} from "./micro-module.js.ts";
+import { JsMMMetadata, JsMicroModule } from "./micro-module.js.ts";
 
 export class JmmNMM extends NativeMicroModule {
   mmid = "jmm.browser.dweb" as const;
@@ -90,7 +86,6 @@ export class JmmNMM extends NativeMicroModule {
       input: { url: "string" },
       output: "void",
       handler: async (args) => {
-        console.log("jmm", "!!!! install", args);
         /// 安装应用并打开
         await install(this, { metadataUrl: args.url });
         const off = this.onInstalled.listen((info, fromUrl) => {
@@ -107,15 +102,6 @@ export class JmmNMM extends NativeMicroModule {
 
   protected _shutdown(): unknown {
     throw new Error("Method not implemented.");
-  }
-
-  private async openInstallPage(metadataUrl: string) {
-    const config = await this.nativeFetch(metadataUrl).object<$JsMMMetadata>();
-    // TODO 打开安装页面
-
-    /// 成功安装
-    new JsMicroModule(new JsMMMetadata(config));
-    return config;
   }
 }
 

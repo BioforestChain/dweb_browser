@@ -97,7 +97,7 @@ export class DnsNMM extends NativeMicroModule {
       () => new Map<$MMID, PromiseOut<$ConnectResult>>()
     );
 
-    const po = mapHelper.getOrPut(fromMMconnectsMap, toMmid, () => {
+    const fromPo = mapHelper.getOrPut(fromMMconnectsMap, toMmid, () => {
       const po = new PromiseOut<$ConnectResult>();
       (async () => {
         /// 与指定应用建立通讯
@@ -109,7 +109,7 @@ export class DnsNMM extends NativeMicroModule {
         ipcForFromMM.onClose(() => {
           fromMMconnectsMap?.delete(toMmid);
         });
-
+        po.resolve(result);
         // 反向存储 toMM
         if (ipcForToMM) {
           const result2: $ConnectResult = [ipcForToMM, ipcForFromMM];
@@ -128,11 +128,10 @@ export class DnsNMM extends NativeMicroModule {
             return toMMPromise;
           });
         }
-        po.resolve(result);
       })().catch(po.reject);
       return po;
     });
-    return po.promise;
+    return fromPo.promise;
   }
 
   override async _bootstrap(context: $BootstrapContext) {

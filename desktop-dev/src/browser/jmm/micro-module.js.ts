@@ -139,7 +139,10 @@ export class JsMicroModule extends MicroModule {
       const protocol = ipcRequest.parsed_url.protocol;
       const host = ipcRequest.parsed_url.host;
       if (protocol === "file:" && host.endsWith(".dweb")) {
-        // const [jsWebIpc] = connect(host);
+        const connectResult = this.connect(host as $MMID);
+        if (!connectResult) throw new Error(`not found NMM ${host}`);
+        const [jsWebIpc] = await connectResult;
+        jsWebIpc.emitMessage(ipcRequest);
       } else {
         const request = ipcRequest.toRequest();
         const response = await this.nativeFetch(request);
@@ -227,7 +230,7 @@ export class JsMicroModule extends MicroModule {
           console.error("_ipcBridge", e);
           task.reject(e);
         }
-      })();
+      })().catch(task.reject);
       return task;
     });
   }

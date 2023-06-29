@@ -102,7 +102,6 @@ export class MetaBody {
       default:
         return IPC_DATA_ENCODING.UTF8;
     }
-    return undefined;
   }
   @cacheGetter()
   get type_isInline() {

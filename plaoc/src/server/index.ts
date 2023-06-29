@@ -40,6 +40,7 @@ export const main = async () => {
   });
   /// 如果有人来激活，那我就唤醒我的界面
   jsProcess.onActivity(async (_ipcEvent, ipc) => {
+    console.log("onActivity=>", ipc.remote.mmid);
     await tryOpenView();
     // todo lifecycle 等待加载全部加载完成，再触发ready
     ipc.postMessage(IpcEvent.fromText("ready", "activity"));
@@ -59,12 +60,17 @@ export const main = async () => {
   jsProcess.onRequest(async (ipcRequest, ipc) => {
     // 5秒超时,则认为用户前端没有监听任何外部请求
     const timeOut = setTimeout(() => {
-      ipc.postMessage(IpcEvent.fromText("Not found","The target app is not listening for any requests"));
-      externalServer.waitListener.reject()
-    },5000)
+      ipc.postMessage(
+        IpcEvent.fromText(
+          "Not found",
+          "The target app is not listening for any requests"
+        )
+      );
+      externalServer.waitListener.reject();
+    }, 5000);
     // 等待监听建立
-    await externalServer.waitListener.promise
-    clearTimeout(timeOut)
+    await externalServer.waitListener.promise;
+    clearTimeout(timeOut);
     // 别的app发送消息，触发一下前端注册的fetch
     externalServer.fetchSignal.emit(ipcRequest);
     const awaitResponse = new PromiseOut<$IpcResponse>();
