@@ -183,12 +183,10 @@ public struct WebView: View, UIViewRepresentable {
     public init(webView: WKWebView, url: URL) {
         self.webView = webView
         self.url = url
-        if url != self.webView.url {
-            webView.load(URLRequest(url:url))
-        }
     }
     
     public func makeUIView(context: UIViewRepresentableContext<WebView>) -> WKWebView {
+        webView.load(URLRequest(url:url))
         return webView
     }
     

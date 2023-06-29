@@ -118,10 +118,6 @@ struct TabGridView: View {
         }
     }
     
-//    func isInsideOfGrid(cellRect: CGRect, gridRect){
-//
-//    }
-    
     func isSelected(webCache: WebCache) -> Bool{
         cacheStore.store.firstIndex(of: webCache) == selectedTab.curIndex
     }

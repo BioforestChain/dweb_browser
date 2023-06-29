@@ -153,9 +153,9 @@ struct WebHScrollView: View{
     var body: some View{
         GeometryReader{ geo in
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 0) {
-                    ForEach(WebCacheMgr.shared.store, id: \.id){ webCache in
-                        TabPageView(webCache: webCache, webWrapper: WebWrapperMgr.shared.webWrapper(of: webCache.id),toolbarState: toolbarState, animation: animation)
+                LazyHStack(spacing: 0) {
+                    ForEach(WebCacheMgr.shared.store, id: \.id) { webCache in
+                        TabPageView(webCache: webCache, webWrapper: WebWrapperMgr.shared.webWrapper(of: webCache.id), toolbarState: toolbarState, animation: animation)
                             .id(webCache.id)
                             .frame(width: screen_width)
                     }

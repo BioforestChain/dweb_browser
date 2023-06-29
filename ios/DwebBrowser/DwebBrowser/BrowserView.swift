@@ -20,14 +20,12 @@ struct BrowserView: View {
                 VStack(spacing: 0){
                     ZStack{
                         VStack{
-                            Color.clear.frame(height: 0.1)  //如果没有这个 向上滚动的时候会和状态栏重合
                             TabsContainerView()
                         }
                         KeyBoardShowingView(isFocused: $addressBar.isFocused)
                     }
                     AddressBarHStack()
                     ToolbarView()
-
                 }
                 .background(Color.bkColor)
                 .environmentObject(openingLink)
