@@ -34,14 +34,3 @@ export type $TypeName1 =
 export type $TypeName2 = `${$TypeName1}${"?" | ""}`;
 export type $Schema1 = Record<string, $TypeName2>;
 export type $Schema2 = Record<string, $TypeName2> | $TypeName2;
-
-export type $Method =
-  | "GET" // 查
-  | "POST" // 增
-  | "PUT" // 改：替换
-  | "PATCH" // 改：局部更新
-  | "DELETE" // 删
-  | "OPTIONS" //  嗅探
-  | "HEAD" // 预查
-  | "CONNECT" // 双工
-  | "TRACE"; // 调试

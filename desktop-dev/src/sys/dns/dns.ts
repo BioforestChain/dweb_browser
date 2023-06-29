@@ -3,7 +3,7 @@ import type {
   $BootstrapContext,
   $DnsMicroModule,
 } from "../../core/bootstrapContext.ts";
-import { $readRequestAsIpcRequest } from "../../core/helper/$readRequestAsIpcRequest.ts";
+import { $normalizeRequestInitAsIpcRequestArgs } from "../../core/helper/ipcRequestHelper.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import type { MicroModule } from "../../core/micro-module.ts";
 import {
@@ -137,46 +137,32 @@ export class DnsNMM extends NativeMicroModule {
   override async _bootstrap(context: $BootstrapContext) {
     this.install(this);
     this.running_apps.set(this.mmid, Promise.resolve(this));
-
-    this.registerCommonIpcOnMessageHandler({
-      pathname: "/open",
-      matchMode: "full",
-      input: { app_id: "mmid" },
-      output: "boolean",
-      handler: async (args) => {
-        await this.open(args.app_id);
-        return true;
+    this.onFetch(
+      async (event) => {
+        if (event.url.pathname === "/open") {
+          const app_id = event.searchParams.get("app_id") ?? "";
+          await this.open(app_id as $MMID);
+          return Response.json(true);
+        }
       },
-    });
-    /// dweb deeplink
-    this.registerCommonIpcOnMessageHandler({
-      protocol: "dweb:",
-      pathname: "open/",
-      matchMode: "prefix",
-      input: {},
-      output: "boolean",
-      handler: async (_args, _client_ipc, request) => {
-        const app_id = request.parsed_url.pathname.replace(
-          "open/",
-          ""
-        ) as $MMID;
-        /// TODO 询问用户是否授权该行为
-        await this.open(app_id);
-        return true;
+      async (event) => {
+        if (event.url.pathname === "/close") {
+          const app_id = event.searchParams.get("app_id") ?? "";
+          return Response.json(await this.close(app_id as $MMID));
+        }
       },
-    });
-
-    this.registerCommonIpcOnMessageHandler({
-      pathname: "/close",
-      matchMode: "full",
-      input: { app_id: "mmid" },
-      output: "number",
-      handler: async (args) => {
-        /// TODO 关闭应用首先要确保该应用的 parentProcessId 在 processTree 中
-        const n = await this.close(args.app_id);
-        return n;
-      },
-    });
+      /// deeplink
+      async (event) => {
+        if (
+          event.url.protocol === "dweb:" &&
+          event.url.pathname.startsWith("open/")
+        ) {
+          const app_id = event.url.pathname.replace("open/", "");
+          await this.open(app_id as $MMID);
+          return Response.json(true);
+        }
+      }
+    );
 
     this._after_shutdown_signal.listen(
       nativeFetchAdaptersManager.append(
@@ -191,7 +177,9 @@ export class DnsNMM extends NativeMicroModule {
               mmid,
               new Request(parsedUrl, requestInit)
             );
-            const ipc_req_init = await $readRequestAsIpcRequest(requestInit);
+            const ipc_req_init = await $normalizeRequestInitAsIpcRequestArgs(
+              requestInit
+            );
             const ipc_response = await ipc.request(
               parsedUrl.href,
               ipc_req_init
@@ -256,7 +244,7 @@ export class DnsNMM extends NativeMicroModule {
         ) {
           const req = new Request(getReqUrl());
           const [ipc] = await context.dns.connect(app.mmid, req);
-          const ipc_req_init = await $readRequestAsIpcRequest(req);
+          const ipc_req_init = await $normalizeRequestInitAsIpcRequestArgs(req);
           /// 发送请求
           await ipc.request(req.url, ipc_req_init);
         }

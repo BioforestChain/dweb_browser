@@ -1,4 +1,8 @@
 import https from "node:https";
+import { $Protocol, $ServerInfo } from "./types.ts";
+export * from "./types.ts";
+
+export type $HttpsServerInfo = $ServerInfo<https.Server>;
 export const httpsCreateServer = async (
   options: https.ServerOptions,
   listenOptions: { port: number; hostname?: string }
@@ -22,9 +26,9 @@ export const httpsCreateServer = async (
     protocol: PROTOCOLS.https,
   } satisfies $HttpsServerInfo;
 };
-export type $HttpsServerInfo = $ServerInfo<https.Server>;
 
 import http from "node:http";
+export type $HttpServerInfo = $ServerInfo<http.Server>;
 export const httpCreateServer = async (
   options: http.ServerOptions,
   listenOptions: { port: number; hostname?: string }
@@ -46,9 +50,9 @@ export const httpCreateServer = async (
     protocol: PROTOCOLS.http1,
   } satisfies $HttpServerInfo;
 };
-export type $HttpServerInfo = $ServerInfo<http.Server>;
 
 import http2 from "node:http2";
+export type $Http2ServerInfo = $ServerInfo<http2.Http2SecureServer>;
 export const http2CreateServer = async (
   options: http2.SecureServerOptions,
   listenOptions: { port: number; hostname?: string }
@@ -71,7 +75,7 @@ export const http2CreateServer = async (
     protocol: PROTOCOLS.http2,
   } satisfies $Http2ServerInfo;
 };
-export type $Http2ServerInfo = $ServerInfo<http2.Http2SecureServer>;
+export type $Http2UnencryptedServerInfo = $ServerInfo<http2.Http2Server>;
 export const http2CreateUnencryptedServer = async (
   options: http2.ServerOptions,
   listenOptions: { port: number; hostname?: string }
@@ -94,7 +98,6 @@ export const http2CreateUnencryptedServer = async (
     protocol: PROTOCOLS.http1,
   } satisfies $Http2UnencryptedServerInfo;
 };
-export type $Http2UnencryptedServerInfo = $ServerInfo<http2.Http2Server>;
 
 export const PROTOCOLS = {
   http2: { prefix: "https://", protocol: "https:", port: 443 },
@@ -103,62 +106,9 @@ export const PROTOCOLS = {
   http1: { prefix: "http://", protocol: "http:", port: 80 },
 } satisfies Record<string, $Protocol>;
 
-export interface $Protocol {
-  protocol: string;
-  prefix: string;
-  port: number;
-}
-
 // deno-lint-ignore no-explicit-any
-export interface $NetServer<S extends $ServerInfo<any>> {
-  create(): Promise<S>;
-  destroy(): unknown;
-  // getHost(options: $DwebHttpServerOptions): { host: string; origin: string };
-}
-// deno-lint-ignore no-explicit-any
-export abstract class NetServer<S extends $ServerInfo<any>>
-  implements $NetServer<S>
-{
+export abstract class NetServer<S extends $ServerInfo<any>> {
   abstract create(): Promise<S>;
   abstract destroy(): unknown;
   abstract readonly info: S | undefined;
-  // getHost(ipc: Ipc, options: $DwebHttpServerOptions) {
-  //   const info = this.info;
-  //   if (info === undefined) {
-  //     throw new Error("no created server info");
-  //   }
-  //   const { mmid } = options.ipc.remote;
-  //   const { port = info.protocol.port } = options;
-  //   let subdomain = options.subdomain?.trim() ?? "";
-  //   if (subdomain.length > 0 && subdomain.endsWith(".") === false) {
-  //     subdomain = subdomain + ".";
-  //   }
-  //   const host = this._getHost(subdomain, mmid, port, info);
-  //   const origin = `${info.protocol.prefix}${host}`;
-  //   return {
-  //     origin,
-  //     host,
-  //   };
-  // }
-  // abstract _getHost(
-  //   subdomain: string,
-  //   mmid: string,
-  //   port: number,
-  //   info: S
-  // ): string;
-}
-
-export interface $DwebHttpServerOptions {
-  port?: number;
-  subdomain?: string;
-}
-
-export interface $ServerInfo<S> {
-  server: S;
-
-  host: string;
-  hostname: string;
-  port: number;
-  origin: string;
-  protocol: $Protocol;
 }

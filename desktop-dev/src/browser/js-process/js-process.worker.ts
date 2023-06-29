@@ -7,19 +7,19 @@ import type {
   $MicroModule,
   $MMID,
 } from "../../core/types.ts";
-
-import { $readRequestAsIpcRequest } from "../../core/helper/$readRequestAsIpcRequest.ts";
-import { fetchExtends } from "../../helper/fetchExtends/index.ts";
-import { normalizeFetchArgs } from "../../helper/normalizeFetchArgs.ts";
-import { updateUrlOrigin } from "../../helper/urlHelper.ts";
 import type { $RunMainConfig } from "./assets/js-process.web.ts";
 
+import { $normalizeRequestInitAsIpcRequestArgs } from "../../core/helper/ipcRequestHelper.ts";
 import { $Callback, createSignal } from "../../helper/createSignal.ts";
+import { fetchExtends } from "../../helper/fetchExtends/index.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
+import { normalizeFetchArgs } from "../../helper/normalizeFetchArgs.ts";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
-import * as http from "../../std/http/index.ts";
+import { updateUrlOrigin } from "../../helper/urlHelper.ts";
 
 import * as core from "./std-dweb-core.ts";
+import * as http from "./std-dweb-http.ts";
+
 import {
   $OnIpcEventMessage,
   $OnIpcRequestMessage,
@@ -39,9 +39,9 @@ declare global {
 
   interface DWebCore {
     jsProcess: JsProcessMicroModuleContructor;
-    core: typeof import("./std-dweb-core.ts");
-    ipc: typeof import("./std-dweb-core.ts");
-    http: typeof import("../../std/http/index.ts");
+    core: typeof core;
+    ipc: typeof core;
+    http: typeof http;
   }
   interface WorkerNavigator {
     readonly dweb: DWebCore;
@@ -184,7 +184,9 @@ export class JsProcessMicroModule implements $MicroModule {
       return ipc_response.toResponse(args.parsed_url.href);
     }
     const ipc = await this.connect(hostName as $MMID);
-    const ipc_req_init = await $readRequestAsIpcRequest(args.request_init);
+    const ipc_req_init = await $normalizeRequestInitAsIpcRequestArgs(
+      args.request_init
+    );
     const ipc_response = await ipc.request(args.parsed_url.href, ipc_req_init);
     return ipc_response.toResponse(args.parsed_url.href);
   }
@@ -198,7 +200,9 @@ export class JsProcessMicroModule implements $MicroModule {
   }
 
   private async _nativeRequest(parsed_url: URL, request_init: RequestInit) {
-    const ipc_req_init = await $readRequestAsIpcRequest(request_init);
+    const ipc_req_init = await $normalizeRequestInitAsIpcRequestArgs(
+      request_init
+    );
     return await this.fetchIpc.request(parsed_url.href, ipc_req_init);
   }
 

@@ -1,15 +1,18 @@
 export type $Binary = ArrayBuffer | ArrayBufferView;
 export const isBinary = (data: unknown): data is $Binary =>
-  data instanceof ArrayBuffer || ArrayBuffer.isView(data);
+  data instanceof ArrayBuffer ||
+  ArrayBuffer.isView(data) ||
+  (typeof SharedArrayBuffer === "function" &&
+    data instanceof SharedArrayBuffer);
 
 export const binaryToU8a = (binary: $Binary) => {
-  if (binary instanceof ArrayBuffer) {
-    return new Uint8Array(binary);
-  }
   if (binary instanceof Uint8Array) {
     return binary;
   }
-  return new Uint8Array(binary.buffer, binary.byteOffset, binary.byteLength);
+  if (ArrayBuffer.isView(binary)) {
+    return new Uint8Array(binary.buffer, binary.byteOffset, binary.byteLength);
+  }
+  return new Uint8Array(binary);
 };
 
 export const u8aConcat = (binaryList: readonly Uint8Array[]) => {

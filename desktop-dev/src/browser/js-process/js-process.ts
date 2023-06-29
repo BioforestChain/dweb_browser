@@ -17,7 +17,7 @@ import { mapHelper } from "../../helper/mapHelper.ts";
 import {
   closeHttpDwebServer,
   createHttpDwebServer,
-} from "../../std/http/$createHttpDwebServer.ts";
+} from "../../std/http/helper/$createHttpDwebServer.ts";
 import { saveNative2JsIpcPort } from "./ipc.native2js.ts";
 import type { $NWW } from "./js-process.openWindow.ts";
 import { jsProcessOpenWindow } from "./js-process.openWindow.ts";

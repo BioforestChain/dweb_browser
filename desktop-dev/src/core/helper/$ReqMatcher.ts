@@ -1,4 +1,4 @@
-import type { $Method } from "./types.ts";
+import type { $Method } from "../../helper/httpHelper.ts";
 
 export interface $ReqMatcher {
   readonly pathname: string;
@@ -10,7 +10,7 @@ export interface $ReqMatcher {
 export const $isMatchReq = (
   matcher: $ReqMatcher,
   pathname: string,
-  method: string = "GET",
+  method: (string & {}) | $Method = "GET",
   protocol?: string
 ) => {
   if (

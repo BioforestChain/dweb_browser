@@ -3,7 +3,7 @@ import type { $BootstrapContext } from "../../core/bootstrapContext.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import { $DWEB_DEEPLINK, $MMID } from "../../core/types.ts";
 import { $Callback, createSignal } from "../../helper/createSignal.ts";
-import type { HttpDwebServer } from "../../std/http/$createHttpDwebServer.ts";
+import type { HttpDwebServer } from "../../std/http/helper/$createHttpDwebServer.ts";
 import { createApiServer, getAllApps } from "./jmm.api.serve.ts";
 import { cancel, install, pause, resume } from "./jmm.handler.ts";
 import { createWWWServer } from "./jmm.www.serve.ts";

@@ -1,6 +1,6 @@
 import { $BootstrapContext } from "../../core/bootstrapContext.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
-import { HttpDwebServer } from "../../std/http/$createHttpDwebServer.ts";
+import { HttpDwebServer } from "../../std/http/helper/$createHttpDwebServer.ts";
 import { createBrowserWindow } from "./browser.bw.ts";
 import { createWWWServer } from "./browser.serve.www.ts";
 import {

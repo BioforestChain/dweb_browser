@@ -1,9 +1,9 @@
 import { Readable } from "node:stream";
 import { $isMatchReq, $ReqMatcher } from "../../core/helper/$ReqMatcher.ts";
-import { httpMethodCanOwnBody } from "../../core/helper/httpMethodCanOwnBody.ts";
 import type { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.ts";
 import type { Ipc } from "../../core/ipc/ipc.ts";
 import { createSignal } from "../../helper/createSignal.ts";
+import { httpMethodCanOwnBody } from "../../helper/httpHelper.ts";
 import {
   ReadableStreamOut,
   streamFromCallback,

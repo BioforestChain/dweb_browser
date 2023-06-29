@@ -1,6 +1,8 @@
+import { $OffListener } from "../helper/createSignal.ts";
 import { $deserializeRequestToParams } from "./helper/$deserializeRequestToParams.ts";
 import { $isMatchReq, $ReqMatcher } from "./helper/$ReqMatcher.ts";
 import { $serializeResultToResponse } from "./helper/$serializeResultToResponse.ts";
+import { $OnFetch, createFetchServer } from "./helper/ipcFetchServer.ts";
 import type {
   $PromiseMaybe,
   $Schema1,
@@ -35,9 +37,6 @@ export abstract class NativeMicroModule extends MicroModule {
   };
   readonly dweb_deeplinks: $DWEB_DEEPLINK[] = [];
   abstract override mmid: $MMID;
-  // 用来在继承对象里面额外处理 ipc
-  // 现阶段主要用来实现 observe 相关的请求处理
-  _onConnect(_ipc: Ipc) {}
 
   private _commmon_ipc_on_message_hanlders =
     new Set<$RequestCustomHanlderSchema>();
@@ -49,7 +48,6 @@ export abstract class NativeMicroModule extends MicroModule {
     this._inited_commmon_ipc_on_message = true;
 
     this.onConnect((client_ipc) => {
-      this._onConnect(client_ipc);
       client_ipc.onRequest(async (request) => {
         const { pathname, protocol } = request.parsed_url;
         let response: IpcResponse | undefined;
@@ -95,13 +93,14 @@ export abstract class NativeMicroModule extends MicroModule {
         }
 
         if (response === undefined) {
-          response = IpcResponse.fromText(
-            request.req_id,
-            404,
-            undefined,
-            `no found hanlder for '${pathname}'`,
-            client_ipc
-          );
+          // response = IpcResponse.fromText(
+          //   request.req_id,
+          //   404,
+          //   undefined,
+          //   `no found hanlder for '${pathname}'`,
+          //   client_ipc
+          // );
+          return;
         }
         client_ipc.postMessage(response);
       });
@@ -122,6 +121,21 @@ export abstract class NativeMicroModule extends MicroModule {
     /// 初始化
     hanlders.add(custom_handler_schema);
     return () => hanlders.delete(custom_handler_schema);
+  }
+
+  protected onFetch(...handlers: $OnFetch[]) {
+    const onRequestHandler = createFetchServer(handlers);
+    const offs: $OffListener[] = [];
+    offs.push(
+      this.onConnect((client_ipc) => {
+        offs.push(client_ipc.onRequest(onRequestHandler));
+      })
+    );
+    return () => {
+      for (const off of offs) {
+        off();
+      }
+    };
   }
 }
 
