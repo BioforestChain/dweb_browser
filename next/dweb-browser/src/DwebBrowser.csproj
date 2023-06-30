@@ -63,10 +63,10 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <Reference Include="SwiftUIBindingMAUI" Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net7.0-ios|AnyCPU'">
-	    <HintPath>..\..\..\ios\SwiftUIToMAUI\SwiftUIBindingMAUI\SwiftUIBindingMAUI\bin\Release\net7.0-ios\SwiftUIBindingMAUI.dll</HintPath>
+	    <HintPath>..\..\..\ios\SwiftUIBindingMAUI\SwiftUIBindingMAUI\bin\Release\net7.0-ios\SwiftUIBindingMAUI.dll</HintPath>
 	  </Reference>
 	  <Reference Include="SwiftUIBindingMAUI" Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net7.0-ios|AnyCPU'">
-	    <HintPath>..\..\..\ios\SwiftUIToMAUI\SwiftUIBindingMAUI\SwiftUIBindingMAUI\bin\Debug\net7.0-ios\SwiftUIBindingMAUI.dll</HintPath>
+	    <HintPath>..\..\..\ios\SwiftUIBindingMAUI\SwiftUIBindingMAUI\bin\Debug\net7.0-ios\SwiftUIBindingMAUI.dll</HintPath>
 	  </Reference>
 	</ItemGroup>
 	<ItemGroup>

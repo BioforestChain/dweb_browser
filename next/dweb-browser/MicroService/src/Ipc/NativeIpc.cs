@@ -101,6 +101,8 @@ public class NativePort<I, O>
     {
         if (!_closePo.IsFinished)
         {
+            OnClose = null;
+            OnMessage = null;
             _closePo.Resolve(unit);
             Console.Log("Close", "port-closing/{0}", this);
         }

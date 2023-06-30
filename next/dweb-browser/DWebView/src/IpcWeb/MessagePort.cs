@@ -49,6 +49,7 @@ public class MessagePort
         }
 
         _isClosed = true;
+        OnWebMessage = null;
         MessageChannel.Complete();
         await _port.Close();
 

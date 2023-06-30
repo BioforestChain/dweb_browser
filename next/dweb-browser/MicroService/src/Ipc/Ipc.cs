@@ -92,6 +92,16 @@ public abstract class Ipc
 
     public event Signal<IpcEvent, Ipc>? OnEvent;
 
+    private void ClearSignal()
+    {
+        // ipc关闭时，清空event signal
+        OnMessage = null;
+        OnRequest = null;
+        OnResponse = null;
+        OnStream = null;
+        OnEvent = null;
+    }
+
     public abstract Task DoClose();
 
     private bool _closed { get; set; } = false;
@@ -171,7 +181,6 @@ public abstract class Ipc
             }
         };
 
-
         _ = Task.Run(async () =>
         {
             await foreach (var (ipcStreamMessage, ipc) in streamChannel.ReceiveAllAsync())
@@ -182,6 +191,7 @@ public abstract class Ipc
 
         OnClose += (_) =>
         {
+            ClearSignal();
             streamChannel.Complete();
             return null;
         };
