@@ -66,7 +66,6 @@
 		F34A47652A4D738B001E105A /* DownloadButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F34A475E2A4D738B001E105A /* DownloadButtonView.swift */; };
 		F34A47662A4D738B001E105A /* CustomUIScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F34A475F2A4D738B001E105A /* CustomUIScrollView.swift */; };
 		F34A47672A4D738B001E105A /* DownloadAppView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F34A47602A4D738B001E105A /* DownloadAppView.swift */; };
-		F34A47682A4D738B001E105A /* EventEnum.swift in Sources */ = {isa = PBXBuildFile; fileRef = F34A47612A4D738B001E105A /* EventEnum.swift */; };
 		F34A476A2A4D73D4001E105A /* CombinePublisher.swift in Sources */ = {isa = PBXBuildFile; fileRef = F34A47692A4D73D4001E105A /* CombinePublisher.swift */; };
 		F34A476E2A4D74F3001E105A /* DownloadAppManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F34A476C2A4D74F3001E105A /* DownloadAppManager.swift */; };
 /* End PBXBuildFile section */
@@ -132,7 +131,6 @@
 		F34A475E2A4D738B001E105A /* DownloadButtonView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadButtonView.swift; sourceTree = "<group>"; };
 		F34A475F2A4D738B001E105A /* CustomUIScrollView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomUIScrollView.swift; sourceTree = "<group>"; };
 		F34A47602A4D738B001E105A /* DownloadAppView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadAppView.swift; sourceTree = "<group>"; };
-		F34A47612A4D738B001E105A /* EventEnum.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EventEnum.swift; sourceTree = "<group>"; };
 		F34A47692A4D73D4001E105A /* CombinePublisher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CombinePublisher.swift; sourceTree = "<group>"; };
 		F34A476C2A4D74F3001E105A /* DownloadAppManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadAppManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -338,7 +336,6 @@
 				F34A475E2A4D738B001E105A /* DownloadButtonView.swift */,
 				F34A475F2A4D738B001E105A /* CustomUIScrollView.swift */,
 				F34A47602A4D738B001E105A /* DownloadAppView.swift */,
-				F34A47612A4D738B001E105A /* EventEnum.swift */,
 				F34A47692A4D73D4001E105A /* CombinePublisher.swift */,
 			);
 			path = DoanloadApp;
@@ -478,7 +475,6 @@
 				F0AF2C222A4BD9100005619B /* Browser.xcdatamodeld in Sources */,
 				F0531F0B2A346202001FBE06 /* MenuCell.swift in Sources */,
 				F0531F102A346219001FBE06 /* BookmarkView.swift in Sources */,
-				F34A47682A4D738B001E105A /* EventEnum.swift in Sources */,
 				F34A47622A4D738B001E105A /* NotificationName_extension.swift in Sources */,
 				F34A47662A4D738B001E105A /* CustomUIScrollView.swift in Sources */,
 				F0B231E02A301EF4001EEFB8 /* InnerAppGridView.swift in Sources */,

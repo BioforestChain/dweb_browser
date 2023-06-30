@@ -8,6 +8,10 @@ class BrowserWebview: WKWebView {
     override init(frame: CGRect, configuration: WKWebViewConfiguration) {
         super.init(frame: frame, configuration: configuration)
         configuration.userContentController.add(self, name: "favicons")
+
+        let faviconsScript = WKUserScript(source: watchIosIconScript, injectionTime: .atDocumentStart, forMainFrameOnly: true)
+        configuration.userContentController.addUserScript(faviconsScript)
+
         self.navigationDelegate = self
     }
 
@@ -101,7 +105,7 @@ function watchIosIcon(preference_size = 64, message_hanlder_name = "favicons") {
 
   return () => observer.disconnect();
 }
-void watchIosIcon()
+
 """
 extension BrowserWebview: WKScriptMessageHandler, WKNavigationDelegate {
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
@@ -112,7 +116,7 @@ extension BrowserWebview: WKScriptMessageHandler, WKNavigationDelegate {
     }
 
     func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
-        evaluateJavaScript(watchIosIconScript)
+        evaluateJavaScript("void watchIosIcon()")
     }
 }
 
