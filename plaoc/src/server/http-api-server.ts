@@ -125,7 +125,11 @@ export class Server_api extends HttpServer {
   /**
    * request 事件处理器
    */
-  protected async _onApi(request: $IpcRequest, httpServerIpc: $Ipc) {
+  protected async _onApi(
+    request: $IpcRequest,
+    httpServerIpc: $Ipc,
+    connect = (mmid: $MMID) => jsProcess.connect(mmid)
+  ) {
     const url = request.parsed_url;
     // 转发file请求到目标NMM
     const path = `file:/${url.pathname}${url.search}`;
@@ -138,9 +142,8 @@ export class Server_api extends HttpServer {
       jsProcess.fetchIpc
     );
     // 必须要直接向目标对发连接 通过这个 IPC 发送请求
-    const targetIpc = await jsProcess.connect(
-      ipcProxyRequest.parsed_url.host as $MMID
-    );
+    const targetIpc = await connect(ipcProxyRequest.parsed_url.host as $MMID);
+
     targetIpc.postMessage(ipcProxyRequest);
     const ipcProxyResponse = await targetIpc.registerReqId(
       ipcProxyRequest.req_id

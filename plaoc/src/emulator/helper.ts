@@ -1,4 +1,5 @@
 export { streamRead } from "../client/helper/readableStreamHelper.ts";
+import { $MMID, IPC_ROLE, ReadableStreamIpc } from "../../deps.ts";
 import { streamRead } from "../client/helper/readableStreamHelper.ts";
 import { buildRequest, toRequest } from "../client/helper/request.ts";
 import { IpcRequest } from "../client/index.ts";
@@ -66,3 +67,34 @@ export const signalRequest = new SignalRequest();
 export class EmulatorRequest {
   constructor(readonly req_id: string, readonly request: Request) {}
 }
+
+export const createStreamIpc = async (apiUrl: string, mmid: $MMID) => {
+  const csUrl = new URL(apiUrl);
+  {
+    csUrl.searchParams.set("type", "client2server");
+    csUrl.searchParams.set("mmid", mmid);
+  }
+  const scUrl = new URL(apiUrl);
+  {
+    scUrl.searchParams.set("type", "server2client");
+    scUrl.searchParams.set("mmid", mmid);
+  }
+
+  const streamIpc = new ReadableStreamIpc(
+    {
+      mmid,
+      ipc_support_protocols: {
+        message_pack: false,
+        protobuf: false,
+        raw: false,
+      },
+      dweb_deeplinks: [],
+    },
+    IPC_ROLE.CLIENT
+  );
+  const scRes = await fetch(scUrl, { method: "POST", body: streamIpc.stream });
+  const csRes = await fetch(csUrl);
+  streamIpc.bindIncomeStream(csRes.body!);
+
+  return streamIpc;
+};

@@ -13,5 +13,5 @@ export { simpleEncoder } from "https://deno.land/x/dweb/src/helper/encoding.ts";
 export { mapHelper } from "https://deno.land/x/dweb/src/helper/mapHelper.ts";
 export { ReadableStreamOut } from "https://deno.land/x/dweb/src/helper/readableStreamHelper.ts";
 //#endregion
-export type * from "https://deno.land/x/dweb/src/core/ipc/index.ts";
-export type * from "https://deno.land/x/dweb/src/std/http/index.ts";
+export * from "https://deno.land/x/dweb/src/browser/js-process/std-dweb-core.ts";
+export * from "https://deno.land/x/dweb/src/browser/js-process/std-dweb-http.ts";
