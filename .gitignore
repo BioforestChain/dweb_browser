@@ -1,8 +1,6 @@
 # ios
 Pods
 .DS_Store
-ios/BFExplorer/BFExplorer.xcworkspace
-ios/BFExplorer/BFExplorer.xcodeproj/project.pbxproj
 .build/
 ios/XCFrameworks
 ios/SwiftUIBindingMAUI/.vs
@@ -10,10 +8,11 @@ ios/SwiftUIBindingMAUI/SwiftUIBindingMAUI/.vs
 ios/SwiftUIBindingMAUI/SwiftUIBindingMAUI/bin
 ios/SwiftUIBindingMAUI/SwiftUIBindingMAUI/obj
 ios/SwiftUIBindingMAUI/SwiftUIBindingMAUI/ApiDefinitions.cs
-ios/SwiftUIBindingMAUI/SwiftUIBindingMAUI/StructsAndEnums.cs
+# ios/SwiftUIBindingMAUI/SwiftUIBindingMAUI/StructsAndEnums.cs
 ios/DwebBrowserFramework/DwebBrowserFramework/*
 !ios/DwebBrowserFramework/DwebBrowserFramework/README.md
-
+ios/DwebBrowserFramework/DwebBrowserFramework.xcodeproj/project.xcworkspace
+ios/DwebBrowserFramework/DwebBrowserFramework.xcodeproj/project.pbxproj
 
 # android
 .gradle/

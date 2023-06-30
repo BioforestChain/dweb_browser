@@ -17,4 +17,10 @@
   <ItemGroup>
     <ObjcBindingApiDefinition Include="ApiDefinitions.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <NativeReference Include="..\..\XCFrameworks\DwebBrowserFramework.xcframework">
+      <Kind>Static</Kind>
+      <SmartLink>False</SmartLink>
+    </NativeReference>
+  </ItemGroup>
 </Project>
