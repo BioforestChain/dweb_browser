@@ -1,4 +1,4 @@
-// import "../../@types/web-bluetooth/index.d.ts";
+import "../../@types/web-bluetooth/index.d.ts";
 import { bindThis } from "../../helper/bindThis.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
 import { $ResponseData } from "./bluetooth.type.ts";
@@ -25,6 +25,27 @@ export class BluetoothPlugin extends BasePlugin {
     // console.log('server: ', server, server.connected)
     // console.log("res: ", deviceConnted)
     // return deviceConnted;
+  }
+
+  @bindThis
+  async requestDevice(
+    options: RequestDeviceOptions = {
+      acceptAllDevices: true,
+      optionalServices: ["00003802-0000-1000-8000-00805f9b34fb"],
+    }
+  ): Promise<$ResponseData<BluetoothRemoteGATTServer>> {
+    const res = await (
+      await this.fetchApi(`/request_device`, {
+        method: "POST",
+        body: JSON.stringify(options),
+      })
+    ).json();
+    if (res.success) {
+      res.data = new BluetoothRemoteGATTServer(this, {
+        ...res.data.device,
+      });
+    }
+    return res;
   }
 
   @bindThis

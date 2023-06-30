@@ -65,16 +65,16 @@ async function open() {
   const res = await bluetooth.open();
   if (res.success) {
     console.log("打开成功");
+    state.isOpen = true;
   } else {
     console.error("打开失败", res);
+    state.isOpen = false;
   }
+}
 
-  // if (res.success) {
-  //   state.bluetoothRemoteGATTServer = res.data;
-  //   console.log(`bluetooth open success`);
-  //   return;
-  // }
-  // console.error(`bluetooth open fail`);
+async function requestDevice() {
+  const res = await bluetooth.requestDevice();
+  console.log("res: ", res);
 }
 
 async function disconnect() {
@@ -174,6 +174,11 @@ function deviceConnectedIdUpdate(deviceId: string) {
       <h2 class="card-title">蓝牙</h2>
       <input class="toggle" type="checkbox" id="statusbar-overlay" v-model="state.isOpen" @click="toggleOpen" />
     </article>
+    <article class="card-body" v-if="state.isOpen">
+      <!-- <h2 class="card-title">查询设备</h2> -->
+      <v-btn color="indigo-darken-3" @click="requestDevice">查询蓝牙设备 </v-btn>
+    </article>
+
     <article class="card-body" v-if="state.bluetoothRemoteGATTServer !== undefined">
       <h2 class="card-title">断开 {{ state.bluetoothRemoteGATTServer.device.name }} 蓝牙</h2>
       <v-btn color="indigo-darken-3" @click="disconnect">disconnect </v-btn>

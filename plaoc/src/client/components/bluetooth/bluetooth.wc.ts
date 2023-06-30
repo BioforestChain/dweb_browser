@@ -10,6 +10,10 @@ export class HTMLBluetoothElement extends HTMLElement {
   async close() {
     return this.plugin.close();
   }
+
+  async requestDevice(options?: RequestDeviceOptions) {
+    return this.plugin.requestDevice(options);
+  }
 }
 
 // 注册
