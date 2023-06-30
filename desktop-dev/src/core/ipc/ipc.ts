@@ -1,6 +1,6 @@
 import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { cacheGetter } from "../../helper/cacheGetter.ts";
-import { createSignal } from "../../helper/createSignal.ts";
+import { $Callback, createSignal } from "../../helper/createSignal.ts";
 import { MicroModule } from "../micro-module.ts";
 import type { $IpcMicroModuleInfo } from "../types.ts";
 import type { IpcHeaders } from "./IpcHeaders.ts";
@@ -66,7 +66,13 @@ export abstract class Ipc {
   }
   abstract readonly role: string;
 
-  protected _messageSignal = createSignal<$OnIpcMessage>(false);
+  private _createSignal<T extends $Callback<any[]>>(autoStart?: boolean) {
+    const signal = createSignal<T>(autoStart);
+    this.onClose(() => signal.clear());
+    return signal;
+  }
+
+  protected _messageSignal = this._createSignal<$OnIpcMessage>(false);
   postMessage(message: $IpcMessage): void {
     if (this._closed) {
       return;
@@ -83,7 +89,7 @@ export abstract class Ipc {
 
   @cacheGetter()
   private get _onRequestSignal() {
-    const signal = createSignal<$OnIpcRequestMessage>(false);
+    const signal = this._createSignal<$OnIpcRequestMessage>(false);
     this.onMessage((request, ipc) => {
       if (request.type === IPC_MESSAGE_TYPE.REQUEST) {
         signal.emit(request, ipc);
@@ -98,7 +104,7 @@ export abstract class Ipc {
 
   @cacheGetter()
   private get _onStreamSignal() {
-    const signal = createSignal<$OnIpcStreamMessage>(false);
+    const signal = this._createSignal<$OnIpcStreamMessage>(false);
     this.onMessage((request, ipc) => {
       if ("stream_id" in request) {
         signal.emit(request, ipc);
@@ -112,7 +118,7 @@ export abstract class Ipc {
 
   @cacheGetter()
   private get _onEventSignal() {
-    const signal = createSignal<$OnIpcEventMessage>(false);
+    const signal = this._createSignal<$OnIpcEventMessage>(false);
     this.onMessage((event, ipc) => {
       if (event.type === IPC_MESSAGE_TYPE.EVENT) {
         signal.emit(event, ipc);
