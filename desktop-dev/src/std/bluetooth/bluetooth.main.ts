@@ -33,6 +33,7 @@ export class BluetoothNMM extends NativeMicroModule {
   private _allocId = 0;
   private _operationResolveMap: Map<number, { (arg: unknown): void }> =
     new Map();
+  // 为 多次点击 设备列表做准备
   private _deviceConnectedResolve(value: unknown) {}
   // private _deviceDisconnectedResolve(value: unknown) {}
   private _deviceDisconnectedResolveMap: Map<number, { (arg: unknown): void }> =
@@ -121,41 +122,7 @@ export class BluetoothNMM extends NativeMicroModule {
     }
   };
 
-  // /**
-  //  * 请求错误的处理器
-  //  * @param event
-  //  * @param statusCode
-  //  * @param errorMessage
-  //  * @returns
-  //  */
-  // private _onfetchERR = async (
-  //   event: FetchEvent,
-  //   statusCode: number,
-  //   errorMessage: string
-  // ): Promise<IpcResponse> => {
-  //   console.error("error");
-  //   return IpcResponse.fromJson(
-  //     event.ipcRequest.req_id,
-  //     statusCode,
-  //     this._responseHeader,
-  //     JSON.stringify({
-  //       success: false,
-  //       error: errorMessage,
-  //       data: undefined,
-  //     }),
-  //     event.ipc
-  //   );
-  // };
-
   private _openHandler: $OnFetch = async (event: FetchEvent) => {
-    // this._requestDeviceOptions = await event.json();
-    // let statusCode = 422;
-    // let jsonable = JSON.stringify({
-    //   success: false,
-    //   error: `illegal body`,
-    //   data: undefined,
-    // });
-
     let statusCode = 200;
     let jsonable: $ResponseJsonable = {
       success: true,
@@ -164,7 +131,8 @@ export class BluetoothNMM extends NativeMicroModule {
     };
 
     if (this._STATE === STATE.CLOSED) {
-      await this._initUI();
+      const { bw, apis } = await this._initUI();
+      await this._bluetoothrequestdevicewatch(bw, apis);
       this._STATE = STATE.HIDE;
     } else {
       statusCode = 429;
@@ -186,32 +154,63 @@ export class BluetoothNMM extends NativeMicroModule {
 
   private _requestDeviceHandler: $OnFetch = async (event: FetchEvent) => {
     this._requestDeviceOptions = await event.json();
-    let statusCode = 422;
-    let jsonable = JSON.stringify({
-      success: false,
-      error: `illegal body`,
-      data: undefined,
-    });
 
-    if (this._STATE === STATE.CLOSED) {
-      statusCode = 503;
-      jsonable = JSON.stringify({
-        success: false,
-        error: `cannot requestDevice before opened`,
-        data: undefined,
-      });
-      IpcResponse.fromJson(
+    if (this._requestDeviceOptions === undefined) {
+      return IpcResponse.fromJson(
         event.ipcRequest.req_id,
-        statusCode,
+        422,
         this._responseHeader,
-        jsonable,
+        {
+          success: false,
+          error: `illegal body`,
+          data: undefined,
+        },
         event.ipc
       );
     }
 
+    if (this._STATE === STATE.CLOSED) {
+      return IpcResponse.fromJson(
+        event.ipcRequest.req_id,
+        503,
+        this._responseHeader,
+        {
+          success: false,
+          error: `cannot requestDevice before opened`,
+          data: undefined,
+        },
+        event.ipc
+      );
+    }
+
+    if (this._browserWindow === undefined) {
+      throw new Error("this._browserWindow === undefined");
+    }
+
     // 展示 UI
-    // if (this._STATE === STATE.HIDE) {
-    // }
+    if (this._STATE === STATE.HIDE) {
+      (await this._browserWindow)?.show();
+      this._STATE = STATE.VISIBLE;
+    }
+
+    this._requestDevice();
+    // 应该直接返回一个 reaableStream
+    // 每次点击就可以不断地返回数据
+    const res = await new Promise(
+      (resolve) => (this._deviceConnectedResolve = resolve)
+    );
+    console.error(
+      "error",
+      "这里还需要调整???",
+      "可以只有一次查询却能够多次点击 ？？？"
+    );
+    return IpcResponse.fromJson(
+      event.ipcRequest.req_id,
+      200,
+      this._responseHeader,
+      res,
+      event.ipc
+    );
   };
 
   /**
@@ -715,19 +714,25 @@ export class BluetoothNMM extends NativeMicroModule {
   private _initUI = async () => {
     this._browserWindow = this._getBrowserWindow(this._rootUrl);
     this._apis = (await this._browserWindow).getApis<$APIS>();
+    return {
+      bw: await this._browserWindow,
+      apis: this._apis,
+    };
   };
 
   private _getBrowserWindow = (url: string, ipc?: Ipc) => {
     return (this._browserWindow ??= this._createBrowserWindow(url, ipc));
   };
 
-  private _requestDevice = async (resolveId: number) => {
+  /**
+   * 查询 设备
+   * @param resolveId
+   */
+  private _requestDevice = async () => {
     if (this._browserWindow === undefined)
       throw new Error(`this._browserWindow === undefined`);
     (await this._browserWindow).webContents.executeJavaScript(
-      `requestDevice(${JSON.stringify(
-        this._requestDeviceOptions
-      )}, ${resolveId})`,
+      `requestDevice(${JSON.stringify(this._requestDeviceOptions)})`,
       true
     );
   };
