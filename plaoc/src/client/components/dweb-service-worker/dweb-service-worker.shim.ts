@@ -1,5 +1,6 @@
 import { cacheGetter } from "../../helper/cacheGetter.ts";
 import { streamRead } from "../../helper/readableStreamHelper.ts";
+import { toRequest } from "../../helper/request.ts";
 import {
   BaseEvent,
   ListenerCallback,
@@ -8,14 +9,12 @@ import {
 import { BasePlugin } from "../base/BasePlugin.ts";
 import { configPlugin } from "../index.ts";
 import {
-  $BodyData,
   DwebWorkerEventMap,
-  IPC_METHOD,
   IpcRequest,
   UpdateControllerMap,
 } from "./dweb-service-worker.type.ts";
 import { dwebServiceWorkerPlugin } from "./dweb_service-worker.plugin.ts";
-import { $FetchEventType, FetchEvent } from "./FetchEvent.ts";
+import { $FetchEventType } from "./FetchEvent.ts";
 
 declare namespace globalThis {
   const __app_upgrade_watcher_kit__: {
@@ -65,33 +64,9 @@ class DwebServiceWorker extends BaseEvent<keyof DwebWorkerEventMap> {
   get restart() {
     return this.plugin.restart;
   }
-  // ipcRequest to Request
-  private toRequest(ipcRequest: IpcRequest) {
-    const method = ipcRequest.method;
-    let body: undefined | $BodyData = "";
-    if (method === IPC_METHOD.GET || method === IPC_METHOD.HEAD) {
-      return new Request(ipcRequest.url, {
-        method,
-        headers: ipcRequest.headers,
-      });
-    }
-    if (ipcRequest.body) {
-      body = ipcRequest.body;
-    }
-    /**
-     * 这里的请求是这样的，要发给用户转发需要添加http
-     * /barcode-scanning.sys.dweb/process?X-Dweb-Host=api.cotdemo.bfs.dweb%3A443&rotation=0&formats=QR_CODE
-     */
-    return new Request(`${ipcRequest.url}`, {
-      method,
-      headers: ipcRequest.headers,
-      body,
-    });
-  }
-
   private decodeFetch = (ipcRequest: IpcRequest) => {
     return new FetchEvent("fetch", {
-      request: this.toRequest(ipcRequest),
+      request: toRequest(ipcRequest),
       clientId: ipcRequest.req_id.toString(),
     });
   };

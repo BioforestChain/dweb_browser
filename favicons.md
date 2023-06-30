@@ -63,14 +63,14 @@ function getIosIcon(preference_size = 64) {
 2. 轮训获取图标
 
 ```js
-function watchIosIcon(preference_size = 64, message_hanlder_name = "favicons") {
+function watchIosIcon(preference_size = 64, message_handler_name = "favicons") {
   let preIcon = "";
   const getAndPost = () => {
     const curIcon = getIosIcon(preference_size);
     if (curIcon && preIcon !== curIcon) {
       preIcon = curIcon;
       if (typeof webkit !== "undefined") {
-        webkit.messageHanlders[message_hanlder_name].postMessage(curIcon);
+        webkit.messageHandlers[message_handler_name].postMessage(curIcon);
       } else {
         console.log("favicon:", curIcon);
       }

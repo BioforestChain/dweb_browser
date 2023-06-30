@@ -55,9 +55,6 @@ export class Server_api extends HttpServer {
       "file:/" + request.parsed_url.pathname + request.parsed_url.search
     );
     const pathname = url.pathname;
-    // 关闭的流程需要调整
-    // 向dns发送关闭当前 模块的消息
-    // woker.js -> dns -> JsMicroModule -> woker.js -> 其他的 NativeMicroModule
     const result = async () => {
       if (pathname === "/restart") {
         // 这里只需要把请求发送过去，因为app已经被关闭，已经无法拿到返回值

@@ -11,7 +11,7 @@ import {
   PromiseOut,
   ReadableStreamOut,
   simpleEncoder,
-  u8aConcat
+  u8aConcat,
 } from "./deps.ts";
 import { cros, HttpError, HttpServer } from "./http-helper.ts";
 
@@ -39,7 +39,7 @@ export class Server_external extends HttpServer {
   // 拿到fetch的请求
   readonly fetchSignal = createSignal<$OnIpcRequestUrl>();
   // 等待listen触发
-  readonly waitListener = new PromiseOut<boolean>()
+  readonly waitListener = new PromiseOut<boolean>();
   start() {
     return this._onRequest(this._provider.bind(this));
   }
@@ -60,7 +60,8 @@ export class Server_external extends HttpServer {
           const uint8 = simpleEncoder(JSON.stringify(json), "utf8");
           ob.controller.enqueue(u8aConcat([uint8, jsonlineEnd]));
         });
-        this.waitListener.resolve(true)
+        // 等待监听流的建立再通知外部发送请求
+        this.waitListener.resolve(true);
         return IpcResponse.fromStream(
           request.req_id,
           200,
@@ -72,13 +73,13 @@ export class Server_external extends HttpServer {
       // 发送对外请求
       if (action === "request") {
         const mmid = url.searchParams.get("mmid") as $MMID | null;
-        let pathname = url.searchParams.get("pathname")?? "";
+        let pathname = url.searchParams.get("pathname") ?? "";
         // 删除不必要的search
         url.searchParams.delete("mmid");
-        url.searchParams.delete("X-Dweb-Host")
-        url.searchParams.delete("action")
-        url.searchParams.delete("pathname")
-        pathname = pathname + url.search
+        url.searchParams.delete("X-Dweb-Host");
+        url.searchParams.delete("action");
+        url.searchParams.delete("pathname");
+        pathname = pathname + url.search;
         if (!mmid) {
           throw new HttpError(400, "mmid must be passed");
         }
@@ -87,8 +88,8 @@ export class Server_external extends HttpServer {
         const jsIpc = await jsProcess.connect(mmid);
         const response = await jsIpc.request(pathname, {
           method: request.method,
-          headers:request.headers,
-          body: request.body.raw
+          headers: request.headers,
+          body: request.body.raw,
         });
         const ipcResponse = new IpcResponse(
           request.req_id,
@@ -97,10 +98,10 @@ export class Server_external extends HttpServer {
           response.body,
           ipc
         );
-    
+
         cros(ipcResponse.headers);
         // 返回数据到前端
-        return ipcResponse
+        return ipcResponse;
       }
 
       // 处理serviceworker respondWith过来的请求,回复给别的app

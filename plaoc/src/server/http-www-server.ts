@@ -5,7 +5,7 @@ import {
   IpcResponse,
   jsProcess,
 } from "./deps.ts";
-import { cros, HttpServer } from "./http-helper.ts";
+import { HttpServer, cros } from "./http-helper.ts";
 
 /**给前端的文件服务 */
 export class Server_www extends HttpServer {
@@ -24,7 +24,7 @@ export class Server_www extends HttpServer {
       pathname = "/index.html";
     }
     const remoteIpcResponse = await jsProcess.nativeRequest(
-      `file:///sys/plaoc-demo${pathname}?mode=stream`
+      `file:///sys/plaoc-demo${pathname}?mode=stream` // www
     );
     /**
      * 流转发，是一种高性能的转发方式，等于没有真正意义上去读取response.body，

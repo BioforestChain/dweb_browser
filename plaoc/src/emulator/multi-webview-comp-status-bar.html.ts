@@ -4,6 +4,8 @@ import { customElement, property } from "lit/decorators.js";
 import { styleMap } from "lit/directives/style-map.js";
 import { when } from "lit/directives/when.js";
 import { hexaToRGBA } from "../../deps.ts";
+import { X_PLAOC_QUERY } from "../server/const.ts";
+import { EMULATOR, signalRequest } from "./helper.ts";
 
 const TAG = "multi-webview-comp-status-bar";
 
@@ -21,7 +23,8 @@ export class MultiWebviewCompStatusBar extends LitElement {
     left: 0,
   };
   @property({ type: Boolean }) _torchIsOpen = false;
-  @property() _webview_src: any = {};
+  @property() _webview_src =
+    new URL(location.href).searchParams.get(X_PLAOC_QUERY.INTERNAL_URL) ?? "";
 
   static override styles = createAllCSS();
 
@@ -50,15 +53,13 @@ export class MultiWebviewCompStatusBar extends LitElement {
   }
 
   protected override updated(
+    // deno-lint-ignore no-explicit-any
     _changedProperties: PropertyValueMap<any> | Map<PropertyKey, unknown>
   ): void {
     const attributeProperties = Array.from(_changedProperties.keys());
     fetch(
       // 数据格式 api.browser.dweb-443.localhost:22605
-      new URL("status_bar_state_change", this._webview_src).host.replace(
-        "www.",
-        "api."
-      ),
+      new URL(`${EMULATOR}/status_bar_state_change`, this._webview_src),
       {
         body: JSON.stringify({
           color: hexaToRGBA(this._color),
@@ -177,6 +178,26 @@ export class MultiWebviewCompStatusBar extends LitElement {
       </div>
     `;
   }
+  async connectedCallback() {
+    for await (const signal of signalRequest.registerConnectStream(
+      "status-bar.nativeui.browser.dweb"
+    )) {
+      console.log("registerFetch", signal);
+      const url = new URL(signal.request.url);
+      // 处理路由
+      const response = router(url.pathname);
+      // 回复消息
+      signalRequest.respondWith(signal.req_id, response);
+    }
+  }
+}
+
+function router(pathname: string) {
+  if (pathname.endsWith("/startObserve")) {
+    return "";
+  }
+
+  return "404";
 }
 
 function createAllCSS() {

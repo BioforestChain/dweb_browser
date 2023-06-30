@@ -2,6 +2,8 @@ import { css, html, LitElement, PropertyValueMap } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { styleMap } from "lit/directives/style-map.js";
 import { hexaToRGBA } from "../../deps.ts";
+import { X_PLAOC_QUERY } from "../server/const.ts";
+import { EMULATOR } from "./helper.ts";
 
 const TAG = "multi-webview-comp-navigation-bar";
 
@@ -19,8 +21,8 @@ export class MultiWebviewCompNavigationBar extends LitElement {
     bottom: 20,
     left: 0,
   };
-  // deno-lint-ignore no-explicit-any
-  @property() _webview_src: any = {};
+  @property() _webview_src =
+    new URL(location.href).searchParams.get(X_PLAOC_QUERY.INTERNAL_URL) ?? "";
 
   protected override updated(
     // deno-lint-ignore no-explicit-any
@@ -29,10 +31,9 @@ export class MultiWebviewCompNavigationBar extends LitElement {
     const attributes = Array.from(_changedProperties.keys());
     // 数据格式 api.browser.dweb-443.localhost:22605
     const url = new URL(
-      "navigation_bar_state_change",
+      `${EMULATOR}/navigation_bar_state_change`,
       this._webview_src
-    ).host.replace("www.", "api.");
-    console.log("url=>", url);
+    );
     fetch(url, {
       method: "POST",
       body: JSON.stringify({
