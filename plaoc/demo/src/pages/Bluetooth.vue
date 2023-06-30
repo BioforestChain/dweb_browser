@@ -62,14 +62,19 @@ async function toggleOpen() {
 }
 
 async function open() {
-  // state.bluetoothRemoteGATTServer = await bluetooth.open();
   const res = await bluetooth.open();
   if (res.success) {
-    state.bluetoothRemoteGATTServer = res.data;
-    console.log(`bluetooth open success`);
-    return;
+    console.log("打开成功");
+  } else {
+    console.error("打开失败", res);
   }
-  console.error(`bluetooth open fail`);
+
+  // if (res.success) {
+  //   state.bluetoothRemoteGATTServer = res.data;
+  //   console.log(`bluetooth open success`);
+  //   return;
+  // }
+  // console.error(`bluetooth open fail`);
 }
 
 async function disconnect() {

@@ -28,4 +28,4 @@ export class NameNMM extends NativeMicroModule {
 
 ## 启动指令
 <!-- pathname === dweb_deeplink.pathname -->
-- `deno task dnt --start pathname`
+- `deno task dnt --start pathname --paramKey paramvalue --paramkey2 value2`

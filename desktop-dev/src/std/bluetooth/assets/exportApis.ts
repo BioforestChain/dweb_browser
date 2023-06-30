@@ -25,36 +25,37 @@ let preSelected: { (list: $Device[]): void } | undefined;
  * @returns Promise<null | Error>
  */
 async function requestDevice(requestDeviceOptions: RequestDeviceOptions) {
+  console.log("requestDeviceOptions", requestDeviceOptions);
   preRequestDeviceOption = requestDeviceOptions;
   // const requestDeviceOptions = JSON.parse(requestDeviceOptionsStr);
   // bluetooth = await navigator.bluetooth.requestDevice(requestDeviceOptions)
   // bluetoothRemoteGATTServer = await bluetooth.gatt?.connect()
   // console.log('bluetooth: ', bluetooth, bluetoothRemoteGATTServer)
-  navigator.bluetooth
-    .requestDevice(requestDeviceOptions)
-    .then((_bluetooth) => {
-      if (_bluetooth !== undefined) {
-        bluetooth = _bluetooth;
-        return bluetooth.gatt?.connect();
-      }
-      return Promise.reject(new Error(`_bluettoh === undefined`));
-    })
-    .then((server: BluetoothRemoteGATTServer | undefined) => {
-      console.log("server", server);
-      bluetoothRemoteGATTServer = server;
-      if (connectedSuccess === undefined)
-        throw new Error(`connectedSuccess === undefined`);
-      if (server === undefined) throw new Error("server === undefined");
-      connectedSuccess(server);
-      clearTimeout(setTimeoutId);
-    })
-    .catch((err) => {
-      if (connectedFail === undefined)
-        throw new Error(`connectedFail === undefined`);
-      connectedFail(err);
-      clearTimeout(setTimeoutId);
-      console.error(`requestDevice fail: `, err);
-    });
+  navigator.bluetooth.requestDevice(requestDeviceOptions);
+  // .then((_bluetooth) => {
+  //   if (_bluetooth !== undefined) {
+  //     bluetooth = _bluetooth;
+  //     return bluetooth.gatt?.connect();
+  //   }
+  //   return Promise.reject(new Error(`_bluettoh === undefined`));
+  // })
+  // .then((server: BluetoothRemoteGATTServer | undefined) => {
+  //   console.log("server", server);
+  //   bluetoothRemoteGATTServer = server;
+  //   if (connectedSuccess === undefined)
+  //     throw new Error(`connectedSuccess === undefined`);
+  //   if (server === undefined) throw new Error("server === undefined");
+  //   connectedSuccess(server);
+  //   clearTimeout(setTimeoutId);
+  // })
+  // .catch((err) => {
+  //   console.error("err: ", err);
+  //   if (connectedFail === undefined)
+  //     throw new Error(`connectedFail === undefined`);
+  //   connectedFail(err);
+  //   clearTimeout(setTimeoutId);
+  //   console.error(`requestDevice fail: `, err);
+  // });
 }
 
 /**

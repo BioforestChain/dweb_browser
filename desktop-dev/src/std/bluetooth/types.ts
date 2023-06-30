@@ -10,3 +10,9 @@ export interface $AllDeviceListItem {
   isConnecting: boolean;
   isConnected: boolean;
 }
+
+export interface $ResponseJsonable {
+  success: boolean;
+  error: string | undefined;
+  data: any;
+}

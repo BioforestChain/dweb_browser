@@ -7,27 +7,24 @@ export class BluetoothPlugin extends BasePlugin {
   constructor() {
     super("bluetooth.std.dweb");
   }
+  // options: RequestDeviceOptions = {
+  //   acceptAllDevices: true,
+  //   optionalServices: ["00003802-0000-1000-8000-00805f9b34fb"],
+  // }
 
   @bindThis
-  async open(
-    options: RequestDeviceOptions = {
-      acceptAllDevices: true,
-      optionalServices: ["00003802-0000-1000-8000-00805f9b34fb"],
-    }
-  ): Promise<$ResponseData<BluetoothRemoteGATTServer>> {
-    const res = await this.fetchApi("/open", {
-      method: "POST",
-      body: JSON.stringify(options),
-    });
-    const deviceConnted = await res.json();
-    if (deviceConnted.success) {
-      deviceConnted.data = new BluetoothRemoteGATTServer(this, {
-        ...deviceConnted.data.device,
-      });
-    }
+  async open(): Promise<$ResponseData<unknown>> {
+    return (await this.fetchApi("/open")).json();
+
+    // const deviceConnted = await res.json();
+    // if (deviceConnted.success) {
+    //   deviceConnted.data = new BluetoothRemoteGATTServer(this, {
+    //     ...deviceConnted.data.device,
+    //   });
+    // }
     // console.log('server: ', server, server.connected)
     // console.log("res: ", deviceConnted)
-    return deviceConnted;
+    // return deviceConnted;
   }
 
   @bindThis

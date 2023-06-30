@@ -1,6 +1,8 @@
 import type { Remote } from "comlink";
+import type { $OnFetch, FetchEvent } from "../../core/helper/ipcFetchServer.ts";
 import type { ReadableStreamIpc } from "../../core/ipc-web/index.ts";
-import { Ipc, IpcResponse } from "../../core/ipc/index.ts";
+import { IPC_METHOD } from "../../core/ipc/const.ts";
+import { Ipc, IpcHeaders, IpcResponse } from "../../core/ipc/index.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import type { $DWEB_DEEPLINK } from "../../core/types.ts";
 import { createComlinkNativeWindow } from "../../helper/openNativeWindow.ts";
@@ -8,23 +10,29 @@ import {
   createHttpDwebServer,
   type HttpDwebServer,
 } from "../../std/http/helper/$createHttpDwebServer.ts";
-import type { $Device } from "./types.ts";
+import type { $Device, $ResponseJsonable } from "./types.ts";
 
 type $APIS = typeof import("./assets/exportApis.ts")["APIS"];
 
 // UI 的状态
-export enum UI_STATUS {
+export enum STATE {
   // 关闭状态
   CLOSED = -1,
+  OPENED,
   // 已经打开 但是不可见
-  HIDE = 0,
+  HIDE,
   // 已经打开 可以看见能够点击
-  VISIBLE = 1,
+  VISIBLE,
 }
 
 export class BluetoothNMM extends NativeMicroModule {
   mmid = "bluetooth.std.dweb" as const;
   dweb_deeplinks = ["dweb:bluetooth"] as $DWEB_DEEPLINK[];
+  private _responseHeader = new IpcHeaders().init(
+    "Content-Type",
+    "application/json"
+  );
+  private _STATE: STATE = STATE.CLOSED;
   private _apis: Remote<$APIS> | undefined;
   private _httpDwebServer: HttpDwebServer | undefined;
   private _wwwReadableStreamIpc: ReadableStreamIpc | undefined;
@@ -64,39 +72,237 @@ export class BluetoothNMM extends NativeMicroModule {
     | { (deviceId: string): void }
     | undefined;
 
+  /**
+   * this.onFetch 事件处理器
+   * @param event
+   * @returns
+   */
+  private _onFetch: $OnFetch = async (event: FetchEvent) => {
+    switch (event.method) {
+      case IPC_METHOD.POST:
+        return this._onFetchPOST(event);
+      case IPC_METHOD.GET:
+        return this._onfetchGET(event);
+      default:
+        return this._onfetchERR(event, 400, `没有匹配请求的路由`);
+    }
+  };
+
+  /**
+   * 全部 POST 请求的处理器
+   * @param event
+   * @returns
+   */
+  private _onFetchPOST: $OnFetch = async (event: FetchEvent) => {
+    switch (event.url.pathname) {
+      case "/request_device":
+        return this._onfetchPOST_requestDevice(event);
+      default:
+        return this._onfetchERR(event, 400, `没有匹配请求的路由`);
+    }
+  };
+
+  /**
+   * 全部 GET 请求的处理器
+   * @param event
+   * @returns
+   */
+  private _onfetchGET: $OnFetch = async (event: FetchEvent) => {
+    console.always("event.url", event.url);
+    console.always("event.url.pathname", event.url.pathname);
+    switch (event.url.pathname) {
+      case "/open":
+        return this._onFetchGET_opn(event);
+      case "bluetooth":
+        return this._onFetchGET_bluetooth(event);
+      default:
+        return this._onfetchERR(event, 400, `没有匹配请求的路由`);
+    }
+  };
+
+  private _onFetchGET_bluetooth: $OnFetch = async (event: FetchEvent) => {
+    // 通过 deep_link 打开
+    // 设备是 EDIFIER TWS NB2
+    // 测试指令: deno task dnt --start bluetooth --acceptAllDevices true --optionalServices 00003802-0000-1000-8000-00805f9b34fb --optionalServices 00003802-0000-1000-8000-00805f9b34fb
+    switch (event.url.protocol) {
+      case "dweb:":
+        return this._onFetchGET_bluetooth_withDwebProtocol(event);
+    }
+  };
+
+  /**
+   * 请求错误的处理器
+   * @param event
+   * @param statusCode
+   * @param errorMessage
+   * @returns
+   */
+  private _onfetchERR = async (
+    event: FetchEvent,
+    statusCode: number,
+    errorMessage: string
+  ): Promise<IpcResponse> => {
+    console.error("error");
+    return IpcResponse.fromJson(
+      event.ipcRequest.req_id,
+      statusCode,
+      this._responseHeader,
+      JSON.stringify({
+        success: false,
+        error: errorMessage,
+        data: undefined,
+      }),
+      event.ipc
+    );
+  };
+
+  private _onFetchGET_opn: $OnFetch = async (event: FetchEvent) => {
+    // this._requestDeviceOptions = await event.json();
+    // let statusCode = 422;
+    // let jsonable = JSON.stringify({
+    //   success: false,
+    //   error: `illegal body`,
+    //   data: undefined,
+    // });
+
+    let statusCode = 200;
+    let jsonable: $ResponseJsonable = {
+      success: true,
+      error: undefined,
+      data: undefined,
+    };
+
+    if (this._STATE === STATE.CLOSED) {
+      await this._initUI();
+      this._STATE = STATE.HIDE;
+    } else {
+      statusCode = 429;
+      jsonable = {
+        success: false,
+        error: `opened`,
+        data: undefined,
+      };
+    }
+
+    return IpcResponse.fromJson(
+      event.ipcRequest.req_id,
+      statusCode,
+      this._responseHeader,
+      jsonable,
+      event.ipc
+    );
+  };
+
+  private _onfetchPOST_requestDevice: $OnFetch = async (event: FetchEvent) => {
+    this._requestDeviceOptions = await event.json();
+    let statusCode = 422;
+    let jsonable = JSON.stringify({
+      success: false,
+      error: `illegal body`,
+      data: undefined,
+    });
+
+    if (this._STATE === STATE.CLOSED) {
+      statusCode = 503;
+      jsonable = JSON.stringify({
+        success: false,
+        error: `cannot requestDevice before opened`,
+        data: undefined,
+      });
+      IpcResponse.fromJson(
+        event.ipcRequest.req_id,
+        statusCode,
+        this._responseHeader,
+        jsonable,
+        event.ipc
+      );
+    }
+
+    // 展示 UI
+    if (this._STATE === STATE.HIDE) {
+    }
+  };
+
+  /**
+   * 通过 deep_link 打开 现阶段是测试使用的
+   * @param event
+   * @returns
+   */
+  private _onFetchGET_bluetooth_withDwebProtocol: $OnFetch = async (
+    event: FetchEvent
+  ) => {
+    await await this._initUI();
+    this._STATE = STATE.OPENED;
+    const resolveId = this._allocId++;
+    const acceptAllDevices = event.searchParams.get("acceptAllDevices");
+    const options = {};
+    if (acceptAllDevices !== null && acceptAllDevices === "true") {
+      Reflect.set(options, "acceptAllDevices", true);
+    }
+    const optionalServices = event.searchParams.getAll("optionalServices");
+    if (optionalServices !== null) {
+      Reflect.set(options, "optionalServices", optionalServices);
+    }
+    this._requestDeviceOptions = options as RequestDeviceOptions;
+    // 无法通过cli 直接 查询设备
+    // this._requestDevice(resolveId);
+    const result = await new Promise((resolve) =>
+      this._operationResolveMap.set(resolveId, resolve)
+    );
+    return IpcResponse.fromJson(
+      event.ipcRequest.req_id,
+      200,
+      this._responseHeader,
+      JSON.stringify(result),
+      event.ipc
+    );
+  };
+
+  // private _initProcess = async (resolveId: number) => {
+  //   await this._initUI();
+  //   if (this._browserWindow === undefined)
+  //     throw new Error(`this._browserWindow === undefined`);
+  //   if (this._apis === undefined) throw new Error(`this._apis === undefined`);
+  //   this._bluetoothrequestdevicewatch(await this._browserWindow, this._apis);
+  //   this._requestDevice(resolveId);
+  // };
+
   _bootstrap = async () => {
     console.always(`[${this.mmid} _bootstrap]`);
     // 创建服务
     this._rootUrl = await this._createHttpDwebServer();
-    this.registerCommonIpcOnMessageHandler({
-      method: "POST",
-      pathname: "/open",
-      matchMode: "full",
-      input: {},
-      output: "object",
-      handler: async (_, ipc, request) => {
-        this._requestDeviceOptions = JSON.parse(await request.body.text());
-        if (this._requestDeviceOptions === undefined) {
-          return {
-            success: false,
-            error: `this._requestDeviceOptions === undefined`,
-            data: undefined,
-          };
-        }
 
-        if (this._browserWindow === undefined) {
-          this._openUI();
-        }
-        // else {
-        //   this._maximize();
-        // }
+    this.onFetch(this._onFetch);
+    // console.always("-------------");
+    // this.registerCommonIpcOnMessageHandler({
+    //   method: "POST",
+    //   pathname: "/open",
+    //   matchMode: "full",
+    //   input: {},
+    //   output: "object",
+    //   handler: async (_, ipc, request) => {
+    //     this._requestDeviceOptions = JSON.parse(await request.body.text());
+    //     if (this._requestDeviceOptions === undefined) {
+    //       return {
+    //         success: false,
+    //         error: `this._requestDeviceOptions === undefined`,
+    //         data: undefined,
+    //       };
+    //     }
 
-        const res = await new Promise(
-          (resolve) => (this._deviceConnectedResolve = resolve)
-        );
-        return res;
-      },
-    });
+    //     if (this._browserWindow === undefined) {
+    //       this._openUI();
+    //     }
+    //     // else {
+    //     //   this._maximize();
+    //     // }
+
+    //     const res = await new Promise(
+    //       (resolve) => (this._deviceConnectedResolve = resolve)
+    //     );
+    //     return res;
+    //   },
+    // });
 
     /**
      * 断开连接
@@ -298,7 +504,7 @@ export class BluetoothNMM extends NativeMicroModule {
       output: "void",
       handler: async (args) => {
         console.always("bluetooth");
-        this._openUI();
+        // this._openUI();
       },
     });
   };
@@ -349,7 +555,7 @@ export class BluetoothNMM extends NativeMicroModule {
           nodeIntegration: true,
           contextIsolation: false,
         },
-        show: true,
+        show: false,
       },
       async (win) => {
         return {
@@ -375,7 +581,7 @@ export class BluetoothNMM extends NativeMicroModule {
             this._deviceConnectedResolve(server);
           },
           requestDeviceFail: async () => {
-            this._requestDevice();
+            // this._requestDevice();
           },
           // 设备断开连接操作的回调
           deviceDisconnectCallback: async (arg: unknown, resolveId: number) => {
@@ -511,24 +717,28 @@ export class BluetoothNMM extends NativeMicroModule {
   };
 
   // 打开 browseView
-  private _openUI = async () => {
+  private _initUI = async () => {
     this._browserWindow = this._getBrowserWindow(this._rootUrl);
-    const bw = await this._browserWindow;
-    const apis = bw.getApis<$APIS>();
-    this._apis = apis;
-    this._bluetoothrequestdevicewatch(bw, apis);
-    this._requestDevice();
+    this._apis = (await this._browserWindow).getApis<$APIS>();
+    // (await this._browserWindow).setBounds({
+    //   x: 0,
+    //   y: 0,
+    //   width: 0,
+    //   height: 0,
+    // });
   };
 
   private _getBrowserWindow = (url: string, ipc?: Ipc) => {
     return (this._browserWindow ??= this._createBrowserWindow(url, ipc));
   };
 
-  private _requestDevice = async () => {
+  private _requestDevice = async (resolveId: number) => {
     if (this._browserWindow === undefined)
       throw new Error(`this._browserWindow === undefined`);
     (await this._browserWindow).webContents.executeJavaScript(
-      `requestDevice(${JSON.stringify(this._requestDeviceOptions)})`,
+      `requestDevice(${JSON.stringify(
+        this._requestDeviceOptions
+      )}, ${resolveId})`,
       true
     );
   };
@@ -565,5 +775,16 @@ export class BluetoothNMM extends NativeMicroModule {
  * - closed 关闭关闭关闭状态
  *
  * - visible 可见状态
- * - hide 影藏状态
+ * - hide 隐藏状态 当时
  */
+
+// open 只是打开 模块
+// close 关闭模块 关闭 UI
+// requestDevice 显示 UI 查询列表
+
+// 测试指令
+// 设备是 EDIFIER TWS NB2
+// deno task dnt --start bluetooth --acceptAllDevices true --optionalServices 00003802-0000-1000-8000-00805f9b34fb --optionalServices 00003802-0000-1000-8000-00805f9b34fb
+
+// acceptAllDevices: true,
+// optionalServices: ["00003802-0000-1000-8000-00805f9b34fb"],
