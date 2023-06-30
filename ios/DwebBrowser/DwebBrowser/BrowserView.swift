@@ -32,16 +32,14 @@ struct BrowserView: View {
                 .environmentObject(selectedTab)
                 .environmentObject(addressBar)
                 .environmentObject(showSheet)
-                
-                .background(
-                    HalfSheetPresentView( showSheet: $showSheet.should, sheetView: {
-                        SheetSegmentView()
-                            .padding(.top, 28)
-                            .environmentObject(selectedTab)
-                            .environmentObject(openingLink)
-                            .environmentObject(showSheet)
-                    }())
-                )
+                .sheet(isPresented: $showSheet.should){
+                    SheetSegmentView()
+                        .padding(.top, 28)
+                        .environmentObject(selectedTab)
+                        .environmentObject(openingLink)
+                        .environmentObject(showSheet)
+                        .presentationDetents([.medium, .large])
+                }
             }
         }
     }
