@@ -6,6 +6,7 @@ import { ReadableStreamIpc } from "../../../core/ipc-web/ReadableStreamIpc.ts";
 import { IPC_ROLE } from "../../../core/ipc/const.ts";
 
 import { once } from "../../../helper/$once.ts";
+import { PromiseOut } from "../../../helper/PromiseOut.ts";
 import { buildUrl } from "../../../helper/urlHelper.ts";
 import { ServerStartResult, ServerUrlInfo } from "../const.ts";
 
@@ -31,23 +32,36 @@ export class HttpDwebServer {
     private readonly options: $DwebHttpServerOptions,
     readonly startResult: ServerStartResult
   ) {}
-  private _listenIpcList: ReadableStreamIpc[] = [];
+  private _listenIpcPo = new PromiseOut<ReadableStreamIpc>();
+  private _listenIpcP?: Promise<ReadableStreamIpc>;
   /** 开始处理请求 */
-  listen = async (routes?: $ReqMatcher[]) => {
-    const listenIpc = await listenHttpDwebServer(
-      this.nmm,
-      this.startResult,
-      routes
-    );
-    this._listenIpcList.push(listenIpc);
-    return listenIpc;
+  listen = (routes?: $ReqMatcher[]) => {
+    this._listen(routes);
+    return this._listenIpcPo.promise;
   };
+  private _listen(routes?: $ReqMatcher[]) {
+    if (this._listenIpcP) {
+      throw new Error(
+        "Listen method has been called more than once without closing."
+      );
+    }
+
+    this._listenIpcPo.resolve(
+      (this._listenIpcP = listenHttpDwebServer(
+        this.nmm,
+        this.startResult,
+        routes
+      ))
+    );
+  }
   /** 关闭监听 */
   close = once(async () => {
-    for (const ipc of this._listenIpcList) {
+    if (this._listenIpcP) {
+      const ipc = await this._listenIpcP;
       ipc.close();
+      this._listenIpcP = undefined;
+      this._listenIpcPo = PromiseOut.reject("dweb-http listen closed");
     }
-    this._listenIpcList.length = 0;
     await closeHttpDwebServer(this.nmm, this.options);
   });
 }

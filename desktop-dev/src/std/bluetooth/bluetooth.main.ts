@@ -1,6 +1,5 @@
 import type { Remote } from "comlink";
-import type { $OnFetch, FetchEvent } from "../../core/helper/ipcFetchServer.ts";
-import type { ReadableStreamIpc } from "../../core/ipc-web/index.ts";
+import type { $OnFetch, FetchEvent } from "../../core/helper/ipcFetchHelper.ts";
 import { Ipc, IpcHeaders, IpcResponse } from "../../core/ipc/index.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import type { $DWEB_DEEPLINK } from "../../core/types.ts";
@@ -26,7 +25,6 @@ export class BluetoothNMM extends NativeMicroModule {
   private _STATE: STATE = STATE.CLOSED;
   private _apis: Remote<$APIS> | undefined;
   private _httpDwebServer: HttpDwebServer | undefined;
-  private _wwwReadableStreamIpc: ReadableStreamIpc | undefined;
   private _browserWindow?: ReturnType<BluetoothNMM["_createBrowserWindow"]>;
   private _rootUrl = "";
   private _requestDeviceOptions: RequestDeviceOptions | undefined;
@@ -508,19 +506,10 @@ export class BluetoothNMM extends NativeMicroModule {
   private _createHttpDwebServer = async () => {
     this._httpDwebServer = await createHttpDwebServer(this, {});
 
-    this._wwwReadableStreamIpc = await this._httpDwebServer.listen();
+    const serverIpc = await this._httpDwebServer.listen();
 
-    this._wwwReadableStreamIpc.onRequest(async (request, ipc) => {
-      const url = "file:///sys/bluetooth" + request.parsed_url.pathname;
-      ipc.postMessage(
-        await IpcResponse.fromResponse(
-          request.req_id,
-          await this.nativeFetch(
-            "file:///sys/bluetooth" + request.parsed_url.pathname
-          ),
-          ipc
-        )
-      );
+    serverIpc.onFetch(async (event) => {
+      return await this.nativeFetch("file:///sys/bluetooth" + event.pathname);
     });
 
     const rootUrl = this._httpDwebServer.startResult.urlInfo.buildInternalUrl(
@@ -626,7 +615,7 @@ export class BluetoothNMM extends NativeMicroModule {
               this._deviceGetCharacteristicResolveMap.get(resolveId);
             if (resolve === undefined) {
               throw new Error(
-                `this._deviceGetCharacteristicResolveMap.get(resolveId) === undefiend; resolveId === ${resolveId}`
+                `this._deviceGetCharacteristicResolveMap.get(resolveId) === undefined; resolveId === ${resolveId}`
               );
             }
             resolve(arg);
@@ -640,7 +629,7 @@ export class BluetoothNMM extends NativeMicroModule {
               this._deviceCharacteristicReadValueResolveMap.get(resolveId);
             if (resolve === undefined) {
               throw new Error(
-                `this._deviceCharacteristicReadValueResolveMap.get(resolveId) === undefiend; resolveId === ${resolveId}`
+                `this._deviceCharacteristicReadValueResolveMap.get(resolveId) === undefined; resolveId === ${resolveId}`
               );
             }
             resolve(arg);
@@ -758,7 +747,6 @@ export class BluetoothNMM extends NativeMicroModule {
 
   protected override _shutdown = async () => {
     this._httpDwebServer?.close();
-    this._wwwReadableStreamIpc?.close();
     this._closeUI();
   };
 }

@@ -2,7 +2,7 @@ import { $OffListener } from "../helper/createSignal.ts";
 import { $deserializeRequestToParams } from "./helper/$deserializeRequestToParams.ts";
 import { $isMatchReq, $ReqMatcher } from "./helper/$ReqMatcher.ts";
 import { $serializeResultToResponse } from "./helper/$serializeResultToResponse.ts";
-import { $OnFetch, createFetchServer } from "./helper/ipcFetchServer.ts";
+import { $OnFetch, createFetchHandler } from "./helper/ipcFetchHelper.ts";
 import type {
   $PromiseMaybe,
   $Schema1,
@@ -124,7 +124,7 @@ export abstract class NativeMicroModule extends MicroModule {
   }
 
   protected onFetch(...handlers: $OnFetch[]) {
-    const onRequestHandler = createFetchServer(handlers);
+    const onRequestHandler = createFetchHandler(handlers);
     const offs: $OffListener[] = [];
     offs.push(
       this.onConnect((client_ipc) => {

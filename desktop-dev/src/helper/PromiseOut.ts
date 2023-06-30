@@ -40,6 +40,11 @@ export class PromiseOut<T = unknown> {
     po.resolve(v);
     return po;
   }
+  static reject<T>(reason?: unknown) {
+    const po = new PromiseOut<T>();
+    po.reject(reason);
+    return po;
+  }
   static sleep(ms: number) {
     const po = new PromiseOut<void>();
     let ti: any = setTimeout(() => {

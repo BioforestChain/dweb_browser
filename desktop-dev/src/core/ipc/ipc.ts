@@ -15,6 +15,8 @@ import {
   type $OnIpcMessage,
 } from "./const.ts";
 
+import { $OnFetch, createFetchHandler } from "../helper/ipcFetchHelper.ts";
+
 let ipc_uid_acc = 0;
 export abstract class Ipc {
   readonly uid = ipc_uid_acc++;
@@ -101,6 +103,10 @@ export abstract class Ipc {
 
   onRequest(cb: $OnIpcRequestMessage) {
     return this._onRequestSignal.listen(cb);
+  }
+
+  onFetch(...handlers: $OnFetch[]) {
+    return this.onRequest(createFetchHandler(handlers));
   }
 
   @cacheGetter()

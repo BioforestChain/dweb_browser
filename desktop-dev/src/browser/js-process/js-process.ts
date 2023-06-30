@@ -136,32 +136,24 @@ export class JsProcessNMM extends NativeMicroModule {
 
   async _bootstrap() {
     const mainServer = await createHttpDwebServer(this, {});
-    (await mainServer.listen()).onRequest(async (request, ipc) => {
-      const pathname = request.parsed_url.pathname;
-      if (pathname.endsWith("/bootstrap.js")) {
-        return ipc.postMessage(
-          IpcResponse.fromText(
-            request.req_id,
-            200,
-            new IpcHeaders({
-              "Content-Type": "text/javascript",
-            }),
-            await this.JS_PROCESS_WORKER_CODE(),
-            ipc
-          )
+    {
+      const serverIpc = await mainServer.listen();
+      serverIpc.onFetch(async (event) => {
+        const { pathname } = event.url;
+        /// TODO：这里应该使用更好的设计
+        if (pathname.endsWith("/bootstrap.js")) {
+          return new Response(await this.JS_PROCESS_WORKER_CODE(), {
+            headers: {
+              "Content-Type": "text/javascript,charset=utf8",
+            },
+            status: 200,
+          });
+        }
+        return await this.nativeFetch(
+          "file:///sys/browser/js-process/main-thread" + pathname
         );
-      }
-      ipc.postMessage(
-        await IpcResponse.fromResponse(
-          request.req_id,
-          await this.nativeFetch(
-            "file:///sys/browser/js-process/main-thread" +
-              request.parsed_url.pathname
-          ),
-          ipc
-        )
-      );
-    });
+      });
+    }
 
     const bootstrap_url = mainServer.startResult.urlInfo.buildInternalUrl(
       (url) => {

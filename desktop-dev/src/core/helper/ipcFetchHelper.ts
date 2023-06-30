@@ -12,18 +12,33 @@ import { $PromiseMaybe } from "./types.ts";
 export type $OnFetch = (
   request: FetchEvent
 ) => $PromiseMaybe<Response | IpcResponse | $FetchResponse | void>;
+
+/**
+ * 对即将要进行的响应内容，作出最后的处理
+ *
+ *
+ * 调用 next，可以得到后来者对response对象的处理完毕的内容
+ * 如果不调用，就不会
+ */
+export type $BeforeResponse = (
+  respose: IpcResponse | undefined,
+  next: $BeforeResponse
+) => $PromiseMaybe<IpcResponse | void>;
 /**
  * 一个通用的 ipcRequest 处理器
  * 开发不需要面对 ipcRequest，而是面对 web 标准的 Request、Response 即可
  */
-export const createFetchServer = (handlers: Iterable<$OnFetch>) => {
+export const createFetchHandler = (
+  onFetchs: Iterable<$OnFetch>,
+  beforeResponses: Iterable<$BeforeResponse> = []
+) => {
   return (async (request, ipc) => {
     const event = new FetchEvent(request, ipc);
     let res: IpcResponse | undefined;
 
-    for (const handler of handlers) {
+    for (const onFetch of onFetchs) {
       try {
-        const result = await handler(event);
+        const result = await onFetch(event);
         if (result instanceof IpcResponse) {
           res = result;
         } else if (result instanceof Response) {
@@ -92,6 +107,7 @@ export const createFetchServer = (handlers: Iterable<$OnFetch>) => {
           );
         }
       }
+
       /// 返回
       if (res) {
         ipc.postMessage(res);
@@ -109,6 +125,9 @@ export class FetchEvent {
   constructor(readonly ipcRequest: IpcRequest, readonly ipc: Ipc) {}
   get url() {
     return this.ipcRequest.parsed_url;
+  }
+  get pathname() {
+    return this.url.pathname;
   }
   get searchParams() {
     return this.url.searchParams;

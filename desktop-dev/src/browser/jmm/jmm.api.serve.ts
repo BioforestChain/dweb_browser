@@ -67,46 +67,44 @@ export async function createApiServer(this: JmmNMM) {
     subdomain: "api",
     port: 6363,
   });
-  const streamIpc = await this.apiServer.listen();
-  streamIpc.onRequest(onRequest.bind(this));
-}
-
-function onRequest(this: JmmNMM, request: IpcRequest, ipc: Ipc) {
-  try {
-    if (request.method === IPC_METHOD.OPTIONS) {
-      return ipc.postMessage(
+  const serverIpc = await this.apiServer.listen();
+  serverIpc.onRequest((request, ipc) => {
+    try {
+      if (request.method === IPC_METHOD.OPTIONS) {
+        return ipc.postMessage(
+          IpcResponse.fromText(
+            request.req_id,
+            200,
+            cros(new IpcHeaders()),
+            "",
+            ipc
+          )
+        );
+      }
+      const path = request.parsed_url.pathname;
+      switch (path) {
+        case "/app/install":
+          return appInstall.call(this, request, ipc);
+        case "/close/self":
+          return appCloseSelf.call(this, request, ipc);
+        case "/app/open":
+          return appOpen.call(this, request, ipc);
+        default: {
+          throw new Error(`${this.mmid} 有没有处理的pathname === ${path}`);
+        }
+      }
+    } catch (err) {
+      ipc.postMessage(
         IpcResponse.fromText(
           request.req_id,
-          200,
-          cros(new IpcHeaders()),
-          "",
+          502,
+          new IpcHeaders().init("Content-Type", "text/html,charset=utf-8"),
+          err instanceof Error ? err.message + "" + err.stack : String(err),
           ipc
         )
       );
     }
-    const path = request.parsed_url.pathname;
-    switch (path) {
-      case "/app/install":
-        return appInstall.call(this, request, ipc);
-      case "/close/self":
-        return appCloseSelf.call(this, request, ipc);
-      case "/app/open":
-        return appOpen.call(this, request, ipc);
-      default: {
-        throw new Error(`${this.mmid} 有没有处理的pathname === ${path}`);
-      }
-    }
-  } catch (err) {
-    ipc.postMessage(
-      IpcResponse.fromText(
-        request.req_id,
-        502,
-        new IpcHeaders().init("Content-Type", "text/html,charset=utf-8"),
-        err instanceof Error ? err.message + "" + err.stack : String(err),
-        ipc
-      )
-    );
-  }
+  });
 }
 
 export type $InstallProgressInfo = {
