@@ -48,11 +48,13 @@ extension URL {
 
 extension URL{
     static var defaultSnapshotURL: URL{
-        bundleUrl.appendingPathComponent("snapshot.png")
+        let bundle = Bundle(for: BridgeManager.self)
+        return bundle.url(forResource: "resource.bundle/snapshot", withExtension: "png")!
     }
     
     static var defaultWebIconURL: URL {
-        bundleUrl.appendingPathComponent("defWebIcon.png")
+        let bundle = Bundle(for: BridgeManager.self)
+        return bundle.url(forResource: "resource.bundle/defWebIcon", withExtension: "png")!
     }
     
     

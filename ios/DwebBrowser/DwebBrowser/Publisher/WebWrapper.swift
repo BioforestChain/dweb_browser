@@ -1,25 +1,26 @@
-import SwiftUI
 import Combine
+import SwiftUI
 import WebKit
 
- class BrowserWebview : WKWebView {
+class BrowserWebview: WKWebView {
     @objc dynamic var icon = NSString("")
 
-     override init(frame: CGRect, configuration: WKWebViewConfiguration) {
+    override init(frame: CGRect, configuration: WKWebViewConfiguration) {
         super.init(frame: frame, configuration: configuration)
         configuration.userContentController.add(self, name: "favicons")
         self.navigationDelegate = self
     }
-    
+
     convenience init() {
-        self.init(frame:UIScreen.main.bounds, configuration:WKWebViewConfiguration())
-        
+        self.init(frame: UIScreen.main.bounds, configuration: WKWebViewConfiguration())
     }
-    
+
+    @available(*, unavailable)
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 }
+
 // 监听获取图标的 JavaScript 代码
 let watchIosIconScript = """
 function getIosIcon(preference_size = 64) {
@@ -102,28 +103,29 @@ function watchIosIcon(preference_size = 64, message_hanlder_name = "favicons") {
 }
 void watchIosIcon()
 """
-extension BrowserWebview :  WKScriptMessageHandler, WKNavigationDelegate {
-     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+extension BrowserWebview: WKScriptMessageHandler, WKNavigationDelegate {
+    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         print("messageHandler: \(message.body as! String)")
-        if let value = message .body as? String {
-            icon = NSString(string: value.isEmpty ? URL.defaultWebIconURL.absoluteString : value )
+        if let value = message.body as? String {
+            icon = NSString(string: value.isEmpty ? URL.defaultWebIconURL.absoluteString : value)
         }
     }
-    
-     func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
+
+    func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
         evaluateJavaScript(watchIosIconScript)
     }
 }
 
 @dynamicMemberLookup
- class WebWrapper: ObservableObject, Identifiable, Hashable, Equatable{
-     var id = UUID()
+class WebWrapper: ObservableObject, Identifiable, Hashable, Equatable {
+    var id = UUID()
 
-    @Published  var webView: BrowserWebview {
+    @Published var webView: BrowserWebview {
         didSet {
             setupObservers()
         }
     }
+
     init(cacheID: UUID) {
 //        self.webView = BridgeManager.webviewGenerator!(nil)
         self.webView = BrowserWebview()
@@ -132,7 +134,7 @@ extension BrowserWebview :  WKScriptMessageHandler, WKNavigationDelegate {
 
         setupObservers()
     }
-    
+
     private func setupObservers() {
         func subscriber<Value>(for keyPath: KeyPath<BrowserWebview, Value>) -> NSKeyValueObservation {
             return webView.observe(keyPath, options: [.prior]) { _, change in
@@ -157,40 +159,38 @@ extension BrowserWebview :  WKScriptMessageHandler, WKNavigationDelegate {
             subscriber(for: \.icon),
         ]
     }
-    
+
     private var observers: [NSKeyValueObservation] = []
-    
-     subscript<T>(dynamicMember keyPath: KeyPath<BrowserWebview, T>) -> T {
+
+    public subscript<T>(dynamicMember keyPath: KeyPath<BrowserWebview, T>) -> T {
         webView[keyPath: keyPath]
     }
-    
-     static func == (lhs: WebWrapper, rhs: WebWrapper) -> Bool {
+
+    public static func == (lhs: WebWrapper, rhs: WebWrapper) -> Bool {
         lhs.id == rhs.id
-     }
-     
-      func hash(into hasher: inout Hasher) {
-         hasher.combine(id)
-         hasher.combine(webView)
-     }
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+        hasher.combine(webView)
+    }
 }
 
 // A container for using a WKWebView in SwiftUI
- struct WebView: View, UIViewRepresentable {
+struct WebView: View, UIViewRepresentable {
     /// The WKWebView to display
     let url: URL
-     let webView: WKWebView
+    let webView: WKWebView
 
-     init(webView: WKWebView, url: URL) {
+    init(webView: WKWebView, url: URL) {
         self.webView = webView
         self.url = url
     }
-    
-     func makeUIView(context: UIViewRepresentableContext<WebView>) -> WKWebView {
-        webView.load(URLRequest(url:url))
+
+    func makeUIView(context: UIViewRepresentableContext<WebView>) -> WKWebView {
+        webView.load(URLRequest(url: url))
         return webView
     }
-    
-     func updateUIView(_ uiView: WKWebView, context: UIViewRepresentableContext<WebView>) {
 
-    }
+    func updateUIView(_ uiView: WKWebView, context: UIViewRepresentableContext<WebView>) {}
 }

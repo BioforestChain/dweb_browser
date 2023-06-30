@@ -42,4 +42,8 @@ public class BridgeManager: NSObject {
     @objc public func clickAppAction(callback: @escaping clickAppCallback) {
         self.clickCallback = callback
     }
+    
+    @objc public func testWebView(webView: WKWebView) {
+        print("test")
+    }
 }

@@ -20,7 +20,16 @@ class DataController : ObservableObject {
     }
     
     lazy var container: NSPersistentContainer = {
-        let container = NSPersistentContainer(name: "BFS")
+        let bundle = Bundle(for: BridgeManager.self)
+        let modelURL = bundle.url(forResource: "Browser", withExtension: "momd")
+        if modelURL == nil {
+            fatalError("Failed to load URL")
+        }
+        let objModel = NSManagedObjectModel.init(contentsOf: modelURL!)
+        if objModel == nil {
+            fatalError("Failed to load objModel")
+        }
+        let container = NSPersistentContainer(name: "Browser", managedObjectModel: objModel!)
         
         guard let description = container.persistentStoreDescriptions.first else {
             fatalError("Failed to retrieve a persistent store description.")

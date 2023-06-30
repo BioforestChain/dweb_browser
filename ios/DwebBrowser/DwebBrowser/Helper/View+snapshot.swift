@@ -74,7 +74,7 @@ struct SampleView: View {
         ZStack {
             Rectangle().fill(.red)
             VStack {
-                Image("snapshot")
+                Image(uiImage: UIImage.bundleImage(name: "snapshot"))
                     .font(.system(size: 80))
                     .background(in: Circle().inset(by: -40))
                     .background(.blue)
