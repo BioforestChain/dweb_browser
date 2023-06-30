@@ -18,7 +18,6 @@ import {
 let ipc_uid_acc = 0;
 export abstract class Ipc {
   readonly uid = ipc_uid_acc++;
-
   /**
    * 是否支持使用 MessagePack 直接传输二进制
    * 在一些特殊的场景下支持字符串传输，比如与webview的通讯
@@ -59,6 +58,8 @@ export abstract class Ipc {
   protected _support_binary = false;
 
   abstract readonly remote: $IpcMicroModuleInfo;
+  private _closeSignal = createSignal<() => unknown>(false);
+  onClose = this._closeSignal.listen;
   asRemoteInstance() {
     if (this.remote instanceof MicroModule) {
       return this.remote;
@@ -143,8 +144,6 @@ export abstract class Ipc {
     this._closeSignal.emit();
     this._closeSignal.clear();
   }
-  private _closeSignal = createSignal<() => unknown>(false);
-  onClose = this._closeSignal.listen;
 
   private _req_id_acc = 0;
   allocReqId(_url?: string) {
