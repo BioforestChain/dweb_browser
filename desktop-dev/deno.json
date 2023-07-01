@@ -1,5 +1,6 @@
 {
   "importMap": "import_map.json",
+  "lock": false,
   "exclude": [
     "**/assets/",
     "electron/",

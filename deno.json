@@ -1,4 +1,5 @@
 {
+  "lock": false,
   "tasks": {
     "init": "deno run -A ./scripts/init.ts",
     "dev": "deno run -A ./scripts/dev.ts",
