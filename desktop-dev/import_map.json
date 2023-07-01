@@ -1,6 +1,6 @@
 {
   "imports": {
-    "@msgpack/msgpack": "https://esm.sh/v124/@msgpack/msgpack@2.8.0",
+    "cbor-x": "https://esm.sh/v124/cbor-x@1.5.3",
     "@seald-io/nedb": "https://esm.sh/v124/@seald-io/nedb@4.0.2",
     "popmotion": "https://esm.sh/v124/popmotion@11.0.5",
     "electron-store": "https://esm.sh/v124/electron-store@8.1.0",

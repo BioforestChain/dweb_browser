@@ -1,4 +1,4 @@
-import { encode } from "@msgpack/msgpack";
+import { encode } from "cbor-x";
 
 import { IpcRequest } from "../ipc/IpcRequest.ts";
 import { IpcResponse } from "../ipc/IpcResponse.ts";

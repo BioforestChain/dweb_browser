@@ -1,4 +1,4 @@
-import { encode } from "@msgpack/msgpack";
+import { encode } from "cbor-x";
 import { IPC_MESSAGE_TYPE } from "../../core/ipc/const.ts";
 import { once } from "../../helper/$once.ts";
 import { u8aConcat } from "../../helper/binaryHelper.ts";

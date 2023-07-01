@@ -1,4 +1,4 @@
-import { decode } from "@msgpack/msgpack";
+import { decode } from "cbor-x";
 import type { $IpcTransferableMessage } from "../ipc/const.ts";
 import type { Ipc } from "../ipc/ipc.ts";
 import {

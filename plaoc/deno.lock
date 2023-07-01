@@ -130,7 +130,11 @@
     "https://deno.land/x/ts_morph@18.0.0/common/typescript.d.ts": "21c0786dddf52537611499340166278507eb9784628d321c2cb6acc696cba0f6",
     "https://deno.land/x/ts_morph@18.0.0/common/typescript.js": "d5c598b6a2db2202d0428fca5fd79fc9a301a71880831a805d778797d2413c59",
     "https://deno.land/x/wasmbuild@0.13.0/cache.ts": "89eea5f3ce6035a1164b3e655c95f21300498920575ade23161421f5b01967f4",
-    "https://deno.land/x/wasmbuild@0.13.0/loader.ts": "d98d195a715f823151cbc8baa3f32127337628379a02d9eb2a3c5902dbccfc02"
+    "https://deno.land/x/wasmbuild@0.13.0/loader.ts": "d98d195a715f823151cbc8baa3f32127337628379a02d9eb2a3c5902dbccfc02",
+    "https://esm.sh/v124/base64-js@1.5.1/es2022/base64-js.mjs": "ec665e8541643e6b809446cb8f9973eb12e818f224230d8415d3ba04d3d57d91",
+    "https://esm.sh/v124/buffer@6.0.3/es2022/buffer.bundle.mjs": "2d320d0fd46c1e184553f6c72dfb6e5e4b8af43f89130d34c05098359e2c56bb",
+    "https://esm.sh/v124/cbor-x@1.5.3/es2022/cbor-x.mjs": "59c2b4c25f4abcf23abf74c75b5ed822d5d492e24e48eac000caaadc8266deea",
+    "https://esm.sh/v124/ieee754@1.2.1/es2022/ieee754.mjs": "6e9f43f2599ed8bbcc9cdb19bf9d1b8caea9882fe4717c97edc397d363a5d1c7"
   },
   "npm": {
     "specifiers": {

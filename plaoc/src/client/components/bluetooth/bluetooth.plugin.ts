@@ -1,4 +1,4 @@
-import "../../@types/web-bluetooth/index.d.ts";
+/// <reference path="../../@types/web-bluetooth/index.d.ts"/>;
 import { bindThis } from "../../helper/bindThis.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
 import { $ResponseData } from "./bluetooth.type.ts";

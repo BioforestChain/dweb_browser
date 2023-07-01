@@ -1,6 +1,7 @@
 {
     "imports": {
         "https://deno.land/x/dweb/src/": "./../desktop-dev/src/",
+        "cbor-x": "https://esm.sh/v124/cbor-x@1.5.3/es2022/cbor-x.mjs",
         "lit": "https://esm.sh/v124/lit@2.7.4",
         "lit/": "https://esm.sh/v124/lit@2.7.4/"
     }

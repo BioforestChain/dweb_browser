@@ -1,4 +1,4 @@
-import type { $OnFetch, FetchEvent } from "../../core/helper/ipcFetchServer.ts";
+import type { $OnFetch, FetchEvent } from "../../core/helper/ipcFetchHelper.ts";
 import { IPC_METHOD } from "../../core/ipc/const.ts";
 import { IpcHeaders, IpcResponse } from "../../core/ipc/index.ts";
 
