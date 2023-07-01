@@ -12,6 +12,7 @@ export { createSignal } from "https://deno.land/x/dweb/src/helper/createSignal.t
 export { simpleEncoder } from "https://deno.land/x/dweb/src/helper/encoding.ts";
 export { mapHelper } from "https://deno.land/x/dweb/src/helper/mapHelper.ts";
 export { ReadableStreamOut } from "https://deno.land/x/dweb/src/helper/readableStreamHelper.ts";
+export * from "https://deno.land/x/dweb/src/helper/zodHelper.ts";
 //#endregion
 export * from "https://deno.land/x/dweb/src/browser/js-process/std-dweb-core.ts";
 export * from "https://deno.land/x/dweb/src/browser/js-process/std-dweb-http.ts";

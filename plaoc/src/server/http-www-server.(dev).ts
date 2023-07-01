@@ -17,7 +17,7 @@ import { Server_www as _Server_www } from "./http-www-server.ts";
  * 2. emulator：为client所提供的插件提供模拟
  */
 export class Server_www extends _Server_www {
-  async getStartResult() {
+  override async getStartResult() {
     const result = await super.getStartResult();
     // TODO 未来如果有需求，可以用 flags 传入参数来控制这个模拟器的初始化参数
     /// 默认强制启动《emulator模拟器插件》
@@ -31,16 +31,28 @@ export class Server_www extends _Server_www {
 
     /// 加载模拟器的外部框架
     if (isEnableEmulator !== null) {
-      const html = String.raw;
-      const emulatorJsResponse = await jsProcess.nativeRequest(
-        `file:///usr/server/plaoc.emulator.js`
-      );
+      // 返回JS
+      if (request.parsed_url.pathname === "/plaoc.emulator.js") {
+        const emulatorJsResponse = await jsProcess.nativeRequest(
+          `file:///usr/server/plaoc.emulator.js`
+        );
+        return new IpcResponse(
+          request.req_id,
+          200,
+          emulatorJsResponse.headers,
+          emulatorJsResponse.body,
+          ipc
+        );
+      }
+
       const indexUrl = (await super.getStartResult()).urlInfo.buildInternalUrl(
         (url) => {
           url.pathname = request.parsed_url.pathname;
           url.search = request.parsed_url.search;
         }
       );
+
+      /// 判 定SessionId 的唯一性，如果已经被使用，创新一个新的 SessionId 进行跳转
       const sessionId = indexUrl.searchParams.get(X_PLAOC_QUERY.SESSION_ID);
       if (sessionId === null || emulatorDuplexs.has(sessionId)) {
         const newSessionId = crypto.randomUUID();
@@ -72,6 +84,7 @@ export class Server_www extends _Server_www {
 
       /// 给iframe用的url，需要删除模拟器标识
       indexUrl.searchParams.delete(X_PLAOC_QUERY.EMULATOR);
+      const html = String.raw;
       return IpcResponse.fromText(
         request.req_id,
         200,
@@ -97,9 +110,7 @@ export class Server_www extends _Server_www {
                   overflow: hidden;
                 }
               </style>
-              <script>
-                ${await emulatorJsResponse.body.text()};
-              </script>
+              <script src="./plaoc.emulator.js?${X_PLAOC_QUERY.EMULATOR}=${isEnableEmulator}"></script>
             </head>
             <body>
               <root-comp>

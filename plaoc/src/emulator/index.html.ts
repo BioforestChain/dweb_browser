@@ -1,3 +1,4 @@
+import { StatusBarController } from "./controller/status-bar.controller.ts";
 // 测试入口文件
 import { css, html, LitElement } from "lit";
 import { customElement, property, query, state } from "lit/decorators.js";
@@ -13,7 +14,7 @@ import "./multi-webview-comp-share.html.ts";
 import "./multi-webview-comp-status-bar.html.ts";
 import "./multi-webview-comp-toast.html.ts";
 import "./multi-webview-comp-virtual-keyboard.html.ts";
-import type { $BarState, $BAR_STYLE, $ShareOptions } from "./types.ts";
+import type { $BAR_STYLE, $BarState, $ShareOptions } from "./types.ts";
 
 const TAG = "root-comp";
 
@@ -26,18 +27,13 @@ export class RootComp extends LitElement {
     | undefined
     | null;
   statusBarHeight = "38px";
-  @property({ type: Object }) statusBarState: $BarState = {
-    color: "#FFFFFFFF",
-    style: "DEFAULT",
-    insets: {
-      top: parseInt(this.statusBarHeight),
-      right: 0,
-      bottom: 0,
-      left: 0,
-    },
-    overlay: false,
-    visible: true,
-  };
+  readonly statusBarController = new StatusBarController().onUpdate(() => {
+    this.requestUpdate();
+  });
+  get statusBarState() {
+    return this.statusBarController.state;
+  }
+
   navigationBarHeight = "26px";
   @property({ type: Object }) navigationBarState: $BarState = {
     color: "#FFFFFFFF",
@@ -66,45 +62,6 @@ export class RootComp extends LitElement {
     visible: false,
   };
   @state() torchState = { isOpen: false };
-
-  statusBarSetStyle(style: $BAR_STYLE) {
-    this.statusBarState = {
-      ...this.statusBarState,
-      style: style,
-    };
-    return this;
-  }
-
-  statusBarSetBackground(color: string) {
-    this.statusBarState = {
-      ...this.statusBarState,
-      color: color,
-    };
-    return this;
-  }
-
-  statusBarSetOverlay(overlay: boolean) {
-    this.statusBarState = {
-      ...this.statusBarState,
-      overlay: overlay,
-    };
-    return this;
-  }
-
-  statusBarSetVisible(visible: boolean) {
-    this.statusBarState = {
-      ...this.statusBarState,
-      visible: visible,
-    };
-    return this;
-  }
-
-  async statusBarGetState() {
-    return {
-      ...this.statusBarState,
-      color: await this.hexaToRGBA(this.statusBarState.color),
-    };
-  }
 
   navigationBarSetStyle(style: $BAR_STYLE) {
     this.navigationBarState = {
@@ -210,9 +167,9 @@ export class RootComp extends LitElement {
   };
 
   safeAreaSetOverlay = (overlay: boolean) => {
-    this.statusBarSetOverlay(overlay)
-      .navigationBarSetOverlay(overlay)
-      .virtualKeyboardSetOverlay(overlay);
+    this.statusBarController.statusBarSetOverlay(overlay);
+    this.navigationBarSetOverlay(overlay);
+    this.virtualKeyboardSetOverlay(overlay);
   };
 
   torchToggleTorch() {
@@ -261,22 +218,6 @@ export class RootComp extends LitElement {
     );
   }
 
-  testShare() {
-    console.error("测试功能已经取消了");
-    // this.shareShare({
-    //   title: "标题",
-    //   text: "内容",
-    //   link: "https://www.baidu.com",
-    //   src: "https://img.tukuppt.com/photo-big/00/00/94/6152bc0ce6e5d805.jpg",
-    // });
-  }
-
-  testStatusbarSetBackground() {
-    this.statusBarState = {
-      ...this.statusBarState,
-      color: "#FF0000FF",
-    };
-  }
   // 测试代码结束
 
   protected override render() {
@@ -288,8 +229,7 @@ export class RootComp extends LitElement {
           ._style=${this.statusBarState.style}
           ._overlay=${this.statusBarState.overlay}
           ._visible=${this.statusBarState.visible}
-          ._height=${this.statusBarHeight}
-          ._inserts=${this.statusBarState.insets}
+          ._insets=${this.statusBarState.insets}
           ._torchIsOpen=${this.torchState.isOpen}
         ></multi-webview-comp-status-bar>
         <slot slot="shell-content"></slot>

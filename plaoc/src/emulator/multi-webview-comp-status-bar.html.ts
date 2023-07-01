@@ -3,9 +3,6 @@ import { css, html, LitElement, PropertyValueMap } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { styleMap } from "lit/directives/style-map.js";
 import { when } from "lit/directives/when.js";
-import { hexaToRGBA } from "../../deps.ts";
-import { X_PLAOC_QUERY } from "../server/const.ts";
-import { createStreamIpc, EMULATOR, fetchResponse } from "./helper.ts";
 
 const TAG = "multi-webview-comp-status-bar";
 
@@ -15,17 +12,13 @@ export class MultiWebviewCompStatusBar extends LitElement {
   @property({ type: String }) _style = "DEFAULT";
   @property({ type: Boolean }) _overlay = false;
   @property({ type: Boolean }) _visible = true;
-  @property({ type: String }) _height = "38px";
   @property({ type: Object }) _insets = {
-    top: this._height,
+    top: 0,
     right: 0,
     bottom: 0,
     left: 0,
   };
   @property({ type: Boolean }) _torchIsOpen = false;
-  @property() _webview_src =
-    new URL(location.href).searchParams.get(X_PLAOC_QUERY.API_INTERNAL_URL) ??
-    "";
 
   static override styles = createAllCSS();
 
@@ -54,31 +47,16 @@ export class MultiWebviewCompStatusBar extends LitElement {
   }
 
   protected override updated(
-    // deno-lint-ignore no-explicit-any
-    _changedProperties: PropertyValueMap<any> | Map<PropertyKey, unknown>
-  ): void {
-    const attributeProperties = Array.from(_changedProperties.keys());
-    fetch(
-      // 数据格式 api.browser.dweb-443.localhost:22605
-      new URL(`${EMULATOR}/status_bar_state_change`, this._webview_src),
-      {
-        body: JSON.stringify({
-          color: hexaToRGBA(this._color),
-          style: this._style,
-          overlay: this._overlay,
-          visible: this._visible,
-          insets: this._insets,
-        }),
-      }
-    );
-
+    changedProperties: PropertyValueMap<MultiWebviewCompStatusBar>
+  ) {
     // 在影响 safe-area 的情况下 需要报消息发送给 safe-area 模块
     if (
-      attributeProperties.includes("_visible") ||
-      attributeProperties.includes("_overlay")
+      changedProperties.has("_visible") ||
+      changedProperties.has("_overlay")
     ) {
       this.dispatchEvent(new Event("safe_area_need_update"));
     }
+    super.updated(changedProperties);
   }
 
   setHostStyle() {
@@ -87,24 +65,25 @@ export class MultiWebviewCompStatusBar extends LitElement {
     host.style.overflow = this._visible ? "visible" : "hidden";
   }
 
-  protected override render(): unknown {
+  protected override render() {
     this.setHostStyle();
     const backgroundStyleMap = this.createBackgroundStyleMap();
     const containerStyleMap = this.createContainerStyleMap();
     return html`
-      <div class="comp-container">
+      <div
+        class="comp-container"
+        style=${styleMap({ height: this._insets.top + "px" })}
+      >
         <div class="background" style=${styleMap(backgroundStyleMap)}></div>
         <div class="container" style=${styleMap(containerStyleMap)}>
           ${when(
             this._visible,
-            () => html`<div class="left_container">10:00</div>`,
-            () => html``
+            () => html`<div class="left_container">10:00</div>`
           )}
           <div class="center_container">
             ${when(
               this._torchIsOpen,
-              () => html`<div class="torch_symbol"></div>`,
-              () => html``
+              () => html`<div class="torch_symbol"></div>`
             )}
           </div>
           ${when(
@@ -172,89 +151,45 @@ export class MultiWebviewCompStatusBar extends LitElement {
                   ></path>
                 </svg>
               </div>
-            `,
-            () => html``
+            `
           )}
         </div>
       </div>
     `;
   }
-  async connectedCallback() {
-    const ipc = await createStreamIpc("status-bar.nativeui.browser.dweb");
-    ipc.onFetch(async (event) => {
-      const { pathname, search } = event.url;
-      console.log("pathname=>", pathname, search);
-      const response = router(pathname);
-      return response;
-    });
-  }
-}
-
-function router(pathname: string) {
-  // 获取状态栏状态
-  if (pathname.endsWith("/getState")) {
-    return Response.json("");
-  }
-  // 开始订阅数据
-  if (pathname.endsWith("/startObserve")) {
-    return Response.json("");
-  }
-  // 开始订阅数据
-  if (pathname.endsWith("/startObserve")) {
-    return Response.json("");
-  }
-  // 开始订阅数据
-  if (pathname.endsWith("/startObserve")) {
-    return Response.json("");
-  }
-  return fetchResponse.FORBIDDEN();
 }
 
 function createAllCSS() {
   return [
     css`
       :host {
-        z-index: 999999999;
-        flex-grow: 0;
-        flex-shrink: 0;
-        width: 100%;
-        height: 38px;
+        display: block;
         -webkit-app-region: drag;
         -webkit-user-select: none;
       }
 
       .comp-container {
-        --height: 48px;
         --cell-width: 80px;
-        position: relative;
-        width: 100%;
-        height: 100%;
+
+        display: grid;
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr;
+        gap: 0px 0px;
+        grid-template-areas: "view";
       }
 
-      // html{
-      //   width:100%;
-      //   height: var(--height);
-      //   overflow: hidden;
-      // }
-
       .background {
-        position: absolute;
-        left: 0px;
-        top: 0px;
-        width: 100%;
-        height: 100%;
+        grid-area: view;
+
         background: #ffffffff;
       }
 
       .container {
-        position: absolute;
-        left: 0px;
-        top: 0px;
+        grid-area: view;
+
         display: flex;
         justify-content: center;
         align-items: center;
-        width: 100%;
-        height: 100%;
       }
 
       .container-light {

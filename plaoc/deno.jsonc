@@ -20,7 +20,8 @@
   "compilerOptions": {
     "allowJs": false,
     "strict": true,
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    "noImplicitOverride": true
   },
   "lint": {
     "rules": {

@@ -71,7 +71,7 @@ export function normalizeArgaToColor(
         .map((v) => (v & 255).toString(16).padStart(2, "0"))
         .join("")
         .toUpperCase();
-    if (hex.endsWith("ff")) {
+    if (hex.endsWith("FF")) {
       return hex.slice(0, -2);
     }
     return hex;

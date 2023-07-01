@@ -1,9 +1,6 @@
 import { css, html, LitElement, PropertyValueMap } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { styleMap } from "lit/directives/style-map.js";
-import { hexaToRGBA } from "../../deps.ts";
-import { X_PLAOC_QUERY } from "../server/const.ts";
-import { EMULATOR } from "./helper.ts";
 
 const TAG = "multi-webview-comp-navigation-bar";
 
@@ -21,9 +18,6 @@ export class MultiWebviewCompNavigationBar extends LitElement {
     bottom: 20,
     left: 0,
   };
-  @property() _webview_src =
-    new URL(location.href).searchParams.get(X_PLAOC_QUERY.API_INTERNAL_URL) ??
-    "";
 
   protected override updated(
     // deno-lint-ignore no-explicit-any
@@ -31,20 +25,6 @@ export class MultiWebviewCompNavigationBar extends LitElement {
   ): void {
     const attributes = Array.from(_changedProperties.keys());
     // 数据格式 api.browser.dweb-443.localhost:22605
-    const url = new URL(
-      `${EMULATOR}/navigation_bar_state_change`,
-      this._webview_src
-    );
-    fetch(url, {
-      method: "POST",
-      body: JSON.stringify({
-        color: hexaToRGBA(this._color),
-        style: this._style,
-        overlay: this._overlay,
-        visible: this._visible,
-        insets: this._insets,
-      }),
-    });
     // 在影响 safe-area 的情况下 需要报消息发送给 safe-area 模块
     if (attributes.includes("_visible") || attributes.includes("_overlay")) {
       this.dispatchEvent(new Event("safe_area_need_update"));
