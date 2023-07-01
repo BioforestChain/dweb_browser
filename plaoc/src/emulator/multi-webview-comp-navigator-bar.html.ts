@@ -22,7 +22,8 @@ export class MultiWebviewCompNavigationBar extends LitElement {
     left: 0,
   };
   @property() _webview_src =
-    new URL(location.href).searchParams.get(X_PLAOC_QUERY.INTERNAL_URL) ?? "";
+    new URL(location.href).searchParams.get(X_PLAOC_QUERY.API_INTERNAL_URL) ??
+    "";
 
   protected override updated(
     // deno-lint-ignore no-explicit-any

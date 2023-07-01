@@ -4,7 +4,7 @@
     "mainExports": ".",
     "buildToRootDir": "./build/client",
     "name": "@dweb-browser/plaoc",
-    "version": "0.0.8",
+    "version": "0.0.9",
     "lib": [
       "es2021",
       "dom"

@@ -88,15 +88,16 @@ export const main = async () => {
     const indexUrl = wwwStartResult.urlInfo.buildInternalUrl((url) => {
       url.pathname = "/index.html";
       url.searchParams.set(
-        X_PLAOC_QUERY.INTERNAL_URL,
+        X_PLAOC_QUERY.API_INTERNAL_URL,
         apiStartResult.urlInfo.buildInternalUrl().href
       );
       url.searchParams.set(
-        X_PLAOC_QUERY.PUBLIC_URL,
+        X_PLAOC_QUERY.API_PUBLIC_URL,
         apiStartResult.urlInfo.buildPublicUrl().href
       );
       url.searchParams.set(X_PLAOC_QUERY.EXTERNAL_URL, externalServer.token);
     });
+    console.log("open in browser:", indexUrl.href);
     indexUrlPo.resolve(indexUrl.href);
   }
   //#endregion

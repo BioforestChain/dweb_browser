@@ -6,6 +6,7 @@ import {
   IpcResponse,
   jsProcess,
 } from "./deps.ts";
+import { emulatorDuplexs } from "./http-api-server.(dev).ts";
 import { cros } from "./http-helper.ts";
 import { Server_www as _Server_www } from "./http-www-server.ts";
 
@@ -40,6 +41,36 @@ export class Server_www extends _Server_www {
           url.search = request.parsed_url.search;
         }
       );
+      const sessionId = indexUrl.searchParams.get(X_PLAOC_QUERY.SESSION_ID);
+      if (sessionId === null || emulatorDuplexs.has(sessionId)) {
+        const newSessionId = crypto.randomUUID();
+        const updateUrlWithSessionId = (url: URL) => {
+          url.searchParams.set(X_PLAOC_QUERY.SESSION_ID, newSessionId);
+          return url;
+        };
+        updateUrlWithSessionId(indexUrl);
+        indexUrl.searchParams.set(
+          X_PLAOC_QUERY.API_INTERNAL_URL,
+          updateUrlWithSessionId(
+            new URL(indexUrl.searchParams.get(X_PLAOC_QUERY.API_INTERNAL_URL)!)
+          ).href
+        );
+        indexUrl.searchParams.set(
+          X_PLAOC_QUERY.API_PUBLIC_URL,
+          updateUrlWithSessionId(
+            new URL(indexUrl.searchParams.get(X_PLAOC_QUERY.API_PUBLIC_URL)!)
+          ).href
+        );
+        return IpcResponse.fromText(
+          request.req_id,
+          301,
+          new IpcHeaders().init("Location", indexUrl.href),
+          "",
+          ipc
+        );
+      }
+
+      /// 给iframe用的url，需要删除模拟器标识
       indexUrl.searchParams.delete(X_PLAOC_QUERY.EMULATOR);
       return IpcResponse.fromText(
         request.req_id,
@@ -91,9 +122,11 @@ export class Server_www extends _Server_www {
         xPlaocProxy = new URL(xReferer).searchParams.get(X_PLAOC_QUERY.PROXY);
       }
     }
+    /// 启用文件模式
     if (xPlaocProxy === null) {
       return super._provider(request, ipc);
     }
+    /// 启用跳转模式
 
     const remoteIpcResponse = await fetch(
       new URL(request.parsed_url.pathname, xPlaocProxy)

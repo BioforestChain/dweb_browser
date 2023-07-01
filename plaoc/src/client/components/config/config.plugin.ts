@@ -11,8 +11,8 @@ export class ConfigPlugin extends BasePlugin {
   }
   initConfig(href = location.href) {
     const searchParams = new URL(href).searchParams;
-    const internalUrl = searchParams.get(X_PLAOC_QUERY.INTERNAL_URL);
-    const publicUrl = searchParams.get(X_PLAOC_QUERY.PUBLIC_URL);
+    const internalUrl = searchParams.get(X_PLAOC_QUERY.API_INTERNAL_URL);
+    const publicUrl = searchParams.get(X_PLAOC_QUERY.API_PUBLIC_URL);
 
     publicUrl && this.setPublicUrl(publicUrl);
     internalUrl && this.setInternalUrl(internalUrl);

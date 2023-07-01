@@ -1,8 +1,6 @@
 export { streamRead } from "../client/helper/readableStreamHelper.ts";
 import { $MMID, IPC_ROLE, ReadableStreamIpc } from "../../deps.ts";
 import { streamRead } from "../client/helper/readableStreamHelper.ts";
-import { buildRequest, toRequest } from "../client/helper/request.ts";
-import { IpcRequest } from "../client/index.ts";
 import { X_PLAOC_QUERY } from "../server/const.ts";
 export const EMULATOR = "/emulator";
 
@@ -21,54 +19,20 @@ export function isCSSStyleDeclaration(
 }
 export type EmulatorAction = "connect" | "response";
 
-class SignalRequest {
-  BASE_URL =
-    new URL(location.href).searchParams.get(X_PLAOC_QUERY.INTERNAL_URL) ?? "";
-  url = new URL(EMULATOR, this.BASE_URL);
+const BASE_URL = new URL(
+  new URLSearchParams(location.search).get(X_PLAOC_QUERY.API_INTERNAL_URL)!
+);
+BASE_URL.pathname = EMULATOR;
 
-  // 回复信息给后端
-  respondWith(
-    reqId: string,
-    response: Blob | ReadableStream<Uint8Array> | string
-  ) {
-    return buildRequest(this.url, {
-      search: {
-        reqId,
-        action: "response",
-      },
-      body: response,
-    });
-  }
+export const fetchResponse = Object.assign(Response, {
+  FORBIDDEN: () => Response.json("Forbidden", { status: 403 }),
+  BAD_REQUEST: () => Response.json("Bad Request", { status: 400 }),
+  INTERNAL_SERVER_ERROR: () =>
+    Response.json("Internal Server Error", { status: 500 }),
+});
 
-  // 建立流通信
-  async *registerConnectStream(mmid: string) {
-    const jsonlines = await buildRequest(this.url, {
-      search: {
-        mmid: mmid,
-        action: "connect",
-      },
-    })
-      .fetch()
-      .jsonlines(this.decodeIpcRequest);
-
-    for await (const request of streamRead(jsonlines)) {
-      yield request;
-    }
-  }
-
-  // 转换ipcRequest对象
-  decodeIpcRequest(ipcRequest: IpcRequest) {
-    return new EmulatorRequest(ipcRequest.req_id, toRequest(ipcRequest));
-  }
-}
-
-export const signalRequest = new SignalRequest();
-
-export class EmulatorRequest {
-  constructor(readonly req_id: string, readonly request: Request) {}
-}
-
-export const createStreamIpc = async (apiUrl: string, mmid: $MMID) => {
+// 回复信息给后端
+export const createStreamIpc = async (mmid: $MMID, apiUrl = BASE_URL) => {
   const csUrl = new URL(apiUrl);
   {
     csUrl.searchParams.set("type", "client2server");
@@ -92,9 +56,18 @@ export const createStreamIpc = async (apiUrl: string, mmid: $MMID) => {
     },
     IPC_ROLE.CLIENT
   );
-  const scRes = await fetch(scUrl, { method: "POST", body: streamIpc.stream });
-  const csRes = await fetch(csUrl);
-  streamIpc.bindIncomeStream(csRes.body!);
+  (async () => {
+    for await (const chunk of streamRead(streamIpc.stream)) {
+      console.log("chunk", chunk);
+      await fetch(csUrl, {
+        method: "POST",
+        body: chunk,
+      });
+    }
+  })();
+
+  const scRes = await fetch(scUrl);
+  streamIpc.bindIncomeStream(scRes.body!);
 
   return streamIpc;
 };

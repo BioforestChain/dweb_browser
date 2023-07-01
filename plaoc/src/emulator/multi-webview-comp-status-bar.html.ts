@@ -5,7 +5,7 @@ import { styleMap } from "lit/directives/style-map.js";
 import { when } from "lit/directives/when.js";
 import { hexaToRGBA } from "../../deps.ts";
 import { X_PLAOC_QUERY } from "../server/const.ts";
-import { EMULATOR, signalRequest } from "./helper.ts";
+import { createStreamIpc, EMULATOR, fetchResponse } from "./helper.ts";
 
 const TAG = "multi-webview-comp-status-bar";
 
@@ -24,7 +24,8 @@ export class MultiWebviewCompStatusBar extends LitElement {
   };
   @property({ type: Boolean }) _torchIsOpen = false;
   @property() _webview_src =
-    new URL(location.href).searchParams.get(X_PLAOC_QUERY.INTERNAL_URL) ?? "";
+    new URL(location.href).searchParams.get(X_PLAOC_QUERY.API_INTERNAL_URL) ??
+    "";
 
   static override styles = createAllCSS();
 
@@ -179,25 +180,34 @@ export class MultiWebviewCompStatusBar extends LitElement {
     `;
   }
   async connectedCallback() {
-    for await (const signal of signalRequest.registerConnectStream(
-      "status-bar.nativeui.browser.dweb"
-    )) {
-      console.log("registerFetch", signal);
-      const url = new URL(signal.request.url);
-      // 处理路由
-      const response = router(url.pathname);
-      // 回复消息
-      signalRequest.respondWith(signal.req_id, response);
-    }
+    const ipc = await createStreamIpc("status-bar.nativeui.browser.dweb");
+    ipc.onFetch(async (event) => {
+      const { pathname, search } = event.url;
+      console.log("pathname=>", pathname, search);
+      const response = router(pathname);
+      return response;
+    });
   }
 }
 
 function router(pathname: string) {
-  if (pathname.endsWith("/startObserve")) {
-    return "";
+  // 获取状态栏状态
+  if (pathname.endsWith("/getState")) {
+    return Response.json("");
   }
-
-  return "404";
+  // 开始订阅数据
+  if (pathname.endsWith("/startObserve")) {
+    return Response.json("");
+  }
+  // 开始订阅数据
+  if (pathname.endsWith("/startObserve")) {
+    return Response.json("");
+  }
+  // 开始订阅数据
+  if (pathname.endsWith("/startObserve")) {
+    return Response.json("");
+  }
+  return fetchResponse.FORBIDDEN();
 }
 
 function createAllCSS() {

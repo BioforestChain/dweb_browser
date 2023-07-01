@@ -37,7 +37,7 @@ class StatusBarNMM : NativeMicroModule("status-bar.nativeui.browser.dweb") {
                 return@defineHandler getController(ipc.remote.mmid).observer.startObserve(ipc)
             },
             /**
-             * 开始数据订阅
+             * 结束数据订阅
              */
             "/stopObserve" bind Method.GET to defineHandler { _, ipc ->
                 return@defineHandler getController(ipc.remote.mmid).observer.stopObserve(ipc)
