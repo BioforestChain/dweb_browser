@@ -12,8 +12,8 @@ export class MultiWebviewCompVirtualKeyboard extends LitElement {
   @property({ type: Boolean }) _visible = false;
   @property({ type: Boolean }) _overlay = false;
   @property({ type: Number }) _navigation_bar_height = 0;
-  timer: unknown = 0;
-  requestId: number = 0;
+  timer = 0;
+  requestId = 0;
   insets = {
     left: 0,
     top: 0,

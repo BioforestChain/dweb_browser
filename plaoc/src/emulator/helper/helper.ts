@@ -1,7 +1,7 @@
-export { streamRead } from "../client/helper/readableStreamHelper.ts";
-import { $MMID, IPC_ROLE, ReadableStreamIpc } from "../../deps.ts";
-import { streamRead } from "../client/helper/readableStreamHelper.ts";
-import { X_PLAOC_QUERY } from "../server/const.ts";
+export { streamRead } from "../../client/helper/readableStreamHelper.ts";
+import { $MMID, IPC_ROLE, ReadableStreamIpc } from "../../../deps.ts";
+import { streamRead } from "../../client/helper/readableStreamHelper.ts";
+import { X_PLAOC_QUERY } from "../../server/const.ts";
 export const EMULATOR = "/emulator";
 
 export function isShadowRoot(o: ShadowRoot | unknown): o is ShadowRoot {
@@ -27,8 +27,8 @@ BASE_URL.pathname = EMULATOR;
 export const fetchResponse = Object.assign(Response, {
   FORBIDDEN: () => Response.json("Forbidden", { status: 403 }),
   BAD_REQUEST: () => Response.json("Bad Request", { status: 400 }),
-  INTERNAL_SERVER_ERROR: () =>
-    Response.json("Internal Server Error", { status: 500 }),
+  INTERNAL_SERVER_ERROR: (message = "Internal Server Error") =>
+    Response.json(message, { status: 500 }),
 });
 
 // 回复信息给后端
@@ -58,7 +58,6 @@ export const createStreamIpc = async (mmid: $MMID, apiUrl = BASE_URL) => {
   );
   (async () => {
     for await (const chunk of streamRead(streamIpc.stream)) {
-      console.log("chunk", chunk);
       await fetch(csUrl, {
         method: "POST",
         body: chunk,

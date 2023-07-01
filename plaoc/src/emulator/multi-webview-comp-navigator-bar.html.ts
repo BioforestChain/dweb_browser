@@ -20,13 +20,13 @@ export class MultiWebviewCompNavigationBar extends LitElement {
   };
 
   protected override updated(
-    // deno-lint-ignore no-explicit-any
-    _changedProperties: PropertyValueMap<any> | Map<PropertyKey, unknown>
-  ): void {
-    const attributes = Array.from(_changedProperties.keys());
-    // 数据格式 api.browser.dweb-443.localhost:22605
+    _changedProperties: PropertyValueMap<MultiWebviewCompNavigationBar>
+  ) {
     // 在影响 safe-area 的情况下 需要报消息发送给 safe-area 模块
-    if (attributes.includes("_visible") || attributes.includes("_overlay")) {
+    if (
+      _changedProperties.has("_visible") ||
+      _changedProperties.has("_overlay")
+    ) {
       this.dispatchEvent(new Event("safe_area_need_update"));
     }
   }

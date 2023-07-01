@@ -205,7 +205,7 @@ export class DnsNMM extends NativeMicroModule {
      * 如果是应用模式，只需要应用程序名，所以从1开始
      */
     const args = process.argv.slice(
-      process.argv.findIndex((arg) => /^\w+$/.test(arg))
+      process.argv.findIndex((arg: string) => /^\w+$/.test(arg))
       // path.parse(process.argv0).name.toLowerCase() === "electron" ? 2 : 1
     );
 
