@@ -24,13 +24,6 @@ const BASE_URL = new URL(
 );
 BASE_URL.pathname = EMULATOR;
 
-export const fetchResponse = Object.assign(Response, {
-  FORBIDDEN: () => Response.json("Forbidden", { status: 403 }),
-  BAD_REQUEST: () => Response.json("Bad Request", { status: 400 }),
-  INTERNAL_SERVER_ERROR: (message = "Internal Server Error") =>
-    Response.json(message, { status: 500 }),
-});
-
 // 回复信息给后端
 export const createStreamIpc = async (mmid: $MMID, apiUrl = BASE_URL) => {
   const csUrl = new URL(apiUrl);

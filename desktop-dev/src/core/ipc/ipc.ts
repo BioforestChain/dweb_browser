@@ -107,7 +107,8 @@ export abstract class Ipc {
   }
 
   onFetch(...handlers: $OnFetch[]) {
-    return this.onRequest(createFetchHandler(handlers));
+    const onRequest = createFetchHandler(handlers);
+    return onRequest.extendsTo(this.onRequest(onRequest));
   }
 
   @cacheGetter()

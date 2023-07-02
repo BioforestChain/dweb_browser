@@ -58,7 +58,11 @@ export class IpcResponse extends IpcMessage<IPC_MESSAGE_TYPE.RESPONSE> {
       throw new Error("body used");
     }
     let ipcBody: IpcBody;
-    if (asBinary || response.body == undefined) {
+    if (
+      asBinary ||
+      response.body == undefined ||
+      parseInt(response.headers.get("Content-Length") || "0") < 16 * 1024 * 1024
+    ) {
       ipcBody = IpcBodySender.fromBinary(
         binaryToU8a(await response.arrayBuffer()),
         ipc

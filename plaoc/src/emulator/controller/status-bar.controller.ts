@@ -1,6 +1,6 @@
-import { colorToHex, hexaToRGBA, parseQuery, z } from "../../../deps.ts";
+import { colorToHex, hexaToRGBA, parseQuery, zq } from "../../../deps.ts";
 import { StateObservable } from "../helper/StateObservable.ts";
-import { createStreamIpc, fetchResponse } from "../helper/helper.ts";
+import { createStreamIpc } from "../helper/helper.ts";
 import { $BAR_STYLE, $BarState } from "../types.ts";
 export class StatusBarController {
   constructor() {
@@ -8,52 +8,40 @@ export class StatusBarController {
   }
   private async _init() {
     const ipc = await createStreamIpc("status-bar.nativeui.browser.dweb");
-    const query_state = z.object({
-      color: z
-        .preprocess(
-          (color) => colorToHex(JSON.parse(String(color))),
-          z.string()
-        )
-        .optional(),
-      style: z.enum(["DARK", "LIGHT", "DEFAULT"]).optional(),
-      overlay: z
-        .string()
-        .transform((overlay) => {
-          return overlay === "true";
-        })
-        .optional(),
-      visible: z
-        .string()
-        .transform((visible) => {
-          return visible === "true";
-        })
-        .optional(),
+    const query_state = zq.object({
+      color: zq.transform((color) => colorToHex(JSON.parse(color))).optional(),
+      style: zq.enum(["DARK", "LIGHT", "DEFAULT"]).optional(),
+      overlay: zq.boolean().optional(),
+      visible: zq.boolean().optional(),
     });
 
-    ipc.onFetch(async (event) => {
-      const { pathname, searchParams } = event;
-      // 获取状态栏状态
-      if (pathname.endsWith("/getState")) {
-        const state = await this.statusBarGetState();
-        return Response.json(state);
-      }
-      if (pathname.endsWith("/setState")) {
-        const states = parseQuery(searchParams, query_state);
-        this.statusBarSetState(states);
-        return Response.json(true);
-      }
-      // 开始订阅数据
-      if (pathname.endsWith("/startObserve")) {
-        this.observer.startObserve(ipc);
-        return Response.json(true);
-      }
-      // 结束订阅数据
-      if (pathname.endsWith("/stopObserve")) {
-        this.observer.startObserve(ipc);
-        return Response.json("");
-      }
-      return fetchResponse.FORBIDDEN();
-    });
+    ipc
+      .onFetch((event) => {
+        const { pathname, searchParams, ipc } = event;
+        // 获取状态栏状态
+        if (pathname.endsWith("/getState")) {
+          const state = this.statusBarGetState();
+          console.log(state);
+          return Response.json(state);
+        }
+        if (pathname.endsWith("/setState")) {
+          const states = parseQuery(searchParams, query_state);
+          this.statusBarSetState(states);
+          return Response.json(null);
+        }
+        // 开始订阅数据
+        if (pathname.endsWith("/startObserve")) {
+          this.observer.startObserve(ipc);
+          return Response.json(true);
+        }
+        // 结束订阅数据
+        if (pathname.endsWith("/stopObserve")) {
+          this.observer.startObserve(ipc);
+          return Response.json("");
+        }
+      })
+      .cros()
+      .noFound();
   }
 
   observer = new StateObservable(() => {
@@ -124,7 +112,7 @@ export class StatusBarController {
     this.emitUpdate();
   }
 
-  async statusBarGetState() {
+  statusBarGetState() {
     return {
       ...this.state,
       color: hexaToRGBA(this.state.color),

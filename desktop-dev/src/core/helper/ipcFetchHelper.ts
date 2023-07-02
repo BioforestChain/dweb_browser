@@ -9,36 +9,142 @@ import {
 import { $bodyInitToIpcBodyArgs } from "./ipcRequestHelper.ts";
 import { $PromiseMaybe } from "./types.ts";
 
-export type $OnFetch = (
-  request: FetchEvent
-) => $PromiseMaybe<Response | IpcResponse | $FetchResponse | void>;
+export type $OnFetchReturn = Response | IpcResponse | $FetchResponse | void;
 
 /**
- * 对即将要进行的响应内容，作出最后的处理
- *
- *
- * 调用 next，可以得到后来者对response对象的处理完毕的内容
- * 如果不调用，就不会
+ * fetch 处理函数
+ * 如果标记成 中间件 模式，那么该函数会执行之前函数
  */
-export type $BeforeResponse = (
-  respose: IpcResponse | undefined,
-  next: $BeforeResponse
-) => $PromiseMaybe<IpcResponse | void>;
+export type $OnFetch = (event: FetchEvent) => $PromiseMaybe<$OnFetchReturn>;
+
+export type $OnFetchMid = (
+  respose: IpcResponse,
+  event: FetchEvent
+) => $PromiseMaybe<$OnFetchReturn>;
+/**
+ * 对即将要进行的响应内容，作出额外的处理
+ */
+export const fetchMid = (handler: $OnFetchMid) =>
+  Object.assign(handler, { [FETCH_MID_SYMBOL]: true } as const);
+export const FETCH_MID_SYMBOL = Symbol("fetch.middleware");
+
+export type $OnFetchEnd = (
+  event: FetchEvent,
+  respose: IpcResponse | undefined
+) => $PromiseMaybe<$OnFetchReturn>;
+/**
+ * 对即将要进行的响应内容，做出最后的处理
+ *
+ * 如果没有返回值，那么就不会执行 ipc.postMessage
+ */
+export const fetchEnd = (handler: $OnFetchEnd) =>
+  Object.assign(handler, { [FETCH_END_SYMBOL]: true } as const);
+export const FETCH_END_SYMBOL = Symbol("fetch.end");
+
+/**
+ * 目前对于响应，有三种角色
+ *
+ * 响应器：在前面没有做出响应内容的情况下，会执行响应器来获取响应内容
+ * 中间件：在前面拥有响应内容的情况下，基于已有的响应内容，做出修改原有的响应内容 或者 替换新的响应内容
+ * 终止符：不论前面有无响应内容，都会执行它，它既可以像响应器和中间件一样去创建响应内容，也可以取消内容。（如果取消，那么后面的响应器就会恢复运作，继续做出响应。所以你可以用它来切分组合你的响应流）
+ */
+export type $AnyFetchHanlder =
+  | $OnFetch
+  | ReturnType<typeof fetchMid>
+  | ReturnType<typeof fetchEnd>;
+
+const $throw = (err: Error) => {
+  throw err;
+};
+
+export const fetchHanlderFactory = {
+  Cros: (
+    config: { origin?: string; headers?: string; methods?: string } = {}
+  ) =>
+    fetchMid((res) => {
+      res.headers.init("Access-Control-Allow-Origin", config.origin ?? "*");
+      res.headers.init("Access-Control-Allow-Headers", config.headers ?? "*");
+      res.headers.init("Access-Control-Allow-Methods", config.methods ?? "*");
+      return res;
+    }),
+  NoFound: () =>
+    fetchEnd(
+      (event, res) => res ?? $throw(new FetchError("No Found", { status: 404 }))
+    ),
+
+  Forbidden: () =>
+    fetchEnd(
+      (event, res) =>
+        res ?? $throw(new FetchError("Forbidden", { status: 403 }))
+    ),
+  BadRequest: () =>
+    fetchEnd(
+      (event, res) =>
+        res ?? $throw(new FetchError("Bad Request", { status: 400 }))
+    ),
+  InternalServerError: (message = "Internal Server Error") =>
+    fetchEnd(
+      (event, res) => res ?? $throw(new FetchError(message, { status: 500 }))
+    ),
+} satisfies Record<string, (...args: any[]) => $AnyFetchHanlder>;
 /**
  * 一个通用的 ipcRequest 处理器
  * 开发不需要面对 ipcRequest，而是面对 web 标准的 Request、Response 即可
  */
-export const createFetchHandler = (
-  onFetchs: Iterable<$OnFetch>,
-  beforeResponses: Iterable<$BeforeResponse> = []
-) => {
-  return (async (request, ipc) => {
+export const createFetchHandler = (onFetchs: Iterable<$OnFetch>) => {
+  const onFetchHanlders: $AnyFetchHanlder[] = [...onFetchs];
+
+  const extendsTo = <T extends {}>(_to: T) => {
+    const wrapFactory = <T extends (...args: any[]) => $AnyFetchHanlder>(
+      factory: T
+    ) => {
+      return (...args: Parameters<T>) => {
+        onFetchHanlders.push(factory(...args));
+        return to;
+      };
+    };
+
+    const EXT = {
+      or: (handler: $OnFetch) => {
+        onFetchHanlders.push(handler);
+        return to;
+      },
+      mid: (handler: $OnFetchMid) => {
+        onFetchHanlders.push(fetchMid(handler));
+        return to;
+      },
+      end: (handler: $OnFetchEnd) => {
+        onFetchHanlders.push(fetchEnd(handler));
+        return to;
+      },
+      cros: wrapFactory(fetchHanlderFactory.Cros),
+      noFound: wrapFactory(fetchHanlderFactory.NoFound),
+      forbidden: wrapFactory(fetchHanlderFactory.Forbidden),
+      badRequest: wrapFactory(fetchHanlderFactory.BadRequest),
+      internalServerError: wrapFactory(fetchHanlderFactory.InternalServerError),
+      extendsTo,
+    };
+    const to = _to as unknown as typeof EXT & T;
+    Object.assign(to, EXT);
+    return to;
+  };
+
+  const onRequest = (async (request, ipc) => {
     const event = new FetchEvent(request, ipc);
     let res: IpcResponse | undefined;
 
-    for (const onFetch of onFetchs) {
+    for (const handler of onFetchHanlders) {
       try {
-        const result = await onFetch(event);
+        let result: $OnFetchReturn;
+        if (FETCH_MID_SYMBOL in handler) {
+          if (res !== undefined) {
+            result = await handler(res, event);
+          }
+        } else if (FETCH_END_SYMBOL in handler) {
+          result = await handler(event, res);
+        } else {
+          result = await handler(event);
+        }
         if (result instanceof IpcResponse) {
           res = result;
         } else if (result instanceof Response) {
@@ -108,13 +214,15 @@ export const createFetchHandler = (
         }
       }
 
-      /// 返回
+      /// 发送
       if (res) {
         ipc.postMessage(res);
         return res;
       }
     }
   }) satisfies $OnIpcRequestMessage;
+
+  return extendsTo(onRequest);
 };
 
 export interface $FetchResponse extends ResponseInit {
@@ -198,11 +306,11 @@ export class FetchEvent {
 export class FetchError extends Error {
   constructor(message: string, options?: $FetchErrorOptions) {
     super(message, options);
-    this.code = options?.code ?? 500;
+    this.code = options?.status ?? 500;
   }
   readonly code: number;
 }
 export interface $FetchErrorOptions {
-  code?: number;
+  status?: number;
   cause?: unknown;
 }

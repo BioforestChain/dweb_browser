@@ -38,7 +38,7 @@ export abstract class NativeMicroModule extends MicroModule {
   readonly dweb_deeplinks: $DWEB_DEEPLINK[] = [];
   abstract override mmid: $MMID;
 
-  private _commmon_ipc_on_message_hanlders =
+  private _commmon_ipc_on_message_handlers =
     new Set<$RequestCustomHanlderSchema>();
   private _inited_commmon_ipc_on_message = false;
   private _initCommmonIpcOnMessage() {
@@ -53,12 +53,12 @@ export abstract class NativeMicroModule extends MicroModule {
         let response: IpcResponse | undefined;
         // 添加了一个判断 如果没有注册匹配请求的监听器会有信息弹出到 终端;
         let has = false;
-        for (const hanlder_schema of this._commmon_ipc_on_message_hanlders) {
-          if ($isMatchReq(hanlder_schema, pathname, request.method, protocol)) {
+        for (const handler_schema of this._commmon_ipc_on_message_handlers) {
+          if ($isMatchReq(handler_schema, pathname, request.method, protocol)) {
             has = true;
             try {
-              const result = await hanlder_schema.handler(
-                hanlder_schema.input(request),
+              const result = await handler_schema.handler(
+                handler_schema.input(request),
                 client_ipc,
                 request
               );
@@ -66,7 +66,7 @@ export abstract class NativeMicroModule extends MicroModule {
               if (result instanceof IpcResponse) {
                 response = result;
               } else if (result !== null && result !== undefined) {
-                response = await hanlder_schema.output(
+                response = await handler_schema.output(
                   request,
                   result,
                   client_ipc
@@ -97,7 +97,7 @@ export abstract class NativeMicroModule extends MicroModule {
           //   request.req_id,
           //   404,
           //   undefined,
-          //   `no found hanlder for '${pathname}'`,
+          //   `no found handler for '${pathname}'`,
           //   client_ipc
           // );
           return;
@@ -109,18 +109,18 @@ export abstract class NativeMicroModule extends MicroModule {
   protected registerCommonIpcOnMessageHandler<
     I extends $Schema1,
     O extends $Schema2
-  >(common_hanlder_schema: $RequestCommonHanlderSchema<I, O>) {
+  >(common_handler_schema: $RequestCommonHanlderSchema<I, O>) {
     this._initCommmonIpcOnMessage();
-    const hanlders = this._commmon_ipc_on_message_hanlders;
+    const handlers = this._commmon_ipc_on_message_handlers;
     // deno-lint-ignore no-explicit-any
     const custom_handler_schema: $RequestCustomHanlderSchema<any, any> = {
-      ...common_hanlder_schema,
-      input: $deserializeRequestToParams(common_hanlder_schema.input),
-      output: $serializeResultToResponse(common_hanlder_schema.output),
+      ...common_handler_schema,
+      input: $deserializeRequestToParams(common_handler_schema.input),
+      output: $serializeResultToResponse(common_handler_schema.output),
     };
     /// 初始化
-    hanlders.add(custom_handler_schema);
-    return () => hanlders.delete(custom_handler_schema);
+    handlers.add(custom_handler_schema);
+    return () => handlers.delete(custom_handler_schema);
   }
 
   protected onFetch(...handlers: $OnFetch[]) {
