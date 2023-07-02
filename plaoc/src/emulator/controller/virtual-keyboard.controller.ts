@@ -1,6 +1,6 @@
-import { parseQuery, z } from "../../../deps.ts";
+import { parseQuery, z, zq } from "../../../deps.ts";
 import { StateObservable } from "../helper/StateObservable.ts";
-import { createStreamIpc, fetchResponse } from "../helper/helper.ts";
+import { createStreamIpc } from "../helper/helper.ts";
 
 export class VirtualKeyboardController {
   constructor() {
@@ -9,39 +9,35 @@ export class VirtualKeyboardController {
   private async _init() {
     const ipc = await createStreamIpc("navigation-bar.nativeui.browser.dweb");
     const query_state = z.object({
-      overlay: z
-        .string()
-        .transform((overlay) => overlay === "true")
-        .optional(),
-      visible: z
-        .string()
-        .transform((visible) => visible === "true")
-        .optional(),
+      overlay: zq.boolean().optional(),
+      visible: zq.boolean().optional(),
     });
-    ipc.onFetch(async (event) => {
-      const { pathname, searchParams } = event;
-      // 获取状态栏状态
-      if (pathname.endsWith("/getState")) {
-        return Response.json(this.state);
-      }
-      if (pathname.endsWith("/setState")) {
-        const states = parseQuery(searchParams, query_state);
-        this.virtualKeyboardSeVisiable(states.visible);
-        this.virtualKeyboardSetOverlay(states.overlay);
-        return Response.json(true);
-      }
-      // 开始订阅数据
-      if (pathname.endsWith("/startObserve")) {
-        this.observer.startObserve(ipc);
-        return Response.json(true);
-      }
-      // 结束订阅数据
-      if (pathname.endsWith("/stopObserve")) {
-        this.observer.startObserve(ipc);
-        return Response.json("");
-      }
-      return fetchResponse.FORBIDDEN();
-    });
+    ipc
+      .onFetch(async (event) => {
+        const { pathname, searchParams } = event;
+        // 获取状态栏状态
+        if (pathname.endsWith("/getState")) {
+          return Response.json(this.state);
+        }
+        if (pathname.endsWith("/setState")) {
+          const states = parseQuery(searchParams, query_state);
+          this.virtualKeyboardSeVisiable(states.visible);
+          this.virtualKeyboardSetOverlay(states.overlay);
+          return Response.json(true);
+        }
+        // 开始订阅数据
+        if (pathname.endsWith("/startObserve")) {
+          this.observer.startObserve(ipc);
+          return Response.json(true);
+        }
+        // 结束订阅数据
+        if (pathname.endsWith("/stopObserve")) {
+          this.observer.startObserve(ipc);
+          return Response.json("");
+        }
+      })
+      .cros()
+      .forbidden();
   }
   observer = new StateObservable(() => {
     return JSON.stringify(this.state);

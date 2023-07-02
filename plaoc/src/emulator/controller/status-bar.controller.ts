@@ -1,4 +1,4 @@
-import { colorToHex, hexaToRGBA, parseQuery, zq } from "../../../deps.ts";
+import { colorToHex, hexaToRGBA, parseQuery, z, zq } from "../../../deps.ts";
 import { StateObservable } from "../helper/StateObservable.ts";
 import { createStreamIpc } from "../helper/helper.ts";
 import { $BAR_STYLE, $BarState } from "../types.ts";
@@ -8,9 +8,9 @@ export class StatusBarController {
   }
   private async _init() {
     const ipc = await createStreamIpc("status-bar.nativeui.browser.dweb");
-    const query_state = zq.object({
+    const query_state = z.object({
       color: zq.transform((color) => colorToHex(JSON.parse(color))).optional(),
-      style: zq.enum(["DARK", "LIGHT", "DEFAULT"]).optional(),
+      style: z.enum(["DARK", "LIGHT", "DEFAULT"]).optional(),
       overlay: zq.boolean().optional(),
       visible: zq.boolean().optional(),
     });
@@ -41,7 +41,7 @@ export class StatusBarController {
         }
       })
       .cros()
-      .noFound();
+      .forbidden();
   }
 
   observer = new StateObservable(() => {

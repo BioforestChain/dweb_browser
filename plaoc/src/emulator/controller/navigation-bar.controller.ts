@@ -1,6 +1,6 @@
-import { colorToHex, hexaToRGBA, parseQuery, z } from "../../../deps.ts";
+import { colorToHex, hexaToRGBA, parseQuery, z, zq } from "../../../deps.ts";
 import { StateObservable } from "../helper/StateObservable.ts";
-import { createStreamIpc, fetchResponse } from "../helper/helper.ts";
+import { createStreamIpc } from "../helper/helper.ts";
 import { $BAR_STYLE, $BarState } from "../types.ts";
 
 export class NavigationBarController {
@@ -10,44 +10,38 @@ export class NavigationBarController {
   private async _init() {
     const ipc = await createStreamIpc("navigation-bar.nativeui.browser.dweb");
     const query_state = z.object({
-      color: z
-        .string()
-        .transform((color) => colorToHex(JSON.parse(color)))
-        .optional(),
+      color: zq.transform((color) => colorToHex(JSON.parse(color))).optional(),
       style: z.enum(["DARK", "LIGHT", "DEFAULT"]).optional(),
-      overlay: z
-        .string()
-        .transform((overlay) => overlay === "true")
-        .optional(),
-      visible: z
-        .string()
-        .transform((visible) => visible === "true")
-        .optional(),
+      overlay: zq.boolean().optional(),
+      visible: zq.boolean().optional(),
     });
-    ipc.onFetch(async (event) => {
-      const { pathname, searchParams } = event;
-      // 获取状态栏状态
-      if (pathname.endsWith("/getState")) {
-        const state = await this.navigationBarGetState();
-        return Response.json(state);
-      }
-      if (pathname.endsWith("/setState")) {
-        const states = parseQuery(searchParams, query_state);
-        this.navigationBarSetState(states);
-        return Response.json(true);
-      }
-      // 开始订阅数据
-      if (pathname.endsWith("/startObserve")) {
-        this.observer.startObserve(ipc);
-        return Response.json(true);
-      }
-      // 结束订阅数据
-      if (pathname.endsWith("/stopObserve")) {
-        this.observer.startObserve(ipc);
-        return Response.json("");
-      }
-      return fetchResponse.FORBIDDEN();
-    });
+
+    ipc
+      .onFetch(async (event) => {
+        const { pathname, searchParams } = event;
+        // 获取状态栏状态
+        if (pathname.endsWith("/getState")) {
+          const state = await this.navigationBarGetState();
+          return Response.json(state);
+        }
+        if (pathname.endsWith("/setState")) {
+          const states = parseQuery(searchParams, query_state);
+          this.navigationBarSetState(states);
+          return Response.json(true);
+        }
+        // 开始订阅数据
+        if (pathname.endsWith("/startObserve")) {
+          this.observer.startObserve(ipc);
+          return Response.json(true);
+        }
+        // 结束订阅数据
+        if (pathname.endsWith("/stopObserve")) {
+          this.observer.startObserve(ipc);
+          return Response.json("");
+        }
+      })
+      .cros()
+      .forbidden();
   }
   observer = new StateObservable(() => {
     return JSON.stringify(this.state);

@@ -89,8 +89,7 @@ export function parseQuery<T extends ZodRawShape | ZodTypeAny>(
     throw createErrorResponse(options);
   }
 }
-
-export const zq = Object.assign(z, {
+export const zq = {
   string: () => z.string(),
   number: (float = true) =>
     z.string().transform((val, ctx) => {
@@ -109,7 +108,7 @@ export const zq = Object.assign(z, {
   transform: <NewOut>(
     transform: (arg: string, ctx: RefinementCtx) => NewOut | Promise<NewOut>
   ) => z.string().transform(transform),
-});
+};
 
 /**
  * Parse and validate URLSearchParams or a Request. Doesn't throw if validation fails.
