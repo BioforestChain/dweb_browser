@@ -8,6 +8,7 @@ export class NavigationBarController {
     void this._init();
   }
   private async _init() {
+    return;
     const ipc = await createStreamIpc("navigation-bar.nativeui.browser.dweb");
     const query_state = z.object({
       color: zq.transform((color) => colorToHex(JSON.parse(color))).optional(),

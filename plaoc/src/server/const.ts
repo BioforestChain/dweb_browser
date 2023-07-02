@@ -10,3 +10,7 @@ export const enum X_PLAOC_QUERY {
   EXTERNAL_URL = "X-Plaoc-External-Url",
   SESSION_ID = "X-Plaoc-Session-Id",
 }
+export const enum X_EMULATOR_ACTION {
+  CLIENT_2_SERVER = "c2s",
+  SERVER_2_CLIENT = "s2c",
+}

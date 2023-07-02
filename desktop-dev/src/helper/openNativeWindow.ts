@@ -154,7 +154,7 @@ export const createComlinkNativeWindow = async <
     return new NativeWindowExtensions_BaseApi(win) as any as E;
   }
 ) => {
-  const win = await createNativeWindow(new URL("/", url).host, createOptions);
+  const win = await createNativeWindow(new URL(url).host, createOptions);
 
   // 测试使用
   win.webContents.openDevTools();

@@ -1,11 +1,10 @@
-import { X_PLAOC_QUERY } from "./const.ts";
+import { X_EMULATOR_ACTION, X_PLAOC_QUERY } from "./const.ts";
 import {
-  $Ipc,
-  $IpcRequest,
   $IpcResponse,
   $MMID,
+  FetchError,
+  FetchEvent,
   IPC_ROLE,
-  IpcResponse,
   PromiseOut,
   ReadableStreamIpc,
   ReadableStreamOut,
@@ -19,17 +18,15 @@ export class Server_api extends _Server_api {
   readonly responseMap = new Map<number, PromiseOut<$IpcResponse>>();
   readonly jsonlineEnd = simpleEncoder("\n", "utf8");
 
-  protected override async _onApi(request: $IpcRequest, httpServerIpc: $Ipc) {
-    const sessionId = request.parsed_url.searchParams.get(
-      X_PLAOC_QUERY.SESSION_ID
-    );
+  protected override async _onApi(event: FetchEvent) {
+    const sessionId = event.searchParams.get(X_PLAOC_QUERY.SESSION_ID);
     if (!sessionId) {
       throw new Error("no found sessionId");
     }
-    if (request.parsed_url.pathname === EMULATOR_PREFIX) {
-      const type = request.parsed_url.searchParams.get("type");
-      const mmid = request.parsed_url.searchParams.get("mmid") as $MMID;
-      if (type === "server2client") {
+    if (event.pathname === EMULATOR_PREFIX) {
+      const type = event.searchParams.get("type");
+      const mmid = event.searchParams.get("mmid") as $MMID;
+      if (type === X_EMULATOR_ACTION.SERVER_2_CLIENT) {
         const streamIpc = new ReadableStreamIpc(
           {
             mmid: mmid,
@@ -49,34 +46,15 @@ export class Server_api extends _Server_api {
         });
         getConncetdDuplexPo(sessionId, mmid).resolve({ streamIpc, streamOut });
 
-        httpServerIpc.postMessage(
-          IpcResponse.fromStream(
-            request.req_id,
-            200,
-            undefined,
-            streamIpc.stream,
-            httpServerIpc
-          )
-        );
-        return;
-      } else if (type == "client2server") {
+        return { body: streamIpc.stream };
+      } else if (type == X_EMULATOR_ACTION.CLIENT_2_SERVER) {
         const duplex = await getConncetdDuplexPo(sessionId, mmid).promise;
-        duplex.streamOut.controller.enqueue(await request.body.u8a());
-        httpServerIpc.postMessage(
-          IpcResponse.fromText(
-            request.req_id,
-            200,
-            undefined,
-            "",
-            httpServerIpc
-          )
-        );
+        duplex.streamOut.controller.enqueue(await event.typedArray());
+        return { body: "" };
       }
-    } else {
-      super._onApi(request, httpServerIpc, (mmid) =>
-        getConncetdIpc(sessionId, mmid)
-      );
+      throw new FetchError(`invalid type: ${type}`);
     }
+    return super._onApi(event, (mmid) => getConncetdIpc(sessionId, mmid));
   }
 }
 

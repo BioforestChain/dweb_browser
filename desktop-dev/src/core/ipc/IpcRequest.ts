@@ -99,7 +99,8 @@ export class IpcRequest extends IpcMessage<IPC_MESSAGE_TYPE.REQUEST> {
     init: {
       method?: string;
       body?: /* json+text */
-      | string
+      | null
+        | string
         /* base64 */
         | Uint8Array
         /* stream+base64 */

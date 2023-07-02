@@ -2,6 +2,7 @@ import { isBinary } from "../../helper/binaryHelper.ts";
 import {
   $OnIpcRequestMessage,
   Ipc,
+  IpcBody,
   IpcHeaders,
   IpcRequest,
   IpcResponse,
@@ -61,10 +62,20 @@ export const fetchHanlderFactory = {
   Cros: (
     config: { origin?: string; headers?: string; methods?: string } = {}
   ) =>
-    fetchMid((res) => {
-      res.headers.init("Access-Control-Allow-Origin", config.origin ?? "*");
-      res.headers.init("Access-Control-Allow-Headers", config.headers ?? "*");
-      res.headers.init("Access-Control-Allow-Methods", config.methods ?? "*");
+    fetchEnd((event, res) => {
+      if (res === undefined && event.method === "OPTIONS") {
+        res = IpcResponse.fromText(
+          event.ipcRequest.req_id,
+          200,
+          undefined,
+          "",
+          event.ipc
+        );
+      }
+      res?.headers
+        .init("Access-Control-Allow-Origin", config.origin ?? "*")
+        .init("Access-Control-Allow-Headers", config.headers ?? "*")
+        .init("Access-Control-Allow-Methods", config.methods ?? "*");
       return res;
     }),
   NoFound: () =>
@@ -157,27 +168,36 @@ export const createFetchHandler = (onFetchs: Iterable<$OnFetch>) => {
           const req_id = request.req_id;
           const status = result.status ?? 200;
           const headers = new IpcHeaders(result.headers);
-          const body = await $bodyInitToIpcBodyArgs(result.body, (bodyInit) => {
-            /// 尝试使用 JSON 解码
-            if (
-              headers.has("Content-Type") === false ||
-              headers.get("Content-Type")!.startsWith("application/javascript")
-            ) {
-              headers.init(
-                "Content-Type",
-                "application/javascript,charset=utf8"
-              );
-              return JSON.stringify(bodyInit);
+          if (result.body instanceof IpcBody) {
+            res = new IpcResponse(req_id, status, headers, result.body, ipc);
+          } else {
+            const body = await $bodyInitToIpcBodyArgs(
+              result.body,
+              (bodyInit) => {
+                /// 尝试使用 JSON 解码
+                if (
+                  headers.has("Content-Type") === false ||
+                  headers
+                    .get("Content-Type")!
+                    .startsWith("application/javascript")
+                ) {
+                  headers.init(
+                    "Content-Type",
+                    "application/javascript,charset=utf8"
+                  );
+                  return JSON.stringify(bodyInit);
+                }
+                // 否则直接处理成字符串
+                return String(bodyInit);
+              }
+            );
+            if (typeof body === "string") {
+              res = IpcResponse.fromText(req_id, status, headers, body, ipc);
+            } else if (isBinary(body)) {
+              res = IpcResponse.fromBinary(req_id, status, headers, body, ipc);
+            } else if (body instanceof ReadableStream) {
+              res = IpcResponse.fromStream(req_id, status, headers, body, ipc);
             }
-            // 否则直接处理成字符串
-            return String(bodyInit);
-          });
-          if (typeof body === "string") {
-            res = IpcResponse.fromText(req_id, status, headers, body, ipc);
-          } else if (isBinary(body)) {
-            res = IpcResponse.fromBinary(req_id, status, headers, body, ipc);
-          } else if (body instanceof ReadableStream) {
-            res = IpcResponse.fromStream(req_id, status, headers, body, ipc);
           }
         }
       } catch (err) {
@@ -227,7 +247,7 @@ export const createFetchHandler = (onFetchs: Iterable<$OnFetch>) => {
 };
 
 export interface $FetchResponse extends ResponseInit {
-  body: BodyInit;
+  body?: BodyInit | null | IpcBody;
 }
 
 export class FetchEvent {
@@ -237,6 +257,9 @@ export class FetchEvent {
   }
   get pathname() {
     return this.url.pathname;
+  }
+  get search() {
+    return this.url.search;
   }
   get searchParams() {
     return this.url.searchParams;
@@ -263,6 +286,9 @@ export class FetchEvent {
    */
   arrayBuffer() {
     return this.request.arrayBuffer();
+  }
+  async typedArray() {
+    return new Uint8Array(await this.request.arrayBuffer());
   }
   /** Takes a `Response` stream and reads it to completion. It returns a promise
    * that resolves with a `Blob`.
@@ -301,6 +327,9 @@ export class FetchEvent {
   /** Returns the URL of request as a string. */
   get href() {
     return this.url.href;
+  }
+  get req_id() {
+    return this.ipcRequest.req_id;
   }
 }
 

@@ -1,7 +1,7 @@
 import {
   $DwebHttpServerOptions,
-  $Ipc,
-  $IpcRequest,
+  $OnFetchReturn,
+  FetchEvent,
   IpcResponse,
   jsProcess,
 } from "./deps.ts";
@@ -15,11 +15,12 @@ export class Server_www extends HttpServer {
       port: 443,
     };
   }
-  start() {
-    return this._onRequest(this._provider.bind(this));
+  async start() {
+    const serverIpc = await this._listener;
+    return serverIpc.onFetch(this._provider.bind(this)).noFound();
   }
-  protected async _provider(request: $IpcRequest, ipc: $Ipc) {
-    let pathname = request.parsed_url.pathname;
+  protected async _provider(request: FetchEvent): Promise<$OnFetchReturn> {
+    let { pathname } = request;
     if (pathname === "/") {
       pathname = "/index.html";
     }
@@ -37,7 +38,7 @@ export class Server_www extends HttpServer {
       remoteIpcResponse.statusCode,
       cros(remoteIpcResponse.headers),
       remoteIpcResponse.body,
-      ipc
+      request.ipc
     );
     return ipcResponse;
   }

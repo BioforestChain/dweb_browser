@@ -57,9 +57,13 @@ export class PortListener {
    * 接收 nodejs-web 请求
    * 将之转发给 IPC 处理，等待远端处理完成再代理响应回去
    */
-  async hookHttpRequest(req: WebServerRequest, res: WebServerResponse) {
-    const { url = "/", method = "GET" } = req;
-    const parsed_url = parseUrl(url, this.origin);
+  async hookHttpRequest(
+    req: WebServerRequest,
+    res: WebServerResponse,
+    fullReqUrl: string
+  ) {
+    const { method = "GET" } = req;
+    const parsed_url = parseUrl(fullReqUrl, this.origin);
     const hasMatch = this._isBindMatchReq(parsed_url.pathname, method);
     if (hasMatch === undefined) {
       defaultErrorResponse(req, res, 404, "no found");
@@ -121,11 +125,14 @@ export class PortListener {
     }
     // console.log('http/port-listener',`分发消息 http://${req.headers.host}${url}`);
     // 分发消息
-    const http_response_info = await hasMatch.bind.streamIpc.request(url, {
-      method,
-      body: ipc_req_body_stream,
-      headers: req.headers as Record<string, string>,
-    });
+    const http_response_info = await hasMatch.bind.streamIpc.request(
+      fullReqUrl,
+      {
+        method,
+        body: ipc_req_body_stream,
+        headers: req.headers as Record<string, string>,
+      }
+    );
 
     /// 写回 res 对象
     res.statusCode = http_response_info.statusCode;

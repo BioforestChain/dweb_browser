@@ -1,13 +1,6 @@
 import { X_PLAOC_QUERY } from "./const.ts";
-import {
-  $Ipc,
-  $IpcRequest,
-  IpcHeaders,
-  IpcResponse,
-  jsProcess,
-} from "./deps.ts";
+import { $OnFetchReturn, FetchEvent, IpcHeaders, jsProcess } from "./deps.ts";
 import { emulatorDuplexs } from "./http-api-server.(dev).ts";
-import { cros } from "./http-helper.ts";
 import { Server_www as _Server_www } from "./http-www-server.ts";
 
 /**
@@ -24,31 +17,26 @@ export class Server_www extends _Server_www {
     result.urlInfo.buildExtQuerys.set(X_PLAOC_QUERY.EMULATOR, "*");
     return result;
   }
-  override async _provider(request: $IpcRequest, ipc: $Ipc) {
-    const isEnableEmulator = request.parsed_url.searchParams.get(
-      X_PLAOC_QUERY.EMULATOR
-    );
+  override async _provider(request: FetchEvent): Promise<$OnFetchReturn> {
+    const isEnableEmulator = request.searchParams.get(X_PLAOC_QUERY.EMULATOR);
 
     /// 加载模拟器的外部框架
     if (isEnableEmulator !== null) {
       // 返回JS
-      if (request.parsed_url.pathname === "/plaoc.emulator.js") {
+      if (request.pathname === "/plaoc.emulator.js") {
         const emulatorJsResponse = await jsProcess.nativeRequest(
           `file:///usr/server/plaoc.emulator.js`
         );
-        return new IpcResponse(
-          request.req_id,
-          200,
-          emulatorJsResponse.headers,
-          emulatorJsResponse.body,
-          ipc
-        );
+        return {
+          headers: emulatorJsResponse.headers,
+          body: emulatorJsResponse.body,
+        };
       }
 
       const indexUrl = (await super.getStartResult()).urlInfo.buildInternalUrl(
         (url) => {
-          url.pathname = request.parsed_url.pathname;
-          url.search = request.parsed_url.search;
+          url.pathname = request.pathname;
+          url.search = request.search;
         }
       );
 
@@ -73,23 +61,20 @@ export class Server_www extends _Server_www {
             new URL(indexUrl.searchParams.get(X_PLAOC_QUERY.API_PUBLIC_URL)!)
           ).href
         );
-        return IpcResponse.fromText(
-          request.req_id,
-          301,
-          new IpcHeaders().init("Location", indexUrl.href),
-          "",
-          ipc
-        );
+        return {
+          status: 301,
+          headers: {
+            Location: indexUrl.href,
+          },
+        };
       }
 
       /// 给iframe用的url，需要删除模拟器标识
       indexUrl.searchParams.delete(X_PLAOC_QUERY.EMULATOR);
       const html = String.raw;
-      return IpcResponse.fromText(
-        request.req_id,
-        200,
-        new IpcHeaders().init("Content-Type", "text/html"),
-        html`
+      return {
+        headers: new IpcHeaders().init("Content-Type", "text/html"),
+        body: html`
           <!DOCTYPE html>
           <html lang="en">
             <head>
@@ -122,11 +107,10 @@ export class Server_www extends _Server_www {
             </body>
           </html>
         `,
-        ipc
-      );
+      };
     }
 
-    let xPlaocProxy = request.parsed_url.searchParams.get(X_PLAOC_QUERY.PROXY);
+    let xPlaocProxy = request.searchParams.get(X_PLAOC_QUERY.PROXY);
     if (xPlaocProxy === null) {
       const xReferer = request.headers.get("Referer");
       if (xReferer !== null) {
@@ -135,12 +119,11 @@ export class Server_www extends _Server_www {
     }
     /// 启用文件模式
     if (xPlaocProxy === null) {
-      return super._provider(request, ipc);
+      return super._provider(request);
     }
     /// 启用跳转模式
-
     const remoteIpcResponse = await fetch(
-      new URL(request.parsed_url.pathname, xPlaocProxy)
+      new URL(request.pathname, xPlaocProxy)
     );
     const headers = new IpcHeaders(remoteIpcResponse.headers);
     /// 对 html 做强制代理，似的能加入一些特殊的头部信息，确保能正确访问内部的资源
@@ -149,16 +132,17 @@ export class Server_www extends _Server_www {
       headers.init("Access-Control-Allow-Private-Network", "true");
       // 移除在iframe中渲染的限制
       headers.delete("X-Frame-Options");
-      return IpcResponse.fromStream(
-        request.req_id,
-        remoteIpcResponse.status,
+      /// 代理转发
+      return {
+        status: remoteIpcResponse.status,
         headers,
-        remoteIpcResponse.body!,
-        ipc
-      );
+        body: remoteIpcResponse.body,
+      };
     } else {
-      headers.init("location", remoteIpcResponse.url);
-      return IpcResponse.fromText(request.req_id, 301, cros(headers), "", ipc);
+      return {
+        status: 301,
+        headers: headers.init("location", remoteIpcResponse.url),
+      };
     }
   }
 }

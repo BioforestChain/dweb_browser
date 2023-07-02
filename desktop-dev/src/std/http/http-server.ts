@@ -53,7 +53,7 @@ export class HttpServerNMM extends NativeMicroModule {
 
   protected async _bootstrap() {
     // 创建了一个基础的 http 服务器 所有的 http:// 请求会全部会发送到这个地方来处理
-    this._info = await this._dwebServer.create();
+    const info = (this._info = await this._dwebServer.create());
     this._info.server.on("request", (req, res) => {
       res.setHeader("Access-Control-Allow-Origin", "*");
       res.setHeader("Access-Control-Allow-Headers", "*");
@@ -84,8 +84,11 @@ export class HttpServerNMM extends NativeMicroModule {
         //   res.write;
         //   res.hasHeader;
         // }, 3e4 /* 30s 没有任何 body 写入的话，认为网关超时 */);
+        const fullReqUrl =
+          info.protocol.prefix + (req.headers["host"] ?? info.host) + req.url;
+        console.always("fullReqUrl", fullReqUrl);
         // 源代码
-        void gateway.listener.hookHttpRequest(req, res);
+        void gateway.listener.hookHttpRequest(req, res, fullReqUrl);
       }
     });
 

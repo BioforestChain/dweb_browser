@@ -7,7 +7,8 @@ export class VirtualKeyboardController {
     void this._init();
   }
   private async _init() {
-    const ipc = await createStreamIpc("navigation-bar.nativeui.browser.dweb");
+    return;
+    const ipc = await createStreamIpc("virtual-keyboard.nativeui.browser.dweb");
     const query_state = z.object({
       overlay: zq.boolean().optional(),
       visible: zq.boolean().optional(),

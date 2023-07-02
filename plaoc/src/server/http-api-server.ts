@@ -1,15 +1,12 @@
 import {
   $DwebHttpServerOptions,
   $Ipc,
-  $IpcRequest,
-  $IpcResponse,
-  IPC_METHOD,
-  IpcHeaders,
+  $OnFetchReturn,
+  FetchEvent,
   IpcRequest,
-  IpcResponse,
   jsProcess,
 } from "./deps.ts";
-import { cros, HttpServer } from "./http-helper.ts";
+import { HttpServer } from "./http-helper.ts";
 const INTERNAL_PREFIX = "/internal/";
 const DNS_PREFIX = "/dns.sys.dweb/";
 
@@ -21,39 +18,29 @@ export class Server_api extends HttpServer {
       port: 443,
     };
   }
-  start() {
-    return this._onRequest(this._provider.bind(this));
+  async start() {
+    const serverIpc = await this._listener;
+    return serverIpc
+      .onFetch(this._provider.bind(this))
+      .cros()
+      .internalServerError();
   }
 
-  protected async _provider(request: $IpcRequest, ipc: $Ipc) {
-    if (request.method === IPC_METHOD.OPTIONS) {
-      return ipc.postMessage(
-        IpcResponse.fromText(
-          request.req_id,
-          200,
-          cros(new IpcHeaders()),
-          "",
-          ipc
-        )
-      );
-    }
-    const url = request.parsed_url;
+  protected async _provider(event: FetchEvent) {
     // /dns.sys.dweb/
-    if (url.pathname.startsWith(DNS_PREFIX)) {
-      return this._onDns(request, ipc);
+    if (event.pathname.startsWith(DNS_PREFIX)) {
+      return this._onDns(event);
     }
     // /internal/
-    else if (url.pathname.startsWith(INTERNAL_PREFIX)) {
-      return this._onInternal(request, ipc);
+    else if (event.pathname.startsWith(INTERNAL_PREFIX)) {
+      return this._onInternal(event);
     }
     // /*.dweb
-    return this._onApi(request, ipc);
+    return this._onApi(event);
   }
 
-  protected async _onDns(request: $IpcRequest, ipc: $Ipc) {
-    const url = new URL(
-      "file:/" + request.parsed_url.pathname + request.parsed_url.search
-    );
+  protected async _onDns(event: FetchEvent): Promise<$OnFetchReturn> {
+    const url = new URL("file:/" + event.pathname + event.search);
     const pathname = url.pathname;
     const result = async () => {
       if (pathname === "/restart") {
@@ -70,35 +57,18 @@ export class Server_api extends HttpServer {
       return "no action for serviceWorker Factory !!!";
     };
 
-    const ipcResponse = IpcResponse.fromText(
-      request.req_id,
-      200,
-      cros(new IpcHeaders()),
-      await result(),
-      ipc
-    );
-    // 返回数据到前端
-    ipc.postMessage(ipcResponse);
+    return new Response(await result());
   }
 
   /**内部请求事件 */
-  protected async _onInternal(request: $IpcRequest, ipc: $Ipc) {
-    let ipcResponse: undefined | $IpcResponse;
-    const href = request.parsed_url.href.replace(INTERNAL_PREFIX, "/");
+  protected async _onInternal(event: FetchEvent): Promise<$OnFetchReturn> {
+    const href = event.url.href.replace(INTERNAL_PREFIX, "/");
     const url = new URL(href);
     // 转发public url
     if (url.pathname === "/public-url") {
-      const apiServer = await this.getServer();
-      const apiHref = apiServer.startResult.urlInfo.buildPublicUrl(
-        () => {}
-      ).href;
-      ipcResponse = IpcResponse.fromText(
-        request.req_id,
-        200,
-        undefined,
-        apiHref,
-        ipc
-      );
+      const startResult = await this.getStartResult();
+      const apiHref = startResult.urlInfo.buildPublicUrl().href;
+      return new Response(apiHref);
     } // 监听属性
     else if (url.pathname === "/observe") {
       const mmid = url.searchParams.get("mmid") as $MMID;
@@ -106,41 +76,37 @@ export class Server_api extends HttpServer {
         throw new Error("observe require mmid");
       }
       const streamPo = onInternalObserve(mmid);
-      ipcResponse = IpcResponse.fromStream(
-        request.req_id,
-        200,
-        undefined,
-        streamPo.stream,
-        ipc
-      );
+      return new Response(streamPo.stream);
     }
-    if (!ipcResponse) {
-      throw new Error(`unknown gateway: ${url.search}`);
-    }
-    cros(ipcResponse.headers);
-    // 返回数据到前端
-    ipc.postMessage(ipcResponse);
   }
 
   /**
    * request 事件处理器
    */
   protected async _onApi(
-    request: $IpcRequest,
-    httpServerIpc: $Ipc,
+    event: FetchEvent,
     connect = (mmid: $MMID) => jsProcess.connect(mmid)
-  ) {
-    const url = request.parsed_url;
+  ): Promise<$OnFetchReturn> {
+    const { pathname, search } = event;
     // 转发file请求到目标NMM
-    const path = `file:/${url.pathname}${url.search}`;
-    const ipcProxyRequest = new IpcRequest(
-      jsProcess.fetchIpc.allocReqId(),
-      path,
-      request.method,
-      request.headers,
-      request.body,
-      jsProcess.fetchIpc
-    );
+    const path = `file:/${pathname}${search}`;
+    const ipcProxyRequest = event.body
+      ? IpcRequest.fromStream(
+          jsProcess.fetchIpc.allocReqId(),
+          path,
+          event.method,
+          event.headers,
+          event.body,
+          jsProcess.fetchIpc
+        )
+      : IpcRequest.fromText(
+          jsProcess.fetchIpc.allocReqId(),
+          path,
+          event.method,
+          event.headers,
+          "",
+          jsProcess.fetchIpc
+        );
     // 必须要直接向目标对发连接 通过这个 IPC 发送请求
     const targetIpc = await connect(ipcProxyRequest.parsed_url.host as $MMID);
 
@@ -148,17 +114,7 @@ export class Server_api extends HttpServer {
     const ipcProxyResponse = await targetIpc.registerReqId(
       ipcProxyRequest.req_id
     ).promise;
-    const ipcResponse = new IpcResponse(
-      request.req_id,
-      ipcProxyResponse.statusCode,
-      ipcProxyResponse.headers,
-      ipcProxyResponse.body,
-      httpServerIpc
-    );
-
-    cros(ipcResponse.headers);
-    // 返回数据到前端
-    httpServerIpc.postMessage(ipcResponse);
+    return ipcProxyResponse.toResponse();
   }
 }
 

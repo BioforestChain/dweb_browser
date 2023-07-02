@@ -1,7 +1,7 @@
 export { streamRead } from "../../client/helper/readableStreamHelper.ts";
 import { $MMID, IPC_ROLE, ReadableStreamIpc } from "../../../deps.ts";
 import { streamRead } from "../../client/helper/readableStreamHelper.ts";
-import { X_PLAOC_QUERY } from "../../server/const.ts";
+import { X_EMULATOR_ACTION, X_PLAOC_QUERY } from "../../server/const.ts";
 export const EMULATOR = "/emulator";
 
 export function isShadowRoot(o: ShadowRoot | unknown): o is ShadowRoot {
@@ -28,12 +28,12 @@ BASE_URL.pathname = EMULATOR;
 export const createStreamIpc = async (mmid: $MMID, apiUrl = BASE_URL) => {
   const csUrl = new URL(apiUrl);
   {
-    csUrl.searchParams.set("type", "client2server");
+    csUrl.searchParams.set("type", X_EMULATOR_ACTION.CLIENT_2_SERVER);
     csUrl.searchParams.set("mmid", mmid);
   }
   const scUrl = new URL(apiUrl);
   {
-    scUrl.searchParams.set("type", "server2client");
+    scUrl.searchParams.set("type", X_EMULATOR_ACTION.SERVER_2_CLIENT);
     scUrl.searchParams.set("mmid", mmid);
   }
 
@@ -51,7 +51,7 @@ export const createStreamIpc = async (mmid: $MMID, apiUrl = BASE_URL) => {
   );
   (async () => {
     for await (const chunk of streamRead(streamIpc.stream)) {
-      await fetch(csUrl, {
+      void fetch(csUrl, {
         method: "POST",
         body: chunk,
       });

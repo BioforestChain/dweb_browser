@@ -181,7 +181,8 @@ export abstract class Ipc {
     init?: {
       method?: string;
       body?: /* json+text */
-      | string
+      | null
+        | string
         /* base64 */
         | Uint8Array
         /* stream+base64 */
