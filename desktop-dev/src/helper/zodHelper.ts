@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { RefinementCtx, z } from "zod";
 import { $MMID } from "../core/types.ts";
 // const z_mmid = z.string().endsWith(".dweb");
 export const mmidType = z.custom<$MMID>((val) => {
@@ -89,6 +89,27 @@ export function parseQuery<T extends ZodRawShape | ZodTypeAny>(
     throw createErrorResponse(options);
   }
 }
+
+export const zq = Object.assign(z, {
+  string: () => z.string(),
+  number: (float = true) =>
+    z.string().transform((val, ctx) => {
+      const num = float ? parseFloat(val) : parseInt(val);
+      if (isFinite(num)) {
+        return num;
+      }
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `fail to parse ${ctx.path.join(".")} to number`,
+      });
+
+      return z.NEVER;
+    }),
+  boolean: () => z.string().transform((val) => /^true$/i.test(val)),
+  transform: <NewOut>(
+    transform: (arg: string, ctx: RefinementCtx) => NewOut | Promise<NewOut>
+  ) => z.string().transform(transform),
+});
 
 /**
  * Parse and validate URLSearchParams or a Request. Doesn't throw if validation fails.
