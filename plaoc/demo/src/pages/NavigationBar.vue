@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import LogPanel, { toConsole, defineLogAction } from "../components/LogPanel.vue";
-import { HTMLDwebNavigationBarElement, NAVIGATION_BAR_STYLE, $NavigationBarState } from "../plugin";
+import LogPanel, { defineLogAction, toConsole } from "../components/LogPanel.vue";
+import { $NavigationBarState, HTMLDwebNavigationBarElement, NAVIGATION_BAR_STYLE } from "../plugin";
 
 const title = "NavigationBar";
 

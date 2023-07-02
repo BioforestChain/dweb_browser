@@ -69,6 +69,7 @@ export abstract class Ipc {
   }
   abstract readonly role: string;
 
+  // deno-lint-ignore no-explicit-any
   private _createSignal<T extends $Callback<any[]>>(autoStart?: boolean) {
     const signal = createSignal<T>(autoStart);
     this.onClose(() => signal.clear());

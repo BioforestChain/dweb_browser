@@ -58,10 +58,11 @@ export const createStreamIpc = async (mmid: $MMID, apiUrl = BASE_URL) => {
   );
   (async () => {
     for await (const chunk of streamRead(streamIpc.stream)) {
-      await fetch(csUrl, {
-        method: "POST",
-        body: chunk,
-      });
+      console.log("chunk", chunk);
+      // await fetch(csUrl, {
+      //   method: "POST",
+      //   body: chunk,
+      // });
     }
   })();
 

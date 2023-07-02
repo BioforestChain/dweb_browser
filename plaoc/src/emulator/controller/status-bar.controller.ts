@@ -1,6 +1,6 @@
 import { colorToHex, hexaToRGBA, parseQuery, z } from "../../../deps.ts";
 import { StateObservable } from "../helper/StateObservable.ts";
-import { createStreamIpc } from "../helper/helper.ts";
+import { createStreamIpc, fetchResponse } from "../helper/helper.ts";
 import { $BAR_STYLE, $BarState } from "../types.ts";
 export class StatusBarController {
   constructor() {
@@ -31,17 +31,16 @@ export class StatusBarController {
     });
 
     ipc.onFetch(async (event) => {
-      const { pathname, searchParams, ipc } = event;
+      const { pathname, searchParams } = event;
       // 获取状态栏状态
       if (pathname.endsWith("/getState")) {
         const state = await this.statusBarGetState();
-        console.log(state);
         return Response.json(state);
       }
       if (pathname.endsWith("/setState")) {
         const states = parseQuery(searchParams, query_state);
         this.statusBarSetState(states);
-        return Response.json(null);
+        return Response.json(true);
       }
       // 开始订阅数据
       if (pathname.endsWith("/startObserve")) {
@@ -53,7 +52,7 @@ export class StatusBarController {
         this.observer.startObserve(ipc);
         return Response.json("");
       }
-      // return fetchResponse.FORBIDDEN();
+      return fetchResponse.FORBIDDEN();
     });
   }
 

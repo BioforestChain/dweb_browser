@@ -1,7 +1,57 @@
-import { hexaToRGBA } from "../../../deps.ts";
+import { colorToHex, hexaToRGBA, parseQuery, z } from "../../../deps.ts";
+import { StateObservable } from "../helper/StateObservable.ts";
+import { createStreamIpc, fetchResponse } from "../helper/helper.ts";
 import { $BAR_STYLE, $BarState } from "../types.ts";
 
 export class NavigationBarController {
+  constructor() {
+    void this._init();
+  }
+  private async _init() {
+    const ipc = await createStreamIpc("navigation-bar.nativeui.browser.dweb");
+    const query_state = z.object({
+      color: z
+        .string()
+        .transform((color) => colorToHex(JSON.parse(color)))
+        .optional(),
+      style: z.enum(["DARK", "LIGHT", "DEFAULT"]).optional(),
+      overlay: z
+        .string()
+        .transform((overlay) => overlay === "true")
+        .optional(),
+      visible: z
+        .string()
+        .transform((visible) => visible === "true")
+        .optional(),
+    });
+    ipc.onFetch(async (event) => {
+      const { pathname, searchParams } = event;
+      // 获取状态栏状态
+      if (pathname.endsWith("/getState")) {
+        const state = await this.navigationBarGetState();
+        return Response.json(state);
+      }
+      if (pathname.endsWith("/setState")) {
+        const states = parseQuery(searchParams, query_state);
+        this.navigationBarSetState(states);
+        return Response.json(true);
+      }
+      // 开始订阅数据
+      if (pathname.endsWith("/startObserve")) {
+        this.observer.startObserve(ipc);
+        return Response.json(true);
+      }
+      // 结束订阅数据
+      if (pathname.endsWith("/stopObserve")) {
+        this.observer.startObserve(ipc);
+        return Response.json("");
+      }
+      return fetchResponse.FORBIDDEN();
+    });
+  }
+  observer = new StateObservable(() => {
+    return JSON.stringify(this.state);
+  });
   state: $BarState = {
     color: "#FFFFFFFF",
     style: "DEFAULT",
@@ -21,7 +71,17 @@ export class NavigationBarController {
     return this;
   }
   emitUpdate() {
+    console.log("navigaion update=>", this.state);
     this._onUpdate?.();
+  }
+
+  navigationBarSetState(state: Partial<$BarState>) {
+    this.state = {
+      ...this.state,
+      /// 这边这样做的目的是移除undefined值
+      ...JSON.parse(JSON.stringify(state)),
+    };
+    this.emitUpdate();
   }
 
   navigationBarSetStyle(style: $BAR_STYLE) {
@@ -30,7 +90,6 @@ export class NavigationBarController {
       style: style,
     };
     this.emitUpdate();
-    return this;
   }
 
   navigationBarSetBackground(color: string) {
@@ -39,7 +98,6 @@ export class NavigationBarController {
       color: color,
     };
     this.emitUpdate();
-    return this;
   }
 
   navigationBarSetOverlay(overlay: boolean) {
@@ -48,7 +106,6 @@ export class NavigationBarController {
       overlay: overlay,
     };
     this.emitUpdate();
-    return this;
   }
 
   navigationBarSetVisible(visible: boolean) {
@@ -57,7 +114,6 @@ export class NavigationBarController {
       visible: visible,
     };
     this.emitUpdate();
-    return this;
   }
 
   async navigationBarGetState() {
