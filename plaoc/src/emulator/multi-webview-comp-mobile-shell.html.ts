@@ -43,26 +43,6 @@ export class MultiWebViewCompMobileShell extends LitElement {
     const host = (this.renderRoot as ShadowRoot).host as HTMLElement;
   }
 
-  biometricsMock() {
-    const el = document.createElement("multi-webview-comp-biometrics");
-    el.addEventListener("pass", () => {
-      this.dispatchEvent(new Event("biometrices-pass"));
-    });
-    el.addEventListener("no-pass", () => {
-      this.dispatchEvent(new Event("biometrices-no-pass"));
-    });
-    this.appContentContainer?.appendChild(el);
-    console.log("biometrics", el, this.appContentContainer);
-  }
-
-  hapticsMock(text: string) {
-    console.log("hapticsMock", text);
-    const el = document.createElement("multi-webview-comp-haptics");
-    el.setAttribute("text", text);
-
-    this.appContentContainer?.appendChild(el);
-  }
-
   shareShare(options: $ShareOptions) {
     const el = document.createElement("multi-webview-comp-share");
     const ui8 = options.body;

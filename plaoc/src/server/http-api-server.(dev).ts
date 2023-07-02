@@ -49,11 +49,22 @@ export class Server_api extends _Server_api {
         subdomain: sessionId + "." + mmid,
         port: 443,
       });
-      getConncetdDuplexPo(sessionId, mmid).resolve({
-        streamIpc,
-        streamOut,
-        serverPm,
-      });
+      /// force Get
+      mapHelper
+        .getOrPut(
+          mapHelper.getOrPut(
+            emulatorDuplexs,
+            sessionId,
+            () => new Map() as $MmidDuplexMap
+          ),
+          mmid,
+          () => new PromiseOut()
+        )
+        .resolve({
+          streamIpc,
+          streamOut,
+          serverPm,
+        });
 
       const server = await serverPm;
       const serverProxyIpc = await server.listen();
@@ -74,7 +85,10 @@ export class Server_api extends _Server_api {
       /// 返回读写这个stream的链接
       return { body: server.startResult.urlInfo.buildInternalUrl().href };
     }
-    return super._onApi(event, (mmid) => getConncetdIpc(sessionId, mmid));
+    return super._onApi(
+      event,
+      (mmid) => getConncetdIpc(sessionId, mmid) ?? jsProcess.connect(mmid)
+    );
   }
 }
 
@@ -87,18 +101,9 @@ type $MmidDuplexMap = Map<
   }>
 >;
 export const emulatorDuplexs = new Map<string, $MmidDuplexMap>();
-const getConncetdDuplexPo = (sessionId: string, mmid: $MMID) =>
-  mapHelper.getOrPut(
-    mapHelper.getOrPut(
-      emulatorDuplexs,
-      sessionId,
-      () => new Map() as $MmidDuplexMap
-    ),
-    mmid,
-    () => new PromiseOut()
-  );
 
 const getConncetdIpc = (sessionId: string, mmid: $MMID) =>
-  getConncetdDuplexPo(sessionId, mmid).promise.then(
-    (duplex) => duplex.streamIpc
-  );
+  emulatorDuplexs
+    .get(sessionId)
+    ?.get(mmid)
+    ?.promise.then((duplex) => duplex.streamIpc);

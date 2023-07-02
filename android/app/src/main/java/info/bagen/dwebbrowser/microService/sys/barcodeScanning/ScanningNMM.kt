@@ -26,7 +26,7 @@ class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb") {
         apiRouting = routes(
             // 处理二维码图像
             "/process" bind Method.POST to defineHandler { request, ipc ->
-                info.bagen.dwebbrowser.microService.sys.barcodeScanning.debugScanning(
+                debugScanning(
                     "process",
                     " ${query_rotationDegrees(request)} ${request.body.length}"
                 )
@@ -44,7 +44,7 @@ class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb") {
                 process(image).forEach {
                     result.add(String(it.data))
                 }
-                info.bagen.dwebbrowser.microService.sys.barcodeScanning.debugScanning(
+                debugScanning(
                     "process",
                     "result=> $result"
                 )
@@ -64,12 +64,12 @@ class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb") {
 
     class BarcodeResult(val data: ByteArray, val boundingBox: Rect, val cornerPoints: List<Point>)
 
-    private suspend fun process(image: InputImage): List<info.bagen.dwebbrowser.microService.sys.barcodeScanning.ScanningNMM.BarcodeResult> {
+    private suspend fun process(image: InputImage): List<BarcodeResult> {
         val task = PromiseOut<List<BarcodeResult>>()
         BarcodeScanning.getClient().process(image)
             .addOnSuccessListener { barcodes ->
                 task.resolve(barcodes.map {
-                    info.bagen.dwebbrowser.microService.sys.barcodeScanning.ScanningNMM.BarcodeResult(
+                    BarcodeResult(
                         it.rawBytes!!,
                         it.boundingBox!!,
                         it.cornerPoints!!.toList()

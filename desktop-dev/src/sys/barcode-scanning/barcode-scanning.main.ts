@@ -5,7 +5,7 @@ import jsQR from "jsqr";
 import { Buffer } from "node:buffer";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 
-export class BarcodeScanningNativeUiNMM extends NativeMicroModule {
+export class BarcodeScanningNMM extends NativeMicroModule {
   mmid = "barcode-scanning.sys.dweb" as const;
 
   _bootstrap = () => {

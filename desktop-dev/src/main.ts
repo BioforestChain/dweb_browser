@@ -6,7 +6,7 @@ import { MultiWebviewNMM } from "./browser/multi-webview/multi-webview.mobile.ts
 import { setFilter } from "./helper/devtools.ts";
 import { BluetoothNMM } from "./std/bluetooth/bluetooth.main.ts";
 import { HttpServerNMM } from "./std/http/http-server.ts";
-import { BarcodeScanningNativeUiNMM } from "./sys/barcode-scanning/barcode-scanning.main.ts";
+import { BarcodeScanningNMM } from "./sys/barcode-scanning/barcode-scanning.main.ts";
 import { BiometricsNMM } from "./sys/biometrics/biometrics.main.ts";
 import { BootNMM } from "./sys/boot/boot.ts";
 import { DnsNMM } from "./sys/dns/dns.ts";
@@ -70,7 +70,7 @@ dns.install(dwebBrowser);
 // dns.install(new TorchNMM());
 // dns.install(new ShareNMM());
 // dns.install(new HapticsNMM());
-dns.install(new BarcodeScanningNativeUiNMM());
+dns.install(new BarcodeScanningNMM());
 dns.install(new BiometricsNMM());
 dns.install(new BluetoothNMM());
 

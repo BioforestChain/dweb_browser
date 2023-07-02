@@ -1,6 +1,6 @@
 import { colorToHex, hexaToRGBA, parseQuery, z, zq } from "../../../deps.ts";
 import { StateObservable } from "../helper/StateObservable.ts";
-import { createStreamIpc } from "../helper/helper.ts";
+import { createMockModuleServerIpc } from "../helper/helper.ts";
 import { $BAR_STYLE, $BarState } from "../types.ts";
 
 export class NavigationBarController {
@@ -8,7 +8,9 @@ export class NavigationBarController {
     void this._init();
   }
   private async _init() {
-    const ipc = await createStreamIpc("navigation-bar.nativeui.browser.dweb");
+    const ipc = await createMockModuleServerIpc(
+      "navigation-bar.nativeui.browser.dweb"
+    );
     const query_state = z.object({
       color: zq.transform((color) => colorToHex(JSON.parse(color))).optional(),
       style: z.enum(["DARK", "LIGHT", "DEFAULT"]).optional(),
@@ -19,7 +21,7 @@ export class NavigationBarController {
     ipc
       .onFetch(async (event) => {
         const { pathname, searchParams } = event;
-        // 获取状态栏状态
+        // 获取导航栏状态
         if (pathname.endsWith("/getState")) {
           const state = await this.navigationBarGetState();
           return Response.json(state);

@@ -25,7 +25,10 @@ const BASE_URL = new URL(
 BASE_URL.pathname = EMULATOR;
 
 // 回复信息给后端
-export const createStreamIpc = async (mmid: $MMID, apiUrl = BASE_URL) => {
+export const createMockModuleServerIpc = async (
+  mmid: $MMID,
+  apiUrl = BASE_URL
+) => {
   const createUrl = new URL(apiUrl);
   createUrl.searchParams.set("mmid", mmid);
   const mmidStreamUrl = new URL(await (await fetch(createUrl)).text());

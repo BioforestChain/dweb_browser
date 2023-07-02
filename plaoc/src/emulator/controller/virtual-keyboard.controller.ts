@@ -1,13 +1,15 @@
 import { parseQuery, z, zq } from "../../../deps.ts";
 import { StateObservable } from "../helper/StateObservable.ts";
-import { createStreamIpc } from "../helper/helper.ts";
+import { createMockModuleServerIpc } from "../helper/helper.ts";
 
 export class VirtualKeyboardController {
   constructor() {
     void this._init();
   }
   private async _init() {
-    const ipc = await createStreamIpc("virtual-keyboard.nativeui.browser.dweb");
+    const ipc = await createMockModuleServerIpc(
+      "virtual-keyboard.nativeui.browser.dweb"
+    );
     const query_state = z.object({
       overlay: zq.boolean().optional(),
       visible: zq.boolean().optional(),
@@ -15,7 +17,7 @@ export class VirtualKeyboardController {
     ipc
       .onFetch(async (event) => {
         const { pathname, searchParams } = event;
-        // 获取状态栏状态
+        // 获取虚拟键盘状态
         if (pathname.endsWith("/getState")) {
           return Response.json(this.state);
         }

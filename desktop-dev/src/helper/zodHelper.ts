@@ -108,6 +108,7 @@ export const zq = {
   transform: <NewOut>(
     transform: (arg: string, ctx: RefinementCtx) => NewOut | Promise<NewOut>
   ) => z.string().transform(transform),
+  parseQuery,
 };
 
 /**
