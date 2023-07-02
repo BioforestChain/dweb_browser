@@ -26,15 +26,17 @@ BASE_URL.pathname = EMULATOR;
 
 // 回复信息给后端
 export const createStreamIpc = async (mmid: $MMID, apiUrl = BASE_URL) => {
-  const csUrl = new URL(apiUrl);
+  const createUrl = new URL(apiUrl);
+  createUrl.searchParams.set("mmid", mmid);
+  const mmidStreamUrl = new URL(await (await fetch(createUrl)).text());
+
+  const csUrl = new URL(mmidStreamUrl);
   {
     csUrl.searchParams.set("type", X_EMULATOR_ACTION.CLIENT_2_SERVER);
-    csUrl.searchParams.set("mmid", mmid);
   }
-  const scUrl = new URL(apiUrl);
+  const scUrl = new URL(mmidStreamUrl);
   {
     scUrl.searchParams.set("type", X_EMULATOR_ACTION.SERVER_2_CLIENT);
-    scUrl.searchParams.set("mmid", mmid);
   }
 
   const streamIpc = new ReadableStreamIpc(

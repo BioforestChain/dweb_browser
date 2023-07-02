@@ -241,9 +241,15 @@ export class HttpServerNMM extends NativeMicroModule {
             /// 桌面模式下，我们没有对链接进行拦截，将其转化为 `public_origin?X-Dweb-Host` 这种链接形式 ，因为支持 *.localhost 通配符这种域名
             /// 所以这里只需要将 host 中的信息提取出来
             if (value.endsWith(`.${this._dwebServer.authority}`)) {
-              query_x_web_host = value
-                .slice(0, -this._dwebServer.authority.length - 1)
-                .replace(/-(\d+)/, ":$1");
+              query_x_web_host = value.slice(
+                0,
+                -this._dwebServer.authority.length - 1
+              );
+              const portStartIndex = query_x_web_host.lastIndexOf("-");
+              query_x_web_host =
+                query_x_web_host.slice(0, portStartIndex) +
+                ":" +
+                query_x_web_host.slice(portStartIndex + 1);
             }
           }
           break;
