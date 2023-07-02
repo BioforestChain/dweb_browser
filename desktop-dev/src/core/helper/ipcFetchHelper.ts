@@ -44,9 +44,9 @@ export const FETCH_END_SYMBOL = Symbol("fetch.end");
 /**
  * 目前对于响应，有三种角色
  *
- * 响应器：在前面没有做出响应内容的情况下，会执行响应器来获取响应内容
- * 中间件：在前面拥有响应内容的情况下，基于已有的响应内容，做出修改原有的响应内容 或者 替换新的响应内容
- * 终止符：不论前面有无响应内容，都会执行它，它既可以像响应器和中间件一样去创建响应内容，也可以取消内容。（如果取消，那么后面的响应器就会恢复运作，继续做出响应。所以你可以用它来切分组合你的响应流）
+ * 响应器：在前面没有做出响应内容的情况下，会执行响应器来获取响应内容。直到有一个响应器做出响应，那么后续的响应器就不会被执行。
+ * 中间件：在前面拥有响应内容的情况下，基于该响应 做出修改原有的响应内容 或者 替换新的响应内容
+ * 终止符：不论前面有无响应内容，都会执行它，它既可以像响应器和中间件一样去创建修改响应内容，也可以取消内容。（如果取消，那么后面的响应器就会因为 当前没有响应内容 而继续运作。所以你可以用它来切分组合你的响应流）
  */
 export type $AnyFetchHanlder =
   | $OnFetch
@@ -143,7 +143,9 @@ export const createFetchHandler = (onFetchs: Iterable<$OnFetch>) => {
         } else if (FETCH_END_SYMBOL in handler) {
           result = await handler(event, res);
         } else {
-          result = await handler(event);
+          if (res === undefined) {
+            result = await handler(event);
+          }
         }
         if (result instanceof IpcResponse) {
           res = result;
@@ -213,12 +215,11 @@ export const createFetchHandler = (onFetchs: Iterable<$OnFetch>) => {
           );
         }
       }
-
-      /// 发送
-      if (res) {
-        ipc.postMessage(res);
-        return res;
-      }
+    }
+    /// 发送
+    if (res) {
+      ipc.postMessage(res);
+      return res;
     }
   }) satisfies $OnIpcRequestMessage;
 
