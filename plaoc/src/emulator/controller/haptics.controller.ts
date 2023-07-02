@@ -1,13 +1,8 @@
 import { z, zq } from "../../../deps.ts";
 import { createMockModuleServerIpc } from "../helper/helper.ts";
-import type { MultiWebViewCompMobileShell } from "../multi-webview-comp-mobile-shell.html.ts";
+import { BaseController } from "./base-controller.ts";
 
-export class HapticsController {
-  constructor(
-    readonly multiWebviewCompMobileShell: MultiWebViewCompMobileShell | null
-  ) {
-    void this._init();
-  }
+export class HapticsController extends BaseController {
   private async _init() {
     const ipc = await createMockModuleServerIpc("haptics.sys.dweb");
     const query_state = z.object({
@@ -27,5 +22,6 @@ export class HapticsController {
 
   hapticsMock(text: string) {
     console.log("hapticsMock", text);
+    this.emitUpdate();
   }
 }

@@ -1,6 +1,7 @@
 // 状态栏
 import { css, html, LitElement, PropertyValueMap } from "lit";
 import { customElement, property } from "lit/decorators.js";
+import { classMap } from "lit/directives/class-map.js";
 import { styleMap } from "lit/directives/style-map.js";
 import { when } from "lit/directives/when.js";
 
@@ -8,7 +9,7 @@ const TAG = "multi-webview-comp-status-bar";
 
 @customElement(TAG)
 export class MultiWebviewCompStatusBar extends LitElement {
-  @property({ type: String }) _color = "#FFFFFFFF";
+  @property({ type: String }) _color = "#FFFFFF80";
   @property({ type: String }) _style = "DEFAULT";
   @property({ type: Boolean }) _overlay = false;
   @property({ type: Boolean }) _visible = true;
@@ -21,30 +22,6 @@ export class MultiWebviewCompStatusBar extends LitElement {
   @property({ type: Boolean }) _torchIsOpen = false;
 
   static override styles = createAllCSS();
-
-  createBackgroundStyleMap() {
-    return {
-      backgroundColor: this._visible
-        ? this._overlay
-          ? "transparent"
-          : this._color
-        : "#000000FF",
-    };
-  }
-
-  createContainerStyleMap() {
-    const isLight = window.matchMedia("(prefers-color-scheme: light)");
-    return {
-      color:
-        this._style === "LIGHT"
-          ? "#000000FF"
-          : this._style === "DARK"
-          ? "#FFFFFFFF"
-          : isLight
-          ? "#000000FF"
-          : "#FFFFFFFF",
-    };
-  }
 
   protected override updated(
     changedProperties: PropertyValueMap<MultiWebviewCompStatusBar>
@@ -59,23 +36,22 @@ export class MultiWebviewCompStatusBar extends LitElement {
     super.updated(changedProperties);
   }
 
-  setHostStyle() {
-    const host = (this.renderRoot as ShadowRoot).host as HTMLElement;
-    host.style.position = this._overlay ? "absolute" : "relative";
-    host.style.overflow = this._visible ? "visible" : "hidden";
-  }
-
   protected override render() {
-    this.setHostStyle();
-    const backgroundStyleMap = this.createBackgroundStyleMap();
-    const containerStyleMap = this.createContainerStyleMap();
     return html`
       <div
-        class="comp-container"
-        style=${styleMap({ height: this._insets.top + "px" })}
+        class=${classMap({
+          "comp-container": true,
+          overlay: this._overlay,
+          visible: this._visible,
+          [this._style.toLowerCase()]: true,
+        })}
+        style=${styleMap({
+          "--bg-color": this._color,
+          height: this._insets.top + "px",
+        })}
       >
-        <div class="background" style=${styleMap(backgroundStyleMap)}></div>
-        <div class="container" style=${styleMap(containerStyleMap)}>
+        <div class="background"></div>
+        <div class="container">
           ${when(
             this._visible,
             () => html`<div class="left_container">10:00</div>`
@@ -166,52 +142,65 @@ function createAllCSS() {
         display: block;
         -webkit-app-region: drag;
         -webkit-user-select: none;
+        --cell-width: 80px;
       }
 
       .comp-container {
-        --cell-width: 80px;
-
         display: grid;
         grid-template-columns: 1fr;
         grid-template-rows: 1fr;
         gap: 0px 0px;
         grid-template-areas: "view";
       }
+      .comp-container.overlay {
+        position: absolute;
+        width: 100%;
+        z-index: 1;
+      }
+      .comp-container:not(.visible) {
+        display: none;
+      }
+      .comp-container.light {
+        --fg-color: #ffffffff;
+      }
+      .comp-container.dark {
+        --fg-color: #000000ff;
+      }
+      .comp-container.default {
+        --fg-color: #ffffffff;
+      }
 
       .background {
         grid-area: view;
 
-        background: #ffffffff;
+        background: var(--bg-color);
       }
 
       .container {
         grid-area: view;
+        color: var(--fg-color);
 
         display: flex;
         justify-content: center;
-        align-items: center;
-      }
+        align-items: flex-end;
 
-      .container-light {
-        color: #ffffffff;
+        font-family: PingFangSC-Light, sans-serif;
       }
-
-      .container-dark {
-        color: #000000ff;
-      }
-
-      .container-default {
-        color: #ffffffff;
+      /// 使用混合模式自适应当前视图的，大部分情况下可以使用，但是如何状态是灰色，这个效果会很糟糕。对此需要更好的css函数来解决，而不应该依靠js
+      .comp-container.default .left_container,
+      .comp-container.default .right_container {
+        mix-blend-mode: difference;
       }
 
       .left_container {
         display: flex;
         justify-content: center;
-        align-items: flex-end;
+        align-items: center;
         width: var(--cell-width);
         height: 100%;
         font-size: 15px;
         font-weight: 900;
+        height: 2em;
       }
 
       .center_container {
@@ -245,7 +234,7 @@ function createAllCSS() {
       .right_container {
         display: flex;
         justify-content: flex-start;
-        align-items: flex-end;
+        align-items: center;
         width: var(--cell-width);
         height: 100%;
       }

@@ -2,7 +2,7 @@ import { BiometricsController } from "./controller/biometrics.controller.ts";
 import { StatusBarController } from "./controller/status-bar.controller.ts";
 // 测试入口文件
 import { css, html, LitElement } from "lit";
-import { customElement, query } from "lit/decorators.js";
+import { customElement } from "lit/decorators.js";
 import { when } from "lit/directives/when.js";
 import { HapticsController } from "./controller/haptics.controller.ts";
 import { NavigationBarController } from "./controller/navigation-bar.controller.ts";
@@ -11,22 +11,17 @@ import { VirtualKeyboardController } from "./controller/virtual-keyboard.control
 import "./multi-webview-comp-biometrics.html.ts";
 import "./multi-webview-comp-haptics.html.ts";
 import "./multi-webview-comp-mobile-shell.html.ts";
-import type { MultiWebViewCompMobileShell } from "./multi-webview-comp-mobile-shell.html.ts";
 import "./multi-webview-comp-navigator-bar.html.ts";
 import "./multi-webview-comp-share.html.ts";
 import "./multi-webview-comp-status-bar.html.ts";
 import "./multi-webview-comp-toast.html.ts";
 import "./multi-webview-comp-virtual-keyboard.html.ts";
-import type { $ShareOptions } from "./types.ts";
 
 const TAG = "root-comp";
 
 @customElement(TAG)
 export class RootComp extends LitElement {
   static override styles = createAllCSS();
-
-  @query("multi-webview-comp-mobile-shell")
-  mobileShell: MultiWebViewCompMobileShell | null = null;
 
   /**statusBar */
   readonly statusBarController = new StatusBarController().onUpdate(() => {
@@ -57,14 +52,10 @@ export class RootComp extends LitElement {
     return this.torchController.state;
   }
 
-  readonly hapticsController = new HapticsController(this.mobileShell);
+  readonly hapticsController = new HapticsController();
   readonly biometricsController = new BiometricsController().onUpdate(() =>
     this.requestUpdate()
   );
-
-  shareShare(options: $ShareOptions) {
-    this.mobileShell?.shareShare(options);
-  }
 
   protected override render() {
     return html`

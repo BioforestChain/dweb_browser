@@ -50,7 +50,7 @@ export class StatusBarController {
   });
 
   state: $BarState = {
-    color: "#FFFFFFFF",
+    color: "#FFFFFF80",
     style: "DEFAULT",
     insets: {
       top: 38,
