@@ -69,19 +69,22 @@ export class Server_api extends _Server_api {
       const server = await serverPm;
       const serverProxyIpc = await server.listen();
       /// 这里http服务是为了给前端通过 get + post 来实现数据的传输，将传输的数据喂给这个 streamOut
-      serverProxyIpc.onFetch(async (event) => {
-        const type = event.searchParams.get("type");
-        if (type === X_EMULATOR_ACTION.SERVER_2_CLIENT) {
-          return {
-            body: streamIpc.stream,
-          };
-        } else if (type == X_EMULATOR_ACTION.CLIENT_2_SERVER) {
-          streamOut.controller.enqueue(await event.typedArray());
-          return {
-            body: "",
-          };
-        }
-      });
+      serverProxyIpc
+        .onFetch(async (event) => {
+          const type = event.searchParams.get("type");
+          if (type === X_EMULATOR_ACTION.SERVER_2_CLIENT) {
+            return {
+              body: streamIpc.stream,
+            };
+          } else if (type == X_EMULATOR_ACTION.CLIENT_2_SERVER) {
+            streamOut.controller.enqueue(await event.typedArray());
+            return {
+              body: "",
+            };
+          }
+        })
+        .internalServerError()
+        .cros();
       /// 返回读写这个stream的链接
       return { body: server.startResult.urlInfo.buildInternalUrl().href };
     }
