@@ -8,7 +8,8 @@ import {
   createHttpDwebServer,
   type HttpDwebServer,
 } from "../../std/http/helper/$createHttpDwebServer.ts";
-import { Router } from "./bluetooth.router.ts";
+// import { Router } from "./bluetooth.router.ts";
+import { OnFetchAdapter } from "./bluetooth.onFetchAdapter.ts";
 import { STATE } from "./const.ts";
 import type { $Device, $ResponseJsonable } from "./types.ts";
 
@@ -17,7 +18,8 @@ type $APIS = typeof import("./assets/exportApis.ts")["APIS"];
 export class BluetoothNMM extends NativeMicroModule {
   mmid = "bluetooth.std.dweb" as const;
   dweb_deeplinks = ["dweb:bluetooth"] as $DWEB_DEEPLINK[];
-  private _router = new Router();
+  // private _router = new Router();
+  private _onFetchAdapter = new OnFetchAdapter();
   private _responseHeader = new IpcHeaders().init(
     "Content-Type",
     "application/json"
@@ -61,6 +63,11 @@ export class BluetoothNMM extends NativeMicroModule {
   private _bluetoothrequestdevicewatchSelectCallback:
     | { (deviceId: string): void }
     | undefined;
+
+  _bootstrap = async () => {
+    console.always(`${this.mmid} _bootstrap`);
+    (await this._createHttpDwebServer())._onFetchAdapterInit().listenRequest();
+  };
 
   /**
    * this.onFetch 事件处理器
@@ -150,8 +157,42 @@ export class BluetoothNMM extends NativeMicroModule {
     );
   };
 
+  private _closeHandler: $OnFetch = async (event: FetchEvent) => {
+    if (this._STATE === STATE.CLOSED) {
+      return IpcResponse.fromJson(
+        event.ipcRequest.req_id,
+        200,
+        this._responseHeader,
+        {
+          success: false,
+          error: `bluetooth.std.dweb not yet opened!`,
+          data: undefined,
+        },
+        event.ipc
+      );
+    }
+
+    await this._closeUI();
+    return IpcResponse.fromJson(
+      event.ipcRequest.req_id,
+      200,
+      this._responseHeader,
+      {
+        success: true,
+        error: undefined,
+        data: "ok",
+      },
+      event.ipc
+    );
+  };
+
   private _requestDeviceHandler: $OnFetch = async (event: FetchEvent) => {
+    console.always("开始查询蓝牙设备");
     this._requestDeviceOptions = await event.json();
+    console.always(
+      ">>>>>> this._requestDeviceOptions: ",
+      this._requestDeviceOptions
+    );
 
     if (this._requestDeviceOptions === undefined) {
       return IpcResponse.fromJson(
@@ -190,8 +231,9 @@ export class BluetoothNMM extends NativeMicroModule {
       (await this._browserWindow)?.show();
       this._STATE = STATE.VISIBLE;
     }
-
+    console.always(1);
     this._requestDevice();
+    console.always(2);
     // 应该直接返回一个 reaableStream
     // 每次点击就可以不断地返回数据
     const res = await new Promise(
@@ -211,6 +253,149 @@ export class BluetoothNMM extends NativeMicroModule {
     );
   };
 
+  private _bluetoothRemoteGATTServer_connect: $OnFetch = async (
+    event: FetchEvent
+  ) => {
+    if (this._STATE === STATE.CLOSED) {
+      return this._createResponseError(
+        event,
+        200,
+        `bluetooth.std.dweb not yet opened!`
+      );
+    }
+    const uuid = event.url.searchParams.get("uuid");
+    if (uuid === null) {
+      return this._createResponseError(event, 422, `missing uuid parameter!`);
+    }
+    const resolveId = this._allocId++;
+    this._apis?.bluetoothRemoteGATTServerConnect(uuid, resolveId);
+    const res = await new Promise((resolve) =>
+      this._operationResolveMap.set(resolveId, resolve)
+    );
+    return IpcResponse.fromJson(
+      event.ipcRequest.req_id,
+      422,
+      this._responseHeader,
+      res,
+      event.ipc
+    );
+  };
+
+  private _bluetoothRemoteGATTServer_disconnect: $OnFetch = async (
+    event: FetchEvent
+  ) => {
+    if (this._STATE === STATE.CLOSED) {
+      return this._createResponseError(
+        event,
+        200,
+        `bluetooth.std.dweb not yet opened!`
+      );
+    }
+    const uuid = event.url.searchParams.get("uuid");
+    if (uuid === null) {
+      return this._createResponseError(event, 422, `missing uuid parameter!`);
+    }
+    const resolveId = this._allocId++;
+    this._apis?.bluetoothRemoteGATTServerConnect(uuid, resolveId);
+    const res = await new Promise((resolve) =>
+      this._operationResolveMap.set(resolveId, resolve)
+    );
+    return IpcResponse.fromJson(
+      event.ipcRequest.req_id,
+      200,
+      this._responseHeader,
+      res,
+      event.ipc
+    );
+  };
+
+  private _bluetoothRemoteGATTServer_getPrimaryService: $OnFetch = async (
+    event: FetchEvent
+  ) => {
+    if (this._STATE === STATE.CLOSED) {
+      return this._createResponseError(
+        event,
+        200,
+        `bluetooth.std.dweb not yet opened!`
+      );
+    }
+    const uuid = event.url.searchParams.get("uuid");
+    if (uuid === null) {
+      return this._createResponseError(event, 422, `missing uuid parameter!`);
+    }
+    const resolveId = this._allocId++;
+    this._apis?.bluetoothRemoteGATTServerGetPrimarySevice(uuid, resolveId);
+    const res = await new Promise((resolve) =>
+      this._operationResolveMap.set(resolveId, resolve)
+    );
+    return this._createResponseSucess(event, res);
+  };
+
+  private _bluetoothRemoteGATTService_getCharacteristic: $OnFetch = async (
+    event: FetchEvent
+  ) => {
+    if (this._STATE === STATE.CLOSED) {
+      return this._createResponseError(
+        event,
+        200,
+        `bluetooth.std.dweb not yet opened!`
+      );
+    }
+    const uuid = event.url.searchParams.get("uuid");
+    if (uuid === null) {
+      return this._createResponseError(event, 422, `missing uuid parameter!`);
+    }
+    const resolveId = this._allocId++;
+    this._apis?.bluetoothRemoteGATTService_getCharacteristic(uuid, resolveId);
+    const res = await new Promise((resolve) =>
+      this._operationResolveMap.set(resolveId, resolve)
+    );
+    return this._createResponseSucess(event, res);
+  };
+
+  private _bluetoothRemoteGATTCharacteristic_getDescriptor: $OnFetch = async (
+    event: FetchEvent
+  ) => {
+    if (this._STATE === STATE.CLOSED) {
+      return this._createResponseError(
+        event,
+        200,
+        `bluetooth.std.dweb not yet opened!`
+      );
+    }
+    const uuid = event.url.searchParams.get("uuid");
+    if (uuid === null) {
+      return this._createResponseError(event, 422, `missing uuid parameter!`);
+    }
+    const resolveId = this._allocId++;
+    this._apis?.BluetoothRemoteGATTCharacteristic_getDescriptor(
+      uuid,
+      resolveId
+    );
+    const res = await new Promise((resolve) =>
+      this._operationResolveMap.set(resolveId, resolve)
+    );
+    return this._createResponseSucess(event, res);
+  };
+
+  private _bluetoothRemoteGATTCharacteristic_readValue: $OnFetch = async (
+    event: FetchEvent
+  ) => {
+    if (this._STATE === STATE.CLOSED) {
+      return this._createResponseError(
+        event,
+        200,
+        `bluetooth.std.dweb not yet opened!`
+      );
+    }
+    const resolveId = this._allocId++;
+    this._apis?.bluetoothRemoteGATTCharacteristic_readValue(resolveId);
+    const res = await new Promise((resolve) =>
+      this._operationResolveMap.set(resolveId, resolve)
+    );
+    return this._createResponseSucess(event, res);
+  };
+
   /**
    * 通过 deep_link 打开 现阶段是测试使用的
    * @param event
@@ -220,7 +405,6 @@ export class BluetoothNMM extends NativeMicroModule {
     event: FetchEvent
   ) => {
     await await this._initUI();
-    this._STATE = STATE.OPENED;
     const resolveId = this._allocId++;
     const acceptAllDevices = event.searchParams.get("acceptAllDevices");
     const options = {};
@@ -246,280 +430,74 @@ export class BluetoothNMM extends NativeMicroModule {
     );
   };
 
-  // private _initProcess = async (resolveId: number) => {
-  //   await this._initUI();
-  //   if (this._browserWindow === undefined)
-  //     throw new Error(`this._browserWindow === undefined`);
-  //   if (this._apis === undefined) throw new Error(`this._apis === undefined`);
-  //   this._bluetoothrequestdevicewatch(await this._browserWindow, this._apis);
-  //   this._requestDevice(resolveId);
-  // };
-
-  _bootstrap = async () => {
-    console.always(`${this.mmid} _bootstrap`);
-    // 创建服务
-    this._rootUrl = await this._createHttpDwebServer();
-    this._router.get("/open", this._openHandler);
-    this._router.get("bluetooth", this.dwebBluetoothHandler);
-    this._router.post("/request_device", this._requestDeviceHandler);
-    this.onFetch(this._router.listen);
-    // console.always("-------------");
-    // this.registerCommonIpcOnMessageHandler({
-    //   method: "POST",
-    //   pathname: "/open",
-    //   matchMode: "full",
-    //   input: {},
-    //   output: "object",
-    //   handler: async (_, ipc, request) => {
-    //     this._requestDeviceOptions = JSON.parse(await request.body.text());
-    //     if (this._requestDeviceOptions === undefined) {
-    //       return {
-    //         success: false,
-    //         error: `this._requestDeviceOptions === undefined`,
-    //         data: undefined,
-    //       };
-    //     }
-
-    //     if (this._browserWindow === undefined) {
-    //       this._openUI();
-    //     }
-    //     // else {
-    //     //   this._maximize();
-    //     // }
-
-    //     const res = await new Promise(
-    //       (resolve) => (this._deviceConnectedResolve = resolve)
-    //     );
-    //     return res;
-    //   },
-    // });
-
-    /**
-     * 断开连接
-     */
-    this.registerCommonIpcOnMessageHandler({
-      pathname: "/bluetooth_remote_gatt_server/disconnect",
-      matchMode: "full",
-      input: { id: "string" },
-      output: "object",
-      handler: async (args, ipc, request) => {
-        console.always("可能出现关闭状态下的调用");
-        // ui 在关闭状态下
-        if (this._browserWindow === undefined) {
-          return { success: false, error: "没有开启蓝牙设备" };
-        }
-        if (this._apis === undefined) {
-          console.error("error", `this._apis === undefined`);
-          return { success: false, error: "this._apis === undefined" };
-        }
-
-        // this._maximize();
-        const id = args.id;
-        const resolveId = this._allocId++;
-        this._apis.deviceDisconnect(id, resolveId);
-        // 打开之后前端的 UI 必须要保持住
-        const result = await new Promise((resolve) => {
-          this._deviceDisconnectedResolveMap.set(resolveId, resolve);
-        });
-        console.always("disconnect result", result);
-        return result;
-      },
-    });
-
-    this.registerCommonIpcOnMessageHandler({
-      pathname: "/bluetooth_remote_gatt_server/connect",
-      matchMode: "full",
-      input: { uuid: "string" },
-      output: "object",
-      handler: async (args) => {
-        if (this._browserWindow === undefined) {
-          return { success: false, error: "没有开启蓝牙设备" };
-        }
-        if (this._apis === undefined) {
-          console.error("error", `this._apis === undefined`);
-          return { success: false, error: "this._apis === undefined" };
-        }
-        const uuid = args.uuid;
-        const resolveId = this._allocId++;
-        this._apis.bluetoothRemoteGATTServerConnect(uuid, resolveId);
-        const result = new Promise((resolve) =>
-          this._operationResolveMap.set(resolveId, resolve)
-        );
-        return result;
-      },
-    });
-
-    /**
-     * 查询 service
-     */
-    this.registerCommonIpcOnMessageHandler({
-      pathname: "/bluetooth_remote_gatt_server/get_primary_service",
-      matchMode: "full",
-      input: { uuid: "string" },
-      output: "object",
-      handler: async (args, ipc, request) => {
-        console.always(
-          "bluetooth_remote_gatt_server/get_primary_service 接受到了请求"
-        );
-        if (this._browserWindow === undefined) {
-          return { success: false, error: "没有开启蓝牙设备" };
-        }
-        if (this._apis === undefined) {
-          console.error("error", `this._apis === undefined`);
-          return { success: false, error: "this._apis === undefined" };
-        }
-
-        const uuid = args.uuid;
-        const resolveId = this._allocId++;
-        // this._maximize();
-        this._apis.getPrimarySevice(uuid, resolveId);
-        // 打开之后前端的 UI 必须要保持住
-        const result = await new Promise((resolve) => {
-          this._deviceGetPrimaryServiceResolveMap.set(resolveId, resolve);
-        });
-        console.always("get_primary_service result", result);
-        return result;
-      },
-    });
-
-    // /bluetooth_remote_gatt_service/get_characteristic
-    this.registerCommonIpcOnMessageHandler({
-      pathname: "/bluetooth_remote_gatt_service/get_characteristic",
-      matchMode: "full",
-      input: { uuid: "string" },
-      output: "object",
-      handler: async (args, ipc, request) => {
-        if (this._browserWindow === undefined) {
-          return { success: false, error: "没有开启蓝牙设备" };
-        }
-        if (this._apis === undefined) {
-          return { success: false, error: "this._apis === undefined" };
-        }
-        const uuid = args.uuid;
-        const resolveId = this._allocId++;
-        this._maximize();
-        this._apis.getCharacteristic(uuid, resolveId);
-        const result = await new Promise((resolve) =>
-          this._deviceGetCharacteristicResolveMap.set(resolveId, resolve)
-        );
-        console.always("getCharacteristic result", result);
-        return result;
-      },
-    });
-    this.registerCommonIpcOnMessageHandler({
-      pathname: `/bluetooth_remote_gatt_characteristic/read_value`,
-      matchMode: "full",
-      input: {},
-      output: "object",
-      handler: async () => {
-        console.always("bluetooth_remote_gatt_characteristic/read_value");
-        if (this._browserWindow === undefined) {
-          return { success: false, error: "没有开启蓝牙设备" };
-        }
-        if (this._apis === undefined) {
-          return { success: false, error: "this._apis === undefined" };
-        }
-        const resolveId = this._allocId++;
-        this._apis.characteristicRaadValue(resolveId);
-        const result = await new Promise((resolve) =>
-          this._deviceCharacteristicReadValueResolveMap.set(resolveId, resolve)
-        );
-        return result;
-      },
-    });
-
-    this.registerCommonIpcOnMessageHandler({
-      pathname: "/bluetooth_remote_gatt_characteristic/get_descriptor",
-      matchMode: "full",
-      input: { uuid: "string" },
-      output: "object",
-      handler: async (args) => {
-        if (this._browserWindow === undefined) {
-          return { success: false, error: "没有开启蓝牙设备" };
-        }
-        if (this._apis === undefined) {
-          return { success: false, error: "this._apis === undefined" };
-        }
-        const resolveId = this._allocId++;
-        this._apis.characteristicGetDescriptor(args.uuid, resolveId);
-        const result = await new Promise((resolve) => {
-          this._characteristicGetDescriptorMap.set(resolveId, resolve);
-        });
-        return result;
-      },
-    });
-
-    this.registerCommonIpcOnMessageHandler({
-      pathname: "/bluetooth_remote_gatt_descriptor/reaed_value",
-      matchMode: "full",
-      input: {},
-      output: "object",
-      handler: async () => {
-        if (this._browserWindow === undefined) {
-          return { success: false, error: "没有开启蓝牙设备" };
-        }
-        if (this._apis === undefined) {
-          return { success: false, error: "this._apis === undefined" };
-        }
-        const resolveId = this._allocId++;
-        this._apis.descriptorReadValue(resolveId);
-        const result = await new Promise((resolve) => {
-          this._descriptorReadValueMap.set(resolveId, resolve);
-        });
-        return result;
-      },
-    });
-
-    /**
-     * 关闭 蓝牙功能
-     */
-    this.registerCommonIpcOnMessageHandler({
-      pathname: "/close",
-      matchMode: "full",
-      input: {},
-      output: "boolean",
-      handler: async (arg, ipc, request) => {
-        // this._minimize();
-        this._closeUI();
-        return true;
-      },
-    });
-
-    /// dweb deeplink
-    this.registerCommonIpcOnMessageHandler({
-      protocol: "dweb:",
-      pathname: "bluetooth",
-      matchMode: "full",
-      input: {},
-      output: "void",
-      handler: async (args) => {
-        console.always("bluetooth");
-        // this._openUI();
-      },
-    });
-  };
-
   /**
    * 创建服务
    * @returns
    */
   private _createHttpDwebServer = async () => {
     this._httpDwebServer = await createHttpDwebServer(this, {});
-
     const serverIpc = await this._httpDwebServer.listen();
-
     serverIpc.onFetch(async (event) => {
       return await this.nativeFetch("file:///sys/bluetooth" + event.pathname);
     });
-
-    const rootUrl = this._httpDwebServer.startResult.urlInfo.buildInternalUrl(
+    this._rootUrl = this._httpDwebServer.startResult.urlInfo.buildInternalUrl(
       (url) => {
         url.pathname = "/index.html";
       }
     ).href;
-
-    return rootUrl;
+    return this;
   };
+
+  /**
+   * 初始化适配器
+   * @returns
+   */
+  private _onFetchAdapterInit() {
+    this._onFetchAdapter
+      .add("GET", "/open", this._openHandler)
+      .add("GET", "/close", this._closeHandler)
+      .add("GET", "bluetooth", this.dwebBluetoothHandler)
+      .add("POST", "/request_device", this._requestDeviceHandler)
+      .add(
+        "GET",
+        "/bluetooth_remote_gatt_server/connect",
+        this._bluetoothRemoteGATTServer_connect
+      )
+      .add(
+        "GET",
+        "/bluetooth_remote_gatt_server/disconnect",
+        this._bluetoothRemoteGATTServer_disconnect
+      )
+
+      .add(
+        "GET",
+        "/bluetooth_remote_gatt_server/get_primary_service",
+        this._bluetoothRemoteGATTServer_getPrimaryService
+      )
+      .add(
+        "GET",
+        "/bluetooth_remote_gatt_service/get_characteristic",
+        this._bluetoothRemoteGATTService_getCharacteristic
+      )
+      .add(
+        "GET",
+        "/bluetooth_remote_gatt_characteristic/get_descriptor",
+        this._bluetoothRemoteGATTCharacteristic_getDescriptor
+      )
+      .add(
+        "GET",
+        "/bluetooth_remote_gatt_characteristic/read_value",
+        this._bluetoothRemoteGATTCharacteristic_readValue
+      );
+    return this;
+  }
+
+  /**
+   * 开始监听请求
+   */
+  private listenRequest() {
+    this.onFetch(this._onFetchAdapter.run);
+  }
 
   /**
    * 创建一个新的隐藏窗口装载webview，使用它的里头 web-bluetooth-api 来实现我们的需求
@@ -670,19 +648,6 @@ export class BluetoothNMM extends NativeMicroModule {
     return bw;
   };
 
-  // 关闭 UI
-  private _closeUI = async (bw?: Electron.BrowserWindow) => {
-    if (bw === undefined) {
-      bw = await this._browserWindow;
-    }
-    if (bw === undefined) {
-      return false;
-    }
-    bw.close();
-    this._browserWindow = undefined;
-    this._apis = undefined;
-  };
-
   // 最小化 UI
   // 一但最小化就会失去 连接
   private _minimize = async () => {
@@ -703,10 +668,25 @@ export class BluetoothNMM extends NativeMicroModule {
   private _initUI = async () => {
     this._browserWindow = this._getBrowserWindow(this._rootUrl);
     this._apis = (await this._browserWindow).getApis<$APIS>();
+    this._STATE = STATE.OPENED;
     return {
       bw: await this._browserWindow,
       apis: this._apis,
     };
+  };
+
+  // 关闭 UI
+  private _closeUI = async (bw?: Electron.BrowserWindow) => {
+    if (bw === undefined) {
+      bw = await this._browserWindow;
+    }
+    if (bw === undefined) {
+      return false;
+    }
+    bw.close();
+    this._browserWindow = undefined;
+    this._apis = undefined;
+    this._STATE = STATE.HIDE;
   };
 
   private _getBrowserWindow = (url: string, ipc?: Ipc) => {
@@ -745,10 +725,61 @@ export class BluetoothNMM extends NativeMicroModule {
     );
   };
 
+  private _createResponseError = (
+    event: FetchEvent,
+    statusCode: number,
+    errStr: string
+  ) => {
+    return IpcResponse.fromJson(
+      event.ipcRequest.req_id,
+      statusCode,
+      this._responseHeader,
+      {
+        success: false,
+        error: errStr,
+        data: undefined,
+      },
+      event.ipc
+    );
+  };
+
+  private _createResponseSucess = (event: FetchEvent, res: unknown) => {
+    return IpcResponse.fromJson(
+      event.ipcRequest.req_id,
+      200,
+      this._responseHeader,
+      res,
+      event.ipc
+    );
+  };
+
   protected override _shutdown = async () => {
     this._httpDwebServer?.close();
     this._closeUI();
   };
+}
+
+class Execute {
+  private _callbackList: $ExcuteCallback[] = [];
+  private _preRes: any;
+  addProcess(callback: $ExcuteCallback) {
+    this._callbackList.push(callback);
+  }
+
+  async excute() {
+    for (const index in this._callbackList) {
+      const { err, res } = await this._callbackList[index](this._preRes);
+      if (err) {
+        return res;
+      }
+      this._preRes = res;
+    }
+    return this._preRes;
+  }
+}
+
+export interface $ExcuteCallback {
+  (...arg: any[]): any;
 }
 
 /**

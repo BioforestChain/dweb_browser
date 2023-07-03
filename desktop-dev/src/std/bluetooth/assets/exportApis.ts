@@ -115,6 +115,53 @@ async function bluetoothRemoteGATTServerConnect(id: string, resolveId: number) {
     return;
   }
   if (id === bluetoothRemoteGATTServer.device.id) {
+    bluetoothRemoteGATTServer.connect();
+    (mainApis as any).operationCallback(
+      {
+        success: false,
+        error: undefined,
+        data: "ok",
+      },
+      resolveId
+    );
+    return;
+  }
+  (mainApis as any).operationCallback(
+    {
+      success: false,
+      error: `bluetoothRemoteGATTServer === undefined`,
+      data: undefined,
+    },
+    resolveId
+  );
+}
+
+async function bluetoothRemoteGATTServerDisconnect(
+  id: string,
+  resolveId: number
+) {
+  if (bluetoothRemoteGATTServer === undefined) {
+    (mainApis as any).operationCallback(
+      {
+        success: false,
+        error: `bluetoothRemoteGATTServer === undefined`,
+        data: undefined,
+      },
+      resolveId
+    );
+    return;
+  }
+  if (id === bluetoothRemoteGATTServer.device.id) {
+    bluetoothRemoteGATTServer.disconnect();
+
+    (mainApis as any).operationCallback(
+      {
+        success: false,
+        error: undefined,
+        data: "ok",
+      },
+      resolveId
+    );
     return;
   }
   (mainApis as any).operationCallback(
@@ -240,13 +287,10 @@ async function deviceSelected(device: $Device) {
   });
 }
 
-async function getPrimarySevice(uuid: string, resolveId: number) {
-  await new Promise((resolve) =>
-    setTimeout(() => {
-      resolve(true);
-    }, 3000)
-  );
-  console.log("getPrimarySevice uuid: ", uuid);
+async function bluetoothRemoteGATTServerGetPrimarySevice(
+  uuid: string,
+  resolveId: number
+) {
   if (bluetoothRemoteGATTServer === undefined) {
     (mainApis as any).deviceGetPrimaryServiceCallback(
       {
@@ -291,7 +335,10 @@ async function getPrimarySevice(uuid: string, resolveId: number) {
   );
 }
 
-async function getCharacteristic(uuid: string, resolveId: number) {
+async function bluetoothRemoteGATTService_getCharacteristic(
+  uuid: string,
+  resolveId: number
+) {
   if (bluetoothRemoteGATTService === undefined) {
     (mainApis as any).deviceGetCharacteristicCallback(
       {
@@ -356,7 +403,7 @@ async function getCharacteristic(uuid: string, resolveId: number) {
   );
 }
 
-function characteristicRaadValue(resolveId: number) {
+function bluetoothRemoteGATTCharacteristic_readValue(resolveId: number) {
   if (bluetoothRemoteGATTCharacteristic === undefined) {
     (mainApis as any).characteristicReadValueCallback(
       {
@@ -395,7 +442,10 @@ function characteristicRaadValue(resolveId: number) {
   );
 }
 
-function characteristicGetDescriptor(uuid: string, resolveId: number) {
+function BluetoothRemoteGATTCharacteristic_getDescriptor(
+  uuid: string,
+  resolveId: number
+) {
   if (bluetoothRemoteGATTCharacteristic === undefined) {
     (mainApis as any).characteristicReadValueCallback(
       {
@@ -486,11 +536,12 @@ export const APIS = {
   requestDevice,
   deviceDisconnect,
   bluetoothRemoteGATTServerConnect,
+  bluetoothRemoteGATTServerDisconnect,
+  bluetoothRemoteGATTServerGetPrimarySevice,
+  bluetoothRemoteGATTService_getCharacteristic,
+  bluetoothRemoteGATTCharacteristic_readValue,
+  BluetoothRemoteGATTCharacteristic_getDescriptor,
   deviceSelectedFailCallback,
-  getPrimarySevice,
-  getCharacteristic,
-  characteristicRaadValue,
-  characteristicGetDescriptor,
   descriptorReadValue,
 };
 
