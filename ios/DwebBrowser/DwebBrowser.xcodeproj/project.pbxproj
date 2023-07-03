@@ -46,7 +46,7 @@
 		F0AF2C1E2A4BD9100005619B /* DataController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0AF2C162A4BD9100005619B /* DataController.swift */; };
 		F0AF2C1F2A4BD9100005619B /* HistoryCoreDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0AF2C172A4BD9100005619B /* HistoryCoreDataManager.swift */; };
 		F0AF2C202A4BD9100005619B /* BookmarkCoreDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0AF2C182A4BD9100005619B /* BookmarkCoreDataManager.swift */; };
-		F0AF2C222A4BD9100005619B /* Browser.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = F0AF2C1B2A4BD9100005619B /* Browser.xcdatamodeld */; };
+		F0AF2C222A4BD9100005619B /* BFS.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = F0AF2C1B2A4BD9100005619B /* BFS.xcdatamodeld */; };
 		F0B231D02A2DDBFD001EEFB8 /* Color+Hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0B231CF2A2DDBFD001EEFB8 /* Color+Hex.swift */; };
 		F0B231E02A301EF4001EEFB8 /* InnerAppGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0B231D72A301EF4001EEFB8 /* InnerAppGridView.swift */; };
 		F0B231E52A301EF4001EEFB8 /* SearchResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0B231DC2A301EF4001EEFB8 /* SearchResultView.swift */; };
@@ -283,7 +283,7 @@
 			isa = PBXGroup;
 			children = (
 				F0AF2C142A4BD9100005619B /* CoreDataM */,
-				F0AF2C1B2A4BD9100005619B /* Browser.xcdatamodeld */,
+				F0AF2C1B2A4BD9100005619B /* BFS.xcdatamodeld */,
 			);
 			path = CoreData;
 			sourceTree = "<group>";
@@ -468,7 +468,7 @@
 				F028998F29F7C42300B8754A /* const.swift in Sources */,
 				F0B68D072A162DF000215036 /* PagingScroll.swift in Sources */,
 				F0AF2C1F2A4BD9100005619B /* HistoryCoreDataManager.swift in Sources */,
-				F0AF2C222A4BD9100005619B /* Browser.xcdatamodeld in Sources */,
+				F0AF2C222A4BD9100005619B /* BFS.xcdatamodeld in Sources */,
 				F0531F0B2A346202001FBE06 /* MenuCell.swift in Sources */,
 				F0531F102A346219001FBE06 /* BookmarkView.swift in Sources */,
 				F34A47622A4D738B001E105A /* NotificationName_extension.swift in Sources */,
@@ -683,13 +683,13 @@
 /* End XCConfigurationList section */
 
 /* Begin XCVersionGroup section */
-		F0AF2C1B2A4BD9100005619B /* Browser.xcdatamodeld */ = {
+		F0AF2C1B2A4BD9100005619B /* BFS.xcdatamodeld */ = {
 			isa = XCVersionGroup;
 			children = (
 				F0AF2C1C2A4BD9100005619B /* BFS.xcdatamodel */,
 			);
 			currentVersion = F0AF2C1C2A4BD9100005619B /* BFS.xcdatamodel */;
-			path = Browser.xcdatamodeld;
+			path = BFS.xcdatamodeld;
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;
 		};

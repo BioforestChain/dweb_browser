@@ -12,7 +12,6 @@ ios/SwiftUIBindingMAUI/SwiftUIBindingMAUI/ApiDefinitions.cs
 ios/DwebBrowserFramework/DwebBrowserFramework/*
 !ios/DwebBrowserFramework/DwebBrowserFramework/README.md
 ios/DwebBrowserFramework/DwebBrowserFramework.xcodeproj/project.xcworkspace
-ios/DwebBrowserFramework/DwebBrowserFramework.xcodeproj/project.pbxproj
 
 # android
 .gradle/
