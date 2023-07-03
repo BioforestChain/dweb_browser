@@ -118,14 +118,12 @@ class LocalFileFetch private constructor() {
       src = src.substring(4)
     }
 
-    debugFetchFile("OPEN-Assets $isSys", "src:$src path:$path")
-
     lateinit var dirname: String
     lateinit var filename: String
     lateinit var filenameList: Array<String>
     if (isSys) {
       // 读取assets的文件
-      src.lastIndexOf('/').also { it ->
+      src.lastIndexOf('/').also {
         when (it) {
           -1 -> {
             filename = src
@@ -137,7 +135,6 @@ class LocalFileFetch private constructor() {
             dirname = src.substring(0..it)
           }
         }
-        src.substring(0..it)
       }
       /// 尝试打开文件，如果打开失败就走 404 no found 响应
       filenameList = App.appContext.assets.list(dirname) ?: emptyArray()
@@ -149,11 +146,12 @@ class LocalFileFetch private constructor() {
 
       filenameList = FilesUtil.traverseFileTree(dirname).toTypedArray()
     }
-    debugFetchFile("OPEN-DataSrc", "dirname=$dirname, src=$src")
+    val tag = if (isSys) "LocalFetch > Assets" else "LocalFetch > DataSrc"
+    debugFetchFile(tag, "dirname=$dirname, src=$src, path=$path")
 
     lateinit var response: Response
     if (!filenameList.contains(filename)) {
-      debugFetchFile("NO-FOUND-Assets", request.uri.path)
+      debugFetchFile(tag, "NO-FOUND-Assets ${request.uri.path}")
       response = Response(Status.NOT_FOUND).body("the file(${request.uri.path}) not found.")
     } else {
       response = Response(status = Status.OK)

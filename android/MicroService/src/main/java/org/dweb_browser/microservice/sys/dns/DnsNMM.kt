@@ -64,7 +64,8 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
     mmConnectsMap.getOrPut(mmKey) {
       PromiseOut<ConnectResult>().also { po ->
         GlobalScope.launch(ioAsyncExceptionHandler) {
-          val toMM = open(toMmid);
+          debugFetch("DNS/open", "${fromMM.mmid} => $toMmid")
+          val toMM = open(toMmid)
           debugFetch("DNS/connect", "${fromMM.mmid} => $toMmid")
           val connectResult = connectMicroModules(fromMM, toMM, reason)
           connectResult.ipcForFromMM.onClose {
@@ -173,7 +174,7 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
       if (request.uri.scheme == "dweb" && request.uri.host == "") {
         debugFetch(
           "DNS/webDeepLink",
-          "path=${request.uri.path} host = ${request.uri.host}"
+          "path=${request.uri.path}, host=${request.uri.host}"
         )
         for (microModule in installApps) {
           if (microModule.value.dweb_deeplinks.contains("dweb:${request.uri.path}")) {

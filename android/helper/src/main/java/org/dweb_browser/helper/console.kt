@@ -9,7 +9,7 @@ import java.time.Duration
 import java.time.LocalDateTime
 import kotlin.coroutines.CoroutineContext
 
-fun now() = LocalDateTime.now().toString()//.padEnd(23, '0')
+fun now() = LocalDateTime.now().toString().padEndAndSub(23)
 
 fun printerrln(tag: String, msg: Any?, err: Throwable? = null) {
   System.err.println("${tag.padEnd(60, ' ')} $msg")
@@ -94,5 +94,9 @@ fun printdebugln(scope: String, tag: String, msg: Any?, err: Throwable? = null) 
   if (msg is Lazy<*>) {
     msg = msg.value
   }
-  printerrln("${now()} │ ${scope.padEnd(8, ' ')} │ $tag", msg, err)
+  printerrln("${now()} │ ${scope.padEndAndSub(16)} │ ${tag.padEndAndSub(20)} |", msg, err)
+}
+
+fun String.padEndAndSub(length: Int) : String {
+  return this.padEnd(length, ' ').substring(0, length)
 }

@@ -30,6 +30,9 @@ import org.http4k.routing.bind
 import org.http4k.routing.routes
 import java.net.URL
 
+fun debugJMM(tag: String, msg: Any? = "", err: Throwable? = null) =
+  printdebugln("JMM", tag, msg, err)
+
 /**
  * 获取 map 值，如果不存在，则使用defaultValue; 如果replace 为true也替换为defaultValue
  */

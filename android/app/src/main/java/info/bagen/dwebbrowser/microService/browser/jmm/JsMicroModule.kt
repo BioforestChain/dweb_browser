@@ -21,8 +21,8 @@ import org.dweb_browser.microservice.ipc.message.IpcResponse
 import org.http4k.core.*
 import java.util.*
 
-fun debugJMM(tag: String, msg: Any? = "", err: Throwable? = null) =
-  printdebugln("jmm", tag, msg, err)
+fun debugJsMM(tag: String, msg: Any? = "", err: Throwable? = null) =
+  printdebugln("JsMM", tag, msg, err)
 
 open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
 
@@ -42,10 +42,7 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
                 else if (fromMM is JsMicroModule) JsMM(fromMM, toMM)
                 else null
 
-                debugJMM(
-                    "connectAdapterManager",
-                    "fromMM: ${fromMM.mmid} => toMM: ${toMM.mmid} ==> jsMM:${jsMM != null}"
-                )
+                debugJsMM("connectAdapterManager", "fromMM: ${fromMM.mmid} => toMM: ${toMM.mmid} ==> jsMM:${jsMM != null}")
                 if (jsMM is JsMM) {
                     /**
                      * 与 NMM 相比，这里会比较难理解：
@@ -86,17 +83,17 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
     private val closeJsProcessSignal = SimpleSignal()
     val pid = ByteArray(8).also { Random().nextBytes(it) }.toBase64Url()
     private suspend fun createNativeStream(): ReadableStreamIpc {
+        debugJsMM("createNativeStream", "pid=$pid, root=${metadata.server}")
         processId = pid
         val streamIpc = ReadableStreamIpc(this, "code-server")
         streamIpc.onRequest { (request, ipc) ->
+            debugJsMM("streamIpc.onRequest", "path=${request.uri.path}")
             val response = if (request.uri.path.endsWith("/")) {
                 Response(Status.FORBIDDEN)
             } else {
-                nativeFetch(
-                    "file://" + (metadata.server.root + request.uri.path).replace(
-                        Regex("/{2,}"),
-                        "/"
-                    )
+                // 正则含义是将两个或以上的 / 斜杆直接转为单斜杆
+                nativeFetch("file://" + (metadata.server.root + request.uri.path)
+                    .replace(Regex("/{2,}"), "/")
                 )
             }
             ipc.postMessage(IpcResponse.fromResponse(request.req_id, response, ipc))
@@ -115,7 +112,7 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
     }
 
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-        debugJMM("bootstrap...", "$mmid/$metadata")
+        debugJsMM("bootstrap...", "$mmid/$metadata")
 
         val streamIpc = createNativeStream()
         /**
@@ -212,7 +209,7 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
             PromiseOut<Ipc>().also { po ->
                 GlobalScope.launch(ioAsyncExceptionHandler) {
                     try {
-                        debugJMM("ipcBridge", "fromMmid:$fromMmid targetIpc:$targetIpc")
+                        debugJsMM("ipcBridge", "fromMmid:$fromMmid targetIpc:$targetIpc")
                         /**
                          * 向js模块发起连接
                          */
@@ -247,7 +244,7 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
                         }
                         po.resolve(originIpc);
                     } catch (e: Exception) {
-                        debugJMM("_ipcBridge Error", e)
+                        debugJsMM("_ipcBridge Error", e)
                         po.reject(e)
                     }
                 }
@@ -258,7 +255,7 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
         _ipcBridge(fromMmid, targetIpc).waitPromise();
 
     override suspend fun _shutdown() {
-        debugJMM("closeJsProcessSignal emit", "$mmid/$metadata")
+        debugJsMM("closeJsProcessSignal emit", "$mmid/$metadata")
         /// 发送指令，关停js进程
         nativeFetch("file://js.browser.dweb/close-process")
         closeJsProcessSignal.emit()

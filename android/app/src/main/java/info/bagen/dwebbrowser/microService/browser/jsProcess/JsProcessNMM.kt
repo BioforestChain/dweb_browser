@@ -1,6 +1,5 @@
 package info.bagen.dwebbrowser.microService.browser.jsProcess
 
-import android.webkit.WebView
 import info.bagen.dwebbrowser.App
 import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.dweb_browser.dwebview.DWebView
@@ -32,7 +31,6 @@ import org.http4k.routing.routes
 
 fun debugJsProcess(tag: String, msg: Any? = "", err: Throwable? = null) =
   printdebugln("js-process", tag, msg, err)
-
 
 class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
 
@@ -91,14 +89,14 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
                 }
             }
         }
-        val bootstrap_url =
+        val bootstrapUrl =
             mainServer.startResult.urlInfo.buildInternalUrl().path("$INTERNAL_PATH/bootstrap.js")
                 .toString()
 
         val apis = createJsProcessWeb(mainServer)
-        val query_entry = Query.string().optional("entry")
-        val query_process_id = Query.string().required("process_id")
-        val query_mmid = Query.string().required("mmid")
+        val queryEntry = Query.string().optional("entry")
+        val queryProcessId = Query.string().required("process_id")
+        val queryMmid = Query.string().required("mmid")
 
         val ipcProcessIdMap = mutableMapOf<String, MutableMap<String, PromiseOut<Int>>>()
         val ipcProcessIdMapLock = Mutex()
@@ -106,8 +104,9 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
             /// 创建 web worker
             // request 需要携带一个流，来为 web worker 提供代码服务
             "/create-process" bind Method.POST to defineHandler { request, ipc ->
+                debugJsProcess("create-process",ipc.remote.mmid)
                 val po = ipcProcessIdMapLock.withLock {
-                    val processId = query_process_id(request)
+                    val processId = queryProcessId(request)
                     val processIdMap = ipcProcessIdMap.getOrPut(ipc.remote.mmid) {
                         ipc.onClose { ipcProcessIdMap.remove(ipc.remote.mmid) }
                         mutableMapOf()
@@ -121,8 +120,8 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
                 }
                 val result = createProcessAndRun(
                     ipc, apis,
-                    bootstrap_url,
-                    query_entry(request), request,
+                    bootstrapUrl,
+                    queryEntry(request), request,
                 )
                 // 将自定义的 processId 与真实的 js-process_id 进行关联
                 po.resolve(result.processHandler.info.process_id)
@@ -132,19 +131,19 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
             },
             /// 创建 web 通讯管道
             "/create-ipc" bind Method.GET to defineHandler { request, ipc ->
-                val processId = query_process_id(request)
+                val processId = queryProcessId(request)
                 /**
                  * 虽然 mmid 是从远程直接传来的，但风险与jsProcess无关，
                  * 因为首先我们是基于 ipc 来得到 processId 的，所以这个 mmid 属于 ipc 自己的定义
                  */
-                val mmid = query_mmid(request)
-                val process_id = ipcProcessIdMapLock.withLock {
+                val mmid = queryMmid(request)
+                val ipcProcessID = ipcProcessIdMapLock.withLock {
                     ipcProcessIdMap[ipc.remote.mmid]?.get(processId)
                         ?: throw Exception("ipc:${ipc.remote.mmid}/processId:$processId invalid")
                 }.waitPromise()
 
                 // 返回 port_id
-                createIpc(ipc, apis, process_id, mmid)
+                createIpc(ipc, apis, ipcProcessID, mmid)
             },
             /// 关闭process
             "/close-process" bind Method.GET to defineHandler { request,ipc ->
@@ -152,7 +151,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
               debugJsProcess("close-process",ipc.remote.mmid)
               if (processMap !== null) {
                 // 关闭程序
-                for ((_processId, po) in processMap) {
+                for ((_, po) in processMap) {
                   val processId = po.waitPromise()
                   apis.destroyProcess(processId)
                 }
@@ -164,7 +163,6 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
             }
         )
     }
-
 
     private suspend fun createJsProcessWeb(mainServer: HttpDwebServer): JsProcessWebApi {
         val afterReadyPo = PromiseOut<Unit>()
@@ -190,11 +188,11 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
     }
 
     private suspend fun createProcessAndRun(
-      ipc: Ipc,
-      apis: JsProcessWebApi,
-      bootstrap_url: String,
-      entry: String?,
-      requestMessage: Request,
+        ipc: Ipc,
+        apis: JsProcessWebApi,
+        bootstrapUrl: String,
+        entry: String?,
+        requestMessage: Request,
     ): CreateProcessAndRunResult {
         /**
          * 用自己的域名的权限为它创建一个子域名
@@ -250,12 +248,12 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
          * 创建一个通往 worker 的消息通道
          */
         val processHandler = apis.createProcess(
-            bootstrap_url,
+            bootstrapUrl,
             gson.toJson(metadata),
             gson.toJson(env),
             ipc.remote,
             httpDwebServer.startResult.urlInfo.host
-        );
+        )
         /**
          * 收到 Worker 的数据请求，由 js-process 代理转发回去，然后将返回的内容再代理响应会去
          *

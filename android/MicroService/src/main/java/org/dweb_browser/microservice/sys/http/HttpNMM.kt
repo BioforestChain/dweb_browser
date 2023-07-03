@@ -1,8 +1,6 @@
 package org.dweb_browser.microservice.sys.http
 
 import com.google.gson.reflect.TypeToken
-import kotlinx.coroutines.delay
-import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.ReadableStreamIpc
 import org.dweb_browser.helper.decodeURIComponent
@@ -15,7 +13,6 @@ import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.gson
-import org.dweb_browser.microservice.ipc.message.IpcEvent
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Response
@@ -203,7 +200,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb") {
    */
   private fun start(ipc: Ipc, options: DwebHttpServerOptions): ServerStartResult {
     val serverUrlInfo = getServerUrlInfo(ipc, options)
-    debugHttp("start", "serverUrlInfo  ${serverUrlInfo.host}")
+    debugHttp("start", "serverUrlInfo=>${serverUrlInfo.host}, $options")
     if (gatewayMap.contains(serverUrlInfo.host)) throw Exception("already in listen: ${serverUrlInfo.internal_origin}")
 
     val listener = Gateway.PortListener(ipc, serverUrlInfo.host)
@@ -260,9 +257,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb") {
       true
     } ?: false
   }
-
 }
-
 
 fun Uri.getFullAuthority(hostOrAuthority: String = authority): String {
   var authority1 = hostOrAuthority

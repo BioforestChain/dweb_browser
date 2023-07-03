@@ -43,7 +43,7 @@ suspend fun MicroModule.listenHttpDwebServer(
   startResult: HttpNMM.ServerStartResult,
   routes: Array<Gateway.RouteConfig>
 ): ReadableStreamIpc {
-  var streamIpc = ReadableStreamIpc(this, "http-server/${startResult.urlInfo.host}").also {
+  val streamIpc = ReadableStreamIpc(this, "http-server/${startResult.urlInfo.host}").also {
     it.bindIncomeStream(
       this.nativeFetch(
         Request(

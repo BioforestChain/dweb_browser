@@ -51,7 +51,7 @@ class ReadableStreamIpc(
     ) : this(remote, role.role)
 
     override fun toString(): String {
-        return super.toString() + "@ReadableStreamIpc"
+        return super.toString() + "@ReadableStreamIpc(${remote.mmid}, $role)"
     }
     // 虽然 ReadableStreamIpc 支持 Binary 的传输，但是不支持结构化的传输，
     // override val supportBinary: Boolean = true
@@ -61,7 +61,7 @@ class ReadableStreamIpc(
     val stream = ReadableStream(cid = role, onStart = {
         controller = it
     }, onPull = { (size, controller) ->
-        debugStreamIpc("ON-PULL/${controller.stream}", size)
+        debugStreamIpc("ON-PULL", "$size => ${controller.stream}")
     }, onClose = {
         inComeStreamJob.getAndSet(null)?.cancel()
     })
@@ -101,7 +101,7 @@ class ReadableStreamIpc(
                 if (size <= 0) { // 心跳包？
                     continue
                 }
-                debugStreamIpc("size/$stream", size)
+                debugStreamIpc("size", "$size => $stream")
                 // 读取指定数量的字节并从中生成字节数据包。 如果通道已关闭且没有足够的可用字节，则失败
                 val chunk = stream.readByteArray(size).toString(Charsets.UTF_8)
 
@@ -109,19 +109,15 @@ class ReadableStreamIpc(
                 when (message) {
                     "close" -> close()
                     "ping" -> enqueue(PONG_DATA)
-                    "pong" -> debugStreamIpc("PONG/$stream")
+                    "pong" -> debugStreamIpc("PONG", "$stream")
                     is IpcMessage -> {
-                        debugStreamIpc("ON-MESSAGE/${this@ReadableStreamIpc}", message)
-                        _messageSignal.emit(
-                            IpcMessageArgs(
-                                message, this@ReadableStreamIpc
-                            )
-                        )
+                        debugStreamIpc("ON-MESSAGE", "$size => $message => ${this@ReadableStreamIpc}")
+                        _messageSignal.emit(IpcMessageArgs(message, this@ReadableStreamIpc))
                     }
                     else -> throw Exception("unknown message: $message")
                 }
             }
-            debugStreamIpc("END/$stream")
+            debugStreamIpc("END", "$stream")
             // 流是双向的，对方关闭的时候，自己也要关闭掉
             this.close()
         }
@@ -140,7 +136,7 @@ class ReadableStreamIpc(
                 else -> gson.toJson(data).toUtf8ByteArray()
             }
         }
-        debugStreamIpc("post/$stream", message.size)
+        debugStreamIpc("post", "${message.size} => $stream => $data")
         enqueue(message.size.toByteArray() + message)
     }
 
