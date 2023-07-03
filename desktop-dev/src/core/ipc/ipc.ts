@@ -16,6 +16,13 @@ import {
 } from "./const.ts";
 
 import { $OnFetch, createFetchHandler } from "../helper/ipcFetchHelper.ts";
+export {
+  FetchError,
+  FetchEvent,
+  type $FetchResponse,
+  type $OnFetch,
+  type $OnFetchReturn,
+} from "../helper/ipcFetchHelper.ts";
 
 let ipc_uid_acc = 0;
 export abstract class Ipc {

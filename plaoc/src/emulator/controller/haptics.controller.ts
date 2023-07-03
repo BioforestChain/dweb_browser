@@ -16,8 +16,8 @@ export class HapticsController extends BaseController {
         this.hapticsMock(JSON.stringify({ pathname, state }));
         return Response.json(true);
       })
-      .cros()
-      .forbidden();
+      .forbidden()
+      .cros();
   })();
 
   hapticsMock(text: string) {

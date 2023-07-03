@@ -17,8 +17,8 @@ export class TorchController extends BaseController {
           return Response.json(this.state.isOpen);
         }
       })
-      .cros()
-      .forbidden();
+      .forbidden()
+      .cros();
   })();
 
   state = { isOpen: false };

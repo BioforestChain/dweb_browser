@@ -22,8 +22,8 @@ export class Server_api extends HttpServer {
     const serverIpc = await this._listener;
     return serverIpc
       .onFetch(this._provider.bind(this))
-      .cros()
-      .internalServerError();
+      .internalServerError()
+      .cros();
   }
 
   protected async _provider(event: FetchEvent) {

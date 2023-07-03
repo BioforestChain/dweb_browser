@@ -20,8 +20,8 @@ export class BiometricsController extends BaseController {
           return Response.json(await this.biometricsMock());
         }
       })
-      .cros()
-      .forbidden();
+      .forbidden()
+      .cros();
   })();
   private queue: PromiseOut<$BiometricsReuslt>[] = [];
   get state() {

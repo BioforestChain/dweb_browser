@@ -59,25 +59,6 @@ const $throw = (err: Error) => {
 };
 
 export const fetchHanlderFactory = {
-  Cros: (
-    config: { origin?: string; headers?: string; methods?: string } = {}
-  ) =>
-    fetchEnd((event, res) => {
-      if (res === undefined && event.method === "OPTIONS") {
-        res = IpcResponse.fromText(
-          event.ipcRequest.req_id,
-          200,
-          undefined,
-          "",
-          event.ipc
-        );
-      }
-      res?.headers
-        .init("Access-Control-Allow-Origin", config.origin ?? "*")
-        .init("Access-Control-Allow-Headers", config.headers ?? "*")
-        .init("Access-Control-Allow-Methods", config.methods ?? "*");
-      return res;
-    }),
   NoFound: () =>
     fetchEnd(
       (event, res) => res ?? $throw(new FetchError("No Found", { status: 404 }))
@@ -128,7 +109,32 @@ export const createFetchHandler = (onFetchs: Iterable<$OnFetch>) => {
         onFetchHanlders.push(fetchEnd(handler));
         return to;
       },
-      cros: wrapFactory(fetchHanlderFactory.Cros),
+      /**
+       * 配置跨域，一般是最后调用
+       * @param config
+       */
+      cros: (
+        config: { origin?: string; headers?: string; methods?: string } = {}
+      ) => {
+        /// options 请求一般是跨域时，询问能否post，这里统一返回空就行，后面再加上 Access-Control-Allow-Methods
+        onFetchHanlders.unshift(((event) => {
+          if (event.method === "OPTIONS") {
+            return { body: "" };
+          }
+        }) satisfies $OnFetch);
+
+        /// 如果有响应，统一加上响应头
+        onFetchHanlders.push(
+          fetchMid((res) => {
+            res?.headers
+              .init("Access-Control-Allow-Origin", config.origin ?? "*")
+              .init("Access-Control-Allow-Headers", config.headers ?? "*")
+              .init("Access-Control-Allow-Methods", config.methods ?? "*");
+            return res;
+          })
+        );
+        return to;
+      },
       noFound: wrapFactory(fetchHanlderFactory.NoFound),
       forbidden: wrapFactory(fetchHanlderFactory.Forbidden),
       badRequest: wrapFactory(fetchHanlderFactory.BadRequest),

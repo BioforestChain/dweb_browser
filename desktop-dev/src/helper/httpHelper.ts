@@ -37,3 +37,29 @@ export const httpMethodCanOwnBody = (method: $Method | (string & {})) => {
     method !== "OPTIONS"
   );
 };
+
+/**
+ * 获得一个资源对象的总大小，如果使用了分片下载，那么也返回总大小而不是分片的大小
+ * @param headers
+ * @returns
+ */
+export const headersGetTotalLength = (headers: Headers) => {
+  const totalLength =
+    /**
+     * Content-Length: 2
+     * Accept-Ranges: bytes
+     * Content-Range: bytes 0-1/4300047
+     */
+    headers.get("Content-Range")?.split("/").pop() ??
+    /**
+     * Content-Length: 4300047
+     */
+    headers.get("Content-Length");
+
+  if (totalLength) {
+    const len = parseInt(totalLength);
+    if (Number.isFinite(len)) {
+      return len;
+    }
+  }
+};

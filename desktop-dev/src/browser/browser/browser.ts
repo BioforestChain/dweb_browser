@@ -27,7 +27,10 @@ export class BrowserNMM extends NativeMicroModule {
 
   protected async _bootstrap(context: $BootstrapContext) {
     await Electron.app.whenReady();
-    context.dns.connect("jmm.browser.dweb");
+    /**
+     * 伴生启动 jmm 模块，可选，但最好启动
+     */
+    context.dns.open("jmm.browser.dweb");
     this.wwwServer = await createWWWServer.call(this);
     this.bw = await createBrowserWindow.call(
       this,

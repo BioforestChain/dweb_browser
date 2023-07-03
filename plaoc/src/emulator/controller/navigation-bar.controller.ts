@@ -39,8 +39,8 @@ export class NavigationBarController extends BaseController {
           return Response.json("");
         }
       })
-      .cros()
-      .forbidden();
+      .forbidden()
+      .cros();
   })();
   observer = new StateObservable(() => {
     return JSON.stringify(this.state);

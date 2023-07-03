@@ -35,8 +35,8 @@ export class SafeAreaController extends BaseController {
           return Response.json("");
         }
       })
-      .cros()
-      .forbidden();
+      .forbidden()
+      .cros();
   })();
 
   observer = new StateObservable(() => {
