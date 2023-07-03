@@ -12,22 +12,38 @@ class DownloadImageViewModel: ObservableObject {
     private var cache = NSCache<AnyObject,AnyObject>()
     @Published var iconImage: UIImage?
     @Published var images: [UIImage] = []
+    private var imageList: [UIImage] = []
     
-    func loadIcon(urlString: String, placeHoldImage: UIImage) {
+    func loadIcon(urlString: String, placeHoldImageName: String) {
+        
+        let bundle = Bundle(for: BridgeManager.self)
+        let placeHoldImage = UIImage(named: placeHoldImageName, in: bundle, compatibleWith: nil)
         Task {
-            iconImage = await loadImage(urlString: urlString) ?? placeHoldImage
+            let image = await loadImage(urlString: urlString) ?? placeHoldImage
+            DispatchQueue.main.async {
+                self.iconImage = image
+            }
         }
     }
     
-    func loadImages(imageNames: [String], placeHoldImage: UIImage) {
+    func loadImages(imageNames: [String], placeHoldImageName: String) {
+        
+        let bundle = Bundle(for: BridgeManager.self)
+        let placeHoldImage = UIImage(named: placeHoldImageName, in: bundle, compatibleWith: nil)
+        imageList.removeAll()
         Task {
             for name in imageNames {
                 let image = await loadImage(urlString: name)
                 if image == nil {
-                    images.append(placeHoldImage)
+                    if placeHoldImage != nil {
+                        imageList.append(placeHoldImage!)
+                    }
                 } else {
-                    images.append(image!)
+                    imageList.append(image!)
                 }
+            }
+            DispatchQueue.main.async {
+                self.images = self.imageList
             }
         }
     }

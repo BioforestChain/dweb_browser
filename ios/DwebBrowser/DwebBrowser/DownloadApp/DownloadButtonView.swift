@@ -16,16 +16,17 @@ struct DownloadButtonView: View {
     @Binding private var isRotate: Bool
     @Binding private var isWaiting: Bool
     @Binding private var progress: CGFloat
-    private var urlString: String = ""
+    @Binding private var isLoading: Bool
+    @State var oldContent: String = ""
     
-    init(urlString: String, content: Binding<String>, btn_width: Binding<CGFloat>, backColor: Binding<SwiftUI.Color>, isRotate: Binding<Bool>, isWaiting: Binding<Bool>, progress: Binding<CGFloat>) {
+    init(content: Binding<String>, btn_width: Binding<CGFloat>, backColor: Binding<SwiftUI.Color>, isRotate: Binding<Bool>, isWaiting: Binding<Bool>, isLoading: Binding<Bool>, progress: Binding<CGFloat>) {
         self._content = content
         self._btn_width = btn_width
         self._backColor = backColor
         self._isRotate = isRotate
         self._isWaiting = isWaiting
         self._progress = progress
-        self.urlString = urlString
+        self._isLoading = isLoading
     }
     
     var body: some View {
@@ -37,15 +38,16 @@ struct DownloadButtonView: View {
                 LoadingWaitCircle()
             } else {
                 Button {
-                    if content == "获取" {
+                    if content == "获取" || content == "更新"{
+                        self.oldContent = content
                         withAnimation {
                             btn_width = 50
                             content = ""
                             backColor = .clear
                         }
                     } else {
-                        let dict = ["type": "open", "urlString": urlString]
-                        downloadPublisher.send(dict)
+                        let dict = ["type": "open"]
+                        NotificationCenter.default.post(name: NSNotification.Name.downloadApp, object: nil, userInfo: dict)
                     }
                 } label: {
                     Text(content)
@@ -73,7 +75,7 @@ struct DownloadButtonView: View {
             Circle()
                 .stroke(lineWidth: 4)
                 .opacity(0.5)
-                .foregroundColor(SwiftUI.Color.white.opacity(0.5))
+                .foregroundColor(SwiftUI.Color.primary.opacity(0.2))
             
             Circle()
                 .trim(from: 0.0, to: CGFloat(progress))
@@ -82,9 +84,10 @@ struct DownloadButtonView: View {
                 .rotationEffect(Angle(degrees: -90.0))
                 .animation(.easeOut(duration: 0.25), value: progress)
                 .onAppear {
-                    NotificationCenter.default.addObserver(forName: Notification.Name.downloadComplete, object: nil, queue: nil) { _ in
+                    NotificationCenter.default.addObserver(forName: Notification.Name.downloadComplete, object: nil, queue: .main) { _ in
                         self.progress = 0
                         self.isWaiting = false
+                        self.isLoading = false
                         withAnimation {
                             btn_width = 80
                             content = "打开"
@@ -92,12 +95,13 @@ struct DownloadButtonView: View {
                         }
                     }
                     
-                    NotificationCenter.default.addObserver(forName: Notification.Name.downloadFail, object: nil, queue: nil) { _ in
+                    NotificationCenter.default.addObserver(forName: Notification.Name.downloadFail, object: nil, queue: .main) { _ in
                         self.progress = 0
                         self.isWaiting = false
+                        self.isLoading = false
                         withAnimation {
                             btn_width = 80
-                            content = "获取"
+                            content = self.oldContent
                             backColor = SwiftUI.Color.blue
                         }
                     }
@@ -115,15 +119,19 @@ struct DownloadButtonView: View {
         Circle()
             .trim(from: 0, to: 0.8)
             .stroke(lineWidth: 4)
-            .foregroundColor(SwiftUI.Color.white.opacity(0.5))
+            .foregroundColor(SwiftUI.Color.primary.opacity(0.2))
             .frame(width: 30, height: 30)
             .rotationEffect(.degrees(isRotate ? 360 : 0.0))
             .animation(SwiftUI.Animation.linear(duration: 1).repeatForever(autoreverses: false), value: isRotate)
             .onAppear {
                 isRotate = true
-                DispatchQueue.main.async {
-                    let dict = ["type": "download", "urlString": urlString]
-                    downloadPublisher.send(dict)
+                if !isLoading {
+                    print("download")
+                    isLoading = true
+                    DispatchQueue.main.async {
+                        let dict = ["type": "download"]
+                        NotificationCenter.default.post(name: NSNotification.Name.downloadApp, object: nil, userInfo: dict)
+                    }
                 }
             }
     }

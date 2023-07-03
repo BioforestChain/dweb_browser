@@ -12,5 +12,7 @@ extension Notification.Name {
     
     static let downloadComplete = Notification.Name(rawValue: "downloadComplete")
     static let downloadFail = Notification.Name(rawValue: "downloadFail")
+    static let downloadApp = Notification.Name("downloadApp")
+    static let backToLastView = Notification.Name("backToLastView")
 }
 
