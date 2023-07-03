@@ -90,13 +90,14 @@ export class Server_api extends HttpServer {
     const { pathname, search } = event;
     // 转发file请求到目标NMM
     const path = `file:/${pathname}${search}`;
-    const ipcProxyRequest = event.body
+    const body = await event.ipcRequest.body.stream();
+    const ipcProxyRequest = body
       ? IpcRequest.fromStream(
           jsProcess.fetchIpc.allocReqId(),
           path,
           event.method,
           event.headers,
-          event.body,
+          body,
           jsProcess.fetchIpc
         )
       : IpcRequest.fromText(

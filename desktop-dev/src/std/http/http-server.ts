@@ -89,7 +89,7 @@ export class HttpServerNMM extends NativeMicroModule {
         // }, 3e4 /* 30s 没有任何 body 写入的话，认为网关超时 */);
         const fullReqUrl =
           info.protocol.prefix + (req.headers["host"] ?? info.host) + req.url;
-        console.always("fullReqUrl", fullReqUrl);
+        // console.always("fullReqUrl", fullReqUrl);
         // 源代码
         void gateway.listener.hookHttpRequest(req, res, fullReqUrl);
       }

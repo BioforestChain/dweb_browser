@@ -319,6 +319,7 @@ async function openDevToolsWindowAsFollower(
       devWin.moveTop();
       return devWin;
     }
+    // deno-lint-ignore no-empty
   } catch {}
 
   /// 使用最原始的方式打开webview，放在独立的窗口中

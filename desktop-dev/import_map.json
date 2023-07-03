@@ -9,8 +9,6 @@
     "electron": "https://esm.sh/v124/electron@25.2.0",
     "extract-zip": "https://esm.sh/v124/extract-zip@2.0.1",
     "jszip": "https://esm.sh/v124/jszip@3.10.1",
-    "jimp": "https://esm.sh/v124/jimp@0.22.8",
-    "jsqr": "https://esm.sh/v124/jsqr@1.4.0",
     "lit": "https://esm.sh/v124/lit@2.7.4",
     "lit/": "https://esm.sh/v124/lit@2.7.4/",
     "mime": "https://esm.sh/v124/mime@3.0.0",

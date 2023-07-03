@@ -98,10 +98,7 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
    * 不断识图的任务
    * @returns
    */
-  taskPhoto(
-    rotation: number,
-    formats: SupportedFormat
-  ): Promise<string[]> {
+  taskPhoto(rotation: number, formats: SupportedFormat): Promise<string[]> {
     this._activity = true;
     return new Promise((resolve, reject) => {
       const task = () => {
@@ -307,7 +304,7 @@ customElements.define(
   HTMLDwebBarcodeScanningElement
 );
 declare global {
-  interface HTMLElementTagNameMap{
-    [HTMLDwebBarcodeScanningElement.tagName]: HTMLDwebBarcodeScanningElement
+  interface HTMLElementTagNameMap {
+    [HTMLDwebBarcodeScanningElement.tagName]: HTMLDwebBarcodeScanningElement;
   }
 }
