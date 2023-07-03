@@ -130,6 +130,7 @@
 		F3D5AAE12A52C1C5007C93D0 /* GridCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0E984502A24AC5800F7180A /* GridCellView.swift */; };
 		F3D5AAE22A52C1C5007C93D0 /* AddressBarHStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = F028998729F7C3DC00B8754A /* AddressBarHStack.swift */; };
 		F3D5AAE32A52C1C5007C93D0 /* ToolbarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F028998629F7C3DB00B8754A /* ToolbarView.swift */; };
+		F3D5AAE52A52DCE1007C93D0 /* HapticsHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3D5AAE42A52DCE1007C93D0 /* HapticsHelper.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -220,6 +221,7 @@
 		F34A476C2A4D74F3001E105A /* DownloadAppManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadAppManager.swift; sourceTree = "<group>"; };
 		F3D5AA922A52BF99007C93D0 /* DwebBrowserFramework.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = DwebBrowserFramework.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F3D5AA942A52BF99007C93D0 /* DwebBrowserFramework.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DwebBrowserFramework.h; sourceTree = "<group>"; };
+		F3D5AAE42A52DCE1007C93D0 /* HapticsHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HapticsHelper.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -440,6 +442,7 @@
 		F34A476B2A4D74D7001E105A /* Bridge */ = {
 			isa = PBXGroup;
 			children = (
+				F3D5AAE42A52DCE1007C93D0 /* HapticsHelper.swift */,
 				F34A476C2A4D74F3001E105A /* DownloadAppManager.swift */,
 				F0506ADA2A4A78920042F0C2 /* BridgeManager.swift */,
 			);
@@ -594,6 +597,7 @@
 				F0531F112A346219001FBE06 /* BookmarkCell.swift in Sources */,
 				F0E984312A21DC6D00F7180A /* WebWrapperMgr.swift in Sources */,
 				F0531EC52A3028EF001FBE06 /* Tools.swift in Sources */,
+				F3D5AAE52A52DCE1007C93D0 /* HapticsHelper.swift in Sources */,
 				F028998A29F7C3DC00B8754A /* AddressBarHStack.swift in Sources */,
 				F0B68D032A123B4F00215036 /* Url+Validator.swift in Sources */,
 				F34A47632A4D738B001E105A /* APPModel.swift in Sources */,
