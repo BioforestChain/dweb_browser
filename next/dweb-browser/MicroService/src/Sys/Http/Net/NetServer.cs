@@ -1,4 +1,6 @@
-﻿namespace DwebBrowser.MicroService.Sys.Http.Net;
+﻿using System.Net.WebSockets;
+
+namespace DwebBrowser.MicroService.Sys.Http.Net;
 
 public interface IProtocol
 {
@@ -55,6 +57,7 @@ public record ListenOptions(int Port, string Hostname = "localhost");
 
 public static class NetServer
 {
+    static Debugger Console = new("NetServer");
     /// <summary>
     /// TODO 这里应该提供Stop函数来终止服务
     /// </summary>
@@ -80,9 +83,16 @@ public static class NetServer
             {
                 var context = listener.GetContext();
 
-                Task.Factory.StartNew(() =>
+                Task.Factory.StartNew(async () =>
                 {
-                    HandlerAsync(context, handler).Wait();
+                    if (context.Request.IsWebSocketRequest)
+                    {
+                        WebSocketHandlerAsync(context).Wait();
+                    }
+                    else
+                    {
+                        HttpHandlerAsync(context, handler).Wait();
+                    }
                 }, TaskCreationOptions.LongRunning);
             }
         }, TaskCreationOptions.LongRunning);
@@ -96,7 +106,21 @@ public static class NetServer
             new HttpProtocol("http://", "http:", 80));
     }
 
-    private static async Task HandlerAsync(HttpListenerContext context, HttpHandler handler)
+    private static async Task WebSocketHandlerAsync(HttpListenerContext context)
+    {
+        var webSocket = await context.AcceptWebSocketAsync(null)!;
+        var chunk = new byte[1000];
+        /// Echo
+        while (webSocket.WebSocket.State == WebSocketState.Open)
+        {
+            var result = await webSocket.WebSocket.ReceiveAsync(new ArraySegment<byte>(chunk), CancellationToken.None)!;
+            var bytes = chunk[0..result.Count];
+            await webSocket.WebSocket.SendAsync(new ArraySegment<byte>(bytes), result.MessageType, result.EndOfMessage, CancellationToken.None);
+        }
+        Console.Log("WebSocket Server", "End");
+    }
+
+    private static async Task HttpHandlerAsync(HttpListenerContext context, HttpHandler handler)
     {
         var request = context.Request;
         using var response = context.Response;
@@ -112,6 +136,5 @@ public static class NetServer
             response.StatusCode = 502;
         }
     }
-
 }
 
