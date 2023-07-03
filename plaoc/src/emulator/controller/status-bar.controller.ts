@@ -2,11 +2,9 @@ import { colorToHex, hexaToRGBA, parseQuery, z, zq } from "../../../deps.ts";
 import { StateObservable } from "../helper/StateObservable.ts";
 import { createMockModuleServerIpc } from "../helper/helper.ts";
 import { $BAR_STYLE, $BarState } from "../types.ts";
-export class StatusBarController {
-  constructor() {
-    void this._init();
-  }
-  private async _init() {
+import { BaseController } from "./base-controller.ts";
+export class StatusBarController extends BaseController {
+  private _init = (async () => {
     const ipc = await createMockModuleServerIpc(
       "status-bar.nativeui.browser.dweb"
     );
@@ -43,7 +41,7 @@ export class StatusBarController {
       })
       .cros()
       .forbidden();
-  }
+  })();
 
   observer = new StateObservable(() => {
     return JSON.stringify(this.state);
@@ -62,16 +60,6 @@ export class StatusBarController {
     visible: true,
   };
 
-  private _onUpdate?: () => void;
-  onUpdate(cb: () => void) {
-    this._onUpdate = cb;
-    return this;
-  }
-  emitUpdate() {
-    // this.observer.notifyObserver();
-    console.log("state=>", this.state);
-    this._onUpdate?.();
-  }
   statusBarSetState(state: Partial<$BarState>) {
     this.state = {
       ...this.state,

@@ -2,12 +2,10 @@ import { colorToHex, hexaToRGBA, parseQuery, z, zq } from "../../../deps.ts";
 import { StateObservable } from "../helper/StateObservable.ts";
 import { createMockModuleServerIpc } from "../helper/helper.ts";
 import { $BAR_STYLE, $BarState } from "../types.ts";
+import { BaseController } from "./base-controller.ts";
 
-export class NavigationBarController {
-  constructor() {
-    void this._init();
-  }
-  private async _init() {
+export class NavigationBarController extends BaseController {
+  private _init = (async () => {
     const ipc = await createMockModuleServerIpc(
       "navigation-bar.nativeui.browser.dweb"
     );
@@ -17,7 +15,6 @@ export class NavigationBarController {
       overlay: zq.boolean().optional(),
       visible: zq.boolean().optional(),
     });
-
     ipc
       .onFetch(async (event) => {
         const { pathname, searchParams } = event;
@@ -44,7 +41,7 @@ export class NavigationBarController {
       })
       .cros()
       .forbidden();
-  }
+  })();
   observer = new StateObservable(() => {
     return JSON.stringify(this.state);
   });
@@ -60,16 +57,6 @@ export class NavigationBarController {
     overlay: false,
     visible: true,
   };
-
-  private _onUpdate?: () => void;
-  onUpdate(cb: () => void) {
-    this._onUpdate = cb;
-    return this;
-  }
-  emitUpdate() {
-    console.log("navigaion update=>", this.state);
-    this._onUpdate?.();
-  }
 
   navigationBarSetState(state: Partial<$BarState>) {
     this.state = {

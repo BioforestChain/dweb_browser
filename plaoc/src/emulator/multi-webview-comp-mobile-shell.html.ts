@@ -39,10 +39,6 @@ export class MultiWebViewCompMobileShell extends LitElement {
     this.appContentContainer?.append(multiWebviewCompToast);
   }
 
-  setHostStyle() {
-    const host = (this.renderRoot as ShadowRoot).host as HTMLElement;
-  }
-
   shareShare(options: $ShareOptions) {
     const el = document.createElement("multi-webview-comp-share");
     const ui8 = options.body;
@@ -124,7 +120,6 @@ export class MultiWebViewCompMobileShell extends LitElement {
   }
 
   protected override render(): unknown {
-    this.setHostStyle();
     return html`
       <div class="shell">
         <div class="shell_container">

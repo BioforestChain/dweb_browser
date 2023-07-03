@@ -1,10 +1,8 @@
 import { createMockModuleServerIpc } from "../helper/helper.ts";
+import { BaseController } from "./base-controller.ts";
 
-export class TorchController {
-  constructor() {
-    void this._init();
-  }
-  private async _init() {
+export class TorchController extends BaseController {
+  private _init = (async () => {
     const ipc = await createMockModuleServerIpc("torch.nativeui.browser.dweb");
     ipc
       .onFetch(async (event) => {
@@ -21,18 +19,9 @@ export class TorchController {
       })
       .cros()
       .forbidden();
-  }
+  })();
 
   state = { isOpen: false };
-
-  private _onUpdate?: () => void;
-  onUpdate(cb: () => void) {
-    this._onUpdate = cb;
-    return this;
-  }
-  emitUpdate() {
-    this._onUpdate?.();
-  }
 
   torchToggleTorch() {
     this.state = {

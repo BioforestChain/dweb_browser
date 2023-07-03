@@ -1,12 +1,10 @@
 import { parseQuery, z, zq } from "../../../deps.ts";
 import { StateObservable } from "../helper/StateObservable.ts";
 import { createMockModuleServerIpc } from "../helper/helper.ts";
+import { BaseController } from "./base-controller.ts";
 
-export class VirtualKeyboardController {
-  constructor() {
-    void this._init();
-  }
-  private async _init() {
+export class VirtualKeyboardController extends BaseController {
+  private _init = (async () => {
     const ipc = await createMockModuleServerIpc(
       "virtual-keyboard.nativeui.browser.dweb"
     );
@@ -40,7 +38,7 @@ export class VirtualKeyboardController {
       })
       .cros()
       .forbidden();
-  }
+  })();
   observer = new StateObservable(() => {
     return JSON.stringify(this.state);
   });
@@ -58,15 +56,6 @@ export class VirtualKeyboardController {
     overlay: false,
     visible: false,
   };
-
-  private _onUpdate?: () => void;
-  onUpdate(cb: () => void) {
-    this._onUpdate = cb;
-    return this;
-  }
-  emitUpdate() {
-    this._onUpdate?.();
-  }
 
   virtualKeyboardSetOverlay(overlay = true) {
     this.state = {

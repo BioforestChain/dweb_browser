@@ -3,12 +3,9 @@ import { StateObservable } from "../helper/StateObservable.ts";
 import { getButtomBarState } from "../multi-webview-comp-safe-area.shim.ts";
 import { $BarState } from "../types.ts";
 import { createMockModuleServerIpc } from "./../helper/helper.ts";
-export class SafeAreaController {
-  constructor() {
-    void this._init();
-  }
-
-  private async _init() {
+import { BaseController } from "./base-controller.ts";
+export class SafeAreaController extends BaseController {
+  private _init = (async () => {
     const ipc = await createMockModuleServerIpc(
       "safe-area.nativeui.browser.dweb"
     );
@@ -40,21 +37,11 @@ export class SafeAreaController {
       })
       .cros()
       .forbidden();
-  }
+  })();
 
   observer = new StateObservable(() => {
     return JSON.stringify(this.state);
   });
-
-  private _onUpdate?: () => void;
-  onUpdate(cb: () => void) {
-    this._onUpdate = cb;
-    return this;
-  }
-  emitUpdate() {
-    this.observer.notifyObserver();
-    this._onUpdate?.();
-  }
 
   state = {
     overlay: false,
