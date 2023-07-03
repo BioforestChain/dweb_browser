@@ -7,6 +7,9 @@ import { doBundle } from "./bundle.ts";
 // await emptyDir("./npm");
 const workspaceDir = fileURLToPath(import.meta.resolve("../"));
 const resolveTo = (to: string) => path.resolve(workspaceDir, to);
+const readPackageJson = () => JSON.parse(
+  fs.readFileSync(resolveTo("./electron/package.json"), "utf-8")
+);
 
 /// before build
 Deno.copyFileSync(resolveTo(".npmrc"), resolveTo("electron/.npmrc"));
@@ -30,7 +33,7 @@ await dnt.build({
   package: {
     // package.json properties
     name: "@dweb-browser/desktop-sdk",
-    version: Deno.args.filter((arg) => /^\d/.test(arg))[0] || "0.0.0",
+    version: Deno.args.filter((arg) => /^\d/.test(arg))[0] || readPackageJson()?.version || "0.0.0",
     description: "Dweb Browser Development Kit",
     license: "MIT",
     config: {
@@ -99,9 +102,7 @@ await dnt.build({
 
     /// STEP3: fix for electron-builder
     const updatePackageJson = (updater: (packageJson: any) => unknown) => {
-      const packageJson = JSON.parse(
-        fs.readFileSync(resolveTo("./electron/package.json"), "utf-8")
-      );
+      const packageJson = readPackageJson();
       fs.writeFileSync(
         resolveTo("./electron/package.json"),
         JSON.stringify(updater(packageJson) || packageJson, null, 2)
