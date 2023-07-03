@@ -50,7 +50,11 @@ export class MetadataJsonGenerator {
   tryReadMetadata() {
     for (const filepath of this.metadataFilepaths) {
       try {
-        return JSON.parse(fs.readFileSync(filepath, "utf-8"));
+        const metadata = JSON.parse(fs.readFileSync(filepath, "utf-8"));
+        if (typeof metadata.author === "string") {
+          metadata.author = [metadata.author];
+        }
+        return metadata;
         // deno-lint-ignore no-empty
       } catch {}
     }
