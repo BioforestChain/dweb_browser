@@ -19,8 +19,8 @@
   </ItemGroup>
   <ItemGroup>
     <NativeReference Include="..\..\XCFrameworks\DwebBrowserFramework.xcframework">
-      <Kind>Static</Kind>
-      <SmartLink>False</SmartLink>
+      <Kind>Framework</Kind>
+      <Frameworks>Foundation UIKit</Frameworks>
     </NativeReference>
   </ItemGroup>
 </Project>
