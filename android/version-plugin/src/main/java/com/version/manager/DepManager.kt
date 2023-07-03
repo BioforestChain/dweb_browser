@@ -8,8 +8,8 @@ object BuildVersion {
   const val buildToolsVersion = "29.0.2"
   const val minSdkVersion = 28
   const val targetSdkVersion = 33
-  const val versionCode = 4
-  const val versionName = "1.1.3"
+  const val versionCode = 5
+  const val versionName = "1.1.4"
 
   const val kotlinVersion = "1.8.10"
 }

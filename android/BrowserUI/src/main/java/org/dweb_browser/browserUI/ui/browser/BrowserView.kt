@@ -45,6 +45,8 @@ import org.dweb_browser.browserUI.ui.view.findActivity
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
+import org.dweb_browser.browserUI.ui.loading.LoadingView
+import org.dweb_browser.browserUI.ui.view.PrivacyView
 
 internal val dimenTextFieldFontSize = 16.sp
 internal val dimenSearchHorizontalAlign = 5.dp
@@ -96,7 +98,7 @@ fun BrowserView(viewModel: BrowserViewModel) {
 
   BottomSheetScaffold(modifier = Modifier.navigationBarsPadding(),
     scaffoldState = viewModel.uiState.bottomSheetScaffoldState,
-    sheetPeekHeight = LocalConfiguration.current.screenHeightDp.dp / 2,
+    sheetPeekHeight = 540.dp, //LocalConfiguration.current.screenHeightDp.dp / 2,
     sheetContainerColor = MaterialTheme.colorScheme.background,
     sheetShape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp),
     sheetContent = {
@@ -135,6 +137,9 @@ fun BrowserView(viewModel: BrowserViewModel) {
         }
       })
 
+    val showLoading = remember { mutableStateOf(false) }
+    PrivacyView(url = viewModel.uiState.privacyState, showLoading = showLoading)
+    LoadingView(showLoading = showLoading)
   }
   LaunchedEffect(Unit) { // TODO 这个是因为华为鸿蒙系统，运行后，半屏显示了Sheet，这边强制隐藏下
     scope.launch {

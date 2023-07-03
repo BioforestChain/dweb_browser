@@ -47,7 +47,7 @@ fun LoadingView(
       .clickableWithNoEffect {  },
       contentAlignment = Alignment.Center
     ) {
-      //1284总宽度  菊花宽度：209    17宽 38长     106     17/53  38/53
+      //1284总宽度  计划宽度：209    17宽 38长     106     17/53  38/53
       Box(
         modifier = Modifier
           .width((width * 0.16f).dp)

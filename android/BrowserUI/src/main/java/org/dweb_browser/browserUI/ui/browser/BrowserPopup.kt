@@ -42,6 +42,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
@@ -388,8 +389,10 @@ private fun PopContentView(
   }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PopContentOptionItem(viewModel: BrowserViewModel) {
+  val scope = rememberCoroutineScope()
   val activity = LocalContext.current.findActivity()
   // 判断权限
   val launcher =
@@ -430,6 +433,24 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel) {
             onCheckedChange = { viewModel.saveBrowserMode(it) }
           )
         }) {} // 无痕浏览
+
+        Spacer(modifier = Modifier.height(12.dp))
+        RowItemMenuView(text = "隐私政策", trailingContent = { modifier ->
+          Icon(
+            imageVector = ImageVector.vectorResource(R.drawable.ic_more),
+            contentDescription = "Manager",
+            modifier = modifier
+              .padding(horizontal = 12.dp, vertical = 15.dp)
+              .size(20.dp)
+              .graphicsLayer(rotationZ = -90f),
+            tint = MaterialTheme.colorScheme.outlineVariant
+          )
+        }) {
+          scope.launch {
+            viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.hide()
+            viewModel.handleIntent(BrowserIntent.ShowPrivacyView)
+          }
+        } // 隐私政策
       }
     }
   }

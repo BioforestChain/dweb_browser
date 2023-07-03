@@ -62,6 +62,7 @@ data class BrowserUIState(
   val inputText: MutableState<String> = mutableStateOf(""), // 用于指定输入的内容
   val showSearchEngine: MutableTransitionState<Boolean> = MutableTransitionState(false), // 用于在输入内容后，显示本地检索以及提供搜索引擎
   val qrCodeScanState: QRCodeScanState = QRCodeScanState(), // 用于判断桌面的显示隐藏
+  val privacyState: MutableState<String> = mutableStateOf(""), // 用于判断桌面的显示隐藏
 )
 
 /**
@@ -102,6 +103,7 @@ sealed class BrowserIntent {
   class ShareWebSiteInfo(val activity: Activity) : BrowserIntent() // 直接获取当前的界面来保存
   class UpdateInputText(val text: String) : BrowserIntent()
   class ShowSnackbarMessage(val message: String, val actionLabel: String? = null) : BrowserIntent()
+  object ShowPrivacyView : BrowserIntent()
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -282,6 +284,10 @@ class BrowserViewModel(val microModule: MicroModule, val onOpenDweb: (Mmid) -> U
               action.message, action.actionLabel
             )
           }
+        }
+
+        is BrowserIntent.ShowPrivacyView -> {
+          uiState.privacyState.value = "https://www.bagen.info/dweb_privacy_policy.html"
         }
       }
     }
