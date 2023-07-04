@@ -91,6 +91,8 @@ export class Server_api extends HttpServer {
     // 转发file请求到目标NMM
     const path = `file:/${pathname}${search}`;
     const body = await event.ipcRequest.body.stream();
+    const mmid = new URL(path).host;
+    const targetIpc = await connect(mmid as $MMID);
     const ipcProxyRequest = body
       ? IpcRequest.fromStream(
           jsProcess.fetchIpc.allocReqId(),
@@ -98,7 +100,7 @@ export class Server_api extends HttpServer {
           event.method,
           event.headers,
           body,
-          jsProcess.fetchIpc
+          targetIpc
         )
       : IpcRequest.fromText(
           jsProcess.fetchIpc.allocReqId(),
@@ -106,11 +108,9 @@ export class Server_api extends HttpServer {
           event.method,
           event.headers,
           "",
-          jsProcess.fetchIpc
+          targetIpc
         );
-    // 必须要直接向目标对发连接 通过这个 IPC 发送请求
-    const targetIpc = await connect(ipcProxyRequest.parsed_url.host as $MMID);
-
+    console.log("jsProcess.fetchIpc.uuid", jsProcess.fetchIpc.uid);
     targetIpc.postMessage(ipcProxyRequest);
     const ipcProxyResponse = await targetIpc.registerReqId(
       ipcProxyRequest.req_id

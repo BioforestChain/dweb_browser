@@ -53,7 +53,7 @@ import "./sys/dns/localeFileFetch.ts";
  * "maphelper"
  */
 // 设置 console 过滤条件
-setFilter(["error", "browser", "mwebveiw"]);
+setFilter(["error", "browser", "mwebveiw", ""]);
 
 export const dns = new DnsNMM();
 dns.install(new MultiWebviewNMM());
