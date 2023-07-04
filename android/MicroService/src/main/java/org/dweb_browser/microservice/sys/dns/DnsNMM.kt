@@ -66,7 +66,7 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
         GlobalScope.launch(ioAsyncExceptionHandler) {
           debugFetch("DNS/open", "${fromMM.mmid} => $toMmid")
           val toMM = open(toMmid)
-          debugFetch("DNS/connect", "${fromMM.mmid} => $toMmid")
+          debugFetch("DNS/connect", "${fromMM.mmid} <=> $toMmid")
           val connectResult = connectMicroModules(fromMM, toMM, reason)
           connectResult.ipcForFromMM.onClose {
             mmConnectsMapLock.withLock {
@@ -159,10 +159,7 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
     _afterShutdownSignal.listen(nativeFetchAdaptersManager.append { fromMM, request ->
       if (request.uri.scheme == "file" && request.uri.host.endsWith(".dweb")) {
         val mmid = request.uri.host
-        debugFetch(
-          "DNS/fetchAdapter",
-          "fromMM=${fromMM.mmid} >> requestMmid=$mmid: >> path=${request.uri.path} >> ${request.uri}"
-        )
+        debugFetch("DNS/nativeFetch", "$fromMM => ${request.uri}")
         installApps[mmid]?.let {
           val (fromIpc) = connectTo(fromMM, mmid, request)
           return@let fromIpc.request(request)
@@ -172,10 +169,7 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
     /** dwebDeepLink 适配器*/
     _afterShutdownSignal.listen(nativeFetchAdaptersManager.append { fromMM, request ->
       if (request.uri.scheme == "dweb" && request.uri.host == "") {
-        debugFetch(
-          "DNS/webDeepLink",
-          "path=${request.uri.path}, host=${request.uri.host}"
-        )
+        debugFetch("DPLink/nativeFetch", "$fromMM => ${request.uri}")
         for (microModule in installApps) {
           if (microModule.value.dweb_deeplinks.contains("dweb:${request.uri.path}")) {
             val (fromIpc) = connectTo(fromMM, microModule.key, request)

@@ -94,7 +94,7 @@ fun printdebugln(scope: String, tag: String, msg: Any?, err: Throwable? = null) 
   if (msg is Lazy<*>) {
     msg = msg.value
   }
-  printerrln("${now()} │ ${scope.padEndAndSub(16)} │ ${tag.padEndAndSub(20)} |", msg, err)
+  printerrln("${now()} │ ${scope.padEndAndSub(16)} │ ${tag.padEndAndSub(22)} |", msg, err)
 }
 
 fun String.padEndAndSub(length: Int) : String {

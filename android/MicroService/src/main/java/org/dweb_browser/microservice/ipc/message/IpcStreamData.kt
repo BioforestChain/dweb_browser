@@ -9,22 +9,22 @@ import java.lang.reflect.Type
 @JsonAdapter(IpcStreamData::class)
 data class IpcStreamData(
   override val stream_id: String,
+  val encoding: IPC_DATA_ENCODING,
   val data: Any /*String or ByteArray*/,
-  val encoding: IPC_DATA_ENCODING
 ) : IpcMessage(IPC_MESSAGE_TYPE.STREAM_DATA), IpcStream, JsonSerializer<IpcStreamData>,
   JsonDeserializer<IpcStreamData> {
 
   companion object {
-    inline fun fromBinary(stream_id: String, data: ByteArray) =
-      IpcStreamData(stream_id, data, IPC_DATA_ENCODING.BINARY)
+    fun fromBinary(streamId: String, data: ByteArray) =
+      IpcStreamData(streamId, IPC_DATA_ENCODING.BINARY, data)
 
-    inline fun fromBase64(stream_id: String, data: ByteArray) =
-      IpcStreamData(stream_id, data.toBase64(), IPC_DATA_ENCODING.BASE64)
+    fun fromBase64(streamId: String, data: ByteArray) =
+      IpcStreamData(streamId, IPC_DATA_ENCODING.BASE64, data.toBase64())
 
-    inline fun fromUtf8(stream_id: String, data: ByteArray) = fromUtf8(stream_id, data.toUtf8())
+    fun fromUtf8(streamId: String, data: ByteArray) = fromUtf8(streamId, data.toUtf8())
 
-    inline fun fromUtf8(stream_id: String, data: String) =
-      IpcStreamData(stream_id, data, IPC_DATA_ENCODING.UTF8)
+    fun fromUtf8(streamId: String, data: String) =
+      IpcStreamData(streamId, IPC_DATA_ENCODING.UTF8, data)
   }
 
   val binary by lazy {

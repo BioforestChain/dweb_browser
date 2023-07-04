@@ -42,8 +42,8 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
                 else if (fromMM is JsMicroModule) JsMM(fromMM, toMM)
                 else null
 
-                debugJsMM("connectAdapterManager", "fromMM: ${fromMM.mmid} => toMM: ${toMM.mmid} ==> jsMM:${jsMM != null}")
-                if (jsMM is JsMM) {
+                debugJsMM("JsMM/connectAdapter", "fromMM:${fromMM.mmid} => toMM:${toMM.mmid} ==> jsMM:$jsMM")
+                jsMM?.let {
                     /**
                      * 与 NMM 相比，这里会比较难理解：
                      * 因为这里是直接创建一个 Native2JsIpc 作为 ipcForFromMM，
@@ -56,7 +56,7 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
                     fromMM.beConnect(originIpc, reason)
                     toMM.beConnect(originIpc, reason)
                     return@append ConnectResult(ipcForFromMM = originIpc, ipcForToMM = originIpc)
-                } else null
+                }
             }
             /**
              * -1

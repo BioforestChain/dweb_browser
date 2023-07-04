@@ -13,6 +13,7 @@ import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.gson
+import org.dweb_browser.microservice.sys.dns.debugFetch
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Response
@@ -114,11 +115,11 @@ class HttpNMM : NativeMicroModule("http.std.dweb") {
     }
 
     /// 为 nativeFetch 函数提供支持
-    _afterShutdownSignal.listen(nativeFetchAdaptersManager.append { _, request ->
-      if ((request.uri.scheme == "http" || request.uri.scheme == "https") && request.uri.host.endsWith(
-          ".dweb"
-        )
+    _afterShutdownSignal.listen(nativeFetchAdaptersManager.append { fromMM, request ->
+      if ((request.uri.scheme == "http" || request.uri.scheme == "https") &&
+        request.uri.host.endsWith(".dweb")
       ) {
+        debugFetch("HTTP/nativeFetch", "$fromMM => ${request.uri}")
         // 无需走网络层，直接内部处理掉
         httpHandler(
           request
@@ -200,7 +201,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb") {
    */
   private fun start(ipc: Ipc, options: DwebHttpServerOptions): ServerStartResult {
     val serverUrlInfo = getServerUrlInfo(ipc, options)
-    debugHttp("start", "serverUrlInfo=>${serverUrlInfo.host}, $options")
+    debugHttp("start", "$serverUrlInfo => $options")
     if (gatewayMap.contains(serverUrlInfo.host)) throw Exception("already in listen: ${serverUrlInfo.internal_origin}")
 
     val listener = Gateway.PortListener(ipc, serverUrlInfo.host)

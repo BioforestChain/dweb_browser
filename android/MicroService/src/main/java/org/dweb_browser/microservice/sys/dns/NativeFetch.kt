@@ -30,6 +30,7 @@ suspend fun MicroModule.nativeFetch(request: Request): Response {
       return response
     }
   }
+  debugFetch("Net/nativeFetch", "$this => ${request.uri}")
   return networkFetch(request)
 }
 

@@ -56,7 +56,7 @@ class ReadableStream(
     runBlockingCatching(writeDataScope.coroutineContext) {
       _dataLock.withLock {
         if (ptr >= 1 /*10240*/ || isClosed) {
-          debugStream("GC/$uid", "-${ptr} ~> ${_data.size - ptr}")
+          debugStream("GC", "$uid => -${ptr} ~> ${_data.size - ptr}")
           _data = _data.sliceArray(ptr until _data.size)
           ptr = 0
         }
@@ -83,7 +83,7 @@ class ReadableStream(
       for (chunk in dataChannel) {
         _dataLock.withLock {
           _data += chunk
-          debugStream("DATA-IN/$uid", "+${chunk.size} ~> ${_data.size}")
+          debugStream("DATA-INIT", "$uid => +${chunk.size} ~> ${_data.size}")
         }
         // 收到数据了，尝试解锁通知等待者
         dataChangeObserver.next()
@@ -126,20 +126,20 @@ class ReadableStream(
         dataChangeObserver.observe { count ->
           when {
             count == -1 -> {
-              debugStream("REQUEST-DATA/END/$uid", "${canReadSize}/$requestSize")
+              debugStream("REQUEST-DATA/END", "$uid => ${canReadSize}/$requestSize")
               wait.resolve(Unit) // 不需要抛出错误
             }
 
             canReadSize >= requestSize -> {
               debugStream(
-                "REQUEST-DATA/CHANGED/$uid", "${canReadSize}/$requestSize"
+                "REQUEST-DATA/CHANGED", "$uid => ${canReadSize}/$requestSize"
               )
               wait.resolve(Unit)
             }
 
             else -> {
               debugStream(
-                "REQUEST-DATA/WAITING-&-PULL/$uid", "${canReadSize}/$requestSize"
+                "REQUEST-DATA/WAIT&PULL", "$uid => ${canReadSize}/$requestSize"
               )
               writeDataScope.launch {
                 val desiredSize = requestSize - canReadSize
@@ -151,7 +151,7 @@ class ReadableStream(
       }
       wait.waitPromise()
       counterJob.cancel()
-      debugStream("REQUEST-DATA/DONE/$uid", _data.size)
+      debugStream("REQUEST-DATA/DONE", "$uid => ${_data.size}")
     }.getOrNull()
 
     return _data
@@ -207,7 +207,7 @@ class ReadableStream(
     if (isClosed) {
       return
     }
-    debugStream("CLOSE/${uid}")
+    debugStream("CLOSE", uid)
     closePo.resolve(Unit)
     controller.close()
     // 关闭的时候不会马上清空数据，还是能读出来最后的数据的

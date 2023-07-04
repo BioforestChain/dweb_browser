@@ -56,7 +56,7 @@ suspend fun startDwebBrowser(): DnsNMM {
     )
 
     DEVELOPER.HuangLin, DEVELOPER.HLVirtual, DEVELOPER.HLOppo, DEVELOPER.HBXiaomi, DEVELOPER.ZGSansung -> debugTags.addAll(
-      listOf("Share", "fetch", "http", "JsMM", "browser", "biometrics", "mwebview", "fetch-file", "js-process", "dns", "boot", "stream-ipc", "message-port-ipc")
+      listOf("Share", "fetch", "http", "JsMM", "browser", "biometrics", "mwebview", "fetch-file", "js-process", "dns", "boot", "stream", "stream-ipc", "message-port-ipc")
     )
 
     DEVELOPER.WaterBang -> debugTags.addAll(

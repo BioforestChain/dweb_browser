@@ -130,6 +130,10 @@ abstract class MicroModule : Ipc.MicroModuleInfo {
   /** 激活NMM入口*/
   protected open suspend fun onActivity(event: IpcEvent, ipc: Ipc) {}
 
+  override fun toString(): String {
+    return "MicroModule($mmid)"
+  }
+
 //    protected var apiRouting: RoutingHttpHandler? = null
 //    protected val requestContexts = RequestContexts()
 //    protected val requestContextKey_ipc = RequestContextKey.required<Ipc>(requestContexts)
