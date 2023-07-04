@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import JSZip from "npm:jszip";
-import { $AppMetaData, $MMID } from "../../deps.ts";
+import { $AppMetaData, $MMID } from "./../deps.ts";
 import { SERVE_MODE, defaultMetadata } from "./const.ts";
 import { GenerateTryFilepaths } from "./util.ts";
 import { $ZipEntry, walkDirToZipEntries, zipEntriesToZip } from "./zip.ts";

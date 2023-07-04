@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { Flags } from "../deps.ts";
+import { Flags } from "./deps.ts";
 import {
   BundleZipGenerator,
   MetadataJsonGenerator,

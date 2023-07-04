@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import http from "node:http";
 import os from "node:os";
-import { Flags } from "../deps.ts";
+import { Flags } from "./deps.ts";
 import {
   BundleZipGenerator,
   MetadataJsonGenerator,

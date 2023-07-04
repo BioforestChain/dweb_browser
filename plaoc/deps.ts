@@ -1,7 +1,4 @@
 import type {} from "https://deno.land/x/dweb/src/browser/js-process/js-process.worker.ts";
-
-export * as Flags from "https://deno.land/std@0.184.0/flags/mod.ts";
-export type { $AppMetaData } from "https://deno.land/x/dweb/src/browser/jmm/jmm.ts";
 //#region helper
 export type { $MMID } from "https://deno.land/x/dweb/src/core/helper/types.ts";
 export { queue } from "https://deno.land/x/dweb/src/helper/$queue.ts";

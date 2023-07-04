@@ -1,4 +1,4 @@
-import { $AppMetaData } from "../../deps.ts";
+import { $AppMetaData } from "./../deps.ts";
 
 /**
  * 服务的处理模式
