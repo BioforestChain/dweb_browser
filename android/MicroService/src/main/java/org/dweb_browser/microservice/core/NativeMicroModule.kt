@@ -26,6 +26,7 @@ abstract class NativeMicroModule(
     init {
       connectAdapterManager.append { fromMM, toMM, reason ->
         if (toMM is NativeMicroModule) {
+          debugNMM("NMM/connectAdapter", "fromMM: ${fromMM.mmid} => toMM: ${toMM.mmid}")
           val channel = NativeMessageChannel<IpcMessage, IpcMessage>();
           val toNativeIpc = NativeIpc(channel.port1, fromMM, IPC_ROLE.SERVER);
           val fromNativeIpc = NativeIpc(channel.port2, toMM, IPC_ROLE.CLIENT);

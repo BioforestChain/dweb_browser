@@ -24,17 +24,11 @@ import java.util.WeakHashMap
 fun debugMessagePortIpc(tag: String, msg: Any = "", err: Throwable? = null) =
   printdebugln("message-port-ipc", tag, msg, err)
 
-class MessagePort {
+class MessagePort private constructor(private val port: WebMessagePort) {
   companion object {
     private val wm = WeakHashMap<WebMessagePort, MessagePort>()
     fun from(port: WebMessagePort): MessagePort = wm.getOrPut(port) { MessagePort(port) }
     val messageScope = CoroutineScope(CoroutineName("webMessage") + ioAsyncExceptionHandler)
-  }
-
-  private lateinit var port: WebMessagePort
-
-  private constructor(port: WebMessagePort) {
-    this.port = port
   }
 
   val messageChannel = Channel<WebMessage>(capacity = Channel.UNLIMITED)
@@ -76,29 +70,28 @@ class MessagePort {
 open class MessagePortIpc(
   val port: MessagePort,
   override val remote: MicroModuleInfo,
-  private val role_type: IPC_ROLE,
+  private val roleType: IPC_ROLE,
 ) : Ipc() {
   constructor(
-    port: WebMessagePort, remote: MicroModuleInfo, role_type: IPC_ROLE
-  ) : this(MessagePort.from(port), remote, role_type)
+    port: WebMessagePort, remote: MicroModuleInfo, roleType: IPC_ROLE
+  ) : this(MessagePort.from(port), remote, roleType)
 
-  override val role get() = role_type.role
+  override val role get() = roleType.role
   override fun toString(): String {
-    return super.toString() + "@MessagePortIpc"
+    return super.toString() + "@MessagePortIpc(${remote.mmid}, $roleType)"
   }
 
   init {
-    val ipc = this;
     val callback = port.onWebMessage { event ->
+      debugMessagePortIpc("lin.huang", "${event.ports?.size} => ${event.data}")
+      val ipc = this@MessagePortIpc
       when (val message = jsonToIpcMessage(event.data, ipc)) {
         "close" -> close()
         "ping" -> port.postMessage("pong")
-        "pong" -> debugMessagePortIpc("PONG/$ipc")
+        "pong" -> debugMessagePortIpc("PONG", "$ipc")
         is IpcMessage -> {
-          debugMessagePortIpc("ON-MESSAGE/$ipc", message)
-          _messageSignal.emit(
-            IpcMessageArgs(message, ipc)
-          )
+          debugMessagePortIpc("ON-MESSAGE", "$ipc => $message")
+          _messageSignal.emit(IpcMessageArgs(message, ipc))
         }
 
         else -> throw Exception("unknown message: $message")

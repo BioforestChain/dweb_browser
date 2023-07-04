@@ -7,9 +7,8 @@ import { doBundle } from "./bundle.ts";
 // await emptyDir("./npm");
 const workspaceDir = fileURLToPath(import.meta.resolve("../"));
 const resolveTo = (to: string) => path.resolve(workspaceDir, to);
-const readPackageJson = () => JSON.parse(
-  fs.readFileSync(resolveTo("./electron/package.json"), "utf-8")
-);
+const readPackageJson = () =>
+  JSON.parse(fs.readFileSync(resolveTo("./electron/package.json"), "utf-8"));
 
 /// before build
 Deno.copyFileSync(resolveTo(".npmrc"), resolveTo("electron/.npmrc"));
@@ -33,7 +32,10 @@ await dnt.build({
   package: {
     // package.json properties
     name: "@dweb-browser/desktop-sdk",
-    version: Deno.args.filter((arg) => /^\d/.test(arg))[0] || readPackageJson()?.version || "0.0.0",
+    version:
+      Deno.args.filter((arg) => /^\d/.test(arg))[0] ||
+      readPackageJson()?.version ||
+      "0.0.0",
     description: "Dweb Browser Development Kit",
     license: "MIT",
     config: {
@@ -50,16 +52,23 @@ await dnt.build({
     build: {
       appId: "devtools.dweb-browser.org",
       productName: "dweb-browser-devtools", // 这个一定要写，不然 name 使用 @ 开头，会带来打包异常
+      artifactName: "${productName}-${version}-${arch}.${ext}",
       asar: true,
       icon: "./logo.png",
       files: ["assets", "bundle", "!node_modules"],
       directories: { output: "../build" },
       mac: {
         category: "public.app-category.developer-tools",
-        target: "dmg",
+        target: {
+          target: "default",
+          arch: ["x64", "arm64"],
+        },
       },
       win: {
-        target: "portable",
+        target: {
+          target: "portable",
+          arch: ["x64", "arm64"],
+        },
         publisherName: "Bnqkl Dweb Team",
       },
     },

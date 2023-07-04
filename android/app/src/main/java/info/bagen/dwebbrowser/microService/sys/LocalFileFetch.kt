@@ -11,6 +11,7 @@ import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.readByteArray
 import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.ipc.message.PreReadableInputStream
+import org.dweb_browser.microservice.sys.dns.debugFetch
 import org.dweb_browser.microservice.sys.dns.debugFetchFile
 import org.dweb_browser.microservice.sys.dns.nativeFetchAdaptersManager
 import org.http4k.core.MemoryBody
@@ -32,7 +33,14 @@ class LocalFileFetch private constructor() {
   init {
     CoroutineScope(ioAsyncExceptionHandler).launch {
       nativeFetchAdaptersManager.append { fromMM, request ->
-        localeFileFetch(fromMM, request)
+        if (request.uri.scheme == "file" && request.uri.host == "") {
+          debugFetch("LocalFile/nativeFetch", "$fromMM => ${request.uri}")
+          runCatching {
+            return@runCatching getLocalFetch(fromMM, request)
+          }.getOrElse {
+            Response(Status.INTERNAL_SERVER_ERROR)
+          }
+        } else null
       }
     }
   }
@@ -201,18 +209,5 @@ class LocalFileFetch private constructor() {
     }
 
     return response
-  }
-
-  /**
-   * 加载本地文件
-   */
-  private fun localeFileFetch(remote: MicroModule, request: Request) = when {
-    request.uri.scheme == "file" && request.uri.host == "" -> runCatching {
-      return@runCatching getLocalFetch(remote, request)
-    }.getOrElse {
-      Response(Status.INTERNAL_SERVER_ERROR)
-    }
-
-    else -> null
   }
 }
