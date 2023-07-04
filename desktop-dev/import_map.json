@@ -15,7 +15,6 @@
     "node-forge": "https://esm.sh/v124/node-forge@1.3.1",
     "source-map-support": "https://esm.sh/v124/source-map-support@0.5.21",
     "source-map-support/register": "https://esm.sh/v124/source-map-support@0.5.21/register.js",
-    "zod": "https://esm.sh/v124/zod@3.21.4",
     "tar": "https://esm.sh/v124/tar@6.1.15"
   },
   "scopes": {}
