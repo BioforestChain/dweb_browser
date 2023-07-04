@@ -1,12 +1,12 @@
 //! use zod error: Relative import path "zod" not prefixed with / or ./ or ../ only remote
 //! https://github.com/denoland/deno/issues/17598
-import { RefinementCtx, z } from "zod";
+import { RefinementCtx, z } from "https://deno.land/x/zod@v3.21.4/mod.ts";
 import { $MMID } from "../core/types.ts";
 // const z_mmid = z.string().endsWith(".dweb");
 export const mmidType = z.custom<$MMID>((val) => {
   return typeof val === "string" && val.endsWith(".dweb");
 });
-export * from "zod";
+export * from "https://deno.land/x/zod@v3.21.4/mod.ts";
 export { mmidType as mmid };
 
 import type {
@@ -15,7 +15,7 @@ import type {
   ZodObject,
   ZodRawShape,
   ZodTypeAny,
-} from "zod";
+} from "https://deno.land/x/zod@v3.21.4/mod.ts";
 
 /// 以下代码来自 https://github.com/rileytomasek/zodix （MIT license）
 /// 因为源码有点问题，并且引入了一些不该引入的包，所以这里只提取了部分有需要的，并修复了一些问题
