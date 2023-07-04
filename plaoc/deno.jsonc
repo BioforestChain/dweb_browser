@@ -1,10 +1,15 @@
 {
   "lock": false,
-  "exclude": [
-    "dist/",
-    "bundle/",
-    "build/"
-  ],
+  "exclude": ["dist/", "bundle/", "build/"],
+  "imports": {
+    "https://deno.land/x/dweb/src/": "https://deno.land/x/dweb/src/",
+    "zod": "https://esm.sh/v124/zod@3.21.4",
+    "cbor-x": "https://esm.sh/v124/cbor-x@1.5.3/es2022/cbor-x.mjs",
+    "lit": "https://esm.sh/v124/lit@2.7.4",
+    "lit/": "https://esm.sh/v124/lit@2.7.4/",
+    "jimp": "https://esm.sh/v124/jimp@0.22.8",
+    "jsqr": "https://esm.sh/v124/jsqr@1.4.0"
+  },
   "tasks": {
     "build": "deno task build:client && deno task build:server && deno task build:demo",
     "build:client": "deno run -A ./scripts/npm-build.ts client",
@@ -17,7 +22,6 @@
     "pub": "deno run -A ./scripts/npm-pub.ts",
     "test": "deno test -A --unstable --no-check  ./test"
   },
-  "importMap": "import_map.json",
   "compilerOptions": {
     "allowJs": false,
     "strict": true,
@@ -26,11 +30,7 @@
   },
   "lint": {
     "rules": {
-      "exclude": [
-        "no-namespace",
-        "no-empty-interface",
-        "require-await"
-      ]
+      "exclude": ["no-namespace", "no-empty-interface", "require-await"]
     }
   },
   "fmt": {
