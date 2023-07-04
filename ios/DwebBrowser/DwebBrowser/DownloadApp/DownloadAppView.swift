@@ -109,7 +109,7 @@ struct DownloadAppView: View {
                     .padding(.bottom, 5)
                     .opacity(calculateNavigationViewSubViewAlpha())
             }
-            Image(uiImage: viewModel.iconImage ?? UIImage.bundleImage(name: "360"))
+            Image(uiImage: viewModel.iconImage ?? UIImage.assetsImage(name: "360so"))
                 .resizable()
                 .aspectRatio(contentMode: .fill)
                 .frame(width: 40, height: 40)
@@ -127,7 +127,7 @@ struct DownloadAppView: View {
             let size = proxy.size
             let height = size.height + minY
             
-            Image(uiImage: UIImage.bundleImage(name: "post"))
+            Image(uiImage: UIImage.assetsImage(name: "dweb_icon"))
                 .resizable()
                 .aspectRatio(contentMode: .fill)
                 .frame(width: size.width, height: height > 0 ? height : 150, alignment: .top)
@@ -140,7 +140,7 @@ struct DownloadAppView: View {
     @ViewBuilder
     func AppTitleView() -> some View {
         HStack(alignment: .top) {
-            Image(uiImage: viewModel.iconImage ?? UIImage.bundleImage(name: "360"))
+            Image(uiImage: viewModel.iconImage ?? UIImage.assetsImage(name: "360so"))
                 .resizable()
                 .aspectRatio(contentMode: .fill)
                 .frame(width: 80, height: 80)
@@ -323,8 +323,8 @@ struct DownloadAppView: View {
         do {
             let decoder = JSONDecoder()
             defaultApp = try decoder.decode(APPModel.self, from: modelData)
-            viewModel.loadIcon(urlString: defaultApp?.icon ?? "", placeHoldImageName: "360")
-            viewModel.loadImages(imageNames: defaultApp?.images! ?? [], placeHoldImageName: "post")
+            viewModel.loadIcon(urlString: defaultApp?.icon ?? "", placeHoldImageName: "360so")
+            viewModel.loadImages(imageNames: defaultApp?.images! ?? [], placeHoldImageName: "dweb_icon")
         } catch {
             fatalError("could load fail. \n\(error.localizedDescription)")
         }

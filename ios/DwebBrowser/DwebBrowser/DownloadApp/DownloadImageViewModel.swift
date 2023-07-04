@@ -16,8 +16,7 @@ class DownloadImageViewModel: ObservableObject {
     
     func loadIcon(urlString: String, placeHoldImageName: String) {
         
-        let bundle = Bundle(for: BridgeManager.self)
-        let placeHoldImage = UIImage(named: placeHoldImageName, in: bundle, compatibleWith: nil)
+        let placeHoldImage = UIImage.assetsImage(name: placeHoldImageName)
         Task {
             let image = await loadImage(urlString: urlString) ?? placeHoldImage
             DispatchQueue.main.async {
@@ -28,16 +27,13 @@ class DownloadImageViewModel: ObservableObject {
     
     func loadImages(imageNames: [String], placeHoldImageName: String) {
         
-        let bundle = Bundle(for: BridgeManager.self)
-        let placeHoldImage = UIImage(named: placeHoldImageName, in: bundle, compatibleWith: nil)
+        let placeHoldImage = UIImage.assetsImage(name: placeHoldImageName)
         imageList.removeAll()
         Task {
             for name in imageNames {
                 let image = await loadImage(urlString: name)
                 if image == nil {
-                    if placeHoldImage != nil {
-                        imageList.append(placeHoldImage!)
-                    }
+                    imageList.append(placeHoldImage)
                 } else {
                     imageList.append(image!)
                 }
