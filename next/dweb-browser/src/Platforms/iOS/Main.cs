@@ -13,6 +13,7 @@ using DwebBrowser.MicroService.Browser.Mwebview;
 using DwebBrowser.MicroService.Browser.NativeUI;
 using DwebBrowser.MicroService.Browser.JsProcess;
 using DwebBrowser.MicroService.Browser.NativeUI.Torch;
+using DwebBrowser.MicroService.Browser.NativeUI.Haptics;
 
 namespace DwebBrowser.Platforms.iOS;
 
@@ -117,6 +118,7 @@ public class MicroService
         new ClipboardNMM().InstallBy(dnsNMM);
         new ToastNMM().InstallBy(dnsNMM);
         new HapticsNMM().InstallBy(dnsNMM);
+        new HapticsBrowserNMM().InstallBy(dnsNMM);
         new TorchNMM().InstallBy(dnsNMM);
         new ScanningNMM().InstallBy(dnsNMM);
         new BiometricsNMM().InstallBy(dnsNMM);

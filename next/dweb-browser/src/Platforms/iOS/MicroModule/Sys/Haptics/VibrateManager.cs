@@ -1,7 +1,8 @@
 ﻿using AudioToolbox;
-using BrowserFramework;
+using DwebBrowserFramework;
 using CoreHaptics;
 using Foundation;
+using UIKit;
 
 #nullable enable
 
@@ -20,6 +21,47 @@ public static class VibrateManager
         HeavyClick,
         Tick,
         Customize
+    }
+
+    public static async Task ImpactAsync(string? style)
+    {
+        var impactStyle = style switch
+        {
+            string s when s.EqualsIgnoreCase("MEDIUM") => UIImpactFeedbackStyle.Medium,
+            string s when s.EqualsIgnoreCase("HEAVY") => UIImpactFeedbackStyle.Heavy,
+            _ => UIImpactFeedbackStyle.Light
+        };
+
+        await MainThread.InvokeOnMainThreadAsync(() =>
+        {
+            // 初始化反馈
+            var impact = new UIImpactFeedbackGenerator(impactStyle);
+            // 通知系统即将发生触觉反馈
+            impact.Prepare();
+
+            // 触发反馈
+            impact.ImpactOccurred();
+        });
+    }
+
+    public static async Task NotificationAsync(string? style)
+    {
+        var type = style switch
+        {
+            string t when t.EqualsIgnoreCase("SUCCESS") => UINotificationFeedbackType.Success,
+            string t when t.EqualsIgnoreCase("WARNING") => UINotificationFeedbackType.Warning,
+            _ => UINotificationFeedbackType.Error,
+        };
+
+        await MainThread.InvokeOnMainThreadAsync(() =>
+        {
+            // 初始化反馈
+            var notification = new UINotificationFeedbackGenerator();
+            // 通知系统即将发生触觉反馈
+            notification.Prepare();
+            // 触发反馈
+            notification.NotificationOccurred(type);
+        });
     }
 
     public static async Task<bool> VibrateAsync(VibrateType type, NSNumber[]? durationArr = null)

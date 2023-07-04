@@ -88,6 +88,7 @@
 	  <Folder Include="Platforms\iOS\MicroModule\Sys\Share\" />
 	  <Folder Include="Platforms\iOS\MicroModule\Sys\Toast\" />
 	  <Folder Include="Platforms\iOS\Helper\" />
+	  <Folder Include="Platforms\iOS\MicroModule\Browser\NativeUI\Haptics\" />
 	</ItemGroup>
 	<ItemGroup>
 	  <BundleResource Include="Resources\Assets\**\*.*" />

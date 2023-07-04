@@ -179,6 +179,7 @@ public partial class DWebView : WKWebView
             Configuration.UserContentController.RemoveAllScriptMessageHandlers();
             Configuration.UserContentController.AddScriptMessageHandler(asyncCodeMessageHanlder, "asyncCode");
             Configuration.UserContentController.AddScriptMessageHandler(CloseWatcherMessageHanlder, "closeWatcher");
+            Configuration.UserContentController.AddScriptMessageHandler(HapticsMessageHanlder, "haptics");
             Configuration.UserContentController.AddScriptMessageHandler(webMessagePortMessageHanlder, webMessagePortContentWorld, "webMessagePort");
         }
         catch (Exception e)

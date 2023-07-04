@@ -2,7 +2,6 @@
 using System.Text.Json;
 using DwebBrowser.MicroService.Http;
 using Foundation;
-using UIKit;
 
 namespace DwebBrowser.MicroService.Sys.Haptics;
 
@@ -17,23 +16,7 @@ public class HapticsNMM : NativeMicroModule
         /// 触碰轻质量物体
         HttpRouter.AddRoute(IpcMethod.Get, "/impactLight", async (request, _) =>
         {
-            var style = request.QueryString("style") switch
-            {
-                string s when s.EqualsIgnoreCase("MEDIUM") => UIImpactFeedbackStyle.Medium,
-                string s when s.EqualsIgnoreCase("HEAVY") => UIImpactFeedbackStyle.Heavy,
-                _ => UIImpactFeedbackStyle.Light
-            };
-
-            await MainThread.InvokeOnMainThreadAsync(() =>
-            {
-                // 初始化反馈
-                var impact = new UIImpactFeedbackGenerator(style);
-                // 通知系统即将发生触觉反馈
-                impact.Prepare();
-
-                // 触发反馈
-                impact.ImpactOccurred();
-            });
+            await VibrateManager.ImpactAsync(request.QueryString("style"));
 
             return new PureResponse(HttpStatusCode.OK);
         });
@@ -41,22 +24,8 @@ public class HapticsNMM : NativeMicroModule
         /// 警告分隔的振动通知
         HttpRouter.AddRoute(IpcMethod.Get, "/notification", async (request, _) =>
         {
-            var type = request.QueryStringRequired("style") switch
-            {
-                string t when t.EqualsIgnoreCase("SUCCESS") => UINotificationFeedbackType.Success,
-                string t when t.EqualsIgnoreCase("WARNING") => UINotificationFeedbackType.Warning,
-                _ => UINotificationFeedbackType.Error,
-            };
+            await VibrateManager.NotificationAsync(request.QueryString("style"));
 
-            await MainThread.InvokeOnMainThreadAsync(() =>
-            {
-                // 初始化反馈
-                var notification = new UINotificationFeedbackGenerator();
-                // 通知系统即将发生触觉反馈
-                notification.Prepare();
-                // 触发反馈
-                notification.NotificationOccurred(type);
-            });
             return new PureResponse(HttpStatusCode.OK);
         });
 
