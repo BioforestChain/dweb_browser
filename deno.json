@@ -8,6 +8,7 @@
     "sync:next": "deno run -A ./scripts/sync-next.ts",
     "sync": "deno run -A ./scripts/sync.ts",
     "plaoc": "deno run -A ./plaoc/cli/plaoc.ts",
+    "plaoc:net": "deno cache --reload https://deno.land/x/plaoc/cli/plaoc.ts && deno install -A -f https://deno.land/x/plaoc/cli/plaoc.ts",
     "std": "deno run -A ./std/cli/std.ts"
   }
 }

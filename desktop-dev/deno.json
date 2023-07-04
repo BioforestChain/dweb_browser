@@ -1,4 +1,5 @@
 {
+  "importMap": "./import_map.json",
   "lock": false,
   "exclude": [
     "**/assets/",
@@ -16,25 +17,6 @@
         "redirect"
       ]
     }
-  },
-  "imports": {
-    "cbor-x": "https://esm.sh/v124/cbor-x@1.5.3",
-    "@seald-io/nedb": "https://esm.sh/v124/@seald-io/nedb@4.0.2",
-    "popmotion": "https://esm.sh/v124/popmotion@11.0.5",
-    "electron-store": "https://esm.sh/v124/electron-store@8.1.0",
-    "colors": "https://deno.land/std@0.191.0/fmt/colors.ts",
-    "comlink": "https://esm.sh/v124/comlink@4.4.1",
-    "electron": "https://esm.sh/v124/electron@25.2.0",
-    "extract-zip": "https://esm.sh/v124/extract-zip@2.0.1",
-    "jszip": "https://esm.sh/v124/jszip@3.10.1",
-    "lit": "https://esm.sh/v124/lit@2.7.4",
-    "lit/": "https://esm.sh/v124/lit@2.7.4/",
-    "mime": "https://esm.sh/v124/mime@3.0.0",
-    "node-forge": "https://esm.sh/v124/node-forge@1.3.1",
-    "source-map-support": "https://esm.sh/v124/source-map-support@0.5.21",
-    "source-map-support/register": "https://esm.sh/v124/source-map-support@0.5.21/register.js",
-    "zod": "https://esm.sh/v124/zod@3.21.4",
-    "tar": "https://esm.sh/v124/tar@6.1.15"
   },
   "tasks": {
     "dnt": "deno run -A ./scripts/dnt.ts",

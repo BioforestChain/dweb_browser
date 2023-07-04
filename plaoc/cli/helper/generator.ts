@@ -163,11 +163,12 @@ export class BundleZipGenerator {
       },
     ];
     const addFile_DistToUsr = (filepath: string, alias: string = filepath) => {
+      console.log(import.meta.resolve(`../serve/${filepath}`));
       entries.push({
         dir: false,
         path: `usr/${alias}`,
         data: fs.readFileSync(
-          fileURLToPath(import.meta.resolve(`../../dist/${filepath}`))
+          fileURLToPath(import.meta.resolve(`../serve/${filepath}`))
         ),
       });
     };

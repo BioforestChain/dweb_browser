@@ -9,7 +9,7 @@ const importMapURL = import.meta.resolve("../import_map.json");
 export const prod = new ESBuild({
   absWorkingDir,
   entryPoints: ["src/server/index.ts"],
-  outfile: "dist/server/plaoc.server.js",
+  outfile: "cli/serve/server/plaoc.server.js",
   bundle: true,
   format: "esm",
   denoLoader: true,
@@ -18,7 +18,7 @@ export const prod = new ESBuild({
 export const emulator = new ESBuild({
   absWorkingDir,
   entryPoints: ["src/emulator/index.ts"],
-  outfile: "dist/server/plaoc.emulator.js",
+  outfile: "cli/serve/server/plaoc.emulator.js",
   bundle: true,
   format: "esm",
   denoLoader: true,
@@ -27,7 +27,7 @@ export const emulator = new ESBuild({
 export const dev = new ESBuild({
   absWorkingDir,
   entryPoints: ["src/server/index.ts"],
-  outfile: "dist/server/plaoc.server.dev.js",
+  outfile: "cli/serve/server/plaoc.server.dev.js",
   plugins: [
     {
       name: "use-(dev)-ext",
