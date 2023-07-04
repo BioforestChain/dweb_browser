@@ -6312,7 +6312,7 @@ var Server_www = class extends HttpServer {
       pathname = "/index.html";
     }
     const remoteIpcResponse = await jsProcess.nativeRequest(
-      `file:///sys/plaoc-demo${pathname}?mode=stream`
+      `file:///usr/www${pathname}?mode=stream`
       // www
     );
     const ipcResponse = new IpcResponse2(

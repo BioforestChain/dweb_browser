@@ -70,7 +70,7 @@ export async function createApiServer(this: JmmNMM) {
         }
       },
       async (event) => {
-        if (event.pathname === "/close/slef") {
+        if (event.pathname === "/close/self") {
           return await this.nativeFetch(
             `file://mwebview.browser.dweb/close/window`
           );
@@ -79,7 +79,7 @@ export async function createApiServer(this: JmmNMM) {
       async (event) => {
         if (event.pathname === "/app/open") {
           const id = event.searchParams.get("mmid") as $MMID;
-          const connectResult = await this.context?.dns.connect(id);
+          const connectResult = this.context?.dns.connect(id);
           if (connectResult === undefined) {
             throw new Error(`${id} not found!`);
           }
