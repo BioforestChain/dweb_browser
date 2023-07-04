@@ -53,9 +53,7 @@ export class MessagePortIpc extends Ipc {
         this.port.postMessage("pong");
         return;
       }
-      if ("body" in message && message.body.metaBody.metaId === "rs-31") {
-        debugger;
-      }
+
       this._messageSignal.emit(message, this);
     });
     port.start();

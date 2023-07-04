@@ -40,7 +40,7 @@ export class StatusBarController extends BaseController {
         }
       })
       .forbidden()
-      .cros();
+      .cors();
   })();
 
   observer = new StateObservable(() => {

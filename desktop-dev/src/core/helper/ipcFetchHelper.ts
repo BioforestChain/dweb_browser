@@ -42,6 +42,23 @@ export const fetchEnd = (handler: $OnFetchEnd) =>
   Object.assign(handler, { [FETCH_END_SYMBOL]: true } as const);
 export const FETCH_END_SYMBOL = Symbol("fetch.end");
 
+export type $OnWebSocket = $OnFetch;
+/**
+ * 响应 WebSocket
+ * @param handler
+ * @returns
+ */
+export const fetchWs = (handler: $OnWebSocket) =>
+  Object.assign(
+    ((event) => {
+      if (event.headers.get("upgrade")?.toLowerCase() === "websocket") {
+        return handler(event);
+      }
+    }) satisfies $OnFetch,
+    { [FETCH_WS_SYMBOL]: true } as const
+  );
+export const FETCH_WS_SYMBOL = Symbol("fetch.websocket");
+
 /**
  * 目前对于响应，有三种角色
  *
@@ -52,7 +69,8 @@ export const FETCH_END_SYMBOL = Symbol("fetch.end");
 export type $AnyFetchHanlder =
   | $OnFetch
   | ReturnType<typeof fetchMid>
-  | ReturnType<typeof fetchEnd>;
+  | ReturnType<typeof fetchEnd>
+  | ReturnType<typeof fetchWs>;
 
 const $throw = (err: Error) => {
   throw err;
@@ -97,8 +115,12 @@ export const createFetchHandler = (onFetchs: Iterable<$OnFetch>) => {
     };
 
     const EXT = {
-      or: (handler: $OnFetch) => {
+      onFetch: (handler: $OnFetch) => {
         onFetchHanlders.push(handler);
+        return to;
+      },
+      onWebSocket: (hanlder: $OnWebSocket) => {
+        onFetchHanlders.push(hanlder);
         return to;
       },
       mid: (handler: $OnFetchMid) => {
@@ -113,7 +135,7 @@ export const createFetchHandler = (onFetchs: Iterable<$OnFetch>) => {
        * 配置跨域，一般是最后调用
        * @param config
        */
-      cros: (
+      cors: (
         config: { origin?: string; headers?: string; methods?: string } = {}
       ) => {
         /// options 请求一般是跨域时，询问能否post，这里统一返回空就行，后面再加上 Access-Control-Allow-Methods

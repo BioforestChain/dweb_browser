@@ -30,7 +30,7 @@ export async function jsProcessOpenWindow(
   };
   const browserWindow = await createComlinkNativeWindow(url, _options);
   // 测试  需要开启 devTools
-  browserWindow.webContents.openDevTools()
+  browserWindow.webContents.openDevTools();
   browserWindow.webContents.on("will-prevent-unload", async (event) => {
     if (allowClose !== undefined) {
       if (allowClose) {
@@ -44,7 +44,6 @@ export async function jsProcessOpenWindow(
       allowClose = undefined;
       return;
     }
-    console.always("unload event", event, event.returnValue);
     // browserWindow.webContents
     const res = await Electron.dialog.showMessageBox({
       type: "warning",
@@ -80,10 +79,6 @@ export async function jsProcessOpenWindow(
       event.preventDefault();
     }
   });
-
-  
-
-
 
   return browserWindow;
 }

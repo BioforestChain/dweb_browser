@@ -1,15 +1,10 @@
-import { Readable } from "node:stream";
 import { $isMatchReq, $ReqMatcher } from "../../core/helper/$ReqMatcher.ts";
 import type { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.ts";
 import type { Ipc } from "../../core/ipc/ipc.ts";
 import { createSignal } from "../../helper/createSignal.ts";
 import { httpMethodCanOwnBody } from "../../helper/httpHelper.ts";
-import {
-  ReadableStreamOut,
-  streamFromCallback,
-  streamRead,
-  streamReadAll,
-} from "../../helper/readableStreamHelper.ts";
+import { readableToWeb } from "../../helper/nodejsStreamHelper.ts";
+import { streamReadAll } from "../../helper/readableStreamHelper.ts";
 import { parseUrl } from "../../helper/urlHelper.ts";
 import { defaultErrorResponse } from "./defaultErrorResponse.ts";
 import type { WebServerRequest, WebServerResponse } from "./types.ts";
@@ -29,7 +24,7 @@ export class PortListener {
     readonly origin: string
   ) {}
 
-  private _routers = new Set<$Router>();
+  protected _routers = new Set<$Router>();
   addRouter(router: $Router) {
     this._routers.add(router);
     return () => {
@@ -38,12 +33,12 @@ export class PortListener {
   }
 
   /**
-   * 判断是否有绑定的请求
+   * 获取绑定的路有处理器
    * @param pathname
    * @param method
    * @returns
    */
-  private _isBindMatchReq(pathname: string, method: string) {
+  findMatchedBind(pathname: string, method: string) {
     for (const bind of this._routers) {
       for (const pathMatcher of bind.routes) {
         if ($isMatchReq(pathMatcher, pathname, method)) {
@@ -64,7 +59,7 @@ export class PortListener {
   ) {
     const { method = "GET" } = req;
     const parsed_url = parseUrl(fullReqUrl, this.origin);
-    const hasMatch = this._isBindMatchReq(parsed_url.pathname, method);
+    const hasMatch = this.findMatchedBind(parsed_url.pathname, method);
     if (hasMatch === undefined) {
       defaultErrorResponse(req, res, 404, "no found");
       return;
@@ -85,69 +80,34 @@ export class PortListener {
     if (
       /// 理论上除了 GET/HEAD/OPTIONS 之外的method （比如 DELETE）是允许包含 BODY 的，但这类严格的对其进行限制，未来可以通过启动监听时的配置来解除限制
       httpMethodCanOwnBody(method)
-      // &&
-      // /// HTTP/1.x 的规范：（我们自己的 file: 参考了该标准）
-      // (this.protocol === "http:" || this.protocol === "file:")
-      //   ? /// 请求和响应主体要么需要发送 Content-Length 标头，以便另一方知道它将接收多少数据
-      //     +(req.headers["content-length"] || 0) > 0 ||
-      //     // 要么更改消息格式以使用分块编码。使用分块编码，正文被分成多个部分，每个部分都有自己的内容长度
-      //     req.headers["transfer-encoding"] /* ?.includes("chunked") */
-      //   : true
     ) {
       /** req body 的转发管道，转发到 响应服务端 */
-
-      const server_req_body_writter = new ReadableStreamOut<Uint8Array>();
-      (async () => {
-        const client_req_body_reader = Readable.toWeb(req).getReader();
-        // 可能出现 数据还没有传递完毕，但是却关闭了
-        // client_req_body_reader.closed.then(() => {
-        //   server_req_body_writter.controller.close();
-        // });
-        /// 根据数据拉取的情况，从 req 中按需读取数据，这种按需读取会反压到 web 的请求层那边暂缓数据的发送
-        for await (const _ of streamRead(
-          streamFromCallback(
-            server_req_body_writter.onPull,
-            client_req_body_reader.closed
-          )
-        )) {
-          const item = await client_req_body_reader.read();
-          if (item.done) {
-            /// 客户端的传输一旦关闭，转发管道也要关闭
-            server_req_body_writter.controller.close();
-            break;
-          } else {
-            server_req_body_writter.controller.enqueue(item.value);
-          }
-        }
-      })();
-
-      ipc_req_body_stream = server_req_body_writter.stream;
+      ipc_req_body_stream = readableToWeb(req, {
+        strategy: {
+          // 时刻反压
+          highWaterMark: 0,
+        },
+      });
     }
     // console.log('http/port-listener',`分发消息 http://${req.headers.host}${url}`);
     // 分发消息
-    const http_response_info = await hasMatch.bind.streamIpc.request(
-      fullReqUrl,
-      {
-        method,
-        body: ipc_req_body_stream,
-        headers: req.headers as Record<string, string>,
-      }
-    );
+    const ipcResponse = await hasMatch.bind.streamIpc.request(fullReqUrl, {
+      method,
+      body: ipc_req_body_stream,
+      headers: req.headers as Record<string, string>,
+    });
 
     /// 写回 res 对象
-    res.statusCode = http_response_info.statusCode;
-    http_response_info.headers.forEach((value, name) => {
+    res.statusCode = ipcResponse.statusCode;
+    ipcResponse.headers.forEach((value, name) => {
       res.setHeader(name, value);
     });
     /// 204 和 304 不可以包含 body
-    if (
-      http_response_info.statusCode !== 204 &&
-      http_response_info.statusCode !== 304
-    ) {
+    if (ipcResponse.statusCode !== 204 && ipcResponse.statusCode !== 304) {
       // await (await http_response_info.stream()).pipeTo(res)
-      const http_response_body = http_response_info.body.raw;
+      const http_response_body = ipcResponse.body.raw;
       if (http_response_body instanceof ReadableStream) {
-        streamReadAll(http_response_body, {
+        void streamReadAll(http_response_body, {
           map(chunk) {
             res.write(chunk);
           },

@@ -2,11 +2,11 @@ import mime from "mime";
 import fs from "node:fs";
 import type { OutgoingMessage } from "node:http";
 import path from "node:path";
-import { Readable } from "node:stream";
 import type { $BootstrapContext } from "../../core/bootstrapContext.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import { $DWEB_DEEPLINK, $MMID } from "../../core/types.ts";
 import { $Callback, createSignal } from "../../helper/createSignal.ts";
+import { readableToWeb } from "../../helper/nodejsStreamHelper.ts";
 import type { HttpDwebServer } from "../../std/http/helper/$createHttpDwebServer.ts";
 import { nativeFetchAdaptersManager } from "../../sys/dns/nativeFetch.ts";
 import { JMM_APPS_PATH, createApiServer, getAllApps } from "./jmm.api.serve.ts";
@@ -37,7 +37,7 @@ nativeFetchAdaptersManager.append((remote, parsedUrl) => {
           throw stats;
         }
         const ext = path.extname(filepath);
-        return new Response(Readable.toWeb(fs.createReadStream(filepath)), {
+        return new Response(readableToWeb(fs.createReadStream(filepath)), {
           status: 200,
           headers: {
             "Content-Length": stats.size + "",

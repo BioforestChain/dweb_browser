@@ -14,7 +14,7 @@ import {
   simpleEncoder,
   u8aConcat,
 } from "./deps.ts";
-import { HttpServer, cros } from "./http-helper.ts";
+import { HttpServer, cors } from "./http-helper.ts";
 
 declare global {
   interface WindowEventMap {
@@ -46,7 +46,7 @@ export class Server_external extends HttpServer {
     return serverIpc
       .onFetch(this._provider.bind(this))
       .internalServerError()
-      .cros();
+      .cors();
   }
 
   protected async _provider(event: FetchEvent): Promise<$OnFetchReturn> {
@@ -98,7 +98,7 @@ export class Server_external extends HttpServer {
           event.ipc
         );
 
-        cros(ipcResponse.headers);
+        cors(ipcResponse.headers);
         // 返回数据到前端
         return ipcResponse;
       }
@@ -123,7 +123,7 @@ export class Server_external extends HttpServer {
           new IpcResponse(
             externalReqId,
             200,
-            cros(event.headers),
+            cors(event.headers),
             event.ipcRequest.body,
             event.ipc
           )
@@ -136,7 +136,7 @@ export class Server_external extends HttpServer {
           "ok",
           event.ipc
         );
-        cros(icpResponse.headers);
+        cors(icpResponse.headers);
         // 告知自己的 respondWith 已经发送成功了
         return icpResponse;
       }

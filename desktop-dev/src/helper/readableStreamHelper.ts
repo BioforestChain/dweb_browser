@@ -150,33 +150,3 @@ export class ReadableStreamOut<T> {
   }
 }
 export type $OnPull = () => unknown;
-
-// deno-lint-ignore no-explicit-any
-export const streamFromCallback = <T extends (...args: any[]) => unknown>(
-  cb: T,
-  onCancel?: Promise<unknown>
-) => {
-  let controllerIsClosed = false;
-  const stream = new ReadableStream<Parameters<T>>({
-    start(controller) {
-      onCancel?.then(() => {
-        // streamFormCallback 创建的 stream 会被 portListener.ts 中使用
-        // 在使用中会根据读取的数据的次数 遍历执行其他操作
-        // 如果 在关闭之前没有多一次插入数据 直接关闭 会导致
-        // 其他的操作少执行了一次，也就是 portListener.ts 中不会执行 server_req_body_writter.controller.close()
-        controller.enqueue("" as unknown as Parameters<T>);
-        controller.close()
-        controllerIsClosed = true;
-      });
-      // deno-lint-ignore no-explicit-any
-      cb((...args: any[]) => {
-        // 可能出现 constroller 关闭之后 还会执行cb
-        controllerIsClosed
-          ? ""
-          : controller.enqueue(args as Parameters<T>);
-      });
-    }
-  });
-
-  return stream;
-};

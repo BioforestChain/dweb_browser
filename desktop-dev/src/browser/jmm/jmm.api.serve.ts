@@ -91,7 +91,7 @@ export async function createApiServer(this: JmmNMM) {
       }
     )
     .internalServerError()
-    .cros();
+    .cors();
 }
 /**
  * 应用程序安装的核心逻辑

@@ -11,7 +11,7 @@ import { Server_external } from "./http-external-server.ts";
 import { Server_www } from "./http-www-server.ts";
 import "./polyfill.ts";
 
-import { cros } from "./http-helper.ts";
+import { cors } from "./http-helper.ts";
 import {
   all_webview_status,
   mwebview_activate,
@@ -76,7 +76,7 @@ export const main = async () => {
     externalServer.responseMap.set(ipcRequest.req_id, awaitResponse);
     // 等待 action=response 的返回
     const ipcResponse = await awaitResponse.promise;
-    cros(ipcResponse.headers);
+    cors(ipcResponse.headers);
     // 返回数据到发送者那边
     return ipc.postMessage(ipcResponse);
   });

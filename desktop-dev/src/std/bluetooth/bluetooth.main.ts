@@ -712,11 +712,7 @@ export class BluetoothNMM extends NativeMicroModule {
   ) => {
     bw.webContents.on(
       "select-bluetooth-device",
-      async (
-        event: Event,
-        deviceList: any[],
-        callback: { (id: string): void }
-      ) => {
+      async (event, deviceList, callback) => {
         console.always("select-bluetooth-device; ", Date.now());
         event.preventDefault();
         this._bluetoothrequestdevicewatchSelectCallback = callback;

@@ -23,7 +23,7 @@ export class Server_api extends HttpServer {
     return serverIpc
       .onFetch(this._provider.bind(this))
       .internalServerError()
-      .cros();
+      .cors();
   }
 
   protected async _provider(event: FetchEvent) {

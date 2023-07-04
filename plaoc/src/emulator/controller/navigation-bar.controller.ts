@@ -40,7 +40,7 @@ export class NavigationBarController extends BaseController {
         }
       })
       .forbidden()
-      .cros();
+      .cors();
   })();
   observer = new StateObservable(() => {
     return JSON.stringify(this.state);

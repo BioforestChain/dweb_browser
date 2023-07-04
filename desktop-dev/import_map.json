@@ -1,5 +1,6 @@
 {
   "imports": {
+    "ws": "https://esm.sh/v124/ws@8.13.0",
     "cbor-x": "https://esm.sh/v124/cbor-x@1.5.3",
     "@seald-io/nedb": "https://esm.sh/v124/@seald-io/nedb@4.0.2",
     "popmotion": "https://esm.sh/v124/popmotion@11.0.5",

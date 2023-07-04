@@ -5,7 +5,7 @@ import {
   IpcResponse,
   jsProcess,
 } from "./deps.ts";
-import { HttpServer, cros } from "./http-helper.ts";
+import { HttpServer, cors } from "./http-helper.ts";
 
 /**给前端的文件服务 */
 export class Server_www extends HttpServer {
@@ -36,7 +36,7 @@ export class Server_www extends HttpServer {
     const ipcResponse = new IpcResponse(
       request.req_id,
       remoteIpcResponse.statusCode,
-      cros(remoteIpcResponse.headers),
+      cors(remoteIpcResponse.headers),
       remoteIpcResponse.body,
       request.ipc
     );

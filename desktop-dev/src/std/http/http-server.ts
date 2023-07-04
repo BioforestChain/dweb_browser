@@ -13,6 +13,8 @@ import { defaultErrorResponse } from "./defaultErrorResponse.ts";
 import { Http1Server } from "./net/Http1Server.ts";
 import type { $DwebHttpServerOptions } from "./net/createNetServer.ts";
 import { PortListener } from "./portListener.ts";
+import { initWebSocketServer } from "./portListener.ws.ts";
+import { WebServerRequest } from "./types.ts";
 
 interface $Gateway {
   listener: PortListener;
@@ -33,7 +35,7 @@ export class HttpServerNMM extends NativeMicroModule {
   private _dwebServer = new Http1Server();
 
   private _tokenMap = new Map</* token */ string, $Gateway>();
-  private _gatewayMap = new Map</* host */ string, $Gateway>();
+  protected _gatewayMap = new Map</* host */ string, $Gateway>();
   private _info:
     | {
         hostname: string;
@@ -50,16 +52,20 @@ export class HttpServerNMM extends NativeMicroModule {
     | undefined;
 
   // private _allRoutes: Map<string, $Listener> = new Map();
-
+  getFullReqUrl = (req: WebServerRequest) => {
+    return (
+      this._info!.protocol.prefix +
+      (req.headers["host"] ?? this._info!.host) +
+      req.url
+    );
+  };
   protected async _bootstrap() {
     // 创建了一个基础的 http 服务器 所有的 http:// 请求会全部会发送到这个地方来处理
     const info = (this._info = await this._dwebServer.create());
-    this._info.server.on("upgrade", (req, socket, head) => {
-      console.always("upgrade", head.toString());
-      socket.on("data", (data) => {
-        console.always("upgraded socket data", typeof data, data.toString());
-      });
-    });
+    const getFullReqUrl = this.getFullReqUrl;
+
+    initWebSocketServer.call(this, info.server);
+
     this._info.server.on("request", (req, res) => {
       const host = this.getHostByReq(req);
       {
@@ -79,19 +85,7 @@ export class HttpServerNMM extends NativeMicroModule {
           );
         }
 
-        // gateway.listener.ipc.request("/on-connect")
-
-        // const gateway_timeout = setTimeout(() => {
-        //   if (res.writableLength === 0) {
-        //   }
-        //   res.write;
-        //   res.hasHeader;
-        // }, 3e4 /* 30s 没有任何 body 写入的话，认为网关超时 */);
-        const fullReqUrl =
-          info.protocol.prefix + (req.headers["host"] ?? info.host) + req.url;
-        // console.always("fullReqUrl", fullReqUrl);
-        // 源代码
-        void gateway.listener.hookHttpRequest(req, res, fullReqUrl);
+        void gateway.listener.hookHttpRequest(req, res, getFullReqUrl(req));
       }
     });
 
@@ -226,7 +220,7 @@ export class HttpServerNMM extends NativeMicroModule {
   }
 
   // 获取 host
-  private getHostByReq = (req: IncomingMessage) => {
+  protected getHostByReq = (req: IncomingMessage) => {
     /// 获取 host
     let header_host: string | null = null;
     let header_x_dweb_host: string | null = null;

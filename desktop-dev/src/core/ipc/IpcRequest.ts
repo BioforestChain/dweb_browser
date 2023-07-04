@@ -1,6 +1,11 @@
 import { once } from "../../helper/$once.ts";
 import { $Binary, binaryToU8a, isBinary } from "../../helper/binaryHelper.ts";
+import { httpMethodCanOwnBody } from "../../helper/httpHelper.ts";
 import { parseUrl } from "../../helper/urlHelper.ts";
+import type { $BodyData, IpcBody } from "./IpcBody.ts";
+import { IpcBodySender } from "./IpcBodySender.ts";
+import { IpcHeaders } from "./IpcHeaders.ts";
+import type { MetaBody } from "./MetaBody.ts";
 import {
   IPC_MESSAGE_TYPE,
   IPC_METHOD,
@@ -8,10 +13,6 @@ import {
   toIpcMethod,
 } from "./const.ts";
 import type { Ipc } from "./ipc.ts";
-import type { $BodyData, IpcBody } from "./IpcBody.ts";
-import { IpcBodySender } from "./IpcBodySender.ts";
-import { IpcHeaders } from "./IpcHeaders.ts";
-import type { MetaBody } from "./MetaBody.ts";
 
 export class IpcRequest extends IpcMessage<IPC_MESSAGE_TYPE.REQUEST> {
   constructor(
@@ -126,21 +127,48 @@ export class IpcRequest extends IpcMessage<IPC_MESSAGE_TYPE.REQUEST> {
     return new IpcRequest(req_id, url, method, headers, ipcBody, ipc);
   }
 
+  /**
+   * 判断是否是双工协议
+   *
+   * 比如目前双工协议可以由 WebSocket 来提供支持
+   */
+  isDuplex() {
+    return (
+      this.method === "GET" &&
+      this.headers.get("Upgrade")?.toLowerCase() === "websocket"
+    );
+  }
+
   toRequest() {
-    const { method } = this;
+    let { method } = this;
     let body: undefined | $BodyData;
-    if ((method === IPC_METHOD.GET || method === IPC_METHOD.HEAD) === false) {
+    const isWebSocket = this.isDuplex();
+    if (isWebSocket) {
+      method = IPC_METHOD.POST; // new Request 如果要携带body，method 不可以是 GET
+      body = this.body.raw;
+    } else if (httpMethodCanOwnBody(method)) {
       body = this.body.raw;
     }
     const init = {
       method,
       headers: this.headers,
       body,
+      duplex: body instanceof ReadableStream ? "half" : undefined,
     };
     if (body) {
       Reflect.set(init, "duplex", "half");
     }
-    return new Request(this.url, init);
+    const request = new Request(this.url, init);
+    if (isWebSocket) {
+      Object.defineProperty(request, "method", {
+        configurable: true,
+        enumerable: true,
+        writable: false,
+        value: "GET",
+      });
+    }
+
+    return request;
   }
 
   readonly ipcReqMessage = once(

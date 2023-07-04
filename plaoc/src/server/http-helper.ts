@@ -4,7 +4,7 @@ const { IpcHeaders } = navigator.dweb.ipc;
 
 type $IpcHeaders = InstanceType<typeof IpcHeaders>;
 
-export const cros = (headers: $IpcHeaders) => {
+export const cors = (headers: $IpcHeaders) => {
   headers.init("Access-Control-Allow-Origin", "*");
   headers.init("Access-Control-Allow-Headers", "*"); // 要支持 X-Dweb-Host
   headers.init("Access-Control-Allow-Methods", "*");

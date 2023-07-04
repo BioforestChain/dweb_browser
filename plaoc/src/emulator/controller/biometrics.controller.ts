@@ -21,7 +21,7 @@ export class BiometricsController extends BaseController {
         }
       })
       .forbidden()
-      .cros();
+      .cors();
   })();
   private queue: PromiseOut<$BiometricsReuslt>[] = [];
   get state() {
