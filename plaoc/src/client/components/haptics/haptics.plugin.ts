@@ -1,21 +1,31 @@
 import { bindThis } from "../../helper/bindThis.ts";
+import { $BuildRequestInit } from "../../helper/request.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
-import type {
+import {
   ImpactOptions,
   NotificationOptions,
   VibrateOptions,
 } from "./haptics.type.ts";
 
 export class HapticsPlugin extends BasePlugin {
+  private static isIOSDWebBrowser: boolean =
+    // deno-lint-ignore no-explicit-any
+    typeof (globalThis as any).webkit.messageHandlers.haptics.postMessage ===
+    "function";
+
   constructor() {
-    super("haptics.sys.dweb");
+    super(
+      HapticsPlugin.isIOSDWebBrowser
+        ? "haptics.browser.dweb"
+        : "haptics.sys.dweb"
+    );
   }
   /** 触碰轻质量物体 */
   @bindThis
   async impactLight(options: ImpactOptions) {
     await this.fetchApi("/impactLight", {
       search: {
-        style: options.style,
+        style: options.style.toString(),
       },
     });
   }
@@ -25,7 +35,7 @@ export class HapticsPlugin extends BasePlugin {
   async notification(options: NotificationOptions) {
     await this.fetchApi("/notification", {
       search: {
-        style: options.type,
+        style: options.type.toString(),
       },
     });
   }
@@ -74,6 +84,18 @@ export class HapticsPlugin extends BasePlugin {
         duration: duration,
       },
     });
+  }
+
+  fetchApi(url: string, init?: $BuildRequestInit) {
+    if (HapticsPlugin.isIOSDWebBrowser) {
+      // deno-lint-ignore no-explicit-any
+      return (globalThis as any).webkit.messageHandlers.haptics.postMessage({
+        path: url,
+        search: init?.search,
+      });
+    }
+
+    return this.buildApiRequest(url, init).fetch();
   }
 }
 

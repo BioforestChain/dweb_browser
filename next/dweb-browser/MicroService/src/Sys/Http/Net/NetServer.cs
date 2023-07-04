@@ -83,7 +83,7 @@ public static class NetServer
             {
                 var context = listener.GetContext();
 
-                Task.Factory.StartNew(async () =>
+                Task.Factory.StartNew(() =>
                 {
                     if (context.Request.IsWebSocketRequest)
                     {
