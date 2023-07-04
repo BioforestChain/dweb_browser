@@ -1,4 +1,4 @@
-﻿using BrowserFramework;
+﻿using DwebBrowserFramework;
 using DwebBrowser.MicroService.Browser.Jmm;
 using UIKit;
 
@@ -57,20 +57,21 @@ public class BrowserNMM : IOSNativeMicroModule
     {
         await MainThread.InvokeOnMainThreadAsync(async () =>
         {
-            BrowserManager.WebviewGeneratorCallbackWithCallback(configuration =>
+            BridgeManager.WebviewGeneratorCallbackWithCallback(configuration =>
             {
                 return new BrowserWeb(this, configuration);
             });
-            var manager = new BrowserManager();
+            var manager = new BridgeManager();
+            var browserView = manager.BrowserView;
             //var webview = new BrowserWeb();
             //webview.LoadRequest(new NSUrlRequest(new NSUrl("https://dweb.waterbang.top/")));
             //manager.WebViewList = new WKWebView[] { webview };
             //manager.ShowWebViewListDataWithList(new WKWebView[] { webview });
             //manager.OpenWebViewUrlWithUrlString("https://dweb.waterbang.top/");
-            manager.OpenWebViewUrlWithUrlString("about:newtab");
-            var swiftView = manager.SwiftView;
-            swiftView.Frame = UIScreen.MainScreen.Bounds;
-            BrowserController.View.AddSubview(swiftView);
+            //manager.OpenWebViewUrlWithUrlString("about:newtab");
+            //var swiftView = manager.SwiftView;
+            browserView.Frame = UIScreen.MainScreen.Bounds;
+            BrowserController.View.AddSubview(browserView);
             //webview.LoadRequest(new NSUrlRequest(new NSUrl("dweb:install?url=https://dweb.waterbang.top/metadata.json")));
         });
     }

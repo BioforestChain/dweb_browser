@@ -4,10 +4,11 @@ using DwebBrowser.MicroService.Http;
 using Foundation;
 using UIKit;
 using WebKit;
+using DwebBrowserFramework;
 
 namespace DwebBrowser.MicroService.Browser;
 
-public partial class BrowserWeb : WKWebView
+public partial class BrowserWeb : BrowserWebview
 {
     static readonly Debugger Console = new("BrowserWeb");
 

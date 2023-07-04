@@ -236,6 +236,7 @@ public class JmmDownload
                 await _isPause.Until((v) => !v);
                 /// TODO 页面销毁时，要销毁这些异步等待
             }
+            await fileStream.FlushAsync();
             _downloadStatus.Set(DownloadStatus.DownloadComplete);
 
         }

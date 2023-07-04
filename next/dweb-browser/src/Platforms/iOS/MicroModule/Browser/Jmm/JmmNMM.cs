@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using System.Web;
-using BrowserFramework;
 using DwebBrowser.MicroService.Http;
+using DwebBrowserFramework;
 using Foundation;
 using UIKit;
 
@@ -221,6 +221,7 @@ public class JmmNMM : NativeMicroModule
                 var manager = new DownloadAppManager(data, (nint)initDownloadStatus);
 
                 manager.DownloadView.Frame = UIScreen.MainScreen.Bounds;
+                JmmController.View.Frame = UIScreen.MainScreen.Bounds;
                 JmmController.View.AddSubview(manager.DownloadView);
 
                 // 无法push同一个UIViewController的实例两次
