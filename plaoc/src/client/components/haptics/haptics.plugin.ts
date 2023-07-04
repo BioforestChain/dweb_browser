@@ -10,8 +10,9 @@ import {
 export class HapticsPlugin extends BasePlugin {
   private static isIOSDWebBrowser: boolean =
     // deno-lint-ignore no-explicit-any
+    "webkit" in globalThis &&
     typeof (globalThis as any).webkit.messageHandlers.haptics.postMessage ===
-    "function";
+      "function";
 
   constructor() {
     super(
@@ -86,7 +87,7 @@ export class HapticsPlugin extends BasePlugin {
     });
   }
 
-  fetchApi(url: string, init?: $BuildRequestInit) {
+  override fetchApi(url: string, init?: $BuildRequestInit) {
     if (HapticsPlugin.isIOSDWebBrowser) {
       // deno-lint-ignore no-explicit-any
       return (globalThis as any).webkit.messageHandlers.haptics.postMessage({

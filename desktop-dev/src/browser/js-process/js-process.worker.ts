@@ -154,6 +154,10 @@ export class JsProcessMicroModule implements $MicroModule {
 
         /// 不论是连接方，还是被连接方，都需要触发事件
         this.beConnect(ipc);
+      } else if (data[0] === "ipc-connect-fail") {
+        const mmid = data[1];
+        const reason = data[2];
+        this._ipcConnectsMap.get(mmid)?.reject(reason);
       }
     };
     workerGlobal.addEventListener("message", _beConnect);

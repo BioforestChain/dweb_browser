@@ -158,22 +158,26 @@ export class JsMicroModule extends MicroModule {
     this._jsIpc.onEvent(async (ipcEvent) => {
       if (ipcEvent.name === "dns/connect") {
         const { mmid } = JSON.parse(ipcEvent.text);
-        /**
-         * 模块之间的ipc是单例模式，所以我们必须拿到这个单例，再去做消息转发
-         * 但可以优化的点在于：TODO 我们应该将两个连接的协议进行交集，得到最小通讯协议，然后两个通道就能直接通讯raw数据，而不需要在转发的时候再进行一次编码解码
-         *
-         * 此外这里允许js多次建立ipc连接，因为可能存在多个js线程，它们是共享这个单例ipc的
-         */
-        /**
-         * 向目标模块发起连接，注意，这里是很特殊的，因为我们自定义了 JMM 的连接适配器 connectAdapterManager，
-         * 所以 JsMicroModule 这里作为一个中间模块，是没法直接跟其它模块通讯的。
-         *
-         * TODO 如果有必要，未来需要让 connect 函数支持 force 操作，支持多次连接。
-         */
-        const [targetIpc] = await context.dns.connect(mmid);
-        /// 只要不是我们自己创建的直接连接的通道，就需要我们去创造直连并进行桥接
-        if (targetIpc.remote.mmid != this.mmid) {
-          await this.ipcBridge(mmid, targetIpc).promise;
+        try {
+          /**
+           * 模块之间的ipc是单例模式，所以我们必须拿到这个单例，再去做消息转发
+           * 但可以优化的点在于：TODO 我们应该将两个连接的协议进行交集，得到最小通讯协议，然后两个通道就能直接通讯raw数据，而不需要在转发的时候再进行一次编码解码
+           *
+           * 此外这里允许js多次建立ipc连接，因为可能存在多个js线程，它们是共享这个单例ipc的
+           */
+          /**
+           * 向目标模块发起连接，注意，这里是很特殊的，因为我们自定义了 JMM 的连接适配器 connectAdapterManager，
+           * 所以 JsMicroModule 这里作为一个中间模块，是没法直接跟其它模块通讯的。
+           *
+           * TODO 如果有必要，未来需要让 connect 函数支持 force 操作，支持多次连接。
+           */
+          const [targetIpc] = await context.dns.connect(mmid);
+          /// 只要不是我们自己创建的直接连接的通道，就需要我们去创造直连并进行桥接
+          if (targetIpc.remote.mmid != this.mmid) {
+            await this.ipcBridge(mmid, targetIpc).promise;
+          }
+        } catch (err) {
+          this.ipcConnectFail(mmid, err);
         }
       }
       if (ipcEvent.name === "restart") {
@@ -233,6 +237,27 @@ export class JsMicroModule extends MicroModule {
       })().catch(task.reject);
       return task;
     });
+  }
+
+  async ipcConnectFail(mmid: $MMID, reason: unknown) {
+    let errMessage = "";
+    if (reason instanceof Error) {
+      errMessage = reason.message + "\n" + (reason.stack || "");
+    } else {
+      errMessage = String(reason);
+    }
+    /**
+     * 向js模块发起连接
+     */
+    return await this.nativeFetch(
+      buildUrl(new URL(`file://js.browser.dweb/create-ipc-fail`), {
+        search: {
+          process_id: this._process_id,
+          mmid: mmid,
+          reason: errMessage,
+        },
+      })
+    ).boolean();
   }
 
   _shutdown() {

@@ -27,7 +27,7 @@ let native_close_watcher_kit = globalThis.__native_close_watcher_kit__;
 if (native_close_watcher_kit) {
   native_close_watcher_kit._watchers ??= new Map();
   native_close_watcher_kit._tasks ??= new Map();
-} else {
+} else if ("webkit" in globalThis) {
   // 仅适用于iOS平台
   Object.assign(globalThis, {
     __native_close_watcher_kit__: {

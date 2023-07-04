@@ -136,6 +136,15 @@ const createIpc = async (
   return;
 };
 
+const createIpcFail = async (
+  process_id: number,
+  mmid: string,
+  reason: string
+) => {
+  const process = _forceGetProcess(process_id);
+  process.worker.postMessage(["ipc-connect-fail", mmid, reason]);
+};
+
 // 根据 process_id 获取进程
 const _forceGetProcess = (process_id: number) => {
   const process = ALL_PROCESS_MAP.get(process_id);
@@ -176,6 +185,7 @@ export const APIS = {
   createProcess,
   runProcessMain,
   createIpc,
+  createIpcFail,
   destroyProcess,
 };
 export type $RunMainConfig = {

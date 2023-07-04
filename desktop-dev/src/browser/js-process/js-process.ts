@@ -14,6 +14,7 @@ import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import { once } from "../../helper/$once.ts";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
+import { parseQuery, z, zq } from "../../helper/zodHelper.ts";
 import {
   closeHttpDwebServer,
   createHttpDwebServer,
@@ -248,6 +249,30 @@ export class JsProcessNMM extends NativeMicroModule {
         const port_id = await this.createIpc(ipc, apis, process_id, args.mmid);
         return port_id;
       },
+    });
+
+    const query_createIpc = z.object({
+      process_id: zq.string(),
+      mmid: zq.string(),
+    });
+    const query_createIpcFail = query_createIpc.and(
+      z.object({ reason: zq.string() })
+    );
+
+    this.onFetch(async (event) => {
+      if (event.pathname === "/create-ipc-fail") {
+        const { ipc } = event;
+        const args = parseQuery(event.searchParams, query_createIpcFail);
+        const process_id_po = ipcProcessIdMap.get(ipc)?.get(args.process_id);
+        if (process_id_po === undefined) {
+          throw new Error(
+            `ipc:${ipc.remote.mmid}/processId:${args.process_id} invalid`
+          );
+        }
+        const process_id = await process_id_po.promise;
+        await apis.createIpcFail(process_id, args.mmid, args.reason);
+        return Response.json(true);
+      }
     });
 
     this.registerCommonIpcOnMessageHandler({
