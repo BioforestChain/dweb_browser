@@ -162,16 +162,17 @@ export class BundleZipGenerator {
         path: `usr/www`,
       },
     ];
-    const addFile_DistToUsr = (filepath: string, alias: string = filepath) => {
+    const addFile_DistToUsr = async (
+      filepath: string,
+      alias: string = filepath
+    ) => {
       const path = import.meta.resolve(`../serve/${filepath}`);
       let data = null;
       // 如果是远程的
       if (path.startsWith("http")) {
-        data = fs.readFileSync(import.meta.resolve(`../serve/${filepath}`));
+        data = await (await fetch(path)).text();
       } else {
-        data = fs.readFileSync(
-          fileURLToPath(import.meta.resolve(`../serve/${filepath}`))
-        );
+        data = fs.readFileSync(fileURLToPath(path));
       }
       entries.push({
         dir: false,
