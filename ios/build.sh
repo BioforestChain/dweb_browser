@@ -5,7 +5,6 @@ SWIFT_FRAMEWORk_NAME="DwebBrowserFramework"
 SWIFT_PROJECT_NAME="DwebBrowser"
 isRelease=false
 
-
 print_yellow() {
   printf "\e[33m$1\e[m"
 }
@@ -19,6 +18,31 @@ build() {
     dotnet build --no-incremental -c:Release
   fi
 }
+
+print_help(){
+  echo "Run ./build without parameters to build ALL PARTS (Swift framework, Binding library, MAUI library). Default behavior."
+  echo "\nParameters:"
+  echo "-r or --release\t\t - builds dotnet parts in release"
+  echo "\nExample:"
+  echo "./build.sh -r\ -- builds dotnet parts in release"
+  echo "\nSource on GitHub:"
+  echo "https://github.com/BioforestChain/dweb_browser"
+}
+
+#read parameters one by one
+while [[ "$#" -gt 0 ]]
+do
+case $1 in
+    -r|--release)
+      isRelease=true;;      
+    *)
+      echo "Unknown parameter passed: $1"
+      print_help
+      exit 1;;
+esac
+shift
+done
+
 echo "Build iOS framework for device"
 
 # rm -Rf "DwebBrowserFramework/DwebBrowserFramework/"
@@ -65,34 +89,31 @@ sharpie bind \
 file_path="../XCFrameworks/ApiDefinitions.cs"
 # 临时文件用于保存处理后的内容
 tmp_file="../XCFrameworks/ApiDefinitions_tmp.cs"
-# 循环删除文件中的指定内容，直到删除完毕
 
 print_yellow "\ndelete static\n"
 
+# 替换Static为Category，用于删除
 sed 's/^[[:space:]]\[Static\]/  [Category]/g' "$file_path" > "$tmp_file"
 
 # 将处理后的内容覆盖原始文件
 mv "$tmp_file" "$file_path"
 
-print_yellow "\Category static\n"
+print_yellow "\nCategory static\n"
 
+# 循环删除Category标识的内容
 while grep -q '\[Category\]' "$file_path"; do
     awk '/\[Category\]/ { p = 1; next } p && /^[[:space:]]*}$/ { p = 0; next } !p' "$file_path" > "$tmp_file"
     mv "$tmp_file" "$file_path"
 done
 
+print_yellow "\nApiDefinitions.cs replace finish\n"
 
+cp -Rf "../XCFrameworks/ApiDefinitions.cs" "../SwiftUIBindingMAUI/SwiftUIBindingMAUI/"
 
- print_yellow "\nApiDefinitions.cs replace finish\n"
+print_yellow "\nxcframework and cs file finish\n"
 
- cp -Rf "../XCFrameworks/ApiDefinitions.cs" "../SwiftUIBindingMAUI/SwiftUIBindingMAUI/"
+cd ../SwiftUIBindingMAUI
 
- print_yellow "\nxcframework and cs file finish\n"
-
- cd ..
- 
- cd SwiftUIBindingMAUI
-
- build $isRelease
+build $isRelease
 
 echo "Done!"
