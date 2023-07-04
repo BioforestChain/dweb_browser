@@ -6,9 +6,10 @@
 //
 
 import Foundation
-import UIKit
 import SwiftUI
-//import FaviconFinder
+import UIKit
+
+// import FaviconFinder
 import Combine
 
 let websites = [
@@ -20,8 +21,8 @@ let websites = [
     "https://www.zhihu.com",
 ]
 
-//打开新页面时
-class WebCache: ObservableObject, Identifiable, Hashable, Codable, Equatable{
+// 打开新页面时
+class WebCache: ObservableObject, Identifiable, Hashable, Codable, Equatable {
     enum CodingKeys: String, CodingKey {
         case id
         case webIconUrl
@@ -31,24 +32,23 @@ class WebCache: ObservableObject, Identifiable, Hashable, Codable, Equatable{
     }
     
     var id = UUID()
-    var shouldShowWeb: Bool{
+    var shouldShowWeb: Bool {
         lastVisitedUrl != emptyURL
     }
     
-    @Published var webIconUrl: URL            // url to the source of somewhere in internet
-    @Published var lastVisitedUrl: URL     //the website that user has opened on webview
+    @Published var webIconUrl: URL // url to the source of somewhere in internet
+    @Published var lastVisitedUrl: URL // the website that user has opened on webview
 
-    
-    @Published var title: String            // page title
-    @Published var snapshotUrl: URL           //local file path is direct to the image has saved in document dir
+    @Published var title: String // page title
+    @Published var snapshotUrl: URL // local file path is direct to the image has saved in document dir
     {
-        didSet{
+        didSet {
             WebCacheMgr.shared.saveCaches()
         }
     }
     
     init(icon: URL = URL.defaultWebIconURL, showWeb: Bool = false, lastVisitedUrl: URL = emptyURL, title: String = "", snapshotUrl: URL = URL.defaultSnapshotURL) {
-        self.webIconUrl = icon
+        webIconUrl = icon
         self.lastVisitedUrl = lastVisitedUrl
         self.title = title
         self.snapshotUrl = snapshotUrl
@@ -74,10 +74,10 @@ class WebCache: ObservableObject, Identifiable, Hashable, Codable, Equatable{
     
     static func == (lhs: WebCache, rhs: WebCache) -> Bool {
         return lhs.id == rhs.id &&
-        lhs.webIconUrl == rhs.webIconUrl &&
-        lhs.lastVisitedUrl == rhs.lastVisitedUrl &&
-        lhs.title == rhs.title &&
-        lhs.snapshotUrl == rhs.snapshotUrl
+            lhs.webIconUrl == rhs.webIconUrl &&
+            lhs.lastVisitedUrl == rhs.lastVisitedUrl &&
+            lhs.title == rhs.title &&
+            lhs.snapshotUrl == rhs.snapshotUrl
     }
     
     func hash(into hasher: inout Hasher) {
@@ -88,33 +88,34 @@ class WebCache: ObservableObject, Identifiable, Hashable, Codable, Equatable{
         hasher.combine(snapshotUrl)
     }
     
-    static var example: WebCache{
+    static var example: WebCache {
         WebCache(lastVisitedUrl: URL(string: "https://www.apple.com")!, title: "apple")
     }
 }
 
-class WebCacheMgr: ObservableObject{
+class WebCacheMgr: ObservableObject {
     static let shared = WebCacheMgr()
     private let userdefaultKey = "userdefaultWebCache"
     @Published var store: [WebCache] = []
 
-    init(){
+    init() {
         loadCaches()
     }
     
-    func append(cache: WebCache){
+    func append(cache: WebCache) {
         //        store.append(cache)
         //        saveCaches()
     }
     
-    func remove(webCache: WebCache){
+    func remove(webCache: WebCache) {
         guard let index = store.firstIndex(of: webCache) else { return }
         UIImage.removeImage(with: webCache.snapshotUrl)
-        let _ = withAnimation(.easeInOut){
-            store.remove(at:index)
+        let _ = withAnimation(.easeInOut) {
+            store.remove(at: index)
         }
         saveCaches()
     }
+
     var saveCacheTimes = 0
     func saveCaches() {
         saveCacheTimes += 1
@@ -124,14 +125,14 @@ class WebCacheMgr: ObservableObject{
     }
     
     func loadCaches() {
-        if let data = UserDefaults.standard.data(forKey: userdefaultKey){
-            if let items = try? JSONDecoder().decode([WebCache].self, from: data){
+        if let data = UserDefaults.standard.data(forKey: userdefaultKey) {
+            if let items = try? JSONDecoder().decode([WebCache].self, from: data) {
                 store = items
             }
         }
         if store.count == 0 {
             store = [
-//                WebCache(lastVisitedUrl: emptyURL, title: "blank"),
+                //                WebCache(lastVisitedUrl: emptyURL, title: "blank"),
                 WebCache(lastVisitedUrl: URL(string: "https://www.apple.com")!, title: "2"),
 //                WebCache(lastVisitedUrl: URL(string: "https://www.163.com")!, title: "3"),
 //                WebCache(lastVisitedUrl: URL(string: "https://www.douban.com")!, title: "4"),
@@ -140,6 +141,8 @@ class WebCacheMgr: ObservableObject{
                 WebCache(lastVisitedUrl: URL(string: "about:newtab")!, title: "3"),
 //                WebCache(lastVisitedUrl: URL(string: "https://www.douban.com")!, title: "4"),
                 WebCache(lastVisitedUrl: URL(string: "https://www.douyu.com")!, title: "5"),
+                
+                WebCache(lastVisitedUrl: URL(string: "https://dweb.waterbang.top")!, title: "8"),
             ]
         }
     }

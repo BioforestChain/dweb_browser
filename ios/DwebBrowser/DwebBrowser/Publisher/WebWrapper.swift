@@ -2,7 +2,8 @@ import Combine
 import SwiftUI
 import WebKit
 
-class BrowserWebview: WKWebView {
+@objc(BrowserWebview)
+public class BrowserWebview: WKWebView {
     @objc dynamic var icon = NSString("")
 
     override init(frame: CGRect, configuration: WKWebViewConfiguration) {
@@ -108,14 +109,14 @@ function watchIosIcon(preference_size = 64, message_hanlder_name = "favicons") {
 
 """
 extension BrowserWebview: WKScriptMessageHandler, WKNavigationDelegate {
-    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+    public func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         print("messageHandler: \(message.body as! String)")
         if let value = message.body as? String {
             icon = NSString(string: value.isEmpty ? URL.defaultWebIconURL.absoluteString : value)
         }
     }
 
-    func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
+    public func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
         evaluateJavaScript("void watchIosIcon()")
     }
 }
@@ -131,8 +132,8 @@ class WebWrapper: ObservableObject, Identifiable, Hashable, Equatable {
     }
 
     init(cacheID: UUID) {
-//        self.webView = BridgeManager.webviewGenerator!(nil)
-        self.webView = BrowserWebview()
+        self.webView = BridgeManager.webviewGenerator?(nil) ?? BrowserWebview()
+//        self.webView = BrowserWebview()
         self.id = cacheID
         print("making a WebWrapper: \(self)")
 
