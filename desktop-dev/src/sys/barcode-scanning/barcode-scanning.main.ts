@@ -3,12 +3,6 @@ import { NativeMicroModule } from "../../core/micro-module.native.ts";
 
 export class BarcodeScanningNMM extends NativeMicroModule {
   mmid = "barcode-scanning.sys.dweb" as const;
-  // barcodeDetector = new BarcodeDetectorDelegate([
-  //   Html5QrcodeSupportedFormats.QR_CODE,
-  //   Html5QrcodeSupportedFormats.CODE_39,
-  //   Html5QrcodeSupportedFormats.CODABAR,
-  //   Html5QrcodeSupportedFormats.EAN_13,
-  // ]);
   _bootstrap = () => {
     this.registerCommonIpcOnMessageHandler({
       method: "POST",
