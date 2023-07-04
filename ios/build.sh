@@ -79,16 +79,20 @@ xcodebuild -create-xcframework \
 
 print_yellow "\n生成绑定库\n"
 
+cd ..
+
+dotnet new iosbinding -o SwiftUIBindingMAUI --force
+
 sharpie bind \
  -sdk iphoneos$IOS_SDK_VERSION \
- -output ../XCFrameworks/ \
+ -output XCFrameworks/ \
  -namespace $SWIFT_FRAMEWORk_NAME \
- -framework ../XCFrameworks/$SWIFT_FRAMEWORk_NAME.xcframework/ios-arm64/$SWIFT_FRAMEWORk_NAME.framework
+ -framework XCFrameworks/$SWIFT_FRAMEWORk_NAME.xcframework/ios-arm64/$SWIFT_FRAMEWORk_NAME.framework
 
 # 设置要操作的文件路径
-file_path="../XCFrameworks/ApiDefinitions.cs"
+file_path="XCFrameworks/ApiDefinitions.cs"
 # 临时文件用于保存处理后的内容
-tmp_file="../XCFrameworks/ApiDefinitions_tmp.cs"
+tmp_file="XCFrameworks/ApiDefinitions_tmp.cs"
 
 print_yellow "\ndelete static\n"
 
@@ -108,11 +112,15 @@ done
 
 print_yellow "\nApiDefinitions.cs replace finish\n"
 
-cp -Rf "../XCFrameworks/ApiDefinitions.cs" "../SwiftUIBindingMAUI/SwiftUIBindingMAUI/"
+rm -Rf "SwiftUIBindingMAUI/ApiDefinition.cs"
+
+cp -Rf "XCFrameworks/ApiDefinitions.cs" "SwiftUIBindingMAUI/"
+
+cp -Rf "SwiftUIBindingMAUI.csproj" "SwiftUIBindingMAUI/"
 
 print_yellow "\nxcframework and cs file finish\n"
 
-cd ../SwiftUIBindingMAUI
+cd SwiftUIBindingMAUI
 
 build $isRelease
 

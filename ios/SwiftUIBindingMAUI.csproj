@@ -18,9 +18,11 @@
     <ObjcBindingApiDefinition Include="ApiDefinitions.cs" />
   </ItemGroup>
   <ItemGroup>
-    <NativeReference Include="..\..\XCFrameworks\DwebBrowserFramework.xcframework">
+    <NativeReference Include="..\XCFrameworks\DwebBrowserFramework.xcframework">
       <Kind>Framework</Kind>
       <Frameworks>Foundation UIKit</Frameworks>
+      <Kind>Framework</Kind>
+      <SmartLink>True</SmartLink>
     </NativeReference>
   </ItemGroup>
 </Project>
