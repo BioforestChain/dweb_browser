@@ -91,7 +91,12 @@ public static class JmmDwebService
     /// <param name="mmid">JmmMetadata id</param>
     public static void UnInstall(JmmMetadata jmmMetadata)
     {
-        Directory.Delete(JsMicroModule.GetInstallPath(jmmMetadata), true);
+        var jmmAppPath = JsMicroModule.GetJmmAppPath(jmmMetadata);
+
+        if (Directory.Exists(jmmAppPath))
+        {
+            Directory.Delete(jmmAppPath, true);
+        }
     }
 }
 

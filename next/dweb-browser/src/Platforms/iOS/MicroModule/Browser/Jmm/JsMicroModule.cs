@@ -26,6 +26,14 @@ public class JsMicroModule : MicroModule
     {
         return Path.Join(DWEB_APP_DIR, metadata.Id, metadata.Version);
     }
+
+    /// <summary>
+    /// 获取应用路径
+    /// </summary>
+    /// <param name="metadata"></param>
+    /// <returns></returns>
+    public static string GetJmmAppPath(JmmMetadata metadata) => Path.Join(DWEB_APP_DIR, metadata.Id);
+
     /// <summary>
     /// 获取一个应用所有的安装版本
     /// TODO 这里应该返回路径和metadata，所以metadata需要写入到文件里，比如 ${DWEB_APP_DIR}/${id}/sys/metadata.json
