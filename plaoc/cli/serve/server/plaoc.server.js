@@ -6172,21 +6172,20 @@ var Server_api = class extends HttpServer {
     const mmid = new URL(path).host;
     const targetIpc = await connect(mmid);
     const ipcProxyRequest = body ? IpcRequest3.fromStream(
-      jsProcess.fetchIpc.allocReqId(),
+      targetIpc.allocReqId(),
       path,
       event.method,
       event.headers,
       body,
       targetIpc
     ) : IpcRequest3.fromText(
-      jsProcess.fetchIpc.allocReqId(),
+      targetIpc.allocReqId(),
       path,
       event.method,
       event.headers,
       "",
       targetIpc
     );
-    console.log("jsProcess.fetchIpc.uuid", jsProcess.fetchIpc.uid);
     targetIpc.postMessage(ipcProxyRequest);
     const ipcProxyResponse = await targetIpc.registerReqId(
       ipcProxyRequest.req_id

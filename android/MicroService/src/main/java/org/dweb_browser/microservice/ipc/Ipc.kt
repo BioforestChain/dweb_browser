@@ -101,8 +101,16 @@ abstract class Ipc {
 
   abstract suspend fun _doPostMessage(data: IpcMessage): Unit;
 
+  private fun <T:Any>_createSignal(): Signal<T> {
+    val signal = Signal<T>()
+    this.onClose{
+      signal.clear()
+    }
+    return signal;
+  }
+
   private val _requestSignal by lazy {
-    Signal<IpcRequestMessageArgs>().also { signal ->
+    _createSignal<IpcRequestMessageArgs>().also { signal ->
       _messageSignal.listen { args ->
         if (args.message is IpcRequest) {
           ipcMessageCoroutineScope.launch {
@@ -121,7 +129,7 @@ abstract class Ipc {
   fun onRequest(cb: OnIpcRequestMessage) = _requestSignal.listen(cb)
 
   private val _responseSignal by lazy {
-    Signal<IpcResponseMessageArgs>().also { signal ->
+    _createSignal<IpcResponseMessageArgs>().also { signal ->
       _messageSignal.listen { args ->
         if (args.message is IpcResponse) {
           ipcMessageCoroutineScope.launch {
@@ -140,7 +148,7 @@ abstract class Ipc {
   fun onResponse(cb: OnIpcResponseMessage) = _responseSignal.listen(cb)
 
   private val _streamSignal by lazy {
-    val signal = Signal<IpcStreamMessageArgs>()
+    val signal = _createSignal<IpcStreamMessageArgs>()
     /// 这里建立起一个独立的顺序队列，目的是避免处理阻塞
     /// TODO 这里不应该使用 UNLIMITED，而是压力到一定程度方向发送限流的指令
     val streamChannel = Channel<IpcStreamMessageArgs>(capacity = Channel.UNLIMITED)
@@ -168,7 +176,7 @@ abstract class Ipc {
   fun onStream(cb: OnIpcStreamMessage) = _streamSignal.listen(cb)
 
   private val _eventSignal by lazy {
-    Signal<IpcEventMessageArgs>().also { signal ->
+    _createSignal<IpcEventMessageArgs>().also { signal ->
       _messageSignal.listen { args ->
         if (args.message is IpcEvent) {
           ipcMessageCoroutineScope.launch {

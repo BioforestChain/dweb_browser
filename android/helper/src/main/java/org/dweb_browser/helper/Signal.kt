@@ -1,6 +1,5 @@
 package org.dweb_browser.helper
 
-import java.util.Collections
 import java.util.Collections.newSetFromMap
 import java.util.concurrent.ConcurrentHashMap
 
