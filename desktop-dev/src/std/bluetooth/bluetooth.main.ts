@@ -233,18 +233,18 @@ export class BluetoothNMM extends NativeMicroModule {
         `bluetooth.std.dweb not yet opened!`
       );
     }
-    const uuid = event.url.searchParams.get("uuid");
-    if (uuid === null) {
-      return this._createResponseError(event, 422, `missing uuid parameter!`);
+    const id = event.url.searchParams.get("id");
+    if (id === null) {
+      return this._createResponseError(event, 422, `missing id parameter!`);
     }
     const resolveId = this._allocId++;
-    this._apis?.bluetoothRemoteGATTServerConnect(uuid, resolveId);
+    this._apis?.bluetoothRemoteGATTServerConnect(id, resolveId);
     const res = await new Promise((resolve) =>
       this._operationResolveMap.set(resolveId, resolve)
     );
     return IpcResponse.fromJson(
       event.ipcRequest.req_id,
-      422,
+      200,
       this._responseHeader,
       res,
       event.ipc
@@ -261,12 +261,13 @@ export class BluetoothNMM extends NativeMicroModule {
         `bluetooth.std.dweb not yet opened!`
       );
     }
-    const uuid = event.url.searchParams.get("uuid");
-    if (uuid === null) {
-      return this._createResponseError(event, 422, `missing uuid parameter!`);
+    const id = event.url.searchParams.get("id");
+    if (id === null) {
+      return this._createResponseError(event, 422, `missing id parameter!`);
     }
     const resolveId = this._allocId++;
-    this._apis?.bluetoothRemoteGATTServerConnect(uuid, resolveId);
+    console.log("", "_bluetoothRemoteGATTServer_disconnect", id);
+    this._apis?.bluetoothRemoteGATTServerDisconnect(id, resolveId);
     const res = await new Promise((resolve) =>
       this._operationResolveMap.set(resolveId, resolve)
     );

@@ -80,10 +80,10 @@ async function close() {
 async function requestAndConnectDevice() {
   const res = await bluetooth.requestAndConnectDevice();
   if (res.success === true && res.data !== undefined) {
-    _bluetoothRemoteGATTServer = res.data;
-    console.log("连接蓝牙设备 成功", _bluetoothRemoteGATTServer);
+    state.bluetoothRemoteGATTServer = res.data;
+    console.log("连接蓝牙设备 成功", state.bluetoothRemoteGATTServer);
   } else {
-    _bluetoothRemoteGATTServer = undefined;
+    state.bluetoothRemoteGATTServer = undefined;
     console.error("连接蓝牙设备失败 ", res.error);
   }
 }
@@ -93,8 +93,27 @@ async function disconnect() {
     console.error("state.bluetoothRemoteGATTServer === undefined");
     return;
   }
-  const result = await state.bluetoothRemoteGATTServer.disconnect();
-  console.log("disconnect result", result);
+  const bluetoothRemoteGATTServer = await state.bluetoothRemoteGATTServer.disconnect();
+  // 根据返回的 bluetoothRemoteGATTServer.connected 的值判断 请求是否成功
+  if (bluetoothRemoteGATTServer.connected === true) {
+    console.log("disconnect sucess");
+  } else {
+    console.log("disconnect fail");
+  }
+}
+
+async function connect() {
+  if (state.bluetoothRemoteGATTServer === undefined) {
+    console.error("state.bluetoothRemoteGATTServer === undefined");
+    return;
+  }
+  const bluetoothRemoteGATTServer = await state.bluetoothRemoteGATTServer.connect();
+  // 根据返回的 bluetoothRemoteGATTServer.connected 的值判断 请求是否成功
+  if (bluetoothRemoteGATTServer.connected === true) {
+    console.log("connect sucess");
+  } else {
+    console.log("connect fail");
+  }
 }
 
 async function getPrimaryService(uuid: string) {
@@ -185,11 +204,25 @@ function deviceConnectedIdUpdate(deviceId: string) {
       <v-btn color="indigo-darken-3" @click="requestAndConnectDevice">查询连接蓝牙设备 </v-btn>
     </article>
 
-    <article class="card-body" v-if="state.bluetoothRemoteGATTServer !== undefined">
+    <article
+      class="card-body"
+      v-if="state.bluetoothRemoteGATTServer !== undefined && state.bluetoothRemoteGATTServer.connected"
+    >
       <h2 class="card-title">断开 {{ state.bluetoothRemoteGATTServer.device.name }} 蓝牙</h2>
       <v-btn color="indigo-darken-3" @click="disconnect">disconnect </v-btn>
     </article>
-    <article class="card-body" v-if="state.bluetoothRemoteGATTServer !== undefined">
+    <article
+      class="card-body"
+      v-if="state.bluetoothRemoteGATTServer !== undefined && !state.bluetoothRemoteGATTServer.connected"
+    >
+      <h2 class="card-title">连接 {{ state.bluetoothRemoteGATTServer.device.name }} 蓝牙</h2>
+      <v-btn color="indigo-darken-3" @click="connect">connect </v-btn>
+    </article>
+
+    <article
+      class="card-body"
+      v-if="state.bluetoothRemoteGATTServer !== undefined && state.bluetoothRemoteGATTServer.connected"
+    >
       <h2 class="card-title">获取主服务</h2>
       <v-input v-model="state.uuid">{{ state.uuid }}</v-input>
       <v-btn color="indigo-darken-3" @click="getPrimaryService">getPrimaryService </v-btn>

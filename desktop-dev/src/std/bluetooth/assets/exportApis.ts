@@ -125,7 +125,7 @@ async function bluetoothRemoteGATTServerConnect(id: string, resolveId: number) {
     bluetoothRemoteGATTServer.connect();
     (mainApis as any).operationCallback(
       {
-        success: false,
+        success: true,
         error: undefined,
         data: "ok",
       },
@@ -160,10 +160,9 @@ async function bluetoothRemoteGATTServerDisconnect(
   }
   if (id === bluetoothRemoteGATTServer.device.id) {
     bluetoothRemoteGATTServer.disconnect();
-
     (mainApis as any).operationCallback(
       {
-        success: false,
+        success: true,
         error: undefined,
         data: "ok",
       },
@@ -174,7 +173,7 @@ async function bluetoothRemoteGATTServerDisconnect(
   (mainApis as any).operationCallback(
     {
       success: false,
-      error: `bluetoothRemoteGATTServer === undefined`,
+      error: `参数 id 没有匹配的 BluetoothRemoteGATTServer`,
       data: undefined,
     },
     resolveId

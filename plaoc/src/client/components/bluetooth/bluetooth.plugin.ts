@@ -80,32 +80,37 @@ export class BluetoothRemoteGATTServer {
     this.connected = connected;
   }
   @bindThis
-  connect() {
-    const result = this.plugin.fetchApi(
-      `/bluetooth_remote_gatt_server/connect`,
-      {
+  async connect(): Promise<BluetoothRemoteGATTServer> {
+    const result = await (
+      await this.plugin.fetchApi(`/bluetooth_remote_gatt_server/connect`, {
         search: {
           id: this.device.id,
         },
-      }
-    );
+      })
+    ).json();
+
+    if (result.success === true) {
+      this.connected = true;
+    }
     console.log("再次连接");
-    return result;
+    return this;
   }
 
   // 断开蓝牙连接
   @bindThis
-  disconnect() {
-    const result = this.plugin.fetchApi(
-      `/bluetooth_remote_gatt_server/disconnect`,
-      {
+  async disconnect(): Promise<BluetoothRemoteGATTServer> {
+    const res = await (
+      await this.plugin.fetchApi(`/bluetooth_remote_gatt_server/disconnect`, {
         search: {
           id: this.device.id,
         },
-      }
-    );
-
-    return result;
+      })
+    ).json();
+    if (res.success === true) {
+      // 需要修改 状态
+      this.connected = false;
+    }
+    return this;
   }
 
   @bindThis
