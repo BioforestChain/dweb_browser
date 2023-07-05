@@ -61,6 +61,26 @@ public class MultiWebViewNMM : IOSNativeMicroModule
             return await _closeDwebViewAsync(remoteMmid, webviewId);
         });
 
+        HttpRouter.AddRoute(IpcMethod.Get, "/close/app", async (request, ipc) =>
+        {
+            var controller = s_controllerMap.GetValueOrDefault(ipc!.Remote.Mmid);
+
+            if (controller is not null)
+            {
+                var vc = await RootViewController.WaitPromiseAsync();
+
+                await MainThread.InvokeOnMainThreadAsync(async () =>
+                {
+                    await controller.DismissViewControllerAsync(true);
+                    vc.PopViewController(true);
+                });
+
+                return controller.DestroyWebView();
+            }
+
+            return false;
+        });
+
         // 界面没有关闭，用于重新唤醒
         HttpRouter.AddRoute(IpcMethod.Get, "/activate", async (request, ipc) =>
         {
