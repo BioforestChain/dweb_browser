@@ -115,33 +115,33 @@ export class CloseWatcher extends EventTarget {
       this.#onclose = undefined;
     }
   }
-  addEventListener<K extends keyof CloseWatcherEventMap>(
+  override addEventListener<K extends keyof CloseWatcherEventMap>(
     type: K,
     // deno-lint-ignore no-explicit-any
     listener: (this: CloseWatcher, ev: CloseWatcherEventMap[K]) => any,
     options?: boolean | AddEventListenerOptions
   ): void;
-  addEventListener(
+  override addEventListener(
     type: string,
     listener: EventListenerOrEventListenerObject,
     options?: boolean | AddEventListenerOptions
   ): void;
-  addEventListener() {
+  override addEventListener() {
     // deno-lint-ignore no-explicit-any
     return (super.addEventListener as any)(...arguments);
   }
-  removeEventListener<K extends keyof CloseWatcherEventMap>(
+  override removeEventListener<K extends keyof CloseWatcherEventMap>(
     type: K,
     // deno-lint-ignore no-explicit-any
     listener: (this: CloseWatcher, ev: CloseWatcherEventMap[K]) => any,
     options?: boolean | EventListenerOptions
   ): void;
-  removeEventListener(
+  override removeEventListener(
     type: string,
     listener: EventListenerOrEventListenerObject,
     options?: boolean | EventListenerOptions
   ): void;
-  removeEventListener() {
+  override removeEventListener() {
     // deno-lint-ignore no-explicit-any
     return (super.addEventListener as any)(...arguments);
   }

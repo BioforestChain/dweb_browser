@@ -5,7 +5,7 @@ import {
   ReadableStreamIpc,
   ReadableStreamOut,
   simpleEncoder,
-  streamRead,
+  streamReadAll,
 } from "../../../deps.ts";
 import { X_PLAOC_QUERY } from "../../server/const.ts";
 export const EMULATOR = "/emulator";
@@ -81,23 +81,39 @@ export const createMockModuleServerIpc = (mmid: $MMID, apiUrl = BASE_URL) => {
 
     /// 客户端发起请求，代理层传递IPC协议内容，响应服务器将这些数据写入proxyStream，然后会进行解析
     ws.onmessage = (event) => {
-      const data = event.data;
-      if (typeof data === "string") {
-        proxyStream.controller.enqueue(simpleEncoder(data, "utf8"));
-      } else if (data instanceof ArrayBuffer) {
-        proxyStream.controller.enqueue(new Uint8Array(data));
-      } else {
-        throw new Error("should not happend");
+      try {
+        const data = event.data;
+        // console.log(
+        //   simpleDecoder(new Uint8Array(data as any), "utf8"),
+        //   "\nclient-->http-->plaoc(api)-->wss-->wsc··>emulator",
+        //   "\nclient<··http<··plaoc(api)<··wss<··wsc<··emulator"
+        // );
+        if (typeof data === "string") {
+          proxyStream.controller.enqueue(simpleEncoder(data, "utf8"));
+        } else if (data instanceof ArrayBuffer) {
+          proxyStream.controller.enqueue(new Uint8Array(data));
+        } else {
+          throw new Error("should not happend");
+        }
+      } catch (err) {
+        console.error(err);
       }
     };
     /// 响应服务器将响应内容写入serverIpc，这里读取写入的内容，将响应的内容通过代理层传回
-    void (async () => {
-      for await (const chunk of streamRead(serverIpc.stream)) {
+    void streamReadAll(serverIpc.stream, {
+      map(chunk) {
+        // console.log(
+        //   simpleDecoder(chunk, "utf8"),
+        //   "\nclient-->http-->plaoc(api)-->wss-->wsc-->emulator",
+        //   "\nclient<··http<··plaoc(api)<··wss<··wsc<--emulator"
+        // );
         ws.send(chunk);
-      }
-      /// 服务器关闭
-      ws.close();
-    })();
+      },
+      complete() {
+        /// 服务器关闭
+        ws.close();
+      },
+    });
   };
 
   return waitOpenPo.promise;

@@ -3,7 +3,7 @@ import { FetchError } from "../../core/helper/ipcFetchHelper.ts";
 import { simpleEncoder } from "../../helper/encoding.ts";
 import {
   ReadableStreamOut,
-  streamRead,
+  streamReadAll,
 } from "../../helper/readableStreamHelper.ts";
 import { parseUrl } from "../../helper/urlHelper.ts";
 import {
@@ -81,17 +81,31 @@ export function initWebSocketServer(this: HttpServerNMM, server: HttpServer) {
               }
               /// 转发来自服务器的数据
               const outputStream = await outputResponse.body.stream();
-              (async () => {
-                for await (const chunk of streamRead(outputStream)) {
+              //TODO close outputStream
+              void streamReadAll(outputStream, {
+                map(chunk) {
+                  // console.always(
+                  //   chunk,
+                  //   Buffer.from(chunk).toString(),
+                  //   "\nclient-->http-->plaoc(api)-->wss··>wsc··>emulator",
+                  //   "\nclient<··http<··plaoc(api)<··wss<··wsc<··emulator"
+                  // );
                   ws.send(chunk);
-                }
-                /// 服务端关闭流
-                ws.close();
-              })();
+                },
+                complete() {
+                  /// 服务端关闭流
+                  ws.close();
+                },
+              });
             })();
 
             /// 传输来自客户端的数据，注意，这个onmessage 前面不要有任何 await，否则会丢失消息
             ws.on("message", (data, isBinary) => {
+              // console.always(
+              //   (data as Buffer).toString(),
+              //   "\nclient-->http-->plaoc(api)-->wss-->wsc-->emulator",
+              //   "\nclient<··http<··plaoc(api)<··wss<--wsc<--emulator"
+              // );
               if (isBinary) {
                 inputStreamOut.controller.enqueue(data as Uint8Array);
               } else {

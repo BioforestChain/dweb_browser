@@ -93,23 +93,15 @@ export class Server_api extends HttpServer {
     const body = await event.ipcRequest.body.stream();
     const mmid = new URL(path).host;
     const targetIpc = await connect(mmid as $MMID);
-    const ipcProxyRequest = body
-      ? IpcRequest.fromStream(
-          targetIpc.allocReqId(),
-          path,
-          event.method,
-          event.headers,
-          body,
-          targetIpc
-        )
-      : IpcRequest.fromText(
-          targetIpc.allocReqId(),
-          path,
-          event.method,
-          event.headers,
-          "",
-          targetIpc
-        );
+    const ipcProxyRequest = IpcRequest.fromStream(
+      jsProcess.fetchIpc.allocReqId(),
+      path,
+      event.method,
+      event.headers,
+      body,
+      targetIpc
+    );
+
     targetIpc.postMessage(ipcProxyRequest);
     const ipcProxyResponse = await targetIpc.registerReqId(
       ipcProxyRequest.req_id

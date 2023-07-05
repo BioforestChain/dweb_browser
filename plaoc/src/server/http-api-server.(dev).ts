@@ -38,7 +38,7 @@ export class Server_api extends _Server_api {
         },
         IPC_ROLE.SERVER
       );
-      streamIpc.bindIncomeStream(event.body!);
+      void streamIpc.bindIncomeStream(event.body!);
 
       /// force Get
       forceGetDuplex(sessionId, mmid).resolve({
