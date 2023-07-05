@@ -36,6 +36,8 @@ android {
 dependencies {
 
   implementation(BuildConfig.coreKotlin)
+  implementation(BuildConfig.activity)
+  implementation(BuildConfig.activityKotlin)
   implementation(BuildConfig.appcompat)
   implementation(BuildConfig.lifecycleRuntimeKotlin)
   implementation("com.google.android.material:material:1.8.0")
