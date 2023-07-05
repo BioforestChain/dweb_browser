@@ -9,8 +9,18 @@ import {
   RequestDeviceOptions,
 } from "../types.ts";
 
-import { mainApis } from "../../../helper/openNativeWindow.preload.ts";
+import { importApis } from "../../../helper/openNativeWindow.preload.ts";
 import { allDeviceListMap } from "./data.ts";
+const mainApis =
+  importApis<
+    ReturnType<
+      Awaited<
+        ReturnType<
+          import("../bluetooth.main.ts").BluetoothNMM["_createBrowserWindow"]
+        >
+      >["getExport"]
+    >
+  >();
 
 const template: HTMLTemplateElement | null =
   document.querySelector(".template");
@@ -67,7 +77,7 @@ async function requestDevice(requestDeviceOptions: RequestDeviceOptions) {
  */
 async function deviceDisconnect(id: string, resolveId: number) {
   if (bluetoothRemoteGATTServer === undefined) {
-    (mainApis as any).deviceDisconnectCallback(
+    mainApis.deviceDisconnectCallback(
       {
         success: false,
         error: `bluetoothRemoteGATTServer === undefined`,
@@ -79,7 +89,7 @@ async function deviceDisconnect(id: string, resolveId: number) {
   }
   if (id === bluetoothRemoteGATTServer?.device.id) {
     bluetoothRemoteGATTServer.disconnect();
-    (mainApis as any).deviceDisconnectCallback(
+    mainApis.deviceDisconnectCallback(
       {
         success: true,
         error: undefined,
@@ -96,7 +106,7 @@ async function deviceDisconnect(id: string, resolveId: number) {
     bluetoothRemoteGATTServer = undefined;
     return;
   }
-  (mainApis as any).deviceDisconnectCallback(
+  mainApis.deviceDisconnectCallback(
     {
       success: false,
       error: `bluetoothRemoteGATTServer.id !== 请求的id`,
@@ -108,7 +118,7 @@ async function deviceDisconnect(id: string, resolveId: number) {
 
 async function bluetoothRemoteGATTServerConnect(id: string, resolveId: number) {
   if (bluetoothRemoteGATTServer === undefined) {
-    (mainApis as any).operationCallback(
+    mainApis.operationCallback(
       {
         success: false,
         error: `bluetoothRemoteGATTServer === undefined`,
@@ -120,7 +130,7 @@ async function bluetoothRemoteGATTServerConnect(id: string, resolveId: number) {
   }
   if (id === bluetoothRemoteGATTServer.device.id) {
     bluetoothRemoteGATTServer.connect();
-    (mainApis as any).operationCallback(
+    mainApis.operationCallback(
       {
         success: true,
         error: undefined,
@@ -130,7 +140,7 @@ async function bluetoothRemoteGATTServerConnect(id: string, resolveId: number) {
     );
     return;
   }
-  (mainApis as any).operationCallback(
+  mainApis.operationCallback(
     {
       success: false,
       error: `bluetoothRemoteGATTServer === undefined`,
@@ -145,7 +155,7 @@ async function bluetoothRemoteGATTServerDisconnect(
   resolveId: number
 ) {
   if (bluetoothRemoteGATTServer === undefined) {
-    (mainApis as any).operationCallback(
+    mainApis.operationCallback(
       {
         success: false,
         error: `bluetoothRemoteGATTServer === undefined`,
@@ -157,7 +167,7 @@ async function bluetoothRemoteGATTServerDisconnect(
   }
   if (id === bluetoothRemoteGATTServer.device.id) {
     bluetoothRemoteGATTServer.disconnect();
-    (mainApis as any).operationCallback(
+    mainApis.operationCallback(
       {
         success: true,
         error: undefined,
@@ -167,7 +177,7 @@ async function bluetoothRemoteGATTServerDisconnect(
     );
     return;
   }
-  (mainApis as any).operationCallback(
+  mainApis.operationCallback(
     {
       success: false,
       error: `参数 id 没有匹配的 BluetoothRemoteGATTServer`,
@@ -211,7 +221,7 @@ async function devicesUpdate(list: $Device[]) {
 
       // // 只有第一次点击 preSelected === undefined
       // if (preSelected === undefined) {
-      //   (mainApis as any).deviceSelected(device);
+      //   (mainApis ).deviceSelected(device);
       // } else {
       //   requestDevice(preRequestDeviceOption);
       // }
@@ -219,7 +229,7 @@ async function devicesUpdate(list: $Device[]) {
       // preSelected = (list: $Device[]) => {
       //   const item = list.find((item) => item.deviceId == device.deviceId);
       //   if (item === undefined) return;
-      //   (mainApis as any).deviceSelected(device);
+      //   (mainApis ).deviceSelected(device);
       // };
     });
     // 添加
@@ -234,7 +244,7 @@ async function devicesUpdate(list: $Device[]) {
 }
 
 async function deviceSelected(device: $Device) {
-  (mainApis as any).deviceSelected(device);
+  mainApis.deviceSelected(device);
   isConnecting = true;
   Array.from(allDeviceListMap.values()).forEach((oldDevice) => {
     if (oldDevice.device.deviceId === device.deviceId) {
@@ -247,7 +257,7 @@ async function deviceSelected(device: $Device) {
         oldDevice.el.classList.remove("connecting");
         oldDevice.isConnecting = false;
         isConnecting = false;
-        (mainApis as any).deviceConnectedCallback({
+        mainApis.deviceConnectedCallback({
           success: false,
           error: err.message,
           data: undefined,
@@ -259,7 +269,7 @@ async function deviceSelected(device: $Device) {
         oldDevice.el.classList.remove("connecting");
         oldDevice.isConnecting = false;
         isConnecting = false;
-        (mainApis as any).deviceConnectedCallback({
+        mainApis.deviceConnectedCallback({
           success: false,
           error: `超时`,
           data: undefined,
@@ -273,7 +283,7 @@ async function deviceSelected(device: $Device) {
         oldDevice.isConnecting = false;
         oldDevice.isConnected = true;
         isConnecting = false;
-        (mainApis as any).deviceConnectedCallback({
+        mainApis.deviceConnectedCallback({
           success: true,
           error: undefined,
           data: {
@@ -295,7 +305,7 @@ async function bluetoothRemoteGATTServerGetPrimarySevice(
   resolveId: number
 ) {
   if (bluetoothRemoteGATTServer === undefined) {
-    (mainApis as any).operationCallback(
+    mainApis.operationCallback(
       {
         success: false,
         error: `bluetoothRemoteGATTServer === undefined`,
@@ -314,25 +324,25 @@ async function bluetoothRemoteGATTServerGetPrimarySevice(
       // 注意 没有addEventLisener 这个方法
       // 监听是事件还没有处理
       // bluetoothRemoteGATTService.addEventListener("serviceadded", (event) => {
-      //   (mainApis as any).bluetoothRemoteGATTServiceListenner(
+      //   (mainApis ).bluetoothRemoteGATTServiceListenner(
       //     "serviceadded",
       //     event
       //   );
       // });
       // bluetoothRemoteGATTService.addEventListener("servicechanged", (event) => {
-      //   (mainApis as any).bluetoothRemoteGATTServiceListenner(
+      //   (mainApis ).bluetoothRemoteGATTServiceListenner(
       //     "servicechanged",
       //     event
       //   );
       // });
       // bluetoothRemoteGATTService.addEventListener("serviceremoved", (event) => {
-      //   (mainApis as any).bluetoothRemoteGATTServiceListenner(
+      //   (mainApis ).bluetoothRemoteGATTServiceListenner(
       //     "serviceremoved",
       //     event
       //   );
       // });
 
-      (mainApis as any).operationCallback(
+      mainApis.operationCallback(
         {
           success: true,
           error: undefined,
@@ -350,7 +360,7 @@ async function bluetoothRemoteGATTServerGetPrimarySevice(
     },
     (error) => {
       bluetoothRemoteGATTService = undefined;
-      (mainApis as any).operationCallback(
+      mainApis.operationCallback(
         {
           success: false,
           error: error.message,
@@ -367,7 +377,7 @@ async function bluetoothRemoteGATTService_getCharacteristic(
   resolveId: number
 ) {
   if (bluetoothRemoteGATTService === undefined) {
-    (mainApis as any).operationCallback(
+    mainApis.operationCallback(
       {
         success: false,
         error: `bluetoothRemoteGATTService === undefined`,
@@ -382,7 +392,7 @@ async function bluetoothRemoteGATTService_getCharacteristic(
     async (_bluetoothRemoteGATTCharacteristic) => {
       // browserWindow 不能够最小化 如果最小化就会到导致 bluetoothRemoteGATTService 失去联系
       bluetoothRemoteGATTCharacteristic = _bluetoothRemoteGATTCharacteristic;
-      (mainApis as any).operationCallback(
+      mainApis.operationCallback(
         {
           success: true,
           error: undefined,
@@ -414,7 +424,7 @@ async function bluetoothRemoteGATTService_getCharacteristic(
     },
     (err) => {
       bluetoothRemoteGATTCharacteristic = undefined;
-      (mainApis as any).operationCallback(
+      mainApis.operationCallback(
         {
           success: false,
           error: err.message,
@@ -428,7 +438,7 @@ async function bluetoothRemoteGATTService_getCharacteristic(
 
 function bluetoothRemoteGATTCharacteristic_readValue(resolveId: number) {
   if (bluetoothRemoteGATTCharacteristic === undefined) {
-    (mainApis as any).operationCallback(
+    mainApis.operationCallback(
       {
         success: false,
         error: `bluetoothRemoteGATTService === undefined`,
@@ -441,7 +451,7 @@ function bluetoothRemoteGATTCharacteristic_readValue(resolveId: number) {
   bluetoothRemoteGATTCharacteristic.readValue().then(
     (res: DataView) => {
       console.log("readValue: ", res);
-      (mainApis as any).operationCallback(
+      mainApis.operationCallback(
         {
           success: true,
           error: undefined,
@@ -452,7 +462,7 @@ function bluetoothRemoteGATTCharacteristic_readValue(resolveId: number) {
     },
     (err) => {
       console.error("characteristicRaadValue error", err);
-      (mainApis as any).operationCallback(
+      mainApis.operationCallback(
         {
           success: false,
           error: err.message,
@@ -470,7 +480,7 @@ function BluetoothRemoteGATTCharacteristic_getDescriptor(
   resolveId: number
 ) {
   if (bluetoothRemoteGATTCharacteristic === undefined) {
-    (mainApis as any).operationCallback(
+    mainApis.operationCallback(
       {
         success: false,
         error: `bluetoothRemoteGATTService === undefined`,
@@ -484,7 +494,7 @@ function BluetoothRemoteGATTCharacteristic_getDescriptor(
   bluetoothRemoteGATTCharacteristic.getDescriptor(uuid).then(
     (_bluetoothRemoteGATTDescriptor: BluetoothRemoteGATTDescriptor) => {
       bluetoothRemoteGATTDescriptor = _bluetoothRemoteGATTDescriptor;
-      (mainApis as any).operationCallback(
+      mainApis.operationCallback(
         {
           success: true,
           error: undefined,
@@ -498,7 +508,7 @@ function BluetoothRemoteGATTCharacteristic_getDescriptor(
       return;
     },
     (err) => {
-      (mainApis as any).operationCallback(
+      mainApis.operationCallback(
         {
           success: false,
           error: err.message,
@@ -513,7 +523,7 @@ function BluetoothRemoteGATTCharacteristic_getDescriptor(
 
 async function descriptorReadValue(resolveId: number) {
   if (bluetoothRemoteGATTDescriptor === undefined) {
-    (mainApis as any).descriptorReadValueCallback(
+    mainApis.descriptorReadValueCallback(
       {
         success: false,
         error: `bluetoothRemoteGATTDescriptor === undefined`,
@@ -526,7 +536,7 @@ async function descriptorReadValue(resolveId: number) {
 
   bluetoothRemoteGATTDescriptor.readValue().then(
     (value: DataView) => {
-      (mainApis as any).descriptorReadValueCallback(
+      mainApis.descriptorReadValueCallback(
         {
           success: false,
           error: undefined,
@@ -536,7 +546,7 @@ async function descriptorReadValue(resolveId: number) {
       );
     },
     (err) => {
-      (mainApis as any).descriptorReadValueCallback(
+      mainApis.descriptorReadValueCallback(
         {
           success: false,
           error: err.message,

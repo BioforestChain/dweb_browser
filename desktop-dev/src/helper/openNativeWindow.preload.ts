@@ -82,7 +82,8 @@ export const exportApis = once((APIS: unknown) => {
   start(); // 可以注释掉这行，手动启动，方便调试
 });
 
-export const mainApis =
-  Comlink.wrap<import("./openNativeWindow.ts").NativeWindowExtensions_BaseApi>(import_port);
+export const importApis = once(<
+  T = import("./openNativeWindow.ts").NativeWindowExtensions_BaseApi
+>() => Comlink.wrap<T>(import_port));
 
-Object.assign(globalThis, { mainApis, Comlink });
+Object.assign(globalThis, { Comlink, importApis });

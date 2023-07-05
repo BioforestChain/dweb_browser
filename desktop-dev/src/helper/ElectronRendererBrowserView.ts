@@ -2,14 +2,17 @@
 import { Remote, releaseProxy } from "comlink";
 import { LitElement, PropertyValueMap, css, html } from "lit";
 import { customElement, property } from "lit/decorators.js";
-import { mainApis } from "./openNativeWindow.preload.ts";
+import { importApis } from "./openNativeWindow.preload.ts";
+
+// TODO 这里补充真实的类型
+const apis = importApis<any>();
 
 const TAG = "electron-browser-view";
 Electron.ipcRenderer;
 
 /**
  * 在Web中渲染BrowserView，因为是原生的视图，所以它一定是渲染于整个视图上方
- * 这是给 Renderer 环境使用的，依赖于 openNativeWindow.preload 来加载 mainApis
+ * 这是给 Renderer 环境使用的，依赖于 openNativeWindow.preload 来加载和原生通讯的接口
  *
  * @TODO 这个组件应该脱离lit？用更加低运行时成本的方案来实现？
  */
@@ -39,7 +42,7 @@ export class ElectronBrowserView extends LitElement {
   private browserView?: Electron.BrowserView;
   async connectedCallback() {
     super.connectedCallback();
-    this.createPo = mainApis
+    this.createPo = apis
       .createBrowserView({
         webPreferences: {
           devTools: true,
@@ -54,7 +57,7 @@ export class ElectronBrowserView extends LitElement {
     const browserView = (this.browserView = this
       .browserViewRemote as unknown as Electron.BrowserView);
     /// 获取zindex
-    this.zIndex = await mainApis.getBrowserViewZIndex(browserView);
+    this.zIndex = await apis.getBrowserViewZIndex(browserView);
     /// 开始监听DOM布局，将其布局位置同步给browserview
     this._startWatchResize(browserView);
     /// 设置背景颜色
@@ -88,7 +91,7 @@ export class ElectronBrowserView extends LitElement {
       }
     }
     if (changes.has("zIndex")) {
-      mainApis.setBrowserViewZIndex(browserView, this.zIndex);
+      apis.setBrowserViewZIndex(browserView, this.zIndex);
     }
   }
 
@@ -101,7 +104,7 @@ export class ElectronBrowserView extends LitElement {
 
     if (browserView) {
       /// 删除browserView视图
-      await mainApis.deleteBrowserView(browserView);
+      await apis.deleteBrowserView(browserView);
       /// 释放 remote 对象
       await this.browserViewRemote?.[releaseProxy]();
       /// 清除引用
