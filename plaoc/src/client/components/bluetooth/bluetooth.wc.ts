@@ -11,8 +11,8 @@ export class HTMLBluetoothElement extends HTMLElement {
     return this.plugin.close();
   }
 
-  async requestDevice(options?: RequestDeviceOptions) {
-    return this.plugin.requestDevice(options);
+  async requestAndConnectDevice(options?: RequestDeviceOptions) {
+    return this.plugin.requestAndConnectDevice(options);
   }
 }
 

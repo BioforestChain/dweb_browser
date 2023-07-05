@@ -42,7 +42,7 @@ const state: {
 });
 let bluetooth: HTMLBluetoothElement;
 let bluetoothDevice;
-let _bluetoothRemoteGATTServer: BluetoothRemoteGATTServer;
+let _bluetoothRemoteGATTServer: BluetoothRemoteGATTServer | undefined;
 
 const $bluetooth = ref<HTMLBluetoothElement>();
 const $logPanel = ref<typeof LogPanel>();
@@ -53,28 +53,39 @@ onMounted(async () => {
 });
 
 async function toggleOpen() {
-  if (!state.isOpen) {
-    open();
-  } else {
-    close();
-  }
-  state.isOpen = !state.isOpen;
+  state.isOpen ? close() : open();
 }
 
 async function open() {
   const res = await bluetooth.open();
   if (res.success) {
-    console.log("打开成功");
+    console.log("open bluetooth.std.dweb success");
     state.isOpen = true;
   } else {
-    console.error("打开失败", res);
-    state.isOpen = false;
+    console.error("open bluetooth.std.dweb fail", res.error);
   }
 }
 
-async function requestDevice() {
-  const res = await bluetooth.requestDevice();
-  console.log("res: ", res);
+async function close() {
+  const res = await bluetooth.close();
+  if (res.success === true) {
+    console.log("close bluetooth.std.dweb success");
+    state.isOpen = false;
+    state.bluetoothRemoteGATTServer = undefined;
+  } else {
+    console.log("close bluetooth.std.dweb fail");
+  }
+}
+
+async function requestAndConnectDevice() {
+  const res = await bluetooth.requestAndConnectDevice();
+  if (res.success === true && res.data !== undefined) {
+    _bluetoothRemoteGATTServer = res.data;
+    console.log("连接蓝牙设备 成功", _bluetoothRemoteGATTServer);
+  } else {
+    _bluetoothRemoteGATTServer = undefined;
+    console.error("连接蓝牙设备失败 ", res.error);
+  }
 }
 
 async function disconnect() {
@@ -142,11 +153,6 @@ async function readCharacteristicDescriptorValue() {
   console.log("readCharacteristicDescriptorValue res ===", res);
 }
 
-async function close() {
-  bluetooth.close();
-  state.bluetoothRemoteGATTServer = undefined;
-}
-
 function allDeviceUpdate(list: $Device[]) {
   state.deviceList = list;
 }
@@ -176,7 +182,7 @@ function deviceConnectedIdUpdate(deviceId: string) {
     </article>
     <article class="card-body" v-if="state.isOpen">
       <!-- <h2 class="card-title">查询设备</h2> -->
-      <v-btn color="indigo-darken-3" @click="requestDevice">查询蓝牙设备 </v-btn>
+      <v-btn color="indigo-darken-3" @click="requestAndConnectDevice">查询连接蓝牙设备 </v-btn>
     </article>
 
     <article class="card-body" v-if="state.bluetoothRemoteGATTServer !== undefined">

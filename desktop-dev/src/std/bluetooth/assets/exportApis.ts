@@ -24,13 +24,12 @@ let preSelected: { (list: $Device[]): void } | undefined;
  *
  * @returns Promise<null | Error>
  */
-async function requestDevice(requestDeviceOptions: RequestDeviceOptions) {
+async function requestDevice(
+  requestDeviceOptions: RequestDeviceOptions,
+  resolveId: number
+) {
   console.log("requestDeviceOptions", requestDeviceOptions);
   preRequestDeviceOption = requestDeviceOptions;
-  // const requestDeviceOptions = JSON.parse(requestDeviceOptionsStr);
-  // bluetooth = await navigator.bluetooth.requestDevice(requestDeviceOptions)
-  // bluetoothRemoteGATTServer = await bluetooth.gatt?.connect()
-  // console.log('bluetooth: ', bluetooth, bluetoothRemoteGATTServer)
   navigator.bluetooth
     .requestDevice(requestDeviceOptions)
     .then((_bluetooth) => {
@@ -206,18 +205,18 @@ async function devicesUpdate(list: $Device[]) {
 
       deviceSelected(device);
 
-      // 只有第一次点击 preSelected === undefined
-      if (preSelected === undefined) {
-        (mainApis as any).deviceSelected(device);
-      } else {
-        requestDevice(preRequestDeviceOption);
-      }
+      // // 只有第一次点击 preSelected === undefined
+      // if (preSelected === undefined) {
+      //   (mainApis as any).deviceSelected(device);
+      // } else {
+      //   requestDevice(preRequestDeviceOption);
+      // }
 
-      preSelected = (list: $Device[]) => {
-        const item = list.find((item) => item.deviceId == device.deviceId);
-        if (item === undefined) return;
-        (mainApis as any).deviceSelected(device);
-      };
+      // preSelected = (list: $Device[]) => {
+      //   const item = list.find((item) => item.deviceId == device.deviceId);
+      //   if (item === undefined) return;
+      //   (mainApis as any).deviceSelected(device);
+      // };
     });
     // 添加
     allDeviceListMap.set(device.deviceId, {
@@ -231,7 +230,7 @@ async function devicesUpdate(list: $Device[]) {
 }
 
 async function deviceSelected(device: $Device) {
-  // (mainApis as any).deviceSelected(device);
+  (mainApis as any).deviceSelected(device);
   isConnecting = true;
   Array.from(allDeviceListMap.values()).forEach((oldDevice) => {
     if (oldDevice.device.deviceId === device.deviceId) {
@@ -244,7 +243,7 @@ async function deviceSelected(device: $Device) {
         oldDevice.el.classList.remove("connecting");
         oldDevice.isConnecting = false;
         isConnecting = false;
-        (mainApis as any).deviceConnectedSuccess({
+        (mainApis as any).deviceConnectedCallback({
           success: false,
           error: err.message,
           data: undefined,
@@ -256,13 +255,13 @@ async function deviceSelected(device: $Device) {
         oldDevice.el.classList.remove("connecting");
         oldDevice.isConnecting = false;
         isConnecting = false;
-        (mainApis as any).deviceConnectedSuccess({
+        (mainApis as any).deviceConnectedCallback({
           success: false,
           error: `超时`,
           data: undefined,
         });
         console.error("连接超时");
-      }, 60000);
+      }, 6000);
 
       connectedSuccess = (server: BluetoothRemoteGATTServer) => {
         oldDevice.el.classList.remove("connecting");
@@ -270,7 +269,7 @@ async function deviceSelected(device: $Device) {
         oldDevice.isConnecting = false;
         oldDevice.isConnected = true;
         isConnecting = false;
-        (mainApis as any).deviceConnectedSuccess({
+        (mainApis as any).deviceConnectedCallback({
           success: true,
           error: undefined,
           data: {

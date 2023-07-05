@@ -152,7 +152,19 @@ export class BluetoothNMM extends NativeMicroModule {
     );
   };
 
-  private _requestDeviceHandler: $OnFetch = async (event: FetchEvent) => {
+  /**
+   * 查询蓝牙设备
+   * 业务逻辑
+   * 显示 UI 列表 -> 点击UI列表中的项,发起连接 -> 连接成功 -> 返回一个 GATTServer 数据
+   * -> 连接失败 -> 返回一个 失败的数据
+   * 查询一次 只能够 进行一次选择
+   *
+   * @param event
+   * @returns
+   */
+  private _requestAndConnectDeviceHandler: $OnFetch = async (
+    event: FetchEvent
+  ) => {
     this._requestDeviceOptions = await event.json();
     if (this._requestDeviceOptions === undefined) {
       return IpcResponse.fromJson(
@@ -191,19 +203,13 @@ export class BluetoothNMM extends NativeMicroModule {
       (await this._browserWindow)?.show();
       this._STATE = STATE.VISIBLE;
     }
-    console.always(1);
+
     this._requestDevice();
-    console.always(2);
-    // 应该直接返回一个 reaableStream
-    // 每次点击就可以不断地返回数据
     const res = await new Promise(
       (resolve) => (this._deviceConnectedResolve = resolve)
     );
-    console.error(
-      "error",
-      "这里还需要调整???",
-      "可以只有一次查询却能够多次点击 ？？？"
-    );
+    (await this._browserWindow)?.hide();
+    this._STATE = STATE.HIDE;
     return IpcResponse.fromJson(
       event.ipcRequest.req_id,
       200,
@@ -417,7 +423,11 @@ export class BluetoothNMM extends NativeMicroModule {
       .add("GET", "/open", this._openHandler)
       .add("GET", "/close", this._closeHandler)
       .add("GET", "bluetooth", this.dwebBluetoothHandler)
-      .add("POST", "/request_device", this._requestDeviceHandler)
+      .add(
+        "POST",
+        "/request_connect_device",
+        this._requestAndConnectDeviceHandler
+      )
       .add(
         "GET",
         "/bluetooth_remote_gatt_server/connect",
@@ -497,11 +507,14 @@ export class BluetoothNMM extends NativeMicroModule {
             this._bluetoothrequestdevicewatchSelectCallback(device.deviceId);
             this._bluetoothrequestdevicewatchSelectCallback = undefined;
           },
-          // 设备连接成功
-          deviceConnectedSuccess: async (server: BluetoothRemoteGATTServer) => {
+          // 设备连接的回调函数
+          deviceConnectedCallback: async (
+            server: BluetoothRemoteGATTServer
+          ) => {
             this._deviceConnectedResolve(server);
           },
           requestDeviceFail: async () => {
+            console.error("eror", "查询蓝牙设备失败？？");
             // this._requestDevice();
           },
           // 设备断开连接操作的回调
@@ -603,7 +616,7 @@ export class BluetoothNMM extends NativeMicroModule {
       }
     );
     bw.on("blur", () => {
-      // this._minimize();
+      bw.hide();
     });
     return bw;
   };
@@ -629,6 +642,10 @@ export class BluetoothNMM extends NativeMicroModule {
     this._browserWindow = this._getBrowserWindow(this._rootUrl);
     this._apis = (await this._browserWindow).getApis<$APIS>();
     this._STATE = STATE.OPENED;
+    (await this._browserWindow).on("blur", async () => {
+      (await this._browserWindow)?.hide();
+      this._STATE = STATE.HIDE;
+    });
     return {
       bw: await this._browserWindow,
       apis: this._apis,

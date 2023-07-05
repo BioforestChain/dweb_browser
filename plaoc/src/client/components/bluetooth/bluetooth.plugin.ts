@@ -23,14 +23,14 @@ export class BluetoothPlugin extends BasePlugin {
   }
 
   @bindThis
-  async requestDevice(
+  async requestAndConnectDevice(
     options: RequestDeviceOptions = {
       acceptAllDevices: true,
       optionalServices: ["00003802-0000-1000-8000-00805f9b34fb"],
     }
   ): Promise<$ResponseData<BluetoothRemoteGATTServer>> {
     const res = await (
-      await this.fetchApi(`/request_device`, {
+      await this.fetchApi(`/request_connect_device`, {
         method: "POST",
         body: JSON.stringify(options),
       })
