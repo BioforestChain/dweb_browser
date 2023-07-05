@@ -8,10 +8,14 @@ import {
   createHttpDwebServer,
   type HttpDwebServer,
 } from "../../std/http/helper/$createHttpDwebServer.ts";
-// import { Router } from "./bluetooth.router.ts";
 import { OnFetchAdapter } from "./bluetooth.onFetchAdapter.ts";
 import { STATE } from "./const.ts";
-import type { $Device, $ResponseJsonable } from "./types.ts";
+import type {
+  $Device,
+  $ResponseJsonable,
+  BluetoothRemoteGATTServer,
+  RequestDeviceOptions,
+} from "./types.ts";
 
 type $APIS = typeof import("./assets/exportApis.ts")["APIS"];
 

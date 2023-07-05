@@ -1,5 +1,13 @@
-import "../index.d.ts";
+// import "../index.d.ts";
 import type { $Device } from "../types.ts";
+import {
+  BluetoothDevice,
+  BluetoothRemoteGATTCharacteristic,
+  BluetoothRemoteGATTDescriptor,
+  BluetoothRemoteGATTServer,
+  BluetoothRemoteGATTService,
+  RequestDeviceOptions,
+} from "../types.ts";
 
 import { mainApis } from "../../../helper/openNativeWindow.preload.ts";
 import { allDeviceListMap } from "./data.ts";
@@ -30,9 +38,9 @@ async function requestDevice(
 ) {
   console.log("requestDeviceOptions", requestDeviceOptions);
   preRequestDeviceOption = requestDeviceOptions;
-  navigator.bluetooth
+  (navigator as any).bluetooth
     .requestDevice(requestDeviceOptions)
-    .then((_bluetooth) => {
+    .then((_bluetooth: BluetoothDevice) => {
       if (_bluetooth !== undefined) {
         bluetooth = _bluetooth;
         return bluetooth.gatt?.connect();
@@ -48,7 +56,7 @@ async function requestDevice(
       connectedSuccess(server);
       clearTimeout(setTimeoutId);
     })
-    .catch((err) => {
+    .catch((err: Error) => {
       connectedFail ? connectedFail(err) : "";
       clearTimeout(setTimeoutId);
       console.error(`requestDevice fail: `, err);
