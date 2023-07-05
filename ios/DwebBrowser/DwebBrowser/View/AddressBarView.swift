@@ -14,6 +14,7 @@ struct AddressBar: View {
     @EnvironmentObject var addressBar: AddressBarState
     @EnvironmentObject var selectedTab: SelectedTab
     @EnvironmentObject var toolbarState: ToolBarState
+    @EnvironmentObject var openingLink: OpeningLink
 
     var webWrapper: WebWrapper { WebWrapperMgr.shared.store[index] }
 
@@ -66,6 +67,13 @@ struct AddressBar: View {
             .onChange(of: addressBar.isFocused) { isFocused in
                 if !isFocused {
                     isAdressBarFocused = isFocused
+                }
+            }
+            .onSubmit {
+                guard let url = URL(string: Searcher.baidu.inputHandler(addressBar.inputText)) else { return }
+                DispatchQueue.main.async {
+                    openingLink.clickedLink = url
+                    addressBar.isFocused = false
                 }
             }
     }
