@@ -32,10 +32,7 @@ let preSelected: { (list: $Device[]): void } | undefined;
  *
  * @returns Promise<null | Error>
  */
-async function requestDevice(
-  requestDeviceOptions: RequestDeviceOptions,
-  resolveId: number
-) {
+async function requestDevice(requestDeviceOptions: RequestDeviceOptions) {
   console.log("requestDeviceOptions", requestDeviceOptions);
   preRequestDeviceOption = requestDeviceOptions;
   (navigator as any).bluetooth
@@ -370,7 +367,7 @@ async function bluetoothRemoteGATTService_getCharacteristic(
   resolveId: number
 ) {
   if (bluetoothRemoteGATTService === undefined) {
-    (mainApis as any).deviceGetCharacteristicCallback(
+    (mainApis as any).operationCallback(
       {
         success: false,
         error: `bluetoothRemoteGATTService === undefined`,
@@ -382,10 +379,10 @@ async function bluetoothRemoteGATTService_getCharacteristic(
   }
 
   bluetoothRemoteGATTService.getCharacteristic(uuid).then(
-    (_bluetoothRemoteGATTCharacteristic) => {
+    async (_bluetoothRemoteGATTCharacteristic) => {
       // browserWindow 不能够最小化 如果最小化就会到导致 bluetoothRemoteGATTService 失去联系
       bluetoothRemoteGATTCharacteristic = _bluetoothRemoteGATTCharacteristic;
-      (mainApis as any).deviceGetCharacteristicCallback(
+      (mainApis as any).operationCallback(
         {
           success: true,
           error: undefined,
@@ -414,14 +411,10 @@ async function bluetoothRemoteGATTService_getCharacteristic(
         },
         resolveId
       );
-      console.log(
-        "bluetoothRemoteGATTCharacteristic.readValue",
-        bluetoothRemoteGATTCharacteristic.readValue()
-      );
     },
     (err) => {
       bluetoothRemoteGATTCharacteristic = undefined;
-      (mainApis as any).deviceGetCharacteristicCallback(
+      (mainApis as any).operationCallback(
         {
           success: false,
           error: err.message,
@@ -435,7 +428,7 @@ async function bluetoothRemoteGATTService_getCharacteristic(
 
 function bluetoothRemoteGATTCharacteristic_readValue(resolveId: number) {
   if (bluetoothRemoteGATTCharacteristic === undefined) {
-    (mainApis as any).characteristicReadValueCallback(
+    (mainApis as any).operationCallback(
       {
         success: false,
         error: `bluetoothRemoteGATTService === undefined`,
@@ -448,7 +441,7 @@ function bluetoothRemoteGATTCharacteristic_readValue(resolveId: number) {
   bluetoothRemoteGATTCharacteristic.readValue().then(
     (res: DataView) => {
       console.log("readValue: ", res);
-      (mainApis as any).characteristicReadValueCallback(
+      (mainApis as any).operationCallback(
         {
           success: true,
           error: undefined,
@@ -459,7 +452,7 @@ function bluetoothRemoteGATTCharacteristic_readValue(resolveId: number) {
     },
     (err) => {
       console.error("characteristicRaadValue error", err);
-      (mainApis as any).characteristicReadValueCallback(
+      (mainApis as any).operationCallback(
         {
           success: false,
           error: err.message,

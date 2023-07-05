@@ -157,25 +157,27 @@ export class BluetoothRemoteGATTService extends EventTarget {
   async getCharacteristic(
     bluetoothCharacteristicUUID: string
   ): Promise<$ResponseData<BluetoothRemoteGATTCharacteristic>> {
-    const res = await this.plugin.fetchApi(
-      `/bluetooth_remote_gatt_service/get_characteristic`,
-      {
-        search: {
-          uuid: bluetoothCharacteristicUUID,
-        },
-      }
-    );
-    const o = await res.json();
-    if (o.success) {
-      o.data = new BluetoothRemoteGATTCharacteristic(
+    const res = await (
+      await this.plugin.fetchApi(
+        `/bluetooth_remote_gatt_service/get_characteristic`,
+        {
+          search: {
+            uuid: bluetoothCharacteristicUUID,
+          },
+        }
+      )
+    ).json();
+
+    if (res.success) {
+      res.data = new BluetoothRemoteGATTCharacteristic(
         this.plugin,
         this,
-        o.data.uuid,
-        o.data.properties,
-        o.data.value ? o.data.value : undefined
+        res.data.uuid,
+        res.data.properties,
+        res.data.value ? res.data.value : undefined
       );
     }
-    return o;
+    return res;
   }
 
   // async getCharacteristic(characteristic: BluetoothCharacteristicUUID): Promise<BluetoothRemoteGATTCharacteristic>{
@@ -194,10 +196,12 @@ export class BluetoothRemoteGATTCharacteristic extends EventTarget {
     super();
   }
   @bindThis
-  async readValue() {
-    const res = await this.plugin.fetchApi(
-      `/bluetooth_remote_gatt_characteristic/read_value`
-    );
+  async readValue(): Promise<$ResponseData<unknown>> {
+    const res = await (
+      await this.plugin.fetchApi(
+        `/bluetooth_remote_gatt_characteristic/read_value`
+      )
+    ).json();
     return res;
   }
 
@@ -212,9 +216,9 @@ export class BluetoothRemoteGATTCharacteristic extends EventTarget {
       }
     );
     const o = await res.json();
-    if (o.success) {
-      o.data = new BluetoothRemoteGATTDescriptor(this, uuid, o.data.value);
-    }
+    // if (res.success) {
+    //   res.data = new BluetoothRemoteGATTDescriptor(this, uuid, res.data.value);
+    // }
     return o;
   }
 }

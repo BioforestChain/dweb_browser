@@ -139,8 +139,12 @@ async function getCharacteristic() {
     return;
   }
   const res = await state.bluetoothRemoteGATTService?.getCharacteristic(state.bluetoothCharacteristicUUID);
-  state.bluetoothRemoteGATTCharacteristic = res.data;
-  console.log("getCharacteristic res: ", res);
+  if (res.success === true) {
+    state.bluetoothRemoteGATTCharacteristic = res.data;
+    console.log("getCharacteristic success ", res);
+  } else {
+    console.log("getCharacteristic fail: ", res);
+  }
 }
 
 async function readCharacteristicValue() {
@@ -149,7 +153,11 @@ async function readCharacteristicValue() {
     return;
   }
   const res = await state.bluetoothRemoteGATTCharacteristic.readValue();
-  console.log("readCharacteristicValue res; ", res);
+  if (res.success) {
+    console.log("获取特征的值 成功", res.data);
+  } else {
+    console.error("获取特征的值失败", res.error);
+  }
 }
 
 async function readCharacteristicDescriptor() {
