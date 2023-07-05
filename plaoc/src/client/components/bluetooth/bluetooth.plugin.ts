@@ -209,17 +209,18 @@ export class BluetoothRemoteGATTCharacteristic extends EventTarget {
   async getDescriptor(
     uuid: string
   ): Promise<$ResponseData<BluetoothRemoteGATTDescriptor>> {
-    const res = await this.plugin.fetchApi(
-      `/bluetooth_remote_gatt_characteristic/get_descriptor`,
-      {
-        search: { uuid: uuid },
-      }
-    );
-    const o = await res.json();
-    // if (res.success) {
-    //   res.data = new BluetoothRemoteGATTDescriptor(this, uuid, res.data.value);
-    // }
-    return o;
+    const res = await (
+      await this.plugin.fetchApi(
+        `/bluetooth_remote_gatt_characteristic/get_descriptor`,
+        {
+          search: { uuid: uuid },
+        }
+      )
+    ).json();
+    if (res.success) {
+      res.data = new BluetoothRemoteGATTDescriptor(this, uuid, res.data.value);
+    }
+    return res;
   }
 }
 

@@ -470,7 +470,7 @@ function BluetoothRemoteGATTCharacteristic_getDescriptor(
   resolveId: number
 ) {
   if (bluetoothRemoteGATTCharacteristic === undefined) {
-    (mainApis as any).characteristicReadValueCallback(
+    (mainApis as any).operationCallback(
       {
         success: false,
         error: `bluetoothRemoteGATTService === undefined`,
@@ -484,11 +484,12 @@ function BluetoothRemoteGATTCharacteristic_getDescriptor(
   bluetoothRemoteGATTCharacteristic.getDescriptor(uuid).then(
     (_bluetoothRemoteGATTDescriptor: BluetoothRemoteGATTDescriptor) => {
       bluetoothRemoteGATTDescriptor = _bluetoothRemoteGATTDescriptor;
-      (mainApis as any).characteristicGetDescriptorCallback(
+      (mainApis as any).operationCallback(
         {
           success: true,
           error: undefined,
           data: {
+            uuid: uuid,
             value: bluetoothRemoteGATTDescriptor.value,
           },
         },
@@ -497,7 +498,7 @@ function BluetoothRemoteGATTCharacteristic_getDescriptor(
       return;
     },
     (err) => {
-      (mainApis as any).characteristicGetDescriptorCallback(
+      (mainApis as any).operationCallback(
         {
           success: false,
           error: err.message,
