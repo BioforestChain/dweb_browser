@@ -1,7 +1,7 @@
 import { SyncTask } from "./helper/SyncTask.ts";
 export const syncServerTask = SyncTask.from(
   {
-    from: import.meta.resolve("../plaoc/dist"),
+    from: import.meta.resolve("../plaoc/cli/serve"),
     to: import.meta.resolve("../desktop-dev/electron/assets"),
   },
   [{ from: "server", to: "server" }],

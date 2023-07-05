@@ -11,6 +11,7 @@ import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.core.connectAdapterManager
 import org.dweb_browser.microservice.help.DWEB_DEEPLINK
 import org.dweb_browser.microservice.help.Mmid
+import org.dweb_browser.microservice.help.boolean
 import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.help.int
 import org.dweb_browser.microservice.help.stream
@@ -169,22 +170,26 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
                     data class DnsConnectEvent(val mmid: Mmid)
 
                     val event = gson.fromJson(ipcEvent.text, DnsConnectEvent::class.java)
-                    /**
-                     * 模块之间的ipc是单例模式，所以我们必须拿到这个单例，再去做消息转发
-                     * 但可以优化的点在于：TODO 我们应该将两个连接的协议进行交集，得到最小通讯协议，然后两个通道就能直接通讯raw数据，而不需要在转发的时候再进行一次编码解码
-                     *
-                     * 此外这里允许js多次建立ipc连接，因为可能存在多个js线程，它们是共享这个单例ipc的
-                     */
-                    /**
-                     * 向目标模块发起连接，注意，这里是很特殊的，因为我们自定义了 JMM 的连接适配器 connectAdapterManager，
-                     * 所以 JsMicroModule 这里作为一个中间模块，是没法直接跟其它模块通讯的。
-                     *
-                     * TODO 如果有必要，未来需要让 connect 函数支持 force 操作，支持多次连接。
-                     */
-                    val (targetIpc) = bootstrapContext.dns.connect(event.mmid)
-                    /// 只要不是我们自己创建的直接连接的通道，就需要我们去 创造直连并进行桥接
-                    if (targetIpc.remote.mmid != mmid) {
-                        ipcBridge(event.mmid, targetIpc)
+                    try {
+                        /**
+                         * 模块之间的ipc是单例模式，所以我们必须拿到这个单例，再去做消息转发
+                         * 但可以优化的点在于：TODO 我们应该将两个连接的协议进行交集，得到最小通讯协议，然后两个通道就能直接通讯raw数据，而不需要在转发的时候再进行一次编码解码
+                         *
+                         * 此外这里允许js多次建立ipc连接，因为可能存在多个js线程，它们是共享这个单例ipc的
+                         */
+                        /**
+                         * 向目标模块发起连接，注意，这里是很特殊的，因为我们自定义了 JMM 的连接适配器 connectAdapterManager，
+                         * 所以 JsMicroModule 这里作为一个中间模块，是没法直接跟其它模块通讯的。
+                         *
+                         * TODO 如果有必要，未来需要让 connect 函数支持 force 操作，支持多次连接。
+                         */
+                        val (targetIpc) = bootstrapContext.dns.connect(event.mmid)
+                        /// 只要不是我们自己创建的直接连接的通道，就需要我们去 创造直连并进行桥接
+                        if (targetIpc.remote.mmid != mmid) {
+                            ipcBridge(event.mmid, targetIpc)
+                        }
+                    } catch (e:Exception) {
+                        ipcConnectFail(mmid, e);
                     }
                 }
             }
@@ -253,6 +258,16 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
 
     private suspend fun ipcBridge(fromMmid: Mmid, targetIpc: Ipc? = null) =
         _ipcBridge(fromMmid, targetIpc).waitPromise();
+
+    suspend fun ipcConnectFail(mmid: Mmid, reason: Any): Boolean {
+        val errMessage = if (reason is Exception) {
+           reason.message + "\n" + (reason.message ?: "")
+        } else {
+            reason.toString()
+        }
+        val url = "file://js.browser.dweb/create-ipc-fail?process_id=$pid&mmid=$mmid&reason=$errMessage"
+        return  nativeFetch(url).boolean()
+    }
 
     override suspend fun _shutdown() {
         debugJsMM("closeJsProcessSignal emit", "$mmid/$metadata")

@@ -97,6 +97,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
         val queryEntry = Query.string().optional("entry")
         val queryProcessId = Query.string().required("process_id")
         val queryMmid = Query.string().required("mmid")
+        val queryReason = Query.string().required("reason")
 
         val ipcProcessIdMap = mutableMapOf<String, MutableMap<String, PromiseOut<Int>>>()
         val ipcProcessIdMapLock = Mutex()
@@ -159,6 +160,19 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
                 closeHttpDwebServer(DwebHttpServerOptions(80, ipc.remote.mmid))
                 return@defineHandler true
               }
+                return@defineHandler false
+            },
+            // ipc 创建错误
+            "/create-ipc-fail" bind Method.GET to defineHandler { request,ipc ->
+                val processId = queryProcessId(request)
+                val processMap = ipcProcessIdMap[ipc.remote.mmid]?.get(processId)
+                debugJsProcess("create-ipc-fail",ipc.remote.mmid)
+                if (processMap === null) {
+                    throw  Exception("ipc:${ipc.remote.mmid}/processId:${processId} invalid")
+                }
+                val mmid = queryMmid(request)
+                val reason = queryReason(request)
+                apis.createIpcFail(processId,mmid,reason)
                 return@defineHandler false
             }
         )

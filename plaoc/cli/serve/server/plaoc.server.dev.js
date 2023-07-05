@@ -2331,6 +2331,11 @@ var once = (fn) => {
   };
 };
 
+// ../desktop-dev/src/helper/httpHelper.ts
+var httpMethodCanOwnBody = (method) => {
+  return method !== "GET" && method !== "HEAD" && method !== "TRACE" && method !== "OPTIONS";
+};
+
 // ../desktop-dev/src/core/ipc/IpcBody.ts
 var _IpcBody = class {
   get raw() {
@@ -2990,21 +2995,43 @@ var IpcRequest = class extends IpcMessage {
     }
     return new IpcRequest(req_id, url, method, headers, ipcBody, ipc2);
   }
+  /**
+   * 判断是否是双工协议
+   *
+   * 比如目前双工协议可以由 WebSocket 来提供支持
+   */
+  isDuplex() {
+    return this.method === "GET" && this.headers.get("Upgrade")?.toLowerCase() === "websocket";
+  }
   toRequest() {
-    const { method } = this;
+    let { method } = this;
     let body;
-    if ((method === "GET" /* GET */ || method === "HEAD" /* HEAD */) === false) {
+    const isWebSocket = this.isDuplex();
+    if (isWebSocket) {
+      method = "POST" /* POST */;
+      body = this.body.raw;
+    } else if (httpMethodCanOwnBody(method)) {
       body = this.body.raw;
     }
     const init = {
       method,
       headers: this.headers,
-      body
+      body,
+      duplex: body instanceof ReadableStream ? "half" : void 0
     };
     if (body) {
       Reflect.set(init, "duplex", "half");
     }
-    return new Request(this.url, init);
+    const request = new Request(this.url, init);
+    if (isWebSocket) {
+      Object.defineProperty(request, "method", {
+        configurable: true,
+        enumerable: true,
+        writable: false,
+        value: "GET"
+      });
+    }
+    return request;
   }
   toJSON() {
     const { method } = this;
@@ -3534,6 +3561,7 @@ var fetchMid = (handler) => Object.assign(handler, { [FETCH_MID_SYMBOL]: true })
 var FETCH_MID_SYMBOL = Symbol("fetch.middleware");
 var fetchEnd = (handler) => Object.assign(handler, { [FETCH_END_SYMBOL]: true });
 var FETCH_END_SYMBOL = Symbol("fetch.end");
+var FETCH_WS_SYMBOL = Symbol("fetch.websocket");
 var $throw = (err) => {
   throw err;
 };
@@ -3561,8 +3589,12 @@ var createFetchHandler = (onFetchs) => {
       };
     };
     const EXT = {
-      or: (handler) => {
+      onFetch: (handler) => {
         onFetchHanlders.push(handler);
+        return to;
+      },
+      onWebSocket: (hanlder) => {
+        onFetchHanlders.push(hanlder);
         return to;
       },
       mid: (handler) => {
@@ -3577,7 +3609,7 @@ var createFetchHandler = (onFetchs) => {
        * 配置跨域，一般是最后调用
        * @param config
        */
-      cros: (config = {}) => {
+      cors: (config = {}) => {
         onFetchHanlders.unshift((event) => {
           if (event.method === "OPTIONS") {
             return { body: "" };
@@ -6239,7 +6271,7 @@ var { IpcHeaders: IpcHeaders2, IpcResponse: IpcResponse2, Ipc: Ipc3, IpcRequest:
 
 // src/server/http-helper.ts
 var { IpcHeaders: IpcHeaders3 } = navigator.dweb.ipc;
-var cros = (headers) => {
+var cors = (headers) => {
   headers.init("Access-Control-Allow-Origin", "*");
   headers.init("Access-Control-Allow-Headers", "*");
   headers.init("Access-Control-Allow-Methods", "*");
@@ -6360,7 +6392,7 @@ var Server_api = class extends HttpServer {
   }
   async start() {
     const serverIpc = await this._listener;
-    return serverIpc.onFetch(this._provider.bind(this)).internalServerError().cros();
+    return serverIpc.onFetch(this._provider.bind(this)).internalServerError().cors();
   }
   async _provider(event) {
     if (event.pathname.startsWith(DNS_PREFIX)) {
@@ -6410,22 +6442,24 @@ var Server_api = class extends HttpServer {
     const { pathname, search } = event;
     const path = `file:/${pathname}${search}`;
     const body = await event.ipcRequest.body.stream();
+    const mmid = new URL(path).host;
+    const targetIpc = await connect(mmid);
     const ipcProxyRequest = body ? IpcRequest3.fromStream(
       jsProcess.fetchIpc.allocReqId(),
       path,
       event.method,
       event.headers,
       body,
-      jsProcess.fetchIpc
+      targetIpc
     ) : IpcRequest3.fromText(
       jsProcess.fetchIpc.allocReqId(),
       path,
       event.method,
       event.headers,
       "",
-      jsProcess.fetchIpc
+      targetIpc
     );
-    const targetIpc = await connect(ipcProxyRequest.parsed_url.host);
+    console.log("jsProcess.fetchIpc.uuid", jsProcess.fetchIpc.uid);
     targetIpc.postMessage(ipcProxyRequest);
     const ipcProxyResponse = await targetIpc.registerReqId(
       ipcProxyRequest.req_id
@@ -6491,44 +6525,11 @@ var Server_api2 = class extends Server_api {
         },
         "server" /* SERVER */
       );
-      const streamOut = new ReadableStreamOut();
-      streamIpc.bindIncomeStream(streamOut.stream);
-      streamIpc.onClose(() => {
-        streamOut.controller.close();
+      streamIpc.bindIncomeStream(event.body);
+      forceGetDuplex(sessionId, mmid).resolve({
+        streamIpc
       });
-      const serverPm = http.createHttpDwebServer(jsProcess, {
-        subdomain: sessionId + "." + mmid,
-        port: 443
-      });
-      mapHelper.getOrPut(
-        mapHelper.getOrPut(
-          emulatorDuplexs,
-          sessionId,
-          () => /* @__PURE__ */ new Map()
-        ),
-        mmid,
-        () => new PromiseOut()
-      ).resolve({
-        streamIpc,
-        streamOut,
-        serverPm
-      });
-      const server = await serverPm;
-      const serverProxyIpc = await server.listen();
-      serverProxyIpc.onFetch(async (event2) => {
-        const type = event2.searchParams.get("type");
-        if (type === "s2c" /* SERVER_2_CLIENT */) {
-          return {
-            body: streamIpc.stream
-          };
-        } else if (type == "c2s" /* CLIENT_2_SERVER */) {
-          streamOut.controller.enqueue(await event2.typedArray());
-          return {
-            body: ""
-          };
-        }
-      }).internalServerError().cros();
-      return { body: server.startResult.urlInfo.buildInternalUrl().href };
+      return { body: streamIpc.stream };
     }
     return super._onApi(
       event,
@@ -6537,6 +6538,15 @@ var Server_api2 = class extends Server_api {
   }
 };
 var emulatorDuplexs = /* @__PURE__ */ new Map();
+var forceGetDuplex = (sessionId, mmid) => mapHelper.getOrPut(
+  mapHelper.getOrPut(
+    emulatorDuplexs,
+    sessionId,
+    () => /* @__PURE__ */ new Map()
+  ),
+  mmid,
+  () => new PromiseOut()
+);
 var getConncetdIpc = (sessionId, mmid) => emulatorDuplexs.get(sessionId)?.get(mmid)?.promise.then((duplex) => duplex.streamIpc);
 
 // src/server/http-external-server.ts
@@ -6561,7 +6571,7 @@ var Server_external = class extends HttpServer {
   }
   async start() {
     const serverIpc = await this._listener;
-    return serverIpc.onFetch(this._provider.bind(this)).internalServerError().cros();
+    return serverIpc.onFetch(this._provider.bind(this)).internalServerError().cors();
   }
   async _provider(event) {
     const { pathname } = event;
@@ -6603,7 +6613,7 @@ var Server_external = class extends HttpServer {
           response.body,
           event.ipc
         );
-        cros(ipcResponse.headers);
+        cors(ipcResponse.headers);
         return ipcResponse;
       }
       if (action === "response") {
@@ -6622,7 +6632,7 @@ var Server_external = class extends HttpServer {
           new IpcResponse2(
             externalReqId,
             200,
-            cros(event.headers),
+            cors(event.headers),
             event.ipcRequest.body,
             event.ipc
           )
@@ -6635,7 +6645,7 @@ var Server_external = class extends HttpServer {
           "ok",
           event.ipc
         );
-        cros(icpResponse.headers);
+        cors(icpResponse.headers);
         return icpResponse;
       }
       throw new FetchError(`unknown action: ${action}`, { status: 502 });
@@ -6662,12 +6672,12 @@ var Server_www = class extends HttpServer {
     }
     const remoteIpcResponse = await jsProcess.nativeRequest(
       `file:///usr/www${pathname}?mode=stream`
-      // www
+      // usr/www
     );
     const ipcResponse = new IpcResponse2(
       request.req_id,
       remoteIpcResponse.statusCode,
-      cros(remoteIpcResponse.headers),
+      cors(remoteIpcResponse.headers),
       remoteIpcResponse.body,
       request.ipc
     );
@@ -6815,7 +6825,7 @@ var main = async () => {
     const awaitResponse = new PromiseOut();
     externalServer.responseMap.set(ipcRequest.req_id, awaitResponse);
     const ipcResponse = await awaitResponse.promise;
-    cros(ipcResponse.headers);
+    cors(ipcResponse.headers);
     return ipc2.postMessage(ipcResponse);
   });
   {

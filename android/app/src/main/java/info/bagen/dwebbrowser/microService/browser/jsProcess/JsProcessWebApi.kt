@@ -67,6 +67,15 @@ class JsProcessWebApi(val dWebView: DWebView) {
         ProcessHandler(info, MessagePortIpc(port2, remoteModule, IPC_ROLE.CLIENT))
     }
 
+  suspend fun createIpcFail (
+  process_id: String,
+  mmid: String,
+  reason: String
+  ) =    dWebView.evaluateAsyncJavascriptCode(
+    """
+        createIpcFail($process_id,$mmid,$reason)
+        """.trimIndent()
+  ).let {}
 
     data class RunProcessMainOptions(val main_url: String)
 

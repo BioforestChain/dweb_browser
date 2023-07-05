@@ -2400,6 +2400,11 @@ var once = (fn) => {
   };
 };
 
+// ../desktop-dev/src/helper/httpHelper.ts
+var httpMethodCanOwnBody = (method) => {
+  return method !== "GET" && method !== "HEAD" && method !== "TRACE" && method !== "OPTIONS";
+};
+
 // ../desktop-dev/src/core/ipc/IpcBody.ts
 var _IpcBody = class {
   get raw() {
@@ -3059,21 +3064,43 @@ var IpcRequest = class extends IpcMessage {
     }
     return new IpcRequest(req_id, url, method, headers, ipcBody, ipc);
   }
+  /**
+   * 判断是否是双工协议
+   *
+   * 比如目前双工协议可以由 WebSocket 来提供支持
+   */
+  isDuplex() {
+    return this.method === "GET" && this.headers.get("Upgrade")?.toLowerCase() === "websocket";
+  }
   toRequest() {
-    const { method } = this;
+    let { method } = this;
     let body;
-    if ((method === "GET" /* GET */ || method === "HEAD" /* HEAD */) === false) {
+    const isWebSocket = this.isDuplex();
+    if (isWebSocket) {
+      method = "POST" /* POST */;
+      body = this.body.raw;
+    } else if (httpMethodCanOwnBody(method)) {
       body = this.body.raw;
     }
     const init = {
       method,
       headers: this.headers,
-      body
+      body,
+      duplex: body instanceof ReadableStream ? "half" : void 0
     };
     if (body) {
       Reflect.set(init, "duplex", "half");
     }
-    return new Request(this.url, init);
+    const request = new Request(this.url, init);
+    if (isWebSocket) {
+      Object.defineProperty(request, "method", {
+        configurable: true,
+        enumerable: true,
+        writable: false,
+        value: "GET"
+      });
+    }
+    return request;
   }
   toJSON() {
     const { method } = this;
@@ -3603,6 +3630,7 @@ var fetchMid = (handler) => Object.assign(handler, { [FETCH_MID_SYMBOL]: true })
 var FETCH_MID_SYMBOL = Symbol("fetch.middleware");
 var fetchEnd = (handler) => Object.assign(handler, { [FETCH_END_SYMBOL]: true });
 var FETCH_END_SYMBOL = Symbol("fetch.end");
+var FETCH_WS_SYMBOL = Symbol("fetch.websocket");
 var $throw = (err) => {
   throw err;
 };
@@ -3630,8 +3658,12 @@ var createFetchHandler = (onFetchs) => {
       };
     };
     const EXT = {
-      or: (handler) => {
+      onFetch: (handler) => {
         onFetchHanlders.push(handler);
+        return to;
+      },
+      onWebSocket: (hanlder) => {
+        onFetchHanlders.push(hanlder);
         return to;
       },
       mid: (handler) => {
@@ -3646,7 +3678,7 @@ var createFetchHandler = (onFetchs) => {
        * 配置跨域，一般是最后调用
        * @param config
        */
-      cros: (config = {}) => {
+      cors: (config = {}) => {
         onFetchHanlders.unshift((event) => {
           if (event.method === "OPTIONS") {
             return { body: "" };
@@ -6301,65 +6333,62 @@ var ReadableStreamIpc = class extends Ipc {
   }
 };
 
-// src/client/helper/readableStreamHelper.ts
-async function* _doRead2(reader) {
-  try {
-    while (true) {
-      const item = await reader.read();
-      if (item.done) {
-        break;
-      }
-      yield item.value;
-    }
-  } finally {
-    reader.releaseLock();
-  }
-}
-var streamRead2 = (stream, _options = {}) => {
-  return _doRead2(stream.getReader());
-};
-
 // src/emulator/helper/helper.ts
 var EMULATOR = "/emulator";
 var BASE_URL = new URL(
-  new URLSearchParams(location.search).get("X-Plaoc-Internal-Url" /* API_INTERNAL_URL */)
+  new URLSearchParams(location.search).get("X-Plaoc-Internal-Url" /* API_INTERNAL_URL */).replace(/^http:/, "ws:").replace(/^https:/, "wss:")
 );
 BASE_URL.pathname = EMULATOR;
-var createMockModuleServerIpc = async (mmid, apiUrl = BASE_URL) => {
-  const createUrl = new URL(apiUrl);
-  createUrl.searchParams.set("mmid", mmid);
-  const mmidStreamUrl = new URL(await (await fetch(createUrl)).text());
-  const csUrl = new URL(mmidStreamUrl);
-  {
-    csUrl.searchParams.set("type", "c2s" /* CLIENT_2_SERVER */);
-  }
-  const scUrl = new URL(mmidStreamUrl);
-  {
-    scUrl.searchParams.set("type", "s2c" /* SERVER_2_CLIENT */);
-  }
-  const streamIpc = new ReadableStreamIpc(
-    {
-      mmid,
-      ipc_support_protocols: {
-        message_pack: false,
-        protobuf: false,
-        raw: false
+var createMockModuleServerIpc = (mmid, apiUrl = BASE_URL) => {
+  const waitOpenPo = new PromiseOut();
+  const wsUrl = new URL(apiUrl);
+  wsUrl.searchParams.set("mmid", mmid);
+  const ws = new WebSocket(wsUrl);
+  ws.binaryType = "arraybuffer";
+  ws.onerror = (event) => {
+    waitOpenPo.reject(event);
+  };
+  ws.onopen = () => {
+    const serverIpc = new ReadableStreamIpc(
+      {
+        mmid,
+        ipc_support_protocols: {
+          message_pack: false,
+          protobuf: false,
+          raw: false
+        },
+        dweb_deeplinks: []
       },
-      dweb_deeplinks: []
-    },
-    "client" /* CLIENT */
-  );
-  (async () => {
-    for await (const chunk of streamRead2(streamIpc.stream)) {
-      void fetch(csUrl, {
-        method: "POST",
-        body: chunk
-      });
-    }
-  })();
-  const scRes = await fetch(scUrl);
-  streamIpc.bindIncomeStream(scRes.body);
-  return streamIpc;
+      "client" /* CLIENT */
+    );
+    waitOpenPo.resolve(serverIpc);
+    const proxyStream = new ReadableStreamOut({ highWaterMark: 0 });
+    serverIpc.bindIncomeStream(proxyStream.stream);
+    ws.onclose = () => {
+      proxyStream.controller.close();
+      serverIpc.close();
+    };
+    waitOpenPo.onError((event) => {
+      proxyStream.controller.error(event.error);
+    });
+    ws.onmessage = (event) => {
+      const data = event.data;
+      if (typeof data === "string") {
+        proxyStream.controller.enqueue(simpleEncoder(data, "utf8"));
+      } else if (data instanceof ArrayBuffer) {
+        proxyStream.controller.enqueue(new Uint8Array(data));
+      } else {
+        throw new Error("should not happend");
+      }
+    };
+    void (async () => {
+      for await (const chunk of streamRead(serverIpc.stream)) {
+        ws.send(chunk);
+      }
+      ws.close();
+    })();
+  };
+  return waitOpenPo.promise;
 };
 
 // src/emulator/controller/base-controller.ts
@@ -6389,7 +6418,7 @@ var BiometricsController = class extends BaseController {
         if (pathname === "/biometrics") {
           return Response.json(await this.biometricsMock());
         }
-      }).forbidden().cros();
+      }).forbidden().cors();
     })();
     this.queue = [];
   }
@@ -6469,7 +6498,7 @@ var StatusBarController = class extends BaseController {
           this.observer.startObserve(ipc2);
           return Response.json("");
         }
-      }).forbidden().cros();
+      }).forbidden().cors();
     })();
     this.observer = new StateObservable(() => {
       return JSON.stringify(this.state);
@@ -7201,7 +7230,7 @@ var HapticsController = class extends BaseController {
         const state = zq.parseQuery(searchParams, query_state);
         this.hapticsMock(JSON.stringify({ pathname, state }));
         return Response.json(true);
-      }).forbidden().cros();
+      }).forbidden().cors();
     })();
   }
   hapticsMock(text) {
@@ -7243,7 +7272,7 @@ var NavigationBarController = class extends BaseController {
           this.observer.startObserve(ipc);
           return Response.json("");
         }
-      }).forbidden().cros();
+      }).forbidden().cors();
     })();
     this.observer = new StateObservable(() => {
       return JSON.stringify(this.state);
@@ -7320,7 +7349,7 @@ var TorchController = class extends BaseController {
         if (pathname === "/state") {
           return Response.json(this.state.isOpen);
         }
-      }).forbidden().cros();
+      }).forbidden().cors();
     })();
     this.state = { isOpen: false };
   }
@@ -7364,7 +7393,7 @@ var VirtualKeyboardController = class extends BaseController {
           this.observer.startObserve(ipc);
           return Response.json("");
         }
-      }).forbidden().cros();
+      }).forbidden().cors();
     })();
     this.observer = new StateObservable(() => {
       return JSON.stringify(this.state);
