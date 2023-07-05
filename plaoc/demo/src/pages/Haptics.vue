@@ -11,7 +11,7 @@ const $hapticsPlugin = ref<HTMLDwebHapticsElement>();
 let console: Console;
 let haptics: HTMLDwebHapticsElement;
 
-const vibrate = ref(300)
+const vibrate = ref([10, 20, 30])
 
 onMounted(() => {
   console = toConsole($logPanel);
@@ -52,7 +52,7 @@ const hapticsVibrate = defineLogAction(
     <article class="card-body">
       <h2 class="card-title">触碰轻质量物体</h2>
       <FieldLabel label="Haptics Duration:">
-        <select name="haptics-duration" id="haptics-duration" v-model="impactStyle">
+        <select name="haptics-duration" class="haptics-duration" v-model="impactStyle">
           <option value="HEAVY">HEAVY</option>
           <option value="MEDIUM">MEDIUM</option>
           <option value="LIGHT">LIGHT</option>
@@ -65,7 +65,7 @@ const hapticsVibrate = defineLogAction(
     <article class="card-body">
       <h2 class="card-title">振动通知</h2>
       <FieldLabel label="Haptics Duration:">
-        <select name="haptics-duration" id="haptics-duration" v-model="notificationStyle">
+        <select name="haptics-duration" class="haptics-duration" v-model="notificationStyle">
           <option value="SUCCESS">SUCCESS</option>
           <option value="WARNING">WARNING</option>
           <option value="ERROR">ERROR</option>

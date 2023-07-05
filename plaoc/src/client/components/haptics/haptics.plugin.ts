@@ -9,8 +9,8 @@ import {
 
 export class HapticsPlugin extends BasePlugin {
   private static isIOSDWebBrowser: boolean =
-    // deno-lint-ignore no-explicit-any
     "webkit" in globalThis &&
+    // deno-lint-ignore no-explicit-any
     typeof (globalThis as any).webkit.messageHandlers.haptics.postMessage ===
       "function";
 
@@ -26,7 +26,7 @@ export class HapticsPlugin extends BasePlugin {
   async impactLight(options: ImpactOptions) {
     await this.fetchApi("/impactLight", {
       search: {
-        style: options.style.toString(),
+        style: options.style,
       },
     });
   }
@@ -36,7 +36,7 @@ export class HapticsPlugin extends BasePlugin {
   async notification(options: NotificationOptions) {
     await this.fetchApi("/notification", {
       search: {
-        style: options.type.toString(),
+        style: options.type,
       },
     });
   }
