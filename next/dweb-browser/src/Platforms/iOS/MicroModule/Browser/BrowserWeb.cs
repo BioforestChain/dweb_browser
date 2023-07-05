@@ -131,6 +131,18 @@ public partial class BrowserWeb : BrowserWebview
                 });
             }
         }
+
+        /// 因为C#也实现了WKNavigationDelegate，必须执行一次 watchIosIcon ，才能触发获取favicon的行为
+        /// 否则iOS tab无法触发favicon获取
+        public override void DidCommitNavigation(WKWebView webView, WKNavigation navigation)
+        {
+            webView.InvokeOnMainThread(async () =>
+            {
+                await webView.EvaluateJavaScriptAsync("""
+                        void watchIosIcon();
+                        """);
+            });
+        }
     }
     #endregion
 
