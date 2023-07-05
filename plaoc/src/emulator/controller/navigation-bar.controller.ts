@@ -6,6 +6,7 @@ import { BaseController } from "./base-controller.ts";
 
 export class NavigationBarController extends BaseController {
   private _init = (async () => {
+    this.emitInit();
     const ipc = await createMockModuleServerIpc(
       "navigation-bar.nativeui.browser.dweb"
     );
@@ -41,6 +42,7 @@ export class NavigationBarController extends BaseController {
       })
       .forbidden()
       .cors();
+    this.emitReady();
   })();
   observer = new StateObservable(() => {
     return JSON.stringify(this.state);

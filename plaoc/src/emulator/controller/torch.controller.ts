@@ -3,6 +3,7 @@ import { BaseController } from "./base-controller.ts";
 
 export class TorchController extends BaseController {
   private _init = (async () => {
+    this.emitInit();
     const ipc = await createMockModuleServerIpc("torch.nativeui.browser.dweb");
     ipc
       .onFetch(async (event) => {
@@ -19,6 +20,7 @@ export class TorchController extends BaseController {
       })
       .forbidden()
       .cors();
+    this.emitReady();
   })();
 
   state = { isOpen: false };

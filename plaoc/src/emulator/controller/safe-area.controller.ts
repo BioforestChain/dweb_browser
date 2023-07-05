@@ -6,6 +6,7 @@ import { createMockModuleServerIpc } from "./../helper/helper.ts";
 import { BaseController } from "./base-controller.ts";
 export class SafeAreaController extends BaseController {
   private _init = (async () => {
+    this.emitInit();
     const ipc = await createMockModuleServerIpc(
       "safe-area.nativeui.browser.dweb"
     );
@@ -37,6 +38,7 @@ export class SafeAreaController extends BaseController {
       })
       .forbidden()
       .cors();
+    this.emitReady();
   })();
 
   observer = new StateObservable(() => {

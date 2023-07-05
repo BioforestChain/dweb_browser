@@ -5,6 +5,7 @@ import { $BAR_STYLE, $BarState } from "../types.ts";
 import { BaseController } from "./base-controller.ts";
 export class StatusBarController extends BaseController {
   private _init = (async () => {
+    this.emitInit();
     const ipc = await createMockModuleServerIpc(
       "status-bar.nativeui.browser.dweb"
     );
@@ -41,6 +42,7 @@ export class StatusBarController extends BaseController {
       })
       .forbidden()
       .cors();
+    this.emitReady();
   })();
 
   observer = new StateObservable(() => {

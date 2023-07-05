@@ -4,6 +4,7 @@ import { BaseController } from "./base-controller.ts";
 
 export class HapticsController extends BaseController {
   private _init = (async () => {
+    this.emitInit();
     const ipc = await createMockModuleServerIpc("haptics.sys.dweb");
     const query_state = z.object({
       type: zq.string().optional(),
@@ -18,6 +19,7 @@ export class HapticsController extends BaseController {
       })
       .forbidden()
       .cors();
+    this.emitReady();
   })();
 
   hapticsMock(text: string) {

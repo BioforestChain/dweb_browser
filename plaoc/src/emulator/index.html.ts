@@ -2,8 +2,9 @@ import { BiometricsController } from "./controller/biometrics.controller.ts";
 import { StatusBarController } from "./controller/status-bar.controller.ts";
 // 测试入口文件
 import { css, html, LitElement } from "lit";
-import { customElement } from "lit/decorators.js";
+import { customElement, state } from "lit/decorators.js";
 import { when } from "lit/directives/when.js";
+import { BaseController } from "./controller/base-controller.ts";
 import { HapticsController } from "./controller/haptics.controller.ts";
 import { NavigationBarController } from "./controller/navigation-bar.controller.ts";
 import { TorchController } from "./controller/torch.controller.ts";
@@ -22,40 +23,49 @@ const TAG = "root-comp";
 @customElement(TAG)
 export class RootComp extends LitElement {
   static override styles = createAllCSS();
+  @state() controllers = new Set<BaseController>();
+  private _wc<C extends BaseController>(c: C) {
+    c.onUpdate(() => this.requestUpdate())
+      .onInit((c) => {
+        this.controllers.add(c);
+        this.requestUpdate();
+      })
+      .onReady((c) => {
+        this.controllers.delete(c);
+        this.requestUpdate();
+      });
+    return c;
+  }
 
   /**statusBar */
-  readonly statusBarController = new StatusBarController().onUpdate(() => {
-    this.requestUpdate();
-  });
+  readonly statusBarController = this._wc(new StatusBarController());
+
   get statusBarState() {
     return this.statusBarController.state;
   }
   /**navigationBar */
-  readonly navigationController = new NavigationBarController().onUpdate(() => {
-    this.requestUpdate();
-  });
+  readonly navigationController = this._wc(new NavigationBarController());
+
   get navigationBarState() {
     return this.navigationController.state;
   }
   /**virtualboard */
-  readonly virtualKeyboardController = new VirtualKeyboardController().onUpdate(
-    () => this.requestUpdate()
+  readonly virtualKeyboardController = this._wc(
+    new VirtualKeyboardController()
   );
+
   get virtualKeyboardState() {
     return this.virtualKeyboardController.state;
   }
 
-  readonly torchController = new TorchController().onUpdate(() => {
-    this.requestUpdate();
-  });
+  readonly torchController = this._wc(new TorchController());
+
   get torchState() {
     return this.torchController.state;
   }
 
-  readonly hapticsController = new HapticsController();
-  readonly biometricsController = new BiometricsController().onUpdate(() =>
-    this.requestUpdate()
-  );
+  readonly hapticsController = this._wc(new HapticsController());
+  readonly biometricsController = this._wc(new BiometricsController());
 
   protected override render() {
     return html`
@@ -76,7 +86,11 @@ export class RootComp extends LitElement {
           ._insets=${this.statusBarState.insets}
           ._torchIsOpen=${this.torchState.isOpen}
         ></multi-webview-comp-status-bar>
-        <slot slot="shell-content"></slot>
+        ${when(
+          this.controllers.size === 0,
+          () => html`<slot slot="shell-content"></slot>`,
+          () => html`<div class="boot-logo" slot="shell-content">开机中</div>`
+        )}
         ${when(
           this.virtualKeyboardController.isShowVirtualKeyboard,
           () => html`
@@ -116,6 +130,33 @@ function createAllCSS() {
     css`
       :host {
         display: block;
+      }
+      .boot-logo {
+        height: 100%;
+        display: grid;
+        place-items: center;
+        font-size: 32px;
+        color: rgba(255, 255, 255, 0.3);
+        background: -webkit-linear-gradient(
+            -30deg,
+            rgba(255, 255, 255, 0) 100px,
+            rgba(255, 255, 255, 1) 180px,
+            rgba(255, 255, 255, 1) 240px,
+            rgba(255, 255, 255, 0) 300px
+          ) -300px 0 no-repeat;
+        -webkit-background-clip: text;
+        animation-name: boot-logo;
+        animation-duration: 6000ms;
+        animation-iteration-count: infinite;
+        /* animation-fill-mode:forward */
+      }
+      @keyframes boot-logo {
+        0% {
+          background-position: -300px 0px;
+        }
+        100% {
+          background-position: 1000px 0px;
+        }
       }
     `,
   ];
