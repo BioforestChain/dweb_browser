@@ -69,54 +69,6 @@ export class BluetoothNMM extends NativeMicroModule {
     (await this._createHttpDwebServer())._onFetchAdapterInit().listenRequest();
   };
 
-  /**
-   * this.onFetch 事件处理器
-   * @param event
-   * @returns
-   */
-  // private _onFetch: $OnFetch = async (event: FetchEvent) => {
-  //   switch (event.method) {
-  //     case IPC_METHOD.POST:
-  //       return this._onFetchPOST(event);
-  //     case IPC_METHOD.GET:
-  //       return this._onfetchGET(event);
-  //     default:
-  //       return this._onfetchERR(event, 400, `没有匹配请求的路由`);
-  //   }
-  // };
-
-  // /**
-  //  * 全部 POST 请求的处理器
-  //  * @param event
-  //  * @returns
-  //  */
-  // private _onFetchPOST: $OnFetch = async (event: FetchEvent) => {
-  //   switch (event.url.pathname) {
-  //     case "/request_device":
-  //       return this._requestDeviceHandler(event);
-  //     default:
-  //       return this._onfetchERR(event, 400, `没有匹配请求的路由`);
-  //   }
-  // };
-
-  // /**
-  //  * 全部 GET 请求的处理器
-  //  * @param event
-  //  * @returns
-  //  */
-  // private _onfetchGET: $OnFetch = async (event: FetchEvent) => {
-  //   console.always("event.url", event.url);
-  //   console.always("event.url.pathname", event.url.pathname);
-  //   switch (event.url.pathname) {
-  //     case "/open":
-  //       return this._openHandler(event);
-  //     case "bluetooth":
-  //       return this.dwebBluetoothHandler(event);
-  //     default:
-  //       return this._onfetchERR(event, 400, `没有匹配请求的路由`);
-  //   }
-  // };
-
   private dwebBluetoothHandler: $OnFetch = async (event: FetchEvent) => {
     // 通过 deep_link 打开
     // 设备是 EDIFIER TWS NB2
@@ -129,7 +81,7 @@ export class BluetoothNMM extends NativeMicroModule {
 
   private _openHandler: $OnFetch = async (event: FetchEvent) => {
     let statusCode = 200;
-    let jsonable: $ResponseJsonable = {
+    let jsonable: $ResponseJsonable<any> = {
       success: true,
       error: undefined,
       data: undefined,
@@ -172,7 +124,21 @@ export class BluetoothNMM extends NativeMicroModule {
       );
     }
 
-    await this._closeUI();
+    if (this._browserWindow === undefined) {
+      return IpcResponse.fromJson(
+        event.ipcRequest.req_id,
+        200,
+        this._responseHeader,
+        {
+          success: false,
+          error: `broserWindow === undefined`,
+          data: undefined,
+        },
+        event.ipc
+      );
+    }
+
+    this._closeUI(await this._browserWindow);
     return IpcResponse.fromJson(
       event.ipcRequest.req_id,
       200,
@@ -187,13 +153,7 @@ export class BluetoothNMM extends NativeMicroModule {
   };
 
   private _requestDeviceHandler: $OnFetch = async (event: FetchEvent) => {
-    console.always("开始查询蓝牙设备");
     this._requestDeviceOptions = await event.json();
-    console.always(
-      ">>>>>> this._requestDeviceOptions: ",
-      this._requestDeviceOptions
-    );
-
     if (this._requestDeviceOptions === undefined) {
       return IpcResponse.fromJson(
         event.ipcRequest.req_id,
@@ -676,17 +636,11 @@ export class BluetoothNMM extends NativeMicroModule {
   };
 
   // 关闭 UI
-  private _closeUI = async (bw?: Electron.BrowserWindow) => {
-    if (bw === undefined) {
-      bw = await this._browserWindow;
-    }
-    if (bw === undefined) {
-      return false;
-    }
+  private _closeUI = async (bw: Electron.BrowserWindow) => {
     bw.close();
     this._browserWindow = undefined;
     this._apis = undefined;
-    this._STATE = STATE.HIDE;
+    this._STATE = STATE.CLOSED;
   };
 
   private _getBrowserWindow = (url: string, ipc?: Ipc) => {
@@ -751,7 +705,9 @@ export class BluetoothNMM extends NativeMicroModule {
 
   protected override _shutdown = async () => {
     this._httpDwebServer?.close();
-    this._closeUI();
+    if (this._browserWindow) {
+      this._closeUI(await this._browserWindow);
+    }
   };
 }
 

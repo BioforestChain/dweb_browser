@@ -13,18 +13,13 @@ export class BluetoothPlugin extends BasePlugin {
   // }
 
   @bindThis
-  async open(): Promise<$ResponseData<unknown>> {
+  async open(): Promise<$ResponseData<undefined>> {
     return (await this.fetchApi("/open")).json();
+  }
 
-    // const deviceConnted = await res.json();
-    // if (deviceConnted.success) {
-    //   deviceConnted.data = new BluetoothRemoteGATTServer(this, {
-    //     ...deviceConnted.data.device,
-    //   });
-    // }
-    // console.log('server: ', server, server.connected)
-    // console.log("res: ", deviceConnted)
-    // return deviceConnted;
+  @bindThis
+  async close(): Promise<$ResponseData<undefined>> {
+    return (await this.fetchApi("/close")).json();
   }
 
   @bindThis
@@ -46,11 +41,6 @@ export class BluetoothPlugin extends BasePlugin {
       });
     }
     return res;
-  }
-
-  @bindThis
-  async close() {
-    return this.fetchApi("/close");
   }
 }
 
