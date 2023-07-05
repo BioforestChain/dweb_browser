@@ -157,6 +157,26 @@ public class JsProcessNMM : NativeMicroModule
             return js_port_id;
         });
 
+        HttpRouter.AddRoute(IpcMethod.Get, "/create-ipc-fail", async (request, ipc) =>
+        {
+            _ = ipc ?? throw new Exception("no found ipc");
+            var searchParams = request.SafeUrl.SearchParams;
+            var processId = searchParams.ForceGet("process_id");
+            var mmid = searchParams.ForceGet("mmid");
+            var reason = searchParams.ForceGet("reason");
+
+            int process_id;
+            if (!ipcProcessIdMap.TryGetValue(ipc.Remote.Mmid, out var processIdMap) || !processIdMap.TryGetValue(processId, out var po))
+            {
+                throw new Exception(string.Format("ipc:{0}/processId:{1} invalid", ipc.Remote.Mmid, processId));
+            }
+            process_id = await po.WaitPromiseAsync();
+
+            await _createIpcFail(apis, process_id, mmid, reason);
+
+            return true;
+        });
+
         /// 关闭所有的 process
         HttpRouter.AddRoute(IpcMethod.Get, "/close-process", async (request, ipc) =>
         {
@@ -325,5 +345,9 @@ public class JsProcessNMM : NativeMicroModule
 
     public record CreateProcessAndRunResult(ReadableStreamIpc streamIpc, JsProcessWebApi.ProcessHandler processHandler);
 
-    private Task<int> _createIpc(Ipc ipc, JsProcessWebApi apis, int process_id, Mmid mmid) => MainThread.InvokeOnMainThreadAsync(() => apis.CreateIpc(process_id, mmid));
+    private Task<int> _createIpc(Ipc ipc, JsProcessWebApi apis, int process_id, Mmid mmid) =>
+        MainThread.InvokeOnMainThreadAsync(() => apis.CreateIpc(process_id, mmid));
+
+    private Task _createIpcFail(JsProcessWebApi apis, int process_id, Mmid mmid, string reason) =>
+         apis.CreateIpcFail(process_id, mmid, reason);
 }

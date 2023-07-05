@@ -1,7 +1,5 @@
 ﻿using System.Text.Json.Serialization;
-using DwebBrowser.DWebView;
 using Foundation;
-using static DwebBrowser.MicroService.Browser.JsProcess.JsProcessWebApi;
 
 namespace DwebBrowser.MicroService.Browser.JsProcess;
 
@@ -40,12 +38,12 @@ public class JsProcessWebApi : System.IDisposable
         Ipc.IMicroModuleInfo remoteModule,
         string host)
     {
-        var channel = await this.DWebView.CreateWebMessageChannel();
+        var channel = await DWebView.CreateWebMessageChannel();
         var port1 = channel.Port1;
         var port2 = channel.Port2;
 
         var hid = Interlocked.Increment(ref _hidAcc);
-        var nsProcessInfo = await this.DWebView.EvaluateAsyncJavascriptCode($$"""
+        var nsProcessInfo = await DWebView.EvaluateAsyncJavascriptCode($$"""
            new Promise((resolve,reject)=>{
                 addEventListener("message", async function doCreateProcess(event) {
                     if (event.data === "js-process/create-process/{{hid}}") {
@@ -59,7 +57,7 @@ public class JsProcessWebApi : System.IDisposable
                     }
                 })
             })
-        """.Trim(), () => this.DWebView.PostMessage("js-process/create-process/" + hid, new[] { port1 }));
+        """.Trim(), () => DWebView.PostMessage("js-process/create-process/" + hid, new[] { port1 }));
 
         Console.Log("CreateProcess", "processInfo {0}", nsProcessInfo);
 
@@ -72,23 +70,23 @@ public class JsProcessWebApi : System.IDisposable
     public record RunProcessMainOptions(string MainUrl);
 
     public Task RunProcessMain(int process_id, RunProcessMainOptions options) =>
-        this.DWebView.EvaluateJavaScriptAsync("void runProcessMain(" + process_id + ", {main_url:`" + options.MainUrl + "`})").NoThrow();
+        DWebView.EvaluateJavaScriptAsync("void runProcessMain(" + process_id + ", {main_url:`" + options.MainUrl + "`})").NoThrow();
 
     public Task DestroyProcess(int process_id) =>
         MainThread.InvokeOnMainThreadAsync(() =>
         {
-            return this.DWebView.EvaluateJavaScriptAsync(string.Format("void destroyProcess({0})", process_id).Trim()).NoThrow();
+            return DWebView.EvaluateJavaScriptAsync(string.Format("void destroyProcess({0})", process_id).Trim()).NoThrow();
         });
 
 
     public async Task<int> CreateIpc(int process_id, Mmid mmid)
     {
-        var channel = await this.DWebView.CreateWebMessageChannel();
+        var channel = await DWebView.CreateWebMessageChannel();
         var port1 = channel.Port1;
         var port2 = channel.Port2;
 
         var hid = Interlocked.Increment(ref _hidAcc);
-        await this.DWebView.EvaluateAsyncJavascriptCode($$"""
+        await DWebView.EvaluateAsyncJavascriptCode($$"""
         new Promise((resolve,reject)=>{
             addEventListener("message", async function doCreateIpc(event) {
                 if (event.data === "js-process/create-ipc/{{hid}}") {
@@ -102,10 +100,17 @@ public class JsProcessWebApi : System.IDisposable
                 }
             })
         })
-        """.Trim(), () => this.DWebView.PostMessage("js-process/create-ipc/" + hid, new[] { port1 }));
+        """.Trim(), () => DWebView.PostMessage("js-process/create-ipc/" + hid, new[] { port1 }));
 
         return IpcWebMessageCache.SaveNative2JsIpcPort(port2);
     }
+
+    public Task CreateIpcFail(int process_id, Mmid mmid, string reason) =>
+        MainThread.InvokeOnMainThreadAsync(() =>
+        {
+            return DWebView.EvaluateJavaScriptAsync(
+                string.Format("void createIpcFail({0}, {1}, {2})", process_id, mmid, reason).Trim()).NoThrow();
+        });
 
     public void Dispose()
     {

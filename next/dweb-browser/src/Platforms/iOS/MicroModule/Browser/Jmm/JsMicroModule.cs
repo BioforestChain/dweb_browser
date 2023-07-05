@@ -191,25 +191,32 @@ public class JsMicroModule : MicroModule
             if (ipcEvent.Name is "dns/connect")
             {
                 var Event = JsonSerializer.Deserialize<DnsConnectEvent>(ipcEvent.Text)!;
-                /**
-                 * 模块之间的ipc是单例模式，所以我们必须拿到这个单例，再去做消息转发
-                 * 但可以优化的点在于：TODO 我们应该将两个连接的协议进行交集，得到最小通讯协议，然后两个通道就能直接通讯raw数据，而不需要在转发的时候再进行一次编码解码
-                 *
-                 * 此外这里允许js多次建立ipc连接，因为可能存在多个js线程，它们是共享这个单例ipc的
-                 */
-                /**
-                 * 向目标模块发起连接，注意，这里是很特殊的，因为我们自定义了 JMM 的连接适配器 connectAdapterManager，
-                 * 所以 JsMicroModule 这里作为一个中间模块，是没法直接跟其它模块通讯的。
-                 *
-                 * TODO 如果有必要，未来需要让 connect 函数支持 force 操作，支持多次连接。
-                 */
-                var connectResult = await bootstrapContext.Dns.ConnectAsync(Event.mmid);
-                var targetIpc = connectResult.IpcForFromMM;
-
-                /// 只要不是我们自己创建的直接连接的通道，就需要我们去 创造直连并进行桥接
-                if (targetIpc.Remote.Mmid != Mmid)
+                try
                 {
-                    await _ipcBridgeAsync(Event.mmid, targetIpc);
+                    /**
+                     * 模块之间的ipc是单例模式，所以我们必须拿到这个单例，再去做消息转发
+                     * 但可以优化的点在于：TODO 我们应该将两个连接的协议进行交集，得到最小通讯协议，然后两个通道就能直接通讯raw数据，而不需要在转发的时候再进行一次编码解码
+                     *
+                     * 此外这里允许js多次建立ipc连接，因为可能存在多个js线程，它们是共享这个单例ipc的
+                     */
+                    /**
+                     * 向目标模块发起连接，注意，这里是很特殊的，因为我们自定义了 JMM 的连接适配器 connectAdapterManager，
+                     * 所以 JsMicroModule 这里作为一个中间模块，是没法直接跟其它模块通讯的。
+                     *
+                     * TODO 如果有必要，未来需要让 connect 函数支持 force 操作，支持多次连接。
+                     */
+                    var connectResult = await bootstrapContext.Dns.ConnectAsync(Event.mmid);
+                    var targetIpc = connectResult.IpcForFromMM;
+
+                    /// 只要不是我们自己创建的直接连接的通道，就需要我们去 创造直连并进行桥接
+                    if (targetIpc.Remote.Mmid != Mmid)
+                    {
+                        await _ipcBridgeAsync(Event.mmid, targetIpc);
+                    }
+                }
+                catch(Exception err)
+                {
+                    await _ipcConnectFailAsync(Event.mmid, err);
                 }
             }
             else if (ipcEvent.Name is "restart")
@@ -298,6 +305,20 @@ public class JsMicroModule : MicroModule
 
     private Task<Ipc> _ipcBridgeAsync(Mmid fromMmid, Ipc? targetIpc = null) =>
         _ipcBridge(fromMmid, targetIpc).WaitPromiseAsync();
+
+    private async Task<bool> _ipcConnectFailAsync(Mmid mmid, Exception err)
+    {
+        var errMessage = string.Format("{0}\n{1}", err.Message, err.StackTrace);
+        /**
+         * 向js模块发起连接
+         */
+        var url = new URL("file://js.browser.dweb/create-ipc-fail");
+        return await (await NativeFetchAsync(
+                url.SearchParamsSet("process_id", _processId)
+                   .SearchParamsSet("mmid", mmid)
+                   .SearchParamsSet("reason", errMessage).Uri
+                )).BoolAsync();
+    }
 
     protected override async Task _shutdownAsync()
     {
