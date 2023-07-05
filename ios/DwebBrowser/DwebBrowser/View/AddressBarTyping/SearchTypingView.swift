@@ -10,34 +10,36 @@ import SwiftUI
 struct SearchTypingView: View {
     @EnvironmentObject var addressBar: AddressBarState
     var body: some View {
-
-//        NavigationView {
-            ZStack{
-                if addressBar.inputText == "" && !InstalledAppMgr.shared.apps.isEmpty{
-                    VStack{
-                        InnerAppGridView()
-                        Spacer()
-                    }
-                }else{
-                    SearchResultView()
+        VStack(spacing: 0) {
+            Text("搜索")
+                .font(.headline)
+                .frame(width: screen_width, height: 40)
+                .background(Color.bkColor)
+            HStack {
+                Spacer()
+                Button {
+                    addressBar.inputText = ""
+                    addressBar.isFocused = false
+                } label: {
+                    Text("取消")
+                        .foregroundColor(.dwebTint)
+                        .padding(8)
                 }
+                .padding(.trailing, 20)
             }
-//            .animation(.easeInOut, value: addressBar.inputText == "")
-//            .navigationBarTitleDisplayMode(.inline)
-//            .navigationTitle("搜索")
-//
-//            .toolbar {
-//                Button(action: {
-//                    print(" release the first responder.")
-//                    addressBar.inputText = ""
-//                    addressBar.isFocused = false
-//                }) {
-//                    Text("取消")
-//                        .foregroundColor(.dwebTint)
-//                        .padding(8)
-//                }
-//            }
-//        }
+            .background(Color.bkColor)
+
+            if addressBar.inputText == "" && !InstalledAppMgr.shared.apps.isEmpty {
+                VStack {
+                    InnerAppGridView()
+                    Spacer()
+                }
+            } else {
+                SearchResultView()
+                    .background(.red)
+            }
+        }
+        .animation(.easeInOut, value: addressBar.inputText == "")
     }
 }
 
@@ -46,6 +48,3 @@ struct OverlayView_Previews: PreviewProvider {
         SearchTypingView()
     }
 }
-
-
-
