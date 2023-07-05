@@ -1,9 +1,17 @@
 import { u8aConcat } from "./binaryHelper.ts";
 import { $Callback, createSignal, Signal } from "./createSignal.ts";
+interface $AbortAble {
+  signal?: AbortSignal;
+}
 
 async function* _doRead<T extends unknown>(
-  reader: ReadableStreamDefaultReader<T>
+  reader: ReadableStreamDefaultReader<T>,
+  options?: $AbortAble
 ) {
+  const signal = options?.signal;
+  if (signal !== undefined) {
+    signal.addEventListener("abort", (reason) => reader.cancel(reason));
+  }
   try {
     while (true) {
       const item = await reader.read();
@@ -12,25 +20,25 @@ async function* _doRead<T extends unknown>(
       }
       yield item.value;
     }
+  } catch (err) {
+    /// 如果是被throw，那么这个流会被打断，之后就无法在读取了
+    reader.cancel(err);
   } finally {
+    /// 如果只是return，那么这个流会释放 reader，如果前面执行了 cancel，那么之后再 getReader 也是 done 的情况
     reader.releaseLock();
   }
 }
 
 export const streamRead = <T extends unknown>(
   stream: ReadableStream<T>,
-  _options: {
-    signal?: AbortSignal;
-  } = {}
+  options?: $AbortAble
 ) => {
-  return _doRead(stream.getReader());
+  return _doRead(stream.getReader(), options);
 };
 
 export const binaryStreamRead = (
   stream: ReadableStream<Uint8Array>,
-  options: {
-    signal?: AbortSignal;
-  } = {}
+  options?: $AbortAble
 ) => {
   const reader = streamRead(stream, options);
   let done = false;
@@ -87,22 +95,19 @@ export const streamReadAll = async <I extends unknown, T, R>(
   stream: ReadableStream<I>,
   options: {
     map?: (item: I) => T;
-    complete?: (items: I[], maps: T[]) => R;
+    complete?: (maps: T[]) => R;
   } = {}
 ) => {
-  const items: I[] = [];
   const maps: T[] = [];
   for await (const item of _doRead<I>(stream.getReader())) {
-    items.push(item);
     if (options.map) {
       maps.push(options.map(item));
     }
   }
 
   type $Result = typeof options.complete extends undefined ? undefined : R;
-  const result = options.complete?.(items, maps) as $Result;
+  const result = options.complete?.(maps) as $Result;
   return {
-    items,
     maps,
     result,
   };
@@ -113,8 +118,11 @@ export const streamReadAllBuffer = async (
 ) => {
   return (
     await streamReadAll(stream, {
-      complete(items) {
-        return u8aConcat(items);
+      map(chunk) {
+        return chunk;
+      },
+      complete(chunks) {
+        return u8aConcat(chunks);
       },
     })
   ).result;

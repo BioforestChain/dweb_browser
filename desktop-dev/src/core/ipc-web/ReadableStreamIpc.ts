@@ -62,12 +62,19 @@ export class ReadableStreamIpc extends Ipc {
    * 输入流要额外绑定
    * 注意，非必要不要 await 这个promise
    */
-  async bindIncomeStream(stream: $PromiseMaybe<ReadableStream<Uint8Array>>) {
+  async bindIncomeStream(
+    stream: $PromiseMaybe<ReadableStream<Uint8Array>>,
+    options: { signal?: AbortSignal } = {}
+  ) {
     if (this._incomne_stream !== undefined) {
       throw new Error("in come stream alreay binded.");
     }
     this._incomne_stream = await stream;
-    const reader = binaryStreamRead(this._incomne_stream);
+    const { signal } = options;
+    const reader = binaryStreamRead(this._incomne_stream, { signal });
+    this.onClose(() => {
+      reader.throw("output stream closed");
+    });
     while ((await reader.available()) > 0) {
       const size = await reader.readInt();
       const data = await reader.readBinary(size);
@@ -96,6 +103,8 @@ export class ReadableStreamIpc extends Ipc {
       }
       this._messageSignal.emit(message, this);
     }
+    /// 输入流结束，输出流也要一并关闭
+    this.close();
   }
 
   private _len = new Uint32Array(1);
