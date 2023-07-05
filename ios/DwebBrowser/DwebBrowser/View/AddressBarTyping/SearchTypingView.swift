@@ -10,7 +10,8 @@ import SwiftUI
 struct SearchTypingView: View {
     @EnvironmentObject var addressBar: AddressBarState
     var body: some View {
-        NavigationView {
+
+//        NavigationView {
             ZStack{
                 if addressBar.inputText == "" && !InstalledAppMgr.shared.apps.isEmpty{
                     VStack{
@@ -21,22 +22,22 @@ struct SearchTypingView: View {
                     SearchResultView()
                 }
             }
-            .animation(.easeInOut, value: addressBar.inputText == "")
-            .navigationBarTitleDisplayMode(.inline)
-            .navigationTitle("搜索")
-            
-            .toolbar {
-                Button(action: {
-                    print(" release the first responder.")
-                    addressBar.inputText = ""
-                    addressBar.isFocused = false
-                }) {
-                    Text("取消")
-                        .foregroundColor(.dwebTint)
-                        .padding(8)
-                }
-            }
-        }
+//            .animation(.easeInOut, value: addressBar.inputText == "")
+//            .navigationBarTitleDisplayMode(.inline)
+//            .navigationTitle("搜索")
+//
+//            .toolbar {
+//                Button(action: {
+//                    print(" release the first responder.")
+//                    addressBar.inputText = ""
+//                    addressBar.isFocused = false
+//                }) {
+//                    Text("取消")
+//                        .foregroundColor(.dwebTint)
+//                        .padding(8)
+//                }
+//            }
+//        }
     }
 }
 

@@ -13,13 +13,11 @@ struct SearchResultView: View {
     @ObservedObject var localLinkSearcher = LocalLinkSearcher.shared
     @State private var inputText: String = ""
     var body: some View {
-        
         Form {
             Section {
                 ForEach(WebSearcher.shared.searchers, id: \.id) { searcher in
                     Button {
-                        printDate()
-                        guard let url = URL(string: searcher.inputHandler("sss")) else { return }
+                        guard let url = URL(string: searcher.inputHandler(addressBar.inputText)) else { return }
                         DispatchQueue.main.async {
                             openingLink.clickedLink = url
                             addressBar.isFocused = false
@@ -27,19 +25,19 @@ struct SearchResultView: View {
                     } label: {
                         VStack {
                             HStack(spacing: 12) {
-                                Image(uiImage: .assetsImage(name: (searcher.icon)))
+                                Image(uiImage: .assetsImage(name: searcher.icon))
                                     .resizable()
                                     .frame(width: 30, height: 30)
                                     .padding(.leading, 16)
                                     .padding(.top, 10)
-                                
+
                                 VStack(alignment: .leading, spacing: 4, content: {
                                     Text(searcher.name)
                                         .foregroundColor(Color(hexString: "0A1626"))
                                         .font(.system(size: 17))
                                         .lineLimit(1)
                                         .padding(.top, 16)
-                                    
+
                                     Text(paramURLAbsoluteString(with: addressBar.inputText))
                                         .foregroundColor(Color(hexString: "ACB5BF"))
                                         .font(.system(size: 12))
@@ -66,7 +64,7 @@ struct SearchResultView: View {
             .textCase(nil)
             .listRowInsets(EdgeInsets())
             .listRowSeparator(.hidden)
-            
+
             Section {
                 ForEach(localLinkSearcher.records) { record in
                     Button {
@@ -75,12 +73,13 @@ struct SearchResultView: View {
                             openingLink.clickedLink = url
                             addressBar.isFocused = false
                         }
-                        
+
                     } label: {
                         HStack {
-                            Image(uiImage: .assetsImage(name: (record.websiteIcon)))
-                                .foregroundColor(SwiftUI.Color.init(white: 138 / 255))
-                                .frame(width: 22, height: 22)
+                            Image(uiImage: .assetsImage(name: record.websiteIcon))
+                                .resizable()
+                                .foregroundColor(Color(white: 138.0 / 255.0))
+                                .frame(width: 28, height: 28)
                             VStack(alignment: .leading, spacing: 4, content: {
                                 Text(record.title)
                                     .font(.system(size: 16))
@@ -99,23 +98,11 @@ struct SearchResultView: View {
                     }
                 }
             }
-//        header: {
-//            Text("本地记录")
-//                .foregroundColor(Color(hexString: "0A1626"))
-//                .font(.system(size: 15, weight: .medium))
-//                .frame(height: 40)
-//        }
-//        .textCase(nil)
-//        .listRowInsets(EdgeInsets())
-//        .listRowSeparator(.hidden)
-            .onReceive(addressBar.$inputText){ text in
-                localLinkSearcher.fetchRecordList(placeHolder: text)
 
+            .onReceive(addressBar.$inputText) { text in
+                localLinkSearcher.fetchRecordList(placeHolder: text)
             }
         }
         .dismissKeyboard()
     }
 }
-
-
-

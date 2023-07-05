@@ -39,15 +39,12 @@ struct GridCell: View {
 
         return ZStack(alignment: .topTrailing) {
             VStack(spacing: 0) {
-//                VStack{
                 Image(uiImage: .snapshotImage(from: webCache.snapshotUrl))
                     .resizable()
                     .aspectRatio(contentMode: .fill)
                     .frame(width: gridCellW, height: cellImageH, alignment: .top)
                     .cornerRadius(gridcellCornerR)
                     .clipped()
-//                }
-
                     .overlay(RoundedRectangle(cornerRadius: 10)
                         .stroke(Color.dwebTint, lineWidth: 2)
                         .opacity(isSelected ? 1 : 0)
@@ -56,9 +53,6 @@ struct GridCell: View {
                     WebsiteIconImage(iconUrl: webCache.webIconUrl)
                         .frame(width: 22, height: 22)
 
-//                        .onAppear{
-//                            fetchIconUrl()
-//                        }
                     Text(webCache.title)
                         .fontWeight(.semibold)
                         .lineLimit(1)
@@ -67,15 +61,6 @@ struct GridCell: View {
             deleteButton
         }
     }
-
-//    func fetchIconUrl(){
-//        URL.downloadWebsiteIcon(iconUrl: webCache.lastVisitedUrl) { url in
-//            print("URL of Favicon: \(url)")
-//            DispatchQueue.main.async {
-//                webCache.webIconUrl = url
-//            }
-//        }
-//    }
 
     var deleteButton: some View {
         Button {

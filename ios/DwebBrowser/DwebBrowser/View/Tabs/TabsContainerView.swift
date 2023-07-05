@@ -5,23 +5,21 @@
 //  Created by ui06 on 4/27/23.
 //
 
+
 import SwiftUI
 import WebKit
 
 struct TabsContainerView: View {
     @EnvironmentObject var selectedTab: SelectedTab
-    
     @EnvironmentObject var toolbarState: ToolBarState
     
     @State var geoRect: CGRect = .zero // 定义一个变量来存储geoInGlobal的值
-    
-    @StateObject var animation = ShiftAnimation()
     @State var selectedCellFrame: CGRect = .zero
-    
-    @StateObject var gridState = TabGridState()
-    
     @State var gridScale: CGFloat = 1
-    
+
+    @StateObject var gridState = TabGridState()
+    @StateObject var animation = ShiftAnimation()
+
     init() {
         print("visiting TabsContainerView init")
     }
@@ -41,21 +39,20 @@ struct TabsContainerView: View {
                     Color(.white)
                 }
                 if !toolbarState.showTabGrid, !animation.progress.isAnimating() {
-                    WebHScrollView(animation: animation)
+                    PagingScrollView()
                         .environmentObject(animation)
                 }
                 
                 if animation.progress.isAnimating() {
                     if isExpand {
-                        profileView
+                        animationImage
                             .transition(.identityHack)
                             .matchedGeometryEffect(id: animationId, in: expandshrinkAnimation)
                             .frame(width: geoRect.width, height: geoRect.height, alignment: .top)
                             .position(x: geoRect.midX, y: geoRect.midY - geoRect.minY)
                     } else {
-                        profileView
+                        animationImage
                             .transition(.identityHack)
-
                             .matchedGeometryEffect(id: animationId, in: expandshrinkAnimation)
                             .frame(width: gridCellW, height: cellImageH, alignment: .top)
                             .position(x: selectedCellFrame.minX + selectedCellFrame.width/2.0,
@@ -63,6 +60,7 @@ struct TabsContainerView: View {
                     }
                 }
             }
+            .background(Color.bkColor)
             .onAppear {
                 geoRect = geo.frame(in: .global)
                 print("z geo: \(geoRect)")
@@ -85,7 +83,7 @@ struct TabsContainerView: View {
     @Namespace private var expandshrinkAnimation
     private let animationId = "expandshrinkAnimation"
     
-    var profileView: some View {
+    var animationImage: some View {
         Rectangle()
             .overlay(
                 Image(uiImage: animation.snapshotImage)
@@ -120,89 +118,3 @@ extension AnyTransition {
     }
 }
 
-struct WebHScrollView: View {
-    @EnvironmentObject var addrBarOffset: AddrBarOffset
-    @EnvironmentObject var toolbarState: ToolBarState
-    @ObservedObject var animation: ShiftAnimation
-    
-    var body: some View {
-        GeometryReader { _ in
-            ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(spacing: 0) {
-                    ForEach(WebCacheMgr.shared.store, id: \.id) { webCache in
-                        TabPageView(webCache: webCache, webWrapper: WebWrapperMgr.shared.webWrapper(of: webCache.id), toolbarState: toolbarState, animation: animation)
-                            .id(webCache.id)
-                            .frame(width: screen_width)
-                    }
-                }
-                .offset(x: addrBarOffset.onX)
-            }
-            .scrollDisabled(true)
-        }
-    }
-}
-
-struct MatchGeometryView: View {
-    @State private var showExpand = false
-    
-    @Namespace private var expandshrinkAnimation
-    private let animationId = "expandshrinkAnimation"
-    
-    var body: some View {
-        VStack {
-            if showExpand {
-                expandedView
-            } else {
-                shrinkedView
-            }
-            Spacer()
-                .frame(height: 100)
-            
-            Text("Line 111111111111111")
-            Text("Line 22222222222222")
-            Text("Line 3333333333")
-        }
-    }
-    
-    var profileView: some View {
-        Image(uiImage: .bundleImage(name: "snapshot"))
-            .resizable()
-            .aspectRatio(contentMode: .fill)
-            .clipShape(Circle())
-            .onTapGesture {
-                withAnimation {
-                    showExpand.toggle()
-                }
-            }
-    }
-    
-    var expandedView: some View {
-        VStack {
-            profileView
-                .matchedGeometryEffect(id: animationId, in: expandshrinkAnimation)
-                .frame(width: 80, height: 80)
-            Text("Jason White")
-            Text("Wood worker")
-        }
-    }
-    
-    var shrinkedView: some View {
-        VStack(alignment: .leading) {
-            HStack {
-                profileView
-                    .matchedGeometryEffect(id: animationId, in: expandshrinkAnimation)
-                    .frame(width: 400, height: 400)
-                VStack {
-                    Text("Jason White")
-                    Text("Wood worker")
-                }
-            }
-        }
-    }
-}
-
-struct TabHStackView_Previews: PreviewProvider {
-    static var previews: some View {
-        MatchGeometryView()
-    }
-}

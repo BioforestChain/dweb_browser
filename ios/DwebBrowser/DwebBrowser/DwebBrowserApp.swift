@@ -7,14 +7,11 @@
 
 import SwiftUI
 
-
 @main
 struct DwebBrowserApp: App {
     var body: some Scene {
         WindowGroup {
             BrowserView()
-                .environmentObject(AddrBarOffset())
-                .environmentObject(ToolBarState())
         }
     }
 }

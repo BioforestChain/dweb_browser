@@ -35,8 +35,14 @@ struct ToolbarView: View {
                         toolbarState.goForwardTapped = true
                     }
                     Spacer()
-                    BiColorButton(size: itemSize, imageName: "add", disabled: false) {
-                        print("open new tab was clicked")
+                    if WebCacheMgr.cache(at: selectedTab.curIndex).shouldShowWeb{
+                        BiColorButton(size: itemSize, imageName: "scan", disabled: false) {
+                            print("scan qrcode")
+                        }
+                    }else{
+                        BiColorButton(size: itemSize, imageName: "add", disabled: false) {
+                            print("open new tab was clicked")
+                        }
                     }
                     
                 }
@@ -61,6 +67,7 @@ struct ToolbarView: View {
             }
             .frame(height: toolbarHeight)
             .background(Color.bkColor)
+
             .onChange(of: selectedTab.curIndex, perform: { index in
                 let currentWrapper = wrapperMgr.store[index]
                 toolbarState.canGoBack = currentWrapper.canGoBack
@@ -72,7 +79,7 @@ struct ToolbarView: View {
                 }
             }
             .clipped()
-            
+
         }else{
             HStack(spacing: 5){
                 Spacer()

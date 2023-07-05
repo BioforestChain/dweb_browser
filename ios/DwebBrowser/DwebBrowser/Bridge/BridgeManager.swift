@@ -24,8 +24,6 @@ public class BridgeManager: NSObject {
         super.init()
         
         let controller = UIHostingController(rootView: BrowserView()
-            .environmentObject(AddrBarOffset())
-            .environmentObject(ToolBarState())
             .environment(\.managedObjectContext, DataController.shared.container.viewContext))
         
         self.browserView = controller.view

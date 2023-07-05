@@ -13,18 +13,12 @@ struct BrowserView: View {
     @StateObject var addressBar = AddressBarState()
     @StateObject var openingLink = OpeningLink()
     @StateObject var showSheet = ShowSheet()
-    @EnvironmentObject var toolBar: ToolBarState
+    @StateObject var toolBarState = ToolBarState()
     var body: some View {
-        ZStack{
-            GeometryReader{ sGgeometry in
-                VStack(spacing: 0){
-                    ZStack{
-                        VStack{
-                            TabsContainerView()
-                        }
-                        KeyBoardShowingView(isFocused: $addressBar.isFocused)
-                    }
-                    AddressBarHStack()
+        ZStack {
+            GeometryReader { _ in
+                VStack(spacing: 0) {
+                    TabsContainerView()
                     ToolbarView()
                 }
                 .background(Color.bkColor)
@@ -32,9 +26,10 @@ struct BrowserView: View {
                 .environmentObject(selectedTab)
                 .environmentObject(addressBar)
                 .environmentObject(showSheet)
-                .sheet(isPresented: $showSheet.should){
+                .environmentObject(toolBarState)
+
+                .sheet(isPresented: $showSheet.should) {
                     SheetSegmentView()
-                        .padding(.top, 28)
                         .environmentObject(selectedTab)
                         .environmentObject(openingLink)
                         .environmentObject(showSheet)

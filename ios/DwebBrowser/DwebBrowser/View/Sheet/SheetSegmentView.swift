@@ -43,6 +43,7 @@ struct SheetSegmentView: View {
                 HistoryView()
             }
         }
+        .padding(.top, 28)
         .background(Color.bkColor)
     }
 }

@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct LinkRecord: Hashable, Codable, Identifiable {
-    
     var link: String
     var websiteIcon: String
     var title: String
@@ -29,16 +28,13 @@ struct LinkRecord: Hashable, Codable, Identifiable {
 }
 
 class LocalLinkSearcher: ObservableObject {
-    
     static let shared = LocalLinkSearcher()
     @Published var records: [LinkRecord] = []
     
     private let bookmarnManager = BookmarkCoreDataManager()
 //    private let historyManager = HistoryCoreDataManager()
     
-    
     func fetchRecordList(placeHolder: String) {
-      
         if placeHolder.isEmpty {
             records = []
             return
@@ -48,11 +44,10 @@ class LocalLinkSearcher: ObservableObject {
 //        let historyList = historyManager.fetchHistoryData(with: placeHolder)
         let bookmarkList = bookmarnManager.fetchBookmarkData(with: placeHolder)
 
-
         if bookmarkList != nil {
-            tmpList += bookmarkList!.map( { addImageType(with: "ico_bottomtab_book_disabled", record: $0) })
+            tmpList += bookmarkList!.map { addImageType(with: "bookmark_empty", record: $0) }
         }
-        records = tmpList.sorted(by: { $0.createdDate > $1.createdDate})
+        records = tmpList.sorted(by: { $0.createdDate > $1.createdDate })
     }
     
     private func addImageType(with imageName: String, record: LinkRecord) -> LinkRecord {

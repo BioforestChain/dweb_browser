@@ -5,21 +5,10 @@
 //  Created by ui06 on 5/5/23.
 //
 
+import Combine
 import Foundation
 import SwiftUI
 import UIKit
-
-// import FaviconFinder
-import Combine
-
-let websites = [
-    "https://www.baidu.com",
-    "https://www.163.com",
-    "https://www.sohu.com",
-    "https://www.yahoo.com",
-    "https://www.douban.com",
-    "https://www.zhihu.com",
-]
 
 // 打开新页面时
 class WebCache: ObservableObject, Identifiable, Hashable, Codable, Equatable {
@@ -124,6 +113,10 @@ class WebCacheMgr: ObservableObject {
         UserDefaults.standard.set(data, forKey: userdefaultKey)
     }
     
+    static func cache(at index: Int) -> WebCache {
+        return WebCacheMgr.shared.store[index]
+    }
+    
     func loadCaches() {
         if let data = UserDefaults.standard.data(forKey: userdefaultKey) {
             if let items = try? JSONDecoder().decode([WebCache].self, from: data) {
@@ -134,15 +127,15 @@ class WebCacheMgr: ObservableObject {
             store = [
                 //                WebCache(lastVisitedUrl: emptyURL, title: "blank"),
                 WebCache(lastVisitedUrl: URL(string: "https://www.apple.com")!, title: "2"),
-//                WebCache(lastVisitedUrl: URL(string: "https://www.163.com")!, title: "3"),
-//                WebCache(lastVisitedUrl: URL(string: "https://www.douban.com")!, title: "4"),
-//                WebCache(lastVisitedUrl: URL(string: "https://www.douyu.com")!, title: "5"),
-//                WebCache(lastVisitedUrl: URL(string: "https://www.apple.com")!, title: "2"),
-                WebCache(lastVisitedUrl: URL(string: "about:newtab")!, title: "3"),
-//                WebCache(lastVisitedUrl: URL(string: "https://www.douban.com")!, title: "4"),
+
+                WebCache(lastVisitedUrl: URL(string: "https://www.163.com")!, title: "3"),
+                WebCache(lastVisitedUrl: URL(string: "https://www.douban.com")!, title: "4"),
                 WebCache(lastVisitedUrl: URL(string: "https://www.douyu.com")!, title: "5"),
                 
-                WebCache(lastVisitedUrl: URL(string: "https://dweb.waterbang.top")!, title: "8"),
+                WebCache(lastVisitedUrl: URL(string: "https://www.yahoo.com")!, title: "6"),
+                WebCache(lastVisitedUrl: URL(string: "https://www.xw.qq.com")!, title: "7"),
+                WebCache(lastVisitedUrl: URL(string: "https://m.hupu.com/")!, title: "8"),
+                WebCache(lastVisitedUrl: URL(string: "https://sina.cn/")!, title: "9"),
             ]
         }
     }

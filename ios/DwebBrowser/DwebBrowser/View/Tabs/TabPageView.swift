@@ -5,41 +5,43 @@
 //  Created by ui06 on 4/16/23.
 //
 
-import SwiftUI
 import Combine
+import SwiftUI
 
 struct TabPageView: View {
-    @ObservedObject var webCache: WebCache
-    @ObservedObject var webWrapper: WebWrapper
-    @ObservedObject var toolbarState: ToolBarState
-    @ObservedObject var animation: ShiftAnimation
-    
+    @EnvironmentObject var animation: ShiftAnimation
+    @EnvironmentObject var toolbarState: ToolBarState
     @EnvironmentObject var selectedTab: SelectedTab
     @EnvironmentObject var openingLink: OpeningLink
+    
+    var index: Int
+    var webCache: WebCache { WebCacheMgr.shared.store[index] }
+    var webWrapper: WebWrapper { WebWrapperMgr.shared.store[index] }
     
     @State var hasTook = false
     
     @State var snapshotHeight: CGFloat = 0 // CGFloat{ screen_height - addressBarH - toolBarH - safeAreaTopHeight - safeAreaBottomHeight}
     
-    private var isVisible: Bool { let index = WebWrapperMgr.shared.store.firstIndex(of: webWrapper); return index == selectedTab.curIndex}
-    var  body: some View {
-        GeometryReader{geo in
-            ZStack{
+    private var isVisible: Bool { let index = WebWrapperMgr.shared.store.firstIndex(of: webWrapper); return index == selectedTab.curIndex }
+    var body: some View {
+        GeometryReader { geo in
+            ZStack {
                 HomePageView()
                 if webCache.shouldShowWeb {
                     webComponent
                 }
             }
-            .onAppear{
+            .onAppear {
                 snapshotHeight = geo.frame(in: .global).height
             }
         }
         
         .onReceive(animation.$progress, perform: { progress in
-            if progress == .initial, toolbarState.showTabGrid, !hasTook{
+            print("now in page \(index)")
+            if progress == .initial, toolbarState.showTabGrid, !hasTook {
                 let index = WebWrapperMgr.shared.store.firstIndex(of: webWrapper)
-                if index == selectedTab.curIndex{
-                    if let image = self.environmentObject(selectedTab).environmentObject(openingLink).snapshot(){
+                if index == selectedTab.curIndex {
+                    if let image = self.environmentObject(selectedTab).environmentObject(toolbarState).environmentObject(animation).environmentObject(openingLink).snapshot() {
                         print(image)
                         let scale = image.scale
                         let cropRect = CGRect(x: 0, y: 0, width: screen_width * scale, height: snapshotHeight * scale)
@@ -48,7 +50,7 @@ struct TabPageView: View {
                             animation.snapshotImage = croppedImage
                             webCache.snapshotUrl = UIImage.createLocalUrl(withImage: croppedImage, imageName: webCache.id.uuidString)
                         }
-                        hasTook = true  //avoid a dead run loop
+                        hasTook = true // avoid a dead run loop
                         animation.progress = .preparingShrink
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { hasTook = false } // reset the state var for the next snapshot
                     }
@@ -57,20 +59,20 @@ struct TabPageView: View {
         })
     }
     
-    var webComponent: some View{
+    var webComponent: some View {
         WebView(webView: webWrapper.webView, url: webCache.lastVisitedUrl)
             .onChange(of: webWrapper.canGoBack, perform: { canGoBack in
-                if isVisible{
+                if isVisible {
                     toolbarState.canGoBack = canGoBack
                 }
             })
             .onChange(of: webWrapper.canGoForward, perform: { canGoForward in
-                if isVisible{
+                if isVisible {
                     toolbarState.canGoForward = canGoForward
                 }
             })
-            .onChange(of: webWrapper.estimatedProgress){ newValue in
-                if newValue >= 1.0{
+            .onChange(of: webWrapper.estimatedProgress) { newValue in
+                if newValue >= 1.0 {
                     WebCacheMgr.shared.saveCaches()
                 }
             }
@@ -82,9 +84,9 @@ struct TabPageView: View {
                 webCache.webIconUrl = URL(string: String(icon)) ?? .defaultWebIconURL
             }
             .onChange(of: webWrapper.url) { visitingUrl in
-                if let url = visitingUrl{
+                if let url = visitingUrl {
                     webCache.lastVisitedUrl = url
-                    if !TraceLessMode.shared.isON{
+                    if !TraceLessMode.shared.isON {
                         let manager = HistoryCoreDataManager()
                         let history = LinkRecord(link: webCache.lastVisitedUrl.absoluteString, imageName: webCache.webIconUrl.absoluteString, title: webCache.title, createdDate: Date().milliStamp)
                         manager.insertHistory(history: history)
@@ -93,21 +95,21 @@ struct TabPageView: View {
             }
         
             .onChange(of: toolbarState.goForwardTapped) { tapped in
-                if tapped{
+                if tapped {
                     goForward()
                     toolbarState.goForwardTapped = false
                 }
             }
             .onChange(of: toolbarState.goBackTapped) { tapped in
-                if tapped{
+                if tapped {
                     goBack()
                     toolbarState.goBackTapped = false
                 }
             }
-        
+
             .onChange(of: openingLink.clickedLink) { url in
                 print("clickedLink has changed: \(url)")
-                if isVisible{
+                if isVisible {
                     webWrapper.webView.load(URLRequest(url: url))
                 }
             }
