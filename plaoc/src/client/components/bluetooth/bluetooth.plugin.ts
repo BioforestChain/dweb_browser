@@ -117,26 +117,29 @@ export class BluetoothRemoteGATTServer {
   async getPrimaryService(
     uuid: BluetoothServiceUUID
   ): Promise<$ResponseData<BluetoothRemoteGATTService>> {
-    const result = await this.plugin.fetchApi(
-      `/bluetooth_remote_gatt_server/get_primary_service`,
-      {
-        search: {
-          uuid: uuid,
-        },
-      }
-    );
-    const o = await result.json();
-    if (o.success === true) {
-      console.log("success", o.data);
+    const res = await (
+      await this.plugin.fetchApi(
+        `/bluetooth_remote_gatt_server/get_primary_service`,
+        {
+          search: {
+            uuid: uuid,
+          },
+        }
+      )
+    ).json();
+
+    if (res.success === true) {
+      console.log("success", res.data);
       const bluetoothRemoteGATTSefvice = new BluetoothRemoteGATTService(
         this.plugin,
-        o.data.device,
-        o.data.uuid,
-        o.data.isPrimary
+        res.data.device,
+        res.data.uuid,
+        res.data.isPrimary
       );
-      o.data = bluetoothRemoteGATTSefvice;
+      res.data = bluetoothRemoteGATTSefvice;
     }
-    return o;
+
+    return res;
   }
 }
 

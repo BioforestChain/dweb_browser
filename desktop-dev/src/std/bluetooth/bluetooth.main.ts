@@ -12,7 +12,6 @@ import { OnFetchAdapter } from "./bluetooth.onFetchAdapter.ts";
 import { STATE } from "./const.ts";
 import type {
   $Device,
-  $ResponseJsonable,
   BluetoothRemoteGATTServer,
   RequestDeviceOptions,
 } from "./types.ts";
@@ -84,33 +83,22 @@ export class BluetoothNMM extends NativeMicroModule {
   };
 
   private _openHandler: $OnFetch = async (event: FetchEvent) => {
-    let statusCode = 200;
-    let jsonable: $ResponseJsonable<any> = {
-      success: true,
-      error: undefined,
-      data: undefined,
-    };
-
     if (this._STATE === STATE.CLOSED) {
       const { bw, apis } = await this._initUI();
       await this._bluetoothrequestdevicewatch(bw, apis);
       this._STATE = STATE.HIDE;
     } else {
-      statusCode = 429;
-      jsonable = {
-        success: false,
-        error: `opened`,
-        data: undefined,
-      };
+      return this._createResponseError(
+        event,
+        429,
+        `bluetooth.std.dweb is opened!`
+      );
     }
-
-    return IpcResponse.fromJson(
-      event.ipcRequest.req_id,
-      statusCode,
-      this._responseHeader,
-      jsonable,
-      event.ipc
-    );
+    return this._createResponseSucess(event, {
+      success: true,
+      error: undefined,
+      data: undefined,
+    });
   };
 
   private _closeHandler: $OnFetch = async (event: FetchEvent) => {
@@ -143,17 +131,11 @@ export class BluetoothNMM extends NativeMicroModule {
     }
 
     this._closeUI(await this._browserWindow);
-    return IpcResponse.fromJson(
-      event.ipcRequest.req_id,
-      200,
-      this._responseHeader,
-      {
-        success: true,
-        error: undefined,
-        data: "ok",
-      },
-      event.ipc
-    );
+    return this._createResponseSucess(event, {
+      success: true,
+      error: undefined,
+      data: "ok",
+    });
   };
 
   /**
@@ -212,15 +194,9 @@ export class BluetoothNMM extends NativeMicroModule {
     const res = await new Promise(
       (resolve) => (this._deviceConnectedResolve = resolve)
     );
-    (await this._browserWindow)?.hide();
+    // (await this._browserWindow)?.hide();
     this._STATE = STATE.HIDE;
-    return IpcResponse.fromJson(
-      event.ipcRequest.req_id,
-      200,
-      this._responseHeader,
-      res,
-      event.ipc
-    );
+    return this._createResponseSucess(event, res);
   };
 
   private _bluetoothRemoteGATTServer_connect: $OnFetch = async (
@@ -242,13 +218,7 @@ export class BluetoothNMM extends NativeMicroModule {
     const res = await new Promise((resolve) =>
       this._operationResolveMap.set(resolveId, resolve)
     );
-    return IpcResponse.fromJson(
-      event.ipcRequest.req_id,
-      200,
-      this._responseHeader,
-      res,
-      event.ipc
-    );
+    return this._createResponseSucess(event, res);
   };
 
   private _bluetoothRemoteGATTServer_disconnect: $OnFetch = async (
@@ -271,13 +241,7 @@ export class BluetoothNMM extends NativeMicroModule {
     const res = await new Promise((resolve) =>
       this._operationResolveMap.set(resolveId, resolve)
     );
-    return IpcResponse.fromJson(
-      event.ipcRequest.req_id,
-      200,
-      this._responseHeader,
-      res,
-      event.ipc
-    );
+    return this._createResponseSucess(event, res);
   };
 
   private _bluetoothRemoteGATTServer_getPrimaryService: $OnFetch = async (
@@ -294,11 +258,15 @@ export class BluetoothNMM extends NativeMicroModule {
     if (uuid === null) {
       return this._createResponseError(event, 422, `missing uuid parameter!`);
     }
+
+    console.log("", "_bluetoothRemoteGATTServer_getPrimaryService");
     const resolveId = this._allocId++;
-    this._apis?.bluetoothRemoteGATTServerGetPrimarySevice(uuid, resolveId);
-    const res = await new Promise((resolve) =>
+    const resPromise = new Promise((resolve) =>
       this._operationResolveMap.set(resolveId, resolve)
     );
+    this._apis?.bluetoothRemoteGATTServerGetPrimarySevice(uuid, resolveId);
+    const res = await resPromise;
+    console.log("", "_bluetoothRemoteGATTServer_getPrimaryService back", res);
     return this._createResponseSucess(event, res);
   };
 
@@ -518,6 +486,18 @@ export class BluetoothNMM extends NativeMicroModule {
           ) => {
             this._deviceConnectedResolve(server);
           },
+          // 监听 bluetoothRemoteGATTService 的状态变化
+          bluetoothRemoteGATTServiceListenner: async (
+            type: string,
+            event: Event
+          ) => {
+            console.log(
+              "",
+              "bluetoothRemoteGATTServiceListenner 执行了",
+              type,
+              event
+            );
+          },
           requestDeviceFail: async () => {
             console.error("eror", "查询蓝牙设备失败？？");
             // this._requestDevice();
@@ -620,9 +600,6 @@ export class BluetoothNMM extends NativeMicroModule {
         };
       }
     );
-    bw.on("blur", () => {
-      bw.hide();
-    });
     return bw;
   };
 
@@ -648,7 +625,7 @@ export class BluetoothNMM extends NativeMicroModule {
     this._apis = (await this._browserWindow).getApis<$APIS>();
     this._STATE = STATE.OPENED;
     (await this._browserWindow).on("blur", async () => {
-      (await this._browserWindow)?.hide();
+      // (await this._browserWindow)?.hide();
       this._STATE = STATE.HIDE;
     });
     return {

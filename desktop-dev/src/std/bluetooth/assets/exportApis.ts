@@ -298,7 +298,7 @@ async function bluetoothRemoteGATTServerGetPrimarySevice(
   resolveId: number
 ) {
   if (bluetoothRemoteGATTServer === undefined) {
-    (mainApis as any).deviceGetPrimaryServiceCallback(
+    (mainApis as any).operationCallback(
       {
         success: false,
         error: `bluetoothRemoteGATTServer === undefined`,
@@ -309,9 +309,33 @@ async function bluetoothRemoteGATTServerGetPrimarySevice(
     return;
   }
   bluetoothRemoteGATTServer.getPrimaryService(uuid).then(
-    (_bluetoothRemoteGATTServer) => {
-      bluetoothRemoteGATTService = _bluetoothRemoteGATTServer;
-      (mainApis as any).deviceGetPrimaryServiceCallback(
+    (_bluetoothRemoteGATTService) => {
+      bluetoothRemoteGATTService = _bluetoothRemoteGATTService;
+      // console.log("_bluetoothRemoteGATTService: ", _bluetoothRemoteGATTService);
+      // console.log("", _bluetoothRemoteGATTService.addEventListener);
+
+      // 注意 没有addEventLisener 这个方法
+      // 监听是事件还没有处理
+      // bluetoothRemoteGATTService.addEventListener("serviceadded", (event) => {
+      //   (mainApis as any).bluetoothRemoteGATTServiceListenner(
+      //     "serviceadded",
+      //     event
+      //   );
+      // });
+      // bluetoothRemoteGATTService.addEventListener("servicechanged", (event) => {
+      //   (mainApis as any).bluetoothRemoteGATTServiceListenner(
+      //     "servicechanged",
+      //     event
+      //   );
+      // });
+      // bluetoothRemoteGATTService.addEventListener("serviceremoved", (event) => {
+      //   (mainApis as any).bluetoothRemoteGATTServiceListenner(
+      //     "serviceremoved",
+      //     event
+      //   );
+      // });
+
+      (mainApis as any).operationCallback(
         {
           success: true,
           error: undefined,
@@ -329,7 +353,7 @@ async function bluetoothRemoteGATTServerGetPrimarySevice(
     },
     (error) => {
       bluetoothRemoteGATTService = undefined;
-      (mainApis as any).deviceGetPrimaryServiceCallback(
+      (mainApis as any).operationCallback(
         {
           success: false,
           error: error.message,
