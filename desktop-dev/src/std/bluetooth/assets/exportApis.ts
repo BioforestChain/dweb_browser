@@ -477,6 +477,46 @@ function bluetoothRemoteGATTCharacteristic_readValue(resolveId: number) {
   );
 }
 
+function bluetoothRemoteGATTCharacteristic_writeValue(
+  arrayBuffer: ArrayBuffer,
+  resolveId: number
+) {
+  if (bluetoothRemoteGATTCharacteristic === undefined) {
+    mainApis.operationCallback(
+      {
+        success: false,
+        error: `bluetoothRemoteGATTCharacteristic === undefined`,
+        data: undefined,
+      },
+      resolveId
+    );
+    return;
+  }
+
+  bluetoothRemoteGATTCharacteristic.writeValue(arrayBuffer).then(
+    (value) => {
+      mainApis.operationCallback(
+        {
+          success: true,
+          error: undefined,
+          data: value,
+        },
+        resolveId
+      );
+    },
+    (err) => {
+      mainApis.operationCallback(
+        {
+          success: false,
+          error: err.message,
+          data: undefined,
+        },
+        resolveId
+      );
+    }
+  );
+}
+
 function BluetoothRemoteGATTCharacteristic_getDescriptor(
   uuid: string,
   resolveId: number
@@ -548,11 +588,48 @@ async function bluetoothRemoteGATTDescriptor_readValue(resolveId: number) {
       );
     },
     (err) => {
-      console.error(
-        "error",
-        "bluetoothRemoteGATTDescriptor.readValue() success",
-        err
+      mainApis.operationCallback(
+        {
+          success: false,
+          error: err.message,
+          data: undefined,
+        },
+        resolveId
       );
+    }
+  );
+}
+
+async function bluetoothRemoteGATTDescriptor_writeValue(
+  arrayBuffer: ArrayBuffer,
+  resolveId: number
+) {
+  if (bluetoothRemoteGATTDescriptor === undefined) {
+    mainApis.operationCallback(
+      {
+        success: false,
+        error: `bluetoothRemoteGATTDescriptor === undefined`,
+        data: undefined,
+      },
+      resolveId
+    );
+    return;
+  }
+
+  bluetoothRemoteGATTDescriptor.writeValue(arrayBuffer).then(
+    (value) => {
+      console.log("writeValue success", value);
+      mainApis.operationCallback(
+        {
+          success: true,
+          error: undefined,
+          data: value,
+        },
+        resolveId
+      );
+    },
+    (err) => {
+      console.error("writeValue fail", err);
       mainApis.operationCallback(
         {
           success: false,
@@ -581,8 +658,10 @@ export const APIS = {
   bluetoothRemoteGATTServerGetPrimarySevice,
   bluetoothRemoteGATTService_getCharacteristic,
   bluetoothRemoteGATTCharacteristic_readValue,
+  bluetoothRemoteGATTCharacteristic_writeValue,
   BluetoothRemoteGATTCharacteristic_getDescriptor,
   bluetoothRemoteGATTDescriptor_readValue,
+  bluetoothRemoteGATTDescriptor_writeValue,
   deviceSelectedFailCallback,
 };
 

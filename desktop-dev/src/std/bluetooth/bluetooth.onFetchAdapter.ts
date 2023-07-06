@@ -53,7 +53,6 @@ export class OnFetchAdapter {
     statusCode: number,
     errorMessage: string
   ): Promise<IpcResponse> => {
-    console.error("error");
     return IpcResponse.fromJson(
       event.ipcRequest.req_id,
       statusCode,

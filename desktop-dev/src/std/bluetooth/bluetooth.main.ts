@@ -360,6 +360,22 @@ export class BluetoothNMM extends NativeMicroModule {
     return this._createResponseSucess(event, res);
   };
 
+  private _bluetoothRemoteGATTDescriptor_writeValue: $OnFetch = async (
+    event: FetchEvent
+  ) => {
+    const arrayBuffer = await event.request.arrayBuffer();
+    const resolveId = this._allocId++;
+    const resPromise = new Promise<$ResponseJsonable<unknown>>((resolve) =>
+      this._operationResolveMap.set(resolveId, resolve)
+    );
+    this._apis?.bluetoothRemoteGATTDescriptor_writeValue(
+      arrayBuffer,
+      resolveId
+    );
+    const res = await resPromise;
+    return this._createResponseSucess(event, res);
+  };
+
   private _bluetoothRemoteGATTCharacteristic_readValue: $OnFetch = async (
     event: FetchEvent
   ) => {
@@ -375,6 +391,29 @@ export class BluetoothNMM extends NativeMicroModule {
       this._operationResolveMap.set(resolveId, resolve)
     );
     this._apis?.bluetoothRemoteGATTCharacteristic_readValue(resolveId);
+    const res = await resPromise;
+    return this._createResponseSucess(event, res);
+  };
+
+  private _bluetoothRemoteGATTCharacteristic_writeValue: $OnFetch = async (
+    event: FetchEvent
+  ) => {
+    if (this._STATE === STATE.CLOSED) {
+      return this._createResponseError(
+        event,
+        200,
+        `bluetooth.std.dweb not yet opened!`
+      );
+    }
+    const arrayBuffer = await event.request.arrayBuffer();
+    const resolveId = this._allocId++;
+    const resPromise = new Promise<$ResponseJsonable<unknown>>((resolve) =>
+      this._operationResolveMap.set(resolveId, resolve)
+    );
+    this._apis?.bluetoothRemoteGATTCharacteristic_writeValue(
+      arrayBuffer,
+      resolveId
+    );
     const res = await resPromise;
     return this._createResponseSucess(event, res);
   };
@@ -472,6 +511,11 @@ export class BluetoothNMM extends NativeMicroModule {
         this._bluetoothRemoteGATTCharacteristic_readValue
       )
       .add(
+        "POST",
+        "/bluetooth_remote_gatt_characteristic/write_value",
+        this._bluetoothRemoteGATTCharacteristic_writeValue
+      )
+      .add(
         "GET",
         "/bluetooth_remote_gatt_characteristic/get_descriptor",
         this._bluetoothRemoteGATTCharacteristic_getDescriptor
@@ -480,6 +524,11 @@ export class BluetoothNMM extends NativeMicroModule {
         "GET",
         `/bluetooth_remote_gatt_descriptor/reaed_value`,
         this._bluetoothRemoteGATTDescriptor_readValue
+      )
+      .add(
+        "POST",
+        `/bluetooth_remote_gatt_descriptor/write_value`,
+        this._bluetoothRemoteGATTDescriptor_writeValue
       );
     return this;
   }

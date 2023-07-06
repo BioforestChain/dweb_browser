@@ -23,9 +23,11 @@ const state: {
   uuid: string;
   bluetoothRemoteGATTService?: BluetoothRemoteGATTService;
   bluetoothCharacteristicUUID: string;
+  waritBluetoothRemoteGATTCharacteristicValue?: string;
   bluetoothRemoteGATTCharacteristic?: BluetoothRemoteGATTCharacteristic;
   bluetoothDescriptorUUID: string;
   bluetoothRemoteGATTDescriptor?: BluetoothRemoteGATTDescriptor;
+  writeCharacteristicDescriptorValue?: string;
 } = reactive({
   isOpen: false,
   deviceList: [],
@@ -36,9 +38,11 @@ const state: {
   uuid: "00003802-0000-1000-8000-00805f9b34fb",
   bluetoothRemoteGATTService: undefined,
   bluetoothCharacteristicUUID: "00004a02-0000-1000-8000-00805f9b34fb",
+  waritBluetoothRemoteGATTCharacteristicValue: "写入特性的值",
   bluetoothRemoteGATTCharacteristic: undefined,
   bluetoothDescriptorUUID: "00002902-0000-1000-8000-00805f9b34fb",
   bluetoothRemoteGATTDescriptor: undefined,
+  writeCharacteristicDescriptorValue: "写入特征描述符的内容",
 });
 let bluetooth: HTMLBluetoothElement;
 let bluetoothDevice;
@@ -160,6 +164,21 @@ async function readCharacteristicValue() {
   }
 }
 
+async function waritBluetoothRemoteGATTCharacteristicValue() {
+  if (state.bluetoothRemoteGATTCharacteristic === undefined) {
+    console.error(`state.bluetoothRemoteGATTCharacteristic === undefined`);
+    return;
+  }
+  const res = await state.bluetoothRemoteGATTCharacteristic.writeValue(
+    new TextEncoder().encode(state.writeCharacteristicDescriptorValue)
+  );
+  if (res.success) {
+    console.log("写入特征的值 成功", res.data);
+  } else {
+    console.error("写入特征的值失败", res.error);
+  }
+}
+
 async function readCharacteristicDescriptor() {
   if (state.bluetoothRemoteGATTCharacteristic === undefined) {
     console.error(`state.bluetoothRemoteGATTCharacteristic === undefined`);
@@ -186,6 +205,22 @@ async function readCharacteristicDescriptorValue() {
     console.log("readCharacteristicDescriptorValue success", res.data);
   } else {
     console.error(`readCharacteristicDescriptorValue fail`, res.data);
+  }
+}
+
+async function writeCharacteristicDescriptorValue() {
+  if (state.bluetoothRemoteGATTDescriptor === undefined) {
+    console.error(`state.bluetoothRemoteGATTDescriptor === undefined`);
+    return;
+  }
+  const res = await state.bluetoothRemoteGATTDescriptor?.writeValue(
+    new TextEncoder().encode(state.writeCharacteristicDescriptorValue)
+  );
+
+  if (res.success) {
+    console.log("writeCharacteristicDescriptorValue success", res);
+  } else {
+    console.error("writeCharacteristicDescriptorValue fail", res);
   }
 }
 
@@ -254,13 +289,28 @@ function deviceConnectedIdUpdate(deviceId: string) {
       <v-btn color="indigo-darken-3" @click="readCharacteristicValue">read Characteristic Value </v-btn>
     </article>
     <article class="card-body" v-if="state.bluetoothRemoteGATTCharacteristic !== undefined">
+      <h2 class="card-title">写入特性的值</h2>
+
+      <v-text-field label="属性描述符" v-model="state.waritBluetoothRemoteGATTCharacteristicValue"></v-text-field>
+      <v-btn color="indigo-darken-3" @click="waritBluetoothRemoteGATTCharacteristicValue"
+        >write characteristic Value
+      </v-btn>
+    </article>
+    <article class="card-body" v-if="state.bluetoothRemoteGATTCharacteristic !== undefined">
       <h2 class="card-title">获取特性的描述</h2>
       <v-input v-model="state.bluetoothDescriptorUUID">{{ state.bluetoothCharacteristicUUID }}</v-input>
       <v-btn color="indigo-darken-3" @click="readCharacteristicDescriptor">getDescriptor </v-btn>
     </article>
+
     <article class="card-body" v-if="state.bluetoothRemoteGATTDescriptor !== undefined">
       <h2 class="card-title">读取特性描述述符的值</h2>
       <v-btn color="indigo-darken-3" @click="readCharacteristicDescriptorValue">read Descriptor Value </v-btn>
+    </article>
+    <article class="card-body" v-if="state.bluetoothRemoteGATTDescriptor !== undefined">
+      <h2 class="card-title">写入特性描述符</h2>
+      <!-- <v-input v-model="state.writeCharacteristicDescriptorValue"></v-input> -->
+      <v-text-field label="属性描述符" v-model="state.writeCharacteristicDescriptorValue"></v-text-field>
+      <v-btn color="indigo-darken-3" @click="writeCharacteristicDescriptorValue">write Descriptor Value </v-btn>
     </article>
 
     <!-- <article class="card-body">

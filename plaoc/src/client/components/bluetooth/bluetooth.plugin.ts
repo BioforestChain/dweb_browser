@@ -212,6 +212,23 @@ export class BluetoothRemoteGATTCharacteristic extends EventTarget {
   }
 
   @bindThis
+  async writeValue(arrayBuffer: ArrayBuffer): Promise<$ResponseData<unknown>> {
+    const res = await (
+      await this.plugin.fetchApi(
+        `/bluetooth_remote_gatt_characteristic/write_value`,
+        {
+          method: "POST",
+          body: new Blob([arrayBuffer]),
+          headers: {
+            "Content-Type": "application/octet-stream",
+          },
+        }
+      )
+    ).json();
+    return res;
+  }
+
+  @bindThis
   async getDescriptor(
     uuid: string
   ): Promise<$ResponseData<BluetoothRemoteGATTDescriptor>> {
@@ -249,6 +266,24 @@ export class BluetoothRemoteGATTDescriptor {
         Uint8Array.from([...Object.values(res.data as Object)]).buffer
       );
     }
+    return res;
+  }
+
+  @bindThis
+  async writeValue(arrayBuffer: ArrayBuffer) {
+    const res = await (
+      await this.characteristic.plugin.fetchApi(
+        `/bluetooth_remote_gatt_descriptor/write_value`,
+        {
+          method: "POST",
+          body: new Blob([arrayBuffer]),
+          headers: {
+            "Content-Type": "application/octet-stream",
+          },
+        }
+      )
+    ).json();
+
     return res;
   }
 }
