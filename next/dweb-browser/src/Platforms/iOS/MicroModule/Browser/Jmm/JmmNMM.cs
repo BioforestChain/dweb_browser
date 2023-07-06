@@ -1,8 +1,6 @@
 ﻿using System.Net;
 using System.Web;
 using DwebBrowser.MicroService.Http;
-using DwebBrowserFramework;
-using Foundation;
 using UIKit;
 
 namespace DwebBrowser.MicroService.Browser.Jmm;
@@ -150,18 +148,9 @@ public class JmmNMM : NativeMicroModule
 
             if (jsMicroModule is not null)
             {
-                var data = NSData.FromString(jsMicroModule.Metadata.ToJson(), NSStringEncoding.UTF8);
                 var initDownloadStatus = DownloadStatus.Installed;
 
-                var vc = await IOSNativeMicroModule.RootViewController.WaitPromiseAsync();
-                await MainThread.InvokeOnMainThreadAsync(async () =>
-                {
-                    var manager = new DownloadAppManager(data, (nint)initDownloadStatus);
-
-                    manager.DownloadView.Frame = UIScreen.MainScreen.Bounds;
-                    JmmController.View.AddSubview(manager.DownloadView);
-                    vc.PushViewController(JmmController, true);
-                });
+                await JmmController.OpenDownloadPageAsync(jsMicroModule.Metadata, initDownloadStatus);
 
                 return true;
             }
@@ -185,102 +174,46 @@ public class JmmNMM : NativeMicroModule
         });
     }
 
-    // TODO: 打开下载页面待优化
+    private DownloadStatus _getCurrentDownloadStatus(JmmMetadata jmmMetadata)
+    {
+        var oldJmmMetadata = JmmMetadataDB.QueryJmmMetadata(jmmMetadata.Id);
+        var initDownloadStatus = DownloadStatus.IDLE;
+
+        if (oldJmmMetadata is not null)
+        {
+            var oldSemver = new Semver(oldJmmMetadata.Version);
+            var newSemver = new Semver(jmmMetadata.Version);
+
+            if (newSemver.CompareTo(oldSemver) > 0)
+            {
+                initDownloadStatus = DownloadStatus.NewVersion;
+            }
+            else if (newSemver.CompareTo(oldSemver) == 0)
+            {
+                initDownloadStatus = DownloadStatus.Installed;
+            }
+        }
+
+        return initDownloadStatus;
+    }
+
     private async void _openJmmMetadataInstallPage(JmmMetadata jmmMetadata, URL url)
     {
-        var vc = await IOSNativeMicroModule.RootViewController.WaitPromiseAsync();
-        var data = NSData.FromString(jmmMetadata.ToJson(), NSStringEncoding.UTF8);
-
         if (!jmmMetadata.BundleUrl.StartsWith(Uri.UriSchemeHttp) && !jmmMetadata.BundleUrl.StartsWith(Uri.UriSchemeHttps))
         {
             jmmMetadata.BundleUrl = (new URL(new Uri(url.Uri, jmmMetadata.BundleUrl))).Href;
         }
 
-        await MainThread.InvokeOnMainThreadAsync(async () =>
+        try
         {
-            try
-            {
-                var oldJmmMetadata = JmmMetadataDB.QueryJmmMetadata(jmmMetadata.Id);
-                var initDownloadStatus = DownloadStatus.IDLE;
-
-                if (oldJmmMetadata is not null)
-                {
-                    var oldSemver = new Semver(oldJmmMetadata.Version);
-                    var newSemver = new Semver(jmmMetadata.Version);
-
-                    if (newSemver.CompareTo(oldSemver) > 0)
-                    {
-                        initDownloadStatus = DownloadStatus.NewVersion;
-                    }
-                    else if (newSemver.CompareTo(oldSemver) == 0)
-                    {
-                        initDownloadStatus = DownloadStatus.Installed;
-                    }
-                }
-
-                var manager = new DownloadAppManager(data, (nint)initDownloadStatus);
-
-                manager.DownloadView.Frame = UIScreen.MainScreen.Bounds;
-                JmmController.View.Frame = UIScreen.MainScreen.Bounds;
-                JmmController.View.AddSubview(manager.DownloadView);
-
-                // 无法push同一个UIViewController的实例两次
-                var index = vc.ViewControllers?.ToList().FindIndex(uvc => uvc == JmmController);
-                if (index >= 0)
-                {
-                    // 不是当前controller时，推到最新
-                    if (index != vc.ViewControllers!.Length - 1)
-                    {
-                        vc.PopToViewController(JmmController, true);
-                    }
-                }
-                else
-                {
-                    vc.PushViewController(JmmController, true);
-                }
-
-                // 点击下载
-                manager.ClickDownloadActionWithCallback(async d =>
-                {
-                    switch (d.ToString())
-                    {
-                        case "download":
-                            if (initDownloadStatus == DownloadStatus.NewVersion)
-                            {
-                                JmmController?.CloseApp(jmmMetadata.Id);
-                            }
-                            var jmmDownload = JmmDwebService.Add(jmmMetadata,
-                                 manager.OnDownloadChangeWithDownloadStatus,
-                                 manager.OnListenProgressWithProgress);
-
-                            JmmDwebService.Start();
-                            break;
-                        case "open":
-                            Console.Log("open", jmmMetadata.ToJson());
-                            new JsMicroModule(jmmMetadata).Also((jsMicroModule) =>
-                            {
-                                BootstrapContext.Dns.Install(jsMicroModule);
-                            });
-                            JmmController?.OpenApp(jmmMetadata.Id);
-
-                            break;
-                        default:
-                            break;
-                    }
-                });
-
-                // 点击返回
-                manager.OnBackActionWithCallback(() =>
-                {
-                    vc.PopViewController(true);
-                });
-            }
-            catch (Exception e)
-            {
-                Console.Log("_openJmmMetadataInstallPage", e.Message);
-                Console.Log("_openJmmMetadataInstallPage", e.StackTrace);
-            }
-        });
+            var initDownloadStatus = _getCurrentDownloadStatus(jmmMetadata);
+            await JmmController.OpenDownloadPageAsync(jmmMetadata, initDownloadStatus);
+        }
+        catch (Exception e)
+        {
+            Console.Log("_openJmmMetadataInstallPage", e.Message);
+            Console.Log("_openJmmMetadataInstallPage", e.StackTrace);
+        }
     }
 
     private async void _openJmmMetadataUninstallPage(JsMicroModule jsMicroModule)
