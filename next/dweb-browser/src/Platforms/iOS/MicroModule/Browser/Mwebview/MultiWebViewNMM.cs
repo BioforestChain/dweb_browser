@@ -85,12 +85,9 @@ public class MultiWebViewNMM : IOSNativeMicroModule
         HttpRouter.AddRoute(IpcMethod.Get, "/activate", async (request, ipc) =>
         {
             var remoteMmid = ipc!.Remote.Mmid;
-            var webViewId = request.QueryStringRequired("webview_id");
-
-            Console.Log("REOPEN-WEBVIEW", "remote-mmid: {0} ==> {1}", remoteMmid, webViewId);
             OpenActivity(remoteMmid);
 
-            return new HttpResponseMessage(HttpStatusCode.OK).Also(it => it.Content = new StringContent(webViewId));
+            return new HttpResponseMessage(HttpStatusCode.OK);
         });
     }
 
