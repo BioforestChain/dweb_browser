@@ -80,7 +80,7 @@ export const doBuidCore = async (config: {
       bugs: {
         url: "https://github.com/BioforestChain/dweb_browser/issues",
       },
-      keywords: ["plaoc","dweb"],
+      keywords: ["plaoc", "dweb"],
       devDependencies: config.devDependencies ?? {},
     },
   });

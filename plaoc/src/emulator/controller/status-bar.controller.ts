@@ -18,14 +18,16 @@ export class StatusBarController extends BaseController {
 
     ipc
       .onFetch((event) => {
-        const { pathname, searchParams, ipc } = event;
+        const { pathname, searchParams } = event;
         // 获取状态栏状态
         if (pathname.endsWith("/getState")) {
           const state = this.statusBarGetState();
+          console.log("status-bar getState=>", state);
           return Response.json(state);
         }
         if (pathname.endsWith("/setState")) {
           const states = parseQuery(searchParams, query_state);
+          console.log("status-bar setState=>", states);
           this.statusBarSetState(states);
           return Response.json(null);
         }
@@ -46,8 +48,13 @@ export class StatusBarController extends BaseController {
   })();
 
   observer = new StateObservable(() => {
-    return JSON.stringify(this.state);
+    return JSON.stringify(this.statusBarGetState());
   });
+
+  override emitUpdate(): void {
+    this.observer.notifyObserver();
+    super.emitUpdate();
+  }
 
   state: $BarState = {
     color: "#FFFFFF80",

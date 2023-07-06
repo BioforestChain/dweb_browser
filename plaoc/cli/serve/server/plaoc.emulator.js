@@ -6532,29 +6532,31 @@ var StatusBarController = class extends BaseController {
         visible: zq.boolean().optional()
       });
       ipc.onFetch((event) => {
-        const { pathname, searchParams, ipc: ipc2 } = event;
+        const { pathname, searchParams } = event;
         if (pathname.endsWith("/getState")) {
           const state = this.statusBarGetState();
+          console.log("status-bar getState=>", state);
           return Response.json(state);
         }
         if (pathname.endsWith("/setState")) {
           const states = parseQuery(searchParams, query_state);
+          console.log("status-bar setState=>", states);
           this.statusBarSetState(states);
           return Response.json(null);
         }
         if (pathname.endsWith("/startObserve")) {
-          this.observer.startObserve(ipc2);
+          this.observer.startObserve(ipc);
           return Response.json(true);
         }
         if (pathname.endsWith("/stopObserve")) {
-          this.observer.startObserve(ipc2);
+          this.observer.startObserve(ipc);
           return Response.json("");
         }
       }).forbidden().cors();
       this.emitReady();
     })();
     this.observer = new StateObservable(() => {
-      return JSON.stringify(this.state);
+      return JSON.stringify(this.statusBarGetState());
     });
     this.state = {
       color: "#FFFFFF80",
@@ -6568,6 +6570,10 @@ var StatusBarController = class extends BaseController {
       overlay: false,
       visible: true
     };
+  }
+  emitUpdate() {
+    this.observer.notifyObserver();
+    super.emitUpdate();
   }
   statusBarSetState(state) {
     this.state = {
@@ -7332,7 +7338,7 @@ var NavigationBarController = class extends BaseController {
       this.emitReady();
     })();
     this.observer = new StateObservable(() => {
-      return JSON.stringify(this.state);
+      return JSON.stringify(this.navigationBarGetState());
     });
     this.state = {
       color: "#FFFFFFFF",
@@ -7346,6 +7352,10 @@ var NavigationBarController = class extends BaseController {
       overlay: false,
       visible: true
     };
+  }
+  emitUpdate() {
+    this.observer.notifyObserver();
+    super.emitUpdate();
   }
   navigationBarSetState(state) {
     this.state = {
@@ -7471,6 +7481,10 @@ var VirtualKeyboardController = class extends BaseController {
       overlay: false,
       visible: false
     };
+  }
+  emitUpdate() {
+    this.observer.notifyObserver();
+    super.emitUpdate();
   }
   virtualKeyboardSetOverlay(overlay = true) {
     this.state = {

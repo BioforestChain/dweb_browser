@@ -2,6 +2,7 @@ import { X_PLAOC_QUERY } from "./const.ts";
 import {
   $IpcResponse,
   $MMID,
+  $OnFetchReturn,
   FetchEvent,
   IPC_ROLE,
   PromiseOut,
@@ -17,6 +18,25 @@ export class Server_api extends _Server_api {
   readonly streamMap = new Map<string, ReadableStreamOut<Uint8Array>>();
   readonly responseMap = new Map<number, PromiseOut<$IpcResponse>>();
   readonly jsonlineEnd = simpleEncoder("\n", "utf8");
+  cacheIpc: ((mmid: $MMID) => Promise<ReadableStreamIpc> | undefined) | null =
+    null;
+  /**内部请求事件 */
+  protected override async _onInternal(
+    event: FetchEvent
+  ): Promise<$OnFetchReturn> {
+    const sessionId = event.searchParams.get(X_PLAOC_QUERY.SESSION_ID);
+    if (sessionId) {
+      this.cacheIpc = getConncetdIpc(sessionId);
+    }
+    const chcheFun = this.cacheIpc;
+    if (!chcheFun) {
+      throw new Error("ipc not connect!");
+    }
+    return super._onInternal(
+      event,
+      (mmid) => chcheFun(mmid) ?? jsProcess.connect(mmid)
+    );
+  }
 
   protected override async _onApi(event: FetchEvent) {
     const sessionId = event.searchParams.get(X_PLAOC_QUERY.SESSION_ID);
@@ -50,7 +70,7 @@ export class Server_api extends _Server_api {
     }
     return super._onApi(
       event,
-      (mmid) => getConncetdIpc(sessionId, mmid) ?? jsProcess.connect(mmid)
+      (mmid) => getConncetdIpc(sessionId)(mmid) ?? jsProcess.connect(mmid)
     );
   }
 }
@@ -73,8 +93,11 @@ const forceGetDuplex = (sessionId: string, mmid: $MMID) =>
     mmid,
     () => new PromiseOut()
   );
-const getConncetdIpc = (sessionId: string, mmid: $MMID) =>
-  emulatorDuplexs
-    .get(sessionId)
-    ?.get(mmid)
-    ?.promise.then((duplex) => duplex.streamIpc);
+const getConncetdIpc = (sessionId: string) => {
+  return (mmid: $MMID) => {
+    return emulatorDuplexs
+      .get(sessionId)
+      ?.get(mmid)
+      ?.promise.then((duplex) => duplex.streamIpc);
+  };
+};

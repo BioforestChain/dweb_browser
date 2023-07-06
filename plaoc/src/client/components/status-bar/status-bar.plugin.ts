@@ -49,7 +49,7 @@ export class StatusBarPlugin extends BarPlugin<
       [key]: value,
     });
   }
-  get getState() {
+  override get getState() {
     return this.state.getState;
   }
 }

@@ -51,7 +51,7 @@ export class NavigationBarPlugin extends BarPlugin<
       [key]: value,
     });
   }
-  get getState() {
+  override get getState() {
     return this.state.getState;
   }
 }

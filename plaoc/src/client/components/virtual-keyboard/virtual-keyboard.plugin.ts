@@ -30,15 +30,15 @@ export class VirtualKeyboardPlugin extends InsetsPlugin<
   ) {
     return this.setState({ [key]: value });
   }
-  get getState() {
+  override get getState() {
     return this.state.getState;
   }
   @bindThis
-  setOverlay(overlay: boolean) {
+  override setOverlay(overlay: boolean) {
     return this.setStateByKey("overlay", overlay);
   }
   @bindThis
-  async getOverlay() {
+  override async getOverlay() {
     return (await this.state.getState()).overlay;
   }
 }

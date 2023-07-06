@@ -6430,7 +6430,7 @@ var Server_api = class extends HttpServer {
     return new Response(await result());
   }
   /**内部请求事件 */
-  async _onInternal(event) {
+  async _onInternal(event, connect = (mmid) => jsProcess.connect(mmid)) {
     const href = event.url.href.replace(INTERNAL_PREFIX, "/");
     const url = new URL(href);
     if (url.pathname === "/public-url") {
@@ -6442,7 +6442,7 @@ var Server_api = class extends HttpServer {
       if (mmid === null) {
         throw new Error("observe require mmid");
       }
-      const streamPo = onInternalObserve(mmid);
+      const streamPo = onInternalObserve(mmid, connect);
       return new Response(streamPo.stream);
     }
   }
@@ -6456,7 +6456,7 @@ var Server_api = class extends HttpServer {
     const mmid = new URL(path).host;
     const targetIpc = await connect(mmid);
     const ipcProxyRequest = IpcRequest3.fromStream(
-      jsProcess.fetchIpc.allocReqId(),
+      targetIpc.allocReqId(),
       path,
       event.method,
       event.headers,
@@ -6471,11 +6471,11 @@ var Server_api = class extends HttpServer {
   }
 };
 var ipcObserversMap = /* @__PURE__ */ new Map();
-var onInternalObserve = (mmid) => {
+var onInternalObserve = (mmid, connect = (mmid2) => jsProcess.connect(mmid2)) => {
   const streamPo = new ReadableStreamOut();
   const observers = mapHelper.getOrPut(ipcObserversMap, mmid, (mmid2) => {
     const result = { ipc: new PromiseOut(), obs: /* @__PURE__ */ new Set() };
-    result.ipc.resolve(jsProcess.connect(mmid2));
+    result.ipc.resolve(connect(mmid2));
     result.ipc.promise.then((ipc2) => {
       ipc2.onEvent((event) => {
         if (event.name !== "observe" /* State */) {
@@ -6508,6 +6508,22 @@ var Server_api2 = class extends Server_api {
     this.streamMap = /* @__PURE__ */ new Map();
     this.responseMap = /* @__PURE__ */ new Map();
     this.jsonlineEnd = simpleEncoder("\n", "utf8");
+    this.cacheIpc = null;
+  }
+  /**内部请求事件 */
+  async _onInternal(event) {
+    const sessionId = event.searchParams.get("X-Plaoc-Session-Id" /* SESSION_ID */);
+    if (sessionId) {
+      this.cacheIpc = getConncetdIpc(sessionId);
+    }
+    const chcheFun = this.cacheIpc;
+    if (!chcheFun) {
+      throw new Error("ipc not connect!");
+    }
+    return super._onInternal(
+      event,
+      (mmid) => chcheFun(mmid) ?? jsProcess.connect(mmid)
+    );
   }
   async _onApi(event) {
     const sessionId = event.searchParams.get("X-Plaoc-Session-Id" /* SESSION_ID */);
@@ -6536,7 +6552,7 @@ var Server_api2 = class extends Server_api {
     }
     return super._onApi(
       event,
-      (mmid) => getConncetdIpc(sessionId, mmid) ?? jsProcess.connect(mmid)
+      (mmid) => getConncetdIpc(sessionId)(mmid) ?? jsProcess.connect(mmid)
     );
   }
 };
@@ -6550,7 +6566,11 @@ var forceGetDuplex = (sessionId, mmid) => mapHelper.getOrPut(
   mmid,
   () => new PromiseOut()
 );
-var getConncetdIpc = (sessionId, mmid) => emulatorDuplexs.get(sessionId)?.get(mmid)?.promise.then((duplex) => duplex.streamIpc);
+var getConncetdIpc = (sessionId) => {
+  return (mmid) => {
+    return emulatorDuplexs.get(sessionId)?.get(mmid)?.promise.then((duplex) => duplex.streamIpc);
+  };
+};
 
 // src/server/http-external-server.ts
 var Server_external = class extends HttpServer {
@@ -6674,7 +6694,7 @@ var Server_www = class extends HttpServer {
       pathname = "/index.html";
     }
     const remoteIpcResponse = await jsProcess.nativeRequest(
-      `file:///sys/plaoc-demo${pathname}?mode=stream`
+      `file:///usr/www${pathname}?mode=stream`
       // usr/www
     );
     const ipcResponse = new IpcResponse2(

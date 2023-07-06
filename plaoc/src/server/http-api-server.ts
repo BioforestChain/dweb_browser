@@ -7,7 +7,7 @@ import {
   jsProcess,
 } from "./deps.ts";
 import { HttpServer } from "./http-helper.ts";
-const INTERNAL_PREFIX = "/internal/";
+export const INTERNAL_PREFIX = "/internal/";
 const DNS_PREFIX = "/dns.sys.dweb/";
 
 /**给前端的api服务 */
@@ -61,7 +61,10 @@ export class Server_api extends HttpServer {
   }
 
   /**内部请求事件 */
-  protected async _onInternal(event: FetchEvent): Promise<$OnFetchReturn> {
+  protected async _onInternal(
+    event: FetchEvent,
+    connect = (mmid: $MMID) => jsProcess.connect(mmid)
+  ): Promise<$OnFetchReturn> {
     const href = event.url.href.replace(INTERNAL_PREFIX, "/");
     const url = new URL(href);
     // 转发public url
@@ -75,7 +78,7 @@ export class Server_api extends HttpServer {
       if (mmid === null) {
         throw new Error("observe require mmid");
       }
-      const streamPo = onInternalObserve(mmid);
+      const streamPo = onInternalObserve(mmid, connect);
       return new Response(streamPo.stream);
     }
   }
@@ -94,7 +97,7 @@ export class Server_api extends HttpServer {
     const mmid = new URL(path).host;
     const targetIpc = await connect(mmid as $MMID);
     const ipcProxyRequest = IpcRequest.fromStream(
-      jsProcess.fetchIpc.allocReqId(),
+      targetIpc.allocReqId(),
       path,
       event.method,
       event.headers,
@@ -130,11 +133,14 @@ const ipcObserversMap = new Map<
 >();
 
 /**监听属性的变化 */
-const onInternalObserve = (mmid: $MMID) => {
+const onInternalObserve = (
+  mmid: $MMID,
+  connect = (mmid: $MMID) => jsProcess.connect(mmid)
+) => {
   const streamPo = new ReadableStreamOut<Uint8Array>();
   const observers = mapHelper.getOrPut(ipcObserversMap, mmid, (mmid) => {
     const result = { ipc: new PromiseOut<$Ipc>(), obs: new Set() };
-    result.ipc.resolve(jsProcess.connect(mmid));
+    result.ipc.resolve(connect(mmid));
     result.ipc.promise.then((ipc) => {
       ipc.onEvent((event) => {
         if (event.name !== OBSERVE.State) {

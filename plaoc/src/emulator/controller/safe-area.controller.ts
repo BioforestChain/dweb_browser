@@ -45,6 +45,11 @@ export class SafeAreaController extends BaseController {
     return JSON.stringify(this.state);
   });
 
+  override emitUpdate(): void {
+    this.observer.notifyObserver();
+    super.emitUpdate();
+  }
+
   state = {
     overlay: false,
   };

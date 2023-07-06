@@ -45,6 +45,11 @@ export class VirtualKeyboardController extends BaseController {
     return JSON.stringify(this.state);
   });
 
+  override emitUpdate(): void {
+    this.observer.notifyObserver();
+    super.emitUpdate();
+  }
+
   // 控制显示隐藏
   isShowVirtualKeyboard = false;
 

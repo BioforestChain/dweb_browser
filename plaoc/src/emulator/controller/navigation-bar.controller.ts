@@ -45,8 +45,14 @@ export class NavigationBarController extends BaseController {
     this.emitReady();
   })();
   observer = new StateObservable(() => {
-    return JSON.stringify(this.state);
+    return JSON.stringify(this.navigationBarGetState());
   });
+
+  override emitUpdate(): void {
+    this.observer.notifyObserver();
+    super.emitUpdate();
+  }
+
   state: $BarState = {
     color: "#FFFFFFFF",
     style: "DEFAULT",
