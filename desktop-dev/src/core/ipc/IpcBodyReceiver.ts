@@ -73,6 +73,11 @@ const $metaToStream = (metaBody: MetaBody, ipc: Ipc) => {
   const stream = new ReadableStream<Uint8Array>(
     {
       start(controller) {
+        /// ipc 一旦关闭，这个流也要关闭，因为只有这个ipc能为它提供数据
+        ipc.onClose(() => {
+          controller.close();
+        });
+
         /// 如果有初始帧，直接存起来
         let firstData: undefined | Uint8Array;
         switch (metaBody.type_encoding) {

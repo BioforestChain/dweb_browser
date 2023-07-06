@@ -100,6 +100,8 @@ export const listenHttpDwebServer = async (
     .stream();
 
   httpServerIpc.bindIncomeStream(httpIncomeRequestStream);
+  /// 保存连接对象到池子中
+  microModule.addToIpcSet(httpServerIpc);
   return httpServerIpc;
 };
 

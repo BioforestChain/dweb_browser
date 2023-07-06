@@ -31,6 +31,12 @@ export interface $MicroModule extends $IpcMicroModuleInfo {
     init?: RequestInit
   ): Promise<Response> &
     typeof import("../helper/fetchExtends/index.ts")["fetchExtends"];
+
+  /**
+   * 添加双工连接到自己的池子中，但自己销毁，这些双工连接都会被断掉
+   * @param ipc
+   */
+  addToIpcSet(ipc: import("./ipc/ipc.ts").Ipc): void;
 }
 
 export const enum MWEBVIEW_LIFECYCLE_EVENT {

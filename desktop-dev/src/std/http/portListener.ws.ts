@@ -11,7 +11,7 @@ import {
   WebSocketServer,
 } from "../../helper/websocketServerHelper.ts";
 import { formatErrorToHtml } from "./defaultErrorResponse.ts";
-import type { HttpServerNMM } from "./http-server.ts";
+import type { HttpServerNMM } from "./http.nmm.ts";
 import type { WebSocketDuplex } from "./types.ts";
 
 export function initWebSocketServer(this: HttpServerNMM, server: HttpServer) {

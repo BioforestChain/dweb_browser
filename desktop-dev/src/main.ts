@@ -5,7 +5,7 @@ import { JsProcessNMM } from "./browser/js-process/js-process.ts";
 import { MultiWebviewNMM } from "./browser/multi-webview/multi-webview.mobile.ts";
 import { setFilter } from "./helper/devtools.ts";
 import { BluetoothNMM } from "./std/bluetooth/bluetooth.main.ts";
-import { HttpServerNMM } from "./std/http/http-server.ts";
+import { HttpServerNMM } from "./std/http/http.nmm.ts";
 import { BarcodeScanningNMM } from "./sys/barcode-scanning/barcode-scanning.main.ts";
 import { BootNMM } from "./sys/boot/boot.ts";
 import { DnsNMM } from "./sys/dns/dns.ts";

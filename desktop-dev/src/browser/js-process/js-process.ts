@@ -11,6 +11,7 @@ import {
   IpcResponse,
 } from "../../core/ipc/index.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
+import { $MMID } from "../../core/types.ts";
 import { once } from "../../helper/$once.ts";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
@@ -185,7 +186,7 @@ export class JsProcessNMM extends NativeMicroModule {
       return nww.getApis<$APIS>();
     })();
 
-    const ipcProcessIdMap = new WeakMap<Ipc, Map<string, PromiseOut<number>>>();
+    const ipcProcessIdMap = new Map<$MMID, Map<string, PromiseOut<number>>>();
     /// 创建 web worker
     this.registerCommonIpcOnMessageHandler({
       method: "POST",
@@ -196,7 +197,7 @@ export class JsProcessNMM extends NativeMicroModule {
       handler: async (args, ipc, requestMessage) => {
         const processIdMap = mapHelper.getOrPut(
           ipcProcessIdMap,
-          ipc,
+          ipc.remote.mmid,
           () => new Map()
         );
 
@@ -206,9 +207,8 @@ export class JsProcessNMM extends NativeMicroModule {
           );
         }
 
-        ipc.onClose(() => {
-          ipcProcessIdMap.delete(ipc);
-        });
+        // // 关闭代码通道
+        // closeHttpDwebServer(this, { port: 80, subdomain: ipc.remote.mmid });
 
         const po = new PromiseOut<number>();
         processIdMap.set(args.process_id, po);
@@ -220,6 +220,16 @@ export class JsProcessNMM extends NativeMicroModule {
           requestMessage
         );
         po.resolve(result.processInfo.process_id);
+
+        /// 创建成功了，注册销毁函数
+        ipc.onClose(() => {
+          if (processIdMap.delete(args.process_id)) {
+            ipcProcessIdMap.delete(ipc.remote.mmid);
+            if (processIdMap.size === 0) {
+              apis.destroyProcess(result.processInfo.process_id);
+            }
+          }
+        });
 
         return result.streamIpc.stream;
       },
@@ -239,7 +249,9 @@ export class JsProcessNMM extends NativeMicroModule {
       },
       output: "number",
       handler: async (args, ipc) => {
-        const process_id_po = ipcProcessIdMap.get(ipc)?.get(args.process_id);
+        const process_id_po = ipcProcessIdMap
+          .get(ipc.remote.mmid)
+          ?.get(args.process_id);
         if (process_id_po === undefined) {
           throw new Error(
             `ipc:${ipc.remote.mmid}/processId:${args.process_id} invalid`
@@ -263,7 +275,9 @@ export class JsProcessNMM extends NativeMicroModule {
       if (event.pathname === "/create-ipc-fail") {
         const { ipc } = event;
         const args = parseQuery(event.searchParams, query_createIpcFail);
-        const process_id_po = ipcProcessIdMap.get(ipc)?.get(args.process_id);
+        const process_id_po = ipcProcessIdMap
+          .get(ipc.remote.mmid)
+          ?.get(args.process_id);
         if (process_id_po === undefined) {
           throw new Error(
             `ipc:${ipc.remote.mmid}/processId:${args.process_id} invalid`
@@ -276,13 +290,13 @@ export class JsProcessNMM extends NativeMicroModule {
     });
 
     this.registerCommonIpcOnMessageHandler({
-      pathname: "/close-process",
+      pathname: "/close-all-process",
       matchMode: "full",
       input: {},
       output: "boolean",
       handler: async (args, ipc, request) => {
         if (nww === undefined) return false;
-        const processMap = ipcProcessIdMap.get(ipc);
+        const processMap = ipcProcessIdMap.get(ipc.remote.mmid);
         if (processMap == null) return true;
         // 关闭程序
         processMap.forEach(async (po, _processId) => {

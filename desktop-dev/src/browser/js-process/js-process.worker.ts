@@ -270,15 +270,26 @@ export class JsProcessMicroModule implements $MicroModule {
       this.fetchIpc.postMessage(
         IpcEvent.fromText("dns/connect", JSON.stringify({ mmid }))
       );
+      ipc_po.onSuccess((ipc) => {
+        ipc.onClose(() => {
+          this._ipcConnectsMap.delete(ipc.remote.mmid);
+        });
+      });
       return ipc_po;
     }).promise;
   }
 
+  private _ipcSet = new Set<Ipc>();
+  addToIpcSet(ipc: Ipc) {
+    this._ipcSet.add(ipc);
+    ipc.onClose(() => {
+      this._ipcSet.delete(ipc);
+    });
+  }
+
   private _connectSignal = createSignal<$Callback<[Ipc]>>(false);
   beConnect(ipc: Ipc) {
-    ipc.onClose(() => {
-      this._ipcConnectsMap.delete(ipc.remote.mmid);
-    });
+    this.addToIpcSet(ipc);
     this._connectSignal.emit(ipc);
   }
   onConnect(cb: $Callback<[Ipc]>) {

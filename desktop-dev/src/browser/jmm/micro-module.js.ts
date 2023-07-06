@@ -71,10 +71,7 @@ export class JsMicroModule extends MicroModule {
    * 所以不会和其它程序所使用的 pid 冲突
    */
   private _process_id?: string;
-  private _streamIpc: ReadableStreamIpc = new ReadableStreamIpc(
-    this,
-    IPC_ROLE.SERVER
-  );
+  // private _streamIpc = new ReadableStreamIpc(this, IPC_ROLE.SERVER);
   private _jsIpc: Ipc | undefined;
 
   /** 每个 JMM 启动都要依赖于某一个js */
@@ -86,16 +83,17 @@ export class JsMicroModule extends MicroModule {
     const pid = Math.ceil(Math.random() * 1000).toString();
     this._process_id = pid;
     // 这个 streamIpc 专门服务于 file://js.browser.dweb/create-process
+    const streamIpc = new ReadableStreamIpc(this, IPC_ROLE.SERVER);
     // 用来提供 JsMicroModule 匹配的 worker.js 代码
-    this._streamIpc.onRequest(async (request) => {
+    streamIpc.onRequest(async (request) => {
       if (request.parsed_url.pathname.endsWith("/")) {
-        this._streamIpc.postMessage(
+        streamIpc.postMessage(
           IpcResponse.fromText(
             request.req_id,
             403,
             undefined,
             "Forbidden",
-            this._streamIpc
+            streamIpc
           )
         );
       } else {
@@ -104,20 +102,20 @@ export class JsMicroModule extends MicroModule {
           this.metadata.config.server.root + request.parsed_url.pathname
         ).text();
 
-        this._streamIpc.postMessage(
+        streamIpc.postMessage(
           IpcResponse.fromText(
             request.req_id,
             200,
             undefined,
             main_code,
-            this._streamIpc
+            streamIpc
           )
         );
       }
     });
 
     // 创建一个 streamIpc
-    void this._streamIpc.bindIncomeStream(
+    void streamIpc.bindIncomeStream(
       this.nativeFetch(
         buildUrl(new URL(`file://js.browser.dweb/create-process`), {
           search: {
@@ -127,10 +125,11 @@ export class JsMicroModule extends MicroModule {
         }),
         {
           method: "POST",
-          body: this._streamIpc.stream,
+          body: streamIpc.stream,
         }
       ).stream()
     );
+    this.addToIpcSet(streamIpc);
 
     [this._jsIpc] = await context.dns.connect("js.browser.dweb");
 
@@ -185,7 +184,6 @@ export class JsMicroModule extends MicroModule {
         context.dns.restart(this.mmid);
       }
     });
-    this.addToIpcSet(this._streamIpc);
   }
   private _fromMmid_originIpc_map = new Map<$MMID, PromiseOut<Ipc>>();
   ipcBridge(fromMmid: $MMID, targetIpc?: Ipc) {
@@ -261,8 +259,6 @@ export class JsMicroModule extends MicroModule {
   }
 
   _shutdown() {
-    // 关闭 streamIpc
-    this._streamIpc.close();
     // 关闭 messagePortIpc
     this._jsIpc!.close();
     // 删除 _fromMmid_originIpc_map 里面的ipc
@@ -273,7 +269,7 @@ export class JsMicroModule extends MicroModule {
     /**
      * 发送指令，关停js进程
      */
-    this.nativeFetch("file://js.browser.dweb/close-process");
+    this.nativeFetch("file://js.browser.dweb/close-all-process");
     this._process_id = undefined;
   }
 }

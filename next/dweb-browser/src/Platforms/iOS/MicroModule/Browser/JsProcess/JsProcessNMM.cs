@@ -154,6 +154,20 @@ public class JsProcessNMM : NativeMicroModule
             // 返回 port_id
             var js_port_id = await _createIpc(ipc, apis, process_id, mmid);
             Console.Log("create-ipc", "js_port_id:{0}", js_port_id);
+
+            // 创建成功了，注册销毁函数
+            ipc.OnClose += async (_) =>
+            {
+                if (processIdMap.Remove(processId))
+                {
+                    await apis.DestroyProcess(js_port_id);
+                    if (processIdMap.Count() == 0)
+                    {
+                        ipcProcessIdMap.Remove(ipc.Remote.Mmid);
+                    }
+                }
+            };
+
             return js_port_id;
         });
 
@@ -178,11 +192,11 @@ public class JsProcessNMM : NativeMicroModule
         });
 
         /// 关闭所有的 process
-        HttpRouter.AddRoute(IpcMethod.Get, "/close-process", async (request, ipc) =>
+        HttpRouter.AddRoute(IpcMethod.Get, "/close-all-process", async (request, ipc) =>
         {
             _ = ipc ?? throw new Exception("no found ipc");
 
-            Console.Log("close-process", "{0}/processId", ipc.Remote.Mmid);
+            Console.Log("close-all-process", "{0}/processId", ipc.Remote.Mmid);
             if (ipcProcessIdMap.Remove(ipc.Remote.Mmid, out var processMap))
             {
                 /// 关闭程序

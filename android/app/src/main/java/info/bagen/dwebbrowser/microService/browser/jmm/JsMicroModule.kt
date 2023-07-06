@@ -272,7 +272,7 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
     override suspend fun _shutdown() {
         debugJsMM("closeJsProcessSignal emit", "$mmid/$metadata")
         /// 发送指令，关停js进程
-        nativeFetch("file://js.browser.dweb/close-process")
+        nativeFetch("file://js.browser.dweb/close-all-process")
         closeJsProcessSignal.emit()
         processId = null
     }
