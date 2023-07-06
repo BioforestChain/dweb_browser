@@ -223,6 +223,7 @@
 		F34A476C2A4D74F3001E105A /* DownloadAppManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadAppManager.swift; sourceTree = "<group>"; };
 		F3D5AA922A52BF99007C93D0 /* DwebBrowserFramework.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = DwebBrowserFramework.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F3D5AA942A52BF99007C93D0 /* DwebBrowserFramework.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DwebBrowserFramework.h; sourceTree = "<group>"; };
+		F3D912E42A56663600BCBE4E /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX13.3.sdk/System/Library/Frameworks/CoreData.framework; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -250,6 +251,7 @@
 				F028997529F7C38500B8754A /* DwebBrowser */,
 				F3D5AA932A52BF99007C93D0 /* DwebBrowserFramework */,
 				F028997429F7C38500B8754A /* Products */,
+				F3D912E32A56663600BCBE4E /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -456,6 +458,14 @@
 				F3D5AA942A52BF99007C93D0 /* DwebBrowserFramework.h */,
 			);
 			path = DwebBrowserFramework;
+			sourceTree = "<group>";
+		};
+		F3D912E32A56663600BCBE4E /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				F3D912E42A56663600BCBE4E /* CoreData.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -903,6 +913,7 @@
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				ENABLE_MODULE_VERIFIER = YES;
+				ENABLE_ON_DEMAND_RESOURCES = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
@@ -938,6 +949,7 @@
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				ENABLE_MODULE_VERIFIER = YES;
+				ENABLE_ON_DEMAND_RESOURCES = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";

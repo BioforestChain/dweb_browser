@@ -47,7 +47,7 @@ struct DownloadButtonView: View {
                         }
                     } else {
                         let dict = ["type": "open"]
-                        NotificationCenter.default.post(name: NSNotification.Name.downloadApp, object: nil, userInfo: dict)
+                        NotificationCenter.default.post(name: Notification.Name.downloadApp, object: nil, userInfo: dict)
                     }
                 } label: {
                     Text(content)
@@ -130,7 +130,7 @@ struct DownloadButtonView: View {
                     isLoading = true
                     DispatchQueue.main.async {
                         let dict = ["type": "download"]
-                        NotificationCenter.default.post(name: NSNotification.Name.downloadApp, object: nil, userInfo: dict)
+                        NotificationCenter.default.post(name: Notification.Name.downloadApp, object: nil, userInfo: dict)
                     }
                 }
             }

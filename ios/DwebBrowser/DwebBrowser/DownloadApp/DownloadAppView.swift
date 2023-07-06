@@ -92,7 +92,7 @@ struct DownloadAppView: View {
         ZStack(alignment: .center) {
             HStack(alignment: .center) {
                 Button {
-                    NotificationCenter.default.post(name: NSNotification.Name.backToLastView, object: nil)
+                    NotificationCenter.default.post(name: Notification.Name.backToLastView, object: nil)
                 } label: {
                     HStack {
                         Image(systemName: "chevron.left")

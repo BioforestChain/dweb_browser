@@ -23,11 +23,11 @@ public class DownloadAppManager: NSObject {
         let controller = UIHostingController(rootView: DownloadAppView(modelData: data, downloadStatus: DownloadStatus(rawValue: downloadStatus) ?? DownloadStatus.IDLE))
         self.downloadView = controller.view
         
-        NotificationCenter.default.addObserver(forName: NSNotification.Name.downloadApp, object: nil, queue: .main) { noti in
+        NotificationCenter.default.addObserver(forName: Notification.Name.downloadApp, object: nil, queue: .main) { noti in
             self.callback?(noti.userInfo?["type"] as? String ?? "")
         }
         
-        NotificationCenter.default.addObserver(forName: NSNotification.Name.backToLastView, object: nil, queue: .main) { _ in
+        NotificationCenter.default.addObserver(forName: Notification.Name.backToLastView, object: nil, queue: .main) { _ in
             self.backCallback?()
         }
     }
@@ -47,9 +47,9 @@ public class DownloadAppManager: NSObject {
     @objc public func onDownloadChange(downloadStatus: Int) {
         switch DownloadStatus(rawValue: downloadStatus) {
         case .Installed:
-            NotificationCenter.default.post(name: NSNotification.Name.downloadComplete, object: nil)
+            NotificationCenter.default.post(name: Notification.Name.downloadComplete, object: nil)
         case .Fail:
-            NotificationCenter.default.post(name: NSNotification.Name.downloadFail, object: nil)
+            NotificationCenter.default.post(name: Notification.Name.downloadFail, object: nil)
         default:
             break
         }
