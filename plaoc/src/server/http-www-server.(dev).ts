@@ -98,12 +98,7 @@ export class Server_www extends _Server_www {
               <script src="./plaoc.emulator.js?${X_PLAOC_QUERY.EMULATOR}=${isEnableEmulator}"></script>
             </head>
             <body>
-              <root-comp>
-                <iframe
-                  style="width:100%;height:100%;border:0;"
-                  src="${indexUrl.href}"
-                ></iframe>
-              </root-comp>
+              <root-comp src=${JSON.stringify(indexUrl.href)}></root-comp>
             </body>
           </html>
         `,

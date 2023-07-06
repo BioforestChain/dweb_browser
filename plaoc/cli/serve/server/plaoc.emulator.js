@@ -7517,7 +7517,7 @@ var VirtualKeyboardController = class extends BaseController {
   }
 };
 
-// https://esm.sh/v124/lit-html@2.7.4/denonext/static.js
+// https://esm.sh/v124/lit-html@2.7.4/deno/static.js
 var E5;
 var T3 = window;
 var m5 = T3.trustedTypes;
@@ -7806,8 +7806,68 @@ var tt4 = (r3) => (t2, ...e3) => {
 var $t2 = tt4(Q4);
 var dt3 = tt4(X4);
 
+// src/emulator/emulator-toolbar.html.ts
+var TAG = "emulator-toolbar";
+var EmulatorToolbarElement = class extends n {
+  constructor() {
+    super(...arguments);
+    this.url = "";
+    this._on_keydown_reload = (e3) => {
+      e3 = e3 || window.event;
+      if (e3.ctrlKey && e3.keyCode == 82 || //ctrl+R
+      e3.keyCode == 116) {
+        debugger;
+      }
+    };
+  }
+  connectedCallback() {
+    super.connectedCallback();
+    document.addEventListener("keydown", this._on_keydown_reload);
+  }
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    document.removeEventListener("keydown", this._on_keydown_reload);
+  }
+  render() {
+    return $t2`
+      <div class="bar">
+        <input
+          .value=${this.url}
+          readonly
+          @input=${(e3) => {
+      this.url = e3.target.value;
+    }}
+        />
+      </div>
+    `;
+  }
+};
+EmulatorToolbarElement.styles = createAllCSS();
+__decorateClass([
+  y6({ type: String })
+], EmulatorToolbarElement.prototype, "url", 2);
+EmulatorToolbarElement = __decorateClass([
+  c4(TAG)
+], EmulatorToolbarElement);
+function createAllCSS() {
+  return [
+    C6`
+      :host {
+        display: block;
+      }
+      .bar {
+        background: #00000033;
+      }
+      input {
+        width: 100%;
+        height: 2em;
+      }
+    `
+  ];
+}
+
 // src/emulator/multi-webview-comp-biometrics.html.ts
-var TAG = "multi-webview-comp-biometrics";
+var TAG2 = "multi-webview-comp-biometrics";
 var MultiWebviewCompBiometrics = class extends n {
   pass() {
     console.error("\u70B9\u51FB\u4E86 pass \u4F46\u662F\u8FD8\u6CA1\u6709\u5904\u7406");
@@ -7831,11 +7891,11 @@ var MultiWebviewCompBiometrics = class extends n {
     `;
   }
 };
-MultiWebviewCompBiometrics.styles = createAllCSS();
+MultiWebviewCompBiometrics.styles = createAllCSS2();
 MultiWebviewCompBiometrics = __decorateClass([
-  c4(TAG)
+  c4(TAG2)
 ], MultiWebviewCompBiometrics);
-function createAllCSS() {
+function createAllCSS2() {
   return [
     C6`
       :host {
@@ -7886,7 +7946,7 @@ function createAllCSS() {
 }
 
 // src/emulator/multi-webview-comp-haptics.html.ts
-var TAG2 = "multi-webview-comp-haptics";
+var TAG3 = "multi-webview-comp-haptics";
 var MultiWebviewCompHaptics = class extends n {
   constructor() {
     super(...arguments);
@@ -7909,14 +7969,14 @@ var MultiWebviewCompHaptics = class extends n {
     `;
   }
 };
-MultiWebviewCompHaptics.styles = createAllCSS2();
+MultiWebviewCompHaptics.styles = createAllCSS3();
 __decorateClass([
   y6({ type: String })
 ], MultiWebviewCompHaptics.prototype, "text", 2);
 MultiWebviewCompHaptics = __decorateClass([
-  c4(TAG2)
+  c4(TAG3)
 ], MultiWebviewCompHaptics);
-function createAllCSS2() {
+function createAllCSS3() {
   return [
     C6`
       :host {
@@ -7960,7 +8020,7 @@ function createAllCSS2() {
 }
 
 // src/emulator/multi-webview-comp-mobile-shell.html.ts
-var TAG3 = "multi-webview-comp-mobile-shell";
+var TAG4 = "multi-webview-comp-mobile-shell";
 var MultiWebViewCompMobileShell = class extends n {
   /**
    *
@@ -8059,14 +8119,14 @@ var MultiWebViewCompMobileShell = class extends n {
     `;
   }
 };
-MultiWebViewCompMobileShell.styles = createAllCSS3();
+MultiWebViewCompMobileShell.styles = createAllCSS4();
 __decorateClass([
   y8(".app_content_container")
 ], MultiWebViewCompMobileShell.prototype, "appContentContainer", 2);
 MultiWebViewCompMobileShell = __decorateClass([
-  c4(TAG3)
+  c4(TAG4)
 ], MultiWebViewCompMobileShell);
-function createAllCSS3() {
+function createAllCSS4() {
   return [
     C6`
       :host {
@@ -8436,7 +8496,7 @@ var ut3 = Q5(class extends I4 {
 });
 
 // src/emulator/multi-webview-comp-navigator-bar.html.ts
-var TAG4 = "multi-webview-comp-navigation-bar";
+var TAG5 = "multi-webview-comp-navigation-bar";
 var MultiWebviewCompNavigationBar = class extends n {
   constructor() {
     super(...arguments);
@@ -8535,7 +8595,7 @@ var MultiWebviewCompNavigationBar = class extends n {
     `;
   }
 };
-MultiWebviewCompNavigationBar.styles = createAllCSS4();
+MultiWebviewCompNavigationBar.styles = createAllCSS5();
 __decorateClass([
   y6({ type: String })
 ], MultiWebviewCompNavigationBar.prototype, "_color", 2);
@@ -8552,9 +8612,9 @@ __decorateClass([
   y6({ type: Object })
 ], MultiWebviewCompNavigationBar.prototype, "_insets", 2);
 MultiWebviewCompNavigationBar = __decorateClass([
-  c4(TAG4)
+  c4(TAG5)
 ], MultiWebviewCompNavigationBar);
-function createAllCSS4() {
+function createAllCSS5() {
   return [
     C6`
       :host {
@@ -8643,7 +8703,7 @@ function createAllCSS4() {
 }
 
 // src/emulator/multi-webview-comp-share.html.ts
-var TAG5 = "multi-webview-comp-share";
+var TAG6 = "multi-webview-comp-share";
 var MultiWebviewCompShare = class extends n {
   constructor() {
     super(...arguments);
@@ -8677,7 +8737,7 @@ var MultiWebviewCompShare = class extends n {
     `;
   }
 };
-MultiWebviewCompShare.styles = createAllCSS5();
+MultiWebviewCompShare.styles = createAllCSS6();
 __decorateClass([
   y6({ type: String })
 ], MultiWebviewCompShare.prototype, "_title", 2);
@@ -8694,9 +8754,9 @@ __decorateClass([
   y6({ type: String })
 ], MultiWebviewCompShare.prototype, "_filename", 2);
 MultiWebviewCompShare = __decorateClass([
-  c4(TAG5)
+  c4(TAG6)
 ], MultiWebviewCompShare);
-function createAllCSS5() {
+function createAllCSS6() {
   return [
     C6`
       :host {
@@ -8786,7 +8846,7 @@ function createAllCSS5() {
   ];
 }
 
-// https://esm.sh/v124/lit-html@2.7.4/denonext/directives/class-map.js
+// https://esm.sh/v124/lit-html@2.7.4/deno/directives/class-map.js
 var I5;
 var w7 = window;
 var y12 = w7.trustedTypes;
@@ -9101,7 +9161,7 @@ var at3 = Q6(class extends S6 {
 });
 
 // src/emulator/multi-webview-comp-status-bar.html.ts
-var TAG6 = "multi-webview-comp-status-bar";
+var TAG7 = "multi-webview-comp-status-bar";
 var MultiWebviewCompStatusBar = class extends n {
   constructor() {
     super(...arguments);
@@ -9221,7 +9281,7 @@ var MultiWebviewCompStatusBar = class extends n {
     `;
   }
 };
-MultiWebviewCompStatusBar.styles = createAllCSS6();
+MultiWebviewCompStatusBar.styles = createAllCSS7();
 __decorateClass([
   y6({ type: String })
 ], MultiWebviewCompStatusBar.prototype, "_color", 2);
@@ -9241,9 +9301,9 @@ __decorateClass([
   y6({ type: Boolean })
 ], MultiWebviewCompStatusBar.prototype, "_torchIsOpen", 2);
 MultiWebviewCompStatusBar = __decorateClass([
-  c4(TAG6)
+  c4(TAG7)
 ], MultiWebviewCompStatusBar);
-function createAllCSS6() {
+function createAllCSS7() {
   return [
     C6`
       :host {
@@ -9357,7 +9417,7 @@ function createAllCSS6() {
 }
 
 // src/emulator/multi-webview-comp-toast.html.ts
-var TAG7 = "multi-webview-comp-toast";
+var TAG8 = "multi-webview-comp-toast";
 var MultiWebviewCompToast = class extends n {
   constructor() {
     super(...arguments);
@@ -9398,7 +9458,7 @@ var MultiWebviewCompToast = class extends n {
     `;
   }
 };
-MultiWebviewCompToast.styles = createAllCSS7();
+MultiWebviewCompToast.styles = createAllCSS8();
 MultiWebviewCompToast.properties = {
   _beforeEntry: { state: true }
 };
@@ -9415,9 +9475,9 @@ __decorateClass([
   y7()
 ], MultiWebviewCompToast.prototype, "_beforeEntry", 2);
 MultiWebviewCompToast = __decorateClass([
-  c4(TAG7)
+  c4(TAG8)
 ], MultiWebviewCompToast);
-function createAllCSS7() {
+function createAllCSS8() {
   return [
     C6`
       .container {
@@ -9854,7 +9914,7 @@ var Ct4 = lt3(class extends j9 {
 });
 
 // src/emulator/multi-webview-comp-virtual-keyboard.html.ts
-var TAG8 = "multi-webview-comp-virtual-keyboard";
+var TAG9 = "multi-webview-comp-virtual-keyboard";
 var MultiWebviewCompVirtualKeyboard = class extends n {
   constructor() {
     super(...arguments);
@@ -9986,7 +10046,7 @@ var MultiWebviewCompVirtualKeyboard = class extends n {
     `;
   }
 };
-MultiWebviewCompVirtualKeyboard.styles = createAllCSS8();
+MultiWebviewCompVirtualKeyboard.styles = createAllCSS9();
 __decorateClass([
   y8(".container")
 ], MultiWebviewCompVirtualKeyboard.prototype, "_elContainer", 2);
@@ -10000,9 +10060,9 @@ __decorateClass([
   y6({ type: Number })
 ], MultiWebviewCompVirtualKeyboard.prototype, "_navigation_bar_height", 2);
 MultiWebviewCompVirtualKeyboard = __decorateClass([
-  c4(TAG8)
+  c4(TAG9)
 ], MultiWebviewCompVirtualKeyboard);
-function createAllCSS8() {
+function createAllCSS9() {
   return [
     C6`
       :host {
@@ -10106,11 +10166,23 @@ function createAllCSS8() {
 }
 
 // src/emulator/index.html.ts
-var TAG9 = "root-comp";
+var TAG10 = "root-comp";
 var RootComp = class extends n {
   constructor() {
     super(...arguments);
+    this.src = "about:blank";
     this.controllers = /* @__PURE__ */ new Set();
+    this._bindReloadShortcut = () => {
+      debugger;
+      this.iframeEle?.contentWindow?.addEventListener("keydown", (e3) => {
+        e3 = e3 || window.event;
+        if (e3.ctrlKey && e3.keyCode == 82 || //ctrl+R
+        e3.keyCode == 116) {
+          debugger;
+          this.iframeEle?.contentWindow?.location.reload();
+        }
+      });
+    };
     /**statusBar */
     this.statusBarController = this._wc(new StatusBarController());
     /**navigationBar */
@@ -10147,70 +10219,96 @@ var RootComp = class extends n {
   }
   render() {
     return tt3`
-      <multi-webview-comp-mobile-shell>
-        ${t(this.biometricsController.state, () => {
+      <div class="root">
+        <emulator-toolbar .url=${this.src}></emulator-toolbar>
+
+        <multi-webview-comp-mobile-shell class="main-view">
+          ${t(this.biometricsController.state, () => {
       const state = this.biometricsController.state;
       tt3`<multi-webview-comp-biometrics
-            @pass=${state.resolve({ success: true, message: "okk" })}
-            @no-pass=${state.resolve({ success: false, message: "...." })}
-          ></multi-webview-comp-biometrics>`;
+              @pass=${state.resolve({ success: true, message: "okk" })}
+              @no-pass=${state.resolve({ success: false, message: "...." })}
+            ></multi-webview-comp-biometrics>`;
     })}
-        <multi-webview-comp-status-bar
-          slot="status-bar"
-          ._color=${this.statusBarState.color}
-          ._style=${this.statusBarState.style}
-          ._overlay=${this.statusBarState.overlay}
-          ._visible=${this.statusBarState.visible}
-          ._insets=${this.statusBarState.insets}
-          ._torchIsOpen=${this.torchState.isOpen}
-        ></multi-webview-comp-status-bar>
-        ${t(
+          <multi-webview-comp-status-bar
+            slot="status-bar"
+            ._color=${this.statusBarState.color}
+            ._style=${this.statusBarState.style}
+            ._overlay=${this.statusBarState.overlay}
+            ._visible=${this.statusBarState.visible}
+            ._insets=${this.statusBarState.insets}
+            ._torchIsOpen=${this.torchState.isOpen}
+          ></multi-webview-comp-status-bar>
+          ${t(
       this.controllers.size === 0,
-      () => tt3`<slot slot="shell-content"></slot>`,
+      () => tt3`
+              <iframe
+                slot="shell-content"
+                style="width:100%;height:100%;border:0;"
+                src=${this.src}
+                @loadstart=${this._bindReloadShortcut}
+              ></iframe>
+            `,
       () => tt3`<div class="boot-logo" slot="shell-content">开机中</div>`
     )}
-        ${t(
+          ${t(
       this.virtualKeyboardController.isShowVirtualKeyboard,
       () => tt3`
-            <multi-webview-comp-virtual-keyboard
-              slot="bottom-bar"
-              ._visible=${this.virtualKeyboardState.visible}
-              ._overlay=${this.virtualKeyboardState.overlay}
-              @first-updated=${this.virtualKeyboardController.virtualKeyboardFirstUpdated}
-              @hide-completed=${this.virtualKeyboardController.virtualKeyboardHideCompleted}
-              @show-completed=${this.virtualKeyboardController.virtualKeyboardShowCompleted}
-            ></multi-webview-comp-virtual-keyboard>
-          `,
+              <multi-webview-comp-virtual-keyboard
+                slot="bottom-bar"
+                ._visible=${this.virtualKeyboardState.visible}
+                ._overlay=${this.virtualKeyboardState.overlay}
+                @first-updated=${this.virtualKeyboardController.virtualKeyboardFirstUpdated}
+                @hide-completed=${this.virtualKeyboardController.virtualKeyboardHideCompleted}
+                @show-completed=${this.virtualKeyboardController.virtualKeyboardShowCompleted}
+              ></multi-webview-comp-virtual-keyboard>
+            `,
       () => {
         return tt3`
-              <multi-webview-comp-navigation-bar
-                slot="bottom-bar"
-                ._color=${this.navigationBarState.color}
-                ._style=${this.navigationBarState.style}
-                ._overlay=${this.navigationBarState.overlay}
-                ._visible=${this.navigationBarState.visible}
-                ._inserts=${this.navigationBarState.insets}
-              ></multi-webview-comp-navigation-bar>
-            `;
+                <multi-webview-comp-navigation-bar
+                  slot="bottom-bar"
+                  ._color=${this.navigationBarState.color}
+                  ._style=${this.navigationBarState.style}
+                  ._overlay=${this.navigationBarState.overlay}
+                  ._visible=${this.navigationBarState.visible}
+                  ._inserts=${this.navigationBarState.insets}
+                ></multi-webview-comp-navigation-bar>
+              `;
       }
     )}
-      </multi-webview-comp-mobile-shell>
+        </multi-webview-comp-mobile-shell>
+      </div>
     `;
   }
 };
-RootComp.styles = createAllCSS9();
+RootComp.styles = createAllCSS10();
+__decorateClass([
+  y6({ type: String })
+], RootComp.prototype, "src", 2);
 __decorateClass([
   y7()
 ], RootComp.prototype, "controllers", 2);
+__decorateClass([
+  y8("iframe")
+], RootComp.prototype, "iframeEle", 2);
 RootComp = __decorateClass([
-  c4(TAG9)
+  c4(TAG10)
 ], RootComp);
-function createAllCSS9() {
+function createAllCSS10() {
   return [
     C6`
       :host {
         display: block;
       }
+      .root {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+      }
+      .main-view {
+        flex: 1;
+      }
+
       .boot-logo {
         height: 100%;
         display: grid;

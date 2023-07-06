@@ -63,7 +63,7 @@ export const dev = new ESBuild({
 });
 
 if (import.meta.main) {
-  prod.auto();
-  emulator.auto();
-  dev.auto();
+  void prod.auto();
+  void emulator.auto();
+  void dev.auto();
 }

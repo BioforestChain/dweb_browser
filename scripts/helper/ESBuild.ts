@@ -108,10 +108,13 @@ export class ESBuild {
   }
 
   async auto() {
-    if (Deno.args.includes("--watch")) {
+    if (this.isDev) {
       await this.watch();
     } else {
       await this.build();
     }
+  }
+  get isDev() {
+    return Deno.args.includes("--watch");
   }
 }

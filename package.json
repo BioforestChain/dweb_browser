@@ -1,5 +1,6 @@
 {
     "name": "dweb-browser",
+    "productName": "Dweb Browser",
     "description": "该配置只包含基本的一些全局工具链",
     "scripts": {},
     "devDependencies": {

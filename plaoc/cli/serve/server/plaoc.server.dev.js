@@ -6308,7 +6308,7 @@ var HttpServer = class {
   }
 };
 
-// https://esm.sh/v126/deep-object-diff@1.1.9/denonext/deep-object-diff.mjs
+// https://esm.sh/v122/deep-object-diff@1.1.9/deno/deep-object-diff.mjs
 var u3 = (t) => t instanceof Date;
 var m3 = (t) => Object.keys(t).length === 0;
 var i3 = (t) => t != null && typeof t == "object";
@@ -6770,7 +6770,7 @@ var Server_www2 = class extends Server_www {
       const html = String.raw;
       return {
         headers: new IpcHeaders2().init("Content-Type", "text/html"),
-        body: html(_a || (_a = __template(['\n          <!DOCTYPE html>\n          <html lang="en">\n            <head>\n              <meta charset="UTF-8" />\n              <meta\n                name="viewport"\n                content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"\n              />\n              <title>Plaoc-Emulator</title>\n              <style>\n                html,\n                body,\n                root-comp {\n                  width: 100%;\n                  height: 100%;\n                  margin: 0;\n                  padding: 0;\n                  overflow: hidden;\n                }\n              </style>\n              <script src="./plaoc.emulator.js?', "=", '"><\/script>\n            </head>\n            <body>\n              <root-comp>\n                <iframe\n                  style="width:100%;height:100%;border:0;"\n                  src="', '"\n                ></iframe>\n              </root-comp>\n            </body>\n          </html>\n        '])), "X-Plaoc-Emulator" /* EMULATOR */, isEnableEmulator, indexUrl.href)
+        body: html(_a || (_a = __template(['\n          <!DOCTYPE html>\n          <html lang="en">\n            <head>\n              <meta charset="UTF-8" />\n              <meta\n                name="viewport"\n                content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"\n              />\n              <title>Plaoc-Emulator</title>\n              <style>\n                html,\n                body,\n                root-comp {\n                  width: 100%;\n                  height: 100%;\n                  margin: 0;\n                  padding: 0;\n                  overflow: hidden;\n                }\n              </style>\n              <script src="./plaoc.emulator.js?', "=", '"><\/script>\n            </head>\n            <body>\n              <root-comp src=', "></root-comp>\n            </body>\n          </html>\n        "])), "X-Plaoc-Emulator" /* EMULATOR */, isEnableEmulator, JSON.stringify(indexUrl.href))
       };
     }
     let xPlaocProxy = request.searchParams.get("X-Plaoc-Proxy" /* PROXY */);

@@ -9,10 +9,14 @@ const workspaceDir = fileURLToPath(import.meta.resolve("../"));
 const resolveTo = (to: string) => path.resolve(workspaceDir, to);
 const readPackageJson = () =>
   JSON.parse(fs.readFileSync(resolveTo("./electron/package.json"), "utf-8"));
+const ROOT_PACKAGE = await import("../../package.json", {
+  assert: { type: "json" },
+});
 
 /// before build
 Deno.copyFileSync(resolveTo(".npmrc"), resolveTo("electron/.npmrc"));
-
+const ID = "org.dweb-browser.devtools";
+const productName = ROOT_PACKAGE.default.productName;
 /// do build
 await dnt.build({
   entryPoints: [resolveTo("./src/index.dev.ts")],
@@ -29,14 +33,19 @@ await dnt.build({
     inlineSources: true,
     sourceMap: true,
   },
+  /// package.json properties
   package: {
-    // package.json properties
+    appBundleId: ID,
     name: "@dweb-browser/desktop-sdk",
+    companyName: "Bnqkl, Inc.",
+    appCopyright: "Copyright © 2023 Bnqkl, Inc.",
+    productName: productName,
+
     version:
       Deno.args.filter((arg) => /^\d/.test(arg))[0] ||
       readPackageJson()?.version ||
       "0.0.0",
-    description: "Dweb Browser Development Kit",
+    description: "Distributed web browser",
     license: "MIT",
     config: {
       electron_mirror: "https://npm.taobao.org/mirrors/electron/",
@@ -49,9 +58,16 @@ await dnt.build({
     bin: {
       "dweb-browser-devtools": "./bundle/index.js",
     },
+    darwinDarkModeSupport: true,
+    protocols: [
+      {
+        name: ID,
+        schemes: ["dweb"],
+      },
+    ],
     build: {
-      appId: "devtools.dweb-browser.org",
-      productName: "dweb-browser-devtools", // 这个一定要写，不然 name 使用 @ 开头，会带来打包异常
+      appId: ID,
+      productName: productName,
       artifactName: "${productName}-${version}-${arch}.${ext}",
       asar: true,
       icon: "./logo.png",

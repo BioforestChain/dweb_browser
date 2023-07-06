@@ -1,6 +1,10 @@
 import crypto from "node:crypto";
+import fs from "node:fs";
 import http from "node:http";
 import os from "node:os";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import adp from "npm:appdata-path";
 import { Flags } from "./deps.ts";
 import {
   BundleZipGenerator,
@@ -9,7 +13,7 @@ import {
 } from "./helper/generator.ts";
 import { staticServe } from "./helper/http-static-helper.ts";
 
-export const doServe = (args = Deno.args) => {
+export const doServe = async (args = Deno.args) => {
   const flags = Flags.parse(args, {
     string: ["port", "mode"],
     boolean: ["dev"],
@@ -36,6 +40,7 @@ export const doServe = (args = Deno.args) => {
   const bundleFlagHelper = new BundleZipGenerator(flags, id);
   const nameFlagHelper = new NameFlagHelper(flags, metadataFlagHelper);
 
+  /// 启动http服务器
   http
     .createServer(async (req, res) => {
       const url = new URL(req.url ?? "/", "http://localhost");
@@ -84,6 +89,36 @@ export const doServe = (args = Deno.args) => {
         // console.log(`package: \thttp://${info?.address}:${port}/${nameFlagHelper.bundleName}`)
       }
     });
+
+  /// 将文件直接同步到jmm-apps
+  const ROOT_PACKAGE = await import("../../package.json", {
+    assert: { type: "json" },
+  });
+
+  const emulatorTargetFile = path.join(
+    adp.getAppDataPath(ROOT_PACKAGE.default.productName),
+    "jmm-apps",
+    id,
+    "usr/server/plaoc.emulator.js"
+  );
+  if (fs.existsSync(emulatorTargetFile)) {
+    const emulatorOriginFile = fileURLToPath(
+      import.meta.resolve("./serve/server/plaoc.emulator.js")
+    );
+    let prev = fs.statSync(emulatorOriginFile);
+    fs.watch(
+      path.dirname(emulatorOriginFile),
+      { recursive: true },
+      (type, filename) => {
+        const curr = fs.statSync(emulatorOriginFile);
+        if (curr.mtimeMs !== prev.mtimeMs || curr.size !== prev.size) {
+          prev = curr;
+          console.log("synced", "plaoc.emulator.js");
+          fs.copyFileSync(emulatorOriginFile, emulatorTargetFile);
+        }
+      }
+    );
+  }
 };
 
 if (import.meta.main) {
