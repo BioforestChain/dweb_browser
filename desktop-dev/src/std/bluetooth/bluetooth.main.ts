@@ -74,6 +74,60 @@ export class BluetoothNMM extends NativeMicroModule {
     (await this._createHttpDwebServer())._onFetchAdapterInit().listenRequest();
   };
 
+  _exports = {
+    operationCallback: async (
+      arg: $ResponseJsonable<unknown>,
+      resolveId: number
+    ) => {
+      const resolve = this._operationResolveMap.get(resolveId);
+      if (resolve === undefined) {
+        throw new Error(`this._operationResolveMap.get(${resolveId})`);
+      }
+      resolve(arg);
+      this._operationResolveMap.delete(resolveId);
+    },
+
+    deviceSelected: async (device: $Device) => {
+      console.always("接受到了选择 device", device);
+      if (this._bluetoothrequestdevicewatchSelectCallback === undefined) {
+        this._apis?.deviceSelectedFailCallback();
+        return;
+      }
+      this._bluetoothrequestdevicewatchSelectCallback(device.deviceId);
+      this._bluetoothrequestdevicewatchSelectCallback = undefined;
+    },
+
+    // 设备连接的回调函数
+    deviceConnectedCallback: async (
+      // server: BluetoothRemoteGATTServer
+      res: $ResponseJsonable<unknown>
+    ) => {
+      this._deviceConnectedResolve(res);
+    },
+
+    // 设备断开连接操作的回调
+    deviceDisconnectCallback: async (arg: unknown, resolveId: number) => {
+      const resolve = this._deviceDisconnectedResolveMap.get(resolveId);
+      if (resolve === undefined) {
+        throw new Error(
+          `this.this._deviceDisconnectedResolveMap.get(${resolveId}) === undefined`
+        );
+      }
+      resolve(arg);
+      this._deviceDisconnectedResolveMap.delete(resolveId);
+    },
+
+    // 监听 bluetoothRemoteGATTService 的状态变化
+    bluetoothRemoteGATTServiceListenner: async (type: string, event: Event) => {
+      console.log(
+        "",
+        "bluetoothRemoteGATTServiceListenner 执行了",
+        type,
+        event
+      );
+    },
+  };
+
   private dwebBluetoothHandler: $OnFetch = async (event: FetchEvent) => {
     // 通过 deep_link 打开
     // 设备是 EDIFIER TWS NB2
@@ -457,146 +511,59 @@ export class BluetoothNMM extends NativeMicroModule {
         show: false,
       },
       async (win) => {
-        return {
-          operationCallback: async (
-            arg: $ResponseJsonable<unknown>,
-            resolveId: number
-          ) => {
-            const resolve = this._operationResolveMap.get(resolveId);
-            if (resolve === undefined) {
-              throw new Error(`this._operationResolveMap.get(${resolveId})`);
-            }
-            resolve(arg);
-            this._operationResolveMap.delete(resolveId);
-          },
-          deviceSelected: async (device: $Device) => {
-            console.always("接受到了选择 device", device);
-            if (this._bluetoothrequestdevicewatchSelectCallback === undefined) {
-              this._apis?.deviceSelectedFailCallback();
-              return;
-            }
-            this._bluetoothrequestdevicewatchSelectCallback(device.deviceId);
-            this._bluetoothrequestdevicewatchSelectCallback = undefined;
-          },
-          // 设备连接的回调函数
-          deviceConnectedCallback: async (
-            // server: BluetoothRemoteGATTServer
-            res: $ResponseJsonable<unknown>
-          ) => {
-            this._deviceConnectedResolve(res);
-          },
-          // 监听 bluetoothRemoteGATTService 的状态变化
-          bluetoothRemoteGATTServiceListenner: async (
-            type: string,
-            event: Event
-          ) => {
-            console.log(
-              "",
-              "bluetoothRemoteGATTServiceListenner 执行了",
-              type,
-              event
-            );
-          },
-          requestDeviceFail: async () => {
-            console.error("eror", "查询蓝牙设备失败？？");
-            // this._requestDevice();
-          },
-          // 设备断开连接操作的回调
-          deviceDisconnectCallback: async (arg: unknown, resolveId: number) => {
-            const resolve = this._deviceDisconnectedResolveMap.get(resolveId);
-            if (resolve === undefined) {
-              throw new Error(
-                `this.this._deviceDisconnectedResolveMap.get(${resolveId}) === undefined`
-              );
-            }
-            resolve(arg);
-            this._deviceDisconnectedResolveMap.delete(resolveId);
-          },
-
-          bluetoothRemoteGATTServerConnectCallback: async (
-            arg: unknown,
-            resolveId: number
-          ) => {
-            const resolve =
-              this._bluetoothRemoteGATTServerConnectResolveMap.get(resolveId);
-            if (resolve === undefined) {
-              throw new Error(
-                `this._bluetoothRemoteGATTServerConnectResolveMap.get(${resolveId}) === undefined`
-              );
-            }
-            resolve(arg);
-            this._bluetoothRemoteGATTServerConnectResolveMap.delete(resolveId);
-          },
-
-          deviceGetPrimaryServiceCallback: async (
-            arg: unknown,
-            resolveId: number
-          ) => {
-            const resolve =
-              this._deviceGetPrimaryServiceResolveMap.get(resolveId);
-            if (resolve === undefined) {
-              throw new Error(
-                `this._deviceGetPrimaryServiceResolveMap.get(resolveId) === undefined; resolveId === ${resolveId}`
-              );
-            }
-            resolve(arg);
-            this._deviceGetPrimaryServiceResolveMap.delete(resolveId);
-          },
-          deviceGetCharacteristicCallback: async (
-            arg: unknown,
-            resolveId: number
-          ) => {
-            const resolve =
-              this._deviceGetCharacteristicResolveMap.get(resolveId);
-            if (resolve === undefined) {
-              throw new Error(
-                `this._deviceGetCharacteristicResolveMap.get(resolveId) === undefined; resolveId === ${resolveId}`
-              );
-            }
-            resolve(arg);
-            this._deviceGetCharacteristicResolveMap.delete(resolveId);
-          },
-          characteristicReadValueCallback: async (
-            arg: unknown,
-            resolveId: number
-          ) => {
-            const resolve =
-              this._deviceCharacteristicReadValueResolveMap.get(resolveId);
-            if (resolve === undefined) {
-              throw new Error(
-                `this._deviceCharacteristicReadValueResolveMap.get(resolveId) === undefined; resolveId === ${resolveId}`
-              );
-            }
-            resolve(arg);
-            this._deviceCharacteristicReadValueResolveMap.delete(resolveId);
-          },
-          characteristicGetDescriptorCallback: async (
-            arg: unknown,
-            resolveId: number
-          ) => {
-            const resolve = this._characteristicGetDescriptorMap.get(resolveId);
-            if (resolve === undefined) {
-              throw new Error(
-                `this._characteristicGetDescriptorMap.get(resolveId) === undefined; resolveId === ${resolveId}`
-              );
-            }
-            resolve(arg);
-            this._characteristicGetDescriptorMap.delete(resolveId);
-          },
-          descriptorReadValueCallback: async (
-            arg: unknown,
-            resolveId: number
-          ) => {
-            const resolve = this._descriptorReadValueMap.get(resolveId);
-            if (resolve === undefined) {
-              throw new Error(
-                `this._descriptorReadValueMap.get(resolveId) === undefined; resolveId === ${resolveId}`
-              );
-            }
-            resolve(arg);
-            this._descriptorReadValueMap.delete(resolveId);
-          },
-        };
+        return this._exports;
+        // return {
+        // operationCallback: async (
+        //   arg: $ResponseJsonable<unknown>,
+        //   resolveId: number
+        // ) => {
+        //   const resolve = this._operationResolveMap.get(resolveId);
+        //   if (resolve === undefined) {
+        //     throw new Error(`this._operationResolveMap.get(${resolveId})`);
+        //   }
+        //   resolve(arg);
+        //   this._operationResolveMap.delete(resolveId);
+        // },
+        // deviceSelected: async (device: $Device) => {
+        //   console.always("接受到了选择 device", device);
+        //   if (this._bluetoothrequestdevicewatchSelectCallback === undefined) {
+        //     this._apis?.deviceSelectedFailCallback();
+        //     return;
+        //   }
+        //   this._bluetoothrequestdevicewatchSelectCallback(device.deviceId);
+        //   this._bluetoothrequestdevicewatchSelectCallback = undefined;
+        // },
+        // // 设备连接的回调函数
+        // deviceConnectedCallback: async (
+        //   // server: BluetoothRemoteGATTServer
+        //   res: $ResponseJsonable<unknown>
+        // ) => {
+        //   this._deviceConnectedResolve(res);
+        // },
+        // // 设备断开连接操作的回调
+        // deviceDisconnectCallback: async (arg: unknown, resolveId: number) => {
+        //   const resolve = this._deviceDisconnectedResolveMap.get(resolveId);
+        //   if (resolve === undefined) {
+        //     throw new Error(
+        //       `this.this._deviceDisconnectedResolveMap.get(${resolveId}) === undefined`
+        //     );
+        //   }
+        //   resolve(arg);
+        //   this._deviceDisconnectedResolveMap.delete(resolveId);
+        // },
+        // // 监听 bluetoothRemoteGATTService 的状态变化
+        // bluetoothRemoteGATTServiceListenner: async (
+        //   type: string,
+        //   event: Event
+        // ) => {
+        //   console.log(
+        //     "",
+        //     "bluetoothRemoteGATTServiceListenner 执行了",
+        //     type,
+        //     event
+        //   );
+        // },
+        // };
       }
     );
     return bw;

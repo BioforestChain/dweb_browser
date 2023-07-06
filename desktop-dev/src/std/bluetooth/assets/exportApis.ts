@@ -11,16 +11,18 @@ import {
 
 import { importApis } from "../../../helper/openNativeWindow.preload.ts";
 import { allDeviceListMap } from "./data.ts";
-const mainApis =
-  importApis<
-    ReturnType<
-      Awaited<
-        ReturnType<
-          import("../bluetooth.main.ts").BluetoothNMM["_createBrowserWindow"]
-        >
-      >["getExport"]
-    >
-  >();
+// const mainApis =
+//   importApis<
+//     ReturnType<
+//       Awaited<
+//         ReturnType<
+//           import("../bluetooth.main.ts").BluetoothNMM["_createBrowserWindow"]
+//         >
+//       >["getExport"]
+//     >
+//   >();
+import type { BluetoothNMM } from "../bluetooth.main.ts";
+const mainApis = importApis<BluetoothNMM["_exports"]>();
 
 const template: HTMLTemplateElement | null =
   document.querySelector(".template");
