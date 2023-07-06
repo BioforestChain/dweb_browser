@@ -66,7 +66,7 @@ public class ReadableStreamIpc : Ipc
         }
     }
 
-    //protected event Signal<IpcMessage, ReadableStreamIpc>? _onMessage;
+    public record BindIncomeStreamOptions(CancellationToken CancellationToken);
 
     /// <summary>
     /// 输入流要额外绑定
@@ -74,14 +74,15 @@ public class ReadableStreamIpc : Ipc
     /// <param name="stream"></param>
     /// <exception cref="Exception"></exception>
     /// 注意，这里不返回Task，所以这里是async void，属于 Task.Background。
-    public async void BindIncomeStream(Stream stream)
+    public async void BindIncomeStream(Stream stream, BindIncomeStreamOptions? options = null)
     {
         if (_incomeStream is not null)
         {
             throw new Exception("income stream already binded.");
         }
         _incomeStream = stream;
-        if(stream is ReadableStream.PipeStream rstream)
+
+        if (stream is ReadableStream.PipeStream rstream)
         {
             ReadableStream.Stream.output_sid = "<-" + rstream.id;
         }
@@ -95,47 +96,60 @@ public class ReadableStreamIpc : Ipc
         }
 
         Console.Log("RR", "START/{0}", stream);
-        //var reader = new BinaryReader(stream);
-        while (stream.CanRead)
+        options?.CancellationToken.Register(stream.Close);
+
+        try
         {
-            Console.Log("BindIncomeStream", "waitting/{0}", stream);
-            var size = await stream.ReadIntAsync();
-
-            // 心跳包？
-            if (size <= 0)
+            while (stream.CanRead)
             {
-                continue;
-            }
+                if (options is not null && options.CancellationToken.IsCancellationRequested)
+                {
+                    break;
+                }
 
-            var buffer = await stream.ReadBytesAsync(size);
+                Console.Log("BindIncomeStream", "waitting/{0}", stream);
+                var size = await stream.ReadIntAsync();
 
-            // 读取指定数量的字节并从中生成字节数据包。 如果通道已关闭且没有足够的可用字节，则失败
-            var message = MessageToIpcMessage.JsonToIpcMessage(buffer, this);
-            Console.Log("BindIncomeStream", "message/{0} {1}({2}bytes)", stream, message, size);
-            switch (message)
-            {
-                case "close":
-                    await Close();
-                    break;
-                case "ping":
-                    await EnqueueAsync(_PONG_DATA);
-                    break;
-                case "pong":
-                    Console.Log("BindIncomeStream", "PONG/{0}", stream);
-                    break;
-                case IpcMessage ipcMessage:
-                    await _OnMessageEmit(ipcMessage, this);
-                    break;
-                default:
-                    throw new Exception(string.Format("unknown message: {0}", message));
+                // 心跳包？
+                if (size <= 0)
+                {
+                    continue;
+                }
+
+                var buffer = await stream.ReadBytesAsync(size);
+
+                // 读取指定数量的字节并从中生成字节数据包。 如果通道已关闭且没有足够的可用字节，则失败
+                var message = MessageToIpcMessage.JsonToIpcMessage(buffer, this);
+                Console.Log("BindIncomeStream", "message/{0} {1}({2}bytes)", stream, message, size);
+                switch (message)
+                {
+                    case "close":
+                        await Close();
+                        break;
+                    case "ping":
+                        await EnqueueAsync(_PONG_DATA);
+                        break;
+                    case "pong":
+                        Console.Log("BindIncomeStream", "PONG/{0}", stream);
+                        break;
+                    case IpcMessage ipcMessage:
+                        await _OnMessageEmit(ipcMessage, this);
+                        break;
+                    default:
+                        throw new Exception(string.Format("unknown message: {0}", message));
+                }
             }
+        }
+        catch
+        {
+            Console.Log("BindIncomeStream", "cancel/{0}", stream);
         }
 
         Console.Log("BindIncomeStream", "end/{0}", stream);
         Console.Log("RR", "END/{0}", stream);
 
         // 流是双向的，对方关闭的时候，自己也要关闭掉
-        await this.Close();
+        await Close();
     }
 }
 
