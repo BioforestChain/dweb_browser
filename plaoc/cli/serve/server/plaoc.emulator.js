@@ -328,7 +328,11 @@ var mapHelper = new class {
 }();
 
 // ../desktop-dev/src/helper/readableStreamHelper.ts
-async function* _doRead(reader) {
+async function* _doRead(reader, options) {
+  const signal = options?.signal;
+  if (signal !== void 0) {
+    signal.addEventListener("abort", (reason) => reader.cancel(reason));
+  }
   try {
     while (true) {
       const item = await reader.read();
@@ -337,14 +341,16 @@ async function* _doRead(reader) {
       }
       yield item.value;
     }
+  } catch (err) {
+    reader.cancel(err);
   } finally {
     reader.releaseLock();
   }
 }
-var streamRead = (stream, _options = {}) => {
-  return _doRead(stream.getReader());
+var streamRead = (stream, options) => {
+  return _doRead(stream.getReader(), options);
 };
-var binaryStreamRead = (stream, options = {}) => {
+var binaryStreamRead = (stream, options) => {
   const reader = streamRead(stream, options);
   let done = false;
   let cache = new Uint8Array(0);
@@ -396,25 +402,25 @@ var binaryStreamRead = (stream, options = {}) => {
   });
 };
 var streamReadAll = async (stream, options = {}) => {
-  const items = [];
   const maps = [];
   for await (const item of _doRead(stream.getReader())) {
-    items.push(item);
     if (options.map) {
       maps.push(options.map(item));
     }
   }
-  const result = options.complete?.(items, maps);
+  const result = options.complete?.(maps);
   return {
-    items,
     maps,
     result
   };
 };
 var streamReadAllBuffer = async (stream) => {
   return (await streamReadAll(stream, {
-    complete(items) {
-      return u8aConcat(items);
+    map(chunk) {
+      return chunk;
+    },
+    complete(chunks) {
+      return u8aConcat(chunks);
     }
   })).result;
 };
@@ -6285,12 +6291,16 @@ var ReadableStreamIpc = class extends Ipc {
    * 输入流要额外绑定
    * 注意，非必要不要 await 这个promise
    */
-  async bindIncomeStream(stream) {
+  async bindIncomeStream(stream, options = {}) {
     if (this._incomne_stream !== void 0) {
       throw new Error("in come stream alreay binded.");
     }
     this._incomne_stream = await stream;
-    const reader = binaryStreamRead(this._incomne_stream);
+    const { signal } = options;
+    const reader = binaryStreamRead(this._incomne_stream, { signal });
+    this.onClose(() => {
+      reader.throw("output stream closed");
+    });
     while (await reader.available() > 0) {
       const size = await reader.readInt();
       const data = await reader.readBinary(size);
@@ -6312,6 +6322,7 @@ var ReadableStreamIpc = class extends Ipc {
       }
       this._messageSignal.emit(message, this);
     }
+    this.close();
   }
   _doPostMessage(message) {
     let message_raw;
@@ -6372,27 +6383,37 @@ var createMockModuleServerIpc = (mmid, apiUrl = BASE_URL) => {
       proxyStream.controller.error(event.error);
     });
     ws.onmessage = (event) => {
-      const data = event.data;
-      if (typeof data === "string") {
-        proxyStream.controller.enqueue(simpleEncoder(data, "utf8"));
-      } else if (data instanceof ArrayBuffer) {
-        proxyStream.controller.enqueue(new Uint8Array(data));
-      } else {
-        throw new Error("should not happend");
+      try {
+        const data = event.data;
+        if (typeof data === "string") {
+          proxyStream.controller.enqueue(simpleEncoder(data, "utf8"));
+        } else if (data instanceof ArrayBuffer) {
+          proxyStream.controller.enqueue(new Uint8Array(data));
+        } else {
+          throw new Error("should not happend");
+        }
+      } catch (err) {
+        console.error(err);
       }
     };
-    void (async () => {
-      for await (const chunk of streamRead(serverIpc.stream)) {
+    void streamReadAll(serverIpc.stream, {
+      map(chunk) {
         ws.send(chunk);
+      },
+      complete() {
+        ws.close();
       }
-      ws.close();
-    })();
+    });
   };
   return waitOpenPo.promise;
 };
 
 // src/emulator/controller/base-controller.ts
 var BaseController = class {
+  constructor() {
+    this._inited = false;
+    this._ready = false;
+  }
   // Using the Web Animations API
   onUpdate(cb) {
     this._onUpdate = cb;
@@ -6400,7 +6421,35 @@ var BaseController = class {
   }
   // <T>
   emitUpdate() {
-    this._onUpdate?.();
+    this._onUpdate?.(this);
+  }
+  onInit(cb) {
+    if (this._inited) {
+      cb(this);
+    }
+    this._onInit = cb;
+    return this;
+  }
+  emitInit() {
+    if (this._inited) {
+      return;
+    }
+    this._inited = true;
+    this._onInit?.(this);
+  }
+  onReady(cb) {
+    if (this._ready) {
+      cb(this);
+    }
+    this._onReady = cb;
+    return this;
+  }
+  emitReady() {
+    if (this._ready) {
+      return;
+    }
+    this._ready = true;
+    this._onReady?.(this);
   }
 };
 
@@ -6409,6 +6458,7 @@ var BiometricsController = class extends BaseController {
   constructor() {
     super(...arguments);
     this._init = (async () => {
+      this.emitInit();
       const ipc = await createMockModuleServerIpc("biometrics.sys.dweb");
       ipc.onFetch(async (event) => {
         const { pathname } = event;
@@ -6419,6 +6469,7 @@ var BiometricsController = class extends BaseController {
           return Response.json(await this.biometricsMock());
         }
       }).forbidden().cors();
+      this.emitReady();
     })();
     this.queue = [];
   }
@@ -6470,6 +6521,7 @@ var StatusBarController = class extends BaseController {
   constructor() {
     super(...arguments);
     this._init = (async () => {
+      this.emitInit();
       const ipc = await createMockModuleServerIpc(
         "status-bar.nativeui.browser.dweb"
       );
@@ -6499,6 +6551,7 @@ var StatusBarController = class extends BaseController {
           return Response.json("");
         }
       }).forbidden().cors();
+      this.emitReady();
     })();
     this.observer = new StateObservable(() => {
       return JSON.stringify(this.state);
@@ -7220,6 +7273,7 @@ var HapticsController = class extends BaseController {
   constructor() {
     super(...arguments);
     this._init = (async () => {
+      this.emitInit();
       const ipc = await createMockModuleServerIpc("haptics.sys.dweb");
       const query_state = Ct.object({
         type: zq.string().optional(),
@@ -7231,6 +7285,7 @@ var HapticsController = class extends BaseController {
         this.hapticsMock(JSON.stringify({ pathname, state }));
         return Response.json(true);
       }).forbidden().cors();
+      this.emitReady();
     })();
   }
   hapticsMock(text) {
@@ -7244,6 +7299,7 @@ var NavigationBarController = class extends BaseController {
   constructor() {
     super(...arguments);
     this._init = (async () => {
+      this.emitInit();
       const ipc = await createMockModuleServerIpc(
         "navigation-bar.nativeui.browser.dweb"
       );
@@ -7273,6 +7329,7 @@ var NavigationBarController = class extends BaseController {
           return Response.json("");
         }
       }).forbidden().cors();
+      this.emitReady();
     })();
     this.observer = new StateObservable(() => {
       return JSON.stringify(this.state);
@@ -7339,6 +7396,7 @@ var TorchController = class extends BaseController {
   constructor() {
     super(...arguments);
     this._init = (async () => {
+      this.emitInit();
       const ipc = await createMockModuleServerIpc("torch.nativeui.browser.dweb");
       ipc.onFetch(async (event) => {
         const { pathname } = event;
@@ -7350,6 +7408,7 @@ var TorchController = class extends BaseController {
           return Response.json(this.state.isOpen);
         }
       }).forbidden().cors();
+      this.emitReady();
     })();
     this.state = { isOpen: false };
   }
@@ -7367,6 +7426,7 @@ var VirtualKeyboardController = class extends BaseController {
   constructor() {
     super(...arguments);
     this._init = (async () => {
+      this.emitInit();
       const ipc = await createMockModuleServerIpc(
         "virtual-keyboard.nativeui.browser.dweb"
       );
@@ -7394,6 +7454,7 @@ var VirtualKeyboardController = class extends BaseController {
           return Response.json("");
         }
       }).forbidden().cors();
+      this.emitReady();
     })();
     this.observer = new StateObservable(() => {
       return JSON.stringify(this.state);
@@ -10034,25 +10095,28 @@ var TAG9 = "root-comp";
 var RootComp = class extends n {
   constructor() {
     super(...arguments);
+    this.controllers = /* @__PURE__ */ new Set();
     /**statusBar */
-    this.statusBarController = new StatusBarController().onUpdate(() => {
-      this.requestUpdate();
-    });
+    this.statusBarController = this._wc(new StatusBarController());
     /**navigationBar */
-    this.navigationController = new NavigationBarController().onUpdate(() => {
-      this.requestUpdate();
-    });
+    this.navigationController = this._wc(new NavigationBarController());
     /**virtualboard */
-    this.virtualKeyboardController = new VirtualKeyboardController().onUpdate(
-      () => this.requestUpdate()
+    this.virtualKeyboardController = this._wc(
+      new VirtualKeyboardController()
     );
-    this.torchController = new TorchController().onUpdate(() => {
+    this.torchController = this._wc(new TorchController());
+    this.hapticsController = this._wc(new HapticsController());
+    this.biometricsController = this._wc(new BiometricsController());
+  }
+  _wc(c7) {
+    c7.onUpdate(() => this.requestUpdate()).onInit((c8) => {
+      this.controllers.add(c8);
+      this.requestUpdate();
+    }).onReady((c8) => {
+      this.controllers.delete(c8);
       this.requestUpdate();
     });
-    this.hapticsController = new HapticsController();
-    this.biometricsController = new BiometricsController().onUpdate(
-      () => this.requestUpdate()
-    );
+    return c7;
   }
   get statusBarState() {
     return this.statusBarController.state;
@@ -10085,7 +10149,11 @@ var RootComp = class extends n {
           ._insets=${this.statusBarState.insets}
           ._torchIsOpen=${this.torchState.isOpen}
         ></multi-webview-comp-status-bar>
-        <slot slot="shell-content"></slot>
+        ${t(
+      this.controllers.size === 0,
+      () => tt3`<slot slot="shell-content"></slot>`,
+      () => tt3`<div class="boot-logo" slot="shell-content">开机中</div>`
+    )}
         ${t(
       this.virtualKeyboardController.isShowVirtualKeyboard,
       () => tt3`
@@ -10116,6 +10184,9 @@ var RootComp = class extends n {
   }
 };
 RootComp.styles = createAllCSS9();
+__decorateClass([
+  y7()
+], RootComp.prototype, "controllers", 2);
 RootComp = __decorateClass([
   c4(TAG9)
 ], RootComp);
@@ -10124,6 +10195,33 @@ function createAllCSS9() {
     C6`
       :host {
         display: block;
+      }
+      .boot-logo {
+        height: 100%;
+        display: grid;
+        place-items: center;
+        font-size: 32px;
+        color: rgba(255, 255, 255, 0.3);
+        background: -webkit-linear-gradient(
+            -30deg,
+            rgba(255, 255, 255, 0) 100px,
+            rgba(255, 255, 255, 1) 180px,
+            rgba(255, 255, 255, 1) 240px,
+            rgba(255, 255, 255, 0) 300px
+          ) -300px 0 no-repeat;
+        -webkit-background-clip: text;
+        animation-name: boot-logo;
+        animation-duration: 6000ms;
+        animation-iteration-count: infinite;
+        /* animation-fill-mode:forward */
+      }
+      @keyframes boot-logo {
+        0% {
+          background-position: -300px 0px;
+        }
+        100% {
+          background-position: 1000px 0px;
+        }
       }
     `
   ];

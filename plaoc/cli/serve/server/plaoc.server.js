@@ -322,7 +322,11 @@ var mapHelper = new class {
 }();
 
 // ../desktop-dev/src/helper/readableStreamHelper.ts
-async function* _doRead(reader) {
+async function* _doRead(reader, options) {
+  const signal = options?.signal;
+  if (signal !== void 0) {
+    signal.addEventListener("abort", (reason) => reader.cancel(reason));
+  }
   try {
     while (true) {
       const item = await reader.read();
@@ -331,14 +335,16 @@ async function* _doRead(reader) {
       }
       yield item.value;
     }
+  } catch (err) {
+    reader.cancel(err);
   } finally {
     reader.releaseLock();
   }
 }
-var streamRead = (stream, _options = {}) => {
-  return _doRead(stream.getReader());
+var streamRead = (stream, options) => {
+  return _doRead(stream.getReader(), options);
 };
-var binaryStreamRead = (stream, options = {}) => {
+var binaryStreamRead = (stream, options) => {
   const reader = streamRead(stream, options);
   let done = false;
   let cache = new Uint8Array(0);
@@ -390,25 +396,25 @@ var binaryStreamRead = (stream, options = {}) => {
   });
 };
 var streamReadAll = async (stream, options = {}) => {
-  const items = [];
   const maps = [];
   for await (const item of _doRead(stream.getReader())) {
-    items.push(item);
     if (options.map) {
       maps.push(options.map(item));
     }
   }
-  const result = options.complete?.(items, maps);
+  const result = options.complete?.(maps);
   return {
-    items,
     maps,
     result
   };
 };
 var streamReadAllBuffer = async (stream) => {
   return (await streamReadAll(stream, {
-    complete(items) {
-      return u8aConcat(items);
+    map(chunk) {
+      return chunk;
+    },
+    complete(chunks) {
+      return u8aConcat(chunks);
     }
   })).result;
 };
@@ -6171,19 +6177,12 @@ var Server_api = class extends HttpServer {
     const body = await event.ipcRequest.body.stream();
     const mmid = new URL(path).host;
     const targetIpc = await connect(mmid);
-    const ipcProxyRequest = body ? IpcRequest3.fromStream(
-      targetIpc.allocReqId(),
+    const ipcProxyRequest = IpcRequest3.fromStream(
+      jsProcess.fetchIpc.allocReqId(),
       path,
       event.method,
       event.headers,
       body,
-      targetIpc
-    ) : IpcRequest3.fromText(
-      targetIpc.allocReqId(),
-      path,
-      event.method,
-      event.headers,
-      "",
       targetIpc
     );
     targetIpc.postMessage(ipcProxyRequest);
@@ -6345,7 +6344,7 @@ var Server_www = class extends HttpServer {
       pathname = "/index.html";
     }
     const remoteIpcResponse = await jsProcess.nativeRequest(
-      `file:///usr/www${pathname}?mode=stream`
+      `file:///sys/plaoc-demo${pathname}?mode=stream`
       // usr/www
     );
     const ipcResponse = new IpcResponse2(

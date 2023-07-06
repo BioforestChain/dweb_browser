@@ -1,21 +1,21 @@
 package org.dweb_browser.microservice.ipc
 
-import com.sun.tools.javac.Main
-import org.dweb_browser.helper.readByteArray
-import org.dweb_browser.helper.readInt
-import org.dweb_browser.helper.toByteArray
-import org.dweb_browser.helper.toUtf8ByteArray
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
+import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printdebugln
+import org.dweb_browser.helper.printerrln
+import org.dweb_browser.helper.readByteArray
+import org.dweb_browser.helper.readInt
+import org.dweb_browser.helper.toByteArray
+import org.dweb_browser.helper.toUtf8ByteArray
 import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.help.moshiPack
-import org.dweb_browser.microservice.ipc.message.jsonToIpcMessage
 import org.dweb_browser.microservice.ipc.message.IPC_ROLE
 import org.dweb_browser.microservice.ipc.message.IpcMessage
 import org.dweb_browser.microservice.ipc.message.IpcMessageArgs
@@ -23,6 +23,7 @@ import org.dweb_browser.microservice.ipc.message.IpcRequest
 import org.dweb_browser.microservice.ipc.message.IpcResponse
 import org.dweb_browser.microservice.ipc.message.IpcStreamData
 import org.dweb_browser.microservice.ipc.message.ReadableStream
+import org.dweb_browser.microservice.ipc.message.jsonToIpcMessage
 import java.io.InputStream
 import java.util.concurrent.atomic.AtomicReference
 
@@ -76,50 +77,59 @@ class ReadableStreamIpc(
         pong.size.toByteArray() + pong
     }
 
+     class AbortAble {
+        val signal = SimpleSignal()
+    }
+
     /**
      * 输入流要额外绑定
      */
     @Synchronized
-    fun bindIncomeStream(stream: InputStream, coroutineName: String = role) {
+    fun bindIncomeStream(stream: InputStream,signal:AbortAble = AbortAble()) {
         if (this._incomeStream !== null) {
             throw Exception("in come stream already binded.");
         }
         if (supportMessagePack) {
             throw Exception("还未实现 MessagePack 的编解码能力")
         }
-        //
-//        val j = GlobalScope.launch {
-//            while (true) {
-//                delay(10000)
-//                debugStreamIpc("LIVE/$stream")
-//            }
-//        }
-        val readStream: suspend () -> Unit = {
-            // 如果通道关闭并且没有剩余字节可供读取，则返回 true
-            while (stream.available() > 0) {
-                val size = stream.readInt()
-                if (size <= 0) { // 心跳包？
-                    continue
-                }
-                debugStreamIpc("size", "$size => $stream")
-                // 读取指定数量的字节并从中生成字节数据包。 如果通道已关闭且没有足够的可用字节，则失败
-                val chunk = stream.readByteArray(size).toString(Charsets.UTF_8)
 
-                val message = jsonToIpcMessage(chunk, this@ReadableStreamIpc)
-                when (message) {
-                    "close" -> close()
-                    "ping" -> enqueue(PONG_DATA)
-                    "pong" -> debugStreamIpc("PONG", "$stream")
-                    is IpcMessage -> {
-                        debugStreamIpc("ON-MESSAGE", "$size => $message => ${this@ReadableStreamIpc}")
-                        _messageSignal.emit(IpcMessageArgs(message, this@ReadableStreamIpc))
-                    }
-                    else -> throw Exception("unknown message: $message")
-                }
+        signal.signal.listen {
+            debugStreamIpc("ReadableStreamIpc", "readStream close")
+            withContext(Dispatchers.IO) {
+                stream.close()
             }
-            debugStreamIpc("END", "$stream")
-            // 流是双向的，对方关闭的时候，自己也要关闭掉
-            this.close()
+        }
+
+        val readStream: suspend () -> Unit = {
+          try {
+              // 如果通道关闭并且没有剩余字节可供读取，则返回 true
+              while (stream.available() > 0) {
+                  val size = stream.readInt()
+                  if (size <= 0) {
+                      continue
+                  }
+                  debugStreamIpc("size", "$size => $stream")
+                  // 读取指定数量的字节并从中生成字节数据包。 如果通道已关闭且没有足够的可用字节，则失败
+                  val chunk = stream.readByteArray(size).toString(Charsets.UTF_8)
+
+                  val message = jsonToIpcMessage(chunk, this@ReadableStreamIpc)
+                  when (message) {
+                      "close" -> close()
+                      "ping" -> enqueue(PONG_DATA)
+                      "pong" -> debugStreamIpc("PONG", "$stream")
+                      is IpcMessage -> {
+                          debugStreamIpc("ON-MESSAGE", "$size => $message => ${this@ReadableStreamIpc}")
+                          _messageSignal.emit(IpcMessageArgs(message, this@ReadableStreamIpc))
+                      }
+                      else -> throw Exception("unknown message: $message")
+                  }
+              }
+              debugStreamIpc("END", "$stream")
+              // 流是双向的，对方关闭的时候，自己也要关闭掉
+              this.close()
+          }catch (e:Exception) {
+              printerrln("ReadableStreamIpc","output stream closed")
+          }
         }
         _incomeStream = stream
         inComeStreamJob.getAndSet(incomeStreamCoroutineScope.async { readStream() })
