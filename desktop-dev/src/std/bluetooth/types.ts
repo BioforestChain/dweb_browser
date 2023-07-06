@@ -68,7 +68,7 @@ export type RequestDeviceOptions =
       optionalManufacturerData?: number[] | undefined;
     };
 
-interface BluetoothAdvertisingEvent extends Event {
+export interface BluetoothAdvertisingEvent extends Event {
   readonly device: BluetoothDevice;
   readonly uuids: BluetoothServiceUUID[];
   readonly manufacturerData: BluetoothManufacturerData;

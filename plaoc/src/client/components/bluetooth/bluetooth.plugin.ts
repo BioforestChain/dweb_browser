@@ -44,31 +44,80 @@ export class BluetoothPlugin extends BasePlugin {
   }
 }
 
-// export class BluetoothDevice extends EventTarget {
-//   private _gatt: BluetoothRemoteGATTServer | undefined;
-//   constructor(
-//     readonly id: string,
-//     readonly watchingAdvertisements: boolean,
-//     readonly name?: string | undefined
-//   ) {
-//     super();
-//     if (watchingAdvertisements) {
-//       this.watchAdvertisements();
-//     }
-//     this._gatt = new BluetoothRemoteGATTServer(this);
-//   }
+export class BluetoothDevice {
+  private _gatt: BluetoothRemoteGATTServer | undefined;
+  private name: string | undefined;
+  private gatt: BluetoothRemoteGATTServer | undefined;
+  private eventMap: Map<string, Set<{ (ev: Event): void }>> = new Map();
+  private isWatchGattServerDisconnected = false;
+  private isAdvertisementreceived = false;
+  constructor(
+    readonly plugin: BluetoothPlugin,
+    readonly id: string,
+    readonly watchingAdvertisements: boolean,
+    _name?: string | undefined,
+    _gatt?: BluetoothRemoteGATTServer | undefined
+  ) {
+    this.name = _name;
+    this.gatt = _gatt;
+    // if (watchingAdvertisements) {
+    //   this.watchAdvertisements();
+    // }
+  }
 
-//   get gatt() {
-//     return this._gatt;
-//   }
+  // 撤销访问的权限
+  @bindThis
+  async forget() {}
 
-//   // 撤销访问的权限
-//   @bindThis
-//   async forget() {}
+  @bindThis
+  async watchAdvertisements() {}
 
-//   @bindThis
-//   async watchAdvertisements() {}
-// }
+  @bindThis
+  addEventListener(
+    type: "gattserverdisconnected" | "advertisementreceived",
+    listener: { (ev: Event): void }
+  ): void {
+    let set = this.eventMap.get(type);
+    if (set === undefined) {
+      set = new Set();
+      this.eventMap.set(type, set);
+      set.add(listener);
+      // 发起 webSocke 连接
+      // this.plugin.fetchApi();
+      // 一但就出发 gettserverdisconnectedListener()
+    }
+
+    if (type === "gattserverdisconnected") {
+      this.isWatchGattServerDisconnected
+        ? ""
+        : this._watchGattServerDisconnected();
+      return;
+    }
+
+    if (type === "advertisementreceived") {
+      return;
+    }
+  }
+
+  private _watchGattServerDisconnected = () => {
+    this.isWatchGattServerDisconnected = true;
+    const url = new URL(BasePlugin.url);
+    url.pathname = `${this.plugin.mmid}/bluetooth_device/gattserverdisconnected_watch`;
+    const ws = new WebSocket(url);
+    ws.onerror = () => {};
+    // ws.on
+  };
+
+  gettserverdisconnectedListener() {
+    const set = this.eventMap.get("gattserverdisconnected");
+    if (set === undefined) {
+      return;
+    }
+    set.forEach((fn) => {
+      fn.bind(this)(new GattServerDisconnectedEvent());
+    });
+  }
+}
 
 export class BluetoothRemoteGATTServer {
   connected = false;
@@ -289,3 +338,10 @@ export class BluetoothRemoteGATTDescriptor {
 }
 
 export const bluetoothPlugin = new BluetoothPlugin();
+
+class GattServerDisconnectedEvent extends Event {
+  readonly state = "disconnected";
+  constructor() {
+    super("gattserverdisconnected");
+  }
+}

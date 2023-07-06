@@ -1,6 +1,7 @@
 // import "../index.d.ts";
 import type { $Device } from "../types.ts";
 import {
+  BluetoothAdvertisingEvent,
   BluetoothDevice,
   BluetoothRemoteGATTCharacteristic,
   BluetoothRemoteGATTDescriptor,
@@ -52,6 +53,16 @@ async function requestDevice(requestDeviceOptions: RequestDeviceOptions) {
     .then((_bluetooth: BluetoothDevice) => {
       if (_bluetooth !== undefined) {
         bluetooth = _bluetooth;
+        bluetooth.addEventListener("gattserverdisconnected", () => {
+          console.error("error", "gattserverdisconnected");
+        });
+
+        bluetooth.addEventListener(
+          "advertisementreceived",
+          (ev: BluetoothAdvertisingEvent) => {
+            console.error("error", "advertisementreceived 还没有处理");
+          }
+        );
         return bluetooth.gatt?.connect();
       }
       return Promise.reject(new Error(`_bluettoh === undefined`));
@@ -338,6 +349,14 @@ async function bluetoothRemoteGATTService_getCharacteristic(
     async (_bluetoothRemoteGATTCharacteristic) => {
       // browserWindow 不能够最小化 如果最小化就会到导致 bluetoothRemoteGATTService 失去联系
       bluetoothRemoteGATTCharacteristic = _bluetoothRemoteGATTCharacteristic;
+
+      //
+      bluetoothRemoteGATTCharacteristic.addEventListener(
+        "characteristicvaluechanged",
+        (event: Event) => {
+          // 特征 的值发生了变化
+        }
+      );
 
       return operationCallbackSuccess(
         {
