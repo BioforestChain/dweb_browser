@@ -449,7 +449,7 @@ function bluetoothRemoteGATTCharacteristic_readValue(resolveId: number) {
     return;
   }
   bluetoothRemoteGATTCharacteristic.readValue().then(
-    (res: DataView) => {
+    (res) => {
       console.log("readValue: ", res);
       mainApis.operationCallback(
         {
@@ -521,9 +521,9 @@ function BluetoothRemoteGATTCharacteristic_getDescriptor(
   );
 }
 
-async function descriptorReadValue(resolveId: number) {
+async function bluetoothRemoteGATTDescriptor_readValue(resolveId: number) {
   if (bluetoothRemoteGATTDescriptor === undefined) {
-    mainApis.descriptorReadValueCallback(
+    mainApis.operationCallback(
       {
         success: false,
         error: `bluetoothRemoteGATTDescriptor === undefined`,
@@ -535,10 +535,10 @@ async function descriptorReadValue(resolveId: number) {
   }
 
   bluetoothRemoteGATTDescriptor.readValue().then(
-    (value: DataView) => {
-      mainApis.descriptorReadValueCallback(
+    (value) => {
+      mainApis.operationCallback(
         {
-          success: false,
+          success: true,
           error: undefined,
           data: value,
         },
@@ -546,7 +546,12 @@ async function descriptorReadValue(resolveId: number) {
       );
     },
     (err) => {
-      mainApis.descriptorReadValueCallback(
+      console.error(
+        "error",
+        "bluetoothRemoteGATTDescriptor.readValue() success",
+        err
+      );
+      mainApis.operationCallback(
         {
           success: false,
           error: err.message,
@@ -575,8 +580,8 @@ export const APIS = {
   bluetoothRemoteGATTService_getCharacteristic,
   bluetoothRemoteGATTCharacteristic_readValue,
   BluetoothRemoteGATTCharacteristic_getDescriptor,
+  bluetoothRemoteGATTDescriptor_readValue,
   deviceSelectedFailCallback,
-  descriptorReadValue,
 };
 
 Object.assign(globalThis, APIS);

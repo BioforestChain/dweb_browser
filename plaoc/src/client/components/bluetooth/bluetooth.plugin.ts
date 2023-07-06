@@ -196,12 +196,18 @@ export class BluetoothRemoteGATTCharacteristic extends EventTarget {
     super();
   }
   @bindThis
-  async readValue(): Promise<$ResponseData<unknown>> {
+  async readValue(): Promise<$ResponseData<DataView | undefined>> {
     const res = await (
       await this.plugin.fetchApi(
         `/bluetooth_remote_gatt_characteristic/read_value`
       )
     ).json();
+    if (res.success) {
+      res.data = new DataView(
+        // deno-lint-ignore ban-types
+        Uint8Array.from([...Object.values(res.data as Object)]).buffer
+      );
+    }
     return res;
   }
 
@@ -231,10 +237,18 @@ export class BluetoothRemoteGATTDescriptor {
     readonly value?: DataView
   ) {}
   @bindThis
-  async readValue() {
-    const res = await this.characteristic.plugin.fetchApi(
-      `/bluetooth_remote_gatt_descriptor/reaed_value`
-    );
+  async readValue(): Promise<$ResponseData<DataView | undefined>> {
+    const res = await (
+      await this.characteristic.plugin.fetchApi(
+        `/bluetooth_remote_gatt_descriptor/reaed_value`
+      )
+    ).json();
+    if (res.success) {
+      res.data = new DataView(
+        // deno-lint-ignore ban-types
+        Uint8Array.from([...Object.values(res.data as Object)]).buffer
+      );
+    }
     return res;
   }
 }

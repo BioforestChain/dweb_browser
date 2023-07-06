@@ -13,7 +13,6 @@ import { STATE } from "./const.ts";
 import type {
   $Device,
   $ResponseJsonable,
-  BluetoothRemoteGATTServer,
   RequestDeviceOptions,
 } from "./types.ts";
 
@@ -40,7 +39,7 @@ export class BluetoothNMM extends NativeMicroModule {
     { (arg: $ResponseJsonable<unknown>): void }
   > = new Map();
   // 为 多次点击 设备列表做准备
-  private _deviceConnectedResolve(value: unknown) {}
+  private _deviceConnectedResolve(value: $ResponseJsonable<unknown>) {}
   // private _deviceDisconnectedResolve(value: unknown) {}
   private _deviceDisconnectedResolveMap: Map<number, { (arg: unknown): void }> =
     new Map();
@@ -294,6 +293,19 @@ export class BluetoothNMM extends NativeMicroModule {
     return this._createResponseSucess(event, res);
   };
 
+  private _bluetoothRemoteGATTDescriptor_readValue: $OnFetch = async (
+    event: FetchEvent
+  ) => {
+    const resolveId = this._allocId++;
+    const resPromise = new Promise<$ResponseJsonable<unknown>>((resolve) =>
+      this._operationResolveMap.set(resolveId, resolve)
+    );
+    this._apis?.bluetoothRemoteGATTDescriptor_readValue(resolveId);
+    const res = await resPromise;
+    // res.data === daaValue
+    return this._createResponseSucess(event, res);
+  };
+
   private _bluetoothRemoteGATTCharacteristic_readValue: $OnFetch = async (
     event: FetchEvent
   ) => {
@@ -402,13 +414,18 @@ export class BluetoothNMM extends NativeMicroModule {
       )
       .add(
         "GET",
+        "/bluetooth_remote_gatt_characteristic/read_value",
+        this._bluetoothRemoteGATTCharacteristic_readValue
+      )
+      .add(
+        "GET",
         "/bluetooth_remote_gatt_characteristic/get_descriptor",
         this._bluetoothRemoteGATTCharacteristic_getDescriptor
       )
       .add(
         "GET",
-        "/bluetooth_remote_gatt_characteristic/read_value",
-        this._bluetoothRemoteGATTCharacteristic_readValue
+        `/bluetooth_remote_gatt_descriptor/reaed_value`,
+        this._bluetoothRemoteGATTDescriptor_readValue
       );
     return this;
   }
@@ -463,9 +480,10 @@ export class BluetoothNMM extends NativeMicroModule {
           },
           // 设备连接的回调函数
           deviceConnectedCallback: async (
-            server: BluetoothRemoteGATTServer
+            // server: BluetoothRemoteGATTServer
+            res: $ResponseJsonable<unknown>
           ) => {
-            this._deviceConnectedResolve(server);
+            this._deviceConnectedResolve(res);
           },
           // 监听 bluetoothRemoteGATTService 的状态变化
           bluetoothRemoteGATTServiceListenner: async (

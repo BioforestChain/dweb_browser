@@ -177,13 +177,16 @@ async function readCharacteristicDescriptor() {
 }
 
 async function readCharacteristicDescriptorValue() {
-  console.log("readCharacteristicDescriptorValue");
   if (state.bluetoothRemoteGATTDescriptor === undefined) {
     console.error(`state.bluetoothRemoteGATTDescriptor === undefined`);
     return;
   }
   const res = await state.bluetoothRemoteGATTDescriptor?.readValue();
-  console.log("readCharacteristicDescriptorValue res ===", res);
+  if (res.success) {
+    console.log("readCharacteristicDescriptorValue success", res.data);
+  } else {
+    console.error(`readCharacteristicDescriptorValue fail`, res.data);
+  }
 }
 
 function allDeviceUpdate(list: $Device[]) {
@@ -248,14 +251,14 @@ function deviceConnectedIdUpdate(deviceId: string) {
     </article>
     <article class="card-body" v-if="state.bluetoothRemoteGATTCharacteristic !== undefined">
       <h2 class="card-title">读取特性的值</h2>
-      <v-btn color="indigo-darken-3" @click="readCharacteristicValue">readCharacteristicValue </v-btn>
+      <v-btn color="indigo-darken-3" @click="readCharacteristicValue">read Characteristic Value </v-btn>
     </article>
     <article class="card-body" v-if="state.bluetoothRemoteGATTCharacteristic !== undefined">
       <h2 class="card-title">获取特性的描述</h2>
       <v-input v-model="state.bluetoothDescriptorUUID">{{ state.bluetoothCharacteristicUUID }}</v-input>
       <v-btn color="indigo-darken-3" @click="readCharacteristicDescriptor">getDescriptor </v-btn>
     </article>
-    <article class="card-body" v-if="state.bluetoothRemoteGATTCharacteristic !== undefined">
+    <article class="card-body" v-if="state.bluetoothRemoteGATTDescriptor !== undefined">
       <h2 class="card-title">读取特性描述述符的值</h2>
       <v-btn color="indigo-darken-3" @click="readCharacteristicDescriptorValue">read Descriptor Value </v-btn>
     </article>
