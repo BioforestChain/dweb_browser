@@ -3298,6 +3298,9 @@ var $metaToStream = (metaBody, ipc2) => {
   const stream = new ReadableStream(
     {
       start(controller) {
+        ipc2.onClose(() => {
+          controller.close();
+        });
         let firstData;
         switch (metaBody.type_encoding) {
           case 2 /* UTF8 */:
