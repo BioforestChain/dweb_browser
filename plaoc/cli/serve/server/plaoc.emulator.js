@@ -6538,12 +6538,10 @@ var StatusBarController = class extends BaseController {
         const { pathname, searchParams } = event;
         if (pathname.endsWith("/getState")) {
           const state = this.statusBarGetState();
-          console.log("status-bar getState=>", state);
           return Response.json(state);
         }
         if (pathname.endsWith("/setState")) {
           const states = parseQuery(searchParams, query_state);
-          console.log("status-bar setState=>", states);
           this.statusBarSetState(states);
           return Response.json(null);
         }

@@ -6438,7 +6438,12 @@ var Server_api = class extends HttpServer {
     const url = new URL(href);
     if (url.pathname === "/public-url") {
       const startResult = await this.getStartResult();
-      const apiHref = startResult.urlInfo.buildPublicUrl().href;
+      const apiHref = startResult.urlInfo.buildPublicUrl((url2) => {
+        const sessionId = event.searchParams.get("X-Plaoc-Session-Id" /* SESSION_ID */);
+        if (sessionId !== null) {
+          url2.searchParams.set("X-Plaoc-Session-Id" /* SESSION_ID */, sessionId);
+        }
+      }).href;
       return new Response(apiHref);
     } else if (url.pathname === "/observe") {
       const mmid = url.searchParams.get("mmid");
@@ -6474,10 +6479,16 @@ var Server_api = class extends HttpServer {
   }
 };
 var ipcObserversMap = /* @__PURE__ */ new Map();
+var IpcObserver = class {
+  constructor() {
+    this.ipc = new PromiseOut();
+    this.obs = /* @__PURE__ */ new Set();
+  }
+};
 var onInternalObserve = (mmid, connect = (mmid2) => jsProcess.connect(mmid2)) => {
   const streamPo = new ReadableStreamOut();
   const observers = mapHelper.getOrPut(ipcObserversMap, mmid, (mmid2) => {
-    const result = { ipc: new PromiseOut(), obs: /* @__PURE__ */ new Set() };
+    const result = new IpcObserver();
     result.ipc.resolve(connect(mmid2));
     result.ipc.promise.then((ipc2) => {
       ipc2.onEvent((event) => {
@@ -6511,21 +6522,16 @@ var Server_api2 = class extends Server_api {
     this.streamMap = /* @__PURE__ */ new Map();
     this.responseMap = /* @__PURE__ */ new Map();
     this.jsonlineEnd = simpleEncoder("\n", "utf8");
-    this.cacheIpc = null;
   }
   /**内部请求事件 */
   async _onInternal(event) {
     const sessionId = event.searchParams.get("X-Plaoc-Session-Id" /* SESSION_ID */);
-    if (sessionId) {
-      this.cacheIpc = getConncetdIpc(sessionId);
-    }
-    const chcheFun = this.cacheIpc;
-    if (!chcheFun) {
-      throw new Error("ipc not connect!");
+    if (!sessionId) {
+      throw new Error("session not connect!");
     }
     return super._onInternal(
       event,
-      (mmid) => chcheFun(mmid) ?? jsProcess.connect(mmid)
+      (mmid) => getConncetdIpc(sessionId, mmid) ?? jsProcess.connect(mmid)
     );
   }
   async _onApi(event) {
@@ -6555,7 +6561,7 @@ var Server_api2 = class extends Server_api {
     }
     return super._onApi(
       event,
-      (mmid) => getConncetdIpc(sessionId)(mmid) ?? jsProcess.connect(mmid)
+      (mmid) => getConncetdIpc(sessionId, mmid) ?? jsProcess.connect(mmid)
     );
   }
 };
@@ -6569,11 +6575,7 @@ var forceGetDuplex = (sessionId, mmid) => mapHelper.getOrPut(
   mmid,
   () => new PromiseOut()
 );
-var getConncetdIpc = (sessionId) => {
-  return (mmid) => {
-    return emulatorDuplexs.get(sessionId)?.get(mmid)?.promise.then((duplex) => duplex.streamIpc);
-  };
-};
+var getConncetdIpc = (sessionId, mmid) => emulatorDuplexs.get(sessionId)?.get(mmid)?.promise.then((duplex) => duplex.streamIpc);
 
 // src/server/http-external-server.ts
 var Server_external = class extends HttpServer {

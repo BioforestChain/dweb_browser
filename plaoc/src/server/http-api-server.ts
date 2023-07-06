@@ -70,7 +70,12 @@ export class Server_api extends HttpServer {
     // 转发public url
     if (url.pathname === "/public-url") {
       const startResult = await this.getStartResult();
-      const apiHref = startResult.urlInfo.buildPublicUrl().href;
+      const apiHref = startResult.urlInfo.buildPublicUrl((url) => {
+        const sessionId = event.searchParams.get(X_PLAOC_QUERY.SESSION_ID);
+        if (sessionId !== null) {
+          url.searchParams.set(X_PLAOC_QUERY.SESSION_ID, sessionId);
+        }
+      }).href;
       return new Response(apiHref);
     } // 监听属性
     else if (url.pathname === "/observe") {
@@ -113,24 +118,25 @@ export class Server_api extends HttpServer {
   }
 }
 
-import { OBSERVE } from "./const.ts";
+import { OBSERVE, X_PLAOC_QUERY } from "./const.ts";
 import {
   $MMID,
-  mapHelper,
   PromiseOut,
   ReadableStreamOut,
+  mapHelper,
   simpleEncoder,
   u8aConcat,
 } from "./deps.ts";
 import { mwebview_destroy } from "./mwebview-helper.ts";
 
-const ipcObserversMap = new Map<
-  $MMID,
-  {
-    ipc: PromiseOut<$Ipc>;
-    obs: Set<{ controller: ReadableStreamDefaultController<Uint8Array> }>;
-  }
->();
+const ipcObserversMap = new Map<$MMID, IpcObserver>();
+
+class IpcObserver {
+  readonly ipc = new PromiseOut<$Ipc>();
+  readonly obs = new Set<{
+    controller: ReadableStreamDefaultController<Uint8Array>;
+  }>();
+}
 
 /**监听属性的变化 */
 const onInternalObserve = (
@@ -139,7 +145,7 @@ const onInternalObserve = (
 ) => {
   const streamPo = new ReadableStreamOut<Uint8Array>();
   const observers = mapHelper.getOrPut(ipcObserversMap, mmid, (mmid) => {
-    const result = { ipc: new PromiseOut<$Ipc>(), obs: new Set() };
+    const result = new IpcObserver();
     result.ipc.resolve(connect(mmid));
     result.ipc.promise.then((ipc) => {
       ipc.onEvent((event) => {

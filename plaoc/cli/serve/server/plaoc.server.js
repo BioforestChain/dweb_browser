@@ -6157,7 +6157,12 @@ var Server_api = class extends HttpServer {
     const url = new URL(href);
     if (url.pathname === "/public-url") {
       const startResult = await this.getStartResult();
-      const apiHref = startResult.urlInfo.buildPublicUrl().href;
+      const apiHref = startResult.urlInfo.buildPublicUrl((url2) => {
+        const sessionId = event.searchParams.get("X-Plaoc-Session-Id" /* SESSION_ID */);
+        if (sessionId !== null) {
+          url2.searchParams.set("X-Plaoc-Session-Id" /* SESSION_ID */, sessionId);
+        }
+      }).href;
       return new Response(apiHref);
     } else if (url.pathname === "/observe") {
       const mmid = url.searchParams.get("mmid");
@@ -6193,10 +6198,16 @@ var Server_api = class extends HttpServer {
   }
 };
 var ipcObserversMap = /* @__PURE__ */ new Map();
+var IpcObserver = class {
+  constructor() {
+    this.ipc = new PromiseOut();
+    this.obs = /* @__PURE__ */ new Set();
+  }
+};
 var onInternalObserve = (mmid, connect = (mmid2) => jsProcess.connect(mmid2)) => {
   const streamPo = new ReadableStreamOut();
   const observers = mapHelper.getOrPut(ipcObserversMap, mmid, (mmid2) => {
-    const result = { ipc: new PromiseOut(), obs: /* @__PURE__ */ new Set() };
+    const result = new IpcObserver();
     result.ipc.resolve(connect(mmid2));
     result.ipc.promise.then((ipc2) => {
       ipc2.onEvent((event) => {
