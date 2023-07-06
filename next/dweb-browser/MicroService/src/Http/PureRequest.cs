@@ -6,7 +6,7 @@ public record PureRequest(
     IpcMethod Method,
     IpcHeaders? Headers = null,
     PureBody? Body = null
-) : System.IDisposable
+) : IDisposable
 {
     static readonly Debugger Console = new("PureRequest");
 

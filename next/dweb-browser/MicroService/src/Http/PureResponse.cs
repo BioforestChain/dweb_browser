@@ -6,7 +6,7 @@ public record PureResponse(
     PureBody? Body = null,
     string? StatusText = null,
     string? Url = null
-) : System.IDisposable
+) : IDisposable
 {
     public IpcHeaders Headers = Headers ?? new();
     public PureBody Body = Body ?? PureBody.Empty;

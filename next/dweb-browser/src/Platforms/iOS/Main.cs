@@ -14,6 +14,7 @@ using DwebBrowser.MicroService.Browser.NativeUI;
 using DwebBrowser.MicroService.Browser.JsProcess;
 using DwebBrowser.MicroService.Browser.NativeUI.Torch;
 using DwebBrowser.MicroService.Browser.NativeUI.Haptics;
+using DwebBrowser.MicroService.Test;
 
 namespace DwebBrowser.Platforms.iOS;
 
@@ -129,9 +130,13 @@ public class MicroService
         /// 安装Jmm
         new JmmNMM().InstallBy(dnsNMM);
 
+        /// 安装测试应用
+        var plaocDemoJMM = new PlaocDemoJMM().InstallBy(dnsNMM);
+
         var bootMmidList = new List<Mmid>
         {
-            browserNMM.Mmid
+            browserNMM.Mmid,
+            //plaocDemoJMM.Mmid
         };
         /// 启动程序
         var bootNMM = new BootNMM(

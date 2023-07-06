@@ -3,7 +3,7 @@ using Foundation;
 
 namespace DwebBrowser.MicroService.Browser.JsProcess;
 
-public class JsProcessWebApi : System.IDisposable
+public class JsProcessWebApi : IDisposable
 {
     static readonly Debugger Console = new("JsProcessWebApi");
     public DWebView.DWebView DWebView { get; init; }
@@ -109,7 +109,7 @@ public class JsProcessWebApi : System.IDisposable
         MainThread.InvokeOnMainThreadAsync(() =>
         {
             return DWebView.EvaluateJavaScriptAsync(
-                string.Format("void createIpcFail({0}, {1}, {2})", process_id, mmid, reason).Trim()).NoThrow();
+                string.Format("void createIpcFail({0}, '{1}', '{2}')", process_id, mmid, reason).Trim()).NoThrow();
         });
 
     public void Dispose()

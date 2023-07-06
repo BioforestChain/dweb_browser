@@ -53,6 +53,7 @@
 
 	<ItemGroup>
 	  <None Remove="Resources\.DS_Store" />
+	  <None Remove="Platforms\iOS\MicroModule\Test\" />
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\Helper\src\DwebBrowser.Helper.csproj" />
@@ -89,6 +90,7 @@
 	  <Folder Include="Platforms\iOS\MicroModule\Sys\Toast\" />
 	  <Folder Include="Platforms\iOS\Helper\" />
 	  <Folder Include="Platforms\iOS\MicroModule\Browser\NativeUI\Haptics\" />
+	  <Folder Include="Platforms\iOS\MicroModule\Test\" />
 	</ItemGroup>
 	<ItemGroup>
 	  <BundleResource Include="Resources\Assets\**\*.*" />

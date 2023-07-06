@@ -59,7 +59,7 @@ public class JmmMetadata
         MainServer server,
         List<Dweb_DeepLink>? dweb_deeplinks = null,
         string name = "",
-        string shortName = "",
+        string short_name = "",
         string icon = "",
         List<string>? images = null,
         string description = "",
@@ -78,7 +78,7 @@ public class JmmMetadata
         Id = id;
         Server = server;
         Name = name;
-        ShortName = shortName;
+        ShortName = short_name;
         Icon = icon;
         Images = images;
         Description = description;

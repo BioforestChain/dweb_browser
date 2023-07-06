@@ -18,7 +18,7 @@ namespace DwebBrowser.MicroService.Message;
  * </summary>
  */
 
-public class IpcBodySender : IpcBody,System.IDisposable
+public class IpcBodySender : IpcBody, IDisposable
 {
     static readonly Debugger Console = new("IpcBodySender");
     public override object? Raw { get; }
@@ -465,7 +465,6 @@ public class IpcBodySender : IpcBody,System.IDisposable
             streamType = MetaBody.IPC_META_BODY_TYPE.STREAM_WITH_BINARY;
             var streamFirstData = new byte[prestream.PreReadableSize];
             stream.Read(streamFirstData, 0, prestream.PreReadableSize);
-            stream.Flush();
 
             metaBody = new MetaBody(streamType, ipc.Uid, streamFirstData, stream_id);
         }
