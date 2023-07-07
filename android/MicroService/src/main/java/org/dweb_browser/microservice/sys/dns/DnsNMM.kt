@@ -22,7 +22,7 @@ import org.dweb_browser.microservice.core.connectMicroModules
 import org.dweb_browser.microservice.help.DWEB_DEEPLINK
 import org.dweb_browser.microservice.help.Mmid
 import org.dweb_browser.microservice.ipc.Ipc
-import org.dweb_browser.microservice.ipc.message.IpcEvent
+import org.dweb_browser.microservice.ipc.helper.IpcEvent
 
 fun debugDNS(tag: String, msg: Any = "", err: Throwable? = null) =
   printdebugln("fetch", tag, msg, err)

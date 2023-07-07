@@ -5,7 +5,7 @@ import org.dweb_browser.helper.*
 import org.dweb_browser.microservice.help.DWEB_DEEPLINK
 import org.dweb_browser.microservice.help.Mmid
 import org.dweb_browser.microservice.ipc.Ipc
-import org.dweb_browser.microservice.ipc.message.IpcEvent
+import org.dweb_browser.microservice.ipc.helper.IpcEvent
 
 typealias Router = MutableMap<String, AppRun>
 typealias AppRun = (options: NativeOptions) -> Any

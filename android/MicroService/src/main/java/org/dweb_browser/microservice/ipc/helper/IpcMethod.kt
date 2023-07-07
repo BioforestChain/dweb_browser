@@ -1,4 +1,4 @@
-package org.dweb_browser.microservice.ipc.message
+package org.dweb_browser.microservice.ipc.helper
 
 import com.google.gson.*
 import com.google.gson.annotations.JsonAdapter

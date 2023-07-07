@@ -17,8 +17,8 @@ import org.dweb_browser.microservice.help.int
 import org.dweb_browser.microservice.help.stream
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.ReadableStreamIpc
-import org.dweb_browser.microservice.ipc.message.IpcMessageArgs
-import org.dweb_browser.microservice.ipc.message.IpcResponse
+import org.dweb_browser.microservice.ipc.helper.IpcMessageArgs
+import org.dweb_browser.microservice.ipc.helper.IpcResponse
 import org.http4k.core.*
 import java.util.*
 

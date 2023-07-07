@@ -6,9 +6,9 @@ import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.NativeIpc
 import org.dweb_browser.microservice.ipc.NativeMessageChannel
-import org.dweb_browser.microservice.ipc.message.IPC_ROLE
-import org.dweb_browser.microservice.ipc.message.IpcMessage
-import org.dweb_browser.microservice.ipc.message.IpcResponse
+import org.dweb_browser.microservice.ipc.helper.IPC_ROLE
+import org.dweb_browser.microservice.ipc.helper.IpcMessage
+import org.dweb_browser.microservice.ipc.helper.IpcResponse
 import org.http4k.core.*
 import org.http4k.filter.ServerFilters
 import org.http4k.lens.RequestContextKey

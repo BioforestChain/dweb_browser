@@ -1,4 +1,4 @@
-package org.dweb_browser.microservice.ipc.message
+package org.dweb_browser.microservice.ipc.helper
 
 import org.dweb_browser.helper.*
 import org.dweb_browser.helper.toBase64ByteArray

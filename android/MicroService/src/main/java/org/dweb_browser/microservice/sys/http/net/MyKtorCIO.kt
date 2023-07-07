@@ -16,16 +16,20 @@ import org.http4k.core.Headers
 import org.http4k.core.Status.Companion.NOT_IMPLEMENTED
 import org.http4k.lens.Header.CONTENT_TYPE
 import org.http4k.server.Http4kServer
+import org.http4k.server.PolyServerConfig
 import org.http4k.server.ServerConfig
 import org.http4k.server.ServerConfig.StopMode.Immediate
 import org.http4k.server.supportedOrNull
+import org.http4k.sse.SseHandler
+import org.http4k.websocket.WsHandler
 import java.io.InputStream
 import java.io.OutputStream
 import java.util.concurrent.TimeUnit.SECONDS
 import io.ktor.http.Headers as KHeaders
 
 @Suppress("EXPERIMENTAL_API_USAGE")
-class MyKtorCIO(val port: Int = 8000, override val stopMode: ServerConfig.StopMode) : ServerConfig {
+class MyKtorCIO(val port: Int = 8000, override val stopMode: ServerConfig.StopMode) :
+  PolyServerConfig {
   constructor(port: Int = 8000) : this(port, Immediate)
 
   init {
@@ -34,8 +38,11 @@ class MyKtorCIO(val port: Int = 8000, override val stopMode: ServerConfig.StopMo
     }
   }
 
-  override fun toServer(http: HttpHandler): Http4kServer = object : Http4kServer {
+  override fun toServer(http: HttpHandler?, ws: WsHandler?, sse: SseHandler?): Http4kServer = object : Http4kServer {
     private val engine: CIOApplicationEngine = embeddedServer(CIO, port) {
+      if (http == null) {
+        throw Exception("http Handler is null!")
+      }
       install(createApplicationPlugin(name = "http4k") {
         onCall {
           withContext(Default) {

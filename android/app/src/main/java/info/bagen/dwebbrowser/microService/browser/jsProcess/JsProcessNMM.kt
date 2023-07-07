@@ -4,8 +4,8 @@ import info.bagen.dwebbrowser.App
 import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.microservice.ipc.Ipc
-import org.dweb_browser.microservice.ipc.message.IpcHeaders
-import org.dweb_browser.microservice.ipc.message.IpcResponse
+import org.dweb_browser.microservice.ipc.helper.IpcHeaders
+import org.dweb_browser.microservice.ipc.helper.IpcResponse
 import org.dweb_browser.microservice.ipc.ReadableStreamIpc
 import org.dweb_browser.microservice.help.Mmid
 import org.dweb_browser.helper.encodeURI

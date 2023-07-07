@@ -6,6 +6,8 @@ import kotlinx.coroutines.launch
 import org.http4k.core.HttpHandler
 import org.http4k.server.Http4kServer
 import org.http4k.server.asServer
+import org.http4k.server.PolyHandler
+import org.http4k.websocket.WsHandler
 
 class Http1Server {
   companion object {
@@ -17,14 +19,14 @@ class Http1Server {
   var bindingPort = -1
 
   private var server: Http4kServer? = null
-  suspend fun createServer(handler: HttpHandler) {
+  suspend fun createServer(handler: HttpHandler,ws: WsHandler) {
     if (server != null) {
       throw Exception("server alter created")
     }
 
     val portPo = PromiseOut<Int>()
     CoroutineScope(ioAsyncExceptionHandler).launch {
-      server = handler.asServer(MyKtorCIO(22206/* 使用随机端口*/)).start().also { server ->
+      server = PolyHandler(handler,ws).asServer(MyKtorCIO(22206/* 使用随机端口*/)).start().also { server ->
         bindingPort = server.port()
         portPo.resolve(bindingPort)
       }

@@ -5,9 +5,9 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
-import org.dweb_browser.microservice.ipc.message.IPC_ROLE
-import org.dweb_browser.microservice.ipc.message.IpcMessage
-import org.dweb_browser.microservice.ipc.message.IpcMessageArgs
+import org.dweb_browser.microservice.ipc.helper.IPC_ROLE
+import org.dweb_browser.microservice.ipc.helper.IpcMessage
+import org.dweb_browser.microservice.ipc.helper.IpcMessageArgs
 import java.util.concurrent.atomic.AtomicInteger
 
 inline fun debugNativeIpc(tag: String, msg: Any = "", err: Throwable? = null) =

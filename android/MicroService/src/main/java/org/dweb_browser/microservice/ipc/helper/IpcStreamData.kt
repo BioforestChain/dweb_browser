@@ -1,4 +1,4 @@
-package org.dweb_browser.microservice.ipc.message
+package org.dweb_browser.microservice.ipc.helper
 
 import com.google.gson.*
 import com.google.gson.annotations.JsonAdapter
@@ -6,25 +6,25 @@ import org.dweb_browser.helper.toBase64
 import org.dweb_browser.helper.toUtf8
 import java.lang.reflect.Type
 
-@JsonAdapter(IpcEvent::class)
-class IpcEvent(
-  val name: String,
+@JsonAdapter(IpcStreamData::class)
+data class IpcStreamData(
+  override val stream_id: String,
+  val encoding: IPC_DATA_ENCODING,
   val data: Any /*String or ByteArray*/,
-  val encoding: IPC_DATA_ENCODING
-) :
-  IpcMessage(IPC_MESSAGE_TYPE.EVENT), JsonSerializer<IpcEvent>, JsonDeserializer<IpcEvent> {
+) : IpcMessage(IPC_MESSAGE_TYPE.STREAM_DATA), IpcStream, JsonSerializer<IpcStreamData>,
+  JsonDeserializer<IpcStreamData> {
 
   companion object {
-    fun fromBinary(name: String, data: ByteArray) =
-      IpcEvent(name, data, IPC_DATA_ENCODING.BINARY)
+    fun fromBinary(streamId: String, data: ByteArray) =
+      IpcStreamData(streamId, IPC_DATA_ENCODING.BINARY, data)
 
-    fun fromBase64(name: String, data: ByteArray) =
-      IpcEvent(name, data.toBase64(), IPC_DATA_ENCODING.BASE64)
+    fun fromBase64(streamId: String, data: ByteArray) =
+      IpcStreamData(streamId, IPC_DATA_ENCODING.BASE64, data.toBase64())
 
-    fun fromUtf8(name: String, data: ByteArray) = fromUtf8(name, data.toUtf8())
+    fun fromUtf8(streamId: String, data: ByteArray) = fromUtf8(streamId, data.toUtf8())
 
-    fun fromUtf8(name: String, data: String) =
-      IpcEvent(name, data, IPC_DATA_ENCODING.UTF8)
+    fun fromUtf8(streamId: String, data: String) =
+      IpcStreamData(streamId, IPC_DATA_ENCODING.UTF8, data)
   }
 
   val binary by lazy {
@@ -38,7 +38,7 @@ class IpcEvent(
   val jsonAble by lazy {
     when (encoding) {
       IPC_DATA_ENCODING.BINARY -> fromBase64(
-        name,
+        stream_id,
         (data as ByteArray),
       )
 
@@ -47,11 +47,11 @@ class IpcEvent(
   }
 
   override fun serialize(
-    src: IpcEvent, typeOfSrc: Type, context: JsonSerializationContext
+    src: IpcStreamData, typeOfSrc: Type, context: JsonSerializationContext
   ) = JsonObject().also { jsonObject ->
     with(src.jsonAble) {
       jsonObject.add("type", context.serialize(type))
-      jsonObject.addProperty("name", name)
+      jsonObject.addProperty("stream_id", stream_id)
       jsonObject.addProperty("data", data as String)
       jsonObject.add("encoding", context.serialize(encoding))
     }
@@ -61,12 +61,11 @@ class IpcEvent(
     json: JsonElement,
     typeOfT: Type,
     context: JsonDeserializationContext
-  ): IpcEvent = json.asJsonObject.let { obj ->
-    IpcEvent(
-      name = obj["name"].asString,
+  ): IpcStreamData = json.asJsonObject.let { obj ->
+    IpcStreamData(
+      stream_id = obj["stream_id"].asString,
       data = obj["data"].asString,
       encoding = context.deserialize(obj["encoding"], IPC_DATA_ENCODING::class.java)
     )
   }
-
 }

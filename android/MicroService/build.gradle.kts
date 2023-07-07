@@ -22,6 +22,7 @@ dependencies {
   api(platform(BuildConfig.http4kBom))
   api(BuildConfig.http4kCore)
   api(BuildConfig.http4kClientApache)
+  api(BuildConfig.http4kWebSocket)
   api(BuildConfig.http4kServerKtorcio)
 
   api(BuildConfig.gson)

@@ -26,6 +26,10 @@ import org.http4k.lens.int
 import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
+import org.http4k.routing.websockets
+import org.http4k.websocket.Websocket
+import org.http4k.websocket.WsConsumer
+import org.http4k.websocket.WsMessage
 import java.util.Random
 
 fun debugHttp(tag: String, msg: Any = "", err: Throwable? = null) =
@@ -41,23 +45,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb") {
   private val tokenMap = mutableMapOf</* token */ String, Gateway>();
   private val gatewayMap = mutableMapOf</* host */ String, Gateway>();
 
-  /**
-   * 监听请求
-   *
-   * 真实过来的请求有两种情况：
-   * 1. http://subdomain.localhost:24433
-   * 2. http://localhost:24433
-   * 前者是桌面端自身 chrome 支持的情况，后者才是常态。
-   * 但是我们返回给开发者的端口只有一个，这就意味着我们需要额外手段进行路由
-   *
-   * 如果这个请求是发生在 nativeFetch 中，我们会将请求的 url 改成 http://localhost:24433，同时在 headers.user-agent 的尾部加上 dweb-host/subdomain.localhost:24433
-   * 如果这个请求是 webview 中发出，我们一开始就会为整个 webview 设置 user-agent，使其行为和上条一致
-   *
-   * 如果在 webview 中，要跨域其它请求，那么 webview 的拦截器能对 get 请求进行简单的转译处理，
-   * 否则其它情况下，需要开发者自己用 fetch 接口来发起请求。
-   * 这些自定义操作，都需要在 header 中加入 X-Dweb-Host 字段来指明宿主
-   */
-  private suspend fun httpHandler(request: Request): Response {
+  private fun processHost(request: Request): String {
     var header_host: String? = null
     var header_x_dweb_host: String? = null
     var header_user_agent_host: String? = null
@@ -81,7 +69,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb") {
         }
       }
     }
-    val host = (query_x_web_host ?: header_x_dweb_host ?: header_user_agent_host
+    return (query_x_web_host ?: header_x_dweb_host ?: header_user_agent_host
     ?: header_host)?.let { host ->
       /// 如果没有端口，补全端口
       if (!host.contains(":")) {
@@ -89,6 +77,26 @@ class HttpNMM : NativeMicroModule("http.std.dweb") {
       } else host
     } ?: "*"
 
+  }
+
+  /**
+   * 监听请求
+   *
+   * 真实过来的请求有两种情况：
+   * 1. http://subdomain.localhost:24433
+   * 2. http://localhost:24433
+   * 前者是桌面端自身 chrome 支持的情况，后者才是常态。
+   * 但是我们返回给开发者的端口只有一个，这就意味着我们需要额外手段进行路由
+   *
+   * 如果这个请求是发生在 nativeFetch 中，我们会将请求的 url 改成 http://localhost:24433，同时在 headers.user-agent 的尾部加上 dweb-host/subdomain.localhost:24433
+   * 如果这个请求是 webview 中发出，我们一开始就会为整个 webview 设置 user-agent，使其行为和上条一致
+   *
+   * 如果在 webview 中，要跨域其它请求，那么 webview 的拦截器能对 get 请求进行简单的转译处理，
+   * 否则其它情况下，需要开发者自己用 fetch 接口来发起请求。
+   * 这些自定义操作，都需要在 header 中加入 X-Dweb-Host 字段来指明宿主
+   */
+  private suspend fun httpHandler(request: Request): Response {
+    val host = processHost(request)
     /// TODO 这里提取完数据后，应该把header、query、uri重新整理一下组成一个新的request会比较好些
     /// TODO 30s 没有任何 body 写入的话，认为网关超时
 
@@ -103,16 +111,28 @@ class HttpNMM : NativeMicroModule("http.std.dweb") {
   }
 /// 在网关中寻址能够处理该 host 的监听者
 
-
+/**webSocket 网关路由寻找*/
+private suspend fun wsHandler(request: Request): WsConsumer {
+  val host = processHost(request)
+  val wsConsumer = gatewayMap[host]?.let { gateway ->
+    gateway.listener.hookWsRequest(request)
+  }
+  return  wsConsumer ?: {ws -> ws.send(WsMessage("GATEWAY NOT_FOUND")) }
+}
   public override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     /// 启动http后端服务
-    dwebServer.createServer { request ->
+    dwebServer.createServer({ request ->
       runBlockingCatching(ioAsyncExceptionHandler) {
         httpHandler(
           request
         )
       }.getOrThrow()
-    }
+    },{ request ->
+      runBlockingCatching(ioAsyncExceptionHandler) {
+        wsHandler(
+        request
+      )
+    }.getOrThrow()})
 
     /// 为 nativeFetch 函数提供支持
     _afterShutdownSignal.listen(nativeFetchAdaptersManager.append { fromMM, request ->

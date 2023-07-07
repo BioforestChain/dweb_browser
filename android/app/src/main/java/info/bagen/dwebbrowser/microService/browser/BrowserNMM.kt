@@ -4,15 +4,12 @@ import android.content.Intent
 import android.os.Bundle
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.browser.jmm.JmmNMM.Companion.getAndUpdateJmmNmmApps
-import info.bagen.dwebbrowser.microService.browser.jmm.ui.JmmManagerActivity
 import org.dweb_browser.microservice.ipc.Ipc
-import org.dweb_browser.microservice.ipc.message.IpcEvent
+import org.dweb_browser.microservice.ipc.helper.IpcEvent
 import org.dweb_browser.helper.*
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.http4k.core.Method
-import org.http4k.core.Response
-import org.http4k.core.Status
 import org.http4k.lens.Query
 import org.http4k.lens.string
 import org.http4k.routing.bind

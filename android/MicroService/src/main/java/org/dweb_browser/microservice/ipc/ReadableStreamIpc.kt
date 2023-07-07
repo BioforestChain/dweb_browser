@@ -16,14 +16,14 @@ import org.dweb_browser.helper.toByteArray
 import org.dweb_browser.helper.toUtf8ByteArray
 import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.help.moshiPack
-import org.dweb_browser.microservice.ipc.message.IPC_ROLE
-import org.dweb_browser.microservice.ipc.message.IpcMessage
-import org.dweb_browser.microservice.ipc.message.IpcMessageArgs
-import org.dweb_browser.microservice.ipc.message.IpcRequest
-import org.dweb_browser.microservice.ipc.message.IpcResponse
-import org.dweb_browser.microservice.ipc.message.IpcStreamData
-import org.dweb_browser.microservice.ipc.message.ReadableStream
-import org.dweb_browser.microservice.ipc.message.jsonToIpcMessage
+import org.dweb_browser.microservice.ipc.helper.IPC_ROLE
+import org.dweb_browser.microservice.ipc.helper.IpcMessage
+import org.dweb_browser.microservice.ipc.helper.IpcMessageArgs
+import org.dweb_browser.microservice.ipc.helper.IpcRequest
+import org.dweb_browser.microservice.ipc.helper.IpcResponse
+import org.dweb_browser.microservice.ipc.helper.IpcStreamData
+import org.dweb_browser.microservice.ipc.helper.ReadableStream
+import org.dweb_browser.microservice.ipc.helper.jsonToIpcMessage
 import java.io.InputStream
 import java.util.concurrent.atomic.AtomicReference
 

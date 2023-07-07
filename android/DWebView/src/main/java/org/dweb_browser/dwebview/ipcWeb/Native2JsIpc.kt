@@ -1,7 +1,7 @@
 package org.dweb_browser.dwebview.ipcWeb
 
 import android.webkit.WebMessagePort
-import org.dweb_browser.microservice.ipc.message.IPC_ROLE
+import org.dweb_browser.microservice.ipc.helper.IPC_ROLE
 import java.util.concurrent.atomic.AtomicInteger
 
 val ALL_MESSAGE_PORT_CACHE = mutableMapOf<Int, MessagePort>();

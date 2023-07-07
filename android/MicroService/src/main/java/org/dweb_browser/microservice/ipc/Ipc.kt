@@ -13,21 +13,21 @@ import org.dweb_browser.helper.*
 import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.help.DWEB_DEEPLINK
 import org.dweb_browser.microservice.help.Mmid
-import org.dweb_browser.microservice.ipc.message.IpcEvent
-import org.dweb_browser.microservice.ipc.message.IpcEventMessageArgs
-import org.dweb_browser.microservice.ipc.message.IpcMessage
-import org.dweb_browser.microservice.ipc.message.IpcMessageArgs
-import org.dweb_browser.microservice.ipc.message.IpcRequest
-import org.dweb_browser.microservice.ipc.message.IpcRequestMessageArgs
-import org.dweb_browser.microservice.ipc.message.IpcResponse
-import org.dweb_browser.microservice.ipc.message.IpcResponseMessageArgs
-import org.dweb_browser.microservice.ipc.message.IpcStream
-import org.dweb_browser.microservice.ipc.message.IpcStreamMessageArgs
-import org.dweb_browser.microservice.ipc.message.OnIpcEventMessage
-import org.dweb_browser.microservice.ipc.message.OnIpcMessage
-import org.dweb_browser.microservice.ipc.message.OnIpcRequestMessage
-import org.dweb_browser.microservice.ipc.message.OnIpcResponseMessage
-import org.dweb_browser.microservice.ipc.message.OnIpcStreamMessage
+import org.dweb_browser.microservice.ipc.helper.IpcEvent
+import org.dweb_browser.microservice.ipc.helper.IpcEventMessageArgs
+import org.dweb_browser.microservice.ipc.helper.IpcMessage
+import org.dweb_browser.microservice.ipc.helper.IpcMessageArgs
+import org.dweb_browser.microservice.ipc.helper.IpcRequest
+import org.dweb_browser.microservice.ipc.helper.IpcRequestMessageArgs
+import org.dweb_browser.microservice.ipc.helper.IpcResponse
+import org.dweb_browser.microservice.ipc.helper.IpcResponseMessageArgs
+import org.dweb_browser.microservice.ipc.helper.IpcStream
+import org.dweb_browser.microservice.ipc.helper.IpcStreamMessageArgs
+import org.dweb_browser.microservice.ipc.helper.OnIpcEventMessage
+import org.dweb_browser.microservice.ipc.helper.OnIpcMessage
+import org.dweb_browser.microservice.ipc.helper.OnIpcRequestMessage
+import org.dweb_browser.microservice.ipc.helper.OnIpcResponseMessage
+import org.dweb_browser.microservice.ipc.helper.OnIpcStreamMessage
 
 abstract class Ipc {
   companion object {

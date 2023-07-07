@@ -23,6 +23,7 @@ object BuildConfig {
   const val http4kCore = "org.http4k:http4k-core"
   const val http4kMultipart = "org.http4k:http4k-multipart"
   const val http4kClientApache = "org.http4k:http4k-client-apache"
+  const val http4kWebSocket = "org.http4k:http4k-client-websocket"
   const val http4kClientOkhttp = "org.http4k:http4k-client-okhttp"
   const val http4kServerKtorcio = "org.http4k:http4k-server-ktorcio"
 

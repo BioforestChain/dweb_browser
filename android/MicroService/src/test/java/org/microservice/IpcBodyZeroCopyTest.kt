@@ -1,14 +1,14 @@
 package org.microservice
 
-import org.dweb_browser.microservice.ipc.message.IPC_ROLE
-import org.dweb_browser.microservice.ipc.message.IpcBodySender
-import org.dweb_browser.microservice.ipc.message.IpcHeaders
-import org.dweb_browser.microservice.ipc.message.IpcMessage
-import org.dweb_browser.microservice.ipc.message.IpcMethod
-import org.dweb_browser.microservice.ipc.message.IpcRequest
+import org.dweb_browser.microservice.ipc.helper.IPC_ROLE
+import org.dweb_browser.microservice.ipc.helper.IpcBodySender
+import org.dweb_browser.microservice.ipc.helper.IpcHeaders
+import org.dweb_browser.microservice.ipc.helper.IpcMessage
+import org.dweb_browser.microservice.ipc.helper.IpcMethod
+import org.dweb_browser.microservice.ipc.helper.IpcRequest
 import org.dweb_browser.microservice.ipc.NativeIpc
 import org.dweb_browser.microservice.ipc.NativeMessageChannel
-import org.dweb_browser.microservice.ipc.message.ReadableStream
+import org.dweb_browser.microservice.ipc.helper.ReadableStream
 import kotlinx.coroutines.runBlocking
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule

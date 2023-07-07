@@ -1,7 +1,7 @@
 package org.dweb_browser.microservice.sys.http
 
 import org.dweb_browser.microservice.ipc.Ipc
-import org.dweb_browser.microservice.ipc.message.IpcMethod
+import org.dweb_browser.microservice.ipc.helper.IpcMethod
 import org.dweb_browser.microservice.ipc.ReadableStreamIpc
 import org.dweb_browser.helper.*
 import io.ktor.util.collections.*
@@ -9,6 +9,8 @@ import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Response
 import org.http4k.core.Status
+import org.http4k.websocket.WsConsumer
+import org.http4k.websocket.WsMessage
 
 class Gateway(
   val listener: PortListener, val urlInfo: HttpNMM.ServerUrlInfo, val token: String
@@ -37,6 +39,16 @@ class Gateway(
         val response = router.handler(request)
         if (response != null) {
           return response
+        }
+      }
+      return null
+    }
+
+    suspend fun hookWsRequest(request: Request):WsConsumer? {
+      for (router in _routerSet) {
+        val response = router.handler(request)
+        if (response != null) {
+          return {ws -> ws.send(WsMessage(response.body)) }
         }
       }
       return null

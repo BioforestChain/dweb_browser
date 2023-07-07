@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import FieldLabel from "../components/FieldLabel.vue";
-import LogPanel, { toConsole, defineLogAction } from "../components/LogPanel.vue";
+import LogPanel, { defineLogAction, toConsole } from "../components/LogPanel.vue";
 import type { HTMLDwebHapticsElement, ImpactStyle, NotificationType } from '../plugin';
 const title = "Haptics";
 

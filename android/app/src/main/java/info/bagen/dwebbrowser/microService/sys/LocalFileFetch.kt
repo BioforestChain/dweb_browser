@@ -10,7 +10,7 @@ import org.dweb_browser.browserUI.util.FilesUtil
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.readByteArray
 import org.dweb_browser.microservice.core.MicroModule
-import org.dweb_browser.microservice.ipc.message.PreReadableInputStream
+import org.dweb_browser.microservice.ipc.helper.PreReadableInputStream
 import org.dweb_browser.microservice.sys.dns.debugFetch
 import org.dweb_browser.microservice.sys.dns.debugFetchFile
 import org.dweb_browser.microservice.sys.dns.nativeFetchAdaptersManager

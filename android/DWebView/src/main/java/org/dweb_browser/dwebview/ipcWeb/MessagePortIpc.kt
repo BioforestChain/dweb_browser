@@ -2,13 +2,13 @@ package org.dweb_browser.dwebview.ipcWeb
 
 import android.webkit.WebMessage
 import android.webkit.WebMessagePort
-import org.dweb_browser.microservice.ipc.message.IPC_ROLE
+import org.dweb_browser.microservice.ipc.helper.IPC_ROLE
 import org.dweb_browser.microservice.ipc.Ipc
-import org.dweb_browser.microservice.ipc.message.IpcMessage
-import org.dweb_browser.microservice.ipc.message.IpcMessageArgs
-import org.dweb_browser.microservice.ipc.message.IpcRequest
-import org.dweb_browser.microservice.ipc.message.IpcResponse
-import org.dweb_browser.microservice.ipc.message.IpcStreamData
+import org.dweb_browser.microservice.ipc.helper.IpcMessage
+import org.dweb_browser.microservice.ipc.helper.IpcMessageArgs
+import org.dweb_browser.microservice.ipc.helper.IpcRequest
+import org.dweb_browser.microservice.ipc.helper.IpcResponse
+import org.dweb_browser.microservice.ipc.helper.IpcStreamData
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
@@ -18,7 +18,7 @@ import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printdebugln
 import org.dweb_browser.microservice.help.gson
-import org.dweb_browser.microservice.ipc.message.jsonToIpcMessage
+import org.dweb_browser.microservice.ipc.helper.jsonToIpcMessage
 import java.util.WeakHashMap
 
 fun debugMessagePortIpc(tag: String, msg: Any = "", err: Throwable? = null) =

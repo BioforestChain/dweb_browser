@@ -3,7 +3,7 @@ package info.bagen.dwebbrowser.microService.browser.jsProcess
 import android.net.Uri
 import android.webkit.WebMessage
 import org.dweb_browser.microservice.help.Mmid
-import org.dweb_browser.microservice.ipc.message.IPC_ROLE
+import org.dweb_browser.microservice.ipc.helper.IPC_ROLE
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.dwebview.ipcWeb.MessagePortIpc
 import org.dweb_browser.dwebview.ipcWeb.saveNative2JsIpcPort

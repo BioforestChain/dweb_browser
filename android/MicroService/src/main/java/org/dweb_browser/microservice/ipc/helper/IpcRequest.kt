@@ -1,4 +1,4 @@
-package org.dweb_browser.microservice.ipc.message
+package org.dweb_browser.microservice.ipc.helper
 
 import org.dweb_browser.microservice.ipc.Ipc
 import org.http4k.core.Method
@@ -97,8 +97,13 @@ class IpcRequest(
       },
       ipc,
     )
-
   }
+
+  /**
+   * 判断是否是双工协议
+   *
+   * 比如目前双工协议可以由 WebSocket 来提供支持
+   */
 
   fun toRequest() = Request(method.http4kMethod, url).headers(headers.toList()).let { req ->
     if (req.method == Method.GET || req.method == Method.HEAD) {

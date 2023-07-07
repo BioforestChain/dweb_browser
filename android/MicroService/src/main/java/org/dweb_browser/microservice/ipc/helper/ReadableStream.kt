@@ -1,4 +1,4 @@
-package org.dweb_browser.microservice.ipc.message
+package org.dweb_browser.microservice.ipc.helper
 
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel

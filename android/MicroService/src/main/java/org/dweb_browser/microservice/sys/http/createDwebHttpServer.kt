@@ -12,7 +12,7 @@ import org.dweb_browser.microservice.help.json
 import org.dweb_browser.microservice.help.stream
 import org.dweb_browser.microservice.help.suspendOnce
 import org.dweb_browser.microservice.ipc.ReadableStreamIpc
-import org.dweb_browser.microservice.ipc.message.IpcMethod
+import org.dweb_browser.microservice.ipc.helper.IpcMethod
 import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.http4k.core.Method
 import org.http4k.core.Request

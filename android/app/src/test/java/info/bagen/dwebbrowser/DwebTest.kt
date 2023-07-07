@@ -1,7 +1,7 @@
 package info.bagen.dwebbrowser
 
-import org.dweb_browser.microservice.ipc.message.IpcHeaders
-import org.dweb_browser.microservice.ipc.message.IpcResponse
+import org.dweb_browser.microservice.ipc.helper.IpcHeaders
+import org.dweb_browser.microservice.ipc.helper.IpcResponse
 import org.dweb_browser.microservice.sys.boot.BootNMM
 import org.dweb_browser.microservice.sys.dns.DnsNMM
 import org.dweb_browser.microservice.sys.dns.nativeFetch

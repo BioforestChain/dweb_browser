@@ -1,14 +1,14 @@
 package org.microservice
 
-import org.dweb_browser.microservice.ipc.message.IPC_ROLE
-import org.dweb_browser.microservice.ipc.message.IpcHeaders
-import org.dweb_browser.microservice.ipc.message.IpcMessage
-import org.dweb_browser.microservice.ipc.message.IpcResponse
+import org.dweb_browser.microservice.ipc.helper.IPC_ROLE
+import org.dweb_browser.microservice.ipc.helper.IpcHeaders
+import org.dweb_browser.microservice.ipc.helper.IpcMessage
+import org.dweb_browser.microservice.ipc.helper.IpcResponse
 import org.dweb_browser.microservice.ipc.NativeIpc
 import org.dweb_browser.microservice.ipc.NativeMessageChannel
-import org.dweb_browser.microservice.ipc.message.ReadableStream
+import org.dweb_browser.microservice.ipc.helper.ReadableStream
 import org.dweb_browser.microservice.ipc.ReadableStreamIpc
-import org.dweb_browser.microservice.ipc.message.debugStream
+import org.dweb_browser.microservice.ipc.helper.debugStream
 import org.dweb_browser.helper.readByteArray
 import org.dweb_browser.microservice.sys.dns.DnsNMM
 import org.dweb_browser.microservice.sys.dns.nativeFetch
