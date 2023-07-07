@@ -17,6 +17,24 @@ export interface $ResponseJsonable<T> {
   data?: T;
 }
 
+export interface $AllWatchControllerItem {
+  controller: ReadableStreamDefaultController;
+  send: $AllWatchControllerItem.$Send;
+}
+
+export declare namespace $AllWatchControllerItem {
+  export interface $Send {
+    (jsonable: $SendParam): void;
+  }
+
+  export type $SendParam = $SendParamGattserverdisconnected;
+
+  export interface $SendParamGattserverdisconnected {
+    type: "gattserverdisconnected";
+    data: unknown;
+  }
+}
+
 type BluetoothServiceUUID = number | string;
 type BluetoothCharacteristicUUID = number | string;
 type BluetoothDescriptorUUID = number | string;

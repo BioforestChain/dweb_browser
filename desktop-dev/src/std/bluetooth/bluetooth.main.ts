@@ -1,8 +1,9 @@
 import type { Remote } from "comlink";
+import { TextEncoder } from "https://deno.land/std@0.177.0/node/util.ts";
 import type { $OnFetch, FetchEvent } from "../../core/helper/ipcFetchHelper.ts";
 import { Ipc, IpcHeaders, IpcResponse } from "../../core/ipc/index.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
-import type { $DWEB_DEEPLINK } from "../../core/types.ts";
+import type { $DWEB_DEEPLINK, $MMID } from "../../core/types.ts";
 import { createComlinkNativeWindow } from "../../helper/openNativeWindow.ts";
 import {
   createHttpDwebServer,
@@ -11,6 +12,7 @@ import {
 import { OnFetchAdapter } from "./bluetooth.onFetchAdapter.ts";
 import { STATE } from "./const.ts";
 import type {
+  $AllWatchControllerItem,
   $Device,
   $ResponseJsonable,
   RequestDeviceOptions,
@@ -21,6 +23,7 @@ type $APIS = typeof import("./assets/exportApis.ts")["APIS"];
 export class BluetoothNMM extends NativeMicroModule {
   mmid = "bluetooth.std.dweb" as const;
   dweb_deeplinks = ["dweb:bluetooth"] as $DWEB_DEEPLINK[];
+  private _encode = new TextEncoder().encode;
   // private _router = new Router();
   private _onFetchAdapter = new OnFetchAdapter();
   private _responseHeader = new IpcHeaders().init(
@@ -68,10 +71,12 @@ export class BluetoothNMM extends NativeMicroModule {
   private _bluetoothrequestdevicewatchSelectCallback:
     | { (deviceId: string): void }
     | undefined;
+  // 全部的 watchController 用来向 client 发送数据；
+  private _allWatchController = new Map<$MMID, $AllWatchControllerItem>();
   /**
    * server 失去联系 后 把消息发送给 客户端的方法
    */
-  private gattserverdisconnectedWatch_sendToClient: { (): void } | undefined;
+  // private gattserverdisconnectedWatch_sendToClient: { (): void } | undefined;
 
   _bootstrap = async () => {
     console.always(`${this.mmid} _bootstrap`);
@@ -131,13 +136,23 @@ export class BluetoothNMM extends NativeMicroModule {
       );
     },
 
-    // 蓝牙设备的服务失去联系的回调
-    gattserverdisconnectedWatch: async () => {
-      console.error("error", "gattserverdisconnectedWatch");
-      this.gattserverdisconnectedWatch_sendToClient
-        ? this.gattserverdisconnectedWatch_sendToClient()
-        : "";
+    // bluetooth 状态发生变化回调
+    watchStateChange: async (
+      type: $AllWatchControllerItem.$SendParam["type"],
+      data: $AllWatchControllerItem.$SendParam["data"]
+    ) => {
+      this._allWatchController.forEach((item: $AllWatchControllerItem) =>
+        item.send({ type, data })
+      );
     },
+
+    // // 蓝牙设备的服务失去联系的回调
+    // gattserverdisconnectedWatch: async () => {
+    //   console.error("error", "gattserverdisconnectedWatch");
+    //   this.gattserverdisconnectedWatch_sendToClient
+    //     ? this.gattserverdisconnectedWatch_sendToClient()
+    //     : "";
+    // },
   };
 
   private dwebBluetoothHandler: $OnFetch = async (event: FetchEvent) => {
@@ -194,6 +209,48 @@ export class BluetoothNMM extends NativeMicroModule {
     });
   };
 
+  private _watchHandler: $OnFetch = async (event: FetchEvent) => {
+    const remoteMMid = event.ipcRequest.ipc.remote.mmid;
+    //测试返回一个 stream
+    const readableStream = new ReadableStream({
+      start: (controller) => {
+        this._allWatchController.set(remoteMMid, {
+          controller,
+          send: (jsonable: $AllWatchControllerItem.$SendParam) => {
+            const data = new TextEncoder().encode(JSON.stringify(jsonable));
+            controller.enqueue(data);
+          },
+        });
+      },
+      pull(_controller) {},
+      cancel: (reson) => {
+        console.log("", "cancel", reson);
+        this._allWatchController.delete(remoteMMid);
+      },
+    });
+
+    // 读取发送过来的数据的方法
+    (async () => {
+      const stream = event.ipcRequest.body.stream();
+      const reader = (await stream).getReader();
+      let loop = true;
+      while (loop) {
+        const { done } = await reader.read();
+        loop = !done;
+      }
+      // client 关闭了 ws 会执行到这里
+      this._allWatchController.delete(remoteMMid);
+    })();
+
+    return IpcResponse.fromStream(
+      event.ipcRequest.req_id,
+      200,
+      new IpcHeaders().init("Content-Type", "application/octet-stream"),
+      readableStream,
+      event.ipc
+    );
+  };
+
   /**
    * 查询蓝牙设备
    * 业务逻辑
@@ -240,65 +297,64 @@ export class BluetoothNMM extends NativeMicroModule {
     return this._createResponseSucess(event, res);
   };
 
-  private _bluetoothDevice_gattserverdisconnectedWatch: $OnFetch = async (
-    event: FetchEvent
-  ) => {
-    console.log(
-      "",
-      "_bluetoothDevice_gattserverdisconnectedWatch",
-      "接受到了请求"
-    );
+  // private _bluetoothDevice_gattserverdisconnectedWatch: $OnFetch = async (
+  //   event: FetchEvent
+  // ) => {
+  //   console.log(
+  //     "",
+  //     "_bluetoothDevice_gattserverdisconnectedWatch",
+  //     "接受到了请求"
+  //   );
 
-    // 读取发送过来的数据的方法
-    // 这个 API 不需要要客户发送有效的数据过来
-    (async () => {
-      const stream = event.ipcRequest.body.stream();
-      const reader = (await stream).getReader();
-      let loop = true;
-      while (loop) {
-        // console.log("", "-------- 开始读取数据");
-        const { value, done } = await reader.read();
+  //   // 这个 API 不需要要客户发送有效的数据过来
+  //   (async () => {
+  //     const stream = event.ipcRequest.body.stream();
+  //     const reader = (await stream).getReader();
+  //     let loop = true;
+  //     while (loop) {
+  //       // console.log("", "-------- 开始读取数据");
+  //       const { value, done } = await reader.read();
 
-        // if (value) console.log("", "value", new TextDecoder().decode(value));
-        loop = !done;
-      }
-      // client 关闭了 ws 会执行到这里
-      this.gattserverdisconnectedWatch_sendToClient = undefined;
-    })();
+  //       // if (value) console.log("", "value", new TextDecoder().decode(value));
+  //       loop = !done;
+  //     }
+  //     // client 关闭了 ws 会执行到这里
+  //     this.gattserverdisconnectedWatch_sendToClient = undefined;
+  //   })();
 
-    // 通过返回一个 readableStrea 实现向 客户端发送数据
+  //   // 通过返回一个 readableStrea 实现向 客户端发送数据
 
-    let controller: ReadableStreamDefaultController;
-    // // 测试返回一个 stream
-    const readableStream = new ReadableStream({
-      start(_controller) {
-        controller = _controller;
-      },
-      pull(_controller) {},
-      cancel(reson) {
-        console.log("", "cancel", reson);
-      },
-    });
+  //   let controller: ReadableStreamDefaultController;
+  //   // // 测试返回一个 stream
+  //   const readableStream = new ReadableStream({
+  //     start(_controller) {
+  //       controller = _controller;
+  //     },
+  //     pull(_controller) {},
+  //     cancel(reson) {
+  //       console.log("", "cancel", reson);
+  //     },
+  //   });
 
-    this.gattserverdisconnectedWatch_sendToClient = () => {
-      controller.enqueue(
-        new TextEncoder().encode(
-          JSON.stringify({
-            type: "gattserverdisconnected",
-            data: undefined,
-          })
-        )
-      );
-    };
+  //   this.gattserverdisconnectedWatch_sendToClient = () => {
+  //     controller.enqueue(
+  //       new TextEncoder().encode(
+  //         JSON.stringify({
+  //           type: "gattserverdisconnected",
+  //           data: undefined,
+  //         })
+  //       )
+  //     );
+  //   };
 
-    return IpcResponse.fromStream(
-      event.ipcRequest.req_id,
-      200,
-      new IpcHeaders().init("Content-Type", "application/octet-stream"),
-      readableStream,
-      event.ipc
-    );
-  };
+  //   return IpcResponse.fromStream(
+  //     event.ipcRequest.req_id,
+  //     200,
+  //     new IpcHeaders().init("Content-Type", "application/octet-stream"),
+  //     readableStream,
+  //     event.ipc
+  //   );
+  // };
 
   private _bluetoothRemoteGATTServer_connect: $OnFetch = async (
     event: FetchEvent
@@ -550,17 +606,18 @@ export class BluetoothNMM extends NativeMicroModule {
     this._onFetchAdapter
       .add("GET", "/open", this._openHandler)
       .add("GET", "/close", this._closeHandler)
+      .add("GET", "/watch", this._watchHandler)
       .add("GET", "bluetooth", this.dwebBluetoothHandler)
       .add(
         "POST",
         "/request_connect_device",
         this._requestAndConnectDeviceHandler
       )
-      .add(
-        "GET",
-        "/bluetooth_device/gattserverdisconnected_watch",
-        this._bluetoothDevice_gattserverdisconnectedWatch
-      )
+      // .add(
+      //   "GET",
+      //   "/bluetooth_device/gattserverdisconnected_watch",
+      //   this._bluetoothDevice_gattserverdisconnectedWatch
+      // )
       .add(
         "GET",
         "/bluetooth_remote_gatt_server/connect",

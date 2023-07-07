@@ -1,9 +1,11 @@
 /// <reference path="../../@types/web-bluetooth/index.d.ts"/>;
+import type { $AllWatchControllerItem } from "../../../../../desktop-dev/src/std/bluetooth/types.ts";
 import { bindThis } from "../../helper/bindThis.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
-import { $ResponseData } from "./bluetooth.type.ts";
+import { $BluetoothPluginListener, $ResponseData } from "./bluetooth.type.ts";
 
 export class BluetoothPlugin extends BasePlugin {
+  private _ws: WebSocket | undefined;
   constructor() {
     super("bluetooth.std.dweb");
   }
@@ -14,12 +16,19 @@ export class BluetoothPlugin extends BasePlugin {
 
   @bindThis
   async open(): Promise<$ResponseData<undefined>> {
-    return (await this.fetchApi("/open")).json();
+    const res = (await this.fetchApi("/open")).json();
+    this._watch();
+    return res;
   }
 
   @bindThis
   async close(): Promise<$ResponseData<undefined>> {
-    return (await this.fetchApi("/close")).json();
+    const res = (await this.fetchApi("/close")).json();
+    if (this._ws) {
+      this._ws.close();
+      this._ws = undefined;
+    }
+    return res;
   }
 
   @bindThis
@@ -48,6 +57,56 @@ export class BluetoothPlugin extends BasePlugin {
     }
     return res;
   }
+
+  // 创建监听
+  // bluetooth 的状态变化全部通过这个 watch 接受
+  private _watch = () => {
+    const url = new URL(
+      BasePlugin.url.replace(/^http:/, "ws:").replace(/^https:/, "wss:")
+    );
+    url.pathname = `${this.mmid}/watch`;
+    const ws = new WebSocket(url);
+    this._ws = ws;
+    ws.onerror = (err) => {
+      console.error("onerror", err);
+    };
+    // let count = 0;
+    ws.onopen = () => {};
+    ws.onmessage = async (event: MessageEvent<Blob>) => {
+      try {
+        const str = await event.data.text();
+        if (str.length === 0) return;
+        const data = JSON.parse(
+          await event.data.text()
+        ) as $AllWatchControllerItem.$SendParam;
+        const listener = this._allListener.get(data.type);
+        if (listener === undefined) return;
+        listener(data);
+      } catch (err) {
+        console.error(
+          "_watchGattServerDisconnected",
+          "ws.onmessage error",
+          err
+        );
+      }
+    };
+
+    ws.onclose = () => {
+      console.log("关闭了", "需要把消息发送给监听者");
+    };
+  };
+
+  private _allListener = new Map<
+    $AllWatchControllerItem.$SendParam["type"],
+    $BluetoothPluginListener
+  >();
+  // 添加时间监听器用来相应 watch
+  addeEventListener(
+    type: $AllWatchControllerItem.$SendParam["type"],
+    listener: $BluetoothPluginListener
+  ): void {
+    this._allListener.set(type, listener);
+  }
 }
 
 export class BluetoothDevice {
@@ -67,6 +126,10 @@ export class BluetoothDevice {
   ) {
     this.name = _name;
     this.gatt = _gatt;
+
+    this.plugin.addeEventListener("gattserverdisconnected", () => {
+      this.gettserverdisconnectedListener();
+    });
   }
 
   // 撤销访问的权限
@@ -92,17 +155,17 @@ export class BluetoothDevice {
     }
     set.add(listener);
 
-    if (type === "gattserverdisconnected") {
-      this.isWatchGattServerDisconnected
-        ? ""
-        : this._watchGattServerDisconnected();
-      return;
-    }
+    // if (type === "gattserverdisconnected") {
+    //   this.isWatchGattServerDisconnected
+    //     ? ""
+    //     : this._watchGattServerDisconnected();
+    //   return;
+    // }
 
-    if (type === "advertisementreceived") {
-      this.isAdvertisementreceived ? "" : this._watchAdvertisementreceived();
-      return;
-    }
+    // if (type === "advertisementreceived") {
+    //   this.isAdvertisementreceived ? "" : this._watchAdvertisementreceived();
+    //   return;
+    // }
   }
 
   @bindThis
@@ -115,47 +178,47 @@ export class BluetoothDevice {
     set.delete(listener);
   }
 
-  private _watchGattServerDisconnected = async () => {
-    this.isWatchGattServerDisconnected = true;
-    const url = new URL(
-      BasePlugin.url.replace(/^http:/, "ws:").replace(/^https:/, "wss:")
-    );
-    url.pathname = `${this.plugin.mmid}/bluetooth_device/gattserverdisconnected_watch`;
-    const ws = new WebSocket(url);
-    ws.onerror = (err) => {
-      console.error("onerror", err);
-    };
-    // let count = 0;
-    ws.onopen = () => {};
-    ws.onmessage = async (event: MessageEvent<Blob>) => {
-      try {
-        const str = await event.data.text();
-        if (str.length === 0) return;
-        const data = JSON.parse(await event.data.text());
-        data.type === "gattserverdisconnected"
-          ? this.gettserverdisconnectedListener()
-          : "";
-      } catch (err) {
-        console.error(
-          "_watchGattServerDisconnected",
-          "ws.onmessage error",
-          err
-        );
-      }
-    };
+  // private _watchGattServerDisconnected = async () => {
+  //   this.isWatchGattServerDisconnected = true;
+  //   const url = new URL(
+  //     BasePlugin.url.replace(/^http:/, "ws:").replace(/^https:/, "wss:")
+  //   );
+  //   url.pathname = `${this.plugin.mmid}/bluetooth_device/gattserverdisconnected_watch`;
+  //   const ws = new WebSocket(url);
+  //   ws.onerror = (err) => {
+  //     console.error("onerror", err);
+  //   };
+  //   // let count = 0;
+  //   ws.onopen = () => {};
+  //   ws.onmessage = async (event: MessageEvent<Blob>) => {
+  //     try {
+  //       const str = await event.data.text();
+  //       if (str.length === 0) return;
+  //       const data = JSON.parse(await event.data.text());
+  //       data.type === "gattserverdisconnected"
+  //         ? this.gettserverdisconnectedListener()
+  //         : "";
+  //     } catch (err) {
+  //       console.error(
+  //         "_watchGattServerDisconnected",
+  //         "ws.onmessage error",
+  //         err
+  //       );
+  //     }
+  //   };
 
-    ws.onclose = () => {
-      console.log("关闭了", "需要把消息发送给监听者");
-    };
-  };
+  //   ws.onclose = () => {
+  //     console.log("关闭了", "需要把消息发送给监听者");
+  //   };
+  // };
 
-  private _watchAdvertisementreceived = async () => {
-    this.isAdvertisementreceived = true;
-    const url = new URL(BasePlugin.url);
-    url.pathname = `${this.plugin.mmid}/bluetooth_device/advertisementreceived`;
-    const ws = new WebSocket(url);
-    console.error("还没有实现");
-  };
+  // private _watchAdvertisementreceived = async () => {
+  //   this.isAdvertisementreceived = true;
+  //   const url = new URL(BasePlugin.url);
+  //   url.pathname = `${this.plugin.mmid}/bluetooth_device/advertisementreceived`;
+  //   const ws = new WebSocket(url);
+  //   console.error("还没有实现");
+  // };
 
   gettserverdisconnectedListener = () => {
     const set = this.eventMap.get("gattserverdisconnected");
