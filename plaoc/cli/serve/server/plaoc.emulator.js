@@ -7517,7 +7517,7 @@ var VirtualKeyboardController = class extends BaseController {
   }
 };
 
-// https://esm.sh/v124/lit-html@2.7.4/deno/static.js
+// https://esm.sh/v124/lit-html@2.7.4/denonext/static.js
 var E5;
 var T3 = window;
 var m5 = T3.trustedTypes;
@@ -8846,7 +8846,7 @@ function createAllCSS6() {
   ];
 }
 
-// https://esm.sh/v124/lit-html@2.7.4/deno/directives/class-map.js
+// https://esm.sh/v124/lit-html@2.7.4/denonext/directives/class-map.js
 var I5;
 var w7 = window;
 var y12 = w7.trustedTypes;

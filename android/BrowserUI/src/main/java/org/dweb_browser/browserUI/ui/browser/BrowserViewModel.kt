@@ -144,7 +144,7 @@ class BrowserViewModel(val microModule: MicroModule, val onOpenDweb: (Mmid) -> U
 
   fun getNewTabBrowserView(url: String? = null): BrowserWebView {
     val (viewItem, closeWatcher) = appendWebViewAsItem(
-      createDwebView(""), url ?: "about:newtab"
+      createDwebView(""), url ?: ConstUrl.NEW_TAB.url
     )
     return BrowserWebView(
       viewItem = viewItem, closeWatcher = closeWatcher
@@ -314,6 +314,7 @@ class BrowserViewModel(val microModule: MicroModule, val onOpenDweb: (Mmid) -> U
   @Synchronized
   fun appendWebViewAsItem(dWebView: DWebView, url: String): Pair<ViewItem, CloseWatcher> {
     val webviewId = "#w${webviewId_acc.getAndAdd(1)}"
+    println("appendWebViewAsItem=> $url")
     val state = WebViewState(WebContent.Url(url))
     val coroutineScope = CoroutineScope(CoroutineName(webviewId))
     val navigator = WebViewNavigator(coroutineScope)
@@ -359,7 +360,7 @@ class BrowserViewModel(val microModule: MicroModule, val onOpenDweb: (Mmid) -> U
               /// 打开一个新窗口
               runBlockingCatching(Dispatchers.Main) {
                 appendWebViewAsItem(
-                  dWebView, mainUrl ?: "about:newtab"
+                  dWebView, mainUrl ?: ConstUrl.NEW_TAB.url
                 )
               }
             }
@@ -392,10 +393,11 @@ class browserViewModelHelper {
 
 internal class DwebBrowserWebViewClient(val microModule: MicroModule) : AccompanistWebViewClient() {
   override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
-    request?.url?.let { uri ->
-      val url = uri.toString()
-      if (url.startsWith("http") || url.startsWith("file") || url.startsWith("ftp")) {
-        return super.shouldOverrideUrlLoading(view, request)
+    if(request?.url?.scheme == "about"){
+      val urlStr = request.url.toString()
+      if(urlStr.startsWith("about:newtab")){
+        view?.loadUrl("http://browser.dweb.localhost/newtab/index.html")
+        return false
       }
     }
     return super.shouldOverrideUrlLoading(view, request)

@@ -25,6 +25,7 @@ import com.google.accompanist.web.WebContent
 import com.google.accompanist.web.WebView
 import com.google.accompanist.web.WebViewState
 import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
+import org.dweb_browser.browserUI.ui.browser.ConstUrl
 import org.dweb_browser.browserUI.ui.browser.setDarkMode
 
 @SuppressLint("SetJavaScriptEnabled")
@@ -56,7 +57,7 @@ fun PrivacyView(url: MutableState<String>, showLoading: MutableState<Boolean>) {
         // 断网或者网络连接超时
         val errorCode = error?.errorCode
         if (errorCode == ERROR_HOST_LOOKUP || errorCode == ERROR_CONNECT || errorCode == ERROR_TIMEOUT) {
-          view.loadUrl("about:blank") // 避免出现默认的错误界面
+          view.loadUrl(ConstUrl.BLANK.url) // 避免出现默认的错误界面
           //view!!.loadUrl(mErrorUrl) // 加载自定义错误页面
         }
       }
@@ -69,7 +70,7 @@ fun PrivacyView(url: MutableState<String>, showLoading: MutableState<Boolean>) {
         // 这个方法在 android 6.0才出现
         val statusCode = errorResponse!!.statusCode
         if (404 == statusCode || 500 == statusCode) {
-          view?.loadUrl("about:blank") // 避免出现默认的错误界面
+          view?.loadUrl(ConstUrl.BLANK.url) // 避免出现默认的错误界面
           // view!!.loadUrl(mErrorUrl) // 加载自定义错误页面
         }
       }
@@ -85,7 +86,7 @@ fun PrivacyView(url: MutableState<String>, showLoading: MutableState<Boolean>) {
             if (it.contains("404") || it.contains("500") || it.contains("Error") ||
               it.contains("找不到网页") || it.contains("网页无法打开")
             ) {
-              view.loadUrl("about:blank") // 避免出现默认的错误界面
+              view.loadUrl(ConstUrl.BLANK.url) // 避免出现默认的错误界面
               // view!!.loadUrl(mErrorUrl) // 加载自定义错误页面
             }
           }

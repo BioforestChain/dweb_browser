@@ -6308,7 +6308,7 @@ var HttpServer = class {
   }
 };
 
-// https://esm.sh/v122/deep-object-diff@1.1.9/deno/deep-object-diff.mjs
+// https://esm.sh/v126/deep-object-diff@1.1.9/denonext/deep-object-diff.mjs
 var u3 = (t) => t instanceof Date;
 var m3 = (t) => Object.keys(t).length === 0;
 var i3 = (t) => t != null && typeof t == "object";
