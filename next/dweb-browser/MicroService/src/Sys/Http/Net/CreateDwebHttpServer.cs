@@ -21,12 +21,18 @@ namespace DwebBrowser.MicroService.Sys.Http.Net
         {
             if (routes is null)
             {
+                /** 定义了路由的方法 */
                 routes = new Gateway.RouteConfig[]
                 {
-                    new Gateway.RouteConfig("", IpcMethod.Get),
-                    new Gateway.RouteConfig("", IpcMethod.Post),
-                    new Gateway.RouteConfig("", IpcMethod.Put),
-                    new Gateway.RouteConfig("", IpcMethod.Delete),
+                    new Gateway.RouteConfig("/", IpcMethod.Get),
+                    new Gateway.RouteConfig("/", IpcMethod.Post),
+                    new Gateway.RouteConfig("/", IpcMethod.Put),
+                    new Gateway.RouteConfig("/", IpcMethod.Delete),
+                    new Gateway.RouteConfig("/", IpcMethod.Patch),
+                    new Gateway.RouteConfig("/", IpcMethod.Options),
+                    new Gateway.RouteConfig("/", IpcMethod.Head),
+                    new Gateway.RouteConfig("/", IpcMethod.Connect),
+                    new Gateway.RouteConfig("/", IpcMethod.Trace)
                 };
             }
 

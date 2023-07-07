@@ -26,11 +26,11 @@ public class Http1Server
         get => string.Format("{0}{1}", PREFIX, Authority);
     }
 
-    public IServerInfo<HttpListener> CreateServer(HttpHandler handler)
+    public IServerInfo<HttpListener> CreateServer(HttpHandler handler, WebSocketHandler webSocketHandler)
     {
         int local_port = _bindingPort = PortHelper.FindPort(new int[] { 22605 });
 
-        return NetServer.HttpCreateServer(new ListenOptions(local_port), handler);
+        return NetServer.HttpCreateServer(new ListenOptions(local_port), handler, webSocketHandler);
     }
 
     public void CloseServer()

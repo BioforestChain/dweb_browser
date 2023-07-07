@@ -1,4 +1,7 @@
 ﻿using System.Text.RegularExpressions;
+using System.Net.WebSockets;
+using DwebBrowser.MicroService.Http;
+using System.Xml.Linq;
 
 namespace DwebBrowser.MicroService.Sys.Http;
 
@@ -45,7 +48,7 @@ public class HttpNMM : NativeMicroModule
      * 这些自定义操作，都需要在 header 中加入 X-Dweb-Host 字段来指明宿主
      * </summary>
      */
-    private async Task<PureResponse> _httpHandler(PureRequest request)
+    private string? _processHost(PureRequest request)
     {
         if (request.ParsedUrl is not null and var parsedUrl && parsedUrl.PathAndQuery.StartsWith(X_DWEB_HREF) is true)
         {
@@ -90,6 +93,13 @@ public class HttpNMM : NativeMicroModule
             return host;
         });
 
+        return host;
+    }
+
+    private async Task<PureResponse> _httpHandler(PureRequest request)
+    {
+        var host = _processHost(request);
+
         /// TODO 这里提取完数据后，应该把header、query、uri重新整理一下组成一个新的request会比较好些
         /// TODO 30s 没有任何 body 写入的话，认为网关超时
 
@@ -100,6 +110,53 @@ public class HttpNMM : NativeMicroModule
         var response = await (_gatewayMap.GetValueOrDefault(host)?.Listener.HookHttpRequestAsync(request)).ForAwait(default);
 
         return response ?? new PureResponse(HttpStatusCode.NotFound);
+    }
+
+    private async Task _websocketHandler(PureRequest request, HttpListenerWebSocketContext webSocketContext)
+    {
+        var host = _processHost(request);
+        var gateway = _gatewayMap.GetValueOrDefault(host);
+
+        if (gateway is null)
+        {
+            return;
+        }
+
+        var method = request.Method ?? IpcMethod.Get;
+        var hasMatch = gateway.Listener.FindMatchedBind(request.ParsedUrl?.Path ?? "", method);
+
+        if (hasMatch is not null)
+        {
+            var response = await hasMatch.Handler(request);
+
+            if (response is null)
+            {
+                return;
+            }
+
+            switch (response.Body)
+            {
+                case PureEmptyBody: break;
+                case PureStreamBody streamBody:
+                    while (webSocketContext.WebSocket.State == WebSocketState.Open)
+                    {
+                        await foreach (var chunk in streamBody.Data.ReadBytesStream())
+                        {
+                            await webSocketContext.WebSocket.SendAsync(chunk, WebSocketMessageType.Binary, false, CancellationToken.None);
+                        }
+                        await webSocketContext.WebSocket.SendAsync(new ArraySegment<byte>(), WebSocketMessageType.Binary, true, CancellationToken.None);
+                    }
+                    
+                    break;
+                case PureBody body:
+                    var data = body.ToByteArray();
+                    if (data.Length > 0 && webSocketContext.WebSocket.State == WebSocketState.Open)
+                    {
+                        await webSocketContext.WebSocket.SendAsync(data, WebSocketMessageType.Binary, true, CancellationToken.None);
+                    }
+                    break;
+            };
+        }
     }
 
     private string? _dwebHostRegex(string? str)
@@ -164,7 +221,7 @@ public class HttpNMM : NativeMicroModule
     protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)
     {
         /// 启动http后端服务
-        DwebServer.CreateServer(_httpHandler);
+        DwebServer.CreateServer(_httpHandler, _websocketHandler);
 
         /// 为 nativeFetch 函数提供支持
         var cb = NativeFetch.NativeFetchAdaptersManager.Append(async (fromMM, request) =>

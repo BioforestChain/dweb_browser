@@ -37,6 +37,23 @@ public class Gateway
         }
 
         /**
+         * 接收 nodejs-web 请求
+         * 将之转发给 IPC 处理，等待远端处理完成再代理响应回去
+         */
+        public StreamIpcRouter? FindMatchedBind(string pathname, IpcMethod method)
+        {
+            foreach (var router in _routerSet.Keys)
+            {
+                if (router.Config.IsMatch(pathname, method))
+                {
+                    return router;
+                }
+            }
+
+            return null;
+        }
+
+        /**
          * <summary>
          * 接收 nodejs-web 请求
          * 将之转发给 IPC 处理，等待远端处理完成再代理响应回去
@@ -75,16 +92,20 @@ public class Gateway
         }
     }
 
-    public record RouteConfig(string pathname, IpcMethod method, MatchMode? matchMode = MATCH_MODE.PREFIX)
+    public record RouteConfig(string pathname, IpcMethod method, MatchMode? matchMode = MATCH_MODE.PREFIX, string? protocol = "")
     {
-        public bool IsMatch(PureRequest request) => matchMode switch
+        public bool IsMatch(string pathname, IpcMethod method, string? protocol = "")
         {
-            MATCH_MODE.PREFIX => request.Method == method && request.ParsedUrl is not null and var parsedUrl
-                       && parsedUrl.Path.StartsWith(pathname),
-            MATCH_MODE.FULL => request.Method == method && request.ParsedUrl is not null and var parsedUrl
-                       && parsedUrl.Path == pathname,
-            _ => false
-        };
+            if (!string.IsNullOrEmpty(protocol) && !string.IsNullOrEmpty(this.protocol) && this.protocol != protocol)
+            {
+                return false;
+            }
+
+            return (this.method ?? IpcMethod.Get) == method &&
+                    (matchMode == MATCH_MODE.FULL
+                    ? pathname == this.pathname
+                    : matchMode == MATCH_MODE.PREFIX && pathname.StartsWith(this.pathname));
+        }
     }
 
     public class StreamIpcRouter
@@ -101,7 +122,7 @@ public class Gateway
 
         public async Task<PureResponse?> Handler(PureRequest request)
         {
-            if (Config.IsMatch(request))
+            if (Config.IsMatch(request.SafeUrl.Path, request.Method))
             {
                 return await StreamIpc.Request(request);
             }

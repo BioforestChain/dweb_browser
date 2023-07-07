@@ -21,6 +21,11 @@ global using HttpHandler = System.Func<
     DwebBrowser.MicroService.Http.PureRequest,
     System.Threading.Tasks.Task<DwebBrowser.MicroService.Http.PureResponse>>;
 
+global using WebSocketHandler = System.Func<
+    DwebBrowser.MicroService.Http.PureRequest,
+    System.Net.WebSockets.HttpListenerWebSocketContext,
+    System.Threading.Tasks.Task>;
+
 global using RouterHandlerType = System.Func<
     DwebBrowser.MicroService.Http.PureRequest,
     DwebBrowser.MicroService.Ipc?,

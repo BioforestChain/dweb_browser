@@ -64,7 +64,7 @@ public static class NetServer
     /// <param name="listenOptions"></param>
     /// <param name="handler"></param>
     /// <returns></returns>
-    public static IServerInfo<HttpListener> HttpCreateServer(ListenOptions listenOptions, HttpHandler handler)
+    public static IServerInfo<HttpListener> HttpCreateServer(ListenOptions listenOptions, HttpHandler handler, WebSocketHandler websocketHandler)
     {
         var host = string.Format("{0}:{1}", listenOptions.Hostname, listenOptions.Port);
         var origin = string.Format("http://{0}/", host);
@@ -87,7 +87,7 @@ public static class NetServer
                 {
                     if (context.Request.IsWebSocketRequest)
                     {
-                        WebSocketHandlerAsync(context).Wait();
+                        WebSocketHandlerAsync(context, websocketHandler).Wait();
                     }
                     else
                     {
@@ -106,18 +106,12 @@ public static class NetServer
             new HttpProtocol("http://", "http:", 80));
     }
 
-    private static async Task WebSocketHandlerAsync(HttpListenerContext context)
+    private static async Task WebSocketHandlerAsync(HttpListenerContext context, WebSocketHandler websocketHandler)
     {
-        var webSocket = await context.AcceptWebSocketAsync(null)!;
-        var chunk = new byte[1000];
-        /// Echo
-        while (webSocket.WebSocket.State == WebSocketState.Open)
-        {
-            var result = await webSocket.WebSocket.ReceiveAsync(new ArraySegment<byte>(chunk), CancellationToken.None)!;
-            var bytes = chunk[0..result.Count];
-            await webSocket.WebSocket.SendAsync(new ArraySegment<byte>(bytes), result.MessageType, result.EndOfMessage, CancellationToken.None);
-        }
-        Console.Log("WebSocket Server", "End");
+        var request = context.Request;
+        var webSocketContext = await context.AcceptWebSocketAsync(null)!;
+        var pureRequest = request.ToPureRequest();
+        await websocketHandler(pureRequest, webSocketContext);
     }
 
     private static async Task HttpHandlerAsync(HttpListenerContext context, HttpHandler handler)

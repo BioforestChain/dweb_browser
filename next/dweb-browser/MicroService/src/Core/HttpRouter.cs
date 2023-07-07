@@ -23,7 +23,7 @@ public class HttpRouter
     {
         foreach (var (route, handler) in _routes)
         {
-            if (route.IsMatch(request))
+            if (route.IsMatch(request.ParsedUrl?.Path ?? "/", request.Method))
             {
                 var res = await handler(request, ipc);
                 Console.Log("RouterHandler", "res: {0}", res);
