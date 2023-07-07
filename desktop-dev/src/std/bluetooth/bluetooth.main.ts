@@ -68,6 +68,10 @@ export class BluetoothNMM extends NativeMicroModule {
   private _bluetoothrequestdevicewatchSelectCallback:
     | { (deviceId: string): void }
     | undefined;
+  /**
+   * server 失去联系 后 把消息发送给 客户端的方法
+   */
+  private gattserverdisconnectedWatch_sendToClient: { (): void } | undefined;
 
   _bootstrap = async () => {
     console.always(`${this.mmid} _bootstrap`);
@@ -125,6 +129,14 @@ export class BluetoothNMM extends NativeMicroModule {
         type,
         event
       );
+    },
+
+    // 蓝牙设备的服务失去联系的回调
+    gattserverdisconnectedWatch: async () => {
+      console.error("error", "gattserverdisconnectedWatch");
+      this.gattserverdisconnectedWatch_sendToClient
+        ? this.gattserverdisconnectedWatch_sendToClient()
+        : "";
     },
   };
 
@@ -226,6 +238,66 @@ export class BluetoothNMM extends NativeMicroModule {
     // (await this._browserWindow)?.hide();
     this._STATE = STATE.HIDE;
     return this._createResponseSucess(event, res);
+  };
+
+  private _bluetoothDevice_gattserverdisconnectedWatch: $OnFetch = async (
+    event: FetchEvent
+  ) => {
+    console.log(
+      "",
+      "_bluetoothDevice_gattserverdisconnectedWatch",
+      "接受到了请求"
+    );
+
+    // 读取发送过来的数据的方法
+    // 这个 API 不需要要客户发送有效的数据过来
+    (async () => {
+      const stream = event.ipcRequest.body.stream();
+      const reader = (await stream).getReader();
+      let loop = true;
+      while (loop) {
+        // console.log("", "-------- 开始读取数据");
+        const { value, done } = await reader.read();
+
+        // if (value) console.log("", "value", new TextDecoder().decode(value));
+        loop = !done;
+      }
+      // client 关闭了 ws 会执行到这里
+      this.gattserverdisconnectedWatch_sendToClient = undefined;
+    })();
+
+    // 通过返回一个 readableStrea 实现向 客户端发送数据
+
+    let controller: ReadableStreamDefaultController;
+    // // 测试返回一个 stream
+    const readableStream = new ReadableStream({
+      start(_controller) {
+        controller = _controller;
+      },
+      pull(_controller) {},
+      cancel(reson) {
+        console.log("", "cancel", reson);
+      },
+    });
+
+    this.gattserverdisconnectedWatch_sendToClient = () => {
+      controller.enqueue(
+        new TextEncoder().encode(
+          JSON.stringify({
+            type: "gattserverdisconnected",
+            data: undefined,
+          })
+        )
+      );
+    };
+
+    return IpcResponse.fromStream(
+      event.ipcRequest.req_id,
+      200,
+      new IpcHeaders().init("Content-Type", "application/octet-stream"),
+      readableStream,
+      event.ipc
+    );
   };
 
   private _bluetoothRemoteGATTServer_connect: $OnFetch = async (
@@ -486,6 +558,11 @@ export class BluetoothNMM extends NativeMicroModule {
       )
       .add(
         "GET",
+        "/bluetooth_device/gattserverdisconnected_watch",
+        this._bluetoothDevice_gattserverdisconnectedWatch
+      )
+      .add(
+        "GET",
         "/bluetooth_remote_gatt_server/connect",
         this._bluetoothRemoteGATTServer_connect
       )
@@ -559,61 +636,7 @@ export class BluetoothNMM extends NativeMicroModule {
         },
         show: false,
       },
-      async (win) => {
-        return this._exports;
-        // return {
-        // operationCallback: async (
-        //   arg: $ResponseJsonable<unknown>,
-        //   resolveId: number
-        // ) => {
-        //   const resolve = this._operationResolveMap.get(resolveId);
-        //   if (resolve === undefined) {
-        //     throw new Error(`this._operationResolveMap.get(${resolveId})`);
-        //   }
-        //   resolve(arg);
-        //   this._operationResolveMap.delete(resolveId);
-        // },
-        // deviceSelected: async (device: $Device) => {
-        //   console.always("接受到了选择 device", device);
-        //   if (this._bluetoothrequestdevicewatchSelectCallback === undefined) {
-        //     this._apis?.deviceSelectedFailCallback();
-        //     return;
-        //   }
-        //   this._bluetoothrequestdevicewatchSelectCallback(device.deviceId);
-        //   this._bluetoothrequestdevicewatchSelectCallback = undefined;
-        // },
-        // // 设备连接的回调函数
-        // deviceConnectedCallback: async (
-        //   // server: BluetoothRemoteGATTServer
-        //   res: $ResponseJsonable<unknown>
-        // ) => {
-        //   this._deviceConnectedResolve(res);
-        // },
-        // // 设备断开连接操作的回调
-        // deviceDisconnectCallback: async (arg: unknown, resolveId: number) => {
-        //   const resolve = this._deviceDisconnectedResolveMap.get(resolveId);
-        //   if (resolve === undefined) {
-        //     throw new Error(
-        //       `this.this._deviceDisconnectedResolveMap.get(${resolveId}) === undefined`
-        //     );
-        //   }
-        //   resolve(arg);
-        //   this._deviceDisconnectedResolveMap.delete(resolveId);
-        // },
-        // // 监听 bluetoothRemoteGATTService 的状态变化
-        // bluetoothRemoteGATTServiceListenner: async (
-        //   type: string,
-        //   event: Event
-        // ) => {
-        //   console.log(
-        //     "",
-        //     "bluetoothRemoteGATTServiceListenner 执行了",
-        //     type,
-        //     event
-        //   );
-        // },
-        // };
-      }
+      async (win) => this._exports
     );
     return bw;
   };

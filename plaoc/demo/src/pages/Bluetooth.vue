@@ -86,6 +86,9 @@ async function requestAndConnectDevice() {
   if (res.success === true && res.data !== undefined) {
     state.bluetoothRemoteGATTServer = res.data;
     console.log("连接蓝牙设备 成功", state.bluetoothRemoteGATTServer);
+    state.bluetoothRemoteGATTServer.device.addEventListener("gattserverdisconnected", (e: Event) => {
+      console.log("gattserverdisconnected", e);
+    });
   } else {
     state.bluetoothRemoteGATTServer = undefined;
     console.error("连接蓝牙设备失败 ", res.error);

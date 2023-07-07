@@ -55,6 +55,7 @@ async function requestDevice(requestDeviceOptions: RequestDeviceOptions) {
         bluetooth = _bluetooth;
         bluetooth.addEventListener("gattserverdisconnected", () => {
           console.error("error", "gattserverdisconnected");
+          mainApis.gattserverdisconnectedWatch();
         });
 
         bluetooth.addEventListener(

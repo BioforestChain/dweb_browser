@@ -36,9 +36,15 @@ export class BluetoothPlugin extends BasePlugin {
       })
     ).json();
     if (res.success) {
-      res.data = new BluetoothRemoteGATTServer(this, {
-        ...res.data.device,
-      });
+      res.data = new BluetoothRemoteGATTServer(
+        this,
+        new BluetoothDevice(
+          this,
+          res.data.device.id,
+          true,
+          res.data.device.name
+        )
+      );
     }
     return res;
   }
@@ -111,21 +117,36 @@ export class BluetoothDevice {
 
   private _watchGattServerDisconnected = async () => {
     this.isWatchGattServerDisconnected = true;
-    const url = new URL(BasePlugin.url);
+    const url = new URL(
+      BasePlugin.url.replace(/^http:/, "ws:").replace(/^https:/, "wss:")
+    );
     url.pathname = `${this.plugin.mmid}/bluetooth_device/gattserverdisconnected_watch`;
     const ws = new WebSocket(url);
-    ws.onerror = () => {};
-    ws.onopen = () => {
-      ws.send("start");
+    ws.onerror = (err) => {
+      console.error("onerror", err);
     };
-    ws.onmessage = (event: MessageEvent<any>) => {
-      console.log("event.data", event.data);
+    // let count = 0;
+    ws.onopen = () => {};
+    ws.onmessage = async (event: MessageEvent<Blob>) => {
+      try {
+        const str = await event.data.text();
+        if (str.length === 0) return;
+        const data = JSON.parse(await event.data.text());
+        data.type === "gattserverdisconnected"
+          ? this.gettserverdisconnectedListener()
+          : "";
+      } catch (err) {
+        console.error(
+          "_watchGattServerDisconnected",
+          "ws.onmessage error",
+          err
+        );
+      }
     };
 
-    ws.onclose = () => {};
-    // 发起 webSocke 连接
-    // this.plugin.fetchApi();
-    // 一但就出发 gettserverdisconnectedListener()
+    ws.onclose = () => {
+      console.log("关闭了", "需要把消息发送给监听者");
+    };
   };
 
   private _watchAdvertisementreceived = async () => {
@@ -137,7 +158,6 @@ export class BluetoothDevice {
   };
 
   gettserverdisconnectedListener = () => {
-    console.error("还没有实现");
     const set = this.eventMap.get("gattserverdisconnected");
     if (set === undefined) {
       return;
