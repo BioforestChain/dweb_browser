@@ -110,12 +110,21 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
         val po = ipcProcessIdMapLock.withLock {
           val processId = queryProcessId(request)
           val processIdMap = ipcProcessIdMap.getOrPut(ipc.remote.mmid) {
-            ipc.onClose { ipcProcessIdMap.remove(ipc.remote.mmid) }
             mutableMapOf()
           }
 
           if (processIdMap.contains(processId)) {
             throw Exception("ipc:${ipc.remote.mmid}/processId:$processId has already using")
+          }
+          // 创建成功了，注册销毁函数
+          ipc.onClose {
+            processIdMap.remove(processId)?.let { pid ->
+              apis.destroyProcess(pid.waitPromise())
+              if (processIdMap.isEmpty()) {
+                ipcProcessIdMap.remove(ipc.remote.mmid)
+              }
+            }
+
           }
 
           PromiseOut<Int>().also { processIdMap[processId] = it }
@@ -127,16 +136,6 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
         )
         // 将自定义的 processId 与真实的 js-process_id 进行关联
         po.resolve(result.processHandler.info.process_id)
-
-        // 创建成功了，注册销毁函数
-        ipc.onClose {
-          if (processIdMap.remove(processId)) {
-            apis.destroyProcess(processId)
-            if (processIdMap.size == 0) {
-              ipcProcessIdMap.remove(ipc.remote.mmid)
-            }
-          }
-        }
 
         // 返回流，因为构建了一个双工通讯用于代码提供服务
         result.streamIpc.stream
