@@ -11,7 +11,7 @@ const $hapticsPlugin = ref<HTMLDwebHapticsElement>();
 let console: Console;
 let haptics: HTMLDwebHapticsElement;
 
-const vibrate = ref([10, 20, 30])
+const vibrate = ref([1000, 2000, 500, 1000, 1000, 2000, 500, 3000])
 
 onMounted(() => {
   console = toConsole($logPanel);
