@@ -18,10 +18,9 @@ struct TabPageView: View {
     var webCache: WebCache { WebCacheMgr.shared.store[index] }
     var webWrapper: WebWrapper { WebWrapperMgr.shared.store[index] }
     
-    @State var hasTook = false
-    
-    @State var snapshotHeight: CGFloat = 0 // CGFloat{ screen_height - addressBarH - toolBarH - safeAreaTopHeight - safeAreaBottomHeight}
-    
+    @State private var hasTook = false
+    @State private var snapshotHeight: CGFloat = 0
+
     private var isVisible: Bool { let index = WebWrapperMgr.shared.store.firstIndex(of: webWrapper); return index == selectedTab.curIndex }
     var body: some View {
         GeometryReader { geo in
@@ -41,7 +40,12 @@ struct TabPageView: View {
             if progress == .initial, toolbarState.showTabGrid, !hasTook {
                 let index = WebWrapperMgr.shared.store.firstIndex(of: webWrapper)
                 if index == selectedTab.curIndex {
-                    if let image = self.environmentObject(selectedTab).environmentObject(toolbarState).environmentObject(animation).environmentObject(openingLink).snapshot() {
+                    if let image = self
+                        .environmentObject(selectedTab)
+                        .environmentObject(toolbarState)
+                        .environmentObject(animation)
+                        .environmentObject(openingLink).snapshot()
+                    {
                         print(image)
                         let scale = image.scale
                         let cropRect = CGRect(x: 0, y: 0, width: screen_width * scale, height: snapshotHeight * scale)

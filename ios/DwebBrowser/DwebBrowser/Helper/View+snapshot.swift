@@ -10,12 +10,12 @@ import Foundation
 import UIKit
 
 
-func printDate(){
+func printWithDate(msg: String = ""){
     let date = Date()
     let formatter = DateFormatter()
     formatter.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS"
     let dateString = formatter.string(from: date)
-    print(dateString)
+    print(dateString + "--" + msg)
 }
 
 
@@ -50,12 +50,12 @@ struct SnapshotViewWraperView: View {
                 sampleView
                 Button("Capture", action: {
                     print("before snapshot5: " , Thread.current )
-                    printDate()
+                    printWithDate()
                     
                     capture = sampleView.snapshot()
                     
                     print("after snapshot5: " , Thread.current)
-                    printDate()
+                    printWithDate()
                     
                 })
                 .padding()

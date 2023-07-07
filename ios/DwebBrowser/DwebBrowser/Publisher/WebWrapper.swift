@@ -189,13 +189,37 @@ struct WebView: View, UIViewRepresentable {
 
     init(webView: WKWebView, url: URL) {
         self.webView = webView
+
         self.url = url
     }
 
     func makeUIView(context: UIViewRepresentableContext<WebView>) -> WKWebView {
+        webView.scrollView.delegate = context.coordinator // Set the coordinator as the scroll view delegate
+        webView.scrollView.isScrollEnabled = true // Enable web view's scrolling
+
         webView.load(URLRequest(url: url))
         return webView
     }
 
     func updateUIView(_ uiView: WKWebView, context: UIViewRepresentableContext<WebView>) {}
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+
+    
+    class Coordinator: NSObject, UIScrollViewDelegate {
+            var presentView: WebView
+
+            init(_ presentView: WebView) {
+                self.presentView = presentView
+            }
+
+            func scrollViewDidScroll(_ scrollView: UIScrollView) {
+                let verticalOffset = scrollView.contentOffset.y
+                // 处理滚动距离的逻辑
+                print("Vertical Offset: \(verticalOffset)")
+            }
+        }
+    
 }

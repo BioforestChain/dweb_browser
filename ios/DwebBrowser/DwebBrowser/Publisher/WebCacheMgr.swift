@@ -133,7 +133,6 @@ class WebCacheMgr: ObservableObject {
                 WebCache(lastVisitedUrl: URL(string: "https://www.douyu.com")!, title: "5"),
                 
                 WebCache(lastVisitedUrl: URL(string: "https://www.yahoo.com")!, title: "6"),
-                WebCache(lastVisitedUrl: URL(string: "https://www.xw.qq.com")!, title: "7"),
                 WebCache(lastVisitedUrl: URL(string: "https://m.hupu.com/")!, title: "8"),
                 WebCache(lastVisitedUrl: URL(string: "https://sina.cn/")!, title: "9"),
             ]

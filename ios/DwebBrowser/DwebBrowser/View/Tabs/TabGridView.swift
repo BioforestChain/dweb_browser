@@ -37,8 +37,9 @@ struct TabGridView: View {
     @ObservedObject var animation: ShiftAnimation
     @ObservedObject var gridState: TabGridState
 
-    @State var scrollingEnded: Bool = false
+    @State var needRecordFrames: Bool = true
     @State var frames: [CellFrameInfo] = []
+
     @Binding var selectedCellFrame: CGRect
 
     let detector = CurrentValueSubject<[CellFrameInfo], Never>([])
@@ -60,7 +61,7 @@ struct TabGridView: View {
                             GridCell(webCache: webCache, isSelected: isSelected(webCache: webCache))
                                 .id(webCache.id)
                                 .background(GeometryReader { geometry in
-                                    Color.white
+                                    Color.clear
                                         .preference(key: CellFramePreferenceKey.self,
                                                     value: [CellFrameInfo(index: cacheStore.store.firstIndex(of: webCache) ?? 0, frame: geometry.frame(in: .global))])
                                 })
@@ -89,11 +90,14 @@ struct TabGridView: View {
                                         if selectedTab.curIndex != index {
                                             selectedTab.curIndex = index
                                         }
+                                        needRecordFrames = true
                                         withAnimation(.linear(duration: 0.2)) {
                                             scrollproxy.scrollTo(webCache.id, anchor: .center)
                                         }
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-                                            selectedCellFrame = currentFrame
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                                            needRecordFrames = false
+                                            printWithDate(msg: "get cell frame for expanding")
+                                            selectedCellFrame = cellFrame(at: index)
                                             toolbarState.showTabGrid = false
                                         }
                                     }
@@ -104,14 +108,21 @@ struct TabGridView: View {
                     .padding(gridHSpace)
                     .onPreferenceChange(CellFramePreferenceKey.self) { newFrames in
                         if toolbarState.showTabGrid {
-                            detector.send(newFrames)
+                            if needRecordFrames { //在动画前代码滚动需要记录
+                                self.frames = newFrames
+                                printWithDate(msg: "update cell frame for animation")
+                            } else {    //手动拖拽，只需在滚动停止的时候记录最后的位置
+                                detector.send(newFrames)
+                            }
                         }
                     }
                 }
                 .coordinateSpace(name: "scroll")
                 .onReceive(publisher) {
                     self.frames = $0
-                    print("frozen frames: \($0)")
+                    needRecordFrames = false
+
+                    printWithDate(msg: "record frames at scrolling end : \($0)")
                 }
 
                 .background(Color(white: 0, opacity: 0.2))
@@ -123,15 +134,20 @@ struct TabGridView: View {
                         gridState.scale = 1
                         gridState.opacity = 0.01
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                            printWithDate(msg: "scroll grid on background")
+                            needRecordFrames = true
                             scrollproxy.scrollTo(webCache.id, anchor: .center)
                         }
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { // time for scroll to index
+                            printWithDate(msg: "read cell frame for animation")
+                            needRecordFrames = false
 
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { // time for scroll to index
                             guard let selectedFrame = self.frames.filter({ $0.index == selectedTab.curIndex }).first?.frame else { return }
                             selectedCellFrame = selectedFrame
 
                             gridState.scale = 0.8
                             gridState.opacity = 1
+
                             animation.progress = .startShrinking
                         }
                     }

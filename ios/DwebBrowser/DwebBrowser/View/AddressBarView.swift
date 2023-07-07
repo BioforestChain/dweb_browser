@@ -43,10 +43,9 @@ struct AddressBar: View {
             }
             .offset(y: 10)
         }
-        .coordinateSpace(name: "addressBar")
         .background(Color.bkColor)
         .frame(height: toolbarState.addressBarHeight)
-        .animation(.easeInOut, value: toolbarState.addressBarHeight)
+        .animation(.default, value: toolbarState.addressBarHeight)
         .transition(.slide)
     }
 
