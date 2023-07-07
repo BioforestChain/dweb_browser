@@ -476,7 +476,7 @@ private fun RowItemMenuView(
       modifier = Modifier
         .fillMaxWidth()
         .align(Alignment.CenterStart)
-        .padding(start = 16.dp, end = 52.dp, top = 15.dp, bottom = 15.dp),
+        .padding(start = 16.dp, end = 52.dp),
       textAlign = TextAlign.Start,
       fontSize = 16.sp,
       fontWeight = FontWeight(400),

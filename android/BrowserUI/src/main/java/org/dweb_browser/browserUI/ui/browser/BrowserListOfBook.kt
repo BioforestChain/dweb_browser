@@ -138,7 +138,7 @@ private fun RowItemBook(
         bitmap = imageBitmap,
         contentDescription = "Icon",
         modifier = Modifier
-          .padding(horizontal = 12.dp, vertical = 11.dp)
+          .padding(horizontal = 12.dp)
           .size(28.dp)
       )
     } ?: run {
@@ -146,7 +146,7 @@ private fun RowItemBook(
         imageVector = ImageVector.vectorResource(R.drawable.ic_main_book),
         contentDescription = "Book",
         modifier = Modifier
-          .padding(horizontal = 12.dp, vertical = 11.dp)
+          .padding(horizontal = 12.dp)
           .size(28.dp),
         tint = MaterialTheme.colorScheme.onSurface
       )
@@ -163,7 +163,7 @@ private fun RowItemBook(
       contentDescription = "Manager",
       modifier = Modifier
         .clickable { onOpenSetting(webSiteInfo) }
-        .padding(horizontal = 12.dp, vertical = 15.dp)
+        .padding(horizontal = 12.dp)
         .size(20.dp)
         .graphicsLayer(rotationZ = -90f),
       tint = MaterialTheme.colorScheme.outlineVariant

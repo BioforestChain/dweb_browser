@@ -35,6 +35,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
@@ -169,7 +170,9 @@ fun QRCodeScanView(
   BackHandler(enabled = enableBackHandler) {
     val type = when (qrCodeScanState.state.value) {
       QRCodeScanState.QRCodeState.Completed -> QRCodeScanState.QRCodeState.Scanning
-      else -> { QRCodeScanState.QRCodeState.Hide }
+      else -> {
+        QRCodeScanState.QRCodeState.Hide
+      }
     }
     qrCodeScanState.state.value = type
   }
@@ -231,6 +234,7 @@ fun QRCodeScanView(
   }
 }
 
+@SuppressLint("OpaqueUnitKey")
 @Composable
 private fun CameraSurfaceView(
   onBarcodeDetected: (Bitmap?, Bitmap?, List<Barcode>) -> Unit,
@@ -338,25 +342,24 @@ private fun ScannerLine() {
 
 @Composable
 private fun BoxScope.AlbumButton(onClick: () -> Unit) {
-  Box(modifier = Modifier
-    .padding(16.dp)
-    .size(48.dp)
-    .clip(CircleShape)
-    .background(MaterialTheme.colorScheme.onBackground.copy(0.5f))
-    .clickable { onClick() }
-    .align(Alignment.BottomEnd)) {
-    Column(
-      modifier = Modifier.align(Alignment.Center),
-      horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-      Icon(
-        imageVector = ImageVector.vectorResource(R.drawable.ic_photo),
-        contentDescription = "Photo",
-        tint = MaterialTheme.colorScheme.background,
-        modifier = Modifier.size(22.dp)
-      )
-      Text(text = "相册", color = MaterialTheme.colorScheme.background, fontSize = 12.sp)
-    }
+  Column(
+    modifier = Modifier
+      .padding(16.dp)
+      .size(54.dp)
+      .clip(CircleShape)
+      .background(MaterialTheme.colorScheme.onBackground.copy(0.5f))
+      .clickableWithNoEffect { onClick() }
+      .align(Alignment.BottomEnd),
+    horizontalAlignment = Alignment.CenterHorizontally,
+    verticalArrangement = Arrangement.Center
+  ) {
+    Icon(
+      imageVector = ImageVector.vectorResource(R.drawable.ic_photo),
+      contentDescription = "Photo",
+      tint = MaterialTheme.colorScheme.background,
+      modifier = Modifier.size(22.dp)
+    )
+    Text(text = "相册", color = MaterialTheme.colorScheme.background, fontSize = 12.sp)
   }
 }
 

@@ -105,7 +105,8 @@ private fun RowItemHistory(
     .background(MaterialTheme.colorScheme.surface)
     .clickable { onClick(webSiteInfo) }
     .padding(horizontal = 16.dp),
-    horizontalAlignment = Alignment.Start
+    horizontalAlignment = Alignment.Start,
+    verticalArrangement = Arrangement.Center
   ) {
     Text(
       text = webSiteInfo.title,
@@ -114,11 +115,9 @@ private fun RowItemHistory(
       overflow = TextOverflow.Ellipsis,
       fontWeight = FontWeight(400),
       color = MaterialTheme.colorScheme.onSurface,
-      modifier = Modifier
-        .padding(top = 14.dp)
-        .fillMaxWidth()
-        .height(20.dp)
+      modifier = Modifier.fillMaxWidth()
     )
+    Spacer(modifier = Modifier.fillMaxWidth().height(4.dp))
     Text(
       text = webSiteInfo.url,
       maxLines = 1,
@@ -126,10 +125,7 @@ private fun RowItemHistory(
       overflow = TextOverflow.Ellipsis,
       fontWeight = FontWeight(400),
       color = MaterialTheme.colorScheme.outlineVariant,
-      modifier = Modifier
-        .padding(top = 4.dp)
-        .fillMaxWidth()
-        .height(14.dp)
+      modifier = Modifier.fillMaxWidth()
     )
   }
 }
