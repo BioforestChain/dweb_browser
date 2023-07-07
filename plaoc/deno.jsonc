@@ -5,6 +5,7 @@
   "tasks": {
     "build": "deno task build:client && deno task build:server && deno task build:demo",
     "build:client": "deno run -A ./scripts/npm-build.ts client",
+    "build:cli": "deno run -A ./scripts/npm-bin.ts cli",
     "build:server": "deno run -A ./scripts/bundle-server.ts",
     "build:watch:server": "deno task build:server --watch",
     "dev": "deno task dev:demo & deno task build:watch:demo",
