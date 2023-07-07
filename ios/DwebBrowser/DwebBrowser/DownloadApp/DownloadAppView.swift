@@ -11,7 +11,8 @@ import SwiftUI
 struct DownloadAppView: View {
     var modelData: Data
     var downloadStatus: DownloadStatus = .IDLE
-    var Observes: [NSObjectProtocol]
+    var callback: onStringCallBack
+    
     @State var offset: CGPoint = .zero
     @ObservedObject var viewModel = DownloadImageViewModel()
     
@@ -86,11 +87,6 @@ struct DownloadAppView: View {
         .sheet(isPresented: $isPresented) {
             presentImageController(index: currentImageIndex)
         }
-        .onDisappear {
-            Observes.forEach { observe in
-                NotificationCenter.default.removeObserver(observe)
-            }
-        }
     }
     
     @ViewBuilder
@@ -98,7 +94,7 @@ struct DownloadAppView: View {
         ZStack(alignment: .center) {
             HStack(alignment: .center) {
                 Button {
-                    NotificationCenter.default.post(name: Notification.Name.backToLastView, object: nil)
+                    callback("back")
                 } label: {
                     HStack {
                         Image(systemName: "chevron.left")
@@ -110,7 +106,7 @@ struct DownloadAppView: View {
                 
                 Spacer()
                 
-                DownloadButtonView(content: $content, btn_width: $btn_width, backColor: $backColor, isRotate: $isRotate, isWaiting: $isWaiting, isLoading: $isLoading, progress: $progress)
+                DownloadButtonView(content: $content, btn_width: $btn_width, backColor: $backColor, isRotate: $isRotate, isWaiting: $isWaiting, isLoading: $isLoading, progress: $progress, callback: callback)
                     .padding(.trailing, 20)
                     .padding(.bottom, 5)
                     .opacity(calculateNavigationViewSubViewAlpha())
@@ -161,7 +157,7 @@ struct DownloadAppView: View {
                     .font(.system(size: 13))
                     .foregroundColor(.primary.opacity(0.5))
                 Spacer()
-                DownloadButtonView(content: $content, btn_width: $btn_width, backColor: $backColor, isRotate: $isRotate, isWaiting: $isWaiting, isLoading: $isLoading, progress: $progress)
+                DownloadButtonView(content: $content, btn_width: $btn_width, backColor: $backColor, isRotate: $isRotate, isWaiting: $isWaiting, isLoading: $isLoading, progress: $progress, callback: callback)
             }
             .padding(.leading, 10)
             

@@ -52,7 +52,7 @@ public class JmmController : BaseViewController
             }
 
             // 点击下载
-            manager.ClickDownloadActionWithCallback(async d =>
+            manager.ClickButtonActionWithCallback(async d =>
             {
                 switch (d.ToString())
                 {
@@ -76,16 +76,19 @@ public class JmmController : BaseViewController
                         this?.OpenApp(jmmMetadata.Id);
 
                         break;
+                    case "back":
+                        vc.PopViewController(true);
+                        break;
                     default:
                         break;
                 }
             });
 
             // 点击返回
-            manager.OnBackActionWithCallback(() =>
-            {
-                vc.PopViewController(true);
-            });
+            //manager.OnBackActionWithCallback(() =>
+            //{
+            //    vc.PopViewController(true);
+            //});
         });
 
     public async Task OpenApp(Mmid mmid)

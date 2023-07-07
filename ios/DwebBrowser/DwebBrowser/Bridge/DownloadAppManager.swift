@@ -9,27 +9,17 @@ import SwiftUI
 
 @objc(DownloadAppManager)
 public class DownloadAppManager: NSObject {
+    
     @objc public var downloadView: UIView?
     
-    public typealias onStartDownload = (String) -> Void
-    
-    public typealias backCallback = () -> Void
-    
-    private var callback: onStartDownload?
-    private var backCallback: backCallback?
+    private var callback: onStringCallBack?
     
     @objc public init(data: Data, downloadStatus: Int) {
         super.init()
-        let downloadAppObserve = NotificationCenter.default.addObserver(forName: Notification.Name.downloadApp, object: nil, queue: .main) { noti in
-            let type = noti.userInfo?["type"] as? String ?? ""
-            self.callback?(type)
-        }
-        let backObserve = NotificationCenter.default.addObserver(forName: Notification.Name.backToLastView, object: nil, queue: .main) { _ in
-            self.backCallback?()
-        }
-        let observes = [downloadAppObserve, backObserve]
         
-        let controller = UIHostingController(rootView: DownloadAppView(modelData: data, downloadStatus: DownloadStatus(rawValue: downloadStatus) ?? DownloadStatus.IDLE, Observes: observes))
+        let controller = UIHostingController(rootView: DownloadAppView(modelData: data, downloadStatus: DownloadStatus(rawValue: downloadStatus) ?? DownloadStatus.IDLE, callback: { value in
+            self.callback?(value)
+        }))
         self.downloadView = controller.view
     }
     
@@ -39,24 +29,15 @@ public class DownloadAppManager: NSObject {
         }
     }
     
-    // 点击下载按钮
-    @objc public func clickDownloadAction(callback: @escaping onStartDownload) {
+    // 点击按钮
+    @objc public func clickButtonAction(callback: @escaping onStringCallBack) {
         self.callback = callback
     }
     
     // 下载状态变更
     @objc public func onDownloadChange(downloadStatus: Int) {
-        switch DownloadStatus(rawValue: downloadStatus) {
-        case .Installed:
-            NotificationCenter.default.post(name: Notification.Name.downloadComplete, object: nil)
-        case .Fail:
-            NotificationCenter.default.post(name: Notification.Name.downloadFail, object: nil)
-        default:
-            break
+        DispatchQueue.main.async {
+            downloadPublisher.send(downloadStatus)
         }
-    }
-    
-    @objc public func onBackAction(callback: @escaping backCallback) {
-        self.backCallback = callback
     }
 }

@@ -9,9 +9,6 @@ import Combine
 import WebKit
 
 let progressPublisher = PassthroughSubject<Float, Never>()
-let downloadPublisher = PassthroughSubject<[String:String], Never>()
-let addWebViewPublisher = PassthroughSubject<WKWebView, Never>()
-let homeDataPublisher = PassthroughSubject<[[String:String]], Never>()
-let clickHomeAppPublisher = PassthroughSubject<String, Never>()
-let clickAddButtonPublisher = PassthroughSubject<String, Never>()
+let downloadPublisher = PassthroughSubject<Int, Never>()
 
+public typealias onStringCallBack = (String) -> Void

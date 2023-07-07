@@ -18,8 +18,9 @@ struct DownloadButtonView: View {
     @Binding private var progress: CGFloat
     @Binding private var isLoading: Bool
     @State var oldContent: String = ""
+    var callback: onStringCallBack
     
-    init(content: Binding<String>, btn_width: Binding<CGFloat>, backColor: Binding<SwiftUI.Color>, isRotate: Binding<Bool>, isWaiting: Binding<Bool>, isLoading: Binding<Bool>, progress: Binding<CGFloat>) {
+    init(content: Binding<String>, btn_width: Binding<CGFloat>, backColor: Binding<SwiftUI.Color>, isRotate: Binding<Bool>, isWaiting: Binding<Bool>, isLoading: Binding<Bool>, progress: Binding<CGFloat>, callback: @escaping onStringCallBack) {
         self._content = content
         self._btn_width = btn_width
         self._backColor = backColor
@@ -27,6 +28,7 @@ struct DownloadButtonView: View {
         self._isWaiting = isWaiting
         self._progress = progress
         self._isLoading = isLoading
+        self.callback = callback
     }
     
     var body: some View {
@@ -46,8 +48,7 @@ struct DownloadButtonView: View {
                             backColor = .clear
                         }
                     } else {
-                        let dict = ["type": "open"]
-                        NotificationCenter.default.post(name: Notification.Name.downloadApp, object: nil, userInfo: dict)
+                        callback("open")
                     }
                 } label: {
                     Text(content)
@@ -83,32 +84,22 @@ struct DownloadButtonView: View {
                 .foregroundColor(.blue)
                 .rotationEffect(Angle(degrees: -90.0))
                 .animation(.easeOut(duration: 0.25), value: progress)
-                .onAppear {
-                    NotificationCenter.default.addObserver(forName: Notification.Name.downloadComplete, object: nil, queue: .main) { _ in
-                        self.progress = 0
-                        self.isWaiting = false
-                        self.isLoading = false
-                        withAnimation {
-                            btn_width = 80
+                .onReceive(downloadPublisher, perform: { value in
+                    let status = DownloadStatus(rawValue: value)
+                    self.progress = 0
+                    self.isWaiting = false
+                    self.isLoading = false
+                    withAnimation {
+                        btn_width = 80
+                        backColor = SwiftUI.Color.blue
+                        if status == .Installed {
                             content = "打开"
-                            backColor = SwiftUI.Color.blue
-                        }
-                    }
-                    
-                    NotificationCenter.default.addObserver(forName: Notification.Name.downloadFail, object: nil, queue: .main) { _ in
-                        self.progress = 0
-                        self.isWaiting = false
-                        self.isLoading = false
-                        withAnimation {
-                            btn_width = 80
+                        } else if status == .Fail {
                             content = self.oldContent
-                            backColor = SwiftUI.Color.blue
                         }
+                        
                     }
-                }
-                .onDisappear {
-                    NotificationCenter.default.removeObserver(self)
-                }
+                })
         }
         .frame(width: 30, height: 30)
     }
@@ -129,8 +120,7 @@ struct DownloadButtonView: View {
                     print("download")
                     isLoading = true
                     DispatchQueue.main.async {
-                        let dict = ["type": "download"]
-                        NotificationCenter.default.post(name: Notification.Name.downloadApp, object: nil, userInfo: dict)
+                        callback("download")
                     }
                 }
             }
