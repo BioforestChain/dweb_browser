@@ -138,12 +138,15 @@ public class HttpNMM : NativeMicroModule
             {
                 case PureEmptyBody: break;
                 case PureStreamBody streamBody:
-                    while (webSocketContext.WebSocket.State == WebSocketState.Open)
+                    await foreach (var chunk in streamBody.Data.ReadBytesStream())
                     {
-                        await foreach (var chunk in streamBody.Data.ReadBytesStream())
+                        if (webSocketContext.WebSocket.State == WebSocketState.Open)
                         {
                             await webSocketContext.WebSocket.SendAsync(chunk, WebSocketMessageType.Binary, false, CancellationToken.None);
                         }
+                    }
+                    if (webSocketContext.WebSocket.State == WebSocketState.Open)
+                    {
                         await webSocketContext.WebSocket.SendAsync(new ArraySegment<byte>(), WebSocketMessageType.Binary, true, CancellationToken.None);
                     }
                     
