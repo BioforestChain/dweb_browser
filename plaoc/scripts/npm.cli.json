@@ -4,7 +4,7 @@
     "mainExports": "plaoc",
     "buildToRootDir": "./build/cli",
     "main": "/plaoc.ts",
-    "name": "@dweb-browser/cli",
+    "name": "@plaoc/cli",
     "version": "0.0.2",
     "lib": [
       "es2021",

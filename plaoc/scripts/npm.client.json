@@ -3,7 +3,7 @@
     "buildFromRootDir": "./src/client",
     "mainExports": ".",
     "buildToRootDir": "./build/client",
-    "name": "@dweb-browser/plaoc",
+    "name": "@plaoc/plugins",
     "version": "0.1.3",
     "lib": [
       "es2021",

@@ -26,8 +26,8 @@ export const debounce = <F extends (...args: any[]) => Promise<any> | void>(
     l.args = args;
     l.ti = setTimeout(() => {
       try {
-        l.po.resolve(fun(...l.args));
         lock = undefined;
+        l.po.resolve(fun(...l.args));
       } catch (err) {
         l.po.reject(err);
       }

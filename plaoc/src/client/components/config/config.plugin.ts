@@ -1,4 +1,3 @@
-/// <reference lib="dom"/>
 import { X_PLAOC_QUERY } from "../../../server/const.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
 

@@ -3,5 +3,6 @@ bundle
 dist
 
 ./demo/src/index.js
+./cli/serve
 
 *.bak

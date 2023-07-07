@@ -1,5 +1,10 @@
 import chalk from "npm:chalk";
+import {
+  ReadableStreamOut,
+  streamRead,
+} from "../../desktop-dev/src/helper/readableStreamHelper.ts";
 import { esbuild, esbuild_deno_loader } from "../deps.ts";
+export { esbuild, esbuild_deno_loader } from "../deps.ts";
 
 export type $BuildOptions = esbuild.BuildOptions & {
   denoLoader?: boolean;
@@ -69,6 +74,7 @@ export class ESBuild {
 
     this._logResult(result);
     ESBuild.dispose(this);
+    return result;
   }
   private _logResult(result: esbuild.BuildResult) {
     if (result.warnings) {
@@ -84,34 +90,51 @@ export class ESBuild {
       console.log(chalk.green("[build] success ✓"));
     }
   }
-  async watch(options: Partial<$BuildOptions> = {}) {
-    const esbuildOptions = this.mergeOptions({ minify: false }, options);
-    esbuildOptions.plugins.push({
-      name: "esbuild-watch-hook",
-      setup: (build) => {
-        build.onEnd((result) => {
-          this._logResult(result);
-          console.log(
-            chalk.grey(`[watch] build finished, watching for changes...`)
-          );
-        });
-      },
-    });
-    const context = await esbuild.context(esbuildOptions);
-    ESBuild.start(this);
-    options.signal?.addEventListener("abort", async () => {
-      await context.dispose();
-      ESBuild.dispose(this);
-    });
+  Watch(options: Partial<$BuildOptions> = {}) {
+    const results = new ReadableStreamOut<esbuild.BuildResult>();
+    void (async () => {
+      const esbuildOptions = this.mergeOptions({ minify: false }, options);
+      esbuildOptions.plugins.push({
+        name: "esbuild-watch-hook",
+        setup: (build) => {
+          build.onEnd((result) => {
+            this._logResult(result);
+            console.log(
+              chalk.grey(`[watch] build finished, watching for changes...`)
+            );
+            results.controller.enqueue(result);
+          });
+        },
+      });
+      const context = await esbuild.context(esbuildOptions);
+      ESBuild.start(this);
+      options.signal?.addEventListener("abort", async (reason) => {
+        await context.dispose();
+        ESBuild.dispose(this);
+        results.controller.error(reason);
+      });
 
-    await context.watch();
+      await context.watch();
+    })();
+    return streamRead(results.stream);
+  }
+  async watch(options?: Partial<$BuildOptions>) {
+    for await (const _ of this.Watch(options)) {
+      //
+    }
+  }
+
+  async *Auto() {
+    if (this.isDev) {
+      yield* this.Watch();
+    } else {
+      yield this.build();
+    }
   }
 
   async auto() {
-    if (this.isDev) {
-      await this.watch();
-    } else {
-      await this.build();
+    for await (const _ of this.Auto()) {
+      //
     }
   }
   get isDev() {

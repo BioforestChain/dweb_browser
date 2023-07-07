@@ -1,6 +1,10 @@
-import { css, LitElement } from "lit";
-import { customElement, property } from "lit/decorators.js";
-import { html } from "lit/static-html.js";
+import {
+  css,
+  customElement,
+  html,
+  LitElement,
+  property,
+} from "./helper/litHelper.ts";
 
 const TAG = "emulator-toolbar";
 

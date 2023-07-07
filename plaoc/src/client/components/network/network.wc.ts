@@ -1,4 +1,3 @@
-/// <reference lib="dom" />
 import { cacheGetter } from "../../helper/cacheGetter.ts";
 import { networkPlugin } from "./network.plugin.ts";
 

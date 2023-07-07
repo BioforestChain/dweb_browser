@@ -2,7 +2,7 @@ import { parseQuery, z, zq } from "../../../deps.ts";
 import { StateObservable } from "../helper/StateObservable.ts";
 import { getButtomBarState } from "../multi-webview-comp-safe-area.shim.ts";
 import { $BarState } from "../types.ts";
-import { createMockModuleServerIpc } from "./../helper/helper.ts";
+import { createMockModuleServerIpc } from "./../helper/mokeServerIpcHelper.ts";
 import { BaseController } from "./base-controller.ts";
 export class SafeAreaController extends BaseController {
   private _init = (async () => {

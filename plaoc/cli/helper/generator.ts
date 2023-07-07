@@ -3,6 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import JSZip from "npm:jszip";
 import { $AppMetaData, $MMID } from "./../deps.ts";
+import { WalkFiles } from "./WalkDir.ts";
 import { SERVE_MODE, defaultMetadata } from "./const.ts";
 import { GenerateTryFilepaths } from "./util.ts";
 import { $ZipEntry, walkDirToZipEntries, zipEntriesToZip } from "./zip.ts";
@@ -136,57 +137,100 @@ export class BundleZipGenerator {
       }
       this.www_dir = www_dir;
       this.zipGetter = async () =>
-        await zipEntriesToZip([
-          ...this.getBaseZipEntries(flags.dev),
-          ...walkDirToZipEntries(www_dir).map((entry) => {
-            return {
-              ...entry,
-              path: `usr/www/` + entry.path,
-            };
-          }),
-        ]);
+        await zipEntriesToZip(
+          this.normalizeZipEntries([
+            ...(await this.getBaseZipEntries(flags.dev)),
+            ...walkDirToZipEntries(www_dir).map((entry) => {
+              return {
+                ...entry,
+                path: `usr/www/` + entry.path,
+              };
+            }),
+          ])
+        );
     }
   }
-  getBaseZipEntries(dev = false) {
-    const entries: $ZipEntry[] = [
-      {
-        dir: true,
-        path: `usr`,
-      },
-      {
-        dir: true,
-        path: `usr/server`,
-      },
-      {
-        dir: true,
-        path: `usr/www`,
-      },
-    ];
-    const addFile_DistToUsr = async (
-      filepath: string,
-      alias: string = filepath
+  async getBaseZipEntries(dev = false) {
+    const entries: $ZipEntry[] = [];
+
+    const addFiles_DistToUsr = async (
+      addpath: string,
+      pathalias: string = addpath,
+      pathbase = "usr/"
     ) => {
-      const path = import.meta.resolve(`../serve/${filepath}`);
       let data = null;
-      // 如果是远程的
-      if (path.startsWith("http")) {
-        data = await (await fetch(path)).text();
-      } else {
-        data = fs.readFileSync(fileURLToPath(path));
+      // 远程的文件
+      if (addpath.startsWith("http://") || addpath.startsWith("https://")) {
+        data = await (await fetch(addpath)).text();
+      }
+      /// 本地文件
+      else {
+        const addpath_full = fileURLToPath(
+          import.meta.resolve(`../../dist/${addpath}`)
+        );
+        if (fs.statSync(addpath_full).isFile()) {
+          data = fs.readFileSync(addpath_full);
+        } else {
+          for (const entry of WalkFiles(addpath_full)) {
+            const child_addpath = path.join(addpath, entry.relativepath);
+            await addFiles_DistToUsr(
+              child_addpath,
+              child_addpath.replace(addpath, pathalias),
+              pathbase
+            );
+          }
+          return;
+        }
       }
       entries.push({
         dir: false,
-        path: `usr/${alias}`,
+        path: `${pathbase}${pathalias}`,
         data: data,
       });
     };
     if (dev) {
-      addFile_DistToUsr("server/plaoc.server.dev.js", "server/plaoc.server.js");
-      addFile_DistToUsr("server/plaoc.emulator.js");
+      await addFiles_DistToUsr(
+        "server/plaoc.server.dev.js",
+        "server/plaoc.server.js"
+      );
+      await addFiles_DistToUsr("server/emulator");
     } else {
-      addFile_DistToUsr("server/plaoc.server.js");
+      await addFiles_DistToUsr("server/plaoc.server.js");
     }
     return entries;
+  }
+  /**
+   * 补充 dir=true
+   * @param entries
+   * @returns
+   */
+  normalizeZipEntries(entries: $ZipEntry[]) {
+    const entryMap = new Map<string, $ZipEntry>();
+    function* ReadParentPaths(entrypath: string) {
+      while (true) {
+        const dirname = path.dirname(entrypath);
+        if (dirname === ".") {
+          break;
+        }
+        yield dirname;
+        entrypath = dirname;
+      }
+    }
+
+    const allDirnamePaths = new Set<string>();
+    for (const entry of entries) {
+      entryMap.set(entry.path, entry);
+      for (const dirname of ReadParentPaths(entry.path)) {
+        allDirnamePaths.add(dirname);
+      }
+    }
+
+    for (const dirname of allDirnamePaths) {
+      if (entryMap.has(dirname) === false) {
+        entryMap.set(dirname, { path: dirname, dir: true });
+      }
+    }
+    return [...entryMap.values()];
   }
   private zip: undefined | JSZip;
   /** 获得打包的zip文件 */

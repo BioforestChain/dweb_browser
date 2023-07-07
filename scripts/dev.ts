@@ -2,7 +2,7 @@ import { assetsTasks } from "../desktop-dev/scripts/assets.ts";
 import { ConTasks, ExitAbortController } from "./helper/ConTasks.ts";
 export const devTasks = new ConTasks(
   {
-    "plaoc:bundle": {
+    "plaoc:server": {
       cmd: "deno",
       args: "task build:watch:server",
       cwd: "./plaoc",

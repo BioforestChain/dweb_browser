@@ -1,15 +1,22 @@
 import { BiometricsController } from "./controller/biometrics.controller.ts";
 import { StatusBarController } from "./controller/status-bar.controller.ts";
 // 测试入口文件
-import { css, html, LitElement } from "lit";
-import { customElement, property, query, state } from "lit/decorators.js";
-import { when } from "lit/directives/when.js";
 import { BaseController } from "./controller/base-controller.ts";
 import { HapticsController } from "./controller/haptics.controller.ts";
 import { NavigationBarController } from "./controller/navigation-bar.controller.ts";
 import { TorchController } from "./controller/torch.controller.ts";
 import { VirtualKeyboardController } from "./controller/virtual-keyboard.controller.ts";
 import "./emulator-toolbar.html.ts";
+import {
+  css,
+  customElement,
+  html,
+  LitElement,
+  property,
+  query,
+  state,
+  when,
+} from "./helper/litHelper.ts";
 import "./multi-webview-comp-biometrics.html.ts";
 import "./multi-webview-comp-haptics.html.ts";
 import "./multi-webview-comp-mobile-shell.html.ts";
@@ -110,6 +117,7 @@ export class RootComp extends LitElement {
             this.controllers.size === 0,
             () => html`
               <iframe
+                referrerpolicy="no-referrer"
                 slot="shell-content"
                 style="width:100%;height:100%;border:0;"
                 src=${this.src}
@@ -174,7 +182,7 @@ function createAllCSS() {
         place-items: center;
         font-size: 32px;
         color: rgba(255, 255, 255, 0.3);
-        background: -webkit-linear-gradient(
+        background: linear-gradient(
             -30deg,
             rgba(255, 255, 255, 0) 100px,
             rgba(255, 255, 255, 1) 180px,

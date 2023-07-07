@@ -1,6 +1,12 @@
-import { css, html, LitElement, PropertyValueMap } from "lit";
-import { customElement, property } from "lit/decorators.js";
-import { styleMap } from "lit/directives/style-map.js";
+import {
+  css,
+  customElement,
+  html,
+  LitElement,
+  property,
+  PropertyValueMap,
+  styleMap,
+} from "./helper/litHelper.ts";
 
 const TAG = "multi-webview-comp-navigation-bar";
 

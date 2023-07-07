@@ -1,6 +1,6 @@
 import { parseQuery, z, zq } from "../../../deps.ts";
 import { StateObservable } from "../helper/StateObservable.ts";
-import { createMockModuleServerIpc } from "../helper/helper.ts";
+import { createMockModuleServerIpc } from "../helper/mokeServerIpcHelper.ts";
 import { BaseController } from "./base-controller.ts";
 
 export class VirtualKeyboardController extends BaseController {

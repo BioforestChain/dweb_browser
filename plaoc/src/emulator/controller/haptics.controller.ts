@@ -1,5 +1,5 @@
 import { z, zq } from "../../../deps.ts";
-import { createMockModuleServerIpc } from "../helper/helper.ts";
+import { createMockModuleServerIpc } from "../helper/mokeServerIpcHelper.ts";
 import { BaseController } from "./base-controller.ts";
 
 export class HapticsController extends BaseController {

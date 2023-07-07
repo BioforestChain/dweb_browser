@@ -1,6 +1,12 @@
-import { css, html, LitElement } from "lit";
-import { customElement, property, state } from "lit/decorators.js";
-import { classMap } from "lit/directives/class-map.js";
+import {
+  classMap,
+  css,
+  customElement,
+  html,
+  LitElement,
+  property,
+  state,
+} from "./helper/litHelper.ts";
 
 const TAG = "multi-webview-comp-toast";
 

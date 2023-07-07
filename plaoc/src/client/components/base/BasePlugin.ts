@@ -1,5 +1,3 @@
-// <reference types="https://esm.sh/v111/@types/web@0.0.96/index.d.ts" />
-/// <reference lib="dom"/>
 import { createSignal } from "../../helper/createSignal.ts";
 import { $BuildRequestInit, buildRequest } from "../../helper/request.ts";
 

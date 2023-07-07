@@ -1,6 +1,12 @@
-import { css, html, LitElement, PropertyValueMap } from "lit";
-import { customElement, property } from "lit/decorators.js";
-import { when } from "lit/directives/when.js";
+import {
+  css,
+  customElement,
+  html,
+  LitElement,
+  property,
+  PropertyValueMap,
+  when,
+} from "./helper/litHelper.ts";
 
 const TAG = "multi-webview-comp-share";
 
@@ -32,7 +38,7 @@ export class MultiWebviewCompShare extends LitElement {
       <div class="panel">
         ${when(
           this._src,
-          () => html`<img class="img" src=${this._src}></img>`,
+          () => html`<img class="img" src=${this._src} />`,
           () => html`<div class="filename">${this._filename}</div>`
         )}
         <div class="text_container">

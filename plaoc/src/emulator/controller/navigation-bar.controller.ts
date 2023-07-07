@@ -1,6 +1,6 @@
 import { colorToHex, hexaToRGBA, parseQuery, z, zq } from "../../../deps.ts";
 import { StateObservable } from "../helper/StateObservable.ts";
-import { createMockModuleServerIpc } from "../helper/helper.ts";
+import { createMockModuleServerIpc } from "../helper/mokeServerIpcHelper.ts";
 import { $BAR_STYLE, $BarState } from "../types.ts";
 import { BaseController } from "./base-controller.ts";
 

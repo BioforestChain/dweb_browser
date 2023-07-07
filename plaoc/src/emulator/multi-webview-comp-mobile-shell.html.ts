@@ -5,8 +5,13 @@
  * - 用来模拟移动端硬件外壳
  * - 仅仅只有 UI 不提供非 UI 之外的任何交互功能
  */
-import { css, html, LitElement } from "lit";
-import { customElement, query } from "lit/decorators.js";
+import {
+  css,
+  customElement,
+  html,
+  LitElement,
+  query,
+} from "./helper/litHelper.ts";
 import type { $ShareOptions } from "./types.ts";
 
 const TAG = "multi-webview-comp-mobile-shell";

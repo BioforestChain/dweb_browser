@@ -1,7 +1,13 @@
-import { css, html, LitElement } from "lit";
-import { customElement, property, query } from "lit/decorators.js";
-import { classMap } from "lit/directives/class-map.js";
-import { repeat } from "lit/directives/repeat.js";
+import {
+  classMap,
+  css,
+  customElement,
+  html,
+  LitElement,
+  property,
+  query,
+  repeat,
+} from "./helper/litHelper.ts";
 
 const TAG = "multi-webview-comp-virtual-keyboard";
 

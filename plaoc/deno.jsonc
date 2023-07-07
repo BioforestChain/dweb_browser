@@ -1,7 +1,11 @@
 {
   "importMap": "./import_map.json",
   "lock": false,
-  "exclude": ["dist/", "bundle/", "build/"],
+  "exclude": [
+    "dist/",
+    "bundle/",
+    "build/"
+  ],
   "tasks": {
     "build": "deno task build:client && deno task build:server && deno task build:demo",
     "build:client": "deno run -A ./scripts/npm-build.ts client",
@@ -23,7 +27,12 @@
   },
   "lint": {
     "rules": {
-      "exclude": ["no-namespace", "no-empty-interface", "require-await"]
+      "exclude": [
+        "no-namespace",
+        "no-empty-interface",
+        "require-await",
+        "ban-ts-comment"
+      ]
     }
   },
   "fmt": {

@@ -1,4 +1,9 @@
-import "./index.html.ts";
-// import { RootComp } from "./index.html.ts";
-// const elRootComp = new RootComp();
-// document.body.append(elRootComp);
+import { X_PLAOC_QUERY } from "../server/const.ts";
+import { RootComp } from "./index.html.ts";
+
+const url = new URL(location.href);
+url.searchParams.delete(X_PLAOC_QUERY.EMULATOR);
+
+const app = new RootComp();
+app.src = url.href;
+document.body.append(app);

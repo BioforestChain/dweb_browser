@@ -19,13 +19,16 @@ export class Server_www extends HttpServer {
     const serverIpc = await this._listener;
     return serverIpc.onFetch(this._provider.bind(this)).noFound();
   }
-  protected async _provider(request: FetchEvent): Promise<$OnFetchReturn> {
+  protected async _provider(
+    request: FetchEvent,
+    root = "www"
+  ): Promise<$OnFetchReturn> {
     let { pathname } = request;
     if (pathname === "/") {
       pathname = "/index.html";
     }
     const remoteIpcResponse = await jsProcess.nativeRequest(
-      `file:///usr/www${pathname}?mode=stream` // usr/www
+      `file:///usr/${root}${pathname}?mode=stream` // eg: usr/www
     );
     /**
      * 流转发，是一种高性能的转发方式，等于没有真正意义上去读取response.body，

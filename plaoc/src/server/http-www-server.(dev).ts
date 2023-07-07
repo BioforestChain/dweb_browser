@@ -1,5 +1,5 @@
 import { X_PLAOC_QUERY } from "./const.ts";
-import { $OnFetchReturn, FetchEvent, IpcHeaders, jsProcess } from "./deps.ts";
+import { $OnFetchReturn, FetchEvent, IpcHeaders } from "./deps.ts";
 import { emulatorDuplexs } from "./http-api-server.(dev).ts";
 import { Server_www as _Server_www } from "./http-www-server.ts";
 
@@ -17,29 +17,22 @@ export class Server_www extends _Server_www {
     result.urlInfo.buildExtQuerys.set(X_PLAOC_QUERY.EMULATOR, "*");
     return result;
   }
-  override async _provider(request: FetchEvent): Promise<$OnFetchReturn> {
-    const isEnableEmulator = request.searchParams.get(X_PLAOC_QUERY.EMULATOR);
 
-    /// 加载模拟器的外部框架
-    if (isEnableEmulator !== null) {
-      // 返回JS
-      if (request.pathname === "/plaoc.emulator.js") {
-        const emulatorJsResponse = await jsProcess.nativeRequest(
-          `file:///usr/server/plaoc.emulator.js`
-        );
-        return {
-          headers: emulatorJsResponse.headers,
-          body: emulatorJsResponse.body,
-        };
+  protected async _onEmulator(
+    request: FetchEvent,
+    _emulatorFlags: string
+  ): Promise<$OnFetchReturn> {
+    const indexUrl = (await super.getStartResult()).urlInfo.buildInternalUrl(
+      (url) => {
+        url.pathname = request.pathname;
+        url.search = request.search;
       }
+    );
 
-      const indexUrl = (await super.getStartResult()).urlInfo.buildInternalUrl(
-        (url) => {
-          url.pathname = request.pathname;
-          url.search = request.search;
-        }
-      );
-
+    if (
+      indexUrl.pathname.endsWith(".html") ||
+      indexUrl.pathname.endsWith("/")
+    ) {
       /// 判 定SessionId 的唯一性，如果已经被使用，创新一个新的 SessionId 进行跳转
       const sessionId = indexUrl.searchParams.get(X_PLAOC_QUERY.SESSION_ID);
       if (sessionId === null || emulatorDuplexs.has(sessionId)) {
@@ -68,41 +61,23 @@ export class Server_www extends _Server_www {
           },
         };
       }
+    }
 
-      /// 给iframe用的url，需要删除模拟器标识
-      indexUrl.searchParams.delete(X_PLAOC_QUERY.EMULATOR);
-      const html = String.raw;
-      return {
-        headers: new IpcHeaders().init("Content-Type", "text/html"),
-        body: html`
-          <!DOCTYPE html>
-          <html lang="en">
-            <head>
-              <meta charset="UTF-8" />
-              <meta
-                name="viewport"
-                content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
-              />
-              <title>Plaoc-Emulator</title>
-              <style>
-                html,
-                body,
-                root-comp {
-                  width: 100%;
-                  height: 100%;
-                  margin: 0;
-                  padding: 0;
-                  overflow: hidden;
-                }
-              </style>
-              <script src="./plaoc.emulator.js?${X_PLAOC_QUERY.EMULATOR}=${isEnableEmulator}"></script>
-            </head>
-            <body>
-              <root-comp src=${JSON.stringify(indexUrl.href)}></root-comp>
-            </body>
-          </html>
-        `,
-      };
+    return super._provider(request, "server/emulator");
+  }
+  override async _provider(request: FetchEvent): Promise<$OnFetchReturn> {
+    let isEnableEmulator = request.searchParams.get(X_PLAOC_QUERY.EMULATOR);
+    if (isEnableEmulator === null) {
+      const ref = request.headers.get("referer");
+      if (ref !== null) {
+        isEnableEmulator = new URL(ref).searchParams.get(
+          X_PLAOC_QUERY.EMULATOR
+        );
+      }
+    }
+    /// 加载模拟器的外部框架
+    if (isEnableEmulator !== null) {
+      return this._onEmulator(request, isEnableEmulator);
     }
 
     let xPlaocProxy = request.searchParams.get(X_PLAOC_QUERY.PROXY);

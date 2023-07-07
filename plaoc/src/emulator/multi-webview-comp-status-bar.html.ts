@@ -1,9 +1,15 @@
 // 状态栏
-import { css, html, LitElement, PropertyValueMap } from "lit";
-import { customElement, property } from "lit/decorators.js";
-import { classMap } from "lit/directives/class-map.js";
-import { styleMap } from "lit/directives/style-map.js";
-import { when } from "lit/directives/when.js";
+import {
+  classMap,
+  css,
+  customElement,
+  html,
+  LitElement,
+  property,
+  PropertyValueMap,
+  styleMap,
+  when,
+} from "./helper/litHelper.ts";
 
 const TAG = "multi-webview-comp-status-bar";
 
@@ -167,7 +173,7 @@ function createAllCSS() {
         --fg-color: #000000ff;
       }
       .comp-container.default {
-        --fg-color: #ffffffff;
+        --fg-color: transparent;
       }
 
       .background {
@@ -186,10 +192,21 @@ function createAllCSS() {
 
         font-family: PingFangSC-Light, sans-serif;
       }
-      /// 使用混合模式自适应当前视图的，大部分情况下可以使用，但是如何状态是灰色，这个效果会很糟糕。对此需要更好的css函数来解决，而不应该依靠js
+      /**
+       * 使用混合模式自适应当前视图的，大部分情况下可以使用，但是如何状态是灰色，这个效果会很糟糕。对此需要更好的css函数来解决，而不应该依靠js
+       *
+       * 加一个背景不透色，才能使得强化对比度有效果
+       */
       .comp-container.default .left_container,
       .comp-container.default .right_container {
-        mix-blend-mode: difference;
+        background-image: linear-gradient(
+            0,
+            var(--bg-color) 0,
+            var(--bg-color) 100vw
+          ),
+          linear-gradient(0, #fff 0, #fff 100vw);
+        filter: invert(100%) contrast(100);
+        -webkit-background-clip: text;
       }
 
       .left_container {
