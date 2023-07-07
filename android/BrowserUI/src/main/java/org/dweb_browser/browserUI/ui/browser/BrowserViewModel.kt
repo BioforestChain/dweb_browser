@@ -43,6 +43,7 @@ import org.dweb_browser.microservice.help.Mmid
 import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.dweb_browser.microservice.sys.http.CORS_HEADERS
 import org.http4k.core.Response
+import org.http4k.core.query
 import org.http4k.lens.Header
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -442,6 +443,13 @@ internal class DwebBrowserWebViewClient(val microModule: MicroModule) : Accompan
       response = runBlockingCatching(ioAsyncExceptionHandler) {
         microModule.nativeFetch(request.url.toString())
       }.getOrThrow()
+    } else if (request.url.path?.contains("metadata.json") == true) { // 如果地址结尾是 metadata.json 目前是作为安装地址，跳转到安装界面
+      response = runBlockingCatching(ioAsyncExceptionHandler) {
+        microModule.nativeFetch(
+          org.http4k.core.Uri.of("file://jmm.browser.dweb/install?")
+            .query("url", request.url.toString())
+        )
+      }.getOrThrow()
     }
     if (response !== null) {
       val contentType = Header.CONTENT_TYPE(response)
@@ -518,5 +526,6 @@ internal fun String.toRequestUrl(): String {
 internal fun String.isSystemUrl() : Boolean {
   return this.startsWith("file:///android_asset") ||
       this.startsWith("chrome://") ||
-      this.startsWith("about:")
+      this.startsWith("about:") ||
+      this.startsWith("http://browser.dweb.localhost")
 }
