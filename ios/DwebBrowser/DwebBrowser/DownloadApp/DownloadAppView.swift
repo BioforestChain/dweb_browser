@@ -11,6 +11,7 @@ import SwiftUI
 struct DownloadAppView: View {
     var modelData: Data
     var downloadStatus: DownloadStatus = .IDLE
+    var Observes: [NSObjectProtocol]
     @State var offset: CGPoint = .zero
     @ObservedObject var viewModel = DownloadImageViewModel()
     
@@ -84,6 +85,11 @@ struct DownloadAppView: View {
         }
         .sheet(isPresented: $isPresented) {
             presentImageController(index: currentImageIndex)
+        }
+        .onDisappear {
+            Observes.forEach { observe in
+                NotificationCenter.default.removeObserver(observe)
+            }
         }
     }
     
@@ -314,7 +320,6 @@ struct DownloadAppView: View {
     }
     
     private func statusBarHeight() -> CGFloat {
-        
         guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene else { return 0 }
         return scene.statusBarManager?.statusBarFrame.height ?? 0
     }

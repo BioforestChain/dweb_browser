@@ -20,16 +20,17 @@ public class DownloadAppManager: NSObject {
     
     @objc public init(data: Data, downloadStatus: Int) {
         super.init()
-        let controller = UIHostingController(rootView: DownloadAppView(modelData: data, downloadStatus: DownloadStatus(rawValue: downloadStatus) ?? DownloadStatus.IDLE))
-        self.downloadView = controller.view
-        
-        NotificationCenter.default.addObserver(forName: Notification.Name.downloadApp, object: nil, queue: .main) { noti in
-            self.callback?(noti.userInfo?["type"] as? String ?? "")
+        let downloadAppObserve = NotificationCenter.default.addObserver(forName: Notification.Name.downloadApp, object: nil, queue: .main) { noti in
+            let type = noti.userInfo?["type"] as? String ?? ""
+            self.callback?(type)
         }
-        
-        NotificationCenter.default.addObserver(forName: Notification.Name.backToLastView, object: nil, queue: .main) { _ in
+        let backObserve = NotificationCenter.default.addObserver(forName: Notification.Name.backToLastView, object: nil, queue: .main) { _ in
             self.backCallback?()
         }
+        let observes = [downloadAppObserve, backObserve]
+        
+        let controller = UIHostingController(rootView: DownloadAppView(modelData: data, downloadStatus: DownloadStatus(rawValue: downloadStatus) ?? DownloadStatus.IDLE, Observes: observes))
+        self.downloadView = controller.view
     }
     
     @objc public func onListenProgress(progress: Float) {
@@ -59,4 +60,3 @@ public class DownloadAppManager: NSObject {
         self.backCallback = callback
     }
 }
-
