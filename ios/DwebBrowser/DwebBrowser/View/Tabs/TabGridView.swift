@@ -58,7 +58,7 @@ struct TabGridView: View {
                         GridItem(.adaptive(minimum: screen_width/3.0, maximum: screen_width/2.0), spacing: gridHSpace)
                     ], spacing: gridVSpace, content: {
                         ForEach(cacheStore.store, id: \.id) { webCache in
-                            GridCell(webCache: webCache, isSelected: isSelected(webCache: webCache))
+                            GridCell(webCache: webCache, isSelected: isSelected(webCache: webCache), deleteAction: { webCache in self.deleteCellAction(webCache: webCache) })
                                 .id(webCache.id)
                                 .background(GeometryReader { geometry in
                                     Color.clear
@@ -84,7 +84,7 @@ struct TabGridView: View {
                                             selectedTab.curIndex = index
                                         }
                                         selectedCellFrame = currentFrame
-                                        toolbarState.showTabGrid = false
+                                        toolbarState.shouldExpand = true
                                     } else {
                                         print("outside of grid")
                                         if selectedTab.curIndex != index {
@@ -98,7 +98,7 @@ struct TabGridView: View {
                                             needRecordFrames = false
                                             printWithDate(msg: "get cell frame for expanding")
                                             selectedCellFrame = cellFrame(at: index)
-                                            toolbarState.showTabGrid = false
+                                            toolbarState.shouldExpand = true
                                         }
                                     }
                                 }
@@ -107,36 +107,41 @@ struct TabGridView: View {
                     })
                     .padding(gridHSpace)
                     .onPreferenceChange(CellFramePreferenceKey.self) { newFrames in
-                        if toolbarState.showTabGrid {
-                            if needRecordFrames { //在动画前代码滚动需要记录
-                                self.frames = newFrames
-                                printWithDate(msg: "update cell frame for animation")
-                            } else {    //手动拖拽，只需在滚动停止的时候记录最后的位置
-                                detector.send(newFrames)
-                            }
+                        if needRecordFrames { // 调整cell位置，因为无法检测到停止，所以滚动需要实时记录  ？？？ 待优化
+                            self.frames = newFrames
+                            printWithDate(msg: "update cell frame for animation")
+                        } else { // 手动拖拽，只需在滚动停止的时候记录最后的位置
+                            detector.send(newFrames)
                         }
                     }
                 }
-                .coordinateSpace(name: "scroll")
                 .onReceive(publisher) {
                     self.frames = $0
                     needRecordFrames = false
 
                     printWithDate(msg: "record frames at scrolling end : \($0)")
                 }
+                .background(Color.bkColor)
 
-                .background(Color(white: 0, opacity: 0.2))
-                .onChange(of: animation.progress) { progress in
-                    if progress == .preparingShrink {
-                        // 设置grid为不可见的状态，并滚动到对应的位置
+                .onChange(of: toolbarState.shouldExpand) { shouldExpand in
+                    if !shouldExpand {
+                        // 设置grid为不可见的状态，并滚动到对应的位置, 为了获取selectedCellframe
                         let index = selectedTab.curIndex
                         let webCache = cacheStore.store[index]
                         gridState.scale = 1
                         gridState.opacity = 0.01
+
+                        var anchor = UnitPoint.center
+                        if selectedTab.curIndex < 4 {
+                            anchor = .top
+                        } else if selectedTab.curIndex > cacheStore.store.count - 2 {
+                            anchor = .bottom
+                        }
+
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                             printWithDate(msg: "scroll grid on background")
                             needRecordFrames = true
-                            scrollproxy.scrollTo(webCache.id, anchor: .center)
+                            scrollproxy.scrollTo(webCache.id, anchor: anchor)
                         }
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { // time for scroll to index
                             printWithDate(msg: "read cell frame for animation")
@@ -147,8 +152,13 @@ struct TabGridView: View {
 
                             gridState.scale = 0.8
                             gridState.opacity = 1
+                            if animation.progress == .obtainedSnapshot {
+                                animation.progress = .startShrinking
+                                printWithDate(msg: "startShrinking in obtainedCellFrame")
 
-                            animation.progress = .startShrinking
+                            } else {
+                                animation.progress = .obtainedCellFrame
+                            }
                         }
                     }
                 }
@@ -168,6 +178,13 @@ struct TabGridView: View {
             return frame
         }
         return .zero
+    }
+
+    func deleteCellAction(webCache: WebCache) {
+        WebCacheMgr.shared.remove(webCache: webCache)
+        if selectedTab.curIndex >= WebCacheMgr.shared.store.count {
+            selectedTab.curIndex = WebCacheMgr.shared.store.count - 1
+        }
     }
 }
 

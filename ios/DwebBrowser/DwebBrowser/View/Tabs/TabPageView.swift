@@ -18,26 +18,30 @@ struct TabPageView: View {
     var webCache: WebCache { WebCacheMgr.shared.store[index] }
     var webWrapper: WebWrapper { WebWrapperMgr.shared.store[index] }
     
-    @State private var hasTook = false
     @State private var snapshotHeight: CGFloat = 0
 
     private var isVisible: Bool { let index = WebWrapperMgr.shared.store.firstIndex(of: webWrapper); return index == selectedTab.curIndex }
     var body: some View {
         GeometryReader { geo in
             ZStack {
-                HomePageView()
                 if webCache.shouldShowWeb {
                     webComponent
+                } else {
+                    HomePageView()
                 }
             }
             .onAppear {
                 snapshotHeight = geo.frame(in: .global).height
             }
         }
-        
-        .onReceive(animation.$progress, perform: { progress in
-            print("now in page \(index)")
-            if progress == .initial, toolbarState.showTabGrid, !hasTook {
+
+        .onChange(of: toolbarState.shouldExpand) { shouldExpand in
+            if shouldExpand { // 准备放大动画
+                animation.snapshotImage = UIImage.snapshotImage(from: WebCacheMgr.shared.store[selectedTab.curIndex].snapshotUrl)
+                animation.progress = .startExpanding
+            }
+            
+            if !shouldExpand { // 截图，为缩小动画做准备
                 let index = WebWrapperMgr.shared.store.firstIndex(of: webWrapper)
                 if index == selectedTab.curIndex {
                     if let image = self
@@ -46,7 +50,6 @@ struct TabPageView: View {
                         .environmentObject(animation)
                         .environmentObject(openingLink).snapshot()
                     {
-                        print(image)
                         let scale = image.scale
                         let cropRect = CGRect(x: 0, y: 0, width: screen_width * scale, height: snapshotHeight * scale)
                         if let croppedCGImage = image.cgImage?.cropping(to: cropRect) {
@@ -54,13 +57,16 @@ struct TabPageView: View {
                             animation.snapshotImage = croppedImage
                             webCache.snapshotUrl = UIImage.createLocalUrl(withImage: croppedImage, imageName: webCache.id.uuidString)
                         }
-                        hasTook = true // avoid a dead run loop
-                        animation.progress = .preparingShrink
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { hasTook = false } // reset the state var for the next snapshot
+                        if animation.progress == .obtainedCellFrame {
+                            animation.progress = .startShrinking
+                            printWithDate(msg: "startShrinking in obtainedSnapshot")
+                        } else {
+                            animation.progress = .obtainedSnapshot
+                        }
                     }
                 }
             }
-        })
+        }
     }
     
     var webComponent: some View {

@@ -12,20 +12,23 @@ struct TabsContainerView: View {
     @EnvironmentObject var selectedTab: SelectedTab
     @EnvironmentObject var toolbarState: ToolBarState
 
-    @State var geoRect: CGRect = .zero // 定义一个变量来存储geoInGlobal的值
-    @State var selectedCellFrame: CGRect = .zero
-    @State var gridScale: CGFloat = 1
-
     @StateObject var gridState = TabGridState()
     @StateObject var animation = ShiftAnimation()
+
+    @State var geoRect: CGRect = .zero // 定义一个变量来存储geoInGlobal的值
+    @State var selectedCellFrame: CGRect = .zero
+    @State private var isExpanded = false
+    @State private var lastProgress: AnimationProgress = .invisible
+
+    private var snapshotHeight: CGFloat { geoRect.height - addressBarH }
+    private var snapshotMidY: CGFloat { geoRect.minY + snapshotHeight/2 - addressBarH }
+
+    @Namespace private var expandshrinkAnimation
+    private let animationId = "expandshrinkAnimation"
 
     init() {
         print("visiting TabsContainerView init")
     }
-
-    @State private var isExpand = false
-    private var snapshotHeight: CGFloat { geoRect.height - addressBarH }
-    private var snapshotMidY: CGFloat { geoRect.minY + snapshotHeight/2 - addressBarH }
 
     var body: some View {
         GeometryReader { geo in
@@ -36,16 +39,16 @@ struct TabsContainerView: View {
                     .scaleEffect(x: gridState.scale, y: gridState.scale)
                     .opacity(gridState.opacity)
 
-                if !toolbarState.showTabGrid, !animation.progress.isAnimating() {
+                if isExpanded, !animation.progress.isAnimating() {
                     Color(.white)
                 }
-                if !toolbarState.showTabGrid, !animation.progress.isAnimating() {
+                if isExpanded, !animation.progress.isAnimating() {
                     PagingScrollView()
                         .environmentObject(animation)
                 }
 
                 if animation.progress.isAnimating() {
-                    if isExpand {
+                    if isExpanded {
                         animationImage
                             .transition(.identityHack)
                             .matchedGeometryEffect(id: animationId, in: expandshrinkAnimation)
@@ -62,31 +65,17 @@ struct TabsContainerView: View {
                 }
             }
             .background(Color.bkColor)
+
             .onAppear {
                 geoRect = geo.frame(in: .global)
                 print("z geo: \(geoRect)")
             }
-            .onChange(of: toolbarState.showTabGrid, perform: { shouldShowGrid in
-                if shouldShowGrid {
-                    animation.progress = .initial
-                    printWithDate(msg: "animation comes to initial")
-                } else {
-                    animation.snapshotImage = UIImage.snapshotImage(from: WebCacheMgr.shared.store[selectedTab.curIndex].snapshotUrl)
-                    animation.progress = .startExpanding
-                }
 
-                withAnimation(.linear) {
-                    gridScale = shouldShowGrid ? 1 : 0.8
-                }
-            })
             .onChange(of: selectedCellFrame) { newValue in
                 print("selecte cell rect changes to : \(newValue)")
             }
         }
     }
-
-    @Namespace private var expandshrinkAnimation
-    private let animationId = "expandshrinkAnimation"
 
     var animationImage: some View {
         Rectangle()
@@ -96,19 +85,25 @@ struct TabsContainerView: View {
                     .aspectRatio(contentMode: .fill)
                     .frame(alignment: .top)
             )
-            .cornerRadius(isExpand ? 0 : gridcellCornerR)
+            .cornerRadius(isExpanded ? 0 : gridcellCornerR)
             .clipped()
+            .animation(.default, value: isExpanded)
             .onReceive(animation.$progress, perform: { progress in
+                guard progress != lastProgress else {
+                    return
+                }
+
+                lastProgress = progress
+
                 if progress == .startShrinking || progress == .startExpanding {
                     printWithDate(msg: "animation : \(progress)")
-                    withAnimation(.easeInOut(duration: 0.5)) {
-                        isExpand = animation.progress == .startExpanding
-                    }
-                    withAnimation(.linear(duration: 0.5)) {
-                        gridState.opacity = 1
+
+                    withAnimation(.easeIn(duration: 1)) {
                         gridState.scale = progress == .startShrinking ? 1 : 0.8
+                        isExpanded = animation.progress == .startExpanding
                     }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.55) {
+
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.05) {
                         animation.progress = .invisible // change to expanded or shrinked
                     }
                 }

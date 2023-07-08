@@ -19,14 +19,14 @@ class AddressBarState: ObservableObject {
 }
 
 class ToolBarState: ObservableObject {
-    @Published var showTabGrid = true
+    @Published var shouldExpand = false
     @Published var canGoBack = false
     @Published var canGoForward = false
     @Published var goBackTapped = false
     @Published var goForwardTapped = false
 
     var addressBarHeight: CGFloat {
-        showTabGrid ? 0 : addressBarH
+        shouldExpand ? addressBarH : 0
     }
 }
 
