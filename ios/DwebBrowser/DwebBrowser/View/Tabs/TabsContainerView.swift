@@ -70,7 +70,12 @@ struct TabsContainerView: View {
                 geoRect = geo.frame(in: .global)
                 print("z geo: \(geoRect)")
             }
-
+            .onChange(of: toolbarState.shouldExpand) { shouldExpand in
+                if shouldExpand { // 准备放大动画
+                    animation.snapshotImage = UIImage.snapshotImage(from: WebCacheMgr.shared.store[selectedTab.curIndex].snapshotUrl)
+                    animation.progress = .startExpanding
+                }
+            }
             .onChange(of: selectedCellFrame) { newValue in
                 print("selecte cell rect changes to : \(newValue)")
             }

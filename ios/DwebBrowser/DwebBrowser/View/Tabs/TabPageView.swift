@@ -33,35 +33,29 @@ struct TabPageView: View {
             .onAppear {
                 snapshotHeight = geo.frame(in: .global).height
             }
-        }
-
-        .onChange(of: toolbarState.shouldExpand) { shouldExpand in
-            if shouldExpand { // 准备放大动画
-                animation.snapshotImage = UIImage.snapshotImage(from: WebCacheMgr.shared.store[selectedTab.curIndex].snapshotUrl)
-                animation.progress = .startExpanding
-            }
-            
-            if !shouldExpand { // 截图，为缩小动画做准备
-                let index = WebWrapperMgr.shared.store.firstIndex(of: webWrapper)
-                if index == selectedTab.curIndex {
-                    if let image = self
-                        .environmentObject(selectedTab)
-                        .environmentObject(toolbarState)
-                        .environmentObject(animation)
-                        .environmentObject(openingLink).snapshot()
-                    {
-                        let scale = image.scale
-                        let cropRect = CGRect(x: 0, y: 0, width: screen_width * scale, height: snapshotHeight * scale)
-                        if let croppedCGImage = image.cgImage?.cropping(to: cropRect) {
-                            let croppedImage = UIImage(cgImage: croppedCGImage)
-                            animation.snapshotImage = croppedImage
-                            webCache.snapshotUrl = UIImage.createLocalUrl(withImage: croppedImage, imageName: webCache.id.uuidString)
-                        }
-                        if animation.progress == .obtainedCellFrame {
-                            animation.progress = .startShrinking
-                            printWithDate(msg: "startShrinking in obtainedSnapshot")
-                        } else {
-                            animation.progress = .obtainedSnapshot
+            .onChange(of: toolbarState.shouldExpand) { shouldExpand in
+                if !shouldExpand { // 截图，为缩小动画做准备
+                    let index = WebWrapperMgr.shared.store.firstIndex(of: webWrapper)
+                    if index == selectedTab.curIndex {
+                        if let image = self
+                            .environmentObject(selectedTab)
+                            .environmentObject(toolbarState)
+                            .environmentObject(animation)
+                            .environmentObject(openingLink).snapshot()
+                        {
+                            let scale = image.scale
+                            let cropRect = CGRect(x: 0, y: 0, width: screen_width * scale, height: snapshotHeight * scale)
+                            if let croppedCGImage = image.cgImage?.cropping(to: cropRect) {
+                                let croppedImage = UIImage(cgImage: croppedCGImage)
+                                animation.snapshotImage = croppedImage
+                                webCache.snapshotUrl = UIImage.createLocalUrl(withImage: croppedImage, imageName: webCache.id.uuidString)
+                            }
+                            if animation.progress == .obtainedCellFrame {
+                                animation.progress = .startShrinking
+                                printWithDate(msg: "startShrinking in obtainedSnapshot")
+                            } else {
+                                animation.progress = .obtainedSnapshot
+                            }
                         }
                     }
                 }
