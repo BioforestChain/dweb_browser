@@ -1,4 +1,5 @@
 import chalk from "npm:chalk";
+import { PromiseOut } from "../../desktop-dev/src/helper/PromiseOut.ts";
 import {
   ReadableStreamOut,
   streamRead,
@@ -91,18 +92,33 @@ export class ESBuild {
     }
   }
   Watch(options: Partial<$BuildOptions> = {}) {
-    const results = new ReadableStreamOut<esbuild.BuildResult>();
+    const results = new ReadableStreamOut<$ESBuildWatchYield>();
     void (async () => {
       const esbuildOptions = this.mergeOptions({ minify: false }, options);
       esbuildOptions.plugins.push({
         name: "esbuild-watch-hook",
         setup: (build) => {
+          let curBuildTask: undefined | PromiseOut<esbuild.BuildResult>;
+          build.onStart(() => {
+            const preBuildTask = curBuildTask;
+            curBuildTask = new PromiseOut<esbuild.BuildResult>();
+            if (preBuildTask) {
+              preBuildTask.resolve(curBuildTask.promise);
+            }
+            /// 在开始编译的时候就注入
+            results.controller.enqueue({ result: curBuildTask.promise });
+          });
           build.onEnd((result) => {
             this._logResult(result);
             console.log(
               chalk.grey(`[watch] build finished, watching for changes...`)
             );
-            results.controller.enqueue(result);
+            if (curBuildTask === undefined) {
+              results.controller.error(new Error("no found task waitter"));
+            } else {
+              curBuildTask.resolve(result);
+              curBuildTask = undefined;
+            }
           });
         },
       });
@@ -128,7 +144,7 @@ export class ESBuild {
     if (this.isDev) {
       yield* this.Watch();
     } else {
-      yield this.build();
+      yield { result: this.build() };
     }
   }
 
@@ -141,3 +157,7 @@ export class ESBuild {
     return Deno.args.includes("--watch");
   }
 }
+export type $ESBuildWatchYield = {
+  /// 包裹一层 result，目的是提供 start/end 的这种模式，如果只给promise，那么缺省的 resolver 会导致只能在监听到 end 的时候
+  result: Promise<esbuild.BuildResult>;
+};

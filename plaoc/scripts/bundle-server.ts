@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { build, InlineConfig, PluginOption } from "npm:vite";
-import { ESBuild, esbuild } from "../../scripts/helper/Esbuild.ts";
+import { ESBuild } from "../../scripts/helper/Esbuild.ts";
 
 const resolveTo = (to: string) => fileURLToPath(import.meta.resolve(to));
 const absWorkingDir = resolveTo("../");
@@ -71,17 +71,14 @@ export const emulator = {
       const esbuilderMap = new Map<
         string,
         {
-          gen: AsyncGenerator<esbuild.BuildResult<esbuild.BuildOptions>>;
-          lastBuildItem: Promise<
-            IteratorResult<esbuild.BuildResult<esbuild.BuildOptions>>
-          >;
+          gen: ReturnType<ESBuild["Auto"]>;
+          // lastBuildItem: Promise<IteratorResult<$ESBuildWatchYield>>;
         }
       >();
       return {
         enforce: "pre",
         name: "esbuild-deno",
         async load(id) {
-          console.log("load", id);
           if (id.endsWith(".ts")) {
             //#region 根据入口文件，构建 esbuild
             let esbuildCtx = esbuilderMap.get(id);
@@ -97,37 +94,21 @@ export const emulator = {
                 metafile: true,
               });
               const gen = builder.Auto();
-              esbuildCtx = { gen, lastBuildItem: gen.next() };
+              esbuildCtx = {
+                gen,
+              };
               esbuilderMap.set(id, esbuildCtx);
-
-              /// 持续读取更新
-              void (async () => {
-                while (true) {
-                  /// 等待下一个更新
-                  const nextItem = gen.next();
-                  const buildItem = await nextItem;
-                  esbuildCtx.lastBuildItem = nextItem;
-
-                  // 结束了
-                  if (buildItem.done) {
-                    break;
-                  }
-                  // 更新了
-                  console.log("emited", id);
-
-                  // this.addWatchFile()
-                }
-              })();
             }
             //#endregion
 
             /// 等待最后一次编译结果
-            const buildItem = await esbuildCtx.lastBuildItem;
+            console.log("waitting", id);
+            const buildItem = await esbuildCtx.gen.next();
             if (buildItem.done) {
               throw new Error(`esbuild task "${id}" already exited`);
             }
 
-            const res = buildItem.value;
+            const res = await buildItem.value.result;
             for (const inputfilepath of Object.keys(
               res.metafile?.inputs ?? {}
             )) {

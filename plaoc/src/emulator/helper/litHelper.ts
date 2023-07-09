@@ -1,5 +1,3 @@
-// @ts-ignore
-delete Document.prototype.adoptedStyleSheets;
 import { css, supportsAdoptingStyleSheets } from "lit";
 console.log("supportsAdoptingStyleSheets", supportsAdoptingStyleSheets, css);
 export * from "lit";

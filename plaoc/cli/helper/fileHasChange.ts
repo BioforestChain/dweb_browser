@@ -1,9 +1,9 @@
+import { Buffer } from "node:buffer";
 import fs from "node:fs";
-import { isDeepStrictEqual } from "node:util";
-const statCache = new Map<string, fs.Stats | false>();
+const statCache = new Map<string, Buffer | false>();
 export const fileHasChange = (
   filepath: string,
-  curr = fs.existsSync(filepath) && fs.statSync(filepath)
+  curr = fs.existsSync(filepath) && fs.readFileSync(filepath)
 ) => {
   const prev = statCache.get(filepath);
   let changed = false;
@@ -17,7 +17,7 @@ export const fileHasChange = (
     } else if (prev === false) {
       changed = true;
     } else {
-      changed = !isDeepStrictEqual(curr, prev);
+      changed === curr.equals(prev);
     }
   }
   if (changed) {
@@ -25,3 +25,8 @@ export const fileHasChange = (
   }
   return changed;
 };
+
+export const initFileState = (filepath: string, content: Buffer | false) => {
+  statCache.set(filepath, content);
+};
+export const clearChangeState = () => statCache.clear();

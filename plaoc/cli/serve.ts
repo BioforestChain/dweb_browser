@@ -8,7 +8,11 @@ import adp from "npm:appdata-path";
 import chalk from "npm:chalk";
 import { Flags, debounce } from "./deps.ts";
 import { WalkFiles } from "./helper/WalkDir.ts";
-import { fileHasChange } from "./helper/fileHasChange.ts";
+import {
+  clearChangeState,
+  fileHasChange,
+  initFileState,
+} from "./helper/fileHasChange.ts";
 import {
   BundleZipGenerator,
   MetadataJsonGenerator,
@@ -145,22 +149,36 @@ export const doServe = async (args = Deno.args) => {
       );
 
       const doSync = debounce(() => {
-        if (fs.existsSync(emulatorDestDir)) {
-          fs.rmSync(emulatorDestDir, { recursive: true });
-        }
+        let hasChange = false;
         for (const entry of WalkFiles(emulatorSrcDir)) {
-          const src = path.resolve(emulatorSrcDir, entry.relativepath);
-          const dest = path.resolve(emulatorDestDir, entry.relativepath);
-          fs.mkdirSync(path.dirname(dest), { recursive: true });
-          fs.copyFileSync(src, dest);
+          if (fileHasChange(entry.entrypath, entry.read())) {
+            hasChange = true;
+            break;
+          }
         }
-        console.log(chalk.green("synced"));
-      }, 300);
 
-      fs.watch(emulatorSrcDir, { recursive: true }, (_type, filename) => {
-        if (fileHasChange(filename)) {
-          doSync();
+        if (hasChange) {
+          clearChangeState();
+          if (fs.existsSync(emulatorDestDir)) {
+            fs.rmSync(emulatorDestDir, { recursive: true });
+          }
+          for (const entry of WalkFiles(emulatorSrcDir)) {
+            initFileState(entry.entrypath, entry.read());
+
+            const src = path.resolve(emulatorSrcDir, entry.relativepath);
+            const dest = path.resolve(emulatorDestDir, entry.relativepath);
+            fs.mkdirSync(path.dirname(dest), { recursive: true });
+            fs.copyFileSync(src, dest);
+          }
+          console.log(
+            chalk.green("synced"),
+            chalk.yellow(new Date().toLocaleTimeString())
+          );
         }
+      }, 200);
+
+      fs.watch(emulatorSrcDir, { recursive: true }, (_type, _filename) => {
+        doSync();
       });
       doSync();
     }
