@@ -1,8 +1,12 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { Chalk } from "npm:chalk";
+import _minifyHTML from "npm:rollup-plugin-minify-html-literals";
 import { build, InlineConfig, PluginOption } from "npm:vite";
 import { ESBuild } from "../../scripts/helper/Esbuild.ts";
+const minifyHTML = _minifyHTML.default();
+const chalk = new Chalk({ level: 3 });
 
 const resolveTo = (to: string) => fileURLToPath(import.meta.resolve(to));
 const absWorkingDir = resolveTo("../");
@@ -39,7 +43,7 @@ export const dev = new ESBuild({
             args.path.replace(/\.ts$/, ".(dev).ts")
           );
           if (fs.existsSync(newpath)) {
-            console.log("newpath", newpath);
+            console.log(chalk.gray("replace"), newpath);
             return {
               path: newpath,
               watchFiles: [newpath],
@@ -55,7 +59,6 @@ export const dev = new ESBuild({
   importMapURL,
 });
 
-console.log("prod.isDev", prod.isDev);
 export const emulator = {
   configFile: false,
   base: "./",
@@ -63,7 +66,24 @@ export const emulator = {
   build: {
     outDir: resolveTo("../dist/server/emulator"),
     watch: prod.isDev ? {} : undefined, // {},
-    rollupOptions: {},
+    rollupOptions: {
+      plugins: [
+        {
+          name: "xxx",
+          transform(code, id) {
+            if (id.endsWith(".ts")) {
+              console.log(
+                chalk.green("transfrom:"),
+                id,
+                code.includes("html`")
+              );
+            }
+            return code;
+          },
+        },
+        minifyHTML as never,
+      ],
+    },
     emptyOutDir: true,
   },
   plugins: [
@@ -92,6 +112,9 @@ export const emulator = {
                 denoLoader: true,
                 importMapURL,
                 metafile: true,
+                minify: false,
+                keepNames: true,
+                minifyIdentifiers: false,
               });
               const gen = builder.Auto();
               esbuildCtx = {
@@ -100,14 +123,12 @@ export const emulator = {
               esbuilderMap.set(id, esbuildCtx);
             }
             //#endregion
-
             /// 等待最后一次编译结果
-            console.log("waitting", id);
+            console.log(chalk.bgYellow.black("esbuild"), id);
             const buildItem = await esbuildCtx.gen.next();
             if (buildItem.done) {
               throw new Error(`esbuild task "${id}" already exited`);
             }
-
             const res = await buildItem.value.result;
             for (const inputfilepath of Object.keys(
               res.metafile?.inputs ?? {}

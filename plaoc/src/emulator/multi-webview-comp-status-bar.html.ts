@@ -173,7 +173,7 @@ function createAllCSS() {
         --fg-color: #000000ff;
       }
       .comp-container.default {
-        --fg-color: transparent;
+        --fg-color: #fff;
       }
 
       .background {
@@ -199,14 +199,7 @@ function createAllCSS() {
        */
       .comp-container.default .left_container,
       .comp-container.default .right_container {
-        background-image: linear-gradient(
-            0,
-            var(--bg-color) 0,
-            var(--bg-color) 100vw
-          ),
-          linear-gradient(0, #fff 0, #fff 100vw);
-        filter: invert(100%) contrast(100);
-        -webkit-background-clip: text;
+        mix-blend-mode: difference;
       }
 
       .left_container {
