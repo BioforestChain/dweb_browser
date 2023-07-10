@@ -66,6 +66,7 @@ export const emulator = {
   build: {
     outDir: resolveTo("../dist/server/emulator"),
     watch: prod.isDev ? {} : undefined, // {},
+    minify: !prod.isDev,
     rollupOptions: {
       plugins: [
         {
