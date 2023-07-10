@@ -1,8 +1,11 @@
-/// <reference path="../../@types/web-bluetooth/index.d.ts"/>;
-import type { $AllWatchControllerItem } from "../../../../../desktop-dev/src/std/bluetooth/types.ts";
+/// <reference path="./index.d.ts"/>;
 import { bindThis } from "../../helper/bindThis.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
-import { $BluetoothPluginListener, $ResponseData } from "./bluetooth.type.ts";
+import {
+  $AllWatchControllerItem,
+  $BluetoothPluginListener,
+  $ResponseData,
+} from "./bluetooth.type.ts";
 
 export class BluetoothPlugin extends BasePlugin {
   private _ws: WebSocket | undefined;
@@ -388,7 +391,7 @@ export class BluetoothRemoteGATTCharacteristic {
     type: "characteristicvaluechanged",
     listener: EventListener
   ) => {
-    let set = this.eventMap.get(type);
+    const set = this.eventMap.get(type);
     if (set === undefined) return;
     set.delete(listener);
   };

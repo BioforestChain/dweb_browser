@@ -190,7 +190,6 @@ export const doBuild = async (args = Deno.args) => {
         document: { addEventListener: noop },
       });
     }
-    import("../src/client/index.ts");
   }
   const targets = args.filter((a) => /^\w/.test(a));
   const rest = args.filter((a) => /^\w/.test(a) === false);
