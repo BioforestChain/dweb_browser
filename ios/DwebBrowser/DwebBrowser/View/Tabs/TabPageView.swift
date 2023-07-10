@@ -38,10 +38,8 @@ struct TabPageView: View {
                     let index = WebWrapperMgr.shared.store.firstIndex(of: webWrapper)
                     if index == selectedTab.curIndex {
                         if let image = self
-                            .environmentObject(selectedTab)
-                            .environmentObject(toolbarState)
-                            .environmentObject(animation)
-                            .environmentObject(openingLink).snapshot()
+                            .environmentObject(selectedTab).environmentObject(toolbarState).environmentObject(animation).environmentObject(openingLink)
+                            .snapshot()
                         {
                             let scale = image.scale
                             let cropRect = CGRect(x: 0, y: 0, width: screen_width * scale, height: snapshotHeight * scale)

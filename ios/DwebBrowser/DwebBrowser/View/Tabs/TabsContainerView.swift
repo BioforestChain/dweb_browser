@@ -16,7 +16,7 @@ struct TabsContainerView: View {
     @StateObject var animation = ShiftAnimation()
 
     @State var geoRect: CGRect = .zero // 定义一个变量来存储geoInGlobal的值
-    @State var selectedCellFrame: CGRect = .zero
+    @State var selectedCellFrame: CGRect = .zero 
     @State private var isExpanded = false
     @State private var lastProgress: AnimationProgress = .invisible
 
@@ -36,8 +36,6 @@ struct TabsContainerView: View {
 
             ZStack {
                 TabGridView(animation: animation, gridState: gridState, selectedCellFrame: $selectedCellFrame)
-                    .scaleEffect(x: gridState.scale, y: gridState.scale)
-                    .opacity(gridState.opacity)
 
                 if isExpanded, !animation.progress.isAnimating() {
                     Color(.white)
@@ -77,7 +75,7 @@ struct TabsContainerView: View {
                 }
             }
             .onChange(of: selectedCellFrame) { newValue in
-                print("selecte cell rect changes to : \(newValue)")
+                printWithDate(msg: "selecte cell rect changes to : \(newValue)")
             }
         }
     }
@@ -102,7 +100,9 @@ struct TabsContainerView: View {
 
                 if progress == .startShrinking || progress == .startExpanding {
                     printWithDate(msg: "animation : \(progress)")
-
+                    if progress == .startShrinking{
+                        gridState.scale = 0.8
+                    }
                     withAnimation(.easeIn(duration: 1)) {
                         gridState.scale = progress == .startShrinking ? 1 : 0.8
                         isExpanded = animation.progress == .startExpanding
@@ -110,6 +110,8 @@ struct TabsContainerView: View {
 
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.05) {
                         animation.progress = .invisible // change to expanded or shrinked
+                        
+                        gridState.scale = 1
                     }
                 }
             })

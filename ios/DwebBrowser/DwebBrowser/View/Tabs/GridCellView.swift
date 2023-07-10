@@ -32,8 +32,7 @@ struct WebsiteIconImage: View {
 struct GridCell: View {
     @ObservedObject var webCache: WebCache
     var isSelected: Bool
-    var deleteAction: (WebCache) -> Void
-
+    @EnvironmentObject var selectedTab: SelectedTab
     var body: some View {
         Self._printChanges()
 
@@ -58,13 +57,15 @@ struct GridCell: View {
                         .lineLimit(1)
                 }.frame(height: gridcellBottomH)
             }
-            deleteButton
         }
     }
 
     var deleteButton: some View {
         Button {
-            deleteAction(webCache)
+            WebCacheMgr.shared.remove(webCache: webCache)
+            if selectedTab.curIndex >= WebCacheMgr.shared.store.count {
+                selectedTab.curIndex = WebCacheMgr.shared.store.count - 1
+            }
         } label: {
             Image("tab_close")
         }
