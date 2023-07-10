@@ -31,7 +31,7 @@ export function initWebSocketServer(this: HttpServerNMM, server: HttpServer) {
       callback: $OnConnection
     ) {
       const fullReqUrl = getFullReqUrl(req);
-      console.always("upgrade", fullReqUrl, upgradeHead.toString());
+      // console.always("upgrade", fullReqUrl, upgradeHead.toString());
       try {
         /// 网关校验
         const host = getHostByReq(req);

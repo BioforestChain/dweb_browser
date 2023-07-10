@@ -34,7 +34,7 @@ class TaskLogger extends WritableStream<string> {
     prefix: string,
     readonly writter: Deno.Writer,
     logTransformer: $LogTransformer = (log) => log,
-    logLineFilter: $LogLineFilter = (line) => true
+    logLineFilter: $LogLineFilter = (_line) => true
   ) {
     super({
       write: async (chunk) => {
@@ -198,6 +198,7 @@ export class ConTasks {
         const listener = () => {
           try {
             child.kill();
+          // deno-lint-ignore no-empty
           } catch (_) {}
         };
         task.signal?.addEventListener("abort", listener);

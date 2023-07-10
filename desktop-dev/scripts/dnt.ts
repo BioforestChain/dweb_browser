@@ -135,6 +135,7 @@ await dnt.build({
     };
     updatePackageJson((packageJson) => {
       const moveDepToDev = (name: string) => {
+        if (!packageJson.dependencies) return;
         packageJson.devDependencies[name] = packageJson.dependencies[name];
         delete packageJson.dependencies[name];
       };

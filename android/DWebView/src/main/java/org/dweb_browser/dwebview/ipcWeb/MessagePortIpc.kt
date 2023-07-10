@@ -11,6 +11,7 @@ import org.dweb_browser.microservice.ipc.helper.IpcResponse
 import org.dweb_browser.microservice.ipc.helper.IpcStreamData
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.Callback
@@ -60,6 +61,7 @@ class MessagePort private constructor(private val port: WebMessagePort) {
   fun close() {
     if (_isClosed) {
       messageChannel.close()
+      _messageSignal.clear()
       return
     }
     _isClosed = true

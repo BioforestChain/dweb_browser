@@ -1,5 +1,5 @@
-import { css as _css, html as _html, supportsAdoptingStyleSheets } from "lit";
-console.log("supportsAdoptingStyleSheets", supportsAdoptingStyleSheets);
+import { css as _css, html as _html } from "lit";
+// console.log("supportsAdoptingStyleSheets", supportsAdoptingStyleSheets);
 export * from "lit";
 export * from "lit/decorators.js";
 export * from "lit/directives/when.js";

@@ -73,10 +73,7 @@ export abstract class BarPlugin<
 > extends InsetsPlugin<RAW, STATE, WRITABLE_STATE> {
   /**
    * 设置 Bar 背景色
-   * @param r 0~255
-   * @param g 0~255
-   * @param b 0~255
-   * @param a 0~1
+   * Hex
    */
   @bindThis
   setColor(color: string) {
