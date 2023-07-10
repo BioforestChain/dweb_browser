@@ -12,10 +12,6 @@ export class BluetoothPlugin extends BasePlugin {
   constructor() {
     super("bluetooth.std.dweb");
   }
-  // options: RequestDeviceOptions = {
-  //   acceptAllDevices: true,
-  //   optionalServices: ["00003802-0000-1000-8000-00805f9b34fb"],
-  // }
 
   @bindThis
   async open(): Promise<$ResponseData<undefined>> {
@@ -30,6 +26,7 @@ export class BluetoothPlugin extends BasePlugin {
     if (this._ws) {
       this._ws.close();
       this._ws = undefined;
+      // 停止监听 但是还没有处理
     }
     return res;
   }
@@ -117,8 +114,6 @@ export class BluetoothDevice {
   private name: string | undefined;
   private gatt: BluetoothRemoteGATTServer | undefined;
   private eventMap: Map<string, Set<{ (ev: Event): void }>> = new Map();
-  private isWatchGattServerDisconnected = false;
-  private isAdvertisementreceived = false;
 
   constructor(
     readonly plugin: BluetoothPlugin,
@@ -130,20 +125,38 @@ export class BluetoothDevice {
     this.name = _name;
     this.gatt = _gatt;
 
-    this.plugin.addeEventListener("gattserverdisconnected", () => {
-      this.gettserverdisconnectedListener();
-    });
+    this.plugin.addeEventListener(
+      "gattserverdisconnected",
+      this.gettserverdisconnectedListener
+    );
+
+    this.plugin.addeEventListener(
+      "advertisementreceived",
+      this.advertisementreceivedListener
+    );
   }
 
   // 撤销访问的权限
   @bindThis
   async forget() {
-    console.error("还没有实现");
+    const res = await (
+      await this.plugin.fetchApi(`/bluetooth_device/forget`, {
+        search: {
+          id: this.id,
+        },
+      })
+    ).json();
+    return res;
   }
 
   @bindThis
-  async watchAdvertisements() {
-    console.error("还没有实现");
+  async watchAdvertisements(): Promise<$ResponseData<string>> {
+    const res = await (
+      await this.plugin.fetchApi(`/bluetooth_device/watch_advertisements`, {
+        search: { id: this.id },
+      })
+    ).json();
+    return res;
   }
 
   @bindThis
@@ -157,18 +170,6 @@ export class BluetoothDevice {
       this.eventMap.set(type, set);
     }
     set.add(listener);
-
-    // if (type === "gattserverdisconnected") {
-    //   this.isWatchGattServerDisconnected
-    //     ? ""
-    //     : this._watchGattServerDisconnected();
-    //   return;
-    // }
-
-    // if (type === "advertisementreceived") {
-    //   this.isAdvertisementreceived ? "" : this._watchAdvertisementreceived();
-    //   return;
-    // }
   }
 
   @bindThis
@@ -181,48 +182,6 @@ export class BluetoothDevice {
     set.delete(listener);
   }
 
-  // private _watchGattServerDisconnected = async () => {
-  //   this.isWatchGattServerDisconnected = true;
-  //   const url = new URL(
-  //     BasePlugin.url.replace(/^http:/, "ws:").replace(/^https:/, "wss:")
-  //   );
-  //   url.pathname = `${this.plugin.mmid}/bluetooth_device/gattserverdisconnected_watch`;
-  //   const ws = new WebSocket(url);
-  //   ws.onerror = (err) => {
-  //     console.error("onerror", err);
-  //   };
-  //   // let count = 0;
-  //   ws.onopen = () => {};
-  //   ws.onmessage = async (event: MessageEvent<Blob>) => {
-  //     try {
-  //       const str = await event.data.text();
-  //       if (str.length === 0) return;
-  //       const data = JSON.parse(await event.data.text());
-  //       data.type === "gattserverdisconnected"
-  //         ? this.gettserverdisconnectedListener()
-  //         : "";
-  //     } catch (err) {
-  //       console.error(
-  //         "_watchGattServerDisconnected",
-  //         "ws.onmessage error",
-  //         err
-  //       );
-  //     }
-  //   };
-
-  //   ws.onclose = () => {
-  //     console.log("关闭了", "需要把消息发送给监听者");
-  //   };
-  // };
-
-  // private _watchAdvertisementreceived = async () => {
-  //   this.isAdvertisementreceived = true;
-  //   const url = new URL(BasePlugin.url);
-  //   url.pathname = `${this.plugin.mmid}/bluetooth_device/advertisementreceived`;
-  //   const ws = new WebSocket(url);
-  //   console.error("还没有实现");
-  // };
-
   gettserverdisconnectedListener = () => {
     const set = this.eventMap.get("gattserverdisconnected");
     if (set === undefined) {
@@ -233,12 +192,12 @@ export class BluetoothDevice {
     });
   };
 
-  advertisementreceivedListener = () => {
-    console.error("还没有实现");
+  advertisementreceivedListener = (event: any) => {
     const set = this.eventMap.get("advertisementreceived");
     if (set === undefined) return;
     set.forEach((fn) => {
-      fn.bind(this)(new AdvertisementreceivedEvent(""));
+      // fn.bind(this)(new AdvertisementreceivedEvent(""));
+      fn.bind(this)(event);
     });
   };
 }
@@ -352,26 +311,34 @@ export class BluetoothRemoteGATTService extends EventTarget {
     }
     return res;
   }
-
-  // async getCharacteristic(characteristic: BluetoothCharacteristicUUID): Promise<BluetoothRemoteGATTCharacteristic>{
-
-  // }
 }
 
 export class BluetoothRemoteGATTCharacteristic {
-  private eventMap: Map<string, Set<{ (ev: Event): void }>> = new Map();
-  private _isWatchCharacteristicvaluechanged = false;
+  private eventMap: Map<string, Set<$BluetoothPluginListener>> = new Map();
   constructor(
     readonly plugin: BluetoothPlugin,
     readonly service: BluetoothRemoteGATTService,
     readonly uuid: string,
     readonly properties: BluetoothCharacteristicProperties,
     readonly value?: DataView | undefined
-  ) {}
+  ) {
+    this.plugin.addeEventListener(
+      "characteristicvaluechanged",
+      this.characteristicvaluechangedListener
+    );
+  }
+
+  characteristicvaluechangedListener = (event: any) => {
+    const set = this.eventMap.get("characteristicvaluechanged");
+    if (set === undefined) return;
+    set.forEach((fn) => {
+      fn.bind(this)(event);
+    });
+  };
 
   addEventListener = (
     type: "characteristicvaluechanged",
-    listener: EventListener
+    listener: $BluetoothPluginListener
   ) => {
     let set = this.eventMap.get(type);
     if (set === undefined) {
@@ -379,30 +346,15 @@ export class BluetoothRemoteGATTCharacteristic {
       this.eventMap.set(type, set);
     }
     set.add(listener);
-
-    if (type === "characteristicvaluechanged") {
-      this._isWatchCharacteristicvaluechanged
-        ? ""
-        : this.watchCharacteristicvaluechanged();
-    }
   };
 
   removeEvent = (
     type: "characteristicvaluechanged",
-    listener: EventListener
+    listener: $BluetoothPluginListener
   ) => {
     const set = this.eventMap.get(type);
     if (set === undefined) return;
     set.delete(listener);
-  };
-
-  watchCharacteristicvaluechanged = async () => {
-    console.error("还没有实现");
-    this._isWatchCharacteristicvaluechanged = true;
-    const url = new URL(BasePlugin.url);
-    url.pathname = `${this.plugin.mmid}/bluetooth_device/characteristicvaluechanged_watch`;
-    const ws = new WebSocket(url);
-    ws.onerror = () => {};
   };
 
   @bindThis

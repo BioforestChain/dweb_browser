@@ -89,9 +89,25 @@ async function requestAndConnectDevice() {
     state.bluetoothRemoteGATTServer.device.addEventListener("gattserverdisconnected", (e: Event) => {
       console.log("gattserverdisconnected", e);
     });
+
+    state.bluetoothRemoteGATTServer.device.addEventListener("advertisementreceived", (e: Event) => {
+      console.log("advertisementreceived", e);
+    });
   } else {
     state.bluetoothRemoteGATTServer = undefined;
     console.error("连接蓝牙设备失败 ", res.error);
+  }
+}
+
+async function watchAdvertisements() {
+  if (state.bluetoothRemoteGATTServer === undefined) {
+    throw new Error(`state.bluetoothRemoteGATTServer === undefined`);
+  }
+  const res = await state.bluetoothRemoteGATTServer?.device.watchAdvertisements();
+  if (res.success) {
+    console.log("watch Advertisements success");
+  } else {
+    console.error("watch advertisments fail", res.error);
   }
 }
 
@@ -148,6 +164,9 @@ async function getCharacteristic() {
   const res = await state.bluetoothRemoteGATTService?.getCharacteristic(state.bluetoothCharacteristicUUID);
   if (res.success === true) {
     state.bluetoothRemoteGATTCharacteristic = res.data;
+    state.bluetoothRemoteGATTCharacteristic?.addEventListener("characteristicvaluechanged", (arg: unknown) => {
+      console.log("characteristicvaluechanged", arg);
+    });
     console.log("getCharacteristic success ", res);
   } else {
     console.log("getCharacteristic fail: ", res);
@@ -257,6 +276,14 @@ function deviceConnectedIdUpdate(deviceId: string) {
     <article class="card-body" v-if="state.isOpen">
       <!-- <h2 class="card-title">查询设备</h2> -->
       <v-btn color="indigo-darken-3" @click="requestAndConnectDevice">查询连接蓝牙设备 </v-btn>
+    </article>
+
+    <article
+      class="card-body"
+      v-if="state.bluetoothRemoteGATTServer !== undefined && state.bluetoothRemoteGATTServer.connected"
+    >
+      <!-- <h2 class="card-title">查询设备</h2> -->
+      <v-btn color="indigo-darken-3" @click="watchAdvertisements">watch advertisements </v-btn>
     </article>
 
     <article

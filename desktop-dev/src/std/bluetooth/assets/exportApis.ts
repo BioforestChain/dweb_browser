@@ -55,14 +55,13 @@ async function requestDevice(requestDeviceOptions: RequestDeviceOptions) {
         bluetooth = _bluetooth;
         bluetooth.addEventListener("gattserverdisconnected", () => {
           console.error("error", "gattserverdisconnected");
-          // mainApis.gattserverdisconnectedWatch();
           mainApis.watchStateChange("gattserverdisconnected", undefined);
         });
 
         bluetooth.addEventListener(
           "advertisementreceived",
           (ev: BluetoothAdvertisingEvent) => {
-            console.error("error", "advertisementreceived 还没有处理");
+            mainApis.watchStateChange("advertisementreceived", ev);
           }
         );
         return bluetooth.gatt?.connect();
@@ -83,6 +82,30 @@ async function requestDevice(requestDeviceOptions: RequestDeviceOptions) {
       clearTimeout(setTimeoutId);
       console.error(`requestDevice fail: `, err);
     });
+}
+
+async function bluetoothDeviceForget(id: string, resolveId: number) {
+  if (bluetooth.id !== id) {
+    return operationCallbackError(`bluetooth.id !== ${id}`, resolveId);
+  }
+
+  bluetooth.forget().then(
+    () => operationCallbackSuccess("ok", resolveId),
+    (err) => operationCallbackError(err.message, resolveId)
+  );
+}
+
+async function bluetoothDeviceWatchAdvertisements(
+  id: string,
+  resolveId: number
+) {
+  if (bluetooth.id !== id) {
+    return operationCallbackError(`bluetooth.id !== ${id}`, resolveId);
+  }
+  bluetooth.watchAdvertisements().then(
+    () => operationCallbackSuccess("ok", resolveId),
+    (err) => operationCallbackError(err.message, resolveId)
+  );
 }
 
 /**
@@ -357,6 +380,7 @@ async function bluetoothRemoteGATTService_getCharacteristic(
         "characteristicvaluechanged",
         (event: Event) => {
           // 特征 的值发生了变化
+          mainApis.watchStateChange("characteristicvaluechanged", event);
         }
       );
 
@@ -558,6 +582,8 @@ function operationCallbackSuccess(value: unknown, resolveId: number) {
 export const APIS = {
   devicesUpdate,
   requestDevice,
+  bluetoothDeviceForget,
+  bluetoothDeviceWatchAdvertisements,
   deviceDisconnect,
   bluetoothRemoteGATTServerConnect,
   bluetoothRemoteGATTServerDisconnect,

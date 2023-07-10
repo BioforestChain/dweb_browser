@@ -27,10 +27,23 @@ export declare namespace $AllWatchControllerItem {
     (jsonable: $SendParam): void;
   }
 
-  export type $SendParam = $SendParamGattserverdisconnected;
+  export type $SendParam =
+    | $SendParamGattserverdisconnected
+    | $SendParamAdvertisementreceived
+    | $SendParamCharacteristicValueChange;
 
   export interface $SendParamGattserverdisconnected {
     type: "gattserverdisconnected";
+    data: unknown;
+  }
+
+  export interface $SendParamAdvertisementreceived {
+    type: "advertisementreceived";
+    data: unknown;
+  }
+
+  export interface $SendParamCharacteristicValueChange {
+    type: "characteristicvaluechanged";
     data: unknown;
   }
 }
