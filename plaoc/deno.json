@@ -23,7 +23,8 @@
     "allowJs": false,
     "strict": true,
     "strictNullChecks": true,
-    "noImplicitOverride": true
+    "noImplicitOverride": true,
+    "types":["deno-ns"]
   },
   "lint": {
     "rules": {
