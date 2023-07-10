@@ -54,11 +54,8 @@ export const doBuidCore = async (config: {
     typeCheck: false,
     test: false,
     shims: {
-      custom: [
-        // {
-        //   globalNames: ["ImageCapture"],
-        // }
-      ],
+      deno: true,
+      custom: [],
     },
     compilerOptions: {
       target: "ES2020",

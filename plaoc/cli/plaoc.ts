@@ -17,6 +17,6 @@ export const doCli = async (args = Deno.args) => {
   }
 };
 
-if (import.meta.main) {
-  doCli();
-}
+// if (import.meta.main) {
+doCli();
+// }
