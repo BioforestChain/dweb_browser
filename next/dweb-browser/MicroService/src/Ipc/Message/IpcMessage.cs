@@ -18,16 +18,14 @@ public class IpcMessage: IToJsonAble
     /// Serialize IpcMessage
     /// </summary>
     /// <returns>JSON string representation of the IpcMessage</returns>
-    public virtual string ToJson() => JsonSerializer.Serialize(this,
-        new JsonSerializerOptions { IncludeFields = true, PropertyNameCaseInsensitive = true });
+    public virtual string ToJson() => JsonSerializer.Serialize(this);
 
     /// <summary>
     /// Deserialize IpcMessage
     /// </summary>
     /// <param name="json">JSON string representation of IpcMessage</param>
     /// <returns>An instance of a IpcMessage object.</returns>
-    public static IpcMessage? FromJson(string json) => JsonSerializer.Deserialize<IpcMessage>(json,
-        new JsonSerializerOptions { IncludeFields = true, PropertyNameCaseInsensitive = true });
+    public static IpcMessage? FromJson(string json) => JsonSerializer.Deserialize<IpcMessage>(json);
 }
 
 public interface IpcStream

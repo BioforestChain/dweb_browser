@@ -11,14 +11,14 @@ public class BufferBlockTest
         var channel = new BufferBlock<int>(new DataflowBlockOptions { BoundedCapacity = DataflowBlockOptions.Unbounded });
 
         var acc = 0;
-        _ = Task.Run(async () =>
+        _ = Task.Factory.StartNew(async () =>
         {
             await foreach (var data in channel.ReceiveAllAsync())
             {
                 Debug.WriteLine("got data: {0}", data);
                 acc += data;
             }
-        }).NoThrow();
+        }, TaskCreationOptions.LongRunning).NoThrow();
 
         await Task.Delay(100);
 

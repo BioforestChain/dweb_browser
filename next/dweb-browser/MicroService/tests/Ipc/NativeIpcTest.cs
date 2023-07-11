@@ -1,6 +1,7 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 using DwebBrowser.MicroService.Core;
+using DwebBrowser.MicroService;
 
 namespace DwebBrowser.MicroServiceTests;
 
@@ -15,7 +16,7 @@ public class NativeIpcTest
             throw new NotImplementedException();
         }
 
-        protected override Task _onActivityAsync(IpcEvent Event, Ipc ipc)
+        protected override Task _onActivityAsync(IpcEvent Event, MicroService.Ipc ipc)
         {
             throw new NotImplementedException();
         }
@@ -35,7 +36,7 @@ public class NativeIpcTest
             throw new NotImplementedException();
         }
 
-        protected override Task _onActivityAsync(IpcEvent Event, Ipc ipc)
+        protected override Task _onActivityAsync(IpcEvent Event, MicroService.Ipc ipc)
         {
             throw new NotImplementedException();
         }

@@ -100,7 +100,7 @@ public class AppDelegate : UIApplicationDelegate
             }
             return null;
         });
-        NetServer.HttpCreateServer(new ListenOptions(20222), httpHanlder);
+        NetServer.HttpCreateServer(new ListenOptions(20222), httpHanlder,async (x,y) => { });
         var dwebview = new DWebView(vc.View?.Frame, localeNmm, localeNmm, new DWebView.Options("https://test.sys.dweb/index.html"), null);
         vc.View!.AddSubview(dwebview);
 

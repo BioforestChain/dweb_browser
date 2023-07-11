@@ -1,7 +1,5 @@
-﻿using System.Text.RegularExpressions;
-using System.Net.WebSockets;
-using DwebBrowser.MicroService.Http;
-using System.Xml.Linq;
+﻿using System.Net.WebSockets;
+using System.Text.RegularExpressions;
 
 namespace DwebBrowser.MicroService.Sys.Http;
 
@@ -149,7 +147,7 @@ public class HttpNMM : NativeMicroModule
                     {
                         await webSocketContext.WebSocket.SendAsync(new ArraySegment<byte>(), WebSocketMessageType.Binary, true, CancellationToken.None);
                     }
-                    
+
                     break;
                 case PureBody body:
                     var data = body.ToByteArray();

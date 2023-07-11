@@ -20,13 +20,13 @@ public class MessagePort
     {
         _port = port;
 
-        _ = Task.Run(async () =>
+        _ = Task.Factory.StartNew(async () =>
         {
             await foreach (var message in MessageChannel.ReceiveAllAsync())
             {
                 await (OnWebMessage?.Emit(message)).ForAwait();
             }
-        }).NoThrow();
+        }, TaskCreationOptions.LongRunning).NoThrow();
 
         _port.OnMessage += (message, _) => MessageChannel.SendAsync(message);
     }

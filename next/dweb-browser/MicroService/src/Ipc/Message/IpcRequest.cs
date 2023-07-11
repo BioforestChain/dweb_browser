@@ -134,12 +134,12 @@ public class IpcReqMessage : IpcMessage
     /// Serialize IpcReqMessage
     /// </summary>
     /// <returns>JSON string representation of the IpcReqMessage</returns>
-    public override string ToJson() => JsonSerializer.Serialize(JsonAble(), new JsonSerializerOptions { IncludeFields = true });
+    public override string ToJson() => JsonSerializer.Serialize(JsonAble());
 
     /// <summary>
     /// Deserialize IpcReqMessage
     /// </summary>
     /// <param name="json">JSON string representation of IpcReqMessage</param>
     /// <returns>An instance of a IpcReqMessage object.</returns>
-    public static new IpcReqMessage? FromJson(string json) => JsonSerializer.Deserialize<IpcReqMessage>(json, new JsonSerializerOptions { IncludeFields = true });
+    public static new IpcReqMessage? FromJson(string json) => JsonSerializer.Deserialize<IpcReqMessage>(json);
 }

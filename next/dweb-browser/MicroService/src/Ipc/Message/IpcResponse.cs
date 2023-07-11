@@ -16,7 +16,7 @@ public class IpcResponse : IpcMessage
         Body = body;
         Ipc = ipc;
 
-        if(body is IpcBodySender ipcBodySender)
+        if (body is IpcBodySender ipcBodySender)
         {
             IpcBodySender.IPC.UsableByIpc(ipc, ipcBodySender);
         }

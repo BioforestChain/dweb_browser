@@ -1,5 +1,4 @@
 ﻿using System.Runtime.Versioning;
-using System.Text;
 using DwebBrowser.Helper;
 using DwebBrowser.MicroService.Core;
 using DwebBrowser.MicroService.Http;

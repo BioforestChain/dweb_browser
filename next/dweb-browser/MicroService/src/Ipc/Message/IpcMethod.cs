@@ -57,14 +57,14 @@ public class IpcMethod
     /// Serialize IpcMethod
     /// </summary>
     /// <returns>JSON string representation of the IpcMethod</returns>
-    public string ToJson() => JsonSerializer.Serialize(this, new JsonSerializerOptions { IncludeFields = true });
+    public string ToJson() => JsonSerializer.Serialize(this);
 
     /// <summary>
     /// Deserialize IpcMethod
     /// </summary>
     /// <param name="json">JSON string representation of IpcMethod</param>
     /// <returns>An instance of a IpcMethod object.</returns>
-    public static IpcMethod? FromJson(string json) => JsonSerializer.Deserialize<IpcMethod>(json, new JsonSerializerOptions { IncludeFields = true });
+    public static IpcMethod? FromJson(string json) => JsonSerializer.Deserialize<IpcMethod>(json);
 }
 
 #region IpcHeaders序列化反序列化

@@ -22,7 +22,7 @@ public class NativeIpc : Ipc
             await _OnMessageEmit(message, this);
         };
 
-        _ = Task.Run(Port.StartAsync).NoThrow();
+        _ = Task.Factory.StartNew(Port.StartAsync, TaskCreationOptions.LongRunning).NoThrow();
     }
 
     public override string Role

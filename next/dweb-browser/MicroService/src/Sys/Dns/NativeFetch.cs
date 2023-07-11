@@ -1,7 +1,4 @@
-﻿
-using DwebBrowser.MicroService.Http;
-
-namespace DwebBrowser.MicroService.Core;
+﻿namespace DwebBrowser.MicroService.Core;
 
 using FetchAdapter = Func<MicroModule, PureRequest, Task<PureResponse?>>;
 
@@ -21,6 +18,7 @@ public abstract partial class MicroModule
         /// 默认禁用缓存
         it.DefaultRequestHeaders.CacheControl = new() { NoCache = true };
     });
+
     public async Task<PureResponse> NativeFetchAsync(PureRequest pureRequest)
     {
         foreach (var fetchAdapter in NativeFetch.NativeFetchAdaptersManager.Adapters)

@@ -382,7 +382,6 @@ public class IpcBodySender : IpcBody, IDisposable
 
         Console.Log("StreamAsMeta", "sender/INIT/{0:H} {1}", stream, stream_id);
 
-
         _ = Task.Run(async () =>
         {
             /**
@@ -412,14 +411,14 @@ public class IpcBodySender : IpcBody, IDisposable
             };
 
             /// 然后开始异步监听流控信号
-            _ = Task.Run(async () =>
+            _ = Task.Factory.StartNew(async () =>
             {
                 Console.Log("StreamAsMeta", "sender/WAIT_PULL/{0:H} {1}", stream, stream_id);
                 await foreach (var signal in _streamStatusSignal.ReceiveAllAsync())
                 {
                     streamStatusSignal?.Emit(signal);
                 }
-            }).NoThrow();
+            }, TaskCreationOptions.LongRunning).NoThrow();
 
             // 等待流开始被拉取
             await pullingPo.WaitPromiseAsync();

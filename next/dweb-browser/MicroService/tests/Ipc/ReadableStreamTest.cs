@@ -117,7 +117,7 @@ public class ReadableStreamTest
             throw new NotImplementedException();
         }
 
-        protected override Task _onActivityAsync(IpcEvent Event, Ipc ipc)
+        protected override Task _onActivityAsync(IpcEvent Event, MicroService.Ipc ipc)
         {
             throw new NotImplementedException();
         }
@@ -137,7 +137,7 @@ public class ReadableStreamTest
             throw new NotImplementedException();
         }
 
-        protected override Task _onActivityAsync(IpcEvent Event, Ipc ipc)
+        protected override Task _onActivityAsync(IpcEvent Event, MicroService.Ipc ipc)
         {
             throw new NotImplementedException();
         }

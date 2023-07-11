@@ -83,12 +83,6 @@ public class JmmController : BaseViewController
                         break;
                 }
             });
-
-            // 点击返回
-            //manager.OnBackActionWithCallback(() =>
-            //{
-            //    vc.PopViewController(true);
-            //});
         });
 
     public async Task OpenApp(Mmid mmid)

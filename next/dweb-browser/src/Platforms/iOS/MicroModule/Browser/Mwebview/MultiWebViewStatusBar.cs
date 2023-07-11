@@ -29,11 +29,7 @@ public partial class MultiWebViewController : BaseViewController
 
     public BarStyle StatusBarStyle = BarStyle.Default;
 
-    public override bool PrefersStatusBarHidden()
-    {
-        Console.Log("PrefersStatusBarHidden", "visible: {0}", StatusBarView.Hidden);
-        return StatusBarView.Hidden;
-    }
+    public override bool PrefersStatusBarHidden() => StatusBarView.Hidden;
 
     public override UIStatusBarStyle PreferredStatusBarStyle()
     {

@@ -119,7 +119,7 @@ public partial class DWebView : WKWebView
                 NSArray.FromNSObjects(message.Ports.Select(port => new NSNumber(port.portId)).ToArray())
             });
 
-        await this.InvokeOnMainThreadAsync(()=>base.CallAsyncJavaScriptAsync("nativeWindowPostMessage(data,ports)", arguments, null, webMessagePortContentWorld));
+        await this.InvokeOnMainThreadAsync(() => base.CallAsyncJavaScriptAsync("nativeWindowPostMessage(data,ports)", arguments, null, webMessagePortContentWorld));
     }
 }
 

@@ -1,5 +1,6 @@
 ﻿namespace DwebBrowser.MicroService.Message;
 
+[JsonConverter(typeof(MetaBodyConverter))]
 public class MetaBody : IToJsonAble
 {
     /**
@@ -180,12 +181,12 @@ public class MetaBody : IToJsonAble
         ),
         _ => this
     };
-
     /// <summary>
     /// Serialize MetaBody
     /// </summary>
     /// <returns>JSON string representation of the MetaBody</returns>
-    public string ToJson() => JsonSerializer.Serialize(JsonAble(), options: new() { IncludeFields = true });
+    public string ToJson() => JsonSerializer.Serialize(JsonAble());
+
 
     /// <summary>
     /// Deserialize MetaBody
@@ -194,3 +195,90 @@ public class MetaBody : IToJsonAble
     /// <returns>An instance of a MetaBody object.</returns>
     public static MetaBody? FromJson(string json) => JsonSerializer.Deserialize<MetaBody>(json);
 }
+
+#region MetaBody序列化反序列化
+internal class MetaBodyConverter : JsonConverter<MetaBody>
+{
+    public override bool CanConvert(Type typeToConvert) =>
+        typeToConvert.GetMethod("ToJson") is not null && typeToConvert.GetMethod("FromJson") is not null;
+
+    public override MetaBody? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType != JsonTokenType.StartObject)
+            throw new JsonException();
+
+        var metaBody = new MetaBody();
+
+        try
+        {
+
+            while (reader.Read())
+            {
+                if (reader.TokenType == JsonTokenType.EndObject)
+                    break;
+
+                if (reader.TokenType != JsonTokenType.PropertyName)
+                    throw new JsonException();
+
+                string key = reader.GetString()!;
+
+                // move to property value
+                if (!reader.Read())
+                    throw new JsonException();
+                switch (key)
+                {
+                    case "type":
+                        metaBody.Type = (MetaBody.IPC_META_BODY_TYPE)reader.GetInt32();
+                        break;
+                    case "senderUid":
+                        metaBody.SenderUid = reader.GetInt32();
+                        break;
+                    case "data":
+                        metaBody.Data = reader.GetString()!;
+                        break;
+                    case "streamId":
+                        metaBody.StreamId = reader.GetString()!;
+                        break;
+                    case "receiverUid":
+                        metaBody.ReceiverUid = reader.GetInt32();
+                        break;
+                    case "metaId":
+                        metaBody.MetaId = reader.GetString()!;
+                        break;
+
+                }
+
+
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
+
+        return metaBody;
+    }
+
+    public override void Write(Utf8JsonWriter writer, MetaBody value, JsonSerializerOptions options)
+    {
+        writer.WriteStartObject();
+        writer.WriteNumber("type", (int)value.Type);
+        writer.WriteNumber("senderUid", value.SenderUid);
+        writer.WriteString("data", (string)value.Data);
+        if (value.StreamId is var streamId and not null)
+        {
+            writer.WriteString("streamId", streamId);
+        }
+        if (value.ReceiverUid is var receiverUid and not null)
+        {
+            writer.WriteNumber("receiverUid", (int)receiverUid);
+        }
+
+        if (value.MetaId is var metaId and not null)
+        {
+            writer.WriteString("metaId", metaId);
+        }
+        writer.WriteEndObject();
+    }
+}
+#endregion
