@@ -1,11 +1,11 @@
-import { cacheGetter } from "../../helper/cacheGetter.ts";
+import { CacheGetter } from "../../helper/cacheGetter.ts";
 import { simpleDecoder } from "../../helper/encoding.ts";
 import {
   $dataToBinary,
   $dataToText,
-  IpcMessage,
   IPC_DATA_ENCODING,
   IPC_MESSAGE_TYPE,
+  IpcMessage,
 } from "./const.ts";
 
 export class IpcStreamData extends IpcMessage<IPC_MESSAGE_TYPE.STREAM_DATA> {
@@ -34,22 +34,24 @@ export class IpcStreamData extends IpcMessage<IPC_MESSAGE_TYPE.STREAM_DATA> {
     );
   }
 
-  @cacheGetter()
+  #binary = new CacheGetter(() => $dataToBinary(this.data, this.encoding));
   get binary() {
-    return $dataToBinary(this.data, this.encoding);
+    return this.#binary.value;
   }
 
-  @cacheGetter()
+  #text = new CacheGetter(() => $dataToText(this.data, this.encoding));
   get text() {
-    return $dataToText(this.data, this.encoding);
+    return this.#text.value;
   }
 
-  @cacheGetter()
-  get jsonAble(): IpcStreamData {
+  #jsonAble = new CacheGetter(() => {
     if (this.encoding === IPC_DATA_ENCODING.BINARY) {
       return IpcStreamData.fromBase64(this.stream_id, this.data as Uint8Array);
     }
-    return this;
+    return this as IpcStreamData;
+  });
+  get jsonAble(): IpcStreamData {
+    return this.#jsonAble.value;
   }
   toJSON() {
     return { ...this.jsonAble };

@@ -7,16 +7,20 @@ import { doBundle } from "./bundle.ts";
 // await emptyDir("./npm");
 const workspaceDir = fileURLToPath(import.meta.resolve("../"));
 const resolveTo = (to: string) => path.resolve(workspaceDir, to);
-const readPackageJson = () =>
-  JSON.parse(fs.readFileSync(resolveTo("./electron/package.json"), "utf-8"));
-const ROOT_PACKAGE = await import("../../package.json", {
-  assert: { type: "json" },
-});
+const readPackageJson = () => {
+  const packageJsonPath = resolveTo("./electron/package.json");
+  if (fs.existsSync(packageJsonPath)) {
+    const ROOT_PACKAGE = JSON.parse(
+      fs.readFileSync(packageJsonPath, "utf-8")
+    ) as { version: string };
+    return ROOT_PACKAGE;
+  }
+};
 
 /// before build
 Deno.copyFileSync(resolveTo(".npmrc"), resolveTo("electron/.npmrc"));
 const ID = "org.dweb-browser.devtools";
-const productName = ROOT_PACKAGE.default.productName;
+const productName = "Dweb Browser";
 /// do build
 await dnt.build({
   entryPoints: [resolveTo("./src/index.dev.ts")],

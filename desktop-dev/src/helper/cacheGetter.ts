@@ -20,3 +20,20 @@ export const cacheGetter = () => {
     return desp;
   };
 };
+
+export class CacheGetter<T> {
+  constructor(private getter: () => T) {}
+  private _first = true;
+  private _value?: T;
+  get value() {
+    if (this._first) {
+      this._first = false;
+      this._value = this.getter();
+    }
+    return this._value!;
+  }
+  reset() {
+    this._first = true;
+    this._value = undefined;
+  }
+}

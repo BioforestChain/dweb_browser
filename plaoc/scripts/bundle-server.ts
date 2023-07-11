@@ -104,9 +104,10 @@ export const emulator = {
             //#region 根据入口文件，构建 esbuild
             let esbuildCtx = esbuilderMap.get(id);
             if (esbuildCtx === undefined) {
+              console.log("id", id);
               const builder = new ESBuild({
                 absWorkingDir,
-                entryPoints: [id],
+                entryPoints: [path.relative(absWorkingDir, id)],
                 write: false,
                 bundle: true,
                 format: "esm",

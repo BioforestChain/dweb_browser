@@ -1,5 +1,3 @@
-import { cacheGetter } from "./cacheGetter.ts";
-
 // deno-lint-ignore no-explicit-any
 export const createSignal = <CB extends $Callback<any[]> = $Callback>(
   autoStart?: boolean
@@ -17,10 +15,7 @@ export class Signal<CB extends $Callback<any[]> = $Callback> {
   private _cbs = new Set<CB>();
 
   private _started = false;
-  @cacheGetter()
-  private get _cachedEmits() {
-    return [] as Array<Parameters<CB>>;
-  }
+  private _cachedEmits: Array<Parameters<CB>> = [];
   start = () => {
     if (this._started) {
       return;

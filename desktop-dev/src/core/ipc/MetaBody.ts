@@ -1,4 +1,4 @@
-import { cacheGetter } from "../../helper/cacheGetter.ts";
+import { CacheGetter } from "../../helper/cacheGetter.ts";
 import { simpleDecoder } from "../../helper/encoding.ts";
 import type { $JSON } from "../ipc-web/$messageToIpcMessage.ts";
 import { IPC_DATA_ENCODING } from "./const.ts";
@@ -89,8 +89,7 @@ export class MetaBody {
       receiverUid
     );
   }
-  @cacheGetter()
-  get type_encoding() {
+  #type_encoding = new CacheGetter(() => {
     const encoding = this.type & 0b11111110;
     switch (encoding) {
       case IPC_DATA_ENCODING.UTF8:
@@ -102,17 +101,23 @@ export class MetaBody {
       default:
         return IPC_DATA_ENCODING.UTF8;
     }
+  });
+  get type_encoding() {
+    return this.#type_encoding.value;
   }
-  @cacheGetter()
+  #type_isInline = new CacheGetter(
+    () => (this.type & IPC_META_BODY_TYPE.INLINE) !== 0
+  );
   get type_isInline() {
-    return (this.type & IPC_META_BODY_TYPE.INLINE) !== 0;
+    return this.#type_isInline.value;
   }
-  @cacheGetter()
+  #type_isStream = new CacheGetter(
+    () => (this.type & IPC_META_BODY_TYPE.INLINE) === 0
+  );
   get type_isStream() {
-    return (this.type & IPC_META_BODY_TYPE.INLINE) === 0;
+    return this.#type_isStream.value;
   }
-  @cacheGetter()
-  get jsonAble(): MetaBody {
+  #jsonAble = new CacheGetter(() => {
     if (this.type_encoding === IPC_DATA_ENCODING.BINARY) {
       return MetaBody.fromBase64(
         this.senderUid,
@@ -121,7 +126,10 @@ export class MetaBody {
         this.receiverUid
       );
     }
-    return this;
+    return this as MetaBody;
+  });
+  get jsonAble(): MetaBody {
+    return this.#jsonAble.value;
   }
   toJSON() {
     return { ...this.jsonAble };

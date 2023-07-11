@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { clickApp, detailApp, quitApp, vibrateHeavyClick } from "@/api/new-tab";
 import type { $AppMetaData } from "@/types/app.type";
-import { CloseWatcher } from "@dweb-browser/plaoc";
+import { CloseWatcher } from "../../../../../../../../../plaoc/src/client/components/close-watcher/close-watcher.shim";
 import { onLongPress } from "@vueuse/core";
 import { onMounted, reactive, ref } from "vue";
 const $appHtmlRefHook = ref<HTMLDivElement | null>(null);

@@ -1,11 +1,11 @@
-import { cacheGetter } from "../../helper/cacheGetter.ts";
+import { CacheGetter } from "../../helper/cacheGetter.ts";
 import { simpleDecoder } from "../../helper/encoding.ts";
 import {
   $dataToBinary,
   $dataToText,
-  IpcMessage,
   IPC_DATA_ENCODING,
   IPC_MESSAGE_TYPE,
+  IpcMessage,
 } from "./const.ts";
 
 export class IpcEvent extends IpcMessage<IPC_MESSAGE_TYPE.EVENT> {
@@ -36,23 +36,24 @@ export class IpcEvent extends IpcMessage<IPC_MESSAGE_TYPE.EVENT> {
   static fromText(name: string, data: string) {
     return new IpcEvent(name, data, IPC_DATA_ENCODING.UTF8);
   }
+  #binary = new CacheGetter(() => $dataToBinary(this.data, this.encoding));
 
-  @cacheGetter()
   get binary() {
-    return $dataToBinary(this.data, this.encoding);
+    return this.#binary.value;
   }
 
-  @cacheGetter()
+  #text = new CacheGetter(() => $dataToText(this.data, this.encoding));
   get text() {
-    return $dataToText(this.data, this.encoding);
+    return this.#text.value;
   }
-
-  @cacheGetter()
-  get jsonAble(): IpcEvent {
+  #jsonAble = new CacheGetter(() => {
     if (this.encoding === IPC_DATA_ENCODING.BINARY) {
       return IpcEvent.fromBase64(this.name, this.data as Uint8Array);
     }
-    return this;
+    return this as IpcEvent;
+  });
+  get jsonAble() {
+    return this.#jsonAble.value;
   }
   toJSON() {
     return { ...this.jsonAble };

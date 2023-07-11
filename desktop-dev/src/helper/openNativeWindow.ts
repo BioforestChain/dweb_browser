@@ -202,6 +202,7 @@ export const createBrowserView = async (
   const { userAgent, ..._options } = createOptions;
 
   const options: Electron.BrowserWindowConstructorOptions = {
+    titleBarStyle:"hiddenInset",
     ..._options,
     webPreferences: {
       ..._options.webPreferences,

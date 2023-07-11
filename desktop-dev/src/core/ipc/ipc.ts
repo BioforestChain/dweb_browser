@@ -1,5 +1,5 @@
 import { PromiseOut } from "../../helper/PromiseOut.ts";
-import { cacheGetter } from "../../helper/cacheGetter.ts";
+import { CacheGetter } from "../../helper/cacheGetter.ts";
 import { $Callback, createSignal } from "../../helper/createSignal.ts";
 import { MicroModule } from "../micro-module.ts";
 import type { $IpcMicroModuleInfo } from "../types.ts";
@@ -98,8 +98,7 @@ export abstract class Ipc {
    */
   emitMessage = (args: IpcRequest) => this._messageSignal.emit(args, this);
 
-  @cacheGetter()
-  private get _onRequestSignal() {
+  #onRequestSignal = new CacheGetter(() => {
     const signal = this._createSignal<$OnIpcRequestMessage>(false);
     this.onMessage((request, ipc) => {
       if (request.type === IPC_MESSAGE_TYPE.REQUEST) {
@@ -107,6 +106,9 @@ export abstract class Ipc {
       }
     });
     return signal;
+  });
+  private get _onRequestSignal() {
+    return this.#onRequestSignal.value;
   }
 
   onRequest(cb: $OnIpcRequestMessage) {
@@ -117,9 +119,7 @@ export abstract class Ipc {
     const onRequest = createFetchHandler(handlers);
     return onRequest.extendsTo(this.onRequest(onRequest));
   }
-
-  @cacheGetter()
-  private get _onStreamSignal() {
+  #onStreamSignal = new CacheGetter(() => {
     const signal = this._createSignal<$OnIpcStreamMessage>(false);
     this.onMessage((request, ipc) => {
       if ("stream_id" in request) {
@@ -127,13 +127,15 @@ export abstract class Ipc {
       }
     });
     return signal;
+  });
+  private get _onStreamSignal() {
+    return this.#onStreamSignal.value;
   }
   onStream(cb: $OnIpcStreamMessage) {
     return this._onStreamSignal.listen(cb);
   }
 
-  @cacheGetter()
-  private get _onEventSignal() {
+  #onEventSignal = new CacheGetter(() => {
     const signal = this._createSignal<$OnIpcEventMessage>(false);
     this.onMessage((event, ipc) => {
       if (event.type === IPC_MESSAGE_TYPE.EVENT) {
@@ -141,6 +143,9 @@ export abstract class Ipc {
       }
     });
     return signal;
+  });
+  private get _onEventSignal() {
+    return this.#onEventSignal.value;
   }
 
   onEvent(cb: $OnIpcEventMessage) {
@@ -164,9 +169,7 @@ export abstract class Ipc {
   allocReqId(_url?: string) {
     return this._req_id_acc++;
   }
-
-  @cacheGetter()
-  private get _reqresMap() {
+  #reqresMap = new CacheGetter(() => {
     const reqresMap = new Map<number, PromiseOut<IpcResponse>>();
     this.onMessage((message) => {
       if (message.type === IPC_MESSAGE_TYPE.RESPONSE) {
@@ -180,6 +183,9 @@ export abstract class Ipc {
       }
     });
     return reqresMap;
+  });
+  private get _reqresMap() {
+    return this.#reqresMap.value;
   }
 
   /** 发起请求并等待响应 */

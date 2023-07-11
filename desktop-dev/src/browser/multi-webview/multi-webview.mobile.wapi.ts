@@ -151,7 +151,7 @@ export class MWebviewController {
     /// 目前，这个版本的mwebview就是简单的堆叠，所以我们用窗口的大小来铺满视图
     const [width, height] = this.win.getContentSize();
     const [_, height_with_titlebar] = this.win.getSize();
-    view.setBounds({ height, width, x: 0, y: height_with_titlebar - height });
+    view.setBounds({ height, width, x: 0, y: 0 });
     view.setAutoResize({ width: true, height: true });
     view.webContents.openDevTools({ mode: "detach" });
     if (url) {
