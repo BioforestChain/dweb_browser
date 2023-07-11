@@ -105,7 +105,7 @@ export class BluetoothPlugin extends BasePlugin {
 
 export class BluetoothDevice {
   private _gatt: BluetoothRemoteGATTServer | undefined;
-  private name: string | undefined;
+  name: string | undefined;
   private gatt: BluetoothRemoteGATTServer | undefined;
   private eventMap: Map<string, Set<{ (ev: Event): void }>> = new Map();
 
