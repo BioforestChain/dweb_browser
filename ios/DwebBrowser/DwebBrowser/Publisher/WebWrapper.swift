@@ -115,8 +115,8 @@ extension BrowserWebview: WKScriptMessageHandler, WKNavigationDelegate {
             icon = NSString(string: value.isEmpty ? URL.defaultWebIconURL.absoluteString : value)
         }
     }
-
-    public func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
+    
+    public func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         evaluateJavaScript("void watchIosIcon()")
     }
 }
