@@ -108,10 +108,11 @@ public partial class BrowserWeb : BrowserWebview
             decisionHandler(WKNavigationActionPolicy.Allow);
         }
 
-        /// 3D Touch功能控制
+        [Export("webView:didFinishNavigation:")]
         public override void DidFinishNavigation(WKWebView webView, WKNavigation navigation)
         {
             Console.Log("DidFinishNavigation", webView.Url.AbsoluteString);
+            /// 3D Touch功能控制
             if (webView.Url.Scheme is "about" or "about+ios")
             {
                 webView.InvokeOnMainThread(async () =>
@@ -130,19 +131,16 @@ public partial class BrowserWeb : BrowserWebview
                         """);
                 });
             }
-        }
 
-        /// 因为C#也实现了WKNavigationDelegate，必须执行一次 watchIosIcon ，才能触发获取favicon的行为
-        /// 否则iOS tab无法触发favicon获取
-        //public override void DidCommitNavigation(WKWebView webView, WKNavigation navigation)
-        //{
-        //    webView.InvokeOnMainThread(async () =>
-        //    {
-        //        await webView.EvaluateJavaScriptAsync("""
-        //                void watchIosIcon();
-        //                """);
-        //    });
-        //}
+            /// 因为C#也实现了WKNavigationDelegate，必须执行一次 watchIosIcon ，才能触发获取favicon的行为
+            /// 否则iOS tab无法触发favicon获取
+            webView.InvokeOnMainThread(async () =>
+            {
+                await webView.EvaluateJavaScriptAsync("""
+                            void watchIosIcon();
+                            """);
+            });
+        }
     }
     #endregion
 
