@@ -37,7 +37,7 @@ public partial class BrowserWeb : BrowserWebview
             }
             window.fetch = dwebFetch;
         """), WKUserScriptInjectionTime.AtDocumentStart, false);
-        configuration.UserContentController.AddUserScript(script);
+        Configuration.UserContentController.AddUserScript(script);
 
         // 拦截dweb-deepLinks
         NavigationDelegate = new DwebNavigationDelegate();
@@ -134,15 +134,15 @@ public partial class BrowserWeb : BrowserWebview
 
         /// 因为C#也实现了WKNavigationDelegate，必须执行一次 watchIosIcon ，才能触发获取favicon的行为
         /// 否则iOS tab无法触发favicon获取
-        public override void DidCommitNavigation(WKWebView webView, WKNavigation navigation)
-        {
-            webView.InvokeOnMainThread(async () =>
-            {
-                await webView.EvaluateJavaScriptAsync("""
-                        void watchIosIcon();
-                        """);
-            });
-        }
+        //public override void DidCommitNavigation(WKWebView webView, WKNavigation navigation)
+        //{
+        //    webView.InvokeOnMainThread(async () =>
+        //    {
+        //        await webView.EvaluateJavaScriptAsync("""
+        //                void watchIosIcon();
+        //                """);
+        //    });
+        //}
     }
     #endregion
 
@@ -160,7 +160,7 @@ public partial class BrowserWeb : BrowserWebview
     #region about: 协议拦截
     class AboutSchemaHandler : DWebView.DWebView.DwebSchemeHandler
     {
-        private Dictionary<string, string> _corsHeaders = new()
+        private readonly Dictionary<string, string> _corsHeaders = new()
         {
             { "Access-Control-Allow-Origin", "*" },
             { "Access-Control-Allow-Headers", "*" },
@@ -257,7 +257,7 @@ public partial class BrowserWeb : BrowserWebview
                             urlSchemeTask.DidReceiveData(NSData.FromArray(chunk));
                         }
                         break;
-                    case PureBody body:
+                    case IPureBody body:
                         var data = body.ToByteArray();
                         if (data.Length > 0)
                         {
