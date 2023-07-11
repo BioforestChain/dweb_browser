@@ -284,7 +284,7 @@ export class BluetoothNMM extends NativeMicroModule {
     );
     this._requestDevice();
     const res = await resPromise;
-    // (await this._browserWindow)?.hide();
+    (await this._browserWindow)?.hide();
     this._STATE = STATE.HIDE;
     return this._createResponseSucess(event, res);
   };
@@ -698,7 +698,7 @@ export class BluetoothNMM extends NativeMicroModule {
     this._apis = (await this._browserWindow).getApis<$APIS>();
     this._STATE = STATE.OPENED;
     (await this._browserWindow).on("blur", async () => {
-      // (await this._browserWindow)?.hide();
+      (await this._browserWindow)?.hide();
       this._STATE = STATE.HIDE;
     });
     return {

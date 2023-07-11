@@ -54,7 +54,7 @@ async function requestDevice(requestDeviceOptions: RequestDeviceOptions) {
       if (_bluetooth !== undefined) {
         bluetooth = _bluetooth;
         bluetooth.addEventListener("gattserverdisconnected", () => {
-          console.error("error", "gattserverdisconnected");
+          // console.error("error", "gattserverdisconnected");
           mainApis.watchStateChange("gattserverdisconnected", undefined);
         });
 
@@ -69,7 +69,7 @@ async function requestDevice(requestDeviceOptions: RequestDeviceOptions) {
       return Promise.reject(new Error(`_bluettoh === undefined`));
     })
     .then((server: BluetoothRemoteGATTServer | undefined) => {
-      console.log("server", server);
+      // console.log("server", server);
       bluetoothRemoteGATTServer = server;
       if (connectedSuccess === undefined)
         throw new Error(`connectedSuccess === undefined`);
@@ -80,7 +80,7 @@ async function requestDevice(requestDeviceOptions: RequestDeviceOptions) {
     .catch((err: Error) => {
       connectedFail ? connectedFail(err) : "";
       clearTimeout(setTimeoutId);
-      console.error(`requestDevice fail: `, err);
+      // console.error(`requestDevice fail: `, err);
     });
 }
 
@@ -217,7 +217,7 @@ async function devicesUpdate(list: $Device[]) {
     }
     const li = createListItem(device.deviceName, "未连接");
     li.addEventListener("click", async () => {
-      console.log("点击了 li");
+      // console.log("点击了 li");
       // 点击连接在返回回来之前是不能够再次点击的
       if (isConnecting) return;
 

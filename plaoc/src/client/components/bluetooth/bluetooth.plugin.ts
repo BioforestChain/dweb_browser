@@ -96,15 +96,9 @@ export class BluetoothPlugin extends BasePlugin {
     };
   };
 
-  private _allListener = new Map<
-    $AllWatchControllerItem.$SendParam["type"],
-    $BluetoothPluginListener
-  >();
+  private _allListener = new Map<string, $BluetoothPluginListener>();
   // 添加时间监听器用来相应 watch
-  addeEventListener(
-    type: $AllWatchControllerItem.$SendParam["type"],
-    listener: $BluetoothPluginListener
-  ): void {
+  addeEventListener(type: string, listener: $BluetoothPluginListener): void {
     this._allListener.set(type, listener);
   }
 }
