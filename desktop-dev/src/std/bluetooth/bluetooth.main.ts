@@ -9,7 +9,8 @@ import {
   createHttpDwebServer,
   type HttpDwebServer,
 } from "../../std/http/helper/$createHttpDwebServer.ts";
-import { OnFetchAdapter } from "./bluetooth.onFetchAdapter.ts";
+// import { OnFetchAdapter } from "./bluetooth.onFetchAdapter.ts";
+import { OnFetchAdapter } from "../../helper/onFetchAdapter.ts";
 import { STATE } from "./const.ts";
 import type {
   $AllWatchControllerItem,

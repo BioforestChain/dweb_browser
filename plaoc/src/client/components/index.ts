@@ -4,6 +4,7 @@ export * from "./bluetooth/index.ts";
 export * from "./camera/index.ts";
 export * from "./close-watcher/index.ts";
 export * from "./config/index.ts";
+export * from "./device/index.ts";
 export * from "./dweb-service-worker/index.ts";
 export * from "./haptics/index.ts";
 export * from "./navigation-bar/index.ts";

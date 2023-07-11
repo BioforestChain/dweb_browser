@@ -18,6 +18,8 @@ export const routes = [
   { title: "Biometrics", path: "/biometrics", component: () => import("./pages/Biometrics.vue") },
   { title: "Network", path: "/network", component: () => import("./pages/Network.vue") },
 
-  { title: "bluetooth", path: "/bluetooth", component: () => import("./pages/Bluetooth.vue")}
+  { title: "bluetooth", path: "/bluetooth", component: () => import("./pages/Bluetooth.vue") },
+
+  { title: "device", path: "/device", component: () => import("./pages/device.vue") },
 ];
 //satisfies (RouteRecordRaw & { title: string })[];

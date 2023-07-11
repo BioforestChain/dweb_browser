@@ -8,7 +8,7 @@ const router = useRouter();
 
 // router.push("/biometrics")
 // router.push("/share")
-router.push("/bluetooth")
+router.push("/device");
 // router.push("/splashscreen")
 // router.push("/serviceworker")
 // router.push("/inputfile");
@@ -36,7 +36,7 @@ const drawer_controller = ref(false);
 // }
 </script>
 <template>
-  <dweb-config ></dweb-config>
+  <dweb-config></dweb-config>
   <v-app>
     <v-main>
       <div class="h-full drawer app-bg pt-10">
@@ -109,11 +109,11 @@ const drawer_controller = ref(false);
 <style scoped>
 /* 隐藏滚动条 */
 html {
-    -ms-overflow-style:none;
-    overflow:-moz-scrollbars-none;
+  -ms-overflow-style: none;
+  overflow: -moz-scrollbars-none;
 }
-html::-webkit-scrollbar{
-    width:0px
+html::-webkit-scrollbar {
+  width: 0px;
 }
 /* 隐藏滚动条结束 */
 .app-bg {
