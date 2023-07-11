@@ -55,7 +55,6 @@ android {
       signingConfig = signingConfigs.getByName("release")
       isMinifyEnabled = true //开启代码混淆
       setProguardFiles(listOf("proguard-rules.pro"))
-      isDebuggable = true
       isShrinkResources = true //移除无用的resource文件
     }
     create("benchmark") {
