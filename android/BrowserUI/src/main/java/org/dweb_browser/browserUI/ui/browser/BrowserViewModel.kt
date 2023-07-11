@@ -43,6 +43,7 @@ import org.dweb_browser.microservice.help.Mmid
 import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.dweb_browser.microservice.sys.http.CORS_HEADERS
 import org.http4k.core.Response
+import org.http4k.core.Status
 import org.http4k.core.query
 import org.http4k.lens.Header
 import java.util.concurrent.atomic.AtomicInteger
@@ -119,28 +120,7 @@ class BrowserViewModel(val microModule: MicroModule, val onOpenDweb: (Mmid) -> U
     val browserWebView = getNewTabBrowserView().also {
       uiState = BrowserUIState(currentBrowserBaseView = mutableStateOf(it))
     }
-    uiState.browserViewList.add(browserWebView)/*getNewTabBrowserView().also { browserView ->
-      uiState = BrowserUIState(currentBrowserBaseView = mutableStateOf(browserView))
-      uiState.browserViewList.add(browserView)
-      viewModelScope.launch(mainAsyncExceptionHandler) {
-        val dWebView = browserView.viewItem.webView
-        // 它是有内部链接的，所以等到它ok了再说
-        var url = dWebView.getUrlInMain()
-        if (url?.isEmpty() != true) {
-          dWebView.waitReady()
-          url = dWebView.getUrlInMain()
-        }
-        /// 内部特殊行为，有时候，我们需要知道 isUserGesture 这个属性，所以需要借助 onCreateWindow 这个回调来实现
-        /// 实现 CloseWatcher 提案 https://github.com/WICG/close-watcher/blob/main/README.mdÏ
-        if (browserView.closeWatcher.consuming.remove(url)) {
-          val consumeToken = url!!
-          browserView.closeWatcher.apply(true).also {
-            browserView.viewItem.webView.destroy()
-            browserView.closeWatcher.resolveToken(consumeToken, it)
-          }
-        }
-      }
-    }*/
+    uiState.browserViewList.add(browserWebView)
   }
 
   fun getNewTabBrowserView(url: String? = null): BrowserWebView {
@@ -315,7 +295,6 @@ class BrowserViewModel(val microModule: MicroModule, val onOpenDweb: (Mmid) -> U
   @Synchronized
   fun appendWebViewAsItem(dWebView: DWebView, url: String): Pair<ViewItem, CloseWatcher> {
     val webviewId = "#w${webviewId_acc.getAndAdd(1)}"
-    println("appendWebViewAsItem=> $url")
     val state = WebViewState(WebContent.Url(url))
     val coroutineScope = CoroutineScope(CoroutineName(webviewId))
     val navigator = WebViewNavigator(coroutineScope)
@@ -392,7 +371,7 @@ class browserViewModelHelper {
   }
 }
 
-internal class DwebBrowserWebViewClient(val microModule: MicroModule) : AccompanistWebViewClient() {
+internal class DwebBrowserWebViewClient(private val microModule: MicroModule) : AccompanistWebViewClient() {
   override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
     if(request?.url?.scheme == "about"){
       val urlStr = request.url.toString()
@@ -440,9 +419,12 @@ internal class DwebBrowserWebViewClient(val microModule: MicroModule) : Accompan
         } else null
       }.getOrThrow()
     } else if (request.url.scheme == "dweb") { // 负责拦截browser的dweb_deeplink
-      response = runBlockingCatching(ioAsyncExceptionHandler) {
+       runBlockingCatching(ioAsyncExceptionHandler) {
         microModule.nativeFetch(request.url.toString())
       }.getOrThrow()
+      response = Response(
+        Status.OK
+      )
     } else if (request.url.path?.contains("metadata.json") == true) { // 如果地址结尾是 metadata.json 目前是作为安装地址，跳转到安装界面
       response = runBlockingCatching(ioAsyncExceptionHandler) {
         microModule.nativeFetch(
