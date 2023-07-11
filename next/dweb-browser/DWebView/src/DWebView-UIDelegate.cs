@@ -36,7 +36,7 @@ public partial class DWebView : WKWebView
 
     public class DWebViewUIDelegate : WKUIDelegate
     {
-        DWebView dWebView;
+        readonly DWebView dWebView;
         internal DWebViewUIDelegate(DWebView dWebView)
         {
             this.dWebView = dWebView;
@@ -174,7 +174,7 @@ public partial class DWebView : WKWebView
                 WKMediaCaptureType.Camera => new[] { AVAuthorizationMediaType.Video },
                 WKMediaCaptureType.Microphone => new[] { AVAuthorizationMediaType.Audio },
                 WKMediaCaptureType.CameraAndMicrophone => new[] { AVAuthorizationMediaType.Video, AVAuthorizationMediaType.Audio },
-                _ => new AVAuthorizationMediaType[0]
+                _ => Array.Empty<AVAuthorizationMediaType>()
             };
 
             if (mediaTypes.Length is 0)

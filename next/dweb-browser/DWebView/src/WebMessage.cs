@@ -7,17 +7,17 @@ public class WebMessage
     public readonly WebMessagePort[] Ports;
     public WebMessage(NSObject data, WebMessagePort[]? ports)
     {
-        this.Data = data;
-        this.Ports = ports ?? new WebMessagePort[] { };
+        Data = data;
+        Ports = ports ?? Array.Empty<WebMessagePort>();
     }
     public WebMessage(NSObject data)
     {
-        this.Data = data;
-        this.Ports = new WebMessagePort[0];
+        Data = data;
+        Ports = Array.Empty<WebMessagePort>();
     }
-    public static WebMessage From(string message, WebMessagePort[]? ports = default) => new WebMessage(new NSString(message), ports);
-    public static WebMessage From(int message, WebMessagePort[]? ports = default) => new WebMessage(new NSNumber(message), ports);
-    public static WebMessage From(float message, WebMessagePort[]? ports = default) => new WebMessage(new NSNumber(message), ports);
-    public static WebMessage From(double message, WebMessagePort[]? ports = default) => new WebMessage(new NSNumber(message), ports);
-    public static WebMessage From(bool message, WebMessagePort[]? ports = default) => new WebMessage(NSNumber.FromBoolean(message), ports);
+    public static WebMessage From(string message, WebMessagePort[]? ports = default) => new(new NSString(message), ports);
+    public static WebMessage From(int message, WebMessagePort[]? ports = default) => new(new NSNumber(message), ports);
+    public static WebMessage From(float message, WebMessagePort[]? ports = default) => new(new NSNumber(message), ports);
+    public static WebMessage From(double message, WebMessagePort[]? ports = default) => new(new NSNumber(message), ports);
+    public static WebMessage From(bool message, WebMessagePort[]? ports = default) => new(NSNumber.FromBoolean(message), ports);
 }

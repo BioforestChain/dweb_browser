@@ -6,7 +6,7 @@ public static class BiometricsManager
 {
     static readonly Debugger Console = new("BiometricsManager");
 
-    private static LAContext _context = new LAContext();
+    private static readonly LAContext _context = new();
 
     public static bool Check()
     {

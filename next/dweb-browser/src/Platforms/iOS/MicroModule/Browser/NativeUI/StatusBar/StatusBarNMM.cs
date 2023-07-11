@@ -2,7 +2,6 @@
 
 public class StatusBarNMM : NativeMicroModule
 {
-    static readonly Debugger Console = new("StatusBarNMM");
     public StatusBarNMM() : base("status-bar.nativeui.browser.dweb")
     {
     }

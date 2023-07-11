@@ -93,11 +93,15 @@ sharpie bind \
 file_path="XCFrameworks/ApiDefinitions.cs"
 # 临时文件用于保存处理后的内容
 tmp_file="XCFrameworks/ApiDefinitions_tmp.cs"
+# 临时文件用于保存处理后的内容
+tmp_file1="XCFrameworks/ApiDefinitions_tmp1.cs"
 
 print_yellow "\ndelete static\n"
 
 # 替换Static为Category，用于删除
-sed 's/^[[:space:]]\[Static\]/  [Category]/g' "$file_path" > "$tmp_file"
+sed 's/^[[:space:]]\[Static\]/  [Category]/g' "$file_path" > "$tmp_file1"
+
+sed 's/^[[:space:]]\[BaseType.*Name/  [Category]/g' "$tmp_file1" > "$tmp_file"
 
 # 将处理后的内容覆盖原始文件
 mv "$tmp_file" "$file_path"

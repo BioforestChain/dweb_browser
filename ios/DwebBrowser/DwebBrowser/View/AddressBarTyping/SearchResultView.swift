@@ -18,6 +18,7 @@ struct SearchResultView: View {
                 ForEach(WebSearcher.shared.searchers, id: \.id) { searcher in
                     Button {
                         guard let url = URL(string: searcher.inputHandler(addressBar.inputText)) else { return }
+                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                         DispatchQueue.main.async {
                             openingLink.clickedLink = url
                             addressBar.isFocused = false
@@ -69,6 +70,7 @@ struct SearchResultView: View {
                 ForEach(localLinkSearcher.records) { record in
                     Button {
                         guard let url = URL(string: record.link) else { return }
+                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                         DispatchQueue.main.async {
                             openingLink.clickedLink = url
                             addressBar.isFocused = false

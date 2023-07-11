@@ -7,7 +7,7 @@ namespace DwebBrowser.DWebView;
 public class WebMessagePort
 {
     internal int portId;
-    private WKWebView webview;
+    private readonly WKWebView webview;
     internal WebMessagePort(int portId, WKWebView webview)
     {
         this.portId = portId;
@@ -38,7 +38,7 @@ public class WebMessagePort
     public Task Start() => webview.InvokeOnMainThreadAsync(() => webview.EvaluateJavaScriptAsync("nativeStart(" + portId + ")", null, DWebView.webMessagePortContentWorld));
 
     public event Signal<WebMessage>? OnMessage;
-    internal Task _emitOnMessage(WebMessage msg) => (OnMessage?.Emit(msg)).ForAwait();
+    internal Task EmitOnMessage(WebMessage msg) => (OnMessage?.Emit(msg)).ForAwait();
 
     public async Task Close()
     {

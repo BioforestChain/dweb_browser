@@ -26,11 +26,11 @@ public class IpcResponse : IpcMessage
     public static IpcResponse FromJson(int req_id, int statusCode, IpcHeaders headers, IToJsonAble jsonAble, Ipc ipc) =>
         FromText(req_id, statusCode, headers.Also(it => it.Init("Content-Type", "application/json")), jsonAble.ToJson(), ipc);
     public static IpcResponse FromText(int req_id, int statusCode, IpcHeaders headers, string text, Ipc ipc) =>
-        new IpcResponse(req_id, statusCode, headers.Also(it =>
+        new(req_id, statusCode, headers.Also(it =>
             it.Init("Content-Type", "text/plain")), IpcBodySender.FromText(text, ipc), ipc);
 
     public static IpcResponse FromBinary(int req_id, int statusCode, IpcHeaders headers, byte[] binary, Ipc ipc) =>
-        new IpcResponse(
+        new(
             req_id,
             statusCode,
             headers.Also(it =>
@@ -42,7 +42,7 @@ public class IpcResponse : IpcMessage
             ipc);
 
     public static IpcResponse FromStream(int req_id, int statusCode, IpcHeaders headers, Stream stream, Ipc ipc) =>
-        new IpcResponse(
+        new(
             req_id,
             statusCode,
             headers.Also(it => it.Init("Content-Type", "application/octet-stream")),

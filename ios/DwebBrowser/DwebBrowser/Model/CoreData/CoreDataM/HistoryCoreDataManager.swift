@@ -5,13 +5,12 @@
 //  Created by ui03 on 2023/5/6.
 //
 
-import SwiftUI
 import CoreData
+import SwiftUI
 
 class HistoryCoreDataManager: NSObject {
     private var viewContext = DataController.shared.container.viewContext
-    static var shared = HistoryCoreDataManager()
-    //增
+    // 增
     func insertHistory(history: LinkRecord) {
         let record = HistoryEntity(context: viewContext)
         record.id = history.id
@@ -21,15 +20,13 @@ class HistoryCoreDataManager: NSObject {
         record.createdDate = history.createdDate
         try? viewContext.save()
     }
-    
-    //删
+    // 删
     func deleteHistory(uuid: String) {
         guard let bookmark = fetchSingleHistory(uuid: uuid) else { return }
         viewContext.delete(bookmark)
         try? viewContext.save()
-                
     }
-    //查单个数据
+    // 查单个数据
     func fetchSingleHistory(uuid: String) -> HistoryEntity? {
         guard let id = UUID(uuidString: uuid) else { return nil }
         let predicate = NSPredicate(format: "id == %@", id as CVarArg)
@@ -38,10 +35,8 @@ class HistoryCoreDataManager: NSObject {
         let result = try? viewContext.fetch(request)
         return result?.first
     }
-    
-    //查询所有数据
+    // 查询所有数据
     func fetchTotalHistories(offset: Int) async -> [LinkRecord]? {
-        
         let request = HistoryEntity.fetchRequest()
         let sortDesc = NSSortDescriptor(key: "createdDate", ascending: false)
         request.sortDescriptors = [sortDesc]
@@ -50,8 +45,7 @@ class HistoryCoreDataManager: NSObject {
         guard let result = try? viewContext.fetch(request) else { return nil }
         return result.map { entityToHistory(for: $0) }
     }
-    
-    //根据内容查找对应数据
+    // 根据内容查找对应数据
     func fetchHistoryData(with key: String) -> [LinkRecord]? {
         let request = HistoryEntity.fetchRequest()
         let predicate = NSPredicate(format: "(title CONTAINS %@) OR (link CONTAINS[c] %@)", key, key)
@@ -59,9 +53,7 @@ class HistoryCoreDataManager: NSObject {
         guard let result = try? viewContext.fetch(request) else { return nil }
         return result.map { entityToHistory(for: $0) }
     }
-    
     func entityToHistory(for entity: HistoryEntity) -> LinkRecord {
-        
         var link = LinkRecord(link: entity.link ?? "", imageName: entity.imageName ?? "", title: entity.title ?? "", createdDate: entity.createdDate)
         link.sectionTime = Date.timeStampToString(stamp: entity.createdDate)
         link.id = entity.id ?? UUID()

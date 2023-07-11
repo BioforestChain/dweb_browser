@@ -16,7 +16,7 @@ public abstract class IOSNativeMicroModule : NativeMicroModule
         };
     }
 
-    private static Dictionary<Mmid, UIViewController> s_activityMap = new();
+    private static readonly Dictionary<Mmid, UIViewController> s_activityMap = new();
 
     protected UIViewController? _getActivity(Mmid mmid) => s_activityMap.GetValueOrDefault(mmid);
 

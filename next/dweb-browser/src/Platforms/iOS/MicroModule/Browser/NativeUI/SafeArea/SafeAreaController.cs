@@ -9,8 +9,6 @@ namespace DwebBrowser.MicroService.Browser.NativeUI.SafeArea;
 
 public class SafeAreaController : AreaController, IToJsonAble
 {
-    static readonly Debugger Console = new("SafeAreaController");
-
     // Notch 刘海 or Dynamic Island 灵动岛
     public State<AreaJson> CutoutInsets { get; init; }
 

@@ -61,7 +61,7 @@ public partial class DWebView : WKWebView
     }
     """;
     internal static readonly WKContentWorld webMessagePortContentWorld = WKContentWorld.Create("web-message-port");
-    internal static Dictionary<int, WebMessagePort> allPorts = new Dictionary<int, WebMessagePort>();
+    internal static Dictionary<int, WebMessagePort> allPorts = new();
 
 
     readonly WKScriptMessageHandler webMessagePortMessageHanlder = new WebMessagePortMessageHanlder();
@@ -79,10 +79,10 @@ public partial class DWebView : WKWebView
                 {
                     var id = (int)(NSNumber)message.ValueForKey(new NSString("id"));
                     var data = message.ValueForKey(new NSString("data"));
-                    WebMessagePort[] ports = new WebMessagePort[0];//message.ValueForKey(new NSString("ports"));
+                    WebMessagePort[] ports = Array.Empty<WebMessagePort>();//message.ValueForKey(new NSString("ports"));
 
                     var originPort = DWebView.allPorts[id] ?? throw new KeyNotFoundException();
-                    await originPort._emitOnMessage(new WebMessage(data, ports));
+                    await originPort.EmitOnMessage(new WebMessage(data, ports));
                 }
             }
             catch { }

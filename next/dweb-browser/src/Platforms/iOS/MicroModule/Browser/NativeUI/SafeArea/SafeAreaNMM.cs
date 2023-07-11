@@ -2,7 +2,6 @@
 
 public class SafeAreaNMM : NativeMicroModule
 {
-    static readonly Debugger Console = new("SafeAreaNMM");
     public SafeAreaNMM() : base("safe-area.nativeui.browser.dweb")
     {
     }

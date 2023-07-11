@@ -4,14 +4,14 @@ namespace DwebBrowser.Helper;
 
 public class StateObservable<T>
 {
-    private Func<string> _getStateJson;
+    private readonly Func<string> _getStateJson;
 
     public StateObservable(Func<string> getStateJson)
     {
         _getStateJson = getStateJson;
     }
 
-    private Dictionary<Ipc, Signal> _observeIpcMap = new();
+    private readonly Dictionary<Ipc, Signal> _observeIpcMap = new();
 
     private event Signal? _onChange;
     public Task EmitAsync() => (_onChange?.Emit()).ForAwait();

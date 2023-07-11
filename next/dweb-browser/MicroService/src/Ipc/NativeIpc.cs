@@ -6,13 +6,13 @@ public class NativeIpc : Ipc
 {
     public NativePort<IpcMessage, IpcMessage> Port;
     public override IMicroModuleInfo Remote { get; set; }
-    private IPC_ROLE _role_type { get; set; }
+    private IPC_ROLE RoleType { get; set; }
 
     public NativeIpc(NativePort<IpcMessage, IpcMessage> port, IMicroModuleInfo remote, IPC_ROLE role)
     {
         Port = port;
         Remote = remote;
-        _role_type = role;
+        RoleType = role;
 
         SupportRaw = true;
         SupportBinary = true;
@@ -29,7 +29,7 @@ public class NativeIpc : Ipc
     {
         get
         {
-            return _role_type.ToString();
+            return RoleType.ToString();
         }
     }
 
@@ -45,7 +45,7 @@ public class NativePort<I, O>
     static readonly Debugger Console = new("NativePort");
     private BufferBlock<I> _channel_in { get; set; }
     private BufferBlock<O> _channel_out { get; set; }
-    private PromiseOut<Unit> _closePo = new PromiseOut<Unit>();
+    private readonly PromiseOut<Unit> _closePo = new();
 
     public NativePort(BufferBlock<I> channel_in, BufferBlock<O> channel_out, PromiseOut<Unit> closePo)
     {
@@ -67,7 +67,7 @@ public class NativePort<I, O>
 
     private static int s_uid_acc = 0;
 
-    private int _uid = Interlocked.Increment(ref s_uid_acc);
+    private readonly int _uid = Interlocked.Increment(ref s_uid_acc);
 
     public override string ToString() => string.Format("#p{0}", _uid);
 
@@ -118,7 +118,7 @@ public class NativePort<I, O>
     public async Task PostMessageAsync(O msg)
     {
         Console.Log("PostMessage", "message-out/{0} >> {1}", this, msg);
-        var success = await _channel_out.SendAsync(msg);
+        _ = await _channel_out.SendAsync(msg);
     }
 }
 
@@ -127,9 +127,9 @@ public class NativeMessageChannel<T1, T2>
     /**
      * 默认锁住，当它解锁的时候，意味着通道关闭
      */
-    private PromiseOut<Unit> _closePo = new PromiseOut<Unit>();
-    private BufferBlock<T1> _channel1 = new BufferBlock<T1>(new DataflowBlockOptions { BoundedCapacity = DataflowBlockOptions.Unbounded });
-    private BufferBlock<T2> _channel2 = new BufferBlock<T2>(new DataflowBlockOptions { BoundedCapacity = DataflowBlockOptions.Unbounded });
+    private readonly PromiseOut<Unit> _closePo = new();
+    private BufferBlock<T1> _channel1 = new(new DataflowBlockOptions { BoundedCapacity = DataflowBlockOptions.Unbounded });
+    private BufferBlock<T2> _channel2 = new(new DataflowBlockOptions { BoundedCapacity = DataflowBlockOptions.Unbounded });
     public NativePort<T1, T2> Port1;
     public NativePort<T2, T1> Port2;
 

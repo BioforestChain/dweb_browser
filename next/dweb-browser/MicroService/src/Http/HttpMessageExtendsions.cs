@@ -3,26 +3,26 @@ namespace DwebBrowser.MicroService.Http;
 
 static public class HttpMessageExtendsions
 {
-    static public async Task<PureBody> ToPureBody(this HttpContent? content)
+    static public async Task<IPureBody> ToPureBody(this HttpContent? content)
     {
         return content switch
         {
             StringContent stringContent => new PureUtf8StringBody(await stringContent.ReadAsStringAsync()),
             ByteArrayContent byteArrayContent => new PureByteArrayBody(await byteArrayContent.ReadAsByteArrayAsync()),
             StreamContent streamContent => new PureStreamBody(await streamContent.ReadAsStreamAsync()),
-            null => PureBody.Empty,
+            null => IPureBody.Empty,
             _ => content.ToString() switch
             {
-                "System.Net.Http.EmptyContent" => PureBody.Empty,
+                "System.Net.Http.EmptyContent" => IPureBody.Empty,
                 _ => await content.ReadAsStreamAsync().Let(async streamTask =>
                 {
-                    PureBody body;
+                    IPureBody body;
                     var stream = await streamTask;
                     try
                     {
                         if (stream.Length == 0)
                         {
-                            body = PureBody.Empty;
+                            body = IPureBody.Empty;
                         }
                     }
                     catch
@@ -34,7 +34,7 @@ static public class HttpMessageExtendsions
             }
         };
     }
-    static public HttpContent? ToHttpContent(this PureBody pureBody)
+    static public HttpContent? ToHttpContent(this IPureBody pureBody)
     {
         return pureBody switch
         {
@@ -49,7 +49,7 @@ static public class HttpMessageExtendsions
     static public async Task<PureRequest> ToPureRequestAsync(this HttpRequestMessage request)
     {
         var body = (request.Method.Method is "GET" or "HEAD")
-               ? PureBody.Empty
+               ? IPureBody.Empty
                : await request.Content.ToPureBody();
 
         var ipcRequest = new PureRequest(

@@ -15,7 +15,7 @@ public static class DebuggerExtensions
         return str.PadRight(padWidth, ' ');
     }
 }
-public class Debugger
+public partial class Debugger
 {
     public static List<string> DebugScopes = new();
     public static List<string> DebugTags = new();
@@ -36,10 +36,10 @@ public class Debugger
         var _bool = false;
 
         // 过滤scope是否打印
-        var scopeBool = (DebugScopes.Count > 0 && DebugScopes.FindIndex(scopePrefix.StartsWith) > -1) || DebugScopes.Contains("*");
+        var scopeBool = DebugScopes.Count > 0 && DebugScopes.FindIndex(scopePrefix.StartsWith) > -1 || DebugScopes.Contains("*");
 
         // 过滤标签是否打印
-        if (scopeBool && ((DebugTags.Count > 0 && DebugTags.Contains(tag)) || DebugTags.Contains("*")))
+        if (scopeBool && (DebugTags.Count > 0 && DebugTags.Contains(tag) || DebugTags.Contains("*")))
         {
             _bool = true;
         }
@@ -48,7 +48,7 @@ public class Debugger
     }
     public void Write(Func<string> style, string tag, string format, params object?[] args)
     {
-        var myFormat = Regex.Replace(format, @"{(\d):H}", (match) =>
+        var myFormat = MyRegex().Replace(format, (match) =>
         {
             var index = match.Groups[1].Value;
             var hashCode = "";
@@ -65,7 +65,7 @@ public class Debugger
     }
     public void WriteIf(Func<string> style, string tag, string format, params object?[] args)
     {
-        var myFormat = Regex.Replace(format, @"{(\d):H}", (match) =>
+        var myFormat = MyRegex().Replace(format, (match) =>
         {
             var index = match.Groups[1].Value;
             var hashCode = "";
@@ -109,5 +109,8 @@ public class Debugger
     {
         Write(ErrorStyle, tag, format, args);
     }
+
+    [GeneratedRegex("{(\\d):H}")]
+    private static partial Regex MyRegex();
 }
 

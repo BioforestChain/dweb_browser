@@ -12,7 +12,7 @@ public class URL
 {
 
     UriBuilder _uriBuilder;
-    UriBuilder uriBuilder
+    UriBuilder UriBuilder
     {
         get
         {
@@ -32,42 +32,42 @@ public class URL
     }
     public Uri Uri
     {
-        get => uriBuilder.Uri;
+        get => UriBuilder.Uri;
         set => _uriBuilder = new(value);
     }
     public string Scheme
     {
-        get => uriBuilder.Scheme;
-        set => uriBuilder.Scheme = value;
+        get => UriBuilder.Scheme;
+        set => UriBuilder.Scheme = value;
     }
     public string UserName
     {
-        get => uriBuilder.UserName;
-        set => uriBuilder.UserName = value;
+        get => UriBuilder.UserName;
+        set => UriBuilder.UserName = value;
     }
     public string Password
     {
-        get => uriBuilder.Password;
-        set => uriBuilder.Password = value;
+        get => UriBuilder.Password;
+        set => UriBuilder.Password = value;
     }
     public string Hostname
     {
-        get => uriBuilder.Host;
-        set => uriBuilder.Host = value;
+        get => UriBuilder.Host;
+        set => UriBuilder.Host = value;
     }
     public int Port
     {
-        get => uriBuilder.Port;
-        set => uriBuilder.Port = value;
+        get => UriBuilder.Port;
+        set => UriBuilder.Port = value;
     }
-    private LazyBox<string> _fullHost => new();
-    public string FullHost => _fullHost.GetOrPut(() => uriBuilder.Uri.GetFullAuthority());
+    private static LazyBox<string> s_fullHost => new();
+    public string FullHost => s_fullHost.GetOrPut(() => UriBuilder.Uri.GetFullAuthority());
     public string Path
     {
         get => Uri.AbsolutePath;
-        set => uriBuilder.Path = value;
+        set => UriBuilder.Path = value;
     }
-    private LazyBox<URLSearchParams> _searchParams = new();
+    private readonly LazyBox<URLSearchParams> _searchParams = new();
     public URLSearchParams SearchParams
     {
         get => _searchParams.GetOrPut(() => new URLSearchParams(_uriBuilder.Query));
@@ -113,7 +113,7 @@ public class URL
 public class URLSearchParams : IEnumerable<KeyValuePair<string, string[]>>
 {
     internal bool HasChanged = false;
-    private NameValueCollection _qs;
+    private readonly NameValueCollection _qs;
     public URLSearchParams(string query) : this(HttpUtility.ParseQueryString(query)) { }
     public URLSearchParams(NameValueCollection qs)
     {
@@ -154,7 +154,7 @@ public class URLSearchParams : IEnumerable<KeyValuePair<string, string[]>>
     public string?[] AllKeys { get => _qs.AllKeys; }
     public string? Get(string name) => _qs.Get(name);
 
-    static Func<string, string> DefaultOnNoFound = (name) => throw new FormatException("no found query params: " + name);
+    static readonly Func<string, string> DefaultOnNoFound = (name) => throw new FormatException("no found query params: " + name);
     public string ForceGet(string name, Func<string, string>? onNotFound = null) => _qs.Get(name) ?? (onNotFound ?? DefaultOnNoFound)(name);
     public string[]? GetValues(string name) => _qs.GetValues(name);
 

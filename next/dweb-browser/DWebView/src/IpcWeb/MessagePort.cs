@@ -9,16 +9,14 @@ namespace DwebBrowser.IpcWeb;
 
 public class MessagePort
 {
-    static readonly Debugger Console = new("MessagePort");
-
-    private static ConditionalWeakTable<WebMessagePort, MessagePort> s_wm = new();
+    private static readonly ConditionalWeakTable<WebMessagePort, MessagePort> s_wm = new();
     public static MessagePort From(WebMessagePort port) => s_wm.GetValue(port, (port) => new MessagePort(port));
 
-    private WebMessagePort _port { init; get; }
+    private WebMessagePort Port { init; get; }
 
     private MessagePort(WebMessagePort port)
     {
-        _port = port;
+        Port = port;
 
         _ = Task.Factory.StartNew(async () =>
         {
@@ -28,7 +26,7 @@ public class MessagePort
             }
         }, TaskCreationOptions.LongRunning).NoThrow();
 
-        _port.OnMessage += (message, _) => MessageChannel.SendAsync(message);
+        Port.OnMessage += (message, _) => MessageChannel.SendAsync(message);
     }
 
     public BufferBlock<WebMessage> MessageChannel = new(new DataflowBlockOptions
@@ -36,8 +34,8 @@ public class MessagePort
 
     public event Signal<WebMessage>? OnWebMessage;
 
-    public Task Start() => _port.Start().NoThrow();
-    public Task PostMessage(string data) => _port.PostMessage(WebMessage.From(data)).NoThrow();
+    public Task Start() => Port.Start().NoThrow();
+    public Task PostMessage(string data) => Port.PostMessage(WebMessage.From(data)).NoThrow();
 
     private bool _isClosed = false;
 
@@ -51,7 +49,7 @@ public class MessagePort
         _isClosed = true;
         OnWebMessage = null;
         MessageChannel.Complete();
-        await _port.Close();
+        await Port.Close();
 
     }
 }

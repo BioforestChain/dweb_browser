@@ -49,20 +49,13 @@ public class IpcBodyReceiver : IpcBody
                 }
                 else
                 {
-                    switch (MetaBody.Type_Encoding)
+                    data = MetaBody.Type_Encoding switch
                     {
-                        case IPC_DATA_ENCODING.UTF8:
-                            data = (string)MetaBody.Data;
-                            break;
-                        case IPC_DATA_ENCODING.BINARY:
-                            data = (byte[])MetaBody.Data;
-                            break;
-                        case IPC_DATA_ENCODING.BASE64:
-                            data = ((string)MetaBody.Data).ToBase64ByteArray();
-                            break;
-                        default:
-                            throw new Exception(string.Format("invalid metaBody type {0}", MetaBody.Type));
-                    }
+                        IPC_DATA_ENCODING.UTF8 => (string)MetaBody.Data,
+                        IPC_DATA_ENCODING.BINARY => (byte[])MetaBody.Data,
+                        IPC_DATA_ENCODING.BASE64 => ((string)MetaBody.Data).ToBase64ByteArray(),
+                        _ => throw new Exception(string.Format("invalid metaBody type {0}", MetaBody.Type)),
+                    };
                 }
 
                 it.Data = data;
@@ -126,7 +119,7 @@ public class IpcBodyReceiver : IpcBody
                 }
 
 
-                Signal<IpcStream, Ipc> cb = async (ipcStream, ipc, self) =>
+                Signal<IIpcStream, Ipc> cb = async (ipcStream, ipc, self) =>
                 {
                     if (ipcStream is IpcStreamData data)
                     {

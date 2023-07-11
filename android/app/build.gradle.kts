@@ -20,7 +20,7 @@ android {
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
     //ndk.abiFilters.addAll(listOf("armeabi-v7a", "x86", "x86_64"))
-    ndk.abiFilters.add("arm64-v8a")
+    // ndk.abiFilters.addAll(listOf("arm64-v8a", "x86")) // 上架需要32位的包
     vectorDrawables {
       useSupportLibrary = true
     }
@@ -54,12 +54,7 @@ android {
     release {
       signingConfig = signingConfigs.getByName("release")
       isMinifyEnabled = true //开启代码混淆
-      setProguardFiles(
-        listOf(
-          getDefaultProguardFile("proguard-android-optimize.txt"),
-          "proguard-rules.pro"
-        )
-      )
+      setProguardFiles(listOf("proguard-rules.pro"))
       isShrinkResources = true //移除无用的resource文件
     }
     create("benchmark") {

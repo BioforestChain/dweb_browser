@@ -1,6 +1,6 @@
 ﻿namespace DwebBrowser.MicroService.Message;
 
-public class IpcStreamData : IpcMessage, IpcStream
+public class IpcStreamData : IpcMessage, IIpcStream
 {
     [JsonPropertyName("stream_id")]
     public string StreamId { get; set; }
@@ -34,20 +34,20 @@ public class IpcStreamData : IpcMessage, IpcStream
     }
 
     public static IpcStreamData FromBinary(string stream_id, byte[] data) =>
-        new IpcStreamData(stream_id, data, IPC_DATA_ENCODING.BINARY);
+        new(stream_id, data, IPC_DATA_ENCODING.BINARY);
     public static IpcStreamData FromBase64(string stream_id, byte[] data) =>
-        new IpcStreamData(stream_id, data.ToBase64(), IPC_DATA_ENCODING.BASE64);
+        new(stream_id, data.ToBase64(), IPC_DATA_ENCODING.BASE64);
     public static IpcStreamData FromUtf8(string stream_id, byte[] data) =>
         FromUtf8(stream_id, data.ToUtf8());
     public static IpcStreamData FromUtf8(string stream_id, string data) =>
-        new IpcStreamData(stream_id, data, IPC_DATA_ENCODING.UTF8);
+        new(stream_id, data, IPC_DATA_ENCODING.UTF8);
 
-    private LazyBox<byte[]> _binary = new();
+    private readonly LazyBox<byte[]> _binary = new();
     public byte[] Binary
     {
         get { return _binary.GetOrPut(() => EncodingConverter.DataToBinary(Data, Encoding)); }
     }
-    private LazyBox<string> _text = new();
+    private readonly LazyBox<string> _text = new();
     public string Text
     {
         get { return _text.GetOrPut(() => EncodingConverter.DataToText(Data, Encoding)); }

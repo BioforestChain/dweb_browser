@@ -4,25 +4,24 @@ namespace DwebBrowser.MicroService.Message;
 
 public class ReadableStream
 {
-    static Debugger Console = new("ReadableStream");
     static int sidAcc = 0;
-    string sid = "ReadableStream@" + Interlocked.Increment(ref sidAcc);
+    readonly string sid = "ReadableStream@" + Interlocked.Increment(ref sidAcc);
     public override string ToString()
     {
         return sid;
     }
-    private AnonymousPipeServerStream pipeServer;
-    private AnonymousPipeClientStream pipeClient;
+    private readonly AnonymousPipeServerStream pipeServer;
+    private readonly AnonymousPipeClientStream pipeClient;
 
-    private ReadableStreamController controller = null!;
+    private readonly ReadableStreamController controller = null!;
     public PipeStream Stream { init; get; }
 
     public class ReadableStreamController
     {
-        private AnonymousPipeServerStream output;
-        private PipeStream input;
+        private readonly AnonymousPipeServerStream output;
+        private readonly PipeStream input;
         public Stream Stream { get => input; }
-        private Action? onWriteClose;
+        private readonly Action? onWriteClose;
         public ReadableStreamController(AnonymousPipeServerStream output, PipeStream input, Action? onWriteClose)
         {
             this.output = output;
@@ -62,8 +61,8 @@ public class ReadableStream
             return sid + output_sid;
         }
 
-        private AnonymousPipeClientStream pipeStream;
-        private Action onStartRead;
+        private readonly AnonymousPipeClientStream pipeStream;
+        private readonly Action onStartRead;
         public PipeStream(AnonymousPipeClientStream pipeStream, Action onStartRead)
         {
             this.id = Interlocked.Increment(ref sidAcc);

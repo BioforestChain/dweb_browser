@@ -6,7 +6,7 @@ namespace DwebBrowser.DWebView;
 
 public partial class DWebView : WKWebView
 {
-    private LazyBox<WKScriptMessageHandler> _webHapticsMessageHandler = new();
+    private readonly LazyBox<WKScriptMessageHandler> _webHapticsMessageHandler = new();
     public WKScriptMessageHandler HapticsMessageHanlder
     {
         get => _webHapticsMessageHandler.GetOrPut(() => new WebHapticsMessageHanlder(localeMM));

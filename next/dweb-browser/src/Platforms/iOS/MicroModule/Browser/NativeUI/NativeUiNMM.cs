@@ -11,10 +11,10 @@ public class NativeUiNMM : NativeMicroModule
     {
     }
 
-    private StatusBarNMM _statusBarNMM = new();
-    private NavigationBarNMM _navigationBarNMM = new();
-    private VirtualKeyboardNMM _virtualKeyboardNMM = new();
-    private SafeAreaNMM _safeAreaNMM = new();
+    private readonly StatusBarNMM _statusBarNMM = new();
+    private readonly NavigationBarNMM _navigationBarNMM = new();
+    private readonly VirtualKeyboardNMM _virtualKeyboardNMM = new();
+    private readonly SafeAreaNMM _safeAreaNMM = new();
 
     protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)
     {

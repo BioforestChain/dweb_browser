@@ -29,10 +29,10 @@ public class IpcRequest : IpcMessage
     public Uri Uri { get; init; }
 
     public static IpcRequest FromText(int req_id, string url, IpcMethod method, IpcHeaders headers, string text, Ipc ipc) =>
-        new IpcRequest(req_id, url, method ?? IpcMethod.Get, headers ?? new IpcHeaders(), IpcBodySender.FromText(text, ipc), ipc);
+        new(req_id, url, method ?? IpcMethod.Get, headers ?? new IpcHeaders(), IpcBodySender.FromText(text, ipc), ipc);
 
     public static IpcRequest FromBinary(int req_id, string url, IpcMethod method, IpcHeaders headers, byte[] binary, Ipc ipc) =>
-        new IpcRequest(
+        new(
             req_id,
             url,
             method,
@@ -52,7 +52,7 @@ public class IpcRequest : IpcMessage
         Stream stream,
         Ipc ipc,
         long? size
-        ) => new IpcRequest(
+        ) => new(
                 req_id,
                 url,
                 method,

@@ -6,9 +6,9 @@ namespace DwebBrowser.DWebView;
 public partial class DWebView : WKWebView
 {
     static private int asyncCodeIdAcc = 0;
-    static private Dictionary<int, PromiseOut<NSObject>> asyncTaskMap = new();
-    static string JS_ASYNC_KIT = "__native_async_callback_kit__";
-    static string asyncCodePrepareCode = $$"""
+    static private readonly Dictionary<int, PromiseOut<NSObject>> asyncTaskMap = new();
+    static readonly string JS_ASYNC_KIT = "__native_async_callback_kit__";
+    static readonly string asyncCodePrepareCode = $$"""
     {{JS_ASYNC_KIT}} = {
         resolve(id,res){
             webkit.messageHandlers.asyncCode.postMessage([1,id,res])

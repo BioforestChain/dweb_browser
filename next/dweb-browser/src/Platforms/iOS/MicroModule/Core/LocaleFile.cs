@@ -66,7 +66,7 @@ public static class LocaleFile
 
             /// 尝试打开文件，如果打开失败就走 404 no found 响应
             var absoluteDir = Path.Join(baseDir, Path.GetDirectoryName(relativePath) ?? "");
-            var absoluteDirFiles = new string[0].Try((arr) => arr.Concat(Directory.GetFileSystemEntries(absoluteDir)).ToArray());
+            var absoluteDirFiles = Array.Empty<string>().Try((arr) => arr.Concat(Directory.GetFileSystemEntries(absoluteDir)).ToArray());
 
             var filename = Path.GetFileName(relativePath) ?? "";
             var absoluteFile = Path.Combine(absoluteDir, filename);
@@ -85,7 +85,7 @@ public static class LocaleFile
             var fs = File.OpenRead(absoluteFile);
             Console.Log("LocaleFileFetch", "Mode: {0}", mode);
 
-            PureBody responseBody;
+            IPureBody responseBody;
             var ipcHeaders = new IpcHeaders()
                 .Set("Content-Length", fs.Length.ToString())
                 .Set("Content-Type", GetMimeType(filename));

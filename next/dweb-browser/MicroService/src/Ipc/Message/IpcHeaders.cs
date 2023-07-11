@@ -7,70 +7,70 @@ namespace DwebBrowser.MicroService.Message;
 [JsonConverter(typeof(IpcHeadersConverter))]
 public class IpcHeaders : IEnumerable<KeyValuePair<string, string>>
 {
-    static TextInfo textInfo = new CultureInfo("en-US", false).TextInfo;
+    static readonly TextInfo textInfo = new CultureInfo("en-US", false).TextInfo;
     public static string NormalizeKey(string key) => textInfo.ToTitleCase(key.ToLower());
 
-    private Dictionary<string, string> _headersMap { get; set; }
+    private Dictionary<string, string> HeadersMap { get; set; }
 
     public IpcHeaders()
     {
-        _headersMap = new Dictionary<string, string>();
+        HeadersMap = new Dictionary<string, string>();
     }
 
     public IpcHeaders(HttpHeaders headers)
     {
-        _headersMap = headers.ToDictionary(h => NormalizeKey(h.Key), h => string.Join(",", h.Value));
+        HeadersMap = headers.ToDictionary(h => NormalizeKey(h.Key), h => string.Join(",", h.Value));
     }
     public IpcHeaders(IEnumerable<(string, string)> headers)
     {
-        _headersMap = headers.ToDictionary(h => NormalizeKey(h.Item1), h => h.Item2);
+        HeadersMap = headers.ToDictionary(h => NormalizeKey(h.Item1), h => h.Item2);
     }
     public IpcHeaders(IEnumerable<KeyValuePair<string, string>> headers)
     {
-        _headersMap = headers.ToDictionary(h => NormalizeKey(h.Key), h => h.Value);
+        HeadersMap = headers.ToDictionary(h => NormalizeKey(h.Key), h => h.Value);
     }
     public IpcHeaders(HttpHeaders headers, HttpContentHeaders? contentHeaders)
     {
-        _headersMap = headers.ToDictionary(h => h.Key, h => h.Value.FirstOrDefault() ?? "");
+        HeadersMap = headers.ToDictionary(h => h.Key, h => h.Value.FirstOrDefault() ?? "");
         if (contentHeaders is not null)
         {
             foreach (var (key, value) in contentHeaders)
             {
-                _headersMap.TryAdd(key, string.Join(",", value));
+                HeadersMap.TryAdd(key, string.Join(",", value));
             }
         }
     }
 
-    public static IpcHeaders With(Dictionary<string, string> headers) => new IpcHeaders() { _headersMap = headers };
+    public static IpcHeaders With(Dictionary<string, string> headers) => new() { HeadersMap = headers };
 
 
     public IpcHeaders Set(string key, string value)
     {
-        _headersMap.Add(NormalizeKey(key), value);
+        HeadersMap.Add(NormalizeKey(key), value);
         return this;
     }
 
     public IpcHeaders Init(string key, string value)
     {
         key = NormalizeKey(key);
-        if (!_headersMap.ContainsKey(key))
+        if (!HeadersMap.ContainsKey(key))
         {
-            _headersMap.Add(key, value);
+            HeadersMap.Add(key, value);
         }
         return this;
     }
 
-    public string? Get(string key) => _headersMap.GetValueOrDefault(NormalizeKey(key));
+    public string? Get(string key) => HeadersMap.GetValueOrDefault(NormalizeKey(key));
 
-    public string GetOrDefault(string key, string defaultValue) => _headersMap.GetValueOrDefault(NormalizeKey(key)) ?? defaultValue;
+    public string GetOrDefault(string key, string defaultValue) => HeadersMap.GetValueOrDefault(NormalizeKey(key)) ?? defaultValue;
 
-    public bool Has(string key) => _headersMap.ContainsKey(NormalizeKey(key));
+    public bool Has(string key) => HeadersMap.ContainsKey(NormalizeKey(key));
 
-    public bool Delete(string key) => _headersMap.Remove(NormalizeKey(key));
+    public bool Delete(string key) => HeadersMap.Remove(NormalizeKey(key));
 
     public void ForEach(Action<string, string> fn)
     {
-        foreach (KeyValuePair<string, string> entry in _headersMap)
+        foreach (KeyValuePair<string, string> entry in HeadersMap)
         {
             fn(entry.Key, entry.Value);
         }
@@ -91,11 +91,11 @@ public class IpcHeaders : IEnumerable<KeyValuePair<string, string>>
 
     public IEnumerator<KeyValuePair<string, string>> GetEnumerator()
     {
-        return _headersMap.GetEnumerator();
+        return HeadersMap.GetEnumerator();
     }
     public Dictionary<string, string> ToDictionary()
     {
-        return _headersMap.ToDictionary(k => k.Key, v => v.Value);
+        return HeadersMap.ToDictionary(k => k.Key, v => v.Value);
     }
 
     IEnumerator<KeyValuePair<string, string>> IEnumerable<KeyValuePair<string, string>>.GetEnumerator() => GetEnumerator();

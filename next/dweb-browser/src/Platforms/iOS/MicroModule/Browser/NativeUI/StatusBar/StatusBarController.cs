@@ -8,7 +8,6 @@ namespace DwebBrowser.MicroService.Browser.NativeUI.StatusBar;
 
 public class StatusBarController : BarController, IToJsonAble
 {
-    static readonly Debugger Console = new("StatusBarController");
     public readonly State<StatusBarState> Observer;
     public StateObservable<StatusBarState> StateObserver { get; init; }
     public NativeUiController NativeUiController { get; init; }
@@ -19,7 +18,7 @@ public class StatusBarController : BarController, IToJsonAble
         colorState: new(mwebviewController.StatusBarView.BackgroundColor.ToColor()),
         styleState: new(mwebviewController.StatusBarStyle),
         visibleState: new(!mwebviewController.StatusBarView.Hidden),
-        overlayState: new(mwebviewController.StatusBarView.Alpha >= 1 ? false : true),
+        overlayState: new(mwebviewController.StatusBarView.Alpha < 1),
         areaState: new(mwebviewController.StatusBarView.Frame.ToAreaJson())
     )
     {

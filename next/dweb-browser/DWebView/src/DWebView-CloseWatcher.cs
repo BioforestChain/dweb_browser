@@ -8,12 +8,12 @@ public class CloseWatcher
     private static int s_acc_id = 0;
     private static readonly string JS_POLYFILL_KIT = "__native_close_watcher_kit__";
 
-    private WKWebView _webview { get; init; }
+    private WKWebView Webview { get; init; }
     public readonly HashSet<string> Consuming = new();
 
     public CloseWatcher(WKWebView webview)
     {
-        _webview = webview;
+        Webview = webview;
     }
 
     public void RegistryToken(string consumeToken)
@@ -30,18 +30,18 @@ public class CloseWatcher
         }
     }
 
-    private List<Watcher> _watchers = new();
+    private readonly List<Watcher> _watchers = new();
 
     public class Watcher
     {
         public string Id = Interlocked.Increment(ref s_acc_id).ToString();
         private long _destroy = 0;
-        private Mutex _closeMutex = new Mutex(false);
-        private WKWebView _webview { get; init; }
+        private readonly Mutex _closeMutex = new(false);
+        private WKWebView Webview { get; init; }
 
         public Watcher(WKWebView webview)
         {
-            _webview = webview;
+            Webview = webview;
         }
 
         public async Task<bool> TryCloseAsync()
@@ -53,18 +53,18 @@ public class CloseWatcher
                 return false;
             }
 
-            await _webview.InvokeOnMainThreadAsync(async () =>
+            await Webview.InvokeOnMainThreadAsync(async () =>
             {
-                await _webview.EvaluateJavaScriptAsync(
+                await Webview.EvaluateJavaScriptAsync(
                     JS_POLYFILL_KIT + "._watchers?.get('" + Id + "')?.dispatchEvent(new CloseEvent('close'));");
             });
 
             _closeMutex.ReleaseMutex();
 
-            return destroy();
+            return Destroy();
         }
 
-        public bool destroy() => Interlocked.CompareExchange(ref _destroy, 0, 1) == 0;
+        public bool Destroy() => Interlocked.CompareExchange(ref _destroy, 0, 1) == 0;
     }
 
     /// <summary>
@@ -74,7 +74,7 @@ public class CloseWatcher
     {
         if (isUserGestrue || _watchers.Count == 0)
         {
-            _watchers.Add(new Watcher(_webview));
+            _watchers.Add(new Watcher(Webview));
         }
 
         return _watchers.Last();
@@ -82,9 +82,9 @@ public class CloseWatcher
 
     public async void ResolveToken(string consumeToken, Watcher watcher)
     {
-        await _webview.InvokeOnMainThreadAsync(async () =>
+        await Webview.InvokeOnMainThreadAsync(async () =>
         {
-            await _webview.EvaluateJavaScriptAsync(
+            await Webview.EvaluateJavaScriptAsync(
                 JS_POLYFILL_KIT + "._tasks?.get('" + consumeToken + "')?.('" + watcher.Id + "');");
         });
     }
@@ -99,10 +99,7 @@ public class CloseWatcher
     /// </summary>
     public async Task<bool> CloseAsync(Watcher? watcher = null)
     {
-        if (watcher is null)
-        {
-            watcher = _watchers.Last();
-        }
+        watcher ??= _watchers.Last();
 
         if (await watcher.TryCloseAsync())
         {
@@ -115,13 +112,13 @@ public class CloseWatcher
 
 public partial class DWebView : WKWebView
 {
-    private LazyBox<WKScriptMessageHandler> _webCloseWatcherMessageHandler = new();
+    private readonly LazyBox<WKScriptMessageHandler> _webCloseWatcherMessageHandler = new();
     public WKScriptMessageHandler CloseWatcherMessageHanlder
     {
         get => _webCloseWatcherMessageHandler.GetOrPut(() => new WebCloseWatcherMessageHanlder(this));
     }
 
-    private LazyBox<CloseWatcher> _closeWatcherController = new();
+    private readonly LazyBox<CloseWatcher> _closeWatcherController = new();
     public CloseWatcher CloseWatcherController
     {
         get => _closeWatcherController.GetOrPut(() => new(this));
@@ -129,10 +126,10 @@ public partial class DWebView : WKWebView
 
     internal class WebCloseWatcherMessageHanlder : WKScriptMessageHandler
     {
-        private DWebView _dWebView { get; init; }
+        private DWebView DWebView { get; init; }
         public WebCloseWatcherMessageHanlder(DWebView dWebView)
         {
-            _dWebView = dWebView;
+            DWebView = dWebView;
         }
 
         [Export("userContentController:didReceiveScriptMessage:")]
@@ -144,11 +141,11 @@ public partial class DWebView : WKWebView
 
             if (!string.IsNullOrEmpty(consumeToken))
             {
-                _dWebView.CloseWatcherController.RegistryToken(consumeToken);
+                DWebView.CloseWatcherController.RegistryToken(consumeToken);
             }
             else if (!string.IsNullOrEmpty(id))
             {
-                _dWebView.CloseWatcherController.TryClose(id);
+                DWebView.CloseWatcherController.TryClose(id);
             }
         }
     }
@@ -162,7 +159,8 @@ public partial class DWebView : WKWebView
     }
     public override WKNavigation? GoBack()
     {
-        if (CloseWatcherController.CanClose) {
+        if (CloseWatcherController.CanClose)
+        {
             _ = CloseWatcherController.CloseAsync().NoThrow();
             return null;
         }

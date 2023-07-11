@@ -2,8 +2,6 @@
 
 public class ScanningNMM : NativeMicroModule
 {
-    static readonly Debugger Console = new("ScanningNMM");
-
     public ScanningNMM() : base("barcode-scanning.sys.dweb")
     { }
 

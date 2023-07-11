@@ -114,7 +114,8 @@ public class JsProcessWebApi : IDisposable
 
     public void Dispose()
     {
-        //throw new NotImplementedException();
+        DWebView.Dispose();
+        GC.SuppressFinalize(this);
     }
 }
 

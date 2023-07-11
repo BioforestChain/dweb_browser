@@ -28,6 +28,7 @@ struct InnerAppGridView: View {
                 ForEach(appMgr.apps) { app in
                     Button {
                         print("opneing an app")
+                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                         BridgeManager.shared.clickApp(appUrl: app.link)
                     } label: {
                         VStack {

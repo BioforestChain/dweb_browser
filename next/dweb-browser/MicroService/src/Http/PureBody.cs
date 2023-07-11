@@ -1,6 +1,6 @@
 ﻿namespace DwebBrowser.MicroService.Http;
 
-public interface PureBody
+public interface IPureBody
 {
     public abstract dynamic? Raw { get; }
     long? ContentLength { get; }
@@ -14,10 +14,10 @@ public interface PureBody
     public abstract string ToUtf8String();
     public virtual async Task<string> ToUtf8StringAsync() => ToUtf8String();
 
-    static public PureEmptyBody Empty = new();
+    static public readonly PureEmptyBody Empty = new();
 }
 
-public record PureStreamBody(Stream Data) : PureBody, IDisposable
+public record PureStreamBody(Stream Data) : IPureBody, IDisposable
 {
     public dynamic? Raw => Data;
     public long? ContentLength => Data.TryReturn(data => (long?)data.Length, (data, err) => null);
@@ -35,7 +35,7 @@ public record PureStreamBody(Stream Data) : PureBody, IDisposable
         Data.Dispose();
     }
 }
-public record PureByteArrayBody(byte[] Data) : PureBody
+public record PureByteArrayBody(byte[] Data) : IPureBody
 {
     public dynamic? Raw => Data;
     public long? ContentLength => Data.LongLength;
@@ -47,7 +47,7 @@ public record PureByteArrayBody(byte[] Data) : PureBody
 }
 public record PureBase64StringBody(string XData) : PureByteArrayBody(XData.ToBase64ByteArray());
 
-public record PureUtf8StringBody(string Data) : PureBody
+public record PureUtf8StringBody(string Data) : IPureBody
 {
     public dynamic? Raw => Data;
     public long? ContentLength => Data.Length;
@@ -59,13 +59,13 @@ public record PureUtf8StringBody(string Data) : PureBody
     public string ToUtf8String() => Data;
 }
 
-public record PureEmptyBody() : PureBody
+public record PureEmptyBody() : IPureBody
 {
     public dynamic? Raw => null;
     public long? ContentLength => 0;
 
-    static byte[] EmptyByteArray = new byte[0];
-    static Stream EmptyStream = new MemoryStream(EmptyByteArray);
+    static readonly byte[] EmptyByteArray = Array.Empty<byte>();
+    static readonly Stream EmptyStream = new MemoryStream(EmptyByteArray);
     public byte[] ToByteArray() => EmptyByteArray;
 
 

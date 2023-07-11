@@ -14,13 +14,13 @@ public class JsProcessNMM : NativeMicroModule
     {
     }
 
-    private LazyBox<string> _LAZY_JS_PROCESS_WORKER_CODE = new();
+    private readonly LazyBox<string> _LAZY_JS_PROCESS_WORKER_CODE = new();
     private string _JS_PROCESS_WORKER_CODE
     {
         get => _LAZY_JS_PROCESS_WORKER_CODE.GetOrPut(() => NativeFetchAsync("file:///sys/browser/js-process/worker-thread/js-process.worker.js").Result.Body.ToUtf8String());
     }
 
-    private Dictionary<string, string> _CORS_HEADERS = new()
+    private readonly Dictionary<string, string> _CORS_HEADERS = new()
     {
         { "Content-Type", "text/javascript" },
         { "Access-Control-Allow-Origin", "*" },
@@ -28,8 +28,8 @@ public class JsProcessNMM : NativeMicroModule
         { "Access-Control-Allow-Methods", "*" }
     };
 
-    private static string s_INTERNAL_PATH_RAW = "/<internal>";
-    private static string s_INTERNAL_PATH = s_INTERNAL_PATH_RAW.EncodeURI();
+    private static readonly string s_INTERNAL_PATH_RAW = "/<internal>";
+    private static readonly string s_INTERNAL_PATH = s_INTERNAL_PATH_RAW.EncodeURI();
 
     protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)
     {
@@ -45,7 +45,7 @@ public class JsProcessNMM : NativeMicroModule
                 // <internal>开头的是特殊路径，给Worker用的，不会拿去请求文件
                 if (request.Uri.AbsolutePath.StartsWith(s_INTERNAL_PATH))
                 {
-                    var internalUri = request.Uri.Path(request.Uri.AbsolutePath.Substring(s_INTERNAL_PATH.Length));
+                    var internalUri = request.Uri.Path(request.Uri.AbsolutePath[s_INTERNAL_PATH.Length..]);
 
                     if (internalUri.AbsolutePath == "/bootstrap.js")
                     {
@@ -109,7 +109,7 @@ public class JsProcessNMM : NativeMicroModule
                     return new Dictionary<string, PromiseOut<int>>();
                 });
 
-                if (processIdMap.Keys.Contains(processId))
+                if (processIdMap.ContainsKey(processId))
                 {
                     throw new Exception(string.Format("ipc:{0}/processId:{1} has already using", ipc.Remote.Mmid, processId));
                 }
@@ -161,7 +161,7 @@ public class JsProcessNMM : NativeMicroModule
                 if (processIdMap.Remove(processId))
                 {
                     await apis.DestroyProcess(js_port_id);
-                    if (processIdMap.Count() == 0)
+                    if (processIdMap.Count == 0)
                     {
                         ipcProcessIdMap.Remove(ipc.Remote.Mmid);
                     }

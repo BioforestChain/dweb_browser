@@ -5,7 +5,7 @@ namespace DwebBrowser.IpcWeb;
 
 public static class IpcWebMessageCache
 {
-    public static Dictionary<int, MessagePort> ALL_MESSAGE_PORT_CACHE = new();
+    public static readonly Dictionary<int, MessagePort> ALL_MESSAGE_PORT_CACHE = new();
     private static int s_all_ipc_id_acc = 0;
 
     public static int SaveNative2JsIpcPort(WebMessagePort port) =>

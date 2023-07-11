@@ -10,7 +10,7 @@ public class TorchNMM : NativeMicroModule
 
     static readonly Debugger Console = new("TorchNMM");
 
-    private AVCaptureDevice _device = AVCaptureDevice.GetDefaultDevice(AVMediaTypes.Video);
+    private readonly AVCaptureDevice _device = AVCaptureDevice.GetDefaultDevice(AVMediaTypes.Video);
 
     protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)
     {

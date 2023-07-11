@@ -31,7 +31,7 @@ public class IpcBodySender : IpcBody, IDisposable
 
     public bool IsStreamClosed
     {
-        get { return IsStream ? _isStreamClosed : true; }
+        get { return !IsStream || _isStreamClosed; }
     }
 
     private bool _isStreamOpenedValue = false;
@@ -70,7 +70,7 @@ public class IpcBodySender : IpcBody, IDisposable
         ABORTED
     }
 
-    private BufferBlock<StreamStatusSignal> _streamStatusSignal = new(new DataflowBlockOptions { BoundedCapacity = DataflowBlockOptions.Unbounded });
+    private readonly BufferBlock<StreamStatusSignal> _streamStatusSignal = new(new DataflowBlockOptions { BoundedCapacity = DataflowBlockOptions.Unbounded });
 
     public class IPC
     {
@@ -79,36 +79,33 @@ public class IpcBodySender : IpcBody, IDisposable
         /// </summary>
         public class UsableIpcBodyMapper
         {
-            private Dictionary</*streamId*/string, IpcBodySender> _map { get; set; }
+            private Dictionary</*streamId*/string, IpcBodySender> Map { get; set; }
 
             public UsableIpcBodyMapper(Dictionary<string, IpcBodySender> map)
             {
-                _map = map;
+                Map = map;
             }
 
             public bool Add(string streamId, IpcBodySender ipcBody)
             {
-                if (_map.ContainsKey(streamId))
+                if (Map.ContainsKey(streamId))
                 {
                     return false;
                 }
 
-                _map.Add(streamId, ipcBody);
+                Map.Add(streamId, ipcBody);
                 return true;
             }
 
-            public IpcBodySender? Get(string streamId) => _map[streamId];
+            public IpcBodySender? Get(string streamId) => Map[streamId];
 
             public async Task<IpcBodySender?> Remove(string streamId)
             {
-                _map.Remove(streamId, out var ipcBodySender);
+                Map.Remove(streamId, out var ipcBodySender);
 
-                if (ipcBodySender is not null)
-                {
-                    ipcBodySender.Dispose();
-                }
+                ipcBodySender?.Dispose();
 
-                if (_map.Count == 0)
+                if (Map.Count == 0)
                 {
                     OnDestroy?.Emit();
                     OnDestroy = null;
@@ -121,7 +118,7 @@ public class IpcBodySender : IpcBody, IDisposable
 
         }
 
-        private static ConditionalWeakTable<Ipc, UsableIpcBodyMapper> s_ipcUsableIpcBodyMap = new();
+        private static readonly ConditionalWeakTable<Ipc, UsableIpcBodyMapper> s_ipcUsableIpcBodyMap = new();
 
         /**
         * <summary>
@@ -144,7 +141,7 @@ public class IpcBodySender : IpcBody, IDisposable
             {
                 var mapper = new UsableIpcBodyMapper(new Dictionary<string, IpcBodySender>());
 
-                Signal<IpcStream, Ipc> cb = async (ipcStream, ipc, self) =>
+                Signal<IIpcStream, Ipc> cb = async (ipcStream, ipc, self) =>
                 {
                     switch (ipcStream)
                     {
@@ -181,7 +178,7 @@ public class IpcBodySender : IpcBody, IDisposable
     }
 
     /// <summary>被哪些 ipc 所真正使用，以及它们对应的信息</summary>
-    private Dictionary<Ipc, UsedIpcInfo> _usedIpcMap = new Dictionary<Ipc, UsedIpcInfo>();
+    private readonly Dictionary<Ipc, UsedIpcInfo> _usedIpcMap = new();
 
     /// <summary>
     /// 绑定使用
@@ -490,6 +487,7 @@ public class IpcBodySender : IpcBody, IDisposable
     public void Dispose()
     {
         _streamStatusSignal.Complete();
+        GC.SuppressFinalize(this);
     }
 }
 

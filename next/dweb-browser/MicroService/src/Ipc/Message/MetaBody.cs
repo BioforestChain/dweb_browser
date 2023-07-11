@@ -102,7 +102,7 @@ public class MetaBody : IToJsonAble
         INLINE_BINARY = INLINE | IPC_DATA_ENCODING.BINARY,
     }
 
-    LazyBox<IPC_DATA_ENCODING> _Type_Encoding = new();
+    readonly LazyBox<IPC_DATA_ENCODING> _Type_Encoding = new();
     public IPC_DATA_ENCODING Type_Encoding
     {
         get => _Type_Encoding.GetOrPut(() =>
@@ -110,13 +110,13 @@ public class MetaBody : IToJsonAble
         );
     }
 
-    LazyBox<bool> _Type_IsInline = new();
+    readonly LazyBox<bool> _Type_IsInline = new();
     public bool Type_IsInline
     {
         get => _Type_IsInline.GetOrPut(() => ((int)Type & 1) == 1);
     }
 
-    LazyBox<bool> _Type_IsStream = new();
+    readonly LazyBox<bool> _Type_IsStream = new();
     public bool Type_IsStream
     {
         get => _Type_IsStream.GetOrPut(() => ((int)Type & 1) == 0);
@@ -127,7 +127,7 @@ public class MetaBody : IToJsonAble
         string data,
         string? streamId = null,
         int? receiverUid = null
-        ) => new MetaBody(
+        ) => new(
             type: streamId is null ? IPC_META_BODY_TYPE.INLINE_TEXT : IPC_META_BODY_TYPE.STREAM_WITH_TEXT,
             senderUid: senderUid,
             data: data,
@@ -140,7 +140,7 @@ public class MetaBody : IToJsonAble
         string data,
         string? streamId = null,
         int? receiverUid = null
-        ) => new MetaBody(
+        ) => new(
             type: streamId is null ? IPC_META_BODY_TYPE.INLINE_BASE64 : IPC_META_BODY_TYPE.STREAM_WITH_BASE64,
             senderUid: senderUid,
             data: data,
@@ -153,7 +153,7 @@ public class MetaBody : IToJsonAble
         byte[] data,
         string? streamId = null,
         int? receiverUid = null
-        ) => new MetaBody(
+        ) => new(
             type: streamId is null ? IPC_META_BODY_TYPE.INLINE_BINARY : IPC_META_BODY_TYPE.STREAM_WITH_BINARY,
             senderUid: senderUid,
             data: data,

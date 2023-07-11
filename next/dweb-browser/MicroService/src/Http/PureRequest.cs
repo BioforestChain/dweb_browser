@@ -1,17 +1,19 @@
 ﻿
+using System.Xml.Serialization;
+
 namespace DwebBrowser.MicroService.Http;
 
 public record PureRequest(
     string Url,
     IpcMethod Method,
     IpcHeaders? Headers = null,
-    PureBody? Body = null
+    IPureBody? Body = null
 ) : IDisposable
 {
     static readonly Debugger Console = new("PureRequest");
 
     public IpcHeaders Headers = Headers ?? new();
-    public PureBody Body = Body ?? PureBody.Empty;
+    public IPureBody Body = Body ?? IPureBody.Empty;
 
     string _url = Url;
     public string Url
@@ -27,7 +29,7 @@ public record PureRequest(
         }
     }
 
-    LazyBox<URL?> _ParsedUrl = new();
+    readonly LazyBox<URL?> _ParsedUrl = new();
     public URL? ParsedUrl
     {
         get => _ParsedUrl.GetOrPut(() =>
@@ -55,6 +57,7 @@ public record PureRequest(
         if (Body is PureStreamBody streamBody)
         {
             streamBody.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 }

@@ -28,7 +28,7 @@ public class IpcMessage: IToJsonAble
     public static IpcMessage? FromJson(string json) => JsonSerializer.Deserialize<IpcMessage>(json);
 }
 
-public interface IpcStream
+public interface IIpcStream
 {
     string StreamId { get; set; }
 }

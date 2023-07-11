@@ -66,6 +66,8 @@
 		F34A47662A4D738B001E105A /* CustomUIScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F34A475F2A4D738B001E105A /* CustomUIScrollView.swift */; };
 		F34A47672A4D738B001E105A /* DownloadAppView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F34A47602A4D738B001E105A /* DownloadAppView.swift */; };
 		F34A476A2A4D73D4001E105A /* CombinePublisher.swift in Sources */ = {isa = PBXBuildFile; fileRef = F34A47692A4D73D4001E105A /* CombinePublisher.swift */; };
+		F35E2F212A5D3E580034DF6F /* KeyboardHeightHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = F35E2F202A5D3E580034DF6F /* KeyboardHeightHelper.swift */; };
+		F35E2F222A5D3F780034DF6F /* KeyboardHeightHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = F35E2F202A5D3E580034DF6F /* KeyboardHeightHelper.swift */; };
 		F39B4BB62A57F1A90030B5BB /* BridgeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0506ADA2A4A78920042F0C2 /* BridgeManager.swift */; };
 		F3D5AA952A52BF99007C93D0 /* DwebBrowserFramework.h in Headers */ = {isa = PBXBuildFile; fileRef = F3D5AA942A52BF99007C93D0 /* DwebBrowserFramework.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		F3D5AA982A52BF99007C93D0 /* DwebBrowserFramework.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3D5AA922A52BF99007C93D0 /* DwebBrowserFramework.framework */; };
@@ -216,6 +218,7 @@
 		F34A47602A4D738B001E105A /* DownloadAppView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadAppView.swift; sourceTree = "<group>"; };
 		F34A47692A4D73D4001E105A /* CombinePublisher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CombinePublisher.swift; sourceTree = "<group>"; };
 		F34A476C2A4D74F3001E105A /* DownloadAppManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadAppManager.swift; sourceTree = "<group>"; };
+		F35E2F202A5D3E580034DF6F /* KeyboardHeightHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardHeightHelper.swift; sourceTree = "<group>"; };
 		F3D5AA922A52BF99007C93D0 /* DwebBrowserFramework.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = DwebBrowserFramework.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F3D5AA942A52BF99007C93D0 /* DwebBrowserFramework.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DwebBrowserFramework.h; sourceTree = "<group>"; };
 		F3D912E42A56663600BCBE4E /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX13.3.sdk/System/Library/Frameworks/CoreData.framework; sourceTree = DEVELOPER_DIR; };
@@ -297,6 +300,7 @@
 				F02899A229F91DF200B8754A /* PlaceholderView.swift */,
 				F08E10442A04FBEE00899DF8 /* Button.swift */,
 				F0B68D062A162DF000215036 /* PagingScroll.swift */,
+				F35E2F202A5D3E580034DF6F /* KeyboardHeightHelper.swift */,
 			);
 			path = Helper;
 			sourceTree = "<group>";
@@ -595,6 +599,7 @@
 				F0531EC72A302918001FBE06 /* LocalLinkSearcher.swift in Sources */,
 				F34A47672A4D738B001E105A /* DownloadAppView.swift in Sources */,
 				F0531F1A2A346257001FBE06 /* HistoryCell.swift in Sources */,
+				F35E2F212A5D3E580034DF6F /* KeyboardHeightHelper.swift in Sources */,
 				F09ABFC52A52D7BA00C32145 /* PagingScrollView.swift in Sources */,
 				F0531F192A346257001FBE06 /* HistoryView.swift in Sources */,
 				F0531F122A346219001FBE06 /* BookmarkViewModel.swift in Sources */,
@@ -652,6 +657,7 @@
 				F3D5AAB02A52C1C5007C93D0 /* CustomUIScrollView.swift in Sources */,
 				F3D5AAB12A52C1C5007C93D0 /* DownloadAppView.swift in Sources */,
 				F3D5AAB22A52C1C5007C93D0 /* CombinePublisher.swift in Sources */,
+				F35E2F222A5D3F780034DF6F /* KeyboardHeightHelper.swift in Sources */,
 				F3D5AAB32A52C1C5007C93D0 /* DwebBrowserApp.swift in Sources */,
 				F3D5AAB42A52C1C5007C93D0 /* BrowserView.swift in Sources */,
 				F3D5AAB52A52C1C5007C93D0 /* const.swift in Sources */,
@@ -916,6 +922,7 @@
 				MARKETING_VERSION = 1.0;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++20";
+				OTHER_SWIFT_FLAGS = "-D DwebFramework";
 				PRODUCT_BUNDLE_IDENTIFIER = com.bfs.DwebBrowserFramework;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
@@ -952,6 +959,7 @@
 				MARKETING_VERSION = 1.0;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++20";
+				OTHER_SWIFT_FLAGS = "-D DwebFramework";
 				PRODUCT_BUNDLE_IDENTIFIER = com.bfs.DwebBrowserFramework;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;

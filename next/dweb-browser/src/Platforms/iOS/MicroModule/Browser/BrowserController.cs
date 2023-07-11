@@ -5,7 +5,6 @@ namespace DwebBrowser.MicroService.Browser;
 
 public class BrowserController : BaseViewController
 {
-    static readonly Debugger Console = new("BrowserController");
     public BrowserNMM BrowserNMM { get; init; }
 
     public BrowserController(BrowserNMM browserNMM)
