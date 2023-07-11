@@ -14,7 +14,7 @@ import {
   UpdateControllerMap,
 } from "./dweb-service-worker.type.ts";
 import { dwebServiceWorkerPlugin } from "./dweb_service-worker.plugin.ts";
-import { $FetchEventType } from "./FetchEvent.ts";
+import { $FetchEventType, FetchEvent } from "./FetchEvent.ts";
 
 declare namespace globalThis {
   const __app_upgrade_watcher_kit__: {

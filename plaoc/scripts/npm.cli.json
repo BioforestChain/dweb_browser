@@ -3,7 +3,6 @@
     "buildFromRootDir": "./cli/plaoc.ts",
     "mainExports": "plaoc",
     "buildToRootDir": "./build/cli",
-    "main": "/plaoc.ts",
     "name": "@plaoc/cli",
     "version": "0.0.2",
     "lib": [

@@ -1,7 +1,7 @@
 import { bindThis } from "../../helper/bindThis.ts";
 import { $BuildRequestInit } from "../../helper/request.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
-import {
+import type {
   ImpactOptions,
   NotificationOptions,
   VibrateOptions,

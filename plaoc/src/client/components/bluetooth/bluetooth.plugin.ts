@@ -1,4 +1,3 @@
-/// <reference path="./index.d.ts"/>;
 import { bindThis } from "../../helper/bindThis.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
 import {
@@ -6,6 +5,7 @@ import {
   $BluetoothPluginListener,
   $ResponseData,
 } from "./bluetooth.type.ts";
+import "./index.d.ts";
 
 export class BluetoothPlugin extends BasePlugin {
   private _ws: WebSocket | undefined;

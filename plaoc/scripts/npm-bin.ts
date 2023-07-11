@@ -9,7 +9,6 @@ export const doBuidCore = async (config: {
   mainExports: string;
   buildFromRootDir: string;
   buildToRootDir: string;
-  main?: string;
   importMap?: string;
   lib?: (dnt.LibName | string)[];
   devDependencies?: {
@@ -23,7 +22,6 @@ export const doBuidCore = async (config: {
     importMap,
     name,
     lib,
-    main,
   } = config;
   console.log(`--- START BUILD: ${name} ${version} ---`);
 
@@ -32,7 +30,7 @@ export const doBuidCore = async (config: {
   const entryPoints: dnt.EntryPoint[] = [];
   // console.group("entry-point:", dirEntry.name, config);
   // 适配入口不是index的情况
-  let entry = `${buildFromRootDir}${main ? main : "/index.ts"}`;
+  let entry = `${buildFromRootDir}/index.ts`;
   if (buildFromRootDir.includes(".ts")) {
     entry = buildFromRootDir;
   }

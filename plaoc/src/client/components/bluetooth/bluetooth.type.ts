@@ -21,7 +21,7 @@ export declare namespace $AllWatchControllerItem {
   export type $SendParam = $SendParamGattserverdisconnected;
 
   export interface $SendParamGattserverdisconnected {
-    type: "gattserverdisconnected";
+    type: string;
     data: unknown;
   }
 }

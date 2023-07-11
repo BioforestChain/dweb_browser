@@ -47,11 +47,7 @@ export const doBuidCore = async (config: {
     outDir: buildToRootDir,
     declaration: "separate",
     scriptModule: false,
-    /**
-     * @TODO should ignore errors:
-     * 1. TS2691
-     */
-    typeCheck: false,
+    typeCheck: "both",
     test: false,
     shims: {
       deno: true,
