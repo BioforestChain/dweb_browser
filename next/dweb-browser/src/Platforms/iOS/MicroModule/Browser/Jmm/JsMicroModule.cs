@@ -240,7 +240,7 @@ public class JsMicroModule : MicroModule
 
     private event Signal? _onCloseJsProcess;
 
-    private Dictionary<Mmid, PromiseOut<Ipc>> _fromMmid_originIpc_map = new();
+    private readonly Dictionary<Mmid, PromiseOut<Ipc>> _fromMmid_originIpc_map = new();
 
 
     class JmmIpc : Native2JsIpc

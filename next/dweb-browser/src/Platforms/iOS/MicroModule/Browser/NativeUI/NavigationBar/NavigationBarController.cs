@@ -8,7 +8,6 @@ namespace DwebBrowser.MicroService.Browser.NativeUI.NavigationBar;
 
 public class NavigationBarController : BarController, IToJsonAble
 {
-    static readonly Debugger Console = new("NavigationBarController");
     public readonly State<NavigationBarState> Observer;
     public StateObservable<NavigationBarState> StateObserver { get; init; }
     public NativeUiController NativeUiController { get; init; }
@@ -19,7 +18,7 @@ public class NavigationBarController : BarController, IToJsonAble
         colorState: new(mwebviewController.NavigationBarView.BackgroundColor.ToColor()),
         styleState: new(mwebviewController.StatusBarStyle),
         visibleState: new(!mwebviewController.NavigationBarView.Hidden),
-        overlayState: new(mwebviewController.NavigationBarView.Alpha >= 1 ? false : true),
+        overlayState: new(mwebviewController.NavigationBarView.Alpha < 1),
         areaState: new(mwebviewController.NavigationBarView.Frame.ToAreaJson()))
     {
         Observer = new(GetState);

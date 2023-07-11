@@ -3,13 +3,13 @@
 public record PureResponse(
     HttpStatusCode StatusCode = HttpStatusCode.OK,
     IpcHeaders? Headers = null,
-    PureBody? Body = null,
+    IPureBody? Body = null,
     string? StatusText = null,
     string? Url = null
 ) : IDisposable
 {
     public IpcHeaders Headers = Headers ?? new();
-    public PureBody Body = Body ?? PureBody.Empty;
+    public IPureBody Body = Body ?? IPureBody.Empty;
     public async Task<string> TextAsync() => await Body.ToUtf8StringAsync();
     public async Task<bool?> BooleanStrictAsync() => (await TextAsync()).ToBooleanStrictOrNull();
     public async Task<bool> BoolAsync() => (await BooleanStrictAsync()) ?? false;
@@ -24,6 +24,7 @@ public record PureResponse(
         if (Body is PureStreamBody streamBody)
         {
             streamBody.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 }

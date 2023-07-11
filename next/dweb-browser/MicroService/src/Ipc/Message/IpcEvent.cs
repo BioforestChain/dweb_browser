@@ -31,18 +31,18 @@ public class IpcEvent : IpcMessage
         Encoding = encoding;
     }
 
-    public static IpcEvent FromBinary(string name, byte[] data) => new IpcEvent(name, data, IPC_DATA_ENCODING.BINARY);
+    public static IpcEvent FromBinary(string name, byte[] data) => new(name, data, IPC_DATA_ENCODING.BINARY);
     public static IpcEvent FromBase64(string name, byte[] data) =>
-        new IpcEvent(name, Convert.ToBase64String(data), IPC_DATA_ENCODING.BASE64);
+        new(name, Convert.ToBase64String(data), IPC_DATA_ENCODING.BASE64);
     public static IpcEvent FromUtf8(string name, byte[] data) => FromUtf8(name, data.ToUtf8());
-    public static IpcEvent FromUtf8(string name, string data) => new IpcEvent(name, data, IPC_DATA_ENCODING.UTF8);
+    public static IpcEvent FromUtf8(string name, string data) => new(name, data, IPC_DATA_ENCODING.UTF8);
 
-    private LazyBox<byte[]> _binary = new();
+    private readonly LazyBox<byte[]> _binary = new();
     public byte[] Binary
     {
         get { return _binary.GetOrPut(() => EncodingConverter.DataToBinary(Data, Encoding)); }
     }
-    private LazyBox<string> _text = new();
+    private readonly LazyBox<string> _text = new();
     public string Text
     {
         get { return _text.GetOrPut(() => EncodingConverter.DataToText(Data, Encoding)); }

@@ -34,7 +34,7 @@ public abstract class BaseViewController : UIViewController
 
 
 
-    protected void AddDebugPoints()
+    protected static void AddDebugPoints()
     {
 
     }

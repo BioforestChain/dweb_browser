@@ -2,7 +2,7 @@
 
 public class AdapterManager<T> where T: notnull
 {
-	private Dictionary<T, int> _adapterOrderMap = new Dictionary<T, int>();
+	private readonly Dictionary<T, int> _adapterOrderMap = new();
 	private IEnumerable<T> _orderAdapters = new List<T>();
 
 	public IEnumerable<T> Adapters { get => _orderAdapters; }

@@ -8,9 +8,9 @@ namespace DwebBrowser.MicroService.Browser.Jmm;
 
 public static class JmmDwebService
 {
-    static Debugger Console = new("JmmDwebService");
-    private static ConcurrentDictionary<Mmid, JmmDownload> s_downloadMap = new();
-    private static ConcurrentQueue<Mmid> s_downloadQueue = new();
+    static readonly Debugger Console = new("JmmDwebService");
+    private static readonly ConcurrentDictionary<Mmid, JmmDownload> s_downloadMap = new();
+    private static readonly ConcurrentQueue<Mmid> s_downloadQueue = new();
 
     static event Signal? _onStart;
 
@@ -25,7 +25,7 @@ public static class JmmDwebService
         };
     }
 
-    private static Mutex _mutex = new();
+    private static readonly Mutex _mutex = new();
     public static async void Start()
     {
         _mutex.WaitOne();
@@ -77,10 +77,7 @@ public static class JmmDwebService
     {
         var jmmDownload = s_downloadMap.GetValueOrDefault(mmid);
 
-        if (jmmDownload is not null)
-        {
-            jmmDownload.UpdateDownloadStatus(downloadControlStatus);
-        }
+        jmmDownload?.UpdateDownloadStatus(downloadControlStatus);
 
         return unit;
     }
@@ -102,7 +99,7 @@ public static class JmmDwebService
 
 public class JmmDownload
 {
-    static Debugger Console = new("JmmDownload");
+    static readonly Debugger Console = new("JmmDownload");
 
     private const string DOWNLOAD = "dwebDownloads";
 
@@ -188,7 +185,7 @@ public class JmmDownload
 
         _totalSize = content.Headers.ContentLength ?? 0L;
     }
-    static HttpClient httpClient = new HttpClient().Also(it =>
+    static readonly HttpClient httpClient = new HttpClient().Also(it =>
     {
         /// 默认禁用缓存
         it.DefaultRequestHeaders.CacheControl = new() { NoCache = true };

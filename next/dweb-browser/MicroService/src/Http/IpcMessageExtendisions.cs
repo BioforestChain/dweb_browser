@@ -3,7 +3,7 @@ namespace DwebBrowser.MicroService.Http;
 
 static public class IpcMessageExtendisions
 {
-    static public IpcBody ToIpcBody(this PureBody body, Ipc ipc)
+    static public IpcBody ToIpcBody(this IPureBody body, Ipc ipc)
     {
         return body switch
         {
@@ -15,7 +15,7 @@ static public class IpcMessageExtendisions
             _ => IpcBodySender.FromText("", ipc),
         };
     }
-    static public PureBody ToPureBody(this IpcBody body)
+    static public IPureBody ToPureBody(this IpcBody body)
     {
         return body.Raw switch
         {
@@ -43,12 +43,12 @@ static public class IpcMessageExtendisions
         return ipcRequest;
     }
     static public PureRequest ToPureRequest(this IpcRequest self) =>
-        new PureRequest(self.Url, self.Method, self.Headers, self.Body.ToPureBody());
+        new(self.Url, self.Method, self.Headers, self.Body.ToPureBody());
 
     static public IpcResponse ToIpcResponse(this PureResponse response, int req_id, Ipc ipc) =>
-        new IpcResponse(req_id, (int)response.StatusCode, response.Headers, response.Body.ToIpcBody(ipc), ipc);
+        new(req_id, (int)response.StatusCode, response.Headers, response.Body.ToIpcBody(ipc), ipc);
     static public PureResponse ToPureResponse(this IpcResponse self) =>
-        new PureResponse((HttpStatusCode)self.StatusCode, self.Headers, self.Body.ToPureBody());
+        new((HttpStatusCode)self.StatusCode, self.Headers, self.Body.ToPureBody());
 
     static public Task PostPureResponseAsync(this Ipc ipc, int req_id, PureResponse response) =>
         ipc.PostMessageAsync(response.ToIpcResponse(req_id, ipc)).NoThrow();

@@ -8,7 +8,7 @@ public static class JmmMetadataDB
 
     private static int s_id = 0;
     public static readonly State<int> JmmMetadataUpdate = new(s_id);
-    private static NSUserDefaults _userDefaults = NSUserDefaults.StandardUserDefaults;
+    private static readonly NSUserDefaults _userDefaults = NSUserDefaults.StandardUserDefaults;
 
     static JmmMetadataDB()
     {
@@ -30,7 +30,7 @@ public static class JmmMetadataDB
         var nsDic = _userDefaults.DictionaryForKey(PREFERENCE_NAME);
         var dic = new Dictionary<Mmid, JmmMetadata>();
 
-        foreach (NSString key in nsDic.Keys)
+        foreach (NSString key in nsDic.Keys.Cast<NSString>())
         {
             var value = nsDic[key];
             if (value is NSString)

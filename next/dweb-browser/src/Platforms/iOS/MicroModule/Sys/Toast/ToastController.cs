@@ -29,15 +29,17 @@ public class ToastController
         return MainThread.InvokeOnMainThreadAsync(async () =>
         {
             // 创建一个标签作为 Toast 的内容
-            var toastLabel = new UILabel();
-            // 设置标签的文本
-            toastLabel.Text = message;
-            // 设置标签的文本颜色
-            toastLabel.TextColor = UIColor.White;
-            // 设置标签的背景颜色和透明度
-            toastLabel.BackgroundColor = UIColor.Black.ColorWithAlpha(0.8f);
-            // 设置标签的文本对齐方式
-            toastLabel.TextAlignment = UITextAlignment.Center;
+            var toastLabel = new UILabel
+            {
+                // 设置标签的文本
+                Text = message,
+                // 设置标签的文本颜色
+                TextColor = UIColor.White,
+                // 设置标签的背景颜色和透明度
+                BackgroundColor = UIColor.Black.ColorWithAlpha(0.8f),
+                // 设置标签的文本对齐方式
+                TextAlignment = UITextAlignment.Center
+            };
             // 设置标签的圆角半径
             toastLabel.Layer.CornerRadius = 10;
             // 设置标签的边界裁剪

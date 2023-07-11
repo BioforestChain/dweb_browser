@@ -114,7 +114,7 @@ public static class SignalExtendsions
     {
         try
         {
-            Delegate[] list = (self?.GetInvocationList() ?? new Delegate[0]).Append(finallyNext).ToArray();
+            Delegate[] list = (self?.GetInvocationList() ?? Array.Empty<Delegate>()).Append(finallyNext).ToArray();
 
             for (int i = 0; i < list.Length; i++)
             {

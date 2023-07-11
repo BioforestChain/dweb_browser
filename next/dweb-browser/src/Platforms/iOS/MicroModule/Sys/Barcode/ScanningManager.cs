@@ -18,17 +18,19 @@ public class ScanningManager
         _scanningPo = po;
     }
 
-    private LazyBox<VNDetectBarcodesRequest> _lazyBarcodeDetectionRequest = new();
+    private readonly LazyBox<VNDetectBarcodesRequest> _lazyBarcodeDetectionRequest = new();
     private VNDetectBarcodesRequest _barcodeDetectionRequest
     {
         get => _lazyBarcodeDetectionRequest.GetOrPut(() =>
         {
-            var request = new VNDetectBarcodesRequest(_handleDetectedBarcodes);
-            request.Symbologies = new VNBarcodeSymbology[]
+            var request = new VNDetectBarcodesRequest(_handleDetectedBarcodes)
             {
-                VNBarcodeSymbology.QR,
-                VNBarcodeSymbology.Aztec,
-                VNBarcodeSymbology.Upce
+                Symbologies = new VNBarcodeSymbology[]
+                {
+                    VNBarcodeSymbology.QR,
+                    VNBarcodeSymbology.Aztec,
+                    VNBarcodeSymbology.Upce
+                }
             };
 
             return request;

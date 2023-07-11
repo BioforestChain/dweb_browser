@@ -8,9 +8,9 @@ public partial class DWebView : WKWebView
 {
     static readonly Debugger Console = new("DWebView");
 
-    MicroModule localeMM;
+    readonly MicroModule localeMM;
     MicroModule remoteMM;
-    Options options;
+    readonly Options options;
 
     public class Options
     {
@@ -46,7 +46,7 @@ public partial class DWebView : WKWebView
             this.BaseUri = baseUri;
             this.LoadUrl = loadUrl;
         }
-        public static Options Empty = new Options();
+        public static readonly Options Empty = new();
     }
 
     public DWebView(CGRect frame, MicroModule localeMM, MicroModule remoteMM, Options options, WKWebViewConfiguration configuration) : base(frame, configuration.Also((configuration) =>

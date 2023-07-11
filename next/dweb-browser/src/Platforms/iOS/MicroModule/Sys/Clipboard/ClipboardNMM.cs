@@ -16,7 +16,7 @@ public class ClipboardNMM : NativeMicroModule
     {
     }
 
-    private UIPasteboard _pasteboard = UIPasteboard.General;
+    private readonly UIPasteboard _pasteboard = UIPasteboard.General;
 
     protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)
     {

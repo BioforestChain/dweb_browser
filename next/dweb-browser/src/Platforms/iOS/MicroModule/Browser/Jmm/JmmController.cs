@@ -9,7 +9,7 @@ public class JmmController : BaseViewController
 {
     static readonly Debugger Console = new("JmmController");
     private JmmNMM _jmmNMM { get; init; }
-    private Dictionary<Mmid, Ipc> _openIpcMap = new();
+    private readonly Dictionary<Mmid, Ipc> _openIpcMap = new();
 
     public JmmController(JmmNMM jmmNMM)
     {

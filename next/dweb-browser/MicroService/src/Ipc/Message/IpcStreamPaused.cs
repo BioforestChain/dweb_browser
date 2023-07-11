@@ -1,7 +1,7 @@
 ﻿
 namespace DwebBrowser.MicroService.Message;
 
-public class IpcStreamPaused : IpcMessage, IpcStream
+public class IpcStreamPaused : IpcMessage, IIpcStream
 {
     [JsonPropertyName("stream_id")]
     public string StreamId { get; set; }

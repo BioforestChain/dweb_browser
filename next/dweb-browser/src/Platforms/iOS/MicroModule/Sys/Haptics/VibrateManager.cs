@@ -11,7 +11,7 @@ namespace DwebBrowser.MicroService.Sys.Haptics;
 public static class VibrateManager
 {
     static readonly Debugger Console = new("VibrateManager");
-    static bool s_isSupportHaptics = CHHapticEngine.GetHardwareCapabilities().SupportsHaptics;
+    static readonly bool s_isSupportHaptics = CHHapticEngine.GetHardwareCapabilities().SupportsHaptics;
 
     public enum VibrateType
     {

@@ -2,7 +2,6 @@
 
 public class VirtualKeyboardNMM : NativeMicroModule
 {
-    static readonly Debugger Console = new("VirtualKeyboardNMM");
     public VirtualKeyboardNMM() : base("virtual-keyboard.nativeui.browser.dweb")
     {
     }

@@ -3,7 +3,6 @@
 
 public class NavigationBarNMM : NativeMicroModule
 {
-    static readonly Debugger Console = new("NavigationBarNMM");
     public NavigationBarNMM() : base("navigation-bar.nativeui.browser.dweb")
     {
     }

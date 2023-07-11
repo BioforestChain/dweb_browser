@@ -10,7 +10,7 @@ namespace DwebBrowser.Helper;
 [Serializable]
 public readonly struct Unit : IEquatable<Unit>, IComparable<Unit>
 {
-    public static readonly Unit Default = new Unit();
+    public static readonly Unit Default = new();
 
     [Pure]
     public override int GetHashCode() =>

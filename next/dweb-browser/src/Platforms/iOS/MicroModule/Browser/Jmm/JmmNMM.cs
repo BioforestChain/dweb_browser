@@ -7,10 +7,10 @@ namespace DwebBrowser.MicroService.Browser.Jmm;
 
 public class JmmNMM : NativeMicroModule
 {
-    static Debugger Console = new("JmmNMM");
+    static readonly Debugger Console = new("JmmNMM");
 
     private static readonly List<JmmController> s_controllerList = new();
-    public static Dictionary<Mmid, JsMicroModule> JmmApps = new();
+    public static readonly Dictionary<Mmid, JsMicroModule> JmmApps = new();
 
     static JmmNMM()
     {
@@ -228,5 +228,5 @@ public class JmmNMM : NativeMicroModule
     public record AppQueryResult(List<JmmMetadata> InstalledAppList, List<InstallingAppInfo> InstallingAppList);
     public record InstallingAppInfo(float Progress, JmmMetadata JmmMetadata);
 
-    private Dictionary<Mmid, InstallingAppInfo> _installingApps = new();
+    private readonly Dictionary<Mmid, InstallingAppInfo> _installingApps = new();
 }

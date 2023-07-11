@@ -8,23 +8,23 @@ public class IpcMethod
     [JsonPropertyName("method")]
     private readonly string _method;
 
-    public static readonly IpcMethod Get = new IpcMethod("GET");
+    public static readonly IpcMethod Get = new("GET");
 
-    public static readonly IpcMethod Put = new IpcMethod("PUT");
+    public static readonly IpcMethod Put = new("PUT");
 
-    public static readonly IpcMethod Post = new IpcMethod("POST");
+    public static readonly IpcMethod Post = new("POST");
 
-    public static readonly IpcMethod Delete = new IpcMethod("DELETE");
+    public static readonly IpcMethod Delete = new("DELETE");
 
-    public static readonly IpcMethod Head = new IpcMethod("HEAD");
+    public static readonly IpcMethod Head = new("HEAD");
 
-    public static readonly IpcMethod Options = new IpcMethod("OPTIONS");
+    public static readonly IpcMethod Options = new("OPTIONS");
 
-    public static readonly IpcMethod Trace = new IpcMethod("TRACE");
+    public static readonly IpcMethod Trace = new("TRACE");
 
-    public static readonly IpcMethod Patch = new IpcMethod("PATCH");
+    public static readonly IpcMethod Patch = new("PATCH");
 
-    public static readonly IpcMethod Connect = new IpcMethod("CONNECT");
+    public static readonly IpcMethod Connect = new("CONNECT");
 
     public string Method => _method;
 
@@ -50,7 +50,7 @@ public class IpcMethod
 
     public override string ToString() => _method;
 
-    private LazyBox<HttpMethod> _httpMethod = new();
+    private readonly LazyBox<HttpMethod> _httpMethod = new();
     public HttpMethod ToHttpMethod() => _httpMethod.GetOrPut(() => new(_method));
 
     /// <summary>

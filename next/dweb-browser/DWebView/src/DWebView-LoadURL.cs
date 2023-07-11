@@ -36,7 +36,7 @@ public partial class DWebView : WKWebView
 
         public class NSStream : Stream
         {
-            NSInputStream _nsStream;
+            readonly NSInputStream _nsStream;
 
             public NSStream(NSInputStream inputStream)
             {
@@ -135,7 +135,7 @@ public partial class DWebView : WKWebView
                             urlSchemeTask.DidReceiveData(NSData.FromArray(chunk));
                         }
                         break;
-                    case PureBody body:
+                    case IPureBody body:
                         var data = body.ToByteArray();
                         if (data.Length > 0)
                         {
@@ -279,7 +279,7 @@ public partial class DWebView : WKWebView
 
     class OnReadyDelegate : WKNavigationDelegate
     {
-        Signal _onReady;
+        readonly Signal _onReady;
         public OnReadyDelegate(Signal onReady)
         {
             this._onReady = onReady;

@@ -44,7 +44,7 @@ public abstract class IpcBody
     public abstract MetaBody MetaBody { get; set; }
     public abstract object? Raw { get; }
 
-    private Lazy<byte[]> _u8a;
+    private readonly Lazy<byte[]> _u8a;
     public byte[] U8a { get { return _u8a.Value; } }
     private static byte[] InitU8A(IpcBody ipcBody)
     {
@@ -59,7 +59,7 @@ public abstract class IpcBody
     }
 
 
-    private Lazy<Stream> _stream;
+    private readonly Lazy<Stream> _stream;
     public Stream Stream { get { return _stream.Value; } }
     private static Stream InitStream(IpcBody ipcBody)
     {
@@ -69,7 +69,7 @@ public abstract class IpcBody
         return stream;
     }
 
-    private Lazy<string> _text;
+    private readonly Lazy<string> _text;
     public string Text { get { return _text.Value; } }
     private static string InitText(IpcBody ipcBody)
     {

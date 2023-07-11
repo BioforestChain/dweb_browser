@@ -9,7 +9,6 @@ namespace DwebBrowser.MicroService.Browser.NativeUI.VirtualKeyboard;
 
 public class VirtualKeyboardController : AreaController, IToJsonAble
 {
-    static readonly Debugger Console = new("VirtualKeyboardController");
     public readonly State<VirtualKeyboardState> Observer;
     public StateObservable<VirtualKeyboardState> StateObserver { get; init; }
     public readonly State<bool> VisibleState = new(false);
@@ -19,7 +18,7 @@ public class VirtualKeyboardController : AreaController, IToJsonAble
     public VirtualKeyboardController(
         MultiWebViewController mwebviewController,
         NativeUiController nativeUiController) : base(
-            overlayState: new(mwebviewController.VirtualKeyboardView.Alpha >= 1 ? false : true),
+            overlayState: new(mwebviewController.VirtualKeyboardView.Alpha < 1),
             areaState: new(mwebviewController.VirtualKeyboardView.Frame.ToAreaJson()))
     {
         Observer = new(GetState);

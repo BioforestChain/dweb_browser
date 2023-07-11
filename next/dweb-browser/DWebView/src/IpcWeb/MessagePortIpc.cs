@@ -12,16 +12,16 @@ public class MessagePortIpc : Ipc
     static readonly Debugger Console = new("MessagePortIpc");
 
     public MessagePort Port { get; init; }
-    private IPC_ROLE _role_type { get; init; }
+    private IPC_ROLE RoleType { get; init; }
     public override IMicroModuleInfo Remote { get; set; }
 
-    public override string Role { get => System.Enum.GetName(_role_type)!; }
+    public override string Role { get => System.Enum.GetName(RoleType)!; }
 
     public MessagePortIpc(MessagePort port, IMicroModuleInfo remote, IPC_ROLE role_type)
     {
         Port = port;
         Remote = remote;
-        _role_type = role_type;
+        RoleType = role_type;
 
         var ipc = this;
 
@@ -71,20 +71,12 @@ public class MessagePortIpc : Ipc
 
     public override Task _doPostMessageAsync(IpcMessage data)
     {
-        string message;
-        switch (data)
+        string message = data switch
         {
-            case IpcRequest ipcRequest:
-                message = ipcRequest.LazyIpcReqMessage.ToJson();
-                break;
-            case IpcResponse ipcResponse:
-                message = ipcResponse.LazyIpcResMessage.ToJson();
-                break;
-            default:
-                message = data.ToJson();
-                break;
-        }
-
+            IpcRequest ipcRequest => ipcRequest.LazyIpcReqMessage.ToJson(),
+            IpcResponse ipcResponse => ipcResponse.LazyIpcResMessage.ToJson(),
+            _ => data.ToJson(),
+        };
         return Port.PostMessage(message);
     }
 

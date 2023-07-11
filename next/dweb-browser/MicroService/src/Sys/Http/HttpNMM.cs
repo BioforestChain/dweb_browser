@@ -149,7 +149,7 @@ public class HttpNMM : NativeMicroModule
                     }
 
                     break;
-                case PureBody body:
+                case IPureBody body:
                     var data = body.ToByteArray();
                     if (data.Length > 0 && webSocketContext.WebSocket.State == WebSocketState.Open)
                     {

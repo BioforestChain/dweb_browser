@@ -118,11 +118,11 @@ public partial class MultiWebViewController : BaseViewController
 
     public bool IsLastView(ViewItem viewItem) => WebViewList.Get().LastOrDefault() == viewItem;
 
-    private Dictionary<Mmid, Ipc> _mIpcMap = new();
+    private readonly Dictionary<Mmid, Ipc> _mIpcMap = new();
 
     public record ViewItem(string webviewId, DWebView.DWebView webView, MultiWebViewController mwebviewController)
     {
-        private LazyBox<NativeUiController> _nativeUiController = new();
+        private readonly LazyBox<NativeUiController> _nativeUiController = new();
         public NativeUiController nativeUiController
         {
             get => _nativeUiController.GetOrPut(() => new NativeUiController(mwebviewController));
@@ -205,10 +205,7 @@ public partial class MultiWebViewController : BaseViewController
     {
         WebViewList.Get().ForEach(viewItem =>
         {
-            if (viewItem.webView is not null)
-            {
-                viewItem.webView.Dispose();
-            }
+            viewItem.webView?.Dispose();
         });
 
         WebViewList.Update(list => list!.Clear());

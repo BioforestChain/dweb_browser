@@ -69,8 +69,8 @@ public class State<T> : StateBase
 {
 
 
-    Func<T> getter;
-    Func<T, bool> setter;
+    readonly Func<T> getter;
+    readonly Func<T, bool> setter;
     T? cache;
     bool hasCache = false;
     public State(Func<T> getter, Func<T, bool> setter)
@@ -137,11 +137,8 @@ public class State<T> : StateBase
                 caller.AddDep(this);
             }
         }
-        if (force is null)
-        {
-            force = !hasCache;
-        }
-
+        
+        force ??= !hasCache;
 
         if (force is true)
         {
@@ -195,12 +192,12 @@ public class State<T> : StateBase
     }
     public bool Update(Func<T?, bool> updater)
     {
-        return cache is not null ? Set(cache, updater(cache)) : false;
+        return cache is not null && Set(cache, updater(cache));
     }
     public bool Update(Action<T?> updater, bool force = true)
     {
         updater(cache);
-        return cache is not null ? Set(cache, force) : false;
+        return cache is not null && Set(cache, force);
     }
 
     public async IAsyncEnumerable<T> ToStream()

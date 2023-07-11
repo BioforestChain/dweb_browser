@@ -1,7 +1,7 @@
 ﻿
 namespace DwebBrowser.MicroService.Message;
 
-public class IpcStreamPulling : IpcMessage, IpcStream
+public class IpcStreamPulling : IpcMessage, IIpcStream
 {
 
     [JsonPropertyName("stream_id")]

@@ -6,7 +6,7 @@ namespace DwebBrowser.MicroService.Browser;
 
 public class BrowserNMM : IOSNativeMicroModule
 {
-    static Debugger Console = new("BrowserNMM");
+    static readonly Debugger Console = new("BrowserNMM");
     public BrowserNMM() : base("browser.dweb")
     {
         s_controllerList.Add(new(this));

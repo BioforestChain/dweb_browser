@@ -88,7 +88,7 @@ public abstract class Ipc
 
     public event Signal<IpcResponse, Ipc>? OnResponse;
 
-    public event Signal<IpcStream, Ipc>? OnStream;
+    public event Signal<IIpcStream, Ipc>? OnStream;
 
     public event Signal<IpcEvent, Ipc>? OnEvent;
 
@@ -160,7 +160,7 @@ public abstract class Ipc
     {
         /// 这里建立起一个独立的顺序队列，目的是避免处理阻塞
         /// TODO 这里不应该使用 UNLIMITED，而是压力到一定程度方向发送限流的指令
-        var streamChannel = new BufferBlock<(IpcStream, Ipc)>(new DataflowBlockOptions { BoundedCapacity = DataflowBlockOptions.Unbounded });
+        var streamChannel = new BufferBlock<(IIpcStream, Ipc)>(new DataflowBlockOptions { BoundedCapacity = DataflowBlockOptions.Unbounded });
 
         OnMessage += async (ipcMessage, ipc, _) =>
         {
@@ -175,7 +175,7 @@ public abstract class Ipc
                 case IpcEvent ipcEvent:
                     OnEvent?.Emit(ipcEvent, ipc); // 不 Await
                     break;
-                case IpcStream ipcStream:
+                case IIpcStream ipcStream:
                     streamChannel.Post((ipcStream, ipc));
                     break;
             }
@@ -198,7 +198,7 @@ public abstract class Ipc
 
     }
 
-    private LazyBox<Dictionary<int, PromiseOut<IpcResponse>>> _reqResMap = new();
+    private readonly LazyBox<Dictionary<int, PromiseOut<IpcResponse>>> _reqResMap = new();
 
     /// <summary>
     /// 发送请求
@@ -234,7 +234,7 @@ public abstract class Ipc
     public async Task<PureResponse> Request(PureRequest request) =>
         (await Request(request.ToIpcRequest(AllocReqId(), this))).ToPureResponse();
 
-    public int AllocReqId()
+    public static int AllocReqId()
     {
         var reqId = Interlocked.Increment(ref s_req_id_acc);
         Console.Log("AllocReqId", "{0}", reqId);

@@ -2,6 +2,6 @@
 
 public static class DoubleExtensions
 {
-	public static nfloat ToNFloat(this double self) => new nfloat(self / 255f);
+	public static nfloat ToNFloat(this double self) => new(self / 255f);
 }
 
