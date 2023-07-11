@@ -24,7 +24,11 @@
     "strict": true,
     "strictNullChecks": true,
     "noImplicitOverride": true,
-    "types":["deno-ns"]
+    "types":["deno-ns"],
+    "lib": [
+      "dom",
+      "deno.window"
+    ]
   },
   "lint": {
     "rules": {

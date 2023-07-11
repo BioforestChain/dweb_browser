@@ -113,10 +113,12 @@ export class BundleZipGenerator {
         time: new Date(0),
       } satisfies $ZipEntry;
       this.zipGetter = async () =>
-        zipEntriesToZip([
-          ...(await this.getBaseZipEntries(flags.dev)),
-          index_html_file_entry,
-        ]);
+        zipEntriesToZip(
+          this.normalizeZipEntries([
+            ...(await this.getBaseZipEntries(flags.dev)),
+            index_html_file_entry,
+          ])
+        );
     }
     /// 生产模式
     else if (flags.mode === SERVE_MODE.PROD) {
@@ -231,7 +233,10 @@ export class BundleZipGenerator {
         entryMap.set(dirname, { path: dirname, dir: true });
       }
     }
-    return [...entryMap.values()];
+
+    return [...entryMap.values()].sort((a, b) => {
+      return (b.dir ? 1 : 0) - (a.dir ? 1 : 0);
+    });
   }
   private zip: undefined | JSZip;
   /** 获得打包的zip文件 */
