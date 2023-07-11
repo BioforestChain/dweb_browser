@@ -342,6 +342,7 @@
 				F02899AB29FA882C00B8754A /* TabsContainerView.swift */,
 				F09ABFC42A52D7BA00C32145 /* PagingScrollView.swift */,
 				F028998B29F7C3E400B8754A /* TabPageView.swift */,
+				F0B2AB162A03AC40000AD502 /* WebWrapper.swift */,
 				F028999A29F7CC0000B8754A /* TabGridView.swift */,
 				F0E984502A24AC5800F7180A /* GridCellView.swift */,
 			);
@@ -360,7 +361,6 @@
 		F08E10502A08D85A00899DF8 /* Publisher */ = {
 			isa = PBXGroup;
 			children = (
-				F0B2AB162A03AC40000AD502 /* WebWrapper.swift */,
 				F08E103F2A04917600899DF8 /* WebCacheMgr.swift */,
 				F08E10522A08DC9C00899DF8 /* Environment.swift */,
 				F0E984302A21DC6D00F7180A /* WebWrapperMgr.swift */,

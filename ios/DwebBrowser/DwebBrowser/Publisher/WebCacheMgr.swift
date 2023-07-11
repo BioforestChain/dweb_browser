@@ -33,14 +33,18 @@ class WebCache: ObservableObject, Identifiable, Hashable, Codable, Equatable {
     {
         didSet {
             WebCacheMgr.shared.saveCaches()
+            snapshotImage = UIImage.snapshotImage(from: snapshotUrl)
         }
+        
     }
+    @Published var snapshotImage = UIImage.defaultSnapShotImage
     
     init(icon: URL = URL.defaultWebIconURL, showWeb: Bool = false, lastVisitedUrl: URL = emptyURL, title: String = "", snapshotUrl: URL = URL.defaultSnapshotURL) {
         webIconUrl = icon
         self.lastVisitedUrl = lastVisitedUrl
         self.title = title
         self.snapshotUrl = snapshotUrl
+        snapshotImage = UIImage.snapshotImage(from: snapshotUrl)
     }
     
     required init(from decoder: Decoder) throws {
@@ -50,6 +54,7 @@ class WebCache: ObservableObject, Identifiable, Hashable, Codable, Equatable {
         lastVisitedUrl = try container.decodeIfPresent(URL.self, forKey: .lastVisitedUrl) ?? emptyURL
         title = try container.decode(String.self, forKey: .title)
         snapshotUrl = try container.decodeIfPresent(URL.self, forKey: .snapshotUrl) ?? URL.defaultSnapshotURL
+        snapshotImage = UIImage.snapshotImage(from: snapshotUrl)
     }
     
     func encode(to encoder: Encoder) throws {
@@ -126,6 +131,8 @@ class WebCacheMgr: ObservableObject {
         if store.count == 0 {
             store = [
                 //                WebCache(lastVisitedUrl: emptyURL, title: "blank"),
+                WebCache(lastVisitedUrl: URL(string: "https://developer.mozilla.org/en-US/docs/Web/JavaScript")!, title: "1"),
+
                 WebCache(lastVisitedUrl: URL(string: "https://www.apple.com")!, title: "2"),
 
                 WebCache(lastVisitedUrl: URL(string: "https://www.163.com")!, title: "3"),
@@ -135,6 +142,9 @@ class WebCacheMgr: ObservableObject {
                 WebCache(lastVisitedUrl: URL(string: "https://www.yahoo.com")!, title: "6"),
                 WebCache(lastVisitedUrl: URL(string: "https://m.hupu.com/")!, title: "8"),
                 WebCache(lastVisitedUrl: URL(string: "https://sina.cn/")!, title: "9"),
+                
+                WebCache(lastVisitedUrl: URL(string: "https://m.hupu.com/")!, title: "10"),
+                WebCache(lastVisitedUrl: URL(string: "https://sina.cn/")!, title: "11"),
             ]
         }
     }

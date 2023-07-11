@@ -38,7 +38,7 @@ struct GridCell: View {
 
         return ZStack(alignment: .topTrailing) {
             VStack(spacing: 0) {
-                Image(uiImage: .snapshotImage(from: webCache.snapshotUrl))
+                Image(uiImage: webCache.snapshotImage)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
                     .frame(width: gridCellW, height: cellImageH, alignment: .top)

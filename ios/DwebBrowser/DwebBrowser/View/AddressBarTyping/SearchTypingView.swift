@@ -36,7 +36,7 @@ struct SearchTypingView: View {
                 }
             } else {
                 SearchResultView()
-                    .background(.red)
+                    .background(Color.bkColor)
             }
         }
         .animation(.easeInOut, value: addressBar.inputText == "")

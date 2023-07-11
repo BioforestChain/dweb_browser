@@ -125,7 +125,7 @@ extension BrowserWebview: WKScriptMessageHandler, WKNavigationDelegate {
 class WebWrapper: ObservableObject, Identifiable, Hashable, Equatable {
     var id = UUID()
 
-    @Published var webView: BrowserWebview {
+    @Published var webView: WKWebView {
         didSet {
             setupObservers()
         }
@@ -141,7 +141,7 @@ class WebWrapper: ObservableObject, Identifiable, Hashable, Equatable {
     }
 
     private func setupObservers() {
-        func subscriber<Value>(for keyPath: KeyPath<BrowserWebview, Value>) -> NSKeyValueObservation {
+        func subscriber<Value>(for keyPath: KeyPath<WKWebView, Value>) -> NSKeyValueObservation {
             return webView.observe(keyPath, options: [.prior]) { _, change in
                 if change.isPrior {
                     DispatchQueue.main.async {
@@ -161,13 +161,13 @@ class WebWrapper: ObservableObject, Identifiable, Hashable, Equatable {
             subscriber(for: \.canGoBack),
             subscriber(for: \.canGoForward),
             subscriber(for: \.configuration),
-            subscriber(for: \.icon),
+//            subscriber(for: \.icon),
         ]
     }
 
     private var observers: [NSKeyValueObservation] = []
 
-    public subscript<T>(dynamicMember keyPath: KeyPath<BrowserWebview, T>) -> T {
+    public subscript<T>(dynamicMember keyPath: KeyPath<WKWebView, T>) -> T {
         webView[keyPath: keyPath]
     }
 
@@ -196,8 +196,9 @@ struct WebView: View, UIViewRepresentable {
     func makeUIView(context: UIViewRepresentableContext<WebView>) -> WKWebView {
         webView.scrollView.delegate = context.coordinator // Set the coordinator as the scroll view delegate
         webView.scrollView.isScrollEnabled = true // Enable web view's scrolling
-
-        webView.load(URLRequest(url: url))
+//        if webView.estimatedProgress < 0.2{
+            webView.load(URLRequest(url: url))
+//        }
         return webView
     }
 

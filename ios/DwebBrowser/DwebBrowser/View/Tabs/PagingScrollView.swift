@@ -14,6 +14,9 @@ struct PagingScrollView: View {
     @EnvironmentObject var selectedTab: SelectedTab
     @ObservedObject var keyboardHelper = KeyboardHeightHelper()
     private var disabledDragGesture = DragGesture().onChanged { _ in }.onEnded { _ in }
+    init() {
+        print("visiting PagingScrollView init")
+    }
 
     var body: some View {
         GeometryReader { geometry in
@@ -32,8 +35,7 @@ struct PagingScrollView: View {
                                 }
                             }
                             AddressBar(index: index)
-                                .offset(y: addressBarState.isFocused ? -keyboardHelper.keyboardHeight : 0)
-                                .animation(.spring(), value: keyboardHelper.keyboardHeight)
+                                .frame(height: addressBarH)
                                 .gesture(addressBarState.isFocused ? disabledDragGesture : nil) // 根据状态变量决定是否启用拖拽手势
                         }
                         .frame(width: screen_width)

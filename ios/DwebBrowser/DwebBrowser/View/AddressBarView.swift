@@ -20,7 +20,6 @@ struct AddressBar: View {
 
     var isVisible: Bool { return WebWrapperMgr.shared.store.firstIndex(of: webWrapper) == selectedTab.curIndex }
     private var shouldShowProgress: Bool { webWrapper.estimatedProgress > 0.0 && webWrapper.estimatedProgress < 1.0 }
-    
     var body: some View {
         GeometryReader { _ in
             ZStack(alignment: .leading) {
@@ -31,7 +30,7 @@ struct AddressBar: View {
                         progressV
                     }
                     .padding(.horizontal)
-                    
+
                 HStack {
                     addressTextField
 
@@ -44,9 +43,7 @@ struct AddressBar: View {
             .offset(y: 10)
         }
         .background(Color.bkColor)
-        .frame(height: toolbarState.addressBarHeight)
-        .animation(.default, value: toolbarState.addressBarHeight)
-        .transition(.slide)
+        .offset(y: toolbarState.addrBarOffset)
     }
 
     var addressTextField: some View {
@@ -69,8 +66,7 @@ struct AddressBar: View {
                 }
             }
             .onSubmit {
-                guard let url = URL(string: Searcher.baidu.inputHandler(addressBar.inputText)) else { return }
-                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                let url = URL.createUrl(addressBar.inputText)
                 DispatchQueue.main.async {
                     openingLink.clickedLink = url
                     addressBar.isFocused = false
@@ -94,6 +90,9 @@ struct AddressBar: View {
             }
             .frame(width: geometry.size.width, height: geometry.size.height, alignment: .bottom)
             .clipShape(RoundedRectangle(cornerRadius: 8))
+            .onChange(of: webWrapper.estimatedProgress) { progress in
+                printWithDate(msg: "address bar, web index \(index), progress goes \(progress)")
+            }
         }
     }
 

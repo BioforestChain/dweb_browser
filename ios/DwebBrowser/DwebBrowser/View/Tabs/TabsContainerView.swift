@@ -31,6 +31,9 @@ struct TabsContainerView: View {
     }
 
     var body: some View {
+        Self._printChanges()
+
+        return
         GeometryReader { geo in
             // 层级关系  最前<-- 快照(缩放动画）<-- collecitionview  <--  tabPage ( homepage & webview)
 
@@ -38,7 +41,7 @@ struct TabsContainerView: View {
                 TabGridView(animation: animation, gridState: gridState, selectedCellFrame: $selectedCellFrame)
 
                 if isExpanded, !animation.progress.isAnimating() {
-                    Color(.white)
+                    Color.bkColor.ignoresSafeArea()
                 }
                 if isExpanded, !animation.progress.isAnimating() {
                     PagingScrollView()
@@ -70,7 +73,7 @@ struct TabsContainerView: View {
             }
             .onChange(of: toolbarState.shouldExpand) { shouldExpand in
                 if shouldExpand { // 准备放大动画
-                    animation.snapshotImage = UIImage.snapshotImage(from: WebCacheMgr.shared.store[selectedTab.curIndex].snapshotUrl)
+                    animation.snapshotImage = WebCacheMgr.shared.store[selectedTab.curIndex].snapshotImage
                     animation.progress = .startExpanding
                 }
             }
@@ -99,16 +102,19 @@ struct TabsContainerView: View {
                 lastProgress = progress
 
                 if progress == .startShrinking || progress == .startExpanding {
+                    let isExpanding = animation.progress == .startExpanding
+                    
                     printWithDate(msg: "animation : \(progress)")
                     if progress == .startShrinking{
                         gridState.scale = 0.8
                     }
-                    withAnimation(.easeIn(duration: 1)) {
-                        gridState.scale = progress == .startShrinking ? 1 : 0.8
-                        isExpanded = animation.progress == .startExpanding
+                    withAnimation(.easeIn(duration: 0.5)) {
+                        gridState.scale = isExpanding ? 0.8 : 1
+                        isExpanded = isExpanding
+                        toolbarState.addrBarOffset = isExpanding ? 0 : addressBarH
                     }
 
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.05) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.55) {
                         animation.progress = .invisible // change to expanded or shrinked
                         
                         gridState.scale = 1
