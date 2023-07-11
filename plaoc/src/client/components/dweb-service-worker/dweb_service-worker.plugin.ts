@@ -90,10 +90,13 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
     const search = Object.assign(init.search ?? {}, {
       mmid: mmid,
       action: "request",
-      pathname:init.pathname
+      pathname: init.pathname,
     });
-    const config = Object.assign(init, { search:search,base:pub})
-    return await this.buildExternalApiRequest(`/${X_Plaoc_Public_Url}`,config).fetch();
+    const config = Object.assign(init, { search: search, base: pub });
+    return await this.buildExternalApiRequest(
+      `/${X_Plaoc_Public_Url}`,
+      config
+    ).fetch();
   }
   // http://localhost:22206/?X-Dweb-Host=external.demo.www.bfmeta.info.dweb%3A443
 }

@@ -49,9 +49,9 @@ export class ElectronBrowserView extends LitElement {
           preload: this.preload,
         },
       })
-      .then((res) => {
+      .then((res?: Remote<Electron.BrowserView>) => {
         this.browserViewRemote = res;
-        return res as unknown as Electron.BrowserView;
+        return res;
       });
     /// 等待创建完成
     const browserView = (this.browserView = this

@@ -102,7 +102,7 @@ class DwebServiceWorker extends BaseEvent<keyof DwebWorkerEventMap> {
    * @param listenerFunc
    * @returns
    */
-  addEventListener<K extends keyof DwebWorkerEventMap>(
+  override addEventListener<K extends keyof DwebWorkerEventMap>(
     eventName: K,
     listenerFunc: ListenerCallback<DwebWorkerEventMap[K]>,
     options?: boolean | AddEventListenerOptions
@@ -119,7 +119,7 @@ class DwebServiceWorker extends BaseEvent<keyof DwebWorkerEventMap> {
   }
 
   /**移除监听器 */
-  removeEventListener<K extends keyof DwebWorkerEventMap>(
+  override removeEventListener<K extends keyof DwebWorkerEventMap>(
     eventName: K,
     listenerFunc: ListenerCallback<DwebWorkerEventMap[K]>,
     options?: boolean | EventListenerOptions
@@ -164,7 +164,7 @@ class UpdateController extends BaseEvent<keyof UpdateControllerMap> {
    * @param listenerFunc
    * @returns
    */
-  addEventListener<K extends keyof UpdateControllerMap>(
+  override addEventListener<K extends keyof UpdateControllerMap>(
     eventName: K,
     listenerFunc: ListenerCallback<UpdateControllerMap[K]>,
     options?: boolean | AddEventListenerOptions
@@ -173,7 +173,7 @@ class UpdateController extends BaseEvent<keyof UpdateControllerMap> {
   }
 
   /**移除监听器 */
-  removeEventListener<K extends keyof UpdateControllerMap>(
+  override removeEventListener<K extends keyof UpdateControllerMap>(
     eventName: K,
     listenerFunc: ListenerCallback<UpdateControllerMap[K]>,
     options?: boolean | EventListenerOptions

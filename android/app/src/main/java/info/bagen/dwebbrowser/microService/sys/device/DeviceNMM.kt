@@ -18,6 +18,12 @@ class DeviceNMM: NativeMicroModule("device.sys.dweb") {
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext)
  {
         apiRouting = routes(
+            /** 获取设备唯一标识uuid*/
+            "/getUUID" bind Method.GET to defineHandler { request ->
+                val uuid = Device.getId()
+                debugDevice("getUUID",uuid)
+               return@defineHandler uuid
+            },
             /** 获取手机基本信息*/
             "/info" bind Method.GET to defineHandler { request ->
                 val result = deviceInfo.getDeviceInfo()
