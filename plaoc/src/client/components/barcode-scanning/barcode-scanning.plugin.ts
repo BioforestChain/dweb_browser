@@ -87,6 +87,11 @@ export class BarcodeScannerPlugin extends BasePlugin {
   async stop() {
     return await this.fetchApi(`/stop`).boolean();
   }
+
+  @bindThis
+  async getSupportedFormats() {
+    return (await this.fetchApi("/get_supported_formats")).json();
+  }
 }
 
 export type DeCodeType = {

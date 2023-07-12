@@ -55,16 +55,26 @@ if ("ipcRenderer" in self) {
 //   }
 // }
 
+const formats = ["qr_code", "code_39", "codabar", "ean_13"];
 const barcodeDetector = new BarcodeDetector({
-  formats: ["qr_code", "code_39", "codabar", "ean_13"],
+  formats: formats,
 });
 
+let processResolveId: number | undefined;
+let stopProcessResolveId: number | undefined;
 // 解析
 async function process(u8a: Uint8Array, resolveId: number) {
+  processResolveId = resolveId;
   const blob = new Blob([u8a], { type: "image/jpeg" });
   const img = new Image();
   img.src = URL.createObjectURL(blob);
   img.onload = () => {
+    // 检查是否需要停止解析
+    if (resolveId === stopProcessResolveId) {
+      mainApis.operationCallback([], resolveId);
+      processResolveId = undefined;
+      stopProcessResolveId = undefined;
+    }
     // 在图像加载完成后执行以下步骤
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d")!;
@@ -75,13 +85,18 @@ async function process(u8a: Uint8Array, resolveId: number) {
     barcodeDetector
       .detect(imageData)
       .then((barcodes) => {
-        const data = barcodes.map((barcode) => {
-          console.log("barcode.rawValue: ", barcode.rawValue);
-          return barcode.rawValue;
-        });
-        console.log("data: ", data);
-        mainApis.operationCallback(data, resolveId);
-        // return barcodes;
+        // 检查是否需要停止解析
+        if (resolveId === stopProcessResolveId) {
+          mainApis.operationCallback([], resolveId);
+        } else {
+          const data = barcodes.map((barcode) => {
+            return barcode.rawValue;
+          });
+          console.log("data: ", data);
+          mainApis.operationCallback(data, resolveId);
+        }
+        processResolveId = undefined;
+        stopProcessResolveId = undefined;
       })
       .catch((err: Error) => {
         mainApis.operationCallback(err, resolveId);
@@ -89,8 +104,24 @@ async function process(u8a: Uint8Array, resolveId: number) {
   };
 }
 
+// 停止正在解析的二维码的操作；
+async function stop(resolveId: number) {
+  if (processResolveId === undefined) {
+    // 当前没有正在解析的操作
+    return mainApis.operationCallback(true, resolveId);
+  }
+  stopProcessResolveId = processResolveId;
+  mainApis.operationCallback(true, resolveId);
+}
+
+async function getSupportedFormats(resolveId: number) {
+  mainApis.operationCallback(formats, resolveId);
+}
+
 export const APIS = {
   process,
+  stop,
+  getSupportedFormats,
 };
 
 Object.assign(globalThis, APIS);

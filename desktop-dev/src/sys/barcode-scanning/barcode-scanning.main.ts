@@ -3,7 +3,6 @@ import type { Remote } from "comlink";
 import type { $OnFetch, FetchEvent } from "../../core/helper/ipcFetchHelper.ts";
 import { Ipc, IpcHeaders, IpcResponse } from "../../core/ipc/index.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
-import { OnFetchAdapter } from "../../helper/onFetchAdapter.ts";
 import { createComlinkNativeWindow } from "../../helper/openNativeWindow.ts";
 import {
   createHttpDwebServer,
@@ -13,7 +12,6 @@ type $APIS = typeof import("./assets/exportApis.ts")["APIS"];
 
 export class BarcodeScanningNMM extends NativeMicroModule {
   mmid = "barcode-scanning.sys.dweb" as const;
-  private _onFetchAdapter = new OnFetchAdapter();
   private _allocId = 0;
   private _operationResolveMap = new Map<number, { (arg: any): void }>();
   private _responseHeader = new IpcHeaders().init(
@@ -46,6 +44,17 @@ export class BarcodeScanningNMM extends NativeMicroModule {
     this.onFetch(async (event: FetchEvent) => {
       if (event.method === "POST" && event.pathname === "/process") {
         return this._processHandler(event);
+      }
+
+      if (event.method === "GET" && event.pathname === "/stop") {
+        return this._stopHandler(event);
+      }
+
+      if (
+        event.method === "GET" &&
+        event.pathname === "/get_supported_formats"
+      ) {
+        return this._getSupportedFormats(event);
       }
     });
   };
@@ -85,6 +94,43 @@ export class BarcodeScanningNMM extends NativeMicroModule {
     );
   };
 
+  private _stopHandler: $OnFetch = async (event: FetchEvent) => {
+    if (this._browserWindow === undefined) {
+      await this._initUI();
+    }
+    const resolveId = this._allocId++;
+    const resPromise = new Promise((resolve) =>
+      this._operationResolveMap.set(resolveId, resolve)
+    );
+    this._apis?.stop(resolveId);
+    const res = await resPromise;
+    return IpcResponse.fromJson(
+      event.ipcRequest.req_id,
+      200,
+      this._responseHeader,
+      res,
+      event.ipc
+    );
+  };
+  private _getSupportedFormats: $OnFetch = async (event: FetchEvent) => {
+    if (this._browserWindow === undefined) {
+      await this._initUI();
+    }
+    const resolveId = this._allocId++;
+    const resPromise = new Promise((resolve) =>
+      this._operationResolveMap.set(resolveId, resolve)
+    );
+    this._apis?.getSupportedFormats(resolveId);
+    const res = await resPromise;
+    return IpcResponse.fromJson(
+      event.ipcRequest.req_id,
+      200,
+      this._responseHeader,
+      res,
+      event.ipc
+    );
+  };
+
   private _initUI = async () => {
     const bw = await this._createBrowserWindow(this._rootUrl);
     this._apis = bw.getApis<$APIS>();
@@ -105,7 +151,7 @@ export class BarcodeScanningNMM extends NativeMicroModule {
           nodeIntegration: true,
           contextIsolation: false,
         },
-        show: true,
+        show: false,
       },
       async (win) => this._exports
     );

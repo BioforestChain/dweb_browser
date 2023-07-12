@@ -45,6 +45,13 @@ const taskPhoto = defineLogAction(
   { name: "taskPhoto", args: [result], logPanel: $logPanel }
 );
 
+const getSupportedformats = defineLogAction(
+  async () => {
+    result.value = await barcodeScanner.getSupportedFormats();
+  },
+  { name: "supportedFormats", args: [result], logPanel: $logPanel }
+);
+
 const cameraSource = ref<CameraSource>("PHOTOS" as never);
 
 // const getPhoto = defineLogAction(async () => {
@@ -65,6 +72,7 @@ const cameraSource = ref<CameraSource>("PHOTOS" as never);
       </FieldLabel>
       <button class="inline-block rounded-full btn btn-accent" @click="taskPhoto">scanner</button>
       <button class="inline-block rounded-full btn btn-accent" @click="onStop">stop</button>
+      <button class="inline-block rounded-full btn btn-accent" @click="getSupportedformats">getSupportedFormats</button>
     </article>
 
     <!-- <article class="card-body">
