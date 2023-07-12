@@ -111,7 +111,7 @@ export class JsProcessMicroModule implements $MicroModule {
       [];
     return {
       raw: protocols.includes("raw"),
-      message_pack: protocols.includes("message_pack"),
+      cbor: protocols.includes("cbor"),
       protobuf: protocols.includes("protobuf"),
     } satisfies $IpcSupportProtocols;
   })();
@@ -132,7 +132,7 @@ export class JsProcessMicroModule implements $MicroModule {
         const protocols = env["ipc-support-protocols"] ?? "";
         const ipc_support_protocols = {
           raw: protocols.includes("raw"),
-          message_pack: protocols.includes("message_pack"),
+          cbor: protocols.includes("cbor"),
           protobuf: protocols.includes("protobuf"),
         } satisfies $IpcSupportProtocols;
         let rote = IPC_ROLE.CLIENT as IPC_ROLE;

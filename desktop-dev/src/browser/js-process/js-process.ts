@@ -388,7 +388,7 @@ export class JsProcessNMM extends NativeMicroModule {
     const env = JSON.stringify({
       host: httpDwebServer.startResult.urlInfo.host,
       debug: "true",
-      "ipc-support-protocols": "raw message_pack",
+      "ipc-support-protocols": "raw cbor",
     } satisfies Record<string, string>);
 
     /**
@@ -460,7 +460,7 @@ export class JsProcessNMM extends NativeMicroModule {
     mmid: string
   ) {
     const env = JSON.stringify({
-      "ipc-support-protocols": "raw message_pack",
+      "ipc-support-protocols": "raw cbor",
     } satisfies Record<string, string>);
     /**
      * 创建一个通往 worker 的消息通道

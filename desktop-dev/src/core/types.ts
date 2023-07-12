@@ -4,7 +4,7 @@ export type $DWEB_DEEPLINK = `dweb:${string}`;
  * 通讯支持的传输协议
  */
 export interface $IpcSupportProtocols {
-  message_pack: boolean;
+  cbor: boolean;
   protobuf: boolean;
   raw: boolean;
 }

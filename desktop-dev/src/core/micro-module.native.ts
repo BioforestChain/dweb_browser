@@ -31,7 +31,7 @@ connectAdapterManager.append((fromMM, toMM, reason) => {
 
 export abstract class NativeMicroModule extends MicroModule {
   readonly ipc_support_protocols: $IpcSupportProtocols = {
-    message_pack: true,
+    cbor: true,
     protobuf: true,
     raw: true,
   };

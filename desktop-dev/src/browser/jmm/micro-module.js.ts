@@ -46,7 +46,7 @@ connectAdapterManager.append(async (fromMM, toMM, reason) => {
  */
 export class JsMicroModule extends MicroModule {
   readonly ipc_support_protocols: $IpcSupportProtocols = {
-    message_pack: true,
+    cbor: true,
     protobuf: false,
     raw: true,
   };

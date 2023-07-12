@@ -18,7 +18,7 @@ export class MessagePortIpc extends Ipc {
     readonly role: IPC_ROLE = IPC_ROLE.CLIENT,
     readonly self_support_protocols: $IpcSupportProtocols = {
       raw: true,
-      message_pack: true,
+      cbor: true,
       protobuf: false,
     }
   ) {
@@ -27,15 +27,15 @@ export class MessagePortIpc extends Ipc {
     /** messageport内置JS对象解码，但也要看对方是否支持接受，比如Android层就只能接受String类型的数据 */
     this._support_raw =
       self_support_protocols.raw && this.remote.ipc_support_protocols.raw;
-    /** JS 环境里支持 message_pack 协议，但也要看对等方是否支持 */
-    this._support_message_pack =
-      self_support_protocols.message_pack &&
-      this.remote.ipc_support_protocols.message_pack;
+    /** JS 环境里支持 cbor 协议，但也要看对等方是否支持 */
+    this._support_cbor =
+      self_support_protocols.cbor &&
+      this.remote.ipc_support_protocols.cbor;
 
     port.addEventListener("message", (event) => {
       const message = this.support_raw
         ? $messageToIpcMessage(event.data, this)
-        : this.support_message_pack
+        : this.support_cbor
         ? $messagePackToIpcMessage(event.data, this)
         : $jsonToIpcMessage(event.data, this);
       if (message === undefined) {
@@ -74,7 +74,7 @@ export class MessagePortIpc extends Ipc {
 
     if (this.support_raw) {
       message_data = message_raw;
-    } else if (this.support_message_pack) {
+    } else if (this.support_cbor) {
       message_data = encode(message_raw);
     } else {
       message_data = JSON.stringify(message_raw);

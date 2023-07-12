@@ -54,7 +54,7 @@ export const createMockModuleServerIpc = (mmid: $MMID, apiUrl = BASE_URL) => {
       {
         mmid,
         ipc_support_protocols: {
-          message_pack: false,
+          cbor: false,
           protobuf: false,
           raw: false,
         },

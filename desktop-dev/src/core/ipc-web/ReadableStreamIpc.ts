@@ -26,15 +26,15 @@ export class ReadableStreamIpc extends Ipc {
     readonly role: IPC_ROLE,
     readonly self_support_protocols: $IpcSupportProtocols = {
       raw: false,
-      message_pack: true,
+      cbor: true,
       protobuf: false,
     }
   ) {
     super();
-    /** JS 环境里支持 message_pack 协议 */
-    this._support_message_pack =
-      self_support_protocols.message_pack &&
-      remote.ipc_support_protocols.message_pack;
+    /** JS 环境里支持 cbor 协议 */
+    this._support_cbor =
+      self_support_protocols.cbor &&
+      remote.ipc_support_protocols.cbor;
   }
   #rso = new ReadableStreamOut<Uint8Array>();
   /** 这是输出流，给外部读取用的 */
@@ -80,7 +80,7 @@ export class ReadableStreamIpc extends Ipc {
       const data = await reader.readBinary(size);
 
       /// 开始处理数据并做响应
-      const message = this.support_message_pack
+      const message = this.support_cbor
         ? $messagePackToIpcMessage(data, this)
         : $jsonToIpcMessage(simpleDecoder(data, "utf8"), this);
 
@@ -132,7 +132,7 @@ export class ReadableStreamIpc extends Ipc {
       message_raw = message;
     }
 
-    const message_data = this.support_message_pack
+    const message_data = this.support_cbor
       ? encode(message_raw)
       : simpleEncoder(JSON.stringify(message_raw), "utf8");
     this._len[0] = message_data.length;

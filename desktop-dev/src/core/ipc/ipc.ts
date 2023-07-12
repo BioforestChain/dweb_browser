@@ -33,10 +33,10 @@ export abstract class Ipc {
    * 二进制传输在网络相关的服务里被支持，里效率会更高，但前提是对方有 MessagePack 的编解码能力
    * 否则 JSON 是通用的传输协议
    */
-  get support_message_pack() {
-    return this._support_message_pack;
+  get support_cbor() {
+    return this._support_cbor;
   }
-  protected _support_message_pack = false;
+  protected _support_cbor = false;
   /**
    * 是否支持使用 Protobuf 直接传输二进制
    * 在网络环境里，protobuf 是更加高效的协议
@@ -60,7 +60,7 @@ export abstract class Ipc {
   get support_binary() {
     return (
       this._support_binary ??
-      (this.support_message_pack || this.support_protobuf || this.support_raw)
+      (this.support_cbor || this.support_protobuf || this.support_raw)
     );
   }
 

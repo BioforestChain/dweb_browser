@@ -45,7 +45,7 @@ export class Server_api extends _Server_api {
         {
           mmid: mmid,
           ipc_support_protocols: {
-            message_pack: false,
+            cbor: false,
             protobuf: false,
             raw: false,
           },
