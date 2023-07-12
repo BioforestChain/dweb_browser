@@ -164,7 +164,7 @@ export class MWebviewController {
     const itemIndex = this._allBrowserView.findIndex(
       (item) => item.view === view
     );
-    if (!itemIndex || itemIndex === -1) {
+    if (itemIndex === -1) {
       return false;
     }
 
