@@ -78,8 +78,7 @@ export class MultiWebviewNMM extends NativeMicroModule {
           for (const viewItem of mww.getAllBrowserView()) {
             const url = new URL(viewItem.view.webContents.getURL());
             if (url.host === args.host) {
-              changed = true;
-              mww.deleteBrowserView(viewItem.view);
+              changed = mww.deleteBrowserView(viewItem.view);
             }
           }
         }
@@ -121,6 +120,7 @@ export class MultiWebviewNMM extends NativeMicroModule {
   ) {
     const mww = await getOrOpenMWebViewWindow(clientIpc);
     const view = mww.createBrowserView(args.url);
+    console.log("", "_open", args.url);
     return view.webContents.id;
   }
 

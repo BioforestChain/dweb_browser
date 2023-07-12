@@ -164,10 +164,12 @@ export class MWebviewController {
     const itemIndex = this._allBrowserView.findIndex(
       (item) => item.view === view
     );
-    if (!itemIndex) {
+    if (!itemIndex || itemIndex === -1) {
       return false;
     }
+
     this.win.removeBrowserView(view);
+
     view.webContents.close();
 
     this._allBrowserView.splice(itemIndex, 1);

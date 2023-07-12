@@ -4,15 +4,15 @@ export class HTMLBluetoothElement extends HTMLElement {
   plugin = bluetoothPlugin;
 
   async open() {
-    return this.plugin.open();
+    return await this.plugin.open();
   }
 
   async close() {
-    return this.plugin.close();
+    return await this.plugin.close();
   }
 
   async requestAndConnectDevice(options?: RequestDeviceOptions) {
-    return this.plugin.requestAndConnectDevice(options);
+    return await this.plugin.requestAndConnectDevice(options);
   }
 }
 
