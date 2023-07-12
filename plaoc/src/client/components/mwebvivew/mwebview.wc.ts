@@ -1,4 +1,4 @@
-import { webviewPlugin } from "./webview.plugin.ts";
+import { webviewPlugin } from "./mwebview.plugin.ts";
 
 export class HTMLWebviewElement extends HTMLElement {
   static readonly tagName = "dweb-webview";

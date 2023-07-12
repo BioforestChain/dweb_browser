@@ -7,6 +7,7 @@ export * from "./config/index.ts";
 export * from "./device/index.ts";
 export * from "./dweb-service-worker/index.ts";
 export * from "./haptics/index.ts";
+export * from "./mwebvivew/index.ts";
 export * from "./navigation-bar/index.ts";
 export * from "./network/index.ts";
 export * from "./safe-area/index.ts";
@@ -16,6 +17,5 @@ export * from "./status-bar/index.ts";
 export * from "./toast/index.ts";
 export * from "./torch/index.ts";
 export * from "./virtual-keyboard/index.ts";
-export * from "./webvivew/index.ts";
 
 // export * from "./file-system/index.ts" 暂不开放

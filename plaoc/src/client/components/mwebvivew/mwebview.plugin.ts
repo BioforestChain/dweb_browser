@@ -1,6 +1,6 @@
 import { bindThis } from "../../helper/bindThis.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
-import { WebViewItem } from "./webview.type.ts";
+import { WebViewItem } from "./mwebview.type.ts";
 
 export class WebviewPlugin extends BasePlugin {
   constructor() {
