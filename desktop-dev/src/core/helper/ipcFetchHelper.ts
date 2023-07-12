@@ -79,23 +79,25 @@ const $throw = (err: Error) => {
 export const fetchHanlderFactory = {
   NoFound: () =>
     fetchEnd(
-      (event, res) => res ?? $throw(new FetchError("No Found", { status: 404 }))
+      (_event, res) =>
+        res ?? $throw(new FetchError("No Found", { status: 404 }))
     ),
 
   Forbidden: () =>
     fetchEnd(
-      (event, res) =>
+      (_event, res) =>
         res ?? $throw(new FetchError("Forbidden", { status: 403 }))
     ),
   BadRequest: () =>
     fetchEnd(
-      (event, res) =>
+      (_event, res) =>
         res ?? $throw(new FetchError("Bad Request", { status: 400 }))
     ),
   InternalServerError: (message = "Internal Server Error") =>
     fetchEnd(
-      (event, res) => res ?? $throw(new FetchError(message, { status: 500 }))
+      (_event, res) => res ?? $throw(new FetchError(message, { status: 500 }))
     ),
+  // deno-lint-ignore no-explicit-any
 } satisfies Record<string, (...args: any[]) => $AnyFetchHanlder>;
 /**
  * 一个通用的 ipcRequest 处理器
@@ -104,7 +106,9 @@ export const fetchHanlderFactory = {
 export const createFetchHandler = (onFetchs: Iterable<$OnFetch>) => {
   const onFetchHanlders: $AnyFetchHanlder[] = [...onFetchs];
 
+  // deno-lint-ignore ban-types
   const extendsTo = <T extends {}>(_to: T) => {
+    // deno-lint-ignore no-explicit-any
     const wrapFactory = <T extends (...args: any[]) => $AnyFetchHanlder>(
       factory: T
     ) => {
@@ -174,7 +178,7 @@ export const createFetchHandler = (onFetchs: Iterable<$OnFetch>) => {
 
     for (const handler of onFetchHanlders) {
       try {
-        let result: $OnFetchReturn;
+        let result: $OnFetchReturn = {};
         if (FETCH_MID_SYMBOL in handler) {
           if (res !== undefined) {
             result = await handler(res, event);
@@ -333,6 +337,7 @@ export class FetchEvent {
   /** Takes a `Response` stream and reads it to completion. It returns a promise
    * that resolves with the result of parsing the body text as JSON.
    */
+  // deno-lint-ignore no-explicit-any
   json<T = any>() {
     return this.request.json() as Promise<T>;
   }

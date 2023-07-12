@@ -60,7 +60,7 @@ suspend fun startDwebBrowser(): DnsNMM {
     )
 
     DEVELOPER.WaterBang -> debugTags.addAll(
-      listOf( "dwebview", "mwebview","browser","http","fetch")
+      listOf( "dwebview", "mwebview","Device","http","fetch")
     )
 
     else -> debugTags.addAll(
@@ -138,7 +138,7 @@ suspend fun startDwebBrowser(): DnsNMM {
 
     DEVELOPER.WaterBang -> listOf(
       browserNMM.mmid,
-//      plaocDemoJMM.mmid,
+      plaocDemoJMM.mmid,
 //      desktopDemoJMM.mmid,
     )
 

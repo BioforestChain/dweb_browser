@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import FieldLabel from "../components/FieldLabel.vue";
-import LogPanel, { toConsole, defineLogAction } from "../components/LogPanel.vue";
+import LogPanel, { toConsole, } from "../components/LogPanel.vue";
 import type { HTMLDeviceElement } from "../plugin";
-import { reactive } from "vue";
 
 const title = "device";
 const $deviceElement = ref<HTMLDeviceElement>();

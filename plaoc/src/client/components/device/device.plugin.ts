@@ -8,9 +8,8 @@ export class DevicePlugin extends BasePlugin {
   }
 
   @bindThis
-  async getUUID(): Promise<$ResponseUUIDData> {
-    const res = await (await this.fetchApi(`/uuid`)).json();
-    return res;
+  getUUID(): Promise<$ResponseUUIDData> {
+    return this.fetchApi(`/uuid`).object<$ResponseUUIDData>();
   }
 }
 
