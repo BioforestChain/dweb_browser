@@ -36,6 +36,8 @@ struct PagingScrollView: View {
                             }
                             AddressBar(index: index)
                                 .frame(height: addressBarH)
+                                .offset(y: addressBarState.isFocused ? -keyboardHelper.keyboardHeight : 0)
+                                .animation(.spring(), value: keyboardHelper.keyboardHeight)
                                 .gesture(addressBarState.isFocused ? disabledDragGesture : nil) // 根据状态变量决定是否启用拖拽手势
                         }
                         .frame(width: screen_width)
