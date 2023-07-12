@@ -69,6 +69,12 @@
 		F35E2F212A5D3E580034DF6F /* KeyboardHeightHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = F35E2F202A5D3E580034DF6F /* KeyboardHeightHelper.swift */; };
 		F35E2F222A5D3F780034DF6F /* KeyboardHeightHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = F35E2F202A5D3E580034DF6F /* KeyboardHeightHelper.swift */; };
 		F39B4BB62A57F1A90030B5BB /* BridgeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0506ADA2A4A78920042F0C2 /* BridgeManager.swift */; };
+		F3D34A9F2A5E471F000E9B8F /* ScannerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3D34A9C2A5E471F000E9B8F /* ScannerViewController.swift */; };
+		F3D34AA02A5E471F000E9B8F /* CodeScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3D34A9D2A5E471F000E9B8F /* CodeScanner.swift */; };
+		F3D34AA12A5E471F000E9B8F /* CodeScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3D34A9E2A5E471F000E9B8F /* CodeScannerView.swift */; };
+		F3D34AA92A5E81E3000E9B8F /* CodeScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3D34A9E2A5E471F000E9B8F /* CodeScannerView.swift */; };
+		F3D34AAA2A5E81E6000E9B8F /* CodeScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3D34A9D2A5E471F000E9B8F /* CodeScanner.swift */; };
+		F3D34AAB2A5E81E9000E9B8F /* ScannerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3D34A9C2A5E471F000E9B8F /* ScannerViewController.swift */; };
 		F3D5AA952A52BF99007C93D0 /* DwebBrowserFramework.h in Headers */ = {isa = PBXBuildFile; fileRef = F3D5AA942A52BF99007C93D0 /* DwebBrowserFramework.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		F3D5AA982A52BF99007C93D0 /* DwebBrowserFramework.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3D5AA922A52BF99007C93D0 /* DwebBrowserFramework.framework */; };
 		F3D5AA992A52BF99007C93D0 /* DwebBrowserFramework.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F3D5AA922A52BF99007C93D0 /* DwebBrowserFramework.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -219,6 +225,9 @@
 		F34A47692A4D73D4001E105A /* CombinePublisher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CombinePublisher.swift; sourceTree = "<group>"; };
 		F34A476C2A4D74F3001E105A /* DownloadAppManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadAppManager.swift; sourceTree = "<group>"; };
 		F35E2F202A5D3E580034DF6F /* KeyboardHeightHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardHeightHelper.swift; sourceTree = "<group>"; };
+		F3D34A9C2A5E471F000E9B8F /* ScannerViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ScannerViewController.swift; sourceTree = "<group>"; };
+		F3D34A9D2A5E471F000E9B8F /* CodeScanner.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CodeScanner.swift; sourceTree = "<group>"; };
+		F3D34A9E2A5E471F000E9B8F /* CodeScannerView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CodeScannerView.swift; sourceTree = "<group>"; };
 		F3D5AA922A52BF99007C93D0 /* DwebBrowserFramework.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = DwebBrowserFramework.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F3D5AA942A52BF99007C93D0 /* DwebBrowserFramework.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DwebBrowserFramework.h; sourceTree = "<group>"; };
 		F3D912E42A56663600BCBE4E /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX13.3.sdk/System/Library/Frameworks/CoreData.framework; sourceTree = DEVELOPER_DIR; };
@@ -284,6 +293,7 @@
 		F028998429F7C3B100B8754A /* View */ = {
 			isa = PBXGroup;
 			children = (
+				F3D34A9B2A5E46FD000E9B8F /* Scan */,
 				F0531F2C2A386EF7001FBE06 /* AddressBarTyping */,
 				F0B231D52A301EF4001EEFB8 /* Sheet */,
 				F05A7F1F2A0CDF0D00FE4B32 /* Tabs */,
@@ -450,6 +460,16 @@
 			path = Bridge;
 			sourceTree = "<group>";
 		};
+		F3D34A9B2A5E46FD000E9B8F /* Scan */ = {
+			isa = PBXGroup;
+			children = (
+				F3D34A9D2A5E471F000E9B8F /* CodeScanner.swift */,
+				F3D34A9E2A5E471F000E9B8F /* CodeScannerView.swift */,
+				F3D34A9C2A5E471F000E9B8F /* ScannerViewController.swift */,
+			);
+			path = Scan;
+			sourceTree = "<group>";
+		};
 		F3D5AA932A52BF99007C93D0 /* DwebBrowserFramework */ = {
 			isa = PBXGroup;
 			children = (
@@ -586,7 +606,9 @@
 			files = (
 				F34A476A2A4D73D4001E105A /* CombinePublisher.swift in Sources */,
 				F08E10532A08DC9C00899DF8 /* Environment.swift in Sources */,
+				F3D34AA02A5E471F000E9B8F /* CodeScanner.swift in Sources */,
 				F0AF2C202A4BD9100005619B /* BookmarkCoreDataManager.swift in Sources */,
+				F3D34AA12A5E471F000E9B8F /* CodeScannerView.swift in Sources */,
 				F028999129F7C4AA00B8754A /* View+snapshot.swift in Sources */,
 				F0531F1C2A3463C4001FBE06 /* NoResultView.swift in Sources */,
 				F0AF2C1E2A4BD9100005619B /* DataController.swift in Sources */,
@@ -621,6 +643,7 @@
 				F0B231D02A2DDBFD001EEFB8 /* Color+Hex.swift in Sources */,
 				F0531EFB2A3458AC001FBE06 /* Date+format.swift in Sources */,
 				F0531F092A3461FA001FBE06 /* MenuView.swift in Sources */,
+				F3D34A9F2A5E471F000E9B8F /* ScannerViewController.swift in Sources */,
 				F028998829F7C3DC00B8754A /* BrowserView.swift in Sources */,
 				F028998929F7C3DC00B8754A /* ToolbarView.swift in Sources */,
 				F0E984512A24AC5800F7180A /* GridCellView.swift in Sources */,
@@ -652,6 +675,7 @@
 				F3D5AAAA2A52C1C5007C93D0 /* DownloadAppManager.swift in Sources */,
 				F3D5AAAB2A52C1C5007C93D0 /* BridgeManager.swift in Sources */,
 				F3D5AAAD2A52C1C5007C93D0 /* APPModel.swift in Sources */,
+				F3D34AA92A5E81E3000E9B8F /* CodeScannerView.swift in Sources */,
 				F3D5AAAE2A52C1C5007C93D0 /* DownloadImageViewModel.swift in Sources */,
 				F3D5AAAF2A52C1C5007C93D0 /* DownloadButtonView.swift in Sources */,
 				F3D5AAB02A52C1C5007C93D0 /* CustomUIScrollView.swift in Sources */,
@@ -662,6 +686,7 @@
 				F3D5AAB42A52C1C5007C93D0 /* BrowserView.swift in Sources */,
 				F3D5AAB52A52C1C5007C93D0 /* const.swift in Sources */,
 				F3D5AAB62A52C1C5007C93D0 /* Url+Validator.swift in Sources */,
+				F3D34AAB2A5E81E9000E9B8F /* ScannerViewController.swift in Sources */,
 				F3D5AAB72A52C1C5007C93D0 /* Color+Hex.swift in Sources */,
 				F3D5AAB82A52C1C5007C93D0 /* Date+format.swift in Sources */,
 				F3D5AAB92A52C1C5007C93D0 /* View+ancester+keyboard.swift in Sources */,
@@ -701,6 +726,7 @@
 				F3D5AADB2A52C1C5007C93D0 /* MenuCell.swift in Sources */,
 				F3D5AADC2A52C1C5007C93D0 /* Tools.swift in Sources */,
 				F3D5AADD2A52C1C5007C93D0 /* HomePageView.swift in Sources */,
+				F3D34AAA2A5E81E6000E9B8F /* CodeScanner.swift in Sources */,
 				F3D5AADE2A52C1C5007C93D0 /* TabsContainerView.swift in Sources */,
 				F3D5AADF2A52C1C5007C93D0 /* TabPageView.swift in Sources */,
 				F3D5AAE02A52C1C5007C93D0 /* TabGridView.swift in Sources */,
@@ -847,6 +873,7 @@
 				DEVELOPMENT_TEAM = F9M4UWUYYN;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "We need to access your camera for scanning QR code";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -878,6 +905,7 @@
 				DEVELOPMENT_TEAM = F9M4UWUYYN;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "We need to access your camera for scanning QR code";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

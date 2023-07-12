@@ -13,13 +13,16 @@ struct ToolbarView: View {
     @EnvironmentObject var selectedTab: SelectedTab
     
     @EnvironmentObject var addressBarState: AddressBarState
-    
+    @EnvironmentObject var openingLink: OpeningLink
+    @EnvironmentObject var addressBar: AddressBarState
     @EnvironmentObject var showSheet: ShowSheet
     @ObservedObject var wrapperMgr = WebWrapperMgr.shared
     
     private let itemSize = CGSize(width: 28, height: 28)
     @State private var toolbarHeight: CGFloat = toolBarH
 //    @State private var : Bool = true
+    
+    @State private var isPresentingScanner = false
     
     var body: some View {
         if toolbarState.shouldExpand {
@@ -71,6 +74,7 @@ struct ToolbarView: View {
                 if WebCacheMgr.cache(at: selectedTab.curIndex).shouldShowWeb {
                     BiColorButton(size: itemSize, imageName: "scan", disabled: false) {
                         print("scan qrcode")
+                        isPresentingScanner = true
                     }
                 } else {
                     BiColorButton(size: itemSize, imageName: "add", disabled: false) {
@@ -111,6 +115,21 @@ struct ToolbarView: View {
             }
         }
         .clipped()
+        .sheet(isPresented: $isPresentingScanner) {
+            CodeScannerView(codeTypes: [.qr], showViewfinder: true) { response in
+                if case let .success(result) = response {
+                    //TODO  扫描结果result.string
+                    print(result.string)
+                    isPresentingScanner = false
+                    addressBar.inputText = result.string
+                    let url = URL.createUrl(addressBar.inputText)
+                    DispatchQueue.main.async {
+                        openingLink.clickedLink = url
+                        addressBar.isFocused = false
+                    }
+                }
+            }
+        }
     }
 }
 
