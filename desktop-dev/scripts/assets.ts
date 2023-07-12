@@ -38,10 +38,16 @@ export const assetsTasks = new ConTasks(
       cmd: "npx",
       args: "vite build src/std/bluetooth/assets/ --outDir=../../../../electron/assets/bluetooth --emptyOutDir -l info -c scripts/electron-vite.config.ts",
       logLineFilter: (log) =>
-        log.includes("../../../../electron/assets/std/bluetooth/") ===
-        false,
+        log.includes("../../../../electron/assets/std/bluetooth/") === false,
       devAppendArgs: "--minify=false --watch",
-    }
+    },
+    "barcode-scanning.html": {
+      cmd: "npx",
+      args: "vite build src/sys/barcode-scanning/assets/ --outDir=../../../../electron/assets/barcode-scanning --emptyOutDir -l info -c scripts/electron-vite.config.ts",
+      logLineFilter: (log) =>
+        log.includes("../../../../electron/assets/sys/barcode-scanning/") ===
+        false,
+    },
   },
   import.meta.resolve("../")
 );
