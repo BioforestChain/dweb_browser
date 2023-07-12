@@ -62,6 +62,7 @@ struct TabGridView: View {
                                        index == selectedTab.curIndex
                                     {
                                         selectedCellFrame = cellFrame(at: index)
+                                        printWithDate(msg: "cell appears at frame: \(selectedCellFrame)")
                                     }
                                 }
                             
@@ -82,6 +83,8 @@ struct TabGridView: View {
                     }
                     .padding(gridHSpace)
                     .scaleEffect(x: gridState.scale, y: gridState.scale)
+//                    .background(Color.black.opacity(0.2))
+//                    .ignoresSafeArea()
                     .onPreferenceChange(CellFramePreferenceKey.self) { newFrames in
                         if isFirstRecord {
                             self.frames = newFrames
@@ -116,39 +119,23 @@ struct TabGridView: View {
     }
     
     func prepareToShrink(geoFrame: CGRect, scrollproxy: ScrollViewProxy, afterObtainCellFrame: @escaping () -> Void) {
-        // 设置grid为不可见的状态，并滚动到对应的位置, 为了获取selectedCellframe
-//        let index = selectedTab.curIndex
-        
         let currentFrame = cellFrame(at: selectedTab.curIndex)
-        //        let geoFrame = geo.frame(in: .global)
-//        print("\(geoFrame.minY) - \(currentFrame.minY), \(geoFrame.maxY) - \(currentFrame.maxY)")
-        
-        let needScroll = !(geoFrame.minY <= currentFrame.minY && geoFrame.maxY >= currentFrame.maxY)
-        
-//        if selectedTab.curIndex != index {
-//            selectedTab.curIndex = index
-//        }
-        
+   
+        let needScroll = !(geoFrame.minY <= currentFrame.minY && geoFrame.maxY >= currentFrame.maxY) 
+
         if needScroll {
             printWithDate(msg: "star scroll tp adjust")
-            var anchor = UnitPoint.center
-            if selectedTab.curIndex < 4 {
-                anchor = .top
-            } else if selectedTab.curIndex >= cacheStore.store.count - 2 {
-                anchor = .bottom
-            }
 
             let webCache = cacheStore.store[selectedTab.curIndex]
             withAnimation(.linear(duration: 0.1)) {
-                scrollproxy.scrollTo(webCache.id, anchor: anchor)
+                scrollproxy.scrollTo(webCache.id)
             }
         }
         
         let waitingDuration = needScroll ? 0.4 : 0
         DispatchQueue.main.asyncAfter(deadline: .now() + waitingDuration) {
             selectedCellFrame = cellFrame(at: selectedTab.curIndex)
-            printWithDate(msg: "obtained Cell Frame")
-            
+            printWithDate(msg: "cell at \(selectedTab.curIndex) frame is:\(selectedCellFrame)")
             afterObtainCellFrame()
         }
     }

@@ -115,7 +115,7 @@ extension BrowserWebview: WKScriptMessageHandler, WKNavigationDelegate {
             icon = NSString(string: value.isEmpty ? URL.defaultWebIconURL.absoluteString : value)
         }
     }
-    
+
     public func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         evaluateJavaScript("void watchIosIcon()")
     }
@@ -125,7 +125,7 @@ extension BrowserWebview: WKScriptMessageHandler, WKNavigationDelegate {
 class WebWrapper: ObservableObject, Identifiable, Hashable, Equatable {
     var id = UUID()
 
-    @Published var webView: WKWebView {
+    @Published var webView: BrowserWebview {
         didSet {
             setupObservers()
         }
@@ -141,7 +141,7 @@ class WebWrapper: ObservableObject, Identifiable, Hashable, Equatable {
     }
 
     private func setupObservers() {
-        func subscriber<Value>(for keyPath: KeyPath<WKWebView, Value>) -> NSKeyValueObservation {
+        func subscriber<Value>(for keyPath: KeyPath<BrowserWebview, Value>) -> NSKeyValueObservation {
             return webView.observe(keyPath, options: [.prior]) { _, change in
                 if change.isPrior {
                     DispatchQueue.main.async {
@@ -167,7 +167,7 @@ class WebWrapper: ObservableObject, Identifiable, Hashable, Equatable {
 
     private var observers: [NSKeyValueObservation] = []
 
-    public subscript<T>(dynamicMember keyPath: KeyPath<WKWebView, T>) -> T {
+    public subscript<T>(dynamicMember keyPath: KeyPath<BrowserWebview, T>) -> T {
         webView[keyPath: keyPath]
     }
 
@@ -181,46 +181,38 @@ class WebWrapper: ObservableObject, Identifiable, Hashable, Equatable {
     }
 }
 
-// A container for using a WKWebView in SwiftUI
+// A container for using a BrowserWebview in SwiftUI
 struct WebView: View, UIViewRepresentable {
-    /// The WKWebView to display
-    let url: URL
-    let webView: WKWebView
+    /// The BrowserWebview to display
+    let webView: BrowserWebview
 
-    init(webView: WKWebView, url: URL) {
+    init(webView: BrowserWebview) {
         self.webView = webView
-
-        self.url = url
     }
 
-    func makeUIView(context: UIViewRepresentableContext<WebView>) -> WKWebView {
+    func makeUIView(context: UIViewRepresentableContext<WebView>) -> BrowserWebview {
         webView.scrollView.delegate = context.coordinator // Set the coordinator as the scroll view delegate
         webView.scrollView.isScrollEnabled = true // Enable web view's scrolling
-//        if webView.estimatedProgress < 0.2{
-            webView.load(URLRequest(url: url))
-//        }
         return webView
     }
 
-    func updateUIView(_ uiView: WKWebView, context: UIViewRepresentableContext<WebView>) {}
-    
+    func updateUIView(_ uiView: BrowserWebview, context: UIViewRepresentableContext<WebView>) {}
+
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
 
-    
     class Coordinator: NSObject, UIScrollViewDelegate {
-            var presentView: WebView
+        var presentView: WebView
 
-            init(_ presentView: WebView) {
-                self.presentView = presentView
-            }
-
-            func scrollViewDidScroll(_ scrollView: UIScrollView) {
-                let verticalOffset = scrollView.contentOffset.y
-                // 处理滚动距离的逻辑
-                print("Vertical Offset: \(verticalOffset)")
-            }
+        init(_ presentView: WebView) {
+            self.presentView = presentView
         }
-    
+
+        func scrollViewDidScroll(_ scrollView: UIScrollView) {
+            let verticalOffset = scrollView.contentOffset.y
+            // 处理滚动距离的逻辑
+            print("Vertical Offset: \(verticalOffset)")
+        }
+    }
 }
