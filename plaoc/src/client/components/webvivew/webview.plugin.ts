@@ -1,5 +1,6 @@
 import { bindThis } from "../../helper/bindThis.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
+import { WebViewItem } from "./webview.type.ts";
 
 export class WebviewPlugin extends BasePlugin {
   constructor() {
@@ -7,16 +8,12 @@ export class WebviewPlugin extends BasePlugin {
   }
 
   @bindThis
-  async open(url: string) {
-    const res = await (
-      await this.fetchApi(`/open`, {
-        search: {
-          url,
-        },
-      })
-    ).json();
-
-    return res;
+  open(url: string) {
+    return this.fetchApi(`/open`, {
+      search: {
+        url,
+      },
+    }).object<WebViewItem>();
   }
 
   /**
@@ -25,29 +22,22 @@ export class WebviewPlugin extends BasePlugin {
    * @returns
    */
   @bindThis
-  async close(host: string) {
-    const res = await (
-      await this.fetchApi(`/close`, {
-        search: {
-          host,
-        },
-      })
-    ).json();
-
-    return res;
+  close(webview_id: string) {
+    return this.fetchApi(`/close`, {
+      search: {
+        webview_id,
+      },
+    }).boolean();
   }
 
   @bindThis
-  async activate() {
-    const res = await (await this.fetchApi(`/activate`)).json();
-
-    return res;
+  activate() {
+    return this.fetchApi(`/activate`).boolean();
   }
 
   @bindThis
-  async closeWindow() {
-    const res = await (await this.fetchApi(`/close/window`)).json();
-    return res;
+  closeApp() {
+    return this.fetchApi(`/close/app`).boolean();
   }
 }
 

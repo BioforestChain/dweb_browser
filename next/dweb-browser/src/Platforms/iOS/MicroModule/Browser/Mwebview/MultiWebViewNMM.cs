@@ -1,6 +1,4 @@
-﻿using System.Net;
-
-#nullable enable
+﻿#nullable enable
 
 namespace DwebBrowser.MicroService.Browser.Mwebview;
 
@@ -14,6 +12,8 @@ public class MultiWebViewNMM : IOSNativeMicroModule
 
     private static readonly Dictionary<Mmid, MultiWebViewController> s_controllerMap = new();
     public static MultiWebViewController? GetCurrentWebViewController(Mmid mmid) => s_controllerMap.GetValueOrDefault(mmid);
+
+    record WebViewItem(string webview_id);
 
     protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)
     {
@@ -46,9 +46,8 @@ public class MultiWebViewNMM : IOSNativeMicroModule
                 }
             };
 
-
             var viewItem = await _openDwebViewAsync(remoteMM, url);
-            return new HttpResponseMessage(HttpStatusCode.OK).Also(it => it.Content = new StringContent(viewItem.webviewId));
+            return new WebViewItem(viewItem.webviewId);
         });
 
         // 关闭指定 webview 窗口
@@ -87,7 +86,7 @@ public class MultiWebViewNMM : IOSNativeMicroModule
             var remoteMmid = ipc!.Remote.Mmid;
             OpenActivity(remoteMmid);
 
-            return new HttpResponseMessage(HttpStatusCode.OK);
+            return true;
         });
     }
 

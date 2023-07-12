@@ -4,21 +4,26 @@ export class HTMLWebviewElement extends HTMLElement {
   static readonly tagName = "dweb-webview";
   plugin = webviewPlugin;
 
-  async open(url: string) {
-    return await this.plugin.open(url);
+  open(url: string) {
+    return this.plugin.open(url);
   }
 
-  async close(host: string) {
-    return await this.plugin.close(host);
+  close(webviewId: string) {
+    return this.plugin.close(webviewId);
   }
 
-  async activate() {
-    return await this.plugin.activate();
+  activate() {
+    return this.plugin.activate();
   }
 
-  async closeWindow() {
-    return await this.plugin.closeWindow();
+  closeWindow() {
+    return this.plugin.closeApp();
   }
 }
 
 customElements.define(HTMLWebviewElement.tagName, HTMLWebviewElement);
+declare global {
+  interface HTMLElementTagNameMap {
+    [HTMLWebviewElement.tagName]: HTMLWebviewElement;
+  }
+}

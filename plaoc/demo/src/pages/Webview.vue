@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue";
 import LogPanel, { toConsole, defineLogAction } from "../components/LogPanel.vue";
-import type { HTMLWebviewElement } from "../plugin";
+import type { HTMLWebviewElement, WebViewItem } from "../plugin";
 
 const state: {
   openUrl: string;
@@ -13,6 +13,7 @@ const $logPanel = ref<typeof LogPanel>();
 const $webviewPlugin = ref<HTMLWebviewElement>();
 let console: Console;
 let webview: HTMLWebviewElement;
+const webviewItem = ref<WebViewItem>();
 
 onMounted(() => {
   console = toConsole($logPanel);
@@ -20,24 +21,29 @@ onMounted(() => {
 });
 
 async function open() {
-  // const res = webview.open(state.openUrl);
-  const res = await webview.open(location.href);
+  const res = await webview.open(state.openUrl);
   console.log("open", res);
+  webviewItem.value = res;
 }
 
 async function close() {
-  const host = new URL(location.href).host;
-  const res = await webview.close(host);
+  if(webviewItem.value === null)
+  {
+    console.log("close", "webview not opened");
+    return;
+  }
+  
+  const res = await webview.close(webviewItem.value!.webview_id);
   console.log("close", res);
 }
 
 async function activate() {
-  const res = webview.activate();
+  const res = await webview.activate();
   console.log("activate", res);
 }
 
 async function closeWindow() {
-  const res = webview.closeWindow();
+  const res = await webview.closeWindow();
   console.log("closeWindow", res);
 }
 </script>
