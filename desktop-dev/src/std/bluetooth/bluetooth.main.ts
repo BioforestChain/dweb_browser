@@ -81,7 +81,109 @@ export class BluetoothNMM extends NativeMicroModule {
 
   _bootstrap = async () => {
     console.always(`${this.mmid} _bootstrap`);
-    (await this._createHttpDwebServer())._onFetchAdapterInit().listenRequest();
+    await this._createHttpDwebServer();
+    this.onFetch(async (event: FetchEvent) => {
+      if (event.method === "GET" && event.pathname === "/open") {
+        return this._openHandler(event);
+      }
+
+      if (event.method === "GET" && event.pathname === "/close") {
+        return this._closeHandler(event);
+      }
+
+      if (event.method === "GET" && event.pathname === "/watch") {
+        return this._watchHandler(event);
+      }
+
+      if (event.method === "GET" && event.pathname === "bluetooth") {
+        return this.dwebBluetoothHandler(event);
+      }
+
+      if (
+        event.method === "POST" &&
+        event.pathname === "/request_connect_device"
+      ) {
+        return this._requestAndConnectDeviceHandler(event);
+      }
+
+      if (
+        event.method === "GET" &&
+        event.pathname === "/bluetooth_device/forget"
+      ) {
+        return this._bluetoothDevice_forget(event);
+      }
+
+      if (
+        event.method === "GET" &&
+        event.pathname === "/bluetooth_device/watch_advertisements"
+      ) {
+        return this._bluetoothDevice_watchAdvertisements(event);
+      }
+
+      if (
+        event.method === "GET" &&
+        event.pathname === "/bluetooth_remote_gatt_server/connect"
+      ) {
+        return this._bluetoothRemoteGATTServer_connect(event);
+      }
+
+      if (
+        event.method === "GET" &&
+        event.pathname === "/bluetooth_remote_gatt_server/disconnect"
+      ) {
+        return this._bluetoothRemoteGATTServer_disconnect(event);
+      }
+
+      if (
+        event.method === "GET" &&
+        event.pathname === "/bluetooth_remote_gatt_server/get_primary_service"
+      ) {
+        return this._bluetoothRemoteGATTServer_getPrimaryService(event);
+      }
+
+      if (
+        event.method === "GET" &&
+        event.pathname === "/bluetooth_remote_gatt_service/get_characteristic"
+      ) {
+        return this._bluetoothRemoteGATTService_getCharacteristic(event);
+      }
+
+      if (
+        event.method === "GET" &&
+        event.pathname === "/bluetooth_remote_gatt_characteristic/read_value"
+      ) {
+        return this._bluetoothRemoteGATTCharacteristic_readValue(event);
+      }
+
+      if (
+        event.method === "POST" &&
+        event.pathname === "/bluetooth_remote_gatt_characteristic/write_value"
+      ) {
+        return this._bluetoothRemoteGATTCharacteristic_writeValue(event);
+      }
+
+      if (
+        event.method === "GET" &&
+        event.pathname ===
+          "/bluetooth_remote_gatt_characteristic/get_descriptor"
+      ) {
+        return this._bluetoothRemoteGATTCharacteristic_getDescriptor(event);
+      }
+
+      if (
+        event.method === "GET" &&
+        event.pathname === "/bluetooth_remote_gatt_descriptor/reaed_value"
+      ) {
+        return this._bluetoothRemoteGATTDescriptor_readValue(event);
+      }
+
+      if (
+        event.method === "GET" &&
+        event.pathname === "/bluetooth_remote_gatt_descriptor/write_value"
+      ) {
+        return this._bluetoothRemoteGATTDescriptor_writeValue(event);
+      }
+    });
   };
 
   _exports = {
@@ -580,78 +682,78 @@ export class BluetoothNMM extends NativeMicroModule {
    * 初始化适配器
    * @returns
    */
-  private _onFetchAdapterInit() {
-    this._onFetchAdapter
-      .add("GET", "/open", this._openHandler)
-      .add("GET", "/close", this._closeHandler)
-      .add("GET", "/watch", this._watchHandler)
-      .add("GET", "bluetooth", this.dwebBluetoothHandler)
-      .add(
-        "POST",
-        "/request_connect_device",
-        this._requestAndConnectDeviceHandler
-      )
-      .add("GET", "/bluetooth_device/forget", this._bluetoothDevice_forget)
-      .add(
-        "GET",
-        "/bluetooth_device/watch_advertisements",
-        this._bluetoothDevice_watchAdvertisements
-      )
-      .add(
-        "GET",
-        "/bluetooth_remote_gatt_server/connect",
-        this._bluetoothRemoteGATTServer_connect
-      )
-      .add(
-        "GET",
-        "/bluetooth_remote_gatt_server/disconnect",
-        this._bluetoothRemoteGATTServer_disconnect
-      )
+  // private _onFetchAdapterInit() {
+  //   this._onFetchAdapter
+  //     // .add("GET", "/open", this._openHandler)
+  //     // .add("GET", "/close", this._closeHandler)
+  //     // .add("GET", "/watch", this._watchHandler)
+  //     // .add("GET", "bluetooth", this.dwebBluetoothHandler)
+  //     // .add(
+  //     //   "POST",
+  //     //   "/request_connect_device",
+  //     //   this._requestAndConnectDeviceHandler
+  //     // )
+  //     // .add("GET", "/bluetooth_device/forget", this._bluetoothDevice_forget)
+  //     // .add(
+  //     //   "GET",
+  //     //   "/bluetooth_device/watch_advertisements",
+  //     //   this._bluetoothDevice_watchAdvertisements
+  //     // )
+  //     // .add(
+  //     //   "GET",
+  //     //   "/bluetooth_remote_gatt_server/connect",
+  //     //   this._bluetoothRemoteGATTServer_connect
+  //     // )
+  //     // .add(
+  //     //   "GET",
+  //     //   "/bluetooth_remote_gatt_server/disconnect",
+  //     //   this._bluetoothRemoteGATTServer_disconnect
+  //     // )
 
-      .add(
-        "GET",
-        "/bluetooth_remote_gatt_server/get_primary_service",
-        this._bluetoothRemoteGATTServer_getPrimaryService
-      )
-      .add(
-        "GET",
-        "/bluetooth_remote_gatt_service/get_characteristic",
-        this._bluetoothRemoteGATTService_getCharacteristic
-      )
-      .add(
-        "GET",
-        "/bluetooth_remote_gatt_characteristic/read_value",
-        this._bluetoothRemoteGATTCharacteristic_readValue
-      )
-      .add(
-        "POST",
-        "/bluetooth_remote_gatt_characteristic/write_value",
-        this._bluetoothRemoteGATTCharacteristic_writeValue
-      )
-      .add(
-        "GET",
-        "/bluetooth_remote_gatt_characteristic/get_descriptor",
-        this._bluetoothRemoteGATTCharacteristic_getDescriptor
-      )
-      .add(
-        "GET",
-        `/bluetooth_remote_gatt_descriptor/reaed_value`,
-        this._bluetoothRemoteGATTDescriptor_readValue
-      )
-      .add(
-        "POST",
-        `/bluetooth_remote_gatt_descriptor/write_value`,
-        this._bluetoothRemoteGATTDescriptor_writeValue
-      );
-    return this;
-  }
+  //     // .add(
+  //     //   "GET",
+  //     //   "/bluetooth_remote_gatt_server/get_primary_service",
+  //     //   this._bluetoothRemoteGATTServer_getPrimaryService
+  //     // )
+  //     // .add(
+  //     //   "GET",
+  //     //   "/bluetooth_remote_gatt_service/get_characteristic",
+  //     //   this._bluetoothRemoteGATTService_getCharacteristic
+  //     // )
+  //     // .add(
+  //     //   "GET",
+  //     //   "/bluetooth_remote_gatt_characteristic/read_value",
+  //     //   this._bluetoothRemoteGATTCharacteristic_readValue
+  //     // )
+  //     // .add(
+  //     //   "POST",
+  //     //   "/bluetooth_remote_gatt_characteristic/write_value",
+  //     //   this._bluetoothRemoteGATTCharacteristic_writeValue
+  //     // )
+  //     // .add(
+  //     //   "GET",
+  //     //   "/bluetooth_remote_gatt_characteristic/get_descriptor",
+  //     //   this._bluetoothRemoteGATTCharacteristic_getDescriptor
+  //     // )
+  //     // .add(
+  //     //   "GET",
+  //     //   `/bluetooth_remote_gatt_descriptor/reaed_value`,
+  //     //   this._bluetoothRemoteGATTDescriptor_readValue
+  //     // )
+  //     // .add(
+  //     //   "POST",
+  //     //   `/bluetooth_remote_gatt_descriptor/write_value`,
+  //     //   this._bluetoothRemoteGATTDescriptor_writeValue
+  //     // );
+  //   return this;
+  // }
 
-  /**
-   * 开始监听请求
-   */
-  private listenRequest() {
-    this.onFetch(this._onFetchAdapter.run);
-  }
+  // /**
+  //  * 开始监听请求
+  //  */
+  // private listenRequest() {
+  //   this.onFetch(this._onFetchAdapter.run);
+  // }
 
   /**
    * 创建一个新的隐藏窗口装载webview，使用它的里头 web-bluetooth-api 来实现我们的需求
