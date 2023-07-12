@@ -34,7 +34,9 @@ struct TabGridView: View {
     @State var frames: [CellFrameInfo] = []
     
     @Binding var selectedCellFrame: CGRect
-    
+
+    @StateObject var deleteCache = DeleteCache()
+
     let detector = CurrentValueSubject<[CellFrameInfo], Never>([])
     var publisher: AnyPublisher<[CellFrameInfo], Never> {
         detector
@@ -48,7 +50,8 @@ struct TabGridView: View {
             ScrollViewReader { scrollproxy in
                 ScrollView {
                     LazyVGrid(columns: [
-                        GridItem(.adaptive(minimum: screen_width/3.0, maximum: screen_width/2.0), spacing: gridHSpace)], spacing: gridVSpace) {
+                        GridItem(.adaptive(minimum: screen_width/3.0, maximum: screen_width/2.0), spacing: gridHSpace),
+                    ], spacing: gridVSpace) {
                         ForEach(cacheStore.store, id: \.id) { webCache in
                             GridCell(webCache: webCache, isSelected: isSelected(webCache: webCache))
                                 .id(webCache.id)
@@ -81,6 +84,7 @@ struct TabGridView: View {
                         }
                         .shadow(color: Color.gray, radius: 6)
                     }
+                    .environmentObject(deleteCache)
                     .padding(gridHSpace)
                     .scaleEffect(x: gridState.scale, y: gridState.scale)
 //                    .background(Color.black.opacity(0.2))
@@ -101,13 +105,22 @@ struct TabGridView: View {
                     }
                     printWithDate(msg: "end scrolling and record cell frames : \($0)")
                 }
+                .onChange(of: deleteCache.cacheId, perform: { cacheId in
+                    if let cache = WebCacheMgr.shared.store.filter({ $0.id == cacheId }).first {
+                        cacheStore.remove(webCache: cache)
+                        if selectedTab.curIndex >= WebCacheMgr.shared.store.count {
+                            selectedTab.curIndex = WebCacheMgr.shared.store.count - 1
+                            selectedCellFrame = cellFrame(at: selectedTab.curIndex)
+                        }
+                    }
+                })
                 .onChange(of: toolbarState.shouldExpand) { shouldExpand in
                     if !shouldExpand {
                         let geoFrame = geo.frame(in: .global)
                         prepareToShrink(geoFrame: geoFrame, scrollproxy: scrollproxy) {
                             if animation.progress == .obtainedSnapshot {
                                 animation.progress = .startShrinking
-                                
+
                             } else {
                                 animation.progress = .obtainedCellFrame
                             }
@@ -121,7 +134,7 @@ struct TabGridView: View {
     func prepareToShrink(geoFrame: CGRect, scrollproxy: ScrollViewProxy, afterObtainCellFrame: @escaping () -> Void) {
         let currentFrame = cellFrame(at: selectedTab.curIndex)
    
-        let needScroll = !(geoFrame.minY <= currentFrame.minY && geoFrame.maxY >= currentFrame.maxY) 
+        let needScroll = !(geoFrame.minY <= currentFrame.minY && geoFrame.maxY >= currentFrame.maxY)
 
         if needScroll {
             printWithDate(msg: "star scroll tp adjust")
@@ -132,7 +145,7 @@ struct TabGridView: View {
             }
         }
         
-        let waitingDuration = needScroll ? 0.4 : 0
+        let waitingDuration = needScroll ? 0.6 : 0
         DispatchQueue.main.asyncAfter(deadline: .now() + waitingDuration) {
             selectedCellFrame = cellFrame(at: selectedTab.curIndex)
             printWithDate(msg: "cell at \(selectedTab.curIndex) frame is:\(selectedCellFrame)")

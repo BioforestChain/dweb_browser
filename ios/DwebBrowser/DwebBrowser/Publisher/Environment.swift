@@ -58,3 +58,7 @@ class TabGridState: ObservableObject {
     @Published var scale = 1.0
     @Published var opacity = 1.0
 }
+
+class DeleteCache: ObservableObject {
+    @Published var cacheId = UUID()
+}

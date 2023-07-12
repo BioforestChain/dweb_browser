@@ -28,7 +28,7 @@ struct TabPageView: View {
                     .onChange(of: openingLink.clickedLink) { url in
                         print("clickedLink has changed: \(url)")
                         guard url != emptyURL else { return }
-                        if true {
+                        if isVisible {
                             webWrapper.webView.load(URLRequest(url: url))
                             webCache.lastVisitedUrl = url
                             if !TraceLessMode.shared.isON {

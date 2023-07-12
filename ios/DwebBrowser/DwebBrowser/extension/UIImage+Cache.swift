@@ -17,12 +17,10 @@ extension UIImage {
 
     // 保存图片到本地文件
     static func createLocalUrl(withImage image: UIImage, imageName: String) -> URL {
-        let fileManager = FileManager.default
-         
         do {
             let documentsDirectory = URL.documentsDirectory
             let filePath = documentsDirectory.appendingPathComponent(imageName + snapshotId + ".jpg")
-             
+            removeImage(with: filePath)
             try image.jpegData(compressionQuality: 1.0)?.write(to: filePath, options: .atomic)
              
             return filePath
@@ -35,29 +33,16 @@ extension UIImage {
     // 删除缓存的图片
     static func removeImage(with fileUrl: URL) {
         let fileManager = FileManager.default
-        
-        do {
-            try fileManager.removeItem(at: fileUrl)
-            print("Successfully removed file at \(fileUrl)")
-        } catch {
-            print("Error removing file at \(fileUrl): \(error)")
+        if fileManager.fileExists(atPath: fileUrl.path) {
+            do {
+                try fileManager.removeItem(at: fileUrl)
+                print("deleted old snapshot for replacement successfully.")
+            } catch {
+                print("Error while deleting the snapshot: \(error.localizedDescription)")
+            }
+        } else {
+            print("snapshot does not exist.")
         }
-    }
-    
-    // 根据文件名读取本地图片
-    static func getSnapShot(withName imageName: String) -> UIImage? {
-        guard !imageName.isEmpty else {
-            return nil
-        }
-        
-        guard let documentsPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first else {
-            return nil
-        }
-        
-        let filePath = (documentsPath as NSString).appendingPathComponent(imageName + snapshotId)
-        let image = UIImage(contentsOfFile: filePath)
-        
-        return image
     }
 
     static func snapshotImage(from localUrl: URL) -> UIImage {
