@@ -5,7 +5,7 @@ plaoc 前后端打包工具。
 ## 安装
 
 ```bash
-deno install -A https://deno.land/x/plaoc/cli/plaoc.ts
+npm i -g @plaoc/cli
 ```
 
 ## 打包app (bundle/build)
@@ -51,5 +51,5 @@ plaoc serve ./dir
 ### 示例
 
 ```bash
-plaoc preview  ./plaoc/demo/dist --dir ./plaoc/demo --mode www 
+plaoc serve  ./plaoc/demo/dist --dir ./plaoc/demo --mode www 
 ```

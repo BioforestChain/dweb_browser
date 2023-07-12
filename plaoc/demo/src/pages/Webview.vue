@@ -1,27 +1,27 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue";
-import LogPanel, { toConsole, defineLogAction } from "../components/LogPanel.vue";
-import type { HTMLWebviewElement, WebViewItem } from "../plugin";
+import LogPanel, { toConsole } from "../components/LogPanel.vue";
+import type { HTMLMWebviewElement, WebViewItem } from "../plugin";
 
 const state: {
   openUrl: string;
 } = reactive({
-  openUrl: location.href,
+  openUrl: "https://dweb.waterbang.top",
 });
-const title = "webview";
+const title = "mwebview";
 const $logPanel = ref<typeof LogPanel>();
-const $webviewPlugin = ref<HTMLWebviewElement>();
+const $mwebviewPlugin = ref<HTMLMWebviewElement>();
 let console: Console;
-let webview: HTMLWebviewElement;
+let mwebview: HTMLMWebviewElement;
 const webviewItem = ref<WebViewItem>();
 
 onMounted(() => {
   console = toConsole($logPanel);
-  webview = $webviewPlugin.value!;
+  mwebview = $mwebviewPlugin.value!;
 });
 
 async function open() {
-  const res = await webview.open(state.openUrl);
+  const res = await mwebview.open(state.openUrl);
   console.log("open", res);
   webviewItem.value = res;
 }
@@ -33,22 +33,22 @@ async function close() {
     return;
   }
   
-  const res = await webview.close(webviewItem.value!.webview_id);
+  const res = await mwebview.close(webviewItem.value!.webview_id);
   console.log("close", res);
 }
 
 async function activate() {
-  const res = await webview.activate();
+  const res = await mwebview.activate();
   console.log("activate", res);
 }
 
 async function closeWindow() {
-  const res = await webview.closeWindow();
+  const res = await mwebview.closeApp();
   console.log("closeWindow", res);
 }
 </script>
 <template>
-  <dweb-webview ref="$webviewPlugin"></dweb-webview>
+  <dweb-mwebview ref="$mwebviewPlugin"></dweb-mwebview>
   <div class="card glass">
     <figure class="icon">
       <img src="../../assets/toast.svg" :alt="title" />

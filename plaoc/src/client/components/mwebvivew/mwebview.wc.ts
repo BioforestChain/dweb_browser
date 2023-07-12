@@ -1,8 +1,8 @@
-import { webviewPlugin } from "./mwebview.plugin.ts";
+import { mwebviewPlugin } from "./mwebview.plugin.ts";
 
-export class HTMLWebviewElement extends HTMLElement {
-  static readonly tagName = "dweb-webview";
-  plugin = webviewPlugin;
+export class HTMLMWebviewElement extends HTMLElement {
+  static readonly tagName = "dweb-mwebview";
+  plugin = mwebviewPlugin;
 
   open(url: string) {
     return this.plugin.open(url);
@@ -16,14 +16,14 @@ export class HTMLWebviewElement extends HTMLElement {
     return this.plugin.activate();
   }
 
-  closeWindow() {
+  closeApp() {
     return this.plugin.closeApp();
   }
 }
 
-customElements.define(HTMLWebviewElement.tagName, HTMLWebviewElement);
+customElements.define(HTMLMWebviewElement.tagName, HTMLMWebviewElement);
 declare global {
   interface HTMLElementTagNameMap {
-    [HTMLWebviewElement.tagName]: HTMLWebviewElement;
+    [HTMLMWebviewElement.tagName]: HTMLMWebviewElement;
   }
 }

@@ -51,7 +51,7 @@ export class MultiWebviewNMM extends NativeMicroModule {
      * 每个app只能关闭自己的window
      */
     this.registerCommonIpcOnMessageHandler({
-      pathname: "/close/window",
+      pathname: "/close/app",
       matchMode: "full",
       input: {},
       output: "boolean",

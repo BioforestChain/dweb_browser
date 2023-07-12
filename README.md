@@ -1,13 +1,11 @@
 <br />
-<br />
-
 <p align="center">
-<h2>Dweb-Browser</h2>
-<!-- <img src="scripts/images/logo.png" width="240"> -->
+<!-- <h1>Dweb-Browser</h1> -->
+<img src="./desktop-dev/logo.png" width="240">
 </p>
 
-<br />
-<br />
+[ENGLISH DOC](./README_EN.md)
+
 
 ![stable-release](https://img.shields.io/badge/dweb-browser-success)
 ![stable-release](https://img.shields.io/badge/dweb-plaoc-orange)
@@ -49,7 +47,9 @@ plaoc 是基于 dweb-browser 平台的一个对标 Cordova、Capacitor、Tauri �
 
 ### cli
 
-1. `deno install -A https://deno.land/x/plaoc@0.0.1/cli.ts`
+[@plaoc/cli](https://www.npmjs.com/package/@plaoc/cli)  是plaoc开发并打包应用到dweb_browser的命令行工具。
+
+1. `npm i -g @plaoc/cli`
 
 1. `plaoc bundle ./dir`
    会打包成以下的文件夹结构，并输出压缩文件 `.zip` 和一个 `plaoc.metadata.json`
@@ -60,3 +60,11 @@ plaoc 是基于 dweb-browser 平台的一个对标 Cordova、Capacitor、Tauri �
    ```bash
    dweb-browser-dev install --url http://172.30.90.240:8080/usr/metadata.json
    ```
+
+### plugins
+
+[@plaoc/plugins](https://www.npmjs.com/package/@plaoc/plugins) 能赋予web开发者,直接调用各个平台系统API的能力。
+
+具体文档查看：[plugins文档](https://docs.dweb-browser.org/plaoc/)
+
+
