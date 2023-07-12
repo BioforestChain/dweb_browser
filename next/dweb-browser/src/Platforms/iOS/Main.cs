@@ -1,19 +1,20 @@
-﻿using DwebBrowser.MicroService.Sys.Dns;
-using DwebBrowser.MicroService.Sys.Http;
-using DwebBrowser.MicroService.Sys.Boot;
-using DwebBrowser.MicroService.Sys.Share;
-using DwebBrowser.MicroService.Sys.Toast;
-using DwebBrowser.MicroService.Sys.Haptics;
-using DwebBrowser.MicroService.Sys.Barcode;
-using DwebBrowser.MicroService.Sys.Clipboard;
-using DwebBrowser.MicroService.Sys.Biometrics;
-using DwebBrowser.MicroService.Browser;
+﻿using DwebBrowser.MicroService.Browser;
 using DwebBrowser.MicroService.Browser.Jmm;
+using DwebBrowser.MicroService.Browser.JsProcess;
 using DwebBrowser.MicroService.Browser.Mwebview;
 using DwebBrowser.MicroService.Browser.NativeUI;
-using DwebBrowser.MicroService.Browser.JsProcess;
-using DwebBrowser.MicroService.Browser.NativeUI.Torch;
 using DwebBrowser.MicroService.Browser.NativeUI.Haptics;
+using DwebBrowser.MicroService.Browser.NativeUI.Torch;
+using DwebBrowser.MicroService.Sys.Barcode;
+using DwebBrowser.MicroService.Sys.Biometrics;
+using DwebBrowser.MicroService.Sys.Boot;
+using DwebBrowser.MicroService.Sys.Clipboard;
+using DwebBrowser.MicroService.Sys.Device;
+using DwebBrowser.MicroService.Sys.Dns;
+using DwebBrowser.MicroService.Sys.Haptics;
+using DwebBrowser.MicroService.Sys.Http;
+using DwebBrowser.MicroService.Sys.Share;
+using DwebBrowser.MicroService.Sys.Toast;
 using DwebBrowser.MicroService.Test;
 
 namespace DwebBrowser.Platforms.iOS;
@@ -85,7 +86,9 @@ public class MicroService
         "JmmDownload",
         "StreamExtensions",
         "BrowserNMM",
-        "BrowserWeb"
+        "BrowserWeb",
+        "DeviceNMM",
+        "DeviceSystemInfo"
     };
 
     // 添加debug日志tag过滤
@@ -123,6 +126,7 @@ public class MicroService
         new TorchNMM().InstallBy(dnsNMM);
         new ScanningNMM().InstallBy(dnsNMM);
         new BiometricsNMM().InstallBy(dnsNMM);
+        new DeviceNMM().InstallBy(dnsNMM);
 
         /// NativeUi 是将众多原生UI在一个视图中组合的复合组件
         new NativeUiNMM().InstallBy(dnsNMM);
@@ -136,7 +140,7 @@ public class MicroService
         var bootMmidList = new List<Mmid>
         {
             browserNMM.Mmid,
-            //plaocDemoJMM.Mmid
+            plaocDemoJMM.Mmid
         };
         /// 启动程序
         var bootNMM = new BootNMM(
