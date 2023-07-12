@@ -63,7 +63,7 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.browser.dweb") {
           controller?.destroyWebView()
         }
         val viewItem = openDwebView(remoteMm, url)
-        Response(Status.OK).body(viewItem.webviewId)
+        return@defineHandler ViewItemResponse(viewItem.webviewId)
       },
       // 关闭指定 webview 窗口
       "/close" bind Method.GET to defineHandler { request, ipc ->
@@ -92,6 +92,8 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.browser.dweb") {
       },
     )
   }
+
+  data class ViewItemResponse(val webview_id: String)
 
   override suspend fun _shutdown() {
     apiRouting = null
