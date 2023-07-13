@@ -1,7 +1,7 @@
 // 模拟状态栏模块-用来提供状态UI的模块
 import type { Remote } from "comlink";
 import { match } from "ts-pattern";
-import type { $OnFetch, $OnFetchReturn, FetchEvent } from "../../core/helper/ipcFetchHelper.ts";
+import type { $OnFetch, FetchEvent } from "../../core/helper/ipcFetchHelper.ts";
 import { IPC_METHOD } from "../../core/ipc/const.ts";
 import { Ipc, IpcHeaders, IpcResponse } from "../../core/ipc/index.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
@@ -38,34 +38,17 @@ export class BarcodeScanningNMM extends NativeMicroModule {
   _bootstrap = async () => {
     await this._createHttpDwebServer();
     this.onFetch(async (event: FetchEvent) => {
-      let resultResolve: { (res: $OnFetchReturn): void };
-      const resultPromise = new Promise<$OnFetchReturn>((resolve) => (resultResolve = resolve));
-      match(event)
+      return match(event)
         .with({ method: IPC_METHOD.POST, pathname: "/process" }, async () => {
-          const res = await this._processHandler(event);
-          resultResolve(res);
+          return this._processHandler(event);
         })
         .with({ method: IPC_METHOD.GET, pathname: "/stop" }, async () => {
-          const res = await this._stopHandler(event);
-          resultResolve(res);
+          return this._stopHandler(event);
         })
         .with({ method: IPC_METHOD.GET, pathname: "/get_supported_formats" }, async () => {
-          const res = await this._getSupportedFormats(event);
-          resultResolve(res);
-        });
-      return await resultPromise;
-      // if (event.method === "POST" && event.pathname === "/process") {
-      //   const res = await this._processHandler(event);
-      //   return this._processHandler(event);
-      // }
-
-      // if (event.method === "GET" && event.pathname === "/stop") {
-      //   return this._stopHandler(event);
-      // }
-
-      // if (event.method === "GET" && event.pathname === "/get_supported_formats") {
-      //   return this._getSupportedFormats(event);
-      // }
+          return this._getSupportedFormats(event);
+        })
+        .run();
     });
   };
 
