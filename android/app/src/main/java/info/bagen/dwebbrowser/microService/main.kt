@@ -60,7 +60,7 @@ suspend fun startDwebBrowser(): DnsNMM {
     )
 
     DEVELOPER.WaterBang -> debugTags.addAll(
-      listOf( "dwebview", "mwebview","Device","http","fetch")
+      listOf( "dwebview", "mwebview","http","js-process","message-port-ipc","native-ipc","stream-ipc")
     )
 
     else -> debugTags.addAll(
@@ -87,15 +87,15 @@ suspend fun startDwebBrowser(): DnsNMM {
   ///设备信息
   val deviceNMM = DeviceNMM().also { dnsNMM.install(it) }
   ///位置
-  val locationNMM = LocationNMM().also { dnsNMM.install(it) }
+//  val locationNMM = LocationNMM().also { dnsNMM.install(it) }
 //    /// 蓝牙
 //    val bluetoothNMM = BluetoothNMM().also { dnsNMM.install(it) }
 //    ///权限
 //    val permissionNMM = PermissionsNMM().also { dnsNMM.install(it) }
   ///文件系统
-  val fileSystemNMM = FileSystemNMM().also { dnsNMM.install(it) }
+//  val fileSystemNMM = FileSystemNMM().also { dnsNMM.install(it) }
   /// NFC
-  val nfcNMM = NfcNMM().also { dnsNMM.install(it) }
+//  val nfcNMM = NfcNMM().also { dnsNMM.install(it) }
   /// 通知
   val notificationNMM = NotificationNMM().also { dnsNMM.install(it) }
   /// 弹窗
@@ -138,7 +138,7 @@ suspend fun startDwebBrowser(): DnsNMM {
 
     DEVELOPER.WaterBang -> listOf(
       browserNMM.mmid,
-      plaocDemoJMM.mmid,
+//      plaocDemoJMM.mmid,
 //      desktopDemoJMM.mmid,
     )
 

@@ -122,7 +122,7 @@ export class JsProcessMicroModule implements $MicroModule {
   constructor(readonly meta: Metadata, private nativeFetchPort: MessagePort) {
     const _beConnect = (event: MessageEvent) => {
       const data = event.data;
-      if (Array.isArray(event.data) === false) {
+      if (Array.isArray(data) === false) {
         return;
       }
       if (data[0] === "ipc-connect") {

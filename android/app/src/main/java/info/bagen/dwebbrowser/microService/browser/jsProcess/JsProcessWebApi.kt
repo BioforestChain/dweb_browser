@@ -26,11 +26,11 @@ class JsProcessWebApi(val dWebView: DWebView) {
     private var hidAcc = AtomicInteger(1);
 
     suspend fun createProcess(
-      env_script_url: String,
-      metadata_json: String,
-      env_json: String,
-      remoteModule: Ipc.MicroModuleInfo,
-      host: String
+        env_script_url: String,
+        metadata_json: String,
+        env_json: String,
+        remoteModule: Ipc.MicroModuleInfo,
+        host: String
     ) = withContext(Dispatchers.Main) {
         val channel = dWebView.createWebMessageChannel()
         val port1 = channel[0]
@@ -43,10 +43,10 @@ class JsProcessWebApi(val dWebView: DWebView) {
             new Promise((resolve,reject)=>{
                 addEventListener("message", async function doCreateProcess(event) {
                     if (event.data === "js-process/create-process/$hid") {
+                     try{
                         removeEventListener("message", doCreateProcess);
                         const fetch_port = event.ports[0];
-                        try{
-                            resolve(await createProcess(`$env_script_url`,$metadata_json_str,$env_json_str,fetch_port,`$host`))
+                        resolve(await createProcess(`$env_script_url`,$metadata_json_str,$env_json_str,fetch_port,`$host`))
                         }catch(err){
                             reject(err)
                         }
@@ -67,15 +67,15 @@ class JsProcessWebApi(val dWebView: DWebView) {
         ProcessHandler(info, MessagePortIpc(port2, remoteModule, IPC_ROLE.CLIENT))
     }
 
-  suspend fun createIpcFail (
-  process_id: String,
-  mmid: String,
-  reason: String
-  ) =    dWebView.evaluateAsyncJavascriptCode(
-    """
+    suspend fun createIpcFail(
+        process_id: String,
+        mmid: String,
+        reason: String
+    ) = dWebView.evaluateAsyncJavascriptCode(
+        """
         createIpcFail($process_id,$mmid,$reason)
         """.trimIndent()
-  ).let {}
+    ).let {}
 
     data class RunProcessMainOptions(val main_url: String)
 
@@ -102,10 +102,10 @@ class JsProcessWebApi(val dWebView: DWebView) {
         new Promise((resolve,reject)=>{
             addEventListener("message", async function doCreateIpc(event) {
                 if (event.data === "js-process/create-ipc/$hid") {
+                  try{
                     removeEventListener("message", doCreateIpc);
                     const ipc_port = event.ports[0];
-                    try{
-                        resolve(await createIpc($process_id, `$mmid`, ipc_port))
+                    resolve(await createIpc($process_id, `$mmid`, ipc_port))
                     }catch(err){
                         reject(err)
                     }
@@ -119,7 +119,6 @@ class JsProcessWebApi(val dWebView: DWebView) {
         })
         saveNative2JsIpcPort(port2)
     }
-
 
 
     fun destroy() {

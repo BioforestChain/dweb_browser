@@ -10,7 +10,7 @@ const router = useRouter();
 // router.push("/share")
 // router.push("/webview");
 // router.push("/splashscreen")
-// router.push("/serviceworker")
+router.push("/serviceworker")
 // router.push("/inputfile");
 router.push("/barcodescanning");
 // router.push("/network");

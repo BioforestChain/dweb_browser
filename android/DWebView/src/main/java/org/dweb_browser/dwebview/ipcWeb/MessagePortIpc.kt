@@ -85,7 +85,6 @@ open class MessagePortIpc(
 
   init {
     val callback = port.onWebMessage { event ->
-      debugMessagePortIpc("lin.huang", "${event.ports?.size} => ${event.data}")
       val ipc = this@MessagePortIpc
       when (val message = jsonToIpcMessage(event.data, ipc)) {
         "close" -> close()
