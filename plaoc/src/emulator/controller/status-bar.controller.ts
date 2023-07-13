@@ -17,7 +17,6 @@ export class StatusBarController extends BaseController {
 
     ipc
       .onFetch(async (event) => {
-        console.log(">>>>>>>>>>>");
         return match(event)
           .with({ pathname: "/getState" }, () => {
             const state = this.statusBarGetState();
