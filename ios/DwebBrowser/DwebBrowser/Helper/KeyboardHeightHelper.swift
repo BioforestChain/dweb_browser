@@ -14,7 +14,7 @@ class KeyboardHeightHelper: ObservableObject {
         NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillShowNotification, object: nil, queue: OperationQueue.main) { noti in
             guard let value = noti.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else { return }
             let height = value.height
-            self.keyboardHeight = height + 10 - safeAreaBottomHeight
+            self.keyboardHeight = height - safeAreaBottomHeight
         }
 
         NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification, object: nil, queue: .main) { _ in

@@ -72,6 +72,11 @@ struct AddressBar: View {
                     addressBar.isFocused = false
                 }
             }
+            .onTapGesture {
+                #if DwebFramework
+                    addressBar.isFocused = true
+                #endif
+            }
     }
 
     var progressV: some View {
@@ -106,7 +111,6 @@ struct AddressBar: View {
         }
     }
 }
-
 
 struct AddressBarHStack_Previews: PreviewProvider {
     static var previews: some View {

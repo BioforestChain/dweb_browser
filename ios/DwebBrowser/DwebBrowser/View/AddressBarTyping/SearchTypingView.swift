@@ -18,6 +18,7 @@ struct SearchTypingView: View {
             HStack {
                 Spacer()
                 Button {
+                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                     addressBar.inputText = ""
                     addressBar.isFocused = false
                 } label: {
