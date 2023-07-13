@@ -1,3 +1,5 @@
+import { match } from "ts-pattern";
+import { IPC_METHOD } from "../../core/ipc/const.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import { electronConfig } from "../../helper/electronConfig.ts";
 
@@ -15,13 +17,13 @@ export class DeviceNMM extends NativeMicroModule {
   }
 
   _bootstrap = async () => {
-    console.log("", this.mmid, this.uuid);
-    // this._onFetchAdapterInit();
-    this.onFetch((event) => {
-      const { pathname } = event;
-      if (pathname === "/uuid") {
-        return Response.json({ uuid: this.uuid });
-      }
+    this.onFetch(async (event) => {
+      return match(event)
+        .with({ method: IPC_METHOD.GET, pathname: "/uuid" }, () => {
+          // resultResolve(Response.json({ uuid: this.uuid }));
+          return Response.json({ uuid: this.uuid });
+        })
+        .run();
     });
   };
 
