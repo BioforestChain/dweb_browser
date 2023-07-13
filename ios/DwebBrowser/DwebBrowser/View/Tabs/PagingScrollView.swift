@@ -26,7 +26,7 @@ struct PagingScrollView: View {
                         LazyVStack(spacing: 0) {
                             ZStack {
                                 HStack {
-                                    TabPageView(index: index)
+                                    TabPageView(index: index, webWrapper: WebWrapperMgr.shared.store[index])
                                         .frame(height: geometry.size.height - addressBarH) // 使用GeometryReader获取父容器高度
                                         .gesture(disabledDragGesture)
                                 }
@@ -34,7 +34,7 @@ struct PagingScrollView: View {
                                     SearchTypingView()
                                 }
                             }
-                            AddressBar(index: index)
+                            AddressBar(index: index, webWrapper: WebWrapperMgr.shared.store[index])
                                 .frame(height: addressBarH)
                                 .offset(y: addressBarState.isFocused ? -keyboardHelper.keyboardHeight : 0)
                                 .animation(.spring(), value: keyboardHelper.keyboardHeight)

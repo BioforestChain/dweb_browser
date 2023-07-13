@@ -161,7 +161,7 @@ class WebWrapper: ObservableObject, Identifiable, Hashable, Equatable {
             subscriber(for: \.canGoBack),
             subscriber(for: \.canGoForward),
             subscriber(for: \.configuration),
-//            subscriber(for: \.icon),
+            subscriber(for: \.icon),
         ]
     }
 

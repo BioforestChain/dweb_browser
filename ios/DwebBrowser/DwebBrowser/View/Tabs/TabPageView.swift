@@ -16,29 +16,14 @@ struct TabPageView: View {
     
     var index: Int
     var webCache: WebCache { WebCacheMgr.shared.store[index] }
-    var webWrapper: WebWrapper { WebWrapperMgr.shared.store[index] }
-    
-    @State private var snapshotHeight: CGFloat = 0
+    @ObservedObject var webWrapper: WebWrapper
 
+    @State private var snapshotHeight: CGFloat = 0
     private var isVisible: Bool { let index = WebWrapperMgr.shared.store.firstIndex(of: webWrapper); return index == selectedTab.curIndex }
     var body: some View {
         GeometryReader { geo in
             ZStack {
                 webComponent
-                    .onChange(of: openingLink.clickedLink) { url in
-                        print("clickedLink has changed: \(url)")
-                        guard url != emptyURL else { return }
-                        if isVisible {
-                            webWrapper.webView.load(URLRequest(url: url))
-                            webCache.lastVisitedUrl = url
-                            if !TraceLessMode.shared.isON {
-                                let manager = HistoryCoreDataManager()
-                                let history = LinkRecord(link: url.absoluteString, imageName: webCache.webIconUrl.absoluteString, title: webCache.title, createdDate: Date().milliStamp)
-                                manager.insertHistory(history: history)
-                            }
-                        }
-                        openingLink.clickedLink = emptyURL
-                    }
                 
                 if !webCache.shouldShowWeb {
                     HomePageView()
@@ -46,6 +31,18 @@ struct TabPageView: View {
             }
             .onAppear {
                 snapshotHeight = geo.frame(in: .global).height
+            }
+            .onChange(of: toolbarState.goForwardTapped) { tapped in
+                if tapped {
+                    goForward()
+                    toolbarState.goForwardTapped = false
+                }
+            }
+            .onChange(of: toolbarState.goBackTapped) { tapped in
+                if tapped {
+                    goBack()
+                    toolbarState.goBackTapped = false
+                }
             }
             .onChange(of: toolbarState.shouldExpand) { shouldExpand in
                 if !shouldExpand { // 截图，为缩小动画做准备
@@ -83,7 +80,29 @@ struct TabPageView: View {
                 }
                 print("onappear progress:\(webWrapper.webView.estimatedProgress)")
             }
+            .onChange(of: openingLink.clickedLink) { url in
+                print("clickedLink has changed: \(url)")
+                guard url != emptyURL else { return }
+                if isVisible {
+                    webWrapper.webView.load(URLRequest(url: url))
+                    
+                }
+                openingLink.clickedLink = emptyURL
+            }
         
+            .onChange(of: webWrapper.url) { url in
+                if let validUrl = url {
+                    webCache.lastVisitedUrl = validUrl
+                }
+            }
+            .onChange(of: webWrapper.title) { title in
+                if let validTitle = title {
+                    webCache.title = validTitle
+                }
+            }
+            .onChange(of: webWrapper.icon) { icon in
+                webCache.webIconUrl = URL(string: String(icon)) ?? .defaultWebIconURL
+            }
             .onChange(of: webWrapper.canGoBack, perform: { canGoBack in
                 if isVisible {
                     toolbarState.canGoBack = canGoBack
@@ -97,31 +116,13 @@ struct TabPageView: View {
             .onChange(of: webWrapper.estimatedProgress) { newValue in
                 if newValue >= 1.0 {
                     WebCacheMgr.shared.saveCaches()
+                    if !TraceLessMode.shared.isON {
+                        let manager = HistoryCoreDataManager()
+                        let history = LinkRecord(link: webCache.lastVisitedUrl.absoluteString, imageName: webCache.webIconUrl.absoluteString, title: webCache.title, createdDate: Date().milliStamp)
+                        manager.insertHistory(history: history)
+                    }
                 }
-                printWithDate(msg: "in webComponent, web index \(index), progress goes \(newValue)")
-            }
-        
-            .onChange(of: webWrapper.url) { url in
-            
-                printWithDate(msg: "visiting a new link \(url)")
-            }
-            .onChange(of: webWrapper.title!) { title in
-                webCache.title = title
-            }
-            .onChange(of: webWrapper.icon) { icon in
-                webCache.webIconUrl = URL(string: String(icon)) ?? .defaultWebIconURL
-            }
-            .onChange(of: toolbarState.goForwardTapped) { tapped in
-                if tapped {
-                    goForward()
-                    toolbarState.goForwardTapped = false
-                }
-            }
-            .onChange(of: toolbarState.goBackTapped) { tapped in
-                if tapped {
-                    goBack()
-                    toolbarState.goBackTapped = false
-                }
+                printWithDate(msg: "in webComponent,url is: \(webWrapper.url), web index \(index), progress goes \(newValue)")
             }
     }
     

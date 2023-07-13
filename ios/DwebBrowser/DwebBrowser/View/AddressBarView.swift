@@ -15,8 +15,8 @@ struct AddressBar: View {
     @EnvironmentObject var selectedTab: SelectedTab
     @EnvironmentObject var toolbarState: ToolBarState
     @EnvironmentObject var openingLink: OpeningLink
-
-    var webWrapper: WebWrapper { WebWrapperMgr.shared.store[index] }
+    
+    @ObservedObject var webWrapper: WebWrapper
 
     var isVisible: Bool { return WebWrapperMgr.shared.store.firstIndex(of: webWrapper) == selectedTab.curIndex }
     private var shouldShowProgress: Bool { webWrapper.estimatedProgress > 0.0 && webWrapper.estimatedProgress < 1.0 }
