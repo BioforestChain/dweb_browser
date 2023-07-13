@@ -17,26 +17,23 @@ export class NavigationBarController extends BaseController {
     });
     ipc
       .onFetch(async (event) => {
-        let resultResolve: { (res: Response): void };
-        const resultPromise = new Promise<Response>((resolve) => (resultResolve = resolve));
-        match(event)
+        return match(event)
           .with({ pathname: "/getState" }, () => {
             const state = this.navigationBarGetState();
-            console.log("getState: ", state);
-            resultResolve(Response.json(state));
+            return Response.json(state);
           })
           .with({ pathname: "/setState" }, () => {
             const states = parseQuery(event.searchParams, query_state);
             this.navigationBarSetState(states);
-            resultResolve(Response.json(null));
+            return Response.json(null);
           })
           .with({ pathname: "/startObserve" }, () => {
             this.observer.startObserve(ipc);
-            resultResolve(Response.json(true));
+            return Response.json(true);
           })
           .with({ pathname: "/stopObserve" }, () => {
             this.observer.stopObserve(ipc);
-            resultResolve(Response.json(""));
+            return Response.json("");
           })
           .with({ pathname: "/observe" }, () => {
             const readableStream = new ReadableStream({
@@ -49,16 +46,14 @@ export class NavigationBarController extends BaseController {
               },
             });
 
-            resultResolve(
-              new Response(readableStream, {
-                status: 200,
-                statusText: "ok",
-                headers: new Headers({ "Content-Type": "application/octet-stream" }),
-              })
-            );
-          });
+            return new Response(readableStream, {
+              status: 200,
+              statusText: "ok",
+              headers: new Headers({ "Content-Type": "application/octet-stream" }),
+            });
+          })
+          .run();
 
-        return await resultPromise;
         // const { pathname, searchParams } = event;
         // // 获取导航栏状态
         // if (pathname.endsWith("/getState")) {
