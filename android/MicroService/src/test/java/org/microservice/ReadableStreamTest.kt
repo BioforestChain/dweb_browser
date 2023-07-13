@@ -55,7 +55,7 @@ class ReadableStreamTest : AsyncBase() {
 
         val req_ipc = ReadableStreamIpc(m1, IPC_ROLE.CLIENT)
         val res_ipc = ReadableStreamIpc(m2, IPC_ROLE.SERVER)
-        res_ipc.bindIncomeStream(req_ipc.stream, "from-req")
+        res_ipc.bindIncomeStream(req_ipc.stream)
 
 
         res_ipc.onRequest { (request, ipc) ->
@@ -75,7 +75,7 @@ class ReadableStreamTest : AsyncBase() {
 
 
         delay(100)
-        req_ipc.bindIncomeStream(res_ipc.stream, "to-res")
+        req_ipc.bindIncomeStream(res_ipc.stream)
         for (i in 1..10) {
             println("开始发送 $i")
             val req = Request(Method.POST, "").body("hi-$i")
