@@ -11,7 +11,6 @@ import org.dweb_browser.microservice.ipc.helper.IpcResponse
 import org.dweb_browser.microservice.ipc.helper.IpcStreamData
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.Callback

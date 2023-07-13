@@ -10,7 +10,7 @@ import org.dweb_browser.microservice.ipc.helper.IpcMessage
 import org.dweb_browser.microservice.ipc.helper.IpcMessageArgs
 import java.util.concurrent.atomic.AtomicInteger
 
-inline fun debugNativeIpc(tag: String, msg: Any = "", err: Throwable? = null) =
+fun debugNativeIpc(tag: String, msg: Any = "", err: Throwable? = null) =
   printdebugln("native-ipc", tag, msg, err)
 
 class NativeIpc(
