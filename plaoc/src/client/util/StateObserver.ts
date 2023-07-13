@@ -20,16 +20,55 @@ export class StateObserver<RAW, STATE> {
     return this.plugin.fetchApi(`/startObserve`);
   }
 
+  // async *jsonlines(options?: { signal?: AbortSignal }) {
+  //   const jsonlines = await this.plugin
+  //     .buildInternalApiRequest("/observe", {
+  //       search: { mmid: this.plugin.mmid },
+  //       base: await BasePlugin.public_url,
+  //     })
+  //     .fetch()
+  //     .jsonlines(this.coder.decode);
+  //   for await (const state of streamRead(jsonlines, options)) {
+  //     this.currentState = state;
+  //     yield state;
+  //   }
+  // }
+
   async *jsonlines(options?: { signal?: AbortSignal }) {
-    const jsonlines = await this.plugin
-      .buildInternalApiRequest("/observe", {
-        search: { mmid: this.plugin.mmid },
-        base: await BasePlugin.public_url,
-      })
-      .fetch()
-      .jsonlines(this.coder.decode);
-    for await (const state of streamRead(jsonlines, options)) {
+    let controller: ReadableStreamDefaultController;
+    const readableStream: ReadableStream = new ReadableStream({
+      start(_controller) {
+        controller = _controller;
+      },
+      pull() {},
+      cancel() {},
+    });
+
+    const url = new URL(BasePlugin.url.replace(/^http:/, "ws:").replace(/^https:/, "wss:"));
+    url.pathname = `${this.plugin.mmid}/observe`;
+    const ws = new WebSocket(url);
+    ws.onerror = (err) => {
+      console.error("onerror", err);
+      controller.close();
+    };
+    // let count = 0;
+    ws.onopen = () => {};
+    ws.onmessage = async (event: MessageEvent<Blob>) => {
+      const str = await event.data.text();
+      if (str.length === 0) return;
+      console.log("str: ", str);
+      const value = this.coder.decode(JSON.parse(str));
+      controller.enqueue(value);
+    };
+
+    ws.onclose = () => {
+      controller.close();
+      // console.log("关闭了", "需要把消息发送给监听者");
+    };
+
+    for await (const state of streamRead(readableStream, options)) {
       this.currentState = state;
+      console.log("", this.currentState);
       yield state;
     }
   }

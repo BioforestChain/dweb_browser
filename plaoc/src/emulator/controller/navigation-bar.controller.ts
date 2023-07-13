@@ -7,9 +7,7 @@ import { BaseController } from "./base-controller.ts";
 export class NavigationBarController extends BaseController {
   private _init = (async () => {
     this.emitInit();
-    const ipc = await createMockModuleServerIpc(
-      "navigation-bar.nativeui.browser.dweb"
-    );
+    const ipc = await createMockModuleServerIpc("navigation-bar.nativeui.browser.dweb");
     const query_state = z.object({
       color: zq.transform((color) => colorToHex(JSON.parse(color))).optional(),
       style: z.enum(["DARK", "LIGHT", "DEFAULT"]).optional(),
@@ -36,8 +34,26 @@ export class NavigationBarController extends BaseController {
         }
         // 结束订阅数据
         if (pathname.endsWith("/stopObserve")) {
-          this.observer.startObserve(ipc);
+          this.observer.stopObserve(ipc);
           return Response.json("");
+        }
+        // 订阅
+        if (pathname.endsWith("/observe")) {
+          const readableStream = new ReadableStream({
+            start: (_controller) => {
+              this.observer.observe(_controller);
+            },
+            pull(_controller) {},
+            cancel: (reson) => {
+              console.log("", "cancel", reson);
+            },
+          });
+
+          return new Response(readableStream, {
+            status: 200,
+            statusText: "ok",
+            headers: new Headers({ "Content-Type": "application/octet-stream" }),
+          });
         }
       })
       .forbidden()

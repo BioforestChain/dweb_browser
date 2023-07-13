@@ -7,9 +7,7 @@ import { BaseController } from "./base-controller.ts";
 export class SafeAreaController extends BaseController {
   private _init = (async () => {
     this.emitInit();
-    const ipc = await createMockModuleServerIpc(
-      "safe-area.nativeui.browser.dweb"
-    );
+    const ipc = await createMockModuleServerIpc("safe-area.nativeui.browser.dweb");
     const query_state = z.object({
       overlay: zq.boolean(),
     });
@@ -32,8 +30,26 @@ export class SafeAreaController extends BaseController {
         }
         // 结束订阅数据
         if (pathname.endsWith("/stopObserve")) {
-          this.observer.startObserve(ipc);
+          this.observer.stopObserve(ipc);
           return Response.json("");
+        }
+        // 订阅
+        if (pathname.endsWith("/observe")) {
+          const readableStream = new ReadableStream({
+            start: (_controller) => {
+              this.observer.observe(_controller);
+            },
+            pull(_controller) {},
+            cancel: (reson) => {
+              console.log("", "cancel", reson);
+            },
+          });
+
+          return new Response(readableStream, {
+            status: 200,
+            statusText: "ok",
+            headers: new Headers({ "Content-Type": "application/octet-stream" }),
+          });
         }
       })
       .forbidden()
@@ -85,11 +101,7 @@ export class SafeAreaController extends BaseController {
     virtualKeyboardState: $BarState,
     isShowVirtualKeyboard: boolean
   ) => {
-    const bottomBarState = getButtomBarState(
-      navigationBarState,
-      isShowVirtualKeyboard,
-      virtualKeyboardState
-    );
+    const bottomBarState = getButtomBarState(navigationBarState, isShowVirtualKeyboard, virtualKeyboardState);
     this.emitUpdate();
     return {
       overlay: this.state,

@@ -6,9 +6,7 @@ import { BaseController } from "./base-controller.ts";
 export class StatusBarController extends BaseController {
   private _init = (async () => {
     this.emitInit();
-    const ipc = await createMockModuleServerIpc(
-      "status-bar.nativeui.browser.dweb"
-    );
+    const ipc = await createMockModuleServerIpc("status-bar.nativeui.browser.dweb");
     const query_state = z.object({
       color: zq.transform((color) => colorToHex(JSON.parse(color))).optional(),
       style: z.enum(["DARK", "LIGHT", "DEFAULT"]).optional(),
@@ -19,6 +17,7 @@ export class StatusBarController extends BaseController {
     ipc
       .onFetch((event) => {
         const { pathname, searchParams } = event;
+        console.log("status-bar", pathname);
         // 获取状态栏状态
         if (pathname.endsWith("/getState")) {
           const state = this.statusBarGetState();
@@ -36,8 +35,27 @@ export class StatusBarController extends BaseController {
         }
         // 结束订阅数据
         if (pathname.endsWith("/stopObserve")) {
-          this.observer.startObserve(ipc);
+          this.observer.stopObserve(ipc);
           return Response.json("");
+        }
+
+        // 订阅
+        if (pathname.endsWith("/observe")) {
+          const readableStream = new ReadableStream({
+            start: (_controller) => {
+              this.observer.observe(_controller);
+            },
+            pull(_controller) {},
+            cancel: (reson) => {
+              console.log("", "cancel", reson);
+            },
+          });
+
+          return new Response(readableStream, {
+            status: 200,
+            statusText: "ok",
+            headers: new Headers({ "Content-Type": "application/octet-stream" }),
+          });
         }
       })
       .forbidden()
