@@ -5,6 +5,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshotFlow
+import androidx.lifecycle.lifecycleScope
 import com.google.accompanist.web.WebContent
 import com.google.accompanist.web.WebViewNavigator
 import com.google.accompanist.web.WebViewState
@@ -180,7 +181,13 @@ class MultiWebViewController(
     }
     webViewList.clear()
     this.downLoadObserver?.close() // 移除下载状态监听
-    this.activity?.finish()
+
+    this.activity?.also {
+      it.finish()
+      it.lifecycleScope.launch {
+        PromiseOut<Unit>().waitPromise()
+      }.join()
+    }
     return true
   }
 

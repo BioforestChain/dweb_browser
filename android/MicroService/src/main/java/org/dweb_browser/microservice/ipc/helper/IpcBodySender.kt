@@ -350,6 +350,7 @@ class IpcBodySender(
             }
             stream.close()
             emitStreamClose()
+            break
           }
 
           0 -> {

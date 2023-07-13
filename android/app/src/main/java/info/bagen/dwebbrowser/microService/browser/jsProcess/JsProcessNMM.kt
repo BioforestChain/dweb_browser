@@ -15,6 +15,7 @@ import org.dweb_browser.microservice.sys.http.HttpDwebServer
 import org.dweb_browser.microservice.sys.http.closeHttpDwebServer
 import org.dweb_browser.microservice.sys.http.createHttpDwebServer
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -49,10 +50,9 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
 
   private val INTERNAL_PATH = "/<internal>".encodeURI()
 
-
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     /// 主页的网页服务
-    val mainServer = this.createHttpDwebServer(DwebHttpServerOptions()).also { server ->
+     val mainServer = this.createHttpDwebServer(DwebHttpServerOptions()).also { server ->
       // 提供基本的主页服务
       val serverIpc = server.listen();
       serverIpc.onRequest { (request, ipc) ->
@@ -210,6 +210,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
   }
 
   override suspend fun _shutdown() {
+    debugJsProcess("JsProcess","_shutdown")
   }
 
   private suspend fun createProcessAndRun(

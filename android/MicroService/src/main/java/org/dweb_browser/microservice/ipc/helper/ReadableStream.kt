@@ -55,7 +55,7 @@ class ReadableStream(
   private fun _gc() {
     runBlockingCatching(writeDataScope.coroutineContext) {
       _dataLock.withLock {
-        if (ptr >= 1 /*10240*/ || isClosed) {
+        if (ptr >= 1 /*10240*/||isClosed) {
           debugStream("GC", "$uid => -${ptr} ~> ${_data.size - ptr}")
           _data = _data.sliceArray(ptr until _data.size)
           ptr = 0
@@ -198,7 +198,9 @@ class ReadableStream(
    */
   @Throws(IOException::class)
   override fun available(): Int {
-    return requestData(1, true).size - ptr
+    return (requestData(1, true).size - ptr).let{size->
+      if(isClosed&&size==0) -1 else size
+    }
   }
 
   @Throws(IOException::class)

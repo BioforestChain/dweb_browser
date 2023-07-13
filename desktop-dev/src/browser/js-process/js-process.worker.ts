@@ -1,12 +1,7 @@
 /// <reference lib="webworker"/>
 /// 该文件是给 js-worker 用的，worker 中是纯粹的一个runtime，没有复杂的 import 功能，所以这里要极力克制使用外部包。
 /// import 功能需要 chrome-80 才支持。我们明年再支持 import 吧，在此之前只能用 bundle 方案来解决问题
-import type {
-  $DWEB_DEEPLINK,
-  $IpcSupportProtocols,
-  $MicroModule,
-  $MMID,
-} from "../../core/types.ts";
+import type { $DWEB_DEEPLINK, $IpcSupportProtocols, $MicroModule, $MMID } from "../../core/types.ts";
 import type { $RunMainConfig } from "./assets/js-process.web.ts";
 
 import { $normalizeRequestInitAsIpcRequestArgs } from "../../core/helper/ipcRequestHelper.ts";
@@ -31,11 +26,8 @@ import {
 } from "./std-dweb-core.ts";
 
 declare global {
-  type JsProcessMicroModuleContructor =
-    import("./js-process.worker.ts").JsProcessMicroModule;
-  const JsProcessMicroModule: new (
-    mmid: $MMID
-  ) => JsProcessMicroModuleContructor;
+  type JsProcessMicroModuleContructor = import("./js-process.worker.ts").JsProcessMicroModule;
+  const JsProcessMicroModule: new (mmid: $MMID) => JsProcessMicroModuleContructor;
 
   interface DWebCore {
     jsProcess: JsProcessMicroModuleContructor;
@@ -106,9 +98,7 @@ type $Metadata = {
  */
 export class JsProcessMicroModule implements $MicroModule {
   readonly ipc_support_protocols = (() => {
-    const protocols =
-      this.meta.envStringOrNull("ipc-support-protocols")?.split(/[\s\,]+/) ??
-      [];
+    const protocols = this.meta.envStringOrNull("ipc-support-protocols")?.split(/[\s\,]+/) ?? [];
     return {
       raw: protocols.includes("raw"),
       cbor: protocols.includes("cbor"),
@@ -164,33 +154,21 @@ export class JsProcessMicroModule implements $MicroModule {
 
     this.mmid = meta.data.mmid;
     this.host = this.meta.envString("host");
-    this.fetchIpc = new MessagePortIpc(
-      this.nativeFetchPort,
-      this,
-      IPC_ROLE.SERVER
-    );
+    this.fetchIpc = new MessagePortIpc(this.nativeFetchPort, this, IPC_ROLE.SERVER);
   }
 
   /// 这个通道只能用于基础的通讯
   readonly fetchIpc: MessagePortIpc;
 
-  private async _nativeFetch(
-    url: RequestInfo | URL,
-    init?: RequestInit
-  ): Promise<Response> {
+  private async _nativeFetch(url: RequestInfo | URL, init?: RequestInit): Promise<Response> {
     const args = normalizeFetchArgs(url, init);
     const hostName = args.parsed_url.hostname;
     if (!(hostName.endsWith(".dweb") && args.parsed_url.protocol === "file:")) {
-      const ipc_response = await this._nativeRequest(
-        args.parsed_url,
-        args.request_init
-      );
+      const ipc_response = await this._nativeRequest(args.parsed_url, args.request_init);
       return ipc_response.toResponse(args.parsed_url.href);
     }
     const ipc = await this.connect(hostName as $MMID);
-    const ipc_req_init = await $normalizeRequestInitAsIpcRequestArgs(
-      args.request_init
-    );
+    const ipc_req_init = await $normalizeRequestInitAsIpcRequestArgs(args.request_init);
     const ipc_response = await ipc.request(args.parsed_url.href, ipc_req_init);
     return ipc_response.toResponse(args.parsed_url.href);
   }
@@ -204,9 +182,7 @@ export class JsProcessMicroModule implements $MicroModule {
   }
 
   private async _nativeRequest(parsed_url: URL, request_init: RequestInit) {
-    const ipc_req_init = await $normalizeRequestInitAsIpcRequestArgs(
-      request_init
-    );
+    const ipc_req_init = await $normalizeRequestInitAsIpcRequestArgs(request_init);
     return await this.fetchIpc.request(parsed_url.href, ipc_req_init);
   }
 
@@ -218,7 +194,7 @@ export class JsProcessMicroModule implements $MicroModule {
 
   /**重启 */
   restart() {
-    this._restartCloseIpcSignal.emit();
+    // this._restartCloseIpcSignal.emit();
     this.fetchIpc.postMessage(IpcEvent.fromText("restart", "")); // 发送指令
   }
   // 重启关闭ipc
@@ -242,9 +218,7 @@ export class JsProcessMicroModule implements $MicroModule {
             return this._onCloseSignal.emit(ipcEvent, ipc);
           }
         });
-        ipc.onRequest((ipcRequest, ipc) =>
-          this._onRequestSignal.emit(ipcRequest, ipc)
-        );
+        ipc.onRequest((ipcRequest, ipc) => this._onRequestSignal.emit(ipcRequest, ipc));
         this._restartCloseIpcSignal.listen(() => {
           ipc.postMessage(IpcEvent.fromText("close", ipc.remote.mmid));
           ipc.close();
@@ -267,9 +241,7 @@ export class JsProcessMicroModule implements $MicroModule {
     return mapHelper.getOrPut(this._ipcConnectsMap, mmid, () => {
       const ipc_po = new PromiseOut<Ipc>();
       // 发送指令
-      this.fetchIpc.postMessage(
-        IpcEvent.fromText("dns/connect", JSON.stringify({ mmid }))
-      );
+      this.fetchIpc.postMessage(IpcEvent.fromText("dns/connect", JSON.stringify({ mmid })));
       ipc_po.onSuccess((ipc) => {
         ipc.onClose(() => {
           this._ipcConnectsMap.delete(ipc.remote.mmid);
@@ -339,10 +311,7 @@ export const installEnv = async (metadata: Metadata) => {
     }
     if (data[0] === "run-main") {
       const config = data[1] as $RunMainConfig;
-      const main_parsed_url = updateUrlOrigin(
-        config.main_url,
-        `http://${jsProcess.host}`
-      );
+      const main_parsed_url = updateUrlOrigin(config.main_url, `http://${jsProcess.host}`);
       const location = {
         hash: main_parsed_url.hash,
         host: main_parsed_url.host,
