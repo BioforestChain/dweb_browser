@@ -1,11 +1,5 @@
-﻿using DwebBrowser.MicroService.Browser;
-using DwebBrowser.MicroService.Browser.Jmm;
-using DwebBrowser.MicroService.Browser.JsProcess;
-//using System.Diagnostics;
-using System.Net.Http;
-using DwebBrowserIOSUnitTest.Tests;
+﻿//using System.Diagnostics;
 using DwebBrowser.Helper;
-using DwebBrowser.MicroService.Message;
 
 namespace DwebBrowserIOSUnitTest;
 
@@ -35,47 +29,6 @@ public class AppDelegate : UIApplicationDelegate
         // make the window visible
         Window.MakeKeyAndVisible();
 
-
-        Task.Run(() =>
-        {
-            var x = System.Diagnostics.Stopwatch.StartNew();
-
-
-            foreach (var j in Enumerable.Range(1, 10))
-            {
-
-                var str = "";
-                foreach (var i in Enumerable.Range(j, 10))
-                {
-                    str += i.ToString();
-                }
-                var data = new MetaBody(MetaBody.IPC_META_BODY_TYPE.INLINE_BASE64, j, str, "r" + j, 3 + j);
-                x.Reset();
-                x.Start();
-                System.Diagnostics.Debug.WriteLine("Size: {0}, Time: {1}", data, x.ElapsedMilliseconds);
-                var json = data.ToJson();
-                x.Stop();
-                System.Diagnostics.Debug.WriteLine("Size: {0}, Time: {1}", json.Length, x.ElapsedMilliseconds);
-            }
-
-
-            foreach (var j in Enumerable.Range(1, 10))
-            {
-
-                var str = "";
-                foreach (var i in Enumerable.Range(j, 60000))
-                {
-                    str += i.ToString();
-                }
-                var data = new MetaBody(MetaBody.IPC_META_BODY_TYPE.INLINE_BASE64, j, str, "r"+j, 3+j);
-                x.Reset();
-                x.Start();
-                System.Diagnostics.Debug.WriteLine("Size: {0}, Time: {1}", data, x.ElapsedMilliseconds);
-                var json = data.ToJson();
-                x.Stop();
-                System.Diagnostics.Debug.WriteLine("Size: {0}, Time: {1}", json.Length, x.ElapsedMilliseconds);
-            }
-        });
         return true;
     }
 }

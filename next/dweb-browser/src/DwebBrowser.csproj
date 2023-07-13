@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFrameworks>net7.0-ios</TargetFrameworks>
+		<TargetFrameworks>net8.0-ios</TargetFrameworks>
 		<OutputType>Exe</OutputType>
 		<RootNamespace>DwebBrowser</RootNamespace>
 		<UseMaui>true</UseMaui>
@@ -22,10 +22,10 @@
 		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'tizen'">6.5</SupportedOSPlatformVersion>
 	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net7.0-ios|AnyCPU'">
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-ios|AnyCPU'">
 		<CreatePackage>false</CreatePackage>
 	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net7.0-ios|AnyCPU'">
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0-ios|AnyCPU'">
 		<CreatePackage>false</CreatePackage>
 	</PropertyGroup>
 	<ItemGroup>
@@ -45,18 +45,24 @@
 		<None Remove="Resources\.DS_Store" />
 	</ItemGroup>
 	<ItemGroup>
-		<ProjectReference Include="..\Helper\src\DwebBrowser.Helper.csproj" />
-		<ProjectReference Include="..\MicroService\src\DwebBrowser.MicroService.csproj" />
+		<ProjectReference Include="..\Helper\src\DwebBrowser.Helper.csproj">
+			<ReferenceSourceTarget>ProjectReference</ReferenceSourceTarget>
+		</ProjectReference>
+		<ProjectReference Include="..\MicroService\src\DwebBrowser.MicroService.csproj">
+			<ReferenceSourceTarget>ProjectReference</ReferenceSourceTarget>
+		</ProjectReference>
 	</ItemGroup>
 	<ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">
-		<ProjectReference Include="..\DWebView\src\DwebBrowser.DWebView.csproj" />
+		<ProjectReference Include="..\DWebView\src\DwebBrowser.DWebView.csproj">
+			<ReferenceSourceTarget>ProjectReference</ReferenceSourceTarget>
+		</ProjectReference>
 	</ItemGroup>
 	<ItemGroup>
-		<Reference Include="SwiftUIBindingMAUI" Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net7.0-ios|AnyCPU'">
-			<HintPath>..\..\..\ios\SwiftUIBindingMAUI\bin\Release\net7.0-ios\SwiftUIBindingMAUI.dll</HintPath>
+		<Reference Include="SwiftUIBindingMAUI" Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0-ios|AnyCPU'">
+			<HintPath>..\..\..\ios\SwiftUIBindingMAUI\bin\Release\net8.0-ios\SwiftUIBindingMAUI.dll</HintPath>
 		</Reference>
-		<Reference Include="SwiftUIBindingMAUI" Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net7.0-ios|AnyCPU'">
-			<HintPath>..\..\..\ios\SwiftUIBindingMAUI\bin\Debug\net7.0-ios\SwiftUIBindingMAUI.dll</HintPath>
+		<Reference Include="SwiftUIBindingMAUI" Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-ios|AnyCPU'">
+			<HintPath>..\..\..\ios\SwiftUIBindingMAUI\bin\Debug\net8.0-ios\SwiftUIBindingMAUI.dll</HintPath>
 		</Reference>
 	</ItemGroup>
 	<ItemGroup>
