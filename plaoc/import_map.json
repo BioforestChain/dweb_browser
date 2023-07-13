@@ -6,6 +6,7 @@
       "lit": "https://esm.sh/v124/lit@2.7.4",
       "lit/": "https://esm.sh/v124/lit@2.7.4/",
       "jimp": "https://esm.sh/v124/jimp@0.22.8",
-      "jsqr": "https://esm.sh/v124/jsqr@1.4.0"
+      "jsqr": "https://esm.sh/v124/jsqr@1.4.0",
+      "ts-pattern": "https://esm.sh/v124/ts-pattern@5.0.1"
   }
 }

@@ -1,3 +1,4 @@
+import { match } from "ts-pattern";
 import { colorToHex, hexaToRGBA, parseQuery, z, zq } from "../../../deps.ts";
 import { StateObservable } from "../helper/StateObservable.ts";
 import { createMockModuleServerIpc } from "../helper/mokeServerIpcHelper.ts";
@@ -15,48 +16,88 @@ export class StatusBarController extends BaseController {
     });
 
     ipc
-      .onFetch((event) => {
-        const { pathname, searchParams } = event;
-        console.log("status-bar", pathname);
-        // 获取状态栏状态
-        if (pathname.endsWith("/getState")) {
-          const state = this.statusBarGetState();
-          return Response.json(state);
-        }
-        if (pathname.endsWith("/setState")) {
-          const states = parseQuery(searchParams, query_state);
-          this.statusBarSetState(states);
-          return Response.json(null);
-        }
-        // 开始订阅数据
-        if (pathname.endsWith("/startObserve")) {
-          this.observer.startObserve(ipc);
-          return Response.json(true);
-        }
-        // 结束订阅数据
-        if (pathname.endsWith("/stopObserve")) {
-          this.observer.stopObserve(ipc);
-          return Response.json("");
-        }
+      .onFetch(async (event) => {
+        let resultResolve: { (res: Response): void };
+        const resultPromise = new Promise<Response>((resolve) => (resultResolve = resolve));
+        match(event)
+          .with({ pathname: "/getState" }, () => {
+            const state = this.statusBarGetState();
+            resultResolve(Response.json(state));
+          })
+          .with({ pathname: "/setState" }, () => {
+            const states = parseQuery(event.searchParams, query_state);
+            this.statusBarSetState(states);
+            resultResolve(Response.json(null));
+          })
+          .with({ pathname: "/startObserve" }, () => {
+            this.observer.startObserve(ipc);
+            resultResolve(Response.json(true));
+          })
+          .with({ pathname: "/stopObserve" }, () => {
+            this.observer.stopObserve(ipc);
+            resultResolve(Response.json(""));
+          })
+          .with({ pathname: "/observe" }, () => {
+            const readableStream = new ReadableStream({
+              start: (_controller) => {
+                this.observer.observe(_controller);
+              },
+              pull(_controller) {},
+              cancel: (reson) => {
+                console.log("", "cancel", reson);
+              },
+            });
 
-        // 订阅
-        if (pathname.endsWith("/observe")) {
-          const readableStream = new ReadableStream({
-            start: (_controller) => {
-              this.observer.observe(_controller);
-            },
-            pull(_controller) {},
-            cancel: (reson) => {
-              console.log("", "cancel", reson);
-            },
+            resultResolve(
+              new Response(readableStream, {
+                status: 200,
+                statusText: "ok",
+                headers: new Headers({ "Content-Type": "application/octet-stream" }),
+              })
+            );
           });
 
-          return new Response(readableStream, {
-            status: 200,
-            statusText: "ok",
-            headers: new Headers({ "Content-Type": "application/octet-stream" }),
-          });
-        }
+        return await resultPromise;
+
+        // // 获取状态栏状态
+        // if (pathname.endsWith("/getState")) {
+        //   const state = this.statusBarGetState();
+        //   return Response.json(state);
+        // }
+        // if (pathname.endsWith("/setState")) {
+        //   const states = parseQuery(searchParams, query_state);
+        //   this.statusBarSetState(states);
+        //   return Response.json(null);
+        // }
+        // // 开始订阅数据
+        // if (pathname.endsWith("/startObserve")) {
+        //   this.observer.startObserve(ipc);
+        //   return Response.json(true);
+        // }
+        // // 结束订阅数据
+        // if (pathname.endsWith("/stopObserve")) {
+        //   this.observer.stopObserve(ipc);
+        //   return Response.json("");
+        // }
+
+        // // 订阅
+        // if (pathname.endsWith("/observe")) {
+        //   const readableStream = new ReadableStream({
+        //     start: (_controller) => {
+        //       this.observer.observe(_controller);
+        //     },
+        //     pull(_controller) {},
+        //     cancel: (reson) => {
+        //       console.log("", "cancel", reson);
+        //     },
+        //   });
+
+        //   return new Response(readableStream, {
+        //     status: 200,
+        //     statusText: "ok",
+        //     headers: new Headers({ "Content-Type": "application/octet-stream" }),
+        //   });
+        // }
       })
       .forbidden()
       .cors();

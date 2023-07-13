@@ -7,16 +7,7 @@ import { NavigationBarController } from "./controller/navigation-bar.controller.
 import { TorchController } from "./controller/torch.controller.ts";
 import { VirtualKeyboardController } from "./controller/virtual-keyboard.controller.ts";
 import "./emulator-toolbar.html.ts";
-import {
-  css,
-  customElement,
-  html,
-  LitElement,
-  property,
-  query,
-  state,
-  when,
-} from "./helper/litHelper.ts";
+import { css, customElement, html, LitElement, property, query, state, when } from "./helper/litHelper.ts";
 import "./multi-webview-comp-biometrics.html.ts";
 import "./multi-webview-comp-haptics.html.ts";
 import "./multi-webview-comp-mobile-shell.html.ts";
@@ -74,9 +65,7 @@ export class RootComp extends LitElement {
     return this.navigationController.state;
   }
   /**virtualboard */
-  readonly virtualKeyboardController = this._wc(
-    new VirtualKeyboardController()
-  );
+  readonly virtualKeyboardController = this._wc(new VirtualKeyboardController());
 
   get virtualKeyboardState() {
     return this.virtualKeyboardController.state;
@@ -133,12 +122,9 @@ export class RootComp extends LitElement {
                 slot="bottom-bar"
                 ._visible=${this.virtualKeyboardState.visible}
                 ._overlay=${this.virtualKeyboardState.overlay}
-                @first-updated=${this.virtualKeyboardController
-                  .virtualKeyboardFirstUpdated}
-                @hide-completed=${this.virtualKeyboardController
-                  .virtualKeyboardHideCompleted}
-                @show-completed=${this.virtualKeyboardController
-                  .virtualKeyboardShowCompleted}
+                @first-updated=${this.virtualKeyboardController.virtualKeyboardFirstUpdated}
+                @hide-completed=${this.virtualKeyboardController.virtualKeyboardHideCompleted}
+                @show-completed=${this.virtualKeyboardController.virtualKeyboardShowCompleted}
               ></multi-webview-comp-virtual-keyboard>
             `,
             () => {

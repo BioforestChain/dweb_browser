@@ -63,12 +63,11 @@ export class StateObserver<RAW, STATE> {
 
     ws.onclose = () => {
       controller.close();
-      // console.log("关闭了", "需要把消息发送给监听者");
+      console.log("关闭了 ws");
     };
 
     for await (const state of streamRead(readableStream, options)) {
       this.currentState = state;
-      console.log("", this.currentState);
       yield state;
     }
   }
