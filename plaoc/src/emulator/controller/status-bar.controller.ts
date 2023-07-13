@@ -17,25 +17,24 @@ export class StatusBarController extends BaseController {
 
     ipc
       .onFetch(async (event) => {
-        let resultResolve: { (res: Response): void };
-        const resultPromise = new Promise<Response>((resolve) => (resultResolve = resolve));
-        match(event)
+        console.log(">>>>>>>>>>>");
+        return match(event)
           .with({ pathname: "/getState" }, () => {
             const state = this.statusBarGetState();
-            resultResolve(Response.json(state));
+            return Response.json(state);
           })
           .with({ pathname: "/setState" }, () => {
             const states = parseQuery(event.searchParams, query_state);
             this.statusBarSetState(states);
-            resultResolve(Response.json(null));
+            return Response.json(null);
           })
           .with({ pathname: "/startObserve" }, () => {
             this.observer.startObserve(ipc);
-            resultResolve(Response.json(true));
+            return Response.json(true);
           })
           .with({ pathname: "/stopObserve" }, () => {
             this.observer.stopObserve(ipc);
-            resultResolve(Response.json(""));
+            return Response.json("");
           })
           .with({ pathname: "/observe" }, () => {
             const readableStream = new ReadableStream({
@@ -48,17 +47,13 @@ export class StatusBarController extends BaseController {
               },
             });
 
-            resultResolve(
-              new Response(readableStream, {
-                status: 200,
-                statusText: "ok",
-                headers: new Headers({ "Content-Type": "application/octet-stream" }),
-              })
-            );
-          });
-
-        return await resultPromise;
-
+            return new Response(readableStream, {
+              status: 200,
+              statusText: "ok",
+              headers: new Headers({ "Content-Type": "application/octet-stream" }),
+            });
+          })
+          .run();
         // // 获取状态栏状态
         // if (pathname.endsWith("/getState")) {
         //   const state = this.statusBarGetState();
