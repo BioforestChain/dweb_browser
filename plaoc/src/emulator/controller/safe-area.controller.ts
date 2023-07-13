@@ -14,24 +14,22 @@ export class SafeAreaController extends BaseController {
     });
     ipc
       .onFetch(async (event) => {
-        let resultResolve: { (res: Response): void };
-        const resultPromise = new Promise<Response>((resolve) => (resultResolve = resolve));
-        match(event)
+        return match(event)
           .with({ pathname: "/getState" }, () => {
-            resultResolve(Response.json(this.state));
+            return Response.json(this.state);
           })
           .with({ pathname: "/setState" }, () => {
             const states = parseQuery(event.searchParams, query_state);
             this.safeAreaSetOverlay(states.overlay);
-            resultResolve(Response.json(null));
+            return Response.json(null);
           })
           .with({ pathname: "/startObserve" }, () => {
             this.observer.startObserve(ipc);
-            resultResolve(Response.json(true));
+            return Response.json(true);
           })
           .with({ pathname: "/stopObserve" }, () => {
             this.observer.stopObserve(ipc);
-            resultResolve(Response.json(""));
+            return Response.json("");
           })
           .with({ pathname: "/observe" }, () => {
             const readableStream = new ReadableStream({
@@ -44,16 +42,14 @@ export class SafeAreaController extends BaseController {
               },
             });
 
-            resultResolve(
-              new Response(readableStream, {
-                status: 200,
-                statusText: "ok",
-                headers: new Headers({ "Content-Type": "application/octet-stream" }),
-              })
-            );
-          });
+            return new Response(readableStream, {
+              status: 200,
+              statusText: "ok",
+              headers: new Headers({ "Content-Type": "application/octet-stream" }),
+            });
+          })
+          .run();
 
-        return await resultPromise;
         // const { pathname, searchParams } = event;
         // // 获取安全区域状态
         // if (pathname.endsWith("/getState")) {
