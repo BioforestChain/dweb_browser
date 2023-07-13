@@ -68,6 +68,10 @@ struct AddressBar: View {
             .onSubmit {
                 let url = URL.createUrl(addressBar.inputText)
                 DispatchQueue.main.async {
+                    let webcache = WebCacheMgr.shared.store[index]
+                    if !webcache.shouldShowWeb{
+                        webcache.lastVisitedUrl = url
+                    }
                     openingLink.clickedLink = url
                     addressBar.isFocused = false
                 }

@@ -23,10 +23,14 @@ struct TabPageView: View {
     var body: some View {
         GeometryReader { geo in
             ZStack {
-                webComponent
+                if webCache.shouldShowWeb{
+                    webComponent
+                }
                 
                 if !webCache.shouldShowWeb {
-                    HomePageView()
+                    Color.bkColor.overlay {
+                        HomePageView()
+                    }
                 }
             }
             .onAppear {
@@ -91,7 +95,7 @@ struct TabPageView: View {
             }
         
             .onChange(of: webWrapper.url) { url in
-                if let validUrl = url {
+                if let validUrl = url, webCache.lastVisitedUrl != validUrl {
                     webCache.lastVisitedUrl = validUrl
                 }
             }

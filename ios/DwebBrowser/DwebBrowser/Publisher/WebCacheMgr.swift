@@ -21,12 +21,10 @@ class WebCache: ObservableObject, Identifiable, Hashable, Codable, Equatable {
     }
     
     var id = UUID()
-    var shouldShowWeb: Bool {
-        lastVisitedUrl != emptyURL
-    }
-    
+    private var cancellables = Set<AnyCancellable>()
     @Published var webIconUrl: URL // url to the source of somewhere in internet
     @Published var lastVisitedUrl: URL // the website that user has opened on webview
+    @Published var shouldShowWeb: Bool
 
     @Published var title: String // page title
     @Published var snapshotUrl: URL // local file path is direct to the image has saved in document dir
@@ -35,19 +33,21 @@ class WebCache: ObservableObject, Identifiable, Hashable, Codable, Equatable {
             WebCacheMgr.shared.saveCaches()
             snapshotImage = UIImage.snapshotImage(from: snapshotUrl)
         }
-        
     }
     @Published var snapshotImage = UIImage.defaultSnapShotImage
     
     init(icon: URL = URL.defaultWebIconURL, showWeb: Bool = false, lastVisitedUrl: URL = emptyURL, title: String = "", snapshotUrl: URL = URL.defaultSnapshotURL) {
+        shouldShowWeb = false
         webIconUrl = icon
         self.lastVisitedUrl = lastVisitedUrl
         self.title = title
         self.snapshotUrl = snapshotUrl
         snapshotImage = UIImage.snapshotImage(from: snapshotUrl)
+        observeUrl()
     }
     
     required init(from decoder: Decoder) throws {
+        shouldShowWeb = false
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(UUID.self, forKey: .id)
         webIconUrl = try container.decodeIfPresent(URL.self, forKey: .webIconUrl) ?? URL.defaultWebIconURL
@@ -55,6 +55,7 @@ class WebCache: ObservableObject, Identifiable, Hashable, Codable, Equatable {
         title = try container.decode(String.self, forKey: .title)
         snapshotUrl = try container.decodeIfPresent(URL.self, forKey: .snapshotUrl) ?? URL.defaultSnapshotURL
         snapshotImage = UIImage.snapshotImage(from: snapshotUrl)
+        observeUrl()
     }
     
     func encode(to encoder: Encoder) throws {
@@ -84,6 +85,15 @@ class WebCache: ObservableObject, Identifiable, Hashable, Codable, Equatable {
     
     static var example: WebCache {
         WebCache(lastVisitedUrl: URL(string: "https://www.apple.com")!, title: "apple")
+    }
+    
+    private func observeUrl(){
+        $lastVisitedUrl
+            .map({ $0 != emptyURL})
+            .sink(receiveValue: {[weak self] isAvailable in
+                self?.shouldShowWeb = isAvailable
+            })
+            .store(in: &cancellables)
     }
 }
 
@@ -130,8 +140,8 @@ class WebCacheMgr: ObservableObject {
         }
         if store.count == 0 {
             store = [
-                //                WebCache(lastVisitedUrl: emptyURL, title: "blank"),
-                WebCache(lastVisitedUrl: URL(string: "https://developer.mozilla.org/en-US/docs/Web/JavaScript")!, title: "1"),
+                                WebCache(lastVisitedUrl: emptyURL, title: "blank"),
+//                WebCache(lastVisitedUrl: URL(string: "https://developer.mozilla.org/en-US/docs/Web/JavaScript")!, title: "1"),
 
                 WebCache(lastVisitedUrl: URL(string: "https://www.apple.com")!, title: "2"),
 
