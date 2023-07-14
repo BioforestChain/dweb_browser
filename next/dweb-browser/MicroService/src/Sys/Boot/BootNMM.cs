@@ -37,7 +37,7 @@ public class BootNMM : NativeMicroModule
         foreach (var mmid in _registeredMmids)
         {
             Console.Log("OnActivity", "launch {0}", mmid);
-            await BootstrapContext.Dns.BootstrapAsync(mmid);
+            await BootstrapContext.Dns.Open(mmid);
             var connectResult = await BootstrapContext.Dns.ConnectAsync(mmid);
             await connectResult.IpcForFromMM.PostMessageAsync(Event);
         }

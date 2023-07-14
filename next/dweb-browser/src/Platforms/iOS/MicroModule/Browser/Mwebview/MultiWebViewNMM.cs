@@ -18,7 +18,7 @@ public class MultiWebViewNMM : IOSNativeMicroModule
     protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)
     {
         /// nativeui 与 mwebview 是伴生关系
-        await bootstrapContext.Dns.BootstrapAsync("nativeui.browser.dweb");
+        await bootstrapContext.Dns.Open("nativeui.browser.dweb");
 
         // 打开一个webview作为窗口
         HttpRouter.AddRoute(IpcMethod.Get, "/open", async (request, ipc) =>

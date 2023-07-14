@@ -119,7 +119,7 @@ public abstract partial class MicroModule : Ipc.IMicroModuleInfo
      */
     public async Task<ConnectResult> ConnectAsync(Mmid mmid, PureRequest? reason = null)
     {
-        await _bootstrapContext!.Dns.BootstrapAsync(mmid);
+        await _bootstrapContext!.Dns.Open(mmid);
         return await _bootstrapContext!.Dns.ConnectAsync(mmid);
     }
 

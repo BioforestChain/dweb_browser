@@ -127,9 +127,9 @@ public class DnsNMM : NativeMicroModule
             _dnsMM.Install(mm);
         }
 
-        public void UnInstall(MicroModule mm)
+        public bool UnInstall(MicroModule mm)
         {
-            _dnsMM.UnInstall(mm);
+            return _dnsMM.UnInstall(mm);
         }
 
         public MicroModule? Query(Mmid mmid) =>
@@ -151,7 +151,27 @@ public class DnsNMM : NativeMicroModule
                 _fromMM, mmid, reason ?? new PureRequest(string.Format("file://{0}", mmid), IpcMethod.Get));
         }
 
-        public Task BootstrapAsync(string mmid) => _dnsMM.Open(mmid).NoThrow();
+        public async Task<bool> Open(Mmid mmid) {
+            if (_dnsMM._runningApps.ContainsKey(mmid))
+            {
+                return false;
+            }
+
+            await _dnsMM.Open(mmid);
+
+            return true;
+        }
+
+        public async Task<bool> Close(Mmid mmid)
+        {
+            if (_dnsMM._runningApps.ContainsKey(mmid))
+            {
+                await _dnsMM.Close(mmid);
+                return true;
+            }
+
+            return false;
+        }
     }
 
     protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)
@@ -268,7 +288,7 @@ public class DnsNMM : NativeMicroModule
     public void Install(MicroModule mm) => _installApps.TryAdd(mm.Mmid, mm);
 
     /** <summary>卸载应用</summary> */
-    public void UnInstall(MicroModule mm) => _installApps.Remove(mm.Mmid);
+    public bool UnInstall(MicroModule mm) => _installApps.Remove(mm.Mmid);
 
     /** <summary>查询应用</summary> */
     public MicroModule? Query(Mmid mmid) => _installApps.GetValueOrDefault(mmid);

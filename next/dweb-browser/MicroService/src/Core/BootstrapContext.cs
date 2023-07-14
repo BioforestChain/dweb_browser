@@ -19,7 +19,7 @@ public interface IDnsMicroModule
      * 动态卸载应用
      * </summary>
      */
-    public void UnInstall(MicroModule mm);
+    public bool UnInstall(MicroModule mm);
 
     /**
      * <summary>
@@ -49,6 +49,13 @@ public interface IDnsMicroModule
      * 启动其它应用
      * </summary>
      */
-    public Task BootstrapAsync(Mmid mmid);
+    public Task<bool> Open(Mmid mmid);
+
+    /**
+     * <summary>
+     * 关闭其它应用
+     * </summary>
+     */
+    public Task<bool> Close(Mmid mmid);
 }
 
