@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Xml;
 using CoreGraphics;
 using DwebBrowser.MicroService.Browser.Mwebview;
 using DwebBrowser.MicroService.Browser.NativeUI.Base;
@@ -24,9 +25,9 @@ public class SafeAreaController : AreaController, IToJsonAble
         MultiWebViewController mwebviewController,
         NativeUiController nativeUiController) : base(
         overlayState: new(true),
-        areaState: new(CGRect.Empty.ToAreaJson()))
+        areaState: new(new AreaJson(nativeUiController.StatusBar.AreaState.Get().top, 0, 0, nativeUiController.NavigationBar.AreaState.Get().bottom)))
     {
-        CutoutInsets = new(new AreaJson(UIApplication.SharedApplication.KeyWindow.SafeAreaInsets.Top, 0, 0, 0));
+        CutoutInsets = new(new AreaJson(nativeUiController.StatusBar.AreaState.Get().top, 0, 0, 0));
         var webviewFrame = mwebviewController.WebviewFrame.Get();
         OuterAreaInsets = new(new AreaJson(
             webviewFrame.Top.Value,

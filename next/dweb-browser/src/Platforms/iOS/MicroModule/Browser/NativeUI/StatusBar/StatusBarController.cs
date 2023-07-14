@@ -19,7 +19,7 @@ public class StatusBarController : BarController, IToJsonAble
         styleState: new(mwebviewController.StatusBarStyle),
         visibleState: new(!mwebviewController.StatusBarView.Hidden),
         overlayState: new(mwebviewController.StatusBarView.Alpha < 1),
-        areaState: new(mwebviewController.StatusBarView.Frame.ToAreaJson())
+        areaState: new(new AreaJson(mwebviewController.StatusBarView.Frame.GetMaxY().Value, 0, 0, 0))
     )
     {
         Observer = new(GetState);
@@ -43,7 +43,7 @@ public class StatusBarController : BarController, IToJsonAble
                     value.Color.blue.ToNFloat(),
                     value.Color.alpha.ToNFloat());
 
-                AreaState.Set(value.Overlay ? AreaJson.Empty : new(
+                AreaState.Set(mwebviewController.StatusBarView.Hidden ? AreaJson.Empty : new(
                         mwebviewController.StatusBarView.Frame.GetMaxY().Value,
                         0,
                         0,

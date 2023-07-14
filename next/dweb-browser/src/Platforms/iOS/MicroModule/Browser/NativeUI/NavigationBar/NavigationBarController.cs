@@ -19,7 +19,8 @@ public class NavigationBarController : BarController, IToJsonAble
         styleState: new(mwebviewController.StatusBarStyle),
         visibleState: new(!mwebviewController.NavigationBarView.Hidden),
         overlayState: new(mwebviewController.NavigationBarView.Alpha < 1),
-        areaState: new(mwebviewController.NavigationBarView.Frame.ToAreaJson()))
+        areaState: new(new AreaJson(0, 0, 0,
+            mwebviewController.NavigationBarView.Frame.GetMaxY().Value - mwebviewController.NavigationBarView.Frame.GetMinY().Value)))
     {
         Observer = new(GetState);
         StateObserver = new(ToJson);
@@ -37,7 +38,7 @@ public class NavigationBarController : BarController, IToJsonAble
                 var currentStatusBarStyle = mwebviewController.StatusBarStyle;
                 mwebviewController.NavigationBarView.Alpha = value.Overlay ? new nfloat(0.5) : 1;
 
-                AreaState.Set(value.Overlay ? AreaJson.Empty : new(
+                AreaState.Set(mwebviewController.NavigationBarView.Hidden ? AreaJson.Empty : new(
                     0,
                     0,
                     0,
