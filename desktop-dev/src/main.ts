@@ -81,10 +81,11 @@ dns.install(new JmmNMM());
 const dwebDesktop = new DesktopNMM();
 dns.install(dwebDesktop);
 
+const custom_boot = process.argv.find((arg) => arg.startsWith("--boot="))?.slice("--boot=".length) as "*.dweb";
+
 dns.install(
   new BootNMM([
-    dwebDesktop.mmid,
-    // dwebBrowser.mmid,
+    custom_boot ?? dwebBrowser.mmid,
     // "bluetooth.std.dweb"
   ])
 );
