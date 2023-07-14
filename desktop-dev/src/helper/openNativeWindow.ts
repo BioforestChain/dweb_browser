@@ -203,28 +203,30 @@ const bridgeComlink = async <M>(url: string, webContents: Electron.WebContents, 
     return ports_po;
   };
   ports_po = init_ports_po();
-
   const { MainPortToRenderPort } = await import("./electronPortMessage.ts");
+  let initResolve: { (value: unknown): void };
+  const initPromise = new Promise((resolve) => (initResolve = resolve));
   webContents.ipc.on("renderPort", (event) => {
     const [import_port, export_port] = event.ports;
     /// 页面可能刷新，那么就重新初始化
     if (ports_po.is_resolved) {
       ports_po = init_ports_po();
     }
-
     ports_po.resolve({
       import_port: MainPortToRenderPort(import_port),
       export_port: MainPortToRenderPort(export_port),
     });
+
+    initResolve(ports_po);
   });
 
   await webContents.loadURL(url);
-
+  await initPromise;
   return {
     getMainApi() {
       return mainApi;
     },
-    getRenderApi<T>() {
+    async getRenderApi<T>() {
       return wrap<T>(ports_po.value!.import_port);
     },
   };
