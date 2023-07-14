@@ -6,8 +6,6 @@ import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import type { $DWEB_DEEPLINK, $MMID } from "../../core/types.ts";
 import { createComlinkNativeWindow } from "../../helper/openNativeWindow.ts";
 import { createHttpDwebServer, type HttpDwebServer } from "../../std/http/helper/$createHttpDwebServer.ts";
-// import { OnFetchAdapter } from "./bluetooth.onFetchAdapter.ts";
-import { OnFetchAdapter } from "../../helper/onFetchAdapter.ts";
 import { fetchMatch } from "../../helper/patternHelper.ts";
 import { STATE } from "./const.ts";
 import type { $AllWatchControllerItem, $Device, $ResponseJsonable, RequestDeviceOptions } from "./types.ts";
@@ -16,10 +14,8 @@ type $APIS = typeof import("./assets/exportApis.ts")["APIS"];
 
 export class BluetoothNMM extends NativeMicroModule {
   mmid = "bluetooth.std.dweb" as const;
-  dweb_deeplinks = ["dweb:bluetooth"] as $DWEB_DEEPLINK[];
+  override dweb_deeplinks = ["dweb:bluetooth"] as $DWEB_DEEPLINK[];
   private _encode = new TextEncoder().encode;
-  // private _router = new Router();
-  private _onFetchAdapter = new OnFetchAdapter();
   private _responseHeader = new IpcHeaders().init("Content-Type", "application/json");
   private _STATE: STATE = STATE.CLOSED;
   private _apis: Remote<$APIS> | undefined;
@@ -31,14 +27,7 @@ export class BluetoothNMM extends NativeMicroModule {
   private _operationResolveMap: Map<number, { (arg: $ResponseJsonable<unknown>): void }> = new Map();
   // 为 多次点击 设备列表做准备
   private _deviceConnectedResolve(value: $ResponseJsonable<unknown>) {}
-  // private _deviceDisconnectedResolve(value: unknown) {}
   private _deviceDisconnectedResolveMap: Map<number, { (arg: unknown): void }> = new Map();
-  private _bluetoothRemoteGATTServerConnectResolveMap: Map<number, { (arg: unknown): void }> = new Map();
-  private _deviceGetPrimaryServiceResolveMap: Map<number, { (arg: unknown): void }> = new Map();
-  private _deviceGetCharacteristicResolveMap: Map<number, { (arg: unknown): void }> = new Map();
-  private _deviceCharacteristicReadValueResolveMap: Map<number, { (arg: unknown): void }> = new Map();
-  private _characteristicGetDescriptorMap: Map<number, { (arg: unknown): void }> = new Map();
-  private _descriptorReadValueMap: Map<number, { (arg: unknown): void }> = new Map();
   private _bluetoothrequestdevicewatchSelectCallback: { (deviceId: string): void } | undefined;
   // 全部的 watchController 用来向 client 发送数据；
   private _allWatchController = new Map<$MMID, $AllWatchControllerItem>();
@@ -453,83 +442,6 @@ export class BluetoothNMM extends NativeMicroModule {
   };
 
   /**
-   * 初始化适配器
-   * @returns
-   */
-  // private _onFetchAdapterInit() {
-  //   this._onFetchAdapter
-  //     // .add("GET", "/open", this._openHandler)
-  //     // .add("GET", "/close", this._closeHandler)
-  //     // .add("GET", "/watch", this._watchHandler)
-  //     // .add("GET", "bluetooth", this.dwebBluetoothHandler)
-  //     // .add(
-  //     //   "POST",
-  //     //   "/request_connect_device",
-  //     //   this._requestAndConnectDeviceHandler
-  //     // )
-  //     // .add("GET", "/bluetooth_device/forget", this._bluetoothDevice_forget)
-  //     // .add(
-  //     //   "GET",
-  //     //   "/bluetooth_device/watch_advertisements",
-  //     //   this._bluetoothDevice_watchAdvertisements
-  //     // )
-  //     // .add(
-  //     //   "GET",
-  //     //   "/bluetooth_remote_gatt_server/connect",
-  //     //   this._bluetoothRemoteGATTServer_connect
-  //     // )
-  //     // .add(
-  //     //   "GET",
-  //     //   "/bluetooth_remote_gatt_server/disconnect",
-  //     //   this._bluetoothRemoteGATTServer_disconnect
-  //     // )
-
-  //     // .add(
-  //     //   "GET",
-  //     //   "/bluetooth_remote_gatt_server/get_primary_service",
-  //     //   this._bluetoothRemoteGATTServer_getPrimaryService
-  //     // )
-  //     // .add(
-  //     //   "GET",
-  //     //   "/bluetooth_remote_gatt_service/get_characteristic",
-  //     //   this._bluetoothRemoteGATTService_getCharacteristic
-  //     // )
-  //     // .add(
-  //     //   "GET",
-  //     //   "/bluetooth_remote_gatt_characteristic/read_value",
-  //     //   this._bluetoothRemoteGATTCharacteristic_readValue
-  //     // )
-  //     // .add(
-  //     //   "POST",
-  //     //   "/bluetooth_remote_gatt_characteristic/write_value",
-  //     //   this._bluetoothRemoteGATTCharacteristic_writeValue
-  //     // )
-  //     // .add(
-  //     //   "GET",
-  //     //   "/bluetooth_remote_gatt_characteristic/get_descriptor",
-  //     //   this._bluetoothRemoteGATTCharacteristic_getDescriptor
-  //     // )
-  //     // .add(
-  //     //   "GET",
-  //     //   `/bluetooth_remote_gatt_descriptor/reaed_value`,
-  //     //   this._bluetoothRemoteGATTDescriptor_readValue
-  //     // )
-  //     // .add(
-  //     //   "POST",
-  //     //   `/bluetooth_remote_gatt_descriptor/write_value`,
-  //     //   this._bluetoothRemoteGATTDescriptor_writeValue
-  //     // );
-  //   return this;
-  // }
-
-  // /**
-  //  * 开始监听请求
-  //  */
-  // private listenRequest() {
-  //   this.onFetch(this._onFetchAdapter.run);
-  // }
-
-  /**
    * 创建一个新的隐藏窗口装载webview，使用它的里头 web-bluetooth-api 来实现我们的需求
    * @param url
    * @param ipc
@@ -553,26 +465,10 @@ export class BluetoothNMM extends NativeMicroModule {
     return bw;
   };
 
-  // 最小化 UI
-  // 一但最小化就会失去 连接
-  private _minimize = async () => {
-    if (this._browserWindow === undefined) {
-      throw new Error("this._browserWindow === undefined");
-    }
-    (await this._browserWindow).minimize();
-  };
-
-  private _maximize = async () => {
-    if (this._browserWindow === undefined) {
-      throw new Error("this._browserWindow === undefined");
-    }
-    // (await this._browserWindow).maximize();
-  };
-
   // 打开 browseView
   private _initUI = async () => {
     this._browserWindow = this._getBrowserWindow(this._rootUrl);
-    this._apis = (await this._browserWindow).getRenderApi<$APIS>();
+    this._apis = await (await this._browserWindow).getRenderApi<$APIS>();
     this._STATE = STATE.OPENED;
     (await this._browserWindow).on("blur", async () => {
       (await this._browserWindow)?.hide();
@@ -665,23 +561,3 @@ class Execute {
 export interface $ExcuteCallback {
   (...arg: any[]): any;
 }
-
-/**
- * bluetooth.std.dweb UI 的状态
- * 分为
- * - closed 关闭关闭关闭状态
- *
- * - visible 可见状态
- * - hide 隐藏状态 当时
- */
-
-// open 只是打开 模块
-// close 关闭模块 关闭 UI
-// requestDevice 显示 UI 查询列表
-
-// 测试指令
-// 设备是 EDIFIER TWS NB2
-// deno task dnt --start bluetooth --acceptAllDevices true --optionalServices 00003802-0000-1000-8000-00805f9b34fb --optionalServices 00003802-0000-1000-8000-00805f9b34fb
-
-// acceptAllDevices: true,
-// optionalServices: ["00003802-0000-1000-8000-00805f9b34fb"],
