@@ -239,13 +239,12 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
                              * 监听关闭事件
                              */
                             originIpc.onClose {
-                                fromMmid_originIpc_WM.remove(originIpc.remote.mmid)
+                                fromMmid_originIpc_WM.remove(targetIpc.remote.mmid)
                                 targetIpc.close()
                             }
-                            targetIpc.onClose {
-                                fromMmid_originIpc_WM.remove(targetIpc.remote.mmid)
-                                originIpc.close()
-                            }
+                        }
+                        originIpc.onClose {
+                            fromMmid_originIpc_WM.remove(originIpc.remote.mmid)
                         }
                         po.resolve(originIpc);
                     } catch (e: Exception) {

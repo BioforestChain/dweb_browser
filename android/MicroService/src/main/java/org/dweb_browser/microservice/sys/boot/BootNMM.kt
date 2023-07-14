@@ -42,7 +42,7 @@ class BootNMM(initMmids: List<Mmid>? = null) : NativeMicroModule("boot.sys.dweb"
   override suspend fun onActivity(event: IpcEvent, ipc: Ipc) {
     for (mmid in registeredMmids) {
       debugBoot("launch", mmid)
-      bootstrapContext.dns.bootstrap(mmid)
+      bootstrapContext.dns.open(mmid)
       bootstrapContext.dns.connect(mmid).ipcForFromMM.postMessage(event)
     }
   }

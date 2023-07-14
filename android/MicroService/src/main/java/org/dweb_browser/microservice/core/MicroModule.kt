@@ -108,7 +108,7 @@ abstract class MicroModule : Ipc.MicroModuleInfo {
    */
   suspend fun connect(mmid: Mmid, reason: Request? = null) =
     this.bootstrapContext.dns.let {
-      it.bootstrap(mmid)
+      it.open(mmid)
       it.connect(mmid)
     }
 

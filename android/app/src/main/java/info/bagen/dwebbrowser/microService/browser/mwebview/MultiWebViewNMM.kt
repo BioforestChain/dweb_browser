@@ -45,7 +45,7 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.browser.dweb") {
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     /// nativeui 与 mwebview 是伴生关系
-    bootstrapContext.dns.bootstrap("nativeui.browser.dweb")
+    bootstrapContext.dns.open("nativeui.browser.dweb")
 
     // 打开webview
     val queryUrl = Query.string().required("url")

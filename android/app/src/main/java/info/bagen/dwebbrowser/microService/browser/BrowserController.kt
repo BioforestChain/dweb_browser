@@ -19,7 +19,7 @@ class BrowserController(val browserNMM: BrowserNMM) {
     val browserViewModel by lazy {
         BrowserViewModel(browserNMM) { mmid ->
             activity?.lifecycleScope?.launch {
-                browserNMM.bootstrapContext.dns.bootstrap(mmid)
+                browserNMM.bootstrapContext.dns.open(mmid)
             }
         }
     }

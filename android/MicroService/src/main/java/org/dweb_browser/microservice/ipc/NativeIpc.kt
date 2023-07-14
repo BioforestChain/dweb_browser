@@ -1,5 +1,6 @@
 package org.dweb_browser.microservice.ipc
 
+import kotlinx.coroutines.DelicateCoroutinesApi
 import org.dweb_browser.helper.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.GlobalScope
@@ -78,6 +79,8 @@ class NativePort<I, O>(
     fun close() {
         if (!closePo.isFinished) {
             closePo.resolve(Unit)
+            channel_in.close()
+            channel_out.close()
             debugNativeIpc("port-closing/$this")
         }
     }
@@ -92,7 +95,6 @@ class NativePort<I, O>(
             _closeSignal.emit()
             debugNativeIpc("port-closed/${this@NativePort}")
         }
-
     }
 
 
@@ -101,7 +103,7 @@ class NativePort<I, O>(
     /**
      * 发送消息，这个默认会阻塞
      */
-    @OptIn(ExperimentalCoroutinesApi::class)
+    @OptIn(DelicateCoroutinesApi::class)
     suspend fun postMessage(msg: O) {
         debugNativeIpc("message-out/$this >> $msg")
         if (!channel_out.isClosedForSend) {

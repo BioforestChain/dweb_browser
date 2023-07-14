@@ -17,7 +17,7 @@ interface DnsMicroModule {
     /**
      * 动态卸载应用
      */
-    fun uninstall(mm: Mmid)
+    fun uninstall(mm: Mmid):Boolean
 
     /**
      * 动态js应用查询
@@ -37,5 +37,9 @@ interface DnsMicroModule {
     /**
      * 启动其它应用
      */
-    suspend fun bootstrap(mmid: Mmid)
+    suspend fun open(mmid: Mmid):Boolean
+    /**
+     * 关闭其他应用
+     */
+    suspend fun close(mmid: Mmid):Boolean
 }

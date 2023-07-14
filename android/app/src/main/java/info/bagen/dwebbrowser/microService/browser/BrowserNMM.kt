@@ -29,7 +29,7 @@ class BrowserNMM : NativeMicroModule("browser.dweb") {
   data class AppInfo(val id: String, val icon: String, val name: String, val short_name: String)
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    bootstrapContext.dns.bootstrap("jmm.browser.dweb")
+    bootstrapContext.dns.open("jmm.browser.dweb")
     apiRouting = routes(
       "/appsInfo" bind Method.GET to defineHandler { request ->
         val apps = getAndUpdateJmmNmmApps()
