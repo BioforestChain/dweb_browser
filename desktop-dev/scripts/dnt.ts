@@ -10,9 +10,7 @@ const resolveTo = (to: string) => path.resolve(workspaceDir, to);
 const readPackageJson = () => {
   const packageJsonPath = resolveTo("./electron/package.json");
   if (fs.existsSync(packageJsonPath)) {
-    const ROOT_PACKAGE = JSON.parse(
-      fs.readFileSync(packageJsonPath, "utf-8")
-    ) as { version: string };
+    const ROOT_PACKAGE = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8")) as { version: string };
     return ROOT_PACKAGE;
   }
 };
@@ -45,10 +43,7 @@ await dnt.build({
     appCopyright: "Copyright © 2023 Bnqkl, Inc.",
     productName: productName,
 
-    version:
-      Deno.args.filter((arg) => /^\d/.test(arg))[0] ||
-      readPackageJson()?.version ||
-      "0.0.0",
+    version: Deno.args.filter((arg) => /^\d/.test(arg))[0] || readPackageJson()?.version || "0.0.0",
     description: "Distributed web browser",
     license: "MIT",
     config: {
@@ -113,14 +108,9 @@ await dnt.build({
       if (entry.entryname.endsWith(".js.map")) {
         const sourceMap = entry.readJson<$SourceMap>();
         sourceMap.sources = sourceMap.sources.map((source, index) => {
-          const denoFilepath = path.resolve(
-            workspaceDir,
-            entry.relativepath,
-            source
-          );
+          const denoFilepath = path.resolve(workspaceDir, entry.relativepath, source);
           if (fs.existsSync(denoFilepath)) {
-            sourceMap.sourcesContent[index] =
-              Deno.readTextFileSync(denoFilepath);
+            sourceMap.sourcesContent[index] = Deno.readTextFileSync(denoFilepath);
           }
 
           return path.relative(entry.dirpath, denoFilepath);

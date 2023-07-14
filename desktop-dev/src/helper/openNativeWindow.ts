@@ -3,6 +3,7 @@ import { debounce } from "./$debounce.ts";
 import { PromiseOut } from "./PromiseOut.ts";
 import { animate, easeOut } from "./animate.ts";
 import "./electron.ts";
+import { micaElectron } from "./electron.ts";
 import { electronConfig } from "./electronConfig.ts";
 
 /**
@@ -83,7 +84,38 @@ export const createNativeWindow = async (sessionId: string, createOptions: $Crea
     ...nativeWindowStates[sessionId]?.bounds,
   };
 
-  const win = new Electron.BrowserWindow(options);
+  let win: Electron.BrowserWindow;
+
+  if (options.backgroundMaterial) {
+    const { backgroundMaterial, ...miac_options } = options;
+    const mica_win = new micaElectron.MicaBrowserWindow(miac_options);
+
+    /// 云母特性只能在有边框的情况下生效
+    if (miac_options.frame !== false && micaElectron.IS_WINDOWS_11) {
+      if (backgroundMaterial === "mica") {
+        mica_win.setMicaEffect(); // Mica Effect
+        mica_win.enableMargin();
+      } else if (backgroundMaterial === "acrylic") {
+        mica_win.setMicaAcrylicEffect();
+      } else if (backgroundMaterial === "tabbed") {
+        mica_win.setMicaTabbedEffect(); // Mica Tabbed
+      }
+    } else {
+      // 如果无边框，降级使用 win7+ 的亚克力特效
+      if (backgroundMaterial === "mica" || backgroundMaterial === "acrylic" || backgroundMaterial === "tabbed") {
+        mica_win.setAcrylic();
+      }
+    }
+
+    /// 设置圆角，与macos保持一致的效果
+    if (options.roundedCorners) {
+      mica_win.setRoundedCorner();
+    }
+
+    win = mica_win;
+  } else {
+    win = new Electron.BrowserWindow(options);
+  }
 
   const state = (nativeWindowStates[sessionId] ??= {
     devtools: false,

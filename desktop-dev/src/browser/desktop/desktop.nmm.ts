@@ -1,3 +1,4 @@
+import os from "node:os";
 import { $BootstrapContext } from "../../core/bootstrapContext.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import { createComlinkNativeWindow } from "../../helper/openNativeWindow.ts";
@@ -25,28 +26,41 @@ export class DesktopNMM extends NativeMicroModule {
     });
 
     await Electron.app.whenReady();
-    const taskbar = await createComlinkNativeWindow(
+    const isWin = os.platform() === "win32";
+
+    const taskbarWin = await createComlinkNativeWindow(
       // taskbarServer.startResult.urlInfo.buildInternalUrl((url) => {
       //   url.pathname = "/index.html";
       // }).href,
-      `http://localhost:5173/taskbar/index.html`,
+      `http://localhost:3700/taskbar/index.html`,
       {
-        width: 120,
-        height: 120,
+        autoHideMenuBar: true,
         type: "toolbar", //创建的窗口类型为工具栏窗口
-        frame: false, //要创建无边框窗口
-        resizable: false, //禁止窗口大小缩放
         transparent: true, //设置透明
         alwaysOnTop: true, //窗口是否总是显示在其他窗口之前
-        vibrancy: "popover", // macos 高斯模糊
-        backgroundMaterial: "mica", // window11 高斯模糊
-        visualEffectState: "active",
+        // resizable: false, // 禁止窗口大小缩放
+        roundedCorners: true,
+        ...(isWin
+          ? {
+              frame: false,
+              thickFrame: false,
+              backgroundMaterial: "mica", // window11 高斯模糊
+            }
+          : {
+              frame: false, // 要创建无边框窗口
+              vibrancy: "popover", // macos 高斯模糊
+              visualEffectState: "active", // macos 失去焦点后仍然高斯模糊
+            }),
       },
       async (win) => {
         return new TaskbarMainApis(win);
       }
     );
-    // taskbar.webContents.openDevTools({ mode: "detach" });
+    // if (isWin) {
+    //   user32.SetWindowCompositionAttribute(taskbarWin.getNativeWindowHandle().readInt32LE(), windowcompositon.ref());
+    // }
+
+    taskbarWin.webContents.openDevTools({ mode: "undocked" });
   }
 
   protected _shutdown() {}
@@ -60,6 +74,8 @@ export class TaskbarMainApis {
       width,
       height,
     });
+    // this.win.title
+    // this.win.setTitleBarOverlay({ height: 0 });
   }
   setVibrancy(type: Parameters<Electron.BrowserWindow["setVibrancy"]>[0]) {
     this.win.setVibrancy(type);

@@ -31,4 +31,7 @@ export default defineConfig({
     extensions: [".js", ".json", ".jsx", ".mjs", ".ts", ".tsx", ".vue"],
   },
   define: { "process.env": {} },
+  server: {
+    port: 3700,
+  },
 });
