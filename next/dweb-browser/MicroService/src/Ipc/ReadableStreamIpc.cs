@@ -23,7 +23,8 @@ public class ReadableStreamIpc : Ipc
 
     public override async Task DoClose()
     {
-        _controller.Close();
+        //_controller.Close();
+        ReadableStream.Stream.Close();
         _incomeStream?.Close();
     }
 

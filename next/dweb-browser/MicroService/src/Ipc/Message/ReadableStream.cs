@@ -44,7 +44,7 @@ public class ReadableStream
                 if (isClosed) { return; }
                 isClosed = true;
                 output.Close();
-                input.Close();
+                //input.Close();
                 onWriteClose?.Invoke();
             }
         }

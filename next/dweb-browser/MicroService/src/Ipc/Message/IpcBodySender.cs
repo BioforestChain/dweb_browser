@@ -161,7 +161,11 @@ public class IpcBodySender : IpcBody, IDisposable
                 };
                 ipc.OnStream += cb;
 
-                mapper.OnDestroy += async (_) => ipc.OnStream -= cb;
+                mapper.OnDestroy += async (_) => {
+                    ipc.OnStream -= cb;
+                    Console.Log("ipcBodySenderUsableByIpc", "CLOSE/{0}", ipc);
+                    s_ipcUsableIpcBodyMap.Remove(ipc);
+                };
 
                 return mapper;
             });
@@ -408,14 +412,14 @@ public class IpcBodySender : IpcBody, IDisposable
             };
 
             /// 然后开始异步监听流控信号
-            _ = Task.Factory.StartNew(async () =>
+            _ = Task.Run(async () =>
             {
                 Console.Log("StreamAsMeta", "sender/WAIT_PULL/{0:H} {1}", stream, stream_id);
                 await foreach (var signal in _streamStatusSignal.ReceiveAllAsync())
                 {
                     streamStatusSignal?.Emit(signal);
                 }
-            }, TaskCreationOptions.LongRunning).NoThrow();
+            }).NoThrow();
 
             // 等待流开始被拉取
             await pullingPo.WaitPromiseAsync();
