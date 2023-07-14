@@ -181,13 +181,21 @@ public abstract class Ipc
             }
         };
 
-        _ = Task.Factory.StartNew(async () =>
+        //_ = Task.Factory.StartNew(async () =>
+        //{
+        //    await foreach (var (ipcStreamMessage, ipc) in streamChannel.ReceiveAllAsync())
+        //    {
+        //        await (OnStream?.Emit(ipcStreamMessage, ipc)).ForAwait();
+        //    }
+        //}, TaskCreationOptions.LongRunning).NoThrow();
+
+        _ = Task.Run(async () =>
         {
             await foreach (var (ipcStreamMessage, ipc) in streamChannel.ReceiveAllAsync())
             {
                 await (OnStream?.Emit(ipcStreamMessage, ipc)).ForAwait();
             }
-        }, TaskCreationOptions.LongRunning).NoThrow();
+        }).NoThrow();
 
         OnClose += (_) =>
         {

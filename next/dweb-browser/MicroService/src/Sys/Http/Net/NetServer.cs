@@ -83,17 +83,17 @@ public static class NetServer
             {
                 var context = listener.GetContext();
 
-                Task.Factory.StartNew(() =>
+                _ = Task.Run(async () =>
                 {
                     if (context.Request.IsWebSocketRequest)
                     {
-                        WebSocketHandlerAsync(context, websocketHandler).Wait();
+                        await WebSocketHandlerAsync(context, websocketHandler);
                     }
                     else
                     {
-                        HttpHandlerAsync(context, handler).Wait();
+                        await HttpHandlerAsync(context, handler);
                     }
-                }, TaskCreationOptions.LongRunning);
+                }).NoThrow();
             }
         }, TaskCreationOptions.LongRunning);
 
