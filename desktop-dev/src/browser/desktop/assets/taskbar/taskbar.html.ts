@@ -16,9 +16,11 @@ export class TaskbarElement extends LitElement {
         display: block;
         height: min-content;
         width: min-content;
+        -webkit-app-region: drag;
       }
       .panel {
         padding: 1em;
+        cursor: move;
       }
       .app-icon {
         width: 60px;

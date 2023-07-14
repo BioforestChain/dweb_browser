@@ -38,6 +38,9 @@ export class DesktopNMM extends NativeMicroModule {
         resizable: false, //禁止窗口大小缩放
         transparent: true, //设置透明
         alwaysOnTop: true, //窗口是否总是显示在其他窗口之前
+        vibrancy: "popover", // macos 高斯模糊
+        backgroundMaterial: "mica", // window11 高斯模糊
+        visualEffectState: "active",
       },
       async (win) => {
         return new TaskbarMainApis(win);
@@ -57,5 +60,14 @@ export class TaskbarMainApis {
       width,
       height,
     });
+  }
+  setVibrancy(type: Parameters<Electron.BrowserWindow["setVibrancy"]>[0]) {
+    this.win.setVibrancy(type);
+  }
+  setBackgroundMaterial(material: Parameters<Electron.BrowserWindow["setBackgroundMaterial"]>[0]) {
+    this.win.setBackgroundMaterial(material);
+  }
+  setBackgroundColor(backgroundColor: string) {
+    this.win.setBackgroundColor(backgroundColor);
   }
 }

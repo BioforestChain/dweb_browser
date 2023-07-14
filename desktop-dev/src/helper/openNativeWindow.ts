@@ -64,6 +64,7 @@ const saveNativeWindowStates = () => {
 export interface $CreateNativeWindowOptions extends Electron.BrowserWindowConstructorOptions {
   userAgent?: (userAgent: string) => string;
 }
+
 export const createNativeWindow = async (sessionId: string, createOptions: $CreateNativeWindowOptions = {}) => {
   await Electron.app.whenReady();
   const { userAgent, ..._options } = createOptions;
@@ -77,6 +78,7 @@ export const createNativeWindow = async (sessionId: string, createOptions: $Crea
       webSecurity: false,
       nodeIntegration: true,
       contextIsolation: false,
+      experimentalFeatures: true,
     },
     ...nativeWindowStates[sessionId]?.bounds,
   };
@@ -106,9 +108,13 @@ export const createNativeWindow = async (sessionId: string, createOptions: $Crea
     });
   }
 
-  win.on("close", () => {
+  const saveBounds = () => {
     state.bounds = win.getBounds();
     saveNativeWindowStates();
+  };
+  win.on("moved", debounce(saveBounds, 300));
+  win.on("close", () => {
+    saveBounds();
 
     win.webContents.closeDevTools();
   });
@@ -150,72 +156,6 @@ export const createComlinkNativeWindow = async <E = NativeWindowExtensions_BaseA
   const mainApi = await exportBuilder(win);
 
   return Object.assign(win, await bridgeComlink(url, win.webContents, mainApi));
-};
-
-export const createBrowserView = async (sessionId: string, createOptions: $CreateNativeWindowOptions = {}) => {
-  await Electron.app.whenReady();
-  const { userAgent, ..._options } = createOptions;
-
-  const options: Electron.BrowserWindowConstructorOptions = {
-    titleBarStyle: "hiddenInset",
-    ..._options,
-    webPreferences: {
-      ..._options.webPreferences,
-      sandbox: false,
-      devTools: !Electron.app.isPackaged,
-      webSecurity: false,
-      nodeIntegration: true,
-      contextIsolation: false,
-    },
-    ...nativeWindowStates[sessionId]?.bounds,
-  };
-
-  const bv = new Electron.BrowserView(options);
-
-  // 在开发模式下显示开发工具
-  const state = (nativeWindowStates[sessionId] ??= {
-    devtools: !Electron.app.isPackaged, // 非打包模式就是 开发模式
-    bounds: bv.getBounds(),
-  });
-
-  if (userAgent) {
-    bv.webContents.setUserAgent(userAgent(bv.webContents.userAgent));
-  }
-  /// 在开发模式下，显示 mwebview 的开发者工具
-
-  if (!Electron.app.isPackaged) {
-    if (state.devtools === true) {
-      bv.webContents.openDevTools();
-    }
-    bv.webContents.on("devtools-opened", () => {
-      state.devtools = true;
-      // saveNativeWindowStates();
-    });
-    NativeWindowExtensions_BaseApi;
-    bv.webContents.on("devtools-closed", () => {
-      state.devtools = false;
-      // saveNativeWindowStates();
-    });
-  }
-
-  // win.on("close", () => {
-  //   state.bounds = win.getBounds();
-  //   saveNativeWindowStates();
-  // });
-  return bv;
-};
-
-export const createComlinkBrowserView = async <E = NativeWindowExtensions_BaseApi>(
-  url: string,
-  createOptions?: $CreateNativeWindowOptions,
-  mainApiBuilder = async (win: Electron.BrowserWindow) => {
-    return new NativeWindowExtensions_BaseApi(win) as any as E;
-  }
-) => {
-  const bv = await createBrowserView(new URL("/", url).href, createOptions);
-  const mainApi = await mainApiBuilder(bv as unknown as Electron.BrowserWindow);
-
-  return Object.assign(bv, await bridgeComlink(url, bv.webContents, mainApi));
 };
 
 const bridgeComlink = async <M>(url: string, webContents: Electron.WebContents, mainApi: M) => {
