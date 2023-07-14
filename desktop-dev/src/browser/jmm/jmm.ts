@@ -3,14 +3,16 @@ import fs from "node:fs";
 import type { OutgoingMessage } from "node:http";
 import path from "node:path";
 import type { $BootstrapContext } from "../../core/bootstrapContext.ts";
+import { FetchError } from "../../core/ipc/ipc.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import { $DWEB_DEEPLINK, $MMID } from "../../core/types.ts";
 import { $Callback, createSignal } from "../../helper/createSignal.ts";
 import { readableToWeb } from "../../helper/nodejsStreamHelper.ts";
+import { fetchMatch } from "../../helper/patternHelper.ts";
+import { parseQuery, z, zq } from "../../helper/zodHelper.ts";
 import type { HttpDwebServer } from "../../std/http/helper/$createHttpDwebServer.ts";
 import { nativeFetchAdaptersManager } from "../../sys/dns/nativeFetch.ts";
-import { JMM_APPS_PATH, createApiServer, getAllApps } from "./jmm.api.serve.ts";
-import { cancel, install, pause, resume } from "./jmm.handler.ts";
+import { JMM_APPS_PATH, JMM_DB, createApiServer, getAllApps } from "./jmm.api.serve.ts";
 import { createWWWServer } from "./jmm.www.serve.ts";
 import { JsMMMetadata, JsMicroModule } from "./micro-module.js.ts"; // import Nedb from "@seald-io/nedb";
 
@@ -22,10 +24,7 @@ nativeFetchAdaptersManager.append((remote, parsedUrl) => {
       parsedUrl.pathname.startsWith("/jmm/") &&
       remote.mmid === "jmm.browser.dweb" /// 只能自己访问
     ) {
-      filepath = path.join(
-        JMM_APPS_PATH,
-        parsedUrl.pathname.replace("/jmm/", "/")
-      );
+      filepath = path.join(JMM_APPS_PATH, parsedUrl.pathname.replace("/jmm/", "/"));
     } else if (parsedUrl.pathname.startsWith("/usr/")) {
       filepath = path.join(JMM_APPS_PATH, remote.mmid, parsedUrl.pathname);
     }
@@ -54,7 +53,7 @@ nativeFetchAdaptersManager.append((remote, parsedUrl) => {
 
 export class JmmNMM extends NativeMicroModule {
   mmid = "jmm.browser.dweb" as const;
-  dweb_deeplinks = ["dweb:install"] as $DWEB_DEEPLINK[];
+  override dweb_deeplinks = ["dweb:install"] as $DWEB_DEEPLINK[];
   downloadStatus: DOWNLOAD_STATUS = 0;
   wwwServer: HttpDwebServer | undefined;
   apiServer: HttpDwebServer | undefined;
@@ -77,69 +76,102 @@ export class JmmNMM extends NativeMicroModule {
 
     await createWWWServer.call(this);
     await createApiServer.call(this);
-    //  安装 第三方 app
-    this.registerCommonIpcOnMessageHandler({
-      pathname: "/install",
-      matchMode: "full",
-      input: { metadataUrl: "string" },
-      output: "boolean",
-      handler: async (args) => {
-        return await install(this, args);
-      },
-    });
-    // 下载暂停
-    this.registerCommonIpcOnMessageHandler({
-      pathname: "/pause",
-      matchMode: "full",
-      input: {},
-      output: "boolean",
-      handler: (args) => pause(this, args),
-    });
-    this.registerCommonIpcOnMessageHandler({
-      pathname: "/resume",
-      matchMode: "full",
-      input: {},
-      output: "boolean",
-      handler: (args) => resume(this, args),
-    });
-    this.registerCommonIpcOnMessageHandler({
-      pathname: "/cancel",
-      matchMode: "full",
-      input: {},
-      output: "boolean",
-      handler: (args) => cancel(this, args),
-    });
-    //   获取全部的 appsInfo
-    this.registerCommonIpcOnMessageHandler({
-      pathname: "/appsinfo",
-      matchMode: "full",
-      input: {},
-      output: "object",
-      handler: async (_args, _client_ipc, _request) => {
-        const appsInfo = await getAllApps();
-        return appsInfo;
-      },
-    });
 
-    /// dweb deeplink
-    this.registerCommonIpcOnMessageHandler({
-      protocol: "dweb:",
-      pathname: "install",
-      matchMode: "full",
-      input: { url: "string" },
-      output: "void",
-      handler: async (args) => {
+    const query_metadataUrl = z.object({
+      metadataUrl: zq.string(),
+    });
+    const query_app_id = z.object({ app_id: zq.mmid() });
+    const query_url = z.object({ url: z.string().url() });
+
+    const onFetchMatcher = fetchMatch()
+      .get("/openApp", async (event) => {
+        const { app_id: mmid } = parseQuery(event.searchParams, query_app_id);
+        return Response.json(await this.openApp(context, mmid));
+      })
+      .get("/closeApp", async (event) => {
+        const { app_id: mmid } = parseQuery(event.searchParams, query_app_id);
+        return Response.json(await this.closeApp(context, mmid));
+      })
+      .get("/detailApp", async (event) => {
+        const { app_id: mmid } = parseQuery(event.searchParams, query_app_id);
+        const appsInfo = await JMM_DB.find(mmid);
+        if (appsInfo === undefined) {
+          throw new FetchError(`not found ${mmid}`, { status: 404 });
+        }
+        return Response.json(appsInfo);
+      })
+      .get("/install", async (event) => {
+        const { metadataUrl } = parseQuery(event.searchParams, query_metadataUrl);
+        return Response.json(await this.startInstall(metadataUrl));
+      })
+      .get("/uninstall", async (event) => {
+        const { app_id: mmid } = parseQuery(event.searchParams, query_app_id);
+        return Response.json(await this.uninstallApp(context, mmid));
+      })
+      .get("/pause", async (event) => {
+        return Response.json(await this.pauseInstall());
+      })
+      .get("/resume", async (event) => {
+        return Response.json(await this.resumeInstall());
+      })
+      .get("/cancel", async (event) => {
+        return Response.json(await this.cancelInstall());
+      })
+      .deeplink("install", async (event) => {
+        const { url } = parseQuery(event.searchParams, query_url);
         /// 安装应用并打开
-        await install(this, { metadataUrl: args.url });
+        await this.startInstall(url);
         const off = this.onInstalled.listen((info, fromUrl) => {
-          if (fromUrl === args.url) {
+          if (fromUrl === url) {
             off();
             context.dns.connect(info.id);
           }
         });
-      },
+      });
+    this.onFetch((event) => {
+      return onFetchMatcher.run(event);
     });
   }
+
+  private openApp = async (context: $BootstrapContext, mmid: $MMID) => {
+    return await context.dns.open(mmid);
+  };
+  private closeApp = async (context: $BootstrapContext, mmid: $MMID) => {
+    return await context.dns.close(mmid);
+  };
+
+  private startInstall = async (metadataUrl: string) => {
+    // 需要同时查询参数传递进去
+    if (this.wwwServer === undefined) throw new Error(`this.wwwServer === undefined`);
+    const indexUrl = this.wwwServer.startResult.urlInfo.buildInternalUrl((url) => {
+      url.pathname = "/index.html";
+      url.searchParams.set("metadataUrl", metadataUrl);
+    }).href;
+    const openUrl = new URL(`file://mwebview.browser.dweb/open`);
+    openUrl.searchParams.set("url", indexUrl);
+    await this.nativeFetch(openUrl);
+    return true;
+  };
+  private pauseInstall = async () => {
+    console.log("jmm", "................ 下载暂停但是还没有处理");
+    return true;
+  };
+
+  private resumeInstall = async () => {
+    console.log("jmm", "................ 从新下载但是还没有处理");
+    return true;
+  };
+
+  // 业务逻辑是会 停止下载 立即关闭下载页面
+  private cancelInstall = async () => {
+    console.log("jmm", "................ 从新下载但是还没有处理");
+    return true;
+  };
+
+  private uninstallApp = async (context: $BootstrapContext, mmid: $MMID) => {
+    await JMM_DB.remove(mmid);
+    await context.dns.uninstall(mmid);
+  };
 
   readonly onInstalled = createSignal<$Callback<[$AppMetaData, string]>>();
 

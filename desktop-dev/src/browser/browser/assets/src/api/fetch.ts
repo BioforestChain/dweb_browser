@@ -2,17 +2,14 @@
 /// about:newtab
 const BASE_URL =
   location.protocol === "about:" || location.protocol === "chrome:"
-    ? new URL(
-        `http://browser.dweb.localhost/${location.href.replace(
-          new RegExp(location.protocol + "/+"),
-          ""
-        )}`
-      )
+    ? new URL(`http://browser.dweb.localhost/${location.href.replace(new RegExp(location.protocol + "/+"), "")}`)
     : new URL(location.href);
+const apiUrl = new URL(BASE_URL.searchParams.get("api-base") ?? BASE_URL);
+const baseMmid = apiUrl.searchParams.get("mmid") ?? "desktop.browser.dweb";
 export const nativeFetch = (pathname: string, init?: $BuildRequestInit) => {
   // 默认请求自己
-  const mmid = init?.mmid ?? "browser.dweb";
-  const url = new URL(`api/${mmid}${pathname}`, BASE_URL);
+  const mmid = init?.mmid ?? baseMmid;
+  const url = new URL(`api/${mmid}${pathname}`, apiUrl);
   return buildRequest(url, init);
 };
 
@@ -32,10 +29,7 @@ function buildRequest(url: URL, init?: $BuildRequestInit) {
             ([_, value]) => value != undefined /* null undefined 都不传输*/
           )
           .map(([key, value]) => {
-            return [
-              key,
-              typeof value === "object" ? JSON.stringify(value) : String(value),
-            ] as [string, string];
+            return [key, typeof value === "object" ? JSON.stringify(value) : String(value)] as [string, string];
           })
       );
     }

@@ -43,6 +43,17 @@ export class JmmDatabase extends Store<{
     this._save();
     return true;
   }
+  async find(mmid: $MMID) {
+    return this._apps[mmid] as $AppMetaData | undefined;
+  }
+  async remove(mmid: $MMID) {
+    if (mmid in this._apps) {
+      delete this._apps[mmid];
+      this._save();
+      return true;
+    }
+    return false;
+  }
   async all() {
     return Object.values(this._apps);
   }
@@ -64,16 +75,12 @@ export async function createApiServer(this: JmmNMM) {
         if (event.pathname === "/app/install") {
           const appInfo = await event.json<$AppMetaData>();
           /// 上锁
-          return await locks.request(`jmm-install:${appInfo.id}`, () =>
-            _appInstall.call(this, event, appInfo)
-          );
+          return await locks.request(`jmm-install:${appInfo.id}`, () => _appInstall.call(this, event, appInfo));
         }
       },
       async (event) => {
         if (event.pathname === "/close/self") {
-          return await this.nativeFetch(
-            `file://mwebview.browser.dweb/close/window`
-          );
+          return await this.nativeFetch(`file://mwebview.browser.dweb/close/window`);
         }
       },
       async (event) => {
@@ -96,11 +103,7 @@ export async function createApiServer(this: JmmNMM) {
 /**
  * 应用程序安装的核心逻辑
  */
-async function _appInstall(
-  this: JmmNMM,
-  event: FetchEvent,
-  appInfo: $AppMetaData
-): Promise<$FetchResponse> {
+async function _appInstall(this: JmmNMM, event: FetchEvent, appInfo: $AppMetaData): Promise<$FetchResponse> {
   const { ipcRequest, ipc } = event;
 
   //#region 准备工作
@@ -130,17 +133,13 @@ async function _appInstall(
     headers: downloadHeaders,
   }).ok();
   /// 再次确认这个下载是支持 Range:bytes 的
-  if (
-    downloadTask.headers.get("Accept-Ranges") === "bytes" &&
-    bundleWritedSize !== 0
-  ) {
+  if (downloadTask.headers.get("Accept-Ranges") === "bytes" && bundleWritedSize !== 0) {
     bundleWriter = fs.createWriteStream(tempFilePath, { flags: "a" });
   } else {
     bundleWritedSize = 0;
     bundleWriter = fs.createWriteStream(tempFilePath, { flags: "w" });
   }
-  const totalLen =
-    headersGetTotalLength(downloadTask.headers) ?? appInfo.bundle_size;
+  const totalLen = headersGetTotalLength(downloadTask.headers) ?? appInfo.bundle_size;
   /**
    * 下载进度的响应流
    */
@@ -245,11 +244,7 @@ async function _appInstall(
         if (fileZipObj.dir) {
           fs.mkdirSync(targetFilePath, { recursive: true });
         } else {
-          fileZipObj
-            .nodeStream()
-            .pipe(
-              fs.createWriteStream(targetFilePath) as NodeJS.WritableStream
-            );
+          fileZipObj.nodeStream().pipe(fs.createWriteStream(targetFilePath) as NodeJS.WritableStream);
         }
       }
     } else if (bundleMime === "application/x-tar") {
@@ -259,12 +254,7 @@ async function _appInstall(
         sync: true,
       });
     } else {
-      return enqueueInstallProgress(
-        "install",
-        0,
-        true,
-        `invalid bundle-mime-type: ${bundleMime}`
-      );
+      return enqueueInstallProgress("install", 0, true, `invalid bundle-mime-type: ${bundleMime}`);
     }
     fs.unlinkSync(tempFilePath);
     fs.unlinkSync(hashFilePath);
@@ -272,12 +262,7 @@ async function _appInstall(
     /// 下载完成，开始安装
     const result = await JMM_DB.upsert(appInfo);
     if (result === false) {
-      return enqueueInstallProgress(
-        "install",
-        0,
-        true,
-        `fail to save app info to database: ${appInfo.id}`
-      );
+      return enqueueInstallProgress("install", 0, true, `fail to save app info to database: ${appInfo.id}`);
     }
 
     const metadata = new JsMMMetadata(appInfo);

@@ -1,15 +1,9 @@
 import process from "node:process";
-import type {
-  $BootstrapContext,
-  $DnsMicroModule,
-} from "../../core/bootstrapContext.ts";
+import type { $BootstrapContext, $DnsMicroModule } from "../../core/bootstrapContext.ts";
 import { $normalizeRequestInitAsIpcRequestArgs } from "../../core/helper/ipcRequestHelper.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import type { MicroModule } from "../../core/micro-module.ts";
-import {
-  $ConnectResult,
-  connectMicroModules,
-} from "../../core/nativeConnect.ts";
+import { $ConnectResult, connectMicroModules } from "../../core/nativeConnect.ts";
 import type { $DWEB_DEEPLINK, $MMID } from "../../core/types.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
 import { mmid, parseQuery, z } from "../../helper/zodHelper.ts";
@@ -23,16 +17,12 @@ class MyDnsMicroModule implements $DnsMicroModule {
     this.dnsNN.install(mm);
   }
 
-  uninstall(mm: MicroModule): void {
-    this.dnsNN.uninstall(mm);
+  async uninstall(mmid: $MMID) {
+    return this.dnsNN.uninstall(mmid);
   }
 
   connect(mmid: $MMID, reason?: Request) {
-    return this.dnsNN[connectTo_symbol](
-      this.fromMM,
-      mmid,
-      reason ?? new Request(`file://${mmid}`)
-    );
+    return this.dnsNN[connectTo_symbol](this.fromMM, mmid, reason ?? new Request(`file://${mmid}`));
   }
 
   query(mmid: $MMID) {
@@ -40,11 +30,22 @@ class MyDnsMicroModule implements $DnsMicroModule {
   }
 
   async open(mmid: $MMID) {
+    if (this.dnsNN.running_apps.has(mmid)) {
+      return false;
+    }
     await this.dnsNN.open(mmid);
+    return true;
+  }
+  async close(mmid: $MMID) {
+    if (this.dnsNN.running_apps.has(mmid)) {
+      await this.dnsNN.close(mmid);
+      return true;
+    }
+    return false;
   }
   async restart(mmid: $MMID) {
-    await this.dnsNN.close(mmid);
-    this.open(mmid);
+    await this.close(mmid);
+    await this.open(mmid);
   }
 }
 
@@ -59,28 +60,19 @@ const connectTo_symbol = Symbol("connectTo");
  */
 export class DnsNMM extends NativeMicroModule {
   mmid = "dns.sys.dweb" as const;
-  readonly dweb_deeplinks = ["dweb:open"] as $DWEB_DEEPLINK[];
+  override dweb_deeplinks = ["dweb:open"] as $DWEB_DEEPLINK[];
   private apps = new Map<$MMID, MicroModule>();
 
-  bootstrap(
-    ctx: $BootstrapContext = new MyBootstrapContext(
-      new MyDnsMicroModule(this, this)
-    )
-  ) {
+  override bootstrap(ctx: $BootstrapContext = new MyBootstrapContext(new MyDnsMicroModule(this, this))) {
     return super.bootstrap(ctx);
   }
 
   bootstrapMicroModule(fromMM: MicroModule) {
-    return fromMM.bootstrap(
-      new MyBootstrapContext(new MyDnsMicroModule(this, fromMM))
-    );
+    return fromMM.bootstrap(new MyBootstrapContext(new MyDnsMicroModule(this, fromMM)));
   }
 
   // 拦截 nativeFetch
-  private mmConnectsMap = new Map<
-    MicroModule,
-    Map<$MMID, PromiseOut<$ConnectResult>>
-  >();
+  private mmConnectsMap = new Map<MicroModule, Map<$MMID, PromiseOut<$ConnectResult>>>();
 
   /**
    * 创建通过 MessageChannel 实现同行的 ipc
@@ -159,10 +151,7 @@ export class DnsNMM extends NativeMicroModule {
       },
       /// deeplink
       async (event) => {
-        if (
-          event.url.protocol === "dweb:" &&
-          event.url.pathname.startsWith("open/")
-        ) {
+        if (event.url.protocol === "dweb:" && event.url.pathname.startsWith("open/")) {
           const app_id = event.url.pathname.replace("open/", "");
           await this.open(app_id as $MMID);
           return Response.json(true);
@@ -171,29 +160,15 @@ export class DnsNMM extends NativeMicroModule {
     );
 
     this._after_shutdown_signal.listen(
-      nativeFetchAdaptersManager.append(
-        async (fromMM, parsedUrl, requestInit) => {
-          if (
-            parsedUrl.protocol === "file:" &&
-            parsedUrl.hostname.endsWith(".dweb")
-          ) {
-            const mmid = parsedUrl.hostname as $MMID;
-            const [ipc] = await this[connectTo_symbol](
-              fromMM,
-              mmid,
-              new Request(parsedUrl, requestInit)
-            );
-            const ipc_req_init = await $normalizeRequestInitAsIpcRequestArgs(
-              requestInit
-            );
-            const ipc_response = await ipc.request(
-              parsedUrl.href,
-              ipc_req_init
-            );
-            return ipc_response.toResponse(parsedUrl.href);
-          }
+      nativeFetchAdaptersManager.append(async (fromMM, parsedUrl, requestInit) => {
+        if (parsedUrl.protocol === "file:" && parsedUrl.hostname.endsWith(".dweb")) {
+          const mmid = parsedUrl.hostname as $MMID;
+          const [ipc] = await this[connectTo_symbol](fromMM, mmid, new Request(parsedUrl, requestInit));
+          const ipc_req_init = await $normalizeRequestInitAsIpcRequestArgs(requestInit);
+          const ipc_response = await ipc.request(parsedUrl.href, ipc_req_init);
+          return ipc_response.toResponse(parsedUrl.href);
         }
-      )
+      })
     );
 
     //#region 启动引导程序
@@ -232,9 +207,7 @@ export class DnsNMM extends NativeMicroModule {
         }
         const pathname = "/" + normalizePath.join("/");
         const url = new URL(
-          (dweb_deeplink + pathname)
-            .replace(/\/{2,}/g, "/")
-            .replace(/\/$/, "") +
+          (dweb_deeplink + pathname).replace(/\/{2,}/g, "/").replace(/\/$/, "") +
             (hasSearch ? "?" + normalizeQuery.toString() : "")
         );
         return url;
@@ -244,10 +217,7 @@ export class DnsNMM extends NativeMicroModule {
 
       /// 查询匹配deeplink的程序
       for (const app of this.apps.values()) {
-        if (
-          undefined !==
-          app.dweb_deeplinks.find((dl) => dl.startsWith(dweb_deeplink))
-        ) {
+        if (undefined !== app.dweb_deeplinks.find((dl) => dl.startsWith(dweb_deeplink))) {
           const req = new Request(getReqUrl());
           const [ipc] = await context.dns.connect(app.mmid, req);
           const ipc_req_init = await $normalizeRequestInitAsIpcRequestArgs(req);
@@ -270,8 +240,8 @@ export class DnsNMM extends NativeMicroModule {
   }
 
   /** 卸载应用 */
-  uninstall(mm: MicroModule) {
-    this.apps.delete(mm.mmid);
+  uninstall(mmid: $MMID) {
+    return this.apps.delete(mmid);
   }
 
   /** 查询应用 */
@@ -280,7 +250,7 @@ export class DnsNMM extends NativeMicroModule {
     return this.apps.get(mmid);
   }
 
-  private running_apps = new Map<$MMID, Promise<MicroModule>>();
+  readonly running_apps = new Map<$MMID, Promise<MicroModule>>();
   /** 打开应用 */
   async open(mmid: $MMID) {
     const app = await mapHelper.getOrPut(this.running_apps, mmid, async () => {
@@ -308,7 +278,6 @@ export class DnsNMM extends NativeMicroModule {
     try {
       this.running_apps.delete(mmid);
       await app.shutdown();
-      this.uninstall(app);
       return 0;
     } catch {
       return 1;

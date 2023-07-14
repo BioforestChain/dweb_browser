@@ -3,6 +3,7 @@ import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import { once } from "../../helper/$once.ts";
 import { createComlinkNativeWindow, createNativeWindow } from "../../helper/openNativeWindow.ts";
 import { match } from "../../helper/patternHelper.ts";
+import { buildUrl } from "../../helper/urlHelper.ts";
 import { parseQuery, z, zq } from "../../helper/zodHelper.ts";
 import { HttpDwebServer, createHttpDwebServer } from "../../std/http/helper/$createHttpDwebServer.ts";
 import { getAppsInfo, openApp } from "../browser/browser.server.api.ts";
@@ -25,11 +26,11 @@ export class DesktopNMM extends NativeMicroModule {
     const query_app_id = z.object({
       app_id: zq.mmid(),
     });
-    this.onFetch(async (event) => {
+    this.onFetch((event) => {
       // match(event).with({ pathname: "/task-bar-apps" }, () => {
       //   return Response.json([{ icon: "" }]);
       // }).with("/open");
-      match(event)
+      return match(event)
         .with({ pathname: "/appsInfo" }, async () => {
           return Response.json(await getAppsInfo());
         })
@@ -42,7 +43,8 @@ export class DesktopNMM extends NativeMicroModule {
           const { app_id } = parseQuery(event.searchParams, query_app_id);
           console.always("close app", app_id);
           return Response.json(false);
-        });
+        })
+        .run();
     });
   }
 
@@ -67,7 +69,7 @@ export class DesktopNMM extends NativeMicroModule {
     });
     {
       const API_PREFIX = "/api/";
-      (await desktopServer.listen()).onFetch((event) => {
+      (await desktopServer.listen()).onFetch(async (event) => {
         const { pathname, search } = event.url;
         let url: string;
         if (pathname.startsWith(API_PREFIX)) {
@@ -75,7 +77,8 @@ export class DesktopNMM extends NativeMicroModule {
         } else {
           url = `file:///sys/browser/newtab${pathname}?mode=stream`;
         }
-        return this.nativeFetch(url);
+        const res = await this.nativeFetch(url);
+        return res;
       });
     }
     return desktopServer;
@@ -89,7 +92,7 @@ export class DesktopNMM extends NativeMicroModule {
       `http://localhost:3700/taskbar/index.html`,
       window_options,
       async (win) => {
-        return new TaskbarMainApis(win, taskbarServer, desktopServer);
+        return new TaskbarMainApis(this, win, taskbarServer, desktopServer);
       }
     );
 
@@ -105,6 +108,7 @@ export class DesktopNMM extends NativeMicroModule {
 
 export class TaskbarMainApis {
   constructor(
+    private mm: DesktopNMM,
     private win: Electron.BrowserWindow,
     private taskbarServer: HttpDwebServer,
     private desktopServer: HttpDwebServer
@@ -173,27 +177,29 @@ export class TaskbarMainApis {
         y: desktopY,
       };
 
-      desktopWin.setBounds(desktopBounds, true);
       desktopWin.show();
       desktopWin.focus();
+      desktopWin.setBounds(desktopBounds, true);
     }
   }
 
   private _createDesktopView = once(async (fromBounds: Electron.Rectangle) => {
-    const desktopWin = await createNativeWindow(
-      this.desktopServer.startResult.urlInfo.buildPublicUrl((url) => {
-        url.pathname = "/index.html";
-      }).href,
-      // taskbarServer.startResult.urlInfo.buildInternalUrl((url) => {
-      //   url.pathname = "/index.html";
-      // }).href,
-      // `http://localhost:3700/taskbar/index.html`,
-      {
-        ...window_options,
-        show: false,
-        /// 宽高
-        ...fromBounds,
-      }
+    const desktopUrl = this.desktopServer.startResult.urlInfo.buildInternalUrl((url) => {
+      url.pathname = "/index.html";
+    }).href;
+    const desktopWin = await createNativeWindow(this.mm.mmid, {
+      ...window_options,
+      show: false,
+      /// 宽高
+      ...fromBounds,
+    });
+    desktopWin.loadURL(
+      buildUrl(`http://localhost:3600/index.html` || desktopUrl, {
+        search: {
+          "api-base": desktopUrl,
+          mmid: "desktop.browser.dweb",
+        },
+      }).href
     );
     // desktopWin.focus();
     // desktopWin.on("blur", () => {

@@ -7,9 +7,10 @@ export interface $BootstrapContext {
 }
 export interface $DnsMicroModule {
   install(mm: MicroModule): void;
-  uninstall(mm: MicroModule): void;
+  uninstall(mm: $MMID): Promise<boolean>;
   connect(mmid: $MMID, reason?: Request): $PromiseMaybe<$ConnectResult>;
   query(mmid: $MMID): Promise<MicroModule | undefined>;
-  open(mmid: $MMID): Promise<void>;
+  open(mmid: $MMID): Promise<boolean>;
+  close(mmid: $MMID): Promise<boolean>;
   restart(mmid: $MMID): void;
 }

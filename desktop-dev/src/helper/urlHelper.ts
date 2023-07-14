@@ -20,10 +20,7 @@ export const updateUrlOrigin = (url: string | URL, new_origin: string) => {
   return new URL(new_origin + href.slice(origin.length));
 };
 
-export const appendUrlSearchs = (
-  url: URL,
-  extQuerys: Iterable<[string, string]>
-) => {
+export const appendUrlSearchs = (url: URL, extQuerys: Iterable<[string, string]>) => {
   for (const [key, value] of extQuerys) {
     if (url.searchParams.has(key) === false) {
       url.searchParams.set(key, value);
@@ -33,12 +30,15 @@ export const appendUrlSearchs = (
 };
 
 export const buildUrl = (
-  url: URL,
+  url: URL | string,
   ext: {
     search?: string | URLSearchParams | Record<string, unknown> | {};
     pathname?: string;
   }
 ) => {
+  if (typeof url === "string") {
+    url = new URL(url);
+  }
   if (ext.pathname !== undefined) {
     url.pathname = ext.pathname;
   }
@@ -50,10 +50,7 @@ export const buildUrl = (
     } else {
       url.search = new URLSearchParams(
         Object.entries(ext.search).map(([key, value]) => {
-          return [
-            key,
-            typeof value === "string" ? value : JSON.stringify(value),
-          ] as [string, string];
+          return [key, typeof value === "string" ? value : JSON.stringify(value)] as [string, string];
         })
       ).toString();
     }

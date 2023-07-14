@@ -74,6 +74,7 @@ function menuOpen() {
             class="app-icon"
             v-bind="props"
             @click="clickApp(appMetaData.id)"
+            @rclick="show = true"
           >
             <img class="img" :src="appMetaData.icon" />
           </div>

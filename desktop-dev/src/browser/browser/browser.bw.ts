@@ -5,11 +5,13 @@ import type { BrowserNMM } from "./browser.ts";
 export async function createBrowserWindow(this: BrowserNMM, url: string) {
   const { x, y, width, height } = getInitSize();
   // 放到页面居中的位置
-  const options = {
-    x: x,
-    y: y,
-    width: width,
-    height: height,
+  const bw = await createComlinkNativeWindow(url, {
+    defaultBounds: {
+      x: x,
+      y: y,
+      width: width,
+      height: height,
+    },
     movable: true,
     webPreferences: {
       devTools: true,
@@ -19,8 +21,7 @@ export async function createBrowserWindow(this: BrowserNMM, url: string) {
       nodeIntegration: true, // 注入 ipcRenderer 对象
       contextIsolation: false,
     },
-  };
-  const bw = await createComlinkNativeWindow(url, options);
+  });
   // 获取 BrowserWindow 的 session 对象
   const mainWindowSession = bw.webContents.session;
 

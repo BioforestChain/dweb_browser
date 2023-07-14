@@ -64,14 +64,15 @@ const saveNativeWindowStates = () => {
 
 export interface $CreateNativeWindowOptions extends Electron.BrowserWindowConstructorOptions {
   userAgent?: (userAgent: string) => string;
+  defaultBounds?: Electron.Rectangle;
 }
 
 export const createNativeWindow = async (sessionId: string, createOptions: $CreateNativeWindowOptions = {}) => {
   await Electron.app.whenReady();
-  const { userAgent, ..._options } = createOptions;
+  const { userAgent, defaultBounds, ..._options } = createOptions;
 
   const options: Electron.BrowserWindowConstructorOptions = {
-    ..._options,
+    ...defaultBounds,
     webPreferences: {
       ..._options.webPreferences,
       sandbox: false,
@@ -82,6 +83,7 @@ export const createNativeWindow = async (sessionId: string, createOptions: $Crea
       experimentalFeatures: true,
     },
     ...nativeWindowStates[sessionId]?.bounds,
+    ..._options,
   };
 
   let win: Electron.BrowserWindow;
@@ -226,7 +228,7 @@ const bridgeComlink = async <M>(url: string, webContents: Electron.WebContents, 
     getMainApi() {
       return mainApi;
     },
-    async getRenderApi<T>() {
+    getRenderApi<T>() {
       return wrap<T>(ports_po.value!.import_port);
     },
   };

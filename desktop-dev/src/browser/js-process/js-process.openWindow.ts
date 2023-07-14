@@ -1,7 +1,7 @@
 // 工具函数用来打开 js-process 的window
 import { Remote } from "comlink";
 import { electronConfig } from "../../helper/electronConfig.ts";
-import { createComlinkNativeWindow } from "../../helper/openNativeWindow.ts";
+import { $CreateNativeWindowOptions, createComlinkNativeWindow } from "../../helper/openNativeWindow.ts";
 
 declare global {
   interface ElectronConfig {
@@ -9,23 +9,8 @@ declare global {
   }
 }
 
-export async function jsProcessOpenWindow(
-  url: string,
-  _options: Electron.BrowserWindowConstructorOptions = {},
-  webContentsConfig: { userAgent?: (userAgent: string) => string } = {}
-): Promise<$NWW> {
+export async function jsProcessOpenWindow(url: string, _options: $CreateNativeWindowOptions = {}): Promise<$NWW> {
   const { MainPortToRenderPort } = await import("../../helper/electronPortMessage.ts");
-  const options = {
-    ..._options,
-    webPreferences: {
-      ..._options.webPreferences,
-      sandbox: false,
-      devTools: true,
-      webSecurity: true, // 跨域限制
-      nodeIntegration: true, // 注入 ipcRenderer 对象
-      contextIsolation: false,
-    },
-  };
   const browserWindow = await createComlinkNativeWindow(url, _options);
   // 测试  需要开启 devTools
   browserWindow.webContents.openDevTools();

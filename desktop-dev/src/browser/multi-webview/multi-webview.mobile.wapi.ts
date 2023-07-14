@@ -7,26 +7,19 @@ import { createNativeWindow } from "../../helper/openNativeWindow.ts";
 
 export type $MWebviewWindow = Awaited<ReturnType<typeof _createMWebViewWindow>>;
 
-export const ALL_MMID_MWEBVIEW_WINDOW_MAP = new Map<
-  $MMID,
-  Promise<$MWebviewWindow>
->();
+export const ALL_MMID_MWEBVIEW_WINDOW_MAP = new Map<$MMID, Promise<$MWebviewWindow>>();
 /**
  * 为远端模块创建一个 mwebview-window
  */
 export function getOrOpenMWebViewWindow(ipc: Ipc) {
-  return mapHelper.getOrPut(
-    ALL_MMID_MWEBVIEW_WINDOW_MAP,
-    ipc.remote.mmid,
-    async () => {
-      const mwebviewWindow = await _createMWebViewWindow(ipc);
-      mwebviewWindow.win.on("closed", () => {
-        ALL_MMID_MWEBVIEW_WINDOW_MAP.delete(ipc.remote.mmid);
-      });
-      mwebviewWindow.win.focus();
-      return mwebviewWindow;
-    }
-  );
+  return mapHelper.getOrPut(ALL_MMID_MWEBVIEW_WINDOW_MAP, ipc.remote.mmid, async () => {
+    const mwebviewWindow = await _createMWebViewWindow(ipc);
+    mwebviewWindow.win.on("closed", () => {
+      ALL_MMID_MWEBVIEW_WINDOW_MAP.delete(ipc.remote.mmid);
+    });
+    mwebviewWindow.win.focus();
+    return mwebviewWindow;
+  });
 }
 
 export const getMWebViewWindow = (ipc: Ipc) => {
@@ -43,10 +36,12 @@ const _createMWebViewWindow = async (ipc: Ipc) => {
     // autoHideMenuBar: true,
     // frame: false,
     // 测试代码
-    width: 375,
-    height: 800,
-    x: 0,
-    y: (diaplay.size.height - 800) / 2,
+    defaultBounds: {
+      width: 375,
+      height: 800,
+      x: 0,
+      y: (diaplay.size.height - 800) / 2,
+    },
   });
   const mwebviewApi = new MWebviewController(nww);
 
@@ -108,19 +103,13 @@ export class MWebviewController {
       /// 更新title
       const lastItem = this._allBrowserView.at(-1);
       if (this._preLastItem !== lastItem) {
-        this._preLastItem?.view.webContents.off(
-          "page-title-updated",
-          this._on_title_change
-        );
+        this._preLastItem?.view.webContents.off("page-title-updated", this._on_title_change);
       }
 
       this._preLastItem = lastItem;
       if (lastItem !== undefined) {
         this.win.setTitle(lastItem.view.webContents.getTitle());
-        lastItem.view.webContents.on(
-          "page-title-updated",
-          this._on_title_change
-        );
+        lastItem.view.webContents.on("page-title-updated", this._on_title_change);
       }
     });
   }
@@ -129,10 +118,7 @@ export class MWebviewController {
     return this._allBrowserView.slice();
   }
 
-  createBrowserView(
-    url: string,
-    options?: Electron.BrowserViewConstructorOptions
-  ) {
+  createBrowserView(url: string, options?: Electron.BrowserViewConstructorOptions) {
     const view = new Electron.BrowserView(options);
     this.win.addBrowserView(view);
     this.win.setTopBrowserView(view); // 排在顶层，立刻生效
@@ -161,9 +147,7 @@ export class MWebviewController {
     return proxy(view);
   }
   deleteBrowserView(view: Electron.BrowserView) {
-    const itemIndex = this._allBrowserView.findIndex(
-      (item) => item.view === view
-    );
+    const itemIndex = this._allBrowserView.findIndex((item) => item.view === view);
     if (itemIndex === -1) {
       return false;
     }
