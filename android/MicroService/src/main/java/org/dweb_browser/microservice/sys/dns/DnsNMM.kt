@@ -109,9 +109,9 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
       dnsMM.install(mm)
     }
 
-    override fun uninstall(mm: MicroModule) {
+    override fun uninstall(mmid: Mmid) {
       // TODO 作用域保护
-      dnsMM.uninstall(mm)
+      dnsMM.uninstall(mmid)
     }
 
     override fun query(mmid: Mmid): MicroModule? {
@@ -226,10 +226,10 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
 
   /** 卸载应用 */
   @OptIn(DelicateCoroutinesApi::class)
-  fun uninstall(mm: MicroModule) {
-    installApps.remove(mm.mmid)
+  fun uninstall(mmid: Mmid) {
+    installApps.remove(mmid)
     GlobalScope.launch(ioAsyncExceptionHandler) {
-      close(mm.mmid)
+      close(mmid)
     }
   }
 
@@ -263,8 +263,8 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
         val microModule = microModulePo.waitPromise()
         microModule.shutdown()
         // 这里只需要移除
-        mmConnectsMap.remove(MM.from(microModule.mmid, "js.browser.dweb"))
-        mmConnectsMap.remove(MM.from("js.browser.dweb", microModule.mmid))
+//        mmConnectsMap.remove(MM.from(microModule.mmid, "js.browser.dweb"))
+//        mmConnectsMap.remove(MM.from("js.browser.dweb", microModule.mmid))
         1
       }.getOrDefault(0)
     } ?: -1

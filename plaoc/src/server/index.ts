@@ -38,14 +38,14 @@ export const main = async () => {
       await mwebview_activate();
     }
   });
+  /// 立刻自启动
+  tryOpenView();
   /// 如果有人来激活，那我就唤醒我的界面
   jsProcess.onActivity(async (_ipcEvent, ipc) => {
     await tryOpenView();
     // todo lifecycle 等待加载全部加载完成，再触发ready
     ipc.postMessage(IpcEvent.fromText("ready", "activity"));
   });
-  /// 立刻自启动
-  tryOpenView();
 
   //#region 启动http服务
   const wwwServer = new Server_www();
@@ -59,12 +59,7 @@ export const main = async () => {
   jsProcess.onRequest(async (ipcRequest, ipc) => {
     // 5秒超时,则认为用户前端没有监听任何外部请求
     const timeOut = setTimeout(() => {
-      ipc.postMessage(
-        IpcEvent.fromText(
-          "Not found",
-          "The target app is not listening for any requests"
-        )
-      );
+      ipc.postMessage(IpcEvent.fromText("Not found", "The target app is not listening for any requests"));
       externalServer.waitListener.reject();
     }, 5000);
     // 等待监听建立

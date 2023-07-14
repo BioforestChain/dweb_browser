@@ -9,11 +9,13 @@ export async function getAppInfo() {
   return await res.json();
 }
 
+/**点击打开JMM */
 export function clickApp(id: string) {
   nativeFetch("/openApp", {
     search: {
       app_id: id,
     },
+    mmid: "jmm.browser.dweb",
   });
 }
 
@@ -24,15 +26,17 @@ export function vibrateHeavyClick() {
   });
 }
 
-/**长按的退出按钮，这个会退出后端 */
+/**长按的退出按钮，这个会退出JMM后端 */
 export async function quitApp(id: string) {
   await nativeFetch("/closeApp", {
     search: {
       app_id: id,
     },
+    mmid: "jmm.browser.dweb",
   });
 }
 
+/**卸载的是jmm所以从这里调用 */
 export async function deleteApp(id: string) {
   await quitApp(id)
   return await nativeFetch("/uninstall", {

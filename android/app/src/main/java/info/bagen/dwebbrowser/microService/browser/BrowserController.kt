@@ -10,22 +10,19 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
-import org.dweb_browser.helper.*
-import org.dweb_browser.microservice.sys.dns.nativeFetch
-import info.bagen.dwebbrowser.microService.browser.jmm.JmmMetadata
 import kotlinx.coroutines.launch
 import org.dweb_browser.browserUI.ui.browser.BrowserViewModel
-import org.dweb_browser.microservice.help.Mmid
-import org.http4k.core.Uri
-import org.http4k.core.query
+import org.dweb_browser.helper.*
 
 class BrowserController(val browserNMM: BrowserNMM) {
     val showLoading: MutableState<Boolean> = mutableStateOf(false)
-    val browserViewModel by lazy { BrowserViewModel(browserNMM) { mmid ->
-        activity?.lifecycleScope?.launch {
-            openJmm(mmid)
+    val browserViewModel by lazy {
+        BrowserViewModel(browserNMM) { mmid ->
+            activity?.lifecycleScope?.launch {
+                browserNMM.bootstrapContext.dns.bootstrap(mmid)
+            }
         }
-    }}
+    }
 
     private var activityTask = PromiseOut<BrowserActivity>()
     suspend fun waitActivityCreated() = activityTask.waitPromise()
@@ -43,10 +40,12 @@ class BrowserController(val browserNMM: BrowserNMM) {
             }
         }
 
-    val currentInsets : MutableState<WindowInsetsCompat> by lazy {
-        mutableStateOf(WindowInsetsCompat.toWindowInsetsCompat(
-            activity!!.window.decorView.rootWindowInsets
-        ))
+    val currentInsets: MutableState<WindowInsetsCompat> by lazy {
+        mutableStateOf(
+            WindowInsetsCompat.toWindowInsetsCompat(
+                activity!!.window.decorView.rootWindowInsets
+            )
+        )
     }
 
     @Composable
@@ -85,11 +84,4 @@ class BrowserController(val browserNMM: BrowserNMM) {
         }
         return true
     }
-
-    suspend fun openJmm(mmid: Mmid) = browserNMM.nativeFetch(
-        Uri.of("file://jmm.browser.dweb/openApp").query("app_id", mmid)
-    )
-    suspend fun closeJmm(mmid: Mmid) = browserNMM.nativeFetch(
-        Uri.of("file://jmm.browser.dweb/closeApp").query("app_id", mmid)
-    )
 }

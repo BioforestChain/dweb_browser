@@ -93,7 +93,6 @@ open class MessagePortIpc(
           debugMessagePortIpc("ON-MESSAGE", "$ipc => $message")
           _messageSignal.emit(IpcMessageArgs(message, ipc))
         }
-
         else -> throw Exception("unknown message: $message")
       }
     }

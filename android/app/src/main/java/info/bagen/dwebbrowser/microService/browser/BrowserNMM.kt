@@ -10,8 +10,6 @@ import org.dweb_browser.helper.*
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.http4k.core.Method
-import org.http4k.lens.Query
-import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 
@@ -28,17 +26,11 @@ class BrowserNMM : NativeMicroModule("browser.dweb") {
     controllerList.add(BrowserController(this))
   }
 
-  val queryAppId = Query.string().required("app_id")
-
   data class AppInfo(val id: String, val icon: String, val name: String, val short_name: String)
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     bootstrapContext.dns.bootstrap("jmm.browser.dweb")
     apiRouting = routes(
-      "/openApp" bind Method.GET to defineHandler { request ->
-        val mmid = queryAppId(request)
-        return@defineHandler browserController?.openJmm(mmid)
-      },
       "/appsInfo" bind Method.GET to defineHandler { request ->
         val apps = getAndUpdateJmmNmmApps()
         debugBrowser("appInfo", apps.size)
@@ -55,12 +47,6 @@ class BrowserNMM : NativeMicroModule("browser.dweb") {
           )
         }
         return@defineHandler responseApps
-      },
-      // 关闭app后端
-      "/closeApp" bind Method.GET to defineHandler { request->
-        val mmid = queryAppId(request)
-        debugBrowser("closeApp",mmid)
-        browserController?.closeJmm(mmid)
       },
     )
   }

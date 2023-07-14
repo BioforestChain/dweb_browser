@@ -141,7 +141,6 @@ export class JsProcessMicroModule implements $MicroModule {
         );
         port_po.resolve(ipc);
         workerGlobal.postMessage(["ipc-connect-ready", mmid]);
-
         /// 不论是连接方，还是被连接方，都需要触发事件
         this.beConnect(ipc);
       } else if (data[0] === "ipc-connect-fail") {
@@ -194,11 +193,8 @@ export class JsProcessMicroModule implements $MicroModule {
 
   /**重启 */
   restart() {
-    // this._restartCloseIpcSignal.emit();
     this.fetchIpc.postMessage(IpcEvent.fromText("restart", "")); // 发送指令
   }
-  // 重启关闭ipc
-  private _restartCloseIpcSignal = createSignal<() => unknown>();
   // 激活信号
   private _activitySignal = createSignal<$OnIpcEventMessage>();
   // app关闭信号
@@ -211,6 +207,7 @@ export class JsProcessMicroModule implements $MicroModule {
       this._on_activity_inited = true;
       this.onConnect((ipc) => {
         ipc.onEvent((ipcEvent, ipc) => {
+          console.log("js-process.worker onEvent=> ", ipcEvent.name);
           if (ipcEvent.name === MWEBVIEW_LIFECYCLE_EVENT.Activity) {
             return this._activitySignal.emit(ipcEvent, ipc);
           }
@@ -219,10 +216,6 @@ export class JsProcessMicroModule implements $MicroModule {
           }
         });
         ipc.onRequest((ipcRequest, ipc) => this._onRequestSignal.emit(ipcRequest, ipc));
-        this._restartCloseIpcSignal.listen(() => {
-          ipc.postMessage(IpcEvent.fromText("close", ipc.remote.mmid));
-          ipc.close();
-        });
       });
     }
     return this._activitySignal.listen(cb);

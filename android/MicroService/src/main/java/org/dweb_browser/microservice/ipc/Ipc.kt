@@ -266,7 +266,7 @@ abstract class Ipc {
 
   suspend fun request(request: Request) =
     this.request(
-      IpcRequest.Companion.fromRequest(
+      IpcRequest.fromRequest(
         allocReqId(),
         request,
         this

@@ -114,21 +114,14 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb") {
           nativeFetch(metadataUrl).json<JmmMetadata>(JmmMetadata::class.java)
         val url = URL(metadataUrl)
         // 根据 jmmMetadata 打开一个应用信息的界面，用户阅读界面信息后，可以点击"安装"
-        openJmmMetadataInstallPage(jmmMetadata, url)
+        jmmMetadataInstall(jmmMetadata, url)
         return@defineHandler jmmMetadata
       },
       "/uninstall" bind Method.GET to defineHandler { request ->
         val mmid = queryMmid(request)
         debugJMM("uninstall", mmid)
-        apps[mmid]?.let { jsMicroModule ->
-          openJmmMetadataUninstallPage(jsMicroModule)
-        } ?: return@defineHandler false
+        jmmMetadataUninstall(mmid)
         return@defineHandler true
-      },
-      "/query" bind Method.GET to defineHandler { request, ipc ->
-        return@defineHandler AppsQueryResult(
-          apps.map { it.value.metadata },
-          installingApps.map { it.value })
       },
       "/openApp" bind Method.GET to defineHandler { request ->
         val mmid = queryMmid(request)
@@ -172,15 +165,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb") {
 
   }
 
-  data class AppsQueryResult(
-    val installedAppList: List<JmmMetadata>,
-    val installingAppList: List<InstallingAppInfo>
-  )
-
-  data class InstallingAppInfo(var progress: Float, val jmmMetadata: JmmMetadata)
-
-  private val installingApps = mutableMapOf<Mmid, InstallingAppInfo>()
-  private fun openJmmMetadataInstallPage(jmmMetadata: JmmMetadata, url: URL) {
+  private fun jmmMetadataInstall(jmmMetadata: JmmMetadata, url: URL) {
     if (!jmmMetadata.bundle_url.startsWith("http")) {
       jmmMetadata.bundle_url = URL(url, jmmMetadata.bundle_url).toString()
     }
@@ -189,11 +174,10 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb") {
     JmmManagerActivity.startActivity(jmmMetadata)
   }
 
-  private suspend fun openJmmMetadataUninstallPage(jsMicroModule: JsMicroModule) {
+  private suspend fun jmmMetadataUninstall(mmid: Mmid) {
     // 先从列表移除，然后删除文件
-    val mmid = jsMicroModule.metadata.id
     apps.remove(mmid)
-    bootstrapContext.dns.uninstall(jsMicroModule)
+    bootstrapContext.dns.uninstall(mmid)
     AppInfoDataStore.deleteAppInfo(mmid)
     FilesUtil.uninstallApp(App.appContext, mmid)
   }

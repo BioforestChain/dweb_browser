@@ -17,7 +17,7 @@ interface DnsMicroModule {
     /**
      * 动态卸载应用
      */
-    fun uninstall(mm: MicroModule)
+    fun uninstall(mm: Mmid)
 
     /**
      * 动态js应用查询

@@ -29,7 +29,7 @@ import java.util.concurrent.atomic.AtomicReference
 
 
 fun debugStreamIpc(tag: String, msg: Any = "", err: Throwable? = null) =
-  printdebugln("stream-ipc", tag, msg, err)
+    printdebugln("stream-ipc", tag, msg, err)
 
 /**
  * 基于 WebReadableStream 的IPC
@@ -38,8 +38,8 @@ fun debugStreamIpc(tag: String, msg: Any = "", err: Throwable? = null) =
  * 以及需要手动绑定输入流 {@link bindIncomeStream}
  */
 class ReadableStreamIpc(
-  override val remote: MicroModuleInfo,
-  override val role: String,
+    override val remote: MicroModuleInfo,
+    override val role: String,
 ) : Ipc() {
     companion object {
         val incomeStreamCoroutineScope =
@@ -77,7 +77,7 @@ class ReadableStreamIpc(
         pong.size.toByteArray() + pong
     }
 
-     class AbortAble {
+    class AbortAble {
         val signal = SimpleSignal()
     }
 
@@ -85,7 +85,7 @@ class ReadableStreamIpc(
      * 输入流要额外绑定
      */
     @Synchronized
-    fun bindIncomeStream(stream: InputStream,signal:AbortAble = AbortAble()) {
+    fun bindIncomeStream(stream: InputStream, signal: AbortAble = AbortAble()) {
         if (this._incomeStream !== null) {
             throw Exception("in come stream already binded.");
         }
@@ -101,35 +101,38 @@ class ReadableStreamIpc(
         }
 
         val readStream: suspend () -> Unit = {
-          try {
-              // 如果通道关闭并且没有剩余字节可供读取，则返回 true
-              while (stream.available() > 0) {
-                  val size = stream.readInt()
-                  if (size <= 0) {
-                      continue
-                  }
-                  debugStreamIpc("size", "$size => $stream")
-                  // 读取指定数量的字节并从中生成字节数据包。 如果通道已关闭且没有足够的可用字节，则失败
-                  val chunk = stream.readByteArray(size).toString(Charsets.UTF_8)
+            try {
+                // 如果通道关闭并且没有剩余字节可供读取，则返回 true
+                while (stream.available() > 0) {
+                    val size = stream.readInt()
+                    if (size <= 0) {
+                        continue
+                    }
+                    debugStreamIpc("size", "$size => $stream")
+                    // 读取指定数量的字节并从中生成字节数据包。 如果通道已关闭且没有足够的可用字节，则失败
+                    val chunk = stream.readByteArray(size).toString(Charsets.UTF_8)
 
-                  val message = jsonToIpcMessage(chunk, this@ReadableStreamIpc)
-                  when (message) {
-                      "close" -> close()
-                      "ping" -> enqueue(PONG_DATA)
-                      "pong" -> debugStreamIpc("PONG", "$stream")
-                      is IpcMessage -> {
-                          debugStreamIpc("ON-MESSAGE", "$size => $message => ${this@ReadableStreamIpc}")
-                          _messageSignal.emit(IpcMessageArgs(message, this@ReadableStreamIpc))
-                      }
-                      else -> throw Exception("unknown message: $message")
-                  }
-              }
-              debugStreamIpc("END", "$stream")
-              // 流是双向的，对方关闭的时候，自己也要关闭掉
-              this.close()
-          }catch (e:Exception) {
-              printerrln("ReadableStreamIpc","output stream closed")
-          }
+                    val message = jsonToIpcMessage(chunk, this@ReadableStreamIpc)
+                    when (message) {
+                        "close" -> close()
+                        "ping" -> enqueue(PONG_DATA)
+                        "pong" -> debugStreamIpc("PONG", "$stream")
+                        is IpcMessage -> {
+                            debugStreamIpc(
+                                "ON-MESSAGE",
+                                "$size => $message => ${this@ReadableStreamIpc}"
+                            )
+                            _messageSignal.emit(IpcMessageArgs(message, this@ReadableStreamIpc))
+                        }
+                        else -> throw Exception("unknown message: $message")
+                    }
+                }
+                debugStreamIpc("END", "$stream")
+            } catch (e: Exception) {
+                printerrln("ReadableStreamIpc", "output stream closed")
+            }
+            // 流是双向的，对方关闭的时候，自己也要关闭掉
+            this.close()
         }
         _incomeStream = stream
         inComeStreamJob.getAndSet(incomeStreamCoroutineScope.async { readStream() })
