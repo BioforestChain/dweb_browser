@@ -19,21 +19,18 @@ import { allDeviceListMap } from "./data.ts";
 //         ReturnType<
 //           import("../bluetooth.main.ts").BluetoothNMM["_createBrowserWindow"]
 //         >
-//       >["getExport"]
+//       >["getMainApi"]
 //     >
 //   >();
 import type { BluetoothNMM } from "../bluetooth.main.ts";
 const mainApis = importApis<BluetoothNMM["_exports"]>();
 
-const template: HTMLTemplateElement | null =
-  document.querySelector(".template");
+const template: HTMLTemplateElement | null = document.querySelector(".template");
 let setTimeoutId: number;
 let bluetooth: BluetoothDevice;
 let bluetoothRemoteGATTServer: BluetoothRemoteGATTServer | undefined;
 let bluetoothRemoteGATTService: BluetoothRemoteGATTService | undefined;
-let bluetoothRemoteGATTCharacteristic:
-  | BluetoothRemoteGATTCharacteristic
-  | undefined;
+let bluetoothRemoteGATTCharacteristic: BluetoothRemoteGATTCharacteristic | undefined;
 let bluetoothRemoteGATTDescriptor: BluetoothRemoteGATTDescriptor | undefined;
 let connectedSuccess: { (server: BluetoothRemoteGATTServer): void } | undefined;
 let connectedFail: { (err: Error): void } | undefined;
@@ -58,12 +55,9 @@ async function requestDevice(requestDeviceOptions: RequestDeviceOptions) {
           mainApis.watchStateChange("gattserverdisconnected", undefined);
         });
 
-        bluetooth.addEventListener(
-          "advertisementreceived",
-          (ev: BluetoothAdvertisingEvent) => {
-            mainApis.watchStateChange("advertisementreceived", ev);
-          }
-        );
+        bluetooth.addEventListener("advertisementreceived", (ev: BluetoothAdvertisingEvent) => {
+          mainApis.watchStateChange("advertisementreceived", ev);
+        });
         return bluetooth.gatt?.connect();
       }
       return Promise.reject(new Error(`_bluettoh === undefined`));
@@ -71,8 +65,7 @@ async function requestDevice(requestDeviceOptions: RequestDeviceOptions) {
     .then((server: BluetoothRemoteGATTServer | undefined) => {
       // console.log("server", server);
       bluetoothRemoteGATTServer = server;
-      if (connectedSuccess === undefined)
-        throw new Error(`connectedSuccess === undefined`);
+      if (connectedSuccess === undefined) throw new Error(`connectedSuccess === undefined`);
       if (server === undefined) throw new Error("server === undefined");
       connectedSuccess(server);
       clearTimeout(setTimeoutId);
@@ -95,10 +88,7 @@ async function bluetoothDeviceForget(id: string, resolveId: number) {
   );
 }
 
-async function bluetoothDeviceWatchAdvertisements(
-  id: string,
-  resolveId: number
-) {
+async function bluetoothDeviceWatchAdvertisements(id: string, resolveId: number) {
   if (bluetooth.id !== id) {
     return operationCallbackError(`bluetooth.id !== ${id}`, resolveId);
   }
@@ -156,39 +146,24 @@ async function deviceDisconnect(id: string, resolveId: number) {
 
 async function bluetoothRemoteGATTServerConnect(id: string, resolveId: number) {
   if (bluetoothRemoteGATTServer === undefined) {
-    return operationCallbackError(
-      `bluetoothRemoteGATTServer === undefined`,
-      resolveId
-    );
+    return operationCallbackError(`bluetoothRemoteGATTServer === undefined`, resolveId);
   }
   if (id === bluetoothRemoteGATTServer.device.id) {
     bluetoothRemoteGATTServer.connect();
     return operationCallbackSuccess("ok", resolveId);
   }
-  return operationCallbackError(
-    `id !== bluetoothRemoteGATTServer.device.id`,
-    resolveId
-  );
+  return operationCallbackError(`id !== bluetoothRemoteGATTServer.device.id`, resolveId);
 }
 
-async function bluetoothRemoteGATTServerDisconnect(
-  id: string,
-  resolveId: number
-) {
+async function bluetoothRemoteGATTServerDisconnect(id: string, resolveId: number) {
   if (bluetoothRemoteGATTServer === undefined) {
-    return operationCallbackError(
-      `bluetoothRemoteGATTServer === undefined`,
-      resolveId
-    );
+    return operationCallbackError(`bluetoothRemoteGATTServer === undefined`, resolveId);
   }
   if (id === bluetoothRemoteGATTServer.device.id) {
     bluetoothRemoteGATTServer.disconnect();
     return operationCallbackSuccess("ok", resolveId);
   }
-  return operationCallbackError(
-    `id !== bluetoothRemoteGATTServer.device.id`,
-    resolveId
-  );
+  return operationCallbackError(`id !== bluetoothRemoteGATTServer.device.id`, resolveId);
 }
 
 /**
@@ -304,15 +279,9 @@ async function deviceSelected(device: $Device) {
   });
 }
 
-async function bluetoothRemoteGATTServerGetPrimarySevice(
-  uuid: string,
-  resolveId: number
-) {
+async function bluetoothRemoteGATTServerGetPrimarySevice(uuid: string, resolveId: number) {
   if (bluetoothRemoteGATTServer === undefined) {
-    return operationCallbackError(
-      `bluetoothRemoteGATTServer === undefined`,
-      resolveId
-    );
+    return operationCallbackError(`bluetoothRemoteGATTServer === undefined`, resolveId);
   }
   bluetoothRemoteGATTServer.getPrimaryService(uuid).then(
     (_bluetoothRemoteGATTService) => {
@@ -359,15 +328,9 @@ async function bluetoothRemoteGATTServerGetPrimarySevice(
   );
 }
 
-async function bluetoothRemoteGATTService_getCharacteristic(
-  uuid: string,
-  resolveId: number
-) {
+async function bluetoothRemoteGATTService_getCharacteristic(uuid: string, resolveId: number) {
   if (bluetoothRemoteGATTService === undefined) {
-    return operationCallbackError(
-      `bluetoothRemoteGATTService === undefined`,
-      resolveId
-    );
+    return operationCallbackError(`bluetoothRemoteGATTService === undefined`, resolveId);
   }
 
   bluetoothRemoteGATTService.getCharacteristic(uuid).then(
@@ -376,32 +339,24 @@ async function bluetoothRemoteGATTService_getCharacteristic(
       bluetoothRemoteGATTCharacteristic = _bluetoothRemoteGATTCharacteristic;
 
       //
-      bluetoothRemoteGATTCharacteristic.addEventListener(
-        "characteristicvaluechanged",
-        (event: Event) => {
-          // 特征 的值发生了变化
-          mainApis.watchStateChange("characteristicvaluechanged", event);
-        }
-      );
+      bluetoothRemoteGATTCharacteristic.addEventListener("characteristicvaluechanged", (event: Event) => {
+        // 特征 的值发生了变化
+        mainApis.watchStateChange("characteristicvaluechanged", event);
+      });
 
       return operationCallbackSuccess(
         {
           uuid: uuid,
           properties: {
-            authenticatedSignedWrites:
-              bluetoothRemoteGATTCharacteristic.properties
-                .authenticatedSignedWrites,
+            authenticatedSignedWrites: bluetoothRemoteGATTCharacteristic.properties.authenticatedSignedWrites,
             broadcast: bluetoothRemoteGATTCharacteristic.properties.broadcast,
             indicate: bluetoothRemoteGATTCharacteristic.properties.indicate,
             notify: bluetoothRemoteGATTCharacteristic.properties.notify,
             read: bluetoothRemoteGATTCharacteristic.properties.read,
-            reliableWrite:
-              bluetoothRemoteGATTCharacteristic.properties.reliableWrite,
-            writableAuxiliaries:
-              bluetoothRemoteGATTCharacteristic.properties.writableAuxiliaries,
+            reliableWrite: bluetoothRemoteGATTCharacteristic.properties.reliableWrite,
+            writableAuxiliaries: bluetoothRemoteGATTCharacteristic.properties.writableAuxiliaries,
             write: bluetoothRemoteGATTCharacteristic.properties.write,
-            writeWithoutResponse:
-              bluetoothRemoteGATTCharacteristic.properties.writeWithoutResponse,
+            writeWithoutResponse: bluetoothRemoteGATTCharacteristic.properties.writeWithoutResponse,
           },
           value: bluetoothRemoteGATTCharacteristic.value,
         },
@@ -446,10 +401,7 @@ async function bluetoothRemoteGATTService_getCharacteristic(
 
 function bluetoothRemoteGATTCharacteristic_readValue(resolveId: number) {
   if (bluetoothRemoteGATTCharacteristic === undefined) {
-    return operationCallbackError(
-      `bluetoothRemoteGATTCharacteristic === undefined`,
-      resolveId
-    );
+    return operationCallbackError(`bluetoothRemoteGATTCharacteristic === undefined`, resolveId);
   }
   bluetoothRemoteGATTCharacteristic.readValue().then(
     (res) => {
@@ -461,15 +413,9 @@ function bluetoothRemoteGATTCharacteristic_readValue(resolveId: number) {
   );
 }
 
-function bluetoothRemoteGATTCharacteristic_writeValue(
-  arrayBuffer: ArrayBuffer,
-  resolveId: number
-) {
+function bluetoothRemoteGATTCharacteristic_writeValue(arrayBuffer: ArrayBuffer, resolveId: number) {
   if (bluetoothRemoteGATTCharacteristic === undefined) {
-    return operationCallbackError(
-      `bluetoothRemoteGATTCharacteristic === undefined`,
-      resolveId
-    );
+    return operationCallbackError(`bluetoothRemoteGATTCharacteristic === undefined`, resolveId);
   }
 
   bluetoothRemoteGATTCharacteristic.writeValue(arrayBuffer).then(
@@ -482,15 +428,9 @@ function bluetoothRemoteGATTCharacteristic_writeValue(
   );
 }
 
-function BluetoothRemoteGATTCharacteristic_getDescriptor(
-  uuid: string,
-  resolveId: number
-) {
+function BluetoothRemoteGATTCharacteristic_getDescriptor(uuid: string, resolveId: number) {
   if (bluetoothRemoteGATTCharacteristic === undefined) {
-    return operationCallbackError(
-      "bluetoothRemoteGATTCharacteristic === undefined",
-      resolveId
-    );
+    return operationCallbackError("bluetoothRemoteGATTCharacteristic === undefined", resolveId);
   }
 
   bluetoothRemoteGATTCharacteristic.getDescriptor(uuid).then(
@@ -513,10 +453,7 @@ function BluetoothRemoteGATTCharacteristic_getDescriptor(
 
 async function bluetoothRemoteGATTDescriptor_readValue(resolveId: number) {
   if (bluetoothRemoteGATTDescriptor === undefined) {
-    return operationCallbackError(
-      `bluetoothRemoteGATTDescriptor === undefined`,
-      resolveId
-    );
+    return operationCallbackError(`bluetoothRemoteGATTDescriptor === undefined`, resolveId);
   }
 
   bluetoothRemoteGATTDescriptor.readValue().then(
@@ -529,15 +466,9 @@ async function bluetoothRemoteGATTDescriptor_readValue(resolveId: number) {
   );
 }
 
-async function bluetoothRemoteGATTDescriptor_writeValue(
-  arrayBuffer: ArrayBuffer,
-  resolveId: number
-) {
+async function bluetoothRemoteGATTDescriptor_writeValue(arrayBuffer: ArrayBuffer, resolveId: number) {
   if (bluetoothRemoteGATTDescriptor === undefined) {
-    return operationCallbackError(
-      "bluetoothRemoteGATTDescriptor === undefined",
-      resolveId
-    );
+    return operationCallbackError("bluetoothRemoteGATTDescriptor === undefined", resolveId);
   }
 
   bluetoothRemoteGATTDescriptor.writeValue(arrayBuffer).then(
@@ -601,9 +532,7 @@ Object.assign(globalThis, APIS);
 
 if ("ipcRenderer" in self) {
   (async () => {
-    const { exportApis } = await import(
-      "../../../helper/openNativeWindow.preload.ts"
-    );
+    const { exportApis } = await import("../../../helper/openNativeWindow.preload.ts");
     exportApis(globalThis);
   })();
 }

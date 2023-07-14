@@ -18,6 +18,9 @@
       ]
     }
   },
+  "compilerOptions": {
+    "noImplicitOverride": true
+  },
   "tasks": {
     "dnt": "deno run -A ./scripts/dnt.ts",
     "bundle": "deno run -A ./scripts/bundle.ts",

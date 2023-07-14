@@ -572,7 +572,7 @@ export class BluetoothNMM extends NativeMicroModule {
   // 打开 browseView
   private _initUI = async () => {
     this._browserWindow = this._getBrowserWindow(this._rootUrl);
-    this._apis = (await this._browserWindow).getApis<$APIS>();
+    this._apis = (await this._browserWindow).getRenderApi<$APIS>();
     this._STATE = STATE.OPENED;
     (await this._browserWindow).on("blur", async () => {
       (await this._browserWindow)?.hide();

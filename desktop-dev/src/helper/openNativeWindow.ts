@@ -1,4 +1,4 @@
-import { Remote, expose, proxy, wrap } from "comlink";
+import { expose, proxy, wrap } from "comlink";
 import { debounce } from "./$debounce.ts";
 import { PromiseOut } from "./PromiseOut.ts";
 import { animate, easeOut } from "./animate.ts";
@@ -11,9 +11,7 @@ import { electronConfig } from "./electronConfig.ts";
  * @param target
  * @returns
  */
-function eventScope<T extends { on: Function; once: Function; off: Function }>(
-  target: T
-) {
+function eventScope<T extends { on: Function; once: Function; off: Function }>(target: T) {
   const onList: {
     name: string;
     handler: any;
@@ -63,14 +61,10 @@ const saveNativeWindowStates = () => {
   electronConfig.set(DEVTOOLS_STATE, nativeWindowStates);
 };
 
-export interface $CreateNativeWindowOptions
-  extends Electron.BrowserWindowConstructorOptions {
+export interface $CreateNativeWindowOptions extends Electron.BrowserWindowConstructorOptions {
   userAgent?: (userAgent: string) => string;
 }
-export const createNativeWindow = async (
-  sessionId: string,
-  createOptions: $CreateNativeWindowOptions = {}
-) => {
+export const createNativeWindow = async (sessionId: string, createOptions: $CreateNativeWindowOptions = {}) => {
   await Electron.app.whenReady();
   const { userAgent, ..._options } = createOptions;
 
@@ -145,9 +139,7 @@ export const createNativeWindow = async (
  * @param webContentsConfig
  * @returns
  */
-export const createComlinkNativeWindow = async <
-  E = NativeWindowExtensions_BaseApi
->(
+export const createComlinkNativeWindow = async <E = NativeWindowExtensions_BaseApi>(
   url: string,
   createOptions?: $CreateNativeWindowOptions,
   exportBuilder = async (win: Electron.BrowserWindow) => {
@@ -155,54 +147,17 @@ export const createComlinkNativeWindow = async <
   }
 ) => {
   const win = await createNativeWindow(new URL(url).host, createOptions);
+  const mainApi = await exportBuilder(win);
 
-  // 测试使用
-  win.webContents.openDevTools();
-  // win.webContents.setWindowOpenHandler((_detail) => {
-  //   return { action: "deny" };
-  // });
-
-  const ports_po = new PromiseOut<{
-    import_port: MessagePort;
-    export_port: MessagePort;
-  }>();
-
-  const { MainPortToRenderPort } = await import("./electronPortMessage.ts");
-  win.webContents.ipc.once("renderPort", (event) => {
-    const [import_port, export_port] = event.ports;
-
-    ports_po.resolve({
-      import_port: MainPortToRenderPort(import_port),
-      export_port: MainPortToRenderPort(export_port),
-    });
-  });
-
-  await win.loadURL(url);
-
-  const { import_port, export_port } = await ports_po.promise;
-
-  const exportApis = await exportBuilder(win);
-  expose(exportApis, export_port);
-  let apis: unknown;
-  return Object.assign(win, {
-    getExport() {
-      return exportApis;
-    },
-    getApis<T>() {
-      return (apis ??= wrap<T>(import_port)) as Remote<T>;
-    },
-  });
+  return Object.assign(win, await bridgeComlink(url, win.webContents, mainApi));
 };
 
-export const createBrowserView = async (
-  sessionId: string,
-  createOptions: $CreateNativeWindowOptions = {}
-) => {
+export const createBrowserView = async (sessionId: string, createOptions: $CreateNativeWindowOptions = {}) => {
   await Electron.app.whenReady();
   const { userAgent, ..._options } = createOptions;
 
   const options: Electron.BrowserWindowConstructorOptions = {
-    titleBarStyle:"hiddenInset",
+    titleBarStyle: "hiddenInset",
     ..._options,
     webPreferences: {
       ..._options.webPreferences,
@@ -250,24 +205,40 @@ export const createBrowserView = async (
   return bv;
 };
 
-export const createComlinkBrowserView = async <
-  E = NativeWindowExtensions_BaseApi
->(
+export const createComlinkBrowserView = async <E = NativeWindowExtensions_BaseApi>(
   url: string,
   createOptions?: $CreateNativeWindowOptions,
-  exportBuilder = async (win: Electron.BrowserWindow) => {
+  mainApiBuilder = async (win: Electron.BrowserWindow) => {
     return new NativeWindowExtensions_BaseApi(win) as any as E;
   }
 ) => {
   const bv = await createBrowserView(new URL("/", url).href, createOptions);
-  const ports_po = new PromiseOut<{
+  const mainApi = await mainApiBuilder(bv as unknown as Electron.BrowserWindow);
+
+  return Object.assign(bv, await bridgeComlink(url, bv.webContents, mainApi));
+};
+
+const bridgeComlink = async <M>(url: string, webContents: Electron.WebContents, mainApi: M) => {
+  let ports_po: PromiseOut<{
     import_port: MessagePort;
     export_port: MessagePort;
-  }>();
+  }>;
+  const init_ports_po = () => {
+    ports_po = new PromiseOut();
+    ports_po.onSuccess((ports) => {
+      expose(mainApi, ports.export_port);
+    });
+    return ports_po;
+  };
+  ports_po = init_ports_po();
 
   const { MainPortToRenderPort } = await import("./electronPortMessage.ts");
-  bv.webContents.ipc.once("renderPort", (event) => {
+  webContents.ipc.on("renderPort", (event) => {
     const [import_port, export_port] = event.ports;
+    /// 页面可能刷新，那么就重新初始化
+    if (ports_po.is_resolved) {
+      ports_po = init_ports_po();
+    }
 
     ports_po.resolve({
       import_port: MainPortToRenderPort(import_port),
@@ -275,22 +246,16 @@ export const createComlinkBrowserView = async <
     });
   });
 
-  await bv.webContents.loadURL(url);
+  await webContents.loadURL(url);
 
-  const { import_port, export_port } = await ports_po.promise;
-
-  const exportApis = await exportBuilder(
-    bv as unknown as Electron.BrowserWindow
-  );
-  expose(exportApis, export_port);
-  return Object.assign(bv, {
-    getExport() {
-      return exportApis;
+  return {
+    getMainApi() {
+      return mainApi;
     },
-    getApis<T>() {
-      return wrap<T>(import_port);
+    getRenderApi<T>() {
+      return wrap<T>(ports_po.value!.import_port);
     },
-  });
+  };
 };
 
 /**
@@ -314,9 +279,7 @@ async function openDevToolsWindowAsFollower(
 ) {
   try {
     if (_webContents.devToolsWebContents) {
-      const devWin = Electron.BrowserWindow.fromWebContents(
-        _webContents.devToolsWebContents
-      )!;
+      const devWin = Electron.BrowserWindow.fromWebContents(_webContents.devToolsWebContents)!;
       devWin.moveTop();
       return devWin;
     }
@@ -339,9 +302,7 @@ async function openDevToolsWindowAsFollower(
     /// 附加开发窗口
     _webContents.once("devtools-opened", () => {
       const devToolsWebContents = _webContents.devToolsWebContents!;
-      devWinPo.resolve(
-        Electron.BrowserWindow.fromWebContents(devToolsWebContents)!
-      );
+      devWinPo.resolve(Electron.BrowserWindow.fromWebContents(devToolsWebContents)!);
     });
     _webContents.openDevTools({ mode: "detach" });
   }
@@ -361,10 +322,7 @@ async function openDevToolsWindowAsFollower(
     const diaplay = Electron.screen.getPrimaryDisplay();
     const winBounds = win.getBounds();
     _devWin.setSize(
-      Math.min(
-        Math.max(400, width),
-        diaplay.size.width - winBounds.width - space
-      ),
+      Math.min(Math.max(400, width), diaplay.size.width - winBounds.width - space),
       Math.min(Math.max(winBounds.height, height), diaplay.size.height)
     );
   }
@@ -492,10 +450,7 @@ export class NativeWindowExtensions_BaseApi {
    * @param webContentsId
    * @param options
    */
-  async openDevTools(
-    webContentsId: number,
-    options?: Electron.OpenDevToolsOptions
-  ) {
+  async openDevTools(webContentsId: number, options?: Electron.OpenDevToolsOptions) {
     const content_wcs = Electron.webContents.fromId(webContentsId)!;
     content_wcs.openDevTools(options);
   }
@@ -539,9 +494,7 @@ export class NativeWindowExtensions_BaseApi {
     if (!content_wcs.devToolsWebContents) {
       return;
     }
-    const devWin = Electron.BrowserWindow.fromWebContents(
-      content_wcs.devToolsWebContents
-    );
+    const devWin = Electron.BrowserWindow.fromWebContents(content_wcs.devToolsWebContents);
     /// 如果这个devTools被附加到其它窗口，那么就直接关闭那个窗口
     if (devWin !== this.win) {
       devWin?.close();
@@ -551,10 +504,7 @@ export class NativeWindowExtensions_BaseApi {
     }
   }
 
-  denyWindowOpenHandler(
-    webContentsId: number,
-    onDeny: (details: Electron.HandlerDetails) => unknown
-  ) {
+  denyWindowOpenHandler(webContentsId: number, onDeny: (details: Electron.HandlerDetails) => unknown) {
     const contents = Electron.webContents.fromId(webContentsId);
     if (contents === undefined) throw new Error(`contents === undefined`);
     return contents.setWindowOpenHandler((detail) => {
@@ -606,9 +556,7 @@ export class NativeWindowExtensions_BaseApi {
 //   }) as T;
 // };
 
-export type $NativeWindow = Awaited<
-  ReturnType<typeof createComlinkNativeWindow>
->;
+export type $NativeWindow = Awaited<ReturnType<typeof createComlinkNativeWindow>>;
 
 // {
 //   readonly devToolsWins = new Set<Electron.BrowserWindow>();

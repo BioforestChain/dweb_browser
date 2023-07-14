@@ -75,12 +75,16 @@ dns.install(new BarcodeScanningNMM());
 // dns.install(new BiometricsNMM());
 dns.install(new BluetoothNMM());
 
+import { DesktopNMM } from "./browser/desktop/desktop.nmm.ts";
 import { JmmNMM } from "./browser/jmm/jmm.ts";
 dns.install(new JmmNMM());
+const dwebDesktop = new DesktopNMM();
+dns.install(dwebDesktop);
 
 dns.install(
   new BootNMM([
-    dwebBrowser.mmid,
+    dwebDesktop.mmid,
+    // dwebBrowser.mmid,
     // "bluetooth.std.dweb"
   ])
 );

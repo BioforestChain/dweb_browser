@@ -14,9 +14,7 @@ export async function jsProcessOpenWindow(
   _options: Electron.BrowserWindowConstructorOptions = {},
   webContentsConfig: { userAgent?: (userAgent: string) => string } = {}
 ): Promise<$NWW> {
-  const { MainPortToRenderPort } = await import(
-    "../../helper/electronPortMessage.ts"
-  );
+  const { MainPortToRenderPort } = await import("../../helper/electronPortMessage.ts");
   const options = {
     ..._options,
     webPreferences: {
@@ -84,5 +82,5 @@ export async function jsProcessOpenWindow(
 
 export type $NWW = Electron.BrowserWindow & $ExtendsBrowserWindow;
 export interface $ExtendsBrowserWindow {
-  getApis<T>(): Remote<T>;
+  getRenderApi<T>(): Remote<T>;
 }

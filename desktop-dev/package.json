@@ -6,10 +6,11 @@
         "cbor-x": "^1.5.3",
         "comlink": "^4.4.1",
         "deep-object-diff": "^1.1.9",
-        "lit": "^2.7.6",
-        "vite": "^4.4.2"
+        "lit": "^2.7.6"
     },
     "devDependencies": {
-        "vite-plugin-electron-renderer": "^0.12.1"
+        "vite": "^4.4.2",
+        "vite-plugin-electron-renderer": "^0.12.1",
+        "vite-tsconfig-paths": "^4.2.0"
     }
 }

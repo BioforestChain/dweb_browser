@@ -28,8 +28,8 @@ export class BarcodeScanningNMM extends NativeMicroModule {
   };
   private _browserWindow:
     | (Electron.BrowserWindow & {
-        getExport(): {};
-        getApis<T>(): Remote<T>;
+        getMainApi(): {};
+        getRenderApi<T>(): Remote<T>;
       })
     | undefined;
   private _apis: Remote<$APIS> | undefined;
@@ -102,7 +102,7 @@ export class BarcodeScanningNMM extends NativeMicroModule {
 
   private _initUI = async () => {
     const bw = await this._createBrowserWindow(this._rootUrl);
-    this._apis = bw.getApis<$APIS>();
+    this._apis = bw.getRenderApi<$APIS>();
     return {
       bw: bw,
       apis: this._apis,
