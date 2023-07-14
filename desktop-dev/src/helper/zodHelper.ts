@@ -9,13 +9,7 @@ export const mmidType = z.custom<$MMID>((val) => {
 export * from "zod";
 export { mmidType as mmid };
 
-import type {
-  output,
-  SafeParseReturnType,
-  ZodObject,
-  ZodRawShape,
-  ZodTypeAny,
-} from "zod";
+import type { output, SafeParseReturnType, ZodObject, ZodRawShape, ZodTypeAny } from "zod";
 
 /// 以下代码来自 https://github.com/rileytomasek/zodix （MIT license）
 /// 因为源码有点问题，并且引入了一些不该引入的包，所以这里只提取了部分有需要的，并修复了一些问题
@@ -81,9 +75,7 @@ export function parseQuery<T extends ZodRawShape | ZodTypeAny>(
   options?: Options
 ): ParsedData<T> {
   try {
-    const searchParams = isURLSearchParams(request)
-      ? request
-      : getSearchParamsFromRequest(request);
+    const searchParams = isURLSearchParams(request) ? request : getSearchParamsFromRequest(request);
     const params = parseSearchParams(searchParams, options?.parser);
     const finalSchema = isZodType(schema) ? schema : z.object(schema);
     return finalSchema.parse(params);
@@ -92,6 +84,17 @@ export function parseQuery<T extends ZodRawShape | ZodTypeAny>(
   }
 }
 export const zq = {
+  mmid: () =>
+    z.string().transform((val, ctx) => {
+      if (val.endsWith(".dweb") === false) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `[${ctx.path.join(".")}] invalid mmid `,
+        });
+        return z.NEVER;
+      }
+      return val as $MMID;
+    }),
   string: () => z.string(),
   number: (float = true) =>
     z.string().transform((val, ctx) => {
@@ -101,15 +104,14 @@ export const zq = {
       }
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: `fail to parse ${ctx.path.join(".")} to number`,
+        message: `[${ctx.path.join(".")}] fail to parse to number`,
       });
 
       return z.NEVER;
     }),
   boolean: () => z.string().transform((val) => /^true$/i.test(val)),
-  transform: <NewOut>(
-    transform: (arg: string, ctx: RefinementCtx) => NewOut | Promise<NewOut>
-  ) => z.string().transform(transform),
+  transform: <NewOut>(transform: (arg: string, ctx: RefinementCtx) => NewOut | Promise<NewOut>) =>
+    z.string().transform(transform),
   parseQuery,
 };
 
@@ -124,9 +126,7 @@ export function parseQuerySafe<T extends ZodRawShape | ZodTypeAny>(
   schema: T,
   options?: Options
 ): SafeParsedData<T> {
-  const searchParams = isURLSearchParams(request)
-    ? request
-    : getSearchParamsFromRequest(request);
+  const searchParams = isURLSearchParams(request) ? request : getSearchParamsFromRequest(request);
   const params = parseSearchParams(searchParams, options?.parser);
   const finalSchema = isZodType(schema) ? schema : z.object(schema);
   return finalSchema.safeParse(params) as SafeParsedData<T>;
@@ -138,18 +138,13 @@ export function parseQuerySafe<T extends ZodRawShape | ZodTypeAny>(
  * @param schema - A Zod object shape or object schema to validate.
  * @throws {Response} - Throws an error Response if validation fails.
  */
-export async function parseForm<
-  T extends ZodRawShape | ZodTypeAny,
-  Parser extends SearchParamsParser<any>
->(
+export async function parseForm<T extends ZodRawShape | ZodTypeAny, Parser extends SearchParamsParser<any>>(
   request: Request | FormData,
   schema: T,
   options?: Options<Parser>
 ): Promise<ParsedData<T>> {
   try {
-    const formData = isFormData(request)
-      ? request
-      : await request.clone().formData();
+    const formData = isFormData(request) ? request : await request.clone().formData();
     const data = await parseFormData(formData, options?.parser);
     const finalSchema = isZodType(schema) ? schema : z.object(schema);
     return await finalSchema.parseAsync(data);
@@ -164,17 +159,12 @@ export async function parseForm<
  * @param schema - A Zod object shape or object schema to validate.
  * @returns {SafeParseReturnType} - An object with the parsed data or a ZodError.
  */
-export async function parseFormSafe<
-  T extends ZodRawShape | ZodTypeAny,
-  Parser extends SearchParamsParser<any>
->(
+export async function parseFormSafe<T extends ZodRawShape | ZodTypeAny, Parser extends SearchParamsParser<any>>(
   request: Request | FormData,
   schema: T,
   options?: Options<Parser>
 ): Promise<SafeParsedData<T>> {
-  const formData = isFormData(request)
-    ? request
-    : await request.clone().formData();
+  const formData = isFormData(request) ? request : await request.clone().formData();
   const data = await parseFormData(formData, options?.parser);
   const finalSchema = isZodType(schema) ? schema : z.object(schema);
   return finalSchema.safeParseAsync(data) as Promise<SafeParsedData<T>>;
@@ -188,9 +178,7 @@ type ParsedSearchParams = Record<string, string | string[]>;
 /**
  * Function signature to allow for custom URLSearchParams parsing.
  */
-type SearchParamsParser<T = ParsedSearchParams> = (
-  searchParams: URLSearchParams
-) => T;
+type SearchParamsParser<T = ParsedSearchParams> = (searchParams: URLSearchParams) => T;
 
 /**
  * Check if an object entry value is an instance of Object
@@ -214,10 +202,7 @@ function parseFormData(formData: FormData, customParser?: SearchParamsParser) {
 /**
  * Get the URLSearchParams as an object.
  */
-function parseSearchParams(
-  searchParams: URLSearchParams,
-  customParser?: SearchParamsParser
-): ParsedSearchParams {
+function parseSearchParams(searchParams: URLSearchParams, customParser?: SearchParamsParser): ParsedSearchParams {
   const parser = customParser || parseSearchParamsDefault;
   return parser(searchParams);
 }

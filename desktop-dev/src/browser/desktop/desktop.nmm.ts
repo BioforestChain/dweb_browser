@@ -1,15 +1,54 @@
-import os from "node:os";
 import { $BootstrapContext } from "../../core/bootstrapContext.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
-import { createComlinkNativeWindow } from "../../helper/openNativeWindow.ts";
-import { createHttpDwebServer } from "../../std/http/helper/$createHttpDwebServer.ts";
+import { once } from "../../helper/$once.ts";
+import { createComlinkNativeWindow, createNativeWindow } from "../../helper/openNativeWindow.ts";
+import { match } from "../../helper/patternHelper.ts";
+import { parseQuery, z, zq } from "../../helper/zodHelper.ts";
+import { HttpDwebServer, createHttpDwebServer } from "../../std/http/helper/$createHttpDwebServer.ts";
+import { getAppsInfo, openApp } from "../browser/browser.server.api.ts";
+import { window_options } from "./const.ts";
 
 export class DesktopNMM extends NativeMicroModule {
   mmid = "desktop.browser.dweb" as const;
 
   protected async _bootstrap(context: $BootstrapContext) {
+    this._serveApi();
+    const taskbarServer = await this._createTaskbarWebServer();
+    const desktopServer = await this._createDesktopWebServer();
+
+    await Electron.app.whenReady();
+
+    const taskbarWin = await this._createTaskbarView(taskbarServer, desktopServer);
+  }
+
+  private _serveApi() {
+    const query_app_id = z.object({
+      app_id: zq.mmid(),
+    });
+    this.onFetch(async (event) => {
+      // match(event).with({ pathname: "/task-bar-apps" }, () => {
+      //   return Response.json([{ icon: "" }]);
+      // }).with("/open");
+      match(event)
+        .with({ pathname: "/appsInfo" }, async () => {
+          return Response.json(await getAppsInfo());
+        })
+        .with({ pathname: "/openApp" }, async (event) => {
+          const { app_id } = parseQuery(event.searchParams, query_app_id);
+          await openApp.call(this, app_id);
+          return Response.json(true);
+        })
+        .with({ pathname: "/closeApp" }, async (event) => {
+          const { app_id } = parseQuery(event.searchParams, query_app_id);
+          console.always("close app", app_id);
+          return Response.json(false);
+        });
+    });
+  }
+
+  private async _createTaskbarWebServer() {
     const taskbarServer = await createHttpDwebServer(this, {
-      subdomain: "www",
+      subdomain: "taskbar",
       port: 433,
     });
     {
@@ -19,56 +58,65 @@ export class DesktopNMM extends NativeMicroModule {
         return this.nativeFetch(url);
       });
     }
-    this.onFetch(async (event) => {
-      if (event.pathname === "/task-bar-apps") {
-        return Response.json([{ icon: "" }]);
-      }
+    return taskbarServer;
+  }
+  private async _createDesktopWebServer() {
+    const desktopServer = await createHttpDwebServer(this, {
+      subdomain: "desktop",
+      port: 433,
     });
+    {
+      const API_PREFIX = "/api/";
+      (await desktopServer.listen()).onFetch((event) => {
+        const { pathname, search } = event.url;
+        let url: string;
+        if (pathname.startsWith(API_PREFIX)) {
+          url = `file://${pathname.slice(API_PREFIX.length)}${search}`;
+        } else {
+          url = `file:///sys/browser/newtab${pathname}?mode=stream`;
+        }
+        return this.nativeFetch(url);
+      });
+    }
+    return desktopServer;
+  }
 
-    await Electron.app.whenReady();
-    const isWin = os.platform() === "win32";
-
+  private async _createTaskbarView(taskbarServer: HttpDwebServer, desktopServer: HttpDwebServer) {
     const taskbarWin = await createComlinkNativeWindow(
       // taskbarServer.startResult.urlInfo.buildInternalUrl((url) => {
       //   url.pathname = "/index.html";
       // }).href,
       `http://localhost:3700/taskbar/index.html`,
-      {
-        autoHideMenuBar: true,
-        type: "toolbar", //创建的窗口类型为工具栏窗口
-        transparent: true, //设置透明
-        alwaysOnTop: true, //窗口是否总是显示在其他窗口之前
-        // resizable: false, // 禁止窗口大小缩放
-        roundedCorners: true,
-        ...(isWin
-          ? {
-              frame: false,
-              thickFrame: false,
-              backgroundMaterial: "mica", // window11 高斯模糊
-            }
-          : {
-              frame: false, // 要创建无边框窗口
-              vibrancy: "popover", // macos 高斯模糊
-              visualEffectState: "active", // macos 失去焦点后仍然高斯模糊
-            }),
-      },
+      window_options,
       async (win) => {
-        return new TaskbarMainApis(win);
+        return new TaskbarMainApis(win, taskbarServer, desktopServer);
       }
     );
-    // if (isWin) {
-    //   user32.SetWindowCompositionAttribute(taskbarWin.getNativeWindowHandle().readInt32LE(), windowcompositon.ref());
-    // }
 
     taskbarWin.webContents.openDevTools({ mode: "undocked" });
+
+    // taskbarWin.setPosition()
+
+    return taskbarWin;
   }
 
   protected _shutdown() {}
 }
 
 export class TaskbarMainApis {
-  constructor(private win: Electron.BrowserWindow) {}
+  constructor(
+    private win: Electron.BrowserWindow,
+    private taskbarServer: HttpDwebServer,
+    private desktopServer: HttpDwebServer
+  ) {}
   resize(width: number, height: number) {
+    // TODO 贴右边
+    const display = Electron.screen.getPrimaryDisplay();
+    // const bounds = {
+    //   ...this.win.getBounds(),
+    //   width,
+    //   height,
+    // }
     this.win.setBounds({
       ...this.win.getBounds(),
       width,
@@ -86,4 +134,71 @@ export class TaskbarMainApis {
   setBackgroundColor(backgroundColor: string) {
     this.win.setBackgroundColor(backgroundColor);
   }
+  async openDesktopView() {
+    const taskbarWinBounds = this.win.getBounds();
+
+    const desktopWin = await this._createDesktopView(taskbarWinBounds);
+    if (desktopWin.isVisible()) {
+      desktopWin.hide();
+    } else {
+      /// 获取对应的屏幕
+      const display = Electron.screen.getDisplayNearestPoint(taskbarWinBounds);
+      /// 我们默认将桌面显示在taskbar左上角
+      let desktopWidth = 0;
+      let desktopHeight = 0;
+      let desktopX = 0;
+      let desktopY = 0;
+      {
+        const uGap = taskbarWinBounds.width / 3;
+        const uSize = 1;
+        const { width, height } = display.workAreaSize;
+        const min_column = uGap * 12;
+        const max_column = Math.floor((taskbarWinBounds.x - taskbarWinBounds.width * 0.5) / uSize);
+        const min_row = Math.floor(taskbarWinBounds.height / uSize);
+        const max_row = Math.floor((taskbarWinBounds.y + taskbarWinBounds.height) / uSize);
+        const rec_column = Math.floor((max_column * 2) / 3);
+        const rec_row = Math.floor((max_row * 2) / 3);
+
+        const column = Math.min(Math.max(min_column, rec_column), max_column);
+        const row = Math.max(Math.min(max_row, rec_row), min_row);
+        desktopWidth = Math.round(column * uSize);
+        desktopHeight = Math.round(row * uSize);
+        desktopX = Math.round(taskbarWinBounds.x - desktopWidth - uGap);
+        desktopY = Math.round(taskbarWinBounds.y + taskbarWinBounds.height - desktopHeight);
+      }
+      const desktopBounds = {
+        width: desktopWidth,
+        height: desktopHeight,
+        x: desktopX,
+        y: desktopY,
+      };
+
+      desktopWin.setBounds(desktopBounds, true);
+      desktopWin.show();
+      desktopWin.focus();
+    }
+  }
+
+  private _createDesktopView = once(async (fromBounds: Electron.Rectangle) => {
+    const desktopWin = await createNativeWindow(
+      this.desktopServer.startResult.urlInfo.buildPublicUrl((url) => {
+        url.pathname = "/index.html";
+      }).href,
+      // taskbarServer.startResult.urlInfo.buildInternalUrl((url) => {
+      //   url.pathname = "/index.html";
+      // }).href,
+      // `http://localhost:3700/taskbar/index.html`,
+      {
+        ...window_options,
+        show: false,
+        /// 宽高
+        ...fromBounds,
+      }
+    );
+    // desktopWin.focus();
+    // desktopWin.on("blur", () => {
+    //   desktopWin.hide();
+    // });
+    return desktopWin;
+  });
 }
