@@ -28,10 +28,12 @@ export class BarcodeScanningNMM extends NativeMicroModule {
   };
   private _browserWindow:
     | (Electron.BrowserWindow & {
-        getMainApi(): {};
-        getRenderApi<T>(): Remote<T>;
+        getMainApi(): { operationCallback: (arg: unknown, resolveId: number) => Promise<void> };
+        getRenderApi<T>(): Promise<Remote<T>>;
       })
     | undefined;
+  // 以某个函数返回的值作为类型
+  // private _browserWindow: ReturnType<typeof createComlinkNativeWindow> | undefined;
   private _apis: Remote<$APIS> | undefined;
   private _rootUrl = "";
   private _httpDwebServer: HttpDwebServer | undefined;
@@ -102,7 +104,7 @@ export class BarcodeScanningNMM extends NativeMicroModule {
 
   private _initUI = async () => {
     const bw = await this._createBrowserWindow(this._rootUrl);
-    this._apis = bw.getRenderApi<$APIS>();
+    this._apis = await bw.getRenderApi<$APIS>();
     return {
       bw: bw,
       apis: this._apis,
