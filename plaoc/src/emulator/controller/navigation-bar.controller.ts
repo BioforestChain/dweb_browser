@@ -161,7 +161,7 @@ export class NavigationBarController extends BaseController {
     this.emitUpdate();
   }
 
-  async navigationBarGetState() {
+  navigationBarGetState() {
     return {
       ...this.state,
       color: hexaToRGBA(this.state.color),
