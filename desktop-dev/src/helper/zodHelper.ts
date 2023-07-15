@@ -1,7 +1,7 @@
 //! use zod error: Relative import path "zod" not prefixed with / or ./ or ../ only remote
 //! https://github.com/denoland/deno/issues/17598
 import { RefinementCtx, z } from "zod";
-import { $MMID } from "../core/types.ts";
+import type { $MMID } from "../core/types.ts";
 export * from "zod";
 
 import type { output, SafeParseReturnType, ZodObject, ZodRawShape, ZodTypeAny } from "zod";
@@ -92,8 +92,15 @@ const zqObject = <Z extends z.ZodType>(schema: Z) => {
         return zqObject(schema.or<T>(option));
       },
     }
-  );
+  ) as $ZqObject<Z>;
 };
+
+export interface $ZqObject<Z extends z.ZodType> {
+  (searchParams: URLSearchParams): ParsedData<Z>;
+  and<T extends z.ZodTypeAny>(incoming: T): $ZqObject<z.ZodIntersection<Z, T>>;
+  or<T extends z.ZodTypeAny>(option: T): $ZqObject<z.ZodUnion<[Z, T]>>;
+}
+
 export const zq = {
   mmid: () =>
     // z.custom<$MMID>((val) => {
