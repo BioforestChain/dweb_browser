@@ -11,11 +11,10 @@ export async function getAppInfo() {
 
 /**点击打开JMM */
 export function clickApp(id: string) {
-  nativeFetch("/openApp", {
+  nativeFetch("/openAppOrAcitvite", {
     search: {
       app_id: id,
     },
-    mmid: "jmm.browser.dweb",
   });
 }
 
@@ -38,7 +37,7 @@ export async function quitApp(id: string) {
 
 /**卸载的是jmm所以从这里调用 */
 export async function deleteApp(id: string) {
-  await quitApp(id)
+  await quitApp(id);
   return await nativeFetch("/uninstall", {
     search: {
       app_id: id,
