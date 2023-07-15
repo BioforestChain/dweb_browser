@@ -110,23 +110,14 @@ const createProcess = async (
  * @param env_json
  * @returns
  */
-const createIpc = async (
-  process_id: number,
-  mmid: string,
-  ipc_port: MessagePort,
-  env_json = "{}"
-) => {
+const createIpc = async (process_id: number, mmid: string, ipc_port: MessagePort, env_json = "{}") => {
   const process = _forceGetProcess(process_id);
 
   process.worker.postMessage(["ipc-connect", mmid, env_json], [ipc_port]);
   /// 等待连接任务完成
   const connect_ready_po = new PromiseOut<void>();
   const onEnvReady = (event: MessageEvent) => {
-    if (
-      Array.isArray(event.data) &&
-      event.data[0] === "ipc-connect-ready" &&
-      event.data[1] === mmid
-    ) {
+    if (Array.isArray(event.data) && event.data[0] === "ipc-connect-ready" && event.data[1] === mmid) {
       connect_ready_po.resolve();
     }
   };
@@ -136,11 +127,7 @@ const createIpc = async (
   return;
 };
 
-const createIpcFail = async (
-  process_id: number,
-  mmid: string,
-  reason: string
-) => {
+const createIpcFail = async (process_id: number, mmid: string, reason: string) => {
   const process = _forceGetProcess(process_id);
   process.worker.postMessage(["ipc-connect-fail", mmid, reason]);
 };
@@ -170,13 +157,26 @@ const runProcessMain = (process_id: number, config: $RunMainConfig) => {
  */
 const destroyProcess = (process_id: number) => {
   const process = _forceGetProcess(process_id);
+  /**
+   * @TODO worker 可以主动推送一些信息过来，告知现在正在进行的一些事务的原因
+   * 那么应该允许它们与用户进行一定的交互来提示用户正在中断一些用户预期之外的任务，如果用户执意中断，那么就正式中断，如：
+   * ```ts
+   * if(process.abortTerminateReason !== null){
+   *   showWindow();
+   *   /// 用户对这些理由进行了一些决策，askReason多次调用，会汇集到同一个视图中，不会过渡干扰
+   *
+   *   if(await askReason(process.abortTerminateReason) === FORCE_TERMINATE) {
+   *      process.worker.terminate();
+   *   }
+   * }
+   *
+   * ```
+   * 在执行该询问的时候，不会通知子进程，否则子进程可能会因此进行一些恶意的操作（或者是错误的操作）去使得自己再次被激活
+   */
   process.worker.terminate();
 };
 
-type $OnCreateProcessMessage = (msg: {
-  process_id: number;
-  env_script_url: string;
-}) => unknown;
+type $OnCreateProcessMessage = (msg: { process_id: number; env_script_url: string }) => unknown;
 
 const on_create_process_signal = createSignal<$OnCreateProcessMessage>();
 

@@ -58,16 +58,13 @@ export abstract class Ipc {
    * 是否支持二进制传输
    */
   get support_binary() {
-    return (
-      this._support_binary ??
-      (this.support_cbor || this.support_protobuf || this.support_raw)
-    );
+    return this._support_binary ?? (this.support_cbor || this.support_protobuf || this.support_raw);
   }
 
   protected _support_binary = false;
 
   abstract readonly remote: $IpcMicroModuleInfo;
-  private _closeSignal = createSignal<() => unknown>(false);
+  protected _closeSignal = createSignal<() => unknown>(false);
   onClose = this._closeSignal.listen;
   asRemoteInstance() {
     if (this.remote instanceof MicroModule) {

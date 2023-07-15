@@ -6,10 +6,7 @@ import { $IpcMessage, IPC_ROLE, IpcMessage } from "../ipc/const.ts";
 import { Ipc } from "../ipc/ipc.ts";
 import type { $IpcMicroModuleInfo, $IpcSupportProtocols } from "../types.ts";
 import { $messagePackToIpcMessage } from "./$messagePackToIpcMessage.ts";
-import {
-  $jsonToIpcMessage,
-  $messageToIpcMessage,
-} from "./$messageToIpcMessage.ts";
+import { $jsonToIpcMessage, $messageToIpcMessage } from "./$messageToIpcMessage.ts";
 
 export class MessagePortIpc extends Ipc {
   constructor(
@@ -25,12 +22,9 @@ export class MessagePortIpc extends Ipc {
     super();
 
     /** messageport内置JS对象解码，但也要看对方是否支持接受，比如Android层就只能接受String类型的数据 */
-    this._support_raw =
-      self_support_protocols.raw && this.remote.ipc_support_protocols.raw;
+    this._support_raw = self_support_protocols.raw && this.remote.ipc_support_protocols.raw;
     /** JS 环境里支持 cbor 协议，但也要看对等方是否支持 */
-    this._support_cbor =
-      self_support_protocols.cbor &&
-      this.remote.ipc_support_protocols.cbor;
+    this._support_cbor = self_support_protocols.cbor && this.remote.ipc_support_protocols.cbor;
 
     port.addEventListener("message", (event) => {
       const message = this.support_raw
@@ -86,5 +80,9 @@ export class MessagePortIpc extends Ipc {
   _doClose() {
     this.port.postMessage("close");
     this.port.close();
+  }
+
+  _emitClose() {
+    this._closeSignal.emit();
   }
 }

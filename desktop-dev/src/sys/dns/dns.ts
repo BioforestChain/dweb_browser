@@ -159,7 +159,7 @@ export class DnsNMM extends NativeMicroModule {
       }
     ).internalServerError();
 
-    this.onAfterShutdown.listen(
+    this.onAfterShutdown(
       nativeFetchAdaptersManager.append(async (fromMM, parsedUrl, requestInit) => {
         if (parsedUrl.protocol === "file:" && parsedUrl.hostname.endsWith(".dweb")) {
           const mmid = parsedUrl.hostname as $MMID;
@@ -262,9 +262,8 @@ export class DnsNMM extends NativeMicroModule {
       }
       // @TODO bootstrap 函数应该是 $singleton 修饰
       await this.bootstrapMicroModule(mm);
-      const off = mm.onAfterShutdown.listen(() => {
+      mm.onAfterShutdown(() => {
         this._remove_running_apps(mmid);
-        off();
       });
       return mm;
     });

@@ -118,7 +118,7 @@ export class JsProcessNMM extends NativeMicroModule {
       url.pathname = `${this.INTERNAL_PATH}/bootstrap.js`;
     }).href;
 
-    this.onAfterShutdown.listen(mainServer.close);
+    this.onAfterShutdown(mainServer.close);
 
     const urlInfo = mainServer.startResult.urlInfo;
     const nww = await jsProcessOpenWindow(
@@ -133,7 +133,7 @@ export class JsProcessNMM extends NativeMicroModule {
       }
     );
     /// js-process的所有能力来自这个webview，因此需要绑定双向销毁关系
-    this.onAfterShutdown.listen(() => {
+    this.onAfterShutdown(() => {
       nww.close();
     });
     nww.on("close", () => {
@@ -330,6 +330,10 @@ export class JsProcessNMM extends NativeMicroModule {
     ipc.onMessage((message) => {
       ipc_to_worker.postMessage(message);
     });
+    /// 由于 MessagePort 的特殊性，它无法知道自己什么时候被关闭，所以这里通过宿主关系，绑定它的close触发时机
+    ipc.onClose(() => {
+      ipc_to_worker._emitClose();
+    });
 
     /**
      * 开始执行代码
@@ -388,10 +392,12 @@ export class JsProcessNMM extends NativeMicroModule {
     const processMap = ipcProcessIdMap.get(mmid);
     if (processMap == null) return true;
     // 关闭程序
-    processMap.forEach(async (po, _processId) => {
-      const processId = await po.promise;
-      apis.destroyProcess(processId);
-    });
+    await Promise.all(
+      [...processMap.values()].map(async (po) => {
+        const processId = await po.promise;
+        await apis.destroyProcess(processId);
+      })
+    );
     // 关闭代码通道
     await closeHttpDwebServer(this, { port: 80, subdomain: mmid });
     return true;

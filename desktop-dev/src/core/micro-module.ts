@@ -14,7 +14,8 @@ export abstract class MicroModule implements $MicroModule {
   protected abstract _shutdown(): unknown;
 
   private _running_state_lock = PromiseOut.resolve(false);
-  readonly onAfterShutdown = createSignal<() => unknown>();
+  private _after_shutdown_signal = createSignal<() => unknown>();
+  readonly onAfterShutdown = this._after_shutdown_signal.listen;
   protected _ipcSet = new Set<Ipc>();
 
   public addToIpcSet(ipc: Ipc) {
@@ -65,8 +66,8 @@ export abstract class MicroModule implements $MicroModule {
   }
 
   protected after_shutdown() {
-    this.onAfterShutdown.emit();
-    this.onAfterShutdown.clear();
+    this._after_shutdown_signal.emit();
+    this._after_shutdown_signal.clear();
     this._running_state_lock.resolve(false);
   }
 
