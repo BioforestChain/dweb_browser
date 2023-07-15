@@ -10,10 +10,10 @@ import { $MMID } from "../../core/types.ts";
 import { once } from "../../helper/$once.ts";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
+import { fetchMatch } from "../../helper/patternHelper.ts";
 import { z, zq } from "../../helper/zodHelper.ts";
 import { closeHttpDwebServer, createHttpDwebServer } from "../../std/http/helper/$createHttpDwebServer.ts";
 import { saveNative2JsIpcPort } from "./ipc.native2js.ts";
-import type { $NWW } from "./js-process.openWindow.ts";
 import { jsProcessOpenWindow } from "./js-process.openWindow.ts";
 
 type $APIS = typeof import("./assets/js-process.web.ts")["APIS"];
@@ -76,6 +76,8 @@ const CORS_HEADERS = [
   ["Access-Control-Allow-Methods", "*"],
 ] satisfies HeadersInit;
 
+type $IpcProcessIdMap = Map<$MMID, Map<string, PromiseOut<number>>>;
+
 /**
  * 将指定的js运行在后台的一个管理器，
  * 注意它们共享一个域，所以要么就关闭
@@ -116,55 +118,68 @@ export class JsProcessNMM extends NativeMicroModule {
       url.pathname = `${this.INTERNAL_PATH}/bootstrap.js`;
     }).href;
 
-    this._after_shutdown_signal.listen(mainServer.close);
+    this.onAfterShutdown.listen(mainServer.close);
 
-    let nww: $NWW | undefined;
-    // 从 渲染进程的 主线程中获取到 暴露的 apis
-    const apis = await (async () => {
-      const urlInfo = mainServer.startResult.urlInfo;
-      nww = await jsProcessOpenWindow(
-        // 如果下面的 show === false 那么这个窗口是不会出现的
-        mainServer.startResult.urlInfo.buildInternalUrl((url) => {
-          url.pathname = "/index.html";
-        }).href,
-        {
-          // 是否需要显示 js-process 的窗口
-          show: true, //process.argv.includes("--inspect") ? true : false, // require.main?.filename.endsWith(".html"),
-          userAgent: (userAgent) => userAgent + ` dweb-host/${urlInfo.host}`,
-        }
-      );
-      this._after_shutdown_signal.listen(() => {
-        nww!.close();
-      });
-      return nww.getRenderApi<$APIS>();
-    })();
+    const urlInfo = mainServer.startResult.urlInfo;
+    const nww = await jsProcessOpenWindow(
+      // 如果下面的 show === false 那么这个窗口是不会出现的
+      mainServer.startResult.urlInfo.buildInternalUrl((url) => {
+        url.pathname = "/index.html";
+      }).href,
+      {
+        // 是否需要显示 js-process 的窗口
+        show: true, //process.argv.includes("--inspect") ? true : false, // require.main?.filename.endsWith(".html"),
+        userAgent: (userAgent) => userAgent + ` dweb-host/${urlInfo.host}`,
+      }
+    );
+    /// js-process的所有能力来自这个webview，因此需要绑定双向销毁关系
+    this.onAfterShutdown.listen(() => {
+      nww.close();
+    });
 
-    const ipcProcessIdMap = new Map<$MMID, Map<string, PromiseOut<number>>>();
-    /// 创建 web worker
-    this.registerCommonIpcOnMessageHandler({
-      method: "POST",
-      pathname: "/create-process",
-      matchMode: "full",
-      input: { entry: "string", process_id: "string" },
-      output: "object",
-      handler: async (args, ipc, requestMessage) => {
+    /**
+     * 从 渲染进程的 主线程中获取到 暴露的 apis
+     */
+    const apis = await nww.getRenderApi<$APIS>();
+
+    const ipcProcessIdMap: $IpcProcessIdMap = new Map();
+
+    const query_createProcess = zq.object({
+      entry: zq.string(),
+      process_id: zq.string(),
+    });
+    const query_createIpc = zq.object({
+      process_id: zq.string(),
+      /**
+       * 虽然 mmid 是从远程直接传来的，但风险与jsProcess无关，
+       * 因为首先我们是基于 ipc 来得到 processId 的，所以这个 mmid 属于 ipc 自己的定义
+       */
+      mmid: zq.mmid(),
+    });
+    const query_createIpcFail = query_createIpc.and(z.object({ reason: zq.string() }));
+
+    const onFetchHanlder = fetchMatch()
+      /// 创建 web worker
+      .post("/create-process", async (event) => {
+        const { entry, process_id } = query_createProcess(event.searchParams);
+        const { ipc, ipcRequest } = event;
         const processIdMap = mapHelper.getOrPut(ipcProcessIdMap, ipc.remote.mmid, () => new Map());
 
-        if (processIdMap.has(args.process_id)) {
-          throw new Error(`ipc:${ipc.remote.mmid}/processId:${args.process_id} has already using`);
+        if (processIdMap.has(process_id)) {
+          throw new Error(`ipc:${ipc.remote.mmid}/processId:${process_id} has already using`);
         }
 
         // // 关闭代码通道
         // closeHttpDwebServer(this, { port: 80, subdomain: ipc.remote.mmid });
 
         const po = new PromiseOut<number>();
-        processIdMap.set(args.process_id, po);
-        const result = await this.createProcessAndRun(ipc, apis, bootstrap_url, args.entry, requestMessage);
+        processIdMap.set(process_id, po);
+        const result = await this.createProcessAndRun(ipc, apis, bootstrap_url, entry, ipcRequest);
         po.resolve(result.processInfo.process_id);
 
         /// 创建成功了，注册销毁函数
         ipc.onClose(() => {
-          if (processIdMap.delete(args.process_id)) {
+          if (processIdMap.delete(process_id)) {
             ipcProcessIdMap.delete(ipc.remote.mmid);
             if (processIdMap.size === 0) {
               apis.destroyProcess(result.processInfo.process_id);
@@ -172,42 +187,26 @@ export class JsProcessNMM extends NativeMicroModule {
           }
         });
 
-        return result.streamIpc.stream;
-      },
-    });
-
-    /// 创建 web 通讯管道
-    this.registerCommonIpcOnMessageHandler({
-      pathname: "/create-ipc",
-      matchMode: "full",
-      input: {
-        process_id: "string",
-        /**
-         * 虽然 mmid 是从远程直接传来的，但风险与jsProcess无关，
-         * 因为首先我们是基于 ipc 来得到 processId 的，所以这个 mmid 属于 ipc 自己的定义
-         */
-        mmid: "string",
-      },
-      output: "number",
-      handler: async (args, ipc) => {
-        const process_id_po = ipcProcessIdMap.get(ipc.remote.mmid)?.get(args.process_id);
+        return { body: result.streamIpc.stream };
+      })
+      /// 创建 web 通讯管道
+      .get("/create-ipc", async (event) => {
+        const { process_id, mmid } = query_createIpc(event.searchParams);
+        const { ipc } = event;
+        const process_id_po = ipcProcessIdMap.get(ipc.remote.mmid)?.get(process_id);
         if (process_id_po === undefined) {
-          throw new Error(`ipc:${ipc.remote.mmid}/processId:${args.process_id} invalid`);
+          throw new Error(`ipc:${ipc.remote.mmid}/processId:${process_id} invalid`);
         }
-        const process_id = await process_id_po.promise;
-        const port_id = await this.createIpc(ipc, apis, process_id, args.mmid);
-        return port_id;
-      },
-    });
-
-    const query_createIpc = zq.object({
-      process_id: zq.string(),
-      mmid: zq.mmid(),
-    });
-    const query_createIpcFail = query_createIpc.and(z.object({ reason: zq.string() }));
-
-    this.onFetch(async (event) => {
-      if (event.pathname === "/create-ipc-fail") {
+        const port_id = await this.createIpc(ipc, apis, await process_id_po.promise, mmid);
+        return Response.json(port_id);
+      })
+      /**
+       * 创建ipc失败的回调
+       * 之所以存在这个接口，是因为ipc的创建可能是由js-process内部自己发起的，而它是基于ipcEvent来发起连接指令，
+       * 因此它会自己等待 '/create-ipc' 发来的连接成功的消息，
+       * 因此如果失败了，我们也需要发送一个类似的指令告诉它
+       */
+      .get("/create-ipc-fail", async (event) => {
         const { ipc } = event;
         const args = query_createIpcFail(event.searchParams);
         const process_id_po = ipcProcessIdMap.get(ipc.remote.mmid)?.get(args.process_id);
@@ -217,28 +216,12 @@ export class JsProcessNMM extends NativeMicroModule {
         const process_id = await process_id_po.promise;
         await apis.createIpcFail(process_id, args.mmid, args.reason);
         return Response.json(true);
-      }
-    });
-
-    this.registerCommonIpcOnMessageHandler({
-      pathname: "/close-all-process",
-      matchMode: "full",
-      input: {},
-      output: "boolean",
-      handler: async (args, ipc, request) => {
-        if (nww === undefined) return false;
-        const processMap = ipcProcessIdMap.get(ipc.remote.mmid);
-        if (processMap == null) return true;
-        // 关闭程序
-        processMap.forEach(async (po, _processId) => {
-          const processId = await po.promise;
-          apis.destroyProcess(processId);
-        });
-        // 关闭代码通道
-        closeHttpDwebServer(this, { port: 80, subdomain: ipc.remote.mmid });
-        return true;
-      },
-    });
+      })
+      .get("/close-all-process", async (event) => {
+        const res = await this.closeAllProcessByIpc(apis, ipcProcessIdMap, event.ipc.remote.mmid);
+        return Response.json(res);
+      });
+    this.onFetch(onFetchHanlder.run).internalServerError();
   }
   async _shutdown() {}
 
@@ -389,5 +372,25 @@ export class JsProcessNMM extends NativeMicroModule {
     await apis.createIpc(process_id, mmid, transfer(channel_for_worker.port2, [channel_for_worker.port2]), env);
     // 把一个messageChange保存到全局对象
     return saveNative2JsIpcPort(channel_for_worker.port1);
+  }
+
+  /**
+   * 销毁指定模块的所有申请的“进程”
+   * @param apis
+   * @param ipcProcessIdMap
+   * @param mmid
+   * @returns
+   */
+  private async closeAllProcessByIpc(apis: Remote<$APIS>, ipcProcessIdMap: $IpcProcessIdMap, mmid: $MMID) {
+    const processMap = ipcProcessIdMap.get(mmid);
+    if (processMap == null) return true;
+    // 关闭程序
+    processMap.forEach(async (po, _processId) => {
+      const processId = await po.promise;
+      apis.destroyProcess(processId);
+    });
+    // 关闭代码通道
+    await closeHttpDwebServer(this, { port: 80, subdomain: mmid });
+    return true;
   }
 }
