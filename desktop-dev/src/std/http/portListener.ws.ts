@@ -1,15 +1,9 @@
 import { Server as HttpServer, IncomingMessage } from "node:http";
 import { FetchError } from "../../core/helper/ipcFetchHelper.ts";
 import { simpleEncoder } from "../../helper/encoding.ts";
-import {
-  ReadableStreamOut,
-  streamReadAll,
-} from "../../helper/readableStreamHelper.ts";
+import { ReadableStreamOut, streamReadAll } from "../../helper/readableStreamHelper.ts";
 import { parseUrl } from "../../helper/urlHelper.ts";
-import {
-  WebSocketClient,
-  WebSocketServer,
-} from "../../helper/websocketServerHelper.ts";
+import { WebSocketClient, WebSocketServer } from "../../helper/websocketServerHelper.ts";
 import { formatErrorToHtml } from "./defaultErrorResponse.ts";
 import type { HttpServerNMM } from "./http.nmm.ts";
 import type { WebSocketDuplex } from "./types.ts";
@@ -18,10 +12,7 @@ export function initWebSocketServer(this: HttpServerNMM, server: HttpServer) {
   const getHostByReq = (req: IncomingMessage) => this.getHostByReq(req);
   const getFullReqUrl = (req: IncomingMessage) => this.getFullReqUrl(req);
   const getGateway = (host: string) => this._gatewayMap.get(host);
-  type $OnConnection = (
-    client: InstanceType<typeof WebSocketClient>,
-    request: IncomingMessage
-  ) => void;
+  type $OnConnection = (client: InstanceType<typeof WebSocketClient>, request: IncomingMessage) => void;
 
   class MyWebSocketServer extends WebSocketServer {
     override handleUpgrade(
@@ -31,7 +22,6 @@ export function initWebSocketServer(this: HttpServerNMM, server: HttpServer) {
       callback: $OnConnection
     ) {
       const fullReqUrl = getFullReqUrl(req);
-      // console.always("upgrade", fullReqUrl, upgradeHead.toString());
       try {
         /// 网关校验
         const host = getHostByReq(req);
@@ -43,10 +33,7 @@ export function initWebSocketServer(this: HttpServerNMM, server: HttpServer) {
         /// 路由校验
         const { method = "GET" } = req;
         const parsed_url = parseUrl(req.url ?? "/", gateway.listener.origin);
-        const hasMatch = gateway.listener.findMatchedBind(
-          parsed_url.pathname,
-          method
-        );
+        const hasMatch = gateway.listener.findMatchedBind(parsed_url.pathname, method);
         if (hasMatch) {
           const onConnnection: $OnConnection = (ws, req) => {
             ws.binaryType = "nodebuffer";
@@ -62,14 +49,11 @@ export function initWebSocketServer(this: HttpServerNMM, server: HttpServer) {
             /// 创建 ipcResponse 来为 websocket 实例填充数据
             void (async () => {
               // 转发消息到处理层
-              const outputResponse = await hasMatch.bind.streamIpc.request(
-                fullReqUrl,
-                {
-                  method: req.method,
-                  body: inputStreamOut.stream,
-                  headers: req.headers as Record<string, string>,
-                }
-              );
+              const outputResponse = await hasMatch.bind.streamIpc.request(fullReqUrl, {
+                method: req.method,
+                body: inputStreamOut.stream,
+                headers: req.headers as Record<string, string>,
+              });
 
               if (outputResponse.statusCode !== 200) {
                 return abortHandshake(
@@ -84,12 +68,6 @@ export function initWebSocketServer(this: HttpServerNMM, server: HttpServer) {
               //TODO close outputStream
               void streamReadAll(outputStream, {
                 map(chunk) {
-                  // console.always(
-                  //   chunk,
-                  //   Buffer.from(chunk).toString(),
-                  //   "\nclient-->http-->plaoc(api)-->wss··>wsc··>emulator",
-                  //   "\nclient<··http<··plaoc(api)<··wss<··wsc<··emulator"
-                  // );
                   ws.send(chunk);
                 },
                 complete() {
@@ -101,17 +79,10 @@ export function initWebSocketServer(this: HttpServerNMM, server: HttpServer) {
 
             /// 传输来自客户端的数据，注意，这个onmessage 前面不要有任何 await，否则会丢失消息
             ws.on("message", (data, isBinary) => {
-              // console.always(
-              //   (data as Buffer).toString(),
-              //   "\nclient-->http-->plaoc(api)-->wss-->wsc-->emulator",
-              //   "\nclient<··http<··plaoc(api)<··wss<--wsc<--emulator"
-              // );
               if (isBinary) {
                 inputStreamOut.controller.enqueue(data as Uint8Array);
               } else {
-                inputStreamOut.controller.enqueue(
-                  simpleEncoder(data as unknown as string, "utf8")
-                );
+                inputStreamOut.controller.enqueue(simpleEncoder(data as unknown as string, "utf8"));
               }
             });
             /// 客户端关闭流
@@ -130,25 +101,13 @@ export function initWebSocketServer(this: HttpServerNMM, server: HttpServer) {
         }
       } catch (err) {
         if (err instanceof FetchError) {
-          abortHandshake(
-            socket,
-            err.code,
-            formatErrorToHtml(
-              err.code,
-              fullReqUrl,
-              req.method,
-              req.headers,
-              err
-            ),
-            { "Content-Type": "text/html" }
-          );
+          abortHandshake(socket, err.code, formatErrorToHtml(err.code, fullReqUrl, req.method, req.headers, err), {
+            "Content-Type": "text/html",
+          });
         } else {
-          abortHandshake(
-            socket,
-            500,
-            formatErrorToHtml(500, fullReqUrl, req.method, req.headers, err),
-            { "Content-Type": "text/html" }
-          );
+          abortHandshake(socket, 500, formatErrorToHtml(500, fullReqUrl, req.method, req.headers, err), {
+            "Content-Type": "text/html",
+          });
         }
       }
     }

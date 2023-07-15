@@ -3,11 +3,7 @@ import { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.ts";
 import { IPC_ROLE, Ipc, IpcResponse } from "../../core/ipc/index.ts";
 import { MicroModule } from "../../core/micro-module.ts";
 import { connectAdapterManager } from "../../core/nativeConnect.ts";
-import type {
-  $DWEB_DEEPLINK,
-  $IpcSupportProtocols,
-  $MMID,
-} from "../../core/types.ts";
+import type { $DWEB_DEEPLINK, $IpcSupportProtocols, $MMID } from "../../core/types.ts";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
 import { buildUrl } from "../../helper/urlHelper.ts";
@@ -76,10 +72,7 @@ export class JsMicroModule extends MicroModule {
 
   /** 每个 JMM 启动都要依赖于某一个js */
   async _bootstrap(context: $BootstrapContext) {
-    console.log(
-      "jsmm",
-      `[${this.metadata.config.id} micro-module.js.ct _bootstrap ${this.mmid}]`
-    );
+    console.log("jsmm", `[${this.metadata.config.id} micro-module.js.ct _bootstrap ${this.mmid}]`);
     const pid = Math.ceil(Math.random() * 1000).toString();
     this._process_id = pid;
     // 这个 streamIpc 专门服务于 file://js.browser.dweb/create-process
@@ -87,30 +80,12 @@ export class JsMicroModule extends MicroModule {
     // 用来提供 JsMicroModule 匹配的 worker.js 代码
     streamIpc.onRequest(async (request) => {
       if (request.parsed_url.pathname.endsWith("/")) {
-        streamIpc.postMessage(
-          IpcResponse.fromText(
-            request.req_id,
-            403,
-            undefined,
-            "Forbidden",
-            streamIpc
-          )
-        );
+        streamIpc.postMessage(IpcResponse.fromText(request.req_id, 403, undefined, "Forbidden", streamIpc));
       } else {
         // 获取 worker.js 代码
-        const main_code = await this.nativeFetch(
-          this.metadata.config.server.root + request.parsed_url.pathname
-        ).text();
+        const main_code = await this.nativeFetch(this.metadata.config.server.root + request.parsed_url.pathname).text();
 
-        streamIpc.postMessage(
-          IpcResponse.fromText(
-            request.req_id,
-            200,
-            undefined,
-            main_code,
-            streamIpc
-          )
-        );
+        streamIpc.postMessage(IpcResponse.fromText(request.req_id, 200, undefined, main_code, streamIpc));
       }
     });
 
@@ -133,6 +108,10 @@ export class JsMicroModule extends MicroModule {
 
     [this._jsIpc] = await context.dns.connect("js.browser.dweb");
 
+    this._jsIpc.onClose(() => {
+      this.shutdown();
+    });
+
     this._jsIpc.onRequest(async (ipcRequest, ipc) => {
       /// WARN 这里不再受理 file://<domain>/ 的请求，只处理 http[s]:// | file:/// 这些原生的请求
       const protocol = ipcRequest.parsed_url.protocol;
@@ -145,11 +124,7 @@ export class JsMicroModule extends MicroModule {
       } else {
         const request = ipcRequest.toRequest();
         const response = await this.nativeFetch(request);
-        const newResponse = await IpcResponse.fromResponse(
-          ipcRequest.req_id,
-          response,
-          this._jsIpc!
-        );
+        const newResponse = await IpcResponse.fromResponse(ipcRequest.req_id, response, this._jsIpc!);
         this._jsIpc!.postMessage(newResponse);
       }
     });
@@ -226,6 +201,10 @@ export class JsMicroModule extends MicroModule {
               this._fromMmid_originIpc_map.delete(targetIpc.remote.mmid);
               originIpc.close();
             });
+          } else {
+            originIpc.onClose(() => {
+              this._fromMmid_originIpc_map.delete(fromMmid);
+            });
           }
           task.resolve(originIpc);
         } catch (e) {
@@ -258,18 +237,18 @@ export class JsMicroModule extends MicroModule {
     ).boolean();
   }
 
+  protected override async before_shutdown() {
+    await super.before_shutdown();
+    /// 随着 ipc 的关闭，进程自然而然也会被直接关闭，不需要发送 `file://js.browser.dweb/close-all-process`，否则反而有可能唤醒 `js.browser.dweb` 进程
+    this._jsIpc = undefined;
+  }
+
   _shutdown() {
-    // 关闭 messagePortIpc
-    this._jsIpc!.close();
     // 删除 _fromMmid_originIpc_map 里面的ipc
     Array.from(this._fromMmid_originIpc_map.values()).forEach(async (item) => {
       (await item.promise).close();
     });
 
-    /**
-     * 发送指令，关停js进程
-     */
-    this.nativeFetch("file://js.browser.dweb/close-all-process");
     this._process_id = undefined;
   }
 }

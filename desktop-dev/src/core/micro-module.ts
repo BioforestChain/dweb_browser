@@ -63,11 +63,16 @@ export abstract class MicroModule implements $MicroModule {
     }
     this._running_state_lock = new PromiseOut();
     this.context = undefined;
+
+    /// 关闭所有的通讯
+    for (const ipc of this._ipcSet) {
+      ipc.close();
+    }
+    this._ipcSet.clear();
   }
 
   protected after_shutdown() {
-    this._after_shutdown_signal.emit();
-    this._after_shutdown_signal.clear();
+    this._after_shutdown_signal.emitAndClear();
     this._running_state_lock.resolve(false);
   }
 

@@ -135,7 +135,8 @@ export class TaskbarMainApis {
     const taskbarWinBounds = this.win.getBounds();
 
     const desktopWin = await this._createDesktopView(taskbarWinBounds);
-    if (desktopWin.isVisible()) {
+    /// TODO 这里isOnTop很难正确检测，因此正确的做法是把desktop-view直接集成到taskbar窗口中
+    if (desktopWin.isOnTop()) {
       desktopWin.hide();
     } else {
       /// 获取对应的屏幕
@@ -172,6 +173,7 @@ export class TaskbarMainApis {
 
       desktopWin.show();
       desktopWin.focus();
+      desktopWin.moveToTop("click");
       desktopWin.setBounds(desktopBounds, true);
     }
   }
@@ -182,6 +184,7 @@ export class TaskbarMainApis {
     }).href;
     const desktopWin = await createNativeWindow(this.mm.mmid, {
       ...window_options,
+      alwaysOnTop: false,
       show: false,
       /// 宽高
       ...fromBounds,
@@ -194,10 +197,35 @@ export class TaskbarMainApis {
         },
       }).href
     );
-    // desktopWin.focus();
-    // desktopWin.on("blur", () => {
-    //   desktopWin.hide();
-    // });
-    return desktopWin;
+
+    /**
+     * 是否置顶显示
+     *
+     * 注意，这跟 isFocused 不一样，它可能处于blur状态同时在top，只要不跟其它topView有交集
+     */
+    let onTop = false;
+    desktopWin.on("blur", () => {
+      onTop = false;
+    });
+    desktopWin.on("hide", () => {
+      onTop = false;
+    });
+    this.win.on("focus", () => {
+      if (desktopWin.isVisible()) {
+        moveToTop("taskbar-focus");
+      }
+    });
+    const moveToTop = (reason: string) => {
+      desktopWin.moveTop();
+      onTop = true;
+    };
+    desktopWin.isKiosk;
+
+    return Object.assign(desktopWin, {
+      moveToTop,
+      isOnTop() {
+        return onTop;
+      },
+    });
   });
 }

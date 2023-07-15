@@ -158,8 +158,10 @@ export abstract class Ipc {
     }
     this._closed = true;
     this._doClose();
-    this._closeSignal.emit();
-    this._closeSignal.clear();
+    this._closeSignal.emitAndClear();
+  }
+  get isClosed() {
+    return this._closed;
   }
 
   private _req_id_acc = 0;

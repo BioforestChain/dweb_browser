@@ -53,11 +53,7 @@ export class HttpServerNMM extends NativeMicroModule {
 
   // private _allRoutes: Map<string, $Listener> = new Map();
   getFullReqUrl = (req: WebServerRequest) => {
-    return (
-      this._info!.protocol.prefix +
-      (req.headers["host"] ?? this._info!.host) +
-      req.url
-    );
+    return this._info!.protocol.prefix + (req.headers["host"] ?? this._info!.host) + req.url;
   };
   protected async _bootstrap() {
     // 创建了一个基础的 http 服务器 所有的 http:// 请求会全部会发送到这个地方来处理
@@ -72,10 +68,7 @@ export class HttpServerNMM extends NativeMicroModule {
         // 在网关中寻址能够处理该 host 的监听者
         const gateway = this._gatewayMap.get(host);
         if (gateway == undefined) {
-          console.error(
-            "http",
-            `[http-server onRequest 既没分发也没有匹配 gatewaty请求] ${req.url}`
-          );
+          console.error("http", `[http-server onRequest 既没分发也没有匹配 gatewaty请求] ${req.url}`);
           return defaultErrorResponse(
             req,
             res,
@@ -131,9 +124,7 @@ export class HttpServerNMM extends NativeMicroModule {
     const mmid = ipc.remote.mmid;
     const { subdomain: options_subdomain = "", port = 80 } = options;
     const subdomainPrefix =
-      options_subdomain === "" || options_subdomain.endsWith(".")
-        ? options_subdomain
-        : `${options_subdomain}.`;
+      options_subdomain === "" || options_subdomain.endsWith(".") ? options_subdomain : `${options_subdomain}.`;
     if (port <= 0 || port >= 65536) {
       throw new Error(`invalid dweb http port: ${port}`);
     }
@@ -150,20 +141,13 @@ export class HttpServerNMM extends NativeMicroModule {
     if (this._gatewayMap.has(serverUrlInfo.host)) {
       throw new Error(`already in listen: ${serverUrlInfo.internal_origin}`);
     }
-    const listener = new PortListener(
-      ipc,
-      serverUrlInfo.host,
-      serverUrlInfo.internal_origin
-    );
+    const listener = new PortListener(ipc, serverUrlInfo.host, serverUrlInfo.internal_origin);
+    listener.onDestroy(() => this.close(ipc, hostOptions));
     /// ipc 在关闭的时候，自动释放所有的绑定
-    listener.onDestroy(
-      ipc.onClose(() => {
-        this.close(ipc, hostOptions);
-      })
-    );
-    const token = Buffer.from(
-      crypto.getRandomValues(new Uint8Array(64))
-    ).toString();
+    ipc.onClose(() => {
+      listener.destroy();
+    });
+    const token = Buffer.from(crypto.getRandomValues(new Uint8Array(64))).toString();
     const gateway: $Gateway = { listener, urlInfo: serverUrlInfo, token };
     this._tokenMap.set(token, gateway);
     this._gatewayMap.set(serverUrlInfo.host, gateway);
@@ -171,20 +155,13 @@ export class HttpServerNMM extends NativeMicroModule {
   }
 
   /** 远端监听请求，将提供一个 ReadableStreamIpc 流 */
-  private async listen(
-    token: string,
-    message: IpcRequest,
-    routes: $ReqMatcher[]
-  ) {
+  private async listen(token: string, message: IpcRequest, routes: $ReqMatcher[]) {
     const gateway = this._tokenMap.get(token);
     if (gateway === undefined) {
       throw new Error(`no gateway with token: ${token}`);
     }
 
-    const streamIpc = new ReadableStreamIpc(
-      gateway.listener.ipc.remote,
-      IPC_ROLE.CLIENT
-    );
+    const streamIpc = new ReadableStreamIpc(gateway.listener.ipc.remote, IPC_ROLE.CLIENT);
     void streamIpc.bindIncomeStream(message.body.stream());
     // 自己nmm销毁的时候，ipc也会被全部销毁
     this.addToIpcSet(streamIpc);
@@ -225,10 +202,9 @@ export class HttpServerNMM extends NativeMicroModule {
     let header_host: string | null = null;
     let header_x_dweb_host: string | null = null;
     let header_user_agent_host: string | null = null;
-    let query_x_web_host: string | null = new URL(
-      req.url || "/",
-      this._dwebServer.origin
-    ).searchParams.get("X-Dweb-Host");
+    let query_x_web_host: string | null = new URL(req.url || "/", this._dwebServer.origin).searchParams.get(
+      "X-Dweb-Host"
+    );
     for (const [key, value] of Object.entries(req.headers)) {
       switch (key) {
         case "host":
@@ -238,15 +214,10 @@ export class HttpServerNMM extends NativeMicroModule {
             /// 桌面模式下，我们没有对链接进行拦截，将其转化为 `public_origin?X-Dweb-Host` 这种链接形式 ，因为支持 *.localhost 通配符这种域名
             /// 所以这里只需要将 host 中的信息提取出来
             if (value.endsWith(`.${this._dwebServer.authority}`)) {
-              query_x_web_host = value.slice(
-                0,
-                -this._dwebServer.authority.length - 1
-              );
+              query_x_web_host = value.slice(0, -this._dwebServer.authority.length - 1);
               const portStartIndex = query_x_web_host.lastIndexOf("-");
               query_x_web_host =
-                query_x_web_host.slice(0, portStartIndex) +
-                ":" +
-                query_x_web_host.slice(portStartIndex + 1);
+                query_x_web_host.slice(0, portStartIndex) + ":" + query_x_web_host.slice(portStartIndex + 1);
             }
           }
           break;
@@ -270,11 +241,7 @@ export class HttpServerNMM extends NativeMicroModule {
       }
     }
 
-    let host =
-      query_x_web_host ||
-      header_x_dweb_host ||
-      header_user_agent_host ||
-      header_host;
+    let host = query_x_web_host || header_x_dweb_host || header_user_agent_host || header_host;
     if (typeof host === "string" && host.includes(":") === false) {
       host += ":" + this._info?.protocol.port;
     }

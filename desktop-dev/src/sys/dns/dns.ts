@@ -100,7 +100,7 @@ export class DnsNMM extends NativeMicroModule {
 
         // 监听生命周期 释放引用
         ipcForFromMM.onClose(() => {
-          fromMMconnectsMap?.delete(toMmid);
+          fromMMconnectsMap.delete(toMmid);
         });
         po.resolve(result);
         // 反向存储 toMM
@@ -115,7 +115,7 @@ export class DnsNMM extends NativeMicroModule {
           mapHelper.getOrPut(toMMconnectsMap, fromMM.mmid, () => {
             const toMMPromise = new PromiseOut<$ConnectResult>();
             ipcForToMM.onClose(() => {
-              toMMconnectsMap?.delete(fromMM.mmid);
+              toMMconnectsMap.delete(fromMM.mmid);
             });
             toMMPromise.resolve(result2);
             return toMMPromise;

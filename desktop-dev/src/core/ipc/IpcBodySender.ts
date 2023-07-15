@@ -163,8 +163,7 @@ export class IpcBodySender extends IpcBody {
     if (this._isStreamOpened !== value) {
       this._isStreamOpened = value;
       if (value) {
-        this.openSignal.emit();
-        this.openSignal.clear();
+        this.openSignal.emitAndClear();
       }
     }
   }
@@ -176,8 +175,7 @@ export class IpcBodySender extends IpcBody {
     if (this._isStreamClosed !== value) {
       this._isStreamClosed = value;
       if (value) {
-        this.closeSignal.emit();
-        this.closeSignal.clear();
+        this.closeSignal.emitAndClear();
       }
     }
   }
@@ -391,8 +389,7 @@ class UsableIpcBodyMapper {
       this.map.delete(streamId);
       /// 如果都删除完了，那么就触发事件解绑
       if (this.map.size === 0) {
-        this.destroySignal.emit();
-        this.destroySignal.clear();
+        this.destroySignal.emitAndClear();
       }
     }
   }
