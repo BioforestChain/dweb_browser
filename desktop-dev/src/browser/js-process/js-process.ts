@@ -10,7 +10,7 @@ import { $MMID } from "../../core/types.ts";
 import { once } from "../../helper/$once.ts";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
-import { parseQuery, z, zq } from "../../helper/zodHelper.ts";
+import { z, zq } from "../../helper/zodHelper.ts";
 import { closeHttpDwebServer, createHttpDwebServer } from "../../std/http/helper/$createHttpDwebServer.ts";
 import { saveNative2JsIpcPort } from "./ipc.native2js.ts";
 import type { $NWW } from "./js-process.openWindow.ts";
@@ -200,16 +200,16 @@ export class JsProcessNMM extends NativeMicroModule {
       },
     });
 
-    const query_createIpc = z.object({
+    const query_createIpc = zq.object({
       process_id: zq.string(),
-      mmid: zq.string(),
+      mmid: zq.mmid(),
     });
     const query_createIpcFail = query_createIpc.and(z.object({ reason: zq.string() }));
 
     this.onFetch(async (event) => {
       if (event.pathname === "/create-ipc-fail") {
         const { ipc } = event;
-        const args = parseQuery(event.searchParams, query_createIpcFail);
+        const args = query_createIpcFail(event.searchParams);
         const process_id_po = ipcProcessIdMap.get(ipc.remote.mmid)?.get(args.process_id);
         if (process_id_po === undefined) {
           throw new Error(`ipc:${ipc.remote.mmid}/processId:${args.process_id} invalid`);

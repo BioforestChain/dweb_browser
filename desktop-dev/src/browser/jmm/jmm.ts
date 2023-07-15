@@ -9,7 +9,7 @@ import { $DWEB_DEEPLINK, $MMID } from "../../core/types.ts";
 import { $Callback, createSignal } from "../../helper/createSignal.ts";
 import { readableToWeb } from "../../helper/nodejsStreamHelper.ts";
 import { fetchMatch } from "../../helper/patternHelper.ts";
-import { parseQuery, z, zq } from "../../helper/zodHelper.ts";
+import { z, zq } from "../../helper/zodHelper.ts";
 import type { HttpDwebServer } from "../../std/http/helper/$createHttpDwebServer.ts";
 import { nativeFetchAdaptersManager } from "../../sys/dns/nativeFetch.ts";
 import { JMM_APPS_PATH, JMM_DB, createApiServer, getAllApps } from "./jmm.api.serve.ts";
@@ -77,23 +77,23 @@ export class JmmNMM extends NativeMicroModule {
     await createWWWServer.call(this);
     await createApiServer.call(this);
 
-    const query_metadataUrl = z.object({
+    const query_metadataUrl = zq.object({
       metadataUrl: zq.string(),
     });
-    const query_app_id = z.object({ app_id: zq.mmid() });
-    const query_url = z.object({ url: z.string().url() });
+    const query_app_id = zq.object({ app_id: zq.mmid() });
+    const query_url = zq.object({ url: z.string().url() });
 
     const onFetchMatcher = fetchMatch()
       .get("/openApp", async (event) => {
-        const { app_id: mmid } = parseQuery(event.searchParams, query_app_id);
+        const { app_id: mmid } = query_app_id(event.searchParams);
         return Response.json(await this.openApp(context, mmid));
       })
       .get("/closeApp", async (event) => {
-        const { app_id: mmid } = parseQuery(event.searchParams, query_app_id);
+        const { app_id: mmid } = query_app_id(event.searchParams);
         return Response.json(await this.closeApp(context, mmid));
       })
       .get("/detailApp", async (event) => {
-        const { app_id: mmid } = parseQuery(event.searchParams, query_app_id);
+        const { app_id: mmid } = query_app_id(event.searchParams);
         const appsInfo = await JMM_DB.find(mmid);
         if (appsInfo === undefined) {
           throw new FetchError(`not found ${mmid}`, { status: 404 });
@@ -101,11 +101,11 @@ export class JmmNMM extends NativeMicroModule {
         return Response.json(appsInfo);
       })
       .get("/install", async (event) => {
-        const { metadataUrl } = parseQuery(event.searchParams, query_metadataUrl);
+        const { metadataUrl } = query_metadataUrl(event.searchParams);
         return Response.json(await this.startInstall(metadataUrl));
       })
       .get("/uninstall", async (event) => {
-        const { app_id: mmid } = parseQuery(event.searchParams, query_app_id);
+        const { app_id: mmid } = query_app_id(event.searchParams);
         return Response.json(await this.uninstallApp(context, mmid));
       })
       .get("/pause", async (event) => {
@@ -118,7 +118,7 @@ export class JmmNMM extends NativeMicroModule {
         return Response.json(await this.cancelInstall());
       })
       .deeplink("install", async (event) => {
-        const { url } = parseQuery(event.searchParams, query_url);
+        const { url } = query_url(event.searchParams);
         /// 安装应用并打开
         await this.startInstall(url);
         const off = this.onInstalled.listen((info, fromUrl) => {

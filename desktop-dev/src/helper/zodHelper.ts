@@ -2,12 +2,7 @@
 //! https://github.com/denoland/deno/issues/17598
 import { RefinementCtx, z } from "zod";
 import { $MMID } from "../core/types.ts";
-// const z_mmid = z.string().endsWith(".dweb");
-export const mmidType = z.custom<$MMID>((val) => {
-  return typeof val === "string" && val.endsWith(".dweb");
-});
 export * from "zod";
-export { mmidType as mmid };
 
 import type { output, SafeParseReturnType, ZodObject, ZodRawShape, ZodTypeAny } from "zod";
 
@@ -83,8 +78,27 @@ export function parseQuery<T extends ZodRawShape | ZodTypeAny>(
     throw createErrorResponse(options);
   }
 }
+
+const zqObject = <Z extends z.ZodType>(schema: Z) => {
+  return Object.assign(
+    (searchParams: URLSearchParams) => {
+      return parseQuery(searchParams, schema);
+    },
+    {
+      and<T extends z.ZodTypeAny>(incoming: T) {
+        return zqObject(schema.and<T>(incoming));
+      },
+      or<T extends z.ZodTypeAny>(option: T) {
+        return zqObject(schema.or<T>(option));
+      },
+    }
+  );
+};
 export const zq = {
   mmid: () =>
+    // z.custom<$MMID>((val) => {
+    //   return typeof val === "string" && val.endsWith(".dweb");
+    // }),
     z.string().transform((val, ctx) => {
       if (val.endsWith(".dweb") === false) {
         ctx.addIssue({
@@ -114,12 +128,8 @@ export const zq = {
   transform: <NewOut>(transform: (arg: string, ctx: RefinementCtx) => NewOut | Promise<NewOut>) =>
     z.string().transform(transform),
   object: <S extends z.ZodRawShape>(shape: S) => {
-    const schema = z.object(shape);
-    return (searchParams: URLSearchParams) => {
-      return parseQuery(searchParams, schema);
-    };
+    return zqObject(z.object(shape));
   },
-  parseQuery,
 };
 
 /**

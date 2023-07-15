@@ -6,7 +6,7 @@ import type { MicroModule } from "../../core/micro-module.ts";
 import { $ConnectResult, connectMicroModules } from "../../core/nativeConnect.ts";
 import type { $DWEB_DEEPLINK, $MMID } from "../../core/types.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
-import { mmid, parseQuery, z } from "../../helper/zodHelper.ts";
+import { zq } from "../../helper/zodHelper.ts";
 import { PromiseOut } from "./../../helper/PromiseOut.ts";
 import { nativeFetchAdaptersManager } from "./nativeFetch.ts";
 
@@ -131,21 +131,21 @@ export class DnsNMM extends NativeMicroModule {
     this.install(this);
     this.running_apps.set(this.mmid, Promise.resolve(this));
 
-    const query_appId = z.object({
-      app_id: mmid,
+    const query_appId = zq.object({
+      app_id: zq.mmid(),
     });
 
     this.onFetch(
       async (event) => {
         if (event.url.pathname === "/open") {
-          const { app_id } = parseQuery(event.searchParams, query_appId);
+          const { app_id } = query_appId(event.searchParams);
           await this.open(app_id);
           return Response.json(true);
         }
       },
       async (event) => {
         if (event.url.pathname === "/close") {
-          const { app_id } = parseQuery(event.searchParams, query_appId);
+          const { app_id } = query_appId(event.searchParams);
           return Response.json(await this.close(app_id as $MMID));
         }
       },

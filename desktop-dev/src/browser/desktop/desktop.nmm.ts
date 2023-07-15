@@ -4,7 +4,7 @@ import { once } from "../../helper/$once.ts";
 import { createComlinkNativeWindow, createNativeWindow } from "../../helper/openNativeWindow.ts";
 import { match } from "../../helper/patternHelper.ts";
 import { buildUrl } from "../../helper/urlHelper.ts";
-import { parseQuery, z, zq } from "../../helper/zodHelper.ts";
+import { zq } from "../../helper/zodHelper.ts";
 import { HttpDwebServer, createHttpDwebServer } from "../../std/http/helper/$createHttpDwebServer.ts";
 import { getAppsInfo, openApp } from "../browser/browser.server.api.ts";
 import { window_options } from "./const.ts";
@@ -23,7 +23,7 @@ export class DesktopNMM extends NativeMicroModule {
   }
 
   private _serveApi() {
-    const query_app_id = z.object({
+    const query_app_id = zq.object({
       app_id: zq.mmid(),
     });
     this.onFetch((event) => {
@@ -39,13 +39,8 @@ export class DesktopNMM extends NativeMicroModule {
           await openApp.call(this, app_id);
           return Response.json(true);
         })
-        .with({ pathname: "/closeApp" }, async (event) => {
-          const { app_id } = parseQuery(event.searchParams, query_app_id);
-          console.always("close app", app_id);
-          return Response.json(false);
-        })
         .run();
-    });
+    }).internalServerError();
   }
 
   private async _createTaskbarWebServer() {

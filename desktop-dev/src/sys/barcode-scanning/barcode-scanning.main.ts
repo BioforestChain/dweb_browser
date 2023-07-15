@@ -3,7 +3,7 @@ import type { Remote } from "comlink";
 import { match } from "ts-pattern";
 import type { $OnFetch, FetchEvent } from "../../core/helper/ipcFetchHelper.ts";
 import { IPC_METHOD } from "../../core/ipc/const.ts";
-import { Ipc, IpcHeaders, IpcResponse } from "../../core/ipc/index.ts";
+import { IpcHeaders, IpcResponse } from "../../core/ipc/index.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import { createComlinkNativeWindow } from "../../helper/openNativeWindow.ts";
 import { createHttpDwebServer, type HttpDwebServer } from "../../std/http/helper/$createHttpDwebServer.ts";
@@ -26,12 +26,8 @@ export class BarcodeScanningNMM extends NativeMicroModule {
       this._operationResolveMap.delete(resolveId);
     },
   };
-  private _browserWindow:
-    | (Electron.BrowserWindow & {
-        getMainApi(): { operationCallback: (arg: unknown, resolveId: number) => Promise<void> };
-        getRenderApi<T>(): Promise<Remote<T>>;
-      })
-    | undefined;
+  private _browserWindow: undefined | Awaited<ReturnType<typeof this._createBrowserWindow>>;
+
   // 以某个函数返回的值作为类型
   // private _browserWindow: ReturnType<typeof createComlinkNativeWindow> | undefined;
   private _apis: Remote<$APIS> | undefined;
@@ -102,8 +98,8 @@ export class BarcodeScanningNMM extends NativeMicroModule {
     return IpcResponse.fromJson(event.ipcRequest.req_id, 200, this._responseHeader, res, event.ipc);
   };
 
-  private _initUI = async () => {
-    const bw = await this._createBrowserWindow(this._rootUrl);
+  protected _initUI = async () => {
+    const bw = (this._browserWindow = await this._createBrowserWindow(this._rootUrl));
     this._apis = await bw.getRenderApi<$APIS>();
     return {
       bw: bw,
@@ -111,7 +107,7 @@ export class BarcodeScanningNMM extends NativeMicroModule {
     };
   };
 
-  private _createBrowserWindow = async (url: string, ipc?: Ipc) => {
+  _createBrowserWindow = async (url: string) => {
     const bw = await createComlinkNativeWindow(
       url,
       {
@@ -126,7 +122,6 @@ export class BarcodeScanningNMM extends NativeMicroModule {
       },
       async (win) => this._exports
     );
-    this._browserWindow = bw;
     return bw;
   };
 
