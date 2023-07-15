@@ -1,6 +1,5 @@
 // 工具函数用来打开 js-process 的window
 import { Remote } from "comlink";
-import { electronConfig } from "../../helper/electronConfig.ts";
 import { $CreateNativeWindowOptions, createComlinkNativeWindow } from "../../helper/openNativeWindow.ts";
 
 declare global {
@@ -12,52 +11,32 @@ declare global {
 export async function jsProcessOpenWindow(url: string, _options: $CreateNativeWindowOptions = {}): Promise<$NWW> {
   const { MainPortToRenderPort } = await import("../../helper/electronPortMessage.ts");
   const browserWindow = await createComlinkNativeWindow(url, _options);
-  // 测试  需要开启 devTools
-  browserWindow.webContents.openDevTools();
-  browserWindow.webContents.on("will-prevent-unload", async (event) => {
-    if (allowClose !== undefined) {
-      if (allowClose) {
-        /// 来自 close 的指令
-        allowClose = false;
-        /// 取消 unload 的 prevent（拦截）
-        event.preventDefault();
+  /**
+   * https://github.com/electron/electron/issues/24994
+   * will-prevent-unload 必须同步进行，渲染进程会被暂停。
+   * 但是我们的进程都在Worker中，不会被完全影响，但是会影响到进程创建的任务、消息通讯也会被停滞。
+   * 这可能会导致在这期间创建的任务被取消
+   * 
+   * @TODO 监听webContents的生命周期，确保createProcess等任务能抛出中断异常
+   */
+  browserWindow.webContents.on("will-prevent-unload", (event) => {
+    let allowUnload = false;
+    if (browserWindow.isVisible()) {
+      const res = Electron.dialog.showMessageBoxSync({
+        type: "warning",
+        message: "这将使得所有的 js 进程被强制关停，确定？",
+        buttons: ["保持原状", "关停"],
+      });
+      /// 确定重载
+      if (res === 1) {
+        allowUnload = true;
       }
-
-      /// 重置状态
-      allowClose = undefined;
-      return;
+    } else {
+      allowUnload = true;
     }
-    // browserWindow.webContents
-    const res = await Electron.dialog.showMessageBox({
-      type: "warning",
-      message: "刷新该页面，将使得所有的 js 进程被强制关停，确定？",
-      buttons: ["取消", "确定重载"],
-    });
-    /// 确定重载
-    if (res.response === 1) {
+
+    if (allowUnload) {
       /// 取消 unload 的 prevent（拦截）
-      event.preventDefault();
-    }
-  });
-  let allowClose: undefined | boolean;
-  browserWindow.on("close", async (event) => {
-    allowClose = false; // 重置
-
-    const res = await Electron.dialog.showMessageBox({
-      type: "warning",
-      message: "关闭该页面，将使得所有的 js 进程被强制关停，确定？",
-      buttons: ["取消", "确定关闭"],
-    });
-    /// 确定关闭
-    if (res.response === 1) {
-      electronConfig.set("js-process-bounds", browserWindow.getBounds());
-      /// 同意关闭，将会冒泡到 will-prevent-unload
-      allowClose = true;
-    }
-    /// 取消关闭
-    else {
-      allowClose = false;
-      /// 阻止 close 的默认行为发生
       event.preventDefault();
     }
   });
