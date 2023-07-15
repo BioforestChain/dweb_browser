@@ -136,6 +136,9 @@ export class JsProcessNMM extends NativeMicroModule {
     this.onAfterShutdown.listen(() => {
       nww.close();
     });
+    nww.on("close", () => {
+      this.shutdown();
+    });
 
     /**
      * 从 渲染进程的 主线程中获取到 暴露的 apis

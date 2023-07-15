@@ -159,7 +159,7 @@ export class DnsNMM extends NativeMicroModule {
       }
     ).internalServerError();
 
-    this._after_shutdown_signal.listen(
+    this.onAfterShutdown.listen(
       nativeFetchAdaptersManager.append(async (fromMM, parsedUrl, requestInit) => {
         if (parsedUrl.protocol === "file:" && parsedUrl.hostname.endsWith(".dweb")) {
           const mmid = parsedUrl.hostname as $MMID;
@@ -262,6 +262,10 @@ export class DnsNMM extends NativeMicroModule {
       }
       // @TODO bootstrap 函数应该是 $singleton 修饰
       await this.bootstrapMicroModule(mm);
+      const off = mm.onAfterShutdown.listen(() => {
+        this._remove_running_apps(mmid);
+        off();
+      });
       return mm;
     });
 
@@ -270,17 +274,23 @@ export class DnsNMM extends NativeMicroModule {
 
   /** 关闭应用 */
   async close(mmid: $MMID) {
-    const app = await this.running_apps.get(mmid);
+    const app = await this._remove_running_apps(mmid);
     if (app === undefined) {
       // 关闭失败没有匹配的 microModule 运行
       return -1;
     }
     try {
-      this.running_apps.delete(mmid);
       await app.shutdown();
-      return 0;
-    } catch {
       return 1;
+    } catch {
+      return 0;
+    }
+  }
+  private async _remove_running_apps(mmid: $MMID) {
+    const app = await this.running_apps.get(mmid);
+    if (app !== undefined) {
+      this.running_apps.delete(mmid);
+      return app;
     }
   }
 }

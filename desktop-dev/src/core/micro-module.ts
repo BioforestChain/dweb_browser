@@ -5,12 +5,7 @@ import { PromiseOut } from "../helper/PromiseOut.ts";
 import { nativeFetchAdaptersManager } from "../sys/dns/nativeFetch.ts";
 import type { $BootstrapContext } from "./bootstrapContext.ts";
 import type { Ipc, IpcEvent } from "./ipc/index.ts";
-import type {
-  $DWEB_DEEPLINK,
-  $IpcSupportProtocols,
-  $MicroModule,
-  $MMID,
-} from "./types.ts";
+import type { $DWEB_DEEPLINK, $IpcSupportProtocols, $MicroModule, $MMID } from "./types.ts";
 export abstract class MicroModule implements $MicroModule {
   abstract ipc_support_protocols: $IpcSupportProtocols;
   abstract dweb_deeplinks: $DWEB_DEEPLINK[];
@@ -19,7 +14,7 @@ export abstract class MicroModule implements $MicroModule {
   protected abstract _shutdown(): unknown;
 
   private _running_state_lock = PromiseOut.resolve(false);
-  protected readonly _after_shutdown_signal = createSignal<() => unknown>();
+  readonly onAfterShutdown = createSignal<() => unknown>();
   protected _ipcSet = new Set<Ipc>();
 
   public addToIpcSet(ipc: Ipc) {
@@ -70,8 +65,8 @@ export abstract class MicroModule implements $MicroModule {
   }
 
   protected after_shutdown() {
-    this._after_shutdown_signal.emit();
-    this._after_shutdown_signal.clear();
+    this.onAfterShutdown.emit();
+    this.onAfterShutdown.clear();
     this._running_state_lock.resolve(false);
   }
 
