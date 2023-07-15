@@ -107,11 +107,13 @@ export async function openApp(this: NativeMicroModule, mmid: $MMID) {
   if (mmid === null) {
     return "缺少 app_id 参数";
   }
-
+  // if ((await this.nativeFetch(`file://jmm.browser.dweb/openApp?mmid=${mmid}`).boolean()) === false) {
+  // }
   // 还需要判断 应用是否已经更新了
   const [jsIpc] = await this.context?.dns.connect(mmid as $MMID)!;
   // 如果 对应app的全部 devTools 中有没有关闭的，就无法再次打开
   jsIpc.postMessage(IpcEvent.fromText("activity", ""));
+
   console.always("activity", mmid);
   return true;
 }

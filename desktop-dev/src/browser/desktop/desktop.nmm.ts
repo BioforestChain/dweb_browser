@@ -17,8 +17,6 @@ export class DesktopNMM extends NativeMicroModule {
     const taskbarServer = await this._createTaskbarWebServer();
     const desktopServer = await this._createDesktopWebServer();
 
-    await Electron.app.whenReady();
-
     const taskbarWin = await this._createTaskbarView(taskbarServer, desktopServer);
   }
 

@@ -77,7 +77,8 @@ dns.install(new BluetoothNMM());
 
 import { DesktopNMM } from "./browser/desktop/desktop.nmm.ts";
 import { JmmNMM } from "./browser/jmm/jmm.ts";
-dns.install(new JmmNMM());
+const jmm = new JmmNMM();
+dns.install(jmm);
 const dwebDesktop = new DesktopNMM();
 dns.install(dwebDesktop);
 
@@ -85,8 +86,11 @@ const custom_boot = process.argv.find((arg) => arg.startsWith("--boot="))?.slice
 
 dns.install(
   new BootNMM([
-    custom_boot ?? dwebBrowser.mmid,
-    // "bluetooth.std.dweb"
+    /// 一定要直接启动jmm，这样js应用才会被注册安装
+    jmm.mmid,
+
+    /// 启动自定义模块，或者桌面模块
+    custom_boot ?? dwebDesktop.mmid,
   ])
 );
 
