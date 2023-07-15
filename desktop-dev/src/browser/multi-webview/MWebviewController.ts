@@ -1,9 +1,11 @@
 import { proxy } from "comlink";
-import type { Ipc } from "../../core/ipc/index.ts";
+import { IpcEvent, type Ipc } from "../../core/ipc/index.ts";
 import { $MMID } from "../../core/types.ts";
 import { debounceQueueMicrotask } from "../../helper/$debounce.ts";
+import { createSignal } from "../../helper/createSignal.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
 import { createNativeWindow } from "../../helper/openNativeWindow.ts";
+import { $AllWebviewState } from "./types.ts";
 
 export type $MWebviewWindow = Awaited<ReturnType<typeof _createMWebViewWindow>>;
 
@@ -14,9 +16,14 @@ export const ALL_MMID_MWEBVIEW_WINDOW_MAP = new Map<$MMID, Promise<$MWebviewWind
 export function getOrOpenMWebViewWindow(ipc: Ipc) {
   return mapHelper.getOrPut(ALL_MMID_MWEBVIEW_WINDOW_MAP, ipc.remote.mmid, async () => {
     const mwebviewWindow = await _createMWebViewWindow(ipc);
+    /// 二者进行销毁的双向绑定
     mwebviewWindow.win.on("closed", () => {
       ALL_MMID_MWEBVIEW_WINDOW_MAP.delete(ipc.remote.mmid);
     });
+    ipc.onClose(() => {
+      mwebviewWindow.win.close();
+    });
+    /// 窗口聚焦
     mwebviewWindow.win.focus();
     return mwebviewWindow;
   });
@@ -33,7 +40,7 @@ const _createMWebViewWindow = async (ipc: Ipc) => {
     //   webviewTag: true,
     // },
     // transparent: true,
-    // autoHideMenuBar: true,
+    autoHideMenuBar: true,
     // frame: false,
     // 测试代码
     defaultBounds: {
@@ -43,7 +50,7 @@ const _createMWebViewWindow = async (ipc: Ipc) => {
       y: (diaplay.size.height - 800) / 2,
     },
   });
-  const mwebviewApi = new MWebviewController(nww);
+  const mwebviewApi = new MWebviewController(nww, ipc);
 
   return mwebviewApi;
 };
@@ -56,11 +63,27 @@ export interface $MWebviewItem {
 }
 
 export class MWebviewController {
-  constructor(readonly win: Electron.BrowserWindow) {
+  readonly onChange = createSignal();
+  constructor(readonly win: Electron.BrowserWindow, readonly ipc: Ipc) {
     this.win.on("close", () => {
       for (const item of this._allBrowserView) {
         item.view.webContents.closeDevTools();
       }
+      this._allBrowserView = [];
+      this.onChange.emit();
+    });
+
+    /// 绑定变更，将状态同步通过ipc发送
+    this.onChange.listen(() => {
+      const allWebviewState: $AllWebviewState = {};
+      for (const viewItem of this.getAllBrowserView()) {
+        allWebviewState[viewItem.zIndex] = {
+          webviewId: viewItem.view.webContents.id,
+          isActivated: viewItem.isVisiable,
+          src: viewItem.view.webContents.getURL(),
+        };
+      }
+      ipc.postMessage(IpcEvent.fromText("state", JSON.stringify(allWebviewState)));
     });
   }
   private _id(subfix: string) {
@@ -131,6 +154,11 @@ export class MWebviewController {
       cornerRadius: 0,
     });
     view.webContents.on("destroyed", () => {
+      /// 如果webContents的destroyed是因为win的destroyed，那么不发生任何动作
+      if (this.win.isDestroyed()) {
+        return;
+      }
+
       this.deleteBrowserView(view);
     });
 
@@ -144,6 +172,7 @@ export class MWebviewController {
       view.webContents.loadURL(url);
     }
 
+    this.onChange.emit();
     return proxy(view);
   }
   deleteBrowserView(view: Electron.BrowserView) {
@@ -165,6 +194,7 @@ export class MWebviewController {
         this.win.close();
       }
     });
+    this.onChange.emit();
     return true;
   }
   /**
@@ -179,9 +209,14 @@ export class MWebviewController {
       return -1;
     }
 
+    const oldIndex = item.zIndex;
     item.zIndex = zIndex + 0.5; /// 先设置一个虚高的值，确保不和其它同index的冲突
     this._allBrowserViewReOrder();
-    return item.zIndex;
+    const changed = item.zIndex !== oldIndex;
+    if (changed) {
+      this.onChange.emit();
+    }
+    return changed;
   }
   getBrowserViewZIndex(view: Electron.BrowserView) {
     const item = this._allBrowserView.find((item) => item.view === view);

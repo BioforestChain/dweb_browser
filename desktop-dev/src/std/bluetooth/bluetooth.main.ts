@@ -5,8 +5,8 @@ import { Ipc, IpcHeaders, IpcResponse } from "../../core/ipc/index.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import type { $DWEB_DEEPLINK, $MMID } from "../../core/types.ts";
 import { createComlinkNativeWindow } from "../../helper/openNativeWindow.ts";
-import { createHttpDwebServer, type HttpDwebServer } from "../../std/http/helper/$createHttpDwebServer.ts";
 import { fetchMatch } from "../../helper/patternHelper.ts";
+import { createHttpDwebServer, type HttpDwebServer } from "../../std/http/helper/$createHttpDwebServer.ts";
 import { STATE } from "./const.ts";
 import type { $AllWatchControllerItem, $Device, $ResponseJsonable, RequestDeviceOptions } from "./types.ts";
 
@@ -55,7 +55,7 @@ export class BluetoothNMM extends NativeMicroModule {
       )
       .post(`/bluetooth_remote_gatt_descriptor/reaed_value`, this._bluetoothRemoteGATTDescriptor_readValue)
       .post(`/bluetooth_remote_gatt_descriptor/write_value`, this._bluetoothRemoteGATTDescriptor_writeValue);
-    this.onFetch(onFetch.run);
+    this.onFetch(onFetch.run).internalServerError();
   };
 
   _exports = {

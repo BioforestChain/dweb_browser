@@ -24,7 +24,7 @@ export class DeviceNMM extends NativeMicroModule {
           return Response.json({ uuid: this.uuid });
         })
         .run();
-    });
+    }).internalServerError();
   };
 
   _shutdown = async () => {};

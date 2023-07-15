@@ -51,7 +51,7 @@ export class BarcodeScanningNMM extends NativeMicroModule {
           return this._getSupportedFormats(event);
         })
         .run();
-    });
+    }).internalServerError();
   };
 
   _shutdown() {

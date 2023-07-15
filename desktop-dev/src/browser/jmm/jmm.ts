@@ -130,7 +130,7 @@ export class JmmNMM extends NativeMicroModule {
       });
     this.onFetch((event) => {
       return onFetchMatcher.run(event);
-    });
+    }).internalServerError();
   }
 
   private openApp = async (context: $BootstrapContext, mmid: $MMID) => {

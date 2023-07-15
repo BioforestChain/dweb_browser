@@ -2,7 +2,7 @@ import { webcrypto } from "node:crypto";
 import process from "node:process";
 import { BrowserNMM } from "./browser/browser/browser.ts";
 import { JsProcessNMM } from "./browser/js-process/js-process.ts";
-import { MultiWebviewNMM } from "./browser/multi-webview/multi-webview.mobile.ts";
+import { MultiWebviewNMM } from "./browser/multi-webview/multi-webview.nmm.ts";
 import { setFilter } from "./helper/devtools.ts";
 import { BluetoothNMM } from "./std/bluetooth/bluetooth.main.ts";
 import { HttpServerNMM } from "./std/http/http.nmm.ts";

@@ -3,13 +3,7 @@ import { $deserializeRequestToParams } from "./helper/$deserializeRequestToParam
 import { $isMatchReq, $ReqMatcher } from "./helper/$ReqMatcher.ts";
 import { $serializeResultToResponse } from "./helper/$serializeResultToResponse.ts";
 import { $OnFetch, createFetchHandler } from "./helper/ipcFetchHelper.ts";
-import type {
-  $PromiseMaybe,
-  $Schema1,
-  $Schema1ToType,
-  $Schema2,
-  $Schema2ToType,
-} from "./helper/types.ts";
+import type { $PromiseMaybe, $Schema1, $Schema1ToType, $Schema2, $Schema2ToType } from "./helper/types.ts";
 import { NativeIpc } from "./ipc.native.ts";
 import { Ipc, IPC_ROLE, IpcRequest, IpcResponse } from "./ipc/index.ts";
 import { MicroModule } from "./micro-module.ts";
@@ -38,8 +32,7 @@ export abstract class NativeMicroModule extends MicroModule {
   readonly dweb_deeplinks: $DWEB_DEEPLINK[] = [];
   abstract override mmid: $MMID;
 
-  private _commmon_ipc_on_message_handlers =
-    new Set<$RequestCustomHanlderSchema>();
+  private _commmon_ipc_on_message_handlers = new Set<$RequestCustomHanlderSchema>();
   private _inited_commmon_ipc_on_message = false;
   private _initCommmonIpcOnMessage() {
     if (this._inited_commmon_ipc_on_message) {
@@ -57,20 +50,12 @@ export abstract class NativeMicroModule extends MicroModule {
           if ($isMatchReq(handler_schema, pathname, request.method, protocol)) {
             has = true;
             try {
-              const result = await handler_schema.handler(
-                handler_schema.input(request),
-                client_ipc,
-                request
-              );
+              const result = await handler_schema.handler(handler_schema.input(request), client_ipc, request);
 
               if (result instanceof IpcResponse) {
                 response = result;
               } else if (result !== null && result !== undefined) {
-                response = await handler_schema.output(
-                  request,
-                  result,
-                  client_ipc
-                );
+                response = await handler_schema.output(request, result, client_ipc);
               }
             } catch (err) {
               console.error("error", "IPC-REQ-ERR:", err);
@@ -80,13 +65,7 @@ export abstract class NativeMicroModule extends MicroModule {
               } else {
                 body = String(err);
               }
-              response = IpcResponse.fromJson(
-                request.req_id,
-                500,
-                undefined,
-                body,
-                client_ipc
-              );
+              response = IpcResponse.fromJson(request.req_id, 500, undefined, body, client_ipc);
             }
             break;
           }
@@ -106,10 +85,9 @@ export abstract class NativeMicroModule extends MicroModule {
       });
     });
   }
-  protected registerCommonIpcOnMessageHandler<
-    I extends $Schema1,
-    O extends $Schema2
-  >(common_handler_schema: $RequestCommonHanlderSchema<I, O>) {
+  protected registerCommonIpcOnMessageHandler<I extends $Schema1, O extends $Schema2>(
+    common_handler_schema: $RequestCommonHanlderSchema<I, O>
+  ) {
     this._initCommmonIpcOnMessage();
     const handlers = this._commmon_ipc_on_message_handlers;
     // deno-lint-ignore no-explicit-any
@@ -131,36 +109,25 @@ export abstract class NativeMicroModule extends MicroModule {
         offs.push(client_ipc.onRequest(onRequestHandler));
       })
     );
-    return () => {
+    return Object.assign(() => {
       for (const off of offs) {
         off();
       }
-    };
+    }, onRequestHandler);
   }
 }
 
 interface $RequestHanlderSchema<ARGS, RES> extends $ReqMatcher {
-  readonly handler: (
-    args: ARGS,
-    client_ipc: Ipc,
-    ipc_request: IpcRequest
-  ) => $PromiseMaybe<RES | IpcResponse>;
+  readonly handler: (args: ARGS, client_ipc: Ipc, ipc_request: IpcRequest) => $PromiseMaybe<RES | IpcResponse>;
 }
 
-export interface $RequestCommonHanlderSchema<
-  I extends $Schema1,
-  O extends $Schema2
-> extends $RequestHanlderSchema<$Schema1ToType<I>, $Schema2ToType<O>> {
+export interface $RequestCommonHanlderSchema<I extends $Schema1, O extends $Schema2>
+  extends $RequestHanlderSchema<$Schema1ToType<I>, $Schema2ToType<O>> {
   readonly input: I;
   readonly output: O;
 }
 
-export interface $RequestCustomHanlderSchema<ARGS = unknown, RES = unknown>
-  extends $RequestHanlderSchema<ARGS, RES> {
+export interface $RequestCustomHanlderSchema<ARGS = unknown, RES = unknown> extends $RequestHanlderSchema<ARGS, RES> {
   readonly input: (request: IpcRequest) => ARGS;
-  readonly output: (
-    request: IpcRequest,
-    result: RES,
-    ipc: Ipc
-  ) => $PromiseMaybe<IpcResponse>;
+  readonly output: (request: IpcRequest, result: RES, ipc: Ipc) => $PromiseMaybe<IpcResponse>;
 }

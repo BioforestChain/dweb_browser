@@ -157,7 +157,7 @@ export class DnsNMM extends NativeMicroModule {
           return Response.json(true);
         }
       }
-    );
+    ).internalServerError();
 
     this._after_shutdown_signal.listen(
       nativeFetchAdaptersManager.append(async (fromMM, parsedUrl, requestInit) => {

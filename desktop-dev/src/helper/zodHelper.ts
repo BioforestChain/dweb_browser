@@ -95,6 +95,7 @@ export const zq = {
       }
       return val as $MMID;
     }),
+  url: () => z.string().url(),
   string: () => z.string(),
   number: (float = true) =>
     z.string().transform((val, ctx) => {
@@ -112,6 +113,12 @@ export const zq = {
   boolean: () => z.string().transform((val) => /^true$/i.test(val)),
   transform: <NewOut>(transform: (arg: string, ctx: RefinementCtx) => NewOut | Promise<NewOut>) =>
     z.string().transform(transform),
+  object: <S extends z.ZodRawShape>(shape: S) => {
+    const schema = z.object(shape);
+    return (searchParams: URLSearchParams) => {
+      return parseQuery(searchParams, schema);
+    };
+  },
   parseQuery,
 };
 
