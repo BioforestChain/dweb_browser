@@ -136,7 +136,7 @@ export class JsProcessNMM extends NativeMicroModule {
     this.onAfterShutdown(() => {
       nww.close();
     });
-    nww.on("close", () => {
+    nww.on("closed", () => {
       this.shutdown();
     });
 
