@@ -1,12 +1,39 @@
-import { createSignal } from "../../../helper/createSignal.ts";
+import { $Callback, createSignal } from "../../../helper/createSignal.ts";
 import { PromiseOut } from "../../../helper/PromiseOut.ts";
+
+class ChangeableMap<K, V> extends Map<K, V> {
+  private _changeSignal = createSignal<$Callback<[this]>>();
+  onChange = this._changeSignal.listen;
+  override set(key: K, value: V) {
+    if ((this.has(key) && this.get(key) === value) === false) {
+      super.set(key, value);
+      this._changeSignal.emit(this);
+    }
+    return this;
+  }
+  override delete(key: K): boolean {
+    if (super.delete(key)) {
+      this._changeSignal.emit(this);
+      return true;
+    }
+    return false;
+  }
+  override clear(): void {
+    if (this.size === 0) {
+      return;
+    }
+    super.clear();
+    this._changeSignal.emit(this);
+  }
+}
 
 /// 这个文件是用在 js-process.html 的主线程中直接运行的，用来协调 js-worker 与 native 之间的通讯
 // 也可以用在其他的 .html 文件中 但是内容需要部分的修改
 // 如果我们使用其他的 ***.html 文件作为渲染进程总的主线程，同样需要用这个来协调 js-worker 同 native 之间通信；
-const ALL_PROCESS_MAP = new Map<
+const ALL_PROCESS_MAP = new ChangeableMap<
   number,
   {
+    env_script_url: string;
     worker: Worker;
     fetch_port: MessagePort;
   }
@@ -82,14 +109,7 @@ const createProcess = async (
   worker.removeEventListener("message", onEnvReady);
 
   /// 保存 js-process
-  ALL_PROCESS_MAP.set(process_id, { worker, fetch_port });
-
-  /// 触发事件
-  // 这个触发可有可无，只有在调试阶段 才需要
-  on_create_process_signal.emit({
-    process_id,
-    env_script_url,
-  });
+  ALL_PROCESS_MAP.set(process_id, { worker, fetch_port, env_script_url });
 
   /// TODO 使用 weaklock 来检测线程是否唤醒
 
@@ -174,11 +194,10 @@ const destroyProcess = (process_id: number) => {
    * 在执行该询问的时候，不会通知子进程，否则子进程可能会因此进行一些恶意的操作（或者是错误的操作）去使得自己再次被激活
    */
   process.worker.terminate();
+  ALL_PROCESS_MAP.delete(process_id);
 };
 
 type $OnCreateProcessMessage = (msg: { process_id: number; env_script_url: string }) => unknown;
-
-const on_create_process_signal = createSignal<$OnCreateProcessMessage>();
 
 // 这里到处的 APIS 会通过 expose() 导入到给主进程调用
 export const APIS = {
@@ -195,11 +214,15 @@ export type $RunMainConfig = {
 Object.assign(globalThis, APIS);
 
 const html = String.raw;
-on_create_process_signal.listen(({ process_id, env_script_url }) => {
-  document.body.innerHTML += html`<div>
-    <span>PID:${process_id}</span>
-    <span>URL:${env_script_url}</span>
-  </div>`;
+ALL_PROCESS_MAP.onChange((map) => {
+  let innerHTML = "";
+  for (const [process_id, processDetail] of map) {
+    innerHTML += html`<div>
+      <span>PID:${process_id}</span>
+      <span>URL:${processDetail.env_script_url}</span>
+    </div>`;
+  }
+  document.body.innerHTML = innerHTML;
 });
 
 window.onbeforeunload = (event) => {
