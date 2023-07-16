@@ -101,6 +101,12 @@ export abstract class NativeMicroModule extends MicroModule {
     return () => handlers.delete(custom_handler_schema);
   }
 
+  /**
+   * 监听 IpcRequest 请求，封装成 fetchEvent，通过返回 ResponseInit、Response 对象即可进行响应
+   * 再模块销毁后，监听也会被取消
+   * @param handlers
+   * @returns
+   */
   protected onFetch(...handlers: $OnFetch[]) {
     const onRequestHandler = createFetchHandler(handlers);
     const offs: $OffListener[] = [];
@@ -109,11 +115,13 @@ export abstract class NativeMicroModule extends MicroModule {
         offs.push(client_ipc.onRequest(onRequestHandler));
       })
     );
-    return Object.assign(() => {
+    const off = () => {
       for (const off of offs) {
         off();
       }
-    }, onRequestHandler);
+    };
+    this.onAfterShutdown(off);
+    return Object.assign(off, onRequestHandler);
   }
 }
 

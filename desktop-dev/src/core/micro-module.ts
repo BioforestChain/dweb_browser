@@ -66,19 +66,13 @@ export abstract class MicroModule implements $MicroModule {
 
     /// 关闭所有的通讯
     for (const ipc of this._ipcSet) {
-      try {
-        ipc.close();
-      } catch (reason) {
-        // ignore
-        console.warn(reason);
-      }
+      ipc.close();
     }
     this._ipcSet.clear();
   }
 
   protected after_shutdown() {
-    this._after_shutdown_signal.emit();
-    this._after_shutdown_signal.clear();
+    this._after_shutdown_signal.emitAndClear();
     this._running_state_lock.resolve(false);
   }
 

@@ -201,6 +201,10 @@ export class JsMicroModule extends MicroModule {
               this._fromMmid_originIpc_map.delete(targetIpc.remote.mmid);
               originIpc.close();
             });
+          } else {
+            originIpc.onClose(() => {
+              this._fromMmid_originIpc_map.delete(fromMmid);
+            });
           }
           task.resolve(originIpc);
         } catch (e) {
@@ -233,18 +237,18 @@ export class JsMicroModule extends MicroModule {
     ).boolean();
   }
 
+  protected override async before_shutdown() {
+    await super.before_shutdown();
+    /// 随着 ipc 的关闭，进程自然而然也会被直接关闭，不需要发送 `file://js.browser.dweb/close-all-process`，否则反而有可能唤醒 `js.browser.dweb` 进程
+    this._jsIpc = undefined;
+  }
+
   _shutdown() {
-    // 关闭 messagePortIpc
-    this._jsIpc!.close();
     // 删除 _fromMmid_originIpc_map 里面的ipc
     Array.from(this._fromMmid_originIpc_map.values()).forEach(async (item) => {
       (await item.promise).close();
     });
 
-    /**
-     * 发送指令，关停js进程
-     */
-    this.nativeFetch("file://js.browser.dweb/close-all-process");
     this._process_id = undefined;
   }
 }
