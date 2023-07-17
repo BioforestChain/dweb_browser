@@ -1,4 +1,5 @@
 ﻿using DwebBrowser.MicroService.Browser;
+using DwebBrowser.MicroService.Browser.Desktop;
 using DwebBrowser.MicroService.Browser.Jmm;
 using DwebBrowser.MicroService.Browser.JsProcess;
 using DwebBrowser.MicroService.Browser.Mwebview;
@@ -115,6 +116,7 @@ public class MicroService
         var mwebiewNMM = new MultiWebViewNMM().InstallBy(dnsNMM);
 
         /// 安装系统桌面
+        var desktopNMM = new DesktopNMM().InstallBy(dnsNMM);
         var browserNMM = new BrowserNMM().InstallBy(dnsNMM);
 
         /// 安装平台模块
@@ -132,13 +134,15 @@ public class MicroService
         new NativeUiNMM().InstallBy(dnsNMM);
 
         /// 安装Jmm
-        new JmmNMM().InstallBy(dnsNMM);
+        var jmmNMM = new JmmNMM().InstallBy(dnsNMM);
 
         /// 安装测试应用
         var plaocDemoJMM = new PlaocDemoJMM().InstallBy(dnsNMM);
 
         var bootMmidList = new List<Mmid>
         {
+            jmmNMM.Mmid,
+            desktopNMM.Mmid,
             browserNMM.Mmid,
             //plaocDemoJMM.Mmid
         };

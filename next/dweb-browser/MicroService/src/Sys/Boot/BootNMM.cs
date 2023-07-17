@@ -16,8 +16,6 @@ public class BootNMM : NativeMicroModule
         {
             _registeredMmids.UnionWith(initMmids.ToHashSet());
         }
-
-        Router = new Dictionary<string, Func<Dictionary<string, string>, object>>();
     }
 
     protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)

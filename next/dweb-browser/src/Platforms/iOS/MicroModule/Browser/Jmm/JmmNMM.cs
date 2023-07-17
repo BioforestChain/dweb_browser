@@ -129,15 +129,13 @@ public class JmmNMM : NativeMicroModule
         HttpRouter.AddRoute(IpcMethod.Get, "/openApp", async (request, _) =>
         {
             var mmid = request.QueryStringRequired("app_id");
-            await JmmController?.OpenApp(mmid);
-            return true;
+            return await bootstrapContext.Dns.Open(mmid);
         });
 
         HttpRouter.AddRoute(IpcMethod.Get, "/closeApp", async (request, _) =>
         {
             var mmid = request.QueryStringRequired("app_id");
-            await JmmController?.CloseApp(mmid);
-            return true;
+            return await bootstrapContext.Dns.Close(mmid);
         });
 
         // App详情
