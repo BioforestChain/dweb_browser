@@ -20,7 +20,7 @@ export class VirtualKeyboardController extends BaseController {
           })
           .with({ pathname: "/setState" }, (event) => {
             const states = parseQuery(event.searchParams, query_state);
-            this.virtualKeyboardSeVisiable(states.visible);
+            this.virtualKeyboardSeVisiable(states.visible === true ? true : false);
             this.virtualKeyboardSetOverlay(states.overlay);
             return Response.json(true);
           })
@@ -91,6 +91,7 @@ export class VirtualKeyboardController extends BaseController {
       ...this.state,
       visible: visible,
     };
+    visible ? (this.isShowVirtualKeyboard = visible) : "";
     this.emitUpdate();
   };
 
@@ -104,10 +105,17 @@ export class VirtualKeyboardController extends BaseController {
 
   virtualKeyboardHideCompleted = () => {
     this.isShowVirtualKeyboard = false;
-    console.error(`virtualKeybark 隐藏完成了 但是还没有处理`);
+    // 需要显示 navigationbar;
+    // console.error(`virtualKeybark 隐藏完成了 但是还没有处理`);
+    this.emitUpdate();
   };
 
   virtualKeyboardShowCompleted = () => {
-    console.error("virutalKeyboard 显示完成了 但是还没有处理");
+    // this.state = {
+    //   ...this.state,
+    //   visible: true,
+    // };
+    // this.emitUpdate();
+    // console.error("virutalKeyboard 显示完成了 但是还没有处理");
   };
 }

@@ -53,6 +53,43 @@ export class RootComp extends LitElement {
     });
   };
 
+  private _load = (event: Event) => {
+    //  如何给内部的 input 添加  focus 事件
+    if (event.target === null) throw new Error("event.target === null");
+    const iframeWindow = (event.target as HTMLIFrameElement).contentWindow;
+    if (iframeWindow === null) throw new Error("iframeWindow ==== null");
+
+    function isMatch(t: string) {
+      return (
+        t === "email" ||
+        t === "number" ||
+        t === "password" ||
+        t === "search" ||
+        t === "tel" ||
+        t === "text" ||
+        t === "url"
+      );
+    }
+
+    iframeWindow.document.addEventListener("focusin", (event: Event) => {
+      if (event.target === null) throw new Error("event.target === null");
+      const target = event.target as HTMLElement;
+      const tagName = target.tagName;
+      if (tagName === "INPUT" && isMatch(Reflect.get(target, "type"))) {
+        this.virtualKeyboardController.virtualKeyboardSeVisiable(true);
+      }
+    });
+
+    iframeWindow.document.addEventListener("focusout", (event: Event) => {
+      if (event.target === null) throw new Error("event.target === null");
+      const target = event.target as HTMLElement;
+      const tagName = target.tagName;
+      if (tagName === "INPUT" && isMatch(Reflect.get(target, "type"))) {
+        this.virtualKeyboardController.virtualKeyboardSeVisiable(false);
+      }
+    });
+  };
+
   /**statusBar */
   readonly statusBarController = this._wc(new StatusBarController());
 
@@ -122,6 +159,7 @@ export class RootComp extends LitElement {
                 style="width:100%;height:100%;border:0;"
                 src=${this.src}
                 @loadstart=${this._bindReloadShortcut}
+                @load=${this._load}
               ></iframe>
             `,
             () => html`<div class="boot-logo" slot="shell-content">开机中</div>`
