@@ -67,8 +67,6 @@ export class JsMicroModule extends MicroModule {
    * 所以不会和其它程序所使用的 pid 冲突
    */
   private _process_id?: string;
-  // private _streamIpc = new ReadableStreamIpc(this, IPC_ROLE.SERVER);
-  private _jsIpc: Ipc | undefined;
 
   /** 每个 JMM 启动都要依赖于某一个js */
   async _bootstrap(context: $BootstrapContext) {
@@ -106,13 +104,13 @@ export class JsMicroModule extends MicroModule {
     );
     this.addToIpcSet(streamIpc);
 
-    [this._jsIpc] = await context.dns.connect("js.browser.dweb");
+    const [jsIpc] = await context.dns.connect("js.browser.dweb");
 
-    this._jsIpc.onClose(() => {
+    jsIpc.onClose(() => {
       this.shutdown();
     });
 
-    this._jsIpc.onRequest(async (ipcRequest, ipc) => {
+    jsIpc.onRequest(async (ipcRequest, ipc) => {
       /// WARN 这里不再受理 file://<domain>/ 的请求，只处理 http[s]:// | file:/// 这些原生的请求
       const protocol = ipcRequest.parsed_url.protocol;
       const host = ipcRequest.parsed_url.host;
@@ -124,12 +122,12 @@ export class JsMicroModule extends MicroModule {
       } else {
         const request = ipcRequest.toRequest();
         const response = await this.nativeFetch(request);
-        const newResponse = await IpcResponse.fromResponse(ipcRequest.req_id, response, this._jsIpc!);
-        this._jsIpc!.postMessage(newResponse);
+        const newResponse = await IpcResponse.fromResponse(ipcRequest.req_id, response, jsIpc);
+        jsIpc.postMessage(newResponse);
       }
     });
 
-    this._jsIpc.onEvent(async (ipcEvent) => {
+    jsIpc.onEvent(async (ipcEvent) => {
       if (ipcEvent.name === "dns/connect") {
         const { mmid } = JSON.parse(ipcEvent.text);
         try {
@@ -237,11 +235,6 @@ export class JsMicroModule extends MicroModule {
     ).boolean();
   }
 
-  protected override async before_shutdown() {
-    await super.before_shutdown();
-    /// 随着 ipc 的关闭，进程自然而然也会被直接关闭，不需要发送 `file://js.browser.dweb/close-all-process`，否则反而有可能唤醒 `js.browser.dweb` 进程
-    this._jsIpc = undefined;
-  }
 
   _shutdown() {
     // 删除 _fromMmid_originIpc_map 里面的ipc

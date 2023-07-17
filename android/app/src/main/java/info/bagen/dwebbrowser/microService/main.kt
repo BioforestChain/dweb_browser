@@ -60,7 +60,7 @@ suspend fun startDwebBrowser(): DnsNMM {
     )
 
     DEVELOPER.WaterBang -> debugTags.addAll(
-      listOf( "dwebview", "mwebview","http","JsMM","js-process","message-port-ipc","native-ipc")
+      listOf( "dwebview", "mwebview","http","JsMM","js-process")
     )
 
     else -> debugTags.addAll(

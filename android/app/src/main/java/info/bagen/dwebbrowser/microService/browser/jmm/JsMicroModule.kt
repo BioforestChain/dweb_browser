@@ -122,9 +122,9 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
         val (jsIpc) = bootstrapContext.dns.connect("js.browser.dweb")
 
         // 监听关闭事件
-        closeJsProcessSignal.listen {
+        jsIpc.onClose {
+            println("streamIpc close")
             streamIpc.close()
-            jsIpc.close()
             fromMmid_originIpc_WM.clear()
         }
 

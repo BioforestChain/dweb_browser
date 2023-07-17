@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.lifecycleScope
 import com.google.accompanist.web.WebContent
@@ -30,6 +31,7 @@ import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
 import org.json.JSONObject
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.properties.Delegates
 
 /**
  * MWebView 是为其它模块提供 GUI 的程序模块，所以这里需要传入两个模块：localeMM 与 remoteMM
@@ -45,28 +47,14 @@ class MultiWebViewController(
     private var webviewId_acc = AtomicInteger(1)
   }
 
-  private var webViewList = mutableStateListOf<MultiViewItem>()
-
-  //    @Composable
-//    fun effectItem(viewItem:ViewItem) {
-//        debugMultiWebView("effectItem","${viewItem.webviewId} ${viewItem.hidden}")
-//        LaunchedEffect(viewItem) {
-//               snapshotFlow { viewItem.hidden }.collect {
-//                   updateStateHook()
-//               }
-//           }
-//    }
+  private var webViewList  = mutableStateListOf<MultiViewItem>()
   @Composable
-  fun effect() {
-    LaunchedEffect(webViewList) {
+  fun eachView(action: @Composable (viewItem: MultiViewItem) -> Unit) {
+    LaunchedEffect( webViewList ) {
       snapshotFlow { webViewList.size }.collect {
         updateStateHook()
       }
     }
-  }
-
-  @Composable
-  fun eachView(action: @Composable (viewItem: MultiViewItem) -> Unit) {
     webViewList.forEachIndexed { _, viewItem ->
       action(viewItem)
     }
@@ -180,6 +168,7 @@ class MultiWebViewController(
       }
     }
     webViewList.clear()
+    updateStateHook()
     this.downLoadObserver?.close() // 移除下载状态监听
 
     this.activity?.also {

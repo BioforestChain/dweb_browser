@@ -72,8 +72,7 @@ class IpcBodySender(
         suspend fun remove(streamId: String) = map.remove(streamId)?.also {
           /// 如果都删除完了，那么就触发事件解绑
           if (map.isEmpty()) {
-            this.destroySignal.emit(Unit)
-            this.destroySignal.clear()
+            this.destroySignal.emitAndClear()
           }
         }
 
@@ -224,8 +223,7 @@ class IpcBodySender(
       if (field != value) {
         field = value
         runBlockingCatching {
-          openSignal.emit(Unit)
-          openSignal.clear()
+          openSignal.emitAndClear()
         }.getOrThrow()
       }
     }
@@ -234,8 +232,7 @@ class IpcBodySender(
       if (field != value) {
         field = value
         runBlockingCatching {
-          closeSignal.emit(Unit)
-          closeSignal.clear()
+          closeSignal.emitAndClear()
         }.getOrThrow()
       }
     }

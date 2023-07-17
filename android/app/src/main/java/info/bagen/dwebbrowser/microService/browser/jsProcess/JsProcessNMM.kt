@@ -94,6 +94,8 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
       mainServer.startResult.urlInfo.buildInternalUrl().path("$INTERNAL_PATH/bootstrap.js")
         .toString()
 
+    this.onAfterShutdown { mainServer.close() }
+
     val apis = createJsProcessWeb(mainServer)
     val queryEntry = Query.string().optional("entry")
     val queryProcessId = Query.string().required("process_id")

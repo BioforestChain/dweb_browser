@@ -202,10 +202,9 @@ abstract class Ipc {
     if (this._closed) {
       return;
     }
-    this._closed = true;
-    this._doClose();
-    this._closeSignal.emit();
-    this._closeSignal.clear();
+    this._closed = true
+    this._doClose()
+    this.closeSignal.emitAndClear()
 
     /// 关闭的时候会自动触发销毁
     this.destroy(false)
@@ -213,8 +212,8 @@ abstract class Ipc {
 
   val isClosed get() = _closed
 
-  private val _closeSignal = SimpleSignal();
-  fun onClose(cb: SimpleCallback) = this._closeSignal.listen(cb)
+  val closeSignal = SimpleSignal();
+  fun onClose(cb: SimpleCallback) = this.closeSignal.listen(cb)
 
 
   private val _destroySignal = SimpleSignal()

@@ -22,6 +22,7 @@ import info.bagen.dwebbrowser.microService.browser.mwebview.MultiWebViewNMM.Comp
 import info.bagen.dwebbrowser.microService.browser.mwebview.dwebServiceWorker.ServiceWorkerEvent
 import info.bagen.dwebbrowser.microService.browser.mwebview.dwebServiceWorker.emitEvent
 import info.bagen.dwebbrowser.ui.theme.DwebBrowserAppTheme
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
 open class MultiWebViewActivity : BaseActivity() {
@@ -58,8 +59,12 @@ open class MultiWebViewActivity : BaseActivity() {
     }
 
     override fun onDestroy() {
+        controllerMap.remove(remoteMmid)?.let {
+            GlobalScope.launch (ioAsyncExceptionHandler){
+                it.destroyWebView()
+            }
+        }
         super.onDestroy()
-        controllerMap.remove(remoteMmid)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -68,11 +73,9 @@ open class MultiWebViewActivity : BaseActivity() {
         setContent {
             DwebBrowserAppTheme {
                 val wc = rememberViewController()
-                wc.effect()
                 wc.eachView { viewItem ->
                     key(viewItem.webviewId) {
                         val nativeUiController = viewItem.nativeUiController.effect()
-
                         val state = viewItem.state
                         val navigator = viewItem.navigator
 

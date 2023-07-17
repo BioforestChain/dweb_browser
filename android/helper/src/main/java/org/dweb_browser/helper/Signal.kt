@@ -57,6 +57,11 @@ open class Signal<Args> {
     }
   }
 
+  suspend fun emitAndClear (args: Args) {
+    this.emit(args)
+    this.listenerSet.clear()
+  };
+
   fun clear() {
     this.listenerSet.clear()
   }
@@ -66,5 +71,9 @@ open class Signal<Args> {
 class SimpleSignal : Signal<Unit>() {
   suspend fun emit() {
     emit(Unit)
+  }
+  suspend fun emitAndClear() {
+    emit(Unit)
+    clear()
   }
 };

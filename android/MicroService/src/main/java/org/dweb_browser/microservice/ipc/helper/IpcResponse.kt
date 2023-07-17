@@ -1,5 +1,6 @@
 package org.dweb_browser.microservice.ipc.helper
 
+import org.dweb_browser.helper.printerrln
 import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.ipc.Ipc
 import org.http4k.core.Response
@@ -94,12 +95,12 @@ class IpcResponse(
     Response(
       Status.fromCode(statusCode) ?: throw Exception("invalid statusCode $statusCode")
     ).headers(this.headers.toList()).let { res ->
-      when (val body = body.raw) {
-        is String -> res.body(body)
-        is ByteArray -> res.body(body.inputStream(), body.size.toLong())
-        is InputStream -> res.body(body)
-        else -> throw Exception("invalid body to response: $body")
-      }
+        when (val body = body.raw) {
+          is String -> res.body(body)
+          is ByteArray -> res.body(body.inputStream(), body.size.toLong())
+          is InputStream -> res.body(body)
+          else -> throw Exception("invalid body to response: $body")
+        }
     }
 
   val ipcResMessage by lazy {

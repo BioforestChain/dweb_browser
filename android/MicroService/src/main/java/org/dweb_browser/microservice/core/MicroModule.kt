@@ -1,11 +1,11 @@
 package org.dweb_browser.microservice.core
 
-import org.http4k.core.*
 import org.dweb_browser.helper.*
 import org.dweb_browser.microservice.help.DWEB_DEEPLINK
 import org.dweb_browser.microservice.help.Mmid
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
+import org.http4k.core.*
 
 typealias Router = MutableMap<String, AppRun>
 typealias AppRun = (options: NativeOptions) -> Any
@@ -44,7 +44,6 @@ abstract class MicroModule : Ipc.MicroModuleInfo {
     }
   }
 
-  protected val _afterShutdownSignal = SimpleSignal();
   protected suspend fun beforeShutdown() {
     if (!this.runningStateLock.waitPromise()) {
       throw Exception("module $mmid already shutdown");
@@ -60,8 +59,7 @@ abstract class MicroModule : Ipc.MicroModuleInfo {
 
   protected abstract suspend fun _shutdown()
   protected open suspend fun afterShutdown() {
-    _afterShutdownSignal.emit()
-    _afterShutdownSignal.clear()
+    _afterShutdownSignal.emitAndClear()
     runningStateLock.resolve(false)
     this._bootstrapContext = null
   }
@@ -69,13 +67,14 @@ abstract class MicroModule : Ipc.MicroModuleInfo {
 
   suspend fun shutdown() {
     this.beforeShutdown()
-
     try {
       this._shutdown()
     } finally {
       this.afterShutdown()
     }
   }
+  fun onAfterShutdown(cb: Callback<Unit>) = _afterShutdownSignal.listen(cb)
+  protected val _afterShutdownSignal = SimpleSignal();
 
   /**
    * 连接池
