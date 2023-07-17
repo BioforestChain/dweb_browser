@@ -53,45 +53,6 @@ export class StatusBarController extends BaseController {
             });
           })
           .run();
-        // // 获取状态栏状态
-        // if (pathname.endsWith("/getState")) {
-        //   const state = this.statusBarGetState();
-        //   return Response.json(state);
-        // }
-        // if (pathname.endsWith("/setState")) {
-        //   const states = parseQuery(searchParams, query_state);
-        //   this.statusBarSetState(states);
-        //   return Response.json(null);
-        // }
-        // // 开始订阅数据
-        // if (pathname.endsWith("/startObserve")) {
-        //   this.observer.startObserve(ipc);
-        //   return Response.json(true);
-        // }
-        // // 结束订阅数据
-        // if (pathname.endsWith("/stopObserve")) {
-        //   this.observer.stopObserve(ipc);
-        //   return Response.json("");
-        // }
-
-        // // 订阅
-        // if (pathname.endsWith("/observe")) {
-        //   const readableStream = new ReadableStream({
-        //     start: (_controller) => {
-        //       this.observer.observe(_controller);
-        //     },
-        //     pull(_controller) {},
-        //     cancel: (reson) => {
-        //       console.log("", "cancel", reson);
-        //     },
-        //   });
-
-        //   return new Response(readableStream, {
-        //     status: 200,
-        //     statusText: "ok",
-        //     headers: new Headers({ "Content-Type": "application/octet-stream" }),
-        //   });
-        // }
       })
       .forbidden()
       .cors();

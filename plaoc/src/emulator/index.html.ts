@@ -4,6 +4,7 @@ import { StatusBarController } from "./controller/status-bar.controller.ts";
 import { BaseController } from "./controller/base-controller.ts";
 import { HapticsController } from "./controller/haptics.controller.ts";
 import { NavigationBarController } from "./controller/navigation-bar.controller.ts";
+import { SafeAreaController } from "./controller/safe-area.controller.ts";
 import { TorchController } from "./controller/torch.controller.ts";
 import { VirtualKeyboardController } from "./controller/virtual-keyboard.controller.ts";
 import "./emulator-toolbar.html.ts";
@@ -64,11 +65,21 @@ export class RootComp extends LitElement {
   get navigationBarState() {
     return this.navigationController.state;
   }
+
   /**virtualboard */
   readonly virtualKeyboardController = this._wc(new VirtualKeyboardController());
 
   get virtualKeyboardState() {
     return this.virtualKeyboardController.state;
+  }
+
+  /** safeAreaController */
+  readonly safeAreaController = this._wc(
+    new SafeAreaController(this.statusBarController, this.navigationController, this.virtualKeyboardController)
+  );
+
+  get safeAreaState() {
+    return this.safeAreaController.state;
   }
 
   readonly torchController = this._wc(new TorchController());

@@ -34,7 +34,7 @@ export class StateObservable {
 
   controller: ReadableStreamDefaultController | undefined;
   observe(controller: ReadableStreamDefaultController) {
-    console.log("", "observe");
+    console.log("stateObservable ", "observe");
     this.controller = controller;
   }
 }

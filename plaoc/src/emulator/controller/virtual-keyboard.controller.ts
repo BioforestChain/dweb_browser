@@ -1,3 +1,4 @@
+import { match } from "ts-pattern";
 import { parseQuery, z, zq } from "../../../deps.ts";
 import { StateObservable } from "../helper/StateObservable.ts";
 import { createMockModuleServerIpc } from "../helper/mokeServerIpcHelper.ts";
@@ -6,36 +7,49 @@ import { BaseController } from "./base-controller.ts";
 export class VirtualKeyboardController extends BaseController {
   private _init = (async () => {
     this.emitInit();
-    const ipc = await createMockModuleServerIpc(
-      "virtual-keyboard.nativeui.browser.dweb"
-    );
+    const ipc = await createMockModuleServerIpc("virtual-keyboard.nativeui.browser.dweb");
     const query_state = z.object({
       overlay: zq.boolean().optional(),
       visible: zq.boolean().optional(),
     });
     ipc
       .onFetch(async (event) => {
-        const { pathname, searchParams } = event;
-        // 获取虚拟键盘状态
-        if (pathname.endsWith("/getState")) {
-          return Response.json(this.state);
-        }
-        if (pathname.endsWith("/setState")) {
-          const states = parseQuery(searchParams, query_state);
-          this.virtualKeyboardSeVisiable(states.visible);
-          this.virtualKeyboardSetOverlay(states.overlay);
-          return Response.json(true);
-        }
-        // 开始订阅数据
-        if (pathname.endsWith("/startObserve")) {
-          this.observer.startObserve(ipc);
-          return Response.json(true);
-        }
-        // 结束订阅数据
-        if (pathname.endsWith("/stopObserve")) {
-          this.observer.startObserve(ipc);
-          return Response.json("");
-        }
+        return match(event)
+          .with({ pathname: "/getState" }, () => {
+            return Response.json(this.state);
+          })
+          .with({ pathname: "/setState" }, (event) => {
+            const states = parseQuery(event.searchParams, query_state);
+            this.virtualKeyboardSeVisiable(states.visible);
+            this.virtualKeyboardSetOverlay(states.overlay);
+            return Response.json(true);
+          })
+          .with({ pathname: "/startObserve" }, () => {
+            this.observer.startObserve(ipc);
+            return Response.json(true);
+          })
+          .with({ pathname: "/stopObserve" }, () => {
+            this.observer.startObserve(ipc);
+            return Response.json("");
+          })
+          .with({ pathname: "/observe" }, () => {
+            const readableStream = new ReadableStream({
+              start: (_controller) => {
+                this.observer.observe(_controller);
+              },
+              pull(_controller) {},
+              cancel: (reson) => {
+                console.log("", "cancel", reson);
+              },
+            });
+
+            return new Response(readableStream, {
+              status: 200,
+              statusText: "ok",
+              headers: new Headers({ "Content-Type": "application/octet-stream" }),
+            });
+          })
+          .run();
       })
       .forbidden()
       .cors();
@@ -45,10 +59,10 @@ export class VirtualKeyboardController extends BaseController {
     return JSON.stringify(this.state);
   });
 
-  override emitUpdate(): void {
+  override emitUpdate = (): void => {
     this.observer.notifyObserver();
     super.emitUpdate();
-  }
+  };
 
   // 控制显示隐藏
   isShowVirtualKeyboard = false;
@@ -64,36 +78,36 @@ export class VirtualKeyboardController extends BaseController {
     visible: false,
   };
 
-  virtualKeyboardSetOverlay(overlay = true) {
+  virtualKeyboardSetOverlay = (overlay = true) => {
     this.state = {
       ...this.state,
       overlay: overlay,
     };
     this.emitUpdate();
-  }
+  };
 
-  virtualKeyboardSeVisiable(visible = true) {
+  virtualKeyboardSeVisiable = (visible = true) => {
     this.state = {
       ...this.state,
       visible: visible,
     };
     this.emitUpdate();
-  }
+  };
 
-  virtualKeyboardFirstUpdated() {
+  virtualKeyboardFirstUpdated = () => {
     this.state = {
       ...this.state,
       visible: true,
     };
     this.emitUpdate();
-  }
+  };
 
-  virtualKeyboardHideCompleted() {
+  virtualKeyboardHideCompleted = () => {
     this.isShowVirtualKeyboard = false;
     console.error(`virtualKeybark 隐藏完成了 但是还没有处理`);
-  }
+  };
 
-  virtualKeyboardShowCompleted() {
+  virtualKeyboardShowCompleted = () => {
     console.error("virutalKeyboard 显示完成了 但是还没有处理");
-  }
+  };
 }

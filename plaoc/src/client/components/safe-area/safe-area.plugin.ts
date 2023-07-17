@@ -2,17 +2,8 @@ import { bindThis } from "../../helper/bindThis.ts";
 import { domInsetsToJson, insetsToDom } from "../../util/insets.ts";
 import { $Coder } from "../../util/StateObserver.ts";
 import { InsetsPlugin } from "../base/InsetsPlugin.ts";
-import {
-  $SafeAreaRawState,
-  $SafeAreaState,
-  $SafeAreaWritableState,
-} from "./safe-area.type.ts";
-
-export class SafeAreaPlugin extends InsetsPlugin<
-  $SafeAreaRawState,
-  $SafeAreaState,
-  $SafeAreaWritableState
-> {
+import { $SafeAreaRawState, $SafeAreaState, $SafeAreaWritableState } from "./safe-area.type.ts";
+export class SafeAreaPlugin extends InsetsPlugin<$SafeAreaRawState, $SafeAreaState, $SafeAreaWritableState> {
   constructor() {
     super("safe-area.nativeui.browser.dweb");
   }
@@ -35,10 +26,7 @@ export class SafeAreaPlugin extends InsetsPlugin<
     await this.commonSetState(state);
   }
   @bindThis
-  setStateByKey<K extends keyof $SafeAreaWritableState>(
-    key: K,
-    value: $SafeAreaWritableState[K]
-  ) {
+  setStateByKey<K extends keyof $SafeAreaWritableState>(key: K, value: $SafeAreaWritableState[K]) {
     return this.setState({ [key]: value });
   }
   override get getState() {
