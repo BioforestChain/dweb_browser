@@ -24,9 +24,7 @@ export class StateObservable {
     this._changeSignal.emit();
   }
   stopObserve(ipc: Ipc) {
-    console.log("", "stopObserve");
     if (this.controller) {
-      console.log("close");
       this.controller.close();
     }
     return mapHelper.getAndRemove(this._observerIpcMap, ipc)?.apply(undefined);
@@ -34,7 +32,6 @@ export class StateObservable {
 
   controller: ReadableStreamDefaultController | undefined;
   observe(controller: ReadableStreamDefaultController) {
-    console.log("stateObservable ", "observe");
     this.controller = controller;
   }
 }

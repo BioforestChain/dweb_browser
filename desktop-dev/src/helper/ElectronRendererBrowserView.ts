@@ -18,7 +18,7 @@ Electron.ipcRenderer;
  */
 @customElement(TAG)
 export class ElectronBrowserView extends LitElement {
-  static styles = [
+  static override styles = [
     css`
       :host {
         box-sizing: border-box;
@@ -40,7 +40,7 @@ export class ElectronBrowserView extends LitElement {
   private createPo?: Promise<Electron.BrowserView>;
   private browserViewRemote?: Remote<Electron.BrowserView>;
   private browserView?: Electron.BrowserView;
-  async connectedCallback() {
+  override async connectedCallback() {
     super.connectedCallback();
     this.createPo = apis
       .createBrowserView({
@@ -54,8 +54,7 @@ export class ElectronBrowserView extends LitElement {
         return res;
       });
     /// 等待创建完成
-    const browserView = (this.browserView = this
-      .browserViewRemote as unknown as Electron.BrowserView);
+    const browserView = (this.browserView = this.browserViewRemote as unknown as Electron.BrowserView);
     /// 获取zindex
     this.zIndex = await apis.getBrowserViewZIndex(browserView);
     /// 开始监听DOM布局，将其布局位置同步给browserview
@@ -74,7 +73,7 @@ export class ElectronBrowserView extends LitElement {
     }
   }
 
-  willUpdate(changes: PropertyValueMap<any>) {
+  override willUpdate(changes: PropertyValueMap<any>) {
     super.willUpdate(changes);
     const { browserView } = this;
     if (browserView === undefined) {
@@ -95,7 +94,7 @@ export class ElectronBrowserView extends LitElement {
     }
   }
 
-  async disconnectedCallback() {
+  override async disconnectedCallback() {
     super.disconnectedCallback();
     /// 等待 browserView 创建返回
     const browserView = this.browserView || (await this.createPo);
