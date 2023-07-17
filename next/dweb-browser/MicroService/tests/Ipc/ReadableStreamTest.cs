@@ -196,5 +196,35 @@ public class ReadableStreamTest
 
         await req_ipc.Close();
     }
+
+    [Fact]
+    public async Task ReadableStreamCloseFinally()
+    {
+        var locker = new PromiseOut<Unit>();
+        var t = 0.0;
+        var stream = new ReadableStream(onStart: async (controller) =>
+        {
+            Debug.WriteLine("Will OKK!");
+            controller.Enqueue(new byte[1]);
+            controller.Enqueue(new byte[1]);
+            controller.Stream.Close();
+            try
+            {
+                await foreach (var chunk in controller.Stream.ReadBytesStream())
+                {
+                    t += chunk.Length;
+                    Debug.WriteLine($"OnData! {chunk}");
+                }
+            }
+            finally
+            {
+                t += 0.1;
+                Debug.WriteLine($"OKK! {t}");
+            }
+            locker.Resolve(Unit.Default);
+        });
+        await locker.WaitPromiseAsync();
+        Assert.Equal(2.1, t);
+    }
 }
 

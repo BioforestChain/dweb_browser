@@ -241,7 +241,7 @@ public class HttpNMM : NativeMicroModule
 
             return null;
         });
-        _onAfterShutdown += async (_) => { cb(); };
+        OnAfterShutdown += async (_) => { cb(); };
 
         HttpRouter.AddRoute(IpcMethod.Get, "/start", async (request, ipc) =>
         {

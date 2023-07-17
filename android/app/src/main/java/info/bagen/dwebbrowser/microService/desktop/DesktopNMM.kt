@@ -18,7 +18,7 @@ class DesktopNMM : NativeMicroModule("desktop.browser.dweb") {
     val queryAppId = Query.string().required("app_id")
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
         apiRouting = routes(
-        "/openAppOrActivities" bind Method.GET to defineHandler { request ->
+        "/openAppOrActivate" bind Method.GET to defineHandler { request ->
             val mmid = queryAppId(request)
             val (ipc) = bootstrapContext.dns.connect(mmid)
             debugJMM("openApp", "postMessage==>activity ${ipc.remote.mmid}")

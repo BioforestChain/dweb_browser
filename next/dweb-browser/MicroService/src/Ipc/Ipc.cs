@@ -115,8 +115,7 @@ public abstract class Ipc
 
         _closed = true;
         await DoClose();
-        await OnClose.Emit().ForAwait();
-        OnClose = null;
+        await OnClose.EmitAndClear();
 
         await Destroy(false);
     }
@@ -153,7 +152,7 @@ public abstract class Ipc
             await Close();
         }
 
-        OnDestory = null;
+        await OnDestory.EmitAndClear();
     }
 
     public Ipc()

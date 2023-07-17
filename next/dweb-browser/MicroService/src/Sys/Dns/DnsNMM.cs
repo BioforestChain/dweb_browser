@@ -1,4 +1,5 @@
-﻿using DwebBrowser.MicroService.Sys.Http;
+﻿using DwebBrowser.MicroService.Core;
+using DwebBrowser.MicroService.Sys.Http;
 
 namespace DwebBrowser.MicroService.Sys.Dns;
 
@@ -145,7 +146,7 @@ public class DnsNMM : NativeMicroModule
             }).NoThrow();
         }
 
-        public Task<ConnectResult> ConnectAsync(string mmid, PureRequest? reason = null)
+        public Task<ConnectResult> ConnectAsync(Mmid mmid, PureRequest? reason = null)
         {
             return _dnsMM._connectTo(
                 _fromMM, mmid, reason ?? new PureRequest(string.Format("file://{0}", mmid), IpcMethod.Get));
@@ -226,7 +227,7 @@ public class DnsNMM : NativeMicroModule
             return null;
         });
 
-        _onAfterShutdown += async (_) => { cb(); deeplinkCb(); };
+        OnAfterShutdown += async (_) => { cb(); deeplinkCb(); };
 
         var Query_appId = (URL parsedUrl) => parsedUrl.SearchParams.Get("app_id") ?? throw new ArgumentException("no found app_id");
 
@@ -305,6 +306,10 @@ public class DnsNMM : NativeMicroModule
                     _ = Task.Run(async () =>
                     {
                         await BootstrapMicroModule(openingMM);
+                        openingMM.OnAfterShutdown += async (_) =>
+                        {
+                            await _removeRunningApps(mmid);
+                        };
                         po.Resolve(openingMM);
                     }).NoThrow();
                 });
@@ -317,28 +322,48 @@ public class DnsNMM : NativeMicroModule
     /** <summary>关闭应用</summary> */
     public async Task<int> Close(Mmid mmid)
     {
-        if (_runningApps.Remove(mmid, out var microModulePo))
-        {
-            try
-            {
-                var microModule = await microModulePo.WaitPromiseAsync();
-                await microModule.ShutdownAsync();
-                lock (_mmConnectsMap)
-                {
-                    _mmConnectsMap.Remove(MM.From(microModule.Mmid, "js.browser.dweb"));
-                    _mmConnectsMap.Remove(MM.From("js.browser.dweb", microModule.Mmid));
-                }
+        var microModule = await _removeRunningApps(mmid);
 
-                return 1;
-            }
-            catch (Exception e)
-            {
-                Console.Log("Close", "exception: {0}", e.Message);
-                return 0;
-            }
+        if (microModule is null)
+        {
+            return -1;
         }
 
-        return -1;
+        try
+        {
+            await microModule.ShutdownAsync();
+            lock (_mmConnectsMap)
+            {
+                _mmConnectsMap.Remove(MM.From(microModule.Mmid, "js.browser.dweb"));
+                _mmConnectsMap.Remove(MM.From("js.browser.dweb", microModule.Mmid));
+            }
+
+            return 1;
+        }
+        catch (Exception e)
+        {
+            Console.Log("Close", "exception: {0}", e.Message);
+            return 0;
+        }
+    }
+
+    private async Task<MicroModule?> _removeRunningApps(Mmid mmid)
+    {
+        var microModulePo = _runningApps.GetValueOrDefault(mmid);
+
+        if (microModulePo is null)
+        {
+            return null;
+        }
+
+        var app = await microModulePo.WaitPromiseAsync();
+
+        if (app is not null)
+        {
+            _runningApps.Remove(mmid);
+        }
+
+        return app;
     }
 }
 

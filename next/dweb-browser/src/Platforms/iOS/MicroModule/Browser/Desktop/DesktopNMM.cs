@@ -28,7 +28,7 @@ public class DesktopNMM : NativeMicroModule
             return responseApps;
         });
 
-        HttpRouter.AddRoute(IpcMethod.Get, "/openAppOrAcitvite", async (request, _) =>
+        HttpRouter.AddRoute(IpcMethod.Get, "/openAppOrActivate", async (request, _) =>
         {
             var mmid = request.QueryStringRequired("app_id");
 

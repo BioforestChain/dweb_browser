@@ -107,8 +107,7 @@ public class IpcBodySender : IpcBody, IDisposable
 
                 if (Map.Count == 0)
                 {
-                    OnDestroy?.Emit();
-                    OnDestroy = null;
+                    await OnDestroy.EmitAndClear();
                 }
 
                 return ipcBodySender;
@@ -448,9 +447,9 @@ public class IpcBodySender : IpcBody, IDisposable
                 foreach (Ipc ipc in _usedIpcMap.Keys)
                 {
                     await ipc.PostMessageAsync(ipcStreamEnd);
-                    stream.Close();
-                    await _emitStreamClose();
                 }
+                stream.Close();
+                await _emitStreamClose();
             }
 
             Console.Log("StreamAsMeta", "sender/END/{0:H} {1}", stream, stream_id);

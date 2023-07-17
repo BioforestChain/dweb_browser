@@ -45,7 +45,7 @@ public abstract partial class MicroModule : Ipc.IMicroModuleInfo
         }
     }
 
-    protected event Signal? _onAfterShutdown;
+    public event Signal? OnAfterShutdown;
 
     protected async Task _beforeShutdownAsync()
     {
@@ -68,8 +68,7 @@ public abstract partial class MicroModule : Ipc.IMicroModuleInfo
 
     protected async Task _afterShutdownAsync()
     {
-        await (_onAfterShutdown?.Emit()).ForAwait();
-        _onAfterShutdown = null;
+        await OnAfterShutdown.EmitAndClear();
         _runningStateLock.Resolve(false);
         _bootstrapContext = null;
     }

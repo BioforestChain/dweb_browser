@@ -136,5 +136,23 @@ public static class SignalExtendsions
         return (default(R),false);
 
     }
+
+    public static async Task EmitAndClear(this Signal? self)
+    {
+        await (self?.Emit()).ForAwait();
+        self = null;
+    }
+
+    public static async Task EmitAndClear<T1>(this Signal<T1>? self, T1 arg1)
+    {
+        await (self?.Emit(arg1)).ForAwait();
+        self = null;
+    }
+
+    public static async Task EmitAndClear<T1, T2>(this Signal<T1, T2>? self, T1 arg1, T2 arg2)
+    {
+        await (self?.Emit(arg1, arg2)).ForAwait();
+        self = null;
+    }
 }
 

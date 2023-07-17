@@ -15,7 +15,7 @@ public class MessagePortIpc : Ipc
     private IPC_ROLE RoleType { get; init; }
     public override IMicroModuleInfo Remote { get; set; }
 
-    public override string Role { get => System.Enum.GetName(RoleType)!; }
+    public override string Role { get => Enum.GetName(RoleType)!; }
 
     public MessagePortIpc(MessagePort port, IMicroModuleInfo remote, IPC_ROLE role_type)
     {

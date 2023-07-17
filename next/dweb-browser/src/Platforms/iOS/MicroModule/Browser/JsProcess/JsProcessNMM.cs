@@ -37,7 +37,7 @@ public class JsProcessNMM : NativeMicroModule
         var mainServer = await (await CreateHttpDwebServer(new DwebHttpServerOptions())).AlsoAsync(async server =>
         {
             // 在模块关停的时候，要关闭端口监听
-            _onAfterShutdown += async (_) => { await server.Close(); };
+            OnAfterShutdown += async (_) => { await server.Close(); };
             // 提供基本的主页服务
             var serverIpc = await server.Listen();
             serverIpc.OnRequest += async (request, ipc, _) =>
@@ -200,11 +200,12 @@ public class JsProcessNMM : NativeMicroModule
             if (ipcProcessIdMap.Remove(ipc.Remote.Mmid, out var processMap))
             {
                 /// 关闭程序
-                foreach (var (_processId, po) in processMap)
+                processMap.AsParallel().ForAll(async res =>
                 {
+                    var (_processId, po) = res;
                     var process_id = await po.WaitPromiseAsync();
                     await apis.DestroyProcess(process_id);
-                }
+                });
 
                 /// 关闭代码通道
                 await CloseHttpDwebServer(new DwebHttpServerOptions(80, ipc.Remote.Mmid));
@@ -232,7 +233,7 @@ public class JsProcessNMM : NativeMicroModule
 
             var apis = new JsProcessWebApi(dwebview).Also(apis =>
             {
-                _onAfterShutdown += async (_) => { apis.Dispose(); };
+                OnAfterShutdown += async (_) => { apis.Dispose(); };
             });
             dwebview.OnReady += async (_) =>
                afterReadyPo.Resolve(apis);
@@ -328,6 +329,11 @@ public class JsProcessNMM : NativeMicroModule
         {
             /// 将远端的响应，发回给 Worker-IPC
             await processHandler.Ipc.PostMessageAsync(remoteIpcMessage);
+        };
+        /// 由于 MessagePort 的特殊性，它无法知道自己什么时候被关闭，所以这里通过宿主关系，绑定它的close触发时机
+        ipc.OnClose += async (_) =>
+        {
+            await processHandler.Ipc.Close();
         };
 
         /**

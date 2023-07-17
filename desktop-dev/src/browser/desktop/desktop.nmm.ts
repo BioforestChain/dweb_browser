@@ -32,7 +32,7 @@ export class DesktopNMM extends NativeMicroModule {
         .with({ pathname: "/appsInfo" }, async () => {
           return Response.json(await getAppsInfo());
         })
-        .with({ pathname: "/openAppOrActivities" }, async (event) => {
+        .with({ pathname: "/openAppOrActivate" }, async (event) => {
           const { app_id } = query_app_id(event.searchParams);
           await openApp.call(this, app_id);
           return Response.json(true);

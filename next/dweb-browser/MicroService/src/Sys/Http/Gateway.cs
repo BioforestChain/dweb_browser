@@ -88,7 +88,7 @@ public class Gateway
         public async Task DestroyAsync()
         {
             _routerSet.Clear();
-            await (OnDestory?.Emit()).ForAwait();
+            await OnDestory.EmitAndClear();
         }
     }
 
