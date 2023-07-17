@@ -31,6 +31,7 @@ import coil.ImageLoader
 import coil.compose.AsyncImage
 import coil.decode.SvgDecoder
 import org.dweb_browser.browserUI.R
+import org.dweb_browser.browserUI.util.PrivacyUrl
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -169,7 +170,7 @@ private fun SplashPrivacyView(
 
     val annotatedString = buildAnnotatedString {
       append(stringResource(id = R.string.privacy_content_1))
-      pushStringAnnotation("ysxy", "https://www.bagen.info/dweb_privacy_policy.html")
+      pushStringAnnotation("ysxy", PrivacyUrl)
       withStyle(
         SpanStyle(
           color = Color.Black, fontWeight = FontWeight.Bold

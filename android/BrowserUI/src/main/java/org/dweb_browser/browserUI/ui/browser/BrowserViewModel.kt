@@ -268,7 +268,7 @@ class BrowserViewModel(val microModule: MicroModule, val onOpenDweb: (Mmid) -> U
         }
 
         is BrowserIntent.ShowPrivacyView -> {
-          uiState.privacyState.value = "https://www.bagen.info/dweb_privacy_policy.html"
+          uiState.privacyState.value = PrivacyUrl
         }
       }
     }

@@ -7,6 +7,9 @@ import android.content.ServiceConnection
 import android.os.IBinder
 import org.dweb_browser.browserUI.download.DwebBrowserService
 
+// const val PrivacyUrl = "https://www.bagen.info/dweb_privacy_policy.html"
+const val PrivacyUrl = "https://dweb-browser.bagen.info/privacy.html"
+
 class BrowserUIApp private constructor() {
 
   companion object {
