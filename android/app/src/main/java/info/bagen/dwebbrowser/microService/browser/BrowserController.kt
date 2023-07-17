@@ -13,7 +13,6 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.browserUI.ui.browser.BrowserViewModel
 import org.dweb_browser.helper.*
-
 class BrowserController(val browserNMM: BrowserNMM) {
     val showLoading: MutableState<Boolean> = mutableStateOf(false)
     val browserViewModel by lazy {

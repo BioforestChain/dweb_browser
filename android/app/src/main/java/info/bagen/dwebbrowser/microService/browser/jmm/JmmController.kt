@@ -15,36 +15,19 @@ enum class EIpcEvent(val event:String){
 
 class JmmController(private val jmmNMM: JmmNMM) {
 
-  private val openIpcMap = mutableMapOf<Mmid, Ipc>()
   private val openLock = Mutex()
 
   suspend fun openApp(mmid: Mmid) {
     openLock.withLock {
-      openIpcMap.getOrPut(mmid) {
-        val (ipc) = jmmNMM.connect(mmid)
-        ipc.onEvent {
-          debugJMM(
-            "openApp",
-            "event::${it.event.name}==>${it.event.data}  from==> $mmid "
-          )
-          if (it.event.name == EIpcEvent.Close.event) {
-            openIpcMap.remove(mmid)
-          }
-        }
-        ipc
-      }.also { ipc ->
-        debugJMM("openApp", "postMessage==>activity ${ipc.remote.mmid}")
-        ipc.postMessage(IpcEvent.fromUtf8(EIpcEvent.Activity.event, ""))
-      }
+        val (ipc) = jmmNMM.bootstrapContext.dns.connect(mmid)
+      debugJMM("openApp", "postMessage==>activity ${ipc.remote.mmid}")
+      ipc.postMessage(IpcEvent.fromUtf8(EIpcEvent.Activity.event, ""))
     }
   }
 
   suspend fun closeApp(mmid: Mmid) {
-    openIpcMap[mmid]?.let { ipc ->
-      debugJMM("close APP", "postMessage==>close  $mmid, ${ipc.remote.mmid}")
-      ipc.postMessage(IpcEvent.fromUtf8(EIpcEvent.Close.event, ""))
-      openIpcMap.remove(mmid)
-    }
+      debugJMM("close APP", "postMessage==>close  $mmid")
+      jmmNMM.bootstrapContext.dns.close(mmid)
   }
 
 }

@@ -51,6 +51,14 @@ inline fun <K, V> MutableMap<K, V>.getOrPutOrReplace(
 
 @OptIn(DelicateCoroutinesApi::class)
 class JmmNMM : NativeMicroModule("jmm.browser.dweb") {
+
+  enum class EIpcEvent(val event:String){
+    State("state"),
+    Ready("ready"),
+    Activity("activity"),
+    Close("close")
+  }
+
   override val dweb_deeplinks = mutableListOf<DWEB_DEEPLINK>("dweb:install")
 
   companion object {
@@ -121,11 +129,6 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb") {
         val mmid = queryMmid(request)
         debugJMM("uninstall", mmid)
         jmmMetadataUninstall(mmid)
-        return@defineHandler true
-      },
-      "/openApp" bind Method.GET to defineHandler { request ->
-        val mmid = queryMmid(request)
-        jmmController?.openApp(mmid)
         return@defineHandler true
       },
       "/closeApp" bind Method.GET to defineHandler { request ->

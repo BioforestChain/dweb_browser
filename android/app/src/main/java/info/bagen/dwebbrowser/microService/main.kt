@@ -11,11 +11,11 @@ import info.bagen.dwebbrowser.microService.browser.jsProcess.JsProcessNMM
 import info.bagen.dwebbrowser.microService.browser.mwebview.MultiWebViewNMM
 import info.bagen.dwebbrowser.microService.browser.nativeui.NativeUiNMM
 import info.bagen.dwebbrowser.microService.browser.nativeui.torch.TorchNMM
+import info.bagen.dwebbrowser.microService.desktop.DesktopNMM
 import info.bagen.dwebbrowser.microService.sys.LocalFileFetch
 import info.bagen.dwebbrowser.microService.sys.biometrics.BiometricsNMM
 import info.bagen.dwebbrowser.microService.sys.clipboard.ClipboardNMM
 import info.bagen.dwebbrowser.microService.sys.device.*
-import info.bagen.dwebbrowser.microService.sys.fileSystem.FileSystemNMM
 import info.bagen.dwebbrowser.microService.sys.haptics.HapticsNMM
 import info.bagen.dwebbrowser.microService.sys.notification.NotificationNMM
 import info.bagen.dwebbrowser.microService.sys.share.ShareNMM
@@ -114,6 +114,7 @@ suspend fun startDwebBrowser(): DnsNMM {
 
   /// 安装Jmm
   val jmmNMM = JmmNMM().also { dnsNMM.install(it) }
+  val desktopNMM = DesktopNMM().also { dnsNMM.install(it) }
   // 测试使用，打包成apk需要删除
   val plaocDemoJMM = PlaocDemoJMM().also { dnsNMM.install(it) }
   val desktopDemoJMM = DesktopDemoJMM().also { dnsNMM.install(it) }
@@ -152,7 +153,7 @@ suspend fun startDwebBrowser(): DnsNMM {
 
   /// 启动程序
   val bootNMM = BootNMM(
-    bootMmidList
+    bootMmidList.plus(jmmNMM.mmid),
   ).also { dnsNMM.install(it) }
 
   /// 启动Web调试

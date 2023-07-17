@@ -3,13 +3,17 @@ package info.bagen.dwebbrowser.microService.browser
 import android.content.Intent
 import android.os.Bundle
 import info.bagen.dwebbrowser.App
+import info.bagen.dwebbrowser.microService.browser.jmm.EIpcEvent
 import info.bagen.dwebbrowser.microService.browser.jmm.JmmNMM.Companion.getAndUpdateJmmNmmApps
+import info.bagen.dwebbrowser.microService.browser.jmm.debugJMM
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
 import org.dweb_browser.helper.*
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.http4k.core.Method
+import org.http4k.lens.Query
+import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 
@@ -27,10 +31,16 @@ class BrowserNMM : NativeMicroModule("browser.dweb") {
   }
 
   data class AppInfo(val id: String, val icon: String, val name: String, val short_name: String)
-
+  val queryAppId = Query.string().required("app_id")
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    bootstrapContext.dns.open("jmm.browser.dweb")
     apiRouting = routes(
+      "/openAppOrActivities" bind Method.GET to defineHandler { request ->
+        val mmid = queryAppId(request)
+        val (ipc) = bootstrapContext.dns.connect(mmid)
+        debugJMM("openApp", "postMessage==>activity ${ipc.remote.mmid}")
+        ipc.postMessage(IpcEvent.fromUtf8(EIpcEvent.Activity.event, ""))
+        return@defineHandler true
+      },
       "/appsInfo" bind Method.GET to defineHandler { request ->
         val apps = getAndUpdateJmmNmmApps()
         debugBrowser("appInfo", apps.size)
