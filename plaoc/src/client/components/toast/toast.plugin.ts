@@ -7,7 +7,8 @@ import type { ToastShowOptions } from "./toast.type.ts";
  */
 export class ToastPlugin extends BasePlugin {
   constructor() {
-    super("toast.sys.dweb");
+    // super("toast.sys.dweb");
+    super("toast.nativeui.browser.dweb");
   }
 
   /**

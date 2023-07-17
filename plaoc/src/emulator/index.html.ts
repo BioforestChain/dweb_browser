@@ -1,5 +1,6 @@
 import { BiometricsController } from "./controller/biometrics.controller.ts";
 import { StatusBarController } from "./controller/status-bar.controller.ts";
+import { ToastController } from "./controller/toast.controller.ts";
 // 测试入口文件
 import { BaseController } from "./controller/base-controller.ts";
 import { HapticsController } from "./controller/haptics.controller.ts";
@@ -12,6 +13,7 @@ import { css, customElement, html, LitElement, property, query, state, when } fr
 import "./multi-webview-comp-biometrics.html.ts";
 import "./multi-webview-comp-haptics.html.ts";
 import "./multi-webview-comp-mobile-shell.html.ts";
+import type { MultiWebViewCompMobileShell } from "./multi-webview-comp-mobile-shell.html.ts";
 import "./multi-webview-comp-navigator-bar.html.ts";
 import "./multi-webview-comp-share.html.ts";
 import "./multi-webview-comp-status-bar.html.ts";
@@ -38,6 +40,7 @@ export class RootComp extends LitElement {
     return c;
   }
   @query("iframe") iframeEle?: HTMLIFrameElement;
+  @query("#shell") shell?: MultiWebViewCompMobileShell;
   private _bindReloadShortcut = () => {
     debugger;
     this.iframeEle?.contentWindow?.addEventListener("keydown", (e) => {
@@ -119,6 +122,12 @@ export class RootComp extends LitElement {
     return this.safeAreaController.state;
   }
 
+  toastShow = (message: string, duration: string, position: "top" | "bottom") => {
+    this.shell?.toastShow(message, duration, position);
+  };
+
+  readonly ToastController = this._wc(new ToastController(this.toastShow));
+
   readonly torchController = this._wc(new TorchController());
 
   get torchState() {
@@ -132,8 +141,7 @@ export class RootComp extends LitElement {
     return html`
       <div class="root">
         <emulator-toolbar .url=${this.src}></emulator-toolbar>
-
-        <multi-webview-comp-mobile-shell class="main-view">
+        <multi-webview-comp-mobile-shell class="main-view" id="shell">
           ${when(this.biometricsController.state, () => {
             const state = this.biometricsController.state!;
             html`<multi-webview-comp-biometrics

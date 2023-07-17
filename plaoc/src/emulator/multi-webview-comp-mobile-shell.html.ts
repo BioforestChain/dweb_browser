@@ -5,13 +5,7 @@
  * - 用来模拟移动端硬件外壳
  * - 仅仅只有 UI 不提供非 UI 之外的任何交互功能
  */
-import {
-  css,
-  customElement,
-  html,
-  LitElement,
-  query,
-} from "./helper/litHelper.ts";
+import { css, customElement, html, LitElement, query } from "./helper/litHelper.ts";
 import type { $ShareOptions } from "./types.ts";
 
 const TAG = "multi-webview-comp-mobile-shell";
@@ -19,10 +13,7 @@ const TAG = "multi-webview-comp-mobile-shell";
 @customElement(TAG)
 export class MultiWebViewCompMobileShell extends LitElement {
   static override styles = createAllCSS();
-  @query(".app_content_container") appContentContainer:
-    | HTMLDivElement
-    | undefined
-    | null;
+  @query(".app_content_container") appContentContainer: HTMLDivElement | undefined | null;
 
   /**
    *
@@ -31,9 +22,7 @@ export class MultiWebViewCompMobileShell extends LitElement {
    * @param position
    */
   toastShow(message: string, duration: string, position: "top" | "bottom") {
-    const multiWebviewCompToast = document.createElement(
-      "multi-webview-comp-toast"
-    );
+    const multiWebviewCompToast = document.createElement("multi-webview-comp-toast");
     [
       ["_message", message],
       ["_duration", duration],
@@ -41,6 +30,7 @@ export class MultiWebViewCompMobileShell extends LitElement {
     ].forEach(([key, value]) => {
       multiWebviewCompToast.setAttribute(key as string, value);
     });
+
     this.appContentContainer?.append(multiWebviewCompToast);
   }
 
@@ -48,9 +38,7 @@ export class MultiWebViewCompMobileShell extends LitElement {
     const el = document.createElement("multi-webview-comp-share");
     const ui8 = options.body;
     const contentType = options.bodyType;
-    const sparator = new TextEncoder()
-      .encode(contentType.split("boundary=")[1])
-      .join();
+    const sparator = new TextEncoder().encode(contentType.split("boundary=")[1]).join();
     const file = this.getFileFromUin8Array(ui8, sparator, 1);
     let src = "";
     let filename = "";
@@ -84,11 +72,7 @@ export class MultiWebViewCompMobileShell extends LitElement {
    *  index file 数据保存在原始 formData 被分割后的位置
    *  这个位置会根据 formData参数的不同而不同
    */
-  getFileFromUin8Array(
-    rawUi8: Uint8Array,
-    separatorStr: string,
-    index: number
-  ): File | undefined {
+  getFileFromUin8Array(rawUi8: Uint8Array, separatorStr: string, index: number): File | undefined {
     const ui8Str = rawUi8.join();
     // const lineBreak = new TextEncoder().encode('\r\n').join()
     const dubleLineBreak = new TextEncoder().encode("\r\n\r\n").join();
@@ -101,11 +85,7 @@ export class MultiWebViewCompMobileShell extends LitElement {
     arr.forEach((str: string, index: number) => {
       if (str.length === 0) return;
       if (index === 0) {
-        const des = new TextDecoder().decode(
-          new Uint8Array(
-            str.slice(0, -1).split(",") as unknown as ArrayBufferLike
-          )
-        );
+        const des = new TextDecoder().decode(new Uint8Array(str.slice(0, -1).split(",") as unknown as ArrayBufferLike));
         des.split("\r\n").forEach((str, index) => {
           if (index === 0) {
             filename = str.split("filename=")[1].slice(1, -1);

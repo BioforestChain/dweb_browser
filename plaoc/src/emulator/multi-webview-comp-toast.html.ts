@@ -1,12 +1,4 @@
-import {
-  classMap,
-  css,
-  customElement,
-  html,
-  LitElement,
-  property,
-  state,
-} from "./helper/litHelper.ts";
+import { classMap, css, customElement, html, LitElement, property, state } from "./helper/litHelper.ts";
 
 const TAG = "multi-webview-comp-toast";
 
@@ -25,7 +17,7 @@ export class MultiWebviewCompToast extends LitElement {
   override firstUpdated() {
     setTimeout(() => {
       this._beforeEntry = false;
-    }, 0);
+    }, 50);
   }
 
   transitionend(e: TransitionEvent) {
@@ -33,9 +25,12 @@ export class MultiWebviewCompToast extends LitElement {
       (e.target as HTMLDivElement).remove();
       return;
     }
-    setTimeout(() => {
-      this._beforeEntry = true;
-    }, parseInt(this._duration));
+    setTimeout(
+      () => {
+        this._beforeEntry = true;
+      },
+      this._duration === "short" ? 2000 : 3500
+    );
   }
 
   protected override render() {
@@ -47,10 +42,7 @@ export class MultiWebviewCompToast extends LitElement {
       container_top: this._position === "bottom" ? false : true,
     };
     return html`
-      <div
-        class=${classMap(containerClassMap)}
-        @transitionend=${this.transitionend}
-      >
+      <div class=${classMap(containerClassMap)} @transitionend=${this.transitionend}>
         <p class="message">${this._message}</p>
       </div>
     `;
