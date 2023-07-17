@@ -16,6 +16,8 @@ class SelectedTab: ObservableObject {
 class AddressBarState: ObservableObject {
     @Published var isFocused = false
     @Published var inputText: String = ""
+    @Published var shouldDisplay: Bool = false
+    @Published var height: CGFloat = 0
 }
 
 class ToolBarState: ObservableObject {
@@ -24,7 +26,8 @@ class ToolBarState: ObservableObject {
     @Published var canGoForward = false
     @Published var goBackTapped = false
     @Published var goForwardTapped = false
-    @Published var addrBarOffset = addressBarH
+    @Published var createTabTapped = false
+    
 }
 
 class ShiftAnimation: ObservableObject {
@@ -56,7 +59,6 @@ class ShowSheet: ObservableObject {
 
 class TabGridState: ObservableObject {
     @Published var scale = 1.0
-    @Published var opacity = 1.0
 }
 
 class DeleteCache: ObservableObject {

@@ -39,6 +39,8 @@ struct ToolbarView: View {
             
             BiColorButton(size: itemSize, imageName: "add", disabled: false) {
                 print("open new tab was clicked")
+                toolbarState.createTabTapped = true
+
             }
             
             Spacer()
@@ -79,6 +81,7 @@ struct ToolbarView: View {
                 } else {
                     BiColorButton(size: itemSize, imageName: "add", disabled: false) {
                         print("open new tab was clicked")
+                        toolbarState.createTabTapped = true
                     }
                 }
             }

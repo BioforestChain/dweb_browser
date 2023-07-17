@@ -32,7 +32,8 @@ struct TabGridView: View {
     @State var isFirstRecord: Bool = true
     
     @State var frames: [CellFrameInfo] = []
-    
+    @Binding var isScrolling: Bool
+
     @Binding var selectedCellFrame: CGRect
 
     @StateObject var deleteCache = DeleteCache()
@@ -64,8 +65,8 @@ struct TabGridView: View {
                                     if let index = WebCacheMgr.shared.store.firstIndex(of: webCache),
                                        index == selectedTab.curIndex
                                     {
-                                        selectedCellFrame = cellFrame(at: index)
-                                        printWithDate(msg: "cell appears at frame: \(selectedCellFrame)")
+//                                        selectedCellFrame = cellFrame(at: index)
+//                                        printWithDate(msg: "cell appears at frame: \(selectedCellFrame)")
                                     }
                                 }
                             
@@ -87,7 +88,6 @@ struct TabGridView: View {
                     .environmentObject(deleteCache)
                     .padding(gridHSpace)
                     .scaleEffect(x: gridState.scale, y: gridState.scale)
-//                    .background(Color.black.opacity(0.2))
 //                    .ignoresSafeArea()
                     .onPreferenceChange(CellFramePreferenceKey.self) { newFrames in
                         if isFirstRecord {
@@ -103,6 +103,7 @@ struct TabGridView: View {
                     if $0.count > 0 {
                         self.frames = $0
                     }
+                    isScrolling = false
                     printWithDate(msg: "end scrolling and record cell frames : \($0)")
                 }
                 .onChange(of: deleteCache.cacheId, perform: { cacheId in
@@ -115,6 +116,17 @@ struct TabGridView: View {
                     }
                 })
                 .onChange(of: toolbarState.shouldExpand) { shouldExpand in
+                    if shouldExpand { // 准备放大动画
+                        animation.snapshotImage = WebCacheMgr.shared.store[selectedTab.curIndex].snapshotImage
+                        animation.progress = .startExpanding
+                        if cellFrame(at: selectedTab.curIndex) != .zero {
+                            selectedCellFrame = cellFrame(at: selectedTab.curIndex)
+                        }else {
+                            selectedCellFrame = CGRect(x: screen_width/2.0, y: screen_height/2.0, width: 5, height: 5)
+                        }
+                    }
+                }
+                .onChange(of: toolbarState.shouldExpand) { shouldExpand in
                     if !shouldExpand {
                         let geoFrame = geo.frame(in: .global)
                         prepareToShrink(geoFrame: geoFrame, scrollproxy: scrollproxy) {
@@ -126,6 +138,9 @@ struct TabGridView: View {
                             }
                         }
                     }
+                }
+                .onChange(of: isScrolling) { isScrolling in
+                    printWithDate(msg: "isScrolling is \(isScrolling)")
                 }
             }
         }
@@ -140,6 +155,7 @@ struct TabGridView: View {
             printWithDate(msg: "star scroll tp adjust")
 
             let webCache = cacheStore.store[selectedTab.curIndex]
+            isScrolling = true
             withAnimation(.linear(duration: 0.1)) {
                 scrollproxy.scrollTo(webCache.id)
             }

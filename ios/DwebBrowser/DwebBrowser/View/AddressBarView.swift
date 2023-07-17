@@ -17,6 +17,7 @@ struct AddressBar: View {
     @EnvironmentObject var openingLink: OpeningLink
     
     @ObservedObject var webWrapper: WebWrapper
+    @State private var addressbarHeight: CGFloat = addressBarH
 
     var isVisible: Bool { return WebWrapperMgr.shared.store.firstIndex(of: webWrapper) == selectedTab.curIndex }
     private var shouldShowProgress: Bool { webWrapper.estimatedProgress > 0.0 && webWrapper.estimatedProgress < 1.0 }
@@ -43,7 +44,15 @@ struct AddressBar: View {
             .offset(y: 10)
         }
         .background(Color.bkColor)
-        .offset(y: toolbarState.addrBarOffset)
+//        .onChange(of: addressBar.shouldDisplay)
+//        .onReceive(addressBar.$shouldDisplay)
+//        { display in
+//            printWithDate(msg: "start to addressBar animation")
+////            withAnimation {
+//                addressbarHeight = display ? addressBarH : 0
+////            }
+//        }
+//        .offset(y: toolbarState.addrBarOffset)
     }
 
     var addressTextField: some View {
@@ -99,9 +108,6 @@ struct AddressBar: View {
             }
             .frame(width: geometry.size.width, height: geometry.size.height, alignment: .bottom)
             .clipShape(RoundedRectangle(cornerRadius: 8))
-            .onChange(of: webWrapper.estimatedProgress) { progress in
-                printWithDate(msg: "address bar, web index \(index), progress goes \(progress)")
-            }
         }
     }
 

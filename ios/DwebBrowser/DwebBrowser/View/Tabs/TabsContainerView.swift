@@ -11,6 +11,7 @@ import WebKit
 struct TabsContainerView: View {
     @EnvironmentObject var selectedTab: SelectedTab
     @EnvironmentObject var toolbarState: ToolBarState
+    @EnvironmentObject var addressBar: AddressBarState
 
     @StateObject var gridState = TabGridState()
     @StateObject var animation = ShiftAnimation()
@@ -19,6 +20,7 @@ struct TabsContainerView: View {
     @State var selectedCellFrame: CGRect = .zero 
     @State private var isExpanded = false
     @State private var lastProgress: AnimationProgress = .invisible
+    @State var isScrolling: Bool = false
 
     private var snapshotHeight: CGFloat { geoRect.height - addressBarH }
     private var snapshotMidY: CGFloat { geoRect.minY + snapshotHeight/2 - addressBarH }
@@ -38,9 +40,14 @@ struct TabsContainerView: View {
             // 层级关系  最前<-- 快照(缩放动画）<-- collecitionview  <--  tabPage ( homepage & webview)
 
             ZStack {
-                TabGridView(animation: animation, gridState: gridState, selectedCellFrame: $selectedCellFrame)
+                TabGridView(animation: animation, gridState: gridState, isScrolling: $isScrolling, selectedCellFrame: $selectedCellFrame)
 
                 if isExpanded, !animation.progress.isAnimating() {
+//                    Color.bkColor.ignoresSafeArea()
+                    Color.bkColor.ignoresSafeArea()
+                }
+                
+                if isScrolling {
                     Color.bkColor.ignoresSafeArea()
                 }
                 if isExpanded, !animation.progress.isAnimating() {
@@ -71,15 +78,21 @@ struct TabsContainerView: View {
                 geoRect = geo.frame(in: .global)
                 print("z geo: \(geoRect)")
             }
-            .onChange(of: toolbarState.shouldExpand) { shouldExpand in
-                if shouldExpand { // 准备放大动画
-                    animation.snapshotImage = WebCacheMgr.shared.store[selectedTab.curIndex].snapshotImage
-                    animation.progress = .startExpanding
+
+            .onReceive(toolbarState.$createTabTapped) { createTabTapped in
+                if createTabTapped { // 准备放大动画
+                    WebCacheMgr.shared.createOne()
+                    selectedTab.curIndex = WebCacheMgr.shared.store.count - 1
+                    selectedCellFrame = CGRect(origin: CGPoint(x: screen_width / 2, y: screen_height / 2) , size: CGSize(width: 5, height: 5))
+                    toolbarState.shouldExpand = true
                 }
             }
+
             .onChange(of: selectedCellFrame) { newValue in
                 printWithDate(msg: "selecte cell rect changes to : \(newValue)")
             }
+            
+            
         }
     }
 
@@ -89,7 +102,7 @@ struct TabsContainerView: View {
                 Image(uiImage: animation.snapshotImage)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
-                    .frame(alignment: .top)
+                    .frame(alignment: .center)
             )
             .cornerRadius(isExpanded ? 0 : gridcellCornerR)
             .clipped()
@@ -108,10 +121,15 @@ struct TabsContainerView: View {
                     if progress == .startShrinking{
                         gridState.scale = 0.8
                     }
+                    DispatchQueue.main.asyncAfter(deadline: .now()) {
+                        addressBar.shouldDisplay = isExpanding
+                    }
+                    
+                    printWithDate(msg: "start to shifting animation")
                     withAnimation(.easeIn(duration: 0.5)) {
+                        addressBar.height = isExpanding ? addressBarH : 0
                         gridState.scale = isExpanding ? 0.8 : 1
                         isExpanded = isExpanding
-                        toolbarState.addrBarOffset = isExpanding ? 0 : addressBarH
                     }
 
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.55) {

@@ -60,8 +60,10 @@ struct TabPageView: View {
                             let cropRect = CGRect(x: 0, y: 0, width: screen_width * scale, height: snapshotHeight * scale)
                             if let croppedCGImage = image.cgImage?.cropping(to: cropRect) {
                                 let croppedImage = UIImage(cgImage: croppedCGImage)
-                                animation.snapshotImage = croppedImage
-                                webCache.snapshotUrl = UIImage.createLocalUrl(withImage: croppedImage, imageName: webCache.id.uuidString)
+                                if webCache.shouldShowWeb{
+                                    animation.snapshotImage = croppedImage
+                                    webCache.snapshotUrl = UIImage.createLocalUrl(withImage: croppedImage, imageName: webCache.id.uuidString)
+                                }
                             }
                             if animation.progress == .obtainedCellFrame {
                                 animation.progress = .startShrinking
@@ -126,7 +128,6 @@ struct TabPageView: View {
                         manager.insertHistory(history: history)
                     }
                 }
-                printWithDate(msg: "in webComponent,url is: \(webWrapper.url), web index \(index), progress goes \(newValue)")
             }
     }
     

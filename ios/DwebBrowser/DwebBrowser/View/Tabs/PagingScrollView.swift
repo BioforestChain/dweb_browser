@@ -10,7 +10,7 @@ import SwiftUI
 struct PagingScrollView: View {
     @ObservedObject var cacheMgr = WebCacheMgr.shared
     @EnvironmentObject var toolBarState: ToolBarState
-    @EnvironmentObject var addressBarState: AddressBarState
+    @EnvironmentObject var addressBar: AddressBarState
     @EnvironmentObject var selectedTab: SelectedTab
     @ObservedObject var keyboardHelper = KeyboardHeightHelper()
     private var disabledDragGesture = DragGesture().onChanged { _ in }.onEnded { _ in }
@@ -30,15 +30,15 @@ struct PagingScrollView: View {
                                         .frame(height: geometry.size.height - addressBarH) // 使用GeometryReader获取父容器高度
                                         .gesture(disabledDragGesture)
                                 }
-                                if addressBarState.isFocused {
+                                if addressBar.isFocused {
                                     SearchTypingView()
                                 }
                             }
                             AddressBar(index: index, webWrapper: WebWrapperMgr.shared.store[index])
-                                .frame(height: addressBarH)
-                                .offset(y: addressBarState.isFocused ? -keyboardHelper.keyboardHeight : 0)
+                                .frame(height: addressBar.height)
+                                .offset(y: addressBar.isFocused ? -keyboardHelper.keyboardHeight : 0)
                                 .animation(.spring(), value: keyboardHelper.keyboardHeight)
-                                .gesture(addressBarState.isFocused ? disabledDragGesture : nil) // 根据状态变量决定是否启用拖拽手势
+                                .gesture(addressBar.isFocused ? disabledDragGesture : nil) // 根据状态变量决定是否启用拖拽手势
                         }
                         .frame(width: screen_width)
                     }
