@@ -55,7 +55,6 @@ suspend fun MicroModule.listenHttpDwebServer(
         Request(
           Method.POST,
           Uri.of("file://http.std.dweb/listen")
-            .query("host", startResult.urlInfo.host)
             .query("token", startResult.token)
             .query("routes", gson.toJson(routes))
         ).body(it.stream)

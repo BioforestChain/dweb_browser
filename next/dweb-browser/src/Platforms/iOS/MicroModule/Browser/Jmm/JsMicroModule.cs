@@ -334,7 +334,6 @@ public class JsMicroModule : MicroModule
     protected override async Task _shutdownAsync()
     {
         Console.Log("closeJsProcessSignal emit", string.Format("{0}/{1}", Mmid, Metadata));
-        //await NativeFetchAsync("file://js.browser.dweb/close-all-process");
         foreach (var item in _fromMmid_originIpc_map.Values)
         {
             await (await item.WaitPromiseAsync()).Close();

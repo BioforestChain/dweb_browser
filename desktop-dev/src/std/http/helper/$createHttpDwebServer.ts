@@ -77,7 +77,6 @@ export const listenHttpDwebServer = async (
   const ext = {
     pathname: "/listen",
     search: {
-      host: startResult.urlInfo.host,
       token: startResult.token,
       routes,
     },

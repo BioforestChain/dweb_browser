@@ -13,17 +13,13 @@ namespace DwebBrowser.MicroService.Sys.Http.Net
             _nmm = nmm;
             _options = options;
             StartResult = startResult;
+            var listenPo = new PromiseOut<ReadableStreamIpc>();
 
-            Close = Once.AsyncOnce(async () => await _nmm.CloseHttpDwebServer(_options));
-        }
-
-        public async Task<ReadableStreamIpc> Listen(Gateway.RouteConfig[]? routes = null)
-        {
-            if (routes is null)
+            Listen = Once.AsyncOnce(async () =>
             {
                 /** 定义了路由的方法 */
-                routes = new Gateway.RouteConfig[]
-                {
+                var routes = new Gateway.RouteConfig[]
+                 {
                     new Gateway.RouteConfig("/", IpcMethod.Get),
                     new Gateway.RouteConfig("/", IpcMethod.Post),
                     new Gateway.RouteConfig("/", IpcMethod.Put),
@@ -33,11 +29,22 @@ namespace DwebBrowser.MicroService.Sys.Http.Net
                     new Gateway.RouteConfig("/", IpcMethod.Head),
                     new Gateway.RouteConfig("/", IpcMethod.Connect),
                     new Gateway.RouteConfig("/", IpcMethod.Trace)
-                };
-            }
+                 };
 
-            return await _nmm.ListenHttpDwebServer(StartResult, routes);
+                var ipc = await _nmm.ListenHttpDwebServer(StartResult, routes);
+                listenPo.Resolve(ipc);
+                return ipc;
+            });
+            Close = Once.AsyncOnce(async () =>
+            {
+                var ipc = await listenPo.WaitPromiseAsync();
+                await ipc.Close();
+                return await _nmm.CloseHttpDwebServer(_options);
+            });
         }
+
+        public Func<Task<ReadableStreamIpc>> Listen { get; init; }
+
 
         public Func<Task<bool>> Close { get; init; }
     }
@@ -66,7 +73,6 @@ namespace DwebBrowser.MicroService.Core
             var pureResponse = await NativeFetchAsync(
                 new PureRequest(
                     new URL("file://http.std.dweb/listen")
-                        .SearchParamsSet("host", startResult.urlInfo.Host)
                         .SearchParamsSet("token", startResult.token)
                         .SearchParamsSet("routes", JsonSerializer.Serialize(routes)).Href,
                     IpcMethod.Post,

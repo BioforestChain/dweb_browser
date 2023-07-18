@@ -132,6 +132,13 @@ public class JsProcessNMM : NativeMicroModule
             // 将自定义的 processId 与 真实的 js-process_id 进行关联
             po.Resolve(result.processHandler.Info.ProcessId);
 
+
+            // 创建成功了，注册销毁函数
+            ipc.OnClose += async (_) =>
+            {
+                await _closeAllProcessByIpc(apis, ipcProcessIdMap, ipc.Remote.Mmid);
+            };
+
             // 返回流，因为构建了一个双工通讯用于代码提供服务
             return result.streamIpc.ReadableStream.Stream;
         });
@@ -159,12 +166,6 @@ public class JsProcessNMM : NativeMicroModule
             // 返回 port_id
             var js_port_id = await _createIpc(ipc, apis, process_id, mmid);
             Console.Log("create-ipc", "js_port_id:{0}", js_port_id);
-
-            // 创建成功了，注册销毁函数
-            ipc.OnClose += async (_) =>
-            {
-                await _closeAllProcessByIpc(apis, ipcProcessIdMap, ipc.Remote.Mmid);
-            };
 
             return js_port_id;
         });
@@ -250,7 +251,14 @@ public class JsProcessNMM : NativeMicroModule
         var streamIpc = new ReadableStreamIpc(ipc.Remote, "code-proxy-server");
         streamIpc.BindIncomeStream(requestMessage.Body.ToStream());
         this.addToIpcSet(streamIpc);
-
+        /**
+         * “模块之间的IPC通道”关闭的时候，关闭“代码IPC流通道”
+         */
+        ipc.OnClose += (_) => streamIpc.Close();
+        /**
+         * “代码IPC流通道”关闭的时候，关闭这个子域名
+         */
+        streamIpc.OnClose += (_) => httpDwebServer.Close();
         /**
          * 代理监听
          * 让远端提供 esm 模块代码
@@ -300,6 +308,7 @@ public class JsProcessNMM : NativeMicroModule
                 ipc.Remote,
                 httpDwebServer.StartResult.urlInfo.Host)
         );
+        processHandler.Ipc.OnClose += (_) => apis.DestroyProcess(processHandler.Info.ProcessId);
         /**
          * 收到 Worker 的数据请求，由 js-process 代理转发回去，然后将返回的内容再代理响应会去
          *
@@ -320,6 +329,8 @@ public class JsProcessNMM : NativeMicroModule
         {
             await processHandler.Ipc.Close();
         };
+        /// 双向绑定关闭
+        processHandler.Ipc.OnClose += (_) => ipc.Close();
 
         /**
          * 开始执行代码
@@ -331,17 +342,6 @@ public class JsProcessNMM : NativeMicroModule
             )
          ));
 
-        /// 绑定销毁
-        /**
-         * “模块之间的IPC通道”关闭的时候，关闭“代码IPC流通道”
-         *
-         * > 自己shutdown的时候，这些ipc会被关闭
-         */
-        ipc.OnClose += async (_) =>
-        {
-            await httpDwebServer.Close();
-            await apis.DestroyProcess(processHandler.Info.ProcessId);
-        };
 
         return new CreateProcessAndRunResult(streamIpc, processHandler);
     }
@@ -355,6 +355,7 @@ public class JsProcessNMM : NativeMicroModule
 
     private Task _createIpcFail(JsProcessWebApi apis, int process_id, Mmid mmid, string reason) =>
          apis.CreateIpcFail(process_id, mmid, reason);
+
 
     private async Task<bool> _closeAllProcessByIpc(
         JsProcessWebApi apis,

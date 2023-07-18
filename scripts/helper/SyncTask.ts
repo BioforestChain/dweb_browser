@@ -46,7 +46,7 @@ export class SyncTask {
       /// 尝试清空
       emptyDirSync(task.to);
     } catch (err) {
-      console.warn(err);
+      console.log(err.message);
     }
     try {
       copySync(task.from, task.to, { overwrite: true });
