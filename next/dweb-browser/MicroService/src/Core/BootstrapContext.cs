@@ -35,7 +35,7 @@ public interface IDnsMicroModule
      * 重启应用
      * </summary>
      */
-    public void Restart(Mmid mmid);
+    public Task Restart(Mmid mmid);
 
     /**
      * <summary>

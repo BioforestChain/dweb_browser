@@ -6,25 +6,10 @@ namespace DwebBrowser.Helper;
 public static class TaskExtensions
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static async Task ForAwait(this Task? task)
-    {
-        if (task is Task t)
-        {
-            await t;
-        }
-    }
+    public static Task ForAwait(this Task? task) => task ?? Task.CompletedTask;
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static async Task<T> ForAwait<T>(this Task<T>? task, T defaultValue)
-    {
-        T? result = defaultValue;
-        if (task is Task<T> t)
-        {
-            result = await t;
-        }
-        return result;
-    }
-
-
+    public static Task<T> ForAwait<T>(this Task<T>? task, T defaultValue) => task ?? Task.FromResult(defaultValue);
 
     public static void Background(this Task task, Action<AggregateException>? onCatch = default)
     {

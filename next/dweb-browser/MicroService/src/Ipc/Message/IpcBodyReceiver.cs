@@ -118,8 +118,7 @@ public class IpcBodyReceiver : IpcBody
                     await controller.EnqueueAsync(firstData);
                 }
 
-
-                Signal<IIpcStream, Ipc> cb = async (ipcStream, ipc, self) =>
+                ipc.OnStream += async (ipcStream, ipc, self) =>
                 {
                     if (ipcStream is IpcStreamData data)
                     {
@@ -139,8 +138,6 @@ public class IpcBodyReceiver : IpcBody
                         }
                     }
                 };
-
-                ipc.OnStream += cb;
             },
             onPull: async args =>
             {

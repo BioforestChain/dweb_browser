@@ -40,5 +40,5 @@ public class NativeIpc : Ipc
 
     public override Task _doPostMessageAsync(IpcMessage data) => Port.PostMessageAsync(data);
 
-    public override Task DoClose() => Task.Run(() => Port.Close()).NoThrow();
+    public override Task DoClose() => Port.Close();
 }

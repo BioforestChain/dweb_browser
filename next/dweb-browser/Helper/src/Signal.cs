@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace DwebBrowser.Helper;
 
@@ -110,75 +111,103 @@ public static class SignalExtendsions
 
     private static async Task emit(Delegate[]? list)
     {
-        try
-        {
-            if (list is null || list.Length == 0) return;
 
-            if (list.Length == 1)
+        if (list is null || list.Length == 0) return;
+
+        if (list.Length == 1)
+        {
+            try
             {
                 var cb = (Signal)list[0];
                 await cb(cb).ForAwait();
-                return;
             }
+            catch (Exception e)
+            {
+                Console.Error("Emit", "{0}", e);
+            }
+            return;
+        }
 
-            for (int i = 0; i < list.Length; i++)
+        for (int i = 0; i < list.Length; i++)
+        {
+            try
             {
                 var cb = (Signal)list[i];
                 await cb(cb).ForAwait();
             }
+            catch (Exception e)
+            {
+                Console.Error("Emit", "{0}", e);
+            }
         }
-        catch (Exception e)
-        {
-            Console.Error("Emit", "{0}", e);
-        }
+
     }
     private static async Task emit<T1>(T1 arg1, Delegate[]? list)
     {
-        try
-        {
-            if (list is null || list.Length == 0) return;
 
-            if (list.Length == 1)
+        if (list is null || list.Length == 0) return;
+
+        if (list.Length == 1)
+        {
+            try
             {
                 var cb = (Signal<T1>)list[0];
                 await cb(arg1, cb).ForAwait();
-                return;
+            }
+            catch (Exception e)
+            {
+                Console.Error("Emit", "{0}", e);
             }
 
-            for (int i = 0; i < list.Length; i++)
+            return;
+        }
+
+        for (int i = 0; i < list.Length; i++)
+        {
+            try
             {
                 var cb = (Signal<T1>)list[i];
                 await cb(arg1, cb).ForAwait();
             }
+            catch (Exception e)
+            {
+                Console.Error("Emit", "{0}", e);
+            }
         }
-        catch (Exception e)
-        {
-            Console.Error("Emit", "{0}", e);
-        }
+
     }
     private static async Task emit<T1, T2>(T1 arg1, T2 arg2, Delegate[]? list)
     {
-        try
-        {
-            if (list is null || list.Length == 0) return;
 
-            if (list.Length == 1)
+        if (list is null || list.Length == 0) return;
+
+        if (list.Length == 1)
+        {
+            try
             {
                 var cb = (Signal<T1, T2>)list[0];
                 await cb(arg1, arg2, cb).ForAwait();
-                return;
             }
+            catch (Exception e)
+            {
+                Console.Error("Emit", "{0}", e);
+            }
+            return;
+        }
 
-            for (int i = 0; i < list.Length; i++)
+        for (int i = 0; i < list.Length; i++)
+        {
+            try
             {
                 var cb = (Signal<T1, T2>)list[i];
                 await cb(arg1, arg2, cb).ForAwait();
             }
+            catch (Exception e)
+            {
+                Console.Error("Emit", "{0}", e);
+            }
         }
-        catch (Exception e)
-        {
-            Console.Error("Emit", "{0}", e);
-        }
+
     }
 
     public static async Task<(R?, bool)> EmitForResult<T, R>(this Signal<T, SignalResult<R>>? self, T args, Signal<T, SignalResult<R>> finallyNext)
@@ -259,26 +288,35 @@ public static class SignalExtendsions
 
     public static Task EmitAndClear(this HashSet<Signal> self)
     {
-        var list = self.ToArray();
-        self.Clear();
+        lock (self)
+        {
+            var list = self.ToArray();
+            self.Clear();
 
-        return emit(list);
+            return emit(list);
+        }
     }
 
     public static Task EmitAndClear<T1>(this HashSet<Signal<T1>> self, T1 arg1)
     {
-        var list = self.ToArray();
-        self.Clear();
+        lock (self)
+        {
+            var list = self.ToArray();
+            self.Clear();
 
-        return emit(arg1, list);
+            return emit(arg1, list);
+        }
     }
 
     public static Task EmitAndClear<T1, T2>(this HashSet<Signal<T1, T2>> self, T1 arg1, T2 arg2)
     {
-        var list = self.ToArray();
-        self.Clear();
+        lock (self)
+        {
+            var list = self.ToArray();
+            self.Clear();
 
-        return emit(arg1, arg2, list);
+            return emit(arg1, arg2, list);
+        }
     }
 }
 

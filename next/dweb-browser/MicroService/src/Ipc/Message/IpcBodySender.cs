@@ -72,7 +72,7 @@ public class IpcBodySender : IpcBody, IDisposable
         ABORTED
     }
 
-    private readonly BufferBlock<StreamStatusSignal> _streamStatusSignal = new(new DataflowBlockOptions { BoundedCapacity = DataflowBlockOptions.Unbounded });
+    private readonly BufferBlock<StreamStatusSignal> _streamStatusChannel = new(new DataflowBlockOptions { BoundedCapacity = DataflowBlockOptions.Unbounded });
 
     public class IPC
     {
@@ -116,11 +116,11 @@ public class IpcBodySender : IpcBody, IDisposable
             }
 
             private readonly HashSet<Signal> DestroySignal = new();
-    public event Signal OnDestroy
-    {
-        add { if(value != null) lock (DestroySignal) { DestroySignal.Add(value); } }
-        remove { lock (DestroySignal) { DestroySignal.Remove(value); } }
-    }
+            public event Signal OnDestroy
+            {
+                add { if (value != null) lock (DestroySignal) { DestroySignal.Add(value); } }
+                remove { lock (DestroySignal) { DestroySignal.Remove(value); } }
+            }
 
         }
 
@@ -254,7 +254,7 @@ public class IpcBodySender : IpcBody, IDisposable
         /// 更新带宽限制
         info.Bandwidth = message.Bandwidth;
         /// 只要有一个开始读取，那么就可以开始
-        var success = await _streamStatusSignal.SendAsync(StreamStatusSignal.PULLING);
+        var success = await _streamStatusChannel.SendAsync(StreamStatusSignal.PULLING);
 
         Console.Log("EmitStreamPullAsync", "{0} {1}", message.StreamId, success);
     }
@@ -279,7 +279,7 @@ public class IpcBodySender : IpcBody, IDisposable
         }
         if (paused)
         {
-            await _streamStatusSignal.SendAsync(StreamStatusSignal.PAUSED);
+            await _streamStatusChannel.SendAsync(StreamStatusSignal.PAUSED);
         }
     }
 
@@ -292,7 +292,7 @@ public class IpcBodySender : IpcBody, IDisposable
         {
             if (_usedIpcMap.Count == 0)
             {
-                await _streamStatusSignal.SendAsync(StreamStatusSignal.ABORTED);
+                await _streamStatusChannel.SendAsync(StreamStatusSignal.ABORTED);
             }
         }
     }
@@ -300,14 +300,14 @@ public class IpcBodySender : IpcBody, IDisposable
     private readonly HashSet<Signal> StreamCloseSignal = new();
     public event Signal OnStreamClose
     {
-        add { if(value != null) lock (StreamCloseSignal) { StreamCloseSignal.Add(value); } }
+        add { if (value != null) lock (StreamCloseSignal) { StreamCloseSignal.Add(value); } }
         remove { lock (StreamCloseSignal) { StreamCloseSignal.Remove(value); } }
     }
 
     private readonly HashSet<Signal> StreamOpenSignal = new();
     public event Signal OnStreamOpen
     {
-        add { if(value != null) lock (StreamOpenSignal) { StreamOpenSignal.Add(value); } }
+        add { if (value != null) lock (StreamOpenSignal) { StreamOpenSignal.Add(value); } }
         remove { lock (StreamOpenSignal) { StreamOpenSignal.Remove(value); } }
     }
 
@@ -392,7 +392,13 @@ public class IpcBodySender : IpcBody, IDisposable
     /// _streamStatusSignal 作为 BlockBuffer，它只能同时有一个在读取
     /// 所以这里定义一个Signal，分发成事件
     /// </summary>
-    Signal<StreamStatusSignal>? streamStatusSignal;
+    private readonly HashSet<Signal<StreamStatusSignal>> _StreamStatusSignal = new();
+    private event Signal<StreamStatusSignal> _OnStreamStatus
+    {
+        add { if (value != null) lock (_StreamStatusSignal) { _StreamStatusSignal.Add(value); } }
+        remove { lock (_StreamStatusSignal) { _StreamStatusSignal.Remove(value); } }
+    }
+
 
     private MetaBody StreamAsMeta(Stream stream, Ipc ipc)
     {
@@ -408,7 +414,7 @@ public class IpcBodySender : IpcBody, IDisposable
             var pullingPo = new PromiseOut<Unit>();
 
             /// 先进行流控信号绑定
-            streamStatusSignal += async (signal, self) =>
+            _OnStreamStatus += (async (signal, self) =>
             {
                 switch (signal)
                 {
@@ -426,15 +432,15 @@ public class IpcBodySender : IpcBody, IDisposable
                         await _emitStreamClose();
                         break;
                 }
-            };
+            });
 
             /// 然后开始异步监听流控信号
             _ = Task.Run(async () =>
             {
                 Console.Log("StreamAsMeta", "sender/WAIT_PULL/{0:H} {1}", stream, stream_id);
-                await foreach (var signal in _streamStatusSignal.ReceiveAllAsync())
+                await foreach (var signal in _streamStatusChannel.ReceiveAllAsync())
                 {
-                    streamStatusSignal?.Emit(signal);
+                    _ = _StreamStatusSignal.Emit(signal);
                 }
             }).NoThrow();
 
@@ -475,7 +481,7 @@ public class IpcBodySender : IpcBody, IDisposable
 
         // 写入第一帧数据
         var streamType = MetaBody.IPC_META_BODY_TYPE.STREAM_ID;
-        MetaBody metaBody = default;
+        MetaBody metaBody = default!;
 
         if (stream is IPreReadableInputStream prestream && prestream.PreReadableSize > 0)
         {
@@ -495,19 +501,19 @@ public class IpcBodySender : IpcBody, IDisposable
         {
             // 流对象，写入缓存
             CACHE.MetaId_ipcBodySender_Map.TryAdd(it.MetaId, this);
-            streamStatusSignal += async (signal, self) =>
+            _OnStreamStatus += (async (signal, self) =>
             {
                 if (signal == StreamStatusSignal.ABORTED)
                 {
                     CACHE.MetaId_ipcBodySender_Map.Remove(it.MetaId);
                 }
-            };
+            });
         });
     }
 
     public void Dispose()
     {
-        _streamStatusSignal.Complete();
+        _streamStatusChannel.Complete();
         GC.SuppressFinalize(this);
     }
 }

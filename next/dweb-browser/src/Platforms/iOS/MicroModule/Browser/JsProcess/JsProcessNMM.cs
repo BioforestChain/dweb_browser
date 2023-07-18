@@ -195,7 +195,6 @@ public class JsProcessNMM : NativeMicroModule
         {
             _ = ipc ?? throw new Exception("no found ipc");
 
-            Console.Log("close-all-process", "{0}/processId", ipc.Remote.Mmid);
             return await _closeAllProcessByIpc(apis, ipcProcessIdMap, ipc.Remote.Mmid);
         });
     }
@@ -362,6 +361,7 @@ public class JsProcessNMM : NativeMicroModule
         Dictionary<string, Dictionary<string, PromiseOut<int>>> ipcProcessIdMap,
         Mmid mmid)
     {
+        Console.Log("close-all-process", "{0}/processId", mmid);
         if (ipcProcessIdMap.Remove(mmid, out var processMap))
         {
             /// 关闭程序

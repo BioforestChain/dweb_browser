@@ -1,6 +1,8 @@
 using System.Net;
+using System.Collections.Concurrent;
 using System.Text.Json;
 using DwebBrowser.MicroService.Http;
+using System.Collections.Generic;
 // https://learn.microsoft.com/zh-cn/dotnet/csharp/nullable-references
 #nullable enable
 
@@ -228,7 +230,7 @@ public class JsMicroModule : MicroModule
             else if (ipcEvent.Name is "restart")
             {
                 // 调用重启
-                bootstrapContext.Dns.Restart(Mmid);
+                _ = bootstrapContext.Dns.Restart(Mmid).NoThrow();
             }
         };
 
@@ -236,7 +238,7 @@ public class JsMicroModule : MicroModule
         Console.Log("running!!", Mmid);
     }
 
-    private readonly Dictionary<Mmid, PromiseOut<Ipc>> _fromMmid_originIpc_map = new();
+    private readonly ConcurrentDictionary<Mmid, PromiseOut<Ipc>> _fromMmid_originIpc_map = new();
 
 
     class JmmIpc : Native2JsIpc
@@ -287,22 +289,22 @@ public class JsMicroModule : MicroModule
                         /**
                          * 监听关闭事件
                          */
-                        originIpc.OnClose += async (_) =>
+                        originIpc.OnClose += async (_self) =>
                         {
-                            _fromMmid_originIpc_map.Remove(originIpc.Remote.Mmid);
+                            _fromMmid_originIpc_map.TryRemove(originIpc.Remote.Mmid, out _);
                             await targetIpc.Close();
                         };
-                        targetIpc.OnClose += async (_) =>
+                        targetIpc.OnClose += async (_self) =>
                         {
-                            _fromMmid_originIpc_map.Remove(targetIpc.Remote.Mmid);
+                            _fromMmid_originIpc_map.TryRemove(targetIpc.Remote.Mmid, out _);
                             await originIpc.Close();
                         };
                     }
                     else
                     {
-                        originIpc.OnClose += async (_) =>
+                        originIpc.OnClose += async (_self) =>
                         {
-                            _fromMmid_originIpc_map.Remove(fromMmid);
+                            _fromMmid_originIpc_map.TryRemove(fromMmid, out _);
                         };
                     }
                     po.Resolve(originIpc);

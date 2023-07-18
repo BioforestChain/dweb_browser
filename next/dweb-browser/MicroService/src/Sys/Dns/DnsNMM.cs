@@ -136,14 +136,11 @@ public class DnsNMM : NativeMicroModule
         public MicroModule? Query(Mmid mmid) =>
             _dnsMM.Query(mmid) is MicroModule mm ? mm : null;
 
-        public void Restart(Mmid mmid)
+        public async Task Restart(Mmid mmid)
         {
-            _ = Task.Run(async () =>
-            {
-                // 关闭后端连接
-                await _dnsMM.Close(mmid);
-                await _dnsMM.Open(mmid);
-            }).NoThrow();
+            // 关闭后端连接
+            await _dnsMM.Close(mmid);
+            await _dnsMM.Open(mmid);
         }
 
         public Task<ConnectResult> ConnectAsync(Mmid mmid, PureRequest? reason = null)
@@ -152,7 +149,8 @@ public class DnsNMM : NativeMicroModule
                 _fromMM, mmid, reason ?? new PureRequest(string.Format("file://{0}", mmid), IpcMethod.Get));
         }
 
-        public async Task<bool> Open(Mmid mmid) {
+        public async Task<bool> Open(Mmid mmid)
+        {
             if (_dnsMM._runningApps.ContainsKey(mmid))
             {
                 return false;
