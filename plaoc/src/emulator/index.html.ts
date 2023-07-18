@@ -6,6 +6,7 @@ import { BaseController } from "./controller/base-controller.ts";
 import { HapticsController } from "./controller/haptics.controller.ts";
 import { NavigationBarController } from "./controller/navigation-bar.controller.ts";
 import { SafeAreaController } from "./controller/safe-area.controller.ts";
+import { ShareController } from "./controller/share.controller.ts";
 import { TorchController } from "./controller/torch.controller.ts";
 import { VirtualKeyboardController } from "./controller/virtual-keyboard.controller.ts";
 import "./emulator-toolbar.html.ts";
@@ -19,6 +20,7 @@ import "./multi-webview-comp-share.html.ts";
 import "./multi-webview-comp-status-bar.html.ts";
 import "./multi-webview-comp-toast.html.ts";
 import "./multi-webview-comp-virtual-keyboard.html.ts";
+import type { $ShareOptions } from "./types.ts";
 
 const TAG = "root-comp";
 
@@ -121,6 +123,11 @@ export class RootComp extends LitElement {
   get safeAreaState() {
     return this.safeAreaController.state;
   }
+
+  shareShare = (options: $ShareOptions) => {
+    this.shell?.shareShare(options);
+  };
+  readonly shareController = this._wc(new ShareController(this.shareShare));
 
   toastShow = (message: string, duration: string, position: "top" | "bottom") => {
     this.shell?.toastShow(message, duration, position);

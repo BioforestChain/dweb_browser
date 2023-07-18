@@ -14,7 +14,8 @@ const router = useRouter();
 // router.push("/inputfile");
 // router.push("/barcodescanning");
 // router.push("/network");
-router.push("/safearea");
+// router.push("/safearea");
+router.push("/haptics");
 
 dwebServiceWorker.addEventListener("pause", (event) => {
   console.log("app暂停🍋", event);
