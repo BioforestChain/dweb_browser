@@ -79,27 +79,52 @@ public abstract class Ipc
         await _doPostMessageAsync(message);
     }
 
-    public event Signal<IpcMessage, Ipc>? OnMessage;
-    protected Task _OnMessageEmit(IpcMessage msg, Ipc ipc) => (OnMessage?.Emit(msg, ipc)).ForAwait();
+    private readonly HashSet<Signal<IpcMessage, Ipc>> MessageSignal = new();
+    public event Signal<IpcMessage, Ipc> OnMessage
+    {
+        add { if(value != null) lock (MessageSignal) { MessageSignal.Add(value); } }
+        remove { lock (MessageSignal) { MessageSignal.Remove(value); } }
+    }
+    protected Task _OnMessageEmit(IpcMessage msg, Ipc ipc) => MessageSignal.Emit(msg, ipc).ForAwait();
 
     public abstract Task _doPostMessageAsync(IpcMessage data);
 
-    public event Signal<IpcRequest, Ipc>? OnRequest;
+    private readonly HashSet<Signal<IpcRequest, Ipc>> RequestSignal = new();
+    public event Signal<IpcRequest, Ipc> OnRequest
+    {
+        add { if(value != null) lock (RequestSignal) { RequestSignal.Add(value); } }
+        remove { lock (RequestSignal) { RequestSignal.Remove(value); } }
+    }
 
-    public event Signal<IpcResponse, Ipc>? OnResponse;
+    private readonly HashSet<Signal<IpcResponse, Ipc>> ResponseSignal = new();
+    public event Signal<IpcResponse, Ipc> OnResponse
+    {
+        add { if(value != null) lock (ResponseSignal) { ResponseSignal.Add(value); } }
+        remove { lock (ResponseSignal) { ResponseSignal.Remove(value); } }
+    }
 
-    public event Signal<IIpcStream, Ipc>? OnStream;
+    private readonly HashSet<Signal<IIpcStream, Ipc>> StreamSignal = new();
+    public event Signal<IIpcStream, Ipc> OnStream
+    {
+        add { if(value != null) lock (StreamSignal) { StreamSignal.Add(value); } }
+        remove { lock (StreamSignal) { StreamSignal.Remove(value); } }
+    }
 
-    public event Signal<IpcEvent, Ipc>? OnEvent;
+    private readonly HashSet<Signal<IpcEvent, Ipc>> EventSignal = new();
+    public event Signal<IpcEvent, Ipc> OnEvent
+    {
+        add { if(value != null) lock (EventSignal) { EventSignal.Add(value); } }
+        remove { lock (EventSignal) { EventSignal.Remove(value); } }
+    }
 
     private void ClearSignal()
     {
         // ipc关闭时，清空event signal
-        OnMessage = null;
-        OnRequest = null;
-        OnResponse = null;
-        OnStream = null;
-        OnEvent = null;
+        MessageSignal.Clear();
+        RequestSignal.Clear();
+        ResponseSignal.Clear();
+        StreamSignal.Clear();
+        EventSignal.Clear();
     }
 
     public abstract Task DoClose();
@@ -115,7 +140,7 @@ public abstract class Ipc
 
         _closed = true;
         await DoClose();
-        await OnClose.EmitAndClear();
+        await CloseSignal.EmitAndClear();
 
         await Destroy(false);
     }
@@ -125,9 +150,19 @@ public abstract class Ipc
         get { return _closed; }
     }
 
-    public event Signal? OnClose;
+    private readonly HashSet<Signal> CloseSignal = new();
+    public event Signal OnClose
+    {
+        add { if(value != null) lock (CloseSignal) { CloseSignal.Add(value); } }
+        remove { lock (CloseSignal) { CloseSignal.Remove(value); } }
+    }
 
-    public event Signal? OnDestory;
+    private readonly HashSet<Signal> DestorySignal = new();
+    public event Signal OnDestory
+    {
+        add { if(value != null) lock (DestorySignal) { DestorySignal.Add(value); } }
+        remove { lock (DestorySignal) { DestorySignal.Remove(value); } }
+    }
 
     private bool _destroyed = false;
     public bool IsDestroy
@@ -152,7 +187,7 @@ public abstract class Ipc
             await Close();
         }
 
-        await OnDestory.EmitAndClear();
+        await DestorySignal.EmitAndClear();
     }
 
     public Ipc()
@@ -161,18 +196,18 @@ public abstract class Ipc
         /// TODO 这里不应该使用 UNLIMITED，而是压力到一定程度方向发送限流的指令
         var streamChannel = new BufferBlock<(IIpcStream, Ipc)>(new DataflowBlockOptions { BoundedCapacity = DataflowBlockOptions.Unbounded });
 
-        OnMessage += async (ipcMessage, ipc, _) =>
+        OnMessage += async (ipcMessage, ipc, _self) =>
         {
             switch (ipcMessage)
             {
                 case IpcRequest ipcRequest:
-                    OnRequest?.Emit(ipcRequest, ipc); // 不 Await
+                    _ = RequestSignal.Emit(ipcRequest, ipc); // 不 Await
                     break;
                 case IpcResponse ipcResponse:
-                    OnResponse?.Emit(ipcResponse, ipc); // 不 Await
+                    _ = ResponseSignal.Emit(ipcResponse, ipc); // 不 Await
                     break;
                 case IpcEvent ipcEvent:
-                    OnEvent?.Emit(ipcEvent, ipc); // 不 Await
+                    _ = EventSignal.Emit(ipcEvent, ipc); // 不 Await
                     break;
                 case IIpcStream ipcStream:
                     streamChannel.Post((ipcStream, ipc));
@@ -184,7 +219,7 @@ public abstract class Ipc
         //{
         //    await foreach (var (ipcStreamMessage, ipc) in streamChannel.ReceiveAllAsync())
         //    {
-        //        await (OnStream?.Emit(ipcStreamMessage, ipc)).ForAwait();
+        //        await (StreamSignal.Emit(ipcStreamMessage, ipc)).ForAwait();
         //    }
         //}, TaskCreationOptions.LongRunning).NoThrow();
 
@@ -192,7 +227,7 @@ public abstract class Ipc
         {
             await foreach (var (ipcStreamMessage, ipc) in streamChannel.ReceiveAllAsync())
             {
-                await (OnStream?.Emit(ipcStreamMessage, ipc)).ForAwait();
+                await StreamSignal.Emit(ipcStreamMessage, ipc).ForAwait();
             }
         }).NoThrow();
 

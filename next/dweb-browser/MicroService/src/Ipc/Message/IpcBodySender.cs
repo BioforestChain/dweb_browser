@@ -43,7 +43,7 @@ public class IpcBodySender : IpcBody, IDisposable
             if (_isStreamOpenedValue != value)
             {
                 _isStreamOpenedValue = value;
-                _ = Task.Run(OnStreamOpen.EmitAndClear).NoThrow();
+                _ = StreamOpenSignal.EmitAndClear().NoThrow();
             }
         }
     }
@@ -57,7 +57,7 @@ public class IpcBodySender : IpcBody, IDisposable
             if (_isStreamClosedValue != value)
             {
                 _isStreamClosedValue = value;
-                _ = Task.Run(OnStreamClose.EmitAndClear).NoThrow();
+                _ = StreamCloseSignal.EmitAndClear().NoThrow();
             }
         }
     }
@@ -109,13 +109,18 @@ public class IpcBodySender : IpcBody, IDisposable
 
                 if (Map.Count == 0)
                 {
-                    await OnDestroy.EmitAndClear();
+                    await DestroySignal.EmitAndClear();
                 }
 
                 return ipcBodySender;
             }
 
-            public event Signal? OnDestroy;
+            private readonly HashSet<Signal> DestroySignal = new();
+    public event Signal OnDestroy
+    {
+        add { if(value != null) lock (DestroySignal) { DestroySignal.Add(value); } }
+        remove { lock (DestroySignal) { DestroySignal.Remove(value); } }
+    }
 
         }
 
@@ -292,9 +297,19 @@ public class IpcBodySender : IpcBody, IDisposable
         }
     }
 
-    public event Signal? OnStreamClose;
+    private readonly HashSet<Signal> StreamCloseSignal = new();
+    public event Signal OnStreamClose
+    {
+        add { if(value != null) lock (StreamCloseSignal) { StreamCloseSignal.Add(value); } }
+        remove { lock (StreamCloseSignal) { StreamCloseSignal.Remove(value); } }
+    }
 
-    public event Signal? OnStreamOpen;
+    private readonly HashSet<Signal> StreamOpenSignal = new();
+    public event Signal OnStreamOpen
+    {
+        add { if(value != null) lock (StreamOpenSignal) { StreamOpenSignal.Add(value); } }
+        remove { lock (StreamOpenSignal) { StreamOpenSignal.Remove(value); } }
+    }
 
 
     private async Task _emitStreamClose()
@@ -306,7 +321,7 @@ public class IpcBodySender : IpcBody, IDisposable
 
         _isStreamOpened = true;
         _isStreamClosed = true;
-        await (OnStreamClose?.Emit()).ForAwait();
+        await (StreamCloseSignal.Emit()).ForAwait();
     }
 
     protected override BodyHubType BodyHub

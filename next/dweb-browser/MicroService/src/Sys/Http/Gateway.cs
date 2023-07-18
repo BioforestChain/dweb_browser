@@ -83,7 +83,12 @@ public class Gateway
         }
 
         // 销毁
-        public event Signal? OnDestory;
+        private readonly HashSet<Signal> DestorySignal = new();
+    public event Signal OnDestory
+    {
+        add { if(value != null) lock (DestorySignal) { DestorySignal.Add(value); } }
+        remove { lock (DestorySignal) { DestorySignal.Remove(value); } }
+    }
 
         public async Task DestroyAsync()
         {
@@ -91,7 +96,7 @@ public class Gateway
             {
                 router.StreamIpc.ReadableStream.Stream.Close();
             });
-            await OnDestory.EmitAndClear();
+            await DestorySignal.EmitAndClear();
         }
     }
 

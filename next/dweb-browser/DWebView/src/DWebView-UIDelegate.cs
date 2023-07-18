@@ -24,13 +24,38 @@ public static class UIViewExtendsions
 
 public partial class DWebView : WKWebView
 {
-    public event Signal<(WKWebView webView, WKWebViewConfiguration configuration, WKNavigationAction navigationAction, WKWindowFeatures windowFeatures, Action<WKWebView?> completionHandler)>? OnCreateWebView;
-    public event Signal<WKWebView>? OnClose;
+    private readonly HashSet<Signal<(WKWebView webView, WKWebViewConfiguration configuration, WKNavigationAction navigationAction, WKWindowFeatures windowFeatures, Action<WKWebView?> completionHandler)>> CreateWebViewSignal = new();
+    public event Signal<(WKWebView webView, WKWebViewConfiguration configuration, WKNavigationAction navigationAction, WKWindowFeatures windowFeatures, Action<WKWebView?> completionHandler)> OnCreateWebView
+    {
+        add { if(value != null) lock (CreateWebViewSignal) { CreateWebViewSignal.Add(value); } }
+        remove { lock (CreateWebViewSignal) { CreateWebViewSignal.Remove(value); } }
+    }
+    private readonly HashSet<Signal<WKWebView>> CloseSignal = new();
+    public event Signal<WKWebView> OnClose
+    {
+        add { if(value != null) lock (CloseSignal) { CloseSignal.Add(value); } }
+        remove { lock (CloseSignal) { CloseSignal.Remove(value); } }
+    }
 
     #region 这些是可以自定义的行为，SignalResult 的 Complete 代表覆盖了默认的行为、Next 代表跳过管控，那么最后就会显示我们提供的默认行为
-    public event Signal<(WKWebView webView, string message, WKFrameInfo frame), SignalResult<Unit>>? OnJsAlert;
-    public event Signal<(WKWebView webView, string message, WKFrameInfo frame), SignalResult<bool>>? OnJsConfirm;
-    public event Signal<(WKWebView webView, string prompt, string? defaultText, WKFrameInfo frame), SignalResult<string?>>? OnJsPrompt;
+    private readonly HashSet<Signal<(WKWebView webView, string message, WKFrameInfo frame), SignalResult<Unit>>> JsAlertSignal = new();
+    public event Signal<(WKWebView webView, string message, WKFrameInfo frame), SignalResult<Unit>> OnJsAlert
+    {
+        add { if(value != null) lock (JsAlertSignal) { JsAlertSignal.Add(value); } }
+        remove { lock (JsAlertSignal) { JsAlertSignal.Remove(value); } }
+    }
+    private readonly HashSet<Signal<(WKWebView webView, string message, WKFrameInfo frame), SignalResult<bool>>> JsConfirmSignal = new();
+    public event Signal<(WKWebView webView, string message, WKFrameInfo frame), SignalResult<bool>> OnJsConfirm
+    {
+        add { if(value != null) lock (JsConfirmSignal) { JsConfirmSignal.Add(value); } }
+        remove { lock (JsConfirmSignal) { JsConfirmSignal.Remove(value); } }
+    }
+    private readonly HashSet<Signal<(WKWebView webView, string prompt, string? defaultText, WKFrameInfo frame), SignalResult<string?>>> JsPromptSignal = new();
+    public event Signal<(WKWebView webView, string prompt, string? defaultText, WKFrameInfo frame), SignalResult<string?>> OnJsPrompt
+    {
+        add { if(value != null) lock (JsPromptSignal) { JsPromptSignal.Add(value); } }
+        remove { lock (JsPromptSignal) { JsPromptSignal.Remove(value); } }
+    }
     #endregion
 
 
@@ -68,7 +93,7 @@ public partial class DWebView : WKWebView
                 }
                 else
                 {
-                    (dWebView.OnCreateWebView?.Emit(args))?.Wait();
+                    (dWebView.CreateWebViewSignal.Emit(args))?.Wait();
                 }
             };
 
@@ -90,14 +115,14 @@ public partial class DWebView : WKWebView
         [Export("webViewDidClose:")]
         public override void DidClose(WKWebView webView)
         {
-            dWebView.OnClose?.Emit(webView)?.Wait();
+            dWebView.CloseSignal.Emit(webView)?.Wait();
         }
 
 
         [Export("webView:runJavaScriptAlertPanelWithMessage:initiatedByFrame:completionHandler:")]
         public override async void RunJavaScriptAlertPanel(WKWebView webView, string message, WKFrameInfo frame, Action completionHandler)
         {
-            await dWebView.OnJsAlert.EmitForResult((webView, message, frame), async (args, ctx, _) =>
+            await dWebView.JsAlertSignal.EmitForResult((webView, message, frame), async (args, ctx, _) =>
             {
                 if (webView.GetUIViewController() is not null and var vc)
                 {
@@ -117,7 +142,7 @@ public partial class DWebView : WKWebView
         [Export("webView:runJavaScriptConfirmPanelWithMessage:initiatedByFrame:completionHandler:")]
         public override async void RunJavaScriptConfirmPanel(WKWebView webView, string message, WKFrameInfo frame, Action<bool> completionHandler)
         {
-            var (confirm, _) = await dWebView.OnJsConfirm.EmitForResult((webView, message, frame), async (args, ctx, _) =>
+            var (confirm, _) = await dWebView.JsConfirmSignal.EmitForResult((webView, message, frame), async (args, ctx, _) =>
             {
 
                 if (webView.GetUIViewController() is not null and var vc)
@@ -140,7 +165,7 @@ public partial class DWebView : WKWebView
         [Export("webView:runJavaScriptTextInputPanelWithPrompt:defaultText:initiatedByFrame:completionHandler:")]
         public override async void RunJavaScriptTextInputPanel(WKWebView webView, string prompt, string? defaultText, WKFrameInfo frame, Action<string> completionHandler)
         {
-            var (promptText, _) = await dWebView.OnJsPrompt.EmitForResult((webView, prompt, defaultText, frame), async (args, ctx, _) =>
+            var (promptText, _) = await dWebView.JsPromptSignal.EmitForResult((webView, prompt, defaultText, frame), async (args, ctx, _) =>
             {
                 if (webView.GetUIViewController() is not null and var vc)
                 {

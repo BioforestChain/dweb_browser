@@ -97,7 +97,12 @@ public class State<T> : StateBase
         hasCache = true;
     }
 
-    public event Signal<T, T?>? OnChange;
+    private readonly HashSet<Signal<T, T?>> ChangeSignal = new();
+    public event Signal<T, T?> OnChange
+    {
+        add { if(value != null) lock (ChangeSignal) { ChangeSignal.Add(value); } }
+        remove { lock (ChangeSignal) { ChangeSignal.Remove(value); } }
+    }
 
     public Task<T> GetNext()
     {
@@ -155,7 +160,7 @@ public class State<T> : StateBase
                 var oldValue = cache;
                 cache = getter();
                 hasCache = true;
-                _ = OnChange?.Emit(cache, oldValue);
+                _ = ChangeSignal.Emit(cache, oldValue);
                 return cache;
             }
             finally

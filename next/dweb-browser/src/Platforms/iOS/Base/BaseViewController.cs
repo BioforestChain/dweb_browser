@@ -1,4 +1,5 @@
-﻿using CoreGraphics;
+﻿using System.Collections.Concurrent;
+using CoreGraphics;
 using UIKit;
 
 #nullable enable
@@ -21,14 +22,18 @@ public abstract class BaseViewController : UIViewController
 
     public virtual void InitView() { }
 
-    public event Signal? OnDestroyController;
+    private readonly HashSet<Signal> _destroyControllerSignal = new HashSet<Signal>();
+    public event Signal OnDestroyController {
+        add { if(value != null) lock (_destroyControllerSignal) { _destroyControllerSignal.Add(value);  } }
+        remove { lock (_destroyControllerSignal) { _destroyControllerSignal.Remove(value); } }
+    }
 
     public override void ViewWillDisappear(bool animated)
     {
         base.ViewWillDisappear(animated);
         _ = Task.Run(async () =>
         {
-            await (OnDestroyController?.Emit()).ForAwait();
+            await _destroyControllerSignal.Emit().ForAwait();
         }).NoThrow();
     }
 

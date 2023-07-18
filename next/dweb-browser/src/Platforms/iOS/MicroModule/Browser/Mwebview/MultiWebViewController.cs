@@ -173,7 +173,7 @@ public partial class MultiWebViewController : BaseViewController
 
             _ = Task.Run(async () =>
             {
-                await (_OnWebViewOpen?.Emit(webviewId)).ForAwait();
+                await (_WebViewOpenSignal.Emit(webviewId)).ForAwait();
             }).NoThrow();
         }));
     }
@@ -189,7 +189,7 @@ public partial class MultiWebViewController : BaseViewController
             if (WebViewList.Update((list) => list!.Remove(viewItem)))
             {
                 viewItem.webView?.Dispose();
-                await (_OnWebViewClose?.Emit(webviewId)).ForAwait();
+                await (_WebViewCloseSignal.Emit(webviewId)).ForAwait();
                 return true;
             }
         }
@@ -214,8 +214,18 @@ public partial class MultiWebViewController : BaseViewController
     }
 
 
-    private event Signal<string>? _OnWebViewClose;
-    private event Signal<string>? _OnWebViewOpen;
+    private readonly HashSet<Signal<string>> _WebViewCloseSignal = new();
+    private event Signal<string> _OnWebViewClose
+    {
+        add { if(value != null) lock (_WebViewCloseSignal) { _WebViewCloseSignal.Add(value); } }
+        remove { lock (_WebViewCloseSignal) { _WebViewCloseSignal.Remove(value); } }
+    }
+    private readonly HashSet<Signal<string>> _WebViewOpenSignal = new();
+    private event Signal<string> _OnWebViewOpen
+    {
+        add { if(value != null) lock (_WebViewOpenSignal) { _WebViewOpenSignal.Add(value); } }
+        remove { lock (_WebViewOpenSignal) { _WebViewOpenSignal.Remove(value); } }
+    }
 
 }
 

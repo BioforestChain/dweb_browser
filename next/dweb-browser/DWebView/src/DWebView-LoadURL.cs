@@ -269,18 +269,23 @@ public partial class DWebView : WKWebView
         wkNavigation = LoadRequest(nsUrlRequest);
 
 
-        if (OnReady is not null && !OnReady.IsEmpty())
+        if (ReadySignal.Count != 0)
         {
-            this.NavigationDelegate = new OnReadyDelegate(OnReady);
+            this.NavigationDelegate = new OnReadyDelegate(ReadySignal);
         }
     }
 
-    public event Signal? OnReady;
+    private readonly HashSet<Signal> ReadySignal = new();
+    public event Signal OnReady
+    {
+        add { if(value != null) lock (ReadySignal) { ReadySignal.Add(value); } }
+        remove { lock (ReadySignal) { ReadySignal.Remove(value); } }
+    }
 
     class OnReadyDelegate : WKNavigationDelegate
     {
-        readonly Signal _onReady;
-        public OnReadyDelegate(Signal onReady)
+        readonly HashSet<Signal> _onReady;
+        public OnReadyDelegate(HashSet<Signal> onReady)
         {
             this._onReady = onReady;
         }

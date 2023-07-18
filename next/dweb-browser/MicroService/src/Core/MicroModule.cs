@@ -47,7 +47,12 @@ public abstract partial class MicroModule : Ipc.IMicroModuleInfo
         }
     }
 
-    public event Signal? OnAfterShutdown;
+    private readonly HashSet<Signal> AfterShutdownSignal = new();
+    public event Signal OnAfterShutdown
+    {
+        add { if(value != null) lock (AfterShutdownSignal) { AfterShutdownSignal.Add(value); } }
+        remove { lock (AfterShutdownSignal) { AfterShutdownSignal.Remove(value); } }
+    }
 
     protected virtual async Task _beforeShutdownAsync()
     {
@@ -71,7 +76,7 @@ public abstract partial class MicroModule : Ipc.IMicroModuleInfo
 
     protected async Task _afterShutdownAsync()
     {
-        await OnAfterShutdown.EmitAndClear();
+        await AfterShutdownSignal.EmitAndClear();
         _runningStateLock.Resolve();
         _bootstrapContext = null;
     }
@@ -112,7 +117,12 @@ public abstract partial class MicroModule : Ipc.IMicroModuleInfo
      * 如果时 JsMicroModule 这个 onConnect 就是写在 WebWorker 那边了
      * </summary>
      */
-    public event Signal<Ipc, PureRequest>? OnConnect;
+    private readonly HashSet<Signal<Ipc, PureRequest>> ConnectSignal = new();
+    public event Signal<Ipc, PureRequest> OnConnect
+    {
+        add { if(value != null) lock (ConnectSignal) { ConnectSignal.Add(value); } }
+        remove { lock (ConnectSignal) { ConnectSignal.Remove(value); } }
+    }
 
     /**
      * <summary>
@@ -142,7 +152,7 @@ public abstract partial class MicroModule : Ipc.IMicroModuleInfo
             }
         };
 
-        return (OnConnect?.Emit(ipc, reason)).ForAwait();
+        return (ConnectSignal.Emit(ipc, reason)).ForAwait();
     }
 
     protected virtual async Task _onActivityAsync(IpcEvent Event, Ipc ipc) { }

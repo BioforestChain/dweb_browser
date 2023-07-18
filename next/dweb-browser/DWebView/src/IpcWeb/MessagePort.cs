@@ -22,9 +22,9 @@ public class MessagePort
         {
             await foreach (var message in MessageChannel.ReceiveAllAsync())
             {
-                await (OnWebMessage?.Emit(message)).ForAwait();
+                await (WebMessageSignal.Emit(message)).ForAwait();
             }
-            OnWebMessage = null;
+            WebMessageSignal.Clear();
         }).NoThrow();
 
         Port.OnMessage += (message, _) => MessageChannel.SendAsync(message);
@@ -33,7 +33,12 @@ public class MessagePort
     public BufferBlock<WebMessage> MessageChannel = new(new DataflowBlockOptions
     { BoundedCapacity = DataflowBlockOptions.Unbounded });
 
-    public event Signal<WebMessage>? OnWebMessage;
+    private readonly HashSet<Signal<WebMessage>> WebMessageSignal = new();
+    public event Signal<WebMessage> OnWebMessage
+    {
+        add { if(value != null) lock (WebMessageSignal) { WebMessageSignal.Add(value); } }
+        remove { lock (WebMessageSignal) { WebMessageSignal.Remove(value); } }
+    }
 
     public Task Start() => Port.Start().NoThrow();
     public Task PostMessage(string data) => Port.PostMessage(WebMessage.From(data)).NoThrow();

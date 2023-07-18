@@ -1,5 +1,6 @@
 ﻿using DwebBrowser.Base;
 using UIKit;
+using WebKit;
 
 #nullable enable
 
@@ -22,8 +23,13 @@ public abstract class IOSNativeMicroModule : NativeMicroModule
 
     public abstract void OpenActivity(Mmid remoteMmid);
 
-    protected event Signal<Mmid, BaseViewController> _OnActivity;
-    protected Task _OnActivityEmit(Mmid mmid, BaseViewController controller) => (_OnActivity?.Emit(mmid, controller)).ForAwait();
+    private readonly HashSet<Signal<Mmid, BaseViewController>> _ActivitySignal = new();
+    public event Signal<Mmid, BaseViewController> _OnActivity
+    {
+        add { if(value != null) lock (_ActivitySignal) { _ActivitySignal.Add(value); } }
+        remove { lock (_ActivitySignal) { _ActivitySignal.Remove(value); } }
+    }
+    protected Task _OnActivityEmit(Mmid mmid, BaseViewController controller) => (_ActivitySignal.Emit(mmid, controller)).ForAwait();
 
     public static readonly PromiseOut<UIWindow> Window = new();
     public static readonly PromiseOut<UINavigationController> RootViewController = new();

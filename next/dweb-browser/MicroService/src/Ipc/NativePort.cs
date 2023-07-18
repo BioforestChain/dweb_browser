@@ -55,7 +55,7 @@ public class NativePort<I, O>
         await foreach (I message in _channel_in.ReceiveAllAsync())
         {
             Console.Log("Start", "port-message-in/{0} {1}", this, message);
-            await (OnMessage?.Emit(message)).ForAwait();
+            await (MessageSignal.Emit(message)).ForAwait();
             Console.Log("Start", "port-message-waiting/{0}", this);
         }
 
@@ -63,7 +63,12 @@ public class NativePort<I, O>
         Console.Log("Start", "port-message-end/{0}", this);
     }
 
-    public event Signal? OnClose;
+    private readonly HashSet<Signal> CloseSignal = new();
+    public event Signal OnClose
+    {
+        add { if(value != null) lock (CloseSignal) { CloseSignal.Add(value); } }
+        remove { lock (CloseSignal) { CloseSignal.Remove(value); } }
+    }
 
     public void Close()
     {
@@ -78,11 +83,16 @@ public class NativePort<I, O>
     {
         /// 关闭输出就行了
         _channel_out.Complete();
-        OnClose?.EmitAndClear();
+        CloseSignal.EmitAndClear();
         Console.Log("Close", "port-closed/{0}", this);
     }
 
-    public event Signal<I>? OnMessage;
+    private readonly HashSet<Signal<I>> MessageSignal = new();
+    public event Signal<I> OnMessage
+    {
+        add { if(value != null) lock (MessageSignal) { MessageSignal.Add(value); } }
+        remove { lock (MessageSignal) { MessageSignal.Remove(value); } }
+    }
 
     /**
      * <summary>

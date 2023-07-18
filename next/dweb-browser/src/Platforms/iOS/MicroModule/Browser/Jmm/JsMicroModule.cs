@@ -220,7 +220,7 @@ public class JsMicroModule : MicroModule
                         await _ipcBridgeAsync(Event.mmid, targetIpc);
                     }
                 }
-                catch(Exception err)
+                catch (Exception err)
                 {
                     await _ipcConnectFailAsync(Event.mmid, err);
                 }
@@ -297,14 +297,14 @@ public class JsMicroModule : MicroModule
                             _fromMmid_originIpc_map.Remove(targetIpc.Remote.Mmid);
                             await originIpc.Close();
                         };
-                        
                     }
-
-                    originIpc.OnClose += async (_) =>
+                    else
                     {
-                        _fromMmid_originIpc_map.Remove(fromMmid);
-                    };
-
+                        originIpc.OnClose += async (_) =>
+                        {
+                            _fromMmid_originIpc_map.Remove(fromMmid);
+                        };
+                    }
                     po.Resolve(originIpc);
                 }
                 catch (Exception e)

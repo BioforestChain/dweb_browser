@@ -1,4 +1,6 @@
-﻿namespace DwebBrowser.Helper;
+﻿using System.Collections.Concurrent;
+
+namespace DwebBrowser.Helper;
 
 public delegate Task? Signal(Signal self);
 public delegate Task? Signal<T1>(T1 arg1, Signal<T1> self);
@@ -35,6 +37,7 @@ public static class SignalExtendsions
     {
         return self.GetInvocationList().Length is 0;
     }
+
 
     private static Delegate[]? CopyDelegateArray(Signal? signal)
     {
@@ -92,11 +95,24 @@ public static class SignalExtendsions
         return emit(arg1, arg2, list);
     }
 
+    public static Task Emit(this HashSet<Signal> self)
+    {
+        return emit(self.ToArray());
+    }
+    public static Task Emit<T1>(this HashSet<Signal<T1>> self, T1 arg1)
+    {
+        return emit(arg1, self.ToArray());
+    }
+    public static Task Emit<T1, T2>(this HashSet<Signal<T1, T2>> self, T1 arg1, T2 arg2)
+    {
+        return emit(arg1, arg2, self.ToArray());
+    }
+
     private static async Task emit(Delegate[]? list)
     {
         try
         {
-            if (list is null) return;
+            if (list is null || list.Length == 0) return;
 
             if (list.Length == 1)
             {
@@ -120,7 +136,7 @@ public static class SignalExtendsions
     {
         try
         {
-            if (list is null) return;
+            if (list is null || list.Length == 0) return;
 
             if (list.Length == 1)
             {
@@ -144,7 +160,7 @@ public static class SignalExtendsions
     {
         try
         {
-            if (list is null) return;
+            if (list is null || list.Length == 0) return;
 
             if (list.Length == 1)
             {
@@ -165,7 +181,7 @@ public static class SignalExtendsions
         }
     }
 
-    public static async Task<(R?,bool)> EmitForResult<T, R>(this Signal<T, SignalResult<R>>? self, T args, Signal<T, SignalResult<R>> finallyNext)
+    public static async Task<(R?, bool)> EmitForResult<T, R>(this Signal<T, SignalResult<R>>? self, T args, Signal<T, SignalResult<R>> finallyNext)
     {
         try
         {
@@ -180,7 +196,7 @@ public static class SignalExtendsions
                 await ctx.Waitter.WaitPromiseAsync();
                 if (ctx.HasResult)
                 {
-                    return (ctx.Result,true);
+                    return (ctx.Result, true);
                 }
             }
         }
@@ -188,7 +204,34 @@ public static class SignalExtendsions
         {
             Console.Error("EmitForResult", "{0}", e);
         }
-        return (default(R),false);
+        return (default(R), false);
+
+    }
+
+    public static async Task<(R?, bool)> EmitForResult<T, R>(this HashSet<Signal<T, SignalResult<R>>> self, T args, Signal<T, SignalResult<R>> finallyNext)
+    {
+        try
+        {
+            Delegate[] list = self.ToArray().Append(finallyNext).ToArray();
+
+            for (int i = 0; i < list.Length; i++)
+            {
+                var cb = (Signal<T, SignalResult<R>>)list[i];
+
+                var ctx = new SignalResult<R>();
+                await cb(args, ctx, cb).ForAwait();
+                await ctx.Waitter.WaitPromiseAsync();
+                if (ctx.HasResult)
+                {
+                    return (ctx.Result, true);
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Console.Error("EmitForResult", "{0}", e);
+        }
+        return (default(R), false);
 
     }
 
@@ -209,6 +252,31 @@ public static class SignalExtendsions
     public static Task EmitAndClear<T1, T2>(this Signal<T1, T2>? self, T1 arg1, T2 arg2)
     {
         var list = CopyDelegateArray(self).Also(_ => self = null);
+
+        return emit(arg1, arg2, list);
+    }
+
+
+    public static Task EmitAndClear(this HashSet<Signal> self)
+    {
+        var list = self.ToArray();
+        self.Clear();
+
+        return emit(list);
+    }
+
+    public static Task EmitAndClear<T1>(this HashSet<Signal<T1>> self, T1 arg1)
+    {
+        var list = self.ToArray();
+        self.Clear();
+
+        return emit(arg1, list);
+    }
+
+    public static Task EmitAndClear<T1, T2>(this HashSet<Signal<T1, T2>> self, T1 arg1, T2 arg2)
+    {
+        var list = self.ToArray();
+        self.Clear();
 
         return emit(arg1, arg2, list);
     }

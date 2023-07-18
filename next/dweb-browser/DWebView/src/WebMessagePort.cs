@@ -37,8 +37,13 @@ public class WebMessagePort
     }
     public Task Start() => webview.InvokeOnMainThreadAsync(() => webview.EvaluateJavaScriptAsync("nativeStart(" + portId + ")", null, DWebView.webMessagePortContentWorld));
 
-    public event Signal<WebMessage>? OnMessage;
-    internal Task EmitOnMessage(WebMessage msg) => (OnMessage?.Emit(msg)).ForAwait();
+    private readonly HashSet<Signal<WebMessage>> MessageSignal = new();
+    public event Signal<WebMessage> OnMessage
+    {
+        add { if(value != null) lock (MessageSignal) { MessageSignal.Add(value); } }
+        remove { lock (MessageSignal) { MessageSignal.Remove(value); } }
+    }
+    internal Task EmitOnMessage(WebMessage msg) => (MessageSignal.Emit(msg)).ForAwait();
 
     public async Task Close()
     {
