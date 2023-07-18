@@ -176,7 +176,10 @@ const runProcessMain = (process_id: number, config: $RunMainConfig) => {
  * @param process_id
  */
 const destroyProcess = (process_id: number) => {
-  const process = _forceGetProcess(process_id);
+  const process = ALL_PROCESS_MAP.get(process_id);
+  if(process === undefined){
+    return false
+  }
   /**
    * @TODO worker 可以主动推送一些信息过来，告知现在正在进行的一些事务的原因
    * 那么应该允许它们与用户进行一定的交互来提示用户正在中断一些用户预期之外的任务，如果用户执意中断，那么就正式中断，如：
@@ -195,6 +198,7 @@ const destroyProcess = (process_id: number) => {
    */
   process.worker.terminate();
   ALL_PROCESS_MAP.delete(process_id);
+  return true;
 };
 
 type $OnCreateProcessMessage = (msg: { process_id: number; env_script_url: string }) => unknown;

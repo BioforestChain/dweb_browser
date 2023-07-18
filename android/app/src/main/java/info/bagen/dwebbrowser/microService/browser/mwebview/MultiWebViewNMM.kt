@@ -140,9 +140,7 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.browser.dweb") {
       )
     }
     GlobalScope.launch(ioAsyncExceptionHandler) {
-
       controller.downLoadObserver = DownLoadObserver(remoteMmid).apply {
-
         observe { listener ->
           controller.lastViewOrNull?.webView?.let { dWebView ->
             emitEvent(
@@ -160,7 +158,6 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.browser.dweb") {
     val activity = controller.waitActivityCreated()
     activitySignal.emit(Pair(remoteMmid, activity))
     /// 销毁的时候取消绑定
-    controller.onWebViewClose { }
     activity.onDestroyActivity {
       controllerMap.remove(remoteMmid, controller)
       /// FIXME 更新状态？？？

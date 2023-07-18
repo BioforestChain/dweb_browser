@@ -225,25 +225,21 @@ class HttpNMM : NativeMicroModule("http.std.dweb") {
     val serverUrlInfo = getServerUrlInfo(ipc, options)
     debugHttp("start", "$serverUrlInfo => $options")
     if (gatewayMap.contains(serverUrlInfo.host)) throw Exception("already in listen: ${serverUrlInfo.internal_origin}")
-
     val listener = Gateway.PortListener(ipc, serverUrlInfo.host)
 
     listener.onDestroy {
       close(ipc, options)
     }
-
     /// ipc 在关闭的时候，自动释放所有的绑定
     ipc.onClose {
       debugHttp("start close", "onDestroy ${ipc.remote.mmid} ${serverUrlInfo.host}")
       listener.destroy()
     }
-
     val token = ByteArray(8).also { Random().nextBytes(it) }.toBase64Url()
 
     val gateway = Gateway(listener, serverUrlInfo, token)
     gatewayMap[serverUrlInfo.host] = gateway
     tokenMap[token] = gateway
-
     return ServerStartResult(token, serverUrlInfo)
   }
 
@@ -265,7 +261,6 @@ class HttpNMM : NativeMicroModule("http.std.dweb") {
     this.addToIpcSet(streamIpc)
     /// 自己创建的，就要自己销毁：这个listener被销毁的时候，streamIpc也要进行销毁
     gateway.listener.onDestroy {
-      debugHttp("onDestroy", "gateway.listener")
       streamIpc.close()
     }
     for (routeConfig in routes) {
@@ -277,8 +272,8 @@ class HttpNMM : NativeMicroModule("http.std.dweb") {
 
   private suspend fun close(ipc: Ipc, options: DwebHttpServerOptions): Boolean {
     val serverUrlInfo = getServerUrlInfo(ipc, options)
-    debugHttp("close", "mmid: ${ipc.remote.mmid} ${serverUrlInfo.host}")
     return gatewayMap.remove(serverUrlInfo.host)?.let { gateway ->
+      debugHttp("close", "mmid: ${ipc.remote.mmid} ${serverUrlInfo.host}")
       tokenMap.remove(gateway.token)
       gateway.listener.destroy()
       true

@@ -25,30 +25,30 @@ import org.http4k.core.query
 /// 对外提供一套建议的操作来创建、使用、维护这个http服务
 
 data class DwebHttpServerOptions(
-    val port: Int,
-    val subdomain: String,
+  val port: Int,
+  val subdomain: String,
 ) {
-    constructor(
-        port: Int? = 80,
-        subdomain: String? = "",
-    ) : this(port ?: 80, subdomain ?: "")
+  constructor(
+    port: Int? = 80,
+    subdomain: String? = "",
+  ) : this(port ?: 80, subdomain ?: "")
 }
 
 suspend fun MicroModule.startHttpDwebServer(options: DwebHttpServerOptions) =
-    this.nativeFetch(
-        Uri.of("file://http.std.dweb/start")
-            .query("port", options.port.toString())
-            .query("subdomain", options.subdomain)
-    ).json<HttpNMM.ServerStartResult>(HttpNMM.ServerStartResult::class.java)
+  this.nativeFetch(
+    Uri.of("file://http.std.dweb/start")
+      .query("port", options.port.toString())
+      .query("subdomain", options.subdomain)
+  ).json<HttpNMM.ServerStartResult>(HttpNMM.ServerStartResult::class.java)
 
 
 suspend fun MicroModule.listenHttpDwebServer(
   startResult: HttpNMM.ServerStartResult,
   routes: Array<Gateway.RouteConfig>
 ): ReadableStreamIpc {
-  val streamIpc = ReadableStreamIpc(object: Ipc.MicroModuleInfo{
-      override val mmid: Mmid = "http.std.dweb"
-      override val dweb_deeplinks = mutableListOf<DWEB_DEEPLINK>()
+  val streamIpc = ReadableStreamIpc(object : Ipc.MicroModuleInfo {
+    override val mmid: Mmid = "http.std.dweb"
+    override val dweb_deeplinks = mutableListOf<DWEB_DEEPLINK>()
   }, "http-server/${startResult.urlInfo.host}").also {
     it.bindIncomeStream(
       this.nativeFetch(
@@ -68,37 +68,46 @@ suspend fun MicroModule.listenHttpDwebServer(
 
 
 suspend fun MicroModule.closeHttpDwebServer(options: DwebHttpServerOptions) =
-    this.nativeFetch(
-        Uri.of("file://http.std.dweb/close")
-            .query("port", options.port.toString())
-            .query("subdomain", options.subdomain)
-    ).boolean()
+  this.nativeFetch(
+    Uri.of("file://http.std.dweb/close")
+      .query("port", options.port.toString())
+      .query("subdomain", options.subdomain)
+  ).boolean()
 
 class HttpDwebServer(
   private val nmm: MicroModule,
   private val options: DwebHttpServerOptions,
   val startResult: HttpNMM.ServerStartResult
 ) {
-    suspend fun listen(
-        routes: Array<Gateway.RouteConfig> = arrayOf(
-          Gateway.RouteConfig(pathname = "", method = IpcMethod.GET),
-          Gateway.RouteConfig(pathname = "", method = IpcMethod.POST),
-          Gateway.RouteConfig(pathname = "", method = IpcMethod.PUT),
-          Gateway.RouteConfig(pathname = "", method = IpcMethod.DELETE)
-        ),
-    ) = runBlockingCatching {
-      val po = PromiseOut<ReadableStreamIpc>()
-      GlobalScope.launch(ioAsyncExceptionHandler) {
-        val streamIpc = nmm.listenHttpDwebServer(startResult, routes)
-        po.resolve(streamIpc)
-      }
-      po.waitPromise()
-    }.getOrThrow()
+  private val listenPo = PromiseOut<ReadableStreamIpc>()
+  val listen = suspendOnce {
+    if (listenPo.isFinished) {
+      throw Exception("Listen method has been called more than once without closing.");
+    }
+    val streamIpc = nmm.listenHttpDwebServer(
+      startResult, arrayOf(
+        Gateway.RouteConfig(pathname = "", method = IpcMethod.GET),
+        Gateway.RouteConfig(pathname = "", method = IpcMethod.POST),
+        Gateway.RouteConfig(pathname = "", method = IpcMethod.PUT),
+        Gateway.RouteConfig(pathname = "", method = IpcMethod.DELETE),
+        Gateway.RouteConfig(pathname = "", method = IpcMethod.OPTIONS),
+        Gateway.RouteConfig(pathname = "", method = IpcMethod.PATCH),
+        Gateway.RouteConfig(pathname = "", method = IpcMethod.HEAD),
+        Gateway.RouteConfig(pathname = "", method = IpcMethod.CONNECT),
+        Gateway.RouteConfig(pathname = "", method = IpcMethod.TRACE)
+      )
+    )
+    listenPo.resolve(streamIpc)
+    return@suspendOnce streamIpc
+  }
 
 
-    val close = suspendOnce { nmm.closeHttpDwebServer(options) }
+  val close = suspendOnce {
+    listenPo.waitPromise().close()// 主动关闭
+    nmm.closeHttpDwebServer(options) // 并且发送关闭指令（对方也会将我进行关闭，但我仍然需要执行主动关闭，确保自己的资源正确释放，对方不释放是它自己的事情）
+  }
 }
 
 suspend fun MicroModule.createHttpDwebServer(options: DwebHttpServerOptions) =
-    HttpDwebServer(this, options, startHttpDwebServer(options))
+  HttpDwebServer(this, options, startHttpDwebServer(options))
 

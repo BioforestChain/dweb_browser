@@ -15,7 +15,6 @@ import org.dweb_browser.microservice.sys.http.HttpDwebServer
 import org.dweb_browser.microservice.sys.http.closeHttpDwebServer
 import org.dweb_browser.microservice.sys.http.createHttpDwebServer
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -52,7 +51,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     /// 主页的网页服务
-     val mainServer = this.createHttpDwebServer(DwebHttpServerOptions()).also { server ->
+    val mainServer = this.createHttpDwebServer(DwebHttpServerOptions()).also { server ->
       // 提供基本的主页服务
       val serverIpc = server.listen();
       serverIpc.onRequest { (request, ipc) ->
@@ -160,7 +159,10 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
       },
       /// 关闭process
       "/close-all-process" bind Method.GET to defineHandler { request, ipc ->
-        return@defineHandler closeAllProcessByIpc(apis, ipcProcessIdMap, ipc.remote.mmid)
+        return@defineHandler closeAllProcessByIpc(apis, ipcProcessIdMap, ipc.remote.mmid).also {
+          /// 强制关闭Ipc
+          ipc.close()
+        }
       },
       // ipc 创建错误
       "/create-ipc-fail" bind Method.GET to defineHandler { request, ipc ->
@@ -199,7 +201,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
   }
 
   override suspend fun _shutdown() {
-    debugJsProcess("JsProcess","_shutdown")
+    debugJsProcess("JsProcess", "_shutdown")
   }
 
   private suspend fun createProcessAndRun(
@@ -223,6 +225,19 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
       it.bindIncomeStream(requestMessage.body.stream);
     }
     this.addToIpcSet(streamIpc)
+
+    /**
+     * “模块之间的IPC通道”关闭的时候，关闭“代码IPC流通道”
+     */
+    ipc.onClose {
+      streamIpc.close()
+    }
+    /**
+     * “代码IPC流通道”关闭的时候，关闭这个子域名
+     */
+    streamIpc.onClose {
+      httpDwebServer.close();
+    }
 
     /**
      * 代理监听
@@ -269,6 +284,9 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
       ipc.remote,
       httpDwebServer.startResult.urlInfo.host
     )
+    processHandler.ipc.onClose {
+      apis.destroyProcess(processHandler.info.process_id)
+    }
     /**
      * 收到 Worker 的数据请求，由 js-process 代理转发回去，然后将返回的内容再代理响应会去
      *
@@ -283,6 +301,14 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
     ipc.onMessage { (remoteIpcMessage) ->
       processHandler.ipc.postMessage(remoteIpcMessage)
     }
+    /// 由于 MessagePort 的特殊性，它无法知道自己什么时候被关闭，所以这里通过宿主关系，绑定它的close触发时机
+    ipc.onClose {
+      processHandler.ipc.close()
+    }
+    /// 双向绑定关闭
+    processHandler.ipc.onClose {
+      ipc.close()
+    }
 
     /**
      * 开始执行代码
@@ -293,25 +319,6 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
           .path(entry ?: "/index.js").toString()
       )
     )
-
-    /// 绑定销毁
-    /**
-     * “模块之间的IPC通道”关闭的时候，关闭“代码IPC流通道”
-     *
-     * > 自己shutdown的时候，这些ipc会被关闭
-     */
-    ipc.onClose {
-      streamIpc.close()
-      codeProxyServerIpc.close()
-    }
-
-    /**
-     * “代码IPC流通道”关闭的时候，关闭这个子域名
-     */
-    streamIpc.onClose {
-      httpDwebServer.close();
-      apis.destroyProcess(processHandler.info.process_id)
-    }
 
     return CreateProcessAndRunResult(streamIpc, processHandler)
   }
@@ -326,13 +333,17 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
     return apis.createIpc(process_id, mmid)
   }
 
-  private suspend fun closeAllProcessByIpc(apis:JsProcessWebApi, ipcProcessIdMap: MutableMap<String, MutableMap<String, PromiseOut<Int>>>,mmid: Mmid):Boolean{
+  private suspend fun closeAllProcessByIpc(
+    apis: JsProcessWebApi,
+    ipcProcessIdMap: MutableMap<String, MutableMap<String, PromiseOut<Int>>>,
+    mmid: Mmid
+  ): Boolean {
     debugJsProcess("close-all-process", mmid)
     val processMap = ipcProcessIdMap.remove(mmid) ?: return false;
     // 关闭程序
-    for (po in processMap.values){
-      val processId =po.waitPromise()
-       apis.destroyProcess(processId)
+    for (po in processMap.values) {
+      val processId = po.waitPromise()
+      apis.destroyProcess(processId)
     }
 
     // 关闭代码通道

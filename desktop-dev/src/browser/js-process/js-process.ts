@@ -183,12 +183,6 @@ export class JsProcessNMM extends NativeMicroModule {
         /// 创建成功了，注册销毁函数
         ipc.onClose(() => {
           this.closeAllProcessByIpc(apis, ipcProcessIdMap, event.ipc.remote.mmid);
-          if (processIdMap.delete(process_id)) {
-            ipcProcessIdMap.delete(ipc.remote.mmid);
-            if (processIdMap.size === 0) {
-              apis.destroyProcess(result.processInfo.process_id);
-            }
-          }
         });
 
         return { body: result.streamIpc.stream };
@@ -252,6 +246,18 @@ export class JsProcessNMM extends NativeMicroModule {
     const streamIpc = new ReadableStreamIpc(ipc.remote, IPC_ROLE.CLIENT);
     void streamIpc.bindIncomeStream(requestMessage.body.stream());
     this.addToIpcSet(streamIpc);
+    /**
+     * “模块之间的IPC通道”关闭的时候，关闭“代码IPC流通道”
+     */
+    ipc.onClose(() => {
+      streamIpc.close();
+    });
+    /**
+     * “代码IPC流通道”关闭的时候，关闭这个子域名
+     */
+    streamIpc.onClose(() => {
+      httpDwebServer.close();
+    });
     /**
      * 让远端提供 esm 模块代码
      * 这里我们将请求转发给对方，要求对方以一定的格式提供代码回来，
@@ -325,6 +331,10 @@ export class JsProcessNMM extends NativeMicroModule {
      */
     const ipc_to_worker = new MessagePortIpc(channel_for_worker.port1, ipc.remote, IPC_ROLE.CLIENT);
 
+    ipc_to_worker.onClose(() => {
+      apis.destroyProcess(processInfo.process_id);
+    });
+
     ipc_to_worker.onMessage((ipcMessage) => {
       ipc.postMessage(ipcMessage);
     });
@@ -333,7 +343,11 @@ export class JsProcessNMM extends NativeMicroModule {
     });
     /// 由于 MessagePort 的特殊性，它无法知道自己什么时候被关闭，所以这里通过宿主关系，绑定它的close触发时机
     ipc.onClose(() => {
-      ipc_to_worker._emitClose();
+      ipc_to_worker.close();
+    });
+    /// 双向绑定关闭
+    ipc_to_worker.onClose(() => {
+      ipc.close();
     });
 
     /**
@@ -345,23 +359,6 @@ export class JsProcessNMM extends NativeMicroModule {
       }).href,
     });
 
-    /// 绑定销毁
-    /**
-     * “模块之间的IPC通道”关闭的时候，关闭“代码IPC流通道”
-     *
-     * > 自己shutdown的时候，这些ipc会被关闭
-     */
-    ipc.onClose(() => {
-      streamIpc.close();
-      ipc_to_worker.close();
-    });
-    /**
-     * “代码IPC流通道”关闭的时候，关闭这个子域名
-     */
-    streamIpc.onClose(() => {
-      httpDwebServer.close();
-      httpStreamIpc.close();
-    });
     return {
       streamIpc,
       processInfo,

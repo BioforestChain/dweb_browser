@@ -81,8 +81,4 @@ export class MessagePortIpc extends Ipc {
     this.port.postMessage("close");
     this.port.close();
   }
-
-  _emitClose() {
-    this._closeSignal.emit();
-  }
 }

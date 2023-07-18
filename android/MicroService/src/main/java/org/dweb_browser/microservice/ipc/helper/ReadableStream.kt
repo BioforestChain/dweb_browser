@@ -36,7 +36,7 @@ class ReadableStream(
     suspend fun enqueue(byteArray: ByteArray) = dataChannel.send(byteArray)
 
     fun close() {
-      dataChannel.close()
+      stream.close()
     }
 
     fun error(e: Throwable?) = dataChannel.close(e)
@@ -91,8 +91,6 @@ class ReadableStream(
       // 关闭数据通道了，尝试解锁通知等待者
       dataChangeObserver.emit(-1)
 
-      // 执行关闭
-      closePo.resolve(Unit)
       // 执行生命周期回调
       onClose()
     }

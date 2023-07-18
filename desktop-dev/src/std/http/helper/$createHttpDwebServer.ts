@@ -32,16 +32,16 @@ export class HttpDwebServer {
   private _listenIpcPo = new PromiseOut<ReadableStreamIpc>();
   private _listenIpcP?: Promise<ReadableStreamIpc>;
   /** 开始处理请求 */
-  listen = (routes?: $ReqMatcher[]) => {
-    this._listen(routes);
+  listen = () => {
+    this._listen();
     return this._listenIpcPo.promise;
   };
-  private _listen(routes?: $ReqMatcher[]) {
+  private _listen() {
     if (this._listenIpcP) {
       throw new Error("Listen method has been called more than once without closing.");
     }
 
-    this._listenIpcPo.resolve((this._listenIpcP = listenHttpDwebServer(this.nmm, this.startResult, routes)));
+    this._listenIpcPo.resolve((this._listenIpcP = listenHttpDwebServer(this.nmm, this.startResult)));
   }
   /** 关闭监听 */
   close = once(async () => {
@@ -84,9 +84,7 @@ export const listenHttpDwebServer = async (
   };
   const buildUrlValue = buildUrl(url, ext);
   const int = { method: "POST", body: httpServerIpc.stream };
-  const httpIncomeRequestStream = await microModule
-    .nativeFetch(buildUrlValue, int)
-    .stream();
+  const httpIncomeRequestStream = await microModule.nativeFetch(buildUrlValue, int).stream();
 
   httpServerIpc.bindIncomeStream(httpIncomeRequestStream);
   /// 保存连接对象到池子中

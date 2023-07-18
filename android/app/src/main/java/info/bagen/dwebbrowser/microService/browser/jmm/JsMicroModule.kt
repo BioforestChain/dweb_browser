@@ -107,9 +107,8 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     debugJsMM("bootstrap...", "$mmid/$metadata")
-    _shit_state_restarting = false;
 
-    val streamIpc = createNativeStream()
+   createNativeStream()
     /**
      * 拿到与js.browser.dweb模块的直连通道，它会将 Worker 中的数据带出来
      */
@@ -186,7 +185,6 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
         }
       }
       if (ipcEvent.name == "restart") {
-        _shit_state_restarting = true
         // 调用重启
         bootstrapContext.dns.restart(mmid)
       }
@@ -194,7 +192,6 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
     }
   }
 
-  private var _shit_state_restarting = false
 
   private val fromMmidOriginIpcWM = mutableMapOf<Mmid, PromiseOut<Ipc>>();
 
@@ -209,9 +206,7 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
       PromiseOut<Ipc>().also { po ->
         GlobalScope.launch(ioAsyncExceptionHandler) {
           try {
-            if(_shit_state_restarting){
-              debugger(fromMmid)
-            }
+
             debugJsMM("ipcBridge", "fromMmid:$fromMmid targetIpc:$targetIpc")
             /**
              * 向js模块发起连接
@@ -271,7 +266,6 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
     debugJsMM("closeJsProcessSignal emit", "$mmid/$metadata")
     fromMmidOriginIpcWM.forEach { map ->
       val ipc = map.value.waitPromise()
-      println("ipc close ${ipc.remote.mmid}")
       ipc.close()
     }
     fromMmidOriginIpcWM.clear()
