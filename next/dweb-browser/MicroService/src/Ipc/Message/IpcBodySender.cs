@@ -43,6 +43,7 @@ public class IpcBodySender : IpcBody, IDisposable
             if (_isStreamOpenedValue != value)
             {
                 _isStreamOpenedValue = value;
+                _ = Task.Run(OnStreamOpen.EmitAndClear).NoThrow();
             }
         }
     }
@@ -56,6 +57,7 @@ public class IpcBodySender : IpcBody, IDisposable
             if (_isStreamClosedValue != value)
             {
                 _isStreamClosedValue = value;
+                _ = Task.Run(OnStreamClose.EmitAndClear).NoThrow();
             }
         }
     }
@@ -160,7 +162,8 @@ public class IpcBodySender : IpcBody, IDisposable
                 };
                 ipc.OnStream += cb;
 
-                mapper.OnDestroy += async (_) => {
+                mapper.OnDestroy += async (_) =>
+                {
                     ipc.OnStream -= cb;
                     Console.Log("ipcBodySenderUsableByIpc", "CLOSE/{0}", ipc);
                     s_ipcUsableIpcBodyMap.Remove(ipc);

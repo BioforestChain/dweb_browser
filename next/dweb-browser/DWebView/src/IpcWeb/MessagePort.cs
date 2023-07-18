@@ -24,6 +24,7 @@ public class MessagePort
             {
                 await (OnWebMessage?.Emit(message)).ForAwait();
             }
+            OnWebMessage = null;
         }).NoThrow();
 
         Port.OnMessage += (message, _) => MessageChannel.SendAsync(message);
@@ -47,7 +48,6 @@ public class MessagePort
         }
 
         _isClosed = true;
-        OnWebMessage = null;
         MessageChannel.Complete();
         await Port.Close();
 

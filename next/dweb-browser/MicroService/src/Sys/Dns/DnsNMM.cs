@@ -332,17 +332,17 @@ public class DnsNMM : NativeMicroModule
         try
         {
             await microModule.ShutdownAsync();
-            lock (_mmConnectsMap)
-            {
-                _mmConnectsMap.Remove(MM.From(microModule.Mmid, "js.browser.dweb"));
-                _mmConnectsMap.Remove(MM.From("js.browser.dweb", microModule.Mmid));
-            }
+            //lock (_mmConnectsMap)
+            //{
+            //    _mmConnectsMap.Remove(MM.From(microModule.Mmid, "js.browser.dweb"));
+            //    _mmConnectsMap.Remove(MM.From("js.browser.dweb", microModule.Mmid));
+            //}
 
             return 1;
         }
         catch (Exception e)
         {
-            Console.Log("Close", "exception: {0}", e.Message);
+            Console.Warn("Close", "exception: {0}", e.Message);
             return 0;
         }
     }

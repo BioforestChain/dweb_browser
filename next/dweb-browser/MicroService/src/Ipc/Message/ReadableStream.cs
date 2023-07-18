@@ -32,7 +32,7 @@ public class ReadableStream
         public void Enqueue(byte[] data)
         {
             if (stream.IsClose) {
-                throw new Exception("Cannot enqueue a chunk into a readable stream that is closed or has been requested to be closed.");
+                throw new IOException("Cannot enqueue a chunk into a readable stream that is closed or has been requested to be closed.");
             }
             writer.Write(data);
         }

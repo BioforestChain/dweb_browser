@@ -81,5 +81,31 @@ public class NativeIpcTest
 
         await ipc2.Close();
     }
+
+    [Fact]
+    public async Task IpcOnClose()
+    {
+        var channel = new NativeMessageChannel<IpcMessage, IpcMessage>();
+        var m1 = new M1();
+        var m2 = new M2();
+        var ipc1 = new NativeIpc(channel.Port1, m1, IPC_ROLE.SERVER);
+        var ipc2 = new NativeIpc(channel.Port2, m2, IPC_ROLE.CLIENT);
+
+        var t = 0;
+        ipc1.OnClose += async (_) =>
+        {
+            t += 1;
+            Debug.WriteLine(string.Format("closed {0}", ipc1.Remote.Mmid));
+        };
+        ipc2.OnClose += async (_) =>
+        {
+            t += 1;
+            Debug.WriteLine(string.Format("closed {0}", ipc2.Remote.Mmid));
+        };
+
+        await ipc1.Close();
+
+        Assert.Equal(2, t);
+    }
 }
 

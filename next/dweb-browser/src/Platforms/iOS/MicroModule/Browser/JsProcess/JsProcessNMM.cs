@@ -36,8 +36,6 @@ public class JsProcessNMM : NativeMicroModule
         /// 主页的网页服务
         var mainServer = await (await CreateHttpDwebServer(new DwebHttpServerOptions())).AlsoAsync(async server =>
         {
-            // 在模块关停的时候，要关闭端口监听
-            OnAfterShutdown += async (_) => { await server.Close(); };
             // 提供基本的主页服务
             var serverIpc = await server.Listen();
             serverIpc.OnRequest += async (request, ipc, _) =>
@@ -89,6 +87,13 @@ public class JsProcessNMM : NativeMicroModule
         var bootstrap_url = mainServer.StartResult.urlInfo.BuildInternalUrl().Path(string.Format("{0}/bootstrap.js", s_INTERNAL_PATH)).ToPublicDwebHref();
 
         var apis = await _createJsProcessWeb(mainServer);
+
+        // 在模块关停的时候，要关闭端口监听
+        OnAfterShutdown += async (_) =>
+        {
+            apis.DWebView.Dispose();
+            await ShutdownAsync();
+        };
 
         var ipcProcessIdMap = new Dictionary<string, Dictionary<string, PromiseOut<int>>>();
 
@@ -158,14 +163,7 @@ public class JsProcessNMM : NativeMicroModule
             // 创建成功了，注册销毁函数
             ipc.OnClose += async (_) =>
             {
-                if (processIdMap.Remove(processId))
-                {
-                    await apis.DestroyProcess(js_port_id);
-                    if (processIdMap.Count == 0)
-                    {
-                        ipcProcessIdMap.Remove(ipc.Remote.Mmid);
-                    }
-                }
+                await _closeAllProcessByIpc(apis, ipcProcessIdMap, ipc.Remote.Mmid);
             };
 
             return js_port_id;
@@ -197,21 +195,7 @@ public class JsProcessNMM : NativeMicroModule
             _ = ipc ?? throw new Exception("no found ipc");
 
             Console.Log("close-all-process", "{0}/processId", ipc.Remote.Mmid);
-            if (ipcProcessIdMap.Remove(ipc.Remote.Mmid, out var processMap))
-            {
-                /// 关闭程序
-                processMap.AsParallel().ForAll(async res =>
-                {
-                    var (_processId, po) = res;
-                    var process_id = await po.WaitPromiseAsync();
-                    await apis.DestroyProcess(process_id);
-                });
-
-                /// 关闭代码通道
-                await CloseHttpDwebServer(new DwebHttpServerOptions(80, ipc.Remote.Mmid));
-                return true;
-            }
-            return false;
+            return await _closeAllProcessByIpc(apis, ipcProcessIdMap, ipc.Remote.Mmid);
         });
     }
 
@@ -242,9 +226,10 @@ public class JsProcessNMM : NativeMicroModule
             var mainUrl = urlInfo.BuildInternalUrl().Path("/index.html");
             _ = dwebview.LoadURL(mainUrl).NoThrow();
         });
-        var apis = await afterReadyPo.WaitPromiseAsync();
-        return apis;
 
+        var apis = await afterReadyPo.WaitPromiseAsync();
+
+        return apis;
     }
 
     private async Task<CreateProcessAndRunResult> _createProcessAndRun(
@@ -370,4 +355,27 @@ public class JsProcessNMM : NativeMicroModule
 
     private Task _createIpcFail(JsProcessWebApi apis, int process_id, Mmid mmid, string reason) =>
          apis.CreateIpcFail(process_id, mmid, reason);
+
+    private async Task<bool> _closeAllProcessByIpc(
+        JsProcessWebApi apis,
+        Dictionary<string, Dictionary<string, PromiseOut<int>>> ipcProcessIdMap,
+        Mmid mmid)
+    {
+        if (ipcProcessIdMap.Remove(mmid, out var processMap))
+        {
+            /// 关闭程序
+            processMap.AsParallel().ForAll(async res =>
+            {
+                var (_processId, po) = res;
+                var process_id = await po.WaitPromiseAsync();
+                await apis.DestroyProcess(process_id);
+            });
+
+            /// 关闭代码通道
+            await CloseHttpDwebServer(new DwebHttpServerOptions(80, mmid));
+            return true;
+        }
+
+        return false;
+    }
 }

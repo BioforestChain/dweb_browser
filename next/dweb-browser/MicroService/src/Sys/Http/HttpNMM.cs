@@ -290,9 +290,14 @@ public class HttpNMM : NativeMicroModule
         var listener = new Gateway.PortListener(ipc, serverUrlInfo.Host);
 
         /// ipc 在关闭的时候，自动释放所有的绑定
-        Signal cb = (_) => _close(ipc, options);
-        ipc.OnClose += cb;
-        listener.OnDestory += async (_) => ipc.OnClose -= cb;
+        listener.OnDestory += async (_) =>
+        {
+            await _close(ipc, options);
+        };
+        ipc.OnClose += async (_) =>
+        {
+            await listener.DestroyAsync();
+        };
 
         var token = Token.RandomCryptoString(8);
 
@@ -341,9 +346,10 @@ public class HttpNMM : NativeMicroModule
 
         if (gateway is not null)
         {
+            var success = _gatewayMap.Remove(serverUrlInfo.Host);
             _tokenMap.Remove(gateway.Token);
             await gateway.Listener.DestroyAsync();
-            return _gatewayMap.Remove(serverUrlInfo.Host);
+            return success;
         }
         else
         {

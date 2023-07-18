@@ -11,17 +11,19 @@ public abstract partial class MicroModule : Ipc.IMicroModuleInfo
     public abstract IpcSupportProtocols IpcSupportProtocols { get; init; }
     public abstract List<Dweb_DeepLink> Dweb_deeplinks { get; init; }
 
-    private PromiseOut<bool> _runningStateLock = PromiseOut<bool>.StaticResolve(false);
-    public bool Running { get => _runningStateLock.Value; }
+    private StatePromiseOut<MMState> _runningStateLock = StatePromiseOut<MMState>.StaticResolve(MMState.SHUTDOWN);
+    public bool Running => _runningStateLock.Value == MMState.BOOTSTRAP;
 
     private async Task _beforeBootsStrap(IBootstrapContext bootstrapContext)
     {
-        if (await _runningStateLock.WaitPromiseAsync())
+        if (_runningStateLock.State == MMState.BOOTSTRAP)
         {
             throw new Exception(string.Format("module {0} already running", Mmid));
         }
 
-        _runningStateLock = new PromiseOut<bool>();
+        await _runningStateLock.WaitPromiseAsync(); // 确保已完成上一个状态
+        _runningStateLock = new(MMState.BOOTSTRAP);
+
         _bootstrapContext = bootstrapContext;
     }
 
@@ -30,7 +32,7 @@ public abstract partial class MicroModule : Ipc.IMicroModuleInfo
 
     protected abstract Task _bootstrapAsync(IBootstrapContext bootstrapContext);
 
-    private void _afterBootstrap(IBootstrapContext dnsMM) => _runningStateLock.Resolve(true);
+    private void _afterBootstrap(IBootstrapContext dnsMM) => _runningStateLock.Resolve();
 
     public async Task BootstrapAsync(IBootstrapContext bootstrapContext)
     {
@@ -47,17 +49,18 @@ public abstract partial class MicroModule : Ipc.IMicroModuleInfo
 
     public event Signal? OnAfterShutdown;
 
-    protected async Task _beforeShutdownAsync()
+    protected virtual async Task _beforeShutdownAsync()
     {
-        if (!await _runningStateLock.WaitPromiseAsync())
+        if (_runningStateLock.State == MMState.SHUTDOWN)
         {
             throw new Exception(string.Format("module {0} already shutdown", Mmid));
         }
 
-        _runningStateLock = new PromiseOut<bool>();
+        await _runningStateLock.WaitPromiseAsync(); // 确保已经完成上一个状态
+        _runningStateLock = new(MMState.SHUTDOWN);
 
         /// 关闭所有的通讯
-        foreach(var ipc in _ipcSet)
+        foreach (var ipc in _ipcSet)
         {
             await ipc.Close();
         }
@@ -69,7 +72,7 @@ public abstract partial class MicroModule : Ipc.IMicroModuleInfo
     protected async Task _afterShutdownAsync()
     {
         await OnAfterShutdown.EmitAndClear();
-        _runningStateLock.Resolve(false);
+        _runningStateLock.Resolve();
         _bootstrapContext = null;
     }
 
@@ -145,4 +148,24 @@ public abstract partial class MicroModule : Ipc.IMicroModuleInfo
     protected virtual async Task _onActivityAsync(IpcEvent Event, Ipc ipc) { }
 
 
+}
+
+internal class StatePromiseOut<T> : PromiseOut<T>
+{
+    public T State { get; init; }
+
+    public StatePromiseOut(T state)
+    {
+        State = state;
+    }
+
+    public static new StatePromiseOut<T> StaticResolve(T state) => new StatePromiseOut<T>(state).Also(it => it.Resolve(state));
+
+    public void Resolve() => base.Resolve(State);
+}
+
+internal enum MMState
+{
+    BOOTSTRAP,
+    SHUTDOWN
 }

@@ -35,16 +35,73 @@ public static class SignalExtendsions
     {
         return self.GetInvocationList().Length is 0;
     }
-    public static async Task Emit(this Signal? self)
+
+    private static Delegate[]? CopyDelegateArray(Signal? signal)
+    {
+        if (signal is null)
+        {
+            return null;
+        }
+
+        lock (signal)
+        {
+            return signal.GetInvocationList().ToArray();
+        }
+    }
+    private static Delegate[]? CopyDelegateArray<T1>(Signal<T1>? signal)
+    {
+        if (signal is null)
+        {
+            return null;
+        }
+
+        lock (signal)
+        {
+            return signal.GetInvocationList().ToArray();
+        }
+    }
+    private static Delegate[]? CopyDelegateArray<T1, T2>(Signal<T1, T2>? signal)
+    {
+        if (signal is null)
+        {
+            return null;
+        }
+
+        lock (signal)
+        {
+            return signal.GetInvocationList().ToArray();
+        }
+    }
+
+    public static Task Emit(this Signal? self)
+    {
+        var list = CopyDelegateArray(self);
+
+        return emit(list);
+    }
+    public static Task Emit<T1>(this Signal<T1>? self, T1 arg1)
+    {
+        var list = CopyDelegateArray(self);
+
+        return emit(arg1, list);
+    }
+    public static Task Emit<T1, T2>(this Signal<T1, T2>? self, T1 arg1, T2 arg2)
+    {
+        var list = CopyDelegateArray(self);
+
+        return emit(arg1, arg2, list);
+    }
+
+    private static async Task emit(Delegate[]? list)
     {
         try
         {
-            var list = self?.GetInvocationList();
             if (list is null) return;
 
             if (list.Length == 1)
             {
-                await self!(self).ForAwait();
+                var cb = (Signal)list[0];
+                await cb(cb).ForAwait();
                 return;
             }
 
@@ -59,17 +116,16 @@ public static class SignalExtendsions
             Console.Error("Emit", "{0}", e);
         }
     }
-    public static async Task Emit<T1>(this Signal<T1>? self, T1 arg1)
+    private static async Task emit<T1>(T1 arg1, Delegate[]? list)
     {
-
         try
         {
-            var list = self?.GetInvocationList();
             if (list is null) return;
 
             if (list.Length == 1)
             {
-                await self!(arg1, self).ForAwait();
+                var cb = (Signal<T1>)list[0];
+                await cb(arg1, cb).ForAwait();
                 return;
             }
 
@@ -84,17 +140,16 @@ public static class SignalExtendsions
             Console.Error("Emit", "{0}", e);
         }
     }
-    public static async Task Emit<T1, T2>(this Signal<T1, T2>? self, T1 arg1, T2 arg2)
+    private static async Task emit<T1, T2>(T1 arg1, T2 arg2, Delegate[]? list)
     {
-
         try
         {
-            var list = self?.GetInvocationList();
             if (list is null) return;
 
             if (list.Length == 1)
             {
-                await self!(arg1, arg2, self).ForAwait();
+                var cb = (Signal<T1, T2>)list[0];
+                await cb(arg1, arg2, cb).ForAwait();
                 return;
             }
 
@@ -137,22 +192,25 @@ public static class SignalExtendsions
 
     }
 
-    public static async Task EmitAndClear(this Signal? self)
+    public static Task EmitAndClear(this Signal? self)
     {
-        await (self?.Emit()).ForAwait();
-        self = null;
+        var list = CopyDelegateArray(self).Also(_ => self = null);
+
+        return emit(list);
     }
 
-    public static async Task EmitAndClear<T1>(this Signal<T1>? self, T1 arg1)
+    public static Task EmitAndClear<T1>(this Signal<T1>? self, T1 arg1)
     {
-        await (self?.Emit(arg1)).ForAwait();
-        self = null;
+        var list = CopyDelegateArray(self).Also(_ => self = null);
+
+        return emit(arg1, list);
     }
 
-    public static async Task EmitAndClear<T1, T2>(this Signal<T1, T2>? self, T1 arg1, T2 arg2)
+    public static Task EmitAndClear<T1, T2>(this Signal<T1, T2>? self, T1 arg1, T2 arg2)
     {
-        await (self?.Emit(arg1, arg2)).ForAwait();
-        self = null;
+        var list = CopyDelegateArray(self).Also(_ => self = null);
+
+        return emit(arg1, arg2, list);
     }
 }
 

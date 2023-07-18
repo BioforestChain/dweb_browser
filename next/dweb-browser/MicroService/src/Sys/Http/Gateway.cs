@@ -87,7 +87,10 @@ public class Gateway
 
         public async Task DestroyAsync()
         {
-            _routerSet.Clear();
+            _routerSet.Keys.AsParallel().ForAll(router =>
+            {
+                router.StreamIpc.ReadableStream.Stream.Close();
+            });
             await OnDestory.EmitAndClear();
         }
     }

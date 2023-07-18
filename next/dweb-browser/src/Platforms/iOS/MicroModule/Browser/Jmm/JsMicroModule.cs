@@ -160,11 +160,9 @@ public class JsMicroModule : MicroModule
         var fetchIpc = connectResult.IpcForFromMM;
 
         // 监听关闭事件
-        _onCloseJsProcess += async (_) =>
+        fetchIpc.OnClose += async (_) =>
         {
-            await streamIpc.Close();
-            await fetchIpc.Close();
-            _fromMmid_originIpc_map.Clear();
+            await ShutdownAsync();
         };
 
         /**
@@ -234,11 +232,9 @@ public class JsMicroModule : MicroModule
             }
         };
 
-        this.addToIpcSet(streamIpc);
+        addToIpcSet(streamIpc);
         Console.Log("running!!", Mmid);
     }
-
-    private event Signal? _onCloseJsProcess;
 
     private readonly Dictionary<Mmid, PromiseOut<Ipc>> _fromMmid_originIpc_map = new();
 
@@ -301,7 +297,14 @@ public class JsMicroModule : MicroModule
                             _fromMmid_originIpc_map.Remove(targetIpc.Remote.Mmid);
                             await originIpc.Close();
                         };
+                        
                     }
+
+                    originIpc.OnClose += async (_) =>
+                    {
+                        _fromMmid_originIpc_map.Remove(fromMmid);
+                    };
+
                     po.Resolve(originIpc);
                 }
                 catch (Exception e)
@@ -331,9 +334,11 @@ public class JsMicroModule : MicroModule
     protected override async Task _shutdownAsync()
     {
         Console.Log("closeJsProcessSignal emit", string.Format("{0}/{1}", Mmid, Metadata));
-        await NativeFetchAsync("file://js.browser.dweb/close-all-process");
-        await (_onCloseJsProcess?.Emit()).ForAwait();
-        _onCloseJsProcess = null;
+        //await NativeFetchAsync("file://js.browser.dweb/close-all-process");
+        foreach (var item in _fromMmid_originIpc_map.Values)
+        {
+            await (await item.WaitPromiseAsync()).Close();
+        }
         _processId = null;
     }
 }
