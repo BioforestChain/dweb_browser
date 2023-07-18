@@ -74,6 +74,16 @@
                 <data android:scheme="dweb" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".microService.desktop.DesktopActivity"
+            android:exported="true"
+            android:theme="@style/Theme.dwebbrowser"
+            android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity">
+            <intent-filter>
+                <data android:scheme="dweb" />
+            </intent-filter>
+        </activity>
 
         <activity
             android:name=".microService.browser.mwebview.MultiWebViewPlaceholder1Activity"
