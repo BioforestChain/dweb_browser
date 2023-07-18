@@ -16,7 +16,7 @@ struct DesktopView: View {
         
         ZStack {
             
-            Color.white
+            Color.bkColor
                 .ignoresSafeArea()
 //                .onTapGesture {
 //                    withAnimation {
@@ -28,19 +28,19 @@ struct DesktopView: View {
                 AppContentView(idString: config.id,isExpand: config.isexpand)
             }
             
-            HStack {
-                Spacer()
-                Color.white
-                    .frame(maxWidth: 8, maxHeight: .infinity)
-                    .ignoresSafeArea()
-                    .onSwipe { direction in
-                        if direction == .left {
-                            withAnimation {
-                                configViewModel.showMenu = true
-                            }
-                        }
-                    }
-            }
+//            HStack {
+//                Spacer()
+//                Color.white
+//                    .frame(maxWidth: 8, maxHeight: .infinity)
+//                    .ignoresSafeArea()
+//                    .onSwipe { direction in
+//                        if direction == .left {
+//                            withAnimation {
+//                                configViewModel.showMenu = true
+//                            }
+//                        }
+//                    }
+//            }
             
             HStack {
                 Spacer()

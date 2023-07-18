@@ -24,4 +24,5 @@ class ConfigViewModel: ObservableObject {
     
     @Published var showMenu: Bool = false
     @Published var selectedTab: String = ""
+    @Published var isContract: Bool = false
 }

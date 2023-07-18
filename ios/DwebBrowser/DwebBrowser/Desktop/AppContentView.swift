@@ -12,6 +12,7 @@ struct AppContentView: View {
     @Namespace var animation
     var idString: String
     @State var isExpand: Bool = false
+    @State var isContract: Bool = false
     @EnvironmentObject var configViewModel: ConfigViewModel
     @EnvironmentObject var openViewModel: OpenAppViewModel
     
@@ -22,44 +23,67 @@ struct AppContentView: View {
     var body: some View {
         
         GeometryReader { proxy in
-            VStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: 0) {
                 
                 if isExpand {
-                    TabView()
-                        .background(.secondary)
-                        .frame(maxWidth: .infinity)
-                        .cornerRadius(8)
-                        .frame(height: 42)
-                        .padding(.top, 10)
-                        .matchedGeometryEffect(id: "TAB", in: animation)
+                    if configViewModel.isContract {
+                        HStack {
+                            Spacer()
+                            TabView(isContract: true)
+                                .background(.primary)
+                                .frame(width: 80, height: 32)
+                                .cornerRadius(16)
+                                .padding(.top, 10)
+                                .padding(.trailing, 20)
+                                .matchedGeometryEffect(id: "TAB", in: animation, anchor: .leading)
+                        }
+                    } else {
+                        TabView(isContract: false)
+                            .background(.primary)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 42)
+                            .padding(.top, 10)
+                            .matchedGeometryEffect(id: "TAB", in: animation, anchor: .leading)
+                    }
                 } else {
                     HStack {
-                        TabView()
-                            .background(.secondary)
-                            .frame(width: 200,height: 22)
-                            .cornerRadius(4)
+                        TabView(isContract: false)
+                            .background(.primary)
+                            .frame(width: proxy.size.width * 0.8,height: 22)
                             .padding(.top, 50)
-                            .padding(.leading, 20)
-                            .matchedGeometryEffect(id: "TAB", in: animation)
+                            .matchedGeometryEffect(id: "TAB", in: animation, anchor: .leading)
                         Spacer()
                     }
                 }
                 
                 BrowserView()
-                    .transformEffect(isExpand ? .identity : CGAffineTransform(scaleX: 0.8, y: 0.8))
-                    .padding(.top, 10)
-                    .padding(.leading, isExpand ? 0 : 20)
-                    .padding(.trailing,isExpand ? 0 : 60)
-                    .padding(.bottom,isExpand ? 0 : 100)
+                    .scaleEffect(isExpand ? 1.0 : 0.8, anchor: .topLeading)
+                    .transition(.scale)
+                    .overlay(overLayView)
             }
             .clipped()
-            .edgesIgnoringSafeArea(.bottom)
+            
         }
     }
     
     @ViewBuilder
-    private func TabView() -> some View {
-        let images: [String] = ["trash","clock.arrow.circlepath","bell.badge"]
+    private var overLayView: some View {
+        if !configViewModel.isContract {
+            RoundedRectangle(cornerRadius: 0)
+                .fill(Color.black.opacity(0.1))
+                .scaleEffect(isExpand ? 1.0 : 0.8, anchor: .topLeading)
+                .transition(.scale)
+                .onTapGesture {
+                    withAnimation {
+                        configViewModel.isContract.toggle()
+                    }
+                }
+        }
+    }
+    
+    @ViewBuilder
+    private func TabView(isContract: Bool) -> some View {
+        let images: [String] = iconImages(isContract: isContract)
         GeometryReader { proxy in
             HStack(spacing: 0) {
                 ForEach(images, id: \.self) { name in
@@ -93,13 +117,19 @@ struct AppContentView: View {
                                 isExpand.toggle()
                             }
                         }
+                        //打开折叠
+                        if name == "chevron.left.circle" {
+                            withAnimation {
+                                configViewModel.isContract = false
+                            }
+                        }
                     } label: {
                         Image(systemName: name)
                             .resizable()
                             .aspectRatio(contentMode: .fit)
                             .frame(width: isExpand ? 22 : 16)
                             .foregroundColor(.white)
-                            .padding(.horizontal, (proxy.size.width / 3 - (isExpand ? 22 : 16)) * 0.5)
+                            .padding(.horizontal, (proxy.size.width / CGFloat(images.count) - (isExpand ? 22 : 16)) * 0.5)
                             .padding(.vertical, isExpand ? 8 : 4)
                             .matchedGeometryEffect(id: name, in: animation)
                             
@@ -108,6 +138,14 @@ struct AppContentView: View {
                 }
             }
         }
+    }
+    
+    private func iconImages(isContract: Bool) -> [String] {
+        var images: [String] = ["trash","clock.arrow.circlepath","bell.badge"]
+        if isContract {
+            images = ["trash","chevron.left.circle"]
+        }
+        return images
     }
 }
 

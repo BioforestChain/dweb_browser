@@ -15,7 +15,14 @@ struct AppMenuView: View {
                 AppButton(image: app.imageName, idString: app.id)
             }
         }
-        .background(.blue)
+        .background(
+            ZStack {
+                Color.white
+                    .clipShape(
+                        CustomCorners(corners: [.topLeft, .bottomLeft], radius: 10)
+                    )
+            }
+        )
     }
     
     let apps: [AppDataModel] = [

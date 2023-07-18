@@ -36,14 +36,14 @@ struct AppButton: View {
             Image(systemName: image)
                 .font(.title)
                 .frame(width: 50)
-                .foregroundColor(configViewModel.selectedTab == idString ? .blue : .white)
+                .foregroundColor(configViewModel.selectedTab == idString ? .white : .blue)
             .padding(.vertical, 15)
-            .padding(.horizontal, 10)
-            .frame(width: 80)
+            .padding(.horizontal, 15)
+            .frame(width: 70)
             .background(
                 ZStack {
                     if configViewModel.selectedTab == idString {
-                        Color.white
+                        Color.blue
                             .opacity(configViewModel.selectedTab == idString ? 1 : 0)
                             .clipShape(
                                 CustomCorners(corners: [.topLeft, .bottomLeft], radius: 10)
