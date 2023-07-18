@@ -44,11 +44,11 @@ class Gateway(
       return null
     }
 
-    suspend fun hookWsRequest(request: Request):WsConsumer? {
+    suspend fun hookWsRequest(request: Request): WsConsumer? {
       for (router in _routerSet) {
         val response = router.handler(request)
         if (response != null) {
-          return {ws -> ws.send(WsMessage(response.body)) }
+          return { ws -> ws.send(WsMessage(response.body)) }
         }
       }
       return null
@@ -56,10 +56,12 @@ class Gateway(
 
     /// 销毁
     private val destroySignal = SimpleSignal()
-    fun onDestroy(cb: SimpleCallback) = destroySignal.listen { cb }
+    fun onDestroy(cb: SimpleCallback) = destroySignal.listen(cb)
 
     suspend fun destroy() {
-      _routerSet.clear()
+      _routerSet.map {
+        it.streamIpc.stream.close()
+      }
       destroySignal.emit()
     }
   }

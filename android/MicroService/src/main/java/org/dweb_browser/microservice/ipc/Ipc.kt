@@ -233,8 +233,7 @@ abstract class Ipc {
     if (close) {
       this.close()
     }
-    this._destroySignal.emit()
-    this._destroySignal.clear()
+    this._destroySignal.emitAndClear()
   }
 
   /**

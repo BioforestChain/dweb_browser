@@ -237,6 +237,8 @@ export class JsMicroModule extends MicroModule {
 
 
   _shutdown() {
+      /// 发送指令，关停js进程
+      this.nativeFetch("file://js.browser.dweb/close-all-process")
     // 删除 _fromMmid_originIpc_map 里面的ipc
     Array.from(this._fromMmid_originIpc_map.values()).forEach(async (item) => {
       (await item.promise).close();

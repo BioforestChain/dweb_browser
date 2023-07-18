@@ -5,6 +5,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.ioAsyncExceptionHandler
@@ -61,12 +62,7 @@ class ReadableStreamIpc(
 
     val stream = ReadableStream(cid = role, onStart = {
         controller = it
-    }, onPull = { (size, controller) ->
-        debugStreamIpc("ON-PULL", "$size => ${controller.stream}")
-    }, onClose = {
-        inComeStreamJob.getAndSet(null)?.cancel()
     })
-    private var inComeStreamJob = AtomicReference<Job?>(null)
 
     private suspend fun enqueue(data: ByteArray) = controller.enqueue(data)
 
@@ -135,8 +131,8 @@ class ReadableStreamIpc(
             this.close()
         }
         _incomeStream = stream
-        inComeStreamJob.getAndSet(incomeStreamCoroutineScope.async { readStream() })
-            ?.cancel() // 这里的cancel理论上不会触发
+        /// 后台执行数据拉取
+        incomeStreamCoroutineScope.launch { readStream() }
     }
 
     override suspend fun _doPostMessage(data: IpcMessage) {

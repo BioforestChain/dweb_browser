@@ -127,7 +127,7 @@ export class PortListener {
   onDestroy = this._on_destroy_signal.listen;
   /** 销毁监听器内产生的引用 */
   destroy() {
-    Array.from(this._routers).map((item) => item.streamIpc.close()); // 停止 streamIpc 是否还有这个必要吗？？
+    Array.from(this._routers).map((item) => item.streamIpc.close()); 
     // 删除 Router 保存的IPC
     this._on_destroy_signal.emit();
   }

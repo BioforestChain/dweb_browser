@@ -2,6 +2,7 @@ package info.bagen.dwebbrowser.microService.browser.mwebview
 
 import android.content.Intent
 import android.os.Bundle
+import androidx.compose.runtime.currentRecomposeScope
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
 import kotlinx.coroutines.GlobalScope
@@ -20,6 +21,7 @@ import org.http4k.lens.Query
 import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
+import kotlinx.coroutines.*
 
 fun debugMultiWebView(tag: String, msg: Any? = "", err: Throwable? = null) =
   printdebugln("mwebview", tag, msg, err)
@@ -35,9 +37,11 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.browser.dweb") {
       ActivityClass("", MultiWebViewPlaceholder4Activity::class.java),
       ActivityClass("", MultiWebViewPlaceholder5Activity::class.java),
     )
-    val controllerMap = mutableMapOf<Mmid, MultiWebViewController>()
+    private val controllerMap = mutableMapOf<Mmid, MultiWebViewController>()
 
-    /**获取当前的controller, 只能给nativeUI 使用，因为他们是和mwebview绑定在一起的*/
+    /**获取当前的controller, 只能给nativeUI 使用，因为他们是和mwebview绑定在一起的
+     */
+    @Deprecated("将不会再提供这个函数")
     fun getCurrentWebViewController(mmid: Mmid): MultiWebViewController? {
       return controllerMap[mmid]
     }
@@ -62,14 +66,15 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.browser.dweb") {
           val controller = controllerMap[ipc.remote.mmid]
           controller?.destroyWebView()
         }
-        val viewItem = openDwebView(remoteMm, url)
+
+        val viewItem = openDwebView(remoteMm, url);
         return@defineHandler ViewItemResponse(viewItem.webviewId)
       },
       // 关闭指定 webview 窗口
       "/close" bind Method.GET to defineHandler { request, ipc ->
         val webviewId = queryWebviewId(request)
         val remoteMmid = ipc.remote.mmid
-        debugMultiWebView("/close","webviewId:$webviewId,mmid:$remoteMmid")
+        debugMultiWebView("/close", "webviewId:$webviewId,mmid:$remoteMmid")
         closeDwebView(remoteMmid, webviewId)
       },
       "/close/app" bind Method.GET to defineHandler { request, ipc ->
@@ -132,23 +137,36 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.browser.dweb") {
         remoteMmid,
         this,
         remoteMm,
-      ).also { controller -> // 注册监听
-        GlobalScope.launch(ioAsyncExceptionHandler) {
-          controller.downLoadObserver = DownLoadObserver(remoteMmid).apply {
-            observe { listener ->
-              controller.lastViewOrNull?.webView?.let { dWebView ->
-                emitEvent(
-                  dWebView, listener.downLoadStatus.toServiceWorkerEvent(), listener.progress
-                )
-              }
-            }
+      )
+    }
+    GlobalScope.launch(ioAsyncExceptionHandler) {
+
+      controller.downLoadObserver = DownLoadObserver(remoteMmid).apply {
+
+        observe { listener ->
+          controller.lastViewOrNull?.webView?.let { dWebView ->
+            emitEvent(
+              dWebView,
+              listener.downLoadStatus.toServiceWorkerEvent(),
+              listener.progress
+            )
           }
         }
       }
     }
 
     openActivity(remoteMmid)
-    activitySignal.emit(Pair(remoteMmid, controller.waitActivityCreated()))
+    /// 等待创建成功再返回
+    val activity = controller.waitActivityCreated()
+    activitySignal.emit(Pair(remoteMmid, activity))
+    /// 销毁的时候取消绑定
+    controller.onWebViewClose { }
+    activity.onDestroyActivity {
+      controllerMap.remove(remoteMmid, controller)
+      /// FIXME 更新状态？？？
+      controller.updateStateHook()
+    }
+
     return controller.openWebView(url)
   }
 

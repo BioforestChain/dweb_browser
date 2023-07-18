@@ -168,7 +168,6 @@ class MultiWebViewController(
       }
     }
     webViewList.clear()
-    updateStateHook()
     this.downLoadObserver?.close() // 移除下载状态监听
 
     this.activity?.also {
@@ -190,7 +189,7 @@ class MultiWebViewController(
     return true
   }
 
-  private suspend fun updateStateHook() {
+  suspend fun updateStateHook() {
     val currentState = JSONObject()
     debugMultiWebView("updateStateHook =>", webViewList.size)
     webViewList.map {

@@ -114,4 +114,40 @@ class ReadableStreamTest : AsyncBase() {
         }.join()
         assertEquals(result.get(), 10 * 3)
     }
+
+    @Test
+    fun testClose() = runBlocking {
+        var t = 0.0;
+
+        var po = PromiseOut<Unit>();
+        assertEquals(0.0, t);
+        println("start1")
+        val stream = ReadableStream(onStart = { controller ->
+            println("start2")
+            launch {
+                println("start3")
+                try {
+
+                    controller.enqueue(byteArrayOf(1))
+                    controller.enqueue(byteArrayOf(2))
+                    controller.close()
+                    try {
+                        for (chunk in controller.stream) {
+                            t += chunk.size
+                        }
+                    } finally {
+                        t += 0.1
+                    }
+
+                    po.resolve(Unit);
+                } catch (e: Exception) {
+                    po.reject(e)
+                }
+
+            }
+        });
+
+        po.waitPromise()
+        assertEquals(2.1, t);
+    }
 }

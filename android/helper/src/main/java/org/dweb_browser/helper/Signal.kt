@@ -22,29 +22,28 @@ enum class SIGNAL_CTOR {
 }
 
 open class Signal<Args> {
-  val listenerSet = newSetFromMap<Callback<Args>>(ConcurrentHashMap());
-  var cpSet = setOf<Callback<Args>>()
-  inline fun listen(noinline cb: Callback<Args>): OffListener {
+  private val listenerSet = mutableSetOf<Callback<Args>>();
+
+  @Synchronized
+  fun listen(cb: Callback<Args>): OffListener {
     // TODO emit 时的cbs 应该要同步进行修改？
-    listenerSet.add(cb).also {
-      if (it) {
-        cpSet = listenerSet.toSet()
-      }
-    }
+    listenerSet.add(cb)
     return { off(cb) }
   }
 
+  @Synchronized
   fun off(cb: Callback<Args>): Boolean {
-    return listenerSet.remove(cb).also {
-      if (it) {
-        cpSet = listenerSet.toSet()
-      }
-    }
+    return listenerSet.remove(cb)
   }
 
-  suspend inline fun emit(args: Args) {
+  suspend fun emit(args: Args) {
+    val cbs = synchronized(listenerSet) { listenerSet.toSet() }
     // 这里拷贝一份，避免中通对其读写的时候出问题
-    val cbs = cpSet
+    _emit(args, cbs)
+  }
+
+  private suspend fun _emit(args: Args, cbs: Set<Callback<Args>>) {
+    // 这里拷贝一份，避免中通对其读写的时候出问题
     for (cb in cbs) {
       try {
         when (cb(args)) {
@@ -57,11 +56,16 @@ open class Signal<Args> {
     }
   }
 
-  suspend fun emitAndClear (args: Args) {
-    this.emit(args)
-    this.listenerSet.clear()
+  suspend fun emitAndClear(args: Args) {
+    val cbs = synchronized(listenerSet) {
+      listenerSet.toSet().also {
+        listenerSet.clear()
+      }
+    }
+    this._emit(args, cbs)
   };
 
+  @Synchronized
   fun clear() {
     this.listenerSet.clear()
   }
@@ -72,8 +76,8 @@ class SimpleSignal : Signal<Unit>() {
   suspend fun emit() {
     emit(Unit)
   }
+
   suspend fun emitAndClear() {
-    emit(Unit)
-    clear()
+    emitAndClear(Unit)
   }
 };

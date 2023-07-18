@@ -5,6 +5,7 @@ import android.webkit.WebMessagePort
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.getOrElse
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.Callback
 import org.dweb_browser.helper.Signal
@@ -41,11 +42,14 @@ class MessagePort private constructor(private val port: WebMessagePort) {
       for (event in messageChannel) {
         signal.emit(event)
       }
+      signal.clear()
     }
 
     port.setWebMessageCallback(object : WebMessagePort.WebMessageCallback() {
       override fun onMessage(port: WebMessagePort, event: WebMessage) {
-        messageChannel.trySend(event).getOrThrow()
+        messageChannel.trySend(event).getOrElse { err ->
+          err?.printStackTrace()
+        }
         /// TODO 尝试告知对方暂停，比如发送 StreamPaused
       }
     })
@@ -59,11 +63,10 @@ class MessagePort private constructor(private val port: WebMessagePort) {
   private var _isClosed = false
   fun close() {
     if (_isClosed) {
-      messageChannel.close()
-      _messageSignal.clear()
       return
     }
     _isClosed = true
+    messageChannel.close()
     port.close()
   }
 }

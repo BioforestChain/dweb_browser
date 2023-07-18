@@ -40,3 +40,7 @@ dependencies {
 
   implementation(project(mapOf("path" to ":helper")))
 }
+
+tasks.withType<Test> {
+  useJUnitPlatform()
+}

@@ -11,10 +11,7 @@ import { buildUrl } from "../../../helper/urlHelper.ts";
 import { ServerStartResult, ServerUrlInfo } from "../const.ts";
 
 /** 创建一个网络服务 */
-export const createHttpDwebServer = async (
-  microModule: $MicroModule,
-  options: $DwebHttpServerOptions
-) => {
+export const createHttpDwebServer = async (microModule: $MicroModule, options: $DwebHttpServerOptions) => {
   /// 申请端口监听，不同的端口会给出不同的域名和控制句柄，控制句柄不要泄露给任何人
   const startResult = await startHttpDwebServer(microModule, options);
   console.log(
@@ -41,18 +38,10 @@ export class HttpDwebServer {
   };
   private _listen(routes?: $ReqMatcher[]) {
     if (this._listenIpcP) {
-      throw new Error(
-        "Listen method has been called more than once without closing."
-      );
+      throw new Error("Listen method has been called more than once without closing.");
     }
 
-    this._listenIpcPo.resolve(
-      (this._listenIpcP = listenHttpDwebServer(
-        this.nmm,
-        this.startResult,
-        routes
-      ))
-    );
+    this._listenIpcPo.resolve((this._listenIpcP = listenHttpDwebServer(this.nmm, this.startResult, routes)));
   }
   /** 关闭监听 */
   close = once(async () => {
@@ -106,10 +95,7 @@ export const listenHttpDwebServer = async (
 };
 
 /** 开始监听端口和域名 */
-export const startHttpDwebServer = async (
-  microModule: $MicroModule,
-  options: $DwebHttpServerOptions
-) => {
+export const startHttpDwebServer = async (microModule: $MicroModule, options: $DwebHttpServerOptions) => {
   const url = buildUrl(new URL(`file://http.std.dweb/start`), {
     search: options,
   });
@@ -118,20 +104,13 @@ export const startHttpDwebServer = async (
     .object<ServerStartResult>()
     .then((obj) => {
       const { urlInfo, token } = obj;
-      const serverUrlInfo = new ServerUrlInfo(
-        urlInfo.host,
-        urlInfo.internal_origin,
-        urlInfo.public_origin
-      );
+      const serverUrlInfo = new ServerUrlInfo(urlInfo.host, urlInfo.internal_origin, urlInfo.public_origin);
       return new ServerStartResult(token, serverUrlInfo);
     });
 };
 
 /** 停止监听端口和域名 */
-export const closeHttpDwebServer = async (
-  microModule: $MicroModule,
-  options: $DwebHttpServerOptions
-) => {
+export const closeHttpDwebServer = async (microModule: $MicroModule, options: $DwebHttpServerOptions) => {
   return await microModule
     .nativeFetch(
       buildUrl(new URL(`file://http.std.dweb/close`), {

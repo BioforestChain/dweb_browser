@@ -90,13 +90,18 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
         }
       }
     }
+    val apis = createJsProcessWeb(mainServer)
     val bootstrapUrl =
       mainServer.startResult.urlInfo.buildInternalUrl().path("$INTERNAL_PATH/bootstrap.js")
         .toString()
 
-    this.onAfterShutdown { mainServer.close() }
+    this.onAfterShutdown {
+      apis.dWebView.destroy()
+    }
+    apis.dWebView.onDestroy {
+      shutdown()
+    }
 
-    val apis = createJsProcessWeb(mainServer)
     val queryEntry = Query.string().optional("entry")
     val queryProcessId = Query.string().required("process_id")
     val queryMmid = Query.string().required("mmid")
@@ -126,7 +131,6 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
                 ipcProcessIdMap.remove(ipc.remote.mmid)
               }
             }
-
           }
 
           PromiseOut<Int>().also { processIdMap[processId] = it }

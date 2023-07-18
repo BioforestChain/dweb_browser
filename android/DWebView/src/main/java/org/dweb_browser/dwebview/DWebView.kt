@@ -463,6 +463,8 @@ class DWebView(
     evaluator.evaluateAsyncJavascriptCode(script, afterEval)
 
   private var _destroyed = false
+  private var _destroySignal = SimpleSignal();
+  fun onDestroy(cb: SimpleCallback) = _destroySignal.listen(cb)
   override fun destroy() {
     if (_destroyed) {
       return
@@ -470,6 +472,9 @@ class DWebView(
     _destroyed = true
     debugDWebView("DESTROY")
     super.destroy()
+    runBlockingCatching {
+      _destroySignal.emitAndClear(Unit)
+    }.getOrNull()
   }
 
   override fun onDetachedFromWindow() {

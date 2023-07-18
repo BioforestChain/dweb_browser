@@ -18,7 +18,7 @@ import androidx.lifecycle.lifecycleScope
 import com.google.accompanist.web.WebView
 import info.bagen.dwebbrowser.base.BaseActivity
 import org.dweb_browser.helper.*
-import info.bagen.dwebbrowser.microService.browser.mwebview.MultiWebViewNMM.Companion.controllerMap
+import info.bagen.dwebbrowser.microService.browser.mwebview.MultiWebViewNMM.Companion.getCurrentWebViewController
 import info.bagen.dwebbrowser.microService.browser.mwebview.dwebServiceWorker.ServiceWorkerEvent
 import info.bagen.dwebbrowser.microService.browser.mwebview.dwebServiceWorker.emitEvent
 import info.bagen.dwebbrowser.ui.theme.DwebBrowserAppTheme
@@ -33,7 +33,7 @@ open class MultiWebViewActivity : BaseActivity() {
         remoteMmid = intent.getStringExtra("mmid") ?: return finish()
         controller?.activity = null
 
-        controller = controllerMap[remoteMmid]?.also { controller ->
+        controller = getCurrentWebViewController(remoteMmid)?.also { controller ->
             controller.activity = this
             controller.onWebViewClose {
                 // 如果webView实例都销毁完了，那就关闭自己
@@ -56,15 +56,6 @@ open class MultiWebViewActivity : BaseActivity() {
         lifecycleScope.launch(ioAsyncExceptionHandler) {
             emitEvent(remoteMmid, ServiceWorkerEvent.Pause.event, """new Event("pause")""")
         }
-    }
-
-    override fun onDestroy() {
-        controllerMap.remove(remoteMmid)?.let {
-            GlobalScope.launch (ioAsyncExceptionHandler){
-                it.destroyWebView()
-            }
-        }
-        super.onDestroy()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

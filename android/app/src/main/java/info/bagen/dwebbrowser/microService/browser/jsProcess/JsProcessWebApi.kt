@@ -8,6 +8,10 @@ import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.dwebview.ipcWeb.MessagePortIpc
 import org.dweb_browser.dwebview.ipcWeb.saveNative2JsIpcPort
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.microservice.help.gson
@@ -64,7 +68,8 @@ class JsProcessWebApi(val dWebView: DWebView) {
         })
         debugJsProcess("processInfo", processInfo_json)
         val info = gson.fromJson(processInfo_json, ProcessInfo::class.java)
-        ProcessHandler(info, MessagePortIpc(port2, remoteModule, IPC_ROLE.CLIENT))
+        var ipc = MessagePortIpc(port2, remoteModule, IPC_ROLE.CLIENT)
+        ProcessHandler(info, ipc)
     }
 
     suspend fun createIpcFail(

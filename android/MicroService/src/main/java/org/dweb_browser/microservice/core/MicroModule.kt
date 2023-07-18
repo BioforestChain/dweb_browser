@@ -11,19 +11,25 @@ typealias Router = MutableMap<String, AppRun>
 typealias AppRun = (options: NativeOptions) -> Any
 typealias NativeOptions = MutableMap<String, String>
 
+enum class MMState {
+  BOOTSTRAP,
+  SHUTDOWN,
+}
+
 abstract class MicroModule : Ipc.MicroModuleInfo {
   override val mmid: Mmid = ""
   override val dweb_deeplinks = mutableListOf<DWEB_DEEPLINK>()
   open val routers: Router? = null
 
-  private var runningStateLock = PromiseOut.resolve(false)
-  val running get() = runningStateLock.value == true
+  private var runningStateLock = StatePromiseOut.resolve(MMState.SHUTDOWN)
+  val running get() = runningStateLock.value == MMState.BOOTSTRAP
 
   private suspend fun beforeBootstrap(bootstrapContext: BootstrapContext) {
-    if (this.runningStateLock.waitPromise()) {
+    if (this.runningStateLock.state == MMState.BOOTSTRAP) {
       throw Exception("module ${this.mmid} already running");
     }
-    this.runningStateLock = PromiseOut()
+    this.runningStateLock.waitPromise() // 确保已经完成上一个状态
+    this.runningStateLock = StatePromiseOut(MMState.BOOTSTRAP)
     this._bootstrapContext = bootstrapContext // 保存context
   }
 
@@ -32,7 +38,7 @@ abstract class MicroModule : Ipc.MicroModuleInfo {
 
   protected abstract suspend fun _bootstrap(bootstrapContext: BootstrapContext)
   private suspend fun afterBootstrap(dnsMM: BootstrapContext) {
-    this.runningStateLock.resolve(true)
+    this.runningStateLock.resolve()
   }
 
   suspend fun bootstrap(bootstrapContext: BootstrapContext) {
@@ -45,10 +51,11 @@ abstract class MicroModule : Ipc.MicroModuleInfo {
   }
 
   protected suspend fun beforeShutdown() {
-    if (!this.runningStateLock.waitPromise()) {
+    if (this.runningStateLock.state == MMState.SHUTDOWN) {
       throw Exception("module $mmid already shutdown");
     }
-    this.runningStateLock = PromiseOut()
+    this.runningStateLock.waitPromise() // 确保已经完成上一个状态
+    this.runningStateLock = StatePromiseOut(MMState.SHUTDOWN)
 
     /// 关闭所有的通讯
     _ipcSet.toList().forEach {
@@ -60,7 +67,7 @@ abstract class MicroModule : Ipc.MicroModuleInfo {
   protected abstract suspend fun _shutdown()
   protected open suspend fun afterShutdown() {
     _afterShutdownSignal.emitAndClear()
-    runningStateLock.resolve(false)
+    runningStateLock.resolve()
     this._bootstrapContext = null
   }
 
@@ -73,6 +80,7 @@ abstract class MicroModule : Ipc.MicroModuleInfo {
       this.afterShutdown()
     }
   }
+
   fun onAfterShutdown(cb: Callback<Unit>) = _afterShutdownSignal.listen(cb)
   protected val _afterShutdownSignal = SimpleSignal();
 
@@ -182,3 +190,14 @@ typealias IpcConnectArgs = Pair<Ipc, Request>
 //    }
 //    return hashMap
 //}
+
+class StatePromiseOut<T>(val state: T) : PromiseOut<T>() {
+  companion object {
+    fun <T> resolve(state: T) =
+      StatePromiseOut(state).also { it.resolve() }
+  }
+
+  fun resolve() {
+    super.resolve(state)
+  }
+}

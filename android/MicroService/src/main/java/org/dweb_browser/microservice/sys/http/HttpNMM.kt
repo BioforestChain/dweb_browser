@@ -111,14 +111,15 @@ class HttpNMM : NativeMicroModule("http.std.dweb") {
   }
 /// 在网关中寻址能够处理该 host 的监听者
 
-/**webSocket 网关路由寻找*/
-private suspend fun wsHandler(request: Request): WsConsumer {
-  val host = processHost(request)
-  val wsConsumer = gatewayMap[host]?.let { gateway ->
-    gateway.listener.hookWsRequest(request)
+  /**webSocket 网关路由寻找*/
+  private suspend fun wsHandler(request: Request): WsConsumer {
+    val host = processHost(request)
+    val wsConsumer = gatewayMap[host]?.let { gateway ->
+      gateway.listener.hookWsRequest(request)
+    }
+    return wsConsumer ?: { ws -> ws.send(WsMessage("GATEWAY NOT_FOUND")) }
   }
-  return  wsConsumer ?: {ws -> ws.send(WsMessage("GATEWAY NOT_FOUND")) }
-}
+
   public override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     /// 启动http后端服务
     dwebServer.createServer({ request ->
@@ -127,12 +128,13 @@ private suspend fun wsHandler(request: Request): WsConsumer {
           request
         )
       }.getOrThrow()
-    },{ request ->
+    }, { request ->
       runBlockingCatching(ioAsyncExceptionHandler) {
         wsHandler(
-        request
-      )
-    }.getOrThrow()})
+          request
+        )
+      }.getOrThrow()
+    })
 
     /// 为 nativeFetch 函数提供支持
     _afterShutdownSignal.listen(nativeFetchAdaptersManager.append { fromMM, request ->
@@ -226,11 +228,15 @@ private suspend fun wsHandler(request: Request): WsConsumer {
 
     val listener = Gateway.PortListener(ipc, serverUrlInfo.host)
 
-    /// ipc 在关闭的时候，自动释放所有的绑定
-    listener.onDestroy(ipc.onClose {
-      debugHttp("start close", "onDestroy ${ipc.remote.mmid} ${serverUrlInfo.host}")
+    listener.onDestroy {
       close(ipc, options)
-    })
+    }
+
+    /// ipc 在关闭的时候，自动释放所有的绑定
+    ipc.onClose {
+      debugHttp("start close", "onDestroy ${ipc.remote.mmid} ${serverUrlInfo.host}")
+      listener.destroy()
+    }
 
     val token = ByteArray(8).also { Random().nextBytes(it) }.toBase64Url()
 
