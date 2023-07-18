@@ -107,6 +107,7 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     debugJsMM("bootstrap...", "$mmid/$metadata")
+    _shit_state_restarting = false;
 
     val streamIpc = createNativeStream()
     /**
@@ -185,12 +186,15 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
         }
       }
       if (ipcEvent.name == "restart") {
+        _shit_state_restarting = true
         // 调用重启
         bootstrapContext.dns.restart(mmid)
       }
       null
     }
   }
+
+  private var _shit_state_restarting = false
 
   private val fromMmidOriginIpcWM = mutableMapOf<Mmid, PromiseOut<Ipc>>();
 
@@ -205,6 +209,9 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
       PromiseOut<Ipc>().also { po ->
         GlobalScope.launch(ioAsyncExceptionHandler) {
           try {
+            if(_shit_state_restarting){
+              debugger(fromMmid)
+            }
             debugJsMM("ipcBridge", "fromMmid:$fromMmid targetIpc:$targetIpc")
             /**
              * 向js模块发起连接
@@ -262,8 +269,6 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
 
   override suspend fun _shutdown() {
     debugJsMM("closeJsProcessSignal emit", "$mmid/$metadata")
-    /// 发送指令，关停js进程
-    nativeFetch("file://js.browser.dweb/close-all-process")
     fromMmidOriginIpcWM.forEach { map ->
       val ipc = map.value.waitPromise()
       println("ipc close ${ipc.remote.mmid}")

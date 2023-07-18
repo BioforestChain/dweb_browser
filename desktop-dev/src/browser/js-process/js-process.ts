@@ -182,6 +182,7 @@ export class JsProcessNMM extends NativeMicroModule {
 
         /// 创建成功了，注册销毁函数
         ipc.onClose(() => {
+          this.closeAllProcessByIpc(apis, ipcProcessIdMap, event.ipc.remote.mmid);
           if (processIdMap.delete(process_id)) {
             ipcProcessIdMap.delete(ipc.remote.mmid);
             if (processIdMap.size === 0) {
@@ -389,7 +390,7 @@ export class JsProcessNMM extends NativeMicroModule {
    * @returns
    */
   private async closeAllProcessByIpc(apis: Remote<$APIS>, ipcProcessIdMap: $IpcProcessIdMap, mmid: $MMID) {
-    const processMap = ipcProcessIdMap.get(mmid);
+    const processMap = mapHelper.getAndRemove(ipcProcessIdMap, mmid);
     if (processMap == null) return true;
     // 关闭程序
     await Promise.all(

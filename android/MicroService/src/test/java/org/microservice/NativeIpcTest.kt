@@ -237,4 +237,37 @@ class NativeIpcTest : AsyncBase() {
     printDumpCoroutinesInfo()
 
   }
+
+  @Test
+  fun IpcOnClose() = runBlocking {
+    val m1 = object : NativeMicroModule("m1") {
+      override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
+      }
+
+      override suspend fun _shutdown() {
+      }
+    }
+    val m2 = object : NativeMicroModule("m2") {
+      override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
+      }
+
+      override suspend fun _shutdown() {
+      }
+    }
+    val channel = NativeMessageChannel<IpcMessage, IpcMessage>();
+    val ipc1 = NativeIpc(channel.port1, m1, IPC_ROLE.SERVER);
+    val ipc2 = NativeIpc(channel.port2, m2, IPC_ROLE.CLIENT);
+    var t = 0;
+    ipc1.onClose {
+      t += 1
+      println("closed ${ipc1.remote.mmid}")
+    }
+    ipc2.onClose {
+      t += 1
+      println("closed ${ipc2.remote.mmid}")
+    }
+
+    ipc1.close()
+    assertEquals(2, t)
+  }
 }

@@ -50,7 +50,7 @@ abstract class MicroModule : Ipc.MicroModuleInfo {
     }
   }
 
-  protected suspend fun beforeShutdown() {
+  protected open suspend fun beforeShutdown() {
     if (this.runningStateLock.state == MMState.SHUTDOWN) {
       throw Exception("module $mmid already shutdown");
     }

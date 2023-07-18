@@ -125,12 +125,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
           }
           // 创建成功了，注册销毁函数
           ipc.onClose {
-            processIdMap.remove(processId)?.let { pid ->
-              apis.destroyProcess(pid.waitPromise())
-              if (processIdMap.isEmpty()) {
-                ipcProcessIdMap.remove(ipc.remote.mmid)
-              }
-            }
+            closeAllProcessByIpc(apis, ipcProcessIdMap, ipc.remote.mmid)
           }
 
           PromiseOut<Int>().also { processIdMap[processId] = it }
@@ -165,19 +160,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
       },
       /// 关闭process
       "/close-all-process" bind Method.GET to defineHandler { request, ipc ->
-        val processMap = ipcProcessIdMap.remove(ipc.remote.mmid)
-        debugJsProcess("close-all-process", ipc.remote.mmid)
-        if (processMap !== null) {
-          // 关闭程序
-          for ((_, po) in processMap) {
-            val processId = po.waitPromise()
-            apis.destroyProcess(processId)
-          }
-          // 关闭代码通道
-          closeHttpDwebServer(DwebHttpServerOptions(80, ipc.remote.mmid))
-          return@defineHandler true
-        }
-        return@defineHandler false
+        return@defineHandler closeAllProcessByIpc(apis, ipcProcessIdMap, ipc.remote.mmid)
       },
       // ipc 创建错误
       "/create-ipc-fail" bind Method.GET to defineHandler { request, ipc ->
@@ -341,6 +324,20 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
     ipc: Ipc, apis: JsProcessWebApi, process_id: Int, mmid: Mmid
   ): Int {
     return apis.createIpc(process_id, mmid)
+  }
+
+  private suspend fun closeAllProcessByIpc(apis:JsProcessWebApi, ipcProcessIdMap: MutableMap<String, MutableMap<String, PromiseOut<Int>>>,mmid: Mmid):Boolean{
+    debugJsProcess("close-all-process", mmid)
+    val processMap = ipcProcessIdMap.remove(mmid) ?: return false;
+    // 关闭程序
+    for (po in processMap.values){
+      val processId =po.waitPromise()
+       apis.destroyProcess(processId)
+    }
+
+    // 关闭代码通道
+    closeHttpDwebServer(DwebHttpServerOptions(80, mmid))
+    return true;
   }
 }
 
