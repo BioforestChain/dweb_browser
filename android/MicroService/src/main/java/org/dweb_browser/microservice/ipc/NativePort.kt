@@ -1,34 +1,56 @@
 package org.dweb_browser.microservice.ipc
 
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.helper.Callback
-import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleCallback
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.runBlockingCatching
 import java.util.concurrent.atomic.AtomicInteger
 
 class NativeMessageChannel<T1, T2> {
   /**
    * 默认锁住，当它解锁的时候，意味着通道关闭
    */
-  private val closePo = PromiseOut<Int>()
+  private val closePo = SharedCloseSignal()
   private val channel1 = Channel<T1>()
   private val channel2 = Channel<T2>()
   val port1 = NativePort(channel1, channel2, closePo)
   val port2 = NativePort(channel2, channel1, closePo)
 }
 
+class SharedCloseSignal {
+  private val closeSignal = SimpleSignal()
+  fun onClose(cb: Callback<Unit>) = closeSignal.listen(cb)
+  private var closed = false
+   fun isClosed(): Boolean {
+    synchronized(closeSignal) {
+      return closed
+    }
+  }
+
+   suspend fun emitClose() {
+     synchronized(closeSignal) {
+       if (closed) {
+         return
+       }
+       closed = true
+     }
+     closeSignal.emitAndClear()
+  }
+}
+
 class NativePort<I, O>(
   private val channel_in: Channel<I>,
   private val channel_out: Channel<O>,
-  private val closePo: PromiseOut<Int>
+  private val cs: SharedCloseSignal
 ) {
   companion object {
     private var uid_acc = AtomicInteger(1);
@@ -43,13 +65,11 @@ class NativePort<I, O>(
     /**
      * 等待 close 信号被发出，那么就关闭出口、触发事件
      */
-    if (closePo.isFinished) {
+    if (cs.isClosed()) {
       _close()
     } else {
-      CoroutineScope(currentCoroutineContext()).launch {
-        if (closePo.waitPromise() != uid) {
-          _close()
-        }
+      cs.onClose {
+        _close()
       }
     }
 
@@ -67,10 +87,7 @@ class NativePort<I, O>(
   fun onClose(cb: SimpleCallback) = _closeSignal.listen(cb)
 
   suspend fun close() {
-    if (!closePo.isFinished) {
-      closePo.resolve(uid)
-      _close()
-    }
+    return cs.emitClose()
   }
 
   private suspend fun _close() {
@@ -87,7 +104,7 @@ class NativePort<I, O>(
    */
   @OptIn(DelicateCoroutinesApi::class)
   suspend fun postMessage(msg: O) {
-    debugNativeIpc("message-out/$this >> $msg")
+    debugNativeIpc("message-out/$this >>","$msg ${!channel_out.isClosedForSend}")
     if (!channel_out.isClosedForSend) {
       channel_out.send(msg)
     } else {

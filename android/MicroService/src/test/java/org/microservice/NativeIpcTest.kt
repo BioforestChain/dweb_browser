@@ -260,7 +260,7 @@ class NativeIpcTest : AsyncBase() {
     var t = 0;
     ipc1.onClose {
       t += 1
-      println("closed ${ipc1.remote.mmid}")
+      println("closed ${ipc1.remote.mmid} ")
     }
     ipc2.onClose {
       t += 1
