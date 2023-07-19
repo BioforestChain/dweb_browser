@@ -1,6 +1,17 @@
 package info.bagen.dwebbrowser.microService.desktop.ui
 
-import androidx.compose.foundation.Image
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,9 +33,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.vectorResource
@@ -33,11 +44,33 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.microService.desktop.model.AppInfo
+import info.bagen.dwebbrowser.microService.desktop.model.LocalDrawerManager
 import info.bagen.dwebbrowser.microService.desktop.model.LocalOpenList
 import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
 
+private val rightEnterAnimator = slideInHorizontally(animationSpec = tween(500),//动画时长1s
+  initialOffsetX = {
+    it//初始位置在负一屏的位置，也就是说初始位置我们看不到，动画动起来的时候会从负一屏位置滑动到屏幕位置
+  })
+private val rightExitAnimator = slideOutHorizontally(animationSpec = tween(500),//动画时长1s
+  targetOffsetX = {
+    it//初始位置在负一屏的位置，也就是说初始位置我们看不到，动画动起来的时候会从负一屏位置滑动到屏幕位置
+  })
+
 @Composable
 internal fun DrawerView() {
+  val localDrawerManager = LocalDrawerManager.current
+  AnimatedVisibility(
+    visibleState = localDrawerManager.visibleState,
+    enter = rightEnterAnimator,
+    exit = rightExitAnimator,
+  ) {
+    DrawerInnerView()
+  }
+}
+
+@Composable
+internal fun DrawerInnerView() {
   val localHeight = LocalConfiguration.current.screenHeightDp
   val localWidth = LocalConfiguration.current.screenWidthDp
   val localOpenList = LocalOpenList.current

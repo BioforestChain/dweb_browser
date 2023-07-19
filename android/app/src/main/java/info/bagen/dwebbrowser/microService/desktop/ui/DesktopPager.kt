@@ -29,6 +29,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.microService.desktop.model.AppInfo
+import info.bagen.dwebbrowser.microService.desktop.model.LocalDrawerManager
 import info.bagen.dwebbrowser.microService.desktop.model.LocalOpenList
 import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
 
@@ -104,6 +105,7 @@ internal fun Toolbar(
   onClose: () -> Unit,
   onExpand: () -> Unit
 ) {
+  val localDrawerManager = LocalDrawerManager.current
   TopAppBar(modifier = modifier) {
     Icon(
       imageVector = ImageVector.vectorResource(id = R.drawable.ic_main_close),
@@ -116,7 +118,9 @@ internal fun Toolbar(
       text = appInfo.jmmMetadata.name,
       modifier = Modifier
         .weight(1f)
-        .clickableWithNoEffect { },
+        .clickableWithNoEffect {
+          if (localDrawerManager.visibleState.targetState) localDrawerManager.hide() else localDrawerManager.show()
+        },
       textAlign = TextAlign.Center,
       maxLines = 1
     )

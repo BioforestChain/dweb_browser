@@ -93,6 +93,7 @@ internal fun MainView() {
             // move to front
             openList.remove(item)
             openList.add(item)
+            item.screenType.value = if (item.expand) AppInfo.ScreenType.Full else AppInfo.ScreenType.Half
           } ?: run {
             item.screenType.value = AppInfo.ScreenType.Half
             openList.add(item)

@@ -1,5 +1,6 @@
 package info.bagen.dwebbrowser.microService.desktop.model
 
+import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -26,5 +27,19 @@ data class AppInfo(
 ) {
   enum class ScreenType {
     Hide, Half, Full;
+  }
+}
+
+val LocalDrawerManager = compositionLocalOf {
+  DrawerManager()
+}
+
+class DrawerManager {
+  val visibleState: MutableTransitionState<Boolean> = MutableTransitionState(true)
+  fun hide() {
+    visibleState.targetState = false
+  }
+  fun show() {
+    visibleState.targetState = true
   }
 }
