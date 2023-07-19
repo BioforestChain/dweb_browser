@@ -20,17 +20,6 @@ export class BarcodeScannerPlugin extends BasePlugin {
     rotation = 0,
     formats = SupportedFormat.QR_CODE
   ): Promise<string[]> {
-    const res = await (
-      await this.fetchApi(`/process`, {
-        method: "POST",
-        search: {
-          rotation,
-          formats,
-        },
-        body: blob,
-      })
-    ).json();
-    return res;
     // const userAgent = navigator.userAgent.toLowerCase();
     // if (userAgent.indexOf(" electron/") > -1 && "BarcodeDetector" in window) {
     //   // Electron-specific code
@@ -65,19 +54,19 @@ export class BarcodeScannerPlugin extends BasePlugin {
     //   };
     //   return await po.promise;
     // }
-    // const value = await this.buildApiRequest("/process", {
-    //   search: {
-    //     rotation,
-    //     formats,
-    //   },
-    //   method: "POST",
-    //   body: blob,
-    //   base: await BasePlugin.public_url,
-    // })
-    //   .fetch()
-    //   .object<string[]>();
-    // const result = Array.from(value ?? []);
-    // return result;
+    const value = await this.buildApiRequest("/process", {
+      search: {
+        rotation,
+        formats,
+      },
+      method: "POST",
+      body: blob,
+      base: await BasePlugin.public_url,
+    })
+      .fetch()
+      .object<string[]>();
+    const result = Array.from(value ?? []);
+    return result;
   }
   /**
    * 停止扫码

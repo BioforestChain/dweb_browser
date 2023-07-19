@@ -235,9 +235,14 @@ open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
                 fromMmidOriginIpcWM.remove(targetIpc.remote.mmid)
                 targetIpc.close()
               }
-            }
-            originIpc.onClose {
-              fromMmidOriginIpcWM.remove(originIpc.remote.mmid)
+              targetIpc.onClose {
+                fromMmidOriginIpcWM.remove(originIpc.remote.mmid)
+                originIpc.close()
+              }
+            } else {
+              originIpc.onClose {
+                fromMmidOriginIpcWM.remove(originIpc.remote.mmid)
+              }
             }
             po.resolve(originIpc);
           } catch (e: Exception) {

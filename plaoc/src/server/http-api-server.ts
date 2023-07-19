@@ -68,18 +68,20 @@ export class Server_api extends HttpServer {
     const href = event.url.href.replace(INTERNAL_PREFIX, "/");
     const url = new URL(href);
     // 转发public url
-    if (url.pathname === "/public-url") {
-      const startResult = await this.getStartResult();
-      const apiHref = startResult.urlInfo.buildPublicUrl((url) => {
-        const sessionId = event.searchParams.get(X_PLAOC_QUERY.SESSION_ID);
-        if (sessionId !== null) {
-          url.searchParams.set(X_PLAOC_QUERY.SESSION_ID, sessionId);
-        }
-      }).href;
-      return new Response(apiHref);
-    } // 监听属性
-    else if (url.pathname === "/observe") {
+    // if (url.pathname === "/public-url") {
+    //   const startResult = await this.getStartResult();
+    //   const apiHref = startResult.urlInfo.buildPublicUrl((url) => {
+    //     const sessionId = event.searchParams.get(X_PLAOC_QUERY.SESSION_ID);
+    //     if (sessionId !== null) {
+    //       url.searchParams.set(X_PLAOC_QUERY.SESSION_ID, sessionId);
+    //     }
+    //   }).href;
+    //   return new Response(apiHref);
+    // } else 
+     // 监听属性
+    if (url.pathname === "/observe") {
       const mmid = url.searchParams.get("mmid") as $MMID;
+      console.log("🤕serve observe",mmid)
       if (mmid === null) {
         throw new Error("observe require mmid");
       }
@@ -118,7 +120,7 @@ export class Server_api extends HttpServer {
   }
 }
 
-import { OBSERVE, X_PLAOC_QUERY } from "./const.ts";
+import { OBSERVE } from "./const.ts";
 import {
   $MMID,
   PromiseOut,

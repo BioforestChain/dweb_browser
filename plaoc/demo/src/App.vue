@@ -10,13 +10,13 @@ const router = useRouter();
 // router.push("/share")
 // router.push("/webview");
 // router.push("/splashscreen")
-// router.push("/serviceworker")
+router.push("/serviceworker")
 // router.push("/inputfile");
 // router.push("/barcodescanning");
 // router.push("/network");
 // router.push("/safearea");
 // router.push("/haptics");
-router.push("/closewatcher")
+// router.push("/closewatcher")
 
 dwebServiceWorker.addEventListener("pause", (event) => {
   console.log("app暂停🍋", event);
@@ -39,7 +39,6 @@ const drawer_controller = ref(false);
 // }
 </script>
 <template>
-  <dweb-config></dweb-config>
   <v-app>
     <v-main>
       <div class="h-full drawer app-bg pt-10">

@@ -9,6 +9,7 @@ import org.dweb_browser.microservice.sys.dns.nativeFetchAdaptersManager
 import org.dweb_browser.microservice.sys.http.net.Http1Server
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printdebugln
+import org.dweb_browser.helper.printerrln
 import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
@@ -30,6 +31,7 @@ import org.http4k.routing.websockets
 import org.http4k.websocket.Websocket
 import org.http4k.websocket.WsConsumer
 import org.http4k.websocket.WsMessage
+import org.http4k.websocket.WsResponse
 import java.util.Random
 
 fun debugHttp(tag: String, msg: Any = "", err: Throwable? = null) =
@@ -112,29 +114,44 @@ class HttpNMM : NativeMicroModule("http.std.dweb") {
 /// 在网关中寻址能够处理该 host 的监听者
 
   /**webSocket 网关路由寻找*/
-  private suspend fun wsHandler(request: Request): WsConsumer {
+  private suspend fun wsHandler(request: Request): WsResponse {
     val host = processHost(request)
-    val wsConsumer = gatewayMap[host]?.let { gateway ->
-      gateway.listener.hookWsRequest(request)
+    println("webSxxocket=> $host ${request.uri}")
+    val response = gatewayMap[host]?.let { gateway ->
+      gateway.listener.hookHttpRequest(request)
     }
-    return wsConsumer ?: { ws -> ws.send(WsMessage("GATEWAY NOT_FOUND")) }
+
+    return WsResponse { ws ->
+      ws.onMessage { wsMessage ->
+        println("onMessage ${wsMessage.body}")
+      }
+       ws.onError { printerrln("websocket",it) }
+       ws.send(WsMessage("来自服务端的消息"))
+      if (response!==null) {
+        ws.send(WsMessage(response.body))
+      } else {
+        ws.send(WsMessage("not found webSocket handle"))
+      }
+    }
   }
 
   public override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     /// 启动http后端服务
-    dwebServer.createServer({ request ->
+    dwebServer.createServer( { request ->
       runBlockingCatching(ioAsyncExceptionHandler) {
         httpHandler(
           request
         )
       }.getOrThrow()
-    }, { request ->
+    },
+      { request ->
       runBlockingCatching(ioAsyncExceptionHandler) {
         wsHandler(
           request
         )
       }.getOrThrow()
-    })
+    }
+    )
 
     /// 为 nativeFetch 函数提供支持
     _afterShutdownSignal.listen(nativeFetchAdaptersManager.append { fromMM, request ->

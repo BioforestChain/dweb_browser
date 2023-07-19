@@ -43,22 +43,29 @@ export class StateObserver<RAW, STATE> {
       pull() {},
       cancel() {},
     });
-
-    const url = new URL(BasePlugin.url.replace(/^http:/, "ws:").replace(/^https:/, "wss:"));
-    url.pathname = `${this.plugin.mmid}/observe`;
+    const pub_url = await BasePlugin.public_url;
+    const url = new URL(pub_url.replace(/^http:/, "ws:"));
+    // 内部的监听
+    url.pathname = `/websocket`;
+    url.searchParams.append("mmid",this.plugin.mmid)
+    // url.searchParams.append("pathname","/internal/observe")
+    console.log("url",url.href)
     const ws = new WebSocket(url);
     ws.onerror = (err) => {
       console.error("onerror", err);
       controller.close();
     };
-    // let count = 0;
-    ws.onopen = () => {};
+    ws.onopen  = () => {
+      console.log("webcoket open")
+      ws.send("hhhh")
+    }
     ws.onmessage = async (event: MessageEvent<Blob>) => {
-      const str = await event.data.text();
-      if (str.length === 0) return;
-      console.log("str: ", str);
-      const value = this.coder.decode(JSON.parse(str));
-      controller.enqueue(value);
+      console.log("🥳onmessage",event.data)
+      // const str = await event.data.text();
+      // if (str.length === 0) return;
+      // console.log("str: ", str);
+      // const value = this.coder.decode(JSON.parse(str));
+      // controller.enqueue(value);
     };
 
     ws.onclose = () => {

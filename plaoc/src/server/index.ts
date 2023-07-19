@@ -31,7 +31,6 @@ export const main = async () => {
   const tryOpenView = queue(async () => {
     /// 等待http服务启动完毕，获得入口url
     const url = await indexUrlPo.promise;
-    console.log("waterxxbang onActivity🤠",url)
     if (all_webview_status.size === 0) {
       await sync_mwebview_status();
       await mwebview_open(url);
@@ -43,7 +42,6 @@ export const main = async () => {
   tryOpenView();
   /// 如果有人来激活，那我就唤醒我的界面
   jsProcess.onActivity(async (_ipcEvent, ipc) => {
-    console.log("waterxxbang onActivity🎃",all_webview_status.size)
     await tryOpenView();
     // todo lifecycle 等待加载全部加载完成，再触发ready
     ipc.postMessage(IpcEvent.fromText("ready", "activity"));

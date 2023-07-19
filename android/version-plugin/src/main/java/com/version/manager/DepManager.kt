@@ -19,7 +19,7 @@ object BuildVersion {
  */
 object BuildConfig {
   // 网络开发相关
-  const val http4kBom = "org.http4k:http4k-bom:4.47.1.0"
+  const val http4kBom = "org.http4k:http4k-bom:5.4.0.0"
   const val http4kCore = "org.http4k:http4k-core"
   const val http4kMultipart = "org.http4k:http4k-multipart"
   const val http4kClientApache = "org.http4k:http4k-client-apache"

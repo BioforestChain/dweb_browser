@@ -35,6 +35,7 @@ class Gateway(
      * 将之转发给 IPC 处理，等待远端处理完成再代理响应回去
      */
     suspend fun hookHttpRequest(request: Request): Response? {
+      println("httpHandler=>  ${request.uri} ")
       for (router in _routerSet) {
         val response = router.handler(request)
         if (response != null) {

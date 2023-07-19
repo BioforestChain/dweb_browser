@@ -60,7 +60,7 @@ suspend fun startDwebBrowser(): DnsNMM {
     )
 
     DEVELOPER.WaterBang -> debugTags.addAll(
-      listOf( "dwebview", "mwebview","http","JsMM","js-process","native-ipc")
+      listOf( "dwebview", "mwebview","http","JsMM","js-process")
     )
 
     else -> debugTags.addAll(
@@ -110,7 +110,7 @@ suspend fun startDwebBrowser(): DnsNMM {
   val biometricsNMM = BiometricsNMM().also { dnsNMM.install(it) }
 
   /// NativeUi 是将众多原生UI在一个视图中组合的复合组件
-  NativeUiNMM().also { dnsNMM.install(it) }
+  val nativeUiNMM = NativeUiNMM().also { dnsNMM.install(it) }
 
   /// 安装Jmm
   val jmmNMM = JmmNMM().also { dnsNMM.install(it) }
@@ -140,8 +140,8 @@ suspend fun startDwebBrowser(): DnsNMM {
     )
 
     DEVELOPER.WaterBang -> listOf(
-      browserNMM.mmid,
-//      plaocDemoJMM.mmid,
+//      browserNMM.mmid,
+      plaocDemoJMM.mmid,
 //      desktopDemoJMM.mmid,
     )
 
@@ -155,7 +155,7 @@ suspend fun startDwebBrowser(): DnsNMM {
 
   /// 启动程序
   val bootNMM = BootNMM(
-    bootMmidList.plus(jmmNMM.mmid),
+    bootMmidList.plus(jmmNMM.mmid).plus(nativeUiNMM.mmid),
   ).also { dnsNMM.install(it) }
 
   /// 启动Web调试

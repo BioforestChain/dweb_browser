@@ -2,6 +2,7 @@ package org.dweb_browser.microservice.sys.http.net
 
 import io.ktor.http.*
 import io.ktor.http.ContentType
+import io.ktor.http.websocket.websocketServerAccept
 import io.ktor.server.application.*
 import io.ktor.server.cio.*
 import io.ktor.server.engine.*
@@ -15,10 +16,13 @@ import org.http4k.core.*
 import org.http4k.core.Headers
 import org.http4k.core.Status.Companion.NOT_IMPLEMENTED
 import org.http4k.lens.Header.CONTENT_TYPE
+import org.http4k.routing.websockets
 import org.http4k.server.Http4kServer
 import org.http4k.server.PolyServerConfig
 import org.http4k.server.ServerConfig
 import org.http4k.server.ServerConfig.StopMode.Immediate
+import org.http4k.server.asHttp4k
+import org.http4k.server.asServer
 import org.http4k.server.supportedOrNull
 import org.http4k.sse.SseHandler
 import org.http4k.websocket.WsHandler
