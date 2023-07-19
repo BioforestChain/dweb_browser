@@ -22,6 +22,32 @@ declare namespace globalThis {
   function open(url: string): Window;
 }
 
+// 测试代码 还需要判断 是否可以从这个初始化  __native_close_watcher_kit__ 这个对象
+// iframe 无法实现 preload sceript
+globalThis.__native_close_watcher_kit__ ? "" : Reflect.set(
+  window,
+  '__native_close_watcher_kit__',
+  {
+    allc: 0,
+    _watchers: new Map(),
+    _tasks: new Map(),
+    registryToken: function(consumeToken: string){
+      if (consumeToken === null || consumeToken === "") {
+        throw new Error("CloseWatcher.registryToken invalid arguments");
+      }
+      const resolve = this._tasks.get(consumeToken)
+      if(resolve === undefined) throw new Error('resolve === undefined');
+      const id = this.allc++;
+      resolve(id + "");
+    },
+    tryClose: function(id: string){
+      const watcher = this._watchers.get(id);
+      if(watcher === undefined) throw new Error('watcher === undefined');
+      watcher.dispatchEvent(new Event("close"))
+    }
+  }
+); 
+
 let native_close_watcher_kit = globalThis.__native_close_watcher_kit__;
 
 if (native_close_watcher_kit) {
@@ -77,7 +103,10 @@ export class CloseWatcher extends EventTarget {
     // 注册指令
     native_close_watcher_kit.registryToken(token);
     /// 发起指令
-    globalThis.open(token);
+    // 桌面端 是通过模拟器实现 back 所以不需要打开一个 window
+    if('ontouchstart' in window){
+      globalThis.open(token);
+    }
     // 等待响应
     const id = await po.promise;
     // 注册实例

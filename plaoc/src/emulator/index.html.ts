@@ -144,6 +144,27 @@ export class RootComp extends LitElement {
   readonly hapticsController = this._wc(new HapticsController());
   readonly biometricsController = this._wc(new BiometricsController());
 
+  navigationbarBack = () => {
+    const code = `
+      // 查询全部的 globalThis.__native_close_watcher_kit__
+      const arr = Array.from(globalThis.__native_close_watcher_kit__._watchers.values());
+      const len = arr.length;
+      if(len > 0){
+        arr[arr.length - 1].close()
+      }else{
+        history.back()
+      }
+    `;
+    this.iframeElExcuteJavascript(code);
+  }
+
+  iframeElExcuteJavascript = (code: string) => {
+    const contentWindow = this.iframeEle?.contentWindow;
+    if(!contentWindow) throw new Error("this.iframeEle?.contentWindow === null");
+    const _eval = Reflect.get(contentWindow, "eval");
+    _eval(code)
+  }
+
   protected override render() {
     return html`
       <div class="root">
@@ -200,6 +221,7 @@ export class RootComp extends LitElement {
                   ._overlay=${this.navigationBarState.overlay}
                   ._visible=${this.navigationBarState.visible}
                   ._inserts=${this.navigationBarState.insets}
+                  @back=${this.navigationbarBack}
                 ></multi-webview-comp-navigation-bar>
               `;
             }
