@@ -46,7 +46,7 @@ export class StateObserver<RAW, STATE> {
     const pub_url = await BasePlugin.public_url;
     const url = new URL(pub_url.replace(/^http:/, "ws:"));
     // 内部的监听
-    url.pathname = `/websocket`;
+    url.pathname = `/internal/observe`;
     url.searchParams.append("mmid",this.plugin.mmid)
     // url.searchParams.append("pathname","/internal/observe")
     console.log("url",url.href)
@@ -61,11 +61,11 @@ export class StateObserver<RAW, STATE> {
     }
     ws.onmessage = async (event: MessageEvent<Blob>) => {
       console.log("🥳onmessage",event.data)
-      // const str = await event.data.text();
-      // if (str.length === 0) return;
-      // console.log("str: ", str);
-      // const value = this.coder.decode(JSON.parse(str));
-      // controller.enqueue(value);
+      const str = await event.data.text();
+      if (str.length === 0) return;
+      console.log("str: ", str);
+      const value = this.coder.decode(JSON.parse(str));
+      controller.enqueue(value);
     };
 
     ws.onclose = () => {

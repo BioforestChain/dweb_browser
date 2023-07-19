@@ -103,7 +103,7 @@ dependencies {
   implementation(BuildConfig.http4kCore)
   implementation(BuildConfig.http4kMultipart)
   implementation(BuildConfig.http4kClientApache)
-  implementation(BuildConfig.http4kServerKtorcio)
+
 
   // Android 相关
   implementation(BuildConfig.coreSplashScreen)

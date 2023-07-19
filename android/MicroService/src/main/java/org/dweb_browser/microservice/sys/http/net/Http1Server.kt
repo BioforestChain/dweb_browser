@@ -19,7 +19,7 @@ class Http1Server {
   var bindingPort = -1
 
   private var server: Http4kServer? = null
-  suspend fun createServer(handler: HttpHandler,ws: WsHandler) {
+  suspend fun createServer(handler: HttpHandler?,ws: WsHandler?) {
     if (server != null) {
       throw Exception("server alter created")
     }

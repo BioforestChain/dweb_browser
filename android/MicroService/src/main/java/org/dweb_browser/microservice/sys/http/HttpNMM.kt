@@ -116,11 +116,9 @@ class HttpNMM : NativeMicroModule("http.std.dweb") {
   /**webSocket 网关路由寻找*/
   private suspend fun wsHandler(request: Request): WsResponse {
     val host = processHost(request)
-    println("webSxxocket=> $host ${request.uri}")
     val response = gatewayMap[host]?.let { gateway ->
       gateway.listener.hookHttpRequest(request)
     }
-
     return WsResponse { ws ->
       ws.onMessage { wsMessage ->
         println("onMessage ${wsMessage.body}")
@@ -132,12 +130,13 @@ class HttpNMM : NativeMicroModule("http.std.dweb") {
       } else {
         ws.send(WsMessage("not found webSocket handle"))
       }
+      ws.onClose { println("WsResponse is closing") }
     }
   }
 
   public override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     /// 启动http后端服务
-    dwebServer.createServer( { request ->
+    dwebServer.createServer({ request ->
       runBlockingCatching(ioAsyncExceptionHandler) {
         httpHandler(
           request
@@ -145,12 +144,12 @@ class HttpNMM : NativeMicroModule("http.std.dweb") {
       }.getOrThrow()
     },
       { request ->
-      runBlockingCatching(ioAsyncExceptionHandler) {
-        wsHandler(
-          request
-        )
-      }.getOrThrow()
-    }
+        runBlockingCatching(ioAsyncExceptionHandler) {
+          wsHandler(
+            request
+          )
+        }.getOrThrow()
+      }
     )
 
     /// 为 nativeFetch 函数提供支持

@@ -6,7 +6,6 @@ import android.graphics.Rect
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
 import org.dweb_browser.helper.*
-import io.ktor.util.*
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.http4k.core.Method
@@ -31,7 +30,8 @@ class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb") {
                     " ${query_rotationDegrees(request)} ${request.body.length}"
                 )
                 val image = InputImage.fromBitmap(
-                    request.body.payload.moveToByteArray().let { byteArray ->
+                    request.body.payload.let { buff ->
+                        val byteArray = buff.array()
                         BitmapFactory.decodeByteArray(
                             byteArray,
                             0,

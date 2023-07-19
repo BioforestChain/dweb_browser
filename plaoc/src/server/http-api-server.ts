@@ -81,7 +81,6 @@ export class Server_api extends HttpServer {
      // 监听属性
     if (url.pathname === "/observe") {
       const mmid = url.searchParams.get("mmid") as $MMID;
-      console.log("🤕serve observe",mmid)
       if (mmid === null) {
         throw new Error("observe require mmid");
       }

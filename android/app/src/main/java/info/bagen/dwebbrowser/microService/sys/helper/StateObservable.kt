@@ -11,7 +11,7 @@ open class StateObservable(
 ) {
     val stateChanges = IsChange(needFirstCall)
     val changeSignal = SimpleSignal()
-    inline fun observe(noinline cb: SimpleCallback) = changeSignal.listen(cb)
+     fun observe( cb: SimpleCallback) = changeSignal.listen(cb)
 
     val observerIpcMap = mutableMapOf<Ipc, OffListener>()
     suspend fun startObserve(ipc: Ipc) {

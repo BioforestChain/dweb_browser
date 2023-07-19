@@ -46,7 +46,6 @@ import org.dweb_browser.browserUI.database.WebSiteInfo
 import org.dweb_browser.browserUI.database.WebSiteType
 import org.dweb_browser.browserUI.database.DefaultSearchWebEngine
 import org.dweb_browser.browserUI.database.WebEngine
-import io.ktor.util.reflect.*
 import kotlinx.coroutines.delay
 import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
 

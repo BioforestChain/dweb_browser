@@ -23,7 +23,6 @@ import com.google.accompanist.web.AccompanistWebViewClient
 import com.google.accompanist.web.WebContent
 import com.google.accompanist.web.WebViewNavigator
 import com.google.accompanist.web.WebViewState
-import io.ktor.http.Url
 import org.dweb_browser.browserUI.database.WebSiteDatabase
 import org.dweb_browser.browserUI.database.WebSiteInfo
 import org.dweb_browser.browserUI.database.WebSiteType
@@ -46,6 +45,7 @@ import org.http4k.core.Response
 import org.http4k.core.Status
 import org.http4k.core.query
 import org.http4k.lens.Header
+import java.net.URL
 import java.util.concurrent.atomic.AtomicInteger
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
@@ -396,13 +396,13 @@ internal class DwebBrowserWebViewClient(private val microModule: MicroModule) : 
     var response: Response? = null
     val url = request.url.let {
       when (it.scheme) {
-        "chrome" -> Url(it.toString().replace("chrome://", "http://browser.dweb/"))
-        "about" -> Url(it.toString().replace("about:", "http://browser.dweb/"))
-        else -> Url(it.toString())
+        "chrome" -> Uri.parse(it.toString().replace("chrome://", "http://browser.dweb/"))
+        "about" -> Uri.parse(it.toString().replace("about:", "http://browser.dweb/"))
+        else -> Uri.parse(it.toString())
       }
     }
 
-    if (url.protocol.name == "http" && (url.host == "browser.dweb" || url.host == "browser.dweb.localhost")) {
+    if (url.scheme == "http" && (url.host == "browser.dweb" || url.host == "browser.dweb.localhost")) {
       response = runBlockingCatching(ioAsyncExceptionHandler) {
         val urlPathSegments = url.pathSegments.filter { it.isNotEmpty() }
         if (urlPathSegments[0] == "newtab") {

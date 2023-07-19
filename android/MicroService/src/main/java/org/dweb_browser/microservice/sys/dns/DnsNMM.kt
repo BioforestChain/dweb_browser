@@ -1,6 +1,5 @@
 package org.dweb_browser.microservice.sys.dns
 
-import io.ktor.server.plugins.NotFoundException
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -257,7 +256,7 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
             }
             promiseOut.resolve(openingMm)
           }
-        } ?: promiseOut.reject(NotFoundException("no found app: $mmid"))
+        } ?: promiseOut.reject(Exception("no found app: $mmid"))
       }
     }
   }

@@ -4,13 +4,13 @@ import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.helper.IpcMethod
 import org.dweb_browser.microservice.ipc.ReadableStreamIpc
 import org.dweb_browser.helper.*
-import io.ktor.util.collections.*
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Response
 import org.http4k.core.Status
 import org.http4k.websocket.WsConsumer
 import org.http4k.websocket.WsMessage
+import org.http4k.websocket.WsResponse
 
 class Gateway(
   val listener: PortListener, val urlInfo: HttpNMM.ServerUrlInfo, val token: String
@@ -20,7 +20,7 @@ class Gateway(
     val ipc: Ipc,
     val host: String
   ) {
-    private val _routerSet = ConcurrentSet<StreamIpcRouter>();
+    private val _routerSet = mutableSetOf<StreamIpcRouter>();
 
     fun addRouter(config: RouteConfig, streamIpc: ReadableStreamIpc): (Unit) -> Boolean {
       val route = StreamIpcRouter(config, streamIpc);
@@ -35,7 +35,6 @@ class Gateway(
      * 将之转发给 IPC 处理，等待远端处理完成再代理响应回去
      */
     suspend fun hookHttpRequest(request: Request): Response? {
-      println("httpHandler=>  ${request.uri} ")
       for (router in _routerSet) {
         val response = router.handler(request)
         if (response != null) {
@@ -45,11 +44,11 @@ class Gateway(
       return null
     }
 
-    suspend fun hookWsRequest(request: Request): WsConsumer? {
+    suspend fun hookWsRequest(request: Request): WsResponse? {
       for (router in _routerSet) {
         val response = router.handler(request)
         if (response != null) {
-          return { ws -> ws.send(WsMessage(response.body)) }
+          return WsResponse { ws -> ws.send(WsMessage(response.body)) }
         }
       }
       return null
