@@ -102,7 +102,8 @@ export class JmmNMM extends NativeMicroModule {
       })
       .get("/install", async (event) => {
         const { metadataUrl } = query_metadataUrl(event.searchParams);
-        return Response.json(await this.startInstall(metadataUrl));
+        const res = Response.json(await this.startInstall(metadataUrl));
+        return res;
       })
       .get("/uninstall", async (event) => {
         const { app_id: mmid } = query_app_id(event.searchParams);

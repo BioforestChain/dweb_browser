@@ -72,37 +72,37 @@ const cancel = defineLogAction(
 
 const download = defineLogAction(
   async () => {
-    return await sw.updateContoller.download("https://dweb.waterbang.top/metadata.json");
+    return await sw.updateContoller.download("http://127.0.0.1:8096/metadata.json");
   },
   { name: "cancel", args: [], logPanel: $logPanel }
 );
-const message = ref("这里显示收到的消息")
+const message = ref("这里显示收到的消息");
 
 // 向desktop.dweb.waterbang.top.dweb 发送消息
 const sayHi = async () => {
-  const result = await sw.externalFetch(`desktop.dweb-browser.org.dweb`,{
-    pathname:"/say/hi",
+  const result = await sw.externalFetch(`desktop.dweb-browser.org.dweb`, {
+    pathname: "/say/hi",
     search: {
-      message: "今晚吃螃🦀️蟹吗？"
-    }
+      message: "今晚吃螃🦀️蟹吗？",
+    },
   });
   message.value = await result.text();
-  console.log("sayHi return => ",message.value);
+  console.log("sayHi return => ", message.value);
 };
 sw.addEventListener("fetch", async (event) => {
   console.log("Dweb Service Worker fetch!", event);
   const url = new URL(event.request.url);
   if (url.pathname.endsWith("/say/hi")) {
     const hiMessage = url.searchParams.get("message");
-    console.log(`收到:${hiMessage}`)
+    console.log(`收到:${hiMessage}`);
     if (hiMessage) {
-      message.value = hiMessage
+      message.value = hiMessage;
     }
     // 发送消息回去
     return event.respondWith(`吃，再来两斤二锅头。`);
   }
 
-  return event.respondWith("Not match any routes")
+  return event.respondWith("Not match any routes");
 });
 
 const title = "Dweb Service Worker";
@@ -116,7 +116,7 @@ const title = "Dweb Service Worker";
     <article class="card-body">
       <h2 class="card-title">APP之间通信</h2>
       <div class="card-actions">
-        <input  type="text" v-model="message" />
+        <input type="text" v-model="message" />
       </div>
       <div class="card-actions">
         <button class="inline-block rounded-full btn btn-accent" @click="sayHi">say hi</button>

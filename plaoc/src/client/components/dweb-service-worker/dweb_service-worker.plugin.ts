@@ -17,10 +17,10 @@ class UpdateControllerPlugin extends BasePlugin {
 
   /**下载 */
   @bindThis
-  async download(url: string): Promise<BFSMetaData> {
+  async download(metadataUrl: string): Promise<BFSMetaData> {
     return await this.fetchApi(`/install`, {
       search: {
-        url,
+        metadataUrl,
       },
     }).object();
   }
@@ -83,9 +83,7 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
       pub = await configPlugin.updatePublicUrl();
     }
     pub = pub.replace("X-Dweb-Host=api", "X-Dweb-Host=external");
-    const X_Plaoc_Public_Url = new URL(location.href).searchParams.get(
-      "X-Plaoc-External-Url"
-    );
+    const X_Plaoc_Public_Url = new URL(location.href).searchParams.get("X-Plaoc-External-Url");
 
     const search = Object.assign(init.search ?? {}, {
       mmid: mmid,
@@ -93,10 +91,7 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
       pathname: init.pathname,
     });
     const config = Object.assign(init, { search: search, base: pub });
-    return await this.buildExternalApiRequest(
-      `/${X_Plaoc_Public_Url}`,
-      config
-    ).fetch();
+    return await this.buildExternalApiRequest(`/${X_Plaoc_Public_Url}`, config).fetch();
   }
   // http://localhost:22206/?X-Dweb-Host=external.demo.www.bfmeta.info.dweb%3A443
 }

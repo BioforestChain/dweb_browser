@@ -86,6 +86,8 @@ export async function createApiServer(this: JmmNMM) {
       async (event) => {
         if (event.pathname === "/app/open") {
           const id = event.searchParams.get("mmid") as $MMID;
+          // 打开之前需要先关闭 否者更新后无法实现 更新打开 ？？
+          await this.context?.dns.close(id);
           const connectResult = this.context?.dns.connect(id);
           if (connectResult === undefined) {
             throw new Error(`${id} not found!`);
