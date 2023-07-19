@@ -106,11 +106,10 @@ class WebCacheMgr: ObservableObject {
         loadCaches()
     }
     
-    func createOne() -> WebCache {
+    func createOne() {
         let cache = WebCache()
         store.append(cache)
         saveCaches()
-        return cache
         
         //        store.append(cache)
         //        saveCaches()
@@ -153,11 +152,11 @@ class WebCacheMgr: ObservableObject {
 //                WebCache(lastVisitedUrl: URL(string: "https://www.163.com")!, title: "3"),
 //                WebCache(lastVisitedUrl: URL(string: "https://www.douban.com")!, title: "4"),
 //                WebCache(lastVisitedUrl: URL(string: "https://www.douyu.com")!, title: "5"),
-//                
+//
 //                WebCache(lastVisitedUrl: URL(string: "https://www.yahoo.com")!, title: "6"),
 //                WebCache(lastVisitedUrl: URL(string: "https://m.hupu.com/")!, title: "8"),
 //                WebCache(lastVisitedUrl: URL(string: "https://sina.cn/")!, title: "9"),
-//                
+//
 //                WebCache(lastVisitedUrl: URL(string: "https://m.hupu.com/")!, title: "10"),
 //                WebCache(lastVisitedUrl: URL(string: "https://sina.cn/")!, title: "11"),
             ]

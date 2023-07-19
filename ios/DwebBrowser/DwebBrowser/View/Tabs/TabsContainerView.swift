@@ -17,10 +17,11 @@ struct TabsContainerView: View {
     @StateObject var animation = ShiftAnimation()
 
     @State var geoRect: CGRect = .zero // 定义一个变量来存储geoInGlobal的值
-    @State var selectedCellFrame: CGRect = .zero 
+    @State var selectedCellFrame: CGRect = .zero
     @State private var isExpanded = false
     @State private var lastProgress: AnimationProgress = .invisible
     @State var isScrolling: Bool = false
+    @State var tabPageOpacity: CGFloat = 0
 
     private var snapshotHeight: CGFloat { geoRect.height - addressBarH }
     private var snapshotMidY: CGFloat { geoRect.minY + snapshotHeight/2 - addressBarH }
@@ -36,64 +37,57 @@ struct TabsContainerView: View {
         Self._printChanges()
 
         return
-        GeometryReader { geo in
-            // 层级关系  最前<-- 快照(缩放动画）<-- collecitionview  <--  tabPage ( homepage & webview)
+            GeometryReader { geo in
+                // 层级关系  最前<-- 快照(缩放动画）<-- collecitionview  <--  tabPage ( homepage & webview)
 
-            ZStack {
-                TabGridView(animation: animation, gridState: gridState, isScrolling: $isScrolling, selectedCellFrame: $selectedCellFrame)
+                ZStack {
+                    TabGridView(animation: animation, gridState: gridState, isScrolling: $isScrolling, selectedCellFrame: $selectedCellFrame)
 
-                if isExpanded, !animation.progress.isAnimating() {
-//                    Color.bkColor.ignoresSafeArea()
-                    Color.bkColor.ignoresSafeArea()
-                }
-                
-                if isScrolling {
-                    Color.bkColor.ignoresSafeArea()
-                }
-                if isExpanded, !animation.progress.isAnimating() {
-                    PagingScrollView()
+                    if isExpanded, !animation.progress.isAnimating() {
+                        Color.bkColor.ignoresSafeArea()
+                    }
+
+                    PagingScrollView(tabPageOpacity: $tabPageOpacity)
                         .environmentObject(animation)
-                }
+                        .allowsHitTesting(tabPageOpacity != 0) // This line allows TabGridView to receive the tap event, down through click
 
-                if animation.progress.isAnimating() {
-                    if isExpanded {
-                        animationImage
-                            .transition(.identityHack)
-                            .matchedGeometryEffect(id: animationId, in: expandshrinkAnimation)
-                            .frame(width: screen_width, height: snapshotHeight, alignment: .top)
-                            .position(x: screen_width/2, y: snapshotMidY)
-                    } else {
-                        animationImage
-                            .transition(.identityHack)
-                            .matchedGeometryEffect(id: animationId, in: expandshrinkAnimation)
-                            .frame(width: gridCellW, height: cellImageH, alignment: .top)
-                            .position(x: selectedCellFrame.minX + selectedCellFrame.width/2.0,
-                                      y: selectedCellFrame.minY + (selectedCellFrame.height - gridcellBottomH)/2.0 - safeAreaTopHeight)
+                    if animation.progress.isAnimating() {
+                        if isExpanded {
+                            animationImage
+                                .transition(.identityHack)
+                                .matchedGeometryEffect(id: animationId, in: expandshrinkAnimation)
+                                .frame(width: screen_width, height: snapshotHeight, alignment: .top)
+                                .position(x: screen_width/2, y: snapshotMidY)
+                        } else {
+                            animationImage
+                                .transition(.identityHack)
+                                .matchedGeometryEffect(id: animationId, in: expandshrinkAnimation)
+                                .frame(width: gridCellW, height: cellImageH, alignment: .top)
+                                .position(x: selectedCellFrame.minX + selectedCellFrame.width/2.0,
+                                          y: selectedCellFrame.minY + (selectedCellFrame.height - gridcellBottomH)/2.0 - safeAreaTopHeight)
+                        }
                     }
                 }
-            }
-            .background(Color.bkColor)
+                .background(Color.bkColor)
 
-            .onAppear {
-                geoRect = geo.frame(in: .global)
-                print("z geo: \(geoRect)")
-            }
+                .onAppear {
+                    geoRect = geo.frame(in: .global)
+                    print("z geo: \(geoRect)")
+                }
 
-            .onReceive(toolbarState.$createTabTapped) { createTabTapped in
-                if createTabTapped { // 准备放大动画
-                    WebCacheMgr.shared.createOne()
-                    selectedTab.curIndex = WebCacheMgr.shared.store.count - 1
-                    selectedCellFrame = CGRect(origin: CGPoint(x: screen_width / 2, y: screen_height / 2) , size: CGSize(width: 5, height: 5))
-                    toolbarState.shouldExpand = true
+                .onReceive(toolbarState.$createTabTapped) { createTabTapped in
+                    if createTabTapped { // 准备放大动画
+                        WebCacheMgr.shared.createOne()
+                        selectedTab.curIndex = WebCacheMgr.shared.store.count - 1
+                        selectedCellFrame = CGRect(origin: CGPoint(x: screen_width/2, y: screen_height/2), size: CGSize(width: 5, height: 5))
+                        toolbarState.shouldExpand = true
+                    }
+                }
+
+                .onChange(of: selectedCellFrame) { newValue in
+                    printWithDate(msg: "selecte cell rect changes to : \(newValue)")
                 }
             }
-
-            .onChange(of: selectedCellFrame) { newValue in
-                printWithDate(msg: "selecte cell rect changes to : \(newValue)")
-            }
-            
-            
-        }
     }
 
     var animationImage: some View {
@@ -102,7 +96,7 @@ struct TabsContainerView: View {
                 Image(uiImage: animation.snapshotImage)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
-                    .frame(alignment: .center)
+                    .frame(alignment: .top)
             )
             .cornerRadius(isExpanded ? 0 : gridcellCornerR)
             .clipped()
@@ -116,25 +110,21 @@ struct TabsContainerView: View {
 
                 if progress == .startShrinking || progress == .startExpanding {
                     let isExpanding = animation.progress == .startExpanding
-                    
                     printWithDate(msg: "animation : \(progress)")
-                    if progress == .startShrinking{
+                    if progress == .startShrinking {
                         gridState.scale = 0.8
                     }
-                    DispatchQueue.main.asyncAfter(deadline: .now()) {
-                        addressBar.shouldDisplay = isExpanding
-                    }
-                    
+
                     printWithDate(msg: "start to shifting animation")
                     withAnimation(.easeIn(duration: 0.5)) {
-                        addressBar.height = isExpanding ? addressBarH : 0
+                        addressBar.shouldDisplay = isExpanding
                         gridState.scale = isExpanding ? 0.8 : 1
                         isExpanded = isExpanding
                     }
 
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.55) {
+                        tabPageOpacity = isExpanded ? 1 : 0
                         animation.progress = .invisible // change to expanded or shrinked
-                        
                         gridState.scale = 1
                     }
                 }

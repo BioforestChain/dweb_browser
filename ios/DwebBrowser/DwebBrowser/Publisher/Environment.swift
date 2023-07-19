@@ -17,7 +17,6 @@ class AddressBarState: ObservableObject {
     @Published var isFocused = false
     @Published var inputText: String = ""
     @Published var shouldDisplay: Bool = false
-    @Published var height: CGFloat = 0
 }
 
 class ToolBarState: ObservableObject {

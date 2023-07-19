@@ -7,16 +7,19 @@
 
 import SwiftUI
 
+var disabledDragGesture = DragGesture().onChanged { _ in }.onEnded { _ in }
+
 struct PagingScrollView: View {
     @ObservedObject var cacheMgr = WebCacheMgr.shared
     @EnvironmentObject var toolBarState: ToolBarState
     @EnvironmentObject var addressBar: AddressBarState
     @EnvironmentObject var selectedTab: SelectedTab
+    @EnvironmentObject var animation: ShiftAnimation
     @ObservedObject var keyboardHelper = KeyboardHeightHelper()
-    private var disabledDragGesture = DragGesture().onChanged { _ in }.onEnded { _ in }
-    init() {
-        print("visiting PagingScrollView init")
-    }
+
+    @Binding var tabPageOpacity: CGFloat
+
+    @State private var addressbarOffset: CGFloat = addressBarH
 
     var body: some View {
         GeometryReader { geometry in
@@ -30,15 +33,29 @@ struct PagingScrollView: View {
                                         .frame(height: geometry.size.height - addressBarH) // 使用GeometryReader获取父容器高度
                                         .gesture(disabledDragGesture)
                                 }
+                                .background(Color.purple)
+                                .opacity(tabPageOpacity)
+                                .onChange(of: animation.progress) { progress in
+                                    if progress.isAnimating() {
+                                        tabPageOpacity = 0
+                                    }
+                                }
+
                                 if addressBar.isFocused {
                                     SearchTypingView()
                                 }
                             }
+
                             AddressBar(index: index, webWrapper: WebWrapperMgr.shared.store[index])
-                                .frame(height: addressBar.height)
-                                .offset(y: addressBar.isFocused ? -keyboardHelper.keyboardHeight : 0)
-                                .animation(.spring(), value: keyboardHelper.keyboardHeight)
+                                .frame(height: addressBarH)
+                                .offset(y: addressbarOffset)
+                                .animation(.default, value: addressbarOffset)
                                 .gesture(addressBar.isFocused ? disabledDragGesture : nil) // 根据状态变量决定是否启用拖拽手势
+                                .onChange(of: addressBar.shouldDisplay) { dispaly in
+                                    addressbarOffset = dispaly ? 0 : addressBarH
+                                }.onChange(of: addressBar.isFocused) { isFocused in
+                                    addressbarOffset = isFocused ? -keyboardHelper.keyboardHeight : 0
+                                }
                         }
                         .frame(width: screen_width)
                     }

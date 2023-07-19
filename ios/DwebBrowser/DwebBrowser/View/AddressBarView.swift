@@ -44,15 +44,6 @@ struct AddressBar: View {
             .offset(y: 10)
         }
         .background(Color.bkColor)
-//        .onChange(of: addressBar.shouldDisplay)
-//        .onReceive(addressBar.$shouldDisplay)
-//        { display in
-//            printWithDate(msg: "start to addressBar animation")
-////            withAnimation {
-//                addressbarHeight = display ? addressBarH : 0
-////            }
-//        }
-//        .offset(y: toolbarState.addrBarOffset)
     }
 
     var addressTextField: some View {
