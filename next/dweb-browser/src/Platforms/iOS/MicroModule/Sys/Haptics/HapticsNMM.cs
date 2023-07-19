@@ -88,10 +88,9 @@ public class HapticsNMM : NativeMicroModule
         HttpRouter.AddRoute(IpcMethod.Get, "/customize", async (request, _) =>
         {
             var duration = request.QueryStringRequired("duration");
-            var durationType = typeof(List<double>)!;
-            var durationList = (List<NSNumber>)JsonSerializer.Deserialize(duration, durationType)!;
-
-            if (await VibrateManager.VibrateAsync(VibrateManager.VibrateType.Customize, durationList.ToArray()))
+            var durationArr = JsonSerializer.Deserialize<double[]>(duration);
+            var durationList = Array.ConvertAll(durationArr, x => new NSNumber(x));
+            if (await VibrateManager.VibrateAsync(VibrateManager.VibrateType.Customize, durationList))
             {
                 return new PureResponse(HttpStatusCode.OK);
             }

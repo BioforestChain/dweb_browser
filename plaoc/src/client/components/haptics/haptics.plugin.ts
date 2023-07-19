@@ -73,7 +73,7 @@ export class HapticsPlugin extends BasePlugin {
     const duration = options?.duration || [300];
     return await this.fetchApi("/customize", {
       search: {
-        duration: duration,
+        duration: JSON.stringify(duration),
       },
     });
   }

@@ -10,7 +10,7 @@
     "http://qiniu-waterbang.waterbang.top/bfm/nft.png"
     ],
   "author": ["bfs","bfs@bfs.com"],
-  "version": "1.1.0",
+  "version": "1.1.1",
   "new_feature":"新添加了Device和MWebView的示例！",
   "categories": ["demo","vue3","plaoc"],
   "home": "https://dweb.waterbang.top"
