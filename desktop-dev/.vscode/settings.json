@@ -2,7 +2,7 @@
   "deno.enable": true,
   "files.exclude": {
     "build/": false,
-    "electxron/": true,
+    "electron/": true,
     "node_modules/": true,
     "**/*.bak": true,
     "**/.git": true,
@@ -19,5 +19,9 @@
   "[typescript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.formatOnSave": false
+  },
+  "svg.preview.background": "editor",
+  "[sass]": {
+    "editor.defaultFormatter": "syler.sass-indented"
   }
 }

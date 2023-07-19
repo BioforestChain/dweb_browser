@@ -5,21 +5,20 @@
  */
 
 // Components
-import App from './App.vue'
+import App from "./App.vue";
 
 // Composables
-import { createApp } from 'vue'
+import { createApp } from "vue";
 
 // Plugins
-import { registerPlugins } from '@/pages/new-tab/plugins'
+import { registerPlugins } from "@/pages/new-tab/plugins";
 
-const app = createApp(App)
+const app = createApp(App);
 
-registerPlugins(app)
+registerPlugins(app);
 
-app.mount('#app')
+app.mount("#app");
 
-window.oncontextmenu = (event)=>{
+window.oncontextmenu = (event) => {
   event.preventDefault();
-}
-
+};

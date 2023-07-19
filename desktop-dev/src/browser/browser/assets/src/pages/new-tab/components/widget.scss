@@ -1,0 +1,93 @@
+::part(button) {
+  @apply btn;
+}
+::part(form-control) {
+  @apply form-control;
+}
+::part(label) {
+  @apply label;
+}
+::part(input) {
+  @apply input;
+}
+// ::part(btn) {
+//   @apply btn;
+// }
+// ::part(btn-neutral) {
+//   @apply btn-neutral;
+// }
+::part(btn-primary) {
+  @apply btn-primary;
+}
+// ::part(btn-secondary) {
+//   @apply btn-secondary;
+// }
+// ::part(btn-accent) {
+//   @apply btn-accent;
+// }
+// ::part(btn-info) {
+//   @apply btn-info;
+// }
+// ::part(btn-success) {
+//   @apply btn-success;
+// }
+// ::part(btn-warning) {
+//   @apply btn-warning;
+// }
+// ::part(btn-error) {
+//   @apply btn-error;
+// }
+// ::part(btn-ghost) {
+//   @apply btn-ghost;
+// }
+// ::part(btn-link) {
+//   @apply btn-link;
+// }
+// ::part(btn-outline) {
+//   @apply btn-outline;
+// }
+// ::part(btn-active) {
+//   @apply btn-active;
+// }
+// ::part(btn-disabled) {
+//   @apply btn-disabled;
+// }
+// ::part(glass) {
+//   @apply glass;
+// }
+// ::part(no-animation) {
+//   @apply no-animation;
+// }
+// ::part(button-round) {
+//   .button-round();
+// }
+// ::part(button-fill) {
+//   .button-fill();
+// }
+// ::part(button-active) {
+//   .button-active();
+// }
+// ::part(button-fill) {
+//   .button-fill();
+// }
+// ::part(button-active) {
+//   .button-active();
+// }
+// ::part(button-outline) {
+//   .button-outline();
+// }
+// ::part(button-tonatailwindcss postcss autoprefixerl) {
+//   .button-tonal();
+// }
+// ::part(button-large) {
+//   .button-large();
+// }
+// ::part(button-small) {
+//   .button-small();
+// }
+// ::part(button-raised) {
+//   .button-raised();
+// }
+// ::part(button-preloader) {
+//   .button-preloader();
+// }
