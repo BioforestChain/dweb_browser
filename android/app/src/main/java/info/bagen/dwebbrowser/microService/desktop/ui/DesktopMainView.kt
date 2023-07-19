@@ -29,6 +29,7 @@ import coil.compose.AsyncImage
 import info.bagen.dwebbrowser.microService.browser.jmm.JmmMetadata
 import info.bagen.dwebbrowser.microService.desktop.db.desktopAppList
 import info.bagen.dwebbrowser.microService.desktop.model.AppInfo
+import info.bagen.dwebbrowser.microService.desktop.model.LocalDrawerManager
 import info.bagen.dwebbrowser.microService.desktop.model.LocalInstallList
 import info.bagen.dwebbrowser.microService.desktop.model.LocalOpenList
 import kotlinx.coroutines.flow.collectLatest
@@ -89,6 +90,7 @@ fun DesktopMainView() {
 internal fun MainView() {
   val installList = LocalInstallList.current
   val openList = LocalOpenList.current
+  val localDrawerManager = LocalDrawerManager.current
   Box(modifier = Modifier.fillMaxSize()) {
     LazyVerticalGrid(
       columns = GridCells.Fixed(4),
@@ -107,6 +109,7 @@ internal fun MainView() {
             item.screenType.value = AppInfo.ScreenType.Half
             openList.add(item)
           }
+          localDrawerManager.show()
         }
       }
     }
