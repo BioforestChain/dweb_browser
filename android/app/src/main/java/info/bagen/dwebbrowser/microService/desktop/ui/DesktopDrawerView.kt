@@ -1,24 +1,15 @@
 package info.bagen.dwebbrowser.microService.desktop.ui
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -35,7 +26,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.vectorResource
@@ -78,8 +68,7 @@ internal fun DrawerInnerView() {
     Column(
       modifier = Modifier
         .width((localWidth * 0.3f - 32).dp)
-        .fillMaxHeight()
-        .padding(top = 56.dp, bottom = (localHeight * 0.15f).dp)
+        .height((localHeight * 0.7f).dp)
         .shadow(2.dp, shape = RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp))
         .clip(RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp))
         .background(MaterialTheme.colorScheme.background)

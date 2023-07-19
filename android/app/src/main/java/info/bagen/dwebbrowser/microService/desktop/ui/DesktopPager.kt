@@ -1,12 +1,14 @@
 package info.bagen.dwebbrowser.microService.desktop.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
@@ -19,10 +21,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -45,43 +47,66 @@ internal fun DesktopPager() {
 
 @Composable
 internal fun ToolbarAndWebView(appInfo: AppInfo) {
-  val screenWidth = LocalConfiguration.current.screenWidthDp
-  val screenHeight = LocalConfiguration.current.screenWidthDp
-  val density = LocalDensity.current.density
   val localOpenList = LocalOpenList.current
-  Box(modifier = Modifier.fillMaxSize()) {
-    val pairToolbar = when (appInfo.screenType.value) {
-      AppInfo.ScreenType.Hide -> Pair(0f, 0f)
-      AppInfo.ScreenType.Half -> Pair(0.7f, density * (16 - screenWidth * 0.15f))
-      else -> Pair(1f, 0f)
+  val localDrawerManager = LocalDrawerManager.current
+  val triple = when (appInfo.screenType.value) {
+    AppInfo.ScreenType.Hide -> {
+      Triple(0f, 0f, 0f)
     }
+
+    AppInfo.ScreenType.Half -> {
+      Triple(appInfo.zoom.value, appInfo.offsetX.value, appInfo.offsetY.value)
+    }
+
+    AppInfo.ScreenType.Full -> {
+      Triple(1f, 0f, 0f)
+    }
+  }
+
+  Box(
+    modifier = Modifier
+      .fillMaxSize()
+      .graphicsLayer(
+        scaleX = triple.first,
+        scaleY = triple.first,
+        translationX = triple.second,
+        translationY = triple.third
+      )
+      .pointerInput(appInfo) {
+        detectTransformGestures { centroid, pan, zoom, rotation ->
+          if (appInfo.screenType.value == AppInfo.ScreenType.Half) appInfo.zoom.value *= zoom
+        }
+      }
+      .clickableWithNoEffect {
+        localOpenList.remove(appInfo)
+        localOpenList.add(appInfo)
+      }
+  ) {
 
     Box(
       modifier = Modifier
         .fillMaxSize()
-        .graphicsLayer(
-          scaleX = pairToolbar.first, scaleY = pairToolbar.first,
-          translationX = pairToolbar.second
-        )
+        .align(Alignment.TopStart)
+        .background(Color.Black)
+        .padding(1.dp)
         .background(MaterialTheme.colorScheme.error)
     ) {
 
     }
-
-    val tripleWebView = when (appInfo.screenType.value) {
-      AppInfo.ScreenType.Hide -> Triple(0.dp, 0f, 0f)
-      AppInfo.ScreenType.Half -> Triple((screenWidth * 0.7f).dp, density * 16, density * 56)
-      else -> Triple(screenHeight.dp, 0f, 0f)
-    }
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier
+      .pointerInput(appInfo) {
+        detectTransformGestures { centroid, pan, zoom, rotation ->
+          if (appInfo.screenType.value == AppInfo.ScreenType.Half) {
+            appInfo.offsetX.value += pan.x * appInfo.zoom.value
+            appInfo.offsetY.value += pan.y * appInfo.zoom.value
+          }
+        }
+      }
+      .clickableWithNoEffect {
+        if (localDrawerManager.visibleState.targetState) localDrawerManager.hide() else localDrawerManager.show()
+      }) {
       Toolbar(
         appInfo = appInfo,
-        modifier = Modifier
-          .width(tripleWebView.first)
-          .graphicsLayer(
-            translationX = tripleWebView.second,
-            translationY = tripleWebView.third,
-          ),
         onClose = { localOpenList.remove(appInfo) },
         onExpand = {
           if (appInfo.screenType.value == AppInfo.ScreenType.Full) {
@@ -97,7 +122,6 @@ internal fun ToolbarAndWebView(appInfo: AppInfo) {
   }
 }
 
-
 @Composable
 internal fun Toolbar(
   appInfo: AppInfo,
@@ -105,7 +129,6 @@ internal fun Toolbar(
   onClose: () -> Unit,
   onExpand: () -> Unit
 ) {
-  val localDrawerManager = LocalDrawerManager.current
   TopAppBar(modifier = modifier) {
     Icon(
       imageVector = ImageVector.vectorResource(id = R.drawable.ic_main_close),
@@ -116,11 +139,7 @@ internal fun Toolbar(
     )
     Text(
       text = appInfo.jmmMetadata.name,
-      modifier = Modifier
-        .weight(1f)
-        .clickableWithNoEffect {
-          if (localDrawerManager.visibleState.targetState) localDrawerManager.hide() else localDrawerManager.show()
-        },
+      modifier = Modifier.weight(1f),
       textAlign = TextAlign.Center,
       maxLines = 1
     )

@@ -1,6 +1,5 @@
 package info.bagen.dwebbrowser.microService.desktop.ui
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,6 +21,8 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
@@ -43,12 +44,20 @@ fun DesktopMainView() {
   val installList = remember { mutableStateListOf<AppInfo>() }
   val openList = remember { mutableStateListOf<AppInfo>() }
 
+  val screenWidth = LocalConfiguration.current.screenWidthDp
+  val density = LocalDensity.current.density
+
   LaunchedEffect(installList) {
     withContext(ioAsyncExceptionHandler) {
       AppInfoDataStore.queryAppInfoList().collectLatest {
         it.forEach { (mmid, value) ->
           val jmmMetadata = gson.fromJson(value, JmmMetadata::class.java)
-          installList.add(AppInfo(jmmMetadata = jmmMetadata))
+          AppInfo(jmmMetadata = jmmMetadata).also { appInfo ->
+            appInfo.zoom.value = 0.7f
+            appInfo.offsetX.value = (16 - screenWidth * 0.15f) * density
+            appInfo.offsetY.value = 0f
+            installList.add(appInfo)
+          }
           installList.addAll(desktopAppList)
         }
       }
