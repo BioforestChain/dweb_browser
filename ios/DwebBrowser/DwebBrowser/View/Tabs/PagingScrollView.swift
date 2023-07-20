@@ -50,8 +50,8 @@ struct PagingScrollView: View {
 
                             AddressBar(index: index, webWrapper: WebWrapperMgr.shared.store[index])
                                 .frame(height: addressBarH)
-                                .offset(y: addressbarOffset)
-                                .animation(.default, value: addressbarOffset)
+                                .offset(y: updateKeyboardOffset())
+                                .animation(.default, value: updateKeyboardOffsetAnimation())
                                 .gesture(addressBar.isFocused ? disabledDragGesture : nil) // 根据状态变量决定是否启用拖拽手势
                                 .onChange(of: addressBar.shouldDisplay) { dispaly in
                                     addressbarOffset = dispaly ? 0 : addressBarH
@@ -70,5 +70,25 @@ struct PagingScrollView: View {
                 }
             }
         }
+    }
+    
+    func updateKeyboardOffset() -> CGFloat {
+        #if DwebFramework
+            if addressBar.isFocused {
+                return -keyboardHelper.keyboardHeight
+            } else {
+                return 0
+            }
+        #endif
+        
+        return addressbarOffset
+    }
+    
+    func updateKeyboardOffsetAnimation() -> CGFloat {
+        #if DwebFramework
+            return keyboardHelper.keyboardHeight
+        #endif
+        
+        return addressbarOffset
     }
 }
