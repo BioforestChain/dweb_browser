@@ -8,6 +8,7 @@ import { streamRead } from "../helper/readableStreamHelper.ts";
  * 提供了一个状态的读取与更新的功能
  */
 export class StateObserver<RAW, STATE> {
+  private _ws: WebSocket | undefined;
   constructor(
     private plugin: BasePlugin,
     private fetcher: () => Promise<RAW>,
@@ -17,6 +18,7 @@ export class StateObserver<RAW, STATE> {
     }
   ) {}
   startObserve() {
+    console.log("开启了startObserve")
     return this.plugin.fetchApi(`/startObserve`);
   }
 
@@ -49,8 +51,8 @@ export class StateObserver<RAW, STATE> {
     url.pathname = `/internal/observe`;
     url.searchParams.append("mmid",this.plugin.mmid)
     // url.searchParams.append("pathname","/internal/observe")
-    console.log("url",url.href)
     const ws = new WebSocket(url);
+    this._ws = ws;
     ws.onerror = (err) => {
       console.error("onerror", err);
       controller.close();
@@ -60,10 +62,9 @@ export class StateObserver<RAW, STATE> {
       ws.send("hhhh")
     }
     ws.onmessage = async (event: MessageEvent<Blob>) => {
-      console.log("🥳onmessage",event.data)
+      console.log("🥳onmessage this.plugin.mmid",this.plugin.mmid)
       const str = await event.data.text();
       if (str.length === 0) return;
-      console.log("str: ", str);
       const value = this.coder.decode(JSON.parse(str));
       controller.enqueue(value);
     };
@@ -80,6 +81,7 @@ export class StateObserver<RAW, STATE> {
   }
 
   stopObserve() {
+    this._ws?.close();
     return this.plugin.fetchApi(`/stopObserve`);
   }
 

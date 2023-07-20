@@ -32,23 +32,23 @@ export class VirtualKeyboardController extends BaseController {
             this.observer.startObserve(ipc);
             return Response.json("");
           })
-          .with({ pathname: "/observe" }, () => {
-            const readableStream = new ReadableStream({
-              start: (_controller) => {
-                this.observer.observe(_controller);
-              },
-              pull(_controller) {},
-              cancel: (reson) => {
-                console.log("", "cancel", reson);
-              },
-            });
+          // .with({ pathname: "/observe" }, () => {
+          //   const readableStream = new ReadableStream({
+          //     start: (_controller) => {
+          //       this.observer.observe(_controller);
+          //     },
+          //     pull(_controller) {},
+          //     cancel: (reson) => {
+          //       console.log("", "cancel", reson);
+          //     },
+          //   });
 
-            return new Response(readableStream, {
-              status: 200,
-              statusText: "ok",
-              headers: new Headers({ "Content-Type": "application/octet-stream" }),
-            });
-          })
+          //   return new Response(readableStream, {
+          //     status: 200,
+          //     statusText: "ok",
+          //     headers: new Headers({ "Content-Type": "application/octet-stream" }),
+          //   });
+          // })
           .run();
       })
       .forbidden()
@@ -111,11 +111,11 @@ export class VirtualKeyboardController extends BaseController {
   };
 
   virtualKeyboardShowCompleted = () => {
-    // this.state = {
-    //   ...this.state,
-    //   visible: true,
-    // };
-    // this.emitUpdate();
+    this.state = {
+      ...this.state,
+      visible: true,
+    };
+    this.emitUpdate();
     // console.error("virutalKeyboard 显示完成了 但是还没有处理");
   };
 }

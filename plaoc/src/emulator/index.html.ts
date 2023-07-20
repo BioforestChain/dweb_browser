@@ -95,9 +95,11 @@ export class RootComp extends LitElement {
     });
   };
 
+
+
   /**statusBar */
   readonly statusBarController = this._wc(new StatusBarController());
-
+  
   get statusBarState() {
     return this.statusBarController.state;
   }
@@ -117,9 +119,30 @@ export class RootComp extends LitElement {
 
   /** safeAreaController */
   readonly safeAreaController = this._wc(
-    new SafeAreaController(this.statusBarController, this.navigationController, this.virtualKeyboardController)
+    new SafeAreaController()
   );
 
+  safeAreaControllerUpdateState = () => {
+    this.safeAreaController.safgeAreaUpdateState(
+      this.statusBarController.statusBarGetState(),
+      this.navigationController.navigationBarGetState(),
+      this.virtualKeyboardController.state,
+      this.virtualKeyboardController.state.visible
+    );
+  }
+
+  safeAreaControllerOnUpdate = () => {
+    const targetState = { overlay: this.safeAreaController.state.overlay }
+    if(targetState.overlay !== this.statusBarController.statusBarGetState().overlay){
+      this.statusBarController.statusBarSetState(targetState);
+    }
+    if(targetState.overlay !== this.navigationController.navigationBarGetState().overlay){
+      this.navigationController.navigationBarSetState(targetState);
+    }
+    if(targetState.overlay !== this.virtualKeyboardController.state.overlay){
+      this.virtualKeyboardController.virtualKeyboardSetOverlay(targetState.overlay)
+    }
+  }
   get safeAreaState() {
     return this.safeAreaController.state;
   }
@@ -163,6 +186,14 @@ export class RootComp extends LitElement {
     if(!contentWindow) throw new Error("this.iframeEle?.contentWindow === null");
     const _eval = Reflect.get(contentWindow, "eval");
     _eval(code)
+  }
+
+  override connectedCallback(){
+    this.statusBarController.onUpdate(this.safeAreaControllerUpdateState)
+    this.navigationController.onUpdate(this.safeAreaControllerUpdateState)
+    this.virtualKeyboardController.onUpdate(this.safeAreaControllerUpdateState)
+    this.safeAreaController.onUpdate(this.safeAreaControllerOnUpdate)
+    super.connectedCallback();
   }
 
   protected override render() {

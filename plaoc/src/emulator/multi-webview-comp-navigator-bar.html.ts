@@ -61,6 +61,7 @@ export class MultiWebviewCompNavigationBar extends LitElement {
     const host = (this.renderRoot as ShadowRoot).host as HTMLElement;
     host.style.position = this._overlay ? "absolute" : "relative";
     host.style.overflow = this._visible ? "visible" : "hidden";
+    host.style.height = this._visible ? "auto" : "0px";
   }
 
   back() {

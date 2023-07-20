@@ -1,5 +1,6 @@
-import { Ipc, createSignal, mapHelper, simpleEncoder } from "../../../deps.ts";
+import { Ipc, createSignal, mapHelper, simpleEncoder, IpcEvent } from "../../../deps.ts";
 import { $Callback, $OffListener } from "../../client/helper/createSignal.ts";
+
 
 export class StateObservable {
   constructor(readonly getStateJson: () => string) {}
@@ -13,10 +14,7 @@ export class StateObservable {
   startObserve(ipc: Ipc) {
     mapHelper.getOrPut(this._observerIpcMap, ipc, (ipc) => {
       return this._observe(() => {
-        if (this.controller) {
-          this.controller.enqueue(simpleEncoder(this.getStateJson(), "utf8"));
-        }
-        // ipc.postMessage(IpcEvent.fromUtf8("observe", simpleEncoder(this.getStateJson(), "utf8")));
+        ipc.postMessage(IpcEvent.fromUtf8("observe", simpleEncoder(this.getStateJson(), "utf8")));
       });
     });
   }
@@ -24,14 +22,7 @@ export class StateObservable {
     this._changeSignal.emit();
   }
   stopObserve(ipc: Ipc) {
-    if (this.controller) {
-      this.controller.close();
-    }
+    console.log("StateObservable.ts 接收到了 stopObserve")
     return mapHelper.getAndRemove(this._observerIpcMap, ipc)?.apply(undefined);
-  }
-
-  controller: ReadableStreamDefaultController | undefined;
-  observe(controller: ReadableStreamDefaultController) {
-    this.controller = controller;
   }
 }
