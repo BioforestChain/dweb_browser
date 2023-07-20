@@ -20,3 +20,9 @@
   - 通过 icon 实现 bv_app 的激活 z-index堆叠 ... 功能；
 
 
+### 模拟器说明 emulator
+- 移动的模拟器是绑定在bv_app的；
+- 只有在调试 plaoc/plugin 的时候才需要
+- 默认新打开的 bv_app 是不包含 模拟器
+
+
