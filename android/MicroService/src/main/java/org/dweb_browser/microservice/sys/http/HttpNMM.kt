@@ -1,6 +1,7 @@
 package org.dweb_browser.microservice.sys.http
 
 import com.google.gson.reflect.TypeToken
+import io.ktor.http.Url
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.ReadableStreamIpc
 import org.dweb_browser.helper.decodeURIComponent
@@ -15,23 +16,26 @@ import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.sys.dns.debugFetch
+import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Response
 import org.http4k.core.Status
 import org.http4k.core.Uri
 import org.http4k.core.query
+import org.http4k.core.queryParametersEncoded
 import org.http4k.lens.Query
 import org.http4k.lens.composite
 import org.http4k.lens.int
 import org.http4k.lens.string
 import org.http4k.routing.bind
+import org.http4k.routing.path
 import org.http4k.routing.routes
 import org.http4k.routing.websockets
-import org.http4k.websocket.Websocket
 import org.http4k.websocket.WsConsumer
 import org.http4k.websocket.WsMessage
 import org.http4k.websocket.WsResponse
+import java.net.URL
 import java.util.Random
 
 fun debugHttp(tag: String, msg: Any = "", err: Throwable? = null) =
@@ -116,20 +120,13 @@ class HttpNMM : NativeMicroModule("http.std.dweb") {
   /**webSocket 网关路由寻找*/
   private suspend fun wsHandler(request: Request): WsResponse {
     val host = processHost(request)
-    val response = gatewayMap[host]?.let { gateway ->
-      gateway.listener.hookHttpRequest(request)
-    }
+    val mmid = request.query("mmid")
+    val targetPrx = host.substring(host.indexOf(".")+1)
+    val target = targetPrx.substring(0,targetPrx.indexOf(":"))
+    val response = nativeFetch("file://${mmid}${request.uri.path}?mmid=${target}")
     return WsResponse { ws ->
-      ws.onMessage { wsMessage ->
-        println("onMessage ${wsMessage.body}")
-      }
-       ws.onError { printerrln("websocket",it) }
-       ws.send(WsMessage("来自服务端的消息"))
-      if (response!==null) {
-        ws.send(WsMessage(response.body))
-      } else {
-        ws.send(WsMessage("not found webSocket handle"))
-      }
+      ws.onError { printerrln("websocket",it) }
+      ws.send(WsMessage(response.body.stream))
       ws.onClose { println("WsResponse is closing") }
     }
   }

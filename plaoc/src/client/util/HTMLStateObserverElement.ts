@@ -15,7 +15,6 @@ export class HTMLStateObserverElement<RAW, STATE> extends HTMLElement {
     this.#onStateChange = this.state.onChange((info) => {
       this.dispatchEvent(new CustomEvent("statechange", { detail: info }));
     });
-    await this.state.startObserve(); // 开始监听
     await this.state.getState(true); // 强制刷新
   }
   async disconnectedCallback() {

@@ -24,9 +24,9 @@ object BuildConfig {
   const val http4kMultipart = "org.http4k:http4k-multipart"
   const val http4kClientApache = "org.http4k:http4k-client-apache"
   const val http4kWebSocket = "org.http4k:http4k-client-websocket"
-  const val http4kClientOkhttp = "org.http4k:http4k-client-okhttp"
   const val http4kServerKtorcio = "org.http4k:http4k-server-ktorcio"
-  const val http4kServerJetty = "org.http4k:http4k-server-jetty"
+  const val http4kServerNetty = "org.http4k:http4k-server-netty"
+
 
   // 谷歌支持库
   private const val accompanistVersion = "0.31.3-beta"

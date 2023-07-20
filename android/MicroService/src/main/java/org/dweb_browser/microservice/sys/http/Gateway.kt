@@ -44,15 +44,15 @@ class Gateway(
       return null
     }
 
-    suspend fun hookWsRequest(request: Request): WsResponse? {
-      for (router in _routerSet) {
-        val response = router.handler(request)
-        if (response != null) {
-          return WsResponse { ws -> ws.send(WsMessage(response.body)) }
-        }
-      }
-      return null
-    }
+//    suspend fun hookWsRequest(request: Request): WsResponse? {
+//      for (router in _routerSet) {
+//        val response = router.handler(request)
+//        if (response != null) {
+//          return WsResponse { ws -> ws.send(WsMessage(response.body)) }
+//        }
+//      }
+//      return null
+//    }
 
     /// 销毁
     private val destroySignal = SimpleSignal()

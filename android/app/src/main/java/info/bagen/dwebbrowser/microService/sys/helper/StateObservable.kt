@@ -10,26 +10,24 @@ open class StateObservable(
     private val getStateJson: () -> String,
 ) {
     val stateChanges = IsChange(needFirstCall)
-    val changeSignal = SimpleSignal()
-     fun observe( cb: SimpleCallback) = changeSignal.listen(cb)
+    val changeSignal = Signal<String>()
+    fun observe( cb: Callback<String>) = changeSignal.listen(cb)
 
     val observerIpcMap = mutableMapOf<Ipc, OffListener>()
     suspend fun startObserve(ipc: Ipc) {
-        observerIpcMap.getOrPut(ipc) {
-            observe {
-                ipc.postMessage(
-                    IpcEvent.fromUtf8(
-                        "observe",
-                        getStateJson()
-                    )
+        observe {
+            ipc.postMessage(
+                IpcEvent.fromUtf8(
+                    "observe",
+                    getStateJson()
                 )
-            }
+            )
         }
     }
 
-    inline fun notifyObserver() {
+     fun notifyObserver() {
         runBlockingCatching {
-          changeSignal.emit()
+          changeSignal.emit(getStateJson())
         }.getOrNull()
     }
 

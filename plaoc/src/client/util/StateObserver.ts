@@ -17,10 +17,9 @@ export class StateObserver<RAW, STATE> {
       encode: $Transform<STATE, RAW>;
     }
   ) {}
-  startObserve() {
-    console.log("开启了startObserve")
-    return this.plugin.fetchApi(`/startObserve`);
-  }
+  // startObserve() {
+  //   return this.plugin.fetchApi(`/startObserve`);
+  // }
 
   // async *jsonlines(options?: { signal?: AbortSignal }) {
   //   const jsonlines = await this.plugin
@@ -48,7 +47,7 @@ export class StateObserver<RAW, STATE> {
     const pub_url = await BasePlugin.public_url;
     const url = new URL(pub_url.replace(/^http:/, "ws:"));
     // 内部的监听
-    url.pathname = `/internal/observe`;
+    url.pathname = `/observe`;
     url.searchParams.append("mmid",this.plugin.mmid)
     // url.searchParams.append("pathname","/internal/observe")
     const ws = new WebSocket(url);
@@ -57,21 +56,27 @@ export class StateObserver<RAW, STATE> {
       console.error("onerror", err);
       controller.close();
     };
-    ws.onopen  = () => {
-      console.log("webcoket open")
-      ws.send("hhhh")
-    }
-    ws.onmessage = async (event: MessageEvent<Blob>) => {
-      console.log("🥳onmessage this.plugin.mmid",this.plugin.mmid)
-      const str = await event.data.text();
-      if (str.length === 0) return;
-      const value = this.coder.decode(JSON.parse(str));
-      controller.enqueue(value);
+    ws.onmessage = async (event) => {
+      try {
+      const data = event.data;
+      console.log("🥳onmessage",data)
+        if (typeof data === "string") {
+          controller.enqueue(this.coder.decode(JSON.parse(data)));
+        } else if (data instanceof ArrayBuffer) {
+          controller.enqueue(new Uint8Array(data));
+        } else if (data instanceof Blob) {
+          console.log("blob",await data.text())
+            // controller.enqueue(data.arrayBuffer)
+        } else {
+          throw new Error("should not happend");
+        }
+      } catch (err) {
+        console.error(err);
+      }
     };
 
     ws.onclose = () => {
       controller.close();
-      console.log("关闭了 ws");
     };
 
     for await (const state of streamRead(readableStream, options)) {

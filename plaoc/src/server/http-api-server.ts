@@ -1,13 +1,13 @@
 import {
   $DwebHttpServerOptions,
-  $Ipc,
+  $MMID,
   $OnFetchReturn,
   FetchEvent,
   IpcRequest,
   jsProcess,
 } from "./deps.ts";
 import { HttpServer } from "./http-helper.ts";
-export const INTERNAL_PREFIX = "/internal/";
+import { mwebview_destroy } from "./mwebview-helper.ts";
 const DNS_PREFIX = "/dns.sys.dweb/";
 
 /**给前端的api服务 */
@@ -30,10 +30,6 @@ export class Server_api extends HttpServer {
     // /dns.sys.dweb/
     if (event.pathname.startsWith(DNS_PREFIX)) {
       return this._onDns(event);
-    }
-    // /internal/
-    else if (event.pathname.startsWith(INTERNAL_PREFIX)) {
-      return this._onInternal(event);
     }
     // /*.dweb
     return this._onApi(event);
@@ -60,34 +56,6 @@ export class Server_api extends HttpServer {
     return new Response(await result());
   }
 
-  /**内部请求事件 */
-  protected async _onInternal(
-    event: FetchEvent,
-    connect = (mmid: $MMID) => jsProcess.connect(mmid)
-  ): Promise<$OnFetchReturn> {
-    const href = event.url.href.replace(INTERNAL_PREFIX, "/");
-    const url = new URL(href);
-    // 转发public url
-    // if (url.pathname === "/public-url") {
-    //   const startResult = await this.getStartResult();
-    //   const apiHref = startResult.urlInfo.buildPublicUrl((url) => {
-    //     const sessionId = event.searchParams.get(X_PLAOC_QUERY.SESSION_ID);
-    //     if (sessionId !== null) {
-    //       url.searchParams.set(X_PLAOC_QUERY.SESSION_ID, sessionId);
-    //     }
-    //   }).href;
-    //   return new Response(apiHref);
-    // } else 
-     // 监听属性
-    if (url.pathname === "/observe") {
-      const mmid = url.searchParams.get("mmid") as $MMID;
-      if (mmid === null) {
-        throw new Error("observe require mmid");
-      }
-      const streamPo = onInternalObserve(mmid, connect);
-      return new Response(streamPo.stream);
-    }
-  }
 
   /**
    * request 事件处理器
@@ -118,56 +86,3 @@ export class Server_api extends HttpServer {
     return ipcProxyResponse.toResponse();
   }
 }
-
-import { OBSERVE } from "./const.ts";
-import {
-  $MMID,
-  PromiseOut,
-  ReadableStreamOut,
-  mapHelper,
-  simpleEncoder,
-  u8aConcat,
-} from "./deps.ts";
-import { mwebview_destroy } from "./mwebview-helper.ts";
-
-const ipcObserversMap = new Map<$MMID, IpcObserver>();
-
-class IpcObserver {
-  readonly ipc = new PromiseOut<$Ipc>();
-  readonly obs = new Set<{
-    controller: ReadableStreamDefaultController<Uint8Array>;
-  }>();
-}
-
-/**监听属性的变化 */
-const onInternalObserve = (
-  mmid: $MMID,
-  connect = (mmid: $MMID) => jsProcess.connect(mmid)
-) => {
-  const streamPo = new ReadableStreamOut<Uint8Array>();
-  const observers = mapHelper.getOrPut(ipcObserversMap, mmid, (mmid) => {
-    const result = new IpcObserver();
-    result.ipc.resolve(connect(mmid));
-    result.ipc.promise.then((ipc) => {
-      ipc.onEvent((event) => {
-        if (event.name !== OBSERVE.State) {
-          return;
-        }
-        const observers = ipcObserversMap.get(ipc.remote.mmid);
-        const jsonlineEnd = simpleEncoder("\n", "utf8");
-        if (observers && observers.obs.size > 0) {
-          for (const ob of observers.obs) {
-            ob.controller.enqueue(u8aConcat([event.binary, jsonlineEnd]));
-          }
-        }
-      });
-    });
-    return result;
-  });
-  const ob = { controller: streamPo.controller };
-  observers.obs.add(ob);
-  streamPo.onCancel(() => {
-    observers.obs.delete(ob);
-  });
-  return streamPo;
-};

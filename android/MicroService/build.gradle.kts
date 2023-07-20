@@ -24,7 +24,7 @@ dependencies {
   api(BuildConfig.http4kClientApache)
   api(BuildConfig.http4kWebSocket)
   api(BuildConfig.http4kServerKtorcio)
-
+  api(BuildConfig.http4kServerNetty)
 
   api(BuildConfig.gson)
   implementation(BuildConfig.moshiPack)
