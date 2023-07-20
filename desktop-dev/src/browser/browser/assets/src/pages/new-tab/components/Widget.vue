@@ -1,7 +1,8 @@
 <script lang="ts" setup>
 import { $WidgetMetaData } from "@/types/app.type";
 import { computed } from "vue";
-import "./widget.ts";
+import base_css from "./widget-base.scss?inline";
+import "./widget.scss";
 
 const props = defineProps({
   widgetMetaData: {
@@ -13,35 +14,68 @@ const props = defineProps({
     required: true,
   },
 });
+const createStyleHelper = (forceStyle = false) => {
+  if (document.adoptedStyleSheets && !forceStyle) {
+    const style = new CSSStyleSheet();
+    return {
+      installStyle(root: ShadowRoot) {
+        if (root.adoptedStyleSheets.includes(style) === false) {
+          root.adoptedStyleSheets = [...root.adoptedStyleSheets, style];
+        }
+        return this;
+      },
+      uninstallStyle(root: ShadowRoot) {
+        const sss = root.adoptedStyleSheets.slice();
+        const index = sss.indexOf(style);
+        if (index !== -1) {
+          sss.splice(index, 1);
+          root.adoptedStyleSheets = sss;
+        }
+        return this;
+      },
+      setCssText(cssText: string) {
+        style.replaceSync(cssText);
+        return this;
+      },
+    };
+  } else {
+    const style = document.createElement("style");
+    return {
+      installStyle(root: ShadowRoot) {
+        root.appendChild(style);
+        return this;
+      },
+      uninstallStyle(_root: DocumentOrShadowRoot) {
+        style.parentElement?.removeChild(style);
+        return this;
+      },
+      setCssText(cssText: string) {
+        style.innerHTML = cssText;
+        return this;
+      },
+    };
+  }
+};
+
 const buildWidgetElement = (widgetMetaData: $WidgetMetaData) => {
   class WidgetElement extends HTMLElement {
-    private static template = document.createElement("template");
     private static meta = widgetMetaData;
-    private static style = document.adoptedStyleSheets ? new CSSStyleSheet() : document.createElement("style");
+    private static baseStyle = createStyleHelper(true).setCssText(base_css);
+
+    private static template = document.createElement("template");
+    private static style = createStyleHelper(true);
     static updateMeta(meta: $WidgetMetaData) {
-      WidgetElement.meta = meta;
-      WidgetElement.template.innerHTML = meta.templateHtml;
-      if (WidgetElement.style instanceof CSSStyleSheet) {
-        WidgetElement.style.replaceSync(meta.scopedStyle);
-      } else {
-        WidgetElement.style.innerHTML = meta.scopedStyle;
-      }
+      this.meta = meta;
+      this.template.innerHTML = meta.templateHtml;
+      this.style.setCssText(meta.scopedStyle);
     }
     constructor() {
       super();
-      const meta = WidgetElement.meta;
       const shadow = this.attachShadow({ mode: "open" });
       shadow.appendChild(WidgetElement.template.content.cloneNode(true));
 
-      if (shadow.adoptedStyleSheets) {
-        const styleSheet = new CSSStyleSheet();
-        styleSheet.replaceSync(meta.scopedStyle);
-        shadow.adoptedStyleSheets = [styleSheet];
-      } else {
-        const styleEle = document.createElement("style");
-        styleEle.innerHTML = meta.scopedStyle;
-        shadow.appendChild(styleEle);
-      }
+      WidgetElement.baseStyle.installStyle(shadow);
+      WidgetElement.style.installStyle(shadow);
     }
   }
   return WidgetElement;
@@ -62,4 +96,3 @@ const html = computed(() => {
 <template>
   <div class="widget" draggable="true" v-html="html"></div>
 </template>
-<style scoped lang="scss"></style>

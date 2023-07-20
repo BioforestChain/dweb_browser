@@ -28,8 +28,8 @@ onMounted(() => {
   resizeOb = new ResizeObserver((entries) => {
     console.log(entries[0].contentRect);
     const { width, height } = entries[0].contentRect;
-    columns.value = Math.floor(width / props.columnTemplateSize) || 1;
-    rows.value = Math.floor(height / props.rowTemplateSize) || 1;
+    columns.value = Math.ceil(width / props.columnTemplateSize) || 1;
+    rows.value = Math.ceil(height / props.rowTemplateSize) || 1;
   });
   resizeOb.observe($panel.value!);
 });
@@ -62,5 +62,6 @@ onUnmounted(() => {
   grid-auto-flow: row dense;
   align-items: center;
   justify-items: stretch;
+  padding-inline: 0.5em;
 }
 </style>

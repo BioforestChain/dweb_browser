@@ -2,7 +2,7 @@ import { $BootstrapContext } from "../../core/bootstrapContext.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import { once } from "../../helper/$once.ts";
 import { createComlinkNativeWindow, createNativeWindow } from "../../helper/openNativeWindow.ts";
-import { match } from "../../helper/patternHelper.ts";
+import { fetchMatch } from "../../helper/patternHelper.ts";
 import { buildUrl } from "../../helper/urlHelper.ts";
 import { zq } from "../../helper/zodHelper.ts";
 import { HttpDwebServer, createHttpDwebServer } from "../../std/http/helper/$createHttpDwebServer.ts";
@@ -24,21 +24,16 @@ export class DesktopNMM extends NativeMicroModule {
     const query_app_id = zq.object({
       app_id: zq.mmid(),
     });
-    this.onFetch((event) => {
-      // match(event).with({ pathname: "/task-bar-apps" }, () => {
-      //   return Response.json([{ icon: "" }]);
-      // }).with("/open");
-      return match(event)
-        .with({ pathname: "/appsInfo" }, async () => {
-          return Response.json(await getAppsInfo());
-        })
-        .with({ pathname: "/openAppOrActivate" }, async (event) => {
-          const { app_id } = query_app_id(event.searchParams);
-          await openApp.call(this, app_id);
-          return Response.json(true);
-        })
-        .run();
-    }).internalServerError();
+    const onFetchHanlder = fetchMatch()
+      .get("/appsInfo", async () => {
+        return Response.json(await getAppsInfo());
+      })
+      .get("/openAppOrActivate", async (event) => {
+        const { app_id } = query_app_id(event.searchParams);
+        await openApp.call(this, app_id);
+        return Response.json(true);
+      });
+    this.onFetch(onFetchHanlder.run).internalServerError();
   }
 
   private async _createTaskbarWebServer() {

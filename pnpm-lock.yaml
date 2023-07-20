@@ -91,8 +91,8 @@ importers:
         specifier: ^10.4.14
         version: 10.4.14(postcss@8.4.25)
       daisyui:
-        specifier: ^2.51.6
-        version: 2.52.0(autoprefixer@10.4.14)(postcss@8.4.25)
+        specifier: ^3.2.1
+        version: 3.2.1
       eslint:
         specifier: ^8.22.0
         version: 8.42.0
@@ -1345,6 +1345,10 @@ packages:
       color-string: 1.9.1
     dev: true
 
+  /colord@2.9.3:
+    resolution: {integrity: sha512-jeC1axXpnb0/2nn/Y1LPuLdgXBLH7aDcHu4KEKfqw3CUhX7ZpfBSlPKyqXE6btIgEzfWtrX3/tyBCaCvXvMkOw==}
+    dev: true
+
   /comlink@4.4.1:
     resolution: {integrity: sha512-+1dlx0aY5Jo1vHy/tSsIGpSkN4tS9rZSW8FIhG0JH/crs9wwweswIo/POr451r7bZww3hFbPAKnTpimzL/mm4Q==}
     dev: false
@@ -1430,14 +1434,11 @@ packages:
       - ts-node
     dev: true
 
-  /daisyui@2.52.0(autoprefixer@10.4.14)(postcss@8.4.25):
-    resolution: {integrity: sha512-LQTA5/IVXAJHBMFoeaEMfd7/akAFPPcdQPR3O9fzzcFiczneJFM73CFPnScmW2sOgn/D83cvkP854ep2T9OfTg==}
-    peerDependencies:
-      autoprefixer: ^10.0.2
-      postcss: ^8.1.6
+  /daisyui@3.2.1:
+    resolution: {integrity: sha512-gIqE6wiqoJt9G8+n3R/SwLeUnpNCE2eDhT73rP0yZYVaM7o6zVcakBH3aEW5RGpx3UkonPiLuvcgxRcb2lE8TA==}
+    engines: {node: '>=16.9.0'}
     dependencies:
-      autoprefixer: 10.4.14(postcss@8.4.25)
-      color: 4.2.3
+      colord: 2.9.3
       css-selector-tokenizer: 0.8.0
       postcss: 8.4.25
       postcss-js: 4.0.1(postcss@8.4.25)

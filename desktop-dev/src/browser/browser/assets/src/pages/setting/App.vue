@@ -5,14 +5,14 @@
 <script lang="ts" setup>
 //
 </script>
-<style scoped>
+<style>
 /* 隐藏滚动条 */
 html {
-    -ms-overflow-style:none;
-    overflow:-moz-scrollbars-none;
+  -ms-overflow-style: none;
+  overflow: -moz-scrollbars-none;
 }
-html::-webkit-scrollbar{
-    width:0px
+html::-webkit-scrollbar {
+  width: 0px;
 }
 /* 隐藏滚动条结束 */
 body {

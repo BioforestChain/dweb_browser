@@ -23,5 +23,8 @@
   "svg.preview.background": "editor",
   "[sass]": {
     "editor.defaultFormatter": "syler.sass-indented"
+  },
+  "[svg]": {
+    "editor.defaultFormatter": "jock.svg"
   }
 }

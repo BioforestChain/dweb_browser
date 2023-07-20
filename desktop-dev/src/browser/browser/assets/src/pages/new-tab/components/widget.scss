@@ -1,93 +1,1641 @@
-::part(button) {
-  @apply btn;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@tailwind variants;
+.widget {
+  //#region bottom-navigation
+  ::part(btm-nav) {
+    // {component} Bottom Navigation container
+    @apply btm-nav;
+  }
+  ::part(active) {
+    // {modifier} makes a child element of btm-nav to show as active
+    @apply active;
+  }
+  ::part(disabled) {
+    // {modifier} makes a child element of btm-nav to show as disabled
+    @apply disabled;
+  }
+  ::part(text-primary) {
+    // {text-color}
+    @apply text-primary;
+  }
+  ::part(bg-primary) {
+    // {bg-color}
+    @apply bg-primary;
+  }
+  ::part(text-primary-focus) {
+    // {text-color}
+    @apply text-primary-focus;
+  }
+  ::part(bg-primary-focus) {
+    // {bg-color}
+    @apply bg-primary-focus;
+  }
+  ::part(text-primary-content) {
+    // {text-color}
+    @apply text-primary-content;
+  }
+  ::part(bg-primary-content) {
+    // {bg-color}
+    @apply bg-primary-content;
+  }
+  ::part(text-secondary) {
+    // {text-color}
+    @apply text-secondary;
+  }
+  ::part(bg-secondary) {
+    // {bg-color}
+    @apply bg-secondary;
+  }
+  ::part(text-secondary-focus) {
+    // {text-color}
+    @apply text-secondary-focus;
+  }
+  ::part(bg-secondary-focus) {
+    // {bg-color}
+    @apply bg-secondary-focus;
+  }
+  ::part(text-secondary-content) {
+    // {text-color}
+    @apply text-secondary-content;
+  }
+  ::part(bg-secondary-content) {
+    // {bg-color}
+    @apply bg-secondary-content;
+  }
+  ::part(text-accent) {
+    // {text-color}
+    @apply text-accent;
+  }
+  ::part(bg-accent) {
+    // {bg-color}
+    @apply bg-accent;
+  }
+  ::part(text-accent-focus) {
+    // {text-color}
+    @apply text-accent-focus;
+  }
+  ::part(bg-accent-focus) {
+    // {bg-color}
+    @apply bg-accent-focus;
+  }
+  ::part(text-accent-content) {
+    // {text-color}
+    @apply text-accent-content;
+  }
+  ::part(bg-accent-content) {
+    // {bg-color}
+    @apply bg-accent-content;
+  }
+  ::part(text-neutral) {
+    // {text-color}
+    @apply text-neutral;
+  }
+  ::part(bg-neutral) {
+    // {bg-color}
+    @apply bg-neutral;
+  }
+  ::part(text-neutral-focus) {
+    // {text-color}
+    @apply text-neutral-focus;
+  }
+  ::part(bg-neutral-focus) {
+    // {bg-color}
+    @apply bg-neutral-focus;
+  }
+  ::part(text-neutral-content) {
+    // {text-color}
+    @apply text-neutral-content;
+  }
+  ::part(bg-neutral-content) {
+    // {bg-color}
+    @apply bg-neutral-content;
+  }
+  ::part(text-base-100) {
+    // {text-color}
+    @apply text-base-100;
+  }
+  ::part(bg-base-100) {
+    // {bg-color}
+    @apply bg-base-100;
+  }
+  ::part(text-base-200) {
+    // {text-color}
+    @apply text-base-200;
+  }
+  ::part(bg-base-200) {
+    // {bg-color}
+    @apply bg-base-200;
+  }
+  ::part(text-base-300) {
+    // {text-color}
+    @apply text-base-300;
+  }
+  ::part(bg-base-300) {
+    // {bg-color}
+    @apply bg-base-300;
+  }
+  ::part(text-base-content) {
+    // {text-color}
+    @apply text-base-content;
+  }
+  ::part(bg-base-content) {
+    // {bg-color}
+    @apply bg-base-content;
+  }
+  ::part(text-info) {
+    // {text-color}
+    @apply text-info;
+  }
+  ::part(bg-info) {
+    // {bg-color}
+    @apply bg-info;
+  }
+  ::part(text-info-content) {
+    // {text-color}
+    @apply text-info-content;
+  }
+  ::part(bg-info-content) {
+    // {bg-color}
+    @apply bg-info-content;
+  }
+  ::part(text-success) {
+    // {text-color}
+    @apply text-success;
+  }
+  ::part(bg-success) {
+    // {bg-color}
+    @apply bg-success;
+  }
+  ::part(text-success-content) {
+    // {text-color}
+    @apply text-success-content;
+  }
+  ::part(bg-success-content) {
+    // {bg-color}
+    @apply bg-success-content;
+  }
+  ::part(text-warning) {
+    // {text-color}
+    @apply text-warning;
+  }
+  ::part(bg-warning) {
+    // {bg-color}
+    @apply bg-warning;
+  }
+  ::part(text-warning-content) {
+    // {text-color}
+    @apply text-warning-content;
+  }
+  ::part(bg-warning-content) {
+    // {bg-color}
+    @apply bg-warning-content;
+  }
+  ::part(text-error) {
+    // {text-color}
+    @apply text-error;
+  }
+  ::part(bg-error) {
+    // {bg-color}
+    @apply bg-error;
+  }
+  ::part(text-error-content) {
+    // {text-color}
+    @apply text-error-content;
+  }
+  ::part(bg-error-content) {
+    // {bg-color}
+    @apply bg-error-content;
+  }
+  //#endregion
+
+  //#region kbd
+  ::part(kbd) {
+    // {component} Do show a keyboard key or a shortcut key
+    @apply kbd;
+  }
+
+  //#endregion
+
+  //#region dropdown
+  ::part(dropdown) {
+    // {component} Container element
+    @apply dropdown;
+  }
+  ::part(dropdown-content) {
+    // {component} Container for content
+    @apply dropdown-content;
+  }
+  ::part(dropdown-end) {
+    // {modifier} Aligns to end
+    @apply dropdown-end;
+  }
+  ::part(dropdown-top) {
+    // {modifier} Open from top
+    @apply dropdown-top;
+  }
+  ::part(dropdown-bottom) {
+    // {modifier} Open from bottom
+    @apply dropdown-bottom;
+  }
+  ::part(dropdown-left) {
+    // {modifier} Open from left
+    @apply dropdown-left;
+  }
+  ::part(dropdown-right) {
+    // {modifier} Open from right
+    @apply dropdown-right;
+  }
+  ::part(dropdown-hover) {
+    // {modifier} Opens on hover too
+    @apply dropdown-hover;
+  }
+  ::part(dropdown-open) {
+    // {modifier} Force open
+    @apply dropdown-open;
+  }
+
+  //#endregion
+
+  //#region navbar
+  ::part(navbar) {
+    // {component} Container element
+    @apply navbar;
+  }
+  ::part(navbar-start) {
+    // {component} Child element, fills 50% of width to be on start
+    @apply navbar-start;
+  }
+  ::part(navbar-center) {
+    // {component} Child element, fills remaining space to be on center
+    @apply navbar-center;
+  }
+  ::part(navbar-end) {
+    // {component} Child element, fills 50% of width to be on end
+    @apply navbar-end;
+  }
+
+  //#endregion
+
+  //#region drawer
+  ::part(drawer) {
+    // {component} The root container
+    @apply drawer;
+  }
+  ::part(drawer-toggle) {
+    // {component} For the hidden checkbox that controls the drawer
+    @apply drawer-toggle;
+  }
+  ::part(drawer-content) {
+    // {component} Container for all page content
+    @apply drawer-content;
+  }
+  ::part(drawer-side) {
+    // {component} The sidebar container
+    @apply drawer-side;
+  }
+  ::part(drawer-overlay) {
+    // {component} The label covers the content when drawer is open
+    @apply drawer-overlay;
+  }
+  ::part(drawer-end) {
+    // {modifier} puts drawer to the right
+    @apply drawer-end;
+  }
+
+  //#endregion
+
+  //#region pagination
+  ::part(join) {
+    // {component} Groups buttons together
+    @apply join;
+  }
+
+  //#endregion
+
+  //#region footer
+  ::part(footer) {
+    // {component} Footer component
+    @apply footer;
+  }
+  ::part(footer-title) {
+    // {component} Title of a footer column
+    @apply footer-title;
+  }
+  ::part(footer-center) {
+    // {modifier} Aligns footer content to center
+    @apply footer-center;
+  }
+
+  //#endregion
+
+  //#region tooltip
+  ::part(tooltip-open) {
+    // {component} Force open tooltip
+    @apply tooltip-open;
+  }
+  ::part(tooltip-primary) {
+    // {modifier} Adds `primary` color to tooltip
+    @apply tooltip-primary;
+  }
+  ::part(tooltip-secondary) {
+    // {modifier} Adds `secondary` color to tooltip
+    @apply tooltip-secondary;
+  }
+  ::part(tooltip-accent) {
+    // {modifier} Adds `accent` color to tooltip
+    @apply tooltip-accent;
+  }
+  ::part(tooltip-info) {
+    // {modifier} Adds `info` color to tooltip
+    @apply tooltip-info;
+  }
+  ::part(tooltip-success) {
+    // {modifier} Adds `success` color to tooltip
+    @apply tooltip-success;
+  }
+  ::part(tooltip-warning) {
+    // {modifier} Adds `warning` color to tooltip
+    @apply tooltip-warning;
+  }
+  ::part(tooltip-error) {
+    // {modifier} Adds `error` color to tooltip
+    @apply tooltip-error;
+  }
+
+  //#endregion
+
+  //#region mockup-window
+  ::part(mockup-window) {
+    // {component} Container element
+    @apply mockup-window;
+  }
+
+  //#endregion
+
+  //#region rating
+  ::part(rating) {
+    // {component} Wrapper component for radio buttons
+    @apply rating;
+  }
+  ::part(rating-half) {
+    // {modifier} To shows half of the shape
+    @apply rating-half;
+  }
+  ::part(rating-hidden) {
+    // {modifier} hides the input. Useful to clear the the rating
+    @apply rating-hidden;
+  }
+
+  //#endregion
+
+  //#region radio
+  ::part(form-control) {
+    // {component} Container element
+    @apply form-control;
+  }
+  ::part(radio) {
+    // {component} For radio input
+    @apply radio;
+  }
+  ::part(radio-primary) {
+    // {modifier} Adds `primary` to radio
+    @apply radio-primary;
+  }
+  ::part(radio-secondary) {
+    // {modifier} Adds `secondary` to radio
+    @apply radio-secondary;
+  }
+  ::part(radio-accent) {
+    // {modifier} Adds `accent` to radio
+    @apply radio-accent;
+  }
+  ::part(radio-success) {
+    // {modifier} Adds `success` to radio
+    @apply radio-success;
+  }
+  ::part(radio-warning) {
+    // {modifier} Adds `warning` to radio
+    @apply radio-warning;
+  }
+  ::part(radio-info) {
+    // {modifier} Adds `info` to radio
+    @apply radio-info;
+  }
+  ::part(radio-error) {
+    // {modifier} Adds `error` to radio
+    @apply radio-error;
+  }
+
+  //#endregion
+
+  //#region card
+  ::part(card) {
+    // {component} Container element
+    @apply card;
+  }
+  ::part(card-title) {
+    // {component} Title of card
+    @apply card-title;
+  }
+  ::part(card-body) {
+    // {component} Container for content
+    @apply card-body;
+  }
+  ::part(card-actions) {
+    // {component} Container for buttons
+    @apply card-actions;
+  }
+  ::part(card-bordered) {
+    // {modifier} Adds border to <card>
+    @apply card-bordered;
+  }
+  ::part(image-full) {
+    // {modifier} The image in <figure> element will be the background
+    @apply image-full;
+  }
+
+  //#endregion
+
+  //#region loading
+  ::part(loading) {
+    // {component} loading element
+    @apply loading;
+  }
+  ::part(loading-spinner) {
+    // {modifier} Shows the spinner animation
+    @apply loading-spinner;
+  }
+  ::part(loading-dots) {
+    // {modifier} Shows the dots animation
+    @apply loading-dots;
+  }
+  ::part(loading-ring) {
+    // {modifier} Shows the ring animation
+    @apply loading-ring;
+  }
+  ::part(loading-ball) {
+    // {modifier} Shows the ball animation
+    @apply loading-ball;
+  }
+  ::part(loading-bars) {
+    // {modifier} Shows the bars animation
+    @apply loading-bars;
+  }
+  ::part(loading-infinity) {
+    // {modifier} Shows the infinity animation
+    @apply loading-infinity;
+  }
+
+  //#endregion
+
+  //#region indicator
+  ::part(indicator) {
+    // {component} Container element
+    @apply indicator;
+  }
+  ::part(indicator-item) {
+    // {component} will be placed on the corner of sibling
+    @apply indicator-item;
+  }
+
+  //#endregion
+
+  //#region join
+
+  ::part(join-item) {
+    // {component} Item inside join. Can be a button, input, etc.
+    @apply join-item;
+  }
+
+  //#endregion
+
+  //#region progress
+  ::part(progress) {
+    // {component} Progress element
+    @apply progress;
+  }
+  ::part(progress-primary) {
+    // {modifier} Adds `primary` color
+    @apply progress-primary;
+  }
+  ::part(progress-secondary) {
+    // {modifier} Adds `secondary` color
+    @apply progress-secondary;
+  }
+  ::part(progress-accent) {
+    // {modifier} Adds `accent` color
+    @apply progress-accent;
+  }
+  ::part(progress-info) {
+    // {modifier} Adds `info` color
+    @apply progress-info;
+  }
+  ::part(progress-success) {
+    // {modifier} Adds `success` color
+    @apply progress-success;
+  }
+  ::part(progress-warning) {
+    // {modifier} Adds `warning` color
+    @apply progress-warning;
+  }
+  ::part(progress-error) {
+    // {modifier} Adds `error` color
+    @apply progress-error;
+  }
+
+  //#endregion
+
+  //#region chat
+  ::part(chat) {
+    // {component} Container for one line of conversation and all its data
+    @apply chat;
+  }
+  ::part(chat-start) {
+    // {modifier} Aligns `chat` to left (required)
+    @apply chat-start;
+  }
+  ::part(chat-end) {
+    // {modifier} Aligns `chat` to end (required)
+    @apply chat-end;
+  }
+  ::part(chat-image) {
+    // {component} For the author image
+    @apply chat-image;
+  }
+  ::part(chat-header) {
+    // {component} For the line above the chat bubble
+    @apply chat-header;
+  }
+  ::part(chat-footer) {
+    // {component} For the line below the chat bubble
+    @apply chat-footer;
+  }
+  ::part(chat-bubble) {
+    // {component} For the content of chat
+    @apply chat-bubble;
+  }
+  ::part(chat-bubble-primary) {
+    // {modifier} sets `primary` color for the `chat-bubble`
+    @apply chat-bubble-primary;
+  }
+  ::part(chat-bubble-secondary) {
+    // {modifier} sets `secondary` color for the `chat-bubble`
+    @apply chat-bubble-secondary;
+  }
+  ::part(chat-bubble-accent) {
+    // {modifier} sets `accent` color for the `chat-bubble`
+    @apply chat-bubble-accent;
+  }
+  ::part(chat-bubble-info) {
+    // {modifier} sets `info` color for the `chat-bubble`
+    @apply chat-bubble-info;
+  }
+  ::part(chat-bubble-success) {
+    // {modifier} sets `success` color for the `chat-bubble`
+    @apply chat-bubble-success;
+  }
+  ::part(chat-bubble-warning) {
+    // {modifier} sets `warning` color for the `chat-bubble`
+    @apply chat-bubble-warning;
+  }
+  ::part(chat-bubble-error) {
+    // {modifier} sets `error` color for the `chat-bubble`
+    @apply chat-bubble-error;
+  }
+
+  //#endregion
+
+  //#region countdown
+  ::part(countdown) {
+    // {component} Container element
+    @apply countdown;
+  }
+
+  //#endregion
+
+  //#region input
+
+  ::part(label) {
+    // {component} For helper text
+    @apply label;
+  }
+  ::part(input) {
+    // {component} For <input> element
+    @apply input;
+  }
+  ::part(input-bordered) {
+    // {modifier} Adds border to input
+    @apply input-bordered;
+  }
+  ::part(input-ghost) {
+    // {modifier} Adds ghost style to input
+    @apply input-ghost;
+  }
+  ::part(input-primary) {
+    // {modifier} Adds `primary` color to input
+    @apply input-primary;
+  }
+  ::part(input-secondary) {
+    // {modifier} Adds `secondary` color to input
+    @apply input-secondary;
+  }
+  ::part(input-accent) {
+    // {modifier} Adds `accent` color to input
+    @apply input-accent;
+  }
+  ::part(input-info) {
+    // {modifier} Adds `info` color to input
+    @apply input-info;
+  }
+  ::part(input-success) {
+    // {modifier} Adds `success` color to input
+    @apply input-success;
+  }
+  ::part(input-warning) {
+    // {modifier} Adds `warning` color to input
+    @apply input-warning;
+  }
+  ::part(input-error) {
+    // {modifier} Adds `error` color to input
+    @apply input-error;
+  }
+
+  //#endregion
+
+  //#region alert
+  ::part(alert) {
+    // {component} Container element
+    @apply alert;
+  }
+  ::part(alert-info) {
+    // {modifier} Alert with `info` color
+    @apply alert-info;
+  }
+  ::part(alert-success) {
+    // {modifier} Alert with `success` color
+    @apply alert-success;
+  }
+  ::part(alert-warning) {
+    // {modifier} Alert with `warning` color
+    @apply alert-warning;
+  }
+  ::part(alert-error) {
+    // {modifier} Alert with `error` color
+    @apply alert-error;
+  }
+
+  //#endregion
+
+  //#region accordion
+  ::part(collapse) {
+    // {component} Container element
+    @apply collapse;
+  }
+  ::part(collapse-title) {
+    // {component} Title element
+    @apply collapse-title;
+  }
+  ::part(collapse-content) {
+    // {component} Container for content
+    @apply collapse-content;
+  }
+  ::part(collapse-arrow) {
+    // {modifier} Adds arrow icon
+    @apply collapse-arrow;
+  }
+  ::part(collapse-plus) {
+    // {modifier} Adds plus/minus icon
+    @apply collapse-plus;
+  }
+  ::part(collapse-open) {
+    // {modifier} Force open
+    @apply collapse-open;
+  }
+  /* <collapse-close>
+          ::part(collapse-close) {
+              // {modifier} Force close
+            @apply collapse-close;
+          }
+          */
+
+  //#endregion
+
+  //#region mockup-phone
+  ::part(mockup-phone) {
+    // {component} Container element
+    @apply mockup-phone;
+  }
+
+  //#endregion
+
+  //#region toast
+  ::part(toast) {
+    // {component} Container element that sticks to the corner of page
+    @apply toast;
+  }
+
+  //#endregion
+
+  //#region swap
+  ::part(swap) {
+    // {component} Container element
+    @apply swap;
+  }
+  ::part(swap-on) {
+    // {component} The child element that should be visible when checkbox is checked or when swap is active
+    @apply swap-on;
+  }
+  ::part(swap-off) {
+    // {component} The child element that should be visible when checkbox is not checked or when swap is not active
+    @apply swap-off;
+  }
+  ::part(swap-indeterminate) {
+    // {component} The child element that should be visible when checkbox is indeterminate
+    @apply swap-indeterminate;
+  }
+  ::part(swap-active) {
+    // {modifier} Activates the swap (no need for checkbox)
+    @apply swap-active;
+  }
+  ::part(swap-rotate) {
+    // {modifier} Adds rotate effect to swap
+    @apply swap-rotate;
+  }
+  ::part(swap-flip) {
+    // {modifier} Adds flip effect to swap
+    @apply swap-flip;
+  }
+
+  //#endregion
+
+  //#region checkbox
+
+  ::part(checkbox) {
+    // {component} For checkbox
+    @apply checkbox;
+  }
+  ::part(checkbox-primary) {
+    // {modifier} Adds `primary` to checkbox
+    @apply checkbox-primary;
+  }
+  ::part(checkbox-secondary) {
+    // {modifier} Adds `secondary` to checkbox
+    @apply checkbox-secondary;
+  }
+  ::part(checkbox-accent) {
+    // {modifier} Adds `accent` to checkbox
+    @apply checkbox-accent;
+  }
+  ::part(checkbox-success) {
+    // {modifier} Adds `success` to checkbox
+    @apply checkbox-success;
+  }
+  ::part(checkbox-warning) {
+    // {modifier} Adds `warning` to checkbox
+    @apply checkbox-warning;
+  }
+  ::part(checkbox-info) {
+    // {modifier} Adds `info` to checkbox
+    @apply checkbox-info;
+  }
+  ::part(checkbox-error) {
+    // {modifier} Adds `error` to checkbox
+    @apply checkbox-error;
+  }
+
+  //#endregion
+
+  //#region collapse
+
+  /* <duplication, collapse-close>
+          ::part(collapse-close) {
+              // {modifier} Force close
+            @apply collapse-close;
+          }
+          */
+
+  //#endregion
+
+  //#region tab
+  ::part(tabs) {
+    // {component} Container of tab items
+    @apply tabs;
+  }
+  ::part(tabs-boxed) {
+    // {modifier} Adds a box style to tabs container
+    @apply tabs-boxed;
+  }
+  ::part(tab) {
+    // {component} A tab item
+    @apply tab;
+  }
+  ::part(tab-active) {
+    // {modifier} For the active tab
+    @apply tab-active;
+  }
+  ::part(tab-disabled) {
+    // {modifier} For a visually disabled tab
+    @apply tab-disabled;
+  }
+  ::part(tab-bordered) {
+    // {modifier} Adds bottom border to tab item
+    @apply tab-bordered;
+  }
+  ::part(tab-lifted) {
+    // {modifier} Adds lifted style to tab item
+    @apply tab-lifted;
+  }
+
+  //#endregion
+
+  //#region carousel
+  ::part(carousel) {
+    // {component} Container element
+    @apply carousel;
+  }
+  ::part(carousel-item) {
+    // {component} Carousel item
+    @apply carousel-item;
+  }
+  ::part(carousel-center) {
+    // {modifier} Snap elements to center
+    @apply carousel-center;
+  }
+  ::part(carousel-end) {
+    // {modifier} Snap elements to end
+    @apply carousel-end;
+  }
+  ::part(carousel-vertical) {
+    // {modifier} Vertical carousel
+    @apply carousel-vertical;
+  }
+
+  //#endregion
+
+  //#region artboard
+  ::part(artboard) {
+    // {component} Container element
+    @apply artboard;
+  }
+  ::part(artboard-demo) {
+    // {modifier} Adds shadow and radius. Puts items in center
+    @apply artboard-demo;
+  }
+  ::part(phone-1) {
+    // {modifier} Size 1 (320×568)
+    @apply phone-1;
+  }
+  ::part(phone-2) {
+    // {modifier} Size 2 (375×667)
+    @apply phone-2;
+  }
+  ::part(phone-3) {
+    // {modifier} Size 3 (414×736)
+    @apply phone-3;
+  }
+  ::part(phone-4) {
+    // {modifier} Size 4 (375×812)
+    @apply phone-4;
+  }
+  ::part(phone-5) {
+    // {modifier} Size 5 (414×896)
+    @apply phone-5;
+  }
+  ::part(phone-6) {
+    // {modifier} Size 6 (320×1024)
+    @apply phone-6;
+  }
+  ::part(artboard-horizontal) {
+    // {modifier} shows horizontal view
+    @apply artboard-horizontal;
+  }
+
+  //#endregion
+
+  //#region file-input
+
+  ::part(file-input) {
+    // {component} For <input> element
+    @apply file-input;
+  }
+  ::part(file-input-bordered) {
+    // {modifier} Adds border to input
+    @apply file-input-bordered;
+  }
+  ::part(file-input-ghost) {
+    // {modifier} Adds ghost style to input
+    @apply file-input-ghost;
+  }
+  ::part(file-input-primary) {
+    // {modifier} Adds `primary` color to input
+    @apply file-input-primary;
+  }
+  ::part(file-input-secondary) {
+    // {modifier} Adds `secondary` color to input
+    @apply file-input-secondary;
+  }
+  ::part(file-input-accent) {
+    // {modifier} Adds `accent` color to input
+    @apply file-input-accent;
+  }
+  ::part(file-input-info) {
+    // {modifier} Adds `info` color to input
+    @apply file-input-info;
+  }
+  ::part(file-input-success) {
+    // {modifier} Adds `success` color to input
+    @apply file-input-success;
+  }
+  ::part(file-input-warning) {
+    // {modifier} Adds `warning` color to input
+    @apply file-input-warning;
+  }
+  ::part(file-input-error) {
+    // {modifier} Adds `error` color to input
+    @apply file-input-error;
+  }
+
+  //#endregion
+
+  //#region toggle
+
+  ::part(toggle) {
+    // {component} For checkbox
+    @apply toggle;
+  }
+  ::part(toggle-primary) {
+    // {modifier} Adds `primary` to toggle
+    @apply toggle-primary;
+  }
+  ::part(toggle-secondary) {
+    // {modifier} Adds `secondary` to toggle
+    @apply toggle-secondary;
+  }
+  ::part(toggle-accent) {
+    // {modifier} Adds `accent` to toggle
+    @apply toggle-accent;
+  }
+  ::part(toggle-success) {
+    // {modifier} Adds `success` to toggle
+    @apply toggle-success;
+  }
+  ::part(toggle-warning) {
+    // {modifier} Adds `warning` to toggle
+    @apply toggle-warning;
+  }
+  ::part(toggle-info) {
+    // {modifier} Adds `info` to toggle
+    @apply toggle-info;
+  }
+  ::part(toggle-error) {
+    // {modifier} Adds `error` to toggle
+    @apply toggle-error;
+  }
+
+  //#endregion
+
+  //#region mockup-code
+  ::part(mockup-code) {
+    // {component} Container element
+    @apply mockup-code;
+  }
+
+  //#endregion
+
+  //#region input-group
+  ::part(input-group) {
+    // {component} Container for grouping elements
+    @apply input-group;
+  }
+  ::part(input-group-lg) {
+    // {modifier} Large size for input-group wrapper
+    @apply input-group-lg;
+  }
+  ::part(input-group-md) {
+    // {modifier} Medium (default) size for input-group wrapper
+    @apply input-group-md;
+  }
+  ::part(input-group-sm) {
+    // {modifier} Small size for input-group wrapper
+    @apply input-group-sm;
+  }
+  ::part(input-group-xs) {
+    // {modifier} Extra small size for input-group wrapper
+    @apply input-group-xs;
+  }
+  ::part(input-group-vertical) {
+    // {modifier} Vertical direction for input-group items
+    @apply input-group-vertical;
+  }
+
+  //#endregion
+
+  //#region mask
+  ::part(mask) {
+    // {component} Masks the content with shape
+    @apply mask;
+  }
+  ::part(mask-squircle) {
+    // {modifier} Applies `squircle` shape
+    @apply mask-squircle;
+  }
+  ::part(mask-heart) {
+    // {modifier} Applies `heart` shape
+    @apply mask-heart;
+  }
+  ::part(mask-hexagon) {
+    // {modifier} Applies `hexagon` shape
+    @apply mask-hexagon;
+  }
+  ::part(mask-hexagon-2) {
+    // {modifier} Applies `hexagon` alternative shape
+    @apply mask-hexagon-2;
+  }
+  ::part(mask-decagon) {
+    // {modifier} Applies `decagon` shape
+    @apply mask-decagon;
+  }
+  ::part(mask-pentagon) {
+    // {modifier} Applies `pentagon` shape
+    @apply mask-pentagon;
+  }
+  ::part(mask-diamond) {
+    // {modifier} Applies `diamond` shape
+    @apply mask-diamond;
+  }
+  ::part(mask-square) {
+    // {modifier} Applies `square` shape
+    @apply mask-square;
+  }
+  ::part(mask-circle) {
+    // {modifier} Applies `circle` shape
+    @apply mask-circle;
+  }
+  ::part(mask-parallelogram) {
+    // {modifier} Applies `parallelogram` shape
+    @apply mask-parallelogram;
+  }
+  ::part(mask-parallelogram-2) {
+    // {modifier} Applies `parallelogram` alternative shape
+    @apply mask-parallelogram-2;
+  }
+  ::part(mask-parallelogram-3) {
+    // {modifier} Applies `parallelogram` alternative shape
+    @apply mask-parallelogram-3;
+  }
+  ::part(mask-parallelogram-4) {
+    // {modifier} Applies `parallelogram` alternative shape
+    @apply mask-parallelogram-4;
+  }
+  ::part(mask-star) {
+    // {modifier} Applies `star` shape
+    @apply mask-star;
+  }
+  ::part(mask-star-2) {
+    // {modifier} Applies `star` alternative shape
+    @apply mask-star-2;
+  }
+  ::part(mask-triangle) {
+    // {modifier} Applies `triangle` shape
+    @apply mask-triangle;
+  }
+  ::part(mask-triangle-2) {
+    // {modifier} Applies `triangle` alternative shape
+    @apply mask-triangle-2;
+  }
+  ::part(mask-triangle-3) {
+    // {modifier} Applies `triangle` alternative shape
+    @apply mask-triangle-3;
+  }
+  ::part(mask-triangle-4) {
+    // {modifier} Applies `triangle` alternative shape
+    @apply mask-triangle-4;
+  }
+  ::part(mask-half-1) {
+    // {modifier} Crops only the first half of mask
+    @apply mask-half-1;
+  }
+  ::part(mask-half-2) {
+    // {modifier} Crops only the second half of mask
+    @apply mask-half-2;
+  }
+
+  //#endregion
+
+  //#region textarea
+
+  ::part(textarea) {
+    // {modifier} For <textarea> element
+    @apply textarea;
+  }
+  ::part(textarea-bordered) {
+    // {modifier} Adds border to textarea
+    @apply textarea-bordered;
+  }
+  ::part(textarea-ghost) {
+    // {modifier} Adds ghost style to textarea
+    @apply textarea-ghost;
+  }
+  ::part(textarea-primary) {
+    // {modifier} Adds `primary` color to textarea
+    @apply textarea-primary;
+  }
+  ::part(textarea-secondary) {
+    // {modifier} Adds `secondary` color to textarea
+    @apply textarea-secondary;
+  }
+  ::part(textarea-accent) {
+    // {modifier} Adds `accent` color to textarea
+    @apply textarea-accent;
+  }
+  ::part(textarea-info) {
+    // {modifier} Adds `info` color to textarea
+    @apply textarea-info;
+  }
+  ::part(textarea-success) {
+    // {modifier} Adds `success` color to textarea
+    @apply textarea-success;
+  }
+  ::part(textarea-warning) {
+    // {modifier} Adds `warning` color to textarea
+    @apply textarea-warning;
+  }
+  ::part(textarea-error) {
+    // {modifier} Adds `error` color to textarea
+    @apply textarea-error;
+  }
+
+  //#endregion
+
+  //#region button
+  ::part(btn) {
+    // {component} Button
+    @apply btn;
+  }
+  ::part(btn-neutral) {
+    // {modifier} Button with `neutral` color
+    @apply btn-neutral;
+  }
+  ::part(btn-primary) {
+    // {modifier} Button with `primary` color
+    @apply btn-primary;
+  }
+  ::part(btn-secondary) {
+    // {modifier} Button with `secondary` color
+    @apply btn-secondary;
+  }
+  ::part(btn-accent) {
+    // {modifier} Button with `accent` color
+    @apply btn-accent;
+  }
+  ::part(btn-info) {
+    // {modifier} Button with `info` color
+    @apply btn-info;
+  }
+  ::part(btn-success) {
+    // {modifier} Button with `success` color
+    @apply btn-success;
+  }
+  ::part(btn-warning) {
+    // {modifier} Button with `warning` color
+    @apply btn-warning;
+  }
+  ::part(btn-error) {
+    // {modifier} Button with `error` color
+    @apply btn-error;
+  }
+  ::part(btn-ghost) {
+    // {modifier} Button with ghost style
+    @apply btn-ghost;
+  }
+  ::part(btn-link) {
+    // {modifier} Button styled as a link
+    @apply btn-link;
+  }
+  ::part(btn-outline) {
+    // {modifier} Transparent Button with colored border
+    @apply btn-outline;
+  }
+  ::part(btn-active) {
+    // {modifier} Force button to show active state
+    @apply btn-active;
+  }
+  ::part(btn-disabled) {
+    // {modifier} Force button to show disabled state
+    @apply btn-disabled;
+  }
+  ::part(glass) {
+    // {modifier} Button with a glass effect
+    @apply glass;
+  }
+  ::part(no-animation) {
+    // {modifier} Disables click animation
+    @apply no-animation;
+  }
+
+  //#endregion
+
+  //#region steps
+  ::part(steps) {
+    // {component} Container of step items
+    @apply steps;
+  }
+  ::part(step) {
+    // {component} A step item
+    @apply step;
+  }
+  ::part(step-primary) {
+    // {modifier} Adds `primary` color to step
+    @apply step-primary;
+  }
+  ::part(step-secondary) {
+    // {modifier} Adds `secondary` color to step
+    @apply step-secondary;
+  }
+  ::part(step-accent) {
+    // {modifier} Adds `accent` color to step
+    @apply step-accent;
+  }
+  ::part(step-info) {
+    // {modifier} Adds `info` color to step
+    @apply step-info;
+  }
+  ::part(step-success) {
+    // {modifier} Adds `success` color to step
+    @apply step-success;
+  }
+  ::part(step-warning) {
+    // {modifier} Adds `warning` color to step
+    @apply step-warning;
+  }
+  ::part(step-error) {
+    // {modifier} Adds `error` color to step
+    @apply step-error;
+  }
+
+  //#endregion
+
+  //#region stat
+  ::part(stats) {
+    // {component} Container of multiple stat items
+    @apply stats;
+  }
+  ::part(stat) {
+    // {component} One stat item
+    @apply stat;
+  }
+  ::part(stat-title) {
+    // {component} Title text
+    @apply stat-title;
+  }
+  ::part(stat-value) {
+    // {component} Value text
+    @apply stat-value;
+  }
+  ::part(stat-desc) {
+    // {component} Description text
+    @apply stat-desc;
+  }
+  ::part(stat-figure) {
+    // {component} For icon, image, etc
+    @apply stat-figure;
+  }
+  ::part(stat-actions) {
+    // {component} For buttons, input, etc
+    @apply stat-actions;
+  }
+
+  //#endregion
+
+  //#region link
+  ::part(link) {
+    // {component} Adds underline to a text
+    @apply link;
+  }
+  ::part(link-neutral) {
+    // {modifier} Link with `neutral` color
+    @apply link-neutral;
+  }
+  ::part(link-primary) {
+    // {modifier} Link with `primary` color
+    @apply link-primary;
+  }
+  ::part(link-secondary) {
+    // {modifier} Link with `secondary` color
+    @apply link-secondary;
+  }
+  ::part(link-accent) {
+    // {modifier} Link with `accent` color
+    @apply link-accent;
+  }
+  ::part(link-success) {
+    // {modifier} Link with `success` color
+    @apply link-success;
+  }
+  ::part(link-info) {
+    // {modifier} Link with `info` color
+    @apply link-info;
+  }
+  ::part(link-warning) {
+    // {modifier} Link with `warning` color
+    @apply link-warning;
+  }
+  ::part(link-error) {
+    // {modifier} Link with `error` color
+    @apply link-error;
+  }
+  ::part(link-hover) {
+    // {modifier} Only show underline on hover
+    @apply link-hover;
+  }
+
+  //#endregion
+
+  //#region table
+  ::part(table) {
+    // {component} For <table> element
+    @apply table;
+  }
+  ::part(table-zebra) {
+    // {modifier} For <table> to show zebra stripe rows
+    @apply table-zebra;
+  }
+  ::part(table-pin-rows) {
+    // {modifier} For <table> to make all the rows inside <thead> and <tfoot> sticky
+    @apply table-pin-rows;
+  }
+  ::part(table-pin-cols) {
+    // {modifier} For <table> to make all the <th> columns sticky
+    @apply table-pin-cols;
+  }
+
+  //#endregion
+
+  //#region radial-progress
+  ::part(radial-progress) {
+    // {component} Shows a radial progress
+    @apply radial-progress;
+  }
+
+  //#endregion
+
+  //#region divider
+  ::part(divider) {
+    // {component} Put a divider line between two elements
+    @apply divider;
+  }
+
+  //#endregion
+
+  //#region menu
+  ::part(menu) {
+    // {component} Container <ul> element
+    @apply menu;
+  }
+  ::part(menu-title) {
+    // {component} Specifies the title of menu
+    @apply menu-title;
+  }
+
+  ::part(focus) {
+    // {modifier} Applies focus style to the element inside <li>
+    @apply focus;
+  }
+  ::part(menu-dropdown-toggle) {
+    // {component} Class name for the toggle to show/hide the `menu-dropdown` using JS
+    @apply menu-dropdown-toggle;
+  }
+  ::part(menu-dropdown) {
+    // {component} Class name for the collapsible <ul> if you want to show it using JS
+    @apply menu-dropdown;
+  }
+  ::part(menu-dropdown-show) {
+    // {modifier} Shows the `menu-dropdown-toggle` and `menu-dropdown` collapsible submenu using JS
+    @apply menu-dropdown-show;
+  }
+
+  //#endregion
+
+  //#region avatar
+  ::part(avatar) {
+    // {component} Container element
+    @apply avatar;
+  }
+  ::part(avatar-group) {
+    // {component} Container for grouping multiple avatars
+    @apply avatar-group;
+  }
+  ::part(online) {
+    // {modifier} shows a green dot as online indicator
+    @apply online;
+  }
+  ::part(offline) {
+    // {modifier} shows a gray dot as offline indicator
+    @apply offline;
+  }
+  ::part(placeholder) {
+    // {modifier} to show some letters as avatar placeholder
+    @apply placeholder;
+  }
+
+  //#endregion
+
+  //#region select
+
+  ::part(select) {
+    // {component} For <select> element
+    @apply select;
+  }
+  ::part(select-bordered) {
+    // {modifier} Adds border to select
+    @apply select-bordered;
+  }
+  ::part(select-ghost) {
+    // {modifier} Adds ghost style to select
+    @apply select-ghost;
+  }
+  ::part(select-primary) {
+    // {modifier} Adds `primary` color to select
+    @apply select-primary;
+  }
+  ::part(select-secondary) {
+    // {modifier} Adds `secondary` color to select
+    @apply select-secondary;
+  }
+  ::part(select-accent) {
+    // {modifier} Adds `accent` color to select
+    @apply select-accent;
+  }
+  ::part(select-info) {
+    // {modifier} Adds `info` color to select
+    @apply select-info;
+  }
+  ::part(select-success) {
+    // {modifier} Adds `success` color to select
+    @apply select-success;
+  }
+  ::part(select-warning) {
+    // {modifier} Adds `warning` color to select
+    @apply select-warning;
+  }
+  ::part(select-error) {
+    // {modifier} Adds `error` color to select
+    @apply select-error;
+  }
+
+  //#endregion
+
+  //#region stack
+  ::part(stack) {
+    // {component} Puts the child elements on top of each other
+    @apply stack;
+  }
+
+  //#endregion
+
+  //#region hero
+  ::part(hero) {
+    // {component} Container element
+    @apply hero;
+  }
+  ::part(hero-content) {
+    // {component} Container for content
+    @apply hero-content;
+  }
+  ::part(hero-overlay) {
+    // {component} Overlay that covers the background image
+    @apply hero-overlay;
+  }
+
+  //#endregion
+
+  //#region range
+  ::part(range) {
+    // {component} Range input
+    @apply range;
+  }
+  ::part(range-primary) {
+    // {modifier} Adds `primary` to range
+    @apply range-primary;
+  }
+  ::part(range-secondary) {
+    // {modifier} Adds `secondary` to range
+    @apply range-secondary;
+  }
+  ::part(range-accent) {
+    // {modifier} Adds `accent` to range
+    @apply range-accent;
+  }
+  ::part(range-success) {
+    // {modifier} Adds `success` to range
+    @apply range-success;
+  }
+  ::part(range-warning) {
+    // {modifier} Adds `warning` to range
+    @apply range-warning;
+  }
+  ::part(range-info) {
+    // {modifier} Adds `info` to range
+    @apply range-info;
+  }
+  ::part(range-error) {
+    // {modifier} Adds `error` to range
+    @apply range-error;
+  }
+
+  //#endregion
+
+  //#region modal
+  ::part(modal) {
+    // {component} Container element
+    @apply modal;
+  }
+  ::part(modal-box) {
+    // {component} The content of modal
+    @apply modal-box;
+  }
+  ::part(modal-action) {
+    // {component} Container for modal action buttons
+    @apply modal-action;
+  }
+  ::part(modal-backdrop) {
+    // {component} The backdrop that covers the back of modal so we can close the modal by clicking outside
+    @apply modal-backdrop;
+  }
+  ::part(modal-toggle) {
+    // {component} For hidden checkbox that controls modal
+    @apply modal-toggle;
+  }
+  ::part(modal-open) {
+    // {modifier} Add/remove this class to open/close the modal using JS
+    @apply modal-open;
+  }
+
+  //#endregion
+
+  //#region breadcrumbs
+  ::part(breadcrumbs) {
+    // {component} Container element
+    @apply breadcrumbs;
+  }
+
+  //#endregion
+
+  //#region button-group
+  ::part(btn-group) {
+    // {component} Container for grouping multiple buttons
+    @apply btn-group;
+  }
+
+  //#endregion
+
+  //#region badge
+  ::part(badge) {
+    // {component} Container element
+    @apply badge;
+  }
+  ::part(badge-neutral) {
+    // {modifier} badge with `neutral` color
+    @apply badge-neutral;
+  }
+  ::part(badge-primary) {
+    // {modifier} badge with `primary` color
+    @apply badge-primary;
+  }
+  ::part(badge-secondary) {
+    // {modifier} badge with `secondary` color
+    @apply badge-secondary;
+  }
+  ::part(badge-accent) {
+    // {modifier} badge with `accent` color
+    @apply badge-accent;
+  }
+  ::part(badge-ghost) {
+    // {modifier} badge with `ghost` color
+    @apply badge-ghost;
+  }
+  ::part(badge-info) {
+    // {modifier} badge with `info` color
+    @apply badge-info;
+  }
+  ::part(badge-success) {
+    // {modifier} badge with `success` color
+    @apply badge-success;
+  }
+  ::part(badge-warning) {
+    // {modifier} badge with `warning` color
+    @apply badge-warning;
+  }
+  ::part(badge-error) {
+    // {modifier} badge with `error` color
+    @apply badge-error;
+  }
+  ::part(badge-outline) {
+    // {modifier} transparent badge with [colorful] border
+    @apply badge-outline;
+  }
+
+  //#endregion
 }
-::part(form-control) {
-  @apply form-control;
-}
-::part(label) {
-  @apply label;
-}
-::part(input) {
-  @apply input;
-}
-// ::part(btn) {
-//   @apply btn;
-// }
-// ::part(btn-neutral) {
-//   @apply btn-neutral;
-// }
-::part(btn-primary) {
-  @apply btn-primary;
-}
-// ::part(btn-secondary) {
-//   @apply btn-secondary;
-// }
-// ::part(btn-accent) {
-//   @apply btn-accent;
-// }
-// ::part(btn-info) {
-//   @apply btn-info;
-// }
-// ::part(btn-success) {
-//   @apply btn-success;
-// }
-// ::part(btn-warning) {
-//   @apply btn-warning;
-// }
-// ::part(btn-error) {
-//   @apply btn-error;
-// }
-// ::part(btn-ghost) {
-//   @apply btn-ghost;
-// }
-// ::part(btn-link) {
-//   @apply btn-link;
-// }
-// ::part(btn-outline) {
-//   @apply btn-outline;
-// }
-// ::part(btn-active) {
-//   @apply btn-active;
-// }
-// ::part(btn-disabled) {
-//   @apply btn-disabled;
-// }
-// ::part(glass) {
-//   @apply glass;
-// }
-// ::part(no-animation) {
-//   @apply no-animation;
-// }
-// ::part(button-round) {
-//   .button-round();
-// }
-// ::part(button-fill) {
-//   .button-fill();
-// }
-// ::part(button-active) {
-//   .button-active();
-// }
-// ::part(button-fill) {
-//   .button-fill();
-// }
-// ::part(button-active) {
-//   .button-active();
-// }
-// ::part(button-outline) {
-//   .button-outline();
-// }
-// ::part(button-tonatailwindcss postcss autoprefixerl) {
-//   .button-tonal();
-// }
-// ::part(button-large) {
-//   .button-large();
-// }
-// ::part(button-small) {
-//   .button-small();
-// }
-// ::part(button-raised) {
-//   .button-raised();
-// }
-// ::part(button-preloader) {
-//   .button-preloader();
-// }

@@ -22,14 +22,14 @@ const gridRow = computed(() => {
   if (typeof row === "number") {
     return row;
   }
-  return Math.round((parseFloat(row) * gridMesh.rows.value) / 100) || 1;
+  return Math.ceil((parseFloat(row) * gridMesh.rows.value) / 100) || 1;
 });
 const gridColumn = computed(() => {
   const { column } = props;
   if (typeof column === "number") {
     return column;
   }
-  return Math.round((parseFloat(column) * gridMesh.columns.value) / 100) || 1;
+  return Math.ceil((parseFloat(column) * gridMesh.columns.value) / 100) || 1;
 });
 </script>
 <template>

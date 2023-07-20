@@ -1,9 +1,11 @@
 <script lang="ts" setup>
 import { clickApp, detailApp, quitApp, vibrateHeavyClick } from "@/api/new-tab";
 import type { $AppMetaData } from "@/types/app.type";
-import { CloseWatcher } from "../../../../../../../../../plaoc/src/client/components/close-watcher/close-watcher.shim";
 import { onLongPress } from "@vueuse/core";
 import { onMounted, reactive, ref } from "vue";
+import { CloseWatcher } from "../../../../../../../../../plaoc/src/client/components/close-watcher/close-watcher.shim";
+import squircle_svg from "./squircle.svg?raw";
+
 const $appHtmlRefHook = ref<HTMLDivElement | null>(null);
 
 //控制背景虚化
@@ -31,7 +33,7 @@ const emit = defineEmits<{
 }>();
 
 onMounted(() => {});
-let closer:CloseWatcher|null = null;
+let closer: CloseWatcher | null = null;
 //长按事件的回调
 const onLongPressCallbackHook = () => {
   vibrateHeavyClick(); // 震动
@@ -57,28 +59,19 @@ function showQuit() {
 }
 function menuOpen() {
   show.value = false;
-  closer?.close()
+  closer?.close();
 }
 </script>
 <template>
   <div ref="$appHtmlRefHook" class="app" draggable="true">
-    <v-menu
-      :modelValue="show"
-      @update:modelValue="menuOpen"
-      location="bottom"
-      transition="slide-y-transition"
-    >
+    <v-menu :modelValue="show" @update:modelValue="menuOpen" location="bottom" transition="slide-y-transition">
       <template v-slot:activator="{ props }">
         <div class="app-wrap" :class="{ focused: show }" @click="show = false">
-          <div
-            class="app-icon"
-            v-bind="props"
-            @click="clickApp(appMetaData.id)"
-            @rclick="show = true"
-          >
-            <img class="img" :src="appMetaData.icon" />
+          <div class="app-icon" v-bind="props" @click="clickApp(appMetaData.id)" @rclick="show = true">
+            <div class="bg backdrop-blur-sm" v-html="squircle_svg"></div>
+            <img class="fg" :src="appMetaData.icon" />
           </div>
-          <div class="app-name" v-show="!show">
+          <div class="app-name line-clamp-2 backdrop-blur-sm" v-show="!show">
             {{ appMetaData.short_name }}
           </div>
         </div>
@@ -94,30 +87,17 @@ function menuOpen() {
         </div>
 
         <div v-ripple class="item details" @click="detailApp(appMetaData.id)">
-          <img
-            class="icon"
-            src="../../../assets/images/details.svg"
-            alt="详情"
-          />
+          <img class="icon" src="../../../assets/images/details.svg" alt="详情" />
           <p class="title">详情</p>
         </div>
         <div v-ripple class="item delete" @click="showUninstall">
-          <img
-            class="icon"
-            src="../../../assets/images/delete.svg"
-            alt="卸载"
-          />
+          <img class="icon" src="../../../assets/images/delete.svg" alt="卸载" />
           <p class="title">卸载</p>
         </div>
       </div>
     </v-menu>
   </div>
-  <v-snackbar
-    v-model="snackbar.show"
-    :color="snackbar.type"
-    :timeout="snackbar.timeOut"
-    variant="tonal"
-  >
+  <v-snackbar v-model="snackbar.show" :color="snackbar.type" :timeout="snackbar.timeOut" variant="tonal">
     <div class="text-center">{{ snackbar.text }}</div>
   </v-snackbar>
 </template>
@@ -152,31 +132,49 @@ function menuOpen() {
     display: flex;
     flex-direction: column;
     place-items: center;
-    padding: 0.8em 0.25em;
     .app-icon {
       width: 60px;
       height: 60px;
-      border-radius: 15px;
-      background-color: #fff;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.3);
-      .img {
+      display: grid;
+      grid-template-columns: 1fr;
+      grid-template-rows: 1fr;
+      grid-template-areas: "view";
+      place-items: center;
+
+      .bg {
+        grid-area: view;
+        color: rgba(255, 255, 255, 0.2);
+        border-radius: 16%; // 高斯模糊的圆角
+        :deep(svg) {
+          width: 100%;
+          height: 100%;
+          stroke: rgb(0 0 0 / 50%);
+          stroke-width: 1px;
+          stroke-linejoin: round;
+        }
+        z-index: 0;
+      }
+      .fg {
+        z-index: 1;
+        grid-area: view;
         width: 90%;
-        height: auto;
       }
     }
     .app-name {
       width: 76px;
       font-size: 14px;
-      font-weight: bold;
-      color: #333;
       margin-top: 10px;
+
+      color: rgb(0 0 0 / 80%);
+      -webkit-text-stroke: rgb(255 255 255 / 25%);
+      -webkit-text-stroke-width: 0.55px;
+
       text-align: center;
+      word-break: break-word;
       white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis; /* 超出部分显示省略号 */
+      border-radius: 0.5em; // 高斯模糊的圆角
+      padding: 0.1em 0.25em;
+      box-sizing: content-box;
     }
   }
 }

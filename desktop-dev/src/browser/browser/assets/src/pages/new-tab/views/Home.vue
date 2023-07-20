@@ -1,11 +1,14 @@
 <script lang="ts" setup>
 import { deleteApp, getAppInfo, getWidgetInfo } from "@/api/new-tab";
+import wallpaper_url from "@/assets/wallpaper.webp";
 import type { $AppMetaData, $TileSize, $WidgetMetaData } from "@/types/app.type";
 import { onMounted, reactive, Ref, ref } from "vue";
 import JMMVue from "../components/JMM.vue";
 import TileItem from "../components/TileItem.vue";
 import TilePanel from "../components/TilePanel.vue";
 import WidgetVue from "../components/Widget.vue";
+
+const css_url_wallpaper = `url(${wallpaper_url})`;
 
 type $LayoutInfo = (
   | {
@@ -91,9 +94,12 @@ async function uninstall() {
     layoutInfoListRef.value.splice(dialogData.index, 1);
   }
 }
+
+const isFullscreen = window.screen.width === window.innerWidth;
+const bgOpacity = isFullscreen ? 1: 0.62;
 </script>
 <template>
-  <div class="container">
+  <div class="desktop">
     <div class="logo">
       <img src="@/assets/logo.svg" alt="Dweb Browser" class="icon" />
       <div class="gradient_text">Dweb Browser</div>
@@ -126,7 +132,7 @@ async function uninstall() {
   </v-dialog>
 </template>
 <style scoped lang="scss">
-.container {
+.desktop {
   display: grid;
   grid-template-columns: 1fr;
   grid-template-rows: 1fr;
@@ -138,21 +144,25 @@ async function uninstall() {
     z-index: 0;
     display: grid;
     place-items: center;
-    opacity: 0.5;
+    opacity: v-bind("bgOpacity");
+    background-image: v-bind("css_url_wallpaper");
+    background-size: cover;
+    background-position: center;
     .icon {
       width: 13.5em;
       height: 13.5em;
+      mix-blend-mode: color-burn;
     }
     .gradient_text {
       width: 100%;
       height: 2em;
       font-size: 20px;
-      font-family: Source Han Sans CN-Medium, Source Han Sans CN;
       font-weight: 500;
-      color: #0a1626;
       line-height: 1em;
       display: flex;
       justify-content: center;
+      color: #fff;
+      mix-blend-mode: overlay;
     }
   }
 }

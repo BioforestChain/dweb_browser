@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 </script>
 <template>
-  <div class="container">
+  <div class="setting">
     <div class="logo">
       <img src="@/assets/logo.svg" alt="Dweb Browser" class="icon" />
       <div class="gradient-text">Dweb Browser Setting</div>
@@ -9,7 +9,7 @@
   </div>
 </template>
 <style scoped>
-.container {
+.setting {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -36,7 +36,6 @@
   width: 100%;
   height: 20px;
   font-size: 20px;
-  font-family: Source Han Sans CN-Medium, Source Han Sans CN;
   font-weight: 500;
   color: #0a1626;
   line-height: 20px;
