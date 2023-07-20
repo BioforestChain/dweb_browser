@@ -17,7 +17,7 @@ struct PagingScrollView: View {
     @EnvironmentObject var animation: ShiftAnimation
     @ObservedObject var keyboardHelper = KeyboardHeightHelper()
 
-    @Binding var tabPageOpacity: CGFloat
+    @Binding var showTabPage: Bool
 
     @State private var addressbarOffset: CGFloat = addressBarH
 
@@ -27,22 +27,24 @@ struct PagingScrollView: View {
                 TabView(selection: $selectedTab.curIndex) {
                     ForEach(0 ..< cacheMgr.store.count, id: \.self) { index in
                         LazyVStack(spacing: 0) {
-                            ZStack {
-                                HStack {
-                                    TabPageView(index: index, webWrapper: WebWrapperMgr.shared.store[index])
-                                        .frame(height: geometry.size.height - addressBarH) // 使用GeometryReader获取父容器高度
-                                        .gesture(disabledDragGesture)
-                                }
-                                .background(Color.purple)
-                                .opacity(tabPageOpacity)
-                                .onChange(of: animation.progress) { progress in
-                                    if progress.isAnimating() {
-                                        tabPageOpacity = 0
+                            ZStack{
+                                if showTabPage {
+                                    ZStack {
+                                        HStack {
+                                            TabPageView(index: index, webWrapper: WebWrapperMgr.shared.store[index])
+                                                .frame(height: geometry.size.height - addressBarH) // 使用GeometryReader获取父容器高度
+                                                .gesture(disabledDragGesture)
+                                        }
+                                        
+                                        if addressBar.isFocused {
+                                            SearchTypingView()
+                                        }
                                     }
                                 }
-
-                                if addressBar.isFocused {
-                                    SearchTypingView()
+                                else{
+                                    Rectangle().fill(Color.clear)
+                                        .frame(height: geometry.size.height - addressBarH)
+                                        .gesture(disabledDragGesture)
                                 }
                             }
 
@@ -61,6 +63,11 @@ struct PagingScrollView: View {
                     }
                 }
                 .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+            }
+            .onChange(of: animation.progress) { progress in
+                if progress.isAnimating() {
+                    showTabPage = false
+                }
             }
         }
     }

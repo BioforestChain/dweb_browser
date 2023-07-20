@@ -32,7 +32,6 @@ struct TabGridView: View {
     @State var isFirstRecord: Bool = true
     
     @State var frames: [CellFrameInfo] = []
-    @Binding var isScrolling: Bool
 
     @Binding var selectedCellFrame: CGRect
 
@@ -103,7 +102,6 @@ struct TabGridView: View {
                     if $0.count > 0 {
                         self.frames = $0
                     }
-                    isScrolling = false
                     printWithDate(msg: "end scrolling and record cell frames : \($0)")
                 }
                 .onChange(of: deleteCache.cacheId, perform: { cacheId in
@@ -139,9 +137,6 @@ struct TabGridView: View {
                         }
                     }
                 }
-                .onChange(of: isScrolling) { isScrolling in
-                    printWithDate(msg: "isScrolling is \(isScrolling)")
-                }
             }
         }
     }
@@ -155,7 +150,6 @@ struct TabGridView: View {
             printWithDate(msg: "star scroll tp adjust")
 
             let webCache = cacheStore.store[selectedTab.curIndex]
-            isScrolling = true
             withAnimation(.linear(duration: 0.1)) {
                 scrollproxy.scrollTo(webCache.id)
             }

@@ -20,8 +20,7 @@ struct TabsContainerView: View {
     @State var selectedCellFrame: CGRect = .zero
     @State private var isExpanded = false
     @State private var lastProgress: AnimationProgress = .invisible
-    @State var isScrolling: Bool = false
-    @State var tabPageOpacity: CGFloat = 0
+    @State var showTabPage: Bool = false
 
     private var snapshotHeight: CGFloat { geoRect.height - addressBarH }
     private var snapshotMidY: CGFloat { geoRect.minY + snapshotHeight/2 - addressBarH }
@@ -41,15 +40,15 @@ struct TabsContainerView: View {
                 // 层级关系  最前<-- 快照(缩放动画）<-- collecitionview  <--  tabPage ( homepage & webview)
 
                 ZStack {
-                    TabGridView(animation: animation, gridState: gridState, isScrolling: $isScrolling, selectedCellFrame: $selectedCellFrame)
+                    TabGridView(animation: animation, gridState: gridState, selectedCellFrame: $selectedCellFrame)
 
                     if isExpanded, !animation.progress.isAnimating() {
                         Color.bkColor.ignoresSafeArea()
                     }
 
-                    PagingScrollView(tabPageOpacity: $tabPageOpacity)
+                    PagingScrollView(showTabPage: $showTabPage)
                         .environmentObject(animation)
-                        .allowsHitTesting(tabPageOpacity != 0) // This line allows TabGridView to receive the tap event, down through click
+                        .allowsHitTesting(showTabPage) // This line allows TabGridView to receive the tap event, down through click
 
                     if animation.progress.isAnimating() {
                         if isExpanded {
@@ -123,7 +122,7 @@ struct TabsContainerView: View {
                     }
 
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.55) {
-                        tabPageOpacity = isExpanded ? 1 : 0
+                        showTabPage = isExpanded
                         animation.progress = .invisible // change to expanded or shrinked
                         gridState.scale = 1
                     }
