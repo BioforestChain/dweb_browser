@@ -62,11 +62,11 @@ function createAllCSS() {
       }
 
       .container_bottom {
-        bottom: 0px;
+        bottom: 16px;
       }
 
       .container_top {
-        top: 0px;
+        top: 26px;
       }
 
       .before_entry {

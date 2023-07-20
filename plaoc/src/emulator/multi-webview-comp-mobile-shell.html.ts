@@ -14,6 +14,7 @@ const TAG = "multi-webview-comp-mobile-shell";
 export class MultiWebViewCompMobileShell extends LitElement {
   static override styles = createAllCSS();
   @query(".app_content_container") appContentContainer: HTMLDivElement | undefined | null;
+  @query(".shell_container") shellContainer: HTMLDivElement | undefined | null;
 
   /**
    *
@@ -30,8 +31,7 @@ export class MultiWebViewCompMobileShell extends LitElement {
     ].forEach(([key, value]) => {
       multiWebviewCompToast.setAttribute(key as string, value);
     });
-
-    this.appContentContainer?.append(multiWebviewCompToast);
+    this.shellContainer?.append(multiWebviewCompToast);
   }
 
   shareShare(options: $ShareOptions) {
