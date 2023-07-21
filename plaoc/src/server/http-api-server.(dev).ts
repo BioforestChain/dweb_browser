@@ -20,17 +20,12 @@ export class Server_api extends _Server_api {
   readonly jsonlineEnd = simpleEncoder("\n", "utf8");
 
   /**内部请求事件 */
-  protected override async _onInternal(
-    event: FetchEvent
-  ): Promise<$OnFetchReturn> {
+  protected override async _onInternal(event: FetchEvent): Promise<$OnFetchReturn> {
     const sessionId = event.searchParams.get(X_PLAOC_QUERY.SESSION_ID);
     if (!sessionId) {
       throw new Error("session not connect!");
     }
-    return super._onInternal(
-      event,
-      (mmid) => getConncetdIpc(sessionId, mmid) ?? jsProcess.connect(mmid)
-    );
+    return super._onInternal(event, (mmid) => getConncetdIpc(sessionId, mmid) ?? jsProcess.connect(mmid));
   }
 
   protected override async _onApi(event: FetchEvent) {
@@ -63,10 +58,7 @@ export class Server_api extends _Server_api {
       /// 返回读写这个stream的链接，注意，目前双工需要客户端通过 WebSocket 来达成支持
       return { body: streamIpc.stream };
     }
-    return super._onApi(
-      event,
-      (mmid) => getConncetdIpc(sessionId, mmid) ?? jsProcess.connect(mmid)
-    );
+    return super._onApi(event, (mmid) => getConncetdIpc(sessionId, mmid) ?? jsProcess.connect(mmid), false);
   }
 }
 
@@ -80,11 +72,7 @@ export const emulatorDuplexs = new Map<string, $MmidDuplexMap>();
 
 const forceGetDuplex = (sessionId: string, mmid: $MMID) =>
   mapHelper.getOrPut(
-    mapHelper.getOrPut(
-      emulatorDuplexs,
-      sessionId,
-      () => new Map() as $MmidDuplexMap
-    ),
+    mapHelper.getOrPut(emulatorDuplexs, sessionId, () => new Map() as $MmidDuplexMap),
     mmid,
     () => new PromiseOut()
   );

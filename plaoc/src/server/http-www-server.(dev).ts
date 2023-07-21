@@ -1,3 +1,4 @@
+import isMobile from "npm:is-mobile";
 import { X_PLAOC_QUERY } from "./const.ts";
 import { $OnFetchReturn, FetchEvent, IpcHeaders } from "./deps.ts";
 import { emulatorDuplexs } from "./http-api-server.(dev).ts";
@@ -14,25 +15,19 @@ export class Server_www extends _Server_www {
     const result = await super.getStartResult();
     // TODO 未来如果有需求，可以用 flags 传入参数来控制这个模拟器的初始化参数
     /// 默认强制启动《emulator模拟器插件》
-    result.urlInfo.buildExtQuerys.set(X_PLAOC_QUERY.EMULATOR, "*");
+    if (isMobile.isMobile() === false) {
+      result.urlInfo.buildExtQuerys.set(X_PLAOC_QUERY.EMULATOR, "*");
+    }
     return result;
   }
 
-  protected async _onEmulator(
-    request: FetchEvent,
-    _emulatorFlags: string
-  ): Promise<$OnFetchReturn> {
-    const indexUrl = (await super.getStartResult()).urlInfo.buildInternalUrl(
-      (url) => {
-        url.pathname = request.pathname;
-        url.search = request.search;
-      }
-    );
+  protected async _onEmulator(request: FetchEvent, _emulatorFlags: string): Promise<$OnFetchReturn> {
+    const indexUrl = (await super.getStartResult()).urlInfo.buildInternalUrl((url) => {
+      url.pathname = request.pathname;
+      url.search = request.search;
+    });
 
-    if (
-      indexUrl.pathname.endsWith(".html") ||
-      indexUrl.pathname.endsWith("/")
-    ) {
+    if (indexUrl.pathname.endsWith(".html") || indexUrl.pathname.endsWith("/")) {
       /// 判 定SessionId 的唯一性，如果已经被使用，创新一个新的 SessionId 进行跳转
       const sessionId = indexUrl.searchParams.get(X_PLAOC_QUERY.SESSION_ID);
       if (sessionId === null || emulatorDuplexs.has(sessionId)) {
@@ -44,15 +39,11 @@ export class Server_www extends _Server_www {
         updateUrlWithSessionId(indexUrl);
         indexUrl.searchParams.set(
           X_PLAOC_QUERY.API_INTERNAL_URL,
-          updateUrlWithSessionId(
-            new URL(indexUrl.searchParams.get(X_PLAOC_QUERY.API_INTERNAL_URL)!)
-          ).href
+          updateUrlWithSessionId(new URL(indexUrl.searchParams.get(X_PLAOC_QUERY.API_INTERNAL_URL)!)).href
         );
         indexUrl.searchParams.set(
           X_PLAOC_QUERY.API_PUBLIC_URL,
-          updateUrlWithSessionId(
-            new URL(indexUrl.searchParams.get(X_PLAOC_QUERY.API_PUBLIC_URL)!)
-          ).href
+          updateUrlWithSessionId(new URL(indexUrl.searchParams.get(X_PLAOC_QUERY.API_PUBLIC_URL)!)).href
         );
         return {
           status: 301,
@@ -70,9 +61,7 @@ export class Server_www extends _Server_www {
     if (isEnableEmulator === null) {
       const ref = request.headers.get("referer");
       if (ref !== null) {
-        isEnableEmulator = new URL(ref).searchParams.get(
-          X_PLAOC_QUERY.EMULATOR
-        );
+        isEnableEmulator = new URL(ref).searchParams.get(X_PLAOC_QUERY.EMULATOR);
       }
     }
     /// 加载模拟器的外部框架
@@ -92,9 +81,7 @@ export class Server_www extends _Server_www {
       return super._provider(request);
     }
     /// 启用跳转模式
-    const remoteIpcResponse = await fetch(
-      new URL(request.pathname, xPlaocProxy)
-    );
+    const remoteIpcResponse = await fetch(new URL(request.pathname, xPlaocProxy));
     const headers = new IpcHeaders(remoteIpcResponse.headers);
     /// 对 html 做强制代理，似的能加入一些特殊的头部信息，确保能正确访问内部的资源
     if (remoteIpcResponse.headers.get("Content-Type") === "text/html") {
