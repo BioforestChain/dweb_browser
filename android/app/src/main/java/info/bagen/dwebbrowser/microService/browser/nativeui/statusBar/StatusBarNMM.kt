@@ -7,8 +7,13 @@ import info.bagen.dwebbrowser.microService.browser.nativeui.helper.QueryHelper
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.jvm.javaio.toInputStream
 import io.ktor.utils.io.write
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
+import org.dweb_browser.microservice.ipc.ReadableStreamIpc
 import org.dweb_browser.microservice.ipc.helper.IpcResponse
 import org.http4k.core.BodyMode
 import org.http4k.core.Method
@@ -26,6 +31,8 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.InputStream
 import java.io.OutputStream
+import java.io.PipedInputStream
+import java.io.PipedOutputStream
 
 class StatusBarNMM : NativeMicroModule("status-bar.nativeui.browser.dweb") {
 
@@ -52,13 +59,35 @@ class StatusBarNMM : NativeMicroModule("status-bar.nativeui.browser.dweb") {
        * 开始数据订阅
        */
       "/observe" bind Method.GET to defineHandler { request, ipc ->
-        val outputStream = ByteArrayOutputStream()
         val mmid = queryMMid(request)
+        val outputStream = getController(mmid).outputStream
+        val inputStream = getController(mmid).inputStream
         getController(mmid).observer.observe { state ->
-          outputStream.write(state.toByteArray())
+          try {
+            withContext(Dispatchers.IO) {
+              outputStream.write((state+"\n").toByteArray())
+              outputStream.flush()
+            }
+          } catch (e: Exception) {
+            outputStream.close()
+            e.printStackTrace()
+          }
         }
-        val inputStream = ByteArrayInputStream(outputStream.toByteArray())
         return@defineHandler Response(Status.OK).body(inputStream)
+      },
+      /**
+       * 关闭订阅数据流
+       */
+      "/stopObserve" bind Method.GET to defineHandler { _, ipc ->
+        try {
+          withContext(Dispatchers.IO) {
+            getController(ipc.remote.mmid).inputStream.close()
+            getController(ipc.remote.mmid).outputStream.close()
+          }
+          return@defineHandler true
+        } catch (e:Exception) {
+          return@defineHandler  false
+        }
       },
     )
   }

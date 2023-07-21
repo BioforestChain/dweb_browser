@@ -125,9 +125,9 @@ class HttpNMM : NativeMicroModule("http.std.dweb") {
     val target = targetPrx.substring(0,targetPrx.indexOf(":"))
     val response = nativeFetch("file://${mmid}${request.uri.path}?mmid=${target}")
     return WsResponse { ws ->
-      ws.onError { printerrln("websocket",it) }
+      ws.onError { debugHttp("websocket",it) }
       ws.send(WsMessage(response.body.stream))
-      ws.onClose { println("WsResponse is closing") }
+      ws.onClose { debugHttp("websocket","WsResponse is closing") }
     }
   }
 

@@ -15,14 +15,14 @@ open class StateObservable(
 
     val observerIpcMap = mutableMapOf<Ipc, OffListener>()
     suspend fun startObserve(ipc: Ipc) {
-        observe {
-            ipc.postMessage(
-                IpcEvent.fromUtf8(
-                    "observe",
-                    getStateJson()
-                )
-            )
-        }
+//        observe {
+//            ipc.postMessage(
+//                IpcEvent.fromUtf8(
+//                    "observe",
+//                    getStateJson()
+//                )
+//            )
+//        }
     }
 
      fun notifyObserver() {

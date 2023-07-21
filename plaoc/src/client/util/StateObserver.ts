@@ -1,8 +1,9 @@
 import { BasePlugin } from "../components/base/BasePlugin.ts";
+import { $Transform, JsonlinesStream } from "../helper/JsonlinesStream.ts";
 import { bindThis } from "../helper/bindThis.ts";
 import { $Callback, createSignal } from "../helper/createSignal.ts";
-import { $Transform } from "../helper/JsonlinesStream.ts";
 import { streamRead } from "../helper/readableStreamHelper.ts";
+import { PromiseOut } from './../helper/PromiseOut.ts';
 
 /**
  * 提供了一个状态的读取与更新的功能
@@ -17,56 +18,30 @@ export class StateObserver<RAW, STATE> {
       encode: $Transform<STATE, RAW>;
     }
   ) {}
-  // startObserve() {
-  //   return this.plugin.fetchApi(`/startObserve`);
-  // }
-
-  // async *jsonlines(options?: { signal?: AbortSignal }) {
-  //   const jsonlines = await this.plugin
-  //     .buildInternalApiRequest("/observe", {
-  //       search: { mmid: this.plugin.mmid },
-  //       base: await BasePlugin.public_url,
-  //     })
-  //     .fetch()
-  //     .jsonlines(this.coder.decode);
-  //   for await (const state of streamRead(jsonlines, options)) {
-  //     this.currentState = state;
-  //     yield state;
-  //   }
-  // }
 
   async *jsonlines(options?: { signal?: AbortSignal }) {
-    let controller: ReadableStreamDefaultController;
-    const readableStream: ReadableStream = new ReadableStream({
-      start(_controller) {
-        controller = _controller;
-      },
-      pull() {},
-      cancel() {},
-    });
+    const readableStream: PromiseOut<ReadableStream<STATE>> = new PromiseOut();
+ 
     const pub_url = await BasePlugin.public_url;
     const url = new URL(pub_url.replace(/^http:/, "ws:"));
     // 内部的监听
     url.pathname = `/observe`;
     url.searchParams.append("mmid",this.plugin.mmid)
-    // url.searchParams.append("pathname","/internal/observe")
     const ws = new WebSocket(url);
     this._ws = ws;
-    ws.onerror = (err) => {
-      console.error("onerror", err);
-      controller.close();
+    ws.onerror = async () => {
+      (await readableStream.promise).cancel()
     };
     ws.onmessage = async (event) => {
       try {
       const data = event.data;
-      console.log("🥳onmessage",data)
-        if (typeof data === "string") {
-          controller.enqueue(this.coder.decode(JSON.parse(data)));
-        } else if (data instanceof ArrayBuffer) {
-          controller.enqueue(new Uint8Array(data));
-        } else if (data instanceof Blob) {
-          console.log("blob",await data.text())
-            // controller.enqueue(data.arrayBuffer)
+       if (data instanceof Blob) {
+       const stream = data.stream()
+        //先转换为utf8 
+        .pipeThrough(new TextDecoderStream())
+        // 然后交给 jsonlinesStream 来处理
+        .pipeThrough(new JsonlinesStream(this.coder.decode))
+        readableStream.resolve(stream)
         } else {
           throw new Error("should not happend");
         }
@@ -75,11 +50,13 @@ export class StateObserver<RAW, STATE> {
       }
     };
 
-    ws.onclose = () => {
-      controller.close();
+    ws.onclose = async () => {
+      (await readableStream.promise).cancel()
     };
+    const read = await readableStream.promise;
 
-    for await (const state of streamRead(readableStream, options)) {
+    for await (const state of streamRead(read, options)) {
+      console.log("🥰 get state=>",state)
       this.currentState = state;
       yield state;
     }
