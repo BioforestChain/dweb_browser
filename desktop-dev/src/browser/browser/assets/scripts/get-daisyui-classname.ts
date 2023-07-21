@@ -120,6 +120,10 @@ fs.writeFileSync(
 @tailwind utilities;
 @tailwind variants;
 .widget {
+  ::part(ani) {
+    transition: 500ms;
+    transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+  }
   ${cssText}
 }`,
     { parser: "scss" }

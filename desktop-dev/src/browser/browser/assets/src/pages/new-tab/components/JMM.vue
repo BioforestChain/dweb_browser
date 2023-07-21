@@ -67,17 +67,22 @@ function menuOpen() {
     <v-menu :modelValue="show" @update:modelValue="menuOpen" location="bottom" transition="slide-y-transition">
       <template v-slot:activator="{ props }">
         <div class="app-wrap" :class="{ focused: show }" @click="show = false">
-          <div class="app-icon" v-bind="props" @click="clickApp(appMetaData.id)" @rclick="show = true">
+          <div class="app-icon" v-bind="props" @click="clickApp(appMetaData.id)" @contextmenu="show = true">
             <div class="bg backdrop-blur-sm" v-html="squircle_svg"></div>
             <img class="fg" :src="appMetaData.icon" />
           </div>
-          <div class="app-name line-clamp-2 backdrop-blur-sm" v-show="!show">
+          <div class="app-name line-clamp-2 backdrop-blur-sm" :style="{ opacity: show ? 0 : 1 }">
             {{ appMetaData.short_name }}
           </div>
         </div>
-        <Transition name="fade">
-          <div class="overlay" v-show="show" @click="menuOpen"></div>
-        </Transition>
+        <!-- 使用多层遮罩来达成所需的模糊效果 -->
+        <div class="overlay ios-ani" :style="{ opacity: show ? 1 : 0, pointerEvents: 'none' }"></div>
+        <div class="overlay ios-ani" :style="{ opacity: show ? 1 : 0, pointerEvents: 'none' }"></div>
+        <div
+          class="overlay ios-ani"
+          :style="{ opacity: show ? 1 : 0, pointerEvents: show ? 'all' : 'none' }"
+          @click="menuOpen"
+        ></div>
       </template>
 
       <div class="menu" v-show="show">
@@ -116,10 +121,21 @@ function menuOpen() {
   height: 100%;
   top: 0;
   left: 0;
-  backdrop-filter: blur(5px);
   z-index: 1;
   // pointer-events: none;
-  background-color: rgba(0, 0, 0, 0.3);
+  // background-color: rgba(0, 0, 0, 0.3);
+
+  backdrop-filter: blur(20px);
+
+  // .glass-material-overlay {
+  //   backdrop-filter: blur(20px);
+  //   width: 100%;
+  //   height: 100%;
+  // }
+}
+
+.backdrop-blur-sm {
+  --tw-backdrop-blur: contrast(1.5) brightness(1.2) blur(6px);
 }
 
 .app {
@@ -183,8 +199,8 @@ function menuOpen() {
   display: flex;
   flex-direction: row;
   font-size: 0.9em;
-  background-color: rgba(255, 255, 255, 0.805);
-  // backdrop-filter: contrast(2) brightness(2);
+  background-color: rgba(255, 255, 255, 0.62);
+  backdrop-filter: contrast(1.5) brightness(1.5);
   border-radius: 1.5em;
   overflow: hidden;
   margin-top: 0.5em;

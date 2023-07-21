@@ -8,3 +8,25 @@
 // @use 'vuetify/settings' with (
 //   $color-pack: false
 // );
+:root {
+  overflow: auto;
+}
+
+:root,
+.v-application {
+  background: transparent !important;
+}
+
+.z-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+  grid-template-areas: "z-view";
+}
+.z-view {
+  grid-area: z-view;
+}
+.ios-ani {
+  transition: 500ms;
+  transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+}

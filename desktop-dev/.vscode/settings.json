@@ -2,7 +2,7 @@
   "deno.enable": true,
   "files.exclude": {
     "build/": false,
-    "electron/": true,
+    "electxsron/": true,
     "node_modules/": true,
     "**/*.bak": true,
     "**/.git": true,

@@ -1,6 +1,7 @@
 import { $BootstrapContext } from "../../core/bootstrapContext.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import { once } from "../../helper/$once.ts";
+import { isElectronDev } from "../../helper/electronIsDev.ts";
 import { createComlinkNativeWindow, createNativeWindow } from "../../helper/openNativeWindow.ts";
 import { fetchMatch } from "../../helper/patternHelper.ts";
 import { buildUrl } from "../../helper/urlHelper.ts";
@@ -44,7 +45,7 @@ export class DesktopNMM extends NativeMicroModule {
     {
       (await taskbarServer.listen()).onFetch((event) => {
         const { pathname, search } = event.url;
-        const url = `file:///sys/browser/desktop/taskbar${pathname}?mode=stream`;
+        const url = `file:///sys/browser/desktop/${pathname}?mode=stream`;
         return this.nativeFetch(url);
       });
     }
@@ -74,10 +75,12 @@ export class DesktopNMM extends NativeMicroModule {
 
   private async _createTaskbarView(taskbarServer: HttpDwebServer, desktopServer: HttpDwebServer) {
     const taskbarWin = await createComlinkNativeWindow(
-      // taskbarServer.startResult.urlInfo.buildInternalUrl((url) => {
-      //   url.pathname = "/index.html";
-      // }).href,
-      `http://localhost:3700/taskbar/index.html`,
+      await tryDevUrl(
+        taskbarServer.startResult.urlInfo.buildInternalUrl((url) => {
+          url.pathname = "/taskbar/index.html";
+        }).href,
+        `http://localhost:3700/taskbar/index.html`
+      ),
       window_options,
       async (win) => {
         return new TaskbarMainApis(this, win, taskbarServer, desktopServer);
@@ -174,9 +177,11 @@ export class TaskbarMainApis {
   }
 
   private _createDesktopView = once(async (fromBounds: Electron.Rectangle) => {
-    const desktopUrl = this.desktopServer.startResult.urlInfo.buildInternalUrl((url) => {
+    const desktopProdUrl = this.desktopServer.startResult.urlInfo.buildInternalUrl((url) => {
       url.pathname = "/index.html";
     }).href;
+    const desktopUrl = await tryDevUrl(desktopProdUrl, `http://localhost:3600/index.html`);
+
     const desktopWin = await createNativeWindow(this.mm.mmid, {
       ...window_options,
       alwaysOnTop: false,
@@ -184,10 +189,11 @@ export class TaskbarMainApis {
       /// 宽高
       ...fromBounds,
     });
+
     desktopWin.loadURL(
-      buildUrl(`http://localhost:3600/index.html` || desktopUrl, {
+      buildUrl(desktopUrl, {
         search: {
-          "api-base": desktopUrl,
+          "api-base": desktopProdUrl,
           mmid: "desktop.browser.dweb",
         },
       }).href
@@ -224,3 +230,15 @@ export class TaskbarMainApis {
     });
   });
 }
+
+const tryDevUrl = async (originUrl: string, devUrl: string) => {
+  if (isElectronDev) {
+    try {
+      const res = await fetch(devUrl);
+      if (res.status == 200) {
+        originUrl = devUrl;
+      }
+    } catch {}
+  }
+  return originUrl;
+};
