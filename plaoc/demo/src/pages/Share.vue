@@ -2,7 +2,7 @@
 import { onMounted, ref } from "vue";
 import FieldLabel from "../components/FieldLabel.vue";
 import LogPanel, { toConsole, defineLogAction } from "../components/LogPanel.vue";
-import type { HTMLDwebShareElement } from "../plugin";
+import { sharePlugin, type HTMLDwebShareElement, ShareResult, ShareOptions } from "../plugin";
 import { reactive } from "vue";
 
 const title = "Share";
@@ -13,33 +13,34 @@ const $sharePlugin = ref<HTMLDwebShareElement>();
 let console: Console;
 let share: HTMLDwebShareElement;
 
-
 const shareData = reactive({
   title: "分享标题🍉",
   text: "分享文字分享文字",
   url: "https://gpt.waterbang.top",
-  files: null as any
-})
+  files: null as FileList | null,
+});
 
 onMounted(() => {
   console = toConsole($logPanel);
   share = $sharePlugin.value!;
 });
 
-const shareHandle = defineLogAction(async () => {
-  const result = await share.share(shareData)
-  console.info("shareHandle=>", result)
-}, { name: "shareHandle", args: [], logPanel: $logPanel })
+const shareHandle = defineLogAction(
+  async () => {
+    const result = await share.share(shareData as unknown as ShareOptions);
+    console.info("shareHandle=>", result);
+  },
+  { name: "shareHandle", args: [], logPanel: $logPanel }
+);
 
 const fileChange = ($event: Event) => {
   const target = $event.target as HTMLInputElement;
   if (target && target.files?.[0]) {
-    console.log("event", $event)
-    console.log("target.files=>", target.files[0])
-    shareData.files = target.files
+    console.log("event", $event);
+    console.log("target.files=>", target.files[0]);
+    shareData.files = target.files;
   }
-}
-
+};
 </script>
 <template>
   <dweb-share ref="$sharePlugin"></dweb-share>

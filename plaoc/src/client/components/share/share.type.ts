@@ -25,7 +25,7 @@ export interface ShareOptions {
    * 仅支持 iOS 和 Android。
    * @since 4.1.0
    */
-  files?: File[];
+  files?: FileList;
 }
 
 export interface ShareResult {

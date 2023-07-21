@@ -31,8 +31,8 @@ export class SharePlugin extends BasePlugin {
   async share(options: ShareOptions): Promise<ShareResult> {
     const data = new FormData();
     if (options.files && options.files.length !== 0) {
-      for (const key in options.files) {
-        const file = options.files[key];
+      for (let i = 0; i < options.files.length; i++) {
+        const file = options.files.item(i)!;
         data.append("files", file);
       }
     }
