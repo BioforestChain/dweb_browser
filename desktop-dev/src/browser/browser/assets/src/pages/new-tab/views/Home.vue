@@ -2,13 +2,11 @@
 import { deleteApp, getAppInfo, getWidgetInfo } from "@/api/new-tab";
 import wallpaper_url from "@/assets/wallpaper.webp";
 import type { $AppMetaData, $TileSize, $WidgetMetaData } from "@/types/app.type";
-import { onMounted, reactive, Ref, ref } from "vue";
+import { onMounted, reactive, Ref, ref, StyleValue } from "vue";
 import JMMVue from "../components/JMM.vue";
 import TileItem from "../components/TileItem.vue";
 import TilePanel from "../components/TilePanel.vue";
 import WidgetVue from "../components/Widget.vue";
-
-const css_url_wallpaper = `url(${wallpaper_url})`;
 
 type $LayoutInfo = (
   | {
@@ -96,11 +94,14 @@ async function uninstall() {
 }
 
 const isFullscreen = window.screen.width === window.innerWidth;
-const bgOpacity = isFullscreen ? 1: 0.62;
+const bgStyle = {
+  // opacity: isFullscreen ? 1 : 0.62,
+  backgroundImage: `url(${wallpaper_url})`,
+} satisfies StyleValue;
 </script>
 <template>
   <div class="desktop">
-    <div class="logo">
+    <div class="logo" :style="bgStyle">
       <img src="@/assets/logo.svg" alt="Dweb Browser" class="icon" />
       <div class="gradient_text">Dweb Browser</div>
     </div>
@@ -144,8 +145,6 @@ const bgOpacity = isFullscreen ? 1: 0.62;
     z-index: 0;
     display: grid;
     place-items: center;
-    opacity: v-bind("bgOpacity");
-    background-image: v-bind("css_url_wallpaper");
     background-size: cover;
     background-position: center;
     .icon {

@@ -24,7 +24,7 @@ export const searchWidget = {
       width: min-content !important;
       flex-basis: min(50%, 20em);
     }
-    input:focus {
+    form:focus-within input {
       flex-basis: 100%;
     }
     button {
