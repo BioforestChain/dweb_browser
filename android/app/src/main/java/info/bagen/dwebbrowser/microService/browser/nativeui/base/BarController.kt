@@ -20,13 +20,6 @@ abstract class BarController(
   nativeUiController: NativeUiController,
 ) : InsetsController(activity, nativeUiController) {
 
-    val inputStream = PipedInputStream()
-    val outputStream = PipedOutputStream()
-
-    init {
-        outputStream.connect(inputStream)
-    }
-
     /**
      * 背景色
      */

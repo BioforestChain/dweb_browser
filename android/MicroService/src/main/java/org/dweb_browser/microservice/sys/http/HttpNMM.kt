@@ -2,6 +2,8 @@ package org.dweb_browser.microservice.sys.http
 
 import com.google.gson.reflect.TypeToken
 import io.ktor.http.Url
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.yield
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.ReadableStreamIpc
 import org.dweb_browser.helper.decodeURIComponent
@@ -11,12 +13,16 @@ import org.dweb_browser.microservice.sys.http.net.Http1Server
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printdebugln
 import org.dweb_browser.helper.printerrln
+import org.dweb_browser.helper.readByteArray
+import org.dweb_browser.helper.readInt
 import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.gson
+import org.dweb_browser.microservice.help.stream
 import org.dweb_browser.microservice.sys.dns.debugFetch
 import org.dweb_browser.microservice.sys.dns.nativeFetch
+import org.http4k.core.MemoryBody
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Response
@@ -35,6 +41,9 @@ import org.http4k.routing.websockets
 import org.http4k.websocket.WsConsumer
 import org.http4k.websocket.WsMessage
 import org.http4k.websocket.WsResponse
+import org.http4k.websocket.WsStatus
+import java.io.ByteArrayInputStream
+import java.io.InputStream
 import java.net.URL
 import java.util.Random
 
@@ -119,15 +128,27 @@ class HttpNMM : NativeMicroModule("http.std.dweb") {
 
   /**webSocket 网关路由寻找*/
   private suspend fun wsHandler(request: Request): WsResponse {
-    val host = processHost(request)
-    val mmid = request.query("mmid")
-    val targetPrx = host.substring(host.indexOf(".")+1)
-    val target = targetPrx.substring(0,targetPrx.indexOf(":"))
-    val response = nativeFetch("file://${mmid}${request.uri.path}?mmid=${target}")
-    return WsResponse { ws ->
-      ws.onError { debugHttp("websocket",it) }
-      ws.send(WsMessage(response.body.stream))
-      ws.onClose { debugHttp("websocket","WsResponse is closing") }
+    val response = httpHandler(request)
+    return if (response.status.code == Status.OK.code) {
+      WsResponse { ws ->
+        val stream = response.stream()
+        while (true) {
+          when (val readInt = stream.available()) {
+            -1 -> {
+              ws.close()
+              break
+            }
+            else -> {
+              val chunk = stream.readByteArray(readInt)
+              ws.send(WsMessage(ByteArrayInputStream(chunk)))
+            }
+          }
+        }
+      }
+    } else {
+      WsResponse { ws ->
+        ws.close(WsStatus(response.status.code, response.status.description))
+      }
     }
   }
 

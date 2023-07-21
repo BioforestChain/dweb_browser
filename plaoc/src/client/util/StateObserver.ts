@@ -2,8 +2,7 @@ import { BasePlugin } from "../components/base/BasePlugin.ts";
 import { $Transform, JsonlinesStream } from "../helper/JsonlinesStream.ts";
 import { bindThis } from "../helper/bindThis.ts";
 import { $Callback, createSignal } from "../helper/createSignal.ts";
-import { streamRead } from "../helper/readableStreamHelper.ts";
-import { PromiseOut } from './../helper/PromiseOut.ts';
+import { ReadableStreamOut, streamRead } from "../helper/readableStreamHelper.ts";
 
 /**
  * 提供了一个状态的读取与更新的功能
@@ -20,43 +19,30 @@ export class StateObserver<RAW, STATE> {
   ) {}
 
   async *jsonlines(options?: { signal?: AbortSignal }) {
-    const readableStream: PromiseOut<ReadableStream<STATE>> = new PromiseOut();
- 
     const pub_url = await BasePlugin.public_url;
     const url = new URL(pub_url.replace(/^http:/, "ws:"));
     // 内部的监听
-    url.pathname = `/observe`;
-    url.searchParams.append("mmid",this.plugin.mmid)
+    url.pathname = `/${this.plugin.mmid}/observe`;
     const ws = new WebSocket(url);
     this._ws = ws;
-    ws.onerror = async () => {
-      (await readableStream.promise).cancel()
-    };
+    ws.binaryType = "arraybuffer";
+    const streamout = new ReadableStreamOut();
+
     ws.onmessage = async (event) => {
-      try {
       const data = event.data;
-       if (data instanceof Blob) {
-       const stream = data.stream()
-        //先转换为utf8 
-        .pipeThrough(new TextDecoderStream())
-        // 然后交给 jsonlinesStream 来处理
-        .pipeThrough(new JsonlinesStream(this.coder.decode))
-        readableStream.resolve(stream)
-        } else {
-          throw new Error("should not happend");
-        }
-      } catch (err) {
-        console.error(err);
-      }
+      streamout.controller.enqueue(data);
     };
-
     ws.onclose = async () => {
-      (await readableStream.promise).cancel()
+      streamout.controller.close();
     };
-    const read = await readableStream.promise;
+    ws.onerror = async (event) => {
+      streamout.controller.error(event);
+    };
 
-    for await (const state of streamRead(read, options)) {
-      console.log("🥰 get state=>",state)
+    for await (const state of streamRead(
+      streamout.stream.pipeThrough(new TextDecoderStream()).pipeThrough(new JsonlinesStream(this.coder.decode)),
+      options
+    )) {
       this.currentState = state;
       yield state;
     }

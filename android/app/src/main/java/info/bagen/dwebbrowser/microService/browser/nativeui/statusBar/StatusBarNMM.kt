@@ -15,8 +15,10 @@ import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.ipc.ReadableStreamIpc
 import org.dweb_browser.microservice.ipc.helper.IpcResponse
+import org.dweb_browser.microservice.ipc.helper.ReadableStream
 import org.http4k.core.BodyMode
 import org.http4k.core.Method
+import org.http4k.core.Request
 import org.http4k.core.Response
 import org.http4k.core.Status
 import org.http4k.lens.Query
@@ -58,36 +60,15 @@ class StatusBarNMM : NativeMicroModule("status-bar.nativeui.browser.dweb") {
       /**
        * 开始数据订阅
        */
-      "/observe" bind Method.GET to defineHandler { request, ipc ->
-        val mmid = queryMMid(request)
-        val outputStream = getController(mmid).outputStream
-        val inputStream = getController(mmid).inputStream
-        getController(mmid).observer.observe { state ->
-          try {
-            withContext(Dispatchers.IO) {
-              outputStream.write((state+"\n").toByteArray())
-              outputStream.flush()
-            }
-          } catch (e: Exception) {
-            outputStream.close()
-            e.printStackTrace()
-          }
-        }
+      "/observe" bind Method.GET to defineHandler { _, ipc ->
+        val inputStream = getController(ipc.remote.mmid).observer.startObserve(ipc)
         return@defineHandler Response(Status.OK).body(inputStream)
       },
       /**
        * 关闭订阅数据流
        */
       "/stopObserve" bind Method.GET to defineHandler { _, ipc ->
-        try {
-          withContext(Dispatchers.IO) {
-            getController(ipc.remote.mmid).inputStream.close()
-            getController(ipc.remote.mmid).outputStream.close()
-          }
-          return@defineHandler true
-        } catch (e:Exception) {
-          return@defineHandler  false
-        }
+          return@defineHandler getController(ipc.remote.mmid).observer.stopObserve(ipc)
       },
     )
   }

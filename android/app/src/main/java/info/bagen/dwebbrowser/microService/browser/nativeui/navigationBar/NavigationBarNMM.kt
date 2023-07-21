@@ -7,6 +7,8 @@ import info.bagen.dwebbrowser.microService.browser.nativeui.helper.fromMultiWebV
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.http4k.core.Method
+import org.http4k.core.Response
+import org.http4k.core.Status
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 
@@ -38,11 +40,12 @@ class NavigationBarNMM : NativeMicroModule("navigation-bar.nativeui.browser.dweb
             /**
              * 开始数据订阅
              */
-            "/startObserve" bind Method.GET to defineHandler { _, ipc ->
-                return@defineHandler getController(ipc.remote.mmid).observer.startObserve(ipc)
+            "/observe" bind Method.GET to defineHandler { _, ipc ->
+                val inputStream = getController(ipc.remote.mmid).observer.startObserve(ipc)
+                return@defineHandler Response(Status.OK).body(inputStream)
             },
             /**
-             * 开始数据订阅
+             * 关闭订阅数据流
              */
             "/stopObserve" bind Method.GET to defineHandler { _, ipc ->
                 return@defineHandler getController(ipc.remote.mmid).observer.stopObserve(ipc)
