@@ -5,7 +5,6 @@ import JSZip from "npm:jszip";
 import { $AppMetaData, $MMID } from "./../deps.ts";
 import { WalkFiles } from "./WalkDir.ts";
 import { SERVE_MODE, defaultMetadata } from "./const.ts";
-import { importResolve } from "./shims.ts";
 import { GenerateTryFilepaths } from "./util.ts";
 import { $ZipEntry, walkDirToZipEntries, zipEntriesToZip } from "./zip.ts";
 
@@ -169,7 +168,7 @@ export class BundleZipGenerator {
       /// 本地文件
       else {
         const addpath_full = fileURLToPath(
-          importResolve(`../../dist/${addpath}`)
+          import.meta.resolve(`../../dist/${addpath}`)
         );
         if (fs.statSync(addpath_full).isFile()) {
           data = fs.readFileSync(addpath_full);
