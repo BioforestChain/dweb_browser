@@ -3,10 +3,7 @@ import { IPC_MESSAGE_TYPE } from "../../core/ipc/const.ts";
 import { once } from "../../helper/$once.ts";
 import { u8aConcat } from "../../helper/binaryHelper.ts";
 import { simpleDecoder, simpleEncoder } from "../../helper/encoding.ts";
-import {
-  ReadableStreamOut,
-  binaryStreamRead,
-} from "../../helper/readableStreamHelper.ts";
+import { ReadableStreamOut, binaryStreamRead } from "../../helper/readableStreamHelper.ts";
 import { $PromiseMaybe } from "../helper/types.ts";
 import type { $IpcMessage, IPC_ROLE, IpcMessage } from "../ipc/const.ts";
 import { Ipc } from "../ipc/ipc.ts";
@@ -32,9 +29,7 @@ export class ReadableStreamIpc extends Ipc {
   ) {
     super();
     /** JS 环境里支持 cbor 协议 */
-    this._support_cbor =
-      self_support_protocols.cbor &&
-      remote.ipc_support_protocols.cbor;
+    this._support_cbor = self_support_protocols.cbor && remote.ipc_support_protocols.cbor;
   }
   #rso = new ReadableStreamOut<Uint8Array>();
   /** 这是输出流，给外部读取用的 */
@@ -62,10 +57,7 @@ export class ReadableStreamIpc extends Ipc {
    * 输入流要额外绑定
    * 注意，非必要不要 await 这个promise
    */
-  async bindIncomeStream(
-    stream: $PromiseMaybe<ReadableStream<Uint8Array>>,
-    options: { signal?: AbortSignal } = {}
-  ) {
+  async bindIncomeStream(stream: $PromiseMaybe<ReadableStream<Uint8Array>>, options: { signal?: AbortSignal } = {}) {
     if (this._incomne_stream !== undefined) {
       throw new Error("in come stream alreay binded.");
     }
@@ -132,9 +124,7 @@ export class ReadableStreamIpc extends Ipc {
       message_raw = message;
     }
 
-    const message_data = this.support_cbor
-      ? encode(message_raw)
-      : simpleEncoder(JSON.stringify(message_raw), "utf8");
+    const message_data = this.support_cbor ? encode(message_raw) : simpleEncoder(JSON.stringify(message_raw), "utf8");
     this._len[0] = message_data.length;
     const chunk = u8aConcat([this._len_u8a, message_data]);
     this.controller.enqueue(chunk);

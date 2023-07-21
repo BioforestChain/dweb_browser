@@ -6,7 +6,7 @@ import { $IpcMessage, IPC_ROLE, IpcMessage } from "../ipc/const.ts";
 import { Ipc } from "../ipc/ipc.ts";
 import type { $IpcMicroModuleInfo, $IpcSupportProtocols } from "../types.ts";
 import { $messagePackToIpcMessage } from "./$messagePackToIpcMessage.ts";
-import { $jsonToIpcMessage, $messageToIpcMessage } from "./$messageToIpcMessage.ts";
+import { $jsonToIpcMessage, $messageToIpcMessage, $uint8ArrayToIpcMessage } from "./$messageToIpcMessage.ts";
 
 export class MessagePortIpc extends Ipc {
   constructor(
@@ -29,6 +29,8 @@ export class MessagePortIpc extends Ipc {
     port.addEventListener("message", (event) => {
       const message = this.support_raw
         ? $messageToIpcMessage(event.data, this)
+        : event.data instanceof Uint8Array
+        ? $uint8ArrayToIpcMessage(event.data, this)
         : this.support_cbor
         ? $messagePackToIpcMessage(event.data, this)
         : $jsonToIpcMessage(event.data, this);

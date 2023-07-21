@@ -145,7 +145,8 @@ public class HttpNMM : NativeMicroModule
                     }
                     if (webSocketContext.WebSocket.State == WebSocketState.Open)
                     {
-                        await webSocketContext.WebSocket.SendAsync(new ArraySegment<byte>(), WebSocketMessageType.Binary, true, CancellationToken.None);
+                        await webSocketContext.WebSocket.SendAsync(ArraySegment<byte>.Empty, WebSocketMessageType.Binary, true, CancellationToken.None);
+                        await webSocketContext.WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "服务端关闭流", CancellationToken.None);
                     }
 
                     break;
@@ -154,6 +155,7 @@ public class HttpNMM : NativeMicroModule
                     if (data.Length > 0 && webSocketContext.WebSocket.State == WebSocketState.Open)
                     {
                         await webSocketContext.WebSocket.SendAsync(data, WebSocketMessageType.Binary, true, CancellationToken.None);
+                        await webSocketContext.WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "服务端关闭流", CancellationToken.None);
                     }
                     break;
             };

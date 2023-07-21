@@ -19,10 +19,14 @@ public partial class DWebView : WKWebView
             port_id = current_port_id;
             ALL_PORT.set(port_id, port);
             port.addEventListener('message', (event) => {
+                let data = event.data;
+                if (typeof data !== 'string') {
+                    data = Array.from(data);
+                }
                 webkit.messageHandlers.webMessagePort.postMessage({
                     type: 'message',
                     id: current_port_id,
-                    data: event.data,
+                    data: data,
                     ports: event.ports.map(getPortId),
                 });
             });
@@ -45,7 +49,16 @@ public partial class DWebView : WKWebView
     function nativePortPostMessage(port_id, data, ports_id) {
         const origin_port = forceGetPort(port_id);
         const transfer_ports = ports_id.map(forceGetPort);
-        origin_port.postMessage(data, transfer_ports);
+        if (typeof data !== "string") {
+            const u8a = new Uint8Array(data);
+            transfer_ports.push(u8a.buffer);
+            origin_port.postMessage(u8a, transfer_ports);
+        } else if(typeof data === "object") {
+            origin_port.postMessage(JSON.stringify(data), transfer_ports);    
+        }
+        else {
+            origin_port.postMessage(data, transfer_ports);
+        }
     }
     function nativeStart(port_id) {
         const origin_port = forceGetPort(port_id);
@@ -116,7 +129,8 @@ public partial class DWebView : WKWebView
                 new NSString("ports")
             }, new NSObject[] {
                 message.Data,
-                NSArray.FromNSObjects(message.Ports.Select(port => new NSNumber(port.portId)).ToArray())
+                //NSArray.FromNSObjects(message.Ports.Select(port => new NSNumber(port.portId)).ToArray())
+                NSArray.FromNSObjects(Array.ConvertAll(message.Ports, port => new NSNumber(port.portId)))
             });
 
         await this.InvokeOnMainThreadAsync(() => base.CallAsyncJavaScriptAsync("nativeWindowPostMessage(data,ports)", arguments, null, webMessagePortContentWorld));

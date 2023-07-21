@@ -29,34 +29,67 @@ public class MessagePortIpc : Ipc
         {
             switch (message.Data)
             {
-                case NSString data:
-                    var jsonData = (string)data;
-                    var imsg = MessageToIpcMessage.JsonToIpcMessage(jsonData, ipc);
-                    switch (imsg)
+                case NSArray data:
                     {
-                        case "close":
-                            await Close();
-                            break;
-                        case "ping":
-                            await Port.PostMessage("pong");
-                            break;
-                        case "pong":
-                            Console.Log("OnWebMessage", "PONG/{0}", ipc);
-                            break;
-                        case IpcMessage ipcMessage:
-                            Console.Log("OnWebMessage", "ON-MESSAGE/{0} {1}", ipc, jsonData);
-                            await _OnMessageEmit(ipcMessage, ipc);
-                            break;
-                        default:
-                            Console.Log("OnWebMessage", "Default {0}", imsg);
-                            break;
+                        byte[] bytes = new byte[data.Count];
+
+                        for (uint i = 0; i < data.Count; i++)
+                        {
+                            bytes[i] = (byte)data.GetItem<NSNumber>(i);
+                        }
+                        
+                        var imsg = MessageToIpcMessage.JsonToIpcMessage(CborHelper.Decode(bytes), ipc);
+                        switch (imsg)
+                        {
+                            case "close":
+                                await Close();
+                                break;
+                            case "ping":
+                                await Port.PostMessage("pong");
+                                break;
+                            case "pong":
+                                Console.Log("OnWebMessage", "PONG/{0}", ipc);
+                                break;
+                            case IpcMessage ipcMessage:
+                                Console.Log("OnWebMessage", "ON-MESSAGE/{0} {1}", ipc, ipcMessage.ToJson());
+                                await _OnMessageEmit(ipcMessage, ipc);
+                                break;
+                            default:
+                                Console.Log("OnWebMessage", "Default {0}", imsg);
+                                break;
+                        }
+                    }
+                    break;
+                case NSString data:
+                    {
+                        var jsonData = (string)data;
+                        var imsg = MessageToIpcMessage.JsonToIpcMessage(jsonData, ipc);
+                        switch (imsg)
+                        {
+                            case "close":
+                                await Close();
+                                break;
+                            case "ping":
+                                await Port.PostMessage("pong");
+                                break;
+                            case "pong":
+                                Console.Log("OnWebMessage", "PONG/{0}", ipc);
+                                break;
+                            case IpcMessage ipcMessage:
+                                Console.Log("OnWebMessage", "ON-MESSAGE/{0} {1}", ipc, jsonData);
+                                await _OnMessageEmit(ipcMessage, ipc);
+                                break;
+                            default:
+                                Console.Log("OnWebMessage", "Default {0}", imsg);
+                                break;
+                        }
                     }
                     break;
                 case NSNumber data:
                     Console.Log("OnWebMessage", "OnWebMessage is number: {0}", data);
                     break;
                 default:
-                    throw new Exception(string.Format("unknown message: {0}", message));
+                    throw new Exception(string.Format("unknown message: {0}", message.Data));
             }
         };
 

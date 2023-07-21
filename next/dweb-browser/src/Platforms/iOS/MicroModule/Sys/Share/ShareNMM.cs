@@ -1,6 +1,9 @@
 ﻿using DwebBrowser.MicroService.Browser.Mwebview;
 using Foundation;
 using UIKit;
+using DwebBrowser.MicroService.Http;
+using System.Net;
+using System.Text.Json;
 
 #nullable enable
 
@@ -17,26 +20,32 @@ public class ShareNMM : NativeMicroModule
         /// 系统分享
         HttpRouter.AddRoute(IpcMethod.Post, "/share", async (request, ipc) =>
         {
+
             var title = request.QueryString("title");
             var text = request.QueryString("text");
             var url = request.QueryString("url");
             var formData = await request.ReadFromDataAsync();
 
-            var result = await ShowSharePanel(
-                ipc!,
-                new ShareOptions
-                {
-                    Title = title,
-                    Text = text,
-                    Url = url,
-                    Files = formData.Files.Select(file =>
-                    {
-                        /// TODO 我们需要将文件暂时存储起来吧？
-                        return file.FileName;
-                    }).ToArray()
-                });
+            var stream = new ReadableStream(onStart:async (controller)=>{
+                var result = await ShowSharePanel(
+               ipc!,
+               new ShareOptions
 
-            return new ShareResult(result is "OK", result);
+               {
+                   Title = title,
+                   Text = text,
+                   Url = url,
+                   Files = formData.Files.Select(file =>
+                   {
+                       /// TODO 我们需要将文件暂时存储起来吧？
+                       return file.FileName;
+                   }).ToArray()
+               });
+                await controller.EnqueueAsync(JsonSerializer.Serialize(new ShareResult(result is "OK", result)).ToUtf8ByteArray());
+                controller.Close();
+            });
+           
+            return stream.Stream;
         });
     }
 

@@ -1,5 +1,4 @@
-﻿using PeterO.Cbor;
-namespace DwebBrowser.MicroService;
+﻿namespace DwebBrowser.MicroService;
 
 public class ReadableStreamIpc : Ipc
 {
@@ -32,7 +31,7 @@ public class ReadableStreamIpc : Ipc
     {
         var message = SupportCbor switch
         {
-            true => CBORObject.FromJSONBytes(data.ToJson().ToUtf8ByteArray()).EncodeToBytes(),
+            true => CborHelper.Encode(data.ToJson().ToUtf8ByteArray()),
             false => data switch
             {
                 IpcRequest ipcRequest => ipcRequest.LazyIpcReqMessage.ToJson().ToUtf8ByteArray(),
@@ -42,7 +41,7 @@ public class ReadableStreamIpc : Ipc
             },
         };
 
-        Console.Log("PostMessage", "post/{0} {1:H}", ReadableStream.Stream, data);
+        Console.Log("PostMessage", "post/{0} {1:H}({2}bytes)", ReadableStream.Stream, data, message.Length);
         return EnqueueAsync(message.Length.ToByteArray().Combine(message));
     }
 
@@ -88,14 +87,6 @@ public class ReadableStreamIpc : Ipc
             ReadableStream.Stream.output_sid = "<-" + rstream.id;
         }
 
-        if (SupportCbor)
-        {
-            //var cbor = CBORObject.ReadJSON(stream);
-            //cbor.EncodeToBytes();
-
-            throw new Exception("还未实现 cbor 的编解码能力");
-        }
-
         Console.Log("RR", "START/{0}", stream);
         options?.CancellationToken.Register(stream.Close);
 
@@ -120,7 +111,7 @@ public class ReadableStreamIpc : Ipc
                 var buffer = await stream.ReadBytesAsync(size);
 
                 // 读取指定数量的字节并从中生成字节数据包。 如果通道已关闭且没有足够的可用字节，则失败
-                var message = MessageToIpcMessage.JsonToIpcMessage(buffer, this);
+                var message = MessageToIpcMessage.JsonToIpcMessage(SupportCbor ? CborHelper.Decode(buffer) : buffer, this);
                 Console.Log("BindIncomeStream", "message/{0} {1}({2}bytes)", stream, message, size);
                 switch (message)
                 {

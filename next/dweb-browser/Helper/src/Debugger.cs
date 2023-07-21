@@ -114,3 +114,31 @@ public partial class Debugger
     private static partial Regex MyRegex();
 }
 
+/// <summary>
+/// 用于计时
+/// </summary>
+public static class ScheduledTimer
+{
+    static readonly Debugger Console = new("ScheduledTimer");
+    static Stopwatch? Stopwatch;
+
+    public static void Start()
+    {
+        Stopwatch = Stopwatch.StartNew();
+        Stopwatch.Start();
+        Console.Error("Start", "ScheduledTimer start!!!");
+    }
+
+    public static void Log()
+    {
+        if (Stopwatch is null) return;
+        Console.Error("Log", "{0}", Stopwatch.ElapsedMilliseconds);
+    }
+
+    public static void Stop()
+    {
+        if (Stopwatch is null) return;
+        Stopwatch.Stop();
+        Console.Error("Stop", "totalTime: {0}", Stopwatch.ElapsedMilliseconds);
+    }
+}

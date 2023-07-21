@@ -24,9 +24,6 @@
     <ProjectReference Include="..\..\Helper\src\DwebBrowser.Helper.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="PeterO.Cbor" Version="4.5.2" />
-  </ItemGroup>
-  <ItemGroup>
     <Folder Include="Http\" />
   </ItemGroup>
 </Project>

@@ -41,7 +41,9 @@ public class MessagePort
     }
 
     public Task Start() => Port.Start().NoThrow();
-    public Task PostMessage(string data) => Port.PostMessage(WebMessage.From(data)).NoThrow();
+    public Task PostMessage(string data) => Port.PostMessage(data).NoThrow();
+    public Task PostMessage(byte[] data) => Port.PostMessage(data).NoThrow();
+    //public Task PostMessage(byte[] data) => Port.PostMessage(WebMessage.From(data)).NoThrow();
 
     private bool _isClosed = false;
 

@@ -54,7 +54,7 @@ public abstract partial class MicroModule : Ipc.IMicroModuleInfo
         remove { lock (AfterShutdownSignal) { AfterShutdownSignal.Remove(value); } }
     }
 
-    protected virtual async Task _beforeShutdownAsync()
+    protected async Task _beforeShutdownAsync()
     {
         if (_runningStateLock.State == MMState.SHUTDOWN)
         {

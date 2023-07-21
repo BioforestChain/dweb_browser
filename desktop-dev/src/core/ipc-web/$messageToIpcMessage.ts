@@ -79,3 +79,8 @@ export const $jsonToIpcMessage = (data: string, ipc: Ipc) => {
 
   return $objectToIpcMessage(JSON.parse(data), ipc);
 };
+
+const textDecoder = new TextDecoder();
+export const $uint8ArrayToIpcMessage = (data: Uint8Array, ipc: Ipc) => {
+  return $jsonToIpcMessage(textDecoder.decode(data), ipc);
+};

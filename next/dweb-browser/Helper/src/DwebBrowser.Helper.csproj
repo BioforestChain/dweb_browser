@@ -6,4 +6,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="System.Formats.Cbor" Version="7.0.0" />
+  </ItemGroup>
 </Project>
