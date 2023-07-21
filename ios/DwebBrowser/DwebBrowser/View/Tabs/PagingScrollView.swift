@@ -47,8 +47,8 @@ struct PagingScrollView: View {
                                         .gesture(disabledDragGesture)
                                 }
                             }
-
-                            AddressBar(index: index, webWrapper: WebWrapperMgr.shared.store[index])
+                            
+                            AddressBar(index: index, webWrapper: WebWrapperMgr.shared.store[index], webCache: WebCacheMgr.cache(at: index))
                                 .frame(height: addressBarH)
                                 .offset(y: updateKeyboardOffset())
                                 .animation(.default, value: updateKeyboardOffsetAnimation())

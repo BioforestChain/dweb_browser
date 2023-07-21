@@ -10,17 +10,23 @@ import SwiftUI
 
 struct AddressBar: View {
     var index: Int
-    @FocusState var isAdressBarFocused: Bool
+    
     @EnvironmentObject var addressBar: AddressBarState
     @EnvironmentObject var selectedTab: SelectedTab
     @EnvironmentObject var toolbarState: ToolBarState
     @EnvironmentObject var openingLink: OpeningLink
-    
     @ObservedObject var webWrapper: WebWrapper
+    @ObservedObject var webCache: WebCache
+//    @Binding var visitingUrl: URL
+
+    @FocusState var isAdressBarFocused: Bool
+    @State private var inputText: String = ""
+    @State private var alignment: TextAlignment = .center
     @State private var addressbarHeight: CGFloat = addressBarH
 
-    var isVisible: Bool { return WebWrapperMgr.shared.store.firstIndex(of: webWrapper) == selectedTab.curIndex }
+    private var isVisible: Bool { return WebWrapperMgr.shared.store.firstIndex(of: webWrapper) == selectedTab.curIndex }
     private var shouldShowProgress: Bool { webWrapper.estimatedProgress > 0.0 && webWrapper.estimatedProgress < 1.0 }
+
     var body: some View {
         GeometryReader { _ in
             ZStack(alignment: .leading) {
@@ -33,9 +39,62 @@ struct AddressBar: View {
                     .padding(.horizontal)
 
                 HStack {
-                    addressTextField
+                    TextField("please input sth", text: $inputText)
+                        .foregroundColor(.black)
+                        .padding(.horizontal, 24)
+                        .multilineTextAlignment(alignment)
+                        .keyboardType(.webSearch)
+                        .focused($isAdressBarFocused)
+                        .onAppear {
+                            inputText = webCache.lastVisitedUrl.absoluteString
+                        }
+                        .onChange(of: webCache.lastVisitedUrl) { url  in
+                            inputText = url.absoluteString
+                        }
+                        .onChange(of: isAdressBarFocused, perform: { isFocued in
+                            if inputText.isEmpty{
+                                alignment = .leading
+                            }else{
+                                alignment = isFocued ? .leading : .center
+                            }
+                            addressBar.isFocused = isFocued
 
-                    if isVisible, !addressBar.inputText.isEmpty {
+                        })
+                        .onChange(of: addressBar.isFocused) { isFocused in
+                            if !isFocused, isVisible {
+                                isAdressBarFocused = isFocused
+                                if addressBar.inputText.isEmpty{  //点击取消按钮
+                                    inputText = webCache.lastVisitedUrl.absoluteString
+                                }
+                            }
+                        }
+                        .onSubmit {
+                            let url = URL.createUrl(inputText)
+                            DispatchQueue.main.async {
+                                let webcache = WebCacheMgr.shared.store[index]
+                                if !webcache.shouldShowWeb {
+                                    webcache.lastVisitedUrl = url
+                                }
+                                openingLink.clickedLink = url
+                                isAdressBarFocused = false
+                            }
+                        }
+                        .onReceive(NotificationCenter.default.publisher(for: UITextField.textDidBeginEditingNotification)) { obj in
+                            if let textField = obj.object as? UITextField {
+                                textField.selectedTextRange = textField.textRange(from: textField.beginningOfDocument, to: textField.endOfDocument)
+                            }
+                        }
+//                        .onChange(of: addressBar.inputText) { text in
+//                            if text.isEmpty, !isAdressBarFocused{ //  点击取消
+//                                inputText = originUrl
+//                            }
+//                            inputText = text
+//                        }
+                        .onChange(of: inputText) { text in
+                            addressBar.inputText = text
+                        }
+
+                    if isAdressBarFocused, !inputText.isEmpty {
                         Spacer()
                         clearTextButton
                     }
@@ -46,42 +105,38 @@ struct AddressBar: View {
         .background(Color.bkColor)
     }
 
-    var addressTextField: some View {
-        TextField("", text: $addressBar.inputText)
-            .placeholder(when: addressBar.inputText.isEmpty) {
-                Text(searchTextFieldPlaceholder).foregroundColor(Color.lightTextColor)
-            }
-            .foregroundColor(.black)
-            .padding(.horizontal, 25)
-            .keyboardType(.webSearch)
-            .focused($isAdressBarFocused)
-            .onChange(of: isAdressBarFocused) { focused in
-                if isVisible, focused {
-                    addressBar.isFocused = true
-                }
-            }
-            .onChange(of: addressBar.isFocused) { isFocused in
-                if !isFocused {
-                    isAdressBarFocused = isFocused
-                }
-            }
-            .onSubmit {
-                let url = URL.createUrl(addressBar.inputText)
-                DispatchQueue.main.async {
-                    let webcache = WebCacheMgr.shared.store[index]
-                    if !webcache.shouldShowWeb{
-                        webcache.lastVisitedUrl = url
-                    }
-                    openingLink.clickedLink = url
-                    addressBar.isFocused = false
-                }
-            }
-            .onTapGesture {
-                #if DwebFramework
-                    addressBar.isFocused = true
-                #endif
-            }
-    }
+//    var addressTextField: some View {
+//        TextField(linkString, text: $addressBar.inputText)
+//            .placeholder(when: addressBar.inputText.isEmpty) {
+//                Text(searchTextFieldPlaceholder).foregroundColor(Color.lightTextColor)
+//            }
+//            .foregroundColor(.black)
+//            .padding(.horizontal, 25)
+//            .keyboardType(.webSearch)
+//            .focused($isAdressBarFocused)
+//
+//            .onChange(of: isAdressBarFocused) { focused in
+//                if isVisible, focused {
+//                    addressBar.isFocused = true
+//                }
+//            }
+//            .onChange(of: addressBar.isFocused) { isFocused in
+//                if !isFocused {
+//                    isAdressBarFocused = isFocused
+//                }
+//            }
+//            .onSubmit {
+//                let url = URL.createUrl(addressBar.inputText)
+//                DispatchQueue.main.async {
+//                    let webcache = WebCacheMgr.shared.store[index]
+//                    if !webcache.shouldShowWeb{
+//                        webcache.lastVisitedUrl = url
+//                    }
+//                    openingLink.clickedLink = url
+//                    addressBar.isFocused = false
+//                }
+//            }
+//    }
 
     var progressV: some View {
         GeometryReader { geometry in
@@ -104,7 +159,7 @@ struct AddressBar: View {
 
     var clearTextButton: some View {
         Button {
-            addressBar.inputText = ""
+            inputText = ""
         } label: {
             Image(systemName: "xmark.circle.fill")
                 .foregroundColor(.gray)
