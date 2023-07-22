@@ -5,6 +5,7 @@ import { onLongPress } from "@vueuse/core";
 import { onMounted, reactive, ref } from "vue";
 import { CloseWatcher } from "../../../../../../../../../plaoc/src/client/components/close-watcher/close-watcher.shim";
 import squircle_svg from "./squircle.svg?raw";
+import SvgIcon from "./SvgIcon.vue";
 
 const $appHtmlRefHook = ref<HTMLDivElement | null>(null);
 
@@ -63,7 +64,7 @@ function menuOpen() {
 }
 </script>
 <template>
-  <div ref="$appHtmlRefHook" class="app" draggable="true">
+  <div ref="$appHtmlRefHook" class="app" draggable="false">
     <v-menu :modelValue="show" @update:modelValue="menuOpen" location="bottom" transition="slide-y-transition">
       <template v-slot:activator="{ props }">
         <div class="app-wrap" :class="{ focused: show }" @click="show = false">
@@ -75,28 +76,23 @@ function menuOpen() {
             {{ appMetaData.short_name }}
           </div>
         </div>
-        <!-- 使用多层遮罩来达成所需的模糊效果 -->
-        <div class="overlay ios-ani" :style="{ opacity: show ? 1 : 0, pointerEvents: 'none' }"></div>
-        <div class="overlay ios-ani" :style="{ opacity: show ? 1 : 0, pointerEvents: 'none' }"></div>
-        <div
-          class="overlay ios-ani"
-          :style="{ opacity: show ? 1 : 0, pointerEvents: show ? 'all' : 'none' }"
-          @click="menuOpen"
-        ></div>
+        <Transition name="fade">
+          <div class="overlay ios-ani" v-if="show" @click="menuOpen"></div>
+        </Transition>
       </template>
 
       <div class="menu" v-show="show">
         <div v-ripple class="item quit" @click="showQuit">
-          <img class="icon" src="../../../assets/images/quit.svg" alt="退出" />
+          <SvgIcon class="icon" src="../../../../src/assets/images/quit.svg" alt="退出" />
           <p class="title">退出</p>
         </div>
 
         <div v-ripple class="item details" @click="detailApp(appMetaData.id)">
-          <img class="icon" src="../../../assets/images/details.svg" alt="详情" />
+          <SvgIcon class="icon" src="../../../../src/assets/images/details.svg" alt="详情" />
           <p class="title">详情</p>
         </div>
         <div v-ripple class="item delete" @click="showUninstall">
-          <img class="icon" src="../../../assets/images/delete.svg" alt="卸载" />
+          <SvgIcon class="icon" src="../../../../src/assets/images/delete.svg" alt="卸载" />
           <p class="title">卸载</p>
         </div>
       </div>
@@ -125,15 +121,19 @@ function menuOpen() {
   // pointer-events: none;
   // background-color: rgba(0, 0, 0, 0.3);
 
-  backdrop-filter: blur(20px);
+  backdrop-filter: blur(40px);
 
   // .glass-material-overlay {
   //   backdrop-filter: blur(20px);
   //   width: 100%;
   //   height: 100%;
   // }
-}
 
+  &.fade-enter-from,
+  &.fade-leave-to {
+    opacity: 0;
+  }
+}
 .backdrop-blur-sm {
   --tw-backdrop-blur: contrast(1.5) brightness(1.2) blur(6px);
 }
@@ -199,6 +199,7 @@ function menuOpen() {
   display: flex;
   flex-direction: row;
   font-size: 0.9em;
+  color: #151515;
   background-color: rgba(255, 255, 255, 0.62);
   backdrop-filter: contrast(1.5) brightness(1.5);
   border-radius: 1.5em;
@@ -221,7 +222,6 @@ function menuOpen() {
       font-size: 1em;
       padding-top: 0.5em;
       white-space: nowrap;
-      color: #151515;
     }
   }
 }
