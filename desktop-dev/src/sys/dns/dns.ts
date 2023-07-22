@@ -38,8 +38,9 @@ class MyDnsMicroModule implements $DnsMicroModule {
   }
   async close(mmid: $MMID) {
     if (this.dnsNN.running_apps.has(mmid)) {
-      await this.dnsNN.close(mmid);
-      return true;
+      if ((await this.dnsNN.close(mmid)) === 1) {
+        return true;
+      }
     }
     return false;
   }

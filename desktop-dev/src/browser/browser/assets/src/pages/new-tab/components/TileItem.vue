@@ -1,16 +1,24 @@
 <script lang="ts" setup>
 import { computed, inject } from "vue";
 import { gridMeshKey } from "./inject";
-import { validatorTileSize } from "./validator";
+import { validatorPosition, validatorTileSize } from "./validator";
 const gridMesh = inject(gridMeshKey)!;
 console.log("gridMesh", gridMesh);
 const props = defineProps({
-  row: {
+  x: {
+    type: Number,
+    validator: validatorPosition,
+  },
+  y: {
+    type: Number,
+    validator: validatorPosition,
+  },
+  width: {
     type: [String, Number],
     default: 1,
     validator: validatorTileSize,
   },
-  column: {
+  height: {
     type: [String, Number],
     default: 1,
     validator: validatorTileSize,
@@ -18,18 +26,18 @@ const props = defineProps({
 });
 
 const gridRow = computed(() => {
-  const { row } = props;
-  if (typeof row === "number") {
-    return row;
+  const { height } = props;
+  if (typeof height === "number") {
+    return height;
   }
-  return Math.ceil((parseFloat(row) * gridMesh.rows.value) / 100) || 1;
+  return Math.ceil((parseFloat(height) * gridMesh.rows.value) / 100) || 1;
 });
 const gridColumn = computed(() => {
-  const { column } = props;
-  if (typeof column === "number") {
-    return column;
+  const { width } = props;
+  if (typeof width === "number") {
+    return width;
   }
-  return Math.ceil((parseFloat(column) * gridMesh.columns.value) / 100) || 1;
+  return Math.ceil((parseFloat(width) * gridMesh.columns.value) / 100) || 1;
 });
 </script>
 <template>

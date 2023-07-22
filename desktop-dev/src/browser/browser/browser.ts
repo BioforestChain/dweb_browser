@@ -3,16 +3,7 @@ import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import { HttpDwebServer } from "../../std/http/helper/$createHttpDwebServer.ts";
 import { createBrowserWindow } from "./browser.bw.ts";
 import { createWWWServer } from "./browser.serve.www.ts";
-import {
-  canGoBack,
-  canGoForward,
-  getAppsInfo,
-  goBack,
-  goForward,
-  openApp,
-  refresh,
-  updateContent,
-} from "./browser.server.api.ts";
+import { canGoBack, canGoForward, goBack, goForward, refresh, updateContent } from "./browser.server.api.ts";
 
 import type { $CBV } from "./browser.content.bv.ts";
 
@@ -35,15 +26,6 @@ export class BrowserNMM extends NativeMicroModule {
     );
     // this.contentBV = createCBV.bind(this)(this.bw, addressBarHeight);
 
-    this.registerCommonIpcOnMessageHandler({
-      pathname: "/appsInfo",
-      matchMode: "full",
-      input: {},
-      output: "object",
-      handler: async () => {
-        return await getAppsInfo();
-      },
-    });
     this.registerCommonIpcOnMessageHandler({
       pathname: "/update/content",
       matchMode: "full",
@@ -85,15 +67,6 @@ export class BrowserNMM extends NativeMicroModule {
       input: {},
       output: "object",
       handler: refresh.bind(this),
-    });
-    this.registerCommonIpcOnMessageHandler({
-      pathname: "/openApp",
-      matchMode: "full",
-      input: { app_id: "mmid" },
-      output: "object",
-      handler: async (args) => {
-        return await openApp.bind(this)(args.app_id);
-      },
     });
   }
 

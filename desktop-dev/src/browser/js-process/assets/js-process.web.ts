@@ -1,31 +1,5 @@
-import { $Callback, createSignal } from "../../../helper/createSignal.ts";
+import { ChangeableMap } from "../../../helper/ChangeableMap.ts";
 import { PromiseOut } from "../../../helper/PromiseOut.ts";
-
-class ChangeableMap<K, V> extends Map<K, V> {
-  private _changeSignal = createSignal<$Callback<[this]>>();
-  onChange = this._changeSignal.listen;
-  override set(key: K, value: V) {
-    if ((this.has(key) && this.get(key) === value) === false) {
-      super.set(key, value);
-      this._changeSignal.emit(this);
-    }
-    return this;
-  }
-  override delete(key: K): boolean {
-    if (super.delete(key)) {
-      this._changeSignal.emit(this);
-      return true;
-    }
-    return false;
-  }
-  override clear(): void {
-    if (this.size === 0) {
-      return;
-    }
-    super.clear();
-    this._changeSignal.emit(this);
-  }
-}
 
 /// 这个文件是用在 js-process.html 的主线程中直接运行的，用来协调 js-worker 与 native 之间的通讯
 // 也可以用在其他的 .html 文件中 但是内容需要部分的修改
@@ -177,8 +151,8 @@ const runProcessMain = (process_id: number, config: $RunMainConfig) => {
  */
 const destroyProcess = (process_id: number) => {
   const process = ALL_PROCESS_MAP.get(process_id);
-  if(process === undefined){
-    return false
+  if (process === undefined) {
+    return false;
   }
   /**
    * @TODO worker 可以主动推送一些信息过来，告知现在正在进行的一些事务的原因

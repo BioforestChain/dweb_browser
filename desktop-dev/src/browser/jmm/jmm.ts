@@ -12,7 +12,7 @@ import { fetchMatch } from "../../helper/patternHelper.ts";
 import { z, zq } from "../../helper/zodHelper.ts";
 import type { HttpDwebServer } from "../../std/http/helper/$createHttpDwebServer.ts";
 import { nativeFetchAdaptersManager } from "../../sys/dns/nativeFetch.ts";
-import { JMM_APPS_PATH, JMM_DB, createApiServer, getAllApps } from "./jmm.api.serve.ts";
+import { JMM_APPS_PATH, JMM_DB, createApiServer } from "./jmm.api.serve.ts";
 import { createWWWServer } from "./jmm.www.serve.ts";
 import { JsMMMetadata, JsMicroModule } from "./micro-module.js.ts"; // import Nedb from "@seald-io/nedb";
 
@@ -68,7 +68,7 @@ export class JmmNMM extends NativeMicroModule {
 
   async _bootstrap(context: $BootstrapContext) {
     /// 注册所有已经下载的应用
-    for (const appInfo of await getAllApps()) {
+    for (const appInfo of await JMM_DB.all()) {
       const metadata = new JsMMMetadata(appInfo);
       const jmm = new JsMicroModule(metadata);
       context.dns.install(jmm);

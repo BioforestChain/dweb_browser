@@ -1,40 +1,98 @@
 import { $BootstrapContext } from "../../core/bootstrapContext.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import { once } from "../../helper/$once.ts";
+import { ChangeableMap } from "../../helper/ChangeableMap.ts";
 import { isElectronDev } from "../../helper/electronIsDev.ts";
 import { createComlinkNativeWindow, createNativeWindow } from "../../helper/openNativeWindow.ts";
 import { fetchMatch } from "../../helper/patternHelper.ts";
 import { buildUrl } from "../../helper/urlHelper.ts";
 import { zq } from "../../helper/zodHelper.ts";
 import { HttpDwebServer, createHttpDwebServer } from "../../std/http/helper/$createHttpDwebServer.ts";
-import { getAppsInfo, openApp } from "../browser/browser.server.api.ts";
+import { JMM_DB } from "../jmm/jmm.api.serve.ts";
+import { $AppMetaData } from "../jmm/jmm.ts";
+import { $MMID, Ipc, IpcEvent } from "../js-process/std-dweb-core.ts";
 import { window_options } from "./const.ts";
+import { desktopStore } from "./desktop.store.ts";
+
+export interface $DesktopAppMetaData extends $AppMetaData {
+  running: boolean;
+}
 
 export class DesktopNMM extends NativeMicroModule {
   mmid = "desktop.browser.dweb" as const;
 
   protected async _bootstrap(context: $BootstrapContext) {
-    this._serveApi();
+    const query_app_id = zq.object({
+      app_id: zq.mmid(),
+    });
+    const query_limit = zq.object({
+      limit: zq.number().optional(),
+    });
+
+    const taskbarAppList = [...desktopStore.get("taskbar/apps", () => new Set())].reverse();
+    const runingApps = new ChangeableMap<$MMID, Ipc>();
+    runingApps.onChange((map) => {
+      for (const app_id of map.keys()) {
+        taskbarAppList.unshift(app_id);
+      }
+      desktopStore.set("taskbar/apps", new Set(taskbarAppList));
+    });
+
+    const onFetchHanlder = fetchMatch()
+      .get("/appsInfo", async () => {
+        return Response.json(
+          (await JMM_DB.all()).map((metaData) => {
+            return { ...metaData, running: runingApps.has(metaData.id) };
+          })
+        );
+      })
+      .get("/openAppOrActivate", async (event) => {
+        const { app_id } = query_app_id(event.searchParams);
+        console.always("activity", app_id);
+        let ipc = runingApps.get(app_id);
+
+        ipc = await this.connect(app_id);
+        if (ipc !== undefined) {
+          ipc.postMessage(IpcEvent.fromText("activity", ""));
+          /// 如果成功打开，将它“追加”到列表中
+          runingApps.delete(app_id);
+          runingApps.set(app_id, ipc);
+          /// 如果应用关闭，将它从列表中移除
+          ipc.onClose(() => {
+            runingApps.delete(app_id);
+          });
+        }
+
+        return Response.json(ipc !== undefined);
+      })
+      .get("/closeApp", async (event) => {
+        const { app_id } = query_app_id(event.searchParams);
+        let closed = false;
+        if (runingApps.has(app_id)) {
+          closed = await context.dns.close(app_id);
+          if (closed) {
+            runingApps.delete(app_id);
+          }
+        }
+        return Response.json(closed);
+      })
+      .get("/taskbar/appsInfo", async (event) => {
+        const { limit = Infinity } = query_limit(event.searchParams);
+        const apps: $DesktopAppMetaData[] = [];
+
+        for (const app_id of taskbarAppList) {
+          const metaData = await JMM_DB.find(app_id);
+          if (metaData) {
+            apps.push({ ...metaData, running: runingApps.has(app_id) });
+          }
+        }
+      });
+    this.onFetch(onFetchHanlder.run).internalServerError();
+
     const taskbarServer = await this._createTaskbarWebServer();
     const desktopServer = await this._createDesktopWebServer();
 
     const taskbarWin = await this._createTaskbarView(taskbarServer, desktopServer);
-  }
-
-  private _serveApi() {
-    const query_app_id = zq.object({
-      app_id: zq.mmid(),
-    });
-    const onFetchHanlder = fetchMatch()
-      .get("/appsInfo", async () => {
-        return Response.json(await getAppsInfo());
-      })
-      .get("/openAppOrActivate", async (event) => {
-        const { app_id } = query_app_id(event.searchParams);
-        await openApp.call(this, app_id);
-        return Response.json(true);
-      });
-    this.onFetch(onFetchHanlder.run).internalServerError();
   }
 
   private async _createTaskbarWebServer() {

@@ -1,4 +1,4 @@
-import { $AppMetaData, $WidgetMetaData } from "../types/app.type.ts";
+import { $DesktopAppMetaData, $WidgetMetaData } from "../types/app.type.ts";
 import { searchWidget } from "./custom/search.widget.ts";
 import { nativeFetch } from "./fetch.ts";
 
@@ -8,7 +8,7 @@ export async function getAppInfo() {
     console.error("请求失败：", res.status, res.statusText);
     return [];
   }
-  return (await res.json()) as Promise<$AppMetaData[]>;
+  return (await res.json()) as Promise<$DesktopAppMetaData[]>;
 }
 
 export async function getWidgetInfo() {
@@ -37,7 +37,6 @@ export async function quitApp(id: string) {
     search: {
       app_id: id,
     },
-    mmid: "jmm.browser.dweb",
   });
 }
 
@@ -45,15 +44,6 @@ export async function quitApp(id: string) {
 export async function deleteApp(id: string) {
   await quitApp(id);
   return await nativeFetch("/uninstall", {
-    search: {
-      app_id: id,
-    },
-    mmid: "jmm.browser.dweb",
-  });
-}
-
-export async function detailApp(id: string) {
-  return await nativeFetch("/detailApp", {
     search: {
       app_id: id,
     },

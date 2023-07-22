@@ -1,12 +1,6 @@
 import type { IpcRenderer } from "electron";
+export type { $DesktopAppMetaData } from "../../../../desktop/desktop.nmm.ts";
 
-export interface $AppMetaData {
-  id: string;
-  title: string;
-  short_name: string;
-  icon: string;
-  name: string;
-}
 declare global {
   interface Window {
     electron: {
@@ -40,6 +34,8 @@ export type $WidgetMetaData = {
   sizeList: $TileSize[];
 };
 export interface $TileSize {
-  row: number | `${number}%`;
-  column: number | `${number}%`;
+  row: $TileSizeType;
+  column: $TileSizeType;
 }
+
+export type $TileSizeType = number | `${number}%`;

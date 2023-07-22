@@ -115,7 +115,7 @@ export class JsMicroModule extends MicroModule {
       const protocol = ipcRequest.parsed_url.protocol;
       const host = ipcRequest.parsed_url.host;
       if (protocol === "file:" && host.endsWith(".dweb")) {
-        const connectResult = this.connect(host as $MMID);
+        const connectResult = await this.connect(host as $MMID);
         if (!connectResult) throw new Error(`not found NMM ${host}`);
         const [jsWebIpc] = await connectResult;
         jsWebIpc.emitMessage(ipcRequest);

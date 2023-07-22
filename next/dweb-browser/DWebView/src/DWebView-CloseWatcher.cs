@@ -19,6 +19,7 @@ public class CloseWatcher
     public void RegistryToken(string consumeToken)
     {
         Consuming.Add(consumeToken);
+        await Webview.EvaluateJavaScriptAsync($"open('{consumeToken}')");
     }
 
     public void TryClose(string id)

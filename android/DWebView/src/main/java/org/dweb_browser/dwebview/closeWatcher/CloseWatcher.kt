@@ -35,6 +35,7 @@ class CloseWatcher(val viewItem: ViewItem) {
             throw Exception("CloseWatcher.registryToken invalid arguments");
           }
           consuming.add(consumeToken)
+          viewItem.webView.evaluateJavascript("open('$consumeToken')")
         }
 
         /**
@@ -95,7 +96,7 @@ class CloseWatcher(val viewItem: ViewItem) {
       if (!defaultPrevented) {
         return destroy()
       }
-      return false
+      return true
     }
 
     fun destroy() = !_destroy.getAndSet(true)

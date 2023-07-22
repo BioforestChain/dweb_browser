@@ -6,11 +6,11 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { isDeepStrictEqual } from "node:util";
-import Store from "npm:electron-store@8.1.0";
 import tar from "tar";
 import { $FetchResponse, FetchEvent, IpcEvent } from "../../core/ipc/index.ts";
 import { $MMID } from "../../core/types.ts";
 import { resolveToDataRoot } from "../../helper/createResolveTo.ts";
+import { Store } from "../../helper/electronStore.ts";
 import { simpleEncoder } from "../../helper/encoding.ts";
 import { headersGetTotalLength } from "../../helper/httpHelper.ts";
 import { locks } from "../../helper/locksManager.ts";
@@ -27,35 +27,38 @@ fs.mkdirSync(JMM_APPS_PATH, { recursive: true });
  */
 
 export class JmmDatabase extends Store<{
-  apps?: { [key: $MMID]: $AppMetaData };
+  apps: Map<$MMID, $AppMetaData>;
 }> {
-  private _apps = this.get("apps", {});
+  constructor() {
+    super("jmm-apps");
+  }
+  private _apps = this.get("apps", () => new Map());
   private _save() {
     this.set("apps", this._apps);
   }
   async upsert(app: $AppMetaData) {
-    const oldApp = this._apps[app.id];
+    const oldApp = this._apps.get(app.id);
     if (isDeepStrictEqual(oldApp, app)) {
       return true;
     }
 
-    this._apps[app.id] = app;
+    this._apps.set(app.id, app);
     this._save();
     return true;
   }
   async find(mmid: $MMID) {
-    return this._apps[mmid] as $AppMetaData | undefined;
+    return this._apps.get(mmid);
   }
   async remove(mmid: $MMID) {
     if (mmid in this._apps) {
-      delete this._apps[mmid];
+      this._apps.delete(mmid);
       this._save();
       return true;
     }
     return false;
   }
   async all() {
-    return Object.values(this._apps);
+    return [...this._apps.values()];
   }
 }
 export const JMM_DB = new JmmDatabase();
@@ -282,12 +285,3 @@ export type $InstallProgressInfo = {
   done: boolean;
   error?: string;
 };
-
-/**
- * 获取所有已经安装的应用
- * @returns
- */
-export async function getAllApps() {
-  const apps = await JMM_DB.all();
-  return apps as $AppMetaData[];
-}

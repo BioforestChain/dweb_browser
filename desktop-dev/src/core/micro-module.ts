@@ -97,10 +97,11 @@ export abstract class MicroModule implements $MicroModule {
   /**
    * 尝试连接到指定对象
    */
-
-  connect(mmid: $MMID) {
-    this.context?.dns.open(mmid);
-    return this.context?.dns.connect(mmid);
+  async connect(mmid: $MMID) {
+    if (this.context?.dns.open(mmid)) {
+      const [ipc] = await this.context?.dns.connect(mmid);
+      return ipc;
+    }
   }
 
   /**

@@ -26,7 +26,6 @@ const $panel = ref<HTMLDivElement>();
 let resizeOb: undefined | ResizeObserver;
 onMounted(() => {
   resizeOb = new ResizeObserver((entries) => {
-    console.log(entries[0].contentRect);
     const { width, height } = entries[0].contentRect;
     columns.value = Math.ceil(width / props.columnTemplateSize) || 1;
     rows.value = Math.ceil(height / props.rowTemplateSize) || 1;

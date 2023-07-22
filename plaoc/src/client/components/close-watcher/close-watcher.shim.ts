@@ -20,33 +20,9 @@ declare namespace globalThis {
     _tasks: Map<string, (id: string) => void>;
   };
   function open(url: string): Window;
-}
 
-// 测试代码 还需要判断 是否可以从这个初始化  __native_close_watcher_kit__ 这个对象
-// iframe 无法实现 preload sceript
-globalThis.__native_close_watcher_kit__ ? "" : Reflect.set(
-  window,
-  '__native_close_watcher_kit__',
-  {
-    allc: 0,
-    _watchers: new Map(),
-    _tasks: new Map(),
-    registryToken: function(consumeToken: string){
-      if (consumeToken === null || consumeToken === "") {
-        throw new Error("CloseWatcher.registryToken invalid arguments");
-      }
-      const resolve = this._tasks.get(consumeToken)
-      if(resolve === undefined) throw new Error('resolve === undefined');
-      const id = this.allc++;
-      resolve(id + "");
-    },
-    tryClose: function(id: string){
-      const watcher = this._watchers.get(id);
-      if(watcher === undefined) throw new Error('watcher === undefined');
-      watcher.dispatchEvent(new Event("close"))
-    }
-  }
-); 
+  const CloseWatcher: typeof CloseWatcherShim;
+}
 
 let native_close_watcher_kit = globalThis.__native_close_watcher_kit__;
 
@@ -83,30 +59,112 @@ if (native_close_watcher_kit) {
     },
   });
   native_close_watcher_kit = globalThis.__native_close_watcher_kit__;
+} else {
+  /// 桌面 平台使用 esc 按钮作为返回键
+  const consuming = new Set<String>();
+  const watchers = new Array<Watcher>();
+  class Watcher {
+    static #acc_id = 0;
+    private _destoryed = false;
+    readonly id = `#cw-${Watcher.#acc_id++}`;
+    tryClose() {
+      if (this._destoryed) {
+        return false;
+      }
+      native_close_watcher_kit._watchers.get(this.id)?.dispatchEvent(new CloseEvent("close"));
+      this._destoryed = true;
+      return true;
+    }
+  }
+  const closeWatcherController = new (class CloseWatcher {
+    /**
+     * 申请一个 CloseWatcher
+     */
+    apply(isUserGesture: boolean) {
+      if (isUserGesture || watchers.length === 0) {
+        const watcher = new Watcher();
+        watchers.push(watcher);
+      }
+      return watchers.at(-1)!;
+    }
+    resolveToken(consumeToken: string, watcher: Watcher) {
+      native_close_watcher_kit._tasks.get(consumeToken)?.(watcher.id);
+    }
+    get canClose() {
+      return watchers.length > 0;
+    }
+    close(watcher = watchers.at(-1)) {
+      if (watcher?.tryClose()) {
+        const index = watchers.indexOf(watcher);
+        if (index !== -1) {
+          watchers.splice(index, 1);
+          return true;
+        }
+      }
+      return false;
+    }
+  })();
+  // @ts-ignore
+  if (typeof navigation === "object") {
+    // @ts-ignore
+    navigation.addEventListener("navigate", (event) => {
+      if (closeWatcherController.canClose) {
+        event.intercept({
+          async hanlder() {
+            closeWatcherController.close();
+          },
+        });
+      }
+    });
+  }
+  document.addEventListener("keypress", (event) => {
+    if (event.key === "Escape") {
+      console.log("Esc键被按下");
+      closeWatcherController.close();
+    }
+  });
+
+  Object.assign(globalThis, {
+    __native_close_watcher_kit__: {
+      async registryToken(token: string) {
+        consuming.add(token);
+        /// 模拟移动端的 open(token)
+        if ((await (await fetch(token)).text()) === "create-close-watcher") {
+          const watcher = closeWatcherController.apply(navigator.userActivation.isActive);
+          closeWatcherController.resolveToken(token, watcher);
+        }
+      },
+
+      tryClose(id: string) {
+        for (const w of watchers.slice()) {
+          if (w.id === id) {
+            closeWatcherController.close(w);
+          }
+        }
+      },
+      _watchers: new Map(),
+      _tasks: new Map(),
+    },
+  });
+  native_close_watcher_kit = globalThis.__native_close_watcher_kit__;
 }
-export class CloseWatcher extends EventTarget {
+class CloseWatcherShim extends EventTarget {
   constructor() {
     super();
     void this.#init();
   }
   #id = new PromiseOut<string>();
   async #init() {
-    const token = URL.createObjectURL(
-      new Blob(["create-close-watcher"], { type: "text/html" })
-    );
+    const token = URL.createObjectURL(new Blob(["create-close-watcher"], { type: "text/html" }));
 
     const native_close_watcher_kit = globalThis.__native_close_watcher_kit__;
     const tasks = native_close_watcher_kit._tasks;
     const po = this.#id;
     // 注册回调
     tasks.set(token, po.resolve);
-    // 注册指令
+    // 注册指令，如果在移动端，会发起 window.open(token) ，从而获得
     native_close_watcher_kit.registryToken(token);
-    /// 发起指令
-    // 桌面端 是通过模拟器实现 back 所以不需要打开一个 window
-    if('ontouchstart' in window){
-      globalThis.open(token);
-    }
+
     // 等待响应
     const id = await po.promise;
     // 注册实例
@@ -147,7 +205,7 @@ export class CloseWatcher extends EventTarget {
   override addEventListener<K extends keyof CloseWatcherEventMap>(
     type: K,
     // deno-lint-ignore no-explicit-any
-    listener: (this: CloseWatcher, ev: CloseWatcherEventMap[K]) => any,
+    listener: (this: CloseWatcherShim, ev: CloseWatcherEventMap[K]) => any,
     options?: boolean | AddEventListenerOptions
   ): void;
   override addEventListener(
@@ -162,7 +220,7 @@ export class CloseWatcher extends EventTarget {
   override removeEventListener<K extends keyof CloseWatcherEventMap>(
     type: K,
     // deno-lint-ignore no-explicit-any
-    listener: (this: CloseWatcher, ev: CloseWatcherEventMap[K]) => any,
+    listener: (this: CloseWatcherShim, ev: CloseWatcherEventMap[K]) => any,
     options?: boolean | EventListenerOptions
   ): void;
   override removeEventListener(
@@ -180,6 +238,8 @@ interface CloseWatcherEventMap {
 }
 
 // deno-lint-ignore no-explicit-any
-if (typeof (globalThis as any)["CloseWatcher"] === "undefined") {
-  Object.assign(globalThis, { CloseWatcher });
+if (typeof globalThis.CloseWatcher === "undefined") {
+  Object.assign(globalThis, { CloseWatcher: CloseWatcherShim });
 }
+
+export { CloseWatcherShim as CloseWatcher };

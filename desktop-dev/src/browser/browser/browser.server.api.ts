@@ -2,12 +2,7 @@ import { $Schema1ToType } from "../../core/helper/types.ts";
 import { Ipc, IpcEvent, IpcRequest, IpcResponse } from "../../core/ipc/index.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import { $MMID } from "../../core/types.ts";
-import { getAllApps } from "../jmm/jmm.api.serve.ts";
 import type { BrowserNMM } from "./browser.ts";
-
-export async function getAppsInfo() {
-  return await getAllApps();
-}
 
 export async function updateContent(this: BrowserNMM, _args: $Schema1ToType<{}>, ipc: Ipc, request: IpcRequest) {
   const href = request.parsed_url.searchParams.get("url");
@@ -101,19 +96,4 @@ export async function refresh(this: BrowserNMM, _args: $Schema1ToType<{}>, ipc: 
       ipc
     )
   );
-}
-
-export async function openApp(this: NativeMicroModule, mmid: $MMID) {
-  if (mmid === null) {
-    return "缺少 app_id 参数";
-  }
-  // if ((await this.nativeFetch(`file://jmm.browser.dweb/openApp?mmid=${mmid}`).boolean()) === false) {
-  // }
-  // 还需要判断 应用是否已经更新了
-  const [jsIpc] = await this.context?.dns.connect(mmid as $MMID)!;
-  // 如果 对应app的全部 devTools 中有没有关闭的，就无法再次打开
-  jsIpc.postMessage(IpcEvent.fromText("activity", ""));
-
-  console.always("activity", mmid);
-  return true;
 }
