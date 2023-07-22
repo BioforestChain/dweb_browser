@@ -4,7 +4,7 @@ import { PromiseOut } from "./PromiseOut.ts";
 import { animate, easeOut } from "./animate.ts";
 import "./electron.ts";
 import { micaElectron } from "./electron.ts";
-import { electronConfig } from "./electronConfig.ts";
+import { electronConfig } from "./electronStore.ts";
 
 /**
  * 事件绑定作用域
@@ -49,7 +49,7 @@ function eventScope<T extends { on: Function; once: Function; off: Function }>(t
 const DEVTOOLS_STATE = "native-window-states";
 declare global {
   interface ElectronConfig {
-    [DEVTOOLS_STATE]?: {
+    [DEVTOOLS_STATE]: {
       [url: string]: {
         devtools: boolean;
         bounds: Electron.Rectangle;
@@ -57,7 +57,7 @@ declare global {
     };
   }
 }
-const nativeWindowStates = electronConfig.get(DEVTOOLS_STATE, {});
+const nativeWindowStates = electronConfig.get(DEVTOOLS_STATE, () => ({}));
 const saveNativeWindowStates = () => {
   electronConfig.set(DEVTOOLS_STATE, nativeWindowStates);
 };
