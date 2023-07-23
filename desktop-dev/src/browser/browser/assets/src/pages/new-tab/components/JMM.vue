@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { clickApp, quitApp, vibrateHeavyClick } from "@/api/new-tab";
+import { openApp, quitApp, vibrateHeavyClick } from "@/api/new-tab";
 import type { $DesktopAppMetaData } from "@/types/app.type";
 import { onLongPress } from "@vueuse/core";
 import { onMounted, reactive, ref } from "vue";
@@ -11,7 +11,8 @@ import SvgIcon from "./SvgIcon.vue";
 const $appHtmlRefHook = ref<HTMLDivElement | null>(null);
 
 //控制背景虚化
-const show = ref(false);
+const isShowMenu = ref(false);
+const isShowOverlay = ref(false);
 const snackbar = reactive({
   show: false,
   type: "success", // success,primary,rbga,#fff
@@ -36,14 +37,14 @@ let menuCloser: CloseWatcher | null = null;
 //长按事件的回调
 const showMenu = () => {
   vibrateHeavyClick(); // 震动
-  show.value = true;
+  isShowMenu.value = true;
   menuCloser = new CloseWatcher();
   menuCloser.addEventListener("close", () => {
-    show.value = false;
+    isShowMenu.value = false;
   });
 };
 function closeMenu() {
-  show.value = false;
+  isShowMenu.value = false;
   menuCloser?.close();
   menuCloser = null;
 }
@@ -75,23 +76,27 @@ const onJmmUnInstallDialogClosed = (confirmed: boolean) => {
 </script>
 <template>
   <div ref="$appHtmlRefHook" class="app" draggable="false">
-    <v-menu :modelValue="show" @update:modelValue="closeMenu" location="bottom" transition="slide-y-transition">
+    <v-menu :modelValue="isShowMenu" @update:modelValue="closeMenu" location="bottom" transition="menu-popuper">
       <template v-slot:activator="{ props }">
-        <div class="app-wrap" :class="{ focused: show }" @click="show = false">
-          <div class="app-icon" v-bind="props" @click="clickApp(appMetaData.id)" @contextmenu="showMenu">
+        <div
+          class="app-wrap ios-ani"
+          :class="{ overlayed: isShowOverlay, focused: isShowMenu }"
+          @click="isShowMenu = false"
+        >
+          <div class="app-icon" v-bind="props" @click="openApp(appMetaData.id)" @contextmenu="showMenu">
             <div class="bg backdrop-blur-sm" v-html="squircle_svg"></div>
             <img class="fg" :src="appMetaData.icon" />
           </div>
-          <div class="app-name line-clamp-2 backdrop-blur-sm" :style="{ opacity: show ? 0 : 1 }">
+          <div class="app-name line-clamp-2 backdrop-blur-sm" :style="{ opacity: isShowMenu ? 0 : 1 }">
             {{ appMetaData.short_name }}
           </div>
         </div>
-        <Transition name="fade">
-          <div class="overlay ios-ani" v-if="show" @click="closeMenu"></div>
+        <Transition name="fade" @beforeEnter="() => (isShowOverlay = true)" @afterLeave="() => (isShowOverlay = false)">
+          <div class="overlay ios-ani" v-if="isShowMenu" @click="closeMenu"></div>
         </Transition>
       </template>
 
-      <div class="menu" v-show="show">
+      <div class="menu ios-ani" v-show="isShowMenu">
         <button v-ripple class="item quit" @click="showQuit" :disabled="!$props.appMetaData.running">
           <SvgIcon class="icon" src="../../../../src/assets/images/quit.svg" alt="退出" />
           <p class="title">退出</p>
@@ -120,13 +125,24 @@ const onJmmUnInstallDialogClosed = (confirmed: boolean) => {
     @close="onJmmUnInstallDialogClosed"
   ></JmmUnInstallDialog>
 </template>
+<style lang="scss">
+.menu-popuper-enter-from,
+.menu-popuper-leave-to {
+  & > .menu {
+    transform: scale(0.5);
+    filter: blur(20px) opacity(0);
+  }
+  // transform: translate(0, 0) scale(0.5);
+}
+
+.memu-activator-enter-active,
+.memu-activator-leave-active {
+  z-index: 2;
+}
+</style>
 <style scoped lang="scss">
 :scope {
   --icon-size: 60px;
-}
-
-.focused {
-  z-index: 2;
 }
 
 .overlay {
@@ -166,6 +182,12 @@ const onJmmUnInstallDialogClosed = (confirmed: boolean) => {
     display: flex;
     flex-direction: column;
     place-items: center;
+    &.focused {
+      scale: 1.05;
+    }
+    &.overlayed {
+      z-index: 2;
+    }
     .app-icon {
       width: 60px;
       height: 60px;
@@ -223,6 +245,10 @@ const onJmmUnInstallDialogClosed = (confirmed: boolean) => {
   border-radius: 1.5em;
   overflow: hidden;
   margin-top: 0.5em;
+  &.ios-ani {
+    transition-property: transform, filter;
+    transform-origin: top left;
+  }
   .item {
     display: flex;
     flex-direction: column;

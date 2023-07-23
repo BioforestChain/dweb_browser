@@ -167,6 +167,8 @@ class CloseWatcherShim extends EventTarget {
 
     // 等待响应
     const id = await po.promise;
+    // 等到响应，删除注册的回掉
+    tasks.delete(token);
     // 注册实例
     native_close_watcher_kit._watchers.set(id, this);
     console.log("close watcher created");

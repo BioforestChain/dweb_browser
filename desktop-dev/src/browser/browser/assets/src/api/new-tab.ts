@@ -16,7 +16,7 @@ export async function getWidgetInfo() {
 }
 
 /**点击打开JMM */
-export function clickApp(id: string) {
+export function openApp(id: string) {
   nativeFetch("/openAppOrActivate", {
     search: {
       app_id: id,
