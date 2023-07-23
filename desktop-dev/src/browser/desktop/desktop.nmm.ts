@@ -1,10 +1,13 @@
 import { $BootstrapContext } from "../../core/bootstrapContext.ts";
+import { buildRequestX } from "../../core/helper/ipcRequestHelper.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import { once } from "../../helper/$once.ts";
 import { ChangeableMap } from "../../helper/ChangeableMap.ts";
 import { isElectronDev } from "../../helper/electronIsDev.ts";
+import { simpleEncoder } from "../../helper/encoding.ts";
 import { createComlinkNativeWindow, createNativeWindow } from "../../helper/openNativeWindow.ts";
 import { fetchMatch } from "../../helper/patternHelper.ts";
+import { ReadableStreamOut, streamReadAll } from "../../helper/readableStreamHelper.ts";
 import { buildUrl } from "../../helper/urlHelper.ts";
 import { zq } from "../../helper/zodHelper.ts";
 import { HttpDwebServer, createHttpDwebServer } from "../../std/http/helper/$createHttpDwebServer.ts";
@@ -38,13 +41,29 @@ export class DesktopNMM extends NativeMicroModule {
       desktopStore.set("taskbar/apps", new Set(taskbarAppList));
     });
 
+    const getAppsInfo = async () =>
+      (await JMM_DB.all()).map((metaData) => {
+        return { ...metaData, running: runingApps.has(metaData.id) };
+      });
+
     const onFetchHanlder = fetchMatch()
       .get("/appsInfo", async () => {
-        return Response.json(
-          (await JMM_DB.all()).map((metaData) => {
-            return { ...metaData, running: runingApps.has(metaData.id) };
-          })
-        );
+        return Response.json(await getAppsInfo());
+      })
+      .duplex("/observe/appsInfo", async (event) => {
+        const responseBody = new ReadableStreamOut<Uint8Array>();
+        const doWriteJsonline = async () => {
+          responseBody.controller.enqueue(simpleEncoder(JSON.stringify(await getAppsInfo()) + "\n", "utf8"));
+        };
+        /// 监听变更，推送数据
+        const off = runingApps.onChange(doWriteJsonline);
+        /// 监听关闭，停止监听
+        void streamReadAll(await event.ipcRequest.body.stream()).finally(()=>{
+          off()
+        });
+        /// 发送一次现有的数据数据
+        void doWriteJsonline();
+        return { body: responseBody.stream };
       })
       .get("/openAppOrActivate", async (event) => {
         const { app_id } = query_app_id(event.searchParams);
@@ -104,7 +123,7 @@ export class DesktopNMM extends NativeMicroModule {
       (await taskbarServer.listen()).onFetch((event) => {
         const { pathname, search } = event.url;
         const url = `file:///sys/browser/desktop/${pathname}?mode=stream`;
-        return this.nativeFetch(url);
+        return this.nativeFetch(event.ipcRequest.toRequest());
       });
     }
     return taskbarServer;
@@ -124,7 +143,13 @@ export class DesktopNMM extends NativeMicroModule {
         } else {
           url = `file:///sys/browser/newtab${pathname}?mode=stream`;
         }
-        const res = await this.nativeFetch(url);
+        const request = buildRequestX(url, {
+          method: event.method,
+          headers: event.headers,
+          body: event.ipcRequest.body.raw,
+        });
+
+        const res = await this.nativeFetch(request);
         return res;
       });
     }

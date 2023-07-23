@@ -27,7 +27,7 @@ export class MetaBody {
         metaBody.metaId
       );
     }
-    return metaBody;
+    return metaBody as MetaBody;
   }
 
   static fromText(

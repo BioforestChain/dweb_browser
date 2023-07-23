@@ -1,19 +1,15 @@
 import { binaryToU8a, isBinary } from "../../helper/binaryHelper.ts";
-import {
-  headersToRecord,
-  httpMethodCanOwnBody,
-} from "../../helper/httpHelper.ts";
+import { headersToRecord, httpMethodCanOwnBody } from "../../helper/httpHelper.ts";
+import { IPC_METHOD } from "../ipc/const.ts";
 
 /**
  * 将 RequestInit 解构成 ipcRequest 的构造参数
  */
-export const $normalizeRequestInitAsIpcRequestArgs = async (
-  request_init: RequestInit
-) => {
+export const $normalizeRequestInitAsIpcRequestArgs = async (request_init: RequestInit) => {
   const method = request_init.method ?? "GET";
 
   /// 读取 body
-  const body = httpMethodCanOwnBody(method)
+  const body = httpMethodCanOwnBody(method, request_init.headers)
     ? await $bodyInitToIpcBodyArgs(request_init.body)
     : "";
 
@@ -25,9 +21,7 @@ export const $normalizeRequestInitAsIpcRequestArgs = async (
 
 export const $bodyInitToIpcBodyArgs = async (
   bodyInit?: BodyInit | null,
-  onUnknown?: (
-    bodyInit: unknown
-  ) => Uint8Array | ReadableStream<Uint8Array> | string
+  onUnknown?: (bodyInit: unknown) => Uint8Array | ReadableStream<Uint8Array> | string
 ) => {
   let body: Uint8Array | ReadableStream<Uint8Array> | string = "";
   if (bodyInit instanceof FormData || bodyInit instanceof URLSearchParams) {
@@ -55,10 +49,43 @@ export const $bodyInitToIpcBodyArgs = async (
     if (onUnknown) {
       bodyInit = onUnknown(bodyInit);
     } else {
-      throw new Error(
-        `unsupport body type: ${(bodyInit as any)?.constructor.name}`
-      );
+      throw new Error(`unsupport body type: ${(bodyInit as any)?.constructor.name}`);
     }
   }
   return body;
+};
+export const isWebSocket = (method: IPC_METHOD | (string & {}), headers: Headers) => {
+  return method && headers.get("Upgrade")?.toLowerCase() === "websocket";
+};
+/**
+ * 构建Request对象，和`new Request`类似，允许突破原本Request的一些限制
+ * @param toRequest
+ */
+export const buildRequestX = (url: string | URL, init: RequestInit = {}) => {
+  let method = init.method ?? IPC_METHOD.GET;
+  const headers = init.headers instanceof Headers ? init.headers : new Headers(init.headers);
+  const isWs = isWebSocket(method, headers);
+  let body: undefined | BodyInit | null;
+  if (isWs) {
+    method = IPC_METHOD.POST; // new Request 如果要携带body，method 不可以是 GET
+    body = init.body;
+  } else if (httpMethodCanOwnBody(method)) {
+    body = init.body;
+  }
+  const request_init = {
+    method,
+    headers,
+    body,
+    duplex: body instanceof ReadableStream ? "half" : undefined,
+  };
+  const request = new Request(url, request_init);
+  if (isWs) {
+    Object.defineProperty(request, "method", {
+      configurable: true,
+      enumerable: true,
+      writable: false,
+      value: "GET",
+    });
+  }
+  return request;
 };

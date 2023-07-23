@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import { getAppInfo, getWidgetInfo } from "@/api/new-tab";
+import { getWidgetInfo, watchAppInfo } from "@/api/new-tab";
 import wallpaper_url from "@/assets/wallpaper.webp";
 import type { $DesktopAppMetaData, $TileSizeType, $WidgetMetaData } from "@/types/app.type";
-import { onMounted, Ref, ref, StyleValue } from "vue";
+import { onMounted, onUnmounted, Ref, ref, StyleValue } from "vue";
 import JMMVue from "../components/JMM.vue";
 import TileItem from "../components/TileItem.vue";
 import TilePanel from "../components/TilePanel.vue";
@@ -42,16 +42,26 @@ const layoutInfoListRef: Ref<$LayoutInfo[]> = ref([
 
 // 监听app消息的更新
 const updateApps = async () => {
-  const layoutInfoList: $LayoutInfo[] = [];
+  const widgetList = await getWidgetInfo();
 
-  for (const data of await getWidgetInfo()) {
+  const appInfoWatcher = watchAppInfo();
+  onUnmounted(() => {
+    appInfoWatcher.return();
+  });
+  for await (const appList of appInfoWatcher) {
+    updateLayoutInfoList(widgetList, appList);
+  }
+};
+const updateLayoutInfoList = (widgetList: $WidgetMetaData[], appList: $DesktopAppMetaData[]) => {
+  const layoutInfoList: $LayoutInfo[] = [];
+  for (const data of widgetList) {
     layoutInfoList.push({
       type: "widget",
       data,
       xywh: { w: data.size.column, h: data.size.row },
     });
   }
-  for (const data of await getAppInfo()) {
+  for (const data of appList) {
     layoutInfoList.push({
       type: "app",
       data,
@@ -60,7 +70,6 @@ const updateApps = async () => {
   }
   layoutInfoListRef.value = layoutInfoList;
 };
-Object.assign(globalThis, { updateApps });
 
 onMounted(async () => {
   await updateApps();
@@ -78,13 +87,7 @@ const bgStyle = {
     </div>
     <TilePanel>
       <TileItem v-for="(info, index) in layoutInfoListRef" :key="index" :width="info.xywh.w" :height="info.xywh.h">
-        <JMMVue
-          v-if="info.type === 'app'"
-          :key="index"
-          :index="index"
-          :app-meta-data="info.data"
-          @uninstall="updateApps"
-        ></JMMVue>
+        <JMMVue v-if="info.type === 'app'" :key="index" :index="index" :app-meta-data="info.data"></JMMVue>
         <WidgetVue v-if="info.type === 'widget'" :key="index" :index="index" :widget-meta-data="info.data"></WidgetVue>
       </TileItem>
     </TilePanel>

@@ -30,7 +30,7 @@ export const fetchMatch = () => {
       withList.push([{ url: { protocol: "dweb:" }, pathname }, callback]);
       return this;
     },
-    ws(pathname: $PatternPathname, callback: $OnFetch) {
+    duplex(pathname: $PatternPathname, callback: $OnFetch) {
       withList.push([{ method: IPC_METHOD.GET, ipcRequest: { isDuplex: true }, pathname }, callback]);
       return this;
     },

@@ -1,6 +1,6 @@
 import process from "node:process";
 import type { $BootstrapContext, $DnsMicroModule } from "../../core/bootstrapContext.ts";
-import { $normalizeRequestInitAsIpcRequestArgs } from "../../core/helper/ipcRequestHelper.ts";
+import { $normalizeRequestInitAsIpcRequestArgs, buildRequestX } from "../../core/helper/ipcRequestHelper.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import type { MicroModule } from "../../core/micro-module.ts";
 import { $ConnectResult, connectMicroModules } from "../../core/nativeConnect.ts";
@@ -164,9 +164,9 @@ export class DnsNMM extends NativeMicroModule {
       nativeFetchAdaptersManager.append(async (fromMM, parsedUrl, requestInit) => {
         if (parsedUrl.protocol === "file:" && parsedUrl.hostname.endsWith(".dweb")) {
           const mmid = parsedUrl.hostname as $MMID;
-          const [ipc] = await this[connectTo_symbol](fromMM, mmid, new Request(parsedUrl, requestInit));
-          const ipc_req_init = await $normalizeRequestInitAsIpcRequestArgs(requestInit);
-          const ipc_response = await ipc.request(parsedUrl.href, ipc_req_init);
+          const reason_request = buildRequestX(parsedUrl.href, requestInit);
+          const [ipc] = await this[connectTo_symbol](fromMM, mmid, reason_request);
+          const ipc_response = await ipc.request(reason_request.url, reason_request);
           return ipc_response.toResponse(parsedUrl.href);
         }
       })
@@ -219,7 +219,7 @@ export class DnsNMM extends NativeMicroModule {
       /// 查询匹配deeplink的程序
       for (const app of this.apps.values()) {
         if (undefined !== app.dweb_deeplinks.find((dl) => dl.startsWith(dweb_deeplink))) {
-          const req = new Request(getReqUrl());
+          const req = buildRequestX(getReqUrl());
           const [ipc] = await context.dns.connect(app.mmid, req);
           const ipc_req_init = await $normalizeRequestInitAsIpcRequestArgs(req);
           /// 发送请求

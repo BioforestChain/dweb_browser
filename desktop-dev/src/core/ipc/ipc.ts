@@ -15,6 +15,7 @@ import {
   type $OnIpcMessage,
 } from "./const.ts";
 
+import { mapHelper } from "../../helper/mapHelper.ts";
 import { $OnFetch, createFetchHandler } from "../helper/ipcFetchHelper.ts";
 export {
   FetchError,
@@ -187,31 +188,34 @@ export abstract class Ipc {
     return this.#reqresMap.value;
   }
 
-  /** 发起请求并等待响应 */
-  request(
-    url: string,
-    init?: {
-      method?: string;
-      body?: /* json+text */
-      | null
-        | string
-        /* base64 */
-        | Uint8Array
-        /* stream+base64 */
-        | ReadableStream<Uint8Array>;
-      headers?: IpcHeaders | HeadersInit;
-    }
-  ) {
+  private _buildIpcRequest(url: string, init?: $IpcRequestInit) {
     const req_id = this.allocReqId();
     const ipcRequest = IpcRequest.fromRequest(req_id, this, url, init);
-    const result = this.registerReqId(req_id);
+    return ipcRequest;
+  }
+
+  /** 发起请求并等待响应 */
+  request(url: IpcRequest): Promise<IpcResponse>;
+  request(url: string, init?: $IpcRequestInit): Promise<IpcResponse>;
+  request(input: string | IpcRequest, init?: $IpcRequestInit) {
+    const ipcRequest = input instanceof IpcRequest ? input : this._buildIpcRequest(input, init);
+    const result = this.registerReqId(ipcRequest.req_id);
     this.postMessage(ipcRequest);
     return result.promise;
   }
   /** 自定义注册 请求与响应 的id */
   registerReqId(req_id = this.allocReqId()) {
-    const response_po = new PromiseOut<IpcResponse>();
-    this._reqresMap.set(req_id, response_po);
-    return response_po;
+    return mapHelper.getOrPut(this._reqresMap, req_id, () => new PromiseOut());
   }
 }
+export type $IpcRequestInit = {
+  method?: string;
+  body?: /* json+text */
+  | null
+    | string
+    /* base64 */
+    | Uint8Array
+    /* stream+base64 */
+    | ReadableStream<Uint8Array>;
+  headers?: IpcHeaders | HeadersInit;
+};

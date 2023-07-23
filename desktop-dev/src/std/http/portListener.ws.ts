@@ -55,27 +55,45 @@ export function initWebSocketServer(this: HttpServerNMM, server: HttpServer) {
                 headers: req.headers as Record<string, string>,
               });
 
-              if (outputResponse.statusCode !== 200) {
-                return abortHandshake(
-                  req.socket,
-                  outputResponse.statusCode,
-                  await outputResponse.body.text(),
-                  outputResponse.headers.toJSON()
-                );
+              /// 如果是200响应头，那么使用WebSocket来作为双工的通讯标准进行传输
+              if (outputResponse.statusCode === 200) {
+                /// 转发来自服务器的数据
+                const outputStream = await outputResponse.body.stream();
+                //TODO close outputStream
+                void streamReadAll(outputStream, {
+                  map(chunk) {
+                    ws.send(chunk);
+                  },
+                  complete() {
+                    /// 服务端关闭流
+                    ws.close();
+                  },
+                });
               }
-              /// 转发来自服务器的数据
-              const outputStream = await outputResponse.body.stream();
-              //TODO close outputStream
-              void streamReadAll(outputStream, {
-                map(chunk) {
-                  ws.send(chunk);
-                },
-                complete() {
-                  /// 服务端关闭流
-                  ws.close();
-                },
-              });
-            })();
+              /// 如果是 101 响应头，那么使用标准的WebSocket来进行通讯
+              else if (outputResponse.statusCode === 101) {
+                /// 转发来自服务器的数据
+                const outputStream = await outputResponse.body.stream();
+                //TODO close outputStream
+                void streamReadAll(outputStream, {
+                  map(chunk) {
+                    req.socket.write(chunk);
+                  },
+                  complete() {
+                    /// 服务端关闭流
+                    req.socket.end();
+                  },
+                });
+              }
+              /// 其它情况当作错误处理
+              else {
+                const data = JSON.stringify({
+                  headers: outputResponse.headers.toJSON(),
+                  body: await outputResponse.body.text(),
+                });
+                ws.close(outputResponse.statusCode, data);
+              }
+            })().catch(console.error);
 
             /// 传输来自客户端的数据，注意，这个onmessage 前面不要有任何 await，否则会丢失消息
             ws.on("message", (data, isBinary) => {

@@ -10,9 +10,9 @@ import SvgIcon from "./SvgIcon.vue";
 
 const $appHtmlRefHook = ref<HTMLDivElement | null>(null);
 
-//控制背景虚化
 const isShowMenu = ref(false);
 const isShowOverlay = ref(false);
+
 const snackbar = reactive({
   show: false,
   type: "success", // success,primary,rbga,#fff
@@ -52,21 +52,27 @@ function closeMenu() {
 onLongPress($appHtmlRefHook, showMenu, {
   modifiers: { prevent: true },
 });
+
+async function doOpen() {
+  await openApp(props.appMetaData.id);
+}
+
+async function doQuit() {
+  if (await quitApp(props.appMetaData.id)) {
+    snackbar.text = `${props.appMetaData.short_name} 已退出后台。`;
+    snackbar.timeOut = 1500;
+    snackbar.type = "primary";
+    snackbar.show = true;
+  }
+}
+function showAppDetailApp() {
+  console.log(props.appMetaData);
+}
 const showUninstallDialog = ref(false);
 function showUninstall() {
   showUninstallDialog.value = true;
 }
 
-function showQuit() {
-  quitApp(props.appMetaData.id);
-  snackbar.text = `${props.appMetaData.short_name} 已退出后台。`;
-  snackbar.timeOut = 1500;
-  snackbar.type = "primary";
-  snackbar.show = true;
-}
-function showAppDetailApp() {
-  console.log(props.appMetaData);
-}
 const onJmmUnInstallDialogClosed = (confirmed: boolean) => {
   showUninstallDialog.value = false;
   if (confirmed) {
@@ -83,7 +89,7 @@ const onJmmUnInstallDialogClosed = (confirmed: boolean) => {
           :class="{ overlayed: isShowOverlay, focused: isShowMenu }"
           @click="isShowMenu = false"
         >
-          <div class="app-icon" v-bind="props" @click="openApp(appMetaData.id)" @contextmenu="showMenu">
+          <div class="app-icon" v-bind="props" @click="doOpen" @contextmenu="showMenu">
             <div class="bg backdrop-blur-sm" v-html="squircle_svg"></div>
             <img class="fg" :src="appMetaData.icon" />
           </div>
@@ -97,7 +103,7 @@ const onJmmUnInstallDialogClosed = (confirmed: boolean) => {
       </template>
 
       <div class="menu ios-ani" v-show="isShowMenu">
-        <button v-ripple class="item quit" @click="showQuit" :disabled="!$props.appMetaData.running">
+        <button v-ripple class="item quit" @click="doQuit" :disabled="!$props.appMetaData.running">
           <SvgIcon class="icon" src="../../../../src/assets/images/quit.svg" alt="退出" />
           <p class="title">退出</p>
         </button>

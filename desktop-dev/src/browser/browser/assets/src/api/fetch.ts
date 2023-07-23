@@ -1,19 +1,58 @@
 /// about:blank
+
+import { JsonlinesStream } from "../../../../../helper/JsonlinesStream.ts";
+import { streamRead } from "../../../../../helper/readableStreamHelper.ts";
+
 /// about:newtab
 const BASE_URL =
   location.protocol === "about:" || location.protocol === "chrome:"
     ? new URL(`http://browser.dweb.localhost/${location.href.replace(new RegExp(location.protocol + "/+"), "")}`)
     : new URL(location.href);
 const apiUrl = new URL(BASE_URL.searchParams.get("api-base") ?? BASE_URL);
+/**
+ * 默认网关是自己
+ */
 const baseMmid = apiUrl.searchParams.get("mmid") ?? "desktop.browser.dweb";
 export const nativeFetch = (pathname: string, init?: $BuildRequestInit) => {
-  // 默认请求自己
-  const mmid = init?.mmid ?? baseMmid;
-  const url = new URL(`api/${mmid}${pathname}`, apiUrl);
-  return buildRequest(url, init);
+  return fetch(...buildApiRequestArgs(pathname, init));
 };
 
-function buildRequest(url: URL, init?: $BuildRequestInit) {
+export const nativeFetchStream = <T>(
+  pathname: string,
+  init?: $BuildRequestInit,
+  options?: { signal?: AbortSignal }
+) => {
+  const [url] = buildApiRequestArgs(pathname, init);
+  const wsUrl = url.href.replace("http", "ws");
+  const ws = new WebSocket(wsUrl);
+  ws.binaryType = "arraybuffer";
+
+  return streamRead(
+    new ReadableStream<Uint8Array>({
+      start(controller) {
+        ws.onerror = (e) => {
+          controller.error(e);
+        };
+        ws.onclose = () => {
+          controller.close();
+        };
+        ws.onmessage = (msgEvent) => {
+          controller.enqueue(msgEvent.data);
+        };
+      },
+      cancel() {
+        ws.close();
+      },
+    })
+      .pipeThrough(new TextDecoderStream())
+      .pipeThrough(new JsonlinesStream<T>()),
+    options
+  );
+};
+
+export function buildApiRequestArgs(pathname: string, init?: $BuildRequestInit) {
+  const mmid = init?.mmid ?? baseMmid;
+  const url = new URL(`api/${mmid}${pathname}`, apiUrl);
   const search = init?.search;
   if (search) {
     let extendsSearch: URLSearchParams;
@@ -37,7 +76,7 @@ function buildRequest(url: URL, init?: $BuildRequestInit) {
       url.searchParams.append(key, value);
     });
   }
-  return fetch(url, init);
+  return [url, init] as const;
 }
 
 interface $BuildRequestInit extends RequestInit {
