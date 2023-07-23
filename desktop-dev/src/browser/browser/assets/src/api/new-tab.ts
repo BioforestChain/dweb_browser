@@ -3,7 +3,7 @@ import { searchWidget } from "./custom/search.widget.ts";
 import { nativeFetch, nativeFetchStream } from "./fetch.ts";
 
 export async function getAppInfo() {
-  const res = await nativeFetch("/appsInfo");
+  const res = await nativeFetch("/desktop/apps");
   if (res.status !== 200) {
     console.error("请求失败：", res.status, res.statusText);
     return [];
@@ -12,7 +12,7 @@ export async function getAppInfo() {
 }
 
 export function watchAppInfo() {
-  return nativeFetchStream<$DesktopAppMetaData[]>("/observe/appsInfo");
+  return nativeFetchStream<$DesktopAppMetaData[]>("/desktop/observe/apps");
 }
 
 export async function getWidgetInfo() {

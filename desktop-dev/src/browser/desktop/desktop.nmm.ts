@@ -3,13 +3,14 @@ import { buildRequestX } from "../../core/helper/ipcRequestHelper.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import { once } from "../../helper/$once.ts";
 import { ChangeableMap } from "../../helper/ChangeableMap.ts";
+import { JsonlinesStream } from "../../helper/JsonlinesStream.ts";
 import { isElectronDev } from "../../helper/electronIsDev.ts";
 import { simpleEncoder } from "../../helper/encoding.ts";
 import { createComlinkNativeWindow, createNativeWindow } from "../../helper/openNativeWindow.ts";
 import { fetchMatch } from "../../helper/patternHelper.ts";
 import { ReadableStreamOut, streamReadAll } from "../../helper/readableStreamHelper.ts";
 import { buildUrl } from "../../helper/urlHelper.ts";
-import { zq } from "../../helper/zodHelper.ts";
+import { z, zq } from "../../helper/zodHelper.ts";
 import { HttpDwebServer, createHttpDwebServer } from "../../std/http/helper/$createHttpDwebServer.ts";
 import { JMM_DB } from "../jmm/jmm.api.serve.ts";
 import { $AppMetaData } from "../jmm/jmm.ts";
@@ -31,6 +32,9 @@ export class DesktopNMM extends NativeMicroModule {
     const query_limit = zq.object({
       limit: zq.number().optional(),
     });
+    const json_limit = z.object({
+      limit: z.number().optional(),
+    });
 
     const taskbarAppList = [...desktopStore.get("taskbar/apps", () => new Set())].reverse();
     const runingApps = new ChangeableMap<$MMID, Ipc>();
@@ -41,30 +45,28 @@ export class DesktopNMM extends NativeMicroModule {
       desktopStore.set("taskbar/apps", new Set(taskbarAppList));
     });
 
-    const getAppsInfo = async () =>
+    const getDesktopAppList = async () =>
       (await JMM_DB.all()).map((metaData) => {
         return { ...metaData, running: runingApps.has(metaData.id) };
       });
 
+    const getTaskbarAppList = async (limit: number) => {
+      const apps: $DesktopAppMetaData[] = [];
+
+      for (const app_id of taskbarAppList) {
+        const metaData = await JMM_DB.find(app_id);
+        if (metaData) {
+          apps.push({ ...metaData, running: runingApps.has(app_id) });
+        }
+        if (apps.length >= limit) {
+          return apps;
+        }
+      }
+      return apps;
+    };
+
     const onFetchHanlder = fetchMatch()
-      .get("/appsInfo", async () => {
-        return Response.json(await getAppsInfo());
-      })
-      .duplex("/observe/appsInfo", async (event) => {
-        const responseBody = new ReadableStreamOut<Uint8Array>();
-        const doWriteJsonline = async () => {
-          responseBody.controller.enqueue(simpleEncoder(JSON.stringify(await getAppsInfo()) + "\n", "utf8"));
-        };
-        /// 监听变更，推送数据
-        const off = runingApps.onChange(doWriteJsonline);
-        /// 监听关闭，停止监听
-        void streamReadAll(await event.ipcRequest.body.stream()).finally(()=>{
-          off()
-        });
-        /// 发送一次现有的数据数据
-        void doWriteJsonline();
-        return { body: responseBody.stream };
-      })
+      //#region 通用接口
       .get("/openAppOrActivate", async (event) => {
         const { app_id } = query_app_id(event.searchParams);
         console.always("activity", app_id);
@@ -95,16 +97,57 @@ export class DesktopNMM extends NativeMicroModule {
         }
         return Response.json(closed);
       })
-      .get("/taskbar/appsInfo", async (event) => {
+      //#endregion
+      .get("/desktop/apps", async () => {
+        return Response.json(await getDesktopAppList());
+      })
+      .duplex("/desktop/observe/apps", async (event) => {
+        const responseBody = new ReadableStreamOut<Uint8Array>();
+        const doWriteJsonline = async () => {
+          responseBody.controller.enqueue(simpleEncoder(JSON.stringify(await getDesktopAppList()) + "\n", "utf8"));
+        };
+        /// 监听变更，推送数据
+        const off = runingApps.onChange(doWriteJsonline);
+        /// 监听关闭，停止监听
+        void streamReadAll(await event.ipcRequest.body.stream()).finally(() => {
+          off();
+          /// 确保双向中断
+          responseBody.controller.close();
+        });
+        /// 发送一次现有的数据数据
+        void doWriteJsonline();
+        return { body: responseBody.stream };
+      })
+      .get("/taskbar/apps", async (event) => {
         const { limit = Infinity } = query_limit(event.searchParams);
-        const apps: $DesktopAppMetaData[] = [];
-
-        for (const app_id of taskbarAppList) {
-          const metaData = await JMM_DB.find(app_id);
-          if (metaData) {
-            apps.push({ ...metaData, running: runingApps.has(app_id) });
+        return Response.json(getTaskbarAppList(limit));
+      })
+      .duplex("/taskbar/observe/apps", async (event) => {
+        let { limit = Infinity } = query_limit(event.searchParams);
+        const responseBody = new ReadableStreamOut<Uint8Array>();
+        const doWriteJsonline = async () => {
+          responseBody.controller.enqueue(simpleEncoder(JSON.stringify(await getTaskbarAppList(limit)) + "\n", "utf8"));
+        };
+        /// 监听变更，推送数据
+        const off = runingApps.onChange(doWriteJsonline);
+        /// 监听关闭，停止监听
+        void streamReadAll(
+          (await event.ipcRequest.body.stream())
+            .pipeThrough(new TextDecoderStream())
+            .pipeThrough(new JsonlinesStream<{ limit?: number }>()),
+          {
+            map(item) {
+              limit = json_limit.parse(item).limit ?? Infinity;
+            },
           }
-        }
+        ).finally(() => {
+          off();
+          /// 如果传来的数据解析异常了，websocket就断掉
+          responseBody.controller.close();
+        });
+        /// 发送一次现有的数据数据
+        void doWriteJsonline();
+        return { body: responseBody.stream };
       });
     this.onFetch(onFetchHanlder.run).internalServerError();
 

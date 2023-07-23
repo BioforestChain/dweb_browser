@@ -94,11 +94,11 @@ export class JmmNMM extends NativeMicroModule {
       })
       .get("/detailApp", async (event) => {
         const { app_id: mmid } = query_app_id(event.searchParams);
-        const appsInfo = await JMM_DB.find(mmid);
-        if (appsInfo === undefined) {
+        const appInfo = await JMM_DB.find(mmid);
+        if (appInfo === undefined) {
           throw new FetchError(`not found ${mmid}`, { status: 404 });
         }
-        return Response.json(appsInfo);
+        return Response.json(appInfo);
       })
       .get("/install", async (event) => {
         const { metadataUrl } = query_metadataUrl(event.searchParams);

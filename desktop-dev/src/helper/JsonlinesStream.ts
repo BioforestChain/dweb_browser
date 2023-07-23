@@ -2,17 +2,14 @@
  * 将字符串解码成 jsonlines 格式
  */
 export class JsonlinesStream<T> extends TransformStream<string, T> {
-  constructor() {
+  constructor(onError?: (err: unknown, controller: TransformStreamDefaultController<T>) => void) {
     let json = "";
 
-    const try_enqueue = (
-      controller: TransformStreamDefaultController<T>,
-      jsonline: string
-    ) => {
+    const try_enqueue = (controller: TransformStreamDefaultController<T>, jsonline: string) => {
       try {
         controller.enqueue(JSON.parse(jsonline));
       } catch (err) {
-        controller.error(err);
+        onError ? onError(err, controller) : controller.error(err);
         return true;
       }
     };
