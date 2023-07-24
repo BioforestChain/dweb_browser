@@ -6,7 +6,7 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import info.bagen.dwebbrowser.microService.browser.jmm.JmmMetadata
+import org.dweb_browser.helper.AppMetaData
 
 val LocalInstallList = compositionLocalOf<MutableList<AppInfo>> {
   noLocalProvidedFor("LocalInstallList")
@@ -27,7 +27,7 @@ data class AppInfo(
   val offsetX: MutableState<Float> = mutableFloatStateOf(0f), // X轴偏移量
   val offsetY: MutableState<Float> = mutableFloatStateOf(0f), // Y轴偏移量
   val zoom: MutableState<Float> = mutableFloatStateOf(1f), // 缩放
-  val jmmMetadata: JmmMetadata,
+  val appMetaData: AppMetaData,
 ) {
   enum class ScreenType {
     Hide, Half, Full;

@@ -54,7 +54,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.R
-import info.bagen.dwebbrowser.microService.browser.jmm.JmmMetadata
+import org.dweb_browser.helper.AppMetaData
 import kotlinx.coroutines.launch
 import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
 import org.dweb_browser.browserUI.download.DownLoadStatus
@@ -87,7 +87,7 @@ private data class PreviewState(
 
 @Composable
 fun MALLBrowserView(viewModel: JmmManagerViewModel, onBack: () -> Unit) {
-  val jmmMetadata = viewModel.uiState.jmmMetadata
+  val jmmMetadata = viewModel.uiState.appMetaData
   val topBarAlpha = remember { mutableStateOf(0f) }
   val lazyListState = rememberLazyListState()
   val screenWidth = LocalConfiguration.current.screenWidthDp
@@ -212,7 +212,7 @@ private fun TopAppBar(alpha: MutableState<Float>, title: String, onBack: () -> U
 private fun BoxScope.BottomDownloadButton(viewModel: JmmManagerViewModel) {
   val background = MaterialTheme.colorScheme.surface
   val downLoadInfo = viewModel.uiState.downloadInfo.value
-  val jmmMetadata = viewModel.uiState.jmmMetadata
+  val jmmMetadata = viewModel.uiState.appMetaData
   Box(
     modifier = Modifier
       .fillMaxWidth()
@@ -277,7 +277,7 @@ private fun BoxScope.BottomDownloadButton(viewModel: JmmManagerViewModel) {
 
 @Composable
 private fun AppInfoContentView(
-  lazyListState: LazyListState, jmmMetadata: JmmMetadata, onSelectPic: (Int, LazyListState) -> Unit
+  lazyListState: LazyListState, appMetaData: AppMetaData, onSelectPic: (Int, LazyListState) -> Unit
 ) {
   LazyColumn(
     state = lazyListState,
@@ -289,7 +289,7 @@ private fun AppInfoContentView(
       .padding(top = TopBarHeight)
   ) {
     // 头部内容， HeadHeight 128.dp
-    item { AppInfoHeadView(jmmMetadata) }
+    item { AppInfoHeadView(appMetaData) }
     // 应用信息， 88.dp
     item {
       Column(
@@ -298,7 +298,7 @@ private fun AppInfoContentView(
           .clip(RoundedCornerShape(topStart = ShapeCorner, topEnd = ShapeCorner))
           .background(MaterialTheme.colorScheme.surface)
       ) {
-        AppInfoLazyRow(jmmMetadata)
+        AppInfoLazyRow(appMetaData)
       }
     }
     // 上面padding 16.dp
@@ -309,7 +309,7 @@ private fun AppInfoContentView(
           .background(MaterialTheme.colorScheme.surface)
       ) {
         CustomerDivider(modifier = Modifier.padding(horizontal = HorizontalPadding))
-        CaptureListView(jmmMetadata, onSelectPic)
+        CaptureListView(appMetaData, onSelectPic)
       }
     }
 
@@ -320,11 +320,11 @@ private fun AppInfoContentView(
           .background(MaterialTheme.colorScheme.surface)
       ) {
         CustomerDivider(modifier = Modifier.padding(horizontal = HorizontalPadding))
-        AppIntroductionView(jmmMetadata)
+        AppIntroductionView(appMetaData)
         CustomerDivider(modifier = Modifier.padding(horizontal = HorizontalPadding))
-        NewVersionInfoView(jmmMetadata)
+        NewVersionInfoView(appMetaData)
         CustomerDivider(modifier = Modifier.padding(horizontal = HorizontalPadding))
-        OtherInfoView(jmmMetadata)
+        OtherInfoView(appMetaData)
         Spacer(modifier = Modifier.height(AppBottomHeight))
       }
     }
@@ -335,7 +335,7 @@ private fun AppInfoContentView(
  * 顶部的头像和应用名称
  */
 @Composable
-private fun AppInfoHeadView(jmmMetadata: JmmMetadata) {
+private fun AppInfoHeadView(appMetaData: AppMetaData) {
   val size = HeadHeight - VerticalPadding * 2
   Row(
     modifier = Modifier
@@ -344,7 +344,7 @@ private fun AppInfoHeadView(jmmMetadata: JmmMetadata) {
     verticalAlignment = Alignment.CenterVertically
   ) {
     AsyncImage(
-      model = jmmMetadata.icon,
+      model = appMetaData.icon,
       contentDescription = "AppIcon",
       modifier = Modifier
         .size(size)
@@ -358,7 +358,7 @@ private fun AppInfoHeadView(jmmMetadata: JmmMetadata) {
         .height(size)
     ) {
       Text(
-        text = jmmMetadata.name,
+        text = appMetaData.name,
         maxLines = 2,
         fontWeight = FontWeight(500),
         fontSize = 22.sp,
@@ -369,7 +369,7 @@ private fun AppInfoHeadView(jmmMetadata: JmmMetadata) {
       Spacer(modifier = Modifier.height(8.dp))
 
       Text(
-        text = jmmMetadata.short_name,
+        text = appMetaData.short_name,
         maxLines = 1,
         color = MaterialTheme.colorScheme.outlineVariant,
         overflow = TextOverflow.Ellipsis,
@@ -393,7 +393,7 @@ private fun AppInfoHeadView(jmmMetadata: JmmMetadata) {
  * 中间的横向数据
  */
 @Composable
-private fun AppInfoLazyRow(jmmMetadata: JmmMetadata) {
+private fun AppInfoLazyRow(appMetaData: AppMetaData) {
   LazyRow(
     modifier = Modifier
       .fillMaxWidth()
@@ -412,7 +412,7 @@ private fun AppInfoLazyRow(jmmMetadata: JmmMetadata) {
       DoubleRowItem(first = "18+", second = "年满 18 周岁")
     }
     item { // 大小
-      DoubleRowItem(first = jmmMetadata.bundle_size.toSpaceSize(), second = "大小")
+      DoubleRowItem(first = appMetaData.bundle_size.toSpaceSize(), second = "大小")
     }
   }
 }
@@ -442,8 +442,8 @@ private fun DoubleRowItem(first: String, second: String) {
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun CaptureListView(jmmMetadata: JmmMetadata, onSelectPic: (Int, LazyListState) -> Unit) {
-  jmmMetadata.images?.let { images ->
+private fun CaptureListView(appMetaData: AppMetaData, onSelectPic: (Int, LazyListState) -> Unit) {
+  appMetaData.images?.let { images ->
     val lazyListState = rememberLazyListState()
     LazyRow(
       modifier = Modifier.padding(vertical = VerticalPadding),
@@ -468,7 +468,7 @@ private fun CaptureListView(jmmMetadata: JmmMetadata, onSelectPic: (Int, LazyLis
  * 应用介绍描述部分
  */
 @Composable
-private fun AppIntroductionView(jmmMetadata: JmmMetadata) {
+private fun AppIntroductionView(appMetaData: AppMetaData) {
   val expanded = remember { mutableStateOf(false) }
   Column(modifier = Modifier.padding(horizontal = HorizontalPadding, vertical = VerticalPadding)) {
     Text(
@@ -482,7 +482,7 @@ private fun AppIntroductionView(jmmMetadata: JmmMetadata) {
       .animateContentSize()
       .clickable { expanded.value = !expanded.value }) {
       Text(
-        text = jmmMetadata.description,
+        text = appMetaData.description,
         maxLines = if (expanded.value) Int.MAX_VALUE else 2,
         overflow = TextOverflow.Ellipsis,
         color = MaterialTheme.colorScheme.onSurface
@@ -495,7 +495,7 @@ private fun AppIntroductionView(jmmMetadata: JmmMetadata) {
  * 应用新版本信息部分
  */
 @Composable
-private fun NewVersionInfoView(jmmMetadata: JmmMetadata) {
+private fun NewVersionInfoView(appMetaData: AppMetaData) {
   val expanded = remember { mutableStateOf(false) }
   Column(modifier = Modifier.padding(horizontal = HorizontalPadding, vertical = VerticalPadding)) {
     Text(
@@ -505,7 +505,7 @@ private fun NewVersionInfoView(jmmMetadata: JmmMetadata) {
       color = MaterialTheme.colorScheme.onSurface
     )
     Text(
-      text = "版本 ${jmmMetadata.version}",
+      text = "版本 ${appMetaData.version}",
       fontSize = 12.sp,
       fontWeight = FontWeight.Bold,
       color = MaterialTheme.colorScheme.outline,
@@ -516,7 +516,7 @@ private fun NewVersionInfoView(jmmMetadata: JmmMetadata) {
       .animateContentSize()
       .clickable { expanded.value = !expanded.value }) {
       Text(
-        text = jmmMetadata.new_feature ?: "运用全新的功能，让使用更加安全便捷",
+        text = appMetaData.new_feature ?: "运用全新的功能，让使用更加安全便捷",
         maxLines = if (expanded.value) Int.MAX_VALUE else 2,
         overflow = TextOverflow.Ellipsis,
         color = MaterialTheme.colorScheme.onSurface
@@ -529,7 +529,7 @@ private fun NewVersionInfoView(jmmMetadata: JmmMetadata) {
  * 应用的其他相关内容
  */
 @Composable
-private fun OtherInfoView(jmmMetadata: JmmMetadata) {
+private fun OtherInfoView(appMetaData: AppMetaData) {
   Column(modifier = Modifier.padding(horizontal = HorizontalPadding, vertical = VerticalPadding)) {
     Text(
       text = "信息",
@@ -538,12 +538,12 @@ private fun OtherInfoView(jmmMetadata: JmmMetadata) {
       color = MaterialTheme.colorScheme.onSurface
     )
     Spacer(modifier = Modifier.height(HorizontalPadding))
-    OtherItemView(type = "开发者", content = jmmMetadata.author?.toContent() ?: "me")
-    OtherItemView(type = "大小", content = jmmMetadata.bundle_size.toSpaceSize())
-    OtherItemView(type = "类别", content = jmmMetadata.categories?.toContent() ?: "娱乐")
+    OtherItemView(type = "开发者", content = appMetaData.author?.toContent() ?: "me")
+    OtherItemView(type = "大小", content = appMetaData.bundle_size.toSpaceSize())
+    OtherItemView(type = "类别", content = appMetaData.categories?.toContent() ?: "娱乐")
     OtherItemView(type = "语言", content = "中文")
     OtherItemView(type = "年龄分级", content = "18+")
-    OtherItemView(type = "版权", content = "@${jmmMetadata.author?.get(0) ?: "dweb_browser"}")
+    OtherItemView(type = "版权", content = "@${appMetaData.author?.get(0) ?: "dweb_browser"}")
   }
 }
 
@@ -585,7 +585,7 @@ private fun CustomerDivider(modifier: Modifier = Modifier) =
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun ImagePreview(jmmMetadata: JmmMetadata, previewState: PreviewState, ) {
+private fun ImagePreview(appMetaData: AppMetaData, previewState: PreviewState, ) {
   AnimatedVisibility(
     visibleState = previewState.showPreview,
     enter = scaleIn(
@@ -601,9 +601,9 @@ private fun ImagePreview(jmmMetadata: JmmMetadata, previewState: PreviewState, )
     val pagerState = rememberPagerState(
       initialPage = previewState.selectIndex.value,
       initialPageOffsetFraction = 0f,
-      pageCount = { jmmMetadata.images?.size ?: 0 }
+      pageCount = { appMetaData.images?.size ?: 0 }
     )
-    val imageList = jmmMetadata.images ?: listOf()
+    val imageList = appMetaData.images ?: listOf()
 
     LaunchedEffect(previewState) { // 为了滑动图片后，刷新后端的图片中心点位置
       snapshotFlow { pagerState.currentPage }.collect { pager ->

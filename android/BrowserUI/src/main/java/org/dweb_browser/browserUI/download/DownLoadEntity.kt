@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import org.dweb_browser.dwebview.serviceWorker.DownloadControllerEvent
+import org.dweb_browser.helper.AppMetaData
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.microservice.help.Mmid
@@ -34,7 +35,7 @@ data class DownLoadInfo(
   var dSize: Long = 1L, // 已下载大小
   // var progress: Float = 0f, // 进度 0~1
   var downLoadStatus: DownLoadStatus = DownLoadStatus.IDLE, // 标记当前下载状态
-  val appInfo: String = "", // 保存app数据，如jmmMetadata
+  val metaData: AppMetaData = AppMetaData(id), // 保存app数据，如jmmMetadata
 )
 
 data class DownLoadObserverListener(

@@ -26,7 +26,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import info.bagen.dwebbrowser.microService.browser.jmm.JmmMetadata
+import org.dweb_browser.helper.AppMetaData
 import info.bagen.dwebbrowser.microService.desktop.db.desktopAppList
 import info.bagen.dwebbrowser.microService.desktop.model.AppInfo
 import info.bagen.dwebbrowser.microService.desktop.model.LocalDrawerManager
@@ -51,9 +51,8 @@ fun DesktopMainView() {
   LaunchedEffect(installList) {
     withContext(ioAsyncExceptionHandler) {
       AppInfoDataStore.queryAppInfoList().collectLatest {
-        it.forEach { (mmid, value) ->
-          val jmmMetadata = gson.fromJson(value, JmmMetadata::class.java)
-          AppInfo(jmmMetadata = jmmMetadata).also { appInfo ->
+        it.forEach { appMetaData ->
+          AppInfo(appMetaData = appMetaData).also { appInfo ->
             appInfo.zoom.value = 0.7f
             appInfo.offsetX.value = (16 - screenWidth * 0.15f) * density
             appInfo.offsetY.value = 0f
@@ -100,7 +99,7 @@ internal fun MainView() {
     ) {
       itemsIndexed(installList) { _, item ->
         MainAppItemView(appInfo = item) {
-          openList.find { it.jmmMetadata.id == item.jmmMetadata.id }?.let {
+          openList.find { it.appMetaData.id == item.appMetaData.id }?.let {
             // move to front
             openList.remove(item)
             openList.add(item)
@@ -124,7 +123,7 @@ internal fun MainAppItemView(appInfo: AppInfo, onClick: () -> Unit) {
       .clickableWithNoEffect { onClick() },
     horizontalAlignment = Alignment.CenterHorizontally,
   ) {
-    AsyncImage(model = appInfo.jmmMetadata.icon, contentDescription = appInfo.jmmMetadata.name)
-    Text(text = appInfo.jmmMetadata.name, maxLines = 1)
+    AsyncImage(model = appInfo.appMetaData.icon, contentDescription = appInfo.appMetaData.name)
+    Text(text = appInfo.appMetaData.name, maxLines = 1)
   }
 }

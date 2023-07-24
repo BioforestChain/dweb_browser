@@ -1,12 +1,13 @@
 package info.bagen.dwebbrowser.microService.test
 
-import info.bagen.dwebbrowser.microService.browser.jmm.JmmMetadata
+import org.dweb_browser.helper.AppMetaData
 import info.bagen.dwebbrowser.microService.browser.jmm.JsMicroModule
+import org.dweb_browser.helper.MainServer
 
 class DesktopDemoJMM : JsMicroModule(
-  JmmMetadata(
+  AppMetaData(
     id = "desktop.dweb-browser.org.dweb",
-    server = JmmMetadata.MainServer("/sys", "/server/plaoc.server.js"),
+    server = MainServer("/sys", "/server/plaoc.server.js"),
     name = "plaoc-demo",
     short_name = "demo",
     icon = "https://www.bfmeta.info/imgs/logo3.webp",

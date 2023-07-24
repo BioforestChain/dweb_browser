@@ -2,7 +2,7 @@ package info.bagen.dwebbrowser.microService.browser.nativeui.splashScreen
 
 import org.dweb_browser.microservice.help.Mmid
 import org.dweb_browser.helper.*
-import info.bagen.dwebbrowser.microService.browser.jmm.JmmMetadata
+import org.dweb_browser.helper.AppMetaData
 import info.bagen.dwebbrowser.microService.browser.jmm.JsMicroModule
 import info.bagen.dwebbrowser.microService.browser.mwebview.MultiWebViewController
 import info.bagen.dwebbrowser.microService.browser.mwebview.MultiWebViewNMM
@@ -77,9 +77,9 @@ class SplashScreenNMM : NativeMicroModule("splash-screen.nativeui.browser.dweb")
     }
 
     fun show(
-        controller: MultiWebViewController,
-        metadata: JmmMetadata,
-        options: SplashScreenSettings
+      controller: MultiWebViewController,
+      metadata: AppMetaData,
+      options: SplashScreenSettings
     ) {
         val webview = controller.lastViewOrNull?.webView
 //        val entry = metadata.splashScreen.entry

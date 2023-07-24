@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.browser.jmm.JmmController
-import info.bagen.dwebbrowser.microService.browser.jmm.JmmMetadata
+import org.dweb_browser.helper.AppMetaData
 import info.bagen.dwebbrowser.microService.browser.jmm.JmmNMM
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -21,7 +21,7 @@ import java.util.*
 
 data class JmmUIState(
   var downloadInfo: MutableState<DownLoadInfo>,
-  val jmmMetadata: JmmMetadata,
+  val appMetaData: AppMetaData,
 )
 
 /*
@@ -36,7 +36,7 @@ data class DownLoadInfo(
 )
 */
 
-fun createDownLoadInfoByJmm(jmmMetadata: JmmMetadata): DownLoadInfo {
+fun createDownLoadInfoByJmm(appMetaData: AppMetaData): DownLoadInfo {
   /*return DownLoadInfo(
     id = jmmMetadata.id,
     url = jmmMetadata.bundle_url,
@@ -45,36 +45,36 @@ fun createDownLoadInfoByJmm(jmmMetadata: JmmMetadata): DownLoadInfo {
     downLoadStatus = DownLoadStatus.IDLE,
     appInfo = gson.toJson(jmmMetadata)
   )*/
-  return if (JmmNMM.getAndUpdateJmmNmmApps().containsKey(jmmMetadata.id)) {
+  return if (JmmNMM.getAndUpdateJmmNmmApps().containsKey(appMetaData.id)) {
     // 表示当前mmid已存在，判断版本，如果是同一个版本，显示为打开；如果是更新的版本，显示为 更新
-    val curJmmMetadata = JmmNMM.getAndUpdateJmmNmmApps()[jmmMetadata.id]!!.metadata
-    if (compareAppVersionHigh(curJmmMetadata.version, jmmMetadata.version)) {
+    val curJmmMetadata = JmmNMM.getAndUpdateJmmNmmApps()[appMetaData.id]!!.metadata
+    if (compareAppVersionHigh(curJmmMetadata.version, appMetaData.version)) {
       DownLoadInfo(
-        id = jmmMetadata.id,
-        url = jmmMetadata.bundle_url,
-        name = jmmMetadata.name,
+        id = appMetaData.id,
+        url = appMetaData.bundle_url,
+        name = appMetaData.name,
         downLoadStatus = DownLoadStatus.NewVersion,
-        path = "${App.appContext.cacheDir}/DL_${jmmMetadata.id}_${Calendar.MILLISECOND}.bfsa",
+        path = "${App.appContext.cacheDir}/DL_${appMetaData.id}_${Calendar.MILLISECOND}.bfsa",
         notificationId = (NotificationUtil.notificationId++),
-        appInfo = gson.toJson(jmmMetadata),
+        metaData = appMetaData,
       )
     } else {
       DownLoadInfo(
-        id = jmmMetadata.id,
-        url = jmmMetadata.bundle_url,
-        name = jmmMetadata.name,
+        id = appMetaData.id,
+        url = appMetaData.bundle_url,
+        name = appMetaData.name,
         downLoadStatus = DownLoadStatus.INSTALLED
       )
     }
   } else {
     DownLoadInfo(
-      id = jmmMetadata.id,
-      url = jmmMetadata.bundle_url,
-      name = jmmMetadata.name,
+      id = appMetaData.id,
+      url = appMetaData.bundle_url,
+      name = appMetaData.name,
       downLoadStatus = DownLoadStatus.IDLE,
-      path = "${App.appContext.cacheDir}/DL_${jmmMetadata.id}_${Calendar.MILLISECOND}.bfsa",
+      path = "${App.appContext.cacheDir}/DL_${appMetaData.id}_${Calendar.MILLISECOND}.bfsa",
       notificationId = (NotificationUtil.notificationId++),
-      appInfo = gson.toJson(jmmMetadata),
+      metaData = appMetaData,
     )
   }
 }
@@ -85,16 +85,16 @@ sealed class JmmIntent {
 }
 
 class JmmManagerViewModel(
-  jmmMetadata: JmmMetadata, private val jmmController: JmmController?
+  appMetaData: AppMetaData, private val jmmController: JmmController?
 ) : ViewModel() {
   val uiState: JmmUIState
   private var downLoadObserver: DownLoadObserver? = null
 
   init {
-    val downLoadInfo = createDownLoadInfoByJmm(jmmMetadata)
-    uiState = JmmUIState(mutableStateOf(downLoadInfo), jmmMetadata)
+    val downLoadInfo = createDownLoadInfoByJmm(appMetaData)
+    uiState = JmmUIState(mutableStateOf(downLoadInfo), appMetaData)
     if (downLoadInfo.downLoadStatus != DownLoadStatus.INSTALLED) {
-      downLoadObserver = DownLoadObserver(jmmMetadata.id)
+      downLoadObserver = DownLoadObserver(appMetaData.id)
       initDownLoadStatusListener()
     }
   }

@@ -25,7 +25,7 @@ import java.util.*
 fun debugJsMM(tag: String, msg: Any? = "", err: Throwable? = null) =
   printdebugln("JsMM", tag, msg, err)
 
-open class JsMicroModule(var metadata: JmmMetadata) : MicroModule() {
+open class JsMicroModule(var metadata: AppMetaData) : MicroModule() {
 
   override val dweb_deeplinks: MutableList<DWEB_DEEPLINK>
     get() = this.metadata.dweb_deeplinks

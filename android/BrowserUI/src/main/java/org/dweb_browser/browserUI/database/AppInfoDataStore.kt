@@ -14,13 +14,15 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 import org.dweb_browser.browserUI.util.BrowserUIApp
+import org.dweb_browser.helper.AppMetaData
 import org.dweb_browser.microservice.help.Mmid
+import org.dweb_browser.microservice.help.gson
 
 object AppInfoDataStore {
   private const val PREFERENCE_NAME = "AppInfo"
   private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = PREFERENCE_NAME)
 
-  fun queryAppInfo(key: String): Flow<String?> {
+  fun queryAppInfo(key: String): Flow<AppMetaData?> {
     return BrowserUIApp.Instance.appContext.dataStore.data.catch { e ->  // Flow 中发生异常可使用这种方式捕获，catch 块是可选的
       if (e is IOException) {
         e.printStackTrace()
@@ -29,11 +31,11 @@ object AppInfoDataStore {
         throw e
       }
     }.map { pref ->
-      pref[stringPreferencesKey(key)]
+      gson.fromJson(pref[stringPreferencesKey(key)],AppMetaData::class.java)
     }
   }
 
-  suspend fun queryAppInfoList(): Flow<MutableMap<Mmid, String>> {
+  suspend fun queryAppInfoList(): Flow<MutableList<AppMetaData>> {
     return BrowserUIApp.Instance.appContext.dataStore.data.catch { e ->  // Flow 中发生异常可使用这种方式捕获，catch 块是可选的
       if (e is IOException) {
         e.printStackTrace()
@@ -42,26 +44,26 @@ object AppInfoDataStore {
         throw e
       }
     }.map { pref ->
-      val list = mutableMapOf<Mmid, String>()
+      val list = mutableListOf<AppMetaData>()
       pref.asMap().forEach { (key, value) ->
-        list[key.name] = value as String
+        list.plus(gson.fromJson(value as String, AppMetaData::class.java))
       }
       list
     }
   }
 
-  fun saveAppInfo(mmid: Mmid, appInfo: String) = runBlocking(Dispatchers.IO) {
+  fun saveAppInfo(mmid: Mmid, appMetaData: AppMetaData) = runBlocking(Dispatchers.IO) {
     // edit 函数需要在挂起环境中执行
     BrowserUIApp.Instance.appContext.dataStore.edit { pref ->
-      pref[stringPreferencesKey(mmid)] = appInfo
+      pref[stringPreferencesKey(mmid)] = appMetaData.toString()
     }
   }
 
-  suspend fun saveAppInfoList(list: MutableMap<Mmid, String>) = runBlocking(Dispatchers.IO) {
+  suspend fun saveAppInfoList(list: MutableMap<Mmid, AppMetaData>) = runBlocking(Dispatchers.IO) {
     // edit 函数需要在挂起环境中执行
     BrowserUIApp.Instance.appContext.dataStore.edit { pref ->
-      list.forEach { (key, value) ->
-        pref[stringPreferencesKey(key)] = value
+      list.forEach { (key, appMetaData) ->
+        pref[stringPreferencesKey(key)] = appMetaData.toString()
       }
     }
   }

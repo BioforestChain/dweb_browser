@@ -2,6 +2,7 @@ package org.dweb_browser.dwebview.closeWatcher
 
 import android.annotation.SuppressLint
 import android.webkit.JavascriptInterface
+import kotlinx.coroutines.Dispatchers
 import org.dweb_browser.helper.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -30,12 +31,16 @@ class CloseWatcher(val viewItem: ViewItem) {
          * js 创建 CloseWatcher
          */
         @JavascriptInterface
-        fun registryToken(consumeToken: String) {
+         fun registryToken(consumeToken: String) {
           if (consumeToken.isNullOrBlank()) {
             throw Exception("CloseWatcher.registryToken invalid arguments");
           }
           consuming.add(consumeToken)
-          viewItem.webView.evaluateJavascript("open('$consumeToken')")
+          GlobalScope.launch(ioAsyncExceptionHandler) {
+            withContext(Dispatchers.Main) {
+              viewItem.webView.evaluateJavascript("open('$consumeToken')",{})
+            }
+          }
         }
 
         /**

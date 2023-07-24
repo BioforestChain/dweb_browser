@@ -83,7 +83,7 @@ internal fun DrawerInnerView() {
       ) {
         itemsIndexed(localOpenList) { index: Int, item: AppInfo ->
           AsyncImage(
-            model = item.jmmMetadata.icon,
+            model = item.appMetaData.icon,
             contentDescription = "Icon",
             modifier = Modifier
               .size(48.dp)

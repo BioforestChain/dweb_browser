@@ -9,7 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.base.BaseActivity
-import info.bagen.dwebbrowser.microService.browser.jmm.JmmMetadata
+import org.dweb_browser.helper.AppMetaData
 import info.bagen.dwebbrowser.microService.browser.jmm.JmmNMM
 
 class JmmManagerActivity : BaseActivity() {
@@ -18,12 +18,12 @@ class JmmManagerActivity : BaseActivity() {
     const val ACTION_LAUNCH = "info.bagen.dwebbrowser.openjmm"
     const val KEY_JMM_METADATA = "key_jmm_meta_data"
 
-    fun startActivity(jmmMetadata: JmmMetadata) {
+    fun startActivity(dataMetadata: AppMetaData) {
       App.startActivity(JmmManagerActivity::class.java) { intent ->
         intent.action = ACTION_LAUNCH
         intent.`package` = "info.bagen.dwebbrowser"
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NEW_DOCUMENT
-        intent.putExtra(KEY_JMM_METADATA, jmmMetadata)
+        intent.putExtra(KEY_JMM_METADATA, dataMetadata)
       }
     }
   }
@@ -39,8 +39,8 @@ class JmmManagerActivity : BaseActivity() {
 
   override fun initData() {
     intent.getSerializableExtra(KEY_JMM_METADATA)?.let {
-      val jmmMetadata = it as JmmMetadata
-      jmmManagerViewModel = JmmManagerViewModel(jmmMetadata, JmmNMM.jmmController)
+      val appMetaData = it as AppMetaData
+      jmmManagerViewModel = JmmManagerViewModel(appMetaData, JmmNMM.jmmController)
     }
   }
 

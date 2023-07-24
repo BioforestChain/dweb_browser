@@ -138,7 +138,7 @@ internal fun Toolbar(
         .clickableWithNoEffect { onClose() }
     )
     Text(
-      text = appInfo.jmmMetadata.name,
+      text = appInfo.appMetaData.name,
       modifier = Modifier.weight(1f),
       textAlign = TextAlign.Center,
       maxLines = 1

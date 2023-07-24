@@ -162,7 +162,7 @@ class DwebBrowserService : Service() {
         this.path, FilesUtil.getAppUnzipPath(this@DwebBrowserService), mmid = id
       )
       if (unzip) {
-        AppInfoDataStore.saveAppInfo(id, appInfo) // 保存的
+        AppInfoDataStore.saveAppInfo(id, metaData) // 保存的
         // 删除下面的方法，调用saveJmmMetadata时，会自动更新datastore，而datastore在jmmNMM中有执行了installApp
         DownLoadObserver.emit(this.id, DownLoadStatus.INSTALLED)
         this.downLoadStatus = DownLoadStatus.INSTALLED

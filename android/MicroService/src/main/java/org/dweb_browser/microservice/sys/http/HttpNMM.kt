@@ -129,25 +129,47 @@ class HttpNMM : NativeMicroModule("http.std.dweb") {
   /**webSocket 网关路由寻找*/
   private suspend fun wsHandler(request: Request): WsResponse {
     val response = httpHandler(request)
-    return if (response.status.code == Status.OK.code) {
-      WsResponse { ws ->
-        val stream = response.stream()
-        while (true) {
-          when (val readInt = stream.available()) {
-            -1 -> {
-              ws.close()
-              break
-            }
-            else -> {
-              val chunk = stream.readByteArray(readInt)
-              ws.send(WsMessage(ByteArrayInputStream(chunk)))
+    return  when(response.status.code) {
+      /// 如果是200响应头，那么使用WebSocket来作为双工的通讯标准进行传输
+      Status.OK.code -> {
+        WsResponse { ws ->
+          val stream = response.stream()
+          while (true) {
+            when (val readInt = stream.available()) {
+              -1 -> {
+                ws.close()
+                break
+              }
+              else -> {
+                val chunk = stream.readByteArray(readInt)
+                ws.send(WsMessage(ByteArrayInputStream(chunk)))
+              }
             }
           }
         }
       }
-    } else {
-      WsResponse { ws ->
-        ws.close(WsStatus(response.status.code, response.status.description))
+      /// 如果是 101 响应头，那么使用标准的WebSocket来进行通讯
+      Status.SWITCHING_PROTOCOLS.code -> {
+        WsResponse { ws ->
+          val stream = response.stream()
+          while (true) {
+            when (val readInt = stream.available()) {
+              -1 -> {
+                ws.close()
+                break
+              }
+              else -> {
+                val chunk = stream.readByteArray(readInt)
+                ws.send(WsMessage(ByteArrayInputStream(chunk)))
+              }
+            }
+          }
+        }
+      }
+      else -> {
+        WsResponse { ws ->
+          ws.close(WsStatus(response.status.code, response.status.description))
+        }
       }
     }
   }

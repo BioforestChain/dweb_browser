@@ -19,7 +19,6 @@ import org.dweb_browser.browserUI.util.BrowserUIApp
 import org.dweb_browser.browserUI.util.FilesUtil
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
-import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.help.json
 import org.http4k.core.Method
 import org.http4k.core.Response
@@ -80,27 +79,26 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb") {
       AppInfoDataStore.queryAppInfoList().collectLatest { maps -> // TODO 只要datastore更新，这边就会实时更新
         debugJMM("init/JmmNMM", "init Apps list -> ${maps.size}")
 
-        maps.forEach { (key, value) ->
-          val jmmMetadata = gson.fromJson(value, JmmMetadata::class.java)
-          apps.getOrPutOrReplace(key, replaceValue = { local ->
+        maps.forEach { appMetadata ->
+          apps.getOrPutOrReplace(appMetadata.id, replaceValue = { local ->
             debugJMM(
               "update getOrPutOrReplace",
-              "old version:${local.metadata.version} new:${jmmMetadata.version} ${
+              "old version:${local.metadata.version} new:${appMetadata.version} ${
                 compareAppVersionHigh(
                   local.metadata.version,
-                  jmmMetadata.version
+                  appMetadata.version
                 )
               }"
             )
-            if (compareAppVersionHigh(local.metadata.version, jmmMetadata.version)) {
+            if (compareAppVersionHigh(local.metadata.version, appMetadata.version)) {
               jmmController?.closeApp(local.mmid)
             }
-            JsMicroModule(jmmMetadata).also { jsMicroModule ->
+            JsMicroModule(appMetadata).also { jsMicroModule ->
               bootstrapContext.dns.install(jsMicroModule)
             }
           }) {
-            apps.getOrPut(key) {
-              JsMicroModule(jmmMetadata).also { jsMicroModule ->
+            apps.getOrPut(appMetadata.id) {
+              JsMicroModule(appMetadata).also { jsMicroModule ->
                 bootstrapContext.dns.install(jsMicroModule)
               }
             }
@@ -118,12 +116,12 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb") {
     apiRouting = routes(
       "/install" bind Method.GET to defineHandler { request ->
         val metadataUrl = queryMetadataUrl(request)
-        val jmmMetadata =
-          nativeFetch(metadataUrl).json<JmmMetadata>(JmmMetadata::class.java)
+        val appMetaData =
+          nativeFetch(metadataUrl).json<AppMetaData>(AppMetaData::class.java)
         val url = URL(metadataUrl)
         // 根据 jmmMetadata 打开一个应用信息的界面，用户阅读界面信息后，可以点击"安装"
-        jmmMetadataInstall(jmmMetadata, url)
-        return@defineHandler jmmMetadata
+        jmmMetadataInstall(appMetaData, url)
+        return@defineHandler appMetaData
       },
       "/uninstall" bind Method.GET to defineHandler { request ->
         val mmid = queryMmid(request)
@@ -168,13 +166,13 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb") {
 
   }
 
-  private fun jmmMetadataInstall(jmmMetadata: JmmMetadata, url: URL) {
-    if (!jmmMetadata.bundle_url.startsWith("http")) {
-      jmmMetadata.bundle_url = URL(url, jmmMetadata.bundle_url).toString()
+  private fun jmmMetadataInstall(appMetaData: AppMetaData, url: URL) {
+    if (!appMetaData.bundle_url.startsWith("http")) {
+      appMetaData.bundle_url = URL(url, appMetaData.bundle_url).toString()
     }
-    debugJMM("openJmmMetadataInstallPage", jmmMetadata.bundle_url)
+    debugJMM("openJmmMetadataInstallPage", appMetaData.bundle_url)
     // 打开安装的界面
-    JmmManagerActivity.startActivity(jmmMetadata)
+    JmmManagerActivity.startActivity(appMetaData)
   }
 
   private suspend fun jmmMetadataUninstall(mmid: Mmid) {
