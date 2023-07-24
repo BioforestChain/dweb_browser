@@ -1,6 +1,6 @@
 package info.bagen.dwebbrowser.microService.browser.nativeui.virtualKeyboard
 
-import org.dweb_browser.microservice.help.Mmid
+import org.dweb_browser.helper.Mmid
 import info.bagen.dwebbrowser.microService.browser.nativeui.NativeUiController
 import info.bagen.dwebbrowser.microService.browser.nativeui.helper.fromMultiWebView
 import info.bagen.dwebbrowser.microService.browser.nativeui.helper.QueryHelper

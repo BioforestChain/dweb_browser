@@ -1,24 +1,17 @@
 package info.bagen.dwebbrowser.microService.browser.jmm
 
-import androidx.compose.runtime.mutableStateMapOf
 import info.bagen.dwebbrowser.App
-import info.bagen.dwebbrowser.microService.browser.debugBrowser
-import org.dweb_browser.microservice.help.Mmid
+import org.dweb_browser.helper.Mmid
 import org.dweb_browser.helper.*
 import org.dweb_browser.microservice.sys.dns.nativeFetch
 import info.bagen.dwebbrowser.microService.browser.jmm.ui.JmmManagerActivity
-import org.dweb_browser.microservice.help.DWEB_DEEPLINK
+import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
+import org.dweb_browser.helper.DWEB_DEEPLINK
 import org.dweb_browser.browserUI.download.DownLoadController
-import org.dweb_browser.browserUI.download.compareAppVersionHigh
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
 import org.dweb_browser.browserUI.database.AppInfoDataStore
 import org.dweb_browser.browserUI.util.BrowserUIApp
 import org.dweb_browser.browserUI.util.FilesUtil
 import org.dweb_browser.microservice.core.BootstrapContext
-import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.json
 import org.http4k.core.Method
 import org.http4k.core.Response
@@ -48,10 +41,9 @@ inline fun <K, V> MutableMap<K, V>.getOrPutOrReplace(
   }
 }
 
-@OptIn(DelicateCoroutinesApi::class)
-class JmmNMM : NativeMicroModule("jmm.browser.dweb") {
+class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb") {
 
-  enum class EIpcEvent(val event:String){
+  enum class EIpcEvent(val event: String) {
     State("state"),
     Ready("ready"),
     Activity("activity"),
@@ -61,11 +53,14 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb") {
   override val dweb_deeplinks = mutableListOf<DWEB_DEEPLINK>("dweb:install")
 
   companion object {
-    private val apps = mutableStateMapOf<Mmid, JsMicroModule>()
-    fun getAndUpdateJmmNmmApps() = apps
-
     private val controllerList = mutableListOf<JmmController>()
     val jmmController get() = controllerList.firstOrNull()
+
+    fun installAppsContainMMid(mmid: Mmid) =
+      installAppList.find { it.jsMicroModule.mmid == mmid } != null
+
+    fun installAppsMetadata(mmid: Mmid) =
+      installAppList.firstOrNull { it.jsMicroModule.mmid == mmid }?.jsMicroModule?.metadata
   }
 
   init {
@@ -73,7 +68,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb") {
   }
 
   /** 启动的时候，从数据库中恢复 apps 对象*/
-  private fun recoverAppData() {
+  /*private fun recoverAppData() {
     debugJMM("init/JmmNMM", "recoverAppData")
     GlobalScope.launch(ioAsyncExceptionHandler) {
       AppInfoDataStore.queryAppInfoList().collectLatest { maps -> // TODO 只要datastore更新，这边就会实时更新
@@ -106,13 +101,13 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb") {
         }
       }
     }
-  }
+  }*/
 
   val queryMetadataUrl = Query.string().required("url")
   val queryMmid = Query.string().required("app_id")
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    recoverAppData()
+    // recoverAppData()
     apiRouting = routes(
       "/install" bind Method.GET to defineHandler { request ->
         val metadataUrl = queryMetadataUrl(request)
@@ -135,14 +130,14 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb") {
         return@defineHandler true
       },
       // app详情
-      "/detailApp" bind Method.GET to defineHandler{ request ->
+      "/detailApp" bind Method.GET to defineHandler { request ->
         val mmid = queryMmid(request)
-        debugBrowser("detailApp",mmid)
-        val apps = getAndUpdateJmmNmmApps()
-        val metadata = apps[mmid]?.metadata
+        debugJMM("detailApp", mmid)
+        val apps = installAppList
+        val metadata = apps.firstOrNull { it.jsMicroModule.mmid == mmid }?.jsMicroModule?.metadata
           ?: return@defineHandler Response(Status.NOT_FOUND).body("not found ${mmid}")
         JmmManagerActivity.startActivity(metadata)
-        return@defineHandler  true
+        return@defineHandler true
       },
       "/pause" bind Method.GET to defineHandler { _, ipc ->
         BrowserUIApp.Instance.mBinderService?.invokeUpdateDownloadStatus(
@@ -177,7 +172,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb") {
 
   private suspend fun jmmMetadataUninstall(mmid: Mmid) {
     // 先从列表移除，然后删除文件
-    apps.remove(mmid)
+    installAppList.removeIf { it.jsMicroModule.mmid == mmid }
     bootstrapContext.dns.uninstall(mmid)
     AppInfoDataStore.deleteAppInfo(mmid)
     FilesUtil.uninstallApp(App.appContext, mmid)

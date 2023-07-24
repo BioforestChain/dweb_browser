@@ -1,6 +1,6 @@
 package info.bagen.dwebbrowser.microService.browser.nativeui.splashScreen
 
-import org.dweb_browser.microservice.help.Mmid
+import org.dweb_browser.helper.Mmid
 import org.dweb_browser.helper.*
 import org.dweb_browser.helper.AppMetaData
 import info.bagen.dwebbrowser.microService.browser.jmm.JsMicroModule

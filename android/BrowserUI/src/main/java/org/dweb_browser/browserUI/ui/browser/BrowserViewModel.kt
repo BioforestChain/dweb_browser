@@ -38,7 +38,7 @@ import org.dweb_browser.dwebview.base.DWebViewItem
 import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
 import org.dweb_browser.microservice.core.MicroModule
-import org.dweb_browser.microservice.help.Mmid
+import org.dweb_browser.helper.Mmid
 import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.dweb_browser.microservice.sys.http.CORS_HEADERS
 import org.http4k.core.Response
@@ -486,8 +486,7 @@ internal fun String.isUrlOrHost(): Boolean {
   // 以 http 或者 https 或者 ftp 打头，可以没有
   // 字符串中只能包含数字和字母，同时可以存在-
   // 最后以 2~5个字符 结尾，可能还存在端口信息，端口信息限制数字，长度为1~5位
-  val regex =
-    "^((https?|ftp)://)?([a-zA-Z0-9]+([-.][a-zA-Z0-9]+)*\\.[a-zA-Z]{2,5}(:[0-9]{1,5})?(/.*)?)$".toRegex()
+  val regex = "^((https?|ftp)://)?([a-zA-Z0-9]+([-.][a-zA-Z0-9]+)*\\.[a-zA-Z]{2,5}(:[0-9]{1,5})?(/.*)?)$".toRegex()
   return regex.matches(this)
 }
 

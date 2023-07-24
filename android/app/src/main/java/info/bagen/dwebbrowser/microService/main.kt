@@ -56,7 +56,7 @@ suspend fun startDwebBrowser(): DnsNMM {
     )
 
     DEVELOPER.HuangLin, DEVELOPER.HLVirtual, DEVELOPER.HLOppo, DEVELOPER.HBXiaomi, DEVELOPER.ZGSansung -> debugTags.addAll(
-      listOf( "fetch", "http" ,"mwebview", "fetch-file", "js-process")
+      listOf( "fetch", "http" ,"mwebview", "fetch-file", "js-process", "Desktop")
     )
 
     DEVELOPER.WaterBang -> debugTags.addAll(
@@ -134,9 +134,9 @@ suspend fun startDwebBrowser(): DnsNMM {
     )
 
     DEVELOPER.HuangLin, DEVELOPER.HLVirtual, DEVELOPER.HLOppo, DEVELOPER.HBXiaomi, DEVELOPER.ZGSansung -> listOf(
-      // browserNMM.mmid,
+      browserNMM.mmid,
       // plaocDemoJMM.mmid,
-      desktopNMM.mmid
+      // desktopNMM.mmid
     )
 
     DEVELOPER.WaterBang -> listOf(

@@ -1,7 +1,7 @@
-package info.bagen.dwebbrowser.microService.browser.mwebview.dwebServiceWorker
+package info.bagen.dwebbrowser.microService.mwebview.dwebServiceWorker
 
 import org.dweb_browser.helper.Mmid
-import info.bagen.dwebbrowser.microService.browser.mwebview.MultiWebViewNMM
+import info.bagen.dwebbrowser.microService.mwebview.MultiWebViewNMM
 
 enum class ServiceWorkerEvent(val event: String) {
     UpdateFound("updatefound"), // 更新或重启的时候触发

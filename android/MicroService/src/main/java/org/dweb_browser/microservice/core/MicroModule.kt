@@ -1,8 +1,8 @@
 package org.dweb_browser.microservice.core
 
 import org.dweb_browser.helper.*
-import org.dweb_browser.microservice.help.DWEB_DEEPLINK
-import org.dweb_browser.microservice.help.Mmid
+import org.dweb_browser.helper.DWEB_DEEPLINK
+import org.dweb_browser.helper.Mmid
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
 import org.http4k.core.*

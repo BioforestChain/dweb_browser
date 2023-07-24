@@ -30,7 +30,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import info.bagen.dwebbrowser.R
-import info.bagen.dwebbrowser.microService.desktop.model.AppInfo
+import info.bagen.dwebbrowser.microService.core.WindowAppInfo
 import info.bagen.dwebbrowser.microService.desktop.model.LocalDrawerManager
 import info.bagen.dwebbrowser.microService.desktop.model.LocalOpenList
 import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
@@ -46,19 +46,19 @@ internal fun DesktopPager() {
 }
 
 @Composable
-internal fun ToolbarAndWebView(appInfo: AppInfo) {
+internal fun ToolbarAndWebView(windowAppInfo: WindowAppInfo) {
   val localOpenList = LocalOpenList.current
   val localDrawerManager = LocalDrawerManager.current
-  val triple = when (appInfo.screenType.value) {
-    AppInfo.ScreenType.Hide -> {
+  val triple = when (windowAppInfo.screenType.value) {
+    WindowAppInfo.ScreenType.Hide -> {
       Triple(0f, 0f, 0f)
     }
 
-    AppInfo.ScreenType.Half -> {
-      Triple(appInfo.zoom.value, appInfo.offsetX.value, appInfo.offsetY.value)
+    WindowAppInfo.ScreenType.Half -> {
+      Triple(windowAppInfo.zoom.value, windowAppInfo.offsetX.value, windowAppInfo.offsetY.value)
     }
 
-    AppInfo.ScreenType.Full -> {
+    WindowAppInfo.ScreenType.Full -> {
       Triple(1f, 0f, 0f)
     }
   }
@@ -72,14 +72,14 @@ internal fun ToolbarAndWebView(appInfo: AppInfo) {
         translationX = triple.second,
         translationY = triple.third
       )
-      .pointerInput(appInfo) {
+      .pointerInput(windowAppInfo) {
         detectTransformGestures { centroid, pan, zoom, rotation ->
-          if (appInfo.screenType.value == AppInfo.ScreenType.Half) appInfo.zoom.value *= zoom
+          if (windowAppInfo.screenType.value == WindowAppInfo.ScreenType.Half) windowAppInfo.zoom.value *= zoom
         }
       }
       .clickableWithNoEffect {
-        localOpenList.remove(appInfo)
-        localOpenList.add(appInfo)
+        localOpenList.remove(windowAppInfo)
+        localOpenList.add(windowAppInfo)
       }
   ) {
 
@@ -94,11 +94,11 @@ internal fun ToolbarAndWebView(appInfo: AppInfo) {
 
     }
     Box(modifier = Modifier
-      .pointerInput(appInfo) {
+      .pointerInput(windowAppInfo) {
         detectTransformGestures { centroid, pan, zoom, rotation ->
-          if (appInfo.screenType.value == AppInfo.ScreenType.Half) {
-            appInfo.offsetX.value += pan.x * appInfo.zoom.value
-            appInfo.offsetY.value += pan.y * appInfo.zoom.value
+          if (windowAppInfo.screenType.value == WindowAppInfo.ScreenType.Half) {
+            windowAppInfo.offsetX.value += pan.x * windowAppInfo.zoom.value
+            windowAppInfo.offsetY.value += pan.y * windowAppInfo.zoom.value
           }
         }
       }
@@ -106,15 +106,15 @@ internal fun ToolbarAndWebView(appInfo: AppInfo) {
         if (localDrawerManager.visibleState.targetState) localDrawerManager.hide() else localDrawerManager.show()
       }) {
       Toolbar(
-        appInfo = appInfo,
-        onClose = { localOpenList.remove(appInfo) },
+        windowAppInfo = windowAppInfo,
+        onClose = { localOpenList.remove(windowAppInfo) },
         onExpand = {
-          if (appInfo.screenType.value == AppInfo.ScreenType.Full) {
-            appInfo.screenType.value = AppInfo.ScreenType.Half
-            appInfo.expand = false
+          if (windowAppInfo.screenType.value == WindowAppInfo.ScreenType.Full) {
+            windowAppInfo.screenType.value = WindowAppInfo.ScreenType.Half
+            windowAppInfo.expand = false
           } else {
-            appInfo.screenType.value = AppInfo.ScreenType.Full
-            appInfo.expand = true
+            windowAppInfo.screenType.value = WindowAppInfo.ScreenType.Full
+            windowAppInfo.expand = true
           }
         }
       )
@@ -124,7 +124,7 @@ internal fun ToolbarAndWebView(appInfo: AppInfo) {
 
 @Composable
 internal fun Toolbar(
-  appInfo: AppInfo,
+  windowAppInfo: WindowAppInfo,
   modifier: Modifier = Modifier,
   onClose: () -> Unit,
   onExpand: () -> Unit
@@ -138,14 +138,14 @@ internal fun Toolbar(
         .clickableWithNoEffect { onClose() }
     )
     Text(
-      text = appInfo.appMetaData.name,
+      text = windowAppInfo.jsMicroModule.metadata.name,
       modifier = Modifier.weight(1f),
       textAlign = TextAlign.Center,
       maxLines = 1
     )
     Icon(
       imageVector = ImageVector.vectorResource(
-        if (appInfo.screenType.value == AppInfo.ScreenType.Full) R.drawable.ic_shrink else R.drawable.ic_expand
+        if (windowAppInfo.screenType.value == WindowAppInfo.ScreenType.Full) R.drawable.ic_shrink else R.drawable.ic_expand
       ),
       contentDescription = "FullScreen",
       modifier = Modifier

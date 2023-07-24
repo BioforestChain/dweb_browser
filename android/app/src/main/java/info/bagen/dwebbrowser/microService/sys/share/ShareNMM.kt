@@ -3,7 +3,7 @@ package info.bagen.dwebbrowser.microService.sys.share
 import android.content.Intent
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
-import org.dweb_browser.microservice.help.Mmid
+import org.dweb_browser.helper.Mmid
 import org.dweb_browser.helper.*
 import info.bagen.dwebbrowser.microService.sys.fileSystem.EFileDirectory
 import info.bagen.dwebbrowser.microService.sys.share.ShareController.Companion.controller
@@ -79,7 +79,7 @@ class ShareNMM : AndroidNativeMicroModule("share.sys.dweb") {
     }
     data class ShareResult(val success:Boolean,val message:String)
 
-    override fun openActivity(remoteMmid: Mmid) {
+    fun openActivity(remoteMmid: Mmid) {
         val activity = getActivity(remoteMmid)
         val intent = Intent(getActivity(remoteMmid), ShareActivity::class.java)
         intent.action = "info.bagen.dwebbrowser.share"
@@ -89,8 +89,6 @@ class ShareNMM : AndroidNativeMicroModule("share.sys.dweb") {
         intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
         activity?.startActivity(intent)
     }
-
-
 
     override suspend fun _shutdown() {
         TODO("Not yet implemented")

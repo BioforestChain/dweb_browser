@@ -2,7 +2,7 @@ package info.bagen.dwebbrowser.microService.browser.jmm
 
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
-import org.dweb_browser.microservice.help.Mmid
+import org.dweb_browser.helper.Mmid
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 

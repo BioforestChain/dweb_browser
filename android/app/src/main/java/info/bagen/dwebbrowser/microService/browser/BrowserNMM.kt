@@ -4,8 +4,8 @@ import android.content.Intent
 import android.os.Bundle
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.browser.jmm.EIpcEvent
-import info.bagen.dwebbrowser.microService.browser.jmm.JmmNMM.Companion.getAndUpdateJmmNmmApps
 import info.bagen.dwebbrowser.microService.browser.jmm.debugJMM
+import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
 import org.dweb_browser.helper.*
@@ -20,7 +20,7 @@ import org.http4k.routing.routes
 fun debugBrowser(tag: String, msg: Any? = "", err: Throwable? = null) =
   printdebugln("browser", tag, msg, err)
 
-class BrowserNMM : NativeMicroModule("web.browser.dweb") {
+class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb") {
   companion object {
     val controllerList = mutableListOf<BrowserController>()
     val browserController get() = controllerList.firstOrNull() // 只能browser 里面调用，不能给外部调用
@@ -42,11 +42,11 @@ class BrowserNMM : NativeMicroModule("web.browser.dweb") {
         return@defineHandler true
       },
       "/appsInfo" bind Method.GET to defineHandler { request ->
-        val apps = getAndUpdateJmmNmmApps()
+        val apps = installAppList
         debugBrowser("appInfo", apps.size)
         val responseApps = mutableListOf<AppInfo>()
         apps.forEach { item ->
-          val meta = item.value.metadata
+          val meta = item.jsMicroModule.metadata
           responseApps.add(
             AppInfo(
               meta.id,

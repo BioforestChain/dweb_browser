@@ -7,7 +7,7 @@ import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.helper.IpcHeaders
 import org.dweb_browser.microservice.ipc.helper.IpcResponse
 import org.dweb_browser.microservice.ipc.ReadableStreamIpc
-import org.dweb_browser.microservice.help.Mmid
+import org.dweb_browser.helper.Mmid
 import org.dweb_browser.helper.encodeURI
 import org.dweb_browser.helper.*
 import org.dweb_browser.microservice.sys.http.DwebHttpServerOptions

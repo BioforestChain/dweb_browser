@@ -1,13 +1,12 @@
 package info.bagen.dwebbrowser.microService.desktop.db
 
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateListOf
+import info.bagen.dwebbrowser.microService.browser.jmm.JsMicroModule
+import info.bagen.dwebbrowser.microService.core.WindowAppInfo
 import org.dweb_browser.helper.AppMetaData
-import info.bagen.dwebbrowser.microService.desktop.model.AppInfo
-import org.dweb_browser.helper.MainServer
 
 val desktopAppList by lazy {
-  val list = mutableStateListOf<AppInfo>()
+  val list = mutableStateListOf<WindowAppInfo>()
   list.add(createAppInfo("http://linge.plaoc.com/douyu.png", "https://m.douyu.com/", "斗鱼"))
   list.add(createAppInfo("http://linge.plaoc.com/163.png", "https://3g.163.com/", "网易"))
   list.add(createAppInfo("http://linge.plaoc.com/weibo.png", "https://m.weibo.cn/", "微博"))
@@ -36,13 +35,12 @@ val desktopAppList by lazy {
   list
 }
 
-internal fun createAppInfo(icon: String, url: String, name: String) = AppInfo(
-  appMetaData = AppMetaData(
+internal fun createAppInfo(icon: String, url: String, name: String) = WindowAppInfo(
+  jsMicroModule = JsMicroModule(AppMetaData(
     id = name,
-    server = MainServer("", ""),
+    server = AppMetaData.MainServer("", ""),
     icon = icon,
     bundle_url = url,
     name = name,
-  ),
-  zoom = mutableFloatStateOf(0.7f)
+  ))
 )

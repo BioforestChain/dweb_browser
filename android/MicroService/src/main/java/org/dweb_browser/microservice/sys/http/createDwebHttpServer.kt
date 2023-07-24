@@ -6,8 +6,8 @@ import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.microservice.core.MicroModule
-import org.dweb_browser.microservice.help.DWEB_DEEPLINK
-import org.dweb_browser.microservice.help.Mmid
+import org.dweb_browser.helper.DWEB_DEEPLINK
+import org.dweb_browser.helper.Mmid
 import org.dweb_browser.microservice.help.boolean
 import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.help.json

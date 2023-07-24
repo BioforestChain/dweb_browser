@@ -10,7 +10,7 @@ import org.dweb_browser.browserUI.ui.view.DialogInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.dweb_browser.browserUI.util.BrowserUIApp
-import org.dweb_browser.microservice.help.Mmid
+import org.dweb_browser.helper.Mmid
 import java.util.Calendar
 
 data class DownLoadUIState(
@@ -99,31 +99,3 @@ class DownLoadViewModel(val mmid: Mmid, val url: String) : ViewModel() {
     }
   }
 }
-
-/*
-fun createDownLoadInfoByJmm(jmmMetadata: JmmMetadata): DownLoadInfo {
-  return if (JmmNMM.getAndUpdateJmmNmmApps().containsKey(jmmMetadata.id)) {
-    // 表示当前mmid已存在，判断版本，如果是同一个版本，显示为打开；如果是更新的版本，显示为 更新
-    val curJmmMetadata = JmmNMM.getAndUpdateJmmNmmApps()[jmmMetadata.id]!!.metadata
-    if (compareAppVersionHigh(curJmmMetadata.version, jmmMetadata.version)) {
-      DownLoadInfo(
-        jmmMetadata = jmmMetadata,
-        downLoadStatus = DownLoadStatus.NewVersion,
-        path = "${App.appContext.cacheDir}/DL_${jmmMetadata.id}_${Calendar.MILLISECOND}.bfsa",
-        notificationId = (NotificationUtil.notificationId++)
-      )
-    } else {
-      DownLoadInfo(
-        jmmMetadata = jmmMetadata,
-        downLoadStatus = DownLoadStatus.INSTALLED
-      )
-    }
-  } else {
-    DownLoadInfo(
-      jmmMetadata = jmmMetadata,
-      downLoadStatus = DownLoadStatus.IDLE,
-      path = "${App.appContext.cacheDir}/DL_${jmmMetadata.id}_${Calendar.MILLISECOND}.bfsa",
-      notificationId = (NotificationUtil.notificationId++),
-    )
-  }
-}*/

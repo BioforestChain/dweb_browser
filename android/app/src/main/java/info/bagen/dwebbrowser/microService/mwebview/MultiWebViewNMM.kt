@@ -1,15 +1,8 @@
-package info.bagen.dwebbrowser.microService.browser.mwebview
+package info.bagen.dwebbrowser.microService.mwebview
 
-import android.content.Intent
-import android.os.Bundle
-import androidx.compose.runtime.currentRecomposeScope
-import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import org.dweb_browser.browserUI.download.DownLoadObserver
+import info.bagen.dwebbrowser.microService.core.WindowAppInfo
 import org.dweb_browser.dwebview.base.ViewItem
-import org.dweb_browser.dwebview.serviceWorker.emitEvent
 import org.dweb_browser.helper.Mmid
 import org.dweb_browser.helper.*
 import org.dweb_browser.microservice.core.BootstrapContext
@@ -21,22 +14,13 @@ import org.http4k.lens.Query
 import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
-import kotlinx.coroutines.*
 
 fun debugMultiWebView(tag: String, msg: Any? = "", err: Throwable? = null) =
   printdebugln("mwebview", tag, msg, err)
 
 class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.browser.dweb") {
-  class ActivityClass(var mmid: Mmid, val ctor: Class<out MultiWebViewActivity>)
 
   companion object {
-    val activityClassList = mutableListOf(
-      ActivityClass("", MultiWebViewPlaceholder1Activity::class.java),
-      ActivityClass("", MultiWebViewPlaceholder2Activity::class.java),
-      ActivityClass("", MultiWebViewPlaceholder3Activity::class.java),
-      ActivityClass("", MultiWebViewPlaceholder4Activity::class.java),
-      ActivityClass("", MultiWebViewPlaceholder5Activity::class.java),
-    )
     private val controllerMap = mutableMapOf<Mmid, MultiWebViewController>()
 
     /**获取当前的controller, 只能给nativeUI 使用，因为他们是和mwebview绑定在一起的
@@ -48,8 +32,7 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.browser.dweb") {
   }
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    /// nativeui 与 mwebview 是伴生关系
-    bootstrapContext.dns.open("nativeui.browser.dweb")
+    bootstrapContext.dns.open("nativeui.browser.dweb") // nativeui 与 mwebview 是伴生关系
 
     // 打开webview
     val queryUrl = Query.string().required("url")
@@ -85,45 +68,17 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.browser.dweb") {
       "/activate" bind Method.GET to defineHandler { request, ipc ->
         val remoteMmid = ipc.remote.mmid
         debugMultiWebView("/activate", "激活")
-        activityClassList.find { it.mmid == remoteMmid }?.let { activityClass ->
-          App.startActivity(activityClass.ctor) { intent ->
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            val b = Bundle()
-            b.putString("mmid", remoteMmid)
-            intent.putExtras(b)
-          }
-        }
+        // TODO 将当前的界面移动到最上层
         return@defineHandler Response(Status.OK)
       },
     )
   }
 
-  data class ViewItemResponse(val webview_id: String)
+  data class ViewItemResponse(val webviewId: String)
 
   override suspend fun _shutdown() {
     apiRouting = null
   }
-
-  private fun openActivity(remoteMmid: Mmid) {
-    val flags = mutableListOf<Int>(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
-    val activityClass = activityClassList.find { it.mmid == remoteMmid } ?:
-    // 如果没有，从第一个挪出来，放到最后一个，并将至付给 remoteMmid
-    activityClassList.removeAt(0).also {
-      it.mmid = remoteMmid
-      activityClassList.add(it)
-    }
-    flags.add(Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
-    App.startActivity(activityClass.ctor) { intent ->
-      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
-      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-
-      val b = Bundle();
-      b.putString("mmid", remoteMmid);
-      intent.putExtras(b);
-    }
-  }
-
 
   private suspend fun openDwebView(
     remoteMm: MicroModule,
@@ -132,38 +87,15 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.browser.dweb") {
     val remoteMmid = remoteMm.mmid
     debugMultiWebView("/open", "remote-mmid: $remoteMmid / url:$url")
     val controller = controllerMap.getOrPut(remoteMmid) {
-      MultiWebViewController(
-        remoteMmid,
-        this,
-        remoteMm,
-      )
-    }
-    GlobalScope.launch(ioAsyncExceptionHandler) {
-      controller.downLoadObserver = DownLoadObserver(remoteMmid).apply {
-        observe { listener ->
-          controller.lastViewOrNull?.webView?.let { dWebView ->
-            emitEvent(
-              dWebView,
-              listener.downLoadStatus.toServiceWorkerEvent(),
-              listener.progress
-            )
-          }
-        }
-      }
+      MultiWebViewController(remoteMmid, this, remoteMm)
     }
 
-    openActivity(remoteMmid)
-    /// 等待创建成功再返回
-    val activity = controller.waitActivityCreated()
-    activitySignal.emit(Pair(remoteMmid, activity))
-    /// 销毁的时候取消绑定
-    activity.onDestroyActivity {
-      controllerMap.remove(remoteMmid, controller)
-      /// FIXME 更新状态？？？
-      controller.updateStateHook()
-    }
-
-    return controller.openWebView(url)
+    val viewItem = controller.openWebView(url)
+    windowSignal.emit(
+      installAppList.firstOrNull { it.jsMicroModule.mmid == remoteMmid }!!
+        .also { it.viewItem = viewItem }
+    )
+    return viewItem
   }
 
   private suspend fun closeDwebView(remoteMmid: String, webviewId: String): Boolean {

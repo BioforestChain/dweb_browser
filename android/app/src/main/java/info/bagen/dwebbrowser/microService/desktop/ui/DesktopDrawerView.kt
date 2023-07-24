@@ -33,7 +33,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import info.bagen.dwebbrowser.R
-import info.bagen.dwebbrowser.microService.desktop.model.AppInfo
+import info.bagen.dwebbrowser.microService.core.WindowAppInfo
 import info.bagen.dwebbrowser.microService.desktop.model.LocalDrawerManager
 import info.bagen.dwebbrowser.microService.desktop.model.LocalOpenList
 import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
@@ -81,16 +81,16 @@ internal fun DrawerInnerView() {
         verticalArrangement = Arrangement.spacedBy(8.dp),
         contentPadding = PaddingValues(8.dp)
       ) {
-        itemsIndexed(localOpenList) { index: Int, item: AppInfo ->
+        itemsIndexed(localOpenList) { _, item ->
           AsyncImage(
-            model = item.appMetaData.icon,
+            model = item.jsMicroModule.metadata.icon,
             contentDescription = "Icon",
             modifier = Modifier
               .size(48.dp)
               .clip(RoundedCornerShape(8.dp))
               .clickableWithNoEffect {
                 item.screenType.value =
-                  if (item.expand) AppInfo.ScreenType.Full else AppInfo.ScreenType.Half
+                  if (item.expand) WindowAppInfo.ScreenType.Full else WindowAppInfo.ScreenType.Half
                 localOpenList.remove(item)
                 localOpenList.add(item)
               }
@@ -111,7 +111,7 @@ internal fun DrawerInnerView() {
         modifier = Modifier
           .padding(8.dp)
           .clickableWithNoEffect {
-            localOpenList.forEach { it.screenType.value = AppInfo.ScreenType.Hide }
+            localOpenList.forEach { it.screenType.value = WindowAppInfo.ScreenType.Hide }
           },
         tint = MaterialTheme.colorScheme.primary
       )

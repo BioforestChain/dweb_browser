@@ -1,16 +1,13 @@
-package info.bagen.dwebbrowser.microService.browser.mwebview
+package info.bagen.dwebbrowser.microService.mwebview
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.lifecycleScope
 import com.google.accompanist.web.WebContent
 import com.google.accompanist.web.WebViewNavigator
 import com.google.accompanist.web.WebViewState
 import info.bagen.dwebbrowser.App
+import info.bagen.dwebbrowser.base.BaseActivity
 import info.bagen.dwebbrowser.microService.browser.nativeui.NativeUiController
 import org.dweb_browser.dwebview.DWebView
 import kotlinx.coroutines.CoroutineName
@@ -18,7 +15,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.dweb_browser.browserUI.download.DownLoadObserver
 import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.helper.Callback
 import org.dweb_browser.helper.PromiseOut
@@ -31,7 +27,6 @@ import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
 import org.json.JSONObject
 import java.util.concurrent.atomic.AtomicInteger
-import kotlin.properties.Delegates
 
 /**
  * MWebView 是为其它模块提供 GUI 的程序模块，所以这里需要传入两个模块：localeMM 与 remoteMM
@@ -39,26 +34,15 @@ import kotlin.properties.Delegates
  */
 @Stable
 class MultiWebViewController(
-  val mmid: Mmid,
-  val localeMM: MultiWebViewNMM,
-  val remoteMM: MicroModule,
+  private val mmid: Mmid,
+  private val localeMM: MultiWebViewNMM,
+  private val remoteMM: MicroModule,
 ) {
   companion object {
     private var webviewId_acc = AtomicInteger(1)
   }
 
-  private var webViewList  = mutableStateListOf<MultiViewItem>()
-  @Composable
-  fun eachView(action: @Composable (viewItem: MultiViewItem) -> Unit) {
-    LaunchedEffect( webViewList ) {
-      snapshotFlow { webViewList.size }.collect {
-        updateStateHook()
-      }
-    }
-    webViewList.forEachIndexed { _, viewItem ->
-      action(viewItem)
-    }
-  }
+  private val webViewList = mutableStateListOf<MultiViewItem>()
 
   fun isLastView(viewItem: MultiViewItem) = webViewList.lastOrNull() == viewItem
   fun isFistView(viewItem: MultiViewItem) = webViewList.firstOrNull() == viewItem
@@ -82,26 +66,13 @@ class MultiWebViewController(
     }
   }
 
-  private var activityTask = PromiseOut<MultiWebViewActivity>()
-  suspend fun waitActivityCreated() = activityTask.waitPromise()
-
-  var activity: MultiWebViewActivity? = null
+  var activity: BaseActivity? = null
     set(value) {
       if (field == value) {
         return
       }
       field = value
-      for (webview in webViewList) {
-        webview.webView.activity = value
-      }
-      if (value == null) {
-        activityTask = PromiseOut()
-      } else {
-        activityTask.resolve(value)
-      }
     }
-
-  var downLoadObserver: DownLoadObserver? = null
 
   /**
    * 打开WebView
@@ -121,9 +92,7 @@ class MultiWebViewController(
   }
 
   @Synchronized
-  fun appendWebViewAsItem(dWebView: DWebView) = runBlockingCatching(
-    Dispatchers.Main
-  ) {
+  fun appendWebViewAsItem(dWebView: DWebView) = runBlockingCatching(mainAsyncExceptionHandler) {
     val webviewId = "#w${webviewId_acc.getAndAdd(1)}"
     val state = WebViewState(WebContent.Url(dWebView.url ?: ""))
     val coroutineScope = CoroutineScope(CoroutineName(webviewId))
@@ -168,7 +137,6 @@ class MultiWebViewController(
       }
     }
     webViewList.clear()
-    this.downLoadObserver?.close() // 移除下载状态监听
 
     this.activity?.also {
       it.finish()

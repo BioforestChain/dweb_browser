@@ -3,7 +3,7 @@ package info.bagen.dwebbrowser.microService.sys.biometrics
 import android.content.Intent
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
-import org.dweb_browser.microservice.help.Mmid
+import org.dweb_browser.helper.Mmid
 import org.dweb_browser.helper.*
 import info.bagen.dwebbrowser.microService.sys.biometrics.BiometricsActivity.Companion.biometrics_promise_out
 import info.bagen.dwebbrowser.microService.sys.biometrics.BiometricsController.Companion.biometricsController
@@ -55,7 +55,7 @@ class BiometricsNMM: AndroidNativeMicroModule("biometrics.sys.dweb") {
             })
     }
 
-    override fun openActivity(remoteMmid: Mmid) {
+    fun openActivity(remoteMmid: Mmid) {
         val activity = getActivity(remoteMmid)
         val intent = Intent(getActivity(remoteMmid), BiometricsActivity::class.java)
         intent.`package` = App.appContext.packageName

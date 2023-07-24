@@ -15,44 +15,31 @@ import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import org.dweb_browser.helper.AppMetaData
-import info.bagen.dwebbrowser.microService.desktop.db.desktopAppList
-import info.bagen.dwebbrowser.microService.desktop.model.AppInfo
+import info.bagen.dwebbrowser.microService.core.WindowAppInfo
 import info.bagen.dwebbrowser.microService.desktop.model.LocalDrawerManager
 import info.bagen.dwebbrowser.microService.desktop.model.LocalInstallList
 import info.bagen.dwebbrowser.microService.desktop.model.LocalOpenList
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.withContext
 import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
-import org.dweb_browser.browserUI.database.AppInfoDataStore
-import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.microservice.help.gson
 
-@Preview
 @Composable
-fun DesktopMainView() {
-  val installList = remember { mutableStateListOf<AppInfo>() }
-  val openList = remember { mutableStateListOf<AppInfo>() }
+fun DesktopMainView(onClick: (WindowAppInfo) -> Unit) {
+  val installList = remember { mutableStateListOf<WindowAppInfo>() }
 
-  val screenWidth = LocalConfiguration.current.screenWidthDp
+  /*val screenWidth = LocalConfiguration.current.screenWidthDp
   val density = LocalDensity.current.density
 
   LaunchedEffect(installList) {
     withContext(ioAsyncExceptionHandler) {
       AppInfoDataStore.queryAppInfoList().collectLatest {
-        it.forEach { appMetaData ->
-          AppInfo(appMetaData = appMetaData).also { appInfo ->
+        it.forEach { (_, value) ->
+          val jmmMetadata = gson.fromJson(value, JmmMetadata::class.java)
+          WindowAppInfo(jmmMetadata = jmmMetadata).also { appInfo ->
             appInfo.zoom.value = 0.7f
             appInfo.offsetX.value = (16 - screenWidth * 0.15f) * density
             appInfo.offsetY.value = 0f
@@ -62,31 +49,26 @@ fun DesktopMainView() {
         }
       }
     }
-  }
+  }*/
 
-  CompositionLocalProvider(
-    LocalInstallList provides installList,
-    LocalOpenList provides openList,
+  Box(
+    modifier = Modifier
+      .fillMaxSize()
+      .background(MaterialTheme.colorScheme.background)
+      .statusBarsPadding()
+      .navigationBarsPadding()
   ) {
-    Box(
-      modifier = Modifier
-        .fillMaxSize()
-        .background(MaterialTheme.colorScheme.background)
-        .statusBarsPadding()
-        .navigationBarsPadding()
-    ) {
-      // 1. 主界面内容
-      MainView()
-      // 2. 顶部的工具栏和显示网页是一个整体
-      DesktopPager()
-      // 3. 右边的工具栏
-      DrawerView()
-    }
+    // 1. 主界面内容
+    MainView(onClick)
+    // 2. 顶部的工具栏和显示网页是一个整体
+    DesktopPager()
+    // 3. 右边的工具栏
+    DrawerView()
   }
 }
 
 @Composable
-internal fun MainView() {
+internal fun MainView(onClick: (WindowAppInfo) -> Unit) {
   val installList = LocalInstallList.current
   val openList = LocalOpenList.current
   val localDrawerManager = LocalDrawerManager.current
@@ -97,9 +79,11 @@ internal fun MainView() {
       horizontalArrangement = Arrangement.Center,
       contentPadding = PaddingValues(8.dp)
     ) {
-      itemsIndexed(installList) { _, item ->
-        MainAppItemView(appInfo = item) {
-          openList.find { it.appMetaData.id == item.appMetaData.id }?.let {
+      itemsIndexed(installList) { _, windowAppInfo ->
+        MainAppItemView(windowAppInfo = windowAppInfo) {
+          localDrawerManager.show()
+          onClick(windowAppInfo)
+          /*openList.find { it.jmmMetadata.id == item.jmmMetadata.id }?.let {
             // move to front
             openList.remove(item)
             openList.add(item)
@@ -107,8 +91,7 @@ internal fun MainView() {
           } ?: run {
             item.screenType.value = AppInfo.ScreenType.Half
             openList.add(item)
-          }
-          localDrawerManager.show()
+          }*/
         }
       }
     }
@@ -116,14 +99,17 @@ internal fun MainView() {
 }
 
 @Composable
-internal fun MainAppItemView(appInfo: AppInfo, onClick: () -> Unit) {
+internal fun MainAppItemView(windowAppInfo: WindowAppInfo, onClick: () -> Unit) {
   Column(
     modifier = Modifier
       .padding(8.dp)
       .clickableWithNoEffect { onClick() },
     horizontalAlignment = Alignment.CenterHorizontally,
   ) {
-    AsyncImage(model = appInfo.appMetaData.icon, contentDescription = appInfo.appMetaData.name)
-    Text(text = appInfo.appMetaData.name, maxLines = 1)
+    AsyncImage(
+      model = windowAppInfo.jsMicroModule.metadata.icon,
+      contentDescription = windowAppInfo.jsMicroModule.metadata.name
+    )
+    Text(text = windowAppInfo.jsMicroModule.metadata.name, maxLines = 1)
   }
 }

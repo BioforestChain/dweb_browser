@@ -29,7 +29,6 @@ import org.http4k.core.Request
 import org.http4k.core.Uri
 import org.http4k.lens.Header
 import java.io.File
-import java.util.*
 
 fun debugDWebView(tag: String, msg: Any? = "", err: Throwable? = null) =
   printdebugln("dwebview", tag, msg, err)
@@ -175,9 +174,8 @@ class DWebView(
 
     // 初始化设置 ua，这个是无法动态修改的
     val uri = Uri.of(options.url)
-    if ((uri.scheme == "http" || uri.scheme == "https" || uri.scheme == "dweb") && uri.host.endsWith(
-        ".dweb"
-      )
+    if ((uri.scheme == "http" || uri.scheme == "https" || uri.scheme == "dweb") &&
+      uri.host.endsWith(".dweb")
     ) {
       dwebHost = uri.authority
     }
@@ -367,24 +365,28 @@ class DWebView(
           val requestPermissionsMap = mutableMapOf<String, String>();
           // 参考资料： https://developer.android.com/reference/android/webkit/PermissionRequest#constants_1
           for (res in request.resources) {
-            if (res == PermissionRequest.RESOURCE_VIDEO_CAPTURE) {
-              requestPermissionsMap[Manifest.permission.CAMERA] = res
-            } else if (res == PermissionRequest.RESOURCE_AUDIO_CAPTURE) {
-              requestPermissionsMap[Manifest.permission.RECORD_AUDIO] = res
-            } else if (res == PermissionRequest.RESOURCE_MIDI_SYSEX) {
-              requestPermissionsMap[Manifest.permission.BIND_MIDI_DEVICE_SERVICE] =
-                res
-            } else if (res == PermissionRequest.RESOURCE_PROTECTED_MEDIA_ID) {
-              // TODO android.webkit.resource.PROTECTED_MEDIA_ID
+            when(res) {
+              PermissionRequest.RESOURCE_VIDEO_CAPTURE -> {
+                requestPermissionsMap[Manifest.permission.CAMERA] = res
+              }
+              PermissionRequest.RESOURCE_AUDIO_CAPTURE -> {
+                requestPermissionsMap[Manifest.permission.RECORD_AUDIO] = res
+              }
+              PermissionRequest.RESOURCE_MIDI_SYSEX -> {
+                requestPermissionsMap[Manifest.permission.BIND_MIDI_DEVICE_SERVICE] = res
+              }
+              PermissionRequest.RESOURCE_PROTECTED_MEDIA_ID -> {
+                // TODO android.webkit.resource.PROTECTED_MEDIA_ID
+              }
             }
           }
           if (requestPermissionsMap.isEmpty()) {
             request.grant(arrayOf());
             return@launch
           }
-          var responsePermissionsMap =
+          val responsePermissionsMap =
             context.requestMultiplePermissionsLauncher.launch(requestPermissionsMap.keys.toTypedArray());
-          var grants = responsePermissionsMap.filterValues { value -> value };
+          val grants = responsePermissionsMap.filterValues { value -> value };
           if (grants.isEmpty()) {
             request.deny()
           } else {
@@ -402,7 +404,6 @@ class DWebView(
     }
     dWebChromeClient.addWebChromeClient(client)
   }
-
 
   init {
     debugDWebView("INIT", options)

@@ -2,7 +2,7 @@ package org.dweb_browser.microservice.core
 
 import io.ktor.http.HttpHeaders
 import org.dweb_browser.helper.*
-import org.dweb_browser.microservice.help.Mmid
+import org.dweb_browser.helper.Mmid
 import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.NativeIpc

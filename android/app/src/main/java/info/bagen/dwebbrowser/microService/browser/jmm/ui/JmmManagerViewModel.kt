@@ -45,9 +45,9 @@ fun createDownLoadInfoByJmm(appMetaData: AppMetaData): DownLoadInfo {
     downLoadStatus = DownLoadStatus.IDLE,
     appInfo = gson.toJson(jmmMetadata)
   )*/
-  return if (JmmNMM.getAndUpdateJmmNmmApps().containsKey(appMetaData.id)) {
+  return if (JmmNMM.installAppsContainMMid(appMetaData.id)) {
     // 表示当前mmid已存在，判断版本，如果是同一个版本，显示为打开；如果是更新的版本，显示为 更新
-    val curJmmMetadata = JmmNMM.getAndUpdateJmmNmmApps()[appMetaData.id]!!.metadata
+    val curJmmMetadata = JmmNMM.installAppsMetadata(appMetaData.id)!!
     if (compareAppVersionHigh(curJmmMetadata.version, appMetaData.version)) {
       DownLoadInfo(
         id = appMetaData.id,

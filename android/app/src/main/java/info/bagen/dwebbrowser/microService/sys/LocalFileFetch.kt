@@ -116,14 +116,11 @@ class LocalFileFetch private constructor() {
     val chunk = request.query("chunk")?.toIntOrNull() ?: ChunkAssetsFileStream.defaultChunkSize
     val preRead = request.query("pre-read")?.toBooleanStrictOrNull() ?: false
 
-    var src = if (isSys) {
-      request.uri.path.substring(1)
+    // 如果是sys需要移除sys 然后 转发到assets 如果是usr需要转发到data里
+    val src = if (isSys) {
+      request.uri.path.substring(5)
     } else {
       request.uri.path
-    }
-    // 如果是sys需要移除sys 然后 转发到assets 如果是usr需要转发到data里
-    if (path.startsWith("/sys/")) {
-      src = src.substring(4)
     }
 
     lateinit var dirname: String
@@ -159,7 +156,7 @@ class LocalFileFetch private constructor() {
 
     lateinit var response: Response
     if (!filenameList.contains(filename)) {
-      debugFetchFile(tag, "NO-FOUND-Assets ${request.uri.path}")
+      debugFetchFile(tag, "NO-FOUND-File $filename")
       response = Response(Status.NOT_FOUND).body("the file(${request.uri.path}) not found.")
     } else {
       response = Response(status = Status.OK)

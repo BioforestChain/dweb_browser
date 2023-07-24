@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 import org.dweb_browser.browserUI.util.BrowserUIApp
 import org.dweb_browser.helper.AppMetaData
-import org.dweb_browser.microservice.help.Mmid
+import org.dweb_browser.helper.Mmid
 import org.dweb_browser.microservice.help.gson
 
 object AppInfoDataStore {
