@@ -28,7 +28,7 @@ export class Server_www extends HttpServer {
       pathname = "/index.html";
     }
     const remoteIpcResponse = await jsProcess.nativeRequest(
-      `file:///sys/plaoc-demo${pathname}?mode=stream` // eg: usr/${root}
+      `file:///usr/${root}${pathname}?mode=stream` // eg: usr/${root}
     );
     /**
      * 流转发，是一种高性能的转发方式，等于没有真正意义上去读取response.body，
