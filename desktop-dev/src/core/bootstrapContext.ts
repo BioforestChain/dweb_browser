@@ -8,14 +8,22 @@ export interface $BootstrapContext {
 export interface $DnsMicroModule {
   install(mm: MicroModule): void;
   uninstall(mm: $MMID): Promise<boolean>;
+  /**
+   * 打开应用并与之建立链接
+   * @param mmid
+   * @param reason
+   */
   connect(mmid: $MMID, reason?: Request): $PromiseMaybe<$ConnectResult>;
   query(mmid: $MMID): Promise<MicroModule | undefined>;
   /**
    * 打开应用，如果应用不存在，或者因某种原因（程序错误、或者被限制）启动失败，会返回 false
+   * 返回true，说明应用已经在运行
    * @param mmid
    */
   open(mmid: $MMID): Promise<boolean>;
-  /** 关闭应用，如果应用不存在，或者用户拒绝关闭、或者因为某种原因（程序错误、或者被限制），会返回false */
+  /** 关闭应用，如果应用不存在，或者用户拒绝关闭、或者因为某种原因（程序错误、或者被限制），会返回false
+   * 返回true，说明应用已经停止运行
+   */
   close(mmid: $MMID): Promise<boolean>;
   restart(mmid: $MMID): void;
 }

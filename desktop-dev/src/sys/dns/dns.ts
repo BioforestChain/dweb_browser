@@ -30,11 +30,17 @@ class MyDnsMicroModule implements $DnsMicroModule {
   }
 
   async open(mmid: $MMID) {
+    /// 已经在运行中了，直接返回true
     if (this.dnsNN.running_apps.has(mmid)) {
+      return true;
+    }
+    /// 尝试运行，成功就返回true
+    try {
+      await this.dnsNN.open(mmid);
+      return true;
+    } catch {
       return false;
     }
-    await this.dnsNN.open(mmid);
-    return true;
   }
   async close(mmid: $MMID) {
     if (this.dnsNN.running_apps.has(mmid)) {
