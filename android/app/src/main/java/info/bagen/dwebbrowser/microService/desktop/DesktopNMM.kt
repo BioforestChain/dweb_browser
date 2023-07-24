@@ -90,19 +90,14 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb") {
     apiRouting = routes(
       "/openAppOrActivate" bind Method.GET to defineHandler { request ->
         val mmid = queryAppId(request)
-        var ipc = runningAppsIpc[mmid]
-
-        if (ipc == null) {
-          ipc = bootstrapContext.dns.connect(mmid).ipcForFromMM
-        }
-        debugDesktop("openApp", "postMessage==>activity ${ipc.remote.mmid}")
+        val ipc = runningAppsIpc[mmid] ?: bootstrapContext.dns.connect(mmid).ipcForFromMM
         ipc.postMessage(IpcEvent.fromUtf8(EIpcEvent.Activity.event, ""))
         /// 如果成功打开，将它“追加”到列表中
-        runningAppsIpc.remove(mmid);
-        runningAppsIpc[mmid] = ipc;
+        runningAppsIpc.remove(mmid)
+        runningAppsIpc[mmid] = ipc
         /// 如果应用关闭，将它从列表中移除
         ipc.onClose {
-          runningAppsIpc.remove(mmid);
+          runningAppsIpc.remove(mmid)
         }
         return@defineHandler true
       },

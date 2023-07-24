@@ -200,7 +200,7 @@ class MultiWebViewController(
       currentState.put(it.webviewId, viewItem)
     }
     mIpcMap.getOrPut(mmid) {
-      val (ipc) = localeMM.connect(mmid)
+      val ipc = localeMM.connect(mmid)
       ipc.onEvent {
         debugMultiWebView("event", "name=${it.event.name},data=${it.event.data}")
       }

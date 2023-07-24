@@ -128,7 +128,7 @@ open class JsMicroModule(var metadata: AppMetaData) : MicroModule() {
       val scheme = ipcRequest.uri.scheme
       val host = ipcRequest.uri.host
       if (scheme == "file" && host.endsWith(".dweb")) {
-        val (jsWebIpc) = connect(host)
+        val jsWebIpc = connect(host)
         jsWebIpc.emitMessage(IpcMessageArgs(ipcRequest, jsWebIpc))
       } else {
         kotlin.runCatching {

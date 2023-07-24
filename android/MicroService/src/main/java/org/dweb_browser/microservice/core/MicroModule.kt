@@ -113,11 +113,12 @@ abstract class MicroModule : Ipc.MicroModuleInfo {
   /**
    * 尝试连接到指定对象
    */
-  suspend fun connect(mmid: Mmid, reason: Request? = null) =
-    this.bootstrapContext.dns.let {
-      it.open(mmid)
-      it.connect(mmid)
-    }
+  suspend fun connect(mmid: Mmid):Ipc {
+   val (ipc) = this.bootstrapContext.dns.connect(mmid)
+    return ipc
+  }
+
+
 
 
   /**

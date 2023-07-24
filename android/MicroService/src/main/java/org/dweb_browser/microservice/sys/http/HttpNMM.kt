@@ -1,9 +1,6 @@
 package org.dweb_browser.microservice.sys.http
 
 import com.google.gson.reflect.TypeToken
-import io.ktor.http.Url
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.yield
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.ReadableStreamIpc
 import org.dweb_browser.helper.decodeURIComponent
@@ -12,39 +9,29 @@ import org.dweb_browser.microservice.sys.dns.nativeFetchAdaptersManager
 import org.dweb_browser.microservice.sys.http.net.Http1Server
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printdebugln
-import org.dweb_browser.helper.printerrln
 import org.dweb_browser.helper.readByteArray
-import org.dweb_browser.helper.readInt
 import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.help.stream
 import org.dweb_browser.microservice.sys.dns.debugFetch
-import org.dweb_browser.microservice.sys.dns.nativeFetch
-import org.http4k.core.MemoryBody
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Response
 import org.http4k.core.Status
 import org.http4k.core.Uri
 import org.http4k.core.query
-import org.http4k.core.queryParametersEncoded
 import org.http4k.lens.Query
 import org.http4k.lens.composite
 import org.http4k.lens.int
 import org.http4k.lens.string
 import org.http4k.routing.bind
-import org.http4k.routing.path
 import org.http4k.routing.routes
-import org.http4k.routing.websockets
-import org.http4k.websocket.WsConsumer
 import org.http4k.websocket.WsMessage
 import org.http4k.websocket.WsResponse
 import org.http4k.websocket.WsStatus
 import java.io.ByteArrayInputStream
-import java.io.InputStream
-import java.net.URL
 import java.util.Random
 
 fun debugHttp(tag: String, msg: Any = "", err: Throwable? = null) =

@@ -1,40 +1,18 @@
 package info.bagen.dwebbrowser.microService.browser.nativeui.statusBar
 
-import org.dweb_browser.helper.Mmid
 import info.bagen.dwebbrowser.microService.browser.nativeui.NativeUiController
-import info.bagen.dwebbrowser.microService.browser.nativeui.helper.fromMultiWebView
 import info.bagen.dwebbrowser.microService.browser.nativeui.helper.QueryHelper
-import io.ktor.utils.io.ByteChannel
-import io.ktor.utils.io.jvm.javaio.toInputStream
-import io.ktor.utils.io.write
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import info.bagen.dwebbrowser.microService.browser.nativeui.helper.fromMultiWebView
+import org.dweb_browser.helper.Mmid
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
-import org.dweb_browser.microservice.ipc.ReadableStreamIpc
-import org.dweb_browser.microservice.ipc.helper.IpcResponse
-import org.dweb_browser.microservice.ipc.helper.ReadableStream
-import org.http4k.core.BodyMode
 import org.http4k.core.Method
-import org.http4k.core.Request
 import org.http4k.core.Response
 import org.http4k.core.Status
 import org.http4k.lens.Query
 import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
-import org.http4k.websocket.WsMessage
-import org.http4k.websocket.WsResponse
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.FileInputStream
-import java.io.InputStream
-import java.io.OutputStream
-import java.io.PipedInputStream
-import java.io.PipedOutputStream
 
 class StatusBarNMM : NativeMicroModule("status-bar.nativeui.browser.dweb") {
 
@@ -68,7 +46,7 @@ class StatusBarNMM : NativeMicroModule("status-bar.nativeui.browser.dweb") {
        * 关闭订阅数据流
        */
       "/stopObserve" bind Method.GET to defineHandler { _, ipc ->
-          return@defineHandler getController(ipc.remote.mmid).observer.stopObserve(ipc)
+        return@defineHandler getController(ipc.remote.mmid).observer.stopObserve(ipc)
       },
     )
   }

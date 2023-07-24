@@ -17,8 +17,8 @@ import org.dweb_browser.microservice.core.DnsMicroModule
 import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.core.connectMicroModules
-import org.dweb_browser.helper.DWEB_DEEPLINK
-import org.dweb_browser.helper.Mmid
+import org.dweb_browser.microservice.help.InitRequest
+import org.dweb_browser.microservice.help.buildRequestX
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
 
@@ -162,10 +162,12 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
       if (request.uri.scheme == "file" && request.uri.host.endsWith(".dweb")) {
         val mmid = request.uri.host
         debugFetch("DNS/nativeFetch", "$fromMM => ${request.uri}")
+        val url =request.uri.toString();
+        val reasonRequest = buildRequestX(url, InitRequest(request.method,request.headers,request.body));
         installApps[mmid]?.let {
-          val (fromIpc) = connectTo(fromMM, mmid, request)
+          val (fromIpc) = connectTo(fromMM, mmid, reasonRequest)
           return@let fromIpc.request(request)
-        } ?: Response(Status.BAD_GATEWAY).body(request.uri.toString())
+        } ?: Response(Status.BAD_GATEWAY).body(url)
       } else null
     })
     /** dwebDeepLink 适配器*/
@@ -212,7 +214,7 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
   suspend fun onActivity(event: IpcEvent = IpcEvent.fromUtf8("activity", "")) {
     /// 启动 boot 模块
     open("boot.sys.dweb")
-    connect("boot.sys.dweb").ipcForFromMM.postMessage(event)
+    connect("boot.sys.dweb").postMessage(event)
   }
 
   override suspend fun _shutdown() {
@@ -256,7 +258,10 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
             }
             promiseOut.resolve(openingMm)
           }
-        } ?: promiseOut.reject(Exception("no found app: $mmid"))
+        } ?: {
+          this.runningApps.remove(mmid)
+          promiseOut.reject(Exception("no found app: $mmid"))
+        }
       }
     }
   }

@@ -1,5 +1,8 @@
 package org.dweb_browser.microservice.ipc.helper
 
+import org.dweb_browser.microservice.help.InitRequest
+import org.dweb_browser.microservice.help.buildRequestX
+import org.dweb_browser.microservice.help.isWebSocket
 import org.dweb_browser.microservice.ipc.Ipc
 import org.http4k.core.Method
 import org.http4k.core.Request
@@ -104,17 +107,11 @@ class IpcRequest(
    *
    * 比如目前双工协议可以由 WebSocket 来提供支持
    */
-
-  fun toRequest() = Request(method.http4kMethod, url).headers(headers.toList()).let { req ->
-    if (req.method == Method.GET || req.method == Method.HEAD) {
-      req
-    } else when (val body = body.raw) {
-      is String -> req.body(body)
-      is ByteArray -> req.body(body.inputStream(), body.size.toLong())
-      is InputStream -> req.body(body)
-      else -> throw Exception("invalid body to request: $body")
-    }
+   fun isDuplex(): Boolean {
+    return isWebSocket(method.http4kMethod, headers.toList())
   }
+
+  fun toRequest() = buildRequestX(url, InitRequest(method.http4kMethod,headers.toList(), body.raw))
 
   val ipcReqMessage by lazy {
     IpcReqMessage(req_id, method, url, headers.toMap(), body.metaBody)

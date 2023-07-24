@@ -1,6 +1,5 @@
 package org.dweb_browser.microservice.core
 
-import io.ktor.http.HttpHeaders
 import org.dweb_browser.helper.*
 import org.dweb_browser.helper.Mmid
 import org.dweb_browser.microservice.help.gson
@@ -14,8 +13,6 @@ import org.http4k.core.*
 import org.http4k.filter.ServerFilters
 import org.http4k.lens.RequestContextKey
 import org.http4k.routing.RoutingHttpHandler
-import org.http4k.routing.WsRouter
-import org.http4k.websocket.WsResponse
 import java.io.InputStream
 
 fun debugNMM(tag: String, msg: Any = "", err: Throwable? = null) =
