@@ -36,7 +36,7 @@ export class DesktopNMM extends NativeMicroModule {
       limit: z.number().optional(),
     });
 
-    const taskbarAppList = [...desktopStore.get("taskbar/apps", () => new Set())].reverse();
+    const taskbarAppList = [...desktopStore.get("taskbar/apps", () => new Set())];
     const runingApps = new ChangeableMap<$MMID, Ipc>();
     runingApps.onChange((map) => {
       for (const app_id of map.keys()) {
@@ -70,9 +70,8 @@ export class DesktopNMM extends NativeMicroModule {
       .get("/openAppOrActivate", async (event) => {
         const { app_id } = query_app_id(event.searchParams);
         console.always("activity", app_id);
-        let ipc = runingApps.get(app_id);
+        const ipc = runingApps.get(app_id) ?? (await this.connect(app_id));
 
-        ipc = await this.connect(app_id);
         if (ipc !== undefined) {
           ipc.postMessage(IpcEvent.fromText("activity", ""));
           /// 如果成功打开，将它“追加”到列表中
@@ -120,7 +119,7 @@ export class DesktopNMM extends NativeMicroModule {
       })
       .get("/taskbar/apps", async (event) => {
         const { limit = Infinity } = query_limit(event.searchParams);
-        return Response.json(getTaskbarAppList(limit));
+        return Response.json(await getTaskbarAppList(limit));
       })
       .duplex("/taskbar/observe/apps", async (event) => {
         let { limit = Infinity } = query_limit(event.searchParams);

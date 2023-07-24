@@ -55,7 +55,7 @@ export const $bodyInitToIpcBodyArgs = async (
   return body;
 };
 export const isWebSocket = (method: IPC_METHOD | (string & {}), headers: Headers) => {
-  return method && headers.get("Upgrade")?.toLowerCase() === "websocket";
+  return method === "GET" && headers.get("Upgrade")?.toLowerCase() === "websocket";
 };
 /**
  * 构建Request对象，和`new Request`类似，允许突破原本Request的一些限制
