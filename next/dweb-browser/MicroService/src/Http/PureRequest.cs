@@ -15,6 +15,11 @@ public record PureRequest(
     public IpcHeaders Headers = Headers ?? new();
     public IPureBody Body = Body ?? IPureBody.Empty;
 
+    // 用于判断是否是双工请求 websocket/http3
+    public bool IsWebsocketRequest = false;
+    public bool IsHttp3Request = false;
+    public bool IsDuplex => IsWebsocketRequest || IsHttp3Request;
+
     string _url = Url;
     public string Url
     {

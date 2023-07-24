@@ -85,6 +85,10 @@ static public class HttpMessageExtendsions
            }
          );
 
+        /// TODO: 后续可能还要添加http3的判断
+        pureRequest.IsWebsocketRequest = self.IsWebSocketRequest;
+        pureRequest.IsHttp3Request = false;
+
         return pureRequest;
     }
     static public HttpRequestMessage ToHttpRequestMessage(this PureRequest self)

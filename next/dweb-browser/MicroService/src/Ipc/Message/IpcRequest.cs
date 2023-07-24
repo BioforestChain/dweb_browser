@@ -28,6 +28,11 @@ public class IpcRequest : IpcMessage
 
     public Uri Uri { get; init; }
 
+    // 用于判断是否是双工请求 websocket/http3
+    public bool IsWebsocketRequest = false;
+    public bool IsHttp3Request = false;
+    public bool IsDuplex => IsWebsocketRequest || IsHttp3Request;
+
     public static IpcRequest FromText(int req_id, string url, IpcMethod method, IpcHeaders headers, string text, Ipc ipc) =>
         new(req_id, url, method ?? IpcMethod.Get, headers ?? new IpcHeaders(), IpcBodySender.FromText(text, ipc), ipc);
 

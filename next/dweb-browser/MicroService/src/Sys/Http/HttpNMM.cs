@@ -20,8 +20,8 @@ public class HttpNMM : NativeMicroModule
     /// <param name="internalHref"></param>
     /// <returns></returns>
     /// 注册的域名与对应的 token
-    private Dictionary</* token */string, Gateway> _tokenMap = new();
-    private Dictionary</* host */string, Gateway> _gatewayMap = new();
+    private readonly Dictionary</* token */string, Gateway> _tokenMap = new();
+    private readonly Dictionary</* host */string, Gateway> _gatewayMap = new();
 
     public HttpNMM() : base("http.std.dweb")
     {
@@ -113,53 +113,8 @@ public class HttpNMM : NativeMicroModule
     private async Task _websocketHandler(PureRequest request, HttpListenerWebSocketContext webSocketContext)
     {
         var host = _processHost(request);
-        var gateway = _gatewayMap.GetValueOrDefault(host);
 
-        if (gateway is null)
-        {
-            return;
-        }
-
-        var method = request.Method ?? IpcMethod.Get;
-        var hasMatch = gateway.Listener.FindMatchedBind(request.ParsedUrl?.Path ?? "", method);
-
-        if (hasMatch is not null)
-        {
-            var response = await hasMatch.Handler(request);
-
-            if (response is null)
-            {
-                return;
-            }
-
-            switch (response.Body)
-            {
-                case PureEmptyBody: break;
-                case PureStreamBody streamBody:
-                    await foreach (var chunk in streamBody.Data.ReadBytesStream())
-                    {
-                        if (webSocketContext.WebSocket.State == WebSocketState.Open)
-                        {
-                            await webSocketContext.WebSocket.SendAsync(chunk, WebSocketMessageType.Binary, false, CancellationToken.None);
-                        }
-                    }
-                    if (webSocketContext.WebSocket.State == WebSocketState.Open)
-                    {
-                        await webSocketContext.WebSocket.SendAsync(ArraySegment<byte>.Empty, WebSocketMessageType.Binary, true, CancellationToken.None);
-                        await webSocketContext.WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "服务端关闭流", CancellationToken.None);
-                    }
-
-                    break;
-                case IPureBody body:
-                    var data = body.ToByteArray();
-                    if (data.Length > 0 && webSocketContext.WebSocket.State == WebSocketState.Open)
-                    {
-                        await webSocketContext.WebSocket.SendAsync(data, WebSocketMessageType.Binary, true, CancellationToken.None);
-                        await webSocketContext.WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "服务端关闭流", CancellationToken.None);
-                    }
-                    break;
-            };
-        }
+        await (_gatewayMap.GetValueOrDefault(host)?.Listener.HookWsRequestAsync(request, webSocketContext)).ForAwait();
     }
 
     private string? _dwebHostRegex(string? str)

@@ -1,4 +1,6 @@
 ﻿using System.Collections.Concurrent;
+using System.Net.WebSockets;
+
 namespace DwebBrowser.MicroService.Sys.Http;
 
 public class Gateway
@@ -36,10 +38,6 @@ public class Gateway
             return () => _routerSet.TryRemove(route, out bool value);
         }
 
-        /**
-         * 接收 nodejs-web 请求
-         * 将之转发给 IPC 处理，等待远端处理完成再代理响应回去
-         */
         public StreamIpcRouter? FindMatchedBind(string pathname, IpcMethod method)
         {
             foreach (var router in _routerSet.Keys)
@@ -81,6 +79,65 @@ public class Gateway
             }
             return null;
         }
+
+        public async Task HookWsRequestAsync(PureRequest request, HttpListenerWebSocketContext webSocketContext)
+        {
+            var method = request.Method ?? IpcMethod.Get;
+            var hasMatch = FindMatchedBind(request.ParsedUrl?.Path ?? "", method);
+
+            if (hasMatch is not null)
+            {
+                var response = await hasMatch.Handler(request);
+
+                if (response is null)
+                {
+                    await webSocketContext.WebSocket.CloseAsync(WebSocketCloseStatus.InternalServerError, null, CancellationToken.None);
+                    return;
+                }
+
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    if (response.Body is PureStreamBody streamBody)
+                    {
+                        await foreach (var chunk in streamBody.Data.ReadBytesStream())
+                        {
+                            if (webSocketContext.WebSocket.State == WebSocketState.Open)
+                            {
+                                await webSocketContext.WebSocket.SendAsync(chunk, WebSocketMessageType.Binary, false, CancellationToken.None);
+                            }
+                        }
+                        if (webSocketContext.WebSocket.State == WebSocketState.Open)
+                        {
+                            await webSocketContext.WebSocket.SendAsync(ArraySegment<byte>.Empty, WebSocketMessageType.Binary, true, CancellationToken.None);
+                            await webSocketContext.WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "服务端关闭流", CancellationToken.None);
+                        }
+                    }
+                }
+                else if (response.StatusCode == HttpStatusCode.SwitchingProtocols)
+                {
+                    if (response.Body is PureStreamBody streamBody)
+                    {
+                        await foreach (var chunk in streamBody.Data.ReadBytesStream())
+                        {
+                            if (webSocketContext.WebSocket.State == WebSocketState.Open)
+                            {
+                                await webSocketContext.WebSocket.SendAsync(chunk, WebSocketMessageType.Binary, false, CancellationToken.None);
+                            }
+                        }
+                        if (webSocketContext.WebSocket.State == WebSocketState.Open)
+                        {
+                            await webSocketContext.WebSocket.SendAsync(ArraySegment<byte>.Empty, WebSocketMessageType.Binary, true, CancellationToken.None);
+                            await webSocketContext.WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "服务端关闭流", CancellationToken.None);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                await webSocketContext.WebSocket.CloseAsync(WebSocketCloseStatus.InternalServerError, null, CancellationToken.None);
+            }
+        }
+
 
         // 销毁
         private readonly HashSet<Signal> DestorySignal = new();

@@ -40,6 +40,10 @@ static public class IpcMessageExtendisions
                 ipcBody,
                 ipc
             );
+
+        ipcRequest.IsWebsocketRequest = request.IsWebsocketRequest;
+        ipcRequest.IsHttp3Request = request.IsHttp3Request;
+
         return ipcRequest;
     }
     static public PureRequest ToPureRequest(this IpcRequest self) =>
