@@ -1,8 +1,44 @@
-/** @type {import('npm:tailwindcss').Config} */
+/** @type {import('tailwindcss').Config} */
 module.exports = {
   content: ["./src/**/*.{vue,ts}"],
   theme: {
-    extend: {},
+    extend: {
+      animation: {
+        "slow-bounce": "slow-bounce 1s infinite",
+        "app-pulse": "app-pulse 1s infinite",
+      },
+      keyframes: {
+        "slow-bounce": {
+          "50%": {
+            transform: "translateY(-10%)",
+            "animation-timing-function": "cubic-bezier(0.8,0,1,1)",
+          },
+          "0%,100%": {
+            transform: "none",
+            "animation-timing-function": "cubic-bezier(0, 0, 0.2, 1)",
+          },
+        },
+        "app-pulse": {
+          "50%": {
+            transform: "scale(0.9)",
+          },
+        },
+        "slow-bounce-1": {
+          "25%": {
+            transform: "translateY(-18%)",
+            "animation-timing-function": "cubic-bezier(0.8,0,1,1)",
+          },
+          "75%": {
+            transform: "translateY(-25%)",
+            "animation-timing-function": "cubic-bezier(0.8,0,1,1)",
+          },
+          "0%,50%,100%": {
+            transform: "none",
+            "animation-timing-function": "cubic-bezier(0, 0, 0.2, 1)",
+          },
+        },
+      },
+    },
   },
   plugins: [require("daisyui")],
   daisyui: {

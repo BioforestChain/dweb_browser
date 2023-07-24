@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { deleteApp } from "@/provider/api";
-import { watchEffect } from "vue";
 import { CloseWatcher } from "@/provider/shim";
+import { watchEffect } from "vue";
 
 const props = defineProps({
   appId: { type: String, required: true },

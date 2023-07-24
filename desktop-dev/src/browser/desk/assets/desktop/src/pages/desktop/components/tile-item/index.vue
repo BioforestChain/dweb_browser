@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { computed, inject } from "vue";
-import { gridMeshKey } from "./inject";
+import { gridMeshKey } from "../tile-panel/inject";
 import { validatorPosition, validatorTileSize } from "./validator";
 const gridMesh = inject(gridMeshKey)!;
 console.log("gridMesh", gridMesh);

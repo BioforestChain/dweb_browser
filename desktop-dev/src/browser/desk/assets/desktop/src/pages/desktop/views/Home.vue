@@ -1,21 +1,21 @@
 <script lang="ts" setup>
-import { getWidgetInfo, watchAppInfo } from "@/provider/api";
 import wallpaper_url from "@/assets/wallpaper.webp";
-import type { $DesktopAppMetaData, $TileSizeType, $WidgetMetaData } from "@/types/app.type";
+import { getWidgetInfo, watchAppInfo } from "@/provider/api";
+import type { $WidgetAppData, $TileSizeType, $WidgetCustomData } from "@/types/app.type";
 import { onMounted, onUnmounted, Ref, ref, StyleValue } from "vue";
-import JMMVue from "../components/JMM.vue";
-import TileItem from "../components/TileItem.vue";
-import TilePanel from "../components/TilePanel.vue";
-import WidgetVue from "../components/Widget.vue";
+import WidgetApp from "../components/widget-app/index.vue";
+import TileItem from "../components/tile-item/index.vue";
+import TilePanel from "../components/tile-panel/index.vue";
+import WidgetCustom from "../components/widget-custom/index.vue";
 
 type $LayoutInfo = (
   | {
       type: "app";
-      data: $DesktopAppMetaData;
+      data: $WidgetAppData;
     }
   | {
       type: "widget";
-      data: $WidgetMetaData;
+      data: $WidgetCustomData;
     }
   | {
       type: "blank";
@@ -52,7 +52,7 @@ const updateApps = async () => {
     updateLayoutInfoList(widgetList, appList);
   }
 };
-const updateLayoutInfoList = (widgetList: $WidgetMetaData[], appList: $DesktopAppMetaData[]) => {
+const updateLayoutInfoList = (widgetList: $WidgetCustomData[], appList: $WidgetAppData[]) => {
   const layoutInfoList: $LayoutInfo[] = [];
   for (const data of widgetList) {
     layoutInfoList.push({
@@ -87,8 +87,8 @@ const bgStyle = {
     </div>
     <TilePanel>
       <TileItem v-for="(info, index) in layoutInfoListRef" :key="index" :width="info.xywh.w" :height="info.xywh.h">
-        <JMMVue v-if="info.type === 'app'" :key="index" :index="index" :app-meta-data="info.data"></JMMVue>
-        <WidgetVue v-if="info.type === 'widget'" :key="index" :index="index" :widget-meta-data="info.data"></WidgetVue>
+        <widget-app v-if="info.type === 'app'" :key="index" :index="index" :app-meta-data="info.data"></widget-app>
+        <WidgetCustom v-if="info.type === 'widget'" :key="index" :index="index" :widget-meta-data="info.data"></WidgetCustom>
       </TileItem>
     </TilePanel>
   </div>

@@ -1,4 +1,4 @@
-import { $WidgetMetaData } from "../../types/app.type.ts";
+import { $WidgetCustomData } from "../../types/app.type.ts";
 import search_svg from "./search.svg?raw";
 const html = String.raw;
 const css = String.raw;
@@ -43,4 +43,4 @@ export const searchWidget = {
       column: 1,
     },
   ],
-} satisfies $WidgetMetaData;
+} satisfies $WidgetCustomData;

@@ -1,12 +1,20 @@
 <script lang="ts" setup>
+import IconSquircleBox from "@/components/icon-squircle-box/index.vue";
+import SvgIcon from "@/components/svg-icon/index.vue";
 import { openApp, quitApp, vibrateHeavyClick } from "@/provider/api";
 import { CloseWatcher } from "@/provider/shim";
-import type { $DesktopAppMetaData } from "@/types/app.type";
+import type { $WidgetAppData } from "@/types/app.type";
 import { onLongPress } from "@vueuse/core";
-import { onMounted, reactive, ref } from "vue";
-import JmmUnInstallDialog from "./JmmUnInstallDialog.vue";
-import squircle_svg from "./squircle.svg?raw";
-import SvgIcon from "./SvgIcon.vue";
+import { onMounted, reactive, ref, watchEffect } from "vue";
+import AppUnInstallDialog from "../app-uninstall-dialog/index.vue";
+import delete_svg from "./delete.svg";
+import details_svg from "./details.svg";
+import quit_svg from "./quit.svg";
+import share_svg from "./share.svg";
+console.log(" delete_svg", delete_svg);
+console.log(" details_svg", details_svg);
+console.log(" quit_svg", quit_svg);
+console.log(" share_svg", share_svg);
 
 const $appHtmlRefHook = ref<HTMLDivElement | null>(null);
 
@@ -22,7 +30,7 @@ const snackbar = reactive({
 
 const props = defineProps({
   appMetaData: {
-    type: Object as () => $DesktopAppMetaData,
+    type: Object as () => $WidgetAppData,
     required: true,
   },
   index: {
@@ -30,6 +38,21 @@ const props = defineProps({
     required: true,
   },
 });
+const opening = ref(false);
+const closing = ref(false);
+const animationiteration = ref(false);
+watchEffect(() => {
+  if (animationiteration.value === true) {
+    animationiteration.value = false;
+    /// 如果running的状态发生改变，那么修改ing的值
+    if (props.appMetaData.running) {
+      opening.value = false;
+    } else {
+      closing.value = false;
+    }
+  }
+});
+
 const emit = defineEmits(["uninstall"]);
 
 onMounted(() => {});
@@ -54,10 +77,12 @@ onLongPress($appHtmlRefHook, showMenu, {
 });
 
 async function doOpen() {
+  opening.value = true;
   await openApp(props.appMetaData.id);
 }
 
 async function doQuit() {
+  closing.value = true;
   if (await quitApp(props.appMetaData.id)) {
     snackbar.text = `${props.appMetaData.short_name} 已退出后台。`;
     snackbar.timeOut = 1500;
@@ -89,8 +114,18 @@ const onJmmUnInstallDialogClosed = (confirmed: boolean) => {
           :class="{ overlayed: isShowOverlay, focused: isShowMenu }"
           @click="isShowMenu = false"
         >
-          <div class="app-icon" v-bind="props" @click="doOpen" @contextmenu="showMenu">
-            <div class="bg backdrop-blur-sm" v-html="squircle_svg"></div>
+          <div
+            class="app-icon"
+            v-bind="props"
+            @click="doOpen"
+            @contextmenu="showMenu"
+            :class="{
+              'animate-slow-bounce': opening,
+              'animate-app-pulse': closing,
+            }"
+            @animationiteration="animationiteration = true"
+          >
+            <IconSquircleBox class="bg backdrop-blur-sm" />
             <img class="fg" :src="appMetaData.icon" />
           </div>
           <div class="app-name line-clamp-2 backdrop-blur-sm" :style="{ opacity: isShowMenu ? 0 : 1 }">
@@ -104,17 +139,21 @@ const onJmmUnInstallDialogClosed = (confirmed: boolean) => {
 
       <div class="menu ios-ani" v-show="isShowMenu">
         <button v-ripple class="item quit" @click="doQuit" :disabled="!$props.appMetaData.running">
-          <SvgIcon class="icon" src="../../../../src/assets/images/quit.svg" alt="退出" />
+          <SvgIcon class="icon" :src="quit_svg" alt="退出" />
           <p class="title">退出</p>
         </button>
 
         <button v-ripple class="item details" @click="showAppDetailApp">
-          <SvgIcon class="icon" src="../../../../src/assets/images/details.svg" alt="详情" />
+          <SvgIcon class="icon" :src="details_svg" alt="详情" />
           <p class="title">详情</p>
         </button>
         <button v-ripple class="item delete" @click="showUninstall">
-          <SvgIcon class="icon" src="../../../../src/assets/images/delete.svg" alt="卸载" />
+          <SvgIcon class="icon" :src="delete_svg" alt="卸载" />
           <p class="title">卸载</p>
+        </button>
+        <button v-ripple class="item delete" disabled>
+          <SvgIcon class="icon" :src="share_svg" alt="分享" />
+          <p class="title">分享</p>
         </button>
       </div>
     </v-menu>
@@ -123,13 +162,13 @@ const onJmmUnInstallDialogClosed = (confirmed: boolean) => {
     <div class="text-center">{{ snackbar.text }}</div>
   </v-snackbar>
 
-  <JmmUnInstallDialog
+  <AppUnInstallDialog
     :appId="props.appMetaData.id"
     :appIcon="props.appMetaData.icon"
     :appName="props.appMetaData.name"
     :show="showUninstallDialog"
     @close="onJmmUnInstallDialogClosed"
-  ></JmmUnInstallDialog>
+  ></AppUnInstallDialog>
 </template>
 <style lang="scss">
 .menu-popuper-enter-from,

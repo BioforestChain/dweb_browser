@@ -1,21 +1,13 @@
-import type { IpcRenderer } from "electron";
-export type { $DesktopAppMetaData } from "../../../../desk/desk.nmm.ts";
-
-declare global {
-  interface Window {
-    electron: {
-      messageSend(...args: unknown[]): void;
-      messageOn(callback: $Callback): void;
-      on: IpcRenderer["on"];
-    };
-  }
-}
+export type { $DeskAppMetaData as $WidgetAppData } from "../../../../desk.nmm";
 
 interface $Callback {
   (event: Event, type: string, ...args: unknown[]): void;
 }
 
-export type $WidgetMetaData = {
+/**
+ * 自定义组件名称
+ */
+export type $WidgetCustomData = {
   /**
    * 所属应用名称
    *

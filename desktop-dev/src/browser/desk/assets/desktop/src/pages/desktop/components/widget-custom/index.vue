@@ -1,12 +1,12 @@
 <script lang="ts" setup>
-import { $WidgetMetaData } from "@/types/app.type";
+import { $WidgetCustomData } from "@/types/app.type";
 import { computed } from "vue";
-import base_css from "./widget-base.scss?inline";
-import "./widget.scss";
+import widget_inner_css from "./widget-inner.scss?inline";
+import "./widget-public.scss";
 
 const props = defineProps({
   widgetMetaData: {
-    type: Object as () => $WidgetMetaData,
+    type: Object as () => $WidgetCustomData,
     required: true,
   },
   index: {
@@ -57,14 +57,14 @@ const createStyleHelper = (forceStyle = false) => {
   }
 };
 
-const buildWidgetElement = (widgetMetaData: $WidgetMetaData) => {
+const buildWidgetElement = (widgetMetaData: $WidgetCustomData) => {
   class WidgetElement extends HTMLElement {
     private static meta = widgetMetaData;
-    private static baseStyle = createStyleHelper(true).setCssText(base_css);
+    private static baseStyle = createStyleHelper(true).setCssText(widget_inner_css);
 
     private static template = document.createElement("template");
     private static style = createStyleHelper(true);
-    static updateMeta(meta: $WidgetMetaData) {
+    static updateMeta(meta: $WidgetCustomData) {
       this.meta = meta;
       this.template.innerHTML = meta.templateHtml;
       this.style.setCssText(meta.scopedStyle);

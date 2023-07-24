@@ -1,4 +1,4 @@
-import { $DesktopAppMetaData, $WidgetMetaData } from "../types/app.type.ts";
+import { $WidgetAppData, $WidgetCustomData } from "../types/app.type.ts";
 import { searchWidget } from "./custom/search.widget.ts";
 import { nativeFetch, nativeFetchStream } from "./fetch.ts";
 
@@ -8,15 +8,15 @@ export async function getAppInfo() {
     console.error("请求失败：", res.status, res.statusText);
     return [];
   }
-  return (await res.json()) as Promise<$DesktopAppMetaData[]>;
+  return (await res.json()) as Promise<$WidgetAppData[]>;
 }
 
 export function watchAppInfo() {
-  return nativeFetchStream<$DesktopAppMetaData[]>("/desktop/observe/apps");
+  return nativeFetchStream<$WidgetAppData[]>("/desktop/observe/apps");
 }
 
 export async function getWidgetInfo() {
-  return [searchWidget] as $WidgetMetaData[];
+  return [searchWidget] as $WidgetCustomData[];
 }
 
 /**点击打开JMM */
