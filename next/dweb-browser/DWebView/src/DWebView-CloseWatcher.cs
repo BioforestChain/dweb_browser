@@ -16,10 +16,10 @@ public class CloseWatcher
         Webview = webview;
     }
 
-    public void RegistryToken(string consumeToken)
+    public Task RegistryToken(string consumeToken)
     {
         Consuming.Add(consumeToken);
-        await Webview.EvaluateJavaScriptAsync($"open('{consumeToken}')");
+        return Webview.InvokeOnMainThreadAsync(async () => await Webview.EvaluateJavaScriptAsync($"open('{consumeToken}')"));
     }
 
     public void TryClose(string id)
@@ -142,7 +142,7 @@ public partial class DWebView : WKWebView
 
             if (!string.IsNullOrEmpty(consumeToken))
             {
-                DWebView.CloseWatcherController.RegistryToken(consumeToken);
+                await DWebView.CloseWatcherController.RegistryToken(consumeToken);
             }
             else if (!string.IsNullOrEmpty(id))
             {
