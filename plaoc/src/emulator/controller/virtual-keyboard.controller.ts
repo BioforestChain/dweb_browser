@@ -24,31 +24,24 @@ export class VirtualKeyboardController extends BaseController {
             this.virtualKeyboardSetOverlay(states.overlay);
             return Response.json(true);
           })
-          .with({ pathname: "/startObserve" }, () => {
-            this.observer.startObserve(ipc);
-            return Response.json(true);
+          .with({ pathname: "/observe" }, () => {
+            const readableStream = new ReadableStream({
+              start: (controller) => {
+                this.observer.startObserve(ipc, controller);
+              },
+              pull() {},
+              cancel() {},
+            });
+            return new Response(readableStream, {
+              status: 200,
+              statusText: "ok",
+              headers: new Headers({ "Content-Type": "application/octet-stream" }),
+            });
           })
           .with({ pathname: "/stopObserve" }, () => {
-            this.observer.startObserve(ipc);
+            this.observer.stopObserve(ipc);
             return Response.json("");
           })
-          // .with({ pathname: "/observe" }, () => {
-          //   const readableStream = new ReadableStream({
-          //     start: (_controller) => {
-          //       this.observer.observe(_controller);
-          //     },
-          //     pull(_controller) {},
-          //     cancel: (reson) => {
-          //       console.log("", "cancel", reson);
-          //     },
-          //   });
-
-          //   return new Response(readableStream, {
-          //     status: 200,
-          //     statusText: "ok",
-          //     headers: new Headers({ "Content-Type": "application/octet-stream" }),
-          //   });
-          // })
           .run();
       })
       .forbidden()
@@ -95,27 +88,31 @@ export class VirtualKeyboardController extends BaseController {
     this.emitUpdate();
   };
 
-  virtualKeyboardFirstUpdated = () => {
-    this.state = {
-      ...this.state,
-      visible: true,
-    };
+  virtualKeyboardFirstUpdated = (e: Event) => {
+    this.state.insets.bottom = this.getHeightByEvent(e);
+    this.state.visible = true;
     this.emitUpdate();
   };
 
-  virtualKeyboardHideCompleted = () => {
+  virtualKeyboardHideCompleted = (e: Event) => {
     this.isShowVirtualKeyboard = false;
     // 需要显示 navigationbar;
     // console.error(`virtualKeybark 隐藏完成了 但是还没有处理`);
+    this.state.insets.bottom = this.getHeightByEvent(e);
+    this.state.visible = false;
     this.emitUpdate();
   };
 
-  virtualKeyboardShowCompleted = () => {
-    this.state = {
-      ...this.state,
-      visible: true,
-    };
+  virtualKeyboardShowCompleted = (e: Event) => {
+    this.state.insets.bottom = this.getHeightByEvent(e);
+    this.state.visible = true;
     this.emitUpdate();
-    // console.error("virutalKeyboard 显示完成了 但是还没有处理");
+  };
+
+  getHeightByEvent = (e: Event) => {
+    const virtualKeyboardEl: HTMLElement | null = e.target as HTMLElement;
+    if (virtualKeyboardEl === null) throw new Error("vitualKeyboardEl === null");
+    const rect = virtualKeyboardEl.getBoundingClientRect();
+    return Math.ceil(rect.height);
   };
 }

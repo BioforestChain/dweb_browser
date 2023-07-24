@@ -27,31 +27,24 @@ export class NavigationBarController extends BaseController {
             this.navigationBarSetState(states);
             return Response.json(null);
           })
-          .with({ pathname: "/startObserve" }, () => {
-            this.observer.startObserve(ipc);
-            return Response.json(true);
+          .with({ pathname: "/observe" }, () => {
+            const readableStream = new ReadableStream({
+              start: (controller) => {
+                this.observer.startObserve(ipc, controller);
+              },
+              pull() {},
+              cancel() {},
+            });
+            return new Response(readableStream, {
+              status: 200,
+              statusText: "ok",
+              headers: new Headers({ "Content-Type": "application/octet-stream" }),
+            });
           })
           .with({ pathname: "/stopObserve" }, () => {
             this.observer.stopObserve(ipc);
             return Response.json("");
           })
-          // .with({ pathname: "/observe" }, () => {
-          //   const readableStream = new ReadableStream({
-          //     start: (_controller) => {
-          //       this.observer.observe(_controller);
-          //     },
-          //     pull(_controller) {},
-          //     cancel: (reson) => {
-          //       console.log("", "cancel", reson);
-          //     },
-          //   });
-
-          //   return new Response(readableStream, {
-          //     status: 200,
-          //     statusText: "ok",
-          //     headers: new Headers({ "Content-Type": "application/octet-stream" }),
-          //   });
-          // })
           .run();
       })
       .forbidden()

@@ -27,9 +27,19 @@ export class StatusBarController extends BaseController {
             this.statusBarSetState(states);
             return Response.json(null);
           })
-          .with({ pathname: "/startObserve" }, () => {
-            this.observer.startObserve(ipc);
-            return Response.json(true);
+          .with({ pathname: "/observe" }, () => {
+            const readableStream = new ReadableStream({
+              start: (controller) => {
+                this.observer.startObserve(ipc, controller);
+              },
+              pull() {},
+              cancel() {},
+            });
+            return new Response(readableStream, {
+              status: 200,
+              statusText: "ok",
+              headers: new Headers({ "Content-Type": "application/octet-stream" }),
+            });
           })
           .with({ pathname: "/stopObserve" }, () => {
             this.observer.stopObserve(ipc);
@@ -47,7 +57,6 @@ export class StatusBarController extends BaseController {
   });
 
   override emitUpdate(): void {
-    console.log("status-bar.conroller.ts emitUpdate")
     this.observer.notifyObserver();
     super.emitUpdate();
   }

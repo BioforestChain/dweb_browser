@@ -1,10 +1,10 @@
 import { match } from "ts-pattern";
 import { parseQuery, z, zq } from "../../../deps.ts";
+import type { $Insets } from "../../client/util/insets.ts";
 import { StateObservable } from "../helper/StateObservable.ts";
 import { getButtomBarState } from "../multi-webview-comp-safe-area.shim.ts";
 import { createMockModuleServerIpc } from "./../helper/mokeServerIpcHelper.ts";
 import { BaseController } from "./base-controller.ts";
-import type { $Insets } from "../../client/util/insets.ts";
 
 export class SafeAreaController extends BaseController {
   private _init = (async () => {
@@ -24,9 +24,19 @@ export class SafeAreaController extends BaseController {
             this.safeAreaSetOverlay(states.overlay);
             return Response.json(null);
           })
-          .with({ pathname: "/startObserve" }, () => {
-            this.observer.startObserve(ipc);
-            return Response.json(true);
+          .with({ pathname: "/observe" }, () => {
+            const readableStream = new ReadableStream({
+              start: (controller) => {
+                this.observer.startObserve(ipc, controller);
+              },
+              pull() {},
+              cancel() {},
+            });
+            return new Response(readableStream, {
+              status: 200,
+              statusText: "ok",
+              headers: new Headers({ "Content-Type": "application/octet-stream" }),
+            });
           })
           .with({ pathname: "/stopObserve" }, () => {
             this.observer.stopObserve(ipc);
@@ -112,6 +122,7 @@ export class SafeAreaController extends BaseController {
         bottom: bottomBarState.overlay ? 0 : bottomBarState.insets.bottom,
       },
     };
+    console.log("safe-area.controler.ts this.state:", this.state);
     // this.emitUpdate();
     // 只发送给监听 但是不触发 updated
     this.observer.notifyObserver();
@@ -123,5 +134,3 @@ export class SafeAreaController extends BaseController {
     this.emitUpdate();
   };
 }
-
- 
