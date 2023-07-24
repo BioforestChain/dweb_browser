@@ -29,7 +29,7 @@ struct BrowserView: View {
                 .environmentObject(toolBarState)
 
                 .sheet(isPresented: $showSheet.should) {
-                    SheetSegmentView()
+                    SheetSegmentView(selectedCategory: WebCacheMgr.shared.store[selectedTab.curIndex].shouldShowWeb ? .menu : .bookmark)
                         .environmentObject(selectedTab)
                         .environmentObject(openingLink)
                         .environmentObject(showSheet)
