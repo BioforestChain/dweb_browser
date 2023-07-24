@@ -31,7 +31,7 @@ import org.http4k.routing.bind
 import org.http4k.routing.routes
 
 
-class DesktopNMM : NativeMicroModule("desktop.browser.dweb") {
+class DesktopNMM : NativeMicroModule("desk.browser.dweb") {
 
   companion object {
     private val controllerList = mutableListOf<DesktopController>()

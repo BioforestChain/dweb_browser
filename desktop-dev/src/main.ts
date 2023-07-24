@@ -1,6 +1,6 @@
 import { webcrypto } from "node:crypto";
 import process from "node:process";
-import { BrowserNMM } from "./browser/browser/browser.ts";
+import { WebBrowserNMM } from "./browser/web/web.nmm.ts";
 import { JsProcessNMM } from "./browser/js-process/js-process.ts";
 import { MultiWebviewNMM } from "./browser/multi-webview/multi-webview.nmm.ts";
 import { setFilter } from "./helper/devtools.ts";
@@ -61,8 +61,8 @@ dns.install(new MultiWebviewNMM());
 dns.install(new JsProcessNMM());
 dns.install(new HttpServerNMM());
 dns.install(new DeviceNMM());
-const dwebBrowser = new BrowserNMM();
-dns.install(dwebBrowser);
+const webBrowser = new WebBrowserNMM();
+dns.install(webBrowser);
 // dns.install(new StatusbarNativeUiNMM());
 // dns.install(new NavigationBarNMM());
 // dns.install(new SafeAreaNMM());
@@ -75,12 +75,12 @@ dns.install(new BarcodeScanningNMM());
 // dns.install(new BiometricsNMM());
 dns.install(new BluetoothNMM());
 
-import { DesktopNMM } from "./browser/desktop/desktop.nmm.ts";
+import { DeskNMM } from "./browser/desk/desk.nmm.ts";
 import { JmmNMM } from "./browser/jmm/jmm.ts";
 const jmm = new JmmNMM();
 dns.install(jmm);
-const dwebDesktop = new DesktopNMM();
-dns.install(dwebDesktop);
+const desk = new DeskNMM();
+dns.install(desk);
 
 const custom_boot = process.argv.find((arg) => arg.startsWith("--boot="))?.slice("--boot=".length) as "*.dweb";
 
@@ -90,7 +90,7 @@ dns.install(
     jmm.mmid,
 
     /// 启动自定义模块，或者桌面模块
-    custom_boot ?? dwebDesktop.mmid,
+    custom_boot ?? desk.mmid,
   ])
 );
 

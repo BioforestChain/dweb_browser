@@ -396,13 +396,13 @@ internal class DwebBrowserWebViewClient(private val microModule: MicroModule) : 
     var response: Response? = null
     val url = request.url.let {
       when (it.scheme) {
-        "chrome" -> Uri.parse(it.toString().replace("chrome://", "http://browser.dweb/"))
-        "about" -> Uri.parse(it.toString().replace("about:", "http://browser.dweb/"))
+        "chrome" -> Uri.parse(it.toString().replace("chrome://", "http://web.browser.dweb/"))
+        "about" -> Uri.parse(it.toString().replace("about:", "http://web.browser.dweb/"))
         else -> Uri.parse(it.toString())
       }
     }
 
-    if (url.scheme == "http" && (url.host == "browser.dweb" || url.host == "browser.dweb.localhost")) {
+    if (url.scheme == "http" && (url.host == "web.browser.dweb" || url.host == "browser.dweb.localhost")) {
       response = runBlockingCatching(ioAsyncExceptionHandler) {
         val urlPathSegments = url.pathSegments.filter { it.isNotEmpty() }
         if (urlPathSegments[0] == "newtab") {
@@ -411,7 +411,7 @@ internal class DwebBrowserWebViewClient(private val microModule: MicroModule) : 
             microModule.nativeFetch("file://${pathSegments.drop(1).joinToString("/")}?${request.url.query}")
           } else {
             microModule.nativeFetch(
-              "file:///sys/browser/newtab/${
+              "file:///sys/browser/desk.desktop/${
                 if (pathSegments.isEmpty()) "index.html" else pathSegments.joinToString("/")
               }"
             )

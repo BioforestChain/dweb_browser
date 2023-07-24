@@ -1,16 +1,8 @@
-import { importApis } from "../../../helper/openNativeWindow.preload.ts";
+import { exportApis, importApis } from "../../../helper/openNativeWindow.preload.ts";
 import type { BarcodeScanningNMM } from "../barcode-scanning.main.ts";
 const mainApis = importApis<BarcodeScanningNMM["_exports"]>();
 
 // 提供一个基于comlink的双工通讯
-if ("ipcRenderer" in self) {
-  (async () => {
-    const { exportApis } = await import(
-      "../../../helper/openNativeWindow.preload.ts"
-    );
-    exportApis(globalThis);
-  })();
-}
 
 // class BarcodeDetectorDelegate {
 //   barcodeDetector = new BarcodeDetector({
@@ -125,11 +117,5 @@ export const APIS = {
 };
 
 Object.assign(globalThis, APIS);
-if ("ipcRenderer" in self) {
-  (async () => {
-    const { exportApis } = await import(
-      "../../../helper/openNativeWindow.preload.ts"
-    );
-    exportApis(globalThis);
-  })();
-}
+
+exportApis(globalThis);

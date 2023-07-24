@@ -64,7 +64,7 @@ const saveNativeWindowStates = () => {
 
 export interface $CreateNativeWindowOptions extends Electron.BrowserWindowConstructorOptions {
   userAgent?: (userAgent: string) => string;
-  defaultBounds?: Electron.Rectangle;
+  defaultBounds?: Partial<Electron.Rectangle>;
 }
 
 export const createNativeWindow = async (sessionId: string, createOptions: $CreateNativeWindowOptions = {}) => {

@@ -1,9 +1,6 @@
-import chalk from "npm:chalk";
+import picocolors from "npm:picocolors";
 import { PromiseOut } from "../../desktop-dev/src/helper/PromiseOut.ts";
-import {
-  ReadableStreamOut,
-  streamRead,
-} from "../../desktop-dev/src/helper/readableStreamHelper.ts";
+import { ReadableStreamOut, streamRead } from "../../desktop-dev/src/helper/readableStreamHelper.ts";
 import { esbuild, esbuild_deno_loader } from "../deps.ts";
 export { esbuild, esbuild_deno_loader } from "../deps.ts";
 
@@ -62,8 +59,7 @@ export class ESBuild {
     for (const key of ["importMapURL", "signal", "denoLoader"] as const) {
       delete esbuildOptions[key];
     }
-    return esbuildOptions as esbuild.BuildOptions &
-      Required<Pick<esbuild.BuildOptions, "plugins">>;
+    return esbuildOptions as esbuild.BuildOptions & Required<Pick<esbuild.BuildOptions, "plugins">>;
   }
 
   async build(options: Partial<$BuildOptions> = {}) {
@@ -80,15 +76,15 @@ export class ESBuild {
   private _logResult(result: esbuild.BuildResult) {
     if (result.warnings) {
       for (const warning of result.warnings) {
-        console.warn(chalk.red(warning.text));
+        console.warn(picocolors.red(warning.text));
       }
     }
     if (result.errors && result.errors.length > 0) {
       for (const error of result.errors) {
-        console.error(chalk.yellow(error.text));
+        console.error(picocolors.yellow(error.text));
       }
     } else {
-      console.log(chalk.green("[build] success ✓"));
+      console.log(picocolors.green("[build] success ✓"));
     }
   }
   Watch(options: Partial<$BuildOptions> = {}) {
@@ -110,9 +106,7 @@ export class ESBuild {
           });
           build.onEnd((result) => {
             this._logResult(result);
-            console.log(
-              chalk.grey(`[watch] build finished, watching for changes...`)
-            );
+            console.log(picocolors.gray(`[watch] build finished, watching for changes...`));
             if (curBuildTask === undefined) {
               results.controller.error(new Error("no found task waitter"));
             } else {
@@ -161,3 +155,30 @@ export type $ESBuildWatchYield = {
   /// 包裹一层 result，目的是提供 start/end 的这种模式，如果只给promise，那么缺省的 resolver 会导致只能在监听到 end 的时候
   result: Promise<esbuild.BuildResult>;
 };
+
+if (import.meta.main) {
+  const path = await import("node:path");
+  const { Flags } = await import("../deps.ts");
+  const args = Flags.parse(Deno.args, {
+    collect: ["input"],
+    string: ["outfile", "importMap"],
+    default: { outfile: "index.js" },
+  });
+  if (args.input.length === 0) {
+    throw new Error("esbuild require `--input` argument");
+  }
+
+  const cwd = Deno.cwd();
+
+  const esbuilder = new ESBuild({
+    entryPoints: args.input.map((input) => path.resolve(cwd, input as string)),
+    outfile: path.resolve(cwd, args.outfile!),
+    bundle: true,
+    format: "esm",
+    target: "es2020",
+    platform: "browser",
+    denoLoader: args.importMap !== undefined,
+    importMapURL: args.importMap ? path.resolve(cwd, args.importMap) : undefined,
+  });
+  await esbuilder.auto();
+}

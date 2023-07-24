@@ -183,7 +183,7 @@ class MainActivity : ComponentActivity() {
                   override fun shouldInterceptRequest(
                     view: WebView?, request: WebResourceRequest?
                   ): WebResourceResponse? {
-                    if (request != null && request.url.scheme == "https" && request.url.host == "browser.dweb") {
+                    if (request != null && request.url.scheme == "https" && request.url.host == "web.browser.dweb") {
                       val path = request.url.path!!
                       val src = "browser/dist$path"
                       lateinit var dirname: String

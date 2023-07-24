@@ -5,7 +5,7 @@ namespace DwebBrowser.MicroService.Browser.Desktop;
 public class DesktopNMM : NativeMicroModule
 {
     static readonly Debugger Console = new("DesktopNMM");
-    public DesktopNMM(): base("desktop.browser.dweb")
+    public DesktopNMM(): base("desk.browser.dweb")
     {
     }
 

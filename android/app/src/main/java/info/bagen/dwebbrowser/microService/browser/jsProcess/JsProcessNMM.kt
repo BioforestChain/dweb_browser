@@ -36,7 +36,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
 
   private val JS_PROCESS_WORKER_CODE by lazy {
     runBlockingCatching {
-      nativeFetch("file:///sys/browser/js-process/worker-thread/js-process.worker.js").text()
+      nativeFetch("file:///sys/browser/js-process.worker/index.js").text()
     }.getOrThrow()
   }
 
@@ -82,7 +82,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
           }
         } else {
           val response =
-            nativeFetch("file:///sys/browser/js-process/main-thread${request.uri.path}")
+            nativeFetch("file:///sys/browser/js-process.main${request.uri.path}")
           ipc.postMessage(
             IpcResponse.fromResponse(request.req_id, response, ipc)
           )

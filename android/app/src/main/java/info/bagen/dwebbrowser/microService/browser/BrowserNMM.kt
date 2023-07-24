@@ -20,7 +20,7 @@ import org.http4k.routing.routes
 fun debugBrowser(tag: String, msg: Any? = "", err: Throwable? = null) =
   printdebugln("browser", tag, msg, err)
 
-class BrowserNMM : NativeMicroModule("browser.dweb") {
+class BrowserNMM : NativeMicroModule("web.browser.dweb") {
   companion object {
     val controllerList = mutableListOf<BrowserController>()
     val browserController get() = controllerList.firstOrNull() // 只能browser 里面调用，不能给外部调用

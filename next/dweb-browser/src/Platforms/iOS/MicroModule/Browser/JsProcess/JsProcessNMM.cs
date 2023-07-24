@@ -17,7 +17,7 @@ public class JsProcessNMM : NativeMicroModule
     private readonly LazyBox<string> _LAZY_JS_PROCESS_WORKER_CODE = new();
     private string _JS_PROCESS_WORKER_CODE
     {
-        get => _LAZY_JS_PROCESS_WORKER_CODE.GetOrPut(() => NativeFetchAsync("file:///sys/browser/js-process/worker-thread/js-process.worker.js").Result.Body.ToUtf8String());
+        get => _LAZY_JS_PROCESS_WORKER_CODE.GetOrPut(() => NativeFetchAsync("file:///sys/browser/js-process.worker/index.js").Result.Body.ToUtf8String());
     }
 
     private readonly Dictionary<string, string> _CORS_HEADERS = new()
@@ -70,7 +70,7 @@ public class JsProcessNMM : NativeMicroModule
                 }
                 else
                 {
-                    var response = await NativeFetchAsync(String.Format("file:///sys/browser/js-process/main-thread{0}", request.Uri.AbsolutePath));
+                    var response = await NativeFetchAsync(String.Format("file:///sys/browser/js-process.main{0}", request.Uri.AbsolutePath));
                     /// 加入跨域支持
                     foreach (var (key, value) in _CORS_HEADERS)
                     {

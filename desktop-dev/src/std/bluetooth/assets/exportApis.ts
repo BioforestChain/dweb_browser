@@ -10,7 +10,7 @@ import {
   RequestDeviceOptions,
 } from "../types.ts";
 
-import { importApis } from "../../../helper/openNativeWindow.preload.ts";
+import { exportApis, importApis } from "../../../helper/openNativeWindow.preload.ts";
 import { allDeviceListMap } from "./data.ts";
 // const mainApis =
 //   importApis<
@@ -530,9 +530,4 @@ export const APIS = {
 
 Object.assign(globalThis, APIS);
 
-if ("ipcRenderer" in self) {
-  (async () => {
-    const { exportApis } = await import("../../../helper/openNativeWindow.preload.ts");
-    exportApis(globalThis);
-  })();
-}
+exportApis(globalThis);

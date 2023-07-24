@@ -1,4 +1,4 @@
-import { assetsTasks } from "../desktop-dev/scripts/assets.ts";
+import { assetsTasks } from "../desktop-dev/scripts/assets-tasks.ts";
 import { ConTasks, ExitAbortController } from "./helper/ConTasks.ts";
 export const devTasks = new ConTasks(
   {

@@ -1,6 +1,8 @@
-import chalk from "https://esm.sh/v124/chalk@5.2.0";
 import path from "node:path";
+import process from "node:process";
 import { fileURLToPath } from "node:url";
+import { format } from "node:util";
+import picocolors from "npm:picocolors";
 import { PromiseOut } from "../../desktop-dev/src/helper/PromiseOut.ts";
 import { mapHelper } from "../../desktop-dev/src/helper/mapHelper.ts";
 import { whichSync } from "./WhichCommand.ts";
@@ -16,6 +18,7 @@ export type $Task = {
   devAppendArgs?: string[] | string;
   /** 启动依赖项 */
   startDeps?: $StartDep[];
+  env?: Record<string, string>;
   logTransformer?: $LogTransformer;
   logLineFilter?: $LogLineFilter;
 };
@@ -75,11 +78,7 @@ class TaskLogger extends WritableStream<string> {
   }
   private _waitters = new Map<string, PromiseOut<void>>();
   waitContent(fragment: string) {
-    const waitter = mapHelper.getOrPut(
-      this._waitters,
-      fragment,
-      () => new PromiseOut()
-    );
+    const waitter = mapHelper.getOrPut(this._waitters, fragment, () => new PromiseOut());
     return waitter.promise;
   }
 }
@@ -129,8 +128,9 @@ export class ConTasks {
             ? getArgs(task.devArgs)
             : [...getArgs(task.args), ...getArgs(task.devAppendArgs)]
           : getArgs(task.args);
+
         if (task.cmd === "npx") {
-          args.unshift("--yes");
+          args.unshift("--yes"); /// 避免需要确认安装的交互
         }
 
         // 修复windows无法找到命令执行环境问题
@@ -141,18 +141,19 @@ export class ConTasks {
           stderr: "piped",
           stdout: "piped",
           stdin: "piped",
+          env: task.env,
         });
         children[name] = {
           command,
           task,
           stdoutLogger: new TaskLogger(
-            chalk.blue(name + " "),
+            picocolors.blue(name + " "),
             Deno.stdout,
             task.logTransformer,
             task.logLineFilter
           ),
           stderrLogger: new TaskLogger(
-            chalk.red(name + " "),
+            picocolors.red(name + " "),
             Deno.stderr,
             task.logTransformer,
             task.logLineFilter
@@ -162,7 +163,20 @@ export class ConTasks {
     }
     /// 根据依赖顺序，启动任务
     const processTasks: Promise<void>[] = [];
-    console.log(Object.keys(this.tasks), "=>", Object.keys(children));
+    /// 打印要执行的任务
+    {
+      const childrenNames = new Set(Object.keys(children));
+      console.log(picocolors.blue("---Tasks:---"));
+      Object.keys(this.tasks).forEach((taskname, index) => {
+        const enable = childrenNames.has(taskname);
+        console.log(
+          picocolors.blue(`${index}.`.padStart(3, " ")),
+          enable ? picocolors.green("☑") : picocolors.gray("☐"),
+          enable ? picocolors.green(taskname) : picocolors.gray(taskname)
+        );
+      });
+      console.log(picocolors.blue("------------"));
+    }
     for (const name in children) {
       const { task, command, stdoutLogger, stderrLogger } = children[name];
       const processTask = (async () => {
@@ -170,10 +184,7 @@ export class ConTasks {
         if (task.startDeps?.length) {
           const allWhenLogs = task.startDeps
             .map((dep) => {
-              console.log(
-                chalk.gray(name + " "),
-                `waitting dep: ${dep.name} log: ${dep.whenLog}`
-              );
+              console.log(picocolors.gray(name + " "), `waitting dep: ${dep.name} log: ${dep.whenLog}`);
               const child = children[dep.name];
               if (child === undefined) {
                 throw new Error(`no found start-dep-task: ${dep.name}`);
@@ -192,24 +203,53 @@ export class ConTasks {
           await Promise.all(allWhenLogs);
         }
         /// 开始启动任务
-        console.log(chalk.gray(name + " "), chalk.cyan("---- begin ----"));
+        console.log(picocolors.magenta(picocolors.bold(name)), "", picocolors.cyan("---- begin ----"));
+        console.log(
+          picocolors.green(">"),
+          picocolors.magenta(picocolors.bold("cd")),
+          picocolors.magenta(task.cwd ?? Deno.cwd())
+        );
+        console.log(
+          picocolors.green(">"),
+          picocolors.magenta(picocolors.bold(task.cmd)),
+          picocolors.magenta(Array.isArray(task.args) ? task.args.join(" ") : task.args)
+        );
 
         const child = command.spawn();
         const listener = () => {
           try {
             child.kill();
-          // deno-lint-ignore no-empty
+            // deno-lint-ignore no-empty
           } catch (_) {}
         };
         task.signal?.addEventListener("abort", listener);
         child.stdout.pipeThrough(new TextDecoderStream()).pipeTo(stdoutLogger);
-        await child.stderr
-          .pipeThrough(new TextDecoderStream())
-          .pipeTo(stderrLogger);
+        await child.stderr.pipeThrough(new TextDecoderStream()).pipeTo(stderrLogger);
 
-        console.log(chalk.gray(name + " "), chalk.cyan("---- done ----"));
+        console.log(picocolors.bold(picocolors.magenta(name)), "", picocolors.cyan("---- done ----"));
         task.signal?.removeEventListener("abort", listener);
-      })();
+      })().catch((err) => {
+        console.error(
+          format(picocolors.bold(`${name}`), err)
+            .split("\n")
+            .map((line, index) => {
+              if (index === 0) {
+                return picocolors.red(line);
+              }
+              if (/at (.+) \(/.test(line)) {
+                line = line.replace(
+                  /at (.+) \((.+?)\)/g,
+                  (_, name, file) => `at ${picocolors.bold(picocolors.italic(name))} (${picocolors.cyan(file)})`
+                );
+              } else {
+                line = line.replace(/at (.+)/g, (_, file) => `at ${picocolors.cyan(file)}`);
+              }
+              return picocolors.red(line.replace(/\:(\d+)/g, (_, num) => `:${picocolors.yellow(num)}`));
+            })
+            .join("\n")
+        );
+        process.exit(1);
+      });
       processTasks.push(processTask);
     }
     return {

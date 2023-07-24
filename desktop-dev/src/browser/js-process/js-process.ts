@@ -16,7 +16,7 @@ import { closeHttpDwebServer, createHttpDwebServer } from "../../std/http/helper
 import { saveNative2JsIpcPort } from "./ipc.native2js.ts";
 import { jsProcessOpenWindow } from "./js-process.openWindow.ts";
 
-type $APIS = typeof import("./assets/js-process.web.ts")["APIS"];
+type $APIS = typeof import("./assets/main/index.ts")["APIS"];
 
 class ImportLinker {
   constructor(
@@ -90,7 +90,7 @@ export class JsProcessNMM extends NativeMicroModule {
   override mmid = `js.browser.dweb` as const;
 
   private JS_PROCESS_WORKER_CODE = once(() => {
-    return this.nativeFetch("file:///sys/browser/js-process/worker-thread/js-process.worker.js").text();
+    return this.nativeFetch("file:///sys/browser/js-process.worker/index.js").text();
   });
 
   private INTERNAL_PATH = encodeURI("/<internal>");
@@ -110,7 +110,7 @@ export class JsProcessNMM extends NativeMicroModule {
             status: 200,
           });
         }
-        return await this.nativeFetch("file:///sys/browser/js-process/main-thread" + pathname);
+        return await this.nativeFetch("file:///sys/browser/js-process.main" + pathname);
       });
     }
 

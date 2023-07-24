@@ -186,7 +186,7 @@ public partial class BrowserWeb : BrowserWebview
                 }
                 else
                 {
-                    return new(string.Format("file:///sys/browser/newtab/{0}",
+                    return new(string.Format("file:///sys/browser/desk.desktop/{0}",
                         paths.Count == 0 ? "index.html" : string.Join("/", paths)));
                 }
             }
