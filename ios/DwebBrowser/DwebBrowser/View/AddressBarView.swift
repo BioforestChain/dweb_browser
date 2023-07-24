@@ -41,6 +41,8 @@ struct AddressBar: View {
                 HStack {
                     TextField("please input sth", text: $inputText)
                         .foregroundColor(.black)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled(true)
                         .padding(.horizontal, 24)
                         .multilineTextAlignment(alignment)
                         .keyboardType(.webSearch)
