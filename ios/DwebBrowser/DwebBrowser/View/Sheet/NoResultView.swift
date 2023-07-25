@@ -20,7 +20,7 @@ struct NoResultView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: 120, height: 120)
-                Text(config.title)
+                Text(config.msg)
                     .font(.system(size: 22.0))
                     .foregroundColor(Color(hexString: "c9c9c9"))
                     .lineLimit(1)

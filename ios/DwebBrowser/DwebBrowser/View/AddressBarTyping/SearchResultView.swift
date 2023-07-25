@@ -10,6 +10,7 @@ import SwiftUI
 struct SearchResultView: View {
     @EnvironmentObject var addressBar: AddressBarState
     @EnvironmentObject var openingLink: OpeningLink
+    @EnvironmentObject var selectedTab:SelectedTab
     @ObservedObject var localLinkSearcher = LocalLinkSearcher.shared
     @State private var inputText: String = ""
     var body: some View {
@@ -20,6 +21,10 @@ struct SearchResultView: View {
                         guard let url = URL(string: searcher.inputHandler(addressBar.inputText)) else { return }
                         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                         DispatchQueue.main.async {
+                            let webcache = WebCacheMgr.shared.store[selectedTab.curIndex]
+                            if !webcache.shouldShowWeb {
+                                webcache.lastVisitedUrl = url
+                            }
                             openingLink.clickedLink = url
                             addressBar.isFocused = false
                         }
