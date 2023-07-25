@@ -1,4 +1,5 @@
 import { $BootstrapContext } from "../../core/bootstrapContext.ts";
+import { MICRO_MODULE_CATEGORY } from "../../core/category.const.ts";
 import { buildRequestX } from "../../core/helper/ipcRequestHelper.ts";
 import { Ipc, IpcEvent } from "../../core/ipc/index.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
@@ -26,6 +27,7 @@ export interface $DeskAppMetaData extends $AppMetaData {
 
 export class DeskNMM extends NativeMicroModule {
   mmid = "desk.browser.dweb" as const;
+  override categories = [MICRO_MODULE_CATEGORY.Application, MICRO_MODULE_CATEGORY.Desktop];
 
   protected async _bootstrap(context: $BootstrapContext) {
     const query_app_id = zq.object({

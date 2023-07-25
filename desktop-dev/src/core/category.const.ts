@@ -19,6 +19,11 @@ export const enum MICRO_MODULE_CATEGORY {
    * > 和 计算服务 不同，进程服务通常是指 概念上运行在本地 的程序
    */
   Process_Service = "process-service",
+  /** 渲染服务
+   * > 可视化图形的能力
+   * > 比如：Web渲染器、Terminal渲染器、WebGPU渲染器、WebCanvas渲染器 等
+   */
+  Render_Service = "render-service",
   /** 协议服务
    * > 比如 `http.std.dweb` 这个模块，提供 http/1.1 协议到 Ipc 的映射
    * > 比如 `bluetooth.std.dweb` 这个模块，提供了接口化的 蓝牙协议 管理

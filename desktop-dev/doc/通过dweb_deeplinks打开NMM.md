@@ -9,6 +9,7 @@
 // dweb_depplinks.pathname === registerCommonIpcOnMessageHandler.pathname
 export class NameNMM extends NativeMicroModule {
   override dweb_deeplinks = ["dweb:pathname"] as $DWEB_DEEPLINK[];
+  override categories = [MICRO_MODULE_CATEGORY.Application];
 
   _bootstrap = async () => {
     /// 接受 dweb_deeplink 指令

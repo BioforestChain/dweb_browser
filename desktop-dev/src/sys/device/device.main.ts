@@ -1,4 +1,5 @@
 import { match } from "ts-pattern";
+import { MICRO_MODULE_CATEGORY } from "../../core/category.const.ts";
 import { IPC_METHOD } from "../../core/ipc/const.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import { CacheGetter } from "../../helper/cacheGetter.ts";
@@ -13,6 +14,7 @@ declare global {
 
 export class DeviceNMM extends NativeMicroModule {
   mmid = "device.sys.dweb" as const;
+  override categories = [MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Device_Management_Service];
 
   #uuid = new CacheGetter(() => electronConfig.get(UUID, () => crypto.randomUUID()));
   get uuid() {

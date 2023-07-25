@@ -1,5 +1,5 @@
 import type { $BootstrapContext } from "../../core/bootstrapContext.ts";
-import type { MICRO_MODULE_CATEGORY } from "../../core/category.const.ts";
+import { MICRO_MODULE_CATEGORY } from "../../core/category.const.ts";
 import { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.ts";
 import { IPC_ROLE, Ipc, IpcResponse } from "../../core/ipc/index.ts";
 import { MicroModule } from "../../core/micro-module.ts";
@@ -63,7 +63,7 @@ export class JsMicroModule extends MicroModule {
     return this.metadata.config.dweb_deeplinks ?? [];
   }
   get categories() {
-    return this.metadata.config.categories ?? [];
+    return this.metadata.config.categories ?? [MICRO_MODULE_CATEGORY.Application];
   }
 
   /**

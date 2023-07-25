@@ -1,4 +1,5 @@
 import { $BootstrapContext } from "../../core/bootstrapContext.ts";
+import { MICRO_MODULE_CATEGORY } from "../../core/category.const.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import { $Callback, createSignal } from "../../helper/createSignal.ts";
 import { tryDevUrl } from "../../helper/electronIsDev.ts";
@@ -7,6 +8,7 @@ import { createWWWServer } from "./server.www.ts";
 
 export class WebBrowserNMM extends NativeMicroModule {
   mmid = "web.browser.dweb" as const;
+  override categories = [MICRO_MODULE_CATEGORY.Application, MICRO_MODULE_CATEGORY.Web_Browser];
 
   protected async _bootstrap(context: $BootstrapContext) {
     const wwwServer = await createWWWServer.call(this);

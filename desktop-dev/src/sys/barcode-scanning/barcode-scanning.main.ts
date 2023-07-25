@@ -1,6 +1,7 @@
 // 模拟状态栏模块-用来提供状态UI的模块
 import type { Remote } from "comlink";
 import { match } from "ts-pattern";
+import { MICRO_MODULE_CATEGORY } from "../../core/category.const.ts";
 import type { $OnFetch, FetchEvent } from "../../core/helper/ipcFetchHelper.ts";
 import { IPC_METHOD } from "../../core/ipc/const.ts";
 import { IpcHeaders, IpcResponse } from "../../core/ipc/index.ts";
@@ -11,6 +12,7 @@ type $APIS = typeof import("./assets/exportApis.ts")["APIS"];
 
 export class BarcodeScanningNMM extends NativeMicroModule {
   mmid = "barcode-scanning.sys.dweb" as const;
+  override categories = [MICRO_MODULE_CATEGORY.Application, MICRO_MODULE_CATEGORY.Utilities];
   private _allocId = 0;
   private _operationResolveMap = new Map<number, { (arg: any): void }>();
   private _responseHeader = new IpcHeaders().init("Content-Type", "application/json");

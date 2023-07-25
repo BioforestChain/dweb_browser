@@ -3,7 +3,7 @@ import fs from "node:fs";
 import type { OutgoingMessage } from "node:http";
 import path from "node:path";
 import type { $BootstrapContext } from "../../core/bootstrapContext.ts";
-import type { MICRO_MODULE_CATEGORY } from "../../core/category.const.ts";
+import { MICRO_MODULE_CATEGORY } from "../../core/category.const.ts";
 import { FetchError } from "../../core/ipc/ipc.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import { $DWEB_DEEPLINK, $MMID } from "../../core/types.ts";
@@ -55,6 +55,7 @@ nativeFetchAdaptersManager.append((remote, parsedUrl) => {
 export class JmmNMM extends NativeMicroModule {
   mmid = "jmm.browser.dweb" as const;
   override dweb_deeplinks = ["dweb:install"] as $DWEB_DEEPLINK[];
+  override categories = [MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Hub_Service];
   downloadStatus: DOWNLOAD_STATUS = 0;
   wwwServer: HttpDwebServer | undefined;
   apiServer: HttpDwebServer | undefined;

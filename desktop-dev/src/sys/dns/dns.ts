@@ -1,5 +1,6 @@
 import process from "node:process";
 import type { $BootstrapContext, $DnsMicroModule } from "../../core/bootstrapContext.ts";
+import { MICRO_MODULE_CATEGORY } from "../../core/category.const.ts";
 import { $normalizeRequestInitAsIpcRequestArgs, buildRequestX } from "../../core/helper/ipcRequestHelper.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import type { MicroModule } from "../../core/micro-module.ts";
@@ -68,6 +69,7 @@ const connectTo_symbol = Symbol("connectTo");
 export class DnsNMM extends NativeMicroModule {
   mmid = "dns.sys.dweb" as const;
   override dweb_deeplinks = ["dweb:open"] as $DWEB_DEEPLINK[];
+  override categories = [MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Routing_Service];
   private apps = new Map<$MMID, MicroModule>();
 
   override bootstrap(ctx: $BootstrapContext = new MyBootstrapContext(new MyDnsMicroModule(this, this))) {

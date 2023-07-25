@@ -1,4 +1,5 @@
 import { transfer, type Remote } from "comlink";
+import { MICRO_MODULE_CATEGORY } from "../../core/category.const.ts";
 import { $ReqMatcher, $isMatchReq } from "../../core/helper/$ReqMatcher.ts";
 import type { $PromiseMaybe } from "../../core/helper/types.ts";
 import { MessagePortIpc } from "../../core/ipc-web/MessagePortIpc.ts";
@@ -88,6 +89,7 @@ type $IpcProcessIdMap = Map<$MMID, Map<string, PromiseOut<number>>>;
  */
 export class JsProcessNMM extends NativeMicroModule {
   override mmid = `js.browser.dweb` as const;
+  override categories = [MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Process_Service];
 
   private JS_PROCESS_WORKER_CODE = once(() => {
     return this.nativeFetch("file:///sys/browser/js-process.worker/index.js").text();

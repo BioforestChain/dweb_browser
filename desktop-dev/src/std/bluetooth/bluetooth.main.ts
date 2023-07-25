@@ -1,5 +1,5 @@
 import type { Remote } from "comlink";
-import { TextEncoder } from "https://deno.land/std@0.177.0/node/util.ts";
+import { MICRO_MODULE_CATEGORY } from "../../core/category.const.ts";
 import type { $OnFetch, FetchEvent } from "../../core/helper/ipcFetchHelper.ts";
 import { Ipc, IpcHeaders, IpcResponse } from "../../core/ipc/index.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
@@ -14,6 +14,7 @@ type $APIS = typeof import("./assets/exportApis.ts")["APIS"];
 
 export class BluetoothNMM extends NativeMicroModule {
   mmid = "bluetooth.std.dweb" as const;
+  override categories = [MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Protocol_Service];
   override dweb_deeplinks = ["dweb:bluetooth"] as $DWEB_DEEPLINK[];
   private _encode = new TextEncoder().encode;
   private _responseHeader = new IpcHeaders().init("Content-Type", "application/json");

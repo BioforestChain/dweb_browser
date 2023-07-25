@@ -1,5 +1,6 @@
 import type { OutgoingMessage } from "node:http";
 import type { $BootstrapContext } from "../../core/bootstrapContext.ts";
+import { MICRO_MODULE_CATEGORY } from "../../core/category.const.ts";
 import { Ipc } from "../../core/ipc/index.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import { fetchMatch } from "../../helper/patternHelper.ts";
@@ -12,6 +13,7 @@ import { ALL_MMID_MWEBVIEW_WINDOW_MAP, getMWebViewWindow, getOrOpenMWebViewWindo
  * 但这里是模拟手机版，所以还是构建一个层级视图
  */
 export class MultiWebviewNMM extends NativeMicroModule {
+  override categories = [MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service];
   mmid = "mwebview.browser.dweb" as const;
   observeMap: $ObserveMapNww = new Map();
   encoder = new TextEncoder();
