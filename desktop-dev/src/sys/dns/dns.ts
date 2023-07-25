@@ -27,10 +27,10 @@ class MyDnsMicroModule implements $DnsMicroModule {
   }
 
   async query(mmid: $MMID) {
-    return this.dnsNN.query(mmid);
+    return (await this.dnsNN.query(mmid))?.toManifest();
   }
-  async search(category: MICRO_MODULE_CATEGORY): Promise<MicroModule[]> {
-    return [...this.dnsNN.search(category)];
+  async search(category: MICRO_MODULE_CATEGORY) {
+    return [...this.dnsNN.search(category)].map((mm) => mm.toManifest());
   }
 
   async open(mmid: $MMID) {

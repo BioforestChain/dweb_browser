@@ -2,7 +2,8 @@ import type { MICRO_MODULE_CATEGORY } from "./category.const.ts";
 import type { $PromiseMaybe } from "./helper/types.ts";
 import type { MicroModule } from "./micro-module.ts";
 import type { $ConnectResult } from "./nativeConnect.ts";
-import type { $MMID } from "./types.ts";
+import type { $MMID, $MicroModuleManifest } from "./types.ts";
+
 export interface $BootstrapContext {
   dns: $DnsMicroModule;
 }
@@ -15,13 +16,13 @@ export interface $DnsMicroModule {
    * @param reason
    */
   connect(mmid: $MMID, reason?: Request): $PromiseMaybe<$ConnectResult>;
-  query(mmid: $MMID): Promise<MicroModule | undefined>;
+  query(mmid: $MMID): Promise<$MicroModuleManifest | undefined>;
   /**
    * 根据类目搜索模块
    * > 这里暂时不需要支持复合搜索，未来如果有需要另外开接口
    * @param category
    */
-  search(category: MICRO_MODULE_CATEGORY): Promise<MicroModule[]>;
+  search(category: MICRO_MODULE_CATEGORY): Promise<$MicroModuleManifest[]>;
   /**
    * 打开应用，如果应用不存在，或者因某种原因（程序错误、或者被限制）启动失败，会返回 false
    * 返回true，说明应用已经在运行

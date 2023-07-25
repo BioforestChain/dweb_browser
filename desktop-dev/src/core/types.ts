@@ -13,26 +13,30 @@ import { MICRO_MODULE_CATEGORY } from "./category.const.ts";
 /**
  * 一种通用的 “应用” 元数据格式
  */
-export type $CommonAppManifest = Pick<
-  WebAppManifest,
-  | "dir"
-  | "lang"
-  | "name"
-  | "short_name"
-  | "description"
-  | "icons"
-  | "screenshots"
-  | "display"
-  | "orientation"
-  | "id"
-  | "categories"
-  | "theme_color"
-  | "background_color"
-  | "shortcuts"
-  // "start_url" | "scope" | "related_applications" | "prefer_related_applications" | "iarc_rating_id"
->;
+export interface $CommonAppManifest
+  extends Pick<
+    WebAppManifest,
+    | "dir"
+    | "lang"
+    | "name"
+    | "short_name"
+    | "description"
+    | "icons"
+    | "screenshots"
+    | "display"
+    | "orientation"
+    | "id"
+    | "categories"
+    | "theme_color"
+    | "background_color"
+    | "shortcuts"
+    // "start_url" | "scope" | "related_applications" | "prefer_related_applications" | "iarc_rating_id"
+  > {
+  version?: string;
+}
+type RequiredByKey<T, K extends keyof T> = T & Required<Pick<T, K>>;
 
-export interface $MicroModuleManifest extends $CommonAppManifest {
+export interface $MicroModuleManifest extends Omit<$CommonAppManifest, "id"> {
   /** 模块id */
   readonly mmid: $MMID;
   /** 对通讯协议的支持情况 */

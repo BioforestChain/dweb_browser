@@ -108,6 +108,7 @@ export class JsProcessMicroModule implements $MicroModule {
   readonly mmid: $MMID;
   readonly host: string;
   readonly dweb_deeplinks: $DWEB_DEEPLINK[] = [];
+  readonly categories: $MicroModule["categories"] = [];
 
   constructor(readonly meta: Metadata, private nativeFetchPort: MessagePort) {
     const _beConnect = (event: MessageEvent) => {
@@ -136,6 +137,7 @@ export class JsProcessMicroModule implements $MicroModule {
             mmid,
             ipc_support_protocols,
             dweb_deeplinks: [],
+            categories: [],
           },
           rote
         );

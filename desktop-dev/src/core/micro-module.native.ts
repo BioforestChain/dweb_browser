@@ -33,6 +33,18 @@ export abstract class NativeMicroModule extends MicroModule {
   readonly dweb_deeplinks: $DWEB_DEEPLINK[] = [];
   readonly categories: MICRO_MODULE_CATEGORY[] = [];
   abstract override mmid: $MMID;
+  override dir: MicroModule["dir"];
+  override lang: MicroModule["lang"];
+  override name: MicroModule["name"];
+  override short_name: MicroModule["short_name"];
+  override description: MicroModule["description"];
+  override icons: MicroModule["icons"];
+  override screenshots: MicroModule["screenshots"];
+  override display: MicroModule["display"] = "standalone";
+  override orientation: MicroModule["orientation"];
+  override theme_color: MicroModule["theme_color"];
+  override background_color: MicroModule["background_color"];
+  override shortcuts: MicroModule["shortcuts"];
 
   private _commmon_ipc_on_message_handlers = new Set<$RequestCustomHanlderSchema>();
   private _inited_commmon_ipc_on_message = false;
@@ -124,6 +136,13 @@ export abstract class NativeMicroModule extends MicroModule {
     };
     this.onAfterShutdown(off);
     return Object.assign(off, onRequestHandler);
+  }
+  override toManifest() {
+    const manifest = super.toManifest();
+    if ((manifest.name?.trim() ?? "") !== "") {
+      manifest.name = manifest.mmid.split(".").slice(0, -1).reverse().join(" ");
+    }
+    return manifest;
   }
 }
 

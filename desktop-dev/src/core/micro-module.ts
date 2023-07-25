@@ -1,4 +1,5 @@
 import { PromiseOut } from "../helper/PromiseOut.ts";
+import { CacheGetter } from "../helper/cacheGetter.ts";
 import { createSignal } from "../helper/createSignal.ts";
 import { fetchExtends } from "../helper/fetchExtends/index.ts";
 import { normalizeFetchArgs } from "../helper/normalizeFetchArgs.ts";
@@ -6,13 +7,26 @@ import { nativeFetchAdaptersManager } from "../sys/dns/nativeFetch.ts";
 import type { $BootstrapContext } from "./bootstrapContext.ts";
 import type { MICRO_MODULE_CATEGORY } from "./category.const.ts";
 import type { Ipc, IpcEvent } from "./ipc/index.ts";
-import type { $DWEB_DEEPLINK, $IpcSupportProtocols, $MMID, $MicroModule } from "./types.ts";
+import type { $DWEB_DEEPLINK, $IpcSupportProtocols, $MMID, $MicroModule, $MicroModuleManifest } from "./types.ts";
 
 export abstract class MicroModule implements $MicroModule {
+  abstract mmid: $MMID;
   abstract ipc_support_protocols: $IpcSupportProtocols;
   abstract dweb_deeplinks: $DWEB_DEEPLINK[];
   abstract categories: MICRO_MODULE_CATEGORY[];
-  abstract mmid: $MMID;
+  abstract dir: $MicroModule["dir"];
+  abstract lang: $MicroModule["lang"];
+  abstract name: $MicroModule["name"];
+  abstract short_name: $MicroModule["short_name"];
+  abstract description: $MicroModule["description"];
+  abstract icons: $MicroModule["icons"];
+  abstract screenshots: $MicroModule["screenshots"];
+  abstract display: $MicroModule["display"];
+  abstract orientation: $MicroModule["orientation"];
+  abstract theme_color: $MicroModule["theme_color"];
+  abstract background_color: $MicroModule["background_color"];
+  abstract shortcuts: $MicroModule["shortcuts"];
+
   protected abstract _bootstrap(context: $BootstrapContext): unknown;
   protected abstract _shutdown(): unknown;
 
@@ -138,6 +152,35 @@ export abstract class MicroModule implements $MicroModule {
       Reflect.set(init, "duplex", "half");
     }
     return Object.assign(this._nativeFetch(url, init), fetchExtends);
+  }
+
+  #manifest = new CacheGetter(() => {
+    const { mmid } = this;
+    let { name } = this;
+    if ((name?.trim() ?? "") === "") {
+      name = mmid.split(".").slice(0, -1).reverse().join(" ");
+    }
+    return {
+      mmid,
+      name,
+      short_name: this.short_name,
+      ipc_support_protocols: this.ipc_support_protocols,
+      dweb_deeplinks: this.dweb_deeplinks,
+      categories: this.categories,
+      dir: this.dir,
+      lang: this.lang,
+      description: this.description,
+      icons: this.icons,
+      screenshots: this.screenshots,
+      display: this.display,
+      orientation: this.orientation,
+      theme_color: this.theme_color,
+      background_color: this.background_color,
+      shortcuts: this.shortcuts,
+    } satisfies $MicroModuleManifest;
+  });
+  toManifest() {
+    return this.#manifest.value;
   }
 }
 

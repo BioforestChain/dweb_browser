@@ -4,11 +4,12 @@ import { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.ts";
 import { IPC_ROLE, Ipc, IpcResponse } from "../../core/ipc/index.ts";
 import { MicroModule } from "../../core/micro-module.ts";
 import { connectAdapterManager } from "../../core/nativeConnect.ts";
-import type { $DWEB_DEEPLINK, $IpcSupportProtocols, $MMID } from "../../core/types.ts";
+import type { $IpcSupportProtocols, $MMID } from "../../core/types.ts";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
 import { buildUrl } from "../../helper/urlHelper.ts";
 import { Native2JsIpc } from "../js-process/ipc.native2js.ts";
+import { $JmmAppManifest } from "./types.ts";
 
 type $JsMM = { jmm: JsMicroModule; remoteMm: MicroModule };
 
@@ -63,7 +64,47 @@ export class JsMicroModule extends MicroModule {
     return this.metadata.config.dweb_deeplinks ?? [];
   }
   get categories() {
-    return this.metadata.config.categories ?? [MICRO_MODULE_CATEGORY.Application];
+    const categories = this.metadata.config.categories ?? [];
+    if (categories.includes(MICRO_MODULE_CATEGORY.Application) === false) {
+      categories.push(MICRO_MODULE_CATEGORY.Application);
+    }
+    return categories;
+  }
+  get dir() {
+    return this.metadata.config.dir;
+  }
+  get lang() {
+    return this.metadata.config.lang;
+  }
+  get name() {
+    return this.metadata.config.name;
+  }
+  get short_name() {
+    return this.metadata.config.short_name;
+  }
+  get description() {
+    return this.metadata.config.description;
+  }
+  get icons() {
+    return this.metadata.config.icons;
+  }
+  get screenshots() {
+    return this.metadata.config.screenshots;
+  }
+  get display() {
+    return this.metadata.config.display;
+  }
+  get orientation() {
+    return this.metadata.config.orientation;
+  }
+  get theme_color() {
+    return this.metadata.config.theme_color;
+  }
+  get background_color() {
+    return this.metadata.config.background_color;
+  }
+  get shortcuts() {
+    return this.metadata.config.shortcuts;
   }
 
   /**
@@ -250,18 +291,5 @@ export class JsMicroModule extends MicroModule {
 class JmmIpc extends Native2JsIpc {}
 
 export class JsMMMetadata {
-  constructor(readonly config: $JsMMMetadata) {}
-}
-export interface $JsMMMetadata {
-  id: $MMID;
-  server: $JsMMMetadata.$MainServer;
-  dweb_deeplinks?: $DWEB_DEEPLINK[];
-  categories?: MICRO_MODULE_CATEGORY[];
-}
-
-declare namespace $JsMMMetadata {
-  export interface $MainServer {
-    root: string;
-    entry: string;
-  }
+  constructor(readonly config: $JmmAppManifest) {}
 }

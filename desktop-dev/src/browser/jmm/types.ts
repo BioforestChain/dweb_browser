@@ -1,11 +1,14 @@
 import { MICRO_MODULE_CATEGORY } from "../../core/category.const.ts";
-import { $CommonAppManifest, $MMID } from "../../core/types.ts";
+import { $CommonAppManifest, $DWEB_DEEPLINK, $MMID } from "../../core/types.ts";
 
 /** Js模块应用 元数据 */
 export interface $JmmAppManifest extends Required<$CommonAppManifest> {
   id: $MMID;
   /** 版本信息 */
   version: string;
+  /**  */
+  dweb_deeplinks?: $DWEB_DEEPLINK[];
+  /** 类目 */
   categories: MICRO_MODULE_CATEGORY[];
   /** js 应用程序的入口 */
   server: {
