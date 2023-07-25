@@ -14,6 +14,8 @@ declare global {
 
 export class DeviceNMM extends NativeMicroModule {
   mmid = "device.sys.dweb" as const;
+  name = "Device Info";
+  override short_name = "Device";
   override categories = [MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Device_Management_Service];
 
   #uuid = new CacheGetter(() => electronConfig.get(UUID, () => crypto.randomUUID()));

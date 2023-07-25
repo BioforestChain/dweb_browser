@@ -71,6 +71,8 @@ const connectTo_symbol = Symbol("connectTo");
  */
 export class DnsNMM extends NativeMicroModule {
   mmid = "dns.sys.dweb" as const;
+  name = "Dweb Name System";
+  override short_name = "DNS";
   override dweb_deeplinks = ["dweb:open"] as $DWEB_DEEPLINK[];
   override categories = [MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Routing_Service];
   private apps = new Map<$MMID, MicroModule>();

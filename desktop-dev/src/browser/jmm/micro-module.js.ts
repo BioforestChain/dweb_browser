@@ -9,7 +9,7 @@ import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
 import { buildUrl } from "../../helper/urlHelper.ts";
 import { Native2JsIpc } from "../js-process/ipc.native2js.ts";
-import { $JmmAppManifest } from "./types.ts";
+import { $JmmAppInstallManifest } from "./types.ts";
 
 type $JsMM = { jmm: JsMicroModule; remoteMm: MicroModule };
 
@@ -86,7 +86,11 @@ export class JsMicroModule extends MicroModule {
     return this.metadata.config.description;
   }
   get icons() {
-    return this.metadata.config.icons;
+    let icons = this.metadata.config.icons;
+    if (icons === undefined || icons.length === 0) {
+      icons = [{ src: this.metadata.config.icon }];
+    }
+    return icons;
   }
   get screenshots() {
     return this.metadata.config.screenshots;
@@ -291,5 +295,5 @@ export class JsMicroModule extends MicroModule {
 class JmmIpc extends Native2JsIpc {}
 
 export class JsMMMetadata {
-  constructor(readonly config: $JmmAppManifest) {}
+  constructor(readonly config: $JmmAppInstallManifest) {}
 }

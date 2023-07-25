@@ -9,6 +9,8 @@ export class BootNMM extends NativeMicroModule {
     this.registeredMmids = new Set<$MMID>(this.initMmids);
   }
   mmid = "boot.sys.dweb" as const;
+  name = "Boot Management";
+  override short_name = "Boot";
   override categories = [MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Hub_Service];
   private readonly registeredMmids: Set<$MMID>;
   async _bootstrap() {

@@ -7,7 +7,9 @@
 ```ts
 // 注意
 // dweb_depplinks.pathname === registerCommonIpcOnMessageHandler.pathname
-export class NameNMM extends NativeMicroModule {
+export class YourNMM extends NativeMicroModule {
+  override mmid = "example.dweb"
+  override name = "Example"
   override dweb_deeplinks = ["dweb:pathname"] as $DWEB_DEEPLINK[];
   override categories = [MICRO_MODULE_CATEGORY.Application];
 

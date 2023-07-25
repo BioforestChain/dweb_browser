@@ -12,6 +12,7 @@ type $APIS = typeof import("./assets/exportApis.ts")["APIS"];
 
 export class BarcodeScanningNMM extends NativeMicroModule {
   mmid = "barcode-scanning.sys.dweb" as const;
+  name = "Barcode Scanning";
   override categories = [MICRO_MODULE_CATEGORY.Application, MICRO_MODULE_CATEGORY.Utilities];
   private _allocId = 0;
   private _operationResolveMap = new Map<number, { (arg: any): void }>();

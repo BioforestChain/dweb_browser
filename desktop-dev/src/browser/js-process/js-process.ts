@@ -88,7 +88,8 @@ type $IpcProcessIdMap = Map<$MMID, Map<string, PromiseOut<number>>>;
  * 用来中转  woker.js 同匹配的 JsMicroModule 通信
  */
 export class JsProcessNMM extends NativeMicroModule {
-  override mmid = `js.browser.dweb` as const;
+  mmid = `js.browser.dweb` as const;
+  name = "Js Process";
   override categories = [MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Process_Service];
 
   private JS_PROCESS_WORKER_CODE = once(() => {

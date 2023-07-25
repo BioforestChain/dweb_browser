@@ -33,6 +33,8 @@ export interface $Listener {
  */
 export class HttpServerNMM extends NativeMicroModule {
   mmid = `http.std.dweb` as const;
+  name = "HTTP Server Provider";
+  override short_name = "HTTP";
   override categories = [MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Protocol_Service];
   private _dwebServer = new Http1Server();
 

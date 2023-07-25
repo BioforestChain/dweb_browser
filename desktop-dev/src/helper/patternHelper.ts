@@ -5,7 +5,10 @@ import type { Pattern } from "ts-pattern/dist/types/Pattern.d.ts";
 
 import { IPC_METHOD } from "../core/ipc/const.ts";
 import { $OnFetch, FetchEvent } from "../core/ipc/index.ts";
-export type $PatternPathname = string | typeof P_string;
+export type $PatternPathname =
+  | string
+  | typeof P_string
+  | ReturnType<(typeof P_string)["startsWith" | "endsWith" | "maxLength" | "minLength" | "regex"]>;
 
 export const fetchMatch = () => {
   const withList: [p: Pattern<FetchEvent>, cb: $OnFetch][] = [];

@@ -28,6 +28,7 @@ let fromUrl: string;
 // 根据获取到的 appInfo 设置内容
 async function setAppInfoByAppInfo(metadata: $JmmAppInstallManifest, metadataUrl: string) {
   appInfo = typeof metadata === "object" ? metadata : JSON.parse(metadata);
+  appInfo.baseURI ??= metadataUrl
   fromUrl = metadataUrl;
   elIcon.style.backgroundImage = `url(${JSON.stringify(metadata.icon)})`;
   elMainTitle.innerHTML = appInfo.name;

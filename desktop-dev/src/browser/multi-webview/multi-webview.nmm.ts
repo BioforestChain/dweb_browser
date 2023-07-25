@@ -13,8 +13,10 @@ import { ALL_MMID_MWEBVIEW_WINDOW_MAP, getMWebViewWindow, getOrOpenMWebViewWindo
  * 但这里是模拟手机版，所以还是构建一个层级视图
  */
 export class MultiWebviewNMM extends NativeMicroModule {
-  override categories = [MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service];
   mmid = "mwebview.browser.dweb" as const;
+  name = "Multi Webview Renderer";
+  override short_name = "MWebview";
+  override categories = [MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service];
   observeMap: $ObserveMapNww = new Map();
   encoder = new TextEncoder();
   async _bootstrap(_context: $BootstrapContext) {

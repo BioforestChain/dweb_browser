@@ -1,12 +1,15 @@
 <script lang="ts" setup>
 import IconSquircleBox from "@/components/icon-squircle-box/index.vue";
 import SvgIcon from "@/components/svg-icon/index.vue";
-import { openApp, quitApp, vibrateHeavyClick } from "@/provider/api";
+import { openApp, quitApp, readAcceptSvg, vibrateHeavyClick } from "@/provider/api";
 import { CloseWatcher } from "@/provider/shim";
 import type { $WidgetAppData } from "@/types/app.type";
 import { onLongPress } from "@vueuse/core";
-import { onMounted, reactive, ref, watchEffect } from "vue";
+import { computed, onMounted, reactive, ref, watchEffect } from "vue";
+import { strictImageResource } from "../../../../../../../../../helper/imageResourcesHelper";
+import { Compareable, enumToCompareable } from "../../../../../../../../../helper/sortHelper";
 import AppUnInstallDialog from "../app-uninstall-dialog/index.vue";
+import blankApp_svg from "./blankApp.svg";
 import delete_svg from "./delete.svg";
 import details_svg from "./details.svg";
 import quit_svg from "./quit.svg";
@@ -38,6 +41,27 @@ const props = defineProps({
     required: true,
   },
 });
+const appname = computed(() => props.appMetaData.short_name ?? props.appMetaData.name);
+const appicon = ref("");
+watchEffect(async () => {
+  const acceptImage = await readAcceptSvg();
+  const selectedIcon = (props.appMetaData.icons ?? [])
+    .map(
+      (icon) =>
+        new Compareable(strictImageResource(icon), (icon) => {
+          const size = icon.sizes.at(-1)!;
+          const area = size.width * size.height;
+          return {
+            purpose: enumToCompareable(icon.purpose, ["maskable", "any", "monochrome"]),
+            type: acceptImage.length - acceptImage.findIndex((acceptTester) => acceptTester(icon.type)),
+            area,
+          };
+        })
+    )
+    .sort((a, b) => a.compare(b))
+    .at(-1);
+  appicon.value = selectedIcon?.value.src ?? blankApp_svg;
+});
 const opening = ref(false);
 const closing = ref(false);
 const animationiteration = ref(false);
@@ -56,7 +80,7 @@ watchEffect(() => {
 const emit = defineEmits(["uninstall"]);
 
 onMounted(() => {});
-let menuCloser: CloseWatcher | null = null;
+let menuCloser: InstanceType<typeof CloseWatcher> | null = null;
 //长按事件的回调
 const showMenu = () => {
   vibrateHeavyClick(); // 震动
@@ -78,13 +102,18 @@ onLongPress($appHtmlRefHook, showMenu, {
 
 async function doOpen() {
   opening.value = true;
-  await openApp(props.appMetaData.id);
+  if ((await openApp(props.appMetaData.mmid).catch(() => (opening.value = false))) === false) {
+    snackbar.text = `${appname.value} 启动失败`;
+    snackbar.timeOut = 1500;
+    snackbar.type = "error";
+    snackbar.show = true;
+  }
 }
 
 async function doQuit() {
   closing.value = true;
-  if (await quitApp(props.appMetaData.id)) {
-    snackbar.text = `${props.appMetaData.short_name} 已退出后台。`;
+  if (await quitApp(props.appMetaData.mmid).catch(() => (closing.value = false))) {
+    snackbar.text = `${appname.value} 已退出后台。`;
     snackbar.timeOut = 1500;
     snackbar.type = "primary";
     snackbar.show = true;
@@ -126,10 +155,10 @@ const onJmmUnInstallDialogClosed = (confirmed: boolean) => {
             @animationiteration="animationiteration = true"
           >
             <IconSquircleBox class="bg backdrop-blur-sm" />
-            <img class="fg" :src="appMetaData.icon" />
+            <img class="fg" :src="appicon" />
           </div>
           <div class="app-name line-clamp-2 backdrop-blur-sm" :style="{ opacity: isShowMenu ? 0 : 1 }">
-            {{ appMetaData.short_name }}
+            {{ appname }}
           </div>
         </div>
         <Transition name="fade" @beforeEnter="() => (isShowOverlay = true)" @afterLeave="() => (isShowOverlay = false)">
@@ -138,7 +167,7 @@ const onJmmUnInstallDialogClosed = (confirmed: boolean) => {
       </template>
 
       <div class="menu ios-ani" v-show="isShowMenu">
-        <button v-ripple class="item quit" @click="doQuit" :disabled="!$props.appMetaData.running">
+        <button v-ripple class="item quit" @click="doQuit" :disabled="!appMetaData.running">
           <SvgIcon class="icon" :src="quit_svg" alt="退出" />
           <p class="title">退出</p>
         </button>

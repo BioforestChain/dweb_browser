@@ -87,7 +87,7 @@ const bgStyle = {
     </div>
     <TilePanel>
       <TileItem v-for="(info, index) in layoutInfoListRef" :key="index" :width="info.xywh.w" :height="info.xywh.h">
-        <widget-app v-if="info.type === 'app'" :key="index" :index="index" :app-meta-data="info.data"></widget-app>
+        <WidgetApp v-if="info.type === 'app'" :key="index" :index="index" :app-meta-data="info.data"></WidgetApp>
         <WidgetCustom v-if="info.type === 'widget'" :key="index" :index="index" :widget-meta-data="info.data"></WidgetCustom>
       </TileItem>
     </TilePanel>

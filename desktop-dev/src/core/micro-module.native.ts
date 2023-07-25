@@ -33,9 +33,9 @@ export abstract class NativeMicroModule extends MicroModule {
   readonly dweb_deeplinks: $DWEB_DEEPLINK[] = [];
   readonly categories: MICRO_MODULE_CATEGORY[] = [];
   abstract override mmid: $MMID;
+  abstract override name: MicroModule["name"];
   override dir: MicroModule["dir"];
   override lang: MicroModule["lang"];
-  override name: MicroModule["name"];
   override short_name: MicroModule["short_name"];
   override description: MicroModule["description"];
   override icons: MicroModule["icons"];
@@ -136,13 +136,6 @@ export abstract class NativeMicroModule extends MicroModule {
     };
     this.onAfterShutdown(off);
     return Object.assign(off, onRequestHandler);
-  }
-  override toManifest() {
-    const manifest = super.toManifest();
-    if ((manifest.name?.trim() ?? "") !== "") {
-      manifest.name = manifest.mmid.split(".").slice(0, -1).reverse().join(" ");
-    }
-    return manifest;
   }
 }
 

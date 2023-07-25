@@ -155,14 +155,9 @@ export abstract class MicroModule implements $MicroModule {
   }
 
   #manifest = new CacheGetter(() => {
-    const { mmid } = this;
-    let { name } = this;
-    if ((name?.trim() ?? "") === "") {
-      name = mmid.split(".").slice(0, -1).reverse().join(" ");
-    }
     return {
-      mmid,
-      name,
+      mmid: this.mmid,
+      name: this.name,
       short_name: this.short_name,
       ipc_support_protocols: this.ipc_support_protocols,
       dweb_deeplinks: this.dweb_deeplinks,

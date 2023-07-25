@@ -1,4 +1,3 @@
-// import Nedb from "@seald-io/nedb";
 import { blue, red } from "colors";
 import JSZip from "jszip";
 import crypto from "node:crypto";
@@ -18,13 +17,13 @@ import { ReadableStreamOut } from "../../helper/readableStreamHelper.ts";
 import { createHttpDwebServer } from "../../std/http/helper/$createHttpDwebServer.ts";
 import type { JmmNMM } from "./jmm.ts";
 import { JsMMMetadata, JsMicroModule } from "./micro-module.js.ts";
-import { $JmmAppInstallManifest, $JmmAppManifest } from "./types.ts";
+import { $JmmAppInstallManifest } from "./types.ts";
 
 export const JMM_APPS_PATH = resolveToDataRoot("jmm-apps");
 fs.mkdirSync(JMM_APPS_PATH, { recursive: true });
 
 export class JmmDatabase extends Store<{
-  apps: Map<$MMID, $JmmAppManifest>;
+  apps: Map<$MMID, $JmmAppInstallManifest>;
 }> {
   constructor() {
     super("jmm-apps");
@@ -33,7 +32,7 @@ export class JmmDatabase extends Store<{
   private _save() {
     this.set("apps", this._apps);
   }
-  async upsert(app: $JmmAppManifest) {
+  async upsert(app: $JmmAppInstallManifest) {
     const oldApp = this._apps.get(app.id);
     if (isDeepStrictEqual(oldApp, app)) {
       return true;
@@ -73,7 +72,7 @@ export async function createApiServer(this: JmmNMM) {
     .onFetch(
       async (event) => {
         if (event.pathname === "/app/install") {
-          const appInfo = await event.json<$JmmAppManifest>();
+          const appInfo = await event.json<$JmmAppInstallManifest>();
           /// 上锁
           return await locks.request(`jmm-install:${appInfo.id}`, () => _appInstall.call(this, event, appInfo));
         }

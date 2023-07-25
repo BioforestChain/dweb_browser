@@ -11,6 +11,24 @@ export async function getAppInfo() {
   return (await res.json()) as Promise<$WidgetAppData[]>;
 }
 
+export async function readAccept(ext: string = "") {
+  const res = await nativeFetch(`/readAccept.${ext}`, {});
+  return (await res.text())
+    .split(";")[0]!
+    .split(",")
+    .map((mime) => {
+      const mimeLower = mime.toLowerCase();
+      if (mime.includes("*")) {
+        const mimeReg = new RegExp(mime.replace(/\*/g, ".+"), "i");
+        return (type: string) => mimeLower === type.toLowerCase() || mimeReg.test(type);
+      }
+      return (type: string) => mimeLower === type.toLowerCase();
+    });
+}
+
+let _readAcceptSvg: undefined | ReturnType<typeof readAccept>;
+export const readAcceptSvg = () => (_readAcceptSvg ??= readAccept("svg"));
+
 export function watchAppInfo() {
   return nativeFetchStream<$WidgetAppData[]>("/desktop/observe/apps");
 }

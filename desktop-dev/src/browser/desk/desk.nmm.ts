@@ -3,7 +3,7 @@ import { MICRO_MODULE_CATEGORY } from "../../core/category.const.ts";
 import { buildRequestX } from "../../core/helper/ipcRequestHelper.ts";
 import { Ipc, IpcEvent } from "../../core/ipc/index.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
-import { $MMID } from "../../core/types.ts";
+import { $MMID, $MicroModuleManifest } from "../../core/types.ts";
 import { once } from "../../helper/$once.ts";
 import { ChangeableMap } from "../../helper/ChangeableMap.ts";
 import { JsonlinesStream } from "../../helper/JsonlinesStream.ts";
@@ -11,23 +11,22 @@ import { $Callback, createSignal } from "../../helper/createSignal.ts";
 import { tryDevUrl } from "../../helper/electronIsDev.ts";
 import { simpleEncoder } from "../../helper/encoding.ts";
 import { createComlinkNativeWindow, createNativeWindow } from "../../helper/openNativeWindow.ts";
-import { fetchMatch } from "../../helper/patternHelper.ts";
+import { P, fetchMatch } from "../../helper/patternHelper.ts";
 import { ReadableStreamOut, streamReadAll } from "../../helper/readableStreamHelper.ts";
 import { buildUrl } from "../../helper/urlHelper.ts";
 import { z, zq } from "../../helper/zodHelper.ts";
 import { HttpDwebServer, createHttpDwebServer } from "../../std/http/helper/$createHttpDwebServer.ts";
-import { JMM_DB } from "../jmm/jmm.api.serve.ts";
-import { $JmmAppManifest } from "../jmm/types.ts";
 import { window_options } from "./const.ts";
 import { deskStore } from "./desk.store.ts";
 
-export interface $DeskAppMetaData extends $JmmAppManifest {
+export interface $DeskAppMetaData extends $MicroModuleManifest {
   running: boolean;
 }
 
 export class DeskNMM extends NativeMicroModule {
   mmid = "desk.browser.dweb" as const;
-  override categories = [MICRO_MODULE_CATEGORY.Application, MICRO_MODULE_CATEGORY.Desktop];
+  name = "Desk";
+  override categories = [MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Desktop];
 
   protected async _bootstrap(context: $BootstrapContext) {
     const query_app_id = zq.object({
@@ -50,17 +49,17 @@ export class DeskNMM extends NativeMicroModule {
     });
 
     const getDesktopAppList = async () => {
-      await context.dns.search(MICRO_MODULE_CATEGORY.Application);
+      const apps = await context.dns.search(MICRO_MODULE_CATEGORY.Application);
+      return apps.map((metaData) => {
+        return { ...metaData, running: runingApps.has(metaData.mmid) };
+      });
     };
-    (await JMM_DB.all()).map((metaData) => {
-      return { ...metaData, running: runingApps.has(metaData.id) };
-    });
 
     const getTaskbarAppList = async (limit: number) => {
       const apps: $DeskAppMetaData[] = [];
 
       for (const app_id of taskbarAppList) {
-        const metaData = await JMM_DB.find(app_id);
+        const metaData = await context.dns.query(app_id);
         if (metaData) {
           apps.push({ ...metaData, running: runingApps.has(app_id) });
         }
@@ -73,6 +72,9 @@ export class DeskNMM extends NativeMicroModule {
 
     const onFetchHanlder = fetchMatch()
       //#region 通用接口
+      .get(P.string.startsWith("/readAccept."), (async) => {
+        return { body: async.headers.get("Accept") };
+      })
       .get("/openAppOrActivate", async (event) => {
         const { app_id } = query_app_id(event.searchParams);
         console.always("activity", app_id);

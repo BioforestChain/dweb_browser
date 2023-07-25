@@ -24,6 +24,7 @@ nativeFetchAdaptersManager.append(async (remote, parsedUrl) => {
         },
       });
     } catch (err) {
+      console.always(err);
       return new Response(String(err), { status: 404 });
     }
   }

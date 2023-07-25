@@ -56,6 +56,8 @@ nativeFetchAdaptersManager.append((remote, parsedUrl) => {
 
 export class JmmNMM extends NativeMicroModule {
   mmid = "jmm.browser.dweb" as const;
+  name = "Js MicroModule Management";
+  override short_name = "JMM";
   override dweb_deeplinks = ["dweb:install"] as $DWEB_DEEPLINK[];
   override categories = [MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Hub_Service];
   downloadStatus: DOWNLOAD_STATUS = 0;

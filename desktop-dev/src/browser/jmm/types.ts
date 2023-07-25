@@ -4,6 +4,8 @@ import { $CommonAppManifest, $DWEB_DEEPLINK, $MMID } from "../../core/types.ts";
 /** Js模块应用 元数据 */
 export interface $JmmAppManifest extends Required<$CommonAppManifest> {
   id: $MMID;
+  /** 基准URL，如果没有定义了这个url，那么默认使用当前的 .json 链接 */
+  baseURI?: string;
   /** 版本信息 */
   version: string;
   /**  */

@@ -106,6 +106,7 @@ export class JsProcessMicroModule implements $MicroModule {
     } satisfies $IpcSupportProtocols;
   })();
   readonly mmid: $MMID;
+  readonly name: string;
   readonly host: string;
   readonly dweb_deeplinks: $DWEB_DEEPLINK[] = [];
   readonly categories: $MicroModule["categories"] = [];
@@ -138,6 +139,7 @@ export class JsProcessMicroModule implements $MicroModule {
             ipc_support_protocols,
             dweb_deeplinks: [],
             categories: [],
+            name: this.name,
           },
           rote
         );
@@ -154,6 +156,7 @@ export class JsProcessMicroModule implements $MicroModule {
     workerGlobal.addEventListener("message", _beConnect);
 
     this.mmid = meta.data.mmid;
+    this.name = `js process of ${this.mmid}`;
     this.host = this.meta.envString("host");
     this.fetchIpc = new MessagePortIpc(this.nativeFetchPort, this, IPC_ROLE.SERVER);
   }
