@@ -51,13 +51,13 @@ public partial class MultiWebViewController : BaseViewController
 
             var ipc = await _mIpcMap.GetValueOrPutAsync(mmid, async () =>
             {
-                var connectResult = await localeMM.ConnectAsync(mmid);
-                connectResult.IpcForFromMM.OnEvent += async (Event, _, _) =>
+                var ipcForFromMM = await localeMM.ConnectAsync(mmid);
+                ipcForFromMM!.OnEvent += async (Event, _, _) =>
                 {
                     Console.Log("event", "name={0}, data={1}", Event.Name, Event.Data);
                 };
 
-                return connectResult.IpcForFromMM;
+                return ipcForFromMM;
             });
 
             await ipc.PostMessageAsync(IpcEvent.FromUtf8("state", JsonSerializer.Serialize(currentState)));

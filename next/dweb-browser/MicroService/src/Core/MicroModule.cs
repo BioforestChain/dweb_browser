@@ -129,10 +129,15 @@ public abstract partial class MicroModule : Ipc.IMicroModuleInfo
      * 尝试连接到指定对象
      * </summary>
      */
-    public async Task<ConnectResult> ConnectAsync(Mmid mmid, PureRequest? reason = null)
+    public async Task<Ipc?> ConnectAsync(Mmid mmid)
     {
-        await _bootstrapContext!.Dns.Open(mmid);
-        return await _bootstrapContext!.Dns.ConnectAsync(mmid);
+        if (_bootstrapContext is not null)
+        {
+            var connectResult = await _bootstrapContext!.Dns.ConnectAsync(mmid);
+            return connectResult.IpcForFromMM;
+        }
+
+        return null;
     }
 
 

@@ -1,5 +1,4 @@
-﻿using DwebBrowser.MicroService.Core;
-using DwebBrowser.MicroService.Sys.Http;
+﻿using DwebBrowser.MicroService.Sys.Http;
 
 namespace DwebBrowser.MicroService.Sys.Dns;
 
@@ -151,22 +150,32 @@ public class DnsNMM : NativeMicroModule
 
         public async Task<bool> Open(Mmid mmid)
         {
+            /// 已经在运行中了，直接返回true
             if (_dnsMM._runningApps.ContainsKey(mmid))
+            {
+                return true;
+            }
+
+            /// 尝试运行，成功就返回true
+            try
+            {
+                await _dnsMM.Open(mmid);
+                return true;
+            }
+            catch
             {
                 return false;
             }
-
-            await _dnsMM.Open(mmid);
-
-            return true;
         }
 
         public async Task<bool> Close(Mmid mmid)
         {
             if (_dnsMM._runningApps.ContainsKey(mmid))
             {
-                await _dnsMM.Close(mmid);
-                return true;
+                if (await _dnsMM.Close(mmid) == 1)
+                {
+                    return true;
+                }
             }
 
             return false;
@@ -262,15 +271,16 @@ public class DnsNMM : NativeMicroModule
 
     public async Task OnActivity(IpcEvent? Event = null)
     {
-        if (Event is null)
-        {
-            Event = IpcEvent.FromUtf8("activity", "");
-        }
+        Event ??= IpcEvent.FromUtf8("activity", "");
 
         /// 启动 boot 模块
         await Open("boot.sys.dweb");
-        var connectResult = await ConnectAsync("boot.sys.dweb");
-        await connectResult.IpcForFromMM.PostMessageAsync(Event);
+        var ipc = await ConnectAsync("boot.sys.dweb");
+
+        if (ipc is not null)
+        {
+            await ipc.PostMessageAsync(Event);
+        }
     }
 
     protected override async Task _shutdownAsync()
@@ -330,11 +340,6 @@ public class DnsNMM : NativeMicroModule
         try
         {
             await microModule.ShutdownAsync();
-            //lock (_mmConnectsMap)
-            //{
-            //    _mmConnectsMap.Remove(MM.From(microModule.Mmid, "js.browser.dweb"));
-            //    _mmConnectsMap.Remove(MM.From("js.browser.dweb", microModule.Mmid));
-            //}
 
             return 1;
         }

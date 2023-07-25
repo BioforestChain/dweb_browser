@@ -39,21 +39,23 @@ public interface IDnsMicroModule
 
     /**
      * <summary>
-     * 与其它应用建立连接
+     * 打开应用并与之建立链接
      * </summary>
      */
     public Task<ConnectResult> ConnectAsync(Mmid mmid, PureRequest? reason = null);
 
     /**
      * <summary>
-     * 启动其它应用
+     * 打开应用，如果应用不存在，或者因某种原因（程序错误、或者被限制）启动失败，会返回 false
+     * 返回true，说明应用已经在运行
      * </summary>
      */
     public Task<bool> Open(Mmid mmid);
 
     /**
      * <summary>
-     * 关闭其它应用
+     * 关闭应用，如果应用不存在，或者用户拒绝关闭、或者因为某种原因（程序错误、或者被限制），会返回false
+     * 返回true，说明应用已经停止运行
      * </summary>
      */
     public Task<bool> Close(Mmid mmid);

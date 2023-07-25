@@ -10,7 +10,7 @@ public class BootNMM : NativeMicroModule
      */
     private HashSet<Mmid> _registeredMmids = new();
 
-    public BootNMM(List<Mmid>? initMmids = null):base("boot.sys.dweb")
+    public BootNMM(List<Mmid>? initMmids = null) : base("boot.sys.dweb")
     {
         if (initMmids is not null)
         {
