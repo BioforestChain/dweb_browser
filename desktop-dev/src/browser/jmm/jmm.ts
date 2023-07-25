@@ -3,6 +3,7 @@ import fs from "node:fs";
 import type { OutgoingMessage } from "node:http";
 import path from "node:path";
 import type { $BootstrapContext } from "../../core/bootstrapContext.ts";
+import type { MICRO_MODULE_CATEGORY } from "../../core/category.const.ts";
 import { FetchError } from "../../core/ipc/ipc.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import { $DWEB_DEEPLINK, $MMID } from "../../core/types.ts";
@@ -206,7 +207,7 @@ export interface $AppMetaData {
   description: string;
   author: string[];
   version: string;
-  categories: string[];
+  categories: MICRO_MODULE_CATEGORY[];
   home: string;
   server: {
     root: string;

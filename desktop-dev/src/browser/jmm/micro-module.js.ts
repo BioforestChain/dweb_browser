@@ -1,4 +1,5 @@
 import type { $BootstrapContext } from "../../core/bootstrapContext.ts";
+import type { MICRO_MODULE_CATEGORY } from "../../core/category.const.ts";
 import { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.ts";
 import { IPC_ROLE, Ipc, IpcResponse } from "../../core/ipc/index.ts";
 import { MicroModule } from "../../core/micro-module.ts";
@@ -61,6 +62,9 @@ export class JsMicroModule extends MicroModule {
   get dweb_deeplinks() {
     return this.metadata.config.dweb_deeplinks ?? [];
   }
+  get categories() {
+    return this.metadata.config.categories ?? [];
+  }
 
   /**
    * 和 dweb 的 port 一样，pid 是我们自己定义的，它跟我们的 mmid 关联在一起
@@ -115,9 +119,8 @@ export class JsMicroModule extends MicroModule {
       const protocol = ipcRequest.parsed_url.protocol;
       const host = ipcRequest.parsed_url.host;
       if (protocol === "file:" && host.endsWith(".dweb")) {
-        const connectResult = await this.connect(host as $MMID);
-        if (!connectResult) throw new Error(`not found NMM ${host}`);
-        const [jsWebIpc] = await connectResult;
+        const jsWebIpc = await this.connect(host as $MMID);
+        if (!jsWebIpc) throw new Error(`not found NMM ${host}`);
         jsWebIpc.emitMessage(ipcRequest);
       } else {
         const request = ipcRequest.toRequest();
@@ -235,7 +238,6 @@ export class JsMicroModule extends MicroModule {
     ).boolean();
   }
 
-
   _shutdown() {
     // 删除 _fromMmid_originIpc_map 里面的ipc
     Array.from(this._fromMmid_originIpc_map.values()).forEach(async (item) => {
@@ -254,6 +256,7 @@ export interface $JsMMMetadata {
   id: $MMID;
   server: $JsMMMetadata.$MainServer;
   dweb_deeplinks?: $DWEB_DEEPLINK[];
+  categories?: MICRO_MODULE_CATEGORY[];
 }
 
 declare namespace $JsMMMetadata {

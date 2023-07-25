@@ -1,14 +1,17 @@
+import { PromiseOut } from "../helper/PromiseOut.ts";
 import { createSignal } from "../helper/createSignal.ts";
 import { fetchExtends } from "../helper/fetchExtends/index.ts";
 import { normalizeFetchArgs } from "../helper/normalizeFetchArgs.ts";
-import { PromiseOut } from "../helper/PromiseOut.ts";
 import { nativeFetchAdaptersManager } from "../sys/dns/nativeFetch.ts";
 import type { $BootstrapContext } from "./bootstrapContext.ts";
+import type { MICRO_MODULE_CATEGORY } from "./category.const.ts";
 import type { Ipc, IpcEvent } from "./ipc/index.ts";
-import type { $DWEB_DEEPLINK, $IpcSupportProtocols, $MicroModule, $MMID } from "./types.ts";
+import type { $DWEB_DEEPLINK, $IpcSupportProtocols, $MMID, $MicroModule } from "./types.ts";
+
 export abstract class MicroModule implements $MicroModule {
   abstract ipc_support_protocols: $IpcSupportProtocols;
   abstract dweb_deeplinks: $DWEB_DEEPLINK[];
+  abstract categories: MICRO_MODULE_CATEGORY[];
   abstract mmid: $MMID;
   protected abstract _bootstrap(context: $BootstrapContext): unknown;
   protected abstract _shutdown(): unknown;

@@ -8,6 +8,7 @@ export interface $IpcSupportProtocols {
   protobuf: boolean;
   raw: boolean;
 }
+import { MICRO_MODULE_CATEGORY } from "./category.const.ts";
 export interface $IpcMicroModuleInfo {
   /** 模块id */
   readonly mmid: $MMID;
@@ -24,13 +25,13 @@ export interface $IpcMicroModuleInfo {
    * dweb_deeplinks 由 dns 模块进行统一管理，也由它提供相关的管理界面、控制策略
    */
   readonly dweb_deeplinks: $DWEB_DEEPLINK[];
+  readonly categories: MICRO_MODULE_CATEGORY[];
 }
 export interface $MicroModule extends $IpcMicroModuleInfo {
   nativeFetch(
     input: RequestInfo | URL,
     init?: RequestInit
-  ): Promise<Response> &
-    typeof import("../helper/fetchExtends/index.ts")["fetchExtends"];
+  ): Promise<Response> & typeof import("../helper/fetchExtends/index.ts")["fetchExtends"];
 
   /**
    * 添加双工连接到自己的池子中，但自己销毁，这些双工连接都会被断掉

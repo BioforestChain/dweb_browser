@@ -1,4 +1,5 @@
 import { $OffListener } from "../helper/createSignal.ts";
+import type { MICRO_MODULE_CATEGORY } from "./category.const.ts";
 import { $deserializeRequestToParams } from "./helper/$deserializeRequestToParams.ts";
 import { $isMatchReq, $ReqMatcher } from "./helper/$ReqMatcher.ts";
 import { $serializeResultToResponse } from "./helper/$serializeResultToResponse.ts";
@@ -30,6 +31,7 @@ export abstract class NativeMicroModule extends MicroModule {
     raw: true,
   };
   readonly dweb_deeplinks: $DWEB_DEEPLINK[] = [];
+  readonly categories: MICRO_MODULE_CATEGORY[] = [];
   abstract override mmid: $MMID;
 
   private _commmon_ipc_on_message_handlers = new Set<$RequestCustomHanlderSchema>();
