@@ -7,7 +7,7 @@ import { ReadableStreamOut, binaryStreamRead } from "../../helper/readableStream
 import { $PromiseMaybe } from "../helper/types.ts";
 import type { $IpcMessage, IPC_ROLE, IpcMessage } from "../ipc/const.ts";
 import { Ipc } from "../ipc/ipc.ts";
-import type { $IpcMicroModuleInfo, $IpcSupportProtocols } from "../types.ts";
+import type { $MicroModuleManifest, $IpcSupportProtocols } from "../types.ts";
 import { $messagePackToIpcMessage } from "./$messagePackToIpcMessage.ts";
 import { $jsonToIpcMessage } from "./$messageToIpcMessage.ts";
 
@@ -19,7 +19,7 @@ import { $jsonToIpcMessage } from "./$messageToIpcMessage.ts";
  */
 export class ReadableStreamIpc extends Ipc {
   constructor(
-    readonly remote: $IpcMicroModuleInfo,
+    readonly remote: $MicroModuleManifest,
     readonly role: IPC_ROLE,
     readonly self_support_protocols: $IpcSupportProtocols = {
       raw: false,

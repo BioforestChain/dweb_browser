@@ -32,7 +32,7 @@ export type $CommonAppManifest = Pick<
   // "start_url" | "scope" | "related_applications" | "prefer_related_applications" | "iarc_rating_id"
 >;
 
-export interface $IpcMicroModuleInfo extends $CommonAppManifest {
+export interface $MicroModuleManifest extends $CommonAppManifest {
   /** 模块id */
   readonly mmid: $MMID;
   /** 对通讯协议的支持情况 */
@@ -50,7 +50,7 @@ export interface $IpcMicroModuleInfo extends $CommonAppManifest {
   readonly dweb_deeplinks: $DWEB_DEEPLINK[];
   readonly categories: MICRO_MODULE_CATEGORY[];
 }
-export interface $MicroModule extends $IpcMicroModuleInfo {
+export interface $MicroModule extends $MicroModuleManifest {
   nativeFetch(
     input: RequestInfo | URL,
     init?: RequestInit

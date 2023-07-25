@@ -2,7 +2,7 @@ import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { CacheGetter } from "../../helper/cacheGetter.ts";
 import { $Callback, createSignal } from "../../helper/createSignal.ts";
 import { MicroModule } from "../micro-module.ts";
-import type { $IpcMicroModuleInfo } from "../types.ts";
+import type { $MicroModuleManifest } from "../types.ts";
 import type { IpcHeaders } from "./IpcHeaders.ts";
 import { IpcRequest } from "./IpcRequest.ts";
 import type { IpcResponse } from "./IpcResponse.ts";
@@ -64,7 +64,7 @@ export abstract class Ipc {
 
   protected _support_binary = false;
 
-  abstract readonly remote: $IpcMicroModuleInfo;
+  abstract readonly remote: $MicroModuleManifest;
   protected _closeSignal = createSignal<() => unknown>(false);
   onClose = this._closeSignal.listen;
   asRemoteInstance() {

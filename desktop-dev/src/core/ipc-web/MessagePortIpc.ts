@@ -4,14 +4,14 @@ import { IpcRequest } from "../ipc/IpcRequest.ts";
 import { IpcResponse } from "../ipc/IpcResponse.ts";
 import { $IpcMessage, IPC_ROLE, IpcMessage } from "../ipc/const.ts";
 import { Ipc } from "../ipc/ipc.ts";
-import type { $IpcMicroModuleInfo, $IpcSupportProtocols } from "../types.ts";
+import type { $MicroModuleManifest, $IpcSupportProtocols } from "../types.ts";
 import { $messagePackToIpcMessage } from "./$messagePackToIpcMessage.ts";
 import { $jsonToIpcMessage, $messageToIpcMessage, $uint8ArrayToIpcMessage } from "./$messageToIpcMessage.ts";
 
 export class MessagePortIpc extends Ipc {
   constructor(
     readonly port: MessagePort,
-    readonly remote: $IpcMicroModuleInfo,
+    readonly remote: $MicroModuleManifest,
     readonly role: IPC_ROLE = IPC_ROLE.CLIENT,
     readonly self_support_protocols: $IpcSupportProtocols = {
       raw: true,
