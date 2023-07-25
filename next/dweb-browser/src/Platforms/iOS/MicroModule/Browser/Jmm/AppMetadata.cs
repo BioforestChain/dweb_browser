@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 
 namespace DwebBrowser.MicroService.Browser.Jmm;
 
-public class JmmMetadata
+public class AppMetaData : IEquatable<AppMetaData>
 {
     [JsonPropertyName("id")]
     public Mmid Id { get; set; }    // jmmApp的id
@@ -46,15 +46,17 @@ public class JmmMetadata
     [JsonPropertyName("release_date")]
     public string ReleaseDate { get; set; }     // 发布时间
 
+    public long Timestamp = 0; // 时间戳，用于应用排序
+
     [Obsolete("使用带参数的构造函数", true)]
 #pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
-    public JmmMetadata()
+    public AppMetaData()
 #pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
     {
         /// 给JSON反序列化用的空参数构造函数
     }
 
-    public JmmMetadata(
+    public AppMetaData(
         Mmid id,
         MainServer server,
         List<Dweb_DeepLink>? dweb_deeplinks = null,
@@ -119,6 +121,34 @@ public class JmmMetadata
     }
 
     public string ToJson() => JsonSerializer.Serialize(this);
-    public static JmmMetadata? FromJson(string json) =>
-        JsonSerializer.Deserialize<JmmMetadata>(json);
+    public static AppMetaData? FromJson(string json) =>
+        JsonSerializer.Deserialize<AppMetaData>(json);
+
+    public bool Equals(AppMetaData? other)
+    {
+        return GetHashCode() == other?.GetHashCode();
+    }
+
+    public override int GetHashCode()
+    {
+        return Id.GetHashCode() ^ 
+            Server.GetHashCode() ^
+            Name.GetHashCode() ^
+            ShortName.GetHashCode() ^
+            Icon.GetHashCode() ^
+            Images?.GetHashCode() ?? 0 ^
+            Description.GetHashCode() ^
+            Author?.GetHashCode() ?? 0 ^
+            Version.GetHashCode() ^
+            NewFeature.GetHashCode() ^
+            Categories?.GetHashCode() ?? 0 ^
+            Home.GetHashCode() ^
+            BundleUrl.GetHashCode() ^
+            BundleSize.GetHashCode() ^
+            BundleHash.GetHashCode() ^
+            Permissions?.GetHashCode() ?? 0 ^
+            Plugins?.GetHashCode() ?? 0 ^
+            ReleaseDate.GetHashCode() ^
+            Dweb_DeepLinks?.GetHashCode() ?? 0;
+    }
 }

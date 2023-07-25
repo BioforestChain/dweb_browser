@@ -15,7 +15,7 @@ public class JmmController : BaseViewController
         _jmmNMM = jmmNMM;
     }
 
-    public Task OpenDownloadPageAsync(JmmMetadata jmmMetadata, DownloadStatus downloadStatus) =>
+    public Task OpenDownloadPageAsync(AppMetaData jmmMetadata, DownloadStatus downloadStatus) =>
         MainThread.InvokeOnMainThreadAsync(async () =>
         {
             var data = NSData.FromString(jmmMetadata.ToJson(), NSStringEncoding.UTF8);

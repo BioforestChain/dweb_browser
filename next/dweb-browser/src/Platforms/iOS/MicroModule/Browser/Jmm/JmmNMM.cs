@@ -46,7 +46,7 @@ public class JmmNMM : NativeMicroModule
     /// </summary>
     /// <param name="mmid"></param>
     /// <returns></returns>
-    public static JmmMetadata? GetBfsMetaData(Mmid mmid) => JmmApps.GetValueOrDefault(mmid)?.Metadata;
+    public static AppMetaData? GetBfsMetaData(Mmid mmid) => JmmApps.GetValueOrDefault(mmid)?.Metadata;
 
     public static JmmController JmmController
     {
@@ -56,53 +56,20 @@ public class JmmNMM : NativeMicroModule
     public JmmNMM() : base("jmm.browser.dweb")
     {
         s_controllerList.Add(new(this));
-
-        JmmMetadataDB.JmmMetadataUpdate.OnChange += async (value, oldValue, _) =>
-        {
-            if (value > oldValue)
-            {
-                _recoverAppData();
-            }
-        };
-    }
-
-    private void _recoverAppData()
-    {
-        // 启动的时候，从数据库中恢复 JmmApps 对象
-        _ = Task.Run(async () =>
-        {
-            lock (JmmApps)
-            {
-                JmmApps.Clear();
-                foreach (var entry in JmmMetadataDB.GetJmmMetadataEnumerator())
-                {
-                    JmmApps.GetValueOrPut(entry.Key, () =>
-                        new JsMicroModule(entry.Value).Also(jsMicroModule =>
-                        {
-                            try
-                            {
-                                BootstrapContext.Dns.Install(jsMicroModule);
-                            }
-                            catch { }
-                        }));
-                }
-            }
-
-        }).NoThrow();
     }
 
     protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)
     {
-        _recoverAppData();
+        //_recoverAppData();
 
         HttpRouter.AddRoute(IpcMethod.Get, "/install", async (request, _) =>
         {
             var searchParams = request.SafeUrl.SearchParams;
             var metadataUrl = request.QueryStringRequired("url");
-            var jmmMetadata = await (await NativeFetchAsync(metadataUrl)).JsonAsync<JmmMetadata>();
+            var jmmMetadata = await (await NativeFetchAsync(metadataUrl)).JsonAsync<AppMetaData>();
             var url = new URL(metadataUrl);
 
-            if (jmmMetadata is JmmMetadata metadata)
+            if (jmmMetadata is AppMetaData metadata)
             {
                 _openJmmMetadataInstallPage(metadata, url);
             }
@@ -172,15 +139,15 @@ public class JmmNMM : NativeMicroModule
         });
     }
 
-    private DownloadStatus _getCurrentDownloadStatus(JmmMetadata jmmMetadata)
+    private DownloadStatus _getCurrentDownloadStatus(AppMetaData appMetadata)
     {
-        var oldJmmMetadata = JmmMetadataDB.QueryJmmMetadata(jmmMetadata.Id);
+        var oldAmmMetadata = JmmDatabase.Instance.Find(appMetadata.Id);
         var initDownloadStatus = DownloadStatus.IDLE;
 
-        if (oldJmmMetadata is not null)
+        if (oldAmmMetadata is not null)
         {
-            var oldSemver = new Semver(oldJmmMetadata.Version);
-            var newSemver = new Semver(jmmMetadata.Version);
+            var oldSemver = new Semver(oldAmmMetadata.Version);
+            var newSemver = new Semver(appMetadata.Version);
 
             if (newSemver.CompareTo(oldSemver) > 0)
             {
@@ -195,17 +162,17 @@ public class JmmNMM : NativeMicroModule
         return initDownloadStatus;
     }
 
-    private async void _openJmmMetadataInstallPage(JmmMetadata jmmMetadata, URL url)
+    private async void _openJmmMetadataInstallPage(AppMetaData appMetadata, URL url)
     {
-        if (!jmmMetadata.BundleUrl.StartsWith(Uri.UriSchemeHttp) && !jmmMetadata.BundleUrl.StartsWith(Uri.UriSchemeHttps))
+        if (!appMetadata.BundleUrl.StartsWith(Uri.UriSchemeHttp) && !appMetadata.BundleUrl.StartsWith(Uri.UriSchemeHttps))
         {
-            jmmMetadata.BundleUrl = (new URL(new Uri(url.Uri, jmmMetadata.BundleUrl))).Href;
+            appMetadata.BundleUrl = (new URL(new Uri(url.Uri, appMetadata.BundleUrl))).Href;
         }
 
         try
         {
-            var initDownloadStatus = _getCurrentDownloadStatus(jmmMetadata);
-            await JmmController.OpenDownloadPageAsync(jmmMetadata, initDownloadStatus);
+            var initDownloadStatus = _getCurrentDownloadStatus(appMetadata);
+            await JmmController.OpenDownloadPageAsync(appMetadata, initDownloadStatus);
         }
         catch (Exception e)
         {
@@ -220,11 +187,11 @@ public class JmmNMM : NativeMicroModule
         JmmApps.Remove(mmid);
         BootstrapContext.Dns.UnInstall(jsMicroModule);
         JmmDwebService.UnInstall(jsMicroModule.Metadata);
-        JmmMetadataDB.RemoveJmmMetadata(mmid);
+        JmmDatabase.Instance.Remove(mmid);
     }
 
-    public record AppQueryResult(List<JmmMetadata> InstalledAppList, List<InstallingAppInfo> InstallingAppList);
-    public record InstallingAppInfo(float Progress, JmmMetadata JmmMetadata);
+    public record AppQueryResult(List<AppMetaData> InstalledAppList, List<InstallingAppInfo> InstallingAppList);
+    public record InstallingAppInfo(float Progress, AppMetaData JmmMetadata);
 
     private readonly Dictionary<Mmid, InstallingAppInfo> _installingApps = new();
 }

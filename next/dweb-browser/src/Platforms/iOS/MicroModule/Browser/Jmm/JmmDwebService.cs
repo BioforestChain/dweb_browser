@@ -46,14 +46,14 @@ public static class JmmDwebService
         }
     }
 
-    public static JmmDownload Add(JmmMetadata jmmMetadata, Action<nint> onDownloadStatusChange, Action<float> onDownloadProgressChange)
+    public static JmmDownload Add(AppMetaData jmmMetadata, Action<nint> onDownloadStatusChange, Action<float> onDownloadProgressChange)
     {
         if (!s_downloadMap.TryGetValue(jmmMetadata.Id, out var jmmDownload))
         {
             jmmDownload = new(jmmMetadata);
         }
-        s_downloadMap.TryAdd(jmmDownload.JmmMetadata.Id, jmmDownload);
-        s_downloadQueue.Enqueue(jmmDownload.JmmMetadata.Id);
+        s_downloadMap.TryAdd(jmmDownload.AppMetaData.Id, jmmDownload);
+        s_downloadQueue.Enqueue(jmmDownload.AppMetaData.Id);
         jmmDownload.OnDownloadProgressChange += onDownloadProgressChange;
         jmmDownload.OnDownloadStatusChange += onDownloadStatusChange;
         return jmmDownload;
@@ -67,7 +67,7 @@ public static class JmmDwebService
 
         if (jmmDownload is not null)
         {
-            _bool = s_downloadMap.TryRemove(new(jmmDownload.JmmMetadata.Id, jmmDownload));
+            _bool = s_downloadMap.TryRemove(new(jmmDownload.AppMetaData.Id, jmmDownload));
         }
 
         return _bool;
@@ -86,7 +86,7 @@ public static class JmmDwebService
     /// 卸载应用
     /// </summary>
     /// <param name="mmid">JmmMetadata id</param>
-    public static void UnInstall(JmmMetadata jmmMetadata)
+    public static void UnInstall(AppMetaData jmmMetadata)
     {
         var jmmAppPath = JsMicroModule.GetJmmAppPath(jmmMetadata);
 
@@ -124,12 +124,12 @@ public class JmmDownload
     private long _totalSize = 0L;
 
     public PromiseOut<bool> DownloadPo = new();
-    public JmmMetadata JmmMetadata { get; init; }
+    public AppMetaData AppMetaData { get; init; }
 
-    public JmmDownload(JmmMetadata jmmMetadata)
+    public JmmDownload(AppMetaData appMetadata)
     {
-        JmmMetadata = jmmMetadata;
-        var url = new URL(jmmMetadata.BundleUrl);
+        AppMetaData = appMetadata;
+        var url = new URL(appMetadata.BundleUrl);
         _downloadFile = Path.Join(DOWNLOAD_DIR, url.Path);
 
         _readBytes.OnChange += async (value, _, _) =>
@@ -172,7 +172,7 @@ public class JmmDownload
             return;
         }
 
-        var size = JmmMetadata.BundleSize;
+        var size = AppMetaData.BundleSize;
 
         if (size is not 0L)
         {
@@ -180,7 +180,7 @@ public class JmmDownload
             return;
         }
 
-        using var response = await httpClient.GetAsync(JmmMetadata.BundleUrl, HttpCompletionOption.ResponseHeadersRead);
+        using var response = await httpClient.GetAsync(AppMetaData.BundleUrl, HttpCompletionOption.ResponseHeadersRead);
         using var content = response.Content;
 
         _totalSize = content.Headers.ContentLength ?? 0L;
@@ -202,7 +202,7 @@ public class JmmDownload
             await _getTotalSizeAsync();
 
             //using var request = new HttpRequestMessage { RequestUri = _url.Uri };
-            using var response = await httpClient.GetAsync(JmmMetadata.BundleUrl, HttpCompletionOption.ResponseHeadersRead);
+            using var response = await httpClient.GetAsync(AppMetaData.BundleUrl, HttpCompletionOption.ResponseHeadersRead);
             //using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
             using var content = response.Content;
             using var stream = await content.ReadAsStreamAsync();
@@ -257,7 +257,7 @@ public class JmmDownload
     {
         _ = Task.Run(() =>
         {
-            var outputDir = JsMicroModule.GetInstallPath(JmmMetadata);
+            var outputDir = JsMicroModule.GetInstallPath(AppMetaData);
             Console.Log("UnCompressZip", outputDir);
 
             if (!Directory.Exists(outputDir))
@@ -267,16 +267,17 @@ public class JmmDownload
 
             ZipFile.ExtractToDirectory(_downloadFile, outputDir);
             File.Delete(_downloadFile);
-            foreach (var info in JsMicroModule.GetAllVersions(JmmMetadata.Id))
+            foreach (var info in JsMicroModule.GetAllVersions(AppMetaData.Id))
             {
-                if (info.Version != JmmMetadata.Version)
+                if (info.Version != AppMetaData.Version)
                 {
                     Directory.Delete(info.InstallPath, true);
                 }
             }
             OnDownloadProgressChange?.Invoke((float)1.0);
             _downloadStatus.Set(DownloadStatus.Installed);
-            JmmMetadataDB.AddJmmMetadata(JmmMetadata.Id, JmmMetadata);
+
+            JmmDatabase.Instance.Upsert(AppMetaData);
             Console.Log("UnCompressZip", "success!!!");
         }).NoThrow();
     }

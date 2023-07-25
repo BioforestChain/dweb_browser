@@ -24,7 +24,7 @@ public class JsMicroModule : MicroModule
     /// </summary>
     /// <param name="metadata"></param>
     /// <returns></returns>
-    public static string GetInstallPath(JmmMetadata metadata)
+    public static string GetInstallPath(AppMetaData metadata)
     {
         return Path.Join(DWEB_APP_DIR, metadata.Id, metadata.Version);
     }
@@ -34,7 +34,7 @@ public class JsMicroModule : MicroModule
     /// </summary>
     /// <param name="metadata"></param>
     /// <returns></returns>
-    public static string GetJmmAppPath(JmmMetadata metadata) => Path.Join(DWEB_APP_DIR, metadata.Id);
+    public static string GetJmmAppPath(AppMetaData metadata) => Path.Join(DWEB_APP_DIR, metadata.Id);
 
     /// <summary>
     /// 获取一个应用所有的安装版本
@@ -99,7 +99,7 @@ public class JsMicroModule : MicroModule
     }
 
 
-    public JsMicroModule(JmmMetadata metadata) : base(metadata.Id)
+    public JsMicroModule(AppMetaData metadata) : base(metadata.Id)
     {
         Metadata = metadata;
         Dweb_deeplinks = Metadata.Dweb_DeepLinks ?? new();
@@ -111,7 +111,7 @@ public class JsMicroModule : MicroModule
         };
     }
 
-    public JmmMetadata Metadata { get; init; }
+    public AppMetaData Metadata { get; init; }
 
     /**
      * <summary>

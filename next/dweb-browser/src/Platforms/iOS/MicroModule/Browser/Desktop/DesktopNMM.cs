@@ -5,8 +5,11 @@ namespace DwebBrowser.MicroService.Browser.Desktop;
 public class DesktopNMM : NativeMicroModule
 {
     static readonly Debugger Console = new("DesktopNMM");
+    
+    private readonly Store DesktopStore;
     public DesktopNMM(): base("desk.browser.dweb")
     {
+        DesktopStore = new(Mmid);
     }
 
     record AppInfo(string id, string icon, string name, string short_name);
@@ -36,6 +39,11 @@ public class DesktopNMM : NativeMicroModule
 
             return true;
         });
+
+        //HttpRouter.AddRoute(IpcMethod.Get, "/desktop/apps", async (request, _) =>
+        //{
+
+        //});
     }
 
     
