@@ -40,7 +40,7 @@ struct SheetSegmentView: View {
             } else if selectedCategory == .bookmark {
                 BookmarkView()
             } else if selectedCategory == .history {
-                HistoryView()
+                HistoryView(histories: HistoryMgr())
             }
         }
         .padding(.top, 28)

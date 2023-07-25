@@ -9,7 +9,7 @@ import SwiftUI
 
 struct HistoryView: View {
     @State private var searchText = ""
-    @ObservedObject var histories = HistoryMgr.shared
+    @ObservedObject var histories: HistoryMgr
 
     var body: some View {
         

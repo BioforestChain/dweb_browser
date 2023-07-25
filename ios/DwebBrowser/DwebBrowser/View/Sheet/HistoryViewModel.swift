@@ -70,7 +70,7 @@ class HistoryMgr: ObservableObject {
     static var shared = HistoryMgr()
     private let coredataManager = HistoryCoreDataManager()
     
-    private init() {
+    init() {
         Task {
             list = await coredataManager.fetchTotalHistories(offset: 0) ?? []
             DispatchQueue.main.async {
