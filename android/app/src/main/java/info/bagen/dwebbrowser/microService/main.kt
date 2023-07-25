@@ -20,8 +20,6 @@ import info.bagen.dwebbrowser.microService.sys.haptics.HapticsNMM
 import info.bagen.dwebbrowser.microService.sys.notification.NotificationNMM
 import info.bagen.dwebbrowser.microService.sys.share.ShareNMM
 import info.bagen.dwebbrowser.microService.sys.toast.ToastNMM
-import info.bagen.dwebbrowser.microService.test.DesktopDemoJMM
-import info.bagen.dwebbrowser.microService.test.PlaocDemoJMM
 
 val InternalBranch = when (DEVELOPER.CURRENT) {
   DEVELOPER.GAUBEE, DEVELOPER.HuangLin, DEVELOPER.HLOppo, DEVELOPER.WaterBang, DEVELOPER.HLVirtual -> true
@@ -115,9 +113,6 @@ suspend fun startDwebBrowser(): DnsNMM {
   /// 安装Jmm
   val jmmNMM = JmmNMM().also { dnsNMM.install(it) }
   val desktopNMM = DesktopNMM().also { dnsNMM.install(it) }
-  // 测试使用，打包成apk需要删除
-  val plaocDemoJMM = PlaocDemoJMM().also { dnsNMM.install(it) }
-  val desktopDemoJMM = DesktopDemoJMM().also { dnsNMM.install(it) }
   /**
    *
    * browserNMM.mmid,
@@ -128,26 +123,20 @@ suspend fun startDwebBrowser(): DnsNMM {
    */
   val bootMmidList = when (DEVELOPER.CURRENT) {
     DEVELOPER.GAUBEE -> listOf(
-//            cotJMM.mmid,
       browserNMM.mmid,
 //            browserNMM.mmid,
     )
 
     DEVELOPER.HuangLin, DEVELOPER.HLVirtual, DEVELOPER.HLOppo, DEVELOPER.HBXiaomi, DEVELOPER.ZGSansung -> listOf(
       browserNMM.mmid,
-      // plaocDemoJMM.mmid,
-      // desktopNMM.mmid
     )
 
     DEVELOPER.WaterBang -> listOf(
       browserNMM.mmid,
-//      plaocDemoJMM.mmid,
-//      desktopDemoJMM.mmid,
     )
 
     DEVELOPER.Kingsword09 -> listOf(
 //            browserNMM.mmid,
-//            desktopJMM.mmid
     )
 
     else -> listOf(browserNMM.mmid)

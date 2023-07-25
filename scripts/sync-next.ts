@@ -6,7 +6,7 @@ export const nextSyncTask = SyncTask.from(
     from: import.meta.resolve("../desktop-dev/electron"),
     to: import.meta.resolve("../next/dweb-browser/src/Resources"),
   },
-  [{ from: "assets", to: "Assets" }]
+  [{ from: "assets/browser", to: "Assets/browser" }]
 );
 if (import.meta.main) {
   // desktopSyncTask.auto();

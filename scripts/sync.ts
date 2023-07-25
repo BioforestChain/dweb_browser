@@ -1,13 +1,10 @@
 import { SyncTask } from "./helper/SyncTask.ts";
 import { androidSyncTask } from "./sync-android.ts";
-import { desktopSyncTask, syncServerTask } from "./sync-desktop.ts";
+// import { syncServerTask } from "./sync-desktop.ts";
 import { nextSyncTask } from "./sync-next.ts";
 
 export const syncTask = SyncTask.concat(
-  syncServerTask,
-  /// 1
-  desktopSyncTask,
-  /// 2
+  // syncServerTask,
   androidSyncTask,
   nextSyncTask,
 );
