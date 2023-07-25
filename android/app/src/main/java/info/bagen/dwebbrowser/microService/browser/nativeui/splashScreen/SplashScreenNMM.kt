@@ -4,8 +4,8 @@ import org.dweb_browser.helper.Mmid
 import org.dweb_browser.helper.*
 import org.dweb_browser.helper.AppMetaData
 import info.bagen.dwebbrowser.microService.browser.jmm.JsMicroModule
-import info.bagen.dwebbrowser.microService.browser.mwebview.MultiWebViewController
-import info.bagen.dwebbrowser.microService.browser.mwebview.MultiWebViewNMM
+import info.bagen.dwebbrowser.microService.mwebview.MultiWebViewController
+import info.bagen.dwebbrowser.microService.mwebview.MultiWebViewNMM
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.http4k.core.Method

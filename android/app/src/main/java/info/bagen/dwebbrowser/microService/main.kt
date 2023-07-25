@@ -8,10 +8,10 @@ import org.dweb_browser.microservice.sys.dns.DnsNMM
 import org.dweb_browser.microservice.sys.http.HttpNMM
 import info.bagen.dwebbrowser.microService.browser.jmm.JmmNMM
 import info.bagen.dwebbrowser.microService.browser.jsProcess.JsProcessNMM
-import info.bagen.dwebbrowser.microService.browser.mwebview.MultiWebViewNMM
 import info.bagen.dwebbrowser.microService.browser.nativeui.NativeUiNMM
 import info.bagen.dwebbrowser.microService.browser.nativeui.torch.TorchNMM
 import info.bagen.dwebbrowser.microService.desktop.DesktopNMM
+import info.bagen.dwebbrowser.microService.mwebview.MultiWebViewNMM
 import info.bagen.dwebbrowser.microService.sys.LocalFileFetch
 import info.bagen.dwebbrowser.microService.sys.biometrics.BiometricsNMM
 import info.bagen.dwebbrowser.microService.sys.clipboard.ClipboardNMM
@@ -128,7 +128,8 @@ suspend fun startDwebBrowser(): DnsNMM {
     )
 
     DEVELOPER.HuangLin, DEVELOPER.HLVirtual, DEVELOPER.HLOppo, DEVELOPER.HBXiaomi, DEVELOPER.ZGSansung -> listOf(
-      browserNMM.mmid,
+      // browserNMM.mmid,
+      desktopNMM.mmid,
     )
 
     DEVELOPER.WaterBang -> listOf(
