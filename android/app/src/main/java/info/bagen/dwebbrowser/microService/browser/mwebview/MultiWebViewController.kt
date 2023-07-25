@@ -21,6 +21,7 @@ import kotlinx.coroutines.withContext
 import org.dweb_browser.browserUI.download.DownLoadObserver
 import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.helper.Callback
+import org.dweb_browser.helper.ChangeableList
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.mainAsyncExceptionHandler
@@ -47,16 +48,16 @@ class MultiWebViewController(
     private var webviewId_acc = AtomicInteger(1)
   }
 
-  private var webViewList  = mutableStateListOf<MultiViewItem>()
+  private var webViewList  = ChangeableList<MultiViewItem>()
   @Composable
   fun eachView(action: @Composable (viewItem: MultiViewItem) -> Unit) {
-    LaunchedEffect( webViewList ) {
-      snapshotFlow { webViewList.size }.collect {
-        updateStateHook()
-      }
-    }
     webViewList.forEachIndexed { _, viewItem ->
       action(viewItem)
+    }
+  }
+  init {
+    webViewList.onChange {
+      updateStateHook()
     }
   }
 

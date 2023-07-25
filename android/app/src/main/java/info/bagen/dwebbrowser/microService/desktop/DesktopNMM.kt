@@ -8,7 +8,7 @@ import info.bagen.dwebbrowser.microService.browser.jmm.EIpcEvent
 import info.bagen.dwebbrowser.microService.browser.jmm.JsMicroModule
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
 import info.bagen.dwebbrowser.microService.core.WindowAppInfo
-import info.bagen.dwebbrowser.util.ChangeableMap
+import org.dweb_browser.helper.ChangeableMap
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.collectLatest
@@ -44,8 +44,6 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb") {
     fun getInstallAppList() = installAppList // 获取已经安装的程序
   }
 
-  // 侧边栏，需要存储
-  private val taskbarAppList = mutableSetOf<JsMicroModule>()
   private val runningAppsIpc = ChangeableMap<Mmid, Ipc>()
 
   init {

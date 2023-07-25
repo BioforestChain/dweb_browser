@@ -1,9 +1,7 @@
-package info.bagen.dwebbrowser.util
+package org.dweb_browser.helper
 
-import org.dweb_browser.helper.Callback
-import org.dweb_browser.helper.Signal
-import org.dweb_browser.helper.SimpleSignal
-import org.dweb_browser.helper.runBlockingCatching
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 class ChangeableMap<K,V>() :MutableMap<K,V>{
   private val innerMap = HashMap<K,V>()
@@ -41,30 +39,32 @@ class ChangeableMap<K,V>() :MutableMap<K,V>{
     get() = innerMap.values
 
   override fun clear() {
-    runBlockingCatching {
+    innerMap.clear()
+    GlobalScope.launch(ioAsyncExceptionHandler) {
       _changeSignal.emit(innerMap)
     }
-    innerMap.clear()
   }
 
   override fun put(key: K, value: V): V? {
-    runBlockingCatching {
+    val item = innerMap.put(key, value)
+    GlobalScope.launch(ioAsyncExceptionHandler) {
       _changeSignal.emit(innerMap)
     }
-    return innerMap.put(key, value)
+      return item
   }
 
   override fun putAll(from: Map<out K, V>) {
-    runBlockingCatching {
+    innerMap.putAll(from)
+    GlobalScope.launch(ioAsyncExceptionHandler) {
       _changeSignal.emit(innerMap)
     }
-    innerMap.putAll(from)
   }
 
   override fun remove(key: K): V? {
-    runBlockingCatching {
+    val item = innerMap.remove(key)
+    GlobalScope.launch(ioAsyncExceptionHandler) {
       _changeSignal.emit(innerMap)
     }
-    return innerMap.remove(key)
+    return item
   }
 }
