@@ -14,13 +14,6 @@ export const enum MICRO_MODULE_CATEGORY {
    * > 通常指 `dns.std.dweb` 这个核心，它决策着模块之间通讯的路径
    */
   Routing_Service = "routing-service",
-  /** 设置服务
-   * > 通常指 `setting.std.dweb` 这个核心，它定义了一种模块管理的标准
-   * > 通过这个标准，用户可以在该模块中聚合管理注册的模块
-   * > 包括：权限管理、偏好管理、功能开关、主题与个性化、启动程序 等等
-   * > 大部分 service 会它们的管理视图注册到该模块中
-   */
-  Setting_Service = "setting-service",
   /** 进程服务
    * > 提供python、js、wasm等语言的运行服务
    * > 和 计算服务 不同，进程服务通常是指 概念上运行在本地 的程序
@@ -109,7 +102,30 @@ export const enum MICRO_MODULE_CATEGORY {
    * > 应用特征意味着有可视化的图形界面模块，如果不填写该项，那么应用将无法被显示在用户桌面上
    */
   Application = "application",
-  //#region 2.1 Application 应用 · 工作效率
+  //#region 2.1 Application 应用 · 系统
+  /**
+   * 设置
+   * > 通常指 `setting.std.dweb` 这个核心，它定义了一种模块管理的标准
+   * > 通过这个标准，用户可以在该模块中聚合管理注册的模块
+   * > 包括：权限管理、偏好管理、功能开关、主题与个性化、启动程序 等等
+   * > 大部分 service 会它们的管理视图注册到该模块中
+   */
+  Settings = "settings",
+  /** 桌面 */
+  Desktop = "desktop",
+  /** 网页浏览器 */
+  Web_Browser = "web-browser",
+  /** 文件管理 */
+  Files = "files",
+  /** 钱包 */
+  Wallet = "wallet",
+  /** 助理
+   * > 该类应用通常拥有极高的权限，比如 屏幕阅读工具、AI助理工具 等
+   */
+  Assistant = "assistant",
+  //#endregion
+
+  //#region 2.2 Application 应用 · 工作效率
   /** 商业 */
   Business = "business",
   /** 开发者工具 */
@@ -122,7 +138,7 @@ export const enum MICRO_MODULE_CATEGORY {
   Productivity = "productivity",
   //#endregion
 
-  //#region 2.2 Application 应用 · 娱乐
+  //#region 2.3 Application 应用 · 娱乐
   /** 娱乐 */
   Entertainment = "entertainment",
   /** 游戏 */
@@ -139,14 +155,14 @@ export const enum MICRO_MODULE_CATEGORY {
   Video = "video",
   //#endregion
 
-  //#region 2.3 Application 应用 · 创意
+  //#region 2.4 Application 应用 · 创意
   /** 图形和设计 */
   Graphics_a_Design = "graphics-design",
   /** 摄影与录像 */
   Photography = "photography",
   //#endregion
 
-  //#region 2.4 Application 应用 · 实用工具
+  //#region 2.5 Application 应用 · 实用工具
   /** 书籍 */
   Books = "books",
   /** 美食和佳饮 */
@@ -165,12 +181,21 @@ export const enum MICRO_MODULE_CATEGORY {
   Travel = "travel",
   /** 天气 */
   Weather = "weather",
+  //#endregion
 
-  //#region 社交
+  //#region 2.6 Application 应用 · 社交
   /** 社交网络 */
   Social_Networking = "social-networking",
+  /** 消息软件
+   * > 讯息、邮箱
+   */
+  Messages = "messages",
+  /** 职业生涯 */
+  Career = "career",
+  /** 实时互动 */
+  Live = "live",
   //#endregion
-  //#endregion
+
   //#endregion
 
   //#region 3. Game 游戏（属于应用的细分）
