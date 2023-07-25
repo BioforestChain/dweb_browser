@@ -6,12 +6,16 @@
 //
 
 import SwiftUI
+import Network
 
 @main
 struct DwebBrowserApp: App {
+    @StateObject private var networkManager = NetworkManager()
+
     var body: some Scene {
         WindowGroup {
             BrowserView()
+                .environmentObject(networkManager)
         }
     }
 }

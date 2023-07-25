@@ -14,6 +14,9 @@ struct BrowserView: View {
     @StateObject var openingLink = OpeningLink()
     @StateObject var showSheet = ShowSheet()
     @StateObject var toolBarState = ToolBarState()
+    @State private var isNetworkSegmentViewPresented = false
+
+    @EnvironmentObject var network: NetworkManager
     var body: some View {
         ZStack {
             GeometryReader { _ in
@@ -34,6 +37,13 @@ struct BrowserView: View {
                         .environmentObject(openingLink)
                         .environmentObject(showSheet)
                         .presentationDetents([.medium, .large])
+                }
+
+                .sheet(isPresented: $isNetworkSegmentViewPresented) {
+                    NetworkGuidView()
+                }
+                .onReceive(network.$isNetworkAvailable) { isAvailable in
+                    isNetworkSegmentViewPresented = !isAvailable
                 }
             }
         }

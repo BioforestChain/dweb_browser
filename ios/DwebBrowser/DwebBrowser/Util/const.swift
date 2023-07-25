@@ -14,7 +14,7 @@ let screen_height = UIScreen.main.bounds.height
 
 let toolBarH: CGFloat = 50
 
-let searchTextFieldPlaceholder = "搜索或输入网址"
+let addressbarHolder = "搜索或输入网址"
 
 let addressBarH: CGFloat = 60
 

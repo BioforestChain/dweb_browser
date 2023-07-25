@@ -13,13 +13,14 @@ struct TabPageView: View {
     @EnvironmentObject var toolbarState: ToolBarState
     @EnvironmentObject var selectedTab: SelectedTab
     @EnvironmentObject var openingLink: OpeningLink
-    
+    @EnvironmentObject var addressBar: AddressBarState
+
     var index: Int
     var webCache: WebCache { WebCacheMgr.shared.store[index] }
     @ObservedObject var webWrapper: WebWrapper
 
     @State private var snapshotHeight: CGFloat = 0
-    private var isVisible: Bool { let index = WebWrapperMgr.shared.store.firstIndex(of: webWrapper); return index == selectedTab.curIndex }
+    private var isVisible: Bool { index == selectedTab.curIndex }
     var body: some View {
         GeometryReader { geo in
             ZStack {
@@ -53,7 +54,7 @@ struct TabPageView: View {
                     let index = WebWrapperMgr.shared.store.firstIndex(of: webWrapper)
                     if index == selectedTab.curIndex {
                         if let image = self
-                            .environmentObject(selectedTab).environmentObject(toolbarState).environmentObject(animation).environmentObject(openingLink)
+                            .environmentObject(selectedTab).environmentObject(toolbarState).environmentObject(animation).environmentObject(openingLink).environmentObject(addressBar)
                             .snapshot()
                         {
                             let scale = image.scale
@@ -91,7 +92,6 @@ struct TabPageView: View {
                 guard url != emptyURL else { return }
                 if isVisible {
                     webWrapper.webView.load(URLRequest(url: url))
-                    
                 }
                 openingLink.clickedLink = emptyURL
             }
@@ -127,6 +127,16 @@ struct TabPageView: View {
                         let history = LinkRecord(link: webCache.lastVisitedUrl.absoluteString, imageName: webCache.webIconUrl.absoluteString, title: webCache.title, createdDate: Date().milliStamp)
                         manager.insertHistory(history: history)
                     }
+                }
+            }
+            .onReceive(addressBar.$needRefreshOfIndex) { refreshIndex in
+                if refreshIndex == index{
+                    webWrapper.webView.reload()
+                }
+            }
+            .onReceive(addressBar.$stopLoadingOfIndex) { stopIndex in
+                if stopIndex == index{
+                    webWrapper.webView.stopLoading()
                 }
             }
     }
