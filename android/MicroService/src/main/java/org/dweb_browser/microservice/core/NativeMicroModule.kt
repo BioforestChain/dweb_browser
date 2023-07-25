@@ -18,9 +18,11 @@ import java.io.InputStream
 fun debugNMM(tag: String, msg: Any = "", err: Throwable? = null) =
   printdebugln("DNS", tag, msg, err)
 
-abstract class NativeMicroModule(
-  override val mmid: Mmid,
-) : MicroModule() {
+abstract class NativeMicroModule(override val mmid: Mmid) : MicroModule() {
+  override val categories: MutableList<MicroModuleCategory>
+    get() = mutableListOf()
+  override val dweb_deeplinks: MutableList<DWEB_DEEPLINK>
+    get() = mutableListOf()
 
   companion object {
     init {

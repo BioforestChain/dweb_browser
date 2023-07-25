@@ -7,6 +7,7 @@ import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.helper.DWEB_DEEPLINK
+import org.dweb_browser.helper.MicroModuleCategory
 import org.dweb_browser.helper.Mmid
 import org.dweb_browser.microservice.help.boolean
 import org.dweb_browser.microservice.help.gson
@@ -49,6 +50,7 @@ suspend fun MicroModule.listenHttpDwebServer(
   val streamIpc = ReadableStreamIpc(object : Ipc.MicroModuleInfo {
     override val mmid: Mmid = "http.std.dweb"
     override val dweb_deeplinks = mutableListOf<DWEB_DEEPLINK>()
+    override val categories: MutableList<MicroModuleCategory> = mutableListOf()
   }, "http-server/${startResult.urlInfo.host}").also {
     it.bindIncomeStream(
       this.nativeFetch(

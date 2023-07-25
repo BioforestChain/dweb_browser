@@ -58,6 +58,7 @@ import org.dweb_browser.helper.AppMetaData
 import kotlinx.coroutines.launch
 import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
 import org.dweb_browser.browserUI.download.DownLoadStatus
+import org.dweb_browser.helper.MicroModuleCategory
 import java.text.DecimalFormat
 
 private val TopBarHeight = 44.dp
@@ -540,11 +541,22 @@ private fun OtherInfoView(appMetaData: AppMetaData) {
     Spacer(modifier = Modifier.height(HorizontalPadding))
     OtherItemView(type = "开发者", content = appMetaData.author?.toContent() ?: "me")
     OtherItemView(type = "大小", content = appMetaData.bundle_size.toSpaceSize())
-    OtherItemView(type = "类别", content = appMetaData.categories?.toContent() ?: "娱乐")
+    OtherItemView(type = "类别", content = appMetaData.categories.print())
     OtherItemView(type = "语言", content = "中文")
     OtherItemView(type = "年龄分级", content = "18+")
     OtherItemView(type = "版权", content = "@${appMetaData.author?.firstOrNull() ?: appMetaData.name}")
   }
+}
+
+fun MutableList<MicroModuleCategory>.print() :String {
+  val result = StringBuffer()
+  this.forEach { category ->
+    // 不要去掉，可能会出现null
+    if (category !== null) {
+      result.append(category.name)
+    }
+  }
+  return result.toString()
 }
 
 /**

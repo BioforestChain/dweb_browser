@@ -17,8 +17,9 @@ enum class MMState {
 }
 
 abstract class MicroModule : Ipc.MicroModuleInfo {
-  override val mmid: Mmid = ""
-  override val dweb_deeplinks = mutableListOf<DWEB_DEEPLINK>()
+  abstract override val mmid: Mmid
+  abstract override val dweb_deeplinks:MutableList<DWEB_DEEPLINK>
+  abstract override val categories: MutableList<MicroModuleCategory>
   open val routers: Router? = null
 
   private var runningStateLock = StatePromiseOut.resolve(MMState.SHUTDOWN)

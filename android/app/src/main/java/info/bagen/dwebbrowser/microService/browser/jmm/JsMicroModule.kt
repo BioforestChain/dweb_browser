@@ -27,8 +27,9 @@ fun debugJsMM(tag: String, msg: Any? = "", err: Throwable? = null) =
 
 open class JsMicroModule(var metadata: AppMetaData) : MicroModule() {
 
-  override val dweb_deeplinks: MutableList<DWEB_DEEPLINK>
-    get() = this.metadata.dweb_deeplinks
+  override val dweb_deeplinks: MutableList<DWEB_DEEPLINK> = metadata.dweb_deeplinks
+  override val categories: MutableList<MicroModuleCategory> = metadata.categories
+  override val mmid = metadata.id
 
 
   companion object {
@@ -64,8 +65,6 @@ open class JsMicroModule(var metadata: AppMetaData) : MicroModule() {
       }
     }
   }
-
-  override val mmid get() = metadata.id
 
   /**
    * 和 dweb 的 port 一样，pid 是我们自己定义的，它跟我们的 mmid 关联在一起

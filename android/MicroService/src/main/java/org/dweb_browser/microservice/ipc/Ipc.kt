@@ -67,6 +67,7 @@ abstract class Ipc {
   interface MicroModuleInfo {
     val mmid: Mmid
     val dweb_deeplinks: MutableList<DWEB_DEEPLINK>
+    val categories: MutableList<MicroModuleCategory>
   }
 
   abstract val role: String
