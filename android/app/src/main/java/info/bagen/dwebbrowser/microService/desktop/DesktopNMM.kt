@@ -3,12 +3,10 @@ package info.bagen.dwebbrowser.microService.desktop
 import android.content.Intent
 import android.os.Bundle
 import info.bagen.dwebbrowser.App
-import info.bagen.dwebbrowser.microService.browser.BrowserNMM
 import info.bagen.dwebbrowser.microService.browser.jmm.EIpcEvent
 import info.bagen.dwebbrowser.microService.browser.jmm.JsMicroModule
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
 import info.bagen.dwebbrowser.microService.core.WindowAppInfo
-import org.dweb_browser.helper.ChangeableMap
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.collectLatest
@@ -16,6 +14,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.dweb_browser.browserUI.database.AppInfoDataStore
 import org.dweb_browser.browserUI.download.compareAppVersionHigh
+import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.Mmid
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printdebugln
@@ -79,24 +78,6 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb") {
         }
         return@defineHandler true
       },
-      "/appsInfo" bind Method.GET to defineHandler { request ->
-        val apps = installAppList
-        debugDesktop("appInfo", apps.size)
-        val responseApps = mutableListOf<BrowserNMM.AppInfo>()
-        apps.forEach { item ->
-          val meta = item.jsMicroModule.metadata
-          responseApps.add(
-            BrowserNMM.AppInfo(
-              meta.id,
-              meta.icon,
-              meta.name,
-              meta.short_name
-            )
-          )
-        }
-        return@defineHandler responseApps
-      },
-
       "/closeApp" bind Method.GET to defineHandler { request ->
         val mmid = queryAppId(request);
         var closed = false;

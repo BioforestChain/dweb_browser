@@ -23,9 +23,6 @@ fun debugSplashScreen(tag: String, msg: Any? = "", err: Throwable? = null) =
 
 class SplashScreenNMM : NativeMicroModule("splash-screen.nativeui.browser.dweb") {
 
-    private fun currentController(mmid: Mmid): MultiWebViewController? {
-        return MultiWebViewNMM.getCurrentWebViewController(mmid)
-    }
 
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
         val query_SplashScreenSettings = Query.composite {
@@ -45,33 +42,33 @@ class SplashScreenNMM : NativeMicroModule("splash-screen.nativeui.browser.dweb")
         apiRouting = routes(
             /** 显示*/
             "/show" bind Method.GET to defineHandler { request, ipc ->
-                val options = query_SplashScreenSettings(request)
-                val currentController = currentController(ipc.remote.mmid)
-                val microModule = bootstrapContext.dns.query(ipc.remote.mmid)
-                if (microModule is JsMicroModule) {
-                    val metadata = microModule.metadata
-                    debugSplashScreen(
-                        "show",
-                        "remoteId:${ipc.remote.mmid} show===>${options} "
-                    )
-                    if (currentController != null) {
-                        show(currentController, metadata, options)
-                        return@defineHandler Response(Status.OK)
-                    }
-                }
+//                val options = query_SplashScreenSettings(request)
+//                val currentController = currentController(ipc.remote.mmid)
+//                val microModule = bootstrapContext.dns.query(ipc.remote.mmid)
+//                if (microModule is JsMicroModule) {
+//                    val metadata = microModule.metadata
+//                    debugSplashScreen(
+//                        "show",
+//                        "remoteId:${ipc.remote.mmid} show===>${options} "
+//                    )
+//                    if (currentController != null) {
+//                        show(currentController, metadata, options)
+//                        return@defineHandler Response(Status.OK)
+//                    }
+//                }
 
                 Response(Status.INTERNAL_SERVER_ERROR).body("No current activity found")
             },
             /** 隐藏*/
             "/hide" bind Method.GET to defineHandler { request, ipc ->
-                val options = query_HideOptions(request)
-                val currentActivity = currentController(ipc.remote.mmid)?.activity
-                debugSplashScreen("hide", "apiRouting hide===>${options}")
-                if (currentActivity != null) {
-//                    splashScreen.hide(options)
-                    return@defineHandler Response(Status.OK)
-                }
-                Response(Status.INTERNAL_SERVER_ERROR).body("No current activity found")
+//                val options = query_HideOptions(request)
+//                val currentActivity = currentController(ipc.remote.mmid)?.activity
+//                debugSplashScreen("hide", "apiRouting hide===>${options}")
+//                if (currentActivity != null) {
+////                    splashScreen.hide(options)
+//                    return@defineHandler Response(Status.OK)
+//                }
+//                Response(Status.INTERNAL_SERVER_ERROR).body("No current activity found")
             },
         )
     }

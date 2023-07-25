@@ -2,7 +2,11 @@ package info.bagen.dwebbrowser.microService.mwebview
 
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
 import info.bagen.dwebbrowser.microService.core.WindowAppInfo
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import org.dweb_browser.browserUI.download.DownLoadObserver
 import org.dweb_browser.dwebview.base.ViewItem
+import org.dweb_browser.dwebview.serviceWorker.emitEvent
 import org.dweb_browser.helper.Mmid
 import org.dweb_browser.helper.*
 import org.dweb_browser.microservice.core.BootstrapContext
@@ -88,6 +92,19 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.browser.dweb") {
     debugMultiWebView("/open", "remote-mmid: $remoteMmid / url:$url")
     val controller = controllerMap.getOrPut(remoteMmid) {
       MultiWebViewController(remoteMmid, this, remoteMm)
+    }
+    GlobalScope.launch(ioAsyncExceptionHandler) {
+      controller.downLoadObserver = DownLoadObserver(remoteMmid).apply {
+        observe { listener ->
+          controller.lastViewOrNull?.webView?.let { dWebView ->
+            emitEvent(
+              dWebView,
+              listener.downLoadStatus.toServiceWorkerEvent(),
+              listener.progress
+            )
+          }
+        }
+      }
     }
 
     val viewItem = controller.openWebView(url)

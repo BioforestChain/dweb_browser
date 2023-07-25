@@ -30,7 +30,6 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb") {
     controllerList.add(BrowserController(this))
   }
 
-  data class AppInfo(val id: String, val icon: String, val name: String, val short_name: String)
   val queryAppId = Query.string().required("app_id")
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     apiRouting = routes(
@@ -40,23 +39,6 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb") {
         debugJMM("openApp", "postMessage==>activity ${ipc.remote.mmid}")
         ipc.postMessage(IpcEvent.fromUtf8(EIpcEvent.Activity.event, ""))
         return@defineHandler true
-      },
-      "/appsInfo" bind Method.GET to defineHandler { request ->
-        val apps = installAppList
-        debugBrowser("appInfo", apps.size)
-        val responseApps = mutableListOf<AppInfo>()
-        apps.forEach { item ->
-          val meta = item.jsMicroModule.metadata
-          responseApps.add(
-            AppInfo(
-              meta.id,
-              meta.icon,
-              meta.name,
-              meta.short_name
-            )
-          )
-        }
-        return@defineHandler responseApps
       },
     )
   }

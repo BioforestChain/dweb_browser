@@ -22,7 +22,6 @@ import info.bagen.dwebbrowser.microService.browser.mwebview.MultiWebViewNMM.Comp
 import info.bagen.dwebbrowser.microService.browser.mwebview.dwebServiceWorker.ServiceWorkerEvent
 import info.bagen.dwebbrowser.microService.browser.mwebview.dwebServiceWorker.emitEvent
 import info.bagen.dwebbrowser.ui.theme.DwebBrowserAppTheme
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
 open class MultiWebViewActivity : BaseActivity() {

@@ -159,8 +159,6 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.browser.dweb") {
     /// 销毁的时候取消绑定
     activity.onDestroyActivity {
       controllerMap.remove(remoteMmid, controller)
-      /// FIXME 更新状态？？？
-      controller.updateStateHook()
     }
 
     return controller.openWebView(url)

@@ -8,6 +8,7 @@ import com.google.accompanist.web.WebViewNavigator
 import com.google.accompanist.web.WebViewState
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.base.BaseActivity
+import info.bagen.dwebbrowser.microService.browser.mwebview.MultiWebViewController
 import info.bagen.dwebbrowser.microService.browser.nativeui.NativeUiController
 import org.dweb_browser.dwebview.DWebView
 import kotlinx.coroutines.CoroutineName
@@ -15,8 +16,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.dweb_browser.browserUI.download.DownLoadObserver
 import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.helper.Callback
+import org.dweb_browser.helper.ChangeableList
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.mainAsyncExceptionHandler
@@ -42,7 +45,12 @@ class MultiWebViewController(
     private var webviewId_acc = AtomicInteger(1)
   }
 
-  private val webViewList = mutableStateListOf<MultiViewItem>()
+  private var webViewList  = ChangeableList<MultiViewItem>()
+  init {
+    webViewList.onChange {
+      updateStateHook()
+    }
+  }
 
   fun isLastView(viewItem: MultiViewItem) = webViewList.lastOrNull() == viewItem
   fun isFistView(viewItem: MultiViewItem) = webViewList.firstOrNull() == viewItem
@@ -73,6 +81,8 @@ class MultiWebViewController(
       }
       field = value
     }
+
+  var downLoadObserver: DownLoadObserver? = null
 
   /**
    * 打开WebView
@@ -137,6 +147,7 @@ class MultiWebViewController(
       }
     }
     webViewList.clear()
+    this.downLoadObserver?.close() // 移除下载状态监听
 
     this.activity?.also {
       it.finish()

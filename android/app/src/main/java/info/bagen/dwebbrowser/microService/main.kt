@@ -133,7 +133,7 @@ suspend fun startDwebBrowser(): DnsNMM {
     )
 
     DEVELOPER.WaterBang -> listOf(
-      browserNMM.mmid,
+      desktopNMM.mmid,
     )
 
     DEVELOPER.Kingsword09 -> listOf(

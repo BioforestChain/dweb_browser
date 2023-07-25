@@ -166,8 +166,9 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
       if (request.uri.scheme == "file" && request.uri.host.endsWith(".dweb")) {
         val mmid = request.uri.host
         debugFetch("DNS/nativeFetch", "$fromMM => ${request.uri}")
-        val url =request.uri.toString();
-        val reasonRequest = buildRequestX(url, InitRequest(request.method,request.headers,request.body));
+        val url = request.uri.toString();
+        val reasonRequest =
+          buildRequestX(url, InitRequest(request.method, request.headers, request.body));
         installApps[mmid]?.let {
           val (fromIpc) = connectTo(fromMM, mmid, reasonRequest)
           return@let fromIpc.request(request)
@@ -247,14 +248,15 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
   fun query(mmid: Mmid): MicroModule? {
     return installApps[mmid]
   }
+
   /**
    * 根据类目搜索模块
    * > 这里暂时不需要支持复合搜索，未来如果有需要另外开接口
    * @param category
    */
-  fun search(category: MicroModuleCategory):MutableList<MicroModule> {
+  fun search(category: MicroModuleCategory): MutableList<MicroModule> {
     val categoryList = mutableListOf<MicroModule>()
-    for(app in this.installApps.values) {
+    for (app in this.installApps.values) {
       if (app.categories.contains(category)) {
         categoryList.add(app)
       }

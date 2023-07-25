@@ -11,7 +11,7 @@ enum class ServiceWorkerEvent(val event: String) {
     Resume("resume"),
 }
 
-suspend fun emitEvent(mmid: Mmid, eventName: String, data: String = ""): Boolean {
-    val viewItem = MultiWebViewNMM.getCurrentWebViewController(mmid)?.lastViewOrNull ?: return false
-    return org.dweb_browser.dwebview.serviceWorker.emitEvent(viewItem.webView, eventName, data)
-}
+//suspend fun emitEvent(mmid: Mmid, eventName: String, data: String = ""): Boolean {
+//    val viewItem = MultiWebViewNMM.getCurrentWebViewController(mmid)?.lastViewOrNull ?: return false
+//    return org.dweb_browser.dwebview.serviceWorker.emitEvent(viewItem.webView, eventName, data)
+//}
