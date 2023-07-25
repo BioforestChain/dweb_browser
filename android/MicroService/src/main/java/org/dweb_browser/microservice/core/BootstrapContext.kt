@@ -1,5 +1,6 @@
 package org.dweb_browser.microservice.core
 
+import org.dweb_browser.helper.MicroModuleCategory
 import org.dweb_browser.helper.Mmid
 import org.http4k.core.Request
 
@@ -23,6 +24,13 @@ interface DnsMicroModule {
    * 动态js应用查询
    */
   fun query(mmid: Mmid): MicroModule?
+
+  /**
+   * 根据类目搜索模块
+   * > 这里暂时不需要支持复合搜索，未来如果有需要另外开接口
+   * @param category
+   */
+  suspend fun search(category: MicroModuleCategory): MutableList<MicroModule>
 
   /**
    * 重启应用

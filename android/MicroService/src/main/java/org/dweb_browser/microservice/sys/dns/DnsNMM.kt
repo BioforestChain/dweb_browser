@@ -111,6 +111,10 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
       return dnsMM.query(mmid)
     }
 
+    override suspend fun search(category: MicroModuleCategory): MutableList<MicroModule> {
+      return dnsMM.search(category)
+    }
+
     override suspend fun restart(mmid: Mmid) {
       // 调用重启
       // 关闭后端连接
@@ -242,6 +246,20 @@ class DnsNMM : NativeMicroModule("dns.sys.dweb") {
   /** 查询应用 */
   fun query(mmid: Mmid): MicroModule? {
     return installApps[mmid]
+  }
+  /**
+   * 根据类目搜索模块
+   * > 这里暂时不需要支持复合搜索，未来如果有需要另外开接口
+   * @param category
+   */
+  fun search(category: MicroModuleCategory):MutableList<MicroModule> {
+    val categoryList = mutableListOf<MicroModule>()
+    for(app in this.installApps.values) {
+      if (app.categories.contains(category)) {
+        categoryList.add(app)
+      }
+    }
+    return categoryList
   }
 
   /** 打开应用 */

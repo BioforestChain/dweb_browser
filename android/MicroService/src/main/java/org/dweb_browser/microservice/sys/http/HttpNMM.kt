@@ -1,6 +1,7 @@
 package org.dweb_browser.microservice.sys.http
 
 import com.google.gson.reflect.TypeToken
+import org.dweb_browser.helper.MicroModuleCategory
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.ReadableStreamIpc
 import org.dweb_browser.helper.decodeURIComponent
@@ -39,6 +40,9 @@ fun debugHttp(tag: String, msg: Any = "", err: Throwable? = null) =
 
 
 class HttpNMM : NativeMicroModule("http.std.dweb") {
+
+  override val categories: MutableList<MicroModuleCategory>
+    get() = mutableListOf(MicroModuleCategory.Service,MicroModuleCategory.Protocol_Service)
   companion object {
     val dwebServer = Http1Server()
   }

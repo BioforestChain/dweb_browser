@@ -151,8 +151,6 @@ enum class MicroModuleCategory {
 
   //#endregion
 
-  //#endregion
-
   //#region 2. Application 应用
 
   /** 应用 大类
@@ -197,7 +195,7 @@ enum class MicroModuleCategory {
   Business,
 
   /** 开发者工具 */
-  Developer_Tools,
+  Developer,
 
   /** 教育 */
   Education,
@@ -207,6 +205,14 @@ enum class MicroModuleCategory {
 
   /** 办公效率 */
   Productivity,
+
+  /** 消息软件
+   * > 讯息、邮箱
+   */
+  Messages,
+
+  /** 实时互动 */
+  Live,
 
   //#endregion
 
@@ -233,6 +239,9 @@ enum class MicroModuleCategory {
   /** 视频 */
   Video,
 
+  /** 照片 */
+  Photo,
+
   //#endregion
 
   //#region 2.4 Application 应用 · 创意
@@ -243,6 +252,9 @@ enum class MicroModuleCategory {
   /** 摄影与录像 */
   Photography,
 
+  /** 个性化 */
+  Personalization,
+
   //#endregion
 
   //#region 2.5 Application 应用 · 实用工具
@@ -250,11 +262,17 @@ enum class MicroModuleCategory {
   /** 书籍 */
   Books,
 
-  /** 美食和佳饮 */
-  Food_a_Drink,
+  /** 杂志 */
+  Magazines,
 
-  /** 健康和健美 */
-  Healthcare_a_Fitness,
+  /** 食物 */
+  Food,
+
+  /** 健康 */
+  Health,
+
+  /** 健身 */
+  Fitness,
 
   /** 医疗 */
   Medical,
@@ -274,25 +292,28 @@ enum class MicroModuleCategory {
   /** 天气 */
   Weather,
 
+  /** 儿童 */
+  Kids,
+
+  /** 购物 */
+  Shopping,
+
+  /** 安全 */
+  Security,
+
   //#endregion
 
   //#region 2.6 Application 应用 · 社交
-
-  /** 社交网络 */
-  Social_Networking,
-
-  /** 消息软件
-   * > 讯息、邮箱
-   */
-  Messages,
+  Social,
 
   /** 职业生涯 */
   Career,
 
-  /** 实时互动 */
-  Live,
+  /** 政府 */
+  Government,
 
-  //#endregion
+  /** 政治 */
+  Politics,
 
   //#endregion
 
