@@ -16,18 +16,15 @@ import { headersGetTotalLength } from "../../helper/httpHelper.ts";
 import { locks } from "../../helper/locksManager.ts";
 import { ReadableStreamOut } from "../../helper/readableStreamHelper.ts";
 import { createHttpDwebServer } from "../../std/http/helper/$createHttpDwebServer.ts";
-import type { $AppMetaData, JmmNMM } from "./jmm.ts";
+import type { JmmNMM } from "./jmm.ts";
 import { JsMMMetadata, JsMicroModule } from "./micro-module.js.ts";
+import { $JmmAppInstallManifest, $JmmAppManifest } from "./types.ts";
 
 export const JMM_APPS_PATH = resolveToDataRoot("jmm-apps");
 fs.mkdirSync(JMM_APPS_PATH, { recursive: true });
 
-/**
- * @type {import("@seald-io/nedb").Nedb<$AppMetaData>}
- */
-
 export class JmmDatabase extends Store<{
-  apps: Map<$MMID, $AppMetaData>;
+  apps: Map<$MMID, $JmmAppManifest>;
 }> {
   constructor() {
     super("jmm-apps");
@@ -36,7 +33,7 @@ export class JmmDatabase extends Store<{
   private _save() {
     this.set("apps", this._apps);
   }
-  async upsert(app: $AppMetaData) {
+  async upsert(app: $JmmAppManifest) {
     const oldApp = this._apps.get(app.id);
     if (isDeepStrictEqual(oldApp, app)) {
       return true;
@@ -76,7 +73,7 @@ export async function createApiServer(this: JmmNMM) {
     .onFetch(
       async (event) => {
         if (event.pathname === "/app/install") {
-          const appInfo = await event.json<$AppMetaData>();
+          const appInfo = await event.json<$JmmAppManifest>();
           /// 上锁
           return await locks.request(`jmm-install:${appInfo.id}`, () => _appInstall.call(this, event, appInfo));
         }
@@ -108,7 +105,7 @@ export async function createApiServer(this: JmmNMM) {
 /**
  * 应用程序安装的核心逻辑
  */
-async function _appInstall(this: JmmNMM, event: FetchEvent, appInfo: $AppMetaData): Promise<$FetchResponse> {
+async function _appInstall(this: JmmNMM, event: FetchEvent, appInfo: $JmmAppInstallManifest): Promise<$FetchResponse> {
   const { ipcRequest, ipc } = event;
 
   //#region 准备工作

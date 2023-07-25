@@ -1,4 +1,4 @@
-import { $AppMetaData } from "./../deps.ts";
+import { $JmmAppInstallManifest } from "./../deps.ts";
 
 /**
  * 服务的处理模式
@@ -11,7 +11,7 @@ export enum SERVE_MODE {
   /** 对将打包后的文件直接进行服务启动 */
   PROD = "prod",
 }
-export const defaultMetadata: $AppMetaData = {
+export const defaultMetadata: $JmmAppInstallManifest = {
   id: "app.plaoc.dweb",
   server: {
     root: "/usr",

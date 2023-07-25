@@ -1,30 +1,8 @@
+/// <reference lib="dom"/>
 import { PromiseOut } from "../../helper/PromiseOut.ts";
-declare namespace globalThis {
-  const __native_close_watcher_kit__: {
-    /**
-     * 将一个url注册成token，在拦截到要打开此url的时候，覆盖原本open的行为，改成 创建一个 CloseWatcher
-     * 基于 open 接口，原因是 CloseWatcher 的创建本身要基于浏览器的 UserActivation 中“消耗用户激活”的机制
-     */
-    registryToken(token: string): void;
-    /**
-     * 尝试关闭 CloseWatcher，可能会触发 cancel 事件，取决于平台的兼容程度
-     */
-    tryClose(id: string): void;
-    /**
-     * 该对象由 web 侧负责写入，由 native 侧去触发事件
-     */
-    _watchers: Map<string, EventTarget>;
-    /**
-     * 该对象由 web 侧负责写入，由 native 侧去调用
-     */
-    _tasks: Map<string, (id: string) => void>;
-  };
-  function open(url: string): Window;
+import "./close-watcher.type.ts";
 
-  const CloseWatcher: typeof CloseWatcherShim;
-}
-
-let native_close_watcher_kit = globalThis.__native_close_watcher_kit__;
+let native_close_watcher_kit = self.__native_close_watcher_kit__;
 
 if (native_close_watcher_kit) {
   native_close_watcher_kit._watchers ??= new Map();
@@ -58,10 +36,10 @@ if (native_close_watcher_kit) {
       _tasks: new Map(),
     },
   });
-  native_close_watcher_kit = globalThis.__native_close_watcher_kit__;
+  native_close_watcher_kit = self.__native_close_watcher_kit__;
 } else {
   /// 桌面 平台使用 esc 按钮作为返回键
-  const consuming = new Set<String>();
+  const consuming = new Set<string>();
   const watchers = new Array<Watcher>();
   class Watcher {
     static #acc_id = 0;
@@ -146,9 +124,9 @@ if (native_close_watcher_kit) {
       _tasks: new Map(),
     },
   });
-  native_close_watcher_kit = globalThis.__native_close_watcher_kit__;
+  native_close_watcher_kit = self.__native_close_watcher_kit__;
 }
-class CloseWatcherShim extends EventTarget {
+export class CloseWatcherShim extends EventTarget {
   constructor() {
     super();
     void this.#init();
@@ -157,12 +135,12 @@ class CloseWatcherShim extends EventTarget {
   async #init() {
     const token = URL.createObjectURL(new Blob(["create-close-watcher"], { type: "text/html" }));
 
-    const native_close_watcher_kit = globalThis.__native_close_watcher_kit__;
+    const native_close_watcher_kit = self.__native_close_watcher_kit__;
     const tasks = native_close_watcher_kit._tasks;
     const po = this.#id;
     // 注册回调
     tasks.set(token, po.resolve);
-    // 注册指令，如果在移动端，会发起 window.open(token) ，从而获得
+    // 注册指令，如果在移动端，会发起 self.open(token) ，从而获得
     native_close_watcher_kit.registryToken(token);
 
     // 等待响应
@@ -190,7 +168,7 @@ class CloseWatcherShim extends EventTarget {
       return;
     }
     const id = await this.#id.promise;
-    const native_close_watcher_kit = globalThis.__native_close_watcher_kit__;
+    const native_close_watcher_kit = self.__native_close_watcher_kit__;
     native_close_watcher_kit.tryClose(id);
   }
   #onclose?: (event: CloseEvent) => void;
@@ -239,9 +217,8 @@ interface CloseWatcherEventMap {
   close: CloseEvent;
 }
 
-// deno-lint-ignore no-explicit-any
-if (typeof globalThis.CloseWatcher === "undefined") {
-  Object.assign(globalThis, { CloseWatcher: CloseWatcherShim });
+if (typeof self.CloseWatcher === "undefined") {
+  Object.assign(self, { CloseWatcher: CloseWatcherShim });
 }
 
-export { CloseWatcherShim as CloseWatcher };
+export const CloseWatcher = self.CloseWatcher;

@@ -3,7 +3,6 @@ import { streamRead } from "../../helper/readableStreamHelper.ts";
 import { toRequest } from "../../helper/request.ts";
 import { BaseEvent, ListenerCallback, WindowListenerHandle } from "../base/BaseEvent.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
-import { configPlugin } from "../index.ts";
 import { DwebWorkerEventMap, IpcRequest, UpdateControllerMap } from "./dweb-service-worker.type.ts";
 import { dwebServiceWorkerPlugin } from "./dweb_service-worker.plugin.ts";
 import { $FetchEventType, FetchEvent } from "./FetchEvent.ts";
@@ -65,9 +64,7 @@ class DwebServiceWorker extends BaseEvent<keyof DwebWorkerEventMap> {
 
   private async *registerEvent(eventName: $FetchEventType, options?: { signal?: AbortSignal }) {
     let pub = await BasePlugin.public_url;
-    if (pub === "") {
-      pub = await configPlugin.updatePublicUrl();
-    }
+
     pub = pub.replace("X-Dweb-Host=api", "X-Dweb-Host=external");
     const X_Plaoc_Public_Url = new URL(location.href).searchParams.get("X-Plaoc-External-Url");
     const jsonlines = await this.plugin

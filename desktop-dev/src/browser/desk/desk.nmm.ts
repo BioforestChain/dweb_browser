@@ -17,11 +17,11 @@ import { buildUrl } from "../../helper/urlHelper.ts";
 import { z, zq } from "../../helper/zodHelper.ts";
 import { HttpDwebServer, createHttpDwebServer } from "../../std/http/helper/$createHttpDwebServer.ts";
 import { JMM_DB } from "../jmm/jmm.api.serve.ts";
-import { $AppMetaData } from "../jmm/jmm.ts";
+import { $JmmAppManifest } from "../jmm/types.ts";
 import { window_options } from "./const.ts";
 import { deskStore } from "./desk.store.ts";
 
-export interface $DeskAppMetaData extends $AppMetaData {
+export interface $DeskAppMetaData extends $JmmAppManifest {
   running: boolean;
 }
 
@@ -49,10 +49,12 @@ export class DeskNMM extends NativeMicroModule {
       deskStore.set("taskbar/apps", new Set(taskbarAppList));
     });
 
-    const getDesktopAppList = async () =>
-      (await JMM_DB.all()).map((metaData) => {
-        return { ...metaData, running: runingApps.has(metaData.id) };
-      });
+    const getDesktopAppList = async () => {
+      await context.dns.search(MICRO_MODULE_CATEGORY.Application);
+    };
+    (await JMM_DB.all()).map((metaData) => {
+      return { ...metaData, running: runingApps.has(metaData.id) };
+    });
 
     const getTaskbarAppList = async (limit: number) => {
       const apps: $DeskAppMetaData[] = [];

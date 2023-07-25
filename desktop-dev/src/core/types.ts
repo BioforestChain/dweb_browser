@@ -8,8 +8,31 @@ export interface $IpcSupportProtocols {
   protobuf: boolean;
   raw: boolean;
 }
+import { WebAppManifest } from "npm:@types/web-app-manifest";
 import { MICRO_MODULE_CATEGORY } from "./category.const.ts";
-export interface $IpcMicroModuleInfo {
+/**
+ * 一种通用的 “应用” 元数据格式
+ */
+export type $CommonAppManifest = Pick<
+  WebAppManifest,
+  | "dir"
+  | "lang"
+  | "name"
+  | "short_name"
+  | "description"
+  | "icons"
+  | "screenshots"
+  | "display"
+  | "orientation"
+  | "id"
+  | "categories"
+  | "theme_color"
+  | "background_color"
+  | "shortcuts"
+  // "start_url" | "scope" | "related_applications" | "prefer_related_applications" | "iarc_rating_id"
+>;
+
+export interface $IpcMicroModuleInfo extends $CommonAppManifest {
   /** 模块id */
   readonly mmid: $MMID;
   /** 对通讯协议的支持情况 */

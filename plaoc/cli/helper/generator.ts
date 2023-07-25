@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import JSZip from "npm:jszip";
-import { $AppMetaData, $MMID } from "./../deps.ts";
+import { $JmmAppInstallManifest, $MMID } from "./../deps.ts";
 import { WalkFiles } from "./WalkDir.ts";
 import { SERVE_MODE, defaultMetadata } from "./const.ts";
 import { GenerateTryFilepaths } from "./util.ts";
@@ -20,7 +20,7 @@ export type $MetadataJsonGeneratorOptions = {
 
 export class MetadataJsonGenerator {
   readonly metadataFilepaths: string[];
-  readonly baseMetadata: Partial<$AppMetaData>;
+  readonly baseMetadata: Partial<$JmmAppInstallManifest>;
   constructor(readonly flags: $MetadataJsonGeneratorOptions) {
     this.metadataFilepaths =
       flags.metadata?.map((filepath) => path.resolve(Deno.cwd(), filepath + "")) ??

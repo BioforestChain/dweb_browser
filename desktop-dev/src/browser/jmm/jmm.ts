@@ -13,9 +13,11 @@ import { fetchMatch } from "../../helper/patternHelper.ts";
 import { z, zq } from "../../helper/zodHelper.ts";
 import type { HttpDwebServer } from "../../std/http/helper/$createHttpDwebServer.ts";
 import { nativeFetchAdaptersManager } from "../../sys/dns/nativeFetch.ts";
+import { DOWNLOAD_STATUS } from "./const.ts";
 import { JMM_APPS_PATH, JMM_DB, createApiServer } from "./jmm.api.serve.ts";
 import { createWWWServer } from "./jmm.www.serve.ts";
-import { JsMMMetadata, JsMicroModule } from "./micro-module.js.ts"; // import Nedb from "@seald-io/nedb";
+import { JsMMMetadata, JsMicroModule } from "./micro-module.js.ts";
+import { $JmmAppManifest } from "./types.ts";
 
 nativeFetchAdaptersManager.append((remote, parsedUrl) => {
   /// fetch("file:///jmm/") 匹配
@@ -176,7 +178,7 @@ export class JmmNMM extends NativeMicroModule {
     await context.dns.uninstall(mmid);
   };
 
-  readonly onInstalled = createSignal<$Callback<[$AppMetaData, string]>>();
+  readonly onInstalled = createSignal<$Callback<[$JmmAppManifest, string]>>();
 
   protected _shutdown(): unknown {
     throw new Error("Method not implemented.");
@@ -194,33 +196,4 @@ export interface $State {
     elapsed: number; // The total elapsed seconds since the start (3 decimals)
     remaining: number; // The remaining seconds to finish (3 decimals)
   };
-}
-
-export interface $AppMetaData {
-  name: string;
-  short_name: string;
-  id: $MMID;
-  bundle_url: string;
-  bundle_hash: string;
-  bundle_size: number;
-  icon: string;
-  images: string[];
-  description: string;
-  author: string[];
-  version: string;
-  categories: MICRO_MODULE_CATEGORY[];
-  home: string;
-  server: {
-    root: string;
-    entry: string;
-  };
-  permissions: string[];
-  plugins: string[];
-  release_date: string;
-}
-
-export enum DOWNLOAD_STATUS {
-  DOWNLOAD,
-  PAUSE,
-  CANCEL,
 }

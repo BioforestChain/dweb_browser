@@ -1,6 +1,7 @@
 import { JsonlinesStream } from "../../../helper/JsonlinesStream.ts";
 import { streamRead } from "../../../helper/readableStreamHelper.ts";
 import type { $InstallProgressInfo } from "../jmm.api.serve.ts";
+import type { $JmmAppInstallManifest } from "../types.ts";
 
 // const elBack = document.querySelector('.top-bar-container')
 const elIcon = document.querySelector<HTMLElement>(".icon-container")!;
@@ -21,13 +22,11 @@ const enum DOWNLOAD_STATUS {
   DONE = 2,
 }
 let downloadState = DOWNLOAD_STATUS.INIT; // -1 没有在下载 0 下载暂停中
-
-type $AppMetaData = import("../jmm.ts").$AppMetaData;
-let appInfo: $AppMetaData;
+let appInfo: $JmmAppInstallManifest;
 let fromUrl: string;
 
 // 根据获取到的 appInfo 设置内容
-async function setAppInfoByAppInfo(metadata: $AppMetaData, metadataUrl: string) {
+async function setAppInfoByAppInfo(metadata: $JmmAppInstallManifest, metadataUrl: string) {
   appInfo = typeof metadata === "object" ? metadata : JSON.parse(metadata);
   fromUrl = metadataUrl;
   elIcon.style.backgroundImage = `url(${JSON.stringify(metadata.icon)})`;
