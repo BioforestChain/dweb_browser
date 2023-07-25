@@ -9,7 +9,7 @@ interface ApiService {
   suspend fun getNetWorker(url: String): String
 
   suspend fun downloadAndSave(
-    path: String, file: File?, isStop: () -> Boolean, DLProgress: (Long, Long) -> Unit
+    path: String, file: File?, total: Long, isStop: () -> Boolean, DLProgress: (Long, Long) -> Unit
   )
 
   suspend fun breakpointDownloadAndSave(

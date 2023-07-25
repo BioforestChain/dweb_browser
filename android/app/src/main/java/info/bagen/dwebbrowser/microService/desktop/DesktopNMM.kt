@@ -49,7 +49,6 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb") {
   init {
     controllerList.add(DesktopController(this))
     // 监听runningApps的变化
-    debugDesktop("1111111111111111111111111")
     runningAppsIpc.onChange { map ->
       for (app_id in map.keys) {
         // 每次变化对侧边栏图标进行排序(移动到最前面)
@@ -60,10 +59,9 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb") {
         }
       }
     }
-    debugDesktop("22222222222222222222222222222")
     GlobalScope.launch(ioAsyncExceptionHandler) {
       AppInfoDataStore.queryAppInfoList().collectLatest { list -> // TODO 只要datastore更新，这边就会实时更新
-        debugDesktop("33333333333333333333333333 ${list.size}")
+        debugDesktop("AppInfoDataStore", "size=${list.size}")
         list.forEach { appMetaData ->
           val lastAppMetaData = installAppList.find { it.jsMicroModule.mmid == appMetaData.id }
           lastAppMetaData?.let {

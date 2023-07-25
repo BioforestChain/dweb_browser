@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Message
+import android.util.Log
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
@@ -402,6 +403,7 @@ internal class DwebBrowserWebViewClient(private val microModule: MicroModule) : 
       }
     }
 
+    Log.d("lin.huang", "xxx url=$url, ${url.scheme}, ${url.host}, ${url.port}, ${url.path}")
     if (url.scheme == "http" && (url.host == "web.browser.dweb" || url.host == "browser.dweb.localhost")) {
       response = runBlockingCatching(ioAsyncExceptionHandler) {
         val urlPathSegments = url.pathSegments.filter { it.isNotEmpty() }
@@ -487,7 +489,8 @@ internal fun String.isUrlOrHost(): Boolean {
   // 字符串中只能包含数字和字母，同时可以存在-
   // 最后以 2~5个字符 结尾，可能还存在端口信息，端口信息限制数字，长度为1~5位
   val regex = "^((https?|ftp)://)?([a-zA-Z0-9]+([-.][a-zA-Z0-9]+)*\\.[a-zA-Z]{2,5}(:[0-9]{1,5})?(/.*)?)$".toRegex()
-  return regex.matches(this)
+  val regex2 = "((https?|ftp)://)(((2(5[0-5]|[0-4]\\d))|[0-1]?\\d{1,2})(\\.((2(5[0-5]|[0-4]\\d))|[0-1]?\\d{1,2})){3}(:[0-9]{1,5})?(/.*)?)".toRegex()
+  return regex.matches(this) || regex2.matches(this)
 }
 
 /**

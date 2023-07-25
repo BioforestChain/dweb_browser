@@ -543,7 +543,7 @@ private fun OtherInfoView(appMetaData: AppMetaData) {
     OtherItemView(type = "类别", content = appMetaData.categories?.toContent() ?: "娱乐")
     OtherItemView(type = "语言", content = "中文")
     OtherItemView(type = "年龄分级", content = "18+")
-    OtherItemView(type = "版权", content = "@${appMetaData.author?.get(0) ?: "dweb_browser"}")
+    OtherItemView(type = "版权", content = "@${appMetaData.author?.firstOrNull() ?: appMetaData.name}")
   }
 }
 

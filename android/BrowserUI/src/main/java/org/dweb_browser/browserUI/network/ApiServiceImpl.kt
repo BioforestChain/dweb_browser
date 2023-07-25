@@ -19,7 +19,7 @@ class ApiServiceImpl(private val httpClient: HttpClient) : ApiService {
   }
 
   override suspend fun downloadAndSave(
-    path: String, file: File?, isStop: () -> Boolean, DLProgress: (Long, Long) -> Unit
+    path: String, file: File?, total: Long, isStop: () -> Boolean, DLProgress: (Long, Long) -> Unit
   ) {
     if (path.isEmpty()) throw (java.lang.Exception("地址有误，下载失败！"))
     httpClient.requestPath(path = path, bodyMode = Stream)
@@ -31,7 +31,7 @@ class ApiServiceImpl(private val httpClient: HttpClient) : ApiService {
           }
 
           val contentLength = httpResponse.header("content-length").let {
-            it?.toInt() ?: 0 // 网络请求数据的大小
+            it?.toInt() ?: total // 网络请求数据的大小
           }
           val inputStream = httpResponse.body.stream
           var currentLength = 0
@@ -57,17 +57,12 @@ class ApiServiceImpl(private val httpClient: HttpClient) : ApiService {
       }
   }
 
-
   override suspend fun breakpointDownloadAndSave(
-    path: String,
-    file: File?,
-    total: Long,
-    isStop: () -> Boolean,
-    DLProgress: (Long, Long) -> Unit
+    path: String, file: File?, total: Long, isStop: () -> Boolean, DLProgress: (Long, Long) -> Unit
   ) {
     if (path.isEmpty()) throw (java.lang.Exception("地址有误，下载失败！"))
     var currentLength = file?.let { if (total > 0) it.length() else 0L } ?: 0L // 文件的大小
-    httpClient.requestPath(path = path, bodyMode = Stream) { path, method ->
+    httpClient.requestPath(path = path, bodyMode = Stream) { _, method ->
       Request(method, path).header("Range", "bytes=$currentLength-${total}") // 设置获取内容位置
     }.let { httpResponse ->
       val fileOutputStream: FileOutputStream? = file?.let { FileOutputStream(file, true) }
@@ -76,9 +71,12 @@ class ApiServiceImpl(private val httpClient: HttpClient) : ApiService {
           throw (java.lang.Exception(httpResponse.status.toString()))
         }
 
-        val contentLength = currentLength + httpResponse.header("content-length").let {
-          it?.toLong() ?: 0L // 网络请求数据的大小
-        }
+        val contentLength = httpResponse.header("content-length")?.let {
+          currentLength + it.toLong()
+        } ?: run {
+          currentLength = 0 // 如果没有content-length，说明没办法断点续传，只能重新下载
+          total
+        } // 网络请求数据的大小
         val inputStream = httpResponse.body.stream
         // inputStream.skip(currentLength) // 如果请求时，没有在Head 添加 Range 参数，可以改用这个方法
         val byteArray = ByteArray(DEFAULT_BUFFER_SIZE)
