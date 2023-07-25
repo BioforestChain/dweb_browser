@@ -24,8 +24,11 @@ final class BookmarkViewModel: HistoryViewModel {
     }
     
     override func deleteSingleHistory(for uuid: String) {
-        super.deleteSingleHistory(for: uuid)
-        coredataManager.deleteBookmark(uuid: uuid)
+        
+        if let index = dataSources.firstIndex(where: { $0.id.uuidString == uuid }) {
+            dataSources.remove(at: index)
+            coredataManager.deleteBookmark(uuid: uuid)
+        }
     }
     
     override func loadMoreHistoryData()  {

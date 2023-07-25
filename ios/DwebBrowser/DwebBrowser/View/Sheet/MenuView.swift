@@ -82,7 +82,7 @@ struct MenuView: View {
     private func alertAnimation() {
         isAlert.toggle()
         withAnimation {
-            offsetY = 130
+            offsetY = 100
         }
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {

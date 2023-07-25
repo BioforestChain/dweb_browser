@@ -24,6 +24,9 @@ struct BookmarkView: View {
                                 BookmarkCell(linkRecord: link, isLast: link.id == viewModel.dataSources.last?.id, loadMoreAction: {viewModel.loadMoreHistoryData()})
                                     .frame(height: 50)
                             }
+                            .onDelete { indexSet in
+                                deleteBookmarkData(at: viewModel.dataSources, offsets: indexSet)
+                            }
                             .textCase(nil)
                             .listRowInsets(EdgeInsets())
                             .listRowSeparator(.hidden)
@@ -34,6 +37,16 @@ struct BookmarkView: View {
             }
         } else {
             NoResultView(config: .bookmark)
+        }
+    }
+    
+    private func deleteBookmarkData(at items: [LinkRecord], offsets: IndexSet) {
+        
+        offsets.forEach { index in
+            if index < items.count {
+                let model = items[index]
+                viewModel.deleteSingleHistory(for: model.id.uuidString)
+            }
         }
     }
 }
