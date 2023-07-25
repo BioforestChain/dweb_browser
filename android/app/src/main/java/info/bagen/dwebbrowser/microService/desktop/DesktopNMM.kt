@@ -23,7 +23,9 @@ import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
 import org.dweb_browser.microservice.ipc.helper.ReadableStream
+import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.http4k.core.Method
+import org.http4k.core.query
 import org.http4k.lens.Query
 import org.http4k.lens.string
 import org.http4k.routing.bind
@@ -56,26 +58,6 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb") {
         cur?.let {
           runningAppList.remove(it)
           runningAppList.add(it)
-        }
-      }
-    }
-    GlobalScope.launch(ioAsyncExceptionHandler) {
-      AppInfoDataStore.queryAppInfoList().collectLatest { list -> // TODO 只要datastore更新，这边就会实时更新
-        debugDesktop("AppInfoDataStore", "size=${list.size}")
-        list.forEach { appMetaData ->
-          val lastAppMetaData = installAppList.find { it.jsMicroModule.mmid == appMetaData.id }
-          lastAppMetaData?.let {
-            if (compareAppVersionHigh(it.jsMicroModule.metadata.version, appMetaData.version)) {
-              bootstrapContext.dns.close(it.jsMicroModule.mmid)
-            } else {
-              return@forEach
-            }
-          }
-          val jsMicroModule = JsMicroModule(appMetaData).also { jsMicroModule ->
-            bootstrapContext.dns.install(jsMicroModule)
-          }
-          val windowAppInfo = WindowAppInfo(expand = false, jsMicroModule = jsMicroModule)
-          installAppList.add(windowAppInfo)
         }
       }
     }
@@ -154,7 +136,33 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb") {
     TODO("Not yet implemented")
   }
 
+  private fun loadAppInfo() {
+    GlobalScope.launch(ioAsyncExceptionHandler) {
+      AppInfoDataStore.queryAppInfoList().collectLatest { list -> // TODO 只要datastore更新，这边就会实时更新
+        debugDesktop("AppInfoDataStore", "size=${list.size}")
+        list.forEach { appMetaData ->
+          val lastAppMetaData = installAppList.find { it.jsMicroModule.mmid == appMetaData.id }
+          lastAppMetaData?.let {
+            if (compareAppVersionHigh(it.jsMicroModule.metadata.version, appMetaData.version)) {
+              org.http4k.core.Uri.of("file://dns.sys.dweb/close?")
+                .query("app_id", it.jsMicroModule.mmid)
+              // bootstrapContext.dns.close(it.jsMicroModule.mmid)
+            } else {
+              return@forEach
+            }
+          }
+          val jsMicroModule = JsMicroModule(appMetaData).also { jsMicroModule ->
+            bootstrapContext.dns.install(jsMicroModule)
+          }
+          val windowAppInfo = WindowAppInfo(expand = false, jsMicroModule = jsMicroModule)
+          installAppList.add(windowAppInfo)
+        }
+      }
+    }
+  }
+
   override suspend fun onActivity(event: IpcEvent, ipc: Ipc) {
+    loadAppInfo()
     App.startActivity(DesktopActivity::class.java) { intent ->
       intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
       intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
