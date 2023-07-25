@@ -24,10 +24,10 @@ struct TabPageView: View {
     var body: some View {
         GeometryReader { geo in
             ZStack {
-                if webCache.shouldShowWeb{
+                if webCache.shouldShowWeb {
                     webComponent
                 }
-                
+
                 if !webCache.shouldShowWeb {
                     Color.bkColor.overlay {
                         HomePageView()
@@ -35,6 +35,7 @@ struct TabPageView: View {
                 }
             }
             .onAppear {
+                print(geo.frame(in: .global))
                 snapshotHeight = geo.frame(in: .global).height
             }
             .onChange(of: toolbarState.goForwardTapped) { tapped in
@@ -53,24 +54,26 @@ struct TabPageView: View {
                 if !shouldExpand { // 截图，为缩小动画做准备
                     let index = WebWrapperMgr.shared.store.firstIndex(of: webWrapper)
                     if index == selectedTab.curIndex {
-                        if let image = self
-                            .environmentObject(selectedTab).environmentObject(toolbarState).environmentObject(animation).environmentObject(openingLink).environmentObject(addressBar)
-                            .snapshot()
+                        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                           let window = windowScene.windows.first
                         {
-                            let scale = image.scale
-                            let cropRect = CGRect(x: 0, y: 0, width: screen_width * scale, height: snapshotHeight * scale)
-                            if let croppedCGImage = image.cgImage?.cropping(to: cropRect) {
-                                let croppedImage = UIImage(cgImage: croppedCGImage)
-                                if webCache.shouldShowWeb{
-                                    animation.snapshotImage = croppedImage
-                                    webCache.snapshotUrl = UIImage.createLocalUrl(withImage: croppedImage, imageName: webCache.id.uuidString)
+                            if let view = window.rootViewController?.view {
+                                let image = view.asImage(rect: UIScreen.main.bounds)
+                                let scale = image.scale
+                                let cropRect = CGRect(x: 0, y: safeAreaTopHeight * scale, width: screen_width * scale, height: snapshotHeight * scale)
+                                if let croppedCGImage = image.cgImage?.cropping(to: cropRect) {
+                                    let croppedImage = UIImage(cgImage: croppedCGImage)
+                                    if webCache.shouldShowWeb {
+                                        animation.snapshotImage = croppedImage
+                                        webCache.snapshotUrl = UIImage.createLocalUrl(withImage: croppedImage, imageName: webCache.id.uuidString)
+                                    }
                                 }
-                            }
-                            if animation.progress == .obtainedCellFrame {
-                                animation.progress = .startShrinking
-                                printWithDate(msg: "startShrinking in obtainedSnapshot")
-                            } else {
-                                animation.progress = .obtainedSnapshot
+                                if animation.progress == .obtainedCellFrame {
+                                    animation.progress = .startShrinking
+                                    printWithDate(msg: "startShrinking in obtainedSnapshot")
+                                } else {
+                                    animation.progress = .obtainedSnapshot
+                                }
                             }
                         }
                     }
@@ -78,7 +81,7 @@ struct TabPageView: View {
             }
         }
     }
-    
+
     var webComponent: some View {
         WebView(webView: webWrapper.webView)
             .onAppear {
@@ -95,7 +98,7 @@ struct TabPageView: View {
                 }
                 openingLink.clickedLink = emptyURL
             }
-        
+
             .onChange(of: webWrapper.url) { url in
                 if let validUrl = url, webCache.lastVisitedUrl != validUrl {
                     webCache.lastVisitedUrl = validUrl
@@ -130,21 +133,21 @@ struct TabPageView: View {
                 }
             }
             .onReceive(addressBar.$needRefreshOfIndex) { refreshIndex in
-                if refreshIndex == index{
+                if refreshIndex == index {
                     webWrapper.webView.reload()
                 }
             }
             .onReceive(addressBar.$stopLoadingOfIndex) { stopIndex in
-                if stopIndex == index{
+                if stopIndex == index {
                     webWrapper.webView.stopLoading()
                 }
             }
     }
-    
+
     func goBack() {
         webWrapper.webView.goBack()
     }
-    
+
     func goForward() {
         webWrapper.webView.goForward()
     }

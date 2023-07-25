@@ -14,7 +14,8 @@ extension Color{
     static let btnNormalColor = Color(hex: 0x0A1626)  //  dark gray
     static let bkColor = Color(hex: 0xF5F6F7)  //  background color light gray
     static let networkTipColor = Color(hex: 0x737980)  //  network tip color
-    static let networkGuidColor = Color(hex: 0xACB5BF)  //  network tip color
+    static let networkGuidColor = Color(hex: 0xACB5BF)  //
+    static let sheetTopbar = Color(hex: 0xD8D8D8)  //  
     static let lightTextColor = btnDisabledColor
     
     init(hex: UInt32) {

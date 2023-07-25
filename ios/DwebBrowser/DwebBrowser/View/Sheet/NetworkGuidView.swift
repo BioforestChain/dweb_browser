@@ -19,7 +19,7 @@ struct NetworkGuidView: View {
 
                     RoundedRectangle(cornerRadius: 2.5)
                         .frame(width: 60, height: 6)
-                        .foregroundColor(.white)
+                        .foregroundColor(.sheetTopbar)
                     Spacer().frame(height: 52)
 
                     Image("wifi_error")
