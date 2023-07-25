@@ -11,10 +11,7 @@ export class MetaBody {
     readonly data: string | Uint8Array,
     readonly streamId?: string,
     public receiverUid?: number,
-    readonly metaId = simpleDecoder(
-      crypto.getRandomValues(new Uint8Array(8)),
-      "base64"
-    )
+    readonly metaId = simpleDecoder(crypto.getRandomValues(new Uint8Array(8)), "base64")
   ) {}
   static fromJSON(metaBody: MetaBody | $JSON<MetaBody>) {
     if (metaBody instanceof MetaBody === false) {
@@ -30,49 +27,28 @@ export class MetaBody {
     return metaBody as MetaBody;
   }
 
-  static fromText(
-    senderUid: number,
-    data: string,
-    streamId?: string,
-    receiverUid?: number
-  ) {
+  static fromText(senderUid: number, data: string, streamId?: string, receiverUid?: number) {
     return new MetaBody(
-      streamId == null
-        ? IPC_META_BODY_TYPE.INLINE_TEXT
-        : IPC_META_BODY_TYPE.STREAM_WITH_TEXT,
+      streamId == null ? IPC_META_BODY_TYPE.INLINE_TEXT : IPC_META_BODY_TYPE.STREAM_WITH_TEXT,
       senderUid,
       data,
       streamId,
       receiverUid
     );
   }
-  static fromBase64(
-    senderUid: number,
-    data: string,
-    streamId?: string,
-    receiverUid?: number
-  ) {
+  static fromBase64(senderUid: number, data: string, streamId?: string, receiverUid?: number) {
     return new MetaBody(
-      streamId == null
-        ? IPC_META_BODY_TYPE.INLINE_BASE64
-        : IPC_META_BODY_TYPE.STREAM_WITH_BASE64,
+      streamId == null ? IPC_META_BODY_TYPE.INLINE_BASE64 : IPC_META_BODY_TYPE.STREAM_WITH_BASE64,
       senderUid,
       data,
       streamId,
       receiverUid
     );
   }
-  static fromBinary(
-    sender: Ipc | number,
-    data: Uint8Array,
-    streamId?: string,
-    receiverUid?: number
-  ): MetaBody {
+  static fromBinary(sender: Ipc | number, data: Uint8Array, streamId?: string, receiverUid?: number): MetaBody {
     if (typeof sender === "number") {
       return new MetaBody(
-        streamId == null
-          ? IPC_META_BODY_TYPE.INLINE_BINARY
-          : IPC_META_BODY_TYPE.STREAM_WITH_BINARY,
+        streamId == null ? IPC_META_BODY_TYPE.INLINE_BINARY : IPC_META_BODY_TYPE.STREAM_WITH_BINARY,
         sender,
         data,
         streamId,
@@ -82,12 +58,7 @@ export class MetaBody {
     if (sender.support_binary) {
       return this.fromBinary(sender.uid, data, streamId, receiverUid);
     }
-    return this.fromBase64(
-      sender.uid,
-      simpleDecoder(data, "base64"),
-      streamId,
-      receiverUid
-    );
+    return this.fromBase64(sender.uid, simpleDecoder(data, "base64"), streamId, receiverUid);
   }
   #type_encoding = new CacheGetter(() => {
     const encoding = this.type & 0b11111110;
@@ -105,15 +76,11 @@ export class MetaBody {
   get type_encoding() {
     return this.#type_encoding.value;
   }
-  #type_isInline = new CacheGetter(
-    () => (this.type & IPC_META_BODY_TYPE.INLINE) !== 0
-  );
+  #type_isInline = new CacheGetter(() => (this.type & IPC_META_BODY_TYPE.INLINE) !== 0);
   get type_isInline() {
     return this.#type_isInline.value;
   }
-  #type_isStream = new CacheGetter(
-    () => (this.type & IPC_META_BODY_TYPE.INLINE) === 0
-  );
+  #type_isStream = new CacheGetter(() => (this.type & IPC_META_BODY_TYPE.INLINE) === 0);
   get type_isStream() {
     return this.#type_isStream.value;
   }

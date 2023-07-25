@@ -43,10 +43,7 @@ export class Server_external extends HttpServer {
   readonly waitListener = new PromiseOut<boolean>();
   async start() {
     const serverIpc = await this._listener;
-    return serverIpc
-      .onFetch(this._provider.bind(this))
-      .internalServerError()
-      .cors();
+    return serverIpc.onFetch(this._provider.bind(this)).internalServerError().cors();
   }
 
   protected async _provider(event: FetchEvent): Promise<$OnFetchReturn> {
@@ -113,29 +110,12 @@ export class Server_external extends HttpServer {
         const responsePOo = this.responseMap.get(externalReqId);
         // 验证是否有外部请求
         if (!responsePOo) {
-          throw new FetchError(
-            `not found response by req_id ${externalReqId}`,
-            { status: 500 }
-          );
+          throw new FetchError(`not found response by req_id ${externalReqId}`, { status: 500 });
         }
         // 转发给外部的app
-        responsePOo.resolve(
-          new IpcResponse(
-            externalReqId,
-            200,
-            cors(event.headers),
-            event.ipcRequest.body,
-            event.ipc
-          )
-        );
+        responsePOo.resolve(new IpcResponse(externalReqId, 200, cors(event.headers), event.ipcRequest.body, event.ipc));
         this.responseMap.delete(externalReqId);
-        const icpResponse = IpcResponse.fromText(
-          event.req_id,
-          200,
-          event.headers,
-          "ok",
-          event.ipc
-        );
+        const icpResponse = IpcResponse.fromText(event.req_id, 200, event.headers, "ok", event.ipc);
         cors(icpResponse.headers);
         // 告知自己的 respondWith 已经发送成功了
         return icpResponse;

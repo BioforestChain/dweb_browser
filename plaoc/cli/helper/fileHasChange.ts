@@ -1,10 +1,7 @@
 import { Buffer } from "node:buffer";
 import fs from "node:fs";
 const statCache = new Map<string, Buffer | false>();
-export const fileHasChange = (
-  filepath: string,
-  curr = fs.existsSync(filepath) && fs.readFileSync(filepath)
-) => {
+export const fileHasChange = (filepath: string, curr = fs.existsSync(filepath) && fs.readFileSync(filepath)) => {
   const prev = statCache.get(filepath);
   let changed = false;
   if (prev === undefined) {

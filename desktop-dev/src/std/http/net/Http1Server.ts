@@ -1,9 +1,5 @@
 import { findPort } from "../../../helper/findPort.ts";
-import {
-  $HttpServerInfo,
-  httpCreateServer,
-  NetServer,
-} from "./createNetServer.ts";
+import { $HttpServerInfo, httpCreateServer, NetServer } from "./createNetServer.ts";
 
 /**
  * 类似 https.createServer

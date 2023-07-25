@@ -1,4 +1,4 @@
-export type { $DeskAppMetaData as $WidgetAppData } from "../../../../desk.nmm";
+export type { $DeskAppMetaData as $WidgetAppData } from "../../../../desk.nmm.ts";
 
 interface $Callback {
   (event: Event, type: string, ...args: unknown[]): void;

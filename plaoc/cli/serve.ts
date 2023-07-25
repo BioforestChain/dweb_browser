@@ -8,16 +8,8 @@ import adp from "npm:appdata-path";
 import chalk from "npm:chalk";
 import { Flags, debounce } from "./deps.ts";
 import { WalkFiles } from "./helper/WalkDir.ts";
-import {
-  clearChangeState,
-  fileHasChange,
-  initFileState,
-} from "./helper/fileHasChange.ts";
-import {
-  BundleZipGenerator,
-  MetadataJsonGenerator,
-  NameFlagHelper,
-} from "./helper/generator.ts";
+import { clearChangeState, fileHasChange, initFileState } from "./helper/fileHasChange.ts";
+import { BundleZipGenerator, MetadataJsonGenerator, NameFlagHelper } from "./helper/generator.ts";
 import { staticServe } from "./helper/http-static-helper.ts";
 
 export const doServe = async (args = Deno.args) => {
@@ -57,9 +49,7 @@ export const doServe = async (args = Deno.args) => {
           res.setHeader("Content-Type", nameFlagHelper.bundleMime);
           /// 尝试读取上次 metadata.json 生成的 zip 文件
           const zip = await bundleFlagHelper.bundleZip();
-          zip
-            .generateNodeStream({ compression: "STORE" })
-            .pipe(res as NodeJS.WritableStream);
+          zip.generateNodeStream({ compression: "STORE" }).pipe(res as NodeJS.WritableStream);
           return;
         } else if (url.pathname === "/" + nameFlagHelper.metadataName) {
           /// 动态生成 合成 metadata
@@ -102,9 +92,7 @@ export const doServe = async (args = Deno.args) => {
       for (const info of Object.values(os.networkInterfaces())
         .flat()
         .filter((info) => info?.family === "IPv4")) {
-        console.log(
-          `metadata: \thttp://${info?.address}:${port}/${nameFlagHelper.metadataName}`
-        );
+        console.log(`metadata: \thttp://${info?.address}:${port}/${nameFlagHelper.metadataName}`);
         // console.log(`package: \thttp://${info?.address}:${port}/${nameFlagHelper.bundleName}`)
       }
     })
@@ -126,9 +114,7 @@ export const doServe = async (args = Deno.args) => {
     /// 通过 deno 的 npm: 协议被安装
     CUR_ENV_PATH.includes("/deno/npm/") === false
   ) {
-    const emulatorSrcDir = fileURLToPath(
-      import.meta.resolve("../dist/server/emulator")
-    );
+    const emulatorSrcDir = fileURLToPath(import.meta.resolve("../dist/server/emulator"));
     if (fs.existsSync(emulatorSrcDir)) {
       const emulatorDestDir = path.join(
         adp.getAppDataPath(ROOT_PACKAGE.default.productName),
@@ -138,9 +124,7 @@ export const doServe = async (args = Deno.args) => {
       );
       console.log(
         chalk.grey(
-          `${chalk.bgBlue(
-            "ℹ️"
-          )}  由于您是plaoc的内部开发者，所以现在 ${chalk.underline.cyan(
+          `${chalk.bgBlue("ℹ️")}  由于您是plaoc的内部开发者，所以现在 ${chalk.underline.cyan(
             path.relative(Deno.cwd(), emulatorSrcDir)
           )} 会被自动同步到 ${chalk.underline.cyan(
             JSON.stringify(emulatorDestDir)
@@ -170,10 +154,7 @@ export const doServe = async (args = Deno.args) => {
             fs.mkdirSync(path.dirname(dest), { recursive: true });
             fs.copyFileSync(src, dest);
           }
-          console.log(
-            chalk.green("synced"),
-            chalk.yellow(new Date().toLocaleTimeString())
-          );
+          console.log(chalk.green("synced"), chalk.yellow(new Date().toLocaleTimeString()));
         }
       }, 200);
 

@@ -1,10 +1,4 @@
-import {
-  $DwebHttpServerOptions,
-  $OnFetchReturn,
-  FetchEvent,
-  IpcResponse,
-  jsProcess,
-} from "./deps.ts";
+import { $DwebHttpServerOptions, $OnFetchReturn, FetchEvent, IpcResponse, jsProcess } from "./deps.ts";
 import { HttpServer, cors } from "./http-helper.ts";
 
 /**给前端的文件服务 */
@@ -19,10 +13,7 @@ export class Server_www extends HttpServer {
     const serverIpc = await this._listener;
     return serverIpc.onFetch(this._provider.bind(this)).noFound();
   }
-  protected async _provider(
-    request: FetchEvent,
-    root = "www"
-  ): Promise<$OnFetchReturn> {
+  protected async _provider(request: FetchEvent, root = "www"): Promise<$OnFetchReturn> {
     let { pathname } = request;
     if (pathname === "/") {
       pathname = "/index.html";

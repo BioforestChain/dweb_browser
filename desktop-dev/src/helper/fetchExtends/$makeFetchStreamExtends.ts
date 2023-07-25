@@ -1,8 +1,6 @@
 import { JsonlinesStream } from "../JsonlinesStream.ts";
 
-const $makeFetchExtends = <M extends unknown = unknown>(
-  exts: $FetchExtends<M>
-) => {
+const $makeFetchExtends = <M extends unknown = unknown>(exts: $FetchExtends<M>) => {
   return exts;
 };
 type $FetchExtends<E> = E & ThisType<Promise<Response> & E>; // Type of 'this' in methods is D & M

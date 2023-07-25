@@ -1,24 +1,12 @@
 import { bindThis } from "../../helper/bindThis.ts";
-import {
-  COLOR_FORMAT,
-  convertColorToArga,
-  normalizeArgaToColor,
-} from "../../util/color.ts";
+import { COLOR_FORMAT, convertColorToArga, normalizeArgaToColor } from "../../util/color.ts";
 import { $Coder } from "../../util/StateObserver.ts";
 import { BarPlugin } from "../base/BarPlugin.ts";
-import {
-  $StatusBarWritableState,
-  type $StatusBarRawState,
-  type $StatusBarState,
-} from "./status-bar.type.ts";
+import { $StatusBarWritableState, type $StatusBarRawState, type $StatusBarState } from "./status-bar.type.ts";
 /**
  * 访问 status-bar 能力的插件
  */
-export class StatusBarPlugin extends BarPlugin<
-  $StatusBarRawState,
-  $StatusBarState,
-  $StatusBarWritableState
-> {
+export class StatusBarPlugin extends BarPlugin<$StatusBarRawState, $StatusBarState, $StatusBarWritableState> {
   constructor() {
     super("status-bar.nativeui.browser.dweb");
   }
@@ -41,10 +29,7 @@ export class StatusBarPlugin extends BarPlugin<
     });
   }
   @bindThis
-  setStateByKey<K extends keyof $StatusBarWritableState>(
-    key: K,
-    value: $StatusBarWritableState[K]
-  ) {
+  setStateByKey<K extends keyof $StatusBarWritableState>(key: K, value: $StatusBarWritableState[K]) {
     return this.setState({
       [key]: value,
     });

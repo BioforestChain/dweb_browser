@@ -1,8 +1,4 @@
-export const bindThis = (
-  target: object,
-  prop: string,
-  desp: PropertyDescriptor
-) => {
+export const bindThis = (target: object, prop: string, desp: PropertyDescriptor) => {
   const source_fun = desp.value;
   if (typeof source_fun !== "function") {
     throw new Error(`${target}.${prop} should be function`);

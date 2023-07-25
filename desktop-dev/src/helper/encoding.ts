@@ -34,11 +34,7 @@ export const b64_to_utf8 = (str: string) => {
   return decodeURIComponent(escape(atob(str)));
 };
 
-export const dataUrlFromUtf8 = (
-  utf8_string: string,
-  asBase64: boolean,
-  mime = ""
-) => {
+export const dataUrlFromUtf8 = (utf8_string: string, asBase64: boolean, mime = "") => {
   const data_url = asBase64
     ? `data:${mime};base64,${utf8_to_b64(utf8_string)}`
     : `data:${mime};charset=UTF-8,${encodeURIComponent(utf8_string)}`;

@@ -16,13 +16,9 @@ export const doPubCore = async (cwd: string) => {
 
 export const doPubFromJson = async (
   inputConfigFile: string,
-  outputConfigFile = /^http(s{0,1})\:\/\//.test(inputConfigFile)
-    ? undefined
-    : inputConfigFile
+  outputConfigFile = /^http(s{0,1})\:\/\//.test(inputConfigFile) ? undefined : inputConfigFile
 ) => {
-  const npmConfigs = (
-    await import(inputConfigFile, { assert: { type: "json" } })
-  ).default;
+  const npmConfigs = (await import(inputConfigFile, { assert: { type: "json" } })).default;
 
   for (const config of npmConfigs) {
     if (await doPubCore(config.buildToRootDir)) {

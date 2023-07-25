@@ -38,10 +38,7 @@ export const walkDirToZipEntries = (bundleDir: string) => {
   return entries;
 };
 
-export const zipEntriesToZip = (
-  entries: Iterable<$ZipEntry>,
-  zip = new JSZip()
-) => {
+export const zipEntriesToZip = (entries: Iterable<$ZipEntry>, zip = new JSZip()) => {
   for (const entry of entries) {
     if (entry.dir) {
       zip.file(entry.path, null, {

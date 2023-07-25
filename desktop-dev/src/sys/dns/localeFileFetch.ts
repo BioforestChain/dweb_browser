@@ -7,17 +7,10 @@ import { nativeFetchAdaptersManager } from "./nativeFetch.ts";
 
 nativeFetchAdaptersManager.append(async (remote, parsedUrl) => {
   /// fetch("file:///sys") 匹配
-  if (
-    parsedUrl.protocol === "file:" &&
-    parsedUrl.hostname === "" &&
-    parsedUrl.pathname.startsWith("/sys/")
-  ) {
+  if (parsedUrl.protocol === "file:" && parsedUrl.hostname === "" && parsedUrl.pathname.startsWith("/sys/")) {
     try {
       /// 读取 app.asar 里头的文件
-      const filepath = path.resolve(
-        __dirname,
-        resolveToRoot(parsedUrl.pathname.replace("/sys/", "/assets/"))
-      );
+      const filepath = path.resolve(__dirname, resolveToRoot(parsedUrl.pathname.replace("/sys/", "/assets/")));
       const stats = await fs.statSync(filepath);
       if (stats.isDirectory()) {
         throw stats;

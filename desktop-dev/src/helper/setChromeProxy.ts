@@ -8,10 +8,7 @@ export const setChromeProxy = async (port: number, host = "localhost") => {
     },
   };
   await new Promise<void>((resolve, reject) => {
-    chrome.proxy.settings.set(
-      { value: pac_script_config, scope: "regular" },
-      resolve
-    );
+    chrome.proxy.settings.set({ value: pac_script_config, scope: "regular" }, resolve);
   });
   return () =>
     new Promise<void>((resolve, reject) => {

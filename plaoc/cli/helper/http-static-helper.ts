@@ -12,11 +12,7 @@ export const getMimeType = (name: string) => {
  * @param res
  * @returns
  */
-export const staticServe = async (
-  dir: string,
-  req: http.IncomingMessage,
-  res: http.ServerResponse
-) => {
+export const staticServe = async (dir: string, req: http.IncomingMessage, res: http.ServerResponse) => {
   try {
     const filepath = path.join(dir, req.url || "/");
     if (fs.existsSync(filepath)) {

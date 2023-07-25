@@ -10,17 +10,17 @@ export class BaseController {
   // emitUpdate() {
   //   this._onUpdate?.(this);
   // }
-  private _onUpdate?: ((controller: this) => void)[] = []
+  private _onUpdate?: ((controller: this) => void)[] = [];
 
   // Using the Web Animations API
   onUpdate(cb: (controller: this) => void) {
     // this._onUpdate = cb;
-    this._onUpdate?.push(cb)
+    this._onUpdate?.push(cb);
     return this;
   }
   // <T>
   emitUpdate() {
-    this._onUpdate?.forEach(callback => callback(this))
+    this._onUpdate?.forEach((callback) => callback(this));
     // this._onUpdate?.(this);
   }
 

@@ -1,10 +1,6 @@
 import type { $TypeName1, $TypeName2, $TypeName2ToType } from "./types.ts";
 
-export const $typeNameParser = <T extends $TypeName2>(
-  key: string,
-  typeName2: T,
-  value: string | null
-) => {
+export const $typeNameParser = <T extends $TypeName2>(key: string, typeName2: T, value: string | null) => {
   let param: any;
   if (value === null) {
     if ((typeName2 as string).endsWith("?")) {
@@ -13,19 +9,14 @@ export const $typeNameParser = <T extends $TypeName2>(
       throw new Error(`param type error: '${key}'.`);
     }
   } else {
-    const typeName1 = (
-      typeName2.endsWith("?") ? typeName2.slice(0, -1) : typeName2
-    ) as $TypeName1;
+    const typeName1 = (typeName2.endsWith("?") ? typeName2.slice(0, -1) : typeName2) as $TypeName1;
     switch (typeName1) {
       case "number": {
         param = +value;
         break;
       }
       case "boolean": {
-        param =
-          value === "" || value === "false"
-            ? false
-            : Boolean(value.toLowerCase());
+        param = value === "" || value === "false" ? false : Boolean(value.toLowerCase());
         break;
       }
       case "mmid": {

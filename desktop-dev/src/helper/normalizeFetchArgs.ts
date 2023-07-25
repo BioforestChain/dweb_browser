@@ -2,10 +2,7 @@
 
 import { parseUrl } from "./urlHelper.ts";
 
-export const normalizeFetchArgs = (
-  url: RequestInfo | URL,
-  init?: RequestInit
-) => {
+export const normalizeFetchArgs = (url: RequestInfo | URL, init?: RequestInit) => {
   let _parsed_url: URL | undefined;
   let _request_init = init;
   if (typeof url === "string") {

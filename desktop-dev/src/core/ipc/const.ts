@@ -108,25 +108,12 @@ export class IpcMessage<T extends IPC_MESSAGE_TYPE> {
 }
 
 /** 接收到的消息，可传输的数据 */
-export type $IpcTransferableMessage =
-  | IpcReqMessage
-  | IpcResMessage
-  | IpcEvent
-  | $IpcStreamMessage;
+export type $IpcTransferableMessage = IpcReqMessage | IpcResMessage | IpcEvent | $IpcStreamMessage;
 
 /** 发送的消息 */
-export type $IpcMessage =
-  | IpcRequest
-  | IpcResponse
-  | IpcEvent
-  | $IpcStreamMessage;
+export type $IpcMessage = IpcRequest | IpcResponse | IpcEvent | $IpcStreamMessage;
 
-export type $IpcStreamMessage =
-  | IpcStreamData
-  | IpcStreamPulling
-  | IpcStreamPaused
-  | IpcStreamEnd
-  | IpcStreamAbort;
+export type $IpcStreamMessage = IpcStreamData | IpcStreamPulling | IpcStreamPaused | IpcStreamEnd | IpcStreamAbort;
 
 export type $OnIpcMessage = (
   /// 这里只会有两种类型的数据
@@ -150,10 +137,7 @@ export type $OnIpcStreamMessage = (
   ipc: Ipc
 ) => unknown;
 
-export const $dataToBinary = (
-  data: string | Uint8Array,
-  encoding: IPC_DATA_ENCODING
-) => {
+export const $dataToBinary = (data: string | Uint8Array, encoding: IPC_DATA_ENCODING) => {
   switch (encoding) {
     case IPC_DATA_ENCODING.BINARY: {
       return data as Uint8Array;
@@ -167,10 +151,7 @@ export const $dataToBinary = (
   }
   throw new Error(`unknown encoding: ${encoding}`);
 };
-export const $dataToText = (
-  data: string | Uint8Array,
-  encoding: IPC_DATA_ENCODING
-) => {
+export const $dataToText = (data: string | Uint8Array, encoding: IPC_DATA_ENCODING) => {
   switch (encoding) {
     case IPC_DATA_ENCODING.BINARY: {
       return simpleDecoder(data as Uint8Array, "utf8");

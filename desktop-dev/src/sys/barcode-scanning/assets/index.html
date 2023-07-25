@@ -1,22 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>barcode-scanning</title>
-</head>
-<body>
-  <div>aaa</div>
-  <script type="text/javascript">
-    try {
-      const { ipcRenderer } = require("electron");
-      Object.assign(globalThis, {
-        ipcRenderer,
-      });
-    } catch(err){
-      throw new error(err)
-    }
-  </script>
-  <script type="module" src="./exportApis.ts"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>barcode-scanning</title>
+  </head>
+  <body>
+    <div>aaa</div>
+    <script type="text/javascript">
+      try {
+        const { ipcRenderer } = require("electron");
+        Object.assign(globalThis, {
+          ipcRenderer,
+        });
+      } catch (err) {
+        throw new error(err);
+      }
+    </script>
+    <script type="module" src="./exportApis.ts"></script>
+  </body>
 </html>

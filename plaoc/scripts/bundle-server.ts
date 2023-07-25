@@ -38,10 +38,7 @@ export const dev = new ESBuild({
           ) {
             return;
           }
-          const newpath = path.resolve(
-            args.resolveDir,
-            args.path.replace(/\.ts$/, ".(dev).ts")
-          );
+          const newpath = path.resolve(args.resolveDir, args.path.replace(/\.ts$/, ".(dev).ts"));
           if (fs.existsSync(newpath)) {
             console.log(chalk.gray("replace"), newpath);
             return {
@@ -73,11 +70,7 @@ export const emulator = {
           name: "xxx",
           transform(code, id) {
             if (id.endsWith(".ts")) {
-              console.log(
-                chalk.green("transfrom:"),
-                id,
-                code.includes("html`")
-              );
+              console.log(chalk.green("transfrom:"), id, code.includes("html`"));
             }
             return code;
           },
@@ -132,16 +125,11 @@ export const emulator = {
               throw new Error(`esbuild task "${id}" already exited`);
             }
             const res = await buildItem.value.result;
-            for (const inputfilepath of Object.keys(
-              res.metafile?.inputs ?? {}
-            )) {
+            for (const inputfilepath of Object.keys(res.metafile?.inputs ?? {})) {
               if (inputfilepath.startsWith("https://")) {
                 continue;
               }
-              const inputfilepath_full = path.resolve(
-                absWorkingDir,
-                inputfilepath
-              );
+              const inputfilepath_full = path.resolve(absWorkingDir, inputfilepath);
               this.addWatchFile(inputfilepath_full);
             }
             if (res.errors.length) {

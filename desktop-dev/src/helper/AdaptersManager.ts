@@ -10,10 +10,10 @@ export class AdaptersManager<T> {
     return this.orderdAdapters as ReadonlyArray<T>;
   }
   /**
-   * 
-   * @param adapter 
+   *
+   * @param adapter
    * @param order 越大优先级越高
-   * @returns 
+   * @returns
    */
   append(adapter: T, order = 0) {
     this.adapterOrderMap.set(adapter, order);

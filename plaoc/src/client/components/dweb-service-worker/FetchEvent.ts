@@ -29,20 +29,16 @@ export class FetchEvent extends Event {
   }
 
   async respondWith(response: Blob | ReadableStream<Uint8Array> | string) {
-    if (!this.public_url)
-      throw Error("you need init <web-config></dweb-config>");
+    if (!this.public_url) throw Error("you need init <web-config></dweb-config>");
 
     const public_url = new URL(await BasePlugin.public_url);
-    const base = public_url.href.replace(
-      /X-Dweb-Host=api/,
-      "X-Dweb-Host=external"
-    );
-    const X_Plaoc_Public_Url = new URL(location.href).searchParams.get("X-Plaoc-External-Url")
+    const base = public_url.href.replace(/X-Dweb-Host=api/, "X-Dweb-Host=external");
+    const X_Plaoc_Public_Url = new URL(location.href).searchParams.get("X-Plaoc-External-Url");
     return this.fetch(`/${X_Plaoc_Public_Url}`, {
       method: "POST",
       search: {
         id: this.clientId,
-        action:"response"
+        action: "response",
       },
       body: response,
       base: base,

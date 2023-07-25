@@ -1,11 +1,7 @@
 import tls from "node:tls";
 import { findPort } from "../../../helper/findPort.ts";
 import { createServerCertificate } from "../httpsServerCert.ts";
-import {
-  $HttpsServerInfo,
-  httpsCreateServer,
-  NetServer,
-} from "./createNetServer.ts";
+import { $HttpsServerInfo, httpsCreateServer, NetServer } from "./createNetServer.ts";
 import { ProxyServer } from "./ProxyServer.ts";
 
 /**
@@ -46,12 +42,7 @@ export class HttpsServer extends NetServer<$HttpsServerInfo> {
     return this._proxy.destroy();
   }
 
-  _getHost(
-    subdomain: string,
-    mmid: string,
-    port: number,
-    info: $HttpsServerInfo
-  ) {
+  _getHost(subdomain: string, mmid: string, port: number, info: $HttpsServerInfo) {
     return `${subdomain}${mmid}:${port}`;
   }
 }

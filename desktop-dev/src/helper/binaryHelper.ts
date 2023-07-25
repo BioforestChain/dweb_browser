@@ -2,8 +2,7 @@ export type $Binary = ArrayBuffer | ArrayBufferView;
 export const isBinary = (data: unknown): data is $Binary =>
   data instanceof ArrayBuffer ||
   ArrayBuffer.isView(data) ||
-  (typeof SharedArrayBuffer === "function" &&
-    data instanceof SharedArrayBuffer);
+  (typeof SharedArrayBuffer === "function" && data instanceof SharedArrayBuffer);
 
 export const binaryToU8a = (binary: $Binary) => {
   if (binary instanceof Uint8Array) {

@@ -1,23 +1,12 @@
 import { X_PLAOC_QUERY } from "./const.ts";
-import {
-  $IpcResponse,
-  IpcEvent,
-  jsProcess,
-  PromiseOut,
-  queue,
-} from "./deps.ts";
+import { $IpcResponse, IpcEvent, jsProcess, PromiseOut, queue } from "./deps.ts";
 import { Server_api } from "./http-api-server.ts";
 import { Server_external } from "./http-external-server.ts";
 import { Server_www } from "./http-www-server.ts";
 import "./polyfill.ts";
 
 import { cors } from "./http-helper.ts";
-import {
-  all_webview_status,
-  mwebview_activate,
-  mwebview_open,
-  sync_mwebview_status,
-} from "./mwebview-helper.ts";
+import { all_webview_status, mwebview_activate, mwebview_open, sync_mwebview_status } from "./mwebview-helper.ts";
 
 export const main = async () => {
   /**
@@ -82,14 +71,8 @@ export const main = async () => {
     const apiStartResult = await apiServer.getStartResult();
     const indexUrl = wwwStartResult.urlInfo.buildInternalUrl((url) => {
       url.pathname = "/index.html";
-      url.searchParams.set(
-        X_PLAOC_QUERY.API_INTERNAL_URL,
-        apiStartResult.urlInfo.buildInternalUrl().href
-      );
-      url.searchParams.set(
-        X_PLAOC_QUERY.API_PUBLIC_URL,
-        apiStartResult.urlInfo.buildPublicUrl().href
-      );
+      url.searchParams.set(X_PLAOC_QUERY.API_INTERNAL_URL, apiStartResult.urlInfo.buildInternalUrl().href);
+      url.searchParams.set(X_PLAOC_QUERY.API_PUBLIC_URL, apiStartResult.urlInfo.buildPublicUrl().href);
       url.searchParams.set(X_PLAOC_QUERY.EXTERNAL_URL, externalServer.token);
     });
     console.log("open in browser:", indexUrl.href);

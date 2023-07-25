@@ -61,13 +61,9 @@ export class IpcResponse extends IpcMessage<IPC_MESSAGE_TYPE.RESPONSE> {
     if (
       asBinary ||
       response.body == undefined ||
-      parseInt(response.headers.get("Content-Length") || "NaN") <
-        16 * 1024 * 1024
+      parseInt(response.headers.get("Content-Length") || "NaN") < 16 * 1024 * 1024
     ) {
-      ipcBody = IpcBodySender.fromBinary(
-        binaryToU8a(await response.arrayBuffer()),
-        ipc
-      );
+      ipcBody = IpcBodySender.fromBinary(binaryToU8a(await response.arrayBuffer()), ipc);
     } else {
       setStreamId(response.body, response.url);
       ipcBody = IpcBodySender.fromStream(response.body, ipc);
@@ -77,55 +73,19 @@ export class IpcResponse extends IpcMessage<IPC_MESSAGE_TYPE.RESPONSE> {
 
     return new IpcResponse(req_id, response.status, ipcHeaders, ipcBody, ipc);
   }
-  static fromJson(
-    req_id: number,
-    statusCode: number,
-    headers = new IpcHeaders(),
-    jsonable: unknown,
-    ipc: Ipc
-  ) {
+  static fromJson(req_id: number, statusCode: number, headers = new IpcHeaders(), jsonable: unknown, ipc: Ipc) {
     headers.init("Content-Type", "application/json");
-    return this.fromText(
-      req_id,
-      statusCode,
-      headers,
-      JSON.stringify(jsonable),
-      ipc
-    );
+    return this.fromText(req_id, statusCode, headers, JSON.stringify(jsonable), ipc);
   }
-  static fromText(
-    req_id: number,
-    statusCode: number,
-    headers = new IpcHeaders(),
-    text: string,
-    ipc: Ipc
-  ) {
+  static fromText(req_id: number, statusCode: number, headers = new IpcHeaders(), text: string, ipc: Ipc) {
     headers.init("Content-Type", "text/plain");
     // 这里 content-length 默认不写，因为这是要算二进制的长度，我们这里只有在字符串的长度，不是一个东西
-    return new IpcResponse(
-      req_id,
-      statusCode,
-      headers,
-      IpcBodySender.fromText(text, ipc),
-      ipc
-    );
+    return new IpcResponse(req_id, statusCode, headers, IpcBodySender.fromText(text, ipc), ipc);
   }
-  static fromBinary(
-    req_id: number,
-    statusCode: number,
-    headers = new IpcHeaders(),
-    binary: $Binary,
-    ipc: Ipc
-  ) {
+  static fromBinary(req_id: number, statusCode: number, headers = new IpcHeaders(), binary: $Binary, ipc: Ipc) {
     headers.init("Content-Type", "application/octet-stream");
     headers.init("Content-Length", binary.byteLength + "");
-    return new IpcResponse(
-      req_id,
-      statusCode,
-      headers,
-      IpcBodySender.fromBinary(binaryToU8a(binary), ipc),
-      ipc
-    );
+    return new IpcResponse(req_id, statusCode, headers, IpcBodySender.fromBinary(binaryToU8a(binary), ipc), ipc);
   }
   static fromStream(
     req_id: number,
@@ -135,24 +95,12 @@ export class IpcResponse extends IpcMessage<IPC_MESSAGE_TYPE.RESPONSE> {
     ipc: Ipc
   ) {
     headers.init("Content-Type", "application/octet-stream");
-    const ipcResponse = new IpcResponse(
-      req_id,
-      statusCode,
-      headers,
-      IpcBodySender.fromStream(stream, ipc),
-      ipc
-    );
+    const ipcResponse = new IpcResponse(req_id, statusCode, headers, IpcBodySender.fromStream(stream, ipc), ipc);
     return ipcResponse;
   }
 
   readonly ipcResMessage = once(
-    () =>
-      new IpcResMessage(
-        this.req_id,
-        this.statusCode,
-        this.headers.toJSON(),
-        this.body.metaBody
-      )
+    () => new IpcResMessage(this.req_id, this.statusCode, this.headers.toJSON(), this.body.metaBody)
   );
   toJSON() {
     return this.ipcResMessage();

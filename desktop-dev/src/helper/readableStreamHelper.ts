@@ -4,10 +4,7 @@ interface $AbortAble {
   signal?: AbortSignal;
 }
 
-async function* _doRead<T extends unknown>(
-  reader: ReadableStreamDefaultReader<T>,
-  options?: $AbortAble
-) {
+async function* _doRead<T extends unknown>(reader: ReadableStreamDefaultReader<T>, options?: $AbortAble) {
   const signal = options?.signal;
   if (signal !== undefined) {
     signal.addEventListener("abort", (reason) => reader.cancel(reason));
@@ -29,17 +26,11 @@ async function* _doRead<T extends unknown>(
   }
 }
 
-export const streamRead = <T extends unknown>(
-  stream: ReadableStream<T>,
-  options?: $AbortAble
-) => {
+export const streamRead = <T extends unknown>(stream: ReadableStream<T>, options?: $AbortAble) => {
   return _doRead(stream.getReader(), options);
 };
 
-export const binaryStreamRead = (
-  stream: ReadableStream<Uint8Array>,
-  options?: $AbortAble
-) => {
+export const binaryStreamRead = (stream: ReadableStream<Uint8Array>, options?: $AbortAble) => {
   const reader = streamRead(stream, options);
   let done = false;
   let cache = new Uint8Array(0);
@@ -72,9 +63,7 @@ export const binaryStreamRead = (
     if (await appendToCache()) {
       return readBinary(size);
     } else {
-      throw new Error(
-        `fail to read bytes(${cache.length}/${size} byte) in stream`
-      );
+      throw new Error(`fail to read bytes(${cache.length}/${size} byte) in stream`);
     }
   };
   const u32 = new Uint32Array(1);
@@ -113,9 +102,7 @@ export const streamReadAll = async <I extends unknown, T, R>(
   };
 };
 
-export const streamReadAllBuffer = async (
-  stream: ReadableStream<Uint8Array>
-) => {
+export const streamReadAllBuffer = async (stream: ReadableStream<Uint8Array>) => {
   return (
     await streamReadAll(stream, {
       map(chunk) {

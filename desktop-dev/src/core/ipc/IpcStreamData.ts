@@ -1,37 +1,19 @@
 import { CacheGetter } from "../../helper/cacheGetter.ts";
 import { simpleDecoder } from "../../helper/encoding.ts";
-import {
-  $dataToBinary,
-  $dataToText,
-  IPC_DATA_ENCODING,
-  IPC_MESSAGE_TYPE,
-  IpcMessage,
-} from "./const.ts";
+import { $dataToBinary, $dataToText, IPC_DATA_ENCODING, IPC_MESSAGE_TYPE, IpcMessage } from "./const.ts";
 
 export class IpcStreamData extends IpcMessage<IPC_MESSAGE_TYPE.STREAM_DATA> {
-  constructor(
-    readonly stream_id: string,
-    readonly data: string | Uint8Array,
-    readonly encoding: IPC_DATA_ENCODING
-  ) {
+  constructor(readonly stream_id: string, readonly data: string | Uint8Array, readonly encoding: IPC_DATA_ENCODING) {
     super(IPC_MESSAGE_TYPE.STREAM_DATA);
   }
   static fromBase64(stream_id: string, data: Uint8Array) {
-    return new IpcStreamData(
-      stream_id,
-      simpleDecoder(data, "base64"),
-      IPC_DATA_ENCODING.BASE64
-    );
+    return new IpcStreamData(stream_id, simpleDecoder(data, "base64"), IPC_DATA_ENCODING.BASE64);
   }
   static fromBinary(stream_id: string, data: Uint8Array) {
     return new IpcStreamData(stream_id, data, IPC_DATA_ENCODING.BINARY);
   }
   static fromUtf8(stream_id: string, data: Uint8Array) {
-    return new IpcStreamData(
-      stream_id,
-      simpleDecoder(data, "utf8"),
-      IPC_DATA_ENCODING.UTF8
-    );
+    return new IpcStreamData(stream_id, simpleDecoder(data, "utf8"), IPC_DATA_ENCODING.UTF8);
   }
 
   #binary = new CacheGetter(() => $dataToBinary(this.data, this.encoding));

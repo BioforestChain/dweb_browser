@@ -3,10 +3,7 @@ import { HTMLStateObserverElement } from "../../util/HTMLStateObserverElement.ts
 import { statusBarPlugin } from "./status-bar.plugin.ts";
 import { $StatusBarRawState, $StatusBarState } from "./status-bar.type.ts";
 
-export class HTMLDwebStatusBarElement extends HTMLStateObserverElement<
-  $StatusBarRawState,
-  $StatusBarState
-> {
+export class HTMLDwebStatusBarElement extends HTMLStateObserverElement<$StatusBarRawState, $StatusBarState> {
   static readonly tagName = "dweb-status-bar";
   readonly plugin = statusBarPlugin;
   constructor() {
@@ -58,10 +55,7 @@ export class HTMLDwebStatusBarElement extends HTMLStateObserverElement<
   }
 }
 
-customElements.define(
-  HTMLDwebStatusBarElement.tagName,
-  HTMLDwebStatusBarElement
-);
+customElements.define(HTMLDwebStatusBarElement.tagName, HTMLDwebStatusBarElement);
 
 declare global {
   interface HTMLElementTagNameMap {

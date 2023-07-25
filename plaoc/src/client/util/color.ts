@@ -59,10 +59,7 @@ export const enum COLOR_FORMAT {
   HEXA,
   RGBA,
 }
-export function normalizeArgaToColor(
-  color: $AgbaColor,
-  format: COLOR_FORMAT = COLOR_FORMAT.RGBA
-) {
+export function normalizeArgaToColor(color: $AgbaColor, format: COLOR_FORMAT = COLOR_FORMAT.RGBA) {
   const rgbaColor = [color.red, color.green, color.blue, color.alpha];
   if (format === COLOR_FORMAT.HEXA) {
     const hex =

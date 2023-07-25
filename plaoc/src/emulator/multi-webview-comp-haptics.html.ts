@@ -1,10 +1,4 @@
-import {
-  css,
-  customElement,
-  html,
-  LitElement,
-  property,
-} from "./helper/litHelper.ts";
+import { css, customElement, html, LitElement, property } from "./helper/litHelper.ts";
 
 const TAG = "multi-webview-comp-haptics";
 

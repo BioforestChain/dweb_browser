@@ -13,11 +13,7 @@ export const $isMatchReq = (
   method: (string & {}) | $Method = "GET",
   protocol?: string
 ) => {
-  if (
-    protocol !== undefined &&
-    matcher.protocol !== undefined &&
-    matcher.protocol !== protocol
-  ) {
+  if (protocol !== undefined && matcher.protocol !== undefined && matcher.protocol !== protocol) {
     return false;
   }
   return (

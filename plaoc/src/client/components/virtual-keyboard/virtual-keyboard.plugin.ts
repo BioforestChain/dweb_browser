@@ -16,18 +16,14 @@ export class VirtualKeyboardPlugin extends InsetsPlugin<
     super("virtual-keyboard.nativeui.browser.dweb");
   }
 
-  readonly coder: $Coder<$VirtualKeyboardRawState, $VirtualKeyboardState> =
-    this.baseCoder;
+  readonly coder: $Coder<$VirtualKeyboardRawState, $VirtualKeyboardState> = this.baseCoder;
 
   @bindThis
   async setState(state: Partial<$VirtualKeyboardWritableState>) {
     await this.commonSetState(state);
   }
   @bindThis
-  setStateByKey<K extends keyof $VirtualKeyboardWritableState>(
-    key: K,
-    value: $VirtualKeyboardWritableState[K]
-  ) {
+  setStateByKey<K extends keyof $VirtualKeyboardWritableState>(key: K, value: $VirtualKeyboardWritableState[K]) {
     return this.setState({ [key]: value });
   }
   override get getState() {

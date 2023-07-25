@@ -23,9 +23,7 @@ export class MetadataJsonGenerator {
   readonly baseMetadata: Partial<$AppMetaData>;
   constructor(readonly flags: $MetadataJsonGeneratorOptions) {
     this.metadataFilepaths =
-      flags.metadata?.map((filepath) =>
-        path.resolve(Deno.cwd(), filepath + "")
-      ) ??
+      flags.metadata?.map((filepath) => path.resolve(Deno.cwd(), filepath + "")) ??
       (() => {
         const tryFilenames = ["manifest.json", "package.json"];
         // 如果指定了项目目录，到项目目录里面搜索配置文件
@@ -92,9 +90,7 @@ export class BundleZipGenerator {
     /// 实时预览模式，使用代理html
     if (
       flags.mode === SERVE_MODE.LIVE ||
-      (flags.mode === undefined &&
-        bundleTarget !== undefined &&
-        /^http[s]{0,1}:\/\//.test(bundleTarget))
+      (flags.mode === undefined && bundleTarget !== undefined && /^http[s]{0,1}:\/\//.test(bundleTarget))
     ) {
       const liveUrl = bundleTarget;
       if (liveUrl === undefined) {
@@ -113,19 +109,14 @@ export class BundleZipGenerator {
       } satisfies $ZipEntry;
       this.zipGetter = async () =>
         zipEntriesToZip(
-          this.normalizeZipEntries([
-            ...(await this.getBaseZipEntries(flags.dev)),
-            index_html_file_entry,
-          ])
+          this.normalizeZipEntries([...(await this.getBaseZipEntries(flags.dev)), index_html_file_entry])
         );
     }
     /// 生产模式
     else if (flags.mode === SERVE_MODE.PROD) {
       const bundle_file = bundleTarget;
       if (bundle_file === undefined) {
-        throw new Error(
-          `no found bundle-file when serve-mode is '${flags.mode}'`
-        );
+        throw new Error(`no found bundle-file when serve-mode is '${flags.mode}'`);
       }
       this.zipGetter = () => JSZip.loadAsync(bundle_file);
     }
@@ -155,11 +146,7 @@ export class BundleZipGenerator {
   async getBaseZipEntries(dev = false) {
     const entries: $ZipEntry[] = [];
 
-    const addFiles_DistToUsr = async (
-      addpath: string,
-      pathalias: string = addpath,
-      pathbase = "usr/"
-    ) => {
+    const addFiles_DistToUsr = async (addpath: string, pathalias: string = addpath, pathbase = "usr/") => {
       let data = null;
       // 远程的文件
       if (addpath.startsWith("http://") || addpath.startsWith("https://")) {
@@ -167,19 +154,13 @@ export class BundleZipGenerator {
       }
       /// 本地文件
       else {
-        const addpath_full = fileURLToPath(
-          import.meta.resolve(`../../dist/${addpath}`)
-        );
+        const addpath_full = fileURLToPath(import.meta.resolve(`../../dist/${addpath}`));
         if (fs.statSync(addpath_full).isFile()) {
           data = fs.readFileSync(addpath_full);
         } else {
           for (const entry of WalkFiles(addpath_full)) {
             const child_addpath = path.join(addpath, entry.relativepath);
-            await addFiles_DistToUsr(
-              child_addpath,
-              child_addpath.replace(addpath, pathalias),
-              pathbase
-            );
+            await addFiles_DistToUsr(child_addpath, child_addpath.replace(addpath, pathalias), pathbase);
           }
           return;
         }
@@ -191,10 +172,7 @@ export class BundleZipGenerator {
       });
     };
     if (dev) {
-      await addFiles_DistToUsr(
-        "server/plaoc.server.dev.js",
-        "server/plaoc.server.js"
-      );
+      await addFiles_DistToUsr("server/plaoc.server.dev.js", "server/plaoc.server.js");
       await addFiles_DistToUsr("server/emulator");
     } else {
       await addFiles_DistToUsr("server/plaoc.server.js");
@@ -261,8 +239,5 @@ export class NameFlagHelper {
   readonly metadataName = "metadata.json";
   readonly metadataMime = "application/json";
 
-  constructor(
-    readonly flags: $NameFlagHelperOptions,
-    readonly metadataFlagHelper: MetadataJsonGenerator
-  ) {}
+  constructor(readonly flags: $NameFlagHelperOptions, readonly metadataFlagHelper: MetadataJsonGenerator) {}
 }

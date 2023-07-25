@@ -1,9 +1,5 @@
 import { bindThis } from "../../helper/bindThis.ts";
-import {
-  COLOR_FORMAT,
-  convertColorToArga,
-  normalizeArgaToColor,
-} from "../../util/color.ts";
+import { COLOR_FORMAT, convertColorToArga, normalizeArgaToColor } from "../../util/color.ts";
 import { domInsetsToJson } from "../../util/insets.ts";
 import { $Coder } from "../../util/StateObserver.ts";
 import { BarPlugin } from "../base/BarPlugin.ts";
@@ -43,10 +39,7 @@ export class NavigationBarPlugin extends BarPlugin<
     });
   }
   @bindThis
-  setStateByKey<K extends keyof $NavigationBarWritableState>(
-    key: K,
-    value: $NavigationBarWritableState[K]
-  ) {
+  setStateByKey<K extends keyof $NavigationBarWritableState>(key: K, value: $NavigationBarWritableState[K]) {
     return this.setState({
       [key]: value,
     });

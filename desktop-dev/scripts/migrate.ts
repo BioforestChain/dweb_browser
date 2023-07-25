@@ -10,8 +10,7 @@ const easyWriteFile = (filepath: string, content: string | Uint8Array) => {
   fs.writeFileSync(filepath, content);
 };
 const easyReadFile = (filepath: string) => fs.readFileSync(filepath, "utf-8");
-const emptyDir = (dir: string) =>
-  fs.rmSync(dir, { recursive: true, force: true });
+const emptyDir = (dir: string) => fs.rmSync(dir, { recursive: true, force: true });
 
 emptyDir(resolveTo("./assets-projects"));
 emptyDir(resolveTo("./src"));
@@ -23,18 +22,10 @@ for (const entry of WalkFiles(resolveTo("../../desktop/src"))) {
     const [dir, ...rels] = entry.relativepath.split("/assets/");
     const projectName = path.basename(dir);
     console.log("assets projectName:", projectName);
-    const toFile = fileURLToPath(
-      import.meta.resolve(
-        "./assets-projects/" + projectName + "/" + rels.join("/assets/")
-      )
-    );
+    const toFile = fileURLToPath(import.meta.resolve("./assets-projects/" + projectName + "/" + rels.join("/assets/")));
     easyWriteFile(toFile, entry.readText());
   } else if (/\.(cts|mts|ts)$/.test(entry.entryname)) {
-    const toFile = fileURLToPath(
-      import.meta.resolve(
-        "./src/" + entry.relativepath.replace(/\.(cts|mts|ts)$/, ".ts")
-      )
-    );
+    const toFile = fileURLToPath(import.meta.resolve("./src/" + entry.relativepath.replace(/\.(cts|mts|ts)$/, ".ts")));
     const scriptContent = entry.readText();
 
     easyWriteFile(
@@ -43,15 +34,12 @@ for (const entry of WalkFiles(resolveTo("../../desktop/src"))) {
         /// request
         // .replace("const")
         ///lodash
-        .replace(
-          /import\s+(\w+)\s+from\s+['"]lodash\/(\w+)['"]/g,
-          (_, $1, $2) => {
-            if ($1 === $2) {
-              return `import { ${$1} } from "lodash"`;
-            }
-            return `import {${$2} as ${$1}} from "lodash"`;
+        .replace(/import\s+(\w+)\s+from\s+['"]lodash\/(\w+)['"]/g, (_, $1, $2) => {
+          if ($1 === $2) {
+            return `import { ${$1} } from "lodash"`;
           }
-        )
+          return `import {${$2} as ${$1}} from "lodash"`;
+        })
         /// nodejs
         .replace(/from\s+['"](http|fs|net|stream)['"]/g, 'from "node:$1"')
         /// deno
@@ -63,9 +51,7 @@ for (const entry of WalkFiles(resolveTo("../../desktop/src"))) {
         .replace(/import\(['"]([^"']+)\.mjs['"]\)/g, 'import("$1.ts")')
     );
   } else {
-    const toFile = fileURLToPath(
-      import.meta.resolve("./src/" + entry.relativepath)
-    );
+    const toFile = fileURLToPath(import.meta.resolve("./src/" + entry.relativepath));
     console.log("copy", entry.relativepath);
     easyWriteFile(toFile, entry.read());
   }

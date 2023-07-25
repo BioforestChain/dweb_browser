@@ -1,12 +1,4 @@
-import {
-  css,
-  customElement,
-  html,
-  LitElement,
-  property,
-  PropertyValueMap,
-  when,
-} from "./helper/litHelper.ts";
+import { css, customElement, html, LitElement, property, PropertyValueMap, when } from "./helper/litHelper.ts";
 
 const TAG = "multi-webview-comp-share";
 
@@ -19,12 +11,9 @@ export class MultiWebviewCompShare extends LitElement {
   @property({ type: String }) _text =
     "文本内容 这里是超长的内容，这里是超长的内容，这里是超长的内容，这里是超长的内容，";
   @property({ type: String }) _link = "http://www.baidu.com?url=";
-  @property({ type: String }) _src =
-    "https://img.tukuppt.com/photo-big/00/00/94/6152bc0ce6e5d805.jpg";
+  @property({ type: String }) _src = "https://img.tukuppt.com/photo-big/00/00/94/6152bc0ce6e5d805.jpg";
   @property({ type: String }) _filename = "";
-  protected override firstUpdated(
-    _changedProperties: PropertyValueMap<any> | Map<PropertyKey, unknown>
-  ): void {
+  protected override firstUpdated(_changedProperties: PropertyValueMap<any> | Map<PropertyKey, unknown>): void {
     this.shadowRoot?.host.addEventListener("click", this.cancel);
   }
 

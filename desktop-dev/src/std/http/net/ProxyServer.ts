@@ -20,12 +20,9 @@ export class ProxyServer {
   ) {
     /// 启动一个通用的代理服务
     const proxy_port = await findPort([22600]);
-    const info = (this._info = await httpsCreateServer(
-      createServerCertificate("localhost").pem,
-      {
-        port: proxy_port,
-      }
-    ));
+    const info = (this._info = await httpsCreateServer(createServerCertificate("localhost").pem, {
+      port: proxy_port,
+    }));
 
     info.server.on("connect", (clientRequest, clientSocket, head) => {
       // 连接目标服务器

@@ -6,22 +6,13 @@ import type { $InstallProgressInfo } from "../jmm.api.serve.ts";
 const elIcon = document.querySelector<HTMLElement>(".icon-container")!;
 const elMainTitle = document.querySelector<HTMLElement>(".title")!;
 const elMainExplain = document.querySelector<HTMLElement>(".explain")!;
-const elBtnDownload =
-  document.querySelector<HTMLButtonElement>(".btn-download")!;
-const elBtnDownloadMask =
-  document.querySelector<HTMLElement>(".btn-download-mask")!;
-const elBtnDownloadText = document.querySelector<HTMLElement>(
-  ".btn-download-label"
-)!;
-const elPreviewImgeContainer =
-  document.querySelector<HTMLElement>(".img-container")!;
+const elBtnDownload = document.querySelector<HTMLButtonElement>(".btn-download")!;
+const elBtnDownloadMask = document.querySelector<HTMLElement>(".btn-download-mask")!;
+const elBtnDownloadText = document.querySelector<HTMLElement>(".btn-download-label")!;
+const elPreviewImgeContainer = document.querySelector<HTMLElement>(".img-container")!;
 const elDetailtext = document.querySelector<HTMLElement>(".detail-text")!;
-const elBtnMore = document.querySelector<HTMLButtonElement>(
-  ".detail-button-more"
-)!;
-const elMoreDeveloperInfo = document.querySelector<HTMLElement>(
-  ".developer-container"
-)!;
+const elBtnMore = document.querySelector<HTMLButtonElement>(".detail-button-more")!;
+const elMoreDeveloperInfo = document.querySelector<HTMLElement>(".developer-container")!;
 const elDeveloperName = document.querySelector<HTMLElement>(".developer-name")!;
 const enum DOWNLOAD_STATUS {
   INIT = -1,
@@ -36,10 +27,7 @@ let appInfo: $AppMetaData;
 let fromUrl: string;
 
 // 根据获取到的 appInfo 设置内容
-async function setAppInfoByAppInfo(
-  metadata: $AppMetaData,
-  metadataUrl: string
-) {
+async function setAppInfoByAppInfo(metadata: $AppMetaData, metadataUrl: string) {
   appInfo = typeof metadata === "object" ? metadata : JSON.parse(metadata);
   fromUrl = metadataUrl;
   elIcon.style.backgroundImage = `url(${JSON.stringify(metadata.icon)})`;
@@ -67,10 +55,7 @@ elBtnDownload.addEventListener("click", async (e) => {
     const api_origin = location.origin.replace("www.", "api.");
     const install_url = `${api_origin}/app/install`;
     /// 将下载链接进行补全
-    if (
-      (appInfo.bundle_url.startsWith("http:") ||
-        appInfo.bundle_url.startsWith("https:")) === false
-    ) {
+    if ((appInfo.bundle_url.startsWith("http:") || appInfo.bundle_url.startsWith("https:")) === false) {
       appInfo.bundle_url = new URL(appInfo.bundle_url, fromUrl).href;
     }
     const res = await fetch(install_url, {

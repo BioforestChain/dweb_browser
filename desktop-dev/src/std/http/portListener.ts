@@ -18,11 +18,7 @@ export interface $Router {
  * > 目前只允许端口独占，未来会开放共享监听以及对应的路由策略（比如允许开发WASM版本的路由策略）
  */
 export class PortListener {
-  constructor(
-    readonly ipc: Ipc,
-    readonly host: string,
-    readonly origin: string
-  ) {}
+  constructor(readonly ipc: Ipc, readonly host: string, readonly origin: string) {}
 
   protected _routers = new Set<$Router>();
   addRouter(router: $Router) {
@@ -52,11 +48,7 @@ export class PortListener {
    * 接收 nodejs-web 请求
    * 将之转发给 IPC 处理，等待远端处理完成再代理响应回去
    */
-  async hookHttpRequest(
-    req: WebServerRequest,
-    res: WebServerResponse,
-    fullReqUrl: string
-  ) {
+  async hookHttpRequest(req: WebServerRequest, res: WebServerResponse, fullReqUrl: string) {
     const { method = "GET" } = req;
     const parsed_url = parseUrl(fullReqUrl, this.origin);
     const hasMatch = this.findMatchedBind(parsed_url.pathname, method);
@@ -127,7 +119,7 @@ export class PortListener {
   onDestroy = this._on_destroy_signal.listen;
   /** 销毁监听器内产生的引用 */
   destroy() {
-    Array.from(this._routers).map((item) => item.streamIpc.close()); 
+    Array.from(this._routers).map((item) => item.streamIpc.close());
     // 删除 Router 保存的IPC
     this._on_destroy_signal.emit();
   }

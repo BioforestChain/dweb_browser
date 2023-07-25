@@ -1,10 +1,6 @@
 import { bindThis } from "../../helper/bindThis.ts";
 import { BaseEvent, Tkit } from "../base/BaseEvent.ts";
-import {
-  ConnectionStatus,
-  ConnectionType,
-  NetworkStatusMap,
-} from "./network.type.ts";
+import { ConnectionStatus, ConnectionType, NetworkStatusMap } from "./network.type.ts";
 
 declare global {
   interface Navigator {
@@ -91,10 +87,7 @@ export const networkPlugin = new NetworkPlugin();
  * @returns
  */
 function translatedConnection(): ConnectionType {
-  const connection =
-    window.navigator.connection ||
-    window.navigator.mozConnection ||
-    window.navigator.webkitConnection;
+  const connection = window.navigator.connection || window.navigator.mozConnection || window.navigator.webkitConnection;
   let result: ConnectionType = "unknown";
   const type = connection ? connection.type || connection.effectiveType : null;
   if (type && typeof type === "string") {

@@ -1,10 +1,7 @@
 import { cacheGetter } from "../../helper/cacheGetter.ts";
 import { HTMLStateObserverElement } from "../../util/HTMLStateObserverElement.ts";
 import { navigationBarPlugin } from "./navigation-bar.plugin.ts";
-import {
-  $NavigationBarRawState,
-  $NavigationBarState,
-} from "./navigation-bar.type.ts";
+import { $NavigationBarRawState, $NavigationBarState } from "./navigation-bar.type.ts";
 
 export class HTMLDwebNavigationBarElement extends HTMLStateObserverElement<
   $NavigationBarRawState,
@@ -61,10 +58,7 @@ export class HTMLDwebNavigationBarElement extends HTMLStateObserverElement<
   }
 }
 
-customElements.define(
-  HTMLDwebNavigationBarElement.tagName,
-  HTMLDwebNavigationBarElement
-);
+customElements.define(HTMLDwebNavigationBarElement.tagName, HTMLDwebNavigationBarElement);
 
 declare global {
   interface HTMLElementTagNameMap {

@@ -1,9 +1,7 @@
 import { u8aConcat } from "./binaryHelper.ts";
 import { createSignal, Signal } from "./createSignal.ts";
 
-async function* _doRead<T extends unknown>(
-  reader: ReadableStreamDefaultReader<T>
-) {
+async function* _doRead<T extends unknown>(reader: ReadableStreamDefaultReader<T>) {
   try {
     while (true) {
       const item = await reader.read();
@@ -64,9 +62,7 @@ export const binaryStreamRead = (
     if (await appendToCache()) {
       return readBinary(size);
     } else {
-      throw new Error(
-        `fail to read bytes(${cache.length}/${size} byte) in stream`
-      );
+      throw new Error(`fail to read bytes(${cache.length}/${size} byte) in stream`);
     }
   };
   const u32 = new Uint32Array(1);
@@ -108,9 +104,7 @@ export const streamReadAll = async <I extends unknown, T, R>(
   };
 };
 
-export const streamReadAllBuffer = async (
-  stream: ReadableStream<Uint8Array>
-) => {
+export const streamReadAllBuffer = async (stream: ReadableStream<Uint8Array>) => {
   return (
     await streamReadAll(stream, {
       complete(items) {
@@ -152,10 +146,7 @@ export type $OnPull = () => unknown;
 export type $OnCancel = (reason: any) => unknown;
 
 // deno-lint-ignore no-explicit-any
-export const streamFromCallback = <T extends (...args: any[]) => unknown>(
-  cb: T,
-  onCancel?: Promise<unknown>
-) => {
+export const streamFromCallback = <T extends (...args: any[]) => unknown>(cb: T, onCancel?: Promise<unknown>) => {
   const stream = new ReadableStream<Parameters<T>>({
     start(controller) {
       onCancel?.then(() => controller.close());

@@ -37,56 +37,47 @@
 
 const standConsole = Reflect.get(globalThis, "console");
 class Debugger {
-  static filterList = new Set<string>()
-  
-  log(tag: string, ...args: unknown[]){
-    if(!Debugger.filterList.has(tag)) return;
-    standConsole.log(`log-   [${tag}]: `, ...args)
+  static filterList = new Set<string>();
+
+  log(tag: string, ...args: unknown[]) {
+    if (!Debugger.filterList.has(tag)) return;
+    standConsole.log(`log-   [${tag}]: `, ...args);
   }
 
-  error(tag: string, ...args: unknown[]){
-    if(!Debugger.filterList.has(tag)) return;
-    standConsole.log(`\x1B[31m%s\x1B[0m`, `error- [${tag}]:`, ...args)    
+  error(tag: string, ...args: unknown[]) {
+    if (!Debugger.filterList.has(tag)) return;
+    standConsole.log(`\x1B[31m%s\x1B[0m`, `error- [${tag}]:`, ...args);
   }
 
-  warn(tag: string, ...args: unknown[]){
-    if(!Debugger.filterList.has(tag)) return;
-    standConsole.log(`\x1B[33m%s\x1B[0m`, `warn-  [${tag}]:`, ...args)
+  warn(tag: string, ...args: unknown[]) {
+    if (!Debugger.filterList.has(tag)) return;
+    standConsole.log(`\x1B[33m%s\x1B[0m`, `warn-  [${tag}]:`, ...args);
   }
 
   // 始终显示
-  always(tag: string, ...args: unknown[]){
-    standConsole.log(`always-[${tag}]: `, ...args)
+  always(tag: string, ...args: unknown[]) {
+    standConsole.log(`always-[${tag}]: `, ...args);
   }
-  
 }
 
-const console = new Debugger()
-Reflect.set(globalThis, "console", console)
+const console = new Debugger();
+Reflect.set(globalThis, "console", console);
 
 /**
- * 
- * @param arr 
+ *
+ * @param arr
  */
 const setFilter = (arr: string[]) => {
-  Debugger.filterList = new Set(arr)
-}
- 
+  Debugger.filterList = new Set(arr);
+};
 
-export {
-  Debugger,
-  setFilter
-}
+export { Debugger, setFilter };
 
 // 扩展 globalThis.Console 类型的 property
 declare global {
-  namespace globalThis{
+  namespace globalThis {
     interface Console {
-      always(...args: unknown[]): void;  // add your method to the interface
+      always(...args: unknown[]): void; // add your method to the interface
     }
   }
 }
-
- 
-
-

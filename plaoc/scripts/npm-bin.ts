@@ -15,14 +15,7 @@ export const doBuidCore = async (config: {
     [packageName: string]: string;
   };
 }) => {
-  const {
-    version,
-    buildFromRootDir,
-    buildToRootDir,
-    importMap,
-    name,
-    lib,
-  } = config;
+  const { version, buildFromRootDir, buildToRootDir, importMap, name, lib } = config;
   console.log(`--- START BUILD: ${name} ${version} ---`);
 
   await dnt.emptyDir(buildToRootDir);
@@ -93,10 +86,7 @@ export const doBuidCore = async (config: {
     // 适配入口不是index的情况
     let fromFile = `${buildFromRootDir}/${base}`;
     if (buildFromRootDir.includes(".ts")) {
-      fromFile = `${buildFromRootDir.slice(
-        0,
-        buildFromRootDir.lastIndexOf("/")
-      )}/${base}`;
+      fromFile = `${buildFromRootDir.slice(0, buildFromRootDir.lastIndexOf("/"))}/${base}`;
     }
     const fromFilename = fromFile;
     const toFilename = `${buildToRootDir}/${base}`;
@@ -142,14 +132,11 @@ export const getVersionGenerator = (version_input?: string) => {
           (release === "prerelease" && typeof identifier === "string")
         )
       ) {
-        console.error(
-          "请输入正确的 ReleaseType: major, minor, patch, prerelease:identifier"
-        );
+        console.error("请输入正确的 ReleaseType: major, minor, patch, prerelease:identifier");
         Deno.exit(0);
       }
       // major, minor, patch, or prerelease
-      getVersion = (version) =>
-        semver.inc(version, release, undefined, identifier) || version;
+      getVersion = (version) => semver.inc(version, release, undefined, identifier) || version;
     } else {
       const semver_version = semver.minVersion(version_input);
       if (semver_version === null) {
@@ -166,8 +153,7 @@ export const getVersionGenerator = (version_input?: string) => {
 export const doBuildFromJson = async (file: string, args: string[]) => {
   const getVersion = getVersionGenerator(args[0]);
   try {
-    const npmConfigs = (await import(file, { assert: { type: "json" } }))
-      .default;
+    const npmConfigs = (await import(file, { assert: { type: "json" } })).default;
 
     for (const config of npmConfigs) {
       await doBuidCore({

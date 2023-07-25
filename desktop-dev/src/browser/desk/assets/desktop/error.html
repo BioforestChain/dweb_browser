@@ -1,62 +1,60 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/logo.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>error</title>
+    <style>
+      /* 隐藏滚动条 */
+      html {
+        -ms-overflow-style: none;
+        overflow: -moz-scrollbars-none;
+      }
 
-<head>
-  <meta charset="UTF-8" />
-  <link rel="icon" href="/logo.svg" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>error</title>
-  <style>
-    /* 隐藏滚动条 */
-    html {
-      -ms-overflow-style: none;
-      overflow: -moz-scrollbars-none;
-    }
+      html::-webkit-scrollbar {
+        width: 0px;
+      }
 
-    html::-webkit-scrollbar {
-      width: 0px
-    }
+      .contoiner {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
 
-    .contoiner {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
+      .logo {
+        opacity: 0.5;
+        width: 14em;
+        height: 14em;
+      }
 
-    .logo {
-      opacity: 0.5;
-      width: 14em;
-      height: 14em;
-    }
+      #error {
+        font-size: 16px;
+        font-weight: 0.1em;
+        color: #d90033;
+        margin: 1em auto;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+    </style>
+  </head>
 
-    #error {
-      font-size: 16px;
-      font-weight: 0.1em;
-      color: #d90033;
-      margin: 1em auto;
-      text-align: center;
-      white-space: nowrap;
-      overflow: hidden;
-    }
-  </style>
-</head>
-
-<body>
-  <div class="contoiner">
-    <img class="logo" src="/logo.svg" alt="logo">
-    <div id="error">ERROR page </div>
-  </div>
-  <script>
-    const currentURL = window.location.href;
-    const urlParams = new URL(currentURL).searchParams;
-    const not_found = urlParams.get('not_found');
-    const errorDom = document.getElementById("error")
-    if (not_found) {
-      errorDom.innerHTML = `找不到您要访问的地址 ${not_found} !`
-    }
-  </script>
-</body>
-
+  <body>
+    <div class="contoiner">
+      <img class="logo" src="/logo.svg" alt="logo" />
+      <div id="error">ERROR page</div>
+    </div>
+    <script>
+      const currentURL = window.location.href;
+      const urlParams = new URL(currentURL).searchParams;
+      const not_found = urlParams.get("not_found");
+      const errorDom = document.getElementById("error");
+      if (not_found) {
+        errorDom.innerHTML = `找不到您要访问的地址 ${not_found} !`;
+      }
+    </script>
+  </body>
 </html>

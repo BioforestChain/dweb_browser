@@ -4,11 +4,7 @@ export const updateRenderPort = (port: MessagePort) => {
   updateRenderPostMessage(port);
   return port;
 };
-export const updateRenderMessageListener = (
-  target: MessagePort,
-  method: keyof MessagePort,
-  listener_index: number
-) => {
+export const updateRenderMessageListener = (target: MessagePort, method: keyof MessagePort, listener_index: number) => {
   const source_method = target[method] as Function;
   target[method] = function (...args: any[]) {
     args[listener_index] = resolveRenderMessageListener(args[listener_index]);

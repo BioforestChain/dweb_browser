@@ -26,11 +26,9 @@ export function once<T extends any[], R>(func: Func<T, R>): Func<T, R> {
 export function injectSubArray(arr: Uint8Array, subList: number[]) {
   const arrList = Array.from(arr);
   for (let i = 0; i <= arrList.length - subList.length; i++) {
-    if (
-      arrList.slice(i, i + subList.length).toString() === subList.toString()
-    ) {
+    if (arrList.slice(i, i + subList.length).toString() === subList.toString()) {
       // 找到目标子数组，使用splice方法插入新数组
-      const insertList = simpleEncoder(`\n    <meta is="dweb-config"/>`,"utf8")
+      const insertList = simpleEncoder(`\n    <meta is="dweb-config"/>`, "utf8");
       arr.set(insertList, i + subList.length);
       return arr;
     }

@@ -5,10 +5,7 @@ export class JsonlinesStream<T, R = T> extends TransformStream<string, R> {
   constructor(parser: $Transform<T, R> = (value) => value as unknown as R) {
     let json = "";
 
-    const try_enqueue = (
-      controller: TransformStreamDefaultController<R>,
-      jsonline: string
-    ) => {
+    const try_enqueue = (controller: TransformStreamDefaultController<R>, jsonline: string) => {
       try {
         controller.enqueue(parser(JSON.parse(jsonline)));
       } catch (err) {

@@ -7,11 +7,7 @@ export const createResolveTo =
 
 export const ROOT = Electron.app.getAppPath();
 export const resolveToRoot = createResolveTo(ROOT);
-export const DATA_ROOT = path.join(
-  Electron.app.getPath("appData"),
-  Electron.app.getName()
-);
+export const DATA_ROOT = path.join(Electron.app.getPath("appData"), Electron.app.getName());
 export const resolveToDataRoot = createResolveTo(DATA_ROOT);
 
-export const resolveToRootFile = (...paths: string[]) =>
-  pathToFileURL(resolveToRoot(...paths));
+export const resolveToRootFile = (...paths: string[]) => pathToFileURL(resolveToRoot(...paths));

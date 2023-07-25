@@ -37,14 +37,9 @@ export function buildRequest(url: URL, init?: $BuildRequestInit) {
     } else {
       extendsSearch = new URLSearchParams(
         Object.entries(search)
-          .filter(
-            ([_, value]) => value != undefined /* null undefined 都不传输*/
-          )
+          .filter(([_, value]) => value != undefined /* null undefined 都不传输*/)
           .map(([key, value]) => {
-            return [
-              key,
-              typeof value === "object" ? JSON.stringify(value) : String(value),
-            ] as [string, string];
+            return [key, typeof value === "object" ? JSON.stringify(value) : String(value)] as [string, string];
           })
       );
     }

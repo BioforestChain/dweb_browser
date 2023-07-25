@@ -1,13 +1,4 @@
-import {
-  classMap,
-  css,
-  customElement,
-  html,
-  LitElement,
-  property,
-  query,
-  repeat,
-} from "./helper/litHelper.ts";
+import { classMap, css, customElement, html, LitElement, property, query, repeat } from "./helper/litHelper.ts";
 
 const TAG = "multi-webview-comp-virtual-keyboard";
 
@@ -50,8 +41,7 @@ export class MultiWebviewCompVirtualKeyboard extends LitElement {
     const alphabetHeight = alphabetWidth * 1;
     const rowPaddingVertical = 3;
     const rowPaddingHorizontal = 2;
-    this.maxHeight =
-      (alphabetHeight + rowPaddingVertical * 2) * 4 + alphabetHeight;
+    this.maxHeight = (alphabetHeight + rowPaddingVertical * 2) * 4 + alphabetHeight;
     [
       ["--key-alphabet-width", alphabetWidth],
       ["--key-alphabet-height", alphabetHeight],
@@ -75,29 +65,13 @@ export class MultiWebviewCompVirtualKeyboard extends LitElement {
     return div;
   }
 
-  createElementForRow3(
-    classNameSymbol: string,
-    classNameAlphabet: string,
-    key: string
-  ) {
-    return this.createElement(
-      key.startsWith("&") ? classNameSymbol : classNameAlphabet,
-      key
-    );
+  createElementForRow3(classNameSymbol: string, classNameAlphabet: string, key: string) {
+    return this.createElement(key.startsWith("&") ? classNameSymbol : classNameAlphabet, key);
   }
 
-  createElementForRow4(
-    classNameSymbol: string,
-    classNameSpace: string,
-    classNameSearch: string,
-    key: string
-  ) {
+  createElementForRow4(classNameSymbol: string, classNameSpace: string, classNameSearch: string, key: string) {
     return this.createElement(
-      key.startsWith("1") || key.startsWith("&")
-        ? classNameSymbol
-        : key === "space"
-        ? classNameSpace
-        : classNameSearch,
+      key.startsWith("1") || key.startsWith("&") ? classNameSymbol : key === "space" ? classNameSpace : classNameSearch,
       key
     );
   }
@@ -109,9 +83,7 @@ export class MultiWebviewCompVirtualKeyboard extends LitElement {
   }
 
   transitionend() {
-    this.dispatchEvent(
-      new Event(this._visible ? "show-completed" : "hide-completed")
-    );
+    this.dispatchEvent(new Event(this._visible ? "show-completed" : "hide-completed"));
     clearInterval(this.timer as number);
     this.dispatchEvent(new Event("height-changed"));
   }
@@ -129,18 +101,10 @@ export class MultiWebviewCompVirtualKeyboard extends LitElement {
         @transitionend=${this.transitionend}
       >
         <div class="row line-1">
-          ${repeat(
-            this.row1Keys,
-            this.repeatGetKey,
-            this.createElement.bind(this, "key-alphabet")
-          )}
+          ${repeat(this.row1Keys, this.repeatGetKey, this.createElement.bind(this, "key-alphabet"))}
         </div>
         <div class="row line-2">
-          ${repeat(
-            this.row2Keys,
-            this.repeatGetKey,
-            this.createElement.bind(this, "key-alphabet")
-          )}
+          ${repeat(this.row2Keys, this.repeatGetKey, this.createElement.bind(this, "key-alphabet"))}
         </div>
         <div class="row line-3">
           ${repeat(
@@ -153,12 +117,7 @@ export class MultiWebviewCompVirtualKeyboard extends LitElement {
           ${repeat(
             this.row4Keys,
             this.repeatGetKey,
-            this.createElementForRow4.bind(
-              this,
-              "key-symbol",
-              "key-space",
-              "key-search"
-            )
+            this.createElementForRow4.bind(this, "key-symbol", "key-space", "key-search")
           )}
         </div>
       </div>
@@ -190,10 +149,7 @@ function createAllCSS() {
       }
 
       .container_active {
-        height: calc(
-          (var(--key-alphabet-height) + var(--row-padding-vertical) * 2) * 4 +
-            var(--key-alphabet-height)
-        );
+        height: calc((var(--key-alphabet-height) + var(--row-padding-vertical) * 2) * 4 + var(--key-alphabet-height));
       }
 
       .row {
@@ -214,8 +170,7 @@ function createAllCSS() {
       }
 
       .line-2 {
-        padding: var(--row-padding-vertical)
-          calc(var(--row-padding-horizontal) + var(--key-alphabet-width) / 2);
+        padding: var(--row-padding-vertical) calc(var(--row-padding-horizontal) + var(--key-alphabet-width) / 2);
       }
 
       .key-symbol {

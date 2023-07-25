@@ -21,10 +21,7 @@ const export_channel = new MessageChannel();
 const import_channel = new MessageChannel();
 const export_port = export_channel.port1;
 const import_port = import_channel.port1;
-ipcRenderer.postMessage("renderPort", {}, [
-  export_channel.port2,
-  import_channel.port2,
-]);
+ipcRenderer.postMessage("renderPort", {}, [export_channel.port2, import_channel.port2]);
 updateRenderPort(export_port);
 updateRenderPort(import_port);
 
@@ -82,8 +79,8 @@ export const exportApis = once((APIS: unknown) => {
   start(); // 可以注释掉这行，手动启动，方便调试
 });
 
-export const importApis = once(<
-  T = import("./openNativeWindow.ts").NativeWindowExtensions_BaseApi
->() => Comlink.wrap<T>(import_port));
+export const importApis = once(<T = import("./openNativeWindow.ts").NativeWindowExtensions_BaseApi>() =>
+  Comlink.wrap<T>(import_port)
+);
 
 Object.assign(globalThis, { Comlink, importApis });

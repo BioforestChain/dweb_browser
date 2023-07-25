@@ -16,7 +16,7 @@ export async function jsProcessOpenWindow(url: string, _options: $CreateNativeWi
    * will-prevent-unload 必须同步进行，渲染进程会被暂停。
    * 但是我们的进程都在Worker中，不会被完全影响，但是会影响到进程创建的任务、消息通讯也会被停滞。
    * 这可能会导致在这期间创建的任务被取消
-   * 
+   *
    * @TODO 监听webContents的生命周期，确保createProcess等任务能抛出中断异常
    */
   browserWindow.webContents.on("will-prevent-unload", (event) => {

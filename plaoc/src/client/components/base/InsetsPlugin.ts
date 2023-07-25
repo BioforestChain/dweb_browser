@@ -1,11 +1,6 @@
 import { bindThis } from "../../helper/bindThis.ts";
 import { cacheGetter } from "../../helper/cacheGetter.ts";
-import {
-  $Insets,
-  DOMInsets,
-  domInsetsToJson,
-  insetsToDom,
-} from "../../util/insets.ts";
+import { $Insets, DOMInsets, domInsetsToJson, insetsToDom } from "../../util/insets.ts";
 import { $Coder, StateObserver } from "../../util/StateObserver.ts";
 import { BasePlugin } from "./BasePlugin.ts";
 
@@ -40,23 +35,14 @@ export abstract class InsetsPlugin<
 
   @cacheGetter()
   get state() {
-    return new StateObserver(
-      this,
-      () => this.commonGetState<RAW>(),
-      this.coder
-    );
+    return new StateObserver(this, () => this.commonGetState<RAW>(), this.coder);
   }
 
   abstract setState(state: Partial<WRITABLE_STATE>): Promise<unknown>;
-  abstract setStateByKey<K extends keyof WRITABLE_STATE>(
-    key: K,
-    value: WRITABLE_STATE[K]
-  ): Promise<unknown>;
+  abstract setStateByKey<K extends keyof WRITABLE_STATE>(key: K, value: WRITABLE_STATE[K]): Promise<unknown>;
 
   @bindThis
-  protected async commonSetState<WS extends $InsetsWritableState>(
-    state: Partial<WS>
-  ) {
+  protected async commonSetState<WS extends $InsetsWritableState>(state: Partial<WS>) {
     await this.fetchApi("/setState", {
       search: state,
     }).ok();

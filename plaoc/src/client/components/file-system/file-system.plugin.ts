@@ -1,11 +1,6 @@
 import { bindThis } from "../../helper/bindThis.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
-import type {
-  GetUriOptions,
-  GetUriResult,
-  WriteFileOptions,
-  WriteFileResult,
-} from "./file-system.type.ts";
+import type { GetUriOptions, GetUriResult, WriteFileOptions, WriteFileResult } from "./file-system.type.ts";
 
 export class FileSystemPlugin extends BasePlugin {
   constructor() {

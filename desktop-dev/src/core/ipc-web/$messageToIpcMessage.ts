@@ -1,8 +1,4 @@
-import {
-  $IpcMessage,
-  $IpcTransferableMessage,
-  IPC_MESSAGE_TYPE,
-} from "../ipc/const.ts";
+import { $IpcMessage, $IpcTransferableMessage, IPC_MESSAGE_TYPE } from "../ipc/const.ts";
 import type { Ipc } from "../ipc/ipc.ts";
 import { IpcBodyReceiver } from "../ipc/IpcBodyReceiver.ts";
 import { IpcEvent } from "../ipc/IpcEvent.ts";
@@ -23,10 +19,7 @@ export type $JSON<T> = {
 export type $IpcSignalMessage = "close" | "ping" | "pong";
 export const $isIpcSignalMessage = (msg: unknown): msg is $IpcSignalMessage =>
   msg === "close" || msg === "ping" || msg === "pong";
-export const $objectToIpcMessage = (
-  data: $JSON<$IpcTransferableMessage>,
-  ipc: Ipc
-) => {
+export const $objectToIpcMessage = (data: $JSON<$IpcTransferableMessage>, ipc: Ipc) => {
   let message: undefined | $IpcMessage | $IpcSignalMessage;
 
   if (data.type === IPC_MESSAGE_TYPE.REQUEST) {
@@ -62,10 +55,7 @@ export const $objectToIpcMessage = (
   return message;
 };
 
-export const $messageToIpcMessage = (
-  data: $JSON<$IpcTransferableMessage> | $IpcSignalMessage,
-  ipc: Ipc
-) => {
+export const $messageToIpcMessage = (data: $JSON<$IpcTransferableMessage> | $IpcSignalMessage, ipc: Ipc) => {
   if ($isIpcSignalMessage(data)) {
     return data;
   }

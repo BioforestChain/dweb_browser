@@ -40,12 +40,8 @@ export type $AgbaColor = {
 
 export function colorToHex(color: $AgbaColor) {
   const rgbaColor =
-    color.alpha === 255
-      ? [color.red, color.green, color.blue]
-      : [color.red, color.green, color.blue, color.alpha];
-  return `#${rgbaColor
-    .map((v) => (v & 255).toString(16).padStart(2, "0"))
-    .join("")}` as const;
+    color.alpha === 255 ? [color.red, color.green, color.blue] : [color.red, color.green, color.blue, color.alpha];
+  return `#${rgbaColor.map((v) => (v & 255).toString(16).padStart(2, "0")).join("")}` as const;
 }
 export function colorToRgba(color: $AgbaColor) {
   const rgbaColor = [color.red, color.green, color.blue, color.alpha];

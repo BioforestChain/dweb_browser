@@ -22,9 +22,7 @@ interface $WebSocketReceiver extends NodeJS.WritableStream {
   on(type: "pong", cb: $WebSocketReceiver.OnPong): this;
 }
 interface $WebSocketReceiverConstructor {
-  new (options?: {
-    binaryType?: "nodebuffer" | "arraybuffer" | "fragments";
-  }): $WebSocketReceiver;
+  new (options?: { binaryType?: "nodebuffer" | "arraybuffer" | "fragments" }): $WebSocketReceiver;
 }
 
 // deno-lint-ignore no-namespace

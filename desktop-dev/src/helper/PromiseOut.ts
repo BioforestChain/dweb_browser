@@ -3,13 +3,8 @@
  * @returns
  * @inline
  */
-export const isPromiseLike = <T extends unknown = unknown>(
-  value: T | unknown
-): value is PromiseLike<Awaited<T>> => {
-  return (
-    value instanceof Object &&
-    typeof (value as PromiseLike<unknown>).then === "function"
-  );
+export const isPromiseLike = <T extends unknown = unknown>(value: T | unknown): value is PromiseLike<Awaited<T>> => {
+  return value instanceof Object && typeof (value as PromiseLike<unknown>).then === "function";
 };
 
 /**
@@ -17,9 +12,7 @@ export const isPromiseLike = <T extends unknown = unknown>(
  * @returns
  * @inline
  */
-export const isPromise = <T extends unknown = unknown>(
-  value: T | unknown
-): value is Promise<Awaited<T>> => {
+export const isPromise = <T extends unknown = unknown>(value: T | unknown): value is Promise<Awaited<T>> => {
   return value instanceof Promise;
 };
 type $InnerFinallyArg<T> =
@@ -136,11 +129,7 @@ export class PromiseOut<T = unknown> {
       try {
         await innerFinally(this._innerFinallyArg!);
       } catch (err) {
-        console.error(
-          "Unhandled promise rejection when running onFinished",
-          innerFinally,
-          err
-        );
+        console.error("Unhandled promise rejection when running onFinished", innerFinally, err);
       }
     });
   }
@@ -165,11 +154,7 @@ export class PromiseOut<T = unknown> {
       try {
         await innerThen(this.value!);
       } catch (err) {
-        console.error(
-          "Unhandled promise rejection when running onSuccess",
-          innerThen,
-          err
-        );
+        console.error("Unhandled promise rejection when running onSuccess", innerThen, err);
       }
     });
   }
@@ -178,11 +163,7 @@ export class PromiseOut<T = unknown> {
       try {
         await innerCatch(this.value!);
       } catch (err) {
-        console.error(
-          "Unhandled promise rejection when running onError",
-          innerCatch,
-          err
-        );
+        console.error("Unhandled promise rejection when running onError", innerCatch, err);
       }
     });
   }

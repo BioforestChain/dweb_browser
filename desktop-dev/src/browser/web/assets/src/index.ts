@@ -1,1 +1,1 @@
-console.log("okk browser")
+console.log("okk browser");

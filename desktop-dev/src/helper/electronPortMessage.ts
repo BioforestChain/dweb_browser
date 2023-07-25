@@ -1,12 +1,6 @@
 const { MessageChannelMain } = Electron;
-import {
-  updateMainMessageListener,
-  updateMainPostMessage,
-} from "./electronMainPort.ts";
-import {
-  updateRenderMessageListener,
-  updateRenderPostMessage,
-} from "./electronRenderPort.ts";
+import { updateMainMessageListener, updateMainPostMessage } from "./electronMainPort.ts";
+import { updateRenderMessageListener, updateRenderPostMessage } from "./electronRenderPort.ts";
 
 export const postMainMesasgeToRenderMessage = (
   from_port: Electron.MessagePortMain,
@@ -42,10 +36,7 @@ export const postRenderMessageToMainMesasge = (
 
 export const MainPortToRenderPort = (main_port: Electron.MessagePortMain) => {
   const render_channel = new MessageChannel();
-  main_port.addListener(
-    "message",
-    postMainMesasgeToRenderMessage.bind(null, main_port, render_channel.port1)
-  );
+  main_port.addListener("message", postMainMesasgeToRenderMessage.bind(null, main_port, render_channel.port1));
   render_channel.port1.addEventListener(
     "message",
     postRenderMessageToMainMesasge.bind(null, render_channel.port1, main_port)
@@ -65,14 +56,8 @@ export const MainPortToRenderPort = (main_port: Electron.MessagePortMain) => {
 
 export const RenderPortToMainPort = (render_port: MessagePort) => {
   const main_channel = new MessageChannelMain();
-  render_port.addEventListener(
-    "message",
-    postRenderMessageToMainMesasge.bind(null, render_port, main_channel.port1)
-  );
-  main_channel.port1.addListener(
-    "message",
-    postMainMesasgeToRenderMessage.bind(null, main_channel.port1, render_port)
-  );
+  render_port.addEventListener("message", postRenderMessageToMainMesasge.bind(null, render_port, main_channel.port1));
+  main_channel.port1.addListener("message", postMainMesasgeToRenderMessage.bind(null, main_channel.port1, render_port));
 
   main_channel.port1.addListener("close", () => {
     render_port.close();

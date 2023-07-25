@@ -2,11 +2,7 @@ import { cacheGetter } from "../../helper/cacheGetter.ts";
 import { CameraDirection } from "../camera/camera.type.ts";
 import { CloseWatcher } from "../close-watcher/index.ts";
 import { barcodeScannerPlugin } from "./barcode-scanning.plugin.ts";
-import {
-  BarcodeScannerPermission,
-  ScanResult,
-  SupportedFormat,
-} from "./barcode-scanning.type.ts";
+import { BarcodeScannerPermission, ScanResult, SupportedFormat } from "./barcode-scanning.type.ts";
 
 export class HTMLDwebBarcodeScanningElement extends HTMLElement {
   static readonly tagName = "dweb-barcode-scanning";
@@ -61,10 +57,7 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
    * 启动扫码
    * @returns
    */
-  async startScanning(
-    rotation = 0,
-    formats = SupportedFormat.QR_CODE
-  ): Promise<ScanResult> {
+  async startScanning(rotation = 0, formats = SupportedFormat.QR_CODE): Promise<ScanResult> {
     if (!this._isCloceLock) {
       this.createClose();
     }
@@ -154,10 +147,7 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
           return BarcodeScannerPermission.UserAgree;
         })
         .catch((e) => {
-          console.error(
-            "You need to authorize the camera permission to use the scan code!",
-            e
-          );
+          console.error("You need to authorize the camera permission to use the scan code!", e);
           this.stopScanning();
           return BarcodeScannerPermission.UserReject;
         });
@@ -185,13 +175,7 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
       const update = () =>
         requestAnimationFrame(() => {
           if (ctx && this._video) {
-            ctx.drawImage(
-              this._video,
-              0,
-              0,
-              this._canvas?.width ?? 480,
-              this._canvas?.height ?? 360
-            );
+            ctx.drawImage(this._video, 0, 0, this._canvas?.width ?? 480, this._canvas?.height ?? 360);
             update();
           }
         });
@@ -230,9 +214,7 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
       this._video = null;
     }
     if (this._canvas) {
-      this._canvas
-        .getContext("2d")
-        ?.clearRect(0, 0, this._canvas.width, this._canvas.height);
+      this._canvas.getContext("2d")?.clearRect(0, 0, this._canvas.width, this._canvas.height);
       this._canvas = null;
     }
   }
@@ -273,8 +255,7 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
       this._video.setAttribute("autoplay", "true");
 
       const userAgent = navigator.userAgent.toLowerCase();
-      const isSafari =
-        userAgent.includes("safari") && !userAgent.includes("chrome");
+      const isSafari = userAgent.includes("safari") && !userAgent.includes("chrome");
 
       // iOS 上的 Safari 需要设置 autoplay、muted 和 playsinline 属性，video.play() 才能成功
       // 如果没有这些属性，this.video.play() 将抛出 NotAllowedError
@@ -303,10 +284,7 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
   }
 }
 
-customElements.define(
-  HTMLDwebBarcodeScanningElement.tagName,
-  HTMLDwebBarcodeScanningElement
-);
+customElements.define(HTMLDwebBarcodeScanningElement.tagName, HTMLDwebBarcodeScanningElement);
 declare global {
   interface HTMLElementTagNameMap {
     [HTMLDwebBarcodeScanningElement.tagName]: HTMLDwebBarcodeScanningElement;

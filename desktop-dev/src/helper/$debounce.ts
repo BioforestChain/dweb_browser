@@ -1,9 +1,6 @@
 import { PromiseOut } from "./PromiseOut.ts";
 
-export const debounce = <F extends (...args: any[]) => Promise<any> | void>(
-  fun: F,
-  ms = 0
-) => {
+export const debounce = <F extends (...args: any[]) => Promise<any> | void>(fun: F, ms = 0) => {
   let ti: any;
   let lock:
     | undefined
@@ -37,10 +34,7 @@ export const debounce = <F extends (...args: any[]) => Promise<any> | void>(
 };
 
 const debounceNames = new Map<PropertyKey, () => any>();
-export const debounceQueueMicrotask = <T extends () => any>(
-  name: string,
-  fun: T
-) => {
+export const debounceQueueMicrotask = <T extends () => any>(name: string, fun: T) => {
   if (debounceNames.has(name) === false) {
     queueMicrotask(() => {
       const fun = debounceNames.get(name)!;

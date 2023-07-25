@@ -1,10 +1,6 @@
 import { bindThis } from "../../helper/bindThis.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
-import {
-  $AllWatchControllerItem,
-  $BluetoothPluginListener,
-  $ResponseData,
-} from "./bluetooth.type.ts";
+import { $AllWatchControllerItem, $BluetoothPluginListener, $ResponseData } from "./bluetooth.type.ts";
 import "./index.d.ts";
 
 export class BluetoothPlugin extends BasePlugin {
@@ -47,12 +43,7 @@ export class BluetoothPlugin extends BasePlugin {
     if (res.success) {
       res.data = new BluetoothRemoteGATTServer(
         this,
-        new BluetoothDevice(
-          this,
-          res.data.device.id,
-          true,
-          res.data.device.name
-        )
+        new BluetoothDevice(this, res.data.device.id, true, res.data.device.name)
       );
     }
     return res;
@@ -61,9 +52,7 @@ export class BluetoothPlugin extends BasePlugin {
   // 创建监听
   // bluetooth 的状态变化全部通过这个 watch 接受
   private _watch = () => {
-    const url = new URL(
-      BasePlugin.url.replace(/^http:/, "ws:").replace(/^https:/, "wss:")
-    );
+    const url = new URL(BasePlugin.url.replace(/^http:/, "ws:").replace(/^https:/, "wss:"));
     url.pathname = `${this.mmid}/watch`;
     const ws = new WebSocket(url);
     this._ws = ws;
@@ -76,18 +65,12 @@ export class BluetoothPlugin extends BasePlugin {
       try {
         const str = await event.data.text();
         if (str.length === 0) return;
-        const data = JSON.parse(
-          await event.data.text()
-        ) as $AllWatchControllerItem.$SendParam;
+        const data = JSON.parse(await event.data.text()) as $AllWatchControllerItem.$SendParam;
         const listener = this._allListener.get(data.type);
         if (listener === undefined) return;
         listener(data);
       } catch (err) {
-        console.error(
-          "_watchGattServerDisconnected",
-          "ws.onmessage error",
-          err
-        );
+        console.error("_watchGattServerDisconnected", "ws.onmessage error", err);
       }
     };
 
@@ -119,15 +102,9 @@ export class BluetoothDevice {
     this.name = _name;
     this.gatt = _gatt;
 
-    this.plugin.addeEventListener(
-      "gattserverdisconnected",
-      this.gettserverdisconnectedListener
-    );
+    this.plugin.addeEventListener("gattserverdisconnected", this.gettserverdisconnectedListener);
 
-    this.plugin.addeEventListener(
-      "advertisementreceived",
-      this.advertisementreceivedListener
-    );
+    this.plugin.addeEventListener("advertisementreceived", this.advertisementreceivedListener);
   }
 
   // 撤销访问的权限
@@ -154,10 +131,7 @@ export class BluetoothDevice {
   }
 
   @bindThis
-  addEventListener(
-    type: "gattserverdisconnected" | "advertisementreceived",
-    listener: { (ev: Event): void }
-  ): void {
+  addEventListener(type: "gattserverdisconnected" | "advertisementreceived", listener: { (ev: Event): void }): void {
     let set = this.eventMap.get(type);
     if (set === undefined) {
       set = new Set();
@@ -167,10 +141,7 @@ export class BluetoothDevice {
   }
 
   @bindThis
-  removeEventListener(
-    type: "gattserverdisconnected" | "advertisementreceived",
-    listener: { (ev: Event): void }
-  ) {
+  removeEventListener(type: "gattserverdisconnected" | "advertisementreceived", listener: { (ev: Event): void }) {
     const set = this.eventMap.get(type);
     if (set === undefined) return;
     set.delete(listener);
@@ -198,11 +169,7 @@ export class BluetoothDevice {
 
 export class BluetoothRemoteGATTServer {
   connected = false;
-  constructor(
-    readonly plugin: BluetoothPlugin,
-    readonly device: BluetoothDevice,
-    connected: boolean = true
-  ) {
+  constructor(readonly plugin: BluetoothPlugin, readonly device: BluetoothDevice, connected: boolean = true) {
     this.connected = connected;
   }
   @bindThis
@@ -240,18 +207,13 @@ export class BluetoothRemoteGATTServer {
   }
 
   @bindThis
-  async getPrimaryService(
-    uuid: BluetoothServiceUUID
-  ): Promise<$ResponseData<BluetoothRemoteGATTService>> {
+  async getPrimaryService(uuid: BluetoothServiceUUID): Promise<$ResponseData<BluetoothRemoteGATTService>> {
     const res = await (
-      await this.plugin.fetchApi(
-        `/bluetooth_remote_gatt_server/get_primary_service`,
-        {
-          search: {
-            uuid: uuid,
-          },
-        }
-      )
+      await this.plugin.fetchApi(`/bluetooth_remote_gatt_server/get_primary_service`, {
+        search: {
+          uuid: uuid,
+        },
+      })
     ).json();
 
     if (res.success === true) {
@@ -284,14 +246,11 @@ export class BluetoothRemoteGATTService extends EventTarget {
     bluetoothCharacteristicUUID: string
   ): Promise<$ResponseData<BluetoothRemoteGATTCharacteristic>> {
     const res = await (
-      await this.plugin.fetchApi(
-        `/bluetooth_remote_gatt_service/get_characteristic`,
-        {
-          search: {
-            uuid: bluetoothCharacteristicUUID,
-          },
-        }
-      )
+      await this.plugin.fetchApi(`/bluetooth_remote_gatt_service/get_characteristic`, {
+        search: {
+          uuid: bluetoothCharacteristicUUID,
+        },
+      })
     ).json();
 
     if (res.success) {
@@ -316,10 +275,7 @@ export class BluetoothRemoteGATTCharacteristic {
     readonly properties: BluetoothCharacteristicProperties,
     readonly value?: DataView | undefined
   ) {
-    this.plugin.addeEventListener(
-      "characteristicvaluechanged",
-      this.characteristicvaluechangedListener
-    );
+    this.plugin.addeEventListener("characteristicvaluechanged", this.characteristicvaluechangedListener);
   }
 
   characteristicvaluechangedListener = (event: any) => {
@@ -330,10 +286,7 @@ export class BluetoothRemoteGATTCharacteristic {
     });
   };
 
-  addEventListener = (
-    type: "characteristicvaluechanged",
-    listener: $BluetoothPluginListener
-  ) => {
+  addEventListener = (type: "characteristicvaluechanged", listener: $BluetoothPluginListener) => {
     let set = this.eventMap.get(type);
     if (set === undefined) {
       set = new Set();
@@ -342,10 +295,7 @@ export class BluetoothRemoteGATTCharacteristic {
     set.add(listener);
   };
 
-  removeEvent = (
-    type: "characteristicvaluechanged",
-    listener: $BluetoothPluginListener
-  ) => {
+  removeEvent = (type: "characteristicvaluechanged", listener: $BluetoothPluginListener) => {
     const set = this.eventMap.get(type);
     if (set === undefined) return;
     set.delete(listener);
@@ -353,11 +303,7 @@ export class BluetoothRemoteGATTCharacteristic {
 
   @bindThis
   async readValue(): Promise<$ResponseData<DataView | undefined>> {
-    const res = await (
-      await this.plugin.fetchApi(
-        `/bluetooth_remote_gatt_characteristic/read_value`
-      )
-    ).json();
+    const res = await (await this.plugin.fetchApi(`/bluetooth_remote_gatt_characteristic/read_value`)).json();
     if (res.success) {
       res.data = new DataView(
         // deno-lint-ignore ban-types
@@ -370,31 +316,23 @@ export class BluetoothRemoteGATTCharacteristic {
   @bindThis
   async writeValue(arrayBuffer: ArrayBuffer): Promise<$ResponseData<unknown>> {
     const res = await (
-      await this.plugin.fetchApi(
-        `/bluetooth_remote_gatt_characteristic/write_value`,
-        {
-          method: "POST",
-          body: new Blob([arrayBuffer]),
-          headers: {
-            "Content-Type": "application/octet-stream",
-          },
-        }
-      )
+      await this.plugin.fetchApi(`/bluetooth_remote_gatt_characteristic/write_value`, {
+        method: "POST",
+        body: new Blob([arrayBuffer]),
+        headers: {
+          "Content-Type": "application/octet-stream",
+        },
+      })
     ).json();
     return res;
   }
 
   @bindThis
-  async getDescriptor(
-    uuid: string
-  ): Promise<$ResponseData<BluetoothRemoteGATTDescriptor>> {
+  async getDescriptor(uuid: string): Promise<$ResponseData<BluetoothRemoteGATTDescriptor>> {
     const res = await (
-      await this.plugin.fetchApi(
-        `/bluetooth_remote_gatt_characteristic/get_descriptor`,
-        {
-          search: { uuid: uuid },
-        }
-      )
+      await this.plugin.fetchApi(`/bluetooth_remote_gatt_characteristic/get_descriptor`, {
+        search: { uuid: uuid },
+      })
     ).json();
     if (res.success) {
       res.data = new BluetoothRemoteGATTDescriptor(this, uuid, res.data.value);
@@ -412,9 +350,7 @@ export class BluetoothRemoteGATTDescriptor {
   @bindThis
   async readValue(): Promise<$ResponseData<DataView | undefined>> {
     const res = await (
-      await this.characteristic.plugin.fetchApi(
-        `/bluetooth_remote_gatt_descriptor/reaed_value`
-      )
+      await this.characteristic.plugin.fetchApi(`/bluetooth_remote_gatt_descriptor/reaed_value`)
     ).json();
     if (res.success) {
       res.data = new DataView(
@@ -428,16 +364,13 @@ export class BluetoothRemoteGATTDescriptor {
   @bindThis
   async writeValue(arrayBuffer: ArrayBuffer) {
     const res = await (
-      await this.characteristic.plugin.fetchApi(
-        `/bluetooth_remote_gatt_descriptor/write_value`,
-        {
-          method: "POST",
-          body: new Blob([arrayBuffer]),
-          headers: {
-            "Content-Type": "application/octet-stream",
-          },
-        }
-      )
+      await this.characteristic.plugin.fetchApi(`/bluetooth_remote_gatt_descriptor/write_value`, {
+        method: "POST",
+        body: new Blob([arrayBuffer]),
+        headers: {
+          "Content-Type": "application/octet-stream",
+        },
+      })
     ).json();
 
     return res;

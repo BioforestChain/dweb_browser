@@ -1,4 +1,3 @@
-import type { $Device, $AllDeviceListItem } from "../types.ts";
+import type { $AllDeviceListItem } from "../types.ts";
 
-export const allDeviceListMap = new Map<string, $AllDeviceListItem>()
-
+export const allDeviceListMap = new Map<string, $AllDeviceListItem>();

@@ -39,9 +39,7 @@ export class ServerUrlInfo {
    * @returns
    */
   buildPublicUrl(builder?: $UrlBuilder) {
-    return appendUrlSearchs(this._buildUrl(this.public_origin, builder), [
-      ["X-Dweb-Host", this.host],
-    ]);
+    return appendUrlSearchs(this._buildUrl(this.public_origin, builder), [["X-Dweb-Host", this.host]]);
   }
 
   /**

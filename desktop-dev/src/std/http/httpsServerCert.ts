@@ -4,10 +4,7 @@ import path from "node:path";
 
 // 读取 CA证书，后面需要根据它创建域名证书
 const caKey = forge.pki.decryptRsaPrivateKey(
-  fs.readFileSync(
-    path.resolve(__dirname, "../../../cert/rootCA-key.pem"),
-    "utf8"
-  )
+  fs.readFileSync(path.resolve(__dirname, "../../../cert/rootCA-key.pem"), "utf8")
 );
 const caCert = forge.pki.certificateFromPem(
   fs.readFileSync(path.resolve(__dirname, "../../../cert/rootCA.pem"), "utf8")
@@ -40,9 +37,7 @@ export function createServerCertificate(domain: string) {
   cert.publicKey = keys.publicKey;
   cert.serialNumber = `${new Date().getTime()}`;
   cert.validity.notBefore = new Date();
-  cert.validity.notBefore.setFullYear(
-    cert.validity.notBefore.getFullYear() - 1
-  );
+  cert.validity.notBefore.setFullYear(cert.validity.notBefore.getFullYear() - 1);
   cert.validity.notAfter = new Date();
   cert.validity.notAfter.setFullYear(cert.validity.notAfter.getFullYear() + 2); // 给1~2年的有效期
   cert.setIssuer(caCert.subject.attributes);

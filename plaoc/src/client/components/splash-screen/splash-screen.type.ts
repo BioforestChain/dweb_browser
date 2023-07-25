@@ -92,13 +92,7 @@ export interface PluginsConfig {
      * @default large
      * @example "large"
      */
-    androidSpinnerStyle?:
-      | "horizontal"
-      | "small"
-      | "large"
-      | "inverse"
-      | "smallInverse"
-      | "largeInverse";
+    androidSpinnerStyle?: "horizontal" | "small" | "large" | "inverse" | "smallInverse" | "largeInverse";
 
     /**
      * Style of the iOS spinner.

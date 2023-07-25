@@ -18,9 +18,7 @@ export function isHTMLElement(o: HTMLElement | unknown): o is HTMLElement {
   return o instanceof HTMLElement;
 }
 
-export function isCSSStyleDeclaration(
-  o: CSSStyleDeclaration | unknown
-): o is CSSStyleDeclaration {
+export function isCSSStyleDeclaration(o: CSSStyleDeclaration | unknown): o is CSSStyleDeclaration {
   return o instanceof CSSStyleDeclaration;
 }
 export type EmulatorAction = "connect" | "response";

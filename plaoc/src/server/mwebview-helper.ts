@@ -2,11 +2,7 @@ import { jsProcess } from "./deps.ts";
 
 /**开启新页面 */
 export const mwebview_open = async (url: string) => {
-  return await jsProcess
-    .nativeFetch(
-      `file://mwebview.browser.dweb/open?url=${encodeURIComponent(url)}`
-    )
-    .text();
+  return await jsProcess.nativeFetch(`file://mwebview.browser.dweb/open?url=${encodeURIComponent(url)}`).text();
 };
 
 /**
@@ -15,19 +11,13 @@ export const mwebview_open = async (url: string) => {
  * @returns
  */
 export const mwebview_activate = async () => {
-  return await jsProcess
-    .nativeFetch(`file://mwebview.browser.dweb/activate`)
-    .text();
+  return await jsProcess.nativeFetch(`file://mwebview.browser.dweb/activate`).text();
 };
 
 /**关闭app */
 export const mwebview_close = async (webview_id: string) => {
   return await jsProcess
-    .nativeFetch(
-      `file://mwebview.browser.dweb/close?webview_id=${encodeURIComponent(
-        webview_id
-      )}`
-    )
+    .nativeFetch(`file://mwebview.browser.dweb/close?webview_id=${encodeURIComponent(webview_id)}`)
     .text();
 };
 
@@ -36,9 +26,7 @@ export const mwebview_close = async (webview_id: string) => {
  *
  */
 export const mwebview_destroy = async () => {
-  return await jsProcess
-    .nativeFetch(`file://mwebview.browser.dweb/close/app`)
-    .boolean();
+  return await jsProcess.nativeFetch(`file://mwebview.browser.dweb/close/app`).boolean();
 };
 
 import { DetailedDiff, detailedDiff } from "npm:deep-object-diff";
@@ -51,10 +39,7 @@ export interface $AllWebviewState {
 }
 
 // 管理webView
-export const all_webview_status = new (class extends Map<
-  string,
-  $WebViewState
-> {
+export const all_webview_status = new (class extends Map<string, $WebViewState> {
   last() {
     return [...this.entries()].at(-1)!;
   }

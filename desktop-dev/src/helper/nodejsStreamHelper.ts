@@ -1,9 +1,6 @@
 import { Readable, Writable } from "node:stream";
 
-export const readableToWeb = (
-  readable: Readable,
-  options?: { strategy?: { highWaterMark?: number } }
-) => {
+export const readableToWeb = (readable: Readable, options?: { strategy?: { highWaterMark?: number } }) => {
   // @ts-ignore
   return Readable.toWeb(readable, options) as ReadableStream<Uint8Array>;
 };

@@ -1,7 +1,6 @@
 import { Ipc, createSignal, mapHelper, simpleEncoder } from "../../../deps.ts";
 import { $Callback, $OffListener } from "../../client/helper/createSignal.ts";
 
-
 export class StateObservable {
   constructor(readonly getStateJson: () => string) {}
 
@@ -14,10 +13,10 @@ export class StateObservable {
   private _controllersMap = new Map<Ipc, ReadableStreamDefaultController>();
 
   startObserve(ipc: Ipc, controller: ReadableStreamDefaultController) {
-    this._controllersMap.set(ipc, controller)
+    this._controllersMap.set(ipc, controller);
     mapHelper.getOrPut(this._observerIpcMap, ipc, () => {
       return this._observe(() => {
-        controller?.enqueue(simpleEncoder(this.getStateJson() + "\n", "utf8"))
+        controller?.enqueue(simpleEncoder(this.getStateJson() + "\n", "utf8"));
       });
     });
   }
@@ -26,10 +25,9 @@ export class StateObservable {
   }
   stopObserve(ipc: Ipc) {
     const controller = this._controllersMap.get(ipc);
-    if(controller === undefined) throw new Error(`controller === undefined`)
+    if (controller === undefined) throw new Error(`controller === undefined`);
     controller.close();
     this._controllersMap.delete(ipc);
     return mapHelper.getAndRemove(this._observerIpcMap, ipc)?.apply(undefined);
   }
- 
 }

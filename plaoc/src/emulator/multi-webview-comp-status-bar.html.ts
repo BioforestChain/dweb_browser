@@ -29,14 +29,9 @@ export class MultiWebviewCompStatusBar extends LitElement {
 
   static override styles = createAllCSS();
 
-  protected override updated(
-    changedProperties: PropertyValueMap<MultiWebviewCompStatusBar>
-  ) {
+  protected override updated(changedProperties: PropertyValueMap<MultiWebviewCompStatusBar>) {
     // 在影响 safe-area 的情况下 需要报消息发送给 safe-area 模块
-    if (
-      changedProperties.has("_visible") ||
-      changedProperties.has("_overlay")
-    ) {
+    if (changedProperties.has("_visible") || changedProperties.has("_overlay")) {
       this.dispatchEvent(new Event("safe_area_need_update"));
     }
     super.updated(changedProperties);
@@ -58,16 +53,8 @@ export class MultiWebviewCompStatusBar extends LitElement {
       >
         <div class="background"></div>
         <div class="container">
-          ${when(
-            this._visible,
-            () => html`<div class="left_container">10:00</div>`
-          )}
-          <div class="center_container">
-            ${when(
-              this._torchIsOpen,
-              () => html`<div class="torch_symbol"></div>`
-            )}
-          </div>
+          ${when(this._visible, () => html`<div class="left_container">10:00</div>`)}
+          <div class="center_container">${when(this._torchIsOpen, () => html`<div class="torch_symbol"></div>`)}</div>
           ${when(
             this._visible,
             () => html`

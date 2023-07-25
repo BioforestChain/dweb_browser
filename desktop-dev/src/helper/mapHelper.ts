@@ -4,16 +4,8 @@ export const mapHelper = new (class {
     key: K,
     putter: (key: K) => $MapVal<M>
   ): $MapVal<M>;
-  getOrPut<M extends Map<any, any>, K extends $MapKey<M>>(
-    map: M,
-    key: K,
-    putter: (key: K) => $MapVal<M>
-  ): $MapVal<M>;
-  getOrPut<M extends Map<any, any>, K extends $MapKey<M>>(
-    map: M,
-    key: K,
-    putter: (key: K) => $MapVal<M>
-  ): $MapVal<M> {
+  getOrPut<M extends Map<any, any>, K extends $MapKey<M>>(map: M, key: K, putter: (key: K) => $MapVal<M>): $MapVal<M>;
+  getOrPut<M extends Map<any, any>, K extends $MapKey<M>>(map: M, key: K, putter: (key: K) => $MapVal<M>): $MapVal<M> {
     if (map.has(key)) {
       return map.get(key)!;
     }
@@ -21,10 +13,7 @@ export const mapHelper = new (class {
     map.set(key, put);
     return put;
   }
-  getAndRemove<M extends Map<any, any>, K extends $MapKey<M>>(
-    map: M,
-    key: K
-  ): $MapVal<M> | undefined {
+  getAndRemove<M extends Map<any, any>, K extends $MapKey<M>>(map: M, key: K): $MapVal<M> | undefined {
     const val = map.get(key);
     if (map.delete(key)) {
       return val;
@@ -35,7 +24,5 @@ export const mapHelper = new (class {
 type $MapKey<T> = T extends Map<infer K, any> ? K : never;
 type $MapVal<T> = T extends Map<any, infer V> ? V : never;
 
-type $WeakMapKey<T> = T extends WeakMap<infer K extends object, any>
-  ? K
-  : never;
+type $WeakMapKey<T> = T extends WeakMap<infer K extends object, any> ? K : never;
 type $WeakMapVal<T> = T extends WeakMap<any, infer V> ? V : never;

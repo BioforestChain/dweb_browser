@@ -63,14 +63,7 @@ export const defaultErrorResponse = (
   errorMessage: string,
   detailMessage?: string
 ) => {
-  const body = formatErrorToHtml(
-    statusCode,
-    req.url,
-    req.method,
-    req.headers,
-    errorMessage,
-    detailMessage
-  );
+  const body = formatErrorToHtml(statusCode, req.url, req.method, req.headers, errorMessage, detailMessage);
 
   res.statusCode = statusCode;
   res.statusMessage = errorMessage;

@@ -15,11 +15,7 @@ export class BarcodeScannerPlugin extends BasePlugin {
    * @returns
    */
   @bindThis
-  async process(
-    blob: Blob,
-    rotation = 0,
-    formats = SupportedFormat.QR_CODE
-  ): Promise<string[]> {
+  async process(blob: Blob, rotation = 0, formats = SupportedFormat.QR_CODE): Promise<string[]> {
     // const userAgent = navigator.userAgent.toLowerCase();
     // if (userAgent.indexOf(" electron/") > -1 && "BarcodeDetector" in window) {
     //   // Electron-specific code

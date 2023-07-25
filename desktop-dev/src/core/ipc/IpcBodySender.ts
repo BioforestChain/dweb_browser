@@ -56,8 +56,7 @@ export class IpcBodySender extends IpcBody {
 
   readonly isStream: boolean;
 
-  private streamCtorSignal =
-    createSignal<(signal: STREAM_CTOR_SIGNAL) => unknown>();
+  private streamCtorSignal = createSignal<(signal: STREAM_CTOR_SIGNAL) => unknown>();
 
   /**
    * 被哪些 ipc 所真正使用，使用的进度分别是多少
@@ -66,12 +65,7 @@ export class IpcBodySender extends IpcBody {
    */
   private readonly usedIpcMap = new Map<Ipc, $UsedIpcInfo>();
   private UsedIpcInfo = class UsedIpcInfo {
-    constructor(
-      readonly ipcBody: IpcBodySender,
-      readonly ipc: Ipc,
-      public bandwidth = 0,
-      public fuse = 0
-    ) {}
+    constructor(readonly ipcBody: IpcBodySender, readonly ipc: Ipc, public bandwidth = 0, public fuse = 0) {}
     emitStreamPull(message: IpcStreamPulling) {
       return this.ipcBody.emitStreamPull(this, message);
     }
@@ -206,10 +200,7 @@ export class IpcBodySender extends IpcBody {
    * @param stream
    * @param ipc
    */
-  private $streamAsMeta(
-    stream: ReadableStream<Uint8Array>,
-    ipc: Ipc
-  ): MetaBody {
+  private $streamAsMeta(stream: ReadableStream<Uint8Array>, ipc: Ipc): MetaBody {
     const stream_id = getStreamId(stream);
     // console.log("sender/init", stream_id, ipc.uid);
 
@@ -257,10 +248,7 @@ export class IpcBodySender extends IpcBody {
           this.isStreamOpened = true;
           // console.log("sender/read", stream_id, ipc.uid);
 
-          const message = IpcStreamData.fromBinary(
-            stream_id,
-            await reader.readBinary(availableLen)
-          );
+          const message = IpcStreamData.fromBinary(stream_id, await reader.readBinary(availableLen));
           for (const ipc of this.usedIpcMap.keys()) {
             ipc.postMessage(message);
           }
@@ -281,20 +269,11 @@ export class IpcBodySender extends IpcBody {
 
     const streamType = IPC_META_BODY_TYPE.STREAM_ID;
     const streamFirstData: string | Uint8Array = "";
-    if (
-      "preReadableSize" in stream &&
-      typeof stream.preReadableSize === "number" &&
-      stream.preReadableSize > 0
-    ) {
+    if ("preReadableSize" in stream && typeof stream.preReadableSize === "number" && stream.preReadableSize > 0) {
       // js的不支持输出预读取帧
     }
 
-    const metaBody = new MetaBody(
-      streamType,
-      ipc.uid,
-      streamFirstData,
-      stream_id
-    );
+    const metaBody = new MetaBody(streamType, ipc.uid, streamFirstData, stream_id);
     // 流对象，写入缓存
     IpcBodySender.CACHE.metaId_ipcBodySender_Map.set(metaBody.metaId, this);
     this.streamCtorSignal.listen((signal) => {
@@ -319,22 +298,13 @@ export class IpcBodySender extends IpcBody {
           ipc.onStream((message) => {
             switch (message.type) {
               case IPC_MESSAGE_TYPE.STREAM_PULLING:
-                mapper
-                  .get(message.stream_id)
-                  ?.useByIpc(ipc)
-                  ?.emitStreamPull(message);
+                mapper.get(message.stream_id)?.useByIpc(ipc)?.emitStreamPull(message);
                 break;
               case IPC_MESSAGE_TYPE.STREAM_PAUSED:
-                mapper
-                  .get(message.stream_id)
-                  ?.useByIpc(ipc)
-                  ?.emitStreamPaused(message);
+                mapper.get(message.stream_id)?.useByIpc(ipc)?.emitStreamPaused(message);
                 break;
               case IPC_MESSAGE_TYPE.STREAM_ABORT:
-                mapper
-                  .get(message.stream_id)
-                  ?.useByIpc(ipc)
-                  ?.emitStreamAborted();
+                mapper.get(message.stream_id)?.useByIpc(ipc)?.emitStreamAborted();
                 break;
             }
           })
@@ -359,10 +329,7 @@ const getStreamId = (stream: ReadableStream<Uint8Array>) => {
   }
   return id;
 };
-export const setStreamId = (
-  stream: ReadableStream<Uint8Array>,
-  cid: string
-) => {
+export const setStreamId = (stream: ReadableStream<Uint8Array>, cid: string) => {
   let id = streamIdWM.get(stream);
   if (id === undefined) {
     streamIdWM.set(stream, (id = `rs-${stream_id_acc++}[${cid}]`));

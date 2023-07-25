@@ -2,7 +2,6 @@ import { bindThis } from "../../helper/bindThis.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
 import type { ShareOptions, ShareResult } from "./share.type.ts";
 export class SharePlugin extends BasePlugin {
-
   constructor() {
     super("share.sys.dweb");
   }

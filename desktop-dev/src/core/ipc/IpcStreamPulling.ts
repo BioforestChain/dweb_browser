@@ -1,4 +1,4 @@
-import { IpcMessage, IPC_MESSAGE_TYPE } from "./const.ts";
+import { IPC_MESSAGE_TYPE, IpcMessage } from "./const.ts";
 
 export class IpcStreamPulling extends IpcMessage<IPC_MESSAGE_TYPE.STREAM_PULLING> {
   /**

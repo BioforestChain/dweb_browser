@@ -1,9 +1,5 @@
 const wm_mainListener = new WeakMap<Function, Function>();
-const resolveMainMessageListener = <
-  T extends (messageEvent: Electron.MessageEvent) => void
->(
-  listener: T
-) => {
+const resolveMainMessageListener = <T extends (messageEvent: Electron.MessageEvent) => void>(listener: T) => {
   let resolveListener = wm_mainListener.get(listener);
   if (resolveListener === undefined) {
     resolveListener = function (this: any, event: Electron.MessageEvent) {

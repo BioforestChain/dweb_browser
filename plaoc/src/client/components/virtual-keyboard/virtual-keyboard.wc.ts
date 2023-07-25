@@ -1,10 +1,7 @@
 import { cacheGetter } from "../../helper/cacheGetter.ts";
 import { HTMLStateObserverElement } from "../../util/HTMLStateObserverElement.ts";
 import { virtualKeyboardPlugin } from "./virtual-keyboard.plugin.ts";
-import {
-  $VirtualKeyboardRawState,
-  $VirtualKeyboardState,
-} from "./virtual-keyboard.type.ts";
+import { $VirtualKeyboardRawState, $VirtualKeyboardState } from "./virtual-keyboard.type.ts";
 
 export class HTMLDwebVirtualKeyboardElement extends HTMLStateObserverElement<
   $VirtualKeyboardRawState,
@@ -32,10 +29,7 @@ export class HTMLDwebVirtualKeyboardElement extends HTMLStateObserverElement<
     return virtualKeyboardPlugin.getOverlay;
   }
 }
-customElements.define(
-  HTMLDwebVirtualKeyboardElement.tagName,
-  HTMLDwebVirtualKeyboardElement
-);
+customElements.define(HTMLDwebVirtualKeyboardElement.tagName, HTMLDwebVirtualKeyboardElement);
 declare global {
   interface HTMLElementTagNameMap {
     [HTMLDwebVirtualKeyboardElement.tagName]: HTMLDwebVirtualKeyboardElement;

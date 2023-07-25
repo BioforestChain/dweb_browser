@@ -12,10 +12,7 @@ export class IpcBodyReceiver extends IpcBody {
    * 基于 metaBody 还原 IpcBodyReceiver
    */
   static from(metaBody: MetaBody, ipc: Ipc) {
-    return (
-      IpcBodyReceiver.CACHE.metaId_ipcBodySender_Map.get(metaBody.metaId) ??
-      new IpcBodyReceiver(metaBody, ipc)
-    );
+    return IpcBodyReceiver.CACHE.metaId_ipcBodySender_Map.get(metaBody.metaId) ?? new IpcBodyReceiver(metaBody, ipc);
   }
 
   constructor(readonly metaBody: MetaBody, ipc: Ipc) {
@@ -45,9 +42,7 @@ export class IpcBodyReceiver extends IpcBody {
           this._bodyHub = new BodyHub(metaBody.data as string);
           break;
         case IPC_DATA_ENCODING.BASE64:
-          this._bodyHub = new BodyHub(
-            simpleEncoder(metaBody.data as string, "base64")
-          );
+          this._bodyHub = new BodyHub(simpleEncoder(metaBody.data as string, "base64"));
           break;
         case IPC_DATA_ENCODING.BINARY:
           this._bodyHub = new BodyHub(metaBody.data as Uint8Array);

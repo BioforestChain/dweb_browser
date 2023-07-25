@@ -19,9 +19,7 @@ export class OnFetchAdapter {
   }
 
   add(method: "POST" | "GET", pathname: string, handler: $OnFetch) {
-    return method === "GET"
-      ? this._get(pathname, handler)
-      : this._post(pathname, handler);
+    return method === "GET" ? this._get(pathname, handler) : this._post(pathname, handler);
   }
 
   run: $OnFetch = async (event: FetchEvent) => {
@@ -36,9 +34,7 @@ export class OnFetchAdapter {
         break;
     }
 
-    return handler === undefined
-      ? this._onFetchError(event, 400, `没有匹配请求的路由`)
-      : handler(event);
+    return handler === undefined ? this._onFetchError(event, 400, `没有匹配请求的路由`) : handler(event);
   };
 
   /**
@@ -48,11 +44,7 @@ export class OnFetchAdapter {
    * @param errorMessage
    * @returns
    */
-  private _onFetchError = async (
-    event: FetchEvent,
-    statusCode: number,
-    errorMessage: string
-  ): Promise<IpcResponse> => {
+  private _onFetchError = async (event: FetchEvent, statusCode: number, errorMessage: string): Promise<IpcResponse> => {
     return IpcResponse.fromJson(
       event.ipcRequest.req_id,
       statusCode,

@@ -2,11 +2,7 @@ import crypto from "node:crypto";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { Flags } from "./deps.ts";
-import {
-  BundleZipGenerator,
-  MetadataJsonGenerator,
-  NameFlagHelper,
-} from "./helper/generator.ts";
+import { BundleZipGenerator, MetadataJsonGenerator, NameFlagHelper } from "./helper/generator.ts";
 
 /**
  * --out 指定输出目录(可选)
@@ -43,9 +39,7 @@ export const doBundle = async (args = Deno.args) => {
   /// 先写入bundle.zip
   fs.writeFileSync(
     path.resolve(outDir, nameFlagHelper.bundleName),
-    await (
-      await bundleFlagHelper.bundleZip()
-    ).generateAsync({ type: "nodebuffer" })
+    await (await bundleFlagHelper.bundleZip()).generateAsync({ type: "nodebuffer" })
   );
   // 生成打包文件名称，大小
   const zip = await bundleFlagHelper.bundleZip(true);
@@ -56,10 +50,7 @@ export const doBundle = async (args = Deno.args) => {
   metadata.bundle_hash = "sha256:" + hasher.digest("hex");
   metadata.bundle_url = `./${nameFlagHelper.bundleName}`;
   /// 写入metadata.json
-  fs.writeFileSync(
-    path.resolve(outDir, nameFlagHelper.metadataName),
-    JSON.stringify(metadata, null, 2)
-  );
+  fs.writeFileSync(path.resolve(outDir, nameFlagHelper.metadataName), JSON.stringify(metadata, null, 2));
   /// jszip 会导致程序一直开着，需要手动关闭
   Deno.exit();
 };

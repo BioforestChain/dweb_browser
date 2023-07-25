@@ -47,10 +47,7 @@ export class BaseEvent<K extends string> extends EventTarget {
   }
 
   /**添加一个监听器 */
-  private addWindowListener(
-    handle: WindowListenerHandle,
-    options?: boolean | AddEventListenerOptions
-  ): void {
+  private addWindowListener(handle: WindowListenerHandle, options?: boolean | AddEventListenerOptions): void {
     super.addEventListener(handle.windowEventName, handle.handler, options);
     handle.registered = true;
   }
@@ -72,18 +69,12 @@ export class BaseEvent<K extends string> extends EventTarget {
 
     // 如果监听器为空，移除监听器
     if (!this.app_kit._listeners[eventName].length) {
-      this.removeWindowListener(
-        this.app_kit._windowListeners[eventName],
-        options
-      );
+      this.removeWindowListener(this.app_kit._windowListeners[eventName], options);
     }
   }
 
   /**移除全局监听 */
-  private removeWindowListener(
-    handle: WindowListenerHandle,
-    options?: boolean | EventListenerOptions
-  ): void {
+  private removeWindowListener(handle: WindowListenerHandle, options?: boolean | EventListenerOptions): void {
     if (!handle) {
       return;
     }

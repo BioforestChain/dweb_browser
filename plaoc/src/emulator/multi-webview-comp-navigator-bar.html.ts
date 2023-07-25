@@ -1,12 +1,4 @@
-import {
-  css,
-  customElement,
-  html,
-  LitElement,
-  property,
-  PropertyValueMap,
-  styleMap,
-} from "./helper/litHelper.ts";
+import { css, customElement, html, LitElement, property, PropertyValueMap, styleMap } from "./helper/litHelper.ts";
 
 const TAG = "multi-webview-comp-navigation-bar";
 
@@ -25,14 +17,9 @@ export class MultiWebviewCompNavigationBar extends LitElement {
     left: 0,
   };
 
-  protected override updated(
-    _changedProperties: PropertyValueMap<MultiWebviewCompNavigationBar>
-  ) {
+  protected override updated(_changedProperties: PropertyValueMap<MultiWebviewCompNavigationBar>) {
     // 在影响 safe-area 的情况下 需要报消息发送给 safe-area 模块
-    if (
-      _changedProperties.has("_visible") ||
-      _changedProperties.has("_overlay")
-    ) {
+    if (_changedProperties.has("_visible") || _changedProperties.has("_overlay")) {
       this.dispatchEvent(new Event("safe_area_need_update"));
     }
   }
@@ -84,16 +71,9 @@ export class MultiWebviewCompNavigationBar extends LitElement {
       <div class="container">
         <div class="background" style=${styleMap(backgroundStyleMap)}></div>
         <!-- android 导航栏 -->
-        <div
-          class="navigation_bar_container"
-          style=${styleMap(containerStyleMap)}
-        >
+        <div class="navigation_bar_container" style=${styleMap(containerStyleMap)}>
           <div class="menu" @click="${this.menu}">
-            <svg
-              class="icon_svg menu_svg"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 448 512"
-            >
+            <svg class="icon_svg menu_svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
               <path
                 fill="currentColor"
                 d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"
@@ -101,11 +81,7 @@ export class MultiWebviewCompNavigationBar extends LitElement {
             </svg>
           </div>
           <div class="home" @click="${this.home}">
-            <svg
-              class="icon_svg"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 512 512"
-            >
+            <svg class="icon_svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
               <path
                 fill="currentColor"
                 d="M464 256A208 208 0 1 0 48 256a208 208 0 1 0 416 0zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256z"
@@ -113,12 +89,7 @@ export class MultiWebviewCompNavigationBar extends LitElement {
             </svg>
           </div>
           <div class="back" @click="${this.back}">
-            <svg
-              class="icon_svg"
-              viewBox="0 0 1024 1024"
-              version="1.1"
-              xmlns="http://www.w3.org/2000/svg"
-            >
+            <svg class="icon_svg" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">
               <path
                 fill="currentColor"
                 d="M814.40768 119.93088a46.08 46.08 0 0 0-45.13792 2.58048l-568.07424 368.64a40.42752 40.42752 0 0 0-18.75968 33.71008c0 13.39392 7.00416 25.96864 18.75968 33.66912l568.07424 368.64c13.35296 8.68352 30.72 9.66656 45.13792 2.58048a40.67328 40.67328 0 0 0 23.38816-36.2496v-737.28a40.71424 40.71424 0 0 0-23.38816-36.29056zM750.3872 815.3088L302.81728 524.86144l447.61088-290.44736v580.89472z"
