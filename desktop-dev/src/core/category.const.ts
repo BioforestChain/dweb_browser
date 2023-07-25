@@ -1,6 +1,8 @@
 /**
  * 模块分类
- * 参考 https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/LaunchServicesKeys.html
+ * 参考链接：
+ * 1. https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/LaunchServicesKeys.html
+ * 2. https://github.com/w3c/manifest/wiki/Categories
  */
 export const enum MICRO_MODULE_CATEGORY {
   //#region 1. Service 服务
@@ -134,13 +136,19 @@ export const enum MICRO_MODULE_CATEGORY {
   /** 商业 */
   Business = "business",
   /** 开发者工具 */
-  Developer_Tools = "developer-tools",
+  Developer = "developer",
   /** 教育 */
   Education = "education",
   /** 财务 */
   Finance = "finance",
   /** 办公效率 */
   Productivity = "productivity",
+  /** 消息软件
+   * > 讯息、邮箱
+   */
+  Messages = "messages",
+  /** 实时互动 */
+  Live = "live",
   //#endregion
 
   //#region 2.3 Application 应用 · 娱乐
@@ -158,6 +166,8 @@ export const enum MICRO_MODULE_CATEGORY {
   Sports = "sports",
   /** 视频 */
   Video = "video",
+  /** 照片 */
+  Photo = "photo",
   //#endregion
 
   //#region 2.4 Application 应用 · 创意
@@ -165,15 +175,21 @@ export const enum MICRO_MODULE_CATEGORY {
   Graphics_a_Design = "graphics-design",
   /** 摄影与录像 */
   Photography = "photography",
+  /** 个性化 */
+  Personalization = "personalization",
   //#endregion
 
   //#region 2.5 Application 应用 · 实用工具
   /** 书籍 */
   Books = "books",
-  /** 美食和佳饮 */
-  Food_a_Drink = "food-drink",
-  /** 健康和健美 */
-  Healthcare_a_Fitness = "healthcare-fitness",
+  /** 杂志 */
+  Magazines = "magazines",
+  /** 食物 */
+  Food = "food",
+  /** 健康 */
+  Health = "health",
+  /** 健身 */
+  Fitness = "fitness",
   /** 医疗 */
   Medical = "medical",
   /** 导航 */
@@ -186,19 +202,23 @@ export const enum MICRO_MODULE_CATEGORY {
   Travel = "travel",
   /** 天气 */
   Weather = "weather",
+  /** 儿童 */
+  Kids = "kids",
+  /** 购物 */
+  Shopping = "shopping",
+  /** 安全 */
+  Security = "security",
   //#endregion
 
-  //#region 2.6 Application 应用 · 社交
+  //#region 2.6 Application 应用 · 社会
   /** 社交网络 */
-  Social_Networking = "social-networking",
-  /** 消息软件
-   * > 讯息、邮箱
-   */
-  Messages = "messages",
+  Social = "social",
   /** 职业生涯 */
   Career = "career",
-  /** 实时互动 */
-  Live = "live",
+  /** 政府 */
+  Government = "government",
+  /** 政治 */
+  Politics = "politics",
   //#endregion
 
   //#endregion
