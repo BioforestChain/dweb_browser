@@ -30,7 +30,7 @@ export abstract class NativeMicroModule extends MicroModule {
     protobuf: true,
     raw: true,
   };
-  readonly a: $DWEB_DEEPLINK[] = [];
+  readonly dweb_deeplinks: $DWEB_DEEPLINK[] = [];
   readonly categories: MICRO_MODULE_CATEGORY[] = [];
   abstract override mmid: $MMID;
 
