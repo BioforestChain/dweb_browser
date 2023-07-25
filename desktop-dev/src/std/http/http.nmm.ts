@@ -2,6 +2,7 @@ import { Buffer } from "node:buffer";
 import crypto from "node:crypto";
 import type http from "node:http";
 import type { IncomingMessage, OutgoingMessage } from "node:http";
+import { MICRO_MODULE_CATEGORY } from "../../core/category.const.ts";
 import type { $ReqMatcher } from "../../core/helper/$ReqMatcher.ts";
 import { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.ts";
 import type { IpcRequest } from "../../core/ipc/IpcRequest.ts";
@@ -32,6 +33,7 @@ export interface $Listener {
  */
 export class HttpServerNMM extends NativeMicroModule {
   mmid = `http.std.dweb` as const;
+  override categories = [MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Protocol_Service];
   private _dwebServer = new Http1Server();
 
   private _tokenMap = new Map</* token */ string, $Gateway>();

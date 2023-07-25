@@ -1,9 +1,5 @@
 export type { $DeskAppMetaData as $WidgetAppData } from "../../../../desk.nmm.ts";
 
-interface $Callback {
-  (event: Event, type: string, ...args: unknown[]): void;
-}
-
 /**
  * 自定义组件名称
  */

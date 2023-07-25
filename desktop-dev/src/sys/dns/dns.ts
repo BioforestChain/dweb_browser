@@ -26,8 +26,11 @@ class MyDnsMicroModule implements $DnsMicroModule {
     return this.dnsNN[connectTo_symbol](this.fromMM, mmid, reason ?? new Request(`file://${mmid}`));
   }
 
-  query(mmid: $MMID) {
+  async query(mmid: $MMID) {
     return this.dnsNN.query(mmid);
+  }
+  async search(category: MICRO_MODULE_CATEGORY): Promise<MicroModule[]> {
+    return [...this.dnsNN.search(category)];
   }
 
   async open(mmid: $MMID) {
@@ -254,16 +257,23 @@ export class DnsNMM extends NativeMicroModule {
   }
 
   /** 查询应用 */
-  // deno-lint-ignore require-await
-  async query(mmid: $MMID) {
+  query(mmid: $MMID) {
     return this.apps.get(mmid);
+  }
+
+  *search(category: MICRO_MODULE_CATEGORY) {
+    for (const app of this.apps.values()) {
+      if (app.categories.includes(category)) {
+        yield app;
+      }
+    }
   }
 
   readonly running_apps = new Map<$MMID, Promise<MicroModule>>();
   /** 打开应用 */
   async open(mmid: $MMID) {
     const app = await mapHelper.getOrPut(this.running_apps, mmid, async () => {
-      const mm = await this.query(mmid);
+      const mm = this.query(mmid);
       if (mm === undefined) {
         console.error("dns", "没有指定的 mm 抛出错误");
         this.running_apps.delete(mmid);
