@@ -16,7 +16,6 @@ using DwebBrowser.MicroService.Sys.Haptics;
 using DwebBrowser.MicroService.Sys.Http;
 using DwebBrowser.MicroService.Sys.Share;
 using DwebBrowser.MicroService.Sys.Toast;
-using DwebBrowser.MicroService.Test;
 
 namespace DwebBrowser.Platforms.iOS;
 
@@ -136,15 +135,11 @@ public class MicroService
         /// 安装Jmm
         var jmmNMM = new JmmNMM().InstallBy(dnsNMM);
 
-        /// 安装测试应用
-        var plaocDemoJMM = new PlaocDemoJMM().InstallBy(dnsNMM);
-
         var bootMmidList = new List<Mmid>
         {
             jmmNMM.Mmid,
             desktopNMM.Mmid,
             browserNMM.Mmid,
-            //plaocDemoJMM.Mmid
         };
         /// 启动程序
         var bootNMM = new BootNMM(
