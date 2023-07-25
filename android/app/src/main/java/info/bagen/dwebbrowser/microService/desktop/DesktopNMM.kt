@@ -22,9 +22,7 @@ import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
 import org.dweb_browser.microservice.ipc.helper.ReadableStream
-import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.http4k.core.Method
-import org.http4k.core.query
 import org.http4k.lens.Query
 import org.http4k.lens.string
 import org.http4k.routing.bind
@@ -33,7 +31,6 @@ import org.http4k.routing.routes
 fun debugDesktop(tag: String, msg: Any? = "", err: Throwable? = null) =
   printdebugln("Desktop", tag, msg, err)
 
-@DelicateCoroutinesApi
 class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb") {
   private var controller: DesktopController = DesktopController(this)
 
@@ -84,15 +81,17 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb") {
         if (runningAppsIpc.containsKey(mmid)) {
           closed = bootstrapContext.dns.close(mmid);
           if (closed) {
-            runningAppsIpc.remove(mmid);
+            runningAppsIpc.remove(mmid)
           }
         }
         return@defineHandler closed
       },
       "/desktop/apps" bind Method.GET to defineHandler { request ->
+        debugDesktop("/desktop/apps", "size=${installAppList.size}")
         return@defineHandler installAppList
       },
       "/desktop/observe/apps" bind Method.GET to defineHandler { request, ipc ->
+        debugDesktop("/desktop/observe/apps", "size=${installAppList.size}")
         return@defineHandler ReadableStream(onStart = { controller ->
           val off = runningAppsIpc.onChange {
             try {
@@ -117,6 +116,7 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb") {
     TODO("Not yet implemented")
   }
 
+  @OptIn(DelicateCoroutinesApi::class)
   private fun loadAppInfo() {
     GlobalScope.launch(ioAsyncExceptionHandler) {
       AppInfoDataStore.queryAppInfoList().collectLatest { list -> // TODO 只要datastore更新，这边就会实时更新
@@ -125,9 +125,9 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb") {
           val lastAppMetaData = installAppList.find { it.jsMicroModule.mmid == appMetaData.id }
           lastAppMetaData?.let {
             if (compareAppVersionHigh(it.jsMicroModule.metadata.version, appMetaData.version)) {
-              org.http4k.core.Uri.of("file://dns.sys.dweb/close?")
-                .query("app_id", it.jsMicroModule.mmid)
-              // bootstrapContext.dns.close(it.jsMicroModule.mmid)
+              /*org.http4k.core.Uri.of("file://dns.sys.dweb/close?")
+                .query("app_id", it.jsMicroModule.mmid)*/
+              bootstrapContext.dns.close(it.jsMicroModule.mmid)
             } else {
               return@forEach
             }

@@ -6,9 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
@@ -28,7 +26,7 @@ import info.bagen.dwebbrowser.microService.desktop.model.LocalOpenList
 import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
 
 @Composable
-fun DesktopMainView(onClick: (WindowAppInfo) -> Unit) {
+fun DesktopMainView(mainView: (@Composable () -> Unit)? = null ,onClick: (WindowAppInfo) -> Unit) {
   val installList = remember { mutableStateListOf<WindowAppInfo>() }
 
   /*val screenWidth = LocalConfiguration.current.screenWidthDp
@@ -55,11 +53,9 @@ fun DesktopMainView(onClick: (WindowAppInfo) -> Unit) {
     modifier = Modifier
       .fillMaxSize()
       .background(MaterialTheme.colorScheme.background)
-      .statusBarsPadding()
-      .navigationBarsPadding()
   ) {
     // 1. 主界面内容
-    MainView(onClick)
+    mainView?.let { it() } ?: MainView(onClick)
     // 2. 顶部的工具栏和显示网页是一个整体
     DesktopPager()
     // 3. 右边的工具栏

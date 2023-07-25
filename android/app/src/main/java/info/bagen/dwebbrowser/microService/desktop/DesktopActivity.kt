@@ -2,16 +2,21 @@ package info.bagen.dwebbrowser.microService.desktop
 
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
+import com.google.accompanist.web.WebView
 import info.bagen.dwebbrowser.base.BaseActivity
 import info.bagen.dwebbrowser.microService.desktop.model.LocalInstallList
 import info.bagen.dwebbrowser.microService.desktop.model.LocalOpenList
 import info.bagen.dwebbrowser.microService.desktop.ui.DesktopMainView
 import info.bagen.dwebbrowser.ui.theme.DwebBrowserAppTheme
 import kotlinx.coroutines.launch
+import org.dweb_browser.dwebview.base.DWebViewItem
 
 class DesktopActivity : BaseActivity() {
   private var controller: DesktopController? = null
@@ -29,15 +34,18 @@ class DesktopActivity : BaseActivity() {
 
     setContent {
       DwebBrowserAppTheme {
-        SideEffect { WindowCompat.setDecorFitsSystemWindows(window, false) }
         val scope = rememberCoroutineScope()
         controller?.let { desktopController ->
-
+          desktopController.effect(activity = this@DesktopActivity)
           CompositionLocalProvider(
             LocalInstallList provides DesktopNMM.getInstallAppList(),
             LocalOpenList provides DesktopNMM.getRunningAppList(),
           ) {
-            DesktopMainView { windowAppInfo ->
+            DesktopMainView(
+              mainView = {
+                DesktopMainWebView(desktopController.createMainDwebView())
+              }
+            ) { windowAppInfo ->
               scope.launch {
                 desktopController.openApp(windowAppInfo.jsMicroModule.metadata)
               }
@@ -46,5 +54,15 @@ class DesktopActivity : BaseActivity() {
         }
       }
     }
+  }
+}
+
+@Composable
+fun DesktopMainWebView(viewItem: DWebViewItem) {
+  WebView(
+    state = viewItem.state,
+    modifier = Modifier.fillMaxSize()
+  ) {
+    viewItem.webView
   }
 }

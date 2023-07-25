@@ -403,7 +403,6 @@ internal class DwebBrowserWebViewClient(private val microModule: MicroModule) : 
       }
     }
 
-    Log.d("lin.huang", "xxx url=$url, ${url.scheme}, ${url.host}, ${url.port}, ${url.path}")
     if (url.scheme == "http" && (url.host == "web.browser.dweb" || url.host == "browser.dweb.localhost")) {
       response = runBlockingCatching(ioAsyncExceptionHandler) {
         val urlPathSegments = url.pathSegments.filter { it.isNotEmpty() }

@@ -1,15 +1,50 @@
 package info.bagen.dwebbrowser.microService.desktop
 
+import android.net.Uri
+import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
+import android.webkit.WebView
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.mutableStateOf
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import com.google.accompanist.web.AccompanistWebViewClient
+import com.google.accompanist.web.WebContent
+import com.google.accompanist.web.WebViewNavigator
+import com.google.accompanist.web.WebViewState
+import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.browser.jmm.EIpcEvent
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.dweb_browser.browserUI.ui.browser.ConstUrl
+import org.dweb_browser.dwebview.DWebView
+import org.dweb_browser.dwebview.base.DWebViewItem
 import org.dweb_browser.helper.AppMetaData
 import org.dweb_browser.helper.PromiseOut
+import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.runBlockingCatching
+import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
+import org.dweb_browser.microservice.sys.dns.nativeFetch
+import org.dweb_browser.microservice.sys.http.CORS_HEADERS
+import org.http4k.core.Response
+import org.http4k.core.Status
+import org.http4k.core.query
+import org.http4k.lens.Header
+import java.util.concurrent.atomic.AtomicInteger
 
 @Stable
 class DesktopController(private val microModule: DesktopNMM) {
+
+  companion object {
+    private var webviewId_acc = AtomicInteger(1)
+  }
 
   private var activityTask = PromiseOut<DesktopActivity>()
   suspend fun waitActivityCreated() = activityTask.waitPromise()
@@ -27,6 +62,33 @@ class DesktopController(private val microModule: DesktopNMM) {
       }
     }
 
+  val currentInsets: MutableState<WindowInsetsCompat> by lazy {
+    mutableStateOf(
+      WindowInsetsCompat.toWindowInsetsCompat(
+        activity!!.window.decorView.rootWindowInsets
+      )
+    )
+  }
+
+  @Composable
+  fun effect(activity: DesktopActivity): DesktopController {
+    /**
+     * 这个 NativeUI 的逻辑是工作在全屏幕下，所以会使得默认覆盖 系统 UI
+     */
+    SideEffect {
+      WindowCompat.setDecorFitsSystemWindows(activity.window, false)
+      /// system-bar 一旦隐藏（visible = false），那么被手势划出来后，过一会儿自动回去
+      //windowInsetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+
+      ViewCompat.setOnApplyWindowInsetsListener(activity.window.decorView) { _, insets ->
+        currentInsets.value = insets
+        insets
+      }
+
+    }
+    return this
+  }
+
   private val openLock = Mutex()
   suspend fun openApp(appMetaData: AppMetaData) {
     openLock.withLock {
@@ -34,5 +96,100 @@ class DesktopController(private val microModule: DesktopNMM) {
       debugDesktop("openApp", "postMessage==>activity ${ipc.remote.mmid}")
       ipc.postMessage(IpcEvent.fromUtf8(EIpcEvent.Activity.event, ""))
     }
+  }
+
+  fun createMainDwebView(url: String = ConstUrl.NEW_TAB.url): DWebViewItem {
+    val context = activity ?: App.appContext
+    val dWebView = DWebView(
+      context, microModule, microModule, DWebView.Options(
+        url = url,
+        /// 我们会完全控制页面将如何离开，所以这里兜底默认为留在页面
+        onDetachedFromWindowStrategy = DWebView.Options.DetachedFromWindowStrategy.Ignore,
+      ), activity
+    ).also {
+      it.webViewClient = DesktopWebViewClient(microModule)
+    }
+    return appendWebViewAsItem(dWebView, url)
+  }
+
+  @Synchronized
+  private fun appendWebViewAsItem(dWebView: DWebView, url: String): DWebViewItem {
+    val webviewId = "#w${webviewId_acc.getAndAdd(1)}"
+    val state = WebViewState(WebContent.Url(url))
+    val coroutineScope = CoroutineScope(CoroutineName(webviewId))
+    val navigator = WebViewNavigator(coroutineScope)
+    val viewItem = DWebViewItem(
+      webviewId = webviewId,
+      webView = dWebView,
+      state = state,
+      coroutineScope = coroutineScope,
+      navigator = navigator,
+    )
+    viewItem.webView.webViewClient = DesktopWebViewClient(microModule)
+    return viewItem
+  }
+}
+
+class DesktopWebViewClient(private val microModule: MicroModule) : AccompanistWebViewClient() {
+
+  override fun shouldInterceptRequest(
+    view: WebView, request: WebResourceRequest
+  ): WebResourceResponse? {
+    var response: Response? = null
+    val url = request.url.let {
+      when (it.scheme) {
+        "chrome" -> Uri.parse(it.toString().replace("chrome://", "http://web.browser.dweb/"))
+        "about" -> Uri.parse(it.toString().replace("about:", "http://web.browser.dweb/"))
+        else -> Uri.parse(it.toString())
+      }
+    }
+
+    if (url.scheme == "http" && (url.host == "web.browser.dweb" || url.host == "browser.dweb.localhost")) {
+      response = runBlockingCatching(ioAsyncExceptionHandler) {
+        val urlPathSegments = url.pathSegments.filter { it.isNotEmpty() }
+        if (urlPathSegments[0] == "newtab") {
+          val pathSegments = urlPathSegments.drop(1)
+          return@runBlockingCatching if (pathSegments.getOrNull(0) == "api") {
+            microModule.nativeFetch(
+              "file://${
+                pathSegments.drop(1).joinToString("/")
+              }?${request.url.query}"
+            )
+          } else {
+            microModule.nativeFetch(
+              "file:///sys/browser/desk.desktop/${
+                if (pathSegments.isEmpty()) "index.html" else pathSegments.joinToString("/")
+              }"
+            )
+          }
+        } else null
+      }.getOrThrow()
+    } else if (request.url.scheme == "dweb") { // 负责拦截browser的dweb_deeplink
+      runBlockingCatching(ioAsyncExceptionHandler) {
+        microModule.nativeFetch(request.url.toString())
+      }.getOrThrow()
+      response = Response(
+        Status.OK
+      )
+    } else if (request.url.path?.contains("metadata.json") == true) { // 如果地址结尾是 metadata.json 目前是作为安装地址，跳转到安装界面
+      response = runBlockingCatching(ioAsyncExceptionHandler) {
+        microModule.nativeFetch(
+          org.http4k.core.Uri.of("file://jmm.browser.dweb/install?")
+            .query("url", request.url.toString())
+        )
+      }.getOrThrow()
+    }
+    if (response !== null) {
+      val contentType = Header.CONTENT_TYPE(response)
+      return WebResourceResponse(
+        contentType?.value,
+        contentType?.directives?.find { it.first == "charset" }?.second,
+        response.status.code,
+        response.status.description,
+        CORS_HEADERS.toMap(),
+        response.body.stream,
+      )
+    }
+    return super.shouldInterceptRequest(view, request)
   }
 }
