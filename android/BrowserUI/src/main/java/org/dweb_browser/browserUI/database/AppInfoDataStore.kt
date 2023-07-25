@@ -46,7 +46,7 @@ object AppInfoDataStore {
     }.map { pref ->
       val list = mutableListOf<AppMetaData>()
       pref.asMap().forEach { (key, value) ->
-        list.plus(gson.fromJson(value as String, AppMetaData::class.java))
+        list.add(gson.fromJson(value as String, AppMetaData::class.java))
       }
       list
     }
@@ -55,7 +55,7 @@ object AppInfoDataStore {
   fun saveAppInfo(mmid: Mmid, appMetaData: AppMetaData) = runBlocking(Dispatchers.IO) {
     // edit 函数需要在挂起环境中执行
     BrowserUIApp.Instance.appContext.dataStore.edit { pref ->
-      pref[stringPreferencesKey(mmid)] = appMetaData.toString()
+      pref[stringPreferencesKey(mmid)] = gson.toJson(appMetaData)
     }
   }
 
