@@ -8,9 +8,6 @@ import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Response
 import org.http4k.core.Status
-import org.http4k.websocket.WsConsumer
-import org.http4k.websocket.WsMessage
-import org.http4k.websocket.WsResponse
 
 class Gateway(
   val listener: PortListener, val urlInfo: HttpNMM.ServerUrlInfo, val token: String
@@ -43,16 +40,6 @@ class Gateway(
       }
       return null
     }
-
-//    suspend fun hookWsRequest(request: Request): WsResponse? {
-//      for (router in _routerSet) {
-//        val response = router.handler(request)
-//        if (response != null) {
-//          return WsResponse { ws -> ws.send(WsMessage(response.body)) }
-//        }
-//      }
-//      return null
-//    }
 
     /// 销毁
     private val destroySignal = SimpleSignal()

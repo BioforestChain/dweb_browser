@@ -58,7 +58,7 @@ class ShareNMM : AndroidNativeMicroModule("share.sys.dweb") {
                 } catch (e: Exception) {
                     debugShare("share catch", "e===>$e $files")
                 }
-                openActivity(ipc.remote.mmid)
+                openActivity()
                 controller.waitActivityResultLauncherCreated()
 
                 SharePlugin.share(controller, ext.title, ext.text, ext.url, files, result)
@@ -79,9 +79,9 @@ class ShareNMM : AndroidNativeMicroModule("share.sys.dweb") {
     }
     data class ShareResult(val success:Boolean,val message:String)
 
-    fun openActivity(remoteMmid: Mmid) {
-        val activity = getActivity(remoteMmid)
-        val intent = Intent(getActivity(remoteMmid), ShareActivity::class.java)
+    private fun openActivity() {
+        val activity = getActivity()
+        val intent = Intent(getActivity(), ShareActivity::class.java)
         intent.action = "info.bagen.dwebbrowser.share"
         intent.`package` = App.appContext.packageName
 //         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)

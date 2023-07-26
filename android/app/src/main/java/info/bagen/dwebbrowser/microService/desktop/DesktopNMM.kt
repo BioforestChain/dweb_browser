@@ -147,11 +147,10 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb") {
     App.startActivity(DesktopActivity::class.java) { intent ->
       intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
       intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
-      // 由于SplashActivity添加了android:excludeFromRecents属性，导致同一个task的其他activity也无法显示在Recent Screen，比如BrowserActivity
       intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
       intent.putExtras(Bundle().also { b -> b.putString("mmid", mmid) })
     }
     val activity = controller.waitActivityCreated()
-    activitySignal.emit(Pair(this.mmid, activity))
+    activitySignal.emit(activity)
   }
 }

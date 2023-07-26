@@ -29,15 +29,12 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.browser.dweb") {
 
     /**获取当前的controller, 只能给nativeUI 使用，因为他们是和mwebview绑定在一起的
      */
-    @Deprecated("将不会再提供这个函数")
     fun getCurrentWebViewController(mmid: Mmid): MultiWebViewController? {
       return controllerMap[mmid]
     }
   }
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    bootstrapContext.dns.open("nativeui.browser.dweb") // nativeui 与 mwebview 是伴生关系
-
     // 打开webview
     val queryUrl = Query.string().required("url")
     val queryWebviewId = Query.string().required("webview_id")
@@ -91,7 +88,7 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.browser.dweb") {
     val remoteMmid = remoteMm.mmid
     debugMultiWebView("/open", "remote-mmid: $remoteMmid / url:$url")
     val controller = controllerMap.getOrPut(remoteMmid) {
-      MultiWebViewController(remoteMmid, this, remoteMm)
+      MultiWebViewController(remoteMmid, this, remoteMm,getActivity())
     }
     GlobalScope.launch(ioAsyncExceptionHandler) {
       controller.downLoadObserver = DownLoadObserver(remoteMmid).apply {

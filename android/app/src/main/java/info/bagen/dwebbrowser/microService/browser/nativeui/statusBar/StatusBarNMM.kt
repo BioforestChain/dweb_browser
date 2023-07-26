@@ -20,7 +20,6 @@ class StatusBarNMM : NativeMicroModule("status-bar.nativeui.browser.dweb") {
     NativeUiController.fromMultiWebView(mmid).statusBar
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    val queryMMid = Query.string().required("mmid")
     apiRouting = routes(
       /** 获取状态栏 */
       "/getState" bind Method.GET to defineHandler { _, ipc ->

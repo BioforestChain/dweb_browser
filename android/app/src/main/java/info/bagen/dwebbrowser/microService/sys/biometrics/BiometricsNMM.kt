@@ -56,16 +56,16 @@ class BiometricsNMM: AndroidNativeMicroModule("biometrics.sys.dweb") {
     }
 
     fun openActivity(remoteMmid: Mmid) {
-        val activity = getActivity(remoteMmid)
-        val intent = Intent(getActivity(remoteMmid), BiometricsActivity::class.java)
+        val activity = getActivity()
+        val intent = Intent(getActivity(), BiometricsActivity::class.java)
         intent.`package` = App.appContext.packageName
         intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
         activity?.startActivity(intent)
     }
 
     private fun openActivity(remoteMmid: Mmid, data: BiometricsData) {
-        val activity = getActivity(remoteMmid)
-        val intent = Intent(getActivity(remoteMmid), BiometricsActivity::class.java)
+        val activity = getActivity()
+        val intent = Intent(getActivity(), BiometricsActivity::class.java)
         intent.`package` = App.appContext.packageName
         intent.putExtra("data", data)
         intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)

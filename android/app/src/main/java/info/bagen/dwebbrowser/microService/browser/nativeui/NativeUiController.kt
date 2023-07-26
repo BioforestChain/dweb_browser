@@ -16,55 +16,55 @@ import info.bagen.dwebbrowser.microService.browser.nativeui.statusBar.StatusBarC
 import info.bagen.dwebbrowser.microService.browser.nativeui.virtualKeyboard.VirtualKeyboardController
 
 class NativeUiController(
-    val activity: ComponentActivity,
+  val activity: ComponentActivity,
 ) {
-    val windowInsetsController by lazy {
-        WindowCompat.getInsetsController(
-            activity.window, activity.window.decorView
-        )
+  val windowInsetsController by lazy {
+    WindowCompat.getInsetsController(
+      activity.window, activity.window.decorView
+    )
+  }
+  val currentInsets =
+    mutableStateOf(WindowInsetsCompat.toWindowInsetsCompat(activity.window.decorView.rootWindowInsets))
+
+  fun getCurrentInsets(typeMask: Int) = currentInsets.value.getInsets(typeMask)
+
+  val statusBar = StatusBarController(activity, this)
+  val navigationBar = NavigationBarController(activity, this)
+  val virtualKeyboard = VirtualKeyboardController(activity, this)
+
+  val safeArea = SafeAreaController(activity, this)
+
+
+  @Composable
+  fun effect(): NativeUiController {
+    /**
+     * 这个 NativeUI 的逻辑是工作在全屏幕下，所以会使得默认覆盖 系统 UI
+     */
+    SideEffect {
+      WindowCompat.setDecorFitsSystemWindows(activity.window, false)
+      /// system-bar 一旦隐藏（visible = false），那么被手势划出来后，过一会儿自动回去
+      windowInsetsController.systemBarsBehavior = BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+
+      ViewCompat.setOnApplyWindowInsetsListener(activity.window.decorView) { _, insets ->
+        currentInsets.value = insets
+        insets
+      }
+
     }
-    val currentInsets =
-        mutableStateOf(WindowInsetsCompat.toWindowInsetsCompat(activity.window.decorView.rootWindowInsets))
+    statusBar.effect()
+    navigationBar.effect()
+    virtualKeyboard.effect()
+    safeArea.effect()
 
-    fun getCurrentInsets(typeMask: Int) = currentInsets.value.getInsets(typeMask)
-
-    val statusBar = StatusBarController(activity, this)
-    val navigationBar = NavigationBarController(activity, this)
-    val virtualKeyboard = VirtualKeyboardController(activity, this)
-
-    val safeArea = SafeAreaController(activity, this)
+    return this
+  }
 
 
-    @Composable
-    fun effect(): NativeUiController {
-        /**
-         * 这个 NativeUI 的逻辑是工作在全屏幕下，所以会使得默认覆盖 系统 UI
-         */
-        SideEffect {
-            WindowCompat.setDecorFitsSystemWindows(activity.window, false)
-            /// system-bar 一旦隐藏（visible = false），那么被手势划出来后，过一会儿自动回去
-            windowInsetsController.systemBarsBehavior = BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-
-            ViewCompat.setOnApplyWindowInsetsListener(activity.window.decorView) { _, insets ->
-                currentInsets.value = insets
-                insets
-            }
-
-        }
-        statusBar.effect()
-        navigationBar.effect()
-        virtualKeyboard.effect()
-        safeArea.effect()
-
-        return this
+  companion object {
+    init {
+      QueryHelper.init() // 初始化
     }
-
-
-    companion object {
-        init {
-            QueryHelper.init() // 初始化
-        }
-    }
+  }
 
 }
 

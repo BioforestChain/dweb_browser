@@ -18,7 +18,7 @@ abstract class AndroidNativeMicroModule(override val mmid: Mmid) : NativeMicroMo
 
   companion object {
     //  管理所有的activity
-    private val activityMap: MutableMap<Mmid, BaseActivity> = mutableMapOf()
+    private val activity: BaseActivity? = null
 
     // 管理所有正在运行的窗口
     internal val runningAppList = mutableStateListOf<WindowAppInfo>()
@@ -27,10 +27,10 @@ abstract class AndroidNativeMicroModule(override val mmid: Mmid) : NativeMicroMo
     internal val installAppList = mutableStateListOf<WindowAppInfo>()
   }
 
-  protected fun getActivity(mmid: Mmid): BaseActivity? = activityMap[mmid]
+  protected fun getActivity(): BaseActivity ? =activity
 
-  protected val activitySignal = Signal<MmidActivityArgs>()
-  private fun onActivity(cb: Callback<MmidActivityArgs>) = activitySignal.listen(cb)
+  protected val activitySignal = Signal<BaseActivity>()
+  fun onActivity(cb: Callback<BaseActivity>) = activitySignal.listen(cb)
 
   fun getAppWindowMap(mmid: Mmid) : WindowAppInfo? = runningAppList.firstOrNull {
     it.jsMicroModule.mmid == mmid
@@ -39,16 +39,6 @@ abstract class AndroidNativeMicroModule(override val mmid: Mmid) : NativeMicroMo
   private fun onWindow(cb: Callback<WindowAppInfo>) = windowSignal.listen(cb)
 
   init {
-    // listen add activity
-    onActivity { (mmid, activity) ->
-      activityMap[mmid] = activity
-      // listen self destroy  activity
-      activity.onDestroyActivity {
-        activityMap.remove(mmid)
-      }
-      return@onActivity true
-    }
-
     onWindow { appInfo ->
       runningAppList.add(appInfo)
       appInfo.viewItem?.webView?.onCloseWindow {
@@ -58,8 +48,6 @@ abstract class AndroidNativeMicroModule(override val mmid: Mmid) : NativeMicroMo
     }
   }
 }
-
-typealias MmidActivityArgs = Pair<Mmid, BaseActivity>
 
 data class WindowAppInfo(
   var expand: Boolean = false, // 用于保存界面状态显示时是半屏还是全屏

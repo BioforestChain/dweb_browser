@@ -78,7 +78,7 @@ class SplashScreenNMM : NativeMicroModule("splash-screen.nativeui.browser.dweb")
       metadata: AppMetaData,
       options: SplashScreenSettings
     ) {
-        val webview = controller.lastViewOrNull?.webView
+//        val webview = controller.lastViewOrNull?.webView
 //        val entry = metadata.splashScreen.entry
 //        if (webview !== null && entry !== null) {
 //            GlobalScope.launch(Dispatchers.Main + commonAsyncExceptionHandler) {

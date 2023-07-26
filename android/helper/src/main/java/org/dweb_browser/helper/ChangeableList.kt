@@ -51,11 +51,14 @@ class ChangeableList<T> : MutableList<T> {
   }
 
   override fun get(index: Int): T {
-    return innerList.get(index)
+    return innerList[index]
+  }
+  fun lastOrNull(): T? {
+    return if (isEmpty()) null else this.innerList[size - 1]
   }
 
   override fun isEmpty(): Boolean {
-    return innerList.isEmpty()
+    return (size == 0) || innerList.isEmpty()
   }
 
   override fun iterator(): MutableIterator<T> {

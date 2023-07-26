@@ -155,7 +155,7 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.browser.dweb") {
     openActivity(remoteMmid)
     /// 等待创建成功再返回
     val activity = controller.waitActivityCreated()
-    activitySignal.emit(Pair(remoteMmid, activity))
+    activitySignal.emit(activity)
     /// 销毁的时候取消绑定
     activity.onDestroyActivity {
       controllerMap.remove(remoteMmid, controller)
