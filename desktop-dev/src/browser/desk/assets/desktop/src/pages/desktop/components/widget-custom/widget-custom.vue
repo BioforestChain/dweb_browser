@@ -96,3 +96,13 @@ const html = computed(() => {
 <template>
   <div class="widget" draggable="true" v-html="html"></div>
 </template>
+<style scoped lang="scss">
+.widget {
+  display: flex;
+  place-items: center;
+  > :deep(*) {
+    flex: 1;
+    width: 100%;
+  }
+}
+</style>

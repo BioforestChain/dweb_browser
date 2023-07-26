@@ -46,9 +46,21 @@ const gridColumn = computed(() => {
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .tile-item {
   grid-row: span v-bind("gridRow");
   grid-column: span v-bind("gridColumn");
+
+  height: 100%;
+  width: 100%;
+  // 垂直flex，模拟 block
+  display: flex;
+  flex-direction: column;
+  // 默认水平居中
+  place-items: center;
+  > :deep(*) {
+    flex: 1;
+    width: 100%;
+  }
 }
 </style>

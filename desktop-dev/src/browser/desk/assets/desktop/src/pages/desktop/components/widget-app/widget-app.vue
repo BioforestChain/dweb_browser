@@ -151,13 +151,13 @@ const onJmmUnInstallDialogClosed = (confirmed: boolean) => {
           :data-overlayed="isShowOverlay"
           :data-focused="isShowMenu"
           :class="{ overlayed: isShowOverlay, focused: isShowMenu }"
-          @click="isShowMenu = false"
+          @click="[$menu.close, doOpen]"
+          @contextmenu="$menu.show"
         >
           <div
             class="app-icon"
             v-bind="props"
             @click="doOpen"
-            @contextmenu="$menu.show"
             :class="{
               'animate-slow-bounce': opening,
               'animate-app-pulse': closing,
@@ -231,6 +231,8 @@ const onJmmUnInstallDialogClosed = (confirmed: boolean) => {
 }
 
 .app {
+  align-self: flex-start;
+
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -285,8 +287,7 @@ const onJmmUnInstallDialogClosed = (confirmed: boolean) => {
       -webkit-text-stroke-width: 0.55px;
 
       text-align: center;
-      word-break: break-word;
-      white-space: nowrap;
+      text-wrap: balance;
       border-radius: 0.5em; // 高斯模糊的圆角
       padding: 0.1em 0.25em;
       box-sizing: content-box;
