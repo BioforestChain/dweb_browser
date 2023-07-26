@@ -304,7 +304,7 @@ internal class FileStore
         if (autoCreate && !File.Exists(filePath) && Path.GetDirectoryName(filePath) is var fileDir && fileDir is not null)
         {
             Directory.CreateDirectory(fileDir);
-            File.WriteAllText(filePath, "");
+            File.WriteAllBytes(filePath, Array.Empty<byte>());
         }
 
         return filePath;
@@ -321,7 +321,14 @@ internal class FileStore
         var stream = File.OpenRead(ResolveKey(key));
         try
         {
-            return Decode(stream);
+            var decoded = Decode(stream);
+
+            if (string.IsNullOrWhiteSpace(decoded))
+            {
+                throw new Exception("The first call needs to be initialized with default.");
+            }
+
+            return decoded;
         }
         catch
         {
@@ -346,10 +353,20 @@ internal class FileStore
 
     public string? Get(string key, Func<string>? orDefault = null)
     {
+        var isClosed = false;
         var stream = File.OpenRead(ResolveKey(key));
         try
         {
-            return Decode(stream);
+            var decoded = Decode(stream);
+
+            if (string.IsNullOrWhiteSpace(decoded))
+            {
+                isClosed = true;
+                stream.Dispose();
+                throw new Exception("The first call needs to be initialized with default.");
+            }
+
+            return decoded;
         }
         catch
         {
@@ -368,7 +385,10 @@ internal class FileStore
         }
         finally
         {
-            stream.Dispose();
+            if (!isClosed)
+            {
+                stream.Dispose();
+            }
         }
     }
 

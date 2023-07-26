@@ -4,7 +4,7 @@ public class ReadableStreamIpc : Ipc
 {
     static readonly Debugger Console = new("ReadableStreamIpc");
 
-    public ReadableStreamIpc(IMicroModuleInfo remote, string role)
+    public ReadableStreamIpc(IMicroModule remote, string role)
     {
         Remote = remote;
         Role = role;
@@ -17,7 +17,7 @@ public class ReadableStreamIpc : Ipc
            );
     }
 
-    public override IMicroModuleInfo Remote { get; set; }
+    public override IMicroModule Remote { get; set; }
     public override string Role { get; }
 
     public override async Task DoClose()

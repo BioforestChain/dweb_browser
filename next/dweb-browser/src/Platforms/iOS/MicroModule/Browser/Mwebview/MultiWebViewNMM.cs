@@ -6,9 +6,17 @@ public class MultiWebViewNMM : IOSNativeMicroModule
 {
     static readonly Debugger Console = new("MultiWebViewNMM");
 
+    public new const string Name = "Multi Webview Renderer";
+    public override string? ShortName { get; set; } = "MWebview";
     public MultiWebViewNMM() : base("mwebview.browser.dweb")
     {
     }
+
+    public override List<MicroModuleCategory> Categories { get; init; } = new()
+    {
+        MicroModuleCategory.Service,
+        MicroModuleCategory.Render_Service,
+    };
 
     private static readonly Dictionary<Mmid, MultiWebViewController> s_controllerMap = new();
     public static MultiWebViewController? GetCurrentWebViewController(Mmid mmid) => s_controllerMap.GetValueOrDefault(mmid);

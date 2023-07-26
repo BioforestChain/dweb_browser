@@ -9,7 +9,14 @@ public class BootNMM : NativeMicroModule
      * TODO 这里需要从数据库中读取
      */
     private HashSet<Mmid> _registeredMmids = new();
+    public override List<MicroModuleCategory> Categories { get; init; } = new()
+    {
+        MicroModuleCategory.Service,
+        MicroModuleCategory.Hub_Service,
+    };
 
+    public new const string Name = "Boot Management";
+    public override string? ShortName { get; set; } = "Boot";
     public BootNMM(List<Mmid>? initMmids = null) : base("boot.sys.dweb")
     {
         if (initMmids is not null)

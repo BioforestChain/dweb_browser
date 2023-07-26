@@ -10,9 +10,17 @@ namespace DwebBrowser.MicroService.Browser.JsProcess;
 public class JsProcessNMM : NativeMicroModule
 {
     static readonly Debugger Console = new("JsProcessNMM");
+
+    public new const string Name = "Js Process";
     public JsProcessNMM() : base("js.browser.dweb")
     {
     }
+
+    public override List<MicroModuleCategory> Categories { get; init; } = new()
+    {
+        MicroModuleCategory.Service,
+        MicroModuleCategory.Process_Service,
+    };
 
     private readonly LazyBox<string> _LAZY_JS_PROCESS_WORKER_CODE = new();
     private string _JS_PROCESS_WORKER_CODE
@@ -249,7 +257,7 @@ public class JsProcessNMM : NativeMicroModule
          */
         var streamIpc = new ReadableStreamIpc(ipc.Remote, "code-proxy-server");
         streamIpc.BindIncomeStream(requestMessage.Body.ToStream());
-        this.addToIpcSet(streamIpc);
+        this.AddToIpcSet(streamIpc);
         /**
          * “模块之间的IPC通道”关闭的时候，关闭“代码IPC流通道”
          */

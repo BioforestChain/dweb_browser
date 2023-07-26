@@ -28,7 +28,7 @@ public interface IDnsMicroModule
      * 所以使用时要判断是否为JsMicroModule
      * </summary>
      */
-    public MicroModule? Query(Mmid mmid);
+    public Task<IMicroModuleManifest?> Query(Mmid mmid);
 
     /**
      * <summary>
@@ -43,6 +43,15 @@ public interface IDnsMicroModule
      * </summary>
      */
     public Task<ConnectResult> ConnectAsync(Mmid mmid, PureRequest? reason = null);
+
+    /**
+     * <summary>
+     * 根据类目搜索模块
+     * > 这里暂时不需要支持复合搜索，未来如果有需要另外开接口
+     * @param category
+     * </summary>
+     */
+    public Task<MicroModule[]> Search(MicroModuleCategory category);
 
     /**
      * <summary>

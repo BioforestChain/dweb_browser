@@ -6,6 +6,8 @@ namespace DwebBrowser.MicroService.Browser;
 public class BrowserNMM : IOSNativeMicroModule
 {
     static readonly Debugger Console = new("BrowserNMM");
+    public new const string Name = "Web Browser";
+    public override string ShortName { get; set; } = "Browser";
     public BrowserNMM() : base("web.browser.dweb")
     {
         s_controllerList.Add(new(this));
@@ -18,7 +20,11 @@ public class BrowserNMM : IOSNativeMicroModule
     }
 
     public override List<Dweb_DeepLink> Dweb_deeplinks { get; init; } = new() { "dweb:search" };
-
+    public override List<MicroModuleCategory> Categories { get; init; } = new()
+    {
+        MicroModuleCategory.Application,
+        MicroModuleCategory.Web_Browser,
+    };
 
 
     protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)

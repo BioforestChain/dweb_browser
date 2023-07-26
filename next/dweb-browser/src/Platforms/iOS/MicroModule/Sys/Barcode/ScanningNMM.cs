@@ -2,8 +2,15 @@
 
 public class ScanningNMM : NativeMicroModule
 {
+    public new const string Name = "Barcode Scanning";
     public ScanningNMM() : base("barcode-scanning.sys.dweb")
     { }
+
+    public override List<MicroModuleCategory> Categories { get; init; } = new()
+    {
+        MicroModuleCategory.Application,
+        MicroModuleCategory.Utilities,
+    };
 
     protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)
     {

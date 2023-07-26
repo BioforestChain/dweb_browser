@@ -1,4 +1,4 @@
-﻿using DwebBrowser.MicroService;
+﻿using DwebBrowser.MicroService.Core;
 using DwebBrowser.MicroService.Message;
 
 namespace DwebBrowser.IpcWeb;
@@ -8,7 +8,7 @@ public class Native2JsIpc: MessagePortIpc
     public int PortId { get; init; }
 	public Native2JsIpc(
         int port_id,
-        Ipc.IMicroModuleInfo remote,
+        IMicroModule remote,
         IPC_ROLE role = IPC_ROLE.CLIENT
         ): base(
             IpcWebMessageCache.ALL_MESSAGE_PORT_CACHE.GetValueOrDefault(port_id)

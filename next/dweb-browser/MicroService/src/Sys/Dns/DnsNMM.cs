@@ -11,7 +11,14 @@ public class DnsNMM : NativeMicroModule
     // 正在运行的应用
     private Dictionary<Mmid, PromiseOut<MicroModule>> _runningApps = new();
     public override List<Dweb_DeepLink> Dweb_deeplinks { get; init; } = new() { "dweb:open" };
+    public override List<MicroModuleCategory> Categories { get; init; } = new()
+    {
+        MicroModuleCategory.Service,
+        MicroModuleCategory.Routing_Service,
+    };
 
+    public new const string Name = "Dweb Name System";
+    public override string? ShortName { get; set; } = "DNS";
     public DnsNMM() : base("dns.sys.dweb")
     {
     }
@@ -132,8 +139,8 @@ public class DnsNMM : NativeMicroModule
             return _dnsMM.UnInstall(mm);
         }
 
-        public MicroModule? Query(Mmid mmid) =>
-            _dnsMM.Query(mmid) is MicroModule mm ? mm : null;
+        public async Task<IMicroModuleManifest?> Query(Mmid mmid) =>
+            (await _dnsMM.Query(mmid)) is MicroModule mm ? mm : null;
 
         public async Task Restart(Mmid mmid)
         {
@@ -179,6 +186,11 @@ public class DnsNMM : NativeMicroModule
             }
 
             return false;
+        }
+
+        public async Task<MicroModule[]> Search(MicroModuleCategory category)
+        {
+            return _dnsMM.Search(category).ToArray();
         }
     }
 
@@ -300,32 +312,45 @@ public class DnsNMM : NativeMicroModule
     public bool UnInstall(MicroModule mm) => _installApps.Remove(mm.Mmid);
 
     /** <summary>查询应用</summary> */
-    public MicroModule? Query(Mmid mmid) => _installApps.GetValueOrDefault(mmid);
+    public async Task<MicroModule?> Query(Mmid mmid) => _installApps.GetValueOrDefault(mmid);
+
+    public IEnumerable<MicroModule> Search(MicroModuleCategory category)
+    {
+        foreach (var app in _installApps.Values)
+        {
+            if (app.Categories.Contains(category))
+            {
+                yield return app;
+            }
+        }
+    }
 
     /** <summary>打开应用</summary> */
-    private PromiseOut<MicroModule> _Open(Mmid mmid)
+    private Task<PromiseOut<MicroModule>> _Open(Mmid mmid)
     {
-        return _runningApps.GetValueOrPut(mmid, () =>
+        return _runningApps.GetValueOrPutAsync(mmid, async () =>
         {
-            return new PromiseOut<MicroModule>().Also(po =>
+            var po = new PromiseOut<MicroModule>();
+
+            var openingMM = await Query(mmid);
+            _ = Task.Run(async () =>
             {
-                Query(mmid)?.Also(openingMM =>
+                if (openingMM is not null)
                 {
-                    _ = Task.Run(async () =>
+                    await BootstrapMicroModule(openingMM);
+                    openingMM.OnAfterShutdown += async (_) =>
                     {
-                        await BootstrapMicroModule(openingMM);
-                        openingMM.OnAfterShutdown += async (_) =>
-                        {
-                            await _removeRunningApps(mmid);
-                        };
-                        po.Resolve(openingMM);
-                    }).NoThrow();
-                });
-            });
+                        await _removeRunningApps(mmid);
+                    };
+                    po.Resolve(openingMM);
+                }
+            }).NoThrow();
+
+            return po;
         });
     }
     /** <summary>打开应用</summary> */
-    public Task<MicroModule> Open(Mmid mmid) => _Open(mmid).WaitPromiseAsync();
+    public async Task<MicroModule> Open(Mmid mmid) => await (await _Open(mmid)).WaitPromiseAsync();
 
     /** <summary>关闭应用</summary> */
     public async Task<int> Close(Mmid mmid)

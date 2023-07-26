@@ -79,7 +79,7 @@ namespace DwebBrowser.MicroService.Core
                     Body: new PureStreamBody(streamIpc.ReadableStream.Stream)));
 
             streamIpc.BindIncomeStream(pureResponse.Body.ToStream());
-            this.addToIpcSet(streamIpc);
+            this.AddToIpcSet(streamIpc);
             return streamIpc;
         }
 

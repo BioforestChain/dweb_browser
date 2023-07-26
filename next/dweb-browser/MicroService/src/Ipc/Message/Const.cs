@@ -75,9 +75,22 @@ public record EIpcEvent(string Event)
 /// <summary>
 /// 通讯支持的传输协议
 /// </summary>
-public class IpcSupportProtocols
+public class IpcSupportProtocols : IEquatable<IpcSupportProtocols>
 {
+    [JsonPropertyName("cbor")]
     public bool Cbor { get; init; }
+    [JsonPropertyName("protobuf")]
     public bool Protobuf { get; init; }
+    [JsonPropertyName("raw")]
     public bool Raw { get; init; }
+
+    public bool Equals(IpcSupportProtocols? other)
+    {
+        return GetHashCode() == other?.GetHashCode();
+    }
+
+    public override int GetHashCode()
+    {
+        return Cbor.GetHashCode() ^ Protobuf.GetHashCode() ^ Raw.GetHashCode();
+    }
 }

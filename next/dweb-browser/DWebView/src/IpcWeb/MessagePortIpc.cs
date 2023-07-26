@@ -2,6 +2,7 @@
 using DwebBrowser.Helper;
 using DwebBrowser.MicroService;
 using DwebBrowser.MicroService.Message;
+using DwebBrowser.MicroService.Core;
 
 #nullable enable
 
@@ -13,11 +14,11 @@ public class MessagePortIpc : Ipc
 
     public MessagePort Port { get; init; }
     private IPC_ROLE RoleType { get; init; }
-    public override IMicroModuleInfo Remote { get; set; }
+    public override IMicroModule Remote { get; set; }
 
     public override string Role { get => Enum.GetName(RoleType)!; }
 
-    public MessagePortIpc(MessagePort port, IMicroModuleInfo remote, IPC_ROLE role_type)
+    public MessagePortIpc(MessagePort port, IMicroModule remote, IPC_ROLE role_type)
     {
         Port = port;
         Remote = remote;
@@ -98,7 +99,7 @@ public class MessagePortIpc : Ipc
         _ = Port.Start();
     }
 
-    public MessagePortIpc(WebMessagePort port, Ipc.IMicroModuleInfo remote, IPC_ROLE rote_type)
+    public MessagePortIpc(WebMessagePort port, IMicroModule remote, IPC_ROLE rote_type)
         : this(MessagePort.From(port), remote, rote_type) { }
 
 

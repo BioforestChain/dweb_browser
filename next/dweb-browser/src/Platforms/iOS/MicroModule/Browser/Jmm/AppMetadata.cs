@@ -30,7 +30,7 @@ public class AppMetaData : IEquatable<AppMetaData>
     [JsonPropertyName("new_feature")]
     public string NewFeature { get; set; }      // 新特性，新功能
     [JsonPropertyName("categories")]
-    public List<string>? Categories { get; set; }     // 关键词
+    public List<MicroModuleCategory>? Categories { get; set; }     // 关键词
     [JsonPropertyName("home")]
     public string Home { get; set; }        // 首页地址
     [JsonPropertyName("bundle_url")]
@@ -45,8 +45,6 @@ public class AppMetaData : IEquatable<AppMetaData>
     public List<string>? Plugins { get; set; }      // app使用插件情况
     [JsonPropertyName("release_date")]
     public string ReleaseDate { get; set; }     // 发布时间
-
-    public long Timestamp = 0; // 时间戳，用于应用排序
 
     [Obsolete("使用带参数的构造函数", true)]
 #pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
@@ -68,7 +66,7 @@ public class AppMetaData : IEquatable<AppMetaData>
         List<string>? author = null,
         string version = "",
         string new_feature = "",
-        List<string>? categories = null,
+        List<MicroModuleCategory>? categories = null,
         string home = "",
         string bundle_url = "",
         long bundle_size = 0L,
@@ -103,21 +101,6 @@ public class AppMetaData : IEquatable<AppMetaData>
         {
             Dweb_DeepLinks = dweb_deeplinks;
         }
-    }
-
-    public struct MainServer
-    {
-        /// <summary>
-        /// 应用文件夹的目录
-        /// </summary>
-        [JsonPropertyName("root")]
-        public string Root { get; set; }
-
-        /// <summary>
-        /// 入口文件
-        /// </summary>
-        [JsonPropertyName("entry")]
-        public string Entry { get; set; }
     }
 
     public string ToJson() => JsonSerializer.Serialize(this);

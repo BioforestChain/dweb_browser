@@ -43,6 +43,7 @@
 	</ItemGroup>
 	<ItemGroup>
 		<None Remove="Resources\.DS_Store" />
+		<None Remove="Platforms\iOS\MicroModule\Browser\Desk\" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\Helper\src\DwebBrowser.Helper.csproj">
@@ -86,7 +87,7 @@
 		<Folder Include="Platforms\iOS\Helper\" />
 		<Folder Include="Platforms\iOS\MicroModule\Browser\NativeUI\Haptics\" />
 		<Folder Include="Platforms\iOS\MicroModule\Sys\Device\" />
-		<Folder Include="Platforms\iOS\MicroModule\Browser\Desktop\" />
+		<Folder Include="Platforms\iOS\MicroModule\Browser\Desk\" />
 	</ItemGroup>
 	<ItemGroup>
 		<BundleResource Include="Resources\Assets\**\*.*" />

@@ -23,10 +23,17 @@ public class HttpNMM : NativeMicroModule
     private readonly Dictionary</* token */string, Gateway> _tokenMap = new();
     private readonly Dictionary</* host */string, Gateway> _gatewayMap = new();
 
+    public new const string Name = "HTTP Server Provider";
+    public override string? ShortName { get; set; } = "HTTP";
     public HttpNMM() : base("http.std.dweb")
     {
     }
 
+    public override List<MicroModuleCategory> Categories { get; init; } = new()
+    {
+        MicroModuleCategory.Service,
+        MicroModuleCategory.Protocol_Service,
+    };
 
     /**
      * <summary>
@@ -282,7 +289,7 @@ public class HttpNMM : NativeMicroModule
         /// 接收一个body，body在关闭的时候，fetchIpc也会一同关闭
         streamIpc.BindIncomeStream(request.Body.ToStream());
         /// 自己nmm销毁的时候，ipc也会被全部销毁
-        this.addToIpcSet(streamIpc);
+        this.AddToIpcSet(streamIpc);
         /// 自己创建的，就要自己销毁：这个listener被销毁的时候，streamIpc也要进行销毁
         gateway.Listener.OnDestory += (_) => streamIpc.Close();
 

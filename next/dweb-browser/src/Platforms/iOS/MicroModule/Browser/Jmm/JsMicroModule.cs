@@ -24,7 +24,7 @@ public class JsMicroModule : MicroModule
     /// </summary>
     /// <param name="metadata"></param>
     /// <returns></returns>
-    public static string GetInstallPath(AppMetaData metadata)
+    public static string GetInstallPath(IJmmAppInstallManifest metadata)
     {
         return Path.Join(DWEB_APP_DIR, metadata.Id, metadata.Version);
     }
@@ -34,7 +34,7 @@ public class JsMicroModule : MicroModule
     /// </summary>
     /// <param name="metadata"></param>
     /// <returns></returns>
-    public static string GetJmmAppPath(AppMetaData metadata) => Path.Join(DWEB_APP_DIR, metadata.Id);
+    public static string GetJmmAppPath(IJmmAppInstallManifest metadata) => Path.Join(DWEB_APP_DIR, metadata.Id);
 
     /// <summary>
     /// 获取一个应用所有的安装版本
@@ -54,6 +54,21 @@ public class JsMicroModule : MicroModule
 
     public override List<Dweb_DeepLink> Dweb_deeplinks { get; init; }
     public override IpcSupportProtocols IpcSupportProtocols { get; init; }
+    public override List<MicroModuleCategory> Categories { get; init; }
+
+    public override string Name { get; set; }
+    public override TextDirectionType? Dir { get; set; } = null;
+    public override string? Version { get; set; } = null;
+    public override string? Lang { get; set; } = null;
+    public override string? ShortName { get; set; } = null;
+    public override string? Description { get; set; } = null;
+    public override List<Core.ImageSource>? Icons { get; set; } = null;
+    public override List<Core.ImageSource>? Screenshots { get; set; } = null;
+    public override DisplayModeType? Display { get; set; } = null;
+    public override OrientationType? Orientation { get; set; } = null;
+    public override string? ThemeColor { get; set; } = null;
+    public override string? BackgroundColor { get; set; } = null;
+    public override List<ShortcutItem>? Shortcuts { get; set; } = null;
 
     record JsMM(JsMicroModule jmm, Mmid remoteMmid);
     static JsMicroModule()
@@ -99,19 +114,33 @@ public class JsMicroModule : MicroModule
     }
 
 
-    public JsMicroModule(AppMetaData metadata) : base(metadata.Id)
+    public JsMicroModule(JsMMMetadata metadata) : base(metadata.Config.Id)
     {
         Metadata = metadata;
-        Dweb_deeplinks = Metadata.Dweb_DeepLinks ?? new();
+        Dweb_deeplinks = Metadata.Config.Dweb_DeepLinks ?? new();
         IpcSupportProtocols = new()
         {
             Cbor = true,
             Protobuf = false,
             Raw = true
         };
+        Categories = metadata.Config.Categories;
+        Name = metadata.Config.Name;
+        Dir = metadata.Config.Dir;
+        Version = metadata.Config.Version;
+        Lang = metadata.Config.Lang;
+        ShortName = metadata.Config.ShortName;
+        Description = metadata.Config.Description;
+        Icons = metadata.Config.Icons;
+        Screenshots = metadata.Config.Screenshots;
+        Display = metadata.Config.Display;
+        Orientation = metadata.Config.Orientation;
+        ThemeColor = metadata.Config.ThemeColor;
+        BackgroundColor = metadata.Config.BackgroundColor;
+        Shortcuts = metadata.Config.Shortcuts;
     }
 
-    public AppMetaData Metadata { get; init; }
+    public JsMMMetadata Metadata { get; init; }
 
     /**
      * <summary>
@@ -130,7 +159,7 @@ public class JsMicroModule : MicroModule
         {
             var response = request.Uri.AbsolutePath.EndsWith("/")
                 ? new PureResponse(HttpStatusCode.Forbidden)
-                : await NativeFetchAsync(Metadata.Server.Root + request.Uri.AbsolutePath);
+                : await NativeFetchAsync(Metadata.Config.Server.Root + request.Uri.AbsolutePath);
 
             await ipc.PostMessageAsync(response.ToIpcResponse(request.ReqId, ipc));
         };
@@ -138,13 +167,13 @@ public class JsMicroModule : MicroModule
         var createIpc_req = new PureRequest(
 
             new URL("file://js.browser.dweb/create-process")
-                .SearchParamsSet("entry", Metadata.Server.Entry)
+                .SearchParamsSet("entry", Metadata.Config.Server.Entry)
                 .SearchParamsSet("process_id", Pid).Href,
             IpcMethod.Post,
             Body: new PureStreamBody(streamIpc.ReadableStream.Stream));
         var createIpc_res = await NativeFetchAsync(createIpc_req);
         streamIpc.BindIncomeStream(createIpc_res.Body.ToStream());
-        this.addToIpcSet(streamIpc);
+        this.AddToIpcSet(streamIpc);
 
         return streamIpc;
     }
@@ -234,7 +263,7 @@ public class JsMicroModule : MicroModule
             }
         };
 
-        addToIpcSet(streamIpc);
+        AddToIpcSet(streamIpc);
         Console.Log("running!!", Mmid);
     }
 
@@ -243,7 +272,7 @@ public class JsMicroModule : MicroModule
 
     class JmmIpc : Native2JsIpc
     {
-        public JmmIpc(int port_id, IMicroModuleInfo remote) : base(port_id, remote)
+        public JmmIpc(int port_id, IMicroModule remote) : base(port_id, remote)
         {
         }
     }
@@ -344,3 +373,12 @@ public class JsMicroModule : MicroModule
     }
 }
 
+public class JsMMMetadata
+{
+    public IJmmAppInstallManifest Config { get; init; }
+
+    public JsMMMetadata(IJmmAppInstallManifest config)
+    {
+        Config = config;
+    }
+}

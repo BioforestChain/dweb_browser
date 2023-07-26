@@ -1,5 +1,5 @@
 ﻿using DwebBrowser.MicroService.Browser;
-using DwebBrowser.MicroService.Browser.Desktop;
+using DwebBrowser.MicroService.Browser.Desk;
 using DwebBrowser.MicroService.Browser.Jmm;
 using DwebBrowser.MicroService.Browser.JsProcess;
 using DwebBrowser.MicroService.Browser.Mwebview;
@@ -88,7 +88,9 @@ public class MicroService
         "BrowserNMM",
         "BrowserWeb",
         "DeviceNMM",
-        "DeviceSystemInfo"
+        "DeviceSystemInfo",
+        "DeskStore",
+        "FileStore"
     };
 
     // 添加debug日志tag过滤
@@ -115,7 +117,7 @@ public class MicroService
         var mwebiewNMM = new MultiWebViewNMM().InstallBy(dnsNMM);
 
         /// 安装系统桌面
-        var desktopNMM = new DesktopNMM().InstallBy(dnsNMM);
+        var deskNMM = new DeskNMM().InstallBy(dnsNMM);
         var browserNMM = new BrowserNMM().InstallBy(dnsNMM);
 
         /// 安装平台模块
@@ -138,7 +140,7 @@ public class MicroService
         var bootMmidList = new List<Mmid>
         {
             jmmNMM.Mmid,
-            desktopNMM.Mmid,
+            deskNMM.Mmid,
             browserNMM.Mmid,
         };
         /// 启动程序

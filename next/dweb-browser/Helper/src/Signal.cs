@@ -1,7 +1,4 @@
-﻿using System.Collections.Concurrent;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-
-namespace DwebBrowser.Helper;
+﻿namespace DwebBrowser.Helper;
 
 public delegate Task? Signal(Signal self);
 public delegate Task? Signal<T1>(T1 arg1, Signal<T1> self);

@@ -1,6 +1,6 @@
 ﻿namespace DwebBrowser.MicroService.Core;
 
-public abstract partial class MicroModule : Ipc.IMicroModuleInfo
+public abstract partial class MicroModule : IMicroModule
 {
     public Mmid Mmid { get; init; }
     public MicroModule(Mmid mmid)
@@ -10,6 +10,20 @@ public abstract partial class MicroModule : Ipc.IMicroModuleInfo
     public Router? Router = null;
     public abstract IpcSupportProtocols IpcSupportProtocols { get; init; }
     public abstract List<Dweb_DeepLink> Dweb_deeplinks { get; init; }
+    public abstract List<MicroModuleCategory> Categories { get; init; }
+    public abstract string Name { get; set; }
+    public abstract TextDirectionType? Dir { get; set; }
+    public abstract string? Version { get; set; }
+    public abstract string? Lang { get; set; }
+    public abstract string? ShortName { get; set; }
+    public abstract string? Description { get; set; }
+    public abstract List<ImageSource>? Icons { get; set; }
+    public abstract List<ImageSource>? Screenshots { get; set; }
+    public abstract DisplayModeType? Display { get; set; }
+    public abstract OrientationType? Orientation { get; set; }
+    public abstract string? ThemeColor { get; set; }
+    public abstract string? BackgroundColor { get; set; }
+    public abstract List<ShortcutItem>? Shortcuts { get; set; }
 
     private StatePromiseOut<MMState> _runningStateLock = StatePromiseOut<MMState>.StaticResolve(MMState.SHUTDOWN);
     public bool Running => _runningStateLock.Value == MMState.BOOTSTRAP;
@@ -50,7 +64,7 @@ public abstract partial class MicroModule : Ipc.IMicroModuleInfo
     private readonly HashSet<Signal> AfterShutdownSignal = new();
     public event Signal OnAfterShutdown
     {
-        add { if(value != null) lock (AfterShutdownSignal) { AfterShutdownSignal.Add(value); } }
+        add { if (value != null) lock (AfterShutdownSignal) { AfterShutdownSignal.Add(value); } }
         remove { lock (AfterShutdownSignal) { AfterShutdownSignal.Remove(value); } }
     }
 
@@ -101,9 +115,9 @@ public abstract partial class MicroModule : Ipc.IMicroModuleInfo
      * </summary>
      */
     protected HashSet<Ipc> _ipcSet = new();
-    protected void addToIpcSet(Ipc ipc)
+    public void AddToIpcSet(Ipc ipc)
     {
-        this._ipcSet.Add(ipc);
+        _ipcSet.Add(ipc);
         ipc.OnClose += async (_) =>
         {
             _ipcSet.Remove(ipc);
@@ -120,7 +134,7 @@ public abstract partial class MicroModule : Ipc.IMicroModuleInfo
     private readonly HashSet<Signal<Ipc, PureRequest>> ConnectSignal = new();
     public event Signal<Ipc, PureRequest> OnConnect
     {
-        add { if(value != null) lock (ConnectSignal) { ConnectSignal.Add(value); } }
+        add { if (value != null) lock (ConnectSignal) { ConnectSignal.Add(value); } }
         remove { lock (ConnectSignal) { ConnectSignal.Remove(value); } }
     }
 
@@ -148,7 +162,7 @@ public abstract partial class MicroModule : Ipc.IMicroModuleInfo
      */
     public Task BeConnectAsync(Ipc ipc, PureRequest reason)
     {
-        this.addToIpcSet(ipc);
+        AddToIpcSet(ipc);
         ipc.OnEvent += async (ipcMessage, ipc, _) =>
         {
             if (ipcMessage.Name == "activity")
@@ -162,7 +176,26 @@ public abstract partial class MicroModule : Ipc.IMicroModuleInfo
 
     protected virtual async Task _onActivityAsync(IpcEvent Event, Ipc ipc) { }
 
-
+    private readonly LazyBox<IMicroModuleManifest> Manifest = new();
+    public IMicroModuleManifest ToManifest() => Manifest.GetOrPut(() =>
+        new MicroModuleManifest(
+            Mmid,
+            IpcSupportProtocols,
+            Dweb_deeplinks,
+            Categories,
+            Name,
+            Version,
+            Dir,
+            Lang,
+            ShortName,
+            Description,
+            Icons,
+            Screenshots,
+            Display,
+            Orientation,
+            ThemeColor,
+            BackgroundColor,
+            Shortcuts));
 }
 
 internal class StatePromiseOut<T> : PromiseOut<T>
@@ -176,11 +209,125 @@ internal class StatePromiseOut<T> : PromiseOut<T>
 
     public static new StatePromiseOut<T> StaticResolve(T state) => new StatePromiseOut<T>(state).Also(it => it.Resolve(state));
 
-    public void Resolve() => base.Resolve(State);
+    public void Resolve() => Resolve(State);
 }
 
 internal enum MMState
 {
     BOOTSTRAP,
     SHUTDOWN
+}
+
+public class MicroModuleManifest : IMicroModuleManifest, IEquatable<MicroModuleManifest>
+{
+    [Obsolete("使用带参数的构造函数", true)]
+#pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
+    public MicroModuleManifest()
+#pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
+    {
+        /// 给JSON反序列化用的空参数构造函数
+    }
+
+    public MicroModuleManifest(
+        Mmid mmid,
+        IpcSupportProtocols ipcSupportProtocols,
+        List<string> dweb_deeplinks,
+        List<MicroModuleCategory> categories,
+        string name,
+        string? version = null,
+        TextDirectionType? dir = null,
+        string? lang = null,
+        string? shortName = null,
+        string? description = null,
+        List<ImageSource>? icons = null,
+        List<ImageSource>? screenshots = null,
+        DisplayModeType? display = null,
+        OrientationType? orientation = null,
+        string? themeColor = null,
+        string? backgroundColor = null,
+        List<ShortcutItem>? shortcuts = null)
+    {
+        Mmid = mmid;
+        IpcSupportProtocols = ipcSupportProtocols;
+        Dweb_deeplinks = dweb_deeplinks;
+        Categories = categories;
+        Name = name;
+        Version = version;
+        Dir = dir;
+        Lang = lang;
+        ShortName = shortName;
+        Description = description;
+        Icons = icons;
+        Screenshots = screenshots;
+        Display = display;
+        Orientation = orientation;
+        ThemeColor = themeColor;
+        BackgroundColor = backgroundColor;
+        Shortcuts = shortcuts;
+    }
+
+    [JsonPropertyName("mmid")]
+    public string Mmid { get; init; }
+    [JsonPropertyName("ipc_support_protocols")]
+    public IpcSupportProtocols IpcSupportProtocols { get; init; }
+    [JsonPropertyName("dweb_deeplinks")]
+    public List<Dweb_DeepLink> Dweb_deeplinks { get; init; }
+    [JsonPropertyName("categories")]
+    public List<MicroModuleCategory> Categories { get; init; }
+    [JsonPropertyName("name")]
+    public string Name { get; set; }
+    [JsonPropertyName("version")]
+    public string? Version { get; set; }
+    [JsonPropertyName("dir")]
+    public TextDirectionType? Dir { get; set; }
+    [JsonPropertyName("lang")]
+    public string? Lang { get; set; }
+    [JsonPropertyName("short_name")]
+    public string? ShortName { get; set; }
+    [JsonPropertyName("description")]
+    public string? Description { get; set; }
+    [JsonPropertyName("icons")]
+    public List<ImageSource>? Icons { get; set; }
+    [JsonPropertyName("screenshots")]
+    public List<ImageSource>? Screenshots { get; set; }
+    [JsonPropertyName("display")]
+    public DisplayModeType? Display { get; set; }
+    [JsonPropertyName("orientation")]
+    public OrientationType? Orientation { get; set; }
+    [JsonPropertyName("theme_color")]
+    public string? ThemeColor { get; set; }
+    [JsonPropertyName("background_color")]
+    public string? BackgroundColor { get; set; }
+    [JsonPropertyName("shortcuts")]
+    public List<ShortcutItem>? Shortcuts { get; set; }
+
+    public virtual string ToJson() => JsonSerializer.Serialize(this);
+    public static MicroModuleManifest? FromJson(string json) =>
+        JsonSerializer.Deserialize<MicroModuleManifest>(json);
+
+    public bool Equals(MicroModuleManifest? other)
+    {
+        return GetHashCode() == other?.GetHashCode();
+    }
+
+    public override int GetHashCode()
+    {
+        return Mmid.GetHashCode() ^
+            IpcSupportProtocols.GetHashCode() ^
+            Dweb_deeplinks.GetHashCode() ^
+            Categories.GetHashCode() ^
+            Name.GetHashCode() ^
+            Version?.GetHashCode() ?? 0 ^
+            Dir?.GetHashCode() ?? 0 ^
+            Lang?.GetHashCode() ?? 0 ^
+            ShortName?.GetHashCode() ?? 0 ^
+            Description?.GetHashCode() ?? 0 ^
+            Icons?.GetHashCode() ?? 0 ^
+            Screenshots?.GetHashCode() ?? 0 ^
+            Display?.GetHashCode() ?? 0 ^
+            Orientation?.GetHashCode() ?? 0 ^
+            ThemeColor?.GetHashCode() ?? 0 ^
+            BackgroundColor?.GetHashCode() ?? 0 ^
+            Shortcuts?.GetHashCode() ?? 0;
+    }
 }

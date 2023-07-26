@@ -7,18 +7,16 @@ sealed internal class JmmDatabase : FileStore
 {
     internal static JmmDatabase Instance = new("jmm-apps");
 
-    private static int s_id = 0;
-    public static readonly State<int> AppMetadataUpdate = new(s_id);
     internal JmmDatabase(string name, StoreOptions options = default) : base(name, options)
     {
     }
 
-    private Dictionary<string, AppMetaData> Apps
+    private Dictionary<Mmid, IJmmAppInstallManifest> Apps
     {
         get
         {
-            var dic = Get("apps", () => JsonSerializer.Serialize(new Dictionary<string, AppMetaData>()));
-            return JsonSerializer.Deserialize<Dictionary<string, AppMetaData>>(dic);
+            var dic = Get("apps", () => JsonSerializer.Serialize(new Dictionary<Mmid, IJmmAppInstallManifest>()));
+            return JsonSerializer.Deserialize<Dictionary<Mmid, IJmmAppInstallManifest>>(dic);
         }
     }
 
@@ -27,7 +25,7 @@ sealed internal class JmmDatabase : FileStore
         Set("apps", JsonSerializer.Serialize(Apps));
     }
 
-    internal bool Upsert(AppMetaData app)
+    internal bool Upsert(IJmmAppInstallManifest app)
     {
         var oldApp = Apps.GetValueOrDefault(app.Id);
 
@@ -36,14 +34,13 @@ sealed internal class JmmDatabase : FileStore
             return true;
         }
 
-        //app.Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         Apps.Add(app.Id, app);
 
         Save();
         return true;
     }
 
-    internal AppMetaData? Find(Mmid mmid)
+    internal IJmmAppInstallManifest? Find(Mmid mmid)
     {
         return Apps.GetValueOrDefault(mmid);
     }
@@ -60,5 +57,5 @@ sealed internal class JmmDatabase : FileStore
         return false;
     }
 
-    internal List<AppMetaData> All() => Apps.Values.OrderByDescending(it => it.Timestamp).ToList();
+    internal List<IJmmAppInstallManifest> All() => Apps.Values.ToList();
 }

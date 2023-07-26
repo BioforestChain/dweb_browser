@@ -3,10 +3,10 @@
 public class NativeIpc : Ipc
 {
     public NativePort<IpcMessage, IpcMessage> Port;
-    public override IMicroModuleInfo Remote { get; set; }
+    public override IMicroModule Remote { get; set; }
     private IPC_ROLE RoleType { get; set; }
 
-    public NativeIpc(NativePort<IpcMessage, IpcMessage> port, IMicroModuleInfo remote, IPC_ROLE role)
+    public NativeIpc(NativePort<IpcMessage, IpcMessage> port, IMicroModule remote, IPC_ROLE role)
     {
         Port = port;
         Remote = remote;

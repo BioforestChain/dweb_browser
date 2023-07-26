@@ -5,12 +5,27 @@ public abstract class NativeMicroModule : MicroModule
     static readonly Debugger Console = new("NMM");
     protected HttpRouter HttpRouter = new();
     public override List<Dweb_DeepLink> Dweb_deeplinks { get; init; } = new();
+    public override List<MicroModuleCategory> Categories { get; init; } = new();
     public override IpcSupportProtocols IpcSupportProtocols { get; init; } = new()
     {
         Cbor = true,
         Protobuf = true,
         Raw = true
     };
+    
+    public override string Name { get; set; } = "NMM";
+    public override TextDirectionType? Dir { get; set; } = null;
+    public override string? Version { get; set; } = null;
+    public override string? Lang { get; set; } = null;
+    public override string? ShortName { get; set; } = null;
+    public override string? Description { get; set; } = null;
+    public override List<ImageSource>? Icons { get; set; } = null;
+    public override List<ImageSource>? Screenshots { get; set; } = null;
+    public override DisplayModeType? Display { get; set; } = DisplayModeType.Standalone;
+    public override OrientationType? Orientation { get; set; } = null;
+    public override string? ThemeColor { get; set; } = null;
+    public override string? BackgroundColor { get; set; } = null;
+    public override List<ShortcutItem>? Shortcuts { get; set; } = null;
 
     static NativeMicroModule()
     {
