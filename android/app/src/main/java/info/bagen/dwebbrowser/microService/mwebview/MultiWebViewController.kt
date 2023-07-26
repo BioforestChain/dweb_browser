@@ -52,6 +52,7 @@ class MultiWebViewController(
   fun isLastView(viewItem: MultiViewItem) = webViewList.lastOrNull() == viewItem
   fun isFistView(viewItem: MultiViewItem) = webViewList.firstOrNull() == viewItem
   val lastViewOrNull get() = webViewList.lastOrNull()
+  fun getWebView(webviewId: String) = webViewList.find { it.webviewId == webviewId }
 
   private val mIpcMap = mutableMapOf<Mmid, Ipc>()
 

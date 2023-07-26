@@ -51,7 +51,7 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.browser.dweb") {
           controller?.destroyWebView()
         }
 
-        val viewItem = openDwebView(remoteMm, url);
+        val viewItem = openDwebView(remoteMm, url)
         return@defineHandler ViewItemResponse(viewItem.webviewId)
       },
       // 关闭指定 webview 窗口

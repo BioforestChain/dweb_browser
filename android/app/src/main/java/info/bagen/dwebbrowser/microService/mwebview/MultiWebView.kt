@@ -14,10 +14,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusRequester
 import com.google.accompanist.web.WebView
 import kotlinx.coroutines.launch
+import org.dweb_browser.helper.Mmid
 
 @Composable
-fun MultiWebView(wc: MultiWebViewController, viewItem: MultiWebViewController.MultiViewItem) {
+fun MultiWebView(mmid: Mmid, viewItem: MultiWebViewController.MultiViewItem) {
   key(viewItem.webviewId) {
+    val wc = MultiWebViewNMM.getCurrentWebViewController(mmid) ?: return@key
     val nativeUiController = viewItem.nativeUiController.effect()
     val state = viewItem.state
     val navigator = viewItem.navigator
@@ -62,6 +64,5 @@ fun MultiWebView(wc: MultiWebViewController, viewItem: MultiWebViewController.Mu
       )
       chromeClient.BeforeUnloadDialog()
     }
-
   }
 }

@@ -33,6 +33,7 @@ import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.microService.core.WindowAppInfo
 import info.bagen.dwebbrowser.microService.desktop.model.LocalDrawerManager
 import info.bagen.dwebbrowser.microService.desktop.model.LocalOpenList
+import info.bagen.dwebbrowser.microService.mwebview.MultiWebView
 import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
 
 @Composable
@@ -83,15 +84,18 @@ internal fun ToolbarAndWebView(windowAppInfo: WindowAppInfo) {
       }
   ) {
 
+
     Box(
       modifier = Modifier
         .fillMaxSize()
         .align(Alignment.TopStart)
         .background(Color.Black)
         .padding(1.dp)
-        .background(MaterialTheme.colorScheme.error)
+        .background(MaterialTheme.colorScheme.background)
     ) {
-
+      windowAppInfo.viewItem?.let { multiViewItem ->
+        MultiWebView(mmid = windowAppInfo.jsMicroModule.mmid, viewItem = multiViewItem)
+      }
     }
     Box(modifier = Modifier
       .pointerInput(windowAppInfo) {
