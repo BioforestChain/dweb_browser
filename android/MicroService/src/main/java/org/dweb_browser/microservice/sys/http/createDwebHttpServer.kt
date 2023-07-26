@@ -1,14 +1,11 @@
 package org.dweb_browser.microservice.sys.http
 
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import org.dweb_browser.helper.PromiseOut
-import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.helper.DWEB_DEEPLINK
-import org.dweb_browser.helper.MicroModuleCategory
-import org.dweb_browser.helper.Mmid
+import org.dweb_browser.helper.MICRO_MODULE_CATEGORY
+import org.dweb_browser.helper.MMID
+import org.dweb_browser.helper.MicroModuleManifest
 import org.dweb_browser.microservice.help.boolean
 import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.help.json
@@ -44,14 +41,21 @@ suspend fun MicroModule.startHttpDwebServer(options: DwebHttpServerOptions) =
 
 
 suspend fun MicroModule.listenHttpDwebServer(
+  microModule: MicroModuleManifest,
   startResult: HttpNMM.ServerStartResult,
-  routes: Array<Gateway.RouteConfig>
+  routes: Array<Gateway.RouteConfig> = arrayOf(
+    Gateway.RouteConfig(pathname = "", method = IpcMethod.GET),
+    Gateway.RouteConfig(pathname = "", method = IpcMethod.POST),
+    Gateway.RouteConfig(pathname = "", method = IpcMethod.PUT),
+    Gateway.RouteConfig(pathname = "", method = IpcMethod.DELETE),
+    Gateway.RouteConfig(pathname = "", method = IpcMethod.OPTIONS),
+    Gateway.RouteConfig(pathname = "", method = IpcMethod.PATCH),
+    Gateway.RouteConfig(pathname = "", method = IpcMethod.HEAD),
+    Gateway.RouteConfig(pathname = "", method = IpcMethod.CONNECT),
+    Gateway.RouteConfig(pathname = "", method = IpcMethod.TRACE)
+  )
 ): ReadableStreamIpc {
-  val streamIpc = ReadableStreamIpc(object : Ipc.MicroModuleInfo {
-    override val mmid: Mmid = "http.std.dweb"
-    override val dweb_deeplinks = mutableListOf<DWEB_DEEPLINK>()
-    override val categories: MutableList<MicroModuleCategory> = mutableListOf()
-  }, "http-server/${startResult.urlInfo.host}").also {
+  val streamIpc = ReadableStreamIpc(microModule, "http-server/${startResult.urlInfo.host}").also {
     it.bindIncomeStream(
       this.nativeFetch(
         Request(
@@ -86,17 +90,8 @@ class HttpDwebServer(
       throw Exception("Listen method has been called more than once without closing.");
     }
     val streamIpc = nmm.listenHttpDwebServer(
-      startResult, arrayOf(
-        Gateway.RouteConfig(pathname = "", method = IpcMethod.GET),
-        Gateway.RouteConfig(pathname = "", method = IpcMethod.POST),
-        Gateway.RouteConfig(pathname = "", method = IpcMethod.PUT),
-        Gateway.RouteConfig(pathname = "", method = IpcMethod.DELETE),
-        Gateway.RouteConfig(pathname = "", method = IpcMethod.OPTIONS),
-        Gateway.RouteConfig(pathname = "", method = IpcMethod.PATCH),
-        Gateway.RouteConfig(pathname = "", method = IpcMethod.HEAD),
-        Gateway.RouteConfig(pathname = "", method = IpcMethod.CONNECT),
-        Gateway.RouteConfig(pathname = "", method = IpcMethod.TRACE)
-      )
+      nmm,
+      startResult
     )
     listenPo.resolve(streamIpc)
     return@suspendOnce streamIpc

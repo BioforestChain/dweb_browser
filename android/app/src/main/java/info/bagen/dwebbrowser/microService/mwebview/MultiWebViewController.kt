@@ -16,7 +16,7 @@ import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.helper.Callback
 import org.dweb_browser.helper.ChangeableList
-import org.dweb_browser.helper.Mmid
+import org.dweb_browser.helper.MMID
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.runBlockingCatching
@@ -32,7 +32,7 @@ import java.util.concurrent.atomic.AtomicInteger
  */
 @Stable
 class MultiWebViewController(
-  private val mmid: Mmid,
+  private val mmid: MMID,
   private val localeMM: MultiWebViewNMM,
   private val remoteMM: MicroModule,
   private val activity: BaseActivity?
@@ -54,7 +54,7 @@ class MultiWebViewController(
   val lastViewOrNull get() = webViewList.lastOrNull()
   fun getWebView(webviewId: String) = webViewList.find { it.webviewId == webviewId }
 
-  private val mIpcMap = mutableMapOf<Mmid, Ipc>()
+  private val mIpcMap = mutableMapOf<MMID, Ipc>()
 
   data class MultiViewItem(
     override val webviewId: String,

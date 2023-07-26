@@ -9,7 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.base.BaseActivity
-import org.dweb_browser.helper.AppMetaData
+import org.dweb_browser.helper.JmmAppInstallManifest
 import info.bagen.dwebbrowser.microService.browser.jmm.JmmNMM
 
 class JmmManagerActivity : BaseActivity() {
@@ -18,7 +18,7 @@ class JmmManagerActivity : BaseActivity() {
     const val ACTION_LAUNCH = "info.bagen.dwebbrowser.openjmm"
     const val KEY_JMM_METADATA = "key_jmm_meta_data"
 
-    fun startActivity(dataMetadata: AppMetaData) {
+    fun startActivity(dataMetadata: JmmAppInstallManifest) {
       App.startActivity(JmmManagerActivity::class.java) { intent ->
         intent.action = ACTION_LAUNCH
         intent.`package` = "info.bagen.dwebbrowser"
@@ -39,8 +39,8 @@ class JmmManagerActivity : BaseActivity() {
 
   override fun initData() {
     intent.getSerializableExtra(KEY_JMM_METADATA)?.let {
-      val appMetaData = it as AppMetaData
-      jmmManagerViewModel = JmmManagerViewModel(appMetaData, JmmNMM.jmmController)
+      val jmmAppInstallManifest = it as JmmAppInstallManifest
+      jmmManagerViewModel = JmmManagerViewModel(jmmAppInstallManifest, JmmNMM.jmmController)
     }
   }
 

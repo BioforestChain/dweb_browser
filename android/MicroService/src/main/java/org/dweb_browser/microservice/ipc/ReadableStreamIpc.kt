@@ -7,6 +7,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.dweb_browser.helper.MicroModuleManifest
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printdebugln
@@ -39,7 +40,7 @@ fun debugStreamIpc(tag: String, msg: Any = "", err: Throwable? = null) =
  * 以及需要手动绑定输入流 {@link bindIncomeStream}
  */
 class ReadableStreamIpc(
-    override val remote: MicroModuleInfo,
+    override val remote: MicroModuleManifest,
     override val role: String,
 ) : Ipc() {
     companion object {
@@ -48,7 +49,7 @@ class ReadableStreamIpc(
     }
 
     constructor(
-        remote: MicroModuleInfo,
+        remote: MicroModuleManifest,
         role: IPC_ROLE,
     ) : this(remote, role.role)
 

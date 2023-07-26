@@ -1,14 +1,15 @@
 package info.bagen.dwebbrowser.microService.mwebview
 
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
-import info.bagen.dwebbrowser.microService.core.WindowAppInfo
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.browserUI.download.DownLoadObserver
 import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.dwebview.serviceWorker.emitEvent
-import org.dweb_browser.helper.Mmid
-import org.dweb_browser.helper.*
+import org.dweb_browser.helper.MICRO_MODULE_CATEGORY
+import org.dweb_browser.helper.MMID
+import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.printdebugln
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.MicroModule
 import org.http4k.core.Method
@@ -22,14 +23,18 @@ import org.http4k.routing.routes
 fun debugMultiWebView(tag: String, msg: Any? = "", err: Throwable? = null) =
   printdebugln("mwebview", tag, msg, err)
 
-class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.browser.dweb") {
+class MultiWebViewNMM :
+  AndroidNativeMicroModule("mwebview.browser.dweb", "Multi Webview Renderer") {
+  override val short_name = "MWebview";
+  override val categories =
+    mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service);
 
   companion object {
-    private val controllerMap = mutableMapOf<Mmid, MultiWebViewController>()
+    private val controllerMap = mutableMapOf<MMID, MultiWebViewController>()
 
     /**获取当前的controller, 只能给nativeUI 使用，因为他们是和mwebview绑定在一起的
      */
-    fun getCurrentWebViewController(mmid: Mmid): MultiWebViewController? {
+    fun getCurrentWebViewController(mmid: MMID): MultiWebViewController? {
       return controllerMap[mmid]
     }
   }
@@ -88,7 +93,7 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.browser.dweb") {
     val remoteMmid = remoteMm.mmid
     debugMultiWebView("/open", "remote-mmid: $remoteMmid / url:$url")
     val controller = controllerMap.getOrPut(remoteMmid) {
-      MultiWebViewController(remoteMmid, this, remoteMm,getActivity())
+      MultiWebViewController(remoteMmid, this, remoteMm, getActivity())
     }
     GlobalScope.launch(ioAsyncExceptionHandler) {
       controller.downLoadObserver = DownLoadObserver(remoteMmid).apply {

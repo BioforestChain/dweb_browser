@@ -1,5 +1,6 @@
 package info.bagen.dwebbrowser.microService.sys.haptics
 
+import org.dweb_browser.helper.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.http4k.core.Method
@@ -11,7 +12,10 @@ import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 
-class HapticsNMM : NativeMicroModule("haptics.sys.dweb") {
+class HapticsNMM : NativeMicroModule("haptics.sys.dweb","haptics") {
+
+    override val categories = mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Device_Management_Service);
+
     private val vibrateManage = VibrateManage()
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
         val query_type = Query.string().optional("style")

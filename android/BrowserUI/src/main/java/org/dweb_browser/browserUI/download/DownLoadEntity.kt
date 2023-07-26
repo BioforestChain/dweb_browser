@@ -5,10 +5,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import org.dweb_browser.dwebview.serviceWorker.DownloadControllerEvent
-import org.dweb_browser.helper.AppMetaData
+import org.dweb_browser.helper.JmmAppInstallManifest
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.runBlockingCatching
-import org.dweb_browser.helper.Mmid
+import org.dweb_browser.helper.MMID
 import java.math.RoundingMode
 import java.text.DecimalFormat
 
@@ -26,7 +26,7 @@ enum class DownLoadStatus {
 }
 
 data class DownLoadInfo(
-  val id: Mmid,
+  val id: MMID,
   val url: String, // 下载地址
   val name: String, // 软件名称
   var path: String = "", // 文件下载路径
@@ -35,23 +35,23 @@ data class DownLoadInfo(
   var dSize: Long = 1L, // 已下载大小
   // var progress: Float = 0f, // 进度 0~1
   var downLoadStatus: DownLoadStatus = DownLoadStatus.IDLE, // 标记当前下载状态
-  val metaData: AppMetaData = AppMetaData(id), // 保存app数据，如jmmMetadata
+  val metaData: JmmAppInstallManifest = JmmAppInstallManifest(id = id), // 保存app数据，如jmmMetadata
 )
 
 data class DownLoadObserverListener(
-  val mmid: Mmid,
+  val mmid: MMID,
   val downLoadStatus: DownLoadStatus,
   val downLoadSize: Long = 0L,
   val totalSize: Long = 1L,
   val progress: String = if (totalSize == 0L) "0" else (1.0f * downLoadSize / totalSize).moreThanTwoDigits()
 )
 
-class DownLoadObserver(private val mmid: Mmid) {
+class DownLoadObserver(private val mmid: MMID) {
   companion object {
-    private val downloadMap = mutableMapOf<Mmid, MutableList<DownLoadObserver>>()
+    private val downloadMap = mutableMapOf<MMID, MutableList<DownLoadObserver>>()
 
     fun emit(
-      mmid: Mmid, status: DownLoadStatus, downLoadSize: Long = 0L, totalSize: Long = 1L
+      mmid: MMID, status: DownLoadStatus, downLoadSize: Long = 0L, totalSize: Long = 1L
     ) {
       runBlockingCatching(ioAsyncExceptionHandler) {
         val listener = DownLoadObserverListener(mmid, status, downLoadSize, totalSize)
@@ -59,7 +59,7 @@ class DownLoadObserver(private val mmid: Mmid) {
       }
     }
 
-    fun close(mmid: Mmid) {
+    fun close(mmid: MMID) {
       downloadMap.remove(mmid)
     }
   }

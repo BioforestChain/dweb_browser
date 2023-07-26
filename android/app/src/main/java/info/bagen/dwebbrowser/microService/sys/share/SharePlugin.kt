@@ -9,7 +9,7 @@ import android.os.Build
 import android.webkit.MimeTypeMap
 import androidx.core.content.FileProvider
 import info.bagen.dwebbrowser.App
-import org.dweb_browser.helper.Mmid
+import org.dweb_browser.helper.MMID
 import org.dweb_browser.helper.*
 import java.io.File
 
@@ -167,7 +167,7 @@ object SharePlugin {
         content: String?,
         title: String?,
         subject: String?,
-        mmid: Mmid
+        mmid: MMID
     ) {
         val intent = Intent().apply {
             action = Intent.ACTION_SEND
@@ -197,7 +197,7 @@ object SharePlugin {
         content: String?,
         title: String?,
         subject: String?,
-        mmid: Mmid
+        mmid: MMID
     ) {
         val intent = Intent().apply {
             action = Intent.ACTION_SEND
@@ -221,7 +221,7 @@ object SharePlugin {
     /**
      * 分享图片
      */
-    private fun shareImg(packageName: String?, className: String?, file: File, mmid: Mmid) {
+    private fun shareImg(packageName: String?, className: String?, file: File, mmid: MMID) {
         if (file.exists()) {
             val uri: Uri = Uri.fromFile(file)
             val intent = Intent().apply {
@@ -244,7 +244,7 @@ object SharePlugin {
     /**
      * 分享音乐
      */
-    private fun shareAudio(packageName: String?, className: String?, file: File, mmid: Mmid) {
+    private fun shareAudio(packageName: String?, className: String?, file: File, mmid: MMID) {
         if (file.exists()) {
             val uri: Uri = Uri.fromFile(file)
             val intent = Intent().apply {
@@ -267,7 +267,7 @@ object SharePlugin {
     /**
      * 分享视频
      */
-    private fun shareVideo(packageName: String?, className: String?, file: File, mmid: Mmid) {
+    private fun shareVideo(packageName: String?, className: String?, file: File, mmid: MMID) {
         setIntent("video/*", packageName, className, file, mmid)
     }
 
@@ -276,7 +276,7 @@ object SharePlugin {
         packageName: String?,
         className: String?,
         file: File,
-        mmid: Mmid
+        mmid: MMID
     ) {
         if (file.exists()) {
             val uri: Uri = Uri.fromFile(file)
@@ -304,7 +304,7 @@ object SharePlugin {
      * @param file 图片文件
      */
     private fun shareImgToWXCircle(
-        title: String?, packageName: String?, className: String?, file: File, mmid: Mmid
+        title: String?, packageName: String?, className: String?, file: File, mmid: MMID
     ) {
         if (file.exists()) {
             val uri: Uri = Uri.fromFile(file)
@@ -325,7 +325,7 @@ object SharePlugin {
      * 是否安装分享app
      * @param packageName
      */
-    private fun checkInstall(packageName: String, mmid: Mmid): Boolean {
+    private fun checkInstall(packageName: String, mmid: MMID): Boolean {
         return try {
 //            MultiWebViewNMM.getCurrentWebViewController(mmid)?.activity?.packageManager?.getPackageInfo(packageName, PackageManager.GET_ACTIVITIES)
             true
@@ -339,7 +339,7 @@ object SharePlugin {
     /**
      * 跳转官方安装网址
      */
-    private fun toInstallWebView(url: String?, mmid: Mmid) {
+    private fun toInstallWebView(url: String?, mmid: MMID) {
         val intent = Intent().apply {
             action = Intent.ACTION_VIEW
             data = Uri.parse(url)

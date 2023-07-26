@@ -3,7 +3,6 @@ package info.bagen.dwebbrowser.microService.sys.share
 import android.content.Intent
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
-import org.dweb_browser.helper.Mmid
 import org.dweb_browser.helper.*
 import info.bagen.dwebbrowser.microService.sys.fileSystem.EFileDirectory
 import info.bagen.dwebbrowser.microService.sys.share.ShareController.Companion.controller
@@ -25,7 +24,9 @@ data class ShareOptions(
 fun debugShare(tag: String, msg: Any? = "", err: Throwable? = null) =
   printdebugln("Share", tag, msg, err)
 
-class ShareNMM : AndroidNativeMicroModule("share.sys.dweb") {
+class ShareNMM : AndroidNativeMicroModule("share.sys.dweb","share") {
+
+    override val categories = mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Protocol_Service);
 
     private val plugin = CacheFilePlugin()
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {

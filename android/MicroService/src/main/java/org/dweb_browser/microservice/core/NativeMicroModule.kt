@@ -1,7 +1,7 @@
 package org.dweb_browser.microservice.core
 
 import org.dweb_browser.helper.*
-import org.dweb_browser.helper.Mmid
+import org.dweb_browser.helper.MMID
 import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.NativeIpc
@@ -18,11 +18,24 @@ import java.io.InputStream
 fun debugNMM(tag: String, msg: Any = "", err: Throwable? = null) =
   printdebugln("DNS", tag, msg, err)
 
-abstract class NativeMicroModule(override val mmid: Mmid) : MicroModule() {
-  override val categories: MutableList<MicroModuleCategory>
-    get() = mutableListOf()
-  override val dweb_deeplinks: MutableList<DWEB_DEEPLINK>
-    get() = mutableListOf()
+abstract class NativeMicroModule(override val mmid: MMID, override val name: String) :
+  MicroModule() {
+  override val ipc_support_protocols =
+    IpcSupportProtocols(cbor = true, protobuf = true, raw = true)
+  override val categories: MutableList<MICRO_MODULE_CATEGORY> = mutableListOf()
+  override val dweb_deeplinks: MutableList<DWEB_DEEPLINK> = mutableListOf()
+  override val dir: String? = null
+  override val lang: String? = null
+  override val short_name: String = ""
+  override val description: String? = null
+  override val icons: List<ImageResource>? = null
+  override val display: DisplayMode? = null
+  override val orientation: String? = null
+  override val screenshots: List<ImageResource>? = null
+  override val shortcuts: List<ShortcutItem>  = emptyList()
+  override val theme_color: String? = null
+  override val background_color: String = "#ffffff"
+
 
   companion object {
     init {

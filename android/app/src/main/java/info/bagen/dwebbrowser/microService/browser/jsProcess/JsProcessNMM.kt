@@ -7,7 +7,7 @@ import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.helper.IpcHeaders
 import org.dweb_browser.microservice.ipc.helper.IpcResponse
 import org.dweb_browser.microservice.ipc.ReadableStreamIpc
-import org.dweb_browser.helper.Mmid
+import org.dweb_browser.helper.MMID
 import org.dweb_browser.helper.encodeURI
 import org.dweb_browser.helper.*
 import org.dweb_browser.microservice.sys.http.DwebHttpServerOptions
@@ -32,7 +32,8 @@ import org.http4k.routing.routes
 fun debugJsProcess(tag: String, msg: Any? = "", err: Throwable? = null) =
   printdebugln("js-process", tag, msg, err)
 
-class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
+class JsProcessNMM : NativeMicroModule("js.browser.dweb","Js Process") {
+  override val categories = mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Process_Service);
 
   private val JS_PROCESS_WORKER_CODE by lazy {
     runBlockingCatching {
@@ -263,7 +264,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
       )
     }
 
-    data class JsProcessMetadata(val mmid: Mmid) {}
+    data class JsProcessMetadata(val mmid: MMID) {}
     /// TODO 需要传过来，而不是自己构建
     val metadata = JsProcessMetadata(ipc.remote.mmid)
 
@@ -328,7 +329,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
   )
 
   private suspend fun createIpc(
-    ipc: Ipc, apis: JsProcessWebApi, process_id: Int, mmid: Mmid
+    ipc: Ipc, apis: JsProcessWebApi, process_id: Int, mmid: MMID
   ): Int {
     return apis.createIpc(process_id, mmid)
   }
@@ -336,7 +337,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb") {
   private suspend fun closeAllProcessByIpc(
     apis: JsProcessWebApi,
     ipcProcessIdMap: MutableMap<String, MutableMap<String, PromiseOut<Int>>>,
-    mmid: Mmid
+    mmid: MMID
   ): Boolean {
     debugJsProcess("close-all-process", mmid)
     val processMap = ipcProcessIdMap.remove(mmid) ?: return false;

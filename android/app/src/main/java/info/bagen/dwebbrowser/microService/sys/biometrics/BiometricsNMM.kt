@@ -3,7 +3,7 @@ package info.bagen.dwebbrowser.microService.sys.biometrics
 import android.content.Intent
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
-import org.dweb_browser.helper.Mmid
+import org.dweb_browser.helper.MMID
 import org.dweb_browser.helper.*
 import info.bagen.dwebbrowser.microService.sys.biometrics.BiometricsActivity.Companion.biometrics_promise_out
 import info.bagen.dwebbrowser.microService.sys.biometrics.BiometricsController.Companion.biometricsController
@@ -19,7 +19,9 @@ import org.http4k.routing.routes
 fun debugBiometrics(tag: String, msg: Any? = "", err: Throwable? = null) =
   printdebugln("biometrics", tag, msg, err)
 
-class BiometricsNMM: AndroidNativeMicroModule("biometrics.sys.dweb") {
+class BiometricsNMM: AndroidNativeMicroModule("biometrics.sys.dweb","biometrics") {
+
+    override val categories = mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Machine_Learning_Service);
 
     val queryType = Query.string().defaulted("type", "")
     val queryBiometricsData = Query.composite { spec ->
@@ -55,7 +57,7 @@ class BiometricsNMM: AndroidNativeMicroModule("biometrics.sys.dweb") {
             })
     }
 
-    fun openActivity(remoteMmid: Mmid) {
+    fun openActivity(remoteMMID: MMID) {
         val activity = getActivity()
         val intent = Intent(getActivity(), BiometricsActivity::class.java)
         intent.`package` = App.appContext.packageName
@@ -63,7 +65,7 @@ class BiometricsNMM: AndroidNativeMicroModule("biometrics.sys.dweb") {
         activity?.startActivity(intent)
     }
 
-    private fun openActivity(remoteMmid: Mmid, data: BiometricsData) {
+    private fun openActivity(remoteMMID: MMID, data: BiometricsData) {
         val activity = getActivity()
         val intent = Intent(getActivity(), BiometricsActivity::class.java)
         intent.`package` = App.appContext.packageName

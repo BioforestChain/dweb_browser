@@ -10,7 +10,9 @@ import org.http4k.routing.routes
 fun debugFileSystem(tag: String, msg: Any? = "", err: Throwable? = null) =
   printdebugln("FileSystem", tag, msg, err)
 
-class FileSystemNMM : NativeMicroModule("file.sys.dweb") {
+class FileSystemNMM : NativeMicroModule("file.sys.dweb","file") {
+
+  override val categories = mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Protocol_Service);
 
 //    val plugin = CacheFilePlugin()
 

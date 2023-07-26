@@ -16,7 +16,10 @@ import java.util.UUID
 fun debugDevice(tag: String, msg: Any? = "", err: Throwable? = null) =
   printdebugln("Device", tag, msg, err)
 
-class DeviceNMM: NativeMicroModule("device.sys.dweb") {
+class DeviceNMM: NativeMicroModule("device.sys.dweb","Device Info") {
+
+  override val short_name = "Device";
+  override val categories = mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Device_Management_Service);
 
     val deviceInfo = DeviceInfo()
     val UUID_KEY = "UUID"

@@ -2,7 +2,7 @@ package org.dweb_browser.microservice.core
 
 import org.dweb_browser.helper.*
 import org.dweb_browser.helper.DWEB_DEEPLINK
-import org.dweb_browser.helper.Mmid
+import org.dweb_browser.helper.MMID
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
 import org.http4k.core.*
@@ -16,10 +16,24 @@ enum class MMState {
   SHUTDOWN,
 }
 
-abstract class MicroModule : Ipc.MicroModuleInfo {
-  abstract override val mmid: Mmid
-  abstract override val dweb_deeplinks:MutableList<DWEB_DEEPLINK>
-  abstract override val categories: MutableList<MicroModuleCategory>
+abstract class MicroModule : MicroModuleManifest {
+  abstract override val mmid: MMID
+  abstract override val dweb_deeplinks: List<DWEB_DEEPLINK>
+  abstract override val categories: List<MICRO_MODULE_CATEGORY>
+  abstract override val dir: String?
+  abstract override val lang: String?
+  abstract override val name: String
+  abstract override val short_name: String
+  abstract override val description: String?
+  abstract override val icons: List<ImageResource>?
+  abstract override val display: DisplayMode?
+  abstract override val orientation: String?
+  abstract override val screenshots: List<ImageResource>?
+  abstract override val shortcuts: List<ShortcutItem>
+  abstract override val theme_color: String?
+  abstract override val ipc_support_protocols: IpcSupportProtocols
+  abstract override val background_color: String
+
   open val routers: Router? = null
 
   private var runningStateLock = StatePromiseOut.resolve(MMState.SHUTDOWN)
@@ -114,12 +128,10 @@ abstract class MicroModule : Ipc.MicroModuleInfo {
   /**
    * 尝试连接到指定对象
    */
-  suspend fun connect(mmid: Mmid):Ipc {
-   val (ipc) = this.bootstrapContext.dns.connect(mmid)
+  suspend fun connect(mmid: MMID): Ipc {
+    val (ipc) = this.bootstrapContext.dns.connect(mmid)
     return ipc
   }
-
-
 
 
   /**

@@ -1,11 +1,7 @@
 package info.bagen.dwebbrowser.microService.browser.mwebview
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.lifecycleScope
 import com.google.accompanist.web.WebContent
 import com.google.accompanist.web.WebViewNavigator
@@ -27,12 +23,11 @@ import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.microservice.core.MicroModule
-import org.dweb_browser.helper.Mmid
+import org.dweb_browser.helper.MMID
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
 import org.json.JSONObject
 import java.util.concurrent.atomic.AtomicInteger
-import kotlin.properties.Delegates
 
 /**
  * MWebView 是为其它模块提供 GUI 的程序模块，所以这里需要传入两个模块：localeMM 与 remoteMM
@@ -40,7 +35,7 @@ import kotlin.properties.Delegates
  */
 @Stable
 class MultiWebViewController(
-  val mmid: Mmid,
+  val mmid: MMID,
   val localeMM: MultiWebViewNMM,
   val remoteMM: MicroModule,
 ) {
@@ -65,7 +60,7 @@ class MultiWebViewController(
   fun isFistView(viewItem: MultiViewItem) = webViewList.firstOrNull() == viewItem
   val lastViewOrNull get() = webViewList.lastOrNull()
 
-  private val mIpcMap = mutableMapOf<Mmid, Ipc>()
+  private val mIpcMap = mutableMapOf<MMID, Ipc>()
 
   data class MultiViewItem(
     override val webviewId: String,

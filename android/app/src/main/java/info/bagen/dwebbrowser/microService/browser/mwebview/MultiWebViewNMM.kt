@@ -2,7 +2,6 @@ package info.bagen.dwebbrowser.microService.browser.mwebview
 
 import android.content.Intent
 import android.os.Bundle
-import androidx.compose.runtime.currentRecomposeScope
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
 import kotlinx.coroutines.GlobalScope
@@ -10,7 +9,7 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.browserUI.download.DownLoadObserver
 import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.dwebview.serviceWorker.emitEvent
-import org.dweb_browser.helper.Mmid
+import org.dweb_browser.helper.MMID
 import org.dweb_browser.helper.*
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.MicroModule
@@ -26,8 +25,11 @@ import kotlinx.coroutines.*
 fun debugMultiWebView(tag: String, msg: Any? = "", err: Throwable? = null) =
   printdebugln("mwebview", tag, msg, err)
 
-class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.browser.dweb") {
-  class ActivityClass(var mmid: Mmid, val ctor: Class<out MultiWebViewActivity>)
+class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.browser.dweb","Multi Webview Renderer") {
+  override val short_name = "MWebview";
+  override val categories = mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service);
+
+  class ActivityClass(var mmid: MMID, val ctor: Class<out MultiWebViewActivity>)
 
   companion object {
     val activityClassList = mutableListOf(
@@ -37,12 +39,12 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.browser.dweb") {
       ActivityClass("", MultiWebViewPlaceholder4Activity::class.java),
       ActivityClass("", MultiWebViewPlaceholder5Activity::class.java),
     )
-    private val controllerMap = mutableMapOf<Mmid, MultiWebViewController>()
+    private val controllerMap = mutableMapOf<MMID, MultiWebViewController>()
 
     /**获取当前的controller, 只能给nativeUI 使用，因为他们是和mwebview绑定在一起的
      */
     @Deprecated("将不会再提供这个函数")
-    fun getCurrentWebViewController(mmid: Mmid): MultiWebViewController? {
+    fun getCurrentWebViewController(mmid: MMID): MultiWebViewController? {
       return controllerMap[mmid]
     }
   }
@@ -105,12 +107,12 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.browser.dweb") {
     apiRouting = null
   }
 
-  private fun openActivity(remoteMmid: Mmid) {
+  private fun openActivity(remoteMMID: MMID) {
     val flags = mutableListOf<Int>(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
-    val activityClass = activityClassList.find { it.mmid == remoteMmid } ?:
+    val activityClass = activityClassList.find { it.mmid == remoteMMID } ?:
     // 如果没有，从第一个挪出来，放到最后一个，并将至付给 remoteMmid
     activityClassList.removeAt(0).also {
-      it.mmid = remoteMmid
+      it.mmid = remoteMMID
       activityClassList.add(it)
     }
     flags.add(Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
@@ -119,7 +121,7 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.browser.dweb") {
       intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 
       val b = Bundle();
-      b.putString("mmid", remoteMmid);
+      b.putString("mmid", remoteMMID);
       intent.putExtras(b);
     }
   }

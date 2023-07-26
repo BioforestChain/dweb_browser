@@ -4,11 +4,10 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context.NOTIFICATION_SERVICE
-import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import org.dweb_browser.browserUI.R
-import org.dweb_browser.helper.Mmid
+import org.dweb_browser.helper.MMID
 
 class NotificationUtil {
   private val mNormalChannelId = "渠道id" // 唯一性
@@ -118,7 +117,7 @@ class NotificationUtil {
    * 进度条通知
    */
   fun createNotificationForProgress(
-    mmid: Mmid,
+    mmid: MMID,
     notificationId: Int = mProgressNotificationId,
     title: String = "进度通知",
     text: String = "下载中"

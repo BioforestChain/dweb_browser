@@ -5,10 +5,14 @@ import info.bagen.dwebbrowser.microService.browser.nativeui.safeArea.SafeAreaNMM
 import info.bagen.dwebbrowser.microService.browser.nativeui.splashScreen.SplashScreenNMM
 import info.bagen.dwebbrowser.microService.browser.nativeui.statusBar.StatusBarNMM
 import info.bagen.dwebbrowser.microService.browser.nativeui.virtualKeyboard.VirtualKeyboardNMM
+import org.dweb_browser.helper.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 
-class NativeUiNMM : NativeMicroModule("nativeui.browser.dweb") {
+class NativeUiNMM : NativeMicroModule("nativeui.browser.dweb","nativeUi") {
+
+    override val categories = mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service);
+
     private val navigationBarNMM = NavigationBarNMM()
     private val statusBarNMM = StatusBarNMM()
     private val safeAreaNMM = SafeAreaNMM()

@@ -1,8 +1,7 @@
 package info.bagen.dwebbrowser.microService.browser.jmm
 
-import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
-import org.dweb_browser.helper.Mmid
+import org.dweb_browser.helper.MMID
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -17,7 +16,7 @@ class JmmController(private val jmmNMM: JmmNMM) {
 
   private val openLock = Mutex()
 
-  suspend fun openApp(mmid: Mmid) {
+  suspend fun openApp(mmid: MMID) {
     openLock.withLock {
         val (ipc) = jmmNMM.bootstrapContext.dns.connect(mmid)
       debugJMM("openApp", "postMessage==>activity ${ipc.remote.mmid}")
@@ -25,7 +24,7 @@ class JmmController(private val jmmNMM: JmmNMM) {
     }
   }
 
-  suspend fun closeApp(mmid: Mmid) {
+  suspend fun closeApp(mmid: MMID) {
       debugJMM("close APP", "postMessage==>close  $mmid")
       jmmNMM.bootstrapContext.dns.close(mmid)
   }

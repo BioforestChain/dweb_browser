@@ -3,20 +3,21 @@ package info.bagen.dwebbrowser.microService.browser.nativeui.statusBar
 import info.bagen.dwebbrowser.microService.browser.nativeui.NativeUiController
 import info.bagen.dwebbrowser.microService.browser.nativeui.helper.QueryHelper
 import info.bagen.dwebbrowser.microService.browser.nativeui.helper.fromMultiWebView
-import org.dweb_browser.helper.Mmid
+import org.dweb_browser.helper.MICRO_MODULE_CATEGORY
+import org.dweb_browser.helper.MMID
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
-import org.http4k.lens.Query
-import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 
-class StatusBarNMM : NativeMicroModule("status-bar.nativeui.browser.dweb") {
+class StatusBarNMM : NativeMicroModule("status-bar.nativeui.browser.dweb","statusBar") {
 
-  private fun getController(mmid: Mmid) =
+  override val categories = mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service)
+
+  private fun getController(mmid: MMID) =
     NativeUiController.fromMultiWebView(mmid).statusBar
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {

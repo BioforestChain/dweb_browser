@@ -6,7 +6,7 @@ import android.os.Binder
 import android.os.IBinder
 import android.util.Log
 import android.widget.Toast
-import org.dweb_browser.helper.Mmid
+import org.dweb_browser.helper.MMID
 import org.dweb_browser.helper.*
 import kotlinx.coroutines.*
 import org.dweb_browser.browserUI.database.AppInfoDataStore
@@ -18,14 +18,14 @@ import java.io.File
 
 internal interface IDwebBrowserBinder {
   fun invokeDownloadAndSaveZip(downLoadInfo: DownLoadInfo)
-  fun invokeDownloadStatusChange(mmid: Mmid)
-  fun invokeUpdateDownloadStatus(mmid: Mmid, controller: DownLoadController)
+  fun invokeDownloadStatusChange(mmid: MMID)
+  fun invokeUpdateDownloadStatus(mmid: MMID, controller: DownLoadController)
 }
 
 enum class DownLoadController { PAUSE, RESUME, CANCEL }
 
 class DwebBrowserService : Service() {
-  private val downloadMap = mutableMapOf<Mmid, DownLoadInfo>() // 用于监听下载列表
+  private val downloadMap = mutableMapOf<MMID, DownLoadInfo>() // 用于监听下载列表
 
   override fun onBind(intent: Intent?): IBinder {
     return DwebBrowserBinder()
@@ -38,11 +38,11 @@ class DwebBrowserService : Service() {
       downloadAndSaveZip(downLoadInfo)//暴露给Activity的方法
     }
 
-    override fun invokeDownloadStatusChange(mmid: Mmid) {
+    override fun invokeDownloadStatusChange(mmid: MMID) {
       downloadStatusChange(mmid)
     }
 
-    override fun invokeUpdateDownloadStatus(mmid: Mmid, controller: DownLoadController) {
+    override fun invokeUpdateDownloadStatus(mmid: MMID, controller: DownLoadController) {
       updateDownloadStatus(mmid, controller)
     }
   }
@@ -176,7 +176,7 @@ class DwebBrowserService : Service() {
     }
   }
 
-  fun downloadStatusChange(mmid: Mmid) = downloadMap[mmid]?.apply {
+  fun downloadStatusChange(mmid: MMID) = downloadMap[mmid]?.apply {
     if (size == dSize) return@apply // 如果下载完成，就不执行操作
     when (this.downLoadStatus) {
       DownLoadStatus.PAUSE -> updateDownloadStatus(mmid, DownLoadController.RESUME)
@@ -184,7 +184,7 @@ class DwebBrowserService : Service() {
     }
   }
 
-  fun updateDownloadStatus(mmid: Mmid, controller: DownLoadController) = downloadMap[mmid]?.apply {
+  fun updateDownloadStatus(mmid: MMID, controller: DownLoadController) = downloadMap[mmid]?.apply {
     if (size == dSize) return@apply
     when (controller) {
       DownLoadController.PAUSE -> if (this.downLoadStatus == DownLoadStatus.DownLoading) {

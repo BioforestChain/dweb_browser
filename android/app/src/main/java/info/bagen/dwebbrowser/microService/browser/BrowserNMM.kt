@@ -6,11 +6,11 @@ import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.browser.jmm.EIpcEvent
 import info.bagen.dwebbrowser.microService.browser.jmm.debugJMM
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
+import org.dweb_browser.helper.MICRO_MODULE_CATEGORY
+import org.dweb_browser.helper.printdebugln
+import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
-import org.dweb_browser.helper.*
-import org.dweb_browser.microservice.core.BootstrapContext
-import org.dweb_browser.microservice.core.NativeMicroModule
 import org.http4k.core.Method
 import org.http4k.lens.Query
 import org.http4k.lens.string
@@ -20,7 +20,11 @@ import org.http4k.routing.routes
 fun debugBrowser(tag: String, msg: Any? = "", err: Throwable? = null) =
   printdebugln("browser", tag, msg, err)
 
-class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb") {
+class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
+  override val short_name = "Browser";
+  override val categories =
+    mutableListOf(MICRO_MODULE_CATEGORY.Application, MICRO_MODULE_CATEGORY.Web_Browser);
+
   companion object {
     val controllerList = mutableListOf<BrowserController>()
     val browserController get() = controllerList.firstOrNull() // 只能browser 里面调用，不能给外部调用

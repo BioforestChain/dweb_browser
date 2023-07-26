@@ -17,7 +17,9 @@ import org.http4k.routing.routes
 fun debugScanning(tag: String, msg: Any? = "", err: Throwable? = null) =
   printdebugln("Scanning", tag, msg, err)
 
-class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb") {
+class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb","Barcode Scanning") {
+
+    override val categories = mutableListOf(MICRO_MODULE_CATEGORY.Application, MICRO_MODULE_CATEGORY.Utilities);
 
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
         val query_rotationDegrees = Query.int().defaulted("rotation", 0)

@@ -7,15 +7,18 @@ import org.http4k.routing.bind
 import org.http4k.routing.routes
 import info.bagen.dwebbrowser.microService.sys.toast.ToastController.PositionType
 import info.bagen.dwebbrowser.microService.sys.toast.ToastController.DurationType
+import org.dweb_browser.helper.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 
-class ToastNMM: NativeMicroModule("toast.sys.dweb") {
+class ToastNMM: NativeMicroModule("toast.sys.dweb","toast") {
+
+    override val categories = mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service);
 
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext)
     {
         apiRouting = routes(
-            /** 开始读取当前信息*/
+            /** 显示弹框*/
             "/show" bind Method.GET to defineHandler { request ->
                 val duration = Query.string().defaulted("duration", EToast.Short.type)(request)
                 val message = Query.string().required("message")(request)

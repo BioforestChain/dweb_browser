@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Message
-import android.util.Log
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
@@ -39,14 +38,13 @@ import org.dweb_browser.dwebview.base.DWebViewItem
 import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
 import org.dweb_browser.microservice.core.MicroModule
-import org.dweb_browser.helper.Mmid
+import org.dweb_browser.helper.MMID
 import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.dweb_browser.microservice.sys.http.CORS_HEADERS
 import org.http4k.core.Response
 import org.http4k.core.Status
 import org.http4k.core.query
 import org.http4k.lens.Header
-import java.net.URL
 import java.util.concurrent.atomic.AtomicInteger
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
@@ -100,7 +98,7 @@ sealed class BrowserIntent {
   class UpdateSearchEngineState(val show: Boolean) : BrowserIntent()
   class SearchWebView(val url: String) : BrowserIntent()
   class RemoveBaseView(val id: Int) : BrowserIntent()
-  class OpenDwebBrowser(val mmid: Mmid) : BrowserIntent()
+  class OpenDwebBrowser(val mmid: MMID) : BrowserIntent()
   class SaveHistoryWebSiteInfo(val title: String?, val url: String?) : BrowserIntent()
   object SaveBookWebSiteInfo : BrowserIntent() // 直接获取当前的界面来保存
   class ShareWebSiteInfo(val activity: Activity) : BrowserIntent() // 直接获取当前的界面来保存
@@ -110,7 +108,7 @@ sealed class BrowserIntent {
 }
 
 @OptIn(ExperimentalFoundationApi::class)
-class BrowserViewModel(val microModule: MicroModule, val onOpenDweb: (Mmid) -> Unit) : ViewModel() {
+class BrowserViewModel(val microModule: MicroModule, val onOpenDweb: (MMID) -> Unit) : ViewModel() {
   val uiState: BrowserUIState
 
   companion object {

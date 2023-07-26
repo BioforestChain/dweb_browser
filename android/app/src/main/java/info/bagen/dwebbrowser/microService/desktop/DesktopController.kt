@@ -25,7 +25,7 @@ import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.browserUI.ui.browser.ConstUrl
 import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.dwebview.base.DWebViewItem
-import org.dweb_browser.helper.AppMetaData
+import org.dweb_browser.helper.JmmAppInstallManifest
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.runBlockingCatching
@@ -90,9 +90,9 @@ class DesktopController(private val microModule: DesktopNMM) {
   }
 
   private val openLock = Mutex()
-  suspend fun openApp(appMetaData: AppMetaData) {
+  suspend fun openApp(jmmAppInstallManifest: JmmAppInstallManifest) {
     openLock.withLock {
-      val (ipc) = microModule.bootstrapContext.dns.connect(appMetaData.id)
+      val (ipc) = microModule.bootstrapContext.dns.connect(jmmAppInstallManifest.id)
       debugDesktop("openApp", "postMessage==>activity ${ipc.remote.mmid}")
       ipc.postMessage(IpcEvent.fromUtf8(EIpcEvent.Activity.event, ""))
     }

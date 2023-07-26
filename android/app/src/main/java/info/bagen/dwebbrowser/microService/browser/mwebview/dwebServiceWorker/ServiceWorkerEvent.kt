@@ -1,6 +1,6 @@
 package info.bagen.dwebbrowser.microService.browser.mwebview.dwebServiceWorker
 
-import org.dweb_browser.helper.Mmid
+import org.dweb_browser.helper.MMID
 import info.bagen.dwebbrowser.microService.browser.mwebview.MultiWebViewNMM
 
 enum class ServiceWorkerEvent(val event: String) {
@@ -11,7 +11,7 @@ enum class ServiceWorkerEvent(val event: String) {
     Resume("resume"),
 }
 
-suspend fun emitEvent(mmid: Mmid, eventName: String, data: String = ""): Boolean {
+suspend fun emitEvent(mmid: MMID, eventName: String, data: String = ""): Boolean {
     val viewItem = MultiWebViewNMM.getCurrentWebViewController(mmid)?.lastViewOrNull ?: return false
     return org.dweb_browser.dwebview.serviceWorker.emitEvent(viewItem.webView, eventName, data)
 }

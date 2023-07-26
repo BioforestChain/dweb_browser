@@ -17,7 +17,7 @@ import androidx.compose.ui.graphics.drawscope.translate
 import org.dweb_browser.browserUI.ui.view.DialogInfo
 import org.dweb_browser.browserUI.ui.view.DialogType
 import org.dweb_browser.browserUI.ui.view.DialogView
-import org.dweb_browser.helper.Mmid
+import org.dweb_browser.helper.MMID
 
 /**
  * 显示下载进度框
@@ -28,7 +28,7 @@ import org.dweb_browser.helper.Mmid
  */
 @Composable
 fun DownloadDialogView(
-  mmid: Mmid, path: String, callbackState: (DownLoadStatus, DialogInfo) -> Unit
+  mmid: MMID, path: String, callbackState: (DownLoadStatus, DialogInfo) -> Unit
 ) {
   val downLoadViewModel = DownLoadViewModel(mmid, path)
   downLoadViewModel.handleIntent(DownLoadIntent.DownLoad)
@@ -46,7 +46,7 @@ fun DownloadDialogView(
  */
 @Composable
 fun DownloadAppMaskView(
-  mmid: Mmid,
+  mmid: MMID,
   path: String,
   modifier: Modifier = Modifier,
   callbackState: (DownLoadStatus, DialogInfo) -> Unit,

@@ -8,6 +8,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.getOrElse
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.Callback
+import org.dweb_browser.helper.MicroModuleManifest
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printdebugln
@@ -73,11 +74,11 @@ class MessagePort private constructor(private val port: WebMessagePort) {
 
 open class MessagePortIpc(
   val port: MessagePort,
-  override val remote: MicroModuleInfo,
+  override val remote: MicroModuleManifest,
   private val roleType: IPC_ROLE,
 ) : Ipc() {
   constructor(
-    port: WebMessagePort, remote: MicroModuleInfo, roleType: IPC_ROLE
+    port: WebMessagePort, remote: MicroModuleManifest, roleType: IPC_ROLE
   ) : this(MessagePort.from(port), remote, roleType)
 
   override val role get() = roleType.role

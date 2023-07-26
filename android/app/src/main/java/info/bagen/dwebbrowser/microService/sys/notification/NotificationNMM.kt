@@ -1,5 +1,6 @@
 package info.bagen.dwebbrowser.microService.sys.notification
 
+import org.dweb_browser.helper.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.http4k.core.Method
@@ -12,7 +13,10 @@ import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 
-class NotificationNMM : NativeMicroModule("notification.sys.dweb") {
+class NotificationNMM : NativeMicroModule("notification.sys.dweb","notification") {
+
+    override val categories = mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Protocol_Service);
+
     private val notifyManager = NotifyManager()
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
         apiRouting = routes(

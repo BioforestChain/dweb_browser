@@ -7,10 +7,10 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
-import org.dweb_browser.helper.Mmid
+import org.dweb_browser.helper.MMID
 
 enum class PluginType(
-  val mmid: Mmid, private val typeName:String, val  description: String, val icon: ImageVector
+  val mmid: MMID, private val typeName:String, val  description: String, val icon: ImageVector
   ) {
   BarcodeScanning("barcode-scanning.sys.dweb", "扫码插件", "打开相机，扫描二维码并获取二维码内的数据", Icons.Default.Scanner),
   Biometrics("biometrics.sys.dweb", "生物识别插件", "指纹识别插件", Icons.Default.Fingerprint),

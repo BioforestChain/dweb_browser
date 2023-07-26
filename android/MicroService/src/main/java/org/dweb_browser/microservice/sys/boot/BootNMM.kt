@@ -2,7 +2,7 @@ package org.dweb_browser.microservice.sys.boot
 
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
-import org.dweb_browser.helper.Mmid
+import org.dweb_browser.helper.MMID
 import org.dweb_browser.helper.*
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
@@ -14,12 +14,15 @@ import org.http4k.routing.routes
 fun debugBoot(tag: String, msg: Any? = "", err: Throwable? = null) =
   printdebugln("boot", tag, msg, err)
 
-class BootNMM(initMmids: List<Mmid>? = null) : NativeMicroModule("boot.sys.dweb") {
+class BootNMM(initMmids: List<MMID>? = null) : NativeMicroModule("boot.sys.dweb","Boot Management") {
+
+  override val short_name = "Boot";
+  override val categories = mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Hub_Service)
   /**
    * 开机启动项注册表
    * TODO 这里需要从数据库中读取
    */
-  private val registeredMmids = mutableSetOf<Mmid>()
+  private val registeredMmids = mutableSetOf<MMID>()
 
   init {
     if (initMmids != null) {
@@ -55,11 +58,11 @@ class BootNMM(initMmids: List<Mmid>? = null) : NativeMicroModule("boot.sys.dweb"
    * 注册一个boot程序
    * TODO 这里应该有用户授权，允许开机启动
    */
-  private fun register(mmid: Mmid) = this.registeredMmids.add(mmid);
+  private fun register(mmid: MMID) = this.registeredMmids.add(mmid);
 
   /**
    * 移除一个boot程序
    * TODO 这里应该有用户授权，取消开机启动
    */
-  private fun unregister(mmid: Mmid) = this.registeredMmids.remove(mmid);
+  private fun unregister(mmid: MMID) = this.registeredMmids.remove(mmid);
 }

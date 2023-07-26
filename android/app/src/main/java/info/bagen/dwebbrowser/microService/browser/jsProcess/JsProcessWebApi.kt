@@ -2,18 +2,15 @@ package info.bagen.dwebbrowser.microService.browser.jsProcess
 
 import android.net.Uri
 import android.webkit.WebMessage
-import org.dweb_browser.helper.Mmid
+import org.dweb_browser.helper.MMID
 import org.dweb_browser.microservice.ipc.helper.IPC_ROLE
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.dwebview.ipcWeb.MessagePortIpc
 import org.dweb_browser.dwebview.ipcWeb.saveNative2JsIpcPort
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.dweb_browser.dwebview.DWebView
+import org.dweb_browser.helper.MicroModuleManifest
 import org.dweb_browser.microservice.help.gson
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -33,7 +30,7 @@ class JsProcessWebApi(val dWebView: DWebView) {
         env_script_url: String,
         metadata_json: String,
         env_json: String,
-        remoteModule: Ipc.MicroModuleInfo,
+        remoteModule: MicroModuleManifest,
         host: String
     ) = withContext(Dispatchers.Main) {
         val channel = dWebView.createWebMessageChannel()
@@ -98,7 +95,7 @@ class JsProcessWebApi(val dWebView: DWebView) {
         """.trimIndent()
         ).let {}
 
-    suspend fun createIpc(process_id: Int, mmid: Mmid) = withContext(Dispatchers.Main) {
+    suspend fun createIpc(process_id: Int, mmid: MMID) = withContext(Dispatchers.Main) {
         val channel = dWebView.createWebMessageChannel()
         val port1 = channel[0]
         val port2 = channel[1]

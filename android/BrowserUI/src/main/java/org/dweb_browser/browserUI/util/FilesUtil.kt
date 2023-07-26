@@ -3,8 +3,7 @@ package org.dweb_browser.browserUI.util
 import android.content.Context
 import android.net.Uri
 import android.os.Build
-import org.dweb_browser.helper.Mmid
-import org.dweb_browser.helper.*
+import org.dweb_browser.helper.MMID
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -293,7 +292,7 @@ object FilesUtil {
     }
   }
 
-  fun uninstallApp(context: Context, mmid: Mmid) {
+  fun uninstallApp(context: Context, mmid: MMID) {
     val path =
       getAndroidRootDirectory(context) + File.separator + APP_DIR_TYPE.SystemApp.rootName + File.separator + mmid
     deleteQuietly(path)

@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.browser.jmm.JmmController
-import org.dweb_browser.helper.AppMetaData
+import org.dweb_browser.helper.JmmAppInstallManifest
 import info.bagen.dwebbrowser.microService.browser.jmm.JmmNMM
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -16,12 +16,11 @@ import org.dweb_browser.browserUI.download.DownLoadStatus
 import org.dweb_browser.browserUI.download.compareAppVersionHigh
 import org.dweb_browser.browserUI.util.BrowserUIApp
 import org.dweb_browser.browserUI.util.NotificationUtil
-import org.dweb_browser.microservice.help.gson
 import java.util.*
 
 data class JmmUIState(
   var downloadInfo: MutableState<DownLoadInfo>,
-  val appMetaData: AppMetaData,
+  val jmmAppInstallManifest: JmmAppInstallManifest,
 )
 
 /*
@@ -36,7 +35,7 @@ data class DownLoadInfo(
 )
 */
 
-fun createDownLoadInfoByJmm(appMetaData: AppMetaData): DownLoadInfo {
+fun createDownLoadInfoByJmm(jmmAppInstallManifest: JmmAppInstallManifest): DownLoadInfo {
   /*return DownLoadInfo(
     id = jmmMetadata.id,
     url = jmmMetadata.bundle_url,
@@ -45,36 +44,36 @@ fun createDownLoadInfoByJmm(appMetaData: AppMetaData): DownLoadInfo {
     downLoadStatus = DownLoadStatus.IDLE,
     appInfo = gson.toJson(jmmMetadata)
   )*/
-  return if (JmmNMM.installAppsContainMMid(appMetaData.id)) {
+  return if (JmmNMM.installAppsContainMMid(jmmAppInstallManifest.id)) {
     // 表示当前mmid已存在，判断版本，如果是同一个版本，显示为打开；如果是更新的版本，显示为 更新
-    val curJmmMetadata = JmmNMM.installAppsMetadata(appMetaData.id)!!
-    if (compareAppVersionHigh(curJmmMetadata.version, appMetaData.version)) {
+    val curJmmMetadata = JmmNMM.installAppsMetadata(jmmAppInstallManifest.id)!!
+    if (compareAppVersionHigh(curJmmMetadata.version, jmmAppInstallManifest.version)) {
       DownLoadInfo(
-        id = appMetaData.id,
-        url = appMetaData.bundle_url,
-        name = appMetaData.name,
+        id = jmmAppInstallManifest.id,
+        url = jmmAppInstallManifest.bundle_url,
+        name = jmmAppInstallManifest.name,
         downLoadStatus = DownLoadStatus.NewVersion,
-        path = "${App.appContext.cacheDir}/DL_${appMetaData.id}_${Calendar.MILLISECOND}.bfsa",
+        path = "${App.appContext.cacheDir}/DL_${jmmAppInstallManifest.id}_${Calendar.MILLISECOND}.bfsa",
         notificationId = (NotificationUtil.notificationId++),
-        metaData = appMetaData,
+        metaData = jmmAppInstallManifest,
       )
     } else {
       DownLoadInfo(
-        id = appMetaData.id,
-        url = appMetaData.bundle_url,
-        name = appMetaData.name,
+        id = jmmAppInstallManifest.id,
+        url = jmmAppInstallManifest.bundle_url,
+        name = jmmAppInstallManifest.name,
         downLoadStatus = DownLoadStatus.INSTALLED
       )
     }
   } else {
     DownLoadInfo(
-      id = appMetaData.id,
-      url = appMetaData.bundle_url,
-      name = appMetaData.name,
+      id = jmmAppInstallManifest.id,
+      url = jmmAppInstallManifest.bundle_url,
+      name = jmmAppInstallManifest.name,
       downLoadStatus = DownLoadStatus.IDLE,
-      path = "${App.appContext.cacheDir}/DL_${appMetaData.id}_${Calendar.MILLISECOND}.bfsa",
+      path = "${App.appContext.cacheDir}/DL_${jmmAppInstallManifest.id}_${Calendar.MILLISECOND}.bfsa",
       notificationId = (NotificationUtil.notificationId++),
-      metaData = appMetaData,
+      metaData = jmmAppInstallManifest,
     )
   }
 }
@@ -85,16 +84,16 @@ sealed class JmmIntent {
 }
 
 class JmmManagerViewModel(
-  appMetaData: AppMetaData, private val jmmController: JmmController?
+  jmmAppInstallManifest: JmmAppInstallManifest, private val jmmController: JmmController?
 ) : ViewModel() {
   val uiState: JmmUIState
   private var downLoadObserver: DownLoadObserver? = null
 
   init {
-    val downLoadInfo = createDownLoadInfoByJmm(appMetaData)
-    uiState = JmmUIState(mutableStateOf(downLoadInfo), appMetaData)
+    val downLoadInfo = createDownLoadInfoByJmm(jmmAppInstallManifest)
+    uiState = JmmUIState(mutableStateOf(downLoadInfo), jmmAppInstallManifest)
     if (downLoadInfo.downLoadStatus != DownLoadStatus.INSTALLED) {
-      downLoadObserver = DownLoadObserver(appMetaData.id)
+      downLoadObserver = DownLoadObserver(jmmAppInstallManifest.id)
       initDownLoadStatusListener()
     }
   }

@@ -13,7 +13,9 @@ import org.http4k.routing.routes
 fun debugLocation(tag: String, msg: Any? = "", err: Throwable? = null) =
   printdebugln("Location", tag, msg, err)
 
-class LocationNMM: NativeMicroModule("location.sys.dweb") {
+class LocationNMM: NativeMicroModule("location.sys.dweb","location") {
+
+  override val categories = mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Process_Service);
 
     val locationInfo = LocationInfo()
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext)

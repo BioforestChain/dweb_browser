@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import org.dweb_browser.helper.*
 import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.helper.DWEB_DEEPLINK
-import org.dweb_browser.helper.Mmid
+import org.dweb_browser.helper.MMID
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
 import org.dweb_browser.microservice.ipc.helper.IpcEventMessageArgs
 import org.dweb_browser.microservice.ipc.helper.IpcMessage
@@ -60,15 +60,10 @@ abstract class Ipc {
   /** 是否支持 二进制 传输 */
   open val supportBinary: Boolean = false // get() = supportMessagePack || supportProtobuf
 
-  abstract val remote: MicroModuleInfo
+  abstract val remote: MicroModuleManifest
 
   fun asRemoteInstance() = if (remote is MicroModule) remote as MicroModule else null
 
-  interface MicroModuleInfo {
-    val mmid: Mmid
-    val dweb_deeplinks: MutableList<DWEB_DEEPLINK>
-    val categories: MutableList<MicroModuleCategory>
-  }
 
   abstract val role: String
 

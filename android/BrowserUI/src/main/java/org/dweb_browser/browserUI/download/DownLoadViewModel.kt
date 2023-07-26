@@ -10,7 +10,7 @@ import org.dweb_browser.browserUI.ui.view.DialogInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.dweb_browser.browserUI.util.BrowserUIApp
-import org.dweb_browser.helper.Mmid
+import org.dweb_browser.helper.MMID
 import java.util.Calendar
 
 data class DownLoadUIState(
@@ -51,7 +51,7 @@ sealed class DownLoadIntent {
 
 }
 
-class DownLoadViewModel(val mmid: Mmid, val url: String) : ViewModel() {
+class DownLoadViewModel(val mmid: MMID, val url: String) : ViewModel() {
   val uiState = mutableStateOf(DownLoadUIState())
 
   private val downLoadInfo: DownLoadInfo

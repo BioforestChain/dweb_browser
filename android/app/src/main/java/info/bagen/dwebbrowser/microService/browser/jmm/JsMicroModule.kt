@@ -10,7 +10,7 @@ import org.dweb_browser.microservice.core.ConnectResult
 import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.core.connectAdapterManager
 import org.dweb_browser.helper.DWEB_DEEPLINK
-import org.dweb_browser.helper.Mmid
+import org.dweb_browser.helper.MMID
 import org.dweb_browser.microservice.help.boolean
 import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.help.int
@@ -25,16 +25,31 @@ import java.util.*
 fun debugJsMM(tag: String, msg: Any? = "", err: Throwable? = null) =
   printdebugln("JsMM", tag, msg, err)
 
-open class JsMicroModule(var metadata: AppMetaData) : MicroModule() {
-
-  override val dweb_deeplinks: MutableList<DWEB_DEEPLINK> = metadata.dweb_deeplinks
-  override val categories: MutableList<MicroModuleCategory> = metadata.categories
+open class JsMicroModule(var metadata: JmmAppInstallManifest) : MicroModule() {
+  override val ipc_support_protocols: IpcSupportProtocols = IpcSupportProtocols(
+    cbor = true,
+    protobuf = false,
+    raw = true
+  )
+  override val dweb_deeplinks: List<DWEB_DEEPLINK> = metadata.dweb_deeplinks
+  override val categories: List<MICRO_MODULE_CATEGORY> = metadata.categories
   override val mmid = metadata.id
-
+  override val dir = metadata.dir
+  override val lang: String? = metadata.lang
+  override val name: String = metadata.name
+  override val short_name: String = metadata.short_name
+  override val description: String? = metadata.description
+  override val icons: List<ImageResource>? = metadata.icons
+  override val display: DisplayMode? = metadata.display
+  override val orientation: String? = metadata.orientation
+  override val screenshots: List<ImageResource>? = metadata.screenshots
+  override val shortcuts: List<ShortcutItem> = metadata.shortcuts
+  override val theme_color: String? = metadata.theme_color
+  override val background_color = metadata.background_color
 
   companion object {
     init {
-      val nativeToWhiteList = listOf<Mmid>("js.browser.dweb")
+      val nativeToWhiteList = listOf<MMID>("js.browser.dweb")
 
       data class JsMM(val jmm: JsMicroModule, val rmm: MicroModule)
       connectAdapterManager.append(-1) { fromMM, toMM, reason ->
@@ -157,7 +172,7 @@ open class JsMicroModule(var metadata: AppMetaData) : MicroModule() {
        */
       if (ipcEvent.name == "dns/connect") {
         GlobalScope.launch(ioAsyncExceptionHandler) {
-          data class DnsConnectEvent(val mmid: Mmid)
+          data class DnsConnectEvent(val mmid: MMID)
 
           val event = gson.fromJson(ipcEvent.text, DnsConnectEvent::class.java)
           try {
@@ -192,27 +207,27 @@ open class JsMicroModule(var metadata: AppMetaData) : MicroModule() {
   }
 
 
-  private val fromMmidOriginIpcWM = mutableMapOf<Mmid, PromiseOut<Ipc>>();
+  private val fromMMIDOriginIpcWM = mutableMapOf<MMID, PromiseOut<Ipc>>();
 
-  class JmmIpc(port_id: Int, remote: Ipc.MicroModuleInfo) : Native2JsIpc(port_id, remote) {}
+  class JmmIpc(port_id: Int, remote: MicroModuleManifest) : Native2JsIpc(port_id, remote) {}
 
   /**
    * 桥接ipc到js内部：
    * 使用 create-ipc 指令来创建一个代理的 WebMessagePortIpc ，然后我们进行中转
    */
-  private fun _ipcBridge(fromMmid: Mmid, targetIpc: Ipc?) =
-    fromMmidOriginIpcWM.getOrPut(fromMmid) {
+  private fun _ipcBridge(fromMMID: MMID, targetIpc: Ipc?) =
+    fromMMIDOriginIpcWM.getOrPut(fromMMID) {
       PromiseOut<Ipc>().also { po ->
         GlobalScope.launch(ioAsyncExceptionHandler) {
           try {
 
-            debugJsMM("ipcBridge", "fromMmid:$fromMmid targetIpc:$targetIpc")
+            debugJsMM("ipcBridge", "fromMmid:$fromMMID targetIpc:$targetIpc")
             /**
              * 向js模块发起连接
              */
             val portId = nativeFetch(
               Uri.of("file://js.browser.dweb/create-ipc").query("process_id", pid)
-                .query("mmid", fromMmid)
+                .query("mmid", fromMMID)
             ).int()
             val originIpc = JmmIpc(portId, this@JsMicroModule)
 
@@ -231,16 +246,16 @@ open class JsMicroModule(var metadata: AppMetaData) : MicroModule() {
                * 监听关闭事件
                */
               originIpc.onClose {
-                fromMmidOriginIpcWM.remove(targetIpc.remote.mmid)
+                fromMMIDOriginIpcWM.remove(targetIpc.remote.mmid)
                 targetIpc.close()
               }
               targetIpc.onClose {
-                fromMmidOriginIpcWM.remove(originIpc.remote.mmid)
+                fromMMIDOriginIpcWM.remove(originIpc.remote.mmid)
                 originIpc.close()
               }
             } else {
               originIpc.onClose {
-                fromMmidOriginIpcWM.remove(originIpc.remote.mmid)
+                fromMMIDOriginIpcWM.remove(originIpc.remote.mmid)
               }
             }
             po.resolve(originIpc);
@@ -252,10 +267,10 @@ open class JsMicroModule(var metadata: AppMetaData) : MicroModule() {
       }
     }
 
-  private suspend fun ipcBridge(fromMmid: Mmid, targetIpc: Ipc? = null) =
-    _ipcBridge(fromMmid, targetIpc).waitPromise();
+  private suspend fun ipcBridge(fromMMID: MMID, targetIpc: Ipc? = null) =
+    _ipcBridge(fromMMID, targetIpc).waitPromise();
 
-  private suspend fun ipcConnectFail(mmid: Mmid, reason: Any): Boolean {
+  private suspend fun ipcConnectFail(mmid: MMID, reason: Any): Boolean {
     val errMessage = if (reason is Exception) {
       reason.message + "\n" + (reason.message ?: "")
     } else {
@@ -268,11 +283,11 @@ open class JsMicroModule(var metadata: AppMetaData) : MicroModule() {
 
   override suspend fun _shutdown() {
     debugJsMM("closeJsProcessSignal emit", "$mmid/$metadata")
-    fromMmidOriginIpcWM.forEach { map ->
+    fromMMIDOriginIpcWM.forEach { map ->
       val ipc = map.value.waitPromise()
       ipc.close()
     }
-    fromMmidOriginIpcWM.clear()
+    fromMMIDOriginIpcWM.clear()
     processId = null
   }
 }

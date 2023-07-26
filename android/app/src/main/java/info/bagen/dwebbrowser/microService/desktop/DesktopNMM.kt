@@ -15,7 +15,8 @@ import kotlinx.coroutines.withContext
 import org.dweb_browser.browserUI.database.AppInfoDataStore
 import org.dweb_browser.browserUI.download.compareAppVersionHigh
 import org.dweb_browser.helper.ChangeableMap
-import org.dweb_browser.helper.Mmid
+import org.dweb_browser.helper.MICRO_MODULE_CATEGORY
+import org.dweb_browser.helper.MMID
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printdebugln
 import org.dweb_browser.microservice.core.BootstrapContext
@@ -31,7 +32,8 @@ import org.http4k.routing.routes
 fun debugDesktop(tag: String, msg: Any? = "", err: Throwable? = null) =
   printdebugln("Desktop", tag, msg, err)
 
-class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb") {
+class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb","Desk") {
+  override val categories = mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Desktop);
   private var controller: DesktopController = DesktopController(this)
 
   companion object {
@@ -42,7 +44,7 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb") {
     fun getInstallAppList() = installAppList // 获取已经安装的程序
   }
 
-  private val runningAppsIpc = ChangeableMap<Mmid, Ipc>()
+  private val runningAppsIpc = ChangeableMap<MMID, Ipc>()
 
   init {
     controllerList.add(DesktopController(this))

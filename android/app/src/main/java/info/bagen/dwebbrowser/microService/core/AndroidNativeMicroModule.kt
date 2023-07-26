@@ -10,9 +10,9 @@ import info.bagen.dwebbrowser.microService.browser.jmm.JsMicroModule
 import info.bagen.dwebbrowser.microService.mwebview.MultiWebViewController
 import org.dweb_browser.helper.*
 import org.dweb_browser.microservice.core.NativeMicroModule
-import org.dweb_browser.helper.Mmid
+import org.dweb_browser.helper.MMID
 
-abstract class AndroidNativeMicroModule(override val mmid: Mmid) : NativeMicroModule(mmid) {
+abstract class AndroidNativeMicroModule(override val mmid: MMID, override val name: String) : NativeMicroModule(mmid,name) {
   protected val installAppList = Companion.installAppList
   protected val runningAppList = Companion.runningAppList
 
@@ -32,7 +32,7 @@ abstract class AndroidNativeMicroModule(override val mmid: Mmid) : NativeMicroMo
   protected val activitySignal = Signal<BaseActivity>()
   fun onActivity(cb: Callback<BaseActivity>) = activitySignal.listen(cb)
 
-  fun getAppWindowMap(mmid: Mmid) : WindowAppInfo? = runningAppList.firstOrNull {
+  fun getAppWindowMap(mmid: MMID) : WindowAppInfo? = runningAppList.firstOrNull {
     it.jsMicroModule.mmid == mmid
   }
   protected val windowSignal = Signal<WindowAppInfo>()

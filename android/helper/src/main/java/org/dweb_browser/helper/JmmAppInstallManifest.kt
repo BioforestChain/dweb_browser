@@ -2,45 +2,122 @@ package org.dweb_browser.helper
 
 import java.io.Serializable
 
-typealias Mmid = String
+typealias MMID = String
 typealias DWEB_DEEPLINK = String
 
-data class AppMetaData(
-  val id: Mmid, // jmmApp的id
-  val server: MainServer = MainServer("/sys", "/server/plaoc.server.js"), // 打开应用地址
-  val dweb_deeplinks: MutableList<DWEB_DEEPLINK> = mutableListOf(),
-  val name: String = "", // 应用名称
-  val short_name: String = "", // 应用副标题
-  val icon: String = "", // 应用图标
-  val images: List<String>? = null, // 应用截图
-  val description: String = "", // 应用描述
-  val author: List<String>? = null, // 开发者，作者
-  val categories: MutableList<MicroModuleCategory> = mutableListOf(), // 应用类型
-  val version: String = "", // 应用版本
-  val new_feature: String? = null, // 新特性，新功能
-  val home: String = "", // 首页地址
-  var bundle_url: String = "", // 下载应用地址
-  val bundle_size: String = "", // 应用大小
-  val bundle_hash: String = "", // 文件hash
-  val permissions: List<String>? = null, // app使用权限的情况
-  val plugins: List<String>? = null, // app使用插件的情况
-  val release_date: String = "", // 发布时间
+/** Js模块应用 元数据 */
+data class JmmAppManifest(
+  override val id: MMID = "",
+  override var version: String = "0.0.1",
+  val baseURI: String? = null,
+  val dweb_deeplinks: List<DWEB_DEEPLINK> = emptyList(),
+  val server: MainServer = MainServer("/sys", "/server/plaoc.server.js")
+) : CommonAppManifest()
+
+/** Js模块应用安装使用的元数据 */
+data class JmmAppInstallManifest(
+  override val id: MMID = "",
+  override val name: String = "",
+  override var version: String = "0.0.1",
+  override val categories: List<MICRO_MODULE_CATEGORY> = emptyList(),
+  override val dir: String? = null,
+  override val lang: String? = null,
+  override val short_name: String = "",
+  override val description: String = "", // 应用描述
+  override val icons: List<ImageResource>? = null,
+  override val screenshots: List<ImageResource>? = null,
+  override val display: DisplayMode? = null,
+  override val orientation: String? = null,
+  override val theme_color: String? = null,
+  override val background_color: String = "#ffffff",
+  override val shortcuts: List<ShortcutItem> = emptyList(),
+  val server: MainServer = MainServer("/sys", "/server/plaoc.server.js"),
+  val dweb_deeplinks: List<DWEB_DEEPLINK> = emptyList(),
+  val baseURI: String? = null,
+  /** 安装是展示用的 icon */
+  val icon: String = "",
+  /** 安装时展示用的截图 */
+  val images: List<String> = emptyList(),
+  val new_feature: String = "",
+  var bundle_url: String = "",
+  val bundle_hash: String = "",
+  val bundle_size: String = "",
+  /** 安装时展示的作者信息 */
+  val author: List<String> = emptyList(),
+  /** 安装时展示的主页链接 */
+  val home: String = "",
+  /** 安装时展示的发布日期 */
+  val release_date: String = "",
+  /**
+   * @deprecated 安装时显示的权限信息
+   */
+  val permissions: List<String> = emptyList(),
+  /**
+   * @deprecated 安装时显示的依赖模块
+   */
+  val plugins: List<String> = emptyList(),
   val isRunning: Boolean = false, // 是否正在运行
   val isExpand: Boolean = false, // 是否默认展开窗口
-) : Serializable {
-  data class MainServer(
-    /**
-     * 应用文件夹的目录
-     */
-    val root: String,
-    /**
-     * 入口文件
-     */
-    val entry: String
-  ) : Serializable
+) : CommonAppManifest()
+
+data class MainServer(
+  /**
+   * 应用文件夹的目录
+   */
+  val root: String,
+  /**
+   * 入口文件
+   */
+  val entry: String
+) : Serializable
+
+
+interface MicroModuleManifest {
+  val ipc_support_protocols: IpcSupportProtocols
+  val mmid: MMID
+  val dweb_deeplinks: List<DWEB_DEEPLINK>
+  val dir: String?
+  val lang: String?
+  val name: String // 应用名称
+  val short_name: String // 应用副标题
+  val description: String?
+  val icons: List<ImageResource>?
+  val screenshots: List<ImageResource>?
+  val display: DisplayMode?
+  val orientation: String?
+  val categories: List<MICRO_MODULE_CATEGORY> // 应用类型
+  val theme_color: String?
+  val background_color: String
+  val shortcuts: List<ShortcutItem>
 }
 
-enum class MicroModuleCategory {
+open class CommonAppManifest(
+  open val id: MMID = "",
+  open val dir: String? = null,
+  open val lang: String? = null,
+  open val name: String = "", // 应用名称
+  open val short_name: String = "", // 应用副标题
+  open val description: String? = null,
+  open val icons: List<ImageResource>? = null,
+  open val screenshots: List<ImageResource>? = null,
+  open val display: DisplayMode? = null,
+  open val orientation: String? = null,
+  open val categories: List<MICRO_MODULE_CATEGORY> = listOf(), // 应用类型
+  open val theme_color: String? = null,
+  open val background_color: String? = null,
+  open val shortcuts: List<ShortcutItem>? = null,
+
+  open var version: String = "0.0.1"
+
+) : Serializable
+
+data class IpcSupportProtocols(
+  val cbor: Boolean,
+  val protobuf: Boolean,
+  val raw: Boolean,
+) : Serializable
+
+enum class MICRO_MODULE_CATEGORY {
 
   //#region 1. Service 服务
   /** 服务大类
@@ -60,6 +137,12 @@ enum class MicroModuleCategory {
    * > 和 计算服务 不同,进程服务通常是指 概念上运行在本地 的程序
    */
   Process_Service,
+
+  /** 渲染服务
+   * > 可视化图形的能力
+   * > 比如：Web渲染器、Terminal渲染器、WebGPU渲染器、WebCanvas渲染器 等
+   */
+  Render_Service,
 
   /** 协议服务
    * > 比如 `http.std.dweb` 这个模块,提供 http/1.1 协议到 Ipc 的映射

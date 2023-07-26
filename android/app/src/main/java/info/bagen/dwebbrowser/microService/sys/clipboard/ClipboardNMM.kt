@@ -24,7 +24,10 @@ fun debugClipboard(tag: String, msg: Any? = "", err: Throwable? = null) =
   printdebugln("Clipboard", tag, msg, err)
 
 /** 剪切板微模块*/
-class ClipboardNMM : NativeMicroModule("clipboard.sys.dweb") {
+class ClipboardNMM : NativeMicroModule("clipboard.sys.dweb","clipboard") {
+
+    override val categories = mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Process_Service);
+
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext)
  {
         apiRouting = routes(

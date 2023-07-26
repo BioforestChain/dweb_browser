@@ -1,11 +1,8 @@
 package info.bagen.dwebbrowser.microService.browser.nativeui.splashScreen
 
-import org.dweb_browser.helper.Mmid
 import org.dweb_browser.helper.*
-import org.dweb_browser.helper.AppMetaData
-import info.bagen.dwebbrowser.microService.browser.jmm.JsMicroModule
+import org.dweb_browser.helper.JmmAppInstallManifest
 import info.bagen.dwebbrowser.microService.mwebview.MultiWebViewController
-import info.bagen.dwebbrowser.microService.mwebview.MultiWebViewNMM
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.http4k.core.Method
@@ -21,8 +18,9 @@ import org.http4k.routing.routes
 fun debugSplashScreen(tag: String, msg: Any? = "", err: Throwable? = null) =
   printdebugln("SplashScreen", tag, msg, err)
 
-class SplashScreenNMM : NativeMicroModule("splash-screen.nativeui.browser.dweb") {
+class SplashScreenNMM : NativeMicroModule("splash-screen.nativeui.browser.dweb","splashScreen") {
 
+  override val categories = mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service);
 
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
         val query_SplashScreenSettings = Query.composite {
@@ -75,7 +73,7 @@ class SplashScreenNMM : NativeMicroModule("splash-screen.nativeui.browser.dweb")
 
     fun show(
       controller: MultiWebViewController,
-      metadata: AppMetaData,
+      metadata: JmmAppInstallManifest,
       options: SplashScreenSettings
     ) {
 //        val webview = controller.lastViewOrNull?.webView

@@ -1,9 +1,10 @@
 package info.bagen.dwebbrowser.microService.browser.nativeui.navigationBar
 
-import org.dweb_browser.helper.Mmid
+import org.dweb_browser.helper.MMID
 import info.bagen.dwebbrowser.microService.browser.nativeui.NativeUiController
 import info.bagen.dwebbrowser.microService.browser.nativeui.helper.QueryHelper
 import info.bagen.dwebbrowser.microService.browser.nativeui.helper.fromMultiWebView
+import org.dweb_browser.helper.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.http4k.core.Method
@@ -12,10 +13,11 @@ import org.http4k.core.Status
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 
-class NavigationBarNMM : NativeMicroModule("navigation-bar.nativeui.browser.dweb") {
+class NavigationBarNMM : NativeMicroModule("navigation-bar.nativeui.browser.dweb","navigationBar") {
 
+    override val categories = mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service);
 
-    private fun getController(mmid: Mmid) =
+    private fun getController(mmid: MMID) =
         NativeUiController.fromMultiWebView(mmid).navigationBar
 
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {

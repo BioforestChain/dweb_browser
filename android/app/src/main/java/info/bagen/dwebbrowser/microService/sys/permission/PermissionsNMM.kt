@@ -1,6 +1,6 @@
 package info.bagen.dwebbrowser.microService.sys.permission
 
-import org.dweb_browser.helper.Mmid
+import org.dweb_browser.helper.MMID
 import org.dweb_browser.helper.*
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
@@ -15,12 +15,15 @@ import org.http4k.routing.routes
 fun debugPermission(tag: String, msg: Any? = "", err: Throwable? = null) =
   printdebugln("Permissions", tag, msg, err)
 
-class PermissionsNMM : NativeMicroModule("permission.sys.dweb") {
+class PermissionsNMM : NativeMicroModule("permission.sys.dweb","permission") {
+
+    override val categories = mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Protocol_Service);
+
     /** 存储每个微应用的权限*/
-    private val permissionMap = mutableMapOf<Mmid, MutableList<Mmid>>()
+    private val permissionMap = mutableMapOf<MMID, MutableList<MMID>>()
 
     /** 存储系统的权限*/
-    private val systemPermissions = mutableMapOf<Mmid, MutableList<String>>()
+    private val systemPermissions = mutableMapOf<MMID, MutableList<String>>()
 
     companion object {
         val permission_op = PromiseOut<Boolean>()
@@ -49,11 +52,11 @@ class PermissionsNMM : NativeMicroModule("permission.sys.dweb") {
         )
     }
 
-    private fun applyPermission(permission: String, mmid: Mmid) {
+    private fun applyPermission(permission: String, mmid: MMID) {
 
     }
 
-    private fun applyPermissions(permissions: ArrayList<String>, mmid: Mmid) {
+    private fun applyPermissions(permissions: ArrayList<String>, mmid: MMID) {
 
     }
 
