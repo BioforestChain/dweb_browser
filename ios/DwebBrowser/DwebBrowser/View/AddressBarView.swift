@@ -25,7 +25,7 @@ struct AddressBar: View {
 
     private var isVisible: Bool { return WebWrapperMgr.shared.store.firstIndex(of: webWrapper) == selectedTab.curIndex }
     private var shouldShowProgress: Bool { webWrapper.estimatedProgress > 0.0 && webWrapper.estimatedProgress < 1.0 && !addressBar.isFocused }
-    private var domainString: String { webCache.lastVisitedUrl.getDomain() }
+    private var domainString: String { webCache.isBlank() ? addressbarHolder : webCache.lastVisitedUrl.getDomain() }
     var body: some View {
             ZStack(alignment: .leading) {
                 RoundedRectangle(cornerRadius: 10)
@@ -65,10 +65,14 @@ struct AddressBar: View {
                 Text(domainString)
                     .frame(width: screen_width - 100, height: 32)
                     .background(.white)
+                    .foregroundColor(webCache.isBlank() ? .networkTipColor : .black)
                     .padding(.horizontal, 50)
                     .opacity(isAdressBarFocused ? 0 : 1)
                     .onTapGesture {
-                        isAdressBarFocused = true
+                        if webCache.isBlank(){
+                            inputText = ""
+                        }
+                        isAdressBarFocused = true                        
                     }
             }
             .background(Color.bkColor)

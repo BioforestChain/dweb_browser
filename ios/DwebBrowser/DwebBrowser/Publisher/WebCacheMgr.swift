@@ -34,6 +34,7 @@ class WebCache: ObservableObject, Identifiable, Hashable, Codable, Equatable {
             snapshotImage = UIImage.snapshotImage(from: snapshotUrl)
         }
     }
+
     @Published var snapshotImage = UIImage.defaultSnapShotImage
     
     init(icon: URL = URL.defaultWebIconURL, showWeb: Bool = false, lastVisitedUrl: URL = emptyURL, title: String = "", snapshotUrl: URL = URL.defaultSnapshotURL) {
@@ -87,10 +88,18 @@ class WebCache: ObservableObject, Identifiable, Hashable, Codable, Equatable {
         WebCache(lastVisitedUrl: URL(string: "https://www.apple.com")!, title: "apple")
     }
     
-    private func observeUrl(){
+    static var blank: WebCache {
+        WebCache(lastVisitedUrl: emptyURL, title: "blank")
+    }
+    
+    func isBlank() -> Bool {
+        return lastVisitedUrl == emptyURL
+    }
+    
+    private func observeUrl() {
         $lastVisitedUrl
-            .map({ $0 != emptyURL})
-            .sink(receiveValue: {[weak self] isAvailable in
+            .map { $0 != emptyURL }
+            .sink(receiveValue: { [weak self] isAvailable in
                 self?.shouldShowWeb = isAvailable
             })
             .store(in: &cancellables)
@@ -110,9 +119,6 @@ class WebCacheMgr: ObservableObject {
         let cache = WebCache()
         store.append(cache)
         saveCaches()
-        
-        //        store.append(cache)
-        //        saveCaches()
     }
     
     func remove(webCache: WebCache) {
@@ -143,23 +149,7 @@ class WebCacheMgr: ObservableObject {
             }
         }
         if store.count == 0 {
-            store = [
-                                WebCache(lastVisitedUrl: emptyURL, title: "blank"),
-//                WebCache(lastVisitedUrl: URL(string: "https://developer.mozilla.org/en-US/docs/Web/JavaScript")!, title: "1"),
-
-                WebCache(lastVisitedUrl: URL(string: "https://www.apple.com")!, title: "2"),
-
-//                WebCache(lastVisitedUrl: URL(string: "https://www.163.com")!, title: "3"),
-//                WebCache(lastVisitedUrl: URL(string: "https://www.douban.com")!, title: "4"),
-//                WebCache(lastVisitedUrl: URL(string: "https://www.douyu.com")!, title: "5"),
-//
-//                WebCache(lastVisitedUrl: URL(string: "https://www.yahoo.com")!, title: "6"),
-//                WebCache(lastVisitedUrl: URL(string: "https://m.hupu.com/")!, title: "8"),
-//                WebCache(lastVisitedUrl: URL(string: "https://sina.cn/")!, title: "9"),
-//
-//                WebCache(lastVisitedUrl: URL(string: "https://m.hupu.com/")!, title: "10"),
-//                WebCache(lastVisitedUrl: URL(string: "https://sina.cn/")!, title: "11"),
-            ]
+            store = [.blank]
         }
     }
 }
