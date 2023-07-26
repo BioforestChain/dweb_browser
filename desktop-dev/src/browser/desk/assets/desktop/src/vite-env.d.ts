@@ -5,3 +5,10 @@ declare module "*.vue" {
   const component: DefineComponent<{}, {}, any>;
   export default component;
 }
+
+declare global {
+  const process: {
+    env: Record<string, string>;
+  };
+}
+export {};

@@ -3,7 +3,7 @@ import { MICRO_MODULE_CATEGORY } from "../../core/category.const.ts";
 import { buildRequestX } from "../../core/helper/ipcRequestHelper.ts";
 import { Ipc, IpcEvent } from "../../core/ipc/index.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
-import { $MMID, $MicroModuleManifest } from "../../core/types.ts";
+import { $MMID } from "../../core/types.ts";
 import { once } from "../../helper/$once.ts";
 import { ChangeableMap } from "../../helper/ChangeableMap.ts";
 import { JsonlinesStream } from "../../helper/JsonlinesStream.ts";
@@ -18,10 +18,7 @@ import { z, zq } from "../../helper/zodHelper.ts";
 import { HttpDwebServer, createHttpDwebServer } from "../../std/http/helper/$createHttpDwebServer.ts";
 import { window_options } from "./const.ts";
 import { deskStore } from "./desk.store.ts";
-
-export interface $DeskAppMetaData extends $MicroModuleManifest {
-  running: boolean;
-}
+import { $DeskAppMetaData } from "./types.ts";
 
 export class DeskNMM extends NativeMicroModule {
   mmid = "desk.browser.dweb" as const;

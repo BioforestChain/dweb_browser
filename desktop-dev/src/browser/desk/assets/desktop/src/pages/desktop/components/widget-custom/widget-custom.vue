@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { $WidgetCustomData } from "@/types/app.type";
 import { computed } from "vue";
+import { $WidgetCustomData } from "../../../../types/app.type.ts";
 import widget_inner_css from "./widget-inner.scss?inline";
 import "./widget-public.scss";
 

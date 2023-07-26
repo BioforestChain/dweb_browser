@@ -1,14 +1,15 @@
 <script lang="ts" setup>
-import IconSquircleBox from "@/components/icon-squircle-box/index.vue";
-import SvgIcon from "@/components/svg-icon/index.vue";
-import { openApp, quitApp, readAcceptSvg, vibrateHeavyClick } from "@/provider/api";
-import { CloseWatcher } from "@/provider/shim";
-import type { $WidgetAppData } from "@/types/app.type";
 import { onLongPress } from "@vueuse/core";
 import { computed, onMounted, reactive, ref, watchEffect } from "vue";
-import { strictImageResource } from "../../../../../../../../../helper/imageResourcesHelper";
-import { Compareable, enumToCompareable } from "../../../../../../../../../helper/sortHelper";
+import { strictImageResource } from "../../../../../../../../../helper/imageResourcesHelper.ts";
+import { Compareable, enumToCompareable } from "../../../../../../../../../helper/sortHelper.ts";
+import IconSquircleBox from "../../../../components/icon-squircle-box/index.vue";
+import SvgIcon from "../../../../components/svg-icon/index.vue";
+import { openApp, quitApp, readAcceptSvg, vibrateHeavyClick } from "../../../../provider/api.ts";
+import { $CloseWatcher, CloseWatcher } from "../../../../provider/shim.ts";
+import type { $WidgetAppData } from "../../../../types/app.type.ts";
 import AppUnInstallDialog from "../app-uninstall-dialog/index.vue";
+import { ownReason, showOverlay } from "../widget-menu-overlay/widget-menu-overlay.vue";
 import blankApp_svg from "./blankApp.svg";
 import delete_svg from "./delete.svg";
 import details_svg from "./details.svg";
@@ -22,7 +23,7 @@ console.log(" share_svg", share_svg);
 const $appHtmlRefHook = ref<HTMLDivElement | null>(null);
 
 const isShowMenu = ref(false);
-const isShowOverlay = ref(false);
+const isShowOverlay = computed(() => ownReason(isShowMenu));
 
 const snackbar = reactive({
   show: false,
@@ -41,6 +42,7 @@ const props = defineProps({
     required: true,
   },
 });
+const appid = computed(() => props.appMetaData.mmid);
 const appname = computed(() => props.appMetaData.short_name ?? props.appMetaData.name);
 const appicon = ref("");
 watchEffect(async () => {
@@ -80,29 +82,35 @@ watchEffect(() => {
 const emit = defineEmits(["uninstall"]);
 
 onMounted(() => {});
-let menuCloser: InstanceType<typeof CloseWatcher> | null = null;
+let menuCloser: $CloseWatcher | null = null;
 //长按事件的回调
-const showMenu = () => {
-  vibrateHeavyClick(); // 震动
-  isShowMenu.value = true;
-  menuCloser = new CloseWatcher();
-  menuCloser.addEventListener("close", () => {
+const $menu = {
+  show: () => {
+    vibrateHeavyClick(); // 震动
+    isShowMenu.value = true;
+    showOverlay(isShowMenu, true);
+    menuCloser?.close();
+    const closer = (menuCloser = new CloseWatcher());
+    menuCloser.addEventListener("close", () => {
+      if (closer === menuCloser) {
+        menuCloser = null;
+      }
+      $menu.close();
+    });
+  },
+  close: () => {
     isShowMenu.value = false;
-  });
+    showOverlay(isShowMenu, false);
+    menuCloser?.close();
+  },
 };
-function closeMenu() {
-  isShowMenu.value = false;
-  menuCloser?.close();
-  menuCloser = null;
-}
-
-onLongPress($appHtmlRefHook, showMenu, {
+onLongPress($appHtmlRefHook, $menu.show, {
   modifiers: { prevent: true },
 });
 
 async function doOpen() {
   opening.value = true;
-  if ((await openApp(props.appMetaData.mmid).catch(() => (opening.value = false))) === false) {
+  if ((await openApp(appid.value).catch(() => (opening.value = false))) === false) {
     snackbar.text = `${appname.value} 启动失败`;
     snackbar.timeOut = 1500;
     snackbar.type = "error";
@@ -112,7 +120,7 @@ async function doOpen() {
 
 async function doQuit() {
   closing.value = true;
-  if (await quitApp(props.appMetaData.mmid).catch(() => (closing.value = false))) {
+  if (await quitApp(appid.value).catch(() => (closing.value = false))) {
     snackbar.text = `${appname.value} 已退出后台。`;
     snackbar.timeOut = 1500;
     snackbar.type = "primary";
@@ -136,10 +144,12 @@ const onJmmUnInstallDialogClosed = (confirmed: boolean) => {
 </script>
 <template>
   <div ref="$appHtmlRefHook" class="app" draggable="false">
-    <v-menu :modelValue="isShowMenu" @update:modelValue="closeMenu" location="bottom" transition="menu-popuper">
+    <v-menu :modelValue="isShowMenu" @update:modelValue="$menu.close" location="bottom" transition="menu-popuper">
       <template v-slot:activator="{ props }">
         <div
           class="app-wrap ios-ani"
+          :data-overlayed="isShowOverlay"
+          :data-focused="isShowMenu"
           :class="{ overlayed: isShowOverlay, focused: isShowMenu }"
           @click="isShowMenu = false"
         >
@@ -147,7 +157,7 @@ const onJmmUnInstallDialogClosed = (confirmed: boolean) => {
             class="app-icon"
             v-bind="props"
             @click="doOpen"
-            @contextmenu="showMenu"
+            @contextmenu="$menu.show"
             :class="{
               'animate-slow-bounce': opening,
               'animate-app-pulse': closing,
@@ -157,16 +167,13 @@ const onJmmUnInstallDialogClosed = (confirmed: boolean) => {
             <IconSquircleBox class="bg backdrop-blur-sm" />
             <img class="fg" :src="appicon" />
           </div>
-          <div class="app-name line-clamp-2 backdrop-blur-sm" :style="{ opacity: isShowMenu ? 0 : 1 }">
+          <div class="app-name line-clamp-2 backdrop-blur-sm ios-ani" :style="{ opacity: isShowMenu ? 0 : 1 }">
             {{ appname }}
           </div>
         </div>
-        <Transition name="fade" @beforeEnter="() => (isShowOverlay = true)" @afterLeave="() => (isShowOverlay = false)">
-          <div class="overlay ios-ani" v-if="isShowMenu" @click="closeMenu"></div>
-        </Transition>
       </template>
 
-      <div class="menu ios-ani" v-show="isShowMenu">
+      <div class="menu ios-ani">
         <button v-ripple class="item quit" @click="doQuit" :disabled="!appMetaData.running">
           <SvgIcon class="icon" :src="quit_svg" alt="退出" />
           <p class="title">退出</p>
@@ -192,9 +199,9 @@ const onJmmUnInstallDialogClosed = (confirmed: boolean) => {
   </v-snackbar>
 
   <AppUnInstallDialog
-    :appId="props.appMetaData.id"
-    :appIcon="props.appMetaData.icon"
-    :appName="props.appMetaData.name"
+    :appId="appid"
+    :appIcon="appicon"
+    :appName="appname"
     :show="showUninstallDialog"
     @close="onJmmUnInstallDialogClosed"
   ></AppUnInstallDialog>
@@ -211,7 +218,7 @@ const onJmmUnInstallDialogClosed = (confirmed: boolean) => {
 
 .memu-activator-enter-active,
 .memu-activator-leave-active {
-  z-index: 2;
+  z-index: 3;
 }
 </style>
 <style scoped lang="scss">
@@ -219,29 +226,6 @@ const onJmmUnInstallDialogClosed = (confirmed: boolean) => {
   --icon-size: 60px;
 }
 
-.overlay {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  z-index: 1;
-  // pointer-events: none;
-  // background-color: rgba(0, 0, 0, 0.3);
-
-  backdrop-filter: blur(40px);
-
-  // .glass-material-overlay {
-  //   backdrop-filter: blur(20px);
-  //   width: 100%;
-  //   height: 100%;
-  // }
-
-  &.fade-enter-from,
-  &.fade-leave-to {
-    opacity: 0;
-  }
-}
 .backdrop-blur-sm {
   --tw-backdrop-blur: contrast(1.5) brightness(1.2) blur(6px);
 }
@@ -256,11 +240,12 @@ const onJmmUnInstallDialogClosed = (confirmed: boolean) => {
     display: flex;
     flex-direction: column;
     place-items: center;
+    z-index: 0;
     &.focused {
       scale: 1.05;
     }
     &.overlayed {
-      z-index: 2;
+      z-index: 3;
     }
     .app-icon {
       width: 60px;
@@ -312,6 +297,8 @@ const onJmmUnInstallDialogClosed = (confirmed: boolean) => {
 .menu {
   display: flex;
   flex-direction: row;
+  justify-content: space-around;
+
   font-size: 0.9em;
   color: #151515;
   background-color: rgba(255, 255, 255, 0.62);
@@ -320,7 +307,6 @@ const onJmmUnInstallDialogClosed = (confirmed: boolean) => {
   overflow: hidden;
   margin-top: 0.5em;
   &.ios-ani {
-    transition-property: transform, filter;
     transform-origin: top left;
   }
   .item {

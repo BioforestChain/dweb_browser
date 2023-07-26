@@ -1,9 +1,7 @@
-<script lang="ts" setup>
-</script>
+<script lang="ts" setup></script>
 <template>
   <div class="setting">
     <div class="logo">
-      <img src="@/assets/logo.svg" alt="Dweb Browser" class="icon" />
       <div class="gradient-text">Dweb Browser Setting</div>
     </div>
   </div>
@@ -26,12 +24,6 @@
   justify-content: center;
 }
 
-.icon {
-  width: 210px;
-  height: 210px;
-  border-radius: 0px 0px 0px 0px;
-  opacity: 1;
-}
 .gradient-text {
   width: 100%;
   height: 20px;

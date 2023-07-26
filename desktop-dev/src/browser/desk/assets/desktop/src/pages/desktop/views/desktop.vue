@@ -1,12 +1,13 @@
 <script lang="ts" setup>
-import wallpaper_url from "@/assets/wallpaper.webp";
-import { getWidgetInfo, watchAppInfo } from "@/provider/api";
-import type { $WidgetAppData, $TileSizeType, $WidgetCustomData } from "@/types/app.type";
 import { onMounted, onUnmounted, Ref, ref, StyleValue } from "vue";
-import WidgetApp from "../components/widget-app/index.vue";
-import TileItem from "../components/tile-item/index.vue";
-import TilePanel from "../components/tile-panel/index.vue";
-import WidgetCustom from "../components/widget-custom/index.vue";
+import wallpaper_url from "../../../assets/wallpaper.webp";
+import { getWidgetInfo, watchAppInfo } from "../../../provider/api.ts";
+import type { $TileSizeType, $WidgetAppData, $WidgetCustomData } from "../../../types/app.type.ts";
+import TileItem from "../components/tile-item/tile-item.vue";
+import TilePanel from "../components/tile-panel/tile-panel.vue";
+import WidgetApp from "../components/widget-app/widget-app.vue";
+import WidgetCustom from "../components/widget-custom/widget-custom.vue";
+import WidgetAppOverlay from "../components/widget-menu-overlay/widget-menu-overlay.vue";
 
 type $LayoutInfo = (
   | {
@@ -81,15 +82,18 @@ const bgStyle = {
 </script>
 <template>
   <div class="desktop">
-    <div class="logo" :style="bgStyle">
-      <img src="@/assets/logo.svg" alt="Dweb Browser" class="icon" />
-      <div class="gradient_text">Dweb Browser</div>
-    </div>
+    <div class="wallpaper" title="墙纸" :style="bgStyle"></div>
     <TilePanel>
       <TileItem v-for="(info, index) in layoutInfoListRef" :key="index" :width="info.xywh.w" :height="info.xywh.h">
         <WidgetApp v-if="info.type === 'app'" :key="index" :index="index" :app-meta-data="info.data"></WidgetApp>
-        <WidgetCustom v-if="info.type === 'widget'" :key="index" :index="index" :widget-meta-data="info.data"></WidgetCustom>
+        <WidgetCustom
+          v-if="info.type === 'widget'"
+          :key="index"
+          :index="index"
+          :widget-meta-data="info.data"
+        ></WidgetCustom>
       </TileItem>
+      <WidgetAppOverlay></WidgetAppOverlay>
     </TilePanel>
   </div>
 </template>
@@ -101,29 +105,13 @@ const bgStyle = {
   grid-template-areas: "view";
   height: 100%;
   user-select: none;
-  .logo {
+  .wallpaper {
     grid-area: view;
     z-index: 0;
     display: grid;
     place-items: center;
     background-size: cover;
     background-position: center;
-    .icon {
-      width: 13.5em;
-      height: 13.5em;
-      mix-blend-mode: color-burn;
-    }
-    .gradient_text {
-      width: 100%;
-      height: 2em;
-      font-size: 20px;
-      font-weight: 500;
-      line-height: 1em;
-      display: flex;
-      justify-content: center;
-      color: #fff;
-      mix-blend-mode: overlay;
-    }
   }
 }
 </style>

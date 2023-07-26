@@ -1,9 +1,7 @@
 import { $WidgetCustomData } from "../../types/app.type.ts";
-import search_svg from "./search.svg?raw";
+import search_svg_raw from "./search.svg?raw";
 const html = String.raw;
 const css = String.raw;
-
-console.log("search_svg", search_svg);
 
 export const searchWidget = {
   appId: `browser.dweb`,
@@ -11,7 +9,7 @@ export const searchWidget = {
   templateHtml: html`<form action="dweb:search" method="get" part="form">
     <input name="q" part="input glass ani" />
     <button type="submit" part="btn btn-primary">
-      <span class="icon"> ${search_svg} </span>
+      <span class="icon"> ${search_svg_raw} </span>
     </button>
   </form>`,
   scopedStyle: css`
@@ -26,8 +24,6 @@ export const searchWidget = {
     }
     form:focus-within input {
       flex-basis: 100%;
-    }
-    button {
     }
     .icon {
       transform: scale(1.25);

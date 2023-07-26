@@ -1,4 +1,4 @@
-export type { $DeskAppMetaData as $WidgetAppData } from "../../../../desk.nmm.ts";
+export type { $DeskAppMetaData as $WidgetAppData } from "../../../../types.ts";
 
 /**
  * 自定义组件名称

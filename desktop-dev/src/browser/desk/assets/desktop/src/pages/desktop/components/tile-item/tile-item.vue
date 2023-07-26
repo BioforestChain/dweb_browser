@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { computed, inject } from "vue";
-import { gridMeshKey } from "../tile-panel/inject";
-import { validatorPosition, validatorTileSize } from "./validator";
+import { gridMeshKey } from "../tile-panel/inject.ts";
+import { validatorPosition, validatorTileSize } from "./validator.ts";
 const gridMesh = inject(gridMeshKey)!;
 console.log("gridMesh", gridMesh);
 const props = defineProps({
