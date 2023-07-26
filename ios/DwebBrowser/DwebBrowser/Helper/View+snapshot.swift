@@ -19,49 +19,7 @@ func printWithDate(msg: String = ""){
     print(dateString + "--" + msg)
 }
 
-extension UIView {
-
-    func asImage(rect: CGRect) -> UIImage {
-        let renderer = UIGraphicsImageRenderer(bounds: rect)
-        let image = renderer.image { context in
-            layer.render(in: context.cgContext)
-        }
-        return image
-    }
-}
-
 extension View {
-    func snapshot2() -> UIImage? {
-            // 创建UIView
-            let uiView = UIView(frame: CGRect(origin: .zero, size: CGSize(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)))
-
-            // 将视图添加到UIView上
-            let hostingController = UIHostingController(rootView: self)
-            hostingController.view.frame = uiView.bounds
-            uiView.addSubview(hostingController.view)
-
-            // 保存 WebView 的加载状态
-            var webViewWasLoading = false
-            if let webView = hostingController.view.subviews.first as? WKWebView {
-                webViewWasLoading = webView.isLoading
-                webView.stopLoading() // 停止加载
-            }
-
-            // 绘制屏幕可见区域
-            UIGraphicsBeginImageContextWithOptions(uiView.bounds.size, false, UIScreen.main.scale)
-            uiView.drawHierarchy(in: uiView.bounds, afterScreenUpdates: true)
-
-            // 获取截图并输出
-            let image = UIGraphicsGetImageFromCurrentImageContext()
-            UIGraphicsEndImageContext()
-
-            // 恢复 WebView 的加载状态
-            if let webView = hostingController.view.subviews.first as? WKWebView, webViewWasLoading {
-                webView.reload() // 重新加载
-            }
-
-            return image
-        }
     
     func snapshot() -> UIImage? {
         // 创建UIView
@@ -82,32 +40,32 @@ extension View {
         return image
     }
     
-    func snapshot3() -> UIImage? {
-        // 创建UIView
-        let uiView = UIView(frame: CGRect(origin: .zero, size: CGSize(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)))
+    func takeSnapshot( completion: @escaping (UIImage)-> Void){
+            // Create a UIView
+            let uiView = UIView(frame: CGRect(origin: .zero, size: CGSize(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)))
 
-        // 将视图添加到UIView上
-        let hostingController = UIHostingController(rootView: self)
-        hostingController.view.frame = uiView.bounds
-        uiView.addSubview(hostingController.view)
+            // Add the view to the UIView
+            let hostingController = UIHostingController(rootView: self)
+            hostingController.view.frame = uiView.bounds
+            uiView.addSubview(hostingController.view)
 
-        // 获取CALayer
-        guard let layer = uiView.layer.sublayers?.first else {
-            return nil
+            // Delay the snapshot process slightly
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.06) {
+                // Draw the visible portion of the screen
+                UIGraphicsBeginImageContextWithOptions(uiView.bounds.size, false, UIScreen.main.scale)
+                uiView.drawHierarchy(in: uiView.bounds, afterScreenUpdates: true)
+
+                // Get the screenshot and return it
+                let image = UIGraphicsGetImageFromCurrentImageContext()
+                UIGraphicsEndImageContext()
+                guard let image = image else { return }
+                completion(image)
+                // Do something with the image, or you can return it here
+//                 return image
+            }
+
+//            return nil // Return nil temporarily (modify this based on how you want to handle the image)
         }
-
-        // 绘制屏幕可见区域
-        UIGraphicsBeginImageContextWithOptions(uiView.bounds.size, false, UIScreen.main.scale)
-        guard let context = UIGraphicsGetCurrentContext() else {
-            return nil
-        }
-        layer.render(in: context)
-
-        // 获取截图并输出
-        let image = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
-        return image
-    }
 }
 
 struct SnapshotViewWraperView: View {

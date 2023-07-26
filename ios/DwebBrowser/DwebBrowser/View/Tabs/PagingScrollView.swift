@@ -50,6 +50,7 @@ struct PagingScrollView: View {
                             
                             AddressBar(index: index, webWrapper: WebWrapperMgr.shared.store[index], webCache: WebCacheMgr.cache(at: index))
                                 .frame(height: addressBarH)
+                                .background(Color.bkColor)
                                 .offset(y: updateKeyboardOffset())
                                 .animation(.default, value: updateKeyboardOffsetAnimation())
                                 .gesture(addressBar.isFocused ? disabledDragGesture : nil) // 根据状态变量决定是否启用拖拽手势

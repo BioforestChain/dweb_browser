@@ -54,13 +54,10 @@ struct TabPageView: View {
                 if !shouldExpand { // 截图，为缩小动画做准备
                     let index = WebWrapperMgr.shared.store.firstIndex(of: webWrapper)
                     if index == selectedTab.curIndex {
-                        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                           let window = windowScene.windows.first
-                        {
-                            if let view = window.rootViewController?.view {
-                                let image = view.asImage(rect: UIScreen.main.bounds)
+                        self.environmentObject(selectedTab).environmentObject(toolbarState).environmentObject(animation).environmentObject(openingLink).environmentObject(addressBar)
+                            .takeSnapshot(completion: { image in
                                 let scale = image.scale
-                                let cropRect = CGRect(x: 0, y: safeAreaTopHeight * scale, width: screen_width * scale, height: snapshotHeight * scale)
+                                let cropRect = CGRect(x: 0, y: safeAreaTopHeight * scale, width: screen_width * scale, height: (snapshotHeight - addressBarH - toolBarH) * scale)
                                 if let croppedCGImage = image.cgImage?.cropping(to: cropRect) {
                                     let croppedImage = UIImage(cgImage: croppedCGImage)
                                     if webCache.shouldShowWeb {
@@ -74,8 +71,7 @@ struct TabPageView: View {
                                 } else {
                                     animation.progress = .obtainedSnapshot
                                 }
-                            }
-                        }
+                            })
                     }
                 }
             }
