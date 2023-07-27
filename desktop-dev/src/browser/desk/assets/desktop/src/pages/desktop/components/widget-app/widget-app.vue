@@ -4,7 +4,7 @@ import { computed, onMounted, reactive, ref, watchEffect } from "vue";
 import { strictImageResource } from "../../../../../../../../../helper/imageResourcesHelper.ts";
 import { RandomNumberOptions, randomStringToNumber } from "../../../../../../../../../helper/randomHelper.ts";
 import { Compareable, enumToCompareable } from "../../../../../../../../../helper/sortHelper.ts";
-import IconSquircleBox from "../../../../components/icon-squircle-box/index.vue";
+import AppIcon from "../../../../components/app-icon/app-icon.vue";
 import SvgIcon from "../../../../components/svg-icon/index.vue";
 import { openApp, quitApp, readAcceptSvg, vibrateHeavyClick } from "../../../../provider/api.ts";
 import { buildApiRequestArgs } from "../../../../provider/fetch.ts";
@@ -172,32 +172,24 @@ const onJmmUnInstallDialogClosed = (confirmed: boolean) => {
       <template v-slot:activator="{ props }">
         <div
           class="app-wrap ios-ani"
-          :data-overlayed="isShowOverlay"
-          :data-focused="isShowMenu"
           :class="{ overlayed: isShowOverlay, focused: isShowMenu }"
           @click="[$menu.close, doOpen]"
           @contextmenu="$menu.show"
         >
-          <div
-            class="app-icon"
-            v-bind="props"
+          <AppIcon
             @click="doOpen"
             :class="{
               'animate-slow-bounce': opening,
               'animate-app-pulse': closing,
             }"
             @animationiteration="animationiteration = true"
-          >
-            <IconSquircleBox class="bg backdrop-blur-sm" />
-            <div
-              class="fg"
-              :class="{
-                markable: appiconmarkable,
-                monocolor: appiconmonocolor,
-              }"
-            ></div>
-          </div>
-          <div class="app-name line-clamp-2 backdrop-blur-sm ios-ani" :style="{ opacity: isShowMenu ? 0 : 1 }">
+            size="60px"
+            :src="appicon"
+            :markable="appiconmarkable"
+            :monochrome="appiconmonocolor !== undefined"
+            :monocolor="appiconmonocolor"
+          ></AppIcon>
+          <div class="app-name line-clamp-2 backdrop-ios-glass ios-ani" :style="{ opacity: isShowMenu ? 0 : 1 }">
             {{ appname }}
           </div>
         </div>
@@ -256,10 +248,6 @@ const onJmmUnInstallDialogClosed = (confirmed: boolean) => {
   --icon-size: 60px;
 }
 
-.backdrop-blur-sm {
-  --tw-backdrop-blur: contrast(1.5) brightness(1.2) blur(6px);
-}
-
 .app {
   align-self: flex-start;
 
@@ -278,47 +266,6 @@ const onJmmUnInstallDialogClosed = (confirmed: boolean) => {
     }
     &.overlayed {
       z-index: 3;
-    }
-    .app-icon {
-      width: 60px;
-      height: 60px;
-      display: grid;
-      grid-template-columns: 1fr;
-      grid-template-rows: 1fr;
-      grid-template-areas: "view";
-      place-items: center;
-
-      .bg {
-        grid-area: view;
-        color: rgba(255, 255, 255, 0.2);
-        border-radius: 16%; // 高斯模糊的圆角
-        :deep(svg) {
-          width: 100%;
-          height: 100%;
-          stroke: rgb(0 0 0 / 50%);
-          stroke-width: 1px;
-          stroke-linejoin: round;
-        }
-        z-index: 0;
-      }
-      .fg {
-        z-index: 1;
-        grid-area: view;
-        background-image: v-bind("`url('${appicon}')`");
-        background-size: contain;
-        background-position: center;
-        width: 60%;
-        height: 60%;
-        &.markable {
-          width: 100%;
-          height: 100%;
-        }
-        &.monocolor {
-          background-color: v-bind("appiconmonocolor");
-          mask: v-bind("`url('${appicon}')`") no-repeat center;
-          background-image: none;
-        }
-      }
     }
     .app-name {
       width: 76px;

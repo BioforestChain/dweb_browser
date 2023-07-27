@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { onMounted, onUnmounted, Ref, ref, StyleValue } from "vue";
 import wallpaper_url from "../../../assets/wallpaper.webp";
-import { getWidgetInfo, watchAppInfo } from "../../../provider/api.ts";
+import { getWidgetInfo, watchDesktopAppInfo } from "../../../provider/api.ts";
 import type { $TileSizeType, $WidgetAppData, $WidgetCustomData } from "../../../types/app.type.ts";
 import TileItem from "../components/tile-item/tile-item.vue";
 import TilePanel from "../components/tile-panel/tile-panel.vue";
@@ -38,7 +38,7 @@ const layoutInfoListRef: Ref<$LayoutInfo[]> = ref([]);
 const updateApps = async () => {
   const widgetList = await getWidgetInfo();
 
-  const appInfoWatcher = watchAppInfo();
+  const appInfoWatcher = watchDesktopAppInfo();
   onUnmounted(() => {
     appInfoWatcher.return();
   });

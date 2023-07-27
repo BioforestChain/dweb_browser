@@ -1,0 +1,36 @@
+/** Tailwind.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@tailwind variants;
+
+:root {
+  overflow: auto;
+}
+
+:root,
+.v-application {
+  background: transparent !important;
+}
+
+.z-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+  grid-template-areas: "z-view";
+}
+.z-view {
+  grid-area: z-view;
+}
+.ios-ani {
+  transition: 500ms;
+  transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+  transition-property: transform, scale, translate, rotate, filter, opacity, color, background-color,
+    var(--ani-property, -default);
+}
+
+@layer components {
+  .backdrop-ios-glass {
+    backdrop-filter: contrast(1.5) brightness(1.2) blur(6px);
+  }
+}
