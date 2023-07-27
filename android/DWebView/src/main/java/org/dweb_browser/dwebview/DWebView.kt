@@ -3,11 +3,17 @@ package org.dweb_browser.dwebview
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.RuntimeShader
+import android.os.Build
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.*
+import androidx.annotation.RequiresApi
 import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.DelicateCoroutinesApi
 import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.dweb_browser.microservice.sys.http.getFullAuthority
 import kotlinx.coroutines.Dispatchers
@@ -17,7 +23,9 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.dweb_browser.dwebview.base.BaseActivity
+import org.dweb_browser.helper.Callback
 import org.dweb_browser.helper.PromiseOut
+import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleCallback
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.ioAsyncExceptionHandler
@@ -365,16 +373,19 @@ class DWebView(
           val requestPermissionsMap = mutableMapOf<String, String>();
           // 参考资料： https://developer.android.com/reference/android/webkit/PermissionRequest#constants_1
           for (res in request.resources) {
-            when(res) {
+            when (res) {
               PermissionRequest.RESOURCE_VIDEO_CAPTURE -> {
                 requestPermissionsMap[Manifest.permission.CAMERA] = res
               }
+
               PermissionRequest.RESOURCE_AUDIO_CAPTURE -> {
                 requestPermissionsMap[Manifest.permission.RECORD_AUDIO] = res
               }
+
               PermissionRequest.RESOURCE_MIDI_SYSEX -> {
                 requestPermissionsMap[Manifest.permission.BIND_MIDI_DEVICE_SERVICE] = res
               }
+
               PermissionRequest.RESOURCE_PROTECTED_MEDIA_ID -> {
                 // TODO android.webkit.resource.PROTECTED_MEDIA_ID
               }
@@ -484,4 +495,16 @@ class DWebView(
     }
   }
 
+  @OptIn(DelicateCoroutinesApi::class)
+  override fun onDraw(canvas: Canvas?) {
+    super.onDraw(canvas)
+    if (canvas != null) {
+      GlobalScope.launch(ioAsyncExceptionHandler) {
+        this@DWebView._drawViewSignal.emit(canvas)
+      }
+    }
+  }
+
+  private val _drawViewSignal = Signal<Canvas>();
+  fun onDrawView(cb: Callback<Canvas>) = _drawViewSignal.listen(cb)
 }

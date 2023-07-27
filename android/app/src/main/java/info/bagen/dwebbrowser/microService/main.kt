@@ -122,12 +122,12 @@ suspend fun startDwebBrowser(): DnsNMM {
    * toyJMM.mmid,
    */
   val bootMmidList = when (DEVELOPER.CURRENT) {
-    DEVELOPER.GAUBEE -> listOf(
-      browserNMM.mmid,
+    DEVELOPER.HLOppo, DEVELOPER.GAUBEE -> listOf(
+      desktopNMM.mmid,
 //            browserNMM.mmid,
     )
 
-    DEVELOPER.HuangLin, DEVELOPER.HLVirtual, DEVELOPER.HLOppo, DEVELOPER.HBXiaomi, DEVELOPER.ZGSansung -> listOf(
+    DEVELOPER.HuangLin, DEVELOPER.HLVirtual,  DEVELOPER.HBXiaomi, DEVELOPER.ZGSansung -> listOf(
       browserNMM.mmid,
       // desktopNMM.mmid,
     )
