@@ -67,7 +67,12 @@ struct GridCell: View {
         Button {
             deleteCache.cacheId = webCache.id
         } label: {
-            Image("tab_close")
+            Image(systemName: "xmark.circle.fill")
+                .resizable()
+                .frame(width: 26, height: 26)
+                .foregroundColor(.gray)
+                .background(Color.white)
+                .cornerRadius(100)
         }
         .padding(.top, 8)
         .padding(.trailing, 8)
