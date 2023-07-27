@@ -1,10 +1,10 @@
-package info.bagen.dwebbrowser.microService.desktop.db
+package info.bagen.dwebbrowser.microService.browser.desktop.db
 
 import androidx.compose.runtime.mutableStateListOf
 import info.bagen.dwebbrowser.microService.browser.jmm.JsMicroModule
 import info.bagen.dwebbrowser.microService.core.WindowAppInfo
-import org.dweb_browser.helper.JmmAppInstallManifest
-import org.dweb_browser.helper.MainServer
+import org.dweb_browser.microservice.help.JmmAppInstallManifest
+import org.dweb_browser.microservice.help.MainServer
 
 val desktopAppList by lazy {
   val list = mutableStateListOf<WindowAppInfo>()
@@ -37,11 +37,13 @@ val desktopAppList by lazy {
 }
 
 internal fun createAppInfo(icon: String, url: String, name: String) = WindowAppInfo(
-  jsMicroModule = JsMicroModule(JmmAppInstallManifest(
+  jsMicroModule = JsMicroModule(
+    JmmAppInstallManifest(
     id = name,
     server = MainServer("", ""),
     icon = icon,
     bundle_url = url,
     name = name,
-  ))
+  )
+  )
 )

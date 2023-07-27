@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.microService.desktop
+package info.bagen.dwebbrowser.microService.browser.desktop
 
 import android.content.Intent
 import android.os.Bundle
@@ -15,8 +15,8 @@ import kotlinx.coroutines.withContext
 import org.dweb_browser.browserUI.database.AppInfoDataStore
 import org.dweb_browser.browserUI.download.compareAppVersionHigh
 import org.dweb_browser.helper.ChangeableMap
-import org.dweb_browser.helper.MICRO_MODULE_CATEGORY
-import org.dweb_browser.helper.MMID
+import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
+import org.dweb_browser.microservice.help.MMID
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printdebugln
 import org.dweb_browser.microservice.core.BootstrapContext

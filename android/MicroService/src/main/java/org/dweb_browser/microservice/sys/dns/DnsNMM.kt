@@ -17,7 +17,10 @@ import org.dweb_browser.microservice.core.DnsMicroModule
 import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.core.connectMicroModules
+import org.dweb_browser.microservice.help.DWEB_DEEPLINK
 import org.dweb_browser.microservice.help.InitRequest
+import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
+import org.dweb_browser.microservice.help.MMID
 import org.dweb_browser.microservice.help.buildRequestX
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.helper.IpcEvent

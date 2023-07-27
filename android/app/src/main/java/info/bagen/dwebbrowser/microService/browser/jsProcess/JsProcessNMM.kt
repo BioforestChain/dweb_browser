@@ -7,7 +7,7 @@ import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.helper.IpcHeaders
 import org.dweb_browser.microservice.ipc.helper.IpcResponse
 import org.dweb_browser.microservice.ipc.ReadableStreamIpc
-import org.dweb_browser.helper.MMID
+import org.dweb_browser.microservice.help.MMID
 import org.dweb_browser.helper.encodeURI
 import org.dweb_browser.helper.*
 import org.dweb_browser.microservice.sys.http.DwebHttpServerOptions
@@ -20,6 +20,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
+import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.help.text
 import org.http4k.core.Method

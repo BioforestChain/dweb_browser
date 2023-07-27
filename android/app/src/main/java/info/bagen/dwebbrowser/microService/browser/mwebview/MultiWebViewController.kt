@@ -1,29 +1,26 @@
 package info.bagen.dwebbrowser.microService.browser.mwebview
 
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
-import androidx.lifecycle.lifecycleScope
 import com.google.accompanist.web.WebContent
 import com.google.accompanist.web.WebViewNavigator
 import com.google.accompanist.web.WebViewState
 import info.bagen.dwebbrowser.App
+import info.bagen.dwebbrowser.base.BaseActivity
 import info.bagen.dwebbrowser.microService.browser.nativeui.NativeUiController
-import org.dweb_browser.dwebview.DWebView
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.dweb_browser.browserUI.download.DownLoadObserver
+import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.helper.Callback
 import org.dweb_browser.helper.ChangeableList
-import org.dweb_browser.helper.PromiseOut
+import org.dweb_browser.microservice.help.MMID
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.microservice.core.MicroModule
-import org.dweb_browser.helper.MMID
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
 import org.json.JSONObject
@@ -35,21 +32,17 @@ import java.util.concurrent.atomic.AtomicInteger
  */
 @Stable
 class MultiWebViewController(
-  val mmid: MMID,
-  val localeMM: MultiWebViewNMM,
-  val remoteMM: MicroModule,
+  private val mmid: MMID,
+  private val localeMM: MultiWebViewNMM,
+  private val remoteMM: MicroModule,
+  private val activity: BaseActivity?
 ) {
   companion object {
     private var webviewId_acc = AtomicInteger(1)
   }
 
-  private var webViewList  = ChangeableList<MultiViewItem>()
-  @Composable
-  fun eachView(action: @Composable (viewItem: MultiViewItem) -> Unit) {
-    webViewList.forEachIndexed { _, viewItem ->
-      action(viewItem)
-    }
-  }
+  private var webViewList = ChangeableList<MultiViewItem>()
+
   init {
     webViewList.onChange {
       updateStateHook()
@@ -59,6 +52,7 @@ class MultiWebViewController(
   fun isLastView(viewItem: MultiViewItem) = webViewList.lastOrNull() == viewItem
   fun isFistView(viewItem: MultiViewItem) = webViewList.firstOrNull() == viewItem
   val lastViewOrNull get() = webViewList.lastOrNull()
+  fun getWebView(webviewId: String) = webViewList.find { it.webviewId == webviewId }
 
   private val mIpcMap = mutableMapOf<MMID, Ipc>()
 
@@ -77,26 +71,6 @@ class MultiWebViewController(
         ?: throw Exception("webview un attached to activity")
     }
   }
-
-  private var activityTask = PromiseOut<MultiWebViewActivity>()
-  suspend fun waitActivityCreated() = activityTask.waitPromise()
-
-  var activity: MultiWebViewActivity? = null
-    set(value) {
-      if (field == value) {
-        return
-      }
-      field = value
-      for (webview in webViewList) {
-        webview.webView.activity = value
-      }
-      if (value == null) {
-        activityTask = PromiseOut()
-      } else {
-        activityTask.resolve(value)
-      }
-    }
-
   var downLoadObserver: DownLoadObserver? = null
 
   /**
@@ -117,9 +91,7 @@ class MultiWebViewController(
   }
 
   @Synchronized
-  fun appendWebViewAsItem(dWebView: DWebView) = runBlockingCatching(
-    Dispatchers.Main
-  ) {
+  fun appendWebViewAsItem(dWebView: DWebView) = runBlockingCatching(mainAsyncExceptionHandler) {
     val webviewId = "#w${webviewId_acc.getAndAdd(1)}"
     val state = WebViewState(WebContent.Url(dWebView.url ?: ""))
     val coroutineScope = CoroutineScope(CoroutineName(webviewId))
@@ -135,9 +107,7 @@ class MultiWebViewController(
       dWebView.onCloseWindow {
         closeWebView(webviewId)
       }
-      viewItem.coroutineScope.launch {
-        webViewOpenSignal.emit(webviewId)
-      }
+     webViewOpenSignal.emit(webviewId)
     }
   }.getOrThrow()
 
@@ -165,13 +135,6 @@ class MultiWebViewController(
     }
     webViewList.clear()
     this.downLoadObserver?.close() // 移除下载状态监听
-
-    this.activity?.also {
-      it.finish()
-      it.lifecycleScope.launch {
-        PromiseOut<Unit>().waitPromise()
-      }.join()
-    }
     return true
   }
 
@@ -185,7 +148,7 @@ class MultiWebViewController(
     return true
   }
 
-  suspend fun updateStateHook() {
+  private suspend fun updateStateHook() {
     val currentState = JSONObject()
     debugMultiWebView("updateStateHook =>", webViewList.size)
     webViewList.map {

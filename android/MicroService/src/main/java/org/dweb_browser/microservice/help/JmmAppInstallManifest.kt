@@ -1,5 +1,8 @@
-package org.dweb_browser.helper
+package org.dweb_browser.microservice.help
 
+import org.dweb_browser.helper.DisplayMode
+import org.dweb_browser.helper.ImageResource
+import org.dweb_browser.helper.ShortcutItem
 import java.io.Serializable
 
 typealias MMID = String
@@ -8,11 +11,24 @@ typealias DWEB_DEEPLINK = String
 /** Js模块应用 元数据 */
 data class JmmAppManifest(
   override val id: MMID = "",
+  override val name: String = "",
   override var version: String = "0.0.1",
+  override val categories: List<MICRO_MODULE_CATEGORY> = emptyList(),
+  override val dir: String? = null,
+  override val lang: String? = null,
+  override val short_name: String = "",
+  override val description: String = "", // 应用描述
+  override val icons: List<ImageResource>? = null,
+  override val screenshots: List<ImageResource>? = null,
+  override val display: DisplayMode? = null,
+  override val orientation: String? = null,
+  override val theme_color: String? = null,
+  override val background_color: String = "#ffffff",
+  override val shortcuts: List<ShortcutItem> = emptyList(),
   val baseURI: String? = null,
   val dweb_deeplinks: List<DWEB_DEEPLINK> = emptyList(),
   val server: MainServer = MainServer("/sys", "/server/plaoc.server.js")
-) : CommonAppManifest()
+) : CommonAppManifest, Serializable
 
 /** Js模块应用安装使用的元数据 */
 data class JmmAppInstallManifest(
@@ -46,6 +62,8 @@ data class JmmAppInstallManifest(
   val author: List<String> = emptyList(),
   /** 安装时展示的主页链接 */
   val home: String = "",
+  /** 修改日志 */
+  val change_log: String = "",
   /** 安装时展示的发布日期 */
   val release_date: String = "",
   /**
@@ -58,7 +76,7 @@ data class JmmAppInstallManifest(
   val plugins: List<String> = emptyList(),
   val isRunning: Boolean = false, // 是否正在运行
   val isExpand: Boolean = false, // 是否默认展开窗口
-) : CommonAppManifest()
+) : CommonAppManifest, Serializable
 
 data class MainServer(
   /**
@@ -70,7 +88,6 @@ data class MainServer(
    */
   val entry: String
 ) : Serializable
-
 
 interface MicroModuleManifest {
   val ipc_support_protocols: IpcSupportProtocols
@@ -91,7 +108,7 @@ interface MicroModuleManifest {
   val shortcuts: List<ShortcutItem>
 }
 
-open class CommonAppManifest(
+/*open class CommonAppManifest(
   open val id: MMID = "",
   open val dir: String? = null,
   open val lang: String? = null,
@@ -106,16 +123,32 @@ open class CommonAppManifest(
   open val theme_color: String? = null,
   open val background_color: String? = null,
   open val shortcuts: List<ShortcutItem>? = null,
-
   open var version: String = "0.0.1"
+) : Serializable*/
 
-) : Serializable
+interface CommonAppManifest {
+  val id: MMID
+  val dir: String?
+  val lang: String?
+  val name: String
+  val short_name: String
+  val description: String?
+  val icons: List<ImageResource>?
+  val screenshots: List<ImageResource>?
+  val display: DisplayMode?
+  val orientation: String?
+  val categories: List<MICRO_MODULE_CATEGORY>
+  val theme_color: String?
+  val background_color: String?
+  val shortcuts: List<ShortcutItem>?
+  var version: String
+}
 
 data class IpcSupportProtocols(
   val cbor: Boolean,
   val protobuf: Boolean,
   val raw: Boolean,
-) : Serializable
+)
 
 enum class MICRO_MODULE_CATEGORY {
 

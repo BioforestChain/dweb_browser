@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.microService.mwebview
+package info.bagen.dwebbrowser.microService.browser.mwebview
 
 import android.view.ViewGroup
 import androidx.activity.compose.BackHandler
@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusRequester
 import com.google.accompanist.web.WebView
 import kotlinx.coroutines.launch
-import org.dweb_browser.helper.MMID
+import org.dweb_browser.microservice.help.MMID
 
 @Composable
 fun MultiWebView(mmid: MMID, viewItem: MultiWebViewController.MultiViewItem) {

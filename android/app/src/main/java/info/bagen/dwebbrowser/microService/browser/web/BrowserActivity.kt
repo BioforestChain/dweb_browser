@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.microService.browser
+package info.bagen.dwebbrowser.microService.browser.web
 
 import android.os.Bundle
 import androidx.activity.compose.setContent
@@ -12,7 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
-import info.bagen.dwebbrowser.microService.browser.BrowserNMM.Companion.browserController
+import info.bagen.dwebbrowser.microService.browser.web.BrowserNMM.Companion.browserController
 import info.bagen.dwebbrowser.ui.theme.DwebBrowserAppTheme
 import org.dweb_browser.browserUI.ui.browser.BrowserView
 import org.dweb_browser.browserUI.ui.browser.LocalShowIme

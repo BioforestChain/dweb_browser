@@ -3,11 +3,9 @@ package org.dweb_browser.microservice.ipc
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.dweb_browser.helper.MicroModuleManifest
+import org.dweb_browser.microservice.help.MicroModuleManifest
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printdebugln
@@ -27,7 +25,6 @@ import org.dweb_browser.microservice.ipc.helper.IpcStreamData
 import org.dweb_browser.microservice.ipc.helper.ReadableStream
 import org.dweb_browser.microservice.ipc.helper.jsonToIpcMessage
 import java.io.InputStream
-import java.util.concurrent.atomic.AtomicReference
 
 
 fun debugStreamIpc(tag: String, msg: Any = "", err: Throwable? = null) =
@@ -40,8 +37,8 @@ fun debugStreamIpc(tag: String, msg: Any = "", err: Throwable? = null) =
  * 以及需要手动绑定输入流 {@link bindIncomeStream}
  */
 class ReadableStreamIpc(
-    override val remote: MicroModuleManifest,
-    override val role: String,
+  override val remote: MicroModuleManifest,
+  override val role: String,
 ) : Ipc() {
     companion object {
         val incomeStreamCoroutineScope =
@@ -49,8 +46,8 @@ class ReadableStreamIpc(
     }
 
     constructor(
-        remote: MicroModuleManifest,
-        role: IPC_ROLE,
+      remote: MicroModuleManifest,
+      role: IPC_ROLE,
     ) : this(remote, role.role)
 
     override fun toString(): String {

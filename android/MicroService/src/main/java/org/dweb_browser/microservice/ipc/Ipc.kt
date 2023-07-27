@@ -11,8 +11,7 @@ import org.http4k.core.Uri
 import java.util.concurrent.atomic.AtomicInteger
 import org.dweb_browser.helper.*
 import org.dweb_browser.microservice.core.MicroModule
-import org.dweb_browser.helper.DWEB_DEEPLINK
-import org.dweb_browser.helper.MMID
+import org.dweb_browser.microservice.help.MicroModuleManifest
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
 import org.dweb_browser.microservice.ipc.helper.IpcEventMessageArgs
 import org.dweb_browser.microservice.ipc.helper.IpcMessage

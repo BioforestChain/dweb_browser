@@ -7,10 +7,10 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import info.bagen.dwebbrowser.base.BaseActivity
 import info.bagen.dwebbrowser.microService.browser.jmm.JsMicroModule
-import info.bagen.dwebbrowser.microService.mwebview.MultiWebViewController
+import info.bagen.dwebbrowser.microService.browser.mwebview.MultiWebViewController
 import org.dweb_browser.helper.*
 import org.dweb_browser.microservice.core.NativeMicroModule
-import org.dweb_browser.helper.MMID
+import org.dweb_browser.microservice.help.MMID
 
 abstract class AndroidNativeMicroModule(override val mmid: MMID, override val name: String) : NativeMicroModule(mmid,name) {
   protected val installAppList = Companion.installAppList

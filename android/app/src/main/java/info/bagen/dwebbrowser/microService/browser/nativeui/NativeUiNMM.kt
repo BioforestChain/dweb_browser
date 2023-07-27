@@ -5,7 +5,7 @@ import info.bagen.dwebbrowser.microService.browser.nativeui.safeArea.SafeAreaNMM
 import info.bagen.dwebbrowser.microService.browser.nativeui.splashScreen.SplashScreenNMM
 import info.bagen.dwebbrowser.microService.browser.nativeui.statusBar.StatusBarNMM
 import info.bagen.dwebbrowser.microService.browser.nativeui.virtualKeyboard.VirtualKeyboardNMM
-import org.dweb_browser.helper.MICRO_MODULE_CATEGORY
+import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 

@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.microService.desktop.ui
+package info.bagen.dwebbrowser.microService.browser.desktop.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -20,9 +20,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import info.bagen.dwebbrowser.microService.core.WindowAppInfo
-import info.bagen.dwebbrowser.microService.desktop.model.LocalDrawerManager
-import info.bagen.dwebbrowser.microService.desktop.model.LocalInstallList
-import info.bagen.dwebbrowser.microService.desktop.model.LocalOpenList
+import info.bagen.dwebbrowser.microService.browser.desktop.model.LocalDrawerManager
+import info.bagen.dwebbrowser.microService.browser.desktop.model.LocalInstallList
+import info.bagen.dwebbrowser.microService.browser.desktop.model.LocalOpenList
 import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
 
 @Composable

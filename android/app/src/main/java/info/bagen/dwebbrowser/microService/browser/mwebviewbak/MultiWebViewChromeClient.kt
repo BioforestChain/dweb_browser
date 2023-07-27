@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.microService.mwebview
+package info.bagen.dwebbrowser.microService.browser.mwebviewbak
 
 import android.os.Message
 import android.webkit.JsResult
@@ -14,16 +14,22 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class MultiWebViewChromeClient(
-  private val controller: MultiWebViewController,
+  val wc: MultiWebViewController,
   val viewItem: MultiWebViewController.MultiViewItem,
-  private val isLast: Boolean
+  val isLast: Boolean
 ) : AccompanistWebChromeClient() {
+//    val viewItem = wc.currentView
+//    val isLast = wc.currentIsLast
+
   //#region BeforeUnload
-  private val beforeUnloadController = BeforeUnloadController()
+  val beforeUnloadController = BeforeUnloadController()
 
   override fun onJsBeforeUnload(
     view: WebView, url: String, message: String, result: JsResult
   ): Boolean {
+    debugMultiWebView(
+      "onJsBeforeUnload", "url:$url message:$message"
+    )
     if (message.isNotEmpty()) {
       if (isLast) {
         beforeUnloadController.promptState.value = message
@@ -36,19 +42,20 @@ class MultiWebViewChromeClient(
     return super.onJsBeforeUnload(view, url, message, result)
   }
 
+
   class BeforeUnloadController {
     val promptState = mutableStateOf("")
     val resultState = mutableStateOf<JsResult?>(null)
   }
 
   @Composable
-  fun BeforeUnloadDialog() {
+  fun beforeUnloadDialog() {
 
-    val beforeUnloadPrompt by beforeUnloadController.promptState
+    var beforeUnloadPrompt by beforeUnloadController.promptState
     var beforeUnloadResult by beforeUnloadController.resultState
     val jsResult = beforeUnloadResult ?: return
 
-    val scope = rememberCoroutineScope()
+    val sc = rememberCoroutineScope()
 
     AlertDialog(
       title = {
@@ -63,8 +70,8 @@ class MultiWebViewChromeClient(
         Button(onClick = {
           jsResult.confirm()
           beforeUnloadResult = null
-          scope.launch {
-            controller.closeWebView(viewItem.webviewId)
+          sc.launch {
+            wc.closeWebView(viewItem.webviewId)
           }
         }) {
           Text("确定")// TODO i18n
@@ -79,9 +86,11 @@ class MultiWebViewChromeClient(
         }
       })
   }
+
   //#endregion
 
   //#region NewWindow & CloseWatcher
+
   val closeWatcherController = CloseWatcher(viewItem)
 
   override fun onCreateWindow(
@@ -90,7 +99,8 @@ class MultiWebViewChromeClient(
     val transport = resultMsg.obj;
     if (transport is WebView.WebViewTransport) {
       viewItem.coroutineScope.launch {
-        val dWebView = controller.createDwebView("")
+        debugMultiWebView("opening")
+        val dWebView = wc.createDwebView("")
         transport.webView = dWebView;
         resultMsg.sendToTarget();
 
@@ -114,7 +124,7 @@ class MultiWebViewChromeClient(
           }
         } else {
           /// 打开一个新窗口
-          controller.appendWebViewAsItem(dWebView)
+          wc.appendWebViewAsItem(dWebView)
         }
       }
       return true
@@ -124,5 +134,7 @@ class MultiWebViewChromeClient(
       view, isDialog, isUserGesture, resultMsg
     )
   }
+
+
   //#endregion
 }

@@ -8,7 +8,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.getOrElse
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.Callback
-import org.dweb_browser.helper.MicroModuleManifest
+import org.dweb_browser.microservice.help.MicroModuleManifest
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printdebugln

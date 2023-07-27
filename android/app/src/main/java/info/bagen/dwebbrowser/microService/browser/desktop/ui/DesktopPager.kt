@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.microService.desktop.ui
+package info.bagen.dwebbrowser.microService.browser.desktop.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTransformGestures
@@ -31,9 +31,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.microService.core.WindowAppInfo
-import info.bagen.dwebbrowser.microService.desktop.model.LocalDrawerManager
-import info.bagen.dwebbrowser.microService.desktop.model.LocalOpenList
-import info.bagen.dwebbrowser.microService.mwebview.MultiWebView
+import info.bagen.dwebbrowser.microService.browser.desktop.model.LocalDrawerManager
+import info.bagen.dwebbrowser.microService.browser.desktop.model.LocalOpenList
+import info.bagen.dwebbrowser.microService.browser.mwebview.MultiWebView
 import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
 
 @Composable

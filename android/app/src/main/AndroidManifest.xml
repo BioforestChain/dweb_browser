@@ -65,7 +65,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".microService.browser.BrowserActivity"
+            android:name=".microService.browser.web.BrowserActivity"
             android:exported="true"
             android:theme="@style/Theme.dwebbrowser"
             android:screenOrientation="portrait"
@@ -75,7 +75,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".microService.desktop.DesktopActivity"
+            android:name=".microService.browser.desktop.DesktopActivity"
             android:exported="true"
             android:theme="@style/Theme.dwebbrowser"
             android:screenOrientation="portrait"
@@ -86,23 +86,23 @@
         </activity>
 
         <activity
-            android:name=".microService.browser.mwebview.MultiWebViewPlaceholder1Activity"
+            android:name=".microService.browser.mwebviewbak.MultiWebViewPlaceholder1Activity"
             android:exported="true"
             android:windowSoftInputMode="adjustPan" />
         <activity
-            android:name=".microService.browser.mwebview.MultiWebViewPlaceholder2Activity"
+            android:name=".microService.browser.mwebviewbak.MultiWebViewPlaceholder2Activity"
             android:exported="true"
             android:windowSoftInputMode="adjustPan" />
         <activity
-            android:name=".microService.browser.mwebview.MultiWebViewPlaceholder3Activity"
+            android:name=".microService.browser.mwebviewbak.MultiWebViewPlaceholder3Activity"
             android:exported="true"
             android:windowSoftInputMode="adjustPan" />
         <activity
-            android:name=".microService.browser.mwebview.MultiWebViewPlaceholder4Activity"
+            android:name=".microService.browser.mwebviewbak.MultiWebViewPlaceholder4Activity"
             android:exported="true"
             android:windowSoftInputMode="adjustPan" />
         <activity
-            android:name=".microService.browser.mwebview.MultiWebViewPlaceholder5Activity"
+            android:name=".microService.browser.mwebviewbak.MultiWebViewPlaceholder5Activity"
             android:exported="true"
             android:windowSoftInputMode="adjustPan" />
 

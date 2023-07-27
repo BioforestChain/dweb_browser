@@ -1,7 +1,7 @@
 package org.dweb_browser.microservice.core
 
-import org.dweb_browser.helper.MICRO_MODULE_CATEGORY
-import org.dweb_browser.helper.MMID
+import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
+import org.dweb_browser.microservice.help.MMID
 import org.http4k.core.Request
 
 

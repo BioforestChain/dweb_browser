@@ -14,8 +14,8 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 import org.dweb_browser.browserUI.util.BrowserUIApp
-import org.dweb_browser.helper.JmmAppInstallManifest
-import org.dweb_browser.helper.MMID
+import org.dweb_browser.microservice.help.JmmAppInstallManifest
+import org.dweb_browser.microservice.help.MMID
 import org.dweb_browser.microservice.help.gson
 
 object AppInfoDataStore {
@@ -31,7 +31,7 @@ object AppInfoDataStore {
         throw e
       }
     }.map { pref ->
-      gson.fromJson(pref[stringPreferencesKey(key)],JmmAppInstallManifest::class.java)
+      gson.fromJson(pref[stringPreferencesKey(key)], JmmAppInstallManifest::class.java)
     }
   }
 

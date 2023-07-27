@@ -9,7 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.base.BaseActivity
-import org.dweb_browser.helper.JmmAppInstallManifest
+import org.dweb_browser.microservice.help.JmmAppInstallManifest
 import info.bagen.dwebbrowser.microService.browser.jmm.JmmNMM
 
 class JmmManagerActivity : BaseActivity() {

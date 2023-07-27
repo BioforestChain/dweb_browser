@@ -3,7 +3,7 @@ package org.dweb_browser.browserUI.util
 import android.content.Context
 import android.net.Uri
 import android.os.Build
-import org.dweb_browser.helper.MMID
+import org.dweb_browser.microservice.help.MMID
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream

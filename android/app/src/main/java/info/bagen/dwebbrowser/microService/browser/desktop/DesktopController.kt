@@ -1,6 +1,5 @@
-package info.bagen.dwebbrowser.microService.desktop
+package info.bagen.dwebbrowser.microService.browser.desktop
 
-import android.net.Uri
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
@@ -25,7 +24,7 @@ import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.browserUI.ui.browser.ConstUrl
 import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.dwebview.base.DWebViewItem
-import org.dweb_browser.helper.JmmAppInstallManifest
+import org.dweb_browser.microservice.help.JmmAppInstallManifest
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.runBlockingCatching

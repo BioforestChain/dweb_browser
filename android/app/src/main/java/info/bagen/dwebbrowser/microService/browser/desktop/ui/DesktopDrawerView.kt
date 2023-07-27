@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.microService.desktop.ui
+package info.bagen.dwebbrowser.microService.browser.desktop.ui
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -34,8 +34,8 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.microService.core.WindowAppInfo
-import info.bagen.dwebbrowser.microService.desktop.model.LocalDrawerManager
-import info.bagen.dwebbrowser.microService.desktop.model.LocalOpenList
+import info.bagen.dwebbrowser.microService.browser.desktop.model.LocalDrawerManager
+import info.bagen.dwebbrowser.microService.browser.desktop.model.LocalOpenList
 import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
 
 private val rightEnterAnimator = slideInHorizontally(animationSpec = tween(500),//动画时长1s

@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.microService.browser.mwebview
+package info.bagen.dwebbrowser.microService.browser.mwebviewbak
 
 import android.annotation.SuppressLint
 import android.os.Bundle
@@ -18,9 +18,9 @@ import androidx.lifecycle.lifecycleScope
 import com.google.accompanist.web.WebView
 import info.bagen.dwebbrowser.base.BaseActivity
 import org.dweb_browser.helper.*
-import info.bagen.dwebbrowser.microService.browser.mwebview.MultiWebViewNMM.Companion.getCurrentWebViewController
-import info.bagen.dwebbrowser.microService.browser.mwebview.dwebServiceWorker.ServiceWorkerEvent
-import info.bagen.dwebbrowser.microService.browser.mwebview.dwebServiceWorker.emitEvent
+import info.bagen.dwebbrowser.microService.browser.mwebviewbak.MultiWebViewNMM.Companion.getCurrentWebViewController
+import info.bagen.dwebbrowser.microService.browser.mwebviewbak.dwebServiceWorker.ServiceWorkerEvent
+import info.bagen.dwebbrowser.microService.browser.mwebviewbak.dwebServiceWorker.emitEvent
 import info.bagen.dwebbrowser.ui.theme.DwebBrowserAppTheme
 import kotlinx.coroutines.launch
 

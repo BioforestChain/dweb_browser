@@ -5,10 +5,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import org.dweb_browser.dwebview.serviceWorker.DownloadControllerEvent
-import org.dweb_browser.helper.JmmAppInstallManifest
+import org.dweb_browser.microservice.help.JmmAppInstallManifest
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.runBlockingCatching
-import org.dweb_browser.helper.MMID
+import org.dweb_browser.microservice.help.MMID
 import java.math.RoundingMode
 import java.text.DecimalFormat
 

@@ -7,10 +7,10 @@ import org.dweb_browser.browserUI.database.AppInfoDataStore
 import org.dweb_browser.browserUI.download.DownLoadController
 import org.dweb_browser.browserUI.util.BrowserUIApp
 import org.dweb_browser.browserUI.util.FilesUtil
-import org.dweb_browser.helper.DWEB_DEEPLINK
-import org.dweb_browser.helper.JmmAppInstallManifest
-import org.dweb_browser.helper.MICRO_MODULE_CATEGORY
-import org.dweb_browser.helper.MMID
+import org.dweb_browser.microservice.help.DWEB_DEEPLINK
+import org.dweb_browser.microservice.help.JmmAppInstallManifest
+import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
+import org.dweb_browser.microservice.help.MMID
 import org.dweb_browser.helper.printdebugln
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.help.json

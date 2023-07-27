@@ -1,7 +1,7 @@
 package info.bagen.dwebbrowser.microService
 
 import android.webkit.WebView
-import info.bagen.dwebbrowser.microService.browser.BrowserNMM
+import info.bagen.dwebbrowser.microService.browser.web.BrowserNMM
 import org.dweb_browser.helper.*
 import org.dweb_browser.microservice.sys.boot.BootNMM
 import org.dweb_browser.microservice.sys.dns.DnsNMM
@@ -10,8 +10,8 @@ import info.bagen.dwebbrowser.microService.browser.jmm.JmmNMM
 import info.bagen.dwebbrowser.microService.browser.jsProcess.JsProcessNMM
 import info.bagen.dwebbrowser.microService.browser.nativeui.NativeUiNMM
 import info.bagen.dwebbrowser.microService.browser.nativeui.torch.TorchNMM
-import info.bagen.dwebbrowser.microService.desktop.DesktopNMM
-import info.bagen.dwebbrowser.microService.mwebview.MultiWebViewNMM
+import info.bagen.dwebbrowser.microService.browser.desktop.DesktopNMM
+import info.bagen.dwebbrowser.microService.browser.mwebview.MultiWebViewNMM
 import info.bagen.dwebbrowser.microService.sys.LocalFileFetch
 import info.bagen.dwebbrowser.microService.sys.biometrics.BiometricsNMM
 import info.bagen.dwebbrowser.microService.sys.clipboard.ClipboardNMM
@@ -128,8 +128,8 @@ suspend fun startDwebBrowser(): DnsNMM {
     )
 
     DEVELOPER.HuangLin, DEVELOPER.HLVirtual, DEVELOPER.HLOppo, DEVELOPER.HBXiaomi, DEVELOPER.ZGSansung -> listOf(
-      // browserNMM.mmid,
-      desktopNMM.mmid,
+      browserNMM.mmid,
+      // desktopNMM.mmid,
     )
 
     DEVELOPER.WaterBang -> listOf(

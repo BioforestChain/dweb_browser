@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.microService.browser
+package info.bagen.dwebbrowser.microService.browser.web
 
 import android.content.Intent
 import android.os.Bundle
@@ -6,7 +6,7 @@ import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.browser.jmm.EIpcEvent
 import info.bagen.dwebbrowser.microService.browser.jmm.debugJMM
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
-import org.dweb_browser.helper.MICRO_MODULE_CATEGORY
+import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
 import org.dweb_browser.helper.printdebugln
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.ipc.Ipc

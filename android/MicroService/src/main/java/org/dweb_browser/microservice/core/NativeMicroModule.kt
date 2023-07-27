@@ -1,7 +1,10 @@
 package org.dweb_browser.microservice.core
 
 import org.dweb_browser.helper.*
-import org.dweb_browser.helper.MMID
+import org.dweb_browser.microservice.help.DWEB_DEEPLINK
+import org.dweb_browser.microservice.help.IpcSupportProtocols
+import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
+import org.dweb_browser.microservice.help.MMID
 import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.NativeIpc

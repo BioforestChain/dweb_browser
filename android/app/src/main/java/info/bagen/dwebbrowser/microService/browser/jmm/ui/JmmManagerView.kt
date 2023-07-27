@@ -54,11 +54,11 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.R
-import org.dweb_browser.helper.JmmAppInstallManifest
+import org.dweb_browser.microservice.help.JmmAppInstallManifest
 import kotlinx.coroutines.launch
 import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
 import org.dweb_browser.browserUI.download.DownLoadStatus
-import org.dweb_browser.helper.MICRO_MODULE_CATEGORY
+import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
 import java.text.DecimalFormat
 
 private val TopBarHeight = 44.dp

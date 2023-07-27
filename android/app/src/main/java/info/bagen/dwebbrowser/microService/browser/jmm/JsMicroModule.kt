@@ -9,8 +9,12 @@ import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.ConnectResult
 import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.core.connectAdapterManager
-import org.dweb_browser.helper.DWEB_DEEPLINK
-import org.dweb_browser.helper.MMID
+import org.dweb_browser.microservice.help.DWEB_DEEPLINK
+import org.dweb_browser.microservice.help.IpcSupportProtocols
+import org.dweb_browser.microservice.help.JmmAppInstallManifest
+import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
+import org.dweb_browser.microservice.help.MMID
+import org.dweb_browser.microservice.help.MicroModuleManifest
 import org.dweb_browser.microservice.help.boolean
 import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.help.int

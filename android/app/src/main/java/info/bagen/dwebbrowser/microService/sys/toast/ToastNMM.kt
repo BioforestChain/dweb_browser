@@ -7,7 +7,7 @@ import org.http4k.routing.bind
 import org.http4k.routing.routes
 import info.bagen.dwebbrowser.microService.sys.toast.ToastController.PositionType
 import info.bagen.dwebbrowser.microService.sys.toast.ToastController.DurationType
-import org.dweb_browser.helper.MICRO_MODULE_CATEGORY
+import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 

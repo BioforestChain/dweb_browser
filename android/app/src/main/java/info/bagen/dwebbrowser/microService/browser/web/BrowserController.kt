@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.microService.browser
+package info.bagen.dwebbrowser.microService.browser.web
 
 import android.view.View
 import android.view.ViewGroup

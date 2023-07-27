@@ -32,14 +32,14 @@ import kotlin.test.assertEquals
 class NativeIpcTest : AsyncBase() {
   @Test
   fun baseTest() = runBlocking {
-    val m1 = object : NativeMicroModule("m1") {
+    val m1 = object : NativeMicroModule("m1","") {
       override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
       }
 
       override suspend fun _shutdown() {
       }
     }
-    val m2 = object : NativeMicroModule("m2") {
+    val m2 = object : NativeMicroModule("m2","") {
       override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
       }
 
@@ -76,14 +76,14 @@ class NativeIpcTest : AsyncBase() {
     enableDwebDebug(listOf("native-ipc", "stream"))
     val dns = DnsNMM()
 
-    val m0 = object : NativeMicroModule("m0") {
+    val m0 = object : NativeMicroModule("m0", "") {
       override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
       }
 
       override suspend fun _shutdown() {
       }
     }
-    val m1 = object : NativeMicroModule("m1") {
+    val m1 = object : NativeMicroModule("m1", "") {
       override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
       }
 
@@ -162,7 +162,7 @@ class NativeIpcTest : AsyncBase() {
   fun withReadableStreamIpc() = runBlocking {
 //        System.setProperty("dweb-debug", "stream native-ipc")
     val dnsNMM = DnsNMM()
-    val mServer = object : NativeMicroModule("mServer") {
+    val mServer = object : NativeMicroModule("mServer", "") {
       override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
         apiRouting = routes("/listen" bind Method.POST to defineHandler { request, ipc ->
           val streamIpc = ReadableStreamIpc(ipc.remote, "from-remote")
@@ -191,7 +191,7 @@ class NativeIpcTest : AsyncBase() {
       }
     }
 
-    val mClient = object : NativeMicroModule("mClient") {
+    val mClient = object : NativeMicroModule("mClient", "") {
       override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
       }
 
@@ -199,7 +199,7 @@ class NativeIpcTest : AsyncBase() {
       }
     }
 
-    val c2sIpc by lazy { runBlocking { mServer.connect(mClient.mmid)!!.ipcForFromMM } }
+    val c2sIpc by lazy { runBlocking { mServer.connect(mClient.mmid)!! } }
 
     nativeFetchAdaptersManager.append { _, request ->
       if (request.uri.host == mServer.mmid) {
@@ -240,14 +240,14 @@ class NativeIpcTest : AsyncBase() {
 
   @Test
   fun IpcOnClose() = runBlocking {
-    val m1 = object : NativeMicroModule("m1") {
+    val m1 = object : NativeMicroModule("m1", "") {
       override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
       }
 
       override suspend fun _shutdown() {
       }
     }
-    val m2 = object : NativeMicroModule("m2") {
+    val m2 = object : NativeMicroModule("m2", "") {
       override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
       }
 

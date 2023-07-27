@@ -5,7 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.widget.Toast
 import info.bagen.dwebbrowser.App
-import info.bagen.dwebbrowser.microService.browser.BrowserActivity
+import info.bagen.dwebbrowser.microService.browser.web.BrowserActivity
 import org.dweb_browser.browserUI.util.APP_DIR_TYPE
 import org.dweb_browser.browserUI.util.FilesUtil
 import java.io.File

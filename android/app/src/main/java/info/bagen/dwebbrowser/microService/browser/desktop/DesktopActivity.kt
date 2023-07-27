@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.microService.desktop
+package info.bagen.dwebbrowser.microService.browser.desktop
 
 import android.os.Bundle
 import androidx.activity.compose.setContent
@@ -11,9 +11,9 @@ import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
 import com.google.accompanist.web.WebView
 import info.bagen.dwebbrowser.base.BaseActivity
-import info.bagen.dwebbrowser.microService.desktop.model.LocalInstallList
-import info.bagen.dwebbrowser.microService.desktop.model.LocalOpenList
-import info.bagen.dwebbrowser.microService.desktop.ui.DesktopMainView
+import info.bagen.dwebbrowser.microService.browser.desktop.model.LocalInstallList
+import info.bagen.dwebbrowser.microService.browser.desktop.model.LocalOpenList
+import info.bagen.dwebbrowser.microService.browser.desktop.ui.DesktopMainView
 import info.bagen.dwebbrowser.ui.theme.DwebBrowserAppTheme
 import kotlinx.coroutines.launch
 import org.dweb_browser.dwebview.base.DWebViewItem

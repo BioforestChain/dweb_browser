@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.microService.desktop.model
+package info.bagen.dwebbrowser.microService.browser.desktop.model
 
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.runtime.compositionLocalOf
