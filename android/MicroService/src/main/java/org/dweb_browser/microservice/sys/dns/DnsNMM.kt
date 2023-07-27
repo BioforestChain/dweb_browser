@@ -21,6 +21,7 @@ import org.dweb_browser.microservice.help.DWEB_DEEPLINK
 import org.dweb_browser.microservice.help.InitRequest
 import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.MMID
+import org.dweb_browser.microservice.help.MicroModuleManifest
 import org.dweb_browser.microservice.help.buildRequestX
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
@@ -117,7 +118,7 @@ class DnsNMM() : NativeMicroModule("dns.sys.dweb","Dweb Name System") {
       return dnsMM.query(mmid)
     }
 
-    override suspend fun search(category: MICRO_MODULE_CATEGORY): MutableList<MicroModule> {
+    override suspend fun search(category: MICRO_MODULE_CATEGORY): MutableList<MicroModuleManifest> {
       return dnsMM.search(category)
     }
 
@@ -260,11 +261,11 @@ class DnsNMM() : NativeMicroModule("dns.sys.dweb","Dweb Name System") {
    * > 这里暂时不需要支持复合搜索，未来如果有需要另外开接口
    * @param category
    */
-  fun search(category: MICRO_MODULE_CATEGORY): MutableList<MicroModule> {
-    val categoryList = mutableListOf<MicroModule>()
+  fun search(category: MICRO_MODULE_CATEGORY): MutableList<MicroModuleManifest> {
+    val categoryList = mutableListOf<MicroModuleManifest>()
     for (app in this.installApps.values) {
       if (app.categories.contains(category)) {
-        categoryList.add(app)
+        categoryList.add(app.toManifest())
       }
     }
     return categoryList

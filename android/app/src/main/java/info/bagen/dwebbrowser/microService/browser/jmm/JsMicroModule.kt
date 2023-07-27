@@ -30,26 +30,38 @@ fun debugJsMM(tag: String, msg: Any? = "", err: Throwable? = null) =
   printdebugln("JsMM", tag, msg, err)
 
 open class JsMicroModule(var metadata: JmmAppInstallManifest) : MicroModule() {
+
   override val ipc_support_protocols: IpcSupportProtocols = IpcSupportProtocols(
     cbor = true,
     protobuf = false,
     raw = true
   )
   override val dweb_deeplinks: List<DWEB_DEEPLINK> = metadata.dweb_deeplinks
-  override val categories: List<MICRO_MODULE_CATEGORY> = metadata.categories
+  override val categories: List<MICRO_MODULE_CATEGORY> get() {
+    if (!categories.contains(MICRO_MODULE_CATEGORY.Application)) {
+      categories.plus(MICRO_MODULE_CATEGORY.Application)
+    }
+    return categories
+  }
   override val mmid = metadata.id
   override val dir = metadata.dir
   override val lang: String? = metadata.lang
   override val name: String = metadata.name
   override val short_name: String = metadata.short_name
   override val description: String? = metadata.description
-  override val icons: List<ImageResource>? = metadata.icons
+  override val icons:List<ImageResource>  get() {
+    var icons = metadata.icons;
+    if (icons.isNullOrEmpty()) {
+      icons = listOf(ImageResource(src = metadata.icon))
+    }
+    return icons
+  }
   override val display: DisplayMode? = metadata.display
   override val orientation: String? = metadata.orientation
   override val screenshots: List<ImageResource>? = metadata.screenshots
   override val shortcuts: List<ShortcutItem> = metadata.shortcuts
   override val theme_color: String? = metadata.theme_color
-  override val background_color = metadata.background_color
+  override val background_color: String? = metadata.background_color
 
   companion object {
     init {

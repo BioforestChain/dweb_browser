@@ -31,7 +31,7 @@ abstract class NativeMicroModule(override val mmid: MMID, override val name: Str
   override val lang: String? = null
   override val short_name: String = ""
   override val description: String? = null
-  override val icons: List<ImageResource>? = null
+  override val icons: List<ImageResource> = emptyList()
   override val display: DisplayMode? = null
   override val orientation: String? = null
   override val screenshots: List<ImageResource>? = null

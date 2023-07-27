@@ -61,11 +61,10 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb","Js MicroModule Manag
     private val controllerList = mutableListOf<JmmController>()
     val jmmController get() = controllerList.firstOrNull()
 
-    fun installAppsContainMMid(mmid: MMID) =
-      installAppList.find { it.jsMicroModule.mmid == mmid } != null
+    fun installAppsContainMMid(mmid: MMID) =  installAppList.find { it.jsMetaData.mmid == mmid } != null
 
     fun installAppsMetadata(mmid: MMID) =
-      installAppList.firstOrNull { it.jsMicroModule.mmid == mmid }?.jsMicroModule?.metadata
+      installAppList.firstOrNull { it.jsMetaData.mmid == mmid }?.jsMetaData
   }
 
   init {
@@ -101,10 +100,9 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb","Js MicroModule Manag
       "/detailApp" bind Method.GET to defineHandler { request ->
         val mmid = queryMmid(request)
         debugJMM("detailApp", mmid)
-        val apps = installAppList
-        val metadata = apps.firstOrNull { it.jsMicroModule.mmid == mmid }?.jsMicroModule?.metadata
+        val metadata = bootstrapContext.dns.query(mmid)
           ?: return@defineHandler Response(Status.NOT_FOUND).body("not found ${mmid}")
-        JmmManagerActivity.startActivity(metadata)
+        JmmManagerActivity.startActivity(metadata as JmmAppInstallManifest)
         return@defineHandler true
       },
       "/pause" bind Method.GET to defineHandler { _, ipc ->
@@ -140,7 +138,6 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb","Js MicroModule Manag
 
   private suspend fun jmmMetadataUninstall(mmid: MMID) {
     // 先从列表移除，然后删除文件
-    installAppList.removeIf { it.jsMicroModule.mmid == mmid }
     bootstrapContext.dns.uninstall(mmid)
     AppInfoDataStore.deleteAppInfo(mmid)
     FilesUtil.uninstallApp(App.appContext, mmid)

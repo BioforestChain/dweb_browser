@@ -30,7 +30,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import info.bagen.dwebbrowser.R
-import info.bagen.dwebbrowser.microService.core.WindowAppInfo
+import info.bagen.dwebbrowser.microService.browser.desktop.DeskAppMetaData
 import info.bagen.dwebbrowser.microService.browser.desktop.model.LocalDrawerManager
 import info.bagen.dwebbrowser.microService.browser.desktop.model.LocalOpenList
 import info.bagen.dwebbrowser.microService.browser.mwebview.MultiWebView
@@ -47,19 +47,19 @@ internal fun DesktopPager() {
 }
 
 @Composable
-internal fun ToolbarAndWebView(windowAppInfo: WindowAppInfo) {
+internal fun ToolbarAndWebView(deskAppMetaData: DeskAppMetaData) {
   val localOpenList = LocalOpenList.current
   val localDrawerManager = LocalDrawerManager.current
-  val triple = when (windowAppInfo.screenType.value) {
-    WindowAppInfo.ScreenType.Hide -> {
+  val triple = when (deskAppMetaData.screenType.value) {
+    DeskAppMetaData.ScreenType.Hide -> {
       Triple(0f, 0f, 0f)
     }
 
-    WindowAppInfo.ScreenType.Half -> {
-      Triple(windowAppInfo.zoom.value, windowAppInfo.offsetX.value, windowAppInfo.offsetY.value)
+    DeskAppMetaData.ScreenType.Half -> {
+      Triple(deskAppMetaData.zoom.value, deskAppMetaData.offsetX.value, deskAppMetaData.offsetY.value)
     }
 
-    WindowAppInfo.ScreenType.Full -> {
+    DeskAppMetaData.ScreenType.Full -> {
       Triple(1f, 0f, 0f)
     }
   }
@@ -73,14 +73,14 @@ internal fun ToolbarAndWebView(windowAppInfo: WindowAppInfo) {
         translationX = triple.second,
         translationY = triple.third
       )
-      .pointerInput(windowAppInfo) {
+      .pointerInput(deskAppMetaData) {
         detectTransformGestures { centroid, pan, zoom, rotation ->
-          if (windowAppInfo.screenType.value == WindowAppInfo.ScreenType.Half) windowAppInfo.zoom.value *= zoom
+          if (deskAppMetaData.screenType.value == DeskAppMetaData.ScreenType.Half) deskAppMetaData.zoom.value *= zoom
         }
       }
       .clickableWithNoEffect {
-        localOpenList.remove(windowAppInfo)
-        localOpenList.add(windowAppInfo)
+        localOpenList.remove(deskAppMetaData)
+        localOpenList.add(deskAppMetaData)
       }
   ) {
 
@@ -93,16 +93,16 @@ internal fun ToolbarAndWebView(windowAppInfo: WindowAppInfo) {
         .padding(1.dp)
         .background(MaterialTheme.colorScheme.background)
     ) {
-      windowAppInfo.viewItem?.let { multiViewItem ->
-        MultiWebView(mmid = windowAppInfo.jsMicroModule.mmid, viewItem = multiViewItem)
+      deskAppMetaData.viewItem?.let { multiViewItem ->
+        MultiWebView(mmid = deskAppMetaData.jsMetaData.mmid, viewItem = multiViewItem)
       }
     }
     Box(modifier = Modifier
-      .pointerInput(windowAppInfo) {
+      .pointerInput(deskAppMetaData) {
         detectTransformGestures { centroid, pan, zoom, rotation ->
-          if (windowAppInfo.screenType.value == WindowAppInfo.ScreenType.Half) {
-            windowAppInfo.offsetX.value += pan.x * windowAppInfo.zoom.value
-            windowAppInfo.offsetY.value += pan.y * windowAppInfo.zoom.value
+          if (deskAppMetaData.screenType.value == DeskAppMetaData.ScreenType.Half) {
+            deskAppMetaData.offsetX.value += pan.x * deskAppMetaData.zoom.value
+            deskAppMetaData.offsetY.value += pan.y * deskAppMetaData.zoom.value
           }
         }
       }
@@ -110,15 +110,15 @@ internal fun ToolbarAndWebView(windowAppInfo: WindowAppInfo) {
         if (localDrawerManager.visibleState.targetState) localDrawerManager.hide() else localDrawerManager.show()
       }) {
       Toolbar(
-        windowAppInfo = windowAppInfo,
-        onClose = { localOpenList.remove(windowAppInfo) },
+        deskAppMetaData = deskAppMetaData,
+        onClose = { localOpenList.remove(deskAppMetaData) },
         onExpand = {
-          if (windowAppInfo.screenType.value == WindowAppInfo.ScreenType.Full) {
-            windowAppInfo.screenType.value = WindowAppInfo.ScreenType.Half
-            windowAppInfo.expand = false
+          if (deskAppMetaData.screenType.value == DeskAppMetaData.ScreenType.Full) {
+            deskAppMetaData.screenType.value = DeskAppMetaData.ScreenType.Half
+            deskAppMetaData.isExpand = false
           } else {
-            windowAppInfo.screenType.value = WindowAppInfo.ScreenType.Full
-            windowAppInfo.expand = true
+            deskAppMetaData.screenType.value = DeskAppMetaData.ScreenType.Full
+            deskAppMetaData.isExpand = true
           }
         }
       )
@@ -128,7 +128,7 @@ internal fun ToolbarAndWebView(windowAppInfo: WindowAppInfo) {
 
 @Composable
 internal fun Toolbar(
-  windowAppInfo: WindowAppInfo,
+  deskAppMetaData: DeskAppMetaData,
   modifier: Modifier = Modifier,
   onClose: () -> Unit,
   onExpand: () -> Unit
@@ -142,14 +142,14 @@ internal fun Toolbar(
         .clickableWithNoEffect { onClose() }
     )
     Text(
-      text = windowAppInfo.jsMicroModule.metadata.name,
+      text = deskAppMetaData.jsMetaData.name,
       modifier = Modifier.weight(1f),
       textAlign = TextAlign.Center,
       maxLines = 1
     )
     Icon(
       imageVector = ImageVector.vectorResource(
-        if (windowAppInfo.screenType.value == WindowAppInfo.ScreenType.Full) R.drawable.ic_shrink else R.drawable.ic_expand
+        if (deskAppMetaData.screenType.value == DeskAppMetaData.ScreenType.Full) R.drawable.ic_shrink else R.drawable.ic_expand
       ),
       contentDescription = "FullScreen",
       modifier = Modifier

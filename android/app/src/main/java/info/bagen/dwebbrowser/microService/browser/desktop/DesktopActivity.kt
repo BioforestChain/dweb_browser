@@ -47,7 +47,7 @@ class DesktopActivity : BaseActivity() {
               }
             ) { windowAppInfo ->
               scope.launch {
-                desktopController.openApp(windowAppInfo.jsMicroModule.metadata)
+                desktopController.openApp(windowAppInfo)
               }
             }
           }

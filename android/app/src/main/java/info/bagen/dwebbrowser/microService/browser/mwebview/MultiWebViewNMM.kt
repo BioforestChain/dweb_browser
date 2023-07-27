@@ -111,7 +111,7 @@ class MultiWebViewNMM :
 
     val viewItem = controller.openWebView(url)
     windowSignal.emit(
-      installAppList.firstOrNull { it.jsMicroModule.mmid == remoteMmid }!!
+      installAppList.firstOrNull { it.jsMetaData.mmid == remoteMmid }!!
         .also { it.viewItem = viewItem }
     )
     return viewItem

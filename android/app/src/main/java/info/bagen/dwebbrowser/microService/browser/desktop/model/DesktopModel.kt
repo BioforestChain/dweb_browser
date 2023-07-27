@@ -2,13 +2,13 @@ package info.bagen.dwebbrowser.microService.browser.desktop.model
 
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.runtime.compositionLocalOf
-import info.bagen.dwebbrowser.microService.core.WindowAppInfo
+import info.bagen.dwebbrowser.microService.browser.desktop.DeskAppMetaData
 
-val LocalInstallList = compositionLocalOf<MutableList<WindowAppInfo>> {
+val LocalInstallList = compositionLocalOf<MutableList<DeskAppMetaData>> {
   noLocalProvidedFor("LocalInstallList")
 }
 
-val LocalOpenList = compositionLocalOf<MutableList<WindowAppInfo>> {
+val LocalOpenList = compositionLocalOf<MutableList<DeskAppMetaData>> {
   noLocalProvidedFor("LocalOpenList")
 }
 

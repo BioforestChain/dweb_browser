@@ -43,6 +43,7 @@ const updateApps = async () => {
     appInfoWatcher.return();
   });
   for await (const appList of appInfoWatcher) {
+    console.log("22221=>",appList)
     updateLayoutInfoList(widgetList, appList);
   }
 };

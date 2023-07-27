@@ -35,7 +35,7 @@ data class DownLoadInfo(
   var dSize: Long = 1L, // 已下载大小
   // var progress: Float = 0f, // 进度 0~1
   var downLoadStatus: DownLoadStatus = DownLoadStatus.IDLE, // 标记当前下载状态
-  val metaData: JmmAppInstallManifest = JmmAppInstallManifest(id = id), // 保存app数据，如jmmMetadata
+  val metaData: JmmAppInstallManifest = JmmAppInstallManifest(id), // 保存app数据，如jmmMetadata
 )
 
 data class DownLoadObserverListener(

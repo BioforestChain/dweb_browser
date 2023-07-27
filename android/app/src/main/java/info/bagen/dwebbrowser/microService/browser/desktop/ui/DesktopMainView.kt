@@ -19,15 +19,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import info.bagen.dwebbrowser.microService.core.WindowAppInfo
+import info.bagen.dwebbrowser.microService.browser.desktop.DeskAppMetaData
 import info.bagen.dwebbrowser.microService.browser.desktop.model.LocalDrawerManager
 import info.bagen.dwebbrowser.microService.browser.desktop.model.LocalInstallList
 import info.bagen.dwebbrowser.microService.browser.desktop.model.LocalOpenList
 import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
 
 @Composable
-fun DesktopMainView(mainView: (@Composable () -> Unit)? = null ,onClick: (WindowAppInfo) -> Unit) {
-  val installList = remember { mutableStateListOf<WindowAppInfo>() }
+fun DesktopMainView(mainView: (@Composable () -> Unit)? = null ,onClick: (DeskAppMetaData) -> Unit) {
+  val installList = remember { mutableStateListOf<DeskAppMetaData>() }
 
   /*val screenWidth = LocalConfiguration.current.screenWidthDp
   val density = LocalDensity.current.density
@@ -37,7 +37,7 @@ fun DesktopMainView(mainView: (@Composable () -> Unit)? = null ,onClick: (Window
       AppInfoDataStore.queryAppInfoList().collectLatest {
         it.forEach { (_, value) ->
           val jmmMetadata = gson.fromJson(value, JmmMetadata::class.java)
-          WindowAppInfo(jmmMetadata = jmmMetadata).also { appInfo ->
+          DeskAppMetaData(jmmMetadata = jmmMetadata).also { appInfo ->
             appInfo.zoom.value = 0.7f
             appInfo.offsetX.value = (16 - screenWidth * 0.15f) * density
             appInfo.offsetY.value = 0f
@@ -64,7 +64,7 @@ fun DesktopMainView(mainView: (@Composable () -> Unit)? = null ,onClick: (Window
 }
 
 @Composable
-internal fun MainView(onClick: (WindowAppInfo) -> Unit) {
+internal fun MainView(onClick: (DeskAppMetaData) -> Unit) {
   val installList = LocalInstallList.current
   val openList = LocalOpenList.current
   val localDrawerManager = LocalDrawerManager.current
@@ -75,10 +75,10 @@ internal fun MainView(onClick: (WindowAppInfo) -> Unit) {
       horizontalArrangement = Arrangement.Center,
       contentPadding = PaddingValues(8.dp)
     ) {
-      itemsIndexed(installList) { _, windowAppInfo ->
-        MainAppItemView(windowAppInfo = windowAppInfo) {
+      itemsIndexed(installList) { _, DeskAppMetaData ->
+        MainAppItemView(DeskAppMetaData = DeskAppMetaData) {
           localDrawerManager.show()
-          onClick(windowAppInfo)
+          onClick(DeskAppMetaData)
           /*openList.find { it.jmmMetadata.id == item.jmmMetadata.id }?.let {
             // move to front
             openList.remove(item)
@@ -95,7 +95,7 @@ internal fun MainView(onClick: (WindowAppInfo) -> Unit) {
 }
 
 @Composable
-internal fun MainAppItemView(windowAppInfo: WindowAppInfo, onClick: () -> Unit) {
+internal fun MainAppItemView(DeskAppMetaData: DeskAppMetaData, onClick: () -> Unit) {
   Column(
     modifier = Modifier
       .padding(8.dp)
@@ -103,9 +103,9 @@ internal fun MainAppItemView(windowAppInfo: WindowAppInfo, onClick: () -> Unit) 
     horizontalAlignment = Alignment.CenterHorizontally,
   ) {
     AsyncImage(
-      model = windowAppInfo.jsMicroModule.metadata.icon,
-      contentDescription = windowAppInfo.jsMicroModule.metadata.name
+      model = DeskAppMetaData.jsMetaData.icons,
+      contentDescription = DeskAppMetaData.jsMetaData.name
     )
-    Text(text = windowAppInfo.jsMicroModule.metadata.name, maxLines = 1)
+    Text(text = DeskAppMetaData.jsMetaData.name, maxLines = 1)
   }
 }

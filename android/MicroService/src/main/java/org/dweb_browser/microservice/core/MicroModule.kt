@@ -19,7 +19,7 @@ enum class MMState {
   SHUTDOWN,
 }
 
-abstract class MicroModule : MicroModuleManifest {
+abstract class MicroModule : MicroModuleManifest() {
   abstract override val mmid: MMID
   abstract override val dweb_deeplinks: List<DWEB_DEEPLINK>
   abstract override val categories: List<MICRO_MODULE_CATEGORY>
@@ -28,14 +28,14 @@ abstract class MicroModule : MicroModuleManifest {
   abstract override val name: String
   abstract override val short_name: String
   abstract override val description: String?
-  abstract override val icons: List<ImageResource>?
+  abstract override val icons: List<ImageResource>
   abstract override val display: DisplayMode?
   abstract override val orientation: String?
   abstract override val screenshots: List<ImageResource>?
   abstract override val shortcuts: List<ShortcutItem>
   abstract override val theme_color: String?
   abstract override val ipc_support_protocols: IpcSupportProtocols
-  abstract override val background_color: String
+  abstract override val background_color: String?
 
   open val routers: Router? = null
 
@@ -55,7 +55,7 @@ abstract class MicroModule : MicroModuleManifest {
   val bootstrapContext get() = _bootstrapContext ?: throw Exception("module no run.")
 
   protected abstract suspend fun _bootstrap(bootstrapContext: BootstrapContext)
-  private suspend fun afterBootstrap(dnsMM: BootstrapContext) {
+  private suspend fun afterBootstrap(_dnsMM: BootstrapContext) {
     this.runningStateLock.resolve()
   }
 
@@ -158,42 +158,26 @@ abstract class MicroModule : MicroModuleManifest {
     return "MicroModule($mmid)"
   }
 
-//    protected var apiRouting: RoutingHttpHandler? = null
-//    protected val requestContexts = RequestContexts()
-//    protected val requestContextKey_ipc = RequestContextKey.required<Ipc>(requestContexts)
-//
-//    protected fun defineHandler(handler: suspend (request: Request) -> Any?) = { request: Request ->
-//        runBlockingCatching {
-//            when (val result = handler(request)) {
-//                null, Unit -> {
-//                    Response(Status.OK)
-//                }
-//                is Response -> result
-//                is ByteArray -> Response(Status.OK).body(MemoryBody(result))
-//                is InputStream -> Response(Status.OK).body(result)
-//                else -> {
-//                    // 如果有注册处理函数，那么交给处理函数进行处理
-//                    NativeMicroModule.ResponseRegistry.handle(result)
-//                }
-//            }
-//        }.getOrElse { ex ->
-//            debugDNS("NMM/Error", request.uri, ex)
-//            Response(Status.INTERNAL_SERVER_ERROR).body(
-//                """
-//                    <p>${request.uri}</p>
-//                    <pre>${ex.message ?: "Unknown Error"}</pre>
-//                    """.trimIndent()
-//
-//            )
-//        }
-//
-//    }
-//
-//    protected fun defineHandler(handler: suspend (request: Request, ipc: Ipc) -> Any?) =
-//        defineHandler { request ->
-//            handler(request, requestContextKey_ipc(request))
-//        }
-//
+  fun toManifest(): MicroModuleManifest {
+    return MicroModuleManifest(
+      mmid = mmid,
+      dweb_deeplinks = dweb_deeplinks,
+      ipc_support_protocols = ipc_support_protocols,
+      categories = categories,
+      dir = dir,
+      lang = lang,
+      name = name,
+      short_name = short_name,
+      description = description,
+      icons = icons,
+      display = display,
+      orientation = orientation,
+      screenshots = screenshots,
+      shortcuts = shortcuts,
+      theme_color = theme_color,
+      background_color = background_color,
+    )
+  }
 }
 
 typealias IpcConnectArgs = Pair<Ipc, Request>

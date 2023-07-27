@@ -2,6 +2,7 @@ package org.dweb_browser.microservice.core
 
 import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.MMID
+import org.dweb_browser.microservice.help.MicroModuleManifest
 import org.http4k.core.Request
 
 
@@ -30,7 +31,7 @@ interface DnsMicroModule {
    * > 这里暂时不需要支持复合搜索，未来如果有需要另外开接口
    * @param category
    */
-  suspend fun search(category: MICRO_MODULE_CATEGORY): MutableList<MicroModule>
+  suspend fun search(category: MICRO_MODULE_CATEGORY): MutableList<MicroModuleManifest>
 
   /**
    * 重启应用

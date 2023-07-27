@@ -3,10 +3,10 @@ package info.bagen.dwebbrowser.microService.browser.desktop
 import android.content.Intent
 import android.os.Bundle
 import info.bagen.dwebbrowser.App
+import info.bagen.dwebbrowser.microService.browser.desktop.data.MicroModuleDataStore
 import info.bagen.dwebbrowser.microService.browser.jmm.EIpcEvent
 import info.bagen.dwebbrowser.microService.browser.jmm.JsMicroModule
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
-import info.bagen.dwebbrowser.microService.core.WindowAppInfo
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.collectLatest
@@ -15,11 +15,12 @@ import kotlinx.coroutines.withContext
 import org.dweb_browser.browserUI.database.AppInfoDataStore
 import org.dweb_browser.browserUI.download.compareAppVersionHigh
 import org.dweb_browser.helper.ChangeableMap
-import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
-import org.dweb_browser.microservice.help.MMID
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printdebugln
 import org.dweb_browser.microservice.core.BootstrapContext
+import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
+import org.dweb_browser.microservice.help.MMID
+import org.dweb_browser.microservice.help.MicroModuleManifest
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
 import org.dweb_browser.microservice.ipc.helper.ReadableStream
@@ -44,6 +45,7 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb","Desk") {
     fun getInstallAppList() = installAppList // 获取已经安装的程序
   }
 
+  private val taskbarAppList = mutableListOf<MMID>()
   private val runningAppsIpc = ChangeableMap<MMID, Ipc>()
 
   init {
@@ -52,10 +54,10 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb","Desk") {
     runningAppsIpc.onChange { map ->
       for (app_id in map.keys) {
         // 每次变化对侧边栏图标进行排序(移动到最前面)
-        val cur = runningAppList.firstOrNull { it.jsMicroModule.mmid == app_id }
+        val cur = taskbarAppList.firstOrNull { it == app_id }
         cur?.let {
-          runningAppList.remove(it)
-          runningAppList.add(it)
+          taskbarAppList.remove(it)
+          taskbarAppList.add(it)
         }
       }
     }
@@ -63,6 +65,14 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb","Desk") {
 
   val queryAppId = Query.string().required("app_id")
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
+
+    suspend fun getDesktopAppList(): List<DeskAppMetaData> {
+      val apps =  bootstrapContext.dns.search(MICRO_MODULE_CATEGORY.Application)
+      return apps.map {metaData ->
+        return@map DeskAppMetaData(jsMetaData = metaData,isRunning = false,isExpand = false)
+      }
+    };
+
     apiRouting = routes(
       "/openAppOrActivate" bind Method.GET to defineHandler { request ->
         val mmid = queryAppId(request)
@@ -89,16 +99,16 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb","Desk") {
         return@defineHandler closed
       },
       "/desktop/apps" bind Method.GET to defineHandler { request ->
-        debugDesktop("/desktop/apps", "size=${installAppList.size}")
-        return@defineHandler installAppList
+        debugDesktop("/desktop/apps", "size=")
+        return@defineHandler getDesktopAppList()
       },
       "/desktop/observe/apps" bind Method.GET to defineHandler { request, ipc ->
-        debugDesktop("/desktop/observe/apps", "size=${installAppList.size}")
+        debugDesktop("/desktop/observe/apps", "size=}")
         return@defineHandler ReadableStream(onStart = { controller ->
           val off = runningAppsIpc.onChange {
             try {
               withContext(ioAsyncExceptionHandler) {
-                controller.enqueue((installAppList.toString() + "\n").toByteArray())
+                controller.enqueue((getDesktopAppList().toString() + "\n").toByteArray())
               }
             } catch (e: Exception) {
               controller.close()
@@ -121,22 +131,22 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb","Desk") {
   @OptIn(DelicateCoroutinesApi::class)
   private fun loadAppInfo() {
     GlobalScope.launch(ioAsyncExceptionHandler) {
-      AppInfoDataStore.queryAppInfoList().collectLatest { list -> // TODO 只要datastore更新，这边就会实时更新
+      MicroModuleDataStore.queryAppInfoList().collectLatest { list -> // TODO 只要datastore更新，这边就会实时更新
         debugDesktop("AppInfoDataStore", "size=${list.size}")
-        list.forEach { appMetaData ->
-          val lastAppMetaData = installAppList.find { it.jsMicroModule.mmid == appMetaData.id }
+        list.forEach { jsMetaData ->
+          val lastAppMetaData = installAppList.find { it.jsMetaData.mmid == jsMetaData.mmid }
           lastAppMetaData?.let {
-            if (compareAppVersionHigh(it.jsMicroModule.metadata.version, appMetaData.version)) {
-              bootstrapContext.dns.close(it.jsMicroModule.mmid)
+            if (compareAppVersionHigh(it.jsMetaData.version, jsMetaData.version)) {
+              bootstrapContext.dns.close(it.jsMetaData.mmid)
             } else {
               return@forEach
             }
           }
-          val jsMicroModule = JsMicroModule(appMetaData).also { jsMicroModule ->
-            bootstrapContext.dns.install(jsMicroModule)
-          }
-          val windowAppInfo = WindowAppInfo(expand = false, jsMicroModule = jsMicroModule)
-          installAppList.add(windowAppInfo)
+//          JsMicroModule(jsMetaData).also { jsMicroModule ->
+//            bootstrapContext.dns.install(jsMicroModule)
+//          }
+
+          installAppList.add(DeskAppMetaData(jsMetaData))
         }
       }
     }

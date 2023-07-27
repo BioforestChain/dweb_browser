@@ -9,6 +9,11 @@ class ChangeableMap<K,V>() :MutableMap<K,V>{
 
   fun onChange(callback: Callback<HashMap<K,V>>) = _changeSignal.listen(callback)
 
+  init {
+    GlobalScope.launch(ioAsyncExceptionHandler) {
+      _changeSignal.emit(innerMap)
+    }
+  }
 
   override val size: Int
     get() = innerMap.size

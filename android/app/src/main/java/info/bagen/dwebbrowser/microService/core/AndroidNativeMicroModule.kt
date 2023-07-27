@@ -1,14 +1,10 @@
 package info.bagen.dwebbrowser.microService.core
 
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
 import info.bagen.dwebbrowser.base.BaseActivity
-import info.bagen.dwebbrowser.microService.browser.jmm.JsMicroModule
-import info.bagen.dwebbrowser.microService.browser.mwebview.MultiWebViewController
-import org.dweb_browser.helper.*
+import info.bagen.dwebbrowser.microService.browser.desktop.DeskAppMetaData
+import org.dweb_browser.helper.Callback
+import org.dweb_browser.helper.Signal
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.MMID
 
@@ -21,10 +17,10 @@ abstract class AndroidNativeMicroModule(override val mmid: MMID, override val na
     private val activity: BaseActivity? = null
 
     // 管理所有正在运行的窗口
-    internal val runningAppList = mutableStateListOf<WindowAppInfo>()
+    internal val runningAppList = mutableStateListOf<DeskAppMetaData>()
 
     // 管理已安装的应用
-    internal val installAppList = mutableStateListOf<WindowAppInfo>()
+    internal val installAppList = mutableStateListOf<DeskAppMetaData>()
   }
 
   protected fun getActivity(): BaseActivity ? =activity
@@ -32,36 +28,19 @@ abstract class AndroidNativeMicroModule(override val mmid: MMID, override val na
   protected val activitySignal = Signal<BaseActivity>()
   fun onActivity(cb: Callback<BaseActivity>) = activitySignal.listen(cb)
 
-  fun getAppWindowMap(mmid: MMID) : WindowAppInfo? = runningAppList.firstOrNull {
-    it.jsMicroModule.mmid == mmid
-  }
-  protected val windowSignal = Signal<WindowAppInfo>()
-  private fun onWindow(cb: Callback<WindowAppInfo>) = windowSignal.listen(cb)
+
+  protected val windowSignal = Signal<DeskAppMetaData>()
+  private fun onWindow(cb: Callback<DeskAppMetaData>) = windowSignal.listen(cb)
 
   init {
     onWindow { appInfo ->
-      runningAppList.add(appInfo)
-      appInfo.viewItem?.webView?.onCloseWindow {
-        runningAppList.remove(appInfo)
-      }
+      //TODO
+//      bootstrapContext.dns.install()
+//      appInfo.viewItem?.webView?.onCloseWindow {
+//        runningAppList.remove(appInfo)
+//      }
       return@onWindow true
     }
   }
 }
 
-data class WindowAppInfo(
-  var expand: Boolean = false, // 用于保存界面状态显示时是半屏还是全屏
-  val jsMicroModule: JsMicroModule,
-) {
-  enum class ScreenType {
-    Hide, Half, Full;
-  }
-
-  val sort: MutableState<Int> = mutableIntStateOf(0) // 排序，位置
-  val screenType: MutableState<ScreenType> = mutableStateOf(ScreenType.Hide) // 默认隐藏
-  val offsetX: MutableState<Float> = mutableFloatStateOf(0f) // X轴偏移量
-  val offsetY: MutableState<Float> = mutableFloatStateOf(0f) // Y轴偏移量
-  val zoom: MutableState<Float> = mutableFloatStateOf(1f) // 缩放
-
-  var viewItem: MultiWebViewController.MultiViewItem? = null
-}

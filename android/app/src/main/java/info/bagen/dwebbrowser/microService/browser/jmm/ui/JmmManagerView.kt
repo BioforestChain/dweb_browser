@@ -500,7 +500,7 @@ private fun NewVersionInfoView(jmmAppInstallManifest: JmmAppInstallManifest) {
   val expanded = remember { mutableStateOf(false) }
   Column(modifier = Modifier.padding(horizontal = HorizontalPadding, vertical = VerticalPadding)) {
     Text(
-      text = "新功能",
+      text = "更新日志",
       fontSize = 18.sp,
       fontWeight = FontWeight.Bold,
       color = MaterialTheme.colorScheme.onSurface
@@ -517,7 +517,7 @@ private fun NewVersionInfoView(jmmAppInstallManifest: JmmAppInstallManifest) {
       .animateContentSize()
       .clickable { expanded.value = !expanded.value }) {
       Text(
-        text = jmmAppInstallManifest.new_feature ?: "运用全新的功能，让使用更加安全便捷",
+        text = jmmAppInstallManifest.change_log,
         maxLines = if (expanded.value) Int.MAX_VALUE else 2,
         overflow = TextOverflow.Ellipsis,
         color = MaterialTheme.colorScheme.onSurface

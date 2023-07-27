@@ -89,9 +89,9 @@ class DesktopController(private val microModule: DesktopNMM) {
   }
 
   private val openLock = Mutex()
-  suspend fun openApp(jmmAppInstallManifest: JmmAppInstallManifest) {
+  suspend fun openApp(deskAppMetaData: DeskAppMetaData) {
     openLock.withLock {
-      val (ipc) = microModule.bootstrapContext.dns.connect(jmmAppInstallManifest.id)
+      val (ipc) = microModule.bootstrapContext.dns.connect(deskAppMetaData.jsMetaData.mmid)
       debugDesktop("openApp", "postMessage==>activity ${ipc.remote.mmid}")
       ipc.postMessage(IpcEvent.fromUtf8(EIpcEvent.Activity.event, ""))
     }

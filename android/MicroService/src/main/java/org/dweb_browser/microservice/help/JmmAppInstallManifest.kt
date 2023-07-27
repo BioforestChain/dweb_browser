@@ -3,58 +3,25 @@ package org.dweb_browser.microservice.help
 import org.dweb_browser.helper.DisplayMode
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.ShortcutItem
+import java.beans.Transient
 import java.io.Serializable
 
 typealias MMID = String
 typealias DWEB_DEEPLINK = String
 
 /** Js模块应用 元数据 */
-data class JmmAppManifest(
-  override val id: MMID = "",
-  override val name: String = "",
-  override var version: String = "0.0.1",
-  override val categories: List<MICRO_MODULE_CATEGORY> = emptyList(),
-  override val dir: String? = null,
-  override val lang: String? = null,
-  override val short_name: String = "",
-  override val description: String = "", // 应用描述
-  override val icons: List<ImageResource>? = null,
-  override val screenshots: List<ImageResource>? = null,
-  override val display: DisplayMode? = null,
-  override val orientation: String? = null,
-  override val theme_color: String? = null,
-  override val background_color: String = "#ffffff",
-  override val shortcuts: List<ShortcutItem> = emptyList(),
-  val baseURI: String? = null,
-  val dweb_deeplinks: List<DWEB_DEEPLINK> = emptyList(),
-  val server: MainServer = MainServer("/sys", "/server/plaoc.server.js")
-) : CommonAppManifest, Serializable
+open class JmmAppManifest(
+  open val baseURI: String? = null,
+  open val dweb_deeplinks: List<DWEB_DEEPLINK> = emptyList(),
+  open val server: MainServer = MainServer("/sys", "/server/plaoc.server.js")
+) : CommonAppManifest(), Serializable
 
 /** Js模块应用安装使用的元数据 */
 data class JmmAppInstallManifest(
-  override val id: MMID = "",
-  override val name: String = "",
-  override var version: String = "0.0.1",
-  override val categories: List<MICRO_MODULE_CATEGORY> = emptyList(),
-  override val dir: String? = null,
-  override val lang: String? = null,
-  override val short_name: String = "",
-  override val description: String = "", // 应用描述
-  override val icons: List<ImageResource>? = null,
-  override val screenshots: List<ImageResource>? = null,
-  override val display: DisplayMode? = null,
-  override val orientation: String? = null,
-  override val theme_color: String? = null,
-  override val background_color: String = "#ffffff",
-  override val shortcuts: List<ShortcutItem> = emptyList(),
-  val server: MainServer = MainServer("/sys", "/server/plaoc.server.js"),
-  val dweb_deeplinks: List<DWEB_DEEPLINK> = emptyList(),
-  val baseURI: String? = null,
   /** 安装是展示用的 icon */
   val icon: String = "",
   /** 安装时展示用的截图 */
   val images: List<String> = emptyList(),
-  val new_feature: String = "",
   var bundle_url: String = "",
   val bundle_hash: String = "",
   val bundle_size: String = "",
@@ -73,10 +40,8 @@ data class JmmAppInstallManifest(
   /**
    * @deprecated 安装时显示的依赖模块
    */
-  val plugins: List<String> = emptyList(),
-  val isRunning: Boolean = false, // 是否正在运行
-  val isExpand: Boolean = false, // 是否默认展开窗口
-) : CommonAppManifest, Serializable
+  val plugins: List<String> = emptyList()
+) : JmmAppManifest()
 
 data class MainServer(
   /**
@@ -89,60 +54,90 @@ data class MainServer(
   val entry: String
 ) : Serializable
 
-interface MicroModuleManifest {
-  val ipc_support_protocols: IpcSupportProtocols
-  val mmid: MMID
-  val dweb_deeplinks: List<DWEB_DEEPLINK>
-  val dir: String?
-  val lang: String?
-  val name: String // 应用名称
-  val short_name: String // 应用副标题
-  val description: String?
-  val icons: List<ImageResource>?
-  val screenshots: List<ImageResource>?
-  val display: DisplayMode?
-  val orientation: String?
-  val categories: List<MICRO_MODULE_CATEGORY> // 应用类型
-  val theme_color: String?
-  val background_color: String
-  val shortcuts: List<ShortcutItem>
-}
-
-/*open class CommonAppManifest(
-  open val id: MMID = "",
+open class MicroModuleManifest(
+  open val ipc_support_protocols: IpcSupportProtocols = IpcSupportProtocols(cbor = true, protobuf = true, raw = true),
+  open val mmid: MMID = "",
+  open val dweb_deeplinks: List<DWEB_DEEPLINK> = listOf(),
   open val dir: String? = null,
   open val lang: String? = null,
   open val name: String = "", // 应用名称
   open val short_name: String = "", // 应用副标题
   open val description: String? = null,
-  open val icons: List<ImageResource>? = null,
+  open val icons: List<ImageResource> = emptyList(),
   open val screenshots: List<ImageResource>? = null,
   open val display: DisplayMode? = null,
   open val orientation: String? = null,
   open val categories: List<MICRO_MODULE_CATEGORY> = listOf(), // 应用类型
   open val theme_color: String? = null,
   open val background_color: String? = null,
-  open val shortcuts: List<ShortcutItem>? = null,
+  open val shortcuts: List<ShortcutItem> = listOf(),
   open var version: String = "0.0.1"
-) : Serializable*/
+):Serializable
 
-interface CommonAppManifest {
-  val id: MMID
-  val dir: String?
-  val lang: String?
-  val name: String
-  val short_name: String
-  val description: String?
-  val icons: List<ImageResource>?
-  val screenshots: List<ImageResource>?
-  val display: DisplayMode?
-  val orientation: String?
-  val categories: List<MICRO_MODULE_CATEGORY>
-  val theme_color: String?
-  val background_color: String?
-  val shortcuts: List<ShortcutItem>?
-  var version: String
-}
+
+
+open class CommonAppManifest(
+  open var id: MMID = "",
+  open val dir: String? = null,
+  open val lang: String? = null,
+  open val name: String = "", // 应用名称
+  open val short_name: String = "", // 应用副标题
+  open val description: String? = null,
+  open val icons: List<ImageResource> = emptyList(),
+  open val screenshots: List<ImageResource>? = null,
+  open val display: DisplayMode? = null,
+  open val orientation: String? = null,
+  open val categories: List<MICRO_MODULE_CATEGORY> = listOf(), // 应用类型
+  open val theme_color: String? = null,
+  open val background_color: String? = null,
+  open val shortcuts: List<ShortcutItem> = listOf(),
+  open var version: String = "0.0.1"
+) : Serializable
+
+//open class BaseManifest(
+//  open val dir: String? = null,
+//  open val lang: String? = null,
+//  open val name: String = "", // 应用名称
+//  open val short_name: String = "", // 应用副标题
+//  open val description: String? = null,
+//  open val icons: List<ImageResource> = emptyList(),
+//  open val screenshots: List<ImageResource>? = null,
+//  open val display: DisplayMode? = null,
+//  open val orientation: String? = null,
+//  open val categories: List<MICRO_MODULE_CATEGORY> = listOf(), // 应用类型
+//  open val theme_color: String? = null,
+//  open val background_color: String? = null,
+//  open val shortcuts: List<ShortcutItem> = listOf(),
+//  open var version: String = "0.0.1"
+//):Serializable
+
+
+//interface MicroModuleManifest:BaseManifest {
+//  val ipc_support_protocols: IpcSupportProtocols
+//  val mmid: MMID
+//  val dweb_deeplinks: List<DWEB_DEEPLINK>
+//}
+
+//interface CommonAppManifest:BaseManifest {
+//  val id: MMID
+//  var version: String?
+//}
+
+//interface BaseManifest {
+//  val dir: String?
+//  val lang: String?
+//  val name: String
+//  val short_name: String
+//  val description: String?
+//  val icons: List<ImageResource>?
+//  val screenshots: List<ImageResource>?
+//  val display: DisplayMode?
+//  val orientation: String?
+//  val categories: List<MICRO_MODULE_CATEGORY>
+//  val theme_color: String?
+//  val background_color: String?
+//  val shortcuts: List<ShortcutItem>?
+//}
 
 data class IpcSupportProtocols(
   val cbor: Boolean,

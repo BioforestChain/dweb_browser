@@ -33,7 +33,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import info.bagen.dwebbrowser.R
-import info.bagen.dwebbrowser.microService.core.WindowAppInfo
+import info.bagen.dwebbrowser.microService.browser.desktop.DeskAppMetaData
 import info.bagen.dwebbrowser.microService.browser.desktop.model.LocalDrawerManager
 import info.bagen.dwebbrowser.microService.browser.desktop.model.LocalOpenList
 import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
@@ -83,14 +83,14 @@ internal fun DrawerInnerView() {
       ) {
         itemsIndexed(localOpenList) { _, item ->
           AsyncImage(
-            model = item.jsMicroModule.metadata.icon,
+            model = item.jsMetaData.icons.firstOrNull(),
             contentDescription = "Icon",
             modifier = Modifier
               .size(48.dp)
               .clip(RoundedCornerShape(8.dp))
               .clickableWithNoEffect {
                 item.screenType.value =
-                  if (item.expand) WindowAppInfo.ScreenType.Full else WindowAppInfo.ScreenType.Half
+                  if (item.isExpand) DeskAppMetaData.ScreenType.Full else DeskAppMetaData.ScreenType.Half
                 localOpenList.remove(item)
                 localOpenList.add(item)
               }
@@ -111,7 +111,7 @@ internal fun DrawerInnerView() {
         modifier = Modifier
           .padding(8.dp)
           .clickableWithNoEffect {
-            localOpenList.forEach { it.screenType.value = WindowAppInfo.ScreenType.Hide }
+            localOpenList.forEach { it.screenType.value = DeskAppMetaData.ScreenType.Hide }
           },
         tint = MaterialTheme.colorScheme.primary
       )
