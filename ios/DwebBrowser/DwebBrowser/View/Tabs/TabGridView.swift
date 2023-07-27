@@ -137,6 +137,17 @@ struct TabGridView: View {
                         }
                     }
                 }
+                .onChange(of: cacheStore.store) { store in
+                    if store.count == 0 { // 准备放大动画
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: {
+                            WebCacheMgr.shared.createOne()
+                            selectedTab.curIndex = WebCacheMgr.shared.store.count - 1
+                            selectedCellFrame = CGRect(origin: CGPoint(x: screen_width/2, y: screen_height/2), size: CGSize(width: 5, height: 5))
+                            toolbarState.shouldExpand = true
+                        })
+                        
+                    }
+                }
             }
         }
     }
