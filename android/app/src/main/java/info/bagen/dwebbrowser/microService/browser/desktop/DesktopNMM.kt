@@ -127,8 +127,6 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb","Desk") {
           val lastAppMetaData = installAppList.find { it.jsMicroModule.mmid == appMetaData.id }
           lastAppMetaData?.let {
             if (compareAppVersionHigh(it.jsMicroModule.metadata.version, appMetaData.version)) {
-              /*org.http4k.core.Uri.of("file://dns.sys.dweb/close?")
-                .query("app_id", it.jsMicroModule.mmid)*/
               bootstrapContext.dns.close(it.jsMicroModule.mmid)
             } else {
               return@forEach

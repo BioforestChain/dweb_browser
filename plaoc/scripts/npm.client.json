@@ -4,7 +4,7 @@
     "mainExports": ".",
     "buildToRootDir": "./build/client",
     "name": "@plaoc/plugins",
-    "version": "0.0.3",
+    "version": "0.0.5",
     "lib": [
       "es2021",
       "dom"

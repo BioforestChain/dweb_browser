@@ -30,6 +30,8 @@ export interface $JmmAppInstallManifest extends $JmmAppManifest {
   bundle_url: string;
   bundle_hash: string;
   bundle_size: number;
+  /**更新日志，直接放url */
+  change_log: string;
   /** 安装时展示的作者信息 */
   author: string[];
   /** 安装时展示的主页链接 */
