@@ -11,6 +11,11 @@ export class WebBrowserNMM extends NativeMicroModule {
   name = "Web Browser";
   override short_name = "Browser";
   override categories = [MICRO_MODULE_CATEGORY.Application, MICRO_MODULE_CATEGORY.Web_Browser];
+  override icons: NativeMicroModule["icons"] = [
+    {
+      src: "file:///sys/browser/web/logo.svg",
+    },
+  ];
 
   protected async _bootstrap(context: $BootstrapContext) {
     const wwwServer = await createWWWServer.call(this);

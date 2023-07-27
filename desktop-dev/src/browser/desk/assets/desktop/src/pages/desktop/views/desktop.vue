@@ -32,14 +32,7 @@ interface $XYWH {
   h: $TileSizeType;
 }
 
-const layoutInfoListRef: Ref<$LayoutInfo[]> = ref([
-  // {
-  //   title: "app",
-  //   short_name: "app name",
-  //   icon: "https://dweb.waterbang.top/logo.svg",
-  //   id: "waterbang.dweb",
-  // },
-]);
+const layoutInfoListRef: Ref<$LayoutInfo[]> = ref([]);
 
 // 监听app消息的更新
 const updateApps = async () => {
@@ -81,7 +74,7 @@ const bgStyle = {
 } satisfies StyleValue;
 </script>
 <template>
-  <div class="desktop">
+  <div class="desktop" draggable="false">
     <div class="wallpaper" title="墙纸" :style="bgStyle"></div>
     <TilePanel>
       <TileItem v-for="(info, index) in layoutInfoListRef" :key="index" :width="info.xywh.w" :height="info.xywh.h">

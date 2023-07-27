@@ -11,12 +11,14 @@ import { defineConfig } from "vite";
 // https://vitejs.dev/config/
 export default defineConfig({
   base: "./",
+  publicDir: "static",
   build: {
     rollupOptions: {
       input: {
         index: path.join(__dirname, "index.html"),
       },
     },
+    copyPublicDir: true,
   },
   plugins: [
     renderer(),

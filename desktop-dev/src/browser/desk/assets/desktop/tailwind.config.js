@@ -49,8 +49,8 @@ module.exports = {
       {
         desktop: {
           "color-scheme": "light",
-          primary: "#06b6d4",
-          secondary: "#c4b5fd",
+          primary: "#1e40af",
+          secondary: "#e879f9",
           accent: "#2dd4bf",
           neutral: "#2b3440",
           info: "#a5f3fc",

@@ -2,10 +2,12 @@
 import { onLongPress } from "@vueuse/core";
 import { computed, onMounted, reactive, ref, watchEffect } from "vue";
 import { strictImageResource } from "../../../../../../../../../helper/imageResourcesHelper.ts";
+import { RandomNumberOptions, randomStringToNumber } from "../../../../../../../../../helper/randomHelper.ts";
 import { Compareable, enumToCompareable } from "../../../../../../../../../helper/sortHelper.ts";
 import IconSquircleBox from "../../../../components/icon-squircle-box/index.vue";
 import SvgIcon from "../../../../components/svg-icon/index.vue";
 import { openApp, quitApp, readAcceptSvg, vibrateHeavyClick } from "../../../../provider/api.ts";
+import { buildApiRequestArgs } from "../../../../provider/fetch.ts";
 import { $CloseWatcher, CloseWatcher } from "../../../../provider/shim.ts";
 import type { $WidgetAppData } from "../../../../types/app.type.ts";
 import AppUnInstallDialog from "../app-uninstall-dialog/index.vue";
@@ -45,6 +47,8 @@ const props = defineProps({
 const appid = computed(() => props.appMetaData.mmid);
 const appname = computed(() => props.appMetaData.short_name ?? props.appMetaData.name);
 const appicon = ref("");
+const appiconmarkable = ref(false);
+const appiconmonocolor = ref<string | undefined>();
 watchEffect(async () => {
   const acceptImage = await readAcceptSvg();
   const selectedIcon = (props.appMetaData.icons ?? [])
@@ -62,7 +66,27 @@ watchEffect(async () => {
     )
     .sort((a, b) => a.compare(b))
     .at(-1);
-  appicon.value = selectedIcon?.value.src ?? blankApp_svg;
+  const iconurl = selectedIcon?.value.src ?? blankApp_svg;
+
+  appicon.value = iconurl.startsWith("file:")
+    ? buildApiRequestArgs("/readFile", {
+        search: {
+          url: selectedIcon?.value.src ?? blankApp_svg,
+        },
+      })[0].href
+    : iconurl;
+  appiconmarkable.value = selectedIcon?.value.purpose === "maskable";
+
+  const randomById = (options?: RandomNumberOptions) => randomStringToNumber(props.appMetaData.mmid, options);
+  appiconmonocolor.value =
+    selectedIcon?.value.purpose === "monochrome" || iconurl === blankApp_svg
+      ? props.appMetaData.theme_color ??
+        `hwb(${randomById({ seed: "hue", max: 360 })}deg 0% ${randomById({
+          seed: "black",
+          min: 0,
+          max: 10,
+        })}%)`
+      : undefined;
 });
 const opening = ref(false);
 const closing = ref(false);
@@ -165,7 +189,13 @@ const onJmmUnInstallDialogClosed = (confirmed: boolean) => {
             @animationiteration="animationiteration = true"
           >
             <IconSquircleBox class="bg backdrop-blur-sm" />
-            <img class="fg" :src="appicon" />
+            <div
+              class="fg"
+              :class="{
+                markable: appiconmarkable,
+                monocolor: appiconmonocolor,
+              }"
+            ></div>
           </div>
           <div class="app-name line-clamp-2 backdrop-blur-sm ios-ani" :style="{ opacity: isShowMenu ? 0 : 1 }">
             {{ appname }}
@@ -274,7 +304,20 @@ const onJmmUnInstallDialogClosed = (confirmed: boolean) => {
       .fg {
         z-index: 1;
         grid-area: view;
-        width: 90%;
+        background-image: v-bind("`url('${appicon}')`");
+        background-size: contain;
+        background-position: center;
+        width: 60%;
+        height: 60%;
+        &.markable {
+          width: 100%;
+          height: 100%;
+        }
+        &.monocolor {
+          background-color: v-bind("appiconmonocolor");
+          mask: v-bind("`url('${appicon}')`") no-repeat center;
+          background-image: none;
+        }
       }
     }
     .app-name {
@@ -283,7 +326,7 @@ const onJmmUnInstallDialogClosed = (confirmed: boolean) => {
       margin-top: 10px;
 
       color: rgb(0 0 0 / 80%);
-      -webkit-text-stroke: rgb(255 255 255 / 25%);
+      -webkit-text-stroke: rgb(255 255 255 / 15%);
       -webkit-text-stroke-width: 0.55px;
 
       text-align: center;

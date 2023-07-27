@@ -94,7 +94,7 @@ const html = computed(() => {
 });
 </script>
 <template>
-  <div class="widget" draggable="true" v-html="html"></div>
+  <div class="widget" draggable="false" v-html="html"></div>
 </template>
 <style scoped lang="scss">
 .widget {

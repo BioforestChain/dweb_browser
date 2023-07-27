@@ -67,11 +67,21 @@ export class DeskNMM extends NativeMicroModule {
       return apps;
     };
 
+    const query_url = zq.object({
+      url: zq.url(),
+    });
+
     const onFetchHanlder = fetchMatch()
       //#region 通用接口
-      .get(P.string.startsWith("/readAccept."), (async) => {
-        return { body: async.headers.get("Accept") };
+      .get("/readFile", (event) => {
+        const { url } = query_url(event.searchParams);
+        return this.nativeFetch(url);
       })
+      /** 读取浏览器默认的 accpet 头部参数ß */
+      .get(P.string.startsWith("/readAccept."), (event) => {
+        return { body: event.headers.get("Accept") };
+      })
+      /** 打开应用 */
       .get("/openAppOrActivate", async (event) => {
         const { app_id } = query_app_id(event.searchParams);
         console.always("activity", app_id);
@@ -90,6 +100,7 @@ export class DeskNMM extends NativeMicroModule {
 
         return Response.json(ipc !== undefined);
       })
+      /** 关闭应用 */
       .get("/closeApp", async (event) => {
         const { app_id } = query_app_id(event.searchParams);
         let closed = false;

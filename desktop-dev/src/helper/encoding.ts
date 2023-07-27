@@ -1,6 +1,6 @@
 import { $Binary, binaryToU8a } from "./binaryHelper.ts";
 
-export type $SimpleEncoding = "utf8" | "base64";
+export type $SimpleEncoding = "utf8" | "base64" | "hex";
 const textEncoder = new TextEncoder();
 export const simpleEncoder = (data: string, encoding: $SimpleEncoding) => {
   if (encoding === "base64") {
@@ -8,6 +8,13 @@ export const simpleEncoder = (data: string, encoding: $SimpleEncoding) => {
     const binary = new Uint8Array(byteCharacters.length);
     for (let i = 0; i < byteCharacters.length; i++) {
       binary[i] = byteCharacters.charCodeAt(i);
+    }
+    return binary;
+  } else if (encoding === "hex") {
+    const binary = new Uint8Array(data.length / 2);
+    for (let i = 0; i < binary.length; i++) {
+      const start = i + i;
+      binary[i] = parseInt(data.slice(start, start + 2), 16);
     }
     return binary;
   }
@@ -22,6 +29,13 @@ export const simpleDecoder = (data: $Binary, encoding: $SimpleEncoding) => {
       binary += String.fromCharCode(byte);
     }
     return btoa(binary);
+  } else if (encoding === "hex") {
+    let hex = "";
+    const bytes = binaryToU8a(data);
+    for (const byte of bytes) {
+      hex += byte.toString(16).padStart(2, "0");
+    }
+    return hex;
   }
   return textDecoder.decode(data);
 };
