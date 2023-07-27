@@ -61,7 +61,7 @@ export class MetadataJsonGenerator {
     return {};
   }
 
-  private metadata: undefined | $AppMetaData;
+  private metadata: undefined | $JmmAppInstallManifest;
   readMetadata(force = false) {
     if (force) {
       this.metadata = undefined;
@@ -70,7 +70,7 @@ export class MetadataJsonGenerator {
       ...defaultMetadata,
       ...this.tryReadMetadata(),
       ...this.baseMetadata,
-    } as $AppMetaData);
+    } as $JmmAppInstallManifest);
   }
 }
 

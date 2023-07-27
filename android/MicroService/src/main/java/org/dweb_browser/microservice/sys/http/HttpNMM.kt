@@ -17,6 +17,7 @@ import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.help.stream
 import org.dweb_browser.microservice.sys.dns.debugFetch
+import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Response
@@ -39,10 +40,11 @@ fun debugHttp(tag: String, msg: Any = "", err: Throwable? = null) =
   printdebugln("http", tag, msg, err)
 
 
-class HttpNMM : NativeMicroModule("http.std.dweb","HTTP Server Provider") {
+class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
 
   override val short_name = "HTTP";
-  override val categories = mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Protocol_Service);
+  override val categories =
+    mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Protocol_Service);
 
   companion object {
     val dwebServer = Http1Server()
@@ -120,8 +122,13 @@ class HttpNMM : NativeMicroModule("http.std.dweb","HTTP Server Provider") {
 
   /**webSocket 网关路由寻找*/
   private suspend fun wsHandler(request: Request): WsResponse {
-    val response = httpHandler(request)
-    return  when(response.status.code) {
+    // 转发newtab请求
+    val response = if (request.uri.path.startsWith("/newtab/api")) {
+      nativeFetch("file:/${request.uri.path.substring(11)}")
+    } else {
+      httpHandler(request)
+    }
+    return when (response.status.code) {
       /// 如果是200响应头，那么使用WebSocket来作为双工的通讯标准进行传输
       Status.OK.code -> {
         WsResponse { ws ->
@@ -132,6 +139,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb","HTTP Server Provider") {
                 ws.close()
                 break
               }
+
               else -> {
                 val chunk = stream.readByteArray(readInt)
                 ws.send(WsMessage(ByteArrayInputStream(chunk)))
@@ -150,6 +158,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb","HTTP Server Provider") {
                 ws.close()
                 break
               }
+
               else -> {
                 val chunk = stream.readByteArray(readInt)
                 ws.send(WsMessage(ByteArrayInputStream(chunk)))
@@ -158,6 +167,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb","HTTP Server Provider") {
           }
         }
       }
+
       else -> {
         WsResponse { ws ->
           ws.close(WsStatus(response.status.code, response.status.description))

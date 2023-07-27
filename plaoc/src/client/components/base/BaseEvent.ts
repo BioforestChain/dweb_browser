@@ -12,7 +12,7 @@ export class BaseEvent<K extends string> extends EventTarget {
    * @param listenerFunc
    * @returns
    */
-  addEventListener(
+  override addEventListener(
     eventName: K,
     // deno-lint-ignore no-explicit-any
     listenerFunc: ListenerCallback<any>,
@@ -53,7 +53,7 @@ export class BaseEvent<K extends string> extends EventTarget {
   }
 
   /**移除监听器 */
-  removeEventListener(
+  override removeEventListener(
     eventName: K,
     // deno-lint-ignore no-explicit-any
     listenerFunc: ListenerCallback<any>,

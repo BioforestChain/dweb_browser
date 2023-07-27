@@ -136,15 +136,8 @@ class DesktopWebViewClient(private val microModule: MicroModule) : AccompanistWe
     view: WebView, request: WebResourceRequest
   ): WebResourceResponse? {
     var response: Response? = null
-    val url = request.url.let {
-      when (it.scheme) {
-        "chrome" -> Uri.parse(it.toString().replace("chrome://", "http://web.browser.dweb/"))
-        "about" -> Uri.parse(it.toString().replace("about:", "http://web.browser.dweb/"))
-        else -> Uri.parse(it.toString())
-      }
-    }
-
-    if (url.scheme == "http" && (url.host == "web.browser.dweb" || url.host == "browser.dweb.localhost")) {
+    val url = request.url
+    if (url.scheme == "http" && url.host == "localhost") {
       response = runBlockingCatching(ioAsyncExceptionHandler) {
         val urlPathSegments = url.pathSegments.filter { it.isNotEmpty() }
         if (urlPathSegments[0] == "newtab") {

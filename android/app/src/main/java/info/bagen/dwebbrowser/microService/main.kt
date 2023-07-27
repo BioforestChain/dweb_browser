@@ -58,7 +58,7 @@ suspend fun startDwebBrowser(): DnsNMM {
     )
 
     DEVELOPER.WaterBang -> debugTags.addAll(
-      listOf( "dwebview", "mwebview","http","JsMM","js-process","DNS")
+      listOf( "dwebview", "mwebview","http","JsMM","js-process","DNS","Desktop")
     )
 
     else -> debugTags.addAll(
@@ -145,7 +145,7 @@ suspend fun startDwebBrowser(): DnsNMM {
 
   /// 启动程序
   val bootNMM = BootNMM(
-    bootMmidList.plus(jmmNMM.mmid).plus(nativeUiNMM.mmid),
+    bootMmidList.plus(jmmNMM.mmid).plus(httpNMM.mmid).plus(nativeUiNMM.mmid),
   ).also { dnsNMM.install(it) }
 
   /// 启动Web调试
