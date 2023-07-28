@@ -28,8 +28,8 @@ struct APPModel: Codable {
     var shortcuts: [ShortcutItem]
     var icon: String
     var images: [String]
-    var bundle_url: string
-    var bundle_hash: string
+    var bundle_url: String
+    var bundle_hash: String
     var bundle_size: Int64
     var change_log: String
     var author: [String]
@@ -40,7 +40,7 @@ struct APPModel: Codable {
     var download_status: DownloadStatus
     var download_progress: Double
 
-    init(id: String, version: String, categories: [String], server: MainServer, baseURI: String? = nil, dweb_deeplinks: [String]? = nil, dir: TextDirectionType, lang: String, name: String, short_name: String, description: String, icons: [ImageSource], screenshots: [ImageSource], display: DisplayModeType, orientation: OrientationType, theme_color: String, background_color: String, shortcuts: [ShortcutItem], icon: String, images: [String], bundle_url: string, bundle_hash: string, bundle_size: Int64, change_log: String, author: [String], home: String, release_date: String, permissions: [String], plugins: [String], download_status: DownloadStatus, download_progress: Double) {
+    init(id: String, version: String, categories: [String], server: MainServer, baseURI: String? = nil, dweb_deeplinks: [String]? = nil, dir: TextDirectionType, lang: String, name: String, short_name: String, description: String, icons: [ImageSource], screenshots: [ImageSource], display: DisplayModeType, orientation: OrientationType, theme_color: String, background_color: String, shortcuts: [ShortcutItem], icon: String, images: [String], bundle_url: String, bundle_hash: String, bundle_size: Int64, change_log: String, author: [String], home: String, release_date: String, permissions: [String], plugins: [String], download_status: DownloadStatus, download_progress: Double) {
         self.id = id
         self.version = version
         self.categories = categories
@@ -165,8 +165,8 @@ struct APPModel: Codable {
         let shortcuts = try? container.decode([ShortcutItem].self, forKey: .shortcuts)
         let icon = try? container.decode(String.self, forKey: .icon)
         let images = try? container.decode([String].self, forKey: .images)
-        let bundle_url = try? container.decode(string.self, forKey: .bundle_url)
-        let bundle_hash = try? container.decode(string.self, forKey: .bundle_hash)
+        let bundle_url = try? container.decode(String.self, forKey: .bundle_url)
+        let bundle_hash = try? container.decode(String.self, forKey: .bundle_hash)
         let bundle_size = try? container.decode(Int64.self, forKey: .bundle_size)
         let change_log = try? container.decode(String.self, forKey: .change_log)
         let author = try? container.decode([String].self, forKey: .author)
