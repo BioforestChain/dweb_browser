@@ -147,3 +147,89 @@ public class JmmAppInstallManifest : IJmmAppInstallManifest
     public static JmmAppInstallManifest? FromJson(string json) =>
         JsonSerializer.Deserialize<JmmAppInstallManifest>(json);
 }
+
+/// <summary>
+/// 用于SwiftUI下载页
+/// </summary>
+public sealed class JmmAppDownloadManifest : JmmAppInstallManifest
+{
+    [Obsolete("使用带参数的构造函数", true)]
+#pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
+    public JmmAppDownloadManifest()
+#pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
+    {
+        /// 给JSON反序列化用的空参数构造函数
+    }
+
+    public JmmAppDownloadManifest(
+        Mmid mmid,
+        string version,
+        List<MicroModuleCategory> categories,
+        MainServer server,
+        TextDirectionType dir,
+        string lang,
+        string name,
+        string short_name,
+        string description,
+        List<Core.ImageSource> icons,
+        List<Core.ImageSource> screenshots,
+        DisplayModeType display,
+        OrientationType orientation,
+        string theme_color,
+        string background_color,
+        List<ShortcutItem> shortcuts,
+        string icon,
+        List<string> images,
+        string bundle_url,
+        string bundle_hash,
+        long bundle_size,
+        string change_log,
+        List<string> author,
+        string home,
+        string release_date,
+        List<string> permissions,
+        List<string> plugins,
+        string? baseURI = null,
+        List<string>? dweb_deeplinks = null) :
+        base(
+            mmid,
+            version,
+            categories,
+            server,
+            dir,
+            lang,
+            name,
+            short_name,
+            description,
+            icons,
+            screenshots,
+            display,
+            orientation,
+            theme_color,
+            background_color,
+            shortcuts,
+            icon,
+            images,
+            bundle_url,
+            bundle_hash,
+            bundle_size,
+            change_log,
+            author,
+            home,
+            release_date,
+            permissions,
+            plugins,
+            baseURI, dweb_deeplinks)
+    {
+    }
+
+    [JsonPropertyName("download_status")]
+    public DownloadStatus DownloadStatus { get; set; } = DownloadStatus.IDLE;
+
+    [JsonPropertyName("download_progress")]
+    public double DownloadProgress { get; set; } = 0.0;
+
+    public override string ToJson() => JsonSerializer.Serialize(this);
+    public static JmmAppDownloadManifest? FromJson(string json) =>
+        JsonSerializer.Deserialize<JmmAppDownloadManifest>(json);
+}

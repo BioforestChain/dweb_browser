@@ -23,7 +23,7 @@ struct DownloadAppView: View {
     @State private var isWaiting = false
     @State private var isLoading = false
     @State private var progress: CGFloat = 0.0
-    @State private var defaultApp: APPModel?
+    @State private var defaultManifest: JmmAppDownloadManifest?
     @State private var isPresented = false
     @State private var currentImageIndex: Int = 0
     
@@ -151,9 +151,9 @@ struct DownloadAppView: View {
                 .cornerRadius(20)
             
             VStack(alignment: .leading, spacing: 0) {
-                Text(defaultApp?.name ?? "")
+                Text(defaultManifest?.name ?? "")
                     .font(.system(size: 20, weight: .bold))
-                Text(defaultApp?.short_name ?? "")
+                Text(defaultManifest?.short_name ?? "")
                     .font(.system(size: 13))
                     .foregroundColor(.primary.opacity(0.5))
                 Spacer()
@@ -238,13 +238,13 @@ struct DownloadAppView: View {
                 .font(.title2.bold())
                 .frame(maxWidth: .infinity, alignment: .leading)
             
-            Text("版本 \(defaultApp?.version ?? "")")
+            Text("版本 \(defaultManifest?.version ?? "")")
                 .font(.system(size: 16))
                 .foregroundColor(.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.bottom, 10)
             
-            ForEach(defaultApp?.new_feature ?? [], id: \.self) { content in
+            ForEach(defaultManifest?.new_feature ?? [], id: \.self) { content in
                 Text("- \(content)")
             }
         }
@@ -258,7 +258,7 @@ struct DownloadAppView: View {
                 .font(.title2.bold())
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.bottom, 10)
-            Text(defaultApp?.description ?? "")
+            Text(defaultManifest?.description ?? "")
         }
         .padding(.leading, 20)
     }
@@ -266,7 +266,7 @@ struct DownloadAppView: View {
     @ViewBuilder
     func InfoDataView() -> some View {
         let titles = ["销售商", "大小"]
-        let contents = [defaultApp?.author?.joined(separator: ", ") ?? "", calculateAppSize()]
+        let contents = [defaultManifest?.author?.joined(separator: ", ") ?? "", calculateAppSize()]
         VStack(alignment: .leading, spacing: 10) {
             Text("信息")
                 .font(.title2.bold())
@@ -304,15 +304,15 @@ struct DownloadAppView: View {
     }
     
     private func calculateAppSize() -> String {
-        guard defaultApp != nil else { return "" }
+        guard defaultManifest != nil else { return "" }
         
-        if defaultApp!.bundle_size > 1024 * 1024 {
-            return String(format: "%.2f MB", CGFloat(defaultApp!.bundle_size) / (1024.0 * 1024.0))
+        if defaultManifest!.bundle_size > 1024 * 1024 {
+            return String(format: "%.2f MB", CGFloat(defaultManifest!.bundle_size) / (1024.0 * 1024.0))
         }
-        if defaultApp!.bundle_size > 1024 {
-            return String(format: "%.2f KB", CGFloat(defaultApp!.bundle_size) / 1024.0)
+        if defaultManifest!.bundle_size > 1024 {
+            return String(format: "%.2f KB", CGFloat(defaultManifest!.bundle_size) / 1024.0)
         }
-        return "\(defaultApp!.bundle_size)B"
+        return "\(defaultManifest!.bundle_size)B"
     }
     
     private func statusBarHeight() -> CGFloat {
@@ -323,9 +323,9 @@ struct DownloadAppView: View {
     private func loadAppInfo() {
         do {
             let decoder = JSONDecoder()
-            defaultApp = try decoder.decode(APPModel.self, from: modelData)
-            viewModel.loadIcon(urlString: defaultApp?.icon ?? "", placeHoldImageName: "360so")
-            viewModel.loadImages(imageNames: defaultApp?.images! ?? [], placeHoldImageName: "dweb_icon")
+            defaultManifest = try decoder.decode(JmmAppDownloadManifest.self, from: modelData)
+            viewModel.loadIcon(urlString: defaultManifest?.icon ?? "", placeHoldImageName: "360so")
+            viewModel.loadImages(imageNames: defaultManifest?.images! ?? [], placeHoldImageName: "dweb_icon")
         } catch {
             fatalError("could load fail. \n\(error.localizedDescription)")
         }
