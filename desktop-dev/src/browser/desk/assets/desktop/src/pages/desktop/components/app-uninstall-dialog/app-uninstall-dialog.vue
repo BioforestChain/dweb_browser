@@ -1,11 +1,13 @@
 <script setup lang="ts">
+import AppIcon from "src/components/app-icon/app-icon.vue";
+import { $AppIconInfo } from "src/components/app-icon/types";
+import { deleteApp } from "src/provider/api.ts";
+import { $CloseWatcher, CloseWatcher } from "src/provider/shim.ts";
 import { watchEffect } from "vue";
-import { deleteApp } from "../../../../provider/api.ts";
-import { $CloseWatcher, CloseWatcher } from "../../../../provider/shim.ts";
 
 const props = defineProps({
   appId: { type: String, required: true },
-  appIcon: { type: String, required: true },
+  appIcon: { type: Object as () => $AppIconInfo, required: true },
   appName: { type: String, required: true },
   show: { type: Boolean },
 });
@@ -34,17 +36,21 @@ watchEffect(() => {
 
 <template>
   <v-dialog
-    v-model="$props.show"
-    class="uninstall-dialog ios-ani items-end"
+    :model-value="show"
+    class="uninstall-dialog ios-ani align-end"
+    scrim="danger-overlay-scrim"
+    scrim-class="bg-danger-overlay-scrim"
+    content-class="mb-16"
     transition="dialog-bottom-transition"
     persistent
     width="min(90%, 26em)"
+    offset="10em"
   >
-    <div class="glass flex rounded-2xl flex-column p-4 justify-center items-center">
+    <div class="glass flex rounded-2xl flex-column p-4 justify-center items-center dialog-layout">
       <div class="w-16 h-16 p-2 box-content">
-        <img class="img" :src="props.appIcon" alt="app icon" />
+        <AppIcon :icon="appIcon" size="100%"></AppIcon>
       </div>
-      <h2 class="text-lg p-2">卸载“{{ props.appName }}”</h2>
+      <h2 class="text-lg p-2">卸载“{{ appName }}”</h2>
       <p class="text-base">卸载后其所有数据也将被删除</p>
       <hr class="h-4" />
       <div class="flex justify-evenly items-center w-full">
@@ -58,33 +64,7 @@ watchEffect(() => {
   </v-dialog>
 </template>
 <style scoped lang="scss">
-.glass {
-  backdrop-filter: blur(var(--glass-blur, 40px)) saturate(1.2) contrast(1.2);
-  background-color: rgba(255, 255, 255, 0.2);
-}
-.dialog {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  border-radius: 15px;
-  box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.3);
-  background-color: rgba(255, 255, 255, 0.805);
-  padding: 1em;
-  .app-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: 15px;
-    background-color: #fff;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.3);
-    .img {
-      width: 90%;
-      height: auto;
-    }
-  }
+.dialog-layout {
   .text {
     font-size: 14px;
     font-weight: 0.1em;

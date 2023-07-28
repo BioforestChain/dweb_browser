@@ -1,18 +1,15 @@
 <script lang="ts" setup>
 import { onLongPress } from "@vueuse/core";
-import { computed, onMounted, reactive, ref, watchEffect } from "vue";
-import { strictImageResource } from "../../../../../../../../../helper/imageResourcesHelper.ts";
-import { RandomNumberOptions, randomStringToNumber } from "../../../../../../../../../helper/randomHelper.ts";
-import { Compareable, enumToCompareable } from "../../../../../../../../../helper/sortHelper.ts";
-import AppIcon from "../../../../components/app-icon/app-icon.vue";
-import SvgIcon from "../../../../components/svg-icon/index.vue";
-import { openApp, quitApp, readAcceptSvg, vibrateHeavyClick } from "../../../../provider/api.ts";
-import { buildApiRequestArgs } from "../../../../provider/fetch.ts";
-import { $CloseWatcher, CloseWatcher } from "../../../../provider/shim.ts";
-import type { $WidgetAppData } from "../../../../types/app.type.ts";
-import AppUnInstallDialog from "../app-uninstall-dialog/index.vue";
+import AppIcon from "src/components/app-icon/app-icon.vue";
+import { watchEffectAppMetadataToAppIcon } from "src/components/app-icon/appMetaDataHelper";
+import { $AppIconInfo } from "src/components/app-icon/types";
+import SvgIcon from "src/components/svg-icon/index.vue";
+import { openApp, quitApp, vibrateHeavyClick } from "src/provider/api.ts";
+import { $CloseWatcher, CloseWatcher } from "src/provider/shim.ts";
+import type { $WidgetAppData } from "src/types/app.type.ts";
+import { computed, onMounted, reactive, ref, shallowRef, watchEffect } from "vue";
+import AppUnInstallDialog from "../app-uninstall-dialog/app-uninstall-dialog.vue";
 import { ownReason, showOverlay } from "../widget-menu-overlay/widget-menu-overlay.vue";
-import blankApp_svg from "./blankApp.svg";
 import delete_svg from "./delete.svg";
 import details_svg from "./details.svg";
 import quit_svg from "./quit.svg";
@@ -46,48 +43,12 @@ const props = defineProps({
 });
 const appid = computed(() => props.appMetaData.mmid);
 const appname = computed(() => props.appMetaData.short_name ?? props.appMetaData.name);
-const appicon = ref("");
-const appiconmarkable = ref(false);
-const appiconmonocolor = ref<string | undefined>();
-watchEffect(async () => {
-  const acceptImage = await readAcceptSvg();
-  const selectedIcon = (props.appMetaData.icons ?? [])
-    .map(
-      (icon) =>
-        new Compareable(strictImageResource(icon), (icon) => {
-          const size = icon.sizes.at(-1)!;
-          const area = size.width * size.height;
-          return {
-            purpose: enumToCompareable(icon.purpose, ["maskable", "any", "monochrome"]),
-            type: acceptImage.length - acceptImage.findIndex((acceptTester) => acceptTester(icon.type)),
-            area,
-          };
-        })
-    )
-    .sort((a, b) => a.compare(b))
-    .at(-1);
-  const iconurl = selectedIcon?.value.src ?? blankApp_svg;
-
-  appicon.value = iconurl.startsWith("file:")
-    ? buildApiRequestArgs("/readFile", {
-        search: {
-          url: selectedIcon?.value.src ?? blankApp_svg,
-        },
-      })[0].href
-    : iconurl;
-  appiconmarkable.value = selectedIcon?.value.purpose === "maskable";
-
-  const randomById = (options?: RandomNumberOptions) => randomStringToNumber(props.appMetaData.mmid, options);
-  appiconmonocolor.value =
-    selectedIcon?.value.purpose === "monochrome" || iconurl === blankApp_svg
-      ? props.appMetaData.theme_color ??
-        `hwb(${randomById({ seed: "hue", max: 360 })}deg 0% ${randomById({
-          seed: "black",
-          min: 0,
-          max: 10,
-        })}%)`
-      : undefined;
+const appicon = shallowRef<$AppIconInfo>({ src: "", monochrome: false, markable: false });
+watchEffectAppMetadataToAppIcon({ metaData: props.appMetaData }, appicon);
+watchEffect(() => {
+  console.log("widget-app/appicon", appicon.value);
 });
+
 const opening = ref(false);
 const closing = ref(false);
 const animationiteration = ref(false);
@@ -171,6 +132,7 @@ const onJmmUnInstallDialogClosed = (confirmed: boolean) => {
     <v-menu :modelValue="isShowMenu" @update:modelValue="$menu.close" location="bottom" transition="menu-popuper">
       <template v-slot:activator="{ props }">
         <div
+          v-bind="props"
           class="app-wrap ios-ani"
           :class="{ overlayed: isShowOverlay, focused: isShowMenu }"
           @click="[$menu.close, doOpen]"
@@ -184,10 +146,7 @@ const onJmmUnInstallDialogClosed = (confirmed: boolean) => {
             }"
             @animationiteration="animationiteration = true"
             size="60px"
-            :src="appicon"
-            :markable="appiconmarkable"
-            :monochrome="appiconmonocolor !== undefined"
-            :monocolor="appiconmonocolor"
+            :icon="appicon"
           ></AppIcon>
           <div class="app-name line-clamp-2 backdrop-ios-glass ios-ani" :style="{ opacity: isShowMenu ? 0 : 1 }">
             {{ appname }}

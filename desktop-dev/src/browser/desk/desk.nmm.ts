@@ -166,7 +166,7 @@ export class DeskNMM extends NativeMicroModule {
       });
     this.onFetch(onFetchHanlder.run).internalServerError();
 
-    const taskbarServer = await this._createTaskbarWebServer();
+    const taskbarServer = await this._createTaskbarWebServer(context);
     const desktopServer = await this._createDesktopWebServer();
 
     const taskbarWin = await this._createTaskbarView(taskbarServer, desktopServer);
@@ -175,7 +175,7 @@ export class DeskNMM extends NativeMicroModule {
     });
   }
 
-  private async _createTaskbarWebServer() {
+  private async _createTaskbarWebServer(context: $BootstrapContext) {
     const taskbarServer = await createHttpDwebServer(this, {
       subdomain: "taskbar",
       port: 433,
@@ -187,6 +187,16 @@ export class DeskNMM extends NativeMicroModule {
         let url: string;
         if (pathname.startsWith(API_PREFIX)) {
           url = `file://${pathname.slice(API_PREFIX.length)}${search}`;
+          const mmid = new URL(url).hostname as $MMID;
+          if (mmid !== this.mmid) {
+            /// 不支持
+            if ((await context.dns.query(mmid)) === undefined) {
+              return {
+                statusCode: 404,
+                body: "",
+              };
+            }
+          }
         } else {
           url = `file:///sys/browser/desk.taskbar${pathname}?mode=stream`;
         }
@@ -345,6 +355,9 @@ export class TaskbarMainApis {
 
     const desktopWin = await createNativeWindow(this.mm.mmid, {
       ...window_options,
+      vibrancy: undefined,
+      visualEffectState: undefined,
+      backgroundMaterial: undefined,
       alwaysOnTop: false,
       show: false,
       /// 宽高

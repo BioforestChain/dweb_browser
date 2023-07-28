@@ -1,6 +1,6 @@
 <script lang="ts" setup>
+import { $WidgetCustomData } from "src/types/app.type.ts";
 import { computed } from "vue";
-import { $WidgetCustomData } from "../../../../types/app.type.ts";
 import widget_inner_css from "./widget-inner.scss?inline";
 import "./widget-public.scss";
 
@@ -45,7 +45,7 @@ const createStyleHelper = (forceStyle = false) => {
         root.appendChild(style);
         return this;
       },
-      uninstallStyle(_root: DocumentOrShadowRoot) {
+      uninstallStyle(_root: ShadowRoot) {
         style.parentElement?.removeChild(style);
         return this;
       },

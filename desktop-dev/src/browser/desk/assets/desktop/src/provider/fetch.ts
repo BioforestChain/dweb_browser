@@ -1,7 +1,7 @@
 /// about:blank
 
-import { JsonlinesStream } from "../../../../../../helper/JsonlinesStream.ts";
-import { streamRead } from "../../../../../../helper/readableStreamHelper.ts";
+import { JsonlinesStream } from "helper/JsonlinesStream.ts";
+import { streamRead } from "helper/readableStreamHelper.ts";
 
 /// about:newtab
 const BASE_URL =

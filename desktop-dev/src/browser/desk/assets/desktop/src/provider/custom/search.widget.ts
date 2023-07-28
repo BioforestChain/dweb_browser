@@ -1,4 +1,4 @@
-import { $WidgetCustomData } from "../../types/app.type.ts";
+import { $WidgetCustomData } from "src/types/app.type.ts";
 import search_svg_raw from "./search.svg?raw";
 const html = String.raw;
 const css = String.raw;

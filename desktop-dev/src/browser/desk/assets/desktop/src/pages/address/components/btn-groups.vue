@@ -77,8 +77,8 @@
   </div>
 </template>
 <script lang="ts" setup>
+import { nativeFetch } from "src/provider/fetch.ts";
 import { reactive } from "vue";
-import { nativeFetch } from "../../../provider/fetch.ts";
 const state = reactive({
   goBackIsActive: false,
   goForwardIsActive: false,

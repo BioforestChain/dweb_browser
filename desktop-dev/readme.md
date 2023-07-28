@@ -28,3 +28,5 @@
   1. `/start` 也可以携带 routes 配置。
      - 为了向下兼容，`/start` 默认监听所有的请求。
      - `/start` 的 routes 是为了做到权限风发，与`listen` 的 routes 为了做到负载均衡不一样，二者互相补充
+- dwebview
+  1. closewatcher.shim 应该直接垫片到每一个 WebView 实例中

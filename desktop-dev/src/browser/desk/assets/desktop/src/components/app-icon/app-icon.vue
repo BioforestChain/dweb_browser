@@ -1,29 +1,23 @@
 <script setup lang="ts">
 import { computed, watchEffect } from "vue";
 import IconSquircleBox from "../icon-squircle-box/index.vue";
+import { $AppIconInfo } from "./types.ts";
+
 const props = defineProps({
   size: {
     type: String,
     default: "3em",
   },
-  src: {
-    type: String,
-  },
-  markable: {
-    type: Boolean,
-  },
-  monochrome:{
-    type: Boolean,
-  },
-  monocolor: {
-    type: String,
+  icon: {
+    type: Object as () => $AppIconInfo,
+    required: true,
   },
 });
 
-const var_src = computed(() => (props.src ? `url(${JSON.stringify(props.src)})` : "none"));
+const var_src = computed(() => (props.icon.src ? `url(${JSON.stringify(props.icon.src)})` : "none"));
 
 watchEffect(() => {
-  console.log("var_src:", var_src);
+  console.log("var_src:", var_src.value, props.icon);
 });
 </script>
 
@@ -33,8 +27,8 @@ watchEffect(() => {
     <div
       class="fg"
       :class="{
-        markable: markable,
-        monochrome: monochrome,
+        markable: icon.markable,
+        monochrome: icon.monochrome,
       }"
     ></div>
   </div>
@@ -68,14 +62,14 @@ watchEffect(() => {
     background-image: v-bind(var_src);
     background-size: contain;
     background-position: center;
-    width: 60%;
-    height: 60%;
+    --size: 87%; /// Math.SQRT2 * 0.618 对角线黄金分割
+    width: var(--size);
+    height: var(--size);
     &.markable {
-      width: 100%;
-      height: 100%;
+      --size: 100%;
     }
     &.monochrome {
-      background-color: v-bind(monocolor);
+      background-color: v-bind("icon.monocolor");
       mask-image: v-bind(var_src);
       mask-repeat: no-repeat;
       mask-position: center;

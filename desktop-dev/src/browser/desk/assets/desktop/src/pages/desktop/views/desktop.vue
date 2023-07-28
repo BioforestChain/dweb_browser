@@ -1,8 +1,8 @@
 <script lang="ts" setup>
+import wallpaper_url from "src/assets/wallpaper.webp";
+import { getWidgetInfo, watchDesktopAppInfo } from "src/provider/api.ts";
+import type { $TileSizeType, $WidgetAppData, $WidgetCustomData } from "src/types/app.type.ts";
 import { onMounted, onUnmounted, Ref, ref, StyleValue } from "vue";
-import wallpaper_url from "../../../assets/wallpaper.webp";
-import { getWidgetInfo, watchDesktopAppInfo } from "../../../provider/api.ts";
-import type { $TileSizeType, $WidgetAppData, $WidgetCustomData } from "../../../types/app.type.ts";
 import TileItem from "../components/tile-item/tile-item.vue";
 import TilePanel from "../components/tile-panel/tile-panel.vue";
 import WidgetApp from "../components/widget-app/widget-app.vue";
@@ -43,7 +43,7 @@ const updateApps = async () => {
     appInfoWatcher.return();
   });
   for await (const appList of appInfoWatcher) {
-    console.log("22221=>",appList)
+    console.log("22221=>", appList);
     updateLayoutInfoList(widgetList, appList);
   }
 };

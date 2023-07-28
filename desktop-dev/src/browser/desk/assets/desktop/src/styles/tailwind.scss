@@ -13,24 +13,56 @@
   background: transparent !important;
 }
 
-.z-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  grid-template-rows: 1fr;
-  grid-template-areas: "z-view";
-}
-.z-view {
-  grid-area: z-view;
-}
-.ios-ani {
-  transition: 500ms;
-  transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
-  transition-property: transform, scale, translate, rotate, filter, opacity, color, background-color,
-    var(--ani-property, -default);
-}
-
 @layer components {
+  .z-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+    grid-template-areas: "z-view";
+  }
+  .z-view {
+    grid-area: z-view;
+  }
+
+  .ios-ani {
+    transition: 500ms;
+    transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+    transition-property: transform, scale, translate, rotate, filter, opacity, color, background-color,
+      var(--ani-property, -default);
+  }
+
   .backdrop-ios-glass {
     backdrop-filter: contrast(1.5) brightness(1.2) blur(6px);
+    background-color: rgba(255, 255, 255, 0.15);
+  }
+
+  .bg-danger-overlay-scrim {
+    --scrim-color: rgba(255, 0, 0, 0.35);
+    background: linear-gradient(
+        to bottom,
+        var(--scrim-color),
+        transparent 5em,
+        transparent calc(100% - 5em),
+        var(--scrim-color)
+      ),
+      linear-gradient(to right, var(--scrim-color), transparent 5em, transparent calc(100% - 5em), var(--scrim-color)) !important;
+    backdrop-filter: blur(10px) !important;
+    opacity: 1 !important;
+    mask-image: linear-gradient(to bottom, black, transparent, black),
+      linear-gradient(to right, black, transparent, black);
+    mask-position: center;
+    animation: falldown 5s ease-in-out infinite both;
+    mask-size: 400% 400%;
+    @keyframes falldown {
+      0% {
+        mask-size: 400% 400%;
+      }
+      50% {
+        mask-size: 100% 100%;
+      }
+      100% {
+        mask-size: 400% 400%;
+      }
+    }
   }
 }

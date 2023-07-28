@@ -5,16 +5,13 @@
  */
 
 // Plugins
-import router from "../router/index.ts";
-import vuetify from "./vuetify.ts";
+import router from "../router";
+import vuetify from "./vuetify";
 
 // Types
 import type { App } from "vue";
 
 export function registerPlugins(app: App) {
   // loadFonts()
-  app
-    // use plugins
-    .use(vuetify)
-    .use(router);
+  app.use(vuetify).use(router);
 }

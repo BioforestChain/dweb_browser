@@ -17,7 +17,14 @@
     "skipLibCheck": true,
     "allowImportingTsExtensions": true,
     "noEmit": true,
-    "paths": {}
+    "paths": {
+      "src/*": [
+        "src/*"
+      ],
+      "helper/*": [
+        "../../../../helper/*"
+      ]
+    }
   },
   "include": [
     "scripts/**/*.ts",

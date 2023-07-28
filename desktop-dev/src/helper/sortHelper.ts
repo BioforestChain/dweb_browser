@@ -4,6 +4,9 @@ export class Compareable<T> {
   get score() {
     return (this._score ??= this.getScore(this.value));
   }
+  private get _scope_keys() {
+    return Object.keys(this.score);
+  }
   /**
    * 等价于 `(this as a) - b`
    * @param b
@@ -12,9 +15,9 @@ export class Compareable<T> {
   compare(b: Compareable<T>) {
     const aScore = this.score;
     const bScore = b.score;
-    for (const key in aScore) {
-      const aValue = aScore[key];
-      const bValue = bScore[key];
+    for (const key of this._scope_keys) {
+      const aValue = aScore[key] || 0;
+      const bValue = bScore[key] || 0;
       if (aValue !== bValue) {
         return aValue - bValue;
       }
