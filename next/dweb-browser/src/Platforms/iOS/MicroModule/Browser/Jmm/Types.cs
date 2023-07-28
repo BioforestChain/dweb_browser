@@ -69,6 +69,10 @@ public interface IJmmAppInstallManifest : IJmmAppManifest
     public string BundleHash { get; set; }
     public long BundleSize { get; set; }
     /// <summary>
+    /// 更新日志，直接放url
+    /// </summary>
+    public string ChangeLog { get; set; }
+    /// <summary>
     /// 安装时展示的作者信息
     /// </summary>
     public List<string> Author { get; set; }

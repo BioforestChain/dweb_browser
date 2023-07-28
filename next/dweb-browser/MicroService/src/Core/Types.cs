@@ -5,36 +5,21 @@
 /// </summary>
 public interface ICommonAppManifest
 {
-    [JsonPropertyName("version")]
     public string? Version { get; set; }
-    [JsonPropertyName("dir")]
-    public TextDirectionType? Dir { get; set; }                                    /// <see cref="https://w3c.github.io/manifest/#dir-member"/>
-    [JsonPropertyName("lang")]
-    public string? Lang { get; set; }                                              /// <see cref="https://w3c.github.io/manifest/#lang-member"/>
-    [JsonPropertyName("name")]
-    public string? Name { get; set; }                                              /// <see cref="https://w3c.github.io/manifest/#name-member"/>
-    [JsonPropertyName("short_name")]
-    public string? ShortName { get; set; }                                         /// <see cref="https://w3c.github.io/manifest/#short_name-member"/>
-    [JsonPropertyName("description")]
-    public string? Description { get; set; }                                       /// <see cref="https://w3c.github.io/manifest/#description-member"/>
-    [JsonPropertyName("icons")]
-    public List<ImageSource>? Icons { get; set; }                                  /// <see cref="https://w3c.github.io/manifest/#icons-member"/>
-    [JsonPropertyName("screenshots")]
-    public List<ImageSource>? Screenshots { get; set; }                            /// <see cref="https://w3c.github.io/manifest/#screenshots-member"/>
-    [JsonPropertyName("categories")]
-    public List<string>? Categories { get; set; }                                  /// <see cref="https://w3c.github.io/manifest/#categories-member"/>
-    [JsonPropertyName("display")]
-    public DisplayModeType? Display { get; set; }                                  /// <see cref="https://w3c.github.io/manifest/#display-member"/>
-    [JsonPropertyName("orientation")]
-    public OrientationType? Orientation { get; set; }                              /// <see cref="https://w3c.github.io/manifest/#orientation-member"/>
-    [JsonPropertyName("id")]
-    public string? Id { get; set; }                                                /// <see cref="https://w3c.github.io/manifest/#id-member"/>
-    [JsonPropertyName("theme_color")]
-    public string? ThemeColor { get; set; }                                        /// <see cref="https://w3c.github.io/manifest/#theme_color-member"/>
-    [JsonPropertyName("background_color")]
-    public string? BackgroundColor { get; set; }                                   /// <see cref="https://w3c.github.io/manifest/#background_color-member"/>
-    [JsonPropertyName("shortcuts")]
-    public List<ShortcutItem>? Shortcuts { get; set; }                             /// <see cref="https://w3c.github.io/manifest/#shortcuts-member"/>
+    public TextDirectionType? Dir { get; set; }
+    public string? Lang { get; set; }
+    public string? Name { get; set; }
+    public string? ShortName { get; set; }
+    public string? Description { get; set; }
+    public List<ImageSource>? Icons { get; set; }
+    public List<ImageSource>? Screenshots { get; set; }
+    public List<MicroModuleCategory>? Categories { get; set; }
+    public DisplayModeType? Display { get; set; }
+    public OrientationType? Orientation { get; set; }
+    public string? Id { get; set; }
+    public string? ThemeColor { get; set; }
+    public string? BackgroundColor { get; set; }
+    public List<ShortcutItem>? Shortcuts { get; set; }
 }
 
 public interface IMicroModuleManifest
@@ -474,44 +459,25 @@ public record ShortcutItem(
 /// The `shortcuts` member is an `array` of `ShortcutItem`s that provide access to key tasks within a web application.
 /// </param>
 /// <see cref="https://w3c.github.io/manifest/#webappmanifest-dictionary"/>
-public interface WebAppManifest
+public interface IWebAppManifest
 {
-    [JsonPropertyName("dir")]
     public TextDirectionType? Dir { get; set; }                                    /// <see cref="https://w3c.github.io/manifest/#dir-member"/>
-    [JsonPropertyName("lang")]
     public string? Lang { get; set; }                                              /// <see cref="https://w3c.github.io/manifest/#lang-member"/>
-    [JsonPropertyName("name")]
     public string? Name { get; set; }                                              /// <see cref="https://w3c.github.io/manifest/#name-member"/>
-    [JsonPropertyName("short_name")]
     public string? ShortName { get; set; }                                         /// <see cref="https://w3c.github.io/manifest/#short_name-member"/>
-    [JsonPropertyName("description")]
     public string? Description { get; set; }                                       /// <see cref="https://w3c.github.io/manifest/#description-member"/>
-    [JsonPropertyName("icons")]
     public List<ImageSource>? Icons { get; set; }                                  /// <see cref="https://w3c.github.io/manifest/#icons-member"/>
-    [JsonPropertyName("screenshots")]
     public List<ImageSource>? Screenshots { get; set; }                            /// <see cref="https://w3c.github.io/manifest/#screenshots-member"/>
-    [JsonPropertyName("categories")]
     public List<string>? Categories { get; set; }                                  /// <see cref="https://w3c.github.io/manifest/#categories-member"/>
-    [JsonPropertyName("iarc_rating_id")]
     public string? IarcRatingId { get; set; }                                      /// <see cref="https://w3c.github.io/manifest/#iarc_rating_id-member"/>
-    [JsonPropertyName("start_url")]
     public string? StartUrl { get; set; }                                          /// <see cref="https://w3c.github.io/manifest/#start_url-member"/>
-    [JsonPropertyName("display")]
     public DisplayModeType? Display { get; set; }                                  /// <see cref="https://w3c.github.io/manifest/#display-member"/>
-    [JsonPropertyName("orientation")]
     public OrientationType? Orientation { get; set; }                              /// <see cref="https://w3c.github.io/manifest/#orientation-member"/>
-    [JsonPropertyName("id")]
     public string? Id { get; set; }                                                /// <see cref="https://w3c.github.io/manifest/#id-member"/>
-    [JsonPropertyName("theme_color")]
     public string? ThemeColor { get; set; }                                        /// <see cref="https://w3c.github.io/manifest/#theme_color-member"/>
-    [JsonPropertyName("background_color")]
     public string? BackgroundColor { get; set; }                                   /// <see cref="https://w3c.github.io/manifest/#background_color-member"/>
-    [JsonPropertyName("scope")]
     public string? Scope { get; set; }                                             /// <see cref="https://w3c.github.io/manifest/#scope-member"/>
-    [JsonPropertyName("related_applications")]
     public List<ExternalApplicationResource>? RelatedApplications { get; set; }    /// <see cref="https://w3c.github.io/manifest/#related_applications-member"/>
-    [JsonPropertyName("prefer_related_applications")]
     public bool? PreferRelatedApplications { get; set; }                           /// <see cref="https://w3c.github.io/manifest/#prefer_related_applications-member"/>
-    [JsonPropertyName("shortcuts")]
     public List<ShortcutItem>? Shortcuts { get; set; }                             /// <see cref="https://w3c.github.io/manifest/#shortcuts-member"/>
 }
