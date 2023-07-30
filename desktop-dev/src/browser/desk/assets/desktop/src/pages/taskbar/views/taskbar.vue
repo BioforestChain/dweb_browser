@@ -5,10 +5,12 @@ import {
   watchEffectAppMetadataToAppIcon,
 } from "src/components/app-icon/appMetaDataHelper.ts";
 import { $AppIconInfo } from "src/components/app-icon/types";
-import { resizeTaskbar, toggleDesktopView, watchTaskbarAppInfo } from "src/provider/api.ts";
+import SvgIcon from "src/components/svg-icon/svg-icon.vue";
+import { openApp, quitApp, resizeTaskbar, toggleDesktopView, watchTaskbarAppInfo } from "src/provider/api.ts";
 import { $WidgetAppData } from "src/types/app.type.ts";
 import { onMounted, onUnmounted, ref, ShallowRef, shallowRef, triggerRef, watchEffect } from "vue";
 import { icons } from "./icons/index.ts";
+import x_circle_svg from "./icons/x-circle.svg";
 
 /** 打开桌面面板 */
 const toggleDesktopButton = async () => {
@@ -52,9 +54,44 @@ const updateLayoutInfoList = (appList: $WidgetAppData[]) => {
   });
   triggerRef(appRefList);
 };
+const doOpen = async (metaData: $WidgetAppData) => {
+  if (showMenuOverlayRef.value === metaData.mmid) {
+    return;
+  }
+  await openApp(metaData.mmid);
+};
+const doExit = async (metaData: $WidgetAppData) => {
+  await quitApp(metaData.mmid);
+  tryCloseMenuOverlay(metaData);
+};
+
+const showMenuOverlayRef = ref<$WidgetAppData["mmid"] | undefined>();
+const tryOpenMenuOverlay = (metaData: $WidgetAppData) => {
+  if (metaData.running) {
+    showMenuOverlayRef.value = metaData.mmid;
+  }
+};
+const tryCloseMenuOverlay = (metaData: $WidgetAppData) => {
+  if (showMenuOverlayRef.value === metaData.mmid) {
+    showMenuOverlayRef.value = undefined;
+  }
+};
+window.addEventListener("blur", () => {
+  showMenuOverlayRef.value = undefined;
+});
 
 onMounted(async () => {
   await updateApps();
+});
+
+const calcMaxHeight = () => `${screen.availHeight - 45}px`;
+/**
+ * @TODO 因为这里限制了maxHeight，所以肯定会带来滚动问题，所以未来应用很多的时候，需要开启左右滑动的功能来进行滚动
+ */
+const maxHeight = ref(calcMaxHeight());
+
+window.addEventListener("resize", () => {
+  maxHeight.value = calcMaxHeight();
 });
 
 /// 同步div的大小到原生的窗口上
@@ -64,79 +101,140 @@ watchEffect(() => {
   resizeOb?.disconnect();
   resizeOb = undefined;
   if (taskbarEle.value) {
-    resizeOb = new ResizeObserver((entries) => {
+    resizeOb = new ResizeObserver(async (entries) => {
       for (const entry of entries) {
-        const { width, height } = entry.contentRect;
-        console.log("resize", entry.contentRect);
-        resizeTaskbar(Math.ceil(width), Math.ceil(height));
+        const { width: _width, height: _height } = entry.contentRect;
+        const height = Math.ceil(_height);
+        const width = Math.ceil(_width);
+        const resizedSize = await resizeTaskbar(width, height);
+        console.log("resizedSize", width, height, resizedSize);
       }
     });
     resizeOb.observe(taskbarEle.value);
   }
 });
+const iconSize = "45px";
 </script>
 <template>
   <div class="taskbar" ref="taskbarEle">
-    <div class="panel">
-      <div class="app-icon" v-for="(app, index) in appRefList" :key="index">
-        <AppIcon :icon="app.ref.value"></AppIcon>
-      </div>
-      <div class="app-icon">
-        <img class="img" :src="icons.anquanzhongxin" draggable="false" />
-      </div>
-      <div class="app-icon">
-        <img class="img" :src="icons.kandianying" draggable="false" />
-      </div>
-      <div class="app-icon">
-        <img class="img" :src="icons.naozhong" draggable="false" />
-      </div>
-      <div class="app-icon">
-        <img class="img" :src="icons.xiangji" draggable="false" />
-      </div>
-      <hr class="divider" />
-
-      <div class="app-icon" @click="toggleDesktopButton">
-        <img class="img" :src="icons.quanbufenlei" draggable="false" />
-      </div>
+    <div class="panel" :class="{ 'p-4': appRefList.length > 0 }">
+      <button class="app-icon-wrapper z-grid" v-for="(app, index) in appRefList" :key="index">
+        <AppIcon
+          class="z-view"
+          :icon="app.ref.value"
+          :size="iconSize"
+          bg-color="#FFF"
+          bg-disable-translucent
+          @click="doOpen(app.metaData)"
+          @contextmenu="tryOpenMenuOverlay(app.metaData)"
+        >
+          <button
+            v-if="showMenuOverlayRef === app.metaData.mmid"
+            class="exit-button"
+            @blur="tryCloseMenuOverlay(app.metaData)"
+            @click="doExit(app.metaData)"
+          >
+            <SvgIcon class="exit-icon" :src="x_circle_svg" alt="exit app"></SvgIcon>
+          </button>
+        </AppIcon>
+        <div class="running-dot z-view" v-if="app.metaData.running">
+          <span class="dot"></span>
+        </div>
+      </button>
     </div>
+    <hr v-if="appRefList.length > 0" class="my-divider" />
+
+    <button class="desktop-button app-icon-wrapper z-grid p-4" @click="toggleDesktopButton">
+      <AppIcon
+        class="z-view"
+        :icon="icons.layout_panel_top"
+        :size="iconSize"
+        bg-image="linear-gradient(to bottom, #f64f59, #c471ed, #12c2e9)"
+        bg-disable-translucent
+      ></AppIcon>
+    </button>
   </div>
 </template>
 <style scoped lang="scss">
 .taskbar {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   height: min-content;
   width: min-content;
+  max-height: v-bind(maxHeight);
   -webkit-app-region: drag;
   cursor: move;
   user-select: none;
+  overflow: hidden;
 }
 .panel {
-  padding: 1em;
   display: flex;
   flex-direction: column;
   gap: 1em;
+  flex: 1;
+  overflow: hidden;
+  flex-wrap: wrap;
+  justify-content: space-around;
 }
-.divider {
-  width: 100%;
+.my-divider {
+  width: 90%;
   height: 1px;
   border-radius: 1px;
   border: 0;
   background: linear-gradient(to right, transparent, currentColor, transparent);
+  margin: 0;
+  flex-shrink: 0;
 }
-.app-icon {
-  cursor: pointer;
+.desktop-button {
+  box-sizing: content-box;
+  flex-shrink: 0;
+}
+button {
   -webkit-app-region: no-drag;
-  width: 60px;
-  height: 60px;
-  border-radius: 15px;
-  background-color: #fff;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.3);
+}
+.app-icon-wrapper {
+  cursor: pointer;
+  width: 45px;
+  height: 45px;
   .img {
     width: 90%;
     height: auto;
   }
+}
+.running-dot {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  pointer-events: none;
+  .dot {
+    display: inline-block;
+    --dot-size: 0.35em;
+    width: var(--dot-size);
+    height: var(--dot-size);
+    border-radius: 50%;
+    background-color: rgba($color: #fff, $alpha: 0.5);
+    transform: translateX(calc((1em - var(--dot-size) * 2 / 3)));
+  }
+}
+.exit-button {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+
+  backdrop-filter: blur(4px) saturate(1.25) contrast(1.25);
+  background: rgba(0, 0, 0, 0.3);
+  mask-image: radial-gradient(white, #ffffff00);
+  .exit-icon {
+    color: rgb(0 0 0 / 80%);
+  }
+}
+</style>
+
+<style lang="scss">
+:root {
+  overflow: hidden !important;
 }
 </style>

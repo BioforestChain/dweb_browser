@@ -68,8 +68,7 @@ export class DeskNMM extends NativeMicroModule {
 
         if (ipc !== undefined) {
           ipc.postMessage(IpcEvent.fromText("activity", ""));
-          /// 如果成功打开，将它“追加”到列表中
-          runingApps.delete(app_id);
+          /// 成功打开，保存到列表中
           runingApps.set(app_id, ipc);
           /// 如果应用关闭，将它从列表中移除
           ipc.onClose(() => {

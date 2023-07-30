@@ -27,8 +27,8 @@ watchEffect(async () => {
 
 <style scoped lang="scss">
 .icon {
-  width: 1em;
-  height: 1em;
+  width: 100%;
+  height: 100%;
   display: inline-block;
   > :deep(svg) {
     width: 100%;

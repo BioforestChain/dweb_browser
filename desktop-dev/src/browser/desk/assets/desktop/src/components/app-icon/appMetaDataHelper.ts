@@ -50,14 +50,19 @@ export const watchEffectAppMetadataToAppIcon = (
     const randomById = (config?: RandomNumberOptions) => randomStringToNumber(appMetaData.mmid, config);
     const monochrome = selectedIcon?.value.purpose === "monochrome" || iconurl === defaultIconUrl;
     refValue.monochrome = monochrome;
-    refValue.monocolor = monochrome
-      ? appMetaData.theme_color ??
-        `hwb(${randomById({ seed: "hue", max: 360 })}deg 0% ${randomById({
-          seed: "black",
-          min: 0,
-          max: 10,
-        })}%)`
-      : undefined;
+    if (monochrome) {
+      /// 如果有配色，那么使用配色
+      if (appMetaData.theme_color) {
+        refValue.monocolor = appMetaData.theme_color;
+      }
+      /// 否则使用自动生成的渐变色
+      else {
+        /** to bottom */
+        const randomGradientDeg = randomById({ seed: "gradient", min: 90, max: 270 });
+        const randomColorHue = randomById({ seed: "hue", max: 360 });
+        refValue.monoimage = `linear-gradient(${randomGradientDeg}deg, hsl(${randomColorHue}deg 100% 65%), hsl(${randomColorHue}deg 100% 45%))`;
+      }
+    }
 
     /// 触发更新，深拷贝的 shadowRef 的变更可以触发到 子组件
     outputRef.value = refValue;

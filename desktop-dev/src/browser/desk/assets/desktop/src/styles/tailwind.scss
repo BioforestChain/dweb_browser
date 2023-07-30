@@ -19,6 +19,7 @@
     grid-template-columns: 1fr;
     grid-template-rows: 1fr;
     grid-template-areas: "z-view";
+    place-items: center;
   }
   .z-view {
     grid-area: z-view;

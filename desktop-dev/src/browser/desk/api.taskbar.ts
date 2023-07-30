@@ -24,9 +24,13 @@ export class TaskbarApi {
      * 绑定 runningApps 集合
      */
     mm.runingApps.onChange((map) => {
-      for (const app_id of map.keys()) {
-        this._appList.unshift(app_id);
+      /// 将新增的打开应用追加到列表签名
+      for (const mmid of map.keys()) {
+        if (this._appList.includes(mmid) === false) {
+          this._appList.unshift(mmid);
+        }
       }
+      /// 保存到数据库
       deskStore.set("taskbar/apps", new Set(this._appList));
     });
   }
@@ -43,6 +47,8 @@ export class TaskbarApi {
 
     const taskbarWin = await createNativeWindow(mm.mmid + "/taskbar", {
       ...window_options,
+      // /// 如果小于 80，macos会失去高斯模糊的特效
+      // minHeight: 80,
       defaultBounds: { width: 60, height: 60 },
     });
     taskbarWin.setVisibleOnAllWorkspaces(true);
@@ -70,7 +76,7 @@ export class TaskbarApi {
       if (apps.size >= limit) {
         break;
       }
-      if (apps.has(app_id)) {
+      if (app_id === this.mm.mmid || apps.has(app_id)) {
         continue;
       }
       const metaData = await this.context.dns.query(app_id);
@@ -91,22 +97,22 @@ export class TaskbarApi {
 
     const display = Electron.screen.getDisplayNearestPoint(beforeBounds);
     const uGap = width / 5;
-    height = Math.min(height, (display.workArea.height * 4) / 5);
+    // height = Math.min(height, (display.workArea.height * 4) / 5);
     const x = display.workArea.width - width - uGap;
     const y = (display.workArea.height - height) / 2;
     this.win.setBounds(
       {
         x: Math.round(x),
         y: Math.round(y),
-        height: Math.round(height),
-        width: Math.round(width),
+        height,
+        width,
       },
       true
     );
 
     const afterBounds = this.win.getBounds();
 
-    return JSON.stringify(beforeBounds) !== JSON.stringify(afterBounds);
+    return { width: afterBounds.width, height: afterBounds.height };
   };
   resize = debounce(this._resize, 200);
   setVibrancy(type: Parameters<Electron.BrowserWindow["setVibrancy"]>[0]) {

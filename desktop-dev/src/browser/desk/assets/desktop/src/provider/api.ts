@@ -76,7 +76,7 @@ export function shareApp(id: string) {
 }
 
 export function resizeTaskbar(width: number, height: number) {
-  return nativeFetch<boolean>("/taskbar/resize", { search: { width, height } });
+  return nativeFetch<{ width: number; height: number }>("/taskbar/resize", { search: { width, height } });
 }
 
 export function toggleDesktopView() {
