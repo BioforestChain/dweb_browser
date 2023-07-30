@@ -22,11 +22,3 @@ app.mount("#app");
 window.oncontextmenu = (event) => {
   event.preventDefault();
 };
-
-// import { exportApis } from "./bridge-apis.ts";
-// // import { TaskbarElement } from "./taskbar.html.ts";
-
-// const taskbar = new TaskbarElement();
-// document.body.appendChild(taskbar);
-// exportApis(taskbar);
-// Object.assign(globalThis, { taskbar });

@@ -5,15 +5,14 @@ import {
   watchEffectAppMetadataToAppIcon,
 } from "src/components/app-icon/appMetaDataHelper.ts";
 import { $AppIconInfo } from "src/components/app-icon/types";
-import { watchTaskbarAppInfo } from "src/provider/api.ts";
+import { resizeTaskbar, toggleDesktopView, watchTaskbarAppInfo } from "src/provider/api.ts";
 import { $WidgetAppData } from "src/types/app.type.ts";
 import { onMounted, onUnmounted, ref, ShallowRef, shallowRef, triggerRef, watchEffect } from "vue";
-import { exportApis, mainApis } from "../bridge-apis.ts";
 import { icons } from "./icons/index.ts";
 
 /** 打开桌面面板 */
-const openDesktop = () => {
-  mainApis.openDesktopView();
+const toggleDesktopButton = async () => {
+  const boundList = await toggleDesktopView();
 };
 
 const appRefList = shallowRef<
@@ -69,16 +68,12 @@ watchEffect(() => {
       for (const entry of entries) {
         const { width, height } = entry.contentRect;
         console.log("resize", entry.contentRect);
-        mainApis.resize(Math.ceil(width), Math.ceil(height));
+        resizeTaskbar(Math.ceil(width), Math.ceil(height));
       }
     });
     resizeOb.observe(taskbarEle.value);
   }
 });
-</script>
-<script lang="ts">
-export const RENDER_APIS = {};
-exportApis(RENDER_APIS);
 </script>
 <template>
   <div class="taskbar" ref="taskbarEle">
@@ -100,7 +95,7 @@ exportApis(RENDER_APIS);
       </div>
       <hr class="divider" />
 
-      <div class="app-icon" @click="openDesktop">
+      <div class="app-icon" @click="toggleDesktopButton">
         <img class="img" :src="icons.quanbufenlei" draggable="false" />
       </div>
     </div>

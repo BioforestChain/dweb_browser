@@ -1,6 +1,6 @@
 //! use zod error: Relative import path "zod" not prefixed with / or ./ or ../ only remote
 //! https://github.com/denoland/deno/issues/17598
-import { RefinementCtx, z } from "zod";
+import { RefinementCtx, z, ZodError } from "zod";
 import type { $MMID } from "../core/types.ts";
 export * from "zod";
 
@@ -16,12 +16,90 @@ export function createErrorResponse(
   options: {
     message?: string;
     status?: number;
-  } = {}
+  } = {},
+  error?: ZodError
 ): Response {
   const statusText = options?.message || DEFAULT_ERROR_MESSAGE;
   const status = options?.status || DEFAULT_ERROR_STATUS;
-  return Response.json(statusText, { status, statusText });
+  return new Response(error ? stringifyZodError(error) : statusText, { status, statusText });
 }
+const stringifyZodError = (error: ZodError) => {
+  return error.issues
+    .map((issue, index) => {
+      let msg = `${index + 1}. [${issue.code}] ${issue.message} ${issue.path.join(".")}.`;
+      const details: string[] = [];
+      if ("expected" in issue) {
+        details.push(`expected: ${issue.expected}`);
+      }
+      if ("received" in issue) {
+        details.push(`received: ${issue.received}`);
+      }
+      if ("keys" in issue) {
+        details.push(`keys: ${issue.keys.join(", ")}`);
+      }
+      if ("unionErrors" in issue) {
+        details.push(
+          "Union Errors:\n" +
+            issue.unionErrors
+              .map(
+                (error, index) =>
+                  `${index + 1}.`.padEnd(4, " ") +
+                  stringifyZodError(error)
+                    .split("\n")
+                    .map((line) => "    " + line)
+                    .join("\n")
+              )
+              .join("\n")
+        );
+      }
+      if ("argumentsError" in issue) {
+        details.push("Arguments Error: " + stringifyZodError(issue.argumentsError));
+      }
+      if ("returnTypeError" in issue) {
+        details.push("ReturnTypeError: " + stringifyZodError(issue.returnTypeError));
+      }
+      if ("validation" in issue) {
+        details.push("validation: " + JSON.stringify(issue.validation));
+      }
+      if ("minimum" in issue) {
+        details.push(`minimum: (${issue.type})` + issue.minimum);
+      }
+      if ("maximum" in issue) {
+        details.push(`maximum: (${issue.type})` + issue.maximum);
+      }
+      if ("multipleOf" in issue) {
+        details.push(`multipleOf: ${issue.multipleOf}`);
+      }
+      if ("options" in issue) {
+        details.push(`options: ${issue.options}`);
+      }
+      if ("params" in issue) {
+        details.push(`params: ${JSON.stringify(issue.params, null, 4)}`);
+      }
+
+      msg +=
+        `\n` +
+        details
+          .map((detail, index) => {
+            return detail
+              .split("\n")
+              .map((line, lineIndex) => {
+                if (lineIndex === 0) {
+                  return `${index + 1}.`.padEnd(4, " ") + line;
+                }
+                return "    " + line;
+              })
+              .join("\n");
+          })
+          .join("\n")
+          .split("\n")
+          .map((line) => "    " + line)
+          .join("\n");
+
+      return msg;
+    })
+    .join("\n");
+};
 
 type Options<Parser = SearchParamsParser> = {
   /** Custom error message for when the validation fails. */
@@ -75,14 +153,14 @@ export function parseQuery<T extends ZodRawShape | ZodTypeAny>(
     const finalSchema = isZodType(schema) ? schema : z.object(schema);
     return finalSchema.parse(params);
   } catch (error) {
-    throw createErrorResponse(options);
+    throw createErrorResponse(options, error instanceof ZodError ? error : undefined);
   }
 }
 
 const zqObject = <Z extends z.ZodType>(schema: Z) => {
   return Object.assign(
     (searchParams: URLSearchParams) => {
-      return parseQuery(searchParams, schema);
+      return parseQuery(searchParams, schema, { message: "Invalid Search Params" });
     },
     {
       and<T extends z.ZodTypeAny>(incoming: T) {

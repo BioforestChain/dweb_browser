@@ -2,7 +2,7 @@ import mime from "mime";
 import fs from "node:fs";
 import path from "node:path";
 import { resolveToRoot } from "../../helper/createResolveTo.ts";
-import { readableToWeb } from "../../helper/nodejsStreamHelper.ts";
+import { readableToWeb } from "../../helper/stream/nodejsStreamHelper.ts";
 import { nativeFetchAdaptersManager } from "./nativeFetch.ts";
 
 nativeFetchAdaptersManager.append(async (remote, parsedUrl) => {

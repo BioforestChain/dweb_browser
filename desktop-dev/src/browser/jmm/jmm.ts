@@ -8,7 +8,7 @@ import { FetchError } from "../../core/ipc/ipc.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import { $DWEB_DEEPLINK, $MMID } from "../../core/types.ts";
 import { $Callback, createSignal } from "../../helper/createSignal.ts";
-import { readableToWeb } from "../../helper/nodejsStreamHelper.ts";
+import { readableToWeb } from "../../helper/stream/nodejsStreamHelper.ts";
 import { fetchMatch } from "../../helper/patternHelper.ts";
 import { z, zq } from "../../helper/zodHelper.ts";
 import type { HttpDwebServer } from "../../std/http/helper/$createHttpDwebServer.ts";

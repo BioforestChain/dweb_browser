@@ -2,10 +2,9 @@ import { $WidgetAppData, $WidgetCustomData } from "../types/app.type.ts";
 import { searchWidget } from "./custom/search.widget.ts";
 import { nativeFetch, nativeFetchStream } from "./fetch.ts";
 
-
 export async function readAccept(ext: string = "") {
-  const res = await nativeFetch(`/readAccept.${ext}`, {});
-  return (await res.text())
+  const { accept } = await nativeFetch<{ accept: string }>(`/readAccept.${ext}`, {});
+  return accept
     .split(";")[0]!
     .split(",")
     .map((mime) => {
@@ -34,16 +33,15 @@ export async function getWidgetInfo() {
 
 /**点击打开JMM */
 export async function openApp(id: string) {
-  const res = await nativeFetch("/openAppOrActivate", {
+  return await nativeFetch<boolean>("/openAppOrActivate", {
     search: {
       app_id: id,
     },
   });
-  return (await res.json()) === true;
 }
 
 /** 重击手势的反馈振动, 比如菜单键/惨案/3Dtouch */
-export function vibrateHeavyClick() {
+export async function vibrateHeavyClick() {
   return nativeFetch("/vibrateHeavyClick", {
     mmid: "haptics.sys.dweb",
   });
@@ -51,12 +49,11 @@ export function vibrateHeavyClick() {
 
 /**长按的退出按钮，这个会退出JMM后端 */
 export async function quitApp(id: string) {
-  const res = await await nativeFetch("/closeApp", {
+  return await await nativeFetch<boolean>("/closeApp", {
     search: {
       app_id: id,
     },
   });
-  return (await res.json()) === true;
 }
 
 /**卸载的是jmm所以从这里调用 */
@@ -76,4 +73,12 @@ export function shareApp(id: string) {
       app_id: id,
     },
   });
+}
+
+export function resizeTaskbar(width: number, height: number) {
+  return nativeFetch<boolean>("/taskbar/resize", { search: { width, height } });
+}
+
+export function toggleDesktopView() {
+  return nativeFetch<Array<{ height: number; width: number; x: number; y: number }>>("/taskbar/toggle-desktop-view");
 }

@@ -1,6 +1,6 @@
-import { u8aConcat } from "./binaryHelper.ts";
-import { $Callback, createSignal, Signal } from "./createSignal.ts";
-interface $AbortAble {
+import { u8aConcat } from "../binaryHelper.ts";
+import { $Callback, createSignal, Signal } from "../createSignal.ts";
+export interface $AbortAble {
   signal?: AbortSignal;
 }
 
@@ -79,13 +79,13 @@ export const binaryStreamRead = (stream: ReadableStream<Uint8Array>, options?: $
     readInt,
   });
 };
-
-export const streamReadAll = async <I extends unknown, T, R>(
+export interface $StreamReadAllOptions<I, T, R> {
+  map?: (item: I) => T;
+  complete?: (maps: T[]) => R;
+}
+export const streamReadAll = async <I, T, R>(
   stream: ReadableStream<I>,
-  options: {
-    map?: (item: I) => T;
-    complete?: (maps: T[]) => R;
-  } = {}
+  options: $StreamReadAllOptions<I, T, R> = {}
 ) => {
   const maps: T[] = [];
   for await (const item of _doRead<I>(stream.getReader())) {

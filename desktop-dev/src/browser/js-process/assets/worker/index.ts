@@ -45,9 +45,9 @@ declare global {
 const workerGlobal = self as DedicatedWorkerGlobalScope;
 
 // import * as helper_createSignal from "../../helper/createSignal.ts";
-// import * as helper_JsonlinesStream from "../../helper/JsonlinesStream.ts";
+// import * as helper_JsonlinesStream from "../../helper/stream/JsonlinesStream.ts";
 // import * as helper_PromiseOut from "../../helper/PromiseOut.ts";
-// import * as helper_readableStreamHelper from "../../helper/readableStreamHelper.ts";
+// import * as helper_readableStreamHelper from "../../helper/stream/readableStreamHelper.ts";
 
 export class Metadata<T extends $Metadata = $Metadata> {
   constructor(readonly data: T, readonly env: Record<string, string>) {}

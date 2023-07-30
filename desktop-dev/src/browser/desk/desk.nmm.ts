@@ -5,26 +5,35 @@ import { Ipc, IpcEvent } from "../../core/ipc/index.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import { $MMID } from "../../core/types.ts";
 import { ChangeableMap } from "../../helper/ChangeableMap.ts";
-import { JsonlinesStream } from "../../helper/JsonlinesStream.ts";
 import { $Callback, createSignal } from "../../helper/createSignal.ts";
-import { tryDevUrl } from "../../helper/electronIsDev.ts";
 import { simpleEncoder } from "../../helper/encoding.ts";
-import { createComlinkNativeWindow } from "../../helper/openNativeWindow.ts";
 import { P, fetchMatch } from "../../helper/patternHelper.ts";
-import { ReadableStreamOut, streamReadAll } from "../../helper/readableStreamHelper.ts";
+import { jsonlinesStreamReadAll } from "../../helper/stream/jsonlinesStreamHelper.ts";
+import { ReadableStreamOut, streamReadAll } from "../../helper/stream/readableStreamHelper.ts";
 import { z, zq } from "../../helper/zodHelper.ts";
-import { HttpDwebServer, createHttpDwebServer } from "../../std/http/helper/$createHttpDwebServer.ts";
+import { createHttpDwebServer } from "../../std/http/helper/$createHttpDwebServer.ts";
 import { TaskbarApi } from "./api.taskbar.ts";
-import { window_options } from "./const.ts";
-import { deskStore } from "./desk.store.ts";
-import { $DeskAppMetaData } from "./types.ts";
 
 export class DeskNMM extends NativeMicroModule {
   mmid = "desk.browser.dweb" as const;
   name = "Desk";
   override categories = [MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Desktop];
+  readonly runingApps = new ChangeableMap<$MMID, Ipc>();
 
   protected async _bootstrap(context: $BootstrapContext) {
+    const runingApps = this.runingApps;
+    this.onAfterShutdown(() => {
+      this.runingApps.reset();
+    });
+
+    const taskbarServer = await this._createTaskbarWebServer(context);
+    const desktopServer = await this._createDesktopWebServer();
+
+    const taskbarApi = await TaskbarApi.create(this, context, taskbarServer, desktopServer);
+    this._onShutdown(() => {
+      taskbarApi.close();
+    });
+
     const query_app_id = zq.object({
       app_id: zq.mmid(),
     });
@@ -34,51 +43,22 @@ export class DeskNMM extends NativeMicroModule {
     const json_limit = z.object({
       limit: z.number().optional(),
     });
-
-    const taskbarAppList = [...deskStore.get("taskbar/apps", () => new Set())];
-    const runingApps = new ChangeableMap<$MMID, Ipc>();
-    runingApps.onChange((map) => {
-      for (const app_id of map.keys()) {
-        taskbarAppList.unshift(app_id);
-      }
-      deskStore.set("taskbar/apps", new Set(taskbarAppList));
-    });
-
-    const getDesktopAppList = async () => {
-      const apps = await context.dns.search(MICRO_MODULE_CATEGORY.Application);
-      return apps.map((metaData) => {
-        return { ...metaData, running: runingApps.has(metaData.mmid) };
-      });
-    };
-
-    const getTaskbarAppList = async (limit: number) => {
-      const apps: $DeskAppMetaData[] = [];
-
-      for (const app_id of taskbarAppList) {
-        const metaData = await context.dns.query(app_id);
-        if (metaData) {
-          apps.push({ ...metaData, running: runingApps.has(app_id) });
-        }
-        if (apps.length >= limit) {
-          return apps;
-        }
-      }
-      return apps;
-    };
-
     const query_url = zq.object({
       url: zq.url(),
     });
-
+    const query_resize = zq.object({
+      width: zq.number(),
+      height: zq.number(),
+    });
     const onFetchHanlder = fetchMatch()
       //#region 通用接口
       .get("/readFile", (event) => {
         const { url } = query_url(event.searchParams);
         return this.nativeFetch(url);
       })
-      /** 读取浏览器默认的 accpet 头部参数ß */
+      /** 读取浏览器默认的 accpet 头部参数 */
       .get(P.string.startsWith("/readAccept."), (event) => {
-        return { body: event.headers.get("Accept") };
+        return Response.json({ accept: event.headers.get("Accept") });
       })
       /** 打开应用 */
       .get("/openAppOrActivate", async (event) => {
@@ -113,12 +93,16 @@ export class DeskNMM extends NativeMicroModule {
       })
       //#endregion
       .get("/desktop/apps", async () => {
-        return Response.json(await getDesktopAppList());
+        const desktopApi = await taskbarApi.getDesktopApi();
+        return Response.json(await desktopApi.getDesktopAppList());
       })
       .duplex("/desktop/observe/apps", async (event) => {
         const responseBody = new ReadableStreamOut<Uint8Array>();
+        const desktopApi = await taskbarApi.getDesktopApi();
         const doWriteJsonline = async () => {
-          responseBody.controller.enqueue(simpleEncoder(JSON.stringify(await getDesktopAppList()) + "\n", "utf8"));
+          responseBody.controller.enqueue(
+            simpleEncoder(JSON.stringify(await desktopApi.getDesktopAppList()) + "\n", "utf8")
+          );
         };
         /// 监听变更，推送数据
         const off = runingApps.onChange(doWriteJsonline);
@@ -134,27 +118,24 @@ export class DeskNMM extends NativeMicroModule {
       })
       .get("/taskbar/apps", async (event) => {
         const { limit = Infinity } = query_limit(event.searchParams);
-        return Response.json(await getTaskbarAppList(limit));
+        return Response.json(await taskbarApi.getTaskbarAppList(limit));
       })
       .duplex("/taskbar/observe/apps", async (event) => {
         let { limit = Infinity } = query_limit(event.searchParams);
         const responseBody = new ReadableStreamOut<Uint8Array>();
         const doWriteJsonline = async () => {
-          responseBody.controller.enqueue(simpleEncoder(JSON.stringify(await getTaskbarAppList(limit)) + "\n", "utf8"));
+          responseBody.controller.enqueue(
+            simpleEncoder(JSON.stringify(await taskbarApi.getTaskbarAppList(limit)) + "\n", "utf8")
+          );
         };
         /// 监听变更，推送数据
         const off = runingApps.onChange(doWriteJsonline);
         /// 监听关闭，停止监听
-        void streamReadAll(
-          (await event.ipcRequest.body.stream())
-            .pipeThrough(new TextDecoderStream())
-            .pipeThrough(new JsonlinesStream<{ limit?: number }>()),
-          {
-            map(item) {
-              limit = json_limit.parse(item).limit ?? Infinity;
-            },
-          }
-        ).finally(() => {
+        void jsonlinesStreamReadAll(await event.ipcRequest.body.stream(), {
+          map(item: { limit?: number }) {
+            limit = json_limit.parse(item).limit ?? Infinity;
+          },
+        }).finally(() => {
           off();
           /// 如果传来的数据解析异常了，websocket就断掉
           responseBody.controller.close();
@@ -162,16 +143,16 @@ export class DeskNMM extends NativeMicroModule {
         /// 发送一次现有的数据数据
         void doWriteJsonline();
         return { body: responseBody.stream };
+      })
+      .get("/taskbar/resize", async (event) => {
+        const { width, height } = query_resize(event.searchParams);
+        const changed = await taskbarApi.resize(width, height);
+        return Response.json(changed);
+      })
+      .get("/taskbar/toggle-desktop-view", async (event) => {
+        return Response.json(await taskbarApi.toggleDesktopView());
       });
     this.onFetch(onFetchHanlder.run).internalServerError();
-
-    const taskbarServer = await this._createTaskbarWebServer(context);
-    const desktopServer = await this._createDesktopWebServer();
-
-    const taskbarWin = await this._createTaskbarView(taskbarServer, desktopServer);
-    this._onShutdown(() => {
-      taskbarWin.close();
-    });
   }
 
   private async _createTaskbarWebServer(context: $BootstrapContext) {
@@ -192,7 +173,7 @@ export class DeskNMM extends NativeMicroModule {
             if ((await context.dns.query(mmid)) === undefined) {
               return {
                 statusCode: 404,
-                body: "",
+                body: JSON.stringify({ error: `no support ${mmid}` }),
               };
             }
           }
@@ -239,31 +220,9 @@ export class DeskNMM extends NativeMicroModule {
     return desktopServer;
   }
 
-  private async _createTaskbarView(taskbarServer: HttpDwebServer, desktopServer: HttpDwebServer) {
-    const taskbarWin = await createComlinkNativeWindow(
-      await tryDevUrl(
-        taskbarServer.startResult.urlInfo.buildInternalUrl((url) => {
-          url.pathname = "/taskbar.html";
-        }).href,
-        `http://localhost:3600/taskbar.html`
-      ),
-      window_options,
-      async (win) => {
-        return new TaskbarApi(this, win, taskbarServer, desktopServer);
-      }
-    );
-
-    taskbarWin.webContents.openDevTools({ mode: "undocked" });
-
-    // taskbarWin.setPosition()
-
-    return taskbarWin;
-  }
-
   private _shutdown_signal = createSignal<$Callback>();
   private _onShutdown = this._shutdown_signal.listen;
   protected _shutdown() {
     this._shutdown_signal.emitAndClear();
   }
 }
-

@@ -1,7 +1,7 @@
 import { Server as HttpServer, IncomingMessage } from "node:http";
 import { FetchError } from "../../core/helper/ipcFetchHelper.ts";
 import { simpleEncoder } from "../../helper/encoding.ts";
-import { ReadableStreamOut, streamReadAll } from "../../helper/readableStreamHelper.ts";
+import { ReadableStreamOut, streamReadAll } from "../../helper/stream/readableStreamHelper.ts";
 import { parseUrl } from "../../helper/urlHelper.ts";
 import { WebSocketClient, WebSocketServer } from "../../helper/websocketServerHelper.ts";
 import { formatErrorToHtml } from "./defaultErrorResponse.ts";

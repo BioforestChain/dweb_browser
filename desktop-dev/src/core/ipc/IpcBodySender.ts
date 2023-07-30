@@ -1,6 +1,6 @@
 import { $Callback, createSignal } from "../../helper/createSignal.ts";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
-import { binaryStreamRead } from "../../helper/readableStreamHelper.ts";
+import { binaryStreamRead } from "../../helper/stream/readableStreamHelper.ts";
 import { IPC_MESSAGE_TYPE } from "./const.ts";
 import type { Ipc } from "./ipc.ts";
 import { BodyHub, IpcBody, type $BodyData } from "./IpcBody.ts";

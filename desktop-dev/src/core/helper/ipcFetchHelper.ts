@@ -191,36 +191,40 @@ export const createFetchHandler = (onFetchs: Iterable<$OnFetch>) => {
           }
         }
       } catch (err) {
-        /// 处理异常，尝试返回
-        let err_code = 500;
-        let err_message = "";
-        let err_detail = "";
-        if (err instanceof Error) {
-          err_message = err.message;
-          err_detail = err.stack ?? err.name;
-          if (err instanceof FetchError) {
-            err_code = err.code;
+        if (err instanceof Response) {
+          res = await IpcResponse.fromResponse(request.req_id, err, ipc);
+        } else {
+          /// 处理异常，尝试返回
+          let err_code = 500;
+          let err_message = "";
+          let err_detail = "";
+          if (err instanceof Error) {
+            err_message = err.message;
+            err_detail = err.stack ?? err.name;
+            if (err instanceof FetchError) {
+              err_code = err.code;
+            }
+          } else {
+            err_message = String(err);
           }
-        } else {
-          err_message = String(err);
-        }
-        /// 根据对方的接收需求，尝试返回 JSON
-        if (request.headers.get("Accept") === "application/json") {
-          res = IpcResponse.fromJson(
-            request.req_id,
-            err_code,
-            new IpcHeaders().init("Content-Type", "text/html,charset=utf8"),
-            { message: err_message, detail: err_detail },
-            ipc
-          );
-        } else {
-          res = IpcResponse.fromText(
-            request.req_id,
-            err_code,
-            new IpcHeaders().init("Content-Type", "text/html,charset=utf8"),
-            err instanceof Error ? `<h1>${err.message}</h1><hr/><pre>${err.stack}</pre>` : String(err),
-            ipc
-          );
+          /// 根据对方的接收需求，尝试返回 JSON
+          if (request.headers.get("Accept") === "application/json") {
+            res = IpcResponse.fromJson(
+              request.req_id,
+              err_code,
+              new IpcHeaders().init("Content-Type", "text/html,charset=utf8"),
+              { message: err_message, detail: err_detail },
+              ipc
+            );
+          } else {
+            res = IpcResponse.fromText(
+              request.req_id,
+              err_code,
+              new IpcHeaders().init("Content-Type", "text/html,charset=utf8"),
+              err instanceof Error ? `<h1>${err.message}</h1><hr/><pre>${err.stack}</pre>` : String(err),
+              ipc
+            );
+          }
         }
       }
     }

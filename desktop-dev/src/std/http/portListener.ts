@@ -3,8 +3,8 @@ import type { ReadableStreamIpc } from "../../core/ipc-web/ReadableStreamIpc.ts"
 import type { Ipc } from "../../core/ipc/ipc.ts";
 import { createSignal } from "../../helper/createSignal.ts";
 import { httpMethodCanOwnBody } from "../../helper/httpHelper.ts";
-import { readableToWeb } from "../../helper/nodejsStreamHelper.ts";
-import { streamReadAll } from "../../helper/readableStreamHelper.ts";
+import { readableToWeb } from "../../helper/stream/nodejsStreamHelper.ts";
+import { streamReadAll } from "../../helper/stream/readableStreamHelper.ts";
 import { parseUrl } from "../../helper/urlHelper.ts";
 import { defaultErrorResponse } from "./defaultErrorResponse.ts";
 import type { WebServerRequest, WebServerResponse } from "./types.ts";

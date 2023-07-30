@@ -13,7 +13,7 @@ import { Store } from "../../helper/electronStore.ts";
 import { simpleEncoder } from "../../helper/encoding.ts";
 import { headersGetTotalLength } from "../../helper/httpHelper.ts";
 import { locks } from "../../helper/locksManager.ts";
-import { ReadableStreamOut } from "../../helper/readableStreamHelper.ts";
+import { ReadableStreamOut } from "../../helper/stream/readableStreamHelper.ts";
 import { createHttpDwebServer } from "../../std/http/helper/$createHttpDwebServer.ts";
 import type { JmmNMM } from "./jmm.ts";
 import { JsMMMetadata, JsMicroModule } from "./micro-module.js.ts";

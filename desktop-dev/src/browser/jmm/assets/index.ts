@@ -1,5 +1,5 @@
-import { JsonlinesStream } from "../../../helper/JsonlinesStream.ts";
-import { streamRead } from "../../../helper/readableStreamHelper.ts";
+import { toJsonlinesStream } from "../../../helper/stream/jsonlinesStreamHelper.ts";
+import { streamRead } from "../../../helper/stream/readableStreamHelper.ts";
 import type { $InstallProgressInfo } from "../jmm.api.serve.ts";
 import type { $JmmAppInstallManifest } from "../types.ts";
 
@@ -67,9 +67,7 @@ elBtnDownload.addEventListener("click", async (e) => {
     });
 
     const stream = res.body!;
-    const installProgressStream = stream
-      .pipeThrough(new TextDecoderStream())
-      .pipeThrough(new JsonlinesStream<$InstallProgressInfo>());
+    const installProgressStream =toJsonlinesStream<$InstallProgressInfo>( stream);
 
     for await (const info of streamRead(installProgressStream)) {
       progress(+(info.progress * 100).toFixed(2));

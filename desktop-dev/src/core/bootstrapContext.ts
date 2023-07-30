@@ -9,6 +9,7 @@ export interface $BootstrapContext {
 }
 export interface $DnsMicroModule {
   install(mm: MicroModule): void;
+  /** 卸载由自己发起 install 的 MicroModule */
   uninstall(mm: $MMID): Promise<boolean>;
   /**
    * 打开应用并与之建立链接

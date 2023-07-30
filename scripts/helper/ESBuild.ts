@@ -1,6 +1,6 @@
 import picocolors from "npm:picocolors";
 import { PromiseOut } from "../../desktop-dev/src/helper/PromiseOut.ts";
-import { ReadableStreamOut, streamRead } from "../../desktop-dev/src/helper/readableStreamHelper.ts";
+import { ReadableStreamOut, streamRead } from "../../desktop-dev/src/helper/stream/readableStreamHelper.ts";
 import { esbuild, esbuild_deno_loader } from "../deps.ts";
 export { esbuild, esbuild_deno_loader } from "../deps.ts";
 

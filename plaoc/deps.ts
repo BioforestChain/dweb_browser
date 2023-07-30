@@ -11,5 +11,5 @@ export * from "dweb/helper/color.ts";
 export * from "dweb/helper/createSignal.ts";
 export * from "dweb/helper/encoding.ts";
 export * from "dweb/helper/mapHelper.ts";
-export * from "dweb/helper/readableStreamHelper.ts";
+export * from "dweb/helper/stream/readableStreamHelper.ts";
 export * from "dweb/helper/zodHelper.ts";

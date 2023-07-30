@@ -1,7 +1,6 @@
 /// about:blank
 
-import { JsonlinesStream } from "helper/JsonlinesStream.ts";
-import { streamRead } from "helper/readableStreamHelper.ts";
+import { jsonlinesStreamRead } from "helper/stream/jsonlinesStreamHelper.ts";
 
 /// about:newtab
 const BASE_URL =
@@ -13,10 +12,29 @@ const apiUrl = new URL(BASE_URL.searchParams.get("api-base") ?? BASE_URL);
  * 默认网关是自己
  */
 const baseMmid = apiUrl.searchParams.get("mmid") ?? "desk.browser.dweb";
-export const nativeFetch = (pathname: string, init?: $BuildRequestInit) => {
-  return fetch(...buildApiRequestArgs(pathname, init));
+/**
+ * 缓存那些不支持的请求
+ */
+const noImplementedCaches = new Map<string, string>();
+/** 发起请求，响应JSON */
+export const nativeFetch = async <T extends unknown>(pathname: string, init?: $BuildRequestInit) => {
+  if (noImplementedCaches.has(pathname)) {
+    throw noImplementedCaches.get(pathname);
+  }
+  const res = await fetch(...buildApiRequestArgs(pathname, init));
+  if (res.ok) {
+    return (await res.json()) as T;
+  } else {
+    const errorCache = await res.text();
+    /// 501 Not Implemented
+    if (res.status === 501) {
+      noImplementedCaches.set(init?.mmid ?? baseMmid, errorCache);
+    }
+    throw errorCache;
+  }
 };
 
+/** 发起请求，响应JSON流 */
 export const nativeFetchStream = <T>(
   pathname: string,
   init?: $BuildRequestInit,
@@ -27,7 +45,7 @@ export const nativeFetchStream = <T>(
   const ws = new WebSocket(wsUrl);
   ws.binaryType = "arraybuffer";
 
-  return streamRead(
+  return jsonlinesStreamRead<T>(
     new ReadableStream<Uint8Array>({
       start(controller) {
         ws.onerror = (e) => {
@@ -43,9 +61,7 @@ export const nativeFetchStream = <T>(
       cancel() {
         ws.close();
       },
-    })
-      .pipeThrough(new TextDecoderStream())
-      .pipeThrough(new JsonlinesStream<T>()),
+    }),
     options
   );
 };

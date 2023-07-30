@@ -23,4 +23,9 @@ export class ChangeableMap<K, V> extends Map<K, V> {
     super.clear();
     this._changeSignal.emit(this);
   }
+  /** 重置 清空所有的事件监听，清空所有的数据 */
+  reset() {
+    this._changeSignal.clear();
+    this.clear();
+  }
 }
