@@ -14,9 +14,9 @@ export const assetsTasks = new ConTasks(
       outDir: "electron/assets/browser/web",
       baseDir,
     }),
-    "desk.desktop.html": viteTaskFactory({
+    "desk": viteTaskFactory({
       inDir: "src/browser/desk/assets/desktop",
-      outDir: "electron/assets/browser/desk.desktop",
+      outDir: "electron/assets/browser/desk",
       baseDir,
     }),
     "desk.taskbar.html": viteTaskFactory({

@@ -1,3 +1,22 @@
+const desktop_daisyui_themes = {
+  "color-scheme": "light",
+  primary: "#1e40af",
+  secondary: "#e879f9",
+  accent: "#2dd4bf",
+  neutral: "#2b3440",
+  info: "#a5f3fc",
+  success: "#a7f3d0",
+  warning: "#fde68a",
+  error: "#fecaca",
+  "base-100": "#faf7f5",
+  "base-200": "#efeae6",
+  "base-300": "#e7e2df",
+  "base-content": "#291334",
+
+  "--rounded-btn": "1.9rem",
+  "--tab-border": "2px",
+  "--tab-radius": ".5rem",
+};
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: ["./src/**/*.{vue,ts}"],
@@ -47,25 +66,8 @@ module.exports = {
       "dark",
       "cupcake",
       {
-        desktop: {
-          "color-scheme": "light",
-          primary: "#1e40af",
-          secondary: "#e879f9",
-          accent: "#2dd4bf",
-          neutral: "#2b3440",
-          info: "#a5f3fc",
-          success: "#a7f3d0",
-          warning: "#fde68a",
-          error: "#fecaca",
-          "base-100": "#faf7f5",
-          "base-200": "#efeae6",
-          "base-300": "#e7e2df",
-          "base-content": "#291334",
-
-          "--rounded-btn": "1.9rem",
-          "--tab-border": "2px",
-          "--tab-radius": ".5rem",
-        },
+        desktop: desktop_daisyui_themes,
+        taskbar: { ...desktop_daisyui_themes },
       },
     ],
     darkTheme: "dark",

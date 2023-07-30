@@ -9,6 +9,7 @@ import { watchTaskbarAppInfo } from "src/provider/api.ts";
 import { $WidgetAppData } from "src/types/app.type.ts";
 import { onMounted, onUnmounted, ref, ShallowRef, shallowRef, triggerRef, watchEffect } from "vue";
 import { exportApis, mainApis } from "../bridge-apis.ts";
+import { icons } from "./icons/index.ts";
 
 /** 打开桌面面板 */
 const openDesktop = () => {
@@ -75,7 +76,7 @@ watchEffect(() => {
   }
 });
 </script>
-<script>
+<script lang="ts">
 export const RENDER_APIS = {};
 exportApis(RENDER_APIS);
 </script>
@@ -86,21 +87,21 @@ exportApis(RENDER_APIS);
         <AppIcon :icon="app.ref.value"></AppIcon>
       </div>
       <div class="app-icon">
-        <img class="img" src="${icons.anquanzhongxin}" draggable="false" />
+        <img class="img" :src="icons.anquanzhongxin" draggable="false" />
       </div>
       <div class="app-icon">
-        <img class="img" src="${icons.kandianying}" draggable="false" />
+        <img class="img" :src="icons.kandianying" draggable="false" />
       </div>
       <div class="app-icon">
-        <img class="img" src="${icons.naozhong}" draggable="false" />
+        <img class="img" :src="icons.naozhong" draggable="false" />
       </div>
       <div class="app-icon">
-        <img class="img" src="${icons.xiangji}" draggable="false" />
+        <img class="img" :src="icons.xiangji" draggable="false" />
       </div>
       <hr class="divider" />
 
       <div class="app-icon" @click="openDesktop">
-        <img class="img" src="${icons.quanbufenlei}" draggable="false" />
+        <img class="img" :src="icons.quanbufenlei" draggable="false" />
       </div>
     </div>
   </div>

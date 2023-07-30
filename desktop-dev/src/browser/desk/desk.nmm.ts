@@ -4,18 +4,17 @@ import { buildRequestX } from "../../core/helper/ipcRequestHelper.ts";
 import { Ipc, IpcEvent } from "../../core/ipc/index.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import { $MMID } from "../../core/types.ts";
-import { once } from "../../helper/$once.ts";
 import { ChangeableMap } from "../../helper/ChangeableMap.ts";
 import { JsonlinesStream } from "../../helper/JsonlinesStream.ts";
 import { $Callback, createSignal } from "../../helper/createSignal.ts";
 import { tryDevUrl } from "../../helper/electronIsDev.ts";
 import { simpleEncoder } from "../../helper/encoding.ts";
-import { createComlinkNativeWindow, createNativeWindow } from "../../helper/openNativeWindow.ts";
+import { createComlinkNativeWindow } from "../../helper/openNativeWindow.ts";
 import { P, fetchMatch } from "../../helper/patternHelper.ts";
 import { ReadableStreamOut, streamReadAll } from "../../helper/readableStreamHelper.ts";
-import { buildUrl } from "../../helper/urlHelper.ts";
 import { z, zq } from "../../helper/zodHelper.ts";
 import { HttpDwebServer, createHttpDwebServer } from "../../std/http/helper/$createHttpDwebServer.ts";
+import { TaskbarApi } from "./api.taskbar.ts";
 import { window_options } from "./const.ts";
 import { deskStore } from "./desk.store.ts";
 import { $DeskAppMetaData } from "./types.ts";
@@ -198,7 +197,7 @@ export class DeskNMM extends NativeMicroModule {
             }
           }
         } else {
-          url = `file:///sys/browser/desk.taskbar${pathname}?mode=stream`;
+          url = `file:///sys/browser/desk${pathname}?mode=stream`;
         }
         const request = buildRequestX(url, {
           method: event.method,
@@ -225,7 +224,7 @@ export class DeskNMM extends NativeMicroModule {
         if (pathname.startsWith(API_PREFIX)) {
           url = `file://${pathname.slice(API_PREFIX.length)}${search}`;
         } else {
-          url = `file:///sys/browser/desk.desktop${pathname}?mode=stream`;
+          url = `file:///sys/browser/desk${pathname}?mode=stream`;
         }
         const request = buildRequestX(url, {
           method: event.method,
@@ -244,13 +243,13 @@ export class DeskNMM extends NativeMicroModule {
     const taskbarWin = await createComlinkNativeWindow(
       await tryDevUrl(
         taskbarServer.startResult.urlInfo.buildInternalUrl((url) => {
-          url.pathname = "/index.html";
+          url.pathname = "/taskbar.html";
         }).href,
-        `http://localhost:3700/index.html`
+        `http://localhost:3600/taskbar.html`
       ),
       window_options,
       async (win) => {
-        return new TaskbarMainApis(this, win, taskbarServer, desktopServer);
+        return new TaskbarApi(this, win, taskbarServer, desktopServer);
       }
     );
 
@@ -268,139 +267,3 @@ export class DeskNMM extends NativeMicroModule {
   }
 }
 
-export class TaskbarMainApis {
-  constructor(
-    private mm: DeskNMM,
-    private win: Electron.BrowserWindow,
-    private taskbarServer: HttpDwebServer,
-    private desktopServer: HttpDwebServer
-  ) {}
-  resize(width: number, height: number) {
-    // TODO 贴右边
-    const display = Electron.screen.getPrimaryDisplay();
-    // const bounds = {
-    //   ...this.win.getBounds(),
-    //   width,
-    //   height,
-    // }
-    this.win.setBounds({
-      ...this.win.getBounds(),
-      width,
-      height,
-    });
-    // this.win.title
-    // this.win.setTitleBarOverlay({ height: 0 });
-  }
-  setVibrancy(type: Parameters<Electron.BrowserWindow["setVibrancy"]>[0]) {
-    this.win.setVibrancy(type);
-  }
-  setBackgroundMaterial(material: Parameters<Electron.BrowserWindow["setBackgroundMaterial"]>[0]) {
-    this.win.setBackgroundMaterial(material);
-  }
-  setBackgroundColor(backgroundColor: string) {
-    this.win.setBackgroundColor(backgroundColor);
-  }
-  async openDesktopView() {
-    const taskbarWinBounds = this.win.getBounds();
-
-    const desktopWin = await this._createDesktopView(taskbarWinBounds);
-    /// TODO 这里isOnTop很难正确检测，因此正确的做法是把desktop-view直接集成到taskbar窗口中
-    if (desktopWin.isOnTop()) {
-      desktopWin.hide();
-    } else {
-      /// 获取对应的屏幕
-      const display = Electron.screen.getDisplayNearestPoint(taskbarWinBounds);
-      /// 我们默认将桌面显示在taskbar左上角
-      let desktopWidth = 0;
-      let desktopHeight = 0;
-      let desktopX = 0;
-      let desktopY = 0;
-      {
-        const uGap = taskbarWinBounds.width / 3;
-        const uSize = 1;
-        const { width, height } = display.workAreaSize;
-        const min_column = uGap * 12;
-        const max_column = Math.floor((taskbarWinBounds.x - taskbarWinBounds.width * 0.5) / uSize);
-        const min_row = Math.floor(taskbarWinBounds.height / uSize);
-        const max_row = Math.floor((taskbarWinBounds.y + taskbarWinBounds.height) / uSize);
-        const rec_column = Math.floor((max_column * 2) / 3);
-        const rec_row = Math.floor((max_row * 2) / 3);
-
-        const column = Math.min(Math.max(min_column, rec_column), max_column);
-        const row = Math.max(Math.min(max_row, rec_row), min_row);
-        desktopWidth = Math.round(column * uSize);
-        desktopHeight = Math.round(row * uSize);
-        desktopX = Math.round(taskbarWinBounds.x - desktopWidth - uGap);
-        desktopY = Math.round(taskbarWinBounds.y + taskbarWinBounds.height - desktopHeight);
-      }
-      const desktopBounds = {
-        width: desktopWidth,
-        height: desktopHeight,
-        x: desktopX,
-        y: desktopY,
-      };
-
-      desktopWin.show();
-      desktopWin.focus();
-      desktopWin.moveToTop("click");
-      desktopWin.setBounds(desktopBounds, true);
-    }
-  }
-
-  private _createDesktopView = once(async (fromBounds: Electron.Rectangle) => {
-    const desktopProdUrl = this.desktopServer.startResult.urlInfo.buildInternalUrl((url) => {
-      url.pathname = "/index.html";
-    }).href;
-    const desktopUrl = await tryDevUrl(desktopProdUrl, `http://localhost:3600/index.html`);
-
-    const desktopWin = await createNativeWindow(this.mm.mmid, {
-      ...window_options,
-      vibrancy: undefined,
-      visualEffectState: undefined,
-      backgroundMaterial: undefined,
-      alwaysOnTop: false,
-      show: false,
-      /// 宽高
-      ...fromBounds,
-    });
-
-    desktopWin.loadURL(
-      buildUrl(desktopUrl, {
-        search: {
-          "api-base": desktopProdUrl,
-          mmid: "desk.browser.dweb",
-        },
-      }).href
-    );
-
-    /**
-     * 是否置顶显示
-     *
-     * 注意，这跟 isFocused 不一样，它可能处于blur状态同时在top，只要不跟其它topView有交集
-     */
-    let onTop = false;
-    desktopWin.on("blur", () => {
-      onTop = false;
-    });
-    desktopWin.on("hide", () => {
-      onTop = false;
-    });
-    this.win.on("focus", () => {
-      if (desktopWin.isVisible()) {
-        moveToTop("taskbar-focus");
-      }
-    });
-    const moveToTop = (reason: string) => {
-      desktopWin.moveTop();
-      onTop = true;
-    };
-    desktopWin.isKiosk;
-
-    return Object.assign(desktopWin, {
-      moveToTop,
-      isOnTop() {
-        return onTop;
-      },
-    });
-  });
-}

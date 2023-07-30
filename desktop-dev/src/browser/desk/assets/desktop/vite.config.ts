@@ -14,7 +14,8 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        index: path.join(__dirname, "/index.html"),
+        desktop: path.join(__dirname, "/desktop.html"),
+        taskbar: path.join(__dirname, "/taskbar.html"),
         setting: path.join(__dirname, "/setting.html"),
         address: path.join(__dirname, "/address.html"),
         error: path.join(__dirname, "/error.html"),

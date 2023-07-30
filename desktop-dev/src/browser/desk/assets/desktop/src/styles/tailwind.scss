@@ -51,9 +51,9 @@
     mask-image: linear-gradient(to bottom, black, transparent, black),
       linear-gradient(to right, black, transparent, black);
     mask-position: center;
-    animation: falldown 5s ease-in-out infinite both;
+    animation: scrim-flicker 5s ease-in-out infinite both;
     mask-size: 400% 400%;
-    @keyframes falldown {
+    @keyframes scrim-flicker {
       0% {
         mask-size: 400% 400%;
       }
