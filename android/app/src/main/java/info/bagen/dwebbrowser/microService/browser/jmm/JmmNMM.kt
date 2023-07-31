@@ -7,12 +7,13 @@ import org.dweb_browser.browserUI.database.AppInfoDataStore
 import org.dweb_browser.browserUI.download.DownLoadController
 import org.dweb_browser.browserUI.util.BrowserUIApp
 import org.dweb_browser.browserUI.util.FilesUtil
+import org.dweb_browser.helper.printdebugln
+import org.dweb_browser.microservice.core.BootstrapContext
+import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.help.DWEB_DEEPLINK
 import org.dweb_browser.microservice.help.JmmAppInstallManifest
 import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.MMID
-import org.dweb_browser.helper.printdebugln
-import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.help.json
 import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.http4k.core.Method
@@ -57,18 +58,17 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb","Js MicroModule Manag
   }
 
 
+
   companion object {
     private val controllerList = mutableListOf<JmmController>()
-    val jmmController get() = controllerList.firstOrNull()
-
-    fun installAppsContainMMid(mmid: MMID) =  installAppList.find { it.jsMetaData.mmid == mmid } != null
-
-    fun installAppsMetadata(mmid: MMID) =
-      installAppList.firstOrNull { it.jsMetaData.mmid == mmid }?.jsMetaData
+    val jmmController get() = controllerList.first()
   }
 
   init {
     controllerList.add(JmmController(this))
+  }
+  fun getApps(mmid:MMID):MicroModule? {
+    return bootstrapContext.dns.query(mmid)
   }
 
   val queryMetadataUrl = Query.string().required("url")

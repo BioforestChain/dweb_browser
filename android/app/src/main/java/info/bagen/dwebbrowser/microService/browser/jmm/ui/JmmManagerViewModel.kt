@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.browser.jmm.JmmController
-import org.dweb_browser.microservice.help.JmmAppInstallManifest
 import info.bagen.dwebbrowser.microService.browser.jmm.JmmNMM
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -16,7 +15,8 @@ import org.dweb_browser.browserUI.download.DownLoadStatus
 import org.dweb_browser.browserUI.download.compareAppVersionHigh
 import org.dweb_browser.browserUI.util.BrowserUIApp
 import org.dweb_browser.browserUI.util.NotificationUtil
-import java.util.*
+import org.dweb_browser.microservice.help.JmmAppInstallManifest
+import java.util.Calendar
 
 data class JmmUIState(
   var downloadInfo: MutableState<DownLoadInfo>,
@@ -44,10 +44,10 @@ fun createDownLoadInfoByJmm(jmmAppInstallManifest: JmmAppInstallManifest): DownL
     downLoadStatus = DownLoadStatus.IDLE,
     appInfo = gson.toJson(jmmMetadata)
   )*/
-  return if (JmmNMM.installAppsContainMMid(jmmAppInstallManifest.id)) {
+  return if (JmmNMM.jmmController.hasApps(jmmAppInstallManifest.id)) {
     // 表示当前mmid已存在，判断版本，如果是同一个版本，显示为打开；如果是更新的版本，显示为 更新
-    val curJmmMetadata = JmmNMM.installAppsMetadata(jmmAppInstallManifest.id)!!
-    if (compareAppVersionHigh(curJmmMetadata.version, jmmAppInstallManifest.version)) {
+    val curJmmMetadata = JmmNMM.jmmController.getApp(jmmAppInstallManifest.id)
+    if (curJmmMetadata !== null && compareAppVersionHigh(curJmmMetadata.version, jmmAppInstallManifest.version)) {
       DownLoadInfo(
         id = jmmAppInstallManifest.id,
         url = jmmAppInstallManifest.bundle_url,

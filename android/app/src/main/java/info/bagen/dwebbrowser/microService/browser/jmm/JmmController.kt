@@ -1,5 +1,6 @@
 package info.bagen.dwebbrowser.microService.browser.jmm
 
+import info.bagen.dwebbrowser.microService.sys.biometrics.BiometricsController
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
 import org.dweb_browser.microservice.help.MMID
 import kotlinx.coroutines.sync.Mutex
@@ -14,7 +15,15 @@ enum class EIpcEvent(val event:String){
 
 class JmmController(private val jmmNMM: JmmNMM) {
 
+//  companion object {
+//    val jmmController = JmmController()
+//  }
+
   private val openLock = Mutex()
+
+
+  fun hasApps(mmid: MMID) = jmmNMM.getApps(mmid) !== null
+  fun getApp(mmid: MMID) = jmmNMM.getApps(mmid)
 
   suspend fun openApp(mmid: MMID) {
     openLock.withLock {

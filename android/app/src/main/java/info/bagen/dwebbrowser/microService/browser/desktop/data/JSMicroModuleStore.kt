@@ -14,15 +14,15 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 import org.dweb_browser.browserUI.util.BrowserUIApp
-import org.dweb_browser.microservice.help.MicroModuleManifest
+import org.dweb_browser.microservice.help.JmmAppInstallManifest
 import org.dweb_browser.microservice.help.MMID
 import org.dweb_browser.microservice.help.gson
 
-object MicroModuleDataStore {
-  private const val PREFERENCE_NAME = "MicroModule"
+object JSMicroModuleStore {
+  private const val PREFERENCE_NAME = "JS-APP"
   private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = PREFERENCE_NAME)
 
-  fun queryAppInfo(key: String): Flow<MicroModuleManifest?> {
+  fun queryAppInfo(key: String): Flow<JmmAppInstallManifest?> {
     return BrowserUIApp.Instance.appContext.dataStore.data.catch { e ->  // Flow 中发生异常可使用这种方式捕获，catch 块是可选的
       if (e is IOException) {
         e.printStackTrace()
@@ -31,11 +31,11 @@ object MicroModuleDataStore {
         throw e
       }
     }.map { pref ->
-      gson.fromJson(pref[stringPreferencesKey(key)], MicroModuleManifest::class.java)
+      gson.fromJson(pref[stringPreferencesKey(key)], JmmAppInstallManifest::class.java)
     }
   }
 
-  suspend fun queryAppInfoList(): Flow<MutableList<MicroModuleManifest>> {
+  suspend fun queryAppInfoList(): Flow<MutableList<JmmAppInstallManifest>> {
     return BrowserUIApp.Instance.appContext.dataStore.data.catch { e ->  // Flow 中发生异常可使用这种方式捕获，catch 块是可选的
       if (e is IOException) {
         e.printStackTrace()
@@ -44,23 +44,23 @@ object MicroModuleDataStore {
         throw e
       }
     }.map { pref ->
-      val list = mutableListOf<MicroModuleManifest>()
+      val list = mutableListOf<JmmAppInstallManifest>()
       pref.asMap().forEach { (key, value) ->
-        list.add(gson.fromJson(value as String, MicroModuleManifest::class.java))
+        list.add(gson.fromJson(value as String, JmmAppInstallManifest::class.java))
       }
       list
     }
   }
 
-  fun saveAppInfo(mmid: MMID, MicroModuleManifest: MicroModuleManifest) = runBlocking(
+  fun saveAppInfo(mmid: MMID, jmmApp: JmmAppInstallManifest) = runBlocking(
     Dispatchers.IO) {
     // edit 函数需要在挂起环境中执行
     BrowserUIApp.Instance.appContext.dataStore.edit { pref ->
-      pref[stringPreferencesKey(mmid)] = gson.toJson(MicroModuleManifest)
+      pref[stringPreferencesKey(mmid)] = gson.toJson(jmmApp)
     }
   }
 
-  suspend fun saveAppInfoList(list: MutableMap<MMID, MicroModuleManifest>) = runBlocking(
+  suspend fun saveAppInfoList(list: MutableMap<MMID, JmmAppInstallManifest>) = runBlocking(
     Dispatchers.IO) {
     // edit 函数需要在挂起环境中执行
     BrowserUIApp.Instance.appContext.dataStore.edit { pref ->

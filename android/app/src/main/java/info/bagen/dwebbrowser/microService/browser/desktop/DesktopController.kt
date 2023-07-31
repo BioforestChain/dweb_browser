@@ -24,7 +24,6 @@ import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.browserUI.ui.browser.ConstUrl
 import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.dwebview.base.DWebViewItem
-import org.dweb_browser.microservice.help.JmmAppInstallManifest
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.runBlockingCatching
@@ -39,11 +38,15 @@ import org.http4k.lens.Header
 import java.util.concurrent.atomic.AtomicInteger
 
 @Stable
-class DesktopController(private val microModule: DesktopNMM) {
+class DesktopController(private val desktopNMM: DesktopNMM) {
 
   companion object {
     private var webviewId_acc = AtomicInteger(1)
   }
+
+  fun getInstallApps()  = desktopNMM.getDesktopApps().toMutableList()
+
+  fun getOpenApps()  = desktopNMM.getDesktopApps().filter { it.isRunning }.toMutableList()
 
   private var activityTask = PromiseOut<DesktopActivity>()
   suspend fun waitActivityCreated() = activityTask.waitPromise()
@@ -91,7 +94,7 @@ class DesktopController(private val microModule: DesktopNMM) {
   private val openLock = Mutex()
   suspend fun openApp(deskAppMetaData: DeskAppMetaData) {
     openLock.withLock {
-      val (ipc) = microModule.bootstrapContext.dns.connect(deskAppMetaData.jsMetaData.mmid)
+      val (ipc) = desktopNMM.bootstrapContext.dns.connect(deskAppMetaData.jsMetaData.mmid)
       debugDesktop("openApp", "postMessage==>activity ${ipc.remote.mmid}")
       ipc.postMessage(IpcEvent.fromUtf8(EIpcEvent.Activity.event, ""))
     }
@@ -100,13 +103,13 @@ class DesktopController(private val microModule: DesktopNMM) {
   fun createMainDwebView(url: String = ConstUrl.NEW_TAB.url): DWebViewItem {
     val context = activity ?: App.appContext
     val dWebView = DWebView(
-      context, microModule, microModule, DWebView.Options(
+      context, desktopNMM, desktopNMM, DWebView.Options(
         url = url,
         /// 我们会完全控制页面将如何离开，所以这里兜底默认为留在页面
         onDetachedFromWindowStrategy = DWebView.Options.DetachedFromWindowStrategy.Ignore,
       ), activity
     ).also {
-      it.webViewClient = DesktopWebViewClient(microModule)
+      it.webViewClient = DesktopWebViewClient(desktopNMM)
     }
     return appendWebViewAsItem(dWebView, url)
   }
@@ -124,7 +127,7 @@ class DesktopController(private val microModule: DesktopNMM) {
       coroutineScope = coroutineScope,
       navigator = navigator,
     )
-    viewItem.webView.webViewClient = DesktopWebViewClient(microModule)
+    viewItem.webView.webViewClient = DesktopWebViewClient(desktopNMM)
     return viewItem
   }
 }
