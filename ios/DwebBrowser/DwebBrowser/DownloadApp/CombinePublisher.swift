@@ -8,7 +8,7 @@
 import Combine
 import WebKit
 
-let progressPublisher = PassthroughSubject<Float, Never>()
+let progressPublisher = PassthroughSubject<Double, Never>()
 let downloadPublisher = PassthroughSubject<Int, Never>()
 
 public typealias onStringCallBack = (String) -> Void

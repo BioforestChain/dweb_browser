@@ -22,7 +22,7 @@ public class DownloadAppManager: NSObject {
         self.downloadView = controller.view
     }
     
-    @objc public func onListenProgress(progress: Float) {
+    @objc public func onListenProgress(progress: Double) {
         DispatchQueue.main.async {
             progressPublisher.send(progress)
         }

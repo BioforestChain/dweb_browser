@@ -46,7 +46,7 @@ public static class JmmDwebService
         }
     }
 
-    public static JmmDownload Add(IJmmAppInstallManifest jmmMetadata, Action<nint> onDownloadStatusChange, Action<float> onDownloadProgressChange)
+    public static JmmDownload Add(IJmmAppInstallManifest jmmMetadata, Action<nint> onDownloadStatusChange, Action<double> onDownloadProgressChange)
     {
         if (!s_downloadMap.TryGetValue(jmmMetadata.Id, out var jmmDownload))
         {
@@ -162,7 +162,7 @@ public class JmmDownload
     }
 
     public event Action<nint>? OnDownloadStatusChange = null;
-    public event Action<float>? OnDownloadProgressChange = null;
+    public event Action<double>? OnDownloadProgressChange = null;
 
 
     private async Task _getTotalSizeAsync()
