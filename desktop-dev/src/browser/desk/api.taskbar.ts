@@ -81,7 +81,7 @@ export class TaskbarApi {
       }
       const metaData = await this.context.dns.query(app_id);
       if (metaData) {
-        apps.set(app_id, { ...metaData, running: this.mm.runingApps.has(app_id) });
+        apps.set(app_id, { ...metaData, running: this.mm.runingApps.has(app_id), winStates: [] });
       }
     }
     return [...apps.values()];
