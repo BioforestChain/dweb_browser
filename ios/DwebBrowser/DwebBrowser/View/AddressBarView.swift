@@ -35,12 +35,12 @@ struct AddressBar: View {
                 .padding(.horizontal)
 
             HStack {
-                if isAdressBarFocused, !inputText.isEmpty {
+                if addressBar.isFocused, !inputText.isEmpty {
                     Spacer()
                     clearTextButton
                 }
                 
-                if !inputText.isEmpty, !isAdressBarFocused {
+                if !inputText.isEmpty, !addressBar.isFocused {
                     Spacer()
                     if shouldShowProgress {
                         cancelLoadingButtion
