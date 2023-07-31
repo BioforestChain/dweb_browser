@@ -9,17 +9,16 @@ import SwiftUI
 
 @objc(DownloadAppManager)
 public class DownloadAppManager: NSObject {
-    
     @objc public var downloadView: UIView?
     
     private var callback: onStringCallBack?
     
-    @objc public init(data: Data, downloadStatus: Int) {
+    @objc public init(data: Data) {
         super.init()
         
-        let controller = UIHostingController(rootView: DownloadAppView(modelData: data, downloadStatus: DownloadStatus(rawValue: downloadStatus) ?? DownloadStatus.IDLE, callback: { value in
+        let controller = UIHostingController(rootView: DownloadAppView(modelData: data) { value in
             self.callback?(value)
-        }))
+        })
         self.downloadView = controller.view
     }
     

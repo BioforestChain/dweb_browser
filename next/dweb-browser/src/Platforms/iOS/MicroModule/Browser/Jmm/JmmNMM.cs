@@ -114,9 +114,10 @@ public class JmmNMM : NativeMicroModule
 
             if (jsMicroModule is not null)
             {
-                var initDownloadStatus = DownloadStatus.Installed;
+                var jmmAppDownloadManifest = JmmAppDownloadManifest.FromInstallManiafest(jsMicroModule.Metadata.Config);
+                jmmAppDownloadManifest.DownloadStatus = DownloadStatus.Installed;
 
-                await JmmController.OpenDownloadPageAsync(jsMicroModule.Metadata, initDownloadStatus);
+                await JmmController.OpenDownloadPageAsync(jmmAppDownloadManifest);
 
                 return true;
             }
@@ -172,8 +173,10 @@ public class JmmNMM : NativeMicroModule
 
         try
         {
-            //var initDownloadStatus = _getCurrentDownloadStatus(jsmmMetadata);
-            //await JmmController.OpenDownloadPageAsync(jsmmMetadata, initDownloadStatus);
+            var initDownloadStatus = _getCurrentDownloadStatus(jsmmMetadata);
+            var jmmAppDownloadManifest = JmmAppDownloadManifest.FromInstallManiafest(jsmmMetadata.Config);
+            jmmAppDownloadManifest.DownloadStatus = initDownloadStatus;
+            await JmmController.OpenDownloadPageAsync(jmmAppDownloadManifest);
         }
         catch (Exception e)
         {
@@ -184,11 +187,11 @@ public class JmmNMM : NativeMicroModule
 
     private async void _openJmmMetadataUninstallPage(JsMicroModule jsMicroModule)
     {
-        //var mmid = jsMicroModule.Metadata.Config.Id;
-        //JmmApps.Remove(mmid);
-        //BootstrapContext.Dns.UnInstall(jsMicroModule);
-        //JmmDwebService.UnInstall(jsMicroModule.Metadata);
-        //JmmDatabase.Instance.Remove(mmid);
+        var mmid = jsMicroModule.Metadata.Config.Id;
+        JmmApps.Remove(mmid);
+        BootstrapContext.Dns.UnInstall(jsMicroModule);
+        JmmDwebService.UnInstall(jsMicroModule.Metadata.Config);
+        JmmDatabase.Instance.Remove(mmid);
     }
 
     public record AppQueryResult(List<JsMMMetadata> InstalledAppList, List<InstallingAppInfo> InstallingAppList);

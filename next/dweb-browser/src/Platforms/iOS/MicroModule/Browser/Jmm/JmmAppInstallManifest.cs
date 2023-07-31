@@ -219,8 +219,44 @@ public sealed class JmmAppDownloadManifest : JmmAppInstallManifest
             release_date,
             permissions,
             plugins,
-            baseURI, dweb_deeplinks)
+            baseURI,
+            dweb_deeplinks)
     {
+    }
+
+    public static JmmAppDownloadManifest FromInstallManiafest(IJmmAppInstallManifest jmmAppInstallManifest)
+    {
+        return new JmmAppDownloadManifest(
+            jmmAppInstallManifest.Id,
+            jmmAppInstallManifest.Version,
+            jmmAppInstallManifest.Categories,
+            jmmAppInstallManifest.Server,
+            jmmAppInstallManifest.Dir,
+            jmmAppInstallManifest.Lang,
+            jmmAppInstallManifest.Name,
+            jmmAppInstallManifest.ShortName,
+            jmmAppInstallManifest.Description,
+            jmmAppInstallManifest.Icons,
+            jmmAppInstallManifest.Screenshots,
+            jmmAppInstallManifest.Display,
+            jmmAppInstallManifest.Orientation,
+            jmmAppInstallManifest.ThemeColor,
+            jmmAppInstallManifest.BackgroundColor,
+            jmmAppInstallManifest.Shortcuts,
+            jmmAppInstallManifest.Icon,
+            jmmAppInstallManifest.Images,
+            jmmAppInstallManifest.BundleUrl,
+            jmmAppInstallManifest.BundleHash,
+            jmmAppInstallManifest.BundleSize,
+            jmmAppInstallManifest.ChangeLog,
+            jmmAppInstallManifest.Author,
+            jmmAppInstallManifest.Home,
+            jmmAppInstallManifest.ReleaseDate,
+            jmmAppInstallManifest.Permissions,
+            jmmAppInstallManifest.Plugins,
+            jmmAppInstallManifest.BaseUri,
+            jmmAppInstallManifest.Dweb_DeepLinks
+        );
     }
 
     [JsonPropertyName("download_status")]

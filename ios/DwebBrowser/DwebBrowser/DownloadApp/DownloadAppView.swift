@@ -10,7 +10,6 @@ import SwiftUI
 
 struct DownloadAppView: View {
     var modelData: Data
-    var downloadStatus: DownloadStatus = .IDLE
     var callback: onStringCallBack
     
     @State var offset: CGPoint = .zero
@@ -75,7 +74,7 @@ struct DownloadAppView: View {
         .onAppear {
             loadAppInfo()
 
-            switch downloadStatus {
+            switch defaultManifest?.download_status {
             case .Installed:
                 content = "打开"
             case .NewVersion:
