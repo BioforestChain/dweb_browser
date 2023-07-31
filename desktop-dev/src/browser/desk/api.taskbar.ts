@@ -171,7 +171,40 @@ export class TaskbarApi {
         desktopWidth = display.workArea.width / 2;
         desktopHeight = Math.max(display.workArea.height / 2, taskbarWinBounds.height);
         desktopX = taskbarWinBounds.x - desktopWidth - uGap;
-        desktopY = (display.workArea.height - desktopHeight) / 2;
+
+        //#region 寻找视觉中线 来定位 Y
+
+        /** 对齐 taskbar 顶部 */
+        const alignTopY = taskbarWinBounds.y;
+        /** 对齐 taskbar 中线 */
+        const alignMidY = taskbarWinBounds.y + taskbarWinBounds.height / 2 - desktopHeight / 2; // (display.workArea.height - desktopHeight) / 2;
+        /** 对齐 taskbar 底部 */
+        const alignBtmY = taskbarWinBounds.y + taskbarWinBounds.height - desktopHeight;
+
+        if (alignMidY <= 0) {
+          desktopY = alignTopY;
+        }
+        if (alignMidY + desktopHeight >= display.workArea.height) {
+          desktopY = alignBtmY;
+        } else {
+          desktopY = alignMidY;
+        }
+
+        const desktopHalfHeight = desktopHeight / 2;
+        /** 屏幕中间的地方 */
+        const displayMidY = display.workArea.height / 2 - desktopHalfHeight;
+        const alignTopWeight = Math.abs(displayMidY - alignTopY);
+        const alignMidWeight = Math.abs(displayMidY - alignMidY);
+        const alignBtmWeight = Math.abs(displayMidY - alignBtmY);
+        const minminalWeight = Math.min(alignTopWeight, alignMidWeight, alignBtmWeight);
+        if (minminalWeight === alignTopWeight) {
+          desktopY = alignTopY;
+        } else if (minminalWeight === alignBtmWeight) {
+          desktopY = alignBtmY;
+        } else {
+          desktopY = alignMidY;
+        }
+        //#endregion
       }
       const desktopBounds = {
         width: Math.round(desktopWidth),
@@ -203,6 +236,8 @@ export class TaskbarApi {
       backgroundMaterial: undefined,
       alwaysOnTop: false,
       show: false,
+      // modal: true,
+      parent: this.win,
       /// 宽高
       ...fromBounds,
     });
@@ -224,6 +259,7 @@ export class TaskbarApi {
     let onTop = false;
     desktopWin.on("blur", () => {
       onTop = false;
+      // desktopWin.hide();
     });
     desktopWin.on("hide", () => {
       onTop = false;

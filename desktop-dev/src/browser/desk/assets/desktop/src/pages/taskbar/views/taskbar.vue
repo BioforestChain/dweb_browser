@@ -144,7 +144,7 @@ const iconSize = "45px";
     </div>
     <hr v-if="appRefList.length > 0" class="my-divider" />
 
-    <button class="desktop-button app-icon-wrapper z-grid p-4" @click="toggleDesktopButton">
+    <button class="desktop-button app-icon-wrapper z-grid m-4" @click="toggleDesktopButton">
       <AppIcon
         class="z-view"
         :icon="icons.layout_panel_top"
