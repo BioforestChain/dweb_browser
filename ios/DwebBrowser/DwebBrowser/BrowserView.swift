@@ -52,6 +52,6 @@ struct BrowserView: View {
 
 struct MainContainerView_Previews: PreviewProvider {
     static var previews: some View {
-        BrowserView()
+        BrowserView().environmentObject(NetworkManager())
     }
 }

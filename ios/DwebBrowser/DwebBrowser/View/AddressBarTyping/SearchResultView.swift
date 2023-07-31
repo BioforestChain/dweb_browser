@@ -10,7 +10,7 @@ import SwiftUI
 struct SearchResultView: View {
     @EnvironmentObject var addressBar: AddressBarState
     @EnvironmentObject var openingLink: OpeningLink
-    @EnvironmentObject var selectedTab:SelectedTab
+    @EnvironmentObject var selectedTab: SelectedTab
     @ObservedObject var localLinkSearcher = LocalLinkSearcher.shared
 //    @State private var inputText: String = ""
     var body: some View {

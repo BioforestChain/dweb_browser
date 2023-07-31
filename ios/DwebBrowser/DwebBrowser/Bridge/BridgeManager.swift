@@ -14,6 +14,10 @@ public class BridgeManager: NSObject {
     static let shared = BridgeManager()
     @objc public var browserView: UIView?
     
+    let browserSubView = BrowserView()
+    
+    @StateObject var networkManager = NetworkManager()
+    
     public typealias initNewWebView = (WKWebViewConfiguration?) -> BrowserWebview
     public static var webviewGenerator: initNewWebView?
     
@@ -23,8 +27,9 @@ public class BridgeManager: NSObject {
     @objc override public init() {
         super.init()
         
-        let controller = UIHostingController(rootView: BrowserView()
-            .environment(\.managedObjectContext, DataController.shared.container.viewContext).environmentObject(NetworkManager()))
+        let controller = UIHostingController(rootView: browserSubView
+            .environment(\.managedObjectContext, DataController.shared.container.viewContext)
+            .environmentObject(self.networkManager))
         
         self.browserView = controller.view
     }

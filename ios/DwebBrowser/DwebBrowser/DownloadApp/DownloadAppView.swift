@@ -244,9 +244,9 @@ struct DownloadAppView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.bottom, 10)
             
-            ForEach(defaultManifest?.new_feature ?? [], id: \.self) { content in
-                Text("- \(content)")
-            }
+//            ForEach(defaultManifest?.new_feature ?? [], id: \.self) { content in
+//                Text("- \(content)")
+//            }
         }
         .padding(.leading, 20)
     }
@@ -266,7 +266,7 @@ struct DownloadAppView: View {
     @ViewBuilder
     func InfoDataView() -> some View {
         let titles = ["销售商", "大小"]
-        let contents = [defaultManifest?.author?.joined(separator: ", ") ?? "", calculateAppSize()]
+        let contents = [defaultManifest?.author.joined(separator: ", ") ?? "", calculateAppSize()]
         VStack(alignment: .leading, spacing: 10) {
             Text("信息")
                 .font(.title2.bold())
@@ -325,7 +325,7 @@ struct DownloadAppView: View {
             let decoder = JSONDecoder()
             defaultManifest = try decoder.decode(JmmAppDownloadManifest.self, from: modelData)
             viewModel.loadIcon(urlString: defaultManifest?.icon ?? "", placeHoldImageName: "360so")
-            viewModel.loadImages(imageNames: defaultManifest?.images! ?? [], placeHoldImageName: "dweb_icon")
+            viewModel.loadImages(imageNames: defaultManifest?.images ?? [], placeHoldImageName: "dweb_icon")
         } catch {
             fatalError("could load fail. \n\(error.localizedDescription)")
         }

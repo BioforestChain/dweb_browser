@@ -64,7 +64,7 @@
 		F0E984332A2356AC00F7180A /* AnimationProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0E984322A2356AC00F7180A /* AnimationProgress.swift */; };
 		F0E984512A24AC5800F7180A /* GridCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0E984502A24AC5800F7180A /* GridCellView.swift */; };
 		F0EB7B222A55669D0031FF16 /* PagingScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F09ABFC42A52D7BA00C32145 /* PagingScrollView.swift */; };
-		F34A47632A4D738B001E105A /* APPModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F34A475C2A4D738B001E105A /* APPModel.swift */; };
+		F34A47632A4D738B001E105A /* JmmAppDownloadManifest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F34A475C2A4D738B001E105A /* JmmAppDownloadManifest.swift */; };
 		F34A47642A4D738B001E105A /* DownloadImageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F34A475D2A4D738B001E105A /* DownloadImageViewModel.swift */; };
 		F34A47652A4D738B001E105A /* DownloadButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F34A475E2A4D738B001E105A /* DownloadButtonView.swift */; };
 		F34A47662A4D738B001E105A /* CustomUIScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F34A475F2A4D738B001E105A /* CustomUIScrollView.swift */; };
@@ -102,7 +102,7 @@
 		F3D5AA9F2A52BFCB007C93D0 /* resource.bundle in Resources */ = {isa = PBXBuildFile; fileRef = F023CC182A4C40C700783586 /* resource.bundle */; };
 		F3D5AAAA2A52C1C5007C93D0 /* DownloadAppManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F34A476C2A4D74F3001E105A /* DownloadAppManager.swift */; };
 		F3D5AAAB2A52C1C5007C93D0 /* BridgeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0506ADA2A4A78920042F0C2 /* BridgeManager.swift */; };
-		F3D5AAAD2A52C1C5007C93D0 /* APPModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F34A475C2A4D738B001E105A /* APPModel.swift */; };
+		F3D5AAAD2A52C1C5007C93D0 /* JmmAppDownloadManifest.swift in Sources */ = {isa = PBXBuildFile; fileRef = F34A475C2A4D738B001E105A /* JmmAppDownloadManifest.swift */; };
 		F3D5AAAE2A52C1C5007C93D0 /* DownloadImageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F34A475D2A4D738B001E105A /* DownloadImageViewModel.swift */; };
 		F3D5AAAF2A52C1C5007C93D0 /* DownloadButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F34A475E2A4D738B001E105A /* DownloadButtonView.swift */; };
 		F3D5AAB02A52C1C5007C93D0 /* CustomUIScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F34A475F2A4D738B001E105A /* CustomUIScrollView.swift */; };
@@ -239,7 +239,7 @@
 		F0E984302A21DC6D00F7180A /* WebWrapperMgr.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebWrapperMgr.swift; sourceTree = "<group>"; };
 		F0E984322A2356AC00F7180A /* AnimationProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimationProgress.swift; sourceTree = "<group>"; };
 		F0E984502A24AC5800F7180A /* GridCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GridCellView.swift; sourceTree = "<group>"; };
-		F34A475C2A4D738B001E105A /* APPModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = APPModel.swift; sourceTree = "<group>"; };
+		F34A475C2A4D738B001E105A /* JmmAppDownloadManifest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JmmAppDownloadManifest.swift; sourceTree = "<group>"; };
 		F34A475D2A4D738B001E105A /* DownloadImageViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadImageViewModel.swift; sourceTree = "<group>"; };
 		F34A475E2A4D738B001E105A /* DownloadButtonView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadButtonView.swift; sourceTree = "<group>"; };
 		F34A475F2A4D738B001E105A /* CustomUIScrollView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomUIScrollView.swift; sourceTree = "<group>"; };
@@ -473,7 +473,7 @@
 		F34A475A2A4D738B001E105A /* DownloadApp */ = {
 			isa = PBXGroup;
 			children = (
-				F34A475C2A4D738B001E105A /* APPModel.swift */,
+				F34A475C2A4D738B001E105A /* JmmAppDownloadManifest.swift */,
 				F34A475D2A4D738B001E105A /* DownloadImageViewModel.swift */,
 				F34A475E2A4D738B001E105A /* DownloadButtonView.swift */,
 				F34A475F2A4D738B001E105A /* CustomUIScrollView.swift */,
@@ -685,7 +685,7 @@
 				F3C8509C2A651E44008F9D06 /* AppMenuView.swift in Sources */,
 				F0B68D032A123B4F00215036 /* Url+Validator.swift in Sources */,
 				F3C850992A651E32008F9D06 /* AppContentView.swift in Sources */,
-				F34A47632A4D738B001E105A /* APPModel.swift in Sources */,
+				F34A47632A4D738B001E105A /* JmmAppDownloadManifest.swift in Sources */,
 				F02899A329F91DF300B8754A /* PlaceholderView.swift in Sources */,
 				F0531EC32A3028CE001FBE06 /* WebSearcher.swift in Sources */,
 				F0531F012A345ACD001FBE06 /* SheetSegmentView.swift in Sources */,
@@ -734,7 +734,7 @@
 				461FB6BE2A53C19300D8F95E /* HapticsHelper.swift in Sources */,
 				F3D5AAAA2A52C1C5007C93D0 /* DownloadAppManager.swift in Sources */,
 				F3D5AAAB2A52C1C5007C93D0 /* BridgeManager.swift in Sources */,
-				F3D5AAAD2A52C1C5007C93D0 /* APPModel.swift in Sources */,
+				F3D5AAAD2A52C1C5007C93D0 /* JmmAppDownloadManifest.swift in Sources */,
 				F3D34AA92A5E81E3000E9B8F /* CodeScannerView.swift in Sources */,
 				F3D5AAAE2A52C1C5007C93D0 /* DownloadImageViewModel.swift in Sources */,
 				F3C8509A2A651E32008F9D06 /* AppContentView.swift in Sources */,

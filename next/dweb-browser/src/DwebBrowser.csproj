@@ -8,7 +8,7 @@
 		<SingleProject>true</SingleProject>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<!-- Display name -->
-		<ApplicationTitle>dweb-browser</ApplicationTitle>
+		<ApplicationTitle>DWeb Browser</ApplicationTitle>
 		<!-- App Identifier -->
 		<ApplicationId>com.instinctii.dd</ApplicationId>
 		<ApplicationIdGuid>4794f859-0c74-4b8d-aabe-c1ec32d16be4</ApplicationIdGuid>

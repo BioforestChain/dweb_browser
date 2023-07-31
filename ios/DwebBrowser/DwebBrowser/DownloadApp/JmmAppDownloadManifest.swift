@@ -1,5 +1,5 @@
 //
-//  APPModel.swift
+//  JmmAppDownloadManifest.swift
 //  BrowserFramework
 //
 //  Created by ui03 on 2023/6/5.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct APPModel: Codable {
+struct JmmAppDownloadManifest: Codable {
     var id: String
     var version: String
     var categories: [String]
@@ -176,7 +176,7 @@ struct APPModel: Codable {
         let plugins = try? container.decode([String].self, forKey: .plugins)
         let download_status = try? container.decode(DownloadStatus.self, forKey: .download_status)
         let download_progress = try? container.decode(Double.self, forKey: .download_progress)
-        self.init(id: id!, version: version!, categories: categories!, server: server! , baseURI: baseURI ?? "", dweb_deeplinks: dweb_deeplinks ?? [], dir: dir!, lang: lang!, name: name!, short_name: short_name!, description: description!, icons: icons!, screenshots: screenshots!, display: display!, orientation: orientation!, theme_color: theme_color!, background_color: background_color!, shortcuts: shortcuts!, icon: icon!, images: images!, bundle_url: bundle_url!, bundle_hash: bundle_hash!, bundle_size: bundle_size!, change_log: change_log!, author: author!, home: home!, release_date: release_date!, permissions: permissions ?? [], plugins: plugins ?? [], download_status: download_status ?? DownloadStatus.IDLE, download_progress: download_progress ?? 0.0)
+        self.init(id: id!, version: version!, categories: categories!, server: server!, baseURI: baseURI ?? "", dweb_deeplinks: dweb_deeplinks ?? [], dir: dir!, lang: lang!, name: name!, short_name: short_name!, description: description!, icons: icons!, screenshots: screenshots!, display: display!, orientation: orientation!, theme_color: theme_color!, background_color: background_color!, shortcuts: shortcuts!, icon: icon!, images: images!, bundle_url: bundle_url!, bundle_hash: bundle_hash!, bundle_size: bundle_size!, change_log: change_log!, author: author!, home: home!, release_date: release_date!, permissions: permissions ?? [], plugins: plugins ?? [], download_status: download_status ?? DownloadStatus.IDLE, download_progress: download_progress ?? 0.0)
     }
 }
 
@@ -192,7 +192,7 @@ enum DownloadStatus: Int, Codable {
     case NewVersion
 }
 
-struct MainServer : Codable {
+struct MainServer: Codable {
     var root: String
     var entry: String
 
@@ -221,27 +221,27 @@ struct MainServer : Codable {
 }
 
 enum TextDirectionType: String, Codable {
-    case ltr = "ltr"
-    case rtl = "rtl"
-    case auto = "auto"
+    case ltr
+    case rtl
+    case auto
 }
 
 enum DisplayModeType: String, Codable {
-    case fullscreen = "fullscreen"
-    case standalone = "standalone"
+    case fullscreen
+    case standalone
     case minimalUi = "minimal-ui"
-    case browser = "browser"
+    case browser
 }
 
 enum OrientationType: String, Codable {
-    any = "any"
-    landscape = "landscape"
-    landscapePrimary = "landscape-primary"
-    landscapeSecondary = "landscape-secondary"
-    natural = "natural"
-    portrait = "portrait"
-    portraitPrimary = "portrait-primary"
-    portraitSecondary = "portrait-secondary"
+    case any
+    case landscape
+    case landscapePrimary = "landscape-primary"
+    case landscapeSecondary = "landscape-secondary"
+    case natural
+    case portrait
+    case portraitPrimary = "portrait-primary"
+    case portraitSecondary = "portrait-secondary"
 }
 
 struct ImageSource: Codable {
@@ -269,7 +269,7 @@ struct ImageSource: Codable {
 
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(src, forKey: .root)
+        try container.encode(src, forKey: .src)
         try container.encode(sizes, forKey: .sizes)
         try container.encode(type, forKey: .type)
         try container.encode(purpose, forKey: .purpose)
@@ -312,7 +312,7 @@ struct ShortcutItem: Codable {
 
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(name, forKey: .root)
+        try container.encode(name, forKey: .name)
         try container.encode(url, forKey: .url)
         try container.encode(short_name, forKey: .short_name)
         try container.encode(description, forKey: .description)
