@@ -20,8 +20,6 @@ struct AddressBar: View {
 
     @FocusState var isAdressBarFocused: Bool
     @State private var inputText: String = ""
-    @State private var alignment: Alignment = .center
-    @State private var addressbarHeight: CGFloat = addressBarH
 
     private var isVisible: Bool { return WebWrapperMgr.shared.store.firstIndex(of: webWrapper) == selectedTab.curIndex }
     private var shouldShowProgress: Bool { webWrapper.estimatedProgress > 0.0 && webWrapper.estimatedProgress < 1.0 && !addressBar.isFocused }
@@ -72,7 +70,7 @@ struct AddressBar: View {
                         if webCache.isBlank(){
                             inputText = ""
                         }
-                        isAdressBarFocused = true                        
+                        isAdressBarFocused = true
                     }
             }
             .background(Color.bkColor)
@@ -88,13 +86,7 @@ struct AddressBar: View {
                 inputText = url.absoluteString
             }
             .onChange(of: isAdressBarFocused, perform: { isFocued in
-                if inputText.isEmpty {
-                    alignment = .leading
-                } else {
-                    alignment = isFocued ? .leading : .center
-                }
                 addressBar.isFocused = isFocued
-
             })
             .onChange(of: addressBar.isFocused) { isFocused in
                 if !isFocused, isVisible {
