@@ -7,13 +7,8 @@ class ChangeableMap<K,V>() :MutableMap<K,V>{
   private val innerMap = HashMap<K,V>()
   private val _changeSignal = Signal<HashMap<K,V>>()
 
+  suspend fun emitChange() = _changeSignal.emit(hashMapOf())
   fun onChange(callback: Callback<HashMap<K,V>>) = _changeSignal.listen(callback)
-
-  init {
-    GlobalScope.launch(ioAsyncExceptionHandler) {
-      _changeSignal.emit(innerMap)
-    }
-  }
 
   override val size: Int
     get() = innerMap.size

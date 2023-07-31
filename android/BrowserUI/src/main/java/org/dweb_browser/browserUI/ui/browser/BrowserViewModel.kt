@@ -410,8 +410,8 @@ internal class DwebBrowserWebViewClient(private val microModule: MicroModule) : 
             microModule.nativeFetch("file://${pathSegments.drop(1).joinToString("/")}?${request.url.query}")
           } else {
             microModule.nativeFetch(
-              "file:///sys/browser/desk.desktop/${
-                if (pathSegments.isEmpty()) "index.html" else pathSegments.joinToString("/")
+              "file:///sys/browser/desk/${
+                if (pathSegments.isEmpty()) "desktop.html" else pathSegments.joinToString("/")
               }"
             )
           }

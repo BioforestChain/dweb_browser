@@ -21,6 +21,7 @@ fun debugScanning(tag: String, msg: Any? = "", err: Throwable? = null) =
 class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb","Barcode Scanning") {
 
     override val categories = mutableListOf(MICRO_MODULE_CATEGORY.Application, MICRO_MODULE_CATEGORY.Utilities);
+    override val short_name: String = "Scanning"
 
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
         val query_rotationDegrees = Query.int().defaulted("rotation", 0)

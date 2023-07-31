@@ -44,9 +44,9 @@ class DesktopController(private val desktopNMM: DesktopNMM) {
     private var webviewId_acc = AtomicInteger(1)
   }
 
-  fun getInstallApps()  = desktopNMM.getDesktopApps().toMutableList()
+  fun getInstallApps() = desktopNMM.getDesktopApps().toMutableList()
 
-  fun getOpenApps()  = desktopNMM.getDesktopApps().filter { it.isRunning }.toMutableList()
+  fun getOpenApps() = desktopNMM.getDesktopApps().filter { it.running }.toMutableList()
 
   private var activityTask = PromiseOut<DesktopActivity>()
   suspend fun waitActivityCreated() = activityTask.waitPromise()
@@ -94,7 +94,7 @@ class DesktopController(private val desktopNMM: DesktopNMM) {
   private val openLock = Mutex()
   suspend fun openApp(deskAppMetaData: DeskAppMetaData) {
     openLock.withLock {
-      val (ipc) = desktopNMM.bootstrapContext.dns.connect(deskAppMetaData.jsMetaData.mmid)
+      val (ipc) = desktopNMM.bootstrapContext.dns.connect(deskAppMetaData.mmid)
       debugDesktop("openApp", "postMessage==>activity ${ipc.remote.mmid}")
       ipc.postMessage(IpcEvent.fromUtf8(EIpcEvent.Activity.event, ""))
     }
@@ -139,12 +139,18 @@ class DesktopWebViewClient(private val microModule: MicroModule) : AccompanistWe
   ): WebResourceResponse? {
     var response: Response? = null
     val url = request.url
+    println("shouldInterceptReques=> $url")
     if (url.scheme == "http" && url.host == "localhost") {
       response = runBlockingCatching(ioAsyncExceptionHandler) {
         val urlPathSegments = url.pathSegments.filter { it.isNotEmpty() }
         if (urlPathSegments[0] == "newtab") {
           val pathSegments = urlPathSegments.drop(1)
+          // readAccept
+          if (pathSegments.toString().contains("readAccept")) {
+            return@runBlockingCatching Response(Status.OK).body("""{"accept""${request.requestHeaders["Accept"]}}""")
+          }
           return@runBlockingCatching if (pathSegments.getOrNull(0) == "api") {
+            // API
             microModule.nativeFetch(
               "file://${
                 pathSegments.drop(1).joinToString("/")
@@ -152,8 +158,8 @@ class DesktopWebViewClient(private val microModule: MicroModule) : AccompanistWe
             )
           } else {
             microModule.nativeFetch(
-              "file:///sys/browser/desk.desktop/${
-                if (pathSegments.isEmpty()) "index.html" else pathSegments.joinToString("/")
+              "file:///sys/browser/desk/${
+                if (pathSegments.isEmpty()) "desktop.html" else pathSegments.joinToString("/")
               }"
             )
           }

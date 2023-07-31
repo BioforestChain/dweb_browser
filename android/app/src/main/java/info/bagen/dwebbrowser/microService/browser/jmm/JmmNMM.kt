@@ -3,7 +3,7 @@ package info.bagen.dwebbrowser.microService.browser.jmm
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.browser.jmm.ui.JmmManagerActivity
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
-import org.dweb_browser.browserUI.database.AppInfoDataStore
+import org.dweb_browser.browserUI.database.JsMicroModuleStore
 import org.dweb_browser.browserUI.download.DownLoadController
 import org.dweb_browser.browserUI.util.BrowserUIApp
 import org.dweb_browser.browserUI.util.FilesUtil
@@ -139,7 +139,7 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb","Js MicroModule Manag
   private suspend fun jmmMetadataUninstall(mmid: MMID) {
     // 先从列表移除，然后删除文件
     bootstrapContext.dns.uninstall(mmid)
-    AppInfoDataStore.deleteAppInfo(mmid)
+    JsMicroModuleStore.deleteAppInfo(mmid)
     FilesUtil.uninstallApp(App.appContext, mmid)
   }
 

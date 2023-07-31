@@ -3,15 +3,16 @@ package info.bagen.dwebbrowser.microService.browser.desktop
 import android.content.Intent
 import android.os.Bundle
 import info.bagen.dwebbrowser.App
-import info.bagen.dwebbrowser.microService.browser.desktop.data.JSMicroModuleStore
 import info.bagen.dwebbrowser.microService.browser.jmm.EIpcEvent
 import info.bagen.dwebbrowser.microService.browser.jmm.JsMicroModule
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.dweb_browser.browserUI.database.JsMicroModuleStore
 import org.dweb_browser.browserUI.download.compareAppVersionHigh
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.ioAsyncExceptionHandler
@@ -20,14 +21,18 @@ import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.MMID
+import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
 import org.dweb_browser.microservice.ipc.helper.ReadableStream
 import org.http4k.core.Method
+import org.http4k.core.Response
+import org.http4k.core.Status
 import org.http4k.lens.Query
 import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
+import java.io.InputStream
 
 fun debugDesktop(tag: String, msg: Any? = "", err: Throwable? = null) =
   printdebugln("Desktop", tag, msg, err)
@@ -46,12 +51,13 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
   private val runningAppsIpc = ChangeableMap<MMID, Ipc>()
 
   init {
+    loadAppInfo()
     controllerList.add(DesktopController(this))
     // 监听runningApps的变化
     runningAppsIpc.onChange { map ->
-      for (app_id in map.keys) {
+      for (appId in map.keys) {
         // 每次变化对侧边栏图标进行排序(移动到最前面)
-        val cur = taskbarAppList.firstOrNull { it == app_id }
+        val cur = taskbarAppList.firstOrNull { it == appId }
         cur?.let {
           taskbarAppList.remove(it)
           taskbarAppList.add(it)
@@ -66,10 +72,9 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
       val apps = bootstrapContext.dns.search(MICRO_MODULE_CATEGORY.Application)
       runApps = apps.map { metaData ->
         return@map DeskAppMetaData(
-          jsMetaData = metaData,
-          isRunning = runningAppsIpc.containsKey(metaData.mmid),
+          running = runningAppsIpc.containsKey(metaData.mmid),
           isExpand = false
-        )
+        ).setMetaData(metaData)
       }
     }.getOrThrow()
     return runApps
@@ -83,7 +88,6 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
         val ipc = runningAppsIpc[mmid] ?: bootstrapContext.dns.connect(mmid).ipcForFromMM
         ipc.postMessage(IpcEvent.fromUtf8(EIpcEvent.Activity.event, ""))
         /// 如果成功打开，将它“追加”到列表中
-        runningAppsIpc.remove(mmid)
         runningAppsIpc[mmid] = ipc
         /// 如果应用关闭，将它从列表中移除
         ipc.onClose {
@@ -107,25 +111,30 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
         return@defineHandler getDesktopApps()
       },
       "/desktop/observe/apps" bind Method.GET to defineHandler { _, ipc ->
-        debugDesktop("/desktop/observe/apps", getDesktopApps())
-        return@defineHandler ReadableStream(onStart = { controller ->
-          val off = runningAppsIpc.onChange {
-            try {
-              withContext(ioAsyncExceptionHandler) {
-                controller.enqueue((getDesktopApps().toString() + "\n").toByteArray())
-              }
-            } catch (e: Exception) {
-              controller.close()
-              e.printStackTrace()
-            }
-          }
-          ipc.onClose {
-            off(Unit)
-            controller.close()
-          }
-        })
+        val inputStream =  observerApp(ipc)
+        runningAppsIpc.emitChange()
+        return@defineHandler Response(Status.OK).body(inputStream)
       },
     )
+  }
+
+  private suspend fun observerApp(ipc: Ipc):InputStream {
+   return ReadableStream(onStart = { controller ->
+      val off = runningAppsIpc.onChange {
+        try {
+          withContext(Dispatchers.IO) {
+            controller.enqueue((gson.toJson(getDesktopApps()) + "\n").toByteArray())
+          }
+        } catch (e: Exception) {
+          controller.close()
+          e.printStackTrace()
+        }
+      }
+      ipc.onClose {
+        off(Unit)
+        controller.close()
+      }
+    })
   }
 
   override suspend fun _shutdown() {
@@ -135,9 +144,9 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
   @OptIn(DelicateCoroutinesApi::class)
   private fun loadAppInfo() {
     GlobalScope.launch(ioAsyncExceptionHandler) {
-      JSMicroModuleStore.queryAppInfoList().collectLatest { list -> // TODO 只要datastore更新，这边就会实时更新
+      JsMicroModuleStore.queryAppInfoList().collectLatest { list -> // TODO 只要datastore更新，这边就会实时更新
         debugDesktop("AppInfoDataStore", "size=${list.size}")
-        list.forEach { jsMetaData ->
+        list.map { jsMetaData ->
           // 检测版本
           val lastAppMetaData = bootstrapContext.dns.query(jsMetaData.id)
           lastAppMetaData?.let {
@@ -145,16 +154,13 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
               bootstrapContext.dns.close(it.mmid)
             }
           }
-          JsMicroModule(jsMetaData).also { jsMicroModule ->
-            bootstrapContext.dns.install(jsMicroModule)
-          }
+            bootstrapContext.dns.install(JsMicroModule(jsMetaData))
         }
       }
     }
   }
 
   override suspend fun onActivity(event: IpcEvent, ipc: Ipc) {
-    loadAppInfo()
     App.startActivity(DesktopActivity::class.java) { intent ->
       intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
       intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)

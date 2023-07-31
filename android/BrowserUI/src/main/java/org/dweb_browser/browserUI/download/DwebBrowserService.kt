@@ -9,7 +9,7 @@ import android.widget.Toast
 import org.dweb_browser.microservice.help.MMID
 import org.dweb_browser.helper.*
 import kotlinx.coroutines.*
-import org.dweb_browser.browserUI.database.AppInfoDataStore
+import org.dweb_browser.browserUI.database.JsMicroModuleStore
 import org.dweb_browser.browserUI.network.ApiService
 import org.dweb_browser.browserUI.util.FilesUtil
 import org.dweb_browser.browserUI.util.NotificationUtil
@@ -163,7 +163,7 @@ class DwebBrowserService : Service() {
         this.path, FilesUtil.getAppUnzipPath(this@DwebBrowserService), mmid = id
       )
       if (unzip) {
-        AppInfoDataStore.saveAppInfo(id, metaData) // 保存的
+        JsMicroModuleStore.saveAppInfo(id, metaData) // 保存的
         // 删除下面的方法，调用saveJmmMetadata时，会自动更新datastore，而datastore在jmmNMM中有执行了installApp
         DownLoadObserver.emit(this.id, DownLoadStatus.INSTALLED)
         this.downLoadStatus = DownLoadStatus.INSTALLED

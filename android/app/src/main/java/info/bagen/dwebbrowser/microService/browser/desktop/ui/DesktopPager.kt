@@ -50,34 +50,34 @@ internal fun DesktopPager() {
 internal fun ToolbarAndWebView(deskAppMetaData: DeskAppMetaData) {
   val localOpenList = LocalOpenList.current
   val localDrawerManager = LocalDrawerManager.current
-  val triple = when (deskAppMetaData.screenType.value) {
-    DeskAppMetaData.ScreenType.Hide -> {
-      Triple(0f, 0f, 0f)
-    }
-
-    DeskAppMetaData.ScreenType.Half -> {
-      Triple(deskAppMetaData.zoom.value, deskAppMetaData.offsetX.value, deskAppMetaData.offsetY.value)
-    }
-
-    DeskAppMetaData.ScreenType.Full -> {
-      Triple(1f, 0f, 0f)
-    }
-  }
+//  val triple = when (deskAppMetaData.screenType.value) {
+//    DeskAppMetaData.ScreenType.Hide -> {
+//      Triple(0f, 0f, 0f)
+//    }
+//
+//    DeskAppMetaData.ScreenType.Half -> {
+//      Triple(deskAppMetaData.zoom.value, deskAppMetaData.offsetX.value, deskAppMetaData.offsetY.value)
+//    }
+//
+//    DeskAppMetaData.ScreenType.Full -> {
+//      Triple(1f, 0f, 0f)
+//    }
+//  }
 
   Box(
     modifier = Modifier
       .fillMaxSize()
-      .graphicsLayer(
-        scaleX = triple.first,
-        scaleY = triple.first,
-        translationX = triple.second,
-        translationY = triple.third
-      )
-      .pointerInput(deskAppMetaData) {
-        detectTransformGestures { centroid, pan, zoom, rotation ->
-          if (deskAppMetaData.screenType.value == DeskAppMetaData.ScreenType.Half) deskAppMetaData.zoom.value *= zoom
-        }
-      }
+//      .graphicsLayer(
+//        scaleX = triple.first,
+//        scaleY = triple.first,
+//        translationX = triple.second,
+//        translationY = triple.third
+//      )
+//      .pointerInput(deskAppMetaData) {
+//        detectTransformGestures { centroid, pan, zoom, rotation ->
+//          if (deskAppMetaData.screenType.value == DeskAppMetaData.ScreenType.Half) deskAppMetaData.zoom.value *= zoom
+//        }
+//      }
       .clickableWithNoEffect {
         localOpenList.remove(deskAppMetaData)
         localOpenList.add(deskAppMetaData)
@@ -93,35 +93,35 @@ internal fun ToolbarAndWebView(deskAppMetaData: DeskAppMetaData) {
         .padding(1.dp)
         .background(MaterialTheme.colorScheme.background)
     ) {
-      deskAppMetaData.viewItem?.let { multiViewItem ->
-        MultiWebView(mmid = deskAppMetaData.jsMetaData.mmid, viewItem = multiViewItem)
-      }
+//      deskAppMetaData.viewItem?.let { multiViewItem ->
+//        MultiWebView(mmid = deskAppMetaData.mmid, viewItem = multiViewItem)
+//      }
     }
     Box(modifier = Modifier
-      .pointerInput(deskAppMetaData) {
-        detectTransformGestures { centroid, pan, zoom, rotation ->
-          if (deskAppMetaData.screenType.value == DeskAppMetaData.ScreenType.Half) {
-            deskAppMetaData.offsetX.value += pan.x * deskAppMetaData.zoom.value
-            deskAppMetaData.offsetY.value += pan.y * deskAppMetaData.zoom.value
-          }
-        }
-      }
+//      .pointerInput(deskAppMetaData) {
+//        detectTransformGestures { centroid, pan, zoom, rotation ->
+//          if (deskAppMetaData.screenType.value == DeskAppMetaData.ScreenType.Half) {
+//            deskAppMetaData.offsetX.value += pan.x * deskAppMetaData.zoom.value
+//            deskAppMetaData.offsetY.value += pan.y * deskAppMetaData.zoom.value
+//          }
+//        }
+//      }
       .clickableWithNoEffect {
         if (localDrawerManager.visibleState.targetState) localDrawerManager.hide() else localDrawerManager.show()
       }) {
-      Toolbar(
-        deskAppMetaData = deskAppMetaData,
-        onClose = { localOpenList.remove(deskAppMetaData) },
-        onExpand = {
-          if (deskAppMetaData.screenType.value == DeskAppMetaData.ScreenType.Full) {
-            deskAppMetaData.screenType.value = DeskAppMetaData.ScreenType.Half
-            deskAppMetaData.isExpand = false
-          } else {
-            deskAppMetaData.screenType.value = DeskAppMetaData.ScreenType.Full
-            deskAppMetaData.isExpand = true
-          }
-        }
-      )
+//      Toolbar(
+//        deskAppMetaData = deskAppMetaData,
+//        onClose = { localOpenList.remove(deskAppMetaData) },
+//        onExpand = {
+//          if (deskAppMetaData.screenType.value == DeskAppMetaData.ScreenType.Full) {
+//            deskAppMetaData.screenType.value = DeskAppMetaData.ScreenType.Half
+//            deskAppMetaData.isExpand = false
+//          } else {
+//            deskAppMetaData.screenType.value = DeskAppMetaData.ScreenType.Full
+//            deskAppMetaData.isExpand = true
+//          }
+//        }
+//      )
     }
   }
 }
@@ -142,20 +142,20 @@ internal fun Toolbar(
         .clickableWithNoEffect { onClose() }
     )
     Text(
-      text = deskAppMetaData.jsMetaData.name,
+      text = deskAppMetaData.name,
       modifier = Modifier.weight(1f),
       textAlign = TextAlign.Center,
       maxLines = 1
     )
-    Icon(
-      imageVector = ImageVector.vectorResource(
-        if (deskAppMetaData.screenType.value == DeskAppMetaData.ScreenType.Full) R.drawable.ic_shrink else R.drawable.ic_expand
-      ),
-      contentDescription = "FullScreen",
-      modifier = Modifier
-        .size(32.dp)
-        .clickableWithNoEffect { onExpand() }
-    )
+//    Icon(
+//      imageVector = ImageVector.vectorResource(
+//        if (deskAppMetaData.screenType.value == DeskAppMetaData.ScreenType.Full) R.drawable.ic_shrink else R.drawable.ic_expand
+//      ),
+//      contentDescription = "FullScreen",
+//      modifier = Modifier
+//        .size(32.dp)
+//        .clickableWithNoEffect { onExpand() }
+//    )
   }
 }
 

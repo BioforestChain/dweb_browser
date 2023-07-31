@@ -82,19 +82,19 @@ internal fun DrawerInnerView() {
         contentPadding = PaddingValues(8.dp)
       ) {
         itemsIndexed(localOpenList) { _, item ->
-          AsyncImage(
-            model = item.jsMetaData.icons.firstOrNull(),
-            contentDescription = "Icon",
-            modifier = Modifier
-              .size(48.dp)
-              .clip(RoundedCornerShape(8.dp))
-              .clickableWithNoEffect {
-                item.screenType.value =
-                  if (item.isExpand) DeskAppMetaData.ScreenType.Full else DeskAppMetaData.ScreenType.Half
-                localOpenList.remove(item)
-                localOpenList.add(item)
-              }
-          )
+//          AsyncImage(
+//            model = item.icons.firstOrNull(),
+//            contentDescription = "Icon",
+//            modifier = Modifier
+//              .size(48.dp)
+//              .clip(RoundedCornerShape(8.dp))
+//              .clickableWithNoEffect {
+////                item.screenType.value =
+////                  if (item.isExpand) DeskAppMetaData.ScreenType.Full else DeskAppMetaData.ScreenType.Half
+//                localOpenList.remove(item)
+//                localOpenList.add(item)
+//              }
+//          )
         }
       }
 
@@ -111,7 +111,7 @@ internal fun DrawerInnerView() {
         modifier = Modifier
           .padding(8.dp)
           .clickableWithNoEffect {
-            localOpenList.forEach { it.screenType.value = DeskAppMetaData.ScreenType.Hide }
+//            localOpenList.forEach { it.screenType.value = DeskAppMetaData.ScreenType.Hide }
           },
         tint = MaterialTheme.colorScheme.primary
       )

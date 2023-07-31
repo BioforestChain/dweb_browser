@@ -6,6 +6,7 @@ import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.browser.jmm.EIpcEvent
 import info.bagen.dwebbrowser.microService.browser.jmm.debugJMM
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
+import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
 import org.dweb_browser.helper.printdebugln
 import org.dweb_browser.microservice.core.BootstrapContext
@@ -23,7 +24,8 @@ fun debugBrowser(tag: String, msg: Any? = "", err: Throwable? = null) =
 class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
   override val short_name = "Browser";
   override val categories =
-    mutableListOf(MICRO_MODULE_CATEGORY.Application, MICRO_MODULE_CATEGORY.Web_Browser);
+    mutableListOf(MICRO_MODULE_CATEGORY.Application, MICRO_MODULE_CATEGORY.Web_Browser)
+  override val icons: List<ImageResource> = listOf(ImageResource(src = "file:///sys/browser/web/logo.svg"))
 
   companion object {
     val controllerList = mutableListOf<BrowserController>()

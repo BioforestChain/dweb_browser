@@ -141,9 +141,9 @@ internal fun MainAppItemView(DeskAppMetaData: DeskAppMetaData, onClick: () -> Un
     horizontalAlignment = Alignment.CenterHorizontally,
   ) {
     AsyncImage(
-      model = DeskAppMetaData.jsMetaData.icons,
-      contentDescription = DeskAppMetaData.jsMetaData.name
+      model = DeskAppMetaData.icons,
+      contentDescription = DeskAppMetaData.name
     )
-    Text(text = DeskAppMetaData.jsMetaData.name, maxLines = 1)
+    Text(text = DeskAppMetaData.name, maxLines = 1)
   }
 }

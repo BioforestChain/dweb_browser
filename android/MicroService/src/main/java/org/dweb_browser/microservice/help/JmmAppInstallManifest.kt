@@ -61,9 +61,9 @@ open class MicroModuleManifest(
   open val dir: String? = null,
   open val lang: String? = null,
   open val name: String = "", // 应用名称
-  open val short_name: String = "", // 应用副标题
+  open val short_name: String? = null, // 应用副标题
   open val description: String? = null,
-  open val icons: List<ImageResource> = emptyList(),
+  open val icons: List<ImageResource>? = null,
   open val screenshots: List<ImageResource>? = null,
   open val display: DisplayMode? = null,
   open val orientation: String? = null,
@@ -72,7 +72,10 @@ open class MicroModuleManifest(
   open val background_color: String? = null,
   open val shortcuts: List<ShortcutItem> = listOf(),
   open var version: String = "0.0.1"
-):Serializable
+):Serializable {
+}
+
+
 
 
 
@@ -87,7 +90,7 @@ open class CommonAppManifest(
   open val screenshots: List<ImageResource>? = null,
   open val display: DisplayMode? = null,
   open val orientation: String? = null,
-  open val categories: List<MICRO_MODULE_CATEGORY> = listOf(), // 应用类型
+  open val categories: MutableList<MICRO_MODULE_CATEGORY> = mutableListOf(), // 应用类型
   open val theme_color: String? = null,
   open val background_color: String? = null,
   open val shortcuts: List<ShortcutItem> = listOf(),

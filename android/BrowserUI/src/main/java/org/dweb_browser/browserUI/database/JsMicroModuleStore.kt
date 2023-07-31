@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.microService.browser.desktop.data
+package org.dweb_browser.browserUI.database
 
 import android.content.Context
 import androidx.datastore.core.DataStore
@@ -18,8 +18,8 @@ import org.dweb_browser.microservice.help.JmmAppInstallManifest
 import org.dweb_browser.microservice.help.MMID
 import org.dweb_browser.microservice.help.gson
 
-object JSMicroModuleStore {
-  private const val PREFERENCE_NAME = "JS-APP"
+object JsMicroModuleStore {
+  private const val PREFERENCE_NAME = "AppInfo"
   private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = PREFERENCE_NAME)
 
   fun queryAppInfo(key: String): Flow<JmmAppInstallManifest?> {
@@ -52,16 +52,14 @@ object JSMicroModuleStore {
     }
   }
 
-  fun saveAppInfo(mmid: MMID, jmmApp: JmmAppInstallManifest) = runBlocking(
-    Dispatchers.IO) {
+  fun saveAppInfo(mmid: MMID, jmmAppInstallManifest: JmmAppInstallManifest) = runBlocking(Dispatchers.IO) {
     // edit 函数需要在挂起环境中执行
     BrowserUIApp.Instance.appContext.dataStore.edit { pref ->
-      pref[stringPreferencesKey(mmid)] = gson.toJson(jmmApp)
+      pref[stringPreferencesKey(mmid)] = gson.toJson(jmmAppInstallManifest)
     }
   }
 
-  suspend fun saveAppInfoList(list: MutableMap<MMID, JmmAppInstallManifest>) = runBlocking(
-    Dispatchers.IO) {
+  suspend fun saveAppInfoList(list: MutableMap<MMID, JmmAppInstallManifest>) = runBlocking(Dispatchers.IO) {
     // edit 函数需要在挂起环境中执行
     BrowserUIApp.Instance.appContext.dataStore.edit { pref ->
       list.forEach { (key, appMetaData) ->

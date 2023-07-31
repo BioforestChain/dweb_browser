@@ -124,7 +124,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
   private suspend fun wsHandler(request: Request): WsResponse {
     // 转发newtab请求
     val response = if (request.uri.path.startsWith("/newtab/api")) {
-      nativeFetch("file:/${request.uri.path.substring(11)}")
+     nativeFetch("file:/${request.uri.path.substring(11)}")
     } else {
       httpHandler(request)
     }
@@ -139,7 +139,6 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
                 ws.close()
                 break
               }
-
               else -> {
                 val chunk = stream.readByteArray(readInt)
                 ws.send(WsMessage(ByteArrayInputStream(chunk)))
@@ -167,7 +166,6 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
           }
         }
       }
-
       else -> {
         WsResponse { ws ->
           ws.close(WsStatus(response.status.code, response.status.description))

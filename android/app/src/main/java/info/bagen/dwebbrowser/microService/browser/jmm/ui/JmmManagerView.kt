@@ -548,7 +548,7 @@ private fun OtherInfoView(jmmAppInstallManifest: JmmAppInstallManifest) {
   }
 }
 
-fun List<MICRO_MODULE_CATEGORY>.print() :String {
+fun MutableList<MICRO_MODULE_CATEGORY>.print() :String {
   val result = StringBuffer()
   this.forEach { category ->
     // 不要去掉，可能会出现null

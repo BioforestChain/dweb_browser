@@ -38,8 +38,9 @@ open class JsMicroModule(var metadata: JmmAppInstallManifest) : MicroModule() {
   )
   override val dweb_deeplinks: List<DWEB_DEEPLINK> = metadata.dweb_deeplinks
   override val categories: List<MICRO_MODULE_CATEGORY> get() {
+    val categories = this.metadata.categories ?: mutableListOf();
     if (!categories.contains(MICRO_MODULE_CATEGORY.Application)) {
-      categories.plus(MICRO_MODULE_CATEGORY.Application)
+      categories.add(MICRO_MODULE_CATEGORY.Application)
     }
     return categories
   }
