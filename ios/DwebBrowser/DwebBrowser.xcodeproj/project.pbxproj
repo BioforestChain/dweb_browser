@@ -158,6 +158,8 @@
 		F3D5AAE12A52C1C5007C93D0 /* GridCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0E984502A24AC5800F7180A /* GridCellView.swift */; };
 		F3D5AAE22A52C1C5007C93D0 /* AddressBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F028998729F7C3DC00B8754A /* AddressBarView.swift */; };
 		F3D5AAE32A52C1C5007C93D0 /* ToolbarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F028998629F7C3DB00B8754A /* ToolbarView.swift */; };
+		F3F63C492A77898200893931 /* ConsoleSwift.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3F63C482A77898200893931 /* ConsoleSwift.swift */; };
+		F3F63C4A2A77899600893931 /* ConsoleSwift.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3F63C482A77898200893931 /* ConsoleSwift.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -264,6 +266,7 @@
 		F3D5AA922A52BF99007C93D0 /* DwebBrowserFramework.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = DwebBrowserFramework.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F3D5AA942A52BF99007C93D0 /* DwebBrowserFramework.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DwebBrowserFramework.h; sourceTree = "<group>"; };
 		F3D912E42A56663600BCBE4E /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX13.3.sdk/System/Library/Frameworks/CoreData.framework; sourceTree = DEVELOPER_DIR; };
+		F3F63C482A77898200893931 /* ConsoleSwift.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConsoleSwift.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -490,6 +493,7 @@
 		F34A476B2A4D74D7001E105A /* Bridge */ = {
 			isa = PBXGroup;
 			children = (
+				F3F63C482A77898200893931 /* ConsoleSwift.swift */,
 				461FB6BC2A53BF5200D8F95E /* HapticsHelper.swift */,
 				F34A476C2A4D74F3001E105A /* DownloadAppManager.swift */,
 				F0506ADA2A4A78920042F0C2 /* BridgeManager.swift */,
@@ -725,6 +729,7 @@
 				F34A47642A4D738B001E105A /* DownloadImageViewModel.swift in Sources */,
 				F08E10402A04917600899DF8 /* WebCacheMgr.swift in Sources */,
 				F028997729F7C38500B8754A /* DwebBrowserApp.swift in Sources */,
+				F3F63C492A77898200893931 /* ConsoleSwift.swift in Sources */,
 				F0B231E62A301EF4001EEFB8 /* HomePageView.swift in Sources */,
 				F028998C29F7C3E400B8754A /* TabPageView.swift in Sources */,
 			);
@@ -751,6 +756,7 @@
 				F3D5AAB22A52C1C5007C93D0 /* CombinePublisher.swift in Sources */,
 				F35E2F222A5D3F780034DF6F /* KeyboardHeightHelper.swift in Sources */,
 				F3D5AAB32A52C1C5007C93D0 /* DwebBrowserApp.swift in Sources */,
+				F3F63C4A2A77899600893931 /* ConsoleSwift.swift in Sources */,
 				F3D5AAB42A52C1C5007C93D0 /* BrowserView.swift in Sources */,
 				F3D5AAB52A52C1C5007C93D0 /* const.swift in Sources */,
 				F3D5AAB62A52C1C5007C93D0 /* Url+Validator.swift in Sources */,
@@ -960,6 +966,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				OTHER_SWIFT_FLAGS = "-D DwebBrowser";
 				PRODUCT_BUNDLE_IDENTIFIER = D.E.C.DwebBrowser;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -996,6 +1003,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				OTHER_SWIFT_FLAGS = "-D DwebBrowser";
 				PRODUCT_BUNDLE_IDENTIFIER = D.E.C.DwebBrowser;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";

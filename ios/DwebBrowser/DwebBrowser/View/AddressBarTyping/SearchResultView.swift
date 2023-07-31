@@ -110,6 +110,6 @@ struct SearchResultView: View {
                 localLinkSearcher.fetchRecordList(placeHolder: text)
             }
         }
-        .dismissKeyboard()
+//        .dismissKeyboard()
     }
 }

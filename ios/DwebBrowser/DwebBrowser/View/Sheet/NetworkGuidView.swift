@@ -22,7 +22,7 @@ struct NetworkGuidView: View {
                         .foregroundColor(.sheetTopbar)
                     Spacer().frame(height: 52)
 
-                    Image("wifi_error")
+                    Image(uiImage: UIImage.assetsImage(name: "wifi_error"))
                         .resizable()
                         .frame(width: 80, height: 80)
                     
@@ -65,13 +65,13 @@ struct NetworkGuidView: View {
                     .foregroundColor(.networkGuidColor)
 
                 TabView {
-                    Image("network_1")
+                    Image(uiImage: UIImage.assetsImage(name: "network_1"))
                         .resizable()
                         .frame(width: imageWidth, height: imageHeight)
-                    Image("network_2")
+                    Image(uiImage: UIImage.assetsImage(name: "network_2"))
                         .resizable()
                         .frame(width: imageWidth, height: imageHeight)
-                    Image("network_3")
+                    Image(uiImage: UIImage.assetsImage(name: "network_3"))
                         .resizable()
                         .frame(width: imageWidth, height: imageHeight)
                 }

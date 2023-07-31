@@ -15,7 +15,7 @@ struct PagingScrollView: View {
     @EnvironmentObject var addressBar: AddressBarState
     @EnvironmentObject var selectedTab: SelectedTab
     @EnvironmentObject var animation: ShiftAnimation
-    @ObservedObject var keyboardHelper = KeyboardHeightHelper()
+    @StateObject var keyboardHelper = KeyboardHeightHelper()
 
     @Binding var showTabPage: Bool
 
@@ -78,7 +78,7 @@ struct PagingScrollView: View {
             if addressBar.isFocused {
                 return -keyboardHelper.keyboardHeight
             } else {
-                return 0
+                return addressbarOffset
             }
         #endif
         
