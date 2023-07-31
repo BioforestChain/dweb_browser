@@ -1,6 +1,7 @@
 package info.bagen.dwebbrowser
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.os.Bundle
 import android.webkit.*
 import androidx.activity.compose.setContent
@@ -21,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import com.google.accompanist.web.*
+import info.bagen.dwebbrowser.microService.browser.desktop.TaskbarActivity
 import org.dweb_browser.helper.*
 import info.bagen.dwebbrowser.ui.theme.DwebBrowserAppTheme
 import org.dweb_browser.browserUI.util.KEY_ENABLE_AGREEMENT
@@ -44,7 +46,7 @@ class SplashActivity : AppCompatActivity() {
     splashScreen.setKeepOnScreenCondition { mKeepOnAtomicBool.get() } // 使用mKeepOnAtomicBool状态控制欢迎界面
     App.startMicroModuleProcess() // 启动MicroModule
     val enable = this.getBoolean(KEY_ENABLE_AGREEMENT, false) // 获取隐私协议状态
-
+    
     setContent {
       val scope = rememberCoroutineScope()
       LaunchedEffect(mKeepOnAtomicBool) { // 最多显示1s就需要隐藏欢迎界面

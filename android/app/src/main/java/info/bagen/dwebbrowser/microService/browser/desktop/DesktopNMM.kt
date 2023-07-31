@@ -111,15 +111,15 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
         return@defineHandler getDesktopApps()
       },
       "/desktop/observe/apps" bind Method.GET to defineHandler { _, ipc ->
-        val inputStream =  observerApp(ipc)
+        val inputStream = observerApp(ipc)
         runningAppsIpc.emitChange()
         return@defineHandler Response(Status.OK).body(inputStream)
       },
     )
   }
 
-  private suspend fun observerApp(ipc: Ipc):InputStream {
-   return ReadableStream(onStart = { controller ->
+  private suspend fun observerApp(ipc: Ipc): InputStream {
+    return ReadableStream(onStart = { controller ->
       val off = runningAppsIpc.onChange {
         try {
           withContext(Dispatchers.IO) {
@@ -154,7 +154,7 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
               bootstrapContext.dns.close(it.mmid)
             }
           }
-            bootstrapContext.dns.install(JsMicroModule(jsMetaData))
+          bootstrapContext.dns.install(JsMicroModule(jsMetaData))
         }
       }
     }
@@ -164,7 +164,7 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
     App.startActivity(DesktopActivity::class.java) { intent ->
       intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
       intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
-      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
+      // 不可以添加 Intent.FLAG_ACTIVITY_NEW_DOCUMENT ，否则 TaskbarActivity 就没发和 DesktopActivity 混合渲染、点击穿透
       intent.putExtras(Bundle().also { b -> b.putString("mmid", mmid) })
     }
     val activity = controller.waitActivityCreated()

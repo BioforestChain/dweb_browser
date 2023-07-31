@@ -94,10 +94,10 @@ fun DesktopMainView(
         viewItem.webView
       }
     } ?: MainView(onClick)
-    // 2. 顶部的工具栏和显示网页是一个整体
-    DesktopPager()
-    // 3. 右边的工具栏
-    DrawerView()
+//    // 2. 顶部的工具栏和显示网页是一个整体
+//    DesktopPager()
+//    // 3. 右边的工具栏
+//    DrawerView()
   }
 }
 

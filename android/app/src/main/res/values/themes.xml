@@ -17,6 +17,23 @@
     <item name="android:windowDisablePreview">true</item>
   </style>
 
+  <!--  <style name="Theme.dwebbrowser.desk.taskbar" parent="@android:style/Theme.Translucent.NoTitleBar">-->
+  <!--    <item name="android:windowIsTranslucent">true</item>-->
+  <!--    <item name="android:windowIsFloating">true</item>-->
+  <!--    <item name="android:windowCloseOnTouchOutside">false</item>-->
+  <!--  </style>-->
+  <style name="Theme.dwebbrowser.desk.taskbar" parent="android:Theme.Material.Light.NoActionBar">
+    <item name="android:windowNoTitle">true</item>
+    <item name="android:windowBackground">@android:color/transparent</item>
+    <item name="android:windowIsTranslucent">true</item>
+    <item name="android:background">@android:color/transparent</item>
+    <item name="android:windowFrame">@null</item>
+    <item name="android:title">null</item>
+    <item name="android:windowContentOverlay">@null</item>
+    <item name="android:backgroundDimEnabled">false</item>
+    <item name="android:windowIsFloating">true</item>
+  </style>
+
   <style name="OnClick">
     <item name="android:clickable">true</item>
     <item name="android:onClick">onClick</item>
