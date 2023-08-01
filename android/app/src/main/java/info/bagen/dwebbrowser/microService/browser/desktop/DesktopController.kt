@@ -139,31 +139,28 @@ class DesktopWebViewClient(private val microModule: MicroModule) : AccompanistWe
   ): WebResourceResponse? {
     var response: Response? = null
     val url = request.url
-    println("shouldInterceptReques=> $url")
     if (url.scheme == "http" && url.host == "localhost") {
       response = runBlockingCatching(ioAsyncExceptionHandler) {
         val urlPathSegments = url.pathSegments.filter { it.isNotEmpty() }
-        if (urlPathSegments[0] == "newtab") {
-          val pathSegments = urlPathSegments.drop(1)
-          // readAccept
-          if (pathSegments.toString().contains("readAccept")) {
-            return@runBlockingCatching Response(Status.OK).body("""{"accept""${request.requestHeaders["Accept"]}}""")
-          }
-          return@runBlockingCatching if (pathSegments.getOrNull(0) == "api") {
-            // API
-            microModule.nativeFetch(
-              "file://${
-                pathSegments.drop(1).joinToString("/")
-              }?${request.url.query}"
-            )
-          } else {
-            microModule.nativeFetch(
-              "file:///sys/browser/desk/${
-                if (pathSegments.isEmpty()) "desktop.html" else pathSegments.joinToString("/")
-              }"
-            )
-          }
-        } else null
+        // readAccept
+        if (urlPathSegments.toString().contains("readAccept")) {
+          return@runBlockingCatching Response(Status.OK).body("""{"accept":"${request.requestHeaders["Accept"]}"}""")
+        }
+        debugDesktop("shouldInterceptRequest",url)
+        return@runBlockingCatching if (urlPathSegments.getOrNull(0) == "api") {
+          // API
+          microModule.nativeFetch(
+            "file://${
+              urlPathSegments.drop(1).joinToString("/")
+            }?${request.url.query}"
+          )
+        } else {
+          microModule.nativeFetch(
+            "file:///sys/browser/${
+              if (urlPathSegments.isEmpty()) "desktop.html" else urlPathSegments.joinToString("/")
+            }"
+          )
+        }
       }.getOrThrow()
     } else if (request.url.scheme == "dweb") { // 负责拦截browser的dweb_deeplink
       runBlockingCatching(ioAsyncExceptionHandler) {

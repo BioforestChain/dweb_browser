@@ -123,8 +123,9 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
   /**webSocket 网关路由寻找*/
   private suspend fun wsHandler(request: Request): WsResponse {
     // 转发newtab请求
-    val response = if (request.uri.path.startsWith("/newtab/api")) {
-     nativeFetch("file:/${request.uri.path.substring(11)}")
+    val response = if (request.uri.path.startsWith("/desk/api")) {
+      println("xxxx111=> file:/${request.uri.path.substring(9)}")
+     nativeFetch("file:/${request.uri.path.substring(9)}")
     } else {
       httpHandler(request)
     }

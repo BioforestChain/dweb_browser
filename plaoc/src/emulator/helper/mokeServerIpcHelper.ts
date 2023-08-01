@@ -1,3 +1,4 @@
+import type { $MicroModuleManifest } from "../../../deps.ts";
 import {
   $MMID,
   IPC_ROLE,
@@ -51,13 +52,15 @@ export const createMockModuleServerIpc = (mmid: $MMID, apiUrl = BASE_URL) => {
     const serverIpc = new ReadableStreamIpc(
       {
         mmid,
+        name:mmid,
         ipc_support_protocols: {
           cbor: false,
           protobuf: false,
           raw: false,
         },
         dweb_deeplinks: [],
-      },
+        categories:[],
+      } satisfies $MicroModuleManifest,
       IPC_ROLE.CLIENT
     );
     waitOpenPo.resolve(serverIpc);
