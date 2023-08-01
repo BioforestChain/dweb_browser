@@ -51,7 +51,6 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
   private val runningAppsIpc = ChangeableMap<MMID, Ipc>()
 
   init {
-    loadAppInfo()
     controllerList.add(DesktopController(this))
     // 监听runningApps的变化
     runningAppsIpc.onChange { map ->
@@ -82,6 +81,7 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
 
   val queryAppId = Query.string().required("app_id")
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
+    loadAppInfo()
     apiRouting = routes(
       "/openAppOrActivate" bind Method.GET to defineHandler { request ->
         val mmid = queryAppId(request)
@@ -141,6 +141,9 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
     TODO("Not yet implemented")
   }
 
+  /**
+   * 从内存中加载数据
+   */
   @OptIn(DelicateCoroutinesApi::class)
   private fun loadAppInfo() {
     GlobalScope.launch(ioAsyncExceptionHandler) {

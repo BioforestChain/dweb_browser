@@ -1,8 +1,8 @@
 import { X_PLAOC_QUERY } from "./const.ts";
+import type { $MicroModuleManifest } from "./deps.ts";
 import {
   $IpcResponse,
   $MMID,
-  $OnFetchReturn,
   FetchEvent,
   IPC_ROLE,
   PromiseOut,
@@ -10,7 +10,7 @@ import {
   ReadableStreamOut,
   jsProcess,
   mapHelper,
-  simpleEncoder,
+  simpleEncoder
 } from "./deps.ts";
 import { Server_api as _Server_api } from "./http-api-server.ts";
 const EMULATOR_PREFIX = "/emulator";
@@ -20,13 +20,13 @@ export class Server_api extends _Server_api {
   readonly jsonlineEnd = simpleEncoder("\n", "utf8");
 
   /**内部请求事件 */
-  protected override async _onInternal(event: FetchEvent): Promise<$OnFetchReturn> {
-    const sessionId = event.searchParams.get(X_PLAOC_QUERY.SESSION_ID);
-    if (!sessionId) {
-      throw new Error("session not connect!");
-    }
-    return super._onInternal(event, (mmid) => getConncetdIpc(sessionId, mmid) ?? jsProcess.connect(mmid));
-  }
+  // protected override async _onInternal(event: FetchEvent): Promise<$OnFetchReturn> {
+  //   const sessionId = event.searchParams.get(X_PLAOC_QUERY.SESSION_ID);
+  //   if (!sessionId) {
+  //     throw new Error("session not connect!");
+  //   }
+  //   return super._onInternal(event, (mmid) => getConncetdIpc(sessionId, mmid) ?? jsProcess.connect(mmid));
+  // }
 
   protected override async _onApi(event: FetchEvent) {
     const sessionId = event.searchParams.get(X_PLAOC_QUERY.SESSION_ID);
@@ -39,13 +39,15 @@ export class Server_api extends _Server_api {
       const streamIpc = new ReadableStreamIpc(
         {
           mmid: mmid,
+          name:mmid,
           ipc_support_protocols: {
             cbor: false,
             protobuf: false,
             raw: false,
           },
           dweb_deeplinks: [],
-        },
+          categories:[]
+        } satisfies $MicroModuleManifest,
         IPC_ROLE.SERVER
       );
       void streamIpc.bindIncomeStream(event.body!);

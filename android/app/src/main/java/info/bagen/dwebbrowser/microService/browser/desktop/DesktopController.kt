@@ -147,11 +147,12 @@ class DesktopWebViewClient(private val microModule: MicroModule) : AccompanistWe
           return@runBlockingCatching Response(Status.OK).body("""{"accept":"${request.requestHeaders["Accept"]}"}""")
         }
         debugDesktop("shouldInterceptRequest",url)
-        return@runBlockingCatching if (urlPathSegments.getOrNull(0) == "api") {
+        return@runBlockingCatching if (urlPathSegments.getOrNull(1) == "api") {
+          val pathSegments = urlPathSegments.drop(1)
           // API
           microModule.nativeFetch(
             "file://${
-              urlPathSegments.drop(1).joinToString("/")
+              pathSegments.drop(1).joinToString("/")
             }?${request.url.query}"
           )
         } else {

@@ -29,7 +29,7 @@ class HapticsNMM : NativeMicroModule("haptics.sys.dweb","haptics") {
                     else -> HapticsImpactType.LIGHT
                 }
                 vibrateManage.impact(style)
-                Response(Status.OK)
+                ResponseData()
             },
             /** 警告分隔的振动通知 */
             "/notification" bind Method.GET to defineHandler { request ->
@@ -39,32 +39,32 @@ class HapticsNMM : NativeMicroModule("haptics.sys.dweb","haptics") {
                     else -> HapticsNotificationType.ERROR
                 }
                 vibrateManage.notification(type)
-                Response(Status.OK)
+                ResponseData()
             },
             /** 单击手势的反馈振动 */
             "/vibrateClick" bind Method.GET to defineHandler { request ->
                 vibrateManage.vibrateClick()
-                Response(Status.OK)
+                ResponseData()
             },
             /** 禁用手势的反馈振动，与headShak特效一致 */
             "/vibrateDisabled" bind Method.GET to defineHandler { request ->
                 vibrateManage.vibrateDisabled()
-                Response(Status.OK)
+                ResponseData()
             },
             /** 双击手势的反馈振动 */
             "/vibrateDoubleClick" bind Method.GET to defineHandler { request ->
                 vibrateManage.vibrateDoubleClick()
-                Response(Status.OK)
+                ResponseData()
             },
             /** 重击手势的反馈振动，比如菜单键/长按/3DTouch */
             "/vibrateHeavyClick" bind Method.GET to defineHandler { request ->
                 vibrateManage.vibrateHeavyClick()
-                Response(Status.OK)
+                ResponseData()
             },
             /** 滴答 */
             "/vibrateTick" bind Method.GET to defineHandler { request ->
                 vibrateManage.vibrateTick()
-                Response(Status.OK)
+                ResponseData()
             },
             /** 自定义传递 振动频率 */
             "/customize" bind Method.GET to defineHandler { request ->
@@ -73,13 +73,15 @@ class HapticsNMM : NativeMicroModule("haptics.sys.dweb","haptics") {
                     val array = duration.removeArrayMark().split(",")
                     val longArray = LongArray(array.size) { array[it].toLong() }
                     vibrateManage.vibratePre26(longArray, -1)
-                    Response(Status.OK)
+                    ResponseData("ok")
                 } catch (e: Exception) {
                     Response(Status.EXPECTATION_FAILED).body(e.toString())
                 }
             },
         )
     }
+
+    data class ResponseData(val message:String = "ok")
 
     override suspend fun _shutdown() {
         TODO("Not yet implemented")
