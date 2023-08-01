@@ -68,7 +68,12 @@ export const nativeFetchStream = <T>(
 
 export function buildApiRequestArgs(pathname: string, init?: $BuildRequestInit) {
   const mmid = init?.mmid ?? baseMmid;
-  const url = new URL(`api/${mmid}${pathname}`, apiUrl);
+  const url = new URL(`api/${mmid}${pathname}`, apiUrl); // 复制一份，这样可以保留 search 信息
+  {
+    url.search = apiUrl.search;
+    url.hash = apiUrl.hash;
+  }
+
   const search = init?.search;
   if (search) {
     let extendsSearch: URLSearchParams;

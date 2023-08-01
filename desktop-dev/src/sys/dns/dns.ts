@@ -2,7 +2,7 @@ import process from "node:process";
 import type { $BootstrapContext, $DnsMicroModule } from "../../core/bootstrapContext.ts";
 import { MICRO_MODULE_CATEGORY } from "../../core/category.const.ts";
 import { $normalizeRequestInitAsIpcRequestArgs, buildRequestX } from "../../core/helper/ipcRequestHelper.ts";
-import { IpcEvent } from "../../core/ipc/index.ts";
+import { IpcEvent, IpcResponse } from "../../core/ipc/index.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import type { MicroModule } from "../../core/micro-module.ts";
 import { $ConnectResult, connectMicroModules } from "../../core/nativeConnect.ts";
@@ -176,13 +176,20 @@ export class DnsNMM extends NativeMicroModule {
 
     this.onAfterShutdown(
       nativeFetchAdaptersManager.append(async (fromMM, parsedUrl, requestInit) => {
+        const req_url = parsedUrl.href;
+        let ipc_response: undefined | IpcResponse;
         if (parsedUrl.protocol === "file:" && parsedUrl.hostname.endsWith(".dweb")) {
           const mmid = parsedUrl.hostname as $MMID;
-          const reason_request = buildRequestX(parsedUrl.href, requestInit);
+          const reason_request = buildRequestX(req_url, requestInit);
           const [ipc] = await this[connectTo_symbol](fromMM, mmid, reason_request);
-          const ipc_response = await ipc.request(reason_request.url, reason_request);
-          return ipc_response.toResponse(parsedUrl.href);
+          ipc_response = await ipc.request(reason_request.url, reason_request);
+        } else if (parsedUrl.protocol === "dweb:") {
+          ipc_response = await this.postDeeplink(fromMM, req_url);
+          if (ipc_response === undefined) {
+            return new Response("Dweb Deeplink No Found Matchs", { status: 502, statusText: "Bad Gateway" });
+          }
         }
+        return ipc_response?.toResponse(req_url);
       })
     );
 
@@ -202,7 +209,7 @@ export class DnsNMM extends NativeMicroModule {
     if (args.length > 0) {
       const [domain, ...deeplink_args] = args;
       const dweb_deeplink = `dweb:${domain}`;
-      const buildReqUrl = () => {
+      const buildDeeplinkUrl = () => {
         const normalizePath: string[] = [];
         const normalizeQuery = new URLSearchParams();
         let hasSearch = false;
@@ -227,18 +234,22 @@ export class DnsNMM extends NativeMicroModule {
         );
         return url;
       };
-      let _req_url: undefined | URL;
-      const getReqUrl = () => (_req_url ??= buildReqUrl());
 
       /// 查询匹配deeplink的程序
-      for (const app of this.apps.values()) {
-        if (undefined !== app.dweb_deeplinks.find((dl) => dl.startsWith(dweb_deeplink))) {
-          const req = buildRequestX(getReqUrl());
-          const [ipc] = await context.dns.connect(app.mmid, req);
-          const ipc_req_init = await $normalizeRequestInitAsIpcRequestArgs(req);
-          /// 发送请求
-          await ipc.request(req.url, ipc_req_init);
-        }
+      void this.postDeeplink(this, buildDeeplinkUrl().href);
+    }
+  }
+
+  /** 执行 deeplink 指令 */
+  private async postDeeplink(fromMM: MicroModule, deeplinkUrl: string) {
+    /// 查询匹配deeplink的程序
+    for (const app of this.apps.values()) {
+      if (undefined !== app.dweb_deeplinks.find((dl) => deeplinkUrl.startsWith(dl))) {
+        const req = buildRequestX(deeplinkUrl);
+        const [ipc] = await this[connectTo_symbol](fromMM, app.mmid, req);
+        const ipc_req_init = await $normalizeRequestInitAsIpcRequestArgs(req);
+        /// 发送请求
+        return await ipc.request(deeplinkUrl, ipc_req_init);
       }
     }
   }
