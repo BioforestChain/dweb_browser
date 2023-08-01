@@ -18,6 +18,7 @@ public class Gateway
 
     public class PortListener
     {
+        static readonly Debugger Console = new("PortListener");
         public Ipc Ipc { get; init; }
         public string Host { get; init; }
 
@@ -101,9 +102,12 @@ public class Gateway
                     {
                         await foreach (var chunk in streamBody.Data.ReadBytesStream())
                         {
+                            Console.Log("chunk", chunk.ToUtf8());
                             if (webSocketContext.WebSocket.State == WebSocketState.Open)
                             {
                                 await webSocketContext.WebSocket.SendAsync(chunk, WebSocketMessageType.Binary, false, CancellationToken.None);
+                                await webSocketContext.WebSocket.SendAsync(ArraySegment<byte>.Empty, WebSocketMessageType.Binary, true, CancellationToken.None);
+                                Console.Log("chunk", "end");
                             }
                         }
                         if (webSocketContext.WebSocket.State == WebSocketState.Open)

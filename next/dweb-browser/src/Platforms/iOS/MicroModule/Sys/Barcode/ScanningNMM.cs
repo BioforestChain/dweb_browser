@@ -3,6 +3,7 @@
 public class ScanningNMM : NativeMicroModule
 {
     public new const string Name = "Barcode Scanning";
+    public override string ShortName { get; set; } = "Scanning";
     public ScanningNMM() : base("barcode-scanning.sys.dweb")
     { }
 

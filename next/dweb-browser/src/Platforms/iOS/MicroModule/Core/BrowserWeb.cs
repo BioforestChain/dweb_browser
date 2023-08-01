@@ -5,8 +5,9 @@ using Foundation;
 using UIKit;
 using WebKit;
 using DwebBrowserFramework;
+using DwebBrowser.MicroService.Browser.Desk;
 
-namespace DwebBrowser.MicroService.Browser;
+namespace DwebBrowser.MicroService.Core;
 
 public partial class BrowserWeb : BrowserWebview
 {
@@ -98,7 +99,7 @@ public partial class BrowserWeb : BrowserWebview
             Console.Log("DecidePolicy", "url: {0}", navigationAction.Request.Url);
             if (navigationAction.Request.Url.Scheme == "dweb")
             {
-                await BrowserNMM.BrowserController?.BrowserNMM.NativeFetchAsync(
+                await DeskNMM.DeskController?.DeskNMM.NativeFetchAsync(
                         navigationAction.Request.Url.AbsoluteString);
 
                 decisionHandler(WKNavigationActionPolicy.Cancel);
@@ -174,6 +175,7 @@ public partial class BrowserWeb : BrowserWebview
         {
             var url = new URL(nsurl.AbsoluteString.Replace("about+ios://", "http://browser.dweb/"));
             var paths = url.Path.Split("/").ToList().FindAll(it => !string.IsNullOrEmpty(it));
+            Console.Log("InternalSchemaUrl", url.Uri.AbsoluteUri);
 
             if (paths[0] == "newtab")
             {

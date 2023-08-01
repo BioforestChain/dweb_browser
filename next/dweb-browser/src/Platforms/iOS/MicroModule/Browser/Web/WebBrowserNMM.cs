@@ -1,40 +1,35 @@
 ﻿using DwebBrowserFramework;
 using UIKit;
 
-namespace DwebBrowser.MicroService.Browser;
+namespace DwebBrowser.MicroService.Browser.Web;
 
-public class BrowserNMM : IOSNativeMicroModule
+public class WebBrowserNMM : IOSNativeMicroModule
 {
-    static readonly Debugger Console = new("BrowserNMM");
+    static readonly Debugger Console = new("WebNMM");
     public new const string Name = "Web Browser";
     public override string ShortName { get; set; } = "Browser";
-    public BrowserNMM() : base("web.browser.dweb")
+    public WebBrowserNMM() : base("web.browser.dweb")
     {
         s_controllerList.Add(new(this));
     }
 
-    private static readonly List<BrowserController> s_controllerList = new();
-    public static BrowserController BrowserController
+    private static readonly List<WebBrowserController> s_controllerList = new();
+    public static WebBrowserController WebBrowserController
     {
         get => s_controllerList.FirstOrDefault();
     }
 
-    public override List<Dweb_DeepLink> Dweb_deeplinks { get; init; } = new() { "dweb:search" };
     public override List<MicroModuleCategory> Categories { get; init; } = new()
     {
         MicroModuleCategory.Application,
         MicroModuleCategory.Web_Browser,
     };
 
+    public override List<Core.ImageSource> Icons { get { return new() { new Core.ImageSource("file:///sys/browser/web/logo.svg") }; } }
 
     protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)
     {
-        HttpRouter.AddRoute(IpcMethod.Get, "/search", async (request, ipc) =>
-        {
-            // TODO: 触发Browser搜索
-
-            return null;
-        });
+        
     }
 
     public override async void OpenActivity(Mmid remoteMmid)
@@ -55,7 +50,7 @@ public class BrowserNMM : IOSNativeMicroModule
             //manager.OpenWebViewUrlWithUrlString("about:newtab");
             //var swiftView = manager.SwiftView;
             browserView.Frame = UIScreen.MainScreen.Bounds;
-            BrowserController.View.AddSubview(browserView);
+            WebBrowserController.View.AddSubview(browserView);
             //webview.LoadRequest(new NSUrlRequest(new NSUrl("dweb:install?url=https://dweb.waterbang.top/metadata.json")));
         });
     }

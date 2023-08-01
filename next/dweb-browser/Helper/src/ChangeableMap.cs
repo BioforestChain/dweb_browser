@@ -13,6 +13,8 @@ public class ChangeableMap<K, V> where K : notnull, IComparable
     }
     protected Task _OnChangeEmit(ConcurrentDictionary<K, V> dic) => _changeSignal.Emit(dic).ForAwait();
 
+    public Task OnChangeEmit() => _OnChangeEmit(InnerMap);
+
     public int Length => InnerMap.Count;
 
     public async Task<bool> Set(K key, V value)

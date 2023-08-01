@@ -78,7 +78,7 @@ public class JsProcessNMM : NativeMicroModule
                 }
                 else
                 {
-                    var response = await NativeFetchAsync(String.Format("file:///sys/browser/js-process.main{0}", request.Uri.AbsolutePath));
+                    var response = await NativeFetchAsync(string.Format("file:///sys/browser/js-process.main{0}", request.Uri.AbsolutePath));
                     /// 加入跨域支持
                     foreach (var (key, value) in _CORS_HEADERS)
                     {
@@ -250,7 +250,7 @@ public class JsProcessNMM : NativeMicroModule
         /**
          * 用自己的域名的权限为它创建一个子域名
          */
-        var httpDwebServer = await CreateHttpDwebServer(new DwebHttpServerOptions(subdomain: ipc.Remote.Mmid));
+        var httpDwebServer = await CreateHttpDwebServer(new DwebHttpServerOptions(Subdomain: ipc.Remote.Mmid));
 
         /**
          * 远端是代码服务，所以这里是 client 的身份

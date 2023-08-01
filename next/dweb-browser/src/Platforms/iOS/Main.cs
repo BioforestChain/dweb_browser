@@ -1,11 +1,11 @@
-﻿using DwebBrowser.MicroService.Browser;
-using DwebBrowser.MicroService.Browser.Desk;
+﻿using DwebBrowser.MicroService.Browser.Desk;
 using DwebBrowser.MicroService.Browser.Jmm;
 using DwebBrowser.MicroService.Browser.JsProcess;
 using DwebBrowser.MicroService.Browser.Mwebview;
 using DwebBrowser.MicroService.Browser.NativeUI;
 using DwebBrowser.MicroService.Browser.NativeUI.Haptics;
 using DwebBrowser.MicroService.Browser.NativeUI.Torch;
+using DwebBrowser.MicroService.Browser.Web;
 using DwebBrowser.MicroService.Sys.Barcode;
 using DwebBrowser.MicroService.Sys.Biometrics;
 using DwebBrowser.MicroService.Sys.Boot;
@@ -76,21 +76,26 @@ public class MicroService
     // 添加debug日志scope过滤
     private static readonly List<string> _debugScopes = new()
     {
-        "JsMicroModule",
-        "HttpNMM",
-        "LocaleFile",
-        "DnsNMM",
-        "MessagePortIpc",
-        "JmmNMM",
-        "BrowserWeb",
-        "JmmDownload",
+        //"JsMicroModule",
+        //"HttpNMM",
+        //"LocaleFile",
+        //"DnsNMM",
+        //"MessagePortIpc",
+        //"JmmNMM",
+        //"BrowserWeb",
+        //"JmmDownload",
         "StreamExtensions",
-        "BrowserNMM",
+        //"BrowserNMM",
+        "NMM",
+        "DeskNMM",
         "BrowserWeb",
-        "DeviceNMM",
-        "DeviceSystemInfo",
-        "DeskStore",
-        "FileStore"
+        "DWebView",
+        "DeskController",
+        "PortListener",
+        //"DeviceNMM",
+        //"DeviceSystemInfo",
+        //"DeskStore",
+        //"FileStore"
     };
 
     // 添加debug日志tag过滤
@@ -118,7 +123,7 @@ public class MicroService
 
         /// 安装系统桌面
         var deskNMM = new DeskNMM().InstallBy(dnsNMM);
-        var browserNMM = new BrowserNMM().InstallBy(dnsNMM);
+        var webBrowserNMM = new WebBrowserNMM().InstallBy(dnsNMM);
 
         /// 安装平台模块
         new ShareNMM().InstallBy(dnsNMM);
@@ -141,7 +146,6 @@ public class MicroService
         {
             jmmNMM.Mmid,
             deskNMM.Mmid,
-            browserNMM.Mmid,
         };
         /// 启动程序
         var bootNMM = new BootNMM(

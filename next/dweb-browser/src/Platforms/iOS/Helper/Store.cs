@@ -17,7 +17,7 @@ public struct StoreOptions
 /// <summary>
 /// 使用iOS NSUserDefaults进行持久化
 /// </summary>
-sealed internal class Store
+sealed public class Store
 {
     static readonly Debugger Console = new("Store");
     private byte[] SecretKey { get; init; }
@@ -193,7 +193,7 @@ sealed internal class Store
 /// <summary>
 /// 使用文件进行持久化存储
 /// </summary>
-internal class FileStore
+public class FileStore
 {
     static readonly Debugger Console = new("FileStore");
 

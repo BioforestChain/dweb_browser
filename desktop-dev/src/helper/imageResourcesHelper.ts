@@ -23,7 +23,7 @@ export const strictImageResource = (img: ImageResource, baseUrl = document.baseU
   }
 
   const imageSizes: Array<{ width: number; height: number }> = [];
-  if (img.sizes === undefined) {
+  if (img.sizes === undefined || img.sizes === null) {
     if (imageType === "image/svg+xml") {
       imageSizes.push({ width: Number.MAX_SAFE_INTEGER, height: Number.MAX_SAFE_INTEGER });
     } else {

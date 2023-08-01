@@ -11,7 +11,7 @@ import UIKit
 extension URL {
     static func createUrl(_ urlString: String) -> URL {
         if var url = URL(string: urlString), urlString.isURL() || url.canBeOpen {
-            if !urlString.contains("http") {
+            if url.scheme == nil {
                 url = URL(string: "https://" + urlString)!
             }
             return url

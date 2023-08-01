@@ -49,11 +49,7 @@ namespace DwebBrowser.MicroService.Sys.Http.Net
         public Func<Task<bool>> Close { get; init; }
     }
 
-    public record DwebHttpServerOptions(int? port = null, string? subdomain = null)
-    {
-        public int Port = port ?? 80;
-        public string Subdomain = subdomain ?? "";
-    };
+    public record DwebHttpServerOptions(int? Port = 80, string? Subdomain = "");
 }
 
 namespace DwebBrowser.MicroService.Core
@@ -62,8 +58,8 @@ namespace DwebBrowser.MicroService.Core
     {
         public async Task<HttpNMM.ServerStartResult> StartHttpDwebServer(DwebHttpServerOptions options) =>
             await (await NativeFetchAsync(new URL("file://http.std.dweb/start")
-                .SearchParamsSet("port", options.port.ToString())
-                .SearchParamsSet("subdomain", options.subdomain)))
+                .SearchParamsSet("port", options.Port.ToString())
+                .SearchParamsSet("subdomain", options.Subdomain)))
             .JsonAsync<HttpNMM.ServerStartResult>();
 
         public async Task<ReadableStreamIpc> ListenHttpDwebServer(
@@ -85,8 +81,8 @@ namespace DwebBrowser.MicroService.Core
 
         public async Task<bool> CloseHttpDwebServer(DwebHttpServerOptions options) =>
             await (await NativeFetchAsync(new URL("file://http.std.dweb/close")
-                .SearchParamsSet("port", options.port.ToString())
-                .SearchParamsSet("subdomain", options.subdomain)))
+                .SearchParamsSet("port", options.Port.ToString())
+                .SearchParamsSet("subdomain", options.Subdomain)))
             .BoolAsync();
 
         public async Task<HttpDwebServer> CreateHttpDwebServer(DwebHttpServerOptions options) =>

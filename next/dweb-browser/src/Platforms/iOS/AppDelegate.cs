@@ -1,4 +1,4 @@
-﻿using DwebBrowser.MicroService.Browser;
+﻿using DwebBrowser.MicroService.Browser.Desk;
 using Foundation;
 using UIKit;
 
@@ -16,7 +16,8 @@ public class AppDelegate : MauiUIApplicationDelegate
         Window = application.KeyWindow;
 
         // create a UIViewController with a single UILabel
-        var nav = new UINavigationController(BrowserNMM.BrowserController);
+        //var nav = new UINavigationController(BrowserNMM.BrowserController);
+        var nav = new UINavigationController(DeskNMM.DeskController);
         nav.SetNavigationBarHidden(true, false);
 
         Window.RootViewController = nav;
@@ -38,7 +39,7 @@ public class AppDelegate : MauiUIApplicationDelegate
             _ = Task.Run(async () =>
             {
                 var deeplink = string.Format("dweb:{0}?{1}", url.Path[1..], url.Query);
-                await BrowserNMM.BrowserController.BrowserNMM.NativeFetchAsync(deeplink);
+                await DeskNMM.DeskController.DeskNMM.NativeFetchAsync(deeplink);
             }).NoThrow();
 
             return false;

@@ -1,10 +1,8 @@
-﻿
-using DwebBrowser.MicroService.Browser.Jmm;
-using System.Text.Json;
+﻿using System.Text.Json;
 
 namespace DwebBrowser.MicroService.Browser.Desk;
 
-sealed internal class DeskStore : FileStore
+sealed public class DeskStore : FileStore
 {
     static readonly Debugger Console = new("DeskStore");
     public static DeskStore Instance = new("desk.browser.dweb");
