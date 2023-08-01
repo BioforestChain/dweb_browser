@@ -20,14 +20,12 @@ struct SearchResultView: View {
                     Button {
                         guard let url = URL(string: searcher.inputHandler(addressBar.inputText)) else { return }
                         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                        DispatchQueue.main.async {
-                            let webcache = WebCacheMgr.shared.store[selectedTab.curIndex]
-                            if !webcache.shouldShowWeb {
-                                webcache.lastVisitedUrl = url
-                            }
-                            openingLink.clickedLink = url
-                            addressBar.isFocused = false
+                        let webcache = WebCacheMgr.shared.store[selectedTab.curIndex]
+                        if !webcache.shouldShowWeb {
+                            webcache.shouldShowWeb = true
                         }
+                        openingLink.clickedLink = url
+                        addressBar.isFocused = false
                     } label: {
                         VStack {
                             HStack(spacing: 12) {

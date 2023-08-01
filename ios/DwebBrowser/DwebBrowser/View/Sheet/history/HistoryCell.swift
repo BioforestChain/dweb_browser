@@ -50,7 +50,7 @@ struct HistoryCell: View {
                      guard let link = URL(string: linkRecord.link) else { return }
                      let webcache = WebCacheMgr.shared.store[selectedTab.curIndex]
                      if !webcache.shouldShowWeb {
-                         webcache.lastVisitedUrl = link
+                         webcache.shouldShowWeb = true
                      }
                      openingLink.clickedLink = link
                      showSheet.should = false

@@ -86,13 +86,13 @@ struct TabPageView: View {
                 }
                 print("onappear progress:\(webWrapper.webView.estimatedProgress)")
             }
-            .onChange(of: openingLink.clickedLink) { url in
-                print("clickedLink has changed: \(url)")
-                guard url != emptyURL else { return }
+            .onReceive(openingLink.$clickedLink) { link in
                 if isVisible {
-                    webWrapper.webView.load(URLRequest(url: url))
+                    guard link != emptyURL else { return }
+                    print("clickedLink has changed: \(link)")
+                    webWrapper.webView.load(URLRequest(url: link))
+                    openingLink.clickedLink = emptyURL
                 }
-                openingLink.clickedLink = emptyURL
             }
 
             .onChange(of: webWrapper.url) { url in
