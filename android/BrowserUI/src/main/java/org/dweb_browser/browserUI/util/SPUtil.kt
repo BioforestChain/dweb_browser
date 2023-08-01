@@ -45,6 +45,17 @@ fun Context.saveStringSet(key: String, value: Set<String>) {
   sp.edit { putStringSet(key, value) }
 }
 
+fun Context.saveList(key: String, value: List<String>) {
+  val sp = getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
+  sp.edit { putStringSet(key, value.toSet()) }
+}
+
+fun Context.getList(key: String): MutableList<String>? {
+  val sp = getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
+  return getStringSet(key)?.toMutableList()
+}
+
+
 fun Context.getStringSet(key: String, default: Set<String>? = null): Set<String>? {
   val sp = getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
   return sp.getStringSet(key, default)

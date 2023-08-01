@@ -212,7 +212,6 @@ export class JsProcessMicroModule implements $MicroModule {
       this._on_activity_inited = true;
       this.onConnect((ipc) => {
         ipc.onEvent((ipcEvent, ipc) => {
-          console.log("js-process.worker onEvent=> ", ipcEvent.name);
           if (ipcEvent.name === MWEBVIEW_LIFECYCLE_EVENT.Activity) {
             return this._activitySignal.emit(ipcEvent, ipc);
           }

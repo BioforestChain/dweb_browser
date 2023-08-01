@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.compose.runtime.toMutableStateMap
 import info.bagen.dwebbrowser.App
+import info.bagen.dwebbrowser.microService.browser.desktop.data.DeskStore
 import info.bagen.dwebbrowser.microService.browser.jmm.EIpcEvent
 import info.bagen.dwebbrowser.microService.browser.jmm.JsMicroModule
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
@@ -16,7 +17,6 @@ import kotlinx.coroutines.withContext
 import org.dweb_browser.browserUI.database.JsMicroModuleStore
 import org.dweb_browser.browserUI.download.compareAppVersionHigh
 import org.dweb_browser.helper.ChangeableMap
-import org.dweb_browser.helper.encodeURI
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printdebugln
 import org.dweb_browser.helper.runBlockingCatching
@@ -43,7 +43,6 @@ import org.http4k.lens.int
 import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
-import java.io.InputStream
 
 fun debugDesktop(tag: String, msg: Any? = "", err: Throwable? = null) =
   printdebugln("Desktop", tag, msg, err)
@@ -58,7 +57,7 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
     val desktopController get() = controllerList.firstOrNull()
   }
 
-  private val taskbarAppList = mutableListOf<MMID>()
+  private val taskbarAppList = DeskStore.get(DeskStore.TASKBAR_APPS)
   private val runningAppsIpc = ChangeableMap<MMID, Ipc>()
 
   init {
@@ -72,6 +71,8 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
           taskbarAppList.remove(it)
           taskbarAppList.add(it)
         }
+        /// 保存到数据库
+        DeskStore.set(DeskStore.TASKBAR_APPS,_appList)
       }
     }
   }
@@ -83,7 +84,6 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
       runApps = apps.map { metaData ->
         return@map DeskAppMetaData(
           running = runningAppsIpc.containsKey(metaData.mmid),
-          isExpand = false
         ).setMetaData(metaData)
       }
     }.getOrThrow()
@@ -91,8 +91,7 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
   }
 
   /** 展示在taskbar中的应用列表 */
-  private val _appList = mutableSetOf<MMID>()
-
+  private val _appList = listOf<MMID>()
   private fun getTaskbarAppList(limit: Int): List<DeskAppMetaData> {
     val apps = mutableMapOf<MMID, DeskAppMetaData>()
     for (appId in _appList) {
@@ -107,12 +106,12 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
         apps[appId] = DeskAppMetaData(
           //...复制metaData属性
           running = runningAppsIpc.contains(appId),
+          winStates = emptyList()
         ).setMetaData(metaData)
       }
     }
 
     return apps.values.toList()
-
   }
   val queryAppId = Query.string().required("app_id")
   val queryUrl = Query.string().required("url")
@@ -131,7 +130,6 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
     val desktopServer = this.createDesktopWebServer()
 
     loadAppInfo()
-
 
     apiRouting = routes(
       "/readFile" bind Method.GET to defineHandler { request ->
@@ -221,6 +219,25 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
   }
   override suspend fun _shutdown() {
     TODO("Not yet implemented")
+  }
+
+  /**
+   * 从内存中缓存taskBar数据
+   */
+  private fun loadTaskBarApps() {
+//      TaskBarStore.queryAppInfoList().collectLatest { list -> // TODO 只要datastore更新，这边就会实时更新
+//        debugDesktop("loadTaskBarApps", "size=${list.size}")
+//        list.map { jsMetaData ->
+//          // 检测版本
+//          val lastAppMetaData = bootstrapContext.dns.query(jsMetaData.id)
+//          lastAppMetaData?.let {
+//            if (compareAppVersionHigh(it.version, jsMetaData.version)) {
+//              bootstrapContext.dns.close(it.mmid)
+//            }
+//          }
+//          bootstrapContext.dns.install(JsMicroModule(jsMetaData))
+//        }
+//      }
   }
 
   /**
