@@ -66,12 +66,13 @@ struct AddressBar: View {
                     .background(.white)
                     .foregroundColor(webCache.isBlank() ? .networkTipColor : .black)
                     .padding(.horizontal, 50)
-                    .opacity(isAdressBarFocused ? 0 : 1)
+                    .opacity(addressBar.isFocused ? 0 : 1)
                     .onTapGesture {
                         if webCache.isBlank() {
                             inputText = ""
                         }
                         isAdressBarFocused = true
+                        addressBar.isFocused = true
                     }
             #endif
         }
@@ -99,13 +100,8 @@ struct AddressBar: View {
                 #if DwebBrowser
                     addressBar.isFocused = isFocued
                 #endif
-
-                #if DwebFramework
-                    ConsoleSwift.inject("isAdressBarFocused \(isAdressBarFocused)--addressBar.isFocused: \(addressBar.isFocused) --isFocued \(isFocued)")
-                #endif
             })
             .onChange(of: addressBar.isFocused) { isFocused in
-                print("addressBar.isFocused \(addressBar.isFocused) -- \(isFocused)")
                 if !isFocused, isVisible {
                     #if DwebBrowser
                         isAdressBarFocused = isFocused
@@ -114,9 +110,6 @@ struct AddressBar: View {
                         inputText = webCache.lastVisitedUrl.absoluteString
                     }
                 }
-                #if DwebFramework
-                    ConsoleSwift.inject("2222addressBar.isFocused \(addressBar.isFocused) -- \(isFocused) -- \(isAdressBarFocused)")
-                #endif
             }
             .onSubmit {
                 let url = URL.createUrl(inputText)
@@ -137,9 +130,6 @@ struct AddressBar: View {
                 }
             }
             .onChange(of: inputText) { text in
-                #if DwebFramework
-                    ConsoleSwift.inject(text)
-                #endif
                 addressBar.inputText = text
             }
     }
@@ -169,10 +159,6 @@ struct AddressBar: View {
             #if DwebFramework
                 isAdressBarFocused = true
                 addressBar.isFocused = true
-            #endif
-
-            #if DwebFramework
-                ConsoleSwift.inject("clearTextButton \(addressBar.isFocused) -- \(isAdressBarFocused)")
             #endif
         } label: {
             Image(systemName: "xmark.circle.fill")
