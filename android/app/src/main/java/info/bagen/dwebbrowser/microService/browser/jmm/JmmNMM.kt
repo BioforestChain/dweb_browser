@@ -14,6 +14,7 @@ import org.dweb_browser.microservice.help.DWEB_DEEPLINK
 import org.dweb_browser.microservice.help.JmmAppInstallManifest
 import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.MMID
+import org.dweb_browser.microservice.help.MicroModuleManifest
 import org.dweb_browser.microservice.help.json
 import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.http4k.core.Method
@@ -67,7 +68,7 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb","Js MicroModule Manag
   init {
     controllerList.add(JmmController(this))
   }
-  fun getApps(mmid:MMID):MicroModule? {
+  fun getApps(mmid:MMID):MicroModuleManifest? {
     return bootstrapContext.dns.query(mmid)
   }
 

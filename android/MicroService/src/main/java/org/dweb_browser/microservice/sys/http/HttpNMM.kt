@@ -167,6 +167,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
           }
         }
       }
+
       else -> {
         WsResponse { ws ->
           ws.close(WsStatus(response.status.code, response.status.description))

@@ -91,6 +91,23 @@ class DesktopController(private val desktopNMM: DesktopNMM) {
     return this
   }
 
+  /**
+   * 对Taskbar自身进行resize
+   * 根据web元素的大小进行自适应调整
+   *
+   * @returns 如果视图发生了真实的改变（不论是否变成说要的结果），则返回 true
+   */
+  fun resize(width: Number, height: Number) {
+
+  }
+
+  /**
+   * 将其它视图临时最小化到 TaskbarView/TooggleDesktopButton 按钮里头，在此点击该按钮可以释放这些临时视图到原本的状态
+   */
+  fun toggleDesktopView() {
+
+  }
+
   private val openLock = Mutex()
   suspend fun openApp(deskAppMetaData: DeskAppMetaData) {
     openLock.withLock {
@@ -146,7 +163,7 @@ class DesktopWebViewClient(private val microModule: MicroModule) : AccompanistWe
         if (urlPathSegments.toString().contains("readAccept")) {
           return@runBlockingCatching Response(Status.OK).body("""{"accept":"${request.requestHeaders["Accept"]}"}""")
         }
-        debugDesktop("shouldInterceptRequest",url)
+        debugDesktop("shouldInterceptRequest", url)
         return@runBlockingCatching if (urlPathSegments.getOrNull(1) == "api") {
           val pathSegments = urlPathSegments.drop(1)
           // API

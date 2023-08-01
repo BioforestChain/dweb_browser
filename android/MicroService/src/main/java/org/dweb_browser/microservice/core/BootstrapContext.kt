@@ -24,7 +24,7 @@ interface DnsMicroModule {
   /**
    * 动态js应用查询
    */
-  fun query(mmid: MMID): MicroModule?
+  fun query(mmid: MMID): MicroModuleManifest?
 
   /**
    * 根据类目搜索模块

@@ -38,6 +38,8 @@ import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
 import org.http4k.lens.Query
+import org.http4k.lens.composite
+import org.http4k.lens.int
 import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
@@ -88,7 +90,39 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
     return runApps
   }
 
+  /** 展示在taskbar中的应用列表 */
+  private val _appList = mutableSetOf<MMID>()
+
+  private fun getTaskbarAppList(limit: Int): List<DeskAppMetaData> {
+    val apps = mutableMapOf<MMID, DeskAppMetaData>()
+    for (appId in _appList) {
+      if (apps.size >= limit) {
+        break
+      }
+      if (appId == mmid || apps.containsKey(appId)) {
+        continue
+      }
+      val metaData = bootstrapContext.dns.query(appId)
+      if (metaData != null) {
+        apps[appId] = DeskAppMetaData(
+          //...复制metaData属性
+          running = runningAppsIpc.contains(appId),
+        ).setMetaData(metaData)
+      }
+    }
+
+    return apps.values.toList()
+
+  }
   val queryAppId = Query.string().required("app_id")
+  val queryUrl = Query.string().required("url")
+  val queryLimit = Query.int().optional("limit")
+  val queryResize = Query.composite {
+    ReSize(
+      width = int().required("width")(it),
+      height = int().required("height")(it)
+    )
+  }
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     this.onAfterShutdown {
       this.runningAppsIpc.reset()
@@ -100,6 +134,10 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
 
 
     apiRouting = routes(
+      "/readFile" bind Method.GET to defineHandler { request ->
+        val url = queryUrl(request)
+        return@defineHandler nativeFetch(url)
+      },
       "/openAppOrActivate" bind Method.GET to defineHandler { request ->
         val mmid = queryAppId(request)
         val ipc = runningAppsIpc[mmid] ?: bootstrapContext.dns.connect(mmid).ipcForFromMM
@@ -128,32 +166,59 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
         return@defineHandler getDesktopApps()
       },
       "/desktop/observe/apps" bind Method.GET to defineHandler { _, ipc ->
-        val inputStream = observerApp(ipc)
+        val inputStream = ReadableStream(onStart = { controller ->
+          val off = runningAppsIpc.onChange {
+            try {
+              withContext(Dispatchers.IO) {
+                controller.enqueue((gson.toJson(getDesktopApps()) + "\n").toByteArray())
+              }
+            } catch (e: Exception) {
+              controller.close()
+              e.printStackTrace()
+            }
+          }
+          ipc.onClose {
+            off(Unit)
+            controller.close()
+          }
+        })
         runningAppsIpc.emitChange()
         return@defineHandler Response(Status.OK).body(inputStream)
       },
+      "/taskbar/apps" bind Method.GET to defineHandler { request ->
+        val limit = queryLimit(request) ?: Int.MAX_VALUE
+        return@defineHandler getTaskbarAppList(limit)
+      },
+      "/taskbar/observe/apps" bind Method.GET to defineHandler {  request, ipc ->
+        val limit = queryLimit(request) ?: Int.MAX_VALUE
+        val inputStream = ReadableStream(onStart = { controller ->
+          val off = runningAppsIpc.onChange {
+            try {
+              withContext(Dispatchers.IO) {
+                controller.enqueue((gson.toJson(getTaskbarAppList(limit)) + "\n").toByteArray())
+              }
+            } catch (e: Exception) {
+              controller.close()
+              e.printStackTrace()
+            }
+          }
+          ipc.onClose {
+            off(Unit)
+            controller.close()
+          }
+        })
+        runningAppsIpc.emitChange()
+        return@defineHandler Response(Status.OK).body(inputStream)
+      },
+      "/taskbar/resize" bind Method.GET to defineHandler { request ->
+        val size = queryResize(request)
+        return@defineHandler controller.resize(size.width,size.height)
+      },
+      "/taskbar/toggle-desktop-view" bind Method.GET to defineHandler { request ->
+        return@defineHandler controller.toggleDesktopView()
+      },
     )
   }
-
-  private suspend fun observerApp(ipc: Ipc): InputStream {
-    return ReadableStream(onStart = { controller ->
-      val off = runningAppsIpc.onChange {
-        try {
-          withContext(Dispatchers.IO) {
-            controller.enqueue((gson.toJson(getDesktopApps()) + "\n").toByteArray())
-          }
-        } catch (e: Exception) {
-          controller.close()
-          e.printStackTrace()
-        }
-      }
-      ipc.onClose {
-        off(Unit)
-        controller.close()
-      }
-    })
-  }
-
   override suspend fun _shutdown() {
     TODO("Not yet implemented")
   }
@@ -244,4 +309,5 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
     }
     return desktopServer
   }
+  data class ReSize(val width:Number,val height:Number)
 }
