@@ -8,6 +8,7 @@ import type { $BootstrapContext } from "./bootstrapContext.ts";
 import type { MICRO_MODULE_CATEGORY } from "./category.const.ts";
 import type { Ipc, IpcEvent } from "./ipc/index.ts";
 import type { $DWEB_DEEPLINK, $IpcSupportProtocols, $MMID, $MicroModule, $MicroModuleManifest } from "./types.ts";
+import { MWEBVIEW_LIFECYCLE_EVENT } from "./types.ts";
 
 export abstract class MicroModule implements $MicroModule {
   abstract mmid: $MMID;
@@ -90,6 +91,8 @@ export abstract class MicroModule implements $MicroModule {
 
   protected after_shutdown() {
     this._after_shutdown_signal.emitAndClear();
+    this._activitySignal.clear();
+    this._connectSignal.clear();
     this._running_state_lock.resolve(false);
   }
 
@@ -127,14 +130,15 @@ export abstract class MicroModule implements $MicroModule {
   beConnect(ipc: Ipc, reason: Request) {
     this.addToIpcSet(ipc);
     ipc.onEvent((event, ipc) => {
-      if (event.name == "activity") {
-        this.onActivity(event, ipc);
+      if (event.name == MWEBVIEW_LIFECYCLE_EVENT.Activity) {
+        this._activitySignal.emit(event, ipc);
       }
     });
     this._connectSignal.emit(ipc, reason);
   }
-
-  protected onActivity(event: IpcEvent, ipc: Ipc) {}
+  private _on_activity_inited = false;
+  protected _activitySignal = createSignal<$OnActivity>();
+  protected onActivity = this._activitySignal.listen;
 
   private async _nativeFetch(url: RequestInfo | URL, init?: RequestInit) {
     const args = normalizeFetchArgs(url, init);
@@ -180,3 +184,4 @@ export abstract class MicroModule implements $MicroModule {
 }
 
 type $OnIpcConnect = (ipc: Ipc, reason: Request) => unknown;
+type $OnActivity = (event: IpcEvent, ipc: Ipc) => unknown;

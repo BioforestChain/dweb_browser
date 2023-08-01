@@ -131,4 +131,3 @@ export interface $Rectangle {
   width: Int;
   height: Int;
 }
-Electron.BrowserWindow.prototype.setProgressBar;
