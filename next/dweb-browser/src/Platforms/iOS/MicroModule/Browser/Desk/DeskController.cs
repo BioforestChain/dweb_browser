@@ -1,12 +1,6 @@
 ﻿using CoreGraphics;
 using DwebBrowser.Base;
-using System.Drawing;
-using CoreGraphics;
 using UIKit;
-using Microsoft.Maui.Controls;
-using Microsoft.Maui.Platform;
-using DwebBrowser.MicroService.Sys.Share;
-using DwebBrowser.MicroService.Sys.Http;
 
 namespace DwebBrowser.MicroService.Browser.Desk;
 

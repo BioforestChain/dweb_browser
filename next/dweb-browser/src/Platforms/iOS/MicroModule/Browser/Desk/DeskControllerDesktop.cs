@@ -31,7 +31,7 @@ public partial class DeskController
             deskApp.Running = DeskNMM.RunningApps.ContainsKey(app.Mmid);
             desktopApps.Add(deskApp);
         }
-        
+
         return desktopApps.OrderBy(it => AppOrders.GetValueOrDefault(it.Mmid)?.Order ?? 0).ToList();
     }
 }

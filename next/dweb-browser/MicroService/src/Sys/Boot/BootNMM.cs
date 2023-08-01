@@ -15,7 +15,7 @@ public class BootNMM : NativeMicroModule
         MicroModuleCategory.Hub_Service,
     };
 
-    public new const string Name = "Boot Management";
+    public override string Name { get; set; } = "Boot Management";
     public override string? ShortName { get; set; } = "Boot";
     public BootNMM(List<Mmid>? initMmids = null) : base("boot.sys.dweb")
     {

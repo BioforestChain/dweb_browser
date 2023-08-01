@@ -11,7 +11,7 @@ public class JsProcessNMM : NativeMicroModule
 {
     static readonly Debugger Console = new("JsProcessNMM");
 
-    public new const string Name = "Js Process";
+    public override string Name { get; set; } = "Js Process";
     public JsProcessNMM() : base("js.browser.dweb")
     {
     }

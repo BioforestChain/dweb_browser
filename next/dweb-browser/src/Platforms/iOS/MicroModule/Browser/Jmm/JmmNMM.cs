@@ -58,7 +58,7 @@ public class JmmNMM : NativeMicroModule
         get => s_controllerList.FirstOrDefault();
     }
 
-    public new const string Name = "Js MicroModule Management";
+    public override string Name { get; set; } = "Js MicroModule Management";
     public override string ShortName { get; set; } = "JMM";
     public JmmNMM() : base("jmm.browser.dweb")
     {

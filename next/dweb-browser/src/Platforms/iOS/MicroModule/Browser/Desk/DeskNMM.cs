@@ -1,8 +1,8 @@
-﻿using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Collections.Concurrent;
-using DwebBrowser.MicroService.Http;
+﻿using System.Collections.Concurrent;
 using System.Net;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using DwebBrowser.MicroService.Http;
 using DwebBrowser.MicroService.Sys.Http;
 
 namespace DwebBrowser.MicroService.Browser.Desk;
@@ -11,7 +11,7 @@ public class DeskNMM : IOSNativeMicroModule
 {
     static readonly Debugger Console = new("DeskNMM");
 
-    public new const string Name = "Desk";
+    public override string Name { get; set; } = "Desk";
     public DeskNMM() : base("desk.browser.dweb")
     {
         s_controllerList.Add(new(this));
@@ -83,6 +83,12 @@ public class DeskNMM : IOSNativeMicroModule
         [JsonPropertyName("running")]
         public bool Running { get; set; } = false;
 
+        /// <summary>
+        /// 当前进程所拥有的窗口的状态
+        /// </summary>
+        [JsonPropertyName("winStates")]
+        public List<WindowState> WinStates { get; set; } = new();
+
         public static DesktopAppMetadata FromMicroModuleManifest(IMicroModuleManifest mm)
         {
             return new DesktopAppMetadata(
@@ -125,7 +131,7 @@ public class DeskNMM : IOSNativeMicroModule
         HttpRouter.AddRoute(new Gateway.RouteConfig("/readAccept.", IpcMethod.Get), async (request, _) =>
         {
             var accept = request.Headers.Get("Accept") ?? "*/*";
-            
+
             return new PureResponse(HttpStatusCode.OK, Body: new PureUtf8StringBody(JsonSerializer.Serialize(new ImageAccept(accept))));
         });
 
@@ -329,5 +335,3 @@ public class DeskNMM : IOSNativeMicroModule
         return server;
     }
 }
-
-

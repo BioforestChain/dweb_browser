@@ -23,7 +23,7 @@ public class HttpNMM : NativeMicroModule
     private readonly Dictionary</* token */string, Gateway> _tokenMap = new();
     private readonly Dictionary</* host */string, Gateway> _gatewayMap = new();
 
-    public new const string Name = "HTTP Server Provider";
+    public override string Name { get; set; } = "HTTP Server Provider";
     public override string? ShortName { get; set; } = "HTTP";
     public HttpNMM() : base("http.std.dweb")
     {

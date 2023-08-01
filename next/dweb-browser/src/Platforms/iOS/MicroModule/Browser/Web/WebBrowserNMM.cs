@@ -6,7 +6,7 @@ namespace DwebBrowser.MicroService.Browser.Web;
 public class WebBrowserNMM : IOSNativeMicroModule
 {
     static readonly Debugger Console = new("WebNMM");
-    public new const string Name = "Web Browser";
+    public override string Name { get; set; } = "Web Browser";
     public override string ShortName { get; set; } = "Browser";
     public WebBrowserNMM() : base("web.browser.dweb")
     {
@@ -40,24 +40,20 @@ public class WebBrowserNMM : IOSNativeMicroModule
             {
                 return new BrowserWeb(this, configuration);
             });
+
             var manager = new BridgeManager();
             var browserView = manager.BrowserView;
-            //var webview = new BrowserWeb();
-            //webview.LoadRequest(new NSUrlRequest(new NSUrl("https://dweb.waterbang.top/")));
-            //manager.WebViewList = new WKWebView[] { webview };
-            //manager.ShowWebViewListDataWithList(new WKWebView[] { webview });
-            //manager.OpenWebViewUrlWithUrlString("https://dweb.waterbang.top/");
-            //manager.OpenWebViewUrlWithUrlString("about:newtab");
-            //var swiftView = manager.SwiftView;
             browserView.Frame = UIScreen.MainScreen.Bounds;
             WebBrowserController.View.AddSubview(browserView);
-            //webview.LoadRequest(new NSUrlRequest(new NSUrl("dweb:install?url=https://dweb.waterbang.top/metadata.json")));
+
+            var vc = await RootViewController.WaitPromiseAsync();
+            vc.PushViewController(WebBrowserController, true);
         });
     }
 
     protected override async Task _onActivityAsync(IpcEvent Event, Ipc ipc)
     {
-        OpenActivity(ipc.Remote.Mmid);
+        OpenActivity(Mmid);
     }
 }
 

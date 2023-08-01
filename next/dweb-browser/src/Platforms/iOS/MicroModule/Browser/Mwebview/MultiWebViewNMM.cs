@@ -6,7 +6,7 @@ public class MultiWebViewNMM : IOSNativeMicroModule
 {
     static readonly Debugger Console = new("MultiWebViewNMM");
 
-    public new const string Name = "Multi Webview Renderer";
+    public override string Name { get; set; } = "Multi Webview Renderer";
     public override string? ShortName { get; set; } = "MWebview";
     public MultiWebViewNMM() : base("mwebview.browser.dweb")
     {

@@ -10,7 +10,7 @@ public class DeviceNMM : NativeMicroModule
         MicroModuleCategory.Device_Management_Service,
     };
 
-    public new const string Name = "Device Info";
+    public override string Name { get; set; } = "Device Info";
     public override string ShortName { get; set; } = "Device";
     public DeviceNMM() : base("device.sys.dweb")
     {
