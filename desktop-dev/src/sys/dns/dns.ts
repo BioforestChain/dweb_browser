@@ -2,6 +2,7 @@ import process from "node:process";
 import type { $BootstrapContext, $DnsMicroModule } from "../../core/bootstrapContext.ts";
 import { MICRO_MODULE_CATEGORY } from "../../core/category.const.ts";
 import { $normalizeRequestInitAsIpcRequestArgs, buildRequestX } from "../../core/helper/ipcRequestHelper.ts";
+import { IpcEvent } from "../../core/ipc/index.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import type { MicroModule } from "../../core/micro-module.ts";
 import { $ConnectResult, connectMicroModules } from "../../core/nativeConnect.ts";
@@ -70,7 +71,7 @@ const connectTo_symbol = Symbol("connectTo");
  * 整个系统都围绕这个 DNS 服务来展开互联
  */
 export class DnsNMM extends NativeMicroModule {
-  mmid = "dns.sys.dweb" as const;
+  mmid = "dns.std.dweb" as const;
   name = "Dweb Name System";
   override short_name = "DNS";
   override dweb_deeplinks = ["dweb:open"] as $DWEB_DEEPLINK[];
@@ -186,7 +187,7 @@ export class DnsNMM extends NativeMicroModule {
     );
 
     //#region 启动引导程序
-    await this.open(`boot.sys.dweb`);
+    (await this.connect(`boot.sys.dweb`))?.postMessage(IpcEvent.fromText("activity", ""));
     //#endregion
 
     /**

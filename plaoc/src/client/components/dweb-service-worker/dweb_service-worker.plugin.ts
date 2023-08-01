@@ -48,7 +48,7 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
   updateController = new UpdateControllerPlugin();
 
   constructor() {
-    super("dns.sys.dweb");
+    super("dns.std.dweb");
   }
   /**拿到更新句柄 */
   @bindThis

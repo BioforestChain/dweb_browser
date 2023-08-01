@@ -1,7 +1,7 @@
 import { $DwebHttpServerOptions, $MMID, $OnFetchReturn, FetchEvent, IpcRequest, jsProcess } from "./deps.ts";
 import { HttpServer } from "./http-helper.ts";
 import { mwebview_destroy } from "./mwebview-helper.ts";
-const DNS_PREFIX = "/dns.sys.dweb/";
+const DNS_PREFIX = "/dns.std.dweb/";
 
 /**给前端的api服务 */
 export class Server_api extends HttpServer {
@@ -17,7 +17,7 @@ export class Server_api extends HttpServer {
   }
 
   protected async _provider(event: FetchEvent) {
-    // /dns.sys.dweb/
+    // /dns.std.dweb/
     if (event.pathname.startsWith(DNS_PREFIX)) {
       return this._onDns(event);
     }

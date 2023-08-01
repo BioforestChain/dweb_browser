@@ -1,4 +1,5 @@
 import { green } from "colors";
+import type { $BootstrapContext } from "../../core/bootstrapContext.ts";
 import { MICRO_MODULE_CATEGORY } from "../../core/category.const.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import type { $MMID } from "../../core/types.ts";
@@ -13,7 +14,7 @@ export class BootNMM extends NativeMicroModule {
   override short_name = "Boot";
   override categories = [MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Hub_Service];
   private readonly registeredMmids: Set<$MMID>;
-  async _bootstrap() {
+  async _bootstrap(context: $BootstrapContext) {
     this.registerCommonIpcOnMessageHandler({
       pathname: "/register",
       matchMode: "full",
@@ -33,12 +34,18 @@ export class BootNMM extends NativeMicroModule {
       },
     });
 
-    /// 开始启动开机项
-    for (const mmid of this.registeredMmids) {
-      /// TODO 这里应该使用总线进行通讯，而不是拿到core直接调用。在未来分布式系统中，core模块可能是远程模块
-      console.always("开机器启动项", green(mmid));
-      await this.nativeFetch(`file://dns.sys.dweb/open?app_id=${mmid}`);
-    }
+    /// 基于activity事件来启动开机项
+    this.onActivity(async (event, ipc) => {
+      // 只响应 dns 模块的激活事件
+      if (ipc.remote.mmid !== "dns.std.dweb") {
+        return;
+      }
+      for (const mmid of this.registeredMmids) {
+        console.always("开机器启动项", green(mmid));
+        const ipc = await this.connect(mmid);
+        ipc?.postMessage(event);
+      }
+    });
   }
   _shutdown() {}
   private register(mmid: $MMID) {

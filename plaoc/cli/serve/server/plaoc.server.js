@@ -6115,7 +6115,7 @@ var sync_mwebview_status = async () => {
 
 // src/server/http-api-server.ts
 var INTERNAL_PREFIX = "/internal/";
-var DNS_PREFIX = "/dns.sys.dweb/";
+var DNS_PREFIX = "/dns.std.dweb/";
 var Server_api = class extends HttpServer {
   _getOptions() {
     return {
