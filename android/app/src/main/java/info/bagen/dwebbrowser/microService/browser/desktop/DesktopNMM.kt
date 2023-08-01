@@ -2,6 +2,7 @@ package info.bagen.dwebbrowser.microService.browser.desktop
 
 import android.content.Intent
 import android.os.Bundle
+import androidx.compose.runtime.toMutableStateMap
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.browser.jmm.EIpcEvent
 import info.bagen.dwebbrowser.microService.browser.jmm.JsMicroModule
@@ -15,6 +16,7 @@ import kotlinx.coroutines.withContext
 import org.dweb_browser.browserUI.database.JsMicroModuleStore
 import org.dweb_browser.browserUI.download.compareAppVersionHigh
 import org.dweb_browser.helper.ChangeableMap
+import org.dweb_browser.helper.encodeURI
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printdebugln
 import org.dweb_browser.helper.runBlockingCatching
@@ -24,7 +26,14 @@ import org.dweb_browser.microservice.help.MMID
 import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
+import org.dweb_browser.microservice.ipc.helper.IpcHeaders
+import org.dweb_browser.microservice.ipc.helper.IpcResponse
 import org.dweb_browser.microservice.ipc.helper.ReadableStream
+import org.dweb_browser.microservice.sys.dns.nativeFetch
+import org.dweb_browser.microservice.sys.http.CORS_HEADERS
+import org.dweb_browser.microservice.sys.http.DwebHttpServerOptions
+import org.dweb_browser.microservice.sys.http.HttpDwebServer
+import org.dweb_browser.microservice.sys.http.createHttpDwebServer
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
@@ -81,7 +90,15 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
 
   val queryAppId = Query.string().required("app_id")
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
+    this.onAfterShutdown {
+      this.runningAppsIpc.reset()
+    }
+    val taskbarServer = this.createTaskbarWebServer(this.bootstrapContext)
+    val desktopServer = this.createDesktopWebServer()
+
     loadAppInfo()
+
+
     apiRouting = routes(
       "/openAppOrActivate" bind Method.GET to defineHandler { request ->
         val mmid = queryAppId(request)
@@ -172,5 +189,59 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
     }
     val activity = controller.waitActivityCreated()
     activitySignal.emit(activity)
+  }
+
+  private val API_PREFIX = "/api/"
+
+  private suspend fun createTaskbarWebServer(context: BootstrapContext): HttpDwebServer {
+    val taskbarServer =
+      createHttpDwebServer(DwebHttpServerOptions(subdomain = "taskbar", port = 433))
+    taskbarServer.listen().onRequest { (request, ipc) ->
+      val pathName = request.uri.path
+      val message = if (pathName.startsWith(API_PREFIX)) {
+        val internalUri = request.uri.path(request.uri.path.substring(API_PREFIX.length))
+        val search = ""
+        if (internalUri.host != mmid && context.dns.query(internalUri.host) == null) {
+          IpcResponse.fromText(
+            request.req_id,
+            404,
+            IpcHeaders(CORS_HEADERS.toMutableStateMap()),
+            "// no found ${internalUri.path}",
+            ipc
+          )
+        }
+        IpcResponse.fromResponse(
+          request.req_id,
+          nativeFetch("file://$internalUri$search"),
+          ipc
+        )
+      } else {
+        IpcResponse.fromResponse(
+          request.req_id,
+          nativeFetch("file:///sys/browser/desk${pathName}?mode=stream"),
+          ipc
+        )
+      }
+      ipc.postMessage(message)
+    }
+    return taskbarServer
+  }
+
+  private suspend fun createDesktopWebServer(): HttpDwebServer {
+    val desktopServer =
+      createHttpDwebServer(DwebHttpServerOptions(subdomain = "desktop", port = 433))
+    desktopServer.listen().onRequest { (request, ipc) ->
+      val pathName = request.uri.path
+      val url = if (pathName.startsWith(API_PREFIX)) {
+        val internalUri = request.uri.path(request.uri.path.substring(API_PREFIX.length))
+        val search = ""
+        "file://$internalUri$search"
+      } else {
+        "file:///sys/browser/desk${pathName}?mode=stream"
+      }
+      val response = nativeFetch(url)
+      ipc.postMessage(IpcResponse.fromResponse(request.req_id, response, ipc))
+    }
+    return desktopServer
   }
 }

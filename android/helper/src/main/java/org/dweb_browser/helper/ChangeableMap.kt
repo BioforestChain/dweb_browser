@@ -67,4 +67,10 @@ class ChangeableMap<K,V>() :MutableMap<K,V>{
     }
     return item
   }
+
+  /** 重置 清空所有的事件监听，清空所有的数据  */
+  fun reset() {
+    _changeSignal.clear()
+    this.clear()
+  }
 }
