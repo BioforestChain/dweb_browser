@@ -5,9 +5,9 @@
 //  Created by ui06 on 4/25/23.
 //
 
-import UIKit
 import Foundation
 import SwiftUI
+import UIKit
 
 let screen_width = UIScreen.main.bounds.width
 let screen_height = UIScreen.main.bounds.height
@@ -23,7 +23,6 @@ let gridcellBottomH: CGFloat = 35
 
 let emptyLink = "https://http.cat/404"
 let emptyURL = URL(string: emptyLink)!
-//let emptyURL = URL(string: "")
 
 let gridVSpace: CGFloat = 20.0
 let gridHSpace: CGFloat = 18.0
@@ -31,22 +30,19 @@ let gridHSpace: CGFloat = 18.0
 let gridCellW: CGFloat = (screen_width - gridHSpace * 3.0) / 2
 let cellImageH: CGFloat = gridCellW * 1.3
 
-
-var safeAreaTopHeight: CGFloat{
+private var curSafeAreaInsets: UIEdgeInsets {
     if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-       let topSafeAreaInset = windowScene.windows.first?.safeAreaInsets.top {
-        return topSafeAreaInset
+       let insets = windowScene.windows.first?.safeAreaInsets
+    {
+        return insets
     }
-    return 0
+    return .zero
 }
 
-var safeAreaBottomHeight: CGFloat{
-    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-       let topSafeAreaInset = windowScene.windows.first?.safeAreaInsets.bottom {
-        return topSafeAreaInset
-    }
-    return 0
+var safeAreaTopHeight: CGFloat {
+    return curSafeAreaInsets.top
 }
 
-let bundlePath = Bundle.main.path(forResource: "resource", ofType: "bundle")!
-let bundleUrl = Bundle.main.url(forResource: "resource", withExtension: "bundle")!
+var safeAreaBottomHeight: CGFloat {
+    return curSafeAreaInsets.bottom
+}
