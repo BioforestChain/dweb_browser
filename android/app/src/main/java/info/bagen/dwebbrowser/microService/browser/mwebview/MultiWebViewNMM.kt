@@ -1,6 +1,9 @@
 package info.bagen.dwebbrowser.microService.browser.mwebview
 
+import androidx.compose.runtime.Composable
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
+import info.bagen.dwebbrowser.microService.core.WindowState
+import info.bagen.dwebbrowser.microService.core.windowAdapterManager
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.browserUI.download.DownLoadObserver
@@ -12,6 +15,7 @@ import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printdebugln
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.MicroModule
+import org.dweb_browser.microservice.ipc.Ipc
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
@@ -19,6 +23,7 @@ import org.http4k.lens.Query
 import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
+import java.util.UUID
 
 fun debugMultiWebView(tag: String, msg: Any? = "", err: Throwable? = null) =
   printdebugln("mwebview", tag, msg, err)
@@ -56,7 +61,7 @@ class MultiWebViewNMM :
           controller?.destroyWebView()
         }
 
-        val viewItem = openDwebView(remoteMm, url)
+        val viewItem = openDwebView(url, remoteMm, ipc)
         return@defineHandler ViewItemResponse(viewItem.webviewId)
       },
       // 关闭指定 webview 窗口
@@ -87,22 +92,38 @@ class MultiWebViewNMM :
   }
 
   private suspend fun openDwebView(
-    remoteMm: MicroModule,
     url: String,
+    remoteMm: MicroModule,
+    ipc: Ipc,
   ): ViewItem {
     val remoteMmid = remoteMm.mmid
     debugMultiWebView("/open", "remote-mmid: $remoteMmid / url:$url")
+
     val controller = controllerMap.getOrPut(remoteMmid) {
-      MultiWebViewController(remoteMmid, this, remoteMm, getActivity())
+      val wid = UUID.randomUUID().toString();
+      val win = windowAdapterManager.createWindow(
+        WindowState(
+          wid = wid, owner = ipc.remote.mmid, provider = mmid
+        )
+      );
+
+      MultiWebViewController(win, ipc, remoteMm, this).also { controller ->
+        /// 提供渲染适配
+        windowAdapterManager.providers[wid] = @Composable { controller.Render(it) }
+        /// 窗口销毁的时候，移除适配器
+        win.onDestroy {
+          windowAdapterManager.providers.remove(wid)
+        }
+      }
     }
+
+
     GlobalScope.launch(ioAsyncExceptionHandler) {
       controller.downLoadObserver = DownLoadObserver(remoteMmid).apply {
         observe { listener ->
           controller.lastViewOrNull?.webView?.let { dWebView ->
             emitEvent(
-              dWebView,
-              listener.downLoadStatus.toServiceWorkerEvent(),
-              listener.progress
+              dWebView, listener.downLoadStatus.toServiceWorkerEvent(), listener.progress
             )
           }
         }

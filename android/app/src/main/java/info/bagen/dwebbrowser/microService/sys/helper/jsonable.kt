@@ -9,17 +9,22 @@ import androidx.core.graphics.Insets
 import info.bagen.dwebbrowser.App
 
 data class ColorJson(val red: Int, val blue: Int, val green: Int, val alpha: Int) {
-    fun toColor() = Color(red = red, blue = blue, green = green, alpha = alpha)
+  fun toColor() = Color(red = red, blue = blue, green = green, alpha = alpha)
 }
 
 fun Color.toJsonAble(): ColorJson = convert(ColorSpaces.Srgb).let {
-    ColorJson(
-        (it.red * 255).toInt(),
-        (it.blue * 255).toInt(),
-        (it.green * 255).toInt(),
-        (it.alpha * 255).toInt()
-    )
+  ColorJson(
+    (it.red * 255).toInt(),
+    (it.blue * 255).toInt(),
+    (it.green * 255).toInt(),
+    (it.alpha * 255).toInt()
+  )
 }
+
+fun Color.toCssRgba(): String = convert(ColorSpaces.Srgb).let {
+  "rgb(${it.red * 255} ${it.blue * 255} ${it.green * 255} ${if (it.alpha >= 1f) "" else "/ ${it.alpha}"})"
+}
+
 
 data class RectJson(val x: Float, val y: Float, val width: Float, val height: Float)
 data class InsetsJson(val top: Float, val left: Float, val right: Float, val bottom: Float)
@@ -27,14 +32,15 @@ data class InsetsJson(val top: Float, val left: Float, val right: Float, val bot
 fun WindowInsets.toJsonAble(
   density: Density = Density(App.appContext), direction: LayoutDirection = LayoutDirection.Ltr
 ) = InsetsJson(
-    top = getTop(density).toFloat(),
-    left = getLeft(density, direction).toFloat(),
-    right = getRight(density, direction).toFloat(),
-    bottom = getBottom(density).toFloat(),
+  top = getTop(density).toFloat(),
+  left = getLeft(density, direction).toFloat(),
+  right = getRight(density, direction).toFloat(),
+  bottom = getBottom(density).toFloat(),
 )
+
 fun Insets.toJsonAble() = InsetsJson(
-    top = top.toFloat(),
-    left = left.toFloat(),
-    right = right.toFloat(),
-    bottom = bottom.toFloat(),
+  top = top.toFloat(),
+  left = left.toFloat(),
+  right = right.toFloat(),
+  bottom = bottom.toFloat(),
 )

@@ -1,5 +1,6 @@
 package info.bagen.dwebbrowser.microService.browser.mwebview
 
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import com.google.accompanist.web.WebContent
 import com.google.accompanist.web.WebViewNavigator
@@ -7,6 +8,7 @@ import com.google.accompanist.web.WebViewState
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.base.BaseActivity
 import info.bagen.dwebbrowser.microService.browser.nativeui.NativeUiController
+import info.bagen.dwebbrowser.microService.core.WindowController
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -32,16 +34,23 @@ import java.util.concurrent.atomic.AtomicInteger
  */
 @Stable
 class MultiWebViewController(
-  private val mmid: MMID,
-  private val localeMM: MultiWebViewNMM,
+  /**
+   * 窗口控制器
+   */
+  val win: WindowController,
+  /**
+   * 控制者的通讯通道
+   */
+  val ipc: Ipc,
+  /// 以下这两参数是用来构建DWebView的时候使用的
+  private val localeMM: MicroModule,
   private val remoteMM: MicroModule,
-  private val activity: BaseActivity?
 ) {
   companion object {
     private var webviewId_acc = AtomicInteger(1)
   }
 
-  private var webViewList = ChangeableList<MultiViewItem>()
+  var webViewList = ChangeableList<MultiViewItem>()
 
   init {
     webViewList.onChange {
@@ -53,8 +62,6 @@ class MultiWebViewController(
   fun isFistView(viewItem: MultiViewItem) = webViewList.firstOrNull() == viewItem
   val lastViewOrNull get() = webViewList.lastOrNull()
   fun getWebView(webviewId: String) = webViewList.find { it.webviewId == webviewId }
-
-  private val mIpcMap = mutableMapOf<MMID, Ipc>()
 
   data class MultiViewItem(
     override val webviewId: String,
@@ -71,6 +78,7 @@ class MultiWebViewController(
         ?: throw Exception("webview un attached to activity")
     }
   }
+
   var downLoadObserver: DownLoadObserver? = null
 
   /**
@@ -79,13 +87,13 @@ class MultiWebViewController(
   suspend fun openWebView(url: String) = appendWebViewAsItem(createDwebView(url))
 
   suspend fun createDwebView(url: String): DWebView = withContext(mainAsyncExceptionHandler) {
-    val currentActivity = activity ?: App.appContext
+    val currentActivity = win.androidContext;// App.appContext
     val dWebView = DWebView(
       currentActivity, localeMM, remoteMM, DWebView.Options(
         url = url,
         /// 我们会完全控制页面将如何离开，所以这里兜底默认为留在页面
         onDetachedFromWindowStrategy = DWebView.Options.DetachedFromWindowStrategy.Ignore,
-      ), activity
+      )
     )
     dWebView
   }
@@ -107,7 +115,7 @@ class MultiWebViewController(
       dWebView.onCloseWindow {
         closeWebView(webviewId)
       }
-     webViewOpenSignal.emit(webviewId)
+      webViewOpenSignal.emit(webviewId)
     }
   }.getOrThrow()
 
@@ -158,15 +166,8 @@ class MultiWebViewController(
       viewItem.put("url", (it.state.content as WebContent.Url).url)
       currentState.put(it.webviewId, viewItem)
     }
-    mIpcMap.getOrPut(mmid) {
-      val ipc = localeMM.connect(mmid)
-      ipc.onEvent {
-        debugMultiWebView("event", "name=${it.event.name},data=${it.event.data}")
-      }
-      ipc
-    }.also { ipc ->
-      ipc.postMessage(IpcEvent.fromUtf8("state", currentState.toString()))
-    }
+
+    ipc.postMessage(IpcEvent.fromUtf8("state", currentState.toString()))
   }
 
   private val webViewCloseSignal = Signal<String>()
@@ -174,4 +175,6 @@ class MultiWebViewController(
 
   fun onWebViewClose(cb: Callback<String>) = webViewCloseSignal.listen(cb)
   fun onWebViewOpen(cb: Callback<String>) = webViewOpenSignal.listen(cb)
+
+
 }

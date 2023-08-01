@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.microService.browser.desktop
+package info.bagen.dwebbrowser.microService.browser.desk
 
 import android.annotation.SuppressLint
 import android.os.Bundle

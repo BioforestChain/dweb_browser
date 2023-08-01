@@ -10,7 +10,7 @@ import info.bagen.dwebbrowser.microService.browser.jmm.JmmNMM
 import info.bagen.dwebbrowser.microService.browser.jsProcess.JsProcessNMM
 import info.bagen.dwebbrowser.microService.browser.nativeui.NativeUiNMM
 import info.bagen.dwebbrowser.microService.browser.nativeui.torch.TorchNMM
-import info.bagen.dwebbrowser.microService.browser.desktop.DesktopNMM
+import info.bagen.dwebbrowser.microService.browser.desk.DesktopNMM
 import info.bagen.dwebbrowser.microService.browser.mwebview.MultiWebViewNMM
 import info.bagen.dwebbrowser.microService.sys.LocalFileFetch
 import info.bagen.dwebbrowser.microService.sys.biometrics.BiometricsNMM
@@ -47,9 +47,9 @@ suspend fun startDwebBrowser(): DnsNMM {
   when (DEVELOPER.CURRENT) {
     DEVELOPER.GAUBEE -> debugTags.addAll(
       listOf<String>(
-        "JsMM",
-        "fetch",
-        "message-port-ipc"
+        "http",
+//        "fetch",
+//        "message-port-ipc"
       )
     )
 

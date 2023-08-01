@@ -25,7 +25,8 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
   override val short_name = "Browser";
   override val categories =
     mutableListOf(MICRO_MODULE_CATEGORY.Application, MICRO_MODULE_CATEGORY.Web_Browser)
-  override val icons: List<ImageResource> = listOf(ImageResource(src = "http://localhost:22206/web/logo.svg"))
+  override val icons: List<ImageResource> =
+    listOf(ImageResource(src = "http://localhost:22206/web/logo.svg"))
 
   companion object {
     val controllerList = mutableListOf<BrowserController>()
@@ -47,15 +48,15 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
         return@defineHandler true
       },
     )
-  }
 
-  override suspend fun onActivity(event: IpcEvent, ipc: Ipc) {
-    App.startActivity(BrowserActivity::class.java) { intent ->
-      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-      intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
-      // 由于SplashActivity添加了android:excludeFromRecents属性，导致同一个task的其他activity也无法显示在Recent Screen，比如BrowserActivity
-      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
-      intent.putExtras(Bundle().also { b -> b.putString("mmid", mmid) })
+    onActivity {
+      App.startActivity(BrowserActivity::class.java) { intent ->
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
+        // 由于SplashActivity添加了android:excludeFromRecents属性，导致同一个task的其他activity也无法显示在Recent Screen，比如BrowserActivity
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
+        intent.putExtras(Bundle().also { b -> b.putString("mmid", mmid) })
+      }
     }
   }
 

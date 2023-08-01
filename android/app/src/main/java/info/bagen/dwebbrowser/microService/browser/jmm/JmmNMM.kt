@@ -3,13 +3,17 @@ package info.bagen.dwebbrowser.microService.browser.jmm
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.browser.jmm.ui.JmmManagerActivity
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import org.dweb_browser.browserUI.database.JsMicroModuleStore
 import org.dweb_browser.browserUI.download.DownLoadController
+import org.dweb_browser.browserUI.download.compareAppVersionHigh
 import org.dweb_browser.browserUI.util.BrowserUIApp
 import org.dweb_browser.browserUI.util.FilesUtil
 import org.dweb_browser.helper.printdebugln
 import org.dweb_browser.microservice.core.BootstrapContext
-import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.help.DWEB_DEEPLINK
 import org.dweb_browser.microservice.help.JmmAppInstallManifest
 import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
@@ -45,19 +49,16 @@ inline fun <K, V> MutableMap<K, V>.getOrPutOrReplace(
   }
 }
 
-class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb","Js MicroModule Management") {
+class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Management") {
 
   override val short_name = "JMM";
   override val dweb_deeplinks = mutableListOf<DWEB_DEEPLINK>("dweb:install")
-  override val categories = mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Hub_Service);
+  override val categories =
+    mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Hub_Service);
 
   enum class EIpcEvent(val event: String) {
-    State("state"),
-    Ready("ready"),
-    Activity("activity"),
-    Close("close")
+    State("state"), Ready("ready"), Activity("activity"), Close("close")
   }
-
 
 
   companion object {
@@ -68,7 +69,8 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb","Js MicroModule Manag
   init {
     controllerList.add(JmmController(this))
   }
-  fun getApps(mmid:MMID):MicroModuleManifest? {
+
+  fun getApps(mmid: MMID): MicroModuleManifest? {
     return bootstrapContext.dns.query(mmid)
   }
 
@@ -76,16 +78,21 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb","Js MicroModule Manag
   val queryMmid = Query.string().required("app_id")
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
+    installJmmApps()
+
+    val route_install_hanlder = defineHandler { request ->
+      val metadataUrl = queryMetadataUrl(request)
+      val jmmAppInstallManifest =
+        nativeFetch(metadataUrl).json<JmmAppInstallManifest>(JmmAppInstallManifest::class.java)
+      val url = URL(metadataUrl)
+      // 根据 jmmMetadata 打开一个应用信息的界面，用户阅读界面信息后，可以点击"安装"
+      jmmMetadataInstall(jmmAppInstallManifest, url)
+      return@defineHandler jmmAppInstallManifest
+    }
     apiRouting = routes(
-      "/install" bind Method.GET to defineHandler { request ->
-        val metadataUrl = queryMetadataUrl(request)
-        val jmmAppInstallManifest =
-          nativeFetch(metadataUrl).json<JmmAppInstallManifest>(JmmAppInstallManifest::class.java)
-        val url = URL(metadataUrl)
-        // 根据 jmmMetadata 打开一个应用信息的界面，用户阅读界面信息后，可以点击"安装"
-        jmmMetadataInstall(jmmAppInstallManifest, url)
-        return@defineHandler jmmAppInstallManifest
-      },
+      // 安装
+      "install" bind Method.GET to route_install_hanlder,
+      "/install" bind Method.GET to route_install_hanlder,
       "/uninstall" bind Method.GET to defineHandler { request ->
         val mmid = queryMmid(request)
         debugJMM("uninstall", mmid)
@@ -123,9 +130,44 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb","Js MicroModule Manag
         BrowserUIApp.Instance.mBinderService?.invokeUpdateDownloadStatus(
           ipc.remote.mmid, DownLoadController.CANCEL
         )
-      }
-    )
+      })
 
+  }
+
+  /**
+   * 从内存中加载数据
+   */
+  @OptIn(DelicateCoroutinesApi::class)
+  private fun installJmmApps() {
+    GlobalScope.launch {
+      var preList = mutableListOf<JmmAppInstallManifest>()
+      JsMicroModuleStore.queryAppInfoList().collectLatest { list -> // TODO 只要datastore更新，这边就会实时更新
+        debugJMM("AppInfoDataStore", "size=${list.size}")
+        /// 将会被卸载的应用
+        val uninstalls = mutableMapOf<MMID, JmmAppInstallManifest>().also {
+          for (jmmApp in preList) {
+            it[jmmApp.id] = jmmApp
+          }
+        }
+        list.map { jsMetaData ->
+          // 如果存在，那么就不会卸载
+          uninstalls.remove(jsMetaData.id);
+          // 检测版本
+          val lastAppMetaData = bootstrapContext.dns.query(jsMetaData.id)
+          lastAppMetaData?.let {
+            if (compareAppVersionHigh(it.version, jsMetaData.version)) {
+              bootstrapContext.dns.close(it.mmid)
+            }
+          }
+          bootstrapContext.dns.install(JsMicroModule(jsMetaData))
+        }
+        /// 将剩余的应用卸载掉
+        for (jmmAppId in uninstalls.keys) {
+          bootstrapContext.dns.uninstall(jmmAppId)
+        }
+        preList = list
+      }
+    }
   }
 
   private fun jmmMetadataInstall(jmmAppInstallManifest: JmmAppInstallManifest, url: URL) {

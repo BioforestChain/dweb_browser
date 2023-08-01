@@ -25,9 +25,11 @@ import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
 fun debugMultiWebView(tag: String, msg: Any? = "", err: Throwable? = null) =
   printdebugln("mwebview", tag, msg, err)
 
-class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.browser.dweb","Multi Webview Renderer") {
+class MultiWebViewNMM :
+  AndroidNativeMicroModule("mwebview.browser.dweb", "Multi Webview Renderer") {
   override val short_name = "MWebview";
-  override val categories = mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service);
+  override val categories =
+    mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service);
 
   class ActivityClass(var mmid: MMID, val ctor: Class<out MultiWebViewActivity>)
 
@@ -157,7 +159,6 @@ class MultiWebViewNMM : AndroidNativeMicroModule("mwebview.browser.dweb","Multi 
     openActivity(remoteMmid)
     /// 等待创建成功再返回
     val activity = controller.waitActivityCreated()
-    activitySignal.emit(activity)
     /// 销毁的时候取消绑定
     activity.onDestroyActivity {
       controllerMap.remove(remoteMmid, controller)

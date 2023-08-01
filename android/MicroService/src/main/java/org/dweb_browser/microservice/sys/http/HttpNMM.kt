@@ -35,6 +35,8 @@ import org.http4k.websocket.WsResponse
 import org.http4k.websocket.WsStatus
 import java.io.ByteArrayInputStream
 import java.util.Random
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentMap
 
 fun debugHttp(tag: String, msg: Any = "", err: Throwable? = null) =
   printdebugln("http", tag, msg, err)
@@ -51,8 +53,8 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
   }
 
   /// 注册的域名与对应的 token
-  private val tokenMap = mutableMapOf</* token */ String, Gateway>();
-  private val gatewayMap = mutableMapOf</* host */ String, Gateway>();
+  private val tokenMap = ConcurrentHashMap</* token */ String, Gateway>();
+  private val gatewayMap = ConcurrentHashMap</* host */ String, Gateway>();
 
   private fun processHost(request: Request): String {
     var header_host: String? = null
@@ -123,12 +125,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
   /**webSocket 网关路由寻找*/
   private suspend fun wsHandler(request: Request): WsResponse {
     // 转发newtab请求
-    val response = if (request.uri.path.startsWith("/desk/api")) {
-      println("xxxx111=> file:/${request.uri.path.substring(9)}")
-     nativeFetch("file:/${request.uri.path.substring(9)}")
-    } else {
-      httpHandler(request)
-    }
+    val response = httpHandler(request)
     return when (response.status.code) {
       /// 如果是200响应头，那么使用WebSocket来作为双工的通讯标准进行传输
       Status.OK.code -> {
@@ -140,6 +137,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
                 ws.close()
                 break
               }
+
               else -> {
                 val chunk = stream.readByteArray(readInt)
                 ws.send(WsMessage(ByteArrayInputStream(chunk)))
@@ -307,7 +305,9 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
   private fun listen(
     token: String, message: Request, routes: List<Gateway.RouteConfig>
   ): Response {
-    val gateway = tokenMap[token] ?: throw Exception("no gateway with token: $token")
+    debugHttp("LISTEN", tokenMap.keys.toList())
+    val gateway = tokenMap[token]
+      ?: throw Exception("no gateway with token: $token")
     debugHttp("LISTEN", "host: ${gateway.urlInfo.host}, token: $token")
 
     val streamIpc = ReadableStreamIpc(

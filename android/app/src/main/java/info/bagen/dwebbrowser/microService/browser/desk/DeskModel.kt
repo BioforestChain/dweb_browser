@@ -1,9 +1,8 @@
-package info.bagen.dwebbrowser.microService.browser.desktop.model
+package info.bagen.dwebbrowser.microService.browser.desk
 
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.runtime.compositionLocalOf
-import info.bagen.dwebbrowser.microService.browser.desktop.DeskAppMetaData
-import org.dweb_browser.dwebview.base.DWebViewItem
+import org.dweb_browser.dwebview.DWebView
 
 val LocalInstallList = compositionLocalOf<MutableList<DeskAppMetaData>> {
   noLocalProvidedFor("LocalInstallList")
@@ -13,8 +12,8 @@ val LocalOpenList = compositionLocalOf<MutableList<DeskAppMetaData>> {
   noLocalProvidedFor("LocalOpenList")
 }
 
-val LocalDesktopViewItem = compositionLocalOf<DWebViewItem> {
-  noLocalProvidedFor("DesktopViewItem")
+val LocalDesktopView = compositionLocalOf<DWebView> {
+  noLocalProvidedFor("DesktopView")
 }
 
 private fun noLocalProvidedFor(name: String): Nothing {

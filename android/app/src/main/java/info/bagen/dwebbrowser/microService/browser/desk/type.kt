@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.microService.browser.desktop
+package info.bagen.dwebbrowser.microService.browser.desk
 
 import org.dweb_browser.helper.DisplayMode
 import org.dweb_browser.helper.ImageResource

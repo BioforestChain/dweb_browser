@@ -4,13 +4,9 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Paint
-import android.graphics.RuntimeShader
-import android.os.Build
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.*
-import androidx.annotation.RequiresApi
 import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -88,18 +84,29 @@ fun debugDWebView(tag: String, msg: Any? = "", err: Throwable? = null) =
  */
 @SuppressLint("SetJavaScriptEnabled", "ViewConstructor")
 class DWebView(
+  /**
+   * 一个WebView的上下文
+   */
   context: Context,
-  val localeMM: MicroModule,
-  val remoteMM: MicroModule,
+  /// 这两个参数是用来实现请求拦截与转发的
+  private val localeMM: MicroModule,
+  private val remoteMM: MicroModule,
+  /**
+   * 一些DWebView自定义的参数
+   */
   val options: Options,
-  var activity: BaseActivity? = null,
+  /**
+   * 该参数的存在，是用来做一些跟交互式界面相关的行为的，交互式界面需要有一个上下文，比如文件选择、权限申请等行为。
+   * 我们将这些功能都写到了BaseActivity上，如果没有提供该对象，则相关的功能将会被禁用
+   */
+  var activity: BaseActivity? = if (context is BaseActivity) context else null
 ) : WebView(context) {
 
   data class Options(
     /**
      * 要加载的页面
      */
-    val url: String,
+    val url: String = "",
     /**
      * WebChromeClient.onJsBeforeUnload 的策略
      *
@@ -182,8 +189,9 @@ class DWebView(
 
     // 初始化设置 ua，这个是无法动态修改的
     val uri = Uri.of(options.url)
-    if ((uri.scheme == "http" || uri.scheme == "https" || uri.scheme == "dweb") &&
-      uri.host.endsWith(".dweb")
+    if ((uri.scheme == "http" || uri.scheme == "https" || uri.scheme == "dweb") && uri.host.endsWith(
+        ".dweb"
+      )
     ) {
       dwebHost = uri.authority
     }
@@ -208,15 +216,15 @@ class DWebView(
       view: WebView, request: WebResourceRequest
     ): WebResourceResponse? {
       // 转发请求
-      if (request.method == "GET" && request.url.host?.endsWith(".dweb") == true) {
-        return dwebFactory(request)
+      if (request.method == "GET" && ((request.url.host?.endsWith(".dweb") == true) || (request.url.scheme == "dweb"))) {
+        return dwebProxyer(request)
       }
       return super.shouldInterceptRequest(view, request)
     }
   }
 
   /** 处理Dweb域名的转发 */
-  fun dwebFactory(request: WebResourceRequest): WebResourceResponse {
+  fun dwebProxyer(request: WebResourceRequest): WebResourceResponse {
     /// http://*.dweb 由 MicroModule 来处理请求
 //    debugDWebView("shouldInterceptRequest/REQUEST", lazy {
 //      "${request.url} [${
@@ -258,13 +266,7 @@ class DWebView(
       webView: WebView,
       filePathCallback: ValueCallback<Array<android.net.Uri>>,
       fileChooserParams: FileChooserParams
-    ): Boolean {
-      if (activity == null) {
-        filePathCallback.onReceiveValue(null)
-        return false;
-      }
-      val context = activity!!
-
+    ) = activity?.let { context ->
       val mimeTypes = fileChooserParams.acceptTypes.joinToString(",").ifEmpty { "*/*" }
       val captureEnabled = fileChooserParams.isCaptureEnabled
       if (captureEnabled) {
@@ -274,12 +276,9 @@ class DWebView(
               filePathCallback.onReceiveValue(null)
               return@launch
             }
-            val tmpFile =
-              File.createTempFile("temp_capture", ".mp4", context.cacheDir);
+            val tmpFile = File.createTempFile("temp_capture", ".mp4", context.cacheDir);
             val tmpUri = FileProvider.getUriForFile(
-              context,
-              "${context.packageName}.file.opener.provider",
-              tmpFile
+              context, "${context.packageName}.file.opener.provider", tmpFile
             )
 
             if (context.captureVideoLauncher.launch(tmpUri)) {
@@ -296,12 +295,9 @@ class DWebView(
               return@launch
             }
 
-            val tmpFile =
-              File.createTempFile("temp_capture", ".jpg", context.cacheDir);
+            val tmpFile = File.createTempFile("temp_capture", ".jpg", context.cacheDir);
             val tmpUri = FileProvider.getUriForFile(
-              context,
-              "${context.packageName}.file.opener.provider",
-              tmpFile
+              context, "${context.packageName}.file.opener.provider", tmpFile
             )
 
             if (context.takePictureLauncher.launch(tmpUri)) {
@@ -318,12 +314,9 @@ class DWebView(
               return@launch
             }
 
-            val tmpFile =
-              File.createTempFile("temp_capture", ".ogg", context.cacheDir);
+            val tmpFile = File.createTempFile("temp_capture", ".ogg", context.cacheDir);
             val tmpUri = FileProvider.getUriForFile(
-              context,
-              "${context.packageName}.file.opener.provider",
-              tmpFile
+              context, "${context.packageName}.file.opener.provider", tmpFile
             )
 
             if (context.recordSoundLauncher.launch(tmpUri)) {
@@ -354,7 +347,8 @@ class DWebView(
         }
       }
       return true
-    }
+    } ?: super.onShowFileChooser(webView, filePathCallback, fileChooserParams)
+
 
     override fun onCloseWindow(window: WebView?) {
       GlobalScope.launch(ioAsyncExceptionHandler) {
@@ -364,11 +358,11 @@ class DWebView(
     }
 
     override fun onPermissionRequest(request: PermissionRequest) {
-      debugDWebView(
-        "onPermissionRequest",
-        "activity:$activity request.resources:${request.resources.joinToString { it }}"
-      )
       activity?.also { context ->
+        debugDWebView(
+          "onPermissionRequest",
+          "activity:$context request.resources:${request.resources.joinToString { it }}"
+        )
         context.lifecycleScope.launch {
           val requestPermissionsMap = mutableMapOf<String, String>();
           // 参考资料： https://developer.android.com/reference/android/webkit/PermissionRequest#constants_1

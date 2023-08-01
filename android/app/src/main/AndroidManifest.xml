@@ -77,7 +77,7 @@
       </intent-filter>
     </activity>
     <activity
-      android:name=".microService.browser.desktop.DesktopActivity"
+      android:name=".microService.browser.desk.DesktopActivity"
       android:exported="true"
       android:screenOrientation="portrait"
       android:theme="@style/Theme.dwebbrowser"
@@ -87,7 +87,7 @@
       </intent-filter>
     </activity>
     <activity
-      android:name=".microService.browser.desktop.TaskbarActivity"
+      android:name=".microService.browser.desk.TaskbarActivity"
       android:exported="true"
       android:theme="@style/Theme.dwebbrowser.desk.taskbar" />
     <activity

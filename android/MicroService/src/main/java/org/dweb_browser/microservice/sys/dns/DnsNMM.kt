@@ -29,10 +29,11 @@ import org.dweb_browser.microservice.ipc.helper.IpcEvent
 fun debugDNS(tag: String, msg: Any = "", err: Throwable? = null) =
   printdebugln("fetch", tag, msg, err)
 
-class DnsNMM() : NativeMicroModule("dns.sys.dweb","Dweb Name System") {
+class DnsNMM() : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
   override val dweb_deeplinks = mutableListOf<DWEB_DEEPLINK>("dweb:open")
   override val short_name = "DNS";
-  override val categories = mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Routing_Service);
+  override val categories =
+    mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Routing_Service);
 
   private val installApps = mutableMapOf<MMID, MicroModule>() // 已安装的应用
   private val runningApps = mutableMapOf<MMID, PromiseOut<MicroModule>>() // 正在运行的应用
@@ -41,7 +42,6 @@ class DnsNMM() : NativeMicroModule("dns.sys.dweb","Dweb Name System") {
     if (!this.running) {
       bootstrapMicroModule(this)
     }
-    onActivity()
   }
 
 
@@ -187,9 +187,11 @@ class DnsNMM() : NativeMicroModule("dns.sys.dweb","Dweb Name System") {
       if (request.uri.scheme == "dweb" && request.uri.host == "") {
         debugFetch("DPLink/nativeFetch", "$fromMM => ${request.uri}")
         for (microModule in installApps) {
-          if (microModule.value.dweb_deeplinks.contains("dweb:${request.uri.path}")) {
-            val (fromIpc) = connectTo(fromMM, microModule.key, request)
-            return@append fromIpc.request(request)
+          for (deeplink in microModule.value.dweb_deeplinks) {
+            if (request.uri.toString().startsWith(deeplink)) {
+              val (fromIpc) = connectTo(fromMM, microModule.key, request)
+              return@append fromIpc.request(request)
+            }
           }
         }
         return@append Response(Status.BAD_GATEWAY).body(request.uri.toString())
@@ -217,16 +219,9 @@ class DnsNMM() : NativeMicroModule("dns.sys.dweb","Dweb Name System") {
         true
       },
     )
-  }
 
-  override suspend fun onActivity(event: IpcEvent, ipc: Ipc) {
-    onActivity(event)
-  }
-
-  suspend fun onActivity(event: IpcEvent = IpcEvent.fromUtf8("activity", "")) {
     /// 启动 boot 模块
-    open("boot.sys.dweb")
-    connect("boot.sys.dweb").postMessage(event)
+    connect("boot.sys.dweb").postMessage(IpcEvent.fromUtf8("activity", ""))
   }
 
   override suspend fun _shutdown() {

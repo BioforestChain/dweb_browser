@@ -15,8 +15,7 @@ typealias AppRun = (options: NativeOptions) -> Any
 typealias NativeOptions = MutableMap<String, String>
 
 enum class MMState {
-  BOOTSTRAP,
-  SHUTDOWN,
+  BOOTSTRAP, SHUTDOWN,
 }
 
 abstract class MicroModule : MicroModuleManifest() {
@@ -85,6 +84,8 @@ abstract class MicroModule : MicroModuleManifest() {
   protected abstract suspend fun _shutdown()
   protected open suspend fun afterShutdown() {
     _afterShutdownSignal.emitAndClear()
+    _activitySignal.clear()
+    _connectSignal.clear()
     runningStateLock.resolve()
     this._bootstrapContext = null
   }
@@ -125,8 +126,7 @@ abstract class MicroModule : MicroModuleManifest() {
    * 因为 NativeMicroModule 的内部程序在这里编写代码，所以这里会提供 onConnect 方法
    * 如果时 JsMicroModule 这个 onConnect 就是写在 WebWorker 那边了
    */
-  protected fun onConnect(cb: Callback<IpcConnectArgs>) =
-    _connectSignal.listen(cb);
+  protected fun onConnect(cb: Callback<IpcConnectArgs>) = _connectSignal.listen(cb);
 
   /**
    * 尝试连接到指定对象
@@ -144,15 +144,17 @@ abstract class MicroModule : MicroModuleManifest() {
     this.addToIpcSet(ipc)
     ipc.onEvent { (event, ipc) ->
       if (event.name == "activity") {
-        onActivity(event, ipc)
+        _activitySignal.emit(Pair(event, ipc))
       }
     }
     _connectSignal.emit(Pair(ipc, reason))
   }
 
+  protected val _activitySignal = Signal<IpcActivityArgs>()
+  protected fun onActivity(cb: Callback<IpcActivityArgs>) = _activitySignal.listen(cb)
 
-  /** 激活NMM入口*/
-  protected open suspend fun onActivity(event: IpcEvent, ipc: Ipc) {}
+//  /** 激活NMM入口*/
+//  protected fun emitActivity(args)
 
   override fun toString(): String {
     return "MicroModule($mmid)"
@@ -181,6 +183,7 @@ abstract class MicroModule : MicroModuleManifest() {
 }
 
 typealias IpcConnectArgs = Pair<Ipc, Request>
+typealias IpcActivityArgs = Pair<IpcEvent, Ipc>
 
 //fun Uri.queryParameterByMap(): NativeOptions {
 //    val hashMap = hashMapOf<String, String>()
@@ -194,8 +197,7 @@ typealias IpcConnectArgs = Pair<Ipc, Request>
 
 class StatePromiseOut<T>(val state: T) : PromiseOut<T>() {
   companion object {
-    fun <T> resolve(state: T) =
-      StatePromiseOut(state).also { it.resolve() }
+    fun <T> resolve(state: T) = StatePromiseOut(state).also { it.resolve() }
   }
 
   fun resolve() {

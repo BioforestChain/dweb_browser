@@ -19,7 +19,7 @@ public class DnsNMM : NativeMicroModule
 
     public override string Name { get; set; } = "Dweb Name System";
     public override string? ShortName { get; set; } = "DNS";
-    public DnsNMM() : base("dns.sys.dweb")
+    public DnsNMM() : base("dns.std.dweb")
     {
     }
 

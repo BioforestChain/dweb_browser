@@ -15,10 +15,13 @@ import org.http4k.routing.routes
 fun debugBoot(tag: String, msg: Any? = "", err: Throwable? = null) =
   printdebugln("boot", tag, msg, err)
 
-class BootNMM(initMmids: List<MMID>? = null) : NativeMicroModule("boot.sys.dweb","Boot Management") {
+class BootNMM(initMmids: List<MMID>? = null) :
+  NativeMicroModule("boot.sys.dweb", "Boot Management") {
 
   override val short_name = "Boot";
-  override val categories = mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Hub_Service)
+  override val categories =
+    mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Hub_Service)
+
   /**
    * 开机启动项注册表
    * TODO 这里需要从数据库中读取
@@ -41,15 +44,21 @@ class BootNMM(initMmids: List<MMID>? = null) : NativeMicroModule("boot.sys.dweb"
         unregister(ipc.remote.mmid)
       }
     )
-  }
 
-  override suspend fun onActivity(event: IpcEvent, ipc: Ipc) {
-    for (mmid in registeredMmids) {
-      debugBoot("launch", mmid)
-      bootstrapContext.dns.open(mmid)
-      bootstrapContext.dns.connect(mmid).ipcForFromMM.postMessage(event)
+    /// 基于activity事件来启动开机项
+    onActivity { (event, ipc) ->
+      // 只响应 dns 模块的激活事件
+      if (ipc.remote.mmid != "dns.std.dweb") {
+        return@onActivity null
+      }
+      for (mmid in registeredMmids) {
+        debugBoot("launch", mmid)
+        bootstrapContext.dns.open(mmid)
+        bootstrapContext.dns.connect(mmid).ipcForFromMM.postMessage(event)
+      }
     }
   }
+
 
   override suspend fun _shutdown() {
     routers.clear()
