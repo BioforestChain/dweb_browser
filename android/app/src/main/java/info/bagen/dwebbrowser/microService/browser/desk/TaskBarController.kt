@@ -80,7 +80,7 @@ class TaskBarController(
 
 
   fun getDesktopUrl() = taskbarServer.startResult.urlInfo.buildInternalUrl().let {
-    it.path("/index.html")
+    it.path("/taskbar.html")
       .query("api-base", taskbarServer.startResult.urlInfo.buildPublicUrl().toString())
   }
 }

@@ -219,7 +219,7 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
         )
       } else {
         IpcResponse.fromResponse(
-          request.req_id, nativeFetch("file:///sys/browser/desk.taskbar${pathName}?mode=stream"), ipc
+          request.req_id, nativeFetch("file:///sys/browser/desk${pathName}?mode=stream"), ipc
         )
       }
       ipc.postMessage(message)
