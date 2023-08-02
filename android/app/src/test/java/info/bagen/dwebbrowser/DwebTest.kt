@@ -20,7 +20,7 @@ import kotlin.test.assertEquals
 
 class DwebTest : AsyncBase() {
 
-    class HttpTestNMM : NativeMicroModule("http.test.dweb") {
+    class HttpTestNMM : NativeMicroModule("http.test.dweb","http test") {
         override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
             val dwebServer = createHttpDwebServer(DwebHttpServerOptions());
             dwebServer.listen().onRequest { (request, ipc) ->

@@ -275,7 +275,7 @@ class BrowserViewModel(val microModule: MicroModule, val onOpenDweb: (MMID) -> U
 
   suspend fun asyncCreateDwebView(url: String): DWebView = withContext(mainAsyncExceptionHandler) {
     DWebView(
-      BrowserUIApp.Instance.appContext, microModule, microModule, DWebView.Options(
+      BrowserUIApp.Instance.appContext, microModule, DWebView.Options(
         url = url, onDetachedFromWindowStrategy = DWebView.Options.DetachedFromWindowStrategy.Ignore
       ), null
     )
@@ -283,7 +283,7 @@ class BrowserViewModel(val microModule: MicroModule, val onOpenDweb: (MMID) -> U
 
   fun createDwebView(url: String): DWebView {
     return DWebView(
-      BrowserUIApp.Instance.appContext, microModule, microModule, DWebView.Options(
+      BrowserUIApp.Instance.appContext, microModule, DWebView.Options(
         url = url,
         /// 我们会完全控制页面将如何离开，所以这里兜底默认为留在页面
         onDetachedFromWindowStrategy = DWebView.Options.DetachedFromWindowStrategy.Ignore,

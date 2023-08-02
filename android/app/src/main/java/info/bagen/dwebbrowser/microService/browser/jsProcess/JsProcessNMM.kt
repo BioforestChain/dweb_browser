@@ -190,7 +190,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb","Js Process") {
       val urlInfo = mainServer.startResult.urlInfo
       JsProcessWebApi(
         DWebView(
-          App.appContext, this@JsProcessNMM, this@JsProcessNMM, DWebView.Options(
+          App.appContext, this@JsProcessNMM, DWebView.Options(
             url = urlInfo.buildInternalUrl().path("/index.html").toString()
           )
         )

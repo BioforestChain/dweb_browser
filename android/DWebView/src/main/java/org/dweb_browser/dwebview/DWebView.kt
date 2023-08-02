@@ -10,8 +10,6 @@ import android.webkit.*
 import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.DelicateCoroutinesApi
-import org.dweb_browser.microservice.sys.dns.nativeFetch
-import org.dweb_browser.microservice.sys.http.getFullAuthority
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -28,9 +26,9 @@ import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printdebugln
 import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.microservice.core.MicroModule
+import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.http4k.core.Method
 import org.http4k.core.Request
-import org.http4k.core.Uri
 import org.http4k.lens.Header
 import java.io.File
 
@@ -89,7 +87,6 @@ class DWebView(
    */
   context: Context,
   /// 这两个参数是用来实现请求拦截与转发的
-  private val localeMM: MicroModule,
   private val remoteMM: MicroModule,
   /**
    * 一些DWebView自定义的参数
@@ -182,25 +179,25 @@ class DWebView(
   /**
    * 初始化设置 userAgent
    */
-  private fun setUA() {
-    val baseUserAgentString = settings.userAgentString
-    val baseDwebHost = remoteMM.mmid
-    var dwebHost = baseDwebHost
-
-    // 初始化设置 ua，这个是无法动态修改的
-    val uri = Uri.of(options.url)
-    if ((uri.scheme == "http" || uri.scheme == "https" || uri.scheme == "dweb") && uri.host.endsWith(
-        ".dweb"
-      )
-    ) {
-      dwebHost = uri.authority
-    }
-    // 加入默认端口
-    if (!dwebHost.contains(":")) {
-      dwebHost = uri.getFullAuthority(dwebHost)
-    }
-    settings.userAgentString = "$baseUserAgentString dweb-host/${dwebHost}"
-  }
+//  private fun setUA() {
+//    val baseUserAgentString = settings.userAgentString
+//    val baseDwebHost = remoteMM.mmid
+//    var dwebHost = baseDwebHost
+//
+//    // 初始化设置 ua，这个是无法动态修改的
+//    val uri = Uri.of(options.url)
+//    if ((uri.scheme == "http" || uri.scheme == "https" || uri.scheme == "dweb") && uri.host.endsWith(
+//        ".dweb"
+//      )
+//    ) {
+//      dwebHost = uri.authority
+//    }
+//    // 加入默认端口
+//    if (!dwebHost.contains(":")) {
+//      dwebHost = uri.getFullAuthority(dwebHost)
+//    }
+//    settings.userAgentString = "$baseUserAgentString dweb-host/${dwebHost}"
+//  }
 
   private val closeSignal = SimpleSignal()
   fun onCloseWindow(cb: SimpleCallback) = closeSignal.listen(cb)
@@ -235,7 +232,7 @@ class DWebView(
       remoteMM.nativeFetch(
         Request(
           Method.GET, request.url.toString()
-        ).headers(request.requestHeaders.toList()).header("X-Dweb-Proxy-Id", localeMM.mmid)
+        ).headers(request.requestHeaders.toList())
       )
     }.getOrThrow()
 
@@ -416,7 +413,7 @@ class DWebView(
     layoutParams = ViewGroup.LayoutParams(
       ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT
     )
-    setUA()
+//    setUA()
     settings.allowFileAccessFromFileURLs = true
     settings.allowUniversalAccessFromFileURLs = true
     settings.javaScriptEnabled = true

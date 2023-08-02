@@ -26,7 +26,7 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
   override val categories =
     mutableListOf(MICRO_MODULE_CATEGORY.Application, MICRO_MODULE_CATEGORY.Web_Browser)
   override val icons: List<ImageResource> =
-    listOf(ImageResource(src = "http://localhost:22206/web/logo.svg"))
+    listOf(ImageResource(src = "file:///sys/browser/web/logo.svg"))
 
   companion object {
     val controllerList = mutableListOf<BrowserController>()
