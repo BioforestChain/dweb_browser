@@ -15,6 +15,7 @@ import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.MMID
+import org.dweb_browser.microservice.help.cors
 import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
@@ -38,6 +39,7 @@ import org.http4k.lens.Query
 import org.http4k.lens.composite
 import org.http4k.lens.int
 import org.http4k.lens.string
+import org.http4k.routing.RoutingHttpHandler
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 import java.util.UUID
@@ -83,8 +85,7 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
       if (metaData != null) {
         apps[appId] = DeskAppMetaData(
           //...复制metaData属性
-          running = runningAppsIpc.contains(appId),
-          winStates = emptyList()
+          running = runningAppsIpc.contains(appId), winStates = emptyList()
         ).setMetaData(metaData)
       }
     }
@@ -97,8 +98,7 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
   val queryLimit = Query.int().optional("limit")
   val queryResize = Query.composite {
     ReSize(
-      width = int().required("width")(it),
-      height = int().required("height")(it)
+      width = int().required("width")(it), height = int().required("height")(it)
     )
   }
 
@@ -115,95 +115,91 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
       controllers.remove(sessionId)
     }
 
-    apiRouting =
-      ServerFilters.Cors(CorsPolicy(OriginPolicy.AllowAll(), listOf("*"), Method.values().toList()))
-        .then(
-          routes(
-            "/readFile" bind Method.GET to defineHandler { request ->
-              val url = queryUrl(request)
-              return@defineHandler nativeFetch(url)
-            },
-            "/openAppOrActivate" bind Method.GET to defineHandler { request ->
-              val mmid = queryAppId(request)
-              val ipc = runningAppsIpc[mmid] ?: bootstrapContext.dns.connect(mmid).ipcForFromMM
-              ipc.postMessage(IpcEvent.fromUtf8(EIpcEvent.Activity.event, ""))
-              /// 如果成功打开，将它“追加”到列表中
-              runningAppsIpc[mmid] = ipc
-              /// 如果应用关闭，将它从列表中移除
-              ipc.onClose {
-                runningAppsIpc.remove(mmid)
+    apiRouting = routes(
+      "/readFile" bind Method.GET to defineHandler { request ->
+        val url = queryUrl(request)
+        return@defineHandler nativeFetch(url)
+      },
+      "/openAppOrActivate" bind Method.GET to defineHandler { request ->
+        val mmid = queryAppId(request)
+        val ipc = runningAppsIpc[mmid] ?: bootstrapContext.dns.connect(mmid).ipcForFromMM
+        ipc.postMessage(IpcEvent.fromUtf8(EIpcEvent.Activity.event, ""))
+        /// 如果成功打开，将它“追加”到列表中
+        runningAppsIpc[mmid] = ipc
+        /// 如果应用关闭，将它从列表中移除
+        ipc.onClose {
+          runningAppsIpc.remove(mmid)
+        }
+        return@defineHandler true
+      },
+      "/closeApp" bind Method.GET to defineHandler { request ->
+        val mmid = queryAppId(request);
+        var closed = false;
+        if (runningAppsIpc.containsKey(mmid)) {
+          closed = bootstrapContext.dns.close(mmid);
+          if (closed) {
+            runningAppsIpc.remove(mmid)
+          }
+        }
+        return@defineHandler closed
+      },
+      "/desktop/apps" bind Method.GET to defineHandler { _ ->
+        debugDesktop("/desktop/apps", getDesktopApps())
+        return@defineHandler getDesktopApps()
+      },
+      "/desktop/observe/apps" bind Method.GET to defineHandler { _, ipc ->
+        val inputStream = ReadableStream(onStart = { controller ->
+          val off = runningAppsIpc.onChange {
+            try {
+              withContext(Dispatchers.IO) {
+                controller.enqueue((gson.toJson(getDesktopApps()) + "\n").toByteArray())
               }
-              return@defineHandler true
-            },
-            "/closeApp" bind Method.GET to defineHandler { request ->
-              val mmid = queryAppId(request);
-              var closed = false;
-              if (runningAppsIpc.containsKey(mmid)) {
-                closed = bootstrapContext.dns.close(mmid);
-                if (closed) {
-                  runningAppsIpc.remove(mmid)
-                }
+            } catch (e: Exception) {
+              controller.close()
+              e.printStackTrace()
+            }
+          }
+          ipc.onClose {
+            off(Unit)
+            controller.close()
+          }
+        })
+        runningAppsIpc.emitChange()
+        return@defineHandler Response(Status.OK).body(inputStream)
+      },
+      "/taskbar/apps" bind Method.GET to defineHandler { request ->
+        val limit = queryLimit(request) ?: Int.MAX_VALUE
+        return@defineHandler getTaskbarAppList(limit)
+      },
+      "/taskbar/observe/apps" bind Method.GET to defineHandler { request, ipc ->
+        val limit = queryLimit(request) ?: Int.MAX_VALUE
+        val inputStream = ReadableStream(onStart = { controller ->
+          val off = runningAppsIpc.onChange {
+            try {
+              withContext(Dispatchers.IO) {
+                controller.enqueue((gson.toJson(getTaskbarAppList(limit)) + "\n").toByteArray())
               }
-              return@defineHandler closed
-            },
-            "/desktop/apps" bind Method.GET to defineHandler { _ ->
-              debugDesktop("/desktop/apps", getDesktopApps())
-              return@defineHandler getDesktopApps()
-            },
-            "/desktop/observe/apps" bind Method.GET to defineHandler { _, ipc ->
-              val inputStream = ReadableStream(onStart = { controller ->
-                val off = runningAppsIpc.onChange {
-                  try {
-                    withContext(Dispatchers.IO) {
-                      controller.enqueue((gson.toJson(getDesktopApps()) + "\n").toByteArray())
-                    }
-                  } catch (e: Exception) {
-                    controller.close()
-                    e.printStackTrace()
-                  }
-                }
-                ipc.onClose {
-                  off(Unit)
-                  controller.close()
-                }
-              })
-              runningAppsIpc.emitChange()
-              return@defineHandler Response(Status.OK).body(inputStream)
-            },
-            "/taskbar/apps" bind Method.GET to defineHandler { request ->
-              val limit = queryLimit(request) ?: Int.MAX_VALUE
-              return@defineHandler getTaskbarAppList(limit)
-            },
-            "/taskbar/observe/apps" bind Method.GET to defineHandler { request, ipc ->
-              val limit = queryLimit(request) ?: Int.MAX_VALUE
-              val inputStream = ReadableStream(onStart = { controller ->
-                val off = runningAppsIpc.onChange {
-                  try {
-                    withContext(Dispatchers.IO) {
-                      controller.enqueue((gson.toJson(getTaskbarAppList(limit)) + "\n").toByteArray())
-                    }
-                  } catch (e: Exception) {
-                    controller.close()
-                    e.printStackTrace()
-                  }
-                }
-                ipc.onClose {
-                  off(Unit)
-                  controller.close()
-                }
-              })
-              runningAppsIpc.emitChange()
-              return@defineHandler Response(Status.OK).body(inputStream)
-            },
-            "/taskbar/resize" bind Method.GET to defineHandler { request ->
-              val size = queryResize(request)
-              return@defineHandler controller.resize(size.width, size.height)
-            },
-            "/taskbar/toggle-desktop-view" bind Method.GET to defineHandler { request ->
-              return@defineHandler controller.toggleDesktopView()
-            },
-          )
-        );
+            } catch (e: Exception) {
+              controller.close()
+              e.printStackTrace()
+            }
+          }
+          ipc.onClose {
+            off(Unit)
+            controller.close()
+          }
+        })
+        runningAppsIpc.emitChange()
+        return@defineHandler Response(Status.OK).body(inputStream)
+      },
+      "/taskbar/resize" bind Method.GET to defineHandler { request ->
+        val size = queryResize(request)
+        return@defineHandler controller.resize(size.width, size.height)
+      },
+      "/taskbar/toggle-desktop-view" bind Method.GET to defineHandler { request ->
+        return@defineHandler controller.toggleDesktopView()
+      },
+    ).cors();
 
 
     /// 启动对应的Activity视图

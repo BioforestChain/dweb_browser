@@ -148,7 +148,7 @@ class DnsNMM() : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
 
     override suspend fun close(mmid: MMID): Boolean {
       if (this.dnsMM.runningApps[mmid] !== null) {
-        this.close(mmid);
+        dnsMM.close(mmid);
         return true;
       }
       return false;

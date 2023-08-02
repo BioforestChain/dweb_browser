@@ -7,15 +7,17 @@ import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.MMID
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
+import org.dweb_browser.microservice.help.cors
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 
-class StatusBarNMM : NativeMicroModule("status-bar.nativeui.browser.dweb","statusBar") {
+class StatusBarNMM : NativeMicroModule("status-bar.nativeui.browser.dweb", "statusBar") {
 
-  override val categories = mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service)
+  override val categories =
+    mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service)
 
   private fun getController(mmid: MMID) =
     NativeUiController.fromMultiWebView(mmid).statusBar
@@ -48,7 +50,7 @@ class StatusBarNMM : NativeMicroModule("status-bar.nativeui.browser.dweb","statu
       "/stopObserve" bind Method.GET to defineHandler { _, ipc ->
         return@defineHandler getController(ipc.remote.mmid).observer.stopObserve(ipc)
       },
-    )
+    ).cors()
   }
 
   override suspend fun _shutdown() {
