@@ -27,7 +27,9 @@ import kotlinx.coroutines.launch
 
 
 @SuppressLint("ModifierFactoryExtensionFunction")
-fun WindowState.Rectangle.toModifier(modifier: Modifier = Modifier) = modifier
+fun WindowState.Rectangle.toModifier(
+  modifier: Modifier = Modifier,
+) = modifier
   .offset(left.dp, top.dp)
   .size(width.dp, height.dp)
 
