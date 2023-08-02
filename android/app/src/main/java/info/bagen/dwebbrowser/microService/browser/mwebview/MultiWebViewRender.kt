@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.ViewGroup
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.*
@@ -12,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
@@ -28,7 +30,19 @@ import kotlinx.coroutines.launch
 fun MultiWebViewController.Render(modifier: Modifier = Modifier) {
   val controller = this;
   Box(modifier) {
-    webViewList.forEach { viewItem ->
+    var list by remember {
+      mutableStateOf(webViewList.toList())
+    }
+    DisposableEffect(webViewList) {
+      val off = webViewList.onChange {
+        list = it.toList()
+        return@onChange null;
+      }
+      onDispose {
+        off(Unit)
+      }
+    }
+    list.forEach { viewItem ->
       key(viewItem.webviewId) {
         val nativeUiController = viewItem.nativeUiController.effect()
         val state = viewItem.state

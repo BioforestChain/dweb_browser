@@ -207,7 +207,8 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
             "/taskbar/toggle-desktop-view" bind Method.GET to defineHandler { request ->
               return@defineHandler controller.toggleDesktopView()
             },
-          ).cors())
+          ).cors()
+        )
 
 
     /// 启动对应的Activity视图

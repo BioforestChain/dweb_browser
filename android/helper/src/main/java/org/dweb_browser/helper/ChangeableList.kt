@@ -1,135 +1,87 @@
 package org.dweb_browser.helper
 
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-class ChangeableList<T> : MutableList<T> {
+class ChangeableList<T> : ArrayList<T>() {
+  private val _changeSignal = Signal<ChangeableList<T>>()
 
-  private val innerList = mutableListOf<T>()
-  private val _changeSignal = Signal<MutableList<T>>()
+  fun onChange(callback: Callback<ChangeableList<T>>) = _changeSignal.listen(callback)
 
-  fun onChange(callback: Callback<MutableList<T>>) = _changeSignal.listen(callback)
-
-  override var size: Int = innerList.size
-
-  override fun clear() {
-    innerList.clear()
+  @OptIn(DelicateCoroutinesApi::class)
+  private fun emitChange() {
     GlobalScope.launch(ioAsyncExceptionHandler) {
-      _changeSignal.emit(innerList)
+      _changeSignal.emit(this@ChangeableList)
     }
   }
 
+  override fun clear() {
+    super.clear()
+    emitChange()
+  }
+
   override fun addAll(elements: Collection<T>): Boolean {
-    val handle = innerList.addAll(elements)
-    GlobalScope.launch(ioAsyncExceptionHandler) {
-      _changeSignal.emit(innerList)
-    }
+    val handle = super.addAll(elements)
+    emitChange()
     return handle
   }
 
   override fun addAll(index: Int, elements: Collection<T>): Boolean {
-    val handle = innerList.addAll(index, elements)
-    GlobalScope.launch(ioAsyncExceptionHandler) {
-      _changeSignal.emit(innerList)
-    }
+    val handle = super.addAll(index, elements)
+    emitChange()
     return handle
   }
 
   override fun add(index: Int, element: T) {
-    innerList.add(index, element)
-    GlobalScope.launch(ioAsyncExceptionHandler) {
-      _changeSignal.emit(innerList)
-    }
+    super.add(index, element)
+    emitChange()
   }
 
   override fun add(element: T): Boolean {
-    val handle = innerList.add(element)
-    GlobalScope.launch(ioAsyncExceptionHandler) {
-      _changeSignal.emit(innerList)
-    }
+    val handle = super.add(element)
+    emitChange()
     return handle
   }
 
-  override fun get(index: Int): T {
-    return innerList[index]
-  }
   fun lastOrNull(): T? {
-    return if (isEmpty()) null else this.innerList[size - 1]
-  }
-
-  override fun isEmpty(): Boolean {
-    return (size == 0) || innerList.isEmpty()
-  }
-
-  override fun iterator(): MutableIterator<T> {
-    return innerList.iterator()
-  }
-
-  override fun listIterator(): MutableListIterator<T> {
-    return innerList.listIterator()
-  }
-
-  override fun listIterator(index: Int): MutableListIterator<T> {
-    return innerList.listIterator(index)
+    return if (isEmpty()) null else this[size - 1]
   }
 
   override fun removeAt(index: Int): T {
-    val item = innerList.removeAt(index)
-    GlobalScope.launch(ioAsyncExceptionHandler) {
-      _changeSignal.emit(innerList)
-    }
+    val item = super.removeAt(index)
+    emitChange()
     return item
   }
 
-  override fun subList(fromIndex: Int, toIndex: Int): MutableList<T> {
-    return innerList.subList(fromIndex, toIndex)
-  }
-
   override fun set(index: Int, element: T): T {
-    val item = innerList.set(index, element)
-    GlobalScope.launch(ioAsyncExceptionHandler) {
-      _changeSignal.emit(innerList)
-    }
+    val item = super.set(index, element)
+    emitChange()
     return item
   }
 
   override fun retainAll(elements: Collection<T>): Boolean {
-    val boolean = innerList.retainAll(elements)
-    GlobalScope.launch(ioAsyncExceptionHandler) {
-      _changeSignal.emit(innerList)
+    val boolean = super.retainAll(elements)
+    if (boolean) {
+      emitChange()
     }
     return boolean
   }
 
   override fun removeAll(elements: Collection<T>): Boolean {
-    val boolean = innerList.removeAll(elements)
-    GlobalScope.launch(ioAsyncExceptionHandler) {
-      _changeSignal.emit(innerList)
+    val boolean = super.removeAll(elements)
+    if (boolean) {
+      emitChange()
     }
     return boolean
   }
 
   override fun remove(element: T): Boolean {
-    val boolean = innerList.remove(element)
-    GlobalScope.launch(ioAsyncExceptionHandler) {
-      _changeSignal.emit(innerList)
+    val boolean = super.remove(element)
+    if (boolean) {
+      emitChange()
     }
     return boolean
   }
 
-  override fun lastIndexOf(element: T): Int {
-    return innerList.lastIndexOf(element)
-  }
-
-  override fun indexOf(element: T): Int {
-    return innerList.indexOf(element)
-  }
-
-  override fun contains(element: T): Boolean {
-    return innerList.contains(element)
-  }
-
-  override fun containsAll(elements: Collection<T>): Boolean {
-    return innerList.containsAll(elements)
-  }
 }
