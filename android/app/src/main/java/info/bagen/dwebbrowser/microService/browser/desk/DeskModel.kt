@@ -15,6 +15,9 @@ val LocalOpenList = compositionLocalOf<MutableList<DeskAppMetaData>> {
 val LocalDesktopView = compositionLocalOf<DWebView> {
   noLocalProvidedFor("DesktopView")
 }
+val LocalTaskbarView = compositionLocalOf<DWebView> {
+  noLocalProvidedFor("TaskbarView")
+}
 
 private fun noLocalProvidedFor(name: String): Nothing {
   error("CompositionLocal $name not present")

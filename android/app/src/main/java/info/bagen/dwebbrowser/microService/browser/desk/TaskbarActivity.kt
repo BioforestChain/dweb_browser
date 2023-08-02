@@ -1,11 +1,13 @@
 package info.bagen.dwebbrowser.microService.browser.desk
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.os.Bundle
 import android.view.Gravity
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
@@ -13,6 +15,9 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.style.TextAlign
 import com.google.accompanist.web.WebView
 import com.google.accompanist.web.rememberWebViewState
@@ -53,15 +58,16 @@ class TaskbarActivity : ComponentActivity() {
 
       DwebBrowserAppTheme {
         CompositionLocalProvider(
-          LocalDesktopView provides taskBarController.createMainDwebView(),
+          LocalTaskbarView provides taskBarController.createMainDwebView(),
         ) {
-          Box(modifier = Modifier.fillMaxSize()) {
+          Box(modifier = Modifier.fillMaxSize().background(Color.Transparent)) {
             /// 桌面视图
-            val taskBarView = LocalDesktopView.current
+            val taskBarView = LocalTaskbarView.current
             WebView(
               state = rememberWebViewState(url = taskBarController.getDesktopUrl().toString()),
-              modifier = Modifier.fillMaxSize(),
+              modifier = Modifier.fillMaxSize().background(Color.Transparent),
             ) {
+              taskBarView.setBackgroundColor(Color.Transparent.toArgb())
               taskBarView
             }
           }

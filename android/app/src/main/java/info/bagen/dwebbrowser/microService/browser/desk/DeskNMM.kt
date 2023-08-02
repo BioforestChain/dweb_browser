@@ -146,6 +146,7 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
             },
             "/taskbar/observe/apps" bind Method.GET to defineHandler { request, ipc ->
               val limit = queryLimit(request) ?: Int.MAX_VALUE
+              debugDesktop("/taskbar/observe/apps", taskBarController.getTaskbarAppList(limit))
               val inputStream = ReadableStream(onStart = { controller ->
                 val off = runningApps.onChange {
                   try {
