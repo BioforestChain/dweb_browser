@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { dnt } from "../../scripts/deps.ts";
 import { WalkFiles } from "./WalkDir.ts";
 import { doBundle } from "./bundle.ts";
+import { whichSync } from "../../scripts/helper/WhichCommand.ts";
 // await emptyDir("./npm");
 const workspaceDir = fileURLToPath(import.meta.resolve("../"));
 const resolveTo = (to: string) => path.resolve(workspaceDir, to);
@@ -144,7 +145,8 @@ await dnt.build({
         packageJson.main = "./script/index.dev.js";
       });
       /// 启动
-      new Deno.Command("pnpm", {
+      const cmd = whichSync("pnpm");
+      new Deno.Command(cmd!, {
         args: ["start", ...Deno.args.slice(Deno.args.indexOf("--start") + 1)],
         cwd: resolveTo("./electron"),
       }).spawn();
