@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { onLongPress } from "@vueuse/core";
 import AppIcon from "src/components/app-icon/app-icon.vue";
 import { watchEffectAppMetadataToAppIcon } from "src/components/app-icon/appMetaDataHelper";
 import { $AppIconInfo } from "src/components/app-icon/types";
@@ -89,9 +88,6 @@ const $menu = {
     menuCloser?.close();
   },
 };
-onLongPress($appHtmlRefHook, $menu.show, {
-  modifiers: { prevent: true },
-});
 
 async function doOpen() {
   opening.value = true;
