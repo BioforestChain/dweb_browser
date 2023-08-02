@@ -60,6 +60,9 @@ class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb","Barcode Scann
                 return@defineHandler true
             }
         )
+        onActivity {(ipcEvent,Ipc) ->
+
+        }
     }
 
 
@@ -89,5 +92,7 @@ class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb","Barcode Scann
     private fun stop() {
         return BarcodeScanning.getClient().close()
     }
+
+
 
 }

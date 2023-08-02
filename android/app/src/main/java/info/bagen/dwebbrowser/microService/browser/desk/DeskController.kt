@@ -8,19 +8,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
-import com.google.accompanist.web.WebContent
-import com.google.accompanist.web.WebViewNavigator
-import com.google.accompanist.web.WebViewState
 import info.bagen.dwebbrowser.App
-import info.bagen.dwebbrowser.microService.browser.jmm.EIpcEvent
-import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.dwebview.DWebView
-import org.dweb_browser.dwebview.base.DWebViewItem
 import org.dweb_browser.helper.PromiseOut
-import org.dweb_browser.microservice.ipc.helper.IpcEvent
 import org.dweb_browser.microservice.sys.http.HttpDwebServer
 import org.http4k.core.query
 import java.util.concurrent.atomic.AtomicInteger
@@ -98,15 +88,6 @@ class DeskController(
    */
   fun toggleDesktopView() {
 
-  }
-
-  private val openLock = Mutex()
-  suspend fun openApp(deskAppMetaData: DeskAppMetaData) {
-    openLock.withLock {
-      val (ipc) = desktopNMM.bootstrapContext.dns.connect(deskAppMetaData.mmid)
-      debugDesktop("openApp", "postMessage==>activity ${ipc.remote.mmid}")
-      ipc.postMessage(IpcEvent.fromUtf8(EIpcEvent.Activity.event, ""))
-    }
   }
 
   fun createMainDwebView() = DWebView(

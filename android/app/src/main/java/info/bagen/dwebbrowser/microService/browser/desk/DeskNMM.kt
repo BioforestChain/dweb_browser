@@ -40,7 +40,6 @@ import org.http4k.lens.Query
 import org.http4k.lens.composite
 import org.http4k.lens.int
 import org.http4k.lens.string
-import org.http4k.routing.RoutingHttpHandler
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 import java.util.UUID
@@ -271,7 +270,6 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
       } else {
         "file:///sys/browser/desk${pathName}?mode=stream"
       }
-      debugDesktop("createDesktopWebServer", "url=> $url")
       val response =
         nativeFetch(Request(request.method.http4kMethod, url).headers(request.headers.toList()))
       ipc.postMessage(IpcResponse.fromResponse(request.req_id, response, ipc))

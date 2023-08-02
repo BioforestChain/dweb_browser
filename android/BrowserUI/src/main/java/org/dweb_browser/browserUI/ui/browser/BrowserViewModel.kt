@@ -41,6 +41,7 @@ import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.help.MMID
 import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.dweb_browser.microservice.sys.http.CORS_HEADERS
+import org.dweb_browser.microservice.sys.http.HttpDwebServer
 import org.http4k.core.Response
 import org.http4k.core.Status
 import org.http4k.core.query
@@ -108,7 +109,11 @@ sealed class BrowserIntent {
 }
 
 @OptIn(ExperimentalFoundationApi::class)
-class BrowserViewModel(val microModule: MicroModule, val onOpenDweb: (MMID) -> Unit) : ViewModel() {
+class BrowserViewModel(
+  private val browserNMM: MicroModule,
+  private val browserServer: HttpDwebServer,
+  val onOpenDweb: (MMID) -> Unit
+) : ViewModel() {
   val uiState: BrowserUIState
 
   companion object {
@@ -122,9 +127,14 @@ class BrowserViewModel(val microModule: MicroModule, val onOpenDweb: (MMID) -> U
     uiState.browserViewList.add(browserWebView)
   }
 
+  private fun getDesktopUrl() = browserServer.startResult.urlInfo.buildInternalUrl().let {
+    it.path("/desktop.html")
+      .query("api-base", browserServer.startResult.urlInfo.buildPublicUrl().toString())
+  }
+
   fun getNewTabBrowserView(url: String? = null): BrowserWebView {
     val (viewItem, closeWatcher) = appendWebViewAsItem(
-      createDwebView(""), url ?: ConstUrl.NEW_TAB.url
+      createDwebView()
     )
     return BrowserWebView(
       viewItem = viewItem, closeWatcher = closeWatcher
@@ -275,16 +285,16 @@ class BrowserViewModel(val microModule: MicroModule, val onOpenDweb: (MMID) -> U
 
   suspend fun asyncCreateDwebView(url: String): DWebView = withContext(mainAsyncExceptionHandler) {
     DWebView(
-      BrowserUIApp.Instance.appContext, microModule, DWebView.Options(
+      BrowserUIApp.Instance.appContext, browserNMM, DWebView.Options(
         url = url, onDetachedFromWindowStrategy = DWebView.Options.DetachedFromWindowStrategy.Ignore
       ), null
     )
   }
 
-  fun createDwebView(url: String): DWebView {
+  fun createDwebView(): DWebView {
     return DWebView(
-      BrowserUIApp.Instance.appContext, microModule, DWebView.Options(
-        url = url,
+      BrowserUIApp.Instance.appContext, browserNMM, DWebView.Options(
+        url = "",
         /// 我们会完全控制页面将如何离开，所以这里兜底默认为留在页面
         onDetachedFromWindowStrategy = DWebView.Options.DetachedFromWindowStrategy.Ignore,
       ), null
@@ -292,9 +302,9 @@ class BrowserViewModel(val microModule: MicroModule, val onOpenDweb: (MMID) -> U
   }
 
   @Synchronized
-  fun appendWebViewAsItem(dWebView: DWebView, url: String): Pair<ViewItem, CloseWatcher> {
+  fun appendWebViewAsItem(dWebView: DWebView): Pair<ViewItem, CloseWatcher> {
     val webviewId = "#w${webviewId_acc.getAndAdd(1)}"
-    val state = WebViewState(WebContent.Url(url))
+    val state = WebViewState(WebContent.Url(getDesktopUrl().toString()))
     val coroutineScope = CoroutineScope(CoroutineName(webviewId))
     val navigator = WebViewNavigator(coroutineScope)
     val viewItem = DWebViewItem(
@@ -304,7 +314,7 @@ class BrowserViewModel(val microModule: MicroModule, val onOpenDweb: (MMID) -> U
       coroutineScope = coroutineScope,
       navigator = navigator,
     )
-    viewItem.webView.webViewClient = DwebBrowserWebViewClient(microModule)
+    viewItem.webView.webViewClient = DwebBrowserWebViewClient(browserNMM)
     val closeWatcherController = CloseWatcher(viewItem)
 
     viewItem.webView.webChromeClient = object : WebChromeClient() {
@@ -339,7 +349,7 @@ class BrowserViewModel(val microModule: MicroModule, val onOpenDweb: (MMID) -> U
               /// 打开一个新窗口
               runBlockingCatching(Dispatchers.Main) {
                 appendWebViewAsItem(
-                  dWebView, mainUrl ?: ConstUrl.NEW_TAB.url
+                  dWebView
                 )
               }
             }
@@ -370,11 +380,12 @@ class browserViewModelHelper {
   }
 }
 
-internal class DwebBrowserWebViewClient(private val microModule: MicroModule) : AccompanistWebViewClient() {
+internal class DwebBrowserWebViewClient(private val microModule: MicroModule) :
+  AccompanistWebViewClient() {
   override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
-    if(request?.url?.scheme == "about"){
+    if (request?.url?.scheme == "about") {
       val urlStr = request.url.toString()
-      if(urlStr.startsWith("about:newtab")){
+      if (urlStr.startsWith("about:newtab")) {
         view?.loadUrl("http://browser.dweb.localhost/newtab/index.html")
         return false
       }
@@ -407,7 +418,11 @@ internal class DwebBrowserWebViewClient(private val microModule: MicroModule) : 
         if (urlPathSegments[0] == "newtab") {
           val pathSegments = urlPathSegments.drop(1)
           return@runBlockingCatching if (pathSegments.getOrNull(0) == "api") {
-            microModule.nativeFetch("file://${pathSegments.drop(1).joinToString("/")}?${request.url.query}")
+            microModule.nativeFetch(
+              "file://${
+                pathSegments.drop(1).joinToString("/")
+              }?${request.url.query}"
+            )
           } else {
             microModule.nativeFetch(
               "file:///sys/browser/desk/${
@@ -418,7 +433,7 @@ internal class DwebBrowserWebViewClient(private val microModule: MicroModule) : 
         } else null
       }.getOrThrow()
     } else if (request.url.scheme == "dweb") { // 负责拦截browser的dweb_deeplink
-       runBlockingCatching(ioAsyncExceptionHandler) {
+      runBlockingCatching(ioAsyncExceptionHandler) {
         microModule.nativeFetch(request.url.toString())
       }.getOrThrow()
       response = Response(
@@ -485,8 +500,10 @@ internal fun String.isUrlOrHost(): Boolean {
   // 以 http 或者 https 或者 ftp 打头，可以没有
   // 字符串中只能包含数字和字母，同时可以存在-
   // 最后以 2~5个字符 结尾，可能还存在端口信息，端口信息限制数字，长度为1~5位
-  val regex = "^((https?|ftp)://)?([a-zA-Z0-9]+([-.][a-zA-Z0-9]+)*\\.[a-zA-Z]{2,5}(:[0-9]{1,5})?(/.*)?)$".toRegex()
-  val regex2 = "((https?|ftp)://)(((2(5[0-5]|[0-4]\\d))|[0-1]?\\d{1,2})(\\.((2(5[0-5]|[0-4]\\d))|[0-1]?\\d{1,2})){3}(:[0-9]{1,5})?(/.*)?)".toRegex()
+  val regex =
+    "^((https?|ftp)://)?([a-zA-Z0-9]+([-.][a-zA-Z0-9]+)*\\.[a-zA-Z]{2,5}(:[0-9]{1,5})?(/.*)?)$".toRegex()
+  val regex2 =
+    "((https?|ftp)://)(((2(5[0-5]|[0-4]\\d))|[0-1]?\\d{1,2})(\\.((2(5[0-5]|[0-4]\\d))|[0-1]?\\d{1,2})){3}(:[0-9]{1,5})?(/.*)?)".toRegex()
   return regex.matches(this) || regex2.matches(this)
 }
 
@@ -504,7 +521,7 @@ internal fun String.toRequestUrl(): String {
 /**
  * 为了判断字符串是否是内置的地址
  */
-internal fun String.isSystemUrl() : Boolean {
+internal fun String.isSystemUrl(): Boolean {
   return this.startsWith("file:///android_asset") ||
       this.startsWith("chrome://") ||
       this.startsWith("about:") ||

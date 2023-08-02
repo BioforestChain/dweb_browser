@@ -12,20 +12,34 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
-import info.bagen.dwebbrowser.microService.browser.web.BrowserNMM.Companion.browserController
+import info.bagen.dwebbrowser.base.BaseActivity
+import info.bagen.dwebbrowser.microService.browser.desk.DeskController
+import info.bagen.dwebbrowser.microService.browser.desk.DesktopNMM
 import info.bagen.dwebbrowser.ui.theme.DwebBrowserAppTheme
 import org.dweb_browser.browserUI.ui.browser.BrowserView
 import org.dweb_browser.browserUI.ui.browser.LocalShowIme
 import org.dweb_browser.browserUI.ui.browser.LocalShowSearchView
 import org.dweb_browser.browserUI.ui.loading.LoadingView
 
-class BrowserActivity : AppCompatActivity() {
+class BrowserActivity : BaseActivity() {
+
+  private var controller: BrowserController? = null
+  private fun bindController(sessionId: String?): BrowserController {
+    /// 解除上一个 controller的activity绑定
+    controller?.activity = null
+
+    return BrowserNMM.controllers[sessionId]?.also { browserController ->
+      browserController.activity = this
+      controller = browserController
+    } ?: throw Exception("no found controller by sessionId: $sessionId")
+  }
+
   fun getContext() = this
   private var showSearchView = false
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    browserController?.activity = this
+    val browserController = bindController(intent.getStringExtra("sessionId"))
     setContent {
       WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightStatusBars =
         !isSystemInDarkTheme() // 设置状态栏颜色跟着主题走
@@ -37,7 +51,7 @@ class BrowserActivity : AppCompatActivity() {
           }
         }
 
-        browserController?.apply {
+        browserController.apply {
           val localShowIme = LocalShowIme.current
           LaunchedEffect(Unit) {
             snapshotFlow { currentInsets.value }.collect {
@@ -54,16 +68,16 @@ class BrowserActivity : AppCompatActivity() {
     }
   }
 
-  override fun onStop() {
-    super.onStop()
-    browserController?.apply {
-      if (showLoading.value) showLoading.value = false // 如果已经跳转了，这边直接改为隐藏
-    }
-  }
+//  override fun onStop() {
+//    super.onStop()
+//    browserController?.apply {
+//      if (showLoading.value) showLoading.value = false // 如果已经跳转了，这边直接改为隐藏
+//    }
+//  }
 
-  override fun onDestroy() {
-    // 退出APP关闭服务
-    super.onDestroy()
-    browserController?.activity = null
-  }
+//  override fun onDestroy() {
+//    // 退出APP关闭服务
+//    super.onDestroy()
+//    browserController?.activity = null
+//  }
 }
