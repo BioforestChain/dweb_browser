@@ -1,6 +1,7 @@
 package org.dweb_browser.microservice.sys.http
 
 import com.google.gson.reflect.TypeToken
+import io.netty.channel.ChannelHandlerContext
 import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.ReadableStreamIpc
@@ -18,6 +19,7 @@ import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.help.stream
 import org.dweb_browser.microservice.sys.dns.debugFetch
 import org.dweb_browser.microservice.sys.dns.nativeFetch
+import org.http4k.client.WebsocketClient
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Response
@@ -30,6 +32,10 @@ import org.http4k.lens.int
 import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
+import org.http4k.server.Netty
+import org.http4k.server.WebSocketServerHandler
+import org.http4k.websocket.Websocket
+import org.http4k.websocket.WsConsumer
 import org.http4k.websocket.WsMessage
 import org.http4k.websocket.WsResponse
 import org.http4k.websocket.WsStatus
@@ -149,19 +155,11 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
       /// 如果是 101 响应头，那么使用标准的WebSocket来进行通讯
       Status.SWITCHING_PROTOCOLS.code -> {
         WsResponse { ws ->
-          val stream = response.stream()
-          while (true) {
-            when (val readInt = stream.available()) {
-              -1 -> {
-                ws.close()
-                break
-              }
-
-              else -> {
-                val chunk = stream.readByteArray(readInt)
-                ws.send(WsMessage(ByteArrayInputStream(chunk)))
-              }
-            }
+          val client = WebsocketClient.blocking(request.uri)
+          client.send(WsMessage(response.stream()))
+          client.received().toList().forEach {
+            val stream = it.body.stream
+            ws.send(WsMessage(stream))
           }
         }
       }

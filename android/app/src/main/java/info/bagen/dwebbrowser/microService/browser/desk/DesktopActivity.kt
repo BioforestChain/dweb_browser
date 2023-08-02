@@ -37,7 +37,7 @@ class DesktopActivity : BaseActivity() {
     /// 解除上一个 controller的activity绑定
     controller?.activity = null
 
-    return DesktopNMM.controllers[sessionId]?.also { desktopController ->
+    return DesktopNMM.deskControllers[sessionId]?.also { desktopController ->
       desktopController.activity = this
       controller = desktopController
     } ?: throw Exception("no found controller by sessionId: $sessionId")
@@ -45,12 +45,13 @@ class DesktopActivity : BaseActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    val desktopController = bindController(intent.getStringExtra("sessionId"))
-
+    val desktopController = bindController(intent.getStringExtra("deskSessionId"))
+    val taskBarSessionId = intent.getStringExtra("taskBarSessionId")
 
     val context = this@DesktopActivity
     context.startActivity(Intent(context, TaskbarActivity::class.java).also {
       it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+      it.putExtras(Bundle().also { b -> b.putString("taskBarSessionId", taskBarSessionId) })
     });
 
     /**

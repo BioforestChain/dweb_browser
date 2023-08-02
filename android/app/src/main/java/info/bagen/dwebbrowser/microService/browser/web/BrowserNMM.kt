@@ -47,7 +47,7 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
     controllers[sessionId] = controller
 
     this.onAfterShutdown {
-      DesktopNMM.controllers.remove(sessionId)
+      DesktopNMM.deskControllers.remove(sessionId)
     }
 
     apiRouting = routes(

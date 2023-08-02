@@ -10,7 +10,13 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import info.bagen.dwebbrowser.App
 import org.dweb_browser.dwebview.DWebView
+import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.PromiseOut
+import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.runBlockingCatching
+import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
+import org.dweb_browser.microservice.help.MMID
+import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.sys.http.HttpDwebServer
 import org.http4k.core.query
 import java.util.concurrent.atomic.AtomicInteger
@@ -18,17 +24,27 @@ import java.util.concurrent.atomic.AtomicInteger
 @Stable
 class DeskController(
   private val desktopNMM: DesktopNMM,
-  private val taskbarServer: HttpDwebServer,
-  private val desktopServer: HttpDwebServer
+  private val desktopServer: HttpDwebServer,
+  private val runningApps: ChangeableMap<MMID, Ipc>
 ) {
 
-  companion object {
-    private var webviewId_acc = AtomicInteger(1)
+  fun getDesktopApps(): List<DeskAppMetaData> {
+    var runApps = listOf<DeskAppMetaData>()
+    runBlockingCatching(ioAsyncExceptionHandler) {
+      val apps = desktopNMM.bootstrapContext.dns.search(MICRO_MODULE_CATEGORY.Application)
+      runApps = apps.map { metaData ->
+        return@map DeskAppMetaData(
+          running = runningApps.containsKey(metaData.mmid),
+        ).setMetaData(metaData)
+      }
+    }.getOrThrow()
+    return runApps
   }
 
-  fun getInstallApps() = desktopNMM.getDesktopApps().toMutableList()
 
-  fun getOpenApps() = desktopNMM.getDesktopApps().filter { it.running }.toMutableList()
+  fun getInstallApps() = getDesktopApps().toMutableList()
+
+  fun getOpenApps() = getDesktopApps().filter { it.running }.toMutableList()
 
   private var activityTask = PromiseOut<DesktopActivity>()
   suspend fun waitActivityCreated() = activityTask.waitPromise()
@@ -73,47 +89,14 @@ class DeskController(
     return this
   }
 
-  /**
-   * 对Taskbar自身进行resize
-   * 根据web元素的大小进行自适应调整
-   *
-   * @returns 如果视图发生了真实的改变（不论是否变成说要的结果），则返回 true
-   */
-  fun resize(width: Number, height: Number) {
-
-  }
-
-  /**
-   * 将其它视图临时最小化到 TaskbarView/TooggleDesktopButton 按钮里头，在此点击该按钮可以释放这些临时视图到原本的状态
-   */
-  fun toggleDesktopView() {
-
-  }
-
   fun createMainDwebView() = DWebView(
     activity ?: App.appContext, desktopNMM,
     DWebView.Options(
       url = "",
-      /// 我们会完全控制页面将如何离开，所以这里兜底默认为留在页面
       onDetachedFromWindowStrategy = DWebView.Options.DetachedFromWindowStrategy.Ignore,
     )
   )
 
-//  @Synchronized
-//  private fun appendWebViewAsItem(dWebView: DWebView, url: String): DWebViewItem {
-//    val webviewId = "#w${webviewId_acc.getAndAdd(1)}"
-//    val state = WebViewState(WebContent.Url(url))
-//    val coroutineScope = CoroutineScope(CoroutineName(webviewId))
-//    val navigator = WebViewNavigator(coroutineScope)
-//    val viewItem = DWebViewItem(
-//      webviewId = webviewId,
-//      webView = dWebView,
-//      state = state,
-//      coroutineScope = coroutineScope,
-//      navigator = navigator,
-//    )
-//    return viewItem
-//  }
 
   fun getDesktopUrl() = desktopServer.startResult.urlInfo.buildInternalUrl().let {
     it.path("/desktop.html")

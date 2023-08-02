@@ -11,18 +11,32 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
+import com.google.accompanist.web.WebView
+import com.google.accompanist.web.rememberWebViewState
 import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.base.ActivityBlurHelper
 import info.bagen.dwebbrowser.ui.theme.DwebBrowserAppTheme
 
 class TaskbarActivity : ComponentActivity() {
   private val blurHelper = ActivityBlurHelper(this)
+  private var controller: TaskBarController? = null
+  private fun bindController(sessionId: String?): TaskBarController {
+    /// 解除上一个 controller的activity绑定
+    controller?.activity = null
+
+    return DesktopNMM.taskBarControllers[sessionId]?.also { taskBarController ->
+      taskBarController.activity = this
+      controller = taskBarController
+    } ?: throw Exception("no found controller by sessionId: $sessionId")
+  }
 
   @SuppressLint("UseCompatLoadingForDrawables")
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+    val taskBarController = bindController(intent.getStringExtra("taskBarSessionId"))
 
     val density = resources.displayMetrics.density
     setContent {
@@ -38,13 +52,18 @@ class TaskbarActivity : ComponentActivity() {
       }
 
       DwebBrowserAppTheme {
-        Box(modifier = Modifier.fillMaxSize()) {
-          OutlinedButton(onClick = { /*TODO*/ }) {
-            Text(
-              text = "桌面",
-              style = MaterialTheme.typography.titleLarge,
-              textAlign = TextAlign.Center
-            )
+        CompositionLocalProvider(
+          LocalDesktopView provides taskBarController.createMainDwebView(),
+        ) {
+          Box(modifier = Modifier.fillMaxSize()) {
+            /// 桌面视图
+            val taskBarView = LocalDesktopView.current
+            WebView(
+              state = rememberWebViewState(url = taskBarController.getDesktopUrl().toString()),
+              modifier = Modifier.fillMaxSize(),
+            ) {
+              taskBarView
+            }
           }
         }
       }
