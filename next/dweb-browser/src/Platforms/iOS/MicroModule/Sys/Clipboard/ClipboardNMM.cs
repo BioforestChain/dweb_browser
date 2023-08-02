@@ -12,7 +12,7 @@ public class ClipboardNMM : NativeMicroModule
 {
     static readonly Debugger Console = new("ClipboardNMM");
 
-    public ClipboardNMM() : base("clipboard.sys.dweb")
+    public ClipboardNMM() : base("clipboard.sys.dweb", "clipboard")
     {
     }
 

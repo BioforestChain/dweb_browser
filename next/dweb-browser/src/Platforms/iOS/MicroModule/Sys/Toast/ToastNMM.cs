@@ -4,7 +4,7 @@ namespace DwebBrowser.MicroService.Sys.Toast;
 
 public class ToastNMM : NativeMicroModule
 {
-    public ToastNMM() : base("toast.sys.dweb")
+    public ToastNMM() : base("toast.sys.dweb", "toast")
     {
     }
 

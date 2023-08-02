@@ -2,7 +2,7 @@
 
 public class StatusBarNMM : NativeMicroModule
 {
-    public StatusBarNMM() : base("status-bar.nativeui.browser.dweb")
+    public StatusBarNMM() : base("status-bar.nativeui.browser.dweb", "statusBar")
     {
     }
 

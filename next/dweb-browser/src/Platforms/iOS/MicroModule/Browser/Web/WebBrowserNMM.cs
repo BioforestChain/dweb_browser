@@ -7,9 +7,8 @@ namespace DwebBrowser.MicroService.Browser.Web;
 public class WebBrowserNMM : IOSNativeMicroModule
 {
     static readonly Debugger Console = new("WebNMM");
-    public override string Name { get; set; } = "Web Browser";
     public override string ShortName { get; set; } = "Browser";
-    public WebBrowserNMM() : base("web.browser.dweb")
+    public WebBrowserNMM() : base("web.browser.dweb", "Web Browser")
     {
         s_controllerList.Add(new(this));
     }

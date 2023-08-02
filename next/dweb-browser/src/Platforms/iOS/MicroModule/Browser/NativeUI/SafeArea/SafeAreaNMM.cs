@@ -2,7 +2,7 @@
 
 public class SafeAreaNMM : NativeMicroModule
 {
-    public SafeAreaNMM() : base("safe-area.nativeui.browser.dweb")
+    public SafeAreaNMM() : base("safe-area.nativeui.browser.dweb", "safeArea")
     {
     }
 

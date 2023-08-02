@@ -7,7 +7,7 @@ namespace DwebBrowser.MicroService.Core;
 
 public abstract class IOSNativeMicroModule : NativeMicroModule
 {
-    public IOSNativeMicroModule(Mmid mmid) : base(mmid)
+    public IOSNativeMicroModule(Mmid mmid, string name) : base(mmid, name)
     {
         OnController += async (mmid, controller, _) =>
         {

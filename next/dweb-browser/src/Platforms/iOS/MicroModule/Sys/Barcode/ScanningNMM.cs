@@ -2,9 +2,8 @@
 
 public class ScanningNMM : NativeMicroModule
 {
-    public override string Name { get; set; } = "Barcode Scanning";
     public override string ShortName { get; set; } = "Scanning";
-    public ScanningNMM() : base("barcode-scanning.sys.dweb")
+    public ScanningNMM() : base("barcode-scanning.sys.dweb", "Barcode Scanning")
     { }
 
     public override List<MicroModuleCategory> Categories { get; init; } = new()

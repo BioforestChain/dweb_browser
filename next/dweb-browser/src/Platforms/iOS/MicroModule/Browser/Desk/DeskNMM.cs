@@ -11,8 +11,7 @@ public class DeskNMM : IOSNativeMicroModule
 {
     static readonly Debugger Console = new("DeskNMM");
 
-    public override string Name { get; set; } = "Desk";
-    public DeskNMM() : base("desk.browser.dweb")
+    public DeskNMM() : base("desk.browser.dweb", "Desk")
     {
         s_controllerList.Add(new(this));
     }

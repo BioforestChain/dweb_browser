@@ -12,8 +12,8 @@ public abstract class NativeMicroModule : MicroModule
         Protobuf = true,
         Raw = true
     };
-    
-    public override string Name { get; set; } = "NMM";
+
+    public override string Name { get; set; }
     public override TextDirectionType? Dir { get; set; } = null;
     public override string? Version { get; set; } = null;
     public override string? Lang { get; set; } = null;
@@ -46,8 +46,9 @@ public abstract class NativeMicroModule : MicroModule
 
     }
 
-    public NativeMicroModule(Mmid mmid) : base(mmid)
+    public NativeMicroModule(Mmid mmid, string name) : base(mmid)
     {
+        Name = name;
         OnConnect += async (clientIpc, _, _) =>
         {
             clientIpc.OnRequest += async (ipcRequest, _, _) =>

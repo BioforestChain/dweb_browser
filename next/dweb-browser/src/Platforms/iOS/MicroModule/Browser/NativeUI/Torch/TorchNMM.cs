@@ -4,7 +4,7 @@ namespace DwebBrowser.MicroService.Browser.NativeUI.Torch;
 
 public class TorchNMM : NativeMicroModule
 {
-    public TorchNMM() : base("torch.nativeui.browser.dweb")
+    public TorchNMM() : base("torch.nativeui.browser.dweb", "torch")
     {
     }
 

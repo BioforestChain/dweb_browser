@@ -7,7 +7,7 @@ namespace DwebBrowser.MicroService.Sys.Haptics;
 
 public class HapticsNMM : NativeMicroModule
 {
-    public HapticsNMM() : base("haptics.sys.dweb")
+    public HapticsNMM() : base("haptics.sys.dweb", "haptics")
     {
     }
 

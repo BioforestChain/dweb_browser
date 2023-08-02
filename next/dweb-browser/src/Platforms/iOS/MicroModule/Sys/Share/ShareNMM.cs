@@ -9,7 +9,7 @@ namespace DwebBrowser.MicroService.Sys.Share;
 
 public class ShareNMM : NativeMicroModule
 {
-    public ShareNMM() : base("share.sys.dweb")
+    public ShareNMM() : base("share.sys.dweb", "share")
     {
     }
 

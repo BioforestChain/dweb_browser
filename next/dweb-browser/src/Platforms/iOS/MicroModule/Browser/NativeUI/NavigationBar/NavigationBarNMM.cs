@@ -3,7 +3,7 @@
 
 public class NavigationBarNMM : NativeMicroModule
 {
-    public NavigationBarNMM() : base("navigation-bar.nativeui.browser.dweb")
+    public NavigationBarNMM() : base("navigation-bar.nativeui.browser.dweb", "navigationBar")
     {
     }
 

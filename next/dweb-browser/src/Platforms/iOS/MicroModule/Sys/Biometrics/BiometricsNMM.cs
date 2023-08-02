@@ -4,7 +4,7 @@ public class BiometricsNMM : NativeMicroModule
 {
     static readonly Debugger Console = new("BiometricsNMM");
 
-    public BiometricsNMM() : base("biometrics.sys.dweb")
+    public BiometricsNMM() : base("biometrics.sys.dweb", "biometrics")
     {
     }
 

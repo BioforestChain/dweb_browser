@@ -2,7 +2,7 @@
 
 public class VirtualKeyboardNMM : NativeMicroModule
 {
-    public VirtualKeyboardNMM() : base("virtual-keyboard.nativeui.browser.dweb")
+    public VirtualKeyboardNMM() : base("virtual-keyboard.nativeui.browser.dweb", "virtualKeyBoard")
     {
     }
 

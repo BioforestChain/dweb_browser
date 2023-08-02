@@ -5,7 +5,7 @@ namespace DwebBrowser.MicroService.Sys.Notification;
 
 public class NotificationNMM : NativeMicroModule
 {
-    public NotificationNMM() : base("notification.sys.dweb")
+    public NotificationNMM() : base("notification.sys.dweb", "notification")
     {
     }
 

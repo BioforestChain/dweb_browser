@@ -17,9 +17,8 @@ public class DnsNMM : NativeMicroModule
         MicroModuleCategory.Routing_Service,
     };
 
-    public override string Name { get; set; } = "Dweb Name System";
     public override string? ShortName { get; set; } = "DNS";
-    public DnsNMM() : base("dns.std.dweb")
+    public DnsNMM() : base("dns.std.dweb", "Dweb Name System")
     {
     }
 

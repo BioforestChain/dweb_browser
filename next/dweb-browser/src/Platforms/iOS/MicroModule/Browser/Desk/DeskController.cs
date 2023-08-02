@@ -47,7 +47,6 @@ public partial class DeskController : BaseViewController
         var desktopUrl = desktopInternalUrl.Path("/desktop.html");
         _ = DesktopView.LoadURL(desktopUrl).NoThrow();
         View.AddSubview(DesktopView);
-        //AddSubView(DesktopView);
 
         TaskBarView = new UIView()
         {
@@ -68,7 +67,7 @@ public partial class DeskController : BaseViewController
                 TaskBarView.AddSubviews(backgroundView);
 
                 /// 布局伸缩到父级
-                autoResize("backgroundView", backgroundView);
+                backgroundView.AutoResize("backgroundView");
             }
 
             /// 内容层
@@ -88,33 +87,9 @@ public partial class DeskController : BaseViewController
                 TaskBarView.AddSubview(contentView);
 
                 /// 布局伸缩到父级
-                autoResize("contentView", contentView);
+                contentView.AutoResize("contentView");
             }
         }
-    }
-
-    /// <summary>
-    /// 视图自动伸缩到父级
-    /// </summary>
-    /// <param name="viewName"></param>
-    /// <param name="subView"></param>
-    /// <param name="superView"></param>
-    private void autoResize(string viewName, UIView subView, UIView? superView = null)
-    {
-        superView ??= subView.Superview!;
-
-        subView.TranslatesAutoresizingMaskIntoConstraints = false;
-
-        /// 布局伸缩到父级
-        var constraints = NSLayoutConstraint.FromVisualFormat($"|[{viewName}]|",
-        NSLayoutFormatOptions.DirectionLeadingToTrailing,
-        viewName, subView);
-        superView.AddConstraints(constraints);
-
-        constraints = NSLayoutConstraint.FromVisualFormat($"V:|[{viewName}]|",
-            NSLayoutFormatOptions.DirectionLeadingToTrailing,
-            viewName, subView);
-        superView.AddConstraints(constraints);
     }
 
     public bool IsOnTop = false;
