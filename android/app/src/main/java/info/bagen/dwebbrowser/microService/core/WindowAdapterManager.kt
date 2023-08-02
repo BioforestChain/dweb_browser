@@ -38,6 +38,10 @@ abstract class WindowController {
 
   protected val _destorySignal = SimpleSignal()
   fun onDestroy(cb: SimpleCallback) = _destorySignal.listen(cb)
+  suspend fun close(force: Boolean = false) {
+    /// 这里的 force 暂时没有作用，未来会加入交互，来阻止窗口关闭
+    this._destorySignal.emitAndClear(Unit)
+  }
 }
 typealias UUID = String;
 

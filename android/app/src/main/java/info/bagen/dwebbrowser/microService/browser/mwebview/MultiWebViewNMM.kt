@@ -114,6 +114,10 @@ class MultiWebViewNMM :
         win.onDestroy {
           windowAdapterManager.providers.remove(wid)
         }
+        /// ipc 断开的时候，强制关闭窗口
+        ipc.onClose {
+          win.close(force = true)
+        }
       }
     }
 
