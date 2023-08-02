@@ -55,7 +55,11 @@ data class MainServer(
 ) : Serializable
 
 open class MicroModuleManifest(
-  open val ipc_support_protocols: IpcSupportProtocols = IpcSupportProtocols(cbor = true, protobuf = true, raw = true),
+  open val ipc_support_protocols: IpcSupportProtocols = IpcSupportProtocols(
+    cbor = true,
+    protobuf = true,
+    raw = true
+  ),
   open val mmid: MMID = "",
   open val dweb_deeplinks: List<DWEB_DEEPLINK> = listOf(),
   open val dir: String? = null,
@@ -72,11 +76,8 @@ open class MicroModuleManifest(
   open val background_color: String? = null,
   open val shortcuts: List<ShortcutItem> = listOf(),
   open var version: String = "0.0.1"
-):Serializable {
+) : Serializable {
 }
-
-
-
 
 
 open class CommonAppManifest(
@@ -97,95 +98,50 @@ open class CommonAppManifest(
   open var version: String = "0.0.1"
 ) : Serializable
 
-//open class BaseManifest(
-//  open val dir: String? = null,
-//  open val lang: String? = null,
-//  open val name: String = "", // 应用名称
-//  open val short_name: String = "", // 应用副标题
-//  open val description: String? = null,
-//  open val icons: List<ImageResource> = emptyList(),
-//  open val screenshots: List<ImageResource>? = null,
-//  open val display: DisplayMode? = null,
-//  open val orientation: String? = null,
-//  open val categories: List<MICRO_MODULE_CATEGORY> = listOf(), // 应用类型
-//  open val theme_color: String? = null,
-//  open val background_color: String? = null,
-//  open val shortcuts: List<ShortcutItem> = listOf(),
-//  open var version: String = "0.0.1"
-//):Serializable
-
-
-//interface MicroModuleManifest:BaseManifest {
-//  val ipc_support_protocols: IpcSupportProtocols
-//  val mmid: MMID
-//  val dweb_deeplinks: List<DWEB_DEEPLINK>
-//}
-
-//interface CommonAppManifest:BaseManifest {
-//  val id: MMID
-//  var version: String?
-//}
-
-//interface BaseManifest {
-//  val dir: String?
-//  val lang: String?
-//  val name: String
-//  val short_name: String
-//  val description: String?
-//  val icons: List<ImageResource>?
-//  val screenshots: List<ImageResource>?
-//  val display: DisplayMode?
-//  val orientation: String?
-//  val categories: List<MICRO_MODULE_CATEGORY>
-//  val theme_color: String?
-//  val background_color: String?
-//  val shortcuts: List<ShortcutItem>?
-//}
-
 data class IpcSupportProtocols(
   val cbor: Boolean,
   val protobuf: Boolean,
   val raw: Boolean,
 )
 
-enum class MICRO_MODULE_CATEGORY {
+enum class MICRO_MODULE_CATEGORY(val type: String) {
 
   //#region 1. Service 服务
   /** 服务大类
    * > 任何跟服务有关联的请填写该项,用于范索引
    * > 服务拥有后台运行的特征,如果不填写该项,那么程序可能会被当作普通应用程序被直接回收资源
    */
-  Service,
+  Service("service"),
 
   //#region 1.1 内核服务
   /** 路由服务
    * > 通常指 `dns.std.dweb` 这个核心,它决策着模块之间通讯的路径
    */
-  Routing_Service,
+  Routing_Service("routing-service"),
 
   /** 进程服务
    * > 提供python、js、wasm等语言的运行服务
    * > 和 计算服务 不同,进程服务通常是指 概念上运行在本地 的程序
    */
-  Process_Service,
+  Process_Service("process-service"),
 
   /** 渲染服务
    * > 可视化图形的能力
-   * > 比如：Web渲染器、Terminal渲染器、WebGPU渲染器、WebCanvas渲染器 等
+   * > 比如:Web渲染器、Terminal渲染器、WebGPU渲染器、WebCanvas渲染器 等
    */
-  Render_Service,
+  Render_Service("render-service"),
 
   /** 协议服务
    * > 比如 `http.std.dweb` 这个模块,提供 http/1.1 协议到 Ipc 的映射
    * > 比如 `bluetooth.std.dweb` 这个模块,提供了接口化的 蓝牙协议 管理
    */
-  Protocol_Service,
+  Protocol_Service("protocol-service"),
 
   /** 设备管理服务
    * > 通常指外部硬件设备
    * > 比如其它的计算机设备、或者通过蓝牙协议管理设备、键盘鼠标打印机等等
    */
-  Device_Management_Service,
+  Device_Management_Service("device-management-service"),
 
   //#endregion
 
@@ -194,24 +150,24 @@ enum class MICRO_MODULE_CATEGORY {
   /** 计算服务
    * > 通常指云计算平台所提供的服务,可以远程部署程序
    */
-  Computing_Service,
+  Computing_Service("computing-service"),
 
   /** 存储服务
    * > 比如:文件、对象存储、区块存储
    * > 和数据库的区别是,它不会对存储的内容进行拆解,只能提供基本的写入和读取功能
    */
-  Storage_Service,
+  Storage_Service("storage-service"),
 
   /** 数据库服务
    * > 比如:关系型数据库、键值数据库、时序数据库
    * > 和存储服务的区别是,它提供了一套接口来 写入数据、查询数据
    */
-  Database_Service,
+  Database_Service("database-service"),
 
   /** 网络服务
    * > 比如:网关、负载均衡
    */
-  Network_Service,
+  Network_Service("network-service"),
 
   //#endregion
 
@@ -221,47 +177,47 @@ enum class MICRO_MODULE_CATEGORY {
    * > 特征:服务编排、服务治理、统一接口、兼容转换
    * > 比如:聚合查询、分布式管理
    */
-  Hub_Service,
+  Hub_Service("hub-service"),
 
   /** 分发服务
    * > 特征:减少网络访问的成本、提升网络访问的体验
    * > 比如:CDN、网络加速、文件共享
    */
-  Distribution_Service,
+  Distribution_Service("distribution-service"),
 
   /** 安全服务
    * > 比如:数据加密、访问控制
    */
-  Security_Service,
+  Security_Service("security-service"),
 
   //#endregion
 
   //#region 分析服务
 
   /** 日志服务 */
-  Log_Service,
+  Log_Service("log-service"),
 
   /** 指标服务 */
-  Indicator_Service,
+  Indicator_Service("indicator-service"),
 
   /** 追踪服务 */
-  Tracking_Service,
+  Tracking_Service("tracking-service"),
 
   //#endregion
 
   //#region 人工智能服务
 
   /** 视觉服务 */
-  Visual_Service,
+  Visual_Service("visual-service"),
 
   /** 语音服务 */
-  Audio_Service,
+  Audio_Service("audio-service"),
 
   /** 文字服务 */
-  Text_Service,
+  Text_Service("text-service"),
 
   /** 机器学习服务 */
-  Machine_Learning_Service,
+  Machine_Learning_Service("machine-learning-service"),
 
   //#endregion
 
@@ -271,7 +227,7 @@ enum class MICRO_MODULE_CATEGORY {
    * > 如果存在应用特征的模块,都应该填写该项
    * > 应用特征意味着有可视化的图形界面模块,如果不填写该项,那么应用将无法被显示在用户桌面上
    */
-  Application,
+  Application("application"),
 
   //#region 2.1 Application 应用 · 系统
 
@@ -282,214 +238,213 @@ enum class MICRO_MODULE_CATEGORY {
    * > 包括:权限管理、偏好管理、功能开关、主题与个性化、启动程序 等等
    * > 大部分 service 会它们的管理视图注册到该模块中
    */
-  Settings,
+  Settings("settings"),
 
   /** 桌面 */
-  Desktop,
+  Desktop("desktop"),
 
   /** 网页浏览器 */
-  Web_Browser,
+  Web_Browser("web-browser"),
 
   /** 文件管理 */
-  Files,
+  Files("files"),
 
   /** 钱包 */
-  Wallet,
+  Wallet("wallet"),
 
   /** 助理
    * > 该类应用通常拥有极高的权限,比如 屏幕阅读工具、AI助理工具 等
    */
-  Assistant,
+  Assistant("assistant"),
 
   //#endregion
 
   //#region 2.2 Application 应用 · 工作效率
 
   /** 商业 */
-  Business,
+  Business("business"),
 
   /** 开发者工具 */
-  Developer,
+  Developer("developer"),
 
   /** 教育 */
-  Education,
+  Education("education"),
 
   /** 财务 */
-  Finance,
+  Finance("finance"),
 
   /** 办公效率 */
-  Productivity,
+  Productivity("productivity"),
 
   /** 消息软件
    * > 讯息、邮箱
    */
-  Messages,
+  Messages("messages"),
 
   /** 实时互动 */
-  Live,
+  Live("live"),
 
   //#endregion
 
   //#region 2.3 Application 应用 · 娱乐
 
   /** 娱乐 */
-  Entertainment,
+  Entertainment("entertainment"),
 
   /** 游戏 */
-  Games,
+  Games("games"),
 
   /** 生活休闲 */
-  Lifestyle,
+  Lifestyle("lifestyle"),
 
   /** 音乐 */
-  Music,
+  Music("music"),
 
   /** 新闻 */
-  News,
+  News("news"),
 
   /** 体育 */
-  Sports,
+  Sports("sports"),
 
   /** 视频 */
-  Video,
+  Video("video"),
 
   /** 照片 */
-  Photo,
+  Photo("photo"),
 
   //#endregion
 
   //#region 2.4 Application 应用 · 创意
 
   /** 图形和设计 */
-  Graphics_a_Design,
+  Graphics_a_Design("graphics-design"),
 
   /** 摄影与录像 */
-  Photography,
+  Photography("photography"),
 
   /** 个性化 */
-  Personalization,
+  Personalization("personalization"),
 
   //#endregion
 
   //#region 2.5 Application 应用 · 实用工具
 
   /** 书籍 */
-  Books,
+  Books("books"),
 
   /** 杂志 */
-  Magazines,
+  Magazines("magazines"),
 
   /** 食物 */
-  Food,
+  Food("food"),
 
   /** 健康 */
-  Health,
+  Health("health"),
 
   /** 健身 */
-  Fitness,
+  Fitness("fitness"),
 
   /** 医疗 */
-  Medical,
+  Medical("medical"),
 
   /** 导航 */
-  Navigation,
+  Navigation("navigation"),
 
   /** 参考工具 */
-  Reference,
+  Reference("reference"),
 
   /** 实用工具 */
-  Utilities,
+  Utilities("utilities"),
 
   /** 旅行 */
-  Travel,
+  Travel("travel"),
 
   /** 天气 */
-  Weather,
+  Weather("weather"),
 
   /** 儿童 */
-  Kids,
+  Kids("kids"),
 
   /** 购物 */
-  Shopping,
+  Shopping("shopping"),
 
   /** 安全 */
-  Security,
+  Security("security"),
 
   //#endregion
 
   //#region 2.6 Application 应用 · 社交
-  Social,
+
+  Social("social"),
 
   /** 职业生涯 */
-  Career,
+  Career("career"),
 
   /** 政府 */
-  Government,
+  Government("government"),
 
   /** 政治 */
-  Politics,
+  Politics("politics"),
 
   //#endregion
 
   //#region 3. Game 游戏(属于应用的细分)
 
   /** 动作游戏 */
-  Action_Games,
+  Action_Games("action-games"),
 
   /** 冒险游戏 */
-  Adventure_Games,
+  Adventure_Games("adventure-games"),
 
   /** 街机游戏 */
-  Arcade_Games,
+  Arcade_Games("arcade-games"),
 
   /** 棋盘游戏 */
-  Board_Games,
+  Board_Games("board-games"),
 
   /** 卡牌游戏 */
-  Card_Games,
+  Card_Games("card-games"),
 
   /** 赌场游戏 */
-  Casino_Games,
+  Casino_Games("casino-games"),
 
   /** 骰子游戏 */
-  Dice_Games,
+  Dice_Games("dice-games"),
 
   /** 教育游戏 */
-  Educational_Games,
+  Educational_Games("educational-games"),
 
   /** 家庭游戏 */
-  Family_Games,
+  Family_Games("family-games"),
 
   /** 儿童游戏 */
-  Kids_Games,
+  Kids_Games("kids-games"),
 
   /** 音乐游戏 */
-  Music_Games,
+  Music_Games("music-games"),
 
   /** 益智游戏 */
-  Puzzle_Games,
+  Puzzle_Games("puzzle-games"),
 
   /** 赛车游戏 */
-  Racing_Games,
+  Racing_Games("racing-games"),
 
   /** 角色扮演游戏 */
-  Role_Playing_Games,
+  Role_Playing_Games("role-playing-games"),
 
   /** 模拟经营游戏 */
-  Simulation_Games,
+  Simulation_Games("simulation-games"),
 
   /** 运动游戏 */
-  Sports_Games,
+  Sports_Games("sports-games"),
 
   /** 策略游戏 */
-  Strategy_Games,
+  Strategy_Games("strategy-games"),
 
   /** 问答游戏 */
-  Trivia_Games,
+  Trivia_Games("trivia-games"),
 
   /** 文字游戏 */
-  Word_Games,
-
-  //#endregion
+  Word_Games("word-games")
 
 }

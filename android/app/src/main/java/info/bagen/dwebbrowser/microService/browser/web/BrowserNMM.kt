@@ -80,16 +80,11 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
       createHttpDwebServer(DwebHttpServerOptions(subdomain = "desktop", port = 433))
     desktopServer.listen().onRequest { (request, ipc) ->
       val pathName = request.uri.path
-      val url = if (pathName.startsWith(API_PREFIX)) {
-        val internalUri = request.uri.path(request.uri.path.substring(API_PREFIX.length))
-        val search = ""
-        "file://$internalUri$search"
-      } else {
-        "file:///sys/browser/desk${pathName}?mode=stream"
+      if (!pathName.startsWith(API_PREFIX)) {
+        val response =
+          nativeFetch( "file:///sys/browser/desk${pathName}?mode=stream")
+        ipc.postMessage(IpcResponse.fromResponse(request.req_id, response, ipc))
       }
-      val response =
-        nativeFetch(url)
-      ipc.postMessage(IpcResponse.fromResponse(request.req_id, response, ipc))
     }
     return desktopServer
   }

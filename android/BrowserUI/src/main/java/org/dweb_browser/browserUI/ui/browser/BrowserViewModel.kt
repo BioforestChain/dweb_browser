@@ -187,7 +187,7 @@ class BrowserViewModel(
             val itemView = getNewTabBrowserView()
             uiState.browserViewList.add(itemView)
             uiState.currentBrowserBaseView.value = itemView
-            delay(100)
+//            delay(100)
             uiState.multiViewShow.targetState = false
             uiState.pagerStateNavigator.value?.scrollToPage(uiState.browserViewList.size - 1)
             uiState.pagerStateContent.value?.scrollToPage(uiState.browserViewList.size - 1)
@@ -283,14 +283,6 @@ class BrowserViewModel(
     }
   }
 
-  suspend fun asyncCreateDwebView(url: String): DWebView = withContext(mainAsyncExceptionHandler) {
-    DWebView(
-      BrowserUIApp.Instance.appContext, browserNMM, DWebView.Options(
-        url = url, onDetachedFromWindowStrategy = DWebView.Options.DetachedFromWindowStrategy.Ignore
-      ), null
-    )
-  }
-
   fun createDwebView(): DWebView {
     return DWebView(
       BrowserUIApp.Instance.appContext, browserNMM, DWebView.Options(
@@ -314,7 +306,6 @@ class BrowserViewModel(
       coroutineScope = coroutineScope,
       navigator = navigator,
     )
-    viewItem.webView.webViewClient = DwebBrowserWebViewClient(browserNMM)
     val closeWatcherController = CloseWatcher(viewItem)
 
     viewItem.webView.webChromeClient = object : WebChromeClient() {
@@ -324,7 +315,7 @@ class BrowserViewModel(
         val transport = resultMsg.obj;
         if (transport is WebView.WebViewTransport) {
           viewItem.coroutineScope.launch {
-            val dWebView = asyncCreateDwebView("")
+            val dWebView = createDwebView()
             transport.webView = dWebView;
             resultMsg.sendToTarget();
 
@@ -377,88 +368,6 @@ class browserViewModelHelper {
       BrowserUIApp.Instance.appContext.saveString(KEY_LAST_SEARCH_KEY, url)
       inputText.value = url
     }
-  }
-}
-
-internal class DwebBrowserWebViewClient(private val microModule: MicroModule) :
-  AccompanistWebViewClient() {
-  override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
-    if (request?.url?.scheme == "about") {
-      val urlStr = request.url.toString()
-      if (urlStr.startsWith("about:newtab")) {
-        view?.loadUrl("http://browser.dweb.localhost/newtab/index.html")
-        return false
-      }
-    }
-    return super.shouldOverrideUrlLoading(view, request)
-  }
-
-//  override fun onReceivedError(
-//    view: WebView, request: WebResourceRequest?, error: WebResourceError?
-//  ) {
-////    view.loadUrl("about:network-errors/${error?.errorCode ?: 0}?url=${request?.url}")
-//    return super.onReceivedError(view, request, error)
-//  }
-
-  override fun shouldInterceptRequest(
-    view: WebView, request: WebResourceRequest
-  ): WebResourceResponse? {
-    var response: Response? = null
-    val url = request.url.let {
-      when (it.scheme) {
-        "chrome" -> Uri.parse(it.toString().replace("chrome://", "http://web.browser.dweb/"))
-        "about" -> Uri.parse(it.toString().replace("about:", "http://web.browser.dweb/"))
-        else -> Uri.parse(it.toString())
-      }
-    }
-
-    if (url.scheme == "http" && (url.host == "web.browser.dweb" || url.host == "browser.dweb.localhost")) {
-      response = runBlockingCatching(ioAsyncExceptionHandler) {
-        val urlPathSegments = url.pathSegments.filter { it.isNotEmpty() }
-        if (urlPathSegments[0] == "newtab") {
-          val pathSegments = urlPathSegments.drop(1)
-          return@runBlockingCatching if (pathSegments.getOrNull(0) == "api") {
-            microModule.nativeFetch(
-              "file://${
-                pathSegments.drop(1).joinToString("/")
-              }?${request.url.query}"
-            )
-          } else {
-            microModule.nativeFetch(
-              "file:///sys/browser/desk/${
-                if (pathSegments.isEmpty()) "desktop.html" else pathSegments.joinToString("/")
-              }"
-            )
-          }
-        } else null
-      }.getOrThrow()
-    } else if (request.url.scheme == "dweb") { // 负责拦截browser的dweb_deeplink
-      runBlockingCatching(ioAsyncExceptionHandler) {
-        microModule.nativeFetch(request.url.toString())
-      }.getOrThrow()
-      response = Response(
-        Status.OK
-      )
-    } else if (request.url.path?.contains("metadata.json") == true) { // 如果地址结尾是 metadata.json 目前是作为安装地址，跳转到安装界面
-      response = runBlockingCatching(ioAsyncExceptionHandler) {
-        microModule.nativeFetch(
-          org.http4k.core.Uri.of("file://jmm.browser.dweb/install?")
-            .query("url", request.url.toString())
-        )
-      }.getOrThrow()
-    }
-    if (response !== null) {
-      val contentType = Header.CONTENT_TYPE(response)
-      return WebResourceResponse(
-        contentType?.value,
-        contentType?.directives?.find { it.first == "charset" }?.second,
-        response.status.code,
-        response.status.description,
-        CORS_HEADERS.toMap(),
-        response.body.stream,
-      )
-    }
-    return super.shouldInterceptRequest(view, request)
   }
 }
 
@@ -525,5 +434,5 @@ internal fun String.isSystemUrl(): Boolean {
   return this.startsWith("file:///android_asset") ||
       this.startsWith("chrome://") ||
       this.startsWith("about:") ||
-      this.startsWith("http://browser.dweb.localhost")
+      this.startsWith("https://desktop.web.browser.dweb")
 }
