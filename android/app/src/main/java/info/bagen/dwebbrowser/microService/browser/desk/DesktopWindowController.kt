@@ -260,7 +260,7 @@ class DesktopWindowController(
               detectDragGestures { change, dragAmount ->
                 change.consume()
                 winState.bounds.left += dragAmount.x / density.density
-                winState.bounds.width += dragAmount.x / density.density
+                winState.bounds.width -= dragAmount.x / density.density
                 winState.bounds.height += dragAmount.y / density.density
                 emitWinStateChange()
               }
