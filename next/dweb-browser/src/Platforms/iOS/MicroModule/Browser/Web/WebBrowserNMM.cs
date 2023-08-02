@@ -29,7 +29,10 @@ public class WebBrowserNMM : IOSNativeMicroModule
 
     protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)
     {
-        
+        OnActivity += async (Event, ipc, _) =>
+        {
+            OpenActivity(Mmid);
+        };
     }
 
     public override async void OpenActivity(Mmid remoteMmid)
@@ -49,11 +52,6 @@ public class WebBrowserNMM : IOSNativeMicroModule
             var vc = await RootViewController.WaitPromiseAsync();
             vc.PushViewController(WebBrowserController, true);
         });
-    }
-
-    protected override async Task _onActivityAsync(IpcEvent Event, Ipc ipc)
-    {
-        OpenActivity(Mmid);
     }
 }
 

@@ -35,17 +35,23 @@ public class BootNMM : NativeMicroModule
         {
             return _unregister(ipc!.Remote.Mmid);
         });
-    }
 
-    protected override async Task _onActivityAsync(IpcEvent Event, Ipc ipc)
-    {
-        foreach (var mmid in _registeredMmids)
+        /// 基于activity事件来启动开机项
+        OnActivity += async (Event, ipc, _) =>
         {
-            Console.Log("OnActivity", "launch {0}", mmid);
-            await BootstrapContext.Dns.Open(mmid);
-            var connectResult = await BootstrapContext.Dns.ConnectAsync(mmid);
-            await connectResult.IpcForFromMM.PostMessageAsync(Event);
-        }
+            // 只响应 dns 模块的激活事件
+            if (ipc.Remote.Mmid != "dns.std.dweb")
+            {
+                return;
+            }
+
+            foreach (var mmid in _registeredMmids)
+            {
+                Console.Log("OnActivity", "launch {0}", mmid);
+                var fromIpc = await ConnectAsync(mmid);
+                await (fromIpc?.PostMessageAsync(Event)).ForAwait();
+            }
+        };
     }
 
     protected override async Task _shutdownAsync()

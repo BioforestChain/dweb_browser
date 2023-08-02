@@ -91,6 +91,8 @@ public abstract partial class MicroModule : IMicroModule
     protected async Task _afterShutdownAsync()
     {
         await AfterShutdownSignal.EmitAndClear();
+        ActivitySignal.Clear();
+        ConnectSignal.Clear();
         _runningStateLock.Resolve();
         _bootstrapContext = null;
     }
@@ -165,16 +167,21 @@ public abstract partial class MicroModule : IMicroModule
         AddToIpcSet(ipc);
         ipc.OnEvent += async (ipcMessage, ipc, _) =>
         {
-            if (ipcMessage.Name == "activity")
+            if (ipcMessage.Name == EIpcEvent.Activity.Event)
             {
-                await _onActivityAsync(ipcMessage, ipc);
+                await ActivitySignal.Emit(ipcMessage, ipc);
             }
         };
 
         return (ConnectSignal.Emit(ipc, reason)).ForAwait();
     }
 
-    protected virtual async Task _onActivityAsync(IpcEvent Event, Ipc ipc) { }
+    private readonly HashSet<Signal<IpcEvent, Ipc>> ActivitySignal = new();
+    public event Signal<IpcEvent, Ipc> OnActivity
+    {
+        add { if (value != null) lock (ActivitySignal) { ActivitySignal.Add(value); } }
+        remove { lock (ActivitySignal) { ActivitySignal.Remove(value); } }
+    }
 
     private readonly LazyBox<IMicroModuleManifest> Manifest = new();
     public IMicroModuleManifest ToManifest() => Manifest.GetOrPut(() =>

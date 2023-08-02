@@ -1,6 +1,5 @@
 ﻿using DwebBrowser.Base;
 using UIKit;
-using WebKit;
 
 #nullable enable
 
@@ -10,7 +9,7 @@ public abstract class IOSNativeMicroModule : NativeMicroModule
 {
     public IOSNativeMicroModule(Mmid mmid) : base(mmid)
     {
-        _OnActivity += async (mmid, controller, _) =>
+        OnController += async (mmid, controller, _) =>
         {
             s_activityMap.TryAdd(mmid, controller);
             controller.OnDestroyController += async (_) => { s_activityMap.Remove(mmid); };
@@ -23,13 +22,13 @@ public abstract class IOSNativeMicroModule : NativeMicroModule
 
     public abstract void OpenActivity(Mmid remoteMmid);
 
-    private readonly HashSet<Signal<Mmid, BaseViewController>> _ActivitySignal = new();
-    public event Signal<Mmid, BaseViewController> _OnActivity
+    private readonly HashSet<Signal<Mmid, BaseViewController>> ControllerSignal = new();
+    public event Signal<Mmid, BaseViewController> OnController
     {
-        add { if(value != null) lock (_ActivitySignal) { _ActivitySignal.Add(value); } }
-        remove { lock (_ActivitySignal) { _ActivitySignal.Remove(value); } }
+        add { if (value != null) lock (ControllerSignal) { ControllerSignal.Add(value); } }
+        remove { lock (ControllerSignal) { ControllerSignal.Remove(value); } }
     }
-    protected Task _OnActivityEmit(Mmid mmid, BaseViewController controller) => (_ActivitySignal.Emit(mmid, controller)).ForAwait();
+    protected Task OnControllerEmit(Mmid mmid, BaseViewController controller) => (ControllerSignal.Emit(mmid, controller)).ForAwait();
 
     public static readonly PromiseOut<UIWindow> Window = new();
     public static readonly PromiseOut<UINavigationController> RootViewController = new();

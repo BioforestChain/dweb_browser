@@ -132,7 +132,7 @@ public class MultiWebViewNMM : IOSNativeMicroModule
         var controller = await MainThread.InvokeOnMainThreadAsync(() => s_controllerMap.GetValueOrPut(remoteMmid, () => new MultiWebViewController(remoteMmid, this, remoteMM)));
 
         OpenActivity(remoteMmid);
-        await _OnActivityEmit(remoteMmid, controller);
+        await OnControllerEmit(remoteMmid, controller);
         return await controller.OpenWebViewAsync(url);
     }
 

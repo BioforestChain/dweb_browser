@@ -29,8 +29,6 @@ public class DnsNMM : NativeMicroModule
         {
             await BootstrapMicroModule(this);
         }
-
-        await OnActivity();
     }
 
     public Task BootstrapMicroModule(MicroModule fromMM) =>
@@ -277,22 +275,10 @@ public class DnsNMM : NativeMicroModule
             await Open(app_id);
             return true;
         });
-    }
-
-    protected override Task _onActivityAsync(IpcEvent Event, Ipc ipc) => OnActivity(Event);
-
-    public async Task OnActivity(IpcEvent? Event = null)
-    {
-        Event ??= IpcEvent.FromUtf8("activity", "");
 
         /// 启动 boot 模块
-        await Open("boot.sys.dweb");
         var ipc = await ConnectAsync("boot.sys.dweb");
-
-        if (ipc is not null)
-        {
-            await ipc.PostMessageAsync(Event);
-        }
+        await (ipc?.PostMessageAsync(IpcEvent.FromUtf8(EIpcEvent.Activity.Event, ""))).ForAwait();
     }
 
     protected override async Task _shutdownAsync()

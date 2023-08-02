@@ -144,7 +144,7 @@ public class DeskNMM : IOSNativeMicroModule
 
             if (ipc is not null)
             {
-                await ipc.PostMessageAsync(IpcEvent.FromUtf8("activity", ""));
+                await ipc.PostMessageAsync(IpcEvent.FromUtf8(EIpcEvent.Activity.Event, ""));
                 /// 如果成功打开，将它“追加”到列表中
                 await RunningApps.Remove(app_id);
                 await RunningApps.Set(app_id, ipc);
