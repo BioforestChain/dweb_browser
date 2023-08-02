@@ -9,14 +9,9 @@ public class NativeIpcTest
 {
     public class M1 : NativeMicroModule
     {
-        public M1() : base("m1")
+        public M1() : base("m1", "m1")
         { }
         protected override Task _bootstrapAsync(IBootstrapContext bootstrapContext)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected override Task _onActivityAsync(IpcEvent Event, MicroService.Ipc ipc)
         {
             throw new NotImplementedException();
         }
@@ -29,14 +24,9 @@ public class NativeIpcTest
 
     public class M2 : NativeMicroModule
     {
-        public M2() : base("m2")
+        public M2() : base("m2", "m2")
         { }
         protected override Task _bootstrapAsync(IBootstrapContext bootstrapContext)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected override Task _onActivityAsync(IpcEvent Event, MicroService.Ipc ipc)
         {
             throw new NotImplementedException();
         }

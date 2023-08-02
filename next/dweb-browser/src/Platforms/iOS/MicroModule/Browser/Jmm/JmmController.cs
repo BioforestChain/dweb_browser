@@ -1,4 +1,5 @@
 ﻿using DwebBrowser.Base;
+using DwebBrowser.MicroService.Browser.Desk;
 using DwebBrowserFramework;
 using Foundation;
 using UIKit;
@@ -25,30 +26,31 @@ public class JmmController : BaseViewController
             manager.DownloadView.Frame = UIScreen.MainScreen.Bounds;
 
             // 移除所有子视图
-            foreach (var subview in View.Subviews)
-            {
-                subview.RemoveFromSuperview();
-            }
+            //foreach (var subview in View.Subviews)
+            //{
+            //    subview.RemoveFromSuperview();
+            //}
 
-            View.AddSubview(manager.DownloadView);
+            //View.AddSubview(manager.DownloadView);
+            DeskNMM.DeskController.AddSubView(manager.DownloadView);
 
             // 无法push同一个UIViewController的实例两次
-            var viewControllersList = vc.ViewControllers?.ToList();
-            var index = viewControllersList.FindIndex(uvc => uvc == this);
-            if (index >= 0)
-            {
-                // 不是当前controller时，推到最新
-                //if (index != vc.ViewControllers!.Length - 1)
-                //{
-                //    vc.PopToViewController(this, true);
-                //}
-                viewControllersList.RemoveAt(index);
-                vc.PushViewController(this, true);
-            }
-            else
-            {
-                vc.PushViewController(this, true);
-            }
+            //var viewControllersList = vc.ViewControllers?.ToList();
+            //var index = viewControllersList.FindIndex(uvc => uvc == this);
+            //if (index >= 0)
+            //{
+            //    // 不是当前controller时，推到最新
+            //    //if (index != vc.ViewControllers!.Length - 1)
+            //    //{
+            //    //    vc.PopToViewController(this, true);
+            //    //}
+            //    viewControllersList.RemoveAt(index);
+            //    vc.PushViewController(this, true);
+            //}
+            //else
+            //{
+            //    vc.PushViewController(this, true);
+            //}
 
             // 点击下载
             manager.ClickButtonActionWithCallback(async d =>

@@ -46,7 +46,7 @@ public static class JmmDwebService
         }
     }
 
-    public static JmmDownload Add(IJmmAppInstallManifest jmmMetadata, Action<nint> onDownloadStatusChange, Action<double> onDownloadProgressChange)
+    public static JmmDownload Add(JmmAppInstallManifest jmmMetadata, Action<nint> onDownloadStatusChange, Action<double> onDownloadProgressChange)
     {
         if (!s_downloadMap.TryGetValue(jmmMetadata.Id, out var jmmDownload))
         {
@@ -124,9 +124,9 @@ public class JmmDownload
     private long _totalSize = 0L;
 
     public PromiseOut<bool> DownloadPo = new();
-    public IJmmAppInstallManifest JmmAppInstallManifest { get; init; }
+    public JmmAppInstallManifest JmmAppInstallManifest { get; init; }
 
-    public JmmDownload(IJmmAppInstallManifest jmmAppInstallManifest)
+    public JmmDownload(JmmAppInstallManifest jmmAppInstallManifest)
     {
         JmmAppInstallManifest = jmmAppInstallManifest;
         var url = new URL(jmmAppInstallManifest.BundleUrl);

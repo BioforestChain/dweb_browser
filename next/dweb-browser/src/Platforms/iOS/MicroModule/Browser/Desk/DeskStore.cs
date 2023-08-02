@@ -23,13 +23,20 @@ sealed public class DeskStore : FileStore
         }
     }
 
+    private LazyBox<HashSet<TaskApps>> STaskAppsSet = new();
     private HashSet<TaskApps> TaskAppsSet
     {
         get
         {
-            var hashset = Get("taskbar/apps", () => JsonSerializer.Serialize(new HashSet<TaskApps>()));
-            Console.Log("HashSet", hashset);
-            return JsonSerializer.Deserialize<HashSet<TaskApps>>(hashset);
+            var hashset = JsonSerializer.Deserialize<HashSet<TaskApps>>(Get("taskbar/apps",
+                () => JsonSerializer.Serialize(new HashSet<TaskApps>())));
+
+            if (hashset.Count == 0)
+            {
+                return STaskAppsSet.GetOrPut(() => new HashSet<TaskApps>());
+            }
+
+            return hashset;
         }
     }
 

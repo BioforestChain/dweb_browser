@@ -136,5 +136,20 @@ public class ManifestTest
 
         /// 得出结论：List<T> 无法通过GetHashCode来判断值是否相等
     }
+
+    public Dictionary<string, string> Dic
+    {
+        get
+        {
+            return new Dictionary<string, string>();
+        }
+    }
+
+    [Fact]
+    public void DictionaryTest()
+    {
+        Dic.Add("aaa", "bbb");
+        Assert.Single(Dic);
+    }
 }
 

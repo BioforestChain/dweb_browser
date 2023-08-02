@@ -7,12 +7,21 @@ public partial class DeskController
     public DWebView.DWebView DesktopView { get; set; }
 
     record AppOrder(int Order);
+
+    private LazyBox<Dictionary<Mmid, AppOrder>> SAppOrders = new();
     private Dictionary<Mmid, AppOrder> AppOrders
     {
         get
         {
-            var json = DeskStore.Instance.Get("desktop/orders", () => JsonSerializer.Serialize(new Dictionary<Mmid, AppOrder>()));
-            return JsonSerializer.Deserialize<Dictionary<Mmid, AppOrder>>(json);
+            var dic = JsonSerializer.Deserialize<Dictionary<Mmid, AppOrder>>(DeskStore.Instance.Get("desktop/orders",
+                () => JsonSerializer.Serialize(new Dictionary<Mmid, AppOrder>())));
+
+            if (dic.Count == 0)
+            {
+                return SAppOrders.GetOrPut(() => new Dictionary<string, AppOrder>());
+            }
+
+            return dic;
         }
     }
 

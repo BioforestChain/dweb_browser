@@ -1,5 +1,4 @@
-﻿using Foundation;
-using System.Text.Json;
+﻿using System.Text.Json;
 
 namespace DwebBrowser.MicroService.Browser.Jmm;
 
@@ -11,12 +10,21 @@ sealed internal class JmmDatabase : FileStore
     {
     }
 
-    private Dictionary<Mmid, IJmmAppInstallManifest> Apps
+    private readonly LazyBox<Dictionary<Mmid, JmmAppInstallManifest>> SApps = new();
+    private Dictionary<Mmid, JmmAppInstallManifest> Apps
     {
         get
         {
-            var dic = Get("apps", () => JsonSerializer.Serialize(new Dictionary<Mmid, IJmmAppInstallManifest>()));
-            return JsonSerializer.Deserialize<Dictionary<Mmid, IJmmAppInstallManifest>>(dic);
+            /// TODO: 待优化
+            var dic = JsonSerializer.Deserialize<Dictionary<Mmid, JmmAppInstallManifest>>(Get("apps",
+                () => JsonSerializer.Serialize(new Dictionary<Mmid, JmmAppInstallManifest>())));
+
+            if (dic.Count == 0)
+            {
+                return SApps.GetOrPut(() => new Dictionary<string, JmmAppInstallManifest>());
+            }
+
+            return dic;
         }
     }
 
@@ -25,7 +33,7 @@ sealed internal class JmmDatabase : FileStore
         Set("apps", JsonSerializer.Serialize(Apps));
     }
 
-    internal bool Upsert(IJmmAppInstallManifest app)
+    internal bool Upsert(JmmAppInstallManifest app)
     {
         var oldApp = Apps.GetValueOrDefault(app.Id);
 
@@ -40,7 +48,7 @@ sealed internal class JmmDatabase : FileStore
         return true;
     }
 
-    internal IJmmAppInstallManifest? Find(Mmid mmid)
+    internal JmmAppInstallManifest? Find(Mmid mmid)
     {
         return Apps.GetValueOrDefault(mmid);
     }
@@ -57,5 +65,5 @@ sealed internal class JmmDatabase : FileStore
         return false;
     }
 
-    internal List<IJmmAppInstallManifest> All() => Apps.Values.ToList();
+    internal List<JmmAppInstallManifest> All() => Apps.Values.ToList();
 }
