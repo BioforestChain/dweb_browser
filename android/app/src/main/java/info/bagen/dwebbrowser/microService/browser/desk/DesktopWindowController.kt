@@ -2,6 +2,7 @@ package info.bagen.dwebbrowser.microService.browser.desk
 
 import android.content.Context
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
@@ -24,9 +25,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.input.pointer.pointerInteropFilter
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.dp
 import info.bagen.dwebbrowser.microService.core.WindowController
 import info.bagen.dwebbrowser.microService.core.WindowState
 import info.bagen.dwebbrowser.microService.core.windowAdapterManager
@@ -48,6 +51,7 @@ class DesktopWindowController(
   suspend fun focus() {
     if (!state.focus) {
       state.focus = true
+      state.emitChange()
       _focusSignal.emit()
     }
   }
@@ -55,6 +59,7 @@ class DesktopWindowController(
   suspend fun blur() {
     if (state.focus) {
       state.focus = false
+      state.emitChange()
       _blurSignal.emit()
     }
   }
@@ -73,22 +78,49 @@ class DesktopWindowController(
     }
     val coroutineScope = rememberCoroutineScope()
     val emitWinStateChange = { -> coroutineScope.launch { winState.emitChange() } }
+    val emitWinFocus = { focused: Boolean ->
+      coroutineScope.launch {
+        if (focused) {
+          focus()
+        } else {
+          blur()
+        }
+      }
+    }
     val density = LocalDensity.current
 
+    var inMove by remember { mutableStateOf(false) }
+    fun Modifier.moveable() = this.pointerInput(Unit) {
+      detectDragGestures(
+        onDragStart = {
+          inMove = true
+        },
+        onDragEnd = {
+          inMove = false
+        }) { change, dragAmount ->
+        change.consume()
+        winState.bounds.left += dragAmount.x / density.density
+        winState.bounds.top += dragAmount.y / density.density
+        /// 开始移动的时候，同时进行聚焦
+        emitWinFocus(true)
+        emitWinStateChange()
+      }
+    }
+
     ElevatedCard(
-      onClick = {
-        coroutineScope.launch {
-          focus();
-        }
-      },
       modifier = winState.bounds
         .toModifier(modifier)
-        .focusable(true),
+        .focusable(true)
+        .onFocusChanged { state ->
+          emitWinFocus(state.isFocused)
+        }
+        .clickable {
+          emitWinFocus(true)
+        },
       colors = CardDefaults.elevatedCardColors(
         containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
       ),
-      elevation = CardDefaults.elevatedCardElevation()
-//      elevation = CardElevation()
+      elevation = if (inMove) CardDefaults.elevatedCardElevation(defaultElevation = 20.dp) else CardDefaults.elevatedCardElevation()
     ) {
       Column {
         /// 标题栏
@@ -96,27 +128,19 @@ class DesktopWindowController(
           modifier = Modifier
             .background(MaterialTheme.colorScheme.onPrimaryContainer)
             .fillMaxWidth()
-            /// 标题栏可拖动
-            .pointerInput(Unit) {
-              detectDragGestures { change, dragAmount ->
-                change.consume()
-                winState.bounds.left += dragAmount.x / density.density
-                winState.bounds.top += dragAmount.y / density.density
-                emitWinStateChange()
-              }
-            }
+            /// 标题可以窗口拖动
+            .moveable()
         ) {
           Text(
             text = this@DesktopWindowController.state.title,
             style = MaterialTheme.typography.titleSmall.copy(color = MaterialTheme.colorScheme.onPrimary)
           )
         }
+//        var viewSize = Local
         Box(
-          modifier = Modifier
-            .fillMaxSize()
-//            .pointerInteropFilter {
-//              !winState.focus
-//            }
+          modifier = Modifier.fillMaxSize().onGloballyPositioned { layoutCoordinates ->
+            layoutCoordinates.size
+          }
         ) {
           windowAdapterManager.providers[this@DesktopWindowController.state.wid]?.also {
             it(Modifier.fillMaxSize())
@@ -128,6 +152,16 @@ class DesktopWindowController(
               background = MaterialTheme.colorScheme.errorContainer
             )
           )
+
+          /// 失去焦点的时候，提供 moveable 的遮罩（在移动中需要确保遮罩存在）
+          if (inMove or !winState.focus) {
+            Box(
+              modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = if (winState.focus) 0f else 0.2f))
+                .moveable()
+            )
+          }
         }
       }
     }
