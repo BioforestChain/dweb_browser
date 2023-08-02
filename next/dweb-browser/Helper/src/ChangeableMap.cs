@@ -2,9 +2,8 @@
 
 namespace DwebBrowser.Helper;
 
-public class ChangeableMap<K, V> where K : notnull, IComparable
+public class ChangeableMap<K, V> : ConcurrentDictionary<K, V> where K : notnull
 {
-    private readonly ConcurrentDictionary<K, V> InnerMap = new();
     private readonly HashSet<Signal<ConcurrentDictionary<K, V>>> _changeSignal = new();
     public event Signal<ConcurrentDictionary<K, V>> OnChange
     {
@@ -13,42 +12,33 @@ public class ChangeableMap<K, V> where K : notnull, IComparable
     }
     protected Task _OnChangeEmit(ConcurrentDictionary<K, V> dic) => _changeSignal.Emit(dic).ForAwait();
 
-    public Task OnChangeEmit() => _OnChangeEmit(InnerMap);
-
-    public int Length => InnerMap.Count;
+    public Task OnChangeEmit() => _OnChangeEmit(this);
 
     public async Task<bool> Set(K key, V value)
     {
-        var suc = InnerMap.TryAdd(key, value);
-        await _OnChangeEmit(InnerMap);
+        var suc = TryAdd(key, value);
+        await _OnChangeEmit(this);
         return suc;
     }
 
     public V? Get(K key)
     {
-        return InnerMap.GetValueOrDefault(key);
+        if (TryGetValue(key, out var value))
+        {
+            return value;
+        }
+
+        return default;
     }
 
     public async Task<V?> Remove(K key)
     {
-        InnerMap.Remove(key, out var res);
-        await _OnChangeEmit(InnerMap);
-        return res;
-    }
-
-    public bool ContainsKey(K key)
-    {
-        return InnerMap.ContainsKey(key);
-    }
-
-    public bool Contains(KeyValuePair<K, V> value)
-    {
-        return InnerMap.Contains(value);
-    }
-
-    public void Clear()
-    {
-        InnerMap.Clear();
+        if (TryRemove(key, out var value))
+        {
+            await _OnChangeEmit(this);
+            return value;
+        }
+        
+        return default;
     }
 }
-
