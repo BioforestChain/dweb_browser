@@ -1,4 +1,4 @@
-import type { $MicroModuleManifest } from "../../core/types.ts";
+import type { $MicroModuleManifest, $MMID } from "../../core/types.ts";
 
 export interface $DeskAppMetaData extends $MicroModuleManifest {
   running: boolean;
@@ -10,11 +10,28 @@ export interface $DeskAppMetaData extends $MicroModuleManifest {
 
 type Int = number;
 type Float = number;
+type $UUID = string;
 
 /**
  * 单个窗口的状态集
  */
 export interface $WindowState {
+  /**
+   * 窗口全局唯一编号，属于UUID的格式
+   */
+  wid: $UUID;
+  /**
+   * 窗口持有者
+   *
+   * 窗口创建者
+   */
+  owner: $MMID;
+  /**
+   * 内容提提供方
+   *
+   * 比如若渲染的是web内容，那么应该是 mwebview.browser.dweb
+   */
+  provider: $MMID;
   /**
    * 窗口位置和大小
    *
@@ -68,13 +85,16 @@ export interface $WindowState {
   pictureInPicture: boolean;
   /**
    * 当前窗口层叠顺序
-   * @types {float} 这里使用float，本质上意味着这个zIndex是一个“二维”值
-   *
-   * 通常默认情况下都是整数。
-   * 如果一个窗口有了子窗口，那么这个 父窗口 和 这些 子窗口 会使用小数来区分彼此；同时父窗口总是为整数
-   * 这里没有将它拆分成两个数来存储，目的是复合直觉
    */
-  zIndex: Float;
+  zIndex: Int;
+  /**
+   * 子窗口
+   */
+  children: $UUID[];
+  /**
+   * 父窗口
+   */
+  parent: undefined | $UUID;
   /**
    * 是否在闪烁提醒
    *

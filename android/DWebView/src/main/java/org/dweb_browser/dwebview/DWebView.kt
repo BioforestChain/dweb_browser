@@ -200,7 +200,7 @@ class DWebView(
 //  }
 
   private val closeSignal = SimpleSignal()
-  fun onCloseWindow(cb: SimpleCallback) = closeSignal.listen(cb)
+  val onCloseWindow = closeSignal.toListener()
 
   val dWebViewClient by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     DWebViewClient().also {

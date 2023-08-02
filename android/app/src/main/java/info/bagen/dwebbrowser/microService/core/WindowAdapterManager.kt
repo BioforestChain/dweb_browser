@@ -133,13 +133,18 @@ data class WindowState(
 
   /**
    * 当前窗口层叠顺序
-   * @types {float} 这里使用float,本质上意味着这个zIndex是一个“二维”值
-   *
-   * 通常默认情况下都是整数。
-   * 如果一个窗口有了子窗口,那么这个 父窗口 和 这些 子窗口 会使用小数来区分彼此;同时父窗口总是为整数
-   * 这里没有将它拆分成两个数来存储,目的是复合直觉
    */
-  var zIndex: Float = 0f,
+  var zIndex: Int = 0,
+
+  /**
+   * 子窗口
+   */
+  var children: List<UUID> = emptyList(),
+
+  /**
+   * 父窗口
+   */
+  var parent: UUID? = null,
 
   /**
    * 是否在闪烁提醒
@@ -205,6 +210,6 @@ data class WindowState(
   )
 
   private val _changeSignal = SimpleSignal()
-  fun onChange(cb: SimpleCallback) = _changeSignal.listen(cb)
+  val onChange = _changeSignal.toListener()
   suspend fun emitChange() = _changeSignal.emit()
 }

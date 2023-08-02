@@ -1,20 +1,20 @@
 package org.dweb_browser.helper
 
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-class ChangeableList<T> : ArrayList<T>() {
+@OptIn(DelicateCoroutinesApi::class)
+class ChangeableList<T>(private val scope: CoroutineScope = GlobalScope) : ArrayList<T>() {
   private val _changeSignal = Signal<ChangeableList<T>>()
 
-  fun onChange(callback: Callback<ChangeableList<T>>) = _changeSignal.listen(callback)
+  val onChange = _changeSignal.toListener()
 
-  @OptIn(DelicateCoroutinesApi::class)
-  private fun emitChange() {
-    GlobalScope.launch(ioAsyncExceptionHandler) {
-      _changeSignal.emit(this@ChangeableList)
-    }
+  fun emitChange() = scope.launch(ioAsyncExceptionHandler) {
+    _changeSignal.emit(this@ChangeableList)
   }
+
 
   override fun clear() {
     super.clear()

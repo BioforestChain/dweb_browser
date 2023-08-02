@@ -22,6 +22,8 @@ import info.bagen.dwebbrowser.base.BaseActivity
 import info.bagen.dwebbrowser.microService.core.WindowState
 import info.bagen.dwebbrowser.microService.core.windowAdapterManager
 import info.bagen.dwebbrowser.ui.theme.DwebBrowserAppTheme
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 
 
 @SuppressLint("ModifierFactoryExtensionFunction")
@@ -41,30 +43,9 @@ class DesktopActivity : BaseActivity() {
     } ?: throw Exception("no found controller by sessionId: $sessionId")
   }
 
-  private val winList = mutableStateListOf<DesktopWindowController>()
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     val desktopController = bindController(intent.getStringExtra("sessionId"))
-
-    /// 创建成功，提供适配器来渲染窗口
-    val offAdapter = windowAdapterManager.append { winState ->
-      with(winState.bounds) {
-        left = 150f
-        top = 250f
-        width = 200f
-        height = 300f
-      }
-      val winCtrl = DesktopWindowController(this, winState)
-        .also { winCtrl ->
-          winCtrl.onDestroy {
-            winList.remove(winCtrl)
-          }
-        }
-      winList.add(winCtrl)
-      winCtrl
-    }
-    /// Activity销毁的时候，移除窗口
-    onDestroyActivity { offAdapter(Unit) }
 
 
     val context = this@DesktopActivity
@@ -72,8 +53,10 @@ class DesktopActivity : BaseActivity() {
       it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     });
 
-    /// 上一个聚焦的窗口对象
-    var preFocusedWin: DesktopWindowController? = null;
+    /**
+     * 窗口管理器
+     */
+    val desktopWindowsManager = DesktopWindowsManager(this)
 
     setContent {
       DwebBrowserAppTheme {
@@ -96,24 +79,9 @@ class DesktopActivity : BaseActivity() {
             }
             /// 窗口视图
             Box {
-              for (win in winList) {
+              for (win in desktopWindowsManager.winList.value) {
                 key(win.id) {
-                  LaunchedEffect(win) {
-                    /// 如果有一个新的窗口聚焦了，那么上一个聚焦的窗口释放聚焦
-                    win.onFocus {
-                      preFocusedWin?.blur()
-                      preFocusedWin = win;
-                      Unit
-                    }
-                    /// 如果窗口释放聚焦，那么释放 preFocusedWin 的引用
-                    win.onBlur {
-                      if (preFocusedWin == win) {
-                        preFocusedWin = null
-                      }
-                    }
-                    /// 第一次装载窗口，默认将它聚焦
-                    win.focus()
-                  }
+                  /// 渲染窗口
                   win.Render()
                 }
               }
