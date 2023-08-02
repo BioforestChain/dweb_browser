@@ -116,7 +116,11 @@ public class DeskNMM : IOSNativeMicroModule
         {
             foreach (var app_id in map.Keys)
             {
-                DeskController.TaskBarAppList.Add(new DeskStore.TaskApps(app_id, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()));
+                var taskApp = new DeskStore.TaskApps(app_id, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
+                if (!DeskController.TaskBarAppList.Contains(taskApp))
+                {
+                    DeskController.TaskBarAppList.Add(taskApp);
+                }
             }
 
             DeskStore.Instance.Save(DeskController.TaskBarAppList);
@@ -148,6 +152,10 @@ public class DeskNMM : IOSNativeMicroModule
                 /// 如果成功打开，将它“追加”到列表中
                 await RunningApps.Remove(app_id);
                 await RunningApps.Set(app_id, ipc);
+
+                /// 设置桌面有应用
+                DeskController.IsOnTop = false;
+
                 /// 如果应用关闭，将它从列表中移除
                 ipc.OnClose += async (_) =>
                 {

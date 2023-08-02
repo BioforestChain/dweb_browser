@@ -1,4 +1,5 @@
-﻿using CoreGraphics;
+﻿using System.Runtime.InteropServices;
+using CoreGraphics;
 using DwebBrowser.Base;
 using UIKit;
 
@@ -22,19 +23,31 @@ public partial class DeskController : BaseViewController
         View.BackgroundColor = UIColor.White;
     }
 
+    /// <summary>
+    /// 为了将TaskBarView置于顶层，且可交互，必须使用 BringSubviewToFront
+    /// </summary>
+    /// <param name="view"></param>
+    public void AddSubView(UIView view)
+    {
+        View.AddSubview(view);
+        View.BringSubviewToFront(TaskBarView);
+    }
+
     public async Task Create(HttpDwebServer taskbarServer, HttpDwebServer desktopServer)
     {
         var bounds = UIScreen.MainScreen.Bounds;
         var desktopInternalUrl = desktopServer.StartResult.urlInfo.BuildInternalUrl();
-        DesktopView = new DWebView.DWebView(localeMM: DeskNMM, options: new DWebView.DWebView.Options(desktopInternalUrl) { AllowDwebScheme = false })
+        DesktopView = new DWebView.DWebView(
+            localeMM: DeskNMM,
+            options: new DWebView.DWebView.Options(desktopInternalUrl) { AllowDwebScheme = false })
         {
             Frame = bounds,
             Tag = 32766
         };
         var desktopUrl = desktopInternalUrl.Path("/desktop.html");
         _ = DesktopView.LoadURL(desktopUrl).NoThrow();
-        View.AddSubviews(DesktopView);
-
+        View.AddSubview(DesktopView);
+        //AddSubView(DesktopView);
 
         TaskBarView = new UIView()
         {
@@ -44,6 +57,8 @@ public partial class DeskController : BaseViewController
         {
             TaskBarView.ClipsToBounds = true;
             TaskBarView.Layer.CornerRadius = 20f;
+            TaskBarView.Layer.ZPosition = NFloat.MaxValue;
+
             View.AddSubview(TaskBarView);
             /// 背景层
             {
@@ -59,13 +74,15 @@ public partial class DeskController : BaseViewController
             /// 内容层
             {
                 var taskbarInternalUrl = taskbarServer.StartResult.urlInfo.BuildInternalUrl();
-                var contentView = new DWebView.DWebView(localeMM: DeskNMM, options: new DWebView.DWebView.Options(taskbarInternalUrl))
+                var contentView = new DWebView.DWebView(
+                    localeMM: DeskNMM,
+                    options: new DWebView.DWebView.Options(taskbarInternalUrl) { AllowDwebScheme = false })
                 {
                     Opaque = false,
                     BackgroundColor = UIColor.Clear,
                 };
                 contentView.ScrollView.BackgroundColor = UIColor.Clear;
-                //taskbarServer.StartResult.urlInfo.BuildInternalUrl();
+
                 var taskbarUrl = taskbarInternalUrl.Path("taskbar.html");
                 _ = contentView.LoadURL(taskbarUrl).NoThrow();
                 TaskBarView.AddSubview(contentView);
@@ -100,7 +117,7 @@ public partial class DeskController : BaseViewController
         superView.AddConstraints(constraints);
     }
 
-    private bool IsOnTop = false;
+    public bool IsOnTop = false;
     /// <summary>
     /// desktop和taskbar tags标识
     /// </summary>

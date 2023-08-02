@@ -1,4 +1,6 @@
-﻿using DwebBrowser.Base;
+﻿using UIKit;
+
+using DwebBrowser.Base;
 
 namespace DwebBrowser.MicroService.Browser.Web;
 
@@ -9,6 +11,12 @@ public class WebBrowserController : BaseViewController
     public WebBrowserController(WebBrowserNMM webBrowserNMM)
     {
         WebBrowserNMM = webBrowserNMM;
+    }
+
+    public override void ViewDidLoad()
+    {
+        base.ViewDidLoad();
+        View.Frame = UIScreen.MainScreen.Bounds;
     }
 }
 

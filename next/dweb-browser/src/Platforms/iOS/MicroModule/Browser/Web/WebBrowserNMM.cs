@@ -1,4 +1,5 @@
-﻿using DwebBrowserFramework;
+﻿using DwebBrowser.MicroService.Browser.Desk;
+using DwebBrowserFramework;
 using UIKit;
 
 namespace DwebBrowser.MicroService.Browser.Web;
@@ -46,11 +47,12 @@ public class WebBrowserNMM : IOSNativeMicroModule
 
             var manager = new BridgeManager();
             var browserView = manager.BrowserView;
-            browserView.Frame = UIScreen.MainScreen.Bounds;
-            WebBrowserController.View.AddSubview(browserView);
+            browserView.Frame = WebBrowserController.View.Frame;
+            //WebBrowserController.View.AddSubview(browserView);
 
-            var vc = await RootViewController.WaitPromiseAsync();
-            vc.PushViewController(WebBrowserController, true);
+            //var vc = await RootViewController.WaitPromiseAsync();
+            //vc.PushViewController(WebBrowserController, true);
+            DeskNMM.DeskController.AddSubView(browserView);
         });
     }
 }

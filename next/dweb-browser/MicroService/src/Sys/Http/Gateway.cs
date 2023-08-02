@@ -105,14 +105,12 @@ public class Gateway
                             Console.Log("chunk", chunk.ToUtf8());
                             if (webSocketContext.WebSocket.State == WebSocketState.Open)
                             {
-                                await webSocketContext.WebSocket.SendAsync(chunk, WebSocketMessageType.Binary, false, CancellationToken.None);
-                                await webSocketContext.WebSocket.SendAsync(ArraySegment<byte>.Empty, WebSocketMessageType.Binary, true, CancellationToken.None);
-                                Console.Log("chunk", "end");
+                                await webSocketContext.WebSocket.SendAsync(chunk, WebSocketMessageType.Binary, true, CancellationToken.None);
+                                //await webSocketContext.WebSocket.SendAsync(ArraySegment<byte>.Empty, WebSocketMessageType.Binary, true, CancellationToken.None);
                             }
                         }
                         if (webSocketContext.WebSocket.State == WebSocketState.Open)
                         {
-                            await webSocketContext.WebSocket.SendAsync(ArraySegment<byte>.Empty, WebSocketMessageType.Binary, true, CancellationToken.None);
                             await webSocketContext.WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "服务端关闭流", CancellationToken.None);
                         }
                     }
