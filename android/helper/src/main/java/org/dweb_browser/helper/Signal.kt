@@ -1,5 +1,11 @@
 package org.dweb_browser.helper
 
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.cancellable
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.onCompletion
 import java.util.Collections.newSetFromMap
 import java.util.concurrent.ConcurrentHashMap
 
@@ -17,8 +23,7 @@ enum class SIGNAL_CTOR {
   /**
    * 返回该值，会让接下来的其它监听函数不再触发
    */
-  BREAK,
-  ;
+  BREAK, ;
 }
 
 open class Signal<Args> {
@@ -30,6 +35,23 @@ open class Signal<Args> {
     listenerSet.add(cb)
     return { off(cb) }
   }
+
+  fun toFlow() = channelFlow {
+    val off = listen {
+      send(it)
+    }
+    awaitClose {
+      off(Unit)
+    }
+  }
+
+  class Listener<Args>(val signal: Signal<Args>) {
+    operator fun invoke(cb: Callback<Args>) = signal.listen(cb)
+
+    fun toFlow() = signal.toFlow()
+  }
+
+  fun toListener() = Listener(this)
 
   @Synchronized
   fun off(cb: Callback<Args>): Boolean {

@@ -1,12 +1,9 @@
 package info.bagen.dwebbrowser.microService.browser.mwebview
 
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import com.google.accompanist.web.WebContent
 import com.google.accompanist.web.WebViewNavigator
 import com.google.accompanist.web.WebViewState
-import info.bagen.dwebbrowser.App
-import info.bagen.dwebbrowser.base.BaseActivity
 import info.bagen.dwebbrowser.microService.browser.nativeui.NativeUiController
 import info.bagen.dwebbrowser.microService.core.WindowController
 import kotlinx.coroutines.CoroutineName
@@ -18,7 +15,6 @@ import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.helper.Callback
 import org.dweb_browser.helper.ChangeableList
-import org.dweb_browser.microservice.help.MMID
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.runBlockingCatching
@@ -87,7 +83,7 @@ class MultiWebViewController(
   suspend fun openWebView(url: String) = appendWebViewAsItem(createDwebView(url))
 
   suspend fun createDwebView(url: String): DWebView = withContext(mainAsyncExceptionHandler) {
-    val currentActivity = win.androidContext;// App.appContext
+    val currentActivity = win.context;// App.appContext
     val dWebView = DWebView(
       currentActivity, remoteMM, DWebView.Options(
         url = url,

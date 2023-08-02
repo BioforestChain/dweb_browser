@@ -9,7 +9,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -43,14 +46,13 @@ class DesktopActivity : BaseActivity() {
     super.onCreate(savedInstanceState)
     val desktopController = bindController(intent.getStringExtra("sessionId"))
 
-
     /// 创建成功，提供适配器来渲染窗口
     val offAdapter = windowAdapterManager.append { winState ->
       with(winState.bounds) {
-        left = 150
-        top = 250
-        width = 200
-        height = 300
+        left = 150f
+        top = 250f
+        width = 200f
+        height = 300f
       }
       val winCtrl = DesktopWindowController(this, winState)
         .also { winCtrl ->
@@ -69,6 +71,9 @@ class DesktopActivity : BaseActivity() {
     context.startActivity(Intent(context, TaskbarActivity::class.java).also {
       it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     });
+
+    /// 上一个聚焦的窗口对象
+    var preFocusedWin: DesktopWindowController? = null;
 
     setContent {
       DwebBrowserAppTheme {
@@ -92,7 +97,25 @@ class DesktopActivity : BaseActivity() {
             /// 窗口视图
             Box {
               for (win in winList) {
-                win.Render()
+                key(win.id) {
+                  LaunchedEffect(win) {
+                    /// 如果有一个新的窗口聚焦了，那么上一个聚焦的窗口释放聚焦
+                    win.onFocus {
+                      preFocusedWin?.blur()
+                      preFocusedWin = win;
+                      Unit
+                    }
+                    /// 如果窗口释放聚焦，那么释放 preFocusedWin 的引用
+                    win.onBlur {
+                      if (preFocusedWin == win) {
+                        preFocusedWin = null
+                      }
+                    }
+                    /// 第一次装载窗口，默认将它聚焦
+                    win.focus()
+                  }
+                  win.Render()
+                }
               }
             }
           }
