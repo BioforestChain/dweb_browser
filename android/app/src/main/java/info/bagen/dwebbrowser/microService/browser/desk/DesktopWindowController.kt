@@ -29,6 +29,7 @@ class DesktopWindowController(
       colors = CardDefaults.elevatedCardColors(
         containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
       ),
+      elevation = CardDefaults.elevatedCardElevation()
 //      elevation = CardElevation()
     ) {
       Column {

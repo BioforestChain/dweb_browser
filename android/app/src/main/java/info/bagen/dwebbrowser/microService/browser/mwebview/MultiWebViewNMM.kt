@@ -112,6 +112,7 @@ class MultiWebViewNMM :
         windowAdapterManager.providers[wid] = @Composable { controller.Render(it) }
         /// 窗口销毁的时候，移除适配器
         win.onDestroy {
+          controllerMap.remove(remoteMmid)
           windowAdapterManager.providers.remove(wid)
         }
         /// ipc 断开的时候，强制关闭窗口

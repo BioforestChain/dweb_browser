@@ -1,29 +1,21 @@
 package info.bagen.dwebbrowser.microService.browser.mwebview
 
-import android.annotation.SuppressLint
-import android.os.Bundle
 import android.view.ViewGroup
 import androidx.activity.compose.BackHandler
-import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.selection.toggleable
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.unit.dp
-import androidx.lifecycle.lifecycleScope
 import com.google.accompanist.web.WebView
-import info.bagen.dwebbrowser.base.BaseActivity
-import org.dweb_browser.helper.*
-import info.bagen.dwebbrowser.microService.browser.mwebviewbak.MultiWebViewNMM.Companion.getCurrentWebViewController
-import info.bagen.dwebbrowser.microService.browser.mwebviewbak.dwebServiceWorker.ServiceWorkerEvent
-import info.bagen.dwebbrowser.microService.browser.mwebviewbak.dwebServiceWorker.emitEvent
-import info.bagen.dwebbrowser.ui.theme.DwebBrowserAppTheme
 import kotlinx.coroutines.launch
 
 @Composable
@@ -50,9 +42,7 @@ fun MultiWebViewController.Render(modifier: Modifier = Modifier) {
 
         val chromeClient = remember {
           MultiWebViewChromeClient(
-            controller,
-            viewItem,
-            isLastView(viewItem)
+            controller, viewItem, isLastView(viewItem)
           )
         }
 
