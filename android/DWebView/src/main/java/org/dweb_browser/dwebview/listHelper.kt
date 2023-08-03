@@ -1,6 +1,6 @@
 package org.dweb_browser.dwebview
 
-fun <E> List<E>.some(function: (it: E) -> Unit): E? {
+fun <E> List<E>.one(function: (it: E) -> Unit): E? {
   for (item in this) {
     function(item)
     return item
@@ -8,7 +8,7 @@ fun <E> List<E>.some(function: (it: E) -> Unit): E? {
   return null
 }
 
-fun <E> List<E>.every(function: (it: E) -> Unit): List<E>? {
+fun <E> List<E>.all(function: (it: E) -> Unit): List<E>? {
   if (isEmpty()) {
     return null
   }
@@ -18,7 +18,7 @@ fun <E> List<E>.every(function: (it: E) -> Unit): List<E>? {
   return this
 }
 
-fun <E, R> List<E>.lets(function: (it: E) -> R): R? {
+fun <E, R> List<E>.mapFindNoNull(function: (it: E) -> R): R? {
   for (item in this) {
     val res = function(item)
     if (res != null) {
@@ -28,7 +28,7 @@ fun <E, R> List<E>.lets(function: (it: E) -> R): R? {
   return null
 }
 
-fun <E> List<E>.until(function: (it: E) -> Boolean): Boolean? {
+fun <E> List<E>.someOrNull(function: (it: E) -> Boolean): Boolean? {
   for (item in this) {
     val res = function(item)
     if (res) {
@@ -37,3 +37,5 @@ fun <E> List<E>.until(function: (it: E) -> Boolean): Boolean? {
   }
   return null
 }
+
+fun <E> List<E>.some(function: (it: E) -> Boolean) = this.someOrNull(function) ?: false

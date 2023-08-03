@@ -60,6 +60,12 @@ class DeskController(
       }
     }
 
+
+  /**
+   * 窗口管理器
+   */
+  val desktopWindowsManager get() = DesktopWindowsManager.getInstance(this.activity!!)
+
   val currentInsets: MutableState<WindowInsetsCompat> by lazy {
     mutableStateOf(
       WindowInsetsCompat.toWindowInsetsCompat(

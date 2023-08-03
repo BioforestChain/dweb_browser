@@ -1,11 +1,13 @@
 package info.bagen.dwebbrowser.microService.browser.mwebview
 
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import com.google.accompanist.web.WebContent
 import com.google.accompanist.web.WebViewNavigator
 import com.google.accompanist.web.WebViewState
 import info.bagen.dwebbrowser.microService.browser.nativeui.NativeUiController
 import info.bagen.dwebbrowser.microService.core.WindowController
+import info.bagen.dwebbrowser.microService.core.windowAdapterManager
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -52,6 +54,17 @@ class MultiWebViewController(
     webViewList.onChange {
       updateStateHook()
     }
+    val wid = win.id
+    /// 提供渲染适配
+    windowAdapterManager.providers[wid] = @Composable { Render(it) }
+    /// 窗口销毁的时候，移除适配器
+    win.onDestroy {
+      windowAdapterManager.providers.remove(wid)
+    }
+    /// ipc 断开的时候，强制关闭窗口
+    ipc.onClose {
+      win.close(force = true)
+    }
   }
 
   fun isLastView(viewItem: MultiViewItem) = webViewList.lastOrNull() == viewItem
@@ -65,14 +78,15 @@ class MultiWebViewController(
     override val state: WebViewState,
     override val navigator: WebViewNavigator,
     override val coroutineScope: CoroutineScope,
-    override var hidden: Boolean = false
+    override var hidden: Boolean = false,
+    val win: WindowController
   ) : ViewItem {
-    val nativeUiController by lazy {
-      webView.activity?.let {
-        NativeUiController(it)
-      }
-        ?: throw Exception("webview un attached to activity")
-    }
+//    val nativeUiController by lazy {
+//      webView.activity?.let {
+//        NativeUiController(it)
+//      }
+//        ?: throw Exception("webview un attached to activity")
+//    }
   }
 
   var downLoadObserver: DownLoadObserver? = null
@@ -106,6 +120,7 @@ class MultiWebViewController(
       state = state,
       coroutineScope = coroutineScope,
       navigator = navigator,
+      win = win,
     ).also { viewItem ->
       webViewList.add(viewItem)
       dWebView.onCloseWindow {

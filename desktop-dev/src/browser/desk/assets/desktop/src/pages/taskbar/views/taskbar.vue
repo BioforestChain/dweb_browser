@@ -6,7 +6,14 @@ import {
 } from "src/components/app-icon/appMetaDataHelper.ts";
 import { $AppIconInfo } from "src/components/app-icon/types";
 import SvgIcon from "src/components/svg-icon/svg-icon.vue";
-import { openApp, quitApp, resizeTaskbar, toggleDesktopView, watchTaskbarAppInfo } from "src/provider/api.ts";
+import {
+  openApp,
+  quitApp,
+  resizeTaskbar,
+  toggleDesktopView,
+  toggleMaximize,
+  watchTaskbarAppInfo,
+} from "src/provider/api.ts";
 import { $WidgetAppData } from "src/types/app.type.ts";
 import { onMounted, onUnmounted, ref, ShallowRef, shallowRef, triggerRef, watchEffect } from "vue";
 import { icons } from "./icons/index.ts";
@@ -59,6 +66,9 @@ const doOpen = async (metaData: $WidgetAppData) => {
     return;
   }
   await openApp(metaData.mmid);
+};
+const doToggleMaximize = async (metaData: $WidgetAppData) => {
+  await toggleMaximize(metaData.mmid);
 };
 const doExit = async (metaData: $WidgetAppData) => {
   await quitApp(metaData.mmid);
@@ -126,6 +136,7 @@ const iconSize = "45px";
           bg-color="#FFF"
           bg-disable-translucent
           @click="doOpen(app.metaData)"
+          @dblclick="doToggleMaximize(app.metaData)"
           @contextmenu="tryOpenMenuOverlay(app.metaData)"
         >
           <button

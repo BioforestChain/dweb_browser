@@ -38,7 +38,7 @@ fun MultiWebViewController.Render(modifier: Modifier = Modifier) {
     }
     list.forEach { viewItem ->
       key(viewItem.webviewId) {
-        val nativeUiController = viewItem.nativeUiController.effect()
+//        val nativeUiController = viewItem.nativeUiController.effect()
         val state = viewItem.state
         val navigator = viewItem.navigator
 
@@ -66,14 +66,15 @@ fun MultiWebViewController.Render(modifier: Modifier = Modifier) {
         Box(
           modifier = Modifier.fillMaxSize()
         ) {
-          val modifierPadding by nativeUiController.safeArea.outerAreaInsetsState
+//          val modifierPadding by nativeUiController.safeArea.outerAreaInsetsState
           WebView(
             state = state,
             navigator = navigator,
             modifier = Modifier
               .fillMaxSize()
-              .focusRequester(nativeUiController.virtualKeyboard.focusRequester)
-              .padding(modifierPadding.asPaddingValues()),
+//              .focusRequester(nativeUiController.virtualKeyboard.focusRequester)
+//              .padding(modifierPadding.asPaddingValues())
+            ,
             factory = {
               // 修复 activity 已存在父级时导致的异常
               viewItem.webView.parent?.let { parentView ->

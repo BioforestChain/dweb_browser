@@ -40,6 +40,14 @@ export async function openApp(id: string) {
   });
 }
 
+export async function toggleMaximize(id: string) {
+  return await nativeFetch<boolean>("/toggleMaximize", {
+    search: {
+      app_id: id,
+    },
+  });
+}
+
 /** 重击手势的反馈振动, 比如菜单键/惨案/3Dtouch */
 export async function vibrateHeavyClick() {
   return nativeFetch("/vibrateHeavyClick", {
@@ -59,7 +67,7 @@ export async function quitApp(id: string) {
 /**卸载的是jmm所以从这里调用 */
 export async function deleteApp(id: string) {
   await quitApp(id);
-  return nativeFetch<Response>("/uninstall", {
+  return nativeFetch<boolean>("/uninstall", {
     search: {
       app_id: id,
     },

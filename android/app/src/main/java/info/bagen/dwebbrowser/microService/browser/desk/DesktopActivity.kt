@@ -9,25 +9,19 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.web.WebView
 import com.google.accompanist.web.rememberWebViewState
 import info.bagen.dwebbrowser.base.BaseActivity
+import info.bagen.dwebbrowser.microService.browser.desk.view.Render
 import info.bagen.dwebbrowser.microService.core.WindowState
-import info.bagen.dwebbrowser.microService.core.windowAdapterManager
 import info.bagen.dwebbrowser.ui.theme.DwebBrowserAppTheme
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
 
 
 @SuppressLint("ModifierFactoryExtensionFunction")
-fun WindowState.Rectangle.toModifier(
+fun WindowState.WindowBounds.toModifier(
   modifier: Modifier = Modifier,
 ) = modifier
   .offset(left.dp, top.dp)
@@ -47,7 +41,7 @@ class DesktopActivity : BaseActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    val desktopController = bindController(intent.getStringExtra("deskSessionId"))
+    val deskController = bindController(intent.getStringExtra("deskSessionId"))
     val taskBarSessionId = intent.getStringExtra("taskBarSessionId")
 
     val context = this@DesktopActivity
@@ -59,36 +53,29 @@ class DesktopActivity : BaseActivity() {
     /**
      * 窗口管理器
      */
-    val desktopWindowsManager = DesktopWindowsManager(this)
+    val desktopWindowsManager = deskController.desktopWindowsManager
 
     setContent {
       DwebBrowserAppTheme {
         val scope = rememberCoroutineScope()
-        desktopController.effect(activity = this@DesktopActivity)
+        deskController.effect(activity = this@DesktopActivity)
 
         CompositionLocalProvider(
-          LocalInstallList provides desktopController.getInstallApps(),
-          LocalOpenList provides desktopController.getOpenApps(),
-          LocalDesktopView provides desktopController.createMainDwebView(),
+          LocalInstallList provides deskController.getInstallApps(),
+          LocalOpenList provides deskController.getOpenApps(),
+          LocalDesktopView provides deskController.createMainDwebView(),
         ) {
           Box {
             /// 桌面视图
             val desktopView = LocalDesktopView.current
             WebView(
-              state = rememberWebViewState(url = desktopController.getDesktopUrl().toString()),
+              state = rememberWebViewState(url = deskController.getDesktopUrl().toString()),
               modifier = Modifier.fillMaxSize(),
             ) {
               desktopView
             }
             /// 窗口视图
-            Box {
-              for (win in desktopWindowsManager.winList.value) {
-                key(win.id) {
-                  /// 渲染窗口
-                  win.Render()
-                }
-              }
-            }
+            desktopWindowsManager.Render()
           }
         }
       }

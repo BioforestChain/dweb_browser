@@ -30,6 +30,8 @@ val windowAdapterManager = WindowAdapterManager();
 
 
 abstract class WindowController {
+  abstract val id: UUID
+
   /**
    * 在Android中，一个窗口对象必然附加在某一个Context/Activity中
    */
@@ -71,15 +73,27 @@ data class WindowState(
   val provider: MMID,
   /**
    * 窗口标题
+   *
+   * 该标题不需要一定与应用名称相同
+   *
+   * 如果是 mwebview，默认会采用当前 Webview 的网页 title
    */
   var title: String = owner,
+  /**
+   * 应用图标链接
+   *
+   * 该链接与应用图标不同
+   *
+   * 如果是 mwebview，默认会采用当前 Webview 的网页 favicon
+   */
+  var iconUrl: String? = null,
   /**
    * 窗口位置和大小
    *
    * 窗口会被限制最小值,会被限制显示区域。
    * 终止,窗口最终会被绘制在用户可见可控的区域中
    */
-  var bounds: Rectangle = Rectangle(),
+  var bounds: WindowBounds = WindowBounds(),
 
   /**
    * 是否全屏
@@ -202,11 +216,16 @@ data class WindowState(
    */
   var screenId: Int = -1,
 ) {
-  data class Rectangle(
-    var left: Float = 0f,
-    var top: Float = 0f,
-    var width: Float = 0f,
-    var height: Float = 0f,
+  /**
+   * 窗口大小与位置
+   *
+   * 默认值是NaN，这种情况下，窗口构建者需要自己对其进行赋值
+   */
+  data class WindowBounds(
+    var left: Float = Float.NaN,
+    var top: Float = Float.NaN,
+    var width: Float = Float.NaN,
+    var height: Float = Float.NaN,
   )
 
   private val _changeSignal = SimpleSignal()

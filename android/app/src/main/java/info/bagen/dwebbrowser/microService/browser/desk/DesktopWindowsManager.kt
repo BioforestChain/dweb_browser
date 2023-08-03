@@ -4,10 +4,20 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.lifecycleScope
 import info.bagen.dwebbrowser.microService.core.windowAdapterManager
 import kotlinx.coroutines.launch
+import org.dweb_browser.dwebview.some
 import org.dweb_browser.helper.ChangeableList
 import org.dweb_browser.microservice.help.MMID
+import java.util.WeakHashMap
+import kotlin.math.sqrt
 
 class DesktopWindowsManager(private val activity: DesktopActivity) {
+  companion object {
+    private val instances = WeakHashMap<DesktopActivity, DesktopWindowsManager>()
+    fun getInstance(activity: DesktopActivity) = instances.getOrPut(activity) {
+      DesktopWindowsManager(activity)
+    }
+  }
+
   /**
    * 一个已经根据 zIndex 排序完成的只读列表
    */
@@ -42,12 +52,32 @@ class DesktopWindowsManager(private val activity: DesktopActivity) {
   init {
     /// 创建成功，提供适配器来渲染窗口
     val offAdapter = windowAdapterManager.append { winState ->
-      with(winState.bounds) {
-        left = 150f
-        top = 250f
-        width = 200f
-        height = 300f
+      activity.resources.displayMetrics.also { displayMetrics ->
+        val displayWidth = displayMetrics.widthPixels / displayMetrics.density
+        val displayHeight = displayMetrics.heightPixels / displayMetrics.density
+        with(winState.bounds) {
+          if (width.isNaN()) {
+            width = displayWidth / sqrt(2f)
+          }
+          if (height.isNaN()) {
+            height = displayHeight / sqrt(3f)
+          }
+          if (left.isNaN()) {
+            val maxLeft = displayWidth - width
+            val gapSize = 47f;
+            val gapCount = (maxLeft / gapSize).toInt();
+
+            left = gapSize + (allWindows.size % gapCount) * gapSize
+          }
+          if (top.isNaN()) {
+            val maxTop = displayHeight - height
+            val gapSize = 71f;
+            val gapCount = (maxTop / gapSize).toInt();
+            top = gapSize + (allWindows.size % gapCount) * gapSize
+          }
+        }
       }
+
       val win = DesktopWindowController(activity, winState)
         .also { win ->
           /// 对窗口做一些启动准备
@@ -105,19 +135,35 @@ class DesktopWindowsManager(private val activity: DesktopActivity) {
 
   fun focus(win: DesktopWindowController) = activity.lifecycleScope.launch {
     win.focus()
-    moveToTop(win)
   }
 
-  fun focus(mmid: MMID) {
-    var changed = false
-    for (win in allWindows) {
-      if (win.state.owner == mmid) {
-        win.state.zIndex += allWindows.size
-        changed = true
+  suspend fun focus(mmid: MMID) {
+    val windows = findWindows(mmid)
+    for (win in windows) {
+      win.focus()
+    }
+  }
+
+  fun findWindows(mmid: MMID) =
+    allWindows.filter { win -> win.state.owner == mmid }.sortedBy { it.state.zIndex }
+
+  /**
+   * 返回最终 isMaximized 的值
+   */
+  suspend fun toggleMaximize(mmid: MMID): Boolean {
+    val windows = findWindows(mmid)
+
+    /**
+     * 只要有一个窗口处于最大化的状态，就当作所有窗口都处于最大化
+     */
+    val isMaximized = windows.some { win -> win.isMaximized() };
+    for (win in windows) {
+      if (isMaximized) {
+        win.unMaximize()
+      } else {
+        win.maximize()
       }
     }
-    if (changed) {
-      reOrderZIdnex()
-    }
+    return !isMaximized
   }
 }

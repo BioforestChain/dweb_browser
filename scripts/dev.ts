@@ -28,8 +28,8 @@ if (import.meta.main) {
     Deno.exit();
   });
 
-  /// 首先取保 init 任务执行完成
-  await initTasks.spawn([]).afterComplete();
+  // /// 首先取保 init 任务执行完成
+  // await initTasks.spawn([]).afterComplete();
   /// 开始执行，强制使用开发模式进行监听
   devTasks.spawn([...Deno.args, "--dev"]);
 }

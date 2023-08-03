@@ -94,16 +94,29 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
               return@defineHandler Response(Status.OK).body("""{"accept":"${request.header("Accept")}"}""")
             },
             "/openAppOrActivate" bind Method.GET to defineHandler { request ->
+              println("openAppOrActivate!!")
               val mmid = queryAppId(request)
-              val ipc = runningApps[mmid] ?: bootstrapContext.dns.connect(mmid).ipcForFromMM
-              ipc.postMessage(IpcEvent.fromUtf8(EIpcEvent.Activity.event, ""))
-              /// 如果成功打开，将它“追加”到列表中
-              runningApps.put(mmid,ipc)
-              /// 如果应用关闭，将它从列表中移除
-              ipc.onClose {
-                runningApps.remove(mmid)
+              try {
+                val ipc = runningApps[mmid] ?: connect(mmid)
+                ipc.postMessage(IpcEvent.fromUtf8(EIpcEvent.Activity.event, ""))
+                /// 如果成功打开，将它“追加”到列表中
+                runningApps[mmid] = ipc
+                /// 如果应用关闭，将它从列表中移除
+                ipc.onClose {
+                  runningApps.remove(mmid)
+                }
+
+                /// 将所有的窗口聚焦，这个行为不依赖于 Activity 事件，而是Desk模块自身托管窗口的行为
+                deskController.desktopWindowsManager.focus(mmid)
+
+                return@defineHandler true
+              } catch (e: Exception) {
+                return@defineHandler false
               }
-              return@defineHandler true
+            },
+            "/toggleMaximize" bind Method.GET to defineHandler { request ->
+              val mmid = queryAppId(request)
+              return@defineHandler deskController.desktopWindowsManager.toggleMaximize(mmid)
             },
             "/closeApp" bind Method.GET to defineHandler { request ->
               val mmid = queryAppId(request);

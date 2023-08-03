@@ -100,24 +100,18 @@ class MultiWebViewNMM :
     debugMultiWebView("/open", "remote-mmid: $remoteMmid / url:$url")
 
     val controller = controllerMap.getOrPut(remoteMmid) {
-      val wid = UUID.randomUUID().toString();
       val win = windowAdapterManager.createWindow(
         WindowState(
-          wid = wid, owner = ipc.remote.mmid, provider = mmid
+          wid = UUID.randomUUID().toString(),
+          owner = ipc.remote.mmid,
+          provider = mmid,
         )
       );
 
       MultiWebViewController(win, ipc, remoteMm, this).also { controller ->
-        /// 提供渲染适配
-        windowAdapterManager.providers[wid] = @Composable { controller.Render(it) }
-        /// 窗口销毁的时候，移除适配器
+        /// 窗口销毁的时候，释放这个Controller
         win.onDestroy {
           controllerMap.remove(remoteMmid)
-          windowAdapterManager.providers.remove(wid)
-        }
-        /// ipc 断开的时候，强制关闭窗口
-        ipc.onClose {
-          win.close(force = true)
         }
       }
     }
