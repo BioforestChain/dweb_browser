@@ -1,6 +1,5 @@
 package org.dweb_browser.microservice.core
 
-import org.dweb_browser.helper.ChangeableList
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.MMID
@@ -23,7 +22,7 @@ interface DnsMicroModule {
    */
   fun uninstall(mm: MMID): Boolean
 
-  val onChange :  Signal.Listener<ChangeableList<MMID>>
+  val onChange: Signal.Listener<HashMap<MMID /* = String */, MicroModule>>
 
   /**
    * 动态js应用查询

@@ -26,7 +26,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
@@ -473,7 +472,7 @@ fun BrowserSearchView(viewModel: BrowserViewModel) {
       },
       onSearch = { url -> // 第一个是搜索关键字，第二个是搜索地址
         showSearchView = false
-        browserViewModelHelper.saveLastKeyword(inputTextState, url)
+        BrowserViewModelHelper.saveLastKeyword(inputTextState, url)
         viewModel.handleIntent(BrowserIntent.SearchWebView(url))
       })
   }

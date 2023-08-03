@@ -66,7 +66,7 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
   }
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    val taskbarServer = this.createTaskbarWebServer(this.bootstrapContext)
+    val taskbarServer = this.createTaskbarWebServer()
     val desktopServer = this.createDesktopWebServer()
     val deskController = DeskController(this, desktopServer, runningApps)
     val deskSessionId = UUID.randomUUID().toString()
@@ -98,7 +98,7 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
               val ipc = runningApps[mmid] ?: bootstrapContext.dns.connect(mmid).ipcForFromMM
               ipc.postMessage(IpcEvent.fromUtf8(EIpcEvent.Activity.event, ""))
               /// 如果成功打开，将它“追加”到列表中
-              runningApps[mmid] = ipc
+              runningApps.put(mmid,ipc)
               /// 如果应用关闭，将它从列表中移除
               ipc.onClose {
                 runningApps.remove(mmid)
@@ -122,7 +122,7 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
             },
             "/desktop/observe/apps" bind Method.GET to defineHandler { _, ipc ->
               val inputStream = ReadableStream(onStart = { controller ->
-                val off = runningApps.onChange {
+                val off = taskBarController.onUpdate {
                   try {
                     withContext(Dispatchers.IO) {
                       controller.enqueue((gson.toJson(deskController.getDesktopApps()) + "\n").toByteArray())
@@ -137,7 +137,7 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
                   controller.close()
                 }
               })
-              runningApps.emitChange()
+              taskBarController.updateSignal.emit()
               return@defineHandler Response(Status.OK).body(inputStream)
             },
             "/taskbar/apps" bind Method.GET to defineHandler { request ->
@@ -148,7 +148,7 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
               val limit = queryLimit(request) ?: Int.MAX_VALUE
               debugDesktop("/taskbar/observe/apps", taskBarController.getTaskbarAppList(limit))
               val inputStream = ReadableStream(onStart = { controller ->
-                val off = runningApps.onChange {
+                val off = taskBarController.onUpdate {
                   try {
                     withContext(Dispatchers.IO) {
                       controller.enqueue((gson.toJson(taskBarController.getTaskbarAppList(limit)) + "\n").toByteArray())
@@ -163,15 +163,17 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
                   controller.close()
                 }
               })
-              runningApps.emitChange()
+              taskBarController.updateSignal.emit()
               return@defineHandler Response(Status.OK).body(inputStream)
             },
             "/taskbar/resize" bind Method.GET to defineHandler { request ->
               val size = queryResize(request)
-              return@defineHandler taskBarController.resize(size.width, size.height)
+              taskBarController.resize(size.width, size.height)
+              return@defineHandler Response(Status.OK)
             },
             "/taskbar/toggle-desktop-view" bind Method.GET to defineHandler { request ->
-              return@defineHandler taskBarController.toggleDesktopView()
+              taskBarController.toggleDesktopView()
+              return@defineHandler Response(Status.OK)
             },
           ).cors()
         )
@@ -198,32 +200,21 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
   }
 
   private val API_PREFIX = "/api/"
-  private suspend fun createTaskbarWebServer(context: BootstrapContext): HttpDwebServer {
+  private suspend fun createTaskbarWebServer(): HttpDwebServer {
     val taskbarServer =
       createHttpDwebServer(DwebHttpServerOptions(subdomain = "taskbar", port = 433))
     taskbarServer.listen().onRequest { (request, ipc) ->
       val pathName = request.uri.path
-      val message = if (pathName.startsWith(API_PREFIX)) {
+      val url = if (pathName.startsWith(API_PREFIX)) {
         val internalUri = request.uri.path(request.uri.path.substring(API_PREFIX.length))
         val search = ""
-        if (internalUri.host != mmid && context.dns.query(internalUri.host) == null) {
-          IpcResponse.fromText(
-            request.req_id,
-            404,
-            IpcHeaders(CORS_HEADERS.toMutableStateMap()),
-            "// no found ${internalUri.path}",
-            ipc
-          )
-        }
-        IpcResponse.fromResponse(
-          request.req_id, nativeFetch("file://$internalUri$search"), ipc
-        )
+        "file://$internalUri$search"
       } else {
-        IpcResponse.fromResponse(
-          request.req_id, nativeFetch("file:///sys/browser/desk${pathName}?mode=stream"), ipc
-        )
+        "file:///sys/browser/desk${pathName}?mode=stream"
       }
-      ipc.postMessage(message)
+      val response =
+        nativeFetch(Request(request.method.http4kMethod, url).headers(request.headers.toList()))
+      ipc.postMessage(IpcResponse.fromResponse(request.req_id, response, ipc))
     }
     return taskbarServer
   }
@@ -242,7 +233,7 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
       }
       val response =
         nativeFetch(Request(request.method.http4kMethod, url).headers(request.headers.toList()))
-      ipc.postMessage(IpcResponse.fromResponse(request.req_id, response, ipc))
+      ipc.postMessage(IpcResponse.fromResponse(request.req_id, response.headers(CORS_HEADERS), ipc))
     }
     return desktopServer
   }

@@ -5,11 +5,6 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.http4k.core.*
-import org.http4k.lens.Query
-import org.http4k.lens.string
-import org.http4k.routing.bind
-import org.http4k.routing.routes
 import org.dweb_browser.helper.*
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.ConnectResult
@@ -23,8 +18,12 @@ import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.MMID
 import org.dweb_browser.microservice.help.MicroModuleManifest
 import org.dweb_browser.microservice.help.buildRequestX
-import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
+import org.http4k.core.*
+import org.http4k.lens.Query
+import org.http4k.lens.string
+import org.http4k.routing.bind
+import org.http4k.routing.routes
 
 fun debugDNS(tag: String, msg: Any = "", err: Throwable? = null) =
   printdebugln("fetch", tag, msg, err)
@@ -104,20 +103,8 @@ class DnsNMM() : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
 
   class MyDnsMicroModule(private val dnsMM: DnsNMM, private val fromMM: MicroModule) :
     DnsMicroModule {
-    private var changeList = ChangeableList<MMID>()
-    init {
-      // 只对Application的相应做出改变
-      dnsMM.installApps.onChange { apps ->
-        changeList = ChangeableList()
-        for (app in apps.values) {
-          if (app.categories.contains(MICRO_MODULE_CATEGORY.Application)) {
-            changeList.add(app.mmid)
-          }
-        }
-      }
-    }
 
-    override val onChange = changeList.onChange
+    override val onChange = dnsMM.installApps.onChange
 
     override fun install(mm: MicroModule) {
       // TODO 作用域保护
@@ -248,7 +235,7 @@ class DnsNMM() : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
 
   /** 安装应用 */
   fun install(mm: MicroModule) {
-    installApps[mm.mmid] = mm
+    installApps.put(mm.mmid, mm)
   }
 
   /** 卸载应用 */

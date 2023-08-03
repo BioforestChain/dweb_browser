@@ -1,14 +1,19 @@
 package org.dweb_browser.helper
 
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-class ChangeableMap<K,V>() :MutableMap<K,V>{
-  private val innerMap = HashMap<K,V>()
-  private val _changeSignal = Signal<HashMap<K,V>>()
+class ChangeableMap<K, V>(private val scope: CoroutineScope = GlobalScope) : MutableMap<K, V> {
+  private val innerMap = HashMap<K, V>()
+  private val _changeSignal = Signal<HashMap<K, V>>()
 
-  suspend fun emitChange() = _changeSignal.emit(hashMapOf())
   val onChange = _changeSignal.toListener()
+
+  fun emitChange() = scope.launch(ioAsyncExceptionHandler) {
+    _changeSignal.emit(innerMap)
+  }
+
 
   override val size: Int
     get() = innerMap.size
@@ -40,31 +45,23 @@ class ChangeableMap<K,V>() :MutableMap<K,V>{
 
   override fun clear() {
     innerMap.clear()
-    GlobalScope.launch(ioAsyncExceptionHandler) {
-      _changeSignal.emit(innerMap)
-    }
+    emitChange()
   }
 
   override fun put(key: K, value: V): V? {
     val item = innerMap.put(key, value)
-    GlobalScope.launch(ioAsyncExceptionHandler) {
-      _changeSignal.emit(innerMap)
-    }
-      return item
+    emitChange()
+    return item
   }
 
   override fun putAll(from: Map<out K, V>) {
     innerMap.putAll(from)
-    GlobalScope.launch(ioAsyncExceptionHandler) {
-      _changeSignal.emit(innerMap)
-    }
+    emitChange()
   }
 
   override fun remove(key: K): V? {
     val item = innerMap.remove(key)
-    GlobalScope.launch(ioAsyncExceptionHandler) {
-      _changeSignal.emit(innerMap)
-    }
+    emitChange()
     return item
   }
 

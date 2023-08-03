@@ -3,7 +3,6 @@ package info.bagen.dwebbrowser.microService.browser.web
 import android.content.Intent
 import android.os.Bundle
 import info.bagen.dwebbrowser.App
-import info.bagen.dwebbrowser.microService.browser.desk.DesktopNMM
 import info.bagen.dwebbrowser.microService.browser.jmm.EIpcEvent
 import info.bagen.dwebbrowser.microService.browser.jmm.debugJMM
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
@@ -18,7 +17,6 @@ import org.dweb_browser.microservice.sys.http.DwebHttpServerOptions
 import org.dweb_browser.microservice.sys.http.HttpDwebServer
 import org.dweb_browser.microservice.sys.http.createHttpDwebServer
 import org.http4k.core.Method
-import org.http4k.core.Request
 import org.http4k.lens.Query
 import org.http4k.lens.string
 import org.http4k.routing.bind
@@ -41,24 +39,14 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
 
   val queryAppId = Query.string().required("app_id")
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    val browserServer = this.createDesktopWebServer()
+    val browserServer = this.createBrowserWebServer()
     val controller = BrowserController(this, browserServer)
     val sessionId = UUID.randomUUID().toString()
     controllers[sessionId] = controller
 
     this.onAfterShutdown {
-      DesktopNMM.deskControllers.remove(sessionId)
+      controllers.remove(sessionId)
     }
-
-    apiRouting = routes(
-      "/openAppOrActivate" bind Method.GET to defineHandler { request ->
-        val mmid = queryAppId(request)
-        val (ipc) = bootstrapContext.dns.connect(mmid)
-        debugJMM("openApp", "postMessage==>activity ${ipc.remote.mmid}")
-        ipc.postMessage(IpcEvent.fromUtf8(EIpcEvent.Activity.event, ""))
-        return@defineHandler true
-      },
-    )
 
     onActivity {
       App.startActivity(BrowserActivity::class.java) { intent ->
@@ -75,18 +63,19 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
   }
 
   private val API_PREFIX = "/api/"
-  private suspend fun createDesktopWebServer(): HttpDwebServer {
-    val desktopServer =
-      createHttpDwebServer(DwebHttpServerOptions(subdomain = "desktop", port = 433))
-    desktopServer.listen().onRequest { (request, ipc) ->
+  private suspend fun createBrowserWebServer(): HttpDwebServer {
+    val browserServer =
+      createHttpDwebServer(DwebHttpServerOptions(subdomain = "", port = 433))
+    browserServer.listen().onRequest { (request, ipc) ->
       val pathName = request.uri.path
+      debugBrowser("createBrowserWebServer",pathName)
       if (!pathName.startsWith(API_PREFIX)) {
         val response =
           nativeFetch( "file:///sys/browser/desk${pathName}?mode=stream")
         ipc.postMessage(IpcResponse.fromResponse(request.req_id, response, ipc))
       }
     }
-    return desktopServer
+    return browserServer
   }
 
   override suspend fun _shutdown() {

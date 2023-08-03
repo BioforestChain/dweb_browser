@@ -23,7 +23,8 @@ export const nativeFetch = async <T extends unknown>(pathname: string, init?: $B
   }
   const res = await fetch(...buildApiRequestArgs(pathname, init));
   if (res.ok) {
-    return (await res.json()) as T;
+    const data = await res.json();
+    return (data) as T;
   } else {
     const errorCache = await res.text();
     /// 501 Not Implemented

@@ -5,8 +5,6 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Message
 import android.webkit.WebChromeClient
-import android.webkit.WebResourceRequest
-import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -19,7 +17,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.accompanist.web.AccompanistWebViewClient
 import com.google.accompanist.web.WebContent
 import com.google.accompanist.web.WebViewNavigator
 import com.google.accompanist.web.WebViewState
@@ -40,12 +37,8 @@ import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
 import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.help.MMID
 import org.dweb_browser.microservice.sys.dns.nativeFetch
-import org.dweb_browser.microservice.sys.http.CORS_HEADERS
 import org.dweb_browser.microservice.sys.http.HttpDwebServer
-import org.http4k.core.Response
-import org.http4k.core.Status
 import org.http4k.core.query
-import org.http4k.lens.Header
 import java.util.concurrent.atomic.AtomicInteger
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
@@ -196,11 +189,24 @@ class BrowserViewModel(
 
         is BrowserIntent.SearchWebView -> {
           uiState.showSearchEngine.targetState = false // 到搜索功能了，搜索引擎必须关闭
+          if (action.url.startsWith("dweb")) { // 负责拦截browser的dweb_deeplink
+            runBlockingCatching(ioAsyncExceptionHandler) {
+              browserNMM.nativeFetch(action.url)
+            }.getOrNull()
+            return@launch
+          } else if (action.url.contains("metadata.json")) { // 如果地址结尾是 metadata.json 目前是作为安装地址，跳转到安装界面
+            runBlockingCatching(ioAsyncExceptionHandler) {
+              browserNMM.nativeFetch(
+                org.http4k.core.Uri.of("file://jmm.browser.dweb/install?")
+                  .query("url", action.url)
+              )
+            }.getOrNull()
+            return@launch
+          }
           uiState.currentBrowserBaseView.value.viewItem.state.content = WebContent.Url(action.url)
         }
 
         is BrowserIntent.OpenDwebBrowser -> {
-          // BrowserNMM.browserController?.openApp(action.mmid)
           onOpenDweb(action.mmid)
         }
 
@@ -362,7 +368,7 @@ class BrowserViewModel(
   }
 }
 
-class browserViewModelHelper {
+class BrowserViewModelHelper {
   companion object {
     fun saveLastKeyword(inputText: MutableState<String>, url: String) {
       BrowserUIApp.Instance.appContext.saveString(KEY_LAST_SEARCH_KEY, url)
@@ -434,5 +440,5 @@ internal fun String.isSystemUrl(): Boolean {
   return this.startsWith("file:///android_asset") ||
       this.startsWith("chrome://") ||
       this.startsWith("about:") ||
-      this.startsWith("https://desktop.web.browser.dweb")
+      this.startsWith("https://web.browser.dweb")
 }

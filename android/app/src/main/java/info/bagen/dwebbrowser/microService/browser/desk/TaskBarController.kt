@@ -4,6 +4,8 @@ import info.bagen.dwebbrowser.App
 import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.PromiseOut
+import org.dweb_browser.helper.SimpleSignal
+import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.MMID
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.sys.http.HttpDwebServer
@@ -16,6 +18,8 @@ class TaskBarController(
 ) {
   /** 展示在taskbar中的应用列表 */
   private val _appList = DeskStore.get(DeskStore.TASKBAR_APPS)
+  val updateSignal = SimpleSignal()
+  val onUpdate = updateSignal.toListener()
 
   init {
     /**
@@ -32,15 +36,21 @@ class TaskBarController(
       DeskStore.set(DeskStore.TASKBAR_APPS,this._appList)
     }
     // 监听移除app的改变,可能是增加或者减少
-    desktopNMM.bootstrapContext.dns.onChange { apps ->
-      for(mmid in apps) {
-        // 有的话是移除
-        if (this._appList.contains(mmid)) {
+    desktopNMM.bootstrapContext.dns.onChange { map ->
+      var lock = true;
+      for (module in map.values) {
+        // 只针对app做出更新相应
+        if (module.categories.contains(MICRO_MODULE_CATEGORY.Application) && lock) {
+          lock = false
+          //触发前端state更新
+          updateSignal.emit()
+        }
+      }
+      for(mmid in runningApps.keys) {
+        // 从内存中移除已经被删除的,正在运行的应用
+        if (!map.containsKey(mmid)) {
           this._appList.remove(mmid)
           runningApps.remove(mmid)
-        } else {
-          // 没有的话是添加，触发一下订阅更新
-          runningApps.emitChange()
         }
       }
     }

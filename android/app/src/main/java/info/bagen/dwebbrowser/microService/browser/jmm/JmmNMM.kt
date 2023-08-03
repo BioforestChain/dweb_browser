@@ -97,26 +97,27 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
         val mmid = queryMmid(request)
         debugJMM("uninstall", mmid)
         jmmMetadataUninstall(mmid)
-        return@defineHandler true
+        return@defineHandler Response(Status.OK).body("""{"ok":true}""")
       },
       "/closeApp" bind Method.GET to defineHandler { request ->
         val mmid = queryMmid(request)
-        jmmController?.closeApp(mmid)
-        return@defineHandler true
+        jmmController.closeApp(mmid)
+        return@defineHandler Response(Status.OK).body("""{"ok":true}""")
       },
       // app详情
       "/detailApp" bind Method.GET to defineHandler { request ->
         val mmid = queryMmid(request)
         debugJMM("detailApp", mmid)
         val metadata = bootstrapContext.dns.query(mmid)
-          ?: return@defineHandler Response(Status.NOT_FOUND).body("not found ${mmid}")
+          ?: return@defineHandler Response(Status.NOT_FOUND).body("not found $mmid")
         JmmManagerActivity.startActivity(metadata as JmmAppInstallManifest)
-        return@defineHandler true
+        return@defineHandler Response(Status.OK).body("ok")
       },
       "/pause" bind Method.GET to defineHandler { _, ipc ->
         BrowserUIApp.Instance.mBinderService?.invokeUpdateDownloadStatus(
           ipc.remote.mmid, DownLoadController.PAUSE
         )
+        return@defineHandler Response(Status.OK).body("ok")
       },
       /**继续下载*/
       "/resume" bind Method.GET to defineHandler { _, ipc ->
@@ -124,14 +125,15 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
         BrowserUIApp.Instance.mBinderService?.invokeUpdateDownloadStatus(
           ipc.remote.mmid, DownLoadController.RESUME
         )
+        return@defineHandler Response(Status.OK).body("ok")
       },
       "/cancel" bind Method.GET to defineHandler { _, ipc ->
         debugJMM("cancel", ipc.remote.mmid)
         BrowserUIApp.Instance.mBinderService?.invokeUpdateDownloadStatus(
           ipc.remote.mmid, DownLoadController.CANCEL
         )
+        return@defineHandler Response(Status.OK).body("ok")
       })
-
   }
 
   /**
