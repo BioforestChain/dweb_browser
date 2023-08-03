@@ -1,11 +1,10 @@
 package info.bagen.dwebbrowser.microService.browser.desk
 
 import android.annotation.SuppressLint
-import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.CompositionLocalProvider
@@ -29,26 +28,29 @@ fun WindowState.WindowBounds.toModifier(
 
 class DesktopActivity : BaseActivity() {
   private var controller: DeskController? = null
-  private fun bindController(sessionId: String?): DeskController {
+  private fun bindController(sessionId: String?, taskSessionId: String?): DeskController {
     /// 解除上一个 controller的activity绑定
     controller?.activity = null
 
     return DesktopNMM.deskControllers[sessionId]?.also { desktopController ->
       desktopController.activity = this
+      desktopController.taskBarSessionId = taskSessionId
       controller = desktopController
     } ?: throw Exception("no found controller by sessionId: $sessionId")
   }
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    val deskController = bindController(intent.getStringExtra("deskSessionId"))
-    val taskBarSessionId = intent.getStringExtra("taskBarSessionId")
+    val deskController = bindController(
+      intent.getStringExtra("deskSessionId"), intent.getStringExtra("taskBarSessionId")
+    )
+    /*val taskBarSessionId = intent.getStringExtra("taskBarSessionId")
 
     val context = this@DesktopActivity
     context.startActivity(Intent(context, TaskbarActivity::class.java).also {
       it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
       it.putExtras(Bundle().also { b -> b.putString("taskBarSessionId", taskBarSessionId) })
-    });
+    })*/
 
     /**
      * 窗口管理器
@@ -76,6 +78,12 @@ class DesktopActivity : BaseActivity() {
             }
             /// 窗口视图
             desktopWindowsManager.Render()
+            /// 浮窗
+            LocalTaskbarModel.current.deskController = deskController
+            FloatTaskbarView(
+              state = deskController.floatViewState,
+              url = deskController.getTaskbarUrl().toString()
+            )
           }
         }
       }

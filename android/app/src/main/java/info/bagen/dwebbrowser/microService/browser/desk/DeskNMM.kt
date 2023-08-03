@@ -2,7 +2,6 @@ package info.bagen.dwebbrowser.microService.browser.desk
 
 import android.content.Intent
 import android.os.Bundle
-import androidx.compose.runtime.toMutableStateMap
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.browser.jmm.EIpcEvent
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
@@ -17,7 +16,6 @@ import org.dweb_browser.microservice.help.cors
 import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
-import org.dweb_browser.microservice.ipc.helper.IpcHeaders
 import org.dweb_browser.microservice.ipc.helper.IpcResponse
 import org.dweb_browser.microservice.ipc.helper.ReadableStream
 import org.dweb_browser.microservice.sys.dns.nativeFetch
@@ -66,11 +64,14 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
   }
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
+    // 创建桌面和任务的服务
     val taskbarServer = this.createTaskbarWebServer()
     val desktopServer = this.createDesktopWebServer()
-    val deskController = DeskController(this, desktopServer, runningApps)
+
+    val deskController = DeskController(this, desktopServer, taskbarServer, runningApps)
     val deskSessionId = UUID.randomUUID().toString()
     deskControllers[deskSessionId] = deskController
+
     val taskBarController = TaskBarController(this, taskbarServer, runningApps)
     val taskBarSessionId = UUID.randomUUID().toString()
     taskBarControllers[taskBarSessionId] = taskBarController

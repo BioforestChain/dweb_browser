@@ -4,22 +4,16 @@ import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.Gravity
 import android.view.WindowManager
-import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
-import com.google.accompanist.web.WebView
-import com.google.accompanist.web.rememberWebViewState
+import androidx.compose.ui.unit.dp
 import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.base.ActivityBlurHelper
+import info.bagen.dwebbrowser.base.BaseActivity
 import info.bagen.dwebbrowser.ui.theme.DwebBrowserAppTheme
 
-class TaskbarActivity : ComponentActivity() {
+class TaskbarActivity : BaseActivity() {
   private val blurHelper = ActivityBlurHelper(this)
   private var controller: TaskBarController? = null
   private fun bindController(sessionId: String?): TaskBarController {
@@ -39,9 +33,12 @@ class TaskbarActivity : ComponentActivity() {
 
     val density = resources.displayMetrics.density
     setContent {
-      // val density = LocalDensity.current.density
+      val taskbarModel = LocalTaskbarModel.current
       /// 改变窗口大小 和 一些属性
-      window.setLayout((80 * density).toInt(), (200 * density).toInt());
+      /// window.setLayout((80 * density).toInt(), (200 * density).toInt())
+      val layoutWidth = maxOf(taskbarModel.width, (80 * density).toInt())
+      val layoutHeight = maxOf(taskbarModel.height, (200 * density).toInt())
+      window.setLayout(layoutWidth , layoutHeight)
       window.attributes = window.attributes.also { attributes ->
         /// 禁用模态窗口模式，使得点击可以向下穿透
         attributes.flags =
@@ -51,27 +48,25 @@ class TaskbarActivity : ComponentActivity() {
       }
 
       DwebBrowserAppTheme {
-        CompositionLocalProvider(
-          LocalTaskbarView provides taskBarController.createMainDwebView(),
-        ) {
-          Box(modifier = Modifier.fillMaxSize().background(Color.Transparent)) {
-            /// 桌面视图
-            val taskBarView = LocalTaskbarView.current
-            WebView(
-              state = rememberWebViewState(url = taskBarController.getDesktopUrl().toString()),
-              modifier = Modifier.fillMaxSize().background(Color.Transparent),
-            ) {
-              taskBarView.setBackgroundColor(Color.Transparent.toArgb())
-              taskBarView
-            }
-          }
+        BackHandler {
+          // finish()
+          taskbarModel.deskController?.apply { showFloatView() }
+        }
+        CompositionLocalProvider {
+          /// 任务栏视图
+          FloatTaskbarView(
+            url = taskBarController.getDesktopUrl().toString(),
+            isFloatWindow = false,
+            width = (taskbarModel.width / density).dp,
+            height = (taskbarModel.height / density).dp
+          )
         }
       }
     }
 
     /// 启用模糊
     blurHelper.config(
-      backgroundBlurRadius = (10 * resources.displayMetrics.density).toInt(),
+      backgroundBlurRadius = (10 * density).toInt(),
       windowBackgroundDrawable = getDrawable(R.drawable.taskbar_window_background)
     )
   }

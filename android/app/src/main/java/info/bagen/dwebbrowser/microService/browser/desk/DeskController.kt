@@ -1,5 +1,7 @@
 package info.bagen.dwebbrowser.microService.browser.desk
 
+import android.content.Intent
+import android.os.Bundle
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.SideEffect
@@ -24,8 +26,10 @@ import org.http4k.core.query
 class DeskController(
   private val desktopNMM: DesktopNMM,
   private val desktopServer: HttpDwebServer,
+  private val taskbarServer: HttpDwebServer,
   private val runningApps: ChangeableMap<MMID, Ipc>
 ) {
+  fun getMicroModule() = desktopNMM
 
   fun getDesktopApps(): List<DeskAppMetaData> {
     var runApps = listOf<DeskAppMetaData>()
@@ -59,6 +63,8 @@ class DeskController(
         activityTask.resolve(value)
       }
     }
+  var taskBarSessionId: String? = null
+  val floatViewState: MutableState<Boolean> = mutableStateOf(true)
 
 
   /**
@@ -94,8 +100,7 @@ class DeskController(
   }
 
   fun createMainDwebView() = DWebView(
-    activity ?: App.appContext, desktopNMM,
-    DWebView.Options(
+    activity ?: App.appContext, desktopNMM, DWebView.Options(
       url = "",
       onDetachedFromWindowStrategy = DWebView.Options.DetachedFromWindowStrategy.Ignore,
     )
@@ -104,5 +109,25 @@ class DeskController(
   fun getDesktopUrl() = desktopServer.startResult.urlInfo.buildInternalUrl().let {
     it.path("/desktop.html")
       .query("api-base", desktopServer.startResult.urlInfo.buildPublicUrl().toString())
+  }
+
+  fun getTaskbarUrl() = taskbarServer.startResult.urlInfo.buildInternalUrl().let {
+    it.path("/taskbar.html")
+      .query("api-base", desktopServer.startResult.urlInfo.buildPublicUrl().toString())
+  }
+
+  fun showFloatView() {
+    floatViewState.value = true
+  }
+
+  fun openTaskActivity() {
+    activity?.apply {
+      startActivity(Intent(this, TaskbarActivity::class.java)
+        .also {
+          it.putExtras(Bundle().also { bundle ->
+            bundle.putString("taskBarSessionId", taskBarSessionId)
+          })
+        })
+    }
   }
 }

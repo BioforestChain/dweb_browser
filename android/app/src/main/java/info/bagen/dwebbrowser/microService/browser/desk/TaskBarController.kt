@@ -1,7 +1,5 @@
 package info.bagen.dwebbrowser.microService.browser.desk
 
-import info.bagen.dwebbrowser.App
-import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.SimpleSignal
@@ -12,7 +10,7 @@ import org.dweb_browser.microservice.sys.http.HttpDwebServer
 import org.http4k.core.query
 
 class TaskBarController(
-  private val desktopNMM: DesktopNMM,
+  val desktopNMM: DesktopNMM,
   private val taskbarServer: HttpDwebServer,
   private val runningApps: ChangeableMap<MMID, Ipc>
 ) {
@@ -109,14 +107,6 @@ class TaskBarController(
         activityTask.resolve(value)
       }
     }
-  fun createMainDwebView() = DWebView(
-    activity ?: App.appContext, desktopNMM,
-    DWebView.Options(
-      url = "",
-      onDetachedFromWindowStrategy = DWebView.Options.DetachedFromWindowStrategy.Ignore,
-    )
-  )
-
 
   fun getDesktopUrl() = taskbarServer.startResult.urlInfo.buildInternalUrl().let {
     it.path("/taskbar.html")
