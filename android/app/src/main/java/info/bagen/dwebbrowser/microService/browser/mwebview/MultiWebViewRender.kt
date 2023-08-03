@@ -15,6 +15,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import com.google.accompanist.web.WebView
 import kotlinx.coroutines.launch
 
@@ -77,6 +79,7 @@ fun MultiWebViewController.Render(modifier: Modifier = Modifier) {
               viewItem.webView.parent?.let { parentView ->
                 (parentView as ViewGroup).removeAllViews()
               }
+              viewItem.webView.setBackgroundColor(Color.Transparent.toArgb())
               viewItem.webView
             },
             chromeClient = chromeClient,

@@ -1,10 +1,13 @@
 package info.bagen.dwebbrowser.microService.browser.desk
 
 import android.content.Context
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -31,8 +35,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -103,20 +114,39 @@ class DesktopWindowController(
 
     /// 窗口移动
     var inMove by remember { mutableStateOf(false) }
-    fun Modifier.moveable() = this.pointerInput(Unit) {
-      detectDragGestures(onDragStart = {
-        inMove = true
-        /// 开始移动的时候，同时进行聚焦
-        emitWinFocus(true)
-      }, onDragEnd = {
-        inMove = false
-      }) { change, dragAmount ->
-        change.consume()
-        winState.bounds.left += dragAmount.x / density.density
-        winState.bounds.top += dragAmount.y / density.density
-        emitWinStateChange()
+    fun Modifier.moveable() = this
+      .pointerInput(Unit) {
+        /// 触摸窗口的时候，聚焦，并且提示可以移动
+        detectTapGestures(
+          // touchStart 的时候，聚焦移动
+          onPress = {
+            inMove = true
+            emitWinFocus(true)
+          },
+          /// touchEnd 的时候，取消移动
+          onTap = {
+            inMove = false
+          }, onLongPress = {
+            inMove = false
+          })
       }
-    }
+      .pointerInput(Unit) {
+        /// 拖动窗口
+        detectDragGestures(onDragStart = {
+          inMove = true
+          /// 开始移动的时候，同时进行聚焦
+          emitWinFocus(true)
+        }, onDragEnd = {
+          inMove = false
+        }, onDragCancel = {
+          inMove = false
+        }) { change, dragAmount ->
+          change.consume()
+          winState.bounds.left += dragAmount.x / density.density
+          winState.bounds.top += dragAmount.y / density.density
+          emitWinStateChange()
+        }
+      }
 
 
     /// 窗口缩放计算
@@ -142,32 +172,50 @@ class DesktopWindowController(
       emitWinStateChange()
     }
 
-    ElevatedCard(modifier = winBounds
-      .toModifier(modifier)
-      .focusable(true)
-      .onFocusChanged { state ->
-        emitWinFocus(state.isFocused)
-      }
-      .clickable {
-        emitWinFocus(true)
-      },
-      colors = CardDefaults.elevatedCardColors(
-        containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
-      ),
-      elevation = if (inMove) CardDefaults.elevatedCardElevation(defaultElevation = 20.dp) else CardDefaults.elevatedCardElevation()
+    val elevation by animateFloatAsState(
+      targetValue = (if (inMove) 20f else 1f) + winState.zIndex,
+      animationSpec = tween(durationMillis = if (inMove) 250 else 500), label = "elevation"
+    )
+    val scale by animateFloatAsState(
+      targetValue = if (inMove) 1.05f else 1f,
+      animationSpec = tween(durationMillis = if (inMove) 250 else 500), label = "scale"
+    )
+    Box(
+      modifier = winBounds
+        .toModifier(modifier)
+        .graphicsLayer {
+          scaleX = scale
+          scaleY = scale
+        }
+        .shadow(
+          elevation = elevation.dp,
+          shape = RoundedCornerShape(16.dp)
+        ),
     ) {
-      Column {
-        var titleBarHeight by remember { mutableIntStateOf(0) }
+      Column(
+        Modifier
+          .background(MaterialTheme.colorScheme.onPrimaryContainer)
+          .clip(RoundedCornerShape(16.dp))
+          .focusable(true)
+          .onFocusChanged { state ->
+            emitWinFocus(state.isFocused)
+          }
+          .clickable {
+            emitWinFocus(true)
+          }
+      ) {
+//        var titleBarHeight by remember { mutableIntStateOf(0) }
+        val titleBarHeight = 24;
         val bottomBarHeight = 16;
         /// 标题栏
-        Box(modifier = Modifier
-          .background(MaterialTheme.colorScheme.onPrimaryContainer)
-          .fillMaxWidth()
-          .onGloballyPositioned { layoutCoordinates ->
-            titleBarHeight = layoutCoordinates.size.height
-          }
-          /// 标题可以窗口拖动
-          .moveable()) {
+        Box(
+          modifier = Modifier
+            .background(MaterialTheme.colorScheme.onPrimaryContainer)
+            .fillMaxWidth()
+            .height(titleBarHeight.dp)
+            /// 标题可以窗口拖动
+            .moveable()
+        ) {
           Text(
             text = this@DesktopWindowController.state.title,
             style = MaterialTheme.typography.titleSmall.copy(color = MaterialTheme.colorScheme.onPrimary)
@@ -200,32 +248,28 @@ class DesktopWindowController(
               ((maxScale - minScale) * this) + minScale;
 
 
-            var viewHeight by remember { mutableFloatStateOf(100f) }
-            var viewWidth by remember { mutableFloatStateOf(100f) }
-            val viewScale = max(
-              calcProgress(screenWidth, viewWidth, minWidth).toScale(minScale),
-              calcProgress(screenHeight, viewHeight, minHeight).toScale(minScale),
-            ).toFloat().let { if (it.isNaN()) 1f else it }
+            val viewHeight = boundsHeight - titleBarHeight - bottomBarHeight
+            val viewWidth = boundsWidth
+            val scaleProgress = max(
+              calcProgress(minWidth, viewWidth, screenWidth),
+              calcProgress(minHeight, viewHeight, screenHeight),
+            )
+            val viewScale =
+              scaleProgress.toScale(minScale).toFloat().let { if (it.isNaN()) 1f else it }
 
-            println("viewHeight: $viewHeight")
-            println("viewWidth: $viewWidth")
-            println("viewScale: $viewScale")
-            Box(
+            //  println("minWidth, viewWidth, screenWidth: $minWidth, $viewWidth, $screenWidth")
+            //  println("minHeight, viewHeight, screenHeight: $minHeight, $viewHeight, $screenHeight")
+            //  println("scaleProgress: $scaleProgress")
+            //  println("viewScale: $viewScale")
+
+            it(
               Modifier
                 .fillMaxSize()
-                .onGloballyPositioned { layoutCoordinates ->
-                  viewWidth = layoutCoordinates.size.width.toFloat()
-                  viewHeight = layoutCoordinates.size.height.toFloat()
-                }) {
-              it(
-                Modifier
-                  .fillMaxSize()
-//                  .graphicsLayer(viewScale, viewScale)
-//                  .requiredSize(
-//                    (viewWidth / viewScale).toInt().dp, (viewHeight / viewScale).toInt().dp
-//                  )
-              )
-            }
+                .graphicsLayer(viewScale, viewScale)
+                .requiredSize(
+                  (viewWidth / viewScale).toInt().dp, (viewHeight / viewScale).toInt().dp
+                )
+            )
           } ?: Text(
             "Op！视图被销毁了",
             modifier = Modifier.align(Alignment.Center),
@@ -248,14 +292,13 @@ class DesktopWindowController(
         /// 显示底部控制条
         Row(
           modifier = Modifier
-            .background(Color.Cyan)
             .height(bottomBarHeight.dp)
             .fillMaxWidth()
         ) {
+          /// 左下角 视窗 Resize
           Box(modifier = Modifier
             .weight(1f)
             .fillMaxHeight()
-            .background(Color.Red)
             .pointerInput(Unit) {
               detectDragGestures { change, dragAmount ->
                 change.consume()
@@ -265,10 +308,10 @@ class DesktopWindowController(
                 emitWinStateChange()
               }
             })
+          /// 下方 视窗 Resize
           Box(modifier = Modifier
-            .weight(1f)
+            .weight(2f)
             .fillMaxHeight()
-            .background(Color.Green)
             .pointerInput(Unit) {
               detectDragGestures { change, dragAmount ->
                 change.consume()
@@ -276,10 +319,10 @@ class DesktopWindowController(
                 emitWinStateChange()
               }
             })
+          /// 右下角 视窗 Resize
           Box(modifier = Modifier
             .weight(1f)
             .fillMaxHeight()
-            .background(Color.Blue)
             .pointerInput(Unit) {
               detectDragGestures { change, dragAmount ->
                 change.consume()
