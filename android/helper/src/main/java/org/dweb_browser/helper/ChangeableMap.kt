@@ -8,7 +8,7 @@ class ChangeableMap<K,V>() :MutableMap<K,V>{
   private val _changeSignal = Signal<HashMap<K,V>>()
 
   suspend fun emitChange() = _changeSignal.emit(hashMapOf())
-  fun onChange(callback: Callback<HashMap<K,V>>) = _changeSignal.listen(callback)
+  val onChange = _changeSignal.toListener()
 
   override val size: Int
     get() = innerMap.size

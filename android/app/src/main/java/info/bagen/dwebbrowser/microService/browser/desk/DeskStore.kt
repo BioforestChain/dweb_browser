@@ -13,7 +13,7 @@ object DeskStore {
     return App.appContext.getList(key) ?: mutableListOf()
   }
 
-  fun set(key: String, data: List<String>) {
+  fun set(key: String, data: MutableList<String>) {
     return App.appContext.saveList(key, data)
   }
 }

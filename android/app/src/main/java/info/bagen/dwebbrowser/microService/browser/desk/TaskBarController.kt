@@ -14,9 +14,25 @@ class TaskBarController(
   private val taskbarServer: HttpDwebServer,
   private val runningApps: ChangeableMap<MMID, Ipc>
 ) {
-
   /** 展示在taskbar中的应用列表 */
-  private val _appList = listOf<MMID>()
+  private val _appList = DeskStore.get(DeskStore.TASKBAR_APPS)
+
+  init {
+    /**
+     * 绑定 runningApps 集合
+     */
+    runningApps.onChange { map ->
+      /// 将新增的打开应用追加到列表签名
+      for (mmid in map.keys) {
+        if (!this._appList.contains(mmid)) {
+          this._appList.add(0,mmid) // 追加到第一个
+        }
+      }
+      /// 保存到数据库
+      DeskStore.set(DeskStore.TASKBAR_APPS,this._appList)
+    }
+  }
+
   fun getTaskbarAppList(limit: kotlin.Int): List<DeskAppMetaData> {
     val apps = mutableMapOf<MMID, DeskAppMetaData>()
     for (appId in _appList) {

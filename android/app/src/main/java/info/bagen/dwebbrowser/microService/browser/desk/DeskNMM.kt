@@ -78,7 +78,8 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
 
     this.onAfterShutdown {
       runningApps.reset()
-      deskControllers.remove(taskBarSessionId)
+      deskControllers.remove(deskSessionId)
+      taskBarControllers.remove(taskBarSessionId)
     }
 
     apiRouting =

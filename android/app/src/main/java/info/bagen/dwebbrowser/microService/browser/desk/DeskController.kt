@@ -41,7 +41,6 @@ class DeskController(
     return runApps
   }
 
-
   fun getInstallApps() = getDesktopApps().toMutableList()
 
   fun getOpenApps() = getDesktopApps().filter { it.running }.toMutableList()
@@ -96,7 +95,6 @@ class DeskController(
       onDetachedFromWindowStrategy = DWebView.Options.DetachedFromWindowStrategy.Ignore,
     )
   )
-
 
   fun getDesktopUrl() = desktopServer.startResult.urlInfo.buildInternalUrl().let {
     it.path("/desktop.html")
