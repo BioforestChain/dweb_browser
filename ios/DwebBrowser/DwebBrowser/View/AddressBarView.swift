@@ -35,12 +35,12 @@ struct AddressBar: View {
                 .padding(.horizontal)
 
             HStack {
-                if addressBar.isFocused, !inputText.isEmpty {
+                if isAdressBarFocused, !inputText.isEmpty {
                     Spacer()
                     clearTextButton
                 }
 
-                if !inputText.isEmpty, !addressBar.isFocused {
+                if !inputText.isEmpty, !isAdressBarFocused {
                     Spacer()
                     if shouldShowProgress {
                         cancelLoadingButtion
@@ -58,38 +58,27 @@ struct AddressBar: View {
                 .padding(.trailing, 50)
                 .keyboardType(.webSearch)
                 .focused($isAdressBarFocused)
-                .opacity(isOpacity())
+                .opacity(isAdressBarFocused ? 1 : 0)
 
-            #if DwebBrowser
-                Text(domainString)
-                    .frame(width: screen_width - 100, height: 32)
-                    .background(.white)
-                    .foregroundColor(webCache.isBlank() ? .networkTipColor : .black)
-                    .padding(.horizontal, 50)
-                    .opacity(addressBar.isFocused ? 0 : 1)
-                    .onTapGesture {
-                        if webCache.isBlank() {
-                            inputText = ""
-                        }
-                        isAdressBarFocused = true
-                        addressBar.isFocused = true
+            Text(domainString)
+                .frame(width: screen_width - 100, height: 32)
+                .background(.white)
+                .foregroundColor(webCache.isBlank() ? .networkTipColor : .black)
+                .padding(.horizontal, 50)
+                .opacity(isAdressBarFocused ? 0 : 1)
+                .onTapGesture {
+                    if webCache.isBlank() {
+                        inputText = ""
                     }
-            #endif
+                    isAdressBarFocused = true
+                }
         }
         .background(Color.bkColor)
     }
 
     var textField: some View {
         TextField(addressbarHolder, text: $inputText)
-        #if DwebFramework
-            .onTapGesture {
-                if webCache.isBlank() {
-                    inputText = ""
-                }
-                isAdressBarFocused = true
-                addressBar.isFocused = true
-            }
-        #endif
+
             .onAppear {
                 inputText = webCache.lastVisitedUrl.absoluteString
             }
@@ -97,15 +86,11 @@ struct AddressBar: View {
                 inputText = url.absoluteString
             }
             .onChange(of: isAdressBarFocused, perform: { isFocued in
-                #if DwebBrowser
-                    addressBar.isFocused = isFocued
-                #endif
+                addressBar.isFocused = isFocued
             })
             .onChange(of: addressBar.isFocused) { isFocused in
                 if !isFocused, isVisible {
-                    #if DwebBrowser
-                        isAdressBarFocused = isFocused
-                    #endif
+                    isAdressBarFocused = isFocused
                     if addressBar.inputText.isEmpty { // 点击取消按钮
                         inputText = webCache.lastVisitedUrl.absoluteString
                     }
@@ -113,18 +98,16 @@ struct AddressBar: View {
             }
             .onSubmit {
                 let url = URL.createUrl(inputText)
-                let webcache = WebCacheMgr.shared.store[index]
-                if !webcache.shouldShowWeb {
-                    webcache.shouldShowWeb = true
+                DispatchQueue.main.async {
+                    let webcache = WebCacheMgr.shared.store[index]
+                    if !webcache.shouldShowWeb {
+                        webcache.lastVisitedUrl = url
+                    }
+                    openingLink.clickedLink = url
+                    isAdressBarFocused = false
                 }
-                openingLink.clickedLink = url
-                isAdressBarFocused = false
-                #if DwebFramework
-                    addressBar.isFocused = false
-                #endif
             }
             .onReceive(NotificationCenter.default.publisher(for: UITextField.textDidBeginEditingNotification)) { obj in
-
                 if let textField = obj.object as? UITextField {
                     textField.selectedTextRange = textField.textRange(from: textField.beginningOfDocument, to: textField.endOfDocument)
                 }
@@ -156,10 +139,6 @@ struct AddressBar: View {
     var clearTextButton: some View {
         Button {
             inputText = ""
-            #if DwebFramework
-                isAdressBarFocused = true
-                addressBar.isFocused = true
-            #endif
         } label: {
             Image(systemName: "xmark.circle.fill")
                 .foregroundColor(.gray)
@@ -185,14 +164,6 @@ struct AddressBar: View {
                 .foregroundColor(.black.opacity(0.8))
                 .padding(.trailing, 25)
         }
-    }
-
-    func isOpacity() -> CGFloat {
-        #if DwebFramework
-            return 1
-        #endif
-
-        return isAdressBarFocused ? 1 : 0
     }
 }
 

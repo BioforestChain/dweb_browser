@@ -89,7 +89,7 @@ class WebCache: ObservableObject, Identifiable, Hashable, Codable, Equatable {
     }
     
     static var blank: WebCache {
-        WebCache(lastVisitedUrl: emptyURL, title: "blank")
+        WebCache(lastVisitedUrl: emptyURL, title: "起始页")
     }
     
     func isBlank() -> Bool {

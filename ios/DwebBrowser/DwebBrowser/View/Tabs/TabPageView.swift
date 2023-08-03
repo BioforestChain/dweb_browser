@@ -131,6 +131,7 @@ struct TabPageView: View {
             .onReceive(addressBar.$needRefreshOfIndex) { refreshIndex in
                 if refreshIndex == index {
                     webWrapper.webView.reload()
+                    addressBar.needRefreshOfIndex = -1
                 }
             }
             .onReceive(addressBar.$stopLoadingOfIndex) { stopIndex in

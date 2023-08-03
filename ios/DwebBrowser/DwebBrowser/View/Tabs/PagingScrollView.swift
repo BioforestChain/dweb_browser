@@ -15,8 +15,10 @@ struct PagingScrollView: View {
     @EnvironmentObject var addressBar: AddressBarState
     @EnvironmentObject var selectedTab: SelectedTab
     @EnvironmentObject var animation: ShiftAnimation
-    @StateObject var keyboardHelper = KeyboardHeightHelper()
+//    @StateObject var keyboardHelper = KeyboardHeightHelper()
 
+    
+    @State private var keyboardHeight = 0.0
     @Binding var showTabPage: Bool
 
     @State private var addressbarOffset: CGFloat = addressBarH
@@ -57,8 +59,19 @@ struct PagingScrollView: View {
                                 .onChange(of: addressBar.shouldDisplay) { dispaly in
                                     addressbarOffset = dispaly ? 0 : addressBarH
                                 }.onChange(of: addressBar.isFocused) { isFocused in
-                                    addressbarOffset = isFocused ? -keyboardHelper.keyboardHeight : 0
+                                    addressbarOffset = isFocused ? -keyboardHeight : 0
                                 }
+                                .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { notify in
+                                    // 当视图获得焦点时
+                                    guard let value = notify.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else { return }
+                                    let height = value.height
+                                    keyboardHeight = height - safeAreaBottomHeight
+                                }
+                                .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
+                                    // 当视图获得焦点时
+                                    keyboardHeight = 0
+                                }
+                            
                         }
                         .frame(width: screen_width)
                     }
@@ -76,7 +89,7 @@ struct PagingScrollView: View {
     func updateKeyboardOffset() -> CGFloat {
         #if DwebFramework
             if addressBar.isFocused {
-                return -keyboardHelper.keyboardHeight
+                return -keyboardHeight
             } else {
                 return addressbarOffset
             }
@@ -87,7 +100,7 @@ struct PagingScrollView: View {
     
     func updateKeyboardOffsetAnimation() -> CGFloat {
         #if DwebFramework
-            return keyboardHelper.keyboardHeight
+            return keyboardHeight
         #endif
         
         return addressbarOffset
