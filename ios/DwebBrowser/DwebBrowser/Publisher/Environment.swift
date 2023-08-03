@@ -9,6 +9,10 @@ import Combine
 import Foundation
 import SwiftUI
 
+class KeyBoard: ObservableObject {
+    @Published var height: CGFloat = 0
+}
+
 class SelectedTab: ObservableObject {
     @Published var curIndex: Int = 0
 }

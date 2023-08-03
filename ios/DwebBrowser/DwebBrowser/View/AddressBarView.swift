@@ -15,6 +15,7 @@ struct AddressBar: View {
     @EnvironmentObject var selectedTab: SelectedTab
     @EnvironmentObject var toolbarState: ToolBarState
     @EnvironmentObject var openingLink: OpeningLink
+    @EnvironmentObject var keyboard: KeyBoard
     @ObservedObject var webWrapper: WebWrapper
     @ObservedObject var webCache: WebCache
 
@@ -59,7 +60,18 @@ struct AddressBar: View {
                 .keyboardType(.webSearch)
                 .focused($isAdressBarFocused)
                 .opacity(isAdressBarFocused ? 1 : 0)
-
+            
+        
+            .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { notify in
+                // 当视图获得焦点时
+                guard let value = notify.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else { return }
+                let height = value.height
+                keyboard.height = height - safeAreaBottomHeight
+            }
+            .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
+                // 当视图获得焦点时
+                keyboard.height = 0
+            }
             Text(domainString)
                 .frame(width: screen_width - 100, height: 32)
                 .background(.white)

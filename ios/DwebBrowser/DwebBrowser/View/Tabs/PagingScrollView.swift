@@ -17,8 +17,9 @@ struct PagingScrollView: View {
     @EnvironmentObject var animation: ShiftAnimation
 //    @StateObject var keyboardHelper = KeyboardHeightHelper()
 
-    
-    @State private var keyboardHeight = 0.0
+    @StateObject var keyboard = KeyBoard()
+
+//    @State private var keyboardHeight = 0.0
     @Binding var showTabPage: Bool
 
     @State private var addressbarOffset: CGFloat = addressBarH
@@ -51,26 +52,27 @@ struct PagingScrollView: View {
                             }
                             
                             AddressBar(index: index, webWrapper: WebWrapperMgr.shared.store[index], webCache: WebCacheMgr.cache(at: index))
+                                .environmentObject(keyboard)
                                 .frame(height: addressBarH)
                                 .background(Color.bkColor)
-                                .offset(y: updateKeyboardOffset())
-                                .animation(.default, value: updateKeyboardOffsetAnimation())
+                                .offset(y: addressbarOffset)
+                                .animation(.default, value: addressbarOffset)
                                 .gesture(addressBar.isFocused ? disabledDragGesture : nil) // 根据状态变量决定是否启用拖拽手势
                                 .onChange(of: addressBar.shouldDisplay) { dispaly in
                                     addressbarOffset = dispaly ? 0 : addressBarH
                                 }.onChange(of: addressBar.isFocused) { isFocused in
-                                    addressbarOffset = isFocused ? -keyboardHeight : 0
+                                    addressbarOffset = isFocused ? -keyboard.height : 0
                                 }
-                                .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { notify in
-                                    // 当视图获得焦点时
-                                    guard let value = notify.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else { return }
-                                    let height = value.height
-                                    keyboardHeight = height - safeAreaBottomHeight
-                                }
-                                .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
-                                    // 当视图获得焦点时
-                                    keyboardHeight = 0
-                                }
+//                                .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { notify in
+//                                    // 当视图获得焦点时
+//                                    guard let value = notify.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else { return }
+//                                    let height = value.height
+//                                    keyboardHeight = height - safeAreaBottomHeight
+//                                }
+//                                .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
+//                                    // 当视图获得焦点时
+//                                    keyboardHeight = 0
+//                                }
                             
                         }
                         .frame(width: screen_width)
@@ -86,23 +88,23 @@ struct PagingScrollView: View {
         }
     }
     
-    func updateKeyboardOffset() -> CGFloat {
-        #if DwebFramework
-            if addressBar.isFocused {
-                return -keyboardHeight
-            } else {
-                return addressbarOffset
-            }
-        #endif
-        
-        return addressbarOffset
-    }
-    
-    func updateKeyboardOffsetAnimation() -> CGFloat {
-        #if DwebFramework
-            return keyboardHeight
-        #endif
-        
-        return addressbarOffset
-    }
+//    func updateKeyboardOffset() -> CGFloat {
+//        #if DwebFramework
+//            if addressBar.isFocused {
+//                return -keyboardHeight
+//            } else {
+//                return addressbarOffset
+//            }
+//        #endif
+//
+//        return addressbarOffset
+//    }
+//
+//    func updateKeyboardOffsetAnimation() -> CGFloat {
+//        #if DwebFramework
+//            return keyboardHeight
+//        #endif
+//
+//        return addressbarOffset
+//    }
 }
