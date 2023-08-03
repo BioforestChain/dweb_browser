@@ -193,7 +193,7 @@ sealed public class Store
 /// <summary>
 /// 使用文件进行持久化存储
 /// </summary>
-public class FileStore
+public class FileStore<V, T> where V : IEnumerable<T>
 {
     static readonly Debugger Console = new("FileStore");
 
@@ -316,7 +316,7 @@ public class FileStore
     /// <param name="key"></param>
     /// <param name="orDefault"></param>
     /// <returns></returns>
-    public async Task<string?> GetAsync(string key, Func<string>? orDefault = null)
+    public async Task<V?> GetAsync(string key, Func<V>? orDefault = null)
     {
         var stream = File.OpenRead(ResolveKey(key));
         try
@@ -328,7 +328,7 @@ public class FileStore
                 throw new Exception("The first call needs to be initialized with default.");
             }
 
-            return decoded;
+            return JsonSerializer.Deserialize<V>(decoded);
         }
         catch
         {
@@ -343,7 +343,7 @@ public class FileStore
                 throw new Exception($"fail to save store for {StoreName}");
             }
 
-            return null;
+            return default;
         }
         finally
         {
@@ -351,7 +351,7 @@ public class FileStore
         }
     }
 
-    public string? Get(string key, Func<string>? orDefault = null)
+    public V? Get(string key, Func<V>? orDefault = null)
     {
         var isClosed = false;
         var stream = File.OpenRead(ResolveKey(key));
@@ -366,7 +366,7 @@ public class FileStore
                 throw new Exception("The first call needs to be initialized with default.");
             }
 
-            return decoded;
+            return JsonSerializer.Deserialize<V>(decoded);
         }
         catch
         {
@@ -381,7 +381,7 @@ public class FileStore
                 throw new Exception($"fail to save store for {StoreName}");
             }
 
-            return null;
+            return default;
         }
         finally
         {
@@ -397,12 +397,12 @@ public class FileStore
     /// </summary>
     /// <param name="key"></param>
     /// <param name="value"></param>
-    public async Task<bool> SetAsync(string key, string value)
+    public async Task<bool> SetAsync(string key, V value)
     {
         try
         {
             using var stream = File.OpenWrite(ResolveKey(key));
-            stream.Write(Encode(value));
+            stream.Write(Encode(JsonSerializer.Serialize(value)));
             return true;
         }
         catch
@@ -411,12 +411,12 @@ public class FileStore
         }
     }
 
-    public bool Set(string key, string value)
+    public bool Set(string key, V value)
     {
         try
         {
             using var stream = File.OpenWrite(ResolveKey(key));
-            stream.Write(Encode(value));
+            stream.Write(Encode(JsonSerializer.Serialize(value)));
             return true;
         }
         catch

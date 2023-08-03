@@ -23,7 +23,7 @@ public partial class DeskController
         return new TaskBarRect(width, height);
     }
 
-    public List<DeskStore.TaskApps> TaskBarAppList = DeskStore.Instance.All();
+    public List<TaskAppsStore.TaskApps> TaskBarAppList = TaskAppsStore.Instance.All();
     public async Task<List<DeskNMM.DesktopAppMetadata>> GetTaskbarAppList(int limit)
     {
         List<DeskNMM.DesktopAppMetadata> apps = new();

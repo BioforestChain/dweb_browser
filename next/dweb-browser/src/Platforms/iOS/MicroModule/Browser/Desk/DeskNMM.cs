@@ -115,14 +115,14 @@ public class DeskNMM : IOSNativeMicroModule
         {
             foreach (var app_id in map.Keys)
             {
-                var taskApp = new DeskStore.TaskApps(app_id, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
+                var taskApp = new TaskAppsStore.TaskApps(app_id, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
                 if (!DeskController.TaskBarAppList.Contains(taskApp))
                 {
                     DeskController.TaskBarAppList.Add(taskApp);
                 }
             }
 
-            DeskStore.Instance.Save(DeskController.TaskBarAppList);
+            TaskAppsStore.Instance.Save(DeskController.TaskBarAppList);
         };
 
         HttpRouter.AddRoute(IpcMethod.Get, "/readFile", async (request, _) =>

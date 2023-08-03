@@ -2,35 +2,20 @@
 
 namespace DwebBrowser.MicroService.Browser.Jmm;
 
-sealed internal class JmmDatabase : FileStore
+sealed internal class JmmDatabase: FileStore<Dictionary<Mmid, JmmAppInstallManifest>, KeyValuePair<Mmid, JmmAppInstallManifest>>
 {
     internal static JmmDatabase Instance = new("jmm-apps");
 
     internal JmmDatabase(string name, StoreOptions options = default) : base(name, options)
     {
+        Apps = Get("apps", () => new Dictionary<Mmid, JmmAppInstallManifest>());
     }
 
-    private readonly LazyBox<Dictionary<Mmid, JmmAppInstallManifest>> SApps = new();
-    private Dictionary<Mmid, JmmAppInstallManifest> Apps
-    {
-        get
-        {
-            /// TODO: 待优化
-            var dic = JsonSerializer.Deserialize<Dictionary<Mmid, JmmAppInstallManifest>>(Get("apps",
-                () => JsonSerializer.Serialize(new Dictionary<Mmid, JmmAppInstallManifest>())));
-
-            if (dic.Count == 0)
-            {
-                return SApps.GetOrPut(() => new Dictionary<string, JmmAppInstallManifest>());
-            }
-
-            return dic;
-        }
-    }
+    private Dictionary<Mmid, JmmAppInstallManifest> Apps { get; init; }
 
     private void Save()
     {
-        Set("apps", JsonSerializer.Serialize(Apps));
+        Set("apps", Apps);
     }
 
     internal bool Upsert(JmmAppInstallManifest app)

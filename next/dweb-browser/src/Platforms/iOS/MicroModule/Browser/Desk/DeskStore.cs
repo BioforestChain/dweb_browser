@@ -1,14 +1,37 @@
-﻿using System.Text.Json;
+﻿namespace DwebBrowser.MicroService.Browser.Desk;
 
-namespace DwebBrowser.MicroService.Browser.Desk;
-
-sealed public class DeskStore : FileStore
+public class DeskStore<V, T> : FileStore<V, T> where V : IEnumerable<T>
 {
-    static readonly Debugger Console = new("DeskStore");
-    public static DeskStore Instance = new("desk.browser.dweb");
-    internal DeskStore(string name, StoreOptions options = default) : base(name, options)
+    internal DeskStore(string name = "desk.browser.dweb", StoreOptions options = default) : base(name, options)
+    { }
+}
+
+sealed public class DeskAppsStore : DeskStore<Dictionary<Mmid, DeskAppsStore.AppOrder>, KeyValuePair<Mmid, DeskAppsStore.AppOrder>>
+{
+    internal DeskAppsStore() : base()
     {
+        AppOrders = Get("desktop/orders", () => new Dictionary<string, AppOrder>());
     }
+
+    public static readonly DeskAppsStore Instance = new();
+
+    public Dictionary<Mmid, AppOrder> AppOrders { get; init; }
+
+    public record AppOrder(int Order);
+}
+
+sealed public class TaskAppsStore : DeskStore<HashSet<TaskAppsStore.TaskApps>, TaskAppsStore.TaskApps>
+{
+    internal string Key = "taskbar/apps";
+
+    public static readonly TaskAppsStore Instance = new();
+
+    internal TaskAppsStore() : base()
+    {
+        TaskAppsSet = Get(Key, () => new HashSet<TaskApps>());
+    }
+
+    public HashSet<TaskApps> TaskAppsSet { get; init; }
 
     public record TaskApps(Mmid Mmid, long Timestamp) : IEquatable<TaskApps>
     {
@@ -23,31 +46,14 @@ sealed public class DeskStore : FileStore
         }
     }
 
-    private LazyBox<HashSet<TaskApps>> STaskAppsSet = new();
-    private HashSet<TaskApps> TaskAppsSet
-    {
-        get
-        {
-            var hashset = JsonSerializer.Deserialize<HashSet<TaskApps>>(Get("taskbar/apps",
-                () => JsonSerializer.Serialize(new HashSet<TaskApps>())));
-
-            if (hashset.Count == 0)
-            {
-                return STaskAppsSet.GetOrPut(() => new HashSet<TaskApps>());
-            }
-
-            return hashset;
-        }
-    }
-
     private void Save()
     {
-        Set("taskbar/apps", JsonSerializer.Serialize(TaskAppsSet));
+        Set(Key, TaskAppsSet);
     }
 
     internal void Save(List<TaskApps> taskApps)
     {
-        Set("taskbar/apps", JsonSerializer.Serialize(taskApps.ToHashSet()));
+        Set(Key, taskApps.ToHashSet());
     }
 
     internal bool Upsert(Mmid mmid)
@@ -82,4 +88,6 @@ sealed public class DeskStore : FileStore
 
     internal List<TaskApps> All() => TaskAppsSet.OrderByDescending(it => it.Timestamp).ToList();
 }
+
+
 
