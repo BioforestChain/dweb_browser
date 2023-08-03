@@ -66,7 +66,6 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
   }
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-
     val taskbarServer = this.createTaskbarWebServer(this.bootstrapContext)
     val desktopServer = this.createDesktopWebServer()
     val deskController = DeskController(this, desktopServer, runningApps)

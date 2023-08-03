@@ -31,6 +31,19 @@ class TaskBarController(
       /// 保存到数据库
       DeskStore.set(DeskStore.TASKBAR_APPS,this._appList)
     }
+    // 监听移除app的改变,可能是增加或者减少
+    desktopNMM.bootstrapContext.dns.onChange { apps ->
+      for(mmid in apps) {
+        // 有的话是移除
+        if (this._appList.contains(mmid)) {
+          this._appList.remove(mmid)
+          runningApps.remove(mmid)
+        } else {
+          // 没有的话是添加，触发一下订阅更新
+          runningApps.emitChange()
+        }
+      }
+    }
   }
 
   fun getTaskbarAppList(limit: kotlin.Int): List<DeskAppMetaData> {

@@ -21,7 +21,7 @@ fun debugScanning(tag: String, msg: Any? = "", err: Throwable? = null) =
 
 class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb", "Barcode Scanning") {
 
-  override val categories = mutableListOf(MICRO_MODULE_CATEGORY.Utilities);
+  override val categories = mutableListOf(MICRO_MODULE_CATEGORY.Service,MICRO_MODULE_CATEGORY.Utilities);
   override val short_name: String = "Scanning"
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {

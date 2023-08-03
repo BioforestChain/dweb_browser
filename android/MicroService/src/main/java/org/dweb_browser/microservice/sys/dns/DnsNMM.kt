@@ -35,7 +35,7 @@ class DnsNMM() : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
   override val categories =
     mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Routing_Service);
 
-  private val installApps = mutableMapOf<MMID, MicroModule>() // 已安装的应用
+  private val installApps = ChangeableMap<MMID, MicroModule>() // 已安装的应用
   private val runningApps = mutableMapOf<MMID, PromiseOut<MicroModule>>() // 正在运行的应用
 
   suspend fun bootstrap() {
@@ -104,6 +104,21 @@ class DnsNMM() : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
 
   class MyDnsMicroModule(private val dnsMM: DnsNMM, private val fromMM: MicroModule) :
     DnsMicroModule {
+    private var changeList = ChangeableList<MMID>()
+    init {
+      // 只对Application的相应做出改变
+      dnsMM.installApps.onChange { apps ->
+        changeList = ChangeableList()
+        for (app in apps.values) {
+          if (app.categories.contains(MICRO_MODULE_CATEGORY.Application)) {
+            changeList.add(app.mmid)
+          }
+        }
+      }
+    }
+
+    override val onChange = changeList.onChange
+
     override fun install(mm: MicroModule) {
       // TODO 作用域保护
       dnsMM.install(mm)
