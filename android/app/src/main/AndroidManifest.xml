@@ -56,9 +56,9 @@
       android:shell="true"
       tools:targetApi="29" />
 
+    <!--android:excludeFromRecents="true" 在activity中加入该参数，会让activity不出现在任务栏窗口 -->
     <activity
       android:name=".SplashActivity"
-      android:excludeFromRecents="true"
       android:exported="true"
       android:theme="@style/Theme.App.Starting">
       <intent-filter>
@@ -81,6 +81,7 @@
       android:name=".microService.browser.desk.DesktopActivity"
       android:exported="true"
       android:screenOrientation="portrait"
+      android:launchMode="singleTask"
       android:theme="@style/Theme.dwebbrowser"
       tools:ignore="LockedOrientationActivity">
       <intent-filter>
@@ -91,7 +92,7 @@
       android:name=".microService.browser.desk.TaskbarActivity"
       android:exported="true"
       android:theme="@style/Theme.dwebbrowser.desk.taskbar" />
-    <activity
+    <!--<activity
       android:name=".microService.browser.mwebviewbak.MultiWebViewPlaceholder1Activity"
       android:exported="true"
       android:windowSoftInputMode="adjustPan" />
@@ -110,7 +111,7 @@
     <activity
       android:name=".microService.browser.mwebviewbak.MultiWebViewPlaceholder5Activity"
       android:exported="true"
-      android:windowSoftInputMode="adjustPan" />
+      android:windowSoftInputMode="adjustPan" />-->
 
     <meta-data
       android:name="com.google.firebase.ml.vision.DEPENDENCIES"

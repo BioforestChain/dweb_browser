@@ -2,6 +2,7 @@ package info.bagen.dwebbrowser.microService.browser.desk
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -61,6 +62,9 @@ class DesktopActivity : BaseActivity() {
       DwebBrowserAppTheme {
         val scope = rememberCoroutineScope()
         deskController.effect(activity = this@DesktopActivity)
+        BackHandler {
+          this@DesktopActivity.moveTaskToBack(false) // 将界面移动到后台，避免重新点击又跑SplashActivity
+        }
 
         CompositionLocalProvider(
           LocalInstallList provides deskController.getInstallApps(),
