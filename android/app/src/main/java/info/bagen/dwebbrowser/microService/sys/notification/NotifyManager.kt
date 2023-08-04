@@ -49,7 +49,7 @@ class NotifyManager {
         var requestCode = 1 // 用于通知栏点击时，避免都是点击到最后一个
 
         fun getDefaultPendingIntent(): PendingIntent {
-            var intent = Intent(App.appContext, BrowserActivity::class.java).apply {
+            val intent = Intent(App.appContext, BrowserActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             }
             return PendingIntent.getActivity(

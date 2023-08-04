@@ -11,6 +11,7 @@ import android.view.PixelCopy
 import android.view.View
 import android.view.Window
 import android.webkit.WebView
+import androidx.activity.ComponentActivity
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -156,10 +157,10 @@ private fun drawBitmapWithPixelCopy(
 /**
  * Traverses through this [Context] and finds [Activity] wrapped inside it.
  */
-fun Context.findActivity(): Activity {
+fun Context.findActivity(): ComponentActivity {
   var context = this
   while (context is ContextWrapper) {
-    if (context is Activity) return context
+    if (context is ComponentActivity) return context
     context = context.baseContext
   }
   throw IllegalStateException("Unable to retrieve Activity from the current context")

@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
@@ -27,6 +28,7 @@ import com.google.accompanist.web.WebView
 import com.google.accompanist.web.rememberWebViewState
 import info.bagen.dwebbrowser.App
 import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
+import org.dweb_browser.browserUI.ui.view.findActivity
 import org.dweb_browser.dwebview.DWebView
 import kotlin.math.roundToInt
 
@@ -41,34 +43,9 @@ val LocalOpenList = compositionLocalOf<MutableList<DeskAppMetaData>> {
 val LocalDesktopView = compositionLocalOf<DWebView> {
   noLocalProvidedFor("DesktopView")
 }
-val LocalTaskbarModel = compositionLocalOf {
-  TaskbarModel()
-}
 
 private fun noLocalProvidedFor(name: String): Nothing {
   error("CompositionLocal $name not present")
-}
-
-class TaskbarModel {
-  var deskController: DeskController? = null
-  val taskbarDWebView by lazy(LazyThreadSafetyMode.SYNCHRONIZED)
-  {
-    this.deskController?.let { controller ->
-      DWebView(
-        context = App.appContext,
-        remoteMM = controller.getMicroModule(),
-        options = DWebView.Options(
-          url = "",
-          onDetachedFromWindowStrategy = DWebView.Options.DetachedFromWindowStrategy.Ignore,
-        )
-      ).also {
-        it.setBackgroundColor(Color.Transparent.toArgb())
-      }
-    } ?: throw Exception("not setDeskController...")
-  }
-
-  val width get() = taskbarDWebView.width
-  val height get() = taskbarDWebView.height
 }
 
 @Composable
@@ -81,13 +58,14 @@ fun FloatTaskbarView(
   clipSize: Dp = 16.dp
 ) {
   if (state.value) {
-    val localTaskbarModel = LocalTaskbarModel.current
+    val localTaskbarModel = LocalContext.current.findActivity().let {
+      val model by it.taskAppViewModels<TaskbarViewModel>()
+      model
+    }
     FloatBox(isFloatWindow, width, height, clipSize, onClick = {
-
-      localTaskbarModel.deskController?.apply {
-        state.value = false
-        openTaskActivity()
-      }
+      // TODO 打开task app，并且将自己状态置为 false
+      localTaskbarModel.floatViewState.value = false
+      localTaskbarModel.openTaskActivity()
     }) {
       WebView(
         state = rememberWebViewState(url = url)

@@ -19,7 +19,6 @@ import info.bagen.dwebbrowser.microService.browser.desk.view.Render
 import info.bagen.dwebbrowser.microService.core.WindowState
 import info.bagen.dwebbrowser.ui.theme.DwebBrowserAppTheme
 
-
 @SuppressLint("ModifierFactoryExtensionFunction")
 fun WindowState.WindowBounds.toModifier(
   modifier: Modifier = Modifier,
@@ -29,22 +28,27 @@ fun WindowState.WindowBounds.toModifier(
 
 class DesktopActivity : BaseActivity() {
   private var controller: DeskController? = null
-  private fun bindController(sessionId: String?, taskSessionId: String?): DeskController {
+  private fun bindController(sessionId: String?): DeskController {
     /// 解除上一个 controller的activity绑定
     controller?.activity = null
 
     return DesktopNMM.deskControllers[sessionId]?.also { desktopController ->
       desktopController.activity = this
-      desktopController.taskBarSessionId = taskSessionId
       controller = desktopController
     } ?: throw Exception("no found controller by sessionId: $sessionId")
   }
 
+  private val taskbarViewModel by taskAppViewModels<TaskbarViewModel>() // 用于记录taskbar的
+  private fun initTaskbarViewModel(sessionId: String?) {
+    DesktopNMM.taskBarControllers[sessionId]?.also {
+      taskbarViewModel.initViewModel(it, sessionId!!)
+    }
+  }
+
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    val deskController = bindController(
-      intent.getStringExtra("deskSessionId"), intent.getStringExtra("taskBarSessionId")
-    )
+    val deskController = bindController(intent.getStringExtra("deskSessionId"))
+    initTaskbarViewModel(intent.getStringExtra("taskBarSessionId")) // taskbarViewModel初始化
     /*val taskBarSessionId = intent.getStringExtra("taskBarSessionId")
 
     val context = this@DesktopActivity
@@ -83,10 +87,9 @@ class DesktopActivity : BaseActivity() {
             /// 窗口视图
             desktopWindowsManager.Render()
             /// 浮窗
-            LocalTaskbarModel.current.deskController = deskController
             FloatTaskbarView(
-              state = deskController.floatViewState,
-              url = deskController.getTaskbarUrl().toString()
+              state = taskbarViewModel.floatViewState,
+              url = taskbarViewModel.taskBarController.getTaskbarUrl().toString()
             )
           }
         }

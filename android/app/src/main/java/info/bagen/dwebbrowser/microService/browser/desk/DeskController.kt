@@ -1,7 +1,5 @@
 package info.bagen.dwebbrowser.microService.browser.desk
 
-import android.content.Intent
-import android.os.Bundle
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.SideEffect
@@ -63,9 +61,7 @@ class DeskController(
         activityTask.resolve(value)
       }
     }
-  var taskBarSessionId: String? = null
   val floatViewState: MutableState<Boolean> = mutableStateOf(true)
-
 
   /**
    * 窗口管理器
@@ -114,20 +110,5 @@ class DeskController(
   fun getTaskbarUrl() = taskbarServer.startResult.urlInfo.buildInternalUrl().let {
     it.path("/taskbar.html")
       .query("api-base", desktopServer.startResult.urlInfo.buildPublicUrl().toString())
-  }
-
-  fun showFloatView() {
-    floatViewState.value = true
-  }
-
-  fun openTaskActivity() {
-    activity?.apply {
-      startActivity(Intent(this, TaskbarActivity::class.java)
-        .also {
-          it.putExtras(Bundle().also { bundle ->
-            bundle.putString("taskBarSessionId", taskBarSessionId)
-          })
-        })
-    }
   }
 }
