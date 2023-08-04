@@ -1,9 +1,57 @@
 ﻿using System.Text.Json.Serialization;
-using System.Text.Json;
+using UIKit;
 
-namespace DwebBrowser.MicroService.Browser.Desk;
+namespace DwebBrowser.MicroService.Core;
 
-public record WindowRectangle(int left, int top, int width, int height);
+using CreateWindowAdapter = Func<WindowState, Task<WindowController>>;
+
+public class WindowAdapterManager : AdapterManager<CreateWindowAdapter>
+{
+    public static readonly WindowAdapterManager WindowAdapterManagerInstance = new();
+
+    public Task<WindowController> CreateWindow(WindowState winState)
+    {
+        foreach (var adapter in Adapters)
+        {
+            var winCtrl = adapter(winState);
+            if (winCtrl is not null)
+            {
+                return winCtrl;
+            }
+        }
+
+        throw new Exception($"no support create native window, owner: {winState.Owner} provider: {winState.Provider}");
+    }
+}
+
+public abstract class WindowController
+{
+    /// <summary>
+    /// 在iOS中，一个UIView附着在某一个UIViewController中
+    /// </summary>
+    public abstract UIViewController Controller { get; init; }
+
+    public abstract WindowState ToJson();
+
+    protected readonly HashSet<Signal> _destroySignal = new();
+    public event Signal OnDestroy
+    {
+        add { if (value != null) lock (_destroySignal) { _destroySignal.Add(value); } }
+        remove { lock (_destroySignal) { _destroySignal.Remove(value); } }
+    }
+    private bool IsDestroy = false;
+    public bool IsDestroyed() => IsDestroy;
+
+    public Task Close(bool force = false)
+    {
+        /// 这里的 force 暂时没有作用，未来会加入交互，来阻止窗口关闭
+
+        IsDestroy = true;
+        return _destroySignal.EmitAndClear();
+    }
+}
+
+
 
 /// <summary>
 /// 单个窗口的状态集
@@ -11,13 +59,55 @@ public record WindowRectangle(int left, int top, int width, int height);
 public class WindowState
 {
     /// <summary>
+    /// 窗口全局唯一编号，属于UUID的格式
+    /// </summary>
+    [JsonPropertyName("wid")]
+    public UUID Wid { get; set; }
+
+    /// <summary>
+    /// 窗口持有者
+    ///
+    /// 窗口创建者
+    /// </summary>
+    [JsonPropertyName("owner")]
+    public Mmid Owner { get; set; }
+
+    /// <summary>
+    /// 内容提提供方
+    ///
+    /// 比如若渲染的是web内容，那么应该是 mwebview.browser.dweb
+    /// </summary>
+    [JsonPropertyName("provider")]
+    public Mmid Provider { get; set; }
+
+    /// <summary>
+    /// 窗口标题
+    ///
+    /// 该标题不需要一定与应用名称相同
+    ///
+    /// 如果是 mwebview，默认会采用当前 Webview 的网页 title
+    /// </summary>
+    [JsonPropertyName("title")]
+    public string? Title { get; set; }
+
+    /// <summary>
+    /// 应用图标链接
+    ///
+    /// 该链接与应用图标不同
+    ///
+    /// 如果是 mwebview，默认会采用当前 Webview 的网页 favicon
+    /// </summary>
+    [JsonPropertyName("iconUrl")]
+    public string? IconUrl { get; set; }
+
+    /// <summary>
     /// 窗口位置和大小
     ///
     /// 窗口会被限制最小值，会被限制显示区域。
     /// 终止，窗口最终会被绘制在用户可见可控的区域中
     /// </summary>
     [JsonPropertyName("bounds")]
-    public WindowRectangle Bounds { get; set; }
+    public WindowBounds? Bounds { get; set; }
 
     /// <summary>
     /// 是否全屏
@@ -84,7 +174,19 @@ public class WindowState
     /// 这里没有将它拆分成两个数来存储，目的是复合直觉
     /// </summary>
     [JsonPropertyName("zIndex")]
-    public float ZIndex { get; set; }
+    public int ZIndex { get; set; }
+
+    /// <summary>
+    /// 子窗口
+    /// </summary>
+    [JsonPropertyName("children")]
+    public List<UUID> Children { get; set; }
+
+    /// <summary>
+    /// 父窗口
+    /// </summary>
+    [JsonPropertyName("parent")]
+    public UUID? Parent { get; set; }
 
     /// <summary>
     /// 是否在闪烁提醒
@@ -97,7 +199,7 @@ public class WindowState
     /// 在 taskbar 中， running-dot 会闪烁变色
     /// </summary>
     [JsonPropertyName("flashColor")]
-    public string FlashColor { get; set; }
+    public string? FlashColor { get; set; }
 
     /// <summary>
     /// 进度条
@@ -138,6 +240,8 @@ public class WindowState
     /// > 配合 getScreens 接口，就能获得当前屏幕的详细信息。参考 [`Electron.screen.getAllDisplays(): Electron.Display[]`](https://electronjs.org/docs/api/structures/display)
     /// > 未来实现多设备互联时，可以实现窗口的多设备流转
     /// > 屏幕与桌面是两个独立的概念
+    ///
+    /// 默认是 -1，意味着使用“主桌面”
     /// </summary>
     [JsonPropertyName("screenIndex")]
     public int ScreenIndex { get; set; }
@@ -151,21 +255,35 @@ public class WindowState
     }
 
     public WindowState(
-          WindowRectangle bounds,
-          bool fullscreen,
-          bool maximize,
-          bool minimize,
-          bool resizable,
-          bool focus,
-          bool pictureInPicture,
-          float zIndex,
-          bool flashing,
-          string flashColor,
-          float progressBar,
-          bool alwaysOnTop,
-          int desktopIndex,
-          int screenIndex)
+          UUID wid,
+          Mmid owner,
+          Mmid provider,
+          string? title = null,
+          WindowBounds? bounds = null,
+          bool fullscreen = false,
+          bool maximize = false,
+          bool minimize = false,
+          bool resizable = false,
+          bool focus = false,
+          bool pictureInPicture = false,
+          int zIndex = 0,
+          List<UUID>? children = null,
+          UUID? parent = null,
+          bool flashing = false,
+          string? flashColor = null,
+          float progressBar = -1f,
+          bool alwaysOnTop = false,
+          int desktopIndex = -1,
+          int screenIndex = -1)
     {
+        title ??= owner;
+        bounds ??= new();
+        children ??= new();
+        flashColor ??= UIColor.White.ToCssRgba();
+        Wid = wid;
+        Owner = owner;
+        Provider = provider;
+        Title = title;
         Bounds = bounds;
         Fullscreen = fullscreen;
         Maximize = maximize;
@@ -174,6 +292,8 @@ public class WindowState
         Focus = focus;
         PictureInPicture = pictureInPicture;
         ZIndex = zIndex;
+        Children = children;
+        Parent = parent;
         Flashing = flashing;
         FlashColor = flashColor;
         ProgressBar = progressBar;
@@ -181,4 +301,47 @@ public class WindowState
         DesktopIndex = desktopIndex;
         ScreenIndex = screenIndex;
     }
+
+    /// <summary>
+    /// 窗口大小与位置
+    ///
+    /// 默认值是NaN，这种情况下，窗口构建者需要自己对其进行赋值
+    /// </summary>
+    /// <param name="left"></param>
+    /// <param name="top"></param>
+    /// <param name="width"></param>
+    /// <param name="height"></param>
+    public class WindowBounds
+    {
+        [JsonPropertyName("left")]
+        public float Left { get; set; }
+
+        [JsonPropertyName("top")]
+        public float Top { get; set; }
+
+        [JsonPropertyName("width")]
+        public float Width { get; set; }
+
+        [JsonPropertyName("height")]
+        public float Height { get; set; }
+
+        public WindowBounds(float left = float.NaN, float top = float.NaN, float width = float.NaN, float height = float.NaN)
+        {
+            Left = left;
+            Top = top;
+            Width = width;
+            Height = height;
+        }
+    }
+
+    protected readonly HashSet<Signal> ChangeSignal = new();
+    public event Signal OnChange
+    {
+        add { if (value != null) lock (ChangeSignal) { ChangeSignal.Add(value); } }
+        remove { lock (ChangeSignal) { ChangeSignal.Remove(value); } }
+    }
+
+    public Task EmitChange() => ChangeSignal.Emit();
 }
+
+

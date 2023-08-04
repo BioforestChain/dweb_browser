@@ -73,12 +73,20 @@ public class MultiWebViewNMM : IOSNativeMicroModule
 
             if (controller is not null)
             {
-                var vc = await RootViewController.WaitPromiseAsync();
+                //var vc = await RootViewController.WaitPromiseAsync();
 
                 await MainThread.InvokeOnMainThreadAsync(async () =>
                 {
-                    await controller.DismissViewControllerAsync(true);
-                    vc.PopViewController(true);
+                    //await controller.DismissViewControllerAsync(true);
+                    //vc.PopViewController(true);
+                    //controller.View.RemoveFromSuperview();
+                    var deskController = await GetDeskController();
+                    //deskController.View.RemoveSub
+                    if (deskController is not null)
+                    {
+                        //deskController.View!.Subviews.ToList().Remove(controller.View);
+
+                    }
                 });
 
                 return controller.DestroyWebView();
@@ -91,36 +99,32 @@ public class MultiWebViewNMM : IOSNativeMicroModule
         HttpRouter.AddRoute(IpcMethod.Get, "/activate", async (request, ipc) =>
         {
             var remoteMmid = ipc!.Remote.Mmid;
-            OpenActivity(remoteMmid);
+            //OpenActivity(remoteMmid);
+            if (s_controllerMap.TryGetValue(remoteMmid, out var controller))
+            {
+                var vc = await RootViewController.WaitPromiseAsync();
+
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    // 无法push同一个UIViewController的实例两次
+                    var index = vc.ViewControllers?.ToList().FindIndex(uvc => uvc == controller);
+                    if (index >= 0)
+                    {
+                        // 不是当前controller时，推到最新
+                        if (index != vc.ViewControllers!.Length - 1)
+                        {
+                            vc.PopToViewController(controller, true);
+                        }
+                    }
+                    else
+                    {
+                        vc.PushViewController(controller, true);
+                    }
+                });
+            }
 
             return true;
         });
-    }
-
-    public override async void OpenActivity(Mmid remoteMmid)
-    {
-        if (s_controllerMap.TryGetValue(remoteMmid, out var controller))
-        {
-            var vc = await RootViewController.WaitPromiseAsync();
-
-            await MainThread.InvokeOnMainThreadAsync(() =>
-            {
-                // 无法push同一个UIViewController的实例两次
-                var index = vc.ViewControllers?.ToList().FindIndex(uvc => uvc == controller);
-                if (index >= 0)
-                {
-                    // 不是当前controller时，推到最新
-                    if (index != vc.ViewControllers!.Length - 1)
-                    {
-                        vc.PopToViewController(controller, true);
-                    }
-                }
-                else
-                {
-                    vc.PushViewController(controller, true);
-                }
-            });
-        }
     }
 
     private async Task<MultiWebViewController.ViewItem> _openDwebViewAsync(MicroModule remoteMM, string url)
@@ -130,8 +134,30 @@ public class MultiWebViewNMM : IOSNativeMicroModule
 
         var controller = await MainThread.InvokeOnMainThreadAsync(() => s_controllerMap.GetValueOrPut(remoteMmid, () => new MultiWebViewController(remoteMmid, this, remoteMM)));
 
-        OpenActivity(remoteMmid);
-        await OnControllerEmit(remoteMmid, controller);
+        //OpenActivity(remoteMmid);
+        //await OnControllerEmit(remoteMmid, controller);
+        if (s_controllerMap.TryGetValue(remoteMmid, out var uiviewcontroller))
+        {
+            var vc = await RootViewController.WaitPromiseAsync();
+
+            await MainThread.InvokeOnMainThreadAsync(() =>
+            {
+                // 无法push同一个UIViewController的实例两次
+                var index = vc.ViewControllers?.ToList().FindIndex(uvc => uvc == uiviewcontroller);
+                if (index >= 0)
+                {
+                    // 不是当前controller时，推到最新
+                    if (index != vc.ViewControllers!.Length - 1)
+                    {
+                        vc.PopToViewController(uiviewcontroller, true);
+                    }
+                }
+                else
+                {
+                    vc.PushViewController(uiviewcontroller, true);
+                }
+            });
+        }
         return await controller.OpenWebViewAsync(url);
     }
 

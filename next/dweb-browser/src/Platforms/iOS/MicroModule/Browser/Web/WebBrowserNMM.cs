@@ -1,6 +1,5 @@
-﻿using DwebBrowser.MicroService.Browser.Desk;
+﻿using DwebBrowser.MicroService.Http;
 using DwebBrowserFramework;
-using UIKit;
 
 namespace DwebBrowser.MicroService.Browser.Web;
 
@@ -29,30 +28,55 @@ public class WebBrowserNMM : IOSNativeMicroModule
 
     protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)
     {
+        var browserServer = CreateBrowserWebServer();
+
         OnActivity += async (Event, ipc, _) =>
         {
-            OpenActivity(Mmid);
+            await MainThread.InvokeOnMainThreadAsync(async () =>
+            {
+                BridgeManager.WebviewGeneratorCallbackWithCallback(configuration =>
+                {
+                    return new BrowserWeb(this, configuration);
+                });
+
+                var manager = new BridgeManager();
+                var browserView = manager.BrowserView;
+                browserView.Frame = WebBrowserController.View.Frame;
+
+                var deskController = await GetDeskController();
+                deskController?.AddSubView(browserView);
+            });
         };
     }
 
-    public override async void OpenActivity(Mmid remoteMmid)
+    private async Task<HttpDwebServer> CreateBrowserWebServer()
     {
-        await MainThread.InvokeOnMainThreadAsync(async () =>
+        var server = await CreateHttpDwebServer(new DwebHttpServerOptions(433, ""));
+
         {
-            BridgeManager.WebviewGeneratorCallbackWithCallback(configuration =>
+            var url = string.Empty;
+            var serverIpc = await server.Listen();
+            var API_PREFIX = "/api/";
+            serverIpc.OnRequest += async (request, ipc, _) =>
             {
-                return new BrowserWeb(this, configuration);
-            });
+                var pathname = request.Uri.AbsolutePath;
+                if (pathname.StartsWith(API_PREFIX))
+                {
+                    url = string.Format("file://{0}{1}", pathname[API_PREFIX.Length..], request.Uri.Query);
+                }
+                else
+                {
+                    url = string.Format($"file:///sys/browser/desk{pathname}?mode=stream");
+                }
 
-            var manager = new BridgeManager();
-            var browserView = manager.BrowserView;
-            browserView.Frame = WebBrowserController.View.Frame;
-            //WebBrowserController.View.AddSubview(browserView);
+                var response = await NativeFetchAsync(new PureRequest(url, request.Method, request.Headers, request.Body.ToPureBody()));
+                var ipcReponse = response.ToIpcResponse(request.ReqId, ipc);
 
-            //var vc = await RootViewController.WaitPromiseAsync();
-            //vc.PushViewController(WebBrowserController, true);
-            DeskNMM.DeskController.AddSubView(browserView);
-        });
+                await ipc.PostMessageAsync(ipcReponse);
+            };
+        }
+
+        return server;
     }
 }
 

@@ -1,4 +1,4 @@
-﻿using DwebBrowser.Base;
+﻿using DwebBrowser.MicroService.Browser.Desk;
 using UIKit;
 
 #nullable enable
@@ -9,28 +9,32 @@ public abstract class IOSNativeMicroModule : NativeMicroModule
 {
     public IOSNativeMicroModule(Mmid mmid, string name) : base(mmid, name)
     {
-        OnController += async (mmid, controller, _) =>
-        {
-            s_activityMap.TryAdd(mmid, controller);
-            controller.OnDestroyController += async (_) => { s_activityMap.Remove(mmid); };
-        };
     }
-
-    private static readonly Dictionary<Mmid, UIViewController> s_activityMap = new();
-
-    protected UIViewController? _getActivity(Mmid mmid) => s_activityMap.GetValueOrDefault(mmid);
-
-    public abstract void OpenActivity(Mmid remoteMmid);
-
-    private readonly HashSet<Signal<Mmid, BaseViewController>> ControllerSignal = new();
-    public event Signal<Mmid, BaseViewController> OnController
-    {
-        add { if (value != null) lock (ControllerSignal) { ControllerSignal.Add(value); } }
-        remove { lock (ControllerSignal) { ControllerSignal.Remove(value); } }
-    }
-    protected Task OnControllerEmit(Mmid mmid, BaseViewController controller) => (ControllerSignal.Emit(mmid, controller)).ForAwait();
 
     public static readonly PromiseOut<UIWindow> Window = new();
     public static readonly PromiseOut<UINavigationController> RootViewController = new();
+
+    private static DeskController? DeskController = null;
+
+    public async Task<DeskController?> GetDeskController()
+    {
+        if (DeskController is not null)
+        {
+            return DeskController;
+        }
+
+        var vc = await RootViewController.WaitPromiseAsync();
+
+        foreach (var controller in vc.ChildViewControllers)
+        {
+            if (controller is DeskController deskController)
+            {
+                DeskController = deskController;
+                return DeskController;
+            }
+        }
+
+        return null;
+    }
 }
 

@@ -145,7 +145,8 @@ public class MicroService
         var bootMmidList = new List<Mmid>
         {
             jmmNMM.Mmid,
-            deskNMM.Mmid,
+            //deskNMM.Mmid,
+            webBrowserNMM.Mmid
         };
         /// 启动程序
         var bootNMM = new BootNMM(

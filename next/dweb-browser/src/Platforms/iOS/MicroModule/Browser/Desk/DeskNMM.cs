@@ -260,11 +260,6 @@ public class DeskNMM : IOSNativeMicroModule
         });
     }
 
-    public override void OpenActivity(string remoteMmid)
-    {
-        throw new NotImplementedException();
-    }
-
     private async Task<HttpDwebServer> CreateTaskbarWebServer()
     {
         var server = await CreateHttpDwebServer(new DwebHttpServerOptions(433, "taskbar"));

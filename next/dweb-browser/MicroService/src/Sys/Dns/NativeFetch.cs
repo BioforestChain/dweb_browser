@@ -2,13 +2,9 @@
 
 using FetchAdapter = Func<MicroModule, PureRequest, Task<PureResponse?>>;
 
-public class NativeFetch
+public static class NativeFetch
 {
-    public NativeFetch()
-    {
-    }
-
-    public static AdapterManager<FetchAdapter> NativeFetchAdaptersManager = new();
+    public static readonly AdapterManager<FetchAdapter> NativeFetchAdaptersManager = new();
 }
 
 public abstract partial class MicroModule
