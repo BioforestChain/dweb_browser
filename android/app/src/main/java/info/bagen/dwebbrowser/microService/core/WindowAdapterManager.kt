@@ -214,7 +214,7 @@ data class WindowState(
    *
    * 默认是 -1，意味着使用“主桌面”
    */
-  var screenIndex: Int = -1,
+  var screenId: Int = -1,
 ) {
   /**
    * 窗口大小与位置

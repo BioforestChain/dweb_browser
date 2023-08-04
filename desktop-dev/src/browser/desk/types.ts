@@ -142,7 +142,7 @@ export interface $WindowState {
    * > 未来实现多设备互联时，可以实现窗口的多设备流转
    * > 屏幕与桌面是两个独立的概念
    */
-  screenIndex: Int;
+  screenId: Int;
 }
 
 export interface $Rectangle {

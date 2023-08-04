@@ -43,16 +43,12 @@ open class Signal<Args> {
     return { off(cb) }
   }
 
-  fun toFlow(): Flow<Args> {
-    var flowController: FlowCollector<Args>? = null;
-    val cb: Callback<Args> = {
-      flowController!!.emit(it)
+  fun toFlow() = channelFlow {
+    val off = listen {
+      send(it)
     }
-    return flow {
-      flowController = this
-      listen(cb)
-    }.onCompletion {
-      off(cb)
+    awaitClose {
+      off(Unit)
     }
   }
 
