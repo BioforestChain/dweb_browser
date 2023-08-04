@@ -18,7 +18,7 @@ fun debugStream(tag: String, msg: Any = "", err: Throwable? = null) =
  */
 class ReadableStream(
   cid: String? = null,
-  val onStart: suspend (controller: ReadableStreamController) -> Unit = {},
+  val onStart: suspend CoroutineScope.(controller: ReadableStreamController) -> Unit = {},
   val onPull: suspend (arg: Pair<Int, ReadableStreamController>) -> Unit = {},
   val onClose: suspend () -> Unit = {},
 ) : InputStream() {
@@ -40,6 +40,14 @@ class ReadableStream(
     }
 
     fun error(e: Throwable?) = dataChannel.close(e)
+    suspend fun awaitClose(function: suspend () -> Unit) {
+      coroutineScope {
+        launch {
+          stream.afterClosed()
+          function()
+        }
+      }
+    }
   }
 
   /**
@@ -55,7 +63,7 @@ class ReadableStream(
   private fun _gc() {
     runBlockingCatching(writeDataScope.coroutineContext) {
       _dataLock.withLock {
-        if (ptr >= 1 /*10240*/||isClosed) {
+        if (ptr >= 1 /*10240*/ || isClosed) {
           debugStream("GC", "$uid => -${ptr} ~> ${_data.size - ptr}")
           _data = _data.sliceArray(ptr until _data.size)
           ptr = 0
@@ -73,6 +81,10 @@ class ReadableStream(
     CoroutineScope(CoroutineName("readableStream/writeData") + ioAsyncExceptionHandler)
   private val readDataScope =
     CoroutineScope(CoroutineName("readableStream/readData") + ioAsyncExceptionHandler)
+
+  private val closePo = PromiseOut<Unit>()
+
+  private val dataChangeObserver = SimpleObserver()
 
   init {
     runBlockingCatching {//(writeDataScope.coroutineContext)
@@ -95,10 +107,6 @@ class ReadableStream(
       onClose()
     }
   }
-
-  private val closePo = PromiseOut<Unit>()
-
-  private val dataChangeObserver = SimpleObserver()
 
   suspend fun afterClosed() {
     closePo.waitPromise()
@@ -196,8 +204,8 @@ class ReadableStream(
    */
   @Throws(IOException::class)
   override fun available(): Int {
-    return (requestData(1, true).size - ptr).let{size->
-      if(isClosed&&size==0) -1 else size
+    return (requestData(1, true).size - ptr).let { size ->
+      if (isClosed && size == 0) -1 else size
     }
   }
 

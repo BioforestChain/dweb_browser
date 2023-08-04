@@ -228,6 +228,7 @@ class DWebView(
 //        request.requestHeaders.toList().joinToString { "${it.first}=${it.second} " }
 //      }]"
 //    })
+    debugDWebView("dwebProxyer start", request.url)
     val response = runBlockingCatching(ioAsyncExceptionHandler) {
       remoteMM.nativeFetch(
         Request(
@@ -235,6 +236,7 @@ class DWebView(
         ).headers(request.requestHeaders.toList())
       )
     }.getOrThrow()
+    debugDWebView("dwebProxyer done", request.url)
 
     val contentType = Header.CONTENT_TYPE(response)
     return WebResourceResponse(

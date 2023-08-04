@@ -22,9 +22,9 @@ dependencies {
   api(platform(BuildConfig.http4kBom))
   api(BuildConfig.http4kCore)
   api(BuildConfig.http4kClientApache)
-  api(BuildConfig.http4kWebSocket)
-  api(BuildConfig.http4kServerKtorcio)
-  api(BuildConfig.http4kServerNetty)
+
+  implementation(BuildConfig.ktorServerWebsockets)
+  implementation(BuildConfig.ktorServerCio)
 
   api(BuildConfig.gson)
   implementation(BuildConfig.moshiPack)

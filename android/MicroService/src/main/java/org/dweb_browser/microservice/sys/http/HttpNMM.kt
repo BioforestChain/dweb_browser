@@ -1,25 +1,20 @@
 package org.dweb_browser.microservice.sys.http
 
 import com.google.gson.reflect.TypeToken
-import io.netty.channel.ChannelHandlerContext
-import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
-import org.dweb_browser.microservice.ipc.Ipc
-import org.dweb_browser.microservice.ipc.ReadableStreamIpc
 import org.dweb_browser.helper.decodeURIComponent
-import org.dweb_browser.helper.toBase64Url
-import org.dweb_browser.microservice.sys.dns.nativeFetchAdaptersManager
-import org.dweb_browser.microservice.sys.http.net.Http1Server
-import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printdebugln
 import org.dweb_browser.helper.readByteArray
-import org.dweb_browser.helper.runBlockingCatching
+import org.dweb_browser.helper.toBase64Url
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
+import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.help.stream
+import org.dweb_browser.microservice.ipc.Ipc
+import org.dweb_browser.microservice.ipc.ReadableStreamIpc
 import org.dweb_browser.microservice.sys.dns.debugFetch
-import org.dweb_browser.microservice.sys.dns.nativeFetch
-import org.http4k.client.WebsocketClient
+import org.dweb_browser.microservice.sys.dns.nativeFetchAdaptersManager
+import org.dweb_browser.microservice.sys.http.net.Http1Server
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Response
@@ -32,17 +27,9 @@ import org.http4k.lens.int
 import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
-import org.http4k.server.Netty
-import org.http4k.server.WebSocketServerHandler
-import org.http4k.websocket.Websocket
-import org.http4k.websocket.WsConsumer
-import org.http4k.websocket.WsMessage
-import org.http4k.websocket.WsResponse
-import org.http4k.websocket.WsStatus
 import java.io.ByteArrayInputStream
 import java.util.Random
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.ConcurrentMap
 
 fun debugHttp(tag: String, msg: Any = "", err: Throwable? = null) =
   printdebugln("http", tag, msg, err)
@@ -62,7 +49,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
   private val tokenMap = ConcurrentHashMap</* token */ String, Gateway>();
   private val gatewayMap = ConcurrentHashMap</* host */ String, Gateway>();
 
-  private fun processHost(request: Request): String {
+  private fun findRequestGateway(request: Request): String {
     var header_host: String? = null
     var header_x_dweb_host: String? = null
     var header_user_agent_host: String? = null
@@ -113,10 +100,11 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
    * 这些自定义操作，都需要在 header 中加入 X-Dweb-Host 字段来指明宿主
    */
   private suspend fun httpHandler(request: Request): Response {
-    val host = processHost(request)
+    val host = findRequestGateway(request)
     /// TODO 这里提取完数据后，应该把header、query、uri重新整理一下组成一个新的request会比较好些
     /// TODO 30s 没有任何 body 写入的话，认为网关超时
 
+    debugHttp("httpHandler start", request.uri)
     /**
      * WARNING 我们底层使用 KtorCIO，它是完全以流的形式来将response的内容传输给web
      * 所以这里要小心，不要去读取 response 对象，否则 pos 会被偏移
@@ -124,71 +112,16 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     val response = gatewayMap[host]?.let { gateway ->
       gateway.listener.hookHttpRequest(request)
     }
+    debugHttp("httpHandler end", request.uri)
+
     return response ?: Response(Status.NOT_FOUND)
-  }
-/// 在网关中寻址能够处理该 host 的监听者
-
-  /**webSocket 网关路由寻找*/
-  private suspend fun wsHandler(request: Request): WsResponse {
-    // 转发newtab请求
-    val response = httpHandler(request)
-    return when (response.status.code) {
-      /// 如果是200响应头，那么使用WebSocket来作为双工的通讯标准进行传输
-      Status.OK.code -> {
-        WsResponse { ws ->
-          val stream = response.stream()
-          while (true) {
-            when (val readInt = stream.available()) {
-              -1 -> {
-                ws.close()
-                break
-              }
-
-              else -> {
-                val chunk = stream.readByteArray(readInt)
-                ws.send(WsMessage(ByteArrayInputStream(chunk)))
-              }
-            }
-          }
-        }
-      }
-      /// 如果是 101 响应头，那么使用标准的WebSocket来进行通讯
-      Status.SWITCHING_PROTOCOLS.code -> {
-        WsResponse { ws ->
-          val client = WebsocketClient.blocking(request.uri)
-          client.send(WsMessage(response.stream()))
-          client.received().toList().forEach {
-            val stream = it.body.stream
-            ws.send(WsMessage(stream))
-          }
-        }
-      }
-
-      else -> {
-        WsResponse { ws ->
-          ws.close(WsStatus(WsStatus.GOING_AWAY.code, response.status.description))
-        }
-      }
-    }
   }
 
   public override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     /// 启动http后端服务
-    dwebServer.createServer({ request ->
-      runBlockingCatching(ioAsyncExceptionHandler) {
-        httpHandler(
-          request
-        )
-      }.getOrThrow()
-    },
-      { request ->
-        runBlockingCatching(ioAsyncExceptionHandler) {
-          wsHandler(
-            request
-          )
-        }.getOrThrow()
-      }
-    )
+    dwebServer.createServer({ request -> findRequestGateway(request).let { gatewayMap[it] } },
+      { gateway, request -> gateway.listener.hookHttpRequest(request) },
+      { _, gateway -> if (gateway == null) Response(Status.BAD_GATEWAY) else Response(Status.NOT_FOUND) })
 
     /// 为 nativeFetch 函数提供支持
     _afterShutdownSignal.listen(nativeFetchAdaptersManager.append { fromMM, request ->

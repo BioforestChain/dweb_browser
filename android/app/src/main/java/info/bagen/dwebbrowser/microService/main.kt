@@ -38,15 +38,18 @@ suspend fun startDwebBrowser(): DnsNMM {
   "TIME-DURATION"
   "nativeui",
   "mwebview",
+  "dwebview",
   "native-ipc" ,
   "browser",
   "jmm",
   "SplashScreen",
-  "js-process"
+  "js-process",
+  "desk",
    */
   when (DEVELOPER.CURRENT) {
     DEVELOPER.GAUBEE -> debugTags.addAll(
       listOf<String>(
+        "desk",
         "http",
 //        "fetch",
 //        "message-port-ipc"
@@ -54,11 +57,21 @@ suspend fun startDwebBrowser(): DnsNMM {
     )
 
     DEVELOPER.HuangLin, DEVELOPER.HLVirtual, DEVELOPER.HLOppo, DEVELOPER.HBXiaomi, DEVELOPER.ZGSansung -> debugTags.addAll(
-      listOf( "fetch", "http" ,"mwebview", "fetch-file", "js-process", "Desktop")
+      listOf("fetch", "http", "mwebview", "fetch-file", "js-process", "Desktop")
     )
 
     DEVELOPER.WaterBang -> debugTags.addAll(
-      listOf( "dwebview", "mwebview","http","JsMM","js-process","DNS","Desktop","browser","JMM")
+      listOf(
+        "dwebview",
+        "mwebview",
+        "http",
+        "JsMM",
+        "js-process",
+        "DNS",
+        "Desktop",
+        "browser",
+        "JMM"
+      )
     )
 
     else -> debugTags.addAll(
@@ -113,6 +126,7 @@ suspend fun startDwebBrowser(): DnsNMM {
   /// 安装Jmm
   val jmmNMM = JmmNMM().also { dnsNMM.install(it) }
   val desktopNMM = DesktopNMM().also { dnsNMM.install(it) }
+
   /**
    *
    * browserNMM.mmid,
@@ -127,7 +141,7 @@ suspend fun startDwebBrowser(): DnsNMM {
 //            browserNMM.mmid,
     )
 
-    DEVELOPER.HuangLin, DEVELOPER.HLVirtual,  DEVELOPER.HBXiaomi, DEVELOPER.ZGSansung -> listOf(
+    DEVELOPER.HuangLin, DEVELOPER.HLVirtual, DEVELOPER.HBXiaomi, DEVELOPER.ZGSansung -> listOf(
       browserNMM.mmid,
       // desktopNMM.mmid,
     )

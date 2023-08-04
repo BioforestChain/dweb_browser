@@ -54,6 +54,10 @@ class ChangeableMap<K, V>(private val scope: CoroutineScope = GlobalScope) : Mut
     return item
   }
 
+  private operator fun set(key: K, value: V) {
+    this.put(key, value)
+  }
+
   override fun putAll(from: Map<out K, V>) {
     innerMap.putAll(from)
     emitChange()

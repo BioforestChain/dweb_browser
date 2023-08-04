@@ -1,11 +1,18 @@
 package org.dweb_browser.helper
 
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.cancellable
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.receiveAsFlow
 import java.util.Collections.newSetFromMap
 import java.util.concurrent.ConcurrentHashMap
 
@@ -36,12 +43,16 @@ open class Signal<Args> {
     return { off(cb) }
   }
 
-  fun toFlow() = channelFlow {
-    val off = listen {
-      send(it)
+  fun toFlow(): Flow<Args> {
+    var flowController: FlowCollector<Args>? = null;
+    val cb: Callback<Args> = {
+      flowController!!.emit(it)
     }
-    awaitClose {
-      off(Unit)
+    return flow {
+      flowController = this
+      listen(cb)
+    }.onCompletion {
+      off(cb)
     }
   }
 

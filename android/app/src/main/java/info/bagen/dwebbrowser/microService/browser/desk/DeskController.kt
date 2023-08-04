@@ -12,6 +12,7 @@ import info.bagen.dwebbrowser.App
 import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.PromiseOut
+import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
@@ -26,6 +27,18 @@ class DeskController(
   private val desktopServer: HttpDwebServer,
   private val runningApps: ChangeableMap<MMID, Ipc>
 ) {
+
+  internal val updateSignal = SimpleSignal()
+  val onUpdate = updateSignal.toListener()
+
+  init {
+    runningApps.onChange {
+      updateSignal.emit()
+    }
+    desktopNMM.bootstrapContext.dns.onChange {
+      updateSignal.emit()
+    }
+  }
 
   fun getDesktopApps(): List<DeskAppMetaData> {
     var runApps = listOf<DeskAppMetaData>()
@@ -100,8 +113,7 @@ class DeskController(
     )
   )
 
-  fun getDesktopUrl() = desktopServer.startResult.urlInfo.buildInternalUrl().let {
-    it.path("/desktop.html")
-      .query("api-base", desktopServer.startResult.urlInfo.buildPublicUrl().toString())
-  }
+  fun getDesktopUrl() = desktopServer.startResult.urlInfo.buildInternalUrl()
+    .path("/desktop.html")
+    .query("api-base", desktopServer.startResult.urlInfo.buildPublicUrl().toString())
 }

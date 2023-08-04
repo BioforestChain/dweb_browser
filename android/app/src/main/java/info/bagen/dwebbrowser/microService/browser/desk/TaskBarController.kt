@@ -3,7 +3,6 @@ package info.bagen.dwebbrowser.microService.browser.desk
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.SimpleSignal
-import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.MMID
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.sys.http.HttpDwebServer
@@ -16,7 +15,7 @@ class TaskBarController(
 ) {
   /** 展示在taskbar中的应用列表 */
   private val _appList = DeskStore.get(DeskStore.TASKBAR_APPS)
-  val updateSignal = SimpleSignal()
+  internal val updateSignal = SimpleSignal()
   val onUpdate = updateSignal.toListener()
 
   init {
@@ -27,30 +26,33 @@ class TaskBarController(
       /// 将新增的打开应用追加到列表签名
       for (mmid in map.keys) {
         if (!this._appList.contains(mmid)) {
-          this._appList.add(0,mmid) // 追加到第一个
+          this._appList.add(0, mmid) // 追加到第一个
         }
       }
       /// 保存到数据库
-      DeskStore.set(DeskStore.TASKBAR_APPS,this._appList)
+      DeskStore.set(DeskStore.TASKBAR_APPS, this._appList)
+      updateSignal.emit()
     }
+
     // 监听移除app的改变,可能是增加或者减少
     desktopNMM.bootstrapContext.dns.onChange { map ->
-      var lock = true;
-      for (module in map.values) {
-        // 只针对app做出更新相应
-        if (module.categories.contains(MICRO_MODULE_CATEGORY.Application) && lock) {
-          lock = false
-          //触发前端state更新
-          updateSignal.emit()
-        }
-      }
-      for(mmid in runningApps.keys) {
-        // 从内存中移除已经被删除的,正在运行的应用
-        if (!map.containsKey(mmid)) {
-          this._appList.remove(mmid)
-          runningApps.remove(mmid)
-        }
-      }
+      updateSignal.emit()
+//      var lock = true;
+//      for (module in map.values) {
+//        // 只针对app做出更新相应
+//        if (module.categories.contains(MICRO_MODULE_CATEGORY.Application) && lock) {
+//          lock = false
+//          //触发前端state更新
+//          updateSignal.emit()
+//        }
+//      }
+//      for (mmid in runningApps.keys) {
+//        // 从内存中移除已经被删除的,正在运行的应用
+//        if (!map.containsKey(mmid)) {
+//          this._appList.remove(mmid)
+//          runningApps.remove(mmid)
+//        }
+//      }
     }
   }
 
@@ -107,7 +109,6 @@ class TaskBarController(
         activityTask.resolve(value)
       }
     }
-
   fun getTaskbarUrl() = taskbarServer.startResult.urlInfo.buildInternalUrl().let {
     it.path("/taskbar.html")
       .query("api-base", taskbarServer.startResult.urlInfo.buildPublicUrl().toString())
