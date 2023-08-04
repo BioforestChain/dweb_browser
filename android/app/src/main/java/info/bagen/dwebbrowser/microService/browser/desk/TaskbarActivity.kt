@@ -2,12 +2,15 @@ package info.bagen.dwebbrowser.microService.browser.desk
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.util.Log
 import android.view.Gravity
+import android.view.KeyEvent
+import android.view.ViewGroup
 import android.view.WindowManager
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.base.ActivityBlurHelper
 import info.bagen.dwebbrowser.base.BaseActivity
@@ -53,15 +56,15 @@ class TaskbarActivity : BaseActivity() {
         BackHandler {
           finish()
         }
-        CompositionLocalProvider {
-          /// 任务栏视图
-          FloatTaskbarView(
-            url = taskbarViewModel.taskBarController.getTaskbarUrl().toString(),
-            isFloatWindow = false,
-            width = (taskbarViewModel.width / density).dp,
-            height = (taskbarViewModel.height / density).dp
-          )
-        }
+        /// 任务栏视图
+        AndroidView(factory = {
+          taskbarViewModel.taskbarDWebView.also { webView ->
+            webView.parent?.let { parent ->
+              (parent as ViewGroup).removeView(webView)
+            }
+
+          }
+        })
       }
     }
 
@@ -75,5 +78,16 @@ class TaskbarActivity : BaseActivity() {
   override fun onDestroy() {
     super.onDestroy()
     taskbarViewModel.floatViewState.value = true // 销毁 TaskbarActivity 后需要将悬浮框重新显示加载
+  }
+
+  @SuppressLint("RestrictedApi")
+  override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+    Log.e("lin.huang", "TaskbarActivity::dispatchKeyEvent ${event.keyCode}")
+    return super.dispatchKeyEvent(event)
+  }
+
+  override fun onKeyDown(keyCode: kotlin.Int, event: KeyEvent): Boolean {
+    Log.e("lin.huang", "TaskbarActivity::onKeyDown ${event.keyCode}")
+    return super.onKeyDown(keyCode, event)
   }
 }
