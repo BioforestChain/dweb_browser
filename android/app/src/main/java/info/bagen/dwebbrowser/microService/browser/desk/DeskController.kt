@@ -24,10 +24,8 @@ import org.http4k.core.query
 class DeskController(
   private val desktopNMM: DesktopNMM,
   private val desktopServer: HttpDwebServer,
-  private val taskbarServer: HttpDwebServer,
   private val runningApps: ChangeableMap<MMID, Ipc>
 ) {
-  fun getMicroModule() = desktopNMM
 
   fun getDesktopApps(): List<DeskAppMetaData> {
     var runApps = listOf<DeskAppMetaData>()
@@ -104,11 +102,6 @@ class DeskController(
 
   fun getDesktopUrl() = desktopServer.startResult.urlInfo.buildInternalUrl().let {
     it.path("/desktop.html")
-      .query("api-base", desktopServer.startResult.urlInfo.buildPublicUrl().toString())
-  }
-
-  fun getTaskbarUrl() = taskbarServer.startResult.urlInfo.buildInternalUrl().let {
-    it.path("/taskbar.html")
       .query("api-base", desktopServer.startResult.urlInfo.buildPublicUrl().toString())
   }
 }
