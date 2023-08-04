@@ -2,7 +2,6 @@ package info.bagen.dwebbrowser.microService.browser.web
 
 import android.os.Bundle
 import androidx.activity.compose.setContent
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
@@ -13,8 +12,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import info.bagen.dwebbrowser.base.BaseActivity
-import info.bagen.dwebbrowser.microService.browser.desk.DeskController
-import info.bagen.dwebbrowser.microService.browser.desk.DesktopNMM
 import info.bagen.dwebbrowser.ui.theme.DwebBrowserAppTheme
 import org.dweb_browser.browserUI.ui.browser.BrowserView
 import org.dweb_browser.browserUI.ui.browser.LocalShowIme
@@ -67,17 +64,4 @@ class BrowserActivity : BaseActivity() {
       }
     }
   }
-
-//  override fun onStop() {
-//    super.onStop()
-//    browserController?.apply {
-//      if (showLoading.value) showLoading.value = false // 如果已经跳转了，这边直接改为隐藏
-//    }
-//  }
-
-//  override fun onDestroy() {
-//    // 退出APP关闭服务
-//    super.onDestroy()
-//    browserController?.activity = null
-//  }
 }

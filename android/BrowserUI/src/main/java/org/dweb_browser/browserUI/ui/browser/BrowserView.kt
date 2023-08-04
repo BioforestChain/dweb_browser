@@ -90,7 +90,8 @@ fun BrowserView(viewModel: BrowserViewModel) {
       if (navigator.canGoBack) {
         navigator.navigateBack()
       } else {
-        activity.moveTaskToBack(false) // 将界面转移到后台
+        // activity.moveTaskToBack(false) // 将界面转移到后台
+        activity.finish() // 由于目前将browserActivity改为同一个栈，所以这边返回需要直接销毁
       }
     }
   }

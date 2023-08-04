@@ -3,24 +3,18 @@ package info.bagen.dwebbrowser.microService.browser.web
 import android.content.Intent
 import android.os.Bundle
 import info.bagen.dwebbrowser.App
-import info.bagen.dwebbrowser.microService.browser.jmm.EIpcEvent
-import info.bagen.dwebbrowser.microService.browser.jmm.debugJMM
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
 import org.dweb_browser.helper.printdebugln
 import org.dweb_browser.microservice.core.BootstrapContext
-import org.dweb_browser.microservice.ipc.helper.IpcEvent
 import org.dweb_browser.microservice.ipc.helper.IpcResponse
 import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.dweb_browser.microservice.sys.http.DwebHttpServerOptions
 import org.dweb_browser.microservice.sys.http.HttpDwebServer
 import org.dweb_browser.microservice.sys.http.createHttpDwebServer
-import org.http4k.core.Method
 import org.http4k.lens.Query
 import org.http4k.lens.string
-import org.http4k.routing.bind
-import org.http4k.routing.routes
 import java.util.UUID
 
 fun debugBrowser(tag: String, msg: Any? = "", err: Throwable? = null) =
@@ -53,7 +47,7 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
         // 由于SplashActivity添加了android:excludeFromRecents属性，导致同一个task的其他activity也无法显示在Recent Screen，比如BrowserActivity
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
+        // intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
         intent.putExtras(Bundle().apply {
           putString("sessionId", sessionId)
           putString("mmid", mmid)
