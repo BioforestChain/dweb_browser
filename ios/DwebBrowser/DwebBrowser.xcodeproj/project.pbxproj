@@ -72,8 +72,6 @@
 		F34A47672A4D738B001E105A /* DownloadAppView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F34A47602A4D738B001E105A /* DownloadAppView.swift */; };
 		F34A476A2A4D73D4001E105A /* CombinePublisher.swift in Sources */ = {isa = PBXBuildFile; fileRef = F34A47692A4D73D4001E105A /* CombinePublisher.swift */; };
 		F39B4BB62A57F1A90030B5BB /* BridgeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0506ADA2A4A78920042F0C2 /* BridgeManager.swift */; };
-		F3ABD1592A78E917004B03FB /* MarkdownUI in Frameworks */ = {isa = PBXBuildFile; productRef = F3ABD1582A78E917004B03FB /* MarkdownUI */; };
-		F3ABD15B2A78E9B2004B03FB /* MarkdownUI in Frameworks */ = {isa = PBXBuildFile; productRef = F3ABD15A2A78E9B2004B03FB /* MarkdownUI */; };
 		F3D34A9F2A5E471F000E9B8F /* ScannerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3D34A9C2A5E471F000E9B8F /* ScannerViewController.swift */; };
 		F3D34AA02A5E471F000E9B8F /* CodeScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3D34A9D2A5E471F000E9B8F /* CodeScanner.swift */; };
 		F3D34AA12A5E471F000E9B8F /* CodeScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3D34A9E2A5E471F000E9B8F /* CodeScannerView.swift */; };
@@ -247,7 +245,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				F3D5AA982A52BF99007C93D0 /* DwebBrowserFramework.framework in Frameworks */,
-				F3ABD1592A78E917004B03FB /* MarkdownUI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -255,7 +252,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F3ABD15B2A78E9B2004B03FB /* MarkdownUI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -528,7 +524,6 @@
 			);
 			name = DwebBrowser;
 			packageProductDependencies = (
-				F3ABD1582A78E917004B03FB /* MarkdownUI */,
 			);
 			productName = DwebBrowser;
 			productReference = F028997329F7C38500B8754A /* DwebBrowser.app */;
@@ -549,7 +544,6 @@
 			);
 			name = DwebBrowserFramework;
 			packageProductDependencies = (
-				F3ABD15A2A78E9B2004B03FB /* MarkdownUI */,
 			);
 			productName = DwebBrowserFramework;
 			productReference = F3D5AA922A52BF99007C93D0 /* DwebBrowserFramework.framework */;
@@ -583,7 +577,6 @@
 			);
 			mainGroup = F028996A29F7C38500B8754A;
 			packageReferences = (
-				F3ABD1572A78E917004B03FB /* XCRemoteSwiftPackageReference "swift-markdown-ui" */,
 			);
 			productRefGroup = F028997429F7C38500B8754A /* Products */;
 			projectDirPath = "";
@@ -1065,30 +1058,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-		F3ABD1572A78E917004B03FB /* XCRemoteSwiftPackageReference "swift-markdown-ui" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/gonzalezreal/swift-markdown-ui.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 2.0.0;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		F3ABD1582A78E917004B03FB /* MarkdownUI */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = F3ABD1572A78E917004B03FB /* XCRemoteSwiftPackageReference "swift-markdown-ui" */;
-			productName = MarkdownUI;
-		};
-		F3ABD15A2A78E9B2004B03FB /* MarkdownUI */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = F3ABD1572A78E917004B03FB /* XCRemoteSwiftPackageReference "swift-markdown-ui" */;
-			productName = MarkdownUI;
-		};
-/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCVersionGroup section */
 		F0AF2C1B2A4BD9100005619B /* Browser.xcdatamodeld */ = {
