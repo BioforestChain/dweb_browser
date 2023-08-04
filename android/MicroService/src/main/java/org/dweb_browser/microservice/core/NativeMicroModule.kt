@@ -25,8 +25,8 @@ abstract class NativeMicroModule(override val mmid: MMID, override val name: Str
   MicroModule() {
   override val ipc_support_protocols =
     IpcSupportProtocols(cbor = true, protobuf = true, raw = true)
-  override val categories: MutableList<MICRO_MODULE_CATEGORY> = mutableListOf()
-  override val dweb_deeplinks: MutableList<DWEB_DEEPLINK> = mutableListOf()
+  override val categories: List<MICRO_MODULE_CATEGORY> = emptyList()
+  override val dweb_deeplinks: List<DWEB_DEEPLINK> = emptyList()
   override val dir: String? = null
   override val lang: String? = null
   override val short_name: String = ""

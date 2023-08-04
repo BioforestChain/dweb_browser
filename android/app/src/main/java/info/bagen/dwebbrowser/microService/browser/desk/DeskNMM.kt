@@ -83,118 +83,114 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
       taskBarControllers.remove(taskBarSessionId)
     }
 
-    apiRouting =
-      ServerFilters.Cors(CorsPolicy(OriginPolicy.AllowAll(), listOf("*"), Method.values().toList()))
-        .then(
-          routes(
-            "/readFile" bind Method.GET to defineHandler { request ->
-              val url = queryUrl(request)
-              return@defineHandler nativeFetch(url)
-            },
-            // readAccept
-            "{accept:readAccept\\.\\w+\$}" bind Method.GET to defineHandler { request ->
-              return@defineHandler Response(Status.OK).body("""{"accept":"${request.header("Accept")}"}""")
-            },
-            "/openAppOrActivate" bind Method.GET to defineHandler { request ->
-              val mmid = queryAppId(request)
-              debugDesktop("/openAppOrActivate",mmid)
-              try {
-                val ipc = runningApps[mmid] ?: connect(mmid)
-                ipc.postMessage(IpcEvent.fromUtf8(EIpcEvent.Activity.event, ""))
-                /// 如果成功打开，将它“追加”到列表中
-                runningApps[mmid] = ipc
-                /// 如果应用关闭，将它从列表中移除
-                ipc.onClose {
-                  runningApps.remove(mmid)
-                }
+    apiRouting = routes(
+      "/readFile" bind Method.GET to defineHandler { request ->
+        val url = queryUrl(request)
+        return@defineHandler nativeFetch(url)
+      },
+      // readAccept
+      "{accept:readAccept\\.\\w+\$}" bind Method.GET to defineHandler { request ->
+        return@defineHandler Response(Status.OK).body("""{"accept":"${request.header("Accept")}"}""")
+      },
+      "/openAppOrActivate" bind Method.GET to defineHandler { request ->
+        val mmid = queryAppId(request)
+        debugDesktop("/openAppOrActivate", mmid)
+        try {
+          val ipc = runningApps[mmid] ?: connect(mmid)
+          ipc.postMessage(IpcEvent.fromUtf8(EIpcEvent.Activity.event, ""))
+          /// 如果成功打开，将它“追加”到列表中
+          runningApps[mmid] = ipc
+          /// 如果应用关闭，将它从列表中移除
+          ipc.onClose {
+            runningApps.remove(mmid)
+          }
 
-                /// 将所有的窗口聚焦，这个行为不依赖于 Activity 事件，而是Desk模块自身托管窗口的行为
-                deskController.desktopWindowsManager.focus(mmid)
+          /// 将所有的窗口聚焦，这个行为不依赖于 Activity 事件，而是Desk模块自身托管窗口的行为
+          deskController.desktopWindowsManager.focus(mmid)
 
-                return@defineHandler true
-              } catch (e: Exception) {
-                e.printStackTrace()
-                return@defineHandler false
+          return@defineHandler true
+        } catch (e: Exception) {
+          e.printStackTrace()
+          return@defineHandler false
+        }
+      },
+      "/toggleMaximize" bind Method.GET to defineHandler { request ->
+        val mmid = queryAppId(request)
+        return@defineHandler deskController.desktopWindowsManager.toggleMaximize(mmid)
+      },
+      "/closeApp" bind Method.GET to defineHandler { request ->
+        val mmid = queryAppId(request);
+        var closed = false;
+        if (runningApps.containsKey(mmid)) {
+          closed = bootstrapContext.dns.close(mmid);
+          if (closed) {
+            runningApps.remove(mmid)
+          }
+        }
+        return@defineHandler closed
+      },
+      "/desktop/apps" bind Method.GET to defineHandler { _ ->
+        debugDesktop("/desktop/apps", deskController.getDesktopApps())
+        return@defineHandler deskController.getDesktopApps()
+      },
+      "/desktop/observe/apps" bind Method.GET to defineHandler { _, ipc ->
+        val inputStream = ReadableStream(onStart = { controller ->
+          val off = taskBarController.onUpdate {
+            try {
+              withContext(Dispatchers.IO) {
+                controller.enqueue((gson.toJson(deskController.getDesktopApps()) + "\n").toByteArray())
               }
-            },
-            "/toggleMaximize" bind Method.GET to defineHandler { request ->
-              val mmid = queryAppId(request)
-              return@defineHandler deskController.desktopWindowsManager.toggleMaximize(mmid)
-            },
-            "/closeApp" bind Method.GET to defineHandler { request ->
-              val mmid = queryAppId(request);
-              var closed = false;
-              if (runningApps.containsKey(mmid)) {
-                closed = bootstrapContext.dns.close(mmid);
-                if (closed) {
-                  runningApps.remove(mmid)
-                }
-              }
-              return@defineHandler closed
-            },
-            "/desktop/apps" bind Method.GET to defineHandler { _ ->
-              debugDesktop("/desktop/apps", deskController.getDesktopApps())
-              return@defineHandler deskController.getDesktopApps()
-            },
-            "/desktop/observe/apps" bind Method.GET to defineHandler { _, ipc ->
-              val inputStream = ReadableStream(onStart = { controller ->
-                val off = taskBarController.onUpdate {
-                  try {
-                    withContext(Dispatchers.IO) {
-                      controller.enqueue((gson.toJson(deskController.getDesktopApps()) + "\n").toByteArray())
-                    }
-                  } catch (e: Exception) {
-                    controller.close()
-                    e.printStackTrace()
-                  }
-                }
-                ipc.onClose {
-                  off(Unit)
-                  controller.close()
-                }
-              })
-              taskBarController.updateSignal.emit()
-              return@defineHandler Response(Status.OK).body(inputStream)
-            },
-            "/taskbar/apps" bind Method.GET to defineHandler { request ->
-              val limit = queryLimit(request) ?: Int.MAX_VALUE
-              return@defineHandler taskBarController.getTaskbarAppList(limit)
-            },
-            "/taskbar/observe/apps" bind Method.GET to defineHandler { request, ipc ->
-              val limit = queryLimit(request) ?: Int.MAX_VALUE
-              debugDesktop("/taskbar/observe/apps", limit)
-              val inputStream = ReadableStream(onStart = { controller ->
-                val off = taskBarController.onUpdate {
-                  try {
-                    withContext(Dispatchers.IO) {
-                      controller.enqueue((gson.toJson(taskBarController.getTaskbarAppList(limit)) + "\n").toByteArray())
-                    }
-                  } catch (e: Exception) {
-                    controller.close()
-                    e.printStackTrace()
-                  }
-                }
-                ipc.onClose {
-                  off(Unit)
-                  controller.close()
-                }
-              })
-              taskBarController.updateSignal.emit()
-              return@defineHandler Response(Status.OK).body(inputStream)
-            },
-            "/taskbar/resize" bind Method.GET to defineHandler { request ->
-              val size = queryResize(request)
-              val result = taskBarController.resize(size)
-              debugDesktop("/taskbar/resize","$size $result")
-              return@defineHandler result
+            } catch (e: Exception) {
+              controller.close()
+              e.printStackTrace()
             }
-            ,
-            "/taskbar/toggle-desktop-view" bind Method.GET to defineHandler { request ->
-              taskBarController.toggleDesktopView()
-              return@defineHandler Response(Status.OK)
-            },
-          ).cors()
-        )
+          }
+          ipc.onClose {
+            off(Unit)
+            controller.close()
+          }
+        })
+        taskBarController.updateSignal.emit()
+        return@defineHandler Response(Status.OK).body(inputStream)
+      },
+      "/taskbar/apps" bind Method.GET to defineHandler { request ->
+        val limit = queryLimit(request) ?: Int.MAX_VALUE
+        return@defineHandler taskBarController.getTaskbarAppList(limit)
+      },
+      "/taskbar/observe/apps" bind Method.GET to defineHandler { request, ipc ->
+        val limit = queryLimit(request) ?: Int.MAX_VALUE
+        debugDesktop("/taskbar/observe/apps", limit)
+        val inputStream = ReadableStream(onStart = { controller ->
+          val off = taskBarController.onUpdate {
+            try {
+              withContext(Dispatchers.IO) {
+                controller.enqueue((gson.toJson(taskBarController.getTaskbarAppList(limit)) + "\n").toByteArray())
+              }
+            } catch (e: Exception) {
+              controller.close()
+              e.printStackTrace()
+            }
+          }
+          ipc.onClose {
+            off(Unit)
+            controller.close()
+          }
+        })
+        taskBarController.updateSignal.emit()
+        return@defineHandler Response(Status.OK).body(inputStream)
+      },
+      "/taskbar/resize" bind Method.GET to defineHandler { request ->
+        val size = queryResize(request)
+        val result = taskBarController.resize(size)
+        debugDesktop("/taskbar/resize", "$size $result")
+        return@defineHandler result
+      },
+      "/taskbar/toggle-desktop-view" bind Method.GET to defineHandler { request ->
+        taskBarController.toggleDesktopView()
+        return@defineHandler Response(Status.OK)
+      },
+    ).cors()
+
     onActivity {
       // TODO 如果收到激活指令，应该将activity唤醒到最前端
       /// 启动对应的Activity视图，如果在后端也需要唤醒到最前面，所以需要在AndroidManifest.xml 配置 launchMode 为 singleTask
