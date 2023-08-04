@@ -3,7 +3,7 @@ import { computed, inject } from "vue";
 import { gridMeshKey } from "../tile-panel/inject.ts";
 import { validatorPosition, validatorTileSize } from "./validator.ts";
 const gridMesh = inject(gridMeshKey)!;
-console.log("gridMesh", gridMesh);
+// console.log("gridMesh", gridMesh);
 const props = defineProps({
   x: {
     type: Number,

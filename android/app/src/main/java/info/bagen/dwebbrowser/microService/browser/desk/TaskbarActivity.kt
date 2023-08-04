@@ -2,14 +2,11 @@ package info.bagen.dwebbrowser.microService.browser.desk
 
 import android.annotation.SuppressLint
 import android.os.Bundle
-import android.util.Log
 import android.view.Gravity
-import android.view.KeyEvent
 import android.view.ViewGroup
 import android.view.WindowManager
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.base.ActivityBlurHelper
@@ -36,7 +33,7 @@ class TaskbarActivity : BaseActivity() {
   @SuppressLint("UseCompatLoadingForDrawables")
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    // val taskBarController = bindController(intent.getStringExtra("taskBarSessionId"))
+     val taskBarController = bindController(intent.getStringExtra("taskBarSessionId"))
     val density = resources.displayMetrics.density
 
     setContent {
@@ -80,14 +77,4 @@ class TaskbarActivity : BaseActivity() {
     taskbarViewModel.floatViewState.value = true // 销毁 TaskbarActivity 后需要将悬浮框重新显示加载
   }
 
-  @SuppressLint("RestrictedApi")
-  override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-    Log.e("lin.huang", "TaskbarActivity::dispatchKeyEvent ${event.keyCode}")
-    return super.dispatchKeyEvent(event)
-  }
-
-  override fun onKeyDown(keyCode: kotlin.Int, event: KeyEvent): Boolean {
-    Log.e("lin.huang", "TaskbarActivity::onKeyDown ${event.keyCode}")
-    return super.onKeyDown(keyCode, event)
-  }
 }

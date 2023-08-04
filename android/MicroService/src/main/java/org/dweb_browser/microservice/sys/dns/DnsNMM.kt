@@ -123,9 +123,8 @@ class DnsNMM() : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     override suspend fun search(category: MICRO_MODULE_CATEGORY): MutableList<MicroModuleManifest> {
       return dnsMM.search(category)
     }
-
+    // 调用重启
     override suspend fun restart(mmid: MMID) {
-      // 调用重启
       // 关闭后端连接
       dnsMM.close(mmid)
       dnsMM.open(mmid)

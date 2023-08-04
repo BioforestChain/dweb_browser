@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, watchEffect } from "vue";
+import { computed } from "vue";
 import squircle_svg_url from "../icon-squircle-box/squircle.svg";
 import { $AppIconInfo } from "./types.ts";
 
@@ -35,9 +35,9 @@ const bg_image = computed(() => {
   }
 });
 
-watchEffect(() => {
-  console.log("var_src:", icon_css.value, props.icon);
-});
+// watchEffect(() => {
+//   console.log("var_src:", icon_css.value, props.icon);
+// });
 </script>
 
 <template>

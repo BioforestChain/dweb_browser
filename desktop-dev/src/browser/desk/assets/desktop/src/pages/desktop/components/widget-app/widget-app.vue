@@ -13,10 +13,6 @@ import delete_svg from "./delete.svg";
 import details_svg from "./details.svg";
 import quit_svg from "./quit.svg";
 import share_svg from "./share.svg";
-console.log(" delete_svg", delete_svg);
-console.log(" details_svg", details_svg);
-console.log(" quit_svg", quit_svg);
-console.log(" share_svg", share_svg);
 
 const $appHtmlRefHook = ref<HTMLDivElement | null>(null);
 

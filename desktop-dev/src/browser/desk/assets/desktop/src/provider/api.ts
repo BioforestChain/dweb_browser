@@ -40,8 +40,8 @@ export async function openApp(id: string) {
   });
 }
 
-export async function toggleMaximize(id: string) {
-  return await nativeFetch<boolean>("/toggleMaximize", {
+export function toggleMaximize(id: string) {
+  return  nativeFetch<boolean>("/toggleMaximize", {
     search: {
       app_id: id,
     },
@@ -49,15 +49,15 @@ export async function toggleMaximize(id: string) {
 }
 
 /** 重击手势的反馈振动, 比如菜单键/惨案/3Dtouch */
-export async function vibrateHeavyClick() {
+export function vibrateHeavyClick() {
   return nativeFetch("/vibrateHeavyClick", {
     mmid: "haptics.sys.dweb",
   });
 }
 
 /**长按的退出按钮，这个会退出JMM后端 */
-export async function quitApp(id: string) {
-  return await await nativeFetch<boolean>("/closeApp", {
+export function quitApp(id: string) {
+  return nativeFetch<boolean>("/closeApp", {
     search: {
       app_id: id,
     },
@@ -67,7 +67,7 @@ export async function quitApp(id: string) {
 /**卸载的是jmm所以从这里调用 */
 export async function deleteApp(id: string) {
   await quitApp(id);
-  return nativeFetch<boolean>("/uninstall", {
+  return nativeFetch<Response>("/uninstall", {
     search: {
       app_id: id,
     },

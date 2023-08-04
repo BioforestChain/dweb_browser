@@ -3,6 +3,7 @@ package info.bagen.dwebbrowser.microService.browser.desk
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.SimpleSignal
+import org.dweb_browser.helper.debounce
 import org.dweb_browser.microservice.help.MMID
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.sys.http.HttpDwebServer
@@ -83,8 +84,17 @@ class TaskBarController(
    *
    * @returns 如果视图发生了真实的改变（不论是否变成说要的结果），则返回 true
    */
-  fun resize(width: Number, height: Number) {
+  private fun _resize(reSize: ReSize): ReSize {
+    activity?.let {
+      val view = it.window.decorView
+      debugDesktop("_resize","activitywidth=>${view.width} height=>${view.height}")
+      return ReSize(view.width,view.height)
+    }
+    return ReSize(reSize.width, reSize.height)
+  }
 
+  suspend fun resize(reSize: ReSize) = debounce(200L) {
+    _resize(reSize)
   }
 
   /**
@@ -113,4 +123,6 @@ class TaskBarController(
     it.path("/taskbar.html")
       .query("api-base", taskbarServer.startResult.urlInfo.buildPublicUrl().toString())
   }
+
+  data class ReSize(val width: Number, val height: Number)
 }

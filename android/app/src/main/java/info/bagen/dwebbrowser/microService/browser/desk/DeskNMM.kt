@@ -59,7 +59,7 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
   val queryUrl = Query.string().required("url")
   val queryLimit = Query.int().optional("limit")
   val queryResize = Query.composite {
-    ReSize(
+    TaskBarController.ReSize(
       width = int().required("width")(it), height = int().required("height")(it)
     )
   }
@@ -96,8 +96,8 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
               return@defineHandler Response(Status.OK).body("""{"accept":"${request.header("Accept")}"}""")
             },
             "/openAppOrActivate" bind Method.GET to defineHandler { request ->
-              println("openAppOrActivate!!")
               val mmid = queryAppId(request)
+              debugDesktop("/openAppOrActivate",mmid)
               try {
                 val ipc = runningApps[mmid] ?: connect(mmid)
                 ipc.postMessage(IpcEvent.fromUtf8(EIpcEvent.Activity.event, ""))
@@ -113,6 +113,7 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
 
                 return@defineHandler true
               } catch (e: Exception) {
+                e.printStackTrace()
                 return@defineHandler false
               }
             },
@@ -161,7 +162,7 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
             },
             "/taskbar/observe/apps" bind Method.GET to defineHandler { request, ipc ->
               val limit = queryLimit(request) ?: Int.MAX_VALUE
-              debugDesktop("/taskbar/observe/apps", taskBarController.getTaskbarAppList(limit))
+              debugDesktop("/taskbar/observe/apps", limit)
               val inputStream = ReadableStream(onStart = { controller ->
                 val off = taskBarController.onUpdate {
                   try {
@@ -183,9 +184,11 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
             },
             "/taskbar/resize" bind Method.GET to defineHandler { request ->
               val size = queryResize(request)
-              taskBarController.resize(size.width, size.height)
-              return@defineHandler Response(Status.OK)
-            },
+              val result = taskBarController.resize(size)
+              debugDesktop("/taskbar/resize","$size $result")
+              return@defineHandler result
+            }
+            ,
             "/taskbar/toggle-desktop-view" bind Method.GET to defineHandler { request ->
               taskBarController.toggleDesktopView()
               return@defineHandler Response(Status.OK)
@@ -248,6 +251,4 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
     }
     return desktopServer
   }
-
-  data class ReSize(val width: Number, val height: Number)
 }

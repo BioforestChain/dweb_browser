@@ -117,7 +117,7 @@ class DesktopWindowsManager(private val activity: DesktopActivity) {
     activity.onDestroyActivity { offAdapter(Unit) }
   }
 
-  private fun reOrderZIdnex() {
+  private fun reOrderZIndex() {
     for ((index, win) in allWindows.toList().sortedBy { it.state.zIndex }.withIndex()) {
       win.state.zIndex = index
     }
@@ -130,7 +130,7 @@ class DesktopWindowsManager(private val activity: DesktopActivity) {
   fun moveToTop(win: DesktopWindowController) {
     /// 窗口被聚焦，那么遍历所有的窗口，为它们重新生成zIndex值
     win.state.zIndex += allWindows.size;
-    reOrderZIdnex()
+    reOrderZIndex()
   }
 
   fun focus(win: DesktopWindowController) = activity.lifecycleScope.launch {

@@ -20,7 +20,7 @@ interface DnsMicroModule {
   /**
    * 动态卸载应用
    */
-  fun uninstall(mm: MMID): Boolean
+  fun uninstall(mmid: MMID): Boolean
 
   val onChange: Signal.Listener<HashMap<MMID /* = String */, MicroModule>>
 

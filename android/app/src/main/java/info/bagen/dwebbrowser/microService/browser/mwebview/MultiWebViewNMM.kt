@@ -1,6 +1,7 @@
 package info.bagen.dwebbrowser.microService.browser.mwebview
 
 import androidx.compose.runtime.Composable
+import info.bagen.dwebbrowser.microService.browser.jmm.EIpcEvent
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
 import info.bagen.dwebbrowser.microService.core.WindowState
 import info.bagen.dwebbrowser.microService.core.windowAdapterManager
@@ -16,6 +17,7 @@ import org.dweb_browser.helper.printdebugln
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.ipc.Ipc
+import org.dweb_browser.microservice.ipc.helper.IpcEvent
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
@@ -78,8 +80,10 @@ class MultiWebViewNMM :
       // 界面没有关闭，用于重新唤醒
       "/activate" bind Method.GET to defineHandler { request, ipc ->
         val remoteMmid = ipc.remote.mmid
-        debugMultiWebView("/activate", "激活")
+        val controller = controllerMap[remoteMmid] ?: return@defineHandler false;
+        debugMultiWebView("/activate", "激活 ${controller.ipc.remote.mmid}")
         // TODO 将当前的界面移动到最上层
+        //  controller.ipc.postMessage(IpcEvent.fromUtf8(EIpcEvent.Activity.event, ""))
         return@defineHandler Response(Status.OK)
       },
     )

@@ -138,6 +138,7 @@ fun FloatTaskbarView(width: Dp = 72.dp, height: Dp = 72.dp) {
         .fillMaxSize()
         .clickableWithNoEffect {
           taskbarViewModel.floatViewState.value = false
+          taskbarViewModel.taskbarDWebView.requestFocus()
           taskbarViewModel.openTaskActivity()
         })
     }

@@ -86,7 +86,7 @@ const state = reactive({
 });
 
 async function goBackOnMouseentery() {
-  const res = await nativeFetch("/can-go-back");
+  const res = await nativeFetch<Response>("/can-go-back");
   const value = await res.json();
   console.log("value: ", value);
   state.goBackIsActive = value.value;
@@ -97,7 +97,7 @@ function goBackOnMouseleave() {
 }
 
 async function goForwardMouseenter() {
-  const res = await nativeFetch("/can-go-forward");
+  const res = await nativeFetch<Response>("/can-go-forward");
   const value = await res.json();
   state.goForwardIsActive = value.value;
 }

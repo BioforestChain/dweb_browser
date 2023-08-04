@@ -1,21 +1,21 @@
 <script setup lang="ts">
 import AppIcon from "src/components/app-icon/app-icon.vue";
 import {
-  $WatchEffectAppMetadataToAppIconReturn,
-  watchEffectAppMetadataToAppIcon,
+$WatchEffectAppMetadataToAppIconReturn,
+watchEffectAppMetadataToAppIcon,
 } from "src/components/app-icon/appMetaDataHelper.ts";
 import { $AppIconInfo } from "src/components/app-icon/types";
 import SvgIcon from "src/components/svg-icon/svg-icon.vue";
 import {
-  openApp,
-  quitApp,
-  resizeTaskbar,
-  toggleDesktopView,
-  toggleMaximize,
-  watchTaskbarAppInfo,
+openApp,
+quitApp,
+resizeTaskbar,
+toggleDesktopView,
+toggleMaximize,
+watchTaskbarAppInfo,
 } from "src/provider/api.ts";
 import { $WidgetAppData } from "src/types/app.type.ts";
-import { onMounted, onUnmounted, ref, ShallowRef, shallowRef, triggerRef, watchEffect } from "vue";
+import { ShallowRef, onMounted, onUnmounted, ref, shallowRef, triggerRef, watchEffect } from "vue";
 import { icons } from "./icons/index.ts";
 import x_circle_svg from "./icons/x-circle.svg";
 
@@ -40,7 +40,7 @@ const updateApps = async () => {
     appInfoWatcher.return();
   });
   for await (const appList of appInfoWatcher) {
-    console.log("22221=>", appList);
+    console.log("taskbar AppList=>", appList);
     updateLayoutInfoList(appList);
   }
 };
@@ -124,6 +124,22 @@ watchEffect(() => {
   }
 });
 const iconSize = "45px";
+// // 获得焦点时
+// window.addEventListener('focus',async function() {
+//   // setTaskBarScope()
+// });
+
+// // 失去焦点时
+// window.addEventListener('blur', function() {
+//   setTaskBarScope()
+// });
+// const setTaskBarScope = async () => {
+//   const resizedSize = await resizeTaskbar(window.outerWidth, window.outerWidth);
+//   console.log('webview setTaskBarScope',resizedSize.height,resizedSize.width); 
+//   if (!taskbarEle.value || resizedSize.height == 0)return
+//   // taskbarEle.value.style.width = resizedSize.width +'px'
+//   taskbarEle.value.style.height = resizedSize.height +'px'
+// }
 </script>
 <template>
   <div class="taskbar" ref="taskbarEle">

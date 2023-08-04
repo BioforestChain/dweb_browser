@@ -37,7 +37,7 @@ class Http1Server {
     const val PORT = 80;
   }
 
-  var bindingPort = -1
+  private var bindingPort = -1
 
   private var server: Http4kServer? = null
 

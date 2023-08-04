@@ -93,11 +93,13 @@ export class TaskbarApi {
    * @returns 如果视图发生了真实的改变（不论是否变成说要的结果），则返回 true
    */
   _resize = async (width: number, height: number) => {
+    // 获取窗口边界
     const beforeBounds = this.win.getBounds();
-
+    // 获取显示屏信息
     const display = Electron.screen.getDisplayNearestPoint(beforeBounds);
     const uGap = width / 5;
     // height = Math.min(height, (display.workArea.height * 4) / 5);
+    // 获取显示屏边界
     const x = display.workArea.width - width - uGap;
     const y = (display.workArea.height - height) / 2;
     this.win.setBounds(

@@ -2,7 +2,7 @@
 import wallpaper_url from "src/assets/wallpaper.webp";
 import { getWidgetInfo, watchDesktopAppInfo } from "src/provider/api.ts";
 import type { $TileSizeType, $WidgetAppData, $WidgetCustomData } from "src/types/app.type.ts";
-import { onMounted, onUnmounted, Ref, ref, StyleValue } from "vue";
+import { Ref, StyleValue, onMounted, onUnmounted, ref } from "vue";
 import TileItem from "../components/tile-item/tile-item.vue";
 import TilePanel from "../components/tile-panel/tile-panel.vue";
 import WidgetApp from "../components/widget-app/widget-app.vue";
@@ -43,7 +43,7 @@ const updateApps = async () => {
     appInfoWatcher.return();
   });
   for await (const appList of appInfoWatcher) {
-    console.log("22221=>", appList);
+    console.log("desktop AppList=>", appList);
     updateLayoutInfoList(widgetList, appList);
   }
 };
