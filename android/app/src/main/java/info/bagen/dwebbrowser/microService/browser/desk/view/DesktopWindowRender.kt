@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.safeContent
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.safeGestures
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -189,8 +188,15 @@ fun DesktopWindowController.Render(
     val bottomHeight = max(
       safeContentPadding.calculateBottomPadding().value, bottomMinHeight
     );
-    val leftWidth = safeContentPadding.calculateLeftPadding(layoutDirection).value
-    val rightWidth = safeContentPadding.calculateRightPadding(layoutDirection).value
+    /**
+     * 即便是最大化模式下，我们仍然需要有一个强调边框。
+     * 这个边框存在的意义有：
+     * 1. 强调是窗口模式，而不是全屏模式
+     * 2. 养成用户的视觉习惯，避免某些情况下有人使用视觉手段欺骗用户，窗口模式的存在将一切限定在一个规则内，可以避免常规视觉诈骗
+     * 3. 全屏模式虽然会移除窗口，但是会有一些其它限制，比如但需要进行多窗口交互的时候，这些窗口边框仍然会显示出来
+     */
+    val leftWidth = max(safeContentPadding.calculateLeftPadding(layoutDirection).value, 3f)
+    val rightWidth = max(safeContentPadding.calculateRightPadding(layoutDirection).value, 3f)
     val borderRounded = WindowEdge.CornerRadius.from(0) // 全屏模式下，外部不需要圆角
     val contentRounded = WindowEdge.CornerRadius.from(
       WindowInsetsHelper.getCornerRadiusTop(win.context, density.density, 16f),
@@ -241,12 +247,12 @@ fun DesktopWindowController.Render(
       modifier = with(winBounds) {
         modifier
           .offset(
-            animateFloatAsState(left, label = "left").value.dp,
-            animateFloatAsState(top, label = "top").value.dp
+            (if (inMove) left else animateFloatAsState(left, label = "left").value).dp,
+            (if (inMove) top else animateFloatAsState(top, label = "top").value).dp
           )
           .size(
-            animateFloatAsState(width, label = "width").value.dp,
-            animateFloatAsState(height, label = "height").value.dp
+            (if (inMove) width else animateFloatAsState(width, label = "width").value).dp,
+            (if (inMove) height else animateFloatAsState(height, label = "height").value).dp
           )
       }
         .graphicsLayer {
@@ -257,8 +263,16 @@ fun DesktopWindowController.Render(
           elevation = elevation.dp, shape = winEdge.boxRounded.toRoundedCornerShape()
         ),
     ) {
+      /**
+       * 窗口的主色调
+       */
+      val windowFrameColor =
+        if (winState.focus) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
+      val windowContentColor =
+        if (winState.focus) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondary
+
       Column(Modifier
-        .background(MaterialTheme.colorScheme.onPrimaryContainer)
+        .background(windowFrameColor)
         .clip(winEdge.boxRounded.toRoundedCornerShape())
         .focusable(true)
         .onFocusChanged { state ->
@@ -269,7 +283,7 @@ fun DesktopWindowController.Render(
         }) {
         /// 标题栏
         WindowTopBar(
-          Modifier.windowMoveAble(), winEdge, winState, win
+          Modifier.windowMoveAble(), winEdge, winState, win, windowContentColor
         )
         /// 显示内容
         Box(
@@ -326,6 +340,7 @@ fun DesktopWindowController.Render(
           winEdge,
           winState,
           emitWinStateChange,
+          windowContentColor,
         )
       }
 

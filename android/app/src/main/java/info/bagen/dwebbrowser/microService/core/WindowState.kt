@@ -171,6 +171,15 @@ data class WindowState(
    * 默认是 -1，意味着使用“主桌面”
    */
   var screenId: Int = -1,
+
+  /**
+   * 内容渲染是否要覆盖 顶部栏
+   */
+  var overlayTopBar: Boolean = false,
+  /**
+   * 内容渲染是否要覆盖 底部栏
+   */
+  var overlayBottomBar: Boolean = false,
 ) {
   /**
    * 窗口大小与位置

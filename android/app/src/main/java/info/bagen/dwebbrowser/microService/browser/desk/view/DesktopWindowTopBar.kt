@@ -7,12 +7,9 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.OpenInFull
 import androidx.compose.material.icons.rounded.UnfoldMore
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -36,13 +33,13 @@ internal fun WindowTopBar(
   modifier: Modifier,
   winEdge: WindowEdge,
   winState: WindowState,
-  win: DesktopWindowController
+  win: DesktopWindowController,
+  contentColor: Color,
 ) {
   val density = LocalDensity.current;
   val coroutineScope = rememberCoroutineScope()
   Box(
     modifier = modifier
-      .background(MaterialTheme.colorScheme.onPrimaryContainer)
       .fillMaxWidth()
       .height(winEdge.top.dp)
       .background(
@@ -55,9 +52,9 @@ internal fun WindowTopBar(
       )
   ) {
     if (winState.maximize) {
-      WindowTopMaximizedBar(winEdge, winState, win)
+      WindowTopMaximizedBar(winEdge, winState, win, contentColor)
     } else {
-      WindowTopControllerBar(winEdge, winState, win)
+      WindowTopControllerBar(winEdge, winState, win, contentColor)
     }
   }
 }
@@ -66,7 +63,8 @@ internal fun WindowTopBar(
 private fun WindowTopControllerBar(
   winEdge: WindowEdge,
   winState: WindowState,
-  win: DesktopWindowController
+  win: DesktopWindowController,
+  contentColor: Color,
 ) {
   val density = LocalDensity.current;
   val coroutineScope = rememberCoroutineScope()
@@ -76,10 +74,9 @@ private fun WindowTopControllerBar(
         .wrapContentWidth()
         .fillMaxHeight(),
     ) {
-      IconButton(
-        modifier = Modifier.align(Alignment.CenterStart),
+      IconButton(modifier = Modifier.align(Alignment.CenterStart),
         onClick = { coroutineScope.launch { win.close() } }) {
-        Icon(Icons.Rounded.Close, contentDescription = "Close the Window")
+        Icon(Icons.Rounded.Close, contentDescription = "Close the Window", tint = contentColor)
       }
     }
     Box(
@@ -92,7 +89,7 @@ private fun WindowTopControllerBar(
           .align(Alignment.Center)
           .padding(2.dp),
         text = win.state.title,
-        style = MaterialTheme.typography.titleSmall.copy(color = MaterialTheme.colorScheme.onPrimary)
+        style = MaterialTheme.typography.titleSmall.copy(color = contentColor)
       )
     }
     Box(
@@ -100,13 +97,13 @@ private fun WindowTopControllerBar(
         .wrapContentWidth()
         .fillMaxHeight(),
     ) {
-      IconButton(
-        modifier = Modifier.align(Alignment.CenterEnd),
+      IconButton(modifier = Modifier.align(Alignment.CenterEnd),
         onClick = { coroutineScope.launch { win.maximize() } }) {
         Icon(
           Icons.Rounded.UnfoldMore,
           contentDescription = "Maximizes the window",
-          modifier = Modifier.rotate(45f)
+          modifier = Modifier.rotate(45f),
+          tint = contentColor
         )
       }
     }
@@ -121,7 +118,8 @@ private fun WindowTopControllerBar(
 private fun WindowTopMaximizedBar(
   winEdge: WindowEdge,
   winState: WindowState,
-  win: DesktopWindowController
+  win: DesktopWindowController,
+  contentColor: Color,
 ) {
   /// 这里可以渲染一些特殊的信息
 }

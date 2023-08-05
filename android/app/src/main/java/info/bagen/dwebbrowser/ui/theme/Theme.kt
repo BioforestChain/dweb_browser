@@ -8,79 +8,82 @@ import androidx.compose.runtime.Composable
 
 @Composable
 fun DwebBrowserAppTheme(
-  darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit
+  useDarkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit
 ) {
-  val colors = if (darkTheme) {
-    DarkColorPalette
+
+  val colors = if (!useDarkTheme) {
+    LightColors
   } else {
-    LightColorPalette
+    DarkColors
   }
 
   MaterialTheme(
-    colorScheme = colors, typography = Typography, shapes = Shapes, content = content
+    colorScheme = colors,
+    content = content
   )
 }
 
-val DarkColorPalette = darkColorScheme(
-  primary              = PaletteTokens.Primary80       ,
-  onPrimary            = PaletteTokens.Primary20       ,
-  primaryContainer     = PaletteTokens.Primary30       ,
-  onPrimaryContainer   = PaletteTokens.Primary90       ,
-  inversePrimary       = PaletteTokens.Primary40       , // 上面都是关于 Primary 的
-  secondary            = PaletteTokens.Secondary80     ,
-  onSecondary          = PaletteTokens.Secondary20     ,
-  secondaryContainer   = PaletteTokens.Secondary30     ,
-  onSecondaryContainer = PaletteTokens.Secondary90     , // 上面都是关于 Secondary 的
-  tertiary             = PaletteTokens.Tertiary80      ,
-  onTertiary           = PaletteTokens.Tertiary20      ,
-  tertiaryContainer    = PaletteTokens.Tertiary30      ,
-  onTertiaryContainer  = PaletteTokens.Tertiary90      , // 上面都是关于 Tertiary 的
-  background           = PaletteTokens.Neutral10       ,
-  onBackground         = PaletteTokens.Neutral90       , // 上面都是关于 Background 的
-  surface              = PaletteTokens.Neutral0        ,
-  onSurface            = PaletteTokens.Neutral100      ,
-  surfaceVariant       = PaletteTokens.NeutralVariant30,
-  onSurfaceVariant     = PaletteTokens.NeutralVariant80,
-  surfaceTint          = PaletteTokens.Primary80       ,
-  inverseSurface       = PaletteTokens.Neutral90       ,
-  inverseOnSurface     = PaletteTokens.Neutral20       , // 上面都是关于 Surface 的
-  error                = PaletteTokens.Error80         ,
-  onError              = PaletteTokens.Error20         ,
-  errorContainer       = PaletteTokens.Error30         ,
-  onErrorContainer     = PaletteTokens.Error90         , // 上面都是关于 Error 的
-  outline              = PaletteTokens.NeutralVariant60,
-  outlineVariant       = PaletteTokens.NeutralVariant30,
-  scrim                = PaletteTokens.Neutral0        ,
+private val LightColors = lightColorScheme(
+    primary = md_theme_light_primary,
+    onPrimary = md_theme_light_onPrimary,
+    primaryContainer = md_theme_light_primaryContainer,
+    onPrimaryContainer = md_theme_light_onPrimaryContainer,
+    secondary = md_theme_light_secondary,
+    onSecondary = md_theme_light_onSecondary,
+    secondaryContainer = md_theme_light_secondaryContainer,
+    onSecondaryContainer = md_theme_light_onSecondaryContainer,
+    tertiary = md_theme_light_tertiary,
+    onTertiary = md_theme_light_onTertiary,
+    tertiaryContainer = md_theme_light_tertiaryContainer,
+    onTertiaryContainer = md_theme_light_onTertiaryContainer,
+    error = md_theme_light_error,
+    onError = md_theme_light_onError,
+    errorContainer = md_theme_light_errorContainer,
+    onErrorContainer = md_theme_light_onErrorContainer,
+    outline = md_theme_light_outline,
+    background = md_theme_light_background,
+    onBackground = md_theme_light_onBackground,
+    surface = md_theme_light_surface,
+    onSurface = md_theme_light_onSurface,
+    surfaceVariant = md_theme_light_surfaceVariant,
+    onSurfaceVariant = md_theme_light_onSurfaceVariant,
+    inverseSurface = md_theme_light_inverseSurface,
+    inverseOnSurface = md_theme_light_inverseOnSurface,
+    inversePrimary = md_theme_light_inversePrimary,
+    surfaceTint = md_theme_light_surfaceTint,
+    outlineVariant = md_theme_light_outlineVariant,
+    scrim = md_theme_light_scrim,
 )
 
-val LightColorPalette = lightColorScheme(
-  primary              = PaletteTokens.Primary40       ,
-  onPrimary            = PaletteTokens.Primary100      ,
-  primaryContainer     = PaletteTokens.Primary90       ,
-  onPrimaryContainer   = PaletteTokens.Primary10       ,
-  inversePrimary       = PaletteTokens.Primary80       , // 上面都是关于 Primary 的
-  secondary            = PaletteTokens.Secondary40     ,
-  onSecondary          = PaletteTokens.Secondary100    ,
-  secondaryContainer   = PaletteTokens.Secondary90     ,
-  onSecondaryContainer = PaletteTokens.Secondary10     , // 上面都是关于 Secondary 的
-  tertiary             = PaletteTokens.Tertiary40      ,
-  onTertiary           = PaletteTokens.Tertiary100     ,
-  tertiaryContainer    = PaletteTokens.Tertiary90      ,
-  onTertiaryContainer  = PaletteTokens.Tertiary10      , // 上面都是关于 Tertiary 的
-  background           = PaletteTokens.Neutral99       ,
-  onBackground         = PaletteTokens.Neutral10       , // 上面都是关于 Background 的
-  surface              = PaletteTokens.Neutral100      ,
-  onSurface            = PaletteTokens.Neutral0        ,
-  surfaceVariant       = PaletteTokens.NeutralVariant90,
-  onSurfaceVariant     = PaletteTokens.NeutralVariant30,
-  surfaceTint          = PaletteTokens.Primary40       ,
-  inverseSurface       = PaletteTokens.Neutral20       ,
-  inverseOnSurface     = PaletteTokens.Neutral95       , // 上面都是关于 Surface 的
-  error                = PaletteTokens.Error40         ,
-  onError              = PaletteTokens.Error100        ,
-  errorContainer       = PaletteTokens.Error90         ,
-  onErrorContainer     = PaletteTokens.Error10         , // 上面都是关于 Error 的
-  outline              = PaletteTokens.NeutralVariant50,
-  outlineVariant       = PaletteTokens.NeutralVariant80,
-  scrim                = PaletteTokens.Neutral0        ,
+
+private val DarkColors = darkColorScheme(
+    primary = md_theme_dark_primary,
+    onPrimary = md_theme_dark_onPrimary,
+    primaryContainer = md_theme_dark_primaryContainer,
+    onPrimaryContainer = md_theme_dark_onPrimaryContainer,
+    secondary = md_theme_dark_secondary,
+    onSecondary = md_theme_dark_onSecondary,
+    secondaryContainer = md_theme_dark_secondaryContainer,
+    onSecondaryContainer = md_theme_dark_onSecondaryContainer,
+    tertiary = md_theme_dark_tertiary,
+    onTertiary = md_theme_dark_onTertiary,
+    tertiaryContainer = md_theme_dark_tertiaryContainer,
+    onTertiaryContainer = md_theme_dark_onTertiaryContainer,
+    error = md_theme_dark_error,
+    onError = md_theme_dark_onError,
+    errorContainer = md_theme_dark_errorContainer,
+    onErrorContainer = md_theme_dark_onErrorContainer,
+    outline = md_theme_dark_outline,
+    background = md_theme_dark_background,
+    onBackground = md_theme_dark_onBackground,
+    surface = md_theme_dark_surface,
+    onSurface = md_theme_dark_onSurface,
+    surfaceVariant = md_theme_dark_surfaceVariant,
+    onSurfaceVariant = md_theme_dark_onSurfaceVariant,
+    inverseSurface = md_theme_dark_inverseSurface,
+    inverseOnSurface = md_theme_dark_inverseOnSurface,
+    inversePrimary = md_theme_dark_inversePrimary,
+    surfaceTint = md_theme_dark_surfaceTint,
+    outlineVariant = md_theme_dark_outlineVariant,
+    scrim = md_theme_dark_scrim,
 )

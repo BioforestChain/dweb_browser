@@ -37,6 +37,7 @@ internal fun WindowBottomBar(
   windowEdge: WindowEdge,
   winState: WindowState,
   emitWinStateChange: () -> Job,
+  contentColor: Color,
 ) {
   val density = LocalDensity.current
   Box(
@@ -57,6 +58,7 @@ internal fun WindowBottomBar(
         windowEdge,
         winState,
         emitWinStateChange,
+        contentColor,
       )
     } else {
       WindowBottomResizeBar(
@@ -64,6 +66,7 @@ internal fun WindowBottomBar(
         windowEdge,
         winState,
         emitWinStateChange,
+        contentColor,
       )
     }
   }
@@ -78,6 +81,7 @@ private fun WindowBottomResizeBar(
   windowEdge: WindowEdge,
   winState: WindowState,
   emitWinStateChange: () -> Job,
+  contentColor: Color,
 ) {
   val density = LocalDensity.current
   Row(
@@ -155,6 +159,7 @@ private fun WindowBottomMaximizedBar(
   windowEdge: WindowEdge,
   winState: WindowState,
   emitWinStateChange: () -> Job,
+  contentColor: Color,
 ) {
   val density = LocalDensity.current
   val coroutineScope = rememberCoroutineScope()
@@ -182,7 +187,8 @@ private fun WindowBottomMaximizedBar(
         .fillMaxHeight()
     ) {
       Text(
-        text = winState.title, style = MaterialTheme.typography.labelSmall,
+        text = winState.title,
+        style = MaterialTheme.typography.labelSmall.copy(color = contentColor),
         modifier = Modifier
           .align(Alignment.Center)
       )
