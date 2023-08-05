@@ -11,12 +11,13 @@ import org.dweb_browser.microservice.help.MMID
 import java.util.WeakHashMap
 import kotlin.math.sqrt
 
-class DesktopWindowsManager(private val activity: DesktopActivity) {
+class DesktopWindowsManager(internal val activity: DesktopActivity) {
   companion object {
     private val instances = WeakHashMap<DesktopActivity, DesktopWindowsManager>()
-    fun getInstance(activity: DesktopActivity) = instances.getOrPut(activity) {
-      DesktopWindowsManager(activity)
-    }
+    fun getInstance(activity: DesktopActivity, onPut: (wm: DesktopWindowsManager) -> Unit) =
+      instances.getOrPut(activity) {
+        DesktopWindowsManager(activity).also(onPut)
+      }
   }
 
   /**
@@ -27,9 +28,9 @@ class DesktopWindowsManager(private val activity: DesktopActivity) {
   /**
    * 存储最大化的窗口
    */
-  var hasMaximizedWins = ChangeableSet<DesktopWindowController>()
+  val hasMaximizedWins = ChangeableSet<DesktopWindowController>()
 
-  private val allWindows = ChangeableList<DesktopWindowController>(activity.lifecycleScope).also {
+  internal val allWindows = ChangeableList<DesktopWindowController>(activity.lifecycleScope).also {
     it.onChange { wins ->
       /// 从小到大排序
       val newWinList = wins.toList().sortedBy { win -> win.state.zIndex };

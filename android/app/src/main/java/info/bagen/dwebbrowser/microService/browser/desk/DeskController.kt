@@ -77,7 +77,15 @@ class DeskController(
   /**
    * 窗口管理器
    */
-  val desktopWindowsManager get() = DesktopWindowsManager.getInstance(this.activity!!)
+  val desktopWindowsManager
+    get() = DesktopWindowsManager.getInstance(this.activity!!) { dwm ->
+      /// 但有窗口信号变动的时候，确保 Activity 事件被激活
+      dwm.allWindows.onChange {
+        if (dwm.activity == activity) {
+          _activitySignal.emit()
+        }
+      }
+    }
 
   val currentInsets: MutableState<WindowInsetsCompat> by lazy {
     mutableStateOf(
@@ -116,4 +124,8 @@ class DeskController(
   fun getDesktopUrl() = desktopServer.startResult.urlInfo.buildInternalUrl()
     .path("/desktop.html")
     .query("api-base", desktopServer.startResult.urlInfo.buildPublicUrl().toString())
+
+
+  private val _activitySignal = SimpleSignal()
+  val onActivity = _activitySignal.toListener()
 }
