@@ -3,10 +3,16 @@ package info.bagen.dwebbrowser.base
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.os.Build
+import android.view.WindowInsets
+import androidx.annotation.RequiresApi
 
 class WindowInsetsHelper {
   companion object {
 
+    /**
+     * miui 开发者文档 https://dev.mi.com/distribute/doc/details?pId=1631
+     */
     @SuppressLint("DiscouragedApi")
     fun getCornerRadiusTop(context: Context, density: Float, defaultValue: Float): Float {
       var radius = defaultValue;
@@ -16,7 +22,9 @@ class WindowInsetsHelper {
       if (resourceId > 0) {
         radius = context.resources.getDimensionPixelSize(resourceId) / density
       }
-
+//      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+//        WindowInsets.CONSUMED.getRoundedCorner()
+//      }
       return radius;
     }
 

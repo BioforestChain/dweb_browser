@@ -6,6 +6,7 @@ import info.bagen.dwebbrowser.microService.core.windowAdapterManager
 import kotlinx.coroutines.launch
 import org.dweb_browser.dwebview.some
 import org.dweb_browser.helper.ChangeableList
+import org.dweb_browser.helper.ChangeableSet
 import org.dweb_browser.microservice.help.MMID
 import java.util.WeakHashMap
 import kotlin.math.sqrt
@@ -22,6 +23,11 @@ class DesktopWindowsManager(private val activity: DesktopActivity) {
    * 一个已经根据 zIndex 排序完成的只读列表
    */
   val winList = mutableStateOf(listOf<DesktopWindowController>());
+
+  /**
+   * 存储最大化的窗口
+   */
+  var hasMaximizedWins = ChangeableSet<DesktopWindowController>()
 
   private val allWindows = ChangeableList<DesktopWindowController>(activity.lifecycleScope).also {
     it.onChange { wins ->
@@ -97,6 +103,17 @@ class DesktopWindowsManager(private val activity: DesktopActivity) {
                 if (lastFocusedWin == win) {
                   lastFocusedWin = null
                 }
+              }
+            }
+            launch {
+              win.onMaximize {
+                hasMaximizedWins.add(win)
+              }
+              win.onUnMaximize {
+                hasMaximizedWins.remove(win)
+              }
+              win.onDestroy {
+                hasMaximizedWins.remove(win)
               }
             }
           }

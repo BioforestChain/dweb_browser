@@ -12,8 +12,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.layout.safeContent
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.safeGestures
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -40,7 +44,6 @@ import androidx.compose.ui.unit.dp
 import info.bagen.dwebbrowser.base.WindowInsetsHelper
 import info.bagen.dwebbrowser.microService.browser.desk.DesktopWindowController
 import info.bagen.dwebbrowser.microService.browser.desk.Float
-import info.bagen.dwebbrowser.microService.browser.desk.toModifier
 import info.bagen.dwebbrowser.microService.core.windowAdapterManager
 import kotlinx.coroutines.launch
 import kotlin.math.max
@@ -152,27 +155,53 @@ fun DesktopWindowController.Render(
    * 窗口内边距
    */
   val winEdge = if (winState.maximize) {
-    val safeAreaPadding = WindowInsets.safeDrawing.asPaddingValues()
-    val topHeight = safeAreaPadding.calculateTopPadding().value
+    val safeContentPadding = WindowInsets.safeContent.asPaddingValues()
+    val safeGesturesPadding = WindowInsets.safeGestures.asPaddingValues()
+    val topHeight = safeContentPadding.calculateTopPadding().value
+    /**
+     * 底部是系统导航栏，这里我们使用触摸安全的区域来控制底部高度，这样可以避免底部抖动
+     */
+    val bottomMinHeight = max(
+      safeGesturesPadding.calculateBottomPadding().value, 24f // 因为底部要放置一些信息按钮，所以我们会给到底部一个基本的高度
+    )
     val bottomHeight = max(
-      safeAreaPadding.calculateBottomPadding().value, 24f // 因为底部要放置一些信息按钮
+      safeContentPadding.calculateBottomPadding().value, bottomMinHeight
     );
     val layoutDirection = LocalLayoutDirection.current
-    val leftWidth = safeAreaPadding.calculateLeftPadding(layoutDirection).value
-    val rightWidth = safeAreaPadding.calculateRightPadding(layoutDirection).value
+    val leftWidth = safeContentPadding.calculateLeftPadding(layoutDirection).value
+    val rightWidth = safeContentPadding.calculateRightPadding(layoutDirection).value
     val borderRounded = WindowEdge.CornerRadius.from(0) // 全屏模式下，外部不需要圆角
     val contentRounded = WindowEdge.CornerRadius.from(
       WindowInsetsHelper.getCornerRadiusTop(win.context, density.density, 16f),
       WindowInsetsHelper.getCornerRadiusBottom(win.context, density.density, 16f)
     )
-    WindowEdge(topHeight, bottomHeight, leftWidth, rightWidth, borderRounded, contentRounded)
+    val contentSize = WindowEdge.ContentSize(
+      winBounds.width - leftWidth - rightWidth,
+      winBounds.height - topHeight - bottomMinHeight, // 这里不使用bottomHeight，因为导航栏的高度会发生动态变动，因此使用bottomMinHeight可以有效避免抖动
+    )
+    WindowEdge(
+      topHeight,
+      bottomHeight,
+      leftWidth,
+      rightWidth,
+      borderRounded,
+      contentRounded,
+      contentSize
+    )
   } else {
     val borderRounded =
       WindowEdge.CornerRadius.from(16) // TODO 这里应该使用 WindowInsets#getRoundedCorner 来获得真实的无力圆角
     val contentRounded = borderRounded / sqrt(2f)
-    WindowEdge(36f, 24f, 5f, 5f, borderRounded, contentRounded)
+    val topHeight = 36f;
+    val bottomHeight = 24f
+    val leftWidth = 5f;
+    val rightWidth = 5f;
+    val contentSize = WindowEdge.ContentSize(
+      winBounds.width - leftWidth - rightWidth,
+      winBounds.height - topHeight - bottomHeight, // 这里不使用bottomHeight，因为导航栏的高度会发生动态变动
+    )
+    WindowEdge(36f, 24f, 5f, 5f, borderRounded, contentRounded, contentSize)
   }
-
 
   val elevation by animateFloatAsState(
     targetValue = (if (inMove) 20f else 1f) + winState.zIndex,
@@ -188,8 +217,17 @@ fun DesktopWindowController.Render(
   CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onPrimary) {
     /// 窗口
     Box(
-      modifier = winBounds
-        .toModifier(modifier)
+      modifier = with(winBounds) {
+        modifier
+          .offset(
+            animateFloatAsState(left, label = "left").value.dp,
+            animateFloatAsState(top, label = "top").value.dp
+          )
+          .size(
+            animateFloatAsState(width, label = "width").value.dp,
+            animateFloatAsState(height, label = "height").value.dp
+          )
+      }
         .graphicsLayer {
           scaleX = scale
           scaleY = scale
@@ -214,8 +252,8 @@ fun DesktopWindowController.Render(
         )
         /// 显示内容
         Box(Modifier.weight(1f)) {
-          val viewHeight = winBounds.height - winEdge.top - winEdge.bottom
-          val viewWidth = winBounds.width - winEdge.left - winEdge.right
+          val viewWidth = winEdge.contentBounds.width
+          val viewHeight = winEdge.contentBounds.height
           /**
            * 视图的宽高随着窗口的缩小而缩小，随着窗口的放大而放大，
            * 但这些缩放不是等比的，而是会以一定比例进行换算。
@@ -297,6 +335,7 @@ data class WindowEdge(
    * 内容圆角
    */
   val contentRounded: CornerRadius,
+  val contentBounds: ContentSize
 ) {
   data class CornerRadius(
     val topStart: Float,
@@ -320,4 +359,6 @@ data class WindowEdge(
         from(topRadius.toFloat(), bottomRadius.toFloat())
     }
   }
+
+  data class ContentSize(val width: Float, val height: Float)
 };
