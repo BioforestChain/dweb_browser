@@ -23,17 +23,13 @@ object BuildConfig {
   const val http4kCore = "org.http4k:http4k-core"
   const val http4kMultipart = "org.http4k:http4k-multipart"
   const val http4kClientApache = "org.http4k:http4k-client-apache"
-  const val http4kWebSocket = "org.http4k:http4k-client-websocket"
-  const val http4kServerKtorcio = "org.http4k:http4k-server-ktorcio"
-  const val http4kServerNetty = "org.http4k:http4k-server-netty"
 
   const val ktor_version = "2.2.3"
   const val ktorServerWebsockets = "io.ktor:ktor-server-websockets:$ktor_version"
-  const val ktorServerNetty = "io.ktor:ktor-server-netty:$ktor_version"
   const val ktorServerCio = "io.ktor:ktor-server-cio:$ktor_version"
 
   // 谷歌支持库
-  private const val accompanistVersion = "0.31.3-beta"
+  private const val accompanistVersion = "0.31.6-rc"
   const val accompanistWebview = "com.google.accompanist:accompanist-webview:$accompanistVersion"
   const val accompanistNavigationMaterial =
     "com.google.accompanist:accompanist-navigation-material:$accompanistVersion"
@@ -43,7 +39,6 @@ object BuildConfig {
     "com.google.accompanist:accompanist-systemuicontroller:$accompanistVersion"
   const val accompanistPermissions =
     "com.google.accompanist:accompanist-permissions:$accompanistVersion"
-  const val accompanistInsets = "com.google.accompanist:accompanist-insets:$accompanistVersion"
   const val accompanistInsetsUI = "com.google.accompanist:accompanist-insets-ui:$accompanistVersion"
 
   // androidX

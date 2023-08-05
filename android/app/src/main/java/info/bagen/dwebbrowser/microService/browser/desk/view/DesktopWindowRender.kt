@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.safeContent
 import androidx.compose.foundation.layout.safeDrawing
@@ -271,7 +272,11 @@ fun DesktopWindowController.Render(
           Modifier.windowMoveAble(), winEdge, winState, win
         )
         /// 显示内容
-        Box(Modifier.weight(1f)) {
+        Box(
+          Modifier
+            .weight(1f)
+            .padding(start = winEdge.left.dp, end = winEdge.right.dp)// TODO 这里要注意布局方向
+        ) {
           val viewWidth = winEdge.contentBounds.width
           val viewHeight = winEdge.contentBounds.height
           /**
@@ -298,18 +303,13 @@ fun DesktopWindowController.Render(
             val viewScale =
               scaleProgress.toScale(minWinScale).let { if (it.isNaN()) 1f else it.toFloat() }
 
-            //  println("minWidth, viewWidth, screenWidth: $minWidth, $viewWidth, $screenWidth")
-            //  println("minHeight, viewHeight, screenHeight: $minHeight, $viewHeight, $screenHeight")
-            //  println("scaleProgress: $scaleProgress")
-            //  println("viewScale: $viewScale")
-
             it(
-              Modifier
-                .graphicsLayer(viewScale, viewScale)
-                .requiredSize(
-                  (viewWidth / viewScale).toInt().dp, (viewHeight / viewScale).toInt().dp
-                )
-                .clip(winEdge.contentRounded.toRoundedCornerShape())
+              modifier = Modifier
+                .fillMaxSize()
+                .clip(winEdge.contentRounded.toRoundedCornerShape()),
+              width = viewWidth,
+              height = viewHeight,
+              scale = viewScale,
             )
           } ?: Text(
             "Op！视图被销毁了",

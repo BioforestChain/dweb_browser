@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -21,7 +22,7 @@ import com.google.accompanist.web.WebView
 import kotlinx.coroutines.launch
 
 @Composable
-fun MultiWebViewController.Render(modifier: Modifier = Modifier) {
+fun MultiWebViewController.Render(modifier: Modifier = Modifier, initialScale: Int) {
   val controller = this;
   Box(modifier) {
     var list by remember {
@@ -66,15 +67,18 @@ fun MultiWebViewController.Render(modifier: Modifier = Modifier) {
         Box(
           modifier = Modifier.fillMaxSize()
         ) {
+          SideEffect {
+            viewItem.webView.setInitialScale(initialScale)
+          }
+
 //          val modifierPadding by nativeUiController.safeArea.outerAreaInsetsState
           WebView(
             state = state,
             navigator = navigator,
             modifier = Modifier
-              .fillMaxSize()
+              .fillMaxSize(),
 //              .focusRequester(nativeUiController.virtualKeyboard.focusRequester)
 //              .padding(modifierPadding.asPaddingValues())
-            ,
             factory = {
               // 修复 activity 已存在父级时导致的异常
               viewItem.webView.parent?.let { parentView ->

@@ -13,7 +13,8 @@ import org.dweb_browser.microservice.help.MMID
 typealias CreateWindowAdapter = suspend (winState: WindowState) -> WindowController?
 
 class WindowAdapterManager : AdapterManager<CreateWindowAdapter>() {
-  val providers = mutableMapOf<UUID, @Composable (modifier: Modifier) -> Unit>()
+  val providers =
+    mutableMapOf<UUID, @Composable (modifier: Modifier, width: Float, height: Float, scale: Float) -> Unit>()
 
   suspend fun createWindow(winState: WindowState): WindowController {
     for (adapter in adapters) {

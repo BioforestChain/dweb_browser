@@ -2,10 +2,10 @@ package info.bagen.dwebbrowser.microService.browser.mwebview
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
+import androidx.compose.ui.platform.LocalDensity
 import com.google.accompanist.web.WebContent
 import com.google.accompanist.web.WebViewNavigator
 import com.google.accompanist.web.WebViewState
-import info.bagen.dwebbrowser.microService.browser.nativeui.NativeUiController
 import info.bagen.dwebbrowser.microService.core.WindowController
 import info.bagen.dwebbrowser.microService.core.windowAdapterManager
 import kotlinx.coroutines.CoroutineName
@@ -56,7 +56,11 @@ class MultiWebViewController(
     }
     val wid = win.id
     /// 提供渲染适配
-    windowAdapterManager.providers[wid] = @Composable { Render(it) }
+    windowAdapterManager.providers[wid] =
+      @Composable { modifier, width, height, scale ->
+        val webViewScale = (LocalDensity.current.density * scale * 100).toInt()
+        Render(modifier, webViewScale)
+      }
     /// 窗口销毁的时候，移除适配器
     win.onDestroy {
       windowAdapterManager.providers.remove(wid)

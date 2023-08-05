@@ -110,12 +110,12 @@ dependencies {
   implementation(BuildConfig.navigationUiKotlin)
   implementation(BuildConfig.gridLayout)
 
+  // v0.31.6-rc
   implementation(BuildConfig.accompanistWebview)
   implementation(BuildConfig.accompanistNavigationMaterial)
   implementation(BuildConfig.accompanistNavigationAnimation)
   implementation(BuildConfig.accompanistSystemUiController)
   implementation(BuildConfig.accompanistPermissions)
-  implementation(BuildConfig.accompanistInsets)
   implementation(BuildConfig.accompanistInsetsUI)
 
   implementation(BuildConfig.profileInstaller)
