@@ -305,7 +305,7 @@ fun DesktopWindowController.Render(
 
             it(
               modifier = Modifier
-                .fillMaxSize()
+                .requiredSize(viewWidth.dp, viewHeight.dp)
                 .clip(winEdge.contentRounded.toRoundedCornerShape()),
               width = viewWidth,
               height = viewHeight,
