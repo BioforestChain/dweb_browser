@@ -36,10 +36,8 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.navigation.compose.rememberNavController
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import info.bagen.dwebbrowser.base.WindowInsetsHelper
 import info.bagen.dwebbrowser.microService.browser.desk.DesktopWindowController
 import info.bagen.dwebbrowser.microService.browser.desk.Float
 import info.bagen.dwebbrowser.microService.browser.desk.toModifier
@@ -50,9 +48,7 @@ import kotlin.math.sqrt
 
 @Composable
 fun DesktopWindowController.Render(
-  modifier: Modifier = Modifier,
-  maxWinWidth: Float,
-  maxWinHeight: Float
+  modifier: Modifier = Modifier, maxWinWidth: Float, maxWinHeight: Float
 ) {
   val win = this;
   var winState by remember { mutableStateOf(win.state, neverEqualPolicy()) }
@@ -164,11 +160,15 @@ fun DesktopWindowController.Render(
     val layoutDirection = LocalLayoutDirection.current
     val leftWidth = safeAreaPadding.calculateLeftPadding(layoutDirection).value
     val rightWidth = safeAreaPadding.calculateRightPadding(layoutDirection).value
-    val borderRounded = 0f // 全屏模式下，外部不需要圆角
-    val contentRounded = 16f // TODO 这里应该使用 WindowInsets#getRoundedCorner 来获得真实的无力圆角
+    val borderRounded = WindowEdge.CornerRadius.from(0) // 全屏模式下，外部不需要圆角
+    val contentRounded = WindowEdge.CornerRadius.from(
+      WindowInsetsHelper.getCornerRadiusTop(win.context, density.density, 16f),
+      WindowInsetsHelper.getCornerRadiusBottom(win.context, density.density, 16f)
+    )
     WindowEdge(topHeight, bottomHeight, leftWidth, rightWidth, borderRounded, contentRounded)
   } else {
-    val borderRounded = 16f // TODO 这里应该使用 WindowInsets#getRoundedCorner 来获得真实的无力圆角
+    val borderRounded =
+      WindowEdge.CornerRadius.from(16) // TODO 这里应该使用 WindowInsets#getRoundedCorner 来获得真实的无力圆角
     val contentRounded = borderRounded / sqrt(2f)
     WindowEdge(36f, 24f, 5f, 5f, borderRounded, contentRounded)
   }
@@ -195,12 +195,12 @@ fun DesktopWindowController.Render(
           scaleY = scale
         }
         .shadow(
-          elevation = elevation.dp, shape = RoundedCornerShape(winEdge.boxRounded.dp)
+          elevation = elevation.dp, shape = winEdge.boxRounded.toRoundedCornerShape()
         ),
     ) {
       Column(Modifier
         .background(MaterialTheme.colorScheme.onPrimaryContainer)
-        .clip(RoundedCornerShape(winEdge.boxRounded.dp))
+        .clip(winEdge.boxRounded.toRoundedCornerShape())
         .focusable(true)
         .onFocusChanged { state ->
           emitWinFocus(state.isFocused)
@@ -251,7 +251,7 @@ fun DesktopWindowController.Render(
                 .requiredSize(
                   (viewWidth / viewScale).toInt().dp, (viewHeight / viewScale).toInt().dp
                 )
-                .clip(RoundedCornerShape(winEdge.contentRounded.dp))
+                .clip(winEdge.contentRounded.toRoundedCornerShape())
             )
           } ?: Text(
             "Op！视图被销毁了",
@@ -292,9 +292,32 @@ data class WindowEdge(
   /**
    * 外部圆角
    */
-  val boxRounded: Float,
+  val boxRounded: CornerRadius,
   /**
    * 内容圆角
    */
-  val contentRounded: Float,
-);
+  val contentRounded: CornerRadius,
+) {
+  data class CornerRadius(
+    val topStart: Float,
+    val topEnd: Float,
+    val bottomStart: Float,
+    val bottomEnd: Float
+  ) {
+    operator fun div(value: Float) =
+      CornerRadius(topStart / value, topEnd / value, bottomStart / value, bottomEnd / value)
+
+    fun toRoundedCornerShape() =
+      RoundedCornerShape(topStart.dp, topEnd.dp, bottomStart.dp, bottomEnd.dp)
+
+    companion object {
+      fun from(radius: Float) = CornerRadius(radius, radius, radius, radius)
+      fun from(radius: Int) = from(radius.toFloat())
+      fun from(topRadius: Float, bottomRadius: Float) =
+        CornerRadius(topRadius, topRadius, bottomRadius, bottomRadius)
+
+      fun from(topRadius: Int, bottomRadius: Int) =
+        from(topRadius.toFloat(), bottomRadius.toFloat())
+    }
+  }
+};
