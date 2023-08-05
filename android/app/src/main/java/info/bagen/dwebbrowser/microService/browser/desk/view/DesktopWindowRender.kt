@@ -47,6 +47,7 @@ import info.bagen.dwebbrowser.microService.browser.desk.Float
 import info.bagen.dwebbrowser.microService.core.windowAdapterManager
 import kotlinx.coroutines.launch
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.sqrt
 
 @Composable
@@ -74,6 +75,7 @@ fun DesktopWindowController.Render(
     }
   }
   val density = LocalDensity.current
+  val layoutDirection = LocalLayoutDirection.current
 
   /**
    * 窗口是否在移动中
@@ -130,6 +132,11 @@ fun DesktopWindowController.Render(
   val minWinHeight = maxWinHeight * 0.2f
 
   /**
+   * 窗口模式下的窗口标题高度
+   */
+  val winTitleBaseHeight = 36f;
+
+  /**
    * 窗口大小
    */
   val winBounds = if (winState.maximize) {
@@ -141,9 +148,22 @@ fun DesktopWindowController.Render(
       height = maxWinHeight,
     )
   } else {
+    val safeGesturesPadding = WindowInsets.safeGestures.asPaddingValues();
+    val width = max(winState.bounds.width, minWinWidth)
+    val height = max(winState.bounds.height, minWinHeight)
+    val safeLeftPadding = safeGesturesPadding.calculateLeftPadding(layoutDirection).value;
+    val safeTopPadding = safeGesturesPadding.calculateTopPadding().value;
+    val safeRightPadding = safeGesturesPadding.calculateRightPadding(layoutDirection).value;
+    val safeBottomPadding = safeGesturesPadding.calculateBottomPadding().value;
+    val minLeft = safeLeftPadding - width / 2
+    val maxLeft = maxWinWidth - safeRightPadding - width / 2
+    val minTop = safeTopPadding
+    val maxTop = maxWinHeight - safeBottomPadding - winTitleBaseHeight
     winState.bounds.copy(
-      width = max(winState.bounds.width, minWinWidth),
-      height = max(winState.bounds.height, minWinHeight)
+      left = min(max(minLeft, winState.bounds.left), maxLeft),
+      top = min(max(minTop, winState.bounds.top), maxTop),
+      width = width,
+      height = height,
     )
   };
   if (winBounds != winState.bounds) {
@@ -158,6 +178,7 @@ fun DesktopWindowController.Render(
     val safeContentPadding = WindowInsets.safeContent.asPaddingValues()
     val safeGesturesPadding = WindowInsets.safeGestures.asPaddingValues()
     val topHeight = safeContentPadding.calculateTopPadding().value
+
     /**
      * 底部是系统导航栏，这里我们使用触摸安全的区域来控制底部高度，这样可以避免底部抖动
      */
@@ -167,7 +188,6 @@ fun DesktopWindowController.Render(
     val bottomHeight = max(
       safeContentPadding.calculateBottomPadding().value, bottomMinHeight
     );
-    val layoutDirection = LocalLayoutDirection.current
     val leftWidth = safeContentPadding.calculateLeftPadding(layoutDirection).value
     val rightWidth = safeContentPadding.calculateRightPadding(layoutDirection).value
     val borderRounded = WindowEdge.CornerRadius.from(0) // 全屏模式下，外部不需要圆角
@@ -192,7 +212,7 @@ fun DesktopWindowController.Render(
     val borderRounded =
       WindowEdge.CornerRadius.from(16) // TODO 这里应该使用 WindowInsets#getRoundedCorner 来获得真实的无力圆角
     val contentRounded = borderRounded / sqrt(2f)
-    val topHeight = 36f;
+    val topHeight = winTitleBaseHeight;
     val bottomHeight = 24f
     val leftWidth = 5f;
     val rightWidth = 5f;
