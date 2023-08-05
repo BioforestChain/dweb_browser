@@ -61,9 +61,12 @@ class MultiWebViewController(
         val webViewScale = (LocalDensity.current.density * scale * 100).toInt()
         Render(modifier, webViewScale)
       }
-    /// 窗口销毁的时候，移除适配器
+    /// 窗口销毁的时候
     win.onDestroy {
+      // 移除渲染适配器
       windowAdapterManager.providers.remove(wid)
+      // 清除释放所有的webview
+      webViewList.clear()
     }
     /// ipc 断开的时候，强制关闭窗口
     ipc.onClose {

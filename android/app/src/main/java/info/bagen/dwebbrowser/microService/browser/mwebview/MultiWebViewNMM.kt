@@ -6,6 +6,7 @@ import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
 import info.bagen.dwebbrowser.microService.core.WindowState
 import info.bagen.dwebbrowser.microService.core.windowAdapterManager
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.browserUI.download.DownLoadObserver
 import org.dweb_browser.dwebview.base.ViewItem
@@ -117,25 +118,21 @@ class MultiWebViewNMM :
         win.onDestroy {
           controllerMap.remove(remoteMmid)
         }
-      }
-    }
-
-
-    GlobalScope.launch(ioAsyncExceptionHandler) {
-      controller.downLoadObserver = DownLoadObserver(remoteMmid).apply {
-        observe { listener ->
-          controller.lastViewOrNull?.webView?.let { dWebView ->
-            emitEvent(
-              dWebView, listener.downLoadStatus.toServiceWorkerEvent(), listener.progress
-            )
+        GlobalScope.launch {
+          controller.downLoadObserver = DownLoadObserver(remoteMmid).apply {
+            observe { listener ->
+              controller.lastViewOrNull?.webView?.let { dWebView ->
+                emitEvent(
+                  dWebView, listener.downLoadStatus.toServiceWorkerEvent(), listener.progress
+                )
+              }
+            }
           }
         }
       }
     }
 
     val viewItem = controller.openWebView(url)
-//    windowSignal.emit(
-//      installAppList.firstOrNull { it.mmid == remoteMmid }.also { it.viewItem = viewItem })
     return viewItem
   }
 
