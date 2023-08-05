@@ -46,49 +46,53 @@ struct AddressBar: View {
                     if shouldShowProgress {
                         cancelLoadingButtion
                     } else {
-                        reloadButton
+                        if !webCache.isBlank() {
+                            reloadButton
+                        }
                     }
                 }
             }
 
             textField
-                .foregroundColor(.black)
-                .textInputAutocapitalization(.never)
-                .autocorrectionDisabled(true)
-                .padding(.leading, 24)
-                .padding(.trailing, 50)
-                .keyboardType(.webSearch)
-                .focused($isAdressBarFocused)
-                .opacity(isAdressBarFocused ? 1 : 0)
 
-                .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { notify in
-                    // 当视图获得焦点时
-                    guard let value = notify.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else { return }
-                    let height = value.height
-                    keyboard.height = height - safeAreaBottomHeight
-                }
-                .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
-                    // 当视图获得焦点时
-                    keyboard.height = 0
-                }
-            Text(domainString)
-                .frame(width: screen_width - 100, height: 32)
-                .background(.white)
-                .foregroundColor(webCache.isBlank() ? .networkTipColor : .black)
-                .padding(.horizontal, 50)
-                .opacity(isAdressBarFocused ? 0 : 1)
-                .onTapGesture {
-                    if webCache.isBlank() {
-                        inputText = ""
-                    }
-                    isAdressBarFocused = true
-                }
+            domainLabel
         }
         .background(Color.bkColor)
     }
 
+    var domainLabel: some View {
+        Text(domainString)
+            .frame(width: screen_width - 100, height: 32)
+            .background(.white)
+            .foregroundColor(webCache.isBlank() ? .networkTipColor : .black)
+            .padding(.horizontal, 50)
+            .opacity(isAdressBarFocused ? 0 : 1)
+            .onTapGesture {
+                if webCache.isBlank() {
+                    inputText = ""
+                }
+                isAdressBarFocused = true
+            }
+    }
+
     var textField: some View {
         TextField(addressbarHolder, text: $inputText)
+            .foregroundColor(.black)
+            .textInputAutocapitalization(.never)
+            .autocorrectionDisabled(true)
+            .padding(.leading, 24)
+            .padding(.trailing, 50)
+            .keyboardType(.webSearch)
+            .focused($isAdressBarFocused)
+            .opacity(isAdressBarFocused ? 1 : 0)
+
+            .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { notify in
+                guard let value = notify.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else { return }
+                keyboard.height = value.height - safeAreaBottomHeight
+            }
+            .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
+                keyboard.height = 0
+            }
 
             .onAppear {
                 inputText = webCache.lastVisitedUrl.absoluteString

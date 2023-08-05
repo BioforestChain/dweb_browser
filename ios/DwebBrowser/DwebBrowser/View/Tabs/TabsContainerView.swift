@@ -115,13 +115,13 @@ struct TabsContainerView: View {
                     }
 
                     printWithDate(msg: "start to shifting animation")
-                    withAnimation(.easeIn(duration: 0.5)) {
+                    withAnimation(.easeOut(duration: 0.3)) {
                         addressBar.shouldDisplay = isExpanding
                         gridState.scale = isExpanding ? 0.8 : 1
                         isExpanded = isExpanding
                     }
 
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.55) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
                         showTabPage = isExpanded
                         animation.progress = .invisible // change to expanded or shrinked
                         gridState.scale = 1

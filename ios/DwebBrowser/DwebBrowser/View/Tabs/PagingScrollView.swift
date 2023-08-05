@@ -57,8 +57,9 @@ struct PagingScrollView: View {
                                 .gesture(addressBar.isFocused ? disabledDragGesture : nil) // 根据状态变量决定是否启用拖拽手势
                                 .onChange(of: addressBar.shouldDisplay) { dispaly in
                                     addressbarOffset = dispaly ? 0 : addressBarH
-                                }.onChange(of: addressBar.isFocused) { isFocused in
-                                    addressbarOffset = isFocused ? -keyboard.height : 0
+                                }
+                                .onChange(of: keyboard.height) { height in
+                                    addressbarOffset = -height
                                 }
                         }
                         .frame(width: screen_width)
