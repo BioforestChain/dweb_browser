@@ -1,11 +1,14 @@
 package info.bagen.dwebbrowser.microService.browser.desk
 
+import android.view.WindowInsetsController
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.lifecycleScope
 import info.bagen.dwebbrowser.microService.core.windowAdapterManager
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.dweb_browser.dwebview.some
 import org.dweb_browser.helper.ChangeableList
+import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.ChangeableSet
 import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.microservice.help.MMID
@@ -17,7 +20,12 @@ class DesktopWindowsManager(internal val activity: DesktopActivity) {
     private val instances = WeakHashMap<DesktopActivity, DesktopWindowsManager>()
     fun getInstance(activity: DesktopActivity, onPut: (wm: DesktopWindowsManager) -> Unit) =
       instances.getOrPut(activity) {
-        DesktopWindowsManager(activity).also(onPut)
+        DesktopWindowsManager(activity).also { dwm ->
+          onPut(dwm);
+          activity.onDestroyActivity {
+            instances.remove(activity)
+          }
+        }
       }
   }
 
@@ -31,25 +39,31 @@ class DesktopWindowsManager(internal val activity: DesktopActivity) {
    */
   val hasMaximizedWins = ChangeableSet<DesktopWindowController>()
 
-  internal val allWindows = ChangeableList<DesktopWindowController>(activity.lifecycleScope).also {
-    it.onChange { wins ->
-      /// 从小到大排序
-      val newWinList = wins.toList().sortedBy { win -> win.state.zIndex };
-      var changed = false
-      if (newWinList.size == winList.value.size) {
-        for ((index, item) in winList.value.withIndex()) {
-          if (item != newWinList[index]) {
-            changed = true
+  /**
+   * 窗口在管理时说需要的一些状态机
+   */
+  data class InManageState(val doDestroy: () -> Unit)
+
+  internal val allWindows =
+    ChangeableMap<DesktopWindowController, InManageState>(activity.lifecycleScope).also {
+      it.onChange { wins ->
+        /// 从小到大排序
+        val newWinList = wins.keys.toList().sortedBy { win -> win.state.zIndex };
+        var changed = false
+        if (newWinList.size == winList.value.size) {
+          for ((index, item) in winList.value.withIndex()) {
+            if (item != newWinList[index]) {
+              changed = true
+            }
           }
+        } else {
+          changed = true
         }
-      } else {
-        changed = true
-      }
-      if (changed) {
-        winList.value = newWinList
+        if (changed) {
+          winList.value = newWinList
+        }
       }
     }
-  }
 
 
   /// 当前记录的聚焦窗口
@@ -58,75 +72,37 @@ class DesktopWindowsManager(internal val activity: DesktopActivity) {
   /// 初始化一些监听
   init {
     /// 创建成功，提供适配器来渲染窗口
-    windowAdapterManager.append { winState ->
-      activity.resources.displayMetrics.also { displayMetrics ->
-        val displayWidth = displayMetrics.widthPixels / displayMetrics.density
-        val displayHeight = displayMetrics.heightPixels / displayMetrics.density
-        with(winState.bounds) {
+    windowAdapterManager.append { newWindowState ->
+      /// 新窗口的bounds可能都是没有配置的，所以这时候默认给它们设置一个有效的值
+      with(newWindowState.bounds) {
+        activity.resources.displayMetrics.also { displayMetrics ->
+          val displayWidth = displayMetrics.widthPixels / displayMetrics.density
+          val displayHeight = displayMetrics.heightPixels / displayMetrics.density
           if (width.isNaN()) {
             width = displayWidth / sqrt(2f)
           }
           if (height.isNaN()) {
             height = displayHeight / sqrt(3f)
           }
+          /// 在 top 和 left 上，为窗口动态配置坐标，避免层叠在一起
           if (left.isNaN()) {
             val maxLeft = displayWidth - width
-            val gapSize = 47f;
+            val gapSize = 47f; // 质数
             val gapCount = (maxLeft / gapSize).toInt();
 
             left = gapSize + (allWindows.size % gapCount) * gapSize
           }
           if (top.isNaN()) {
             val maxTop = displayHeight - height
-            val gapSize = 71f;
+            val gapSize = 71f; // 质数
             val gapCount = (maxTop / gapSize).toInt();
             top = gapSize + (allWindows.size % gapCount) * gapSize
           }
         }
       }
 
-      val win = DesktopWindowController(activity, winState)
-        .also { win ->
-          /// 对窗口做一些启动准备
-          val jobs = activity.lifecycleScope.launch {
-            launch {
-              win.onFocus.toFlow().collect {
-                if (lastFocusedWin != win) {
-                  lastFocusedWin?.blur()
-                  lastFocusedWin = win;
-                  moveToTop(win)
-                }
-              }
-            }
-            /// 如果窗口释放聚焦，那么释放引用
-            launch {
-              win.onBlur.toFlow().collect {
-                if (lastFocusedWin == win) {
-                  lastFocusedWin = null
-                }
-              }
-            }
-            launch {
-              win.onMaximize {
-                hasMaximizedWins.add(win)
-              }
-              win.onUnMaximize {
-                hasMaximizedWins.remove(win)
-              }
-              win.onDestroy {
-                hasMaximizedWins.remove(win)
-              }
-            }
-          }
-          /// 第一次装载窗口，默认将它聚焦到最顶层
-          focus(win)
-          /// 窗口销毁的时候，做引用释放
-          win.onDestroy {
-            allWindows.remove(win)
-            jobs.cancel()
-          }
-        }
-      allWindows.add(win)
+      val win = DesktopWindowController(activity, newWindowState)
+      addNewWindow(win)
 
       win
     }
@@ -134,8 +110,62 @@ class DesktopWindowsManager(internal val activity: DesktopActivity) {
       .removeWhen(activity.onDestroyActivity)
   }
 
+
+  /**
+   * 将一个窗口添加进来管理
+   */
+  internal fun addNewWindow(win: DesktopWindowController) {
+    /// 对窗口做一些启动准备
+    val jobs = activity.lifecycleScope.launch {
+      launch {
+        win.onFocus.toFlow().collect {
+          if (lastFocusedWin != win) {
+            lastFocusedWin?.blur()
+            lastFocusedWin = win;
+            moveToTop(win)
+          }
+        }
+      }
+      /// 如果窗口释放聚焦，那么释放引用
+      launch {
+        win.onBlur.toFlow().collect {
+          if (lastFocusedWin == win) {
+            lastFocusedWin = null
+          }
+        }
+      }
+      launch {
+        win.onMaximize {
+          hasMaximizedWins.add(win)
+        }
+        win.onUnMaximize {
+          hasMaximizedWins.remove(win)
+        }
+        win.onDestroy {
+          hasMaximizedWins.remove(win)
+        }
+      }
+    }
+    /// 第一次装载窗口，默认将它聚焦到最顶层
+    focus(win)
+    /// 窗口销毁的时候，做引用释放
+    val off = win.onDestroy {
+      removeWindow(win)
+    }
+    allWindows[win] = InManageState {
+      jobs.cancel()
+      off()
+    }
+  }
+
+  internal fun removeWindow(win: DesktopWindowController) =
+    allWindows.remove(win)?.let { inManageState ->
+      inManageState.doDestroy()
+      true
+    } ?: false
+
   private fun reOrderZIndex() {
-    for ((index, win) in allWindows.toList().sortedBy { it.state.zIndex }.withIndex()) {
+    for ((index, win) in allWindows.keys.toList().sortedBy { it.state.zIndex }.withIndex()) {
       win.state.zIndex = index
     }
     allWindows.emitChange()
@@ -162,7 +192,7 @@ class DesktopWindowsManager(internal val activity: DesktopActivity) {
   }
 
   fun findWindows(mmid: MMID) =
-    allWindows.filter { win -> win.state.owner == mmid }.sortedBy { it.state.zIndex }
+    allWindows.keys.filter { win -> win.state.owner == mmid }.sortedBy { it.state.zIndex }
 
   /**
    * 返回最终 isMaximized 的值

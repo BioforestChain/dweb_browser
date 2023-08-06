@@ -73,16 +73,19 @@ class DesktopActivity : BaseActivity() {
         CompositionLocalProvider(
           LocalInstallList provides deskController.getInstallApps(),
           LocalOpenList provides deskController.getOpenApps(),
-          LocalDesktopView provides deskController.createMainDwebView(),
+          LocalDesktopView provides deskController.createMainDwebView(
+            "desktop", deskController.getDesktopUrl().toString()
+          ),
         ) {
           Box {
             /// 桌面视图
             val desktopView = LocalDesktopView.current
             WebView(
-              state = rememberWebViewState(url = deskController.getDesktopUrl().toString()),
+              state = desktopView.state,
+              navigator = desktopView.navigator,
               modifier = Modifier.fillMaxSize(),
             ) {
-              desktopView
+              desktopView.webView
             }
             /// 窗口视图
             desktopWindowsManager.Render()

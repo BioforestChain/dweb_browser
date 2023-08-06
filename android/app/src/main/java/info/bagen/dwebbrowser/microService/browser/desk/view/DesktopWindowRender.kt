@@ -328,9 +328,8 @@ fun DesktopWindowController.Render(
           } ?: Text(
             "Op！视图被销毁了",
             modifier = Modifier.align(Alignment.Center),
-            style = MaterialTheme.typography.headlineLarge.copy(
+            style = MaterialTheme.typography.bodyMedium.copy(
               color = MaterialTheme.colorScheme.error,
-              background = MaterialTheme.colorScheme.errorContainer
             )
           )
         }

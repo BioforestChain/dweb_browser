@@ -104,8 +104,6 @@ class SimpleSignal : Signal<Unit>() {
 //  override fun listen(cb: SimpleCallback) = super.listen { _ -> cb.invoke(this) }
 };
 
-fun <T> OffListener.removeWhen(listener: Signal.Listener<T>) = this.also { off ->
-  listener {
-    off()
-  }
+fun <T> OffListener.removeWhen(listener: Signal.Listener<T>) = listener {
+  this@removeWhen()
 }

@@ -455,6 +455,21 @@ class DWebView(
     }
   }
 
+  private var preLoadedUrlArgs: String? = null
+
+  /**
+   * 避免 com.google.accompanist.web 在切换 Compose 上下文的时候重复加载同样的URL
+   */
+  override fun loadUrl(url: String, additionalHttpHeaders: MutableMap<String, String>) {
+    val curLoadUrlArgs = "$url\nHEADERS:" + additionalHttpHeaders.toList()
+      .joinToString("\n") { it.first + ":" + it.second }
+    if (curLoadUrlArgs == preLoadedUrlArgs) {
+      return
+    }
+    preLoadedUrlArgs = curLoadUrlArgs
+    super.loadUrl(url, additionalHttpHeaders)
+  }
+
   /**
    * 执行同步JS代码
    */

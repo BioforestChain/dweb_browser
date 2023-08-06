@@ -8,7 +8,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
+import com.google.accompanist.web.WebContent
+import com.google.accompanist.web.WebViewNavigator
+import com.google.accompanist.web.WebViewState
 import info.bagen.dwebbrowser.App
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
 import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.PromiseOut
@@ -87,8 +92,12 @@ class DeskController(
           _activitySignal.emit()
         }
       }
-      preDesktopWindowsManager?.also {
-        dwm.allWindows.addAll(it.allWindows)
+      preDesktopWindowsManager?.also { preDwm ->
+        /// 窗口迁移
+        for (win in preDwm.allWindows.keys) {
+          preDwm.removeWindow(win)
+          dwm.addNewWindow(win)
+        }
         preDesktopWindowsManager = null
       }
       preDesktopWindowsManager = dwm
@@ -121,12 +130,27 @@ class DeskController(
     return this
   }
 
-  fun createMainDwebView() = DWebView(
-    activity ?: App.appContext, desktopNMM, DWebView.Options(
-      url = "",
-      onDetachedFromWindowStrategy = DWebView.Options.DetachedFromWindowStrategy.Ignore,
-    )
+  data class MainDwebView(
+    val name: String,
+    val webView: DWebView,
+    val state: WebViewState,
+    val navigator: WebViewNavigator
   )
+
+  val mainDwebViews = mutableMapOf<String, MainDwebView>()
+
+  fun createMainDwebView(name: String, initUrl: String = "") = mainDwebViews.getOrPut(name) {
+    val webView = DWebView(
+      activity ?: App.appContext, desktopNMM, DWebView.Options(
+        url = initUrl,
+        onDetachedFromWindowStrategy = DWebView.Options.DetachedFromWindowStrategy.Ignore,
+      )
+    );
+    val state = WebViewState(WebContent.Url(initUrl))
+    val coroutineScope = CoroutineScope(CoroutineName("desk/main-dwebview/$name"))
+    val navigator = WebViewNavigator(coroutineScope)
+    MainDwebView(name, webView, state, navigator)
+  }
 
   fun getDesktopUrl() = desktopServer.startResult.urlInfo.buildInternalUrl()
     .path("/desktop.html")

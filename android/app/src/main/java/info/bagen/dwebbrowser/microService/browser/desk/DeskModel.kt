@@ -11,7 +11,7 @@ val LocalOpenList = compositionLocalOf<MutableList<DeskAppMetaData>> {
   noLocalProvidedFor("LocalOpenList")
 }
 
-val LocalDesktopView = compositionLocalOf<DWebView> {
+val LocalDesktopView = compositionLocalOf<DeskController.MainDwebView> {
   noLocalProvidedFor("DesktopView")
 }
 

@@ -66,6 +66,7 @@ class TaskbarViewModel : ViewModel() {
     controller ?: throw Exception("taskBarController is null !!! ")
   }
   val taskbarDWebView by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+
     DWebView(
       context = App.appContext,
       remoteMM = taskBarController.desktopNMM,

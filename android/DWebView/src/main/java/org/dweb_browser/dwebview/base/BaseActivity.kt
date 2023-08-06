@@ -7,11 +7,15 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.SimpleCallback
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.runBlockingCatching
+import kotlin.coroutines.CoroutineContext
 
 abstract class BaseActivity : ComponentActivity() {
   private val queueResultLauncherRegistries = mutableListOf<() -> Unit>()
@@ -79,9 +83,9 @@ abstract class BaseActivity : ComponentActivity() {
   val onDestroyActivity = onDestroySignal.toListener()
 
   override fun onDestroy() {
-    lifecycleScope.launch(ioAsyncExceptionHandler) {
+    runBlockingCatching(ioAsyncExceptionHandler) {
       onDestroySignal.emit()
-    }
+    }.getOrThrow()
     super.onDestroy()
   }
 }
