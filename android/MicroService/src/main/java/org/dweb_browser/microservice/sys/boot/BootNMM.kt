@@ -49,7 +49,7 @@ class BootNMM(initMmids: List<MMID>? = null) :
     onActivity { (event, ipc) ->
       // 只响应 dns 模块的激活事件
       if (ipc.remote.mmid != "dns.std.dweb") {
-        return@onActivity null
+        return@onActivity
       }
       for (mmid in registeredMmids) {
         debugBoot("launch", mmid)

@@ -146,7 +146,7 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
             }
           }
           ipc.onClose {
-            off(Unit)
+            off()
             controller.close()
           }
         })
@@ -172,7 +172,7 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
             }
           }
           ipc.onClose {
-            off(Unit)
+            off()
             controller.close()
           }
         })

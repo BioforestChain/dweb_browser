@@ -7,6 +7,7 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.dwebview.some
 import org.dweb_browser.helper.ChangeableList
 import org.dweb_browser.helper.ChangeableSet
+import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.microservice.help.MMID
 import java.util.WeakHashMap
 import kotlin.math.sqrt
@@ -47,7 +48,6 @@ class DesktopWindowsManager(internal val activity: DesktopActivity) {
       if (changed) {
         winList.value = newWinList
       }
-      Unit;
     }
   }
 
@@ -58,7 +58,7 @@ class DesktopWindowsManager(internal val activity: DesktopActivity) {
   /// 初始化一些监听
   init {
     /// 创建成功，提供适配器来渲染窗口
-    val offAdapter = windowAdapterManager.append { winState ->
+    windowAdapterManager.append { winState ->
       activity.resources.displayMetrics.also { displayMetrics ->
         val displayWidth = displayMetrics.widthPixels / displayMetrics.density
         val displayHeight = displayMetrics.heightPixels / displayMetrics.density
@@ -130,9 +130,8 @@ class DesktopWindowsManager(internal val activity: DesktopActivity) {
 
       win
     }
-
-    /// Activity销毁的时候，移除窗口
-    activity.onDestroyActivity { offAdapter(Unit) }
+      /// Activity 销毁的时候，移除窗口适配器
+      .removeWhen(activity.onDestroyActivity)
   }
 
   private fun reOrderZIndex() {

@@ -12,6 +12,7 @@ import org.dweb_browser.microservice.help.MicroModuleManifest
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printdebugln
+import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.helper.IPC_ROLE
@@ -87,7 +88,7 @@ open class MessagePortIpc(
   }
 
   init {
-    val callback = port.onWebMessage { event ->
+    port.onWebMessage { event ->
       val ipc = this@MessagePortIpc
       when (val message = jsonToIpcMessage(event.data, ipc)) {
         "close" -> close()
@@ -99,8 +100,7 @@ open class MessagePortIpc(
         }
         else -> throw Exception("unknown message: $message")
       }
-    }
-    onDestroy(callback)
+    }.removeWhen(onDestroy)
 
   }
 

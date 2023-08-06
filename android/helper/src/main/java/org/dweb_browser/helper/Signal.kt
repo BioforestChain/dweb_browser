@@ -1,27 +1,15 @@
 package org.dweb_browser.helper
 
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.FlowCollector
-import kotlinx.coroutines.flow.cancellable
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.flow.consumeAsFlow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.mapLatest
-import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.receiveAsFlow
-import java.util.Collections.newSetFromMap
-import java.util.concurrent.ConcurrentHashMap
 
-typealias Callback<Args> = suspend (args: Args) -> Any?
-typealias SimpleCallback = Callback<Unit>
-typealias OffListener = (Unit) -> Boolean
+typealias Callback<Args> = suspend SignalController<Args>.(args: Args) -> Unit
+typealias SimpleCallback = suspend SignalController<Unit>.(Unit) -> Unit
+typealias OffListener = () -> Boolean
 
 /** 控制器 */
-enum class SIGNAL_CTOR {
+class SignalController<Args>(val args: Args, val offListener: () -> Unit, val breakEmit: () -> Unit)
+private enum class SIGNAL_CTOR {
   /**
    * 返回该值，会解除监听
    */
@@ -33,6 +21,7 @@ enum class SIGNAL_CTOR {
   BREAK, ;
 }
 
+
 open class Signal<Args> {
   private val listenerSet = mutableSetOf<Callback<Args>>();
 
@@ -43,42 +32,27 @@ open class Signal<Args> {
     return { off(cb) }
   }
 
-  fun toFlow() = channelFlow {
-    val off = listen {
-      send(it)
-    }
-    awaitClose {
-      off(Unit)
-    }
-  }
-
-  class Listener<Args>(val signal: Signal<Args>) {
-    operator fun invoke(cb: Callback<Args>) = signal.listen(cb)
-
-    fun toFlow() = signal.toFlow()
-  }
-
-  fun toListener() = Listener(this)
-
   @Synchronized
-  fun off(cb: Callback<Args>): Boolean {
-    return listenerSet.remove(cb)
-  }
+  private fun off(cb: Callback<Args>) = listenerSet.remove(cb)
 
   suspend fun emit(args: Args) {
-    val cbs = synchronized(listenerSet) { listenerSet.toSet() }
     // 这里拷贝一份，避免中通对其读写的时候出问题
+    val cbs = synchronized(listenerSet) { listenerSet.toSet() }
     _emit(args, cbs)
   }
 
   private suspend fun _emit(args: Args, cbs: Set<Callback<Args>>) {
-    // 这里拷贝一份，避免中通对其读写的时候出问题
+    var signal: SIGNAL_CTOR? = null
+    val ctx = SignalController(args, { signal = SIGNAL_CTOR.OFF }, { signal = SIGNAL_CTOR.BREAK })
     for (cb in cbs) {
       try {
-        when (cb(args)) {
+        cb.invoke(ctx, args)
+        when (signal) {
           SIGNAL_CTOR.OFF -> off(cb)
           SIGNAL_CTOR.BREAK -> break
+          else -> Unit
         }
+        signal = null
       } catch (e: Throwable) {
         e.printStackTrace()
       }
@@ -86,6 +60,7 @@ open class Signal<Args> {
   }
 
   suspend fun emitAndClear(args: Args) {
+    // 拷贝一份，然后立刻清理掉原来的
     val cbs = synchronized(listenerSet) {
       listenerSet.toSet().also {
         listenerSet.clear()
@@ -98,6 +73,22 @@ open class Signal<Args> {
   fun clear() {
     this.listenerSet.clear()
   }
+
+  fun toFlow() = channelFlow {
+    val off = listen { it ->
+      send(it)
+    }
+    awaitClose {
+      off()
+    }
+  }
+
+  class Listener<Args>(val signal: Signal<Args>) {
+    operator fun invoke(cb: Callback<Args>) = signal.listen(cb)
+    fun toFlow() = signal.toFlow()
+  }
+
+  fun toListener() = Listener(this)
 }
 
 
@@ -109,4 +100,12 @@ class SimpleSignal : Signal<Unit>() {
   suspend fun emitAndClear() {
     emitAndClear(Unit)
   }
+
+//  override fun listen(cb: SimpleCallback) = super.listen { _ -> cb.invoke(this) }
 };
+
+fun <T> OffListener.removeWhen(listener: Signal.Listener<T>) = this.also { off ->
+  listener {
+    off()
+  }
+}

@@ -4,6 +4,7 @@ import com.google.gson.reflect.TypeToken
 import org.dweb_browser.helper.decodeURIComponent
 import org.dweb_browser.helper.printdebugln
 import org.dweb_browser.helper.readByteArray
+import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.helper.toBase64Url
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
@@ -124,7 +125,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
       { _, gateway -> if (gateway == null) Response(Status.BAD_GATEWAY) else Response(Status.NOT_FOUND) })
 
     /// 为 nativeFetch 函数提供支持
-    _afterShutdownSignal.listen(nativeFetchAdaptersManager.append { fromMM, request ->
+    nativeFetchAdaptersManager.append { fromMM, request ->
       if ((request.uri.scheme == "http" || request.uri.scheme == "https") &&
         request.uri.host.endsWith(".dweb")
       ) {
@@ -138,7 +139,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
             .uri(request.uri.scheme("http").authority(dwebServer.authority))
         )
       } else null
-    });
+    }.removeWhen(onAfterShutdown);
 
     /// 模块 API 接口
     val query_dwebServerOptions = Query.composite {
@@ -253,7 +254,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
       streamIpc.close()
     }
     for (routeConfig in routes) {
-      streamIpc.onClose(gateway.listener.addRouter(routeConfig, streamIpc))
+      gateway.listener.addRouter(routeConfig, streamIpc).removeWhen(streamIpc.onClose)
     }
 
     return Response(Status.OK).body(streamIpc.stream)

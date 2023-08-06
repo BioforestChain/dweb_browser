@@ -13,7 +13,7 @@ import org.dweb_browser.helper.SimpleCallback
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 
-abstract class BaseActivity: ComponentActivity() {
+abstract class BaseActivity : ComponentActivity() {
   private val queueResultLauncherRegistries = mutableListOf<() -> Unit>()
 
   /**
@@ -76,7 +76,7 @@ abstract class BaseActivity: ComponentActivity() {
 
   private val onDestroySignal = SimpleSignal()
 
-  fun onDestroyActivity(cb: SimpleCallback) = onDestroySignal.listen(cb)
+  val onDestroyActivity = onDestroySignal.toListener()
 
   override fun onDestroy() {
     lifecycleScope.launch(ioAsyncExceptionHandler) {

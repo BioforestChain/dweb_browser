@@ -74,6 +74,8 @@ class DeskController(
     }
   val floatViewState: MutableState<Boolean> = mutableStateOf(true)
 
+  private var preDesktopWindowsManager: DesktopWindowsManager? = null
+
   /**
    * 窗口管理器
    */
@@ -84,6 +86,9 @@ class DeskController(
         if (dwm.activity == activity) {
           _activitySignal.emit()
         }
+      }
+      dwm.activity.onDestroyActivity {
+        preDesktopWindowsManager = dwm;
       }
     }
 

@@ -100,8 +100,8 @@ abstract class MicroModule : MicroModuleManifest() {
     }
   }
 
-  fun onAfterShutdown(cb: Callback<Unit>) = _afterShutdownSignal.listen(cb)
   protected val _afterShutdownSignal = SimpleSignal();
+  val onAfterShutdown = _afterShutdownSignal.toListener()
 
   /**
    * 连接池

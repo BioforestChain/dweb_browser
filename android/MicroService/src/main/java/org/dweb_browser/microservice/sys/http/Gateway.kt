@@ -19,7 +19,7 @@ class Gateway(
   ) {
     private val _routerSet = mutableSetOf<StreamIpcRouter>();
 
-    fun addRouter(config: RouteConfig, streamIpc: ReadableStreamIpc): (Unit) -> Boolean {
+    fun addRouter(config: RouteConfig, streamIpc: ReadableStreamIpc): () -> Boolean {
       val route = StreamIpcRouter(config, streamIpc);
       this._routerSet.add(route)
       return {

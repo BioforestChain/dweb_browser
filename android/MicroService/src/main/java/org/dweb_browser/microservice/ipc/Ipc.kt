@@ -96,9 +96,9 @@ abstract class Ipc {
 
   abstract suspend fun _doPostMessage(data: IpcMessage): Unit;
 
-  private fun <T:Any>_createSignal(): Signal<T> {
+  private fun <T : Any> _createSignal(): Signal<T> {
     val signal = Signal<T>()
-    this.onClose{
+    this.onClose {
       signal.clear()
     }
     return signal;
@@ -208,11 +208,11 @@ abstract class Ipc {
   val isClosed get() = _closed
 
   val closeSignal = SimpleSignal();
-  fun onClose(cb: SimpleCallback) = this.closeSignal.listen(cb)
+  val onClose = this.closeSignal.toListener()
 
 
   private val _destroySignal = SimpleSignal()
-  fun onDestroy(cb: SimpleCallback) = this._destroySignal.listen(cb)
+  val onDestroy = this._destroySignal.toListener()
 
   private var _destroyed = false
   val isDestroy get() = _destroyed

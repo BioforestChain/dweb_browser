@@ -31,10 +31,10 @@ fun MultiWebViewController.Render(modifier: Modifier = Modifier, initialScale: I
     DisposableEffect(webViewList) {
       val off = webViewList.onChange {
         list = it.toList()
-        return@onChange null;
+        return@onChange;
       }
       onDispose {
-        off(Unit)
+        off()
       }
     }
     list.forEach { viewItem ->

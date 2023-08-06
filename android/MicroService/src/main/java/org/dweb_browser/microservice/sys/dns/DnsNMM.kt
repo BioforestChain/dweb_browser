@@ -87,8 +87,10 @@ class DnsNMM() : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
                     connectResult.ipcForToMM,
                     connectResult.ipcForFromMM
                   );
-                  connectResult2.ipcForToMM?.onClose {
-                    mmConnectsMap.remove(mmKey2)
+                  connectResult2.ipcForToMM?.also {
+                    it.onClose {
+                      mmConnectsMap.remove(mmKey2)
+                    }
                   }
                   po2.resolve(connectResult2)
                 }
@@ -123,6 +125,7 @@ class DnsNMM() : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     override suspend fun search(category: MICRO_MODULE_CATEGORY): MutableList<MicroModuleManifest> {
       return dnsMM.search(category)
     }
+
     // 调用重启
     override suspend fun restart(mmid: MMID) {
       // 关闭后端连接
@@ -170,7 +173,7 @@ class DnsNMM() : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
      * 对全局的自定义路由提供适配器
      * 对 nativeFetch 定义 file://xxx.dweb的解析
      */
-    this.onAfterShutdown(nativeFetchAdaptersManager.append { fromMM, request ->
+    nativeFetchAdaptersManager.append { fromMM, request ->
       if (request.uri.scheme == "file" && request.uri.host.endsWith(".dweb")) {
         val mmid = request.uri.host
         debugFetch("DNS/nativeFetch", "$fromMM => ${request.uri}")
@@ -182,9 +185,9 @@ class DnsNMM() : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
           return@let fromIpc.request(request)
         } ?: Response(Status.BAD_GATEWAY).body(url)
       } else null
-    })
+    }.removeWhen(this.onAfterShutdown)
     /** dwebDeepLink 适配器*/
-    this.onAfterShutdown(nativeFetchAdaptersManager.append { fromMM, request ->
+    nativeFetchAdaptersManager.append { fromMM, request ->
       if (request.uri.scheme == "dweb" && request.uri.host == "") {
         debugFetch("DPLink/nativeFetch", "$fromMM => ${request.uri}")
         for (microModule in installApps) {
@@ -197,7 +200,7 @@ class DnsNMM() : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
         }
         return@append Response(Status.BAD_GATEWAY).body(request.uri.toString())
       } else null
-    })
+    }.removeWhen(this.onAfterShutdown)
 
 
     val query_app_id = Query.string().required("app_id")

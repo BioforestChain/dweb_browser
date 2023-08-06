@@ -35,7 +35,7 @@ abstract class NativeMicroModule(override val mmid: MMID, override val name: Str
   override val display: DisplayMode? = null
   override val orientation: String? = null
   override val screenshots: List<ImageResource>? = null
-  override val shortcuts: List<ShortcutItem>  = emptyList()
+  override val shortcuts: List<ShortcutItem> = emptyList()
   override val theme_color: String? = null
   override val background_color: String = "#ffffff"
 
@@ -69,7 +69,7 @@ abstract class NativeMicroModule(override val mmid: MMID, override val name: Str
   init {
     onConnect { (clientIpc) ->
       clientIpc.onRequest { (ipcRequest) ->
-        val routes = apiRouting ?: return@onRequest null;
+        val routes = apiRouting ?: return@onRequest;
         val routesWithContext = routes.withFilter(ipcApiFilter.then(Filter { next ->
           { next(it.with(requestContextKey_ipc of clientIpc)) }
         }));

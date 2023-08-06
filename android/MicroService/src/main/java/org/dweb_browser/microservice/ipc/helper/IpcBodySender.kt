@@ -11,6 +11,7 @@ import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.debugger
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printerrln
+import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.microservice.ipc.Ipc
 import java.io.InputStream
@@ -77,32 +78,32 @@ class IpcBodySender(
         }
 
         private val destroySignal = SimpleSignal()
-        fun onDestroy(cb: SimpleCallback) = destroySignal.listen(cb)
+        val onDestroy = destroySignal.toListener()
       }
 
       private val IpcUsableIpcBodyMap = WeakHashMap<Ipc, UsableIpcBodyMapper>()
       private fun Ipc.getUsableIpcBodyMap(): UsableIpcBodyMapper =
         IpcUsableIpcBodyMap.getOrPut(this) {
+          val ipc = this
           debugIpcBody("ipcBodySenderUsableByIpc/OPEN/$this")
           UsableIpcBodyMapper().also { mapper ->
-            val off = onStream { (message) ->
+            onStream { (message) ->
               when (message) {
-                is IpcStreamPulling -> mapper.get(message.stream_id)?.useByIpc(this)
+                is IpcStreamPulling -> mapper.get(message.stream_id)?.useByIpc(ipc)
                   ?.emitStreamPull(message)
 
-                is IpcStreamPaused -> mapper.get(message.stream_id)?.useByIpc(this)
+                is IpcStreamPaused -> mapper.get(message.stream_id)?.useByIpc(ipc)
                   ?.emitStreamPaused(message)
 
-                is IpcStreamAbort -> mapper.get(message.stream_id)?.useByIpc(this)
+                is IpcStreamAbort -> mapper.get(message.stream_id)?.useByIpc(ipc)
                   ?.emitStreamAborted()
 
                 else -> {}
               }
-            }
-            mapper.onDestroy(off)
+            }.removeWhen(mapper.onDestroy)
             mapper.onDestroy {
               debugIpcBody("ipcBodySenderUsableByIpc/CLOSE/$this")
-              IpcUsableIpcBodyMap.remove(this)
+              IpcUsableIpcBodyMap.remove(ipc)
             }
           }
         }

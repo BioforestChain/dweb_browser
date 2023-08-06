@@ -26,12 +26,12 @@ class TaskBarController(
     runningApps.onChange { map ->
       /// 将新增的打开应用追加到列表签名
       for (mmid in map.keys) {
-        if (!this._appList.contains(mmid)) {
-          this._appList.add(0, mmid) // 追加到第一个
+        if (!_appList.contains(mmid)) {
+          _appList.add(0, mmid) // 追加到第一个
         }
       }
       /// 保存到数据库
-      DeskStore.set(DeskStore.TASKBAR_APPS, this._appList)
+      DeskStore.set(DeskStore.TASKBAR_APPS, _appList)
       updateSignal.emit()
     }
 
@@ -87,8 +87,8 @@ class TaskBarController(
   private fun _resize(reSize: ReSize): ReSize {
     activity?.let {
       val view = it.window.decorView
-      debugDesktop("_resize","activitywidth=>${view.width} height=>${view.height}")
-      return ReSize(view.width,view.height)
+      debugDesktop("_resize", "activitywidth=>${view.width} height=>${view.height}")
+      return ReSize(view.width, view.height)
     }
     return ReSize(reSize.width, reSize.height)
   }
@@ -119,6 +119,7 @@ class TaskBarController(
         activityTask.resolve(value)
       }
     }
+
   fun getTaskbarUrl() = taskbarServer.startResult.urlInfo.buildInternalUrl().let {
     it.path("/taskbar.html")
       .query("api-base", taskbarServer.startResult.urlInfo.buildPublicUrl().toString())
