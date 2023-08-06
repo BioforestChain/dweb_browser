@@ -3,9 +3,7 @@ package info.bagen.dwebbrowser.microService.browser.mwebview
 import android.view.ViewGroup
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.SideEffect
@@ -15,7 +13,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import com.google.accompanist.web.WebView
@@ -85,6 +82,8 @@ fun MultiWebViewController.Render(modifier: Modifier = Modifier, initialScale: I
                 (parentView as ViewGroup).removeAllViews()
               }
               viewItem.webView.setBackgroundColor(Color.Transparent.toArgb())
+//            viewItem.webView.activity.resources.obtainAttributes() androidx.appcompat.R.attr.colorAccent
+//            viewItem.webView.resources.newTheme().obtainStyledAttributes(textColorHighlight )
               viewItem.webView
             },
             chromeClient = chromeClient,

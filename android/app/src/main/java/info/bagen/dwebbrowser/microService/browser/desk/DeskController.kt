@@ -87,9 +87,11 @@ class DeskController(
           _activitySignal.emit()
         }
       }
-      dwm.activity.onDestroyActivity {
-        preDesktopWindowsManager = dwm;
+      preDesktopWindowsManager?.also {
+        dwm.allWindows.addAll(it.allWindows)
+        preDesktopWindowsManager = null
       }
+      preDesktopWindowsManager = dwm
     }
 
   val currentInsets: MutableState<WindowInsetsCompat> by lazy {

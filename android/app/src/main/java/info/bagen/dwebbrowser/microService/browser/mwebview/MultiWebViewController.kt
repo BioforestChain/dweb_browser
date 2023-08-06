@@ -1,11 +1,13 @@
 package info.bagen.dwebbrowser.microService.browser.mwebview
 
+import androidx.appcompat.view.ContextThemeWrapper
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.platform.LocalDensity
 import com.google.accompanist.web.WebContent
 import com.google.accompanist.web.WebViewNavigator
 import com.google.accompanist.web.WebViewState
+import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.microService.core.WindowController
 import info.bagen.dwebbrowser.microService.core.windowAdapterManager
 import kotlinx.coroutines.CoroutineName
@@ -106,7 +108,7 @@ class MultiWebViewController(
   suspend fun createDwebView(url: String): DWebView = withContext(mainAsyncExceptionHandler) {
     val currentActivity = win.context;// App.appContext
     val dWebView = DWebView(
-      currentActivity, remoteMM, DWebView.Options(
+       ContextThemeWrapper(currentActivity, R.style.Theme_dwebbrowser), remoteMM, DWebView.Options(
         url = url,
         /// 我们会完全控制页面将如何离开，所以这里兜底默认为留在页面
         onDetachedFromWindowStrategy = DWebView.Options.DetachedFromWindowStrategy.Ignore,
