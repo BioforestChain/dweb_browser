@@ -1,4 +1,6 @@
 export type { $DeskAppMetaData as $WidgetAppData } from "../../../../types.ts";
+import type { $WindowState } from "../../../../types.ts";
+import type { $CommonAppManifest } from '../../../../../../core/types.ts'
 
 /**
  * 自定义组件名称
@@ -27,3 +29,13 @@ export interface $TileSize {
 }
 
 export type $TileSizeType = number | `${number}%`;
+
+
+
+export interface $DeskLinkMetaData extends $CommonAppManifest {
+  running: boolean;
+  /**
+   * 当前进程所拥有的窗口的状态
+   */
+  winStates: $WindowState[];
+}

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import wallpaper_url from "src/assets/wallpaper.webp";
 import { getWidgetInfo, watchDesktopAppInfo } from "src/provider/api.ts";
-import type { $TileSizeType, $WidgetAppData, $WidgetCustomData } from "src/types/app.type.ts";
+import type { $DeskLinkMetaData, $TileSizeType, $WidgetAppData, $WidgetCustomData } from "src/types/app.type.ts";
 import { Ref, StyleValue, onMounted, onUnmounted, ref } from "vue";
 import TileItem from "../components/tile-item/tile-item.vue";
 import TilePanel from "../components/tile-panel/tile-panel.vue";
@@ -13,6 +13,10 @@ type $LayoutInfo = (
   | {
       type: "app";
       data: $WidgetAppData;
+    }
+  | {
+      type: "link";
+      data: $DeskLinkMetaData;
     }
   | {
       type: "widget";
@@ -38,14 +42,19 @@ const layoutInfoListRef: Ref<$LayoutInfo[]> = ref([]);
 const updateApps = async () => {
   const widgetList = await getWidgetInfo();
 
+  let appList:$WidgetAppData[] =[]
+  updateLayoutInfoList(widgetList, appList);
+
   const appInfoWatcher = watchDesktopAppInfo();
-  onUnmounted(() => {
-    appInfoWatcher.return();
-  });
-  for await (const appList of appInfoWatcher) {
-    console.log("desktop AppList=>", appList);
-    updateLayoutInfoList(widgetList, appList);
-  }
+  void (async () => {
+    onUnmounted(() => {
+      appInfoWatcher.return();
+    });
+    for await (const list of appInfoWatcher) {
+      appList = list;
+      updateLayoutInfoList(widgetList, appList);
+    }
+  })();
 };
 const updateLayoutInfoList = (widgetList: $WidgetCustomData[], appList: $WidgetAppData[]) => {
   const layoutInfoList: $LayoutInfo[] = [];
