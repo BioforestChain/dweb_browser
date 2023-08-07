@@ -10,34 +10,39 @@ public class ChangeableList<T> : List<T>
     }
     protected Task _OnChangeEmit() => _changeSignal.Emit(this).ForAwait();
 
-    public new Task Clear()
+    public void OnChangeEmit()
+    {
+        _ = Task.Run(_OnChangeEmit).NoThrow();
+    }
+
+    public new void Clear()
     {
         base.Clear();
-        return _OnChangeEmit();
+        OnChangeEmit();
     }
 
-    public new Task AddRange(IEnumerable<T> collections)
+    public new void AddRange(IEnumerable<T> collections)
     {
         base.AddRange(collections);
-        return _OnChangeEmit();
+        OnChangeEmit();
     }
 
-    public new Task Add(T item)
+    public new void Add(T item)
     {
         base.Add(item);
-        return _OnChangeEmit();
+        OnChangeEmit();
     }
 
-    public new Task Insert(int index, T item)
+    public new void Insert(int index, T item)
     {
         base.Insert(index, item);
-        return _OnChangeEmit();
+        OnChangeEmit();
     }
 
-    public new Task InsertRange(int index, IEnumerable<T> collections)
+    public new void InsertRange(int index, IEnumerable<T> collections)
     {
         base.InsertRange(index, collections);
-        return _OnChangeEmit();
+        OnChangeEmit();
     }
 
     public T? LastOrNull()
@@ -45,36 +50,36 @@ public class ChangeableList<T> : List<T>
         return Count == 0 ? default : this[Count - 1];
     }
 
-    public new Task RemoveAt(int index)
+    public new void RemoveAt(int index)
     {
         base.RemoveAt(index);
-        return _OnChangeEmit();
+        OnChangeEmit();
     }
 
-    public async new Task<int> RemoveAll(Predicate<T> match)
+    public new int RemoveAll(Predicate<T> match)
     {
         if (base.RemoveAll(match) is var n && n > 0)
         {
-            await _OnChangeEmit();
+            OnChangeEmit();
         }
 
         return n;
     }
 
-    public async new Task<bool> Remove(T item)
+    public new bool Remove(T item)
     {
         if (base.Remove(item) is var suc && suc)
         {
-            await _OnChangeEmit();
+            OnChangeEmit();
         }
 
         return suc;
     }
 
-    public new Task RemoveRange(int index, int count)
+    public new void RemoveRange(int index, int count)
     {
         base.RemoveRange(index, count);
-        return _OnChangeEmit();
+        OnChangeEmit();
     }
 }
 
