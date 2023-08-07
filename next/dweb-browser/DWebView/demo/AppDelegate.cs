@@ -1,9 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Net;
-using System.Net.Http.Headers;
 using DwebBrowser.DWebView;
 using DwebBrowser.Helper;
-using DwebBrowser.MicroService;
 using DwebBrowser.MicroService.Core;
 using DwebBrowser.MicroService.Http;
 using DwebBrowser.MicroService.Message;
@@ -23,16 +21,11 @@ public class AppDelegate : UIApplicationDelegate
 
     class TestNMM : NativeMicroModule
     {
-        public TestNMM() : base("test.sys.dweb")
+        public TestNMM() : base("test.sys.dweb", "test")
         {
         }
 
         protected override Task _bootstrapAsync(IBootstrapContext bootstrapContext)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected override Task _onActivityAsync(IpcEvent Event, Ipc ipc)
         {
             throw new NotImplementedException();
         }
@@ -100,7 +93,7 @@ public class AppDelegate : UIApplicationDelegate
             }
             return null;
         });
-        NetServer.HttpCreateServer(new ListenOptions(20222), httpHanlder,async (x,y) => { });
+        NetServer.HttpCreateServer(new ListenOptions(20222), httpHanlder, async (x, y) => { });
         var dwebview = new DWebView(vc.View?.Frame, localeNmm, localeNmm, new DWebView.Options("https://test.sys.dweb/index.html"), null);
         vc.View!.AddSubview(dwebview);
 

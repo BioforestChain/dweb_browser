@@ -1,4 +1,7 @@
-﻿namespace DwebBrowserIOSUnitTest;
+﻿using Foundation;
+using UIKit;
+
+namespace DwebBrowserIOSUnitTest;
 
 [Register ("SceneDelegate")]
 public class SceneDelegate : UIResponder, IUIWindowSceneDelegate {

@@ -5,14 +5,13 @@ namespace DwebBrowser.HelperTests;
 public class UnitTest
 {
 	[Fact]
-	public Unit UnitTypeTest()
+	public void UnitTypeTest()
 	{
 		Assert.IsType<Unit>(Unit.Default);
-		return Unit.Default;
 	}
 
 	[Fact]
-	public async Task<Unit> PromiseOutUnitTypeTest_Returns()
+	public async Task PromiseOutUnitTypeTest_Returns()
 	{
 		var po = new PromiseOut<Unit>();
 
@@ -25,8 +24,6 @@ public class UnitTest
 		var res = await po.WaitPromiseAsync();
 
 		Assert.Equal(Unit.Default, res);
-
-        return res;
 	}
 
 	public struct UnitType

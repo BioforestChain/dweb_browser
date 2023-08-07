@@ -1,5 +1,6 @@
-﻿//using System.Diagnostics;
-using DwebBrowser.Helper;
+﻿using DwebBrowser.Helper;
+using Foundation;
+using UIKit;
 
 namespace DwebBrowserIOSUnitTest;
 
