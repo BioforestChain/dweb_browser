@@ -884,10 +884,10 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
-				DEVELOPMENT_TEAM = F9M4UWUYYN;
+				DEVELOPMENT_TEAM = 4KP4982NW2;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "DWeb Browser";
+				INFOPLIST_KEY_CFBundleDisplayName = "DWeb Browser ";
 				INFOPLIST_KEY_NSCameraUsageDescription = "We need to access your camera for scanning QR code";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -900,7 +900,7 @@
 				);
 				MARKETING_VERSION = 1.0;
 				OTHER_SWIFT_FLAGS = "-D DwebBrowser";
-				PRODUCT_BUNDLE_IDENTIFIER = D.E.C.DwebBrowser;
+				PRODUCT_BUNDLE_IDENTIFIER = com.instinctii.dd;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -920,10 +920,10 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
-				DEVELOPMENT_TEAM = F9M4UWUYYN;
+				DEVELOPMENT_TEAM = 4KP4982NW2;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "DWeb Browser";
+				INFOPLIST_KEY_CFBundleDisplayName = "DWeb Browser ";
 				INFOPLIST_KEY_NSCameraUsageDescription = "We need to access your camera for scanning QR code";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -936,7 +936,7 @@
 				);
 				MARKETING_VERSION = 1.0;
 				OTHER_SWIFT_FLAGS = "-D DwebBrowser";
-				PRODUCT_BUNDLE_IDENTIFIER = D.E.C.DwebBrowser;
+				PRODUCT_BUNDLE_IDENTIFIER = com.instinctii.dd;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;

@@ -15,7 +15,7 @@ func printWithDate(msg: String = "") {
     let formatter = DateFormatter()
     formatter.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS"
     let dateString = formatter.string(from: date)
-    print(dateString + "--" + msg)
+    print("~~~~" + dateString + "--" + msg)
 }
 
 extension View {

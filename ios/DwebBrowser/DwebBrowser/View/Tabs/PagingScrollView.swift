@@ -40,9 +40,8 @@ struct PagingScrollView: View {
                                             SearchTypingView()
                                         }
                                     }
-                                }
-                                else {
-                                    Rectangle().fill(Color.clear)
+                                } else {
+                                    Rectangle().fill(Color.blue)
                                         .frame(height: geometry.size.height - addressBarH)
                                         .gesture(disabledDragGesture)
                                 }
@@ -51,15 +50,34 @@ struct PagingScrollView: View {
                             AddressBar(index: index, webWrapper: WebWrapperMgr.shared.store[index], webCache: WebCacheMgr.cache(at: index))
                                 .environmentObject(keyboard)
                                 .frame(height: addressBarH)
-                                .background(Color.bkColor)
+//                                .background(Color.bkColor)
+                                .background(.green)
+
                                 .offset(y: addressbarOffset)
                                 .animation(.default, value: addressbarOffset)
                                 .gesture(addressBar.isFocused ? disabledDragGesture : nil) // 根据状态变量决定是否启用拖拽手势
                                 .onChange(of: addressBar.shouldDisplay) { dispaly in
                                     addressbarOffset = dispaly ? 0 : addressBarH
                                 }
+
                                 .onChange(of: keyboard.height) { height in
-                                    addressbarOffset = -height
+                                    if #available(iOS 16.3, *) {
+                                        
+                                        
+                                        printWithDate(msg: "observed keyboard height has changed")
+                                        
+#if !DwebBrowser
+                                        printWithDate(msg: "now we are in C#########")
+                                        if index == selectedTab.curIndex {
+                                            if height == 0 {
+                                                addressbarOffset = 0
+                                            } else {
+                                                addressbarOffset = -height
+                                            }
+                                            printWithDate(msg: "addressbarOffset is \(addressbarOffset)")
+                                        }
+#endif
+                                    }
                                 }
                         }
                         .frame(width: screen_width)

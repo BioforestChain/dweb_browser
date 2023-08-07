@@ -21,8 +21,9 @@ struct AddressBar: View {
 
     @FocusState var isAdressBarFocused: Bool
     @State private var inputText: String = ""
+    @State private var keyboardHeight: CGFloat = 0
 
-    private var isVisible: Bool { return WebWrapperMgr.shared.store.firstIndex(of: webWrapper) == selectedTab.curIndex }
+    private var isVisible: Bool { index == selectedTab.curIndex }
     private var shouldShowProgress: Bool { webWrapper.estimatedProgress > 0.0 && webWrapper.estimatedProgress < 1.0 && !addressBar.isFocused }
     private var domainString: String { webCache.isBlank() ? addressbarHolder : webCache.lastVisitedUrl.getDomain() }
     var body: some View {
@@ -34,6 +35,7 @@ struct AddressBar: View {
                     progressV
                 }
                 .padding(.horizontal)
+                .background(.orange)
 
             HStack {
                 if isAdressBarFocused, !inputText.isEmpty {
@@ -87,11 +89,20 @@ struct AddressBar: View {
             .opacity(isAdressBarFocused ? 1 : 0)
 
             .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { notify in
-                guard let value = notify.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else { return }
-                keyboard.height = value.height - safeAreaBottomHeight
+//                ConsoleSwift.inject("recieved keyboardWillShowNotification")
+                if isVisible{
+                    guard let value = notify.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else { return }
+                    keyboard.height = value.height
+                    printWithDate(msg: "recieved keyboardWillShowNotification, height = \(value.height)")
+                }
             }
             .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
-                keyboard.height = 0
+                if isVisible{
+
+                    keyboard.height = 0
+                    printWithDate(msg: "recieved keyboardWillHideNotification")
+                    //                ConsoleSwift.inject("recieved keyboardWillHideNotification")
+                }
             }
 
             .onAppear {
@@ -100,10 +111,14 @@ struct AddressBar: View {
             .onChange(of: webCache.lastVisitedUrl) { url in
                 inputText = url.absoluteString
             }
-            .onChange(of: isAdressBarFocused, perform: { isFocued in
-                addressBar.isFocused = isFocued
+            .onChange(of: isAdressBarFocused, perform: { isFocused in
+                printWithDate(msg: " isAdressBarFocused onChange:\(isFocused)")
+
+                addressBar.isFocused = isFocused
             })
             .onChange(of: addressBar.isFocused) { isFocused in
+                printWithDate(msg: " addressBar.isFocused onChange:\(isFocused)")
+
                 if !isFocused, isVisible {
                     isAdressBarFocused = isFocused
                     if addressBar.inputText.isEmpty { // 点击取消按钮
@@ -112,6 +127,7 @@ struct AddressBar: View {
                 }
             }
             .onSubmit {
+//                ConsoleSwift.inject("OnSubmit")
                 let url = URL.createUrl(inputText)
                 DispatchQueue.main.async {
                     let webcache = WebCacheMgr.shared.store[index]
