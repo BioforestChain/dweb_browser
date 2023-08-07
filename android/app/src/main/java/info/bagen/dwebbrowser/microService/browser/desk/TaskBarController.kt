@@ -75,7 +75,7 @@ class TaskBarController(
   private fun _resize(reSize: ReSize): ReSize {
     activity?.let {
       val view = it.window.decorView
-      debugDesktop("_resize", "activitywidth=>${view.width} height=>${view.height}")
+      debugDesk("_resize", "activitywidth=>${view.width} height=>${view.height}")
       return ReSize(view.width, view.height)
     }
     return ReSize(reSize.width, reSize.height)

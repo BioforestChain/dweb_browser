@@ -4,44 +4,34 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlin.coroutines.CoroutineContext
 
 @OptIn(DelicateCoroutinesApi::class)
-class ChangeableList<T>(private val scope: CoroutineScope = GlobalScope) : ArrayList<T>() {
-  private val _changeSignal = Signal<ChangeableList<T>>()
-
-  val onChange = _changeSignal.toListener()
-
-  fun emitChange() = scope.launch(ioAsyncExceptionHandler) {
-    _changeSignal.emit(this@ChangeableList)
-  }
-
+class ChangeableList<T>(context: CoroutineContext = ioAsyncExceptionHandler) :
+  ArrayList<T>() {
+  private val changeable = Changeable(this, context)
+  val onChange = changeable.onChange
+  val watch = changeable.watch
+  suspend fun emitChange() = changeable.emitChange()
 
   override fun clear() {
-    super.clear()
-    emitChange()
+    return super.clear().also { changeable.emitChangeSync() }
   }
 
   override fun addAll(elements: Collection<T>): Boolean {
-    val handle = super.addAll(elements)
-    emitChange()
-    return handle
+    return super.addAll(elements).also { if (it) changeable.emitChangeSync() }
   }
 
   override fun addAll(index: Int, elements: Collection<T>): Boolean {
-    val handle = super.addAll(index, elements)
-    emitChange()
-    return handle
+    return super.addAll(index, elements).also { if (it) changeable.emitChangeSync() }
   }
 
   override fun add(index: Int, element: T) {
-    super.add(index, element)
-    emitChange()
+    return super.add(index, element).also { changeable.emitChangeSync() }
   }
 
   override fun add(element: T): Boolean {
-    val handle = super.add(element)
-    emitChange()
-    return handle
+    return super.add(element).also { if (it) changeable.emitChangeSync() }
   }
 
   fun lastOrNull(): T? {
@@ -49,39 +39,28 @@ class ChangeableList<T>(private val scope: CoroutineScope = GlobalScope) : Array
   }
 
   override fun removeAt(index: Int): T {
-    val item = super.removeAt(index)
-    emitChange()
-    return item
+    return super.removeAt(index).also { changeable.emitChangeSync() }
   }
 
   override fun set(index: Int, element: T): T {
-    val item = super.set(index, element)
-    emitChange()
-    return item
+    return super.set(index, element).also { changeable.emitChangeSync() }
   }
 
   override fun retainAll(elements: Collection<T>): Boolean {
-    val boolean = super.retainAll(elements)
-    if (boolean) {
-      emitChange()
-    }
-    return boolean
+    return super.retainAll(elements).also { if (it) changeable.emitChangeSync() }
   }
 
   override fun removeAll(elements: Collection<T>): Boolean {
-    val boolean = super.removeAll(elements)
-    if (boolean) {
-      emitChange()
-    }
-    return boolean
+    return super.removeAll(elements).also { if (it) changeable.emitChangeSync() }
   }
 
   override fun remove(element: T): Boolean {
-    val boolean = super.remove(element)
-    if (boolean) {
-      emitChange()
-    }
-    return boolean
+    return super.remove(element).also { if (it) changeable.emitChangeSync() }
   }
 
+  /** 重置 清空所有的事件监听，清空所有的数据  */
+  fun reset() {
+    changeable.signal.clear()
+    this.clear()
+  }
 }

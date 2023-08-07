@@ -24,6 +24,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import info.bagen.dwebbrowser.base.WindowInsetsHelper
 import info.bagen.dwebbrowser.microService.browser.desk.DesktopWindowController
 import info.bagen.dwebbrowser.microService.browser.desk.Float
+import info.bagen.dwebbrowser.microService.browser.desk.debugDesk
 import info.bagen.dwebbrowser.microService.core.windowAdapterManager
 import kotlinx.coroutines.launch
 import kotlin.math.max
@@ -56,11 +58,14 @@ fun DesktopWindowController.Render(
 ) {
   val win = this;
   var winState by remember { mutableStateOf(win.state, neverEqualPolicy()) }
-  LaunchedEffect(win.state) {
-    launch {
-      winState.onChange.toFlow().collect {
-        winState = win.state;
-      }
+  DisposableEffect(win.state) {
+    debugDesk("DesktopWindowController.Render", "start watch win.state")
+    val off = win.state.onChange {
+      winState = win.state;
+    }
+    onDispose {
+      debugDesk("DesktopWindowController.Render", "stop watch win.state")
+      off()
     }
   }
   val coroutineScope = rememberCoroutineScope()

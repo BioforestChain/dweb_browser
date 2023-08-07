@@ -1,15 +1,13 @@
 package info.bagen.dwebbrowser.microService.browser.desk
 
-import android.view.WindowInsetsController
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.lifecycleScope
 import info.bagen.dwebbrowser.microService.core.windowAdapterManager
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.dweb_browser.dwebview.some
-import org.dweb_browser.helper.ChangeableList
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.ChangeableSet
+import org.dweb_browser.helper.OffListener
 import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.microservice.help.MMID
 import java.util.WeakHashMap
@@ -37,7 +35,8 @@ class DesktopWindowsManager(internal val activity: DesktopActivity) {
   /**
    * 存储最大化的窗口
    */
-  val hasMaximizedWins = ChangeableSet<DesktopWindowController>()
+  val hasMaximizedWins =
+    ChangeableSet<DesktopWindowController>(activity.lifecycleScope.coroutineContext)
 
   /**
    * 窗口在管理时说需要的一些状态机
@@ -45,8 +44,11 @@ class DesktopWindowsManager(internal val activity: DesktopActivity) {
   data class InManageState(val doDestroy: () -> Unit)
 
   internal val allWindows =
-    ChangeableMap<DesktopWindowController, InManageState>(activity.lifecycleScope).also {
+    ChangeableMap<DesktopWindowController, InManageState>(activity.lifecycleScope.coroutineContext).also {
       it.onChange { wins ->
+        if (wins.keys.size == 0) {
+          return@onChange
+        }
         /// 从小到大排序
         val newWinList = wins.keys.toList().sortedBy { win -> win.state.zIndex };
         var changed = false
@@ -61,6 +63,10 @@ class DesktopWindowsManager(internal val activity: DesktopActivity) {
         }
         if (changed) {
           winList.value = newWinList
+        }
+      }.also { off ->
+        activity.onDestroyActivity {
+          off()
         }
       }
     }
@@ -116,50 +122,50 @@ class DesktopWindowsManager(internal val activity: DesktopActivity) {
    */
   internal fun addNewWindow(win: DesktopWindowController) {
     /// 对窗口做一些启动准备
-    val jobs = activity.lifecycleScope.launch {
-      launch {
-        win.onFocus.toFlow().collect {
-          if (lastFocusedWin != win) {
-            lastFocusedWin?.blur()
-            lastFocusedWin = win;
-            moveToTop(win)
-          }
-        }
+    val offListenerList = mutableListOf<OffListener>()
+    offListenerList += win.onFocus {
+      if (lastFocusedWin != win) {
+        lastFocusedWin?.blur()
+        lastFocusedWin = win;
+        moveToTop(win)
       }
-      /// 如果窗口释放聚焦，那么释放引用
-      launch {
-        win.onBlur.toFlow().collect {
-          if (lastFocusedWin == win) {
-            lastFocusedWin = null
-          }
-        }
+    }
+    /// 如果窗口释放聚焦，那么释放引用
+    offListenerList += win.onBlur {
+      if (lastFocusedWin == win) {
+        lastFocusedWin = null
       }
-      launch {
-        win.onMaximize {
-          hasMaximizedWins.add(win)
-        }
-        win.onUnMaximize {
-          hasMaximizedWins.remove(win)
-        }
-        win.onDestroy {
-          hasMaximizedWins.remove(win)
-        }
+    }
+    offListenerList += win.onMaximize {
+      debugDesk("maximized")
+      hasMaximizedWins.add(win)
+    }
+    offListenerList += win.onUnMaximize {
+      debugDesk("unmaximized")
+      hasMaximizedWins.remove(win)
+    }
+    /// 立即执行
+    if (win.isMaximized()) {
+      hasMaximizedWins.add(win)
+    }
+    /// 窗口销毁的时候，做引用释放
+    offListenerList += win.onDestroy {
+      removeWindow(win)
+    }
+    /// 存储窗口与它的 状态机（销毁函数）
+    allWindows[win] = InManageState {
+      for (off in offListenerList) {
+        off()
       }
     }
     /// 第一次装载窗口，默认将它聚焦到最顶层
     focus(win)
-    /// 窗口销毁的时候，做引用释放
-    val off = win.onDestroy {
-      removeWindow(win)
-    }
-    allWindows[win] = InManageState {
-      jobs.cancel()
-      off()
-    }
   }
 
   internal fun removeWindow(win: DesktopWindowController) =
     allWindows.remove(win)?.let { inManageState ->
+      hasMaximizedWins.remove(win)
+
       inManageState.doDestroy()
       true
     } ?: false
@@ -168,7 +174,7 @@ class DesktopWindowsManager(internal val activity: DesktopActivity) {
     for ((index, win) in allWindows.keys.toList().sortedBy { it.state.zIndex }.withIndex()) {
       win.state.zIndex = index
     }
-    allWindows.emitChange()
+    allWindows.emitChangeSync()
   }
 
   /**

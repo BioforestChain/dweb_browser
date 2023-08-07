@@ -1,7 +1,10 @@
 package org.dweb_browser.helper
 
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.launch
+import kotlin.coroutines.CoroutineContext
 
 typealias Callback<Args> = suspend SignalController<Args>.(args: Args) -> Unit
 typealias SimpleCallback = suspend SignalController<Unit>.(Unit) -> Unit
@@ -23,10 +26,12 @@ private enum class SIGNAL_CTOR {
 
 
 open class Signal<Args> {
-  private val listenerSet = mutableSetOf<Callback<Args>>();
+  protected val listenerSet = mutableSetOf<Callback<Args>>();
+
+  val size get() = listenerSet.size
 
   @Synchronized
-  fun listen(cb: Callback<Args>): OffListener {
+  open fun listen(cb: Callback<Args>): OffListener {
     // TODO emit 时的cbs 应该要同步进行修改？
     listenerSet.add(cb)
     return { off(cb) }
@@ -35,13 +40,13 @@ open class Signal<Args> {
   @Synchronized
   private fun off(cb: Callback<Args>) = listenerSet.remove(cb)
 
-  suspend fun emit(args: Args) {
+  open suspend fun emit(args: Args) {
     // 这里拷贝一份，避免中通对其读写的时候出问题
     val cbs = synchronized(listenerSet) { listenerSet.toSet() }
     _emit(args, cbs)
   }
 
-  private suspend fun _emit(args: Args, cbs: Set<Callback<Args>>) {
+  protected suspend fun _emit(args: Args, cbs: Set<Callback<Args>>) {
     var signal: SIGNAL_CTOR? = null
     val ctx = SignalController(args, { signal = SIGNAL_CTOR.OFF }, { signal = SIGNAL_CTOR.BREAK })
     for (cb in cbs) {
@@ -85,10 +90,45 @@ open class Signal<Args> {
 
   class Listener<Args>(val signal: Signal<Args>) {
     operator fun invoke(cb: Callback<Args>) = signal.listen(cb)
+
+    /**
+     * 立即执行
+     */
+    suspend operator fun invoke(firstValue: Args, cb: Callback<Args>) = signal.listen(cb).also {
+      signal._emit(firstValue, setOf(cb))
+    }
+
     fun toFlow() = signal.toFlow()
   }
 
   fun toListener() = Listener(this)
+}
+
+/**
+ * 有状态的监听器
+ */
+class StatefulSignal<Args>(var state: Args, private val context: CoroutineContext) :
+  Signal<Args>() {
+  override fun listen(cb: Callback<Args>) = super.listen(cb).also {
+    /// 立即执行
+    runBlockingCatching(context) {
+      _emit(state, setOf(cb))
+    }.getOrThrow()
+  }
+
+
+  override suspend fun emit(args: Args) {
+    state = args
+    super.emit(args)
+  }
+
+  fun emitBlocking(args: Args) {
+    runBlockingCatching(context) {
+      _emit(state, listenerSet)
+    }.getOrThrow()
+  }
+
+  fun toWatcher() = toListener()
 }
 
 

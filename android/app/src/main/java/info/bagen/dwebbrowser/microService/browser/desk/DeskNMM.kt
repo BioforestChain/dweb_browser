@@ -2,7 +2,6 @@ package info.bagen.dwebbrowser.microService.browser.desk
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.browser.jmm.EIpcEvent
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
@@ -28,11 +27,6 @@ import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Response
 import org.http4k.core.Status
-import org.http4k.core.then
-import org.http4k.filter.AllowAll
-import org.http4k.filter.CorsPolicy
-import org.http4k.filter.OriginPolicy
-import org.http4k.filter.ServerFilters
 import org.http4k.lens.Query
 import org.http4k.lens.composite
 import org.http4k.lens.int
@@ -41,8 +35,8 @@ import org.http4k.routing.bind
 import org.http4k.routing.routes
 import java.util.UUID
 
-fun debugDesktop(tag: String, msg: Any? = "", err: Throwable? = null) =
-  printdebugln("Desktop", tag, msg, err)
+fun debugDesk(tag: String, msg: Any? = "", err: Throwable? = null) =
+  printdebugln("desk", tag, msg, err)
 
 class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
   override val categories =
@@ -94,7 +88,7 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
       },
       "/openAppOrActivate" bind Method.GET to defineHandler { request ->
         val mmid = queryAppId(request)
-        debugDesktop("/openAppOrActivate", mmid)
+        debugDesk("/openAppOrActivate", mmid)
         try {
           val ipc = runningApps[mmid] ?: connect(mmid)
           ipc.postMessage(IpcEvent.fromUtf8(EIpcEvent.Activity.event, ""))
@@ -130,7 +124,7 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
         return@defineHandler closed
       },
       "/desktop/apps" bind Method.GET to defineHandler { _ ->
-        debugDesktop("/desktop/apps", deskController.getDesktopApps())
+        debugDesk("/desktop/apps", deskController.getDesktopApps())
         return@defineHandler deskController.getDesktopApps()
       },
       "/desktop/observe/apps" bind Method.GET to defineHandler { _, ipc ->
@@ -159,7 +153,7 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
       },
       "/taskbar/observe/apps" bind Method.GET to defineHandler { request, ipc ->
         val limit = queryLimit(request) ?: Int.MAX_VALUE
-        debugDesktop("/taskbar/observe/apps", limit)
+        debugDesk("/taskbar/observe/apps", limit)
         val inputStream = ReadableStream(onStart = { controller ->
           val off = taskBarController.onUpdate {
             try {
@@ -180,7 +174,7 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
         return@defineHandler Response(Status.OK).body(inputStream)
       },
       "/taskbar/observe/status" bind Method.GET to defineHandler { _, ipc ->
-        debugDesktop("/taskbar/observe/status")
+        debugDesk("/taskbar/observe/status")
         val inputStream = ReadableStream(onStart = { controller ->
           val off = taskBarController.onStatus { status ->
             try {
@@ -203,7 +197,7 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
       "/taskbar/resize" bind Method.GET to defineHandler { request ->
         val size = queryResize(request)
         val result = taskBarController.resize(size)
-        debugDesktop("/taskbar/resize", "$size $result")
+        debugDesk("/taskbar/resize", "$size $result")
         return@defineHandler result
       },
       "/taskbar/toggle-desktop-view" bind Method.GET to defineHandler { request ->

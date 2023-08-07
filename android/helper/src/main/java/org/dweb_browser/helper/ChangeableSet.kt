@@ -1,37 +1,31 @@
 package org.dweb_browser.helper
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import kotlin.coroutines.CoroutineContext
 
-class ChangeableSet<E>(private val scope: CoroutineScope = GlobalScope) : LinkedHashSet<E>() {
-  private val _changeSignal = Signal<ChangeableSet<E>>()
-  val onChange = _changeSignal.toListener()
-  fun emitChange() = scope.launch(ioAsyncExceptionHandler) {
-    _changeSignal.emit(this@ChangeableSet)
-  }
+class ChangeableSet<E>(context: CoroutineContext = ioAsyncExceptionHandler) :
+  LinkedHashSet<E>() {
+  private val changeable = Changeable(this, context)
+  val onChange = changeable.onChange
+  val watch = changeable.watch
+  suspend fun emitChange() = changeable.emitChange()
 
-  override fun add(element: E): Boolean {
-    return super.add(element).also { if (it) emitChange() }
-  }
+  override fun add(element: E) = super.add(element).also { if (it) changeable.emitChangeSync() }
+  override fun clear() = super.clear().also { changeable.emitChangeSync() }
+  override fun remove(element: E) =
+    super.remove(element).also { if (it) changeable.emitChangeSync() }
 
-  override fun clear() {
-    return super.clear().also { emitChange() }
-  }
+  override fun addAll(elements: Collection<E>) =
+    super.addAll(elements).also { if (it) changeable.emitChangeSync() }
 
-  override fun remove(element: E): Boolean {
-    return super.remove(element).also { if (it) emitChange() }
-  }
+  override fun removeAll(elements: Collection<E>) =
+    super.removeAll(elements).also { if (it) changeable.emitChangeSync() }
 
-  override fun addAll(elements: Collection<E>): Boolean {
-    return super.addAll(elements).also { if (it) emitChange() }
-  }
+  override fun retainAll(elements: Collection<E>) =
+    super.retainAll(elements).also { if (it) changeable.emitChangeSync() }
 
-  override fun removeAll(elements: Collection<E>): Boolean {
-    return super.removeAll(elements).also { if (it) emitChange() }
-  }
-
-  override fun retainAll(elements: Collection<E>): Boolean {
-    return super.retainAll(elements).also { if (it) emitChange() }
+  /** 重置 清空所有的事件监听，清空所有的数据  */
+  fun reset() {
+    changeable.signal.clear()
+    this.clear()
   }
 }
