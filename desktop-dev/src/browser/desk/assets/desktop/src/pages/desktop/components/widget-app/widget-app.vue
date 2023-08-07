@@ -6,7 +6,7 @@ import SvgIcon from "src/components/svg-icon/svg-icon.vue";
 import { openApp, quitApp, vibrateHeavyClick } from "src/provider/api.ts";
 import { $CloseWatcher, CloseWatcher } from "src/provider/shim.ts";
 import type { $WidgetAppData } from "src/types/app.type.ts";
-import { computed, onMounted, reactive, ref, shallowRef, watchEffect } from "vue";
+import { computed, onMounted, reactive, ref, shallowRef, watch, watchEffect } from "vue";
 import AppUnInstallDialog from "../app-uninstall-dialog/app-uninstall-dialog.vue";
 import { ownReason, showOverlay } from "../widget-menu-overlay/widget-menu-overlay.vue";
 import delete_svg from "./delete.svg";
@@ -39,10 +39,10 @@ const props = defineProps({
 const appid = computed(() => props.appMetaData.mmid);
 const appname = computed(() => props.appMetaData.short_name ?? props.appMetaData.name);
 const appicon = shallowRef<$AppIconInfo>({ src: "", monochrome: false, markable: false });
+watch(()=> props.appMetaData.icons,()=> {
+  watchEffectAppMetadataToAppIcon({ metaData: props.appMetaData }, appicon);
+})
 watchEffectAppMetadataToAppIcon({ metaData: props.appMetaData }, appicon);
-watchEffect(() => {
-  console.log("widget-app/appicon", appicon.value);
-});
 
 const opening = ref(false);
 const closing = ref(false);
@@ -93,6 +93,7 @@ async function doOpen() {
     snackbar.type = "error";
     snackbar.show = true;
   }
+  opening.value = false;
 }
 
 async function doQuit() {

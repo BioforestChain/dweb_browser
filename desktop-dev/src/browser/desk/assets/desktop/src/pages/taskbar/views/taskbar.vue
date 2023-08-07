@@ -128,11 +128,6 @@ const iconSize = "45px";
 // window.addEventListener('focus',async function() {
 //   // setTaskBarScope()
 // });
-
-// // 失去焦点时
-// window.addEventListener('blur', function() {
-//   setTaskBarScope()
-// });
 // const setTaskBarScope = async () => {
 //   const resizedSize = await resizeTaskbar(window.outerWidth, window.outerWidth);
 //   console.log('webview setTaskBarScope',resizedSize.height,resizedSize.width); 

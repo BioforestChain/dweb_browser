@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.ViewGroup
-import android.view.WindowManager
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.ui.viewinterop.AndroidView
