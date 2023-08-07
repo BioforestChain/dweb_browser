@@ -32,7 +32,8 @@ struct MenuView: View {
                     MenuCell(title: titles[index], imageName: imagesNames[index])
                 }
                 .sheet(isPresented: $isShare) {
-                    ActivityViewController(urlString: emptyLink)
+                    let webCache = WebCacheMgr.shared.store[selectedTab.curIndex]
+                    ActivityViewController(urlString: webCache.lastVisitedUrl.absoluteString)
                 }
             }
             
@@ -82,7 +83,7 @@ struct MenuView: View {
     private func alertAnimation() {
         isAlert.toggle()
         withAnimation {
-            offsetY = 100
+            offsetY = safeAreaBottomHeight
         }
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
