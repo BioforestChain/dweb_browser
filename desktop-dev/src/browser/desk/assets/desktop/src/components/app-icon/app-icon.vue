@@ -34,10 +34,6 @@ const bg_image = computed(() => {
     return `linear-gradient(to bottom, ${props.bgColor}, ${props.bgColor})`;
   }
 });
-
-// watchEffect(() => {
-//   console.log("var_src:", icon_css.value, props.icon);
-// });
 </script>
 
 <template>

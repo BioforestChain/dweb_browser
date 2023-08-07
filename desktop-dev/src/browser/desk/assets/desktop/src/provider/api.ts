@@ -1,4 +1,4 @@
-import { $WidgetAppData, $WidgetCustomData } from "../types/app.type.ts";
+import { $TaskBarState, $WidgetAppData, $WidgetCustomData } from "../types/app.type.ts";
 import { searchWidget } from "./custom/search.widget.ts";
 import { nativeFetch, nativeFetchStream } from "./fetch.ts";
 
@@ -25,6 +25,10 @@ export function watchDesktopAppInfo() {
 }
 export function watchTaskbarAppInfo() {
   return nativeFetchStream<$WidgetAppData[]>("/taskbar/observe/apps");
+}
+
+export function watchTaskBarStatus() {
+  return nativeFetchStream<$TaskBarState>("/taskbar/observe/status");
 }
 
 export async function getWidgetInfo() {

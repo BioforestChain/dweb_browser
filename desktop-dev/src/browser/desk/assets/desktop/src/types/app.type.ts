@@ -1,6 +1,15 @@
 export type { $DeskAppMetaData as $WidgetAppData } from "../../../../types.ts";
+import type { $CommonAppManifest } from '../../../../../../core/types.ts';
 import type { $WindowState } from "../../../../types.ts";
-import type { $CommonAppManifest } from '../../../../../../core/types.ts'
+
+export interface $TaskBarState {
+  /**
+   * 是否聚焦
+   */
+  focus: boolean;
+  appId: string;
+}
+
 
 /**
  * 自定义组件名称

@@ -2,12 +2,14 @@ package info.bagen.dwebbrowser.microService.browser.desk
 
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.PromiseOut
+import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.debounce
 import org.dweb_browser.microservice.help.MMID
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.sys.http.HttpDwebServer
 import org.http4k.core.query
+import java.io.Serializable
 
 class TaskBarController(
   val desktopNMM: DesktopNMM,
@@ -18,7 +20,9 @@ class TaskBarController(
   private val _appList = DeskStore.get(DeskStore.TASKBAR_APPS)
   internal val updateSignal = SimpleSignal()
   val onUpdate = updateSignal.toListener()
-
+  // 触发状态更新
+  internal val stateSignal = Signal<TaskBarState>() // TODO @林哥 聚焦与失焦，触发这个状态，前端就能更新了
+  val onStatus  = stateSignal.toListener()
   init {
     /**
      * 绑定 runningApps 集合
@@ -38,22 +42,6 @@ class TaskBarController(
     // 监听移除app的改变,可能是增加或者减少
     desktopNMM.bootstrapContext.dns.onChange { map ->
       updateSignal.emit()
-//      var lock = true;
-//      for (module in map.values) {
-//        // 只针对app做出更新相应
-//        if (module.categories.contains(MICRO_MODULE_CATEGORY.Application) && lock) {
-//          lock = false
-//          //触发前端state更新
-//          updateSignal.emit()
-//        }
-//      }
-//      for (mmid in runningApps.keys) {
-//        // 从内存中移除已经被删除的,正在运行的应用
-//        if (!map.containsKey(mmid)) {
-//          this._appList.remove(mmid)
-//          runningApps.remove(mmid)
-//        }
-//      }
     }
   }
 
@@ -126,4 +114,5 @@ class TaskBarController(
   }
 
   data class ReSize(val width: Number, val height: Number)
+  data class TaskBarState(val focus:Boolean,val appId:String) : Serializable
 }

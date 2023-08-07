@@ -179,6 +179,27 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
         taskBarController.updateSignal.emit()
         return@defineHandler Response(Status.OK).body(inputStream)
       },
+      "/taskbar/observe/status" bind Method.GET to defineHandler { _, ipc ->
+        debugDesktop("/taskbar/observe/status")
+        val inputStream = ReadableStream(onStart = { controller ->
+          val off = taskBarController.onStatus { status ->
+            try {
+              withContext(Dispatchers.IO) {
+                controller.enqueue((gson.toJson(status) + "\n").toByteArray())
+              }
+            } catch (e: Exception) {
+              controller.close()
+              e.printStackTrace()
+            }
+          }
+          ipc.onClose {
+            off()
+            controller.close()
+          }
+        })
+        taskBarController.updateSignal.emit()
+        return@defineHandler Response(Status.OK).body(inputStream)
+      },
       "/taskbar/resize" bind Method.GET to defineHandler { request ->
         val size = queryResize(request)
         val result = taskBarController.resize(size)

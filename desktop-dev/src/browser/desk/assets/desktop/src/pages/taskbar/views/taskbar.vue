@@ -12,9 +12,10 @@ quitApp,
 resizeTaskbar,
 toggleDesktopView,
 toggleMaximize,
+watchTaskBarStatus,
 watchTaskbarAppInfo,
 } from "src/provider/api.ts";
-import { $WidgetAppData } from "src/types/app.type.ts";
+import { $TaskBarState, $WidgetAppData } from "src/types/app.type.ts";
 import { ShallowRef, onMounted, onUnmounted, ref, shallowRef, triggerRef, watchEffect } from "vue";
 import { icons } from "./icons/index.ts";
 import x_circle_svg from "./icons/x-circle.svg";
@@ -44,6 +45,18 @@ const updateApps = async () => {
     updateLayoutInfoList(appList);
   }
 };
+// 监听taskBar状态，来判断是否聚焦
+const watcherFocus = async () => {
+  const stateWatcher = watchTaskBarStatus();
+  onUnmounted(() => {
+    stateWatcher.return();
+  });
+  for await (const state of stateWatcher) {
+    console.log("watcherFocus=>", state);
+    updateTaskBarState(state)
+  }
+};
+//触发列表更新
 const updateLayoutInfoList = (appList: $WidgetAppData[]) => {
   for (const appRef of appRefList.value) {
     appRef.off();
@@ -61,6 +74,10 @@ const updateLayoutInfoList = (appList: $WidgetAppData[]) => {
   });
   triggerRef(appRefList);
 };
+// 触发样式更新
+const updateTaskBarState = (state: $TaskBarState) => {
+
+}
 const doOpen = async (metaData: $WidgetAppData) => {
   if (showMenuOverlayRef.value === metaData.mmid) {
     return;
@@ -76,6 +93,7 @@ const doExit = async (metaData: $WidgetAppData) => {
 };
 
 const showMenuOverlayRef = ref<$WidgetAppData["mmid"] | undefined>();
+// 响应右键点击事件
 const tryOpenMenuOverlay = (metaData: $WidgetAppData) => {
   if (metaData.running) {
     showMenuOverlayRef.value = metaData.mmid;
@@ -92,6 +110,7 @@ window.addEventListener("blur", () => {
 
 onMounted(async () => {
   await updateApps();
+  watcherFocus();
 });
 
 const calcMaxHeight = () => `${screen.availHeight - 45}px`;
@@ -130,7 +149,7 @@ const iconSize = "45px";
 // });
 // const setTaskBarScope = async () => {
 //   const resizedSize = await resizeTaskbar(window.outerWidth, window.outerWidth);
-//   console.log('webview setTaskBarScope',resizedSize.height,resizedSize.width); 
+//   console.log('webview setTaskBarScope',resizedSize.height,resizedSize.width);
 //   if (!taskbarEle.value || resizedSize.height == 0)return
 //   // taskbarEle.value.style.width = resizedSize.width +'px'
 //   taskbarEle.value.style.height = resizedSize.height +'px'
