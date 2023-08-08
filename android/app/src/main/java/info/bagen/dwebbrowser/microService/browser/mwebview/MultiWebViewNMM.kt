@@ -1,24 +1,19 @@
 package info.bagen.dwebbrowser.microService.browser.mwebview
 
-import androidx.compose.runtime.Composable
-import info.bagen.dwebbrowser.microService.browser.jmm.EIpcEvent
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
 import info.bagen.dwebbrowser.microService.core.WindowState
 import info.bagen.dwebbrowser.microService.core.windowAdapterManager
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.browserUI.download.DownLoadObserver
 import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.dwebview.serviceWorker.emitEvent
 import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.MMID
-import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printdebugln
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.ipc.Ipc
-import org.dweb_browser.microservice.ipc.helper.IpcEvent
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
@@ -115,7 +110,7 @@ class MultiWebViewNMM :
 
       MultiWebViewController(win, ipc, remoteMm, this).also { controller ->
         /// 窗口销毁的时候，释放这个Controller
-        win.onDestroy {
+        win.onClose {
           controllerMap.remove(remoteMmid)
         }
         GlobalScope.launch {

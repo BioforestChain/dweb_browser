@@ -46,9 +46,6 @@ class DesktopWindowsManager(internal val activity: DesktopActivity) {
   internal val allWindows =
     ChangeableMap<DesktopWindowController, InManageState>(activity.lifecycleScope.coroutineContext).also {
       it.onChange { wins ->
-        if (wins.keys.size == 0) {
-          return@onChange
-        }
         /// 从小到大排序
         val newWinList = wins.keys.toList().sortedBy { win -> win.state.zIndex };
         var changed = false
@@ -149,7 +146,7 @@ class DesktopWindowsManager(internal val activity: DesktopActivity) {
       hasMaximizedWins.add(win)
     }
     /// 窗口销毁的时候，做引用释放
-    offListenerList += win.onDestroy {
+    offListenerList += win.onClose {
       removeWindow(win)
     }
     /// 存储窗口与它的 状态机（销毁函数）
@@ -170,17 +167,17 @@ class DesktopWindowsManager(internal val activity: DesktopActivity) {
       true
     } ?: false
 
-  private fun reOrderZIndex() {
+  private suspend fun reOrderZIndex() {
     for ((index, win) in allWindows.keys.toList().sortedBy { it.state.zIndex }.withIndex()) {
       win.state.zIndex = index
     }
-    allWindows.emitChangeSync()
+    allWindows.emitChange()
   }
 
   /**
    * 将指定窗口移动到最上层
    */
-  fun moveToTop(win: DesktopWindowController) {
+  suspend fun moveToTop(win: DesktopWindowController) {
     /// 窗口被聚焦，那么遍历所有的窗口，为它们重新生成zIndex值
     win.state.zIndex += allWindows.size;
     reOrderZIndex()

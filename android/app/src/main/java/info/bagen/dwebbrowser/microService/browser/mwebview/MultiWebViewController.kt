@@ -64,7 +64,7 @@ class MultiWebViewController(
         Render(modifier, webViewScale)
       }
     /// 窗口销毁的时候
-    win.onDestroy {
+    win.onClose {
       // 移除渲染适配器
       windowAdapterManager.providers.remove(wid)
       // 清除释放所有的webview
