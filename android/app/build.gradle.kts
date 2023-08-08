@@ -129,6 +129,7 @@ dependencies {
   implementation(BuildConfig.activity) // Java language implementation
   implementation(BuildConfig.activityKotlin) // Kotlin
   implementation(BuildConfig.activityCompose)
+  implementation(BuildConfig.lifecycleService)
 
   /// Compose 相关
   implementation(BuildConfig.composeBom)

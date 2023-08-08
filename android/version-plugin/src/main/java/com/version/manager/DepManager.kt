@@ -53,6 +53,7 @@ object BuildConfig {
   const val gridLayout = "androidx.gridlayout:gridlayout:1.0.0"
   const val profileInstaller = "androidx.profileinstaller:profileinstaller:1.3.1"
   const val lifecycleRuntimeKotlin = "androidx.lifecycle:lifecycle-runtime-ktx:2.6.1"
+  const val lifecycleService = "androidx.lifecycle:lifecycle-service:2.6.1"
 
   // 键值存储
   const val dataStore = "androidx.datastore:datastore:1.0.0"

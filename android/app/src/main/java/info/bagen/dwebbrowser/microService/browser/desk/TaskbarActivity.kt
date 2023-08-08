@@ -17,8 +17,6 @@ class TaskbarActivity : BaseActivity() {
 
   private val blurHelper = ActivityBlurHelper(this)
 
-  private val taskbarViewModel by taskAppViewModels<TaskbarViewModel>()
-
   private var controller: TaskBarController? = null
   private fun bindController(sessionId: String?): TaskBarController {
     /// 解除上一个 controller的activity绑定
@@ -30,7 +28,7 @@ class TaskbarActivity : BaseActivity() {
     } ?: throw Exception("no found controller by sessionId: $sessionId")
   }
 
-  @SuppressLint("UseCompatLoadingForDrawables")
+  @SuppressLint("UseCompatLoadingForDrawables", "ClickableViewAccessibility")
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     val taskBarController = bindController(intent.getStringExtra("taskBarSessionId"))
@@ -39,8 +37,8 @@ class TaskbarActivity : BaseActivity() {
     setContent {
       /// 改变窗口大小 和 一些属性
       /// window.setLayout((80 * density).toInt(), (200 * density).toInt())
-      val layoutWidth = maxOf(taskbarViewModel.width, (80 * density).toInt())
-      val layoutHeight = maxOf(taskbarViewModel.height, (200 * density).toInt())
+      val layoutWidth = maxOf(TaskbarModel.taskbarDWebView.width, (80 * density).toInt())
+      val layoutHeight = maxOf(TaskbarModel.taskbarDWebView.height, (200 * density).toInt())
       window.setLayout(layoutWidth, layoutHeight)
       window.attributes = window.attributes.also { attributes ->
 //        /// 禁用模态窗口模式，使得点击可以向下穿透
@@ -55,9 +53,12 @@ class TaskbarActivity : BaseActivity() {
         }
         /// 任务栏视图
         AndroidView(factory = {
-          taskbarViewModel.taskbarDWebView.also { webView ->
+          TaskbarModel.taskbarDWebView.also { webView ->
             webView.parent?.let { parent ->
               (parent as ViewGroup).removeView(webView)
+            }
+            webView.setOnTouchListener { _, _ ->
+              false
             }
           }
         })
@@ -76,7 +77,7 @@ class TaskbarActivity : BaseActivity() {
 
   override fun onDestroy() {
     super.onDestroy()
-    taskbarViewModel.floatViewState.value = true // 销毁 TaskbarActivity 后需要将悬浮框重新显示加载
+    TaskbarModel.openFloatWindow() // 销毁 TaskbarActivity 后需要将悬浮框重新显示加载
   }
 
   @SuppressLint("RestrictedApi")
