@@ -2,6 +2,7 @@ package info.bagen.dwebbrowser.microService.browser.desk.view
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -27,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import info.bagen.dwebbrowser.microService.browser.desk.DesktopWindowController
 import info.bagen.dwebbrowser.microService.core.WindowState
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 
 /**
  * 窗口底部栏
@@ -164,7 +166,15 @@ private fun WindowBottomMaximizedBar(
   val density = LocalDensity.current
   val coroutineScope = rememberCoroutineScope()
   Row(
-    modifier = Modifier.fillMaxSize()
+    modifier = Modifier
+      .fillMaxSize()
+      .pointerInput(Unit) {
+        detectTapGestures(onDoubleTap = {
+          coroutineScope.launch {
+            win.unMaximize()
+          }
+        })
+      }
   ) {
     /// 应用图标
     Box(
