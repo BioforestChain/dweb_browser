@@ -18,6 +18,7 @@ public class WebBrowserNMM : IOSNativeMicroModule
         get => s_controllerList.FirstOrDefault();
     }
 
+    public override List<Dweb_DeepLink> Dweb_deeplinks { get; init; } = new() { "dweb:search" };
     public override List<MicroModuleCategory> Categories { get; init; } = new()
     {
         MicroModuleCategory.Application,
@@ -32,22 +33,31 @@ public class WebBrowserNMM : IOSNativeMicroModule
 
         OnActivity += async (Event, ipc, _) =>
         {
-            await MainThread.InvokeOnMainThreadAsync(async () =>
-            {
-                BridgeManager.WebviewGeneratorCallbackWithCallback(configuration =>
-                {
-                    return new BrowserWeb(this, configuration);
-                });
-
-                var manager = new BridgeManager();
-                var browserView = manager.BrowserView;
-                browserView.Frame = WebBrowserController.View.Frame;
-
-                var deskController = await GetDeskController();
-                deskController?.AddSubView(browserView);
-            });
+            await OpenView();
         };
+
+        HttpRouter.AddRoute(IpcMethod.Get, "/search", async (request, _) =>
+        {
+            Console.Log("DoSearch", request.Url);
+            await OpenView();
+            return unit;
+        });
     }
+
+    private Task OpenView() => MainThread.InvokeOnMainThreadAsync(async () =>
+    {
+        BridgeManager.WebviewGeneratorCallbackWithCallback(configuration =>
+        {
+            return new BrowserWeb(this, configuration);
+        });
+
+        var manager = new BridgeManager();
+        var browserView = manager.BrowserView;
+        browserView.Frame = WebBrowserController.View.Frame;
+
+        var deskController = await GetDeskController();
+        deskController?.AddSubView(browserView);
+    });
 
     private async Task<HttpDwebServer> CreateBrowserWebServer()
     {
