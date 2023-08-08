@@ -11,19 +11,18 @@ import UIKit
 struct ToolbarView: View {
     @EnvironmentObject var toolbarState: ToolBarState
     @EnvironmentObject var selectedTab: SelectedTab
-    
     @EnvironmentObject var addressBarState: AddressBarState
     @EnvironmentObject var openingLink: OpeningLink
     @EnvironmentObject var addressBar: AddressBarState
-    @EnvironmentObject var showSheet: ShowSheet
+
     @ObservedObject var wrapperMgr = WebWrapperMgr.shared
-    
     private let itemSize = CGSize(width: 28, height: 28)
     @State private var toolbarHeight: CGFloat = toolBarH
-//    @State private var : Bool = true
     
     @State private var isPresentingScanner = false
-    
+    @State private var showMoreSheet = false
+//    @StateObject var moreSheet = MoreSheet()
+
     var body: some View {
         if toolbarState.shouldExpand {
             fiveButtons
@@ -95,9 +94,9 @@ struct ToolbarView: View {
                 
                 BiColorButton(size: itemSize, imageName: "more", disabled: false) {
                     withAnimation {
-                        showSheet.should = true
+                        showMoreSheet = true
                     }
-                    print("more menu was clicked")
+                    printWithDate(msg: "more menu was clicked")
                 }
                 
                 Spacer()
@@ -132,6 +131,13 @@ struct ToolbarView: View {
                     }
                 }
             }
+        }
+        
+        .sheet(isPresented: $showMoreSheet){
+            SheetSegmentView(selectedCategory: WebCacheMgr.shared.store[selectedTab.curIndex].shouldShowWeb ? .menu : .bookmark)
+                .environmentObject(selectedTab)
+                .environmentObject(openingLink)
+                .presentationDetents([.medium, .large])
         }
     }
 }

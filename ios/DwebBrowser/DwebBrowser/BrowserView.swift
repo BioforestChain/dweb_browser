@@ -12,7 +12,6 @@ struct BrowserView: View {
     @StateObject var selectedTab = SelectedTab()
     @StateObject var addressBar = AddressBarState()
     @StateObject var openingLink = OpeningLink()
-    @StateObject var showSheet = ShowSheet()
     @StateObject var toolBarState = ToolBarState()
     @State private var isNetworkSegmentViewPresented = false
 
@@ -28,16 +27,7 @@ struct BrowserView: View {
                 .environmentObject(openingLink)
                 .environmentObject(selectedTab)
                 .environmentObject(addressBar)
-                .environmentObject(showSheet)
                 .environmentObject(toolBarState)
-
-                .sheet(isPresented: $showSheet.should) {
-                    SheetSegmentView(selectedCategory: WebCacheMgr.shared.store[selectedTab.curIndex].shouldShowWeb ? .menu : .bookmark)
-                        .environmentObject(selectedTab)
-                        .environmentObject(openingLink)
-                        .environmentObject(showSheet)
-                        .presentationDetents([.medium, .large])
-                }
 
                 .sheet(isPresented: $isNetworkSegmentViewPresented) {
                     NetworkGuidView()

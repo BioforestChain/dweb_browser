@@ -8,8 +8,8 @@
 import SwiftUI
 
 struct HistoryCell: View {
+    @Environment(\.presentationMode) var presentationMode
     @EnvironmentObject var openingLink: OpeningLink
-    @EnvironmentObject var showSheet: ShowSheet
     @EnvironmentObject var selectedTab:SelectedTab
     var linkRecord: LinkRecord
     var isLast: Bool
@@ -53,7 +53,7 @@ struct HistoryCell: View {
                          webcache.shouldShowWeb = true
                      }
                      openingLink.clickedLink = link
-                     showSheet.should = false
+                     presentationMode.wrappedValue.dismiss()
                  }
         }
     }

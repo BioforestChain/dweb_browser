@@ -15,7 +15,12 @@ func printWithDate(msg: String = "") {
     let formatter = DateFormatter()
     formatter.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS"
     let dateString = formatter.string(from: date)
+//#if DwebBrowser
     print("~~~~" + dateString + "--" + msg)
+//#else
+    ConsoleSwift.inject?("~~~~" + dateString + "--" + msg)
+//#endif
+
 }
 
 extension View {

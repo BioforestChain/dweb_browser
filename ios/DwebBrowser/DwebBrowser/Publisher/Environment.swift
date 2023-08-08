@@ -33,7 +33,6 @@ class ToolBarState: ObservableObject {
     @Published var goBackTapped = false
     @Published var goForwardTapped = false
     @Published var createTabTapped = false
-    
 }
 
 class ShiftAnimation: ObservableObject {
@@ -49,7 +48,7 @@ class TraceLessMode {
             UserDefaults.standard.setValue(newValue, forKey: tracelessKEY)
         }
     }
-
+    
     private init() {
         isON = UserDefaults.standard.bool(forKey: tracelessKEY)
     }
@@ -57,10 +56,6 @@ class TraceLessMode {
 
 class OpeningLink: ObservableObject {
     @Published var clickedLink: URL = emptyURL
-}
-
-class ShowSheet: ObservableObject {
-    @Published var should: Bool = false
 }
 
 class TabGridState: ObservableObject {

@@ -8,8 +8,8 @@
 import SwiftUI
 
 struct BookmarkCell: View {
+    @Environment(\.presentationMode) var presentationMode
     @EnvironmentObject var openingLink: OpeningLink
-    @EnvironmentObject var showSheet: ShowSheet
     @EnvironmentObject var selectedTab:SelectedTab
     var linkRecord: LinkRecord
     var isLast: Bool
@@ -51,7 +51,8 @@ struct BookmarkCell: View {
                          webcache.shouldShowWeb = true
                      }
                      openingLink.clickedLink = link
-                     showSheet.should = false
+                     presentationMode.wrappedValue.dismiss()
+//                     showSheet.should = false
                  }
         }
     }
