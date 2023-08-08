@@ -2,11 +2,15 @@ package info.bagen.dwebbrowser.util.permission
 
 import android.Manifest
 import android.app.Activity
+import android.app.AlertDialog
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import android.util.Log
+import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import info.bagen.dwebbrowser.App
@@ -177,5 +181,41 @@ object PermissionUtil {
       activity!!, permissions.toTypedArray(),
       PermissionManager.MY_PERMISSIONS
     )
+  }
+
+  /**
+   * 判断悬浮窗权限权限
+   */
+  private fun commonROMPermissionCheck(activity: Activity): Boolean {
+    var result = true
+    // version > 23
+    try {
+      val clazz: Class<*> = Settings::class.java
+      val canDrawOverlays = clazz.getDeclaredMethod("canDrawOverlays", Context::class.java)
+      result = canDrawOverlays.invoke(null, activity) as Boolean
+    } catch (e: Exception) {
+      Log.e("commonROMPermissionCheck", Log.getStackTraceString(e))
+    }
+    return result
+  }
+
+  /**
+   * 检查悬浮窗权限是否开启
+   */
+  fun checkSuspendedWindowPermission(activity: Activity, block: () -> Unit) {
+    if (commonROMPermissionCheck(activity)) {
+      block()
+    } else {
+      val build = AlertDialog.Builder(activity)
+      build.setTitle("申请权限")
+      build.setMessage("请开启悬浮窗权限")
+      build.setCancelable(false)
+      build.setPositiveButton("设置") { p0, p1 ->
+        activity.startActivityForResult(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION).apply {
+          data = Uri.parse("package:${activity.packageName}")
+        }, 999)
+      }
+      build.show()
+    }
   }
 }

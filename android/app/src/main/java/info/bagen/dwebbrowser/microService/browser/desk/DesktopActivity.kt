@@ -2,9 +2,8 @@ package info.bagen.dwebbrowser.microService.browser.desk
 
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.content.res.Configuration
 import android.os.Bundle
-import android.util.Log
+import android.provider.Settings
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Box
@@ -19,6 +18,7 @@ import info.bagen.dwebbrowser.base.BaseActivity
 import info.bagen.dwebbrowser.microService.browser.desk.view.Render
 import info.bagen.dwebbrowser.microService.core.WindowState
 import info.bagen.dwebbrowser.ui.theme.DwebBrowserAppTheme
+import info.bagen.dwebbrowser.util.permission.PermissionUtil
 
 @SuppressLint("ModifierFactoryExtensionFunction")
 fun WindowState.WindowBounds.toModifier(
@@ -39,12 +39,16 @@ class DesktopActivity : BaseActivity() {
     } ?: throw Exception("no found controller by sessionId: $sessionId")
   }
 
+  private var taskbarSessionId: String? = null
+
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     val deskController = bindController(intent.getStringExtra("deskSessionId"))
-    startService(Intent(this@DesktopActivity, TaskbarService::class.java).also {
-      it.putExtra("taskBarSessionId", intent.getStringExtra("taskBarSessionId"))
-    })
+    taskbarSessionId = intent.getStringExtra("taskBarSessionId")
+    PermissionUtil.checkSuspendedWindowPermission(this) {
+      startTaskbarService()
+    }
+
     /*val taskBarSessionId = intent.getStringExtra("taskBarSessionId")
 
     val context = this@DesktopActivity
@@ -85,8 +89,6 @@ class DesktopActivity : BaseActivity() {
             }
             /// 窗口视图
             desktopWindowsManager.Render()
-            /// 浮窗
-            /// FloatTaskbarView()
           }
         }
       }
@@ -111,6 +113,25 @@ class DesktopActivity : BaseActivity() {
       TaskbarModel.closeFloatWindow()
     }
     super.onWindowFocusChanged(hasFocus)
+  }
+
+  override fun onActivityResult(requestCode: kotlin.Int, resultCode: kotlin.Int, data: Intent?) {
+    super.onActivityResult(requestCode, resultCode, data)
+    if (requestCode == 999) {
+      if (Settings.canDrawOverlays(this)) {
+        startTaskbarService()
+      } else {
+        PermissionUtil.checkSuspendedWindowPermission(this@DesktopActivity){
+          startTaskbarService()
+        }
+      }
+    }
+  }
+
+  private fun startTaskbarService() {
+    startService(Intent(this@DesktopActivity, TaskbarService::class.java).also {
+      it.putExtra("taskBarSessionId", taskbarSessionId)
+    })
   }
 }
 
