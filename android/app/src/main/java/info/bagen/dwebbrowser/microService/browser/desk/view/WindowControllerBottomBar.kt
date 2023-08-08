@@ -36,11 +36,9 @@ import kotlinx.coroutines.launch
 @Composable
 internal fun WindowBottomBar(
   win: DesktopWindowController,
-  windowEdge: WindowEdge,
-  winState: WindowState,
-  emitWinStateChange: () -> Job,
-  contentColor: Color,
 ) {
+  val windowEdge = LocalWindowEdge.current
+  val winState = win.state
   val density = LocalDensity.current
   Box(
     modifier = Modifier
@@ -55,21 +53,9 @@ internal fun WindowBottomBar(
       )
   ) {
     if (winState.maximize) {
-      WindowBottomMaximizedBar(
-        win,
-        windowEdge,
-        winState,
-        emitWinStateChange,
-        contentColor,
-      )
+      WindowBottomMaximizedBar(win)
     } else {
-      WindowBottomResizeBar(
-        win,
-        windowEdge,
-        winState,
-        emitWinStateChange,
-        contentColor,
-      )
+      WindowBottomResizeBar(win)
     }
   }
 }
@@ -80,33 +66,26 @@ internal fun WindowBottomBar(
 @Composable
 private fun WindowBottomResizeBar(
   win: DesktopWindowController,
-  windowEdge: WindowEdge,
-  winState: WindowState,
-  emitWinStateChange: () -> Job,
-  contentColor: Color,
 ) {
+  val winState = win.state
   val density = LocalDensity.current
+  val contentColor = LocalWindowControllerTheme.current.bottomContentColor
   Row(
     modifier = Modifier.fillMaxSize()
   ) {
     /// 左下角 视窗 Resize
-    Box(modifier = Modifier
-      .weight(1f)
-      .fillMaxHeight()
-      .pointerInput(Unit) {
-        detectDragGestures { change, dragAmount ->
-          change.consume()
-          winState.bounds.left += dragAmount.x / density.density
-          winState.bounds.width -= dragAmount.x / density.density
-          winState.bounds.height += dragAmount.y / density.density
-          emitWinStateChange()
-        }
-      }) {
+    Box(
+      modifier = Modifier
+        .weight(1f)
+        .fillMaxHeight()
+        .windowResizeByLeftBottom(win)
+    ) {
       Icon(
         Icons.Rounded.ChevronLeft, contentDescription = "Resize by Left Bottom Corner",
         modifier = Modifier
           .rotate(-45f)
-          .align(Alignment.CenterStart)
+          .align(Alignment.CenterStart),
+        tint = contentColor,
       )
     }
     /// 下方 视窗 Resize
@@ -117,37 +96,33 @@ private fun WindowBottomResizeBar(
         detectDragGestures { change, dragAmount ->
           change.consume()
           winState.bounds.height += dragAmount.y / density.density
-          emitWinStateChange()
+          win.emitStateChange()
         }
       }) {
       Icon(
         Icons.Rounded.DragHandle, contentDescription = "Resize Height",
         modifier = Modifier
-          .align(Alignment.Center)
+          .align(Alignment.Center),
+        tint = contentColor,
       )
     }
     /// 右下角
     /// 视窗 Resize
-    Box(modifier = Modifier
-      .weight(1f)
-      .fillMaxHeight()
-      .pointerInput(Unit) {
-        detectDragGestures { change, dragAmount ->
-          change.consume()
-          winState.bounds.width += dragAmount.x / density.density
-          winState.bounds.height += dragAmount.y / density.density
-          emitWinStateChange()
-        }
-      }) {
+    Box(
+      modifier = Modifier
+        .weight(1f)
+        .fillMaxHeight()
+        .windowResizeByRightBottom(win)
+    ) {
       Icon(
         Icons.Rounded.ChevronRight,
         contentDescription = "Resize by Right Bottom Corner",
         modifier = Modifier
           .rotate(45f)
-          .align(Alignment.CenterEnd)
+          .align(Alignment.CenterEnd),
+        tint = contentColor,
       )
     }
-
   }
 }
 
@@ -158,12 +133,9 @@ private fun WindowBottomResizeBar(
 @Composable
 private fun WindowBottomMaximizedBar(
   win: DesktopWindowController,
-  windowEdge: WindowEdge,
-  winState: WindowState,
-  emitWinStateChange: () -> Job,
-  contentColor: Color,
 ) {
-  val density = LocalDensity.current
+  val winState = win.state
+  val winTheme = LocalWindowControllerTheme.current
   val coroutineScope = rememberCoroutineScope()
   Row(
     modifier = Modifier
@@ -198,7 +170,7 @@ private fun WindowBottomMaximizedBar(
     ) {
       Text(
         text = winState.title,
-        style = MaterialTheme.typography.labelSmall.copy(color = contentColor),
+        style = MaterialTheme.typography.labelSmall.copy(color = winTheme.bottomContentColor),
         modifier = Modifier
           .align(Alignment.Center)
       )

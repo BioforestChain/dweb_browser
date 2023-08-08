@@ -104,7 +104,7 @@ class DesktopWindowsManager(internal val activity: DesktopActivity) {
         }
       }
 
-      val win = DesktopWindowController(activity, newWindowState)
+      val win = DesktopWindowController(this, newWindowState)
       addNewWindow(win)
 
       win
@@ -118,6 +118,8 @@ class DesktopWindowsManager(internal val activity: DesktopActivity) {
    * 将一个窗口添加进来管理
    */
   internal fun addNewWindow(win: DesktopWindowController) {
+    /// 对 win 的 manager 进行修改
+    win.manager = this;
     /// 对窗口做一些启动准备
     val offListenerList = mutableListOf<OffListener>()
     offListenerList += win.onFocus {

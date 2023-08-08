@@ -2,6 +2,7 @@ package info.bagen.dwebbrowser.microService.core
 
 import androidx.compose.ui.graphics.Color
 import info.bagen.dwebbrowser.microService.sys.helper.toCssRgba
+import info.bagen.dwebbrowser.microService.sys.helper.toHex
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.microservice.help.MMID
 
@@ -125,11 +126,11 @@ data class WindowState(
   var flashing: Boolean = false,
 
   /**
-   * 闪烁的颜色
+   * 闪烁的颜色(格式为： `#RRGGBB[AA]`)
    *
    * 可以通过接口配置该颜色
    */
-  var flashColor: String = Color.White.toCssRgba(),
+  var flashColor: String = Color.White.toHex(true),
 
   /**
    * 进度条
@@ -180,6 +181,12 @@ data class WindowState(
    * 内容渲染是否要覆盖 底部栏
    */
   var overlayBottomBar: Boolean = false,
+
+  var topBarContentColor: String? = null,
+  var topBarBackgroundColor: String? = null,
+  var bottomBarContentColor: String? = null,
+  var bottomBarBackgroundColor: String? = null,
+  var themeColor: String? = null
 ) {
   /**
    * 窗口大小与位置

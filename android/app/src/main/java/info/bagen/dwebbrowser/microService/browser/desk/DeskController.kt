@@ -97,7 +97,7 @@ class DeskController(
 
       preDesktopWindowsManager?.also { preDwm ->
         /// 窗口迁移
-        for (win in preDwm.allWindows.keys) {
+        for (win in preDwm.allWindows.keys.toSet()/*拷贝一份避免并发修改导致的问题*/) {
           preDwm.removeWindow(win)
           dwm.addNewWindow(win)
         }

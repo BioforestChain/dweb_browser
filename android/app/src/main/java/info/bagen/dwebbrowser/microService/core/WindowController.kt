@@ -1,6 +1,7 @@
 package info.bagen.dwebbrowser.microService.core
 
 import android.content.Context
+import info.bagen.dwebbrowser.base.BaseActivity
 import org.dweb_browser.helper.SimpleSignal
 
 abstract class WindowController {

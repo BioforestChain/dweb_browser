@@ -1,13 +1,16 @@
 package info.bagen.dwebbrowser.microService.browser.desk
 
 import android.content.Context
+import info.bagen.dwebbrowser.base.BaseActivity
 import info.bagen.dwebbrowser.microService.core.WindowController
 import info.bagen.dwebbrowser.microService.core.WindowState
 import org.dweb_browser.helper.SimpleSignal
 
 class DesktopWindowController(
-  override val context: Context, internal val state: WindowState
+  internal var manager: DesktopWindowsManager, internal val state: WindowState
 ) : WindowController() {
+  override val context get() = manager.activity
+
   override val id = state.wid;
   override fun toJson() = state
   private val _blurSignal = SimpleSignal()

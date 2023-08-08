@@ -15,6 +15,6 @@ val LocalDesktopView = compositionLocalOf<DeskController.MainDwebView> {
   noLocalProvidedFor("DesktopView")
 }
 
-private fun noLocalProvidedFor(name: String): Nothing {
-  error("CompositionLocal $name not present")
+internal fun noLocalProvidedFor(name: String): Nothing {
+  error("[Desk]CompositionLocal $name not present")
 }

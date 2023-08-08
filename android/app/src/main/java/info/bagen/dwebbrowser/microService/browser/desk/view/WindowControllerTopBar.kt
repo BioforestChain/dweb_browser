@@ -30,16 +30,14 @@ import kotlinx.coroutines.launch
 
 @Composable
 internal fun WindowTopBar(
-  modifier: Modifier,
-  winEdge: WindowEdge,
-  winState: WindowState,
   win: DesktopWindowController,
-  contentColor: Color,
 ) {
   val density = LocalDensity.current;
-  val coroutineScope = rememberCoroutineScope()
+  val winEdge = LocalWindowEdge.current;
   Box(
-    modifier = modifier
+    modifier =
+    Modifier
+      .windowMoveAble(win)
       .fillMaxWidth()
       .height(winEdge.top.dp)
       .background(
@@ -51,23 +49,20 @@ internal fun WindowTopBar(
         )
       )
   ) {
-    if (winState.maximize) {
-      WindowTopMaximizedBar(winEdge, winState, win, contentColor)
+    if (win.state.maximize) {
+      WindowTopMaximizedBar(win)
     } else {
-      WindowTopControllerBar(winEdge, winState, win, contentColor)
+      WindowTopControllerBar(win)
     }
   }
 }
 
 @Composable
 private fun WindowTopControllerBar(
-  winEdge: WindowEdge,
-  winState: WindowState,
   win: DesktopWindowController,
-  contentColor: Color,
 ) {
-  val density = LocalDensity.current;
   val coroutineScope = rememberCoroutineScope()
+  val contentColor = LocalWindowControllerTheme.current.topContentColor
   Row {
     Box(
       modifier = Modifier
@@ -116,10 +111,7 @@ private fun WindowTopControllerBar(
  */
 @Composable
 private fun WindowTopMaximizedBar(
-  winEdge: WindowEdge,
-  winState: WindowState,
   win: DesktopWindowController,
-  contentColor: Color,
 ) {
   /// 这里可以渲染一些特殊的信息
 }
