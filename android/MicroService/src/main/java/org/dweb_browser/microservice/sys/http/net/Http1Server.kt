@@ -69,10 +69,10 @@ class Http1Server {
                     else -> httpHandler(gateway, request) ?: errorHandler(request, gateway)
                   }
 
-                  debugHttp(
-                    "createServer",
-                    "uri:${request.uri} ws:${request.isWebSocket()} res:${response.status.code}"
-                  )
+//                  debugHttp(
+//                    "createServer",
+//                    "uri:${request.uri} ws:${request.isWebSocket()} res:${response.status.code}"
+//                  )
                   if (request.isWebSocket()) {
                     /// 如果是200响应头，那么使用WebSocket来作为双工的通讯标准进行传输
                     when (response.status.code) {

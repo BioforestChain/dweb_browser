@@ -8,10 +8,12 @@ import android.view.ViewGroup
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.coroutineScope
 import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.base.ActivityBlurHelper
 import info.bagen.dwebbrowser.base.BaseActivity
 import info.bagen.dwebbrowser.ui.theme.DwebBrowserAppTheme
+import kotlinx.coroutines.launch
 
 class TaskbarActivity : BaseActivity() {
 
@@ -35,11 +37,6 @@ class TaskbarActivity : BaseActivity() {
     val density = resources.displayMetrics.density
 
     setContent {
-      /// 改变窗口大小 和 一些属性
-      /// window.setLayout((80 * density).toInt(), (200 * density).toInt())
-      val layoutWidth = maxOf(TaskbarModel.taskbarDWebView.width, (80 * density).toInt())
-      val layoutHeight = maxOf(TaskbarModel.taskbarDWebView.height, (200 * density).toInt())
-      window.setLayout(layoutWidth, layoutHeight)
       window.attributes = window.attributes.also { attributes ->
 //        /// 禁用模态窗口模式，使得点击可以向下穿透
 //        attributes.flags =
@@ -60,6 +57,7 @@ class TaskbarActivity : BaseActivity() {
             webView.setOnTouchListener { _, _ ->
               false
             }
+            webView.isHorizontalScrollBarEnabled = true
           }
         })
       }
@@ -75,9 +73,22 @@ class TaskbarActivity : BaseActivity() {
     )
   }
 
+  // Activity是否获得焦点
+  override fun onWindowFocusChanged(hasFocus: Boolean) {
+    super.onWindowFocusChanged(hasFocus)
+    this.lifecycle.coroutineScope.launch {
+      controller?.let { taskBarController ->
+        taskBarController.stateSignal.emit(
+          TaskBarController.TaskBarState(hasFocus, taskBarController.getFocusApp())
+        )
+      }
+    }
+  }
+
   override fun onDestroy() {
     super.onDestroy()
     TaskbarModel.openFloatWindow() // 销毁 TaskbarActivity 后需要将悬浮框重新显示加载
+    controller?.activity = null
   }
 
   @SuppressLint("RestrictedApi")

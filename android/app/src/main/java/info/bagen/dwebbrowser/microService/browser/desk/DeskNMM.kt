@@ -129,7 +129,7 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
       },
       "/desktop/observe/apps" bind Method.GET to defineHandler { _, ipc ->
         val inputStream = ReadableStream(onStart = { controller ->
-          val off = taskBarController.onUpdate {
+          val off = deskController.onUpdate {
             try {
               withContext(Dispatchers.IO) {
                 controller.enqueue((gson.toJson(deskController.getDesktopApps()) + "\n").toByteArray())
@@ -144,7 +144,7 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
             controller.close()
           }
         })
-        taskBarController.updateSignal.emit()
+        deskController.updateSignal.emit()
         return@defineHandler Response(Status.OK).body(inputStream)
       },
       "/taskbar/apps" bind Method.GET to defineHandler { request ->
@@ -191,7 +191,6 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
             controller.close()
           }
         })
-        taskBarController.updateSignal.emit()
         return@defineHandler Response(Status.OK).body(inputStream)
       },
       "/taskbar/resize" bind Method.GET to defineHandler { request ->

@@ -16,7 +16,7 @@ watchTaskBarStatus,
 watchTaskbarAppInfo,
 } from "src/provider/api.ts";
 import { $TaskBarState, $WidgetAppData } from "src/types/app.type.ts";
-import { ShallowRef, onMounted, onUnmounted, ref, shallowRef, triggerRef, watchEffect } from "vue";
+import { ShallowRef, computed, onMounted, onUnmounted, reactive, ref, shallowRef, triggerRef } from "vue";
 import { icons } from "./icons/index.ts";
 import x_circle_svg from "./icons/x-circle.svg";
 
@@ -52,8 +52,7 @@ const watcherFocus = async () => {
     stateWatcher.return();
   });
   for await (const state of stateWatcher) {
-    console.log("watcherFocus=>", state);
-    updateTaskBarState(state)
+    updateTaskBarState(state);
   }
 };
 //触发列表更新
@@ -74,10 +73,6 @@ const updateLayoutInfoList = (appList: $WidgetAppData[]) => {
   });
   triggerRef(appRefList);
 };
-// 触发样式更新
-const updateTaskBarState = (state: $TaskBarState) => {
-
-}
 const doOpen = async (metaData: $WidgetAppData) => {
   if (showMenuOverlayRef.value === metaData.mmid) {
     return;
@@ -109,7 +104,7 @@ window.addEventListener("blur", () => {
 });
 
 onMounted(async () => {
-  await updateApps();
+  updateApps();
   watcherFocus();
 });
 
@@ -125,67 +120,94 @@ window.addEventListener("resize", () => {
 
 /// 同步div的大小到原生的窗口上
 const taskbarEle = ref<HTMLDivElement>();
-let resizeOb: ResizeObserver | undefined;
-watchEffect(() => {
-  resizeOb?.disconnect();
-  resizeOb = undefined;
-  if (taskbarEle.value) {
-    resizeOb = new ResizeObserver(async (entries) => {
-      for (const entry of entries) {
-        const { width: _width, height: _height } = entry.contentRect;
-        const height = Math.ceil(_height);
-        const width = Math.ceil(_width);
-        const resizedSize = await resizeTaskbar(width, height);
-        console.log("resizedSize", width, height, resizedSize);
-      }
-    });
-    resizeOb.observe(taskbarEle.value);
-  }
+// 只显示需要显示的app
+const showApps = computed(() => {
+  return appRefList.value.filter((app) => isFocus(app.metaData.mmid));
 });
-const iconSize = "45px";
-// // 获得焦点时
-// window.addEventListener('focus',async function() {
-//   // setTaskBarScope()
+// 如果不是聚焦模式，只返回当前聚焦的app
+const isFocus = (mmid: string) => {
+  // 如果没激活过，不显示
+  return focusState.isFocus || mmid == focusState.appId;
+};
+// 标记scale的元素
+const isActive = (mmid: string) => computed(() =>  focusState.isFocus && mmid == focusState.appId)
+const focusState = reactive({
+  isFocus: false,
+  appId: "",
+});
+// 触发样式更新
+const updateTaskBarState = async (state: $TaskBarState) => {
+  const taskBarDom = taskbarEle.value;
+  if (!taskBarDom) return;
+  console.log("updateTaskBarState=>", state.focus, taskBarDom.offsetWidth, taskBarDom.offsetHeight);
+  focusState.isFocus = state.focus;
+  focusState.appId = state.appId;
+  // 聚焦模式下，显示所有的列表，但是对于当前focus的应用，需要有一定的scale显示
+  if (state.focus) {
+    return await resizeTaskbar(67, 70 * (showApps.value.length + 1));
+  }
+  // 没有聚焦的情况，只显示当前focus的应用
+  return await resizeTaskbar(67, 70);
+};
+let resizeOb: ResizeObserver | undefined;
+// onMounted(() => {
+//   if (taskbarEle.value) {
+//     resizeOb = new ResizeObserver(async (entries) => {
+//       for (const entry of entries) {
+//         console.log("resizedSize entry",entry.contentRect.width, entry.contentRect.height);
+//         const { width: _width, height: _height } = entry.contentRect;
+//         const height = Math.ceil(_height);
+//         const width = Math.ceil(_width);
+//         const resizedSize = await resizeTaskbar(width, height);
+//         console.log("resizedSize", width, height, resizedSize.width,resizedSize.height);
+//       }
+//     });
+//     resizeOb.observe(taskbarEle.value);
+//   }
 // });
-// const setTaskBarScope = async () => {
-//   const resizedSize = await resizeTaskbar(window.outerWidth, window.outerWidth);
-//   console.log('webview setTaskBarScope',resizedSize.height,resizedSize.width);
-//   if (!taskbarEle.value || resizedSize.height == 0)return
-//   // taskbarEle.value.style.width = resizedSize.width +'px'
-//   taskbarEle.value.style.height = resizedSize.height +'px'
-// }
+const iconSize = "45px";
 </script>
 <template>
   <div class="taskbar" ref="taskbarEle">
-    <div class="panel" :class="{ 'p-4': appRefList.length > 0 }">
-      <button class="app-icon-wrapper z-grid" v-for="(app, index) in appRefList" :key="index">
-        <AppIcon
-          class="z-view"
-          :icon="app.ref.value"
-          :size="iconSize"
-          bg-color="#FFF"
-          bg-disable-translucent
-          @click="doOpen(app.metaData)"
-          @dblclick="doToggleMaximize(app.metaData)"
-          @contextmenu="tryOpenMenuOverlay(app.metaData)"
-        >
-          <button
-            v-if="showMenuOverlayRef === app.metaData.mmid"
-            class="exit-button"
-            @blur="tryCloseMenuOverlay(app.metaData)"
-            @click="doExit(app.metaData)"
+    <div class="panel" :class="{ 'p-4': showApps.length > 0 }">
+      <button
+        class="app-icon-wrapper z-grid"
+        v-for="(app, index) in showApps"
+        :key="index"
+        :class="{ active:isActive(app.metaData.mmid) }"
+      >
+        <transition name="scale">
+          <AppIcon
+            class="z-view"
+            :icon="app.ref.value"
+            :size="iconSize"
+            bg-color="#FFF"
+            bg-disable-translucent
+            @click="doOpen(app.metaData)"
+            @dblclick="doToggleMaximize(app.metaData)"
+            @contextmenu="tryOpenMenuOverlay(app.metaData)"
           >
-            <SvgIcon class="exit-icon" :src="x_circle_svg" alt="exit app"></SvgIcon>
-          </button>
-        </AppIcon>
+            <button
+              v-if="showMenuOverlayRef === app.metaData.mmid"
+              class="exit-button"
+              @blur="tryCloseMenuOverlay(app.metaData)"
+              @click="doExit(app.metaData)"
+            >
+              <SvgIcon class="exit-icon" :src="x_circle_svg" alt="exit app"></SvgIcon>
+            </button>
+          </AppIcon>
+        </transition>
         <div class="running-dot z-view" v-if="app.metaData.running">
           <span class="dot"></span>
         </div>
       </button>
     </div>
-    <hr v-if="appRefList.length > 0" class="my-divider" />
-
-    <button class="desktop-button app-icon-wrapper z-grid m-4" @click="toggleDesktopButton">
+    <hr v-if="showApps.length > 0 && focusState.isFocus" class="my-divider" />
+    <button
+      v-if="showApps.length == 0 || focusState.isFocus"
+      class="desktop-button app-icon-wrapper z-grid m-4"
+      @click="toggleDesktopButton"
+    >
       <AppIcon
         class="z-view"
         :icon="icons.layout_panel_top"
@@ -203,7 +225,7 @@ const iconSize = "45px";
   align-items: center;
   justify-content: center;
   height: min-content;
-  width: min-content;
+  // width: min-content;
   max-height: v-bind(maxHeight);
   -webkit-app-region: drag;
   cursor: move;
@@ -243,6 +265,9 @@ button {
     width: 90%;
     height: auto;
   }
+}
+.active {
+  transform: scale(1.1);
 }
 .running-dot {
   width: 100%;

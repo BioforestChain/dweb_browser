@@ -68,7 +68,7 @@ suspend fun startDwebBrowser(): DnsNMM {
         "JsMM",
         "js-process",
         "DNS",
-        "Desktop",
+        "desk",
         "browser",
         "JMM"
       )

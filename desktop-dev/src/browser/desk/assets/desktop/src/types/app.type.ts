@@ -7,7 +7,7 @@ export interface $TaskBarState {
    * 是否聚焦
    */
   focus: boolean;
-  appId: string;
+  appId: `${string}.dweb`;
 }
 
 

@@ -159,8 +159,8 @@ class TaskbarService : LifecycleService() {
 
       this.addView(TaskbarModel.taskbarDWebView.also { dwebView ->
         dwebView.parent?.let { parent -> (parent as ViewGroup).removeView(dwebView) }
-        // it.isHorizontalScrollBarEnabled = false
-        // it.isVerticalScrollBarEnabled = false
+        dwebView.isHorizontalScrollBarEnabled = false
+        dwebView.isVerticalScrollBarEnabled = false
         dwebView.setOnTouchListener(
           ItemViewTouchListener(
             TaskbarModel.floatWindowLayoutParams, windowManager, this, outMetrics, size

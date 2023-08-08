@@ -1,5 +1,6 @@
 package info.bagen.dwebbrowser.microService.browser.desk
 
+import android.content.res.Resources
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.Signal
@@ -18,11 +19,13 @@ class TaskBarController(
 ) {
   /** 展示在taskbar中的应用列表 */
   private val _appList = DeskStore.get(DeskStore.TASKBAR_APPS)
+  internal fun getFocusApp() = _appList.first()
   internal val updateSignal = SimpleSignal()
   val onUpdate = updateSignal.toListener()
   // 触发状态更新
   internal val stateSignal = Signal<TaskBarState>() // TODO @林哥 聚焦与失焦，触发这个状态，前端就能更新了
-  val onStatus  = stateSignal.toListener()
+  val onStatus = stateSignal.toListener()
+
   init {
     /**
      * 绑定 runningApps 集合
@@ -72,11 +75,19 @@ class TaskBarController(
    *
    * @returns 如果视图发生了真实的改变（不论是否变成说要的结果），则返回 true
    */
-  private fun _resize(reSize: ReSize): ReSize {
-    activity?.let {
-      val view = it.window.decorView
-      debugDesk("_resize", "activitywidth=>${view.width} height=>${view.height}")
-      return ReSize(view.width, view.height)
+  private suspend fun _resize(reSize: ReSize): ReSize {
+    val activity = waitActivityCreated()
+    // val metrics = Resources.getSystem().displayMetrics // 当前屏幕密度
+    // dp = px / (dpi / 160)
+    val width = reSize.width.toDp
+    val height = reSize.height.toDp
+    debugDesk(
+      "resize",
+      "${reSize.width},${reSize.height} activity"
+    )
+    // 只能在ui 线程中更新ui
+    activity.runOnUiThread {
+      activity.window.setLayout(width, height)
     }
     return ReSize(reSize.width, reSize.height)
   }
@@ -113,6 +124,9 @@ class TaskBarController(
       .query("api-base", taskbarServer.startResult.urlInfo.buildPublicUrl().toString())
   }
 
-  data class ReSize(val width: Number, val height: Number)
-  data class TaskBarState(val focus:Boolean,val appId:String) : Serializable
+  data class ReSize(val width: Int, val height: Int)
+  data class TaskBarState(val focus: Boolean, val appId: String) : Serializable
+
+  val kotlin.Int.toDp: kotlin.Int
+    get() = (this * Resources.getSystem().displayMetrics.density + 0.5f).toInt()
 }
