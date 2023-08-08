@@ -72,6 +72,7 @@
       android:exported="true"
       android:screenOrientation="portrait"
       android:theme="@style/Theme.dwebbrowser"
+      android:launchMode="singleTask"
       tools:ignore="LockedOrientationActivity">
       <intent-filter>
         <data android:scheme="dweb" />

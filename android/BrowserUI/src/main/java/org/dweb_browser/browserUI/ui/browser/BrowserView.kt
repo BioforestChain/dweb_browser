@@ -266,6 +266,17 @@ private fun BrowserViewSearch(viewModel: BrowserViewModel) {
       localFocus.clearFocus()
     }
   }
+
+  // 增加判断是否有传入需要检索的内容，如果有，就进行显示搜索界面
+  val showSearchView = LocalShowSearchView.current
+  LaunchedEffect(showSearchView) {
+    snapshotFlow { viewModel.search.value }.collect {
+      if (it.isNotEmpty()) {
+        showSearchView.value = true
+      }
+    }
+  }
+
   HorizontalPager(
     modifier = Modifier,
     state = pagerStateNavigator,
@@ -366,7 +377,8 @@ private fun BrowserViewContentWeb(viewModel: BrowserViewModel, browserWebView: B
 @SuppressLint("UnrememberedMutableState")
 @Composable
 private fun SearchBox(baseView: BrowserBaseView) {
-  var showSearchView by LocalShowSearchView.current;
+  var showSearchView by LocalShowSearchView.current
+
   Box(modifier = Modifier
     .padding(horizontal = dimenSearchHorizontalAlign, vertical = dimenSearchVerticalAlign)
     .fillMaxWidth()
@@ -451,8 +463,9 @@ private fun BoxScope.ShowLinearProgressIndicator(browserWebView: BrowserWebView?
 fun BrowserSearchView(viewModel: BrowserViewModel) {
   var showSearchView by LocalShowSearchView.current
   if (showSearchView) {
-    val inputText =
+    val inputText = viewModel.search.value.ifEmpty {
       viewModel.uiState.currentBrowserBaseView.value.viewItem.state.lastLoadedUrl ?: ""
+    }
     val text = if (inputText.isSystemUrl() ||
       inputText == stringResource(id = R.string.browser_search_hint)
     ) {

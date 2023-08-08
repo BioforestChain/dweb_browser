@@ -62,7 +62,7 @@ internal fun SearchView(
 ) {
   val focusManager = LocalFocusManager.current
   val inputText = remember { mutableStateOf(parseInputText(text, false)) }
-  val searchPreviewState = remember { MutableTransitionState(false) }
+  val searchPreviewState = remember { MutableTransitionState(text.isNotEmpty()) }
   val webEngine = findWebEngine(text)
 
   BackHandler {

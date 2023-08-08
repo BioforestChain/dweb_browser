@@ -1,5 +1,6 @@
 package info.bagen.dwebbrowser.microService.browser.web
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -62,6 +63,19 @@ class BrowserActivity : BaseActivity() {
           }
         }
       }
+    }
+    showSearchView(intent)
+  }
+
+  override fun onNewIntent(intent: Intent) {
+    super.onNewIntent(intent)
+    showSearchView(intent)
+  }
+
+  private fun showSearchView(intent: Intent) {
+    controller?.browserViewModel?.apply {
+      val search = intent.getStringExtra("search") ?: ""
+      this.search.value = search
     }
   }
 }

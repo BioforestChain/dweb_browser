@@ -2,6 +2,7 @@ package info.bagen.dwebbrowser.microService.browser.web
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
 import org.dweb_browser.helper.ImageResource
@@ -36,6 +37,7 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
   }
 
   val queryAppId = Query.string().required("app_id")
+  val queryKeyWord = Query.string().required("q")
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     val browserServer = this.createBrowserWebServer()
     val controller = BrowserController(this, browserServer)
@@ -53,21 +55,25 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
     apiRouting = routes(
       "search" bind Method.GET to defineHandler { request ->
         debugBrowser("do search", request.uri)
-        openView(sessionId)
+        val keyWord = queryKeyWord(request)
+        openView(sessionId, keyWord)
       }
     )
   }
 
-  fun openView(sessionId: String) {
+  private fun openView(sessionId: String, search: String? = null) {
     App.startActivity(BrowserActivity::class.java) { intent ->
       intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
       intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
       // 由于SplashActivity添加了android:excludeFromRecents属性，导致同一个task的其他activity也无法显示在Recent Screen，比如BrowserActivity
       // intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
-      intent.putExtras(Bundle().apply {
+      /*intent.putExtras(Bundle().apply {
         putString("sessionId", sessionId)
         putString("mmid", mmid)
-      })
+      })*/
+      intent.putExtra("sessionId", sessionId)
+      intent.putExtra("mmid", mmid)
+      search?.let { intent.putExtra("search", search) }
     }
   }
 

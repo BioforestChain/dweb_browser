@@ -108,6 +108,7 @@ class BrowserViewModel(
   val onOpenDweb: (MMID) -> Unit
 ) : ViewModel() {
   val uiState: BrowserUIState
+  val search: MutableState<String> = mutableStateOf("")
 
   companion object {
     private var webviewId_acc = AtomicInteger(1)
