@@ -75,7 +75,9 @@ class BrowserActivity : BaseActivity() {
   private fun showSearchView(intent: Intent) {
     controller?.browserViewModel?.apply {
       val search = intent.getStringExtra("search") ?: ""
-      this.search.value = search
+      val url = intent.getStringExtra("url") ?: ""
+      this.dwebLinkSearch.value = search
+      this.dwebLinkUrl.value = url
     }
   }
 }

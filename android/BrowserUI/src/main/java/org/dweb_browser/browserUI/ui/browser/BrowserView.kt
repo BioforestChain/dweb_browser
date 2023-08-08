@@ -270,7 +270,7 @@ private fun BrowserViewSearch(viewModel: BrowserViewModel) {
   // 增加判断是否有传入需要检索的内容，如果有，就进行显示搜索界面
   val showSearchView = LocalShowSearchView.current
   LaunchedEffect(showSearchView) {
-    snapshotFlow { viewModel.search.value }.collect {
+    snapshotFlow { viewModel.dwebLinkSearch.value }.collect {
       if (it.isNotEmpty()) {
         showSearchView.value = true
       }
@@ -463,7 +463,7 @@ private fun BoxScope.ShowLinearProgressIndicator(browserWebView: BrowserWebView?
 fun BrowserSearchView(viewModel: BrowserViewModel) {
   var showSearchView by LocalShowSearchView.current
   if (showSearchView) {
-    val inputText = viewModel.search.value.ifEmpty {
+    val inputText = viewModel.dwebLinkSearch.value.ifEmpty {
       viewModel.uiState.currentBrowserBaseView.value.viewItem.state.lastLoadedUrl ?: ""
     }
     val text = if (inputText.isSystemUrl() ||

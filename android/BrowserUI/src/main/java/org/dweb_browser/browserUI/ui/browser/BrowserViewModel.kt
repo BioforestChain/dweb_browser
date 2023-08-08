@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Message
+import android.util.Log
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import androidx.compose.animation.core.MutableTransitionState
@@ -14,6 +15,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -108,7 +110,8 @@ class BrowserViewModel(
   val onOpenDweb: (MMID) -> Unit
 ) : ViewModel() {
   val uiState: BrowserUIState
-  val search: MutableState<String> = mutableStateOf("")
+  val dwebLinkSearch: MutableState<String> = mutableStateOf("")
+  val dwebLinkUrl: MutableState<String> = mutableStateOf("")
 
   companion object {
     private var webviewId_acc = AtomicInteger(1)
@@ -119,6 +122,16 @@ class BrowserViewModel(
       uiState = BrowserUIState(currentBrowserBaseView = mutableStateOf(it))
     }
     uiState.browserViewList.add(browserWebView)
+
+    viewModelScope.launch(ioAsyncExceptionHandler) {
+      snapshotFlow { dwebLinkUrl.value }.collect { url ->
+        Log.e("lin.huang", "xxxxxx $url")
+        if (url.isNotEmpty()) {
+          delay(100)
+          uiState.currentBrowserBaseView.value.viewItem.state.content = WebContent.Url(url)
+        }
+      }
+    }
   }
 
   private fun getDesktopUrl() = browserServer.startResult.urlInfo.buildInternalUrl().let {

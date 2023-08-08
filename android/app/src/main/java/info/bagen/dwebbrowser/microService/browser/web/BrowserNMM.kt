@@ -26,7 +26,7 @@ fun debugBrowser(tag: String, msg: Any? = "", err: Throwable? = null) =
 
 class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
   override val short_name = "Browser";
-  override val dweb_deeplinks = listOf("dweb:search")
+  override val dweb_deeplinks = listOf("dweb:search", "dweb:openinbrowser")
   override val categories =
     mutableListOf(MICRO_MODULE_CATEGORY.Application, MICRO_MODULE_CATEGORY.Web_Browser)
   override val icons: List<ImageResource> =
@@ -38,6 +38,7 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
 
   val queryAppId = Query.string().required("app_id")
   val queryKeyWord = Query.string().required("q")
+  val queryUrl = Query.string().required("url")
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     val browserServer = this.createBrowserWebServer()
     val controller = BrowserController(this, browserServer)
@@ -55,13 +56,20 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
     apiRouting = routes(
       "search" bind Method.GET to defineHandler { request ->
         debugBrowser("do search", request.uri)
-        val keyWord = queryKeyWord(request)
-        openView(sessionId, keyWord)
+        val search = queryKeyWord(request)
+        openView(sessionId = sessionId, search = search)
+        return@defineHandler true
+      },
+      "openinbrowser" bind Method.GET to defineHandler { request ->
+        debugBrowser("do openinbrowser", request.uri)
+        val url = queryUrl(request)
+        openView(sessionId = sessionId, url = url)
+        return@defineHandler true
       }
     )
   }
 
-  private fun openView(sessionId: String, search: String? = null) {
+  private fun openView(sessionId: String, search: String? = null, url: String? = null) {
     App.startActivity(BrowserActivity::class.java) { intent ->
       intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
       intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
@@ -74,6 +82,7 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
       intent.putExtra("sessionId", sessionId)
       intent.putExtra("mmid", mmid)
       search?.let { intent.putExtra("search", search) }
+      url?.let { intent.putExtra("url", url) }
     }
   }
 
