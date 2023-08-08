@@ -14,6 +14,11 @@ class WindowAdapterManager : AdapterManager<CreateWindowAdapter>() {
     for (adapter in adapters) {
       val winCtrl = adapter(winState)
       if (winCtrl != null) {
+        /// 窗口创建成功，将窗口保存到实例集合中
+        windowInstancesManager.instances[winCtrl.id] = winCtrl
+        winCtrl.onClose {
+          windowInstancesManager.instances.remove(winCtrl.id)
+        }
         return winCtrl;
       }
     }
