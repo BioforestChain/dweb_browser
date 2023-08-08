@@ -2,17 +2,22 @@
 
 public class ChangeableList<T> : List<T>
 {
-    private readonly HashSet<Signal<ChangeableList<T>>> _changeSignal = new();
-    public event Signal<ChangeableList<T>> OnChange
+    private readonly LazyBox<Changeable<ChangeableList<T>>> LazyChangeable = new();
+    private Changeable<ChangeableList<T>> Changeable => LazyChangeable.GetOrPut(() => new Changeable<ChangeableList<T>>(this));
+
+    public void OnChangeAdd(Signal<ChangeableList<T>> cb)
     {
-        add { if (value != null) lock (_changeSignal) { _changeSignal.Add(value); } }
-        remove { lock (_changeSignal) { _changeSignal.Remove(value); } }
+        Changeable.Listener.OnListener += cb;
     }
-    protected Task _OnChangeEmit() => _changeSignal.Emit(this).ForAwait();
+
+    public void OnChangeRemove(Signal<ChangeableList<T>> cb)
+    {
+        Changeable.Listener.OnListener -= cb;
+    }
 
     public void OnChangeEmit()
     {
-        _ = Task.Run(_OnChangeEmit).NoThrow();
+        Changeable.EmitChange();
     }
 
     public new void Clear()

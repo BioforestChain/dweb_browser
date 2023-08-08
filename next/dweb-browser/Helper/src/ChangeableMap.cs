@@ -4,17 +4,23 @@ namespace DwebBrowser.Helper;
 
 public class ChangeableMap<K, V> : ConcurrentDictionary<K, V> where K : notnull
 {
-    private readonly HashSet<Signal<ConcurrentDictionary<K, V>>> _changeSignal = new();
-    public event Signal<ConcurrentDictionary<K, V>> OnChange
+    private readonly LazyBox<Changeable<ChangeableMap<K, V>>> LazyChangeable = new();
+    private Changeable<ChangeableMap<K, V>> Changeable =>
+        LazyChangeable.GetOrPut(() => new Changeable<ChangeableMap<K, V>>(this));
+
+    public void OnChangeAdd(Signal<ChangeableMap<K, V>> cb)
     {
-        add { if (value != null) lock (_changeSignal) { _changeSignal.Add(value); } }
-        remove { lock (_changeSignal) { _changeSignal.Remove(value); } }
+        Changeable.Listener.OnListener += cb;
     }
-    protected Task _OnChangeEmit() => _changeSignal.Emit(this).ForAwait();
+
+    public void OnChangeRemove(Signal<ChangeableMap<K, V>> cb)
+    {
+        Changeable.Listener.OnListener -= cb;
+    }
 
     public void OnChangeEmit()
     {
-        _ = Task.Run(_OnChangeEmit).NoThrow();
+        Changeable.EmitChange();
     }
 
     public bool Set(K key, V value)

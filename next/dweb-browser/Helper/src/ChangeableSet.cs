@@ -2,17 +2,22 @@
 
 public class ChangeableSet<E> : HashSet<E>
 {
-    private readonly HashSet<Signal<ChangeableSet<E>>> _changeSignal = new();
-    public event Signal<ChangeableSet<E>> OnChange
+    private readonly LazyBox<Changeable<ChangeableSet<E>>> LazyChangeable = new();
+    private Changeable<ChangeableSet<E>> Changeable => LazyChangeable.GetOrPut(() => new Changeable<ChangeableSet<E>>(this));
+
+    public void OnChangeAdd(Signal<ChangeableSet<E>> cb)
     {
-        add { if (value != null) lock (_changeSignal) { _changeSignal.Add(value); } }
-        remove { lock (_changeSignal) { _changeSignal.Remove(value); } }
+        Changeable.Listener.OnListener += cb;
     }
-    protected Task _OnChangeEmit() => _changeSignal.Emit(this).ForAwait();
+
+    public void OnChangeRemove(Signal<ChangeableSet<E>> cb)
+    {
+        Changeable.Listener.OnListener -= cb;
+    }
 
     public void OnChangeEmit()
     {
-        _ = Task.Run(_OnChangeEmit).NoThrow();
+        Changeable.EmitChange();
     }
 
     public new bool Add(E element)

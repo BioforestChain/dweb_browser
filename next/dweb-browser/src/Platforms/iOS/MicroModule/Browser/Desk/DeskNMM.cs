@@ -111,7 +111,7 @@ public class DeskNMM : IOSNativeMicroModule
 
         await MainThread.InvokeOnMainThreadAsync(async () => DeskController?.Create(taskbarServer, desktopServer));
 
-        RunningApps.OnChange += async (map, _) =>
+        RunningApps.OnChangeAdd(async (map, _) =>
         {
             foreach (var app_id in map.Keys)
             {
@@ -123,7 +123,7 @@ public class DeskNMM : IOSNativeMicroModule
             }
 
             TaskAppsStore.Instance.Save(DeskController.TaskBarAppList);
-        };
+        });
 
         HttpRouter.AddRoute(IpcMethod.Get, "/readFile", async (request, _) =>
         {
@@ -149,8 +149,8 @@ public class DeskNMM : IOSNativeMicroModule
             {
                 await ipc.PostMessageAsync(IpcEvent.FromUtf8(EIpcEvent.Activity.Event, ""));
                 /// 如果成功打开，将它“追加”到列表中
-                await RunningApps.Remove(app_id);
-                await RunningApps.Set(app_id, ipc);
+                RunningApps.Remove(app_id);
+                RunningApps.Set(app_id, ipc);
 
                 /// 设置桌面有应用
                 DeskController.IsOnTop = false;
@@ -158,7 +158,7 @@ public class DeskNMM : IOSNativeMicroModule
                 /// 如果应用关闭，将它从列表中移除
                 ipc.OnClose += async (_) =>
                 {
-                    await RunningApps.Remove(app_id);
+                    RunningApps.Remove(app_id);
                 };
             }
 
@@ -175,7 +175,7 @@ public class DeskNMM : IOSNativeMicroModule
                 closed = await bootstrapContext.Dns.Close(app_id);
                 if (closed)
                 {
-                    await RunningApps.Remove(app_id);
+                    RunningApps.Remove(app_id);
                 }
             }
 
@@ -191,23 +191,23 @@ public class DeskNMM : IOSNativeMicroModule
         {
             var stream = new ReadableStream(onStart: controller =>
             {
-                Signal<ConcurrentDictionary<Mmid, Ipc>> cb = async (_, _) =>
+                Signal<ChangeableMap<Mmid, Ipc>> cb = async (_, _) =>
                 {
                     var apps = await DeskController.GetDesktopAppList();
                     Console.Log("/desktop/observe/apps", $"size={apps.Count}");
                     await controller.EnqueueAsync((JsonSerializer.Serialize(apps) + "\n").ToUtf8ByteArray());
                 };
 
-                RunningApps.OnChange += cb;
+                RunningApps.OnChangeAdd(cb);
 
                 ipc.OnClose += async (_) =>
                 {
-                    RunningApps.OnChange -= cb;
+                    RunningApps.OnChangeRemove(cb);
                     controller.Close();
                 };
             });
 
-            await RunningApps.OnChangeEmit();
+            RunningApps.OnChangeEmit();
 
             return new PureResponse(HttpStatusCode.OK, Body: new PureStreamBody(stream.Stream));
         });
@@ -224,23 +224,23 @@ public class DeskNMM : IOSNativeMicroModule
             var limit = request.SafeUrl.SearchParams.Get("limit")?.Let(it => it.ToIntOrNull()) ?? int.MaxValue;
             var stream = new ReadableStream(onStart: controller =>
             {
-                Signal<ConcurrentDictionary<Mmid, Ipc>> cb = async (_, _) =>
+                Signal<ChangeableMap<Mmid, Ipc>> cb = async (_, _) =>
                 {
                     var apps = await DeskController.GetTaskbarAppList(limit);
                     Console.Log("/taskbar/observe/apps", $"size={apps.Count}");
                     await controller.EnqueueAsync((JsonSerializer.Serialize(apps) + "\n").ToUtf8ByteArray());
                 };
 
-                RunningApps.OnChange += cb;
+                RunningApps.OnChangeAdd(cb);
 
                 ipc.OnClose += async (_) =>
                 {
-                    RunningApps.OnChange -= cb;
+                    RunningApps.OnChangeRemove(cb);
                     controller.Close();
                 };
             });
 
-            await RunningApps.OnChangeEmit();
+            RunningApps.OnChangeEmit();
 
             return new PureResponse(HttpStatusCode.OK, Body: new PureStreamBody(stream.Stream));
         });
