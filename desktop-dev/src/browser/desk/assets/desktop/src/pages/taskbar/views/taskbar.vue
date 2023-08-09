@@ -122,7 +122,12 @@ window.addEventListener("resize", () => {
 const taskbarEle = ref<HTMLDivElement>();
 // 只显示需要显示的app
 const showApps = computed(() => {
-  return appRefList.value.filter((app) => isFocus(app.metaData.mmid));
+  const apps = appRefList.value.filter((app) => isFocus(app.metaData.mmid));
+  // 如果第一次初始化，那么直接返回列表第一个
+  if (apps.length === 0 && appRefList.value.length !== 0) {
+   return [appRefList.value[0]]
+  }
+  return apps
 });
 // 如果不是聚焦模式，只返回当前聚焦的app
 const isFocus = (mmid: string) => {
@@ -149,22 +154,6 @@ const updateTaskBarState = async (state: $TaskBarState) => {
   // 没有聚焦的情况，只显示当前focus的应用
   return await resizeTaskbar(67, 70);
 };
-let resizeOb: ResizeObserver | undefined;
-// onMounted(() => {
-//   if (taskbarEle.value) {
-//     resizeOb = new ResizeObserver(async (entries) => {
-//       for (const entry of entries) {
-//         console.log("resizedSize entry",entry.contentRect.width, entry.contentRect.height);
-//         const { width: _width, height: _height } = entry.contentRect;
-//         const height = Math.ceil(_height);
-//         const width = Math.ceil(_width);
-//         const resizedSize = await resizeTaskbar(width, height);
-//         console.log("resizedSize", width, height, resizedSize.width,resizedSize.height);
-//       }
-//     });
-//     resizeOb.observe(taskbarEle.value);
-//   }
-// });
 const iconSize = "45px";
 </script>
 <template>
@@ -204,7 +193,7 @@ const iconSize = "45px";
     </div>
     <hr v-if="showApps.length > 0 && focusState.isFocus" class="my-divider" />
     <button
-      v-if="showApps.length == 0 || focusState.isFocus"
+      v-if="focusState.isFocus"
       class="desktop-button app-icon-wrapper z-grid m-4"
       @click="toggleDesktopButton"
     >
@@ -267,7 +256,7 @@ button {
   }
 }
 .active {
-  transform: scale(1.1);
+  transform: scale(1.2);
 }
 .running-dot {
   width: 100%;

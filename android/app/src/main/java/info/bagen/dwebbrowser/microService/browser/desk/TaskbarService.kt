@@ -4,7 +4,6 @@ import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.PixelFormat
-import android.os.Bundle
 import android.util.DisplayMetrics
 import android.util.Log
 import android.view.Gravity
@@ -27,7 +26,6 @@ import org.dweb_browser.dwebview.DWebView
  */
 object TaskbarModel : ViewModel() {
   private val TAG = TaskbarModel::class.java.simpleName
-  private var inited = false
   val isShowFloatWindow = MutableLiveData<Boolean>()
   val floatWindowLayoutParams by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     val size = 200
@@ -52,23 +50,7 @@ object TaskbarModel : ViewModel() {
     layoutParams
   }
 
-  private var controller: TaskBarController? = null
-  private var taskbarSessionId: String? = null
-  private val taskbarController by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-    controller ?: throw Exception("no init controller, the sessionId=$taskbarSessionId")
-  }
-
-  internal fun init(sessionId: String) {
-    if (inited) {
-      Log.e(TAG, "already init controller by sessionId: $taskbarSessionId, new=>$sessionId")
-      return
-    }
-    taskbarSessionId = sessionId
-    DesktopNMM.taskBarControllers[sessionId]?.also { controller ->
-      this.controller = controller
-    } ?: Log.e(TAG, "no found controller by sessionId: $sessionId")
-    inited = true
-  }
+  private var taskbarController: TaskBarController = DesktopNMM.taskBarController
 
   val taskbarDWebView by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     DWebView(
@@ -95,16 +77,11 @@ object TaskbarModel : ViewModel() {
   }
 
   fun openTaskActivity() {
-    taskbarSessionId?.let { sessionId ->
       closeFloatWindow()
       App.appContext.startActivity(Intent(App.appContext, TaskbarActivity::class.java).also {
         it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         it.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
-        it.putExtras(Bundle().also { bundle ->
-          bundle.putString("taskBarSessionId", sessionId)
-        })
       })
-    } ?: Log.e(TAG, "taskbarSessionId is null !!! ")
   }
 }
 
@@ -119,11 +96,7 @@ class TaskbarService : LifecycleService() {
   }
 
   override fun onStartCommand(intent: Intent?, flags: kotlin.Int, startId: kotlin.Int): kotlin.Int {
-    intent?.getStringExtra("taskBarSessionId")?.let { sessionId ->
-      Log.e(TAG, "onStartCommand sessionId->$sessionId")
-      TaskbarModel.init(sessionId)
-      TaskbarModel.openFloatWindow()
-    }
+    TaskbarModel.openFloatWindow()
     return super.onStartCommand(intent, flags, startId)
   }
 

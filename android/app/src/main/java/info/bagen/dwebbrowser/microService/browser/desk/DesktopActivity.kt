@@ -39,23 +39,12 @@ class DesktopActivity : BaseActivity() {
     } ?: throw Exception("no found controller by sessionId: $sessionId")
   }
 
-  private var taskbarSessionId: String? = null
-
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     val deskController = bindController(intent.getStringExtra("deskSessionId"))
-    taskbarSessionId = intent.getStringExtra("taskBarSessionId")
     PermissionUtil.checkSuspendedWindowPermission(this) {
       startTaskbarService()
     }
-
-    /*val taskBarSessionId = intent.getStringExtra("taskBarSessionId")
-
-    val context = this@DesktopActivity
-    context.startActivity(Intent(context, TaskbarActivity::class.java).also {
-      it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-      it.putExtras(Bundle().also { b -> b.putString("taskBarSessionId", taskBarSessionId) })
-    })*/
 
     /**
      * 窗口管理器
@@ -129,9 +118,7 @@ class DesktopActivity : BaseActivity() {
   }
 
   private fun startTaskbarService() {
-    startService(Intent(this@DesktopActivity, TaskbarService::class.java).also {
-      it.putExtra("taskBarSessionId", taskbarSessionId)
-    })
+    startService(Intent(this@DesktopActivity, TaskbarService::class.java))
   }
 }
 

@@ -20,20 +20,17 @@ class TaskbarActivity : BaseActivity() {
   private val blurHelper = ActivityBlurHelper(this)
 
   private var controller: TaskBarController? = null
-  private fun bindController(sessionId: String?): TaskBarController {
+  private fun bindController(): TaskBarController {
     /// 解除上一个 controller的activity绑定
     controller?.activity = null
 
-    return DesktopNMM.taskBarControllers[sessionId]?.also { taskBarController ->
-      taskBarController.activity = this
-      controller = taskBarController
-    } ?: throw Exception("no found controller by sessionId: $sessionId")
+    return DesktopNMM.taskBarController
   }
 
   @SuppressLint("UseCompatLoadingForDrawables", "ClickableViewAccessibility")
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    val taskBarController = bindController(intent.getStringExtra("taskBarSessionId"))
+    controller = bindController()
     val density = resources.displayMetrics.density
 
     setContent {

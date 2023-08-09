@@ -215,6 +215,10 @@ class BrowserViewModel(
                   .query("url", action.url)
               )
             }.getOrNull()
+            // 保存到历史记录
+            WebSiteDatabase.INSTANCE.websiteDao().insert(
+              WebSiteInfo(title = "metadata.json" , url = action.url, type = WebSiteType.History)
+            )
             return@launch
           }
           uiState.currentBrowserBaseView.value.viewItem.state.content = WebContent.Url(action.url)

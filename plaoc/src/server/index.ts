@@ -31,7 +31,7 @@ export const main = async () => {
   tryOpenView();
   /// 如果有人来激活，那我就唤醒我的界面
   jsProcess.onActivity(async (_ipcEvent, ipc) => {
-    await tryOpenView();
+    tryOpenView();
     // todo lifecycle 等待加载全部加载完成，再触发ready
     ipc.postMessage(IpcEvent.fromText("ready", "activity"));
   });

@@ -46,7 +46,7 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
 
   companion object {
     val deskControllers = mutableMapOf<String, DeskController>()
-    val taskBarControllers = mutableMapOf<String, TaskBarController>()
+    lateinit var taskBarController:TaskBarController
   }
 
   val queryAppId = Query.string().required("app_id")
@@ -67,14 +67,12 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
     val deskSessionId = UUID.randomUUID().toString()
     deskControllers[deskSessionId] = deskController
 
-    val taskBarController = TaskBarController(this, taskbarServer, runningApps)
-    val taskBarSessionId = UUID.randomUUID().toString()
-    taskBarControllers[taskBarSessionId] = taskBarController
+    val mTaskBarController = TaskBarController(this, taskbarServer, runningApps)
+    taskBarController = mTaskBarController
 
     this.onAfterShutdown {
       runningApps.reset()
       deskControllers.remove(deskSessionId)
-      taskBarControllers.remove(taskBarSessionId)
     }
 
     apiRouting = routes(
@@ -93,12 +91,11 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
           val ipc = runningApps[mmid] ?: connect(mmid)
           ipc.postMessage(IpcEvent.fromUtf8(EIpcEvent.Activity.event, ""))
           /// 如果成功打开，将它“追加”到列表中
-          runningApps[mmid] = ipc
+          if (!runningApps.containsKey(mmid)) runningApps[mmid] = ipc
           /// 如果应用关闭，将它从列表中移除
           ipc.onClose {
             runningApps.remove(mmid)
           }
-
           /// 将所有的窗口聚焦，这个行为不依赖于 Activity 事件，而是Desk模块自身托管窗口的行为
           deskController.desktopWindowsManager.focus(mmid)
 
@@ -206,14 +203,14 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
     ).cors()
 
     onActivity {
-      doActivity(deskSessionId, taskBarSessionId)
+      doActivity(deskSessionId)
     }
     deskController.onActivity {
-      doActivity(deskSessionId, taskBarSessionId)
+      doActivity(deskSessionId)
     }
   }
 
-  private fun doActivity(deskSessionId: String, taskBarSessionId: String) {
+  private fun doActivity(deskSessionId: String) {
     /// 启动对应的Activity视图，如果在后端也需要唤醒到最前面，所以需要在AndroidManifest.xml 配置 launchMode 为 singleTask
     App.startActivity(DesktopActivity::class.java) { intent ->
       intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -221,7 +218,6 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
       // 不可以添加 Intent.FLAG_ACTIVITY_NEW_DOCUMENT ，否则 TaskbarActivity 就没发和 DesktopActivity 混合渲染、点击穿透
       intent.putExtras(Bundle().apply {
         putString("deskSessionId", deskSessionId)
-        putString("taskBarSessionId", taskBarSessionId)
       })
     }
   }

@@ -23,7 +23,7 @@ class TaskBarController(
   internal val updateSignal = SimpleSignal()
   val onUpdate = updateSignal.toListener()
   // 触发状态更新
-  internal val stateSignal = Signal<TaskBarState>() // TODO @林哥 聚焦与失焦，触发这个状态，前端就能更新了
+  internal val stateSignal = Signal<TaskBarState>()
   val onStatus = stateSignal.toListener()
 
   init {
