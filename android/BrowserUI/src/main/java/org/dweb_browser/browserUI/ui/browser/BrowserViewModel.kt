@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Message
-import android.util.Log
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import androidx.compose.animation.core.MutableTransitionState
@@ -125,7 +124,6 @@ class BrowserViewModel(
 
     viewModelScope.launch(ioAsyncExceptionHandler) {
       snapshotFlow { dwebLinkUrl.value }.collect { url ->
-        Log.e("lin.huang", "xxxxxx $url")
         if (url.isNotEmpty()) {
           delay(100)
           uiState.currentBrowserBaseView.value.viewItem.state.content = WebContent.Url(url)

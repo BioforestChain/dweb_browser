@@ -77,7 +77,6 @@ class DeskController(
         activityTask.resolve(value)
       }
     }
-  val floatViewState: MutableState<Boolean> = mutableStateOf(true)
 
   private var preDesktopWindowsManager: DesktopWindowsManager? = null
 

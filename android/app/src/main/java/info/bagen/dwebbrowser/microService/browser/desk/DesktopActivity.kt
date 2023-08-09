@@ -1,9 +1,11 @@
 package info.bagen.dwebbrowser.microService.browser.desk
 
 import android.annotation.SuppressLint
-import android.content.Intent
+import android.graphics.PixelFormat
 import android.os.Bundle
-import android.provider.Settings
+import android.view.Gravity
+import android.view.WindowManager
+import android.widget.LinearLayout
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Box
@@ -12,13 +14,14 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.web.WebView
 import info.bagen.dwebbrowser.base.BaseActivity
 import info.bagen.dwebbrowser.microService.browser.desk.view.Render
 import info.bagen.dwebbrowser.microService.core.WindowBounds
 import info.bagen.dwebbrowser.ui.theme.DwebBrowserAppTheme
-import info.bagen.dwebbrowser.util.permission.PermissionUtil
 
 @SuppressLint("ModifierFactoryExtensionFunction")
 fun WindowBounds.toModifier(
@@ -42,9 +45,10 @@ class DesktopActivity : BaseActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     val deskController = bindController(intent.getStringExtra("deskSessionId"))
-    PermissionUtil.checkSuspendedWindowPermission(this) {
+    // TaskbarModel.init(intent.getStringExtra("taskBarSessionId") ?: "") // 初始化任务浮窗
+    /*PermissionUtil.checkSuspendedWindowPermission(this) {
       startTaskbarService()
-    }
+    }*/
 
     /**
      * 窗口管理器
@@ -78,6 +82,8 @@ class DesktopActivity : BaseActivity() {
             }
             /// 窗口视图
             desktopWindowsManager.Render()
+            /// 悬浮框
+            TaskbarModel.FloatWindow()
           }
         }
       }
@@ -104,13 +110,13 @@ class DesktopActivity : BaseActivity() {
     super.onWindowFocusChanged(hasFocus)
   }
 
-  override fun onActivityResult(requestCode: kotlin.Int, resultCode: kotlin.Int, data: Intent?) {
+  /*override fun onActivityResult(requestCode: kotlin.Int, resultCode: kotlin.Int, data: Intent?) {
     super.onActivityResult(requestCode, resultCode, data)
     if (requestCode == 999) {
       if (Settings.canDrawOverlays(this)) {
         startTaskbarService()
       } else {
-        PermissionUtil.checkSuspendedWindowPermission(this@DesktopActivity){
+        PermissionUtil.checkSuspendedWindowPermission(this@DesktopActivity) {
           startTaskbarService()
         }
       }
@@ -119,6 +125,5 @@ class DesktopActivity : BaseActivity() {
 
   private fun startTaskbarService() {
     startService(Intent(this@DesktopActivity, TaskbarService::class.java))
-  }
+  }*/
 }
-

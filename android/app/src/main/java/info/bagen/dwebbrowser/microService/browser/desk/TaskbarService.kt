@@ -13,19 +13,43 @@ import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.LinearLayout
 import android.widget.LinearLayout.LayoutParams
+import androidx.compose.animation.core.animateIntOffset
+import androidx.compose.animation.core.updateTransition
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import info.bagen.dwebbrowser.App
+import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
 import org.dweb_browser.dwebview.DWebView
+import kotlin.math.roundToInt
 
 /**
  * 用于和 Service 之间的交互，显示隐藏等操作
  */
 object TaskbarModel : ViewModel() {
-  private val TAG = TaskbarModel::class.java.simpleName
   val isShowFloatWindow = MutableLiveData<Boolean>()
   val floatWindowLayoutParams by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     val size = 200
@@ -69,19 +93,95 @@ object TaskbarModel : ViewModel() {
    * 打开悬浮框
    */
   fun openFloatWindow() {
-    isShowFloatWindow.postValue(true)
+    // isShowFloatWindow.postValue(true)
+    floatWindowState.value = true
   }
 
   fun closeFloatWindow() {
-    isShowFloatWindow.postValue(false)
+    // isShowFloatWindow.postValue(false)
+    floatWindowState.value = false
   }
 
   fun openTaskActivity() {
-      closeFloatWindow()
-      App.appContext.startActivity(Intent(App.appContext, TaskbarActivity::class.java).also {
-        it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        it.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
-      })
+    closeFloatWindow()
+    App.appContext.startActivity(Intent(App.appContext, TaskbarActivity::class.java).also {
+      it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+      it.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
+    })
+  }
+
+  private val floatWindowState: MutableState<Boolean> = mutableStateOf(true)
+
+  private data class RectBox(
+    val left: Float,
+    val top: Float,
+    val right: Float,
+    val bottom: Float,
+  )
+
+  @Composable
+  fun FloatWindow(width: Dp = 72.dp, height: Dp = 72.dp) {
+    if (floatWindowState.value) {
+      val screenWidth = LocalConfiguration.current.screenWidthDp
+      val screenHeight = LocalConfiguration.current.screenHeightDp
+      val density = LocalDensity.current.density
+      val rect = RectBox(
+        left = 5 * density, top = 20 * density,
+        right = (screenWidth - width.value - 5) * density,
+        bottom = (screenHeight - height.value) * density
+      )
+      val rememberOffset = remember { mutableStateOf(Offset(x = rect.right, y = 200 * density)) }
+      val transition = updateTransition(targetState = rememberOffset.value, label = "")
+      val transitionOffset by transition.animateIntOffset(label = "") { _ ->
+        IntOffset(rememberOffset.value.x.roundToInt(), rememberOffset.value.y.roundToInt())
+      }
+
+      Box(modifier = Modifier
+        .offset {
+          transitionOffset
+          //IntOffset(rememberOffset.value.x.roundToInt(), rememberOffset.value.y.roundToInt())
+        }
+        .pointerInput(rememberOffset) {
+          detectDragGestures(
+            onDragEnd = {
+              // 处理贴边
+              if (rememberOffset.value.x > screenWidth * density / 2) {
+                rememberOffset.value = Offset(rect.right, rememberOffset.value.y)
+              } else {
+                rememberOffset.value = Offset(rect.left, rememberOffset.value.y)
+              }
+            },
+            onDrag = { _, dragAmount ->
+              val toX = rememberOffset.value.x + dragAmount.x
+              val toY = rememberOffset.value.y + dragAmount.y
+              rememberOffset.value = Offset(
+                x = if (toX < rect.left) rect.left else if (toX > rect.right) rect.right else toX,
+                y = if (toY < rect.top) rect.top else if (toY > rect.bottom) rect.bottom else toY,
+              )
+            }
+          )
+        }
+        .size(width, height)
+        .clip(CircleShape)
+      ) {
+        AndroidView(factory = {
+          taskbarDWebView.also { webView ->
+            webView.parent?.let { parent ->
+              (parent as ViewGroup).removeView(webView)
+            }
+            webView.clearFocus()
+          }
+        })
+        // 这边屏蔽当前webview响应
+        Box(modifier = Modifier
+          .fillMaxSize()
+          .clickableWithNoEffect {
+            floatWindowState.value = false
+            taskbarDWebView.requestFocus()
+            openTaskActivity()
+          })
+      }
+    }
   }
 }
 
@@ -93,15 +193,11 @@ class TaskbarService : LifecycleService() {
   override fun onCreate() {
     super.onCreate()
     initObserve()
-  }
-
-  override fun onStartCommand(intent: Intent?, flags: kotlin.Int, startId: kotlin.Int): kotlin.Int {
     TaskbarModel.openFloatWindow()
-    return super.onStartCommand(intent, flags, startId)
   }
 
   private fun initObserve() {
-    TaskbarModel.apply {
+    with(TaskbarModel) {
       /**
        * 悬浮窗按钮的创建和移除
        */
