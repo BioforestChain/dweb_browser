@@ -6,7 +6,6 @@ class ChangeableMap<K, V>(context: CoroutineContext = ioAsyncExceptionHandler) :
   LinkedHashMap<K, V>() {
   private val changeable = Changeable(this, context)
   val onChange = changeable.onChange
-  val watch = changeable.watch
   suspend fun emitChange() = changeable.emitChange()
   fun emitChangeSync() = changeable.emitChangeSync()
   override fun clear() = super.clear().also { changeable.emitChangeSync() }

@@ -37,7 +37,6 @@ internal fun WindowBottomBar(
   win: DesktopWindowController,
 ) {
   val windowEdge = LocalWindowEdge.current
-  val winState = win.state
   val density = LocalDensity.current
   Box(
     modifier = Modifier
@@ -51,7 +50,8 @@ internal fun WindowBottomBar(
         )
       )
   ) {
-    if (winState.maximize) {
+    val maximize by win.watchedIsMaximized()
+    if (maximize) {
       WindowBottomMaximizedBar(win)
     } else {
       WindowBottomResizeBar(win)
@@ -166,7 +166,7 @@ private fun WindowBottomMaximizedBar(
         .weight(1f)
         .fillMaxHeight()
     ) {
-      val footer_text by win.state.watchedState { owner }
+      val footer_text by win.watchedState { owner }
       Text(
         text = footer_text,
         style = MaterialTheme.typography.labelSmall.copy(color = winTheme.bottomContentColor),

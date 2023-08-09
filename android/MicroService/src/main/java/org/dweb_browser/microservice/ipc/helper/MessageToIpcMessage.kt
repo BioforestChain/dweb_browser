@@ -2,6 +2,7 @@ package org.dweb_browser.microservice.ipc.helper
 
 import org.dweb_browser.helper.readByteArray
 import org.dweb_browser.helper.readInt
+import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.ipc.Ipc
 import java.io.InputStream
@@ -11,7 +12,7 @@ fun jsonToIpcMessage(data: String, ipc: Ipc): Any? {
     return data
   }
 
-  return runCatching {
+  return runBlockingCatching {
     when (gson.fromJson(data, IpcMessage::class.java).type) {
       IPC_MESSAGE_TYPE.REQUEST -> gson.fromJson(data, IpcReqMessage::class.java).let {
         IpcRequest(
@@ -41,8 +42,6 @@ fun jsonToIpcMessage(data: String, ipc: Ipc): Any? {
       IPC_MESSAGE_TYPE.STREAM_END -> gson.fromJson(data, IpcStreamEnd::class.java)
       IPC_MESSAGE_TYPE.STREAM_ABORT -> gson.fromJson(data, IpcStreamAbort::class.java)
     }
-  }.onFailure { e ->
-    e.printStackTrace()
   }.getOrDefault(data)
 
 }

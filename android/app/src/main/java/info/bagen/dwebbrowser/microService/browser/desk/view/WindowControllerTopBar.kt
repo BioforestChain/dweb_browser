@@ -49,7 +49,7 @@ internal fun WindowTopBar(
         )
       )
   ) {
-    val maximize by win.state.watchedState { maximize }
+    val maximize by win.watchedIsMaximized()
     if (maximize) {
       WindowTopMaximizedBar(win)
     } else {
@@ -80,7 +80,7 @@ private fun WindowTopControllerBar(
         .weight(2f)
         .fillMaxHeight(),
     ) {
-      val title_text by win.state.watchedState { title ?: owner }
+      val title_text by win.watchedState { title ?: owner }
       Text(
         modifier = Modifier
           .align(Alignment.Center)

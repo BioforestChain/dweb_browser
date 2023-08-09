@@ -68,17 +68,7 @@ class WindowState(
   /**
    * 是否全屏
    */
-  var fullscreen by observable.observe<Boolean>(WindowPropertyKeys.Fullscreen, false);
-
-  /**
-   * 是否最大化,如果全屏状态,那么该值也会同时为 true
-   */
-  var maximize by observable.observe<Boolean>(WindowPropertyKeys.Maximize, false);
-
-  /**
-   * 是否最小化
-   */
-  var minimize by observable.observe<Boolean>(WindowPropertyKeys.Minimize, false);
+  var mode by observable.observe<WindowMode>(WindowPropertyKeys.Mode, WindowMode.FLOATING);
 
   /**
    * 当前是否缩放窗口

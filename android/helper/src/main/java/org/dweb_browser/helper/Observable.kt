@@ -5,7 +5,9 @@ import kotlinx.coroutines.launch
 import kotlin.reflect.KProperty
 
 class Observable<K : Any> {
-  private val changeSignal = Signal<K>();
+  data class Change<K, V>(val key: K, val newValue: V, val oldValue: V)
+
+  val changeSignal = Signal<Change<K, *>>();
   val onChange = changeSignal.toListener()
 
   class Observer<K : Any, T>(
@@ -13,11 +15,12 @@ class Observable<K : Any> {
     val key: K,
     var value: T,
   ) {
-    operator fun setValue(thisRef: Any, property: KProperty<*>, input: T) {
-      if (input != value) {
-        value = input
+    operator fun setValue(thisRef: Any, property: KProperty<*>, newValue: T) {
+      if (newValue != value) {
+        val oldValue = value
+        value = newValue
         CoroutineScope(ioAsyncExceptionHandler).launch {
-          ob.changeSignal.emit(key)
+          ob.changeSignal.emit(Change(key, newValue, oldValue))
         }
       }
     }

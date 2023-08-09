@@ -2,14 +2,15 @@ package info.bagen.dwebbrowser.microService.sys.window
 
 
 import info.bagen.dwebbrowser.microService.core.WindowPropertyKeys
-import info.bagen.dwebbrowser.microService.core.WindowState
 import info.bagen.dwebbrowser.microService.core.windowInstancesManager
+import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.printdebugln
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.ipc.helper.ReadableStream
 import org.http4k.core.Method
+import org.http4k.core.Request
 import org.http4k.core.Response
 import org.http4k.core.Status
 import org.http4k.lens.Query
@@ -31,25 +32,34 @@ class WindowNMM :
   NativeMicroModule("window.sys.dweb", "Window Management") {
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     val query_wid = Query.string().required("wid")
+    fun getWindow(request: Request) = query_wid(request).let { wid ->
+      windowInstancesManager.instances[wid]
+        ?: throw Exception("No Found by window id: '$wid'")
+    }
 
     apiRouting = routes(
       /** 窗口的状态监听 */
       "/observe" bind Method.GET to defineHandler { request, ipc ->
-        val wid = query_wid(request)
-        val win = windowInstancesManager.instances[wid]
-          ?: throw Exception("No Found by window id: '$wid'")
+        val win = getWindow(request)
 
-        debugWindow("/observe", "wid: $wid ,mmid: ${ipc.remote.mmid}")
+        debugWindow("/observe", "wid: ${win.id} ,mmid: ${ipc.remote.mmid}")
         val inputStream = ReadableStream(onStart = { controller ->
-          val off = win.state.observable.onChange.withEmit(WindowPropertyKeys.Bounds) {
+          val off = win.state.observable.onChange {
             try {
               controller.enqueue(gson.toJson(win.state) + "\n")
             } catch (e: Exception) {
               controller.close()
               e.printStackTrace()
             }
+          }.also {
+            it.emitSelf(
+              Observable.Change(
+                WindowPropertyKeys.Any,
+                null,
+                null
+              )
+            )
           }
-
           ipc.onClose {
             off()
             controller.close()
@@ -57,14 +67,12 @@ class WindowNMM :
         })
         return@defineHandler Response(Status.OK).body(inputStream)
       },
-      "/setState" bind Method.POST to defineHandler { request ->
-        val winState = gson.fromJson(request.bodyString(), WindowState::class.java)
-        for (kv in winState::class.members) {
-
-        }
-
-        return@defineHandler winState;
-      },
+      "/focus" bind Method.GET to defineHandler { request -> getWindow(request).focus() },
+      "/blur" bind Method.GET to defineHandler { request -> getWindow(request).blur() },
+      "/maximize" bind Method.GET to defineHandler { request -> getWindow(request).maximize() },
+      "/unMaximize" bind Method.GET to defineHandler { request -> getWindow(request).unMaximize() },
+      "/minimize" bind Method.GET to defineHandler { request -> getWindow(request).minimize() },
+      "/close" bind Method.GET to defineHandler { request -> getWindow(request).close() },
     )
   }
 

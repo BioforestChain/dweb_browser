@@ -70,7 +70,7 @@ fun DesktopWindowController.Render(
   /**
    * 窗口层级
    */
-  val zIndex by win.state.watchedState { zIndex }
+  val zIndex by win.watchedState { zIndex }
 
   /**
    * 窗口海拔阴影
@@ -81,14 +81,6 @@ fun DesktopWindowController.Render(
     label = "elevation"
   )
 
-  /**
-   * 窗口缩放
-   */
-  val scale by animateFloatAsState(
-    targetValue = if (inMove) 1.05f else 1f,
-    animationSpec = tween(durationMillis = if (inMove) 250 else 500),
-    label = "scale"
-  )
 
   val isDark = isSystemInDarkTheme()
   val theme = remember(isDark) {
@@ -101,20 +93,22 @@ fun DesktopWindowController.Render(
     LocalWindowControllerTheme provides theme,
   ) {
     /// 窗口
-    val aniDp = @Composable { value: Float, label: String ->
-      (if (inMove or inResize) value else animateFloatAsState(value, label = label).value).dp
-    }
+    /**
+     * 窗口缩放
+     *
+     * 目前，它只适配了 拖动窗口时将窗口放大的动画效果
+     * TODO 需要监听 winBounds 的 height/width 变化，将这个变化适配到窗口的 scaleX、scaleY 上，只有在动画完成的时候，才会正式将真正的 size 传递给内容渲染，这样可以有效避免内容频繁的resize渲染计算。这种resize有两种情况，一种是基于用户行为的resize、一种是基于接口行为的（比如最大化），所以应该统一通过监听winBounds变更来动态生成scale动画
+     */
+    val scale by animateFloatAsState(
+      targetValue = if (inMove) 1.05f else 1f,
+      animationSpec = tween(durationMillis = if (inMove) 250 else 500),
+      label = "scale"
+    )
     Box(
       modifier = with(winBounds) {
         modifier
-          .offset(
-            aniDp(left, "left"),
-            aniDp(top, "top"),
-          )
-          .size(
-            aniDp(width, "width"),
-            aniDp(height, "height"),
-          )
+          .offset(left.dp, top.dp)
+          .size(width.dp, height.dp)
       }
         .graphicsLayer {
           scaleX = scale
@@ -173,7 +167,7 @@ fun DesktopWindowController.Render(
       /**
        * 窗口是否聚焦
        */
-      val isFocus by win.state.watchedState { focus }
+      val isFocus by win.watchedState { focus }
 
       /// 失去焦点的时候，提供 moveable 的遮罩（在移动中需要确保遮罩存在）
       if (inMove or !isFocus) {

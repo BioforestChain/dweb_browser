@@ -121,7 +121,7 @@ class DesktopWindowsManager(internal val activity: DesktopActivity) {
     /// 对 win 的 manager 进行修改
     win.manager = this;
     /// 对窗口做一些启动准备
-    val offListenerList = mutableListOf<OffListener>()
+    val offListenerList = mutableListOf<OffListener<*>>()
     offListenerList += win.onFocus {
       if (lastFocusedWin != win) {
         lastFocusedWin?.blur()

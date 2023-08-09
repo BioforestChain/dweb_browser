@@ -3,14 +3,12 @@ package org.dweb_browser.microservice.sys.http
 import com.google.gson.reflect.TypeToken
 import org.dweb_browser.helper.decodeURIComponent
 import org.dweb_browser.helper.printdebugln
-import org.dweb_browser.helper.readByteArray
 import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.helper.toBase64Url
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.gson
-import org.dweb_browser.microservice.help.stream
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.ReadableStreamIpc
 import org.dweb_browser.microservice.sys.dns.debugFetch
@@ -28,7 +26,6 @@ import org.http4k.lens.int
 import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
-import java.io.ByteArrayInputStream
 import java.util.Random
 import java.util.concurrent.ConcurrentHashMap
 

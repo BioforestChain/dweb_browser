@@ -9,7 +9,6 @@ import kotlin.coroutines.CoroutineContext
 
 typealias Callback<Args> = suspend SignalController<Args>.(args: Args) -> Unit
 typealias SimpleCallback = suspend SignalController<Unit>.(Unit) -> Unit
-typealias OffListener = () -> Boolean
 
 /** 控制器 */
 class SignalController<Args>(val args: Args, val offListener: () -> Unit, val breakEmit: () -> Unit)
@@ -25,6 +24,24 @@ private enum class SIGNAL_CTOR {
   BREAK, ;
 }
 
+class OffListener<Args>(val origin: Signal<Args>, val cb: Callback<Args>) {
+  @Synchronized
+  operator fun invoke() = origin.off(cb)
+
+  /**
+   * 触发自身的监听函数
+   */
+  suspend fun emitSelf(args: Args) = origin._emit(args, setOf(cb))
+  fun removeWhen(listener: Signal.Listener<*>) = listener {
+    this@OffListener()
+  }
+}
+
+typealias Remover = () -> Boolean
+
+fun <T> Remover.removeWhen(listener: Signal.Listener<T>) = listener {
+  this@removeWhen()
+}
 
 open class Signal<Args> {
   protected val listenerSet = mutableSetOf<Callback<Args>>();
@@ -32,14 +49,31 @@ open class Signal<Args> {
   val size get() = listenerSet.size
 
   @Synchronized
-  open fun listen(cb: Callback<Args>): OffListener {
+  open fun listen(cb: Callback<Args>): OffListener<Args> {
     // TODO emit 时的cbs 应该要同步进行修改？
     listenerSet.add(cb)
-    return { off(cb) }
+    return OffListener(this, cb)
   }
 
   @Synchronized
-  private fun off(cb: Callback<Args>) = listenerSet.remove(cb)
+  internal fun off(cb: Callback<Args>) = listenerSet.remove(cb)
+
+
+  /**
+   * Child 采用独立的实现，从而避开 clear 的影响
+   */
+  private data class Child<Args, R>(
+    val parentSignal: Signal<Args>,
+    val childSignal: Signal<R>,
+    val filter: (Args) -> Boolean,
+    val map: (Args) -> R
+  )
+
+  private val children = mutableMapOf<Signal<*>, Child<Args, *>>()
+  fun <R> createChild(filter: (Args) -> Boolean, map: (Args) -> R) =
+    Child(this, Signal(), filter, map).also { children[it.childSignal] = it }.childSignal
+
+  fun removeChild(childSignal: Signal<*>) = children.remove(childSignal)?.let { true } ?: false
 
   open suspend fun emit(args: Args) {
     // 这里拷贝一份，避免中通对其读写的时候出问题
@@ -47,7 +81,7 @@ open class Signal<Args> {
     _emit(args, cbs)
   }
 
-  protected suspend fun _emit(args: Args, cbs: Set<Callback<Args>>) {
+  internal suspend fun _emit(args: Args, cbs: Set<Callback<Args>>) {
     var signal: SIGNAL_CTOR? = null
     val ctx = SignalController(args, { signal = SIGNAL_CTOR.OFF }, { signal = SIGNAL_CTOR.BREAK })
     for (cb in cbs) {
@@ -59,6 +93,20 @@ open class Signal<Args> {
           else -> Unit
         }
         signal = null
+      } catch (e: Throwable) {
+        e.printStackTrace()
+      }
+    }
+
+    /// 然后触发孩子
+    for (child in children.values) {
+      try {
+        if (child.filter(args)) {
+          val childArgs = child.map(args)
+          println("okk1");
+          (child.childSignal as Signal<Any?>).emit(childArgs);
+          println("okk2");
+        }
       } catch (e: Throwable) {
         e.printStackTrace()
       }
@@ -91,14 +139,6 @@ open class Signal<Args> {
 
   class Listener<Args>(val signal: Signal<Args>) {
     operator fun invoke(cb: Callback<Args>) = signal.listen(cb)
-
-    /**
-     * 立即执行
-     */
-    suspend fun withEmit(emitArgs: Args, cb: Callback<Args>) = signal.listen(cb).also {
-      signal._emit(emitArgs, setOf(cb))
-    }
-
     fun toFlow() = signal.toFlow()
 
     suspend fun <T> Flow<T>.toListener(): Listener<T> {
@@ -113,7 +153,6 @@ open class Signal<Args> {
       }
       return signal.toListener()
     }
-
   }
 
   fun toListener() = Listener(this)
@@ -156,9 +195,4 @@ class SimpleSignal : Signal<Unit>() {
     emitAndClear(Unit)
   }
 
-//  override fun listen(cb: SimpleCallback) = super.listen { _ -> cb.invoke(this) }
 };
-
-fun <T> OffListener.removeWhen(listener: Signal.Listener<T>) = listener {
-  this@removeWhen()
-}

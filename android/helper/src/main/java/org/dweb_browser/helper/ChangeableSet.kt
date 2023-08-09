@@ -6,7 +6,6 @@ class ChangeableSet<E>(context: CoroutineContext = ioAsyncExceptionHandler) :
   LinkedHashSet<E>() {
   private val changeable = Changeable(this, context)
   val onChange = changeable.onChange
-  val watch = changeable.watch
   suspend fun emitChange() = changeable.emitChange()
 
   override fun add(element: E) = super.add(element).also { if (it) changeable.emitChangeSync() }

@@ -30,6 +30,7 @@ import info.bagen.dwebbrowser.base.WindowInsetsHelper
 import info.bagen.dwebbrowser.microService.browser.desk.DesktopWindowController
 import info.bagen.dwebbrowser.microService.browser.desk.noLocalProvidedFor
 import info.bagen.dwebbrowser.microService.core.WindowBounds
+import info.bagen.dwebbrowser.microService.core.WindowMode
 import info.bagen.dwebbrowser.microService.core.WindowPropertyKeys
 import info.bagen.dwebbrowser.microService.core.WindowState
 import info.bagen.dwebbrowser.microService.sys.helper.hex
@@ -40,38 +41,30 @@ import info.bagen.dwebbrowser.ui.theme.md_theme_light_inverseOnSurface
 import info.bagen.dwebbrowser.ui.theme.md_theme_light_onSurface
 import info.bagen.dwebbrowser.ui.theme.md_theme_light_surface
 import kotlinx.coroutines.launch
+import org.dweb_browser.helper.Observable
 import java.util.WeakHashMap
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
 
 val DesktopWindowController.coroutineScope get() = context.lifecycleScope
-//
-///**
-// * 触发 WindowState 状态的更新事件监听
-// */
-//fun DesktopWindowController.emitStateChange() {
-//  coroutineScope.launch {
-//    state.emitChange()
-//  }
-//}
+
 
 /**
  * 提供一个计算函数，来获得一个在Compose中使用的 state
  */
 @Composable
-fun <T> WindowState.watchedState(
+fun <T> DesktopWindowController.watchedState(
   policy: SnapshotMutationPolicy<T> = structuralEqualityPolicy(),
-  filter: ((changeKey: WindowPropertyKeys) -> Boolean)? = null,
+  filter: ((change: Observable.Change<WindowPropertyKeys, *>) -> Boolean)? = null,
   getter: WindowState.() -> T,
 ) = remember {
-  mutableStateOf(getter.invoke(this), policy)
-}.also { state ->
-  val winState = this@watchedState
-  DisposableEffect(winState) {
-    val off = winState.observable.onChange {
+  mutableStateOf(getter.invoke(state), policy)
+}.also { rememberState ->
+  DisposableEffect(state) {
+    val off = state.observable.onChange {
       if (filter?.invoke(it) != false) {
-        state.value = getter.invoke(winState)
+        rememberState.value = getter.invoke(state)
       }
     }
     onDispose {
@@ -210,6 +203,10 @@ data class WindowLimits(
   val bottomBarBaseHeight: Float,
 )
 
+@Composable
+fun DesktopWindowController.watchedIsMaximized() =
+  watchedState { mode == WindowMode.MAXIMIZE || mode == WindowMode.FULLSCREEN }
+
 /**
  * 根据约束配置，计算出最终的窗口大小与坐标
  */
@@ -217,7 +214,7 @@ data class WindowLimits(
 fun DesktopWindowController.calcWindowBoundsByLimits(
   limits: WindowLimits
 ): WindowBounds {
-  val maximize by state.watchedState { maximize }
+  val maximize by watchedIsMaximized()
   return if (maximize) {
     inMove.value = false
     state.updateBounds {
@@ -230,7 +227,7 @@ fun DesktopWindowController.calcWindowBoundsByLimits(
     }
   } else {
     val layoutDirection = LocalLayoutDirection.current
-    val bounds by state.watchedState { bounds }
+    val bounds by watchedState { bounds }
 
     /**
      * 获取可触摸的空间
@@ -263,8 +260,8 @@ fun DesktopWindowController.calcWindowBoundsByLimits(
  */
 @Composable
 fun DesktopWindowController.calcWindowEdgeByLimits(limits: WindowLimits): WindowEdge {
-  val maximize by state.watchedState { maximize }
-  val bounds by state.watchedState { bounds }
+  val maximize by watchedIsMaximized()
+  val bounds by watchedState { bounds }
 
   val topHeight: Float;
   val bottomHeight: Float;

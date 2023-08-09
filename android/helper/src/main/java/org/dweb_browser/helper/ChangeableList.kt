@@ -11,7 +11,6 @@ class ChangeableList<T>(context: CoroutineContext = ioAsyncExceptionHandler) :
   ArrayList<T>() {
   private val changeable = Changeable(this, context)
   val onChange = changeable.onChange
-  val watch = changeable.watch
   suspend fun emitChange() = changeable.emitChange()
 
   override fun clear() {
