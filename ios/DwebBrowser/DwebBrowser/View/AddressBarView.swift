@@ -22,6 +22,7 @@ struct AddressBar: View {
     @FocusState var isAdressBarFocused: Bool
     @State private var inputText: String = ""
     @State private var displayText: String = ""
+    @State private var loadingProgress: CGFloat = 0
 
     private var isVisible: Bool { index == selectedTab.curIndex }
     private var shouldShowProgress: Bool { webWrapper.estimatedProgress > 0.0 && webWrapper.estimatedProgress < 1.0 && !addressBar.isFocused }
@@ -126,17 +127,20 @@ struct AddressBar: View {
             .onChange(of: inputText) { text in
                 addressBar.inputText = text
             }
+            .onChange(of: openingLink.clickedLink){ _ in
+                loadingProgress = 0
+            }
     }
 
     var progressV: some View {
         GeometryReader { geometry in
             VStack(alignment: .leading, spacing: 0) {
-                ProgressView(value: webWrapper.estimatedProgress)
+                ProgressView(value: loadingProgress)
                     .progressViewStyle(LinearProgressViewStyle())
                     .foregroundColor(.blue)
                     .background(Color(white: 1))
                     .cornerRadius(4)
-                    .frame(height: webWrapper.estimatedProgress >= 1.0 ? 0 : 3)
+                    .frame(height: loadingProgress >= 1.0 ? 0 : 3)
                     .alignmentGuide(.leading) { d in
                         d[.leading]
                     }
@@ -144,6 +148,9 @@ struct AddressBar: View {
             }
             .frame(width: geometry.size.width, height: geometry.size.height, alignment: .bottom)
             .clipShape(RoundedRectangle(cornerRadius: 8))
+            .onChange(of: webWrapper.estimatedProgress){ progress in
+                loadingProgress = progress
+            }
         }
     }
 

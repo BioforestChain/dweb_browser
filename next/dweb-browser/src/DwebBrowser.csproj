@@ -24,6 +24,8 @@
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-ios|AnyCPU'">
 		<CreatePackage>false</CreatePackage>
+		<CodesignProvision>iOS Team Provisioning Profile: com.instinct.bfexplorer</CodesignProvision>
+		<CodesignKey>Apple Development: shuiling yang (7YR49V9UJ6)</CodesignKey>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0-ios|AnyCPU'">
 		<CreatePackage>false</CreatePackage>

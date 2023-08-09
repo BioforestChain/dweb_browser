@@ -16,6 +16,7 @@ struct DwebBrowserApp: App {
         WindowGroup {
             BrowserView()
                 .environmentObject(networkManager)
+                .environment(\.colorScheme, ColorScheme.light)
         }
     }
 }
