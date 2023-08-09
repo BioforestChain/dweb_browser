@@ -11,12 +11,17 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.browserUI.ui.browser.BrowserViewModel
 import org.dweb_browser.helper.PromiseOut
+import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.microservice.sys.http.HttpDwebServer
 
 class BrowserController(
   private val browserNMM: BrowserNMM,
   private val browserServer: HttpDwebServer
 ) {
+
+  internal val updateSignal = SimpleSignal()
+  val onUpdate = updateSignal.toListener()
+
   val showLoading: MutableState<Boolean> = mutableStateOf(false)
   val browserViewModel by lazy {
     BrowserViewModel(browserNMM,browserServer) { mmid ->

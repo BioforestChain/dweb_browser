@@ -4,17 +4,24 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import info.bagen.dwebbrowser.App
+import info.bagen.dwebbrowser.microService.browser.desk.DeskLinkMetaData
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
 import org.dweb_browser.helper.printdebugln
 import org.dweb_browser.microservice.core.BootstrapContext
+import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.ipc.helper.IpcResponse
+import org.dweb_browser.microservice.ipc.helper.ReadableStream
 import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.dweb_browser.microservice.sys.http.DwebHttpServerOptions
 import org.dweb_browser.microservice.sys.http.HttpDwebServer
 import org.dweb_browser.microservice.sys.http.createHttpDwebServer
 import org.http4k.core.Method
+import org.http4k.core.Response
+import org.http4k.core.Status
 import org.http4k.lens.Query
 import org.http4k.lens.string
 import org.http4k.routing.bind
@@ -39,11 +46,13 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
   val queryAppId = Query.string().required("app_id")
   val queryKeyWord = Query.string().required("q")
   val queryUrl = Query.string().required("url")
+  private val runningWebApps = mutableListOf<DeskLinkMetaData>()
+
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     val browserServer = this.createBrowserWebServer()
-    val controller = BrowserController(this, browserServer)
+    val browserController = BrowserController(this, browserServer)
     val sessionId = UUID.randomUUID().toString()
-    controllers[sessionId] = controller
+    controllers[sessionId] = browserController
 
     this.onAfterShutdown {
       controllers.remove(sessionId)
@@ -65,7 +74,33 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
         val url = queryUrl(request)
         openView(sessionId = sessionId, url = url)
         return@defineHandler true
-      }
+      },
+      "/browser/observe/apps" bind Method.GET to defineHandler { _, ipc ->
+        val inputStream = ReadableStream(onStart = { controller ->
+          val off = browserController.onUpdate {
+            try {
+              withContext(Dispatchers.IO) {
+                controller.enqueue((gson.toJson(runningWebApps) + "\n").toByteArray())
+              }
+            } catch (e: Exception) {
+              controller.close()
+              e.printStackTrace()
+            }
+          }
+          ipc.onClose {
+            off()
+            controller.close()
+          }
+        })
+        browserController.updateSignal.emit()
+        return@defineHandler Response(Status.OK).body(inputStream)
+      },
+      "/uninstall" bind Method.GET to defineHandler { request ->
+        debugBrowser("uninstall", request.uri)
+        val search = queryKeyWord(request)
+        openView(sessionId = sessionId, search = search)
+        return@defineHandler true
+      },
     )
   }
 
@@ -73,12 +108,6 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
     App.startActivity(BrowserActivity::class.java) { intent ->
       intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
       intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
-      // 由于SplashActivity添加了android:excludeFromRecents属性，导致同一个task的其他activity也无法显示在Recent Screen，比如BrowserActivity
-      // intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
-      /*intent.putExtras(Bundle().apply {
-        putString("sessionId", sessionId)
-        putString("mmid", mmid)
-      })*/
       intent.putExtra("sessionId", sessionId)
       intent.putExtra("mmid", mmid)
       search?.let { intent.putExtra("search", search) }

@@ -192,9 +192,8 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
       },
       "/taskbar/resize" bind Method.GET to defineHandler { request ->
         val size = queryResize(request)
-        val result = taskBarController.resize(size)
-        debugDesk("/taskbar/resize", "$size $result")
-        return@defineHandler result
+        debugDesk("/taskbar/resize", "$size")
+        return@defineHandler taskBarController.resize(size)
       },
       "/taskbar/toggle-desktop-view" bind Method.GET to defineHandler { request ->
         taskBarController.toggleDesktopView()

@@ -19,18 +19,12 @@ class TaskbarActivity : BaseActivity() {
 
   private val blurHelper = ActivityBlurHelper(this)
 
-  private var controller: TaskBarController? = null
-  private fun bindController(): TaskBarController {
-    /// 解除上一个 controller的activity绑定
-    controller?.activity = null
-
-    return DesktopNMM.taskBarController
-  }
+  private var controller: TaskBarController = DesktopNMM.taskBarController
 
   @SuppressLint("UseCompatLoadingForDrawables", "ClickableViewAccessibility")
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    controller = bindController()
+    controller.activity  = this
     val density = resources.displayMetrics.density
 
     setContent {
@@ -74,7 +68,7 @@ class TaskbarActivity : BaseActivity() {
   override fun onWindowFocusChanged(hasFocus: Boolean) {
     super.onWindowFocusChanged(hasFocus)
     this.lifecycle.coroutineScope.launch {
-      controller?.let { taskBarController ->
+      controller.let { taskBarController ->
         taskBarController.stateSignal.emit(
           TaskBarController.TaskBarState(hasFocus, taskBarController.getFocusApp())
         )
@@ -85,7 +79,7 @@ class TaskbarActivity : BaseActivity() {
   override fun onDestroy() {
     super.onDestroy()
     TaskbarModel.openFloatWindow() // 销毁 TaskbarActivity 后需要将悬浮框重新显示加载
-    controller?.activity = null
+    controller.activity = null
   }
 
   @SuppressLint("RestrictedApi")

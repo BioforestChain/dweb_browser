@@ -12,6 +12,12 @@ import org.dweb_browser.microservice.help.MicroModuleManifest
 import java.io.Serializable
 
 
+data class DeskLinkMetaData(
+  val title:String,
+  val icon:ImageResource? = null,
+  val url:String
+)
+
 data class DeskAppMetaData(
   var running: Boolean = false, // 是否正在运行
   var winStates: List<WindowState> = emptyList(), // 当前进程所拥有的窗口的状态
@@ -62,20 +68,4 @@ data class DeskAppMetaData(
 
     return this
   }
-
-//  enum class ScreenType {
-//    Hide, Half, Full;
-//  }
-//
-//  val sort: MutableState<Int> = mutableIntStateOf(0) // 排序，位置
-//  val screenType: MutableState<ScreenType> = mutableStateOf(ScreenType.Hide) // 默认隐藏
-//  val offsetX: MutableState<Float> = mutableFloatStateOf(0f) // X轴偏移量
-//  val offsetY: MutableState<Float> = mutableFloatStateOf(0f) // Y轴偏移量
-//  val zoom: MutableState<Float> = mutableFloatStateOf(1f) // 缩放
-//
-//  var viewItem: MultiWebViewController.MultiViewItem? = null
-
-//  fun toJson():String {
-//    return gson.toJson(jsMetaData).replace("{\"background_color\"","""{"isRunning":${isRunning},"isExpand":${isExpand},"background_color"""")
-//  }
 }

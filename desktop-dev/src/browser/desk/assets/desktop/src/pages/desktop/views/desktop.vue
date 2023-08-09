@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import wallpaper_url from "src/assets/wallpaper.webp";
-import { getWidgetInfo, watchDesktopAppInfo } from "src/provider/api.ts";
+import { getWidgetInfo, watchBrowserAppInfo, watchDesktopAppInfo } from "src/provider/api.ts";
 import type { $DeskLinkMetaData, $TileSizeType, $WidgetAppData, $WidgetCustomData } from "src/types/app.type.ts";
 import { Ref, StyleValue, onMounted, onUnmounted, ref } from "vue";
 import TileItem from "../components/tile-item/tile-item.vue";
@@ -8,11 +8,16 @@ import TilePanel from "../components/tile-panel/tile-panel.vue";
 import WidgetApp from "../components/widget-app/widget-app.vue";
 import WidgetCustom from "../components/widget-custom/widget-custom.vue";
 import WidgetAppOverlay from "../components/widget-menu-overlay/widget-menu-overlay.vue";
+import WidgetWebApp from "../components/widget-webapp/widget-webapp.vue";
 
 type $LayoutInfo = (
   | {
       type: "app";
       data: $WidgetAppData;
+    }
+  | {
+      type: "webapp";
+      data: $DeskLinkMetaData;
     }
   | {
       type: "link";
@@ -42,21 +47,28 @@ const layoutInfoListRef: Ref<$LayoutInfo[]> = ref([]);
 const updateApps = async () => {
   const widgetList = await getWidgetInfo();
 
-  let appList:$WidgetAppData[] =[]
-  updateLayoutInfoList(widgetList, appList);
+  let appList: $WidgetAppData[] = [];
+  let webAppList: $DeskLinkMetaData[] = []
+  updateLayoutInfoList(widgetList, appList,webAppList);
 
   const appInfoWatcher = watchDesktopAppInfo();
+  const webAppsWatcher = watchBrowserAppInfo();
   void (async () => {
     onUnmounted(() => {
       appInfoWatcher.return();
+      webAppsWatcher.return();
     });
     for await (const list of appInfoWatcher) {
-      appList = list;
-      updateLayoutInfoList(widgetList, appList);
+      appList = list
+      updateLayoutInfoList(widgetList, appList,webAppList);
+    }
+    for await (const list of webAppsWatcher) {
+      webAppList = list;
+      updateLayoutInfoList(widgetList, appList,webAppList);
     }
   })();
 };
-const updateLayoutInfoList = (widgetList: $WidgetCustomData[], appList: $WidgetAppData[]) => {
+const updateLayoutInfoList = (widgetList: $WidgetCustomData[], appList: $WidgetAppData[],webAppList:$DeskLinkMetaData[]) => {
   const layoutInfoList: $LayoutInfo[] = [];
   for (const data of widgetList) {
     layoutInfoList.push({
@@ -68,6 +80,13 @@ const updateLayoutInfoList = (widgetList: $WidgetCustomData[], appList: $WidgetA
   for (const data of appList) {
     layoutInfoList.push({
       type: "app",
+      data,
+      xywh: { w: 1, h: 1 },
+    });
+  }
+  for (const data of webAppList) {
+    layoutInfoList.push({
+      type: "webapp",
       data,
       xywh: { w: 1, h: 1 },
     });
@@ -89,6 +108,7 @@ const bgStyle = {
     <TilePanel>
       <TileItem v-for="(info, index) in layoutInfoListRef" :key="index" :width="info.xywh.w" :height="info.xywh.h">
         <WidgetApp v-if="info.type === 'app'" :key="index" :index="index" :app-meta-data="info.data"></WidgetApp>
+        <WidgetWebApp v-if="info.type === 'webapp'" :key="index" :index="index" :app-meta-data="info.data"></WidgetWebApp>
         <WidgetCustom
           v-if="info.type === 'widget'"
           :key="index"

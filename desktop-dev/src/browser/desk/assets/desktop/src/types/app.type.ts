@@ -1,4 +1,5 @@
 export type { $DeskAppMetaData as $WidgetAppData } from "../../../../types.ts";
+import { $AppIconInfo } from "src/components/app-icon/types.ts";
 import type { $CommonAppManifest } from '../../../../../../core/types.ts';
 import type { $WindowState } from "../../../../types.ts";
 
@@ -8,6 +9,12 @@ export interface $TaskBarState {
    */
   focus: boolean;
   appId: `${string}.dweb`;
+}
+
+export interface $DeskLinkMetaData {
+  title:string,
+  icon:$AppIconInfo,
+  url:string 
 }
 
 

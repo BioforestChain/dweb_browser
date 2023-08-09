@@ -1,4 +1,4 @@
-import { $TaskBarState, $WidgetAppData, $WidgetCustomData } from "../types/app.type.ts";
+import { $DeskLinkMetaData, $TaskBarState, $WidgetAppData, $WidgetCustomData } from "../types/app.type.ts";
 import { searchWidget } from "./custom/search.widget.ts";
 import { nativeFetch, nativeFetchStream } from "./fetch.ts";
 
@@ -31,6 +31,12 @@ export function watchTaskBarStatus() {
   return nativeFetchStream<$TaskBarState>("/taskbar/observe/status");
 }
 
+export function watchBrowserAppInfo() {
+  return nativeFetchStream<$DeskLinkMetaData[]>("/browser/observe/apps",{
+    mmid:"web.browser.dweb"
+  })
+}
+
 export async function getWidgetInfo() {
   return [searchWidget] as $WidgetCustomData[];
 }
@@ -42,6 +48,12 @@ export async function openApp(id: string) {
       app_id: id,
     },
   });
+}
+
+export async function openBrowser(url:string) {
+  const xhr = new XMLHttpRequest()
+  xhr.open("GET",`dweb:openinbrowser?url=${url}`)
+  xhr.send()
 }
 
 export function toggleMaximize(id: string) {
@@ -76,6 +88,15 @@ export async function deleteApp(id: string) {
       app_id: id,
     },
     mmid: "jmm.browser.dweb",
+  });
+}
+
+export async function deleteWebApp(appName:string) {
+   return nativeFetch<Response>("/uninstall", {
+    search: {
+      name: appName,
+    },
+    mmid: "web.browser.dweb",
   });
 }
 
