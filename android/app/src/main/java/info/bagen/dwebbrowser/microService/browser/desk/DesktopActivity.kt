@@ -16,12 +16,12 @@ import androidx.compose.ui.unit.dp
 import com.google.accompanist.web.WebView
 import info.bagen.dwebbrowser.base.BaseActivity
 import info.bagen.dwebbrowser.microService.browser.desk.view.Render
-import info.bagen.dwebbrowser.microService.core.WindowState
+import info.bagen.dwebbrowser.microService.core.WindowBounds
 import info.bagen.dwebbrowser.ui.theme.DwebBrowserAppTheme
 import info.bagen.dwebbrowser.util.permission.PermissionUtil
 
 @SuppressLint("ModifierFactoryExtensionFunction")
-fun WindowState.WindowBounds.toModifier(
+fun WindowBounds.toModifier(
   modifier: Modifier = Modifier,
 ) = modifier
   .offset(left.dp, top.dp)

@@ -7,16 +7,19 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.safeContent
 import androidx.compose.foundation.layout.safeGestures
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.SnapshotMutationPolicy
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.neverEqualPolicy
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.structuralEqualityPolicy
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
@@ -26,6 +29,9 @@ import androidx.lifecycle.lifecycleScope
 import info.bagen.dwebbrowser.base.WindowInsetsHelper
 import info.bagen.dwebbrowser.microService.browser.desk.DesktopWindowController
 import info.bagen.dwebbrowser.microService.browser.desk.noLocalProvidedFor
+import info.bagen.dwebbrowser.microService.core.WindowBounds
+import info.bagen.dwebbrowser.microService.core.WindowPropertyKeys
+import info.bagen.dwebbrowser.microService.core.WindowState
 import info.bagen.dwebbrowser.microService.sys.helper.hex
 import info.bagen.dwebbrowser.ui.theme.md_theme_dark_inverseOnSurface
 import info.bagen.dwebbrowser.ui.theme.md_theme_dark_onSurface
@@ -40,13 +46,37 @@ import kotlin.math.min
 import kotlin.math.sqrt
 
 val DesktopWindowController.coroutineScope get() = context.lifecycleScope
+//
+///**
+// * 触发 WindowState 状态的更新事件监听
+// */
+//fun DesktopWindowController.emitStateChange() {
+//  coroutineScope.launch {
+//    state.emitChange()
+//  }
+//}
 
 /**
- * 触发 WindowState 状态的更新事件监听
+ * 提供一个计算函数，来获得一个在Compose中使用的 state
  */
-fun DesktopWindowController.emitStateChange() {
-  coroutineScope.launch {
-    state.emitChange()
+@Composable
+fun <T> WindowState.watchedState(
+  policy: SnapshotMutationPolicy<T> = structuralEqualityPolicy(),
+  filter: ((changeKey: WindowPropertyKeys) -> Boolean)? = null,
+  getter: WindowState.() -> T,
+) = remember {
+  mutableStateOf(getter.invoke(this), policy)
+}.also { state ->
+  val winState = this@watchedState
+  DisposableEffect(winState) {
+    val off = winState.observable.onChange {
+      if (filter?.invoke(it) != false) {
+        state.value = getter.invoke(winState)
+      }
+    }
+    onDispose {
+      off()
+    }
   }
 }
 
@@ -108,9 +138,12 @@ fun Modifier.windowMoveAble(win: DesktopWindowController) = this
       },
     ) { change, dragAmount ->
       change.consume()
-      win.state.bounds.left += dragAmount.x / density
-      win.state.bounds.top += dragAmount.y / density
-      win.emitStateChange()
+      win.state.updateBounds {
+        copy(
+          left = left + dragAmount.x / density,
+          top = top + dragAmount.y / density,
+        )
+      }
     }
   }
 
@@ -127,10 +160,13 @@ fun Modifier.windowResizeByLeftBottom(win: DesktopWindowController) = this.point
     onDragCancel = { win.inResize.value = false },
   ) { change, dragAmount ->
     change.consume()
-    win.state.bounds.left += dragAmount.x / density
-    win.state.bounds.width -= dragAmount.x / density
-    win.state.bounds.height += dragAmount.y / density
-    win.emitStateChange()
+    win.state.updateBounds {
+      copy(
+        left = left + dragAmount.x / density,
+        width = width - dragAmount.x / density,
+        height = height + dragAmount.y / density,
+      )
+    }
   }
 }
 
@@ -142,9 +178,12 @@ fun Modifier.windowResizeByRightBottom(win: DesktopWindowController) = this.poin
     onDragCancel = { win.inResize.value = false },
   ) { change, dragAmount ->
     change.consume()
-    win.state.bounds.width += dragAmount.x / density
-    win.state.bounds.height += dragAmount.y / density
-    win.emitStateChange()
+    win.state.updateBounds {
+      copy(
+        width = width + dragAmount.x / density,
+        height = height + dragAmount.y / density,
+      )
+    }
   }
 }
 
@@ -177,100 +216,121 @@ data class WindowLimits(
 @Composable
 fun DesktopWindowController.calcWindowBoundsByLimits(
   limits: WindowLimits
-) = if (state.maximize) {
-  inMove.value = false
-  state.bounds.copy(
-    left = 0f,
-    top = 0f,
-    width = limits.maxWidth,
-    height = limits.maxHeight,
-  )
-} else {
-  val layoutDirection = LocalLayoutDirection.current
+): WindowBounds {
+  val maximize by state.watchedState { maximize }
+  return if (maximize) {
+    inMove.value = false
+    state.updateBounds {
+      copy(
+        left = 0f,
+        top = 0f,
+        width = limits.maxWidth,
+        height = limits.maxHeight,
+      )
+    }
+  } else {
+    val layoutDirection = LocalLayoutDirection.current
+    val bounds by state.watchedState { bounds }
 
-  /**
-   * 获取可触摸的空间
-   */
-  val safeGesturesPadding = WindowInsets.safeGestures.asPaddingValues();
-  val width = max(state.bounds.width, limits.minWidth)
-  val height = max(state.bounds.height, limits.minHeight)
-  val safeLeftPadding = safeGesturesPadding.calculateLeftPadding(layoutDirection).value;
-  val safeTopPadding = safeGesturesPadding.calculateTopPadding().value;
-  val safeRightPadding = safeGesturesPadding.calculateRightPadding(layoutDirection).value;
-  val safeBottomPadding = safeGesturesPadding.calculateBottomPadding().value;
-  val minLeft = safeLeftPadding - width / 2
-  val maxLeft = limits.maxWidth - safeRightPadding - width / 2
-  val minTop = safeTopPadding
-  val maxTop = limits.maxHeight - safeBottomPadding - limits.topBarBaseHeight // 确保 topBar 在可触摸的空间内
-  state.bounds.copy(
-    left = min(max(minLeft, state.bounds.left), maxLeft),
-    top = min(max(minTop, state.bounds.top), maxTop),
-    width = width,
-    height = height,
-  )
-}.also { winBounds ->
-  if (winBounds != state.bounds) {
-    state.bounds = winBounds
-    emitStateChange()
-  }
-};
-
+    /**
+     * 获取可触摸的空间
+     */
+    val safeGesturesPadding = WindowInsets.safeGestures.asPaddingValues();
+    val winWidth = max(bounds.width, limits.minWidth)
+    val winHeight = max(bounds.height, limits.minHeight)
+    val safeLeftPadding = safeGesturesPadding.calculateLeftPadding(layoutDirection).value;
+    val safeTopPadding = safeGesturesPadding.calculateTopPadding().value;
+    val safeRightPadding = safeGesturesPadding.calculateRightPadding(layoutDirection).value;
+    val safeBottomPadding = safeGesturesPadding.calculateBottomPadding().value;
+    val minLeft = safeLeftPadding - winWidth / 2
+    val maxLeft = limits.maxWidth - safeRightPadding - winWidth / 2
+    val minTop = safeTopPadding
+    val maxTop =
+      limits.maxHeight - safeBottomPadding - limits.topBarBaseHeight // 确保 topBar 在可触摸的空间内
+    state.updateBounds {
+      copy(
+        left = min(max(minLeft, bounds.left), maxLeft),
+        top = min(max(minTop, bounds.top), maxTop),
+        width = winWidth,
+        height = winHeight,
+      )
+    }
+  };
+}
 
 /**
  * 根据约束配置，计算出最终的窗口边距布局
  */
 @Composable
-fun DesktopWindowController.calcWindowEdgeByLimits(limits: WindowLimits) = if (state.maximize) {
-  val layoutDirection = LocalLayoutDirection.current
-  val density = LocalDensity.current
-  val safeContentPadding = WindowInsets.safeContent.asPaddingValues()
-  val safeGesturesPadding = WindowInsets.safeGestures.asPaddingValues()
-  val topHeight = safeContentPadding.calculateTopPadding().value
+fun DesktopWindowController.calcWindowEdgeByLimits(limits: WindowLimits): WindowEdge {
+  val maximize by state.watchedState { maximize }
+  val bounds by state.watchedState { bounds }
 
-  /**
-   * 底部是系统导航栏，这里我们使用触摸安全的区域来控制底部高度，这样可以避免底部抖动
-   */
-  val bottomMinHeight = max(
-    safeGesturesPadding.calculateBottomPadding().value,
-    limits.bottomBarBaseHeight // 因为底部要放置一些信息按钮，所以我们会给到底部一个基本的高度
+  val topHeight: Float;
+  val bottomHeight: Float;
+  val leftWidth: Float;
+  val rightWidth: Float;
+  val borderRounded: WindowEdge.CornerRadius;
+  val contentRounded: WindowEdge.CornerRadius;
+  val contentSize: WindowEdge.ContentSize
+
+  if (maximize) {
+    val layoutDirection = LocalLayoutDirection.current
+    val density = LocalDensity.current
+    val safeContentPadding = WindowInsets.safeContent.asPaddingValues()
+    val safeGesturesPadding = WindowInsets.safeGestures.asPaddingValues()
+    topHeight = safeContentPadding.calculateTopPadding().value
+
+    /**
+     * 底部是系统导航栏，这里我们使用触摸安全的区域来控制底部高度，这样可以避免底部抖动
+     */
+    val bottomMinHeight = max(
+      safeGesturesPadding.calculateBottomPadding().value,
+      limits.bottomBarBaseHeight // 因为底部要放置一些信息按钮，所以我们会给到底部一个基本的高度
+    )
+    bottomHeight = max(
+      safeContentPadding.calculateBottomPadding().value, bottomMinHeight
+    );
+    /**
+     * 即便是最大化模式下，我们仍然需要有一个强调边框。
+     * 这个边框存在的意义有：
+     * 1. 强调是窗口模式，而不是全屏模式
+     * 2. 养成用户的视觉习惯，避免某些情况下有人使用视觉手段欺骗用户，窗口模式的存在将一切限定在一个规则内，可以避免常规视觉诈骗
+     * 3. 全屏模式虽然会移除窗口，但是会有一些其它限制，比如但需要进行多窗口交互的时候，这些窗口边框仍然会显示出来
+     */
+    leftWidth = max(safeContentPadding.calculateLeftPadding(layoutDirection).value, 3f)
+    rightWidth = max(safeContentPadding.calculateRightPadding(layoutDirection).value, 3f)
+    borderRounded = WindowEdge.CornerRadius.from(0) // 全屏模式下，外部不需要圆角
+    contentRounded = WindowEdge.CornerRadius.from(
+      WindowInsetsHelper.getCornerRadiusTop(context, density.density, 16f),
+      WindowInsetsHelper.getCornerRadiusBottom(context, density.density, 16f)
+    )
+    contentSize = WindowEdge.ContentSize(
+      bounds.width - leftWidth - rightWidth,
+      bounds.height - topHeight - bottomMinHeight, // 这里不使用bottomHeight，因为导航栏的高度会发生动态变动，因此使用bottomMinHeight可以有效避免抖动
+    )
+  } else {
+    borderRounded =
+      WindowEdge.CornerRadius.from(16) // TODO 这里应该使用 WindowInsets#getRoundedCorner 来获得真实的无力圆角
+    contentRounded = borderRounded / sqrt(2f)
+    topHeight = limits.topBarBaseHeight;
+    bottomHeight = limits.bottomBarBaseHeight
+    leftWidth = 5f;
+    rightWidth = 5f;
+    contentSize = WindowEdge.ContentSize(
+      bounds.width - leftWidth - rightWidth,
+      bounds.height - topHeight - bottomHeight, // 这里不使用bottomHeight，因为导航栏的高度会发生动态变动
+    )
+  }
+  return WindowEdge(
+    topHeight,
+    bottomHeight,
+    leftWidth,
+    rightWidth,
+    borderRounded,
+    contentRounded,
+    contentSize
   )
-  val bottomHeight = max(
-    safeContentPadding.calculateBottomPadding().value, bottomMinHeight
-  );
-  /**
-   * 即便是最大化模式下，我们仍然需要有一个强调边框。
-   * 这个边框存在的意义有：
-   * 1. 强调是窗口模式，而不是全屏模式
-   * 2. 养成用户的视觉习惯，避免某些情况下有人使用视觉手段欺骗用户，窗口模式的存在将一切限定在一个规则内，可以避免常规视觉诈骗
-   * 3. 全屏模式虽然会移除窗口，但是会有一些其它限制，比如但需要进行多窗口交互的时候，这些窗口边框仍然会显示出来
-   */
-  val leftWidth = max(safeContentPadding.calculateLeftPadding(layoutDirection).value, 3f)
-  val rightWidth = max(safeContentPadding.calculateRightPadding(layoutDirection).value, 3f)
-  val borderRounded = WindowEdge.CornerRadius.from(0) // 全屏模式下，外部不需要圆角
-  val contentRounded = WindowEdge.CornerRadius.from(
-    WindowInsetsHelper.getCornerRadiusTop(context, density.density, 16f),
-    WindowInsetsHelper.getCornerRadiusBottom(context, density.density, 16f)
-  )
-  val contentSize = WindowEdge.ContentSize(
-    state.bounds.width - leftWidth - rightWidth,
-    state.bounds.height - topHeight - bottomMinHeight, // 这里不使用bottomHeight，因为导航栏的高度会发生动态变动，因此使用bottomMinHeight可以有效避免抖动
-  )
-  WindowEdge(
-    topHeight, bottomHeight, leftWidth, rightWidth, borderRounded, contentRounded, contentSize
-  )
-} else {
-  val borderRounded =
-    WindowEdge.CornerRadius.from(16) // TODO 这里应该使用 WindowInsets#getRoundedCorner 来获得真实的无力圆角
-  val contentRounded = borderRounded / sqrt(2f)
-  val topHeight = limits.topBarBaseHeight;
-  val bottomHeight = 24f
-  val leftWidth = 5f;
-  val rightWidth = 5f;
-  val contentSize = WindowEdge.ContentSize(
-    state.bounds.width - leftWidth - rightWidth,
-    state.bounds.height - topHeight - bottomHeight, // 这里不使用bottomHeight，因为导航栏的高度会发生动态变动
-  )
-  WindowEdge(36f, 24f, 5f, 5f, borderRounded, contentRounded, contentSize)
 }
 
 val LocalWindowEdge = compositionLocalOf<WindowEdge> { noLocalProvidedFor("WindowEdge") }

@@ -16,6 +16,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,7 +26,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import info.bagen.dwebbrowser.microService.browser.desk.DesktopWindowController
-import info.bagen.dwebbrowser.microService.core.WindowState
 import kotlinx.coroutines.launch
 
 @Composable
@@ -49,7 +49,8 @@ internal fun WindowTopBar(
         )
       )
   ) {
-    if (win.state.maximize) {
+    val maximize by win.state.watchedState { maximize }
+    if (maximize) {
       WindowTopMaximizedBar(win)
     } else {
       WindowTopControllerBar(win)
@@ -79,11 +80,12 @@ private fun WindowTopControllerBar(
         .weight(2f)
         .fillMaxHeight(),
     ) {
+      val title_text by win.state.watchedState { title ?: owner }
       Text(
         modifier = Modifier
           .align(Alignment.Center)
           .padding(2.dp),
-        text = win.state.title,
+        text = title_text,
         style = MaterialTheme.typography.titleSmall.copy(color = contentColor)
       )
     }

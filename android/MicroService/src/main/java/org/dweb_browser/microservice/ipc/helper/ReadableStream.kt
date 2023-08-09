@@ -34,6 +34,7 @@ class ReadableStream(
     val stream get() = getStream()
 
     suspend fun enqueue(byteArray: ByteArray) = dataChannel.send(byteArray)
+    suspend fun enqueue(data: String) = enqueue(data.toByteArray())
 
     fun close() {
       stream.close()

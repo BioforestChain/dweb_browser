@@ -48,7 +48,7 @@ class MultiWebViewNMM :
     val queryWebviewId = Query.string().required("webview_id")
 
     apiRouting = routes(
-      // 打开一个 webview 作为窗口
+      // 打开一个 webview，并将它以 窗口window 的标准进行展示
       "/open" bind Method.GET to defineHandler { request, ipc ->
         val url = queryUrl(request)
         val remoteMm = ipc.asRemoteInstance()

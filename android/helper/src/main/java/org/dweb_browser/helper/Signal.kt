@@ -1,7 +1,8 @@
 package org.dweb_browser.helper
 
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
@@ -94,11 +95,25 @@ open class Signal<Args> {
     /**
      * 立即执行
      */
-    suspend operator fun invoke(firstValue: Args, cb: Callback<Args>) = signal.listen(cb).also {
-      signal._emit(firstValue, setOf(cb))
+    suspend fun withEmit(emitArgs: Args, cb: Callback<Args>) = signal.listen(cb).also {
+      signal._emit(emitArgs, setOf(cb))
     }
 
     fun toFlow() = signal.toFlow()
+
+    suspend fun <T> Flow<T>.toListener(): Listener<T> {
+      val flow = this
+      val signal = Signal<T>()
+      coroutineScope {
+        launch {
+          flow.collect {
+            signal.emit(it)
+          }
+        }
+      }
+      return signal.toListener()
+    }
+
   }
 
   fun toListener() = Listener(this)

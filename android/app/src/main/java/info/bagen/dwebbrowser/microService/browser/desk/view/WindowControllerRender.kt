@@ -18,23 +18,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.neverEqualPolicy
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import info.bagen.dwebbrowser.microService.browser.desk.DesktopWindowController
-import info.bagen.dwebbrowser.microService.browser.desk.Float
-import info.bagen.dwebbrowser.microService.browser.desk.debugDesk
 import info.bagen.dwebbrowser.microService.core.windowAdapterManager
 
 
@@ -43,25 +36,13 @@ fun DesktopWindowController.Render(
   modifier: Modifier = Modifier, maxWinWidth: Float, maxWinHeight: Float
 ) {
   val win = this;
-  var winState by remember { mutableStateOf(win.state, neverEqualPolicy()) }
-  DisposableEffect(win.state) {
-    debugDesk("DesktopWindowController.Render", "start watch win.state")
-    val off = win.state.onChange {
-      winState = win.state;
-    }
-    onDispose {
-      debugDesk("DesktopWindowController.Render", "stop watch win.state")
-      off()
-    }
-  }
-
   /**
    * 窗口是否在移动中
    */
-  var inMove by win.inMove
+  val inMove by win.inMove
 
   /** 窗口是否在调整大小中 */
-  var inResize by win.inResize
+  val inResize by win.inResize
 
   println("[${win.id}] inMove:${inMove} inResize:${inResize}")
 
@@ -86,11 +67,23 @@ fun DesktopWindowController.Render(
    */
   val winEdge = win.calcWindowEdgeByLimits(limits)
 
+  /**
+   * 窗口层级
+   */
+  val zIndex by win.state.watchedState { zIndex }
+
+  /**
+   * 窗口海拔阴影
+   */
   val elevation by animateFloatAsState(
-    targetValue = (if (inMove) 20f else 1f) + winState.zIndex,
+    targetValue = (if (inMove) 20f else 1f) + zIndex,
     animationSpec = tween(durationMillis = if (inMove) 250 else 500),
     label = "elevation"
   )
+
+  /**
+   * 窗口缩放
+   */
   val scale by animateFloatAsState(
     targetValue = if (inMove) 1.05f else 1f,
     animationSpec = tween(durationMillis = if (inMove) 250 else 500),
@@ -177,12 +170,17 @@ fun DesktopWindowController.Render(
         WindowBottomBar(win)
       }
 
+      /**
+       * 窗口是否聚焦
+       */
+      val isFocus by win.state.watchedState { focus }
+
       /// 失去焦点的时候，提供 moveable 的遮罩（在移动中需要确保遮罩存在）
-      if (inMove or !winState.focus) {
+      if (inMove or !isFocus) {
         Box(
           modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = if (winState.focus) 0f else 0.2f))
+            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = if (isFocus) 0f else 0.2f))
             .windowMoveAble(win)
         )
       }

@@ -77,7 +77,7 @@ class DesktopWindowsManager(internal val activity: DesktopActivity) {
     /// 创建成功，提供适配器来渲染窗口
     windowAdapterManager.append { newWindowState ->
       /// 新窗口的bounds可能都是没有配置的，所以这时候默认给它们设置一个有效的值
-      with(newWindowState.bounds) {
+      newWindowState.updateMutableBounds {
         activity.resources.displayMetrics.also { displayMetrics ->
           val displayWidth = displayMetrics.widthPixels / displayMetrics.density
           val displayHeight = displayMetrics.heightPixels / displayMetrics.density

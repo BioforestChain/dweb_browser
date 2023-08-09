@@ -16,6 +16,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,8 +27,6 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import info.bagen.dwebbrowser.microService.browser.desk.DesktopWindowController
-import info.bagen.dwebbrowser.microService.core.WindowState
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 /**
@@ -67,7 +66,6 @@ internal fun WindowBottomBar(
 private fun WindowBottomResizeBar(
   win: DesktopWindowController,
 ) {
-  val winState = win.state
   val density = LocalDensity.current
   val contentColor = LocalWindowControllerTheme.current.bottomContentColor
   Row(
@@ -95,8 +93,9 @@ private fun WindowBottomResizeBar(
       .pointerInput(Unit) {
         detectDragGestures { change, dragAmount ->
           change.consume()
-          winState.bounds.height += dragAmount.y / density.density
-          win.emitStateChange()
+          win.state.updateMutableBounds {
+            height += dragAmount.y / density.density
+          }
         }
       }) {
       Icon(
@@ -134,7 +133,6 @@ private fun WindowBottomResizeBar(
 private fun WindowBottomMaximizedBar(
   win: DesktopWindowController,
 ) {
-  val winState = win.state
   val winTheme = LocalWindowControllerTheme.current
   val coroutineScope = rememberCoroutineScope()
   Row(
@@ -168,8 +166,9 @@ private fun WindowBottomMaximizedBar(
         .weight(1f)
         .fillMaxHeight()
     ) {
+      val footer_text by win.state.watchedState { owner }
       Text(
-        text = winState.title,
+        text = footer_text,
         style = MaterialTheme.typography.labelSmall.copy(color = winTheme.bottomContentColor),
         modifier = Modifier
           .align(Alignment.Center)

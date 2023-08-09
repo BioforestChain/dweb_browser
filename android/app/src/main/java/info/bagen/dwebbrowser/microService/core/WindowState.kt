@@ -1,17 +1,15 @@
 package info.bagen.dwebbrowser.microService.core
 
 import androidx.compose.ui.graphics.Color
-import info.bagen.dwebbrowser.microService.sys.helper.toCssRgba
 import info.bagen.dwebbrowser.microService.sys.helper.toHex
-import org.dweb_browser.helper.SimpleSignal
+import org.dweb_browser.helper.Observable
 import org.dweb_browser.microservice.help.MMID
 
-typealias UUID = String;
-
 /**
- * 单个窗口的状态集
+ * 单个窗口的信息集合
  */
-data class WindowState(
+class WindowState(
+  /// 这里是窗口的不可变信息
   /**
    * 窗口全局唯一编号，属于UUID的格式
    */
@@ -28,6 +26,27 @@ data class WindowState(
    * 比如若渲染的是web内容，那么应该是 mwebview.browser.dweb
    */
   val provider: MMID,
+) {
+  /**
+   * 以下是可变属性，所以这里提供一个监听器，来监听所有的属性变更
+   */
+  val observable = Observable<WindowPropertyKeys>();
+
+  /**
+   * 窗口位置和大小
+   *
+   * 窗口会被限制最小值,会被限制显示区域。
+   * 终止,窗口最终会被绘制在用户可见可控的区域中
+   */
+  var bounds by observable.observe<WindowBounds>(WindowPropertyKeys.Bounds, WindowBounds());
+
+  fun updateBounds(updater: WindowBounds.() -> WindowBounds) =
+    updater.invoke(bounds).also { bounds = it }
+
+  fun updateMutableBounds(updater: WindowBounds.Mutable.() -> Unit) =
+    bounds.toMutable().also(updater).also { bounds = it.toImmutable() }
+
+
   /**
    * 窗口标题
    *
@@ -35,7 +54,8 @@ data class WindowState(
    *
    * 如果是 mwebview，默认会采用当前 Webview 的网页 title
    */
-  var title: String = owner,
+  var title by observable.observe<String?>(WindowPropertyKeys.Title, null);
+
   /**
    * 应用图标链接
    *
@@ -43,41 +63,34 @@ data class WindowState(
    *
    * 如果是 mwebview，默认会采用当前 Webview 的网页 favicon
    */
-  var iconUrl: String? = null,
-  /**
-   * 窗口位置和大小
-   *
-   * 窗口会被限制最小值,会被限制显示区域。
-   * 终止,窗口最终会被绘制在用户可见可控的区域中
-   */
-  var bounds: WindowBounds = WindowBounds(),
+  var iconUrl by observable.observe<String?>(WindowPropertyKeys.IconUrl, null);
 
   /**
    * 是否全屏
    */
-  var fullscreen: Boolean = false,
+  var fullscreen by observable.observe<Boolean>(WindowPropertyKeys.Fullscreen, false);
 
   /**
    * 是否最大化,如果全屏状态,那么该值也会同时为 true
    */
-  var maximize: Boolean = false,
+  var maximize by observable.observe<Boolean>(WindowPropertyKeys.Maximize, false);
 
   /**
    * 是否最小化
    */
-  var minimize: Boolean = false,
+  var minimize by observable.observe<Boolean>(WindowPropertyKeys.Minimize, false);
 
   /**
    * 当前是否缩放窗口
    */
-  var resizable: Boolean = false,
+  var resizable by observable.observe<Boolean>(WindowPropertyKeys.Resizable, false);
 
   /**
    * 是否聚焦
    *
    * 目前只会有一个窗口被聚焦,未来实现多窗口联合显示的时候,就可能会有多个窗口同时focus,但这取决于所处宿主操作系统的支持。
    */
-  var focus: Boolean = false,
+  var focus by observable.observe<Boolean>(WindowPropertyKeys.Focus, false);
 
   /**
    * 是否处于画中画模式
@@ -100,22 +113,22 @@ data class WindowState(
    * > 注意:该模式下,alwaysOnTop 为 true,并且将不再显示 win-controls-bar。
    * > 提示:如果不想 PIP 功能把当前的 win-view  吃掉,那么可以打开一个子窗口来申请 PIP 模式。
    */
-  var pictureInPicture: Boolean = false,
+  var pictureInPicture by observable.observe<Boolean>(WindowPropertyKeys.PictureInPicture, false);
 
   /**
    * 当前窗口层叠顺序
    */
-  var zIndex: Int = 0,
+  var zIndex by observable.observe<Int>(WindowPropertyKeys.ZIndex, 0);
 
   /**
    * 子窗口
    */
-  var children: List<UUID> = emptyList(),
+  var children by observable.observe<List<UUID>>(WindowPropertyKeys.Children, emptyList());
 
   /**
    * 父窗口
    */
-  var parent: UUID? = null,
+  var parent by observable.observe<UUID?>(WindowPropertyKeys.Parent, null);
 
   /**
    * 是否在闪烁提醒
@@ -123,14 +136,17 @@ data class WindowState(
    * > 类似 macos 中的图标弹跳、windows 系统中的窗口闪烁。
    * 在 taskbar 中, running-dot 会闪烁变色
    */
-  var flashing: Boolean = false,
+  var flashing by observable.observe<Boolean>(WindowPropertyKeys.Flashing, false);
 
   /**
    * 闪烁的颜色(格式为： `#RRGGBB[AA]`)
    *
    * 可以通过接口配置该颜色
    */
-  var flashColor: String = Color.White.toHex(true),
+  var flashColor by observable.observe<String>(
+    WindowPropertyKeys.FlashColor,
+    Color.White.toHex(true)
+  );
 
   /**
    * 进度条
@@ -138,7 +154,7 @@ data class WindowState(
    * 范围为 `[0~1]`
    * 如果小于0(通常为 -1),那么代表没有进度条信息,否则将会在taskbar中显示它的进度信息
    */
-  var progressBar: Float = -1f,
+  var progressBar by observable.observe<Float>(WindowPropertyKeys.ProgressBar, -1f);
 
   /**
    * 是否置顶显示
@@ -148,7 +164,7 @@ data class WindowState(
    * > 前期我们应该不会在移动设备上开放这个接口,因为移动设备的可用空间非常有限,如果允许任意窗口置顶,那么用户体验将会非常糟。
    * > 如果需要置顶功能,可以考虑使用 pictureInPicture
    */
-  var alwaysOnTop: Boolean = false,
+  var alwaysOnTop by observable.observe<Boolean>(WindowPropertyKeys.AlwaysOnTop, false);
 
   /**
    * 当前窗口所属的桌面 编号
@@ -160,7 +176,7 @@ data class WindowState(
    *
    * 默认是 1
    */
-  var desktopIndex: Int = 1,
+  var desktopIndex by observable.observe<Int>(WindowPropertyKeys.DesktopIndex, 1);
 
   /**
    * 当前窗口所在的屏幕 编号
@@ -171,36 +187,35 @@ data class WindowState(
    *
    * 默认是 -1，意味着使用“主桌面”
    */
-  var screenId: Int = -1,
+  var screenId by observable.observe<Int>(WindowPropertyKeys.ScreenId, -1);
 
   /**
    * 内容渲染是否要覆盖 顶部栏
    */
-  var overlayTopBar: Boolean = false,
+  var overlayTopBar by observable.observe<Boolean>(WindowPropertyKeys.OverlayTopBar, false);
+
   /**
    * 内容渲染是否要覆盖 底部栏
    */
-  var overlayBottomBar: Boolean = false,
+  var overlayBottomBar by observable.observe<Boolean>(WindowPropertyKeys.OverlayBottomBar, false);
 
-  var topBarContentColor: String? = null,
-  var topBarBackgroundColor: String? = null,
-  var bottomBarContentColor: String? = null,
-  var bottomBarBackgroundColor: String? = null,
-  var themeColor: String? = null
-) {
-  /**
-   * 窗口大小与位置
-   *
-   * 默认值是NaN，这种情况下，窗口构建者需要自己对其进行赋值
-   */
-  data class WindowBounds(
-    var left: Float = Float.NaN,
-    var top: Float = Float.NaN,
-    var width: Float = Float.NaN,
-    var height: Float = Float.NaN,
-  )
-
-  private val _changeSignal = SimpleSignal()
-  val onChange = _changeSignal.toListener()
-  suspend fun emitChange() = _changeSignal.emit()
+  var topBarContentColor by observable.observe<String?>(
+    WindowPropertyKeys.TopBarContentColor,
+    null
+  );
+  var topBarBackgroundColor by observable.observe<String?>(
+    WindowPropertyKeys.TopBarBackgroundColor,
+    null
+  );
+  var bottomBarContentColor by observable.observe<String?>(
+    WindowPropertyKeys.BottomBarContentColor,
+    null
+  );
+  var bottomBarBackgroundColor by observable.observe<String?>(
+    WindowPropertyKeys.BottomBarBackgroundColor,
+    null
+  );
+  var themeColor by observable.observe<String?>(WindowPropertyKeys.ThemeColor, null);
 }
+
+
