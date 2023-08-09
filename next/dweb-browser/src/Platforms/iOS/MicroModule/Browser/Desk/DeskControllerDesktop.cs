@@ -24,5 +24,8 @@ public partial class DeskController
 
         return desktopApps.OrderBy(it => DeskAppsStore.Instance.AppOrders.GetValueOrDefault(it.Mmid)?.Order ?? 0).ToList();
     }
+
+    public URL GetDesktopUrl() => new URL(DesktopServer.StartResult.urlInfo.BuildInternalUrl()
+        .Path("/desktop.html")).SearchParamsSet("api-base", DesktopServer.StartResult.urlInfo.BuildPublicUrl().ToString());
 }
 

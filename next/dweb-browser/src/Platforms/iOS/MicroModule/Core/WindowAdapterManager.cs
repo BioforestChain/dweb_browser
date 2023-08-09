@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+using DwebBrowser.MicroService.Browser.Desk;
 using UIKit;
 
 namespace DwebBrowser.MicroService.Core;
@@ -29,25 +30,20 @@ public abstract class WindowController
     /// <summary>
     /// 在iOS中，一个UIView附着在某一个UIViewController中
     /// </summary>
-    public abstract UIViewController Controller { get; init; }
+    public abstract DeskAppController Controller { get; init; }
 
     public abstract WindowState ToJson();
 
-    protected readonly HashSet<Signal> _destroySignal = new();
-    public event Signal OnDestroy
-    {
-        add { if (value != null) lock (_destroySignal) { _destroySignal.Add(value); } }
-        remove { lock (_destroySignal) { _destroySignal.Remove(value); } }
-    }
-    private bool IsDestroy = false;
-    public bool IsDestroyed() => IsDestroy;
+    public Listener OnClose = new();
+    private bool IsClose = false;
+
+    public bool IsClosed() => IsClose;
 
     public Task Close(bool force = false)
     {
         /// 这里的 force 暂时没有作用，未来会加入交互，来阻止窗口关闭
-
-        IsDestroy = true;
-        return _destroySignal.EmitAndClear();
+        IsClose = true;
+        return OnClose.EmitAndClear();
     }
 }
 

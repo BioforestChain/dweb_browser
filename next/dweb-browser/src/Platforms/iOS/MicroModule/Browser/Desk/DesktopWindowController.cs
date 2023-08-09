@@ -4,10 +4,10 @@ namespace DwebBrowser.MicroService.Browser.Desk;
 
 public class DesktopWindowController : WindowController
 {
-    public override UIViewController Controller { get; init; }
+    public override DeskAppController Controller { get; init; }
     internal WindowState State { get; init; }
 
-    public DesktopWindowController(UIViewController controller, WindowState state)
+    public DesktopWindowController(DeskAppController controller, WindowState state)
     {
         Controller = controller;
         State = state;
@@ -17,19 +17,9 @@ public class DesktopWindowController : WindowController
 
     public UUID Id => State.Wid;
 
-    protected readonly HashSet<Signal> BlurSignal = new();
-    public event Signal OnBlur
-    {
-        add { if (value != null) lock (BlurSignal) { BlurSignal.Add(value); } }
-        remove { lock (BlurSignal) { BlurSignal.Remove(value); } }
-    }
+    public Listener OnBlur = new();
 
-    protected readonly HashSet<Signal> FocusSignal = new();
-    public event Signal OnFocus
-    {
-        add { if (value != null) lock (FocusSignal) { FocusSignal.Add(value); } }
-        remove { lock (FocusSignal) { FocusSignal.Remove(value); } }
-    }
+    public Listener OnFocus = new();
 
     public bool IsFocused() => State.Focus;
 
@@ -39,7 +29,7 @@ public class DesktopWindowController : WindowController
         {
             State.Focus = true;
             await State.EmitChange();
-            await FocusSignal.Emit();
+            await OnFocus.Emit();
         }
     }
 
@@ -49,18 +39,13 @@ public class DesktopWindowController : WindowController
         {
             State.Focus = false;
             await State.EmitChange();
-            await BlurSignal.Emit();
+            await OnBlur.Emit();
         }
     }
 
     public bool IsMaximized() => State.Maximize;
 
-    protected readonly HashSet<Signal> MaximizeSignal = new();
-    public event Signal OnMaximize
-    {
-        add { if (value != null) lock (MaximizeSignal) { MaximizeSignal.Add(value); } }
-        remove { lock (MaximizeSignal) { MaximizeSignal.Remove(value); } }
-    }
+    public Listener OnMaximize = new();
 
     public async Task Maximize()
     {
@@ -71,7 +56,7 @@ public class DesktopWindowController : WindowController
             State.Minimize = false;
             BeforeMaximizeBounds = State.Bounds;
             await State.EmitChange();
-            await MaximizeSignal.Emit();
+            await OnMaximize.Emit();
         }
     }
 
@@ -81,12 +66,7 @@ public class DesktopWindowController : WindowController
     /// 当窗口从最大化状态退出时触发
     /// Emitted when the window exits from a maximized state.
     /// </summary>
-    protected readonly HashSet<Signal> UnMaximizeSignal = new();
-    public event Signal OnUnMaximize
-    {
-        add { if (value != null) lock (UnMaximizeSignal) { UnMaximizeSignal.Add(value); } }
-        remove { lock (UnMaximizeSignal) { UnMaximizeSignal.Remove(value); } }
-    }
+    public Listener OnUnMaximize = new();
 
     /// <summary>
     /// 取消窗口最大化
@@ -114,16 +94,11 @@ public class DesktopWindowController : WindowController
 
             State.Maximize = false;
             await State.EmitChange();
-            await UnMaximizeSignal.Emit();
+            await OnUnMaximize.Emit();
         }
     }
 
-    protected readonly HashSet<Signal> MinimizeSignal = new();
-    public event Signal OnMinimize
-    {
-        add { if (value != null) lock (MinimizeSignal) { MinimizeSignal.Add(value); } }
-        remove { lock (MinimizeSignal) { MinimizeSignal.Remove(value); } }
-    }
+    public Listener OnMinimize = new();
 
     public async Task Minimize()
     {
@@ -133,7 +108,7 @@ public class DesktopWindowController : WindowController
             State.Maximize = false;
             State.Fullscreen = false;
             await State.EmitChange();
-            await MinimizeSignal.Emit();
+            await OnMinimize.Emit();
         }
     }
 }

@@ -16,7 +16,6 @@ public class AppDelegate : MauiUIApplicationDelegate
         Window = application.KeyWindow;
 
         // create a UIViewController with a single UILabel
-        //var nav = new UINavigationController(BrowserNMM.BrowserController);
         var nav = new UINavigationController(DeskNMM.DeskController);
         nav.SetNavigationBarHidden(true, false);
 

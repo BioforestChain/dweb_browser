@@ -47,5 +47,8 @@ public partial class DeskController
 
         return apps;
     }
+
+    public URL GetTaskbarUrl() => new URL(TaskbarServer.StartResult.urlInfo.BuildInternalUrl()
+        .Path("/taskbar.html")).SearchParamsSet("api-base", TaskbarServer.StartResult.urlInfo.BuildPublicUrl().ToString());
 }
 

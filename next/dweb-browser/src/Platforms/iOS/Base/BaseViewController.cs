@@ -37,7 +37,7 @@ public abstract class BaseViewController : UIViewController
         }).NoThrow();
     }
 
-
+    public Listener OnDestroy = new();
 
     protected static void AddDebugPoints()
     {

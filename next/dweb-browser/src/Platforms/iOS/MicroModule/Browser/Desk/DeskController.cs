@@ -9,6 +9,8 @@ public partial class DeskController : BaseViewController
 {
     static readonly Debugger Console = new("DeskController");
     public DeskNMM DeskNMM { get; init; }
+    public HttpDwebServer TaskbarServer { get; set; }
+    public HttpDwebServer DesktopServer { get; set; }
 
     public DeskController(DeskNMM deskNMM)
     {
@@ -33,10 +35,11 @@ public partial class DeskController : BaseViewController
         View.BringSubviewToFront(TaskBarView);
     }
 
-    public async Task Create(HttpDwebServer taskbarServer, HttpDwebServer desktopServer)
+    public async Task Create()
     {
         var bounds = UIScreen.MainScreen.Bounds;
-        var desktopInternalUrl = desktopServer.StartResult.urlInfo.BuildInternalUrl();
+
+        var desktopInternalUrl = GetDesktopUrl().Uri.ToString();
         DesktopView = new DWebView.DWebView(
             localeMM: DeskNMM,
             options: new DWebView.DWebView.Options(desktopInternalUrl) { AllowDwebScheme = false })
@@ -44,8 +47,7 @@ public partial class DeskController : BaseViewController
             Frame = bounds,
             Tag = 32766
         };
-        var desktopUrl = desktopInternalUrl.Path("/desktop.html");
-        _ = DesktopView.LoadURL(desktopUrl).NoThrow();
+        _ = DesktopView.LoadURL(desktopInternalUrl).NoThrow();
         View.AddSubview(DesktopView);
 
         TaskBarView = new UIView()
@@ -72,7 +74,7 @@ public partial class DeskController : BaseViewController
 
             /// 内容层
             {
-                var taskbarInternalUrl = taskbarServer.StartResult.urlInfo.BuildInternalUrl();
+                var taskbarInternalUrl = GetTaskbarUrl().Uri.ToString();
                 var contentView = new DWebView.DWebView(
                     localeMM: DeskNMM,
                     options: new DWebView.DWebView.Options(taskbarInternalUrl) { AllowDwebScheme = false })
@@ -82,8 +84,7 @@ public partial class DeskController : BaseViewController
                 };
                 contentView.ScrollView.BackgroundColor = UIColor.Clear;
 
-                var taskbarUrl = taskbarInternalUrl.Path("taskbar.html");
-                _ = contentView.LoadURL(taskbarUrl).NoThrow();
+                _ = contentView.LoadURL(taskbarInternalUrl).NoThrow();
                 TaskBarView.AddSubview(contentView);
 
                 /// 布局伸缩到父级

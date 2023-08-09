@@ -108,8 +108,16 @@ public class DeskNMM : IOSNativeMicroModule
     {
         var taskbarServer = await CreateTaskbarWebServer();
         var desktopServer = await CreateDesktopWebServer();
-
-        await MainThread.InvokeOnMainThreadAsync(async () => DeskController?.Create(taskbarServer, desktopServer));
+        
+        await MainThread.InvokeOnMainThreadAsync(async () =>
+        {
+            if (DeskController is not null)
+            {
+                DeskController.TaskbarServer = taskbarServer;
+                DeskController.DesktopServer = desktopServer;
+                await DeskController.Create();
+            }
+        });
 
         RunningApps.OnChangeAdd(async (map, _) =>
         {
@@ -258,7 +266,21 @@ public class DeskNMM : IOSNativeMicroModule
         {
             return await MainThread.InvokeOnMainThreadAsync(() => DeskController?.ToggleDesktopView());
         });
+
+        OnActivity += async (Event, ipc, _) =>
+        {
+            await MainThread.InvokeOnMainThreadAsync(async () =>
+            {
+                var controller = new DeskAppController(this);
+                await OpenActivity(controller);
+            });
+        };
     }
+
+    internal Task OpenActivity(DeskAppController deskAppController) => MainThread.InvokeOnMainThreadAsync(async () =>
+    {
+        DeskController.AddSubView(deskAppController.View);
+    });
 
     private async Task<HttpDwebServer> CreateTaskbarWebServer()
     {
