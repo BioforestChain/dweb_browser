@@ -41,7 +41,7 @@ struct PagingScrollView: View {
                                         }
                                     }
                                 } else {
-                                    Rectangle().fill(Color.blue)
+                                    Rectangle().fill(Color.clear)
                                         .frame(height: geometry.size.height - addressBarH)
                                         .gesture(disabledDragGesture)
                                 }
@@ -50,9 +50,7 @@ struct PagingScrollView: View {
                             AddressBar(index: index, webWrapper: WebWrapperMgr.shared.store[index], webCache: WebCacheMgr.cache(at: index))
                                 .environmentObject(keyboard)
                                 .frame(height: addressBarH)
-//                                .background(Color.bkColor)
-                                .background(.green)
-
+                                .background(Color.bkColor)
                                 .offset(y: addressbarOffset)
                                 .animation(.default, value: addressbarOffset)
                                 .gesture(addressBar.isFocused ? disabledDragGesture : nil) // 根据状态变量决定是否启用拖拽手势
@@ -62,10 +60,8 @@ struct PagingScrollView: View {
 
                                 .onChange(of: keyboard.height) { height in
                                     if #available(iOS 16.3, *) {
-                                        
-                                        
                                         printWithDate(msg: "observed keyboard height has changed")
-                                        
+
 #if !DwebBrowser
                                         printWithDate(msg: "now we are in C#########")
                                         if index == selectedTab.curIndex {

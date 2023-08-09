@@ -21,12 +21,12 @@ struct AddressBar: View {
 
     @FocusState var isAdressBarFocused: Bool
     @State private var inputText: String = ""
-    @State private var keyboardHeight: CGFloat = 0
+    @State private var displayText: String = ""
 
     private var isVisible: Bool { index == selectedTab.curIndex }
     private var shouldShowProgress: Bool { webWrapper.estimatedProgress > 0.0 && webWrapper.estimatedProgress < 1.0 && !addressBar.isFocused }
-    @State private var domainString: String = ""
-//    @State private var domainString: String { webCache.isBlank() ? addressbarHolder : webCache.lastVisitedUrl.getDomain() }
+    private var textColor: Color { isAdressBarFocused ? .black : webCache.isBlank() ? .networkTipColor : .black }
+
     var body: some View {
         ZStack(alignment: .leading) {
             RoundedRectangle(cornerRadius: 10)
@@ -36,7 +36,6 @@ struct AddressBar: View {
                     progressV
                 }
                 .padding(.horizontal)
-                .background(.orange)
 
             HStack {
                 if addressBar.isFocused, !inputText.isEmpty {
@@ -57,40 +56,20 @@ struct AddressBar: View {
             }
 
             textField
-
-//            domainLabel
         }
         .background(Color.bkColor)
     }
 
-    var domainLabel: some View {
-        Text(domainString)
-            .frame(width: screen_width - 100, height: 32)
-            .background(.white)
-            .foregroundColor(webCache.isBlank() ? .networkTipColor : .black)
-            .padding(.horizontal, 50)
-            .opacity(addressBar.isFocused ? 0 : 1)
-            .onTapGesture {
-                if webCache.isBlank() {
-                    inputText = ""
-                }
-                isAdressBarFocused = true
-                addressBar.isFocused = true
-            }
-    }
-
     var textField: some View {
-        TextField(addressbarHolder, text: addressBar.isFocused ? $inputText : $domainString)
-            .foregroundColor(foregroundColor())
+        TextField(addressbarHolder, text: addressBar.isFocused ? $inputText : $displayText)
+            .foregroundColor(textColor)
             .textInputAutocapitalization(.never)
             .autocorrectionDisabled(true)
             .multilineTextAlignment(addressBar.isFocused ? .leading : .center)
             .padding(.leading, 24)
             .padding(.trailing, 50)
             .keyboardType(.webSearch)
-            
             .focused($isAdressBarFocused)
-//            .opacity(addressBar.isFocused ? 1 : 0)
             .onTapGesture {
                 if webCache.isBlank() {
                     inputText = ""
@@ -100,40 +79,26 @@ struct AddressBar: View {
             }
 
             .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { notify in
-//                ConsoleSwift.inject("recieved keyboardWillShowNotification")
-                if isVisible{
+                if isVisible {
                     guard let value = notify.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else { return }
                     keyboard.height = value.height
-                    printWithDate(msg: "recieved keyboardWillShowNotification, height = \(value.height)")
                 }
             }
             .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
-                if isVisible{
-
+                if isVisible {
                     keyboard.height = 0
-                    printWithDate(msg: "recieved keyboardWillHideNotification")
-                    //                ConsoleSwift.inject("recieved keyboardWillHideNotification")
                 }
             }
-
             .onAppear {
                 inputText = webCache.lastVisitedUrl.absoluteString
-                
-                domainString = webCache.isBlank() ? addressbarHolder : webCache.lastVisitedUrl.getDomain()
+                displayText = webCache.isBlank() ? addressbarHolder : webCache.lastVisitedUrl.getDomain()
             }
             .onChange(of: webCache.lastVisitedUrl) { url in
                 inputText = url.absoluteString
-                
-                domainString = webCache.isBlank() ? addressbarHolder : webCache.lastVisitedUrl.getDomain()
+                displayText = webCache.isBlank() ? addressbarHolder : webCache.lastVisitedUrl.getDomain()
             }
-            .onChange(of: isAdressBarFocused, perform: { isFocused in
-                printWithDate(msg: " isAdressBarFocused onChange:\(isFocused)")
-
-//                addressBar.isFocused = isFocused
-            })
             .onChange(of: addressBar.isFocused) { isFocused in
                 printWithDate(msg: " addressBar.isFocused onChange:\(isFocused)")
-
                 if !isFocused, isVisible {
                     isAdressBarFocused = isFocused
                     if addressBar.inputText.isEmpty { // 点击取消按钮
@@ -142,7 +107,6 @@ struct AddressBar: View {
                 }
             }
             .onSubmit {
-//                ConsoleSwift.inject("OnSubmit")
                 let url = URL.createUrl(inputText)
                 DispatchQueue.main.async {
                     let webcache = WebCacheMgr.shared.store[index]
@@ -211,13 +175,6 @@ struct AddressBar: View {
                 .foregroundColor(.black.opacity(0.8))
                 .padding(.trailing, 25)
         }
-    }
-    
-    func foregroundColor() -> Color {
-        if isAdressBarFocused {
-            return .black
-        }
-        return webCache.isBlank() ? .networkTipColor : .black
     }
 }
 

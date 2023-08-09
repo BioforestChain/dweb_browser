@@ -22,7 +22,7 @@ struct SearchTypingView: View {
                     addressBar.inputText = ""
                     addressBar.isFocused = false
                 } label: {
-                    text
+                    Text("取消")
                         .foregroundColor(.dwebTint)
                         .padding(8)
                 }
@@ -41,14 +41,6 @@ struct SearchTypingView: View {
             }
         }
         .animation(.easeInOut, value: addressBar.inputText == "")
-    }
-    
-    var text: some View{
-        #if DwebBrowser
-        Text("取消")
-        #else
-        Text("取消 C#")
-        #endif
     }
 }
 
