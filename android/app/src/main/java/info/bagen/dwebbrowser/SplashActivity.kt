@@ -1,7 +1,6 @@
 package info.bagen.dwebbrowser
 
 import android.annotation.SuppressLint
-import android.content.Intent
 import android.os.Bundle
 import android.webkit.*
 import androidx.activity.compose.setContent

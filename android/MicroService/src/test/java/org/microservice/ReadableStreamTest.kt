@@ -32,7 +32,7 @@ class ReadableStreamTest : AsyncBase() {
 //            }
         }
 
-        val m1 = object : NativeMicroModule("m1") {
+        val m1 = object : NativeMicroModule("m1","m1") {
             override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
                 TODO("Not yet implemented")
             }
@@ -43,7 +43,7 @@ class ReadableStreamTest : AsyncBase() {
         }
 
 
-        val m2 = object : NativeMicroModule("m2") {
+        val m2 = object : NativeMicroModule("m2","m2") {
             override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
                 TODO("Not yet implemented")
             }
