@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.browser.jmm.JmmController
-import info.bagen.dwebbrowser.microService.browser.jmm.JmmNMM
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.dweb_browser.browserUI.download.DownLoadInfo
@@ -23,58 +22,13 @@ data class JmmUIState(
   val jmmAppInstallManifest: JmmAppInstallManifest,
 )
 
-/*
-data class DownLoadInfo(
-  var jmmMetadata: JmmMetadata,
-  var path: String = "", // 文件下载路径
-  var notificationId: Int = 0, // 通知栏的id
-  var size: Long = 0L, // 文件大小
-  var dSize: Long = 1L, // 已下载大小
-  // var progress: Float = 0f, // 进度 0~1
-  var downLoadStatus: DownLoadStatus = DownLoadStatus.IDLE, // 标记当前下载状态
-)
-*/
-
-fun createDownLoadInfoByJmm(jmmAppInstallManifest: JmmAppInstallManifest): DownLoadInfo {
-  return JmmNMM.jmmController?.getApp(jmmAppInstallManifest.id)?.let { curJmmMetadata ->
-    if (compareAppVersionHigh(curJmmMetadata.version, jmmAppInstallManifest.version)) {
-      DownLoadInfo(
-        id = jmmAppInstallManifest.id,
-        url = jmmAppInstallManifest.bundle_url,
-        name = jmmAppInstallManifest.name,
-        downLoadStatus = DownLoadStatus.NewVersion,
-        path = "${App.appContext.cacheDir}/DL_${jmmAppInstallManifest.id}_${Calendar.MILLISECOND}.bfsa",
-        notificationId = (NotificationUtil.notificationId++),
-        metaData = jmmAppInstallManifest,
-      )
-    } else {
-      DownLoadInfo(
-        id = jmmAppInstallManifest.id,
-        url = jmmAppInstallManifest.bundle_url,
-        name = jmmAppInstallManifest.name,
-        downLoadStatus = DownLoadStatus.INSTALLED
-      )
-    }
-  } ?: run {
-    DownLoadInfo(
-      id = jmmAppInstallManifest.id,
-      url = jmmAppInstallManifest.bundle_url,
-      name = jmmAppInstallManifest.name,
-      downLoadStatus = DownLoadStatus.IDLE,
-      path = "${App.appContext.cacheDir}/DL_${jmmAppInstallManifest.id}_${Calendar.MILLISECOND}.bfsa",
-      notificationId = (NotificationUtil.notificationId++),
-      metaData = jmmAppInstallManifest,
-    )
-  }
-}
-
 sealed class JmmIntent {
   object ButtonFunction : JmmIntent()
   object DestroyActivity : JmmIntent()
 }
 
 class JmmManagerViewModel(
-  jmmAppInstallManifest: JmmAppInstallManifest, private val jmmController: JmmController?
+  jmmAppInstallManifest: JmmAppInstallManifest, private val jmmController: JmmController
 ) : ViewModel() {
   val uiState: JmmUIState
   private var downLoadObserver: DownLoadObserver? = null
@@ -150,6 +104,39 @@ class JmmManagerViewModel(
           downLoadObserver?.close()
         }
       }
+    }
+  }
+
+  private fun createDownLoadInfoByJmm(jmmAppInstallManifest: JmmAppInstallManifest): DownLoadInfo {
+    return jmmController.getApp(jmmAppInstallManifest.id)?.let { curJmmMetadata ->
+      if (compareAppVersionHigh(curJmmMetadata.version, jmmAppInstallManifest.version)) {
+        DownLoadInfo(
+          id = jmmAppInstallManifest.id,
+          url = jmmAppInstallManifest.bundle_url,
+          name = jmmAppInstallManifest.name,
+          downLoadStatus = DownLoadStatus.NewVersion,
+          path = "${App.appContext.cacheDir}/DL_${jmmAppInstallManifest.id}_${Calendar.MILLISECOND}.bfsa",
+          notificationId = (NotificationUtil.notificationId++),
+          metaData = jmmAppInstallManifest,
+        )
+      } else {
+        DownLoadInfo(
+          id = jmmAppInstallManifest.id,
+          url = jmmAppInstallManifest.bundle_url,
+          name = jmmAppInstallManifest.name,
+          downLoadStatus = DownLoadStatus.INSTALLED
+        )
+      }
+    } ?: run {
+      DownLoadInfo(
+        id = jmmAppInstallManifest.id,
+        url = jmmAppInstallManifest.bundle_url,
+        name = jmmAppInstallManifest.name,
+        downLoadStatus = DownLoadStatus.IDLE,
+        path = "${App.appContext.cacheDir}/DL_${jmmAppInstallManifest.id}_${Calendar.MILLISECOND}.bfsa",
+        notificationId = (NotificationUtil.notificationId++),
+        metaData = jmmAppInstallManifest,
+      )
     }
   }
 }

@@ -1,7 +1,6 @@
 package info.bagen.dwebbrowser.microService.browser.jmm
 
 import info.bagen.dwebbrowser.App
-import info.bagen.dwebbrowser.microService.browser.jmm.ui.JmmManagerActivity
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
 import info.bagen.dwebbrowser.microService.core.WindowState
 import info.bagen.dwebbrowser.microService.core.windowAdapterManager
@@ -63,9 +62,7 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
     State("state"), Ready("ready"), Activity("activity"), Close("close")
   }
 
-  companion object {
-    var jmmController: JmmController? = null
-  }
+  private var jmmController: JmmController? = null
 
   fun getApps(mmid: MMID): MicroModuleManifest? {
     return bootstrapContext.dns.query(mmid)
@@ -83,7 +80,7 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
         nativeFetch(metadataUrl).json<JmmAppInstallManifest>(JmmAppInstallManifest::class.java)
       val url = URL(metadataUrl)
       // 根据 jmmMetadata 打开一个应用信息的界面，用户阅读界面信息后，可以点击"安装"
-      jmmMetadataInstall(jmmAppInstallManifest, url, ipc)
+      jmmMetadataInstall(jmmAppInstallManifest, ipc, url)
       return@defineHandler jmmAppInstallManifest
     }
     apiRouting = routes(
@@ -102,12 +99,13 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
         return@defineHandler Response(Status.OK).body("""{"ok":true}""")
       },
       // app详情
-      "/detailApp" bind Method.GET to defineHandler { request ->
+      "/detailApp" bind Method.GET to defineHandler { request, ipc ->
         val mmid = queryMmid(request)
         debugJMM("detailApp", mmid)
         val metadata = bootstrapContext.dns.query(mmid)
           ?: return@defineHandler Response(Status.NOT_FOUND).body("not found $mmid")
-        JmmManagerActivity.startActivity(metadata as JmmAppInstallManifest)
+        // JmmManagerActivity.startActivity(metadata as JmmAppInstallManifest)
+        jmmMetadataInstall(metadata as JmmAppInstallManifest, ipc)
         return@defineHandler Response(Status.OK).body("ok")
       },
       "/pause" bind Method.GET to defineHandler { _, ipc ->
@@ -169,9 +167,13 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
     }
   }
 
-  private suspend fun jmmMetadataInstall(jmmAppInstallManifest: JmmAppInstallManifest, url: URL, ipc: Ipc) {
+  private suspend fun jmmMetadataInstall(
+    jmmAppInstallManifest: JmmAppInstallManifest, ipc: Ipc, url: URL? = null,
+  ) {
     if (!jmmAppInstallManifest.bundle_url.startsWith("http")) {
-      jmmAppInstallManifest.bundle_url = URL(url, jmmAppInstallManifest.bundle_url).toString()
+      url?.let {
+        jmmAppInstallManifest.bundle_url = URL(it, jmmAppInstallManifest.bundle_url).toString()
+      }
     }
     debugJMM("openJmmMetadataInstallPage", jmmAppInstallManifest.bundle_url)
     // 打开安装的界面

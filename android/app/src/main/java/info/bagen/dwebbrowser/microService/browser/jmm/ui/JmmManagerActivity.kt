@@ -10,8 +10,6 @@ import androidx.compose.ui.graphics.Color
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.base.BaseActivity
 import org.dweb_browser.microservice.help.JmmAppInstallManifest
-import info.bagen.dwebbrowser.microService.browser.jmm.JmmNMM
-import org.dweb_browser.microservice.core.MicroModule
 
 class JmmManagerActivity : BaseActivity() {
 
@@ -35,13 +33,13 @@ class JmmManagerActivity : BaseActivity() {
     transparentNavigatorBar()
     transparentStatusBar()
     super.onCreate(savedInstanceState)
-
   }
 
   override fun initData() {
     intent.getSerializableExtra(KEY_JMM_METADATA)?.let {
       val jmmAppInstallManifest = it as JmmAppInstallManifest
-      jmmManagerViewModel = JmmManagerViewModel(jmmAppInstallManifest, JmmNMM.jmmController)
+      // 移除JmmNMM.jmmController，并且当前文件无用，所以删除
+      // jmmManagerViewModel = JmmManagerViewModel(jmmAppInstallManifest, JmmNMM.jmmController)
     }
   }
 
