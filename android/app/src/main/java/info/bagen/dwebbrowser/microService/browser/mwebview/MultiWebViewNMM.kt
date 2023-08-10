@@ -101,12 +101,8 @@ class MultiWebViewNMM :
 
     val controller = controllerMap.getOrPut(remoteMmid) {
       val win = windowAdapterManager.createWindow(
-        WindowState(
-          wid = UUID.randomUUID().toString(),
-          owner = ipc.remote.mmid,
-          provider = mmid,
-        )
-      );
+        WindowState(owner = ipc.remote.mmid, provider = mmid)
+      )
 
       MultiWebViewController(win, ipc, remoteMm, this).also { controller ->
         /// 窗口销毁的时候，释放这个Controller
@@ -127,8 +123,7 @@ class MultiWebViewNMM :
       }
     }
 
-    val viewItem = controller.openWebView(url)
-    return viewItem
+    return controller.openWebView(url)
   }
 
   private suspend fun closeDwebView(remoteMmid: String, webviewId: String): Boolean {

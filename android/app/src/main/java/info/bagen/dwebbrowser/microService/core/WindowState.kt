@@ -13,7 +13,7 @@ class WindowState(
   /**
    * 窗口全局唯一编号，属于UUID的格式
    */
-  val wid: UUID,
+  val wid: UUID = java.util.UUID.randomUUID().toString(),
   /**
    * 窗口持有者
    *

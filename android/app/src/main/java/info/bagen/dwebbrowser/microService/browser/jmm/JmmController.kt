@@ -1,7 +1,13 @@
 package info.bagen.dwebbrowser.microService.browser.jmm
 
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalConfiguration
+import info.bagen.dwebbrowser.microService.browser.jmm.ui.JmmManagerViewModel
+import info.bagen.dwebbrowser.microService.core.WindowController
+import info.bagen.dwebbrowser.microService.core.windowAdapterManager
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.dweb_browser.microservice.help.JmmAppInstallManifest
 import org.dweb_browser.microservice.help.MMID
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
 
@@ -9,12 +15,34 @@ enum class EIpcEvent(val event: String) {
   State("state"), Ready("ready"), Activity("activity"), Close("close")
 }
 
-class JmmController(private val jmmNMM: JmmNMM) {
+class JmmController(
+  val win: WindowController, // 窗口控制器
+  private val jmmNMM: JmmNMM,
+  private val jmmAppInstallManifest: JmmAppInstallManifest
+) {
 
   private val openLock = Mutex()
+  val viewModel = JmmManagerViewModel(jmmAppInstallManifest, this)
 
   fun hasApps(mmid: MMID) = jmmNMM.getApps(mmid) !== null
   fun getApp(mmid: MMID) = jmmNMM.getApps(mmid)
+
+  init {
+    val wid = win.id
+    /// 提供渲染适配
+    windowAdapterManager.providers[wid] =
+      @Composable { modifier, width, height, scale ->
+        // 由于 scale 提供的缩放比例不适用于当前界面，所以缩放比例自行计算
+        val screenWidth = LocalConfiguration.current.screenWidthDp
+        val screenHeight = LocalConfiguration.current.screenHeightDp
+        Render(width / screenWidth, height / screenHeight)
+      }
+    /// 窗口销毁的时候
+    win.onClose {
+      // 移除渲染适配器
+      windowAdapterManager.providers.remove(wid)
+    }
+  }
 
   suspend fun openApp(mmid: MMID) {
     openLock.withLock {

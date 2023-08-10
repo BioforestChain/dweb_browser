@@ -36,18 +36,8 @@ data class DownLoadInfo(
 */
 
 fun createDownLoadInfoByJmm(jmmAppInstallManifest: JmmAppInstallManifest): DownLoadInfo {
-  /*return DownLoadInfo(
-    id = jmmMetadata.id,
-    url = jmmMetadata.bundle_url,
-    name = jmmMetadata.name,
-    path = "${App.appContext.cacheDir}/DL_${jmmMetadata.id}_${Calendar.MILLISECOND}.bfsa",
-    downLoadStatus = DownLoadStatus.IDLE,
-    appInfo = gson.toJson(jmmMetadata)
-  )*/
-  return if (JmmNMM.jmmController.hasApps(jmmAppInstallManifest.id)) {
-    // 表示当前mmid已存在，判断版本，如果是同一个版本，显示为打开；如果是更新的版本，显示为 更新
-    val curJmmMetadata = JmmNMM.jmmController.getApp(jmmAppInstallManifest.id)
-    if (curJmmMetadata !== null && compareAppVersionHigh(curJmmMetadata.version, jmmAppInstallManifest.version)) {
+  return JmmNMM.jmmController?.getApp(jmmAppInstallManifest.id)?.let { curJmmMetadata ->
+    if (compareAppVersionHigh(curJmmMetadata.version, jmmAppInstallManifest.version)) {
       DownLoadInfo(
         id = jmmAppInstallManifest.id,
         url = jmmAppInstallManifest.bundle_url,
@@ -65,7 +55,7 @@ fun createDownLoadInfoByJmm(jmmAppInstallManifest: JmmAppInstallManifest): DownL
         downLoadStatus = DownLoadStatus.INSTALLED
       )
     }
-  } else {
+  } ?: run {
     DownLoadInfo(
       id = jmmAppInstallManifest.id,
       url = jmmAppInstallManifest.bundle_url,

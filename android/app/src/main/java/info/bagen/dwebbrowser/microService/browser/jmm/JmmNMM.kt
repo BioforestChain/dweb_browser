@@ -3,6 +3,8 @@ package info.bagen.dwebbrowser.microService.browser.jmm
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.browser.jmm.ui.JmmManagerActivity
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
+import info.bagen.dwebbrowser.microService.core.WindowState
+import info.bagen.dwebbrowser.microService.core.windowAdapterManager
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.collectLatest
@@ -20,6 +22,7 @@ import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.MMID
 import org.dweb_browser.microservice.help.MicroModuleManifest
 import org.dweb_browser.microservice.help.json
+import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.http4k.core.Method
 import org.http4k.core.Response
@@ -60,14 +63,8 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
     State("state"), Ready("ready"), Activity("activity"), Close("close")
   }
 
-
   companion object {
-    private val controllerList = mutableListOf<JmmController>()
-    val jmmController get() = controllerList.first()
-  }
-
-  init {
-    controllerList.add(JmmController(this))
+    var jmmController: JmmController? = null
   }
 
   fun getApps(mmid: MMID): MicroModuleManifest? {
@@ -80,13 +77,13 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     installJmmApps()
 
-    val route_install_hanlder = defineHandler { request ->
+    val route_install_hanlder = defineHandler { request, ipc ->
       val metadataUrl = queryMetadataUrl(request)
       val jmmAppInstallManifest =
         nativeFetch(metadataUrl).json<JmmAppInstallManifest>(JmmAppInstallManifest::class.java)
       val url = URL(metadataUrl)
       // 根据 jmmMetadata 打开一个应用信息的界面，用户阅读界面信息后，可以点击"安装"
-      jmmMetadataInstall(jmmAppInstallManifest, url)
+      jmmMetadataInstall(jmmAppInstallManifest, url, ipc)
       return@defineHandler jmmAppInstallManifest
     }
     apiRouting = routes(
@@ -101,7 +98,7 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
       },
       "/closeApp" bind Method.GET to defineHandler { request ->
         val mmid = queryMmid(request)
-        jmmController.closeApp(mmid)
+        jmmController?.closeApp(mmid)
         return@defineHandler Response(Status.OK).body("""{"ok":true}""")
       },
       // app详情
@@ -172,13 +169,18 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
     }
   }
 
-  private fun jmmMetadataInstall(jmmAppInstallManifest: JmmAppInstallManifest, url: URL) {
+  private suspend fun jmmMetadataInstall(jmmAppInstallManifest: JmmAppInstallManifest, url: URL, ipc: Ipc) {
     if (!jmmAppInstallManifest.bundle_url.startsWith("http")) {
       jmmAppInstallManifest.bundle_url = URL(url, jmmAppInstallManifest.bundle_url).toString()
     }
     debugJMM("openJmmMetadataInstallPage", jmmAppInstallManifest.bundle_url)
     // 打开安装的界面
-    JmmManagerActivity.startActivity(jmmAppInstallManifest)
+    // JmmManagerActivity.startActivity(jmmAppInstallManifest)
+    // 打开安装窗口
+    val win = windowAdapterManager.createWindow(
+      WindowState(owner = ipc.remote.mmid, provider = mmid)
+    )
+    jmmController = JmmController(win, this, jmmAppInstallManifest)
   }
 
   private suspend fun jmmMetadataUninstall(mmid: MMID) {
