@@ -1,6 +1,4 @@
-﻿using System.Runtime.InteropServices;
-using System.Text;
-using DwebBrowser.Helper;
+﻿using DwebBrowser.Helper;
 
 namespace DwebBrowser.DWebView;
 

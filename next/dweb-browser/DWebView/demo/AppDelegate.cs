@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Net;
+using CoreGraphics;
 using DwebBrowser.DWebView;
 using DwebBrowser.Helper;
 using DwebBrowser.MicroService.Core;
@@ -7,6 +8,8 @@ using DwebBrowser.MicroService.Http;
 using DwebBrowser.MicroService.Message;
 using DwebBrowser.MicroService.Sys.Http;
 using DwebBrowser.MicroService.Sys.Http.Net;
+using Foundation;
+using UIKit;
 
 namespace demo;
 

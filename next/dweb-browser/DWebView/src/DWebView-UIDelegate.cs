@@ -1,6 +1,5 @@
 ﻿using AVFoundation;
 using DwebBrowser.Helper;
-using WebKit;
 using static DwebBrowser.Helper.Prelude;
 
 namespace DwebBrowser.DWebView;
@@ -27,13 +26,13 @@ public partial class DWebView : WKWebView
     private readonly HashSet<Signal<(WKWebView webView, WKWebViewConfiguration configuration, WKNavigationAction navigationAction, WKWindowFeatures windowFeatures, Action<WKWebView?> completionHandler)>> CreateWebViewSignal = new();
     public event Signal<(WKWebView webView, WKWebViewConfiguration configuration, WKNavigationAction navigationAction, WKWindowFeatures windowFeatures, Action<WKWebView?> completionHandler)> OnCreateWebView
     {
-        add { if(value != null) lock (CreateWebViewSignal) { CreateWebViewSignal.Add(value); } }
+        add { if (value != null) lock (CreateWebViewSignal) { CreateWebViewSignal.Add(value); } }
         remove { lock (CreateWebViewSignal) { CreateWebViewSignal.Remove(value); } }
     }
     private readonly HashSet<Signal<WKWebView>> CloseSignal = new();
     public event Signal<WKWebView> OnClose
     {
-        add { if(value != null) lock (CloseSignal) { CloseSignal.Add(value); } }
+        add { if (value != null) lock (CloseSignal) { CloseSignal.Add(value); } }
         remove { lock (CloseSignal) { CloseSignal.Remove(value); } }
     }
 
@@ -41,19 +40,19 @@ public partial class DWebView : WKWebView
     private readonly HashSet<Signal<(WKWebView webView, string message, WKFrameInfo frame), SignalResult<Unit>>> JsAlertSignal = new();
     public event Signal<(WKWebView webView, string message, WKFrameInfo frame), SignalResult<Unit>> OnJsAlert
     {
-        add { if(value != null) lock (JsAlertSignal) { JsAlertSignal.Add(value); } }
+        add { if (value != null) lock (JsAlertSignal) { JsAlertSignal.Add(value); } }
         remove { lock (JsAlertSignal) { JsAlertSignal.Remove(value); } }
     }
     private readonly HashSet<Signal<(WKWebView webView, string message, WKFrameInfo frame), SignalResult<bool>>> JsConfirmSignal = new();
     public event Signal<(WKWebView webView, string message, WKFrameInfo frame), SignalResult<bool>> OnJsConfirm
     {
-        add { if(value != null) lock (JsConfirmSignal) { JsConfirmSignal.Add(value); } }
+        add { if (value != null) lock (JsConfirmSignal) { JsConfirmSignal.Add(value); } }
         remove { lock (JsConfirmSignal) { JsConfirmSignal.Remove(value); } }
     }
     private readonly HashSet<Signal<(WKWebView webView, string prompt, string? defaultText, WKFrameInfo frame), SignalResult<string?>>> JsPromptSignal = new();
     public event Signal<(WKWebView webView, string prompt, string? defaultText, WKFrameInfo frame), SignalResult<string?>> OnJsPrompt
     {
-        add { if(value != null) lock (JsPromptSignal) { JsPromptSignal.Add(value); } }
+        add { if (value != null) lock (JsPromptSignal) { JsPromptSignal.Add(value); } }
         remove { lock (JsPromptSignal) { JsPromptSignal.Remove(value); } }
     }
     #endregion

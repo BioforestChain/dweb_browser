@@ -1,5 +1,4 @@
 ﻿using DwebBrowser.Helper;
-using WebKit;
 
 namespace DwebBrowser.DWebView;
 
@@ -12,11 +11,12 @@ public static class MainThreadExtensions
         return res.WaitPromiseAsync();
     }
 
-    public static Task<R> InvokeOnMainThreadAsync<R>(this WKWebView webview, Func<Task<R>> func) {
-		var res = new PromiseOut<R>();
-		webview.InvokeOnMainThread(() => InvokeTaskToPromiseOut(func,res));
-		return res.WaitPromiseAsync();
-	}
+    public static Task<R> InvokeOnMainThreadAsync<R>(this WKWebView webview, Func<Task<R>> func)
+    {
+        var res = new PromiseOut<R>();
+        webview.InvokeOnMainThread(() => InvokeTaskToPromiseOut(func, res));
+        return res.WaitPromiseAsync();
+    }
 
     static async void InvokeTaskToPromiseOut(Func<Task> func, PromiseOut<Unit> po)
     {

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<TargetFramework>net8.0-ios</TargetFramework>
@@ -13,8 +13,8 @@
 		<CreatePackage>false</CreatePackage>
 	</PropertyGroup>
 	<ItemGroup>
-		<ProjectReference Include="..\..\Helper\src\DwebBrowser.Helper.csproj" />
 		<ProjectReference Include="..\..\MicroService\src\DwebBrowser.MicroService.csproj" />
+		<ProjectReference Include="..\..\Helper\src\DwebBrowser.Helper.csproj" />
 	</ItemGroup>
 	<ItemGroup>
 		<Compile Condition=" '$(EnableDefaultCompileItems)' == 'true' " Update="IpcWeb\IpcWebMessageCache.cs">

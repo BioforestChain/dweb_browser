@@ -1,5 +1,4 @@
-﻿using System.Text.Json;
-using DwebBrowser.MicroService.Core;
+﻿using DwebBrowser.MicroService.Core;
 
 namespace DwebBrowser.MicroServiceTests.Core;
 
@@ -19,15 +18,15 @@ public class ManifestTest
 			"zh-CN",
 			"test",
 			"test app to manifest",
-			new List<ImageSource> { new ImageSource("https://dweb.waterbang.top/icons.png") },
-			new List<ImageSource> { new ImageSource("https://dweb.waterbang.top/screenshots.png") },
+			new List<MicroService.Core.ImageSource> { new MicroService.Core.ImageSource("https://dweb.waterbang.top/icons.png") },
+			new List<MicroService.Core.ImageSource> { new MicroService.Core.ImageSource("https://dweb.waterbang.top/screenshots.png") },
 			DisplayModeType.Browser,
 			OrientationType.Landscape,
 			"#ff0035",
 			"#00ff00",
-			new List<ShortcutItem>() { new ShortcutItem("item", "https://dweb.waterbang.top", icons: new List<ImageSource>
+			new List<ShortcutItem>() { new ShortcutItem("item", "https://dweb.waterbang.top", icons: new List<MicroService.Core.ImageSource>
 			{
-				new ImageSource("https://dweb.waterbang.top/shortcutItem.png")
+				new MicroService.Core.ImageSource("https://dweb.waterbang.top/shortcutItem.png")
 			}) }
 		);
 
