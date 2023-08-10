@@ -20,11 +20,11 @@ class NativeUiNMM : NativeMicroModule("nativeui.browser.dweb","nativeUi") {
     private  val splashScreenNMM = SplashScreenNMM()
 
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-        bootstrapContext.dns.install(navigationBarNMM)
-        bootstrapContext.dns.install(statusBarNMM)
-        bootstrapContext.dns.install(safeAreaNMM)
-        bootstrapContext.dns.install(virtualKeyboardNMM)
-        bootstrapContext.dns.install(splashScreenNMM)
+//        bootstrapContext.dns.install(navigationBarNMM)
+//        bootstrapContext.dns.install(statusBarNMM)
+//        bootstrapContext.dns.install(safeAreaNMM)
+//        bootstrapContext.dns.install(virtualKeyboardNMM)
+//        bootstrapContext.dns.install(splashScreenNMM)
     }
 
     override suspend fun _shutdown() {

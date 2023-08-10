@@ -5,7 +5,11 @@ import kotlin.coroutines.CoroutineContext
 class ChangeableSet<E>(context: CoroutineContext = ioAsyncExceptionHandler) :
   LinkedHashSet<E>() {
   private val changeable = Changeable(this, context)
+  fun setContext(context: CoroutineContext) {
+    changeable.context = context
+  }
   val onChange = changeable.onChange
+
   suspend fun emitChange() = changeable.emitChange()
 
   override fun add(element: E) = super.add(element).also { if (it) changeable.emitChangeSync() }

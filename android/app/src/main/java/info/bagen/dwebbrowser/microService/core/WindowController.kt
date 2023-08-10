@@ -1,6 +1,7 @@
 package info.bagen.dwebbrowser.microService.core
 
 import android.content.Context
+import info.bagen.dwebbrowser.microService.browser.desk.debugDesk
 import org.dweb_browser.helper.Observable
 
 abstract class WindowController(
@@ -26,24 +27,31 @@ abstract class WindowController(
     { (it.key == key) && (filter?.invoke(state, it) != false) }, map
   ).toListener()
 
-  val onBlur = createStateListener(WindowPropertyKeys.Focus, { focus }) {}
-  val onFocus = createStateListener(WindowPropertyKeys.Focus, { !focus }) {}
+  val onFocus =
+    createStateListener(WindowPropertyKeys.Focus, { focus }) { debugDesk("emit onFocus", id) }
+  val onBlur =
+    createStateListener(WindowPropertyKeys.Focus, { !focus }) { debugDesk("emit onBlur", id) }
+
   fun isFocused() = state.focus
-  suspend fun focus() {
+  open suspend fun focus() {
     state.focus = true
   }
 
-  suspend fun blur() {
+  open suspend fun blur() {
     state.focus = false
   }
 
-  val onModeChange = createStateListener(WindowPropertyKeys.Mode) {};
+  val onModeChange =
+    createStateListener(WindowPropertyKeys.Mode) { debugDesk("emit onModeChange", "$id $it") };
 
   fun isMaximized(mode: WindowMode = state.mode) =
     mode == WindowMode.MAXIMIZE || mode == WindowMode.FULLSCREEN
 
-  val onMaximize = createStateListener(WindowPropertyKeys.Mode, { isMaximized(mode) }) {}
-  suspend fun maximize() {
+  val onMaximize = createStateListener(
+    WindowPropertyKeys.Mode,
+    { isMaximized(mode) }) { debugDesk("emit onMaximize", id) }
+
+  open suspend fun maximize() {
     if (!isMaximized()) {
       _beforeMaximizeBounds = state.bounds.copy()
       state.mode = WindowMode.MAXIMIZE
@@ -64,12 +72,12 @@ abstract class WindowController(
    */
   val onUnMaximize = createStateListener(WindowPropertyKeys.Mode, {
     !isMaximized(mode) && isMaximized(it.oldValue as WindowMode)
-  }) {}
+  }) { debugDesk("emit onUnMaximize", id) }
 
   /**
    * 取消窗口最大化
    */
-  suspend fun unMaximize() {
+  open suspend fun unMaximize() {
     if (isMaximized()) {
       when (val value = _beforeMaximizeBounds) {
         null -> {
@@ -95,14 +103,20 @@ abstract class WindowController(
   fun isMinimize(mode: WindowMode = state.mode) =
     mode == WindowMode.MAXIMIZE || mode == WindowMode.FULLSCREEN
 
-  val onMinimize = createStateListener(WindowPropertyKeys.Mode, { mode == WindowMode.MINIMIZE }) {}
-  suspend fun minimize() {
+  val onMinimize = createStateListener(
+    WindowPropertyKeys.Mode,
+    { mode == WindowMode.MINIMIZE }) { debugDesk("emit onMinimize", id) }
+
+  open suspend fun minimize() {
     state.mode = WindowMode.MINIMIZE
   }
 
-  val onClose = createStateListener(WindowPropertyKeys.Mode, { mode == WindowMode.CLOSED }) {}
+  val onClose = createStateListener(
+    WindowPropertyKeys.Mode,
+    { mode == WindowMode.CLOSED }) { debugDesk("emit onClose", id) }
+
   fun isClosed() = state.mode == WindowMode.CLOSED
-  suspend fun close(force: Boolean = false) {
+  open suspend fun close(force: Boolean = false) {
     /// 这里的 force 暂时没有作用，未来会加入交互，来阻止窗口关闭
     state.mode = WindowMode.CLOSED
   }
@@ -110,7 +124,7 @@ abstract class WindowController(
   //#endregion
 
   //#region 窗口样式修饰
-  suspend fun setTopBarStyle(
+  open suspend fun setTopBarStyle(
     contentColor: String? = null,
     backgroundColor: String? = null,
     overlay: Boolean? = null

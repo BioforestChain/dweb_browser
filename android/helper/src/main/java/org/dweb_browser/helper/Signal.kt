@@ -103,9 +103,7 @@ open class Signal<Args> {
       try {
         if (child.filter(args)) {
           val childArgs = child.map(args)
-          println("okk1");
           (child.childSignal as Signal<Any?>).emit(childArgs);
-          println("okk2");
         }
       } catch (e: Throwable) {
         e.printStackTrace()

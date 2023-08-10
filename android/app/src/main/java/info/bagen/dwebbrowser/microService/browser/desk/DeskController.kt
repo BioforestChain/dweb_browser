@@ -8,12 +8,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
 import com.google.accompanist.web.WebContent
 import com.google.accompanist.web.WebViewNavigator
 import com.google.accompanist.web.WebViewState
 import info.bagen.dwebbrowser.App
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.PromiseOut
@@ -95,12 +97,11 @@ class DeskController(
       }
 
       preDesktopWindowsManager?.also { preDwm ->
-        /// 窗口迁移
-        for (win in preDwm.allWindows.keys.toSet()/*拷贝一份避免并发修改导致的问题*/) {
-          preDwm.removeWindow(win)
-          dwm.addNewWindow(win)
+        dwm.activity.lifecycleScope.launch {
+          /// 窗口迁移
+          preDwm.moveWindows(dwm)
+          preDesktopWindowsManager = null
         }
-        preDesktopWindowsManager = null
       }
       preDesktopWindowsManager = dwm
     }

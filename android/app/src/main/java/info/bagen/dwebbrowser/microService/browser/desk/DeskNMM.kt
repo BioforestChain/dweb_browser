@@ -97,7 +97,7 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
             runningApps.remove(mmid)
           }
           /// 将所有的窗口聚焦，这个行为不依赖于 Activity 事件，而是Desk模块自身托管窗口的行为
-          deskController.desktopWindowsManager.focus(mmid)
+          deskController.desktopWindowsManager.focusWindow(mmid)
 
           return@defineHandler true
         } catch (e: Exception) {

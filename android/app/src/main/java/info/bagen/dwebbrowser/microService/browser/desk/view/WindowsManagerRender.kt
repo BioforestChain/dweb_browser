@@ -3,6 +3,7 @@ package info.bagen.dwebbrowser.microService.browser.desk.view
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -35,16 +36,31 @@ fun DesktopWindowsManager.Render() {
         off.emitSelf(hasMaximizedWins)
       }
       onDispose {
-        debugDesk("DesktopWindowsManager.Render", "stop watch maximize")
+        debugDesk("WindowsManager.Render", "stop watch maximize")
         off()
       }
     }
-
-    for (win in winList.value) {
+    /// 普通层级
+    val winList by winList
+    debugDesk("WindowsManager.Render", "winList: ${winList.size}")
+    for (win in winList) {
       key(win.id) {
         /// 渲染窗口
         win.Render(
           modifier = Modifier.zIndex(win.state.zIndex.toFloat()),
+          maxWinWidth = maxWidth.value,
+          maxWinHeight = maxHeight.value
+        )
+      }
+    }
+    /// 置顶层级
+    val winListTop by winListTop
+    debugDesk("WindowsManager.Render", "winListTop: ${winListTop.size}")
+    for (win in winListTop) {
+      key(win.id) {
+        /// 渲染窗口
+        win.Render(
+          modifier = Modifier.zIndex(winList.size + win.state.zIndex.toFloat()),
           maxWinWidth = maxWidth.value,
           maxWinHeight = maxHeight.value
         )

@@ -5,6 +5,10 @@ import kotlin.coroutines.CoroutineContext
 class ChangeableMap<K, V>(context: CoroutineContext = ioAsyncExceptionHandler) :
   LinkedHashMap<K, V>() {
   private val changeable = Changeable(this, context)
+  fun setContext(context: CoroutineContext) {
+    changeable.context = context
+  }
+
   val onChange = changeable.onChange
   suspend fun emitChange() = changeable.emitChange()
   fun emitChangeSync() = changeable.emitChangeSync()

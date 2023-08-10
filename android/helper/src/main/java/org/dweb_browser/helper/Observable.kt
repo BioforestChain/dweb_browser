@@ -25,6 +25,16 @@ class Observable<K : Any> {
       }
     }
 
+    suspend fun set(newValue: T) {
+      if (newValue != value) {
+        val oldValue = value
+        value = newValue
+        CoroutineScope(ioAsyncExceptionHandler).launch {
+          ob.changeSignal.emit(Change(key, newValue, oldValue))
+        }
+      }
+    }
+
     operator fun getValue(thisRef: Any, property: KProperty<*>) = value
   }
 

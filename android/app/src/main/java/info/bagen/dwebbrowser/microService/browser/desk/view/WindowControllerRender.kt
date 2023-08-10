@@ -44,7 +44,7 @@ fun DesktopWindowController.Render(
   /** 窗口是否在调整大小中 */
   val inResize by win.inResize
 
-  println("[${win.id}] inMove:${inMove} inResize:${inResize}")
+//  println("[${win.id}] inMove:${inMove} inResize:${inResize}")
 
   val limits = WindowLimits(
     minWidth = maxWinWidth * 0.2f,
@@ -92,7 +92,6 @@ fun DesktopWindowController.Render(
     LocalWindowLimits provides limits,
     LocalWindowControllerTheme provides theme,
   ) {
-    /// 窗口
     /**
      * 窗口缩放
      *
@@ -118,13 +117,10 @@ fun DesktopWindowController.Render(
           elevation = elevation.dp, shape = winEdge.boxRounded.toRoundedCornerShape()
         ),
     ) {
+      //#region 窗口内容
       Column(Modifier
         .background(theme.winFrameBrush)
         .clip(winEdge.boxRounded.toRoundedCornerShape())
-        .focusable(true)
-        .onFocusChanged { state ->
-          win.emitFocusOrBlur(state.isFocused)
-        }
         .clickable {
           win.emitFocusOrBlur(true)
         }) {
@@ -163,11 +159,13 @@ fun DesktopWindowController.Render(
         /// 显示底部控制条
         WindowBottomBar(win)
       }
+      //#endregion
 
       /**
        * 窗口是否聚焦
        */
       val isFocus by win.watchedState { focus }
+//      println("isFocus: $isFocus compose ${win.id}")
 
       /// 失去焦点的时候，提供 moveable 的遮罩（在移动中需要确保遮罩存在）
       if (inMove or !isFocus) {

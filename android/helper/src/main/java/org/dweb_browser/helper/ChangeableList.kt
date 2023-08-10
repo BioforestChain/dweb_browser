@@ -10,6 +10,10 @@ import kotlin.coroutines.CoroutineContext
 class ChangeableList<T>(context: CoroutineContext = ioAsyncExceptionHandler) :
   ArrayList<T>() {
   private val changeable = Changeable(this, context)
+  fun setContext(context: CoroutineContext) {
+    changeable.context = context
+  }
+
   val onChange = changeable.onChange
   suspend fun emitChange() = changeable.emitChange()
 

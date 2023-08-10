@@ -6,7 +6,7 @@ import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
 
 class Changeable<T>(
-  private val self: T, private val context: CoroutineContext
+  private val self: T, var context: CoroutineContext
 ) {
   val signal = Signal<T>()
   val onChange = signal.toListener()
