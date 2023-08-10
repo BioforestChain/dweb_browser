@@ -149,11 +149,27 @@ const updateTaskBarState = async (state: $TaskBarState) => {
   focusState.appId = state.appId;
   // 聚焦模式下，显示所有的列表，但是对于当前focus的应用，需要有一定的scale显示
   if (state.focus) {
-    return await resizeTaskbar(67, 70 * (showApps.value.length + 1));
+    // return await resizeTaskbar(67, 70 * (showApps.value.length + 1));
   }
   // 没有聚焦的情况，只显示当前focus的应用
-  return await resizeTaskbar(67, 70);
+  // return await resizeTaskbar(65, 65);
 };
+let resizeOb: ResizeObserver | undefined;
+onMounted(() => {
+  if (taskbarEle.value) {
+    resizeOb = new ResizeObserver(async (entries) => {
+      for (const entry of entries) {
+        console.log("resizedSize entry",entry.contentRect.width, entry.contentRect.height);
+        const { width: _width, height: _height } = entry.contentRect;
+        const height = Math.ceil(_height);
+        const width = Math.ceil(_width);
+        const resizedSize = await resizeTaskbar(width, height);
+        console.log("resizedSize", width, height, resizedSize.width,resizedSize.height);
+      }
+    });
+    resizeOb.observe(taskbarEle.value);
+  }
+});
 const iconSize = "45px";
 </script>
 <template>

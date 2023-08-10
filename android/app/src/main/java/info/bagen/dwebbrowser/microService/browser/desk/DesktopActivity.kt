@@ -45,10 +45,6 @@ class DesktopActivity : BaseActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     val deskController = bindController(intent.getStringExtra("deskSessionId"))
-    // TaskbarModel.init(intent.getStringExtra("taskBarSessionId") ?: "") // 初始化任务浮窗
-    /*PermissionUtil.checkSuspendedWindowPermission(this) {
-      startTaskbarService()
-    }*/
 
     /**
      * 窗口管理器

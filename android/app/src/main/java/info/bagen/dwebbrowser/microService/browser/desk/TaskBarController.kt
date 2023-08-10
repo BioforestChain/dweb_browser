@@ -68,7 +68,8 @@ class TaskBarController(
 
     return apps.values.toList()
   }
-
+  // 缓存Resize,用来下次激活taskBarActivity的时候恢复用
+  var cacheResize = ReSize(0,0)
   /**
    * 对Taskbar自身进行resize
    * 根据web元素的大小进行自适应调整
@@ -81,6 +82,7 @@ class TaskBarController(
     // dp = px / (dpi / 160)
     val width = reSize.width.toDp
     val height = reSize.height.toDp
+    cacheResize = ReSize(width,height)
     debugDesk(
       "resize",
       "${reSize.width},${reSize.height} activity"

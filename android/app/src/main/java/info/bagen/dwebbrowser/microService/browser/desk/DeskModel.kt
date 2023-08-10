@@ -1,7 +1,6 @@
 package info.bagen.dwebbrowser.microService.browser.desk
 
 import androidx.compose.runtime.compositionLocalOf
-import org.dweb_browser.dwebview.DWebView
 
 val LocalInstallList = compositionLocalOf<MutableList<DeskAppMetaData>> {
   noLocalProvidedFor("LocalInstallList")

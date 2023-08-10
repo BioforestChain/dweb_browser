@@ -29,6 +29,7 @@ class TaskbarActivity : BaseActivity() {
 
     setContent {
       window.attributes = window.attributes.also { attributes ->
+        window.setLayout(controller.cacheResize.width,controller.cacheResize.height)
 //        /// 禁用模态窗口模式，使得点击可以向下穿透
 //        attributes.flags =
 //          WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
