@@ -167,7 +167,7 @@ export class JsProcessMicroModule implements $MicroModule {
   private async _nativeFetch(url: RequestInfo | URL, init?: RequestInit): Promise<Response> {
     const args = normalizeFetchArgs(url, init);
     const hostName = args.parsed_url.hostname;
-    if (!(hostName.endsWith(".dweb") && args.parsed_url.protocol === "file:")) {
+    if (!(hostName.endsWith(".dweb") && args.parsed_url.protocol === "file:") ) {
       const ipc_response = await this._nativeRequest(args.parsed_url, args.request_init);
       return ipc_response.toResponse(args.parsed_url.href);
     }
@@ -308,7 +308,10 @@ export const installEnv = async (metadata: Metadata) => {
     }
     if (data[0] === "run-main") {
       const config = data[1] as $RunMainConfig;
-      const main_parsed_url = updateUrlOrigin(config.main_url, `http://${jsProcess.host}`);
+      const main_parsed_url = updateUrlOrigin(
+        config.main_url,
+        `${self.location.href.startsWith("blob:https:") ? "https" : "http"}://${jsProcess.host}`
+      );
       const location = {
         hash: main_parsed_url.hash,
         host: main_parsed_url.host,

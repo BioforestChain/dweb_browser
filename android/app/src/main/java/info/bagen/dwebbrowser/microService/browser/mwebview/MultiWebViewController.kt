@@ -67,8 +67,10 @@ class MultiWebViewController(
     win.onClose {
       // 移除渲染适配器
       windowAdapterManager.providers.remove(wid)
-      // 清除释放所有的webview
-      webViewList.clear()
+      // 清除释放所有的 webview
+      for (item in webViewList) {
+        closeWebView(item.webviewId)
+      }
     }
     /// ipc 断开的时候，强制关闭窗口
     ipc.onClose {
@@ -108,7 +110,7 @@ class MultiWebViewController(
   suspend fun createDwebView(url: String): DWebView = withContext(mainAsyncExceptionHandler) {
     val currentActivity = win.context;// App.appContext
     val dWebView = DWebView(
-       ContextThemeWrapper(currentActivity, R.style.Theme_dwebbrowser), remoteMM, DWebView.Options(
+      ContextThemeWrapper(currentActivity, R.style.Theme_dwebbrowser), remoteMM, DWebView.Options(
         url = url,
         /// 我们会完全控制页面将如何离开，所以这里兜底默认为留在页面
         onDetachedFromWindowStrategy = DWebView.Options.DetachedFromWindowStrategy.Ignore,

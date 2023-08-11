@@ -17,5 +17,6 @@ export * from "./status-bar/index.ts";
 export * from "./toast/index.ts";
 export * from "./torch/index.ts";
 export * from "./virtual-keyboard/index.ts";
+export * from "./window/index.ts";
 
 // export * from "./file-system/index.ts" 暂不开放

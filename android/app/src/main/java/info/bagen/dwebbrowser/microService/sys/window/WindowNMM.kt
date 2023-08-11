@@ -1,7 +1,9 @@
 package info.bagen.dwebbrowser.microService.sys.window
 
 
+import info.bagen.dwebbrowser.microService.core.WindowController
 import info.bagen.dwebbrowser.microService.core.WindowPropertyKeys
+import info.bagen.dwebbrowser.microService.core.WindowState
 import info.bagen.dwebbrowser.microService.core.windowInstancesManager
 import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.printdebugln
@@ -14,6 +16,8 @@ import org.http4k.core.Request
 import org.http4k.core.Response
 import org.http4k.core.Status
 import org.http4k.lens.Query
+import org.http4k.lens.boolean
+import org.http4k.lens.composite
 import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
@@ -30,8 +34,30 @@ fun debugWindow(tag: String, msg: Any? = "", err: Throwable? = null) =
  */
 class WindowNMM :
   NativeMicroModule("window.sys.dweb", "Window Management") {
+  companion object {
+    init {
+      ResponseRegistry.registryJsonAble(WindowState::class.java) { it.toJsonAble() }
+      ResponseRegistry.registryJsonAble(WindowController::class.java) { it.toJsonAble() }
+    }
+  }
+
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     val query_wid = Query.string().required("wid")
+
+    data class WindowBarStyle(
+      val contentColor: String?,
+      val backgroundColor: String?,
+      val overlay: Boolean?
+    )
+
+    val query_barStyle = Query.composite {
+      WindowBarStyle(
+        string().optional("contentColor")(it),
+        string().optional("backgroundColor")(it),
+        boolean().optional("overlay")(it),
+      )
+    }
+
     fun getWindow(request: Request) = query_wid(request).let { wid ->
       windowInstancesManager.instances[wid]
         ?: throw Exception("No Found by window id: '$wid'")
@@ -41,12 +67,11 @@ class WindowNMM :
       /** 窗口的状态监听 */
       "/observe" bind Method.GET to defineHandler { request, ipc ->
         val win = getWindow(request)
-
         debugWindow("/observe", "wid: ${win.id} ,mmid: ${ipc.remote.mmid}")
         val inputStream = ReadableStream(onStart = { controller ->
           val off = win.state.observable.onChange {
             try {
-              controller.enqueue(gson.toJson(win.state) + "\n")
+              controller.enqueue(gson.toJson(win.state.toJsonAble()) + "\n")
             } catch (e: Exception) {
               controller.close()
               e.printStackTrace()
@@ -67,12 +92,25 @@ class WindowNMM :
         })
         return@defineHandler Response(Status.OK).body(inputStream)
       },
+      "/getState" bind Method.GET to defineHandler { request ->
+        return@defineHandler getWindow(request).toJsonAble()
+      },
       "/focus" bind Method.GET to defineHandler { request -> getWindow(request).focus() },
       "/blur" bind Method.GET to defineHandler { request -> getWindow(request).blur() },
       "/maximize" bind Method.GET to defineHandler { request -> getWindow(request).maximize() },
       "/unMaximize" bind Method.GET to defineHandler { request -> getWindow(request).unMaximize() },
       "/minimize" bind Method.GET to defineHandler { request -> getWindow(request).minimize() },
       "/close" bind Method.GET to defineHandler { request -> getWindow(request).close() },
+      "/setTopBarStyle" bind Method.GET to defineHandler { request ->
+        with(query_barStyle(request)) {
+          getWindow(request).setTopBarStyle(contentColor, backgroundColor, overlay)
+        }
+      },
+      "/setBottomBarStyle" bind Method.GET to defineHandler { request ->
+        with(query_barStyle(request)) {
+          getWindow(request).setBottomBarStyle(contentColor, backgroundColor, overlay)
+        }
+      },
     )
   }
 

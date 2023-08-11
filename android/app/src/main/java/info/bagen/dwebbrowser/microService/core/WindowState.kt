@@ -1,13 +1,26 @@
 package info.bagen.dwebbrowser.microService.core
 
 import androidx.compose.ui.graphics.Color
+import com.google.gson.JsonDeserializationContext
+import com.google.gson.JsonDeserializer
+import com.google.gson.JsonElement
+import com.google.gson.JsonObject
+import com.google.gson.JsonSerializationContext
+import com.google.gson.JsonSerializer
+import com.google.gson.annotations.JsonAdapter
+import info.bagen.dwebbrowser.microService.sys.helper.hex
 import info.bagen.dwebbrowser.microService.sys.helper.toHex
+import info.bagen.dwebbrowser.microService.sys.window.debugWindow
 import org.dweb_browser.helper.Observable
 import org.dweb_browser.microservice.help.MMID
+import org.dweb_browser.microservice.help.gson
+import java.lang.reflect.Type
+
 
 /**
  * 单个窗口的信息集合
  */
+@JsonAdapter(WindowState::class)
 class WindowState(
   /// 这里是窗口的不可变信息
   /**
@@ -26,11 +39,68 @@ class WindowState(
    * 比如若渲染的是web内容，那么应该是 mwebview.browser.dweb
    */
   val provider: MMID,
-) {
+) : JsonSerializer<WindowState>, JsonDeserializer<WindowState> {
   /**
    * 以下是可变属性，所以这里提供一个监听器，来监听所有的属性变更
    */
   val observable = Observable<WindowPropertyKeys>();
+  fun toJsonAble() = JsonObject().also { jsonObject ->
+    jsonObject.addProperty("wid", wid)
+    jsonObject.addProperty("owner", owner)
+    jsonObject.addProperty("provider", provider)
+    for (ob in observable.observers) {
+      val key = ob.key.fieldName
+      when (val value = ob.value) {
+        is String -> jsonObject.addProperty(key, value)
+        is Number -> jsonObject.addProperty(key, value)
+        is Boolean -> jsonObject.addProperty(key, value)
+        is WindowBounds -> jsonObject.add(key, gson.toJsonTree(value))
+        else -> {
+          debugWindow("WindowState.toJsonAble", "fail for key:$key")
+        }
+      }
+    }
+  }
+
+
+  override fun serialize(
+    src: WindowState,
+    typeOfSrc: Type,
+    context: JsonSerializationContext
+  ) = JsonObject().also { jsonObject ->
+    jsonObject.addProperty("wid", wid)
+    jsonObject.addProperty("owner", owner)
+    jsonObject.addProperty("provider", provider)
+    for (ob in observable.observers) {
+      jsonObject.add(ob.key.fieldName, context.serialize(ob.value, ob.valueClass.java))
+    }
+  }
+
+  override fun deserialize(
+    json: JsonElement,
+    typeOfT: Type,
+    context: JsonDeserializationContext
+  ) = json.asJsonObject.let { jsonObject ->
+    WindowState(
+      jsonObject.get("wid").asString,
+      jsonObject.get("owner").asString,
+      jsonObject.get("provider").asString,
+    ).also { windowState ->
+      for (ob in observable.observers) {
+        val key = ob.key.fieldName
+        if (jsonObject.has(key)) {
+          val ele = jsonObject.get(key)
+          (ob as Observable.Observer<WindowPropertyKeys, Any>).set(
+            context.deserialize(
+              ele,
+              ob.valueClass.java
+            )
+          )
+        }
+      }
+    }
+  }
+
 
   /**
    * 窗口位置和大小
@@ -38,14 +108,16 @@ class WindowState(
    * 窗口会被限制最小值,会被限制显示区域。
    * 终止,窗口最终会被绘制在用户可见可控的区域中
    */
-  var bounds by observable.observe<WindowBounds>(WindowPropertyKeys.Bounds, WindowBounds());
+  var bounds by observable.observe(
+    WindowPropertyKeys.Bounds,
+    WindowBounds(),
+  );
 
   fun updateBounds(updater: WindowBounds.() -> WindowBounds) =
     updater.invoke(bounds).also { bounds = it }
 
   fun updateMutableBounds(updater: WindowBounds.Mutable.() -> Unit) =
     bounds.toMutable().also(updater).also { bounds = it.toImmutable() }
-
 
   /**
    * 窗口标题
@@ -54,7 +126,7 @@ class WindowState(
    *
    * 如果是 mwebview，默认会采用当前 Webview 的网页 title
    */
-  var title by observable.observe<String?>(WindowPropertyKeys.Title, null);
+  var title by observable.observeNullable(WindowPropertyKeys.Title, String::class);
 
   /**
    * 应用图标链接
@@ -63,7 +135,7 @@ class WindowState(
    *
    * 如果是 mwebview，默认会采用当前 Webview 的网页 favicon
    */
-  var iconUrl by observable.observe<String?>(WindowPropertyKeys.IconUrl, null);
+  var iconUrl by observable.observeNullable(WindowPropertyKeys.IconUrl, String::class);
 
   /**
    * 是否全屏
@@ -83,29 +155,6 @@ class WindowState(
   var focus by observable.observe<Boolean>(WindowPropertyKeys.Focus, false);
 
   /**
-   * 是否处于画中画模式
-   *
-   * 与原生的 PIP 不同,原生的PIP有一些限制,比如 IOS 上只能渲染 Media。
-   * 而在 desk 中的 PIP 原理简单粗暴,就是将视图进行 clip+scale,因此它本质上还是渲染一整个 win-view。
-   * 并且此时这个被裁切的窗口将无法接收到任何用户的手势、键盘等输入,却而代之的,接口中允许一些自定义1~4个的 icon-button,这些按钮将会被渲染在 pip-controls-bar (PIP 的下方) 中方便用户操控当前的 PIP。
-   *
-   * 多个 PIP 视图会被叠在一起,在一个 max-width == max-height 的空间中,所有 PIP 以 contain 的显示形式居中放置。
-   *    只会有一个 PIP 视图显示在最前端,其它层叠显示在它后面
-   * PIP 可以全局拖动。
-   * PIP 会有两个状态:聚焦和失焦。
-   *    点击后,进入聚焦模式,视图轻微放大,pip-controlls-bar 会从 PIP 视图的 Bottom 与 End 侧 显示出来;
-   *        其中 Bottom 侧显示的是用户自定义的 icon-button,以 space-around 的显示形式水平放置;
-   *        同时 End 侧显示的是 PIP 的 dot-scroll-bar(应该是拟物设计,否则用户认知成本可能会不低),桌面端可以点击或者滚轮滚动、移动端可以上下滑动,从而切换最前端的 PIP 视图
-   *        聚焦模式下 PIP 仍然可以全局拖动,但是一旦造成拖动,会同时切换成失焦模式。
-   *    在聚焦模式下,再次点击 PIP,将会切换到失焦模式,此时 pip-controlls-bar 隐藏,视图轻微缩小;
-   * PIP 的视图的 End-Corner 是一个 resize 区域,用户可以随意拖动这个来对视图进行resize,同时开发者会收到resize指令,从而作出“比例响应式”变更。如果开发者不响应该resize,那么 PIP 会保留 win-view 的渲染比例。
-   *
-   * > 注意:该模式下,alwaysOnTop 为 true,并且将不再显示 win-controls-bar。
-   * > 提示:如果不想 PIP 功能把当前的 win-view  吃掉,那么可以打开一个子窗口来申请 PIP 模式。
-   */
-  var pictureInPicture by observable.observe<Boolean>(WindowPropertyKeys.PictureInPicture, false);
-
-  /**
    * 当前窗口层叠顺序
    */
   var zIndex by observable.observe<Int>(WindowPropertyKeys.ZIndex, 0);
@@ -118,7 +167,7 @@ class WindowState(
   /**
    * 父窗口
    */
-  var parent by observable.observe<UUID?>(WindowPropertyKeys.Parent, null);
+  var parent by observable.observeNullable(WindowPropertyKeys.Parent, UUID::class);
 
   /**
    * 是否在闪烁提醒
@@ -182,30 +231,65 @@ class WindowState(
   /**
    * 内容渲染是否要覆盖 顶部栏
    */
-  var overlayTopBar by observable.observe<Boolean>(WindowPropertyKeys.OverlayTopBar, false);
+  var topBarOverlay by observable.observe<Boolean>(WindowPropertyKeys.TopBarOverlay, false);
 
   /**
    * 内容渲染是否要覆盖 底部栏
    */
-  var overlayBottomBar by observable.observe<Boolean>(WindowPropertyKeys.OverlayBottomBar, false);
+  var bottomBarOverlay by observable.observe<Boolean>(WindowPropertyKeys.BottomBarOverlay, false);
 
-  var topBarContentColor by observable.observe<String?>(
+  /**
+   * 应用的主题色，格式为 #RRGGBB ｜ auto
+   *
+   * 如果使用 auto，则会根据当前的系统的显示模式，自动跟随成 亮色 或者 暗色
+   */
+  var themeColor by observable.observe<String>(WindowPropertyKeys.ThemeColor, "auto");
+
+  /**
+   * 顶部栏的文字颜色，格式为 #RRGGBB | auto
+   *
+   * 如果使用 auto，会自动根据现有的背景色来显示 亮色 或者 暗色
+   */
+  var topBarContentColor by observable.observe<String>(
     WindowPropertyKeys.TopBarContentColor,
-    null
+    "auto"
   );
-  var topBarBackgroundColor by observable.observe<String?>(
+
+  /**
+   * 顶部栏的文字颜色，格式为 #RRGGBB ｜ auto
+   *
+   * 如果使用 auto，会与 themeColor 保持一致
+   */
+  var topBarBackgroundColor by observable.observe<String>(
     WindowPropertyKeys.TopBarBackgroundColor,
-    null
+    "auto"
   );
-  var bottomBarContentColor by observable.observe<String?>(
+
+  /**
+   * 底部栏的文字颜色，格式为 #RRGGBB | auto
+   *
+   * 如果使用 auto，会自动根据现有的背景色来显示 亮色 或者 暗色
+   */
+  var bottomBarContentColor by observable.observe(
     WindowPropertyKeys.BottomBarContentColor,
-    null
+    "auto",
   );
-  var bottomBarBackgroundColor by observable.observe<String?>(
+
+  /**
+   * 底部栏的文字颜色，格式为 #RRGGBB ｜ auto
+   *
+   * 如果使用 auto，会与 themeColor 保持一致
+   */
+  var bottomBarBackgroundColor by observable.observe<String>(
     WindowPropertyKeys.BottomBarBackgroundColor,
-    null
+    "auto"
   );
-  var themeColor by observable.observe<String?>(WindowPropertyKeys.ThemeColor, null);
 }
 
+fun String.asWindowStateColor(autoColor: () -> Color) =
+  Color.hex(this) ?: autoColor()
 
+fun String.asWindowStateColor(lightColor: Color, darkColor: Color, isDark: Boolean) =
+  asWindowStateColor { if (isDark) darkColor else lightColor }
+
+fun String.asWindowStateColor(autoColor: Color) = asWindowStateColor { autoColor }

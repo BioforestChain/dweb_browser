@@ -49,7 +49,7 @@ suspend fun startDwebBrowser(): DnsNMM {
   when (DEVELOPER.CURRENT) {
     DEVELOPER.GAUBEE -> debugTags.addAll(
       listOf<String>(
-        "desk",
+        "JsMM",
         "http",
 //        "fetch",
 //        "message-port-ipc"

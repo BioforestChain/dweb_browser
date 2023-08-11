@@ -13,6 +13,9 @@ export const fetchBaseExtends = $makeExtends<Promise<Response>>()({
       return response;
     }
   },
+  async void() {
+    await this.ok();
+  },
   async text() {
     const ok = await this.ok();
     return ok.text();

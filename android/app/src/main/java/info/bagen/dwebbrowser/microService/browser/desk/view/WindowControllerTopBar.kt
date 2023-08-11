@@ -23,7 +23,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import info.bagen.dwebbrowser.microService.browser.desk.DesktopWindowController
 import kotlinx.coroutines.launch
@@ -32,8 +31,8 @@ import kotlinx.coroutines.launch
 internal fun WindowTopBar(
   win: DesktopWindowController,
 ) {
-  val density = LocalDensity.current;
   val winPadding = LocalWindowPadding.current;
+  val contentColor = LocalWindowControllerTheme.current.topContentColor
   Box(
     modifier =
     Modifier
@@ -43,9 +42,9 @@ internal fun WindowTopBar(
       .background(
         Brush.verticalGradient(
           colors = listOf(
-            Color.Black.copy(alpha = 0.2f),
+            contentColor.copy(alpha = 0.2f),
             Color.Transparent,
-          ), startY = 0f, endY = (winPadding.top * density.density)
+          )
         )
       )
   ) {

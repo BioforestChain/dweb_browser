@@ -33,8 +33,9 @@ import org.http4k.routing.routes
 fun debugJsProcess(tag: String, msg: Any? = "", err: Throwable? = null) =
   printdebugln("js-process", tag, msg, err)
 
-class JsProcessNMM : NativeMicroModule("js.browser.dweb","Js Process") {
-  override val categories = mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Process_Service);
+class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
+  override val categories =
+    mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Process_Service);
 
   private val JS_PROCESS_WORKER_CODE by lazy {
     runBlockingCatching {
@@ -193,7 +194,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb","Js Process") {
           App.appContext, this@JsProcessNMM, DWebView.Options(
             url = urlInfo.buildInternalUrl().path("/index.html").toString()
           )
-        )
+        ).also { it.settings.safeBrowsingEnabled = false }
       ).also { api ->
         api.dWebView.onReady { afterReadyPo.resolve(Unit) }
       }
