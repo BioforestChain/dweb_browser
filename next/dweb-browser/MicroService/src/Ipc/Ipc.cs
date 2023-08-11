@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks.Dataflow;
+﻿using System.Collections.Concurrent;
+using System.Threading.Tasks.Dataflow;
 
 namespace DwebBrowser.MicroService;
 public abstract class Ipc
@@ -215,7 +216,7 @@ public abstract class Ipc
 
     }
 
-    private readonly LazyBox<Dictionary<int, PromiseOut<IpcResponse>>> _reqResMap = new();
+    private readonly LazyBox<ConcurrentDictionary<int, PromiseOut<IpcResponse>>> _reqResMap = new();
 
     /// <summary>
     /// 发送请求
@@ -228,7 +229,7 @@ public abstract class Ipc
         var result = new PromiseOut<IpcResponse>();
         _reqResMap.GetOrPut(() =>
         {
-            var reqResMap = new Dictionary<int, PromiseOut<IpcResponse>>();
+            var reqResMap = new ConcurrentDictionary<int, PromiseOut<IpcResponse>>();
             OnResponse += async (ipcResponse, ipc, self) =>
             {
                 if (!reqResMap.Remove(ipcResponse.ReqId, out var res))
@@ -239,7 +240,7 @@ public abstract class Ipc
                 res.Resolve(ipcResponse);
             };
             return reqResMap;
-        }).Add(ipcRequest.ReqId, result);
+        }).TryAdd(ipcRequest.ReqId, result);
         await PostMessageAsync(ipcRequest);
         return await result.WaitPromiseAsync();
     }
