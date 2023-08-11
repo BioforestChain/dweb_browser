@@ -2,17 +2,20 @@ package info.bagen.dwebbrowser.microService.browser.jmm
 
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
+import info.bagen.dwebbrowser.microService.core.WindowMode
 import info.bagen.dwebbrowser.microService.core.WindowState
 import info.bagen.dwebbrowser.microService.core.windowAdapterManager
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.dweb_browser.browserUI.database.JsMicroModuleStore
 import org.dweb_browser.browserUI.download.DownLoadController
 import org.dweb_browser.browserUI.download.compareAppVersionHigh
 import org.dweb_browser.browserUI.util.BrowserUIApp
 import org.dweb_browser.browserUI.util.FilesUtil
+import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.printdebugln
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.help.DWEB_DEEPLINK
@@ -73,6 +76,10 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     installJmmApps()
+
+    this.onAfterShutdown {
+      jmmController = null
+    }
 
     val route_install_hanlder = defineHandler { request, ipc ->
       val metadataUrl = queryMetadataUrl(request)
@@ -180,9 +187,13 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
     // JmmManagerActivity.startActivity(jmmAppInstallManifest)
     // 打开安装窗口
     val win = windowAdapterManager.createWindow(
-      WindowState(owner = ipc.remote.mmid, provider = mmid)
+      WindowState(owner = ipc.remote.mmid, provider = mmid).also {
+        it.mode = WindowMode.MAXIMIZE
+      }
     )
-    jmmController = JmmController(win, this, jmmAppInstallManifest)
+    withContext(mainAsyncExceptionHandler) { // 由于创建后，界面会同步执行，可能会存在主界面刷新界面比协程执行快，引发数据未初始化问题
+      jmmController = JmmController(win, this@JmmNMM, jmmAppInstallManifest)
+    }
   }
 
   private suspend fun jmmMetadataUninstall(mmid: MMID) {

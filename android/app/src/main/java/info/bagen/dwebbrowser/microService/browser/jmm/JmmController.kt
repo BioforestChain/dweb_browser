@@ -22,7 +22,7 @@ class JmmController(
 ) {
 
   private val openLock = Mutex()
-  val viewModel = JmmManagerViewModel(jmmAppInstallManifest, this)
+  val viewModel:JmmManagerViewModel = JmmManagerViewModel(jmmAppInstallManifest, this)
 
   fun hasApps(mmid: MMID) = jmmNMM.getApps(mmid) !== null
   fun getApp(mmid: MMID) = jmmNMM.getApps(mmid)
@@ -32,10 +32,7 @@ class JmmController(
     /// 提供渲染适配
     windowAdapterManager.providers[wid] =
       @Composable { modifier, width, height, scale ->
-        // 由于 scale 提供的缩放比例不适用于当前界面，所以缩放比例自行计算
-        val screenWidth = LocalConfiguration.current.screenWidthDp
-        val screenHeight = LocalConfiguration.current.screenHeightDp
-        Render(width / screenWidth, height / screenHeight)
+        Render(modifier, width, height, scale)
       }
     /// 窗口销毁的时候
     win.onClose {

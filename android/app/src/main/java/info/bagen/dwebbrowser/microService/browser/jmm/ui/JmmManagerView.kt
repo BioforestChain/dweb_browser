@@ -54,10 +54,11 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.R
-import org.dweb_browser.microservice.help.JmmAppInstallManifest
 import kotlinx.coroutines.launch
 import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
+import org.dweb_browser.browserUI.download.DownLoadInfo
 import org.dweb_browser.browserUI.download.DownLoadStatus
+import org.dweb_browser.microservice.help.JmmAppInstallManifest
 import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
 import java.text.DecimalFormat
 
@@ -125,7 +126,7 @@ fun MALLBrowserView(viewModel: JmmManagerViewModel, onBack: () -> Unit) {
     modifier = Modifier
       .fillMaxSize()
       .background(MaterialTheme.colorScheme.background)
-      .navigationBarsPadding()
+      //.navigationBarsPadding()
   ) {
     AppInfoContentView(lazyListState, jmmMetadata) { index, imageLazyListState ->
       scope.launch {
@@ -136,7 +137,9 @@ fun MALLBrowserView(viewModel: JmmManagerViewModel, onBack: () -> Unit) {
       }
     }
     TopAppBar(topBarAlpha, jmmMetadata.name, onBack)
-    BottomDownloadButton(viewModel)
+    BottomDownloadButton(viewModel.uiState.downloadInfo, jmmMetadata) {
+      viewModel.handlerIntent(JmmIntent.ButtonFunction)
+    }
     ImagePreview(jmmMetadata, previewState)
   }
 }
@@ -188,7 +191,7 @@ private fun TopAppBar(alpha: MutableState<Float>, title: String, onBack: () -> U
     modifier = Modifier
       .fillMaxWidth()
       .background(MaterialTheme.colorScheme.surface.copy(alpha.value))
-      .statusBarsPadding()
+      //.statusBarsPadding()
       .height(TopBarHeight),
     verticalAlignment = Alignment.CenterVertically
   ) {
@@ -210,10 +213,10 @@ private fun TopAppBar(alpha: MutableState<Float>, title: String, onBack: () -> U
 }
 
 @Composable
-private fun BoxScope.BottomDownloadButton(viewModel: JmmManagerViewModel) {
+private fun BoxScope.BottomDownloadButton(
+  downLoadInfo: MutableState<DownLoadInfo>, jmmMetadata: JmmAppInstallManifest, onClick: () -> Unit
+) {
   val background = MaterialTheme.colorScheme.surface
-  val downLoadInfo = viewModel.uiState.downloadInfo.value
-  val jmmMetadata = viewModel.uiState.jmmAppInstallManifest
   Box(
     modifier = Modifier
       .fillMaxWidth()
@@ -223,7 +226,7 @@ private fun BoxScope.BottomDownloadButton(viewModel: JmmManagerViewModel) {
       )
   ) {
     var showLinearProgress = false
-    val text = when (downLoadInfo.downLoadStatus) {
+    val text = when (downLoadInfo.value.downLoadStatus) {
       DownLoadStatus.IDLE, DownLoadStatus.CANCEL -> {
         "下载 (${jmmMetadata.bundle_size.toSpaceSize()})"
       }
@@ -234,12 +237,12 @@ private fun BoxScope.BottomDownloadButton(viewModel: JmmManagerViewModel) {
 
       DownLoadStatus.DownLoading -> {
         showLinearProgress = true
-        "下载中".displayDownLoad(downLoadInfo.size, downLoadInfo.dSize)
+        "下载中".displayDownLoad(downLoadInfo.value.size, downLoadInfo.value.dSize)
       }
 
       DownLoadStatus.PAUSE -> {
         showLinearProgress = true
-        "暂停".displayDownLoad(downLoadInfo.size, downLoadInfo.dSize)
+        "暂停".displayDownLoad(downLoadInfo.value.size, downLoadInfo.value.dSize)
       }
 
       DownLoadStatus.DownLoadComplete -> "安装中..."
@@ -254,7 +257,11 @@ private fun BoxScope.BottomDownloadButton(viewModel: JmmManagerViewModel) {
       .height(50.dp)
     val m2 = if (showLinearProgress) {
       val percent =
-        if (downLoadInfo.size == 0L) 0f else downLoadInfo.dSize * 1.0f / downLoadInfo.size
+        if (downLoadInfo.value.size == 0L) {
+          0f
+        } else {
+          downLoadInfo.value.dSize * 1.0f / downLoadInfo.value.size
+        }
       modifier.background(
         Brush.horizontalGradient(
           0.0f to MaterialTheme.colorScheme.primary,
@@ -268,7 +275,7 @@ private fun BoxScope.BottomDownloadButton(viewModel: JmmManagerViewModel) {
     }
 
     Box(
-      modifier = m2.clickable { viewModel.handlerIntent(JmmIntent.ButtonFunction) },
+      modifier = m2.clickableWithNoEffect { onClick()  },
       contentAlignment = Alignment.Center
     ) {
       Text(text = text, color = MaterialTheme.colorScheme.onPrimary)
@@ -285,8 +292,6 @@ private fun AppInfoContentView(
     modifier = Modifier
       .fillMaxSize()
       .background(MaterialTheme.colorScheme.background)
-      .statusBarsPadding()
-      .navigationBarsPadding()
       .padding(top = TopBarHeight)
   ) {
     // 头部内容， HeadHeight 128.dp
