@@ -19,7 +19,7 @@ struct PagingScrollView: View {
     @StateObject var keyboard = KeyBoard()
     @Binding var showTabPage: Bool
 
-    @State private var addressbarOffset: CGFloat = addressBarH
+    @State private var addressbarOffset: CGFloat = 0
 
     var body: some View {
         GeometryReader { geometry in

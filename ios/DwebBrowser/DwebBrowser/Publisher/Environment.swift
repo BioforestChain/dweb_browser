@@ -20,14 +20,14 @@ class SelectedTab: ObservableObject {
 class AddressBarState: ObservableObject {
     @Published var isFocused = false
     @Published var inputText: String = ""
-    @Published var shouldDisplay: Bool = false
+    @Published var shouldDisplay: Bool = true
     @Published var needRefreshOfIndex: Int = -1
     @Published var stopLoadingOfIndex: Int = -1
 
 }
 
 class ToolBarState: ObservableObject {
-    @Published var shouldExpand = false
+    @Published var shouldExpand = true
     @Published var canGoBack = false
     @Published var canGoForward = false
     @Published var goBackTapped = false

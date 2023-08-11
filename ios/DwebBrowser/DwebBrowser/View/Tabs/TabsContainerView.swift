@@ -18,9 +18,9 @@ struct TabsContainerView: View {
 
     @State var geoRect: CGRect = .zero // 定义一个变量来存储geoInGlobal的值
     @State var selectedCellFrame: CGRect = .zero
-    @State private var isExpanded = false
+    @State private var isExpanded = true
     @State private var lastProgress: AnimationProgress = .invisible
-    @State var showTabPage: Bool = false
+    @State var showTabPage: Bool = true
 
     private var snapshotHeight: CGFloat { geoRect.height - addressBarH }
     private var snapshotMidY: CGFloat { geoRect.minY + snapshotHeight/2 - addressBarH }
