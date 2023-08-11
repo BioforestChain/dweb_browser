@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks.Dataflow;
 
 namespace DwebBrowser.MicroService.Message;
@@ -81,9 +82,9 @@ public class IpcBodySender : IpcBody, IDisposable
         /// </summary>
         public class UsableIpcBodyMapper
         {
-            private Dictionary</*streamId*/string, IpcBodySender> Map { get; set; }
+            private ConcurrentDictionary</*streamId*/string, IpcBodySender> Map { get; set; }
 
-            public UsableIpcBodyMapper(Dictionary<string, IpcBodySender> map)
+            public UsableIpcBodyMapper(ConcurrentDictionary<string, IpcBodySender> map)
             {
                 Map = map;
             }
@@ -95,7 +96,7 @@ public class IpcBodySender : IpcBody, IDisposable
                     return false;
                 }
 
-                Map.Add(streamId, ipcBody);
+                Map.TryAdd(streamId, ipcBody);
                 return true;
             }
 
@@ -145,7 +146,7 @@ public class IpcBodySender : IpcBody, IDisposable
 
             var usableIpcBodyMapper = s_ipcUsableIpcBodyMap.GetValueOrPut(ipc, () =>
             {
-                var mapper = new UsableIpcBodyMapper(new Dictionary<string, IpcBodySender>());
+                var mapper = new UsableIpcBodyMapper(new ConcurrentDictionary<string, IpcBodySender>());
 
                 Signal<IIpcStream, Ipc> cb = async (ipcStream, ipc, self) =>
                 {
