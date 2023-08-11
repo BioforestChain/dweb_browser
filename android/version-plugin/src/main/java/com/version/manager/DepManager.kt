@@ -24,9 +24,10 @@ object BuildConfig {
   const val http4kMultipart = "org.http4k:http4k-multipart"
   const val http4kClientApache = "org.http4k:http4k-client-apache"
 
-  const val ktor_version = "2.2.3"
+  const val ktor_version = "2.3.3"
   const val ktorServerWebsockets = "io.ktor:ktor-server-websockets:$ktor_version"
   const val ktorServerCio = "io.ktor:ktor-server-cio:$ktor_version"
+  const val ktorClientCio = "io.ktor:ktor-client-cio:$ktor_version"
 
   // 谷歌支持库
   private const val accompanistVersion = "0.31.6-rc"
