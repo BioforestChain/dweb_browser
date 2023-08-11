@@ -29,6 +29,13 @@
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0-ios|AnyCPU'">
 		<CreatePackage>false</CreatePackage>
+		<CodesignProvision>dweb_brower_prov_profile</CodesignProvision>
+		<CodesignKey>Apple Development: shuiling yang (7YR49V9UJ6)</CodesignKey>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)|$(IsPackable)'=='Release|net8.0-ios|AnyCPU|true'">
+		<CreatePackage>false</CreatePackage>
+		<CodesignProvision>ios_distribution_dweb_prov</CodesignProvision>
+		<CodesignKey>iPhone Distribution</CodesignKey>
 	</PropertyGroup>
 	<ItemGroup>
 		<!-- App Icon -->
@@ -90,6 +97,7 @@
 		<Folder Include="Platforms\iOS\MicroModule\Sys\Device\" />
 		<Folder Include="Platforms\iOS\MicroModule\Browser\Desk\" />
 		<Folder Include="Platforms\iOS\MicroModule\Browser\Web\" />
+		<Folder Include="Platforms\iOS\MicroModule\Browser\Desk\View\" />
 	</ItemGroup>
 	<ItemGroup>
 		<BundleResource Include="Resources\Assets\**\*.*" />
