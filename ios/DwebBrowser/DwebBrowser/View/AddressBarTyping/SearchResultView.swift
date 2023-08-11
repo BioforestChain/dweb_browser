@@ -14,100 +14,127 @@ struct SearchResultView: View {
     @ObservedObject var localLinkSearcher = LocalLinkSearcher.shared
     //    @State private var inputText: String = ""
     var body: some View {
-        Form {
-            Section {
-                ForEach(WebSearcher.shared.searchers, id: \.id) { searcher in
-                    Button {
-                        guard let url = URL(string: searcher.inputHandler(addressBar.inputText)) else { return }
-                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                        let webcache = WebCacheMgr.shared.store[selectedTab.curIndex]
-                        if !webcache.shouldShowWeb {
-                            webcache.shouldShowWeb = true
-                        }
-                        openingLink.clickedLink = url
-                        addressBar.isFocused = false
-                    } label: {
-                        VStack {
-                            HStack(spacing: 12) {
-                                Image(uiImage: .assetsImage(name: searcher.icon))
-                                    .resizable()
-                                    .frame(width: 30, height: 30)
-                                    .cornerRadius(4)
-                                    .padding(.leading, 16)
-                                    .padding(.top, 10)
-                                
-                                VStack(alignment: .leading, spacing: 4, content: {
-                                    Text(searcher.name)
-                                        .foregroundColor(Color("menuTitleColor"))
-                                        .font(.system(size: 17))
-                                        .lineLimit(1)
-                                        .padding(.top, 16)
-                                    
-                                    Text(paramURLAbsoluteString(with: addressBar.inputText))
-                                        .foregroundColor(Color(hexString: "ACB5BF"))
-                                        .font(.system(size: 12))
-                                        .lineLimit(1)
-                                        .padding(.trailing, 16)
-                                })
-                                Spacer()
-                            }
-                            Spacer()
-                            Rectangle()
-                                .frame(height: 0.5)
-                                .foregroundColor(Color(hexString: "E8EBED"))
-                                .padding(.bottom, 0)
-                        }
-                    }
-                    .frame(height: 70)
-                }
-            } header: {
-                Text("搜索引擎")
-                    .foregroundColor(Color("menuTitleColor"))
-                    .font(.system(size: 15, weight: .medium))
-                    .frame(height: 40)
-            }
-            .textCase(nil)
-            .listRowInsets(EdgeInsets())
-            .listRowSeparator(.hidden)
+        
             
-            Section {
-                ForEach(localLinkSearcher.records) { record in
-                    Button {
-                        guard let url = URL(string: record.link) else { return }
-                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                        DispatchQueue.main.async {
+            Form {
+                Section {
+                    ForEach(0..<WebSearcher.shared.searchers.count, id: \.self) { index in
+                        let searcher = WebSearcher.shared.searchers[index]
+                        Button {
+                            guard let url = URL(string: searcher.inputHandler(addressBar.inputText)) else { return }
+                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                            let webcache = WebCacheMgr.shared.store[selectedTab.curIndex]
+                            if !webcache.shouldShowWeb {
+                                webcache.shouldShowWeb = true
+                            }
                             openingLink.clickedLink = url
                             addressBar.isFocused = false
+                        } label: {
+                            VStack {
+                                HStack(spacing: 12) {
+                                    Image(uiImage: .assetsImage(name: searcher.icon))
+                                        .resizable()
+                                        .frame(width: 30, height: 30)
+                                        .cornerRadius(4)
+                                        .padding(.leading, 16)
+                                        .padding(.top, 10)
+                                    
+                                    VStack(alignment: .leading, spacing: 4, content: {
+                                        Text(searcher.name)
+                                            .foregroundColor(Color.menuTitleColor)
+                                            .font(.system(size: 17))
+                                            .lineLimit(1)
+                                            .padding(.top, 16)
+                                        
+                                        Text(paramURLAbsoluteString(with: addressBar.inputText))
+                                            .foregroundColor(Color(hexString: "ACB5BF"))
+                                            .font(.system(size: 12))
+                                            .lineLimit(1)
+                                            .padding(.trailing, 16)
+                                    })
+                                    Spacer()
+                                }
+                                Spacer()
+                                Rectangle()
+                                    .frame(height: 0.5)
+                                    .foregroundColor(index == WebSearcher.shared.searchers.count - 1 ? Color.clear : Color.lineColor)
+                                    .padding(.bottom, 0)
+                                    .padding(.leading, 16)
+                                    
+                            }
+                            .background(Color.menubkColor)
                         }
-                        
-                    } label: {
-                        HStack {
-                            Image(uiImage: .assetsImage(name: record.websiteIcon))
-                                .resizable()
-                                .foregroundColor(Color(white: 138.0 / 255.0))
-                                .frame(width: 28, height: 28)
-                            VStack(alignment: .leading, spacing: 4, content: {
-                                Text(record.title)
-                                    .font(.system(size: 16))
-                                    .foregroundColor(Color("menuTitleColor"))
-                                    .frame(height: 25)
-                                    .lineLimit(1)
-                                    .padding(.top, 10)
-                                Text(record.link)
-                                    .font(.system(size: 13))
-                                    .foregroundColor(.init(white: 0.667))
-                                    .frame(height: 20)
-                                    .lineLimit(1)
-                                    .padding(.trailing, 16)
-                            })
+                        .frame(height: 70)
+                    }
+                } header: {
+                    Text("搜索引擎")
+                        .foregroundColor(Color.menuTitleColor)
+                        .font(.system(size: 15, weight: .medium))
+                        .frame(height: 40)
+                }
+                .textCase(nil)
+                .listRowInsets(EdgeInsets())
+                .listRowSeparator(.hidden)
+                
+                Section {
+                    ForEach(0..<localLinkSearcher.records.count, id: \.self) { index in
+                        let record = localLinkSearcher.records[index]
+                        Button {
+                            guard let url = URL(string: record.link) else { return }
+                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                            DispatchQueue.main.async {
+                                openingLink.clickedLink = url
+                                addressBar.isFocused = false
+                            }
+                            
+                        } label: {
+                            VStack {
+                                HStack(spacing: 12) {
+                                    Image(uiImage: .assetsImage(name: record.websiteIcon))
+                                        .resizable()
+                                        .frame(width: 30, height: 30)
+                                        .cornerRadius(4)
+                                        .padding(.leading, 16)
+                                        .padding(.top, 10)
+                                    
+                                    VStack(alignment: .leading, spacing: 4, content: {
+                                        Text(record.title)
+                                            .foregroundColor(Color.menuTitleColor)
+                                            .font(.system(size: 16))
+                                            .lineLimit(1)
+                                            .padding(.top, 16)
+                                        
+                                        Text(record.link)
+                                            .foregroundColor(Color(hexString: "ACB5BF"))
+                                            .font(.system(size: 13))
+                                            .lineLimit(1)
+                                            .padding(.trailing, 16)
+                                    })
+                                    Spacer()
+                                }
+                                Spacer()
+                                Rectangle()
+                                    .frame(height: 0.5)
+                                    .foregroundColor(index == localLinkSearcher.records.count - 1 ? Color.clear : Color.lineColor)
+                                    .padding(.bottom, 0)
+                                    .padding(.leading, 16)
+                            }
+                            .background(Color.menubkColor)
                         }
+                        .frame(height: 70)
                     }
                 }
+                .textCase(nil)
+                .listRowInsets(EdgeInsets())
+                .listRowSeparator(.hidden)
+                
+                .onReceive(addressBar.$inputText) { text in
+                    localLinkSearcher.fetchRecordList(placeHolder: text)
+                }
             }
-            .onReceive(addressBar.$inputText) { text in
-                localLinkSearcher.fetchRecordList(placeHolder: text)
-            }
+            .scrollContentBackground(.hidden)
+            .background(Color.bkColor)
+            //        .dismissKeyboard()
         }
-        //        .dismissKeyboard()
-    }
+    
 }

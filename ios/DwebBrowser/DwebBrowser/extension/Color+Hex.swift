@@ -9,14 +9,21 @@ import Foundation
 import SwiftUI
 
 extension Color{
-    static let dwebTint = Color(hex: 0x3DD4F2)  // light blue
     static let btnDisabledColor = Color(hex: 0xACB5BF)  // light gray
     static let btnNormalColor = Color(hex: 0x0A1626)  //  dark gray
-    static let bkColor = Color(hex: 0xF5F6F7)  //  background color light gray
     static let networkTipColor = Color(hex: 0x737980)  //  network tip color
     static let networkGuidColor = Color(hex: 0xACB5BF)  //
     static let sheetTopbar = Color(hex: 0xD8D8D8)  //  
     static let lightTextColor = btnDisabledColor
+    static let AddressbarbkColor = Color("AddressbarbkColor")
+    static let addressTextColor = Color("addressTextColor")
+    static let bkColor = Color("bkColor")
+    static let clearTextColor = Color("clearTextColor")
+    static let dwebTint = Color("dwebTint")
+    static let lineColor = Color("lineColor")
+    static let menubkColor = Color("menubkColor")
+    static let menuTitleColor = Color("menuTitleColor")
+    static let ToolbarColor = Color("ToolbarColor")
     
     init(hex: UInt32) {
         let red = Double((hex >> 16) & 0xff) / 255.0

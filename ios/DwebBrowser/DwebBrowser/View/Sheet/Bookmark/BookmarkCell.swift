@@ -28,13 +28,13 @@ struct BookmarkCell: View {
                     
                     Text(linkRecord.title)
                         .font(.system(size: 16))
-                        .foregroundColor(Color("menuTitleColor"))
+                        .foregroundColor(Color.menuTitleColor)
                         .lineLimit(1)
                     Spacer()
                 }
             }
             .frame(height: 50)
-            .background(Color("menubkColor"))
+            .background(Color.menubkColor)
             
             .overlay(
                 Divider().frame(width: dividerWidth, height: 0.5), // 添加分割线视图

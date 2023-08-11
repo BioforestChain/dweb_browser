@@ -45,7 +45,7 @@ struct ToolbarView: View {
             Spacer()
             Text("\(wrapperMgr.store.count)个标签页")
                 .font(.system(size: 18, weight: .medium))
-                .foregroundColor(Color("ToolbarColor"))
+                .foregroundColor(Color.ToolbarColor)
             Spacer()
             
             ToolbarItem(title: "完成") {
@@ -56,7 +56,7 @@ struct ToolbarView: View {
                 .frame(width: 25)
         }
         .frame(height: toolbarHeight)
-        .background(Color("bkColor"))
+        .background(Color.bkColor)
     }
     
     var fiveButtons: some View {
@@ -105,7 +105,7 @@ struct ToolbarView: View {
             }
         }
         .frame(height: toolbarHeight)
-        .background(Color("bkColor"))
+        .background(Color.bkColor)
 
         .onChange(of: selectedTab.curIndex, perform: { index in
             let currentWrapper = wrapperMgr.store[index]
@@ -158,7 +158,7 @@ struct ToolbarItem: View {
                     .frame(height: 25)
             } else {
                 Text(title!)
-                    .foregroundColor(Color("dwebTint"))
+                    .foregroundColor(Color.dwebTint)
             }
         }
     }

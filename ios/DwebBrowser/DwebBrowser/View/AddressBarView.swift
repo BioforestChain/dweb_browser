@@ -31,7 +31,7 @@ struct AddressBar: View {
     var body: some View {
         ZStack(alignment: .leading) {
             RoundedRectangle(cornerRadius: 10)
-                .foregroundColor(.white)
+                .foregroundColor(Color.AddressbarbkColor)
                 .frame(height: 40)
                 .overlay {
                     progressV
@@ -58,12 +58,12 @@ struct AddressBar: View {
 
             textField
         }
-        .background(Color("bkColor"))
+        .background(Color.bkColor)
     }
 
     var textField: some View {
         TextField(addressbarHolder, text: addressBar.isFocused ? $inputText : $displayText)
-            .foregroundColor(textColor)
+            .foregroundColor(Color.addressTextColor)
             .textInputAutocapitalization(.never)
             .autocorrectionDisabled(true)
             .multilineTextAlignment(addressBar.isFocused ? .leading : .center)
@@ -159,7 +159,7 @@ struct AddressBar: View {
             inputText = ""
         } label: {
             Image(systemName: "xmark.circle.fill")
-                .foregroundColor(.gray)
+                .foregroundColor(Color.clearTextColor)
                 .padding(.trailing, 20)
         }
     }
@@ -169,7 +169,7 @@ struct AddressBar: View {
             addressBar.needRefreshOfIndex = index
         } label: {
             Image(systemName: "arrow.clockwise")
-                .foregroundColor(.black.opacity(0.9))
+                .foregroundColor(Color.addressTextColor)
                 .padding(.trailing, 25)
         }
     }
@@ -179,7 +179,7 @@ struct AddressBar: View {
             addressBar.stopLoadingOfIndex = index
         } label: {
             Image(systemName: "xmark")
-                .foregroundColor(.black.opacity(0.8))
+                .foregroundColor(Color.addressTextColor)
                 .padding(.trailing, 25)
         }
     }

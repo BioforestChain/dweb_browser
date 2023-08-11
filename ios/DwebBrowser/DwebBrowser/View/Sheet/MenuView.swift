@@ -40,7 +40,7 @@ struct MenuView: View {
             Toggle(isOn: $isTraceless ) {
                 Text("无痕模式")
                     .padding(16)
-                    .foregroundColor(Color("menuTitleColor"))
+                    .foregroundColor(Color.menuTitleColor)
                     .font(.system(size: 16))
             }
             .onChange(of: isTraceless, perform: { newValue in
@@ -48,7 +48,7 @@ struct MenuView: View {
             })
             .toggleStyle(CustomToggleStyle())
             .frame(height: 50)
-            .background(Color("menubkColor"))
+            .background(Color.menubkColor)
             .cornerRadius(6)
             .padding(.horizontal, 16)
             
@@ -65,7 +65,7 @@ struct MenuView: View {
                 }
             }
         }
-        .background(Color("bkColor"))
+        .background(Color.bkColor)
         
     }
     

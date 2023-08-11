@@ -12,7 +12,7 @@ struct NoResultView: View {
     var body: some View {
         
         ZStack {
-            Color("bkColor")
+            Color.bkColor
                 .edgesIgnoringSafeArea(.top)
             
             VStack(spacing: 24, content: {

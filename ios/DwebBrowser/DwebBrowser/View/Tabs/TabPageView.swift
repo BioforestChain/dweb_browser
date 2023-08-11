@@ -29,7 +29,7 @@ struct TabPageView: View {
                 }
 
                 if !webCache.shouldShowWeb {
-                    Color("bkColor").overlay {
+                    Color.bkColor.overlay {
                         HomePageView()
                     }
                 }

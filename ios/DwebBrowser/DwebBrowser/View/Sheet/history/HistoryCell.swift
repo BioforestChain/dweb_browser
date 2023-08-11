@@ -22,7 +22,7 @@ struct HistoryCell: View {
             VStack(alignment: .leading, spacing: 10){
                 Text(linkRecord.title)
                     .font(.system(size: 16))
-                    .foregroundColor(Color("menuTitleColor"))
+                    .foregroundColor(Color.menuTitleColor)
                     .lineLimit(1)
                 
                 Text(linkRecord.link)
@@ -56,7 +56,7 @@ struct HistoryCell: View {
                      presentationMode.wrappedValue.dismiss()
                  }
         }
-        .background(Color("menubkColor"))
+        .background(Color.menubkColor)
     }
 }
 
