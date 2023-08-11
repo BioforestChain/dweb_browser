@@ -43,7 +43,7 @@ struct TabsContainerView: View {
                     TabGridView(animation: animation, gridState: gridState, selectedCellFrame: $selectedCellFrame)
 
                     if isExpanded, !animation.progress.isAnimating() {
-                        Color.bkColor.ignoresSafeArea()
+                        Color("bkColor").ignoresSafeArea()
                     }
 
                     PagingScrollView(showTabPage: $showTabPage)
@@ -67,7 +67,7 @@ struct TabsContainerView: View {
                         }
                     }
                 }
-                .background(Color.bkColor)
+                .background(Color("bkColor"))
 
                 .onAppear {
                     geoRect = geo.frame(in: .global)

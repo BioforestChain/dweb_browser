@@ -44,7 +44,7 @@ struct SheetSegmentView: View {
             }
         }
         .padding(.top, 28)
-        .background(Color.bkColor)
+        .background(Color("bkColor"))
     }
 }
 

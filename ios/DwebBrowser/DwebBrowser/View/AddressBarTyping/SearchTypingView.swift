@@ -14,7 +14,7 @@ struct SearchTypingView: View {
             Text("搜索")
                 .font(.headline)
                 .frame(width: screen_width, height: 40)
-                .background(Color.bkColor)
+                .background(Color("bkColor"))
             HStack {
                 Spacer()
                 Button {
@@ -23,12 +23,12 @@ struct SearchTypingView: View {
                     addressBar.isFocused = false
                 } label: {
                     Text("取消")
-                        .foregroundColor(.dwebTint)
+                        .foregroundColor(Color("dwebTint"))
                         .padding(8)
                 }
                 .padding(.trailing, 20)
             }
-            .background(Color.bkColor)
+            .background(Color("bkColor"))
 
             if addressBar.inputText == "" && !InstalledAppMgr.shared.apps.isEmpty {
                 VStack {
@@ -37,7 +37,7 @@ struct SearchTypingView: View {
                 }
             } else {
                 SearchResultView()
-                    .background(Color.bkColor)
+                    .background(Color("bkColor"))
             }
         }
         .animation(.easeInOut, value: addressBar.inputText == "")

@@ -96,7 +96,7 @@ struct TabGridView: View {
                         detector.send(newFrames)
                     }
                 }
-                .background(Color.bkColor)
+                .background(Color("bkColor"))
                 
                 .onReceive(publisher) {
                     if $0.count > 0 {

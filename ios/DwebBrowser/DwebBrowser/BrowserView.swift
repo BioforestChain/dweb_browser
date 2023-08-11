@@ -23,7 +23,7 @@ struct BrowserView: View {
                     TabsContainerView()
                     ToolbarView()
                 }
-                .background(Color.bkColor)
+                .background(Color("bkColor"))
                 .environmentObject(openingLink)
                 .environmentObject(selectedTab)
                 .environmentObject(addressBar)

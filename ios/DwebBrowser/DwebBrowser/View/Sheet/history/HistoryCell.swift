@@ -22,7 +22,7 @@ struct HistoryCell: View {
             VStack(alignment: .leading, spacing: 10){
                 Text(linkRecord.title)
                     .font(.system(size: 16))
-                    .foregroundColor(Color(hexString: "0A1626"))
+                    .foregroundColor(Color("menuTitleColor"))
                     .lineLimit(1)
                 
                 Text(linkRecord.link)
@@ -33,7 +33,7 @@ struct HistoryCell: View {
             }
             .padding(.horizontal,16)
             .frame(height: 66)
-            .background(.white)
+            
             
             .overlay(
                 Divider().frame(width: dividerWidth, height: 0.5), // 添加分割线视图
@@ -56,6 +56,7 @@ struct HistoryCell: View {
                      presentationMode.wrappedValue.dismiss()
                  }
         }
+        .background(Color("menubkColor"))
     }
 }
 

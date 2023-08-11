@@ -58,7 +58,7 @@ struct AddressBar: View {
 
             textField
         }
-        .background(Color.bkColor)
+        .background(Color("bkColor"))
     }
 
     var textField: some View {

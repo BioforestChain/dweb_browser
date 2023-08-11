@@ -12,7 +12,7 @@ struct SearchResultView: View {
     @EnvironmentObject var openingLink: OpeningLink
     @EnvironmentObject var selectedTab: SelectedTab
     @ObservedObject var localLinkSearcher = LocalLinkSearcher.shared
-//    @State private var inputText: String = ""
+    //    @State private var inputText: String = ""
     var body: some View {
         Form {
             Section {
@@ -32,16 +32,17 @@ struct SearchResultView: View {
                                 Image(uiImage: .assetsImage(name: searcher.icon))
                                     .resizable()
                                     .frame(width: 30, height: 30)
+                                    .cornerRadius(4)
                                     .padding(.leading, 16)
                                     .padding(.top, 10)
-
+                                
                                 VStack(alignment: .leading, spacing: 4, content: {
                                     Text(searcher.name)
-                                        .foregroundColor(Color(hexString: "0A1626"))
+                                        .foregroundColor(Color("menuTitleColor"))
                                         .font(.system(size: 17))
                                         .lineLimit(1)
                                         .padding(.top, 16)
-
+                                    
                                     Text(paramURLAbsoluteString(with: addressBar.inputText))
                                         .foregroundColor(Color(hexString: "ACB5BF"))
                                         .font(.system(size: 12))
@@ -61,14 +62,14 @@ struct SearchResultView: View {
                 }
             } header: {
                 Text("搜索引擎")
-                    .foregroundColor(Color(hexString: "0A1626"))
+                    .foregroundColor(Color("menuTitleColor"))
                     .font(.system(size: 15, weight: .medium))
                     .frame(height: 40)
             }
             .textCase(nil)
             .listRowInsets(EdgeInsets())
             .listRowSeparator(.hidden)
-
+            
             Section {
                 ForEach(localLinkSearcher.records) { record in
                     Button {
@@ -78,7 +79,7 @@ struct SearchResultView: View {
                             openingLink.clickedLink = url
                             addressBar.isFocused = false
                         }
-
+                        
                     } label: {
                         HStack {
                             Image(uiImage: .assetsImage(name: record.websiteIcon))
@@ -88,7 +89,7 @@ struct SearchResultView: View {
                             VStack(alignment: .leading, spacing: 4, content: {
                                 Text(record.title)
                                     .font(.system(size: 16))
-                                    .foregroundColor(.black)
+                                    .foregroundColor(Color("menuTitleColor"))
                                     .frame(height: 25)
                                     .lineLimit(1)
                                     .padding(.top, 10)
@@ -103,11 +104,10 @@ struct SearchResultView: View {
                     }
                 }
             }
-
             .onReceive(addressBar.$inputText) { text in
                 localLinkSearcher.fetchRecordList(placeHolder: text)
             }
         }
-//        .dismissKeyboard()
+        //        .dismissKeyboard()
     }
 }

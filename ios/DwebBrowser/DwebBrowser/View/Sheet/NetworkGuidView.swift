@@ -12,7 +12,7 @@ struct NetworkGuidView: View {
     private var imageHeight: CGFloat { imageWidth * CGFloat(85.0 / 117) }
     var body: some View {
         ZStack(alignment: .top){
-            Color.bkColor
+            Color("bkColor")
             VStack {
                 Group{
                     Spacer().frame(height: 10)

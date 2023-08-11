@@ -23,16 +23,18 @@ struct BookmarkCell: View {
                 HStack(spacing: 12) {
                     WebsiteIconImage(iconUrl: iconUrl)
                         .frame(width: 28, height: 28)
+                        .cornerRadius(4)
                         .padding(.leading, 12)
                     
                     Text(linkRecord.title)
                         .font(.system(size: 16))
-                        .foregroundColor(Color(hexString: "0A1626"))
+                        .foregroundColor(Color("menuTitleColor"))
                         .lineLimit(1)
+                    Spacer()
                 }
             }
             .frame(height: 50)
-            .background(.white)
+            .background(Color("menubkColor"))
             
             .overlay(
                 Divider().frame(width: dividerWidth, height: 0.5), // 添加分割线视图

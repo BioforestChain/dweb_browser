@@ -22,7 +22,6 @@ struct BookmarkView: View {
                         List {
                             ForEach(viewModel.dataSources) {  link in
                                 BookmarkCell(linkRecord: link, isLast: link.id == viewModel.dataSources.last?.id, loadMoreAction: {viewModel.loadMoreHistoryData()})
-                                    .frame(height: 50)
                             }
                             .onDelete { indexSet in
                                 deleteBookmarkData(at: viewModel.dataSources, offsets: indexSet)

@@ -16,14 +16,17 @@ struct MenuCell: View {
         HStack {
             Text(title)
                 .padding(.leading, 16)
-                .foregroundColor(Color(hexString: "0A1626"))
+                .foregroundColor(Color("menuTitleColor"))
                 .font(.system(size: 16))
             Spacer()
-            Image(uiImage: .assetsImage(name: (imageName)))
+            Image(uiImage: .assetsImage(name: imageName))
+                .renderingMode(.template)
+                .foregroundColor(Color("menuTitleColor"))
                 .padding(12)
+                
         }
         .frame(height: 50)
-        .background(.white)
+        .background(Color("menubkColor"))
         .cornerRadius(6)
         .padding(.horizontal, 16)
     }

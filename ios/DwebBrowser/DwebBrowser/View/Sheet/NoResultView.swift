@@ -12,7 +12,7 @@ struct NoResultView: View {
     var body: some View {
         
         ZStack {
-            Color(uiColor: UIColor(red: 245.0/255, green: 246.0/255, blue: 247.0/255, alpha: 1))
+            Color("bkColor")
                 .edgesIgnoringSafeArea(.top)
             
             VStack(spacing: 24, content: {

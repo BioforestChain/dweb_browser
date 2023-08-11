@@ -40,7 +40,7 @@ struct MenuView: View {
             Toggle(isOn: $isTraceless ) {
                 Text("无痕模式")
                     .padding(16)
-                    .foregroundColor(Color(hexString: "0A1626"))
+                    .foregroundColor(Color("menuTitleColor"))
                     .font(.system(size: 16))
             }
             .onChange(of: isTraceless, perform: { newValue in
@@ -48,7 +48,7 @@ struct MenuView: View {
             })
             .toggleStyle(CustomToggleStyle())
             .frame(height: 50)
-            .background(.white)
+            .background(Color("menubkColor"))
             .cornerRadius(6)
             .padding(.horizontal, 16)
             
@@ -65,7 +65,7 @@ struct MenuView: View {
                 }
             }
         }
-        .background(SwiftUI.Color.init(red: 245.0/255, green: 246.0/255, blue: 247.0/255, opacity: 1))
+        .background(Color("bkColor"))
         
     }
     
