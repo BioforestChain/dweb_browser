@@ -11,6 +11,7 @@ enum class DEVELOPER(val deviceName: String) {
     ZGSansung("samsung/SM-A5360"),// 专桂测试机
     WaterBang("HONOR/ADT-AN00"),
     Kingsword09("HUAWEI/BKL-AL20"),
+    KVirtual("Google/sdk_gphone64_arm64"),
     ANONYMOUS("*");
 
 
