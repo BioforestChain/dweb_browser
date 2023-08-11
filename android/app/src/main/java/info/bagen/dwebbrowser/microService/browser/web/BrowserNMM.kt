@@ -1,27 +1,25 @@
 package info.bagen.dwebbrowser.microService.browser.web
 
 import android.content.Intent
-import android.os.Bundle
-import android.util.Log
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.browser.desk.DeskLinkMetaData
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
-import kotlinx.coroutines.Dispatchers
+import info.bagen.dwebbrowser.microService.core.WindowMode
+import info.bagen.dwebbrowser.microService.core.WindowState
+import info.bagen.dwebbrowser.microService.core.windowAdapterManager
 import kotlinx.coroutines.withContext
 import org.dweb_browser.helper.ImageResource
-import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
+import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.printdebugln
 import org.dweb_browser.microservice.core.BootstrapContext
-import org.dweb_browser.microservice.help.gson
+import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
+import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.helper.IpcResponse
-import org.dweb_browser.microservice.ipc.helper.ReadableStream
 import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.dweb_browser.microservice.sys.http.DwebHttpServerOptions
 import org.dweb_browser.microservice.sys.http.HttpDwebServer
 import org.dweb_browser.microservice.sys.http.createHttpDwebServer
 import org.http4k.core.Method
-import org.http4k.core.Response
-import org.http4k.core.Status
 import org.http4k.lens.Query
 import org.http4k.lens.string
 import org.http4k.routing.bind
@@ -42,6 +40,8 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
   companion object {
     val controllers = mutableMapOf<String, BrowserController>()
   }
+  private var browserController : BrowserController? = null
+  private lateinit var browserServer : HttpDwebServer
 
   val queryAppId = Query.string().required("app_id")
   val queryKeyWord = Query.string().required("q")
@@ -49,69 +49,89 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
   private val runningWebApps = mutableListOf<DeskLinkMetaData>()
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    val browserServer = this.createBrowserWebServer()
-    val browserController = BrowserController(this, browserServer)
-    val sessionId = UUID.randomUUID().toString()
-    controllers[sessionId] = browserController
+    browserServer = this.createBrowserWebServer()
+//    val sessionId = UUID.randomUUID().toString()
 
     this.onAfterShutdown {
-      controllers.remove(sessionId)
+      // controllers.remove(sessionId)
+      browserController = null
     }
 
     onActivity {
-      openView(sessionId)
+      // openView(sessionId)
+      openBrowserWindow(it.second)
     }
 
     apiRouting = routes(
-      "search" bind Method.GET to defineHandler { request ->
+      "search" bind Method.GET to defineHandler { request, ipc ->
         debugBrowser("do search", request.uri)
         val search = queryKeyWord(request)
-        openView(sessionId = sessionId, search = search)
+        // openView(sessionId = sessionId, search = search)
+        openBrowserWindow(ipc, search = search)
         return@defineHandler true
       },
-      "openinbrowser" bind Method.GET to defineHandler { request ->
+      "openinbrowser" bind Method.GET to defineHandler { request, ipc ->
         debugBrowser("do openinbrowser", request.uri)
         val url = queryUrl(request)
-        openView(sessionId = sessionId, url = url)
+        // openView(sessionId = sessionId, url = url)
+        openBrowserWindow(ipc, url = url)
         return@defineHandler true
       },
-      "/browser/observe/apps" bind Method.GET to defineHandler { _, ipc ->
-        val inputStream = ReadableStream(onStart = { controller ->
-          val off = browserController.onUpdate {
-            try {
-              withContext(Dispatchers.IO) {
-                controller.enqueue((gson.toJson(runningWebApps) + "\n").toByteArray())
-              }
-            } catch (e: Exception) {
-              controller.close()
-              e.printStackTrace()
-            }
-          }
-          ipc.onClose {
-            off()
-            controller.close()
-          }
-        })
-        browserController.updateSignal.emit()
-        return@defineHandler Response(Status.OK).body(inputStream)
-      },
-      "/uninstall" bind Method.GET to defineHandler { request ->
+//      "/browser/observe/apps" bind Method.GET to defineHandler { _, ipc ->
+//        val inputStream = ReadableStream(onStart = { controller ->
+//          val off = browserController.onUpdate {
+//            try {
+//              withContext(Dispatchers.IO) {
+//                controller.enqueue((gson.toJson(runningWebApps) + "\n").toByteArray())
+//              }
+//            } catch (e: Exception) {
+//              controller.close()
+//              e.printStackTrace()
+//            }
+//          }
+//          ipc.onClose {
+//            off()
+//            controller.close()
+//          }
+//        })
+//        browserController?.updateSignal?.emit()
+//        return@defineHandler Response(Status.OK).body(inputStream)
+//      },
+      "/uninstall" bind Method.GET to defineHandler { request, ipc ->
         debugBrowser("uninstall", request.uri)
         val search = queryKeyWord(request)
-        openView(sessionId = sessionId, search = search)
+        // openView(sessionId = sessionId, search = search)
+        openBrowserWindow(ipc, search = search)
         return@defineHandler true
       },
     )
   }
 
-  private fun openView(sessionId: String, search: String? = null, url: String? = null) {
-    App.startActivity(BrowserActivity::class.java) { intent ->
-      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-      intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
-      intent.putExtra("sessionId", sessionId)
-      intent.putExtra("mmid", mmid)
-      search?.let { intent.putExtra("search", search) }
-      url?.let { intent.putExtra("url", url) }
+//  private fun openView(sessionId: String, search: String? = null, url: String? = null) {
+//    App.startActivity(BrowserActivity::class.java) { intent ->
+//      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+//      intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
+//      intent.putExtra("sessionId", sessionId)
+//      intent.putExtra("mmid", mmid)
+//      search?.let { intent.putExtra("search", search) }
+//      url?.let { intent.putExtra("url", url) }
+//    }
+//  }
+
+  private suspend fun openBrowserWindow(ipc: Ipc, search: String? = null, url: String? = null) {
+    // 打开安装窗口
+    val win = windowAdapterManager.createWindow(
+      WindowState(owner = ipc.remote.mmid, provider = mmid).also {
+        it.mode = WindowMode.MAXIMIZE
+      }
+    )
+    // 由于 WebView创建需要在主线程，所以这边做了 withContext 操作
+    withContext(mainAsyncExceptionHandler) {
+      browserController = BrowserController(win, this@BrowserNMM, browserServer).also { controller ->
+
+        search?.let { controller.updateDWSearch(it) }
+        url?.let { controller.updateDWUrl(it) }
+      }
     }
   }
 

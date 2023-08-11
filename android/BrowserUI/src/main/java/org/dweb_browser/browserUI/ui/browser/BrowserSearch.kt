@@ -80,7 +80,7 @@ internal fun SearchView(
       modifier = Modifier
         .fillMaxWidth()
         .background(MaterialTheme.colorScheme.background)
-        .navigationBarsPadding()
+        //.navigationBarsPadding()
         .padding(bottom = dimenBottomHeight)
     ) {
       homePreview?.let { it {moved -> focusManager.clearFocus(); if (!moved) onClose()} }
@@ -143,7 +143,7 @@ internal fun BoxScope.BrowserTextField(
     modifier = Modifier
       .fillMaxWidth()
       .background(MaterialTheme.colorScheme.background)
-      .navigationBarsPadding()
+      //.navigationBarsPadding()
       .imePadding()
       .align(Alignment.BottomCenter)
       .padding(

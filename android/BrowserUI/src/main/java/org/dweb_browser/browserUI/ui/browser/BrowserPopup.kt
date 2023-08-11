@@ -364,7 +364,7 @@ private fun PopContentView(
     modifier = Modifier
       .fillMaxSize()
       .background(MaterialTheme.colorScheme.background)
-      .navigationBarsPadding()
+      //.navigationBarsPadding()
   ) {
     when (popupViewState.value) {
       PopupViewState.BookList -> BrowserListOfBook(bookViewModel,

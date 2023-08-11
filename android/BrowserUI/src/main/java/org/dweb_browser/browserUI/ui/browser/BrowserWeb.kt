@@ -12,12 +12,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalFocusManager
 import com.google.accompanist.web.LoadingState
 import com.google.accompanist.web.WebView
 import org.dweb_browser.browserUI.ui.entity.BrowserWebView
@@ -30,7 +30,6 @@ import kotlinx.coroutines.flow.onEach
 @SuppressLint("ClickableViewAccessibility")
 @Composable
 internal fun BrowserWebView(viewModel: BrowserViewModel, browserWebView: BrowserWebView) {
-  val localFocusManager = LocalFocusManager.current
   var webViewY = 0 // 用于截图的时候进行定位截图
   LaunchedEffect(browserWebView.viewItem.state) { // 点击跳转时，加载状态变化，将底部栏显示
     snapshotFlow { browserWebView.viewItem.state.loadingState }.collect {
@@ -62,6 +61,10 @@ internal fun BrowserWebView(viewModel: BrowserViewModel, browserWebView: Browser
 
   val background = MaterialTheme.colorScheme.background
   val isDark = isSystemInDarkTheme()
+  val initialScale = LocalWebViewInitialScale.current
+  SideEffect {
+    browserWebView.viewItem.webView.setInitialScale(initialScale)
+  }
   //val webViewClient = BrowserWebViewClient()
   WebView(
     state = browserWebView.viewItem.state,

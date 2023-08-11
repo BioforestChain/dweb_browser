@@ -83,6 +83,10 @@ val LocalShowIme = compositionLocalOf {
   mutableStateOf(false)
 }
 
+val LocalWebViewInitialScale = compositionLocalOf<Int> {
+  noLocalProvidedFor("WebViewInitialScale")
+}
+
 sealed class BrowserIntent {
   object ShowMainView : BrowserIntent()
   object WebViewGoBack : BrowserIntent()
@@ -121,7 +125,6 @@ class BrowserViewModel(
       uiState = BrowserUIState(currentBrowserBaseView = mutableStateOf(it))
     }
     uiState.browserViewList.add(browserWebView)
-
     viewModelScope.launch(ioAsyncExceptionHandler) {
       snapshotFlow { dwebLinkUrl.value }.collect { url ->
         if (url.isNotEmpty()) {
@@ -132,10 +135,17 @@ class BrowserViewModel(
     }
   }
 
-  private fun getDesktopUrl() = browserServer.startResult.urlInfo.buildInternalUrl().let {
-    it.path("/desktop.html")
-      .query("api-base", browserServer.startResult.urlInfo.buildPublicUrl().toString())
+  fun setDwebLinkSearch(search: String) {
+    dwebLinkSearch.value = search
   }
+
+  fun setDwebLinkUrl(url: String) {
+    dwebLinkUrl.value = url
+  }
+
+  private fun getDesktopUrl() =
+    browserServer.startResult.urlInfo.buildInternalUrl().path("/desktop.html")
+      .query("api-base", browserServer.startResult.urlInfo.buildPublicUrl().toString())
 
   fun getNewTabBrowserView(url: String? = null): BrowserWebView {
     val (viewItem, closeWatcher) = appendWebViewAsItem(
@@ -291,17 +301,14 @@ class BrowserViewModel(
     }
   }
 
-  fun createDwebView(): DWebView {
-    return DWebView(
-      BrowserUIApp.Instance.appContext, browserNMM, DWebView.Options(
-        url = "",
-        /// 我们会完全控制页面将如何离开，所以这里兜底默认为留在页面
-        onDetachedFromWindowStrategy = DWebView.Options.DetachedFromWindowStrategy.Ignore,
-      ), null
+  fun createDwebView(url: String = ""): DWebView = DWebView(
+    BrowserUIApp.Instance.appContext, browserNMM, DWebView.Options(
+      url = url,
+      /// 我们会完全控制页面将如何离开，所以这里兜底默认为留在页面
+      onDetachedFromWindowStrategy = DWebView.Options.DetachedFromWindowStrategy.Ignore,
     )
-  }
+  )
 
-  @Synchronized
   fun appendWebViewAsItem(dWebView: DWebView): Pair<ViewItem, CloseWatcher> {
     val webviewId = "#w${webviewId_acc.getAndAdd(1)}"
     val state = WebViewState(WebContent.Url(getDesktopUrl().toString()))
