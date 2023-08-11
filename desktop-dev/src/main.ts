@@ -1,3 +1,4 @@
+/// <reference lib="dom"/>
 import { webcrypto } from "node:crypto";
 import process from "node:process";
 import { JsProcessNMM } from "./browser/js-process/js-process.ts";

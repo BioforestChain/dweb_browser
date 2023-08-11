@@ -1,7 +1,7 @@
 {
     "configurations": [
         {
-            "command": "deno task start --inspect",
+            "command": "sudo deno task start --inspect",
             "name": "Start electron with inspect",
             "request": "launch",
             "type": "node-terminal"

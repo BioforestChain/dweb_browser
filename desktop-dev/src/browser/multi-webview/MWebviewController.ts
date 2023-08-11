@@ -158,7 +158,6 @@ export class MWebviewController {
       if (this.win.isDestroyed()) {
         return;
       }
-
       this.deleteBrowserView(view);
     });
 
@@ -167,7 +166,10 @@ export class MWebviewController {
     const [_, height_with_titlebar] = this.win.getSize();
     view.setBounds({ height, width, x: 0, y: 0 });
     view.setAutoResize({ width: true, height: true });
-    view.webContents.openDevTools({ mode: "detach" });
+    // 安装界面不显示调试
+    if (url.indexOf("www.jmm.browser.dweb") === -1) {
+      view.webContents.openDevTools({ mode: "detach" });
+    }
     if (url) {
       view.webContents.loadURL(url);
     }

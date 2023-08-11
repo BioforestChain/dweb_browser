@@ -4,6 +4,7 @@ import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import { $Callback, createSignal } from "../../helper/createSignal.ts";
 import { tryDevUrl } from "../../helper/electronIsDev.ts";
 import { createNativeWindow } from "../../helper/openNativeWindow.ts";
+import { buildUrl } from "../../helper/urlHelper.ts";
 import { createWWWServer } from "./server.www.ts";
 
 export class WebBrowserNMM extends NativeMicroModule {
@@ -19,18 +20,24 @@ export class WebBrowserNMM extends NativeMicroModule {
 
   protected async _bootstrap(context: $BootstrapContext) {
     const wwwServer = await createWWWServer.call(this);
-    const win = await createNativeWindow(
-      await tryDevUrl(
-        wwwServer.startResult.urlInfo.buildInternalUrl((url) => {
-          url.pathname = "/index.html";
-        }).href,
-        "http://localhost:3500"
-      ),
-      { defaultBounds: { width: 1024, height: 700 } }
-    );
+    const host = wwwServer.startResult.urlInfo.buildInternalUrl((url) => {
+      url.pathname = "/desktop.html";
+    }).href;
+    const browserUrl = await tryDevUrl(host, "http://localhost:3500");
+    const win = await createNativeWindow(browserUrl, {
+      defaultBounds: { width: 1024, height: 700 },
+    });
     this._onShutdown(() => {
       win.close();
     });
+    void win.loadURL(
+      buildUrl(browserUrl, {
+        search: {
+          "api-base": host,
+          mmid: this.mmid,
+        },
+      }).href
+    );
   }
 
   private _shutdown_signal = createSignal<$Callback>();

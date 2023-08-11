@@ -7,7 +7,7 @@ import { ReadableStreamOut, binaryStreamRead } from "../../helper/stream/readabl
 import { $PromiseMaybe } from "../helper/types.ts";
 import type { $IpcMessage, IPC_ROLE, IpcMessage } from "../ipc/const.ts";
 import { Ipc } from "../ipc/ipc.ts";
-import type { $MicroModuleManifest, $IpcSupportProtocols } from "../types.ts";
+import type { $IpcSupportProtocols, $MicroModuleManifest } from "../types.ts";
 import { $messagePackToIpcMessage } from "./$messagePackToIpcMessage.ts";
 import { $jsonToIpcMessage } from "./$messageToIpcMessage.ts";
 
@@ -104,17 +104,6 @@ export class ReadableStreamIpc extends Ipc {
   _doPostMessage(message: $IpcMessage): void {
     // deno-lint-ignore no-explicit-any
     let message_raw: IpcMessage<any>;
-    // 源代吗 在 处理 /internal/public-url 的时候无法正确的判断
-    // message instanceof IpcResponse === false
-    // 所以更改为使用message.type 判断
-    // if (message instanceof IpcRequest) {
-    //   message_raw = message.ipcReqMessage();
-    // } else if (message instanceof IpcResponse) {
-    //   message_raw = message.ipcResMessage();
-    // } else {
-    //   message_raw = message;
-    // }
-
     // 使用 type 判断
     if (message.type === IPC_MESSAGE_TYPE.REQUEST) {
       message_raw = message.ipcReqMessage();

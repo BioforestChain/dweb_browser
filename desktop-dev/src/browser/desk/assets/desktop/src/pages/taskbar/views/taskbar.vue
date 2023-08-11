@@ -25,6 +25,8 @@ const toggleDesktopButton = async () => {
   const boundList = await toggleDesktopView();
 };
 
+const isDesktop = computed(() =>  navigator.userAgent.toLowerCase().indexOf(' electron/')> -1)
+
 const appRefList = shallowRef<
   Array<
     {
@@ -137,18 +139,18 @@ const isFocus = (mmid: string) => {
 // 标记scale的元素
 const isActive = (mmid: string) => computed(() =>  focusState.isFocus && mmid == focusState.appId)
 const focusState = reactive({
-  isFocus: false,
+  isFocus: isDesktop.value?true:false,
   appId: "",
 });
 // 触发样式更新
 const updateTaskBarState = async (state: $TaskBarState) => {
   const taskBarDom = taskbarEle.value;
   if (!taskBarDom) return;
-  console.log("updateTaskBarState=>", state.focus, taskBarDom.offsetWidth, taskBarDom.offsetHeight);
-  focusState.isFocus = state.focus;
+  focusState.isFocus = isDesktop.value?true:state.focus;
   focusState.appId = state.appId;
   // 聚焦模式下，显示所有的列表，但是对于当前focus的应用，需要有一定的scale显示
   if (state.focus) {
+    console.log("focusState.appId=>",focusState.appId)
     // return await resizeTaskbar(67, 70 * (showApps.value.length + 1));
   }
   // 没有聚焦的情况，只显示当前focus的应用
@@ -159,12 +161,10 @@ onMounted(() => {
   if (taskbarEle.value) {
     resizeOb = new ResizeObserver(async (entries) => {
       for (const entry of entries) {
-        console.log("resizedSize entry",entry.contentRect.width, entry.contentRect.height);
         const { width: _width, height: _height } = entry.contentRect;
         const height = Math.ceil(_height);
         const width = Math.ceil(_width);
-        const resizedSize = await resizeTaskbar(width, height);
-        console.log("resizedSize", width, height, resizedSize.width,resizedSize.height);
+        await resizeTaskbar(width, height);
       }
     });
     resizeOb.observe(taskbarEle.value);

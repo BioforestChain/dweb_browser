@@ -11,7 +11,7 @@ export async function createWWWServer(this: $MicroModule) {
   const serverIpc = await wwwServer.listen();
   serverIpc.onFetch(async (event) => {
     const { pathname, search } = event.url;
-    const url = `file:///sys/browser/web-browser${pathname}?mode=stream`;
+    const url = `file:///sys/browser/desk${pathname}?mode=stream`;
     return await this.nativeFetch(url);
   });
   return wwwServer;

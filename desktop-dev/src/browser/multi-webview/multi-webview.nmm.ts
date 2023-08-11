@@ -72,7 +72,6 @@ export class MultiWebviewNMM extends NativeMicroModule {
     this.onFetch(onFetchHanlder.run).internalServerError();
   }
 
-  private _all_open_ipc = new Map<number, Ipc>();
   /**
    * 打开 应用
    * 如果 是由 jsProcess 调用 会在当前的 browserWindow 打开一个新的 webview
@@ -81,7 +80,7 @@ export class MultiWebviewNMM extends NativeMicroModule {
   private async _open(url: string, clientIpc: Ipc) {
     const mww = await getOrOpenMWebViewWindow(clientIpc);
     const view = mww.createBrowserView(url);
-    console.log("", "_open", url);
+    // console.always("_open", view.webContents.id,mww.ipc.remote.mmid);
     return view.webContents.id;
   }
 
