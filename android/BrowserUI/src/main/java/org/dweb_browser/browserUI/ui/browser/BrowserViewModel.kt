@@ -201,22 +201,8 @@ class BrowserViewModel(
 
         is BrowserIntent.SearchWebView -> {
           uiState.showSearchEngine.targetState = false // 到搜索功能了，搜索引擎必须关闭
-          if (action.url.startsWith("dweb")) { // 负责拦截browser的dweb_deeplink
-            runBlockingCatching(ioAsyncExceptionHandler) {
-              browserNMM.nativeFetch(action.url)
-            }.getOrNull()
-            return@launch
-          } else if (action.url.contains("metadata.json")) { // 如果地址结尾是 metadata.json 目前是作为安装地址，跳转到安装界面
-            runBlockingCatching(ioAsyncExceptionHandler) {
-              browserNMM.nativeFetch(
-                org.http4k.core.Uri.of("file://jmm.browser.dweb/install?")
-                  .query("url", action.url)
-              )
-            }.getOrNull()
-            // 保存到历史记录
-            WebSiteDatabase.INSTANCE.websiteDao().insert(
-              WebSiteInfo(title = "metadata.json" , url = action.url, type = WebSiteType.History)
-            )
+          if (action.url.startsWith("dweb:")) { // 负责拦截browser的dweb_deeplink
+            browserNMM.nativeFetch(action.url)
             return@launch
           }
           uiState.currentBrowserBaseView.value.viewItem.state.content = WebContent.Url(action.url)

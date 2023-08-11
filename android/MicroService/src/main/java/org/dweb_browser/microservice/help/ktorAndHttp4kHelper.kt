@@ -1,8 +1,16 @@
-package org.dweb_browser.microservice.sys.http.net
+package org.dweb_browser.microservice.help
 
+import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.client.request.header
+import io.ktor.client.request.setBody
+import io.ktor.client.request.url
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsChannel
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.content.OutgoingContent
 import io.ktor.server.plugins.origin
 import io.ktor.server.request.ApplicationRequest
 import io.ktor.server.request.header
@@ -17,6 +25,7 @@ import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.RequestSource
 import org.http4k.core.Response
+import org.http4k.core.Status
 import org.http4k.lens.Header.CONTENT_TYPE
 import org.http4k.server.supportedOrNull
 import java.io.InputStream
@@ -67,3 +76,25 @@ private fun InputStream.copyToWithFlush(
 
 fun Request.isWebSocket() =
   method == Method.GET && (header(HttpHeaders.Connection) == "Upgrade" || header(HttpHeaders.Upgrade) == "websocket")
+
+
+fun Request.toHttpRequestBuilder() = HttpRequestBuilder().also { httpRequestBuilder ->
+  httpRequestBuilder.method = HttpMethod.parse(this.method.name)
+  httpRequestBuilder.url(this.uri.toString())
+  for ((key, value) in this.headers) {
+    httpRequestBuilder.headers.append(key, value ?: "")
+  }
+  httpRequestBuilder.setBody(this.body.stream)
+}
+
+suspend fun HttpResponse.toResponse() = Response(
+  Status(this.status.value, this.status.description),
+  this.version.toString()
+).headers(mutableListOf<Pair<String, String>>().also { headers ->
+  this.headers.forEach { key, values ->
+    for (value in values) {
+      headers.add(Pair(key, value))
+    }
+  }
+}).body(this.bodyAsChannel().toInputStream())
+

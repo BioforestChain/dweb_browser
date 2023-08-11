@@ -12,6 +12,8 @@ import io.ktor.utils.io.jvm.javaio.toInputStream
 import org.dweb_browser.helper.printdebugln
 import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.help.AdapterManager
+import org.dweb_browser.microservice.help.toHttpRequestBuilder
+import org.dweb_browser.microservice.help.toResponse
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Response
@@ -33,7 +35,9 @@ fun debugFetchFile(tag: String, msg: Any? = "", err: Throwable? = null) =
  */
 val nativeFetchAdaptersManager = AdapterManager<FetchAdapter>()
 
-val client = HttpClient(CIO)
+private val client = HttpClient(CIO)
+suspend fun httpFetch(request: Request) =
+  client.request(request.toHttpRequestBuilder()).toResponse()
 
 suspend fun MicroModule.nativeFetch(request: Request): Response {
   for (fetchAdapter in nativeFetchAdaptersManager.adapters) {
@@ -44,25 +48,9 @@ suspend fun MicroModule.nativeFetch(request: Request): Response {
   }
   debugFetch("Net/nativeFetch", "$this => ${request.uri}")
 
-  return client.request(HttpRequestBuilder().also { httpRequestBuilder ->
-    httpRequestBuilder.method = HttpMethod.parse(request.method.name)
-    for ((key, value) in request.headers) {
-      httpRequestBuilder.header(key, value)
-    }
-    httpRequestBuilder.setBody(request.body.stream)
-  }).let { httpResponse ->
-    Response(
-      Status(httpResponse.status.value, httpResponse.status.description),
-      httpResponse.version.toString()
-    ).headers(mutableListOf<Pair<String, String>>().also { headers ->
-      httpResponse.headers.forEach { key, values ->
-        for (value in values) {
-          headers.add(Pair(key, value))
-        }
-      }
-    }).body(httpResponse.bodyAsChannel().toInputStream())
-  }
+  return httpFetch(request)
 }
+
 
 suspend inline fun MicroModule.nativeFetch(url: Uri) = nativeFetch(Request(Method.GET, url))
 suspend inline fun MicroModule.nativeFetch(url: String) = nativeFetch(Request(Method.GET, url))

@@ -1,37 +1,20 @@
 package org.dweb_browser.browserUI.network
 
-import org.http4k.client.ApacheClient
-import org.http4k.core.*
+import org.dweb_browser.microservice.sys.dns.httpFetch
+import org.http4k.core.BodyMode
+import org.http4k.core.Method
+import org.http4k.core.Request
 
 class HttpClient {
-  private val mClientMemory = ApacheClient()
-  private val mClientStream = ApacheClient(responseBodyMode = BodyMode.Stream, requestBodyMode = BodyMode.Stream)
 
-  companion object {
-    private const val RootPath = "https://shop.plaoc.com/"
-
-    fun getAbsoluteUrl(path: String): String {
-      return if (path.startsWith("http")) {
-        path
-      } else {
-        return "$RootPath$path"
-      }
-    }
-  }
-
-  fun requestPath(
+  suspend fun requestPath(
     path: String,
     method: Method = Method.GET,
     bodyMode: BodyMode = BodyMode.Memory,
     customRequest: (String, Method) -> Request = defaultRequest
-  ): Response {
-    return when (bodyMode) {
-
-      BodyMode.Stream -> mClientStream(customRequest(getAbsoluteUrl(path), method))
-      else -> mClientMemory(customRequest(getAbsoluteUrl(path), method))
-    }
-  }
+  ) = httpFetch(customRequest(path, method))
 
   private val defaultRequest: (String, Method) -> Request = { url, method ->
-    Request(method, url) }
+    Request(method, url)
+  }
 }
