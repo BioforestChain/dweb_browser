@@ -41,6 +41,14 @@ export class ServerUrlInfo {
   buildPublicUrl(builder?: $UrlBuilder) {
     return appendUrlSearchs(this._buildUrl(this.public_origin, builder), [["X-Dweb-Host", this.host]]);
   }
+  buildPublicHtmlUrl(builder?: $UrlBuilder) {
+    return this._buildUrl(
+      this._buildUrl(this.public_origin, (url) => {
+        url.username = this.host;
+      }).toString(),
+      builder
+    );
+  }
 
   /**
    * 导出特殊的平台URL，尽可能保证 pathname 与 query 的信息与  DwebUrl 一致
@@ -56,6 +64,21 @@ export class ServerUrlInfo {
    */
   buildInternalUrl(builder?: $UrlBuilder) {
     return this._buildUrl(this.internal_origin, builder);
+  }
+
+  buildUrl(usePub = false, builder?: $UrlBuilder) {
+    if (usePub) {
+      return this.buildPublicUrl(builder);
+    } else {
+      return this.buildInternalUrl(builder);
+    }
+  }
+  buildHtmlUrl(usePub = false, builder?: $UrlBuilder) {
+    if (usePub) {
+      return this.buildPublicHtmlUrl(builder);
+    } else {
+      return this.buildInternalUrl(builder);
+    }
   }
 }
 export class ServerStartResult {

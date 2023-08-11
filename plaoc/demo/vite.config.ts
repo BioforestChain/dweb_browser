@@ -13,4 +13,7 @@ export default defineConfig({
       styles: true,
     }),
   ],
+  server: {
+    port: 4399,
+  },
 });

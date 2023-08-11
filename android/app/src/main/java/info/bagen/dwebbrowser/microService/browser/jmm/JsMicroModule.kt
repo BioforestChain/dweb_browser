@@ -37,26 +37,28 @@ open class JsMicroModule(var metadata: JmmAppInstallManifest) : MicroModule() {
     raw = true
   )
   override val dweb_deeplinks: List<DWEB_DEEPLINK> = metadata.dweb_deeplinks
-  override val categories: List<MICRO_MODULE_CATEGORY> get() {
-    val categories = this.metadata.categories
-    if (!categories.contains(MICRO_MODULE_CATEGORY.Application)) {
-      categories.add(MICRO_MODULE_CATEGORY.Application)
+  override val categories: List<MICRO_MODULE_CATEGORY>
+    get() {
+      val categories = this.metadata.categories
+      if (!categories.contains(MICRO_MODULE_CATEGORY.Application)) {
+        categories.add(MICRO_MODULE_CATEGORY.Application)
+      }
+      return categories
     }
-    return categories
-  }
   override val mmid = metadata.id
   override val dir = metadata.dir
   override val lang: String? = metadata.lang
   override val name: String = metadata.name
   override val short_name: String = metadata.short_name
   override val description: String? = metadata.description
-  override val icons:List<ImageResource>  get() {
-    var icons = metadata.icons;
-    if (icons.isNullOrEmpty()) {
-      icons = listOf(ImageResource(src = metadata.icon))
+  override val icons: List<ImageResource>
+    get() {
+      var icons = metadata.icons;
+      if (icons.isNullOrEmpty()) {
+        icons = listOf(ImageResource(src = metadata.icon))
+      }
+      return icons
     }
-    return icons
-  }
   override val display: DisplayMode? = metadata.display
   override val orientation: String? = metadata.orientation
   override val screenshots: List<ImageResource>? = metadata.screenshots
@@ -139,7 +141,7 @@ open class JsMicroModule(var metadata: JmmAppInstallManifest) : MicroModule() {
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     debugJsMM("bootstrap...", "$mmid/$metadata")
 
-   createNativeStream()
+    createNativeStream()
     /**
      * 拿到与js.browser.dweb模块的直连通道，它会将 Worker 中的数据带出来
      */
@@ -158,18 +160,21 @@ open class JsMicroModule(var metadata: JmmAppInstallManifest) : MicroModule() {
       /// WARN 这里不再受理 file://<domain>/ 的请求，只处理 http[s]:// | file:/// 这些原生的请求
       val scheme = ipcRequest.uri.scheme
       val host = ipcRequest.uri.host
+      debugJsMM("onProxyRequest", "start ${ipcRequest.uri}")
       if (scheme == "file" && host.endsWith(".dweb")) {
         val jsWebIpc = connect(host)
         jsWebIpc.emitMessage(IpcMessageArgs(ipcRequest, jsWebIpc))
       } else {
-        kotlin.runCatching {
+        runBlockingCatching(ioAsyncExceptionHandler) {
           /// 在js-worker一侧：与其它模块的通讯，统一使用 connect 之后再发送 request 来实现。
           // 转发请求
           val request = ipcRequest.toRequest()
           val response = nativeFetch(request)
+          debugJsMM("onProxyRequest", "end ${ipcRequest.uri}")
           val ipcResponse = IpcResponse.fromResponse(ipcRequest.req_id, response, ipc)
           ipc.postMessage(ipcResponse)
         }.onFailure {
+          debugJsMM("onProxyRequest", "fail ${ipcRequest.uri} ${it}")
           ipc.postMessage(
             IpcResponse.fromText(
               ipcRequest.req_id, 500, text = it.message ?: "", ipc = ipc

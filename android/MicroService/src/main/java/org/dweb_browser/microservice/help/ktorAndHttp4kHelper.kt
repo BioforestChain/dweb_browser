@@ -11,6 +11,8 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.OutgoingContent
+import io.ktor.http.contentLength
+import io.ktor.http.contentType
 import io.ktor.server.plugins.origin
 import io.ktor.server.request.ApplicationRequest
 import io.ktor.server.request.header
@@ -90,11 +92,7 @@ fun Request.toHttpRequestBuilder() = HttpRequestBuilder().also { httpRequestBuil
 suspend fun HttpResponse.toResponse() = Response(
   Status(this.status.value, this.status.description),
   this.version.toString()
-).headers(mutableListOf<Pair<String, String>>().also { headers ->
-  this.headers.forEach { key, values ->
-    for (value in values) {
-      headers.add(Pair(key, value))
-    }
-  }
-}).body(this.bodyAsChannel().toInputStream())
+)
+  .headers(this.headers.toHttp4kHeaders())
+  .body(this.bodyAsChannel().toInputStream(), this.contentLength())
 

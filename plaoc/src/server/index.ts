@@ -1,3 +1,4 @@
+import isMobile from "npm:is-mobile";
 import { X_PLAOC_QUERY } from "./const.ts";
 import { $IpcResponse, IpcEvent, jsProcess, PromiseOut, queue } from "./deps.ts";
 import { Server_api } from "./http-api-server.ts";
@@ -69,9 +70,10 @@ export const main = async () => {
   {
     const wwwStartResult = await wwwServer.getStartResult();
     const apiStartResult = await apiServer.getStartResult();
-    const indexUrl = wwwStartResult.urlInfo.buildInternalUrl((url) => {
+    const usePublic = isMobile.isMobile();
+    const indexUrl = wwwStartResult.urlInfo.buildHtmlUrl(usePublic, (url) => {
       url.pathname = "/index.html";
-      url.searchParams.set(X_PLAOC_QUERY.API_INTERNAL_URL, apiStartResult.urlInfo.buildInternalUrl().href);
+      url.searchParams.set(X_PLAOC_QUERY.API_INTERNAL_URL, apiStartResult.urlInfo.buildUrl(usePublic).href);
       url.searchParams.set(X_PLAOC_QUERY.API_PUBLIC_URL, apiStartResult.urlInfo.buildPublicUrl().href);
       url.searchParams.set(X_PLAOC_QUERY.EXTERNAL_URL, externalServer.token);
     });

@@ -15,7 +15,7 @@ abstract class WindowController(
    */
   abstract val context: Context
   val id = state.wid;
-  fun toJson() = state
+  fun toJsonAble() = state
 
 
   //#region WindowMode相关的控制函数
@@ -129,9 +129,19 @@ abstract class WindowController(
     backgroundColor: String? = null,
     overlay: Boolean? = null
   ) {
-    state.topBarContentColor = contentColor
-    state.topBarBackgroundColor = backgroundColor
-    state.overlayTopBar = overlay ?: state.overlayTopBar
+    contentColor?.also { state.topBarContentColor = it }
+    backgroundColor?.also { state.topBarBackgroundColor = it }
+    overlay?.also { state.topBarOverlay = it }
+  }
+
+  open suspend fun setBottomBarStyle(
+    contentColor: String? = null,
+    backgroundColor: String? = null,
+    overlay: Boolean? = null
+  ) {
+    contentColor?.also { state.bottomBarContentColor = it }
+    backgroundColor?.also { state.bottomBarBackgroundColor = it }
+    overlay?.also { state.bottomBarOverlay = it }
   }
   //#endregion
 }

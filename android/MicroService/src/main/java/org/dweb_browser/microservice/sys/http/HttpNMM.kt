@@ -2,6 +2,7 @@ package org.dweb_browser.microservice.sys.http
 
 import com.google.gson.reflect.TypeToken
 import org.dweb_browser.helper.decodeURIComponent
+import org.dweb_browser.helper.encodeURI
 import org.dweb_browser.helper.printdebugln
 import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.helper.toBase64Url
@@ -14,6 +15,7 @@ import org.dweb_browser.microservice.ipc.ReadableStreamIpc
 import org.dweb_browser.microservice.sys.dns.debugFetch
 import org.dweb_browser.microservice.sys.dns.nativeFetchAdaptersManager
 import org.dweb_browser.microservice.sys.http.net.Http1Server
+import org.http4k.base64Decoded
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Response
@@ -47,38 +49,42 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
   private val tokenMap = ConcurrentHashMap</* token */ String, Gateway>();
   private val gatewayMap = ConcurrentHashMap</* host */ String, Gateway>();
 
-  private fun findRequestGateway(request: Request): String {
+  private fun findRequestGateway(request: Request): String? {
     var header_host: String? = null
     var header_x_dweb_host: String? = null
-    var header_user_agent_host: String? = null
-    val query_x_web_host: String? = request.query("X-Dweb-Host")?.decodeURIComponent()
+    var header_auth_host: String? = null
+    val query_x_dweb_host: String? = request.query("X-Dweb-Host")?.decodeURIComponent()
     for ((key, value) in request.headers) {
       when (key) {
         "Host" -> {
-          header_host = value
+          if (value != null && Regex("""\.dweb(:\d+)?$""").matches(value))
+            header_host = value
         }
 
         "X-Dweb-Host" -> {
           header_x_dweb_host = value
         }
 
-        "User-Agent" -> {
+        "Authorization" -> {
           if (value != null) {
-            Regex("""\sdweb-host/(\S+)""").find(value)?.also { matchResult ->
-              header_user_agent_host = matchResult.groupValues[1]
-            }
+            Regex("""^ *(?:[Bb][Aa][Ss][Ii][Cc]) +([A-Za-z0-9._~+/-]+=*) *$""").find(value)
+              ?.also { matchResult ->
+                matchResult.groupValues.getOrNull(1)?.also { base64Content ->
+                  header_auth_host = base64Content.base64Decoded().split(':').getOrNull(0)
+                }
+              }
           }
         }
       }
     }
-    return (query_x_web_host ?: header_x_dweb_host ?: header_user_agent_host
-    ?: header_host)?.let { host ->
+    val x_dweb_host = query_x_dweb_host ?: header_auth_host ?: header_x_dweb_host
+    ?: header_host
+    return x_dweb_host?.let { host ->
       /// 如果没有端口，补全端口
       if (!host.contains(":")) {
         host + ":" + Http1Server.PORT;
       } else host
-    } ?: "*"
-
+    }
   }
 
   /**
@@ -99,6 +105,8 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
    */
   private suspend fun httpHandler(request: Request): Response {
     val host = findRequestGateway(request)
+      ?: return noGatewayResponse
+
     /// TODO 这里提取完数据后，应该把header、query、uri重新整理一下组成一个新的request会比较好些
     /// TODO 30s 没有任何 body 写入的话，认为网关超时
 
@@ -115,11 +123,26 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     return response ?: Response(Status.NOT_FOUND)
   }
 
+  private val noGatewayResponse =
+    Response(Status.UNAUTHORIZED).header("WWW-Authenticate", "Basic Realm=\"dweb\"")
+
   public override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     /// 启动http后端服务
-    dwebServer.createServer({ request -> findRequestGateway(request).let { gatewayMap[it] } },
-      { gateway, request -> gateway.listener.hookHttpRequest(request) },
-      { _, gateway -> if (gateway == null) Response(Status.BAD_GATEWAY) else Response(Status.NOT_FOUND) })
+    dwebServer.createServer(
+      { request ->
+        findRequestGateway(request)?.let {
+          gatewayMap[it]
+        }
+      },
+      { gateway, request ->
+        gateway.listener.hookHttpRequest(request)
+      },
+      { _, gateway ->
+        if (gateway == null)
+          noGatewayResponse
+        else
+          Response(Status.NOT_FOUND)
+      })
 
     /// 为 nativeFetch 函数提供支持
     nativeFetchAdaptersManager.append { fromMM, request ->
@@ -180,6 +203,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     val public_origin: String,
   ) {
     fun buildPublicUrl() = Uri.of(public_origin).query("X-Dweb-Host", host)
+    fun buildPublicHtmlUrl() = Uri.of(public_origin).userInfo(host.encodeURI())
 
     fun buildInternalUrl() = Uri.of(internal_origin)
   }

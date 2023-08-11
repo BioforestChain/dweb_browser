@@ -33,6 +33,7 @@ import info.bagen.dwebbrowser.microService.core.WindowBounds
 import info.bagen.dwebbrowser.microService.core.WindowMode
 import info.bagen.dwebbrowser.microService.core.WindowPropertyKeys
 import info.bagen.dwebbrowser.microService.core.WindowState
+import info.bagen.dwebbrowser.microService.core.asWindowStateColor
 import info.bagen.dwebbrowser.microService.sys.helper.hex
 import info.bagen.dwebbrowser.ui.theme.md_theme_dark_inverseOnSurface
 import info.bagen.dwebbrowser.ui.theme.md_theme_dark_onSurface
@@ -429,8 +430,8 @@ data class WindowControllerTheme(
  * 构建颜色
  */
 fun DesktopWindowController.buildTheme(dark: Boolean): WindowControllerTheme {
-  val themeColor = state.themeColor?.let { Color.hex(it) }
-    ?: if (dark) md_theme_dark_surface else md_theme_light_surface
+  val themeColor =
+    state.themeColor.asWindowStateColor(md_theme_light_surface, md_theme_dark_surface, dark)
 
   val (lightContent, darkContent) = if (dark) {
     Pair(md_theme_dark_onSurface, md_theme_dark_inverseOnSurface)
@@ -441,13 +442,13 @@ fun DesktopWindowController.buildTheme(dark: Boolean): WindowControllerTheme {
   fun calcContentColor(backgroundColor: Color) =
     if (backgroundColor.luminance() > 0.5f) darkContent else lightContent
 
-  val topBackgroundColor = state.topBarBackgroundColor?.let { Color.hex(it) } ?: themeColor
+  val topBackgroundColor = state.topBarBackgroundColor.asWindowStateColor(themeColor)
   val topContentColor =
-    state.topBarContentColor?.let { Color.hex(it) } ?: calcContentColor(topBackgroundColor)
+    state.topBarContentColor.asWindowStateColor { calcContentColor(topBackgroundColor) }
 
-  val bottomBackgroundColor = state.bottomBarBackgroundColor?.let { Color.hex(it) } ?: themeColor
+  val bottomBackgroundColor = state.bottomBarBackgroundColor.asWindowStateColor(themeColor)
   val bottomContentColor =
-    state.bottomBarBackgroundColor?.let { Color.hex(it) } ?: calcContentColor(bottomBackgroundColor)
+    state.bottomBarBackgroundColor.asWindowStateColor { calcContentColor(bottomBackgroundColor) }
   return WindowControllerTheme(
     themeColor = themeColor,
     topBackgroundColor = topBackgroundColor,

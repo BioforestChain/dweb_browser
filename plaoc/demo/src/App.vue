@@ -17,7 +17,7 @@ const router = useRouter();
 // router.push("/safearea");
 // router.push("/haptics");
 // router.push("/closewatcher")
-router.push("/statusbar")
+router.push("/window")
 
 dwebServiceWorker.addEventListener("pause", (event) => {
   console.log("app暂停🍋", event);

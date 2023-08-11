@@ -38,7 +38,7 @@ fun String.asColorHex(start: Int = 0, len: Int = 2): Int {
   return hex.toInt(16)
 }
 
-fun Color.Companion.hex(hex: String) = when (hex.length) {
+fun Color.Companion.hex(hex: String) = if (hex[0] == '#') when (hex.length) {
   // #RGB
   4 -> Color(hex.asColorHex(1, 1), hex.asColorHex(2, 1), hex.asColorHex(3, 1))
   // #RGBA
@@ -48,7 +48,7 @@ fun Color.Companion.hex(hex: String) = when (hex.length) {
   // #RRGGBBAA
   9 -> Color(hex.asColorHex(1), hex.asColorHex(3), hex.asColorHex(5), hex.asColorHex(7))
   else -> null
-}
+} else null
 
 
 data class RectJson(val x: Float, val y: Float, val width: Float, val height: Float)

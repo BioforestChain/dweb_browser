@@ -156,34 +156,6 @@ open class Signal<Args> {
   fun toListener() = Listener(this)
 }
 
-/**
- * 有状态的监听器
- */
-class StatefulSignal<Args>(var state: Args, private val context: CoroutineContext) :
-  Signal<Args>() {
-  override fun listen(cb: Callback<Args>) = super.listen(cb).also {
-    /// 立即执行
-    runBlockingCatching(context) {
-      _emit(state, setOf(cb))
-    }.getOrThrow()
-  }
-
-
-  override suspend fun emit(args: Args) {
-    state = args
-    super.emit(args)
-  }
-
-  fun emitBlocking(args: Args) {
-    runBlockingCatching(context) {
-      _emit(state, listenerSet)
-    }.getOrThrow()
-  }
-
-  fun toWatcher() = toListener()
-}
-
-
 class SimpleSignal : Signal<Unit>() {
   suspend fun emit() {
     emit(Unit)
