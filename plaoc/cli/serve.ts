@@ -63,6 +63,7 @@ export const doServe = async (args = Deno.args) => {
           metadata.bundle_size = zipData.byteLength;
           metadata.bundle_hash = "sha256:" + hasher.digest("hex");
           metadata.bundle_url = `./${nameFlagHelper.bundleName}`;
+          // metadata.bundle_signature = 
 
           res.setHeader("Access-Control-Allow-Origin", "*");
           res.setHeader("Access-Control-Allow-Headers", "*");

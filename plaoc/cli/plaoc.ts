@@ -1,4 +1,5 @@
 import { doBundle } from "./bundle.ts";
+import { doConfig } from './config.ts';
 import { doServe } from "./serve.ts";
 
 export const doCli = async (args = Deno.args) => {
@@ -11,6 +12,9 @@ export const doCli = async (args = Deno.args) => {
     case "build":
     case "bundle":
       await doBundle(rest);
+      break;
+    case "config":
+      await doConfig(rest)
       break;
     default:
       throw new Error(`unknown command: ${cmd}`);
