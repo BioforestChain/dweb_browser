@@ -33,19 +33,19 @@ internal fun WindowTopBar(
   win: DesktopWindowController,
 ) {
   val density = LocalDensity.current;
-  val winEdge = LocalWindowEdge.current;
+  val winPadding = LocalWindowPadding.current;
   Box(
     modifier =
     Modifier
       .windowMoveAble(win)
       .fillMaxWidth()
-      .height(winEdge.top.dp)
+      .height(winPadding.top.dp)
       .background(
         Brush.verticalGradient(
           colors = listOf(
             Color.Black.copy(alpha = 0.2f),
             Color.Transparent,
-          ), startY = 0f, endY = (winEdge.top * density.density)
+          ), startY = 0f, endY = (winPadding.top * density.density)
         )
       )
   ) {

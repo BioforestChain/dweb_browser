@@ -4,7 +4,7 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.safeContent
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.safeGestures
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -14,10 +14,10 @@ import androidx.compose.runtime.SnapshotMutationPolicy
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.neverEqualPolicy
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.structuralEqualityPolicy
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
@@ -94,6 +94,18 @@ val inMoveStore = WeakHashMap<DesktopWindowController, MutableState<Boolean>>()
 val DesktopWindowController.inMove
   get() = inMoveStore.getOrPut(this) { mutableStateOf(false) }
 
+
+val moveStartPointStore = WeakHashMap<DesktopWindowController, Offset>()
+
+/**
+ * 窗口是否在移动中
+ */
+var DesktopWindowController.moveStartPoint
+  get() = moveStartPointStore.getOrPut(this) { Offset(0f, 0f) }
+  set(value) {
+    moveStartPointStore[this] = value
+  }
+
 /**
  * 移动窗口的控制器
  */
@@ -122,6 +134,7 @@ fun Modifier.windowMoveAble(win: DesktopWindowController) = this
         win.inMove.value = true
         /// 开始移动的时候，同时进行聚焦
         win.emitFocusOrBlur(true)
+        win.moveStartPoint = it
       },
       onDragEnd = {
         win.inMove.value = false
@@ -129,13 +142,12 @@ fun Modifier.windowMoveAble(win: DesktopWindowController) = this
       onDragCancel = {
         win.inMove.value = false
       },
-    ) { change, dragAmount ->
+    ) { change, _ ->
       change.consume()
-      win.state.updateBounds {
-        copy(
-          left = left + dragAmount.x / density,
-          top = top + dragAmount.y / density,
-        )
+      val dragAmount = change.position - win.moveStartPoint
+      win.state.updateMutableBounds {
+        left += dragAmount.x / density
+        top += dragAmount.y / density
       }
     }
   }
@@ -235,10 +247,10 @@ fun DesktopWindowController.calcWindowBoundsByLimits(
     val safeGesturesPadding = WindowInsets.safeGestures.asPaddingValues();
     val winWidth = max(bounds.width, limits.minWidth)
     val winHeight = max(bounds.height, limits.minHeight)
-    val safeLeftPadding = safeGesturesPadding.calculateLeftPadding(layoutDirection).value;
-    val safeTopPadding = safeGesturesPadding.calculateTopPadding().value;
-    val safeRightPadding = safeGesturesPadding.calculateRightPadding(layoutDirection).value;
-    val safeBottomPadding = safeGesturesPadding.calculateBottomPadding().value;
+    val safeLeftPadding = safeGesturesPadding.calculateLeftPadding(layoutDirection).value
+    val safeTopPadding = safeGesturesPadding.calculateTopPadding().value
+    val safeRightPadding = safeGesturesPadding.calculateRightPadding(layoutDirection).value
+    val safeBottomPadding = safeGesturesPadding.calculateBottomPadding().value
     val minLeft = safeLeftPadding - winWidth / 2
     val maxLeft = limits.maxWidth - safeRightPadding - winWidth / 2
     val minTop = safeTopPadding
@@ -259,7 +271,7 @@ fun DesktopWindowController.calcWindowBoundsByLimits(
  * 根据约束配置，计算出最终的窗口边距布局
  */
 @Composable
-fun DesktopWindowController.calcWindowEdgeByLimits(limits: WindowLimits): WindowEdge {
+fun DesktopWindowController.calcWindowPaddingByLimits(limits: WindowLimits): WindowEdge {
   val maximize by watchedIsMaximized()
   val bounds by watchedState { bounds }
 
@@ -273,10 +285,10 @@ fun DesktopWindowController.calcWindowEdgeByLimits(limits: WindowLimits): Window
 
   if (maximize) {
     val layoutDirection = LocalLayoutDirection.current
-    val density = LocalDensity.current
-    val safeContentPadding = WindowInsets.safeContent.asPaddingValues()
+    val density = LocalDensity.current.density
     val safeGesturesPadding = WindowInsets.safeGestures.asPaddingValues()
-    topHeight = safeContentPadding.calculateTopPadding().value
+    val safeDrawingPadding = WindowInsets.safeDrawing.asPaddingValues()
+    topHeight = safeDrawingPadding.calculateTopPadding().value
 
     /**
      * 底部是系统导航栏，这里我们使用触摸安全的区域来控制底部高度，这样可以避免底部抖动
@@ -286,7 +298,7 @@ fun DesktopWindowController.calcWindowEdgeByLimits(limits: WindowLimits): Window
       limits.bottomBarBaseHeight // 因为底部要放置一些信息按钮，所以我们会给到底部一个基本的高度
     )
     bottomHeight = max(
-      safeContentPadding.calculateBottomPadding().value, bottomMinHeight
+      safeDrawingPadding.calculateBottomPadding().value, bottomMinHeight
     );
     /**
      * 即便是最大化模式下，我们仍然需要有一个强调边框。
@@ -295,12 +307,14 @@ fun DesktopWindowController.calcWindowEdgeByLimits(limits: WindowLimits): Window
      * 2. 养成用户的视觉习惯，避免某些情况下有人使用视觉手段欺骗用户，窗口模式的存在将一切限定在一个规则内，可以避免常规视觉诈骗
      * 3. 全屏模式虽然会移除窗口，但是会有一些其它限制，比如但需要进行多窗口交互的时候，这些窗口边框仍然会显示出来
      */
-    leftWidth = max(safeContentPadding.calculateLeftPadding(layoutDirection).value, 3f)
-    rightWidth = max(safeContentPadding.calculateRightPadding(layoutDirection).value, 3f)
+    leftWidth =
+      max(safeDrawingPadding.calculateLeftPadding(layoutDirection).value, 3f)
+    rightWidth =
+      max(safeDrawingPadding.calculateRightPadding(layoutDirection).value, 3f)
     borderRounded = WindowEdge.CornerRadius.from(0) // 全屏模式下，外部不需要圆角
     contentRounded = WindowEdge.CornerRadius.from(
-      WindowInsetsHelper.getCornerRadiusTop(context, density.density, 16f),
-      WindowInsetsHelper.getCornerRadiusBottom(context, density.density, 16f)
+      WindowInsetsHelper.getCornerRadiusTop(context, density, 16f),
+      WindowInsetsHelper.getCornerRadiusBottom(context, density, 16f)
     )
     contentSize = WindowEdge.ContentSize(
       bounds.width - leftWidth - rightWidth,
@@ -330,7 +344,7 @@ fun DesktopWindowController.calcWindowEdgeByLimits(limits: WindowLimits): Window
   )
 }
 
-val LocalWindowEdge = compositionLocalOf<WindowEdge> { noLocalProvidedFor("WindowEdge") }
+val LocalWindowPadding = compositionLocalOf<WindowEdge> { noLocalProvidedFor("WindowPadding") }
 
 
 /**

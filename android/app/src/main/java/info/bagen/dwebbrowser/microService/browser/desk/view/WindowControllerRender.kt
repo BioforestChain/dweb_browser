@@ -4,7 +4,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,12 +23,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import info.bagen.dwebbrowser.microService.browser.desk.DesktopWindowController
 import info.bagen.dwebbrowser.microService.core.windowAdapterManager
-
 
 @Composable
 fun DesktopWindowController.Render(
@@ -65,7 +62,7 @@ fun DesktopWindowController.Render(
   /**
    * 窗口边距
    */
-  val winEdge = win.calcWindowEdgeByLimits(limits)
+  val winPadding = win.calcWindowPaddingByLimits(limits)
 
   /**
    * 窗口层级
@@ -81,14 +78,13 @@ fun DesktopWindowController.Render(
     label = "elevation"
   )
 
-
   val isDark = isSystemInDarkTheme()
   val theme = remember(isDark) {
     win.buildTheme(isDark)
   };
   CompositionLocalProvider(
     LocalContentColor provides MaterialTheme.colorScheme.onPrimary,
-    LocalWindowEdge provides winEdge,
+    LocalWindowPadding provides winPadding,
     LocalWindowLimits provides limits,
     LocalWindowControllerTheme provides theme,
   ) {
@@ -114,13 +110,13 @@ fun DesktopWindowController.Render(
           scaleY = scale
         }
         .shadow(
-          elevation = elevation.dp, shape = winEdge.boxRounded.toRoundedCornerShape()
+          elevation = elevation.dp, shape = winPadding.boxRounded.toRoundedCornerShape()
         ),
     ) {
       //#region 窗口内容
       Column(Modifier
         .background(theme.winFrameBrush)
-        .clip(winEdge.boxRounded.toRoundedCornerShape())
+        .clip(winPadding.boxRounded.toRoundedCornerShape())
         .clickable {
           win.emitFocusOrBlur(true)
         }) {
@@ -130,20 +126,20 @@ fun DesktopWindowController.Render(
         Box(
           Modifier
             .weight(1f)
-            .padding(start = winEdge.left.dp, end = winEdge.right.dp)// TODO 这里要注意布局方向
+            .padding(start = winPadding.left.dp, end = winPadding.right.dp)// TODO 这里要注意布局方向
         ) {
-          val viewWidth = winEdge.contentBounds.width
-          val viewHeight = winEdge.contentBounds.height
+          val viewWidth = winPadding.contentBounds.width
+          val viewHeight = winPadding.contentBounds.height
           /**
            * 视图的宽高随着窗口的缩小而缩小，随着窗口的放大而放大，
            * 但这些缩放不是等比的，而是会以一定比例进行换算。
            */
           windowAdapterManager.providers[win.state.wid]?.also {
-            val viewScale = win.calcContentScale(limits, winEdge)
+            val viewScale = win.calcContentScale(limits, winPadding)
             it(
               modifier = Modifier
                 .requiredSize(viewWidth.dp, viewHeight.dp)
-                .clip(winEdge.contentRounded.toRoundedCornerShape()),
+                .clip(winPadding.contentRounded.toRoundedCornerShape()),
               width = viewWidth,
               height = viewHeight,
               scale = viewScale,

@@ -24,6 +24,7 @@ val commonAsyncExceptionHandler = CoroutineExceptionHandler { ctx, e ->
   printerrln(ctx.toString(), e.message, e)
   debugger(ctx, e)
 }
+val defaultAsyncExceptionHandler = Dispatchers.Default + commonAsyncExceptionHandler
 val ioAsyncExceptionHandler = Dispatchers.IO + commonAsyncExceptionHandler
 val mainAsyncExceptionHandler = Dispatchers.Main + commonAsyncExceptionHandler
 fun <T> runBlockingCatching(

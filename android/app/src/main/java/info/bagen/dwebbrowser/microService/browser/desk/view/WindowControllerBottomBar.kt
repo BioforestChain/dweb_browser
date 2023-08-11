@@ -36,7 +36,7 @@ import kotlinx.coroutines.launch
 internal fun WindowBottomBar(
   win: DesktopWindowController,
 ) {
-  val windowEdge = LocalWindowEdge.current
+  val windowEdge = LocalWindowPadding.current
   val density = LocalDensity.current
   Box(
     modifier = Modifier

@@ -15,11 +15,12 @@ class Observable<K : Any> {
     val key: K,
     var value: T,
   ) {
+    val coroutineScope = CoroutineScope(defaultAsyncExceptionHandler)
     operator fun setValue(thisRef: Any, property: KProperty<*>, newValue: T) {
       if (newValue != value) {
         val oldValue = value
         value = newValue
-        CoroutineScope(ioAsyncExceptionHandler).launch {
+        coroutineScope.launch {
           ob.changeSignal.emit(Change(key, newValue, oldValue))
         }
       }
@@ -29,7 +30,7 @@ class Observable<K : Any> {
       if (newValue != value) {
         val oldValue = value
         value = newValue
-        CoroutineScope(ioAsyncExceptionHandler).launch {
+        coroutineScope.launch {
           ob.changeSignal.emit(Change(key, newValue, oldValue))
         }
       }
