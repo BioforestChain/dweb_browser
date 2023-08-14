@@ -24,20 +24,32 @@ export class WebBrowserNMM extends NativeMicroModule {
       url.pathname = "/desktop.html";
     }).href;
     const browserUrl = await tryDevUrl(host, "http://localhost:3500");
-    const win = await createNativeWindow(browserUrl, {
-      defaultBounds: { width: 1024, height: 700 },
+    let win: Electron.BrowserWindow | undefined;
+    // 激活的逻辑
+    this.onActivity(async (event, ipc) => {
+      if (win) {
+        win.close();
+        win = undefined;
+        return;
+      }
+      // 已经被打开过了
+      win = await createNativeWindow(browserUrl, {
+        defaultBounds: { width: 1024, height: 700 },
+      });
+
+      this._onShutdown(() => {
+        win?.close();
+      });
+      void win.loadURL(
+        buildUrl(browserUrl, {
+          search: {
+            "api-base": host,
+            mmid: this.mmid,
+          },
+        }).href
+      );
     });
-    this._onShutdown(() => {
-      win.close();
-    });
-    void win.loadURL(
-      buildUrl(browserUrl, {
-        search: {
-          "api-base": host,
-          mmid: this.mmid,
-        },
-      }).href
-    );
+    //todo observer/app  openinbrowser
   }
 
   private _shutdown_signal = createSignal<$Callback>();

@@ -8,8 +8,8 @@ import { FetchError } from "../../core/ipc/ipc.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import { $DWEB_DEEPLINK, $MMID } from "../../core/types.ts";
 import { $Callback, createSignal } from "../../helper/createSignal.ts";
-import { readableToWeb } from "../../helper/stream/nodejsStreamHelper.ts";
 import { fetchMatch } from "../../helper/patternHelper.ts";
+import { readableToWeb } from "../../helper/stream/nodejsStreamHelper.ts";
 import { z, zq } from "../../helper/zodHelper.ts";
 import type { HttpDwebServer } from "../../std/http/helper/$createHttpDwebServer.ts";
 import { nativeFetchAdaptersManager } from "../../sys/dns/nativeFetch.ts";
@@ -113,7 +113,8 @@ export class JmmNMM extends NativeMicroModule {
       })
       .get("/uninstall", async (event) => {
         const { app_id: mmid } = query_app_id(event.searchParams);
-        return Response.json(await this.uninstallApp(context, mmid));
+        await this.uninstallApp(context, mmid)
+        return Response.json({"ok":true});
       })
       .get("/pause", async (event) => {
         return Response.json(await this.pauseInstall());

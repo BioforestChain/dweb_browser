@@ -2,6 +2,7 @@ import { $Callback, createSignal } from "./createSignal.ts";
 export class ChangeableMap<K, V> extends Map<K, V> {
   private _changeSignal = createSignal<$Callback<[this]>>();
   onChange = this._changeSignal.listen;
+  emitChange = () => this._changeSignal.emit(this)
   override set(key: K, value: V) {
     if ((this.has(key) && this.get(key) === value) === false) {
       super.set(key, value);

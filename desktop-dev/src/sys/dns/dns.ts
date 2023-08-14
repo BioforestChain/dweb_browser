@@ -7,7 +7,11 @@ import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import type { MicroModule } from "../../core/micro-module.ts";
 import { $ConnectResult, connectMicroModules } from "../../core/nativeConnect.ts";
 import type { $DWEB_DEEPLINK, $MMID } from "../../core/types.ts";
+import { ChangeableMap } from "../../helper/ChangeableMap.ts";
+import { simpleEncoder } from "../../helper/encoding.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
+import { fetchMatch } from "../../helper/patternHelper.ts";
+import { ReadableStreamOut } from "../../helper/stream/readableStreamHelper.ts";
 import { zq } from "../../helper/zodHelper.ts";
 import { PromiseOut } from "./../../helper/PromiseOut.ts";
 import { nativeFetchAdaptersManager } from "./nativeFetch.ts";
@@ -76,7 +80,7 @@ export class DnsNMM extends NativeMicroModule {
   override short_name = "DNS";
   override dweb_deeplinks = ["dweb:open"] as $DWEB_DEEPLINK[];
   override categories = [MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Routing_Service];
-  private apps = new Map<$MMID, MicroModule>();
+  private apps = new ChangeableMap<$MMID, MicroModule>();
 
   override bootstrap(ctx: $BootstrapContext = new MyBootstrapContext(new MyDnsMicroModule(this, this))) {
     return super.bootstrap(ctx);
@@ -149,30 +153,39 @@ export class DnsNMM extends NativeMicroModule {
     const query_appId = zq.object({
       app_id: zq.mmid(),
     });
-
-    this.onFetch(
-      async (event) => {
-        if (event.url.pathname === "/open") {
-          const { app_id } = query_appId(event.searchParams);
-          await this.open(app_id);
-          return Response.json(true);
-        }
-      },
-      async (event) => {
-        if (event.url.pathname === "/close") {
-          const { app_id } = query_appId(event.searchParams);
-          return Response.json(await this.close(app_id as $MMID));
-        }
-      },
-      /// deeplink
-      async (event) => {
-        if (event.url.protocol === "dweb:" && event.url.pathname.startsWith("open/")) {
-          const app_id = event.url.pathname.replace("open/", "");
-          await this.open(app_id as $MMID);
-          return Response.json(true);
-        }
-      }
-    ).internalServerError();
+    const onFetchHanlder = fetchMatch()
+      .get("/open", async (event) => {
+        const { app_id } = query_appId(event.searchParams);
+        await this.open(app_id);
+        return Response.json(true);
+      })
+      .get("/close", async (event) => {
+        const { app_id } = query_appId(event.searchParams);
+        return Response.json(await this.close(app_id as $MMID));
+      })
+      .get("/observe/app", async (event) => {
+        const responseBody = new ReadableStreamOut<Uint8Array>();
+        const doWriteJsonline = async () => {
+          responseBody.controller.enqueue(
+            simpleEncoder(JSON.stringify(this.apps.size) + "\n", "utf8")
+          );
+        };
+        /// 监听变更，推送数据
+        const off = this.apps.onChange(doWriteJsonline);
+        event.ipc.onClose(()=>{
+          off()
+          responseBody.controller.close()
+        })
+        /// 发送一次现有的数据数据
+        void doWriteJsonline();
+        return { body: responseBody.stream };
+      })
+      .deeplink("open", async (event) => {
+        const app_id = event.url.pathname.replace("open/", "");
+        await this.open(app_id as $MMID);
+        return Response.json(true);
+      });
+    this.onFetch((event) => onFetchHanlder.run(event)).internalServerError();
 
     this.onAfterShutdown(
       nativeFetchAdaptersManager.append(async (fromMM, parsedUrl, requestInit) => {

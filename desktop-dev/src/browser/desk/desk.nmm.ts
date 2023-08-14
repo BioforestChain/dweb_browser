@@ -8,7 +8,7 @@ import { ChangeableMap } from "../../helper/ChangeableMap.ts";
 import { $Callback, createSignal } from "../../helper/createSignal.ts";
 import { simpleEncoder } from "../../helper/encoding.ts";
 import { P, fetchMatch } from "../../helper/patternHelper.ts";
-import { jsonlinesStreamReadAll } from "../../helper/stream/jsonlinesStreamHelper.ts";
+import { jsonlinesStreamRead, jsonlinesStreamReadAll } from "../../helper/stream/jsonlinesStreamHelper.ts";
 import { ReadableStreamOut, streamReadAll } from "../../helper/stream/readableStreamHelper.ts";
 import { z, zq } from "../../helper/zodHelper.ts";
 import { createHttpDwebServer } from "../../std/http/helper/$createHttpDwebServer.ts";
@@ -21,8 +21,9 @@ export class DeskNMM extends NativeMicroModule {
   readonly runingApps = new ChangeableMap<$MMID, Ipc>();
 
   protected async _bootstrap(context: $BootstrapContext) {
-    const runingApps = this.runingApps;
+    // 当前激活的app
     let focusApp: string | null = null;
+    this.listenApps();
     this.onAfterShutdown(() => {
       this.runingApps.reset();
     });
@@ -65,16 +66,16 @@ export class DeskNMM extends NativeMicroModule {
       .get("/openAppOrActivate", async (event) => {
         const { app_id } = query_app_id(event.searchParams);
         console.always("activity", app_id);
-        const ipc = runingApps.get(app_id) ?? (await this.connect(app_id));
+        const ipc = this.runingApps.get(app_id) ?? (await this.connect(app_id));
 
         if (ipc !== undefined) {
           ipc.postMessage(IpcEvent.fromText("activity", ""));
           focusApp = ipc.remote.mmid;
           /// 成功打开，保存到列表中
-          runingApps.set(app_id, ipc);
+          this.runingApps.set(app_id, ipc);
           /// 如果应用关闭，将它从列表中移除
           ipc.onClose(() => {
-            runingApps.delete(app_id);
+            this.runingApps.delete(app_id);
           });
         }
 
@@ -84,10 +85,10 @@ export class DeskNMM extends NativeMicroModule {
       .get("/closeApp", async (event) => {
         const { app_id } = query_app_id(event.searchParams);
         let closed = false;
-        if (runingApps.has(app_id)) {
+        if (this.runingApps.has(app_id)) {
           closed = await context.dns.close(app_id);
           if (closed) {
-            runingApps.delete(app_id);
+            this.runingApps.delete(app_id);
           }
         }
         return Response.json(closed);
@@ -106,7 +107,7 @@ export class DeskNMM extends NativeMicroModule {
           );
         };
         /// 监听变更，推送数据
-        const off = runingApps.onChange(doWriteJsonline);
+        const off = this.runingApps.onChange(doWriteJsonline);
         /// 监听关闭，停止监听
         void streamReadAll(await event.ipcRequest.body.stream()).finally(() => {
           off();
@@ -130,7 +131,7 @@ export class DeskNMM extends NativeMicroModule {
           );
         };
         /// 监听变更，推送数据
-        const off = runingApps.onChange(doWriteJsonline);
+        const off = this.runingApps.onChange(doWriteJsonline);
         /// 监听关闭，停止监听
         void jsonlinesStreamReadAll(await event.ipcRequest.body.stream(), {
           map(item: { limit?: number }) {
@@ -151,7 +152,7 @@ export class DeskNMM extends NativeMicroModule {
           responseBody.controller.enqueue(simpleEncoder(`{"focus":true,"appId":"${focusApp}"}` + "\n", "utf8"));
         };
         /// 监听变更，推送数据
-        const off = runingApps.onChange(doWriteJsonline);
+        const off = this.runingApps.onChange(doWriteJsonline);
         /// 监听关闭，停止监听
         void jsonlinesStreamReadAll(await event.ipcRequest.body.stream()).finally(() => {
           off();
@@ -171,6 +172,20 @@ export class DeskNMM extends NativeMicroModule {
         return Response.json(await taskbarApi.toggleDesktopView());
       });
     this.onFetch(onFetchHanlder.run).internalServerError();
+  }
+
+  private async listenApps() {
+    const connectResult = this.context?.dns.connect("dns.std.dweb");
+    if (connectResult === undefined) {
+      throw new Error(`dns.std.dweb not found!`);
+    }
+    /// 发送激活指令
+    const [opendAppIpc] = await connectResult;
+    const res = await opendAppIpc.request("/observe/app");
+    const stream = await res.body.stream();
+    for await (const app of jsonlinesStreamRead(stream)) {
+      this.runingApps.emitChange();
+    }
   }
 
   private async _createTaskbarWebServer(context: $BootstrapContext) {
