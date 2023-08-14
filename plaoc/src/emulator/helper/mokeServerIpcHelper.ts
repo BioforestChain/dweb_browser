@@ -52,14 +52,14 @@ export const createMockModuleServerIpc = (mmid: $MMID, apiUrl = BASE_URL) => {
     const serverIpc = new ReadableStreamIpc(
       {
         mmid,
-        name:mmid,
+        name: mmid,
         ipc_support_protocols: {
           cbor: false,
           protobuf: false,
           raw: false,
         },
         dweb_deeplinks: [],
-        categories:[],
+        categories: [],
       } satisfies $MicroModuleManifest,
       IPC_ROLE.CLIENT
     );

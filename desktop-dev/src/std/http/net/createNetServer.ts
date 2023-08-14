@@ -1,3 +1,4 @@
+import http from "node:http";
 import https from "node:https";
 import { $Protocol, $ServerInfo } from "./types.ts";
 export * from "./types.ts";
@@ -27,7 +28,6 @@ export const httpsCreateServer = async (
   } satisfies $HttpsServerInfo;
 };
 
-import http from "node:http";
 export type $HttpServerInfo = $ServerInfo<http.Server>;
 export const httpCreateServer = async (
   options: http.ServerOptions,

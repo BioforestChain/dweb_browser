@@ -84,6 +84,8 @@ export const listenHttpDwebServer = async (
   const buildUrlValue = buildUrl(url, ext);
   const int = { method: "POST", body: httpServerIpc.stream };
   const httpIncomeRequestStream = await microModule.nativeFetch(buildUrlValue, int).stream();
+  Reflect.set(httpServerIpc, Symbol.for("http/listen"), startResult.urlInfo);
+  Reflect.set(httpServerIpc.stream, Symbol.for("http/listen"), startResult.urlInfo);
 
   httpServerIpc.bindIncomeStream(httpIncomeRequestStream);
   /// 保存连接对象到池子中

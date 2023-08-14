@@ -1,4 +1,5 @@
 import "./helper/electron.ts"; /// 全局导入
+import "./polyfill.ts"; /// 垫片导入
 
 try {
   Electron.protocol.registerSchemesAsPrivileged([

@@ -1,21 +1,21 @@
 import { X_PLAOC_QUERY } from "./const.ts";
-import type { $MicroModuleManifest } from "./deps.ts";
+import type { $MicroModuleManifest, $ReadableStreamIpc } from "./deps.ts";
 import {
   $IpcResponse,
   $MMID,
+  $ReadableStreamOut,
   FetchEvent,
   IPC_ROLE,
   PromiseOut,
   ReadableStreamIpc,
-  ReadableStreamOut,
   jsProcess,
   mapHelper,
-  simpleEncoder
+  simpleEncoder,
 } from "./deps.ts";
 import { Server_api as _Server_api } from "./http-api-server.ts";
 const EMULATOR_PREFIX = "/emulator";
 export class Server_api extends _Server_api {
-  readonly streamMap = new Map<string, ReadableStreamOut<Uint8Array>>();
+  readonly streamMap = new Map<string, $ReadableStreamOut<Uint8Array>>();
   readonly responseMap = new Map<number, PromiseOut<$IpcResponse>>();
   readonly jsonlineEnd = simpleEncoder("\n", "utf8");
 
@@ -39,14 +39,14 @@ export class Server_api extends _Server_api {
       const streamIpc = new ReadableStreamIpc(
         {
           mmid: mmid,
-          name:mmid,
+          name: mmid,
           ipc_support_protocols: {
             cbor: false,
             protobuf: false,
             raw: false,
           },
           dweb_deeplinks: [],
-          categories:[]
+          categories: [],
         } satisfies $MicroModuleManifest,
         IPC_ROLE.SERVER
       );
@@ -67,7 +67,7 @@ export class Server_api extends _Server_api {
 type $MmidDuplexMap = Map<
   $MMID,
   PromiseOut<{
-    streamIpc: ReadableStreamIpc;
+    streamIpc: $ReadableStreamIpc;
   }>
 >;
 export const emulatorDuplexs = new Map<string, $MmidDuplexMap>();

@@ -294,6 +294,7 @@ export class IpcBodySender extends IpcBody {
       let usableIpcBodyMapper = IpcUsableIpcBodyMap.get(ipc);
       if (usableIpcBodyMapper === undefined) {
         const mapper = new UsableIpcBodyMapper();
+        IpcUsableIpcBodyMap.set(ipc, mapper);
         mapper.onDestroy(
           ipc.onStream((message) => {
             switch (message.type) {
@@ -320,11 +321,12 @@ export class IpcBodySender extends IpcBody {
   };
 }
 const streamIdWM = new WeakMap<ReadableStream<Uint8Array>, string>();
+const streamRealmId = crypto.randomUUID();
 let stream_id_acc = 0;
 const getStreamId = (stream: ReadableStream<Uint8Array>) => {
   let id = streamIdWM.get(stream);
   if (id === undefined) {
-    id = `rs-${stream_id_acc++}`;
+    id = `${streamRealmId}-${stream_id_acc++}`;
     streamIdWM.set(stream, id);
   }
   return id;
@@ -332,7 +334,7 @@ const getStreamId = (stream: ReadableStream<Uint8Array>) => {
 export const setStreamId = (stream: ReadableStream<Uint8Array>, cid: string) => {
   let id = streamIdWM.get(stream);
   if (id === undefined) {
-    streamIdWM.set(stream, (id = `rs-${stream_id_acc++}[${cid}]`));
+    streamIdWM.set(stream, (id = `${streamRealmId}-${stream_id_acc++}[${cid}]`));
   }
   return id;
 };
@@ -341,10 +343,10 @@ class UsableIpcBodyMapper {
   private map = new Map<string, IpcBodySender>();
   add(streamId: string, ipcBody: IpcBodySender) {
     if (this.map.has(streamId)) {
-      return true;
+      return false;
     }
     this.map.set(streamId, ipcBody);
-    return false;
+    return true;
   }
 
   get(streamId: string) {
