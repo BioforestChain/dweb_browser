@@ -22,5 +22,6 @@ export const routes = [
 
   { title: "device", path: "/device", component: () => import("./pages/device.vue") },
   { title: "webview", path: "/webview", component: () => import("./pages/Webview.vue") },
+  { title: "window", path: "/window", component: () => import("./pages/Window.vue") },
 ];
 //satisfies (RouteRecordRaw & { title: string })[];

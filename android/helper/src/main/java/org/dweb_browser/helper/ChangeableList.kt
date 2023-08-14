@@ -1,9 +1,6 @@
 package org.dweb_browser.helper
 
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
 
 @OptIn(DelicateCoroutinesApi::class)
@@ -18,23 +15,23 @@ class ChangeableList<T>(context: CoroutineContext = ioAsyncExceptionHandler) :
   suspend fun emitChange() = changeable.emitChange()
 
   override fun clear() {
-    return super.clear().also { changeable.emitChangeSync() }
+    return super.clear().also { changeable.emitChangeBackground() }
   }
 
   override fun addAll(elements: Collection<T>): Boolean {
-    return super.addAll(elements).also { if (it) changeable.emitChangeSync() }
+    return super.addAll(elements).also { if (it) changeable.emitChangeBackground() }
   }
 
   override fun addAll(index: Int, elements: Collection<T>): Boolean {
-    return super.addAll(index, elements).also { if (it) changeable.emitChangeSync() }
+    return super.addAll(index, elements).also { if (it) changeable.emitChangeBackground() }
   }
 
   override fun add(index: Int, element: T) {
-    return super.add(index, element).also { changeable.emitChangeSync() }
+    return super.add(index, element).also { changeable.emitChangeBackground() }
   }
 
   override fun add(element: T): Boolean {
-    return super.add(element).also { if (it) changeable.emitChangeSync() }
+    return super.add(element).also { if (it) changeable.emitChangeBackground() }
   }
 
   fun lastOrNull(): T? {
@@ -42,23 +39,23 @@ class ChangeableList<T>(context: CoroutineContext = ioAsyncExceptionHandler) :
   }
 
   override fun removeAt(index: Int): T {
-    return super.removeAt(index).also { changeable.emitChangeSync() }
+    return super.removeAt(index).also { changeable.emitChangeBackground() }
   }
 
   override fun set(index: Int, element: T): T {
-    return super.set(index, element).also { changeable.emitChangeSync() }
+    return super.set(index, element).also { changeable.emitChangeBackground() }
   }
 
   override fun retainAll(elements: Collection<T>): Boolean {
-    return super.retainAll(elements).also { if (it) changeable.emitChangeSync() }
+    return super.retainAll(elements).also { if (it) changeable.emitChangeBackground() }
   }
 
   override fun removeAll(elements: Collection<T>): Boolean {
-    return super.removeAll(elements).also { if (it) changeable.emitChangeSync() }
+    return super.removeAll(elements).also { if (it) changeable.emitChangeBackground() }
   }
 
   override fun remove(element: T): Boolean {
-    return super.remove(element).also { if (it) changeable.emitChangeSync() }
+    return super.remove(element).also { if (it) changeable.emitChangeBackground() }
   }
 
   /** 重置 清空所有的事件监听，清空所有的数据  */

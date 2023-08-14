@@ -27,7 +27,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
@@ -42,15 +41,11 @@ import org.dweb_browser.browserUI.R
 import org.dweb_browser.browserUI.ui.entity.BrowserBaseView
 import org.dweb_browser.browserUI.ui.entity.BrowserWebView
 import org.dweb_browser.browserUI.ui.qrcode.QRCodeScanView
-import org.dweb_browser.browserUI.ui.view.findActivity
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
 import org.dweb_browser.browserUI.ui.loading.LoadingView
 import org.dweb_browser.browserUI.ui.view.PrivacyView
-import org.dweb_browser.helper.mainAsyncExceptionHandler
-import org.dweb_browser.helper.runBlockingCatching
 
 internal val dimenTextFieldFontSize = 16.sp
 internal val dimenSearchHorizontalAlign = 5.dp

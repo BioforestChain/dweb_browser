@@ -1,5 +1,7 @@
 package info.bagen.dwebbrowser.microService.core
 
+import com.google.gson.annotations.JsonAdapter
+
 /**
  * 窗口大小与位置
  *

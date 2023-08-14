@@ -1,5 +1,7 @@
 package com.version.manager
 
+import org.gradle.api.JavaVersion
+
 /**
  * 配置和 build相关的
  */
@@ -11,7 +13,10 @@ object BuildVersion {
   const val versionCode = 6
   const val versionName = "1.1.5"
 
-  const val kotlinVersion = "1.8.10"
+  const val kotlinVersion = "1.9.0"
+  const val kotlinCompilerExtensionVersion = "1.5.1"
+  const val jvmTarget = "17"
+  val javaVersion = JavaVersion.VERSION_17
 }
 
 /**

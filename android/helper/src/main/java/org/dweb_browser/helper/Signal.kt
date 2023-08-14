@@ -43,6 +43,7 @@ fun <T> Remover.removeWhen(listener: Signal.Listener<T>) = listener {
   this@removeWhen()
 }
 
+@Suppress("UNCHECKED_CAST")
 open class Signal<Args> {
   protected val listenerSet = mutableSetOf<Callback<Args>>();
 
@@ -71,9 +72,15 @@ open class Signal<Args> {
 
   private val children = mutableMapOf<Signal<*>, Child<Args, *>>()
   fun <R> createChild(filter: (Args) -> Boolean, map: (Args) -> R) =
-    Child(this, Signal(), filter, map).also { children[it.childSignal] = it }.childSignal
+    Child(this, Signal(), filter, map).also {
+      synchronized(children) {
+        children[it.childSignal] = it
+      }
+    }.childSignal
 
-  fun removeChild(childSignal: Signal<*>) = children.remove(childSignal)?.let { true } ?: false
+  fun removeChild(childSignal: Signal<*>) = synchronized(children) {
+    children.remove(childSignal)?.let { true } ?: false
+  }
 
   open suspend fun emit(args: Args) {
     // 这里拷贝一份，避免中通对其读写的时候出问题
@@ -99,7 +106,11 @@ open class Signal<Args> {
     }
 
     /// 然后触发孩子
-    for (child in children.values) {
+    val childList = synchronized(children) {
+      children.values.toList()
+    }
+
+    for (child in childList) {
       try {
         if (child.filter(args)) {
           val childArgs = child.map(args)
@@ -155,34 +166,6 @@ open class Signal<Args> {
 
   fun toListener() = Listener(this)
 }
-
-/**
- * 有状态的监听器
- */
-class StatefulSignal<Args>(var state: Args, private val context: CoroutineContext) :
-  Signal<Args>() {
-  override fun listen(cb: Callback<Args>) = super.listen(cb).also {
-    /// 立即执行
-    runBlockingCatching(context) {
-      _emit(state, setOf(cb))
-    }.getOrThrow()
-  }
-
-
-  override suspend fun emit(args: Args) {
-    state = args
-    super.emit(args)
-  }
-
-  fun emitBlocking(args: Args) {
-    runBlockingCatching(context) {
-      _emit(state, listenerSet)
-    }.getOrThrow()
-  }
-
-  fun toWatcher() = toListener()
-}
-
 
 class SimpleSignal : Signal<Unit>() {
   suspend fun emit() {

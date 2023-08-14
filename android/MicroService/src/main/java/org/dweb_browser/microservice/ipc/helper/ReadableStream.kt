@@ -2,6 +2,7 @@ package org.dweb_browser.microservice.ipc.helper
 
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -18,7 +19,7 @@ fun debugStream(tag: String, msg: Any = "", err: Throwable? = null) =
  */
 class ReadableStream(
   cid: String? = null,
-  val onStart: suspend CoroutineScope.(controller: ReadableStreamController) -> Unit = {},
+  val onStart: (controller: ReadableStreamController) -> Unit = {},
   val onPull: suspend (arg: Pair<Int, ReadableStreamController>) -> Unit = {},
   val onClose: suspend () -> Unit = {},
 ) : InputStream() {
@@ -29,18 +30,22 @@ class ReadableStream(
   private val _dataLock = Mutex()
 
   class ReadableStreamController(
-    private val dataChannel: Channel<ByteArray>, val getStream: () -> ReadableStream
+    val stream: ReadableStream,
   ) {
-    val stream get() = getStream()
-
-    suspend fun enqueue(byteArray: ByteArray) = dataChannel.send(byteArray)
+    suspend fun enqueue(byteArray: ByteArray) = stream.dataChannel.send(byteArray)
     suspend fun enqueue(data: String) = enqueue(data.toByteArray())
+
+    fun enqueueBackground(byteArray: ByteArray) = stream.writeDataScope.launch {
+      enqueue(byteArray)
+    }
+
+    fun enqueueBackground(data: String) = enqueueBackground(data.toByteArray())
 
     fun close() {
       stream.close()
     }
 
-    fun error(e: Throwable?) = dataChannel.close(e)
+    fun error(e: Throwable?) = stream.dataChannel.close(e)
     suspend fun awaitClose(function: suspend () -> Unit) {
       coroutineScope {
         launch {
@@ -76,7 +81,7 @@ class ReadableStream(
 
   private val dataChannel = Channel<ByteArray>()
 
-  private val controller by lazy { ReadableStreamController(dataChannel) { this@ReadableStream } }
+  private val controller = ReadableStreamController(this)
 
   private val writeDataScope =
     CoroutineScope(CoroutineName("readableStream/writeData") + ioAsyncExceptionHandler)
@@ -86,28 +91,6 @@ class ReadableStream(
   private val closePo = PromiseOut<Unit>()
 
   private val dataChangeObserver = SimpleObserver()
-
-  init {
-    runBlockingCatching {//(writeDataScope.coroutineContext)
-      onStart(controller)
-    }.getOrThrow()
-    writeDataScope.launch {
-      // 一直等待数据
-      for (chunk in dataChannel) {
-        _dataLock.withLock {
-          _data += chunk
-          debugStream("DATA-INIT", "$uid => +${chunk.size} ~> ${_data.size}")
-        }
-        // 收到数据了，尝试解锁通知等待者
-        dataChangeObserver.next()
-      }
-      // 关闭数据通道了，尝试解锁通知等待者
-      dataChangeObserver.emit(-1)
-
-      // 执行生命周期回调
-      onClose()
-    }
-  }
 
   suspend fun afterClosed() {
     closePo.waitPromise()
@@ -121,12 +104,18 @@ class ReadableStream(
    * 读取数据，在尽可能满足下标读取的情况下
    */
   private fun requestData(requestSize: Int, waitFull: Boolean): ByteArray {
-    var requestSize = if (waitFull) requestSize else 1
+    val requestSize = if (waitFull) requestSize else 1
     // 如果下标满足条件，直接返回
     if (canReadSize >= requestSize) {
       return _data
     }
-
+    // 如果已经关闭，那么直接返回
+    synchronized(this) {
+      if (isClosed) {
+        return _data
+      }
+    }
+    // 如果还没有关闭，那就等待信号
     runBlockingCatching(readDataScope.coroutineContext) {// (readDataScope.coroutineContext)
       val wait = PromiseOut<Unit>()
       val counterJob = launch {
@@ -206,19 +195,17 @@ class ReadableStream(
   @Throws(IOException::class)
   override fun available(): Int {
     return (requestData(1, true).size - ptr).let { size ->
-      if (isClosed && size == 0) -1 else size
+      synchronized(this) { if (isClosed && size == 0) -1 else size }
     }
   }
 
   @Throws(IOException::class)
-  @Synchronized
-  override fun close() {
+  override fun close() = synchronized(this) {
     if (isClosed) {
       return
     }
     debugStream("CLOSE", uid)
     closePo.resolve(Unit)
-    controller.close()
     // 关闭的时候不会马上清空数据，还是能读出来最后的数据的
 
     super.close()
@@ -252,4 +239,23 @@ class ReadableStream(
     }
   }
 
+  init {
+    writeDataScope.launch {
+      // 一直等待数据
+      for (chunk in dataChannel) {
+        _dataLock.withLock {
+          _data += chunk
+          debugStream("DATA-INIT", "$uid => +${chunk.size} ~> ${_data.size}")
+        }
+        // 收到数据了，尝试解锁通知等待者
+        dataChangeObserver.next()
+      }
+      // 关闭数据通道了，尝试解锁通知等待者
+      dataChangeObserver.emit(-1)
+
+      // 执行生命周期回调
+      onClose()
+    }
+    onStart(controller)
+  }
 }

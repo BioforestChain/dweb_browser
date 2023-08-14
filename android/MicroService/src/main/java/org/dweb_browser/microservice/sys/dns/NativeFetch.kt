@@ -2,13 +2,7 @@ package org.dweb_browser.microservice.sys.dns
 
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
-import io.ktor.client.request.HttpRequestBuilder
-import io.ktor.client.request.header
 import io.ktor.client.request.request
-import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsChannel
-import io.ktor.http.HttpMethod
-import io.ktor.utils.io.jvm.javaio.toInputStream
 import org.dweb_browser.helper.printdebugln
 import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.help.AdapterManager
@@ -17,7 +11,6 @@ import org.dweb_browser.microservice.help.toResponse
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Response
-import org.http4k.core.Status
 import org.http4k.core.Uri
 
 

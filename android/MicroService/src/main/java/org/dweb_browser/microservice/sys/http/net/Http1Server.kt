@@ -50,69 +50,65 @@ class Http1Server {
 
     val portPo = PromiseOut<Int>()
     CoroutineScope(ioAsyncExceptionHandler).launch {
-      launch {
-        val ktor_ws_server = embeddedServer(io.ktor.server.cio.CIO, port = 22206) {
-          install(WebSockets)
-          install(createApplicationPlugin("dweb") {
-            onCall { call ->
-              withContext(ioAsyncExceptionHandler) {
+      bindingPort = 22206//ktor_ws_server.environment.config.port
+      val ktor_ws_server = embeddedServer(io.ktor.server.cio.CIO, port = bindingPort) {
+        install(WebSockets)
+        install(createApplicationPlugin("dweb") {
+          onCall { call ->
+            withContext(ioAsyncExceptionHandler) {
 
-                /// 将 ktor的request 构建成 http4k 的request
-                call.request.asHttp4k()?.also { rawRequest ->
-                  var request = rawRequest;
-                  var proxyRequestBody: ReadableStream.ReadableStreamController? = null
-                  if (request.isWebSocket()) {
-                    request = request.body(ReadableStream(onStart = {
-                      proxyRequestBody = it
-                    }))
-                  }
-                  val response = when (val gateway = gatewayHandler(request)) {
-                    null -> errorHandler(request, null)
-                    else -> httpHandler(gateway, request) ?: errorHandler(request, gateway)
-                  }
+              /// 将 ktor的request 构建成 http4k 的request
+              call.request.asHttp4k()?.also { rawRequest ->
+                var request = rawRequest;
+                var proxyRequestBody: ReadableStream.ReadableStreamController? = null
+                if (request.isWebSocket()) {
+                  request = request.body(ReadableStream(onStart = {
+                    proxyRequestBody = it
+                  }))
+                }
+                val response = when (val gateway = gatewayHandler(request)) {
+                  null -> errorHandler(request, null)
+                  else -> httpHandler(gateway, request) ?: errorHandler(request, gateway)
+                }
 
-//                  debugHttp(
-//                    "createServer",
-//                    "uri:${request.uri} ws:${request.isWebSocket()} res:${response.status.code}"
-//                  )
-                  if (request.isWebSocket()) {
-                    /// 如果是200响应头，那么使用WebSocket来作为双工的通讯标准进行传输
-                    when (response.status.code) {
-                      200 -> {
-                        val res = WebSocketUpgrade(call, null) {
-                          val ws = this;
-                          val stream = response.stream()
-                          launch {
-                            /// 将从客户端收到的数据，转成 200 的标准传输到 request 的 bodyStream 中
-                            for (frame in ws.incoming) {
-                              proxyRequestBody?.enqueue(frame.buffer.moveToByteArray())
-                            }
-                            /// 等到双工关闭，同时也关闭读取层
-                            stream.close()
+                if (request.isWebSocket()) {
+                  /// 如果是200响应头，那么使用WebSocket来作为双工的通讯标准进行传输
+                  when (response.status.code) {
+                    200 -> {
+                      val res = WebSocketUpgrade(call, null) {
+                        val ws = this;
+                        val stream = response.stream()
+                        launch {
+                          /// 将从客户端收到的数据，转成 200 的标准传输到 request 的 bodyStream 中
+                          for (frame in ws.incoming) {
+                            proxyRequestBody?.enqueue(frame.buffer.moveToByteArray())
                           }
-                          /// 将从服务端收到的数据，转成 200 的标准传输到 websocket 的 frame 中
-                          while (true) {
-                            when (val readInt = stream.available()) {
-                              -1 -> {
-                                // 将会关闭
-                                break
-                              }
-
-                              else -> {
-                                val chunk = stream.readByteArray(readInt)
-                                debugHttp(
-                                  "createServer", "ws200 send response:${chunk}"
-                                )
-                                ws.send(Frame.Binary(true, chunk))
-                              }
-                            }
-                          }
-                          debugHttp(
-                            "createServer", "ws200 close ws"
-                          )
-                          ws.close()
+                          /// 等到双工关闭，同时也关闭读取层
+                          stream.close()
                         }
-                        call.respond(res)
+                        /// 将从服务端收到的数据，转成 200 的标准传输到 websocket 的 frame 中
+                        while (true) {
+                          when (val readInt = stream.available()) {
+                            -1 -> {
+                              // 将会关闭
+                              break
+                            }
+
+                            else -> {
+                              val chunk = stream.readByteArray(readInt)
+                              debugHttp(
+                                "createServer", "ws200 send response:${chunk}"
+                              )
+                              ws.send(Frame.Binary(true, chunk))
+                            }
+                          }
+                        }
+                        debugHttp(
+                          "createServer", "ws200 close ws"
+                        )
+                        ws.close()
+                      }
+                      call.respond(res)
 //                        call.respondBytesWriter(status = HttpStatusCode.SwitchingProtocols) {
 //                          val rawWebSocket =
 //                            RawWebSocket(
@@ -146,42 +142,42 @@ class Http1Server {
 //
 //                          ws.close()
 //                        }
-                      }
+                    }
 
-                      101 -> {
-                        when (val requestBodyStream = proxyRequestBody) {
-                          null -> {}
-                          else -> launch {
-                            val rawRequestChannel = call.request.receiveChannel()
-                            while (true) {
-                              val buffer = ByteBuffer.allocate(1024)
-                              when (val readSize = rawRequestChannel.readAvailable(buffer)) {
-                                -1 -> {
-                                  requestBodyStream.close()
-                                }
+                    101 -> {
+                      when (val requestBodyStream = proxyRequestBody) {
+                        null -> {}
+                        else -> launch {
+                          val rawRequestChannel = call.request.receiveChannel()
+                          while (true) {
+                            val buffer = ByteBuffer.allocate(1024)
+                            when (val readSize = rawRequestChannel.readAvailable(buffer)) {
+                              -1 -> {
+                                requestBodyStream.close()
+                              }
 
-                                else -> {
-                                  val byteArray = ByteArray(readSize)
-                                  buffer.get(byteArray)
-                                  requestBodyStream.enqueue(byteArray)
-                                }
+                              else -> {
+                                val byteArray = ByteArray(readSize)
+                                buffer.get(byteArray)
+                                requestBodyStream.enqueue(byteArray)
                               }
                             }
                           }
                         }
-
-                        call.response.fromHttp4K(response)
                       }
 
-                      else -> call.response.fromHttp4K(response)
+                      call.response.fromHttp4K(response)
                     }
-                  } else {
-                    call.response.fromHttp4K(response)
+
+                    else -> call.response.fromHttp4K(response)
                   }
+                } else {
+                  call.response.fromHttp4K(response)
                 }
               }
             }
-          })
+          }
+        })
 //          routing {
 //            webSocket("*") {
 //              val response = call.request.asHttp4k()?.let { request ->
@@ -236,11 +232,9 @@ class Http1Server {
 //            patch("*", all)
 //
 //          }
-        }.start()
+      }.start(wait = false)
 
-        bindingPort = 22206//ktor_ws_server.environment.config.port
-        portPo.resolve(bindingPort)
-      }
+      portPo.resolve(bindingPort)
 
 //      server =
 //        { request: Request ->

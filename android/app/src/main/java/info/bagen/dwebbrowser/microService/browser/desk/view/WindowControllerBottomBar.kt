@@ -37,7 +37,7 @@ internal fun WindowBottomBar(
   win: DesktopWindowController,
 ) {
   val windowEdge = LocalWindowPadding.current
-  val density = LocalDensity.current
+  val contentColor = LocalWindowControllerTheme.current.bottomContentColor
   Box(
     modifier = Modifier
       .height(windowEdge.bottom.dp)
@@ -45,8 +45,8 @@ internal fun WindowBottomBar(
         Brush.verticalGradient(
           colors = listOf(
             Color.Transparent,
-            Color.Black.copy(alpha = 0.2f),
-          ), startY = 0f, endY = (windowEdge.bottom * density.density)
+            contentColor.copy(alpha = 0.2f),
+          )
         )
       )
   ) {

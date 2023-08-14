@@ -1,6 +1,6 @@
 import isMobile from "npm:is-mobile";
 import { X_PLAOC_QUERY } from "./const.ts";
-import { $OnFetchReturn, FetchEvent, IpcHeaders } from "./deps.ts";
+import { $OnFetchReturn, FetchEvent, IpcHeaders, jsProcess } from "./deps.ts";
 import { emulatorDuplexs } from "./http-api-server.(dev).ts";
 import { Server_www as _Server_www } from "./http-www-server.ts";
 
@@ -81,7 +81,10 @@ export class Server_www extends _Server_www {
       return super._provider(request);
     }
     /// 启用跳转模式
-    const remoteIpcResponse = await fetch(new URL(request.pathname, xPlaocProxy));
+    const proxyUrl = new URL(request.pathname + request.search, xPlaocProxy);
+    console.log("native fetch start:", proxyUrl.href);
+    const remoteIpcResponse = await jsProcess.nativeFetch(proxyUrl);
+    console.log("native fetch end:", proxyUrl.href);
     const headers = new IpcHeaders(remoteIpcResponse.headers);
     /// 对 html 做强制代理，似的能加入一些特殊的头部信息，确保能正确访问内部的资源
     if (remoteIpcResponse.headers.get("Content-Type") === "text/html") {

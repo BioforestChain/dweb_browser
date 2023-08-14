@@ -2,6 +2,7 @@ package info.bagen.dwebbrowser.microService.core
 
 import android.content.Context
 import info.bagen.dwebbrowser.microService.browser.desk.debugDesk
+import kotlinx.coroutines.CoroutineScope
 import org.dweb_browser.helper.Observable
 
 abstract class WindowController(
@@ -14,8 +15,9 @@ abstract class WindowController(
    * 在Android中，一个窗口对象必然附加在某一个Context/Activity中
    */
   abstract val context: Context
+  abstract val coroutineScope: CoroutineScope
   val id = state.wid;
-  fun toJson() = state
+  fun toJsonAble() = state
 
 
   //#region WindowMode相关的控制函数
@@ -129,9 +131,19 @@ abstract class WindowController(
     backgroundColor: String? = null,
     overlay: Boolean? = null
   ) {
-    state.topBarContentColor = contentColor
-    state.topBarBackgroundColor = backgroundColor
-    state.overlayTopBar = overlay ?: state.overlayTopBar
+    contentColor?.also { state.topBarContentColor = it }
+    backgroundColor?.also { state.topBarBackgroundColor = it }
+    overlay?.also { state.topBarOverlay = it }
+  }
+
+  open suspend fun setBottomBarStyle(
+    contentColor: String? = null,
+    backgroundColor: String? = null,
+    overlay: Boolean? = null
+  ) {
+    contentColor?.also { state.bottomBarContentColor = it }
+    backgroundColor?.also { state.bottomBarBackgroundColor = it }
+    overlay?.also { state.bottomBarOverlay = it }
   }
   //#endregion
 }
