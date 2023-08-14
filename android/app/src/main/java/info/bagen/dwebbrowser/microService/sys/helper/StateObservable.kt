@@ -6,6 +6,7 @@ import info.bagen.dwebbrowser.util.IsChange
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.dweb_browser.helper.*
+import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.ipc.helper.ReadableStream
 import java.io.InputStream
 
@@ -17,21 +18,21 @@ open class StateObservable(
   private val changeSignal = Signal<String>()
   fun observe(cb: Callback<String>) = changeSignal.listen(cb)
 
-  private val observerReadableSteam = mutableMapOf<Ipc, ReadableStream.ReadableStreamController>()
   suspend fun startObserve(ipc: Ipc): InputStream {
     return ReadableStream(onStart = { controller ->
-      observerReadableSteam.getOrPut(ipc) {
-        controller
-      }
-      observe { state ->
+      val off = observe { state ->
         try {
           withContext(Dispatchers.IO) {
-            controller.enqueue((state + "\n").toByteArray())
+            controller.enqueue((gson.toJson(state) + "\n").toByteArray())
           }
         } catch (e: Exception) {
           controller.close()
           e.printStackTrace()
         }
+      }
+      ipc.onClose {
+        off()
+        controller.close()
       }
     })
   }
@@ -41,9 +42,4 @@ open class StateObservable(
       changeSignal.emit(getStateJson())
     }.getOrNull()
   }
-
-  fun stopObserve(ipc: Ipc) = observerReadableSteam.remove(ipc)?.let { off ->
-    off.close()
-    true
-  } ?: false
 }

@@ -6,8 +6,11 @@ import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.browser.jmm.EIpcEvent
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.dweb_browser.helper.ChangeableMap
+import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printdebugln
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
@@ -46,7 +49,7 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
 
   companion object {
     val deskControllers = mutableMapOf<String, DeskController>()
-    lateinit var taskBarController:TaskBarController
+    lateinit var taskBarController: TaskBarController
   }
 
   val queryAppId = Query.string().required("app_id")
@@ -128,9 +131,7 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
         val inputStream = ReadableStream(onStart = { controller ->
           val off = deskController.onUpdate {
             try {
-              withContext(Dispatchers.IO) {
-                controller.enqueue((gson.toJson(deskController.getDesktopApps()) + "\n").toByteArray())
-              }
+              controller.enqueue((gson.toJson(deskController.getDesktopApps()) + "\n").toByteArray())
             } catch (e: Exception) {
               controller.close()
               e.printStackTrace()
@@ -154,9 +155,7 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
         val inputStream = ReadableStream(onStart = { controller ->
           val off = taskBarController.onUpdate {
             try {
-              withContext(Dispatchers.IO) {
-                controller.enqueue((gson.toJson(taskBarController.getTaskbarAppList(limit)) + "\n").toByteArray())
-              }
+              controller.enqueue((gson.toJson(taskBarController.getTaskbarAppList(limit)) + "\n").toByteArray())
             } catch (e: Exception) {
               controller.close()
               e.printStackTrace()

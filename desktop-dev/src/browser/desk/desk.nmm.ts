@@ -22,6 +22,7 @@ export class DeskNMM extends NativeMicroModule {
 
   protected async _bootstrap(context: $BootstrapContext) {
     const runingApps = this.runingApps;
+    let focusApp: string | null = null;
     this.onAfterShutdown(() => {
       this.runingApps.reset();
     });
@@ -68,6 +69,7 @@ export class DeskNMM extends NativeMicroModule {
 
         if (ipc !== undefined) {
           ipc.postMessage(IpcEvent.fromText("activity", ""));
+          focusApp = ipc.remote.mmid;
           /// 成功打开，保存到列表中
           runingApps.set(app_id, ipc);
           /// 如果应用关闭，将它从列表中移除
@@ -135,6 +137,23 @@ export class DeskNMM extends NativeMicroModule {
             limit = json_limit.parse(item).limit ?? Infinity;
           },
         }).finally(() => {
+          off();
+          /// 如果传来的数据解析异常了，websocket就断掉
+          responseBody.controller.close();
+        });
+        /// 发送一次现有的数据数据
+        void doWriteJsonline();
+        return { body: responseBody.stream };
+      })
+      .duplex("/taskbar/observe/status", async (event) => {
+        const responseBody = new ReadableStreamOut<Uint8Array>();
+        const doWriteJsonline = async () => {
+          responseBody.controller.enqueue(simpleEncoder(`{"focus":true,"appId":"${focusApp}"}` + "\n", "utf8"));
+        };
+        /// 监听变更，推送数据
+        const off = runingApps.onChange(doWriteJsonline);
+        /// 监听关闭，停止监听
+        void jsonlinesStreamReadAll(await event.ipcRequest.body.stream()).finally(() => {
           off();
           /// 如果传来的数据解析异常了，websocket就断掉
           responseBody.controller.close();

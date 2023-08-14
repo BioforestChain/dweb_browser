@@ -25,6 +25,12 @@ data class JmmAppInstallManifest(
   var bundle_url: String = "",
   val bundle_hash: String = "",
   val bundle_size: String = "",
+  /**格式为 `hex:{signature}` */
+  val bundle_signature:String =  "",
+  /**该链接必须使用和app-id同域名的网站链接，
+    * 请求回来是一个“算法+公钥地址”的格式 "{algorithm}:hex;{publicKey}"，
+    * 比如说 `rsa-sha256:hex;2...1` */
+  val public_key_url:String = "",
   /** 安装时展示的作者信息 */
   val author: List<String> = emptyList(),
   /** 安装时展示的主页链接 */

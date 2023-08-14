@@ -15,6 +15,7 @@ export class Server_www extends HttpServer {
   }
   protected async _provider(request: FetchEvent, root = "www"): Promise<$OnFetchReturn> {
     let { pathname } = request;
+    console.log("wwwserve rpro=>",pathname,request)
     if (pathname === "/") {
       pathname = "/index.html";
     }

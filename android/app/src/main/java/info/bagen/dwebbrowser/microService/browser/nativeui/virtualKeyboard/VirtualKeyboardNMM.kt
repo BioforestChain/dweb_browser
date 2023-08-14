@@ -47,12 +47,6 @@ class VirtualKeyboardNMM :
         val inputStream = getController(ipc.remote.mmid).observer.startObserve(ipc)
         return@defineHandler Response(Status.OK).body(inputStream)
       },
-      /**
-       * 关闭订阅数据流
-       */
-      "/stopObserve" bind Method.GET to defineHandler { _, ipc ->
-        return@defineHandler getController(ipc.remote.mmid).observer.stopObserve(ipc)
-      },
     ).cors()
   }
 
