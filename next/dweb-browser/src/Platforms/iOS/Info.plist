@@ -49,5 +49,7 @@
 	</array>
 	<key>CFBundleIdentifier</key>
 	<string>com.instinct.bfexplorer</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 </dict>
 </plist>
