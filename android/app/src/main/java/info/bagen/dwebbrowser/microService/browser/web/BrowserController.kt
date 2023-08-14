@@ -3,7 +3,6 @@ package info.bagen.dwebbrowser.microService.browser.web
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.platform.LocalConfiguration
 import info.bagen.dwebbrowser.microService.core.WindowController
 import info.bagen.dwebbrowser.microService.core.windowAdapterManager
 import kotlinx.coroutines.DelicateCoroutinesApi

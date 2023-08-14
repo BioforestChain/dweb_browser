@@ -5,6 +5,7 @@ import info.bagen.dwebbrowser.microService.core.WindowController
 import info.bagen.dwebbrowser.microService.core.WindowPropertyKeys
 import info.bagen.dwebbrowser.microService.core.WindowState
 import info.bagen.dwebbrowser.microService.core.windowInstancesManager
+import kotlinx.coroutines.launch
 import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.printdebugln
 import org.dweb_browser.microservice.core.BootstrapContext
@@ -77,13 +78,15 @@ class WindowNMM :
               e.printStackTrace()
             }
           }.also {
-            it.emitSelf(
-              Observable.Change(
-                WindowPropertyKeys.Any,
-                null,
-                null
+            win.coroutineScope.launch {
+              it.emitSelf(
+                Observable.Change(
+                  WindowPropertyKeys.Any,
+                  null,
+                  null
+                )
               )
-            )
+            }
           }
           ipc.onClose {
             off()

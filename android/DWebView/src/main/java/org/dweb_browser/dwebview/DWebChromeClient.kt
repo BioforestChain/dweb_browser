@@ -6,6 +6,7 @@ import android.os.Message
 import android.view.View
 import android.webkit.*
 
+@Suppress("DEPRECATION")
 class DWebChromeClient : WebChromeClient() {
   private val extends = Extends<WebChromeClient>()
   fun addWebChromeClient(client: WebChromeClient, config: Extends.Config = Extends.Config()) =
@@ -169,6 +170,7 @@ class DWebChromeClient : WebChromeClient() {
     } ?: super.onShowFileChooser(webView, filePathCallback, fileChooserParams)
   }
 
+  @Deprecated("Deprecated in Java")
   override fun onConsoleMessage(message: String?, lineNumber: Int, sourceID: String?) {
     inners("onConsoleMessage", false).one {
       it.onConsoleMessage(
@@ -180,6 +182,7 @@ class DWebChromeClient : WebChromeClient() {
       ?: super.onConsoleMessage(message, lineNumber, sourceID)
   }
 
+  @Deprecated("Deprecated in Java")
   override fun onExceededDatabaseQuota(
     url: String?,
     databaseIdentifier: String?,
@@ -197,10 +200,12 @@ class DWebChromeClient : WebChromeClient() {
     )
   }
 
+  @Deprecated("Deprecated in Java")
   override fun onJsTimeout(): Boolean {
     return inners("onJsTimeout").mapFindNoNull { it.onJsTimeout() } ?: super.onJsTimeout()
   }
 
+  @Deprecated("Deprecated in Java")
   override fun onShowCustomView(
     view: View?, requestedOrientation: Int, callback: CustomViewCallback?
   ) {

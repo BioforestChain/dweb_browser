@@ -205,6 +205,7 @@ class DWebView(
     ): WebResourceResponse? {
       // 转发请求
       if (request.method == "GET" && ((request.url.host?.endsWith(".dweb") == true) || (request.url.scheme == "dweb"))) {
+        // || request.url.userInfo?.matches(Regex(".*\\.dweb(:\\d+)?$")) == true
         return dwebProxyer(request)
       }
       return super.shouldInterceptRequest(view, request)

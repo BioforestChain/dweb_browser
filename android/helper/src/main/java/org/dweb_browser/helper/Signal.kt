@@ -71,9 +71,15 @@ open class Signal<Args> {
 
   private val children = mutableMapOf<Signal<*>, Child<Args, *>>()
   fun <R> createChild(filter: (Args) -> Boolean, map: (Args) -> R) =
-    Child(this, Signal(), filter, map).also { children[it.childSignal] = it }.childSignal
+    Child(this, Signal(), filter, map).also {
+      synchronized(children) {
+        children[it.childSignal] = it
+      }
+    }.childSignal
 
-  fun removeChild(childSignal: Signal<*>) = children.remove(childSignal)?.let { true } ?: false
+  fun removeChild(childSignal: Signal<*>) = synchronized(children) {
+    children.remove(childSignal)?.let { true } ?: false
+  }
 
   open suspend fun emit(args: Args) {
     // 这里拷贝一份，避免中通对其读写的时候出问题
@@ -99,7 +105,11 @@ open class Signal<Args> {
     }
 
     /// 然后触发孩子
-    for (child in children.values) {
+    val childList = synchronized(children) {
+      children.values.toList()
+    }
+
+    for (child in childList) {
       try {
         if (child.filter(args)) {
           val childArgs = child.map(args)

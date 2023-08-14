@@ -2,6 +2,7 @@ package info.bagen.dwebbrowser.microService.core
 
 import android.content.Context
 import info.bagen.dwebbrowser.microService.browser.desk.debugDesk
+import kotlinx.coroutines.CoroutineScope
 import org.dweb_browser.helper.Observable
 
 abstract class WindowController(
@@ -14,6 +15,7 @@ abstract class WindowController(
    * 在Android中，一个窗口对象必然附加在某一个Context/Activity中
    */
   abstract val context: Context
+  abstract val coroutineScope: CoroutineScope
   val id = state.wid;
   fun toJsonAble() = state
 
