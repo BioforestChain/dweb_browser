@@ -15,15 +15,15 @@ extension Color{
     static let networkGuidColor = Color(hex: 0xACB5BF)  //
     static let sheetTopbar = Color(hex: 0xD8D8D8)  //  
     static let lightTextColor = btnDisabledColor
-    static let AddressbarbkColor = Color("AddressbarbkColor")
-    static let addressTextColor = Color("addressTextColor")
-    static let bkColor = Color("bkColor")
-    static let clearTextColor = Color("clearTextColor")
-    static let dwebTint = Color("dwebTint")
-    static let lineColor = Color("lineColor")
-    static let menubkColor = Color("menubkColor")
-    static let menuTitleColor = Color("menuTitleColor")
-    static let ToolbarColor = Color("ToolbarColor")
+    static let AddressbarbkColor = Color(assetsColor: "AddressbarbkColor")
+    static let addressTextColor = Color(assetsColor: "addressTextColor")
+    static let bkColor = Color(assetsColor: "bkColor")
+    static let clearTextColor = Color(assetsColor: "clearTextColor")
+    static let dwebTint = Color(assetsColor: "dwebTint")
+    static let lineColor = Color(assetsColor: "lineColor")
+    static let menubkColor = Color(assetsColor: "menubkColor")
+    static let menuTitleColor = Color(assetsColor: "menuTitleColor")
+    static let ToolbarColor = Color(assetsColor: "ToolbarColor")
     
     init(hex: UInt32) {
         let red = Double((hex >> 16) & 0xff) / 255.0
@@ -43,5 +43,10 @@ extension Color{
         let b = rgbValue & 0xff
         
         self.init(red: Double(r) / 0xff, green: Double(g) / 0xff, blue: Double(b) / 0xff)
+    }
+    
+    init(assetsColor: String) {
+        let bundle = Bundle(for: BridgeManager.self)
+        self.init(assetsColor, bundle: bundle)
     }
 }
