@@ -1,4 +1,5 @@
 import com.version.manager.BuildConfig
+import com.version.manager.BuildVersion
 
 plugins {
   id("java-library")
@@ -7,12 +8,12 @@ plugins {
 }
 
 java {
-  sourceCompatibility = JavaVersion.VERSION_17
-  targetCompatibility = JavaVersion.VERSION_17
+  sourceCompatibility = BuildVersion.javaVersion
+  targetCompatibility = BuildVersion.javaVersion
 }
 
 kotlin {
-  version = "1.8.10"
+  version = BuildVersion.kotlinVersion
 }
 
 dependencies {

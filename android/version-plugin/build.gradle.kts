@@ -1,6 +1,6 @@
 plugins {
   id("java-gradle-plugin")
-  id("org.jetbrains.kotlin.jvm") version "1.8.10"
+  id("org.jetbrains.kotlin.jvm") version "1.9.0"
   `kotlin-dsl`
 }
 
@@ -18,7 +18,7 @@ java {
 dependencies {
   //添加Gradle相关的API，否则无法自定义Plugin和Task
   implementation(gradleApi())
-  implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.10")
+  implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.0")
 }
 
 gradlePlugin {

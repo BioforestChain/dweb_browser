@@ -59,6 +59,7 @@ abstract class StateBase {
   abstract suspend fun beGet(force: Boolean? = null)
 }
 
+@Suppress("UNCHECKED_CAST")
 class State<T>(private var defaultValue: T) : StateBase() {
 
   fun setter(newValue: T): Boolean {

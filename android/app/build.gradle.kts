@@ -63,11 +63,11 @@ android {
     }
   }
   compileOptions {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = BuildVersion.javaVersion
+    targetCompatibility = BuildVersion.javaVersion
   }
   kotlinOptions {
-    jvmTarget = "17"
+    jvmTarget = BuildVersion.jvmTarget
     freeCompilerArgs += listOf(
       "-P",
       "plugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=${BuildVersion.kotlinVersion}"
@@ -78,7 +78,7 @@ android {
     viewBinding = true
   }
   composeOptions {
-    kotlinCompilerExtensionVersion = "1.4.3"
+    kotlinCompilerExtensionVersion = BuildVersion.kotlinCompilerExtensionVersion
   }
   lint {
     abortOnError = false

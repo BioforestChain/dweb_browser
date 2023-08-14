@@ -6,6 +6,7 @@ import kotlinx.coroutines.launch
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
+@Suppress("UNCHECKED_CAST")
 class Observable<K : Any> {
   data class Change<K, V>(val key: K, val newValue: V, val oldValue: V)
 
