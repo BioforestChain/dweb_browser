@@ -1,11 +1,9 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
-
 plugins {
-  id("com.google.devtools.ksp") version "1.8.10-1.0.9" apply false
+  id("com.google.devtools.ksp") version "1.9.0-1.0.13" apply false
 }
 
 buildscript {
-  apply(from = "versions.gradle")
   repositories {
     google()
     mavenCentral()
@@ -16,7 +14,7 @@ buildscript {
   }
   dependencies {
     classpath("com.android.tools.build:gradle:8.1.0")
-    classpath(kotlin("gradle-plugin", version = "1.8.10"))
+    classpath(kotlin("gradle-plugin", version = "1.9.0"))
   }
 }
 

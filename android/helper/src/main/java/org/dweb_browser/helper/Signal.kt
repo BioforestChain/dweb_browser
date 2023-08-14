@@ -43,6 +43,7 @@ fun <T> Remover.removeWhen(listener: Signal.Listener<T>) = listener {
   this@removeWhen()
 }
 
+@Suppress("UNCHECKED_CAST")
 open class Signal<Args> {
   protected val listenerSet = mutableSetOf<Callback<Args>>();
 
