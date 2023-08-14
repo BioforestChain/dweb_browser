@@ -94,6 +94,7 @@ struct SearchResultView: View {
                                         .resizable()
                                         .frame(width: 30, height: 30)
                                         .cornerRadius(4)
+                                        .foregroundColor(Color.ToolbarColor)
                                         .padding(.leading, 16)
                                         .padding(.top, 10)
                                     

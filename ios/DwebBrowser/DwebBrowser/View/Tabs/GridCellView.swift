@@ -14,6 +14,7 @@ struct WebsiteIconImage: View {
             if iconUrl.isFileURL {
                 Image(uiImage: .defaultWebIconImage)
                     .resizable()
+                    .foregroundColor(Color.ToolbarColor)
             } else {
                 AsyncImage(url: iconUrl) { phase in
                     if let image = phase.image {
