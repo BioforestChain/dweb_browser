@@ -168,6 +168,7 @@ class DWebViewClient : WebViewClient() {
     } ?: super.shouldOverrideUrlLoading(view, request)
   }
 
+  @Deprecated("Deprecated in Java")
   override fun onReceivedError(
     view: WebView?, errorCode: Int, description: String?, failingUrl: String?
   ) {
@@ -178,11 +179,13 @@ class DWebViewClient : WebViewClient() {
     } ?: super.onReceivedError(view, errorCode, description, failingUrl)
   }
 
+  @Deprecated("Deprecated in Java")
   override fun onTooManyRedirects(view: WebView?, cancelMsg: Message?, continueMsg: Message?) {
     inners("onTooManyRedirects").one { it.onTooManyRedirects(view, cancelMsg, continueMsg) }
       ?: super.onTooManyRedirects(view, cancelMsg, continueMsg)
   }
 
+  @Deprecated("Deprecated in Java")
   override fun shouldInterceptRequest(view: WebView?, url: String?): WebResourceResponse? {
     return inners("shouldInterceptRequest").mapFindNoNull { it.shouldInterceptRequest(view, url) }
       ?: super.shouldInterceptRequest(
@@ -190,6 +193,7 @@ class DWebViewClient : WebViewClient() {
       )
   }
 
+  @Deprecated("Deprecated in Java")
   override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
     return inners("shouldOverrideUrlLoading").mapFindNoNull { it.shouldOverrideUrlLoading(view, url) }
       ?: super.shouldOverrideUrlLoading(view, url)

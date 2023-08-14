@@ -1,6 +1,7 @@
 package org.dweb_browser.helper
 
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
@@ -8,7 +9,15 @@ import kotlin.reflect.KProperty
 class Observable<K : Any> {
   data class Change<K, V>(val key: K, val newValue: V, val oldValue: V)
 
-  val coroutineScope = CoroutineScope(defaultAsyncExceptionHandler)
+  val defaultCoroutineScope = CoroutineScope(ioAsyncExceptionHandler)
+  private var customCoroutineScope: CoroutineScope? = null
+  var coroutineScope
+    get() = (if (customCoroutineScope?.isActive == true) customCoroutineScope else null)
+      ?: defaultCoroutineScope
+    set(value) {
+      customCoroutineScope = value
+    }
+
   val changeSignal = Signal<Change<K, *>>();
   val onChange = changeSignal.toListener()
 

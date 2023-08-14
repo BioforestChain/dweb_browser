@@ -87,11 +87,11 @@ val debugTags by lazy {
 //    setOf<String>()
 }
 
-fun printdebugln(scope: String, tag: String, msg: Any?, err: Throwable? = null) {
+fun printdebugln(scope: String, tag: String, message: Any?, err: Throwable? = null) {
   if (!debugTags.contains(scope)) {
     return
   }
-  var msg = msg
+  var msg = message
   if (msg is Lazy<*>) {
     msg = msg.value
   }

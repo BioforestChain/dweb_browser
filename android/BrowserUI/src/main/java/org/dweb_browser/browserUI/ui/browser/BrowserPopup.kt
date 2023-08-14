@@ -67,7 +67,6 @@ import org.dweb_browser.browserUI.ui.theme.DimenBottomBarHeight
 import org.dweb_browser.browserUI.util.BitmapUtil
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
 import org.dweb_browser.browserUI.ui.view.findActivity
 
 private val screenHeight: Dp

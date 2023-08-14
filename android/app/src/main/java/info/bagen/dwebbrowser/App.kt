@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import info.bagen.dwebbrowser.microService.startDwebBrowser
-import org.dweb_browser.microservice.sys.dns.DnsNMM
 import info.bagen.dwebbrowser.util.PlaocUtil
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
@@ -14,7 +13,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.browserUI.util.BrowserUIApp
-import org.dweb_browser.helper.*
+import org.dweb_browser.helper.PromiseOut
+import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.runBlockingCatching
+import org.dweb_browser.microservice.sys.dns.DnsNMM
 
 class App : Application() {
   companion object {

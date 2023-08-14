@@ -86,7 +86,7 @@ class IpcBodyReceiver(
           IPC_DATA_ENCODING.BINARY -> metaBody.data as ByteArray
           IPC_DATA_ENCODING.BASE64 -> (metaBody.data as String).toBase64ByteArray()
           else -> null
-        }?.let { firstData -> controller.enqueue(firstData) }
+        }?.let { firstData -> controller.enqueueBackground(firstData) }
 
         ipc.onStream { (message) ->
           when (message) {

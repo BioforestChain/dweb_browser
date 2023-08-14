@@ -70,7 +70,13 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
             Regex("""^ *(?:[Bb][Aa][Ss][Ii][Cc]) +([A-Za-z0-9._~+/-]+=*) *$""").find(value)
               ?.also { matchResult ->
                 matchResult.groupValues.getOrNull(1)?.also { base64Content ->
-                  header_auth_host = base64Content.base64Decoded().split(':').getOrNull(0)
+                  val userInfo = base64Content.base64Decoded()
+                  val splitIndex = userInfo.lastIndexOf(':')
+                  if (splitIndex == -1) {
+                    header_auth_host = userInfo
+                  } else {
+                    header_auth_host = userInfo.slice(0 until splitIndex)
+                  }
                 }
               }
           }
@@ -124,7 +130,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
   }
 
   private val noGatewayResponse =
-    Response(Status.UNAUTHORIZED).header("WWW-Authenticate", "Basic Realm=\"dweb\"")
+    Response(Status.UNAUTHORIZED).header("WWW-Authenticate", """Basic realm="dweb"""")
 
   public override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     /// 启动http后端服务

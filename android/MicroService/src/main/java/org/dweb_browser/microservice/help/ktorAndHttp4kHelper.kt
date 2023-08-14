@@ -1,7 +1,6 @@
 package org.dweb_browser.microservice.help
 
 import io.ktor.client.request.HttpRequestBuilder
-import io.ktor.client.request.header
 import io.ktor.client.request.setBody
 import io.ktor.client.request.url
 import io.ktor.client.statement.HttpResponse
@@ -10,9 +9,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.content.OutgoingContent
 import io.ktor.http.contentLength
-import io.ktor.http.contentType
 import io.ktor.server.plugins.origin
 import io.ktor.server.request.ApplicationRequest
 import io.ktor.server.request.header
@@ -21,7 +18,16 @@ import io.ktor.server.request.uri
 import io.ktor.server.response.ApplicationResponse
 import io.ktor.server.response.header
 import io.ktor.server.response.respondOutputStream
+import io.ktor.util.moveToByteArray
+import io.ktor.utils.io.ByteReadChannel
+import io.ktor.utils.io.consumeEachBufferRange
 import io.ktor.utils.io.jvm.javaio.toInputStream
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.printdebugln
+import org.dweb_browser.microservice.ipc.helper.ReadableStream
 import org.http4k.core.Headers
 import org.http4k.core.Method
 import org.http4k.core.Request
@@ -33,6 +39,10 @@ import org.http4k.server.supportedOrNull
 import java.io.InputStream
 import java.io.OutputStream
 import io.ktor.http.Headers as KtorHeaders
+
+fun debugHelper(tag: String, msg: Any = "", err: Throwable? = null) =
+  printdebugln("helper", tag, msg, err)
+
 
 fun ApplicationRequest.asHttp4k() = Method.supportedOrNull(httpMethod.value)?.let {
   Request(it, this@asHttp4k.uri).headers(headers.toHttp4kHeaders())
@@ -57,22 +67,40 @@ suspend fun ApplicationResponse.fromHttp4K(response: Response) {
 }
 
 private fun InputStream.copyToWithFlush(
-  out: OutputStream, bufferSize: Int = DEFAULT_BUFFER_SIZE
+  output: OutputStream, bufferSize: Int = DEFAULT_BUFFER_SIZE
 ): Long {
+  println("GG copyToWithFlush start")
   var bytesCopied: Long = 0
   val buffer = ByteArray(bufferSize)
   try {
-    var bytes = read(buffer)
-    while (bytes >= 0) {
-      out.write(buffer, 0, bytes)
-      out.flush()
-      bytesCopied += bytes
-      bytes = read(buffer)
-    }
+    do {
+      when (val canReadSize = available()) {
+        0, -1 -> {
+          println("GG copyToWithFlush no byte!($canReadSize)")
+          output.flush()
+          break
+        }
+
+        else -> {
+          println("GG copyToWithFlush can bytes($canReadSize)")
+          val readSize = read(buffer)
+          println("GG copyToWithFlush $readSize/$canReadSize bytes")
+          if (readSize > 0) {
+            bytesCopied += readSize
+            output.write(buffer, 0, readSize)
+            output.flush()
+          } else {
+            break
+          }
+        }
+      }
+    } while (true)
   } catch (e: Exception) {
+    // 有异常，那么可能是 output 的写入出现的异常，这时候需要将 input 也给关闭掉，因为已经不再读取了
     close()
-    throw e
+    debugHelper("InputStream.copyToWithFlush", "", e)
   }
+  println("GG copyToWithFlush end")
   return bytesCopied
 }
 
@@ -94,5 +122,21 @@ suspend fun HttpResponse.toResponse() = Response(
   this.version.toString()
 )
   .headers(this.headers.toHttp4kHeaders())
-  .body(this.bodyAsChannel().toInputStream(), this.contentLength())
+  .let {
+    val channel = this.bodyAsChannel()
+    val bodyLen = this.contentLength()
+    println("GG toResponse")
+    it.body(channel.toReadableStream(), bodyLen)
+  }
 
+suspend fun ByteReadChannel.toReadableStream() = ReadableStream(onStart = { controller ->
+  CoroutineScope(ioAsyncExceptionHandler).launch {
+    this@toReadableStream.consumeEachBufferRange { byteArray, last ->
+      controller.enqueue(byteArray.moveToByteArray())
+      if (last) {
+        controller.close()
+      }
+      true
+    }
+  }
+})
