@@ -1,4 +1,4 @@
-rootProject.name = "plaoc"
+rootProject.name = "dweb-browser"
 includeBuild("version-plugin")
 include ':app'
 include ':helper'

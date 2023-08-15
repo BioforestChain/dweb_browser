@@ -23,21 +23,23 @@ import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.consumeEachBufferRange
 import io.ktor.utils.io.jvm.javaio.toInputStream
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printdebugln
 import org.dweb_browser.microservice.ipc.helper.ReadableStream
+import org.dweb_browser.microservice.ipc.helper.debugStream
 import org.http4k.core.Headers
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.RequestSource
 import org.http4k.core.Response
 import org.http4k.core.Status
+import org.http4k.length
 import org.http4k.lens.Header.CONTENT_TYPE
 import org.http4k.server.supportedOrNull
 import java.io.InputStream
 import java.io.OutputStream
+import java.util.concurrent.atomic.AtomicInteger
 import io.ktor.http.Headers as KtorHeaders
 
 fun debugHelper(tag: String, msg: Any = "", err: Throwable? = null) =
@@ -66,25 +68,28 @@ suspend fun ApplicationResponse.fromHttp4K(response: Response) {
   }
 }
 
+var debugStreamAccId = AtomicInteger(1)
+
 private fun InputStream.copyToWithFlush(
   output: OutputStream, bufferSize: Int = DEFAULT_BUFFER_SIZE
 ): Long {
-  println("GG copyToWithFlush start")
+  val id = debugStreamAccId.incrementAndGet();
+  debugStream("copyToWithFlush", "SS[$id] start")
   var bytesCopied: Long = 0
   val buffer = ByteArray(bufferSize)
   try {
     do {
       when (val canReadSize = available()) {
         0, -1 -> {
-          println("GG copyToWithFlush no byte!($canReadSize)")
+          debugStream("copyToWithFlush", "SS[$id] no byte!($canReadSize)")
           output.flush()
           break
         }
 
         else -> {
-          println("GG copyToWithFlush can bytes($canReadSize)")
+          debugStream("copyToWithFlush", "SS[$id] can bytes($canReadSize)")
           val readSize = read(buffer)
-          println("GG copyToWithFlush $readSize/$canReadSize bytes")
+          debugStream("copyToWithFlush", "SS[$id] $readSize/$canReadSize bytes")
           if (readSize > 0) {
             bytesCopied += readSize
             output.write(buffer, 0, readSize)
@@ -100,7 +105,7 @@ private fun InputStream.copyToWithFlush(
     close()
     debugHelper("InputStream.copyToWithFlush", "", e)
   }
-  println("GG copyToWithFlush end")
+  debugStream("copyToWithFlush", "SS[$id] end")
   return bytesCopied
 }
 
@@ -125,15 +130,18 @@ suspend fun HttpResponse.toResponse() = Response(
   .let {
     val channel = this.bodyAsChannel()
     val bodyLen = this.contentLength()
-    println("GG toResponse")
-    it.body(channel.toReadableStream(), bodyLen)
+    it.body(channel.toInputStream(), bodyLen)
   }
 
 suspend fun ByteReadChannel.toReadableStream() = ReadableStream(onStart = { controller ->
+  val id = debugStreamAccId.incrementAndGet();
+  debugStream("toReadableStream", "SS[$id] start")
   CoroutineScope(ioAsyncExceptionHandler).launch {
     this@toReadableStream.consumeEachBufferRange { byteArray, last ->
+      debugStream("toReadableStream", "SS[$id] enqueue ${byteArray.length()}")
       controller.enqueue(byteArray.moveToByteArray())
       if (last) {
+        debugStream("toReadableStream", "SS[$id] end")
         controller.close()
       }
       true

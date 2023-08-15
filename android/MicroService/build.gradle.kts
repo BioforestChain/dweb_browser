@@ -31,9 +31,12 @@ dependencies {
   implementation(BuildConfig.moshiPack)
 
   /// 测试相关
-  testImplementation(kotlin("test"))
-  testImplementation(BuildConfig.testKotlinCoroutinesTest)
+  testImplementation(BuildConfig.testKotlinCoroutinesTest) {
+    exclude("org.jetbrains.kotlinx", "kotlinx-coroutines-debug")
+  }
   testImplementation(BuildConfig.testKotlinCoroutinesDebug)
+
+  testImplementation(kotlin("test"))
   testImplementation(platform(BuildConfig.testJUnitBom))
   testRuntimeOnly(BuildConfig.testJUnitPlatformLauncher) {
     because("Only needed to run tests in a version of IntelliJ IDEA that bundles older versions")

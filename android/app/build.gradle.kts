@@ -84,8 +84,11 @@ android {
     abortOnError = false
     warning += listOf("InvalidPackage")
   }
-  packagingOptions {
+  packaging {
     resources {
+      pickFirsts += "win32-x86-64/attach_hotspot_windows.dll"
+      pickFirsts += "win32-x86/attach_hotspot_windows.dll"
+      excludes += "/META-INF/licenses/ASM"
       excludes += "/META-INF/{AL2.0,LGPL2.1}"
       // 添加 http4k 框架后，会有异常报错，需要添加如下内容
       excludes += "/META-INF/INDEX.LIST"

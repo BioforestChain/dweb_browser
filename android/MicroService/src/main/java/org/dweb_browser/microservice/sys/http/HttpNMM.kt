@@ -37,9 +37,9 @@ fun debugHttp(tag: String, msg: Any = "", err: Throwable? = null) =
 
 class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
 
-  override val short_name = "HTTP";
+  override val short_name = "HTTP"
   override val categories =
-    mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Protocol_Service);
+    mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Protocol_Service)
 
   companion object {
     val dwebServer = Http1Server()
@@ -143,11 +143,16 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
       { gateway, request ->
         gateway.listener.hookHttpRequest(request)
       },
-      { _, gateway ->
-        if (gateway == null)
-          noGatewayResponse
-        else
-          Response(Status.NOT_FOUND)
+      { request, gateway ->
+        if (gateway == null) {
+          if (request.uri.path == "/debug") {
+//            RequestResponseBuilder()
+//            kotlinx.coroutines.debug.DebugProbes.dumpCoroutines()
+            Response(Status.OK).body(
+              request.headers.toString()
+            )
+          } else noGatewayResponse
+        } else Response(Status.NOT_FOUND)
       })
 
     /// 为 nativeFetch 函数提供支持

@@ -97,6 +97,7 @@ class ReadableStream(
   }
 
   val isClosed get() = closePo.isFinished
+  private val closeWaits = mutableListOf<PromiseOut<Unit>>()
 
   val canReadSize get() = _data.size - ptr
 
@@ -109,15 +110,17 @@ class ReadableStream(
     if (canReadSize >= requestSize) {
       return _data
     }
-    // 如果已经关闭，那么直接返回
-    synchronized(this) {
-      if (isClosed) {
-        return _data
-      }
-    }
     // 如果还没有关闭，那就等待信号
     runBlockingCatching(readDataScope.coroutineContext) {// (readDataScope.coroutineContext)
-      val wait = PromiseOut<Unit>()
+      // 如果已经关闭，那么直接返回
+      val wait = synchronized(this) {
+        if (isClosed) {
+          return@runBlockingCatching
+        }
+        PromiseOut<Unit>().also {
+          closeWaits.add(it)
+        }
+      }
       val counterJob = launch {
         dataChangeObserver.observe { count ->
           when {
@@ -145,7 +148,11 @@ class ReadableStream(
           }
         }
       }
+
       wait.waitPromise()
+      synchronized(this) {
+        closeWaits.remove(wait)
+      }
       counterJob.cancel()
       debugStream("REQUEST-DATA/DONE", "$uid => ${_data.size}")
     }.getOrNull()
@@ -156,13 +163,6 @@ class ReadableStream(
   companion object {
     private var id_acc = AtomicInteger(1)
   }
-//init {
-//    when(id_acc.get()){
-//        7,9->{
-//            debugger()
-//        }
-//    }
-//}
 
   val uid = "#s${id_acc.getAndAdd(1)}${
     if (cid != null) {
@@ -206,6 +206,9 @@ class ReadableStream(
     }
     debugStream("CLOSE", uid)
     closePo.resolve(Unit)
+    for (wait in closeWaits) {
+      wait.resolve(Unit)
+    }
     // 关闭的时候不会马上清空数据，还是能读出来最后的数据的
 
     super.close()

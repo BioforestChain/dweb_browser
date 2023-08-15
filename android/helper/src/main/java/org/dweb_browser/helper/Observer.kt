@@ -9,9 +9,7 @@ open class Observer<T>(initValue: T) {
     state.emit(v)
   }
 
-  suspend fun observe(cb: FlowCollector<T>) {
-    state.collect(cb)
-  }
+  suspend fun observe(cb: FlowCollector<T>): Nothing = state.collect(cb)
 }
 
 class SimpleObserver : Observer<Int>(0) {
