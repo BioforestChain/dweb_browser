@@ -167,7 +167,7 @@ export class JsProcessMicroModule implements $MicroModule {
   private async _nativeFetch(url: RequestInfo | URL, init?: RequestInit): Promise<Response> {
     const args = normalizeFetchArgs(url, init);
     const hostName = args.parsed_url.hostname;
-    if (!(hostName.endsWith(".dweb") && args.parsed_url.protocol === "file:") ) {
+    if (!(hostName.endsWith(".dweb") && args.parsed_url.protocol === "file:")) {
       const ipc_response = await this._nativeRequest(args.parsed_url, args.request_init);
       return ipc_response.toResponse(args.parsed_url.href);
     }
@@ -207,11 +207,13 @@ export class JsProcessMicroModule implements $MicroModule {
   // 外部request信号
   private _onRequestSignal = createSignal<$OnIpcRequestMessage>();
   private _on_activity_inited = false;
+  private _awaitPromiseActivity = new PromiseOut()
   onActivity(cb: $OnIpcEventMessage) {
     if (this._on_activity_inited === false) {
       this._on_activity_inited = true;
       this.onConnect((ipc) => {
-        ipc.onEvent((ipcEvent, ipc) => {
+        ipc.onEvent(async(ipcEvent, ipc) => {
+          await this._awaitPromiseActivity.promise
           if (ipcEvent.name === MWEBVIEW_LIFECYCLE_EVENT.Activity) {
             return this._activitySignal.emit(ipcEvent, ipc);
           }
@@ -222,6 +224,7 @@ export class JsProcessMicroModule implements $MicroModule {
         ipc.onRequest((ipcRequest, ipc) => this._onRequestSignal.emit(ipcRequest, ipc));
       });
     }
+    this._awaitPromiseActivity.resolve(true)
     return this._activitySignal.listen(cb);
   }
 

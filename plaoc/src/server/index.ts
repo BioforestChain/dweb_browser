@@ -28,8 +28,6 @@ export const main = async () => {
       await mwebview_activate();
     }
   });
-  /// 立刻自启动
-  tryOpenView();
   /// 如果有人来激活，那我就唤醒我的界面
   jsProcess.onActivity(async (_ipcEvent, ipc) => {
     tryOpenView();

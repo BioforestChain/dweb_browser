@@ -25,11 +25,16 @@ export class TaskbarApi {
      */
     mm.runingApps.onChange((map) => {
       /// 将新增的打开应用追加到列表签名
-      for (const mmid of map.keys()) {
-        if (this._appList.includes(mmid) === false) {
-          this._appList.unshift(mmid);
-        }
+      for (const mmid of map.add) {
+        this._appList.unshift(mmid);
       }
+      //移除关闭的应用
+      this._appList = this._appList.filter((mmid)=>{
+        if (map.delete.includes(mmid)) {
+          return false
+        }
+        return true
+      })
       /// 保存到数据库
       deskStore.set("taskbar/apps", new Set(this._appList));
     });
@@ -288,7 +293,7 @@ export class TaskbarApi {
   private _desktopApi?: DesktopApi;
   getDesktopApi = once(async () => {
     const win = await this._createDesktopView();
-    return (this._desktopApi = new DesktopApi(win, this.mm, this.context, this.taskbarServer, this.desktopServer));
+    return (this._desktopApi = new DesktopApi(win, this.mm, this.context, this.taskbarServer));
   });
 
   close() {

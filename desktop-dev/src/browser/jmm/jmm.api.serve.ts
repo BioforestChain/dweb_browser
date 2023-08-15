@@ -46,12 +46,9 @@ export class JmmDatabase extends Store<{
     return this._apps.get(mmid);
   }
   async remove(mmid: $MMID) {
-    if (mmid in this._apps) {
-      this._apps.delete(mmid);
-      this._save();
-      return true;
-    }
-    return false;
+    this._apps.delete(mmid)
+    this._save();
+    return true;
   }
   async all() {
     return [...this._apps.values()];

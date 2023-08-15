@@ -148,6 +148,7 @@ export class DeskNMM extends NativeMicroModule {
       })
       .duplex("/taskbar/observe/status", async (event) => {
         const responseBody = new ReadableStreamOut<Uint8Array>();
+        // 桌面端 focus永远是true
         const doWriteJsonline = async () => {
           responseBody.controller.enqueue(simpleEncoder(`{"focus":true,"appId":"${focusApp}"}` + "\n", "utf8"));
         };

@@ -58,7 +58,6 @@ export class Server_www extends _Server_www {
   }
   override async _provider(request: FetchEvent): Promise<$OnFetchReturn> {
     let isEnableEmulator = request.searchParams.get(X_PLAOC_QUERY.EMULATOR);
-    console.log("wwwserve dev=>",request.pathname,isEnableEmulator)
     if (isEnableEmulator === null) {
       const ref = request.headers.get("referer");
       if (ref !== null) {

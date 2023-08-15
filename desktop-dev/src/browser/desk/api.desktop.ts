@@ -5,14 +5,15 @@ import { DeskNMM } from "./desk.nmm.ts";
 import { deskStore } from "./desk.store.ts";
 
 export class DesktopApi {
+  private _appOrders = deskStore.get("desktop/orders", () => new Map());
+
   constructor(
     private win: Electron.BrowserWindow,
     private mm: DeskNMM,
     private context: $BootstrapContext,
-    private taskbarServer: HttpDwebServer,
     private desktopServer: HttpDwebServer
   ) {}
-  private _appOrders = deskStore.get("desktop/orders", () => new Map());
+
   /** 列出桌面的应用列表 */
   async getDesktopAppList() {
     const apps = await this.context.dns.search(MICRO_MODULE_CATEGORY.Application);

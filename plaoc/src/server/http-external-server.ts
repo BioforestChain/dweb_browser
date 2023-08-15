@@ -6,6 +6,7 @@ import {
   $OnFetchReturn,
   FetchError,
   FetchEvent,
+  IpcEvent,
   IpcRequest,
   IpcResponse,
   PromiseOut,
@@ -13,7 +14,7 @@ import {
   createSignal,
   jsProcess,
   simpleEncoder,
-  u8aConcat,
+  u8aConcat
 } from "./deps.ts";
 import { HttpServer, cors } from "./http-helper.ts";
 
@@ -54,7 +55,6 @@ export class Server_external extends HttpServer {
        * 这里会处理api的消息返回到前端serviceWorker 构建onFetchEvent 并触发fetch事件
        */
       const action = event.searchParams.get("action");
-      console.log("action=>",jsProcess.mmid,action)
       if (action === "listen") {
         const streamPo = new ReadableStreamOut<Uint8Array>();
         const ob = { controller: streamPo.controller };
@@ -65,13 +65,20 @@ export class Server_external extends HttpServer {
           ob.controller.enqueue(u8aConcat([uint8, jsonlineEnd]));
         });
         // 等待监听流的建立再通知外部发送请求
-        console.log(`${jsProcess.mmid}fetch监听已经建立`)
+        console.log(`${jsProcess.mmid}fetch监听已经建立`);
         this.waitListener.resolve(true);
         return { body: streamPo.stream };
       }
       // 发送对外请求
       if (action === "request") {
         const mmid = event.searchParams.get("mmid") as $MMID | null;
+        if (!mmid) {
+          throw new FetchError("mmid must be passed", { status: 400 });
+        }
+        // 连接需要传递信息的jsMicroModule
+        const jsIpc = await jsProcess.connect(mmid);
+        //激活对面的程序
+        jsIpc.postMessage(IpcEvent.fromText("activity", "activity"))
         let pathname = event.searchParams.get("pathname") ?? "";
         // 删除不必要的search
         event.searchParams.delete("mmid");
@@ -79,22 +86,16 @@ export class Server_external extends HttpServer {
         event.searchParams.delete("action");
         event.searchParams.delete("pathname");
         pathname = pathname + event.search;
-        if (!mmid) {
-          throw new FetchError("mmid must be passed", { status: 400 });
-        }
 
-        // 连接需要传递信息的jsMicroModule
-        const jsIpc = await jsProcess.connect(mmid);
         const req_id = jsIpc.allocReqId();
-        const base = event.ipcRequest.parsed_url.origin
+        const base = event.ipcRequest.parsed_url.origin;
         const ipcRequest = IpcRequest.fromRequest(req_id, jsIpc, `${base}${pathname}`, {
           method: event.method,
           headers: event.headers,
           body: event.body,
         });
-        const result = jsIpc.registerReqId(req_id);
         jsIpc.postMessage(ipcRequest);
-        const response = await result.promise
+        const response = await jsIpc.registerReqId(req_id).promise;
         const ipcResponse = new IpcResponse(
           event.req_id,
           response.statusCode,
@@ -102,8 +103,6 @@ export class Server_external extends HttpServer {
           response.body,
           event.ipc
         );
-
-        cors(ipcResponse.headers);
         // 返回数据到前端
         return ipcResponse;
       }
