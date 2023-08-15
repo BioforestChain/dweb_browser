@@ -62,11 +62,6 @@ fun HomePage(viewModel: BrowserViewModel? = null) {
       horizontalAlignment = Alignment.CenterHorizontally,
       modifier = Modifier.align(Alignment.Center)
     ) {
-      AsyncImage(
-        model = R.drawable.ic_launcher,
-        contentDescription = "home",
-        modifier = Modifier.size(localConfiguration / 3)
-      )
       Spacer(modifier = Modifier.height(16.dp))
       val gradient = listOf(
         Color(0xFF71D78E), Color(0xFF548FE3)

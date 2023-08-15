@@ -130,7 +130,6 @@ fun PreviewBookPage(pageModel: BookPageModel) {
         id = i,
         title = "书签 Title $i",
         url = "http://baidu.com/$i",
-        icon = if (i % 2 != 0) null else ImageBitmap.imageResource(R.drawable.ic_launcher)
       )
     )
     viewModel.stopObserve = true;

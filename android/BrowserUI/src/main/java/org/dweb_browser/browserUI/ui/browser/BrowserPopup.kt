@@ -25,6 +25,8 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BrokenImage
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -40,10 +42,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -363,7 +368,7 @@ private fun PopContentView(
     modifier = Modifier
       .fillMaxSize()
       .background(MaterialTheme.colorScheme.background)
-      //.navigationBarsPadding()
+    //.navigationBarsPadding()
   ) {
     when (popupViewState.value) {
       PopupViewState.BookList -> BrowserListOfBook(bookViewModel,
@@ -614,7 +619,11 @@ private fun MultiItemView(
   Box(modifier = Modifier.size(width = sizeTriple.first, height = sizeTriple.third)) {
     Column(horizontalAlignment = CenterHorizontally) {
       Image(
-        bitmap = browserBaseView.bitmap ?: ImageBitmap.imageResource(id = R.drawable.ic_launcher),
+        painter = browserBaseView.bitmap?.let {
+          remember(it) {
+            BitmapPainter(it, filterQuality = FilterQuality.Medium)
+          }
+        } ?: rememberVectorPainter(Icons.Default.BrokenImage),
         contentDescription = null,
         modifier = Modifier
           .shadow(elevation = 4.dp, shape = RoundedCornerShape(16.dp))
