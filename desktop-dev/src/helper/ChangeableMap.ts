@@ -1,13 +1,13 @@
 import { $Callback, createSignal } from "./createSignal.ts";
 
 type stateKey = "add"| "delete"
-type changeState<K> = {
+export type changeState<K> = {
   [key in stateKey]: K[];
 }
 export class ChangeableMap<K, V> extends Map<K, V> {
   private _changeSignal = createSignal<$Callback<[changeState<K>]>>();
   onChange = this._changeSignal.listen;
-  emitChange = () => this._changeSignal.emit({add:[],delete:[]})
+  emitChange = (state:changeState<K> = {add:[],delete:[]}) => this._changeSignal.emit(state)
   override set(key: K, value: V) {
     if ((this.has(key) && this.get(key) === value) === false) {
       super.set(key, value);

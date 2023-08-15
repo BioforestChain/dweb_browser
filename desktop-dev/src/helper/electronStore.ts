@@ -9,7 +9,7 @@ import path from "node:path";
 export class Store<T extends { [key: string]: any }> {
   constructor(readonly name: string, options: { secret?: { key: Uint8Array; iv: Uint8Array } } = {}) {
     this._dataDir = resolveToDataRoot("store", this.name);
-    console.log("存储位置：",this._dataDir)
+
     /// 默认情况下，密钥使用 模块名称 进行加密
     this.#secretKey =
       options.secret?.key ??
@@ -54,26 +54,34 @@ export class Store<T extends { [key: string]: any }> {
   get<K extends keyof T & string>(key: K, orDefault: () => T[K]): T[K];
   get<K extends keyof T & string>(key: K, orDefault?: () => T[K]): T[K] | undefined;
   get<K extends keyof T & string>(key: K, orDefault?: () => T[K]) {
+    let res: T[K] | undefined = undefined;
     try {
       const data = fs.readFileSync(this._resolveKey(key));
-      return this.#decode(data) as T[K];
-    } catch {
+      if (data.length !== 0) {
+        res = this.#decode(data) as T[K];
+      }
+    } catch (e) {
+      console.error("get=>", e);
+    }
+    if (res === undefined) {
       if (orDefault) {
         const defaultValue = orDefault();
         if (this.set(key, defaultValue)) {
-          return defaultValue;
+          res = defaultValue;
+        } else {
+          throw new Error(`fail to save store for '${this.name}'`);
         }
-        throw new Error(`fail to save store for '${this.name}'`);
       }
-      return undefined;
     }
+    return res;
   }
   set<K extends keyof T & string>(key: K, value: T[K]) {
     try {
       const data = this.#encode(value);
       fs.writeFileSync(this._resolveKey(key), data);
       return true;
-    } catch {
+    } catch (e) {
+      console.error("set=>", e);
       return false;
     }
   }

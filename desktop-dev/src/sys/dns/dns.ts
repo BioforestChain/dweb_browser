@@ -7,7 +7,7 @@ import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import type { MicroModule } from "../../core/micro-module.ts";
 import { $ConnectResult, connectMicroModules } from "../../core/nativeConnect.ts";
 import type { $DWEB_DEEPLINK, $MMID } from "../../core/types.ts";
-import { ChangeableMap } from "../../helper/ChangeableMap.ts";
+import { ChangeableMap, changeState } from "../../helper/ChangeableMap.ts";
 import { simpleEncoder } from "../../helper/encoding.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
 import { fetchMatch } from "../../helper/patternHelper.ts";
@@ -165,19 +165,17 @@ export class DnsNMM extends NativeMicroModule {
       })
       .get("/observe/app", async (event) => {
         const responseBody = new ReadableStreamOut<Uint8Array>();
-        const doWriteJsonline = async () => {
+        const doWriteJsonline = async (state:changeState<string>) => {
           responseBody.controller.enqueue(
-            simpleEncoder(JSON.stringify(this.apps.size) + "\n", "utf8")
+            simpleEncoder(JSON.stringify(state) + "\n", "utf8")
           );
         };
         /// 监听变更，推送数据
-        const off = this.apps.onChange(doWriteJsonline);
+        const off = this.apps.onChange((state)=> doWriteJsonline(state));
         event.ipc.onClose(()=>{
           off()
           responseBody.controller.close()
         })
-        /// 发送一次现有的数据数据
-        void doWriteJsonline();
         return { body: responseBody.stream };
       })
       .deeplink("open", async (event) => {

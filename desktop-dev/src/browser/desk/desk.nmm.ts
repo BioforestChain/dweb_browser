@@ -4,7 +4,7 @@ import { buildRequestX } from "../../core/helper/ipcRequestHelper.ts";
 import { Ipc, IpcEvent } from "../../core/ipc/index.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import { $MMID } from "../../core/types.ts";
-import { ChangeableMap } from "../../helper/ChangeableMap.ts";
+import { ChangeableMap, changeState } from "../../helper/ChangeableMap.ts";
 import { $Callback, createSignal } from "../../helper/createSignal.ts";
 import { simpleEncoder } from "../../helper/encoding.ts";
 import { P, fetchMatch } from "../../helper/patternHelper.ts";
@@ -184,8 +184,8 @@ export class DeskNMM extends NativeMicroModule {
     const [opendAppIpc] = await connectResult;
     const res = await opendAppIpc.request("/observe/app");
     const stream = await res.body.stream();
-    for await (const app of jsonlinesStreamRead(stream)) {
-      this.runingApps.emitChange();
+    for await (const state of jsonlinesStreamRead<changeState<$MMID>>(stream)) {
+      this.runingApps.emitChange(state);
     }
   }
 
