@@ -84,7 +84,7 @@ class ReadableStreamTest : AsyncBase() {
         }
         req_ipc.close()
 
-        req_ipc.stream.afterClosed()
+        req_ipc.stream.waitClosed()
     }
 
 

@@ -27,6 +27,7 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printdebugln
 import org.dweb_browser.microservice.ipc.helper.ReadableStream
+import org.dweb_browser.microservice.ipc.helper.ReadableStreamOut
 import org.dweb_browser.microservice.ipc.helper.debugStream
 import org.http4k.core.Headers
 import org.http4k.core.Method
@@ -122,22 +123,36 @@ fun Request.toHttpRequestBuilder() = HttpRequestBuilder().also { httpRequestBuil
   httpRequestBuilder.setBody(this.body.stream)
 }
 
-suspend fun HttpResponse.toResponse() = Response(
+/**
+ * 这个函数发生在 prepareRequest(request.toHttpRequestBuilder()).execute 之内，
+ * 要求外部传入一个 ReadableStreamOut ，并且一定要在返回 response 后等待 stream.waitClosed
+ *
+ * 请仔细阅读文档： https://ktor.io/docs/response.html#streaming 了解原因
+ */
+suspend fun HttpResponse.toResponse(
+  streamOut: ReadableStreamOut
+) = Response(
   Status(this.status.value, this.status.description),
-  this.version.toString()
+  this.version.toString(),
 )
   .headers(this.headers.toHttp4kHeaders())
   .let {
-    val channel = this.bodyAsChannel()
+    /// 如果使用 channel.toReadableStream() 它独立开了一个 CoroutineScope 来做，这与 execute 在 finally 中执行 response.cleanup 是冲突的
+    /// 如果使用 channel.toInputStream() 它是阻塞读取，与我们要的效果不符合
+    /// 因此我们要外部传入 ReadableStreamOut，我这里返回 Response，同时外部用 readableStream.waitClosed() 来阻止 response.cleanup 的执行
+
+    this.bodyAsChannel().pipeToReadableStream(streamOut.controller)
     val bodyLen = this.contentLength()
-    it.body(channel.toInputStream(), bodyLen)
+    it.body(streamOut.stream, bodyLen)
   }
 
-suspend fun ByteReadChannel.toReadableStream() = ReadableStream(onStart = { controller ->
-  val id = debugStreamAccId.incrementAndGet();
-  debugStream("toReadableStream", "SS[$id] start")
+fun ByteReadChannel.toReadableStream() = ReadableStream(onStart = { pipeToReadableStream(it) })
+
+fun ByteReadChannel.pipeToReadableStream(controller: ReadableStream.ReadableStreamController) =
   CoroutineScope(ioAsyncExceptionHandler).launch {
-    this@toReadableStream.consumeEachBufferRange { byteArray, last ->
+    val id = debugStreamAccId.incrementAndGet();
+    debugStream("toReadableStream", "SS[$id] start")
+    consumeEachBufferRange { byteArray, last ->
       debugStream("toReadableStream", "SS[$id] enqueue ${byteArray.length()}")
       controller.enqueue(byteArray.moveToByteArray())
       if (last) {
@@ -147,4 +162,4 @@ suspend fun ByteReadChannel.toReadableStream() = ReadableStream(onStart = { cont
       true
     }
   }
-})
+

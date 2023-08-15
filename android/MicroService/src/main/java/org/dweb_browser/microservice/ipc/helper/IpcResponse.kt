@@ -1,6 +1,5 @@
 package org.dweb_browser.microservice.ipc.helper
 
-import org.dweb_browser.helper.printerrln
 import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.ipc.Ipc
 import org.http4k.core.Response
@@ -76,16 +75,31 @@ class IpcResponse(
       ipc,
     )
 
+    enum class BodyStrategy {
+      AUTO,
+      STREAM,
+      BINARY,
+    }
+
     fun fromResponse(
-      req_id: Int, response: Response, ipc: Ipc
+      req_id: Int, response: Response, ipc: Ipc, bodyStrategy: BodyStrategy = BodyStrategy.AUTO
     ) = IpcResponse(
       req_id,
       response.status.code,
       IpcHeaders(response.headers),
-      when (response.body.length) {
+      when (val len = response.body.length) {
         0L -> IpcBodySender.fromText("", ipc)
-        null -> IpcBodySender.fromStream(response.body.stream, ipc)
-        else -> IpcBodySender.fromBinary(response.body.payload.array(), ipc)
+        else -> when (bodyStrategy) {
+          BodyStrategy.AUTO -> if (len == null) false else len <= DEFAULT_BUFFER_SIZE
+          BodyStrategy.STREAM -> false
+          BodyStrategy.BINARY -> true
+        }.let { asBinary ->
+          if (asBinary) {
+            IpcBodySender.fromBinary(response.body.payload.array(), ipc)
+          } else {
+            IpcBodySender.fromStream(response.body.stream, ipc)
+          }
+        }
       },
       ipc,
     )
@@ -95,12 +109,12 @@ class IpcResponse(
     Response(
       Status.fromCode(statusCode) ?: throw Exception("invalid statusCode $statusCode")
     ).headers(this.headers.toList()).let { res ->
-        when (val body = body.raw) {
-          is String -> res.body(body)
-          is ByteArray -> res.body(body.inputStream(), body.size.toLong())
-          is InputStream -> res.body(body)
-          else -> throw Exception("invalid body to response: $body")
-        }
+      when (val body = body.raw) {
+        is String -> res.body(body)
+        is ByteArray -> res.body(body.inputStream(), body.size.toLong())
+        is InputStream -> res.body(body)
+        else -> throw Exception("invalid body to response: $body")
+      }
     }
 
   val ipcResMessage by lazy {

@@ -72,7 +72,8 @@ suspend fun startDwebBrowser(): DnsNMM {
         "DNS",
         "desk",
         "browser",
-        "JMM"
+        "JMM",
+        "/.+/",
       )
     )
     
@@ -165,7 +166,7 @@ suspend fun startDwebBrowser(): DnsNMM {
       desktopNMM.mmid,
     )
 
-    else -> listOf(browserNMM.mmid)
+    else -> listOf(desktopNMM.mmid)
   }
 
   /// 启动程序

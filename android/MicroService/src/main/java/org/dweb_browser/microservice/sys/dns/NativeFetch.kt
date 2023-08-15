@@ -2,12 +2,17 @@ package org.dweb_browser.microservice.sys.dns
 
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
-import io.ktor.client.request.request
+import io.ktor.client.request.prepareRequest
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import org.dweb_browser.helper.PromiseOut
+import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printdebugln
 import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.help.AdapterManager
 import org.dweb_browser.microservice.help.toHttpRequestBuilder
 import org.dweb_browser.microservice.help.toResponse
+import org.dweb_browser.microservice.ipc.helper.ReadableStreamOut
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Response
@@ -29,9 +34,26 @@ fun debugFetchFile(tag: String, msg: Any? = "", err: Throwable? = null) =
  */
 val nativeFetchAdaptersManager = AdapterManager<FetchAdapter>()
 
-private val client = HttpClient(CIO)
+private val client = HttpClient(CIO) {
+
+}
+
 suspend fun httpFetch(request: Request) = try {
-  client.request(request.toHttpRequestBuilder()).toResponse()
+  debugFetch("httpFetch request", request.uri)
+  val responsePo = PromiseOut<Response>()
+  CoroutineScope(ioAsyncExceptionHandler).launch {
+    client.prepareRequest(request.toHttpRequestBuilder()).execute {
+      val streamOut = ReadableStreamOut();
+      val response = it.toResponse(streamOut)
+      debugFetch("httpFetch response", request.uri)
+      responsePo.resolve(response)
+      streamOut.stream.waitClosed()
+      debugFetch("httpFetch end", request.uri)
+    }
+  }
+  responsePo.waitPromise().also {
+    debugFetch("httpFetch return", request.uri)
+  }
 } catch (e: Throwable) {
   Response(Status.SERVICE_UNAVAILABLE).body(e.stackTraceToString())
 }
@@ -43,7 +65,6 @@ suspend fun MicroModule.nativeFetch(request: Request): Response {
       return response
     }
   }
-  debugFetch("Net/nativeFetch", "$this => ${request.uri}")
 
   return httpFetch(request)
 }

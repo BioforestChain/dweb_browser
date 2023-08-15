@@ -231,7 +231,7 @@ class NativeIpcTest : AsyncBase() {
 
     clientStreamIpc.close()
 
-    clientStreamIpc.stream.afterClosed()
+    clientStreamIpc.stream.waitClosed()
 
     delay(1000)
     printDumpCoroutinesInfo()

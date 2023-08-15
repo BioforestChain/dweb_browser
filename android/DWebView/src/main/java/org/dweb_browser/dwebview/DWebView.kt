@@ -30,6 +30,7 @@ import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.lens.Header
+import java.io.ByteArrayInputStream
 import java.io.File
 
 fun debugDWebView(tag: String, msg: Any? = "", err: Throwable? = null) =
@@ -220,7 +221,7 @@ class DWebView(
 //        request.requestHeaders.toList().joinToString { "${it.first}=${it.second} " }
 //      }]"
 //    })
-    debugDWebView("dwebProxyer start", request.url)
+    debugDWebView("dwebProxyer request", request.url)
     val response = runBlockingCatching(ioAsyncExceptionHandler) {
       remoteMM.nativeFetch(
         Request(
@@ -228,16 +229,19 @@ class DWebView(
         ).headers(request.requestHeaders.toList())
       )
     }.getOrThrow()
-    debugDWebView("dwebProxyer done", request.url)
+    debugDWebView("dwebProxyer response", request.url)
 
     val contentType = Header.CONTENT_TYPE(response)
+    val body = ByteArrayInputStream(response.body.payload.array())
+    debugDWebView("dwebProxyer end", request.url)
     return WebResourceResponse(
       contentType?.value,
       contentType?.directives?.find { it.first == "charset" }?.second,
       response.status.code,
       response.status.description,
       response.headers.toMap(),
-      response.body.stream,
+      body,
+//      response.body.stream,
     )
   }
 

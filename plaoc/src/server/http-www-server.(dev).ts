@@ -83,7 +83,7 @@ export class Server_www extends _Server_www {
     /// 启用跳转模式
     const proxyUrl = new URL(request.pathname + request.search, xPlaocProxy);
     console.log("native fetch start:", proxyUrl.href);
-    const remoteIpcResponse = await jsProcess.nativeFetch(proxyUrl);
+    const remoteIpcResponse = await jsProcess.nativeRequest(proxyUrl);
     console.log("native fetch end:", proxyUrl.href);
     const headers = new IpcHeaders(remoteIpcResponse.headers);
     /// 对 html 做强制代理，似的能加入一些特殊的头部信息，确保能正确访问内部的资源
@@ -94,14 +94,14 @@ export class Server_www extends _Server_www {
       headers.delete("X-Frame-Options");
       /// 代理转发
       return {
-        status: remoteIpcResponse.status,
+        status: remoteIpcResponse.statusCode,
         headers,
         body: remoteIpcResponse.body,
       };
     } else {
       return {
         status: 301,
-        headers: headers.init("location", remoteIpcResponse.url),
+        headers: headers.init("location", proxyUrl.href),
       };
     }
   }

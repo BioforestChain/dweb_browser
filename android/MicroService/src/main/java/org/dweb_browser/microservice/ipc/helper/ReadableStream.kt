@@ -2,7 +2,6 @@ package org.dweb_browser.microservice.ipc.helper
 
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -49,7 +48,7 @@ class ReadableStream(
     suspend fun awaitClose(function: suspend () -> Unit) {
       coroutineScope {
         launch {
-          stream.afterClosed()
+          stream.waitClosed()
           function()
         }
       }
@@ -92,7 +91,7 @@ class ReadableStream(
 
   private val dataChangeObserver = SimpleObserver()
 
-  suspend fun afterClosed() {
+  suspend fun waitClosed() {
     closePo.waitPromise()
   }
 
@@ -261,4 +260,13 @@ class ReadableStream(
     }
     onStart(controller)
   }
+}
+
+
+class ReadableStreamOut {
+  private lateinit var _controller: ReadableStream.ReadableStreamController
+  val stream = ReadableStream(onStart = {
+    _controller = it
+  })
+  val controller get() = _controller
 }
