@@ -123,7 +123,7 @@
       android:exported="true"
       android:theme="@style/Theme.AppCompat.Transparent">
       <intent-filter>
-        <action android:name="info.bagen.dwebbrowser.share" />
+        <action android:name="${applicationId}.share" />
       </intent-filter>
     </activity>
     <activity
@@ -135,7 +135,7 @@
       android:name=".microService.browser.jmm.ui.JmmManagerActivity"
       android:exported="true">
       <intent-filter>
-        <action android:name="info.bagen.dwebbrowser.openjmm" />
+        <action android:name="${applicationId}.openjmm" />
       </intent-filter>
     </activity>
 
@@ -144,7 +144,7 @@
 
     <provider
       android:name="androidx.core.content.FileProvider"
-      android:authorities="info.bagen.dwebbrowser.file.opener.provider"
+      android:authorities="${applicationId}.file.opener.provider"
       android:exported="false"
       android:grantUriPermissions="true">
       <meta-data

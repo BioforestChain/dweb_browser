@@ -20,6 +20,7 @@ import info.bagen.dwebbrowser.microService.sys.haptics.HapticsNMM
 import info.bagen.dwebbrowser.microService.sys.notification.NotificationNMM
 import info.bagen.dwebbrowser.microService.sys.share.ShareNMM
 import info.bagen.dwebbrowser.microService.sys.toast.ToastNMM
+import info.bagen.dwebbrowser.microService.sys.window.WindowNMM
 
 val InternalBranch = when (DEVELOPER.CURRENT) {
   DEVELOPER.GAUBEE, DEVELOPER.HuangLin, DEVELOPER.HLOppo, DEVELOPER.WaterBang, DEVELOPER.HLVirtual -> true
@@ -126,6 +127,7 @@ suspend fun startDwebBrowser(): DnsNMM {
   /// 安装Jmm
   val jmmNMM = JmmNMM().also { dnsNMM.install(it) }
   val desktopNMM = DesktopNMM().also { dnsNMM.install(it) }
+  val windowNMM = WindowNMM().also { dnsNMM.install(it) }
 
   /**
    *

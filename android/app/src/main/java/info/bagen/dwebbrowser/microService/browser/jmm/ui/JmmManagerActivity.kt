@@ -14,13 +14,12 @@ import org.dweb_browser.microservice.help.JmmAppInstallManifest
 class JmmManagerActivity : BaseActivity() {
 
   companion object {
-    const val ACTION_LAUNCH = "info.bagen.dwebbrowser.openjmm"
     const val KEY_JMM_METADATA = "key_jmm_meta_data"
 
     fun startActivity(dataMetadata: JmmAppInstallManifest) {
       App.startActivity(JmmManagerActivity::class.java) { intent ->
-        intent.action = ACTION_LAUNCH
-        intent.`package` = "info.bagen.dwebbrowser"
+        intent.action = "${App.appContext.packageName}.openjmm"
+        intent.`package` = App.appContext.packageName
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NEW_DOCUMENT
         intent.putExtra(KEY_JMM_METADATA, dataMetadata)
       }

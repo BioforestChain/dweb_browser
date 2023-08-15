@@ -19,7 +19,7 @@ object PlaocUtil {
 //                .setIcon(IconCompat.createWithResource(context, R.mipmap.ic_scan))
 //                .setIntent(
 //                    Intent(
-//                        "info.bagen.dwebbrowser.qrcodescan",
+//                        "${App.appContext.packageName}.qrcodescan",
 //                        null,
 //                        context,
 //                        QRCodeScanningActivity::class.java

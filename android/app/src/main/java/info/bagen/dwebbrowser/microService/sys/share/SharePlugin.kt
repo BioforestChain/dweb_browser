@@ -111,7 +111,7 @@ object SharePlugin {
                     val  shareFile =  App.appContext.let {
                         FileProvider.getUriForFile(
                             it,
-                            "info.bagen.dwebbrowser.file.opener.provider",
+                            "${App.appContext.packageName}.file.opener.provider",
                             File(fileUrl.path!!)
                         )
                     }

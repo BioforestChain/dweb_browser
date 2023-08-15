@@ -87,7 +87,7 @@ class ShareNMM : AndroidNativeMicroModule("share.sys.dweb", "share") {
   private fun openActivity() {
     val activity = getActivity()
     val intent = Intent(getActivity(), ShareActivity::class.java)
-    intent.action = "info.bagen.dwebbrowser.share"
+    intent.action = "${App.appContext.packageName}.share"
     intent.`package` = App.appContext.packageName
 //         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
 //         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

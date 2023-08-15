@@ -16,7 +16,6 @@ android {
     targetSdk = BuildVersion.targetSdkVersion
     versionCode = BuildVersion.versionCode
     versionName = BuildVersion.versionName
-//  project = "Scanner"
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
     //ndk.abiFilters.addAll(listOf("armeabi-v7a", "x86", "x86_64"))
@@ -56,6 +55,13 @@ android {
       isMinifyEnabled = true //开启代码混淆
       setProguardFiles(listOf("proguard-rules.pro"))
       isShrinkResources = true //移除无用的resource文件
+    }
+    debug {
+      defaultConfig {
+        applicationIdSuffix = ".debug"
+        versionNameSuffix = "-debug"
+
+      }
     }
     create("benchmark") {
       matchingFallbacks += listOf("debug")

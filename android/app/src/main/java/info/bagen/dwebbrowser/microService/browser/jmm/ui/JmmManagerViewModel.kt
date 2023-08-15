@@ -95,7 +95,7 @@ class JmmManagerViewModel(
 
             DownLoadStatus.INSTALLED -> { // 点击打开app触发的事件
               //jmmController?.openApp(uiState.downloadInfo.value.jmmMetadata.id)
-              jmmController?.openApp(uiState.downloadInfo.value.id)
+              jmmController.openApp(uiState.downloadInfo.value.id)
             }
           }
         }
