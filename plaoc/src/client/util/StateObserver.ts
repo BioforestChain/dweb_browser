@@ -15,7 +15,8 @@ export class StateObserver<RAW, STATE> {
     private coder: {
       decode: $Transform<RAW, STATE>;
       encode: $Transform<STATE, RAW>;
-    }
+    },
+    private buildWsUrl: (ws_url: URL) => Promise<URL | void> = async (ws_url) => ws_url
   ) {}
 
   async *jsonlines(options?: { signal?: AbortSignal }) {
@@ -23,7 +24,7 @@ export class StateObserver<RAW, STATE> {
     const url = new URL(pub_url.replace(/^http:/, "ws:"));
     // 内部的监听
     url.pathname = `/${this.plugin.mmid}/observe`;
-    const ws = new WebSocket(url);
+    const ws = new WebSocket((await this.buildWsUrl(url)) ?? url);
     this._ws = ws;
     ws.binaryType = "arraybuffer";
     const streamout = new ReadableStreamOut();

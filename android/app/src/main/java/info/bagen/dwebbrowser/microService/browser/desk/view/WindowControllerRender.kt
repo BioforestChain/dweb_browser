@@ -79,9 +79,7 @@ fun DesktopWindowController.Render(
   )
 
   val isDark = isSystemInDarkTheme()
-  val theme = remember(isDark) {
-    win.buildTheme(isDark)
-  };
+  val theme = win.buildTheme(isDark);
   CompositionLocalProvider(
     LocalContentColor provides MaterialTheme.colorScheme.onPrimary,
     LocalWindowPadding provides winPadding,
@@ -114,12 +112,13 @@ fun DesktopWindowController.Render(
         ),
     ) {
       //#region 窗口内容
-      Column(Modifier
-        .background(theme.winFrameBrush)
-        .clip(winPadding.boxRounded.toRoundedCornerShape())
-        .clickable {
-          win.emitFocusOrBlur(true)
-        }) {
+      Column(
+        Modifier
+          .background(theme.winFrameBrush)
+          .clip(winPadding.boxRounded.toRoundedCornerShape())
+          .clickable {
+            win.emitFocusOrBlur(true)
+          }) {
         /// 标题栏
         WindowTopBar(win)
         /// 显示内容

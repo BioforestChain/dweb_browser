@@ -63,4 +63,5 @@ export interface $BuildRequestInit extends RequestInit {
     // deno-lint-ignore no-explicit-any
     | Record<string, any>;
   base?: string;
+  pathPrefix?: string;
 }

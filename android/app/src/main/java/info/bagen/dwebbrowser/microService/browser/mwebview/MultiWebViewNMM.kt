@@ -1,6 +1,7 @@
 package info.bagen.dwebbrowser.microService.browser.mwebview
 
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
+import info.bagen.dwebbrowser.microService.core.UUID
 import info.bagen.dwebbrowser.microService.core.WindowState
 import info.bagen.dwebbrowser.microService.core.windowAdapterManager
 import kotlinx.coroutines.GlobalScope
@@ -58,8 +59,8 @@ class MultiWebViewNMM :
           controller?.destroyWebView()
         }
 
-        val viewItem = openDwebView(url, remoteMm, ipc)
-        return@defineHandler ViewItemResponse(viewItem.webviewId)
+        val (viewItem, controller) = openDwebView(url, remoteMm, ipc)
+        return@defineHandler ViewItemResponse(viewItem.webviewId, controller.win.id)
       },
       // 关闭指定 webview 窗口
       "/close" bind Method.GET to defineHandler { request, ipc ->
@@ -84,7 +85,7 @@ class MultiWebViewNMM :
     )
   }
 
-  data class ViewItemResponse(val webviewId: String)
+  data class ViewItemResponse(val webviewId: String, val wid: UUID)
 
   override suspend fun _shutdown() {
     apiRouting = null
@@ -94,7 +95,7 @@ class MultiWebViewNMM :
     url: String,
     remoteMm: MicroModule,
     ipc: Ipc,
-  ): ViewItem {
+  ): Pair<ViewItem, MultiWebViewController> {
     val remoteMmid = remoteMm.mmid
     debugMultiWebView("/open", "remote-mmid: $remoteMmid / url:$url")
 
@@ -122,7 +123,7 @@ class MultiWebViewNMM :
       }
     }
 
-    return controller.openWebView(url)
+    return Pair(controller.openWebView(url), controller)
   }
 
   private suspend fun closeDwebView(remoteMmid: String, webviewId: String): Boolean {

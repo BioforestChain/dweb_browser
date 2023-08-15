@@ -2,7 +2,9 @@ import { jsProcess } from "./deps.ts";
 
 /**开启新页面 */
 export const mwebview_open = async (url: string) => {
-  return await jsProcess.nativeFetch(`file://mwebview.browser.dweb/open?url=${encodeURIComponent(url)}`).text();
+  return await jsProcess
+    .nativeFetch(`file://mwebview.browser.dweb/open?url=${encodeURIComponent(url)}`)
+    .object<{ webviewId: string; wid: string }>();
 };
 
 /**

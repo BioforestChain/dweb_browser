@@ -25,7 +25,7 @@ export abstract class BasePlugin {
   }
   buildApiRequest(pathname: string, init?: $BuildRequestWithBaseInit) {
     const url = new URL(init?.base ?? BasePlugin.url);
-    url.pathname = `${this.mmid}${pathname}`;
+    url.pathname = `${init?.pathPrefix ?? this.mmid}${pathname}`;
     return buildRequest(url, init);
   }
 

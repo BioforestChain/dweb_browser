@@ -30,10 +30,11 @@ export class Server_api extends _Server_api {
 
   protected override async _onApi(event: FetchEvent) {
     const sessionId = event.searchParams.get(X_PLAOC_QUERY.SESSION_ID);
-    if (!sessionId) {
-      throw new Error("no found sessionId");
-    }
+    /// 模拟器建立连接
     if (event.pathname === EMULATOR_PREFIX) {
+      if (!sessionId) {
+        throw new Error("no found sessionId");
+      }
       const mmid = event.searchParams.get("mmid") as $MMID;
 
       const streamIpc = new ReadableStreamIpc(
@@ -60,7 +61,12 @@ export class Server_api extends _Server_api {
       /// 返回读写这个stream的链接，注意，目前双工需要客户端通过 WebSocket 来达成支持
       return { body: streamIpc.stream };
     }
-    return super._onApi(event, (mmid) => getConncetdIpc(sessionId, mmid) ?? jsProcess.connect(mmid), false);
+    /// 请求模拟器或者直接请求原生
+    return super._onApi(
+      event,
+      (mmid) => (sessionId && getConncetdIpc(sessionId, mmid)) ?? jsProcess.connect(mmid),
+      false
+    );
   }
 }
 

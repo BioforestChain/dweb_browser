@@ -19,20 +19,31 @@ export class WindowPlugin extends BasePlugin {
     }),
   };
   @cacheGetter()
+  get windowInfo() {
+    return this.fetchApi("/window-info", { pathPrefix: "internal" }).object<{ wid: string }>();
+  }
+  @cacheGetter()
   get state() {
-    return new StateObserver(this, () => this.fetchState<$WindowRawState>(), this.coder);
+    return new StateObserver(
+      this,
+      () => this.fetchState<$WindowRawState>(),
+      this.coder,
+      async (url) => {
+        url.searchParams.set("wid", (await this.windowInfo).wid);
+      }
+    );
   }
   @bindThis
   protected async fetchState<S extends $WindowRawState>() {
-    return await this.fetchApi("/getState").object<S>();
+    return await this.fetchApi("/getState", { search: await this.windowInfo }).object<S>();
   }
   get getState() {
     return this.state.getState;
   }
 
   @bindThis
-  setTopBarStyle(options: { contentColor?: string; backgroundColor?: string; overlay?: boolean }) {
-    return this.fetchApi("/setTopBarStyle", { search: options }).void();
+  async setTopBarStyle(options: { contentColor?: string; backgroundColor?: string; overlay?: boolean }) {
+    return this.fetchApi("/setTopBarStyle", { search: { ...options, ...(await this.windowInfo) } }).void();
   }
 }
 export const windowPlugin = new WindowPlugin();

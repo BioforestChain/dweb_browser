@@ -31,7 +31,7 @@ fun Color.toHex(alpha: Boolean = true): String = convert(ColorSpaces.Srgb).let {
 }
 
 fun String.asColorHex(start: Int = 0, len: Int = 2): Int {
-  var hex = this.slice(start..(start + len))
+  var hex = this.slice(start..<(start + len))
   if (len == 1) {
     hex += hex
   }

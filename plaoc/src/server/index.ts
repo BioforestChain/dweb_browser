@@ -14,6 +14,7 @@ export const main = async () => {
    * 启动主页面的地址
    */
   const indexUrlPo = new PromiseOut<string>();
+  const widPo = new PromiseOut<string>();
 
   /**
    * 尝试打开gui，或者激活窗口
@@ -23,7 +24,8 @@ export const main = async () => {
     const url = await indexUrlPo.promise;
     if (all_webview_status.size === 0) {
       await sync_mwebview_status();
-      await mwebview_open(url);
+      const { wid } = await mwebview_open(url);
+      widPo.resolve(wid);
     } else {
       await mwebview_activate();
     }
@@ -38,7 +40,7 @@ export const main = async () => {
   //#region 启动http服务
   const wwwServer = new Server_www();
   const externalServer = new Server_external();
-  const apiServer = new Server_api();
+  const apiServer = new Server_api(widPo);
   void wwwServer.start();
   void externalServer.start();
   void apiServer.start();

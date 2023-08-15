@@ -1,10 +1,22 @@
-import { $DwebHttpServerOptions, $MMID, $OnFetchReturn, FetchEvent, IpcRequest, jsProcess } from "./deps.ts";
+import {
+  $DwebHttpServerOptions,
+  $MMID,
+  $OnFetchReturn,
+  FetchEvent,
+  IpcRequest,
+  PromiseOut,
+  jsProcess,
+} from "./deps.ts";
 import { HttpServer } from "./http-helper.ts";
 import { mwebview_destroy } from "./mwebview-helper.ts";
 const DNS_PREFIX = "/dns.std.dweb/";
+const INTERNAL_PREFIX = "/internal/";
 
 /**给前端的api服务 */
 export class Server_api extends HttpServer {
+  constructor(private widPo: PromiseOut<string>) {
+    super();
+  }
   protected _getOptions(): $DwebHttpServerOptions {
     return {
       subdomain: "api",
@@ -20,6 +32,8 @@ export class Server_api extends HttpServer {
     // /dns.std.dweb/
     if (event.pathname.startsWith(DNS_PREFIX)) {
       return this._onDns(event);
+    } else if (event.pathname.startsWith(INTERNAL_PREFIX)) {
+      return this._onInternal(event);
     }
     // /*.dweb
     return this._onApi(event);
@@ -44,6 +58,13 @@ export class Server_api extends HttpServer {
     };
 
     return new Response(await result());
+  }
+
+  protected async _onInternal(event: FetchEvent): Promise<$OnFetchReturn> {
+    const pathname = event.pathname.slice(INTERNAL_PREFIX.length);
+    if (pathname === "window-info") {
+      return Response.json({ wid: await this.widPo.promise });
+    }
   }
 
   /**

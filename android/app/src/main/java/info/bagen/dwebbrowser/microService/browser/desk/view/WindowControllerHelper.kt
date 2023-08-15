@@ -55,15 +55,21 @@ val DesktopWindowController.coroutineScope get() = context.lifecycleScope
  */
 @Composable
 fun <T> DesktopWindowController.watchedState(
+  key: Any? = null,
   policy: SnapshotMutationPolicy<T> = structuralEqualityPolicy(),
   filter: ((change: Observable.Change<WindowPropertyKeys, *>) -> Boolean)? = null,
-  getter: WindowState.() -> T,
-) = remember {
+  watchKey: WindowPropertyKeys? = null,
+  watchKeys: Set<WindowPropertyKeys>? = null,
+  getter: WindowState .() -> T,
+) = remember(key) {
   mutableStateOf(getter.invoke(state), policy)
 }.also { rememberState ->
   DisposableEffect(state) {
     val off = state.observable.onChange {
-      if (filter?.invoke(it) != false) {
+      if ((if (watchKey != null) watchKey == it.key else true)
+        && (if (watchKeys != null) watchKeys.contains(it.key) else true)
+        && filter?.invoke(it) != false
+      ) {
         rememberState.value = getter.invoke(state)
       }
     }
@@ -428,9 +434,15 @@ data class WindowControllerTheme(
 /**
  * 构建颜色
  */
+@Composable
 fun DesktopWindowController.buildTheme(dark: Boolean): WindowControllerTheme {
-  val themeColor =
-    state.themeColor.asWindowStateColor(md_theme_light_surface, md_theme_dark_surface, dark)
+  val themeColor by watchedState(dark, watchKey = WindowPropertyKeys.ThemeColor) {
+    themeColor.asWindowStateColor(
+      md_theme_light_surface,
+      md_theme_dark_surface,
+      dark
+    )
+  }
 
   val (lightContent, darkContent) = if (dark) {
     Pair(md_theme_dark_onSurface, md_theme_dark_inverseOnSurface)
@@ -441,13 +453,38 @@ fun DesktopWindowController.buildTheme(dark: Boolean): WindowControllerTheme {
   fun calcContentColor(backgroundColor: Color) =
     if (backgroundColor.luminance() > 0.5f) darkContent else lightContent
 
-  val topBackgroundColor = state.topBarBackgroundColor.asWindowStateColor(themeColor)
-  val topContentColor =
-    state.topBarContentColor.asWindowStateColor { calcContentColor(topBackgroundColor) }
+  val topBackgroundColor by watchedState(
+    dark,
+    watchKey = WindowPropertyKeys.TopBarBackgroundColor
+  ) {
+    topBarBackgroundColor.asWindowStateColor(themeColor)
+  }
+  val topContentColor by watchedState(dark, watchKey = WindowPropertyKeys.TopBarContentColor) {
+    topBarContentColor.asWindowStateColor {
+      calcContentColor(
+        topBackgroundColor
+      )
+    }
+  }
 
-  val bottomBackgroundColor = state.bottomBarBackgroundColor.asWindowStateColor(themeColor)
-  val bottomContentColor =
-    state.bottomBarBackgroundColor.asWindowStateColor { calcContentColor(bottomBackgroundColor) }
+  val bottomBackgroundColor by watchedState(
+    dark,
+    watchKey = WindowPropertyKeys.BottomBarBackgroundColor
+  ) {
+    bottomBarBackgroundColor.asWindowStateColor(
+      themeColor
+    )
+  }
+  val bottomContentColor by watchedState(
+    dark,
+    watchKey = WindowPropertyKeys.BottomBarContentColor
+  ) {
+    bottomBarContentColor.asWindowStateColor {
+      calcContentColor(
+        bottomBackgroundColor
+      )
+    }
+  }
   return WindowControllerTheme(
     themeColor = themeColor,
     topBackgroundColor = topBackgroundColor,
