@@ -1,5 +1,3 @@
-import info.bagen.version.BuildVersion
-
 @Suppress("DSL_SCOPE_VIOLATION") // TODO: Remove once KTIJ-19369 is fixed
 plugins {
   id("java-library")
@@ -7,8 +5,8 @@ plugins {
 }
 
 java {
-  sourceCompatibility = BuildVersion.javaVersion
-  targetCompatibility = BuildVersion.javaVersion
+  sourceCompatibility = JavaVersion.valueOf(libs.versions.javaVersion.get())
+  targetCompatibility = JavaVersion.valueOf(libs.versions.javaVersion.get())
 }
 
 dependencies {

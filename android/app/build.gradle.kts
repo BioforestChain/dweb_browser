@@ -1,5 +1,3 @@
-import info.bagen.version.BuildVersion
-
 @Suppress("DSL_SCOPE_VIOLATION") // TODO: Remove once KTIJ-19369 is fixed
 plugins {
   alias(libs.plugins.androidApplication)
@@ -8,14 +6,14 @@ plugins {
   id("kotlin-kapt")
 }
 android {
-  compileSdk = BuildVersion.compileSdkVersion
+  compileSdk = libs.versions.compileSdkVersion.get().toInt()
   compileSdkPreview = "UpsideDownCake"
   defaultConfig {
     applicationId = "info.bagen.dwebbrowser"
-    minSdk = BuildVersion.minSdkVersion
-    targetSdk = BuildVersion.targetSdkVersion
-    versionCode = BuildVersion.versionCode
-    versionName = BuildVersion.versionName
+    minSdk = libs.versions.minSdkVersion.get().toInt()
+    targetSdk = libs.versions.targetSdkVersion.get().toInt()
+    versionCode = libs.versions.versionCode.get().toInt()
+    versionName = libs.versions.versionName.get()
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
     //ndk.abiFilters.addAll(listOf("armeabi-v7a", "x86", "x86_64"))
@@ -69,14 +67,14 @@ android {
     }
   }
   compileOptions {
-    sourceCompatibility = BuildVersion.javaVersion
-    targetCompatibility = BuildVersion.javaVersion
+    sourceCompatibility = JavaVersion.valueOf(libs.versions.javaVersion.get())
+    targetCompatibility = JavaVersion.valueOf(libs.versions.javaVersion.get())
   }
   kotlinOptions {
-    jvmTarget = BuildVersion.jvmTarget
+    jvmTarget = libs.versions.jvmTarget.get()
     freeCompilerArgs += listOf(
       "-P",
-      "plugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=${BuildVersion.kotlinVersion}"
+      "plugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=${libs.versions.kotlin.version.get()}"
     )
   }
   buildFeatures {
@@ -84,7 +82,7 @@ android {
     viewBinding = true
   }
   composeOptions {
-    kotlinCompilerExtensionVersion = BuildVersion.kotlinCompilerExtensionVersion
+    kotlinCompilerExtensionVersion = libs.versions.kotlinCompilerExtensionVersion.get()
   }
   lint {
     abortOnError = false

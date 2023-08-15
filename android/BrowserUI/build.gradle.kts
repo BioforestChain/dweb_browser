@@ -1,5 +1,3 @@
-import info.bagen.version.BuildVersion
-
 @Suppress("DSL_SCOPE_VIOLATION") // TODO: Remove once KTIJ-19369 is fixed
 plugins {
   alias(libs.plugins.androidLibrary)
@@ -9,9 +7,9 @@ plugins {
 
 android {
   namespace = "org.dweb_browser.browserUI"
-  compileSdk = BuildVersion.compileSdkVersion
+  compileSdk = libs.versions.compileSdkVersion.get().toInt()
   defaultConfig {
-    minSdk = BuildVersion.minSdkVersion
+    minSdk = libs.versions.minSdkVersion.get().toInt()
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     vectorDrawables {
@@ -26,17 +24,17 @@ android {
     }
   }
   compileOptions {
-    sourceCompatibility = BuildVersion.javaVersion
-    targetCompatibility = BuildVersion.javaVersion
+    sourceCompatibility = JavaVersion.valueOf(libs.versions.javaVersion.get())
+    targetCompatibility = JavaVersion.valueOf(libs.versions.javaVersion.get())
   }
   kotlinOptions {
-    jvmTarget = BuildVersion.jvmTarget
+    jvmTarget = libs.versions.jvmTarget.get()
   }
   buildFeatures {
     compose = true
   }
   composeOptions {
-    kotlinCompilerExtensionVersion = BuildVersion.kotlinCompilerExtensionVersion
+    kotlinCompilerExtensionVersion = libs.versions.kotlinCompilerExtensionVersion.get()
   }
   packaging {
     resources {

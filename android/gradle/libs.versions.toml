@@ -1,7 +1,17 @@
 [versions]
+compileSdkVersion = "33" # Int
+buildToolsVersion = "29.0.2"
+minSdkVersion = "28" # Int
+targetSdkVersion = "33" # Int
+versionCode = "6" # Int
+versionName = "1.1.5"
+kotlinCompilerExtensionVersion = "1.5.1"
+jvmTarget = "17"
+javaVersion = "VERSION_17" # JavaVersion.VERSION_17
+
 agp = "8.2.0-alpha15"
-kotlin = "1.8.10"
-core-ktx = "1.9.0"
+kotlin-version = "1.9.0"
+core-ktx = "1.10.1"
 ksp = "1.9.0-1.0.13"
 junit = "4.13.2"
 androidx-test-ext-junit = "1.1.5"
@@ -11,7 +21,7 @@ compose-bom = "2023.05.01"
 lifecycle-service = "2.6.1"
 org-jetbrains-kotlin-jvm = "1.9.0"
 
-androidx-activity = "1.8.0-alpha04"
+androidx-activity = "1.8.0-alpha06"
 androidx-appcompat = "1.6.1"
 androidx-core-kotlin = "1.10.1"
 androidx-core-splashscreen = "1.1.0-alpha01"
@@ -26,7 +36,7 @@ ktor-version = "2.3.3"
 kotlinx-coroutines-core = "1.7.1"
 
 accompanist = "0.31.6-rc"
-google-material = "1.8.0"
+google-material = "1.9.0"
 data-gson = "2.10.1"
 data-moshi-pack = "1.0.1"
 data-store = "1.0.0"
@@ -135,7 +145,7 @@ android-test-espresso = { group = "androidx.test.espresso", name = "espresso-cor
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
-kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin-version" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
 org-jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "org-jetbrains-kotlin-jvm" }
 kspAndroid = { id = "com.google.devtools.ksp", version.ref = "ksp"}
