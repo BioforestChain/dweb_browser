@@ -192,9 +192,9 @@ export type $RunMainConfig = {
 Object.assign(globalThis, APIS);
 
 const html = String.raw;
-ALL_PROCESS_MAP.onChange((map) => {
+ALL_PROCESS_MAP.onChange(() => {
   let innerHTML = "";
-  for (const [process_id, processDetail] of map) {
+  for (const [process_id, processDetail] of ALL_PROCESS_MAP) {
     innerHTML += html`<div>
       <span>PID:${process_id}</span>
       <span>URL:${processDetail.env_script_url}</span>

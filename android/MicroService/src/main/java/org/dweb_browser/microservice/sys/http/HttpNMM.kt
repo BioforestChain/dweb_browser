@@ -72,11 +72,11 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
                 matchResult.groupValues.getOrNull(1)?.also { base64Content ->
                   val userInfo = base64Content.base64Decoded()
                   val splitIndex = userInfo.lastIndexOf(':')
-                  if (splitIndex == -1) {
-                    header_auth_host = userInfo
+                  header_auth_host = if (splitIndex == -1) {
+                    userInfo
                   } else {
-                    header_auth_host = userInfo.slice(0 until splitIndex)
-                  }
+                    userInfo.slice(0 until splitIndex)
+                  }.decodeURIComponent()
                 }
               }
           }

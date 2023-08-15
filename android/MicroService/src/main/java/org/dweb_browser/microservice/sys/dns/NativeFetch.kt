@@ -11,6 +11,7 @@ import org.dweb_browser.microservice.help.toResponse
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Response
+import org.http4k.core.Status
 import org.http4k.core.Uri
 
 
@@ -29,8 +30,11 @@ fun debugFetchFile(tag: String, msg: Any? = "", err: Throwable? = null) =
 val nativeFetchAdaptersManager = AdapterManager<FetchAdapter>()
 
 private val client = HttpClient(CIO)
-suspend fun httpFetch(request: Request) =
+suspend fun httpFetch(request: Request) = try {
   client.request(request.toHttpRequestBuilder()).toResponse()
+} catch (e: Throwable) {
+  Response(Status.SERVICE_UNAVAILABLE).body(e.stackTraceToString())
+}
 
 suspend fun MicroModule.nativeFetch(request: Request): Response {
   for (fetchAdapter in nativeFetchAdaptersManager.adapters) {

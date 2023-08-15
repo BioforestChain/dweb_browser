@@ -48,20 +48,21 @@ suspend fun startDwebBrowser(): DnsNMM {
   "desk",
    */
   when (DEVELOPER.CURRENT) {
-    DEVELOPER.GAUBEE -> debugTags.addAll(
+    DEVELOPER.GAUBEE -> addDebugTags(
       listOf<String>(
         "JsMM",
         "http",
+        "/.+/",
 //        "fetch",
 //        "message-port-ipc"
       )
     )
 
-    DEVELOPER.HuangLin, DEVELOPER.HLVirtual, DEVELOPER.HLOppo, DEVELOPER.HBXiaomi, DEVELOPER.ZGSansung -> debugTags.addAll(
+    DEVELOPER.HuangLin, DEVELOPER.HLVirtual, DEVELOPER.HLOppo, DEVELOPER.HBXiaomi, DEVELOPER.ZGSansung -> addDebugTags(
       listOf("fetch", "http", "mwebview", "fetch-file", "js-process", "Desktop")
     )
 
-    DEVELOPER.WaterBang -> debugTags.addAll(
+    DEVELOPER.WaterBang -> addDebugTags(
       listOf(
         "dwebview",
         "mwebview",
@@ -75,7 +76,7 @@ suspend fun startDwebBrowser(): DnsNMM {
       )
     )
 
-    else -> debugTags.addAll(
+    else -> addDebugTags(
       listOf("Share", "browser")
     )
   }
