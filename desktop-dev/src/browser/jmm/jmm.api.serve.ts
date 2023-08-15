@@ -76,7 +76,7 @@ export async function createApiServer(this: JmmNMM) {
       },
       async (event) => {
         if (event.pathname === "/close/self") {
-          return await this.nativeFetch(`file://mwebview.browser.dweb/close/window`);
+          return await this.nativeFetch(`file://mwebview.browser.dweb/close/app`);
         }
       },
       async (event) => {

@@ -76,7 +76,6 @@ export class TaskbarApi {
 
   async getTaskbarAppList(limit: number) {
     const apps = new Map<$MMID, $DeskAppMetaData>();
-
     for (const app_id of this._appList) {
       if (apps.size >= limit) {
         break;

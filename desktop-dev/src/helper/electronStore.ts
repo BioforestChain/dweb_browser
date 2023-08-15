@@ -9,7 +9,7 @@ import path from "node:path";
 export class Store<T extends { [key: string]: any }> {
   constructor(readonly name: string, options: { secret?: { key: Uint8Array; iv: Uint8Array } } = {}) {
     this._dataDir = resolveToDataRoot("store", this.name);
-
+    console.log("存储位置：",this._dataDir)
     /// 默认情况下，密钥使用 模块名称 进行加密
     this.#secretKey =
       options.secret?.key ??
