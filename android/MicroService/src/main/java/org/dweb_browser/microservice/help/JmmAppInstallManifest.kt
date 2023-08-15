@@ -3,7 +3,6 @@ package org.dweb_browser.microservice.help
 import org.dweb_browser.helper.DisplayMode
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.ShortcutItem
-import java.beans.Transient
 import java.io.Serializable
 
 typealias MMID = String

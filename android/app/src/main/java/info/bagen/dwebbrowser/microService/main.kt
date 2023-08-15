@@ -1,26 +1,26 @@
 package info.bagen.dwebbrowser.microService
 
 import android.webkit.WebView
-import info.bagen.dwebbrowser.microService.browser.web.BrowserNMM
-import org.dweb_browser.helper.*
-import org.dweb_browser.microservice.sys.boot.BootNMM
-import org.dweb_browser.microservice.sys.dns.DnsNMM
-import org.dweb_browser.microservice.sys.http.HttpNMM
+import info.bagen.dwebbrowser.microService.browser.desk.DesktopNMM
 import info.bagen.dwebbrowser.microService.browser.jmm.JmmNMM
 import info.bagen.dwebbrowser.microService.browser.jsProcess.JsProcessNMM
+import info.bagen.dwebbrowser.microService.browser.mwebview.MultiWebViewNMM
 import info.bagen.dwebbrowser.microService.browser.nativeui.NativeUiNMM
 import info.bagen.dwebbrowser.microService.browser.nativeui.torch.TorchNMM
-import info.bagen.dwebbrowser.microService.browser.desk.DesktopNMM
-import info.bagen.dwebbrowser.microService.browser.mwebview.MultiWebViewNMM
+import info.bagen.dwebbrowser.microService.browser.web.BrowserNMM
 import info.bagen.dwebbrowser.microService.sys.LocalFileFetch
 import info.bagen.dwebbrowser.microService.sys.biometrics.BiometricsNMM
 import info.bagen.dwebbrowser.microService.sys.clipboard.ClipboardNMM
-import info.bagen.dwebbrowser.microService.sys.device.*
+import info.bagen.dwebbrowser.microService.sys.device.DeviceNMM
 import info.bagen.dwebbrowser.microService.sys.haptics.HapticsNMM
 import info.bagen.dwebbrowser.microService.sys.notification.NotificationNMM
 import info.bagen.dwebbrowser.microService.sys.share.ShareNMM
 import info.bagen.dwebbrowser.microService.sys.toast.ToastNMM
 import info.bagen.dwebbrowser.microService.sys.window.WindowNMM
+import org.dweb_browser.helper.addDebugTags
+import org.dweb_browser.microservice.sys.boot.BootNMM
+import org.dweb_browser.microservice.sys.dns.DnsNMM
+import org.dweb_browser.microservice.sys.http.HttpNMM
 
 val InternalBranch = when (DEVELOPER.CURRENT) {
   DEVELOPER.GAUBEE, DEVELOPER.HuangLin, DEVELOPER.HLOppo, DEVELOPER.WaterBang, DEVELOPER.HLVirtual -> true

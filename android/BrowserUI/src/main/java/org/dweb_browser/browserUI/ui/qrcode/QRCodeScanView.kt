@@ -92,11 +92,11 @@ import com.google.accompanist.permissions.PermissionState
 import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.mlkit.vision.barcode.common.Barcode
-import java.util.concurrent.Executors
-import org.dweb_browser.browserUI.R
-import org.dweb_browser.browserUI.ui.view.PermissionSingleView
 import kotlinx.coroutines.delay
+import org.dweb_browser.browserUI.R
 import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
+import org.dweb_browser.browserUI.ui.view.PermissionSingleView
+import java.util.concurrent.Executors
 
 internal const val PERMISSION_CAMERA = android.Manifest.permission.CAMERA
 internal const val PERMISSION_WRITE = android.Manifest.permission.WRITE_EXTERNAL_STORAGE

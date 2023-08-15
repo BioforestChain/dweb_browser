@@ -6,7 +6,6 @@ import android.content.Context
 import android.os.Build
 import android.view.RoundedCorner
 import android.view.WindowInsets
-import androidx.annotation.RequiresApi
 
 class WindowInsetsHelper {
   companion object {

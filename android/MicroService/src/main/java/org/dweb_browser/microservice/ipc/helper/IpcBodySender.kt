@@ -5,12 +5,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
-import org.dweb_browser.helper.readByteArray
 import org.dweb_browser.helper.SimpleCallback
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.debugger
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printerrln
+import org.dweb_browser.helper.readByteArray
 import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.microservice.ipc.Ipc
 import java.io.InputStream

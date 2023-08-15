@@ -5,10 +5,10 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.dweb_browser.helper.*
 import java.io.IOException
 import java.io.InputStream
 import java.util.concurrent.atomic.AtomicInteger
-import org.dweb_browser.helper.*
 
 fun debugStream(tag: String, msg: Any = "", err: Throwable? = null) =
   printdebugln("stream", tag, msg, err)

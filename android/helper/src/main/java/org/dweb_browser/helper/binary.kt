@@ -6,7 +6,7 @@ import java.net.URLDecoder
 import java.net.URLEncoder
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import java.util.*
+import java.util.Base64
 
 val base64Encoder by lazy {
   Base64.getEncoder()

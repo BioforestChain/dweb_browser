@@ -1,7 +1,7 @@
 package info.bagen.dwebbrowser.microService.sys.biometrics
 
 
-import org.dweb_browser.helper.*
+import org.dweb_browser.helper.PromiseOut
 import java.io.Serializable
 
 class BiometricsController {

@@ -3,13 +3,13 @@ package org.dweb_browser.dwebview.closeWatcher
 import android.annotation.SuppressLint
 import android.webkit.JavascriptInterface
 import kotlinx.coroutines.Dispatchers
-import org.dweb_browser.helper.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.dweb_browser.dwebview.base.ViewItem
+import org.dweb_browser.helper.*
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 

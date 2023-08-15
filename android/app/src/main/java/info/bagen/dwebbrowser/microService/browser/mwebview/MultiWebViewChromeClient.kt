@@ -6,12 +6,16 @@ import android.webkit.WebView
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import com.google.accompanist.web.AccompanistWebChromeClient
-import org.dweb_browser.helper.*
-import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
+import org.dweb_browser.helper.mainAsyncExceptionHandler
 
 class MultiWebViewChromeClient(
   private val controller: MultiWebViewController,

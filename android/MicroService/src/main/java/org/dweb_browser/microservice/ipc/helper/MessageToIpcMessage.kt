@@ -1,11 +1,8 @@
 package org.dweb_browser.microservice.ipc.helper
 
-import org.dweb_browser.helper.readByteArray
-import org.dweb_browser.helper.readInt
 import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.ipc.Ipc
-import java.io.InputStream
 
 fun jsonToIpcMessage(data: String, ipc: Ipc): Any? {
   if (data == "close" || data == "ping" || data == "pong") {

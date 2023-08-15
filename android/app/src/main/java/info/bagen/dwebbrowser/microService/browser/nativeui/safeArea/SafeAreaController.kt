@@ -9,12 +9,12 @@ import androidx.compose.foundation.layout.union
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import info.bagen.dwebbrowser.microService.sys.helper.InsetsJson
-import info.bagen.dwebbrowser.microService.sys.helper.toJsonAble
 import info.bagen.dwebbrowser.microService.browser.nativeui.NativeUiController
 import info.bagen.dwebbrowser.microService.browser.nativeui.base.InsetsController
 import info.bagen.dwebbrowser.microService.browser.nativeui.helper.debugNativeUi
 import info.bagen.dwebbrowser.microService.browser.nativeui.helper.plus
+import info.bagen.dwebbrowser.microService.sys.helper.InsetsJson
+import info.bagen.dwebbrowser.microService.sys.helper.toJsonAble
 
 /**
  * 安全区域，被 设备的顶部流海、状态栏、导航栏等原生UI所影响后，分割出inner、outer两个部分

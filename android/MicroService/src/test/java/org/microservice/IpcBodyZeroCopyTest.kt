@@ -1,17 +1,17 @@
 package org.microservice
 
+import kotlinx.coroutines.runBlocking
+import org.dweb_browser.microservice.core.BootstrapContext
+import org.dweb_browser.microservice.core.NativeMicroModule
+import org.dweb_browser.microservice.ipc.NativeIpc
+import org.dweb_browser.microservice.ipc.NativeMessageChannel
 import org.dweb_browser.microservice.ipc.helper.IPC_ROLE
 import org.dweb_browser.microservice.ipc.helper.IpcBodySender
 import org.dweb_browser.microservice.ipc.helper.IpcHeaders
 import org.dweb_browser.microservice.ipc.helper.IpcMessage
 import org.dweb_browser.microservice.ipc.helper.IpcMethod
 import org.dweb_browser.microservice.ipc.helper.IpcRequest
-import org.dweb_browser.microservice.ipc.NativeIpc
-import org.dweb_browser.microservice.ipc.NativeMessageChannel
 import org.dweb_browser.microservice.ipc.helper.ReadableStream
-import kotlinx.coroutines.runBlocking
-import org.dweb_browser.microservice.core.BootstrapContext
-import org.dweb_browser.microservice.core.NativeMicroModule
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 

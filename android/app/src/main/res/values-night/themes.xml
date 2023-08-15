@@ -1,4 +1,4 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
 
   <style name="Theme.dwebbrowser" parent="Theme.AppCompat.DayNight.NoActionBar">
     <!-- Primary brand color. -->

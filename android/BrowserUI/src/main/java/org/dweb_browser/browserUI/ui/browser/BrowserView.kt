@@ -37,14 +37,14 @@ import androidx.compose.ui.unit.sp
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.web.LoadingState
 import com.google.accompanist.web.WebView
-import org.dweb_browser.browserUI.R
-import org.dweb_browser.browserUI.ui.entity.BrowserBaseView
-import org.dweb_browser.browserUI.ui.entity.BrowserWebView
-import org.dweb_browser.browserUI.ui.qrcode.QRCodeScanView
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.dweb_browser.browserUI.R
 import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
+import org.dweb_browser.browserUI.ui.entity.BrowserBaseView
+import org.dweb_browser.browserUI.ui.entity.BrowserWebView
 import org.dweb_browser.browserUI.ui.loading.LoadingView
+import org.dweb_browser.browserUI.ui.qrcode.QRCodeScanView
 import org.dweb_browser.browserUI.ui.view.PrivacyView
 
 internal val dimenTextFieldFontSize = 16.sp

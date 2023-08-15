@@ -1,11 +1,7 @@
 package org.dweb_browser.helper
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.future.await
-import kotlinx.coroutines.launch
 import java.util.concurrent.CompletableFuture
-import java.util.function.BiConsumer
 
 open class PromiseOut<T> {
   companion object {

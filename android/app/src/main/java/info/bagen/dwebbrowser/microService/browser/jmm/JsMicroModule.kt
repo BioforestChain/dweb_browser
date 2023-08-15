@@ -1,10 +1,16 @@
 package info.bagen.dwebbrowser.microService.browser.jmm
 
-import org.dweb_browser.microservice.sys.dns.nativeFetch
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.dwebview.ipcWeb.Native2JsIpc
-import org.dweb_browser.helper.*
+import org.dweb_browser.helper.DisplayMode
+import org.dweb_browser.helper.ImageResource
+import org.dweb_browser.helper.PromiseOut
+import org.dweb_browser.helper.ShortcutItem
+import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.printdebugln
+import org.dweb_browser.helper.runBlockingCatching
+import org.dweb_browser.helper.toBase64Url
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.ConnectResult
 import org.dweb_browser.microservice.core.MicroModule
@@ -23,8 +29,14 @@ import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.ReadableStreamIpc
 import org.dweb_browser.microservice.ipc.helper.IpcMessageArgs
 import org.dweb_browser.microservice.ipc.helper.IpcResponse
-import org.http4k.core.*
-import java.util.*
+import org.dweb_browser.microservice.sys.dns.nativeFetch
+import org.http4k.core.Method
+import org.http4k.core.Request
+import org.http4k.core.Response
+import org.http4k.core.Status
+import org.http4k.core.Uri
+import org.http4k.core.query
+import java.util.Random
 
 fun debugJsMM(tag: String, msg: Any? = "", err: Throwable? = null) =
   printdebugln("JsMM", tag, msg, err)

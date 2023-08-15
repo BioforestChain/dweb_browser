@@ -1,7 +1,7 @@
-import org.dweb_browser.microservice.ipc.helper.ReadableStream
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.dweb_browser.microservice.ipc.helper.ReadableStream
 
 /**
  * You can edit, run, and share this code.

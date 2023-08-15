@@ -2,7 +2,7 @@ package info.bagen.dwebbrowser.microService.sys.share
 
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
-import org.dweb_browser.helper.*
+import org.dweb_browser.helper.PromiseOut
 
 class ShareController() {
 

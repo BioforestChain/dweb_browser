@@ -6,14 +6,19 @@ import android.os.Binder
 import android.os.IBinder
 import android.util.Log
 import android.widget.Toast
-import org.dweb_browser.microservice.help.MMID
-import org.dweb_browser.helper.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.dweb_browser.browserUI.database.JsMicroModuleStore
 import org.dweb_browser.browserUI.network.ApiService
 import org.dweb_browser.browserUI.util.FilesUtil
 import org.dweb_browser.browserUI.util.NotificationUtil
 import org.dweb_browser.browserUI.util.ZipUtil
+import org.dweb_browser.helper.mainAsyncExceptionHandler
+import org.dweb_browser.microservice.help.MMID
 import java.io.File
 
 internal interface IDwebBrowserBinder {

@@ -1,11 +1,11 @@
 package info.bagen.dwebbrowser.learn
 
 import info.bagen.dwebbrowser.AsyncBase
-import org.dweb_browser.helper.*
-import org.dweb_browser.helper.toByteArray
-import org.dweb_browser.helper.toInt
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
+import org.dweb_browser.helper.now
+import org.dweb_browser.helper.toByteArray
+import org.dweb_browser.helper.toInt
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 

@@ -3,8 +3,6 @@ package info.bagen.dwebbrowser.util
 import android.content.Context
 import android.widget.Toast
 import info.bagen.dwebbrowser.App
-import java.math.RoundingMode
-import java.text.DecimalFormat
 
 object PlaocUtil {
 

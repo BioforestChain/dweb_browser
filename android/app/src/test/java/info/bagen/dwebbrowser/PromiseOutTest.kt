@@ -1,7 +1,10 @@
 package info.bagen.dwebbrowser
 
-import org.dweb_browser.helper.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import org.dweb_browser.helper.PromiseOut
 import org.junit.jupiter.api.Test
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.test.assertEquals

@@ -1,11 +1,7 @@
 package info.bagen.dwebbrowser.microService.browser.desk
 
 import android.annotation.SuppressLint
-import android.graphics.PixelFormat
 import android.os.Bundle
-import android.view.Gravity
-import android.view.WindowManager
-import android.widget.LinearLayout
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Box
@@ -14,8 +10,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.web.WebView
 import info.bagen.dwebbrowser.base.BaseActivity

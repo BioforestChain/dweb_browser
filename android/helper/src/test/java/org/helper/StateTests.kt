@@ -1,6 +1,7 @@
 package org.helper
 
-import kotlinx.coroutines.*
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import org.dweb_browser.helper.State
 import org.junit.Assert.assertEquals
 import org.junit.jupiter.api.Test

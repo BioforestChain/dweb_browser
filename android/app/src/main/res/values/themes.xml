@@ -1,4 +1,4 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
   <!-- Base application theme. -->
   <style name="Theme.dwebbrowser" parent="Theme.AppCompat.Light.NoActionBar">
     <!-- Primary brand color. -->

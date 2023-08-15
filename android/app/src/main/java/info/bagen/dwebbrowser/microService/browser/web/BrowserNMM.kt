@@ -1,7 +1,5 @@
 package info.bagen.dwebbrowser.microService.browser.web
 
-import android.content.Intent
-import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.browser.desk.DeskLinkMetaData
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
 import info.bagen.dwebbrowser.microService.core.WindowMode
@@ -24,7 +22,6 @@ import org.http4k.lens.Query
 import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
-import java.util.UUID
 
 fun debugBrowser(tag: String, msg: Any? = "", err: Throwable? = null) =
   printdebugln("browser", tag, msg, err)

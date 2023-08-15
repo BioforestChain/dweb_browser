@@ -2,9 +2,9 @@ package org.dweb_browser.microservice.ipc.helper
 
 import com.google.gson.*
 import com.google.gson.annotations.JsonAdapter
-import java.lang.reflect.Type
 import org.dweb_browser.helper.*
 import org.dweb_browser.microservice.ipc.Ipc
+import java.lang.reflect.Type
 
 data class IpcMessageArgs(val message: IpcMessage, val ipc: Ipc) {
   val component1 get() = message

@@ -8,9 +8,9 @@ import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Looper
 import info.bagen.dwebbrowser.App
-import org.dweb_browser.helper.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import org.dweb_browser.helper.*
 import org.dweb_browser.microservice.help.gson
 import java.util.*
 

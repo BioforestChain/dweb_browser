@@ -1,6 +1,6 @@
 package org.dweb_browser.browserUI.network
 
-import info.bagen.dwebbrowser.network.base.*
+import info.bagen.dwebbrowser.network.base.checkAndBody
 import org.http4k.core.BodyMode.Stream
 import org.http4k.core.Request
 import java.io.File

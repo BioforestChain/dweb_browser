@@ -9,8 +9,8 @@ import android.os.Build
 import android.webkit.MimeTypeMap
 import androidx.core.content.FileProvider
 import info.bagen.dwebbrowser.App
+import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.microservice.help.MMID
-import org.dweb_browser.helper.*
 import java.io.File
 
 object SharePlugin {

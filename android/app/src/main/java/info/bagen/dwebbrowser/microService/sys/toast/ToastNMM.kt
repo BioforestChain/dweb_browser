@@ -1,16 +1,16 @@
 package info.bagen.dwebbrowser.microService.sys.toast
 
+import info.bagen.dwebbrowser.microService.sys.toast.ToastController.DurationType
+import info.bagen.dwebbrowser.microService.sys.toast.ToastController.PositionType
+import org.dweb_browser.microservice.core.BootstrapContext
+import org.dweb_browser.microservice.core.NativeMicroModule
+import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
+import org.dweb_browser.microservice.help.cors
 import org.http4k.core.Method
 import org.http4k.lens.Query
 import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
-import info.bagen.dwebbrowser.microService.sys.toast.ToastController.PositionType
-import info.bagen.dwebbrowser.microService.sys.toast.ToastController.DurationType
-import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
-import org.dweb_browser.microservice.core.BootstrapContext
-import org.dweb_browser.microservice.core.NativeMicroModule
-import org.dweb_browser.microservice.help.cors
 
 class ToastNMM : NativeMicroModule("toast.sys.dweb", "toast") {
 

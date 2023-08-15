@@ -1,7 +1,6 @@
 package info.bagen.dwebbrowser.microService.browser.jmm
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalConfiguration
 import info.bagen.dwebbrowser.microService.browser.jmm.ui.JmmManagerViewModel
 import info.bagen.dwebbrowser.microService.core.WindowController
 import info.bagen.dwebbrowser.microService.core.windowAdapterManager

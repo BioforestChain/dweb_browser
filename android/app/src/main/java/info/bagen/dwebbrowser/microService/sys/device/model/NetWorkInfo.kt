@@ -14,7 +14,7 @@ import java.io.FileReader
 import java.io.IOException
 import java.net.InetAddress
 import java.net.NetworkInterface
-import java.util.*
+import java.util.Collections
 import java.util.regex.Pattern
 
 data class NetWorkData(

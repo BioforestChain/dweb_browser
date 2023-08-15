@@ -1,15 +1,14 @@
 package info.bagen.dwebbrowser.microService.sys.haptics
 
-import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
+import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.cors
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
 import org.http4k.lens.Query
 import org.http4k.lens.string
-
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 

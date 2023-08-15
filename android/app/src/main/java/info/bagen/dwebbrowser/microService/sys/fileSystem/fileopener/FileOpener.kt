@@ -4,7 +4,7 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.webkit.MimeTypeMap
-import org.dweb_browser.helper.*
+import org.dweb_browser.helper.printerrln
 import java.io.File
 
 

@@ -5,7 +5,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.dweb_browser.microservice.help.MicroModuleManifest
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printdebugln
@@ -14,6 +13,7 @@ import org.dweb_browser.helper.readByteArray
 import org.dweb_browser.helper.readInt
 import org.dweb_browser.helper.toByteArray
 import org.dweb_browser.helper.toUtf8ByteArray
+import org.dweb_browser.microservice.help.MicroModuleManifest
 import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.help.moshiPack
 import org.dweb_browser.microservice.ipc.helper.IPC_ROLE

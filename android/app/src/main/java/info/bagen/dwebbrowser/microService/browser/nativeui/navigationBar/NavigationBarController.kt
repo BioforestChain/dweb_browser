@@ -2,18 +2,22 @@ package info.bagen.dwebbrowser.microService.browser.nativeui.navigationBar
 
 
 import androidx.activity.ComponentActivity
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.luminance
 import androidx.core.view.WindowInsetsCompat
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import info.bagen.dwebbrowser.microService.sys.helper.ColorJson
-import info.bagen.dwebbrowser.microService.sys.helper.InsetsJson
-import info.bagen.dwebbrowser.microService.sys.helper.toJsonAble
 import info.bagen.dwebbrowser.microService.browser.nativeui.NativeUiController
 import info.bagen.dwebbrowser.microService.browser.nativeui.base.BarController
 import info.bagen.dwebbrowser.microService.browser.nativeui.helper.BarStyle
 import info.bagen.dwebbrowser.microService.browser.nativeui.helper.debugNativeUi
 import info.bagen.dwebbrowser.microService.browser.nativeui.helper.toWindowsInsets
+import info.bagen.dwebbrowser.microService.sys.helper.ColorJson
+import info.bagen.dwebbrowser.microService.sys.helper.InsetsJson
+import info.bagen.dwebbrowser.microService.sys.helper.toJsonAble
 
 
 @Stable

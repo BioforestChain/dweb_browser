@@ -5,7 +5,6 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.launch
-import kotlin.coroutines.CoroutineContext
 
 typealias Callback<Args> = suspend SignalController<Args>.(args: Args) -> Unit
 typealias SimpleCallback = suspend SignalController<Unit>.(Unit) -> Unit

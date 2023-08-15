@@ -21,16 +21,16 @@ import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import com.google.accompanist.web.*
-import org.dweb_browser.helper.*
 import info.bagen.dwebbrowser.ui.theme.DwebBrowserAppTheme
-import org.dweb_browser.browserUI.util.KEY_ENABLE_AGREEMENT
-import org.dweb_browser.browserUI.util.getBoolean
-import org.dweb_browser.browserUI.util.saveBoolean
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.browserUI.ui.loading.LoadingView
 import org.dweb_browser.browserUI.ui.splash.SplashPrivacyDialog
 import org.dweb_browser.browserUI.ui.view.PrivacyView
+import org.dweb_browser.browserUI.util.KEY_ENABLE_AGREEMENT
+import org.dweb_browser.browserUI.util.getBoolean
+import org.dweb_browser.browserUI.util.saveBoolean
+import org.dweb_browser.helper.*
 import kotlin.system.exitProcess
 
 @SuppressLint("CustomSplashScreen")

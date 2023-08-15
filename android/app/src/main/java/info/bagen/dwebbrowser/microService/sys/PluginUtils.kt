@@ -1,7 +1,18 @@
 package info.bagen.dwebbrowser.microService.sys
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Camera
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.FileOpen
+import androidx.compose.material.icons.filled.Fingerprint
+import androidx.compose.material.icons.filled.Keyboard
+import androidx.compose.material.icons.filled.Light
+import androidx.compose.material.icons.filled.Message
+import androidx.compose.material.icons.filled.Navigation
+import androidx.compose.material.icons.filled.RingVolume
+import androidx.compose.material.icons.filled.Scanner
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.Text

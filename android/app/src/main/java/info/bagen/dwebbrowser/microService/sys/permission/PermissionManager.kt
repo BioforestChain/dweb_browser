@@ -9,7 +9,6 @@ import androidx.fragment.app.Fragment
 import info.bagen.dwebbrowser.util.InternalUtils
 import info.bagen.dwebbrowser.util.permission.PermissionManager
 import info.bagen.dwebbrowser.util.permission.PermissionUtil
-import java.util.*
 
 /**
  * 用于请求网络

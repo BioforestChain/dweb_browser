@@ -8,16 +8,17 @@ import android.provider.Settings.ACTION_BIOMETRIC_ENROLL
 import android.provider.Settings.EXTRA_BIOMETRIC_AUTHENTICATORS_ALLOWED
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.biometric.BiometricManager
-import androidx.biometric.BiometricManager.Authenticators.*
+import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_WEAK
+import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
 import androidx.biometric.BiometricPrompt
 import androidx.biometric.BiometricPrompt.AUTHENTICATION_RESULT_TYPE_BIOMETRIC
 import androidx.biometric.BiometricPrompt.AUTHENTICATION_RESULT_TYPE_DEVICE_CREDENTIAL
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
-import org.dweb_browser.helper.*
 import info.bagen.dwebbrowser.microService.sys.biometrics.BiometricsController.Companion.biometricsController
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.dweb_browser.helper.PromiseOut
 import java.util.concurrent.Executor
 
 data class BiometricsResult(val success: Boolean, val message: String)

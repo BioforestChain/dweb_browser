@@ -4,9 +4,19 @@ import android.graphics.Bitmap
 import android.net.http.SslError
 import android.os.Message
 import android.view.KeyEvent
-import android.webkit.*
-import org.dweb_browser.helper.*
+import android.webkit.ClientCertRequest
+import android.webkit.HttpAuthHandler
+import android.webkit.RenderProcessGoneDetail
+import android.webkit.SafeBrowsingResponse
+import android.webkit.SslErrorHandler
+import android.webkit.WebResourceError
+import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import kotlinx.coroutines.runBlocking
+import org.dweb_browser.helper.SimpleCallback
+import org.dweb_browser.helper.SimpleSignal
 
 class DWebViewClient : WebViewClient() {
   private val extends = Extends<WebViewClient>()

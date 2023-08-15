@@ -5,14 +5,10 @@ import androidx.activity.ComponentActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
-import info.bagen.dwebbrowser.microService.sys.helper.ColorJson
 import info.bagen.dwebbrowser.microService.browser.nativeui.NativeUiController
 import info.bagen.dwebbrowser.microService.browser.nativeui.helper.BarStyle
+import info.bagen.dwebbrowser.microService.sys.helper.ColorJson
 import info.bagen.dwebbrowser.util.IsChange
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import java.io.PipedInputStream
-import java.io.PipedOutputStream
 
 
 abstract class BarController(

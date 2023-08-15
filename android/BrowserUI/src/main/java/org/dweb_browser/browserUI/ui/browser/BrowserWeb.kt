@@ -20,12 +20,12 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.toArgb
 import com.google.accompanist.web.LoadingState
 import com.google.accompanist.web.WebView
-import org.dweb_browser.browserUI.ui.entity.BrowserWebView
-import org.dweb_browser.browserUI.ui.view.drawToBitmapPostLaidOut
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
+import org.dweb_browser.browserUI.ui.entity.BrowserWebView
+import org.dweb_browser.browserUI.ui.view.drawToBitmapPostLaidOut
 
 @SuppressLint("ClickableViewAccessibility")
 @Composable

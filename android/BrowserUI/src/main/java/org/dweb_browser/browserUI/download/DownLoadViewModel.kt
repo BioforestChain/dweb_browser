@@ -5,10 +5,10 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import org.dweb_browser.browserUI.ui.entity.AppInfo
-import org.dweb_browser.browserUI.ui.view.DialogInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.dweb_browser.browserUI.ui.entity.AppInfo
+import org.dweb_browser.browserUI.ui.view.DialogInfo
 import org.dweb_browser.browserUI.util.BrowserUIApp
 import org.dweb_browser.microservice.help.MMID
 import java.util.Calendar
