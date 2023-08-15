@@ -32,7 +32,7 @@ public class JmmController : BaseViewController
             //}
 
             //View.AddSubview(manager.DownloadView);
-            DeskNMM.DeskController.AddSubView(manager.DownloadView);
+            DeskNMM.DeskController.InsertSubviewBelow(manager.DownloadView);
 
             // 无法push同一个UIViewController的实例两次
             //var viewControllersList = vc.ViewControllers?.ToList();

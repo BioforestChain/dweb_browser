@@ -4,7 +4,7 @@ using UIKit;
 
 namespace DwebBrowser.MicroService.Browser.Desk;
 
-public class DesktopWindowsManager
+public partial class DesktopWindowsManager
 {
     static readonly Debugger Console = new("DesktopWindowsManager");
     internal DeskAppController DeskAppController { get; init; }

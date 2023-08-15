@@ -8,7 +8,7 @@ public class ScanningNMM : NativeMicroModule
 
     public override List<MicroModuleCategory> Categories { get; init; } = new()
     {
-        MicroModuleCategory.Application,
+        MicroModuleCategory.Service,
         MicroModuleCategory.Utilities,
     };
 

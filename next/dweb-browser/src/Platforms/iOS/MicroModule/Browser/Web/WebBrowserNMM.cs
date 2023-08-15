@@ -56,7 +56,8 @@ public class WebBrowserNMM : IOSNativeMicroModule
         browserView.Frame = WebBrowserController.View.Frame;
 
         var deskController = await GetDeskController();
-        deskController?.AddSubView(browserView);
+        //deskController?.AddSubView(browserView);
+        deskController.InsertSubviewBelow(browserView);
     });
 
     private async Task<HttpDwebServer> CreateBrowserWebServer()

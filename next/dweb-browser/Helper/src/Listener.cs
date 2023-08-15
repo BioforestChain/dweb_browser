@@ -74,6 +74,18 @@ public class Listener
     public void Cancel() => Source.Cancel();
 
     public static Listener New() => new();
+
+    public static Listener CollectEmitListener()
+    {
+        var listener = New();
+
+        _ = listener.Collect(() =>
+        {
+            listener.Emit();
+        }).NoThrow();
+
+        return listener;
+    }
 }
 
 public class Listener<T1>
@@ -148,6 +160,18 @@ public class Listener<T1>
     public void Cancel() => Source.Cancel();
 
     public static Listener<T1> New() => new();
+
+    public static Listener<T1> CollectEmitListener()
+    {
+        var listener = New();
+
+        _ = listener.Collect((arg1) =>
+        {
+            listener.Emit(arg1);
+        }).NoThrow();
+
+        return listener;
+    }
 }
 
 public class Listener<T1, T2>
@@ -222,4 +246,16 @@ public class Listener<T1, T2>
     public void Cancel() => Source.Cancel();
 
     public static Listener<T1, T2> New() => new();
+
+    public static Listener<T1, T2> CollectEmitListener()
+    {
+        var listener = New();
+
+        _ = listener.Collect((arg1, arg2) =>
+        {
+            listener.Emit(arg1, arg2);
+        }).NoThrow();
+
+        return listener;
+    }
 }

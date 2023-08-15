@@ -84,18 +84,20 @@ public class MicroService
         //"JmmNMM",
         //"BrowserWeb",
         //"JmmDownload",
-        "StreamExtensions",
+        //"StreamExtensions",
         //"BrowserNMM",
-        "NMM",
+        //"NMM",
         "DeskNMM",
-        "BrowserWeb",
-        "DWebView",
+        //"BrowserWeb",
+        //"DWebView",
         "DeskController",
-        "PortListener",
+        "TaskBarFloatView",
+        //"PortListener",
         //"DeviceNMM",
         //"DeviceSystemInfo",
         //"DeskStore",
-        //"FileStore"
+        //"FileStore",
+        //"*"
     };
 
     // 添加debug日志tag过滤
@@ -145,8 +147,8 @@ public class MicroService
         var bootMmidList = new List<Mmid>
         {
             jmmNMM.Mmid,
-            //deskNMM.Mmid,
-            webBrowserNMM.Mmid
+            deskNMM.Mmid,
+            //webBrowserNMM.Mmid
         };
         /// 启动程序
         var bootNMM = new BootNMM(

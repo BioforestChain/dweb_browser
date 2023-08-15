@@ -75,6 +75,12 @@ suspend fun startDwebBrowser(): DnsNMM {
         "JMM"
       )
     )
+    
+    DEVELOPER.Kingsword09, DEVELOPER.KVirtual -> addDebugTags(
+      listOf(
+        "desk"
+      )
+    )
 
     else -> addDebugTags(
       listOf("Share", "browser")

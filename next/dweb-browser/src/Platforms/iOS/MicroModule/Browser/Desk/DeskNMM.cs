@@ -13,16 +13,14 @@ public class DeskNMM : IOSNativeMicroModule
 
     public DeskNMM() : base("desk.browser.dweb", "Desk")
     {
-        s_controllerList.Add(new(this));
+        //s_controllerList.Add(new(this));
+        DeskController = new DeskController(this);
     }
 
     public ChangeableMap<Mmid, Ipc> RunningApps = new();
 
-    private static readonly List<DeskController> s_controllerList = new();
-    public static DeskController DeskController
-    {
-        get => s_controllerList.FirstOrDefault();
-    }
+    public static readonly ConcurrentDictionary<string, DeskAppController> DeskAppControllerMap = new();
+    public static DeskController DeskController = null!;
 
     public override List<MicroModuleCategory> Categories { get; init; } = new()
     {
@@ -108,7 +106,7 @@ public class DeskNMM : IOSNativeMicroModule
     {
         var taskbarServer = await CreateTaskbarWebServer();
         var desktopServer = await CreateDesktopWebServer();
-        
+
         await MainThread.InvokeOnMainThreadAsync(async () =>
         {
             if (DeskController is not null)
@@ -171,6 +169,12 @@ public class DeskNMM : IOSNativeMicroModule
             }
 
             return ipc is not null;
+        });
+
+        HttpRouter.AddRoute(IpcMethod.Get, "/toggleMaximize", async (request, _) =>
+        {
+            var mmid = request.QueryStringRequired("app_id");
+            return DeskController.DesktopWindowsManager.ToggleMaximize(mmid);
         });
 
         HttpRouter.AddRoute(IpcMethod.Get, "/closeApp", async (request, _) =>
@@ -253,6 +257,27 @@ public class DeskNMM : IOSNativeMicroModule
             return new PureResponse(HttpStatusCode.OK, Body: new PureStreamBody(stream.Stream));
         });
 
+        HttpRouter.AddRoute(IpcMethod.Get, "/taskbar/observe/status", async (request, ipc) =>
+        {
+            var stream = new ReadableStream(onStart: controller =>
+            {
+                Signal<DeskController.TaskBarState> cb = async (status, _) =>
+                {
+                    Console.Log("/taskbar/observe/status", $"focus: {status.focus}, appId: {status.appId}");
+                    await controller.EnqueueAsync((JsonSerializer.Serialize(status) + "\n").ToUtf8ByteArray());
+                };
+                DeskController.OnTaskbarListener.OnListener += cb;
+
+                ipc.OnClose += async (_) =>
+                {
+                    DeskController.OnTaskbarListener.OnListener -= cb;
+                    controller.Close();
+                };
+            });
+
+            return new PureResponse(HttpStatusCode.OK, Body: new PureStreamBody(stream.Stream));
+        });
+
         HttpRouter.AddRoute(IpcMethod.Get, "/taskbar/resize", async (request, _) =>
         {
             Console.Log("taskbar/resize", request.SafeUrl.SearchParams.ToString());
@@ -267,20 +292,22 @@ public class DeskNMM : IOSNativeMicroModule
             return await MainThread.InvokeOnMainThreadAsync(() => DeskController?.ToggleDesktopView());
         });
 
-        OnActivity += async (Event, ipc, _) =>
-        {
-            await MainThread.InvokeOnMainThreadAsync(async () =>
-            {
-                var controller = new DeskAppController(this);
-                await OpenActivity(controller);
-            });
-        };
+        //OnActivity += async (Event, ipc, _) =>
+        //{
+        //    await MainThread.InvokeOnMainThreadAsync(async () =>
+        //    {
+        //        var controller = new DeskAppController(this);
+        //        await OpenActivity(controller);
+        //    });
+        //};
     }
 
     internal Task OpenActivity(DeskAppController deskAppController) => MainThread.InvokeOnMainThreadAsync(async () =>
     {
-        DeskController.AddSubView(deskAppController.View);
+        //DeskController.AddSubView(deskAppController.View);
     });
+
+    private const string API_PREFIX = "/api/";
 
     private async Task<HttpDwebServer> CreateTaskbarWebServer()
     {
@@ -289,30 +316,12 @@ public class DeskNMM : IOSNativeMicroModule
         {
             var url = string.Empty;
             var serverIpc = await server.Listen();
-            var API_PREFIX = "/api/";
             serverIpc.OnRequest += async (request, ipc, _) =>
             {
                 var pathname = request.Uri.AbsolutePath;
                 if (pathname.StartsWith(API_PREFIX))
                 {
                     url = string.Format("file://{0}{1}", pathname[API_PREFIX.Length..], request.Uri.Query);
-                    var mmid = new URL(url).Hostname;
-
-                    if (mmid != Mmid)
-                    {
-                        /// 不支持
-                        if ((await BootstrapContext.Dns.Query(mmid)) is null)
-                        {
-                            await ipc.PostMessageAsync(
-                            IpcResponse.FromText(
-                                request.ReqId,
-                                404,
-                                /// 加入跨域支持
-                                new IpcHeaders(request.Headers),
-                                $"{{error:'no support {mmid}'}}",
-                                ipc));
-                        }
-                    }
                 }
                 else
                 {
@@ -336,7 +345,6 @@ public class DeskNMM : IOSNativeMicroModule
         {
             var url = string.Empty;
             var serverIpc = await server.Listen();
-            var API_PREFIX = "/api/";
             serverIpc.OnRequest += async (request, ipc, _) =>
             {
                 var pathname = request.Uri.AbsolutePath;
