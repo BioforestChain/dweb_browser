@@ -4,7 +4,7 @@
     "mainExports": "plaoc",
     "buildToRootDir": "./build/cli",
     "name": "@plaoc/cli",
-    "version": "0.0.5",
+    "version": "0.0.6",
     "lib": [
       "es2021",
       "DOM"
