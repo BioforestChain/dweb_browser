@@ -126,9 +126,7 @@ dependencies {
   implementation(libs.androidx.profile.installer)
   implementation(libs.androidx.appcompat)
   implementation(libs.androidx.appcompat.resources)
-
-  implementation(libs.core.ktx)
-
+  implementation(libs.androidx.core.ktx)
   implementation(libs.androidx.activity) // Java language implementation
   implementation(libs.androidx.activity.ktx) // Kotlin
   implementation(libs.androidx.activity.compose)

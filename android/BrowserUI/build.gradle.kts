@@ -48,7 +48,7 @@ android {
 }
 
 dependencies {
-  implementation(libs.core.ktx)
+  implementation(libs.androidx.core.ktx)
   implementation(libs.androidx.appcompat)
   implementation(libs.androidx.lifecycle.runtime.ktx)
 
@@ -64,9 +64,9 @@ dependencies {
   debugImplementation(libs.compose.ui.tooling)
   debugImplementation(libs.compose.ui.test.manifest)
 
-  testImplementation(libs.test.junit)
-  androidTestImplementation(libs.android.test.ext)
-  androidTestImplementation(libs.android.test.espresso)
+  testImplementation(libs.junit)
+  androidTestImplementation(libs.androidx.test.ext.junit)
+  androidTestImplementation(libs.espresso.core)
 
   // 增加 room 存储列表数据
   implementation(libs.room.runtime)

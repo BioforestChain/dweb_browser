@@ -32,15 +32,15 @@ android {
 
 dependencies {
 
-  implementation(libs.core.ktx)
+  implementation(libs.androidx.core.ktx)
   implementation(libs.androidx.activity)
   implementation(libs.androidx.activity.ktx)
   implementation(libs.androidx.appcompat)
   implementation(libs.androidx.lifecycle.runtime.ktx)
   implementation(libs.google.material)
-  testImplementation(libs.test.junit)
-  androidTestImplementation(libs.android.test.ext)
-  androidTestImplementation(libs.android.test.espresso)
+  testImplementation(libs.junit)
+  androidTestImplementation(libs.androidx.test.ext.junit)
+  androidTestImplementation(libs.espresso.core)
 
   api(libs.accompanist.webview)
 

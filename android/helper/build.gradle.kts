@@ -12,7 +12,7 @@ java {
 dependencies {
   implementation(kotlin("stdlib"))
   implementation(libs.kotlinx.coroutines.core)
-  testImplementation(libs.test.junit)
+  testImplementation(libs.junit)
 
   /// 测试相关
   testImplementation(kotlin("test"))
