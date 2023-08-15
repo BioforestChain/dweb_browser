@@ -1,0 +1,143 @@
+[versions]
+agp = "8.2.0-alpha09"
+kotlin = "1.8.10"
+core-ktx = "1.9.0"
+ksp = "1.9.0-1.0.13"
+junit = "4.13.2"
+androidx-test-ext-junit = "1.1.5"
+espresso-core = "3.5.1"
+lifecycle-runtime-ktx = "2.6.1"
+compose-bom = "2023.05.01"
+lifecycle-service = "2.6.1"
+org-jetbrains-kotlin-jvm = "1.9.0"
+
+androidx-activity = "1.8.0-alpha04"
+androidx-appcompat = "1.6.1"
+androidx-core-kotlin = "1.10.1"
+androidx-core-splashscreen = "1.1.0-alpha01"
+androidx-navigation-ui-kotlin = "2.5.3"
+androidx-gridlayout = "1.0.0"
+androidx-profile-installer = "1.3.1"
+androidx-biometric = "1.2.0-alpha05"
+
+http4k-bom = "5.5.0.0"
+ktor-version = "2.3.3"
+
+kotlinx-coroutines-core = "1.7.1"
+
+accompanist = "0.31.6-rc"
+google-material = "1.8.0"
+data-gson = "2.10.1"
+data-moshi-pack = "1.0.1"
+data-store = "1.0.0"
+data-store-preferences = "1.1.0-alpha04"
+room-version = "2.5.1"
+coil-version = "2.4.0"
+camera-version = "1.3.0-alpha07"
+camera-barcode = "17.1.0"
+commons-compress = "1.23.0"
+# 测试
+test-kotlin-coroutines = "1.7.1"
+test-junit-bom = "5.9.2"
+test-junit = "4.13.2"
+android-test-ext = "1.1.5"
+android-test-espresso = "3.5.1"
+
+[libraries]
+core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidx-test-ext-junit" }
+espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso-core" }
+compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "compose-bom" }
+compose-ui = { group = "androidx.compose.ui", name = "ui" }
+compose-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
+compose-ui-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
+compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
+compose-material_icons = { group = "androidx.compose.material", name = "material-icons-extended" }
+compose-material = { group = "androidx.compose.material", name = "material" }
+compose-material3 = { group = "androidx.compose.material3", name = "material3" }
+compose-material3-window = { group = "androidx.compose.material3", name = "material3-window-size-class" }
+
+androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle-runtime-ktx" }
+androidx-lifecycle-common-java8 = { group = "androidx.lifecycle", name = "lifecycle-common-java8", version.ref = "lifecycle-runtime-ktx" }
+androidx-lifecycle-extensions = { group = "androidx.lifecycle", name = "lifecycle-extensions", version.ref = "lifecycle-runtime-ktx" }
+androidx-lifecycle-service = { group = "androidx.lifecycle", name = "lifecycle-service", version.ref = "lifecycle-service" }
+androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "androidx-activity"}
+androidx-activity-ktx = { group = "androidx.activity", name = "activity-ktx", version.ref = "androidx-activity"}
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "androidx-activity" }
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "androidx-appcompat"}
+androidx-appcompat-resources = { group = "androidx.appcompat", name = "appcompat-resources", version.ref = "androidx-appcompat"}
+androidx-core-kotlin = { group = "androidx.core", name = "core-ktx", version.ref = "androidx-core-kotlin"}
+androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "androidx-core-splashscreen"}
+androidx-navigation-ui-kotlin = { group = "androidx.navigation", name = "navigation-ui-ktx", version.ref = "androidx-navigation-ui-kotlin"}
+androidx-gridlayout = { group = "androidx.gridlayout", name = "gridlayout", version.ref = "androidx-gridlayout"}
+androidx-profile-installer = { group = "androidx.profileinstaller", name = "profileinstaller", version.ref = "androidx-profile-installer"}
+
+kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinx-coroutines-core"}
+
+http4k-bom = { group = "org.http4k", name = "http4k-bom", version.ref = "http4k-bom"}
+http4k-core = { group = "org.http4k", name = "http4k-core"}
+http4k-multipart = { group = "org.http4k", name = "http4k-multipart"}
+http4k-client-apache = { group = "org.http4k", name = "http4k-client-apache"}
+
+ktor-server-websockets = { group = "io.ktor", name = "ktor-server-websockets", version.ref = "ktor-version"}
+ktor-server-cio = { group = "io.ktor", name = "ktor-server-cio", version.ref = "ktor-version"}
+ktor-client-cio = { group = "io.ktor", name = "ktor-client-cio", version.ref = "ktor-version"}
+
+accompanist-webview = { group = "com.google.accompanist", name = "accompanist-webview", version.ref = "accompanist"}
+accompanist-navigation-material = { group = "com.google.accompanist", name = "accompanist-navigation-material", version.ref = "accompanist"}
+accompanist-navigation-animation = { group = "com.google.accompanist", name = "accompanist-navigation-animation", version.ref = "accompanist"}
+accompanist-systemui-controller = { group = "com.google.accompanist", name = "accompanist-systemuicontroller", version.ref = "accompanist"}
+accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist"}
+accompanist-insets-ui = { group = "com.google.accompanist", name = "accompanist-insets-ui", version.ref = "accompanist"}
+
+google-material = { group = "com.google.android.material", name = "material", version.ref = "google-material"}
+# 数据 json
+data-gson = { group = "com.google.code.gson", name = "gson", version.ref = "data-gson"}
+data-moshi-pack = { group = "com.daveanthonythomas.moshipack", name = "moshipack", version.ref = "data-moshi-pack"}
+# 键值存储
+data-store = { group = "androidx.datastore", name = "datastore", version.ref = "data-store"}
+data-store-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "data-store-preferences"}
+# room 数据库存储
+room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room-version"}
+room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room-version"} # To use Kotlin annotation processing tool (kapt)
+room-kotlin = { group = "androidx.room", name = "room-ktx", version.ref = "room-version"} # kotlin扩展和协同程序对Room的支持
+# 加载图片 coil
+coil-core = { group = "io.coil-kt", name = "coil", version.ref = "coil-version"}
+coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil-version"}
+coil-svg = { group = "io.coil-kt", name = "coil-svg", version.ref = "coil-version"}
+coil-video = { group = "io.coil-kt", name = "coil-video", version.ref = "coil-version"}
+coil-gif = { group = "io.coil-kt", name = "coil-gif", version.ref = "coil-version"}
+# 扫码核心库
+camera-core = { group = "androidx.camera", name = "camera-core", version.ref = "camera-version"}
+camera-camera2 = { group = "androidx.camera", name = "camera-camera2", version.ref = "camera-version"}
+camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "camera-version"}
+camera-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version.ref = "camera-version"}
+camera-barcode = { group = "com.google.mlkit", name = "barcode-scanning", version.ref = "camera-barcode"}
+# 解压文件
+commons-compress = { group = "org.apache.commons", name = "commons-compress", version.ref = "commons-compress"}
+# 生物识别
+androidx-biometric = { group = "androidx.biometric", name = "biometric", version.ref = "androidx-biometric"}
+# 测试相关
+test-kotlin-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "test-kotlin-coroutines"}
+test-kotlin-coroutines-debug = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-debug", version.ref = "test-kotlin-coroutines"}
+test-junit-bom = { group = "org.junit", name = "junit-bom", version.ref = "test-junit-bom"}
+test-junit = { group = "junit", name = "junit", version.ref = "test-junit"}
+test-junit-platform-launcher = { group = "org.junit.platform", name = "junit-platform-launcher"}
+test-junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter"}
+test-junit-jupiter-engine = { group = "org.junit.jupiter", name = "junit-jupiter-engine"}
+test-junit-vintage-engine = { group = "org.junit.vintage", name = "junit-vintage-engine"}
+android-test-ext = { group = "androidx.test.ext", name = "junit", version.ref = "android-test-ext"}
+android-test-espresso = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "android-test-espresso"}
+
+[plugins]
+androidApplication = { id = "com.android.application", version.ref = "agp" }
+kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+androidLibrary = { id = "com.android.library", version.ref = "agp" }
+org-jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "org-jetbrains-kotlin-jvm" }
+kspAndroid = { id = "com.google.devtools.ksp", version.ref = "ksp"}
+
+[bundles]

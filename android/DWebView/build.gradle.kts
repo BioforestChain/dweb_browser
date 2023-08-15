@@ -1,10 +1,9 @@
-import com.version.manager.BuildConfig
-import com.version.manager.BuildVersion
+import info.bagen.version.BuildVersion
 
+@Suppress("DSL_SCOPE_VIOLATION") // TODO: Remove once KTIJ-19369 is fixed
 plugins {
-  id("com.android.library")
-  id("org.jetbrains.kotlin.android")
-  id("com.version.manager")
+  alias(libs.plugins.androidLibrary)
+  alias(libs.plugins.kotlinAndroid)
 }
 
 android {
@@ -35,20 +34,20 @@ android {
 
 dependencies {
 
-  implementation(BuildConfig.coreKotlin)
-  implementation(BuildConfig.activity)
-  implementation(BuildConfig.activityKotlin)
-  implementation(BuildConfig.appcompat)
-  implementation(BuildConfig.lifecycleRuntimeKotlin)
-  implementation("com.google.android.material:material:1.8.0")
-  testImplementation("junit:junit:4.13.2")
-  androidTestImplementation("androidx.test.ext:junit:1.1.5")
-  androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+  implementation(libs.core.ktx)
+  implementation(libs.androidx.activity)
+  implementation(libs.androidx.activity.ktx)
+  implementation(libs.androidx.appcompat)
+  implementation(libs.androidx.lifecycle.runtime.ktx)
+  implementation(libs.google.material)
+  testImplementation(libs.test.junit)
+  androidTestImplementation(libs.android.test.ext)
+  androidTestImplementation(libs.android.test.espresso)
 
-  api(BuildConfig.accompanistWebview)
+  api(libs.accompanist.webview)
 
-  implementation(platform(BuildConfig.composeBom))
-  implementation(BuildConfig.composeUI)
+  implementation(platform(libs.compose.bom))
+  implementation(libs.compose.ui)
 
   implementation(project(mapOf("path" to ":MicroService")))
   implementation(project(mapOf("path" to ":helper")))

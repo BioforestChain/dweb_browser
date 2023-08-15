@@ -1,11 +1,10 @@
-import com.version.manager.BuildConfig
-import com.version.manager.BuildVersion
+import info.bagen.version.BuildVersion
 
+@Suppress("DSL_SCOPE_VIOLATION") // TODO: Remove once KTIJ-19369 is fixed
 plugins {
-  id("com.android.library")
-  id("org.jetbrains.kotlin.android")
-  id("com.google.devtools.ksp")
-  id("com.version.manager")
+  alias(libs.plugins.androidLibrary)
+  alias(libs.plugins.kotlinAndroid)
+  alias(libs.plugins.kspAndroid)
 }
 
 android {
@@ -51,49 +50,49 @@ android {
 }
 
 dependencies {
-  implementation(BuildConfig.coreKotlin)
-  implementation(BuildConfig.appcompat)
-  implementation(BuildConfig.lifecycleRuntimeKotlin)
-  implementation(BuildConfig.activityCompose)
+  implementation(libs.core.ktx)
+  implementation(libs.androidx.appcompat)
+  implementation(libs.androidx.lifecycle.runtime.ktx)
 
-  implementation(BuildConfig.composeBom)
-  androidTestImplementation(platform(BuildConfig.composeBom))
-  implementation(BuildConfig.composeUI)
-  implementation(BuildConfig.composeUIGraphics)
-  implementation(BuildConfig.composeUIPreview)
-  implementation(BuildConfig.composeMaterial3)
-  implementation(BuildConfig.composeMaterialIcons)
-  androidTestImplementation(BuildConfig.composeAndroidTest)
-  debugImplementation(BuildConfig.composeDebugUITooling)
-  debugImplementation(BuildConfig.composeDebugUIManifest)
+  implementation(platform(libs.compose.bom))
+  implementation(libs.androidx.activity.compose)
+  implementation(libs.compose.ui)
+  implementation(libs.compose.ui.graphics)
+  implementation(libs.compose.ui.preview)
+  implementation(libs.compose.material3)
+  implementation(libs.compose.material.icons)
+  androidTestImplementation(platform(libs.compose.bom))
+  androidTestImplementation(libs.compose.ui.test.junit4)
+  debugImplementation(libs.compose.ui.tooling)
+  debugImplementation(libs.compose.ui.test.manifest)
 
-  testImplementation("junit:junit:4.13.2")
-  androidTestImplementation("androidx.test.ext:junit:1.1.5")
-  androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+  testImplementation(libs.test.junit)
+  androidTestImplementation(libs.android.test.ext)
+  androidTestImplementation(libs.android.test.espresso)
 
   // 增加 room 存储列表数据
-  implementation(BuildConfig.roomRuntime)
-  ksp(BuildConfig.roomCompiler)
-  implementation(BuildConfig.roomKotlin) // kotlin扩展和协同程序对Room的支持
+  implementation(libs.room.runtime)
+  ksp(libs.room.compiler)
+  implementation(libs.room.kotlin) // kotlin扩展和协同程序对Room的支持
 
   // 加载图片 coil
-  implementation(BuildConfig.coil)
-  implementation(BuildConfig.coilCompose)
-  implementation(BuildConfig.coilSVG)
-  implementation(BuildConfig.coilVideo)
-  implementation(BuildConfig.coilGif)
+  implementation(libs.coil.core)
+  implementation(libs.coil.compose)
+  implementation(libs.coil.svg)
+  implementation(libs.coil.video)
+  implementation(libs.coil.gif)
 
-  implementation(BuildConfig.cameraCore)
-  implementation(BuildConfig.cameraView)
-  implementation(BuildConfig.cameraCamera2)
-  implementation(BuildConfig.cameraLifecycle)
-  implementation(BuildConfig.barcodeScanning)
+  implementation(libs.camera.core)
+  implementation(libs.camera.view)
+  implementation(libs.camera.camera2)
+  implementation(libs.camera.lifecycle)
+  implementation(libs.camera.barcode)
 
-  implementation(BuildConfig.accompanistPermissions)
+  implementation(libs.accompanist.permissions)
 
-  implementation(BuildConfig.commonsCompress)
-  api(BuildConfig.dataStore)
-  api(BuildConfig.dataStorePreferences)
+  implementation(libs.commons.compress)
+  api(libs.data.store)
+  api(libs.data.store.preferences)
 
   implementation(project(mapOf("path" to ":helper")))
   implementation(project(mapOf("path" to ":DWebView")))

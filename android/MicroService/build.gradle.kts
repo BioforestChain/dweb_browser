@@ -1,10 +1,9 @@
-import com.version.manager.BuildConfig
-import com.version.manager.BuildVersion
+import info.bagen.version.BuildVersion
 
+@Suppress("DSL_SCOPE_VIOLATION") // TODO: Remove once KTIJ-19369 is fixed
 plugins {
   id("java-library")
-  id("org.jetbrains.kotlin.jvm")
-  id("com.version.manager")
+  alias(libs.plugins.org.jetbrains.kotlin.jvm)
 }
 
 java {
@@ -12,36 +11,30 @@ java {
   targetCompatibility = BuildVersion.javaVersion
 }
 
-kotlin {
-  version = BuildVersion.kotlinVersion
-}
-
 dependencies {
-  implementation(kotlin("stdlib"))
-  implementation(BuildConfig.kotlinxCoroutines)
+  implementation(libs.kotlinx.coroutines.core)
 
-  api(platform(BuildConfig.http4kBom))
-  api(BuildConfig.http4kCore)
+  api(platform(libs.http4k.bom))
+  api(libs.http4k.core)
 
-  implementation(BuildConfig.ktorServerWebsockets)
-  implementation(BuildConfig.ktorServerCio)
-  implementation(BuildConfig.ktorClientCio)
+  implementation(libs.ktor.server.websockets)
+  implementation(libs.ktor.server.cio)
+  implementation(libs.ktor.client.cio)
 
-  api(BuildConfig.gson)
-  implementation(BuildConfig.moshiPack)
+  api(libs.data.gson)
+  implementation(libs.data.moshi.pack)
 
   /// 测试相关
-  testImplementation(BuildConfig.testKotlinCoroutinesTest) {
+  testImplementation(kotlin("test"))
+  testImplementation(libs.test.kotlin.coroutines.test) {
     exclude("org.jetbrains.kotlinx", "kotlinx-coroutines-debug")
   }
-  testImplementation(BuildConfig.testKotlinCoroutinesDebug)
-
-  testImplementation(kotlin("test"))
-  testImplementation(platform(BuildConfig.testJUnitBom))
-  testRuntimeOnly(BuildConfig.testJUnitPlatformLauncher) {
+  testImplementation(libs.test.kotlin.coroutines.debug)
+  testImplementation(platform(libs.test.junit.bom))
+  testRuntimeOnly(libs.test.junit.platform.launcher) {
     because("Only needed to run tests in a version of IntelliJ IDEA that bundles older versions")
   }
-  testImplementation(BuildConfig.testJUnitJupiter)
+  testImplementation(libs.test.junit.jupiter)
 
   implementation(project(mapOf("path" to ":helper")))
 }

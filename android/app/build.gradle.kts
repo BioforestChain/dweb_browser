@@ -1,11 +1,11 @@
-import com.version.manager.BuildConfig
-import com.version.manager.BuildVersion
+import info.bagen.version.BuildVersion
 
+@Suppress("DSL_SCOPE_VIOLATION") // TODO: Remove once KTIJ-19369 is fixed
 plugins {
-  id("com.android.application")
-  id("org.jetbrains.kotlin.android")
+  alias(libs.plugins.androidApplication)
+  alias(libs.plugins.kotlinAndroid)
+  alias(libs.plugins.kspAndroid)
   id("kotlin-kapt")
-  id("com.version.manager") // 添加版本控制的包名
 }
 android {
   compileSdk = BuildVersion.compileSdkVersion
@@ -105,98 +105,79 @@ android {
   namespace = "info.bagen.dwebbrowser"
 }
 
-
 dependencies {
   /// 网络开发相关
-  implementation(platform(BuildConfig.http4kBom))
-  implementation(BuildConfig.http4kCore)
-  implementation(BuildConfig.http4kMultipart)
-  implementation(BuildConfig.http4kClientApache)
-
+  implementation(platform(libs.http4k.bom))
+  implementation(libs.http4k.core)
+  implementation(libs.http4k.multipart)
+  implementation(libs.http4k.client.apache)
 
   // Android 相关
-  implementation(BuildConfig.coreSplashScreen)
-  implementation(BuildConfig.navigationUiKotlin)
-  implementation(BuildConfig.gridLayout)
+  implementation(libs.androidx.core.splashscreen)
+  implementation(libs.androidx.navigation.ui.kotlin)
+  implementation(libs.androidx.gridlayout)
 
   // v0.31.6-rc
-  implementation(BuildConfig.accompanistWebview)
-  implementation(BuildConfig.accompanistNavigationMaterial)
-  implementation(BuildConfig.accompanistNavigationAnimation)
-  implementation(BuildConfig.accompanistSystemUiController)
-  implementation(BuildConfig.accompanistPermissions)
-  implementation(BuildConfig.accompanistInsetsUI)
+  implementation(libs.accompanist.webview)
+  implementation(libs.accompanist.navigation.material)
+  implementation(libs.accompanist.navigation.animation)
+  implementation(libs.accompanist.systemui.controller)
+  implementation(libs.accompanist.permissions)
+  implementation(libs.accompanist.insets.ui)
 
-  implementation(BuildConfig.profileInstaller)
-  implementation(BuildConfig.appcompat)
-  implementation(BuildConfig.appcompatResources)
+  implementation(libs.androidx.profile.installer)
+  implementation(libs.androidx.appcompat)
+  implementation(libs.androidx.appcompat.resources)
 
-  implementation(BuildConfig.coreKotlin)
-  //implementation(BuildConfig.dataStore)
-  //implementation(BuildConfig.dataStorePreferences)
+  implementation(libs.core.ktx)
 
-  implementation(BuildConfig.activity) // Java language implementation
-  implementation(BuildConfig.activityKotlin) // Kotlin
-  implementation(BuildConfig.activityCompose)
-  implementation(BuildConfig.lifecycleService)
+  implementation(libs.androidx.activity) // Java language implementation
+  implementation(libs.androidx.activity.ktx) // Kotlin
+  implementation(libs.androidx.activity.compose)
+  implementation(libs.androidx.lifecycle.service)
 
   /// Compose 相关
-  implementation(BuildConfig.composeBom)
-  androidTestImplementation(BuildConfig.composeBom)
-  implementation(BuildConfig.composeUI)
-  implementation(BuildConfig.composeMaterial)
-  implementation(BuildConfig.composeMaterial3)
-  implementation(BuildConfig.composeMaterial3Window)
-  implementation(BuildConfig.composeMaterialIcons)
-  implementation(BuildConfig.composeUIPreview)
-  androidTestImplementation(BuildConfig.composeAndroidTest)
-  debugImplementation(BuildConfig.composeDebugUITooling)
-  implementation(BuildConfig.googleMaterial)
-
-  // 工具库
-  //implementation(kotlin("stdlib"))
-  //implementation(BuildConfig.gson) // gson
-  //implementation(BuildConfig.moshiPack) // message-pack
+  implementation(platform(libs.compose.bom))
+  androidTestImplementation(platform(libs.compose.bom))
+  implementation(libs.compose.ui)
+  implementation(libs.compose.material)
+  implementation(libs.compose.material3)
+  implementation(libs.compose.material3.window)
+  implementation(libs.compose.material.icons)
+  implementation(libs.compose.ui.preview)
+  androidTestImplementation(libs.compose.ui.test.junit4)
+  debugImplementation(libs.compose.ui.tooling)
+  implementation(libs.google.material)
 
   //扫码核心库
-  implementation(BuildConfig.barcodeScanning)
-  //implementation(BuildConfig.cameraCore)
-  //implementation(BuildConfig.cameraCamera2)
-  //implementation(BuildConfig.cameraView)
-  //implementation(BuildConfig.cameraLifecycle)
+  implementation(libs.camera.barcode)
+  //implementation(libs.camera.core)
+  //implementation(libs.camera.camera2)
+  //implementation(libs.camera.view)
+  //implementation(libs.camera.lifecycle)
 
   /// 测试相关
   testImplementation(kotlin("test"))
-  testImplementation(BuildConfig.testKotlinCoroutinesTest)
-  testImplementation(BuildConfig.testKotlinCoroutinesDebug)
-  testImplementation(platform(BuildConfig.testJUnitBom))
-  testRuntimeOnly(BuildConfig.testJUnitPlatformLauncher) {
+  testImplementation(libs.test.kotlin.coroutines.test)
+  testImplementation(libs.test.kotlin.coroutines.debug)
+  testImplementation(platform(libs.test.junit.bom))
+  testRuntimeOnly(libs.test.junit.platform.launcher) {
     because("Only needed to run tests in a version of IntelliJ IDEA that bundles older versions")
   }
-  testImplementation(BuildConfig.testJUnitJupiter)
-  testRuntimeOnly(BuildConfig.testJUnitJupiterEngine)
-  testRuntimeOnly(BuildConfig.testJUnitVintageEngine)
-
-  // 解压文件
-  //implementation(BuildConfig.commonsCompress)
+  testImplementation(libs.test.junit.jupiter)
+  testRuntimeOnly(libs.test.junit.jupiter.engine)
+  testRuntimeOnly(libs.test.junit.vintage.engine)
 
   // 加载图片 coil
-  implementation(BuildConfig.coil)
-  implementation(BuildConfig.coilCompose)
-  implementation(BuildConfig.coilSVG)
-  implementation(BuildConfig.coilVideo)
-  implementation(BuildConfig.coilGif)
-
+  implementation(libs.coil.core)
+  implementation(libs.coil.compose)
+  implementation(libs.coil.svg)
+  implementation(libs.coil.video)
+  implementation(libs.coil.gif)
   // 生物识别
-  implementation(BuildConfig.biometric)
-
+  implementation(libs.androidx.biometric)
   /// 依赖
   implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
-
-  // 增加 room 存储列表数据
-  //implementation(BuildConfig.roomRuntime)
-  //kapt(BuildConfig.roomCompiler) // To use Kotlin annotation processing tool (kapt)
-  //implementation(BuildConfig.roomKotlin) // kotlin扩展和协同程序对Room的支持
 
   implementation(project(mapOf("path" to ":helper")))
   implementation(project(mapOf("path" to ":MicroService")))

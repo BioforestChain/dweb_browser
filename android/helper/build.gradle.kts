@@ -1,10 +1,9 @@
-import com.version.manager.BuildConfig
-import com.version.manager.BuildVersion
+import info.bagen.version.BuildVersion
 
+@Suppress("DSL_SCOPE_VIOLATION") // TODO: Remove once KTIJ-19369 is fixed
 plugins {
   id("java-library")
-  id("org.jetbrains.kotlin.jvm")
-  id("com.version.manager")
+  alias(libs.plugins.org.jetbrains.kotlin.jvm)
 }
 
 java {
@@ -12,24 +11,20 @@ java {
   targetCompatibility = BuildVersion.javaVersion
 }
 
-kotlin {
-  version = BuildVersion.kotlinVersion
-}
-
 dependencies {
   implementation(kotlin("stdlib"))
-  implementation(BuildConfig.kotlinxCoroutines)
-  testImplementation("junit:junit:4.13.2")
+  implementation(libs.kotlinx.coroutines.core)
+  testImplementation(libs.test.junit)
 
   /// 测试相关
   testImplementation(kotlin("test"))
-  testImplementation(BuildConfig.testKotlinCoroutinesTest)
-  testImplementation(BuildConfig.testKotlinCoroutinesDebug)
-  testImplementation(platform(BuildConfig.testJUnitBom))
-  testRuntimeOnly(BuildConfig.testJUnitPlatformLauncher) {
+  testImplementation(libs.test.kotlin.coroutines.test)
+  testImplementation(libs.test.kotlin.coroutines.debug)
+  testImplementation(platform(libs.test.junit.bom))
+  testRuntimeOnly(libs.test.junit.platform.launcher) {
     because("Only needed to run tests in a version of IntelliJ IDEA that bundles older versions")
   }
-  testImplementation(BuildConfig.testJUnitJupiter)
+  testImplementation(libs.test.junit.jupiter)
 
 }
 
