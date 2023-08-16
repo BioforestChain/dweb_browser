@@ -15,6 +15,10 @@ abstract class WindowController(
    * 在Android中，一个窗口对象必然附加在某一个Context/Activity中
    */
   abstract val context: Context
+
+  /**
+   * 需要提供一个生命周期对象
+   */
   abstract val coroutineScope: CoroutineScope
   val id = state.wid;
   fun toJsonAble() = state
@@ -85,8 +89,8 @@ abstract class WindowController(
         null -> {
           state.bounds = with(state.bounds) {
             copy(
-              left = width / 2,
-              top = height / 2,
+              left = width / 4,
+              top = height / 4,
               width = width / 2,
               height = height / 2,
             )
@@ -139,8 +143,10 @@ abstract class WindowController(
   open suspend fun setBottomBarStyle(
     contentColor: String? = null,
     backgroundColor: String? = null,
-    overlay: Boolean? = null
+    overlay: Boolean? = null,
+    theme: String? = null,
   ) {
+    theme?.also { state.bottomBarTheme = WindowBottomBarTheme.from(it) }
     contentColor?.also { state.bottomBarContentColor = it }
     backgroundColor?.also { state.bottomBarBackgroundColor = it }
     overlay?.also { state.bottomBarOverlay = it }

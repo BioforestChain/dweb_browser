@@ -24,12 +24,12 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import info.bagen.dwebbrowser.microService.browser.desk.DesktopWindowController
+import info.bagen.dwebbrowser.microService.core.WindowController
 import kotlinx.coroutines.launch
 
 @Composable
 internal fun WindowTopBar(
-  win: DesktopWindowController,
+  win: WindowController,
 ) {
   val winPadding = LocalWindowPadding.current;
   val contentColor = LocalWindowControllerTheme.current.topContentColor
@@ -59,11 +59,12 @@ internal fun WindowTopBar(
 
 @Composable
 private fun WindowTopControllerBar(
-  win: DesktopWindowController,
+  win: WindowController,
 ) {
   val coroutineScope = rememberCoroutineScope()
   val contentColor = LocalWindowControllerTheme.current.topContentColor
   Row {
+    /// 关闭按钮
     Box(
       modifier = Modifier
         .wrapContentWidth()
@@ -74,6 +75,7 @@ private fun WindowTopControllerBar(
         Icon(Icons.Rounded.Close, contentDescription = "Close the Window", tint = contentColor)
       }
     }
+    /// 标题信息
     Box(
       modifier = Modifier
         .weight(2f)
@@ -88,6 +90,7 @@ private fun WindowTopControllerBar(
         style = MaterialTheme.typography.titleSmall.copy(color = contentColor)
       )
     }
+    /// 最大化
     Box(
       modifier = Modifier
         .wrapContentWidth()
@@ -112,7 +115,7 @@ private fun WindowTopControllerBar(
  */
 @Composable
 private fun WindowTopMaximizedBar(
-  win: DesktopWindowController,
+  win: WindowController,
 ) {
   /// 这里可以渲染一些特殊的信息
 }

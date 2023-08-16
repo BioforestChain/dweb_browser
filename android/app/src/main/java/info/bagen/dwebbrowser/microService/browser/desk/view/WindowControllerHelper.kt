@@ -25,11 +25,11 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.lifecycleScope
 import info.bagen.dwebbrowser.base.WindowInsetsHelper
-import info.bagen.dwebbrowser.microService.browser.desk.DesktopWindowController
 import info.bagen.dwebbrowser.microService.browser.desk.noLocalProvidedFor
+import info.bagen.dwebbrowser.microService.core.WindowBottomBarTheme
 import info.bagen.dwebbrowser.microService.core.WindowBounds
+import info.bagen.dwebbrowser.microService.core.WindowController
 import info.bagen.dwebbrowser.microService.core.WindowMode
 import info.bagen.dwebbrowser.microService.core.WindowPropertyKeys
 import info.bagen.dwebbrowser.microService.core.WindowState
@@ -47,14 +47,11 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
 
-val DesktopWindowController.coroutineScope get() = context.lifecycleScope
-
-
 /**
  * 提供一个计算函数，来获得一个在Compose中使用的 state
  */
 @Composable
-fun <T> DesktopWindowController.watchedState(
+fun <T> WindowController.watchedState(
   key: Any? = null,
   policy: SnapshotMutationPolicy<T> = structuralEqualityPolicy(),
   filter: ((change: Observable.Change<WindowPropertyKeys, *>) -> Boolean)? = null,
@@ -82,7 +79,7 @@ fun <T> DesktopWindowController.watchedState(
 /**
  * 触发 window 聚焦状态的更新事件监听
  */
-fun DesktopWindowController.emitFocusOrBlur(focused: Boolean) {
+fun WindowController.emitFocusOrBlur(focused: Boolean) {
   coroutineScope.launch {
     if (focused) {
       focus()
@@ -92,21 +89,21 @@ fun DesktopWindowController.emitFocusOrBlur(focused: Boolean) {
   }
 }
 
-val inMoveStore = WeakHashMap<DesktopWindowController, MutableState<Boolean>>()
+val inMoveStore = WeakHashMap<WindowController, MutableState<Boolean>>()
 
 /**
  * 窗口是否在移动中
  */
-val DesktopWindowController.inMove
+val WindowController.inMove
   get() = inMoveStore.getOrPut(this) { mutableStateOf(false) }
 
 
-val moveStartPointStore = WeakHashMap<DesktopWindowController, Offset>()
+val moveStartPointStore = WeakHashMap<WindowController, Offset>()
 
 /**
  * 窗口是否在移动中
  */
-var DesktopWindowController.moveStartPoint
+var WindowController.moveStartPoint
   get() = moveStartPointStore.getOrPut(this) { Offset(0f, 0f) }
   set(value) {
     moveStartPointStore[this] = value
@@ -115,7 +112,7 @@ var DesktopWindowController.moveStartPoint
 /**
  * 移动窗口的控制器
  */
-fun Modifier.windowMoveAble(win: DesktopWindowController) = this
+fun Modifier.windowMoveAble(win: WindowController) = this
   .pointerInput(win) {
     /// 触摸窗口的时候，聚焦，并且提示可以移动
     detectTapGestures(
@@ -158,13 +155,13 @@ fun Modifier.windowMoveAble(win: DesktopWindowController) = this
     }
   }
 
-val inResizeStore = WeakHashMap<DesktopWindowController, MutableState<Boolean>>()
+val inResizeStore = WeakHashMap<WindowController, MutableState<Boolean>>()
 
 /** 窗口是否在调整大小中 */
-val DesktopWindowController.inResize get() = inResizeStore.getOrPut(this) { mutableStateOf(false) }
+val WindowController.inResize get() = inResizeStore.getOrPut(this) { mutableStateOf(false) }
 
 /** 基于窗口左下角进行调整大小 */
-fun Modifier.windowResizeByLeftBottom(win: DesktopWindowController) = this.pointerInput(win) {
+fun Modifier.windowResizeByLeftBottom(win: WindowController) = this.pointerInput(win) {
   detectDragGestures(
     onDragStart = { win.inResize.value = true },
     onDragEnd = { win.inResize.value = false },
@@ -182,7 +179,7 @@ fun Modifier.windowResizeByLeftBottom(win: DesktopWindowController) = this.point
 }
 
 /** 基于窗口右下角进行调整大小 */
-fun Modifier.windowResizeByRightBottom(win: DesktopWindowController) = this.pointerInput(win) {
+fun Modifier.windowResizeByRightBottom(win: WindowController) = this.pointerInput(win) {
   detectDragGestures(
     onDragStart = { win.inResize.value = true },
     onDragEnd = { win.inResize.value = false },
@@ -222,14 +219,17 @@ data class WindowLimits(
 )
 
 @Composable
-fun DesktopWindowController.watchedIsMaximized() =
-  watchedState { mode == WindowMode.MAXIMIZE || mode == WindowMode.FULLSCREEN }
+fun WindowController.watchedIsMaximized() =
+  watchedState(watchKey = WindowPropertyKeys.Mode) { mode == WindowMode.MAXIMIZE || mode == WindowMode.FULLSCREEN }
+
+@Composable
+fun WindowController.watchedBounds() = watchedState(watchKey = WindowPropertyKeys.Bounds) { bounds }
 
 /**
  * 根据约束配置，计算出最终的窗口大小与坐标
  */
 @Composable
-fun DesktopWindowController.calcWindowBoundsByLimits(
+fun WindowController.calcWindowBoundsByLimits(
   limits: WindowLimits
 ): WindowBounds {
   val maximize by watchedIsMaximized()
@@ -245,7 +245,7 @@ fun DesktopWindowController.calcWindowBoundsByLimits(
     }
   } else {
     val layoutDirection = LocalLayoutDirection.current
-    val bounds by watchedState { bounds }
+    val bounds by watchedBounds()
 
     /**
      * 获取可触摸的空间
@@ -277,34 +277,41 @@ fun DesktopWindowController.calcWindowBoundsByLimits(
  * 根据约束配置，计算出最终的窗口边距布局
  */
 @Composable
-fun DesktopWindowController.calcWindowPaddingByLimits(limits: WindowLimits): WindowEdge {
+fun WindowController.calcWindowPaddingByLimits(limits: WindowLimits): WindowEdge {
   val maximize by watchedIsMaximized()
-  val bounds by watchedState { bounds }
+  val bounds by watchedBounds()
+  val bottomBarTheme by watchedState(watchKey = WindowPropertyKeys.BottomBarTheme) { bottomBarTheme }
 
   val topHeight: Float;
-  val bottomHeight: Float;
+  val bottomHeight: Float
   val leftWidth: Float;
   val rightWidth: Float;
   val borderRounded: WindowEdge.CornerRadius;
   val contentRounded: WindowEdge.CornerRadius;
   val contentSize: WindowEdge.ContentSize
 
+  /// 一些共有的计算
+  val windowFrameSize = if (maximize) 3f else 5f
+  val bottomThemeHeight = when (bottomBarTheme) {
+    WindowBottomBarTheme.Immersion -> limits.bottomBarBaseHeight// 因为底部要放置一些信息按钮，所以我们会给到底部一个基本的高度
+    WindowBottomBarTheme.Navigation -> max(limits.bottomBarBaseHeight, 32f) // 要有足够的高度放按钮和基本信息
+  };
+
+  fun max(val1: Float, val2: Float, val3: Float) = max(max(val1, val2), val3)
+
   if (maximize) {
     val layoutDirection = LocalLayoutDirection.current
     val density = LocalDensity.current.density
-    val safeGesturesPadding = WindowInsets.safeGestures.asPaddingValues()
     val safeDrawingPadding = WindowInsets.safeDrawing.asPaddingValues()
-    topHeight = safeDrawingPadding.calculateTopPadding().value
+    topHeight = max(safeDrawingPadding.calculateTopPadding().value, windowFrameSize)
 
     /**
      * 底部是系统导航栏，这里我们使用触摸安全的区域来控制底部高度，这样可以避免底部抖动
      */
-    val bottomMinHeight = max(
-      safeGesturesPadding.calculateBottomPadding().value,
-      limits.bottomBarBaseHeight // 因为底部要放置一些信息按钮，所以我们会给到底部一个基本的高度
-    )
     bottomHeight = max(
-      safeDrawingPadding.calculateBottomPadding().value, bottomMinHeight
+      safeDrawingPadding.calculateBottomPadding().value,
+      bottomThemeHeight,
+      windowFrameSize
     );
     /**
      * 即便是最大化模式下，我们仍然需要有一个强调边框。
@@ -314,9 +321,9 @@ fun DesktopWindowController.calcWindowPaddingByLimits(limits: WindowLimits): Win
      * 3. 全屏模式虽然会移除窗口，但是会有一些其它限制，比如但需要进行多窗口交互的时候，这些窗口边框仍然会显示出来
      */
     leftWidth =
-      max(safeDrawingPadding.calculateLeftPadding(layoutDirection).value, 3f)
+      max(safeDrawingPadding.calculateLeftPadding(layoutDirection).value, windowFrameSize)
     rightWidth =
-      max(safeDrawingPadding.calculateRightPadding(layoutDirection).value, 3f)
+      max(safeDrawingPadding.calculateRightPadding(layoutDirection).value, windowFrameSize)
     borderRounded = WindowEdge.CornerRadius.from(0) // 全屏模式下，外部不需要圆角
     contentRounded = WindowEdge.CornerRadius.from(
       WindowInsetsHelper.getCornerRadiusTop(context, density, 16f),
@@ -324,16 +331,16 @@ fun DesktopWindowController.calcWindowPaddingByLimits(limits: WindowLimits): Win
     )
     contentSize = WindowEdge.ContentSize(
       bounds.width - leftWidth - rightWidth,
-      bounds.height - topHeight - bottomMinHeight, // 这里不使用bottomHeight，因为导航栏的高度会发生动态变动，因此使用bottomMinHeight可以有效避免抖动
+      bounds.height - topHeight - bottomThemeHeight, // 这里不使用bottomHeight，因为导航栏的高度会发生动态变动，因此使用bottomMinHeight可以有效避免抖动
     )
   } else {
     borderRounded =
       WindowEdge.CornerRadius.from(16) // TODO 这里应该使用 WindowInsets#getRoundedCorner 来获得真实的无力圆角
     contentRounded = borderRounded / sqrt(2f)
-    topHeight = limits.topBarBaseHeight;
-    bottomHeight = limits.bottomBarBaseHeight
-    leftWidth = 5f;
-    rightWidth = 5f;
+    topHeight = max(limits.topBarBaseHeight, windowFrameSize);
+    bottomHeight = max(bottomThemeHeight, windowFrameSize)
+    leftWidth = windowFrameSize;
+    rightWidth = windowFrameSize;
     contentSize = WindowEdge.ContentSize(
       bounds.width - leftWidth - rightWidth,
       bounds.height - topHeight - bottomHeight, // 这里不使用bottomHeight，因为导航栏的高度会发生动态变动
@@ -367,6 +374,9 @@ data class WindowEdge(
    */
   val contentRounded: CornerRadius, val contentBounds: ContentSize
 ) {
+  val start get() = left
+  val end get() = right
+
   data class CornerRadius(
     val topStart: Float, val topEnd: Float, val bottomStart: Float, val bottomEnd: Float
   ) {
@@ -397,7 +407,7 @@ data class WindowEdge(
  *
  * 这个行为在桌面端也将会适用
  */
-fun DesktopWindowController.calcContentScale(limits: WindowLimits, winEdge: WindowEdge): Float {
+fun WindowController.calcContentScale(limits: WindowLimits, winEdge: WindowEdge): Float {
   /**
    * 计算进度
    */
@@ -435,7 +445,7 @@ data class WindowControllerTheme(
  * 构建颜色
  */
 @Composable
-fun DesktopWindowController.buildTheme(dark: Boolean): WindowControllerTheme {
+fun WindowController.buildTheme(dark: Boolean): WindowControllerTheme {
   val themeColor by watchedState(dark, watchKey = WindowPropertyKeys.ThemeColor) {
     themeColor.asWindowStateColor(
       md_theme_light_surface,

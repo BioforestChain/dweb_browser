@@ -21,7 +21,6 @@ enum class WindowPropertyKeys(val fieldName: String) {
   Mode("mode"),
   Resizable("resizable"),
   Focus("focus"),
-  PictureInPicture("pictureInPicture"),
   ZIndex("zIndex"),
   Children("children"),
   Parent("parent"),
@@ -37,6 +36,7 @@ enum class WindowPropertyKeys(val fieldName: String) {
   TopBarBackgroundColor("topBarBackgroundColor"),
   BottomBarContentColor("bottomBarContentColor"),
   BottomBarBackgroundColor("bottomBarBackgroundColor"),
+  BottomBarTheme("bottomBarTheme"),
   ThemeColor("themeColor"),
   Bounds("bounds"),
 }
@@ -98,6 +98,11 @@ enum class WindowMode(val mode: String) : JsonSerializer<WindowMode>,
   ;
 
 
+  companion object {
+    fun from(themeName: String) = values().firstOrNull { it.mode == themeName } ?: FLOATING
+  }
+
+
   override fun serialize(
     src: WindowMode,
     typeOfSrc: Type,
@@ -108,9 +113,8 @@ enum class WindowMode(val mode: String) : JsonSerializer<WindowMode>,
     json: JsonElement,
     typeOfT: Type?,
     context: JsonDeserializationContext?
-  ) = json.asString.let { method -> values().first { it.mode == method } }
+  ) = from(json.asString)
 }
-
 
 //  SPLIT_SCREEN, // 分屏模式
 //  SNAP_LEFT, // 屏幕左侧对齐
@@ -122,3 +126,41 @@ enum class WindowMode(val mode: String) : JsonSerializer<WindowMode>,
 //  PIP, // 画中画模式
 //
 //  CUSTOM // 自定义模式
+
+/**
+ * 底部按钮的风格
+ */
+@JsonAdapter(WindowBottomBarTheme::class)
+enum class WindowBottomBarTheme(val themeName: String) : JsonSerializer<WindowBottomBarTheme>,
+  JsonDeserializer<WindowBottomBarTheme> {
+  /**
+   * 导航模式：较高,面向常见的网页,依次提供app-id+version(两行小字显示)、back-bottom、forword-bottom、unmax bottom(1)。点击app-id等效于点击顶部的titlebar展开的菜单栏(显示窗窗口信息、所属应用信息、一些设置功能(比如刷新页面、设置分辨率、设置UA、查看路径))
+   */
+  Navigation("navigation"),
+
+  /**
+   * 沉浸模式：较矮,只提供app-id+version的信息(一行小字)
+   */
+  Immersion("immersion"),
+//  Status("custom"),
+//  Status("status"),
+  ;
+
+
+  companion object {
+    fun from(themeName: String) = values().firstOrNull { it.themeName == themeName } ?: Navigation
+  }
+
+  override fun serialize(
+    src: WindowBottomBarTheme,
+    typeOfSrc: Type,
+    context: JsonSerializationContext?
+  ) = JsonPrimitive(src.themeName)
+
+  override fun deserialize(
+    json: JsonElement,
+    typeOfT: Type?,
+    context: JsonDeserializationContext?
+  ) = from(json.asString)
+
+}

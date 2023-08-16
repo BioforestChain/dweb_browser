@@ -284,6 +284,14 @@ class WindowState(
     WindowPropertyKeys.BottomBarBackgroundColor,
     "auto"
   );
+
+  /**
+   * 底部栏的风格，默认是导航模式
+   */
+  var bottomBarTheme by observable.observe<WindowBottomBarTheme>(
+    WindowPropertyKeys.BottomBarTheme,
+    WindowBottomBarTheme.Navigation
+  );
 }
 
 fun String.asWindowStateColor(autoColor: () -> Color) =

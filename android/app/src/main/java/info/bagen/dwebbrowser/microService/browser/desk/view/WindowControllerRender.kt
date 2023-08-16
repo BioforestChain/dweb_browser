@@ -26,10 +26,11 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import info.bagen.dwebbrowser.microService.browser.desk.DesktopWindowController
+import info.bagen.dwebbrowser.microService.core.WindowController
 import info.bagen.dwebbrowser.microService.core.windowAdapterManager
 
 @Composable
-fun DesktopWindowController.Render(
+fun WindowController.Render(
   modifier: Modifier = Modifier, maxWinWidth: Float, maxWinHeight: Float
 ) {
   val win = this;

@@ -111,7 +111,12 @@ class WindowNMM :
       },
       "/setBottomBarStyle" bind Method.GET to defineHandler { request ->
         with(query_barStyle(request)) {
-          getWindow(request).setBottomBarStyle(contentColor, backgroundColor, overlay)
+          getWindow(request).setBottomBarStyle(
+            contentColor,
+            backgroundColor,
+            overlay,
+            Query.string().optional("theme")(request),
+          )
         }
       },
     )
