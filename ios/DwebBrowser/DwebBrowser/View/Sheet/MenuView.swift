@@ -22,18 +22,17 @@ struct MenuView: View {
         VStack(spacing: 16) {
             
             ForEach(0..<titles.count, id: \.self) { index in
-                Button {
-                    if index == 0{
+                if index == 0 {
+                    Button {
                         addToBookmark()
-                    }else if index == 1{
-                        isShare.toggle()
+                    } label: {
+                        MenuCell(title: titles[index], imageName: imagesNames[index])
                     }
-                } label: {
-                    MenuCell(title: titles[index], imageName: imagesNames[index])
-                }
-                .sheet(isPresented: $isShare) {
+                } else if index == 1 {
                     let webCache = WebCacheMgr.shared.store[selectedTab.curIndex]
-                    ActivityViewController(urlString: webCache.lastVisitedUrl.absoluteString)
+                    ShareLink(item: webCache.lastVisitedUrl.absoluteString) {
+                        MenuCell(title: titles[index], imageName: imagesNames[index])
+                    }
                 }
             }
             
@@ -70,7 +69,7 @@ struct MenuView: View {
     }
     
     private func addToBookmark() {
-    // TODO: addToBookmark
+    
         let webCache = WebCacheMgr.shared.store[selectedTab.curIndex]
         let manager = BookmarkCoreDataManager()
         let bookmark = LinkRecord(link: webCache.lastVisitedUrl.absoluteString, imageName: webCache.webIconUrl.absoluteString, title: webCache.title, createdDate: Date().milliStamp)
@@ -110,49 +109,5 @@ struct CustomToggleStyle: ToggleStyle {
     func makeBody(configuration: Configuration) -> some View {
         Toggle(configuration)
             .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 12))
-    }
-}
-
-struct ActivityViewController: UIViewControllerRepresentable {
-    
-    var urlString: String
-
-    func makeUIViewController(context: Context) -> UIViewController {
-        
-        guard let url = URL(string: urlString) else { return UIViewController() }
-        let activityViewController : UIActivityViewController = UIActivityViewController(
-            activityItems: [url], applicationActivities: nil)
-        
-        // This line remove the arrow of the popover to show in iPad
-        activityViewController.popoverPresentationController?.permittedArrowDirections = UIPopoverArrowDirection.down
-        activityViewController.popoverPresentationController?.sourceRect = CGRect(x: 150, y: 150, width: 0, height: 0)
-        
-        // Pre-configuring activity items
-        if #available(iOS 13.0, *) {
-            activityViewController.activityItemsConfiguration = [
-                UIActivity.ActivityType.message
-            ] as? UIActivityItemsConfigurationReading
-        } else {
-            // Fallback on earlier versions
-        }
-        
-        // Anything you want to exclude
-        activityViewController.excludedActivityTypes = [
-            UIActivity.ActivityType.postToWeibo,
-            UIActivity.ActivityType.print,
-            UIActivity.ActivityType.assignToContact,
-            UIActivity.ActivityType.saveToCameraRoll,
-            UIActivity.ActivityType.addToReadingList,
-            UIActivity.ActivityType.postToFlickr,
-            UIActivity.ActivityType.postToVimeo,
-            UIActivity.ActivityType.postToTencentWeibo,
-            UIActivity.ActivityType.postToFacebook
-        ]
-        activityViewController.isModalInPresentation = true
-
-        return activityViewController
-    }
-
-    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
     }
 }
