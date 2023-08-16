@@ -103,17 +103,28 @@ public partial class DeskController
                                           TaskbarFloatView.Center.Y);
                 });
             }
+
+            // 记录上一次位置
+            RecordTaskbarFloatViewFrame = TaskbarFloatView.Frame;
         }
     }
 
+    private CGRect RecordTaskbarFloatViewFrame = CGRect.Empty;
+
     public void ResizeTaskbarFloatView(int width = 72, int height = 72)
     {
-        var bounds = UIScreen.MainScreen.Bounds;
-        var screenWidth = bounds.Width;
-        var screenHeight = bounds.Height;
-        var rect = new AreaJson(20, 5, screenWidth - width - 5, screenHeight - height);
+        var screenWidth = UIScreen.MainScreen.Bounds.Width;
 
-        TaskbarFloatView.Frame = new CGRect(rect.right, 200, width, height);
+        if (RecordTaskbarFloatViewFrame == CGRect.Empty)
+        {
+            RecordTaskbarFloatViewFrame = new CGRect(screenWidth - width - 5, 200, width, height);
+        }
+        else
+        {
+            RecordTaskbarFloatViewFrame = new CGRect(RecordTaskbarFloatViewFrame.X, RecordTaskbarFloatViewFrame.Y, width, height);
+        }
+
+        TaskbarFloatView.Frame = RecordTaskbarFloatViewFrame;
     }
 }
 
