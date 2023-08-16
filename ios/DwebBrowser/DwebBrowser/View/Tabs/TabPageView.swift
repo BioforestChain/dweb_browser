@@ -35,7 +35,7 @@ struct TabPageView: View {
                 }
             }
             .onAppear {
-                print(geo.frame(in: .global))
+                print("tabPage rect: \(geo.frame(in: .global))")
                 snapshotHeight = geo.frame(in: .global).height
             }
             .onChange(of: toolbarState.goForwardTapped) { tapped in
@@ -60,10 +60,8 @@ struct TabPageView: View {
                                 let cropRect = CGRect(x: 0, y: safeAreaTopHeight * scale, width: screen_width * scale, height: (snapshotHeight - addressBarH - toolBarH) * scale)
                                 if let croppedCGImage = image.cgImage?.cropping(to: cropRect) {
                                     let croppedImage = UIImage(cgImage: croppedCGImage)
-                                    if webCache.shouldShowWeb {
-                                        animation.snapshotImage = croppedImage
-                                        webCache.snapshotUrl = UIImage.createLocalUrl(withImage: croppedImage, imageName: webCache.id.uuidString)
-                                    }
+                                    animation.snapshotImage = croppedImage
+                                    webCache.snapshotUrl = UIImage.createLocalUrl(withImage: croppedImage, imageName: webCache.id.uuidString)
                                 }
                                 if animation.progress == .obtainedCellFrame {
                                     animation.progress = .startShrinking

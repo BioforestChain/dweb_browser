@@ -36,7 +36,7 @@ class ToolBarState: ObservableObject {
 }
 
 class ShiftAnimation: ObservableObject {
-    @Published var snapshotImage: UIImage = .defaultSnapShotImage
+    @Published var snapshotImage: UIImage = UIImage()
     @Published var progress: AnimationProgress = .invisible
 }
 

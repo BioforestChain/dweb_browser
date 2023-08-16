@@ -44,9 +44,8 @@ struct GridCell: View {
                 Image(uiImage: webCache.snapshotImage)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
-                    .frame(width: gridCellW, height: cellImageH, alignment: .top)
+                    .frame(width: gridCellW, height: cellImageH)
                     .cornerRadius(gridcellCornerR)
-                    .clipped()
                     .overlay(RoundedRectangle(cornerRadius: 10)
                         .stroke(Color.dwebTint, lineWidth: 2)
                         .opacity(isSelected ? 1 : 0)
@@ -80,10 +79,9 @@ struct GridCell: View {
     }
 }
 
+
 struct GridCell_Previews: PreviewProvider {
     static var previews: some View {
-        //        GridCell(webCache: WebCache.example,isSelected: )
-        //            .frame(width: 200,height: 300)
         Text("")
     }
 }

@@ -60,14 +60,6 @@ struct TabGridView: View {
                                         .preference(key: CellFramePreferenceKey.self,
                                                     value: [CellFrameInfo(index: cacheStore.store.firstIndex(of: webCache) ?? 0, frame: geometry.frame(in: .global))])
                                 })
-                                .onAppear {
-                                    if let index = WebCacheMgr.shared.store.firstIndex(of: webCache),
-                                       index == selectedTab.curIndex
-                                    {
-//                                        selectedCellFrame = cellFrame(at: index)
-//                                        printWithDate(msg: "cell appears at frame: \(selectedCellFrame)")
-                                    }
-                                }
                             
                                 .onTapGesture {
                                     guard let tapIndex = cacheStore.store.firstIndex(of: webCache) else { return }
@@ -87,7 +79,6 @@ struct TabGridView: View {
                     .environmentObject(deleteCache)
                     .padding(gridHSpace)
                     .scaleEffect(x: gridState.scale, y: gridState.scale)
-//                    .ignoresSafeArea()
                     .onPreferenceChange(CellFramePreferenceKey.self) { newFrames in
                         if isFirstRecord {
                             self.frames = newFrames

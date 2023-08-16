@@ -35,9 +35,9 @@ class WebCache: ObservableObject, Identifiable, Hashable, Codable, Equatable {
         }
     }
 
-    @Published var snapshotImage = UIImage.defaultSnapShotImage
+    @Published var snapshotImage = UIImage()
     
-    init(icon: URL = URL.defaultWebIconURL, showWeb: Bool = false, lastVisitedUrl: URL = emptyURL, title: String = "", snapshotUrl: URL = URL.defaultSnapshotURL) {
+    init(icon: URL = URL.defaultWebIconURL, showWeb: Bool = false, lastVisitedUrl: URL = emptyURL, title: String = "起始页", snapshotUrl: URL = URL.defaultSnapshotURL) {
         shouldShowWeb = false
         webIconUrl = icon
         self.lastVisitedUrl = lastVisitedUrl
@@ -86,10 +86,6 @@ class WebCache: ObservableObject, Identifiable, Hashable, Codable, Equatable {
     
     static var example: WebCache {
         WebCache(lastVisitedUrl: URL(string: "https://www.apple.com")!, title: "apple")
-    }
-    
-    static var blank: WebCache {
-        WebCache(lastVisitedUrl: emptyURL, title: "起始页")
     }
     
     func isBlank() -> Bool {
@@ -149,7 +145,7 @@ class WebCacheMgr: ObservableObject {
             }
         }
         if store.count == 0 {
-            store = [.blank]
+            store = [.init()]
         }
     }
 }

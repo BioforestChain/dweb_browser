@@ -21,7 +21,6 @@ struct ToolbarView: View {
     
     @State private var isPresentingScanner = false
     @State private var showMoreSheet = false
-//    @StateObject var moreSheet = MoreSheet()
 
     var body: some View {
         if toolbarState.shouldExpand {
