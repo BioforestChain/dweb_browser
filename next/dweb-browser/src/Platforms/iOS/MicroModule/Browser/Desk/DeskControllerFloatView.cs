@@ -26,7 +26,7 @@ public partial class DeskController
 {
     private TaskBarHitView TaskbarFloatView { get; set; }
 
-    public async Task InitTaskbarFloatView()
+    public async Task CreateTaskbarFloatView()
     {
         TaskbarFloatView = new()
         {

@@ -32,7 +32,7 @@ public partial class DeskController
         return new TaskBarRect(width, height);
     }
 
-    public async Task StartTaskBarWebView()
+    public async Task CreateTaskBarWebView()
     {
         var taskbarInternalUrl = GetTaskbarUrl().Uri.ToString();
         TaskBarWebView = new DWebView.DWebView(

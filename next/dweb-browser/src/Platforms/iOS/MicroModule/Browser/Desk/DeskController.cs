@@ -23,50 +23,8 @@ public partial class DeskController : DeskAppController
 
     public void InsertSubviewBelow(UIView view, UIView? belowView = null)
     {
-        var topView = belowView;
-
-        if (belowView is null)
-        {
-            if (TaskBarFocusState.Get())
-            {
-                topView = TaskbarFloatView;
-                TaskBarFocusState.Set(false);
-            }
-            else
-            {
-                topView = TaskBarView;
-            }
-        }
-
-        if (topView is not null)
-        {
-            View.InsertSubviewBelow(view, topView);
-        }
-        else
-        {
-            View.AddSubview(view);
-        }
-    }
-
-    public void InsertSubviewAbove(UIView view, UIView? aboveView = null)
-    {
-        if (aboveView is not null || DesktopView is not null)
-        {
-            View.InsertSubviewAbove(view, aboveView ?? DesktopView);
-        }
-        else
-        {
-            View.AddSubview(view);
-        }
-    }
-
-    /// <summary>
-    /// 为了将TaskBarView置于顶层，且可交互，必须使用 BringSubviewToFront
-    /// </summary>
-    /// <param name="view"></param>
-    public void BringSubviewToFront(UIView? view = null)
-    {
-        View.BringSubviewToFront(view ?? TaskBarView);
+        TaskBarFocusState.Set(false);
+        View.InsertSubviewBelow(view, belowView ?? TaskbarFloatView);
     }
 
     public async Task Create()
@@ -84,9 +42,8 @@ public partial class DeskController : DeskAppController
         _ = DesktopView.LoadURL(desktopInternalUrl).NoThrow();
         View.AddSubview(DesktopView);
 
-        await StartTaskBarWebView();
-        //await CreateTaskBarView();
-        await InitTaskbarFloatView();
+        await CreateTaskBarWebView();
+        await CreateTaskbarFloatView();
     }
 
     public bool IsOnTop = false;
