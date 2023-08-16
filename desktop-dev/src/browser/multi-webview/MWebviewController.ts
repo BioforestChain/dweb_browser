@@ -167,9 +167,7 @@ export class MWebviewController {
     view.setBounds({ height, width, x: 0, y: 0 });
     view.setAutoResize({ width: true, height: true });
     // 安装界面不显示调试
-    if (url.indexOf("www.jmm.browser.dweb") === -1) {
-      view.webContents.openDevTools({ mode: "detach" });
-    }
+    view.webContents.openDevTools({ mode: "detach" });
     if (url) {
       view.webContents.loadURL(url);
     }

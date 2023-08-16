@@ -110,7 +110,7 @@ export const createNativeWindow = async (sessionId: string, createOptions: $Crea
     }
 
     /// 设置圆角，与macos保持一致的效果
-    if (options.roundedCorners) {
+    if (micaElectron.IS_WINDOWS_11 && options.roundedCorners) {
       mica_win.setRoundedCorner();
     }
 
