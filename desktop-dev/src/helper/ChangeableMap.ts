@@ -8,16 +8,17 @@ export class ChangeableMap<K, V> extends Map<K, V> {
   private _changeSignal = createSignal<$Callback<[changeState<K>]>>();
   onChange = this._changeSignal.listen;
   emitChange = (state:changeState<K> = {add:[],delete:[]}) => this._changeSignal.emit(state)
-  override set(key: K, value: V) {
+  override set(key: K, value: V,signal = true) {
     if ((this.has(key) && this.get(key) === value) === false) {
       super.set(key, value);
-      this._changeSignal.emit({add:[key],delete:[]});
+      signal && this._changeSignal.emit({add:[key],delete:[]});
     }
     return this;
   }
-  override delete(key: K): boolean {
+  // 当emit为true才会触发信号
+  override delete(key: K,signal = true): boolean {
     if (super.delete(key)) {
-      this._changeSignal.emit({add:[],delete:[key]});
+      signal && this._changeSignal.emit({add:[],delete:[key]});
       return true;
     }
     return false;

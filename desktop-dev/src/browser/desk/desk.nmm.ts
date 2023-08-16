@@ -75,7 +75,7 @@ export class DeskNMM extends NativeMicroModule {
           this.runingApps.set(app_id, ipc);
           /// 如果应用关闭，将它从列表中移除
           ipc.onClose(() => {
-            this.runingApps.delete(app_id);
+            this.runingApps.delete(app_id,false);
           });
         }
 
@@ -88,7 +88,7 @@ export class DeskNMM extends NativeMicroModule {
         if (this.runingApps.has(app_id)) {
           closed = await context.dns.close(app_id);
           if (closed) {
-            this.runingApps.delete(app_id);
+            this.runingApps.delete(app_id,false);
           }
         }
         return Response.json(closed);

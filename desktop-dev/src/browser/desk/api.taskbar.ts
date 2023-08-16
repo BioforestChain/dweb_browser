@@ -29,12 +29,12 @@ export class TaskbarApi {
         this._appList.unshift(mmid);
       }
       //移除关闭的应用
-      this._appList = this._appList.filter((mmid)=>{
+      this._appList = this._appList.filter((mmid) => {
         if (map.delete.includes(mmid)) {
-          return false
+          return false;
         }
-        return true
-      })
+        return true;
+      });
       /// 保存到数据库
       deskStore.set("taskbar/apps", new Set(this._appList));
     });
@@ -52,9 +52,11 @@ export class TaskbarApi {
 
     const taskbarWin = await createNativeWindow(mm.mmid + "/taskbar", {
       ...window_options,
-      // /// 如果小于 80，macos会失去高斯模糊的特效
+      /// 如果小于 80，macos会失去高斯模糊的特效
       // minHeight: 80,
-      defaultBounds: { width: 60, height: 60 },
+      minWidth:65,
+      defaultBounds: { width: 65, height: 60 },
+      resizable:false,
     });
     taskbarWin.setVisibleOnAllWorkspaces(true);
 

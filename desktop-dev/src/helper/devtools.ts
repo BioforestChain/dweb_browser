@@ -40,7 +40,7 @@ class Debugger {
   static filterList = new Set<string>();
 
   log(tag: string, ...args: unknown[]) {
-    // if (!Debugger.filterList.has(tag)) return;
+    if (!Debugger.filterList.has(tag)) return;
     standConsole.log(`log-   [${tag}]: `, ...args);
   }
 
@@ -78,7 +78,7 @@ declare global {
   namespace globalThis {
     interface Console {
       always(...args: unknown[]): void; // add your method to the interface
-      error(...args: unknown[]): void;
+      // error(...args: unknown[]): void;
     }
   }
 }
