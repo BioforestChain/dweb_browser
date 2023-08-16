@@ -39,6 +39,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
@@ -253,20 +254,22 @@ private fun WindowBottomNavigationThemeBar(
       }
     }
 
+    val isMaximized by win.watchedIsMaximized()
     /// 右侧
     TextButton(
       onClick = {
         coroutineScope.launch { win.unMaximize() }
       },
+      enabled = isMaximized,
       contentPadding = PaddingValues(0.dp),
+      shape = RectangleShape,
       modifier = Modifier
         .weight(1f)
     ) {
       Column(
         horizontalAlignment = Alignment.CenterHorizontally,
       ) {
-        /// 取消最大化
-        val isMaximized by win.watchedIsMaximized()
+        /// 取消最大化的提示图标
         if (isMaximized) {
           Box(
             modifier = Modifier
