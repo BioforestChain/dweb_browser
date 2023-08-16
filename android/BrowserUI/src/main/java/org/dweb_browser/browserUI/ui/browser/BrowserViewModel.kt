@@ -153,7 +153,12 @@ class BrowserViewModel(
   }
 
   fun setDwebLinkSearch(search: String) {
-    dwebLinkSearch.value = search
+    // 如果搜索内容含有schema，直接按照地址进行搜索
+    if (Uri.parse(search).scheme?.isNotEmpty() == true) {
+      dwebLinkUrl.value = search
+    } else {
+      dwebLinkSearch.value = search
+    }
   }
 
   fun setDwebLinkUrl(url: String) {
