@@ -3,11 +3,12 @@
     "buildFromRootDir": "./src/client",
     "mainExports": ".",
     "buildToRootDir": "./build/client",
+    "denoShim": false,
     "name": "@plaoc/plugins",
-    "version": "0.0.5",
+    "version": "0.0.7",
     "lib": [
-      "es2021",
-      "dom"
+      "ES2022",
+      "DOM"
     ]
   }
 ]

@@ -96,14 +96,14 @@ export class BundleZipGenerator {
       if (liveUrl === undefined) {
         throw new Error(`no found live-url when serve-mode is '${flags.mode}'`);
       }
-
+      const html = String.raw;
       const index_html_file_entry = {
         dir: false,
         path: `usr/www/index.html`,
-        data: `<script>
-        const proxyUrl = new URL(location.href);
-        proxyUrl.searchParams.set("X-Plaoc-Proxy",${JSON.stringify(liveUrl)})
-        location.replace(proxyUrl.href);
+        data: html`<script>
+          const proxyUrl = new URL(location.href);
+          proxyUrl.searchParams.set("X-Plaoc-Proxy", ${JSON.stringify(liveUrl)});
+          location.replace(proxyUrl.href);
         </script>`,
         time: new Date(0),
       } satisfies $ZipEntry;

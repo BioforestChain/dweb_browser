@@ -10,12 +10,13 @@ export const doBuidCore = async (config: {
   buildFromRootDir: string;
   buildToRootDir: string;
   importMap?: string;
+  denoShim?: boolean;
   lib?: (dnt.LibName | string)[];
   devDependencies?: {
     [packageName: string]: string;
   };
 }) => {
-  const { version, buildFromRootDir, buildToRootDir, importMap, name, lib } = config;
+  const { version, buildFromRootDir, buildToRootDir, importMap, name, lib, denoShim = true } = config;
   console.log(`--- START BUILD: ${name} ${version} ---`);
 
   await dnt.emptyDir(buildToRootDir);
@@ -49,7 +50,7 @@ export const doBuidCore = async (config: {
     typeCheck: "both",
     test: false,
     shims: {
-      deno: true,
+      deno: config.denoShim,
       custom: [],
     },
     compilerOptions: {

@@ -56,6 +56,7 @@ export class Server_www extends _Server_www {
 
     return super._provider(request, "server/emulator");
   }
+  private xPlaocProxy: string | null = null;
   override async _provider(request: FetchEvent): Promise<$OnFetchReturn> {
     let isEnableEmulator = request.searchParams.get(X_PLAOC_QUERY.EMULATOR);
     if (isEnableEmulator === null) {
@@ -69,7 +70,7 @@ export class Server_www extends _Server_www {
       return this._onEmulator(request, isEnableEmulator);
     }
 
-    let xPlaocProxy = request.searchParams.get(X_PLAOC_QUERY.PROXY);
+    let xPlaocProxy = request.searchParams.get(X_PLAOC_QUERY.PROXY) ?? this.xPlaocProxy;
     if (xPlaocProxy === null) {
       const xReferer = request.headers.get("Referer");
       if (xReferer !== null) {
@@ -80,6 +81,7 @@ export class Server_www extends _Server_www {
     if (xPlaocProxy === null) {
       return super._provider(request);
     }
+    this.xPlaocProxy = xPlaocProxy;
     /// 启用跳转模式
     const proxyUrl = new URL(request.pathname + request.search, xPlaocProxy);
     console.log("native fetch start:", proxyUrl.href);
@@ -87,7 +89,7 @@ export class Server_www extends _Server_www {
     console.log("native fetch end:", proxyUrl.href);
     const headers = new IpcHeaders(remoteIpcResponse.headers);
     /// 对 html 做强制代理，似的能加入一些特殊的头部信息，确保能正确访问内部的资源
-    if (remoteIpcResponse.headers.get("Content-Type") === "text/html") {
+    if (remoteIpcResponse.headers.get("Content-Type")?.startsWith("text/html")) {
       // 强制声明解除安全性限制
       headers.init("Access-Control-Allow-Private-Network", "true");
       // 移除在iframe中渲染的限制

@@ -16,11 +16,14 @@ export const devTasks = new ConTasks(
       cmd: "deno",
       args: "task sync --watch",
     },
+    "toolkit:fort-test-image": {
+      cmd: "vite",
+      args: "--host 0.0.0.0",
+      cwd: "./toolkit/for-test-images",
+    },
   },
   import.meta.resolve("../")
 ).merge(assetsTasks, "assets:");
-
-import { initTasks } from "./init.ts";
 
 if (import.meta.main) {
   Deno.addSignalListener("SIGINT", () => {
