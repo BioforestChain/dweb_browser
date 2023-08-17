@@ -49,7 +49,7 @@ const bg_image = computed(() => {
     <div
       class="fg z-view"
       :class="{
-        markable: icon.markable,
+        maskable: icon.maskable,
         monochrome: icon.monochrome,
       }"
     ></div>
@@ -95,7 +95,7 @@ const bg_image = computed(() => {
     --size: 87%; /// Math.SQRT2 * 0.618 对角线黄金分割
     width: var(--size);
     height: var(--size);
-    &.markable {
+    &.maskable {
       --size: 100%;
     }
     &.monochrome {

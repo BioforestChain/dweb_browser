@@ -1,6 +1,6 @@
 export type $AppIconInfo = {
   src: string;
-  markable: boolean;
+  maskable: boolean;
   monochrome: boolean;
   monocolor?: string;
   monoimage?: string;

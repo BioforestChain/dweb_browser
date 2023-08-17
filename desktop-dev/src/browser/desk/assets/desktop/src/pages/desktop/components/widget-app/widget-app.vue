@@ -38,7 +38,7 @@ const props = defineProps({
 });
 const appid = computed(() => props.appMetaData.mmid);
 const appname = computed(() => props.appMetaData.short_name ?? props.appMetaData.name);
-const appicon = shallowRef<$AppIconInfo>({ src: "", monochrome: false, markable: false });
+const appicon = shallowRef<$AppIconInfo>({ src: "", monochrome: false, maskable: false });
 watch(()=> props.appMetaData.icons,()=> {
   watchEffectAppMetadataToAppIcon({ metaData: props.appMetaData }, appicon);
 })

@@ -15,7 +15,7 @@ export const icons = {
   // xiangji,
   layout_panel_top: {
     src: layout_panel_top_svg,
-    markable: false,
+    maskable: false,
     monochrome: true,
     monocolor: "#FFF",
     monoimage: `linear-gradient(to bottom, #ffefba, #ffffff)`,

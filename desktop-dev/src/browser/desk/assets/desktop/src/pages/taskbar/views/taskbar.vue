@@ -65,7 +65,7 @@ const updateLayoutInfoList = (appList: $WidgetAppData[]) => {
   appRefList.value = appList.map((metaData) => {
     const ref = shallowRef<$AppIconInfo>({
       src: "",
-      markable: false,
+      maskable: false,
       monochrome: false,
       monocolor: undefined,
     });

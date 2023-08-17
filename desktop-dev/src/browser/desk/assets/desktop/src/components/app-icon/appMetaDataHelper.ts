@@ -45,7 +45,7 @@ export const watchEffectAppMetadataToAppIcon = (
           },
         })[0].href
       : iconurl;
-    refValue.markable = selectedIcon?.value.purpose === "maskable";
+    refValue.maskable = selectedIcon?.value.purpose === "maskable";
 
     const randomById = (config?: RandomNumberOptions) => randomStringToNumber(appMetaData.mmid, config);
     const monochrome = selectedIcon?.value.purpose === "monochrome" || iconurl === defaultIconUrl;
