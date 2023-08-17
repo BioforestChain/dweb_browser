@@ -122,7 +122,6 @@ export class SafeAreaController extends BaseController {
         bottom: bottomBarState.overlay ? 0 : bottomBarState.insets.bottom,
       },
     };
-    console.log("safe-area.controler.ts this.state:", this.state);
     // this.emitUpdate();
     // 只发送给监听 但是不触发 updated
     this.observer.notifyObserver();

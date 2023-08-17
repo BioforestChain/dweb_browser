@@ -2,7 +2,7 @@ import isMobile from "npm:is-mobile";
 import { X_PLAOC_QUERY } from "./const.ts";
 import { $IpcResponse, IpcEvent, jsProcess, PromiseOut, queue } from "./deps.ts";
 import { Server_api } from "./http-api-server.ts";
-import { Server_external } from "./http-external-server.ts";
+import { ExternalState, Server_external } from "./http-external-server.ts";
 import { Server_www } from "./http-www-server.ts";
 import "./polyfill.ts";
 
@@ -32,10 +32,23 @@ export const main = async () => {
     }
   });
   /// 如果有人来激活，那我就唤醒我的界面
-  jsProcess.onActivity(async (_ipcEvent, ipc) => {
+  jsProcess.onActivity(async (ipcEvent, ipc) => {
+    console.log("onActivity=>", ipcEvent.name);
     tryOpenView();
-    // todo lifecycle 等待加载全部加载完成，再触发ready
-    ipc.postMessage(IpcEvent.fromText("ready", "activity"));
+    if (ipcEvent.data === ExternalState.CONNECT) {
+      // 5秒超时,则认为用户前端没有监听任何外部请求
+      const timeOut = setTimeout(() => {
+        ipc.postMessage(IpcEvent.fromText(ExternalState.CLOSE, "The target app is not listening for any requests"));
+        externalServer.waitListener.resolve(false);
+      }, 5000);
+      // 等待监听建立
+      const bool = await externalServer.waitListener.promise;
+      console.log("onActivity=>🥳", jsProcess.mmid, bool);
+      clearTimeout(timeOut);
+      if (bool) {
+        return ipc.postMessage(IpcEvent.fromText(ExternalState.CONNECT_OK, ExternalState.ACTIVITY));
+      }
+    }
   });
 
   //#region 启动http服务
@@ -48,14 +61,7 @@ export const main = async () => {
 
   // 接收外部的请求（接收别的app的请求）
   jsProcess.onRequest(async (ipcRequest, ipc) => {
-    // 5秒超时,则认为用户前端没有监听任何外部请求
-    const timeOut = setTimeout(() => {
-      ipc.postMessage(IpcEvent.fromText("Not found", "The target app is not listening for any requests"));
-      externalServer.waitListener.reject();
-    }, 5000);
-    // 等待监听建立
-    await externalServer.waitListener.promise;
-    clearTimeout(timeOut);
+    console.log("onRequest=>", ipcRequest.url);
     // 别的app发送消息，触发一下前端注册的fetch
     externalServer.fetchSignal.emit(ipcRequest);
     const awaitResponse = new PromiseOut<$IpcResponse>();
@@ -76,9 +82,9 @@ export const main = async () => {
       url.pathname = "/index.html";
       urlStore.set({
         [X_PLAOC_QUERY.API_INTERNAL_URL]: apiStartResult.urlInfo.buildUrl(usePublic).href,
-        [X_PLAOC_QUERY.API_PUBLIC_URL]:apiStartResult.urlInfo.buildPublicUrl().href,
-        [X_PLAOC_QUERY.EXTERNAL_URL]:externalServer.token
-      })
+        [X_PLAOC_QUERY.API_PUBLIC_URL]: apiStartResult.urlInfo.buildPublicUrl().href,
+        [X_PLAOC_QUERY.EXTERNAL_URL]: externalServer.token,
+      });
       url.searchParams.set(X_PLAOC_QUERY.API_INTERNAL_URL, apiStartResult.urlInfo.buildUrl(usePublic).href);
       url.searchParams.set(X_PLAOC_QUERY.API_PUBLIC_URL, apiStartResult.urlInfo.buildPublicUrl().href);
       url.searchParams.set(X_PLAOC_QUERY.EXTERNAL_URL, externalServer.token);

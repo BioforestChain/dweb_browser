@@ -25,7 +25,7 @@ export class Server_api extends _Server_api {
   //   if (!sessionId) {
   //     throw new Error("session not connect!");
   //   }
-  //   return super._onInternal(event, (mmid) => getConncetdIpc(sessionId, mmid) ?? jsProcess.connect(mmid));
+  //   return super._onInternal(event);
   // }
 
   protected override async _onApi(event: FetchEvent) {
