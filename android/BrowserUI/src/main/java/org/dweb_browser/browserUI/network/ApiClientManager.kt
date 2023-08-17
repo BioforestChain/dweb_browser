@@ -14,7 +14,9 @@ class HttpClient {
     method: Method = Method.GET,
     bodyMode: BodyMode = BodyMode.Memory,
     customRequest: (String, Method) -> Request = defaultRequest
-  ) = withContext(ioAsyncExceptionHandler) { httpFetch(customRequest(path, method)) }
+  ) = withContext(ioAsyncExceptionHandler) {
+    httpFetch(customRequest(path, method))
+  }
 
   private val defaultRequest: (String, Method) -> Request = { url, method ->
     Request(method, url)

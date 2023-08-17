@@ -7,14 +7,18 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.safeGestures
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.SnapshotMutationPolicy
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.structuralEqualityPolicy
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -25,6 +29,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
+import info.bagen.dwebbrowser.base.AppIconRender
 import info.bagen.dwebbrowser.base.WindowInsetsHelper
 import info.bagen.dwebbrowser.microService.browser.desk.noLocalProvidedFor
 import info.bagen.dwebbrowser.microService.core.WindowBottomBarTheme
@@ -42,10 +47,13 @@ import info.bagen.dwebbrowser.ui.theme.md_theme_light_onSurface
 import info.bagen.dwebbrowser.ui.theme.md_theme_light_surface
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.Observable
+import org.dweb_browser.microservice.sys.dns.nativeFetch
 import java.util.WeakHashMap
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
+
 
 /**
  * 提供一个计算函数，来获得一个在Compose中使用的 state
@@ -196,6 +204,8 @@ fun Modifier.windowResizeByRightBottom(win: WindowController) = this.pointerInpu
 }
 
 val LocalWindowLimits = compositionLocalOf<WindowLimits> { noLocalProvidedFor("WindowLimits") }
+val LocalWindowController =
+  compositionLocalOf<WindowController> { noLocalProvidedFor("WindowController") }
 
 data class WindowLimits(
   val minWidth: Float,
@@ -502,4 +512,65 @@ fun WindowController.buildTheme(dark: Boolean): WindowControllerTheme {
     bottomBackgroundColor = bottomBackgroundColor,
     bottomContentColor = bottomContentColor,
   )
+}
+
+val WindowSessionStore = WeakHashMap<WindowController, MutableMap<Any, Any>>()
+val WindowController.sessionCache get() = WindowSessionStore.getOrPut(this) { ConcurrentHashMap() }
+
+/**
+ * 加载图标，如果有 state.microModule，那就让它去下载，否则就直接提供 string-url
+ */
+suspend fun WindowController.loadIconModel(iconUrl: String?) = when (val url = iconUrl) {
+  null -> ImageState.Success(null)
+  else -> when (val mm = state.microModule) {
+    null -> ImageState.Success(iconUrl)
+    else -> sessionCache.getOrPut(url) {
+      println("download Icon: ${url}")
+      mm.nativeFetch(url).let { response ->
+        if (response.status.code >= 400) {
+          ImageState.Error
+        } else {
+          ImageState.Success(response.body.payload)
+        }
+      }
+    } as ImageState<out Any?>
+  }
+}
+
+/**
+ * 图标渲染
+ */
+@Composable
+fun WindowController.IconRender(
+  modifier: Modifier,
+  primaryColor: Color = LocalContentColor.current,
+  primaryContainerColor: Color? = null,
+) {
+  val iconUrl by watchedState { iconUrl }
+  var iconImageModel by remember(iconUrl) {
+    mutableStateOf<ImageState<out Any?>>(ImageState.Loading)
+  }
+  val scope = rememberCoroutineScope()
+  LaunchedEffect(iconUrl) {
+    scope.launch {
+      iconImageModel = loadIconModel(iconUrl)
+    }
+  }
+
+  val iconMaskable by watchedState { iconMaskable }
+  val iconMonochrome by watchedState { iconMonochrome }
+  AppIconRender(
+    modifier,
+    color = primaryColor,
+    containerColor = primaryContainerColor,
+    iconModel = iconImageModel.model,
+    iconMonochrome = iconMonochrome,
+    iconMaskable = iconMaskable
+  )
+}
+
+sealed class ImageState<T>(val model: T) {
+  data object Loading : ImageState<Any?>(null)
+  class Success<T>(model: T) : ImageState<T>(model)
+  data object Error : ImageState<Any?>(null)
 }

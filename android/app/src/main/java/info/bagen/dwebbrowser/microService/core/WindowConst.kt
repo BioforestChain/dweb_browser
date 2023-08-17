@@ -18,6 +18,8 @@ enum class WindowPropertyKeys(val fieldName: String) {
   Any("*"),
   Title("title"),
   IconUrl("iconUrl"),
+  IconMaskable("iconMaskable"),
+  IconMonochrome("iconMonochrome"),
   Mode("mode"),
   Resizable("resizable"),
   Focus("focus"),

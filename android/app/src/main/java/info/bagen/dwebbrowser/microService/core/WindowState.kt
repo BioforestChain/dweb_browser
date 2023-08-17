@@ -12,6 +12,7 @@ import info.bagen.dwebbrowser.microService.sys.helper.hex
 import info.bagen.dwebbrowser.microService.sys.helper.toHex
 import info.bagen.dwebbrowser.microService.sys.window.debugWindow
 import org.dweb_browser.helper.Observable
+import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.help.MMID
 import org.dweb_browser.microservice.help.gson
 import java.lang.reflect.Type
@@ -39,6 +40,10 @@ class WindowState(
    * 比如若渲染的是web内容，那么应该是 mwebview.browser.dweb
    */
   val provider: MMID,
+  /**
+   * 提供放的 mm 实例
+   */
+  val microModule: MicroModule? = null,
 ) : JsonSerializer<WindowState>, JsonDeserializer<WindowState> {
   /**
    * 以下是可变属性，所以这里提供一个监听器，来监听所有的属性变更
@@ -136,6 +141,21 @@ class WindowState(
    * 如果是 mwebview，默认会采用当前 Webview 的网页 favicon
    */
   var iconUrl by observable.observeNullable(WindowPropertyKeys.IconUrl, String::class);
+
+  /**
+   * 图标是否可被裁切，默认不可裁切
+   *
+   * 如果你的图标自带安全区域，请标记成true
+   * （可以用圆形来作为图标的遮罩，如果仍然可以正确显示，那么就属于 maskable=true）
+   */
+  var iconMaskable by observable.observe(WindowPropertyKeys.IconMaskable, false);
+
+  /**
+   * 图标是否单色
+   *
+   * 如果是单色调，那么就会被上下文所影响，从而在不同的场景里会被套上不同的颜色
+   */
+  var iconMonochrome by observable.observe(WindowPropertyKeys.IconMonochrome, false);
 
   /**
    * 是否全屏

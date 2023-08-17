@@ -41,6 +41,8 @@ abstract class WindowController(
   fun isFocused() = state.focus
   open suspend fun focus() {
     state.focus = true
+    // 如果窗口聚焦，那么要同时取消最小化的状态
+    unMinimize()
   }
 
   open suspend fun blur() {
@@ -53,8 +55,7 @@ abstract class WindowController(
   fun isMaximized(mode: WindowMode = state.mode) =
     mode == WindowMode.MAXIMIZE || mode == WindowMode.FULLSCREEN
 
-  val onMaximize = createStateListener(
-    WindowPropertyKeys.Mode,
+  val onMaximize = createStateListener(WindowPropertyKeys.Mode,
     { isMaximized(mode) }) { debugDesk("emit onMaximize", id) }
 
   open suspend fun maximize() {
@@ -106,19 +107,25 @@ abstract class WindowController(
     }
   }
 
-  fun isMinimize(mode: WindowMode = state.mode) =
-    mode == WindowMode.MAXIMIZE || mode == WindowMode.FULLSCREEN
+  fun isMinimize(mode: WindowMode = state.mode) = mode == WindowMode.MINIMIZE
 
-  val onMinimize = createStateListener(
-    WindowPropertyKeys.Mode,
+  private var _beforeMinimizeMode: WindowMode? = null
+
+  val onMinimize = createStateListener(WindowPropertyKeys.Mode,
     { mode == WindowMode.MINIMIZE }) { debugDesk("emit onMinimize", id) }
+
+  open suspend fun unMinimize() {
+    if (isMinimize()) {
+      state.mode = _beforeMinimizeMode ?: WindowMode.FLOATING
+      _beforeMinimizeMode = null
+    }
+  }
 
   open suspend fun minimize() {
     state.mode = WindowMode.MINIMIZE
   }
 
-  val onClose = createStateListener(
-    WindowPropertyKeys.Mode,
+  val onClose = createStateListener(WindowPropertyKeys.Mode,
     { mode == WindowMode.CLOSED }) { debugDesk("emit onClose", id) }
 
   fun isClosed() = state.mode == WindowMode.CLOSED
@@ -131,9 +138,7 @@ abstract class WindowController(
 
   //#region 窗口样式修饰
   open suspend fun setTopBarStyle(
-    contentColor: String? = null,
-    backgroundColor: String? = null,
-    overlay: Boolean? = null
+    contentColor: String? = null, backgroundColor: String? = null, overlay: Boolean? = null
   ) {
     contentColor?.also { state.topBarContentColor = it }
     backgroundColor?.also { state.topBarBackgroundColor = it }

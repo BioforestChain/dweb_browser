@@ -21,10 +21,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
+import info.bagen.dwebbrowser.base.IosDefaultDurationMillisIn
+import info.bagen.dwebbrowser.base.IosDefaultDurationMillisOut
+import info.bagen.dwebbrowser.base.iosTween
 import info.bagen.dwebbrowser.microService.browser.desk.DesktopWindowController
 import info.bagen.dwebbrowser.microService.core.WindowController
 import info.bagen.dwebbrowser.microService.core.windowAdapterManager
@@ -86,7 +91,11 @@ fun WindowController.Render(
     LocalWindowPadding provides winPadding,
     LocalWindowLimits provides limits,
     LocalWindowControllerTheme provides theme,
+    LocalWindowController provides win,
   ) {
+
+    val isMinimize by win.watchedState { isMinimize() }
+
     /**
      * 窗口缩放
      *
@@ -94,10 +103,21 @@ fun WindowController.Render(
      * TODO 需要监听 winBounds 的 height/width 变化，将这个变化适配到窗口的 scaleX、scaleY 上，只有在动画完成的时候，才会正式将真正的 size 传递给内容渲染，这样可以有效避免内容频繁的resize渲染计算。这种resize有两种情况，一种是基于用户行为的resize、一种是基于接口行为的（比如最大化），所以应该统一通过监听winBounds变更来动态生成scale动画
      */
     val scale by animateFloatAsState(
-      targetValue = if (inMove) 1.05f else 1f,
-      animationSpec = tween(durationMillis = if (inMove) 250 else 500),
+      targetValue = if (isMinimize) 0f else if (inMove) 1.05f else 1f,
+      animationSpec = iosTween(durationIn = !(inMove || isMinimize)),
       label = "scale"
     )
+    if (scale == 0f) {
+      return@CompositionLocalProvider
+    }
+    val opacity by animateFloatAsState(
+      targetValue = if (isMinimize) 0f else 1f,
+      animationSpec = iosTween(durationIn = !isMinimize),
+      label = "opacity"
+    )
+    if (opacity == 0f) {
+      return@CompositionLocalProvider
+    }
     Box(
       modifier = with(winBounds) {
         modifier
@@ -110,7 +130,8 @@ fun WindowController.Render(
         }
         .shadow(
           elevation = elevation.dp, shape = winPadding.boxRounded.toRoundedCornerShape()
-        ),
+        )
+        .alpha(opacity),
     ) {
       //#region 窗口内容
       Column(
@@ -126,6 +147,7 @@ fun WindowController.Render(
         Box(
           Modifier
             .weight(1f)
+            .zIndex(2f)
             .padding(start = winPadding.left.dp, end = winPadding.right.dp)// TODO 这里要注意布局方向
         ) {
           val viewWidth = winPadding.contentBounds.width
@@ -153,7 +175,7 @@ fun WindowController.Render(
           )
         }
         /// 显示底部控制条
-        WindowBottomBar(win)
+        WindowBottomBar(win, Modifier.zIndex(1f))
       }
       //#endregion
 

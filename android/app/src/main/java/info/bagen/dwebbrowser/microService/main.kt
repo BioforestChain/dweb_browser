@@ -1,6 +1,7 @@
 package info.bagen.dwebbrowser.microService
 
 import android.webkit.WebView
+import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.browser.desk.DesktopNMM
 import info.bagen.dwebbrowser.microService.browser.jmm.JmmNMM
 import info.bagen.dwebbrowser.microService.browser.jsProcess.JsProcessNMM
@@ -17,10 +18,16 @@ import info.bagen.dwebbrowser.microService.sys.notification.NotificationNMM
 import info.bagen.dwebbrowser.microService.sys.share.ShareNMM
 import info.bagen.dwebbrowser.microService.sys.toast.ToastNMM
 import info.bagen.dwebbrowser.microService.sys.window.WindowNMM
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.cio.CIO
+import io.ktor.client.plugins.cache.HttpCache
+import io.ktor.client.plugins.cache.storage.FileStorage
 import org.dweb_browser.helper.addDebugTags
 import org.dweb_browser.microservice.sys.boot.BootNMM
 import org.dweb_browser.microservice.sys.dns.DnsNMM
+import org.dweb_browser.microservice.sys.dns.nativeFetchAdaptersManager
 import org.dweb_browser.microservice.sys.http.HttpNMM
+import java.io.File
 
 val InternalBranch = when (DEVELOPER.CURRENT) {
   DEVELOPER.GAUBEE, DEVELOPER.HuangLin, DEVELOPER.HLOppo, DEVELOPER.WaterBang, DEVELOPER.HLVirtual -> true
@@ -76,7 +83,7 @@ suspend fun startDwebBrowser(): DnsNMM {
         "/.+/",
       )
     )
-    
+
     DEVELOPER.Kingsword09, DEVELOPER.KVirtual -> addDebugTags(
       listOf(
         "desk"
@@ -94,7 +101,18 @@ suspend fun startDwebBrowser(): DnsNMM {
   /// 安装系统应用
   val jsProcessNMM = JsProcessNMM().also { dnsNMM.install(it) }
   val multiWebViewNMM = MultiWebViewNMM().also { dnsNMM.install(it) }
-  val httpNMM = HttpNMM().also { dnsNMM.install(it) }
+  val httpNMM = HttpNMM().also {
+    dnsNMM.install(it)
+    /// 自定义 httpClient 的缓存
+    HttpClient(CIO) {
+      install(HttpCache) {
+        val cacheFile = File(App.appContext.cacheDir, "http-fetch.cache")
+        publicStorage(FileStorage(cacheFile))
+      }
+    }.also { client ->
+      nativeFetchAdaptersManager.setClientProvider(client)
+    }
+  }
 
   /// 安装系统桌面
   val browserNMM = BrowserNMM().also { dnsNMM.install(it) }

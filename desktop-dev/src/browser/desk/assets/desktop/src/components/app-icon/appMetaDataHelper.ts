@@ -1,6 +1,6 @@
 import { strictImageResource } from "helper/imageResourcesHelper.ts";
 import { RandomNumberOptions, randomStringToNumber } from "helper/randomHelper.ts";
-import { Compareable, enumToCompareable } from "helper/sortHelper.ts";
+import { Compareable as ComparableWrapper, enumToCompareable as enumToComparable } from "helper/sortHelper.ts";
 import { readAcceptSvg } from "src/provider/api.ts";
 import { buildApiRequestArgs } from "src/provider/fetch.ts";
 import { $WidgetAppData } from "src/types/app.type.ts";
@@ -8,6 +8,12 @@ import { ShallowRef, watchEffect } from "vue";
 import blankApp_svg from "./blankApp.svg";
 import { $AppIconInfo } from "./types.ts";
 
+/**
+ * 挑选合适的图标作为桌面上的图标
+ * @param config
+ * @param outputRef
+ * @returns
+ */
 export const watchEffectAppMetadataToAppIcon = (
   config: {
     metaData: $WidgetAppData;
@@ -22,11 +28,11 @@ export const watchEffectAppMetadataToAppIcon = (
     const selectedIcon = (appMetaData.icons ?? [])
       .map(
         (icon) =>
-          new Compareable(strictImageResource(icon), (icon) => {
+          new ComparableWrapper(strictImageResource(icon), (icon) => {
             const size = icon.sizes.at(-1)!;
-            const area = size.width * size.height;
+            const area = -size.width * size.height;
             return {
-              purpose: enumToCompareable(icon.purpose, ["maskable", "any", "monochrome"]),
+              purpose: enumToComparable(icon.purpose, ["maskable", "any", "monochrome"]),
               type: acceptImage.length - acceptImage.findIndex((acceptTester) => acceptTester(icon.type)),
               area,
             };

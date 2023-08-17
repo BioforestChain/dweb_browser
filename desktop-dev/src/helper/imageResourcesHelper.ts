@@ -24,13 +24,13 @@ export const strictImageResource = (img: ImageResource, baseUrl = document.baseU
 
   const imageSizes: Array<{ width: number; height: number }> = [];
   if (img.sizes === undefined || img.sizes === null) {
-    if (imageType === "image/svg+xml") {
-      imageSizes.push({ width: Number.MAX_SAFE_INTEGER, height: Number.MAX_SAFE_INTEGER });
+    if (imageType === "image/svg+xml") {/// floor(sqrt(max_int))
+      imageSizes.push({ width: 46340, height: 46340 });
     } else {
       imageSizes.push({ width: 1, height: 1 });
     }
   } else if (img.sizes === "any") {
-    imageSizes.push({ width: Number.MAX_SAFE_INTEGER, height: Number.MAX_SAFE_INTEGER });
+    imageSizes.push({ width: 46340, height: 46340 });
   } else {
     for (const size of img.sizes.split(/\s+/g)) {
       const matchd = size.match(/(\d+)x(\d+)/);

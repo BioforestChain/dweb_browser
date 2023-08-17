@@ -37,8 +37,9 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
   companion object {
     val controllers = mutableMapOf<String, BrowserController>()
   }
-  private var browserController : BrowserController? = null
-  private lateinit var browserServer : HttpDwebServer
+
+  private var browserController: BrowserController? = null
+  private lateinit var browserServer: HttpDwebServer
 
   val queryAppId = Query.string().required("app_id")
   val queryKeyWord = Query.string().required("q")
@@ -118,17 +119,18 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
   private suspend fun openBrowserWindow(ipc: Ipc, search: String? = null, url: String? = null) {
     // 打开安装窗口
     val win = windowAdapterManager.createWindow(
-      WindowState(owner = ipc.remote.mmid, provider = mmid).also {
+      WindowState(owner = ipc.remote.mmid, provider = mmid, microModule = this).also {
         it.mode = WindowMode.MAXIMIZE
       }
     )
     // 由于 WebView创建需要在主线程，所以这边做了 withContext 操作
     withContext(mainAsyncExceptionHandler) {
-      browserController = BrowserController(win, this@BrowserNMM, browserServer).also { controller ->
+      browserController =
+        BrowserController(win, this@BrowserNMM, browserServer).also { controller ->
 
-        search?.let { controller.updateDWSearch(it) }
-        url?.let { controller.updateDWUrl(it) }
-      }
+          search?.let { controller.updateDWSearch(it) }
+          url?.let { controller.updateDWUrl(it) }
+        }
     }
   }
 

@@ -2,10 +2,12 @@ package info.bagen.dwebbrowser.microService.browser.desk.view
 
 import android.content.Context
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.UiComposable
 import androidx.compose.ui.platform.LocalContext
 import info.bagen.dwebbrowser.microService.core.UUID
 import info.bagen.dwebbrowser.microService.core.WindowController
@@ -20,6 +22,9 @@ fun WindowPreviewer(
   owner: MMID = "owner.preview.dweb",
   provider: MMID = "provider.preview.dweb",
   config: WindowController.() -> Unit = {},
+  winRender: @Composable @UiComposable() (BoxWithConstraintsScope.(win: WindowController) -> Unit) = { win ->
+    win.Render(maxWinWidth = maxWidth.value, maxWinHeight = maxHeight.value)
+  },
   content: @Composable (modifier: Modifier, width: Float, height: Float, scale: Float) -> Unit = @Composable { _, _, _, _ -> },
 ) {
   val scope = rememberCoroutineScope()
@@ -47,6 +52,6 @@ fun WindowPreviewer(
     }
     val win = PreviewWindowController(state).also(config)
     windowAdapterManager.providers[wid] = content
-    win.Render(maxWinWidth = maxWidth.value, maxWinHeight = maxHeight.value)
+    winRender(win)
   }
 }

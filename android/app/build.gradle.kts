@@ -10,6 +10,7 @@ android {
   compileSdkPreview = "UpsideDownCake"
   defaultConfig {
     applicationId = "info.bagen.dwebbrowser"
+    testApplicationId = "$applicationId.test"
     minSdk = libs.versions.minSdkVersion.get().toInt()
     targetSdk = libs.versions.targetSdkVersion.get().toInt()
     versionCode = libs.versions.versionCode.get().toInt()
@@ -28,6 +29,9 @@ android {
       jniLibs.setSrcDirs(listOf("src/main/libs"))
       assets.setSrcDirs(listOf("src/main/assets"))
       // Add generated code folder to app module source set
+    }
+    named("androidTest") {
+      res.setSrcDirs(listOf("src/androidTest/res"))
     }
   }
 
@@ -109,6 +113,7 @@ dependencies {
   implementation(libs.http4k.core)
   implementation(libs.http4k.multipart)
   implementation(libs.http4k.client.apache)
+  implementation(libs.ktor.client.cio)
 
   // Android 相关
   implementation(libs.androidx.core.splashscreen)
@@ -183,4 +188,5 @@ dependencies {
 
 tasks.withType<Test> {
   useJUnitPlatform()
+  jvmArgs("--enable-preview")
 }

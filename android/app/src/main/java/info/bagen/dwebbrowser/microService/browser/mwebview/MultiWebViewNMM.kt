@@ -1,5 +1,7 @@
 package info.bagen.dwebbrowser.microService.browser.mwebview
 
+import info.bagen.dwebbrowser.base.ComparableWrapper
+import info.bagen.dwebbrowser.base.enumToComparable
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
 import info.bagen.dwebbrowser.microService.core.UUID
 import info.bagen.dwebbrowser.microService.core.WindowState
@@ -9,6 +11,9 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.browserUI.download.DownLoadObserver
 import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.dwebview.serviceWorker.emitEvent
+import org.dweb_browser.helper.ImageResource
+import org.dweb_browser.helper.ImageResourcePurposes
+import org.dweb_browser.helper.StrictImageResource
 import org.dweb_browser.helper.printdebugln
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.MicroModule
@@ -101,7 +106,42 @@ class MultiWebViewNMM :
 
     val controller = controllerMap.getOrPut(remoteMmid) {
       val win = windowAdapterManager.createWindow(
-        WindowState(owner = ipc.remote.mmid, provider = mmid)
+        WindowState(owner = ipc.remote.mmid, provider = mmid, microModule = this).also { state ->
+          /**
+           * 挑选合适的图标作为应用的图标
+           */
+          val iconResource = ipc.remote.icons?.let { icons ->
+            val comparableBuilder =
+              ComparableWrapper.Builder<StrictImageResource> { imageResource ->
+                mapOf(
+                  "purpose" to enumToComparable(
+                    imageResource.purpose,
+                    listOf(
+                      ImageResourcePurposes.Maskable,
+                      ImageResourcePurposes.Any,
+                      ImageResourcePurposes.Monochrome
+                    )
+                  ).first(),
+                  "type" to enumToComparable(
+                    imageResource.type,
+                    listOf("image/svg+xml", "image/png", "image/jpeg", "image/*")
+                  ),
+                  "area" to imageResource.sizes.last().let {
+                    -it.width * it.height
+                  }
+                )
+              }
+
+            icons.minOfOrNull { comparableBuilder.build(StrictImageResource.from(it)) }?.value
+          }
+          if (iconResource != null) {
+            state.iconUrl = iconResource.src
+            state.iconMaskable = iconResource.purpose.contains(ImageResourcePurposes.Maskable)
+            state.iconMonochrome = iconResource.purpose.contains(ImageResourcePurposes.Maskable)
+          } else {
+
+          }
+        }
       )
 
       MultiWebViewController(win, ipc, remoteMm, this).also { controller ->

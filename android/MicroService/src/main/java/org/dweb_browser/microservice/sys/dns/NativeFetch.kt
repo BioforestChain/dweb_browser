@@ -2,6 +2,7 @@ package org.dweb_browser.microservice.sys.dns
 
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
+import io.ktor.client.plugins.cache.HttpCache
 import io.ktor.client.request.prepareRequest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -32,31 +33,40 @@ fun debugFetchFile(tag: String, msg: Any? = "", err: Throwable? = null) =
  * file:/// => /usr & /sys as const
  * file://file.sys.dweb/ => /home & /tmp & /share as userData
  */
-val nativeFetchAdaptersManager = AdapterManager<FetchAdapter>()
+val nativeFetchAdaptersManager = NativeFetchAdaptersManager()
 
-private val client = HttpClient(CIO) {
+class NativeFetchAdaptersManager : AdapterManager<FetchAdapter>() {
 
-}
+  private var client = HttpClient(CIO) {
+    install(HttpCache)
+  }
 
-suspend fun httpFetch(request: Request) = try {
-  debugFetch("httpFetch request", request.uri)
-  val responsePo = PromiseOut<Response>()
-  CoroutineScope(ioAsyncExceptionHandler).launch {
-    client.prepareRequest(request.toHttpRequestBuilder()).execute {
-      val streamOut = ReadableStreamOut();
-      val response = it.toResponse(streamOut)
-      debugFetch("httpFetch response", request.uri)
-      responsePo.resolve(response)
-      streamOut.stream.waitClosed()
-      debugFetch("httpFetch end", request.uri)
+  fun setClientProvider(client: HttpClient) {
+    this.client = client
+  }
+
+  suspend fun httpFetch(request: Request) = try {
+    debugFetch("httpFetch request", request.uri)
+    val responsePo = PromiseOut<Response>()
+    CoroutineScope(ioAsyncExceptionHandler).launch {
+      client.prepareRequest(request.toHttpRequestBuilder()).execute {
+        val streamOut = ReadableStreamOut();
+        val response = it.toResponse(streamOut)
+        debugFetch("httpFetch response", request.uri)
+        responsePo.resolve(response)
+        streamOut.stream.waitClosed()
+        debugFetch("httpFetch end", request.uri)
+      }
     }
+    responsePo.waitPromise().also {
+      debugFetch("httpFetch return", request.uri)
+    }
+  } catch (e: Throwable) {
+    Response(Status.SERVICE_UNAVAILABLE).body(e.stackTraceToString())
   }
-  responsePo.waitPromise().also {
-    debugFetch("httpFetch return", request.uri)
-  }
-} catch (e: Throwable) {
-  Response(Status.SERVICE_UNAVAILABLE).body(e.stackTraceToString())
 }
+
+val httpFetch = nativeFetchAdaptersManager::httpFetch
 
 suspend fun MicroModule.nativeFetch(request: Request): Response {
   for (fetchAdapter in nativeFetchAdaptersManager.adapters) {
@@ -66,7 +76,7 @@ suspend fun MicroModule.nativeFetch(request: Request): Response {
     }
   }
 
-  return httpFetch(request)
+  return nativeFetchAdaptersManager.httpFetch(request)
 }
 
 

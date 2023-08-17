@@ -266,7 +266,6 @@ class DesktopWindowsManager(internal val activity: DesktopActivity) {
    * 对一个窗口做聚焦操作
    */
   fun focusWindow(win: DesktopWindowController) = activity.lifecycleScope.launch {
-    val lastFocusedWin = lastFocusedWin
     if (lastFocusedWin != win) {
       lastFocusedWin?.blur()
       win.focus()
@@ -280,6 +279,11 @@ class DesktopWindowsManager(internal val activity: DesktopActivity) {
    */
   suspend fun focusWindow(mmid: MMID) {
     val windows = findWindows(mmid)
+    lastFocusedWin?.let {
+      if (!windows.contains(it)) {
+        it.blur()
+      }
+    }
     for (win in windows) {
       win.focus()
     }
