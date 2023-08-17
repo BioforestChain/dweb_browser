@@ -100,11 +100,11 @@ if (os.platform() === "win32") {
       description: "exit Dweb Browser",
     },
   ]);
-
-  process.argv.forEach((val) => {
-    if(val === '--quit') {
-      // 打开任务列表窗口 
-      Electron.app.quit()
-    }
-  })
 }
+
+Electron.app.on('ready', () => {
+  // 退出应用
+  if(process.argv.includes('--quit')){
+    Electron.app.quit()
+  }
+})

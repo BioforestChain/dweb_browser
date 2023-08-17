@@ -54,7 +54,7 @@ export class TaskbarApi {
       ...window_options,
       /// 如果小于 80，macos会失去高斯模糊的特效
       // minHeight: 80,
-      minWidth:65,
+      width:65,
       defaultBounds: { width: 65, height: 60 },
       resizable:false,
     });

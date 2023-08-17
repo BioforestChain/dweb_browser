@@ -17,8 +17,8 @@ export const devTasks = new ConTasks(
       args: "task sync --watch",
     },
     "toolkit:fort-test-image": {
-      cmd: "vite",
-      args: "--host 0.0.0.0",
+      cmd: "npx",
+      args: "vite --host 0.0.0.0",
       cwd: "./toolkit/for-test-images",
     },
   },

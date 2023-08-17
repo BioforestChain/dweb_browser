@@ -61,12 +61,14 @@ export class Server_api extends _Server_api {
       /// 返回读写这个stream的链接，注意，目前双工需要客户端通过 WebSocket 来达成支持
       return { body: streamIpc.stream };
     }
+    const fun = (mmid: $MMID) => {
+      if (sessionId) {
+        return getConncetdIpc(sessionId, mmid) ?? jsProcess.connect(mmid);
+      }
+      return jsProcess.connect(mmid);
+    };
     /// 请求模拟器或者直接请求原生
-    return super._onApi(
-      event,
-      (mmid) => (sessionId && getConncetdIpc(sessionId, mmid)) ?? jsProcess.connect(mmid),
-      false
-    );
+    return super._onApi(event, fun, false);
   }
 }
 
