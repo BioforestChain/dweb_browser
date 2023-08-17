@@ -1,4 +1,4 @@
-import type {} from "dweb/browser/js-process/assets/worker/index.ts";
+import type { } from "dweb/browser/js-process/assets/worker/index.ts";
 export type { $MMID, $MicroModuleManifest } from "dweb/core/helper/types.ts";
 //#region helper
 export { queue } from "dweb/helper/$queue.ts";

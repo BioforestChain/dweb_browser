@@ -1,3 +1,4 @@
+import { BasePlugin } from "../base/BasePlugin.ts";
 import { configPlugin } from "./config.plugin.ts";
 
 export class HTMLDwebConfigElement extends HTMLElement {
@@ -6,9 +7,9 @@ export class HTMLDwebConfigElement extends HTMLElement {
   get public_url() {
     return configPlugin.public_url;
   }
-  // getPublicUrl() {
-  //   return configPlugin.updatePublicUrl();
-  // }
+  getPublicUrl() {
+    return BasePlugin.public_url
+  }
   static get observedAttributes() {
     return ["api-url"];
   }

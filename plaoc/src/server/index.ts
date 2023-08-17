@@ -6,6 +6,7 @@ import { Server_external } from "./http-external-server.ts";
 import { Server_www } from "./http-www-server.ts";
 import "./polyfill.ts";
 
+import { urlStore } from "./helper/urlStore.ts";
 import { cors } from "./http-helper.ts";
 import { all_webview_status, mwebview_activate, mwebview_open, sync_mwebview_status } from "./mwebview-helper.ts";
 
@@ -73,6 +74,11 @@ export const main = async () => {
     const usePublic = isMobile.isMobile();
     const indexUrl = wwwStartResult.urlInfo.buildHtmlUrl(usePublic, (url) => {
       url.pathname = "/index.html";
+      urlStore.set({
+        [X_PLAOC_QUERY.API_INTERNAL_URL]: apiStartResult.urlInfo.buildUrl(usePublic).href,
+        [X_PLAOC_QUERY.API_PUBLIC_URL]:apiStartResult.urlInfo.buildPublicUrl().href,
+        [X_PLAOC_QUERY.EXTERNAL_URL]:externalServer.token
+      })
       url.searchParams.set(X_PLAOC_QUERY.API_INTERNAL_URL, apiStartResult.urlInfo.buildUrl(usePublic).href);
       url.searchParams.set(X_PLAOC_QUERY.API_PUBLIC_URL, apiStartResult.urlInfo.buildPublicUrl().href);
       url.searchParams.set(X_PLAOC_QUERY.EXTERNAL_URL, externalServer.token);

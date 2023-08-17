@@ -10,7 +10,6 @@ export const doPubCore = async (cwd: string) => {
   });
   const process = await npm_cmd.spawn();
   const status = await process.status;
-  console.log(status);
   return status.success;
 };
 

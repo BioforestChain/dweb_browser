@@ -1,4 +1,7 @@
+import { IpcHeaders } from "../../deps.ts";
+import { X_PLAOC_QUERY } from "./const.ts";
 import { $DwebHttpServerOptions, $OnFetchReturn, FetchEvent, IpcResponse, jsProcess } from "./deps.ts";
+import { urlStore } from "./helper/urlStore.ts";
 import { HttpServer, cors } from "./http-helper.ts";
 
 /**给前端的文件服务 */
@@ -15,9 +18,14 @@ export class Server_www extends HttpServer {
   }
   protected async _provider(request: FetchEvent, root = "www"): Promise<$OnFetchReturn> {
     let { pathname } = request;
+    if (pathname.startsWith(`/${X_PLAOC_QUERY.GET_CONFIG_URL}`)) {
+      const obj = urlStore.get() ?? ""
+      return IpcResponse.fromJson(request.req_id,200,cors(new IpcHeaders()),obj,request.ipc)
+    }
     if (pathname === "/") {
       pathname = "/index.html";
     }
+  
     const remoteIpcResponse = await jsProcess.nativeRequest(
       `file:///usr/${root}${pathname}?mode=stream`
     );

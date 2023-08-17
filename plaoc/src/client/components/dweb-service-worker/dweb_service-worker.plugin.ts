@@ -1,7 +1,6 @@
 import { bindThis } from "../../helper/bindThis.ts";
 import type { $BuildRequestWithBaseInit } from "../base/BasePlugin.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
-import { configPlugin } from "../index.ts";
 import { BFSMetaData } from "./dweb-service-worker.type.ts";
 
 class UpdateControllerPlugin extends BasePlugin {
