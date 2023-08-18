@@ -46,7 +46,8 @@ data class StrictImageResource(
       val imgUrl = if (baseUrl != null) URI(baseUrl).resolve(img.src) else URI(img.src)
       var imageType = img.type
       if (imageType == null) {
-        val imageUrlExt = imgUrl.path.substringAfterLast(".")
+        // path的获取解析可能会失败
+        val imageUrlExt = imgUrl.runCatching { path.substringAfterLast(".") }.getOrNull()
         println("imageUrlExt:$imageUrlExt")
         imageType = when (imageUrlExt) {
           "jpg", "jpeg" -> "image/jpeg"

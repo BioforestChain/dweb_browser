@@ -45,7 +45,7 @@ fun PreviewWindowBottomNavigationBar() {
   WindowPreviewer(config = {
     state.bottomBarTheme = WindowBottomBarTheme.Navigation
     state.bottomBarContentColor = "#FF00FF"
-  }) { modifier, _, _, _ ->
+  }) { modifier ->
     PreviewWindowBottomBarContent(modifier)
   }
 }
@@ -57,7 +57,7 @@ fun PreviewWindowBottomNavigationBarWithMax() {
     state.bottomBarTheme = WindowBottomBarTheme.Navigation
     state.mode = WindowMode.MAXIMIZE
     state.bottomBarContentColor = "#FF00FF"
-  }) { modifier, _, _, _ ->
+  }) { modifier ->
     PreviewWindowBottomBarContent(modifier)
   }
 }
@@ -68,7 +68,7 @@ fun PreviewWindowBottomImmersionBar() {
   WindowPreviewer(config = {
     state.bottomBarTheme = WindowBottomBarTheme.Immersion
     state.bottomBarContentColor = "#FF00FF"
-  }) { modifier, _, _, _ ->
+  }) { modifier ->
     PreviewWindowBottomBarContent(modifier)
   }
 }
@@ -80,7 +80,7 @@ fun PreviewWindowBottomImmersionBarWithMax() {
     state.bottomBarTheme = WindowBottomBarTheme.Immersion
     state.mode = WindowMode.MAXIMIZE
     state.bottomBarContentColor = "#FF00FF"
-  }) { modifier, _, _, _ ->
+  }) { modifier ->
     PreviewWindowBottomBarContent(modifier)
   }
 }

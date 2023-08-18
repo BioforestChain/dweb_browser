@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import org.dweb_browser.helper.android.iosTween
 import org.dweb_browser.window.core.WindowController
+import org.dweb_browser.window.core.WindowRenderScope
 import org.dweb_browser.window.core.createWindowAdapterManager
 
 @Composable
@@ -147,15 +148,17 @@ fun WindowController.Render(
            * 视图的宽高随着窗口的缩小而缩小，随着窗口的放大而放大，
            * 但这些缩放不是等比的，而是会以一定比例进行换算。
            */
-          createWindowAdapterManager.providers[win.state.wid]?.also {
+          createWindowAdapterManager.renderProviders[win.state.wid]?.also {
             val viewScale = win.calcContentScale(limits, winPadding)
-            it(
+            it.invoke(
+              WindowRenderScope(
+                width = viewWidth,
+                height = viewHeight,
+                scale = viewScale,
+              ),
               modifier = Modifier
                 .requiredSize(viewWidth.dp, viewHeight.dp)
                 .clip(winPadding.contentRounded.toRoundedCornerShape()),
-              width = viewWidth,
-              height = viewHeight,
-              scale = viewScale,
             )
           } ?: Text(
             "Op！视图被销毁了",

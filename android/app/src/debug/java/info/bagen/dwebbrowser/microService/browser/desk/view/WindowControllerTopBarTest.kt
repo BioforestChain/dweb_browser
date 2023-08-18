@@ -32,7 +32,7 @@ fun PreviewWindowTopBar() {
     state.topBarContentColor = "#FF00FF"
     state.iconUrl = "http://172.30.92.50:12207/m3-favicon-apple-touch.png"
     state.iconMaskable = true
-  }) { modifier, _, _, _ ->
+  }) { modifier ->
     PreviewWindowTopBarContent(modifier)
   }
 }
@@ -43,7 +43,7 @@ fun PreviewWindowTopBarWithMax() {
   WindowPreviewer(config = {
     state.mode = WindowMode.MAXIMIZE
     state.topBarContentColor = "#FF00FF"
-  }) { modifier, _, _, _ ->
+  }) { modifier ->
     PreviewWindowTopBarContent(modifier)
   }
 }
@@ -55,7 +55,7 @@ fun PreviewWindowTopBarWithLongTitle() {
   WindowPreviewer(config = {
     state.topBarContentColor = "#FF00FF"
     state.title = "🎉🎉🎉🎉 Hello Dweb Browser!!Hello Dweb Browser 🎉🎉🎉🎉"
-  }) { modifier, _, _, _ ->
+  }) { modifier ->
     PreviewWindowTopBarContent(modifier)
   }
 }

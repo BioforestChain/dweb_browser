@@ -58,15 +58,15 @@ class MultiWebViewController(
     }
     val wid = win.id
     /// 提供渲染适配
-    createWindowAdapterManager.providers[wid] =
-      @Composable { modifier, width, height, scale ->
+    createWindowAdapterManager.renderProviders[wid] =
+      @Composable { modifier ->
         val webViewScale = (LocalDensity.current.density * scale * 100).toInt()
         Render(modifier, webViewScale)
       }
     /// 窗口销毁的时候
     win.onClose {
       // 移除渲染适配器
-      createWindowAdapterManager.providers.remove(wid)
+      createWindowAdapterManager.renderProviders.remove(wid)
       // 清除释放所有的 webview
       for (item in webViewList) {
         closeWebView(item.webviewId)

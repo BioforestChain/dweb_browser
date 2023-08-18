@@ -5,13 +5,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import org.dweb_browser.browserUI.ui.browser.BrowserViewForWindow
 import org.dweb_browser.browserUI.ui.loading.LoadingView
+import org.dweb_browser.window.core.WindowRenderScope
 
 @Composable
-fun BrowserController.Render(modifier: Modifier, width: Float, height: Float, scale: Float) {
+fun BrowserController.Render(modifier: Modifier, windowRenderScope: WindowRenderScope) {
   val controller = this
   Box(modifier = modifier) {
     BrowserViewForWindow(
-      viewModel = controller.viewModel, modifier = modifier, width, height, scale
+      controller.viewModel,
+      modifier,
+      windowRenderScope,
     )
     LoadingView(showLoading)
   }

@@ -46,6 +46,7 @@ import org.dweb_browser.browserUI.ui.entity.BrowserWebView
 import org.dweb_browser.browserUI.ui.loading.LoadingView
 import org.dweb_browser.browserUI.ui.qrcode.QRCodeScanView
 import org.dweb_browser.browserUI.ui.view.PrivacyView
+import org.dweb_browser.window.core.WindowRenderScope
 
 internal val dimenTextFieldFontSize = 16.sp
 internal val dimenSearchHorizontalAlign = 5.dp
@@ -152,10 +153,11 @@ private fun BrowserView(viewModel: BrowserViewModel) {
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun BrowserViewForWindow(
-  viewModel: BrowserViewModel, modifier: Modifier, width: Float, height: Float, scale: Float
+  viewModel: BrowserViewModel, modifier: Modifier, windowRenderScope: WindowRenderScope
 ) {
   val scope = rememberCoroutineScope()
-  val initialScale = (LocalDensity.current.density * scale * 100).toInt() // 用于WebView缩放，避免点击后位置不对
+  val initialScale =
+    (LocalDensity.current.density * windowRenderScope.scale * 100).toInt() // 用于WebView缩放，避免点击后位置不对
 
   BackHandler {
     val watcher = viewModel.uiState.currentBrowserBaseView.value.closeWatcher;
@@ -199,9 +201,11 @@ fun BrowserViewForWindow(
       ) {
         BrowserViewContent(viewModel)   // 中间主体部分
       }
-      Box(modifier = Modifier
-        .requiredSize((width / scale).dp, (height / scale).dp) // 原始大小
-        .scale(scale)) {
+      Box(modifier = with(windowRenderScope) {
+        Modifier
+          .requiredSize((width / scale).dp, (height / scale).dp) // 原始大小
+          .scale(scale)
+      }) {
         // BrowserSearchPreview(viewModel) // 地址栏输入内容后，上面显示的书签、历史和相应搜索引擎
         BrowserViewBottomBar(viewModel) // 工具栏，包括搜索框和导航栏
         // BrowserPopView(viewModel)    // 用于处理弹出框

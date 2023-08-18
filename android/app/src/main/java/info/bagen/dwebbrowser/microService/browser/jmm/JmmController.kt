@@ -21,7 +21,7 @@ class JmmController(
 ) {
 
   private val openLock = Mutex()
-  val viewModel:JmmManagerViewModel = JmmManagerViewModel(jmmAppInstallManifest, this)
+  val viewModel: JmmManagerViewModel = JmmManagerViewModel(jmmAppInstallManifest, this)
 
   fun hasApps(mmid: MMID) = jmmNMM.getApps(mmid) !== null
   fun getApp(mmid: MMID) = jmmNMM.getApps(mmid)
@@ -29,14 +29,14 @@ class JmmController(
   init {
     val wid = win.id
     /// 提供渲染适配
-    createWindowAdapterManager.providers[wid] =
-      @Composable { modifier, width, height, scale ->
-        Render(modifier, width, height, scale)
+    createWindowAdapterManager.renderProviders[wid] =
+      @Composable { modifier ->
+        Render(modifier, this)
       }
     /// 窗口销毁的时候
     win.onClose {
       // 移除渲染适配器
-      createWindowAdapterManager.providers.remove(wid)
+      createWindowAdapterManager.renderProviders.remove(wid)
     }
   }
 

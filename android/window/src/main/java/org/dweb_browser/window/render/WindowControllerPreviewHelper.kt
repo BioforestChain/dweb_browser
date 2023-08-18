@@ -15,6 +15,7 @@ import org.dweb_browser.window.core.WindowState
 import org.dweb_browser.window.core.createWindowAdapterManager
 import kotlinx.coroutines.CoroutineScope
 import org.dweb_browser.microservice.help.MMID
+import org.dweb_browser.window.core.WindowRenderProvider
 
 @Composable
 fun WindowPreviewer(
@@ -25,7 +26,7 @@ fun WindowPreviewer(
   winRender: @Composable @UiComposable() (BoxWithConstraintsScope.(win: WindowController) -> Unit) = { win ->
     win.Render(maxWinWidth = maxWidth.value, maxWinHeight = maxHeight.value)
   },
-  content: @Composable (modifier: Modifier, width: Float, height: Float, scale: Float) -> Unit = @Composable { _, _, _, _ -> },
+  content: WindowRenderProvider = @Composable { _ -> },
 ) {
   val scope = rememberCoroutineScope()
   val context = LocalContext.current
@@ -51,7 +52,7 @@ fun WindowPreviewer(
       }
     }
     val win = PreviewWindowController(state).also(config)
-    createWindowAdapterManager.providers[wid] = content
+    createWindowAdapterManager.renderProviders[wid] = content
     winRender(win)
   }
 }

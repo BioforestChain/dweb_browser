@@ -7,12 +7,15 @@ import org.dweb_browser.window.core.constant.UUID
 
 typealias CreateWindowAdapter = suspend (winState: WindowState) -> WindowController?
 
+data class WindowRenderScope(val width: Float, val height: Float, val scale: Float)
+typealias WindowRenderProvider = @Composable WindowRenderScope.(modifier: Modifier) -> Unit
+
 /**
  * 创建器窗口 的适配器管理
  */
 class CreateWindowAdapterManager : AdapterManager<CreateWindowAdapter>() {
-  val providers =
-    mutableMapOf<UUID, @Composable (modifier: Modifier, width: Float, height: Float, scale: Float) -> Unit>()
+  val renderProviders =
+    mutableMapOf<UUID, WindowRenderProvider>()
 
   suspend fun createWindow(winState: WindowState): WindowController {
     for (adapter in adapters) {

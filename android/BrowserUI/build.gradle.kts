@@ -59,6 +59,7 @@ dependencies {
   implementation(libs.compose.ui.preview)
   implementation(libs.compose.material3)
   implementation(libs.compose.material.icons)
+  implementation(project(":window"))
   androidTestImplementation(platform(libs.compose.bom))
   androidTestImplementation(libs.compose.ui.test.junit4)
   debugImplementation(libs.compose.ui.tooling)
