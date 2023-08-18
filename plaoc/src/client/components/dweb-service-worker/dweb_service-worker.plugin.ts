@@ -75,11 +75,10 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
    * https://desktop.dweb.waterbang.top.dweb/say/hi?message="hi 今晚吃螃🦀️蟹吗？"
    */
   @bindThis
-  async externalFetch(mmid: $MMID, init: $ExterRequestWithBaseInit) {
-    // http://localhost:22206/?X-Dweb-Host=api.desktop.dweb.waterbang.top.dweb%3A443
+  async externalFetch(mmid: $MMID, init: $ExterRequestWithBaseInit): Promise<$ExternalFetchHandle> {
     let pub = await BasePlugin.public_url;
     pub = pub.replace("X-Dweb-Host=api", "X-Dweb-Host=external");
-    const X_Plaoc_Public_Url = await BasePlugin.external_url
+    const X_Plaoc_Public_Url = await BasePlugin.external_url;
 
     const search = Object.assign(init.search ?? {}, {
       mmid: mmid,
@@ -87,15 +86,46 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
       pathname: init.pathname,
     });
     const config = Object.assign(init, { search: search, base: pub });
-    return await this.buildExternalApiRequest(`/${X_Plaoc_Public_Url}`, config).fetch();
+    return {
+      response: await this.buildExternalApiRequest(`/${X_Plaoc_Public_Url}`, config).fetch(),
+      close: ()=> this.externalClose(mmid),
+    };
   }
-  // http://localhost:22206/?X-Dweb-Host=external.demo.www.bfmeta.info.dweb%3A443
+
+  /**
+   * 关闭连接
+   */
+  @bindThis
+  async externalClose(mmid: $MMID): Promise<$ExterResponse> {
+    let pub = await BasePlugin.public_url;
+    pub = pub.replace("X-Dweb-Host=api", "X-Dweb-Host=external");
+    const X_Plaoc_Public_Url = await BasePlugin.external_url;
+    return await this.buildExternalApiRequest(`/${X_Plaoc_Public_Url}`, {
+      search: {
+        mmid: mmid,
+        action: "close",
+      },
+      base: pub,
+    })
+      .fetch()
+      .object<$ExterResponse>();
+  }
 }
 
 export type $MMID = `${string}.dweb`;
 
 export interface $ExterRequestWithBaseInit extends $BuildRequestWithBaseInit {
   pathname: string;
+}
+
+export interface $ExternalFetchHandle {
+  close: () => Promise<$ExterResponse>;
+  response: Response;
+}
+
+export interface $ExterResponse {
+  success: boolean;
+  message: string;
 }
 
 export const dwebServiceWorkerPlugin = new DwebServiceWorkerPlugin();

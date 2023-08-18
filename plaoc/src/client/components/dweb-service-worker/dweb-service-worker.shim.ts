@@ -42,6 +42,11 @@ class DwebServiceWorker extends BaseEvent<keyof DwebWorkerEventMap> {
   }
 
   @cacheGetter()
+  get externalClose() {
+    return this.plugin.externalClose;
+  }
+
+  @cacheGetter()
   get update() {
     return this.updateContoller;
   }
@@ -55,6 +60,7 @@ class DwebServiceWorker extends BaseEvent<keyof DwebWorkerEventMap> {
   get restart() {
     return this.plugin.restart;
   }
+
   private decodeFetch = (ipcRequest: IpcRequest) => {
     return new FetchEvent("fetch", {
       request: toRequest(ipcRequest),
@@ -66,7 +72,7 @@ class DwebServiceWorker extends BaseEvent<keyof DwebWorkerEventMap> {
     let pub = await BasePlugin.public_url;
 
     pub = pub.replace("X-Dweb-Host=api", "X-Dweb-Host=external");
-    const hash = await BasePlugin.external_url
+    const hash = await BasePlugin.external_url;
     const jsonlines = await this.plugin
       .buildExternalApiRequest(`/${hash}`, {
         search: { mmid: this.plugin.mmid, action: "listen" },
@@ -137,11 +143,6 @@ class UpdateController extends BaseEvent<keyof UpdateControllerMap> {
   get cancel() {
     return dwebServiceWorkerPlugin.update().cancel;
   }
-  // @cacheGetter()
-  // get progress() {
-  //   return dwebServiceWorkerPlugin.update().progress
-  // }
-
   /**
    *  dwebview 注册一个监听事件
    * @param eventName

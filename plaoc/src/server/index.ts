@@ -1,6 +1,6 @@
 import isMobile from "npm:is-mobile";
 import { X_PLAOC_QUERY } from "./const.ts";
-import { $IpcResponse, IpcEvent, jsProcess, PromiseOut, queue } from "./deps.ts";
+import { $IpcRequest, IpcEvent, IpcResponse, jsProcess, PromiseOut, queue } from "./deps.ts";
 import { Server_api } from "./http-api-server.ts";
 import { ExternalState, Server_external } from "./http-external-server.ts";
 import { Server_www } from "./http-www-server.ts";
@@ -33,18 +33,16 @@ export const main = async () => {
   });
   /// 如果有人来激活，那我就唤醒我的界面
   jsProcess.onActivity(async (ipcEvent, ipc) => {
-    console.log("onActivity=>", ipcEvent.name);
+    console.log("onActivity=>", ipcEvent.data);
+    // 对方过来的关闭请求
+    if (ipcEvent.data === ExternalState.CLOSE) {
+      return externalServer.waitListener.resolve(false);
+    }
     tryOpenView();
+
     if (ipcEvent.data === ExternalState.CONNECT) {
-      // 5秒超时,则认为用户前端没有监听任何外部请求
-      const timeOut = setTimeout(() => {
-        ipc.postMessage(IpcEvent.fromText(ExternalState.CLOSE, "The target app is not listening for any requests"));
-        externalServer.waitListener.resolve(false);
-      }, 5000);
-      // 等待监听建立
+      // 等待监听建立- 此处的请求会交给开发者控制，如果对方没有设置监听将会一直等待
       const bool = await externalServer.waitListener.promise;
-      console.log("onActivity=>🥳", jsProcess.mmid, bool);
-      clearTimeout(timeOut);
       if (bool) {
         return ipc.postMessage(IpcEvent.fromText(ExternalState.CONNECT_OK, ExternalState.ACTIVITY));
       }
@@ -61,16 +59,15 @@ export const main = async () => {
 
   // 接收外部的请求（接收别的app的请求）
   jsProcess.onRequest(async (ipcRequest, ipc) => {
-    console.log("onRequest=>", ipcRequest.url);
     // 别的app发送消息，触发一下前端注册的fetch
     externalServer.fetchSignal.emit(ipcRequest);
-    const awaitResponse = new PromiseOut<$IpcResponse>();
-    externalServer.responseMap.set(ipcRequest.req_id, awaitResponse);
+    const request = new PromiseOut<$IpcRequest>();
+    externalServer.responseMap.set(ipcRequest.req_id, request);
     // 等待 action=response 的返回
-    const ipcResponse = await awaitResponse.promise;
-    cors(ipcResponse.headers);
+    const data = await request.promise;
+    console.log("response=>", data);
     // 返回数据到发送者那边
-    return ipc.postMessage(ipcResponse);
+    return ipc.postMessage(new IpcResponse(ipcRequest.req_id, 200, cors(data.headers), data.body, ipc));
   });
 
   /// 生成 index-url

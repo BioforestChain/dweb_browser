@@ -5,6 +5,8 @@ import { dwebServiceWorker as sw } from "../plugin";
 const $logPanel = ref<typeof LogPanel>();
 // let console: Console;
 
+Object.assign(globalThis,{sw})
+
 const progress = ref(0);
 
 onMounted(async () => {
@@ -86,24 +88,24 @@ const sayHi = async () => {
       message: "今晚吃螃🦀️蟹吗？",
     },
   });
-  message.value = await result.text();
+  message.value = await result.response.text();
   console.log("sayHi return => ", message.value);
 };
-sw.addEventListener("fetch", async (event) => {
-  console.log("Dweb Service Worker fetch!", event);
-  const url = new URL(event.request.url);
-  if (url.pathname.endsWith("/say/hi")) {
-    const hiMessage = url.searchParams.get("message");
-    console.log(`收到:${hiMessage}`);
-    if (hiMessage) {
-      message.value = hiMessage;
-    }
-    // 发送消息回去
-    return event.respondWith(`吃，再来两斤二锅头。`);
-  }
+// sw.addEventListener("fetch", async (event) => {
+//   console.log("Dweb Service Worker fetch!", event);
+//   const url = new URL(event.request.url);
+//   if (url.pathname.endsWith("/say/hi")) {
+//     const hiMessage = url.searchParams.get("message");
+//     console.log(`收到:${hiMessage}`);
+//     if (hiMessage) {
+//       message.value = hiMessage;
+//     }
+//     // 发送消息回去
+//     return event.respondWith(`吃，再来两斤二锅头。`);
+//   }
 
-  return event.respondWith("Not match any routes");
-});
+//   return event.respondWith("Not match any routes");
+// });
 
 const title = "Dweb Service Worker";
 </script>

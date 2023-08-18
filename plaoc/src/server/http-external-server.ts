@@ -1,9 +1,8 @@
-import { Ipc } from "../../deps.ts";
+import { Ipc, IpcHeaders } from "../../deps.ts";
 import { $MMID } from "../client/index.ts";
 import {
   $DwebHttpServerOptions,
   $IpcRequest,
-  $IpcResponse,
   $OnFetchReturn,
   FetchError,
   FetchEvent,
@@ -40,13 +39,13 @@ export class Server_external extends HttpServer {
     };
   }
 
-  readonly responseMap = new Map<number, PromiseOut<$IpcResponse>>();
+  readonly responseMap = new Map<number, PromiseOut<$IpcRequest>>();
   // 拿到fetch的请求
   readonly fetchSignal = createSignal<$OnIpcRequestUrl>();
   // 等待listen触发
   readonly waitListener = new PromiseOut<boolean>();
   // 连接过的app
-  readonly connectMap = new Map<$MMID, Promise<Ipc | undefined>>();
+  readonly connectMap = new Map<$MMID, PromiseOut<Ipc | undefined>>();
 
   async start() {
     const serverIpc = await this._listener;
@@ -70,7 +69,6 @@ export class Server_external extends HttpServer {
           ob.controller.enqueue(u8aConcat([uint8, jsonlineEnd]));
         });
         // 等待监听流的建立再通知外部发送请求
-        console.log(`${jsProcess.mmid}fetch监听已经建立`);
         this.waitListener.resolve(true);
         return { body: streamPo.stream };
       }
@@ -81,23 +79,29 @@ export class Server_external extends HttpServer {
           throw new FetchError("mmid must be passed", { status: 400 });
         }
         // 连接需要传递信息的jsMicroModule
-        const jsIpc = await mapHelper.getOrPut(this.connectMap, mmid, async (mmid) => {
-          const ipc = await jsProcess.connect(mmid);
-          ipc.postMessage(IpcEvent.fromText(ExternalState.ACTIVITY,ExternalState.CONNECT));
-          const awaitIpc = new PromiseOut<Ipc | undefined>();
-          ipc.onEvent((event) => {
-            console.log(jsProcess.mmid, "收到", event.name);
-            if (event.name === ExternalState.CONNECT_OK) {
-              awaitIpc.resolve(ipc);
-            }
-            if (event.name === ExternalState.CLOSE) {
-              awaitIpc.resolve(undefined);
-            }
-          });
-          return awaitIpc.promise;
+        const jsIpc = await jsProcess.connect(mmid);
+        jsIpc.postMessage(IpcEvent.fromText(ExternalState.ACTIVITY, ExternalState.CONNECT));
+        //  建立连接队列
+        const ipcPo = mapHelper.getOrPut(this.connectMap, mmid, () => {
+          return new PromiseOut();
         });
-        // 对方没有建立通信
-        if (!jsIpc) {
+        jsIpc.onEvent((event) => {
+          if (event.name === ExternalState.CONNECT_OK) {
+            console.log("CONNECT_OK")
+            ipcPo.resolve(jsIpc);
+          }
+          if (event.name === ExternalState.CLOSE) {
+            ipcPo.resolve(undefined);
+          }
+          //TODO 这个可以在对方窗口关闭的时候,让下次重新等待
+          if(event.name === ExternalState.WINDOW_CLOSE) {
+            this.connectMap.set(mmid,new PromiseOut())
+          }
+        });
+
+        if (!(await ipcPo.promise)) {
+          // 我们自己主动关闭了 告知对方关闭等待
+          jsIpc.postMessage(IpcEvent.fromText(ExternalState.ACTIVITY, ExternalState.CLOSE));
           return IpcResponse.fromJson(
             event.req_id,
             200,
@@ -148,25 +152,49 @@ export class Server_external extends HttpServer {
           throw new FetchError(`not found response by req_id ${externalReqId}`, { status: 500 });
         }
         // 转发给外部的app
-        responsePOo.resolve(new IpcResponse(externalReqId, 200, cors(event.headers), event.ipcRequest.body, event.ipc));
+        console.log("external=>", event.ipcRequest);
+        responsePOo.resolve(event.ipcRequest);
         this.responseMap.delete(externalReqId);
-        const icpResponse = IpcResponse.fromText(event.req_id, 200, event.headers, "ok", event.ipc);
+        const icpResponse = IpcResponse.fromJson(
+          event.req_id,
+          200,
+          cors(new IpcHeaders()),
+          { success: "ok" },
+          event.ipc
+        );
         cors(icpResponse.headers);
         // 告知自己的 respondWith 已经发送成功了
         return icpResponse;
       }
       // 断开连接
-      if (action === "clear") {
+      if (action === "close") {
         const mmid = event.searchParams.get("mmid");
         if (!mmid) {
           throw new FetchError("mmid must be passed", { status: 400 });
         }
-        const ipc = await this.connectMap.get(mmid as $MMID);
-        if (ipc) {
-          ipc.close();
-          this.connectMap.delete(mmid as $MMID);
+        const ipcPo = this.connectMap.get(mmid as $MMID);
+        if (!ipcPo) {
+          return IpcResponse.fromJson(
+            event.req_id,
+            400,
+            cors(event.headers),
+            { success: false, message: `No news from ${mmid}` },
+            event.ipc
+          );
         }
-        return IpcResponse.fromJson(event.req_id, 200, cors(event.headers), { success: true }, event.ipc);
+        // 如果还没关闭，强行关闭
+        if (!ipcPo.is_resolved) {
+          ipcPo.resolve(undefined);
+        }
+        const ipc = await ipcPo.promise;
+        // 如果成功建立过连接，通知对方关闭
+        if (ipc) {
+          // 向对方发送关闭消息
+          ipc.postMessage(IpcEvent.fromText(ExternalState.CLOSE,ExternalState.CLOSE))
+          ipc.close()
+        }
+        this.connectMap.delete(mmid as $MMID);
+        return IpcResponse.fromJson(event.req_id, 200, cors(event.headers), { success: true,message:"ok"}, event.ipc);
       }
       throw new FetchError(`unknown action: ${action}`, { status: 502 });
     }
@@ -178,5 +206,6 @@ export enum ExternalState {
   ACTIVITY = "activity",
   CLOSE = "close",
   CONNECT = "connect",
-  CONNECT_OK = "CONNECT_OK"
+  CONNECT_OK = "CONNECT_OK",
+  WINDOW_CLOSE = "window_close", //todo 
 }
