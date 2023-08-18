@@ -7,7 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.core.view.WindowCompat
 import info.bagen.dwebbrowser.ui.theme.DwebBrowserAppTheme
 
-abstract class BaseActivity : org.dweb_browser.dwebview.base.BaseActivity() {
+abstract class BaseThemeActivity : org.dweb_browser.dwebview.base.BaseActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)

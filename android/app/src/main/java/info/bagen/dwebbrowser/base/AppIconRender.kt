@@ -10,7 +10,6 @@ import androidx.compose.material.icons.twotone.BrokenImage
 import androidx.compose.material.icons.twotone.Image
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -24,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.painter.Painter
 import coil.compose.rememberAsyncImagePainter
+import org.dweb_browser.helper.android.rememberVectorPainterWithTint
 import sv.lib.squircleshape.SquircleShape
 
 /**
@@ -63,11 +63,11 @@ fun AppIconRender(
   ) {
     val iconPainter = rememberAsyncImagePainter(
       model = iconModel,
-      placeholder = iconPlaceholder ?: rememberTintVectorPainter(
+      placeholder = iconPlaceholder ?: rememberVectorPainterWithTint(
         image = Icons.TwoTone.Image,
         tintColor = color,
       ),
-      error = rememberTintVectorPainter(
+      error = rememberVectorPainterWithTint(
         image = Icons.TwoTone.BrokenImage,
         tintColor = color,
       ),

@@ -21,7 +21,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.structuralEqualityPolicy
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
@@ -30,7 +29,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import info.bagen.dwebbrowser.base.AppIconRender
-import info.bagen.dwebbrowser.base.WindowInsetsHelper
+import org.dweb_browser.helper.android.WindowInsetsHelper
 import info.bagen.dwebbrowser.microService.browser.desk.noLocalProvidedFor
 import info.bagen.dwebbrowser.microService.core.WindowBottomBarTheme
 import info.bagen.dwebbrowser.microService.core.WindowBounds

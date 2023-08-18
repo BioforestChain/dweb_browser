@@ -2,10 +2,9 @@
 plugins {
   alias(libs.plugins.androidApplication)
   alias(libs.plugins.kotlinAndroid)
-  alias(libs.plugins.kspAndroid)
-  id("kotlin-kapt")
 }
 android {
+  namespace = "info.bagen.dwebbrowser"
   compileSdk = libs.versions.compileSdkVersion.get().toInt()
   compileSdkPreview = "UpsideDownCake"
   defaultConfig {
@@ -104,7 +103,6 @@ android {
       excludes += "/META-INF/DEPENDENCIES"
     }
   }
-  namespace = "info.bagen.dwebbrowser"
 }
 
 dependencies {
@@ -184,6 +182,7 @@ dependencies {
   implementation(project(mapOf("path" to ":MicroService")))
   implementation(project(mapOf("path" to ":DWebView")))
   implementation(project(mapOf("path" to ":BrowserUI")))
+  implementation(project(mapOf("path" to ":helperAndroid")))
 }
 
 tasks.withType<Test> {

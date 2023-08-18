@@ -1,7 +1,7 @@
 package info.bagen.dwebbrowser.microService.browser.mwebview
 
-import info.bagen.dwebbrowser.base.ComparableWrapper
-import info.bagen.dwebbrowser.base.enumToComparable
+import org.dweb_browser.helper.ComparableWrapper
+import org.dweb_browser.helper.enumToComparable
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
 import info.bagen.dwebbrowser.microService.core.UUID
 import info.bagen.dwebbrowser.microService.core.WindowState
@@ -11,7 +11,6 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.browserUI.download.DownLoadObserver
 import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.dwebview.serviceWorker.emitEvent
-import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.ImageResourcePurposes
 import org.dweb_browser.helper.StrictImageResource
 import org.dweb_browser.helper.printdebugln

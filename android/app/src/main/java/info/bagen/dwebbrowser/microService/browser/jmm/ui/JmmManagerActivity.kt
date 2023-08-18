@@ -8,10 +8,10 @@ import android.view.WindowManager
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import info.bagen.dwebbrowser.App
-import info.bagen.dwebbrowser.base.BaseActivity
+import info.bagen.dwebbrowser.base.BaseThemeActivity
 import org.dweb_browser.microservice.help.JmmAppInstallManifest
 
-class JmmManagerActivity : BaseActivity() {
+class JmmManagerActivity : BaseThemeActivity() {
 
   companion object {
     const val KEY_JMM_METADATA = "key_jmm_meta_data"

@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.base
+package org.dweb_browser.helper.android
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.BlendMode
@@ -8,10 +8,10 @@ import androidx.compose.ui.graphics.vector.RenderVectorGroup
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 
 @Composable
-fun rememberTintVectorPainter(
+fun rememberVectorPainterWithTint(
   image: ImageVector,
+  tintBlendMode: BlendMode? = null,
   tintColor: Color? = null,
-  tintBlendMode: BlendMode? = null
 ) =
   rememberVectorPainter(
     defaultWidth = image.defaultWidth,

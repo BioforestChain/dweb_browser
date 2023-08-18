@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.base
+package org.dweb_browser.helper.android
 
 import android.app.Activity
 import android.graphics.drawable.Drawable
@@ -6,6 +6,7 @@ import android.os.Build
 import android.view.View
 import android.view.WindowManager
 import androidx.annotation.RequiresApi
+import java.util.function.Consumer
 
 /**
  * 一个将Activity进行模糊的工具
@@ -101,12 +102,11 @@ class ActivityBlurHelper(val activity: Activity) {
    */
   @RequiresApi(api = Build.VERSION_CODES.S)
   private fun setupWindowBlurListener() {
-    val windowBlurEnabledListener: java.util.function.Consumer<Boolean> =
-      java.util.function.Consumer<Boolean> { blursEnabled: Boolean ->
-        updateWindowForBlurs(
-          blursEnabled
-        )
-      }
+    val windowBlurEnabledListener = Consumer<Boolean> { blursEnabled: Boolean ->
+      updateWindowForBlurs(
+        blursEnabled
+      )
+    }
     with(activity) {
       window.decorView.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
         override fun onViewAttachedToWindow(v: View) {

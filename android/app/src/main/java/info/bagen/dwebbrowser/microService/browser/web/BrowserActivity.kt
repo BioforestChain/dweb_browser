@@ -1,8 +1,8 @@
 package info.bagen.dwebbrowser.microService.browser.web
 
-import info.bagen.dwebbrowser.base.BaseActivity
+import info.bagen.dwebbrowser.base.BaseThemeActivity
 
-class BrowserActivity : BaseActivity() {
+class BrowserActivity : BaseThemeActivity() {
 
 //  private var controller: BrowserController? = null
 //  private fun bindController(sessionId: String?): BrowserController {

@@ -12,7 +12,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.web.WebView
-import info.bagen.dwebbrowser.base.BaseActivity
+import info.bagen.dwebbrowser.base.BaseThemeActivity
 import info.bagen.dwebbrowser.microService.browser.desk.view.Render
 import info.bagen.dwebbrowser.microService.core.WindowBounds
 import info.bagen.dwebbrowser.ui.theme.DwebBrowserAppTheme
@@ -24,7 +24,7 @@ fun WindowBounds.toModifier(
   .offset(left.dp, top.dp)
   .size(width.dp, height.dp)
 
-class DesktopActivity : BaseActivity() {
+class DesktopActivity : BaseThemeActivity() {
   private var controller: DeskController? = null
   private fun bindController(sessionId: String?): DeskController {
     /// 解除上一个 controller的activity绑定

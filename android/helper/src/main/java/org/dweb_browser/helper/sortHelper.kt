@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.base
+package org.dweb_browser.helper
 
 class ComparableWrapper<T>(val value: T, val getScore: (T) -> Map<String, Int>) :
   Comparable<ComparableWrapper<T>> {

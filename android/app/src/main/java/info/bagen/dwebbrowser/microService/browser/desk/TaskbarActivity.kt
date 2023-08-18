@@ -10,12 +10,12 @@ import androidx.activity.compose.setContent
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.coroutineScope
 import info.bagen.dwebbrowser.R
-import info.bagen.dwebbrowser.base.ActivityBlurHelper
-import info.bagen.dwebbrowser.base.BaseActivity
+import org.dweb_browser.helper.android.ActivityBlurHelper
+import info.bagen.dwebbrowser.base.BaseThemeActivity
 import info.bagen.dwebbrowser.ui.theme.DwebBrowserAppTheme
 import kotlinx.coroutines.launch
 
-class TaskbarActivity : BaseActivity() {
+class TaskbarActivity : BaseThemeActivity() {
 
   private val blurHelper = ActivityBlurHelper(this)
 

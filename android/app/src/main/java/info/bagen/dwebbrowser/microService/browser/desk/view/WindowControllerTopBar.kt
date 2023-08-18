@@ -30,8 +30,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import info.bagen.dwebbrowser.base.AutoResizeTextContainer
-import info.bagen.dwebbrowser.base.AutoSizeText
+import org.dweb_browser.helper.android.AutoResizeTextContainer
+import org.dweb_browser.helper.android.AutoSizeText
 import info.bagen.dwebbrowser.microService.core.WindowController
 import kotlinx.coroutines.launch
 

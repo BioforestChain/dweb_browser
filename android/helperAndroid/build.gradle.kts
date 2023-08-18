@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-  namespace = "org.dweb_browser.dwebview"
+  namespace = "org.dweb_browser.helper.android"
   compileSdk = libs.versions.compileSdkVersion.get().toInt()
 
   defaultConfig {
@@ -21,6 +21,12 @@ android {
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
     }
   }
+  buildFeatures {
+    compose = true
+  }
+  composeOptions {
+    kotlinCompilerExtensionVersion = libs.versions.kotlinCompilerExtensionVersion.get()
+  }
   compileOptions {
     sourceCompatibility = JavaVersion.valueOf(libs.versions.javaVersion.get())
     targetCompatibility = JavaVersion.valueOf(libs.versions.javaVersion.get())
@@ -31,11 +37,11 @@ android {
 }
 
 dependencies {
-
   implementation(libs.androidx.core.ktx)
   implementation(libs.androidx.activity)
   implementation(libs.androidx.activity.ktx)
   implementation(libs.androidx.appcompat)
+  implementation(libs.androidx.animation.core.android)
   implementation(libs.androidx.lifecycle.runtime.ktx)
   implementation(libs.google.material)
   testImplementation(libs.junit)
@@ -46,8 +52,11 @@ dependencies {
 
   implementation(platform(libs.compose.bom))
   implementation(libs.compose.ui)
+  implementation(libs.compose.material)
+  implementation(libs.compose.material3)
+  implementation(libs.compose.material3.window)
+  implementation(libs.compose.material.icons)
+  implementation(libs.compose.ui.preview)
 
-  implementation(project(mapOf("path" to ":MicroService")))
   implementation(project(mapOf("path" to ":helper")))
-  implementation(project(mapOf("path" to ":helperAndroid")))
 }

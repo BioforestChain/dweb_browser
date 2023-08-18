@@ -47,6 +47,7 @@ camera-barcode = "17.2.0"
 commons-compress = "1.23.0"
 # 测试
 test-junit-bom = "5.9.2"
+animation-core-android = "1.5.0"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -80,6 +81,7 @@ androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscree
 androidx-navigation-ui-kotlin = { group = "androidx.navigation", name = "navigation-ui-ktx", version.ref = "androidx-navigation-ui-kotlin"}
 androidx-gridlayout = { group = "androidx.gridlayout", name = "gridlayout", version.ref = "androidx-gridlayout"}
 androidx-profile-installer = { group = "androidx.profileinstaller", name = "profileinstaller", version.ref = "androidx-profile-installer"}
+androidx-animation-core-android = { group = "androidx.compose.animation", name = "animation-core-android", version.ref = "animation-core-android" }
 
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinx-coroutines"}
 

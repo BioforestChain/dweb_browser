@@ -39,7 +39,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import info.bagen.dwebbrowser.base.AutoResizeTextContainer
+import org.dweb_browser.helper.android.AutoResizeTextContainer
 import info.bagen.dwebbrowser.microService.core.WindowBottomBarTheme
 import info.bagen.dwebbrowser.microService.core.WindowController
 import info.bagen.dwebbrowser.microService.core.WindowPropertyKeys
