@@ -93,14 +93,25 @@ public partial class DeskController
     public void CreateTaskBarView()
     {
         var bounds = UIScreen.MainScreen.Bounds;
+
+        var taskbarParentView = new UIView
+        {
+            Frame = bounds,
+            BackgroundColor = UIColor.Clear,
+            Tag = 32768
+        };
+
+        View.AddSubview(taskbarParentView);
+
         var taskbarBackView = new UIView
         {
             Frame = bounds,
             BackgroundColor = UIColor.DarkText,
-            Alpha = 0.5f,
-            Tag = 32768
+            Alpha = 0.5f
         };
-        View.AddSubview(taskbarBackView);
+        taskbarParentView.AddSubview(taskbarBackView);
+
+
 
         var tapGesture = new UITapGestureRecognizer(OnTaskBarTap);
         taskbarBackView.AddGestureRecognizer(tapGesture);
@@ -110,7 +121,7 @@ public partial class DeskController
             TaskBarView.Layer.CornerRadius = 20f;
             TaskBarView.Layer.ZPosition = nfloat.MaxValue;
 
-            taskbarBackView.AddSubview(TaskBarView);
+            taskbarParentView.AddSubview(TaskBarView);
             /// 背景层
             {
                 var effect = UIBlurEffect.FromStyle(UIBlurEffectStyle.Dark);
