@@ -144,7 +144,7 @@ internal fun BoxScope.BrowserTextField(
       .fillMaxWidth()
       .background(MaterialTheme.colorScheme.background)
       //.navigationBarsPadding()
-      .imePadding()
+      //.imePadding()
       .align(Alignment.BottomCenter)
       .padding(
         start = 25.dp,

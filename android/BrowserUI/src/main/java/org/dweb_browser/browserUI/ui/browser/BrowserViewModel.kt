@@ -9,11 +9,7 @@ import android.webkit.WebView
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.pager.PagerState
-import androidx.compose.material3.BottomSheetScaffoldState
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.SheetState
-import androidx.compose.material3.SheetValue
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableStateListOf
@@ -49,7 +45,6 @@ import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.dwebview.base.DWebViewItem
 import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
-import org.dweb_browser.helper.android.noLocalProvidedFor
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.runBlockingCatching
@@ -60,7 +55,7 @@ import org.dweb_browser.microservice.sys.http.HttpDwebServer
 import org.http4k.core.query
 import java.util.concurrent.atomic.AtomicInteger
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalFoundationApi::class)
 data class BrowserUIState(
   val currentBrowserBaseView: MutableState<BrowserWebView>,
   val browserViewList: MutableList<BrowserWebView> = mutableStateListOf(), // 多浏览器列表
@@ -68,11 +63,11 @@ data class BrowserUIState(
   val pagerStateNavigator: MutableState<PagerState?> = mutableStateOf(null), // 用于表示下面搜索框等内容
   val multiViewShow: MutableTransitionState<Boolean> = MutableTransitionState(false),
   val showBottomBar: MutableTransitionState<Boolean> = MutableTransitionState(true), // 用于网页上滑或者下滑时，底下搜索框和导航栏的显示
-  val bottomSheetScaffoldState: BottomSheetScaffoldState = BottomSheetScaffoldState(
+  /*val bottomSheetScaffoldState: BottomSheetScaffoldState = BottomSheetScaffoldState(
     bottomSheetState = SheetState(
       skipPartiallyExpanded = false, initialValue = SheetValue.Hidden, skipHiddenState = false
     ), snackbarHostState = SnackbarHostState()
-  ),
+  ),*/
   val inputText: MutableState<String> = mutableStateOf(""), // 用于指定输入的内容
   val showSearchEngine: MutableTransitionState<Boolean> = MutableTransitionState(false), // 用于在输入内容后，显示本地检索以及提供搜索引擎
   val qrCodeScanState: QRCodeScanState = QRCodeScanState(), // 用于判断桌面的显示隐藏
@@ -91,6 +86,10 @@ val LocalInputText = compositionLocalOf {
  */
 val LocalShowSearchView = compositionLocalOf {
   mutableStateOf(false)
+}
+
+fun noLocalProvidedFor(name: String): Nothing {
+  error("CompositionLocal $name not present")
 }
 
 val LocalShowIme = compositionLocalOf {
@@ -307,11 +306,11 @@ class BrowserViewModel(
         }
 
         is BrowserIntent.ShowSnackbarMessage -> {
-          withContext(mainAsyncExceptionHandler) {
+          /*withContext(mainAsyncExceptionHandler) {
             uiState.bottomSheetScaffoldState.snackbarHostState.showSnackbar(
               action.message, action.actionLabel
             )
-          }
+          }*/
         }
 
         is BrowserIntent.ShowPrivacyView -> {

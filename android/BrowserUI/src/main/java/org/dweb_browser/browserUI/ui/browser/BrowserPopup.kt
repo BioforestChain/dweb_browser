@@ -9,7 +9,6 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -48,6 +47,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -75,6 +75,7 @@ import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
@@ -88,12 +89,15 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.browserUI.R
 import org.dweb_browser.browserUI.database.WebSiteDatabase
 import org.dweb_browser.browserUI.database.WebSiteInfo
+import org.dweb_browser.browserUI.ui.browser.bottomsheet.BrowserModalBottomSheet
+import org.dweb_browser.browserUI.ui.browser.bottomsheet.LocalModalBottomSheet
 import org.dweb_browser.browserUI.ui.entity.BrowserBaseView
 import org.dweb_browser.browserUI.ui.entity.BrowserMainView
 import org.dweb_browser.browserUI.ui.entity.BrowserWebView
 import org.dweb_browser.browserUI.ui.theme.DimenBottomBarHeight
 import org.dweb_browser.browserUI.ui.view.findActivity
 import org.dweb_browser.browserUI.util.BitmapUtil
+import org.dweb_browser.dwebview.base.WindowInsetsHelper
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 
 private val screenHeight: Dp
@@ -129,16 +133,33 @@ class TabItem(
   val icon @Composable get() = ImageVector.vectorResource(id = iconRid)
 }
 
+@Composable
+internal fun BrowserBottomSheet(viewModel: BrowserViewModel) {
+  val bottomSheetModel = LocalModalBottomSheet.current
+  if (bottomSheetModel.show.value) {
+    val density = LocalDensity.current.density
+    val topLeftRadius = WindowInsetsHelper.getCornerRadiusTop(LocalContext.current, density, 16f)
+    BrowserModalBottomSheet(
+      onDismissRequest = { bottomSheetModel.show.value = false },
+      shape = RoundedCornerShape(
+        topStart = topLeftRadius * density,
+        topEnd = topLeftRadius * density
+      )
+    ) {
+      BrowserPopView(viewModel)
+    }
+  }
+}
+
 /**
  * 弹出主界面，包括了三个tab和一个书签管理界面 TODO 目前缺少切换到书签管理界面后的展开问题
  */
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
 internal fun BrowserPopView(viewModel: BrowserViewModel) {
-  val selectedTabIndex = remember { mutableStateOf(0) }
-  val pageIndex = remember { mutableStateOf(0) }
+  val selectedTabIndex = remember { mutableIntStateOf(0) }
+  val pageIndex = remember { mutableIntStateOf(0) }
   var webSiteInfo: WebSiteInfo? = null
-  val scope = rememberCoroutineScope()
+  /*val scope = rememberCoroutineScope()
 
   LaunchedEffect(pageIndex) {
     snapshotFlow { pageIndex.value }.collect {
@@ -147,11 +168,11 @@ internal fun BrowserPopView(viewModel: BrowserViewModel) {
         scope.launch { viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.expand() }
       }
     }
-  }
+  }*/
 
   AnimatedContent(targetState = pageIndex, label = "",
     transitionSpec = {
-      if (targetState.value > initialState.value) {
+      if (targetState.intValue > initialState.intValue) {
         // 数字变大时，进入的界面从右向左变深划入，退出的界面从右向左变浅划出
         (slideInHorizontally { fullWidth -> fullWidth } + fadeIn()).togetherWith(
           slideOutHorizontally { fullWidth -> -fullWidth } + fadeOut())
@@ -162,20 +183,20 @@ internal fun BrowserPopView(viewModel: BrowserViewModel) {
       }
     }
   ) { targetPage ->
-    when (targetPage.value) {
+    when (targetPage.intValue) {
       0 -> {
         PopTabRowContent(
           viewModel = viewModel,
           selectedTabIndex = selectedTabIndex,
           openBookManager = {
             webSiteInfo = it
-            pageIndex.value = 1
+            pageIndex.intValue = 1
           }
         )
       }
 
       1 -> {
-        PopBookManagerView(webSiteInfo = webSiteInfo) { pageIndex.value = 0 }
+        PopBookManagerView(webSiteInfo = webSiteInfo) { pageIndex.intValue = 0 }
       }
 
       else -> {}
@@ -385,19 +406,19 @@ private fun PopContentView(
   val historyViewModel = remember { HistoryViewModel() }
   val bookViewModel = remember { BookViewModel() }
   val scope = rememberCoroutineScope()
+  val bottomSheetModel = LocalModalBottomSheet.current
 
   Box(
     modifier = Modifier
       .fillMaxSize()
       .background(MaterialTheme.colorScheme.background)
-    //.navigationBarsPadding()
   ) {
     when (popupViewState.value) {
       PopupViewState.BookList -> BrowserListOfBook(bookViewModel,
         onOpenSetting = { openBookManager(it) },
         onSearch = {
           scope.launch {
-            viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.hide()
+            bottomSheetModel.hide()
             viewModel.handleIntent(BrowserIntent.SearchWebView(it))
           }
         }
@@ -405,7 +426,7 @@ private fun PopContentView(
 
       PopupViewState.HistoryList -> BrowserListOfHistory(historyViewModel) {
         scope.launch {
-          viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.hide()
+          bottomSheetModel.hide()
           viewModel.handleIntent(BrowserIntent.SearchWebView(it))
         }
       }
@@ -420,6 +441,7 @@ private fun PopContentView(
 private fun PopContentOptionItem(viewModel: BrowserViewModel) {
   val scope = rememberCoroutineScope()
   val activity = LocalContext.current.findActivity()
+  val bottomSheetModel = LocalModalBottomSheet.current
   // 判断权限
   val launcher =
     rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestPermission(),
@@ -473,7 +495,7 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel) {
           )
         }) {
           scope.launch {
-            viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.hide()
+            bottomSheetModel.hide()
             viewModel.handleIntent(BrowserIntent.ShowPrivacyView)
           }
         } // 隐私政策

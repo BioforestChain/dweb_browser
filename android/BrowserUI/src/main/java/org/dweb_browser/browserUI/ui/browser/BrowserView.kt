@@ -19,7 +19,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FormatSize
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,6 +45,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.browserUI.R
 import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
+import org.dweb_browser.browserUI.ui.browser.bottomsheet.LocalModalBottomSheet
+import org.dweb_browser.browserUI.ui.browser.bottomsheet.ModalBottomModel
+import org.dweb_browser.browserUI.ui.browser.bottomsheet.SheetState
 import org.dweb_browser.browserUI.ui.entity.BrowserBaseView
 import org.dweb_browser.browserUI.ui.entity.BrowserWebView
 import org.dweb_browser.browserUI.ui.loading.LoadingView
@@ -68,88 +75,6 @@ private val bottomExitAnimator = slideOutVertically(animationSpec = tween(300),/
     it//初始位置在负一屏的位置，也就是说初始位置我们看不到，动画动起来的时候会从负一屏位置滑动到屏幕位置
   })
 
-/*@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
-@Composable
-private fun BrowserView(viewModel: BrowserViewModel) {
-  val scope = rememberCoroutineScope()
-  val activity = LocalContext.current.findActivity()
-
-  BackHandler {
-    val watcher = viewModel.uiState.currentBrowserBaseView.value.closeWatcher;
-    val bottomState = viewModel.uiState.bottomSheetScaffoldState.bottomSheetState;
-    if (bottomState.targetValue != SheetValue.Hidden) {
-      scope.launch {
-        bottomState.hide()
-      }
-    } else if (watcher.canClose) {
-      scope.launch {
-        watcher.close()
-      }
-    } else {
-      val browserWebView = viewModel.uiState.currentBrowserBaseView.value
-      val navigator = browserWebView.viewItem.navigator
-      if (navigator.canGoBack) {
-        navigator.navigateBack()
-      } else {
-        // activity.moveTaskToBack(false) // 将界面转移到后台
-        activity.finish() // 由于目前将browserActivity改为同一个栈，所以这边返回需要直接销毁
-      }
-    }
-  }
-
-  BottomSheetScaffold(*//*modifier = Modifier.navigationBarsPadding(),*//*
-    scaffoldState = viewModel.uiState.bottomSheetScaffoldState,
-    sheetPeekHeight = 540.dp, //LocalConfiguration.current.screenHeightDp.dp / 2,
-    sheetContainerColor = MaterialTheme.colorScheme.background,
-    sheetShape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp),
-    sheetContent = {
-      Box(*//*modifier = Modifier.navigationBarsPadding()*//*) {
-        BrowserPopView(viewModel)       // 用于处理弹出框
-      }
-    }
-  ) {
-    Box(
-      modifier = Modifier
-        .background(MaterialTheme.colorScheme.background)
-      //.statusBarsPadding()
-      //.navigationBarsPadding()
-    ) {
-      BrowserViewContent(viewModel)   // 中间主体部分
-      // BrowserSearchPreview(viewModel) // 地址栏输入内容后，上面显示的书签、历史和相应搜索引擎
-      BrowserViewBottomBar(viewModel) // 工具栏，包括搜索框和导航栏
-      // BrowserPopView(viewModel)    // 用于处理弹出框
-      BrowserMultiPopupView(viewModel)// 用于显示多界面
-      BrowserSearchView(viewModel)
-    }
-    BrowserMaskView(viewModel) {
-      scope.launch {
-        viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.hide()
-      }
-    }
-
-    // 增加扫码的界面
-    QRCodeScanView(
-      qrCodeScanState = viewModel.uiState.qrCodeScanState,
-      onDataCallback = { data ->
-        if (data.startsWith("http://") || data.startsWith("https://")) {
-          viewModel.handleIntent(BrowserIntent.SearchWebView(data))
-        } else {
-          viewModel.handleIntent(BrowserIntent.ShowSnackbarMessage("扫码结果：$data"))
-        }
-      })
-
-    val showLoading = remember { mutableStateOf(false) }
-    PrivacyView(url = viewModel.uiState.privacyState, showLoading = showLoading)
-    LoadingView(showLoading = showLoading)
-  }
-  LaunchedEffect(Unit) { // TODO 这个是因为华为鸿蒙系统，运行后，半屏显示了Sheet，这边强制隐藏下
-    scope.launch {
-      delay(15)
-      viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.hide()
-    }
-  }
-}*/
-
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun BrowserViewForWindow(
@@ -159,37 +84,30 @@ fun BrowserViewForWindow(
   val initialScale =
     (LocalDensity.current.density * windowRenderScope.scale * 100).toInt() // 用于WebView缩放，避免点击后位置不对
 
-  BackHandler {
-    val watcher = viewModel.uiState.currentBrowserBaseView.value.closeWatcher;
-    val bottomState = viewModel.uiState.bottomSheetScaffoldState.bottomSheetState;
-    if (bottomState.targetValue != SheetValue.Hidden) {
-      scope.launch {
-        bottomState.hide()
-      }
-    } else if (watcher.canClose) {
-      scope.launch {
-        watcher.close()
-      }
-    } else {
-      val browserWebView = viewModel.uiState.currentBrowserBaseView.value
-      val navigator = browserWebView.viewItem.navigator
-      if (navigator.canGoBack) {
-        navigator.navigateBack()
-      }
-    }
-  }
 
-  BottomSheetScaffold(/*modifier = Modifier.navigationBarsPadding(),*/
-    scaffoldState = viewModel.uiState.bottomSheetScaffoldState,
-    sheetPeekHeight = 540.dp, //LocalConfiguration.current.screenHeightDp.dp / 2,
-    sheetContainerColor = MaterialTheme.colorScheme.background,
-    sheetShape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp),
-    sheetContent = {
-      Box(/*modifier = Modifier.navigationBarsPadding()*/) {
-        BrowserPopView(viewModel)       // 用于处理弹出框
+  CompositionLocalProvider(
+    LocalModalBottomSheet provides ModalBottomModel(remember { mutableStateOf(SheetState.PartiallyExpanded) })
+  ) {
+    val bottomSheetModel = LocalModalBottomSheet.current
+    BackHandler {
+      val watcher = viewModel.uiState.currentBrowserBaseView.value.closeWatcher;
+      if (bottomSheetModel.state.value != SheetState.Hidden) {
+        scope.launch {
+          bottomSheetModel.hide()
+        }
+      } else if (watcher.canClose) {
+        scope.launch {
+          watcher.close()
+        }
+      } else {
+        val browserWebView = viewModel.uiState.currentBrowserBaseView.value
+        val navigator = browserWebView.viewItem.navigator
+        if (navigator.canGoBack) {
+          navigator.navigateBack()
+        }
       }
     }
-  ) {
+
     Box(
       modifier = Modifier
         .background(MaterialTheme.colorScheme.background)
@@ -211,42 +129,32 @@ fun BrowserViewForWindow(
         // BrowserPopView(viewModel)    // 用于处理弹出框
         BrowserMultiPopupView(viewModel)// 用于显示多界面
         BrowserSearchView(viewModel)
+        BrowserBottomSheet(viewModel)
       }
     }
-    BrowserMaskView(viewModel) {
-      scope.launch {
-        viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.hide()
+  }
+
+  // 增加扫码的界面
+  QRCodeScanView(
+    qrCodeScanState = viewModel.uiState.qrCodeScanState,
+    onDataCallback = { data ->
+      if (data.startsWith("http://") || data.startsWith("https://")) {
+        viewModel.handleIntent(BrowserIntent.SearchWebView(data))
+      } else {
+        viewModel.handleIntent(BrowserIntent.ShowSnackbarMessage("扫码结果：$data"))
       }
-    }
+    })
 
-    // 增加扫码的界面
-    QRCodeScanView(
-      qrCodeScanState = viewModel.uiState.qrCodeScanState,
-      onDataCallback = { data ->
-        if (data.startsWith("http://") || data.startsWith("https://")) {
-          viewModel.handleIntent(BrowserIntent.SearchWebView(data))
-        } else {
-          viewModel.handleIntent(BrowserIntent.ShowSnackbarMessage("扫码结果：$data"))
-        }
-      })
-
-    val showLoading = remember { mutableStateOf(false) }
-    PrivacyView(url = viewModel.uiState.privacyState, showLoading = showLoading)
-    LoadingView(showLoading = showLoading)
-  }
-  LaunchedEffect(Unit) { // TODO 这个是因为华为鸿蒙系统，运行后，半屏显示了Sheet，这边强制隐藏下
-    scope.launch {
-      delay(15)
-      viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.hide()
-    }
-  }
+  val showLoading = remember { mutableStateOf(false) }
+  PrivacyView(url = viewModel.uiState.privacyState, showLoading = showLoading)
+  LoadingView(showLoading = showLoading)
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun BrowserMaskView(viewModel: BrowserViewModel, onClick: () -> Unit) {
   // 如果显示了sheet，这边做一层遮罩
-  if (viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.targetValue != SheetValue.Hidden) {
+  val bottomSheetModel = LocalModalBottomSheet.current
+  if (bottomSheetModel.state.value != SheetState.Hidden) {
     Box(modifier = Modifier
       .fillMaxSize()
       .background(MaterialTheme.colorScheme.onSurface.copy(0.2f))
@@ -267,8 +175,7 @@ private fun BrowserViewContent(viewModel: BrowserViewModel) {
   }
   viewModel.uiState.pagerStateNavigator.value = pagerStateNavigator
   viewModel.uiState.pagerStateContent.value = pagerStateContent
-
-  LaunchedEffect(pagerStateNavigator.currentPageOffsetFraction) {
+    LaunchedEffect(pagerStateNavigator.currentPageOffsetFraction) {
     pagerStateContent.scrollToPage(
       pagerStateNavigator.currentPage, pagerStateNavigator.currentPageOffsetFraction
     )
@@ -276,6 +183,7 @@ private fun BrowserViewContent(viewModel: BrowserViewModel) {
   LaunchedEffect(pagerStateContent.currentPage) {
     viewModel.handleIntent(BrowserIntent.UpdateCurrentBaseView(pagerStateContent.currentPage))
   }
+
   Box(
     modifier = Modifier
       .fillMaxSize()
@@ -383,10 +291,10 @@ private fun BrowserViewSearch(viewModel: BrowserViewModel) {
   )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun BrowserViewNavigatorBar(viewModel: BrowserViewModel) {
   val scope = rememberCoroutineScope()
+  val bottomSheetModel = LocalModalBottomSheet.current
   Row(
     modifier = Modifier
       .fillMaxWidth()
@@ -423,7 +331,7 @@ private fun BrowserViewNavigatorBar(viewModel: BrowserViewModel) {
       resId = R.drawable.ic_main_option, resName = R.string.browser_nav_option, show = true
     ) {
       scope.launch {
-        viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.show()
+        bottomSheetModel.show()
       }
     }
   }
