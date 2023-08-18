@@ -12,8 +12,9 @@ import androidx.core.view.WindowInsetsCompat
 import info.bagen.dwebbrowser.microService.browser.nativeui.NativeUiController
 import info.bagen.dwebbrowser.microService.browser.nativeui.base.InsetsController
 import info.bagen.dwebbrowser.microService.browser.nativeui.helper.toWindowsInsets
-import info.bagen.dwebbrowser.microService.sys.helper.InsetsJson
-import info.bagen.dwebbrowser.microService.sys.helper.toJsonAble
+import info.bagen.dwebbrowser.helper.InsetsJson
+import info.bagen.dwebbrowser.helper.toJsonAble
+import org.dweb_browser.helper.android.toJsonAble
 
 @Stable
 class VirtualKeyboardController(

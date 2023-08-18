@@ -14,8 +14,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
-import info.bagen.dwebbrowser.microService.core.WindowBottomBarTheme
-import info.bagen.dwebbrowser.microService.core.WindowMode
+import org.dweb_browser.window.core.constant.WindowBottomBarTheme
+import org.dweb_browser.window.core.constant.WindowMode
+import org.dweb_browser.window.render.WindowPreviewer
 
 
 @Composable

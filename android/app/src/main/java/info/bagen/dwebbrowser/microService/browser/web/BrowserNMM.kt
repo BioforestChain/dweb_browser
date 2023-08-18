@@ -2,9 +2,9 @@ package info.bagen.dwebbrowser.microService.browser.web
 
 import info.bagen.dwebbrowser.microService.browser.desk.DeskLinkMetaData
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
-import info.bagen.dwebbrowser.microService.core.WindowMode
-import info.bagen.dwebbrowser.microService.core.WindowState
-import info.bagen.dwebbrowser.microService.core.windowAdapterManager
+import org.dweb_browser.window.core.constant.WindowMode
+import org.dweb_browser.window.core.WindowState
+import org.dweb_browser.window.core.createWindowAdapterManager
 import kotlinx.coroutines.withContext
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.mainAsyncExceptionHandler
@@ -118,7 +118,7 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
 
   private suspend fun openBrowserWindow(ipc: Ipc, search: String? = null, url: String? = null) {
     // 打开安装窗口
-    val win = windowAdapterManager.createWindow(
+    val win = createWindowAdapterManager.createWindow(
       WindowState(owner = ipc.remote.mmid, provider = mmid, microModule = this).also {
         it.mode = WindowMode.MAXIMIZE
       }

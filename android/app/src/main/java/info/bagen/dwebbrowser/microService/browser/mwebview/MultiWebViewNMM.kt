@@ -3,9 +3,9 @@ package info.bagen.dwebbrowser.microService.browser.mwebview
 import org.dweb_browser.helper.ComparableWrapper
 import org.dweb_browser.helper.enumToComparable
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
-import info.bagen.dwebbrowser.microService.core.UUID
-import info.bagen.dwebbrowser.microService.core.WindowState
-import info.bagen.dwebbrowser.microService.core.windowAdapterManager
+import org.dweb_browser.window.core.constant.UUID
+import org.dweb_browser.window.core.WindowState
+import org.dweb_browser.window.core.createWindowAdapterManager
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.browserUI.download.DownLoadObserver
@@ -104,7 +104,7 @@ class MultiWebViewNMM :
     debugMultiWebView("/open", "remote-mmid: $remoteMmid / url:$url")
 
     val controller = controllerMap.getOrPut(remoteMmid) {
-      val win = windowAdapterManager.createWindow(
+      val win = createWindowAdapterManager.createWindow(
         WindowState(owner = ipc.remote.mmid, provider = mmid, microModule = this).also { state ->
           /**
            * 挑选合适的图标作为应用的图标

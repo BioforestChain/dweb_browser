@@ -8,7 +8,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
-import info.bagen.dwebbrowser.base.AppIconRender
+import org.dweb_browser.window.render.AppIconRender
 
 @Composable
 fun PreviewAppIconRender(resource: Painter, color: Color = Color.Magenta) {

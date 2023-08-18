@@ -22,6 +22,7 @@ class TaskBarController(
   internal fun getFocusApp() = _appList.first()
   internal val updateSignal = SimpleSignal()
   val onUpdate = updateSignal.toListener()
+
   // 触发状态更新
   internal val stateSignal = Signal<TaskBarState>()
   val onStatus = stateSignal.toListener()
@@ -32,7 +33,7 @@ class TaskBarController(
      */
     runningApps.onChange { map ->
       /// 将新增的打开应用追加到列表签名
-      for (mmid in map.keys) {
+      for (mmid in map.origin.keys) {
         if (!_appList.contains(mmid)) {
           _appList.add(0, mmid) // 追加到第一个
         }
@@ -68,8 +69,10 @@ class TaskBarController(
 
     return apps.values.toList()
   }
+
   // 缓存Resize,用来下次激活taskBarActivity的时候恢复用
-  var cacheResize = ReSize(0,0)
+  var cacheResize = ReSize(0, 0)
+
   /**
    * 对Taskbar自身进行resize
    * 根据web元素的大小进行自适应调整
@@ -82,7 +85,7 @@ class TaskBarController(
     // dp = px / (dpi / 160)
     val width = reSize.width.toDp
     val height = reSize.height.toDp
-    cacheResize = ReSize(width,height)
+    cacheResize = ReSize(width, height)
     debugDesk(
       "resize",
       "${reSize.width},${reSize.height} activity"

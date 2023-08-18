@@ -15,9 +15,10 @@ import info.bagen.dwebbrowser.microService.browser.nativeui.base.BarController
 import info.bagen.dwebbrowser.microService.browser.nativeui.helper.BarStyle
 import info.bagen.dwebbrowser.microService.browser.nativeui.helper.debugNativeUi
 import info.bagen.dwebbrowser.microService.browser.nativeui.helper.toWindowsInsets
-import info.bagen.dwebbrowser.microService.sys.helper.ColorJson
-import info.bagen.dwebbrowser.microService.sys.helper.InsetsJson
-import info.bagen.dwebbrowser.microService.sys.helper.toJsonAble
+import org.dweb_browser.helper.android.ColorJson
+import info.bagen.dwebbrowser.helper.InsetsJson
+import info.bagen.dwebbrowser.helper.toJsonAble
+import org.dweb_browser.helper.android.toJsonAble
 
 
 @Stable
@@ -67,11 +68,11 @@ class NavigationBarController(
 
 
     data class NavigationBarState(
-      override val visible: Boolean,
-      override val style: BarStyle,
-      override val overlay: Boolean,
-      override val color: ColorJson,
-      override val insets: InsetsJson,
+        override val visible: Boolean,
+        override val style: BarStyle,
+        override val overlay: Boolean,
+        override val color: ColorJson,
+        override val insets: InsetsJson,
     ) : BarState
 
     override fun toJsonAble() = NavigationBarState(

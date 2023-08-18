@@ -9,7 +9,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
-import info.bagen.dwebbrowser.microService.core.WindowMode
+import org.dweb_browser.window.core.constant.WindowMode
+import org.dweb_browser.window.render.LocalWindowController
+import org.dweb_browser.window.render.WindowPreviewer
+import org.dweb_browser.window.render.watchedState
 
 @Composable
 fun PreviewWindowTopBarContent(modifier: Modifier) {

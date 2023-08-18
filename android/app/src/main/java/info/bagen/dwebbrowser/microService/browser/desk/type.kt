@@ -1,6 +1,6 @@
 package info.bagen.dwebbrowser.microService.browser.desk
 
-import info.bagen.dwebbrowser.microService.core.WindowState
+import org.dweb_browser.window.core.WindowState
 import org.dweb_browser.helper.DisplayMode
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.ShortcutItem

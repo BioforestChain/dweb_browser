@@ -3,8 +3,8 @@ package info.bagen.dwebbrowser.microService.browser.web
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
-import info.bagen.dwebbrowser.microService.core.WindowController
-import info.bagen.dwebbrowser.microService.core.windowAdapterManager
+import org.dweb_browser.window.core.WindowController
+import org.dweb_browser.window.core.createWindowAdapterManager
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -27,14 +27,14 @@ class BrowserController(
   init {
     val wid = win.id
     /// 提供渲染适配
-    windowAdapterManager.providers[wid] =
+    createWindowAdapterManager.providers[wid] =
       @Composable { modifier, width, height, scale ->
         Render(modifier,width, height, scale)
       }
     /// 窗口销毁的时候
     win.onClose{
       // 移除渲染适配器
-      windowAdapterManager.providers.remove(wid)
+      createWindowAdapterManager.providers.remove(wid)
     }
   }
 

@@ -17,6 +17,9 @@ import android.webkit.WebViewClient
 import kotlinx.coroutines.runBlocking
 import org.dweb_browser.helper.SimpleCallback
 import org.dweb_browser.helper.SimpleSignal
+import org.dweb_browser.helper.all
+import org.dweb_browser.helper.mapFindNoNull
+import org.dweb_browser.helper.one
 
 class DWebViewClient : WebViewClient() {
   private val extends = Extends<WebViewClient>()

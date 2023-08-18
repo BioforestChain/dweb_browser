@@ -13,9 +13,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.web.WebView
 import info.bagen.dwebbrowser.base.BaseThemeActivity
-import info.bagen.dwebbrowser.microService.browser.desk.view.Render
-import info.bagen.dwebbrowser.microService.core.WindowBounds
-import info.bagen.dwebbrowser.ui.theme.DwebBrowserAppTheme
+import org.dweb_browser.window.render.Render
+import org.dweb_browser.window.core.WindowBounds
+import org.dweb_browser.helper.android.theme.DwebBrowserAppTheme
 
 @SuppressLint("ModifierFactoryExtensionFunction")
 fun WindowBounds.toModifier(

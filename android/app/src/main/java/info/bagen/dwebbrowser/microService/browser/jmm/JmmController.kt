@@ -2,8 +2,8 @@ package info.bagen.dwebbrowser.microService.browser.jmm
 
 import androidx.compose.runtime.Composable
 import info.bagen.dwebbrowser.microService.browser.jmm.ui.JmmManagerViewModel
-import info.bagen.dwebbrowser.microService.core.WindowController
-import info.bagen.dwebbrowser.microService.core.windowAdapterManager
+import org.dweb_browser.window.core.WindowController
+import org.dweb_browser.window.core.createWindowAdapterManager
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.microservice.help.JmmAppInstallManifest
@@ -29,14 +29,14 @@ class JmmController(
   init {
     val wid = win.id
     /// 提供渲染适配
-    windowAdapterManager.providers[wid] =
+    createWindowAdapterManager.providers[wid] =
       @Composable { modifier, width, height, scale ->
         Render(modifier, width, height, scale)
       }
     /// 窗口销毁的时候
     win.onClose {
       // 移除渲染适配器
-      windowAdapterManager.providers.remove(wid)
+      createWindowAdapterManager.providers.remove(wid)
     }
   }
 

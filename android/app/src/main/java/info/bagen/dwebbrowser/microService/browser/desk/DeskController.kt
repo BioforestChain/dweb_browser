@@ -87,14 +87,10 @@ class DeskController(
    */
   val desktopWindowsManager
     get() = DesktopWindowsManager.getInstance(this.activity!!) { dwm ->
-      /// 但有窗口信号变动的时候，确保 Activity 事件被激活
+      /// 但有窗口信号变动的时候，确保 MicroModule.IpcEvent<Activity> 事件被激活
       dwm.allWindows.onChange {
         _activitySignal.emit()
-      }.also { off ->
-        dwm.activity.onDestroyActivity {
-          off()
-        }
-      }
+      }.removeWhen(dwm.activity.onDestroyActivity)
 
       preDesktopWindowsManager?.also { preDwm ->
         dwm.activity.lifecycleScope.launch {

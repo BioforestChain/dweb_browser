@@ -13,6 +13,9 @@ import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebStorage
 import android.webkit.WebView
+import org.dweb_browser.helper.mapFindNoNull
+import org.dweb_browser.helper.one
+import org.dweb_browser.helper.someOrNull
 
 @Suppress("DEPRECATION")
 class DWebChromeClient : WebChromeClient() {

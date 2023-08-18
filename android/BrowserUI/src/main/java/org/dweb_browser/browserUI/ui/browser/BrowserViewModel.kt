@@ -49,6 +49,7 @@ import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.dwebview.base.DWebViewItem
 import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
+import org.dweb_browser.helper.android.noLocalProvidedFor
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.runBlockingCatching
@@ -90,10 +91,6 @@ val LocalInputText = compositionLocalOf {
  */
 val LocalShowSearchView = compositionLocalOf {
   mutableStateOf(false)
-}
-
-private fun noLocalProvidedFor(name: String): Nothing {
-  error("CompositionLocal $name not present")
 }
 
 val LocalShowIme = compositionLocalOf {
@@ -469,8 +466,7 @@ internal fun String.toRequestUrl(): String {
  * 为了判断字符串是否是内置的地址
  */
 internal fun String.isSystemUrl(): Boolean {
-  return this.startsWith("file:///android_asset") ||
-      this.startsWith("chrome://") ||
-      this.startsWith("about:") ||
-      this.startsWith("https://web.browser.dweb")
+  return this.startsWith("file:///android_asset") || this.startsWith("chrome://") || this.startsWith(
+    "about:"
+  ) || this.startsWith("https://web.browser.dweb")
 }

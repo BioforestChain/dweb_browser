@@ -1,10 +1,10 @@
 package info.bagen.dwebbrowser.microService.sys.window
 
 
-import info.bagen.dwebbrowser.microService.core.WindowController
-import info.bagen.dwebbrowser.microService.core.WindowPropertyKeys
-import info.bagen.dwebbrowser.microService.core.WindowState
-import info.bagen.dwebbrowser.microService.core.windowInstancesManager
+import org.dweb_browser.window.core.WindowController
+import org.dweb_browser.window.core.constant.WindowPropertyKeys
+import org.dweb_browser.window.core.WindowState
+import org.dweb_browser.window.core.windowInstancesManager
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.printdebugln
@@ -23,8 +23,8 @@ import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 
-fun debugWindow(tag: String, msg: Any? = "", err: Throwable? = null) =
-  printdebugln("window", tag, msg, err)
+fun debugWindowNMM(tag: String, msg: Any? = "", err: Throwable? = null) =
+  printdebugln("window-nmm", tag, msg, err)
 
 /**
  * 标准化窗口管理模块
@@ -60,7 +60,7 @@ class WindowNMM :
     }
 
     fun getWindow(request: Request) = query_wid(request).let { wid ->
-      windowInstancesManager.instances[wid]
+      windowInstancesManager.get(wid)
         ?: throw Exception("No Found by window id: '$wid'")
     }
 
@@ -68,7 +68,7 @@ class WindowNMM :
       /** 窗口的状态监听 */
       "/observe" bind Method.GET to defineHandler { request, ipc ->
         val win = getWindow(request)
-        debugWindow("/observe", "wid: ${win.id} ,mmid: ${ipc.remote.mmid}")
+        debugWindowNMM("/observe", "wid: ${win.id} ,mmid: ${ipc.remote.mmid}")
         val inputStream = ReadableStream(onStart = { controller ->
           val off = win.state.observable.onChange {
             try {

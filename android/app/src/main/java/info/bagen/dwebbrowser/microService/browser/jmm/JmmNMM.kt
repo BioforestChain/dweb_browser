@@ -2,9 +2,9 @@ package info.bagen.dwebbrowser.microService.browser.jmm
 
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
-import info.bagen.dwebbrowser.microService.core.WindowMode
-import info.bagen.dwebbrowser.microService.core.WindowState
-import info.bagen.dwebbrowser.microService.core.windowAdapterManager
+import org.dweb_browser.window.core.constant.WindowMode
+import org.dweb_browser.window.core.WindowState
+import org.dweb_browser.window.core.createWindowAdapterManager
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.collectLatest
@@ -186,7 +186,7 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
     // 打开安装的界面
     // JmmManagerActivity.startActivity(jmmAppInstallManifest)
     // 打开安装窗口
-    val win = windowAdapterManager.createWindow(
+    val win = createWindowAdapterManager.createWindow(
       WindowState(owner = ipc.remote.mmid, provider = mmid).also {
         it.mode = WindowMode.MAXIMIZE
       }

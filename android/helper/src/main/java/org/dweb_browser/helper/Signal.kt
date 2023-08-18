@@ -147,6 +147,11 @@ open class Signal<Args> {
 
   class Listener<Args>(val signal: Signal<Args>) {
     operator fun invoke(cb: Callback<Args>) = signal.listen(cb)
+    fun <R> createChild(
+      filter: (Args) -> Boolean,
+      map: (Args) -> R
+    ) = signal.createChild(filter, map).toListener()
+
     fun toFlow() = signal.toFlow()
 
     suspend fun <T> Flow<T>.toListener(): Listener<T> {

@@ -23,7 +23,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import org.dweb_browser.dwebview.base.BaseActivity
+import org.dweb_browser.helper.android.BaseActivity
 import org.dweb_browser.helper.Callback
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.Signal

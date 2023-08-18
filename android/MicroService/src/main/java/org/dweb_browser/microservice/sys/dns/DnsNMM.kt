@@ -114,7 +114,7 @@ class DnsNMM() : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
   class MyDnsMicroModule(private val dnsMM: DnsNMM, private val fromMM: MicroModule) :
     DnsMicroModule {
 
-    override val onChange = dnsMM.installApps.onChange
+    override val onChange = dnsMM.installApps.onChange.createChild({ true }, { it.origin })
 
     override fun install(mm: MicroModule) {
       // TODO 作用域保护

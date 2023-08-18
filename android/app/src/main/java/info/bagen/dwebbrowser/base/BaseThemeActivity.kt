@@ -5,9 +5,10 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.core.view.WindowCompat
-import info.bagen.dwebbrowser.ui.theme.DwebBrowserAppTheme
+import org.dweb_browser.helper.android.BaseActivity
+import org.dweb_browser.helper.android.theme.DwebBrowserAppTheme
 
-abstract class BaseThemeActivity : org.dweb_browser.dwebview.base.BaseActivity() {
+abstract class BaseThemeActivity : BaseActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)

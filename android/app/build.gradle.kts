@@ -118,7 +118,7 @@ dependencies {
   implementation(libs.androidx.navigation.ui.kotlin)
   implementation(libs.androidx.gridlayout)
 
-  // v0.31.6-rc
+  // Google.accompanist 相关
   implementation(libs.accompanist.webview)
   implementation(libs.accompanist.navigation.material)
   implementation(libs.accompanist.navigation.animation)
@@ -182,6 +182,7 @@ dependencies {
   implementation(project(mapOf("path" to ":MicroService")))
   implementation(project(mapOf("path" to ":DWebView")))
   implementation(project(mapOf("path" to ":BrowserUI")))
+  implementation(project(mapOf("path" to ":window")))
   implementation(project(mapOf("path" to ":helperAndroid")))
 }
 
