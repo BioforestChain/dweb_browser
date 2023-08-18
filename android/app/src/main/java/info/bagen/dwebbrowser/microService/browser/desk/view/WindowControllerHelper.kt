@@ -105,18 +105,6 @@ val inMoveStore = WeakHashMap<WindowController, MutableState<Boolean>>()
 val WindowController.inMove
   get() = inMoveStore.getOrPut(this) { mutableStateOf(false) }
 
-
-val moveStartPointStore = WeakHashMap<WindowController, Offset>()
-
-/**
- * 窗口是否在移动中
- */
-var WindowController.moveStartPoint
-  get() = moveStartPointStore.getOrPut(this) { Offset(0f, 0f) }
-  set(value) {
-    moveStartPointStore[this] = value
-  }
-
 /**
  * 移动窗口的控制器
  */
@@ -145,7 +133,6 @@ fun Modifier.windowMoveAble(win: WindowController) = this
         win.inMove.value = true
         /// 开始移动的时候，同时进行聚焦
         win.emitFocusOrBlur(true)
-        win.moveStartPoint = it
       },
       onDragEnd = {
         win.inMove.value = false
@@ -153,9 +140,8 @@ fun Modifier.windowMoveAble(win: WindowController) = this
       onDragCancel = {
         win.inMove.value = false
       },
-    ) { change, _ ->
+    ) { change, dragAmount ->
       change.consume()
-      val dragAmount = change.position - win.moveStartPoint
       win.state.updateMutableBounds {
         left += dragAmount.x / density
         top += dragAmount.y / density
