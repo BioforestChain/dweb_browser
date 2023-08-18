@@ -5,6 +5,7 @@ import { $BuildRequestInit, buildRequest } from "../../helper/request.ts";
 export abstract class BasePlugin {
   static internal_url: string = globalThis.location?.href ?? "http://localhost";
   static public_url: Promise<string> | string = BasePlugin.getInternalUrl(X_PLAOC_QUERY.API_PUBLIC_URL);
+  static external_url = BasePlugin.getInternalUrl(X_PLAOC_QUERY.EXTERNAL_URL);
   static internal_url_useable?: boolean;
   /** internal_url or public_url */
   static get url() {

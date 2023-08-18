@@ -5,7 +5,7 @@
     "buildToRootDir": "./build/client",
     "denoShim": false,
     "name": "@plaoc/plugins",
-    "version": "0.0.8",
+    "version": "0.0.9",
     "lib": [
       "ES2022",
       "DOM"

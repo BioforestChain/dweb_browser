@@ -78,9 +78,8 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
   async externalFetch(mmid: $MMID, init: $ExterRequestWithBaseInit) {
     // http://localhost:22206/?X-Dweb-Host=api.desktop.dweb.waterbang.top.dweb%3A443
     let pub = await BasePlugin.public_url;
-   
     pub = pub.replace("X-Dweb-Host=api", "X-Dweb-Host=external");
-    const X_Plaoc_Public_Url = new URL(location.href).searchParams.get("X-Plaoc-External-Url");
+    const X_Plaoc_Public_Url = await BasePlugin.external_url
 
     const search = Object.assign(init.search ?? {}, {
       mmid: mmid,

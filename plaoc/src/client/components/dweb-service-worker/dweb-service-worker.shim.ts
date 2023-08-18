@@ -1,4 +1,3 @@
-import { X_PLAOC_QUERY } from "../../../server/const.ts";
 import { cacheGetter } from "../../helper/cacheGetter.ts";
 import { streamRead } from "../../helper/readableStreamHelper.ts";
 import { toRequest } from "../../helper/request.ts";
@@ -67,7 +66,7 @@ class DwebServiceWorker extends BaseEvent<keyof DwebWorkerEventMap> {
     let pub = await BasePlugin.public_url;
 
     pub = pub.replace("X-Dweb-Host=api", "X-Dweb-Host=external");
-    const hash = this.X_Plaoc_External_Url?? (this.X_Plaoc_External_Url = await BasePlugin.getInternalUrl(X_PLAOC_QUERY.EXTERNAL_URL))
+    const hash = await BasePlugin.external_url
     const jsonlines = await this.plugin
       .buildExternalApiRequest(`/${hash}`, {
         search: { mmid: this.plugin.mmid, action: "listen" },

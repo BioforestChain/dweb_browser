@@ -80,7 +80,7 @@ const message = ref("这里显示收到的消息");
 
 // 向desktop.dweb.waterbang.top.dweb 发送消息
 const sayHi = async () => {
-  const result = await sw.externalFetch(`desktop.dweb-browser.org.dweb`, {
+  const result = await sw.externalFetch(`plaoc.html.demo.dweb`, {
     pathname: "/say/hi",
     search: {
       message: "今晚吃螃🦀️蟹吗？",

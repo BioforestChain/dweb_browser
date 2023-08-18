@@ -33,7 +33,7 @@ export class FetchEvent extends Event {
 
     const public_url = new URL(await BasePlugin.public_url);
     const base = public_url.href.replace(/X-Dweb-Host=api/, "X-Dweb-Host=external");
-    const X_Plaoc_Public_Url = new URL(location.href).searchParams.get("X-Plaoc-External-Url");
+    const X_Plaoc_Public_Url = await BasePlugin.external_url;
     return this.fetch(`/${X_Plaoc_Public_Url}`, {
       method: "POST",
       search: {
