@@ -30,4 +30,5 @@ enum class WindowPropertyKeys(val fieldName: String) {
   BottomBarTheme("bottomBarTheme"),
   ThemeColor("themeColor"),
   Bounds("bounds"),
+  KeyboardInsetBottom("keyboardInsetBottom")
 }

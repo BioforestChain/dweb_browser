@@ -1,5 +1,6 @@
 package org.dweb_browser.window.render
 
+import android.view.WindowManager
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.WindowInsets
@@ -7,9 +8,7 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.safeGestures
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -48,6 +47,7 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.android.noLocalProvidedFor
 import org.dweb_browser.microservice.sys.dns.nativeFetch
+import org.dweb_browser.window.core.WindowsManager
 import java.util.WeakHashMap
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.max
@@ -192,6 +192,8 @@ fun Modifier.windowResizeByRightBottom(win: WindowController) = this.pointerInpu
 val LocalWindowLimits = compositionLocalOf<WindowLimits> { noLocalProvidedFor("WindowLimits") }
 val LocalWindowController =
   compositionLocalOf<WindowController> { noLocalProvidedFor("WindowController") }
+val LocalWindowsManager =
+  compositionLocalOf<WindowsManager<*>> { noLocalProvidedFor("WindowsManager") }
 
 data class WindowLimits(
   val minWidth: Float,

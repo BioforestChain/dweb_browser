@@ -2,15 +2,18 @@ package org.dweb_browser.window.core
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.ChangeableSet
+import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.OffListener
 import org.dweb_browser.helper.android.BaseActivity
 import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.helper.some
 import org.dweb_browser.microservice.help.MMID
+import org.dweb_browser.window.core.constant.WindowManagerPropertyKeys
 import org.dweb_browser.window.core.constant.WindowsManagerScope
 import org.dweb_browser.window.core.constant.debugWindow
 import java.util.WeakHashMap
@@ -19,6 +22,8 @@ import kotlin.math.sqrt
 import kotlin.reflect.KClass
 
 open class WindowsManager<T : WindowController>(internal val activity: BaseActivity) {
+  val state = ManagerState(activity)
+
   /**
    * 一个已经根据 zIndex 排序完成的只读列表
    */
@@ -120,6 +125,9 @@ open class WindowsManager<T : WindowController>(internal val activity: BaseActiv
     }
   }
 
+  /**
+   * 移除一个窗口
+   */
   internal suspend fun removeWindow(win: WindowController, autoFocus: Boolean = true) =
     allWindows.remove(win)?.let { inManageState ->
       /// 移除最大化窗口集合
@@ -156,6 +164,9 @@ open class WindowsManager<T : WindowController>(internal val activity: BaseActiv
     )
   }
 
+  /**
+   * 依据窗口的属性，对窗口进行分组并排序，并对zIndex属性进行调整
+   */
   private suspend fun reOrderZIndex() {
     /// 根据 alwaysOnTop 进行分组
     val winList = mutableListOf<T>()

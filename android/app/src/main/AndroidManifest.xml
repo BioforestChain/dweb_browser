@@ -85,6 +85,7 @@
       android:launchMode="singleTask"
       android:screenOrientation="portrait"
       android:theme="@style/Theme.dwebbrowser"
+      android:windowSoftInputMode="adjustResize"
       tools:ignore="LockedOrientationActivity">
       <intent-filter>
         <data android:scheme="dweb" />

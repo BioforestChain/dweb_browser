@@ -128,6 +128,14 @@ class WindowState(
     bounds.toMutable().also(updater).also { bounds = it.toImmutable() }
 
   /**
+   * 键盘插入到内容底部的高度
+   */
+  var keyboardInsetBottom by observable.observe(
+    WindowPropertyKeys.KeyboardInsetBottom,
+    0f,
+  );
+
+  /**
    * 窗口标题
    *
    * 该标题不需要一定与应用名称相同

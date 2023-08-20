@@ -11,6 +11,10 @@ data class WindowBounds(
   val width: Float = Float.NaN,
   val height: Float = Float.NaN,
 ) {
+  companion object {
+    val Zero = WindowBounds(0f, 0f, 0f, 0f)
+  }
+
   fun toMutable() = Mutable(left, top, width, height)
   class Mutable(
     var left: Float,

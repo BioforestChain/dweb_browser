@@ -18,7 +18,6 @@ data class ShortcutItem(
   val icons: MutableList<ImageResource>? = null
 )
 
-
 enum class DisplayMode {
   fullscreen,
   standalone,

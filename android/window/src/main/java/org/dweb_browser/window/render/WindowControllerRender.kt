@@ -110,6 +110,7 @@ fun WindowController.Render(
     if (opacity == 0f) {
       return@CompositionLocalProvider
     }
+    /// 开始绘制窗口
     Box(
       modifier = with(winBounds) {
         modifier
