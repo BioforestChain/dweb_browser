@@ -16,6 +16,7 @@ import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.android.BaseActivity
 import org.dweb_browser.window.core.constant.WindowManagerPropertyKeys
 import org.dweb_browser.window.render.LocalWindowController
+import org.dweb_browser.window.render.LocalWindowPadding
 import org.dweb_browser.window.render.LocalWindowsManager
 import org.dweb_browser.window.render.watchedBounds
 
@@ -41,9 +42,9 @@ class ManagerState(val activity: BaseActivity) {
     }.also { rememberState ->
       DisposableEffect(state) {
         val off = state.observable.onChange {
-          if ((if (watchKey != null) watchKey == it.key else true)
-            && (if (watchKeys != null) watchKeys.contains(it.key) else true)
-            && filter?.invoke(it) != false
+          if ((if (watchKey != null) watchKey == it.key else true) && (if (watchKeys != null) watchKeys.contains(
+              it.key
+            ) else true) && filter?.invoke(it) != false
           ) {
             rememberState.value = getter.invoke(state)
           }
@@ -66,29 +67,38 @@ class ManagerState(val activity: BaseActivity) {
             val wsm = LocalWindowsManager.current;
             val imeVisible by wsm.watchedState { imeVisible }
             if (!imeVisible) {
-              return@runCatching this.offset()
+              return@runCatching this.offset(y = 0.dp)
             }
             val win = LocalWindowController.current;
             val winBounds by win.watchedBounds()
             val imeBounds by wsm.watchedImeBounds()
-            val winOuterBottom = winBounds.top + winBounds.height
-            if (winOuterBottom <= imeBounds.top) {
+            val winOuterY = winBounds.top + winBounds.height
+            if (winOuterY <= imeBounds.top) {
               // 两个矩形没有交集，不需要进行任何 Modifier 修饰
-              this.offset()
-            } else {
-              // 尝试进行偏移修饰
-              val offsetY = winOuterBottom - imeBounds.top
+              this.offset(y = 0.dp)
+            }
+            /// 尝试进行偏移修饰
+            else {
+
+              val offsetY = winOuterY - imeBounds.top
+              // 窗口可以通过向上偏移来确保键盘与窗口同时显示
               if (offsetY <= winBounds.top) {
-                this.offset(y = -offsetY.dp)
-              } else {
-//                val winPadding = LocalWindowPadding.current
-//                winPadding.top -
-                win.state.keyboardInsetBottom = offsetY - winBounds.top
-                this.offset(y = -winBounds.top.dp)
+                return@runCatching this.offset(y = -offsetY.dp)
               }
+              val winPadding = LocalWindowPadding.current
+              val offsetY2 = offsetY - winPadding.bottom
+              // 窗口可以牺牲 底部区域的显示
+              if (offsetY2 <= winBounds.top) {
+                return@runCatching this.offset(y = -winBounds.top.dp)
+              }
+              // 窗口底部区域始终不能妥协，一定会显示，这样才能确保 最大化模式下 的窗口可以复用这套逻辑
+
+              // 计算出最终插入内容的底部高度
+              win.state.keyboardInsetBottom = offsetY2 - winBounds.top
+              this.offset(y = -winBounds.top.dp)
             }
           }
-          .getOrDefault(this.offset())
+          .getOrDefault(this.offset(y = 0.dp))
       }
     }
 
@@ -104,8 +114,7 @@ class ManagerState(val activity: BaseActivity) {
    * IME(input method editor 输入法) 的位置和大小
    */
   var imeBounds by observable.observe(
-    WindowManagerPropertyKeys.ImeBounds,
-    WindowBounds(0f, 0f, 0f, 0f)
+    WindowManagerPropertyKeys.ImeBounds, WindowBounds(0f, 0f, 0f, 0f)
   )
 
   var imeVisible by observable.observe(WindowManagerPropertyKeys.ImeVisible, false)

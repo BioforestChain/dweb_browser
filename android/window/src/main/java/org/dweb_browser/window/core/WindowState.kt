@@ -136,6 +136,15 @@ class WindowState(
   );
 
   /**
+   * 键盘是否可以覆盖内容显示
+   * 默认是与内容有交集的，宁愿去 resize content 也不能覆盖
+   */
+  var keyboardOverlaysContent by observable.observe(
+    WindowPropertyKeys.KeyboardInsetBottom,
+    false,
+  );
+
+  /**
    * 窗口标题
    *
    * 该标题不需要一定与应用名称相同

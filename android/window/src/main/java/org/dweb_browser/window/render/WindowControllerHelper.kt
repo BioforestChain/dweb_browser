@@ -1,6 +1,5 @@
 package org.dweb_browser.window.render
 
-import android.view.WindowManager
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.WindowInsets
@@ -275,7 +274,7 @@ fun WindowController.calcWindowBoundsByLimits(
  * 根据约束配置，计算出最终的窗口边距布局
  */
 @Composable
-fun WindowController.calcWindowPaddingByLimits(limits: WindowLimits): WindowEdge {
+fun WindowController.calcWindowPaddingByLimits(limits: WindowLimits): WindowPadding {
   val maximize by watchedIsMaximized()
   val bounds by watchedBounds()
   val bottomBarTheme by watchedState(watchKey = WindowPropertyKeys.BottomBarTheme) { bottomBarTheme }
@@ -284,9 +283,9 @@ fun WindowController.calcWindowPaddingByLimits(limits: WindowLimits): WindowEdge
   val bottomHeight: Float
   val leftWidth: Float;
   val rightWidth: Float;
-  val borderRounded: WindowEdge.CornerRadius;
-  val contentRounded: WindowEdge.CornerRadius;
-  val contentSize: WindowEdge.ContentSize
+  val borderRounded: WindowPadding.CornerRadius;
+  val contentRounded: WindowPadding.CornerRadius;
+  val contentSize: WindowPadding.ContentSize
 
   /// 一些共有的计算
   val windowFrameSize = if (maximize) 3f else 5f
@@ -322,29 +321,29 @@ fun WindowController.calcWindowPaddingByLimits(limits: WindowLimits): WindowEdge
       max(safeDrawingPadding.calculateLeftPadding(layoutDirection).value, windowFrameSize)
     rightWidth =
       max(safeDrawingPadding.calculateRightPadding(layoutDirection).value, windowFrameSize)
-    borderRounded = WindowEdge.CornerRadius.from(0) // 全屏模式下，外部不需要圆角
-    contentRounded = WindowEdge.CornerRadius.from(
+    borderRounded = WindowPadding.CornerRadius.from(0) // 全屏模式下，外部不需要圆角
+    contentRounded = WindowPadding.CornerRadius.from(
       WindowInsetsHelper.getCornerRadiusTop(context, density, 16f),
       WindowInsetsHelper.getCornerRadiusBottom(context, density, 16f)
     )
-    contentSize = WindowEdge.ContentSize(
+    contentSize = WindowPadding.ContentSize(
       bounds.width - leftWidth - rightWidth,
       bounds.height - topHeight - bottomThemeHeight, // 这里不使用bottomHeight，因为导航栏的高度会发生动态变动，因此使用bottomMinHeight可以有效避免抖动
     )
   } else {
     borderRounded =
-      WindowEdge.CornerRadius.from(16) // TODO 这里应该使用 WindowInsets#getRoundedCorner 来获得真实的无力圆角
+      WindowPadding.CornerRadius.from(16) // TODO 这里应该使用 WindowInsets#getRoundedCorner 来获得真实的无力圆角
     contentRounded = borderRounded / sqrt(2f)
     topHeight = max(limits.topBarBaseHeight, windowFrameSize);
     bottomHeight = max(bottomThemeHeight, windowFrameSize)
     leftWidth = windowFrameSize;
     rightWidth = windowFrameSize;
-    contentSize = WindowEdge.ContentSize(
+    contentSize = WindowPadding.ContentSize(
       bounds.width - leftWidth - rightWidth,
       bounds.height - topHeight - bottomHeight, // 这里不使用bottomHeight，因为导航栏的高度会发生动态变动
     )
   }
-  return WindowEdge(
+  return WindowPadding(
     topHeight,
     bottomHeight,
     leftWidth,
@@ -355,13 +354,13 @@ fun WindowController.calcWindowPaddingByLimits(limits: WindowLimits): WindowEdge
   )
 }
 
-val LocalWindowPadding = compositionLocalOf<WindowEdge> { noLocalProvidedFor("WindowPadding") }
+val LocalWindowPadding = compositionLocalOf<WindowPadding> { noLocalProvidedFor("WindowPadding") }
 
 
 /**
  * 窗口边距布局配置
  */
-data class WindowEdge(
+data class WindowPadding(
   val top: Float, val bottom: Float, val left: Float, val right: Float,
   /**
    * 外部圆角
@@ -405,7 +404,7 @@ data class WindowEdge(
  *
  * 这个行为在桌面端也将会适用
  */
-fun WindowController.calcContentScale(limits: WindowLimits, winEdge: WindowEdge): Float {
+fun WindowController.calcContentScale(limits: WindowLimits, winEdge: WindowPadding): Float {
   /**
    * 计算进度
    */
