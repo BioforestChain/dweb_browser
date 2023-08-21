@@ -139,6 +139,11 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
         it.mode = WindowMode.MAXIMIZE
       })
       this.win = win
+      win.onClose {
+        winLock.withLock {
+          this@BrowserNMM.win = null
+        }
+      }
       // 由于 WebView创建需要在主线程，所以这边做了 withContext 操作
       withContext(mainAsyncExceptionHandler) {
         browserController =
