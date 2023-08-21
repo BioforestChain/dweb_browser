@@ -18,4 +18,6 @@ export const doBundle = async () => {
   await builder.auto();
 };
 
-doBundle();
+if (import.meta.main) {
+  doBundle();
+}

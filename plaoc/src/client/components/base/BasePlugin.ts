@@ -38,12 +38,16 @@ export abstract class BasePlugin {
   }
 
   protected createSignal = createSignal;
-
+  private static urlData?: { [key in X_PLAOC_QUERY]: string };
   static async getInternalUrl(urlType: X_PLAOC_QUERY): Promise<string> {
+    if (this.urlData) {
+      return this.urlData[urlType];
+    }
     const url = new URL(location.href);
     url.pathname = `/${X_PLAOC_QUERY.GET_CONFIG_URL}`;
-    const urlJson = await buildRequest(url).fetch().object<{ [key in X_PLAOC_QUERY]: string }>();
-    return urlJson[urlType];
+
+    this.urlData = await buildRequest(url).fetch().object<{ [key in X_PLAOC_QUERY]: string }>();
+    return this.urlData[urlType];
   }
 }
 

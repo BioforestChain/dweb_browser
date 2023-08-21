@@ -38,12 +38,6 @@ export const main = async () => {
     if (ipcEvent.data === ExternalState.CLOSE) {
       return externalServer.waitListener.resolve(false);
     }
-    // 对方过来的请求，检查是否开启监听
-    if (ipcEvent.data === ExternalState.CONNECT_PING) {
-      const is_resolved = externalServer.waitListener.is_resolved;
-      const state = is_resolved ? ExternalState.CONNECT_OK : ExternalState.CONNECT_FLASE;
-      return ipc.postMessage(IpcEvent.fromText(ExternalState.CONNECT_PING, state));
-    }
     tryOpenView();
     // 等待监听建立- 此处的请求会交给开发者控制
     if (ipcEvent.data === ExternalState.CONNECT_AWAIT) {

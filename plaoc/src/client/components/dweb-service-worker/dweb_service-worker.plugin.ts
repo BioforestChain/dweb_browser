@@ -112,18 +112,18 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
   }
 
   /**
-   * 查看对方是否监听了请求
+   * 查看应用是否安装
    * @param mmid
    */
   @bindThis
-  async ping(mmid: $MMID): Promise<boolean> {
+  async canOpenUrl(mmid: $MMID): Promise<boolean> {
     let pub = await BasePlugin.public_url;
     pub = pub.replace("X-Dweb-Host=api", "X-Dweb-Host=external");
     const X_Plaoc_Public_Url = await BasePlugin.external_url;
     return this.buildExternalApiRequest(`/${X_Plaoc_Public_Url}`, {
       search: {
         mmid: mmid,
-        action: "ping",
+        action: "check",
       },
       base: pub,
     })

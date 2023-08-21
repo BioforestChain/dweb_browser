@@ -1,3 +1,4 @@
+import { isWebSocket } from "dweb/core/helper/ipcRequestHelper.ts";
 import { Ipc, IpcHeaders } from "../../deps.ts";
 import { $MMID } from "../client/index.ts";
 import {
@@ -59,7 +60,7 @@ export class Server_external extends HttpServer {
        * 这里会处理api的消息返回到前端serviceWorker 构建onFetchEvent 并触发fetch事件
        */
       const action = event.searchParams.get("action");
-      if (action === "listen") {
+      if (isWebSocket(event.method,event.headers)) {
         const streamPo = new ReadableStreamOut<Uint8Array>();
         const ob = { controller: streamPo.controller };
         this.fetchSignal.listen((ipcRequest) => {
@@ -202,26 +203,31 @@ export class Server_external extends HttpServer {
           event.ipc
         );
       }
-      // ping
-      if (action === "ping") {
+      // 检查应用是否安装
+      if (action === "check") {
         const mmid = event.searchParams.get("mmid");
         if (!mmid) {
           throw new FetchError("mmid must be passed", { status: 400 });
         }
         // 连接需要传递信息的jsMicroModule
-        const jsIpc = await jsProcess.connect(mmid as $MMID);
-        jsIpc.postMessage(IpcEvent.fromText(ExternalState.ACTIVITY, ExternalState.CONNECT_PING));
-        const po = new PromiseOut<boolean>();
-        jsIpc.onEvent((event) => {
-          if (event.data === ExternalState.CONNECT_FLASE) {
-            po.resolve(false);
-          }
-          if (event.data === ExternalState.CONNECT_OK) {
-            po.resolve(true);
-          }
-        });
-        const ok = await po.promise;
-        return IpcResponse.fromJson(event.req_id, 200, cors(event.headers), { success: ok, message: ok }, event.ipc);
+        try {
+          await jsProcess.connect(mmid as $MMID);
+          return IpcResponse.fromJson(
+            event.req_id,
+            200,
+            cors(event.headers),
+            { success: true, message: true },
+            event.ipc
+          );
+        } catch {
+          return IpcResponse.fromJson(
+            event.req_id,
+            200,
+            cors(event.headers),
+            { success: false, message: false },
+            event.ipc
+          );
+        }
       }
       throw new FetchError(`unknown action: ${action}`, { status: 502 });
     }
@@ -233,7 +239,6 @@ export enum ExternalState {
   ACTIVITY = "activity", // 激活app
   CLOSE = "close", // 关闭连接
   CONNECT_AWAIT = "connect_await", // 连接等待
-  CONNECT_PING = "connect_ping", // 连接检查
   CONNECT_OK = "connect_ok", // 连接成功
   CONNECT_FLASE = "connect_flase", // 连接关闭
   WINDOW_CLOSE = "window_close", //todo

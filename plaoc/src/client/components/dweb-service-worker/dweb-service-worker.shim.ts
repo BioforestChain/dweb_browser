@@ -1,5 +1,6 @@
+import { JsonlinesStream } from "../../helper/JsonlinesStream.ts";
 import { cacheGetter } from "../../helper/cacheGetter.ts";
-import { streamRead } from "../../helper/readableStreamHelper.ts";
+import { ReadableStreamOut, streamRead } from "../../helper/readableStreamHelper.ts";
 import { toRequest } from "../../helper/request.ts";
 import { BaseEvent, ListenerCallback, WindowListenerHandle } from "../base/BaseEvent.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
@@ -47,8 +48,8 @@ class DwebServiceWorker extends BaseEvent<keyof DwebWorkerEventMap> {
   }
 
   @cacheGetter()
-  get ping() {
-    return this.plugin.ping;
+  get canOpenUrl() {
+    return this.plugin.canOpenUrl;
   }
 
   @cacheGetter()
@@ -73,55 +74,55 @@ class DwebServiceWorker extends BaseEvent<keyof DwebWorkerEventMap> {
     });
   };
 
-  // async *jsonlines(eventName: $FetchEventType, options?: { signal?: AbortSignal }) {
-  //   let pub_url = await BasePlugin.public_url;
-  //   pub_url = pub_url.replace("X-Dweb-Host=api", "X-Dweb-Host=external");
-  //   const url = new URL(pub_url.replace(/^http:/, "ws:"));
-  //   const hash = await BasePlugin.external_url;
-  //   url.pathname = `/${hash}`;
-  //   console.log("dwebserviceurl=>", url.href);
-  //   const ws = new WebSocket(url);
-  //   this.ws = ws;
-  //   ws.binaryType = "arraybuffer";
-  //   const streamout = new ReadableStreamOut();
-
-  //   ws.onmessage = async (event) => {
-  //     const data = event.data;
-  //     streamout.controller.enqueue(data);
-  //   };
-  //   ws.onclose = async () => {
-  //     streamout.controller.close();
-  //   };
-  //   ws.onerror = async (event) => {
-  //     streamout.controller.error(event);
-  //   };
-
-  //   for await (const state of streamRead(
-  //     streamout.stream.pipeThrough(new TextDecoderStream()).pipeThrough(new JsonlinesStream(this.decodeFetch)),
-  //     options
-  //   )) {
-  //     this.notifyListeners(eventName, state);
-  //     yield state;
-  //   }
-  // }
-
-  private async *registerEvent(eventName: $FetchEventType, options?: { signal?: AbortSignal }) {
-    let pub = await BasePlugin.public_url;
-
-    pub = pub.replace("X-Dweb-Host=api", "X-Dweb-Host=external");
+  async *registerEvent(eventName: $FetchEventType, options?: { signal?: AbortSignal }) {
+    let pub_url = await BasePlugin.public_url;
+    pub_url = pub_url.replace("X-Dweb-Host=api", "X-Dweb-Host=external");
+    const url = new URL(pub_url.replace(/^http:/, "ws:"));
     const hash = await BasePlugin.external_url;
-    const jsonlines = await this.plugin
-      .buildExternalApiRequest(`/${hash}`, {
-        search: { mmid: this.plugin.mmid, action: "listen" },
-        base: pub,
-      })
-      .fetch()
-      .jsonlines(this.decodeFetch);
-    for await (const onfetchString of streamRead(jsonlines, options)) {
-      this.notifyListeners(eventName, onfetchString);
-      yield onfetchString;
+    url.pathname = `/${hash}`;
+    console.log("dwebserviceurl=>", url.href);
+    const ws = new WebSocket(url);
+    this.ws = ws;
+    ws.binaryType = "arraybuffer";
+    const streamout = new ReadableStreamOut();
+
+    ws.onmessage = async (event) => {
+      const data = event.data;
+      streamout.controller.enqueue(data);
+    };
+    ws.onclose = async () => {
+      streamout.controller.close();
+    };
+    ws.onerror = async (event) => {
+      streamout.controller.error(event);
+    };
+
+    for await (const state of streamRead(
+      streamout.stream.pipeThrough(new TextDecoderStream()).pipeThrough(new JsonlinesStream(this.decodeFetch)),
+      options
+    )) {
+      this.notifyListeners(eventName, state);
+      yield state;
     }
   }
+
+  // private async *registerEvent(eventName: $FetchEventType, options?: { signal?: AbortSignal }) {
+  //   let pub = await BasePlugin.public_url;
+
+  //   pub = pub.replace("X-Dweb-Host=api", "X-Dweb-Host=external");
+  //   const hash = await BasePlugin.external_url;
+  //   const jsonlines = await this.plugin
+  //     .buildExternalApiRequest(`/${hash}`, {
+  //       search: { mmid: this.plugin.mmid, action: "listen" },
+  //       base: pub,
+  //     })
+  //     .fetch()
+  //     .jsonlines(this.decodeFetch);
+  //   for await (const onfetchString of streamRead(jsonlines, options)) {
+  //     this.notifyListeners(eventName, onfetchString);
+  //     yield onfetchString;
+  //   }
+  // }
 
   /**
    *  dwebview 注册一个监听事件
