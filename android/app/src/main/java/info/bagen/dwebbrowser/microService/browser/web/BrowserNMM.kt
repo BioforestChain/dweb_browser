@@ -61,7 +61,7 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
     onActivity {
       // openView(sessionId)
       openBrowserWindow(it.second).also { win ->
-        win.focus().join()
+        win.focus()
       }
     }
 

@@ -89,9 +89,9 @@ fun <T> WindowController.watchedState(
 fun WindowController.emitFocusOrBlur(focused: Boolean) {
   coroutineScope.launch {
     if (focused) {
-      simpleFocus()
+      focus()
     } else {
-      simpleBlur()
+      blur()
     }
   }
 }

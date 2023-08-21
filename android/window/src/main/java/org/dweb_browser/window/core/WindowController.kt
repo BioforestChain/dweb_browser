@@ -2,6 +2,7 @@ package org.dweb_browser.window.core
 
 import android.content.Context
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.defaultAsyncExceptionHandler
@@ -33,14 +34,13 @@ abstract class WindowController(
     _manager = manager
   }
 
-  private fun <R> managerRunOr(
-    withManager: (manager: WindowsManager<*>) -> R,
-    orNull: CoroutineScope.() -> R
-  ) =
-    when (_manager) {
-      null -> CoroutineScope(defaultAsyncExceptionHandler).orNull()
-      else -> withManager(_manager!!)
-    }
+  private suspend fun <R> managerRunOr(
+    withManager: (manager: WindowsManager<*>) -> Deferred<R>,
+    orNull: suspend () -> R
+  ) = when (_manager) {
+    null -> orNull()
+    else -> withManager(_manager!!).await()
+  }
 
   init {
     this.upsetManager(manager)
@@ -80,15 +80,14 @@ abstract class WindowController(
     simpleUnMinimize()
   }
 
-  fun focus() = managerRunOr({ it.focusWindow(this) }, { async { simpleFocus() } })
+  suspend fun focus() = managerRunOr({ it.focusWindow(this) }, { simpleFocus() })
 
 
   internal open suspend fun simpleBlur() {
     state.focus = false
   }
 
-  fun blur() = managerRunOr({ it.focusWindow(this) }, { async { simpleBlur() } })
-
+  suspend fun blur() = managerRunOr({ it.focusWindow(this) }, { simpleBlur() })
 
   val onModeChange =
     createStateListener(WindowPropertyKeys.Mode) { debugWindow("emit onModeChange", "$id $it") };
@@ -106,7 +105,7 @@ abstract class WindowController(
     }
   }
 
-  fun maximize() = managerRunOr({ it.maximizeWindow(this) }, { async { simpleMaximize() } })
+  suspend fun maximize() = managerRunOr({ it.maximizeWindow(this) }, { simpleMaximize() })
 
   private var _beforeMaximizeBounds: WindowBounds? = null
 
@@ -150,7 +149,7 @@ abstract class WindowController(
     }
   }
 
-  fun unMaximize() = managerRunOr({ it.unMaximizeWindow(this) }, { async { simpleUnMaximize() } })
+  suspend fun unMaximize() = managerRunOr({ it.unMaximizeWindow(this) }, { simpleUnMaximize() })
 
   fun isMinimize(mode: WindowMode = state.mode) = mode == WindowMode.MINIMIZE
 
@@ -165,13 +164,14 @@ abstract class WindowController(
       _beforeMinimizeMode = null
     }
   }
-  fun unMinimize() = managerRunOr({ it.unMinimizeWindow(this) }, { async { simpleUnMinimize() } })
+
+  suspend fun unMinimize() = managerRunOr({ it.unMinimizeWindow(this) }, { simpleUnMinimize() })
 
   internal open suspend fun simpleMinimize() {
     state.mode = WindowMode.MINIMIZE
   }
 
-  fun minimize() = managerRunOr({ it.minimizeWindow(this) }, { async { simpleMinimize() } })
+  suspend fun minimize() = managerRunOr({ it.minimizeWindow(this) }, { simpleMinimize() })
 
   val onClose = createStateListener(WindowPropertyKeys.Mode,
     { mode == WindowMode.CLOSED }) { debugWindow("emit onClose", id) }
@@ -182,10 +182,10 @@ abstract class WindowController(
     state.mode = WindowMode.CLOSED
   }
 
-  fun close(force: Boolean = false) =
-    managerRunOr({ it.closeWindow(this, force) }, { async { simpleClose(force) } })
+  suspend fun close(force: Boolean = false) =
+    managerRunOr({ it.closeWindow(this, force) }, { simpleClose(force) })
 
-  //#endregion
+//#endregion
 
   //#region 窗口样式修饰
   internal open suspend fun simpleSetTopBarStyle(style: WindowTopBarStyle) {
@@ -196,12 +196,12 @@ abstract class WindowController(
     }
   }
 
-  fun setTopBarStyle(style: WindowTopBarStyle) = managerRunOr({
+  suspend fun setTopBarStyle(style: WindowTopBarStyle) = managerRunOr({
     it.windowSetTopBarStyle(
       this,
       style
     )
-  }, { async { simpleSetTopBarStyle(style) } })
+  }, { simpleSetTopBarStyle(style) })
 
   internal open suspend fun simpleSetBottomBarStyle(style: WindowBottomBarStyle) {
     with(style) {
@@ -213,10 +213,10 @@ abstract class WindowController(
   }
 
 
-  fun setBottomBarStyle(style: WindowBottomBarStyle) =
+  suspend fun setBottomBarStyle(style: WindowBottomBarStyle) =
     managerRunOr(
       { it.windowSetBottomBarStyle(this, style) },
-      { async { simpleSetBottomBarStyle(style) } })
+      { simpleSetBottomBarStyle(style) })
 
-  //#endregion
+//#endregion
 }
