@@ -70,9 +70,9 @@ fun <T> WindowController.watchedState(
 }.also { rememberState ->
   DisposableEffect(state) {
     val off = state.observable.onChange {
-      if ((if (watchKey != null) watchKey == it.key else true)
-        && (if (watchKeys != null) watchKeys.contains(it.key) else true)
-        && filter?.invoke(it) != false
+      if ((if (watchKey != null) watchKey == it.key else true) && (if (watchKeys != null) watchKeys.contains(
+          it.key
+        ) else true) && filter?.invoke(it) != false
       ) {
         rememberState.value = getter.invoke(state)
       }
@@ -278,6 +278,8 @@ fun WindowController.calcWindowPaddingByLimits(limits: WindowLimits): WindowPadd
   val maximize by watchedIsMaximized()
   val bounds by watchedBounds()
   val bottomBarTheme by watchedState(watchKey = WindowPropertyKeys.BottomBarTheme) { bottomBarTheme }
+  val keyboardOverlaysContent by watchedState { keyboardOverlaysContent }
+  val keyboardInsetBottom by watchedState { keyboardInsetBottom }
 
   val topHeight: Float;
   val bottomHeight: Float
@@ -289,6 +291,10 @@ fun WindowController.calcWindowPaddingByLimits(limits: WindowLimits): WindowPadd
 
   /// 一些共有的计算
   val windowFrameSize = if (maximize) 3f else 5f
+
+  /**
+   * 不同的底部栏风格有不同的高度
+   */
   val bottomThemeHeight = when (bottomBarTheme) {
     WindowBottomBarTheme.Immersion -> limits.bottomBarBaseHeight// 因为底部要放置一些信息按钮，所以我们会给到底部一个基本的高度
     WindowBottomBarTheme.Navigation -> max(limits.bottomBarBaseHeight, 32f) // 要有足够的高度放按钮和基本信息
@@ -300,15 +306,18 @@ fun WindowController.calcWindowPaddingByLimits(limits: WindowLimits): WindowPadd
     val layoutDirection = LocalLayoutDirection.current
     val density = LocalDensity.current.density
     val safeDrawingPadding = WindowInsets.safeDrawing.asPaddingValues()
+    val safeGesturesPadding = WindowInsets.safeGestures.asPaddingValues()
     topHeight = max(safeDrawingPadding.calculateTopPadding().value, windowFrameSize)
 
     /**
      * 底部是系统导航栏，这里我们使用触摸安全的区域来控制底部高度，这样可以避免底部抖动
+     * 不该使用 safeDrawing，它会包含 ime 的高度
      */
     bottomHeight = max(
-      safeDrawingPadding.calculateBottomPadding().value,
+      // 这里默认使用 safeGestures ，因为它只包含底部导航栏的高度，是稳定的
+      safeGesturesPadding.calculateBottomPadding().value,
       bottomThemeHeight,
-      windowFrameSize
+      windowFrameSize,
     );
     /**
      * 即便是最大化模式下，我们仍然需要有一个强调边框。
@@ -317,8 +326,7 @@ fun WindowController.calcWindowPaddingByLimits(limits: WindowLimits): WindowPadd
      * 2. 养成用户的视觉习惯，避免某些情况下有人使用视觉手段欺骗用户，窗口模式的存在将一切限定在一个规则内，可以避免常规视觉诈骗
      * 3. 全屏模式虽然会移除窗口，但是会有一些其它限制，比如但需要进行多窗口交互的时候，这些窗口边框仍然会显示出来
      */
-    leftWidth =
-      max(safeDrawingPadding.calculateLeftPadding(layoutDirection).value, windowFrameSize)
+    leftWidth = max(safeDrawingPadding.calculateLeftPadding(layoutDirection).value, windowFrameSize)
     rightWidth =
       max(safeDrawingPadding.calculateRightPadding(layoutDirection).value, windowFrameSize)
     borderRounded = WindowPadding.CornerRadius.from(0) // 全屏模式下，外部不需要圆角
@@ -328,9 +336,10 @@ fun WindowController.calcWindowPaddingByLimits(limits: WindowLimits): WindowPadd
     )
     contentSize = WindowPadding.ContentSize(
       bounds.width - leftWidth - rightWidth,
-      bounds.height - topHeight - bottomThemeHeight, // 这里不使用bottomHeight，因为导航栏的高度会发生动态变动，因此使用bottomMinHeight可以有效避免抖动
+      bounds.height - topHeight - keyboardInsetBottom - bottomHeight,
     )
   } else {
+
     borderRounded =
       WindowPadding.CornerRadius.from(16) // TODO 这里应该使用 WindowInsets#getRoundedCorner 来获得真实的无力圆角
     contentRounded = borderRounded / sqrt(2f)
@@ -340,17 +349,11 @@ fun WindowController.calcWindowPaddingByLimits(limits: WindowLimits): WindowPadd
     rightWidth = windowFrameSize;
     contentSize = WindowPadding.ContentSize(
       bounds.width - leftWidth - rightWidth,
-      bounds.height - topHeight - bottomHeight, // 这里不使用bottomHeight，因为导航栏的高度会发生动态变动
+      bounds.height - topHeight - keyboardInsetBottom - bottomHeight,
     )
   }
   return WindowPadding(
-    topHeight,
-    bottomHeight,
-    leftWidth,
-    rightWidth,
-    borderRounded,
-    contentRounded,
-    contentSize
+    topHeight, bottomHeight, leftWidth, rightWidth, borderRounded, contentRounded, contentSize
   )
 }
 
@@ -445,9 +448,7 @@ data class WindowControllerTheme(
 fun WindowController.buildTheme(dark: Boolean): WindowControllerTheme {
   val themeColor by watchedState(dark, watchKey = WindowPropertyKeys.ThemeColor) {
     themeColor.asWindowStateColor(
-      md_theme_light_surface,
-      md_theme_dark_surface,
-      dark
+      md_theme_light_surface, md_theme_dark_surface, dark
     )
   }
 
@@ -461,8 +462,7 @@ fun WindowController.buildTheme(dark: Boolean): WindowControllerTheme {
     if (backgroundColor.luminance() > 0.5f) darkContent else lightContent
 
   val topBackgroundColor by watchedState(
-    dark,
-    watchKey = WindowPropertyKeys.TopBarBackgroundColor
+    dark, watchKey = WindowPropertyKeys.TopBarBackgroundColor
   ) {
     topBarBackgroundColor.asWindowStateColor(themeColor)
   }
@@ -475,16 +475,14 @@ fun WindowController.buildTheme(dark: Boolean): WindowControllerTheme {
   }
 
   val bottomBackgroundColor by watchedState(
-    dark,
-    watchKey = WindowPropertyKeys.BottomBarBackgroundColor
+    dark, watchKey = WindowPropertyKeys.BottomBarBackgroundColor
   ) {
     bottomBarBackgroundColor.asWindowStateColor(
       themeColor
     )
   }
   val bottomContentColor by watchedState(
-    dark,
-    watchKey = WindowPropertyKeys.BottomBarContentColor
+    dark, watchKey = WindowPropertyKeys.BottomBarContentColor
   ) {
     bottomBarContentColor.asWindowStateColor {
       calcContentColor(

@@ -19,6 +19,7 @@ import org.dweb_browser.window.render.LocalWindowController
 import org.dweb_browser.window.render.LocalWindowPadding
 import org.dweb_browser.window.render.LocalWindowsManager
 import org.dweb_browser.window.render.watchedBounds
+import kotlin.math.max
 
 class ManagerState(val activity: BaseActivity) {
   val viewHeight get() = activity.window.decorView.height
@@ -65,40 +66,44 @@ class ManagerState(val activity: BaseActivity) {
         this
           .runCatching {
             val wsm = LocalWindowsManager.current;
-            val imeVisible by wsm.watchedState { imeVisible }
-            if (!imeVisible) {
-              return@runCatching this.offset(y = 0.dp)
-            }
             val win = LocalWindowController.current;
-            val winBounds by win.watchedBounds()
-            val imeBounds by wsm.watchedImeBounds()
-            val winOuterY = winBounds.top + winBounds.height
-            if (winOuterY <= imeBounds.top) {
-              // 两个矩形没有交集，不需要进行任何 Modifier 修饰
-              this.offset(y = 0.dp)
-            }
-            /// 尝试进行偏移修饰
-            else {
+            val imeVisible by wsm.watchedState { imeVisible }
+            val modifierOffsetY: Float;
+            val keyboardInsetBottom: Float;
+            // 键盘不显示
+            if (!imeVisible) {
+              modifierOffsetY = 0f
+              keyboardInsetBottom = 0f
+            } else {
+              val winBounds by win.watchedBounds()
+              val imeBounds by wsm.watchedImeBounds()
+              val winOuterY = winBounds.top + winBounds.height
 
-              val offsetY = winOuterY - imeBounds.top
-              // 窗口可以通过向上偏移来确保键盘与窗口同时显示
-              if (offsetY <= winBounds.top) {
-                return@runCatching this.offset(y = -offsetY.dp)
+              if (winOuterY <= imeBounds.top) {
+                // 两个矩形没有交集
+                modifierOffsetY = 0f
+                keyboardInsetBottom = 0f
               }
-              val winPadding = LocalWindowPadding.current
-              val offsetY2 = offsetY - winPadding.bottom
-              // 窗口可以牺牲 底部区域的显示
-              if (offsetY2 <= winBounds.top) {
-                return@runCatching this.offset(y = -winBounds.top.dp)
+              /// 尝试进行偏移修饰
+              else {
+                val offsetY = winOuterY - imeBounds.top
+                // 窗口可以通过向上偏移来确保键盘与窗口同时显示
+                if (offsetY <= winBounds.top) {
+                  modifierOffsetY = -offsetY
+                  keyboardInsetBottom = 0f
+                } else {
+                  modifierOffsetY = -winBounds.top
+                  val winPadding = LocalWindowPadding.current
+                  val offsetY2 = offsetY - winPadding.bottom
+                  // 窗口可以牺牲底部区域的显示，多出来的就是键盘的插入高度
+                  keyboardInsetBottom = max(offsetY2 - winBounds.top, 0f);
+                }
               }
-              // 窗口底部区域始终不能妥协，一定会显示，这样才能确保 最大化模式下 的窗口可以复用这套逻辑
-
-              // 计算出最终插入内容的底部高度
-              win.state.keyboardInsetBottom = offsetY2 - winBounds.top
-              this.offset(y = -winBounds.top.dp)
             }
+            win.state.keyboardInsetBottom = keyboardInsetBottom
+            this.offset(y = modifierOffsetY.dp)
           }
-          .getOrDefault(this.offset(y = 0.dp))
+          .getOrDefault(this)
       }
     }
 
