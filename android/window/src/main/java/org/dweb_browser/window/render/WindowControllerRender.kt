@@ -145,22 +145,27 @@ fun WindowController.Render(
         ) {
           val viewWidth = winPadding.contentBounds.width
           val viewHeight = winPadding.contentBounds.height
+
           /**
            * 视图的宽高随着窗口的缩小而缩小，随着窗口的放大而放大，
            * 但这些缩放不是等比的，而是会以一定比例进行换算。
            */
           createWindowAdapterManager.renderProviders[win.state.wid]?.also {
             val viewScale = win.calcContentScale(limits, winPadding)
-            it.invoke(
-              WindowRenderScope(
-                width = viewWidth,
-                height = viewHeight,
-                scale = viewScale,
-              ),
-              modifier = Modifier
-                .requiredSize(viewWidth.dp, viewHeight.dp)
-                .clip(winPadding.contentRounded.toRoundedCornerShape()),
-            )
+            CompositionLocalProvider(
+              LocalContentColor provides theme.themeContentColor,
+            ) {
+              it.invoke(
+                WindowRenderScope(
+                  width = viewWidth,
+                  height = viewHeight,
+                  scale = viewScale,
+                ),
+                modifier = Modifier
+                  .requiredSize(viewWidth.dp, viewHeight.dp)
+                  .clip(winPadding.contentRounded.toRoundedCornerShape()),
+              )
+            }
           } ?: Text(
             "Op！视图被销毁了",
             modifier = Modifier.align(Alignment.Center),
