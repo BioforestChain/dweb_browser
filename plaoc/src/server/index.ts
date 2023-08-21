@@ -33,19 +33,24 @@ export const main = async () => {
   });
   /// 如果有人来激活，那我就唤醒我的界面
   jsProcess.onActivity(async (ipcEvent, ipc) => {
-    console.log("onActivity=>", ipcEvent.data);
-    // 对方过来的关闭请求
+    console.log(`${jsProcess.mmid} onActivity=>`, ipcEvent.data);
+    // 对方主动发送过来的关闭请求，会中断对方的等待
     if (ipcEvent.data === ExternalState.CLOSE) {
       return externalServer.waitListener.resolve(false);
     }
+    // 对方过来的请求，检查是否开启监听
+    if (ipcEvent.data === ExternalState.CONNECT_PING) {
+      const is_resolved = externalServer.waitListener.is_resolved;
+      const state = is_resolved ? ExternalState.CONNECT_OK : ExternalState.CONNECT_FLASE;
+      return ipc.postMessage(IpcEvent.fromText(ExternalState.CONNECT_PING, state));
+    }
     tryOpenView();
-
-    if (ipcEvent.data === ExternalState.CONNECT) {
-      // 等待监听建立- 此处的请求会交给开发者控制，如果对方没有设置监听将会一直等待
+    // 等待监听建立- 此处的请求会交给开发者控制
+    if (ipcEvent.data === ExternalState.CONNECT_AWAIT) {
+      //如果对方没有设置监听将会一直等待
       const bool = await externalServer.waitListener.promise;
-      if (bool) {
-        return ipc.postMessage(IpcEvent.fromText(ExternalState.CONNECT_OK, ExternalState.ACTIVITY));
-      }
+      const state = bool ? ExternalState.CONNECT_OK : ExternalState.CLOSE;
+      return ipc.postMessage(IpcEvent.fromText(state, state));
     }
   });
 

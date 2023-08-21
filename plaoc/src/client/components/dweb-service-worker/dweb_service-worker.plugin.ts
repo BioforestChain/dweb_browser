@@ -79,7 +79,7 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
     let pub = await BasePlugin.public_url;
     pub = pub.replace("X-Dweb-Host=api", "X-Dweb-Host=external");
     const X_Plaoc_Public_Url = await BasePlugin.external_url;
-
+    // const controller = new AbortController();
     const search = Object.assign(init.search ?? {}, {
       mmid: mmid,
       action: "request",
@@ -87,8 +87,8 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
     });
     const config = Object.assign(init, { search: search, base: pub });
     return {
-      response: await this.buildExternalApiRequest(`/${X_Plaoc_Public_Url}`, config).fetch(),
-      close: ()=> this.externalClose(mmid),
+      response: this.buildExternalApiRequest(`/${X_Plaoc_Public_Url}`, config).fetch(),
+      close: this.externalClose.bind(this, mmid),
     };
   }
 
@@ -100,7 +100,7 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
     let pub = await BasePlugin.public_url;
     pub = pub.replace("X-Dweb-Host=api", "X-Dweb-Host=external");
     const X_Plaoc_Public_Url = await BasePlugin.external_url;
-    return await this.buildExternalApiRequest(`/${X_Plaoc_Public_Url}`, {
+    return this.buildExternalApiRequest(`/${X_Plaoc_Public_Url}`, {
       search: {
         mmid: mmid,
         action: "close",
@@ -109,6 +109,26 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
     })
       .fetch()
       .object<$ExterResponse>();
+  }
+
+  /**
+   * 查看对方是否监听了请求
+   * @param mmid
+   */
+  @bindThis
+  async ping(mmid: $MMID): Promise<boolean> {
+    let pub = await BasePlugin.public_url;
+    pub = pub.replace("X-Dweb-Host=api", "X-Dweb-Host=external");
+    const X_Plaoc_Public_Url = await BasePlugin.external_url;
+    return this.buildExternalApiRequest(`/${X_Plaoc_Public_Url}`, {
+      search: {
+        mmid: mmid,
+        action: "ping",
+      },
+      base: pub,
+    })
+      .fetch()
+      .boolean();
   }
 }
 
@@ -119,8 +139,8 @@ export interface $ExterRequestWithBaseInit extends $BuildRequestWithBaseInit {
 }
 
 export interface $ExternalFetchHandle {
-  close: () => Promise<$ExterResponse>;
-  response: Response;
+  close: () => void;
+  response: Promise<Response>;
 }
 
 export interface $ExterResponse {

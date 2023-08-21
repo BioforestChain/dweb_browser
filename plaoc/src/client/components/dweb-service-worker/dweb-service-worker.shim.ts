@@ -3,10 +3,9 @@ import { streamRead } from "../../helper/readableStreamHelper.ts";
 import { toRequest } from "../../helper/request.ts";
 import { BaseEvent, ListenerCallback, WindowListenerHandle } from "../base/BaseEvent.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
+import { $FetchEventType, FetchEvent } from "./FetchEvent.ts";
 import { DwebWorkerEventMap, IpcRequest, UpdateControllerMap } from "./dweb-service-worker.type.ts";
 import { dwebServiceWorkerPlugin } from "./dweb_service-worker.plugin.ts";
-import { $FetchEventType, FetchEvent } from "./FetchEvent.ts";
-
 declare namespace globalThis {
   const __app_upgrade_watcher_kit__: {
     /**
@@ -29,6 +28,7 @@ if (app_upgrade_watcher_kit) {
 
 class DwebServiceWorker extends BaseEvent<keyof DwebWorkerEventMap> {
   plugin = dwebServiceWorkerPlugin;
+  ws: WebSocket | undefined;
   X_Plaoc_External_Url?: string = undefined;
   constructor() {
     super(app_upgrade_watcher_kit);
@@ -44,6 +44,11 @@ class DwebServiceWorker extends BaseEvent<keyof DwebWorkerEventMap> {
   @cacheGetter()
   get externalClose() {
     return this.plugin.externalClose;
+  }
+
+  @cacheGetter()
+  get ping() {
+    return this.plugin.ping;
   }
 
   @cacheGetter()
@@ -67,6 +72,38 @@ class DwebServiceWorker extends BaseEvent<keyof DwebWorkerEventMap> {
       clientId: ipcRequest.req_id.toString(),
     });
   };
+
+  // async *jsonlines(eventName: $FetchEventType, options?: { signal?: AbortSignal }) {
+  //   let pub_url = await BasePlugin.public_url;
+  //   pub_url = pub_url.replace("X-Dweb-Host=api", "X-Dweb-Host=external");
+  //   const url = new URL(pub_url.replace(/^http:/, "ws:"));
+  //   const hash = await BasePlugin.external_url;
+  //   url.pathname = `/${hash}`;
+  //   console.log("dwebserviceurl=>", url.href);
+  //   const ws = new WebSocket(url);
+  //   this.ws = ws;
+  //   ws.binaryType = "arraybuffer";
+  //   const streamout = new ReadableStreamOut();
+
+  //   ws.onmessage = async (event) => {
+  //     const data = event.data;
+  //     streamout.controller.enqueue(data);
+  //   };
+  //   ws.onclose = async () => {
+  //     streamout.controller.close();
+  //   };
+  //   ws.onerror = async (event) => {
+  //     streamout.controller.error(event);
+  //   };
+
+  //   for await (const state of streamRead(
+  //     streamout.stream.pipeThrough(new TextDecoderStream()).pipeThrough(new JsonlinesStream(this.decodeFetch)),
+  //     options
+  //   )) {
+  //     this.notifyListeners(eventName, state);
+  //     yield state;
+  //   }
+  // }
 
   private async *registerEvent(eventName: $FetchEventType, options?: { signal?: AbortSignal }) {
     let pub = await BasePlugin.public_url;

@@ -20,11 +20,6 @@ export class StateObserver<RAW, STATE> {
   ) {}
 
   async *jsonlines(options?: { signal?: AbortSignal }) {
-    const userAgent = navigator.userAgent.toLowerCase();
-    if (userAgent.indexOf(" electron/") > -1) {
-       console.error(`当前桌面端不支持 ${this.plugin.mmid} 组件`)
-       return new Response("error")
-    }
     const pub_url = await BasePlugin.public_url;
     const url = new URL(pub_url.replace(/^http:/, "ws:"));
     // 内部的监听

@@ -80,27 +80,27 @@ export class Server_external extends HttpServer {
         }
         // 连接需要传递信息的jsMicroModule
         const jsIpc = await jsProcess.connect(mmid);
-        jsIpc.postMessage(IpcEvent.fromText(ExternalState.ACTIVITY, ExternalState.CONNECT));
+        jsIpc.postMessage(IpcEvent.fromText(ExternalState.ACTIVITY, ExternalState.CONNECT_AWAIT));
         //  建立连接队列
         const ipcPo = mapHelper.getOrPut(this.connectMap, mmid, () => {
           return new PromiseOut();
         });
         jsIpc.onEvent((event) => {
           if (event.name === ExternalState.CONNECT_OK) {
-            console.log("CONNECT_OK")
             ipcPo.resolve(jsIpc);
           }
+          // 请求关闭
           if (event.name === ExternalState.CLOSE) {
             ipcPo.resolve(undefined);
           }
           //TODO 这个可以在对方窗口关闭的时候,让下次重新等待
-          if(event.name === ExternalState.WINDOW_CLOSE) {
-            this.connectMap.set(mmid,new PromiseOut())
+          if (event.name === ExternalState.WINDOW_CLOSE) {
+            this.connectMap.set(mmid, new PromiseOut());
           }
         });
 
         if (!(await ipcPo.promise)) {
-          // 我们自己主动关闭了 告知对方关闭等待
+          // 我们自己主动关闭了 发送close消息到onActivity告知对方关闭等待
           jsIpc.postMessage(IpcEvent.fromText(ExternalState.ACTIVITY, ExternalState.CLOSE));
           return IpcResponse.fromJson(
             event.req_id,
@@ -190,11 +190,38 @@ export class Server_external extends HttpServer {
         // 如果成功建立过连接，通知对方关闭
         if (ipc) {
           // 向对方发送关闭消息
-          ipc.postMessage(IpcEvent.fromText(ExternalState.CLOSE,ExternalState.CLOSE))
-          ipc.close()
+          ipc.postMessage(IpcEvent.fromText(ExternalState.ACTIVITY, ExternalState.CLOSE));
+          ipc.close();
         }
         this.connectMap.delete(mmid as $MMID);
-        return IpcResponse.fromJson(event.req_id, 200, cors(event.headers), { success: true,message:"ok"}, event.ipc);
+        return IpcResponse.fromJson(
+          event.req_id,
+          200,
+          cors(event.headers),
+          { success: true, message: "ok" },
+          event.ipc
+        );
+      }
+      // ping
+      if (action === "ping") {
+        const mmid = event.searchParams.get("mmid");
+        if (!mmid) {
+          throw new FetchError("mmid must be passed", { status: 400 });
+        }
+        // 连接需要传递信息的jsMicroModule
+        const jsIpc = await jsProcess.connect(mmid as $MMID);
+        jsIpc.postMessage(IpcEvent.fromText(ExternalState.ACTIVITY, ExternalState.CONNECT_PING));
+        const po = new PromiseOut<boolean>();
+        jsIpc.onEvent((event) => {
+          if (event.data === ExternalState.CONNECT_FLASE) {
+            po.resolve(false);
+          }
+          if (event.data === ExternalState.CONNECT_OK) {
+            po.resolve(true);
+          }
+        });
+        const ok = await po.promise;
+        return IpcResponse.fromJson(event.req_id, 200, cors(event.headers), { success: ok, message: ok }, event.ipc);
       }
       throw new FetchError(`unknown action: ${action}`, { status: 502 });
     }
@@ -203,9 +230,11 @@ export class Server_external extends HttpServer {
 
 // 负责监听对方是否接收了请求
 export enum ExternalState {
-  ACTIVITY = "activity",
-  CLOSE = "close",
-  CONNECT = "connect",
-  CONNECT_OK = "CONNECT_OK",
-  WINDOW_CLOSE = "window_close", //todo 
+  ACTIVITY = "activity", // 激活app
+  CLOSE = "close", // 关闭连接
+  CONNECT_AWAIT = "connect_await", // 连接等待
+  CONNECT_PING = "connect_ping", // 连接检查
+  CONNECT_OK = "connect_ok", // 连接成功
+  CONNECT_FLASE = "connect_flase", // 连接关闭
+  WINDOW_CLOSE = "window_close", //todo
 }
