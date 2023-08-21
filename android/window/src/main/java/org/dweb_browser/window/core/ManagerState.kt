@@ -1,5 +1,8 @@
 package org.dweb_browser.window.core
 
+import android.content.Context
+import android.view.View
+import android.view.inputmethod.InputMethodManager
 import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -11,10 +14,14 @@ import androidx.compose.runtime.structuralEqualityPolicy
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.unit.dp
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.android.BaseActivity
+import org.dweb_browser.helper.android.addOnApplyWindowInsetsCompatListener
 import org.dweb_browser.window.core.constant.WindowManagerPropertyKeys
+import org.dweb_browser.window.core.constant.debugWindow
 import org.dweb_browser.window.render.LocalWindowController
 import org.dweb_browser.window.render.LocalWindowPadding
 import org.dweb_browser.window.render.LocalWindowsManager
@@ -124,29 +131,44 @@ class ManagerState(val activity: BaseActivity) {
 
   var imeVisible by observable.observe(WindowManagerPropertyKeys.ImeVisible, false)
 
-  init {
-    val imeType = WindowInsetsCompat.Type.ime()
-    val decorView = activity.window.decorView
-    decorView.viewTreeObserver.addOnGlobalLayoutListener {
-      val windowInsetsCompat = WindowInsetsCompat.toWindowInsetsCompat(decorView.rootWindowInsets)
-      val imeVisible = windowInsetsCompat.isVisible(imeType)
-      this.imeVisible = imeVisible
-      this.imeBounds = if (imeVisible) {
-        val imeInsets = windowInsetsCompat.getInsets(imeType)
-        val imeHeightDp = imeInsets.bottom / displayDensity
-        WindowBounds(
-          left = 0f,
-          top = viewHeightDp - imeHeightDp,
-          height = imeHeightDp,
-          width = viewWidthDp,
-        )
-      } else {
-        WindowBounds.Zero
-      }
+  private val imeType = WindowInsetsCompat.Type.ime()
 
-      // 输入法高度即为 heightDiff
-      println("imeBounds:$imeBounds, imeVisible:$imeVisible")
+  init {
+    debugWindow("ManagerState/IME", "init")
+//    WindowCompat.setDecorFitsSystemWindows(activity.window, false)
+//    val imm = activity.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+    activity.window.decorView.addOnApplyWindowInsetsCompatListener { _, insets ->
+      updateKeyboardStates(insets)
+      insets
     }
+//    decorView.viewTreeObserver.addOnGlobalLayoutListener {
+//
+//    }
+//    decorView.viewTreeObserver.addOnGlobalLayoutListener {
+//
+//    }
+  }
+
+  private fun updateKeyboardStates(windowInsetsCompat: WindowInsetsCompat) {
+//    val windowInsetsCompat = WindowInsetsCompat.toWindowInsetsCompat(activity.window.decorView.rootWindowInsets)
+
+    val imeVisible = windowInsetsCompat.isVisible(imeType)
+    this.imeVisible = imeVisible
+    this.imeBounds = if (imeVisible) {
+      val imeInsets = windowInsetsCompat.getInsets(imeType)
+      val imeHeightDp = imeInsets.bottom / displayDensity
+      WindowBounds(
+        left = 0f,
+        top = viewHeightDp - imeHeightDp,
+        height = imeHeightDp,
+        width = viewWidthDp,
+      )
+    } else {
+      WindowBounds.Zero
+    }
+
+    // 输入法高度即为 heightDiff
+    debugWindow("ManagerState/IME", "imeBounds:$imeBounds, imeVisible:$imeVisible")
   }
 
 }

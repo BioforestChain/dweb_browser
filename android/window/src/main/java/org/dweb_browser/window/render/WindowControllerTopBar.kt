@@ -83,7 +83,7 @@ private fun WindowTopControllerBar(
         .fillMaxHeight(),
     ) {
       IconButton(modifier = Modifier.align(Alignment.Center),
-        onClick = { coroutineScope.launch { win.close() } }) {
+        onClick = { coroutineScope.launch { win.simpleClose() } }) {
         Icon(Icons.Rounded.Close, contentDescription = "Close the Window", tint = contentColor)
       }
     }
@@ -133,7 +133,7 @@ private fun WindowTopControllerBar(
         .fillMaxHeight(),
     ) {
       IconButton(modifier = Modifier.align(Alignment.CenterEnd),
-        onClick = { coroutineScope.launch { win.minimize() } }) {
+        onClick = { coroutineScope.launch { win.simpleMinimize() } }) {
         Icon(
           Icons.Rounded.Minimize,
           contentDescription = "Minimizes the window",
@@ -148,7 +148,7 @@ private fun WindowTopControllerBar(
         .fillMaxHeight(),
     ) {
       IconButton(modifier = Modifier.align(Alignment.CenterEnd),
-        onClick = { coroutineScope.launch { win.maximize() } }) {
+        onClick = { coroutineScope.launch { win.simpleMaximize() } }) {
         Icon(
           Icons.Rounded.UnfoldMore,
           contentDescription = "Maximizes the window",

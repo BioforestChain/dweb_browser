@@ -2,6 +2,8 @@ package info.bagen.dwebbrowser.microService.browser.web
 
 import info.bagen.dwebbrowser.microService.browser.desk.DeskLinkMetaData
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.window.core.constant.WindowMode
 import org.dweb_browser.window.core.WindowState
 import org.dweb_browser.window.core.createWindowAdapterManager
@@ -17,6 +19,7 @@ import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.dweb_browser.microservice.sys.http.DwebHttpServerOptions
 import org.dweb_browser.microservice.sys.http.HttpDwebServer
 import org.dweb_browser.microservice.sys.http.createHttpDwebServer
+import org.dweb_browser.window.core.WindowController
 import org.http4k.core.Method
 import org.http4k.lens.Query
 import org.http4k.lens.string
@@ -57,7 +60,9 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
 
     onActivity {
       // openView(sessionId)
-      openBrowserWindow(it.second)
+      openBrowserWindow(it.second).also { win ->
+        win.focus().join()
+      }
     }
 
     apiRouting = routes(
@@ -116,34 +121,44 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
 //    }
 //  }
 
-  private suspend fun openBrowserWindow(ipc: Ipc, search: String? = null, url: String? = null) {
-    // 打开安装窗口
-    val win = createWindowAdapterManager.createWindow(
-      WindowState(owner = ipc.remote.mmid, provider = mmid, microModule = this).also {
-        it.mode = WindowMode.MAXIMIZE
-      }
-    )
-    // 由于 WebView创建需要在主线程，所以这边做了 withContext 操作
-    withContext(mainAsyncExceptionHandler) {
-      browserController =
-        BrowserController(win, this@BrowserNMM, browserServer).also { controller ->
+  private var winLock = Mutex(false);
 
-          search?.let { controller.updateDWSearch(it) }
-          url?.let { controller.updateDWUrl(it) }
-        }
+  /**
+   * 窗口是单例模式
+   */
+  private var win: WindowController? = null
+  private suspend fun openBrowserWindow(ipc: Ipc, search: String? = null, url: String? = null) =
+    winLock.withLock {
+      if (win != null) {
+        return@withLock win!!
+      }
+      // 打开安装窗口
+      val win = createWindowAdapterManager.createWindow(WindowState(
+        owner = ipc.remote.mmid, provider = mmid, microModule = this
+      ).also {
+        it.mode = WindowMode.MAXIMIZE
+      })
+      this.win = win
+      // 由于 WebView创建需要在主线程，所以这边做了 withContext 操作
+      withContext(mainAsyncExceptionHandler) {
+        browserController =
+          BrowserController(win, this@BrowserNMM, browserServer).also { controller ->
+
+            search?.let { controller.updateDWSearch(it) }
+            url?.let { controller.updateDWUrl(it) }
+          }
+      }
+      return win
     }
-  }
 
   private val API_PREFIX = "/api/"
   private suspend fun createBrowserWebServer(): HttpDwebServer {
-    val browserServer =
-      createHttpDwebServer(DwebHttpServerOptions(subdomain = "", port = 433))
+    val browserServer = createHttpDwebServer(DwebHttpServerOptions(subdomain = "", port = 433))
     browserServer.listen().onRequest { (request, ipc) ->
       val pathName = request.uri.path
       debugBrowser("createBrowserWebServer", pathName)
       if (!pathName.startsWith(API_PREFIX)) {
-        val response =
-          nativeFetch("file:///sys/browser/desk${pathName}?mode=stream")
+        val response = nativeFetch("file:///sys/browser/desk${pathName}?mode=stream")
         ipc.postMessage(IpcResponse.fromResponse(request.req_id, response, ipc))
       }
     }

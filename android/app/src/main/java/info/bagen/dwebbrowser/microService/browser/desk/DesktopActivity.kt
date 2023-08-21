@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.core.view.WindowCompat
 import com.google.accompanist.web.WebView
 import info.bagen.dwebbrowser.base.BaseThemeActivity
 import org.dweb_browser.window.render.Render
@@ -39,15 +40,14 @@ class DesktopActivity : BaseThemeActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     val deskController = bindController(intent.getStringExtra("deskSessionId"))
-
+    /// 禁止自适应布局
+    WindowCompat.setDecorFitsSystemWindows(window, false)
     /**
      * 窗口管理器
      */
     val desktopWindowsManager = deskController.desktopWindowsManager
-
     setContent {
       DwebBrowserAppTheme {
-        deskController.effect(activity = this@DesktopActivity)
         BackHandler {
           TaskbarModel.closeFloatWindow()
           this@DesktopActivity.moveTaskToBack(true) // 将界面移动到后台，避免重新点击又跑SplashActivity

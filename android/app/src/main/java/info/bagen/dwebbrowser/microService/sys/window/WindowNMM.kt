@@ -12,6 +12,8 @@ import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.ipc.helper.ReadableStream
+import org.dweb_browser.window.core.constant.WindowBottomBarStyle
+import org.dweb_browser.window.core.constant.WindowTopBarStyle
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Response
@@ -33,8 +35,7 @@ fun debugWindowNMM(tag: String, msg: Any? = "", err: Throwable? = null) =
  * 而sys级别拥有各异的实现，不同的厂商可以在这个级别做自己的操作系统标准化设计。
  * 这里的windows.sys.dweb属于当下这个时代的一种矩形窗口化设计，它不代表所有的窗口形态，它有自己的取舍。
  */
-class WindowNMM :
-  NativeMicroModule("window.sys.dweb", "Window Management") {
+class WindowNMM : NativeMicroModule("window.sys.dweb", "Window Management") {
   companion object {
     init {
       ResponseRegistry.registryJsonAble(WindowState::class.java) { it.toJsonAble() }
@@ -45,23 +46,25 @@ class WindowNMM :
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     val query_wid = Query.string().required("wid")
 
-    data class WindowBarStyle(
-      val contentColor: String?,
-      val backgroundColor: String?,
-      val overlay: Boolean?
-    )
 
-    val query_barStyle = Query.composite {
-      WindowBarStyle(
+    val query_topBarStyle = Query.composite {
+      WindowTopBarStyle(
         string().optional("contentColor")(it),
         string().optional("backgroundColor")(it),
         boolean().optional("overlay")(it),
       )
     }
+    val query_bottomBarStyle = Query.composite {
+      WindowBottomBarStyle(
+        string().optional("contentColor")(it),
+        string().optional("backgroundColor")(it),
+        boolean().optional("overlay")(it),
+        string().optional("theme")(it),
+      )
+    }
 
     fun getWindow(request: Request) = query_wid(request).let { wid ->
-      windowInstancesManager.get(wid)
-        ?: throw Exception("No Found by window id: '$wid'")
+      windowInstancesManager.get(wid) ?: throw Exception("No Found by window id: '$wid'")
     }
 
     apiRouting = routes(
@@ -81,9 +84,7 @@ class WindowNMM :
             win.coroutineScope.launch {
               it.emitSelf(
                 Observable.Change(
-                  WindowPropertyKeys.Any,
-                  null,
-                  null
+                  WindowPropertyKeys.Any, null, null
                 )
               )
             }
@@ -105,19 +106,10 @@ class WindowNMM :
       "/minimize" bind Method.GET to defineHandler { request -> getWindow(request).minimize() },
       "/close" bind Method.GET to defineHandler { request -> getWindow(request).close() },
       "/setTopBarStyle" bind Method.GET to defineHandler { request ->
-        with(query_barStyle(request)) {
-          getWindow(request).setTopBarStyle(contentColor, backgroundColor, overlay)
-        }
+        getWindow(request).setTopBarStyle(query_topBarStyle(request))
       },
       "/setBottomBarStyle" bind Method.GET to defineHandler { request ->
-        with(query_barStyle(request)) {
-          getWindow(request).setBottomBarStyle(
-            contentColor,
-            backgroundColor,
-            overlay,
-            Query.string().optional("theme")(request),
-          )
-        }
+        getWindow(request).setBottomBarStyle(query_bottomBarStyle(request))
       },
     )
   }

@@ -102,33 +102,6 @@ class DeskController(
       preDesktopWindowsManager = dwm
     }
 
-  val currentInsets: MutableState<WindowInsetsCompat> by lazy {
-    mutableStateOf(
-      WindowInsetsCompat.toWindowInsetsCompat(
-        activity!!.window.decorView.rootWindowInsets
-      )
-    )
-  }
-
-  @Composable
-  fun effect(activity: DesktopActivity): DeskController {
-    /**
-     * 这个 NativeUI 的逻辑是工作在全屏幕下，所以会使得默认覆盖 系统 UI
-     */
-    SideEffect {
-      WindowCompat.setDecorFitsSystemWindows(activity.window, false)
-      /// system-bar 一旦隐藏（visible = false），那么被手势划出来后，过一会儿自动回去
-      //windowInsetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-
-      ViewCompat.setOnApplyWindowInsetsListener(activity.window.decorView) { _, insets ->
-        currentInsets.value = insets
-        insets
-      }
-
-    }
-    return this
-  }
-
   data class MainDwebView(
     val name: String,
     val webView: DWebView,

@@ -16,6 +16,7 @@ import org.dweb_browser.window.core.createWindowAdapterManager
 import kotlinx.coroutines.CoroutineScope
 import org.dweb_browser.microservice.help.MMID
 import org.dweb_browser.window.core.WindowRenderProvider
+import org.dweb_browser.window.core.WindowsManager
 
 @Composable
 fun WindowPreviewer(
@@ -30,6 +31,7 @@ fun WindowPreviewer(
 ) {
   val scope = rememberCoroutineScope()
   val context = LocalContext.current
+
 
   class PreviewWindowController(state: WindowState) : WindowController(state) {
     override val context: Context

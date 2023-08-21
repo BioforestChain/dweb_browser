@@ -66,11 +66,5 @@ class DesktopWindowsManager(internal val activity: DesktopActivity) :
       /// Activity 销毁的时候，移除窗口适配器
       .removeWhen(activity.onDestroyActivity)
   }
-
-  override fun addNewWindow(win: DesktopWindowController, autoFocus: Boolean) {
-    /// 对 win 的 manager 进行修改
-    win.manager = this;
-    super.addNewWindow(win, autoFocus)
-  }
 }
 

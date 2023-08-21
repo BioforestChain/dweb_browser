@@ -2,24 +2,21 @@ package org.dweb_browser.window.core
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
-import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.ChangeableSet
-import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.OffListener
 import org.dweb_browser.helper.android.BaseActivity
-import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.helper.some
 import org.dweb_browser.microservice.help.MMID
-import org.dweb_browser.window.core.constant.WindowManagerPropertyKeys
+import org.dweb_browser.window.core.constant.WindowBottomBarStyle
+import org.dweb_browser.window.core.constant.WindowTopBarStyle
 import org.dweb_browser.window.core.constant.WindowsManagerScope
 import org.dweb_browser.window.core.constant.debugWindow
-import java.util.WeakHashMap
 import kotlin.math.abs
-import kotlin.math.sqrt
-import kotlin.reflect.KClass
 
 open class WindowsManager<T : WindowController>(internal val activity: BaseActivity) {
   val state = ManagerState(activity)
@@ -75,7 +72,7 @@ open class WindowsManager<T : WindowController>(internal val activity: BaseActiv
       for (win in winList) {
         if (win.isFocused()) {
           /// 如果发现之前赋值过，这时候需要将之前的窗口给blur掉
-          lastFocusedWin?.blur()
+          lastFocusedWin?.simpleBlur()
           lastFocusedWin = win
         }
       }
@@ -89,13 +86,16 @@ open class WindowsManager<T : WindowController>(internal val activity: BaseActiv
   /**
    * 将一个窗口添加进来管理
    */
+  @OptIn(ExperimentalCoroutinesApi::class)
   protected open fun addNewWindow(win: T, autoFocus: Boolean = true) {
+    // 更新窗口的管理者角色
+    win.upsetManager(this);
     /// 对窗口做一些启动准备
     val offListenerList = mutableListOf<OffListener<*>>()
 
     /// 窗口聚焦时，需要将其挪到最上层，否则该聚焦会失效
     offListenerList += win.onFocus {
-      focusWindow(win)
+      focusWindow(win).join()
     }
 
     offListenerList += win.onMaximize {
@@ -128,7 +128,7 @@ open class WindowsManager<T : WindowController>(internal val activity: BaseActiv
   /**
    * 移除一个窗口
    */
-  internal suspend fun removeWindow(win: WindowController, autoFocus: Boolean = true) =
+  internal suspend fun removeWindow(win: T, autoFocus: Boolean = true) =
     allWindows.remove(win)?.let { inManageState ->
       /// 移除最大化窗口集合
       hasMaximizedWins.remove(win)
@@ -213,16 +213,38 @@ open class WindowsManager<T : WindowController>(internal val activity: BaseActiv
     reOrderZIndex()
   }
 
+  private fun <T : WindowController, R> winLifecycleScopeAsync(
+    win: T,
+    block: suspend CoroutineScope.() -> R
+  ) = activity.lifecycleScope.async {
+    // TODO 检测 win 的所属权
+    block()
+  }
+
   /**
    * 对一个窗口做聚焦操作
    */
-  fun focusWindow(win: WindowController) = activity.lifecycleScope.launch {
-    if (lastFocusedWin != win) {
-      lastFocusedWin?.blur()
-      win.focus()
-      moveToTop(win)
-      doLastFocusedWin()
+  fun focusWindow(win: WindowController) = winLifecycleScopeAsync(win) {
+    when (val preFocusedWin = lastFocusedWin) {
+      win -> false
+      else -> {
+        preFocusedWin?.simpleBlur()
+        win.simpleFocus()
+        moveToTop(win)
+        doLastFocusedWin()
+        true
+      }
     }
+  }
+
+  /**
+   * 对一个窗口做失焦操作
+   */
+  fun blurWindow(win: WindowController) = winLifecycleScopeAsync(win) {
+    if (lastFocusedWin == win) {
+      win.simpleBlur()
+      true
+    } else false
   }
 
   /**
@@ -232,11 +254,11 @@ open class WindowsManager<T : WindowController>(internal val activity: BaseActiv
     val windows = findWindows(mmid)
     lastFocusedWin?.let {
       if (!windows.contains(it)) {
-        it.blur()
+        it.simpleBlur()
       }
     }
     for (win in windows) {
-      win.focus()
+      win.simpleFocus()
     }
   }
 
@@ -255,11 +277,44 @@ open class WindowsManager<T : WindowController>(internal val activity: BaseActiv
     val isMaximized = windows.some { win -> win.isMaximized() };
     for (win in windows) {
       if (isMaximized) {
-        win.unMaximize()
+        win.simpleUnMaximize()
       } else {
-        win.maximize()
+        win.simpleMaximize()
       }
     }
     return !isMaximized
   }
+
+  fun maximizeWindow(win: WindowController) = winLifecycleScopeAsync(win) {
+    focusWindow(win).join()
+    win.simpleMaximize()
+  }
+
+  fun unMaximizeWindow(win: WindowController) = winLifecycleScopeAsync(win) {
+    win.simpleUnMaximize()
+  }
+
+  fun unMinimizeWindow(win: WindowController) = winLifecycleScopeAsync(win) {
+    win.simpleUnMinimize()
+  }
+
+  fun minimizeWindow(win: WindowController) = winLifecycleScopeAsync(win) {
+    win.simpleMinimize()
+  }
+
+  fun closeWindow(win: WindowController, force: Boolean = false) = winLifecycleScopeAsync(win) {
+    win.simpleClose(force)
+  }
+
+  fun windowSetTopBarStyle(
+    win: WindowController,
+    style: WindowTopBarStyle,
+  ) = activity.lifecycleScope.async {
+    win.simpleSetTopBarStyle(style)
+  }
+
+  fun windowSetBottomBarStyle(win: WindowController, style: WindowBottomBarStyle) =
+    activity.lifecycleScope.async {
+      win.simpleSetBottomBarStyle(style)
+    }
 }
