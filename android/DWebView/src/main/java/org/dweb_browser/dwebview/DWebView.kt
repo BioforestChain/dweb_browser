@@ -30,6 +30,7 @@ import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleCallback
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.printdebugln
 import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.microservice.core.MicroModule
@@ -483,7 +484,11 @@ class DWebView(
    * 执行异步JS代码，需要传入一个表达式
    */
   suspend fun evaluateAsyncJavascriptCode(script: String, afterEval: suspend () -> Unit = {}) =
-    evaluator.evaluateAsyncJavascriptCode(script, afterEval)
+    withContext(mainAsyncExceptionHandler) {
+      evaluator.evaluateAsyncJavascriptCode(
+        script, afterEval
+      )
+    }
 
   private var _destroyed = false
   private var _destroySignal = SimpleSignal();

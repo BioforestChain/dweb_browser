@@ -4,12 +4,17 @@ import android.webkit.WebMessage
 import android.webkit.WebMessagePort
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.getOrElse
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.dweb_browser.helper.Callback
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.printdebugln
 import org.dweb_browser.microservice.help.MicroModuleManifest
 import org.dweb_browser.microservice.help.gson
@@ -23,17 +28,31 @@ import org.dweb_browser.microservice.ipc.helper.IpcStreamData
 import org.dweb_browser.microservice.ipc.helper.jsonToIpcMessage
 import java.util.WeakHashMap
 
+fun printThreadName(): String = Thread.currentThread().name
 fun debugMessagePortIpc(tag: String, msg: Any = "", err: Throwable? = null) =
   printdebugln("message-port-ipc", tag, msg, err)
 
 class MessagePort private constructor(private val port: WebMessagePort) {
   companion object {
     private val wm = WeakHashMap<WebMessagePort, MessagePort>()
-    fun from(port: WebMessagePort): MessagePort = wm.getOrPut(port) { MessagePort(port) }
+    suspend fun from(port: WebMessagePort): MessagePort =
+      wm.getOrPut(port) { MessagePort(port).also { it.installMessageSignal() } }
+
     val messageScope = CoroutineScope(CoroutineName("webMessage") + ioAsyncExceptionHandler)
   }
 
   val messageChannel = Channel<WebMessage>(capacity = Channel.UNLIMITED)
+
+  private suspend fun installMessageSignal() = withContext(mainAsyncExceptionHandler) {
+    port.setWebMessageCallback(object : WebMessagePort.WebMessageCallback() {
+      override fun onMessage(port: WebMessagePort, event: WebMessage) {
+        messageChannel.trySend(event).getOrElse { err ->
+          err?.printStackTrace()
+        }
+        /// TODO 尝试告知对方暂停，比如发送 StreamPaused
+      }
+    })
+  }
 
   private val _messageSignal by lazy {
     val signal = Signal<WebMessage>()
@@ -46,20 +65,13 @@ class MessagePort private constructor(private val port: WebMessagePort) {
       signal.clear()
     }
 
-    port.setWebMessageCallback(object : WebMessagePort.WebMessageCallback() {
-      override fun onMessage(port: WebMessagePort, event: WebMessage) {
-        messageChannel.trySend(event).getOrElse { err ->
-          err?.printStackTrace()
-        }
-        /// TODO 尝试告知对方暂停，比如发送 StreamPaused
-      }
-    })
-
     signal
   }
 
   fun onWebMessage(cb: Callback<WebMessage>) = _messageSignal.listen(cb)
-  fun postMessage(data: String) = port.postMessage(WebMessage(data))
+  suspend fun postMessage(data: String) = withContext(mainAsyncExceptionHandler) {
+    port.postMessage(WebMessage(data))
+  }
 
   private var _isClosed = false
   fun close() {
@@ -77,9 +89,11 @@ open class MessagePortIpc(
   override val remote: MicroModuleManifest,
   private val roleType: IPC_ROLE,
 ) : Ipc() {
-  constructor(
-    port: WebMessagePort, remote: MicroModuleManifest, roleType: IPC_ROLE
-  ) : this(MessagePort.from(port), remote, roleType)
+  companion object {
+    suspend fun from(
+      port: WebMessagePort, remote: MicroModuleManifest, roleType: IPC_ROLE
+    ) = MessagePortIpc(MessagePort.from(port), remote, roleType)
+  }
 
   override val role get() = roleType.role
   override fun toString(): String {
@@ -118,7 +132,7 @@ open class MessagePortIpc(
     this.port.close()
   }
 
-   suspend fun emitClose() {
+  suspend fun emitClose() {
     closeSignal.emit()
   }
 }

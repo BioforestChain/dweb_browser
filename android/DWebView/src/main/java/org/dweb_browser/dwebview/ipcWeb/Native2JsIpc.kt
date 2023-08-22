@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicInteger
 
 val ALL_MESSAGE_PORT_CACHE = mutableMapOf<Int, MessagePort>();
 private var all_ipc_id_acc = AtomicInteger(1);
-fun saveNative2JsIpcPort(port: WebMessagePort) = all_ipc_id_acc.getAndAdd(1).also { portId ->
+suspend fun saveNative2JsIpcPort(port: WebMessagePort) = all_ipc_id_acc.getAndAdd(1).also { portId ->
   ALL_MESSAGE_PORT_CACHE[portId] = MessagePort.from(port);
 }
 
