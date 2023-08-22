@@ -21,6 +21,7 @@ android {
     vectorDrawables {
       useSupportLibrary = true
     }
+
   }
 
   sourceSets {
@@ -59,9 +60,10 @@ android {
     }
     debug {
       defaultConfig {
-        applicationIdSuffix = ".debug"
-        versionNameSuffix = "-debug"
-
+        val userName = System.getProperty("user.name") // 获取系统名称
+        resValue("string", "appName", userName)
+        applicationIdSuffix = ".$userName.debug"
+        versionNameSuffix = ".$userName-debug"
       }
     }
     create("benchmark") {
