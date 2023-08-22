@@ -98,6 +98,7 @@
 		<Folder Include="Platforms\iOS\MicroModule\Browser\Desk\" />
 		<Folder Include="Platforms\iOS\MicroModule\Browser\Web\" />
 		<Folder Include="Platforms\iOS\MicroModule\Browser\Desk\View\" />
+		<Folder Include="Platforms\iOS\MicroModule\Sys\Window\" />
 	</ItemGroup>
 	<ItemGroup>
 		<BundleResource Include="Resources\Assets\**\*.*" />

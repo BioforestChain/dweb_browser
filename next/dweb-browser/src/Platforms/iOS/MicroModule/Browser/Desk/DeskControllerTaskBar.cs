@@ -111,8 +111,6 @@ public partial class DeskController
         };
         taskbarParentView.AddSubview(taskbarBackView);
 
-
-
         var tapGesture = new UITapGestureRecognizer(OnTaskBarTap);
         taskbarBackView.AddGestureRecognizer(tapGesture);
 

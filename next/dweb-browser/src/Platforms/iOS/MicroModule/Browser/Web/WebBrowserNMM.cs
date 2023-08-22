@@ -33,18 +33,27 @@ public class WebBrowserNMM : IOSNativeMicroModule
 
         OnActivity += async (Event, ipc, _) =>
         {
-            await OpenView();
+            await OpenBrowserWindow(ipc);
         };
 
-        HttpRouter.AddRoute(IpcMethod.Get, "/search", async (request, _) =>
+        HttpRouter.AddRoute(IpcMethod.Get, "/search", async (request, ipc) =>
         {
             Console.Log("DoSearch", request.Url);
-            await OpenView();
+            var search = request.QueryStringRequired("q");
+            await OpenBrowserWindow(ipc, search: search);
+            return unit;
+        });
+
+        HttpRouter.AddRoute(IpcMethod.Get, "/openinbrowser", async (request, ipc) =>
+        {
+            Console.Log("openinbrowser", request.ParsedUrl.Uri.ToString());
+            var url = request.QueryStringRequired("url");
+            await OpenBrowserWindow(ipc, url: url);
             return unit;
         });
     }
 
-    private Task OpenView() => MainThread.InvokeOnMainThreadAsync(async () =>
+    private Task OpenBrowserWindow(Ipc ipc, string? search = null, string? url = null) => MainThread.InvokeOnMainThreadAsync(async () =>
     {
         BridgeManager.WebviewGeneratorCallbackWithCallback(configuration =>
         {
@@ -52,12 +61,19 @@ public class WebBrowserNMM : IOSNativeMicroModule
         });
 
         var manager = new BridgeManager();
-        var browserView = manager.BrowserView;
-        browserView.Frame = WebBrowserController.View.Frame;
 
-        var deskController = await GetDeskController();
-        //deskController?.AddSubView(browserView);
-        deskController.InsertSubviewBelow(browserView);
+        /// 打开安装窗口
+        var win = await WindowAdapterManager.Instance.CreateWindow(
+            new WindowState(ipc.Remote.Mmid, Mmid, microModule: this) { Mode = WindowMode.MAXIMIZE });
+        WindowAdapterManager.Instance.RenderProviders.TryAdd(win.Id, (windowRenderScope, deskAppUIView) =>
+        {
+            deskAppUIView.Render(manager.BrowserView, windowRenderScope);
+        });
+
+        win.OnClose.OnListener += async (_, _) =>
+        {
+            WindowAdapterManager.Instance.RenderProviders.Remove(win.Id, out _);
+        };
     });
 
     private async Task<HttpDwebServer> CreateBrowserWebServer()

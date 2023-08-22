@@ -1,24 +1,31 @@
 ﻿using System.Runtime.CompilerServices;
-using DwebBrowser.Helper;
 using UIKit;
 
 namespace DwebBrowser.MicroService.Browser.Desk;
 
+/// <summary>
+/// 窗口在管理时说需要的一些状态机
+/// </summary>
+/// <param name="DoDestroy"></param>
+internal record InManagerState(Action DoDestroy);
+
 public partial class DesktopWindowsManager
 {
     static readonly Debugger Console = new("DesktopWindowsManager");
-    internal DeskAppController DeskAppController { get; init; }
 
-    private static readonly ConditionalWeakTable<DeskAppController, DesktopWindowsManager> Instances = new();
+    internal DeskController DeskController { get; init; }
 
-    public static DesktopWindowsManager GetInstance(DeskAppController deskAppController, Action<DesktopWindowsManager> onPut)
-        => Instances.GetValueOrPut(deskAppController, () => {
-            return new DesktopWindowsManager(deskAppController).Also(dwm =>
+    private static readonly ConditionalWeakTable<DeskController, DesktopWindowsManager> Instances = new();
+
+    public static DesktopWindowsManager GetInstance(DeskController deskController, Action<DesktopWindowsManager> onPut)
+        => Instances.GetValueOrPut(deskController, () =>
+        {
+            return new DesktopWindowsManager(deskController).Also(dwm =>
             {
                 onPut(dwm);
-                deskAppController.OnDestroy.OnListener += async (_) =>
+                deskController.OnDestroy.OnListener += async (_) =>
                 {
-                    Instances.Remove(deskAppController);
+                    Instances.Remove(deskController);
                 };
             });
         });
@@ -28,17 +35,73 @@ public partial class DesktopWindowsManager
     /// </summary>
     public readonly State<List<DesktopWindowController>> WinList = new(new List<DesktopWindowController>());
 
-    public ChangeableMap<DesktopWindowController, InManageState> AllWindows { get; init; }
+    /// <summary>
+    /// 置顶窗口，一个已经根据 zIndex 排序完成的只读列表
+    /// </summary>
+    public readonly State<List<DesktopWindowController>> WinListTop = new(new List<DesktopWindowController>());
+
+    public ChangeableMap<DesktopWindowController, InManageState> AllWindows { get; init; } = new();
 
     /// <summary>
     /// 当前记录的聚焦窗口
     /// </summary>
-    private DesktopWindowController? LastFocusedWin = null;
+    private DesktopWindowController? LastFocusedWin
+    {
+        get
+        {
+            /// 从最顶层的窗口往下遍历
+            DesktopWindowController? findInWinList(List<DesktopWindowController> winList)
+            {
+                winList.Reverse();
+                foreach (var win in winList)
+                {
+                    if (win.IsFocused())
+                    {
+                        /// 如果发现之前赋值过，这时候需要将之前的窗口给blur掉
+                        return win;
+                    }
+                }
+
+                return null;
+            }
+
+            return findInWinList(WinList.Get()) ?? findInWinList(WinListTop.Get());
+        }
+    }
+
+    /// <summary>
+    /// 确保窗口现在只对最后一个元素聚焦
+    ///
+    /// 允许不存在聚焦的窗口，聚焦应该由用户行为触发
+    /// </summary>
+    /// <returns></returns>
+    internal async Task<DesktopWindowController?> DoLastFocusedWin()
+    {
+        DesktopWindowController? lastFocusedWin = null;
+
+        /// 从最底层的窗口往上遍历
+        async Task findInWinList(List<DesktopWindowController> winList)
+        {
+            foreach (var win in winList)
+            {
+                if (win.IsFocused())
+                {
+                    /// 如果发现之前赋值过，这时候需要将之前的窗口给blur掉
+                    lastFocusedWin?.Blur();
+                    lastFocusedWin = win;
+                }
+            }
+        }
+
+        await findInWinList(WinList.Get());
+        await findInWinList(WinListTop.Get());
+        return lastFocusedWin;
+    }
 
     /// <summary>
     /// 存储最大化的窗口
     /// </summary>
-    private ChangeableSet<DesktopWindowController> HasMaximizedWins = new();
+    private readonly ChangeableSet<DesktopWindowController> HasMaximizedWins = new();
 
     /// <summary>
     /// 窗口在管理时说需要的一些状态机
@@ -46,46 +109,11 @@ public partial class DesktopWindowsManager
     /// <param name="DoDestory"></param>
     public record InManageState(Action DoDestory);
 
-    public DesktopWindowsManager(DeskAppController deskAppController)
+    public DesktopWindowsManager(DeskController deskController)
     {
-        DeskAppController = deskAppController;
+        DeskController = deskController;
 
-        AllWindows = new ChangeableMap<DesktopWindowController, InManageState>().Also(it =>
-        {
-            it.OnChangeAdd(async (wins, self) =>
-            {
-                /// 从小到大排序
-                var newWinList = wins.Keys.OrderBy(win => win.State.ZIndex).ToList();
-                var changed = false;
-                var winList = WinList.Get();
-                if (newWinList.Count == winList.Count)
-                {
-                    for (var i = 0; i < winList.Count; i++)
-                    {
-                        if (winList[i] != newWinList[i])
-                        {
-                            changed = true;
-                        }
-                    }
-                }
-                else
-                {
-                    changed = true;
-                }
-
-                if (changed)
-                {
-                    WinList.Set(newWinList);
-                }
-
-                DeskAppController.OnDestroy.OnListener += async (_) =>
-                {
-                    it.OnChangeRemove(self);
-                };
-            });
-        });
-
-        var offAdapter = WindowAdapterManager.WindowAdapterManagerInstance.Append(async winState =>
+        var offAdapter = WindowAdapterManager.Instance.Append(async winState =>
         {
             {
                 var bounds = UIScreen.MainScreen.Bounds;
@@ -117,59 +145,38 @@ public partial class DesktopWindowsManager
                 }
             }
 
-            var win = new DesktopWindowController(DeskAppController, winState);
+            var win = new DesktopWindowController(this, winState);
             AddNewWindow(win);
 
             return win;
         });
 
-        DeskAppController.OnDestroy.OnListener += async (_) =>
+        DeskController.OnDestroy.OnListener += async (_) =>
         {
             offAdapter();
         };
     }
 
-    internal void AddNewWindow(DesktopWindowController win)
+    internal void AddNewWindow(DesktopWindowController win, bool autoFocus = true)
     {
         /// 对窗口做一些启动准备
         var offListenerList = new List<Action>();
 
-        win.OnFocus.OnListener += async (self) =>
+        win.OnFocus.OnListener += async (_, self) =>
         {
-            if (LastFocusedWin != win)
-            {
-                LastFocusedWin?.Blur();
-                LastFocusedWin = win;
-                MoveToTop(win);
-            }
-
+            FocusWindow(win);
             offListenerList.Add(() => win.OnFocus.OnListener -= self);
         };
 
-        /// 如果窗口释放聚焦，那么释放引用
-        win.OnBlur.OnListener += async (self) =>
+        win.OnMaximize.OnListener += async (_, self) =>
         {
-            if (LastFocusedWin == win)
-            {
-                LastFocusedWin = null;
-            }
-
-            offListenerList.Add(() => win.OnBlur.OnListener -= self);
-        };
-
-        win.OnMaximize.OnListener += async (self) =>
-        {
-            Console.Log("OnMaximize", "maximized");
             HasMaximizedWins.Add(win);
-
             offListenerList.Add(() => win.OnMaximize.OnListener -= self);
         };
 
-        win.OnUnMaximize.OnListener += async (self) =>
+        win.OnUnMaximize.OnListener += async (_, self) =>
         {
-            Console.Log("OnUnMaximize", "unmaximized");
             HasMaximizedWins.Remove(win);
-
             offListenerList.Add(() => win.OnUnMaximize.OnListener -= self);
         };
 
@@ -180,11 +187,11 @@ public partial class DesktopWindowsManager
         }
 
         /// 窗口销毁的时候，做引用释放
-        win.OnClose.OnListener += async (self) =>
+        win.OnClose.OnListener += async (_, self) =>
         {
             RemoveWindow(win);
-            offListenerList.Add(() => win.OnClose.OnListener -= self);
         };
+
 
         /// 存储窗口与它的 状态机（销毁函数）
         AllWindows[win] = new InManageState(() =>
@@ -196,26 +203,78 @@ public partial class DesktopWindowsManager
         });
 
         /// 第一次装载窗口，默认将它聚焦到最顶层
-        Focus(win);
+        if (autoFocus)
+        {
+            FocusWindow(win);
+        }
     }
 
-    internal bool RemoveWindow(DesktopWindowController win) =>
+    internal bool RemoveWindow(DesktopWindowController win, bool autoFocus = true) =>
         AllWindows.Remove(win)?.Let(inManageState =>
         {
+            /// 移除最大化窗口集合
+            HasMaximizedWins.Remove(win);
+
+            if (autoFocus)
+            {
+                /// 对窗口进行重新排序
+                ReOrderZIndex();
+            }
+
+            /// 最后，销毁绑定事件
             inManageState.DoDestory();
+
             return true;
         }) ?? false;
 
     private void ReOrderZIndex()
     {
-        var allWindows = AllWindows.Keys.OrderBy(it => it.State.ZIndex).ToList();
-        for (var i = 0; i < allWindows.Count; i++)
+        /// 根据 alwaysOnTop 进行分组
+        var winList = new List<DesktopWindowController>();
+        var winListTop = new List<DesktopWindowController>();
+
+        foreach (var win in AllWindows.Keys)
         {
-            var win = allWindows[i];
-            win.State.ZIndex = i;
+            if (win.State.AlwaysOnTop)
+            {
+                winListTop.Add(win);
+            }
+            else
+            {
+                winList.Add(win);
+            }
         }
 
-        AllWindows.OnChangeEmit();
+        /// 对窗口的 zIndex 进行重新赋值
+        int resetZIndex(List<DesktopWindowController> list, State<List<DesktopWindowController>> state)
+        {
+            var changes = Math.Abs(list.Count - state.Get().Count);
+            var sortedList = list.OrderBy(it => it.State.ZIndex).ToList();
+
+            for (var i = 0; i < sortedList.Count; i++)
+            {
+                var win = sortedList[i];
+                if (win.State.ZIndex != i)
+                {
+                    win.State.ZIndex = i;
+                    changes += 1;
+                }
+            }
+
+            if (changes > 0)
+            {
+                state.Set(sortedList);
+            }
+
+            return changes;
+        }
+
+        var anyChanges = resetZIndex(winList, WinList) + resetZIndex(winListTop, WinListTop);
+
+        if (anyChanges > 0)
+        {
+            AllWindows.OnChangeEmit();
+        }
     }
 
     /// <summary>
@@ -228,11 +287,39 @@ public partial class DesktopWindowsManager
         ReOrderZIndex();
     }
 
-    public Task Focus(DesktopWindowController win) => win.Focus();
+    /// <summary>
+    /// 对一个窗口做聚焦操作
+    /// </summary>
+    /// <param name="win"></param>
+    /// <returns></returns>
+    public void FocusWindow(DesktopWindowController win)
+    {
+        _ = Task.Run(async () =>
+        {
+            if (LastFocusedWin != win)
+            {
+                LastFocusedWin?.Blur();
+                await win.Focus();
+                MoveToTop(win);
+                await DoLastFocusedWin();
+            }
+        }).NoThrow();
+    }
 
-    public async Task Focus(Mmid mmid)
+    /// <summary>
+    /// 对一些窗口做聚焦操作
+    /// </summary>
+    /// <param name="mmid"></param>
+    /// <returns></returns>
+    public async Task FocusWindow(Mmid mmid)
     {
         var windows = FindWindows(mmid);
+
+        if (LastFocusedWin is not null && !windows.Contains(LastFocusedWin))
+        {
+            await LastFocusedWin.Blur();
+        }
+
         foreach (var win in windows)
         {
             await win.Focus();

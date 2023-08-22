@@ -1,30 +1,38 @@
-﻿using System.Runtime.InteropServices;
-using CoreGraphics;
+﻿using DwebBrowser.Base;
 using UIKit;
 
 namespace DwebBrowser.MicroService.Browser.Desk;
 
-public partial class DeskController : DeskAppController
+public partial class DeskController : BaseViewController
 {
     static readonly Debugger Console = new("DeskController");
     public HttpDwebServer TaskbarServer { get; set; }
     public HttpDwebServer DesktopServer { get; set; }
 
-    public DeskController(DeskNMM deskNMM) : base(deskNMM)
-    { }
+    public DeskNMM DeskNMM { get; init; }
+
+    public DeskController(DeskNMM deskNMM)
+    {
+        DeskNMM = deskNMM;
+    }
+
+    /// <summary>
+    /// 用于承载所有App的View
+    /// </summary>
+    private readonly DeskUIView DeskUIView = new();
 
     public override void ViewDidLoad()
     {
         base.ViewDidLoad();
-
+        View.AddSubview(DeskUIView);
         View.Frame = UIScreen.MainScreen.Bounds;
-        View.BackgroundColor = UIColor.White;
+        DeskUIView.Frame = View.Frame;
     }
 
     public void InsertSubviewBelow(UIView view, UIView? belowView = null)
     {
         TaskBarFocusState.Set(false);
-        View.InsertSubviewBelow(view, belowView ?? TaskbarFloatView);
+        DeskUIView.InsertSubviewBelow(view, belowView ?? TaskbarFloatView);
     }
 
     public async Task Create()
@@ -40,7 +48,7 @@ public partial class DeskController : DeskAppController
             Tag = 32766
         };
         _ = DesktopView.LoadURL(desktopInternalUrl).NoThrow();
-        View.AddSubview(DesktopView);
+        DeskUIView.AddSubview(DesktopView);
 
         await CreateTaskBarWebView();
         await CreateTaskbarFloatView();
@@ -61,7 +69,7 @@ public partial class DeskController : DeskAppController
         if (IsOnTop)
         {
             IsOnTop = false;
-            foreach (var view in View.Subviews)
+            foreach (var view in DeskUIView.Subviews)
             {
                 if (!ViewTags.Contains(view.Tag))
                 {
@@ -72,7 +80,7 @@ public partial class DeskController : DeskAppController
         else
         {
             IsOnTop = true;
-            foreach (var view in View.Subviews)
+            foreach (var view in DeskUIView.Subviews)
             {
                 if (!ViewTags.Contains(view.Tag))
                 {

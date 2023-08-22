@@ -48,7 +48,7 @@ public partial class DeskController
 
     public void ShowFloatView()
     {
-        View.AddSubview(TaskbarFloatView);
+        DeskUIView.AddSubview(TaskbarFloatView);
         ResizeTaskbarFloatView();
         TaskbarFloatView.AddSubview(TaskBarWebView);
         TaskBarWebView.AutoResize("TaskBarWebView", TaskbarFloatView);

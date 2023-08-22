@@ -93,6 +93,10 @@ public class JmmController : BaseViewController
 
         Console.Log("openApp", "postMessage ==> activity {0}, {1}", mmid, connectResult.IpcForFromMM.Remote.Mmid);
         await connectResult.IpcForFromMM.PostMessageAsync(IpcEvent.FromUtf8(EIpcEvent.Activity.Event, ""));
+
+        var deskConnectResult = await _jmmNMM.BootstrapContext.Dns.ConnectAsync("desk.browser.dweb");
+        Console.Log("openApp", "postMessage ==> activity {0}, {1}", mmid, deskConnectResult.IpcForFromMM.Remote.Mmid);
+        await deskConnectResult.IpcForFromMM.PostMessageAsync(IpcEvent.FromUtf8(EIpcEvent.Activity.Event, ""));
     }
 }
 

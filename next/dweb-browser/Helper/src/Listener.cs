@@ -2,8 +2,17 @@
 
 namespace DwebBrowser.Helper;
 
+public record Child<Args, R>
+(
+    Listener<Args> ParentListener,
+    Listener<R> ChildListener,
+    Func<Args, bool> Filter,
+    Func<Args, R> Map
+);
+
 public class Listener
 {
+    static readonly Debugger Console = new("Listener");
     private readonly HashSet<Signal> signal = new();
     public event Signal OnListener
     {
@@ -70,6 +79,16 @@ public class Listener
         Clear();
     }
 
+    public async Task Collect(Func<Task> action)
+    {
+        await foreach (var _ in SignalChannel.ReceiveAllAsync())
+        {
+            await action();
+        }
+
+        Clear();
+    }
+
     public Task CancelAsync() => Source.CancelAsync();
     public void Cancel() => Source.Cancel();
 
@@ -90,6 +109,7 @@ public class Listener
 
 public class Listener<T1>
 {
+    static readonly Debugger Console = new("Listener");
     private readonly HashSet<Signal<T1>> signal = new();
     public event Signal<T1> OnListener
     {
@@ -140,7 +160,28 @@ public class Listener<T1>
         return Emit(arg1);
     }
 
-    public Task Emit(T1 arg1) => signal.Emit(arg1);
+    public async Task Emit(T1 arg1)
+    {
+        await signal.Emit(arg1);
+
+        var childList = CopyChildrenToList();
+
+        foreach (var child in childList)
+        {
+            try
+            {
+                if (child.Filter(arg1))
+                {
+                    var childArgs = child.Map(arg1);
+                    await child.ChildListener.Emit(childArgs);
+                }
+            }
+            catch (Exception e)
+            {
+                Console.Error("Emit", e.Message);
+            }
+        }
+    }
 
     public Task EmitAndClear(T1 arg1) => signal.EmitAndClear(arg1);
 
@@ -151,6 +192,16 @@ public class Listener<T1>
         await foreach (var t1 in SignalChannel.ReceiveAllAsync())
         {
             action(t1);
+        }
+
+        Clear();
+    }
+
+    public async Task Collect(Func<T1, Task> action)
+    {
+        await foreach (var t1 in SignalChannel.ReceiveAllAsync())
+        {
+            await action(t1);
         }
 
         Clear();
@@ -167,15 +218,45 @@ public class Listener<T1>
 
         _ = listener.Collect((arg1) =>
         {
-            listener.Emit(arg1);
+            return listener.Emit(arg1).NoThrow();
         }).NoThrow();
 
         return listener;
+    }
+
+    private readonly Dictionary<Listener<dynamic>, Child<T1, dynamic>> Children = new();
+    public Listener<dynamic> CreateChild(Func<T1, bool> filter, Func<T1, dynamic> map)
+    {
+        var child = new Child<T1, dynamic>(this, Listener<dynamic>.New(), filter, map);
+
+        lock (Children)
+        {
+            Children.Add(child.ChildListener, child);
+        }
+
+        return child.ChildListener;
+    }
+
+    public bool RemoveChild(Listener<dynamic> listener)
+    {
+        lock (Children)
+        {
+            return Children.Remove(listener);
+        }
+    }
+
+    private List<Child<T1, dynamic>> CopyChildrenToList()
+    {
+        lock (Children)
+        {
+            return Children.Values.ToList();
+        }
     }
 }
 
 public class Listener<T1, T2>
 {
+    static readonly Debugger Console = new("Listener");
     private readonly HashSet<Signal<T1, T2>> signal = new();
     public event Signal<T1, T2> OnListener
     {
@@ -237,6 +318,16 @@ public class Listener<T1, T2>
         await foreach (var (t1, t2) in SignalChannel.ReceiveAllAsync())
         {
             action(t1, t2);
+        }
+
+        Clear();
+    }
+
+    public async Task Collect(Func<T1, T2, Task> action)
+    {
+        await foreach (var (t1, t2) in SignalChannel.ReceiveAllAsync())
+        {
+            await action(t1, t2);
         }
 
         Clear();

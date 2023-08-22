@@ -58,16 +58,13 @@ public static class ResponseRegistry
         }
     }
 
-    static PureResponse AsJson(object result)
-    {
-        var state = JsonSerializer.Serialize(result);
-        return new PureResponse(
+    static PureResponse AsJson(object result) =>
+        new PureResponse(
         HttpStatusCode.OK,
         new IpcHeaders().Set("Content-Type", "application/json"),
         new PureUtf8StringBody(result switch
         {
             IToJsonAble toJsonAble => toJsonAble.ToJson(),
-            _ => state
+            _ => JsonSerializer.Serialize(result)
         }));
-    }
 }

@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using DwebBrowser.MicroService.Http;
 using DwebBrowser.MicroService.Sys.Http;
+using UIKit;
 
 namespace DwebBrowser.MicroService.Browser.Desk;
 
@@ -19,7 +20,7 @@ public class DeskNMM : IOSNativeMicroModule
 
     public ChangeableMap<Mmid, Ipc> RunningApps = new();
 
-    public static readonly ConcurrentDictionary<string, DeskAppController> DeskAppControllerMap = new();
+    public static readonly ConcurrentDictionary<UUID, DeskUIView> DeskAppControllerMap = new();
     public static DeskController DeskController = null!;
 
     public override List<MicroModuleCategory> Categories { get; init; } = new()
@@ -148,27 +149,35 @@ public class DeskNMM : IOSNativeMicroModule
         {
             var app_id = request.QueryStringRequired("app_id");
 
-            Console.Log("activity", app_id);
-            var ipc = RunningApps.Get(app_id) ?? await ConnectAsync(app_id);
+            Console.Log("/openAppOrActivate", app_id);
 
-            if (ipc is not null)
+            try
             {
+                var ipc = RunningApps.Get(app_id) ?? await ConnectAsync(app_id);
                 await ipc.PostMessageAsync(IpcEvent.FromUtf8(EIpcEvent.Activity.Event, ""));
-                /// 如果成功打开，将它“追加”到列表中
-                RunningApps.Remove(app_id);
-                RunningApps.Set(app_id, ipc);
 
-                /// 设置桌面有应用
-                DeskController.IsOnTop = false;
+                /// 如果成功打开，将它“追加”到列表中
+                if (!RunningApps.ContainsKey(app_id))
+                {
+                    RunningApps.TryAdd(app_id, ipc);
+                }
 
                 /// 如果应用关闭，将它从列表中移除
                 ipc.OnClose += async (_) =>
                 {
                     RunningApps.Remove(app_id);
                 };
-            }
 
-            return ipc is not null;
+                /// 将所有的窗口聚焦，这个行为不依赖于 Activity 事件，而是Desk模块自身托管窗口的行为
+                await DeskController.DesktopWindowsManager.FocusWindow(app_id);
+
+                return true;
+            }
+            catch (Exception e)
+            {
+                Console.Error("/openAppOrActivate", e.Message);
+                return false;
+            }
         });
 
         HttpRouter.AddRoute(IpcMethod.Get, "/toggleMaximize", async (request, _) =>
@@ -292,19 +301,20 @@ public class DeskNMM : IOSNativeMicroModule
             return await MainThread.InvokeOnMainThreadAsync(() => DeskController?.ToggleDesktopView());
         });
 
-        //OnActivity += async (Event, ipc, _) =>
-        //{
-        //    await MainThread.InvokeOnMainThreadAsync(async () =>
-        //    {
-        //        var controller = new DeskAppController(this);
-        //        await OpenActivity(controller);
-        //    });
-        //};
+        OnActivity += async (Event, ipc, _) =>
+        {
+            await OpenActivity();
+        };
+
+        DeskController.OnActivity.OnListener += async (_) =>
+        {
+            await OpenActivity();
+        };
     }
 
-    internal Task OpenActivity(DeskAppController deskAppController) => MainThread.InvokeOnMainThreadAsync(async () =>
+    internal Task OpenActivity() => MainThread.InvokeOnMainThreadAsync(async () =>
     {
-        //DeskController.AddSubView(deskAppController.View);
+        DeskAppUIView.Start();
     });
 
     private const string API_PREFIX = "/api/";

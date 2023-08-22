@@ -16,6 +16,7 @@ using DwebBrowser.MicroService.Sys.Haptics;
 using DwebBrowser.MicroService.Sys.Http;
 using DwebBrowser.MicroService.Sys.Share;
 using DwebBrowser.MicroService.Sys.Toast;
+using DwebBrowser.MicroService.Sys.Window;
 
 namespace DwebBrowser.Platforms.iOS;
 
@@ -92,6 +93,7 @@ public class MicroService
         //"DWebView",
         "DeskController",
         "TaskBarFloatView",
+        "DeskAppUIView",
         //"PortListener",
         //"DeviceNMM",
         //"DeviceSystemInfo",
@@ -123,9 +125,11 @@ public class MicroService
         var httpNMM = new HttpNMM().InstallBy(dnsNMM);
         var mwebiewNMM = new MultiWebViewNMM().InstallBy(dnsNMM);
 
-        /// 安装系统桌面
+        /// 安装Jmm
+        var jmmNMM = new JmmNMM().InstallBy(dnsNMM);
         var deskNMM = new DeskNMM().InstallBy(dnsNMM);
         var webBrowserNMM = new WebBrowserNMM().InstallBy(dnsNMM);
+        var windowNMM = new WindowNMM().InstallBy(dnsNMM);
 
         /// 安装平台模块
         new ShareNMM().InstallBy(dnsNMM);
@@ -140,9 +144,6 @@ public class MicroService
 
         /// NativeUi 是将众多原生UI在一个视图中组合的复合组件
         new NativeUiNMM().InstallBy(dnsNMM);
-
-        /// 安装Jmm
-        var jmmNMM = new JmmNMM().InstallBy(dnsNMM);
 
         var bootMmidList = new List<Mmid>
         {
