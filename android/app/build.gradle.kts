@@ -60,10 +60,17 @@ android {
     }
     debug {
       defaultConfig {
-        val userName = System.getProperty("user.name") // 获取系统名称
+        val userName = System.getProperty("user.name")
+          .replace("[^a-zA-Z0-9]", "").lowercase().let { name -> // 获取系统名称,并且只保留了英文和数字,再转小写
+            if (name.first() in '0'..'9') { // 判断第一个是否是数字，如果是数字，前面增加一个英文a
+              "a$name"
+            } else {
+              name
+            }
+          }
         resValue("string", "appName", userName)
-        applicationIdSuffix = ".$userName.debug"
-        versionNameSuffix = ".$userName-debug"
+        applicationIdSuffix = "$userName.debug"
+        versionNameSuffix = "$userName-debug"
       }
     }
     create("benchmark") {
