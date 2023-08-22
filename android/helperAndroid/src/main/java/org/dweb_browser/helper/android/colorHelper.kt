@@ -17,12 +17,12 @@ fun Color.toJsonAble(): ColorJson = convert(ColorSpaces.Srgb).let {
 }
 
 fun Color.toCssRgba(): String = convert(ColorSpaces.Srgb).let {
-  "rgb(${it.red * 255} ${it.blue * 255} ${it.green * 255} ${if (it.alpha >= 1f) "" else "/ ${it.alpha}"})"
+  "rgb(${it.red * 255} ${it.green * 255} ${it.blue * 255} ${if (it.alpha >= 1f) "" else "/ ${it.alpha}"})"
 }
 
 fun Float.to2Hex() = (this * 255).toInt().toString(16).padStart(2, '0')
 fun Color.toHex(alpha: Boolean = true): String = convert(ColorSpaces.Srgb).let {
-  "#(${it.red.to2Hex()}${it.blue.to2Hex()}${it.green.to2Hex()}${if (alpha && it.alpha < 1f) it.alpha.to2Hex() else ""})"
+  "#(${it.red.to2Hex()}${it.green.to2Hex()}${it.blue.to2Hex()}${if (alpha && it.alpha < 1f) it.alpha.to2Hex() else ""})"
 }
 
 @OptIn(ExperimentalStdlibApi::class)
