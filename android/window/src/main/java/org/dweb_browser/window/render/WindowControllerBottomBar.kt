@@ -192,7 +192,7 @@ private fun WindowBottomImmersionThemeBar(
     .pointerInput(Unit) {
       detectTapGestures(onDoubleTap = {
         coroutineScope.launch {
-          win.simpleUnMaximize()
+          win.unMaximize()
         }
       })
     }) {
@@ -227,7 +227,7 @@ private fun WindowBottomNavigationThemeBar(
     .pointerInput(Unit) {
       detectTapGestures(onDoubleTap = {
         coroutineScope.launch {
-          win.simpleUnMaximize()
+          win.unMaximize()
         }
       })
     }
@@ -279,7 +279,7 @@ private fun WindowBottomNavigationThemeBar(
       val bottomRoundedSize = winPadding.contentRounded.bottomEnd
       TextButton(
         onClick = {
-          coroutineScope.launch { win.simpleUnMaximize() }
+          coroutineScope.launch { win.unMaximize() }
         },
         enabled = isMaximized,
         contentPadding = PaddingValues(0.dp),
