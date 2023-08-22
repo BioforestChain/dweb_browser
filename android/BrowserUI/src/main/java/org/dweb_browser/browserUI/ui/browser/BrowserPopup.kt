@@ -91,6 +91,7 @@ import org.dweb_browser.browserUI.database.WebSiteDatabase
 import org.dweb_browser.browserUI.database.WebSiteInfo
 import org.dweb_browser.browserUI.ui.browser.bottomsheet.BrowserModalBottomSheet
 import org.dweb_browser.browserUI.ui.browser.bottomsheet.LocalModalBottomSheet
+import org.dweb_browser.browserUI.ui.browser.search.CustomTextField
 import org.dweb_browser.browserUI.ui.entity.BrowserBaseView
 import org.dweb_browser.browserUI.ui.entity.BrowserMainView
 import org.dweb_browser.browserUI.ui.entity.BrowserWebView

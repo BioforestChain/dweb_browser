@@ -48,6 +48,7 @@ import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
 import org.dweb_browser.browserUI.ui.browser.bottomsheet.LocalModalBottomSheet
 import org.dweb_browser.browserUI.ui.browser.bottomsheet.ModalBottomModel
 import org.dweb_browser.browserUI.ui.browser.bottomsheet.SheetState
+import org.dweb_browser.browserUI.ui.browser.search.SearchView
 import org.dweb_browser.browserUI.ui.entity.BrowserBaseView
 import org.dweb_browser.browserUI.ui.entity.BrowserWebView
 import org.dweb_browser.browserUI.ui.loading.LoadingView
@@ -495,7 +496,7 @@ fun BrowserSearchView(viewModel: BrowserViewModel) {
 @SuppressLint("ClickableViewAccessibility")
 @Composable
 internal fun HomeWebviewPage(viewModel: BrowserViewModel, onClickOrMove: (Boolean) -> Unit) {
-  val webView = viewModel.getNewTabBrowserView()
+  val webView = viewModel.searchBackBrowserView // getNewTabBrowserView()
   val background = MaterialTheme.colorScheme.background
   val isDark = isSystemInDarkTheme()
   var isRemove = false

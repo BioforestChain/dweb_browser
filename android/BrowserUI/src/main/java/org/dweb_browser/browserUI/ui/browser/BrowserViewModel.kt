@@ -174,6 +174,13 @@ class BrowserViewModel(
     )
   }
 
+  val searchBackBrowserView by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+    val (viewItem, closeWatcher) = appendWebViewAsItem(createDwebView())
+    BrowserWebView(
+      viewItem = viewItem, closeWatcher = closeWatcher
+    )
+  }
+
   @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
   fun handleIntent(action: BrowserIntent) {
     viewModelScope.launch(ioAsyncExceptionHandler) {

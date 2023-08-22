@@ -1,4 +1,4 @@
-package org.dweb_browser.browserUI.ui.browser
+package org.dweb_browser.browserUI.ui.browser.search
 
 import android.annotation.SuppressLint
 import android.view.KeyEvent
@@ -7,6 +7,7 @@ import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -23,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -48,6 +50,16 @@ import org.dweb_browser.browserUI.database.WebEngine
 import org.dweb_browser.browserUI.database.WebSiteDatabase
 import org.dweb_browser.browserUI.database.WebSiteInfo
 import org.dweb_browser.browserUI.database.WebSiteType
+import org.dweb_browser.browserUI.ui.browser.BrowserIntent
+import org.dweb_browser.browserUI.ui.browser.BrowserViewModel
+import org.dweb_browser.browserUI.ui.browser.LocalShowIme
+import org.dweb_browser.browserUI.ui.browser.dimenBottomHeight
+import org.dweb_browser.browserUI.ui.browser.dimenSearchHeight
+import org.dweb_browser.browserUI.ui.browser.dimenTextFieldFontSize
+import org.dweb_browser.browserUI.ui.browser.findWebEngine
+import org.dweb_browser.browserUI.ui.browser.isUrlOrHost
+import org.dweb_browser.browserUI.ui.browser.parseInputText
+import org.dweb_browser.browserUI.ui.browser.toRequestUrl
 
 /**
  * 组件： 搜索组件
@@ -81,7 +93,7 @@ internal fun SearchView(
         .fillMaxWidth()
         .background(MaterialTheme.colorScheme.background)
         //.navigationBarsPadding()
-        .padding(bottom = dimenBottomHeight)
+        //.padding(bottom = dimenBottomHeight)
     ) {
       homePreview?.let { it {moved -> focusManager.clearFocus(); if (!moved) onClose()} }
 
@@ -130,7 +142,7 @@ internal fun BoxScope.BrowserTextField(
   val focusManager = LocalFocusManager.current
   val keyboardController = LocalSoftwareKeyboardController.current
   var inputText by remember { mutableStateOf(text.value) }
-  val localShowIme = LocalShowIme.current
+  //val localShowIme = LocalShowIme.current
 
   LaunchedEffect(focusRequester) {
     delay(100)
@@ -142,19 +154,20 @@ internal fun BoxScope.BrowserTextField(
     onValueChange = { inputText = it.trim(); onValueChanged(inputText) },
     modifier = Modifier
       .fillMaxWidth()
-      .background(MaterialTheme.colorScheme.background)
       //.navigationBarsPadding()
       //.imePadding()
+      .background(MaterialTheme.colorScheme.background)
       .align(Alignment.BottomCenter)
       .padding(
         start = 25.dp,
         end = 25.dp,
         top = 10.dp,
-        bottom = if (localShowIme.value) 0.dp else 50.dp // 为了贴合当前的界面底部工具栏
+        bottom = 10.dp, // if (localShowIme.value) 0.dp else 50.dp // 为了贴合当前的界面底部工具栏
       )
       .height(dimenSearchHeight)
+      .border(width = 1.dp, color = MaterialTheme.colorScheme.outline, RoundedCornerShape(8.dp))
       .clip(RoundedCornerShape(8.dp))
-      .background(MaterialTheme.colorScheme.surface)
+      .background(MaterialTheme.colorScheme.background)
       .focusRequester(focusRequester)
       .onKeyEvent {
         if (it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER) {
@@ -259,7 +272,7 @@ internal fun SearchPreview( // 输入搜索内容后，显示的搜索信息
     LazyColumn(
       modifier = Modifier
         .fillMaxSize()
-        .background(MaterialTheme.colorScheme.background)
+        .background(MaterialTheme.colorScheme.surfaceVariant)
         .padding(horizontal = 20.dp)
         .clickableWithNoEffect {  }
     ) {
