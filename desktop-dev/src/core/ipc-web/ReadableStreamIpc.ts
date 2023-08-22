@@ -42,14 +42,12 @@ export class ReadableStreamIpc extends Ipc {
 
   private PONG_DATA = once(() => {
     const pong = encode("pong");
-    this._len[0] = pong.length;
-    return u8aConcat([this._len_u8a, pong]);
+    return ReadableStreamIpc.concatLen(pong)
   });
 
   private CLOSE_DATA = once(() => {
     const close = encode("close");
-    this._len[0] = close.length;
-    return u8aConcat([this._len_u8a, close]);
+    return ReadableStreamIpc.concatLen(close)
   });
 
   private _incomne_stream?: ReadableStream<Uint8Array>;
@@ -99,8 +97,12 @@ export class ReadableStreamIpc extends Ipc {
     this.close();
   }
 
-  private _len = new Uint32Array(1);
-  private _len_u8a = new Uint8Array(this._len.buffer);
+  private static _len = new Uint32Array(1);
+  private static _len_u8a = new Uint8Array(this._len.buffer);
+  static concatLen = (data: Uint8Array) => {
+    this._len[0] = data.length;
+    return u8aConcat([this._len_u8a, data]);
+  };
   _doPostMessage(message: $IpcMessage): void {
     // deno-lint-ignore no-explicit-any
     let message_raw: IpcMessage<any>;
@@ -114,8 +116,7 @@ export class ReadableStreamIpc extends Ipc {
     }
 
     const message_data = this.support_cbor ? encode(message_raw) : simpleEncoder(JSON.stringify(message_raw), "utf8");
-    this._len[0] = message_data.length;
-    const chunk = u8aConcat([this._len_u8a, message_data]);
+    const chunk = ReadableStreamIpc.concatLen(message_data);
     this.controller.enqueue(chunk);
   }
 

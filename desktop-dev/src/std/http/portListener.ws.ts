@@ -9,7 +9,7 @@ import type { HttpServerNMM } from "./http.nmm.ts";
 import type { WebSocketDuplex } from "./types.ts";
 
 export function initWebSocketServer(this: HttpServerNMM, server: HttpServer) {
-  const getHostByReq = (req: IncomingMessage) => this.getHostByReq(req);
+  const getHostByReq = (req: IncomingMessage) => this.getHostByReq(req.url, Object.entries(req.headers));
   const getFullReqUrl = (req: IncomingMessage) => this.getFullReqUrl(req);
   const getGateway = (host: string) => this._gatewayMap.get(host);
   type $OnConnection = (client: InstanceType<typeof WebSocketClient>, request: IncomingMessage) => void;
@@ -97,11 +97,10 @@ export function initWebSocketServer(this: HttpServerNMM, server: HttpServer) {
 
             /// 传输来自客户端的数据，注意，这个onmessage 前面不要有任何 await，否则会丢失消息
             ws.on("message", (data, isBinary) => {
-              if (isBinary) {
-                inputStreamOut.controller.enqueue(data as Uint8Array);
-              } else {
-                inputStreamOut.controller.enqueue(simpleEncoder(data as unknown as string, "utf8"));
-              }
+              const encoded_data = (
+                isBinary ? (data as Uint8Array) : simpleEncoder(data as unknown as string, "utf8")
+              );
+              inputStreamOut.controller.enqueue(encoded_data);
             });
             /// 客户端关闭流
             ws.on("close", () => {

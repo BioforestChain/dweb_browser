@@ -16,8 +16,10 @@ import * as core from "./std-dweb-core.ts";
 import * as http from "./std-dweb-http.ts";
 
 import {
+  $OnFetch,
   $OnIpcEventMessage,
   $OnIpcRequestMessage,
+  createFetchHandler,
   Ipc,
   IPC_ROLE,
   IpcEvent,
@@ -147,6 +149,16 @@ export class JsProcessMicroModule implements $MicroModule {
         workerGlobal.postMessage(["ipc-connect-ready", mmid]);
         /// 不论是连接方，还是被连接方，都需要触发事件
         this.beConnect(ipc);
+        /// 分发绑定的事件
+        ipc.onRequest((ipcRequest, ipc) => this._onRequestSignal.emit(ipcRequest, ipc));
+        ipc.onEvent(async (ipcEvent, ipc) => {
+          if (ipcEvent.name === MWEBVIEW_LIFECYCLE_EVENT.Activity) {
+            return this._activitySignal.emit(ipcEvent, ipc);
+          }
+          if (ipcEvent.name === MWEBVIEW_LIFECYCLE_EVENT.Close) {
+            return this._onCloseSignal.emit(ipcEvent, ipc);
+          }
+        });
       } else if (data[0] === "ipc-connect-fail") {
         const mmid = data[1];
         const reason = data[2];
@@ -201,35 +213,22 @@ export class JsProcessMicroModule implements $MicroModule {
     this.fetchIpc.postMessage(IpcEvent.fromText("restart", "")); // 发送指令
   }
   // 激活信号
-  private _activitySignal = createSignal<$OnIpcEventMessage>();
+  private _activitySignal = createSignal<$OnIpcEventMessage>(false);
   // app关闭信号
-  private _onCloseSignal = createSignal<$OnIpcEventMessage>();
+  private _onCloseSignal = createSignal<$OnIpcEventMessage>(false);
   // 外部request信号
-  private _onRequestSignal = createSignal<$OnIpcRequestMessage>();
-  private _on_activity_inited = false;
-  private _awaitPromiseActivity = new PromiseOut()
+  private _onRequestSignal = createSignal<$OnIpcRequestMessage>(false);
   onActivity(cb: $OnIpcEventMessage) {
-    if (this._on_activity_inited === false) {
-      this._on_activity_inited = true;
-      this.onConnect((ipc) => {
-        ipc.onEvent(async(ipcEvent, ipc) => {
-          await this._awaitPromiseActivity.promise
-          if (ipcEvent.name === MWEBVIEW_LIFECYCLE_EVENT.Activity) {
-            return this._activitySignal.emit(ipcEvent, ipc);
-          }
-          if (ipcEvent.name === MWEBVIEW_LIFECYCLE_EVENT.Close) {
-            return this._onCloseSignal.emit(ipcEvent, ipc);
-          }
-        });
-        ipc.onRequest((ipcRequest, ipc) => this._onRequestSignal.emit(ipcRequest, ipc));
-      });
-    }
-    this._awaitPromiseActivity.resolve(true)
     return this._activitySignal.listen(cb);
   }
 
   onRequest(request: $OnIpcRequestMessage) {
     return this._onRequestSignal.listen(request);
+  }
+
+  onFetch(...handlers: $OnFetch[]) {
+    const onRequest = createFetchHandler(handlers);
+    return onRequest.extendsTo(this.onRequest(onRequest));
   }
 
   onClose(cb: $OnIpcEventMessage) {

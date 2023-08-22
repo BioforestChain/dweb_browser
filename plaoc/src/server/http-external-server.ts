@@ -1,24 +1,21 @@
-import { isWebSocket } from "dweb/core/helper/ipcRequestHelper.ts";
-import { Ipc, IpcHeaders } from "../../deps.ts";
-import { $MMID } from "../client/index.ts";
+import { $MicroModuleManifest, isWebSocket } from "../../deps.ts";
+import { $MMID } from "../../server.deps.ts";
 import {
   $DwebHttpServerOptions,
+  $Ipc,
   $IpcRequest,
   $OnFetchReturn,
-  FetchError,
+  $ReadableStreamIpc,
   FetchEvent,
+  IPC_ROLE,
   IpcEvent,
-  IpcRequest,
   IpcResponse,
   PromiseOut,
-  ReadableStreamOut,
-  createSignal,
+  ReadableStreamIpc,
   jsProcess,
   mapHelper,
-  simpleEncoder,
-  u8aConcat,
 } from "./deps.ts";
-import { HttpServer, cors } from "./http-helper.ts";
+import { HttpServer } from "./http-helper.ts";
 
 declare global {
   interface WindowEventMap {
@@ -26,210 +23,178 @@ declare global {
   }
 }
 
-type $OnIpcRequestUrl = (request: $IpcRequest) => void;
+/**
+ * 一种类似开关的 Promise，它有两种状态，我们可以得到当前处于拿个状态，或者等待另外一个状态的切换
+ */
+class PromiseToggle<T1, T2> {
+  constructor(initState: { type: "open"; value: T1 } | { type: "close"; value: T2 }) {
+    if (initState.type === "open") {
+      this.toggleOpen(initState.value);
+    } else {
+      this.toggleClose(initState.value);
+    }
+  }
+  private _open = new PromiseOut<T1>();
+  private _close = new PromiseOut<T2>();
+  waitOpen() {
+    return this._open.promise;
+  }
+  waitClose() {
+    return this._close.promise;
+  }
+  get isOpen() {
+    return this._open.is_resolved;
+  }
+  get isClose() {
+    return this._close.is_resolved;
+  }
+  get openValue() {
+    return this._open.value;
+  }
+  get closeValue() {
+    return this._close.value;
+  }
+  /**
+   * 切换到开的状态
+   * @param value
+   * @returns
+   */
+  toggleOpen(value: T1) {
+    if (this._open.is_resolved) {
+      return;
+    }
+    this._open.resolve(value);
+    if (this._close.is_resolved) {
+      this._close = new PromiseOut();
+    }
+  }
+  /**
+   * 切换到开的状态
+   * @param value
+   * @returns
+   */
+  toggleClose(value: T2) {
+    if (this._close.is_resolved) {
+      return;
+    }
+    this._close.resolve(value);
+    if (this._open.is_resolved) {
+      this._open = new PromiseOut();
+    }
+  }
+}
 
 export class Server_external extends HttpServer {
+  constructor() {
+    super();
+    jsProcess.onFetch(async (event) => {
+      if (event.pathname == ExternalState.WAIT_EXTERNAL_READY) {
+        await this.ipcPo.waitOpen();
+      } else if (event.pathname == ExternalState.WAIT_CLOSE) {
+        await this.ipcPo.waitClose();
+      }
+      return { status: 200 };
+    });
+  }
   /**
    * 这个token是内部使用的，就作为 特殊的 url.pathname 来处理内部操作
    */
-  readonly token = crypto.randomUUID();
-  protected _getOptions(): $DwebHttpServerOptions {
+  protected _getOptions() {
     return {
       subdomain: "external",
       port: 443,
-    };
+    } satisfies $DwebHttpServerOptions;
   }
-
-  readonly responseMap = new Map<number, PromiseOut<$IpcRequest>>();
-  // 拿到fetch的请求
-  readonly fetchSignal = createSignal<$OnIpcRequestUrl>();
-  // 等待listen触发
-  readonly waitListener = new PromiseOut<boolean>();
-  // 连接过的app
-  readonly connectMap = new Map<$MMID, PromiseOut<Ipc | undefined>>();
-
+  readonly token = crypto.randomUUID();
   async start() {
     const serverIpc = await this._listener;
     return serverIpc.onFetch(this._provider.bind(this)).internalServerError().cors();
   }
 
+  private ipcPo = new PromiseToggle<$ReadableStreamIpc, void>({ type: "close", value: undefined });
+  private externalWaitters = new Map<$MMID, Promise<void>>();
   protected async _provider(event: FetchEvent): Promise<$OnFetchReturn> {
     const { pathname } = event;
     if (pathname.startsWith(`/${this.token}`)) {
-      /**
-       * 这里会处理api的消息返回到前端serviceWorker 构建onFetchEvent 并触发fetch事件
-       */
-      const action = event.searchParams.get("action");
-      if (isWebSocket(event.method,event.headers)) {
-        const streamPo = new ReadableStreamOut<Uint8Array>();
-        const ob = { controller: streamPo.controller };
-        this.fetchSignal.listen((ipcRequest) => {
-          const jsonlineEnd = simpleEncoder("\n", "utf8");
-          const json = ipcRequest.toJSON();
-          const uint8 = simpleEncoder(JSON.stringify(json), "utf8");
-          ob.controller.enqueue(u8aConcat([uint8, jsonlineEnd]));
-        });
-        // 等待监听流的建立再通知外部发送请求
-        this.waitListener.resolve(true);
-        return { body: streamPo.stream };
-      }
-      // 发送对外请求
-      if (action === "request") {
-        const mmid = event.searchParams.get("mmid") as $MMID | null;
-        if (!mmid) {
-          throw new FetchError("mmid must be passed", { status: 400 });
+      if (isWebSocket(event.method, event.headers)) {
+        if (this.ipcPo.isOpen) {
+          this.ipcPo.openValue!.close();
+          this.ipcPo.toggleClose();
         }
-        // 连接需要传递信息的jsMicroModule
-        const jsIpc = await jsProcess.connect(mmid);
-        jsIpc.postMessage(IpcEvent.fromText(ExternalState.ACTIVITY, ExternalState.CONNECT_AWAIT));
-        //  建立连接队列
-        const ipcPo = mapHelper.getOrPut(this.connectMap, mmid, () => {
-          return new PromiseOut();
-        });
-        jsIpc.onEvent((event) => {
-          if (event.name === ExternalState.CONNECT_OK) {
-            ipcPo.resolve(jsIpc);
-          }
-          // 请求关闭
-          if (event.name === ExternalState.CLOSE) {
-            ipcPo.resolve(undefined);
-          }
-          //TODO 这个可以在对方窗口关闭的时候,让下次重新等待
-          if (event.name === ExternalState.WINDOW_CLOSE) {
-            this.connectMap.set(mmid, new PromiseOut());
-          }
+        const streamIpc = new ReadableStreamIpc(
+          {
+            mmid: jsProcess.mmid,
+            name: jsProcess.mmid,
+            ipc_support_protocols: {
+              cbor: false,
+              protobuf: false,
+              raw: false,
+            },
+            dweb_deeplinks: [],
+            categories: [],
+          } satisfies $MicroModuleManifest,
+          IPC_ROLE.SERVER
+        );
+        this.ipcPo.toggleOpen(streamIpc);
+        void streamIpc.bindIncomeStream(event.body!).finally(() => {
+          this.ipcPo.toggleClose();
         });
 
-        if (!(await ipcPo.promise)) {
-          // 我们自己主动关闭了 发送close消息到onActivity告知对方关闭等待
-          jsIpc.postMessage(IpcEvent.fromText(ExternalState.ACTIVITY, ExternalState.CLOSE));
-          return IpcResponse.fromJson(
-            event.req_id,
-            200,
-            cors(event.headers),
-            { success: false, message: `app ${mmid} no communication created！！` },
-            event.ipc
-          );
-        }
-        //激活对面的程序
-        let pathname = event.searchParams.get("pathname") ?? "";
-        // 删除不必要的search
-        event.searchParams.delete("mmid");
-        event.searchParams.delete("X-Dweb-Host");
-        event.searchParams.delete("action");
-        event.searchParams.delete("pathname");
-        pathname = pathname + event.search;
+        streamIpc.onFetch(async (event) => {
+          const mmid = event.headers.get("mmid") as $MMID;
+          if (!mmid) {
+            return new Response(null, { status: 502 });
+          }
 
-        const req_id = jsIpc.allocReqId();
-        const base = event.ipcRequest.parsed_url.origin;
-        const ipcRequest = IpcRequest.fromRequest(req_id, jsIpc, `${base}${pathname}`, {
-          method: event.method,
-          headers: cors(event.headers),
-          body: event.body,
+          await mapHelper.getOrPut(this.externalWaitters, mmid, async (_key) => {
+            let ipc: $Ipc;
+            try {
+              ipc = await jsProcess.connect(mmid);
+              const deleteCache = () => {
+                this.externalWaitters.delete(mmid);
+                off1();
+                // off2();
+              };
+              const off1 = ipc.onClose(deleteCache);
+              ipc.request(`file://${mmid}${ExternalState.WAIT_CLOSE}`).finally(() => {
+                deleteCache();
+              });
+              // const off2 = ipc.onFetch((event) => {
+              //   if (event.pathname === ExternalState.WAIT_CLOSE) {
+              //     deleteCache();
+              //   }
+              // });
+              ipc.postMessage(IpcEvent.fromText(ExternalState.ACTIVITY, ExternalState.ACTIVITY));
+            } catch (err) {
+              this.externalWaitters.delete(mmid);
+              throw err;
+            }
+            await ipc.request(`file://${mmid}${ExternalState.WAIT_EXTERNAL_READY}`);
+          });
+          const ext_options = this._getOptions();
+          // 请求跟外部app通信，并拿到返回值
+          return await jsProcess.nativeFetch(
+            `http://${ext_options.subdomain}.${mmid}:${ext_options.port}${event.pathname}${event.search}`,
+            {
+              method: event.method,
+              headers: event.headers,
+              body: event.body,
+            }
+          );
         });
-        jsIpc.postMessage(ipcRequest);
-        const response = await jsIpc.registerReqId(req_id).promise;
-        const ipcResponse = new IpcResponse(
-          event.req_id,
-          response.statusCode,
-          cors(event.headers),
-          response.body,
-          event.ipc
-        );
-        // 返回数据到前端
-        return ipcResponse;
-      }
 
-      // 处理serviceworker respondWith过来的请求,回复给别的app
-      if (action === "response") {
-        const externalReqId = +(event.searchParams.get("id") ?? "");
-        // 验证传递的reqId
-        if (isNaN(externalReqId)) {
-          throw new FetchError("reqId is NAN", { status: 400 });
-        }
-        const responsePOo = this.responseMap.get(externalReqId);
-        // 验证是否有外部请求
-        if (!responsePOo) {
-          throw new FetchError(`not found response by req_id ${externalReqId}`, { status: 500 });
-        }
-        // 转发给外部的app
-        console.log("external=>", event.ipcRequest);
-        responsePOo.resolve(event.ipcRequest);
-        this.responseMap.delete(externalReqId);
-        const icpResponse = IpcResponse.fromJson(
-          event.req_id,
-          200,
-          cors(new IpcHeaders()),
-          { success: "ok" },
-          event.ipc
-        );
-        cors(icpResponse.headers);
-        // 告知自己的 respondWith 已经发送成功了
-        return icpResponse;
+        /// 返回读写这个stream的链接，注意，目前双工需要客户端通过 WebSocket 来达成支持
+        return { body: streamIpc.stream };
       }
-      // 断开连接
-      if (action === "close") {
-        const mmid = event.searchParams.get("mmid");
-        if (!mmid) {
-          throw new FetchError("mmid must be passed", { status: 400 });
-        }
-        const ipcPo = this.connectMap.get(mmid as $MMID);
-        if (!ipcPo) {
-          return IpcResponse.fromJson(
-            event.req_id,
-            400,
-            cors(event.headers),
-            { success: false, message: `No news from ${mmid}` },
-            event.ipc
-          );
-        }
-        // 如果还没关闭，强行关闭
-        if (!ipcPo.is_resolved) {
-          ipcPo.resolve(undefined);
-        }
-        const ipc = await ipcPo.promise;
-        // 如果成功建立过连接，通知对方关闭
-        if (ipc) {
-          // 向对方发送关闭消息
-          ipc.postMessage(IpcEvent.fromText(ExternalState.ACTIVITY, ExternalState.CLOSE));
-          ipc.close();
-        }
-        this.connectMap.delete(mmid as $MMID);
-        return IpcResponse.fromJson(
-          event.req_id,
-          200,
-          cors(event.headers),
-          { success: true, message: "ok" },
-          event.ipc
-        );
-      }
-      // 检查应用是否安装
-      if (action === "check") {
-        const mmid = event.searchParams.get("mmid");
-        if (!mmid) {
-          throw new FetchError("mmid must be passed", { status: 400 });
-        }
-        // 连接需要传递信息的jsMicroModule
-        try {
-          await jsProcess.connect(mmid as $MMID);
-          return IpcResponse.fromJson(
-            event.req_id,
-            200,
-            cors(event.headers),
-            { success: true, message: true },
-            event.ipc
-          );
-        } catch {
-          return IpcResponse.fromJson(
-            event.req_id,
-            200,
-            cors(event.headers),
-            { success: false, message: false },
-            event.ipc
-          );
-        }
-      }
-      throw new FetchError(`unknown action: ${action}`, { status: 502 });
+      return { status: 500 };
+    } else {
+      // 接收别人传递过来的消息
+      const ipc = await this.ipcPo.waitOpen();
+      // 发送到前端监听，并拿去返回值
+      const response = (await ipc.request(event.request.url, event.request)).toResponse();
+      // ipc.postMessage(response)
+      // 构造返回值给对方
+      return IpcResponse.fromResponse(event.ipcRequest.req_id, response, event.ipc);
     }
   }
 }
@@ -237,9 +202,10 @@ export class Server_external extends HttpServer {
 // 负责监听对方是否接收了请求
 export enum ExternalState {
   ACTIVITY = "activity", // 激活app
-  CLOSE = "close", // 关闭连接
+  WAIT_CLOSE = "/external-close", // 关闭连接
   CONNECT_AWAIT = "connect_await", // 连接等待
   CONNECT_OK = "connect_ok", // 连接成功
   CONNECT_FLASE = "connect_flase", // 连接关闭
   WINDOW_CLOSE = "window_close", //todo
+  WAIT_EXTERNAL_READY = "/wait-external-ready",
 }

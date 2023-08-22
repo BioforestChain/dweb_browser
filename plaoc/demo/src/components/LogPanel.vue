@@ -111,8 +111,8 @@ defineExpose({ log, debug: log, warn, success, error, info, time, timeEnd, clear
 </template>
 
 <script lang="ts">
-import type LogPanel from "./LogPanel.vue";
 import { Ref, isRef } from "vue";
+import type LogPanel from "./LogPanel.vue";
 export const toConsole = (ele: Ref<typeof LogPanel | undefined>) => {
   return ele.value! as unknown as Console;
 };

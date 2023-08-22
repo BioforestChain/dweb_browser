@@ -2,7 +2,7 @@
   "imports": {
     "dweb/": "./../desktop-dev/src/",
     "zod": "https://esm.sh/v124/zod@3.21.4",
-    "cbor-x": "https://esm.sh/v124/cbor-x@1.5.3/es2022/cbor-x.mjs",
+    "cbor-x": "https://deno.land/x/cbor@v1.5.4/index.js",
     "lit": "https://esm.sh/v124/lit@2.7.4",
     "lit/": "https://esm.sh/v124/lit@2.7.4/",
     "jimp": "https://esm.sh/v124/jimp@0.22.8",

@@ -22,7 +22,7 @@ export {
   FetchEvent,
   type $FetchResponse,
   type $OnFetch,
-  type $OnFetchReturn,
+  type $OnFetchReturn
 } from "../helper/ipcFetchHelper.ts";
 
 let ipc_uid_acc = 0;
@@ -216,6 +216,7 @@ export type $IpcRequestInit = {
     /* base64 */
     | Uint8Array
     /* stream+base64 */
+    | Blob
     | ReadableStream<Uint8Array>;
   headers?: IpcHeaders | HeadersInit;
 };

@@ -1,6 +1,7 @@
 // ex. scripts/build_npm.ts
 import * as semver from "https://deno.land/std@0.156.0/semver/mod.ts";
 import { copyFileSync } from "node:fs";
+import path from "node:path";
 import { dnt } from "../../scripts/deps.ts";
 
 export const doBuidCore = async (config: {
@@ -8,6 +9,7 @@ export const doBuidCore = async (config: {
   version: string;
   mainExports: string;
   buildFromRootDir: string;
+  entryFile?: string;
   buildToRootDir: string;
   importMap?: string;
   denoShim?: boolean;
@@ -16,7 +18,16 @@ export const doBuidCore = async (config: {
     [packageName: string]: string;
   };
 }) => {
-  const { version, buildFromRootDir, buildToRootDir, importMap, name, lib, denoShim = true } = config;
+  const {
+    version,
+    buildFromRootDir,
+    entryFile = "index.ts",
+    buildToRootDir,
+    importMap,
+    name,
+    lib,
+    denoShim = true,
+  } = config;
   console.log(`--- START BUILD: ${name} ${version} ---`);
 
   await dnt.emptyDir(buildToRootDir);
@@ -24,7 +35,7 @@ export const doBuidCore = async (config: {
   const entryPoints: dnt.EntryPoint[] = [];
   // console.group("entry-point:", dirEntry.name, config);
   // 适配入口不是index的情况
-  let entry = `${buildFromRootDir}/index.ts`;
+  let entry = path.resolve(buildFromRootDir, entryFile);
   if (buildFromRootDir.includes(".ts")) {
     entry = buildFromRootDir;
   }

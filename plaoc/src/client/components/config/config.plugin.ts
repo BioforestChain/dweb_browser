@@ -3,7 +3,7 @@ import { BasePlugin } from "../base/BasePlugin.ts";
 
 export class ConfigPlugin extends BasePlugin {
   constructor() {
-    super("internal");
+    super("internal.dweb");
     if (typeof location === "object") {
       this.initConfig();
     }

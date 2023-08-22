@@ -1,4 +1,5 @@
-import { X_PLAOC_QUERY } from "../../../server/const.ts";
+import { X_PLAOC_QUERY } from "../../../common/const.ts";
+import { $MMID } from "../../../common/types.ts";
 import { createSignal } from "../../helper/createSignal.ts";
 import { $BuildRequestInit, buildRequest } from "../../helper/request.ts";
 
@@ -20,7 +21,7 @@ export abstract class BasePlugin {
     return this.internal_url;
   }
 
-  constructor(readonly mmid: string) {}
+  constructor(readonly mmid: $MMID) {}
 
   fetchApi(url: string, init?: $BuildRequestInit) {
     return this.buildApiRequest(url, init).fetch();
@@ -28,12 +29,6 @@ export abstract class BasePlugin {
   buildApiRequest(pathname: string, init?: $BuildRequestWithBaseInit) {
     const url = new URL(init?.base ?? BasePlugin.url);
     url.pathname = `${init?.pathPrefix ?? this.mmid}${pathname}`;
-    return buildRequest(url, init);
-  }
-
-  buildExternalApiRequest(pathname: string, init?: $BuildRequestWithBaseInit) {
-    const url = new URL(init?.base ?? BasePlugin.url);
-    url.pathname = pathname;
     return buildRequest(url, init);
   }
 

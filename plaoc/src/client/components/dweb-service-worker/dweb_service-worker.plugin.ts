@@ -1,8 +1,9 @@
+import { IpcHeaders } from "../../../common/deps.ts";
+import { createMockModuleServerIpc } from "../../../common/websocketIpc.ts";
 import { bindThis } from "../../helper/bindThis.ts";
 import type { $BuildRequestWithBaseInit } from "../base/BasePlugin.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
 import { BFSMetaData } from "./dweb-service-worker.type.ts";
-
 class UpdateControllerPlugin extends BasePlugin {
   readonly tagName = "dweb-update-controller";
 
@@ -11,9 +12,6 @@ class UpdateControllerPlugin extends BasePlugin {
   constructor() {
     super("jmm.browser.dweb");
   }
-
-  async init() {}
-
   /**下载 */
   @bindThis
   async download(metadataUrl: string): Promise<BFSMetaData> {
@@ -49,6 +47,30 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
   constructor() {
     super("dns.std.dweb");
   }
+
+  readonly ipcPromise = this.createIpc();
+  private async createIpc() {
+    let pub_url = await BasePlugin.public_url;
+    pub_url = pub_url.replace("X-Dweb-Host=api", "X-Dweb-Host=external");
+    const url = new URL(pub_url.replace(/^http:/, "ws:"));
+    const hash = await BasePlugin.external_url;
+    url.pathname = `/${hash}`;
+    const ipc = await createMockModuleServerIpc(url, {
+      mmid: this.mmid,
+      ipc_support_protocols: {
+        cbor: false,
+        protobuf: false,
+        raw: false,
+      },
+      dweb_deeplinks: [],
+      categories: [],
+      name: this.mmid,
+    });
+    return ipc;
+  }
+
+  // 我前端 ->
+
   /**拿到更新句柄 */
   @bindThis
   update(): UpdateControllerPlugin {
@@ -68,6 +90,19 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
   }
 
   /**
+   * 查看应用是否安装
+   * @param mmid
+   */
+  @bindThis
+  async canOpenUrl(mmid: $MMID): Promise<boolean> {
+    return this.fetchApi(`/check`, {
+      search: {
+        mmid: mmid,
+      },
+    }).boolean();
+  }
+
+  /**
    * 跟外部app通信
    * @param pathname
    * @param init
@@ -75,60 +110,11 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
    * https://desktop.dweb.waterbang.top.dweb/say/hi?message="hi 今晚吃螃🦀️蟹吗？"
    */
   @bindThis
-  async externalFetch(mmid: $MMID, init: $ExterRequestWithBaseInit): Promise<$ExternalFetchHandle> {
-    let pub = await BasePlugin.public_url;
-    pub = pub.replace("X-Dweb-Host=api", "X-Dweb-Host=external");
-    const X_Plaoc_Public_Url = await BasePlugin.external_url;
-    // const controller = new AbortController();
-    const search = Object.assign(init.search ?? {}, {
-      mmid: mmid,
-      action: "request",
-      pathname: init.pathname,
-    });
-    const config = Object.assign(init, { search: search, base: pub });
-    return {
-      response: this.buildExternalApiRequest(`/${X_Plaoc_Public_Url}`, config).fetch(),
-      close: this.externalClose.bind(this, mmid),
-    };
-  }
-
-  /**
-   * 关闭连接
-   */
-  @bindThis
-  async externalClose(mmid: $MMID): Promise<$ExterResponse> {
-    let pub = await BasePlugin.public_url;
-    pub = pub.replace("X-Dweb-Host=api", "X-Dweb-Host=external");
-    const X_Plaoc_Public_Url = await BasePlugin.external_url;
-    return this.buildExternalApiRequest(`/${X_Plaoc_Public_Url}`, {
-      search: {
-        mmid: mmid,
-        action: "close",
-      },
-      base: pub,
-    })
-      .fetch()
-      .object<$ExterResponse>();
-  }
-
-  /**
-   * 查看应用是否安装
-   * @param mmid
-   */
-  @bindThis
-  async canOpenUrl(mmid: $MMID): Promise<boolean> {
-    let pub = await BasePlugin.public_url;
-    pub = pub.replace("X-Dweb-Host=api", "X-Dweb-Host=external");
-    const X_Plaoc_Public_Url = await BasePlugin.external_url;
-    return this.buildExternalApiRequest(`/${X_Plaoc_Public_Url}`, {
-      search: {
-        mmid: mmid,
-        action: "check",
-      },
-      base: pub,
-    })
-      .fetch()
-      .boolean();
+  async externalFetch(mmid: $MMID, input: RequestInfo | URL, init?: RequestInit | undefined) {
+    const request = new Request(input, { ...init, headers: new IpcHeaders(init?.headers).init("mmid", mmid) });
+    const ipc = await this.ipcPromise;
+    const ipcResponse = await ipc.request(request.url, request);
+    return ipcResponse.toResponse();
   }
 }
 

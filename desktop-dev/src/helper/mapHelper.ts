@@ -4,8 +4,8 @@ export const mapHelper = new (class {
     key: K,
     putter: (key: K) => $MapVal<M>
   ): $MapVal<M>;
-  getOrPut<M extends Map<any, any>, K extends $MapKey<M>>(map: M, key: K, putter: (key: K) => $MapVal<M>): $MapVal<M>;
-  getOrPut<M extends Map<any, any>, K extends $MapKey<M>>(map: M, key: K, putter: (key: K) => $MapVal<M>): $MapVal<M> {
+  getOrPut<M extends Map<any, any>, K extends $MapKey<M>>(map: M, key: K, putter: $MapGetOrPutter<M, K>): $MapVal<M>;
+  getOrPut<M extends Map<any, any>, K extends $MapKey<M>>(map: M, key: K, putter: $MapGetOrPutter<M, K>): $MapVal<M> {
     if (map.has(key)) {
       return map.get(key)!;
     }
@@ -26,3 +26,4 @@ type $MapVal<T> = T extends Map<any, infer V> ? V : never;
 
 type $WeakMapKey<T> = T extends WeakMap<infer K extends object, any> ? K : never;
 type $WeakMapVal<T> = T extends WeakMap<any, infer V> ? V : never;
+type $MapGetOrPutter<M, K> = (key: K) => $MapVal<M>;

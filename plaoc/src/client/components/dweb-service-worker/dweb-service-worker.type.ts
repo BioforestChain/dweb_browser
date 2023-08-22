@@ -1,10 +1,10 @@
-import { FetchEvent } from "./FetchEvent.ts";
+import { ServiceWorkerFetchEvent } from "./FetchEvent.ts";
 
 export interface DwebWorkerEventMap {
   updatefound: Event; // 更新或重启的时候触发
   pause: Event; // 监听应用暂停
   resume: Event; // 监听应用恢复
-  fetch: FetchEvent;
+  fetch: ServiceWorkerFetchEvent;
   // onFetch: FetchEvent;
 }
 

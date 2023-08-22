@@ -79,6 +79,7 @@ export class IpcRequest extends IpcMessage<IPC_MESSAGE_TYPE.REQUEST> {
         /* base64 */
         | Uint8Array
         /* stream+base64 */
+        | Blob
         | ReadableStream<Uint8Array>;
       headers?: IpcHeaders | HeadersInit;
     } = {}
@@ -91,6 +92,8 @@ export class IpcRequest extends IpcMessage<IPC_MESSAGE_TYPE.REQUEST> {
       ipcBody = IpcBodySender.fromBinary(init.body, ipc);
     } else if (init.body instanceof ReadableStream) {
       ipcBody = IpcBodySender.fromStream(init.body, ipc);
+    } else if (init.body instanceof Blob) {
+      ipcBody = IpcBodySender.fromStream(init.body.stream(), ipc);
     } else {
       ipcBody = IpcBodySender.fromText(init.body ?? "", ipc);
     }

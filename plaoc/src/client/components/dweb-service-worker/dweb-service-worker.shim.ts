@@ -1,38 +1,18 @@
-import { JsonlinesStream } from "../../helper/JsonlinesStream.ts";
 import { cacheGetter } from "../../helper/cacheGetter.ts";
-import { ReadableStreamOut, streamRead } from "../../helper/readableStreamHelper.ts";
-import { toRequest } from "../../helper/request.ts";
-import { BaseEvent, ListenerCallback, WindowListenerHandle } from "../base/BaseEvent.ts";
-import { BasePlugin } from "../base/BasePlugin.ts";
-import { $FetchEventType, FetchEvent } from "./FetchEvent.ts";
-import { DwebWorkerEventMap, IpcRequest, UpdateControllerMap } from "./dweb-service-worker.type.ts";
+import { ListenerCallback } from "../base/BaseEvent.ts";
+import { ServiceWorkerFetchEvent } from "./FetchEvent.ts";
+import { DwebWorkerEventMap, UpdateControllerMap } from "./dweb-service-worker.type.ts";
 import { dwebServiceWorkerPlugin } from "./dweb_service-worker.plugin.ts";
-declare namespace globalThis {
-  const __app_upgrade_watcher_kit__: {
-    /**
-     * 该对象由 web 侧负责写入，由 native 侧去触发事件
-     */
-    // deno-lint-ignore no-explicit-any
-    _listeners: { [eventName: string]: ListenerCallback<any>[] };
-    _windowListeners: { [eventName: string]: WindowListenerHandle };
-  };
-}
-// deno-lint-ignore no-explicit-any
-(globalThis as any).__app_upgrade_watcher_kit__ = {};
-
-const app_upgrade_watcher_kit = globalThis.__app_upgrade_watcher_kit__;
-
-if (app_upgrade_watcher_kit) {
-  app_upgrade_watcher_kit._listeners ??= {};
-  app_upgrade_watcher_kit._windowListeners ??= {};
-}
-
-class DwebServiceWorker extends BaseEvent<keyof DwebWorkerEventMap> {
+class DwebServiceWorker extends EventTarget {
   plugin = dwebServiceWorkerPlugin;
   ws: WebSocket | undefined;
-  X_Plaoc_External_Url?: string = undefined;
   constructor() {
-    super(app_upgrade_watcher_kit);
+    super();
+    this.plugin.ipcPromise.then(ipc=>{
+      ipc.onFetch((event) => {
+        this.dispatchEvent(new ServiceWorkerFetchEvent(event))
+      })
+    })
   }
 
   updateContoller = new UpdateController();
@@ -40,11 +20,6 @@ class DwebServiceWorker extends BaseEvent<keyof DwebWorkerEventMap> {
   @cacheGetter()
   get externalFetch() {
     return this.plugin.externalFetch;
-  }
-
-  @cacheGetter()
-  get externalClose() {
-    return this.plugin.externalClose;
   }
 
   @cacheGetter()
@@ -67,63 +42,6 @@ class DwebServiceWorker extends BaseEvent<keyof DwebWorkerEventMap> {
     return this.plugin.restart;
   }
 
-  private decodeFetch = (ipcRequest: IpcRequest) => {
-    return new FetchEvent("fetch", {
-      request: toRequest(ipcRequest),
-      clientId: ipcRequest.req_id.toString(),
-    });
-  };
-
-  async *registerEvent(eventName: $FetchEventType, options?: { signal?: AbortSignal }) {
-    let pub_url = await BasePlugin.public_url;
-    pub_url = pub_url.replace("X-Dweb-Host=api", "X-Dweb-Host=external");
-    const url = new URL(pub_url.replace(/^http:/, "ws:"));
-    const hash = await BasePlugin.external_url;
-    url.pathname = `/${hash}`;
-    console.log("dwebserviceurl=>", url.href);
-    const ws = new WebSocket(url);
-    this.ws = ws;
-    ws.binaryType = "arraybuffer";
-    const streamout = new ReadableStreamOut();
-
-    ws.onmessage = async (event) => {
-      const data = event.data;
-      streamout.controller.enqueue(data);
-    };
-    ws.onclose = async () => {
-      streamout.controller.close();
-    };
-    ws.onerror = async (event) => {
-      streamout.controller.error(event);
-    };
-
-    for await (const state of streamRead(
-      streamout.stream.pipeThrough(new TextDecoderStream()).pipeThrough(new JsonlinesStream(this.decodeFetch)),
-      options
-    )) {
-      this.notifyListeners(eventName, state);
-      yield state;
-    }
-  }
-
-  // private async *registerEvent(eventName: $FetchEventType, options?: { signal?: AbortSignal }) {
-  //   let pub = await BasePlugin.public_url;
-
-  //   pub = pub.replace("X-Dweb-Host=api", "X-Dweb-Host=external");
-  //   const hash = await BasePlugin.external_url;
-  //   const jsonlines = await this.plugin
-  //     .buildExternalApiRequest(`/${hash}`, {
-  //       search: { mmid: this.plugin.mmid, action: "listen" },
-  //       base: pub,
-  //     })
-  //     .fetch()
-  //     .jsonlines(this.decodeFetch);
-  //   for await (const onfetchString of streamRead(jsonlines, options)) {
-  //     this.notifyListeners(eventName, onfetchString);
-  //     yield onfetchString;
-  //   }
-  // }
-
   /**
    *  dwebview 注册一个监听事件
    * @param eventName
@@ -134,16 +52,8 @@ class DwebServiceWorker extends BaseEvent<keyof DwebWorkerEventMap> {
     eventName: K,
     listenerFunc: ListenerCallback<DwebWorkerEventMap[K]>,
     options?: boolean | AddEventListenerOptions
-  ): EventTarget {
-    // 用户需要的时候再去注册
-    if (eventName === "fetch") {
-      (async () => {
-        for await (const _info of this.registerEvent(eventName)) {
-          // console.log("registerFetch", _info);
-        }
-      })();
-    }
-    return super.addEventListener(eventName, listenerFunc, options);
+  ) {
+    return super.addEventListener(eventName, listenerFunc as EventListenerOrEventListenerObject, options);
   }
 
   /**移除监听器 */
@@ -152,13 +62,13 @@ class DwebServiceWorker extends BaseEvent<keyof DwebWorkerEventMap> {
     listenerFunc: ListenerCallback<DwebWorkerEventMap[K]>,
     options?: boolean | EventListenerOptions
   ) {
-    return super.removeEventListener(eventName, listenerFunc, options);
+    return super.removeEventListener(eventName, listenerFunc as EventListenerOrEventListenerObject, options);
   }
 }
 
-class UpdateController extends BaseEvent<keyof UpdateControllerMap> {
+class UpdateController extends EventTarget {
   constructor() {
-    super(app_upgrade_watcher_kit);
+    super();
   }
 
   @cacheGetter()
@@ -191,8 +101,8 @@ class UpdateController extends BaseEvent<keyof UpdateControllerMap> {
     eventName: K,
     listenerFunc: ListenerCallback<UpdateControllerMap[K]>,
     options?: boolean | AddEventListenerOptions
-  ): EventTarget {
-    return super.addEventListener(eventName, listenerFunc, options);
+  ) {
+    return super.addEventListener(eventName, listenerFunc as EventListenerOrEventListenerObject, options);
   }
 
   /**移除监听器 */
@@ -201,18 +111,18 @@ class UpdateController extends BaseEvent<keyof UpdateControllerMap> {
     listenerFunc: ListenerCallback<UpdateControllerMap[K]>,
     options?: boolean | EventListenerOptions
   ) {
-    return super.removeEventListener(eventName, listenerFunc, options);
+    return super.removeEventListener(eventName, listenerFunc as EventListenerOrEventListenerObject, options);
   }
 }
 
 export const dwebServiceWorker = new DwebServiceWorker();
 
-// deno-lint-ignore no-explicit-any
-if (typeof (globalThis as any)["DwebServiceWorker"] === "undefined") {
-  Object.assign(globalThis, { DwebServiceWorker });
-}
+// // deno-lint-ignore no-explicit-any
+// if (typeof (globalThis as any)["DwebServiceWorker"] === "undefined") {
+//   Object.assign(globalThis, { DwebServiceWorker });
+// }
 
-// deno-lint-ignore no-explicit-any
-if (typeof (globalThis as any)["UpdateController"] === "undefined") {
-  Object.assign(globalThis, { UpdateController });
-}
+// // deno-lint-ignore no-explicit-any
+// if (typeof (globalThis as any)["UpdateController"] === "undefined") {
+//   Object.assign(globalThis, { UpdateController });
+// }

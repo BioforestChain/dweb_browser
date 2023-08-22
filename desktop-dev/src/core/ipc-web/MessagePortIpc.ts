@@ -4,7 +4,7 @@ import { IpcRequest } from "../ipc/IpcRequest.ts";
 import { IpcResponse } from "../ipc/IpcResponse.ts";
 import { $IpcMessage, IPC_ROLE, IpcMessage } from "../ipc/const.ts";
 import { Ipc } from "../ipc/ipc.ts";
-import type { $MicroModuleManifest, $IpcSupportProtocols } from "../types.ts";
+import type { $IpcSupportProtocols, $MicroModuleManifest } from "../types.ts";
 import { $messagePackToIpcMessage } from "./$messagePackToIpcMessage.ts";
 import { $jsonToIpcMessage, $messageToIpcMessage, $uint8ArrayToIpcMessage } from "./$messageToIpcMessage.ts";
 

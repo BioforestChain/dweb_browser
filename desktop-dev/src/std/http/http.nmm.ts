@@ -9,6 +9,7 @@ import type { IpcRequest } from "../../core/ipc/IpcRequest.ts";
 import { IPC_ROLE } from "../../core/ipc/const.ts";
 import type { Ipc } from "../../core/ipc/ipc.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
+import { nativeFetchAdaptersManager } from "../../sys/dns/nativeFetch.ts";
 import { ServerStartResult, ServerUrlInfo } from "./const.ts";
 import { defaultErrorResponse } from "./defaultErrorResponse.ts";
 import { Http1Server } from "./net/Http1Server.ts";
@@ -67,7 +68,7 @@ export class HttpServerNMM extends NativeMicroModule {
     initWebSocketServer.call(this, info.server);
 
     this._info.server.on("request", (req, res) => {
-      const host = this.getHostByReq(req);
+      const host = this.getHostByReq(req.url, Object.entries(req.headers));
       {
         // 在网关中寻址能够处理该 host 的监听者
         const gateway = this._gatewayMap.get(host);
@@ -85,6 +86,25 @@ export class HttpServerNMM extends NativeMicroModule {
         void gateway.listener.hookHttpRequest(req, res, getFullReqUrl(req));
       }
     });
+
+    this.onAfterShutdown(
+      nativeFetchAdaptersManager.append(async (fromMM, parsedUrl, requestInit) => {
+        const host = this.getHostByReq(parsedUrl, []);
+        if (host) {
+          // 在网关中寻址能够处理该 host 的监听者
+          const gateway = this._gatewayMap.get(host);
+          if (gateway) {
+            const hasMatch = gateway.listener.findMatchedBind(parsedUrl.pathname, requestInit.method || "GET");
+            if (hasMatch === undefined) {
+              return new Response("no found", { status: 404 });
+            }
+            const request = new Request(parsedUrl, requestInit);
+            /// 目前body不支持上下文句柄，所以这里转成标准 reponse 来发送
+            return (await hasMatch.bind.streamIpc.request(request.url, request)).toResponse();
+          }
+        }
+      })
+    );
 
     /// 监听 IPC 请求 /start
     this.registerCommonIpcOnMessageHandler({
@@ -201,15 +221,24 @@ export class HttpServerNMM extends NativeMicroModule {
   }
 
   // 获取 host
-  protected getHostByReq = (req: IncomingMessage) => {
+  protected getHostByReq = (url: string | URL = "/", headers: Iterable<[string, string | string[] | undefined]>) => {
     /// 获取 host
     let header_host: string | null = null;
     let header_x_dweb_host: string | null = null;
     let header_user_agent_host: string | null = null;
-    let query_x_web_host: string | null = new URL(req.url || "/", this._dwebServer.origin).searchParams.get(
-      "X-Dweb-Host"
-    );
-    for (const [key, value] of Object.entries(req.headers)) {
+    if (typeof url === "string") {
+      url = new URL(url, this._dwebServer.origin);
+    }
+    let query_x_web_host: string | null = url.searchParams.get("X-Dweb-Host");
+    let url_host: string | null = null;
+    if (url) {
+      const hostname = url.hostname;
+      if (hostname.endsWith(".dweb")) {
+        const port = url.port || (url.protocol === "https:" ? "443" : "80");
+        url_host = `${hostname}:${port}`;
+      }
+    }
+    for (const [key, value] of headers) {
       switch (key) {
         case "host":
         case "Host": {
@@ -245,7 +274,7 @@ export class HttpServerNMM extends NativeMicroModule {
       }
     }
 
-    let host = query_x_web_host || header_x_dweb_host || header_user_agent_host || header_host;
+    let host = url_host || query_x_web_host || header_x_dweb_host || header_user_agent_host || header_host;
     if (typeof host === "string" && host.includes(":") === false) {
       host += ":" + this._info?.protocol.port;
     }

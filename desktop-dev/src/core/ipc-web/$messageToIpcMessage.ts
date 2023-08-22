@@ -66,7 +66,6 @@ export const $jsonToIpcMessage = (data: string, ipc: Ipc) => {
   if ($isIpcSignalMessage(data)) {
     return data;
   }
-
   return $objectToIpcMessage(JSON.parse(data), ipc);
 };
 

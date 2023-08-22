@@ -5,7 +5,7 @@ import { dwebServiceWorker as sw } from "../plugin";
 const $logPanel = ref<typeof LogPanel>();
 // let console: Console;
 
-Object.assign(globalThis,{sw})
+Object.assign(globalThis, { sw });
 
 const progress = ref(0);
 
@@ -82,13 +82,10 @@ const message = ref("这里显示收到的消息");
 
 // 向desktop.dweb.waterbang.top.dweb 发送消息
 const sayHi = async () => {
-  const result = await sw.externalFetch(`plaoc.html.demo.dweb`, {
-    pathname: "/say/hi",
-    search: {
-      message: "今晚吃螃🦀️蟹吗？",
-    },
-  });
-  message.value = await (await result.response).text();
+  const url = new URL("/say/hi",document.baseURI);
+  url.searchParams.set("message", "今晚吃螃🦀️蟹吗？");
+  const response = await sw.externalFetch(`plaoc.html.demo.dweb`, url);
+  message.value = await response.text();
   console.log("sayHi return => ", message.value);
 };
 sw.addEventListener("fetch", async (event) => {
