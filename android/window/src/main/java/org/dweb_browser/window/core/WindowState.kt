@@ -72,9 +72,7 @@ class WindowState(
 
 
   override fun serialize(
-    src: WindowState,
-    typeOfSrc: Type,
-    context: JsonSerializationContext
+    src: WindowState, typeOfSrc: Type, context: JsonSerializationContext
   ) = JsonObject().also { jsonObject ->
     jsonObject.addProperty("wid", wid)
     jsonObject.addProperty("owner", owner)
@@ -85,9 +83,7 @@ class WindowState(
   }
 
   override fun deserialize(
-    json: JsonElement,
-    typeOfT: Type,
-    context: JsonDeserializationContext
+    json: JsonElement, typeOfT: Type, context: JsonDeserializationContext
   ) = json.asJsonObject.let { jsonObject ->
     WindowState(
       jsonObject.get("wid").asString,
@@ -100,8 +96,7 @@ class WindowState(
           val ele = jsonObject.get(key)
           (ob as Observable.Observer<WindowPropertyKeys, Any>).set(
             context.deserialize(
-              ele,
-              ob.valueClass.java
+              ele, ob.valueClass.java
             )
           )
         }
@@ -185,7 +180,7 @@ class WindowState(
   /**
    * 当前是否缩放窗口
    */
-  var resizable by observable.observe<Boolean>(WindowPropertyKeys.Resizable, false);
+  var resizable by observable.observe<Boolean>(WindowPropertyKeys.Resizable, true);
 
   /**
    * 是否聚焦
@@ -223,8 +218,7 @@ class WindowState(
    * 可以通过接口配置该颜色
    */
   var flashColor by observable.observe<String>(
-    WindowPropertyKeys.FlashColor,
-    Color.White.toHex(true)
+    WindowPropertyKeys.FlashColor, Color.White.toHex(true)
   );
 
   /**
@@ -291,8 +285,7 @@ class WindowState(
    * 如果使用 auto，会自动根据现有的背景色来显示 亮色 或者 暗色
    */
   var topBarContentColor by observable.observe<String>(
-    WindowPropertyKeys.TopBarContentColor,
-    "auto"
+    WindowPropertyKeys.TopBarContentColor, "auto"
   );
 
   /**
@@ -301,8 +294,7 @@ class WindowState(
    * 如果使用 auto，会与 themeColor 保持一致
    */
   var topBarBackgroundColor by observable.observe<String>(
-    WindowPropertyKeys.TopBarBackgroundColor,
-    "auto"
+    WindowPropertyKeys.TopBarBackgroundColor, "auto"
   );
 
   /**
@@ -321,16 +313,14 @@ class WindowState(
    * 如果使用 auto，会与 themeColor 保持一致
    */
   var bottomBarBackgroundColor by observable.observe<String>(
-    WindowPropertyKeys.BottomBarBackgroundColor,
-    "auto"
+    WindowPropertyKeys.BottomBarBackgroundColor, "auto"
   );
 
   /**
    * 底部栏的风格，默认是导航模式
    */
   var bottomBarTheme by observable.observe<WindowBottomBarTheme>(
-    WindowPropertyKeys.BottomBarTheme,
-    WindowBottomBarTheme.Navigation
+    WindowPropertyKeys.BottomBarTheme, WindowBottomBarTheme.Navigation
   );
 }
 

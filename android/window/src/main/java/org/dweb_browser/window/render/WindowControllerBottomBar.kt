@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material.icons.rounded.ChevronLeft
@@ -31,6 +32,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -90,23 +92,31 @@ private fun WindowBottomResizeBar(
 ) {
   val contentColor = LocalWindowControllerTheme.current.bottomContentColor
   val windowEdge = LocalWindowPadding.current
+  val resizable by win.watchedState { resizable }
   Row(
-    modifier = Modifier.fillMaxSize()
+    modifier = Modifier
+      .fillMaxSize()
+      .padding(
+        start = if (resizable) 0.dp else windowEdge.left.dp,
+        end = if (resizable) 0.dp else windowEdge.right.dp
+      )
   ) {
     /// 左下角 视窗 Resize
-    Box(
-      modifier = Modifier
-        .fillMaxHeight()
-        .width(windowEdge.bottom.dp)
-        .windowResizeByLeftBottom(win)
-    ) {
-      Icon(
-        Icons.Rounded.ChevronLeft, contentDescription = "Resize by Left Bottom Corner",
+    if (resizable) {
+      Box(
         modifier = Modifier
-          .rotate(-45f)
-          .align(Alignment.Center),
-        tint = contentColor,
-      )
+          .fillMaxHeight()
+          .width(windowEdge.bottom.dp)
+          .windowResizeByLeftBottom(win)
+      ) {
+        Icon(
+          Icons.Rounded.ChevronLeft, contentDescription = "Resize by Left Bottom Corner",
+          modifier = Modifier
+            .rotate(-45f)
+            .align(Alignment.Center),
+          tint = contentColor,
+        )
+      }
     }
     /// 下方 视窗 Resize
     Box(
@@ -118,20 +128,22 @@ private fun WindowBottomResizeBar(
     }
     /// 右下角
     /// 视窗 Resize
-    Box(
-      modifier = Modifier
-        .fillMaxHeight()
-        .width(windowEdge.bottom.dp)
-        .windowResizeByRightBottom(win)
-    ) {
-      Icon(
-        Icons.Rounded.ChevronRight,
-        contentDescription = "Resize by Right Bottom Corner",
+    if (resizable) {
+      Box(
         modifier = Modifier
-          .rotate(45f)
-          .align(Alignment.Center),
-        tint = contentColor,
-      )
+          .fillMaxHeight()
+          .width(windowEdge.bottom.dp)
+          .windowResizeByRightBottom(win)
+      ) {
+        Icon(
+          Icons.Rounded.ChevronRight,
+          contentDescription = "Resize by Right Bottom Corner",
+          modifier = Modifier
+            .rotate(45f)
+            .align(Alignment.Center),
+          tint = contentColor,
+        )
+      }
     }
   }
 }

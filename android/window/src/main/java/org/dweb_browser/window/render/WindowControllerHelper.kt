@@ -4,8 +4,10 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.safeGestures
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
@@ -21,6 +23,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.structuralEqualityPolicy
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
@@ -155,10 +158,11 @@ val WindowController.inResize get() = inResizeStore.getOrPut(this) { mutableStat
 
 /** 基于窗口左下角进行调整大小 */
 fun Modifier.windowResizeByLeftBottom(win: WindowController) = this.pointerInput(win) {
+  var inResize by win.inResize
   detectDragGestures(
-    onDragStart = { win.inResize.value = true },
-    onDragEnd = { win.inResize.value = false },
-    onDragCancel = { win.inResize.value = false },
+    onDragStart = { inResize = true },
+    onDragEnd = { inResize = false },
+    onDragCancel = { inResize = false },
   ) { change, dragAmount ->
     change.consume()
     win.state.updateBounds {
@@ -173,10 +177,11 @@ fun Modifier.windowResizeByLeftBottom(win: WindowController) = this.pointerInput
 
 /** 基于窗口右下角进行调整大小 */
 fun Modifier.windowResizeByRightBottom(win: WindowController) = this.pointerInput(win) {
+  var inResize by win.inResize
   detectDragGestures(
-    onDragStart = { win.inResize.value = true },
-    onDragEnd = { win.inResize.value = false },
-    onDragCancel = { win.inResize.value = false },
+    onDragStart = { inResize = true },
+    onDragEnd = { inResize = false },
+    onDragCancel = { inResize = false },
   ) { change, dragAmount ->
     change.consume()
     win.state.updateBounds {
@@ -187,6 +192,7 @@ fun Modifier.windowResizeByRightBottom(win: WindowController) = this.pointerInpu
     }
   }
 }
+
 
 val LocalWindowLimits = compositionLocalOf<WindowLimits> { noLocalProvidedFor("WindowLimits") }
 val LocalWindowController =
@@ -462,8 +468,7 @@ fun WindowController.buildTheme(dark: Boolean): WindowControllerTheme {
     if (backgroundColor.luminance() > 0.5f) darkContent else lightContent
 
   val themeColors by watchedState(
-    dark,
-    watchKey = WindowPropertyKeys.ThemeColor
+    dark, watchKey = WindowPropertyKeys.ThemeColor
   ) {
     val bgColor = themeColor.asWindowStateColor(
       md_theme_light_surface, md_theme_dark_surface, dark
