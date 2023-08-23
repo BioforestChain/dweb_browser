@@ -78,4 +78,5 @@
   <string name="browser_main_my_app">My App</string>
   <string name="browser_main_my_book">My Bookmark</string>
   <string name="browser_main_hot_search">Hot Search</string>
+  <string name="browser_confirm_to_close">Are you sure you want to close this Browser Window?</string>
 </resources>

@@ -77,4 +77,5 @@
   <string name="browser_main_my_app">我的应用</string>
   <string name="browser_main_my_book">我的书签</string>
   <string name="browser_main_hot_search">全网热搜</string>
+  <string name="browser_confirm_to_close">确定要关闭浏览器窗口？</string>
 </resources>

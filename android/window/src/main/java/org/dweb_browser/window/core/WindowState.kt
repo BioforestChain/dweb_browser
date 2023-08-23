@@ -135,7 +135,7 @@ class WindowState(
    * 默认是与内容有交集的，宁愿去 resize content 也不能覆盖
    */
   var keyboardOverlaysContent by observable.observe(
-    WindowPropertyKeys.KeyboardInsetBottom,
+    WindowPropertyKeys.KeyboardOverlaysContent,
     false,
   );
 
@@ -340,5 +340,17 @@ class WindowState(
   var bottomBarTheme by observable.observe<WindowBottomBarTheme>(
     WindowPropertyKeys.BottomBarTheme, WindowBottomBarTheme.Navigation
   );
+
+  /**
+   * 窗口关闭的提示信息
+   */
+  var closeTip by observable.observeNullable(WindowPropertyKeys.CloseTip, String::class, null);
+
+  /**
+   * 是否在显示窗口提示信息
+   *
+   * PS：开发者可以监听这个属性，然后动态地去修改 closeTip。如果要禁用这种行为，可以将 showCloseTip 的类型修改成 String?
+   */
+  var showCloseTip by observable.observe(WindowPropertyKeys.ShowCloseTip, false);
 }
 

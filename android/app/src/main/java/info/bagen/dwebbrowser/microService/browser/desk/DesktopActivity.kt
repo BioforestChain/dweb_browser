@@ -47,9 +47,12 @@ class DesktopActivity : BaseThemeActivity() {
      */
     val desktopWindowsManager = deskController.desktopWindowsManager
     setContent {
+      BackHandler {
+        this@DesktopActivity.moveTaskToBack(true) // 将界面移动到后台，避免重新点击又跑SplashActivity
+      }
+
       DwebBrowserAppTheme {
         BackHandler {
-          TaskbarModel.closeFloatWindow()
           this@DesktopActivity.moveTaskToBack(true) // 将界面移动到后台，避免重新点击又跑SplashActivity
         }
 

@@ -1,12 +1,10 @@
 package org.dweb_browser.window.render
 
 import androidx.activity.compose.BackHandler
-import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -23,11 +22,11 @@ import androidx.compose.material.icons.rounded.ArrowForward
 import androidx.compose.material.icons.rounded.ChevronLeft
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.FullscreenExit
-import androidx.compose.material.icons.rounded.Menu
-import androidx.compose.material.icons.rounded.MenuOpen
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -39,15 +38,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.pointerInteropFilter
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.zIndex
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.android.AutoResizeTextContainer
 import org.dweb_browser.helper.android.AutoSizeText
+import org.dweb_browser.window.R
 import org.dweb_browser.window.core.WindowController
 import org.dweb_browser.window.core.constant.WindowBottomBarTheme
 import org.dweb_browser.window.core.constant.WindowPropertyKeys
@@ -263,19 +264,78 @@ private fun WindowBottomNavigationThemeBar(
         when (val enabled = canGoBack) {
           null -> {}
           else -> {
+            // 窗口是否聚焦，如果聚焦，那么将会拦截系统的返回事件
             val isFocus by win.watchedState { focus }
-            if (isFocus) {
-              BackHandler(enabled) {
-                coroutineScope.launch {
+            // 是否显示窗口关闭的提示
+            val showCloseTip by win.watchedState { showCloseTip }
+
+            /**
+             * 尝试返回或者关闭窗口
+             */
+            fun goBackOrClose() {
+              coroutineScope.launch {
+                if (enabled) {
                   win.emitGoBack()
+                } else {
+                  win.close()
                 }
               }
             }
+            /// 物理返回按钮的按揭
+            BackHandler(isFocus) {
+              goBackOrClose()
+            }
+
+            /// 显示关闭窗口的提示框
+            if (showCloseTip) {
+              /// 会不会有人专门监听showCloseTip然后一直动态地控制closeTip参数呀？
+              val closeTip by win.watchedState { closeTip };
+              AlertDialog(
+                // 按钮以外的关闭对话框的行为
+                onDismissRequest = {
+                  /// 强制关闭窗口
+                  coroutineScope.launch { win.close(true) }
+                },
+                // 图标
+                icon = {
+                  win.IconRender(
+                    modifier = Modifier.size(24.0.dp) // IconButtonTokens.IconSize
+                  )
+                },
+                // 标题
+                title = {
+                  Text(text = stringResource(R.string.window_will_be_close))
+                },
+                // 内容
+                text = {
+                  Text(text = if (closeTip.isNullOrBlank()) stringResource(R.string.window_confirm_to_close) else closeTip!!)
+                },
+                // 确定按钮
+                confirmButton = {
+                  TextButton(onClick = {
+                    /// 强制关闭窗口
+                    coroutineScope.launch { win.close(true) }
+                  }) {
+                    Text(stringResource(R.string.window_confirm))
+                  }
+                },
+                // 取消按钮
+                dismissButton = {
+                  TextButton(onClick = {
+                    win.state.showCloseTip = false
+                  }) {
+                    Text(stringResource(R.string.window_dismiss))
+                  }
+                },
+                // 这个对话框可以通过返回按钮来关闭，同时触发窗口关闭
+                properties = DialogProperties(dismissOnClickOutside = false)
+              )
+
+            }
+            /// 返回按钮
             TextButton(
               onClick = {
-                coroutineScope.launch {
-                  win.emitGoBack()
-                }
+                goBackOrClose()
               },
               enabled = enabled,
               contentPadding = PaddingValues(0.dp),

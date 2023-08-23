@@ -1,5 +1,7 @@
 package info.bagen.dwebbrowser.microService.browser.web
 
+import androidx.compose.ui.res.stringResource
+import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.microService.browser.desk.DeskLinkMetaData
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
 import kotlinx.coroutines.sync.Mutex
@@ -132,12 +134,16 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
       if (win != null) {
         return@withLock win!!
       }
+
       // 打开安装窗口
       val win = createWindowAdapterManager.createWindow(WindowState(
         owner = ipc.remote.mmid, provider = mmid, microModule = this
       ).also {
         it.mode = WindowMode.MAXIMIZE
       })
+      win.state.closeTip =
+        win.manager?.state?.activity?.resources?.getString(R.string.browser_confirm_to_close)
+          ?: ""
       this.win = win
       win.onClose {
         winLock.withLock {

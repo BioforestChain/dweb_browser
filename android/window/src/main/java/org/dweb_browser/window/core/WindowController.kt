@@ -186,7 +186,13 @@ abstract class WindowController(
 
   fun isClosed() = state.mode == WindowMode.CLOSED
   internal open suspend fun simpleClose(force: Boolean = false) {
-    /// 这里的 force 暂时没有作用，未来会加入交互，来阻止窗口关闭
+    if (!force) {
+      /// 如果有关闭提示，并且没有显示，那么就显示一下
+      if (state.closeTip != null && !state.showCloseTip) {
+        state.showCloseTip = true
+        return
+      }
+    }
     state.mode = WindowMode.CLOSED
   }
 

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="window_dismiss">取消</string>
+  <string name="window_confirm">确认</string>
+  <string name="window_will_be_close">窗口将会关闭</string>
+  <string name="window_confirm_to_close">确定要关闭窗口？</string>
+</resources>

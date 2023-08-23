@@ -33,5 +33,7 @@ enum class WindowPropertyKeys(val fieldName: String) {
   ThemeColor("themeColor"),
   Bounds("bounds"),
   KeyboardInsetBottom("keyboardInsetBottom"),
-  KeyboardOverlaysContent("KeyboardOverlaysContent"),
+  KeyboardOverlaysContent("keyboardOverlaysContent"),
+  CloseTip("closeTip"),
+  ShowCloseTip("showCloseTip"),
 }

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="window_dismiss">Dismiss</string>
+  <string name="window_confirm">Confirm</string>
+  <string name="window_will_be_close">This Window will be close</string>
+  <string name="window_confirm_to_close">Are you sure you want to close this Window?</string>
+</resources>

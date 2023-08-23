@@ -7,14 +7,13 @@ import org.dweb_browser.window.core.createWindowAdapterManager
 import java.util.WeakHashMap
 import kotlin.math.sqrt
 
-class DesktopWindowsManager(internal val activity: DesktopActivity) :
+class DesktopWindowsManager(val activity: DesktopActivity) :
   WindowsManager<DesktopWindowController>(activity) {
 
   companion object {
     private val instances = WeakHashMap<DesktopActivity, DesktopWindowsManager>()
     fun getInstance(
-      activity: DesktopActivity,
-      onPut: (wm: DesktopWindowsManager) -> Unit
+      activity: DesktopActivity, onPut: (wm: DesktopWindowsManager) -> Unit
     ): DesktopWindowsManager = instances.getOrPut(activity) {
       DesktopWindowsManager(activity).also { dwm ->
         onPut(dwm);

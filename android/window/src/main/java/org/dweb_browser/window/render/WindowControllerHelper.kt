@@ -15,6 +15,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.SnapshotMutationPolicy
+import androidx.compose.runtime.State
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -84,7 +85,7 @@ fun <T> WindowController.watchedState(
       off()
     }
   }
-}
+} as State<T>
 
 /**
  * 触发 window 聚焦状态的更新事件监听
@@ -546,7 +547,7 @@ suspend fun WindowController.loadIconModel(iconUrl: String?) = when (val url = i
  */
 @Composable
 fun WindowController.IconRender(
-  modifier: Modifier,
+  modifier: Modifier = Modifier,
   primaryColor: Color = LocalContentColor.current,
   primaryContainerColor: Color? = null,
 ) {

@@ -318,6 +318,7 @@ open class WindowsManager<T : WindowController>(internal val activity: BaseActiv
   fun windowEmitGoBack(win: WindowController) = activity.lifecycleScope.async {
     win.simpleEmitGoBack()
   }
+
   fun windowEmitGoForward(win: WindowController) = activity.lifecycleScope.async {
     win.simpleEmitGoForward()
   }

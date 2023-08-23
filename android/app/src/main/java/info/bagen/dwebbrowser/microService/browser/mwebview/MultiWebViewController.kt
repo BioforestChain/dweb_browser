@@ -50,7 +50,7 @@ class MultiWebViewController(
     private var webviewId_acc = AtomicInteger(1)
   }
 
-  var webViewList = ChangeableList<MultiViewItem>()
+  val webViewList = ChangeableList<MultiViewItem>()
 
   init {
     webViewList.onChange {
