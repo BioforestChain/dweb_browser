@@ -343,6 +343,8 @@ class WindowState(
 
   /**
    * 窗口关闭的提示信息
+   *
+   * 如果非 null（即便是空字符串），那么窗口关闭前，会提供提示信息
    */
   var closeTip by observable.observeNullable(WindowPropertyKeys.CloseTip, String::class, null);
 
