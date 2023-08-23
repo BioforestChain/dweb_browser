@@ -3,7 +3,7 @@ import AppIcon from "src/components/app-icon/app-icon.vue";
 import { watchEffectAppMetadataToAppIcon } from "src/components/app-icon/appMetaDataHelper";
 import { $AppIconInfo } from "src/components/app-icon/types";
 import SvgIcon from "src/components/svg-icon/svg-icon.vue";
-import { openApp, quitApp, vibrateHeavyClick } from "src/provider/api.ts";
+import { openApp, detailApp, quitApp, vibrateHeavyClick } from "src/provider/api.ts";
 import { $CloseWatcher, CloseWatcher } from "src/provider/shim.ts";
 import type { $WidgetAppData } from "src/types/app.type.ts";
 import { computed, onMounted, reactive, ref, shallowRef, watch, watchEffect } from "vue";
@@ -105,8 +105,16 @@ async function doQuit() {
     snackbar.show = true;
   }
 }
-function showAppDetailApp() {
-  console.log(props.appMetaData);
+async function showAppDetailApp() {
+  // console.log(props.appMetaData);
+  opening.value = true;
+  if((await detailApp(appid.value).catch(() => (opening.value = false))) === false) {
+    snackbar.text = `${appname.value} 详情页打开失败`;
+    snackbar.timeOut = 1500;
+    snackbar.type = "error";
+    snackbar.show = true;
+  }
+  opening.value = false;
 }
 const showUninstallDialog = ref(false);
 function showUninstall() {

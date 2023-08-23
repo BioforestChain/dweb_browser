@@ -136,7 +136,7 @@ class MultiWebViewNMM :
           if (iconResource != null) {
             state.iconUrl = iconResource.src
             state.iconMaskable = iconResource.purpose.contains(ImageResourcePurposes.Maskable)
-            state.iconMonochrome = iconResource.purpose.contains(ImageResourcePurposes.Maskable)
+            state.iconMonochrome = iconResource.purpose.contains(ImageResourcePurposes.Monochrome)
           } else {
 
           }

@@ -50,6 +50,16 @@ export async function openApp(id: string) {
   });
 }
 
+/** 点击打开应用详情下载页 */
+export async function detailApp(id: string) {
+  return await nativeFetch<boolean>("/detailApp", {
+    search: {
+      app_id: id,
+    },
+    mmid: "jmm.browser.dweb",
+  })
+}
+
 export async function openBrowser(url:string) {
   const xhr = new XMLHttpRequest()
   xhr.open("GET",`dweb:openinbrowser?url=${url}`)

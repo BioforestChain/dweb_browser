@@ -109,11 +109,17 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
       "/detailApp" bind Method.GET to defineHandler { request, ipc ->
         val mmid = queryMmid(request)
         debugJMM("detailApp", mmid)
-        val metadata = bootstrapContext.dns.query(mmid)
+        val microModule = bootstrapContext.dns.query(mmid)
           ?: return@defineHandler Response(Status.NOT_FOUND).body("not found $mmid")
-        // JmmManagerActivity.startActivity(metadata as JmmAppInstallManifest)
-        jmmMetadataInstall(metadata as JmmAppInstallManifest, ipc)
-        return@defineHandler Response(Status.OK).body("ok")
+
+        // TODO: 系统原生应用如WebBrowser的详情页展示？
+        if(microModule is JsMicroModule)
+        {
+          jmmMetadataInstall(microModule.metadata, ipc)
+          return@defineHandler Response(Status.OK).body("ok")
+        }
+
+        return@defineHandler Response(Status.NOT_FOUND).body("not found $mmid")
       },
       "/pause" bind Method.GET to defineHandler { _, ipc ->
         BrowserUIApp.Instance.mBinderService?.invokeUpdateDownloadStatus(
