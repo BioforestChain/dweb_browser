@@ -1,10 +1,16 @@
 package org.dweb_browser.window.core
 
 import android.content.Context
+import androidx.activity.compose.BackHandler
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import org.dweb_browser.helper.Observable
+import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.defaultAsyncExceptionHandler
 import org.dweb_browser.window.core.constant.WindowBottomBarStyle
 import org.dweb_browser.window.core.constant.WindowBottomBarTheme
@@ -35,8 +41,7 @@ abstract class WindowController(
   }
 
   private suspend fun <R> managerRunOr(
-    withManager: (manager: WindowsManager<*>) -> Deferred<R>,
-    orNull: suspend () -> R
+    withManager: (manager: WindowsManager<*>) -> Deferred<R>, orNull: suspend () -> R
   ) = when (_manager) {
     null -> orNull()
     else -> withManager(_manager!!).await()
@@ -95,7 +100,8 @@ abstract class WindowController(
   fun isMaximized(mode: WindowMode = state.mode) =
     mode == WindowMode.MAXIMIZE || mode == WindowMode.FULLSCREEN
 
-  val onMaximize = createStateListener(WindowPropertyKeys.Mode,
+  val onMaximize = createStateListener(
+    WindowPropertyKeys.Mode,
     { isMaximized(mode) }) { debugWindow("emit onMaximize", id) }
 
   internal open suspend fun simpleMaximize() {
@@ -155,7 +161,8 @@ abstract class WindowController(
 
   private var _beforeMinimizeMode: WindowMode? = null
 
-  val onMinimize = createStateListener(WindowPropertyKeys.Mode,
+  val onMinimize = createStateListener(
+    WindowPropertyKeys.Mode,
     { mode == WindowMode.MINIMIZE }) { debugWindow("emit onMinimize", id) }
 
   internal open suspend fun simpleUnMinimize() {
@@ -173,7 +180,8 @@ abstract class WindowController(
 
   suspend fun minimize() = managerRunOr({ it.minimizeWindow(this) }, { simpleMinimize() })
 
-  val onClose = createStateListener(WindowPropertyKeys.Mode,
+  val onClose = createStateListener(
+    WindowPropertyKeys.Mode,
     { mode == WindowMode.CLOSED }) { debugWindow("emit onClose", id) }
 
   fun isClosed() = state.mode == WindowMode.CLOSED
@@ -198,8 +206,7 @@ abstract class WindowController(
 
   suspend fun setTopBarStyle(style: WindowTopBarStyle) = managerRunOr({
     it.windowSetTopBarStyle(
-      this,
-      style
+      this, style
     )
   }, { simpleSetTopBarStyle(style) })
 
@@ -214,9 +221,48 @@ abstract class WindowController(
 
 
   suspend fun setBottomBarStyle(style: WindowBottomBarStyle) =
-    managerRunOr(
-      { it.windowSetBottomBarStyle(this, style) },
-      { simpleSetBottomBarStyle(style) })
+    managerRunOr({ it.windowSetBottomBarStyle(this, style) }, { simpleSetBottomBarStyle(style) })
 
-//#endregion
+  //#endregion
+  private val goBackSignal = SimpleSignal()
+  val onGoBack = goBackSignal.toListener()
+
+  @Composable
+  fun GoBackHandler(enabled: Boolean = true, onBack: () -> Unit) {
+    DisposableEffect(this, enabled) {
+      val off = goBackSignal.listen { if (enabled) onBack() }
+      onDispose {
+        off()
+      }
+    }
+  }
+
+  internal open suspend fun simpleEmitGoBack() {
+    goBackSignal.emit()
+  }
+
+  suspend fun emitGoBack() = managerRunOr({ it.windowEmitGoBack(this) }, { simpleEmitGoBack() })
+
+
+  private val goForwardSignal = SimpleSignal()
+  val onGoForward = goForwardSignal.toListener()
+
+  @Composable
+  fun GoForwardHandler(enabled: Boolean = true, onForward: () -> Unit) {
+    DisposableEffect(this, enabled) {
+      val off = goForwardSignal.listen { if (enabled) onForward() }
+      onDispose {
+        off()
+      }
+    }
+  }
+
+
+  internal open suspend fun simpleEmitGoForward() {
+    goForwardSignal.emit()
+  }
+
+  suspend fun emitGoForward() =
+    managerRunOr({ it.windowEmitGoForward(this) }, { simpleEmitGoForward() })
+
 }

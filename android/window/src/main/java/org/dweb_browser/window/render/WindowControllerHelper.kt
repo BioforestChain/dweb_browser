@@ -446,6 +446,8 @@ data class WindowControllerTheme(
   val winFrameBrush by lazy {
     Brush.verticalGradient(listOf(topBackgroundColor, themeColor, bottomBackgroundColor))
   }
+  val topContentDisableColor by lazy { topContentColor.copy(alpha = topContentColor.alpha * 0.2f) }
+  val bottomContentDisableColor by lazy { bottomContentColor.copy(alpha = bottomContentColor.alpha * 0.2f) }
 }
 
 /**

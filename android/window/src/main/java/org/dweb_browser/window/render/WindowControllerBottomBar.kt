@@ -1,5 +1,6 @@
 package org.dweb_browser.window.render
 
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -9,43 +10,47 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.absoluteOffset
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowBackIosNew
+import androidx.compose.material.icons.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.ArrowForward
 import androidx.compose.material.icons.rounded.ChevronLeft
 import androidx.compose.material.icons.rounded.ChevronRight
-import androidx.compose.material.icons.rounded.UnfoldLess
+import androidx.compose.material.icons.rounded.FullscreenExit
+import androidx.compose.material.icons.rounded.Menu
+import androidx.compose.material.icons.rounded.MenuOpen
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.input.pointer.pointerInteropFilter
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import org.dweb_browser.helper.android.AutoResizeTextContainer
-import org.dweb_browser.window.core.constant.WindowBottomBarTheme
-import org.dweb_browser.window.core.WindowController
-import org.dweb_browser.window.core.constant.WindowPropertyKeys
+import androidx.compose.ui.zIndex
 import kotlinx.coroutines.launch
+import org.dweb_browser.helper.android.AutoResizeTextContainer
+import org.dweb_browser.helper.android.AutoSizeText
+import org.dweb_browser.window.core.WindowController
+import org.dweb_browser.window.core.constant.WindowBottomBarTheme
+import org.dweb_browser.window.core.constant.WindowPropertyKeys
 import kotlin.math.min
 
 /**
@@ -57,26 +62,30 @@ internal fun WindowBottomBar(
 ) {
   val windowEdge = LocalWindowPadding.current
   val contentColor = LocalWindowControllerTheme.current.bottomContentColor
-  Box(
-    modifier = modifier
-      .height(windowEdge.bottom.dp)
-      .background(
-        Brush.verticalGradient(
-          colors = listOf(
-            Color.Transparent,
-            contentColor.copy(alpha = 0.2f),
+  CompositionLocalProvider(
+    LocalContentColor provides contentColor,
+  ) {
+    Box(
+      modifier = modifier
+        .height(windowEdge.bottom.dp)
+        .background(
+          Brush.verticalGradient(
+            colors = listOf(
+              Color.Transparent,
+              contentColor.copy(alpha = 0.2f),
+            )
           )
         )
-      )
-  ) {
-    val maximize by win.watchedIsMaximized()
-    if (maximize) {
-      WindowBottomMaximizedBar(win) {
-        WindowBottomThemeBar(win)
-      }
-    } else {
-      WindowBottomResizeBar(win) {
-        WindowBottomThemeBar(win)
+    ) {
+      val maximize by win.watchedIsMaximized()
+      if (maximize) {
+        WindowBottomMaximizedBar(win) {
+          WindowBottomThemeBar(win)
+        }
+      } else {
+        WindowBottomResizeBar(win) {
+          WindowBottomThemeBar(win)
+        }
       }
     }
   }
@@ -113,7 +122,7 @@ private fun WindowBottomResizeBar(
           Icons.Rounded.ChevronLeft, contentDescription = "Resize by Left Bottom Corner",
           modifier = Modifier
             .rotate(-45f)
-            .align(Alignment.Center),
+            .align(Alignment.BottomStart),
           tint = contentColor,
         )
       }
@@ -140,7 +149,7 @@ private fun WindowBottomResizeBar(
           contentDescription = "Resize by Right Bottom Corner",
           modifier = Modifier
             .rotate(45f)
-            .align(Alignment.Center),
+            .align(Alignment.BottomEnd),
           tint = contentColor,
         )
       }
@@ -204,7 +213,8 @@ private fun WindowBottomImmersionThemeBar(
     )
     /// 应用标题
     WindowBottomBarInfoText(
-      Modifier.weight(1f), win
+      win,
+      Modifier.weight(1f),
     )
   }
 }
@@ -213,119 +223,172 @@ private fun WindowBottomImmersionThemeBar(
  * 导航模式
  *
  */
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun WindowBottomNavigationThemeBar(
   win: WindowController,
 ) {
   val coroutineScope = rememberCoroutineScope()
-  val contentColor = LocalWindowControllerTheme.current.bottomContentColor
+  val winTheme = LocalWindowControllerTheme.current
+  val contentColor = winTheme.bottomContentColor
+  val contentDisableColor = winTheme.bottomContentDisableColor
+  val backgroundColor = winTheme.bottomBackgroundColor
   val winPadding = LocalWindowPadding.current
   val bottomBarHeight = winPadding.bottom
-  val infoHeight = min(bottomBarHeight * 0.2f, LocalWindowLimits.current.bottomBarBaseHeight)
+  val infoHeight = min(bottomBarHeight * 0.25f, LocalWindowLimits.current.bottomBarBaseHeight)
   val isMaximized by win.watchedIsMaximized()
-  Row(modifier = Modifier
-    .pointerInput(Unit) {
-      detectTapGestures(onDoubleTap = {
-        coroutineScope.launch {
-          win.unMaximize()
-        }
-      })
-    }
-    .fillMaxSize()
-    //
-  ) {
-    /// 返回按钮
-    BoxWithConstraints(
-      modifier = Modifier
-        .weight(1f)
-        .fillMaxHeight()
-    ) {
-      val backPressedDispatcher =
-        LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher;
-      val bottomRoundedSize = winPadding.contentRounded.bottomStart
-      TextButton(
-        onClick = {
-          backPressedDispatcher?.onBackPressed()
-        },
-        contentPadding = PaddingValues(0.dp),
-        shape = RectangleShape,
-        modifier = Modifier
-          .align(Alignment.CenterEnd)
-          .fillMaxWidth()
-          /// 这里强行将按钮太高，目的是为了将按钮的涟漪效果扩散到content下方的圆角部分
-          .requiredSize(
-            width = maxWidth, height = maxHeight + (bottomRoundedSize).dp
-          )
-          .absoluteOffset(y = (-bottomRoundedSize / 2).dp),
-      ) {
-        Icon(
-          Icons.Rounded.ArrowBackIosNew,
-          contentDescription = "Go Back",
-          tint = contentColor,
-          modifier = Modifier
-            .padding(((bottomBarHeight - infoHeight) * 0.15).dp)
-            .align(Alignment.Bottom)
-        )
+  val buttonRoundedSize = infoHeight * 2
+  Box(modifier = Modifier.fillMaxSize()) {
+    /// 按钮
+    Row(modifier = Modifier
+      .zIndex(1f)
+      .pointerInput(Unit) {
+        detectTapGestures(onDoubleTap = {
+          coroutineScope.launch {
+            win.unMaximize()
+          }
+        })
       }
-    }
-
-    /// 右侧
-    BoxWithConstraints(
-      modifier = Modifier
-        .weight(1f)
-        .fillMaxHeight()
+      .fillMaxSize()
+      .padding(bottom = (infoHeight / 2).dp, top = (infoHeight / 3).dp)
+      //
     ) {
-
-      val bottomRoundedSize = winPadding.contentRounded.bottomEnd
-      TextButton(
-        onClick = {
-          coroutineScope.launch { win.unMaximize() }
-        },
-        enabled = isMaximized,
-        contentPadding = PaddingValues(0.dp),
-        shape = RectangleShape,
+      val canGoBack by win.watchedState { canGoBack }
+      /// 返回按钮
+      BoxWithConstraints(
         modifier = Modifier
-          .align(Alignment.CenterEnd)
-          .fillMaxWidth()
-          /// 这里强行将按钮太高，目的是为了将按钮的涟漪效果扩散到content下方的圆角部分
-          .requiredSize(
-            width = maxWidth, height = maxHeight + (bottomRoundedSize).dp
-          )
-          .absoluteOffset(y = (-bottomRoundedSize / 2).dp),
+          .weight(1f)
+          .fillMaxHeight()
       ) {
-        Column(
-          modifier = Modifier
-            .height(bottomBarHeight.dp)
-            .align(Alignment.Bottom),
-          horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-          /// 取消最大化的提示图标
-          if (isMaximized) {
-            Box(
+        when (val enabled = canGoBack) {
+          null -> {}
+          else -> {
+            BackHandler(enabled) {
+              coroutineScope.launch {
+                win.emitGoBack()
+              }
+            }
+            TextButton(
+              onClick = {
+                coroutineScope.launch {
+                  win.emitGoBack()
+                }
+              },
+              enabled = enabled,
+              contentPadding = PaddingValues(0.dp),
+              shape = RoundedCornerShape(buttonRoundedSize),
               modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
+                .align(Alignment.CenterEnd)
+                .fillMaxWidth(),
             ) {
               Icon(
-                Icons.Rounded.UnfoldLess,
-                contentDescription = "UnMaximizes the window",
-                modifier = Modifier
-                  .align(Alignment.Center)
-                  .rotate(45f),
-                tint = contentColor,
+                Icons.Rounded.ArrowBack,
+                contentDescription = "Go Back",
+                tint = if (enabled) contentColor else contentDisableColor,
+                modifier = Modifier.align(Alignment.CenterVertically)
               )
             }
           }
+        }
+      }
+      val canGoForward by win.watchedState { canGoForward }
+      BoxWithConstraints(
+        modifier = Modifier
+          .weight(1f)
+          .fillMaxHeight()
+      ) {
+        when (val enabled = canGoForward) {
+          null -> {}
+          else -> {
+            TextButton(
+              onClick = {
+                coroutineScope.launch {
+                  win.emitGoForward()
+                }
+              },
+              enabled = enabled,
+              contentPadding = PaddingValues(0.dp),
+              shape = RoundedCornerShape(buttonRoundedSize),
+              modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .fillMaxWidth(),
+            ) {
+              Icon(
+                Icons.Rounded.ArrowForward,
+                contentDescription = "Go Forward",
+                tint = if (enabled) contentColor else contentDisableColor,
+                modifier = Modifier.align(Alignment.CenterVertically)
+              )
+            }
+          }
+        }
+      }
 
-          /// 应用标题
-          WindowBottomBarInfoText(
-            Modifier
-              .weight(0.618f)
-              .fillMaxWidth(), win
-          )
+//      /// 菜单按钮
+//      BoxWithConstraints(
+//        modifier = Modifier
+//          .weight(1f)
+//          .fillMaxHeight()
+//      ) {
+//        if (isMaximized) {
+//          TextButton(
+//            onClick = {
+//              coroutineScope.launch { win.unMaximize() }
+//            },
+//            contentPadding = PaddingValues(0.dp),
+//            shape = RoundedCornerShape(buttonRoundedSize),
+//            modifier = Modifier
+//              .align(Alignment.CenterEnd)
+//              .fillMaxWidth(),
+//          ) {
+//            Icon(
+//              Icons.Rounded.Menu,
+//              contentDescription = "open menu panel",
+//              modifier = Modifier.align(Alignment.CenterVertically),
+//              tint = contentColor,
+//            )
+//          }
+//        }
+//      }
+      /// 退出全屏
+      BoxWithConstraints(
+        modifier = Modifier
+          .weight(1f)
+          .fillMaxHeight()
+      ) {
+        if (isMaximized) {
+          TextButton(
+            onClick = {
+              coroutineScope.launch { win.unMaximize() }
+            },
+            contentPadding = PaddingValues(0.dp),
+            shape = RoundedCornerShape(buttonRoundedSize),
+            modifier = Modifier
+              .align(Alignment.CenterEnd)
+              .fillMaxWidth(),
+          ) {
+
+            Icon(
+              Icons.Rounded.FullscreenExit,
+              contentDescription = "UnMaximizes the window",
+              modifier = Modifier.align(Alignment.CenterVertically),
+              tint = contentColor,
+            )
+          }
         }
       }
     }
+
+    /// 底部文本
+    WindowBottomBarInfoText(
+      win,
+      Modifier
+        .height(infoHeight.dp)
+        .fillMaxWidth(0.618f)
+        .zIndex(2f)
+        .align(Alignment.BottomCenter)
+        .pointerInteropFilter { false },
+    )
   }
 
 }
@@ -335,19 +398,17 @@ private fun WindowBottomNavigationThemeBar(
  * 会根据容器进行自适应排布
  */
 @Composable
-fun WindowBottomBarInfoText(modifier: Modifier, win: WindowController) {
+fun WindowBottomBarInfoText(win: WindowController, modifier: Modifier) {
   val contentColor = LocalWindowControllerTheme.current.bottomContentColor
   AutoResizeTextContainer(modifier.fillMaxHeight()) {
     val footerText by win.watchedState { owner }
-    val textStyle = MaterialTheme.typography.labelSmall
-    val textFontSize = min(calc(footerText), textStyle.fontSize.value).sp
-    Text(
-      text = footerText, style = textStyle.copy(
-        color = contentColor,
-        fontSize = textFontSize,
-        fontFamily = FontFamily.Monospace,
-        lineHeight = textFontSize * 1.25f
-      ), modifier = Modifier.align(Alignment.Center)
-    )
+    val textStyle = MaterialTheme.typography.bodySmall
+    AutoSizeText(text = footerText,
+      color = contentColor,
+      style = textStyle,
+      modifier = Modifier.align(Alignment.Center),
+      overflow = TextOverflow.Visible,
+      softWrap = false,
+      autoLineHeight = { it * 1.25f })
   }
 }

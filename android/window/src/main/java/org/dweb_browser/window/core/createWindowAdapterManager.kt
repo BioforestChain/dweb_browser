@@ -2,6 +2,7 @@ package org.dweb_browser.window.core
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.microservice.help.AdapterManager
 import org.dweb_browser.window.core.constant.UUID
 
@@ -14,8 +15,7 @@ typealias WindowRenderProvider = @Composable WindowRenderScope.(modifier: Modifi
  * 创建器窗口 的适配器管理
  */
 class CreateWindowAdapterManager : AdapterManager<CreateWindowAdapter>() {
-  val renderProviders =
-    mutableMapOf<UUID, WindowRenderProvider>()
+  val renderProviders = ChangeableMap<UUID, WindowRenderProvider>()
 
   suspend fun createWindow(winState: WindowState): WindowController {
     for (adapter in adapters) {

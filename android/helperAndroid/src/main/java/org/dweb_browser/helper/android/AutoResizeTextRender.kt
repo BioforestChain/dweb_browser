@@ -49,7 +49,6 @@ fun AutoResizeTextContainer(
     scope.maxWidth = maxWidth.value
     scope.maxHeight = maxHeight.value
     scope.content()
-    Text(text = "", Modifier.align(Alignment.Center))
   }
 }
 
@@ -74,7 +73,7 @@ class AutoResizeTextContainerScope(
     val maxArea = maxWidth * maxHeight
     val textMaxUnit = maxArea / text.length //  min(textWidthUnit, textHeightUnit)
     /// 计算出最大的文字宽高
-    return sqrt(textMaxUnit * fontRatio)
+    return min(sqrt(textMaxUnit * fontRatio), min(maxWidth * 0.9f, maxHeight * 0.8f))
   }
 
   override fun Modifier.align(alignment: Alignment): Modifier {
@@ -112,9 +111,7 @@ fun AutoResizeTextContainerScope.AutoSizeText(
   autoLineHeight: ((fontSize: TextUnit) -> TextUnit)? = null
 ) {
   var readyToDraw by remember(
-    maxWidth,
-    maxHeight,
-    autoResizeEnabled
+    maxWidth, maxHeight, autoResizeEnabled
   ) { mutableStateOf(!autoResizeEnabled) }
   var fontSizeValue by remember(text, maxWidth, maxHeight, autoResizeEnabled) {
     val maxFontSizeValue = calc(text.text)
@@ -154,10 +151,9 @@ fun AutoResizeTextContainerScope.AutoSizeText(
 //      }
 //    })
 
-  Text(
-    modifier = modifier.drawWithContent {
-      if (readyToDraw) drawContent()
-    },
+  Text(modifier = modifier.drawWithContent {
+    if (readyToDraw) drawContent()
+  },
     text = text,
     color = color,
     fontSize = resizedFontSize,
@@ -178,8 +174,7 @@ fun AutoResizeTextContainerScope.AutoSizeText(
       } else {
         readyToDraw = true
       }
-    }
-  )
+    })
 }
 
 

@@ -34,11 +34,9 @@ open class WindowsManager<T : WindowController>(internal val activity: BaseActiv
   /**
    * 存储最大化的窗口
    */
-  val hasMaximizedWins =
-    ChangeableSet<T>(activity.lifecycleScope.coroutineContext)
+  val hasMaximizedWins = ChangeableSet<T>(activity.lifecycleScope.coroutineContext)
 
-  val allWindows =
-    ChangeableMap<T, WindowsManagerScope>(activity.lifecycleScope.coroutineContext);
+  val allWindows = ChangeableMap<T, WindowsManagerScope>(activity.lifecycleScope.coroutineContext);
 
   /**
    * 寻找最后一个聚焦的窗口
@@ -214,8 +212,7 @@ open class WindowsManager<T : WindowController>(internal val activity: BaseActiv
   }
 
   private fun <T : WindowController, R> winLifecycleScopeAsync(
-    win: T,
-    block: suspend CoroutineScope.() -> R
+    win: T, block: suspend CoroutineScope.() -> R
   ) = activity.lifecycleScope.async {
     // TODO 检测 win 的所属权
     block()
@@ -317,4 +314,11 @@ open class WindowsManager<T : WindowController>(internal val activity: BaseActiv
     activity.lifecycleScope.async {
       win.simpleSetBottomBarStyle(style)
     }
+
+  fun windowEmitGoBack(win: WindowController) = activity.lifecycleScope.async {
+    win.simpleEmitGoBack()
+  }
+  fun windowEmitGoForward(win: WindowController) = activity.lifecycleScope.async {
+    win.simpleEmitGoForward()
+  }
 }

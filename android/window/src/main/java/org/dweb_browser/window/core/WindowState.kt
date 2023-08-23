@@ -178,6 +178,24 @@ class WindowState(
   var mode by observable.observe<WindowMode>(WindowPropertyKeys.Mode, WindowMode.FLOATING);
 
   /**
+   * 导航是否可以后退
+   *
+   * 可空，如果为空，那么禁用返回按钮
+   */
+  var canGoBack by observable.observeNullable(
+    WindowPropertyKeys.CanGoBack, Boolean::class, false
+  );
+
+  /**
+   * 导航是否可以前进
+   *
+   * 可空，如果为空，那么禁用前进按钮
+   */
+  var canGoForward by observable.observeNullable(
+    WindowPropertyKeys.CanGoForward, Boolean::class, null
+  );
+
+  /**
    * 当前是否缩放窗口
    */
   var resizable by observable.observe<Boolean>(WindowPropertyKeys.Resizable, true);
