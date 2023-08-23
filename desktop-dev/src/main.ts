@@ -1,7 +1,8 @@
 /// <reference lib="dom"/>
 import { webcrypto } from "node:crypto";
-import os from "node:os";
 import process from "node:process";
+import { DeskNMM } from "./browser/desk/desk.nmm.ts";
+import { JmmNMM } from "./browser/jmm/jmm.ts";
 import { JsProcessNMM } from "./browser/js-process/js-process.ts";
 import { MultiWebviewNMM } from "./browser/multi-webview/multi-webview.nmm.ts";
 import { WebBrowserNMM } from "./browser/web/web.nmm.ts";
@@ -60,9 +61,6 @@ dns.install(webBrowser);
 dns.install(new BarcodeScanningNMM());
 // dns.install(new BiometricsNMM());
 dns.install(new BluetoothNMM());
-
-import { DeskNMM } from "./browser/desk/desk.nmm.ts";
-import { JmmNMM } from "./browser/jmm/jmm.ts";
 const jmm = new JmmNMM();
 dns.install(jmm);
 const desk = new DeskNMM();
@@ -88,23 +86,28 @@ if (typeof crypto === "undefined") {
   Object.assign(globalThis, { crypto: webcrypto });
 }
 
-// task bar
-if (os.platform() === "win32") {
-  Electron.app.setUserTasks([
+const app = Electron.app;
+const menu = Electron.Menu;
+const Tray = Electron.Tray;
+let appIcon = null;
+app.whenReady().then(() => {
+  appIcon = new Tray("logo.png");
+  const contextMenu = menu.buildFromTemplate([
     {
-      program: process.execPath,
-      arguments: "--quit",
-      iconPath: process.execPath,
-      iconIndex: 0,
-      title: "Quit",
-      description: "exit Dweb Browser",
+      label: "quit",
+      type: "normal",
+      click: () => {
+        app.quit();
+      },
     },
   ]);
-}
 
-Electron.app.on('ready', () => {
-  // 退出应用
-  if(process.argv.includes('--quit')){
-    Electron.app.quit()
+  // 对于 Linux 再次调用此命令，因为我们修改了上下文菜单
+  appIcon.setContextMenu(contextMenu);
+});
+
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") {
+    app.quit();
   }
-})
+});
