@@ -263,9 +263,12 @@ private fun WindowBottomNavigationThemeBar(
         when (val enabled = canGoBack) {
           null -> {}
           else -> {
-            BackHandler(enabled) {
-              coroutineScope.launch {
-                win.emitGoBack()
+            val isFocus by win.watchedState { focus }
+            if (isFocus) {
+              BackHandler(enabled) {
+                coroutineScope.launch {
+                  win.emitGoBack()
+                }
               }
             }
             TextButton(
