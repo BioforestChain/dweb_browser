@@ -1,15 +1,32 @@
-import { FetchEvent, IpcResponse } from "../../../common/deps.ts";
-
+import { $MicroModuleManifest, FetchEvent, IpcResponse } from "../../../common/deps.ts";
+import type { DwebServiceWorkerPlugin } from "./index.ts";
 
 export type $FetchEventType = "fetch";
 
 export class ServiceWorkerFetchEvent extends Event {
-  constructor(private fetchEvent: FetchEvent) {
+  constructor(private fetchEvent: FetchEvent,private plugin: DwebServiceWorkerPlugin) {
     super("fetch");
   }
   get request() {
     return this.fetchEvent.request;
   }
+  /**查询连接者的信息 */
+  async getRemoteManifest():Promise<$MicroModuleManifest> {
+    const { ipc } = this.fetchEvent;
+    const mmid = ipc.remote.mmid;
+    const res = await this.plugin.buildApiRequest("/query",{
+      pathPrefix:"dns.std.dweb",
+      search:{
+        mmid:mmid
+      }
+    }).fetch()
+    return await res.json()
+  }
+  /**
+   * 回复消息
+   * @param body 
+   * @param init 
+   */
   async respondWith(body?: BodyInit | null, init?: ResponseInit) {
     const response = new Response(body, init);
     const { ipc, ipcRequest } = this.fetchEvent;

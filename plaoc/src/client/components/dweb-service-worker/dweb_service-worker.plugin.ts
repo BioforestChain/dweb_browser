@@ -53,10 +53,12 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
     let pub_url = await BasePlugin.public_url;
     pub_url = pub_url.replace("X-Dweb-Host=api", "X-Dweb-Host=external");
     const url = new URL(pub_url.replace(/^http:/, "ws:"));
+
+    const mmid = url.searchParams.get("X-Dweb-Host")!.slice(9, -4) as $MMID;
     const hash = await BasePlugin.external_url;
     url.pathname = `/${hash}`;
     const ipc = await createMockModuleServerIpc(url, {
-      mmid: this.mmid,
+      mmid: mmid,
       ipc_support_protocols: {
         cbor: false,
         protobuf: false,
@@ -64,7 +66,7 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
       },
       dweb_deeplinks: [],
       categories: [],
-      name: this.mmid,
+      name: mmid,
     });
     return ipc;
   }
@@ -79,14 +81,14 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
 
   /**关闭前端 */
   @bindThis
-  async close(): Promise<boolean> {
-    return await this.fetchApi("/close").boolean();
+  close() {
+    return this.fetchApi("/close").boolean();
   }
 
   /**重启后前端 */
   @bindThis
-  async restart(): Promise<boolean> {
-    return await this.fetchApi("/restart").boolean();
+  restart() {
+    return this.fetchApi("/restart").boolean();
   }
 
   /**

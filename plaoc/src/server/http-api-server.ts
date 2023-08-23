@@ -68,6 +68,11 @@ export class Server_api extends HttpServer {
         const bool = await mwebview_destroy();
         return Response.json({ success: bool, message: "window close" });
       }
+      if (pathname === "/query") {
+        const mmid = event.searchParams.get("mmid");
+        const res =  await jsProcess.nativeFetch(`file://dns.std.dweb/query?app_id=${mmid}`)
+        return res
+      }
       return Response.json({ success: false, message: "no action for serviceWorker Factory !!!" });
     };
 

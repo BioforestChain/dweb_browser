@@ -32,7 +32,7 @@ class MyDnsMicroModule implements $DnsMicroModule {
   }
 
   async query(mmid: $MMID) {
-    return (await this.dnsNN.query(mmid))?.toManifest();
+    return this.dnsNN.query(mmid)?.toManifest();
   }
   async search(category: MICRO_MODULE_CATEGORY) {
     return [...this.dnsNN.search(category)].map((mm) => mm.toManifest());
@@ -163,19 +163,21 @@ export class DnsNMM extends NativeMicroModule {
         const { app_id } = query_appId(event.searchParams);
         return Response.json(await this.close(app_id as $MMID));
       })
+      .get("/query", async (event) => {
+        const { app_id } = query_appId(event.searchParams);
+        return Response.json(this.query(app_id as $MMID)?.toManifest());
+      })
       .get("/observe/app", async (event) => {
         const responseBody = new ReadableStreamOut<Uint8Array>();
-        const doWriteJsonline = async (state:changeState<string>) => {
-          responseBody.controller.enqueue(
-            simpleEncoder(JSON.stringify(state) + "\n", "utf8")
-          );
+        const doWriteJsonline = async (state: changeState<string>) => {
+          responseBody.controller.enqueue(simpleEncoder(JSON.stringify(state) + "\n", "utf8"));
         };
         /// 监听变更，推送数据
-        const off = this.apps.onChange((state)=> doWriteJsonline(state));
-        event.ipc.onClose(()=>{
-          off()
-          responseBody.controller.close()
-        })
+        const off = this.apps.onChange((state) => doWriteJsonline(state));
+        event.ipc.onClose(() => {
+          off();
+          responseBody.controller.close();
+        });
         return { body: responseBody.stream };
       })
       .deeplink("open", async (event) => {

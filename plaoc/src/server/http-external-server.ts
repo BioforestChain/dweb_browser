@@ -153,17 +153,13 @@ export class Server_external extends HttpServer {
               const deleteCache = () => {
                 this.externalWaitters.delete(mmid);
                 off1();
-                // off2();
               };
               const off1 = ipc.onClose(deleteCache);
+              //监听窗口关闭请求，做销毁动作
               ipc.request(`file://${mmid}${ExternalState.WAIT_CLOSE}`).finally(() => {
                 deleteCache();
               });
-              // const off2 = ipc.onFetch((event) => {
-              //   if (event.pathname === ExternalState.WAIT_CLOSE) {
-              //     deleteCache();
-              //   }
-              // });
+              // 激活对面窗口
               ipc.postMessage(IpcEvent.fromText(ExternalState.ACTIVITY, ExternalState.ACTIVITY));
             } catch (err) {
               this.externalWaitters.delete(mmid);
@@ -203,9 +199,5 @@ export class Server_external extends HttpServer {
 export enum ExternalState {
   ACTIVITY = "activity", // 激活app
   WAIT_CLOSE = "/external-close", // 关闭连接
-  CONNECT_AWAIT = "connect_await", // 连接等待
-  CONNECT_OK = "connect_ok", // 连接成功
-  CONNECT_FLASE = "connect_flase", // 连接关闭
-  WINDOW_CLOSE = "window_close", //todo
   WAIT_EXTERNAL_READY = "/wait-external-ready",
 }

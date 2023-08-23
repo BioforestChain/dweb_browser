@@ -10,7 +10,7 @@ class DwebServiceWorker extends EventTarget {
     super();
     this.plugin.ipcPromise.then(ipc=>{
       ipc.onFetch((event) => {
-        this.dispatchEvent(new ServiceWorkerFetchEvent(event))
+        this.dispatchEvent(new ServiceWorkerFetchEvent(event,this.plugin))
       })
     })
   }
