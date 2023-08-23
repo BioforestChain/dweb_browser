@@ -1,5 +1,7 @@
 /// <reference lib="dom"/>
+import { isWindows } from "https://deno.land/std@0.182.0/_util/os.ts";
 import { webcrypto } from "node:crypto";
+import path from "node:path";
 import process from "node:process";
 import { DeskNMM } from "./browser/desk/desk.nmm.ts";
 import { JmmNMM } from "./browser/jmm/jmm.ts";
@@ -7,6 +9,7 @@ import { JsProcessNMM } from "./browser/js-process/js-process.ts";
 import { MultiWebviewNMM } from "./browser/multi-webview/multi-webview.nmm.ts";
 import { WebBrowserNMM } from "./browser/web/web.nmm.ts";
 import { setFilter } from "./helper/devtools.ts";
+import { isElectronDev } from "./helper/electronIsDev.ts";
 import { BluetoothNMM } from "./std/bluetooth/bluetooth.main.ts";
 import { HttpServerNMM } from "./std/http/http.nmm.ts";
 import { BarcodeScanningNMM } from "./sys/barcode-scanning/barcode-scanning.main.ts";
@@ -91,7 +94,12 @@ const menu = Electron.Menu;
 const Tray = Electron.Tray;
 let appIcon = null;
 app.whenReady().then(() => {
-  appIcon = new Tray("logo.png");
+  const devIcon = isWindows ? "./electron/icons/win/icon.ico" : "./electron/icons/mac/icon.icns";
+  const depsIcon = isWindows ? "./resources/icons/win/icon.ico": "./resources/icons/mac/icon.icns";
+  const iconPath = isElectronDev
+    ? path.join(path.dirname(app.getAppPath()), devIcon)
+    : path.join(path.dirname(app.getPath("exe")), depsIcon);
+  appIcon = new Tray(iconPath);
   const contextMenu = menu.buildFromTemplate([
     {
       label: "quit",
@@ -103,6 +111,7 @@ app.whenReady().then(() => {
   ]);
 
   // 对于 Linux 再次调用此命令，因为我们修改了上下文菜单
+  appIcon.setToolTip("dweb_browser");
   appIcon.setContextMenu(contextMenu);
 });
 

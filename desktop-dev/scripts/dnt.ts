@@ -70,10 +70,17 @@ await dnt.build({
       productName: productName,
       artifactName: "${productName}-${version}-${arch}.${ext}",
       asar: true,
-      icon: "./logo.png",
+      // icon: "/logo.png",
       files: ["assets", "bundle", "!node_modules"],
       directories: { output: "../build" },
+      extraResources:[
+        {
+          from:"./icons",
+          to:"./icons"
+        }
+      ],
       mac: {
+        icon:"./icons/mac/icon.icns",
         category: "public.app-category.developer-tools",
         target: {
           target: "default",
@@ -81,9 +88,10 @@ await dnt.build({
         },
       },
       win: {
+        icon:"./icons/win/icon.ico",
         target: {
           target: "portable",
-          arch: ["x64", "arm64"],
+          arch: ["x64"], //, "arm64"
         },
         publisherName: "Bnqkl Dweb Team",
       },
