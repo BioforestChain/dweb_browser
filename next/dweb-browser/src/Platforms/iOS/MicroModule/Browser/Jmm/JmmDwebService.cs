@@ -14,6 +14,8 @@ public static class JmmDwebService
 
     static event Signal? _onStart;
 
+    public static Listener DownloadComplete = new();
+
     static JmmDwebService()
     {
         _onStart += async (_) =>
@@ -21,6 +23,10 @@ public static class JmmDwebService
             await foreach (var result in DownloadEnumerableAsync())
             {
                 Console.Log("DownloadEnumerableAsync", "installed {0}", result);
+                if (result)
+                {
+                    await DownloadComplete.Emit();
+                }
             }
         };
     }

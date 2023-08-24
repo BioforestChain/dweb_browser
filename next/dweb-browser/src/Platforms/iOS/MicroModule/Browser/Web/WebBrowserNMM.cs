@@ -64,12 +64,6 @@ public class WebBrowserNMM : IOSNativeMicroModule
             MainThread.InvokeOnMainThreadAsync(() =>
             {
                 var manager = new BridgeManager();
-                Console.Log("OpenBrowserWindow", manager.BrowserView.ToString());
-                //manager.BrowserView.
-                GCHandle handle = GCHandle.Alloc(manager.BrowserView);
-                IntPtr addr = GCHandle.ToIntPtr(handle);
-                Console.Log("addr", addr.ToString());
-
                 var deskAppUIView = new DeskAppUIView(windowController);
                 deskAppUIView.Layer.ZPosition = windowController.State.ZIndex;
                 deskAppUIView.Render(manager.BrowserView, windowRenderScope);

@@ -36,15 +36,20 @@ public class JmmController
                          manager.OnDownloadChangeWithDownloadStatus,
                          manager.OnListenProgressWithProgress);
 
+                    JmmDwebService.DownloadComplete.OnListener += async (self) =>
+                    {
+                        new JsMicroModule(new JsMMMetadata(jmmAppDownloadManifest)).Also((jsMicroModule) =>
+                        {
+                            JmmNmm.BootstrapContext.Dns.Install(jsMicroModule);
+                        });
+                        JmmDwebService.DownloadComplete.OnListener -= self;
+                    };
+
                     JmmDwebService.Start();
+                    
                     break;
                 case "open":
                     Console.Log("open", jmmAppDownloadManifest.ToJson());
-                    new JsMicroModule(new JsMMMetadata(jmmAppDownloadManifest)).Also((jsMicroModule) =>
-                    {
-                        JmmNmm.BootstrapContext.Dns.Install(jsMicroModule);
-                    });
-
                     await OpenApp(jmmAppDownloadManifest.Id);
 
                     break;
