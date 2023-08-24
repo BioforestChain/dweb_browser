@@ -215,14 +215,13 @@ class DnsNMM() : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       } else null
     }.removeWhen(this.onAfterShutdown)
 
-
-    val query_app_id = Query.string().required("app_id")
+    val queryAppId = Query.string().required("app_id")
 
     /// 定义路由功能
     apiRouting = routes(
       // 打开应用
       "/open" bind Method.GET to defineHandler { request ->
-        val mmid = query_app_id(request)
+        val mmid = queryAppId(request)
         debugDNS("open/$mmid", request.uri.path)
         open(mmid)
         true
@@ -230,17 +229,23 @@ class DnsNMM() : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       // 关闭应用
       // TODO 能否关闭一个应该应该由应用自己决定
       "/close" bind Method.GET to defineHandler { request ->
-        val mmid = query_app_id(request)
+        val mmid = queryAppId(request)
         debugDNS("close/$mmid", request.uri.path)
         close(mmid)
         true
       },
-      "/observe/app" bind Method.GET to defineHandler {request, ipc ->
+      "/query" bind Method.GET to defineHandler { request ->
+        val mmid = queryAppId(request)
+        this.query(mmid)
+      },
+      "/observe/app" bind Method.GET to defineHandler { _, ipc ->
         val inputStream = ReadableStream(onStart = { controller ->
           val off = installApps.onChange { changes ->
             try {
               withContext(Dispatchers.IO) {
-                controller.enqueue((gson.toJson(ChangeState(changes.adds, changes.updates, changes.removes)) + "\n").toByteArray())
+                controller.enqueue(
+                  (gson.toJson(ChangeState(changes.adds, changes.updates, changes.removes)) + "\n").toByteArray()
+                )
               }
             } catch (e: Exception) {
               controller.close()
@@ -269,7 +274,7 @@ class DnsNMM() : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
 
   /** 安装应用 */
   fun install(mm: MicroModule) {
-    installApps.put(mm.mmid, mm)
+    installApps[mm.mmid] = mm
   }
 
   /** 卸载应用 */

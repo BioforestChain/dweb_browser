@@ -2,14 +2,17 @@ package info.bagen.dwebbrowser.microService.browser.desk
 
 import android.content.Intent
 import android.os.Bundle
-import com.google.gson.reflect.TypeToken
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.browser.jmm.EIpcEvent
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.dweb_browser.helper.ChangeState
 import org.dweb_browser.helper.ChangeableMap
+import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printdebugln
 import org.dweb_browser.helper.readByteArray
 import org.dweb_browser.microservice.core.BootstrapContext
@@ -24,7 +27,6 @@ import org.dweb_browser.microservice.ipc.helper.ReadableStream
 import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.dweb_browser.microservice.sys.http.CORS_HEADERS
 import org.dweb_browser.microservice.sys.http.DwebHttpServerOptions
-import org.dweb_browser.microservice.sys.http.Gateway
 import org.dweb_browser.microservice.sys.http.HttpDwebServer
 import org.dweb_browser.microservice.sys.http.createHttpDwebServer
 import org.http4k.core.Method
@@ -60,6 +62,19 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
     TaskBarController.ReSize(
       width = int().required("width")(it), height = int().required("height")(it)
     )
+  }
+
+  private suspend fun listenApps() = coroutineScope {
+    val (openedAppIpc) = bootstrapContext.dns.connect("dns.std.dweb")
+    val res = openedAppIpc.request("/observe/app")
+    val stream = res.body.stream
+    GlobalScope.launch(ioAsyncExceptionHandler) {
+      while (stream.available() > 0) {
+        val chunk = stream.readByteArray()
+        val state = gson.fromJson<ChangeState<MMID>>(chunk.toString(), ChangeState::class.java)
+        runningApps.emitChangeBackground(state.adds, state.updates, state.removes)
+      }
+    }
   }
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
@@ -223,17 +238,6 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
   }
 
   override suspend fun _shutdown() {
-  }
-
-  private suspend fun listenApps() {
-    var (opendAppIpc) = bootstrapContext.dns.connect("dns.std.dweb")
-    var res = opendAppIpc.request("/observe/app")
-    var stream = res.body.stream
-    while (stream.available() > 0) {
-      val chunk = stream.readByteArray()
-      val state = gson.fromJson(chunk.toString(), ChangeState::class.java) as ChangeState<MMID>
-      runningApps.emitChangeBackground(state.adds, state.updates, state.removes)
-    }
   }
 
   private val API_PREFIX = "/api/"
