@@ -2,6 +2,8 @@ package org.dweb_browser.helper
 
 import kotlin.coroutines.CoroutineContext
 
+class ChangeState<K>(val adds: Set<K>, val updates: Set<K>, val removes: Set<K>);
+
 class ChangeableMap<K, V>(context: CoroutineContext = ioAsyncExceptionHandler) :
   LinkedHashMap<K, V>() {
   data class Changes<K, V>(
@@ -14,7 +16,7 @@ class ChangeableMap<K, V>(context: CoroutineContext = ioAsyncExceptionHandler) :
 
   val onChange = changeable.onChange
   suspend fun emitChange() = changeable.emitChange()
-  private fun emitChangeBackground(
+  fun emitChangeBackground(
     adds: Set<K> = setOf(),
     updates: Set<K> = setOf(),
     removes: Set<K> = setOf()

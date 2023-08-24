@@ -1,10 +1,13 @@
 package org.dweb_browser.microservice.sys.dns
 
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
+import org.dweb_browser.helper.ChangeState
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.ioAsyncExceptionHandler
@@ -22,7 +25,9 @@ import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.MMID
 import org.dweb_browser.microservice.help.MicroModuleManifest
 import org.dweb_browser.microservice.help.buildRequestX
+import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
+import org.dweb_browser.microservice.ipc.helper.ReadableStream
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Response
@@ -230,6 +235,25 @@ class DnsNMM() : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
         close(mmid)
         true
       },
+      "/observe/app" bind Method.GET to defineHandler {request, ipc ->
+        val inputStream = ReadableStream(onStart = { controller ->
+          val off = installApps.onChange { changes ->
+            try {
+              withContext(Dispatchers.IO) {
+                controller.enqueue((gson.toJson(ChangeState(changes.adds, changes.updates, changes.removes)) + "\n").toByteArray())
+              }
+            } catch (e: Exception) {
+              controller.close()
+              e.printStackTrace()
+            }
+          }
+          ipc.onClose {
+            off()
+            controller.close()
+          }
+        })
+        return@defineHandler Response(Status.OK).body(inputStream)
+      }
     )
 
     /// 启动 boot 模块
