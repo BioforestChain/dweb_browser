@@ -45,19 +45,19 @@ const onStatusBarChange = (info: $WindowState, type: string) => {
 const [topBarContentColor, setTopBarContentColor, getTopBarContentColor] = defineRef<$WindowStyleColor>(
   "topBarContentColor",
   async () => (await statusBar.getState()).topBarContentColor,
-  (contentColor) => statusBar.setTopBarStyle({ contentColor })
+  (topBarContentColor) => statusBar.setStyle({ topBarContentColor })
 );
 
 const [topBarBackgroundColor, setTopBarBackgroundColor, getTopBarBackgroundColor] = defineRef<$WindowStyleColor>(
   "topBarBackgroundColor",
   async () => (await statusBar.getState()).topBarBackgroundColor,
-  (backgroundColor) => statusBar.setTopBarStyle({ backgroundColor })
+  (topBarBackgroundColor) => statusBar.setStyle({ topBarBackgroundColor })
 );
 
 const [topBarOverlay, setTopBarOverlay, getTopBarOverlay] = defineRef<boolean>(
   "topBarOverlay",
   async () => (await statusBar.getState()).topBarOverlay,
-  (overlay) => statusBar.setTopBarStyle({ overlay })
+  (topBarOverlay) => statusBar.setStyle({ topBarOverlay })
 );
 </script>
 <template>

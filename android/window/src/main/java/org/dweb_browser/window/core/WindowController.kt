@@ -1,23 +1,17 @@
 package org.dweb_browser.window.core
 
 import android.content.Context
-import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.async
 import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.SimpleSignal
-import org.dweb_browser.helper.defaultAsyncExceptionHandler
-import org.dweb_browser.window.core.constant.WindowBottomBarStyle
 import org.dweb_browser.window.core.constant.WindowBottomBarTheme
 import org.dweb_browser.window.core.constant.WindowColorScheme
 import org.dweb_browser.window.core.constant.WindowMode
 import org.dweb_browser.window.core.constant.WindowPropertyKeys
-import org.dweb_browser.window.core.constant.WindowTopBarStyle
+import org.dweb_browser.window.core.constant.WindowStyle
 import org.dweb_browser.window.core.constant.debugWindow
 
 abstract class WindowController(
@@ -101,8 +95,7 @@ abstract class WindowController(
   fun isMaximized(mode: WindowMode = state.mode) =
     mode == WindowMode.MAXIMIZE || mode == WindowMode.FULLSCREEN
 
-  val onMaximize = createStateListener(
-    WindowPropertyKeys.Mode,
+  val onMaximize = createStateListener(WindowPropertyKeys.Mode,
     { isMaximized(mode) }) { debugWindow("emit onMaximize", id) }
 
   internal open suspend fun simpleMaximize() {
@@ -162,8 +155,7 @@ abstract class WindowController(
 
   private var _beforeMinimizeMode: WindowMode? = null
 
-  val onMinimize = createStateListener(
-    WindowPropertyKeys.Mode,
+  val onMinimize = createStateListener(WindowPropertyKeys.Mode,
     { mode == WindowMode.MINIMIZE }) { debugWindow("emit onMinimize", id) }
 
   internal open suspend fun simpleUnMinimize() {
@@ -181,8 +173,7 @@ abstract class WindowController(
 
   suspend fun minimize() = managerRunOr({ it.minimizeWindow(this) }, { simpleMinimize() })
 
-  val onClose = createStateListener(
-    WindowPropertyKeys.Mode,
+  val onClose = createStateListener(WindowPropertyKeys.Mode,
     { mode == WindowMode.CLOSED }) { debugWindow("emit onClose", id) }
 
   fun isClosed() = state.mode == WindowMode.CLOSED
@@ -203,32 +194,29 @@ abstract class WindowController(
 //#endregion
 
   //#region 窗口样式修饰
-  internal open suspend fun simpleSetTopBarStyle(style: WindowTopBarStyle) {
+  internal open suspend fun simpleSetStyle(style: WindowStyle) {
     with(style) {
-      contentColor?.also { state.topBarContentColor = it }
-      backgroundColor?.also { state.topBarBackgroundColor = it }
-      overlay?.also { state.topBarOverlay = it }
+      topBarOverlay?.also { state.topBarOverlay = it }
+      bottomBarOverlay?.also { state.bottomBarOverlay = it }
+      topBarContentColor?.also { state.topBarContentColor = it }
+      topBarContentDarkColor?.also { state.topBarContentDarkColor = it }
+      topBarBackgroundColor?.also { state.topBarBackgroundColor = it }
+      topBarBackgroundDarkColor?.also { state.topBarBackgroundDarkColor = it }
+      bottomBarContentColor?.also { state.bottomBarContentColor = it }
+      bottomBarContentDarkColor?.also { state.bottomBarContentDarkColor = it }
+      bottomBarBackgroundColor?.also { state.bottomBarBackgroundColor = it }
+      bottomBarBackgroundDarkColor?.also { state.bottomBarBackgroundDarkColor = it }
+      bottomBarTheme?.also { state.bottomBarTheme = WindowBottomBarTheme.from(it) }
+      themeColor?.also { state.themeColor = it }
+      themeDarkColor?.also { state.themeDarkColor = it }
     }
   }
 
-  suspend fun setTopBarStyle(style: WindowTopBarStyle) = managerRunOr({
-    it.windowSetTopBarStyle(
+  suspend fun setStyle(style: WindowStyle) = managerRunOr({
+    it.windowSetStyle(
       this, style
     )
-  }, { simpleSetTopBarStyle(style) })
-
-  internal open suspend fun simpleSetBottomBarStyle(style: WindowBottomBarStyle) {
-    with(style) {
-      theme?.also { state.bottomBarTheme = WindowBottomBarTheme.from(it) }
-      contentColor?.also { state.bottomBarContentColor = it }
-      backgroundColor?.also { state.bottomBarBackgroundColor = it }
-      overlay?.also { state.bottomBarOverlay = it }
-    }
-  }
-
-
-  suspend fun setBottomBarStyle(style: WindowBottomBarStyle) =
-    managerRunOr({ it.windowSetBottomBarStyle(this, style) }, { simpleSetBottomBarStyle(style) })
+  }, { simpleSetStyle(style) })
 
   //#endregion
   private val goBackSignal = SimpleSignal()
@@ -307,7 +295,6 @@ abstract class WindowController(
   }
 
   suspend fun toggleColorScheme(colorScheme: WindowColorScheme? = null) =
-    managerRunOr(
-      { it.windowToggleColorScheme(this, colorScheme) },
+    managerRunOr({ it.windowToggleColorScheme(this, colorScheme) },
       { simpleToggleColorScheme(colorScheme) })
 }

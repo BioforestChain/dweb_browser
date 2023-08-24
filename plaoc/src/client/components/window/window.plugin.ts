@@ -42,8 +42,22 @@ export class WindowPlugin extends BasePlugin {
   }
 
   @bindThis
-  async setTopBarStyle(options: { contentColor?: string; backgroundColor?: string; overlay?: boolean }) {
-    return this.fetchApi("/setTopBarStyle", { search: { ...options, ...(await this.windowInfo) } }).void();
+  async setStyle(options: {
+    topBarOverlay?: boolean;
+    bottomBarOverlay?: boolean;
+    topBarContentColor?: string;
+    topBarContentDarkColor?: string;
+    topBarBackgroundColor?: string;
+    topBarBackgroundDarkColor?: string;
+    bottomBarContentColor?: string;
+    bottomBarContentDarkColor?: string;
+    bottomBarBackgroundColor?: string;
+    bottomBarBackgroundDarkColor?: string;
+    bottomBarTheme?: string;
+    themeColor?: string;
+    themeDarkColor?: string;
+  }) {
+    return this.fetchApi("/setStyle", { search: { ...options, ...(await this.windowInfo) } }).void();
   }
 }
 export const windowPlugin = new WindowPlugin();

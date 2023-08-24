@@ -9,7 +9,7 @@ export class HTMLDwebWindowElement extends HTMLStateObserverElement<$WindowRawSt
     super(windowPlugin.state);
   }
   getState = windowPlugin.getState;
-  setTopBarStyle = windowPlugin.setTopBarStyle;
+  setStyle = windowPlugin.setStyle;
 }
 
 customElements.define(HTMLDwebWindowElement.tagName, HTMLDwebWindowElement);

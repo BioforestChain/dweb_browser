@@ -95,12 +95,13 @@ if (native_close_watcher_kit) {
       }
     });
   }
-  document.addEventListener("keypress", (event) => {
-    if (event.key === "Escape") {
-      console.log("Esc键被按下");
-      closeWatcherController.close();
-    }
-  });
+  if (typeof document === "object")
+    document.addEventListener("keypress", (event) => {
+      if (event.key === "Escape") {
+        console.log("Esc键被按下");
+        closeWatcherController.close();
+      }
+    });
 
   Object.assign(globalThis, {
     __native_close_watcher_kit__: {

@@ -3,6 +3,7 @@
     "buildFromRootDir": "../plaoc-client.ts",
     "mainExports": ".",
     "buildToRootDir": "./build/client",
+    "watchDir": "./src/client",
     "denoShim": false,
     "name": "@plaoc/plugins",
     "version": "0.1.4",

@@ -1,6 +1,6 @@
 // ex. scripts/build_npm.ts
 import * as semver from "https://deno.land/std@0.156.0/semver/mod.ts";
-import { copyFileSync } from "node:fs";
+import { copyFileSync, watch } from "node:fs";
 import path from "node:path";
 import { dnt } from "../../scripts/deps.ts";
 
@@ -17,6 +17,9 @@ export const doBuidCore = async (config: {
   devDependencies?: {
     [packageName: string]: string;
   };
+  watchDir?: string;
+  watch?: boolean;
+  dev?: boolean;
 }) => {
   const {
     version,
@@ -106,6 +109,14 @@ export const doBuidCore = async (config: {
       }
     }
   }
+
+  if (config.watch && config.watchDir) {
+    const watcher = watch(path.resolve(Deno.cwd(), config.watchDir), { recursive: true });
+    watcher.addListener("change", () => {
+      watcher.close();
+      doBuidCore(config);
+    });
+  }
 };
 
 export const getVersionGenerator = (version_input?: string) => {
@@ -146,7 +157,13 @@ export const getVersionGenerator = (version_input?: string) => {
       // major, minor, patch, or prerelease
       getVersion = (version) => semver.inc(version, release, undefined, identifier) || version;
     } else {
-      const semver_version = semver.minVersion(version_input);
+      const semver_version = (() => {
+        try {
+          return semver.minVersion(version_input);
+        } catch {
+          return null;
+        }
+      })();
       if (semver_version === null) {
         console.error("请输入正确的待发布版本号");
         Deno.exit(0);
@@ -159,7 +176,7 @@ export const getVersionGenerator = (version_input?: string) => {
 };
 
 export const doBuildFromJson = async (file: string, args: string[]) => {
-  const getVersion = getVersionGenerator(args[0]);
+  const getVersion = getVersionGenerator(args.find((a) => !a.startsWith("-")));
   try {
     const npmConfigs = (await import(file, { assert: { type: "json" } })).default;
 
@@ -167,6 +184,8 @@ export const doBuildFromJson = async (file: string, args: string[]) => {
       await doBuidCore({
         ...config,
         version: getVersion(config.version),
+        watch: args.includes("--watch"),
+        dev: args.includes("--dev"),
       });
     }
   } catch (error) {

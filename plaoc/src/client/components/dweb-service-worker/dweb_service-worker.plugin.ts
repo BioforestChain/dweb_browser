@@ -54,7 +54,7 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
     pub_url = pub_url.replace("X-Dweb-Host=api", "X-Dweb-Host=external");
     const url = new URL(pub_url.replace(/^http:/, "ws:"));
 
-    const mmid = url.searchParams.get("X-Dweb-Host")!.slice(9, -4) as $MMID;
+    const mmid = url.searchParams.get("X-Dweb-Host")?.slice(9, -4) as $MMID;
     const hash = await BasePlugin.external_url;
     url.pathname = `/${hash}`;
     const ipc = await createMockModuleServerIpc(url, {

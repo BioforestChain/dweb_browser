@@ -13,6 +13,7 @@ import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.ipc.helper.ReadableStream
 import org.dweb_browser.window.core.constant.WindowBottomBarStyle
+import org.dweb_browser.window.core.constant.WindowStyle
 import org.dweb_browser.window.core.constant.WindowTopBarStyle
 import org.http4k.core.Method
 import org.http4k.core.Request
@@ -47,19 +48,21 @@ class WindowNMM : NativeMicroModule("window.sys.dweb", "Window Management") {
     val query_wid = Query.string().required("wid")
 
 
-    val query_topBarStyle = Query.composite {
-      WindowTopBarStyle(
-        string().optional("contentColor")(it),
-        string().optional("backgroundColor")(it),
-        boolean().optional("overlay")(it),
-      )
-    }
-    val query_bottomBarStyle = Query.composite {
-      WindowBottomBarStyle(
-        string().optional("contentColor")(it),
-        string().optional("backgroundColor")(it),
-        boolean().optional("overlay")(it),
-        string().optional("theme")(it),
+    val query_Style = Query.composite {
+      WindowStyle(
+        topBarOverlay = boolean().optional("topBarOverlay")(it),
+        bottomBarOverlay = boolean().optional("bottomBarOverlay")(it),
+        topBarContentColor = string().optional("topBarContentColor")(it),
+        topBarContentDarkColor = string().optional("topBarContentDarkColor")(it),
+        topBarBackgroundColor = string().optional("topBarBackgroundColor")(it),
+        topBarBackgroundDarkColor = string().optional("topBarBackgroundDarkColor")(it),
+        bottomBarContentColor = string().optional("bottomBarContentColor")(it),
+        bottomBarContentDarkColor = string().optional("bottomBarContentDarkColor")(it),
+        bottomBarBackgroundColor = string().optional("bottomBarBackgroundColor")(it),
+        bottomBarBackgroundDarkColor = string().optional("bottomBarBackgroundDarkColor")(it),
+        bottomBarTheme = string().optional("bottomBarTheme")(it),
+        themeColor = string().optional("themeColor")(it),
+        themeDarkColor = string().optional("themeDarkColor")(it),
       )
     }
 
@@ -105,11 +108,8 @@ class WindowNMM : NativeMicroModule("window.sys.dweb", "Window Management") {
       "/unMaximize" bind Method.GET to defineHandler { request -> getWindow(request).unMaximize() },
       "/minimize" bind Method.GET to defineHandler { request -> getWindow(request).minimize() },
       "/close" bind Method.GET to defineHandler { request -> getWindow(request).close() },
-      "/setTopBarStyle" bind Method.GET to defineHandler { request ->
-        getWindow(request).setTopBarStyle(query_topBarStyle(request))
-      },
-      "/setBottomBarStyle" bind Method.GET to defineHandler { request ->
-        getWindow(request).setBottomBarStyle(query_bottomBarStyle(request))
+      "/setStyle" bind Method.GET to defineHandler { request ->
+        getWindow(request).setStyle(query_Style(request))
       },
     )
   }

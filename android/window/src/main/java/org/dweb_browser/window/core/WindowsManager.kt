@@ -12,9 +12,8 @@ import org.dweb_browser.helper.OffListener
 import org.dweb_browser.helper.android.BaseActivity
 import org.dweb_browser.helper.some
 import org.dweb_browser.microservice.help.MMID
-import org.dweb_browser.window.core.constant.WindowBottomBarStyle
 import org.dweb_browser.window.core.constant.WindowColorScheme
-import org.dweb_browser.window.core.constant.WindowTopBarStyle
+import org.dweb_browser.window.core.constant.WindowStyle
 import org.dweb_browser.window.core.constant.WindowsManagerScope
 import org.dweb_browser.window.core.constant.debugWindow
 import kotlin.math.abs
@@ -304,17 +303,12 @@ open class WindowsManager<T : WindowController>(internal val activity: BaseActiv
     win.simpleClose(force)
   }
 
-  fun windowSetTopBarStyle(
+  fun windowSetStyle(
     win: WindowController,
-    style: WindowTopBarStyle,
+    style: WindowStyle,
   ) = activity.lifecycleScope.async {
-    win.simpleSetTopBarStyle(style)
+    win.simpleSetStyle(style)
   }
-
-  fun windowSetBottomBarStyle(win: WindowController, style: WindowBottomBarStyle) =
-    activity.lifecycleScope.async {
-      win.simpleSetBottomBarStyle(style)
-    }
 
   fun windowEmitGoBack(win: WindowController) = activity.lifecycleScope.async {
     win.simpleEmitGoBack()

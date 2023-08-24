@@ -4,7 +4,7 @@ import { createSignal } from "../../helper/createSignal.ts";
 import { $BuildRequestInit, buildRequest } from "../../helper/request.ts";
 
 export abstract class BasePlugin {
-  static internal_url: string = globalThis.location?.href ?? "http://localhost";
+  static internal_url: string = location?.href ?? "http://localhost";
   static public_url: Promise<string> | string = BasePlugin.getInternalUrl(X_PLAOC_QUERY.API_PUBLIC_URL);
   static external_url = BasePlugin.getInternalUrl(X_PLAOC_QUERY.EXTERNAL_URL);
   static internal_url_useable?: boolean;
@@ -38,6 +38,9 @@ export abstract class BasePlugin {
     if (this.urlData) {
       return this.urlData[urlType];
     }
+    if (typeof location === "undefined") {
+      return "file:///";
+    }
     const url = new URL(location.href);
     url.pathname = `/${X_PLAOC_QUERY.GET_CONFIG_URL}`;
 
@@ -48,4 +51,8 @@ export abstract class BasePlugin {
 
 export interface $BuildRequestWithBaseInit extends $BuildRequestInit {
   base?: string;
+}
+
+if (typeof HTMLElement !== "function") {
+  Object.assign(globalThis, { HTMLElement: class HTMLElement {}, customElements: { define: () => {} } });
 }
