@@ -1,102 +1,93 @@
-﻿using DwebBrowser.Base;
-using DwebBrowser.MicroService.Browser.Desk;
+﻿using DwebBrowser.MicroService.Browser.Desk;
 using DwebBrowserFramework;
 using Foundation;
-using UIKit;
 
 namespace DwebBrowser.MicroService.Browser.Jmm;
 
-public class JmmController : BaseViewController
+public class JmmController
 {
     static readonly Debugger Console = new("JmmController");
-    private JmmNMM _jmmNMM { get; init; }
+    private JmmNMM JmmNmm { get; init; }
+    public WindowController Win { get; init; }
 
-    public JmmController(JmmNMM jmmNMM)
+    public JmmController(JmmNMM jmmNMM, WindowController win)
     {
-        _jmmNMM = jmmNMM;
+        JmmNmm = jmmNMM;
+        Win = win;
     }
 
-    public Task OpenDownloadPageAsync(JmmAppDownloadManifest jmmAppDownloadManifest) =>
-        MainThread.InvokeOnMainThreadAsync(async () =>
+    public async Task OpenDownloadPageAsync(JmmAppDownloadManifest jmmAppDownloadManifest)
+    {
+        var data = NSData.FromString(jmmAppDownloadManifest.ToJson(), NSStringEncoding.UTF8);
+        var vc = await IOSNativeMicroModule.RootViewController.WaitPromiseAsync();
+        var manager = new DownloadAppManager(data);
+
+        // 点击下载
+        manager.ClickButtonActionWithCallback(async d =>
         {
-            var data = NSData.FromString(jmmAppDownloadManifest.ToJson(), NSStringEncoding.UTF8);
-            var vc = await IOSNativeMicroModule.RootViewController.WaitPromiseAsync();
-            var manager = new DownloadAppManager(data);
-
-            manager.DownloadView.Frame = UIScreen.MainScreen.Bounds;
-
-            // 移除所有子视图
-            //foreach (var subview in View.Subviews)
-            //{
-            //    subview.RemoveFromSuperview();
-            //}
-
-            //View.AddSubview(manager.DownloadView);
-            DeskNMM.DeskController.InsertSubviewBelow(manager.DownloadView);
-
-            // 无法push同一个UIViewController的实例两次
-            //var viewControllersList = vc.ViewControllers?.ToList();
-            //var index = viewControllersList.FindIndex(uvc => uvc == this);
-            //if (index >= 0)
-            //{
-            //    // 不是当前controller时，推到最新
-            //    //if (index != vc.ViewControllers!.Length - 1)
-            //    //{
-            //    //    vc.PopToViewController(this, true);
-            //    //}
-            //    viewControllersList.RemoveAt(index);
-            //    vc.PushViewController(this, true);
-            //}
-            //else
-            //{
-            //    vc.PushViewController(this, true);
-            //}
-
-            // 点击下载
-            manager.ClickButtonActionWithCallback(async d =>
+            switch (d.ToString())
             {
-                switch (d.ToString())
-                {
-                    case "download":
-                        if (jmmAppDownloadManifest.DownloadStatus == DownloadStatus.NewVersion)
-                        {
-                            await _jmmNMM.BootstrapContext.Dns.Close(jmmAppDownloadManifest.Id);
-                        }
-                        var jmmDownload = JmmDwebService.Add(jmmAppDownloadManifest,
-                             manager.OnDownloadChangeWithDownloadStatus,
-                             manager.OnListenProgressWithProgress);
+                case "download":
+                    if (jmmAppDownloadManifest.DownloadStatus == DownloadStatus.NewVersion)
+                    {
+                        await JmmNmm.BootstrapContext.Dns.Close(jmmAppDownloadManifest.Id);
+                    }
+                    var jmmDownload = JmmDwebService.Add(jmmAppDownloadManifest,
+                         manager.OnDownloadChangeWithDownloadStatus,
+                         manager.OnListenProgressWithProgress);
 
-                        JmmDwebService.Start();
-                        break;
-                    case "open":
-                        Console.Log("open", jmmAppDownloadManifest.ToJson());
-                        new JsMicroModule(new JsMMMetadata(jmmAppDownloadManifest)).Also((jsMicroModule) =>
-                        {
-                            _jmmNMM.BootstrapContext.Dns.Install(jsMicroModule);
-                        });
+                    JmmDwebService.Start();
+                    break;
+                case "open":
+                    Console.Log("open", jmmAppDownloadManifest.ToJson());
+                    new JsMicroModule(new JsMMMetadata(jmmAppDownloadManifest)).Also((jsMicroModule) =>
+                    {
+                        JmmNmm.BootstrapContext.Dns.Install(jsMicroModule);
+                    });
 
-                        await OpenApp(jmmAppDownloadManifest.Id);
+                    await OpenApp(jmmAppDownloadManifest.Id);
 
-                        break;
-                    case "back":
-                        vc.PopViewController(true);
-                        break;
-                    default:
-                        break;
-                }
-            });
+                    break;
+                case "back":
+                    vc.PopViewController(true);
+                    break;
+                default:
+                    break;
+            }
         });
+
+        /// 提供渲染适配
+        WindowAdapterManager.Instance.RenderProviders.TryAdd(Win.Id, (windowRenderScope, win) =>
+            MainThread.InvokeOnMainThreadAsync(() =>
+            {
+                var deskAppUIView = new DeskAppUIView(win);
+                deskAppUIView.Layer.ZPosition = win.State.ZIndex;
+                deskAppUIView.Render(manager.DownloadView, windowRenderScope);
+            }));
+
+        /// 窗口销毁的时候
+        Win.OnClose.OnListener += async (_, _) =>
+        {
+            /// 移除渲染适配器
+            WindowAdapterManager.Instance.RenderProviders.Remove(Win.Id, out _);
+        };
+    }
+
+    public Mutex Mutex = new();
 
     public async Task OpenApp(Mmid mmid)
     {
-        var connectResult = await _jmmNMM.BootstrapContext.Dns.ConnectAsync(mmid);
+        Mutex.WaitOne();
 
+        var connectResult = await JmmNmm.BootstrapContext.Dns.ConnectAsync(mmid);
         Console.Log("openApp", "postMessage ==> activity {0}, {1}", mmid, connectResult.IpcForFromMM.Remote.Mmid);
         await connectResult.IpcForFromMM.PostMessageAsync(IpcEvent.FromUtf8(EIpcEvent.Activity.Event, ""));
 
-        var deskConnectResult = await _jmmNMM.BootstrapContext.Dns.ConnectAsync("desk.browser.dweb");
+        var deskConnectResult = await JmmNmm.BootstrapContext.Dns.ConnectAsync("desk.browser.dweb");
         Console.Log("openApp", "postMessage ==> activity {0}, {1}", mmid, deskConnectResult.IpcForFromMM.Remote.Mmid);
         await deskConnectResult.IpcForFromMM.PostMessageAsync(IpcEvent.FromUtf8(EIpcEvent.Activity.Event, ""));
+
+        Mutex.ReleaseMutex();
     }
 }
 

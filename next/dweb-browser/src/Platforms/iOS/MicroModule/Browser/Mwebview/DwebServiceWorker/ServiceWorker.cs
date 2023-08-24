@@ -17,7 +17,7 @@ public static class ServiceWorker
 
         await MainThread.InvokeOnMainThreadAsync(() =>
         {
-            controller.LastViewOrNull?.webView.EvaluateAsyncJavascriptCode($$"""
+            controller.WebViewList.LastOrNull()?.webView.EvaluateAsyncJavascriptCode($$"""
             new Promise((resolve,reject)=>{
                 try{
                     const listeners = {{DWEB_SERVICE_WORKER}}._listeners["{{eventName}}"];

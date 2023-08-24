@@ -19,8 +19,8 @@ public abstract class NativeMicroModule : MicroModule
     public override string? Lang { get; set; } = null;
     public override string? ShortName { get; set; } = null;
     public override string? Description { get; set; } = null;
-    public override List<ImageSource>? Icons { get; set; } = null;
-    public override List<ImageSource>? Screenshots { get; set; } = null;
+    public override List<ImageResource>? Icons { get; set; } = null;
+    public override List<ImageResource>? Screenshots { get; set; } = null;
     public override DisplayModeType? Display { get; set; } = DisplayModeType.Standalone;
     public override OrientationType? Orientation { get; set; } = null;
     public override string? ThemeColor { get; set; } = null;

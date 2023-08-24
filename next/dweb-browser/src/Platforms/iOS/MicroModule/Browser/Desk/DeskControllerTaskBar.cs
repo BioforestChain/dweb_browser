@@ -53,6 +53,11 @@ public partial class DeskController
                 return;
             }
 
+            TaskBarAppList.ForEach(it =>
+            {
+                Console.Log("TaskBarAppList", it.Mmid);
+            });
+
             await OnTaskbarListener.Emit(new TaskBarState(TaskBarFocusState.Get(), TaskBarAppList.FirstOrDefault()?.Mmid));
 
             if (v)

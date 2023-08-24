@@ -1,26 +1,50 @@
-﻿using System.Collections.Concurrent;
-using CoreGraphics;
+﻿using CoreGraphics;
 using UIKit;
 
 namespace DwebBrowser.MicroService.Browser.Desk;
 
-public class DeskAppUIView : DeskUIView
+public class DeskAppUIView : UIView
 {
     static readonly Debugger Console = new("DeskAppUIView");
-    public DeskAppUIView()
+
+    public WindowController Win { get; init; }
+
+    public DeskAppUIView(WindowController win)
     {
+        Win = win;
+
         /// 设置圆角
         ClipsToBounds = true;
         Layer.CornerRadius = 20f;
         Frame = new CGRect(100, 100, 100, 100);
         BackgroundColor = UIColor.White;
+
+        var panGesture = new UIPanGestureRecognizer(OnPan);
+        AddGestureRecognizer(panGesture);
     }
 
-    public static void Start()
+    private void OnPan(UIPanGestureRecognizer pan)
     {
-        Console.Log("Start", "render");
-        var deskAppUIView = new DeskAppUIView();
-        DeskNMM.DeskController.DesktopWindowsManager.Render(deskAppUIView);
+        // 计算位移量
+        CGPoint translation = pan.TranslationInView(this);
+
+        var bounds = UIScreen.MainScreen.Bounds;
+        var screenWidth = bounds.Width;
+        var screenHeight = bounds.Height;
+        var floatHalfWidth = Center.X - Frame.X;
+        var floatHalfHeight = Center.Y - Frame.Y;
+
+        if (pan.State == UIGestureRecognizerState.Changed)
+        {
+            var point = new CGPoint(Center.X + translation.X, Center.Y + translation.Y);
+
+            // 限制上下左右的可活动区域
+            var x = Math.Max(floatHalfWidth + 5, Math.Min(point.X, screenWidth - floatHalfWidth - 5));
+            var y = Math.Max(floatHalfHeight + 60, Math.Min(point.Y, screenHeight - floatHalfHeight - 40));
+            Center = new CGPoint(x, y);
+
+            pan.SetTranslation(CGPoint.Empty, this);
+        }
     }
 
     public void Render(UIView view, WindowRenderScope windowRenderScope)

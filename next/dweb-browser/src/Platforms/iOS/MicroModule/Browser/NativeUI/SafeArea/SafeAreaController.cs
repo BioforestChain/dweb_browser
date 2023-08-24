@@ -28,13 +28,13 @@ public class SafeAreaController : AreaController, IToJsonAble
         areaState: new(new AreaJson(nativeUiController.StatusBar.AreaState.Get().top, 0, 0, nativeUiController.NavigationBar.AreaState.Get().bottom)))
     {
         CutoutInsets = new(new AreaJson(nativeUiController.StatusBar.AreaState.Get().top, 0, 0, 0));
-        var webviewFrame = mwebviewController.WebviewFrame.Get();
+        var webviewFrame = CGRect.Empty; // mwebviewController.WebviewFrame.Get();
         OuterAreaInsets = new(new AreaJson(
             webviewFrame.Top.Value,
             0,
             0,
-            mwebviewController.webviewContainer.Frame.GetMaxY().Value
-            - webviewFrame.Bottom.Value));
+            0 // mwebviewController.webviewContainer.Frame.GetMaxY().Value - webviewFrame.Bottom.Value)
+            ));
         Observer = new(GetState);
         StateObserver = new(ToJson);
         NativeUiController = nativeUiController;
@@ -120,14 +120,14 @@ public class SafeAreaController : AreaController, IToJsonAble
 
                 AreaState.Set(RES_safeAreaInsets);
                 OuterAreaInsets.Set(RES_outerAreaInsets);
-                mwebviewController.WebviewFrame.Set(new CGRect(
-                    new nfloat(RES_outerAreaInsets.left),
-                    new nfloat(RES_outerAreaInsets.top),
-                    mwebviewController.webviewContainer.Frame.Width,
-                    new nfloat(
-                        mwebviewController.webviewContainer.Frame.GetMaxY().Value
-                        - RES_outerAreaInsets.bottom
-                        - RES_outerAreaInsets.top)));
+                //mwebviewController.WebviewFrame.Set(new CGRect(
+                //    new nfloat(RES_outerAreaInsets.left),
+                //    new nfloat(RES_outerAreaInsets.top),
+                //    mwebviewController.webviewContainer.Frame.Width,
+                //    new nfloat(
+                //        mwebviewController.webviewContainer.Frame.GetMaxY().Value
+                //        - RES_outerAreaInsets.bottom
+                //        - RES_outerAreaInsets.top)));
             });
 
             await StateObserver.EmitAsync();

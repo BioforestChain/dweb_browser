@@ -11,10 +11,7 @@ public class NativeUiController
     // TODO: 多个Dwebview共用一个MWebviewController，共享nativeui状态？
     // Android是多个Dwebview公用一个Activity，共享nativeui状态？
     public static NativeUiController FromMultiWebView(Mmid mmid) =>
-        ((MultiWebViewNMM.GetCurrentWebViewController(mmid)
-            ?? throw new Exception(string.Format("native ui is unavailable for {0}", mmid))).LastViewOrNull
-            ?? throw new Exception(string.Format("current webview instance is invalid for {0}", mmid)))
-        .nativeUiController;
+        throw new Exception(string.Format("native ui is unavailable for {0}", mmid));
 
     public StatusBarController StatusBar { get; init; }
     public NavigationBarController NavigationBar { get; init; }

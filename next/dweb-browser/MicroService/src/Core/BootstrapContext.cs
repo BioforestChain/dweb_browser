@@ -19,7 +19,7 @@ public interface IDnsMicroModule
      * 动态卸载应用
      * </summary>
      */
-    public bool UnInstall(MicroModule mm);
+    public bool UnInstall(Mmid mmid);
 
     /**
      * <summary>
@@ -51,7 +51,7 @@ public interface IDnsMicroModule
      * @param category
      * </summary>
      */
-    public Task<MicroModule[]> Search(MicroModuleCategory category);
+    public Task<List<MicroModule>> Search(MicroModuleCategory category);
 
     /**
      * <summary>

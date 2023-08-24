@@ -7,17 +7,34 @@ namespace DwebBrowser.MicroService.Browser.Desk;
 
 public partial class DeskController
 {
+    /// <summary>
+    /// 页面启动
+    /// </summary>
+    public void Start()
+    {
+        //foreach (var view in DeskUIView.Subviews)
+        //{
+        //    if (view is DeskAppUIView deskAppUIView)
+        //    {
+        //        deskAppUIView.RemoveFromSuperview();
+        //    }
+        //}
+
+        Console.Log("Start", "render");
+        DesktopWindowsManager.Render();
+    }
+
     private DesktopWindowsManager? PreDesktopWindowsManager = null;
 
     public DesktopWindowsManager DesktopWindowsManager
     {
         get => DesktopWindowsManager.GetInstance(this, dwm =>
         {
-            /// 但有窗口信号变动的时候，确保 Activity 事件被激活
+            ///// 但有窗口信号变动的时候，确保 Activity 事件被激活
             dwm.AllWindows.OnChangeAdd(async (_, self) =>
             {
                 await OnActivity.Emit();
-                dwm.DeskController.OnDestroy.OnListener += async (_) =>
+                dwm.Controller.OnDestroy.OnListener += async (_) =>
                 {
                     dwm.AllWindows.OnChangeRemove(self);
                 };

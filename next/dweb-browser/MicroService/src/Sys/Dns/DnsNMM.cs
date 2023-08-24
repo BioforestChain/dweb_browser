@@ -6,7 +6,7 @@ public class DnsNMM : NativeMicroModule
 {
     static readonly Debugger Console = new("DnsNMM");
     // 已安装的应用
-    private Dictionary<Mmid, MicroModule> _installApps = new();
+    private ChangeableMap<Mmid, MicroModule> _installApps = new();
 
     // 正在运行的应用
     private Dictionary<Mmid, PromiseOut<MicroModule>> _runningApps = new();
@@ -131,9 +131,9 @@ public class DnsNMM : NativeMicroModule
             _dnsMM.Install(mm);
         }
 
-        public bool UnInstall(MicroModule mm)
+        public bool UnInstall(Mmid mmid)
         {
-            return _dnsMM.UnInstall(mm);
+            return _dnsMM.UnInstall(mmid);
         }
 
         public async Task<IMicroModuleManifest?> Query(Mmid mmid) =>
@@ -185,9 +185,9 @@ public class DnsNMM : NativeMicroModule
             return false;
         }
 
-        public async Task<MicroModule[]> Search(MicroModuleCategory category)
+        public async Task<List<MicroModule>> Search(MicroModuleCategory category)
         {
-            return _dnsMM.Search(category).ToArray();
+            return _dnsMM.Search(category).ToList();
         }
     }
 
@@ -266,6 +266,36 @@ public class DnsNMM : NativeMicroModule
             return true;
         });
 
+        HttpRouter.AddRoute(IpcMethod.Get, "/query", async (request, _) =>
+        {
+            var mmid = request.SafeUrl.SearchParams.ForceGet("app_id");
+            var microModule = await Query(mmid);
+            return microModule?.ToManifest();
+        });
+
+        HttpRouter.AddRoute(IpcMethod.Get, "/observe/app", async (request, ipc) =>
+        {
+            var stream = new ReadableStream(onStart: controller =>
+            {
+                Signal<Changes<Mmid, MicroModule>> cb = async (changes, _) =>
+                {
+                    Console.Log("/observe/apps", $"size={_installApps.Count}");
+                    await controller.EnqueueAsync((JsonSerializer.Serialize(
+                        new ChangeState<Mmid>(changes.Adds, changes.Updates, changes.Removes)) + "\n").ToUtf8ByteArray());
+                };
+
+                _installApps.OnChangeAdd(cb);
+
+                ipc.OnClose += async (_) =>
+                {
+                    _installApps.OnChangeRemove(cb);
+                    controller.Close();
+                };
+            });
+
+            return new PureResponse(HttpStatusCode.OK, Body: new PureStreamBody(stream.Stream));
+        });
+
         // deeplink
         HttpRouter.AddRoute(new Gateway.RouteConfig("open/", IpcMethod.Get), async (request, _) =>
         {
@@ -294,7 +324,7 @@ public class DnsNMM : NativeMicroModule
     public void Install(MicroModule mm) => _installApps.TryAdd(mm.Mmid, mm);
 
     /** <summary>卸载应用</summary> */
-    public bool UnInstall(MicroModule mm) => _installApps.Remove(mm.Mmid);
+    public bool UnInstall(Mmid mmid) => _installApps.TryRemove(mmid);
 
     /** <summary>查询应用</summary> */
     public async Task<MicroModule?> Query(Mmid mmid) => _installApps.GetValueOrDefault(mmid);

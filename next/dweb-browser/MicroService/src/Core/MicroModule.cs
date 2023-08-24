@@ -17,8 +17,8 @@ public abstract partial class MicroModule : IMicroModule
     public abstract string? Lang { get; set; }
     public abstract string? ShortName { get; set; }
     public abstract string? Description { get; set; }
-    public abstract List<ImageSource>? Icons { get; set; }
-    public abstract List<ImageSource>? Screenshots { get; set; }
+    public abstract List<ImageResource>? Icons { get; set; }
+    public abstract List<ImageResource>? Screenshots { get; set; }
     public abstract DisplayModeType? Display { get; set; }
     public abstract OrientationType? Orientation { get; set; }
     public abstract string? ThemeColor { get; set; }
@@ -246,8 +246,8 @@ public class MicroModuleManifest : IMicroModuleManifest, IEquatable<MicroModuleM
         string? lang = null,
         string? shortName = null,
         string? description = null,
-        List<ImageSource>? icons = null,
-        List<ImageSource>? screenshots = null,
+        List<ImageResource>? icons = null,
+        List<ImageResource>? screenshots = null,
         DisplayModeType? display = null,
         OrientationType? orientation = null,
         string? themeColor = null,
@@ -294,9 +294,9 @@ public class MicroModuleManifest : IMicroModuleManifest, IEquatable<MicroModuleM
     [JsonPropertyName("description")]
     public string? Description { get; set; }
     [JsonPropertyName("icons")]
-    public List<ImageSource>? Icons { get; set; }
+    public List<ImageResource>? Icons { get; set; }
     [JsonPropertyName("screenshots")]
-    public List<ImageSource>? Screenshots { get; set; }
+    public List<ImageResource>? Screenshots { get; set; }
     [JsonPropertyName("display")]
     public DisplayModeType? Display { get; set; }
     [JsonPropertyName("orientation")]

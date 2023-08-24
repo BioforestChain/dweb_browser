@@ -46,8 +46,8 @@ public interface IJmmAppManifest : ICommonAppManifest
     public new string Name { get; set; }
     public new string ShortName { get; set; }
     public new string Description { get; set; }
-    public new List<Core.ImageSource> Icons { get; set; }
-    public new List<Core.ImageSource> Screenshots { get; set; }
+    public new List<ImageResource> Icons { get; set; }
+    public new List<ImageResource> Screenshots { get; set; }
     public new DisplayModeType Display { get; set; }
     public new OrientationType Orientation { get; set; }
     public new string ThemeColor { get; set; }
@@ -68,6 +68,16 @@ public interface IJmmAppInstallManifest : IJmmAppManifest
     public string BundleUrl { get; set; }
     public string BundleHash { get; set; }
     public long BundleSize { get; set; }
+    /// <summary>
+    /// 格式为 `hex:{signature}`
+    /// </summary>
+    public string BundleSignature { get; set; }
+    /// <summary>
+    /// 该链接必须使用和app-id同域名的网站链接，
+    /// 请求回来是一个“算法+公钥地址”的格式 "{algorithm}:hex;{publicKey}"，
+    /// 比如说 `rsa-sha256:hex;2...1`
+    /// </summary>
+    public string PublicKeyUrl { get; set; }
     /// <summary>
     /// 更新日志，直接放url
     /// </summary>

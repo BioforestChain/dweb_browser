@@ -15,12 +15,13 @@ public class NavigationBarController : BarController, IToJsonAble
     public NavigationBarController(
         MultiWebViewController mwebviewController,
         NativeUiController nativeUiController) : base(
-        colorState: new(mwebviewController.NavigationBarView.BackgroundColor.ToColor()),
-        styleState: new(mwebviewController.StatusBarStyle),
-        visibleState: new(!mwebviewController.NavigationBarView.Hidden),
-        overlayState: new(mwebviewController.NavigationBarView.Alpha < 1),
+        colorState: new(UIColor.Yellow.ToColor()), // new(mwebviewController.NavigationBarView.BackgroundColor.ToColor()),
+        styleState: new(BarStyle.Default), // new(mwebviewController.StatusBarStyle),
+        visibleState: new(false), // new(!mwebviewController.NavigationBarView.Hidden),
+        overlayState: new(true), // new(mwebviewController.NavigationBarView.Alpha < 1),
         areaState: new(new AreaJson(0, 0, 0,
-            mwebviewController.NavigationBarView.Frame.GetMaxY().Value - mwebviewController.NavigationBarView.Frame.GetMinY().Value)))
+            0//mwebviewController.NavigationBarView.Frame.GetMaxY().Value - mwebviewController.NavigationBarView.Frame.GetMinY().Value
+            )))
     {
         Observer = new(GetState);
         StateObserver = new(ToJson);
@@ -30,38 +31,38 @@ public class NavigationBarController : BarController, IToJsonAble
         {
             await MainThread.InvokeOnMainThreadAsync(async () =>
             {
-                var currentAlpha = mwebviewController.NavigationBarView.Alpha;
+                //var currentAlpha = mwebviewController.NavigationBarView.Alpha;
 
-                var currentHidden = mwebviewController.NavigationBarView.Hidden;
-                mwebviewController.NavigationBarView.Hidden = !value.Visible;
+                //var currentHidden = mwebviewController.NavigationBarView.Hidden;
+                //mwebviewController.NavigationBarView.Hidden = !value.Visible;
 
-                var currentStatusBarStyle = mwebviewController.StatusBarStyle;
-                mwebviewController.NavigationBarView.Alpha = value.Overlay ? new nfloat(0.5) : 1;
+                //var currentStatusBarStyle = mwebviewController.StatusBarStyle;
+                //mwebviewController.NavigationBarView.Alpha = value.Overlay ? new nfloat(0.5) : 1;
 
-                AreaState.Set(mwebviewController.NavigationBarView.Hidden ? AreaJson.Empty : new(
-                    0,
-                    0,
-                    0,
-                    mwebviewController.NavigationBarView.Frame.GetMaxY().Value
-                    - mwebviewController.NavigationBarView.Frame.GetMinY().Value));
+                //AreaState.Set(mwebviewController.NavigationBarView.Hidden ? AreaJson.Empty : new(
+                //    0,
+                //    0,
+                //    0,
+                //    mwebviewController.NavigationBarView.Frame.GetMaxY().Value
+                //    - mwebviewController.NavigationBarView.Frame.GetMinY().Value));
 
-                mwebviewController.NavigationBarView.BackgroundColor = UIColor.FromRGBA(
-                    value.Color.red.ToNFloat(),
-                    value.Color.green.ToNFloat(),
-                    value.Color.blue.ToNFloat(),
-                    value.Color.alpha.ToNFloat());
+                //mwebviewController.NavigationBarView.BackgroundColor = UIColor.FromRGBA(
+                //    value.Color.red.ToNFloat(),
+                //    value.Color.green.ToNFloat(),
+                //    value.Color.blue.ToNFloat(),
+                //    value.Color.alpha.ToNFloat());
 
-                if (currentHidden == value.Visible)
-                {
-                    mwebviewController.SetNeedsUpdateOfHomeIndicatorAutoHidden();
-                }
+                //if (currentHidden == value.Visible)
+                //{
+                //    mwebviewController.SetNeedsUpdateOfHomeIndicatorAutoHidden();
+                //}
 
-                // 如果overlay有变化，主动通知SafeArea
-                if ((currentAlpha < 1 && !value.Overlay) || (currentAlpha >= 1 && value.Overlay))
-                {
-                    NativeUiController.SafeArea.AreaState.Set(new(0, 0, 0, 0));
-                    NativeUiController.SafeArea.Observer.Get();
-                }
+                //// 如果overlay有变化，主动通知SafeArea
+                //if ((currentAlpha < 1 && !value.Overlay) || (currentAlpha >= 1 && value.Overlay))
+                //{
+                //    NativeUiController.SafeArea.AreaState.Set(new(0, 0, 0, 0));
+                //    NativeUiController.SafeArea.Observer.Get();
+                //}
             });
 
             await StateObserver.EmitAsync();

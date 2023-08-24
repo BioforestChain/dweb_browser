@@ -18,15 +18,15 @@ public class ManifestTest
 			"zh-CN",
 			"test",
 			"test app to manifest",
-			new List<MicroService.Core.ImageSource> { new MicroService.Core.ImageSource("https://dweb.waterbang.top/icons.png") },
-			new List<MicroService.Core.ImageSource> { new MicroService.Core.ImageSource("https://dweb.waterbang.top/screenshots.png") },
+			new List<ImageResource> { new ImageResource("https://dweb.waterbang.top/icons.png") },
+			new List<ImageResource> { new ImageResource("https://dweb.waterbang.top/screenshots.png") },
 			DisplayModeType.Browser,
 			OrientationType.Landscape,
 			"#ff0035",
 			"#00ff00",
-			new List<ShortcutItem>() { new ShortcutItem("item", "https://dweb.waterbang.top", icons: new List<MicroService.Core.ImageSource>
+			new List<ShortcutItem>() { new ShortcutItem("item", "https://dweb.waterbang.top", icons: new List<ImageResource>
 			{
-				new MicroService.Core.ImageSource("https://dweb.waterbang.top/shortcutItem.png")
+				new ImageResource("https://dweb.waterbang.top/shortcutItem.png")
 			}) }
 		);
 

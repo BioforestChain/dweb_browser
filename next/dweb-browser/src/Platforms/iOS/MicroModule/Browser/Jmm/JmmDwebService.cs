@@ -86,9 +86,9 @@ public static class JmmDwebService
     /// 卸载应用
     /// </summary>
     /// <param name="mmid">JmmMetadata id</param>
-    public static void UnInstall(IJmmAppInstallManifest jmmMetadata)
+    public static void UnInstall(Mmid mmid)
     {
-        var jmmAppPath = JsMicroModule.GetJmmAppPath(jmmMetadata);
+        var jmmAppPath = JsMicroModule.GetJmmAppPath(mmid);
 
         if (Directory.Exists(jmmAppPath))
         {
@@ -257,7 +257,7 @@ public class JmmDownload
     {
         _ = Task.Run(() =>
         {
-            var outputDir = JsMicroModule.GetInstallPath(JmmAppInstallManifest);
+            var outputDir = JsMicroModule.GetInstallPath(JmmAppInstallManifest.Id, JmmAppInstallManifest.Version);
             Console.Log("UnCompressZip", outputDir);
 
             if (!Directory.Exists(outputDir))

@@ -94,12 +94,13 @@ public class MicroService
         "DeskController",
         "TaskBarFloatView",
         "DeskAppUIView",
+        "JmmController",
         //"PortListener",
         //"DeviceNMM",
         //"DeviceSystemInfo",
         //"DeskStore",
         //"FileStore",
-        //"*"
+        "*"
     };
 
     // 添加debug日志tag过滤

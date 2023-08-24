@@ -42,7 +42,10 @@ public static class LocaleFile
     public static async Task<PureResponse?> GetSysFile(MicroModule remote, PureRequest request)
     {
 
-        if (request.ParsedUrl is not null and var parsedUrl && parsedUrl.Scheme == Uri.UriSchemeFile && parsedUrl.FullHost is "" && parsedUrl.Path.StartsWith("/sys/"))
+        if (request.ParsedUrl is not null and var parsedUrl &&
+            parsedUrl.Scheme == Uri.UriSchemeFile &&
+            parsedUrl.FullHost is "" &&
+            parsedUrl.Path.StartsWith("/sys/"))
         {
             var query = HttpUtility.ParseQueryString(parsedUrl.Query);
             var mode = query["mode"] ?? "auto";

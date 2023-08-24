@@ -8,6 +8,8 @@ public class WindowPropertyKeys
     public static readonly WindowPropertyKeys Any = new("*");
     public static readonly WindowPropertyKeys Title = new("title");
     public static readonly WindowPropertyKeys IconUrl = new("iconUrl");
+    public static readonly WindowPropertyKeys IconMaskable = new("iconMaskable");
+    public static readonly WindowPropertyKeys IconMonochrome = new("iconMonochrome");
     public static readonly WindowPropertyKeys Mode = new("mode");
     public static readonly WindowPropertyKeys Resizable = new("resizable");
     public static readonly WindowPropertyKeys Focus = new("focus");

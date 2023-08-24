@@ -11,7 +11,7 @@ public class WindowAdapterManager : AdapterManager<CreateWindowAdapter>
 {
     public static readonly WindowAdapterManager Instance = new();
 
-    public ConcurrentDictionary<UUID, Action<WindowRenderScope, DeskAppUIView>> RenderProviders = new();
+    public ConcurrentDictionary<UUID, Func<WindowRenderScope, WindowController, Task>> RenderProviders = new();
 
     public async Task<WindowController> CreateWindow(WindowState winState)
     {

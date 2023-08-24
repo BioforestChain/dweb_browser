@@ -18,10 +18,10 @@ public class NativeUiNMM : NativeMicroModule
 
     protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)
     {
-        bootstrapContext.Dns.Install(_statusBarNMM);
-        bootstrapContext.Dns.Install(_navigationBarNMM);
-        bootstrapContext.Dns.Install(_virtualKeyboardNMM);
-        bootstrapContext.Dns.Install(_safeAreaNMM);
+        //bootstrapContext.Dns.Install(_statusBarNMM);
+        //bootstrapContext.Dns.Install(_navigationBarNMM);
+        //bootstrapContext.Dns.Install(_virtualKeyboardNMM);
+        //bootstrapContext.Dns.Install(_safeAreaNMM);
     }
 }
 

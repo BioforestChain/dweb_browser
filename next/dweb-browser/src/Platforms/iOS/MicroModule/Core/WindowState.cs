@@ -66,13 +66,32 @@ public class WindowState
     private Observable.Observer iconUrl { get; init; }
 
     /// <summary>
+    /// 图标是否可被裁切，默认不可裁切
+    ///
+    /// 如果你的图标自带安全区域，请标记成true
+    /// （可以用圆形来作为图标的遮罩，如果仍然可以正确显示，那么就属于 maskable=true）
+    /// </summary>
+    [JsonPropertyName("iconMaskable")]
+    public bool IconMaskable { get => iconMaskable.Get(); set => iconMaskable.Set(value); }
+    private Observable.Observer iconMaskable { get; init; }
+
+    /// <summary>
+    /// 图标是否单色
+    ///
+    /// 如果是单色调，那么就会被上下文所影响，从而在不同的场景里会被套上不同的颜色
+    /// </summary>
+    [JsonPropertyName("iconMonochrome")]
+    public bool IconMonochrome { get => iconMonochrome.Get(); set => iconMonochrome.Set(value); }
+    private Observable.Observer iconMonochrome { get; init; }
+
+    /// <summary>
     /// 窗口位置和大小
     ///
     /// 窗口会被限制最小值，会被限制显示区域。
     /// 终止，窗口最终会被绘制在用户可见可控的区域中
     /// </summary>
     [JsonPropertyName("bounds")]
-    public WindowBounds? Bounds { get => bounds.Get(); set => bounds.Set(value); }
+    public WindowBounds Bounds { get => bounds.Get(); set => bounds.Set(value); }
     private Observable.Observer bounds { get; init; }
 
     /// <summary>
@@ -273,7 +292,10 @@ public class WindowState
 
         bounds = Observable.Observe(WindowPropertyKeys.Bounds.FieldName, new WindowBounds());
         title = Observable.ObserveNullable(WindowPropertyKeys.Title.FieldName);
-        iconUrl = Observable.ObserveNullable(WindowPropertyKeys.IconUrl.FieldName);
+        //iconUrl = Observable.ObserveNullable(WindowPropertyKeys.IconUrl.FieldName, "");
+        iconUrl = Observable.Observe(WindowPropertyKeys.IconUrl.FieldName, "");
+        iconMaskable = Observable.Observe(WindowPropertyKeys.IconMaskable.FieldName, false);
+        iconMonochrome = Observable.Observe(WindowPropertyKeys.IconMonochrome.FieldName, false);
         mode = Observable.Observe(WindowPropertyKeys.Mode.FieldName, WindowMode.FLOATING);
         resizable = Observable.Observe(WindowPropertyKeys.Resizable.FieldName, false);
         focus = Observable.Observe(WindowPropertyKeys.Focus.FieldName, false);

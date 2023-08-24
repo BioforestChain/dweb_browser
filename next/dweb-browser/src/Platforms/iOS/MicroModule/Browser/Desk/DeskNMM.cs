@@ -14,7 +14,6 @@ public class DeskNMM : IOSNativeMicroModule
 
     public DeskNMM() : base("desk.browser.dweb", "Desk")
     {
-        //s_controllerList.Add(new(this));
         DeskController = new DeskController(this);
     }
 
@@ -50,8 +49,8 @@ public class DeskNMM : IOSNativeMicroModule
             string? lang = null,
             string? shortName = null,
             string? description = null,
-            List<Core.ImageSource>? icons = null,
-            List<Core.ImageSource>? screenshots = null,
+            List<ImageResource>? icons = null,
+            List<ImageResource>? screenshots = null,
             DisplayModeType? display = null,
             OrientationType? orientation = null,
             string? themeColor = null,
@@ -105,6 +104,13 @@ public class DeskNMM : IOSNativeMicroModule
 
     protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)
     {
+        _ = ListenApps();
+
+        OnAfterShutdown += async (_) =>
+        {
+            RunningApps.Reset();
+        };
+
         var taskbarServer = await CreateTaskbarWebServer();
         var desktopServer = await CreateDesktopWebServer();
 
@@ -118,9 +124,9 @@ public class DeskNMM : IOSNativeMicroModule
             }
         });
 
-        RunningApps.OnChangeAdd(async (map, _) =>
+        RunningApps.OnChangeAdd(async (changes, _) =>
         {
-            foreach (var app_id in map.Keys)
+            foreach (var app_id in changes.Origin.Keys)
             {
                 var taskApp = new TaskAppsStore.TaskApps(app_id, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
                 if (!DeskController.TaskBarAppList.Contains(taskApp))
@@ -212,7 +218,7 @@ public class DeskNMM : IOSNativeMicroModule
         {
             var stream = new ReadableStream(onStart: controller =>
             {
-                Signal<ChangeableMap<Mmid, Ipc>> cb = async (_, _) =>
+                Signal<Changes<Mmid, Ipc>> cb = async (_, _) =>
                 {
                     var apps = await DeskController.GetDesktopAppList();
                     Console.Log("/desktop/observe/apps", $"size={apps.Count}");
@@ -245,7 +251,7 @@ public class DeskNMM : IOSNativeMicroModule
             var limit = request.SafeUrl.SearchParams.Get("limit")?.Let(it => it.ToIntOrNull()) ?? int.MaxValue;
             var stream = new ReadableStream(onStart: controller =>
             {
-                Signal<ChangeableMap<Mmid, Ipc>> cb = async (_, _) =>
+                Signal<Changes<Mmid, Ipc>> cb = async (_, _) =>
                 {
                     var apps = await DeskController.GetTaskbarAppList(limit);
                     Console.Log("/taskbar/observe/apps", $"size={apps.Count}");
@@ -314,8 +320,20 @@ public class DeskNMM : IOSNativeMicroModule
 
     internal Task OpenActivity() => MainThread.InvokeOnMainThreadAsync(async () =>
     {
-        DeskAppUIView.Start();
+        DeskController.Start();
     });
+
+    private async Task ListenApps()
+    {
+        var connectResult = await BootstrapContext.Dns.ConnectAsync("dns.std.dweb");
+
+        var res = await connectResult.IpcForFromMM.Request("/observe/app");
+        await foreach (var buffer in res.Body.ToStream().ReadBytesStream())
+        {
+            var state = JsonSerializer.Deserialize<ChangeState<Mmid>>(buffer);
+            RunningApps.OnChangeBackgroundEmit(state.Adds, state.Updates, state.Removes);
+        }
+    }
 
     private const string API_PREFIX = "/api/";
 

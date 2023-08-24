@@ -15,11 +15,11 @@ public class StatusBarController : BarController, IToJsonAble
     public StatusBarController(
         MultiWebViewController mwebviewController,
         NativeUiController nativeUiController) : base(
-        colorState: new(mwebviewController.StatusBarView.BackgroundColor.ToColor()),
-        styleState: new(mwebviewController.StatusBarStyle),
-        visibleState: new(!mwebviewController.StatusBarView.Hidden),
-        overlayState: new(mwebviewController.StatusBarView.Alpha < 1),
-        areaState: new(new AreaJson(mwebviewController.StatusBarView.Frame.GetMaxY().Value, 0, 0, 0))
+        colorState: new(UIColor.Yellow.ToColor()), // new(mwebviewController.StatusBarView.BackgroundColor.ToColor()),
+        styleState: new(BarStyle.Default), // new(mwebviewController.StatusBarStyle),
+        visibleState: new(false), // new(!mwebviewController.StatusBarView.Hidden),
+        overlayState: new(true), // new(mwebviewController.StatusBarView.Alpha < 1),
+        areaState: new(AreaJson.Empty) // new(new AreaJson(mwebviewController.StatusBarView.Frame.GetMaxY().Value, 0, 0, 0))
     )
     {
         Observer = new(GetState);
@@ -30,33 +30,33 @@ public class StatusBarController : BarController, IToJsonAble
         {
             await MainThread.InvokeOnMainThreadAsync(async () =>
             {
-                var currentAlpha = mwebviewController.StatusBarView.Alpha;
+                //var currentAlpha = mwebviewController.StatusBarView.Alpha;
 
-                mwebviewController.StatusBarView.Hidden = !value.Visible;
-                mwebviewController.StatusBarStyle = value.Style;
+                //mwebviewController.StatusBarView.Hidden = !value.Visible;
+                //mwebviewController.StatusBarStyle = value.Style;
 
-                mwebviewController.StatusBarView.Alpha = value.Overlay ? new nfloat(0.5) : 1;
+                //mwebviewController.StatusBarView.Alpha = value.Overlay ? new nfloat(0.5) : 1;
 
-                mwebviewController.StatusBarView.BackgroundColor = UIColor.FromRGBA(
-                    value.Color.red.ToNFloat(),
-                    value.Color.green.ToNFloat(),
-                    value.Color.blue.ToNFloat(),
-                    value.Color.alpha.ToNFloat());
+                //mwebviewController.StatusBarView.BackgroundColor = UIColor.FromRGBA(
+                //    value.Color.red.ToNFloat(),
+                //    value.Color.green.ToNFloat(),
+                //    value.Color.blue.ToNFloat(),
+                //    value.Color.alpha.ToNFloat());
 
-                AreaState.Set(mwebviewController.StatusBarView.Hidden ? AreaJson.Empty : new(
-                        mwebviewController.StatusBarView.Frame.GetMaxY().Value,
-                        0,
-                        0,
-                        0));
+                //AreaState.Set(mwebviewController.StatusBarView.Hidden ? AreaJson.Empty : new(
+                //        mwebviewController.StatusBarView.Frame.GetMaxY().Value,
+                //        0,
+                //        0,
+                //        0));
 
-                mwebviewController.SetNeedsStatusBarAppearanceUpdate();
+                //mwebviewController.SetNeedsStatusBarAppearanceUpdate();
 
-                // 如果overlay有变化，主动通知SafeArea
-                if ((currentAlpha < 1 && !value.Overlay) || (currentAlpha >= 1 && value.Overlay))
-                {
-                    NativeUiController.SafeArea.AreaState.Set(new(0, 0, 0, 0));
-                    NativeUiController.SafeArea.Observer.Get();
-                }
+                //// 如果overlay有变化，主动通知SafeArea
+                //if ((currentAlpha < 1 && !value.Overlay) || (currentAlpha >= 1 && value.Overlay))
+                //{
+                //    NativeUiController.SafeArea.AreaState.Set(new(0, 0, 0, 0));
+                //    NativeUiController.SafeArea.Observer.Get();
+                //}
             });
 
             await StateObserver.EmitAsync();

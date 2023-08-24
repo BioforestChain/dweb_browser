@@ -21,6 +21,21 @@ public partial class DeskController : BaseViewController
     /// </summary>
     private readonly DeskUIView DeskUIView = new();
 
+    public List<DeskAppUIView> GetDeskAppUIViews()
+    {
+        var deskAppUIViews = new List<DeskAppUIView>();
+
+        foreach (var view in DeskUIView.Subviews)
+        {
+            if (view is DeskAppUIView deskAppUIView)
+            {
+                deskAppUIViews.Add(deskAppUIView);
+            }
+        }
+
+        return deskAppUIViews;
+    }
+
     public override void ViewDidLoad()
     {
         base.ViewDidLoad();

@@ -1,11 +1,10 @@
 ﻿using CoreGraphics;
-using DwebBrowser.MicroService.Browser.Desk;
 
 namespace DwebBrowser.MicroService.Core;
 
 public partial class WindowController
 {
-    public async Task Render(DeskAppUIView deskAppUIView, CGRect frame)
+    public async Task Render(CGRect frame)
     {
         var win = this;
 
@@ -25,8 +24,8 @@ public partial class WindowController
             BottomBarBaseHeight: 24f
             );
 
-        WindowAdapterManager.Instance.RenderProviders.GetValueOrDefault(win.Id).Invoke(
-            new WindowRenderScope(((float)frame.Width), (float)frame.Height, (float)limits.MinScale), deskAppUIView);
+        await WindowAdapterManager.Instance.RenderProviders.GetValueOrDefault(win.Id).Invoke(
+            new WindowRenderScope(((float)frame.Width), (float)frame.Height, (float)limits.MinScale), win);
     }
 }
 

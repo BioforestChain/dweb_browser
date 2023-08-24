@@ -24,9 +24,9 @@ public class JsMicroModule : MicroModule
     /// </summary>
     /// <param name="metadata"></param>
     /// <returns></returns>
-    public static string GetInstallPath(IJmmAppInstallManifest metadata)
+    public static string GetInstallPath(Mmid mmid, string version)
     {
-        return Path.Join(DWEB_APP_DIR, metadata.Id, metadata.Version);
+        return Path.Join(DWEB_APP_DIR, mmid, version);
     }
 
     /// <summary>
@@ -34,7 +34,7 @@ public class JsMicroModule : MicroModule
     /// </summary>
     /// <param name="metadata"></param>
     /// <returns></returns>
-    public static string GetJmmAppPath(IJmmAppInstallManifest metadata) => Path.Join(DWEB_APP_DIR, metadata.Id);
+    public static string GetJmmAppPath(Mmid mmid) => Path.Join(DWEB_APP_DIR, mmid);
 
     /// <summary>
     /// 获取一个应用所有的安装版本
@@ -62,8 +62,8 @@ public class JsMicroModule : MicroModule
     public override string? Lang { get; set; } = null;
     public override string? ShortName { get; set; } = null;
     public override string? Description { get; set; } = null;
-    public override List<Core.ImageSource>? Icons { get; set; } = null;
-    public override List<Core.ImageSource>? Screenshots { get; set; } = null;
+    public override List<ImageResource>? Icons { get; set; } = null;
+    public override List<ImageResource>? Screenshots { get; set; } = null;
     public override DisplayModeType? Display { get; set; } = null;
     public override OrientationType? Orientation { get; set; } = null;
     public override string? ThemeColor { get; set; } = null;
@@ -125,6 +125,12 @@ public class JsMicroModule : MicroModule
             Raw = true
         };
         Categories = metadata.Config.Categories;
+
+        if (!Categories.Contains(MicroModuleCategory.Application))
+        {
+            Categories.Add(MicroModuleCategory.Application);
+        }
+
         Name = metadata.Config.Name;
         Dir = metadata.Config.Dir;
         Version = metadata.Config.Version;
@@ -138,6 +144,11 @@ public class JsMicroModule : MicroModule
         ThemeColor = metadata.Config.ThemeColor;
         BackgroundColor = metadata.Config.BackgroundColor;
         Shortcuts = metadata.Config.Shortcuts;
+
+        if (Icons is null || Icons.Count == 0)
+        {
+            Icons = new List<ImageResource> { new ImageResource(metadata.Config.Icon) };
+        }
     }
 
     public JsMMMetadata Metadata { get; init; }

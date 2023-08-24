@@ -1,7 +1,6 @@
 ﻿using System.Text.Json;
 using DwebBrowser.Base;
 using DwebBrowser.MicroService.Browser.Mwebview.DwebServiceWorker;
-using DwebBrowser.MicroService.Browser.NativeUI;
 using UIKit;
 using WebKit;
 
@@ -9,61 +8,53 @@ using WebKit;
 
 namespace DwebBrowser.MicroService.Browser.Mwebview;
 
-public partial class MultiWebViewController : BaseViewController
+public partial class MultiWebViewController
 {
     static readonly Debugger Console = new("MultiWebViewController");
 
-    public Mmid Mmid { get; set; }
-    public MultiWebViewNMM LocaleMM { get; set; }
+    public WindowController Win { get; set; }
+    public Ipc Ipc { get; init; }
+    public MicroModule LocaleMM { get; set; }
     public MicroModule RemoteMM { get; set; }
 
-    public MultiWebViewController(Mmid mmid, MultiWebViewNMM localeMM, MicroModule remoteMM)
+    public MultiWebViewController(WindowController win, Ipc ipc, MicroModule localeMM, MicroModule remoteMM)
     {
-        Mmid = mmid;
+        Win = win;
+        Ipc = ipc;
         LocaleMM = localeMM;
         RemoteMM = remoteMM;
 
         var gesture = new UIScreenEdgePanGestureRecognizer();
         gesture.AddTarget(() => OnScreenEdgePan(gesture));
-
-        //gesture.DelaysTouchesBegan = true;
         gesture.Edges = UIRectEdge.Left;
         gesture.CancelsTouchesInView = true;
         EdgeView.AddGestureRecognizer(gesture);
 
-        #region WebViewList OnChange
-
-        WebViewList.OnChange += async (value, oldValue, _) =>
+        WebViewList.OnChangeAdd(async (_, _) =>
         {
-            var currentState = new Dictionary<string, Dictionary<string, object>>();
-            value.ForEach(it =>
+            await UpdateStateHook();
+        });
+
+        WindowAdapterManager.Instance.RenderProviders.TryAdd(win.Id, Render);
+
+        /// 窗口销毁的时候
+        Win.OnClose.OnListener += async (_, _) =>
+        {
+            /// 移除渲染适配器
+            WindowAdapterManager.Instance.RenderProviders.Remove(win.Id, out _);
+
+            /// 清除释放所有的 webview
+            foreach (var item in WebViewList)
             {
-                var dic = new Dictionary<string, object>
-                {
-                    { "webviewId", it.webviewId },
-                    /// TODO 需要对webview的显示隐藏进行管理
-                    { "isActivated", it.webView.Hidden },
-                    { "url", it.webView.Url?.AbsoluteString ?? "" }
-                };
-
-                currentState.Add(it.webviewId, dic);
-            });
-
-            var ipc = await _mIpcMap.GetValueOrPutAsync(mmid, async () =>
-            {
-                var ipcForFromMM = await localeMM.ConnectAsync(mmid);
-                ipcForFromMM!.OnEvent += async (Event, _, _) =>
-                {
-                    Console.Log("event", "name={0}, data={1}", Event.Name, Event.Data);
-                };
-
-                return ipcForFromMM;
-            });
-
-            await ipc.PostMessageAsync(IpcEvent.FromUtf8("state", JsonSerializer.Serialize(currentState)));
+                await CloseWebViewAsync(item.webviewId);
+            }
         };
 
-        #endregion
+        /// ipc 断开的时候，强制关闭窗口
+        ipc.OnClose += async (_) =>
+        {
+            await Win.Close(true);
+        };
     }
 
     UIGestureRecognizerState preState = UIGestureRecognizerState.Ended;
@@ -78,6 +69,7 @@ public partial class MultiWebViewController : BaseViewController
 
         if (pan.State == UIGestureRecognizerState.Ended)
         {
+            var LastViewOrNull = WebViewList.LastOrNull();
             if (LastViewOrNull is not null)
             {
                 if (LastViewOrNull.webView.CanGoBack)
@@ -92,42 +84,31 @@ public partial class MultiWebViewController : BaseViewController
         }
     }
 
-    public override void ViewDidAppear(bool animated)
-    {
-        base.ViewDidAppear(animated);
-        _ = Task.Run(async () =>
-        {
-            await ServiceWorker.EmitEventAsync(RemoteMM.Mmid, ServiceWorkerEvent.Resume.Event);
-        }).NoThrow();
-    }
+    public readonly ChangeableList<ViewItem> WebViewList = new();
 
-    public override void ViewWillDisappear(bool animated)
+    internal record ViewItemState(string webviewId, bool isActivated, string url);
+
+    public async Task UpdateStateHook()
     {
-        base.ViewWillDisappear(animated);
-        _ = Task.Run(async () =>
+        var currentState = new Dictionary<string, ViewItemState>();
+        WebViewList.ForEach(it =>
         {
-            await ServiceWorker.EmitEventAsync(RemoteMM.Mmid, ServiceWorkerEvent.Pause.Event, "new Event(\"pause\")");
-        }).NoThrow();
+            var viewItemState = new ViewItemState(it.webviewId, WebviewContainer.Hidden, it.webView.Url?.AbsoluteString ?? "");
+            currentState.Add(it.webviewId, viewItemState);
+        });
+
+        await Ipc.PostMessageAsync(IpcEvent.FromUtf8(EIpcEvent.State.Event, JsonSerializer.Serialize(currentState)));
     }
 
     private static int s_webviewId_acc = 0;
 
-    public State<List<ViewItem>> WebViewList = new(new List<ViewItem>());
-
-    public ViewItem? LastViewOrNull { get => WebViewList.Get().LastOrDefault(); }
-
-    public bool IsLastView(ViewItem viewItem) => WebViewList.Get().LastOrDefault() == viewItem;
-
     private readonly Dictionary<Mmid, Ipc> _mIpcMap = new();
 
-    public record ViewItem(string webviewId, DWebView.DWebView webView, MultiWebViewController mwebviewController)
-    {
-        private readonly LazyBox<NativeUiController> _nativeUiController = new();
-        public NativeUiController nativeUiController
-        {
-            get => _nativeUiController.GetOrPut(() => new NativeUiController(mwebviewController));
-        }
-    }
+    public record ViewItem(
+        string webviewId,
+        DWebView.DWebView webView,
+        MultiWebViewController mwebviewController,
+        WindowController win);
 
     public async Task<ViewItem> OpenWebViewAsync(string url, WKWebViewConfiguration? configuration = null)
     {
@@ -163,9 +144,9 @@ public partial class MultiWebViewController : BaseViewController
     {
         var webviewId = "#w" + Interlocked.Increment(ref s_webviewId_acc);
 
-        return MainThread.InvokeOnMainThreadAsync(() => new ViewItem(webviewId, dwebview, this).Also(it =>
+        return MainThread.InvokeOnMainThreadAsync(() => new ViewItem(webviewId, dwebview, this, Win).Also(it =>
         {
-            WebViewList.Update(list => list?.Add(it));
+            WebViewList.Add(it);
             dwebview.OnClose += async (_, _) =>
             {
                 await CloseWebViewAsync(webviewId);
@@ -173,23 +154,25 @@ public partial class MultiWebViewController : BaseViewController
 
             _ = Task.Run(async () =>
             {
-                await (_WebViewOpenSignal.Emit(webviewId)).ForAwait();
+                await _WebViewOpenSignal.Emit(webviewId).ForAwait();
             }).NoThrow();
         }));
     }
 
     public async Task<bool> CloseWebViewAsync(string webviewId)
     {
-        var viewItem = WebViewList.Get().Find(viewItem => viewItem.webviewId == webviewId);
+        var viewItem = WebViewList.Find(viewItem => viewItem.webviewId == webviewId);
 
         if (viewItem is not null)
         {
-            Console.Log("CloseWebView", viewItem.webviewId);
-
-            if (WebViewList.Update((list) => list!.Remove(viewItem)))
+            if (WebViewList.Remove(viewItem))
             {
-                viewItem.webView?.Dispose();
-                await (_WebViewCloseSignal.Emit(webviewId)).ForAwait();
+                await MainThread.InvokeOnMainThreadAsync(async () =>
+                {
+                    viewItem.webView?.Dispose();
+                });
+                await _WebViewCloseSignal.Emit(webviewId).ForAwait();
+
                 return true;
             }
         }
@@ -197,18 +180,20 @@ public partial class MultiWebViewController : BaseViewController
         return false;
     }
 
-
     /// <summary>
     /// 移除webview所有列表
     /// </summary>
     public bool DestroyWebView()
     {
-        WebViewList.Get().ForEach(viewItem =>
+        MainThread.InvokeOnMainThreadAsync(() =>
         {
-            viewItem.webView?.Dispose();
+            WebViewList.ForEach(viewItem =>
+            {
+                viewItem.webView?.Dispose();
+            });
         });
 
-        WebViewList.Update(list => list!.Clear());
+        WebViewList.Clear();
 
         return true;
     }
@@ -217,13 +202,13 @@ public partial class MultiWebViewController : BaseViewController
     private readonly HashSet<Signal<string>> _WebViewCloseSignal = new();
     private event Signal<string> _OnWebViewClose
     {
-        add { if(value != null) lock (_WebViewCloseSignal) { _WebViewCloseSignal.Add(value); } }
+        add { if (value != null) lock (_WebViewCloseSignal) { _WebViewCloseSignal.Add(value); } }
         remove { lock (_WebViewCloseSignal) { _WebViewCloseSignal.Remove(value); } }
     }
     private readonly HashSet<Signal<string>> _WebViewOpenSignal = new();
     private event Signal<string> _OnWebViewOpen
     {
-        add { if(value != null) lock (_WebViewOpenSignal) { _WebViewOpenSignal.Add(value); } }
+        add { if (value != null) lock (_WebViewOpenSignal) { _WebViewOpenSignal.Add(value); } }
         remove { lock (_WebViewOpenSignal) { _WebViewOpenSignal.Remove(value); } }
     }
 

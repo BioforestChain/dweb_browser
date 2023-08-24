@@ -1,5 +1,9 @@
-﻿using DwebBrowser.MicroService.Http;
+﻿using System.Reflection;
+using System.Runtime.InteropServices;
+using DwebBrowser.MicroService.Browser.Desk;
+using DwebBrowser.MicroService.Http;
 using DwebBrowserFramework;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace DwebBrowser.MicroService.Browser.Web;
 
@@ -9,13 +13,6 @@ public class WebBrowserNMM : IOSNativeMicroModule
     public override string ShortName { get; set; } = "Browser";
     public WebBrowserNMM() : base("web.browser.dweb", "Web Browser")
     {
-        s_controllerList.Add(new(this));
-    }
-
-    private static readonly List<WebBrowserController> s_controllerList = new();
-    public static WebBrowserController WebBrowserController
-    {
-        get => s_controllerList.FirstOrDefault();
     }
 
     public override List<Dweb_DeepLink> Dweb_deeplinks { get; init; } = new() { "dweb:search" };
@@ -25,7 +22,7 @@ public class WebBrowserNMM : IOSNativeMicroModule
         MicroModuleCategory.Web_Browser,
     };
 
-    public override List<Core.ImageSource> Icons { get { return new() { new Core.ImageSource("file:///sys/browser/web/logo.svg") }; } }
+    public override List<ImageResource> Icons { get { return new() { new ImageResource("file:///sys/browser/web/logo.svg") }; } }
 
     protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)
     {
@@ -60,15 +57,23 @@ public class WebBrowserNMM : IOSNativeMicroModule
             return new BrowserWeb(this, configuration);
         });
 
-        var manager = new BridgeManager();
-
         /// 打开安装窗口
         var win = await WindowAdapterManager.Instance.CreateWindow(
             new WindowState(ipc.Remote.Mmid, Mmid, microModule: this) { Mode = WindowMode.MAXIMIZE });
-        WindowAdapterManager.Instance.RenderProviders.TryAdd(win.Id, (windowRenderScope, deskAppUIView) =>
-        {
-            deskAppUIView.Render(manager.BrowserView, windowRenderScope);
-        });
+        WindowAdapterManager.Instance.RenderProviders.TryAdd(win.Id, (windowRenderScope, windowController) =>
+            MainThread.InvokeOnMainThreadAsync(() =>
+            {
+                var manager = new BridgeManager();
+                Console.Log("OpenBrowserWindow", manager.BrowserView.ToString());
+                //manager.BrowserView.
+                GCHandle handle = GCHandle.Alloc(manager.BrowserView);
+                IntPtr addr = GCHandle.ToIntPtr(handle);
+                Console.Log("addr", addr.ToString());
+
+                var deskAppUIView = new DeskAppUIView(windowController);
+                deskAppUIView.Layer.ZPosition = windowController.State.ZIndex;
+                deskAppUIView.Render(manager.BrowserView, windowRenderScope);
+            }));
 
         win.OnClose.OnListener += async (_, _) =>
         {

@@ -11,8 +11,8 @@ public interface ICommonAppManifest
     public string? Name { get; set; }
     public string? ShortName { get; set; }
     public string? Description { get; set; }
-    public List<ImageSource>? Icons { get; set; }
-    public List<ImageSource>? Screenshots { get; set; }
+    public List<ImageResource>? Icons { get; set; }
+    public List<ImageResource>? Screenshots { get; set; }
     public List<MicroModuleCategory>? Categories { get; set; }
     public DisplayModeType? Display { get; set; }
     public OrientationType? Orientation { get; set; }
@@ -50,8 +50,8 @@ public interface IMicroModuleManifest
     public string? Lang { get; set; }                                              /// <see cref="https://w3c.github.io/manifest/#lang-member"/>
     public string? ShortName { get; set; }                                         /// <see cref="https://w3c.github.io/manifest/#short_name-member"/>
     public string? Description { get; set; }                                       /// <see cref="https://w3c.github.io/manifest/#description-member"/>
-    public List<ImageSource>? Icons { get; set; }                                  /// <see cref="https://w3c.github.io/manifest/#icons-member"/>
-    public List<ImageSource>? Screenshots { get; set; }                            /// <see cref="https://w3c.github.io/manifest/#screenshots-member"/>
+    public List<ImageResource>? Icons { get; set; }                                  /// <see cref="https://w3c.github.io/manifest/#icons-member"/>
+    public List<ImageResource>? Screenshots { get; set; }                            /// <see cref="https://w3c.github.io/manifest/#screenshots-member"/>
     public DisplayModeType? Display { get; set; }                                  /// <see cref="https://w3c.github.io/manifest/#display-member"/>
     public OrientationType? Orientation { get; set; }                              /// <see cref="https://w3c.github.io/manifest/#orientation-member"/>
     public string? ThemeColor { get; set; }                                        /// <see cref="https://w3c.github.io/manifest/#theme_color-member"/>
@@ -258,89 +258,6 @@ public class OrientationConverter : JsonConverter<OrientationType>
 #endregion
 #endregion
 
-#region ImageSource
-/// <summary>
-/// Each `ImageResource` represents an image that is used as part of a web application, suitable to use in
-/// various contexts depending on the semantics of the member that is using the object (e.g., an icon
-/// that is part of an application menu, etc.).
-/// </summary>
-/// <see cref="https://w3c.github.io/manifest/#imageresource-and-its-members"/>
-public class ImageSource : IEquatable<ImageSource>
-{
-    [Obsolete("使用带参数的构造函数", true)]
-#pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
-    public ImageSource()
-#pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
-    {
-        /// 给JSON反序列化用的空参数构造函数
-    }
-
-    /// <summary>
-    /// The `src` member of an `ImageResource` is a URL from which a user agent can fetch the image's data.
-    /// </summary>
-    /// <see cref="https://w3c.github.io/manifest/#src-member"/>
-    [JsonPropertyName("src")]
-    public string Src { get; set; }
-
-    /// <summary>
-    /// The `sizes` member of an ImageResource is a string consisting of an unordered set of unique space-
-    /// separated tokens which are ASCII case-insensitive that represents the dimensions of an image.
-    /// </summary>
-    /// <see cref="https://w3c.github.io/manifest/#sizes-member"/>
-    [JsonPropertyName("sizes")]
-    public string? Sizes { get; set; }
-
-    /// <summary>
-    /// The `type` member of an `ImageResource` is a hint as to the MIME type of the image.
-    /// </summary>
-    /// <see cref="https://w3c.github.io/manifest/#type-member"/>
-    [JsonPropertyName("type")]
-    public string? Type { get; set; }
-
-    /// <summary>
-    /// The purpose member is an unordered set of unique space-separated tokens that are ASCII case-
-    /// insensitive.
-    /// </summary>
-    /// <see cref="https://w3c.github.io/manifest/#purpose-member"/>
-    [JsonPropertyName("purpose")]
-    public string? Purpose { get; set; }
-
-    /// <summary>
-    /// The `platform` member represents the platform to which a containing object applies.
-    /// </summary>
-    /// <see cref="https://w3c.github.io/manifest/#platform-member"/>
-    [JsonPropertyName("platform")]
-    public string? Platform { get; set; }
-
-    public ImageSource(string src, string? sizes = null, string? type = null, string? purpose = null, string? platform = null)
-    {
-        Src = src;
-        Sizes = sizes;
-        Type = type;
-        Purpose = purpose;
-        Platform = platform;
-    }
-
-    public string ToJson() => JsonSerializer.Serialize(this);
-    public static ImageSource? FromJson(string json) =>
-        JsonSerializer.Deserialize<ImageSource>(json);
-
-    public bool Equals(ImageSource? other)
-    {
-        return GetHashCode() == other?.GetHashCode();
-    }
-
-    public override int GetHashCode()
-    {
-        return Src.GetHashCode() ^
-            Sizes?.GetHashCode() ?? 0 ^
-            Type?.GetHashCode() ?? 0 ^
-            Purpose?.GetHashCode() ?? 0 ^
-            Platform?.GetHashCode() ?? 0;
-    }
-}
-#endregion
-
 /// <summary>
 /// Each `Fingerprints` represents a set of cryptographic fingerprints used for verifying the application. A
 /// fingerprint has the following two properties: `type` and `value`.
@@ -384,7 +301,7 @@ public record ShortcutItem(
     string url,                 /// <see cref="https://w3c.github.io/manifest/#url-member"/>
     string? short_name = null,  /// <see cref="https://w3c.github.io/manifest/#short_name-member-0"/>
     string? description = null, /// <see cref="https://w3c.github.io/manifest/#description-member-0"/>
-    List<ImageSource>? icons = null /// <see cref="https://w3c.github.io/manifest/#icons-member-0"/>
+    List<ImageResource>? icons = null /// <see cref="https://w3c.github.io/manifest/#icons-member-0"/>
 );
 
 /// <summary>
@@ -466,8 +383,8 @@ public interface IWebAppManifest
     public string? Name { get; set; }                                              /// <see cref="https://w3c.github.io/manifest/#name-member"/>
     public string? ShortName { get; set; }                                         /// <see cref="https://w3c.github.io/manifest/#short_name-member"/>
     public string? Description { get; set; }                                       /// <see cref="https://w3c.github.io/manifest/#description-member"/>
-    public List<ImageSource>? Icons { get; set; }                                  /// <see cref="https://w3c.github.io/manifest/#icons-member"/>
-    public List<ImageSource>? Screenshots { get; set; }                            /// <see cref="https://w3c.github.io/manifest/#screenshots-member"/>
+    public List<ImageResource>? Icons { get; set; }                                  /// <see cref="https://w3c.github.io/manifest/#icons-member"/>
+    public List<ImageResource>? Screenshots { get; set; }                            /// <see cref="https://w3c.github.io/manifest/#screenshots-member"/>
     public List<string>? Categories { get; set; }                                  /// <see cref="https://w3c.github.io/manifest/#categories-member"/>
     public string? IarcRatingId { get; set; }                                      /// <see cref="https://w3c.github.io/manifest/#iarc_rating_id-member"/>
     public string? StartUrl { get; set; }                                          /// <see cref="https://w3c.github.io/manifest/#start_url-member"/>

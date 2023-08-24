@@ -30,9 +30,9 @@ public class JmmAppInstallManifest : IJmmAppInstallManifest
     [JsonPropertyName("description")]
     public string Description { get; set; }
     [JsonPropertyName("icons")]
-    public List<Core.ImageSource> Icons { get; set; }
+    public List<ImageResource> Icons { get; set; }
     [JsonPropertyName("screenshots")]
-    public List<Core.ImageSource> Screenshots { get; set; }
+    public List<ImageResource> Screenshots { get; set; }
     [JsonPropertyName("display")]
     public DisplayModeType Display { get; set; }
     [JsonPropertyName("orientation")]
@@ -53,6 +53,10 @@ public class JmmAppInstallManifest : IJmmAppInstallManifest
     public string BundleHash { get; set; }
     [JsonPropertyName("bundle_size")]
     public long BundleSize { get; set; }
+    [JsonPropertyName("bundle_signature")]
+    public string BundleSignature { get; set; }
+    [JsonPropertyName("public_key_url")]
+    public string PublicKeyUrl { get; set; }
     [JsonPropertyName("change_log")]
     public string ChangeLog { get; set; }
     [JsonPropertyName("author")]
@@ -84,8 +88,8 @@ public class JmmAppInstallManifest : IJmmAppInstallManifest
         string name,
         string short_name,
         string description,
-        List<Core.ImageSource> icons,
-        List<Core.ImageSource> screenshots,
+        List<ImageResource> icons,
+        List<ImageResource> screenshots,
         DisplayModeType display,
         OrientationType orientation,
         string theme_color,
@@ -96,6 +100,8 @@ public class JmmAppInstallManifest : IJmmAppInstallManifest
         string bundle_url,
         string bundle_hash,
         long bundle_size,
+        string bundle_signature,
+        string public_key_url,
         string change_log,
         List<string> author,
         string home,
@@ -130,6 +136,8 @@ public class JmmAppInstallManifest : IJmmAppInstallManifest
         BundleUrl = bundle_url;
         BundleSize = bundle_size;
         BundleHash = bundle_hash;
+        BundleSignature = bundle_signature;
+        PublicKeyUrl = public_key_url;
         Permissions = permissions;
         Plugins = plugins;
         ReleaseDate = release_date;
@@ -171,8 +179,8 @@ public sealed class JmmAppDownloadManifest : JmmAppInstallManifest
         string name,
         string short_name,
         string description,
-        List<Core.ImageSource> icons,
-        List<Core.ImageSource> screenshots,
+        List<ImageResource> icons,
+        List<ImageResource> screenshots,
         DisplayModeType display,
         OrientationType orientation,
         string theme_color,
@@ -183,6 +191,8 @@ public sealed class JmmAppDownloadManifest : JmmAppInstallManifest
         string bundle_url,
         string bundle_hash,
         long bundle_size,
+        string bundle_signature,
+        string public_key_url,
         string change_log,
         List<string> author,
         string home,
@@ -213,6 +223,8 @@ public sealed class JmmAppDownloadManifest : JmmAppInstallManifest
             bundle_url,
             bundle_hash,
             bundle_size,
+            bundle_signature,
+            public_key_url,
             change_log,
             author,
             home,
@@ -224,7 +236,7 @@ public sealed class JmmAppDownloadManifest : JmmAppInstallManifest
     {
     }
 
-    public static JmmAppDownloadManifest FromInstallManiafest(IJmmAppInstallManifest jmmAppInstallManifest)
+    public static JmmAppDownloadManifest FromInstallManifest(IJmmAppInstallManifest jmmAppInstallManifest)
     {
         return new JmmAppDownloadManifest(
             jmmAppInstallManifest.Id,
@@ -248,6 +260,8 @@ public sealed class JmmAppDownloadManifest : JmmAppInstallManifest
             jmmAppInstallManifest.BundleUrl,
             jmmAppInstallManifest.BundleHash,
             jmmAppInstallManifest.BundleSize,
+            jmmAppInstallManifest.BundleSignature,
+            jmmAppInstallManifest.PublicKeyUrl,
             jmmAppInstallManifest.ChangeLog,
             jmmAppInstallManifest.Author,
             jmmAppInstallManifest.Home,
@@ -258,6 +272,40 @@ public sealed class JmmAppDownloadManifest : JmmAppInstallManifest
             jmmAppInstallManifest.Dweb_DeepLinks
         );
     }
+
+    //public static JmmAppDownloadManifest FromMicroModuleManifest(IMicroModuleManifest microModuleManifest)
+    //{
+    //    return new JmmAppDownloadManifest(
+    //        microModuleManifest.Mmid,
+    //        microModuleManifest.Version,
+    //        microModuleManifest.Categories,
+    //        new MainServer() { Root = "", Entry = "" },
+    //        microModuleManifest.Dir,
+    //        microModuleManifest.Lang,
+    //        microModuleManifest.Name,
+    //        microModuleManifest.ShortName,
+    //        microModuleManifest.Description,
+    //        microModuleManifest.Icons,
+    //        microModuleManifest.Screenshots,
+    //        microModuleManifest.Display,
+    //        microModuleManifest.Orientation,
+    //        microModuleManifest.ThemeColor,
+    //        microModuleManifest.BackgroundColor,
+    //        microModuleManifest.Shortcuts,
+    //        microModuleManifest.
+    //        microModuleManifest.Screenshots,
+    //        "",
+    //        "",
+    //        0,
+    //        "",
+    //        "",
+    //        "",
+    //        new List<string> { "" },
+    //        "",
+    //        "",
+    //        new List<string> { "" },
+    //        new List<string> { "" });
+    //}
 
     [JsonPropertyName("download_status")]
     public DownloadStatus DownloadStatus { get; set; } = DownloadStatus.IDLE;

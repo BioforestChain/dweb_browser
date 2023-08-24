@@ -95,23 +95,23 @@ public class ShareNMM : NativeMicroModule
                 }
             };
 
-            var mwebviewController = MultiWebViewNMM.GetCurrentWebViewController(ipc.Remote.Mmid);
+            //var mwebviewController = MultiWebViewNMM.GetCurrentWebViewController(ipc.Remote.Mmid);
 
-            if (mwebviewController is not null)
-            {
-                if (mwebviewController.PresentedViewController is not null)
-                {
-                    po.Resolve("Can't share while sharing is in progress");
-                }
-                else
-                {
-                    await mwebviewController.PresentViewControllerAsync(activityController, true);
-                }
-            }
-            else
-            {
-                po.Resolve("No found UIViewController to shown");
-            }
+            //if (mwebviewController is not null)
+            //{
+            //    if (mwebviewController.PresentedViewController is not null)
+            //    {
+            //        po.Resolve("Can't share while sharing is in progress");
+            //    }
+            //    else
+            //    {
+            //        await mwebviewController.PresentViewControllerAsync(activityController, true);
+            //    }
+            //}
+            //else
+            //{
+            //    po.Resolve("No found UIViewController to shown");
+            //}
 
             return await po.WaitPromiseAsync();
         });

@@ -1,4 +1,7 @@
-﻿#nullable enable
+﻿using System.Net;
+using DwebBrowser.MicroService.Http;
+
+#nullable enable
 
 namespace DwebBrowser.MicroService.Browser.Mwebview;
 
@@ -20,14 +23,12 @@ public class MultiWebViewNMM : IOSNativeMicroModule
     private static readonly Dictionary<Mmid, MultiWebViewController> s_controllerMap = new();
     public static MultiWebViewController? GetCurrentWebViewController(Mmid mmid) => s_controllerMap.GetValueOrDefault(mmid);
 
-    record WebViewItem(string webview_id);
-
     protected override async Task _bootstrapAsync(IBootstrapContext bootstrapContext)
     {
         /// nativeui 与 mwebview 是伴生关系
         await bootstrapContext.Dns.Open("nativeui.browser.dweb");
 
-        // 打开一个webview作为窗口
+        /// 打开一个 webview，并将它以 窗口window 的标准进行展示
         HttpRouter.AddRoute(IpcMethod.Get, "/open", async (request, ipc) =>
         {
             var url = request.QueryStringRequired("url");
@@ -38,23 +39,12 @@ public class MultiWebViewNMM : IOSNativeMicroModule
                 Console.Log("/open", "listen ipc close destroy window");
 
                 var controller = s_controllerMap.GetValueOrDefault(ipc!.Remote.Mmid);
-
-                if (controller is not null)
-                {
-                    var vc = await RootViewController.WaitPromiseAsync();
-
-                    await MainThread.InvokeOnMainThreadAsync(async () =>
-                    {
-                        await controller.DismissViewControllerAsync(true);
-                        vc.PopViewController(true);
-                    });
-
-                    controller.DestroyWebView();
-                }
+                controller?.DestroyWebView();
             };
 
-            var viewItem = await _openDwebViewAsync(remoteMM, url);
-            return new WebViewItem(viewItem.webviewId);
+            var (viewItem, controller) = await OpenDwebViewAsync(remoteMM, url, ipc);
+
+            return new ViewItemResponse(viewItem.webviewId, controller.Win.Id);
         });
 
         // 关闭指定 webview 窗口
@@ -73,22 +63,6 @@ public class MultiWebViewNMM : IOSNativeMicroModule
 
             if (controller is not null)
             {
-                //var vc = await RootViewController.WaitPromiseAsync();
-
-                await MainThread.InvokeOnMainThreadAsync(async () =>
-                {
-                    //await controller.DismissViewControllerAsync(true);
-                    //vc.PopViewController(true);
-                    //controller.View.RemoveFromSuperview();
-                    var deskController = await GetDeskController();
-                    //deskController.View.RemoveSub
-                    if (deskController is not null)
-                    {
-                        //deskController.View!.Subviews.ToList().Remove(controller.View);
-
-                    }
-                });
-
                 return controller.DestroyWebView();
             }
 
@@ -99,66 +73,92 @@ public class MultiWebViewNMM : IOSNativeMicroModule
         HttpRouter.AddRoute(IpcMethod.Get, "/activate", async (request, ipc) =>
         {
             var remoteMmid = ipc!.Remote.Mmid;
-            //OpenActivity(remoteMmid);
-            if (s_controllerMap.TryGetValue(remoteMmid, out var controller))
-            {
-                var vc = await RootViewController.WaitPromiseAsync();
+            var controller = s_controllerMap.GetValueOrDefault(remoteMmid);
 
-                await MainThread.InvokeOnMainThreadAsync(() =>
-                {
-                    // 无法push同一个UIViewController的实例两次
-                    var index = vc.ViewControllers?.ToList().FindIndex(uvc => uvc == controller);
-                    if (index >= 0)
-                    {
-                        // 不是当前controller时，推到最新
-                        if (index != vc.ViewControllers!.Length - 1)
-                        {
-                            vc.PopToViewController(controller, true);
-                        }
-                    }
-                    else
-                    {
-                        vc.PushViewController(controller, true);
-                    }
-                });
+            if (controller is not null)
+            {
+                return false;
             }
 
-            return true;
+            return new PureResponse(HttpStatusCode.OK);
         });
     }
 
-    private async Task<MultiWebViewController.ViewItem> _openDwebViewAsync(MicroModule remoteMM, string url)
+    public record ViewItemResponse(string webviewId, UUID wid);
+
+    private async Task<(MultiWebViewController.ViewItem, MultiWebViewController)> OpenDwebViewAsync(
+        MicroModule remoteMM,
+        string url,
+        Ipc ipc)
     {
         var remoteMmid = remoteMM.Mmid;
         Console.Log("OPEN-WEBVIEW", "remote-mmid: {0} / url: {1}", remoteMmid, url);
 
-        var controller = await MainThread.InvokeOnMainThreadAsync(() => s_controllerMap.GetValueOrPut(remoteMmid, () => new MultiWebViewController(remoteMmid, this, remoteMM)));
-
-        //OpenActivity(remoteMmid);
-        //await OnControllerEmit(remoteMmid, controller);
-        if (s_controllerMap.TryGetValue(remoteMmid, out var uiviewcontroller))
+        var controller = await MainThread.InvokeOnMainThreadAsync(() => s_controllerMap.GetValueOrPutAsync(remoteMmid, async () =>
         {
-            var vc = await RootViewController.WaitPromiseAsync();
-
-            await MainThread.InvokeOnMainThreadAsync(() =>
+            var windowState = new WindowState(ipc.Remote.Mmid, Mmid, microModule: this);
+            try
             {
-                // 无法push同一个UIViewController的实例两次
-                var index = vc.ViewControllers?.ToList().FindIndex(uvc => uvc == uiviewcontroller);
-                if (index >= 0)
+                /// 挑选合适的图标作为应用的图标
+                var iconResource = ipc.Remote.Icons?.Let(icons =>
                 {
-                    // 不是当前controller时，推到最新
-                    if (index != vc.ViewControllers!.Length - 1)
+                    var comparableBuilder = ComparableWrapper<StrictImageResource>.Builder(imageResource =>
                     {
-                        vc.PopToViewController(uiviewcontroller, true);
+                        return new()
+                        {
+                            {
+                                "purpose",
+                                EnumComparable.EnumToComparable<ImageResourcePurposes>(imageResource.Purpose,
+                                new List<ImageResourcePurposes> { ImageResourcePurposes.Any }).First()
+                            },
+                            {
+                                "type",
+                                EnumComparable.EnumToComparable(imageResource.Type,
+                                new List<string> { "image/svg+xml", "image/png", "image/jpeg", "image/*" })
+                            },
+                            {
+                                "area",
+                                imageResource.Sizes.Last().Let(it => -it.Width * it.Height)
+                            }
+                        };
+                    });
+
+                    var imageResource = icons.Min();
+
+                    if (imageResource is not null)
+                    {
+                        return comparableBuilder.Build(StrictImageResource.From(imageResource)).Value;
                     }
-                }
-                else
+
+                    return null;
+                });
+
+                if (iconResource is not null)
                 {
-                    vc.PushViewController(uiviewcontroller, true);
+                    windowState.IconUrl = iconResource.Src;
+                    windowState.IconMaskable = iconResource.Purpose.Contains(ImageResourcePurposes.Maskable);
+                    windowState.IconMonochrome = iconResource.Purpose.Contains(ImageResourcePurposes.Monochrome);
                 }
+            }
+            catch (Exception e)
+            {
+                Console.Error("windowstate", e.Message);
+            }
+
+
+            var win = await WindowAdapterManager.Instance.CreateWindow(windowState);
+            return new MultiWebViewController(win, ipc, remoteMM, this).Also(controller =>
+            {
+                /// 窗口销毁的时候，释放这个Controller
+                win.OnClose.OnListener += async (_, _) =>
+                {
+                    s_controllerMap.Remove(remoteMmid);
+                };
             });
-        }
-        return await controller.OpenWebViewAsync(url);
+        }));
+
+
+        return (await controller.OpenWebViewAsync(url), controller);
     }
 
     private async Task<bool> _closeDwebViewAsync(string remoteMmid, string webviewId)
@@ -167,12 +167,12 @@ public class MultiWebViewNMM : IOSNativeMicroModule
 
         if (controller is not null)
         {
-            var vc = await RootViewController.WaitPromiseAsync();
+            //var vc = await RootViewController.WaitPromiseAsync();
             await MainThread.InvokeOnMainThreadAsync(async () =>
             {
                 await controller.CloseWebViewAsync(webviewId);
-                await controller.DismissViewControllerAsync(true);
-                vc.PopViewController(true);
+                //await controller.DismissViewControllerAsync(true);
+                //vc.PopViewController(true);
             });
         }
 
