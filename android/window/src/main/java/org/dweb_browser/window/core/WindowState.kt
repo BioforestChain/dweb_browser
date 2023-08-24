@@ -15,6 +15,7 @@ import org.dweb_browser.microservice.help.MMID
 import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.window.core.constant.UUID
 import org.dweb_browser.window.core.constant.WindowBottomBarTheme
+import org.dweb_browser.window.core.constant.WindowColorScheme
 import org.dweb_browser.window.core.constant.WindowMode
 import org.dweb_browser.window.core.constant.WindowPropertyKeys
 import org.dweb_browser.window.core.constant.debugWindow
@@ -295,24 +296,25 @@ class WindowState(
    *
    * 如果使用 auto，则会根据当前的系统的显示模式，自动跟随成 亮色 或者 暗色
    */
-  var themeColor by observable.observe<String>(WindowPropertyKeys.ThemeColor, "auto");
+  var themeColor by observable.observe(WindowPropertyKeys.ThemeColor, "auto");
+  var themeDarkColor by observable.observe(WindowPropertyKeys.ThemeDarkColor, "auto");
 
   /**
    * 顶部栏的文字颜色，格式为 #RRGGBB | auto
    *
    * 如果使用 auto，会自动根据现有的背景色来显示 亮色 或者 暗色
    */
-  var topBarContentColor by observable.observe<String>(
-    WindowPropertyKeys.TopBarContentColor, "auto"
-  );
+  var topBarContentColor by observable.observe(WindowPropertyKeys.TopBarContentColor, "auto");
+  var topBarContentDarkColor by observable.observe(WindowPropertyKeys.TopBarContentDarkColor, "auto");
 
   /**
    * 顶部栏的文字颜色，格式为 #RRGGBB ｜ auto
    *
    * 如果使用 auto，会与 themeColor 保持一致
    */
-  var topBarBackgroundColor by observable.observe<String>(
-    WindowPropertyKeys.TopBarBackgroundColor, "auto"
+  var topBarBackgroundColor by observable.observe(WindowPropertyKeys.TopBarBackgroundColor, "auto");
+  var topBarBackgroundDarkColor by observable.observe(
+    WindowPropertyKeys.TopBarBackgroundDarkColor, "auto"
   );
 
   /**
@@ -320,9 +322,9 @@ class WindowState(
    *
    * 如果使用 auto，会自动根据现有的背景色来显示 亮色 或者 暗色
    */
-  var bottomBarContentColor by observable.observe(
-    WindowPropertyKeys.BottomBarContentColor,
-    "auto",
+  var bottomBarContentColor by observable.observe(WindowPropertyKeys.BottomBarContentColor, "auto");
+  var bottomBarContentDarkColor by observable.observe(
+    WindowPropertyKeys.BottomBarContentDarkColor, "auto"
   );
 
   /**
@@ -330,8 +332,11 @@ class WindowState(
    *
    * 如果使用 auto，会与 themeColor 保持一致
    */
-  var bottomBarBackgroundColor by observable.observe<String>(
+  var bottomBarBackgroundColor by observable.observe(
     WindowPropertyKeys.BottomBarBackgroundColor, "auto"
+  );
+  var bottomBarBackgroundDarkColor by observable.observe(
+    WindowPropertyKeys.BottomBarBackgroundDarkColor, "auto"
   );
 
   /**
@@ -354,5 +359,15 @@ class WindowState(
    * PS：开发者可以监听这个属性，然后动态地去修改 closeTip。如果要禁用这种行为，可以将 showCloseTip 的类型修改成 String?
    */
   var showCloseTip by observable.observe(WindowPropertyKeys.ShowCloseTip, false);
+
+  /**
+   * 是否显示菜单面板
+   */
+  var showMenuPanel by observable.observe(WindowPropertyKeys.ShowMenuPanel, false);
+
+  /**
+   * 配色方案
+   */
+  var colorScheme by observable.observe(WindowPropertyKeys.ColorScheme, WindowColorScheme.Normal)
 }
 

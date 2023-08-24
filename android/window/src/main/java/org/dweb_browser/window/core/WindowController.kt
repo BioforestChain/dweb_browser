@@ -14,6 +14,7 @@ import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.defaultAsyncExceptionHandler
 import org.dweb_browser.window.core.constant.WindowBottomBarStyle
 import org.dweb_browser.window.core.constant.WindowBottomBarTheme
+import org.dweb_browser.window.core.constant.WindowColorScheme
 import org.dweb_browser.window.core.constant.WindowMode
 import org.dweb_browser.window.core.constant.WindowPropertyKeys
 import org.dweb_browser.window.core.constant.WindowTopBarStyle
@@ -271,4 +272,42 @@ abstract class WindowController(
   suspend fun emitGoForward() =
     managerRunOr({ it.windowEmitGoForward(this) }, { simpleEmitGoForward() })
 
+
+  internal open fun simpleHideCloseTip() {
+    state.showCloseTip = false
+  }
+
+  suspend fun hideCloseTip() =
+    managerRunOr({ it.windowHideCloseTip(this) }, { simpleHideCloseTip() })
+
+  internal open fun simpleToggleMenuPanel(show: Boolean?) {
+    state.showMenuPanel = show ?: !state.showMenuPanel
+  }
+
+  suspend fun toggleMenuPanel(show: Boolean? = null) =
+    managerRunOr({ it.windowToggleMenuPanel(this, show) }, { simpleToggleMenuPanel(show) })
+
+  suspend fun hideMenuPanel() = toggleMenuPanel(false)
+
+  suspend fun showMenuPanel() = toggleMenuPanel(true)
+
+  internal open suspend fun simpleToggleAlwaysOnTop(onTop: Boolean? = null) {
+    state.alwaysOnTop = onTop ?: !state.alwaysOnTop
+  }
+
+  suspend fun toggleAlwaysOnTop(onTop: Boolean? = null) =
+    managerRunOr({ it.windowToggleAlwaysOnTop(this, onTop) }, { simpleToggleAlwaysOnTop(onTop) })
+
+  suspend fun disableAlwaysOnTop() = toggleAlwaysOnTop(false)
+
+  suspend fun enableAlwaysOnTop() = toggleAlwaysOnTop(true)
+
+  internal open suspend fun simpleToggleColorScheme(colorScheme: WindowColorScheme? = null) {
+    state.colorScheme = colorScheme ?: state.colorScheme.next()
+  }
+
+  suspend fun toggleColorScheme(colorScheme: WindowColorScheme? = null) =
+    managerRunOr(
+      { it.windowToggleColorScheme(this, colorScheme) },
+      { simpleToggleColorScheme(colorScheme) })
 }

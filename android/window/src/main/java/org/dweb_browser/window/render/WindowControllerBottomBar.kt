@@ -1,6 +1,7 @@
 package org.dweb_browser.window.render
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -22,10 +24,15 @@ import androidx.compose.material.icons.rounded.ArrowForward
 import androidx.compose.material.icons.rounded.ChevronLeft
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.FullscreenExit
+import androidx.compose.material.icons.rounded.KeyboardDoubleArrowUp
+import androidx.compose.material.icons.rounded.Menu
+import androidx.compose.material.icons.rounded.MenuOpen
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DismissibleDrawerSheet
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -35,6 +42,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -43,11 +51,13 @@ import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.zIndex
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.android.AutoResizeTextContainer
 import org.dweb_browser.helper.android.AutoSizeText
+import org.dweb_browser.helper.android.iosTween
 import org.dweb_browser.window.R
 import org.dweb_browser.window.core.WindowController
 import org.dweb_browser.window.core.constant.WindowBottomBarTheme
@@ -96,7 +106,7 @@ internal fun WindowBottomBar(
  * 可以控制窗口大小的底部控制栏
  */
 @Composable
-private fun WindowBottomResizeBar(
+internal fun WindowBottomResizeBar(
   win: WindowController,
   content: @Composable () -> Unit,
 ) {
@@ -159,7 +169,7 @@ private fun WindowBottomResizeBar(
 }
 
 @Composable
-private fun WindowBottomMaximizedBar(
+internal fun WindowBottomMaximizedBar(
   win: WindowController,
   content: @Composable () -> Unit,
 ) {
@@ -177,7 +187,7 @@ private fun WindowBottomMaximizedBar(
  * 风格化的底部栏
  */
 @Composable
-private fun WindowBottomThemeBar(
+internal fun WindowBottomThemeBar(
   win: WindowController,
 ) {
   val bottomBarTheme by win.watchedState(watchKey = WindowPropertyKeys.BottomBarTheme) { bottomBarTheme }
@@ -192,7 +202,7 @@ private fun WindowBottomThemeBar(
  * 可以看到应用的基本信息和取消最大化
  */
 @Composable
-private fun WindowBottomImmersionThemeBar(
+internal fun WindowBottomImmersionThemeBar(
   win: WindowController,
 ) {
   val winTheme = LocalWindowControllerTheme.current
@@ -226,7 +236,7 @@ private fun WindowBottomImmersionThemeBar(
  */
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-private fun WindowBottomNavigationThemeBar(
+internal fun WindowBottomNavigationThemeBar(
   win: WindowController,
 ) {
   val coroutineScope = rememberCoroutineScope()
@@ -322,7 +332,7 @@ private fun WindowBottomNavigationThemeBar(
                 // 取消按钮
                 dismissButton = {
                   TextButton(onClick = {
-                    win.state.showCloseTip = false
+                    coroutineScope.launch { win.hideCloseTip() }
                   }) {
                     Text(stringResource(R.string.window_dismiss))
                   }
@@ -387,39 +397,68 @@ private fun WindowBottomNavigationThemeBar(
         }
       }
 
-//      /// 菜单按钮
-//      BoxWithConstraints(
-//        modifier = Modifier
-//          .weight(1f)
-//          .fillMaxHeight()
-//      ) {
-//        if (isMaximized) {
-//          TextButton(
-//            onClick = {
-//              coroutineScope.launch { win.unMaximize() }
-//            },
-//            contentPadding = PaddingValues(0.dp),
-//            shape = RoundedCornerShape(buttonRoundedSize),
-//            modifier = Modifier
-//              .align(Alignment.CenterEnd)
-//              .fillMaxWidth(),
-//          ) {
-//            Icon(
-//              Icons.Rounded.Menu,
-//              contentDescription = "open menu panel",
-//              modifier = Modifier.align(Alignment.CenterVertically),
-//              tint = contentColor,
-//            )
-//          }
-//        }
-//      }
+
+      /// 菜单按钮
+      if (isMaximized) {
+        Box(
+          modifier = Modifier
+            .weight(1f)
+            .fillMaxHeight()
+        ) {
+
+          /// 渲染菜单面板
+          WindowMenuPanel(win)
+
+          TextButton(
+            onClick = {
+              coroutineScope.launch { win.toggleMenuPanel() }
+            },
+            contentPadding = PaddingValues(0.dp),
+            shape = RoundedCornerShape(buttonRoundedSize),
+            modifier = Modifier
+              .align(Alignment.CenterEnd)
+              .fillMaxWidth(),
+          ) {
+            /// 菜单按钮动画
+            BoxWithConstraints(
+              modifier = Modifier.align(Alignment.CenterVertically)
+            ) {
+              val isShowMenuPanel by win.watchedState { showMenuPanel }
+              val closeIconOpacity by animateFloatAsState(
+                targetValue = if (isShowMenuPanel) 1f else 0f,
+                animationSpec = iosTween(isShowMenuPanel),
+                label = "icon animation",
+              )
+              val size = min(maxWidth.value, maxHeight.value)
+              Icon(
+                Icons.Rounded.KeyboardDoubleArrowUp,
+                contentDescription = "Close menu panel",
+                modifier = Modifier
+                  .alpha(closeIconOpacity)
+                  .offset(y = ((closeIconOpacity - 1) * size / 2).dp),
+                tint = contentColor,
+              )
+              Icon(
+                Icons.Rounded.Menu,
+                contentDescription = "Open menu panel",
+                modifier = Modifier
+                  .alpha(1 - closeIconOpacity)
+                  .offset(y = (closeIconOpacity * size / 2).dp),
+                tint = contentColor,
+              )
+
+            }
+          }
+        }
+      }
+
       /// 退出全屏
-      BoxWithConstraints(
-        modifier = Modifier
-          .weight(1f)
-          .fillMaxHeight()
-      ) {
-        if (isMaximized) {
+      if (isMaximized) {
+        BoxWithConstraints(
+          modifier = Modifier
+            .weight(1f)
+            .fillMaxHeight()
+        ) {
           TextButton(
             onClick = {
               coroutineScope.launch { win.unMaximize() }

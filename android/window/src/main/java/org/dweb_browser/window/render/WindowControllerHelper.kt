@@ -2,12 +2,11 @@ package org.dweb_browser.window.render
 
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.safeGestures
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
@@ -24,9 +23,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.structuralEqualityPolicy
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.colorspace.ColorSpaces
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
@@ -39,7 +39,7 @@ import org.dweb_browser.window.core.WindowController
 import org.dweb_browser.window.core.constant.WindowMode
 import org.dweb_browser.window.core.constant.WindowPropertyKeys
 import org.dweb_browser.window.core.WindowState
-import org.dweb_browser.window.core.helper.asWindowStateColor
+import org.dweb_browser.window.core.helper.asWindowStateColorOr
 import org.dweb_browser.helper.android.theme.md_theme_dark_inverseOnSurface
 import org.dweb_browser.helper.android.theme.md_theme_dark_onSurface
 import org.dweb_browser.helper.android.theme.md_theme_dark_surface
@@ -51,6 +51,7 @@ import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.android.noLocalProvidedFor
 import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.dweb_browser.window.core.WindowsManager
+import org.dweb_browser.window.core.constant.WindowColorScheme
 import java.util.WeakHashMap
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.max
@@ -441,12 +442,17 @@ data class WindowControllerTheme(
   val topBackgroundColor: Color,
   val themeColor: Color,
   val themeContentColor: Color,
+  val onThemeColor: Color,
+  val onThemeContentColor: Color,
   val bottomContentColor: Color,
   val bottomBackgroundColor: Color,
+  val isDark: Boolean,
 ) {
   val winFrameBrush by lazy {
     Brush.verticalGradient(listOf(topBackgroundColor, themeColor, bottomBackgroundColor))
   }
+  val themeContentDisableColor by lazy { themeContentColor.copy(alpha = themeContentColor.alpha * 0.2f) }
+  val onThemeContentDisableColor by lazy { onThemeContentColor.copy(alpha = onThemeContentColor.alpha * 0.5f) }
   val topContentDisableColor by lazy { topContentColor.copy(alpha = topContentColor.alpha * 0.2f) }
   val bottomContentDisableColor by lazy { bottomContentColor.copy(alpha = bottomContentColor.alpha * 0.2f) }
 }
@@ -455,67 +461,121 @@ data class WindowControllerTheme(
  * 构建颜色
  */
 @Composable
-fun WindowController.buildTheme(dark: Boolean): WindowControllerTheme {
+fun WindowController.buildTheme(): WindowControllerTheme {
 //  val calcThemeContentColor = watchedState(dark, watchKey = WindowPropertyKeys.ThemeColor) {
 //    themeColor.asWindowStateColor(
 //      md_theme_light_surface, md_theme_dark_surface, dark
 //    )
 //  }
-  val (lightContent, darkContent) = if (dark) {
-    Pair(md_theme_dark_onSurface, md_theme_dark_inverseOnSurface)
-  } else {
-    Pair(md_theme_light_inverseOnSurface, md_theme_light_onSurface)
+  val colorScheme by watchedState { colorScheme }
+  val isSystemInDark = isSystemInDarkTheme()
+  val isDark = remember(colorScheme, isSystemInDark) {
+    when (colorScheme) {
+      WindowColorScheme.Normal -> isSystemInDark
+      WindowColorScheme.Light -> false
+      WindowColorScheme.Dark -> true
+    }
+  }
+  val lightContent = remember(isDark) {
+    if (isDark) md_theme_dark_onSurface else md_theme_light_inverseOnSurface
+  }
+  val darkContent = remember(isDark) {
+    if (isDark) md_theme_dark_inverseOnSurface else md_theme_light_onSurface
   }
 
   fun calcContentColor(backgroundColor: Color) =
     if (backgroundColor.luminance() > 0.5f) darkContent else lightContent
 
-  val themeColors by watchedState(
-    dark, watchKey = WindowPropertyKeys.ThemeColor
-  ) {
-    val bgColor = themeColor.asWindowStateColor(
-      md_theme_light_surface, md_theme_dark_surface, dark
-    )
-    Pair(bgColor, calcContentColor(bgColor))
+  fun Color.convertToDark() = convert(ColorSpaces.Oklab).let { oklab ->
+    if (oklab.red > 0.4f) {
+      oklab.copy(red = (oklab.red * oklab.red).let { light -> if (light < 0.4f) light else 0.4f })
+        .convert(ColorSpaces.Srgb)
+    } else this
   }
-  val (themeColor, themeContentColor) = themeColors;
+
+  fun Color.convertToLight() = convert(ColorSpaces.Oklab).let { oklab ->
+    if (oklab.red <= 0.6f) {
+      oklab.copy(red = sqrt(oklab.red).let { light -> if (light >= 0.6f) light else 0.6f })
+        .convert(ColorSpaces.Srgb)
+    } else this
+  }
+
+  val themeColors by watchedState(
+    isDark, watchKey = WindowPropertyKeys.ThemeColor
+  ) {
+    fun getThemeColor() = themeColor.asWindowStateColorOr(
+      md_theme_light_surface, md_theme_dark_surface, isDark
+    )
+
+
+    val smartThemeColor = if (isDark) themeDarkColor.asWindowStateColorOr {
+      getThemeColor().convertToDark()
+    } else getThemeColor()
+    val themeContentColor = calcContentColor(smartThemeColor)
+
+    val themeOklabColor = smartThemeColor.convert(ColorSpaces.Oklab)
+
+    val onThemeColor =
+      themeOklabColor.copy(red = sqrt(themeOklabColor.red), alpha = 0.5f).convert(ColorSpaces.Srgb)
+        .compositeOver(themeContentColor)
+    val onThemeContentColor = themeOklabColor.copy(red = themeOklabColor.red * themeOklabColor.red)
+      .convert(ColorSpaces.Srgb)
+    Pair(Pair(smartThemeColor, themeContentColor), Pair(onThemeColor, onThemeContentColor))
+  }
+  val (themeColor, themeContentColor) = themeColors.first;
+  val (onThemeColor, onThemeContentColor) = themeColors.second;
 
   val topBackgroundColor by watchedState(
-    dark, watchKey = WindowPropertyKeys.TopBarBackgroundColor
+    isDark, watchKey = WindowPropertyKeys.TopBarBackgroundColor
   ) {
-    topBarBackgroundColor.asWindowStateColor(themeColor)
+    fun getTopBarBackgroundColor() = topBarBackgroundColor.asWindowStateColorOr(themeColor)
+    if (isDark) {
+      topBarBackgroundDarkColor.asWindowStateColorOr { getTopBarBackgroundColor().convertToDark() }
+    } else getTopBarBackgroundColor()
   }
-  val topContentColor by watchedState(dark, watchKey = WindowPropertyKeys.TopBarContentColor) {
-    topBarContentColor.asWindowStateColor {
+  val topContentColor by watchedState(isDark, watchKey = WindowPropertyKeys.TopBarContentColor) {
+    fun getTopBarContentColor() = topBarContentColor.asWindowStateColorOr {
       calcContentColor(
         topBackgroundColor
       )
     }
+    if (isDark) {
+      topBarContentDarkColor.asWindowStateColorOr { getTopBarContentColor().convertToLight() }
+    } else getTopBarContentColor()
   }
 
   val bottomBackgroundColor by watchedState(
-    dark, watchKey = WindowPropertyKeys.BottomBarBackgroundColor
+    isDark, watchKey = WindowPropertyKeys.BottomBarBackgroundColor
   ) {
-    bottomBarBackgroundColor.asWindowStateColor(
+    fun getBottomBarBackgroundColor() = bottomBarBackgroundColor.asWindowStateColorOr(
       themeColor
     )
+    if (isDark) {
+      bottomBarBackgroundDarkColor.asWindowStateColorOr { getBottomBarBackgroundColor().convertToDark() }
+    } else getBottomBarBackgroundColor()
   }
   val bottomContentColor by watchedState(
-    dark, watchKey = WindowPropertyKeys.BottomBarContentColor
+    isDark, watchKey = WindowPropertyKeys.BottomBarContentColor
   ) {
-    bottomBarContentColor.asWindowStateColor {
+    fun getBottomBarContentColor() = bottomBarContentColor.asWindowStateColorOr {
       calcContentColor(
         bottomBackgroundColor
       )
     }
+    if (isDark) {
+      bottomBarContentDarkColor.asWindowStateColorOr { getBottomBarContentColor().convertToLight() }
+    } else getBottomBarContentColor()
   }
   return WindowControllerTheme(
     themeColor = themeColor,
     themeContentColor = themeContentColor,
+    onThemeColor = onThemeColor,
+    onThemeContentColor = onThemeContentColor,
     topBackgroundColor = topBackgroundColor,
     topContentColor = topContentColor,
     bottomBackgroundColor = bottomBackgroundColor,
     bottomContentColor = bottomContentColor,
+    isDark = isDark,
   )
 }
 

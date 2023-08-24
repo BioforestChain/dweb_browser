@@ -48,6 +48,7 @@ commons-compress = "1.23.0"
 # 测试
 test-junit-bom = "5.9.2"
 animation-core-android = "1.5.0"
+material3Android = "1.2.0-alpha05"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -64,8 +65,8 @@ compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-mani
 compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 compose-material_icons = { group = "androidx.compose.material", name = "material-icons-extended" }
 compose-material = { group = "androidx.compose.material", name = "material" }
-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
-compose-material3-window = { group = "androidx.compose.material3", name = "material3-window-size-class" }
+compose-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3Android"  }
+compose-material3-window = { group = "androidx.compose.material3", name = "material3-window-size-class", version.ref = "material3Android" }
 
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle-runtime-ktx" }
 androidx-lifecycle-common-java8 = { group = "androidx.lifecycle", name = "lifecycle-common-java8", version.ref = "lifecycle-runtime-ktx" }

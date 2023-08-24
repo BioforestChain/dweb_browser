@@ -81,8 +81,7 @@ fun WindowController.Render(
     label = "elevation"
   )
 
-  val isDark = isSystemInDarkTheme()
-  val theme = win.buildTheme(isDark);
+  val theme = win.buildTheme();
   CompositionLocalProvider(
     LocalContentColor provides MaterialTheme.colorScheme.onPrimary,
     LocalWindowPadding provides winPadding,

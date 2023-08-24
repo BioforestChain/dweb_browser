@@ -92,7 +92,7 @@ internal fun ListSwipeItem(
   listItemView: @Composable RowScope.() -> Unit
 ) {
   val dismissState = // rememberDismissState() // 不能用这个，不然会导致移除后remember仍然存在，显示错乱问题
-    DismissState(DismissValue.Default, { true }, SwipeToDismissDefaults.FixedPositionalThreshold)
+    DismissState(DismissValue.Default, { true }, SwipeToDismissDefaults.fixedPositionalThreshold)
   LaunchedEffect(dismissState) {
     snapshotFlow { dismissState.currentValue }.collect {
       if (it != DismissValue.Default) {

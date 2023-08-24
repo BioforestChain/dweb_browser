@@ -1,6 +1,7 @@
 package org.dweb_browser.window.render
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -89,9 +90,11 @@ private fun WindowTopControllerBar(
     }
     /// 应用图标
     val iconSize = topBarHeight * 0.8f;
+    val scope = rememberCoroutineScope()
     Box(
       modifier = Modifier
-        .size(iconSize.dp),
+        .size(iconSize.dp)
+        .clickable { scope.launch { win.showMenuPanel() } },
     ) {
       win.IconRender(
         modifier = Modifier
@@ -103,7 +106,8 @@ private fun WindowTopControllerBar(
     AutoResizeTextContainer(
       modifier = Modifier
         .weight(1f)
-        .fillMaxHeight(),
+        .fillMaxHeight()
+        .clickable { scope.launch { win.showMenuPanel() } },
     ) {
       val inResize by win.inResize
       val titleText by win.watchedState { title ?: owner }
@@ -123,9 +127,14 @@ private fun WindowTopControllerBar(
         autoResizeEnabled = !inResize,
         autoLineHeight = { (1.5f * it.value).sp }
       )
-    }
-    /// 右侧的控制按钮
 
+      /// 菜单面板居中定位
+      Box(modifier = Modifier.align(Alignment.BottomCenter)) {
+        WindowMenuPanel(win)
+      }
+    }
+
+    /// 右侧的控制按钮
     /// 最小化
     Box(
       modifier = Modifier

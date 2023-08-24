@@ -13,6 +13,7 @@ import org.dweb_browser.helper.android.BaseActivity
 import org.dweb_browser.helper.some
 import org.dweb_browser.microservice.help.MMID
 import org.dweb_browser.window.core.constant.WindowBottomBarStyle
+import org.dweb_browser.window.core.constant.WindowColorScheme
 import org.dweb_browser.window.core.constant.WindowTopBarStyle
 import org.dweb_browser.window.core.constant.WindowsManagerScope
 import org.dweb_browser.window.core.constant.debugWindow
@@ -322,4 +323,22 @@ open class WindowsManager<T : WindowController>(internal val activity: BaseActiv
   fun windowEmitGoForward(win: WindowController) = activity.lifecycleScope.async {
     win.simpleEmitGoForward()
   }
+
+  fun windowHideCloseTip(win: WindowController) = activity.lifecycleScope.async {
+    win.simpleHideCloseTip()
+  }
+
+  fun windowToggleMenuPanel(win: WindowController, show: Boolean?) = activity.lifecycleScope.async {
+    win.simpleToggleMenuPanel(show)
+  }
+
+  fun windowToggleAlwaysOnTop(win: WindowController, onTop: Boolean?) =
+    activity.lifecycleScope.async {
+      win.simpleToggleAlwaysOnTop(onTop)
+    }
+
+  fun windowToggleColorScheme(win: WindowController, colorScheme: WindowColorScheme?) =
+    activity.lifecycleScope.async {
+      win.simpleToggleColorScheme(colorScheme)
+    }
 }

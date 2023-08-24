@@ -29,9 +29,12 @@ fun PreviewWindowTopBarContent(modifier: Modifier) {
 @Composable
 fun PreviewWindowTopBar() {
   WindowPreviewer(config = {
+    state.title = "应用长长的标题的标题的标题～～"
     state.topBarContentColor = "#FF00FF"
+    state.themeColor = "#Fd9F9F"
     state.iconUrl = "http://172.30.92.50:12207/m3-favicon-apple-touch.png"
     state.iconMaskable = true
+    state.showMenuPanel = true
   }) { modifier ->
     PreviewWindowTopBarContent(modifier)
   }
