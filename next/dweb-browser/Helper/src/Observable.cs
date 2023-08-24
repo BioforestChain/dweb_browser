@@ -28,9 +28,22 @@ public class Observable
         return observer;
     }
 
-    public Observer ObserveNullable(string key, dynamic initValue = null)
+    public Observer ObserveNullable<T>(string key, dynamic? initValue = null)
     {
-        var observer = new Observer(this, key, initValue);
+        Console.WriteLine($"key: {key} value: " + default(T));
+
+        /// 字符串特殊处理，字符串默认值为null，修改为string.Empty，否则会出现空值无法赋值
+        Observer observer;
+        if (typeof(T).Name == "String")
+        {
+            observer = new Observer(this, key, string.Empty);
+        }
+        else
+        {
+            observer = new Observer(this, key, default(T));
+        }
+
+        observer.Set(initValue);
 
         observers.Add(observer);
 

@@ -11,6 +11,8 @@ public class WindowPropertyKeys
     public static readonly WindowPropertyKeys IconMaskable = new("iconMaskable");
     public static readonly WindowPropertyKeys IconMonochrome = new("iconMonochrome");
     public static readonly WindowPropertyKeys Mode = new("mode");
+    public static readonly WindowPropertyKeys CanGoBack = new("canGoBack");
+    public static readonly WindowPropertyKeys CanGoForward = new("canGoForward");
     public static readonly WindowPropertyKeys Resizable = new("resizable");
     public static readonly WindowPropertyKeys Focus = new("focus");
     public static readonly WindowPropertyKeys PictureInPicture = new("pictureInPicture");
@@ -32,6 +34,8 @@ public class WindowPropertyKeys
     public static readonly WindowPropertyKeys BottomBarTheme = new("bottomBarTheme");
     public static readonly WindowPropertyKeys ThemeColor = new("themeColor");
     public static readonly WindowPropertyKeys Bounds = new("bounds");
+    public static readonly WindowPropertyKeys CloseTip = new("closeTip");
+    public static readonly WindowPropertyKeys ShowCloseTip = new("showCloseTip");
 
     public string FieldName { get; init; }
     public WindowPropertyKeys(string fieldName)

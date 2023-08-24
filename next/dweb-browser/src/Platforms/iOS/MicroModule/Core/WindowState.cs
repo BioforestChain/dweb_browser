@@ -102,6 +102,24 @@ public class WindowState
     private Observable.Observer mode { get; init; }
 
     /// <summary>
+    /// 导航是否可以后退
+    ///
+    /// 可空，如果为空，那么禁用返回按钮
+    /// </summary>
+    [JsonPropertyName("canGoBack")]
+    public bool CanGoBack { get => canGoBack.Get(); set => canGoBack.Set(value); }
+    private Observable.Observer canGoBack { get; init; }
+
+    /// <summary>
+    /// 导航是否可以前进
+    ///
+    /// 可空，如果为空，那么禁用前进按钮
+    /// </summary>
+    [JsonPropertyName("canGoForward")]
+    public bool? CanGoForward { get => canGoForward.Get(); set => canGoForward.Set(value); }
+    private Observable.Observer canGoForward { get; init; }
+
+    /// <summary>
     /// 当前是否缩放窗口
     /// </summary>
     [JsonPropertyName("resizable")]
@@ -273,6 +291,24 @@ public class WindowState
     public WindowBottomBarTheme BottomBarTheme { get => bottomBarTheme.Get(); set => bottomBarTheme.Set(value); }
     private Observable.Observer bottomBarTheme { get; init; }
 
+    /// <summary>
+    /// 窗口关闭的提示信息
+    ///
+    /// 如果非 null（即便是空字符串），那么窗口关闭前，会提供提示信息
+    /// </summary>
+    [JsonPropertyName("closeTip")]
+    public string? CloseTip { get => closeTip.Get(); set => closeTip.Set(value); }
+    private Observable.Observer closeTip { get; init; }
+
+    /// <summary>
+    /// 是否在显示窗口提示信息
+    ///
+    /// PS：开发者可以监听这个属性，然后动态地去修改 closeTip。如果要禁用这种行为，可以将 showCloseTip 的类型修改成 String?
+    /// </summary>
+    [JsonPropertyName("showCloseTip")]
+    public bool ShowCloseTip { get => showCloseTip.Get(); set => showCloseTip.Set(value); }
+    private Observable.Observer showCloseTip { get; init; }
+
     #endregion
 
     [Obsolete("使用带参数的构造函数", true)]
@@ -291,17 +327,18 @@ public class WindowState
         MicroModule = microModule;
 
         bounds = Observable.Observe(WindowPropertyKeys.Bounds.FieldName, new WindowBounds());
-        title = Observable.ObserveNullable(WindowPropertyKeys.Title.FieldName);
-        //iconUrl = Observable.ObserveNullable(WindowPropertyKeys.IconUrl.FieldName, "");
-        iconUrl = Observable.Observe(WindowPropertyKeys.IconUrl.FieldName, "");
+        title = Observable.ObserveNullable<string>(WindowPropertyKeys.Title.FieldName);
+        iconUrl = Observable.ObserveNullable<string>(WindowPropertyKeys.IconUrl.FieldName, null);
         iconMaskable = Observable.Observe(WindowPropertyKeys.IconMaskable.FieldName, false);
         iconMonochrome = Observable.Observe(WindowPropertyKeys.IconMonochrome.FieldName, false);
         mode = Observable.Observe(WindowPropertyKeys.Mode.FieldName, WindowMode.FLOATING);
+        canGoBack = Observable.ObserveNullable<bool>(WindowPropertyKeys.CanGoBack.FieldName, false);
+        canGoForward = Observable.ObserveNullable<bool>(WindowPropertyKeys.CanGoForward.FieldName, null);
         resizable = Observable.Observe(WindowPropertyKeys.Resizable.FieldName, false);
         focus = Observable.Observe(WindowPropertyKeys.Focus.FieldName, false);
         zIndex = Observable.Observe(WindowPropertyKeys.ZIndex.FieldName, 0);
         children = Observable.Observe(WindowPropertyKeys.Children.FieldName, new List<UUID>());
-        parent = Observable.ObserveNullable(WindowPropertyKeys.Parent.FieldName);
+        parent = Observable.ObserveNullable<UUID>(WindowPropertyKeys.Parent.FieldName);
         flashing = Observable.Observe(WindowPropertyKeys.Flashing.FieldName, false);
         flashColor = Observable.Observe(WindowPropertyKeys.FlashColor.FieldName, UIColor.White.ToHex());
         progressBar = Observable.Observe(WindowPropertyKeys.ProgressBar.FieldName, -1f);
@@ -316,6 +353,8 @@ public class WindowState
         bottomBarContentColor = Observable.Observe(WindowPropertyKeys.BottomBarContentColor.FieldName, "auto");
         bottomBarBackgroundColor = Observable.Observe(WindowPropertyKeys.BottomBarBackgroundColor.FieldName, "auto");
         bottomBarTheme = Observable.Observe(WindowPropertyKeys.BottomBarTheme.FieldName, WindowBottomBarTheme.Navigation);
+        closeTip = Observable.ObserveNullable<string>(WindowPropertyKeys.CloseTip.FieldName, null);
+        showCloseTip = Observable.Observe(WindowPropertyKeys.ShowCloseTip.FieldName, false);
     }
 
     public WindowState ToJsonAble() => this;
