@@ -22,6 +22,8 @@ import org.dweb_browser.microservice.sys.http.HttpDwebServer
 import org.dweb_browser.microservice.sys.http.createHttpDwebServer
 import org.dweb_browser.window.core.WindowController
 import org.http4k.core.Method
+import org.http4k.core.Response
+import org.http4k.core.Status
 import org.http4k.lens.Query
 import org.http4k.lens.string
 import org.http4k.routing.bind
@@ -72,14 +74,14 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
         val search = queryKeyWord(request)
         // openView(sessionId = sessionId, search = search)
         openBrowserWindow(ipc, search = search)
-        return@defineHandler true
+        return@defineHandler Response(Status.OK)
       },
       "openinbrowser" bind Method.GET to defineHandler { request, ipc ->
         debugBrowser("do openinbrowser", request.uri)
         val url = queryUrl(request)
         // openView(sessionId = sessionId, url = url)
         openBrowserWindow(ipc, url = url)
-        return@defineHandler true
+        return@defineHandler Response(Status.OK)
       },
 //      "/browser/observe/apps" bind Method.GET to defineHandler { _, ipc ->
 //        val inputStream = ReadableStream(onStart = { controller ->
@@ -105,7 +107,7 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
         debugBrowser("uninstall", request.uri)
         val search = queryKeyWord(request)
         // openView(sessionId = sessionId, search = search)
-        openBrowserWindow(ipc, search = search)
+        uninstallWindow(ipc, search = search)
         return@defineHandler true
       },
     )
@@ -122,7 +124,13 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
 //    }
 //  }
 
-  private var winLock = Mutex(false);
+  private var winLock = Mutex(false)
+
+  private suspend fun uninstallWindow(ipc: Ipc, search: String?) {
+    winLock.withLock {
+      win?.close(false)
+    }
+  }
 
   /**
    * 窗口是单例模式
