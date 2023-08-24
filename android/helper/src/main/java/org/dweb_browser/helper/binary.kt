@@ -8,13 +8,13 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.Base64
 
-val base64Encoder by lazy {
+val base64Encoder: Base64.Encoder by lazy {
   Base64.getEncoder()
 }
-val base64Decoder by lazy {
+val base64Decoder: Base64.Decoder by lazy {
   Base64.getDecoder()
 }
-val base64UrlEncoder by lazy {
+val base64UrlEncoder: Base64.Encoder by lazy {
   Base64.getUrlEncoder()
 }
 

@@ -82,41 +82,4 @@ class DesktopActivity : BaseThemeActivity() {
       }
     }
   }
-
-  private var isPause = false
-
-  override fun onResume() {
-    TaskbarModel.openFloatWindow()
-    isPause = false
-    super.onResume()
-  }
-
-  override fun onPause() {
-    isPause = true
-    super.onPause()
-  }
-
-  override fun onWindowFocusChanged(hasFocus: Boolean) {
-    if (!hasFocus && !isPause) { // 验证发现，如果通过系统上滑退出会先执行失焦，然后才走到onPause，其他情况都会先执行onPause
-      TaskbarModel.closeFloatWindow()
-    }
-    super.onWindowFocusChanged(hasFocus)
-  }
-
-  /*override fun onActivityResult(requestCode: kotlin.Int, resultCode: kotlin.Int, data: Intent?) {
-    super.onActivityResult(requestCode, resultCode, data)
-    if (requestCode == 999) {
-      if (Settings.canDrawOverlays(this)) {
-        startTaskbarService()
-      } else {
-        PermissionUtil.checkSuspendedWindowPermission(this@DesktopActivity) {
-          startTaskbarService()
-        }
-      }
-    }
-  }
-
-  private fun startTaskbarService() {
-    startService(Intent(this@DesktopActivity, TaskbarService::class.java))
-  }*/
 }

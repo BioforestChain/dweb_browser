@@ -1,6 +1,5 @@
 package info.bagen.dwebbrowser.microService.browser.web
 
-import androidx.compose.ui.res.stringResource
 import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.microService.browser.desk.DeskLinkMetaData
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
