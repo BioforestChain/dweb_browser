@@ -18,7 +18,6 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,9 +35,7 @@ internal fun BrowserModalBottomSheet(
   dragHandle: @Composable (() -> Unit) = { BottomSheetDefaults.DragHandle() },
   content: @Composable ColumnScope.() -> Unit,
 ) {
-  val bottomModel = LocalModalBottomSheet.current
   val state = remember { mutableStateOf(SheetState.PartiallyExpanded) }
-  val scope = rememberCoroutineScope()
   BoxWithConstraints(
     modifier = Modifier
       .fillMaxSize()

@@ -67,30 +67,35 @@ class DwebBrowserService : Service() {
     ) // 显示通知
     DownLoadObserver.emit(downLoadInfo.id, DownLoadStatus.DownLoading) // 同步更新所有注册
     GlobalScope.launch(Dispatchers.IO) {
-      ApiService.instance.downloadAndSave(
-        path = downLoadInfo.url,
-        file = File(downLoadInfo.path),
-        downLoadInfo.metaData.bundle_size.toLong(),
-        isStop = {
-          when (downLoadInfo.downLoadStatus) {
-            DownLoadStatus.PAUSE -> {
-              DownLoadObserver.emit(downLoadInfo.id, downLoadInfo.downLoadStatus)
-              true
-            }
+      try {
+        ApiService.instance.downloadAndSave(
+          path = downLoadInfo.url,
+          file = File(downLoadInfo.path),
+          downLoadInfo.metaData.bundle_size.toLong(),
+          isStop = {
+            when (downLoadInfo.downLoadStatus) {
+              DownLoadStatus.PAUSE -> {
+                DownLoadObserver.emit(downLoadInfo.id, downLoadInfo.downLoadStatus)
+                true
+              }
 
-            DownLoadStatus.CANCEL -> {
-              DownLoadObserver.emit(downLoadInfo.id, downLoadInfo.downLoadStatus)
-              downLoadInfo.downLoadStatus = DownLoadStatus.IDLE // 如果取消的话，那么就置为空
-              true
-            }
+              DownLoadStatus.CANCEL -> {
+                DownLoadObserver.emit(downLoadInfo.id, downLoadInfo.downLoadStatus)
+                downLoadInfo.downLoadStatus = DownLoadStatus.IDLE // 如果取消的话，那么就置为空
+                true
+              }
 
-            else -> false
+              else -> false
+            }
+          },
+          DLProgress = { current, total ->
+            downLoadInfo.callDownLoadProgress(current, total)
           }
-        },
-        DLProgress = { current, total ->
-          downLoadInfo.callDownLoadProgress(current, total)
-        }
-      )
+        )
+      } catch (e: Exception) {
+        Log.e("DwebBrowserService", "downloadAndSaveZip 下载失败: ${e.message}")
+        downLoadInfo.downloadInstalled(false)
+      }
     }
     return true
   }
@@ -98,28 +103,33 @@ class DwebBrowserService : Service() {
   @OptIn(DelicateCoroutinesApi::class)
   private fun breakPointDownLoadAndSave(downLoadInfo: DownLoadInfo) {
     GlobalScope.launch(Dispatchers.IO) {
-      ApiService.instance.breakpointDownloadAndSave(
-        path = downLoadInfo.url, file = File(downLoadInfo.path), total = downLoadInfo.size,
-        isStop = {
-          when (downLoadInfo.downLoadStatus) {
-            DownLoadStatus.PAUSE -> {
-              DownLoadObserver.emit(downLoadInfo.id, downLoadInfo.downLoadStatus)
-              true
-            }
+      try {
+        ApiService.instance.breakpointDownloadAndSave(
+          path = downLoadInfo.url, file = File(downLoadInfo.path), total = downLoadInfo.size,
+          isStop = {
+            when (downLoadInfo.downLoadStatus) {
+              DownLoadStatus.PAUSE -> {
+                DownLoadObserver.emit(downLoadInfo.id, downLoadInfo.downLoadStatus)
+                true
+              }
 
-            DownLoadStatus.CANCEL -> {
-              DownLoadObserver.emit(downLoadInfo.id, downLoadInfo.downLoadStatus)
-              downLoadInfo.downLoadStatus = DownLoadStatus.IDLE // 如果取消的话，那么就置为空
-              true
-            }
+              DownLoadStatus.CANCEL -> {
+                DownLoadObserver.emit(downLoadInfo.id, downLoadInfo.downLoadStatus)
+                downLoadInfo.downLoadStatus = DownLoadStatus.IDLE // 如果取消的话，那么就置为空
+                true
+              }
 
-            else -> false
+              else -> false
+            }
+          },
+          DLProgress = { current, total ->
+            downLoadInfo.callDownLoadProgress(current, total)
           }
-        },
-        DLProgress = { current, total ->
-          downLoadInfo.callDownLoadProgress(current, total)
-        }
-      )
+        )
+      } catch (e: Exception) {
+        Log.e("DwebBrowserService", "breakPointDownLoadAndSave 下载失败: ${e.message}")
+        downLoadInfo.downloadInstalled(false)
+      }
     }
   }
 
@@ -162,23 +172,31 @@ class DwebBrowserService : Service() {
           )
         pendingIntent
       }*/
+      NotificationUtil.INSTANCE.cancelNotification(notificationId) // 下载完成，隐藏通知栏
       DownLoadObserver.emit(this.id, DownLoadStatus.DownLoadComplete)
       runBlocking { delay(1000) }
       val unzip = ZipUtil.ergodicDecompress(
         this.path, FilesUtil.getAppUnzipPath(this@DwebBrowserService), mmid = id
       )
-      if (unzip) {
-        JsMicroModuleStore.saveAppInfo(id, metaData) // 保存的
-        // 删除下面的方法，调用saveJmmMetadata时，会自动更新datastore，而datastore在jmmNMM中有执行了installApp
-        DownLoadObserver.emit(this.id, DownLoadStatus.INSTALLED)
-        this.downLoadStatus = DownLoadStatus.INSTALLED
-      } else {
-        DownLoadObserver.emit(this.id, DownLoadStatus.FAIL)
-        this.downLoadStatus = DownLoadStatus.FAIL
-      }
-      downloadMap.remove(id) // 下载完成后需要移除
-      DownLoadObserver.close(id) // 移除当前mmid所有关联推送
+      downloadInstalled(unzip)
     }
+  }
+
+  /**
+   * 用于下载完成，安装的结果处理
+   */
+  private fun DownLoadInfo.downloadInstalled(success: Boolean) {
+    if (success) {
+      JsMicroModuleStore.saveAppInfo(id, metaData) // 保存的
+      // 删除下面的方法，调用saveJmmMetadata时，会自动更新datastore，而datastore在jmmNMM中有执行了installApp
+      DownLoadObserver.emit(this.id, DownLoadStatus.INSTALLED)
+      this.downLoadStatus = DownLoadStatus.INSTALLED
+    } else {
+      DownLoadObserver.emit(this.id, DownLoadStatus.FAIL)
+      this.downLoadStatus = DownLoadStatus.FAIL
+    }
+    downloadMap.remove(id) // 下载完成后需要移除
+    DownLoadObserver.close(id) // 移除当前mmid所有关联推送
   }
 
   fun downloadStatusChange(mmid: MMID) = downloadMap[mmid]?.apply {

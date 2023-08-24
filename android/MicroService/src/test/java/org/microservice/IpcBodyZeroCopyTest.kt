@@ -18,14 +18,14 @@ import kotlin.test.assertEquals
 class IpcBodyZeroCopyTest {
     @Test
     fun ipcRequestZeroCopyTest() = runBlocking {
-        val m1 = object : NativeMicroModule("m1") {
+        val m1 = object : NativeMicroModule("m1", "m1") {
             override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
             }
 
             override suspend fun _shutdown() {
             }
         }
-        val m2 = object : NativeMicroModule("m2") {
+        val m2 = object : NativeMicroModule("m2", "m2") {
             override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
             }
 

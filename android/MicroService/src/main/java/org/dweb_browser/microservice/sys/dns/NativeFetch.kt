@@ -2,7 +2,6 @@ package org.dweb_browser.microservice.sys.dns
 
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
-import io.ktor.client.plugins.cache.HttpCache
 import io.ktor.client.request.prepareRequest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -19,7 +18,6 @@ import org.http4k.core.Request
 import org.http4k.core.Response
 import org.http4k.core.Status
 import org.http4k.core.Uri
-
 
 typealias FetchAdapter = suspend (remote: MicroModule, request: Request) -> Response?
 
@@ -38,7 +36,7 @@ val nativeFetchAdaptersManager = NativeFetchAdaptersManager()
 class NativeFetchAdaptersManager : AdapterManager<FetchAdapter>() {
 
   private var client = HttpClient(CIO) {
-    install(HttpCache)
+    //install(HttpCache)
   }
 
   fun setClientProvider(client: HttpClient) {
@@ -50,7 +48,7 @@ class NativeFetchAdaptersManager : AdapterManager<FetchAdapter>() {
     val responsePo = PromiseOut<Response>()
     CoroutineScope(ioAsyncExceptionHandler).launch {
       client.prepareRequest(request.toHttpRequestBuilder()).execute {
-        val streamOut = ReadableStreamOut();
+        val streamOut = ReadableStreamOut()
         val response = it.toResponse(streamOut)
         debugFetch("httpFetch response", request.uri)
         responsePo.resolve(response)
@@ -78,7 +76,6 @@ suspend fun MicroModule.nativeFetch(request: Request): Response {
 
   return nativeFetchAdaptersManager.httpFetch(request)
 }
-
 
 suspend inline fun MicroModule.nativeFetch(url: Uri) = nativeFetch(Request(Method.GET, url))
 suspend inline fun MicroModule.nativeFetch(url: String) = nativeFetch(Request(Method.GET, url))

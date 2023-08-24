@@ -37,7 +37,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BrokenImage
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -397,7 +396,6 @@ private fun PopTabRowContent(
 }
 
 // 显示具体内容部分，其中又可以分为三个部分类型，操作页，书签列表，历史列表
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PopContentView(
   popupViewState: MutableState<PopupViewState>,
@@ -437,7 +435,6 @@ private fun PopContentView(
   }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PopContentOptionItem(viewModel: BrowserViewModel) {
   val scope = rememberCoroutineScope()

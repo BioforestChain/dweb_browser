@@ -14,10 +14,11 @@ dependencies {
 
   api(platform(libs.http4k.bom))
   api(libs.http4k.core)
-
-  implementation(libs.ktor.server.websockets)
-  implementation(libs.ktor.server.cio)
-  implementation(libs.ktor.client.cio)
+  api(libs.http4k.multipart)
+  api(libs.http4k.client.apache)
+  api(libs.ktor.server.websockets)
+  api(libs.ktor.server.cio)
+  api(libs.ktor.client.cio)
 
   api(libs.data.gson)
   implementation(libs.data.moshi.pack)

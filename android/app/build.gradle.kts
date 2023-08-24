@@ -110,11 +110,11 @@ android {
 
 dependencies {
   /// 网络开发相关
-  implementation(platform(libs.http4k.bom))
-  implementation(libs.http4k.core)
-  implementation(libs.http4k.multipart)
-  implementation(libs.http4k.client.apache)
-  implementation(libs.ktor.client.cio)
+  //implementation(platform(libs.http4k.bom))
+  //implementation(libs.http4k.core)
+  //implementation(libs.http4k.multipart)
+  //implementation(libs.http4k.client.apache)
+  //implementation(libs.ktor.client.cio)
 
   // Android 相关
   implementation(libs.androidx.core.splashscreen)

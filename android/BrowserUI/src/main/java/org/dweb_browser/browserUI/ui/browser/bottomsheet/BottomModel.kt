@@ -4,6 +4,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import org.dweb_browser.browserUI.ui.browser.noLocalProvidedFor
 
 val LocalModalBottomSheet = compositionLocalOf<ModalBottomModel> {
@@ -27,11 +28,13 @@ data class ModalBottomModel(
 
   suspend fun hide() {
     state.value = SheetState.Hidden
+    delay(50)
+    show.value = false
   }
 
   suspend fun show() {
     show.value = true
-    delay(10)
+    delay(50)
     state.value = SheetState.PartiallyExpanded
   }
 
