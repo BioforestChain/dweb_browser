@@ -69,7 +69,7 @@ open class JsMicroModule(var metadata: JmmAppInstallManifest) : MicroModule() {
     get() {
       var icons = metadata.icons;
       if (icons.isNullOrEmpty()) {
-        icons = listOf(ImageResource(src = metadata.icon))
+        icons = listOf(ImageResource(src = metadata.logo))
       }
       return icons
     }

@@ -78,7 +78,6 @@ fun AppIconRender(
     // 如果不可裁切，对图标进行一定的缩小。或者加载失败是，显示占位符，这时候不会显示遮罩（遮罩只为正确显示的图标服务），所以使用占位图，这时候就完整显示。
     val iconSize = if (!loadedSuccessIcon || iconMaskable) 1f else 0.87f
 
-
     /// 如果是单色的，那么将它作为图标进行展示，并跟随主题色
     if (iconMonochrome) {
       Icon(

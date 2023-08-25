@@ -4,4 +4,5 @@ import org.dweb_browser.helper.printDebug
 
 fun debugWindow(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("window", tag, msg, err)
-typealias UUID = String;
+
+typealias UUID = String

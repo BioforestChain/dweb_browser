@@ -1,8 +1,5 @@
 package org.dweb_browser.window.core
 
-import android.content.Context
-import android.view.View
-import android.view.inputmethod.InputMethodManager
 import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -14,8 +11,6 @@ import androidx.compose.runtime.structuralEqualityPolicy
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.unit.dp
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.android.BaseActivity

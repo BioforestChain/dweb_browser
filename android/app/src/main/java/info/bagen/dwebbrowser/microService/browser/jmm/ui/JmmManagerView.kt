@@ -350,7 +350,7 @@ private fun AppInfoHeadView(jmmAppInstallManifest: JmmAppInstallManifest) {
     verticalAlignment = Alignment.CenterVertically
   ) {
     AsyncImage(
-      model = jmmAppInstallManifest.icon,
+      model = jmmAppInstallManifest.logo,
       contentDescription = "AppIcon",
       modifier = Modifier
         .size(size)

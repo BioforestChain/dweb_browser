@@ -18,7 +18,7 @@ open class JmmAppManifest(
 /** Js模块应用安装使用的元数据 */
 data class JmmAppInstallManifest(
   /** 安装是展示用的 icon */
-  val icon: String = "",
+  val logo: String = "",
   /** 安装时展示用的截图 */
   val images: List<String> = emptyList(),
   var bundle_url: String = "",
@@ -45,7 +45,12 @@ data class JmmAppInstallManifest(
   /**
    * @deprecated 安装时显示的依赖模块
    */
-  val plugins: List<String> = emptyList()
+  val plugins: List<String> = emptyList(),
+  /**
+   * 描述应用支持的语言，格式：http://www.lingoes.net/zh/translator/langcode.htm
+   * en 英文，zh 中文
+   */
+  val languages: List<String> = emptyList()
 ) : JmmAppManifest()
 
 data class MainServer(
