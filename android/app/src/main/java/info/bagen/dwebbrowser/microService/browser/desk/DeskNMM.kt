@@ -11,6 +11,7 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 import org.dweb_browser.helper.ChangeState
@@ -53,7 +54,7 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
 
   private val runningApps = ChangeableMap<MMID, Ipc>()
 
-  private val deskScope = MainScope()
+  private val deskScope = MainScope() + ioAsyncExceptionHandler
 
   companion object {
     val deskControllers = mutableMapOf<String, DeskController>()
@@ -69,16 +70,14 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
     )
   }
 
-  private suspend fun listenApps() = coroutineScope {
+  private suspend fun listenApps() = deskScope.launch {
     val (openedAppIpc) = bootstrapContext.dns.connect("dns.std.dweb")
     val res = openedAppIpc.request("/observe/app")
     val stream = res.body.stream
-    deskScope.launch(ioAsyncExceptionHandler) {
-      while (stream.available() > 0) {
-        val chunk = stream.readByteArray()
-        val state = gson.fromJson<ChangeState<MMID>>(chunk.toString(), ChangeState::class.java)
-        runningApps.emitChangeBackground(state.adds, state.updates, state.removes)
-      }
+    while (stream.available() > 0) {
+      val chunk = stream.readByteArray()
+      val state = gson.fromJson<ChangeState<MMID>>(chunk.toString(), ChangeState::class.java)
+      runningApps.emitChangeBackground(state.adds, state.updates, state.removes)
     }
   }
 
