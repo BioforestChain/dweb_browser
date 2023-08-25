@@ -22,6 +22,7 @@ import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.MMID
 import org.dweb_browser.microservice.ipc.Ipc
+import org.dweb_browser.window.render.emitFocusOrBlur
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
@@ -88,6 +89,8 @@ class MultiWebViewNMM :
         debugMultiWebView("/activate", "激活 ${controller.ipc.remote.mmid}")
         // TODO 将当前的界面移动到最上层
         //  controller.ipc.postMessage(IpcEvent.fromUtf8(EIpcEvent.Activity.event, ""))
+        controller.win.emitFocusOrBlur(true)
+
         return@defineHandler Response(Status.OK)
       },
     )
