@@ -94,6 +94,16 @@ public class WindowState
     public WindowBounds Bounds { get => bounds.Get(); set => bounds.Set(value); }
     private Observable.Observer bounds { get; init; }
 
+    public WindowBounds UpdateBounds(WindowBounds newBounds)
+    {
+        if (!Bounds.Equals(newBounds))
+        {
+            Bounds = newBounds;
+        }
+
+        return Bounds;
+    }
+
     /// <summary>
     /// 窗口模式
     /// </summary>

@@ -5,7 +5,7 @@ namespace DwebBrowser.MicroService.Core;
 
 using CreateWindowAdapter = Func<WindowState, Task<WindowController>>;
 
-public record WindowRenderScope(float Width, float Height, float Scale);
+public record WindowRenderScope(WindowBounds Bounds, float Scale);
 
 public class WindowAdapterManager : AdapterManager<CreateWindowAdapter>
 {

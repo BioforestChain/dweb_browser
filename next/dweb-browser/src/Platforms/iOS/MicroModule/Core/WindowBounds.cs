@@ -11,7 +11,7 @@ namespace DwebBrowser.MicroService.Core;
 /// <param name="top"></param>
 /// <param name="width"></param>
 /// <param name="height"></param>
-public class WindowBounds : ICloneable
+public class WindowBounds : ICloneable, IEquatable<WindowBounds>
 {
     [JsonPropertyName("left")]
     public float Left { get; set; }
@@ -36,6 +36,16 @@ public class WindowBounds : ICloneable
     public object Clone()
     {
         return MemberwiseClone();
+    }
+
+    public bool Equals(WindowBounds other) => GetHashCode() == other.GetHashCode();
+
+    public override int GetHashCode()
+    {
+        return Left.GetHashCode() ^
+            Top.GetHashCode() ^
+            Width.GetHashCode() ^
+            Height.GetHashCode();
     }
 }
 

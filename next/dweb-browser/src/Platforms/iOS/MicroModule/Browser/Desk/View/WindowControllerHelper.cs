@@ -18,7 +18,38 @@ public partial class WindowController
     /// </summary>
     public State<bool> InResize => InResizeStore.GetValueOrPut(this, () => new State<bool>(false));
 
+    /// <summary>
+    /// 触发 window 聚焦状态的更新事件监听
+    /// </summary>
+    /// <param name="focused"></param>
+    public void EmitFocusOrBlur(bool focused)
+    {
+        if (focused)
+        {
+            _ = Focus().NoThrow();
+        }
+        else
+        {
+            _ = Blur().NoThrow();
+        }
+    }
 
+    public WindowBounds CalcWindowBoundsByLimits(WindowLimits limits)
+    {
+        if (State.Mode == WindowMode.MAXIMIZE)
+        {
+            InMove.Set(false);
+            return State.UpdateBounds(new WindowBounds(0, 0, limits.MaxWidth, limits.MaxHeight));
+        }
+        else
+        {
+            var bounds = State.Bounds;
+            var winWidth = Math.Max(bounds.Width, limits.MinWidth);
+            var winHeight = Math.Max(bounds.Height, limits.MinHeight);
+
+            return State.UpdateBounds(new WindowBounds(bounds.Left, bounds.Top, winWidth, winHeight));
+        }
+    }
 }
 
 public record WindowLimits(

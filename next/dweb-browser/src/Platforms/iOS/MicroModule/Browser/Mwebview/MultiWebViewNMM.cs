@@ -75,10 +75,12 @@ public class MultiWebViewNMM : IOSNativeMicroModule
             var remoteMmid = ipc!.Remote.Mmid;
             var controller = s_controllerMap.GetValueOrDefault(remoteMmid);
 
-            if (controller is not null)
+            if (controller is null)
             {
                 return false;
             }
+
+            controller.Win.EmitFocusOrBlur(true);
 
             return new PureResponse(HttpStatusCode.OK);
         });

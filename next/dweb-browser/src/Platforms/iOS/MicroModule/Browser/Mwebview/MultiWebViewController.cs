@@ -1,8 +1,7 @@
 ﻿using System.Text.Json;
-using DwebBrowser.Base;
-using DwebBrowser.MicroService.Browser.Mwebview.DwebServiceWorker;
 using UIKit;
 using WebKit;
+using CoreGraphics;
 
 #nullable enable
 

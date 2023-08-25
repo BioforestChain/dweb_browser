@@ -17,9 +17,8 @@ public partial class DesktopWindowsManager
 				deskAppUIView.Layer.ZPosition = win.State.ZIndex;
 				continue;
 			}
-			var bounds = win.State.Bounds;
 
-            await win.Render(new CGRect(bounds.Left, bounds.Top, bounds.Width, bounds.Height));
+            await win.Render();
 		}
 	});
 }

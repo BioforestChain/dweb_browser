@@ -237,12 +237,18 @@ public class WindowsManager
     {
         _ = Task.Run(async () =>
         {
-            if (LastFocusedWin != win)
+            var preFocusedWin = LastFocusedWin;
+            switch (preFocusedWin == win)
             {
-                LastFocusedWin?.Blur();
-                await win.Focus();
-                MoveToTop(win);
-                await DoLastFocusedWin();
+                case true:
+                    break;
+                default:
+                    LastFocusedWin?.Blur();
+                    await win.Focus();
+                    MoveToTop(win);
+                    await DoLastFocusedWin();
+                    break;
+
             }
         }).NoThrow();
     }

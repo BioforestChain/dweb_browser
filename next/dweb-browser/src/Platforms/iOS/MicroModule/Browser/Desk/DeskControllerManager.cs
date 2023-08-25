@@ -12,14 +12,6 @@ public partial class DeskController
     /// </summary>
     public void Start()
     {
-        //foreach (var view in DeskUIView.Subviews)
-        //{
-        //    if (view is DeskAppUIView deskAppUIView)
-        //    {
-        //        deskAppUIView.RemoveFromSuperview();
-        //    }
-        //}
-
         Console.Log("Start", "render");
         DesktopWindowsManager.Render();
     }
