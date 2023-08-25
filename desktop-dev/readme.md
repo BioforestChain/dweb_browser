@@ -30,3 +30,29 @@
      - `/start` 的 routes 是为了做到权限风发，与`listen` 的 routes 为了做到负载均衡不一样，二者互相补充
 - dwebview
   1. closewatcher.shim 应该直接垫片到每一个 WebView 实例中
+
+## 打包桌面端
+
+> 以下命令都在desktop-dev目录下
+
+1. 先打包个版本。
+
+```bash
+deno task dnt 2.0.5 
+```
+
+2. 生成icon, 这个不用每次都生成，在打包目录清空的时候再去生成。
+   
+```bash
+deno task icon
+``` 
+
+3. 打包成应用
+
+```bash
+deno task pkg
+#or 
+deno task pkg:win
+#or
+deno task pkg:mac
+```

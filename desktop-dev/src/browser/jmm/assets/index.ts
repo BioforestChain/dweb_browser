@@ -7,6 +7,7 @@ import type { $JmmAppInstallManifest } from "../types.ts";
 const elIcon = document.querySelector<HTMLElement>(".icon-container")!;
 const elMainTitle = document.querySelector<HTMLElement>(".title")!;
 const elMainExplain = document.querySelector<HTMLElement>(".explain")!;
+const elVersion = document.querySelector<HTMLElement>(".version")!;
 const elBtnDownload = document.querySelector<HTMLButtonElement>(".btn-download")!;
 const elBtnDownloadMask = document.querySelector<HTMLElement>(".btn-download-mask")!;
 const elBtnDownloadText = document.querySelector<HTMLElement>(".btn-download-label")!;
@@ -33,8 +34,11 @@ async function setAppInfoByAppInfo(metadata: $JmmAppInstallManifest, metadataUrl
   elIcon.style.backgroundImage = `url(${JSON.stringify(metadata.icon)})`;
   elMainTitle.innerHTML = appInfo.name;
   elMainExplain.innerHTML = appInfo.short_name;
+  elVersion.innerHTML = appInfo.version;
   elDetailtext.innerHTML = appInfo.description;
   elDeveloperName.innerText = appInfo.author[0];
+  
+  console.log("appInfo=>",appInfo)
 
   const imgs = appInfo.images.map((item) => {
     const img = document.createElement("img");

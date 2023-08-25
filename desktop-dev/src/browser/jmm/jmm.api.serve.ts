@@ -1,4 +1,4 @@
-import { blue, red } from "colors";
+import { blue, green, red } from "colors";
 import JSZip from "jszip";
 import crypto from "node:crypto";
 import fs from "node:fs";
@@ -6,7 +6,7 @@ import os from "node:os";
 import path from "node:path";
 import { isDeepStrictEqual } from "node:util";
 import tar from "tar";
-import { $FetchResponse, FetchEvent, IpcEvent } from "../../core/ipc/index.ts";
+import { FetchEvent, IpcEvent } from "../../core/ipc/index.ts";
 import { $MMID } from "../../core/types.ts";
 import { resolveToDataRoot } from "../../helper/createResolveTo.ts";
 import { Store } from "../../helper/electronStore.ts";
@@ -46,7 +46,7 @@ export class JmmDatabase extends Store<{
     return this._apps.get(mmid);
   }
   async remove(mmid: $MMID) {
-    this._apps.delete(mmid)
+    this._apps.delete(mmid);
     this._save();
     return true;
   }
@@ -70,13 +70,14 @@ export async function createApiServer(this: JmmNMM) {
       async (event) => {
         if (event.pathname === "/app/install") {
           const appInfo = await event.json<$JmmAppInstallManifest>();
+          const res = await locks.request(`jmm-install:${appInfo.id}`, () => _appInstall.call(this, event, appInfo));
           /// 上锁
-          return await locks.request(`jmm-install:${appInfo.id}`, () => _appInstall.call(this, event, appInfo));
+          return res
         }
       },
       async (event) => {
         if (event.pathname === "/close/self") {
-          return await this.nativeFetch(`file://mwebview.browser.dweb/close/app`);
+          return this.jmmServer?.close();
         }
       },
       async (event) => {
@@ -101,7 +102,7 @@ export async function createApiServer(this: JmmNMM) {
 /**
  * 应用程序安装的核心逻辑
  */
-async function _appInstall(this: JmmNMM, event: FetchEvent, appInfo: $JmmAppInstallManifest): Promise<$FetchResponse> {
+async function _appInstall(this: JmmNMM, event: FetchEvent, appInfo: $JmmAppInstallManifest) {
   const { ipcRequest, ipc } = event;
 
   //#region 准备工作
@@ -170,7 +171,7 @@ async function _appInstall(this: JmmNMM, event: FetchEvent, appInfo: $JmmAppInst
   //#endregion
 
   /// 准备完毕，开始正式执行下载与安装，同时响应 /install/app（返回JSONLine格式的数据）
-  await doDownloadAndInstall.call(this);
+  doDownloadAndInstall.call(this);
   return {
     body: downloadProgressStreamOut.stream,
   };
@@ -266,7 +267,8 @@ async function _appInstall(this: JmmNMM, event: FetchEvent, appInfo: $JmmAppInst
     const metadata = new JsMMMetadata(appInfo);
     const jmm = new JsMicroModule(metadata);
     this.context!.dns.install(jmm);
-    await enqueueInstallProgress("install", 0, true);
+    console.always("jmm serve", green("安装成功！"));
+    enqueueInstallProgress("install", 0, true);
   }
 }
 

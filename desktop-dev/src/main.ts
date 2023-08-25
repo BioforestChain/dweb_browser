@@ -94,14 +94,15 @@ const menu = Electron.Menu;
 const Tray = Electron.Tray;
 let appIcon = null;
 app.whenReady().then(() => {
-  const devIcon = isWindows ? "./electron/icons/win/icon.ico" : "./electron/icons/mac/icon.icns";
-  const depsIcon = isWindows ? "./resources/icons/win/icon.ico": "./resources/icons/mac/icon.icns";
+  const devIcon = isWindows ? "./electron/icons/win/icon.ico" : "./electron/icons/png/16x16.png";
+  const depsIcon = isWindows ? "./resources/icons/win/icon.ico": "./resources/icons/png/16x16.png";
   const iconPath = isElectronDev
     ? path.join(path.dirname(app.getAppPath()), devIcon)
     : path.join(path.dirname(app.getPath("exe")), depsIcon);
   appIcon = new Tray(iconPath);
   const contextMenu = menu.buildFromTemplate([
     {
+      icon:iconPath,
       label: "quit",
       type: "normal",
       click: () => {

@@ -144,7 +144,7 @@ export const createFetchHandler = (onFetchs: Iterable<$OnFetch>) => {
 
     for (const handler of onFetchHanlders) {
       try {
-        let result: $OnFetchReturn = {};
+        let result: $OnFetchReturn = undefined;
         if (FETCH_MID_SYMBOL in handler) {
           if (res !== undefined) {
             result = await handler(res, event);

@@ -68,8 +68,6 @@ export class TaskbarApi {
         },
       }).href
     );
-    // taskbarWin.webContents.openDevTools({ mode: "undocked" });
-
     return new TaskbarApi(taskbarWin, mm, context, taskbarServer, desktopServer);
   }
 

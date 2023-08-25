@@ -4,20 +4,19 @@ import type { OutgoingMessage } from "node:http";
 import path from "node:path";
 import type { $BootstrapContext } from "../../core/bootstrapContext.ts";
 import { MICRO_MODULE_CATEGORY } from "../../core/category.const.ts";
+import { buildRequestX } from "../../core/helper/ipcRequestHelper.ts";
 import { FetchError } from "../../core/ipc/ipc.ts";
 import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import { $DWEB_DEEPLINK, $MMID } from "../../core/types.ts";
-import { $Callback, createSignal } from "../../helper/createSignal.ts";
 import { fetchMatch } from "../../helper/patternHelper.ts";
 import { readableToWeb } from "../../helper/stream/nodejsStreamHelper.ts";
 import { z, zq } from "../../helper/zodHelper.ts";
-import type { HttpDwebServer } from "../../std/http/helper/$createHttpDwebServer.ts";
+import { createHttpDwebServer, type HttpDwebServer } from "../../std/http/helper/$createHttpDwebServer.ts";
 import { nativeFetchAdaptersManager } from "../../sys/dns/nativeFetch.ts";
 import { DOWNLOAD_STATUS } from "./const.ts";
 import { JMM_APPS_PATH, JMM_DB, createApiServer } from "./jmm.api.serve.ts";
-import { createWWWServer } from "./jmm.www.serve.ts";
+import { JmmServer } from "./jmm.www.serve.ts";
 import { JsMMMetadata, JsMicroModule } from "./micro-module.js.ts";
-import { $JmmAppManifest } from "./types.ts";
 
 nativeFetchAdaptersManager.append((remote, parsedUrl) => {
   /// fetch("file:///jmm/") 匹配
@@ -61,7 +60,7 @@ export class JmmNMM extends NativeMicroModule {
   override dweb_deeplinks = ["dweb:install"] as $DWEB_DEEPLINK[];
   override categories = [MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Hub_Service];
   downloadStatus: DOWNLOAD_STATUS = 0;
-  wwwServer: HttpDwebServer | undefined;
+  jmmServer: JmmServer | undefined;
   apiServer: HttpDwebServer | undefined;
 
   resume: {
@@ -79,10 +78,11 @@ export class JmmNMM extends NativeMicroModule {
       const jmm = new JsMicroModule(metadata);
       context.dns.install(jmm);
     }
-
-    await createWWWServer.call(this);
+    // 构建api 服务
     await createApiServer.call(this);
-
+    // 构建html服务
+    const wwwServer = await this._createJMMWebServer();
+    this.jmmServer = await JmmServer.create(this, wwwServer);
     const query_metadataUrl = zq.object({
       metadataUrl: zq.string(),
     });
@@ -108,13 +108,13 @@ export class JmmNMM extends NativeMicroModule {
       })
       .get("/install", async (event) => {
         const { metadataUrl } = query_metadataUrl(event.searchParams);
-        const res = Response.json(await this.startInstall(metadataUrl));
+        const res = Response.json(this.jmmServer?.show(metadataUrl));
         return res;
       })
       .get("/uninstall", async (event) => {
         const { app_id: mmid } = query_app_id(event.searchParams);
-        await this.uninstallApp(context, mmid)
-        return Response.json({"ok":true});
+        await this.uninstallApp(context, mmid);
+        return Response.json({ ok: true });
       })
       .get("/pause", async (event) => {
         return Response.json(await this.pauseInstall());
@@ -128,17 +128,9 @@ export class JmmNMM extends NativeMicroModule {
       .deeplink("install", async (event) => {
         const { url } = query_url(event.searchParams);
         /// 安装应用并打开
-        await this.startInstall(url);
-        const off = this.onInstalled.listen((info, fromUrl) => {
-          if (fromUrl === url) {
-            off();
-            context.dns.connect(info.id);
-          }
-        });
+        this.jmmServer?.show(url);
       });
-    this.onFetch((event) => {
-      return onFetchMatcher.run(event);
-    }).internalServerError();
+    this.onFetch(onFetchMatcher.run).internalServerError();
   }
 
   private openApp = async (context: $BootstrapContext, mmid: $MMID) => {
@@ -148,18 +140,6 @@ export class JmmNMM extends NativeMicroModule {
     return await context.dns.close(mmid);
   };
 
-  private startInstall = async (metadataUrl: string) => {
-    // 需要同时查询参数传递进去
-    if (this.wwwServer === undefined) throw new Error(`this.wwwServer === undefined`);
-    const indexUrl = this.wwwServer.startResult.urlInfo.buildInternalUrl((url) => {
-      url.pathname = "/index.html";
-      url.searchParams.set("metadataUrl", metadataUrl);
-    }).href;
-    const openUrl = new URL(`file://mwebview.browser.dweb/open`);
-    openUrl.searchParams.set("url", indexUrl);
-    await this.nativeFetch(openUrl);
-    return true;
-  };
   private pauseInstall = async () => {
     console.log("jmm", "................ 下载暂停但是还没有处理");
     return true;
@@ -181,10 +161,27 @@ export class JmmNMM extends NativeMicroModule {
     await context.dns.uninstall(mmid);
   };
 
-  readonly onInstalled = createSignal<$Callback<[$JmmAppManifest, string]>>();
-
   protected _shutdown(): unknown {
     throw new Error("Method not implemented.");
+  }
+  private async _createJMMWebServer() {
+    const wwwServer = await createHttpDwebServer(this, {
+      subdomain: "www",
+      port: 6363,
+    });
+    const serverIpc = await wwwServer.listen();
+    serverIpc.onFetch(async (event) => {
+      const { pathname } = event.url;
+      const url = `file:///sys/browser/jmm${pathname}?mode=stream`;
+      const request = buildRequestX(url, {
+        method: event.method,
+        headers: event.headers,
+        body: event.ipcRequest.body.raw,
+      });
+      // 打开首页的 路径
+      return await this.nativeFetch(request);
+    });
+    return wwwServer;
   }
 }
 

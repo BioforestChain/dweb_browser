@@ -22,7 +22,6 @@ export const assetsTasks = new ConTasks(
     "jmm.html": viteTaskFactory({
       inDir: "src/browser/jmm/assets",
       outDir: "electron/assets/browser/jmm",
-      viteConfig: "scripts/electron-vite.config.ts",
       baseDir,
     }),
     "js-process.worker.js": esbuildTaskFactory({

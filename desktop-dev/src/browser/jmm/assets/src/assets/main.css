@@ -1,0 +1,15 @@
+
+
+body::-webkit-scrollbar {
+  display: block;
+  background: transparent;
+  width: 5px;
+}
+
+body::-webkit-scrollbar-thumb {
+  background: #999;
+  border-radius: 5px;
+}
+body {
+  font-family: "Times New Roman", Times, serif;
+}

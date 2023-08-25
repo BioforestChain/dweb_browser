@@ -30,6 +30,8 @@ export interface $JmmAppInstallManifest extends $JmmAppManifest {
   bundle_url: string;
   bundle_hash: string;
   bundle_size: number;
+  // app 支持的语言
+  languages:string[]; // http://www.lingoes.net/zh/translator/langcode.htm
   /**格式为 `hex:{signature}` */
   bundle_signature:string;
   /**该链接必须使用和app-id同域名的网站链接，

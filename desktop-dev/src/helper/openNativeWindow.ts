@@ -518,25 +518,6 @@ export class NativeWindowExtensions_BaseApi {
   }
 }
 
-// export const wrapNativeWindowAsApis = <T>(win: $NativeWindow) => {
-//   wrap({
-//     addEventListener(type, listener: (...args: any[]) => void) {
-//       win.webContents.ipc.on(type, listener);
-//     },
-//     removeEventListener(type, listener: (...args: any[]) => void) {
-//       win.webContents.ipc.off(type, listener);
-//     },
-//     postMessage(messaeg, transfer) {
-//       win.webContents.ipc.;
-//     },
-//   }) as T;
-// };
 
 export type $NativeWindow = Awaited<ReturnType<typeof createComlinkNativeWindow>>;
 
-// {
-//   readonly devToolsWins = new Set<Electron.BrowserWindow>();
-// }
-// export interface $DevToolsWin {
-//   _devToolsWin: Map<number, Electron.BrowserWindow>
-// }

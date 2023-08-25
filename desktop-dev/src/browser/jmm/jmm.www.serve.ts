@@ -1,19 +1,45 @@
-import { createHttpDwebServer } from "../../std/http/helper/$createHttpDwebServer.ts";
+import { tryDevUrl } from "../../helper/electronIsDev.ts";
+import { createNativeWindow } from "../../helper/openNativeWindow.ts";
+import { buildUrl } from "../../helper/urlHelper.ts";
+import { HttpDwebServer } from "../../std/http/helper/$createHttpDwebServer.ts";
 import type { JmmNMM } from "./jmm.ts";
 
-export async function createWWWServer(this: JmmNMM) {
-  // 为 下载页面做 准备
-  this.wwwServer = await createHttpDwebServer(this, {
-    subdomain: "www",
-    port: 6363,
-  });
+export class JmmServer {
+  constructor(
+    private win: Electron.BrowserWindow,
+    private mm: JmmNMM,
+    private jmmUrl: string,
+    private jmmServer: HttpDwebServer
+  ) {}
 
-  const serverIpc = await this.wwwServer.listen();
-  serverIpc.onFetch(async (event) => {
-    let { pathname } = event.url;
-    pathname = pathname === "/" ? "/index.html" : pathname;
-    const url = `file:///sys/browser/jmm${pathname}?mode=stream`;
-    // 打开首页的 路径
-    return await this.nativeFetch(url);
-  });
+  close() {
+    this.win.close();
+  }
+
+  show(metadataUrl: string) {
+    this.win.loadURL(
+      buildUrl(this.jmmUrl, {
+        search: {
+          metadataUrl: metadataUrl,
+        },
+      }).href
+    );
+    this.win.webContents.openDevTools({ mode:"detach"})
+    this.win.show();
+  }
+
+  static async create(mm: JmmNMM, jmmServer: HttpDwebServer) {
+    const jmmProdUrl = jmmServer.startResult.urlInfo.buildInternalUrl((url) => {
+      url.pathname = "/index.html";
+    }).href;
+    const jmmUrl = await tryDevUrl(jmmProdUrl, `http://localhost:3601/index.html`);
+
+    const jmmWin = await createNativeWindow(mm.mmid, {
+      width: 350,
+      height: 750,
+      show: false,
+    });
+    jmmWin.setVisibleOnAllWorkspaces(true);
+    return new JmmServer(jmmWin, mm, jmmUrl, jmmServer);
+  }
 }

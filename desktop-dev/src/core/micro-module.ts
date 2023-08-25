@@ -136,7 +136,6 @@ export abstract class MicroModule implements $MicroModule {
     });
     this._connectSignal.emit(ipc, reason);
   }
-  private _on_activity_inited = false;
   protected _activitySignal = createSignal<$OnActivity>();
   protected onActivity = this._activitySignal.listen;
 
