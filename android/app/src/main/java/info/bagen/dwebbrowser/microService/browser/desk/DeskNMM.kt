@@ -7,8 +7,11 @@ import info.bagen.dwebbrowser.microService.browser.jmm.EIpcEvent
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 import org.dweb_browser.helper.ChangeState
 import org.dweb_browser.helper.ChangeableMap
@@ -50,6 +53,8 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
 
   private val runningApps = ChangeableMap<MMID, Ipc>()
 
+  private val deskScope = MainScope()
+
   companion object {
     val deskControllers = mutableMapOf<String, DeskController>()
     lateinit var taskBarController: TaskBarController
@@ -68,7 +73,7 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
     val (openedAppIpc) = bootstrapContext.dns.connect("dns.std.dweb")
     val res = openedAppIpc.request("/observe/app")
     val stream = res.body.stream
-    GlobalScope.launch(ioAsyncExceptionHandler) {
+    deskScope.launch(ioAsyncExceptionHandler) {
       while (stream.available() > 0) {
         val chunk = stream.readByteArray()
         val state = gson.fromJson<ChangeState<MMID>>(chunk.toString(), ChangeState::class.java)
@@ -238,6 +243,7 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
   }
 
   override suspend fun _shutdown() {
+    deskScope.cancel()
   }
 
   private val API_PREFIX = "/api/"
