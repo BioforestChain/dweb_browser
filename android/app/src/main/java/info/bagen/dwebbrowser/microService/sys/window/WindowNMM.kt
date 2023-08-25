@@ -1,10 +1,6 @@
 package info.bagen.dwebbrowser.microService.sys.window
 
 
-import org.dweb_browser.window.core.WindowController
-import org.dweb_browser.window.core.constant.WindowPropertyKeys
-import org.dweb_browser.window.core.WindowState
-import org.dweb_browser.window.core.windowInstancesManager
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.printdebugln
@@ -12,9 +8,11 @@ import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.ipc.helper.ReadableStream
-import org.dweb_browser.window.core.constant.WindowBottomBarStyle
+import org.dweb_browser.window.core.WindowController
+import org.dweb_browser.window.core.WindowState
+import org.dweb_browser.window.core.constant.WindowPropertyKeys
 import org.dweb_browser.window.core.constant.WindowStyle
-import org.dweb_browser.window.core.constant.WindowTopBarStyle
+import org.dweb_browser.window.core.windowInstancesManager
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Response
