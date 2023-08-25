@@ -53,6 +53,11 @@ public interface IJmmAppManifest : ICommonAppManifest
     public new string ThemeColor { get; set; }
     public new string BackgroundColor { get; set; }
     public new List<ShortcutItem> Shortcuts { get; set; }
+
+    /// <summary>
+    /// ISO-639 language codes
+    /// </summary>
+    public List<string> Languages { get; set; }
 }
 
 public interface IJmmAppInstallManifest : IJmmAppManifest
@@ -60,7 +65,7 @@ public interface IJmmAppInstallManifest : IJmmAppManifest
     /// <summary>
     /// 安装是展示用的 icon
     /// </summary>
-    public string Icon { get; set; }
+    public string Logo { get; set; }
     /// <summary>
     /// 安装时展示用的截图
     /// </summary>

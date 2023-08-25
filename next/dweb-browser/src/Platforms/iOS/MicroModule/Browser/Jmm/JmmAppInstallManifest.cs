@@ -43,8 +43,8 @@ public class JmmAppInstallManifest : IJmmAppInstallManifest
     public string BackgroundColor { get; set; }
     [JsonPropertyName("shortcuts")]
     public List<ShortcutItem> Shortcuts { get; set; }
-    [JsonPropertyName("icon")]
-    public string Icon { get; set; }
+    [JsonPropertyName("logo")]
+    public string Logo { get; set; }
     [JsonPropertyName("images")]
     public List<string> Images { get; set; }
     [JsonPropertyName("bundle_url")]
@@ -69,6 +69,8 @@ public class JmmAppInstallManifest : IJmmAppInstallManifest
     public List<string> Permissions { get; set; }
     [JsonPropertyName("plugins")]
     public List<string> Plugins { get; set; }
+    [JsonPropertyName("languages")]
+    public List<string>? Languages { get; set; }
 
     [Obsolete("使用带参数的构造函数", true)]
 #pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
@@ -95,7 +97,7 @@ public class JmmAppInstallManifest : IJmmAppInstallManifest
         string theme_color,
         string background_color,
         List<ShortcutItem> shortcuts,
-        string icon,
+        string logo,
         List<string> images,
         string bundle_url,
         string bundle_hash,
@@ -109,7 +111,8 @@ public class JmmAppInstallManifest : IJmmAppInstallManifest
         List<string> permissions,
         List<string> plugins,
         string? baseURI = null,
-        List<string>? dweb_deeplinks = null)
+        List<string>? dweb_deeplinks = null,
+        List<string>? languages = null)
     {
         Id = mmid;
         Server = server;
@@ -126,7 +129,7 @@ public class JmmAppInstallManifest : IJmmAppInstallManifest
         BaseUri = baseURI;
         Name = name;
         ShortName = short_name;
-        Icon = icon;
+        Logo = logo;
         Images = images;
         Description = description;
         Author = author;
@@ -141,6 +144,7 @@ public class JmmAppInstallManifest : IJmmAppInstallManifest
         Permissions = permissions;
         Plugins = plugins;
         ReleaseDate = release_date;
+        Languages = languages;
         if (dweb_deeplinks is null)
         {
             Dweb_DeepLinks = new();
@@ -186,7 +190,7 @@ public sealed class JmmAppDownloadManifest : JmmAppInstallManifest
         string theme_color,
         string background_color,
         List<ShortcutItem> shortcuts,
-        string icon,
+        string logo,
         List<string> images,
         string bundle_url,
         string bundle_hash,
@@ -200,7 +204,8 @@ public sealed class JmmAppDownloadManifest : JmmAppInstallManifest
         List<string> permissions,
         List<string> plugins,
         string? baseURI = null,
-        List<string>? dweb_deeplinks = null) :
+        List<string>? dweb_deeplinks = null,
+        List<string>? languages = null) :
         base(
             mmid,
             version,
@@ -218,7 +223,7 @@ public sealed class JmmAppDownloadManifest : JmmAppInstallManifest
             theme_color,
             background_color,
             shortcuts,
-            icon,
+            logo,
             images,
             bundle_url,
             bundle_hash,
@@ -232,7 +237,8 @@ public sealed class JmmAppDownloadManifest : JmmAppInstallManifest
             permissions,
             plugins,
             baseURI,
-            dweb_deeplinks)
+            dweb_deeplinks,
+            languages)
     {
     }
 
@@ -255,7 +261,7 @@ public sealed class JmmAppDownloadManifest : JmmAppInstallManifest
             jmmAppInstallManifest.ThemeColor,
             jmmAppInstallManifest.BackgroundColor,
             jmmAppInstallManifest.Shortcuts,
-            jmmAppInstallManifest.Icon,
+            jmmAppInstallManifest.Logo,
             jmmAppInstallManifest.Images,
             jmmAppInstallManifest.BundleUrl,
             jmmAppInstallManifest.BundleHash,
@@ -269,43 +275,10 @@ public sealed class JmmAppDownloadManifest : JmmAppInstallManifest
             jmmAppInstallManifest.Permissions,
             jmmAppInstallManifest.Plugins,
             jmmAppInstallManifest.BaseUri,
-            jmmAppInstallManifest.Dweb_DeepLinks
+            jmmAppInstallManifest.Dweb_DeepLinks,
+            jmmAppInstallManifest.Languages
         );
     }
-
-    //public static JmmAppDownloadManifest FromMicroModuleManifest(IMicroModuleManifest microModuleManifest)
-    //{
-    //    return new JmmAppDownloadManifest(
-    //        microModuleManifest.Mmid,
-    //        microModuleManifest.Version,
-    //        microModuleManifest.Categories,
-    //        new MainServer() { Root = "", Entry = "" },
-    //        microModuleManifest.Dir,
-    //        microModuleManifest.Lang,
-    //        microModuleManifest.Name,
-    //        microModuleManifest.ShortName,
-    //        microModuleManifest.Description,
-    //        microModuleManifest.Icons,
-    //        microModuleManifest.Screenshots,
-    //        microModuleManifest.Display,
-    //        microModuleManifest.Orientation,
-    //        microModuleManifest.ThemeColor,
-    //        microModuleManifest.BackgroundColor,
-    //        microModuleManifest.Shortcuts,
-    //        microModuleManifest.
-    //        microModuleManifest.Screenshots,
-    //        "",
-    //        "",
-    //        0,
-    //        "",
-    //        "",
-    //        "",
-    //        new List<string> { "" },
-    //        "",
-    //        "",
-    //        new List<string> { "" },
-    //        new List<string> { "" });
-    //}
 
     [JsonPropertyName("download_status")]
     public DownloadStatus DownloadStatus { get; set; } = DownloadStatus.IDLE;

@@ -147,7 +147,7 @@ public class JsMicroModule : MicroModule
 
         if (Icons is null || Icons.Count == 0)
         {
-            Icons = new List<ImageResource> { new ImageResource(metadata.Config.Icon) };
+            Icons = new List<ImageResource> { new ImageResource(metadata.Config.Logo) };
         }
     }
 
