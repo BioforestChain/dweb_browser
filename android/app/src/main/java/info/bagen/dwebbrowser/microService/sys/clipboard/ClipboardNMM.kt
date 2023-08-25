@@ -5,7 +5,7 @@ import android.content.ClipDescription
 import android.content.ClipboardManager
 import android.content.Context
 import info.bagen.dwebbrowser.App
-import org.dweb_browser.helper.printdebugln
+import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
@@ -22,7 +22,7 @@ data class ClipboardWriteResponse(val success: Boolean, val errorManager: String
 data class ClipboardData(val value: String, val type: String)
 
 fun debugClipboard(tag: String, msg: Any? = "", err: Throwable? = null) =
-  printdebugln("Clipboard", tag, msg, err)
+  printDebug("Clipboard", tag, msg, err)
 
 /** 剪切板微模块*/
 class ClipboardNMM : NativeMicroModule("clipboard.sys.dweb","clipboard") {

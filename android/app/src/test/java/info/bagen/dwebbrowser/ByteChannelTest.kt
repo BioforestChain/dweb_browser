@@ -1,34 +1,33 @@
 package info.bagen.dwebbrowser
 
-import io.ktor.utils.io.*
-import io.ktor.utils.io.jvm.javaio.*
-import kotlinx.coroutines.GlobalScope
+import io.ktor.utils.io.ByteChannel
+import io.ktor.utils.io.close
+import io.ktor.utils.io.jvm.javaio.toInputStream
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import java.time.LocalTime
 
 class ByteChannelTest {
-    val bytechannel = ByteChannel(true)
+  val bytechannel = ByteChannel(true)
 
+  fun log(log: String) = println("${LocalTime.now()}\t\t$log")
 
-    fun log(log: String) = println("${LocalTime.now()}\t\t$log")
-
-    @Test
-    fun test1() = runBlocking {
-        GlobalScope.launch {
-            var i = 0;
-            while (i < 10) {
-                delay(500)
-                log("channel write $i")
-                bytechannel.writeInt(i++)
-            }
-            bytechannel.close()
-        }
-
-
+  @Test
+  fun test1() = runBlocking {
+    MainScope().launch(ioAsyncExceptionHandler) {
+      var i = 0;
+      while (i < 10) {
+        delay(500)
+        log("channel write $i")
+        bytechannel.writeInt(i++)
+      }
+      bytechannel.close()
+    }
 
 //        bytechannel.readRemaining(4)
 //        while (!bytechannel.isClosedForRead) {
@@ -43,21 +42,17 @@ class ByteChannelTest {
 //            log("channel readed $byte")
 //        }
 
-        val inputStream = bytechannel.toInputStream()
+    val inputStream = bytechannel.toInputStream()
 
-        while (inputStream.available()>0){
+    while (inputStream.available() > 0) {
 //            inputStream.
-        }
-
-        log("done ${bytechannel.isClosedForRead}")
-        Assertions.assertTrue(bytechannel.isClosedForRead)
-
     }
 
-    @Test
-    fun test2() = runBlocking {
+    log("done ${bytechannel.isClosedForRead}")
+    Assertions.assertTrue(bytechannel.isClosedForRead)
+  }
 
-    }
-
-
+  @Test
+  fun test2() = runBlocking {
+  }
 }

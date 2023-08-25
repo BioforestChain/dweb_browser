@@ -5,10 +5,12 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import org.dweb_browser.window.core.WindowController
 import org.dweb_browser.window.core.createWindowAdapterManager
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
 import org.dweb_browser.browserUI.ui.browser.BrowserViewModel
+import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.microservice.sys.http.HttpDwebServer
 
 class BrowserController(
@@ -16,10 +18,10 @@ class BrowserController(
   browserNMM: BrowserNMM,
   browserServer: HttpDwebServer
 ) {
+  private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
   val showLoading: MutableState<Boolean> = mutableStateOf(false)
   val viewModel = BrowserViewModel(browserNMM, browserServer) { mmid ->
-    @OptIn(DelicateCoroutinesApi::class)
-    GlobalScope.launch {
+    ioAsyncScope.launch {
       browserNMM.bootstrapContext.dns.open(mmid)
     }
   }
@@ -35,6 +37,7 @@ class BrowserController(
     win.onClose {
       // 移除渲染适配器
       createWindowAdapterManager.renderProviders.remove(wid)
+      ioAsyncScope.cancel()
     }
   }
 

@@ -6,17 +6,18 @@ import android.os.Binder
 import android.os.IBinder
 import android.util.Log
 import android.widget.Toast
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
 import kotlinx.coroutines.runBlocking
 import org.dweb_browser.browserUI.database.JsMicroModuleStore
 import org.dweb_browser.browserUI.network.ApiService
 import org.dweb_browser.browserUI.util.FilesUtil
 import org.dweb_browser.browserUI.util.NotificationUtil
 import org.dweb_browser.browserUI.util.ZipUtil
+import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.microservice.help.MMID
 import java.io.File
@@ -31,6 +32,7 @@ enum class DownLoadController { PAUSE, RESUME, CANCEL }
 
 class DwebBrowserService : Service() {
   private val downloadMap = mutableMapOf<MMID, DownLoadInfo>() // 用于监听下载列表
+  private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler // 用于全局的协程调用
 
   override fun onBind(intent: Intent?): IBinder {
     return DwebBrowserBinder()
@@ -52,11 +54,15 @@ class DwebBrowserService : Service() {
     }
   }
 
-  @OptIn(DelicateCoroutinesApi::class)
+  override fun onDestroy() {
+    super.onDestroy()
+    ioAsyncScope.cancel()
+  }
+
   fun downloadAndSaveZip(downLoadInfo: DownLoadInfo): Boolean {
     // 1. 根据path进行下载，并且创建notification
     if (downloadMap.containsKey(downLoadInfo.id)) {
-      GlobalScope.launch(mainAsyncExceptionHandler) {
+      ioAsyncScope.launch(mainAsyncExceptionHandler) {
         Toast.makeText(this@DwebBrowserService, "正在下载中，请稍后...", Toast.LENGTH_SHORT).show()
       }
       return false
@@ -66,7 +72,7 @@ class DwebBrowserService : Service() {
       downLoadInfo.id, downLoadInfo.notificationId, downLoadInfo.name
     ) // 显示通知
     DownLoadObserver.emit(downLoadInfo.id, DownLoadStatus.DownLoading) // 同步更新所有注册
-    GlobalScope.launch(Dispatchers.IO) {
+    ioAsyncScope.launch {
       try {
         ApiService.instance.downloadAndSave(
           path = downLoadInfo.url,
@@ -100,9 +106,8 @@ class DwebBrowserService : Service() {
     return true
   }
 
-  @OptIn(DelicateCoroutinesApi::class)
   private fun breakPointDownLoadAndSave(downLoadInfo: DownLoadInfo) {
-    GlobalScope.launch(Dispatchers.IO) {
+    ioAsyncScope.launch {
       try {
         ApiService.instance.breakpointDownloadAndSave(
           path = downLoadInfo.url, file = File(downLoadInfo.path), total = downLoadInfo.size,

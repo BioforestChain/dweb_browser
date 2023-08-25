@@ -7,9 +7,10 @@ import android.content.Intent
 import android.os.Bundle
 import info.bagen.dwebbrowser.microService.startDwebBrowser
 import info.bagen.dwebbrowser.util.PlaocUtil
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.browserUI.util.BrowserUIApp
@@ -24,10 +25,10 @@ class App : Application() {
 
     val grant = PromiseOut<Boolean>()
     private val lockActivityState = Mutex()
+    private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
 
-    @OptIn(DelicateCoroutinesApi::class)
     fun <T> startActivity(cls: Class<T>, onIntent: (intent: Intent) -> Unit) {
-      GlobalScope.launch(ioAsyncExceptionHandler) {
+      ioAsyncScope.launch {
         lockActivityState.withLock {
           if (!grant.waitPromise()) {
             return@withLock // TODO 用户拒绝协议应该做的事情
@@ -39,7 +40,6 @@ class App : Application() {
         }
       }
     }
-
 
     private val dnsNMMPo = PromiseOut<DnsNMM>()
     fun startMicroModuleProcess() {
@@ -67,6 +67,10 @@ class App : Application() {
     BrowserUIApp.Instance.setAppContext(this) // 初始化BrowserUI模块
   }
 
+  override fun onTerminate() {
+    super.onTerminate()
+    ioAsyncScope.cancel()
+  }
 
   private class ActivityLifecycleCallbacksImp : ActivityLifecycleCallbacks {
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
@@ -76,9 +80,10 @@ class App : Application() {
     }
 
     override fun onActivityResumed(activity: Activity) {
+
       // android10中规定, 只有默认输入法(IME)或者是目前处于焦点的应用, 才能访问到剪贴板数据，所以要延迟到聚焦后
       /*activity.window.decorView.post {
-          GlobalScope.launch { ClipboardUtil.readAndParsingClipboard(activity) }
+          MainScope().launch(ioAsyncExceptionHandler) { ClipboardUtil.readAndParsingClipboard(activity) }
       }*/
     }
 

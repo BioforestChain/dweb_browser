@@ -3,17 +3,20 @@ package info.bagen.dwebbrowser.microService.browser.mwebview
 import org.dweb_browser.helper.ComparableWrapper
 import org.dweb_browser.helper.enumToComparable
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
 import org.dweb_browser.window.core.constant.UUID
 import org.dweb_browser.window.core.WindowState
 import org.dweb_browser.window.core.createWindowAdapterManager
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
 import org.dweb_browser.browserUI.download.DownLoadObserver
 import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.dwebview.serviceWorker.emitEvent
 import org.dweb_browser.helper.ImageResourcePurposes
 import org.dweb_browser.helper.StrictImageResource
-import org.dweb_browser.helper.printdebugln
+import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
@@ -28,13 +31,14 @@ import org.http4k.routing.bind
 import org.http4k.routing.routes
 
 fun debugMultiWebView(tag: String, msg: Any? = "", err: Throwable? = null) =
-  printdebugln("mwebview", tag, msg, err)
+  printDebug("mwebview", tag, msg, err)
 
 class MultiWebViewNMM :
   AndroidNativeMicroModule("mwebview.browser.dweb", "Multi Webview Renderer") {
-  override val short_name = "MWebview";
+  override val short_name = "MWebview"
   override val categories =
-    mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service);
+    mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service)
+  private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
 
   companion object {
     private val controllerMap = mutableMapOf<MMID, MultiWebViewController>()
@@ -93,6 +97,7 @@ class MultiWebViewNMM :
 
   override suspend fun _shutdown() {
     apiRouting = null
+    ioAsyncScope.cancel()
   }
 
   private suspend fun openDwebView(
@@ -148,7 +153,7 @@ class MultiWebViewNMM :
         win.onClose {
           controllerMap.remove(remoteMmid)
         }
-        GlobalScope.launch {
+        ioAsyncScope.launch {
           controller.downLoadObserver = DownLoadObserver(remoteMmid).apply {
             observe { listener ->
               controller.lastViewOrNull?.webView?.let { dWebView ->

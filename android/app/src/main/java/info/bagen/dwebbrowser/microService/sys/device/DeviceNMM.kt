@@ -3,7 +3,7 @@ package info.bagen.dwebbrowser.microService.sys.device
 import info.bagen.dwebbrowser.App
 import org.dweb_browser.browserUI.util.getString
 import org.dweb_browser.browserUI.util.saveString
-import org.dweb_browser.helper.printdebugln
+import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
@@ -15,7 +15,7 @@ import org.http4k.routing.routes
 import java.util.UUID
 
 fun debugDevice(tag: String, msg: Any? = "", err: Throwable? = null) =
-  printdebugln("Device", tag, msg, err)
+  printDebug("Device", tag, msg, err)
 
 class DeviceNMM: NativeMicroModule("device.sys.dweb","Device Info") {
 

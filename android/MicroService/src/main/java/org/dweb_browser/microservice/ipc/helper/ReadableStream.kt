@@ -11,7 +11,7 @@ import java.io.InputStream
 import java.util.concurrent.atomic.AtomicInteger
 
 fun debugStream(tag: String, msg: Any = "", err: Throwable? = null) =
-  printdebugln("stream", tag, msg, err)
+  printDebug("stream", tag, msg, err)
 
 /**
  * 模拟Web的 ReadableStream

@@ -4,18 +4,15 @@ import android.webkit.WebMessage
 import android.webkit.WebMessagePort
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.getOrElse
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.dweb_browser.helper.Callback
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.mainAsyncExceptionHandler
-import org.dweb_browser.helper.printdebugln
+import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.help.MicroModuleManifest
 import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.ipc.Ipc
@@ -30,7 +27,7 @@ import java.util.WeakHashMap
 
 fun printThreadName(): String = Thread.currentThread().name
 fun debugMessagePortIpc(tag: String, msg: Any = "", err: Throwable? = null) =
-  printdebugln("message-port-ipc", tag, msg, err)
+  printDebug("message-port-ipc", tag, msg, err)
 
 class MessagePort private constructor(private val port: WebMessagePort) {
   companion object {

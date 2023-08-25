@@ -2,8 +2,10 @@ package org.dweb_browser.microservice.sys.dns
 
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -11,7 +13,7 @@ import org.dweb_browser.helper.ChangeState
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.helper.printdebugln
+import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.ConnectResult
@@ -39,9 +41,9 @@ import org.http4k.routing.bind
 import org.http4k.routing.routes
 
 fun debugDNS(tag: String, msg: Any = "", err: Throwable? = null) =
-  printdebugln("fetch", tag, msg, err)
+  printDebug("fetch", tag, msg, err)
 
-class DnsNMM() : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
+class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
   override val dweb_deeplinks = mutableListOf<DWEB_DEEPLINK>("dweb:open")
   override val short_name = "DNS";
   override val categories =
@@ -56,7 +58,6 @@ class DnsNMM() : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     }
   }
 
-
   data class MM(val fromMMID: MMID, val toMMID: MMID) {
     companion object {
       val values = mutableMapOf<MMID, MutableMap<MMID, MM>>()
@@ -69,6 +70,7 @@ class DnsNMM() : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
   private val mmConnectsMap =
     mutableMapOf<MM, PromiseOut<ConnectResult>>()
   private val mmConnectsMapLock = Mutex()
+  private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
 
   /** 为两个mm建立 ipc 通讯 */
   private suspend fun connectTo(
@@ -80,7 +82,7 @@ class DnsNMM() : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
      */
     mmConnectsMap.getOrPut(mmKey) {
       PromiseOut<ConnectResult>().also { po ->
-        GlobalScope.launch(ioAsyncExceptionHandler) {
+        ioAsyncScope.launch {
           debugFetch("DNS/open", "${fromMM.mmid} => $toMMID")
           val toMM = open(toMMID)
           debugFetch("DNS/connect", "${fromMM.mmid} <=> $toMMID")
@@ -244,7 +246,13 @@ class DnsNMM() : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
             try {
               withContext(Dispatchers.IO) {
                 controller.enqueue(
-                  (gson.toJson(ChangeState(changes.adds, changes.updates, changes.removes)) + "\n").toByteArray()
+                  (gson.toJson(
+                    ChangeState(
+                      changes.adds,
+                      changes.updates,
+                      changes.removes
+                    )
+                  ) + "\n").toByteArray()
                 )
               }
             } catch (e: Exception) {
@@ -270,6 +278,7 @@ class DnsNMM() : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       it.value.shutdown()
     }
     installApps.clear()
+    ioAsyncScope.cancel()
   }
 
   /** 安装应用 */
@@ -281,9 +290,7 @@ class DnsNMM() : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
   @OptIn(DelicateCoroutinesApi::class)
   fun uninstall(mmid: MMID): Boolean {
     installApps.remove(mmid)
-    GlobalScope.launch(ioAsyncExceptionHandler) {
-      close(mmid)
-    }
+    ioAsyncScope.launch { close(mmid) }
     return true
   }
 
@@ -312,7 +319,7 @@ class DnsNMM() : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     return runningApps.getOrPut(mmid) {
       PromiseOut<MicroModule>().also { promiseOut ->
         query(mmid)?.also { openingMm ->
-          GlobalScope.launch(ioAsyncExceptionHandler) {
+          ioAsyncScope.launch {
             bootstrapMicroModule(openingMm)
             openingMm.onAfterShutdown {
               if (runningApps[mmid] !== null) {

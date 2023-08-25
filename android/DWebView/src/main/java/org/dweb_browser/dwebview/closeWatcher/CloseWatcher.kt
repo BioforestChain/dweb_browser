@@ -3,8 +3,9 @@ package org.dweb_browser.dwebview.closeWatcher
 import android.annotation.SuppressLint
 import android.webkit.JavascriptInterface
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -22,7 +23,7 @@ class CloseWatcher(val viewItem: ViewItem) {
   }
 
   val consuming = mutableSetOf<String>()
-
+  private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
 
   init {
     viewItem.webView.addJavascriptInterface(
@@ -31,14 +32,14 @@ class CloseWatcher(val viewItem: ViewItem) {
          * js 创建 CloseWatcher
          */
         @JavascriptInterface
-         fun registryToken(consumeToken: String) {
+        fun registryToken(consumeToken: String) {
           if (consumeToken.isNullOrBlank()) {
             throw Exception("CloseWatcher.registryToken invalid arguments");
           }
           consuming.add(consumeToken)
-          GlobalScope.launch(ioAsyncExceptionHandler) {
+          ioAsyncScope.launch {
             withContext(Dispatchers.Main) {
-              viewItem.webView.evaluateJavascript("open('$consumeToken')",{})
+              viewItem.webView.evaluateJavascript("open('$consumeToken')", {})
             }
           }
         }
@@ -49,11 +50,8 @@ class CloseWatcher(val viewItem: ViewItem) {
         @JavascriptInterface
         fun tryClose(id: String) =
           watchers.find { watcher -> watcher.id == id }?.also {
-            GlobalScope.launch(commonAsyncExceptionHandler) {
-              close(it)
-            }
+            ioAsyncScope.launch { close(it) }
           }
-
       },
       JS_POLYFILL_KIT
     )

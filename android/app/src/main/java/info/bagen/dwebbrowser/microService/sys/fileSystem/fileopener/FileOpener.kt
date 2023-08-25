@@ -4,7 +4,7 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.webkit.MimeTypeMap
-import org.dweb_browser.helper.printerrln
+import org.dweb_browser.helper.printError
 import java.io.File
 
 
@@ -47,13 +47,13 @@ object FileOpener {
 //                        }
 //                    }
                 } catch (exception: ActivityNotFoundException) {
-                  printerrln(
+                  printError(
                     "FileOpener",
                     "FIleOpener::open ActivityNotFoundException->$exception"
                   )
                     onErrorCallback("Activity not found: ${exception.message} --> 8 $exception")
                 } catch (exception: Throwable) {
-                  printerrln(
+                  printError(
                     "FileOpener",
                     "FIleOpener::open Exception->$exception"
                   )

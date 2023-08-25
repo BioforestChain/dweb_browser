@@ -8,7 +8,7 @@ import kotlinx.coroutines.withContext
 import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.encodeURI
-import org.dweb_browser.helper.printdebugln
+import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
@@ -33,7 +33,7 @@ import org.http4k.routing.bind
 import org.http4k.routing.routes
 
 fun debugJsProcess(tag: String, msg: Any? = "", err: Throwable? = null) =
-  printdebugln("js-process", tag, msg, err)
+  printDebug("js-process", tag, msg, err)
 
 class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
   override val categories =

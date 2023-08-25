@@ -7,7 +7,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.helper.printdebugln
+import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.help.AdapterManager
 import org.dweb_browser.microservice.help.toHttpRequestBuilder
@@ -22,10 +22,10 @@ import org.http4k.core.Uri
 typealias FetchAdapter = suspend (remote: MicroModule, request: Request) -> Response?
 
 fun debugFetch(tag: String, msg: Any? = "", err: Throwable? = null) =
-  printdebugln("fetch", tag, msg, err)
+  printDebug("fetch", tag, msg, err)
 
 fun debugFetchFile(tag: String, msg: Any? = "", err: Throwable? = null) =
-  printdebugln("fetch-file", tag, msg, err)
+  printDebug("fetch-file", tag, msg, err)
 
 /**
  * file:/// => /usr & /sys as const

@@ -25,7 +25,7 @@ import io.ktor.utils.io.jvm.javaio.toInputStream
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.helper.printdebugln
+import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.ipc.helper.ReadableStream
 import org.dweb_browser.microservice.ipc.helper.ReadableStreamOut
 import org.dweb_browser.microservice.ipc.helper.debugStream
@@ -44,7 +44,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import io.ktor.http.Headers as KtorHeaders
 
 fun debugHelper(tag: String, msg: Any = "", err: Throwable? = null) =
-  printdebugln("helper", tag, msg, err)
+  printDebug("helper", tag, msg, err)
 
 
 fun ApplicationRequest.asHttp4k() = Method.supportedOrNull(httpMethod.value)?.let {

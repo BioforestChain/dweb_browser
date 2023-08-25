@@ -1,6 +1,6 @@
 package info.bagen.dwebbrowser.microService.sys.fileSystem
 
-import org.dweb_browser.helper.printdebugln
+import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
@@ -9,7 +9,7 @@ import org.http4k.routing.bind
 import org.http4k.routing.routes
 
 fun debugFileSystem(tag: String, msg: Any? = "", err: Throwable? = null) =
-  printdebugln("FileSystem", tag, msg, err)
+  printDebug("FileSystem", tag, msg, err)
 
 class FileSystemNMM : NativeMicroModule("file.sys.dweb","file") {
 

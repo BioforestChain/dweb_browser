@@ -1,10 +1,8 @@
 package info.bagen.dwebbrowser.microService.browser.nativeui.splashScreen
 
-import info.bagen.dwebbrowser.microService.browser.mwebview.MultiWebViewController
-import org.dweb_browser.helper.printdebugln
+import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
-import org.dweb_browser.microservice.help.JmmAppInstallManifest
 import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
 import org.http4k.core.Method
 import org.http4k.core.Response
@@ -17,14 +15,14 @@ import org.http4k.routing.bind
 import org.http4k.routing.routes
 
 fun debugSplashScreen(tag: String, msg: Any? = "", err: Throwable? = null) =
-  printdebugln("SplashScreen", tag, msg, err)
+  printDebug("SplashScreen", tag, msg, err)
 
 class SplashScreenNMM : NativeMicroModule("splash-screen.nativeui.browser.dweb","splashScreen") {
 
   override val categories = mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service);
 
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-        val query_SplashScreenSettings = Query.composite {
+        val querySplashScreenSettings = Query.composite {
             SplashScreenSettings(
                 autoHide = boolean().defaulted("autoHide", true)(it),
                 fadeInDuration = long().defaulted("fadeInDuration", 200L)(it),
@@ -32,7 +30,7 @@ class SplashScreenNMM : NativeMicroModule("splash-screen.nativeui.browser.dweb",
                 showDuration = long().defaulted("showDuration", 3000L)(it),
             )
         }
-        val query_HideOptions = Query.composite {
+        val queryHideOptions = Query.composite {
             HideOptions(
                 fadeOutDuration = long().defaulted("fadeOutDuration", 200L)(it)
             )
@@ -41,7 +39,7 @@ class SplashScreenNMM : NativeMicroModule("splash-screen.nativeui.browser.dweb",
         apiRouting = routes(
             /** 显示*/
             "/show" bind Method.GET to defineHandler { request, ipc ->
-//                val options = query_SplashScreenSettings(request)
+//                val options = querySplashScreenSettings(request)
 //                val currentController = currentController(ipc.remote.mmid)
 //                val microModule = bootstrapContext.dns.query(ipc.remote.mmid)
 //                if (microModule is JsMicroModule) {
@@ -60,7 +58,7 @@ class SplashScreenNMM : NativeMicroModule("splash-screen.nativeui.browser.dweb",
             },
             /** 隐藏*/
             "/hide" bind Method.GET to defineHandler { request, ipc ->
-//                val options = query_HideOptions(request)
+//                val options = queryHideOptions(request)
 //                val currentActivity = currentController(ipc.remote.mmid)?.activity
 //                debugSplashScreen("hide", "apiRouting hide===>${options}")
 //                if (currentActivity != null) {
@@ -72,28 +70,7 @@ class SplashScreenNMM : NativeMicroModule("splash-screen.nativeui.browser.dweb",
         )
     }
 
-    fun show(
-      controller: MultiWebViewController,
-      metadata: JmmAppInstallManifest,
-      options: SplashScreenSettings
-    ) {
-//        val webview = controller.lastViewOrNull?.webView
-//        val entry = metadata.splashScreen.entry
-//        if (webview !== null && entry !== null) {
-//            GlobalScope.launch(Dispatchers.Main + commonAsyncExceptionHandler) {
-//                webview.loadUrl(entry)
-//                if (options.autoHide) {
-//                    delay(options.showDuration)
-//                    webview.goBack()
-//                }
-//            }
-//
-//        }
-    }
-
     override suspend fun _shutdown() {
     }
-
-
 }
 

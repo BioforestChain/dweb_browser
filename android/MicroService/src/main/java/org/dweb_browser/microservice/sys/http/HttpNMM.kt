@@ -3,7 +3,7 @@ package org.dweb_browser.microservice.sys.http
 import com.google.gson.reflect.TypeToken
 import org.dweb_browser.helper.decodeURIComponent
 import org.dweb_browser.helper.encodeURI
-import org.dweb_browser.helper.printdebugln
+import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.helper.toBase64Url
 import org.dweb_browser.microservice.core.BootstrapContext
@@ -32,7 +32,7 @@ import java.util.Random
 import java.util.concurrent.ConcurrentHashMap
 
 fun debugHttp(tag: String, msg: Any = "", err: Throwable? = null) =
-  printdebugln("http", tag, msg, err)
+  printDebug("http", tag, msg, err)
 
 
 class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {

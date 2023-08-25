@@ -1,14 +1,16 @@
 package info.bagen.dwebbrowser.microService.browser.jmm
 
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
 import org.dweb_browser.dwebview.ipcWeb.Native2JsIpc
 import org.dweb_browser.helper.DisplayMode
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.ShortcutItem
 import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.helper.printdebugln
+import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.helper.toBase64Url
 import org.dweb_browser.microservice.core.BootstrapContext
@@ -39,7 +41,7 @@ import org.http4k.core.query
 import java.util.Random
 
 fun debugJsMM(tag: String, msg: Any? = "", err: Throwable? = null) =
-  printdebugln("JsMM", tag, msg, err)
+  printDebug("JsMM", tag, msg, err)
 
 open class JsMicroModule(var metadata: JmmAppInstallManifest) : MicroModule() {
 
@@ -117,7 +119,7 @@ open class JsMicroModule(var metadata: JmmAppInstallManifest) : MicroModule() {
    * 所以不会和其它程序所使用的 pid 冲突
    */
   private var processId: String? = null
-
+  private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
 
   val pid = ByteArray(8).also { Random().nextBytes(it) }.toBase64Url()
   private suspend fun createNativeStream(): ReadableStreamIpc {
@@ -183,7 +185,7 @@ open class JsMicroModule(var metadata: JmmAppInstallManifest) : MicroModule() {
           val request = ipcRequest.toRequest()
           val response = nativeFetch(request)
           debugJsMM("onProxyRequest", "end ${ipcRequest.uri}")
-          val ipcResponse = IpcResponse.fromResponse(ipcRequest.req_id, response, ipc,)
+          val ipcResponse = IpcResponse.fromResponse(ipcRequest.req_id, response, ipc)
           debugJsMM("onProxyRequest", "send ${ipcRequest.uri}")
           ipc.postMessage(ipcResponse)
           debugJsMM("onProxyRequest", "sended ${ipcRequest.uri}")
@@ -207,7 +209,7 @@ open class JsMicroModule(var metadata: JmmAppInstallManifest) : MicroModule() {
        * 收到要与其它模块进行ipc连接的指令
        */
       if (ipcEvent.name == "dns/connect") {
-        GlobalScope.launch(ioAsyncExceptionHandler) {
+        ioAsyncScope.launch {
           data class DnsConnectEvent(val mmid: MMID)
 
           val event = gson.fromJson(ipcEvent.text, DnsConnectEvent::class.java)
@@ -254,7 +256,7 @@ open class JsMicroModule(var metadata: JmmAppInstallManifest) : MicroModule() {
   private fun _ipcBridge(fromMMID: MMID, targetIpc: Ipc?) =
     fromMMIDOriginIpcWM.getOrPut(fromMMID) {
       PromiseOut<Ipc>().also { po ->
-        GlobalScope.launch(ioAsyncExceptionHandler) {
+        ioAsyncScope.launch {
           try {
 
             debugJsMM("ipcBridge", "fromMmid:$fromMMID targetIpc:$targetIpc")
@@ -325,5 +327,6 @@ open class JsMicroModule(var metadata: JmmAppInstallManifest) : MicroModule() {
     }
     fromMMIDOriginIpcWM.clear()
     processId = null
+    ioAsyncScope.cancel()
   }
 }

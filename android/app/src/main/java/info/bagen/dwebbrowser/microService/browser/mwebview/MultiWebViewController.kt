@@ -8,8 +8,6 @@ import com.google.accompanist.web.WebContent
 import com.google.accompanist.web.WebViewNavigator
 import com.google.accompanist.web.WebViewState
 import info.bagen.dwebbrowser.R
-import org.dweb_browser.window.core.WindowController
-import org.dweb_browser.window.core.createWindowAdapterManager
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -25,6 +23,8 @@ import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
+import org.dweb_browser.window.core.WindowController
+import org.dweb_browser.window.core.createWindowAdapterManager
 import org.json.JSONObject
 import java.util.concurrent.atomic.AtomicInteger
 

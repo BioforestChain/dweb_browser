@@ -16,6 +16,7 @@ typealias AsyncChannel = Channel<Result<String>>;
  */
 class WebViewEvaluator(
   val webView: WebView,
+  val ioAsyncScope: CoroutineScope
 ) {
   companion object {
     private var idAcc = AtomicInteger(0)
@@ -23,13 +24,14 @@ class WebViewEvaluator(
   }
 
   private val channelMap = mutableMapOf<Int, AsyncChannel>()
+  // private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
 
   @SuppressLint("JavascriptInterface")
   private fun initKit() {
     webView.addJavascriptInterface(object {
       @JavascriptInterface
       fun resolve(id: Int, data: String) {
-        GlobalScope.launch {
+        ioAsyncScope.launch {
           channelMap.remove(id)?.also {
             it.send(Result.success(data))
             it.close()
@@ -39,7 +41,7 @@ class WebViewEvaluator(
 
       @JavascriptInterface
       fun reject(id: Int, reason: String) {
-        GlobalScope.launch {
+        ioAsyncScope.launch {
           channelMap.remove(id)?.also {
             it.send(Result.failure(Exception(reason)))
             it.close()
@@ -67,7 +69,6 @@ class WebViewEvaluator(
   /**
    * 执行异步JS代码，需要传入一个表达式
    */
-  @OptIn(DelicateCoroutinesApi::class)
   suspend fun evaluateAsyncJavascriptCode(
     script: String, afterEval: suspend () -> Unit = {}
   ): String {
@@ -75,7 +76,7 @@ class WebViewEvaluator(
     val channel: AsyncChannel = Channel()
     val id = idAcc.getAndAdd(1)
     channelMap[id] = channel
-    GlobalScope.launch(mainAsyncExceptionHandler) {
+    ioAsyncScope.launch(mainAsyncExceptionHandler) {
       webView.evaluateJavascript(
         """
             void (async()=>{return ($script)})()

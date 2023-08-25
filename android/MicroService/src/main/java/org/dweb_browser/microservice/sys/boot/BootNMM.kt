@@ -1,6 +1,6 @@
 package org.dweb_browser.microservice.sys.boot
 
-import org.dweb_browser.helper.printdebugln
+import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.core.Router
@@ -11,7 +11,7 @@ import org.http4k.routing.bind
 import org.http4k.routing.routes
 
 fun debugBoot(tag: String, msg: Any? = "", err: Throwable? = null) =
-  printdebugln("boot", tag, msg, err)
+  printDebug("boot", tag, msg, err)
 
 class BootNMM(initMmids: List<MMID>? = null) :
   NativeMicroModule("boot.sys.dweb", "Boot Management") {

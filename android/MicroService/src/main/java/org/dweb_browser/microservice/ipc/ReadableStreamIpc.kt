@@ -7,8 +7,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.helper.printdebugln
-import org.dweb_browser.helper.printerrln
+import org.dweb_browser.helper.printDebug
+import org.dweb_browser.helper.printError
 import org.dweb_browser.helper.readByteArray
 import org.dweb_browser.helper.readInt
 import org.dweb_browser.helper.toByteArray
@@ -28,7 +28,7 @@ import java.io.InputStream
 
 
 fun debugStreamIpc(tag: String, msg: Any = "", err: Throwable? = null) =
-    printdebugln("stream-ipc", tag, msg, err)
+    printDebug("stream-ipc", tag, msg, err)
 
 /**
  * 基于 WebReadableStream 的IPC
@@ -123,7 +123,7 @@ class ReadableStreamIpc(
                 }
                 debugStreamIpc("END", "$stream")
             } catch (e: Exception) {
-                printerrln("ReadableStreamIpc", "output stream closed")
+                printError("ReadableStreamIpc", "output stream closed")
             }
             // 流是双向的，对方关闭的时候，自己也要关闭掉
             this.close()

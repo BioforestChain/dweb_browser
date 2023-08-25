@@ -1,7 +1,7 @@
 package info.bagen.dwebbrowser.microService.sys.permission
 
 import org.dweb_browser.helper.PromiseOut
-import org.dweb_browser.helper.printdebugln
+import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
@@ -15,7 +15,7 @@ import org.http4k.routing.bind
 import org.http4k.routing.routes
 
 fun debugPermission(tag: String, msg: Any? = "", err: Throwable? = null) =
-  printdebugln("Permissions", tag, msg, err)
+  printDebug("Permissions", tag, msg, err)
 
 class PermissionsNMM : NativeMicroModule("permission.sys.dweb","permission") {
 

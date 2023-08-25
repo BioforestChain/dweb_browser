@@ -6,18 +6,15 @@ import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.browser.jmm.EIpcEvent
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
-import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 import org.dweb_browser.helper.ChangeState
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.helper.printdebugln
+import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.readByteArray
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
@@ -46,7 +43,7 @@ import org.http4k.routing.routes
 import java.util.UUID
 
 fun debugDesk(tag: String, msg: Any? = "", err: Throwable? = null) =
-  printdebugln("desk", tag, msg, err)
+  printDebug("desk", tag, msg, err)
 
 class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
   override val categories =
@@ -54,7 +51,7 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
 
   private val runningApps = ChangeableMap<MMID, Ipc>()
 
-  private val deskScope = MainScope() + ioAsyncExceptionHandler
+  private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
 
   companion object {
     val deskControllers = mutableMapOf<String, DeskController>()
@@ -70,7 +67,7 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
     )
   }
 
-  private suspend fun listenApps() = deskScope.launch {
+  private suspend fun listenApps() = ioAsyncScope.launch {
     val (openedAppIpc) = bootstrapContext.dns.connect("dns.std.dweb")
     val res = openedAppIpc.request("/observe/app")
     val stream = res.body.stream
@@ -242,7 +239,7 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
   }
 
   override suspend fun _shutdown() {
-    deskScope.cancel()
+    ioAsyncScope.cancel()
   }
 
   private val API_PREFIX = "/api/"

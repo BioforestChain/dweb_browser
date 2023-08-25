@@ -3,7 +3,7 @@ package info.bagen.dwebbrowser.microService.sys.window
 
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.Observable
-import org.dweb_browser.helper.printdebugln
+import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.gson
@@ -25,7 +25,7 @@ import org.http4k.routing.bind
 import org.http4k.routing.routes
 
 fun debugWindowNMM(tag: String, msg: Any? = "", err: Throwable? = null) =
-  printdebugln("window-nmm", tag, msg, err)
+  printDebug("window-nmm", tag, msg, err)
 
 /**
  * 标准化窗口管理模块

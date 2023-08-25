@@ -5,7 +5,7 @@ import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
 import info.bagen.dwebbrowser.microService.sys.biometrics.BiometricsActivity.Companion.biometrics_promise_out
 import info.bagen.dwebbrowser.microService.sys.biometrics.BiometricsController.Companion.biometricsController
-import org.dweb_browser.helper.printdebugln
+import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.MMID
@@ -19,7 +19,7 @@ import org.http4k.routing.bind
 import org.http4k.routing.routes
 
 fun debugBiometrics(tag: String, msg: Any? = "", err: Throwable? = null) =
-  printdebugln("biometrics", tag, msg, err)
+  printDebug("biometrics", tag, msg, err)
 
 class BiometricsNMM : AndroidNativeMicroModule("biometrics.sys.dweb", "biometrics") {
 

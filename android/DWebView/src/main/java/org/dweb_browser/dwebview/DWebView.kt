@@ -16,22 +16,22 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import org.dweb_browser.helper.android.BaseActivity
 import org.dweb_browser.helper.Callback
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleCallback
 import org.dweb_browser.helper.SimpleSignal
+import org.dweb_browser.helper.android.BaseActivity
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.mainAsyncExceptionHandler
-import org.dweb_browser.helper.printdebugln
+import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.sys.dns.nativeFetch
@@ -42,7 +42,7 @@ import java.io.ByteArrayInputStream
 import java.io.File
 
 fun debugDWebView(tag: String, msg: Any? = "", err: Throwable? = null) =
-  printdebugln("dwebview", tag, msg, err)
+  printDebug("dwebview", tag, msg, err)
 
 /**
  * DWebView ,将 WebView 与 dweb 的 dwebHttpServer 设计进行兼容性绑定的模块
@@ -147,6 +147,7 @@ class DWebView(
     }
   }
 
+  private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
   private var readyHelper: DWebViewClient.ReadyHelper? = null
 
   private val readyHelperLock = Mutex()
@@ -155,7 +156,7 @@ class DWebView(
       if (readyHelper == null) {
         DWebViewClient.ReadyHelper().also {
           readyHelper = it
-          withContext(Dispatchers.Main) {
+          withContext(mainAsyncExceptionHandler) {
             dWebViewClient.addWebViewClient(it)
           }
           it.afterReady {
@@ -173,8 +174,8 @@ class DWebView(
     readyPo.waitPromise()
   }
 
-  private val evaluator = WebViewEvaluator(this)
-  suspend fun getUrlInMain() = withContext(Dispatchers.Main) { url }
+  private val evaluator = WebViewEvaluator(this, ioAsyncScope)
+  suspend fun getUrlInMain() = withContext(mainAsyncExceptionHandler) { url }
 
   /**
    * 初始化设置 userAgent
@@ -354,7 +355,7 @@ class DWebView(
 
 
     override fun onCloseWindow(window: WebView?) {
-      GlobalScope.launch(ioAsyncExceptionHandler) {
+      ioAsyncScope.launch {
         closeSignal.emit()
       }
       super.onCloseWindow(window)
@@ -503,6 +504,7 @@ class DWebView(
     runBlockingCatching {
       _destroySignal.emitAndClear(Unit)
     }.getOrNull()
+    ioAsyncScope.cancel()
   }
 
   override fun onDetachedFromWindow() {
@@ -511,13 +513,10 @@ class DWebView(
     }
   }
 
-  @OptIn(DelicateCoroutinesApi::class)
-  override fun onDraw(canvas: Canvas?) {
+  override fun onDraw(canvas: Canvas) {
     super.onDraw(canvas)
-    if (canvas != null) {
-      GlobalScope.launch(ioAsyncExceptionHandler) {
-        this@DWebView._drawViewSignal.emit(canvas)
-      }
+    ioAsyncScope.launch {
+      this@DWebView._drawViewSignal.emit(canvas)
     }
   }
 

@@ -3,7 +3,6 @@ package org.dweb_browser.helper
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope.coroutineContext
 import kotlinx.coroutines.runBlocking
 import java.time.Duration
 import java.time.LocalDateTime
@@ -11,7 +10,7 @@ import kotlin.coroutines.CoroutineContext
 
 fun now() = LocalDateTime.now().toString().padEndAndSub(23)
 
-fun printerrln(tag: String, msg: Any?, err: Throwable? = null) {
+fun printError(tag: String, msg: Any?, err: Throwable? = null) {
   System.err.println("${tag.padEnd(60, ' ')} $msg")
   err?.printStackTrace()
 }
@@ -21,7 +20,7 @@ fun debugger(vararg params: Any?) {
 }
 
 val commonAsyncExceptionHandler = CoroutineExceptionHandler { ctx, e ->
-  printerrln(ctx.toString(), e.message, e)
+  printError(ctx.toString(), e.message, e)
   debugger(ctx, e)
 }
 val defaultAsyncExceptionHandler = Dispatchers.Default + commonAsyncExceptionHandler
@@ -40,7 +39,7 @@ fun <T> runBlockingCatching(
 ) = runCatching {
   runBlocking { block() }
 }.onFailure {
-  commonAsyncExceptionHandler.handleException(coroutineContext, it)
+  commonAsyncExceptionHandler.handleException(ioAsyncExceptionHandler, it)
 }
 
 private val times = mutableMapOf<String, LocalDateTime>()
@@ -51,7 +50,7 @@ fun timeStart(label: String) {
 fun timeEnd(label: String) {
   times.remove(label)?.also { startTime ->
     val endTime = LocalDateTime.now()
-    printdebugln(
+    printDebug(
       "TIME-DURATION",
       label,
       "${Duration.between(startTime, endTime).toNanos() / 1000000.0}ms"
@@ -119,7 +118,7 @@ fun addDebugTags(tags: Iterable<String>) {
 }
 
 
-fun printdebugln(scope: String, tag: String, message: Any?, err: Throwable? = null) {
+fun printDebug(scope: String, tag: String, message: Any?, err: Throwable? = null) {
   if (!debugTags.contains(scope) && debugTagsRegex.firstOrNull { regex -> regex.matches(scope) } == null) {
     return
   }
@@ -127,7 +126,7 @@ fun printdebugln(scope: String, tag: String, message: Any?, err: Throwable? = nu
   if (msg is Lazy<*>) {
     msg = msg.value
   }
-  printerrln("${now()} │ ${scope.padEndAndSub(16)} │ ${tag.padEndAndSub(22)} |", msg, err)
+  printError("${now()} │ ${scope.padEndAndSub(16)} │ ${tag.padEndAndSub(22)} |", msg, err)
 }
 
 fun String.padEndAndSub(length: Int): String {

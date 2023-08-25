@@ -1,8 +1,8 @@
 [versions]
-compileSdkVersion = "33" # Int
+compileSdkVersion = "34" # Int
 buildToolsVersion = "29.0.2"
 minSdkVersion = "28" # Int
-targetSdkVersion = "33" # Int
+targetSdkVersion = "34" # Int
 versionCode = "6" # Int
 versionName = "1.1.5"
 kotlinCompilerExtensionVersion = "1.5.1"

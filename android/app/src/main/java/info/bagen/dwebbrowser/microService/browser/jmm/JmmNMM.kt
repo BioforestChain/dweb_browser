@@ -2,21 +2,20 @@ package info.bagen.dwebbrowser.microService.browser.jmm
 
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
-import org.dweb_browser.window.core.constant.WindowMode
-import org.dweb_browser.window.core.WindowState
-import org.dweb_browser.window.core.createWindowAdapterManager
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
 import kotlinx.coroutines.withContext
 import org.dweb_browser.browserUI.database.JsMicroModuleStore
 import org.dweb_browser.browserUI.download.DownLoadController
 import org.dweb_browser.browserUI.download.compareAppVersionHigh
 import org.dweb_browser.browserUI.util.BrowserUIApp
 import org.dweb_browser.browserUI.util.FilesUtil
+import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.mainAsyncExceptionHandler
-import org.dweb_browser.helper.printdebugln
+import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.help.DWEB_DEEPLINK
 import org.dweb_browser.microservice.help.JmmAppInstallManifest
@@ -26,6 +25,9 @@ import org.dweb_browser.microservice.help.MicroModuleManifest
 import org.dweb_browser.microservice.help.json
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.sys.dns.nativeFetch
+import org.dweb_browser.window.core.WindowState
+import org.dweb_browser.window.core.constant.WindowMode
+import org.dweb_browser.window.core.createWindowAdapterManager
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
@@ -36,7 +38,7 @@ import org.http4k.routing.routes
 import java.net.URL
 
 fun debugJMM(tag: String, msg: Any? = "", err: Throwable? = null) =
-  printdebugln("JMM", tag, msg, err)
+  printDebug("JMM", tag, msg, err)
 
 /**
  * 获取 map 值，如果不存在，则使用defaultValue; 如果replace 为true也替换为defaultValue
@@ -66,6 +68,7 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
   }
 
   private var jmmController: JmmController? = null
+  private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
 
   fun getApps(mmid: MMID): MicroModuleManifest? {
     return bootstrapContext.dns.query(mmid)
@@ -81,7 +84,7 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
       jmmController = null
     }
 
-    val route_install_hanlder = defineHandler { request, ipc ->
+    val routeInstallHandler = defineHandler { request, ipc ->
       val metadataUrl = queryMetadataUrl(request)
       val jmmAppInstallManifest =
         nativeFetch(metadataUrl).json<JmmAppInstallManifest>(JmmAppInstallManifest::class.java)
@@ -92,8 +95,8 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
     }
     apiRouting = routes(
       // 安装
-      "install" bind Method.GET to route_install_hanlder,
-      "/install" bind Method.GET to route_install_hanlder,
+      "install" bind Method.GET to routeInstallHandler,
+      "/install" bind Method.GET to routeInstallHandler,
       "/uninstall" bind Method.GET to defineHandler { request ->
         val mmid = queryMmid(request)
         debugJMM("uninstall", mmid)
@@ -113,8 +116,7 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
           ?: return@defineHandler Response(Status.NOT_FOUND).body("not found $mmid")
 
         // TODO: 系统原生应用如WebBrowser的详情页展示？
-        if(microModule is JsMicroModule)
-        {
+        if (microModule is JsMicroModule) {
           jmmMetadataInstall(microModule.metadata, ipc)
           return@defineHandler Response(Status.OK).body("ok")
         }
@@ -147,9 +149,8 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
   /**
    * 从内存中加载数据
    */
-  @OptIn(DelicateCoroutinesApi::class)
   private fun installJmmApps() {
-    GlobalScope.launch {
+    ioAsyncScope.launch {
       var preList = mutableListOf<JmmAppInstallManifest>()
       JsMicroModuleStore.queryAppInfoList().collectLatest { list -> // TODO 只要datastore更新，这边就会实时更新
         debugJMM("AppInfoDataStore", "size=${list.size}")
@@ -192,7 +193,7 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
     // 打开安装的界面
     // JmmManagerActivity.startActivity(jmmAppInstallManifest)
     // 打开安装窗口
-    val win= createWindowAdapterManager.createWindow(
+    val win = createWindowAdapterManager.createWindow(
       WindowState(owner = ipc.remote.mmid, provider = mmid).also {
         it.mode = WindowMode.MAXIMIZE
       }
@@ -210,7 +211,6 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
   }
 
   override suspend fun _shutdown() {
-
+    ioAsyncScope.cancel()
   }
-
 }

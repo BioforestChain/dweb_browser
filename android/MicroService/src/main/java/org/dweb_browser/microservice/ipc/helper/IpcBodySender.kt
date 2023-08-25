@@ -9,7 +9,7 @@ import org.dweb_browser.helper.SimpleCallback
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.debugger
 import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.helper.printerrln
+import org.dweb_browser.helper.printError
 import org.dweb_browser.helper.readByteArray
 import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.microservice.ipc.Ipc
@@ -163,7 +163,7 @@ class IpcBodySender(
         }
       }
     } else {
-      printerrln("useByIpc", "should not happend");
+      printError("useByIpc", "should not happend");
       debugger()
       null
     }

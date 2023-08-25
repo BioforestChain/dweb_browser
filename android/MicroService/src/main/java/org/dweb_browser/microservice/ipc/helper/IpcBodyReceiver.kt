@@ -1,6 +1,6 @@
 package org.dweb_browser.microservice.ipc.helper
 
-import org.dweb_browser.helper.printerrln
+import org.dweb_browser.helper.printError
 import org.dweb_browser.helper.toBase64ByteArray
 import org.dweb_browser.helper.toUtf8ByteArray
 import org.dweb_browser.microservice.ipc.Ipc
@@ -39,7 +39,7 @@ class IpcBodyReceiver(
           is InputStream -> it.stream = data
         }
       } catch (e: Exception) {
-        printerrln("bodyHub", e)
+        printError("bodyHub", e)
       }
     }
   }

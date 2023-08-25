@@ -3,7 +3,7 @@ package org.dweb_browser.microservice.core
 import org.dweb_browser.helper.DisplayMode
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.ShortcutItem
-import org.dweb_browser.helper.printdebugln
+import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.microservice.help.DWEB_DEEPLINK
 import org.dweb_browser.microservice.help.IpcSupportProtocols
@@ -30,7 +30,7 @@ import org.http4k.routing.RoutingHttpHandler
 import java.io.InputStream
 
 fun debugNMM(tag: String, msg: Any = "", err: Throwable? = null) =
-  printdebugln("DNS", tag, msg, err)
+  printDebug("DNS", tag, msg, err)
 
 abstract class NativeMicroModule(override val mmid: MMID, override val name: String) :
   MicroModule() {

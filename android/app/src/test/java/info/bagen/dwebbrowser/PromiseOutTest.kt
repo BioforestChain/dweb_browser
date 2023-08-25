@@ -1,10 +1,12 @@
 package info.bagen.dwebbrowser
 
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
 import kotlinx.coroutines.runBlocking
 import org.dweb_browser.helper.PromiseOut
+import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.junit.jupiter.api.Test
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.test.assertEquals
@@ -82,19 +84,19 @@ class PromiseOutTest {
     fun bench() = runBlocking {
         println("start")
 
-        val TIMES = 10000;
-
+        val TIMES = 10000
 
         val result1 = AtomicInteger(0)
         val result2 = AtomicInteger(0)
+        val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
         for (i in 1..TIMES) {
             val po = PromiseOut<Unit>()
-            GlobalScope.launch {
+            ioAsyncScope.launch {
                 delay(100)
                 result1.addAndGet(1)
                 po.resolve(Unit)
             }
-            GlobalScope.launch {
+            ioAsyncScope.launch {
                 po.waitPromise()
                 result2.addAndGet(1)
             }

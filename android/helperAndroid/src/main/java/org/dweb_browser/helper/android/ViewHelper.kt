@@ -2,12 +2,7 @@ package org.dweb_browser.helper.android
 
 import android.view.View
 import androidx.core.view.WindowInsetsCompat
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import java.util.WeakHashMap
-import java.util.concurrent.ConcurrentSkipListSet
 
 typealias OnApplyWindowInsetsCompatListener = (view: View, insets: WindowInsetsCompat) -> WindowInsetsCompat
 

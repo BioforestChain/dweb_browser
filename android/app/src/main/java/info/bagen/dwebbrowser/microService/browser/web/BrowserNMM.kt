@@ -11,7 +11,7 @@ import org.dweb_browser.window.core.createWindowAdapterManager
 import kotlinx.coroutines.withContext
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.mainAsyncExceptionHandler
-import org.dweb_browser.helper.printdebugln
+import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.ipc.Ipc
@@ -30,7 +30,7 @@ import org.http4k.routing.bind
 import org.http4k.routing.routes
 
 fun debugBrowser(tag: String, msg: Any? = "", err: Throwable? = null) =
-  printdebugln("browser", tag, msg, err)
+  printDebug("browser", tag, msg, err)
 
 class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
   override val short_name = "Browser";
@@ -39,10 +39,6 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
     mutableListOf(MICRO_MODULE_CATEGORY.Application, MICRO_MODULE_CATEGORY.Web_Browser)
   override val icons: List<ImageResource> =
     listOf(ImageResource(src = "file:///sys/browser/web/logo.svg"))
-
-  companion object {
-    val controllers = mutableMapOf<String, BrowserController>()
-  }
 
   private var browserController: BrowserController? = null
   private lateinit var browserServer: HttpDwebServer
