@@ -33,7 +33,7 @@ class WindowState(
    */
   val wid: UUID = java.util.UUID.randomUUID().toString(),
   /**
-   * 窗口持有者
+   * 窗口持有者的元数据
    *
    * 窗口创建者
    */
@@ -305,7 +305,10 @@ class WindowState(
    * 如果使用 auto，会自动根据现有的背景色来显示 亮色 或者 暗色
    */
   var topBarContentColor by observable.observe(WindowPropertyKeys.TopBarContentColor, "auto");
-  var topBarContentDarkColor by observable.observe(WindowPropertyKeys.TopBarContentDarkColor, "auto");
+  var topBarContentDarkColor by observable.observe(
+    WindowPropertyKeys.TopBarContentDarkColor,
+    "auto"
+  );
 
   /**
    * 顶部栏的文字颜色，格式为 #RRGGBB ｜ auto

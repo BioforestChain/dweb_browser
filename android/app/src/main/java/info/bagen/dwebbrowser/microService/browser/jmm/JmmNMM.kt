@@ -195,7 +195,7 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
     // JmmManagerActivity.startActivity(jmmAppInstallManifest)
     // 打开安装窗口
     val win = createWindowAdapterManager.createWindow(
-      WindowState(owner = ipc.remote.mmid, provider = mmid).also {
+      WindowState(owner = mmid, provider = mmid, microModule = this).also {
         it.mode = WindowMode.MAXIMIZE
       }
     )

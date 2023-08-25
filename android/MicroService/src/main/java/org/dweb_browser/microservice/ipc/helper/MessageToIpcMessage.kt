@@ -1,5 +1,6 @@
 package org.dweb_browser.microservice.ipc.helper
 
+import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.ipc.Ipc
@@ -10,6 +11,9 @@ fun jsonToIpcMessage(data: String, ipc: Ipc): Any? {
   }
 
   return runBlockingCatching {
+//    when(Json.decodeFromString<IpcMessage>(data).type){
+//
+//    }
     when (gson.fromJson(data, IpcMessage::class.java).type) {
       IPC_MESSAGE_TYPE.REQUEST -> gson.fromJson(data, IpcReqMessage::class.java).let {
         IpcRequest(

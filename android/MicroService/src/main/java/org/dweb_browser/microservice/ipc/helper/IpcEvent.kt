@@ -2,10 +2,36 @@ package org.dweb_browser.microservice.ipc.helper
 
 import com.google.gson.*
 import com.google.gson.annotations.JsonAdapter
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import org.dweb_browser.helper.toBase64
 import org.dweb_browser.helper.toUtf8
 import java.lang.reflect.Type
 
+
+@Serializable
+data class IpcEventJsonAble(
+  val name: String,
+  val data: String,
+  val encoding: IPC_DATA_ENCODING
+) : IpcMessage(IPC_MESSAGE_TYPE.EVENT) {
+  fun toIpcEvent() = IpcEvent(name, data, encoding)
+}
+
+object IpcEventSerializer : KSerializer<IpcEvent> {
+  private val serializer = IpcEventJsonAble.serializer()
+  override val descriptor = serializer.descriptor
+
+  override fun deserialize(decoder: Decoder) = serializer.deserialize(decoder).toIpcEvent()
+
+  override fun serialize(encoder: Encoder, value: IpcEvent) =
+    serializer.serialize(encoder, value.jsonAble)
+
+}
+
+@Serializable(with = IpcEventSerializer::class)
 @JsonAdapter(IpcEvent::class)
 class IpcEvent(
   val name: String,
@@ -43,6 +69,12 @@ class IpcEvent(
       )
 
       else -> this
+    }.let {
+      IpcEventJsonAble(
+        name,
+        data as String,
+        encoding,
+      )
     }
   }
 

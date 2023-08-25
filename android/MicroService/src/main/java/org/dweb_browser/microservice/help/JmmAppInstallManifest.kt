@@ -1,6 +1,8 @@
 package org.dweb_browser.microservice.help
 
+import com.google.gson.JsonObject
 import org.dweb_browser.helper.DisplayMode
+import org.dweb_browser.helper.GsonAble
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.ShortcutItem
 import java.io.Serializable
@@ -25,11 +27,11 @@ data class JmmAppInstallManifest(
   val bundle_hash: String = "",
   val bundle_size: String = "",
   /**格式为 `hex:{signature}` */
-  val bundle_signature:String =  "",
+  val bundle_signature: String = "",
   /**该链接必须使用和app-id同域名的网站链接，
-    * 请求回来是一个“算法+公钥地址”的格式 "{algorithm}:hex;{publicKey}"，
-    * 比如说 `rsa-sha256:hex;2...1` */
-  val public_key_url:String = "",
+   * 请求回来是一个“算法+公钥地址”的格式 "{algorithm}:hex;{publicKey}"，
+   * 比如说 `rsa-sha256:hex;2...1` */
+  val public_key_url: String = "",
   /** 安装时展示的作者信息 */
   val author: List<String> = emptyList(),
   /** 安装时展示的主页链接 */
@@ -106,7 +108,25 @@ open class CommonAppManifest(
   open val background_color: String? = null,
   open val shortcuts: List<ShortcutItem> = listOf(),
   open var version: String = "0.0.1"
-) : Serializable
+) : Serializable {//, GsonAble<CommonAppManifest>
+//  override fun toJsonAble() = JsonObject().also { jsonObject ->
+//    jsonObject.addProperty("id", id);
+//    jsonObject.addProperty("dir", dir);
+//    jsonObject.addProperty("lang", lang);
+//    jsonObject.addProperty("name", name);
+//    jsonObject.addProperty("short_name", short_name);
+//    jsonObject.addProperty("description", description);
+////    jsonObject.add("icons", JsonArray().also { jsonArray-> icons.map { jsonArray.add(it) } });
+////    jsonObject.addProperty("screenshots", screenshots);
+////    jsonObject.addProperty("display", display);
+//    jsonObject.addProperty("orientation", orientation);
+////    jsonObject.addProperty("categories", categories);
+//    jsonObject.addProperty("theme_color", theme_color);
+//    jsonObject.addProperty("background_color", background_color);
+////    jsonObject.addProperty("shortcuts", shortcuts);
+//    jsonObject.addProperty("version", version);
+//  }
+}
 
 data class IpcSupportProtocols(
   val cbor: Boolean,

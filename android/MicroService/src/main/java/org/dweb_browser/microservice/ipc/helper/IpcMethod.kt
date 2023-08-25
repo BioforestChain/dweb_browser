@@ -2,12 +2,14 @@ package org.dweb_browser.microservice.ipc.helper
 
 import com.google.gson.*
 import com.google.gson.annotations.JsonAdapter
+import kotlinx.serialization.Serializable
 import org.http4k.core.Method
 import java.lang.reflect.Type
 
 /**
  * Ipc 使用的 Method
  */
+@Serializable
 @JsonAdapter(IpcMethod::class)
 enum class IpcMethod(val method: String, val http4kMethod: Method) : JsonSerializer<IpcMethod>,
   JsonDeserializer<IpcMethod> {

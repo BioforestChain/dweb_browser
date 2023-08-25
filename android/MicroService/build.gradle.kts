@@ -1,7 +1,8 @@
 @Suppress("DSL_SCOPE_VIOLATION") // TODO: Remove once KTIJ-19369 is fixed
 plugins {
   id("java-library")
-  alias(libs.plugins.org.jetbrains.kotlin.jvm)
+  alias(libs.plugins.kotlinJvm)
+  alias(libs.plugins.kotlinPluginSerialization)
 }
 
 java {
@@ -20,7 +21,6 @@ dependencies {
   api(libs.ktor.server.cio)
   api(libs.ktor.client.cio)
 
-  api(libs.data.gson)
   implementation(libs.data.moshi.pack)
 
   /// 测试相关
