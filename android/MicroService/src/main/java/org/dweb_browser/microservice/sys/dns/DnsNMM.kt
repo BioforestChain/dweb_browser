@@ -238,7 +238,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       },
       "/query" bind Method.GET to defineHandler { request ->
         val mmid = queryAppId(request)
-        this.query(mmid)
+        this.query(mmid)?.toManifest()
       },
       "/observe/app" bind Method.GET to defineHandler { _, ipc ->
         val inputStream = ReadableStream(onStart = { controller ->
