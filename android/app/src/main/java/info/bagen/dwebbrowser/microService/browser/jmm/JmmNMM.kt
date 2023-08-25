@@ -184,6 +184,7 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
   private suspend fun jmmMetadataInstall(
     jmmAppInstallManifest: JmmAppInstallManifest, ipc: Ipc, url: URL? = null,
   ) {
+    jmmController?.closeSelf() // 如果存在的话，关闭先，同时可以考虑置空
     if (!jmmAppInstallManifest.bundle_url.startsWith("http")) {
       url?.let {
         jmmAppInstallManifest.bundle_url = URL(it, jmmAppInstallManifest.bundle_url).toString()

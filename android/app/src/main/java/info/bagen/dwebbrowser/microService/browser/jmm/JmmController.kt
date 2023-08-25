@@ -6,6 +6,7 @@ import org.dweb_browser.window.core.WindowController
 import org.dweb_browser.window.core.createWindowAdapterManager
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.microservice.help.JmmAppInstallManifest
 import org.dweb_browser.microservice.help.MMID
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
@@ -26,6 +27,9 @@ class JmmController(
   fun hasApps(mmid: MMID) = jmmNMM.getApps(mmid) !== null
   fun getApp(mmid: MMID) = jmmNMM.getApps(mmid)
 
+  private val closeSignal = SimpleSignal()
+  val onClosed = closeSignal.toListener()
+
   init {
     val wid = win.id
     /// 提供渲染适配
@@ -37,6 +41,9 @@ class JmmController(
     win.onClose {
       // 移除渲染适配器
       createWindowAdapterManager.renderProviders.remove(wid)
+    }
+    onClosed {
+      win.close(true)
     }
   }
 
@@ -53,7 +60,11 @@ class JmmController(
   }
 
   suspend fun closeApp(mmid: MMID) {
-    debugJMM("close APP", "postMessage==>close  $mmid")
+    debugJMM("closeApp", "mmid=$mmid")
     jmmNMM.bootstrapContext.dns.close(mmid)
+  }
+
+  suspend fun closeSelf() {
+    closeSignal.emit()
   }
 }
