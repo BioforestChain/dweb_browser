@@ -152,6 +152,7 @@ internal fun WindowMenuPanel(
           contentPadding = PaddingValues(6.dp),
           verticalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterVertically)
         ) {
+          /// 窗口置顶
           item {
             val isAlwaysOnTop by win.watchedState { alwaysOnTop }
             WindowMenuItem(
@@ -161,6 +162,7 @@ internal fun WindowMenuPanel(
               selected = isAlwaysOnTop,
             ) { win.toggleAlwaysOnTop() }
           }
+          /// 窗口颜色偏好
           item {
             val colorScheme by win.watchedState { colorScheme }
             val isCustomColorScheme = colorScheme != WindowColorScheme.Normal
@@ -184,6 +186,27 @@ internal fun WindowMenuPanel(
               selected = isCustomColorScheme,
             ) { win.toggleColorScheme() }
           }
+          // 分享应用 ！
+          // 截图 ！
+          // 窗口快速布局（resize到合理的大小） ！
+          // 自定义shortcut（扫一扫）
+          // 自定义widget
+          // 卸载 ！
+          // 更新！
+          // 定位权限
+          // 网络权限
+          // 蓝牙权限
+          // 用户空间
+          // 存储管理
+          // 反馈开发者（一个简单的系统。邮箱？issues-template）
+          // 使用说明
+          // 更新日志
+          // 授权协议
+          // 官网！
+          // 开发者信息
+          // 语言偏好
+          // 签名验证是否通过？
+          // 实时日志信息
         }
       }
     },

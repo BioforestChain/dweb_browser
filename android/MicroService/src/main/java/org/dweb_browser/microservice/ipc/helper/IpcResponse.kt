@@ -1,5 +1,6 @@
 package org.dweb_browser.microservice.ipc.helper
 
+import kotlinx.serialization.Serializable
 import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.ipc.Ipc
 import org.http4k.core.Response
@@ -122,7 +123,8 @@ class IpcResponse(
   }
 }
 
-class IpcResMessage(
+@Serializable
+data class IpcResMessage(
   val req_id: Int,
   val statusCode: Int,
   val headers: MutableMap<String, String>,

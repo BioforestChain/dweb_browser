@@ -2,12 +2,43 @@ package org.dweb_browser.microservice.ipc.helper
 
 import com.google.gson.*
 import com.google.gson.annotations.JsonAdapter
+import kotlinx.serialization.*
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import org.dweb_browser.helper.toBase64
 import org.dweb_browser.helper.toBase64Url
 import org.dweb_browser.microservice.ipc.Ipc
 import java.lang.reflect.Type
 import java.util.*
 
+@Serializable
+data class MetaBodyJsonAble(
+  val type: MetaBody.IPC_META_BODY_TYPE,
+  val senderUid: Int,
+  val data: String,
+  val streamId: String? = null,
+  val receiverUid: Int? = null,
+  val metaId: String,
+) {
+  fun toMetaBody() = MetaBody(type, senderUid, data, streamId, receiverUid, metaId)
+}
+
+
+object MetaBodySerializer : KSerializer<MetaBody> {
+  private val serializer = MetaBodyJsonAble.serializer()
+  override val descriptor: SerialDescriptor = serializer.descriptor
+
+  override fun serialize(encoder: Encoder, value: MetaBody): Unit =
+    serializer.serialize(encoder, value.jsonAble)
+
+  override fun deserialize(decoder: Decoder): MetaBody =
+    serializer.deserialize(decoder).toMetaBody()
+}
+
+@Serializable(with = MetaBodySerializer::class)
 @JsonAdapter(MetaBody::class)
 data class MetaBody(
   /**
@@ -26,9 +57,9 @@ data class MetaBody(
    * 需要使用这个值对应的数据进行缓存操作
    * 远端可以发送句柄回来，这样可以省去一些数据的回传延迟。
    */
-  val metaId: String = ByteArray(8).also { Random().nextBytes(it) }.toBase64Url()
+  val metaId: String = randomMetaId()
 ) : JsonSerializer<MetaBody>, JsonDeserializer<MetaBody> {
-
+  @Serializable(with = IPC_META_BODY_TYPE_Serializer::class)
   @JsonAdapter(IPC_META_BODY_TYPE::class)
   enum class IPC_META_BODY_TYPE(val type: Int) : JsonSerializer<IPC_META_BODY_TYPE>,
     JsonDeserializer<IPC_META_BODY_TYPE> {
@@ -68,6 +99,10 @@ data class MetaBody(
       type and 1 == 0
     }
 
+    companion object {
+      val ALL_VALUES = values().associateBy { it.type }
+    }
+
     override fun serialize(
       src: IPC_META_BODY_TYPE, typeOfSrc: Type?, context: JsonSerializationContext?
     ) = JsonPrimitive(src.type)
@@ -79,19 +114,31 @@ data class MetaBody(
     private inline infix fun or(TYPE: IPC_DATA_ENCODING) = type or TYPE.encoding
   }
 
+  object IPC_META_BODY_TYPE_Serializer : KSerializer<IPC_META_BODY_TYPE> {
+    override val descriptor = PrimitiveSerialDescriptor("IPC_META_BODY_TYPE", PrimitiveKind.INT)
+    override fun deserialize(decoder: Decoder) =
+      IPC_META_BODY_TYPE.ALL_VALUES.getValue(decoder.decodeInt())
+
+    override fun serialize(encoder: Encoder, value: IPC_META_BODY_TYPE) =
+      encoder.encodeInt(value.type)
+  }
+
 
   companion object {
+    private fun randomMetaId() = ByteArray(8).also { Random().nextBytes(it) }.toBase64Url()
     fun fromText(
       senderUid: Int,
       data: String,
       streamId: String? = null,
       receiverUid: Int? = null,
+      metaId: String = randomMetaId(),
     ) = MetaBody(
       type = if (streamId == null) IPC_META_BODY_TYPE.INLINE_TEXT else IPC_META_BODY_TYPE.STREAM_WITH_TEXT,
       senderUid = senderUid,
       data = data,
       streamId = streamId,
       receiverUid = receiverUid,
+      metaId = metaId
     )
 
     fun fromBase64(
@@ -99,12 +146,14 @@ data class MetaBody(
       data: String,
       streamId: String? = null,
       receiverUid: Int? = null,
+      metaId: String = randomMetaId(),
     ) = MetaBody(
       type = if (streamId == null) IPC_META_BODY_TYPE.INLINE_BASE64 else IPC_META_BODY_TYPE.STREAM_WITH_BASE64,
       senderUid = senderUid,
       data = data,
       streamId = streamId,
       receiverUid = receiverUid,
+      metaId = metaId,
     )
 
     fun fromBinary(
@@ -112,12 +161,14 @@ data class MetaBody(
       data: ByteArray,
       streamId: String? = null,
       receiverUid: Int? = null,
+      metaId: String = randomMetaId(),
     ) = MetaBody(
       type = if (streamId == null) IPC_META_BODY_TYPE.INLINE_BINARY else IPC_META_BODY_TYPE.STREAM_WITH_BINARY,
       senderUid = senderUid,
       data = data,
       streamId = streamId,
       receiverUid = receiverUid,
+      metaId = metaId,
     )
 
     fun fromBinary(
@@ -125,24 +176,30 @@ data class MetaBody(
       data: ByteArray,
       streamId: String? = null,
       receiverUid: Int? = null,
+      metaId: String = randomMetaId(),
     ) = if (senderIpc.supportBinary) fromBinary(
-      senderIpc.uid, data, streamId, receiverUid
+      senderIpc.uid, data, streamId, receiverUid, metaId
     ) else fromBase64(
-      senderIpc.uid, data.toBase64(), streamId, receiverUid
+      senderIpc.uid, data.toBase64(), streamId, receiverUid, metaId
     )
   }
-
 
   val jsonAble by lazy {
     when (type.encoding) {
       IPC_DATA_ENCODING.BINARY -> fromBase64(
-        senderUid,
-        (data as ByteArray).toBase64(),
-        streamId,
-        receiverUid
+        senderUid, (data as ByteArray).toBase64(), streamId, receiverUid, metaId
       )
 
       else -> this
+    }.run {
+      MetaBodyJsonAble(
+        type,
+        senderUid,
+        data as String,
+        streamId,
+        receiverUid,
+        metaId,
+      )
     }
   }
 
@@ -152,7 +209,7 @@ data class MetaBody(
     with(src.jsonAble) {
       jsonObject.add("type", context.serialize(type))
       jsonObject.addProperty("senderUid", senderUid)
-      jsonObject.addProperty("data", data as String)
+      jsonObject.addProperty("data", data)
       jsonObject.addProperty("streamId", streamId)
       jsonObject.addProperty("receiverUid", receiverUid)
       jsonObject.addProperty("metaId", metaId)
@@ -161,9 +218,7 @@ data class MetaBody(
 
 
   override fun deserialize(
-    json: JsonElement,
-    typeOfT: Type,
-    context: JsonDeserializationContext
+    json: JsonElement, typeOfT: Type, context: JsonDeserializationContext
   ): MetaBody = json.asJsonObject.let { obj ->
     MetaBody(
       type = context.deserialize(obj["type"], IPC_META_BODY_TYPE::class.java),
@@ -176,13 +231,13 @@ data class MetaBody(
   }
 }
 
+
 private fun JsonObject.getElementOrNull(key: String): JsonElement? {
   if (!has(key)) {
     return null
   }
   val value = get(key)
-  return if (value.isJsonNull)
-    null
+  return if (value.isJsonNull) null
   else value
 }
 

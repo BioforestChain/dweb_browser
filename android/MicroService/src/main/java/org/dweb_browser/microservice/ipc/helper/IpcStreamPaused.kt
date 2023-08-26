@@ -1,5 +1,8 @@
 package org.dweb_browser.microservice.ipc.helper
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class IpcStreamPaused(
   override val stream_id: String,
   /**

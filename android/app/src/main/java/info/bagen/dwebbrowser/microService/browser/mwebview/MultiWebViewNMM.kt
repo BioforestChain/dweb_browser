@@ -113,7 +113,11 @@ class MultiWebViewNMM :
 
     val controller = controllerMap.getOrPut(remoteMmid) {
       val win = createWindowAdapterManager.createWindow(
-        WindowState(owner = ipc.remote.mmid, provider = mmid, microModule = this).also { state ->
+        WindowState(
+          owner = ipc.remote.mmid,
+          provider = mmid,
+          microModule = this
+        ).also { state ->
           /**
            * 挑选合适的图标作为应用的图标
            */

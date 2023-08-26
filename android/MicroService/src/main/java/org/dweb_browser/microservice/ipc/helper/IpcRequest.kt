@@ -1,5 +1,6 @@
 package org.dweb_browser.microservice.ipc.helper
 
+import kotlinx.serialization.Serializable
 import org.dweb_browser.microservice.help.InitRequest
 import org.dweb_browser.microservice.help.buildRequestX
 import org.dweb_browser.microservice.help.isWebSocket
@@ -120,7 +121,8 @@ class IpcRequest(
   override fun toString() = "#IpcRequest/$method/$url"
 }
 
-class IpcReqMessage(
+@Serializable
+data class IpcReqMessage(
   val req_id: Int,
   val method: IpcMethod,
   val url: String,

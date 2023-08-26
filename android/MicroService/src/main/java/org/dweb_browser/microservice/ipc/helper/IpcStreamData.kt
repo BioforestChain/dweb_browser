@@ -2,15 +2,39 @@ package org.dweb_browser.microservice.ipc.helper
 
 import com.google.gson.*
 import com.google.gson.annotations.JsonAdapter
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import org.dweb_browser.helper.toBase64
 import org.dweb_browser.helper.toUtf8
 import java.lang.reflect.Type
 
+@Serializable
+data class IpcStreamDataJsonAble(
+  val stream_id: String, val encoding: IPC_DATA_ENCODING, val data: String
+) : IpcMessage(IPC_MESSAGE_TYPE.STREAM_DATA) {
+  fun toIpcStreamData() = IpcStreamData(stream_id, encoding, data)
+}
+
+object IpcStreamDataSerializer : KSerializer<IpcStreamData> {
+  private val serializer = IpcStreamDataJsonAble.serializer()
+  override val descriptor = serializer.descriptor
+
+  override fun deserialize(decoder: Decoder) = serializer.deserialize(decoder).toIpcStreamData()
+
+  override fun serialize(encoder: Encoder, value: IpcStreamData) =
+    serializer.serialize(encoder, value.jsonAble)
+
+}
+
+@Serializable(IpcStreamDataSerializer::class)
 @JsonAdapter(IpcStreamData::class)
 data class IpcStreamData(
   override val stream_id: String,
   val encoding: IPC_DATA_ENCODING,
-  val data: Any /*String or ByteArray*/,
+  val data: Any, /*String or ByteArray*/
 ) : IpcMessage(IPC_MESSAGE_TYPE.STREAM_DATA), IpcStream, JsonSerializer<IpcStreamData>,
   JsonDeserializer<IpcStreamData> {
 
@@ -43,6 +67,8 @@ data class IpcStreamData(
       )
 
       else -> this
+    }.run {
+      IpcStreamDataJsonAble(stream_id, encoding, data as String)
     }
   }
 
@@ -58,9 +84,7 @@ data class IpcStreamData(
   }
 
   override fun deserialize(
-    json: JsonElement,
-    typeOfT: Type,
-    context: JsonDeserializationContext
+    json: JsonElement, typeOfT: Type, context: JsonDeserializationContext
   ): IpcStreamData = json.asJsonObject.let { obj ->
     IpcStreamData(
       stream_id = obj["stream_id"].asString,
