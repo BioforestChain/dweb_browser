@@ -2,10 +2,8 @@ package org.dweb_browser.microservice.ipc.helper
 
 import com.google.gson.*
 import com.google.gson.annotations.JsonAdapter
-import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
+import org.dweb_browser.helper.ProxySerializer
 import org.dweb_browser.helper.toBase64
 import org.dweb_browser.helper.toUtf8
 import java.lang.reflect.Type
@@ -13,44 +11,31 @@ import java.lang.reflect.Type
 
 @Serializable
 data class IpcEventJsonAble(
-  val name: String,
-  val data: String,
-  val encoding: IPC_DATA_ENCODING
+  val name: String, val data: String, val encoding: IPC_DATA_ENCODING
 ) : IpcMessage(IPC_MESSAGE_TYPE.EVENT) {
   fun toIpcEvent() = IpcEvent(name, data, encoding)
 }
 
-object IpcEventSerializer : KSerializer<IpcEvent> {
-  private val serializer = IpcEventJsonAble.serializer()
-  override val descriptor = serializer.descriptor
-
-  override fun deserialize(decoder: Decoder) = serializer.deserialize(decoder).toIpcEvent()
-
-  override fun serialize(encoder: Encoder, value: IpcEvent) =
-    serializer.serialize(encoder, value.jsonAble)
-
-}
+object IpcEventSerializer :
+  ProxySerializer<IpcEvent, IpcEventJsonAble>(IpcEventJsonAble.serializer(),
+    { jsonAble },
+    { toIpcEvent() })
 
 @Serializable(with = IpcEventSerializer::class)
 @JsonAdapter(IpcEvent::class)
 class IpcEvent(
-  val name: String,
-  val data: Any /*String or ByteArray*/,
-  val encoding: IPC_DATA_ENCODING
-) :
-  IpcMessage(IPC_MESSAGE_TYPE.EVENT), JsonSerializer<IpcEvent>, JsonDeserializer<IpcEvent> {
+  val name: String, val data: Any /*String or ByteArray*/, val encoding: IPC_DATA_ENCODING
+) : IpcMessage(IPC_MESSAGE_TYPE.EVENT), JsonSerializer<IpcEvent>, JsonDeserializer<IpcEvent> {
 
   companion object {
-    fun fromBinary(name: String, data: ByteArray) =
-      IpcEvent(name, data, IPC_DATA_ENCODING.BINARY)
+    fun fromBinary(name: String, data: ByteArray) = IpcEvent(name, data, IPC_DATA_ENCODING.BINARY)
 
     fun fromBase64(name: String, data: ByteArray) =
       IpcEvent(name, data.toBase64(), IPC_DATA_ENCODING.BASE64)
 
     fun fromUtf8(name: String, data: ByteArray) = fromUtf8(name, data.toUtf8())
 
-    fun fromUtf8(name: String, data: String) =
-      IpcEvent(name, data, IPC_DATA_ENCODING.UTF8)
+    fun fromUtf8(name: String, data: String) = IpcEvent(name, data, IPC_DATA_ENCODING.UTF8)
   }
 
   val binary by lazy {
@@ -90,9 +75,7 @@ class IpcEvent(
   }
 
   override fun deserialize(
-    json: JsonElement,
-    typeOfT: Type,
-    context: JsonDeserializationContext
+    json: JsonElement, typeOfT: Type, context: JsonDeserializationContext
   ): IpcEvent = json.asJsonObject.let { obj ->
     IpcEvent(
       name = obj["name"].asString,

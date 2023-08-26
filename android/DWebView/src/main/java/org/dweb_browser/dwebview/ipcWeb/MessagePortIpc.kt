@@ -8,6 +8,8 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.getOrElse
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.Callback
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.ioAsyncExceptionHandler
@@ -108,6 +110,7 @@ open class MessagePortIpc(
           debugMessagePortIpc("ON-MESSAGE", "$ipc => $message")
           _messageSignal.emit(IpcMessageArgs(message, ipc))
         }
+
         else -> throw Exception("unknown message: $message")
       }
     }.removeWhen(onDestroy)
@@ -116,9 +119,9 @@ open class MessagePortIpc(
 
   override suspend fun _doPostMessage(data: IpcMessage) {
     val message = when (data) {
-      is IpcRequest -> gson.toJson(data.ipcReqMessage)
-      is IpcResponse -> gson.toJson(data.ipcResMessage)
-      is IpcStreamData -> gson.toJson(data)
+      is IpcRequest -> Json.encodeToString(data.ipcReqMessage)
+      is IpcResponse -> Json.encodeToString(data.ipcResMessage)
+      is IpcStreamData -> Json.encodeToString(data)
       else -> gson.toJson(data)
     }
     this.port.postMessage(message)

@@ -7,6 +7,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import org.dweb_browser.helper.ProxySerializer
 import org.dweb_browser.helper.toBase64
 import org.dweb_browser.helper.toUtf8
 import java.lang.reflect.Type
@@ -18,16 +19,10 @@ data class IpcStreamDataJsonAble(
   fun toIpcStreamData() = IpcStreamData(stream_id, encoding, data)
 }
 
-object IpcStreamDataSerializer : KSerializer<IpcStreamData> {
-  private val serializer = IpcStreamDataJsonAble.serializer()
-  override val descriptor = serializer.descriptor
-
-  override fun deserialize(decoder: Decoder) = serializer.deserialize(decoder).toIpcStreamData()
-
-  override fun serialize(encoder: Encoder, value: IpcStreamData) =
-    serializer.serialize(encoder, value.jsonAble)
-
-}
+object IpcStreamDataSerializer : ProxySerializer<IpcStreamData, IpcStreamDataJsonAble>(
+  IpcStreamDataJsonAble.serializer(),
+  { jsonAble },
+  { toIpcStreamData() })
 
 @Serializable(IpcStreamDataSerializer::class)
 @JsonAdapter(IpcStreamData::class)

@@ -1,5 +1,6 @@
 package org.dweb_browser.microservice.sys.http
 
+import kotlinx.serialization.Serializable
 import org.dweb_browser.helper.SimpleCallback
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.microservice.ipc.Ipc
@@ -54,6 +55,7 @@ class Gateway(
     }
   }
 
+  @Serializable
   data class RouteConfig(
     val pathname: String,
     val method: IpcMethod,

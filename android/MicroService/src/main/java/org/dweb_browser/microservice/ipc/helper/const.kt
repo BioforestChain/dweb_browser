@@ -2,13 +2,7 @@ package org.dweb_browser.microservice.ipc.helper
 
 import com.google.gson.*
 import com.google.gson.annotations.JsonAdapter
-import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.descriptors.PrimitiveKind
-import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
 import org.dweb_browser.helper.*
 import org.dweb_browser.microservice.ipc.Ipc
 import java.lang.reflect.Type
@@ -92,16 +86,8 @@ enum class IPC_MESSAGE_TYPE(val type: Byte) : JsonSerializer<IPC_MESSAGE_TYPE>,
   }
 }
 
-object IPC_MESSAGE_TYPE_Serializer : KSerializer<IPC_MESSAGE_TYPE> {
-  override val descriptor = PrimitiveSerialDescriptor("IPC_MESSAGE_TYPE", PrimitiveKind.BYTE)
-
-  override fun deserialize(decoder: Decoder) =
-    IPC_MESSAGE_TYPE.ALL_VALUES.getValue(decoder.decodeByte())
-
-  override fun serialize(encoder: Encoder, value: IPC_MESSAGE_TYPE) =
-    encoder.encodeByte(value.type)
-
-}
+object IPC_MESSAGE_TYPE_Serializer :
+  ByteEnumSerializer<IPC_MESSAGE_TYPE>("IPC_MESSAGE_TYPE", IPC_MESSAGE_TYPE.ALL_VALUES, { type })
 
 /**
  * 可预读取的流
@@ -115,16 +101,11 @@ interface PreReadableInputStream {
 }
 
 
-object IPC_DATA_ENCODING_Serializer : KSerializer<IPC_DATA_ENCODING> {
-  override val descriptor = PrimitiveSerialDescriptor("IPC_DATA_ENCODING", PrimitiveKind.INT)
+object IPC_DATA_ENCODING_Serializer : IntEnumSerializer<IPC_DATA_ENCODING>(
+  "IPC_DATA_ENCODING",
+  IPC_DATA_ENCODING.ALL_VALUES,
+  { encoding })
 
-  override fun deserialize(decoder: Decoder) =
-    IPC_DATA_ENCODING.ALL_VALUES.getValue(decoder.decodeInt())
-
-  override fun serialize(encoder: Encoder, value: IPC_DATA_ENCODING) =
-    encoder.encodeInt(value.encoding)
-
-}
 @Serializable(IPC_DATA_ENCODING_Serializer::class)
 @JsonAdapter(IPC_DATA_ENCODING::class)
 enum class IPC_DATA_ENCODING(val encoding: Int) : JsonSerializer<IPC_DATA_ENCODING>,
@@ -162,15 +143,8 @@ enum class IPC_DATA_ENCODING(val encoding: Int) : JsonSerializer<IPC_DATA_ENCODI
   }
 }
 
-object IPC_ROLE_Serializer : KSerializer<IPC_ROLE> {
-  override val descriptor = PrimitiveSerialDescriptor("IPC_ROLE", PrimitiveKind.STRING)
-
-  override fun deserialize(decoder: Decoder) =
-    IPC_ROLE.ALL_VALUES.getValue(decoder.decodeString())
-
-  override fun serialize(encoder: Encoder, value: IPC_ROLE) =
-    encoder.encodeString(value.role)
-}
+object IPC_ROLE_Serializer :
+  StringEnumSerializer<IPC_ROLE>("IPC_ROLE", IPC_ROLE.ALL_VALUES, { role })
 
 @Serializable(IPC_ROLE_Serializer::class)
 @JsonAdapter(IPC_ROLE::class)

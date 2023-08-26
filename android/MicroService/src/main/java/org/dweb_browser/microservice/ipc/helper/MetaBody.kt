@@ -3,11 +3,8 @@ package org.dweb_browser.microservice.ipc.helper
 import com.google.gson.*
 import com.google.gson.annotations.JsonAdapter
 import kotlinx.serialization.*
-import kotlinx.serialization.descriptors.PrimitiveKind
-import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
+import org.dweb_browser.helper.IntEnumSerializer
+import org.dweb_browser.helper.ProxySerializer
 import org.dweb_browser.helper.toBase64
 import org.dweb_browser.helper.toBase64Url
 import org.dweb_browser.microservice.ipc.Ipc
@@ -27,16 +24,10 @@ data class MetaBodyJsonAble(
 }
 
 
-object MetaBodySerializer : KSerializer<MetaBody> {
-  private val serializer = MetaBodyJsonAble.serializer()
-  override val descriptor: SerialDescriptor = serializer.descriptor
-
-  override fun serialize(encoder: Encoder, value: MetaBody): Unit =
-    serializer.serialize(encoder, value.jsonAble)
-
-  override fun deserialize(decoder: Decoder): MetaBody =
-    serializer.deserialize(decoder).toMetaBody()
-}
+object MetaBodySerializer :
+  ProxySerializer<MetaBody, MetaBodyJsonAble>(MetaBodyJsonAble.serializer(),
+    { jsonAble },
+    { toMetaBody() })
 
 @Serializable(with = MetaBodySerializer::class)
 @JsonAdapter(MetaBody::class)
@@ -114,14 +105,9 @@ data class MetaBody(
     private inline infix fun or(TYPE: IPC_DATA_ENCODING) = type or TYPE.encoding
   }
 
-  object IPC_META_BODY_TYPE_Serializer : KSerializer<IPC_META_BODY_TYPE> {
-    override val descriptor = PrimitiveSerialDescriptor("IPC_META_BODY_TYPE", PrimitiveKind.INT)
-    override fun deserialize(decoder: Decoder) =
-      IPC_META_BODY_TYPE.ALL_VALUES.getValue(decoder.decodeInt())
-
-    override fun serialize(encoder: Encoder, value: IPC_META_BODY_TYPE) =
-      encoder.encodeInt(value.type)
-  }
+  object IPC_META_BODY_TYPE_Serializer : IntEnumSerializer<IPC_META_BODY_TYPE>("IPC_META_BODY_TYPE",
+    IPC_META_BODY_TYPE.ALL_VALUES,
+    { type })
 
 
   companion object {

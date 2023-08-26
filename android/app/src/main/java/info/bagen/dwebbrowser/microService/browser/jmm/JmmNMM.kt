@@ -87,7 +87,7 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
     val routeInstallHandler = defineHandler { request, ipc ->
       val metadataUrl = queryMetadataUrl(request)
       val jmmAppInstallManifest =
-        nativeFetch(metadataUrl).json<JmmAppInstallManifest>(JmmAppInstallManifest::class.java)
+        nativeFetch(metadataUrl).json<JmmAppInstallManifest>()
       val url = URL(metadataUrl)
       // 根据 jmmMetadata 打开一个应用信息的界面，用户阅读界面信息后，可以点击"安装"
       jmmMetadataInstall(jmmAppInstallManifest, ipc, url)

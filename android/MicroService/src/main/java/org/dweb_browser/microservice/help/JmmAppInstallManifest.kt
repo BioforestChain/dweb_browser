@@ -1,23 +1,24 @@
 package org.dweb_browser.microservice.help
 
-import com.google.gson.JsonObject
+import kotlinx.serialization.Serializable
 import org.dweb_browser.helper.DisplayMode
-import org.dweb_browser.helper.GsonAble
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.ShortcutItem
-import java.io.Serializable
+import org.dweb_browser.helper.StringEnumSerializer
 
 typealias MMID = String
 typealias DWEB_DEEPLINK = String
 
 /** Js模块应用 元数据 */
+@Serializable
 open class JmmAppManifest(
   open val baseURI: String? = null,
   open val dweb_deeplinks: List<DWEB_DEEPLINK> = emptyList(),
   open val server: MainServer = MainServer("/sys", "/server/plaoc.server.js")
-) : CommonAppManifest(), Serializable
+) : CommonAppManifest()
 
 /** Js模块应用安装使用的元数据 */
+@Serializable
 data class JmmAppInstallManifest(
   /** 安装是展示用的 icon */
   val logo: String = "",
@@ -55,6 +56,7 @@ data class JmmAppInstallManifest(
   val languages: List<String> = emptyList()
 ) : JmmAppManifest()
 
+@Serializable
 data class MainServer(
   /**
    * 应用文件夹的目录
@@ -64,8 +66,9 @@ data class MainServer(
    * 入口文件
    */
   val entry: String
-) : Serializable
+)
 
+@Serializable
 open class MicroModuleManifest(
   open val ipc_support_protocols: IpcSupportProtocols = IpcSupportProtocols(
     cbor = true,
@@ -88,10 +91,10 @@ open class MicroModuleManifest(
   open val background_color: String? = null,
   open val shortcuts: List<ShortcutItem> = listOf(),
   open var version: String = "0.0.1"
-) : Serializable {
+) {
 }
 
-
+@Serializable
 open class CommonAppManifest(
   open var id: MMID = "",
   open val dir: String? = null,
@@ -108,7 +111,7 @@ open class CommonAppManifest(
   open val background_color: String? = null,
   open val shortcuts: List<ShortcutItem> = listOf(),
   open var version: String = "0.0.1"
-) : Serializable {//, GsonAble<CommonAppManifest>
+) {//, GsonAble<CommonAppManifest>
 //  override fun toJsonAble() = JsonObject().also { jsonObject ->
 //    jsonObject.addProperty("id", id);
 //    jsonObject.addProperty("dir", dir);
@@ -128,12 +131,19 @@ open class CommonAppManifest(
 //  }
 }
 
+@Serializable
 data class IpcSupportProtocols(
   val cbor: Boolean,
   val protobuf: Boolean,
   val raw: Boolean,
 )
 
+object MICRO_MODULE_CATEGORY_Serializer :
+  StringEnumSerializer<MICRO_MODULE_CATEGORY>("MICRO_MODULE_CATEGORY",
+    MICRO_MODULE_CATEGORY.ALL_VALUES,
+    { type })
+
+@Serializable(with = MICRO_MODULE_CATEGORY_Serializer::class)
 enum class MICRO_MODULE_CATEGORY(val type: String) {
 
   //#region 1. Service 服务
@@ -475,6 +485,10 @@ enum class MICRO_MODULE_CATEGORY(val type: String) {
   Trivia_Games("trivia-games"),
 
   /** 文字游戏 */
-  Word_Games("word-games")
+  Word_Games("word-games"),
+  ;
 
+  companion object {
+    val ALL_VALUES = values().associateBy { it.type }
+  }
 }

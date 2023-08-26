@@ -26,7 +26,7 @@ data class DeskAppMetaData(
   var categories: List<MICRO_MODULE_CATEGORY>? = null,
   var dir: String? = null,
   var description: String? = null,
-  var display: DisplayMode? = DisplayMode.fullscreen,
+  var display: DisplayMode? = DisplayMode.Fullscreen,
   var icons: List<ImageResource>? = null,
   var dweb_deeplinks: List<DWEB_DEEPLINK> = listOf(),
   var ipc_support_protocols: IpcSupportProtocols = IpcSupportProtocols(

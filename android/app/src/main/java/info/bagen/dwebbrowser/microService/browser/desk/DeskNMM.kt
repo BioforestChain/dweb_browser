@@ -11,6 +11,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.ChangeState
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.ioAsyncExceptionHandler
@@ -73,7 +74,7 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
     val stream = res.body.stream
     while (stream.available() > 0) {
       val chunk = stream.readByteArray()
-      val state = gson.fromJson<ChangeState<MMID>>(chunk.toString(), ChangeState::class.java)
+      val state = Json.decodeFromString<ChangeState<MMID>>(chunk.toString())
       runningApps.emitChangeBackground(state.adds, state.updates, state.removes)
     }
   }

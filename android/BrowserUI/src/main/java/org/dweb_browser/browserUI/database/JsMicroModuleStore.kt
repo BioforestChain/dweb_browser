@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.Json
 import org.dweb_browser.browserUI.util.BrowserUIApp
 import org.dweb_browser.microservice.help.JmmAppInstallManifest
 import org.dweb_browser.microservice.help.MMID
@@ -31,7 +32,9 @@ object JsMicroModuleStore {
         throw e
       }
     }.map { pref ->
-      gson.fromJson(pref[stringPreferencesKey(key)], JmmAppInstallManifest::class.java)
+      pref[stringPreferencesKey(key)]?.let {
+        Json.decodeFromString(JmmAppInstallManifest.serializer(), it)
+      }
     }
   }
 
@@ -52,21 +55,23 @@ object JsMicroModuleStore {
     }
   }
 
-  fun saveAppInfo(mmid: MMID, jmmAppInstallManifest: JmmAppInstallManifest) = runBlocking(Dispatchers.IO) {
-    // edit 函数需要在挂起环境中执行
-    BrowserUIApp.Instance.appContext.dataStore.edit { pref ->
-      pref[stringPreferencesKey(mmid)] = gson.toJson(jmmAppInstallManifest)
-    }
-  }
-
-  suspend fun saveAppInfoList(list: MutableMap<MMID, JmmAppInstallManifest>) = runBlocking(Dispatchers.IO) {
-    // edit 函数需要在挂起环境中执行
-    BrowserUIApp.Instance.appContext.dataStore.edit { pref ->
-      list.forEach { (key, appMetaData) ->
-        pref[stringPreferencesKey(key)] = appMetaData.toString()
+  fun saveAppInfo(mmid: MMID, jmmAppInstallManifest: JmmAppInstallManifest) =
+    runBlocking(Dispatchers.IO) {
+      // edit 函数需要在挂起环境中执行
+      BrowserUIApp.Instance.appContext.dataStore.edit { pref ->
+        pref[stringPreferencesKey(mmid)] = gson.toJson(jmmAppInstallManifest)
       }
     }
-  }
+
+  suspend fun saveAppInfoList(list: MutableMap<MMID, JmmAppInstallManifest>) =
+    runBlocking(Dispatchers.IO) {
+      // edit 函数需要在挂起环境中执行
+      BrowserUIApp.Instance.appContext.dataStore.edit { pref ->
+        list.forEach { (key, appMetaData) ->
+          pref[stringPreferencesKey(key)] = appMetaData.toString()
+        }
+      }
+    }
 
   suspend fun deleteAppInfo(mmid: MMID) {
     BrowserUIApp.Instance.appContext.dataStore.edit { pref ->

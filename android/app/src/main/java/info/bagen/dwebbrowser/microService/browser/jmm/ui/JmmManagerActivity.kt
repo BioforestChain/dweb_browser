@@ -9,6 +9,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.base.BaseThemeActivity
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.dweb_browser.microservice.help.JmmAppInstallManifest
 
 class JmmManagerActivity : BaseThemeActivity() {
@@ -21,7 +23,10 @@ class JmmManagerActivity : BaseThemeActivity() {
         intent.action = "${App.appContext.packageName}.openjmm"
         intent.`package` = App.appContext.packageName
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NEW_DOCUMENT
-        intent.putExtra(KEY_JMM_METADATA, dataMetadata)
+        intent.putExtra(
+          KEY_JMM_METADATA,
+          Json.encodeToString(dataMetadata)
+        )
       }
     }
   }
@@ -35,8 +40,8 @@ class JmmManagerActivity : BaseThemeActivity() {
   }
 
   override fun initData() {
-    intent.getSerializableExtra(KEY_JMM_METADATA)?.let {
-      val jmmAppInstallManifest = it as JmmAppInstallManifest
+    intent.getStringExtra(KEY_JMM_METADATA)?.let {
+      val jmmAppInstallManifest = Json.decodeFromString<JmmAppInstallManifest>(it)
       // 移除JmmNMM.jmmController，并且当前文件无用，所以删除
       // jmmManagerViewModel = JmmManagerViewModel(jmmAppInstallManifest, JmmNMM.jmmController)
     }

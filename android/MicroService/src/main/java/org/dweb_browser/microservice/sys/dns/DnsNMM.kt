@@ -9,6 +9,8 @@ import kotlinx.coroutines.plus
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.ChangeState
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.PromiseOut
@@ -246,7 +248,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
             try {
               withContext(Dispatchers.IO) {
                 controller.enqueue(
-                  (gson.toJson(
+                  (Json.encodeToString(
                     ChangeState(
                       changes.adds,
                       changes.updates,

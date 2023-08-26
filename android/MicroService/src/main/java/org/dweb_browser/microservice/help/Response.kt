@@ -1,14 +1,15 @@
 package org.dweb_browser.microservice.help
 
-import com.google.gson.JsonSyntaxException
+import io.ktor.util.moveToByteArray
+import kotlinx.serialization.json.Json
+import org.dweb_browser.helper.toUtf8
 import org.http4k.core.Response
 import java.io.InputStream
-import java.lang.reflect.Type
 
 fun Response.ok(): Response = if (status.code >= 400) throw Exception(status.description) else this
 
-@Throws(JsonSyntaxException::class)
-fun <T> Response.json(typeOfT: Type): T = gson.fromJson(ok().body.stream.reader(), typeOfT)
+inline fun <reified T> Response.json(): T =
+  Json.decodeFromString<T>(ok().body.payload.moveToByteArray().toUtf8())
 
 fun Response.text(): String = ok().bodyString()
 

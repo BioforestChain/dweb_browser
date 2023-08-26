@@ -1,7 +1,6 @@
 package org.dweb_browser.microservice.ipc.helper
 
 import kotlinx.serialization.Serializable
-import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.ipc.Ipc
 import org.http4k.core.Response
 import org.http4k.core.Status
@@ -22,16 +21,6 @@ class IpcResponse(
   }
 
   companion object {
-    fun fromJson(
-      req_id: Int,
-      statusCode: Int = 200,
-      headers: IpcHeaders = IpcHeaders(),
-      jsonAble: Any,
-      ipc: Ipc
-    ) = fromText(req_id, statusCode, headers.also {
-      headers.init("Content-Type", "application/json")
-    }, gson.toJson(jsonAble), ipc)
-
     fun fromText(
       req_id: Int,
       statusCode: Int = 200,

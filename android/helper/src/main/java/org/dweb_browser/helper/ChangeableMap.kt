@@ -1,8 +1,10 @@
 package org.dweb_browser.helper
 
+import kotlinx.serialization.Serializable
 import kotlin.coroutines.CoroutineContext
 
-class ChangeState<K>(val adds: Set<K>, val updates: Set<K>, val removes: Set<K>);
+@Serializable
+data class ChangeState<K>(val adds: Set<K>, val updates: Set<K>, val removes: Set<K>);
 
 class ChangeableMap<K, V>(context: CoroutineContext = ioAsyncExceptionHandler) : LinkedHashMap<K, V>() {
   data class Changes<K, V>(

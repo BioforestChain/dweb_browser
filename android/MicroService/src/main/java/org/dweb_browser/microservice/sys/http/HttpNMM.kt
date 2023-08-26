@@ -1,6 +1,8 @@
 package org.dweb_browser.microservice.sys.http
 
 import com.google.gson.reflect.TypeToken
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.decodeURIComponent
 import org.dweb_browser.helper.encodeURI
 import org.dweb_browser.helper.printDebug
@@ -181,7 +183,6 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     }
     val query_token = Query.string().required("token")
     val query_routeConfig = Query.string().required("routes")
-    val type_routes = object : TypeToken<ArrayList<Gateway.RouteConfig>>() {}.type
 
     apiRouting = routes(
       "/start" bind Method.GET to defineHandler { request, ipc ->
@@ -189,8 +190,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
       },
       "/listen" bind Method.POST to defineHandler { request ->
         val token = query_token(request)
-        val routes: List<Gateway.RouteConfig> =
-          gson.fromJson(query_routeConfig(request), type_routes)
+        val routes = Json.decodeFromString<List<Gateway.RouteConfig>>(query_routeConfig(request))
         listen(token, request, routes)
       },
       "/close" bind Method.GET to defineHandler { request, ipc ->
@@ -199,6 +199,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     )
   }
 
+  @Serializable
   data class ServerUrlInfo(
     /**
      * 标准host，是一个站点的key，只要站点过来时用某种我们认可的方式（x-host/user-agent）携带了这个信息，那么我们就依次作为进行网关路由
@@ -236,6 +237,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     dwebServer.closeServer()
   }
 
+  @Serializable
   data class ServerStartResult(val token: String, val urlInfo: ServerUrlInfo)
 
   /**

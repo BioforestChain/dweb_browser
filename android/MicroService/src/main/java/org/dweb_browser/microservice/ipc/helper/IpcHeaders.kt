@@ -2,28 +2,18 @@ package org.dweb_browser.microservice.ipc.helper
 
 import com.google.gson.*
 import com.google.gson.annotations.JsonAdapter
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
+import org.dweb_browser.helper.ProxySerializer
 import org.http4k.core.Headers
 import java.lang.reflect.Type
 
-object IpcHeadersSerializer : KSerializer<IpcHeaders> {
-  private val serializer = MapSerializer(String.serializer(), String.serializer())
-  override val descriptor = serializer.descriptor
-
-  override fun deserialize(decoder: Decoder) =
-    IpcHeaders.from(decoder.decodeSerializableValue(serializer))
-
-  override fun serialize(encoder: Encoder, value: IpcHeaders) {
-    encoder.encodeSerializableValue(serializer, value.toMap())
-  }
-
-}
+object IpcHeadersSerializer : ProxySerializer<IpcHeaders, Map<String, String>>(
+  MapSerializer(
+    String.serializer(),
+    String.serializer()
+  ), { toMap() }, { IpcHeaders.from(this) })
 
 @Serializable(IpcHeadersSerializer::class)
 @JsonAdapter(IpcHeaders::class)
