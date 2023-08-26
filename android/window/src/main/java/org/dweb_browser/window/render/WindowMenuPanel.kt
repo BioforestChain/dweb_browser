@@ -13,12 +13,45 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Assignment
+import androidx.compose.material.icons.outlined.BluetoothDisabled
 import androidx.compose.material.icons.outlined.DarkMode
+import androidx.compose.material.icons.outlined.DataUsage
+import androidx.compose.material.icons.outlined.DeleteForever
+import androidx.compose.material.icons.outlined.DeveloperBoard
+import androidx.compose.material.icons.outlined.DeveloperMode
+import androidx.compose.material.icons.outlined.Feedback
+import androidx.compose.material.icons.outlined.FindReplace
+import androidx.compose.material.icons.outlined.FitScreen
+import androidx.compose.material.icons.outlined.Gavel
+import androidx.compose.material.icons.outlined.HelpCenter
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.LightMode
+import androidx.compose.material.icons.outlined.LocationOff
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.PushPin
+import androidx.compose.material.icons.outlined.Screenshot
+import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material.icons.outlined.VerifiedUser
+import androidx.compose.material.icons.outlined.WifiTetheringOff
+import androidx.compose.material.icons.twotone.Assignment
+import androidx.compose.material.icons.twotone.Bluetooth
 import androidx.compose.material.icons.twotone.DarkMode
+import androidx.compose.material.icons.twotone.DataUsage
+import androidx.compose.material.icons.twotone.DeveloperBoard
+import androidx.compose.material.icons.twotone.DeveloperMode
+import androidx.compose.material.icons.twotone.Feedback
+import androidx.compose.material.icons.twotone.Gavel
+import androidx.compose.material.icons.twotone.HelpCenter
+import androidx.compose.material.icons.twotone.Home
+import androidx.compose.material.icons.twotone.Language
 import androidx.compose.material.icons.twotone.LightMode
+import androidx.compose.material.icons.twotone.LocationOn
+import androidx.compose.material.icons.twotone.Person
 import androidx.compose.material.icons.twotone.PushPin
+import androidx.compose.material.icons.twotone.VerifiedUser
+import androidx.compose.material.icons.twotone.WifiTethering
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -72,8 +105,10 @@ internal fun WindowMenuPanel(
       }
     }
   }
-  val shape = remember(winPadding.boxRounded) {
-    winPadding.boxRounded.toRoundedCornerShape()
+  val isMaximized by win.watchedIsMaximized()
+  val shape = remember(winPadding, isMaximized) {
+    if (isMaximized) winPadding.contentRounded.toRoundedCornerShape()
+    else winPadding.boxRounded.toRoundedCornerShape()
   }
   val colors = remember(winTheme) {
     RichTooltipColors(
@@ -114,9 +149,10 @@ internal fun WindowMenuPanel(
       fun WindowMenuItem(
         iconVector: ImageVector,
         labelText: String,
-        selected: Boolean,
+        selected: Boolean = false,
         selectedIconVector: ImageVector = iconVector,
-        onClick: suspend () -> Unit
+        enabled: Boolean = true,
+        onClick: suspend () -> Unit = {}
       ) {
         NavigationRailItem(
           colors = winMenuItemColor,
@@ -134,6 +170,7 @@ internal fun WindowMenuPanel(
             )
           },
           selected = selected,
+          enabled = enabled,
           onClick = {
             scope.launch { onClick() }
           },
@@ -187,26 +224,176 @@ internal fun WindowMenuPanel(
             ) { win.toggleColorScheme() }
           }
           // 分享应用 ！
+          item {
+            WindowMenuItem(
+              iconVector = Icons.Outlined.Share,
+              labelText = "分享应用",
+              enabled = false,
+            )
+          }
           // 截图 ！
+          item {
+            WindowMenuItem(
+              iconVector = Icons.Outlined.Screenshot,
+              labelText = "截图",
+              enabled = false,
+            )
+          }
           // 窗口快速布局（resize到合理的大小） ！
+          item {
+            WindowMenuItem(
+              iconVector = Icons.Outlined.FitScreen,
+              labelText = "适配屏幕大小",
+              enabled = false,
+            )
+          }
           // 自定义shortcut（扫一扫）
           // 自定义widget
           // 卸载 ！
+          item {
+            WindowMenuItem(
+              iconVector = Icons.Outlined.DeleteForever,
+              labelText = "卸载",
+              enabled = false,
+            )
+          }
           // 更新！
+          item {
+            WindowMenuItem(
+              iconVector = Icons.Outlined.FindReplace,
+              labelText = "检查更新",
+              enabled = false,
+            )
+          }
           // 定位权限
+          item {
+            WindowMenuItem(
+              iconVector = Icons.Outlined.LocationOff,
+              selectedIconVector = Icons.TwoTone.LocationOn,
+              labelText = "定位权限",
+              selected = true,
+              enabled = false,
+            )
+          }
           // 网络权限
+          item {
+            WindowMenuItem(
+              iconVector = Icons.Outlined.WifiTetheringOff,
+              selectedIconVector = Icons.TwoTone.WifiTethering,
+              labelText = "网络权限",
+              selected = true,
+              enabled = false,
+            )
+          }
           // 蓝牙权限
+          item {
+            WindowMenuItem(
+              iconVector = Icons.Outlined.BluetoothDisabled,
+              selectedIconVector = Icons.TwoTone.Bluetooth,
+              labelText = "蓝牙权限",
+              selected = true,
+              enabled = false,
+            )
+          }
           // 用户空间
+          item {
+            WindowMenuItem(
+              iconVector = Icons.Outlined.Person,
+              selectedIconVector = Icons.TwoTone.Person,
+              labelText = "角色",
+              enabled = false,
+            )
+          }
           // 存储管理
+          item {
+            WindowMenuItem(
+              iconVector = Icons.Outlined.DataUsage,
+              selectedIconVector = Icons.TwoTone.DataUsage,
+              labelText = "存储占用",
+              enabled = false,
+            )
+          }
           // 反馈开发者（一个简单的系统。邮箱？issues-template）
+          item {
+            WindowMenuItem(
+              iconVector = Icons.Outlined.Feedback,
+              selectedIconVector = Icons.TwoTone.Feedback,
+              labelText = "问题反馈",
+              enabled = false,
+            )
+          }
           // 使用说明
+          item {
+            WindowMenuItem(
+              iconVector = Icons.Outlined.HelpCenter,
+              selectedIconVector = Icons.TwoTone.HelpCenter,
+              labelText = "使用说明",
+              enabled = false,
+            )
+          }
           // 更新日志
+          item {
+            WindowMenuItem(
+              iconVector = Icons.Outlined.Assignment,
+              selectedIconVector = Icons.TwoTone.Assignment,
+              labelText = "更新日志",
+              enabled = false,
+            )
+          }
           // 授权协议
+          item {
+            WindowMenuItem(
+              iconVector = Icons.Outlined.Gavel,
+              selectedIconVector = Icons.TwoTone.Gavel,
+              labelText = "许可证",
+              enabled = false,
+            )
+          }
           // 官网！
+          item {
+            WindowMenuItem(
+              iconVector = Icons.Outlined.Home,
+              selectedIconVector = Icons.TwoTone.Home,
+              labelText = "官方主页",
+              enabled = false,
+            )
+          }
           // 开发者信息
+          item {
+            WindowMenuItem(
+              iconVector = Icons.Outlined.DeveloperBoard,
+              selectedIconVector = Icons.TwoTone.DeveloperBoard,
+              labelText = "开发者",
+              enabled = false,
+            )
+          }
           // 语言偏好
-          // 签名验证是否通过？
+          item {
+            WindowMenuItem(
+              iconVector = Icons.Outlined.Language,
+              selectedIconVector = Icons.TwoTone.Language,
+              labelText = "语言",
+              enabled = false,
+            )
+          }
+          // 证书列表，可以是自己颁发的证书，或者是用户自己信任的证书厂商。签名验证是否通过？
+          item {
+            WindowMenuItem(
+              iconVector = Icons.Outlined.VerifiedUser,
+              selectedIconVector = Icons.TwoTone.VerifiedUser,
+              labelText = "证书",
+              enabled = false,
+            )
+          }
           // 实时日志信息
+          item {
+            WindowMenuItem(
+              iconVector = Icons.Outlined.DeveloperMode,
+              selectedIconVector = Icons.TwoTone.DeveloperMode,
+              labelText = "日志",
+              enabled = false,
+            )
+          }
         }
       }
     },
