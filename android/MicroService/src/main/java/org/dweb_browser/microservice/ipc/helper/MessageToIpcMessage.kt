@@ -1,21 +1,17 @@
 package org.dweb_browser.microservice.ipc.helper
 
 import kotlinx.serialization.json.Json
-import org.dweb_browser.helper.runBlockingCatching
-import org.dweb_browser.microservice.help.gson
+import org.dweb_browser.helper.JsonLoose
 import org.dweb_browser.microservice.ipc.Ipc
 
-fun jsonToIpcMessage(data: String, ipc: Ipc): Any? {
+fun jsonToIpcMessage(data: String, ipc: Ipc): Any {
   if (data == "close" || data == "ping" || data == "pong") {
     return data
   }
-
-  return runBlockingCatching {
-//    when(Json.decodeFromString<IpcMessage>(data).type){
-//
-//    }
-    when (gson.fromJson(data, IpcMessage::class.java).type) {
-      IPC_MESSAGE_TYPE.REQUEST -> gson.fromJson(data, IpcReqMessage::class.java).let {
+  try {
+    val ipcMessage = JsonLoose.decodeFromString<IpcMessage>(data)
+    return when (ipcMessage.type) {
+      IPC_MESSAGE_TYPE.REQUEST -> Json.decodeFromString<IpcReqMessage>(data).let {
         IpcRequest(
           it.req_id,
           it.url,
@@ -26,7 +22,7 @@ fun jsonToIpcMessage(data: String, ipc: Ipc): Any? {
         )
       }
 
-      IPC_MESSAGE_TYPE.RESPONSE -> gson.fromJson(data, IpcResMessage::class.java).let {
+      IPC_MESSAGE_TYPE.RESPONSE -> Json.decodeFromString<IpcResMessage>(data).let {
         IpcResponse(
           it.req_id,
           it.statusCode,
@@ -36,13 +32,14 @@ fun jsonToIpcMessage(data: String, ipc: Ipc): Any? {
         )
       }
 
-      IPC_MESSAGE_TYPE.EVENT -> gson.fromJson(data, IpcEvent::class.java)
-      IPC_MESSAGE_TYPE.STREAM_DATA -> gson.fromJson(data, IpcStreamData::class.java)
-      IPC_MESSAGE_TYPE.STREAM_PULL -> gson.fromJson(data, IpcStreamPulling::class.java)
-      IPC_MESSAGE_TYPE.STREAM_PAUSED -> gson.fromJson(data, IpcStreamPaused::class.java)
-      IPC_MESSAGE_TYPE.STREAM_END -> gson.fromJson(data, IpcStreamEnd::class.java)
-      IPC_MESSAGE_TYPE.STREAM_ABORT -> gson.fromJson(data, IpcStreamAbort::class.java)
+      IPC_MESSAGE_TYPE.EVENT -> Json.decodeFromString<IpcEvent>(data)
+      IPC_MESSAGE_TYPE.STREAM_DATA -> Json.decodeFromString<IpcStreamData>(data)
+      IPC_MESSAGE_TYPE.STREAM_PULL -> Json.decodeFromString<IpcStreamPulling>(data)
+      IPC_MESSAGE_TYPE.STREAM_PAUSED -> Json.decodeFromString<IpcStreamPaused>(data)
+      IPC_MESSAGE_TYPE.STREAM_END -> Json.decodeFromString<IpcStreamEnd>(data)
+      IPC_MESSAGE_TYPE.STREAM_ABORT -> Json.decodeFromString<IpcStreamAbort>(data)
     }
-  }.getOrDefault(data)
-
+  } catch (e: Exception) {
+    return data
+  }
 }
