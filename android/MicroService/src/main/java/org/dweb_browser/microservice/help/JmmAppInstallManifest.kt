@@ -1,8 +1,10 @@
 package org.dweb_browser.microservice.help
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
 import org.dweb_browser.helper.DisplayMode
 import org.dweb_browser.helper.ImageResource
+import org.dweb_browser.helper.JsonAble
 import org.dweb_browser.helper.ShortcutItem
 import org.dweb_browser.helper.StringEnumSerializer
 
@@ -91,8 +93,7 @@ open class MicroModuleManifest(
   open val background_color: String? = null,
   open val shortcuts: List<ShortcutItem> = listOf(),
   open var version: String = "0.0.1"
-) {
-}
+) : JsonAble<MicroModuleManifest>
 
 @Serializable
 open class CommonAppManifest(

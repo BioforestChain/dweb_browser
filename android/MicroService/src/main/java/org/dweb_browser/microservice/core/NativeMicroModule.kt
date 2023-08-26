@@ -2,6 +2,7 @@ package org.dweb_browser.microservice.core
 
 import org.dweb_browser.helper.DisplayMode
 import org.dweb_browser.helper.ImageResource
+import org.dweb_browser.helper.JsonAble
 import org.dweb_browser.helper.ShortcutItem
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.runBlockingCatching
@@ -10,6 +11,7 @@ import org.dweb_browser.microservice.help.IpcSupportProtocols
 import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.MMID
 import org.dweb_browser.microservice.help.gson
+import org.dweb_browser.microservice.help.json
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.NativeIpc
 import org.dweb_browser.microservice.ipc.NativeMessageChannel
@@ -26,16 +28,15 @@ import org.http4k.core.then
 import org.http4k.core.with
 import org.http4k.filter.ServerFilters
 import org.http4k.lens.RequestContextKey
+import org.http4k.lens.RequestContextLens
 import org.http4k.routing.RoutingHttpHandler
 import java.io.InputStream
 
-fun debugNMM(tag: String, msg: Any = "", err: Throwable? = null) =
-  printDebug("DNS", tag, msg, err)
+fun debugNMM(tag: String, msg: Any = "", err: Throwable? = null) = printDebug("DNS", tag, msg, err)
 
 abstract class NativeMicroModule(override val mmid: MMID, override val name: String) :
   MicroModule() {
-  override val ipc_support_protocols =
-    IpcSupportProtocols(cbor = true, protobuf = true, raw = true)
+  override val ipc_support_protocols = IpcSupportProtocols(cbor = true, protobuf = true, raw = true)
   override val categories: List<MICRO_MODULE_CATEGORY> = emptyList()
   override val dweb_deeplinks: List<DWEB_DEEPLINK> = emptyList()
   override val dir: String? = null
@@ -139,11 +140,84 @@ abstract class NativeMicroModule(override val mmid: MMID, override val name: Str
         }
       }
 
-      fun asJson(result: Any) = Response(Status.OK).body(gson.toJson(result))
-        .header("Content-Type", "application/json")
+      fun asJson(result: Any) =
+        Response(Status.OK).body(gson.toJson(result)).header("Content-Type", "application/json")
 
     }
   }
+
+  data class HandlerContext(val request: Request, private val getIpc: RequestContextLens<Ipc>) {
+    val ipc get() = getIpc(request)
+    fun throwException(
+      code: Status = Status.INTERNAL_SERVER_ERROR,
+      message: String = code.description,
+      cause: Throwable? = null
+    ): Nothing = throw ResponseException(code, message, cause)
+  }
+
+  protected fun defineEmptyResponse(
+    handler: suspend HandlerContext.(request: Request) -> Unit,
+  ) = wrapHandler {
+    HandlerContext(it, requestContextKey_ipc).handler(it)
+    Response(Status.OK)
+  }
+
+  protected fun defineStringResponse(
+    handler: suspend HandlerContext.(request: Request) -> String
+  ) = wrapHandler {
+    Response(Status.OK).body(HandlerContext(it, requestContextKey_ipc).handler(it))
+  }
+
+  protected fun defineBooleanResponse(
+    handler: suspend HandlerContext.(request: Request) -> Boolean
+  ) = wrapHandler {
+    Response(Status.OK).json(HandlerContext(it, requestContextKey_ipc).handler(it))
+  }
+
+  protected fun defineJsonResponse(
+    handler: suspend HandlerContext.(request: Request) -> JsonAble<*>
+  ) = wrapHandler {
+    Response(Status.OK).json(
+      HandlerContext(
+        it, requestContextKey_ipc
+      ).handler(it).toJsonAble()
+    )
+  }
+
+  protected fun defineResponse(
+    handler: suspend HandlerContext.(request: Request) -> Response
+  ) = wrapHandler {
+    HandlerContext(it, requestContextKey_ipc).handler(it)
+  }
+
+  protected fun defineByteArrayHandler(
+    handler: suspend HandlerContext.(request: Request) -> ByteArray
+  ) = wrapHandler {
+    Response(Status.OK).body(MemoryBody(HandlerContext(it, requestContextKey_ipc).handler(it)))
+  }
+
+  protected fun defineInputStreamHandler(
+    handler: suspend HandlerContext.(request: Request) -> InputStream
+  ) = wrapHandler {
+    Response(Status.OK).body(HandlerContext(it, requestContextKey_ipc).handler(it))
+  }
+
+  private fun wrapHandler(
+    handler: suspend (request: Request) -> Response?
+  ) = { request: Request ->
+    runBlockingCatching {
+      handler(request) ?: Response(Status.NOT_IMPLEMENTED)
+    }.getOrElse { ex ->
+      debugNMM("NMM/Error", request.uri, ex)
+      Response(Status.INTERNAL_SERVER_ERROR).body(
+        """
+          <p>${request.uri}</p>
+          <pre>${ex.message ?: "Unknown Error"}</pre>
+        """.trimIndent()
+      )
+    }
+  }
+
 
   protected fun defineHandler(handler: suspend (request: Request) -> Any?) = { request: Request ->
     runBlockingCatching {
@@ -162,7 +236,10 @@ abstract class NativeMicroModule(override val mmid: MMID, override val name: Str
       }
     }.getOrElse { ex ->
       debugNMM("NMM/Error", request.uri, ex)
-      Response(Status.INTERNAL_SERVER_ERROR).body(
+      when (ex) {
+        is ResponseException -> Response(ex.code)
+        else -> Response(Status.INTERNAL_SERVER_ERROR)
+      }.body(
         """
           <p>${request.uri}</p>
           <pre>${ex.message ?: "Unknown Error"}</pre>
@@ -175,5 +252,10 @@ abstract class NativeMicroModule(override val mmid: MMID, override val name: Str
     defineHandler { request ->
       handler(request, requestContextKey_ipc(request))
     }
-}
 
+  class ResponseException(
+    val code: Status = Status.INTERNAL_SERVER_ERROR,
+    message: String = code.description,
+    cause: Throwable? = null
+  ) : Exception(message, cause)
+}

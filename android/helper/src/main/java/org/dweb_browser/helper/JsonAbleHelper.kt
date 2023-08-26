@@ -7,6 +7,7 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.encodeToJsonElement
 
 
 interface GsonAble<T> {
@@ -17,7 +18,7 @@ interface GsonAble<T> {
  * 一种单向的可序列化对象
  */
 interface JsonAble<T> {
-  fun toJsonAble(): kotlinx.serialization.json.JsonElement
+  fun toJsonAble() = Json.encodeToJsonElement(this)
 }
 
 val JsonLoose = Json {

@@ -35,10 +35,10 @@ class BootNMM(initMmids: List<MMID>? = null) :
   override val routers: Router = mutableMapOf()
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     apiRouting = routes(
-      "/register" bind Method.GET to defineHandler { _, ipc ->
+      "/register" bind Method.GET to defineBooleanResponse {
         register(ipc.remote.mmid)
       },
-      "/unregister" bind Method.GET to defineHandler { _, ipc ->
+      "/unregister" bind Method.GET to defineBooleanResponse {
         unregister(ipc.remote.mmid)
       }
     )

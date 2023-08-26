@@ -224,7 +224,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     /// 定义路由功能
     apiRouting = routes(
       // 打开应用
-      "/open" bind Method.GET to defineHandler { request ->
+      "/open" bind Method.GET to defineBooleanResponse { request ->
         val mmid = queryAppId(request)
         debugDNS("open/$mmid", request.uri.path)
         open(mmid)
@@ -232,17 +232,18 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       },
       // 关闭应用
       // TODO 能否关闭一个应该应该由应用自己决定
-      "/close" bind Method.GET to defineHandler { request ->
+      "/close" bind Method.GET to defineBooleanResponse { request ->
         val mmid = queryAppId(request)
         debugDNS("close/$mmid", request.uri.path)
         close(mmid)
         true
       },
-      "/query" bind Method.GET to defineHandler { request ->
+      "/query" bind Method.GET to defineJsonResponse { request ->
         val mmid = queryAppId(request)
-        this.query(mmid)?.toManifest()
+        Json.encodeToString("")
+        query(mmid)?.toManifest() ?: throwException()
       },
-      "/observe/app" bind Method.GET to defineHandler { _, ipc ->
+      "/observe/app" bind Method.GET to defineResponse {
         val inputStream = ReadableStream(onStart = { controller ->
           val off = installApps.onChange { changes ->
             try {
@@ -267,7 +268,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
             controller.close()
           }
         })
-        return@defineHandler Response(Status.OK).body(inputStream)
+        Response(Status.OK).body(inputStream)
       }
     )
 
