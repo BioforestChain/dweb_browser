@@ -17,6 +17,7 @@ import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.removeWhen
+import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.ConnectResult
 import org.dweb_browser.microservice.core.DnsMicroModule
@@ -241,7 +242,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       "/query" bind Method.GET to defineJsonResponse { request ->
         val mmid = queryAppId(request)
         Json.encodeToString("")
-        query(mmid)?.toManifest() ?: throwException()
+        query(mmid)?.toManifest()?.toJsonElement() ?: throwException()
       },
       "/observe/app" bind Method.GET to defineResponse {
         val inputStream = ReadableStream(onStart = { controller ->

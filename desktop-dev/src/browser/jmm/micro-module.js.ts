@@ -88,7 +88,7 @@ export class JsMicroModule extends MicroModule {
   get icons() {
     let icons = this.metadata.config.icons;
     if (icons === undefined || icons.length === 0) {
-      icons = [{ src: this.metadata.config.icon }];
+      icons = [{ src: this.metadata.config.logo }];
     }
     return icons;
   }

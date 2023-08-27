@@ -123,7 +123,7 @@ window.addEventListener("resize", () => {
 /// 同步div的大小到原生的窗口上
 const taskbarEle = ref<HTMLDivElement>();
 // 只显示需要显示的app
-const showApps = computed(() => {
+const showAppIcons = computed(() => {
   const apps = appRefList.value.filter((app) => isFocus(app.metaData.mmid));
   // 如果第一次初始化，那么直接返回列表第一个
   if (apps.length === 0 && appRefList.value.length !== 0) {
@@ -151,7 +151,7 @@ const updateTaskBarState = async (state: $TaskBarState) => {
   // 聚焦模式下，显示所有的列表，但是对于当前focus的应用，需要有一定的scale显示
   if (state.focus) {
     console.log("focusState.appId=>",focusState.appId)
-    // return await resizeTaskbar(67, 70 * (showApps.value.length + 1));
+    // return await resizeTaskbar(67, 70 * (showAppIcons.value.length + 1));
   }
   // 没有聚焦的情况，只显示当前focus的应用
   // return await resizeTaskbar(65, 65);
@@ -174,40 +174,40 @@ const iconSize = "45px";
 </script>
 <template>
   <div class="taskbar" ref="taskbarEle">
-    <div class="panel" :class="{ 'p-4': showApps.length > 0 }">
+    <div class="panel" :class="{ 'p-4': showAppIcons.length > 0 }">
       <button
         class="app-icon-wrapper z-grid"
-        v-for="(app, index) in showApps"
+        v-for="(appIcon, index) in showAppIcons"
         :key="index"
-        :class="{ active:isActive(app.metaData.mmid) }"
+        :class="{ active:isActive(appIcon.metaData.mmid) }"
       >
         <transition name="scale">
           <AppIcon
             class="z-view"
-            :icon="app.ref.value"
+            :icon="appIcon.ref.value"
             :size="iconSize"
             bg-color="#FFF"
             bg-disable-translucent
-            @click="doOpen(app.metaData)"
-            @dblclick="doToggleMaximize(app.metaData)"
-            @contextmenu="tryOpenMenuOverlay(app.metaData)"
+            @click="doOpen(appIcon.metaData)"
+            @dblclick="doToggleMaximize(appIcon.metaData)"
+            @contextmenu="tryOpenMenuOverlay(appIcon.metaData)"
           >
             <button
-              v-if="showMenuOverlayRef === app.metaData.mmid"
+              v-if="showMenuOverlayRef === appIcon.metaData.mmid"
               class="exit-button"
-              @blur="tryCloseMenuOverlay(app.metaData)"
-              @click="doExit(app.metaData)"
+              @blur="tryCloseMenuOverlay(appIcon.metaData)"
+              @click="doExit(appIcon.metaData)"
             >
               <SvgIcon class="exit-icon" :src="x_circle_svg" alt="exit app"></SvgIcon>
             </button>
           </AppIcon>
         </transition>
-        <div class="running-dot z-view" v-if="app.metaData.running">
+        <div class="running-dot z-view" v-if="appIcon.metaData.running">
           <span class="dot"></span>
         </div>
       </button>
     </div>
-    <hr v-if="showApps.length > 0 && focusState.isFocus" class="my-divider" />
+    <hr v-if="showAppIcons.length > 0 && focusState.isFocus" class="my-divider" />
     <button
       v-if="focusState.isFocus"
       class="desktop-button app-icon-wrapper z-grid m-4"

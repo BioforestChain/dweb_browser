@@ -126,7 +126,7 @@ fun MALLBrowserView(viewModel: JmmManagerViewModel, onBack: () -> Unit) {
     modifier = Modifier
       .fillMaxSize()
       .background(MaterialTheme.colorScheme.background)
-      //.navigationBarsPadding()
+    //.navigationBarsPadding()
   ) {
     AppInfoContentView(lazyListState, jmmMetadata) { index, imageLazyListState ->
       scope.launch {
@@ -275,7 +275,7 @@ private fun BoxScope.BottomDownloadButton(
     }
 
     Box(
-      modifier = m2.clickableWithNoEffect { onClick()  },
+      modifier = m2.clickableWithNoEffect { onClick() },
       contentAlignment = Alignment.Center
     ) {
       Text(text = text, color = MaterialTheme.colorScheme.onPrimary)
@@ -285,7 +285,9 @@ private fun BoxScope.BottomDownloadButton(
 
 @Composable
 private fun AppInfoContentView(
-  lazyListState: LazyListState, jmmAppInstallManifest: JmmAppInstallManifest, onSelectPic: (Int, LazyListState) -> Unit
+  lazyListState: LazyListState,
+  jmmAppInstallManifest: JmmAppInstallManifest,
+  onSelectPic: (Int, LazyListState) -> Unit
 ) {
   LazyColumn(
     state = lazyListState,
@@ -448,7 +450,10 @@ private fun DoubleRowItem(first: String, second: String) {
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun CaptureListView(jmmAppInstallManifest: JmmAppInstallManifest, onSelectPic: (Int, LazyListState) -> Unit) {
+private fun CaptureListView(
+  jmmAppInstallManifest: JmmAppInstallManifest,
+  onSelectPic: (Int, LazyListState) -> Unit
+) {
   jmmAppInstallManifest.images?.let { images ->
     val lazyListState = rememberLazyListState()
     LazyRow(
@@ -488,7 +493,7 @@ private fun AppIntroductionView(jmmAppInstallManifest: JmmAppInstallManifest) {
       .animateContentSize()
       .clickable { expanded.value = !expanded.value }) {
       Text(
-        text = jmmAppInstallManifest.description?: "",
+        text = jmmAppInstallManifest.description ?: "",
         maxLines = if (expanded.value) Int.MAX_VALUE else 2,
         overflow = TextOverflow.Ellipsis,
         color = MaterialTheme.colorScheme.onSurface
@@ -549,11 +554,14 @@ private fun OtherInfoView(jmmAppInstallManifest: JmmAppInstallManifest) {
     OtherItemView(type = "类别", content = jmmAppInstallManifest.categories.print())
     OtherItemView(type = "语言", content = "中文")
     OtherItemView(type = "年龄分级", content = "18+")
-    OtherItemView(type = "版权", content = "@${jmmAppInstallManifest.author?.firstOrNull() ?: jmmAppInstallManifest.name}")
+    OtherItemView(
+      type = "版权",
+      content = "@${jmmAppInstallManifest.author?.firstOrNull() ?: jmmAppInstallManifest.name}"
+    )
   }
 }
 
-fun MutableList<MICRO_MODULE_CATEGORY>.print() :String {
+fun MutableList<MICRO_MODULE_CATEGORY>.print(): String {
   val result = StringBuffer()
   this.forEach { category ->
     // 不要去掉，可能会出现null
@@ -602,7 +610,10 @@ private fun CustomerDivider(modifier: Modifier = Modifier) =
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun ImagePreview(jmmAppInstallManifest: JmmAppInstallManifest, previewState: PreviewState, ) {
+private fun ImagePreview(
+  jmmAppInstallManifest: JmmAppInstallManifest,
+  previewState: PreviewState,
+) {
   AnimatedVisibility(
     visibleState = previewState.showPreview,
     enter = scaleIn(
@@ -697,6 +708,7 @@ private fun String.displayDownLoad(total: Long, progress: Long): String {
   return if (dValue.isEmpty()) "$this ($totalValue)" else "$this ($dValue/$totalValue)"
 }
 
+private fun Number.toSpaceSize() = toString().toSpaceSize()
 private fun String.toSpaceSize(): String {
   if (this.isEmpty()) return "0"
   val size = this.toFloat()

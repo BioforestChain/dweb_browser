@@ -24,7 +24,7 @@ export interface $JmmAppManifest extends Required<$CommonAppManifest> {
 /** Js模块应用安装使用的元数据 */
 export interface $JmmAppInstallManifest extends $JmmAppManifest {
   /** 安装是展示用的 icon */
-  icon: string;
+  logo: string;
   /** 安装时展示用的截图 */
   images: string[];
   bundle_url: string;

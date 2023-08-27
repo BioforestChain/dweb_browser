@@ -16,13 +16,14 @@ import org.dweb_browser.browserUI.util.FilesUtil
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.printDebug
+import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.help.DWEB_DEEPLINK
 import org.dweb_browser.microservice.help.JmmAppInstallManifest
 import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.MMID
 import org.dweb_browser.microservice.help.MicroModuleManifest
-import org.dweb_browser.microservice.help.json
+import org.dweb_browser.microservice.help.getJsonBody
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.dweb_browser.window.core.WindowState
@@ -84,65 +85,65 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
       jmmController = null
     }
 
-    val routeInstallHandler = defineHandler { request, ipc ->
+    val routeInstallHandler = defineJsonResponse {
       val metadataUrl = queryMetadataUrl(request)
       val jmmAppInstallManifest =
-        nativeFetch(metadataUrl).json<JmmAppInstallManifest>()
+        nativeFetch(metadataUrl).getJsonBody<JmmAppInstallManifest>()
       val url = URL(metadataUrl)
       // 根据 jmmMetadata 打开一个应用信息的界面，用户阅读界面信息后，可以点击"安装"
       jmmMetadataInstall(jmmAppInstallManifest, ipc, url)
-      return@defineHandler jmmAppInstallManifest
+      jmmAppInstallManifest.toJsonElement()
     }
     apiRouting = routes(
       // 安装
       "install" bind Method.GET to routeInstallHandler,
       "/install" bind Method.GET to routeInstallHandler,
-      "/uninstall" bind Method.GET to defineHandler { request ->
+      "/uninstall" bind Method.GET to defineBooleanResponse { request ->
         val mmid = queryMmid(request)
         debugJMM("uninstall", mmid)
         jmmMetadataUninstall(mmid)
-        return@defineHandler Response(Status.OK).body("""{"ok":true}""")
+        true
       },
-      "/closeApp" bind Method.GET to defineHandler { request ->
+      "/closeApp" bind Method.GET to defineBooleanResponse { request ->
         val mmid = queryMmid(request)
         jmmController?.closeApp(mmid)
-        return@defineHandler Response(Status.OK).body("""{"ok":true}""")
+        true
       },
       // app详情
-      "/detailApp" bind Method.GET to defineHandler { request, ipc ->
+      "/detailApp" bind Method.GET to defineResponse {
         val mmid = queryMmid(request)
         debugJMM("detailApp", mmid)
         val microModule = bootstrapContext.dns.query(mmid)
-          ?: return@defineHandler Response(Status.NOT_FOUND).body("not found $mmid")
+          ?: return@defineResponse Response(Status.NOT_FOUND).body("not found $mmid")
 
         // TODO: 系统原生应用如WebBrowser的详情页展示？
         if (microModule is JsMicroModule) {
           jmmMetadataInstall(microModule.metadata, ipc)
-          return@defineHandler Response(Status.OK).body("ok")
+          return@defineResponse Response(Status.OK).body("ok")
         }
 
-        return@defineHandler Response(Status.NOT_FOUND).body("not found $mmid")
+        return@defineResponse Response(Status.NOT_FOUND).body("not found $mmid")
       },
-      "/pause" bind Method.GET to defineHandler { _, ipc ->
+      "/pause" bind Method.GET to defineBooleanResponse {
         BrowserUIApp.Instance.mBinderService?.invokeUpdateDownloadStatus(
           ipc.remote.mmid, DownLoadController.PAUSE
         )
-        return@defineHandler Response(Status.OK).body("ok")
+        true
       },
       /**继续下载*/
-      "/resume" bind Method.GET to defineHandler { _, ipc ->
+      "/resume" bind Method.GET to defineBooleanResponse {
         debugJMM("resume", ipc.remote.mmid)
         BrowserUIApp.Instance.mBinderService?.invokeUpdateDownloadStatus(
           ipc.remote.mmid, DownLoadController.RESUME
         )
-        return@defineHandler Response(Status.OK).body("ok")
+        true
       },
-      "/cancel" bind Method.GET to defineHandler { _, ipc ->
+      "/cancel" bind Method.GET to defineBooleanResponse {
         debugJMM("cancel", ipc.remote.mmid)
         BrowserUIApp.Instance.mBinderService?.invokeUpdateDownloadStatus(
           ipc.remote.mmid, DownLoadController.CANCEL
         )
-        return@defineHandler Response(Status.OK).body("ok")
+        true
       })
   }
 

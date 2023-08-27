@@ -1,8 +1,8 @@
 package org.dweb_browser.microservice.core
 
+import kotlinx.serialization.json.JsonElement
 import org.dweb_browser.helper.DisplayMode
 import org.dweb_browser.helper.ImageResource
-import org.dweb_browser.helper.JsonAble
 import org.dweb_browser.helper.ShortcutItem
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.runBlockingCatching
@@ -10,8 +10,8 @@ import org.dweb_browser.microservice.help.DWEB_DEEPLINK
 import org.dweb_browser.microservice.help.IpcSupportProtocols
 import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.MMID
+import org.dweb_browser.microservice.help.getJsonBody
 import org.dweb_browser.microservice.help.gson
-import org.dweb_browser.microservice.help.json
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.NativeIpc
 import org.dweb_browser.microservice.ipc.NativeMessageChannel
@@ -156,57 +156,69 @@ abstract class NativeMicroModule(override val mmid: MMID, override val name: Str
   }
 
   protected fun defineEmptyResponse(
+    beforeResponse: (Response.() -> Response)? = null,
     handler: suspend HandlerContext.(request: Request) -> Unit,
-  ) = wrapHandler {
+  ) = wrapHandler(beforeResponse) {
     HandlerContext(it, requestContextKey_ipc).handler(it)
     Response(Status.OK)
   }
 
   protected fun defineStringResponse(
+    beforeResponse: (Response.() -> Response)? = null,
     handler: suspend HandlerContext.(request: Request) -> String
-  ) = wrapHandler {
-    Response(Status.OK).body(HandlerContext(it, requestContextKey_ipc).handler(it))
+  ) = wrapHandler(beforeResponse) { request ->
+    Response(Status.OK).body(HandlerContext(request, requestContextKey_ipc).handler(request))
   }
 
   protected fun defineBooleanResponse(
+    beforeResponse: (Response.() -> Response)? = null,
     handler: suspend HandlerContext.(request: Request) -> Boolean
-  ) = wrapHandler {
-    Response(Status.OK).json(HandlerContext(it, requestContextKey_ipc).handler(it))
+  ) = wrapHandler(beforeResponse) {
+    Response(Status.OK).getJsonBody(HandlerContext(it, requestContextKey_ipc).handler(it))
   }
 
   protected fun defineJsonResponse(
-    handler: suspend HandlerContext.(request: Request) -> JsonAble<*>
-  ) = wrapHandler {
-    Response(Status.OK).json(
+    beforeResponse: (Response.() -> Response)? = null,
+    handler: suspend HandlerContext.(request: Request) -> JsonElement
+  ) = wrapHandler(beforeResponse) {
+    Response(Status.OK).getJsonBody(
       HandlerContext(
         it, requestContextKey_ipc
-      ).handler(it).toJsonAble()
+      ).handler(it)
     )
   }
 
   protected fun defineResponse(
+    beforeResponse: (Response.() -> Response)? = null,
     handler: suspend HandlerContext.(request: Request) -> Response
-  ) = wrapHandler {
+  ) = wrapHandler(beforeResponse) {
     HandlerContext(it, requestContextKey_ipc).handler(it)
   }
 
   protected fun defineByteArrayHandler(
+    beforeResponse: (Response.() -> Response)? = null,
     handler: suspend HandlerContext.(request: Request) -> ByteArray
-  ) = wrapHandler {
+  ) = wrapHandler(beforeResponse) {
     Response(Status.OK).body(MemoryBody(HandlerContext(it, requestContextKey_ipc).handler(it)))
   }
 
   protected fun defineInputStreamHandler(
+    beforeResponse: (Response.() -> Response)? = null,
     handler: suspend HandlerContext.(request: Request) -> InputStream
-  ) = wrapHandler {
+  ) = wrapHandler(beforeResponse) {
     Response(Status.OK).body(HandlerContext(it, requestContextKey_ipc).handler(it))
   }
 
   private fun wrapHandler(
-    handler: suspend (request: Request) -> Response?
+    beforeResponse: (Response.() -> Response)? = null,
+    handler: suspend (request: Request) -> Response?,
   ) = { request: Request ->
     runBlockingCatching {
-      handler(request) ?: Response(Status.NOT_IMPLEMENTED)
+      handler(request)?.let { response ->
+        if (beforeResponse != null) {
+          response.beforeResponse()
+        } else response
+      } ?: Response(Status.NOT_IMPLEMENTED)
     }.getOrElse { ex ->
       debugNMM("NMM/Error", request.uri, ex)
       Response(Status.INTERNAL_SERVER_ERROR).body(

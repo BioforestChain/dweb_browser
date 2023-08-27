@@ -14,12 +14,8 @@ interface GsonAble<T> {
   fun toJsonAble(): com.google.gson.JsonElement
 }
 
-/**
- * 一种单向的可序列化对象
- */
-interface JsonAble<T> {
-  fun toJsonAble() = Json.encodeToJsonElement(this)
-}
+inline fun <reified T> T.toJsonElement() = Json.encodeToJsonElement<T>(this)
+
 
 val JsonLoose = Json {
   ignoreUnknownKeys = true
@@ -60,6 +56,5 @@ open class ProxySerializer<T, P>(
   override fun serialize(encoder: Encoder, value: T): Unit =
     serializer.serialize(encoder, value.valueToProxy())
 
-  override fun deserialize(decoder: Decoder): T =
-    serializer.deserialize(decoder).proxyToValue()
+  override fun deserialize(decoder: Decoder): T = serializer.deserialize(decoder).proxyToValue()
 }

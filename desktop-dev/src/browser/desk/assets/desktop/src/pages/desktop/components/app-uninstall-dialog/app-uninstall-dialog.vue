@@ -17,8 +17,7 @@ const emit = defineEmits<{
 }>();
 
 async function doUninstall() {
-  const response = await deleteApp(props.appId);
-  if (response.ok) {
+  if (await deleteApp(props.appId)) {
     emit("close", true);
   }
 }

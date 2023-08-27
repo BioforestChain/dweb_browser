@@ -1,10 +1,8 @@
 package org.dweb_browser.microservice.help
 
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.JsonElement
 import org.dweb_browser.helper.DisplayMode
 import org.dweb_browser.helper.ImageResource
-import org.dweb_browser.helper.JsonAble
 import org.dweb_browser.helper.ShortcutItem
 import org.dweb_browser.helper.StringEnumSerializer
 
@@ -28,7 +26,7 @@ data class JmmAppInstallManifest(
   val images: List<String> = emptyList(),
   var bundle_url: String = "",
   val bundle_hash: String = "",
-  val bundle_size: String = "",
+  val bundle_size: Long = 0L,
   /**格式为 `hex:{signature}` */
   val bundle_signature: String = "",
   /**该链接必须使用和app-id同域名的网站链接，
@@ -93,7 +91,7 @@ open class MicroModuleManifest(
   open val background_color: String? = null,
   open val shortcuts: List<ShortcutItem> = listOf(),
   open var version: String = "0.0.1"
-) : JsonAble<MicroModuleManifest>
+)
 
 @Serializable
 open class CommonAppManifest(
@@ -112,25 +110,7 @@ open class CommonAppManifest(
   open val background_color: String? = null,
   open val shortcuts: List<ShortcutItem> = listOf(),
   open var version: String = "0.0.1"
-) {//, GsonAble<CommonAppManifest>
-//  override fun toJsonAble() = JsonObject().also { jsonObject ->
-//    jsonObject.addProperty("id", id);
-//    jsonObject.addProperty("dir", dir);
-//    jsonObject.addProperty("lang", lang);
-//    jsonObject.addProperty("name", name);
-//    jsonObject.addProperty("short_name", short_name);
-//    jsonObject.addProperty("description", description);
-////    jsonObject.add("icons", JsonArray().also { jsonArray-> icons.map { jsonArray.add(it) } });
-////    jsonObject.addProperty("screenshots", screenshots);
-////    jsonObject.addProperty("display", display);
-//    jsonObject.addProperty("orientation", orientation);
-////    jsonObject.addProperty("categories", categories);
-//    jsonObject.addProperty("theme_color", theme_color);
-//    jsonObject.addProperty("background_color", background_color);
-////    jsonObject.addProperty("shortcuts", shortcuts);
-//    jsonObject.addProperty("version", version);
-//  }
-}
+)
 
 @Serializable
 data class IpcSupportProtocols(

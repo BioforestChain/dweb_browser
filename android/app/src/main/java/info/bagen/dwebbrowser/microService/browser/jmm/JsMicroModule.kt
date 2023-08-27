@@ -68,7 +68,7 @@ open class JsMicroModule(var metadata: JmmAppInstallManifest) : MicroModule() {
   override val icons: List<ImageResource>
     get() {
       var icons = metadata.icons;
-      if (icons.isNullOrEmpty()) {
+      if (icons.isEmpty()) {
         icons = listOf(ImageResource(src = metadata.logo))
       }
       return icons

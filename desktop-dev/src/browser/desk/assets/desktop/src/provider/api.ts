@@ -93,7 +93,7 @@ export function quitApp(id: string) {
 /**卸载的是jmm所以从这里调用 */
 export async function deleteApp(id: string) {
   await quitApp(id);
-  return nativeFetch<Response>("/uninstall", {
+  return nativeFetch<boolean>("/uninstall", {
     search: {
       app_id: id,
     },

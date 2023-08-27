@@ -77,7 +77,7 @@ class DwebBrowserService : Service() {
         ApiService.instance.downloadAndSave(
           path = downLoadInfo.url,
           file = File(downLoadInfo.path),
-          downLoadInfo.metaData.bundle_size.toLong(),
+          downLoadInfo.metaData.bundle_size,
           isStop = {
             when (downLoadInfo.downLoadStatus) {
               DownLoadStatus.PAUSE -> {
