@@ -22,9 +22,12 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.platform.LocalContext
 import coil.compose.rememberAsyncImagePainter
+import org.dweb_browser.helper.android.getCoilImageLoader
 import org.dweb_browser.helper.android.rememberVectorPainterWithTint
 import squircleshape.SquircleShape
+
 
 /**
  * 应用图标的渲染标准
@@ -61,12 +64,15 @@ fun AppIconRender(
   Box(
     modifier = modifier.then(containerModifier),
   ) {
+
+    val context = LocalContext.current
     val iconPainter = rememberAsyncImagePainter(
       model = iconModel,
       placeholder = iconPlaceholder ?: rememberVectorPainterWithTint(
         image = Icons.TwoTone.Image,
         tintColor = color,
       ),
+      imageLoader = context.getCoilImageLoader(),
       error = rememberVectorPainterWithTint(
         image = Icons.TwoTone.BrokenImage,
         tintColor = color,

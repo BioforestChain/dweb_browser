@@ -44,11 +44,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.ImageLoader
 import coil.compose.AsyncImage
-import coil.decode.SvgDecoder
 import org.dweb_browser.browserUI.R
 import org.dweb_browser.browserUI.util.PrivacyUrl
+import org.dweb_browser.helper.android.getCoilImageLoader
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -77,16 +76,14 @@ fun SplashView(paths: ArrayList<String>) {
           }
 
           else -> {*/
-            AsyncImage(
-              model = path,
-              contentDescription = null,
-              imageLoader = ImageLoader(context).newBuilder().components {
-                add(SvgDecoder.Factory())
-              }.build(),
-              contentScale = ContentScale.FillWidth,
-              modifier = Modifier.fillMaxWidth(),
-              alignment = Alignment.TopCenter
-            )
+        AsyncImage(
+          model = path,
+          contentDescription = null,
+          imageLoader = context.getCoilImageLoader(),
+          contentScale = ContentScale.FillWidth,
+          modifier = Modifier.fillMaxWidth(),
+          alignment = Alignment.TopCenter
+        )
         /*  }
         }*/
       }
