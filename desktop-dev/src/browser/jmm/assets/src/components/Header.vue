@@ -83,7 +83,7 @@ const openApp = async () => {
 
 <template>
   <div class="header">
-    <img class="icon" :src="props.appInfo.icon" :alt="props.appInfo.short_name" />
+    <img class="icon" :src="props.appInfo.logo" :alt="props.appInfo.short_name" />
     <div class="text-container">
       <h1 class="title">{{ props.appInfo.short_name }}</h1>
       <p class="explain">{{ props.appInfo.name }}</p>
