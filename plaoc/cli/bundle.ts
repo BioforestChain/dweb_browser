@@ -1,8 +1,24 @@
 import crypto from "node:crypto";
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { Flags } from "./deps.ts";
+import { Command } from "./deps.ts";
+import { $BundleOptions } from "./helper/const.ts";
 import { BundleZipGenerator, MetadataJsonGenerator, NameFlagHelper } from "./helper/generator.ts";
+
+export const doBundleFlags = new Command()
+  .arguments("<metadata:string>")
+  .description("Packaged items.")
+  .option("-o --out <out:string>", "Directory for packaged output.",{
+    default:"bundle"
+  })
+  .option("-v --version <version:string>", "Set app packaging version.")
+  .option("-d --dir <dir:string>", "Root directory of the project, generally the same level as manifest.json.")
+  .option("-c --clear [clear:boolean]", "Empty the cache.")
+  .option("--id <id:string>", "set app id")
+  .option("--dev [dev:boolean]", "Is it development mode.")
+  .action((options, metadata) => {
+    doBundle({ ...options, metadata });
+  });
 
 /**
  * --out 指定输出目录(可选)
@@ -10,15 +26,7 @@ import { BundleZipGenerator, MetadataJsonGenerator, NameFlagHelper } from "./hel
  * --id 指定 appId(可选)
  * --dir 指定项目根目录(可选)
  */
-export const doBundle = async (args = Deno.args) => {
-  const flags = Flags.parse(args, {
-    string: ["out", "version", "id", "dir"],
-    boolean: ["clear", "dev"],
-    default: {
-      out: "bundle",
-    },
-  });
-
+export const doBundle = async (flags: $BundleOptions) => {
   const metadataFlagHelper = new MetadataJsonGenerator(flags);
   const id = metadataFlagHelper.readMetadata().id;
   const bundleFlagHelper = new BundleZipGenerator(flags, id);
@@ -54,6 +62,3 @@ export const doBundle = async (args = Deno.args) => {
   /// jszip 会导致程序一直开着，需要手动关闭
   Deno.exit();
 };
-if (import.meta.main) {
-  await doBundle();
-}

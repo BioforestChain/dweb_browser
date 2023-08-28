@@ -1,5 +1,26 @@
 import { $JmmAppInstallManifest } from "./../deps.ts";
 
+export type $BundleOptions = $MetadataJsonGeneratorOptions & {
+  clear?: boolean;
+  dev?: boolean;
+  out: string;
+};
+
+export type $ServeOptions = $MetadataJsonGeneratorOptions & {
+  port: string;
+  mode?: string;
+  dev: boolean;
+};
+
+export type $MetadataJsonGeneratorOptions = {
+  metadata: string;
+  mode?: unknown;
+  dev?: boolean;
+  version?: string;
+  id?: string;
+  dir?: string;
+};
+
 /**
  * 服务的处理模式
  */

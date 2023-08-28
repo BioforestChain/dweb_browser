@@ -1,35 +1,42 @@
-import crypto from "node:crypto";
 import fs from "node:fs";
 import http from "node:http";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import adp from "npm:appdata-path";
-import chalk from "npm:chalk";
-import { Flags, debounce } from "./deps.ts";
+import { Command, EnumType, colors, createHash, debounce } from "./deps.ts";
 import { WalkFiles } from "./helper/WalkDir.ts";
+import { $ServeOptions, SERVE_MODE } from "./helper/const.ts";
 import { clearChangeState, fileHasChange, initFileState } from "./helper/fileHasChange.ts";
 import { BundleZipGenerator, MetadataJsonGenerator, NameFlagHelper } from "./helper/generator.ts";
 import { staticServe } from "./helper/http-static-helper.ts";
 
-export const doServe = async (args = Deno.args) => {
-  const flags = Flags.parse(args, {
-    string: ["port", "mode"],
-    boolean: ["dev"],
-    collect: ["metadata"],
-    default: {
-      port: 8096,
-      dev: true,
-    },
+const serveMode = new EnumType(SERVE_MODE);
+
+export const doServeFlags = new Command()
+  .type("serveMode", serveMode)
+  .arguments("<metadata:string>")
+  .description("Developer Service Extension Directive.")
+  .option("-p --port <port:string>", "service port.", {
+    default: "8096",
+  })
+  .option("-d --dir <dir:string>", "Root directory of the project, generally the same level as manifest.json.")
+  .option("-m --mode <mode:serveMode>", "The processing mode of the service.")
+  .option("--dev [dev:boolean]", "Is it development mode.", {
+    default: true,
+  })
+  .action((options, metadata) => {
+    doServe({ ...options, metadata });
   });
 
+export const doServe = async (flags: $ServeOptions) => {
   const port = +flags.port;
 
   if (Number.isFinite(port) === false) {
     throw new Error(`need input '--port 8080'`);
   }
 
-  const serveTarget = flags._.slice().shift();
+  const serveTarget = flags.metadata
   if (typeof serveTarget !== "string") {
     throw new Error(`need input 'YOUR/FOLDER/FOR/BUNDLE'`);
   }
@@ -42,7 +49,9 @@ export const doServe = async (args = Deno.args) => {
   /// 启动http服务器
   http
     .createServer(async (req, res) => {
-      console.log(chalk.blue(req.method), chalk.green(req.url));
+      if (req.method && req.url) {
+        console.log(colors.blue(req.method), colors.green(req.url));
+      }
       try {
         const url = new URL(req.url ?? "/", "http://localhost");
         if (url.pathname === "/" + nameFlagHelper.bundleName) {
@@ -59,11 +68,11 @@ export const doServe = async (args = Deno.args) => {
           const zip = await bundleFlagHelper.bundleZip(true);
 
           const zipData = await zip.generateAsync({ type: "uint8array" });
-          const hasher = crypto.createHash("sha256").update(zipData);
+          const hasher = createHash("sha256").update(zipData);
           metadata.bundle_size = zipData.byteLength;
           metadata.bundle_hash = "sha256:" + hasher.digest("hex");
           metadata.bundle_url = `./${nameFlagHelper.bundleName}`;
-          // metadata.bundle_signature = 
+          // metadata.bundle_signature =
 
           res.setHeader("Access-Control-Allow-Origin", "*");
           res.setHeader("Access-Control-Allow-Headers", "*");
@@ -124,10 +133,10 @@ export const doServe = async (args = Deno.args) => {
         "usr/server/emulator"
       );
       console.log(
-        chalk.grey(
-          `${chalk.bgBlue("ℹ️")}  由于您是plaoc的内部开发者，所以现在 ${chalk.underline.cyan(
+        colors.gray(
+          `${colors.bgBlue("ℹ️")}  由于您是plaoc的内部开发者，所以现在 ${colors.underline.cyan(
             path.relative(Deno.cwd(), emulatorSrcDir)
-          )} 会被自动同步到 ${chalk.underline.cyan(
+          )} 会被自动同步到 ${colors.underline.cyan(
             JSON.stringify(emulatorDestDir)
           )}。也就是说，手动刷新页面就可以看到 emulator 项目实时编译结果`
         )
@@ -155,7 +164,7 @@ export const doServe = async (args = Deno.args) => {
             fs.mkdirSync(path.dirname(dest), { recursive: true });
             fs.copyFileSync(src, dest);
           }
-          console.log(chalk.green("synced"), chalk.yellow(new Date().toLocaleTimeString()));
+          console.log(colors.green("synced"), colors.yellow(new Date().toLocaleTimeString()));
         }
       }, 200);
 
@@ -166,7 +175,3 @@ export const doServe = async (args = Deno.args) => {
     }
   }
 };
-
-if (import.meta.main) {
-  doServe();
-}

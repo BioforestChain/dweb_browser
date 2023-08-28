@@ -3,39 +3,33 @@
  *  plaoc config set bundle-web-hook-headers {JSON-KEY-VALUE}
  */
 
-export const doConfig = async (args = Deno.args) => {
-  const [set, ...follow] = args;
-  if (set === EHook.set) {
-   return warpperWebHook(follow)
-  }
-
-  throw new Error("");
-}
-
-const warpperWebHook = (hooks:string[]) => {
-  console.log("doConfig=>",hooks)
-  const [hookHandle,...follow] = hooks;
-  if (hookHandle === EHook.bundleWebHook) {
-    return bundleWebHook(follow)
-  }
-  if (hookHandle === EHook.bundleWebHookHeaders) {
-    return bundleWebHookHeaders(follow)
-  }
-}
-
-const bundleWebHook = (data:string[]) => {
-  
-}
-const bundleWebHookHeaders = (data:string[]) => {
-  
-}
+import { Command, EnumType } from "./deps.ts";
 
 export enum EHook {
-  set = "set",
   bundleWebHook = "bundle-web-hook",
   bundleWebHookHeaders = "bundle-web-hook-headers"
 }
+const hookType = new EnumType(EHook);
+export const doConfigFlags =  new Command()
+.type("hookType",hookType)
+.arguments("<set:string> <hooks:hookType> <key:string>")
+.description("Packaged items.")
+.action((_options,set,hooks,key) => {
+  if (set === "set")  {
+    if (hooks === EHook.bundleWebHook) {
+      return bundleWebHook(key)
+    }
+    if (hooks === EHook.bundleWebHookHeaders) {
+      return bundleWebHookHeaders(key)
+    }
+  }
 
-if (import.meta.main) {
-  doConfig()
+  throw new Error(`not found command for config ${set} ${hooks} ${key}.please use --help.`) 
+});
+
+const bundleWebHook = (_data:string) => {
+  
+}
+const bundleWebHookHeaders = (_data:string) => {
+  
 }

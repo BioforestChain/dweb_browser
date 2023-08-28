@@ -4,39 +4,28 @@ import { fileURLToPath } from "node:url";
 import JSZip from "npm:jszip";
 import { $JmmAppInstallManifest, $MMID } from "./../deps.ts";
 import { WalkFiles } from "./WalkDir.ts";
-import { SERVE_MODE, defaultMetadata } from "./const.ts";
+import { $MetadataJsonGeneratorOptions, SERVE_MODE, defaultMetadata } from "./const.ts";
 import { GenerateTryFilepaths } from "./util.ts";
 import { $ZipEntry, walkDirToZipEntries, zipEntriesToZip } from "./zip.ts";
-
-export type $MetadataJsonGeneratorOptions = {
-  metadata?: unknown[];
-  mode?: unknown;
-  dev?: boolean;
-  version?: string;
-  id?: string;
-  dir?: string;
-  _?: unknown[];
-};
 
 export class MetadataJsonGenerator {
   readonly metadataFilepaths: string[];
   readonly baseMetadata: Partial<$JmmAppInstallManifest>;
   constructor(readonly flags: $MetadataJsonGeneratorOptions) {
-    this.metadataFilepaths =
-      flags.metadata?.map((filepath) => path.resolve(Deno.cwd(), filepath + "")) ??
-      (() => {
-        const tryFilenames = ["manifest.json", "package.json"];
-        // 如果指定了项目目录，到项目目录里面搜索配置文件
-        let dirs = [path.resolve(Deno.cwd(), flags.dir ?? "")];
-        if (flags.mode === SERVE_MODE.USR_WWW) {
-          const www_dir = flags._?.[0]?.toString();
-          if (www_dir) {
-            dirs = [www_dir, ...dirs];
-          }
+    this.metadataFilepaths = (() => {
+      const tryFilenames = ["manifest.json", "package.json"];
+      // 如果指定了项目目录，到项目目录里面搜索配置文件
+      let dirs = [path.resolve(Deno.cwd(), flags.dir ?? "")];
+      if (flags.mode === SERVE_MODE.USR_WWW) {
+        const www_dir = flags.dir;
+        if (www_dir) {
+          dirs = [www_dir, ...dirs];
         }
+      }
 
-        return [...GenerateTryFilepaths(tryFilenames, dirs)];
-      })();
+      return [...GenerateTryFilepaths(tryFilenames, dirs)];
+    })();
+
     this.baseMetadata = {};
     const { baseMetadata } = this;
 
@@ -74,19 +63,13 @@ export class MetadataJsonGenerator {
   }
 }
 
-export type $BundleZipGeneratorOptions = {
-  mode?: unknown;
-  dev?: boolean;
-  _?: unknown[];
-};
-
 export class BundleZipGenerator {
   private zipGetter: () => Promise<JSZip> = () => {
     throw new Error("no implement");
   };
   readonly www_dir: undefined | string;
-  constructor(readonly flags: $BundleZipGeneratorOptions, readonly id: $MMID) {
-    const bundleTarget = flags._?.[0]?.toString();
+  constructor(readonly flags: $MetadataJsonGeneratorOptions, readonly id: $MMID) {
+    const bundleTarget = flags.metadata;
     /// 实时预览模式，使用代理html
     if (
       flags.mode === SERVE_MODE.LIVE ||
