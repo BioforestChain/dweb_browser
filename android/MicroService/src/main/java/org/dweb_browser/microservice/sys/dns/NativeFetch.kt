@@ -47,34 +47,34 @@ class NativeFetchAdaptersManager : AdapterManager<FetchAdapter>() {
     try {
       debugFetch("httpFetch request", request.uri)
 
-      // if (request.uri.scheme == "data") {
-      //   val dataUriContent = request.uri.path
-      //   val dataUriContentInfo = dataUriContent.split(',', limit = 2)
-      //   when (dataUriContentInfo.size) {
-      //     2 -> {
-      //       val meta = dataUriContentInfo[0]
-      //       val bodyContent = dataUriContentInfo[1]
-      //       val metaInfo = meta.split(';', limit = 2)
-      //       val response = Response(Status.OK)
-      //       when (metaInfo.size) {
-      //         1 -> {
-      //           return response.body(bodyContent).header("Content-Type", meta)
-      //         }
+       if (request.uri.scheme == "data") {
+         val dataUriContent = request.uri.path
+         val dataUriContentInfo = dataUriContent.split(',', limit = 2)
+         when (dataUriContentInfo.size) {
+           2 -> {
+             val meta = dataUriContentInfo[0]
+             val bodyContent = dataUriContentInfo[1]
+             val metaInfo = meta.split(';', limit = 2)
+             val response = Response(Status.OK)
+             when (metaInfo.size) {
+               1 -> {
+                 return response.body(bodyContent).header("Content-Type", meta)
+               }
 
-      //         2 -> {
-      //           val encoding = metaInfo[1]
-      //           return if (encoding.trim().toLowerCasePreservingASCIIRules() == "base64") {
-      //             response.header("Content-Type", metaInfo[0]).body(MemoryBody(bodyContent.base64DecodedArray()))
-      //           } else {
-      //             response.header("Content-Type", meta).body(bodyContent)
-      //           }
-      //         }
-      //       }
-      //     }
-      //   }
-      //   /// 保底操作
-      //   return Response(Status.OK).body(dataUriContent)
-      // }
+               2 -> {
+                 val encoding = metaInfo[1]
+                 return if (encoding.trim().toLowerCasePreservingASCIIRules() == "base64") {
+                   response.header("Content-Type", metaInfo[0]).body(MemoryBody(bodyContent.base64DecodedArray()))
+                 } else {
+                   response.header("Content-Type", meta).body(bodyContent)
+                 }
+               }
+             }
+           }
+         }
+         /// 保底操作
+         return Response(Status.OK).body(dataUriContent)
+       }
       val responsePo = PromiseOut<Response>()
       CoroutineScope(ioAsyncExceptionHandler).launch {
         client.prepareRequest(request.toHttpRequestBuilder()).execute {
