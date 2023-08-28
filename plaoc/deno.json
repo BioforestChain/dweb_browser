@@ -7,7 +7,7 @@
     "build/"
   ],
   "tasks": {
-    "build": "deno task build:client && deno task build:cli",
+    "build": "deno task build:client && deno task build:cli && cp -r ./dist ./build/cli/esm/plaoc",
     "build:client": "deno run -A ./scripts/npm-build.ts client",
     "build:client:watch": "deno run --watch -A ./scripts/npm-build.ts client --watch",
     "build:cli": "deno run -A ./scripts/npm-bin.ts cli && cp -r ./dist ./build/cli/esm/plaoc",

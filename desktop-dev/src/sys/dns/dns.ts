@@ -1,4 +1,5 @@
 import process from "node:process";
+import { JsMicroModule } from "../../browser/jmm/micro-module.js.ts";
 import type { $BootstrapContext, $DnsMicroModule } from "../../core/bootstrapContext.ts";
 import { MICRO_MODULE_CATEGORY } from "../../core/category.const.ts";
 import { $normalizeRequestInitAsIpcRequestArgs, buildRequestX } from "../../core/helper/ipcRequestHelper.ts";
@@ -165,7 +166,12 @@ export class DnsNMM extends NativeMicroModule {
       })
       .get("/query", async (event) => {
         const { app_id } = query_appId(event.searchParams);
-        return Response.json(this.query(app_id as $MMID)?.toManifest());
+        const app = this.query(app_id as $MMID)
+        if (!app)  return new Response(`not found app for ${app_id}`,{status:404})
+        if (app instanceof JsMicroModule) {
+          return Response.json(app.metadata.config);
+        }
+        return  Response.json(app.toManifest());
       })
       .get("/observe/app", async (event) => {
         const responseBody = new ReadableStreamOut<Uint8Array>();
