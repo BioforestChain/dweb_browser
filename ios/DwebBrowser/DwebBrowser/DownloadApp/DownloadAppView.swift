@@ -323,7 +323,7 @@ struct DownloadAppView: View {
         do {
             let decoder = JSONDecoder()
             defaultManifest = try decoder.decode(JmmAppDownloadManifest.self, from: modelData)
-            viewModel.loadIcon(urlString: defaultManifest?.icon ?? "", placeHoldImageName: "360so")
+            viewModel.loadIcon(urlString: defaultManifest?.logo ?? "", placeHoldImageName: "360so")
             viewModel.loadImages(imageNames: defaultManifest?.images ?? [], placeHoldImageName: "dweb_icon")
         } catch {
             fatalError("could load fail. \n\(error.localizedDescription)")

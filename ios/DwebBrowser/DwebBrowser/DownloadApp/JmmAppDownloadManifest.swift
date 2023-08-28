@@ -26,7 +26,7 @@ struct JmmAppDownloadManifest: Codable {
     var theme_color: String
     var background_color: String
     var shortcuts: [ShortcutItem]
-    var icon: String
+    var logo: String
     var images: [String]
     var bundle_url: String
     var bundle_hash: String
@@ -37,10 +37,11 @@ struct JmmAppDownloadManifest: Codable {
     var release_date: String
     var permissions: [String]
     var plugins: [String]
+    var languages: [String]?
     var download_status: DownloadStatus
     var download_progress: Double
 
-    init(id: String, version: String, categories: [String], server: MainServer, baseURI: String? = nil, dweb_deeplinks: [String]? = nil, dir: TextDirectionType, lang: String, name: String, short_name: String, description: String, icons: [ImageSource], screenshots: [ImageSource], display: DisplayModeType, orientation: OrientationType, theme_color: String, background_color: String, shortcuts: [ShortcutItem], icon: String, images: [String], bundle_url: String, bundle_hash: String, bundle_size: Int64, change_log: String, author: [String], home: String, release_date: String, permissions: [String], plugins: [String], download_status: DownloadStatus, download_progress: Double) {
+    init(id: String, version: String, categories: [String], server: MainServer, baseURI: String? = nil, dweb_deeplinks: [String]? = nil, dir: TextDirectionType, lang: String, name: String, short_name: String, description: String, icons: [ImageSource], screenshots: [ImageSource], display: DisplayModeType, orientation: OrientationType, theme_color: String, background_color: String, shortcuts: [ShortcutItem], logo: String, images: [String], bundle_url: String, bundle_hash: String, bundle_size: Int64, change_log: String, author: [String], home: String, release_date: String, permissions: [String], plugins: [String], languages: [String]? = nil, download_status: DownloadStatus, download_progress: Double) {
         self.id = id
         self.version = version
         self.categories = categories
@@ -59,7 +60,7 @@ struct JmmAppDownloadManifest: Codable {
         self.theme_color = theme_color
         self.background_color = background_color
         self.shortcuts = shortcuts
-        self.icon = icon
+        self.logo = logo
         self.images = images
         self.bundle_url = bundle_url
         self.bundle_hash = bundle_hash
@@ -70,6 +71,7 @@ struct JmmAppDownloadManifest: Codable {
         self.release_date = release_date
         self.permissions = permissions
         self.plugins = plugins
+        self.languages = languages
         self.download_status = download_status
         self.download_progress = download_progress
     }
@@ -93,7 +95,7 @@ struct JmmAppDownloadManifest: Codable {
         case theme_color
         case background_color
         case shortcuts
-        case icon
+        case logo
         case images
         case bundle_url
         case bundle_hash
@@ -104,6 +106,7 @@ struct JmmAppDownloadManifest: Codable {
         case release_date
         case permissions
         case plugins
+        case languages
         case download_status
         case download_progress
     }
@@ -128,7 +131,7 @@ struct JmmAppDownloadManifest: Codable {
         try container.encode(theme_color, forKey: .theme_color)
         try container.encode(background_color, forKey: .background_color)
         try container.encode(shortcuts, forKey: .shortcuts)
-        try container.encode(icon, forKey: .icon)
+        try container.encode(logo, forKey: .logo)
         try container.encode(images, forKey: .images)
         try container.encode(bundle_url, forKey: .bundle_url)
         try container.encode(bundle_hash, forKey: .bundle_hash)
@@ -139,6 +142,7 @@ struct JmmAppDownloadManifest: Codable {
         try container.encode(release_date, forKey: .release_date)
         try container.encode(permissions, forKey: .permissions)
         try container.encode(plugins, forKey: .plugins)
+        try container.encode(languages, forKey: .languages)
         try container.encode(download_status, forKey: .download_status)
         try container.encode(download_progress, forKey: .download_progress)
     }
@@ -163,7 +167,7 @@ struct JmmAppDownloadManifest: Codable {
         let theme_color = try? container.decode(String.self, forKey: .theme_color)
         let background_color = try? container.decode(String.self, forKey: .background_color)
         let shortcuts = try? container.decode([ShortcutItem].self, forKey: .shortcuts)
-        let icon = try? container.decode(String.self, forKey: .icon)
+        let logo = try? container.decode(String.self, forKey: .logo)
         let images = try? container.decode([String].self, forKey: .images)
         let bundle_url = try? container.decode(String.self, forKey: .bundle_url)
         let bundle_hash = try? container.decode(String.self, forKey: .bundle_hash)
@@ -174,9 +178,10 @@ struct JmmAppDownloadManifest: Codable {
         let release_date = try? container.decode(String.self, forKey: .release_date)
         let permissions = try? container.decode([String].self, forKey: .permissions)
         let plugins = try? container.decode([String].self, forKey: .plugins)
+        let languages = try? container.decode([String].self, forKey: .languages)
         let download_status = try? container.decode(DownloadStatus.self, forKey: .download_status)
         let download_progress = try? container.decode(Double.self, forKey: .download_progress)
-        self.init(id: id!, version: version!, categories: categories!, server: server!, baseURI: baseURI ?? "", dweb_deeplinks: dweb_deeplinks ?? [], dir: dir!, lang: lang!, name: name!, short_name: short_name!, description: description!, icons: icons!, screenshots: screenshots!, display: display!, orientation: orientation!, theme_color: theme_color!, background_color: background_color!, shortcuts: shortcuts!, icon: icon!, images: images!, bundle_url: bundle_url!, bundle_hash: bundle_hash!, bundle_size: bundle_size!, change_log: change_log!, author: author!, home: home!, release_date: release_date!, permissions: permissions ?? [], plugins: plugins ?? [], download_status: download_status ?? DownloadStatus.IDLE, download_progress: download_progress ?? 0.0)
+        self.init(id: id!, version: version!, categories: categories!, server: server!, baseURI: baseURI ?? "", dweb_deeplinks: dweb_deeplinks ?? [], dir: dir!, lang: lang!, name: name!, short_name: short_name!, description: description!, icons: icons!, screenshots: screenshots!, display: display!, orientation: orientation!, theme_color: theme_color!, background_color: background_color!, shortcuts: shortcuts!, logo: logo!, images: images!, bundle_url: bundle_url!, bundle_hash: bundle_hash!, bundle_size: bundle_size!, change_log: change_log!, author: author!, home: home!, release_date: release_date!, permissions: permissions ?? [], plugins: plugins ?? [], languages: languages ?? [], download_status: download_status ?? DownloadStatus.IDLE, download_progress: download_progress ?? 0.0)
     }
 }
 
