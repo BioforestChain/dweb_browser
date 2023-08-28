@@ -17,6 +17,7 @@ import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.ConnectResult
 import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.core.connectAdapterManager
+import org.dweb_browser.microservice.help.CommonAppManifest
 import org.dweb_browser.microservice.help.DWEB_DEEPLINK
 import org.dweb_browser.microservice.help.IpcSupportProtocols
 import org.dweb_browser.microservice.help.JmmAppInstallManifest
@@ -51,7 +52,7 @@ open class JsMicroModule(var metadata: JmmAppInstallManifest) : MicroModule() {
     raw = true
   )
   override val dweb_deeplinks: List<DWEB_DEEPLINK> = metadata.dweb_deeplinks
-  override val categories: List<MICRO_MODULE_CATEGORY>
+  override val categories: MutableList<MICRO_MODULE_CATEGORY>
     get() {
       val categories = this.metadata.categories
       if (!categories.contains(MICRO_MODULE_CATEGORY.Application)) {
@@ -328,5 +329,9 @@ open class JsMicroModule(var metadata: JmmAppInstallManifest) : MicroModule() {
     fromMMIDOriginIpcWM.clear()
     processId = null
     ioAsyncScope.cancel()
+  }
+
+  override fun toManifest(): CommonAppManifest {
+    return this.metadata
   }
 }

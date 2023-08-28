@@ -28,6 +28,7 @@ import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.MMID
 import org.dweb_browser.microservice.help.MicroModuleManifest
 import org.dweb_browser.microservice.help.buildRequestX
+import org.dweb_browser.microservice.help.toMicroModuleManifest
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
 import org.dweb_browser.microservice.ipc.helper.ReadableStream
 import org.http4k.core.Method
@@ -239,7 +240,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       "/query" bind Method.GET to defineJsonResponse { request ->
         val mmid = queryAppId(request)
         Json.encodeToString("")
-        query(mmid)?.toManifest()?.toJsonElement() ?: throwException()
+        query(mmid)?.toManifest()?.toJsonElement() ?: Response(Status.OK).toJsonElement()
       },
       "/observe/app" bind Method.GET to defineResponse {
         val inputStream = ReadableStream(onStart = { controller ->
@@ -307,7 +308,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     val categoryList = mutableListOf<MicroModuleManifest>()
     for (app in this.installApps.values) {
       if (app.categories.contains(category)) {
-        categoryList.add(app.toManifest())
+        categoryList.add(app.toManifest().toMicroModuleManifest())
       }
     }
     return categoryList

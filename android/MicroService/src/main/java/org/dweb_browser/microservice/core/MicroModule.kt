@@ -7,6 +7,7 @@ import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.ShortcutItem
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
+import org.dweb_browser.microservice.help.CommonAppManifest
 import org.dweb_browser.microservice.help.DWEB_DEEPLINK
 import org.dweb_browser.microservice.help.IpcSupportProtocols
 import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
@@ -27,7 +28,7 @@ enum class MMState {
 abstract class MicroModule : MicroModuleManifest() {
   abstract override val mmid: MMID
   abstract override val dweb_deeplinks: List<DWEB_DEEPLINK>
-  abstract override val categories: List<MICRO_MODULE_CATEGORY>
+  abstract override val categories: MutableList<MICRO_MODULE_CATEGORY>
   abstract override val dir: String?
   abstract override val lang: String?
   abstract override val name: String
@@ -166,7 +167,7 @@ abstract class MicroModule : MicroModuleManifest() {
     return "MicroModule($mmid)"
   }
 
-  fun toManifest(): MicroModuleManifest {
+  open fun toManifest(): CommonAppManifest {
     return MicroModuleManifest(
       mmid = mmid,
       dweb_deeplinks = dweb_deeplinks,

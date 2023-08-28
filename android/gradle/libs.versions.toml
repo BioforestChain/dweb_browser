@@ -9,7 +9,7 @@ kotlinCompilerExtensionVersion = "1.5.1"
 jvmTarget = "17"
 javaVersion = "VERSION_17" # JavaVersion.VERSION_17
 
-agp = "8.2.0-alpha16"
+agp = "8.3.0-alpha01"
 kotlin-version = "1.9.0"
 ksp = "1.9.0-1.0.13"
 junit = "4.13.2"

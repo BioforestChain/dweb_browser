@@ -37,7 +37,7 @@ fun debugNMM(tag: String, msg: Any = "", err: Throwable? = null) = printDebug("D
 abstract class NativeMicroModule(override val mmid: MMID, override val name: String) :
   MicroModule() {
   override val ipc_support_protocols = IpcSupportProtocols(cbor = true, protobuf = true, raw = true)
-  override val categories: List<MICRO_MODULE_CATEGORY> = emptyList()
+  override val categories: MutableList<MICRO_MODULE_CATEGORY> = mutableListOf()
   override val dweb_deeplinks: List<DWEB_DEEPLINK> = emptyList()
   override val dir: String? = null
   override val lang: String? = null
