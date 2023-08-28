@@ -2,21 +2,19 @@ package info.bagen.dwebbrowser.microService.sys.window
 
 
 import kotlinx.coroutines.launch
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.printDebug
+import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
-import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.ipc.helper.ReadableStream
-import org.dweb_browser.window.core.WindowController
-import org.dweb_browser.window.core.WindowState
 import org.dweb_browser.window.core.constant.WindowPropertyKeys
 import org.dweb_browser.window.core.constant.WindowStyle
 import org.dweb_browser.window.core.windowInstancesManager
 import org.http4k.core.Method
 import org.http4k.core.Request
-import org.http4k.core.Response
-import org.http4k.core.Status
 import org.http4k.lens.Query
 import org.http4k.lens.boolean
 import org.http4k.lens.composite
@@ -35,12 +33,6 @@ fun debugWindowNMM(tag: String, msg: Any? = "", err: Throwable? = null) =
  * 这里的windows.sys.dweb属于当下这个时代的一种矩形窗口化设计，它不代表所有的窗口形态，它有自己的取舍。
  */
 class WindowNMM : NativeMicroModule("window.sys.dweb", "Window Management") {
-  companion object {
-    init {
-      ResponseRegistry.registryJsonAble(WindowState::class.java) { it.toJsonAble() }
-      ResponseRegistry.registryJsonAble(WindowController::class.java) { it.toJsonAble() }
-    }
-  }
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     val query_wid = Query.string().required("wid")
@@ -70,13 +62,13 @@ class WindowNMM : NativeMicroModule("window.sys.dweb", "Window Management") {
 
     apiRouting = routes(
       /** 窗口的状态监听 */
-      "/observe" bind Method.GET to defineHandler { request, ipc ->
+      "/observe" bind Method.GET to defineInputStreamHandler {
         val win = getWindow(request)
         debugWindowNMM("/observe", "wid: ${win.id} ,mmid: ${ipc.remote.mmid}")
         val inputStream = ReadableStream(onStart = { controller ->
           val off = win.state.observable.onChange {
             try {
-              controller.enqueue(gson.toJson(win.state.toJsonAble()) + "\n")
+              controller.enqueue(Json.encodeToString(win.state.toJsonElement()) + "\n")
             } catch (e: Exception) {
               controller.close()
               e.printStackTrace()
@@ -85,7 +77,7 @@ class WindowNMM : NativeMicroModule("window.sys.dweb", "Window Management") {
             win.coroutineScope.launch {
               it.emitSelf(
                 Observable.Change(
-                  WindowPropertyKeys.Any, null, null
+                  WindowPropertyKeys.Constants, null, null
                 )
               )
             }
@@ -95,19 +87,21 @@ class WindowNMM : NativeMicroModule("window.sys.dweb", "Window Management") {
             controller.close()
           }
         })
-        return@defineHandler Response(Status.OK).body(inputStream)
+        inputStream
       },
-      "/getState" bind Method.GET to defineHandler { request ->
-        return@defineHandler getWindow(request).toJsonAble()
+      "/getState" bind Method.GET to defineJsonResponse {
+        getWindow(request).toJsonElement()
       },
-      "/focus" bind Method.GET to defineHandler { request -> getWindow(request).focus() },
-      "/blur" bind Method.GET to defineHandler { request -> getWindow(request).blur() },
-      "/maximize" bind Method.GET to defineHandler { request -> getWindow(request).maximize() },
-      "/unMaximize" bind Method.GET to defineHandler { request -> getWindow(request).unMaximize() },
-      "/minimize" bind Method.GET to defineHandler { request -> getWindow(request).minimize() },
-      "/close" bind Method.GET to defineHandler { request -> getWindow(request).close() },
-      "/setStyle" bind Method.GET to defineHandler { request ->
-        getWindow(request).setStyle(query_Style(request))
+      "/focus" bind Method.GET to defineEmptyResponse { request -> getWindow(request).focus() },
+      "/blur" bind Method.GET to defineEmptyResponse { request -> getWindow(request).blur() },
+      "/maximize" bind Method.GET to defineEmptyResponse { request -> getWindow(request).maximize() },
+      "/unMaximize" bind Method.GET to defineEmptyResponse { request -> getWindow(request).unMaximize() },
+      "/minimize" bind Method.GET to defineEmptyResponse { request -> getWindow(request).minimize() },
+      "/close" bind Method.GET to defineEmptyResponse { request -> getWindow(request).close() },
+      "/setStyle" bind Method.GET to defineEmptyResponse { request ->
+        getWindow(request).setStyle(
+          query_Style(request)
+        )
       },
     )
   }

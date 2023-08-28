@@ -15,6 +15,7 @@ import org.dweb_browser.window.core.WindowController
 import org.dweb_browser.window.core.WindowRenderProvider
 import org.dweb_browser.window.core.WindowState
 import org.dweb_browser.window.core.constant.UUID
+import org.dweb_browser.window.core.constant.WindowConstants
 import org.dweb_browser.window.core.createWindowAdapterManager
 
 @Composable
@@ -41,9 +42,11 @@ fun WindowPreviewer(
 
   BoxWithConstraints(Modifier.fillMaxSize()) {
     val state = WindowState(
-      wid = wid,
-      owner = owner,
-      provider = provider
+      WindowConstants(
+        wid = wid,
+        owner = owner,
+        provider = provider
+      )
     ).also {
       it.updateMutableBounds {
         width = maxWidth.value;

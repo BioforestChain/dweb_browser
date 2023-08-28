@@ -19,6 +19,7 @@ import org.dweb_browser.microservice.sys.http.HttpDwebServer
 import org.dweb_browser.microservice.sys.http.createHttpDwebServer
 import org.dweb_browser.window.core.WindowController
 import org.dweb_browser.window.core.WindowState
+import org.dweb_browser.window.core.constant.WindowConstants
 import org.dweb_browser.window.core.constant.WindowMode
 import org.dweb_browser.window.core.createWindowAdapterManager
 import org.http4k.core.Method
@@ -139,11 +140,16 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
       }
 
       // 打开安装窗口
-      val win = createWindowAdapterManager.createWindow(WindowState(
-        owner = ipc.remote.mmid, provider = mmid, microModule = this
-      ).also {
-        it.mode = WindowMode.MAXIMIZE
-      })
+      val win = createWindowAdapterManager.createWindow(
+        WindowState(
+          WindowConstants(
+            owner = ipc.remote.mmid,
+            provider = mmid,
+            microModule = this
+          )
+        ).also {
+          it.mode = WindowMode.MAXIMIZE
+        })
       win.state.closeTip =
         win.manager?.state?.activity?.resources?.getString(R.string.browser_confirm_to_close)
           ?: ""

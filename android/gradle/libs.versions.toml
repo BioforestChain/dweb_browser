@@ -108,6 +108,7 @@ google-material = { group = "com.google.android.material", name = "material", ve
 # 数据 json
 data-gson = { group = "com.google.code.gson", name = "gson", version.ref = "data-gson" }
 kotlin-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationVersion" }
+kotlin-serialization-cbor = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-cbor", version.ref = "kotlinxSerializationVersion" }
 data-moshi-pack = { group = "com.daveanthonythomas.moshipack", name = "moshipack", version.ref = "data-moshi-pack" }
 # 键值存储
 data-store = { group = "androidx.datastore", name = "datastore", version.ref = "data-store" }

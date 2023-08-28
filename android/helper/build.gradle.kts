@@ -17,6 +17,7 @@ dependencies {
 
   api(libs.data.gson)
   api(libs.kotlin.serialization.json)
+  api(libs.kotlin.serialization.cbor)
 
   /// 测试相关
   testImplementation(kotlin("test"))

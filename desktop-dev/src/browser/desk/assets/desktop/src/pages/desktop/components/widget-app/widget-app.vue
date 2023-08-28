@@ -3,7 +3,7 @@ import AppIcon from "src/components/app-icon/app-icon.vue";
 import { watchEffectAppMetadataToAppIcon } from "src/components/app-icon/appMetaDataHelper";
 import { $AppIconInfo } from "src/components/app-icon/types";
 import SvgIcon from "src/components/svg-icon/svg-icon.vue";
-import { openApp, detailApp, quitApp, vibrateHeavyClick } from "src/provider/api.ts";
+import { detailApp, openApp, quitApp, vibrateHeavyClick } from "src/provider/api.ts";
 import { $CloseWatcher, CloseWatcher } from "src/provider/shim.ts";
 import type { $WidgetAppData } from "src/types/app.type.ts";
 import { computed, onMounted, reactive, ref, shallowRef, watch, watchEffect } from "vue";
@@ -39,9 +39,12 @@ const props = defineProps({
 const appid = computed(() => props.appMetaData.mmid);
 const appname = computed(() => props.appMetaData.short_name ?? props.appMetaData.name);
 const appicon = shallowRef<$AppIconInfo>({ src: "", monochrome: false, maskable: false });
-watch(()=> props.appMetaData.icons,()=> {
-  watchEffectAppMetadataToAppIcon({ metaData: props.appMetaData }, appicon);
-})
+watch(
+  () => props.appMetaData.icons,
+  () => {
+    watchEffectAppMetadataToAppIcon({ metaData: props.appMetaData }, appicon);
+  }
+);
 watchEffectAppMetadataToAppIcon({ metaData: props.appMetaData }, appicon);
 
 const opening = ref(false);
@@ -108,7 +111,7 @@ async function doQuit() {
 async function showAppDetailApp() {
   // console.log(props.appMetaData);
   opening.value = true;
-  if((await detailApp(appid.value).catch(() => (opening.value = false))) === false) {
+  if ((await detailApp(appid.value).catch(() => false)) === false) {
     snackbar.text = `${appname.value} 详情页打开失败`;
     snackbar.timeOut = 1500;
     snackbar.type = "error";

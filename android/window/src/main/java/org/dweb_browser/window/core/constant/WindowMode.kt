@@ -7,14 +7,19 @@ import com.google.gson.JsonPrimitive
 import com.google.gson.JsonSerializationContext
 import com.google.gson.JsonSerializer
 import com.google.gson.annotations.JsonAdapter
+import kotlinx.serialization.Serializable
+import org.dweb_browser.helper.StringEnumSerializer
 import java.lang.reflect.Type
+
+object WindowModeSerializer :
+  StringEnumSerializer<WindowMode>("WindowMode", WindowMode.ALL_VALUES, { mode })
 
 /**
  * 窗口的模式
  */
+@Serializable
 @JsonAdapter(WindowMode::class)
-enum class WindowMode(val mode: String) : JsonSerializer<WindowMode>,
-  JsonDeserializer<WindowMode> {
+enum class WindowMode(val mode: String) : JsonSerializer<WindowMode>, JsonDeserializer<WindowMode> {
 
   /**
    * 浮动模式，默认值
@@ -62,24 +67,20 @@ enum class WindowMode(val mode: String) : JsonSerializer<WindowMode>,
   /**
    * 窗口关闭
    */
-  CLOSED("closed"),
-  ;
+  CLOSED("closed"), ;
 
 
   companion object {
+    val ALL_VALUES = values().associateBy { it.mode }
     fun from(themeName: String) = values().firstOrNull { it.mode == themeName } ?: FLOATING
   }
 
 
   override fun serialize(
-    src: WindowMode,
-    typeOfSrc: Type,
-    context: JsonSerializationContext?
+    src: WindowMode, typeOfSrc: Type, context: JsonSerializationContext?
   ) = JsonPrimitive(src.mode)
 
   override fun deserialize(
-    json: JsonElement,
-    typeOfT: Type?,
-    context: JsonDeserializationContext?
+    json: JsonElement, typeOfT: Type?, context: JsonDeserializationContext?
   ) = from(json.asString)
 }

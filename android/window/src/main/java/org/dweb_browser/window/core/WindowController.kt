@@ -55,9 +55,7 @@ abstract class WindowController(
    * 需要提供一个生命周期对象
    */
   abstract val coroutineScope: CoroutineScope
-  val id = state.wid;
-  fun toJsonAble() = state
-
+  val id = state.constants.wid;
 
   //#region WindowMode相关的控制函数
   private fun <R> createStateListener(
@@ -95,7 +93,8 @@ abstract class WindowController(
   fun isMaximized(mode: WindowMode = state.mode) =
     mode == WindowMode.MAXIMIZE || mode == WindowMode.FULLSCREEN
 
-  val onMaximize = createStateListener(WindowPropertyKeys.Mode,
+  val onMaximize = createStateListener(
+    WindowPropertyKeys.Mode,
     { isMaximized(mode) }) { debugWindow("emit onMaximize", id) }
 
   internal open suspend fun simpleMaximize() {
@@ -155,7 +154,8 @@ abstract class WindowController(
 
   private var _beforeMinimizeMode: WindowMode? = null
 
-  val onMinimize = createStateListener(WindowPropertyKeys.Mode,
+  val onMinimize = createStateListener(
+    WindowPropertyKeys.Mode,
     { mode == WindowMode.MINIMIZE }) { debugWindow("emit onMinimize", id) }
 
   internal open suspend fun simpleUnMinimize() {
@@ -173,7 +173,8 @@ abstract class WindowController(
 
   suspend fun minimize() = managerRunOr({ it.minimizeWindow(this) }, { simpleMinimize() })
 
-  val onClose = createStateListener(WindowPropertyKeys.Mode,
+  val onClose = createStateListener(
+    WindowPropertyKeys.Mode,
     { mode == WindowMode.CLOSED }) { debugWindow("emit onClose", id) }
 
   fun isClosed() = state.mode == WindowMode.CLOSED

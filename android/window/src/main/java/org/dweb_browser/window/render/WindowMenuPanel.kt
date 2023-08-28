@@ -63,7 +63,6 @@ import androidx.compose.material3.NavigationRailItemColors
 import androidx.compose.material3.RichTooltipBox
 import androidx.compose.material3.RichTooltipColors
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberRichTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -127,7 +126,7 @@ internal fun WindowMenuPanel(
     colors = colors,
     title = {
       Row {
-        val owner by win.watchedState { owner }
+        val owner = win.state.constants.owner
         win.IconRender(modifier = Modifier.size(24.dp))
         Spacer(modifier = Modifier.width(6.dp))
         Text(text = owner)

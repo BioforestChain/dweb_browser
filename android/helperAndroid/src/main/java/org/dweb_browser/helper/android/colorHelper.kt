@@ -2,7 +2,9 @@ package org.dweb_browser.helper.android
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.colorspace.ColorSpaces
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class ColorJson(val red: Int, val blue: Int, val green: Int, val alpha: Int) {
   fun toColor() = Color(red = red, blue = blue, green = green, alpha = alpha)
 }

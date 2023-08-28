@@ -4,7 +4,7 @@ package org.dweb_browser.window.core.constant
  * 可变属性名称集合
  */
 enum class WindowPropertyKeys(val fieldName: String) {
-  Any("*"),
+  Constants("constants"),
   Title("title"),
   IconUrl("iconUrl"),
   IconMaskable("iconMaskable"),

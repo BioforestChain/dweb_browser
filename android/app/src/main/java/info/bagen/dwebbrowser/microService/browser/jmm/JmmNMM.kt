@@ -28,6 +28,7 @@ import org.dweb_browser.microservice.help.jsonBody
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.dweb_browser.window.core.WindowState
+import org.dweb_browser.window.core.constant.WindowConstants
 import org.dweb_browser.window.core.constant.WindowMode
 import org.dweb_browser.window.core.createWindowAdapterManager
 import org.http4k.core.Method
@@ -39,8 +40,7 @@ import org.http4k.routing.bind
 import org.http4k.routing.routes
 import java.net.URL
 
-fun debugJMM(tag: String, msg: Any? = "", err: Throwable? = null) =
-  printDebug("JMM", tag, msg, err)
+fun debugJMM(tag: String, msg: Any? = "", err: Throwable? = null) = printDebug("JMM", tag, msg, err)
 
 /**
  * 获取 map 值，如果不存在，则使用defaultValue; 如果replace 为true也替换为defaultValue
@@ -88,8 +88,7 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
 
     val routeInstallHandler = defineResponse {
       val metadataUrl = queryMetadataUrl(request)
-      val jmmAppInstallManifest =
-        nativeFetch(metadataUrl).bodyJson<JmmAppInstallManifest>()
+      val jmmAppInstallManifest = nativeFetch(metadataUrl).bodyJson<JmmAppInstallManifest>()
       val url = URL(metadataUrl)
       // 根据 jmmMetadata 打开一个应用信息的界面，用户阅读界面信息后，可以点击"安装"
       jmmMetadataInstall(jmmAppInstallManifest, ipc, url)
@@ -115,19 +114,19 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
         true
       },
       // app详情
-      "/detailApp" bind Method.GET to defineResponse {
+      "/detailApp" bind Method.GET to defineBooleanResponse {
         val mmid = queryMmid(request)
         debugJMM("detailApp", mmid)
-        val microModule = bootstrapContext.dns.query(mmid)
-          ?: return@defineResponse Response(Status.NOT_FOUND).body("not found $mmid")
+        val microModule =
+          bootstrapContext.dns.query(mmid)
 
         // TODO: 系统原生应用如WebBrowser的详情页展示？
         if (microModule is JsMicroModule) {
           jmmMetadataInstall(microModule.metadata, ipc)
-          return@defineResponse Response(Status.OK).body("ok")
+          true
+        } else {
+          false
         }
-
-        return@defineResponse Response(Status.NOT_FOUND).body("not found $mmid")
       },
       "/pause" bind Method.GET to defineBooleanResponse {
         BrowserUIApp.Instance.mBinderService?.invokeUpdateDownloadStatus(
@@ -200,11 +199,13 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
     // 打开安装的界面
     // JmmManagerActivity.startActivity(jmmAppInstallManifest)
     // 打开安装窗口
-    val win = createWindowAdapterManager.createWindow(
-      WindowState(owner = mmid, provider = mmid, microModule = this).also {
-        it.mode = WindowMode.MAXIMIZE
-      }
-    )
+    val win = createWindowAdapterManager.createWindow(WindowState(
+      WindowConstants(
+        owner = mmid, provider = mmid, microModule = this
+      )
+    ).also {
+      it.mode = WindowMode.MAXIMIZE
+    })
     withContext(mainAsyncExceptionHandler) { // 由于创建后，界面会同步执行，可能会存在主界面刷新界面比协程执行快，引发数据未初始化问题
       jmmController = JmmController(win, this@JmmNMM, jmmAppInstallManifest)
     }

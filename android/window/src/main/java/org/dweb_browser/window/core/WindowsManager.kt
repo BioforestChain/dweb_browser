@@ -285,7 +285,7 @@ open class WindowsManager<T : WindowController>(internal val activity: BaseActiv
   }
 
   fun findWindows(mmid: MMID) =
-    allWindows.keys.filter { win -> win.state.owner == mmid }.sortedBy { it.state.zIndex }
+    allWindows.keys.filter { win -> win.state.constants.owner == mmid }.sortedBy { it.state.zIndex }
 
   /**
    * 返回最终 isMaximized 的值

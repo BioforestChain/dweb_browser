@@ -7,8 +7,16 @@ import com.google.gson.JsonPrimitive
 import com.google.gson.JsonSerializationContext
 import com.google.gson.JsonSerializer
 import com.google.gson.annotations.JsonAdapter
+import kotlinx.serialization.Serializable
+import org.dweb_browser.helper.StringEnumSerializer
 import java.lang.reflect.Type
 
+object WindowColorSchemeSerializer : StringEnumSerializer<WindowColorScheme>(
+  "WindowColorScheme",
+  WindowColorScheme.ALL_VALUES,
+  { scheme })
+
+@Serializable(with = WindowColorSchemeSerializer::class)
 @JsonAdapter(WindowColorScheme::class)
 enum class WindowColorScheme(val scheme: String) : JsonSerializer<WindowColorScheme>,
   JsonDeserializer<WindowColorScheme>, Comparator<WindowColorScheme> {
@@ -18,11 +26,12 @@ enum class WindowColorScheme(val scheme: String) : JsonSerializer<WindowColorSch
   ;
 
   companion object {
-    val ALL_VALUES = values().toList()
-    fun from(themeName: String) = ALL_VALUES.firstOrNull { it.scheme == themeName } ?: Normal
+    private val ALL_VALUE_LIST = values()
+    val ALL_VALUES = ALL_VALUE_LIST.associateBy { it.scheme }
+    fun from(themeName: String) = ALL_VALUES.getOrDefault(themeName, Normal)
   }
 
-  fun next() = ALL_VALUES[(ALL_VALUES.indexOf(this) + 1) % ALL_VALUES.size]
+  fun next() = ALL_VALUE_LIST[(ALL_VALUE_LIST.indexOf(this) + 1) % ALL_VALUE_LIST.size]
 
   override fun compare(o1: WindowColorScheme, o2: WindowColorScheme): Int {
     return o1.scheme.compareTo(o2.scheme)

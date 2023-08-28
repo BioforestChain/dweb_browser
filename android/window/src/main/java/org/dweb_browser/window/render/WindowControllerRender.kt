@@ -149,10 +149,10 @@ fun WindowController.Render(
           val viewHeight = winPadding.contentBounds.height
 
           var render by
-          remember { mutableStateOf(createWindowAdapterManager.renderProviders[win.state.wid]); }
-          DisposableEffect(win.state.wid) {
+          remember { mutableStateOf(createWindowAdapterManager.renderProviders[win.state.constants.wid]); }
+          DisposableEffect(win.state.constants.wid) {
             val off = createWindowAdapterManager.renderProviders.onChange {
-              render = it.origin[win.state.wid]
+              render = it.origin[win.state.constants.wid]
             }
             onDispose {
               off()

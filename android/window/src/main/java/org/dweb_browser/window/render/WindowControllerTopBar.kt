@@ -110,7 +110,7 @@ private fun WindowTopControllerBar(
         .clickable { scope.launch { win.showMenuPanel() } },
     ) {
       val inResize by win.inResize
-      val titleText by win.watchedState { title ?: owner }
+      val titleText by win.watchedState { title ?: constants.owner }
 
       val baseFontStyle = MaterialTheme.typography.titleSmall
       val fontStyle = remember(contentColor) {

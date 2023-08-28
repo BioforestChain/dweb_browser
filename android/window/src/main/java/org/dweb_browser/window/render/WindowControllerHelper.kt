@@ -587,7 +587,7 @@ val WindowController.sessionCache get() = WindowSessionStore.getOrPut(this) { Co
  */
 suspend fun WindowController.loadIconModel(iconUrl: String?) = when (val url = iconUrl) {
   null -> ImageState.Success(null)
-  else -> when (val mm = state.microModule) {
+  else -> when (val mm = state.constants.microModule) {
     null -> ImageState.Success(iconUrl)
     else -> sessionCache.getOrPut(url) {
       println("download Icon: ${url}")

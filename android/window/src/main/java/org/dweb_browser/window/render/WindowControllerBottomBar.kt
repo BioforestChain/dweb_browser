@@ -499,7 +499,8 @@ internal fun WindowBottomNavigationThemeBar(
 fun WindowBottomBarInfoText(win: WindowController, modifier: Modifier) {
   val contentColor = LocalWindowControllerTheme.current.bottomContentColor
   AutoResizeTextContainer(modifier.fillMaxHeight()) {
-    val footerText by win.watchedState { owner }
+
+    val footerText = win.state.constants.owner
     val textStyle = MaterialTheme.typography.bodySmall
     AutoSizeText(text = footerText,
       color = contentColor,

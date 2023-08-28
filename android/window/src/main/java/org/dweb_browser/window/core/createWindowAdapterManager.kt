@@ -26,7 +26,7 @@ class CreateWindowAdapterManager : AdapterManager<CreateWindowAdapter>() {
         return winCtrl;
       }
     }
-    throw Exception("no support create native window, owner:${winState.owner} provider:${winState.provider}")
+    throw Exception("no support create native window, owner:${winState.constants.owner} provider:${winState.constants.provider}")
   }
 }
 

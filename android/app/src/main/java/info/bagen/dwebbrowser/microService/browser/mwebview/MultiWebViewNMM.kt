@@ -21,6 +21,7 @@ import org.dweb_browser.microservice.help.MMID
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.window.core.WindowState
 import org.dweb_browser.window.core.constant.UUID
+import org.dweb_browser.window.core.constant.WindowConstants
 import org.dweb_browser.window.core.createWindowAdapterManager
 import org.dweb_browser.window.render.emitFocusOrBlur
 import org.http4k.core.Method
@@ -114,9 +115,11 @@ class MultiWebViewNMM :
     val controller = controllerMap.getOrPut(remoteMmid) {
       val win = createWindowAdapterManager.createWindow(
         WindowState(
-          owner = ipc.remote.mmid,
-          provider = mmid,
-          microModule = this
+          WindowConstants(
+            owner = ipc.remote.mmid,
+            provider = mmid,
+            microModule = this
+          )
         ).also { state ->
           /**
            * 挑选合适的图标作为应用的图标

@@ -369,7 +369,7 @@ class DWebView(
         )
         context.lifecycleScope.launch {
           val requestPermissionsMap = mutableMapOf<String, String>();
-          // 参考资料： https://developer.android.com/reference/android/webkit/PermissionRequest#constants_1
+          // 参考资料： https://developer.android.com/reference/android/webkit/PermissionRequest#constants.1
           for (res in request.resources) {
             when (res) {
               PermissionRequest.RESOURCE_VIDEO_CAPTURE -> {

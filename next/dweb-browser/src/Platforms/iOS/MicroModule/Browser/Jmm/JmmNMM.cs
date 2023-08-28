@@ -90,11 +90,6 @@ public class JmmNMM : NativeMicroModule
             var mmid = request.QueryStringRequired("app_id");
             var microModule = await bootstrapContext.Dns.Query(mmid);
 
-            if (microModule is null)
-            {
-                return new PureResponse(HttpStatusCode.NotFound, Body: new PureUtf8StringBody("not found " + mmid));
-            }
-
             if (microModule is JsMicroModule jsMicroModule)
             {
                 var metadata = jsMicroModule.Metadata.Config;
@@ -103,10 +98,10 @@ public class JmmNMM : NativeMicroModule
 
                 await MainThread.InvokeOnMainThreadAsync(async () => await OpenJmmMetadataInstallPage(jmmAppDownloadManifest, ipc));
 
-                return new PureResponse(HttpStatusCode.OK, Body: new PureUtf8StringBody(@"{""ok"":true}"));
+                return new PureResponse(HttpStatusCode.OK, Body: new PureUtf8StringBody("true"));
             }
 
-            return new PureResponse(HttpStatusCode.NotFound, Body: new PureUtf8StringBody("not found " + mmid));
+            return new PureResponse(HttpStatusCode.OK, Body: new PureUtf8StringBody("false"));
         });
 
         HttpRouter.AddRoute(IpcMethod.Get, "/pause", async (_, ipc) =>
