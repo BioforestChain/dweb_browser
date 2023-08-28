@@ -11,14 +11,14 @@ import java.io.InputStream
 
 fun Response.ok(): Response = if (status.code >= 400) throw Exception(status.description) else this
 
-inline fun <reified T> Response.getJsonBody(): T =
+inline fun <reified T> Response.bodyJson(): T =
   JsonLoose.decodeFromString<T>(ok().body.payload.moveToByteArray().toUtf8())
 
 fun Response.headerJson() = header("Content-Type", "application/json")
-fun Response.getJsonBody(value: JsonElement) = body(Json.encodeToString(value)).headerJson()
-fun Response.getJsonBody(value: String) = body(value).headerJson()
-fun Response.getJsonBody(value: Boolean) = body("$value").headerJson()
-fun Response.getJsonBody(value: Number) = body("$value").headerJson()
+fun Response.jsonBody(value: JsonElement) = body(Json.encodeToString(value)).headerJson()
+fun Response.jsonBody(value: String) = body(value).headerJson()
+fun Response.jsonBody(value: Boolean) = body("$value").headerJson()
+fun Response.jsonBody(value: Number) = body("$value").headerJson()
 
 fun Response.text(): String = ok().bodyString()
 
