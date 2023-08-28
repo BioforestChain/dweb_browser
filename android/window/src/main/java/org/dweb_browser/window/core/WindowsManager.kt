@@ -167,8 +167,8 @@ open class WindowsManager<T : WindowController>(internal val activity: BaseActiv
    */
   private suspend fun reOrderZIndex() {
     /// 根据 alwaysOnTop 进行分组
-    val winList = mutableListOf<T>()
-    val winListTop = mutableListOf<T>()
+    var winList = mutableListOf<T>()
+    var winListTop = mutableListOf<T>()
     for (win in allWindows.keys) {
       if (win.state.alwaysOnTop) {
         winListTop += win
@@ -179,10 +179,10 @@ open class WindowsManager<T : WindowController>(internal val activity: BaseActiv
 
     /// 对窗口的 zIndex 进行重新赋值
     fun resetZIndex(
-      list: MutableList<T>, state: MutableState<List<T>>
+      origin: MutableState<List<T>>, baseList: List<T>, setList: (newList: MutableList<T>) -> Unit
     ): Int {
-      var changes = abs(list.size - state.value.size) // 首先，只要有长度变动，就已经意味着改变了
-      val sortedList = list.sortedBy { it.state.zIndex }
+      var changes = abs(baseList.size - origin.value.size) // 首先，只要有长度变动，就已经意味着改变了
+      val sortedList = baseList.sortedBy { it.state.zIndex }
       for ((index, win) in sortedList.withIndex()) {
         if (win.state.zIndex != index) {
           win.state.zIndex = index
@@ -190,15 +190,40 @@ open class WindowsManager<T : WindowController>(internal val activity: BaseActiv
         }
       }
       if (changes > 0) {
-        state.value = sortedList
+        origin.value = sortedList
+        setList(sortedList.toMutableList())
       }
       return changes
     }
 
-    val anyChanges = resetZIndex(winList, this.winList) + resetZIndex(winListTop, this.winListTop);
+    val anyChanges = resetZIndex(this.winList, winList) { winList = it } +  // changes 1
+        resetZIndex(this.winListTop, winListTop) { winListTop = it } // changes 2
 
     if (anyChanges > 0) {
       allWindows.emitChange()
+    }
+
+    /// 最后，查询是否有窗口处于聚焦状态，如果没有，那么强制进行聚焦
+    fun hasFocus(list: List<T>): Boolean {
+      val lastWin = list.lastOrNull()
+      return lastWin?.isFocused() ?: false
+    }
+    if (hasFocus(winListTop) || hasFocus(winList)) {
+      return
+    }
+
+    suspend fun reFocus(writeableList: MutableList<T>): Boolean {
+      val lastWin = writeableList.lastOrNull()
+      if (lastWin != null) {
+        if (!lastWin.isFocused()) {
+          lastWin.focus()
+        }
+        return true
+      }
+      return false
+    }
+    if (!reFocus(winListTop)) {
+      reFocus(winList)
     }
   }
 

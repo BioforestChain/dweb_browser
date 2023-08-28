@@ -34,6 +34,7 @@ import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material.icons.outlined.Screenshot
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.VerifiedUser
+import androidx.compose.material.icons.outlined.VolumeDown
 import androidx.compose.material.icons.outlined.WifiTetheringOff
 import androidx.compose.material.icons.twotone.Assignment
 import androidx.compose.material.icons.twotone.Bluetooth
@@ -51,7 +52,9 @@ import androidx.compose.material.icons.twotone.LocationOn
 import androidx.compose.material.icons.twotone.Person
 import androidx.compose.material.icons.twotone.PushPin
 import androidx.compose.material.icons.twotone.VerifiedUser
+import androidx.compose.material.icons.twotone.VolumeUp
 import androidx.compose.material.icons.twotone.WifiTethering
+import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -295,12 +298,22 @@ internal fun WindowMenuPanel(
               enabled = false,
             )
           }
+          // 音量控制
+          item {
+            WindowMenuItem(
+              iconVector = Icons.Outlined.VolumeDown,
+              selectedIconVector = Icons.TwoTone.VolumeUp,
+              labelText = "音量",
+              selected = true,
+              enabled = false,
+            )
+          }
           // 用户空间
           item {
             WindowMenuItem(
               iconVector = Icons.Outlined.Person,
               selectedIconVector = Icons.TwoTone.Person,
-              labelText = "角色",
+              labelText = "账号",
               enabled = false,
             )
           }
@@ -398,7 +411,10 @@ internal fun WindowMenuPanel(
       }
     },
     action = {
-      TextButton(onClick = { scope.launch { win.hideMenuPanel() } }) { Text("退出应用") }
+      ElevatedButton(onClick = { scope.launch { win.hideMenuPanel() } }) {
+
+        Text("退出应用")
+      }
     },
   ) {}
 }
