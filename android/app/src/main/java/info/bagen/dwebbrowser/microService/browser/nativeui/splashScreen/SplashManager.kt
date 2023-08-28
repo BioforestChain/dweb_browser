@@ -8,22 +8,22 @@ import org.dweb_browser.browserUI.ui.splash.SplashActivity
 import org.dweb_browser.browserUI.ui.splash.SplashView
 
 object SplashManager {
-    val SPLASH_LIST = SplashActivity.SPLASH_LIST
+  val SPLASH_LIST = SplashActivity.SPLASH_LIST
 
-    /**
-     * 打开加载页
-     * @param list 传入需要在加载页显示的内容
-     */
-    fun openSplashActivity(list: ArrayList<String>) {
-        val intent = Intent(App.appContext, SplashActivity::class.java).apply {
-            putExtra(SPLASH_LIST, list)
-            flags = FLAG_ACTIVITY_NEW_TASK
-        }
-        App.appContext.startActivity(intent)
+  /**
+   * 打开加载页
+   * @param list 传入需要在加载页显示的内容
+   */
+  fun openSplashActivity(list: ArrayList<String>) {
+    val intent = Intent(App.appContext, SplashActivity::class.java).apply {
+      putExtra(SPLASH_LIST, list)
+      flags = FLAG_ACTIVITY_NEW_TASK
     }
+    App.appContext.startActivity(intent)
+  }
 
-    @Composable
-    fun loadSplashView(list: ArrayList<String>) {
-        SplashView(paths = list)
-    }
+  @Composable
+  fun loadSplashView(list: ArrayList<String>) {
+    SplashView(paths = list)
+  }
 }

@@ -9,7 +9,8 @@ import org.http4k.core.Method
 import org.http4k.core.Request
 
 class HttpClient {
-  private val mClientStream = ApacheClient(requestBodyMode = BodyMode.Stream, responseBodyMode = BodyMode.Stream)
+  private val mClientStream =
+    ApacheClient(requestBodyMode = BodyMode.Stream, responseBodyMode = BodyMode.Stream)
 
   suspend fun requestPath(
     path: String, method: Method = Method.GET

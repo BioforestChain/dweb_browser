@@ -25,117 +25,117 @@ fun debugClipboard(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("Clipboard", tag, msg, err)
 
 /** 剪切板微模块*/
-class ClipboardNMM : NativeMicroModule("clipboard.sys.dweb","clipboard") {
+class ClipboardNMM : NativeMicroModule("clipboard.sys.dweb", "clipboard") {
 
-    override val categories = mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Process_Service);
+  override val categories =
+    mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Process_Service);
 
-    override suspend fun _bootstrap(bootstrapContext: BootstrapContext)
- {
-        apiRouting = routes(
-            /** 读取剪切板*/
-            "/read" bind Method.GET to defineHandler { request ->
-                val read = read()
-                debugClipboard("/read",read)
-                Response(Status.OK).body(read)
-            },
-            /**
-             * 写入剪切板
-             * fetch("file://clipboard.sys.dweb/write?xxx=xxx")
-             * */
-            "/write" bind Method.GET to defineHandler { request ->
-                val string = Query.string().optional("string")(request)
-                val image = Query.string().optional("image")(request)
-                val url = Query.string().optional("url")(request)
-                val label = Query.string().optional("label")(request)
-                debugClipboard("/write","string:${string},image:${image},url:${url},label:${label}")
-                // 如果都是空
-                if (image.isNullOrEmpty() && url.isNullOrEmpty() && url.isNullOrEmpty()) {
-                    Response(Status.UNSATISFIABLE_PARAMETERS)
-                }
-                write(string,image,url,labelValue = label) {
-                    Response(Status.OK).body(it)
-                }
-                true
-            }
-        )
+  override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
+    apiRouting = routes(
+      /** 读取剪切板*/
+      "/read" bind Method.GET to defineHandler { request ->
+        val read = read()
+        debugClipboard("/read", read)
+        Response(Status.OK).body(read)
+      },
+      /**
+       * 写入剪切板
+       * fetch("file://clipboard.sys.dweb/write?xxx=xxx")
+       * */
+      "/write" bind Method.GET to defineHandler { request ->
+        val string = Query.string().optional("string")(request)
+        val image = Query.string().optional("image")(request)
+        val url = Query.string().optional("url")(request)
+        val label = Query.string().optional("label")(request)
+        debugClipboard("/write", "string:${string},image:${image},url:${url},label:${label}")
+        // 如果都是空
+        if (image.isNullOrEmpty() && url.isNullOrEmpty() && url.isNullOrEmpty()) {
+          Response(Status.UNSATISFIABLE_PARAMETERS)
+        }
+        write(string, image, url, labelValue = label) {
+          Response(Status.OK).body(it)
+        }
+        true
+      }
+    )
+  }
+
+  fun write(
+    string: String? = null,
+    image: String? = null,
+    url: String? = null,
+    labelValue: String? = "OcrText",
+    onErrorCallback: (String) -> Unit
+  ) {
+    val response: ClipboardWriteResponse
+    if (string != null) {
+      response = writeClipboard(label = labelValue, string)
+    } else if (image != null) {
+      response = writeClipboard(label = labelValue, image)
+    } else if (url != null) {
+      response = writeClipboard(label = labelValue, url)
+    } else {
+      onErrorCallback("No data provided")
+      return
     }
+    if (!response.success) {
+      onErrorCallback(response.errorManager)
+    }
+  }
 
-    fun write(
-        string: String? = null,
-        image: String? = null,
-        url: String? = null,
-        labelValue: String? = "OcrText",
-        onErrorCallback: (String) -> Unit
-    ) {
-        val response: ClipboardWriteResponse
-        if (string != null) {
-            response = writeClipboard(label = labelValue, string)
-        } else if (image != null) {
-            response = writeClipboard(label = labelValue, image)
-        } else if (url != null) {
-            response = writeClipboard(label = labelValue, url)
+  fun read(): String {
+    val clipboardData = readClipboard()
+    return gson.toJson(clipboardData)
+  }
+
+  private val mClipboard =
+    App.appContext.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+
+  /**
+   *label – 剪辑数据的用户可见标签。
+   * content——剪辑中的实际文本。
+   * */
+  private fun writeClipboard(label: String?, content: String?): ClipboardWriteResponse {
+    val data = ClipData.newPlainText(label, content)
+    return if (data != null) {
+      try {
+        mClipboard.setPrimaryClip(data)
+      } catch (e: Throwable) {
+        return ClipboardWriteResponse(false, "Writing to the clipboard failed")
+      }
+      ClipboardWriteResponse(true)
+    } else {
+      ClipboardWriteResponse(false, "Problem formatting data")
+    }
+  }
+
+  private fun readClipboard(): ClipboardData {
+    var value: CharSequence? = null
+    if (mClipboard.hasPrimaryClip()) {
+      value =
+        if (mClipboard.primaryClipDescription?.hasMimeType(ClipDescription.MIMETYPE_TEXT_PLAIN) == true) {
+          val item = mClipboard.primaryClip?.getItemAt(0)
+          item?.text
         } else {
-            onErrorCallback("No data provided")
-            return
-        }
-        if (!response.success) {
-            onErrorCallback(response.errorManager)
+          val item = mClipboard.primaryClip?.getItemAt(0)
+          item?.coerceToText(App.appContext).toString()
         }
     }
-
-    fun read(): String {
-        val clipboardData = readClipboard()
-        return gson.toJson(clipboardData)
+    var type = "text/plain"
+    if (value != null && value.toString().startsWith("data:")) {
+      type = value.toString().split(";").toTypedArray()[0].split(":").toTypedArray()[1]
     }
+    return ClipboardData(value.toString(), type)
+  }
 
-    private val mClipboard =
-        App.appContext.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-
-    /**
-     *label – 剪辑数据的用户可见标签。
-     * content——剪辑中的实际文本。
-     * */
-    private fun writeClipboard(label: String?, content: String?): ClipboardWriteResponse {
-        val data = ClipData.newPlainText(label, content)
-        return if (data != null) {
-            try {
-                mClipboard.setPrimaryClip(data)
-            } catch (e: Throwable) {
-                return ClipboardWriteResponse(false, "Writing to the clipboard failed")
-            }
-            ClipboardWriteResponse(true)
-        } else {
-            ClipboardWriteResponse(false, "Problem formatting data")
-        }
-    }
-
-    private fun readClipboard(): ClipboardData {
-        var value: CharSequence? = null
-        if (mClipboard.hasPrimaryClip()) {
-            value =
-                if (mClipboard.primaryClipDescription?.hasMimeType(ClipDescription.MIMETYPE_TEXT_PLAIN) == true) {
-                    val item = mClipboard.primaryClip?.getItemAt(0)
-                    item?.text
-                } else {
-                    val item = mClipboard.primaryClip?.getItemAt(0)
-                    item?.coerceToText(App.appContext).toString()
-                }
-        }
-        var type = "text/plain"
-        if (value != null && value.toString().startsWith("data:")) {
-            type = value.toString().split(";").toTypedArray()[0].split(":").toTypedArray()[1]
-        }
-        return ClipboardData(value.toString(), type)
-    }
-
-    override suspend fun _shutdown() {
-        TODO("Not yet implemented")
-    }
+  override suspend fun _shutdown() {
+    TODO("Not yet implemented")
+  }
 }
 
 data class ClipboardWriteOption(
-    val str: String? = null,
-    val image: String? = null,
-    val url: String? = null,
-    val label: String? = null,
+  val str: String? = null,
+  val image: String? = null,
+  val url: String? = null,
+  val label: String? = null,
 )

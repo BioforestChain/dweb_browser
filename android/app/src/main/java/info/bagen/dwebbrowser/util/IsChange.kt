@@ -64,7 +64,7 @@ class IsChange(
   }
 
   @Composable
-  inline fun <T> rememberByListState(list: SnapshotStateList<T>):  SnapshotStateList<T> {
+  inline fun <T> rememberByListState(list: SnapshotStateList<T>): SnapshotStateList<T> {
     list.map { state ->
       LaunchedEffect(state) {
         if (needFirstCall) {
@@ -77,7 +77,7 @@ class IsChange(
         }
       }
     }
-    return  list
+    return list
   }
 
 }

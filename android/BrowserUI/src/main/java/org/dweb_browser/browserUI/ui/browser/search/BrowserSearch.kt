@@ -24,7 +24,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -52,8 +51,6 @@ import org.dweb_browser.browserUI.database.WebSiteInfo
 import org.dweb_browser.browserUI.database.WebSiteType
 import org.dweb_browser.browserUI.ui.browser.BrowserIntent
 import org.dweb_browser.browserUI.ui.browser.BrowserViewModel
-import org.dweb_browser.browserUI.ui.browser.LocalShowIme
-import org.dweb_browser.browserUI.ui.browser.dimenBottomHeight
 import org.dweb_browser.browserUI.ui.browser.dimenSearchHeight
 import org.dweb_browser.browserUI.ui.browser.dimenTextFieldFontSize
 import org.dweb_browser.browserUI.ui.browser.findWebEngine
@@ -92,10 +89,10 @@ internal fun SearchView(
       modifier = Modifier
         .fillMaxWidth()
         .background(MaterialTheme.colorScheme.background)
-        //.navigationBarsPadding()
-        //.padding(bottom = dimenBottomHeight)
+      //.navigationBarsPadding()
+      //.padding(bottom = dimenBottomHeight)
     ) {
-      homePreview?.let { it {moved -> focusManager.clearFocus(); if (!moved) onClose()} }
+      homePreview?.let { it { moved -> focusManager.clearFocus(); if (!moved) onClose() } }
 
       Text(
         text = "取消",
@@ -274,7 +271,7 @@ internal fun SearchPreview( // 输入搜索内容后，显示的搜索信息
         .fillMaxSize()
         .background(MaterialTheme.colorScheme.surfaceVariant)
         .padding(horizontal = 20.dp)
-        .clickableWithNoEffect {  }
+        .clickableWithNoEffect { }
     ) {
       item {
         Box(

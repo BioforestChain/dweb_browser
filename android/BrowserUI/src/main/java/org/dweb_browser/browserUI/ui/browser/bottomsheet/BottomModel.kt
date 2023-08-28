@@ -4,7 +4,6 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.withContext
 import org.dweb_browser.browserUI.ui.browser.noLocalProvidedFor
 
 val LocalModalBottomSheet = compositionLocalOf<ModalBottomModel> {
@@ -14,7 +13,7 @@ val LocalModalBottomSheet = compositionLocalOf<ModalBottomModel> {
 enum class SheetState {
   Hidden, Expanded, PartiallyExpanded;
 
-  fun defaultHeight(maxHeight: Float) = when(this) {
+  fun defaultHeight(maxHeight: Float) = when (this) {
     Hidden -> 0f
     Expanded -> maxHeight
     else -> maxHeight * 2 / 3

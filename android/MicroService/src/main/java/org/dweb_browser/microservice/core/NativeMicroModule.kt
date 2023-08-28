@@ -10,8 +10,8 @@ import org.dweb_browser.microservice.help.DWEB_DEEPLINK
 import org.dweb_browser.microservice.help.IpcSupportProtocols
 import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.MMID
-import org.dweb_browser.microservice.help.getJsonBody
 import org.dweb_browser.microservice.help.gson
+import org.dweb_browser.microservice.help.jsonBody
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.NativeIpc
 import org.dweb_browser.microservice.ipc.NativeMessageChannel
@@ -160,7 +160,7 @@ abstract class NativeMicroModule(override val mmid: MMID, override val name: Str
     handler: suspend HandlerContext.(request: Request) -> Unit,
   ) = wrapHandler(beforeResponse) {
     HandlerContext(it, requestContextKey_ipc).handler(it)
-    Response(Status.OK)
+    Response(Status.NO_CONTENT)
   }
 
   protected fun defineStringResponse(
@@ -174,19 +174,21 @@ abstract class NativeMicroModule(override val mmid: MMID, override val name: Str
     beforeResponse: (Response.() -> Response)? = null,
     handler: suspend HandlerContext.(request: Request) -> Boolean
   ) = wrapHandler(beforeResponse) {
-    Response(Status.OK).getJsonBody(HandlerContext(it, requestContextKey_ipc).handler(it))
+    Response(Status.OK).jsonBody(HandlerContext(it, requestContextKey_ipc).handler(it))
   }
 
   protected fun defineJsonResponse(
     beforeResponse: (Response.() -> Response)? = null,
     handler: suspend HandlerContext.(request: Request) -> JsonElement
   ) = wrapHandler(beforeResponse) {
-    Response(Status.OK).getJsonBody(
+    Response(Status.OK).jsonBody(
       HandlerContext(
         it, requestContextKey_ipc
       ).handler(it)
     )
   }
+
+  fun Response.body(body: JsonElement) = jsonBody(body)
 
   protected fun defineResponse(
     beforeResponse: (Response.() -> Response)? = null,

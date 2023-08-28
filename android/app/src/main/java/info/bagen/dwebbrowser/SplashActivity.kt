@@ -21,7 +21,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import com.google.accompanist.web.*
-import org.dweb_browser.helper.android.theme.DwebBrowserAppTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.browserUI.ui.loading.LoadingView
@@ -31,6 +30,7 @@ import org.dweb_browser.browserUI.util.KEY_ENABLE_AGREEMENT
 import org.dweb_browser.browserUI.util.getBoolean
 import org.dweb_browser.browserUI.util.saveBoolean
 import org.dweb_browser.helper.*
+import org.dweb_browser.helper.android.theme.DwebBrowserAppTheme
 import kotlin.system.exitProcess
 
 @SuppressLint("CustomSplashScreen")
@@ -44,7 +44,7 @@ class SplashActivity : AppCompatActivity() {
     splashScreen.setKeepOnScreenCondition { mKeepOnAtomicBool.get() } // 使用mKeepOnAtomicBool状态控制欢迎界面
     App.startMicroModuleProcess() // 启动MicroModule
     val enable = this.getBoolean(KEY_ENABLE_AGREEMENT, false) // 获取隐私协议状态
-    
+
     setContent {
       val scope = rememberCoroutineScope()
       LaunchedEffect(mKeepOnAtomicBool) { // 最多显示1s就需要隐藏欢迎界面

@@ -23,20 +23,20 @@ class SharedCloseSignal {
   private val closeSignal = SimpleSignal()
   fun onClose(cb: Callback<Unit>) = closeSignal.listen(cb)
   private var closed = false
-   fun isClosed(): Boolean {
+  fun isClosed(): Boolean {
     synchronized(closeSignal) {
       return closed
     }
   }
 
-   suspend fun emitClose() {
-     synchronized(closeSignal) {
-       if (closed) {
-         return
-       }
-       closed = true
-     }
-     closeSignal.emitAndClear()
+  suspend fun emitClose() {
+    synchronized(closeSignal) {
+      if (closed) {
+        return
+      }
+      closed = true
+    }
+    closeSignal.emitAndClear()
   }
 }
 
@@ -97,7 +97,7 @@ class NativePort<I, O>(
    */
   @OptIn(DelicateCoroutinesApi::class)
   suspend fun postMessage(msg: O) {
-    debugNativeIpc("message-out/$this >>","$msg ${!channel_out.isClosedForSend}")
+    debugNativeIpc("message-out/$this >>", "$msg ${!channel_out.isClosedForSend}")
     if (!channel_out.isClosedForSend) {
       channel_out.send(msg)
     } else {

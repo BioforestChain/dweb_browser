@@ -3,8 +3,6 @@ package info.bagen.dwebbrowser.microService.browser.web
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
-import org.dweb_browser.window.core.WindowController
-import org.dweb_browser.window.core.createWindowAdapterManager
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
@@ -12,6 +10,8 @@ import kotlinx.coroutines.plus
 import org.dweb_browser.browserUI.ui.browser.BrowserViewModel
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.microservice.sys.http.HttpDwebServer
+import org.dweb_browser.window.core.WindowController
+import org.dweb_browser.window.core.createWindowAdapterManager
 
 class BrowserController(
   val win: WindowController, // 窗口控制器

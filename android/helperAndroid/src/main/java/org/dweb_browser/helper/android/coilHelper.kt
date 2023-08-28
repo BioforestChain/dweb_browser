@@ -2,8 +2,8 @@ package org.dweb_browser.helper.android
 
 import android.content.Context
 import coil.ImageLoader
-import coil.decode.SvgDecoder
 import coil.decode.GifDecoder
+import coil.decode.SvgDecoder
 import java.util.WeakHashMap
 
 val contextImageLoaderCache = WeakHashMap<Context, ImageLoader>()

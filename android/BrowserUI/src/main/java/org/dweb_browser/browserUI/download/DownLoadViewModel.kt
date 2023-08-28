@@ -92,6 +92,7 @@ class DownLoadViewModel(val mmid: MMID, val url: String) : ViewModel() {
             downLoadInfo
           )
         }
+
         is DownLoadIntent.DownLoadStatusChange -> {
           BrowserUIApp.Instance.mBinderService?.invokeDownloadStatusChange(mmid)
         }

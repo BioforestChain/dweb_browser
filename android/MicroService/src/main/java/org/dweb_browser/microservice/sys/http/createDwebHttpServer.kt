@@ -5,8 +5,8 @@ import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.help.MicroModuleManifest
+import org.dweb_browser.microservice.help.bodyJson
 import org.dweb_browser.microservice.help.boolean
-import org.dweb_browser.microservice.help.getJsonBody
 import org.dweb_browser.microservice.help.stream
 import org.dweb_browser.microservice.help.suspendOnce
 import org.dweb_browser.microservice.ipc.ReadableStreamIpc
@@ -34,7 +34,7 @@ suspend fun MicroModule.startHttpDwebServer(options: DwebHttpServerOptions) =
     Uri.of("file://http.std.dweb/start")
       .query("port", options.port.toString())
       .query("subdomain", options.subdomain)
-  ).getJsonBody<HttpNMM.ServerStartResult>()
+  ).bodyJson<HttpNMM.ServerStartResult>()
 
 
 suspend fun MicroModule.listenHttpDwebServer(

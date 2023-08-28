@@ -101,7 +101,9 @@ fun DeniedView(permission: String, onCancel: () -> Unit) {
     AlertDialog(
       onDismissRequest = { /*show = false 点击空白区域不隐藏*/ },
       title = { Text(text = "请手动配置权限") },
-      text = { Text(permissionMaps[permission]?.let { stringResource(id = it) } ?: "请手动配置权限") },
+      text = {
+        Text(permissionMaps[permission]?.let { stringResource(id = it) } ?: "请手动配置权限")
+      },
       confirmButton = {
         Button(onClick = { onCancel(); show = false; openSettingsPermission(context); }) {
           Text("设置")

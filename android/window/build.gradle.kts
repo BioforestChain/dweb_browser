@@ -59,7 +59,7 @@ dependencies {
   implementation(libs.accompanist.systemui.controller)
   implementation(libs.accompanist.permissions)
   implementation(libs.accompanist.insets.ui)
-  
+
   // jetpack-compose 相关
   implementation(platform(libs.compose.bom))
   implementation(libs.compose.ui)

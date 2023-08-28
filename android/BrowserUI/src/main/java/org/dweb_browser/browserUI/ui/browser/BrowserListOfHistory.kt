@@ -117,7 +117,11 @@ private fun RowItemHistory(
       color = MaterialTheme.colorScheme.onSurface,
       modifier = Modifier.fillMaxWidth()
     )
-    Spacer(modifier = Modifier.fillMaxWidth().height(4.dp))
+    Spacer(
+      modifier = Modifier
+        .fillMaxWidth()
+        .height(4.dp)
+    )
     Text(
       text = webSiteInfo.url,
       maxLines = 1,

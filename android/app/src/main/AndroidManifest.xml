@@ -90,7 +90,7 @@
         <data android:scheme="dweb" />
       </intent-filter>
     </activity>
-<!--      android:windowSoftInputMode="adjustResize"-->
+    <!--      android:windowSoftInputMode="adjustResize"-->
     <activity
       android:name=".microService.browser.desk.TaskbarActivity"
       android:exported="true"

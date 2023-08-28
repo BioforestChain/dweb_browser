@@ -1,6 +1,5 @@
 package info.bagen.dwebbrowser.microService.browser.desk.view
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -19,7 +18,6 @@ import org.dweb_browser.window.core.constant.WindowBottomBarTheme
 import org.dweb_browser.window.core.constant.WindowMode
 import org.dweb_browser.window.render.LocalWindowController
 import org.dweb_browser.window.render.WindowPreviewer
-import org.dweb_browser.window.render.watchedState
 
 
 @Composable

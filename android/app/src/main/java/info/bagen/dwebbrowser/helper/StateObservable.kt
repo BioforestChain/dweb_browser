@@ -1,8 +1,6 @@
 package info.bagen.dwebbrowser.helper
 
 import info.bagen.dwebbrowser.util.IsChange
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import org.dweb_browser.helper.Callback
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.runBlockingCatching
@@ -23,9 +21,7 @@ open class StateObservable(
     return ReadableStream(onStart = { controller ->
       val off = observe { state ->
         try {
-          withContext(Dispatchers.IO) {
-            controller.enqueue((gson.toJson(state) + "\n").toByteArray())
-          }
+          controller.enqueueBackground((gson.toJson(state) + "\n").toByteArray())
         } catch (e: Exception) {
           controller.close()
           e.printStackTrace()

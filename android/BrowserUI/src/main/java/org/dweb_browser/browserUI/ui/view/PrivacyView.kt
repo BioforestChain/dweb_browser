@@ -96,7 +96,7 @@ fun PrivacyView(url: MutableState<String>, showLoading: MutableState<Boolean>) {
 
     Box(
       modifier = Modifier
-        .clickableWithNoEffect {  }
+        .clickableWithNoEffect { }
         .fillMaxSize()
         .background(MaterialTheme.colorScheme.background)
     ) {

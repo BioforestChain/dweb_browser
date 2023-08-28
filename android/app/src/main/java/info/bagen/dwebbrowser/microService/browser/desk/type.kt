@@ -1,6 +1,5 @@
 package info.bagen.dwebbrowser.microService.browser.desk
 
-import org.dweb_browser.window.core.WindowState
 import org.dweb_browser.helper.DisplayMode
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.ShortcutItem
@@ -9,13 +8,14 @@ import org.dweb_browser.microservice.help.IpcSupportProtocols
 import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.MMID
 import org.dweb_browser.microservice.help.MicroModuleManifest
+import org.dweb_browser.window.core.WindowState
 import java.io.Serializable
 
 
 data class DeskLinkMetaData(
-  val title:String,
-  val icon:ImageResource? = null,
-  val url:String
+  val title: String,
+  val icon: ImageResource? = null,
+  val url: String
 )
 
 data class DeskAppMetaData(

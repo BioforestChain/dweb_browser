@@ -44,12 +44,15 @@ fun DialogView(
     DialogType.CUSTOM -> {
       CustomAlertDialog(dialogInfo = dialogInfo, onCancel = onCancel, onConfirm = onConfirm)
     }
+
     DialogType.PROGRESS -> {
       ProgressDialog(dialogInfo = dialogInfo, onCancel = onCancel)
     }
+
     DialogType.LOADING -> {
       LoadingDialog(dialogInfo = dialogInfo, onCancel = onCancel)
     }
+
     else -> {}
   }
 }

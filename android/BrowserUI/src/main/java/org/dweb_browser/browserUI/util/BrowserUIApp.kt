@@ -19,7 +19,9 @@ class BrowserUIApp private constructor() {
   }
 
   private var mContext: Context? = null
-  val appContext get() = mContext ?: throw Exception("The app context is empty. Please initialize the content in the Application")
+  val appContext
+    get() = mContext
+      ?: throw Exception("The app context is empty. Please initialize the content in the Application")
   var mBinderService: DwebBrowserService.DwebBrowserBinder? = null
   private var mServiceConnection: MyConnection? = null
 

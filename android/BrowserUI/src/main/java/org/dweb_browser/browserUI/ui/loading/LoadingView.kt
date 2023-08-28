@@ -47,10 +47,11 @@ fun LoadingView(
     val width = LocalConfiguration.current.screenWidthDp
     val count = 8
     val rotateAngle = (360 / count).toDouble()
-    Box(modifier = Modifier
-      .fillMaxSize()
-      .background(MaterialTheme.colorScheme.background)
-      .clickableWithNoEffect {  },
+    Box(
+      modifier = Modifier
+        .fillMaxSize()
+        .background(MaterialTheme.colorScheme.background)
+        .clickableWithNoEffect { },
       contentAlignment = Alignment.Center
     ) {
       //1284总宽度  计划宽度：209    17宽 38长     106     17/53  38/53

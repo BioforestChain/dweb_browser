@@ -1,6 +1,5 @@
 package info.bagen.dwebbrowser.microService.browser.desk
 
-import org.dweb_browser.helper.android.BaseActivity
 import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.window.core.WindowsManager
 import org.dweb_browser.window.core.createWindowAdapterManager

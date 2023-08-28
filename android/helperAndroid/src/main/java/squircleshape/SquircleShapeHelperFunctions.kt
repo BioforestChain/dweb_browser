@@ -34,11 +34,11 @@ import androidx.compose.ui.geometry.Size
  **/
 @Stable
 internal fun clampedCornerRadius(
-    cornerSize: Float,
-    size: Size
+  cornerSize: Float,
+  size: Size
 ): Float {
-    val smallestAxis = size.minDimension / 2
-    return cornerSize.coerceIn(0.0f, smallestAxis)
+  val smallestAxis = size.minDimension / 2
+  return cornerSize.coerceIn(0.0f, smallestAxis)
 }
 
 /**
@@ -50,4 +50,5 @@ internal fun clampedCornerRadius(
  **/
 @Stable
 internal fun clampedCornerSmoothing(cornerSmoothing: Float) = cornerSmoothing.coerceIn(
-  CornerSmoothing.None, 1f)
+  CornerSmoothing.None, 1f
+)

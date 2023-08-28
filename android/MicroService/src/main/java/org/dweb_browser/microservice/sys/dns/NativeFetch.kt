@@ -3,7 +3,6 @@ package org.dweb_browser.microservice.sys.dns
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.request.prepareRequest
-import io.ktor.util.toLowerCasePreservingASCIIRules
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.PromiseOut
@@ -14,14 +13,11 @@ import org.dweb_browser.microservice.help.AdapterManager
 import org.dweb_browser.microservice.help.toHttpRequestBuilder
 import org.dweb_browser.microservice.help.toResponse
 import org.dweb_browser.microservice.ipc.helper.ReadableStreamOut
-import org.http4k.base64DecodedArray
-import org.http4k.core.MemoryBody
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Response
 import org.http4k.core.Status
 import org.http4k.core.Uri
-import org.http4k.routing.path
 
 typealias FetchAdapter = suspend (remote: MicroModule, request: Request) -> Response?
 

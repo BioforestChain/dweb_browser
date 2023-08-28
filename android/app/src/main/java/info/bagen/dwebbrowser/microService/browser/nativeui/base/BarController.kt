@@ -7,8 +7,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
 import info.bagen.dwebbrowser.microService.browser.nativeui.NativeUiController
 import info.bagen.dwebbrowser.microService.browser.nativeui.helper.BarStyle
-import org.dweb_browser.helper.android.ColorJson
 import info.bagen.dwebbrowser.util.IsChange
+import org.dweb_browser.helper.android.ColorJson
 
 
 abstract class BarController(
@@ -16,38 +16,38 @@ abstract class BarController(
   nativeUiController: NativeUiController,
 ) : InsetsController(activity, nativeUiController) {
 
-    /**
-     * 背景色
-     */
-    val colorState = mutableStateOf(Color.Transparent)
+  /**
+   * 背景色
+   */
+  val colorState = mutableStateOf(Color.Transparent)
 
-    /**
-     * 前景风格
-     */
-    val styleState = mutableStateOf(BarStyle.Default)
+  /**
+   * 前景风格
+   */
+  val styleState = mutableStateOf(BarStyle.Default)
 
-    /**
-     * 是否可见
-     */
-    val visibleState = mutableStateOf(true)
+  /**
+   * 是否可见
+   */
+  val visibleState = mutableStateOf(true)
 
-    @Composable
-    protected open override fun observerWatchStates(stateChanges: IsChange) {
+  @Composable
+  protected open override fun observerWatchStates(stateChanges: IsChange) {
 
-        super.observerWatchStates(stateChanges)
-        stateChanges.rememberByState(colorState)
-        stateChanges.rememberByState(styleState)
-        stateChanges.rememberByState(visibleState)
-    }
+    super.observerWatchStates(stateChanges)
+    stateChanges.rememberByState(colorState)
+    stateChanges.rememberByState(styleState)
+    stateChanges.rememberByState(visibleState)
+  }
 
-    @Composable
-    abstract override fun effect(): BarController
+  @Composable
+  abstract override fun effect(): BarController
 
-    interface BarState : InsetsState {
-        val visible: Boolean
-        val style: BarStyle
-        val color: ColorJson
-    }
+  interface BarState : InsetsState {
+    val visible: Boolean
+    val style: BarStyle
+    val color: ColorJson
+  }
 
-    abstract override fun toJsonAble(): BarState
+  abstract override fun toJsonAble(): BarState
 }

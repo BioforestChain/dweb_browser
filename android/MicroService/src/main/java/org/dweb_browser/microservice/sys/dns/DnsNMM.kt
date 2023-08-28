@@ -1,14 +1,12 @@
 package org.dweb_browser.microservice.sys.dns
 
 import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.ChangeState
@@ -30,7 +28,6 @@ import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.MMID
 import org.dweb_browser.microservice.help.MicroModuleManifest
 import org.dweb_browser.microservice.help.buildRequestX
-import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
 import org.dweb_browser.microservice.ipc.helper.ReadableStream
 import org.http4k.core.Method
@@ -248,17 +245,15 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
         val inputStream = ReadableStream(onStart = { controller ->
           val off = installApps.onChange { changes ->
             try {
-              withContext(Dispatchers.IO) {
-                controller.enqueue(
-                  (Json.encodeToString(
-                    ChangeState(
-                      changes.adds,
-                      changes.updates,
-                      changes.removes
-                    )
-                  ) + "\n").toByteArray()
-                )
-              }
+              controller.enqueueBackground(
+                (Json.encodeToString(
+                  ChangeState(
+                    changes.adds,
+                    changes.updates,
+                    changes.removes
+                  )
+                ) + "\n").toByteArray()
+              )
             } catch (e: Exception) {
               controller.close()
               e.printStackTrace()

@@ -67,7 +67,11 @@ private fun BookListContent(
     itemsIndexed(viewModel.bookList) { index, webSiteInfo ->
       if (index > 0) {
         //Divider(modifier = Modifier.padding(start = 52.dp))
-        Spacer(modifier = Modifier.size(width = 52.dp, height = 1.dp).background(MaterialTheme.colorScheme.surface))
+        Spacer(
+          modifier = Modifier
+            .size(width = 52.dp, height = 1.dp)
+            .background(MaterialTheme.colorScheme.surface)
+        )
       }
       ListSwipeItem(
         webSiteInfo = webSiteInfo,

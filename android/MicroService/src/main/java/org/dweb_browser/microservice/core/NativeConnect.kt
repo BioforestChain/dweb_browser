@@ -11,8 +11,8 @@ import org.http4k.core.Request
  * 1. toIpc 则不一定，远程模块可能是自己创建了 Ipc，我们的上下文拿不到这个内存对象
  */
 data class ConnectResult(val ipcForFromMM: Ipc, val ipcForToMM: Ipc?) {
-    val component1 get() = ipcForFromMM
-    val component2 get() = ipcForToMM
+  val component1 get() = ipcForFromMM
+  val component2 get() = ipcForToMM
 }
 
 typealias ConnectAdapter = suspend (fromMM: MicroModule, toMM: MicroModule, reason: Request) -> ConnectResult?
@@ -24,11 +24,11 @@ val connectAdapterManager = AdapterManager<ConnectAdapter>()
 suspend fun connectMicroModules(
   fromMM: MicroModule, toMM: MicroModule, reason: Request
 ): ConnectResult {
-    for (connectAdapter in connectAdapterManager.adapters) {
-        val ipc = connectAdapter(fromMM, toMM, reason)
-        if (ipc != null) {
-            return ipc
-        }
+  for (connectAdapter in connectAdapterManager.adapters) {
+    val ipc = connectAdapter(fromMM, toMM, reason)
+    if (ipc != null) {
+      return ipc
     }
-    throw Exception("no support connect MicroModules, from:${fromMM.mmid} to:${toMM.mmid}")
+  }
+  throw Exception("no support connect MicroModules, from:${fromMM.mmid} to:${toMM.mmid}")
 }

@@ -1,6 +1,5 @@
 package org.dweb_browser.microservice.sys.http
 
-import com.google.gson.reflect.TypeToken
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.decodeURIComponent
@@ -11,7 +10,6 @@ import org.dweb_browser.helper.toBase64Url
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
-import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.ReadableStreamIpc
 import org.dweb_browser.microservice.sys.dns.debugFetch

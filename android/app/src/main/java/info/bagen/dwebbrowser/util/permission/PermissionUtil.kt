@@ -104,19 +104,23 @@ object PermissionUtil {
         actualPermissions.add(Manifest.permission.READ_CALENDAR)
         actualPermissions.add(Manifest.permission.WRITE_CALENDAR)
       }
+
       EPermission.PERMISSION_CONTACTS.type -> {
         actualPermissions.add(Manifest.permission.READ_CONTACTS)
         actualPermissions.add(Manifest.permission.WRITE_CONTACTS)
         actualPermissions.add(Manifest.permission.GET_ACCOUNTS)
       }
+
       EPermission.PERMISSION_LOCATION.type -> {
         actualPermissions.add(Manifest.permission.ACCESS_FINE_LOCATION)
         actualPermissions.add(Manifest.permission.ACCESS_COARSE_LOCATION)
       }
+
       EPermission.PERMISSION_STORAGE.type -> {
         actualPermissions.add(Manifest.permission.READ_EXTERNAL_STORAGE)
         actualPermissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
       }
+
       EPermission.PERMISSION_SMS.type -> {
         actualPermissions.add(Manifest.permission.SEND_SMS)
         actualPermissions.add(Manifest.permission.RECEIVE_SMS)
@@ -124,6 +128,7 @@ object PermissionUtil {
         actualPermissions.add(Manifest.permission.RECEIVE_WAP_PUSH)
         actualPermissions.add(Manifest.permission.RECEIVE_MMS)
       }
+
       EPermission.PERMISSION_CALL.type -> {
         actualPermissions.add(Manifest.permission.CALL_PHONE)
         actualPermissions.add(Manifest.permission.USE_SIP)
@@ -132,6 +137,7 @@ object PermissionUtil {
         actualPermissions.add(Manifest.permission.READ_CALL_LOG)
         actualPermissions.add(Manifest.permission.WRITE_CALL_LOG)
       }
+
       else -> {} // actualPermissions.add(permission) // 如果都不匹配，直接将请求的权限填充
     }
     return actualPermissions

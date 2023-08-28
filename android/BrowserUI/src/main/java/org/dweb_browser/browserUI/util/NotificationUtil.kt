@@ -52,7 +52,8 @@ class NotificationUtil {
   }
 
   private constructor() {
-    mManager = BrowserUIApp.Instance.appContext.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+    mManager =
+      BrowserUIApp.Instance.appContext.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
     // createReceiver() // 自定义通知时更新会用到
   }
 
@@ -76,7 +77,8 @@ class NotificationUtil {
       PendingIntent.getActivity(BrowserUIApp.Instance.appContext, 0, intent, PendingIntent.FLAG_IMMUTABLE)*/
     // 构建配置
     mBuilder =
-      NotificationCompat.Builder(BrowserUIApp.Instance.appContext, mNormalChannelId).setContentTitle("普通通知") // 标题
+      NotificationCompat.Builder(BrowserUIApp.Instance.appContext, mNormalChannelId)
+        .setContentTitle("普通通知") // 标题
         .setContentText("普通通知内容") // 文本
         .setSmallIcon(R.mipmap.ic_launcher) // 小图标
         //.setLargeIcon(BitmapFactory.decodeResource(resources, R.mipmap.ic_avatar)) // 大图标
@@ -102,7 +104,8 @@ class NotificationUtil {
       channel.setShowBadge(true)
       mManager.createNotificationChannel(channel)
     }
-    mBuilder = NotificationCompat.Builder(BrowserUIApp.Instance.appContext, mHighChannelId).setContentTitle("重要通知")
+    mBuilder = NotificationCompat.Builder(BrowserUIApp.Instance.appContext, mHighChannelId)
+      .setContentTitle("重要通知")
       .setContentText("重要通知内容").setSmallIcon(R.mipmap.ic_launcher)
       //.setLargeIcon(BitmapFactory.decodeResource(resources, R.mipmap.ic_avatar))
       .setAutoCancel(true).setNumber(999) // 自定义桌面通知数量
@@ -143,7 +146,8 @@ class NotificationUtil {
     }
     val pendingIntent = PendingIntent.getBroadcast(App.appContext, 999, intent, mFlag)*/
 
-    mBuilder = NotificationCompat.Builder(BrowserUIApp.Instance.appContext, mProgressChannelId).setContentTitle(title)
+    mBuilder = NotificationCompat.Builder(BrowserUIApp.Instance.appContext, mProgressChannelId)
+      .setContentTitle(title)
       .setContentText("$text：$progressCurrent%").setSmallIcon(R.mipmap.ic_launcher)
       // .setLargeIcon(BitmapFactory.decodeResource(resources, R.mipmap.ic_avatar))
       // 第3个参数indeterminate，false表示确定的进度，比如100，true表示不确定的进度，会一直显示进度动画，直到更新状态下载完成，或删除通知
@@ -192,7 +196,8 @@ class NotificationUtil {
       mManager.createNotificationChannel(channel)
     }
     mBuilder =
-      NotificationCompat.Builder(BrowserUIApp.Instance.appContext, mBigTextChannelId).setContentTitle("大文本通知")
+      NotificationCompat.Builder(BrowserUIApp.Instance.appContext, mBigTextChannelId)
+        .setContentTitle("大文本通知")
         .setStyle(NotificationCompat.BigTextStyle().bigText(bigText))
         .setSmallIcon(R.mipmap.ic_launcher)
         //.setLargeIcon(BitmapFactory.decodeResource(resources, R.mipmap.ic_avatar))

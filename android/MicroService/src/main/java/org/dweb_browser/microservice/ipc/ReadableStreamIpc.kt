@@ -2,9 +2,7 @@ package org.dweb_browser.microservice.ipc
 
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.SimpleSignal
@@ -90,9 +88,7 @@ class ReadableStreamIpc(
 
     signal.signal.listen {
       debugStreamIpc("ReadableStreamIpc", "readStream close")
-      withContext(Dispatchers.IO) {
-        stream.close()
-      }
+      stream.close()
     }
 
     val readStream: suspend () -> Unit = {
@@ -114,8 +110,7 @@ class ReadableStreamIpc(
             "pong" -> debugStreamIpc("PONG", "$stream")
             is IpcMessage -> {
               debugStreamIpc(
-                "ON-MESSAGE",
-                "$size => $message => ${this@ReadableStreamIpc}"
+                "ON-MESSAGE", "$size => $message => ${this@ReadableStreamIpc}"
               )
               _messageSignal.emit(IpcMessageArgs(message, this@ReadableStreamIpc))
             }
@@ -152,8 +147,6 @@ class ReadableStreamIpc(
 
   override suspend fun _doClose() {
     controller.close()
-    withContext(Dispatchers.IO) {
-      _incomeStream?.close()
-    }
+    _incomeStream?.close()
   }
 }

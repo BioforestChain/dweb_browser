@@ -121,7 +121,15 @@ class DWebChromeClient : WebChromeClient() {
     defaultValue: String?,
     result: JsPromptResult?
   ): Boolean {
-    return inners("onJsPrompt").mapFindNoNull { it.onJsPrompt(view, url, message, defaultValue, result) }
+    return inners("onJsPrompt").mapFindNoNull {
+      it.onJsPrompt(
+        view,
+        url,
+        message,
+        defaultValue,
+        result
+      )
+    }
       ?: super.onJsPrompt(view, url, message, defaultValue, result)
   }
 

@@ -9,5 +9,5 @@ import kotlinx.serialization.Serializable
 open class IpcMessage(val type: IPC_MESSAGE_TYPE)
 
 interface IpcStream {
-    val stream_id: String
+  val stream_id: String
 }

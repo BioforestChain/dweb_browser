@@ -6,7 +6,7 @@ import org.http4k.core.Method
 import org.http4k.core.Request
 import java.io.InputStream
 
-data class  InitRequest(
+data class InitRequest(
   val method: Method,
   val headers: Headers,
   val body: Any?
@@ -35,7 +35,7 @@ fun httpMethodCanOwnBody(
  * 构建Request对象,和`new Request`类似,允许突破原本Request的一些限制
  * @param toRequest
  */
-fun buildRequestX(url:String, initRequest: InitRequest): Request {
+fun buildRequestX(url: String, initRequest: InitRequest): Request {
 
   val method = initRequest.method
   val headers = initRequest.headers

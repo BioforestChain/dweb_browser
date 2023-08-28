@@ -6,25 +6,27 @@ import org.dweb_browser.helper.PromiseOut
 
 class ShareController() {
 
-    companion object {
-         val controller = ShareController()
+  companion object {
+    val controller = ShareController()
+  }
+
+  var activity: ShareActivity? = null
+
+  private var activityResultLauncherTask =
+    PromiseOut<ActivityResultLauncher<Intent>>()
+
+  suspend fun waitActivityResultLauncherCreated() = activityResultLauncherTask.waitPromise()
+
+  var shareLauncher: ActivityResultLauncher<Intent>? = null
+    set(value) {
+      if (field == value) {
+        return
+      }
+      field = value
+      if (value == null) {
+        activityResultLauncherTask = PromiseOut()
+      } else {
+        activityResultLauncherTask.resolve(value)
+      }
     }
-    var activity: ShareActivity? = null
-
-    private var activityResultLauncherTask =
-      PromiseOut<ActivityResultLauncher<Intent>>()
-    suspend fun waitActivityResultLauncherCreated() = activityResultLauncherTask.waitPromise()
-
-    var shareLauncher: ActivityResultLauncher<Intent>? = null
-        set(value) {
-            if (field == value) {
-                return
-            }
-            field = value
-            if (value == null) {
-                activityResultLauncherTask = PromiseOut()
-            } else {
-                activityResultLauncherTask.resolve(value)
-            }
-        }
 }

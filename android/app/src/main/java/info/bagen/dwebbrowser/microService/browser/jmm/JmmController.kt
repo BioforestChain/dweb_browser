@@ -2,14 +2,14 @@ package info.bagen.dwebbrowser.microService.browser.jmm
 
 import androidx.compose.runtime.Composable
 import info.bagen.dwebbrowser.microService.browser.jmm.ui.JmmManagerViewModel
-import org.dweb_browser.window.core.WindowController
-import org.dweb_browser.window.core.createWindowAdapterManager
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.microservice.help.JmmAppInstallManifest
 import org.dweb_browser.microservice.help.MMID
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
+import org.dweb_browser.window.core.WindowController
+import org.dweb_browser.window.core.createWindowAdapterManager
 
 enum class EIpcEvent(val event: String) {
   State("state"), Ready("ready"), Activity("activity"), Close("close")

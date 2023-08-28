@@ -155,12 +155,13 @@ fun HideAppMaskView(
   var trigger by remember { mutableFloatStateOf(if (radius == 0f) 90f else radius) }
   var isFinished by remember { mutableStateOf(false) }
 
-  val animatedRadius by animateFloatAsState(targetValue = trigger, animationSpec = tween(
-    durationMillis = 200, easing = LinearEasing
-  ), finishedListener = {
-    isFinished = true
-    callbackState(DownLoadStatus.INSTALLED, DialogInfo())
-  }, label = ""
+  val animatedRadius by animateFloatAsState(
+    targetValue = trigger, animationSpec = tween(
+      durationMillis = 200, easing = LinearEasing
+    ), finishedListener = {
+      isFinished = true
+      callbackState(DownLoadStatus.INSTALLED, DialogInfo())
+    }, label = ""
   )
 
   DisposableEffect(Unit) {
@@ -207,6 +208,7 @@ private fun DownloadDialogProgressView(
         downLoadViewModel.uiState.value.dialogInfo
       )
     }
+
     else -> {}
   }
   if (show.value) {

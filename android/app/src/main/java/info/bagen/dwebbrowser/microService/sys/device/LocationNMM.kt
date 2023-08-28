@@ -14,23 +14,23 @@ import org.http4k.routing.routes
 fun debugLocation(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("Location", tag, msg, err)
 
-class LocationNMM: NativeMicroModule("location.sys.dweb","location") {
+class LocationNMM : NativeMicroModule("location.sys.dweb", "location") {
 
-  override val categories = mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Process_Service);
+  override val categories =
+    mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Process_Service);
 
-    val locationInfo = LocationInfo()
-    override suspend fun _bootstrap(bootstrapContext: BootstrapContext)
- {
-        apiRouting = routes(
-            /** 获取当前位置信息*/
-            "/info" bind Method.GET to defineHandler { request ->
-                val result = locationInfo.getLocationInfo()
-                Response(Status.OK).body(result)
-            },
-        )
-    }
+  val locationInfo = LocationInfo()
+  override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
+    apiRouting = routes(
+      /** 获取当前位置信息*/
+      "/info" bind Method.GET to defineHandler { request ->
+        val result = locationInfo.getLocationInfo()
+        Response(Status.OK).body(result)
+      },
+    )
+  }
 
-    override suspend fun _shutdown() {
-        TODO("Not yet implemented")
-    }
+  override suspend fun _shutdown() {
+    TODO("Not yet implemented")
+  }
 }

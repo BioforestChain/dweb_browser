@@ -6,7 +6,7 @@ import org.dweb_browser.helper.State
 import org.junit.Assert.assertEquals
 import org.junit.jupiter.api.Test
 
-class StateTests  {
+class StateTests {
 
   @Test
   fun simpleTest() = runBlocking {
@@ -48,11 +48,13 @@ class StateTests  {
     val state2 = State(2)
     val state3 = State(1)
 
-    val state4 = State(if (state1.get()) {
-      state2.get()
-    } else {
-      state3.get()
-    })
+    val state4 = State(
+      if (state1.get()) {
+        state2.get()
+      } else {
+        state3.get()
+      }
+    )
 
     assertEquals(1, state4.get())
 
@@ -89,6 +91,7 @@ class StateTests  {
     println("visible: ${newStatusBar.visible}, overlay: ${newStatusBar.overlay}")
 
   }
+
   // 测试update仅适用于引用类型
   @Test
   fun updateRefTypeTest() = runBlocking {

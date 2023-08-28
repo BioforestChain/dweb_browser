@@ -153,7 +153,11 @@ object FilesUtil {
    * 获取相应应用的图标, link.json中的icon路径进行修改，直接默认要求默认在sys目录
    */
   fun getAppIconPathName(context: Context, type: APP_DIR_TYPE, id: String, icon: String): String {
-    return getAppRootDirectory(context, type, id) + File.separator + DIR_SYS + File.separator + icon.parseFilePath()
+    return getAppRootDirectory(
+      context,
+      type,
+      id
+    ) + File.separator + DIR_SYS + File.separator + icon.parseFilePath()
   }
 
   /**

@@ -44,10 +44,16 @@ class StrictImageResourceTests {
       )
     )
     assertEquals(
-      StrictImageResource.from(ImageResource("icon/hd_hi.svg", "any", purpose = "maskable monochrome"), baseUrl),
+      StrictImageResource.from(
+        ImageResource(
+          "icon/hd_hi.svg",
+          "any",
+          purpose = "maskable monochrome"
+        ), baseUrl
+      ),
       StrictImageResource(
         "http://localhost/icon/hd_hi.svg",
-        setOf(ImageResourcePurposes.Maskable,ImageResourcePurposes.Monochrome),
+        setOf(ImageResourcePurposes.Maskable, ImageResourcePurposes.Monochrome),
         "image/svg+xml",
         listOf(ImageResourceSize(46340, 46340)),
       )

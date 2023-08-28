@@ -108,11 +108,11 @@ class IpcRequest(
    *
    * 比如目前双工协议可以由 WebSocket 来提供支持
    */
-   fun isDuplex(): Boolean {
+  fun isDuplex(): Boolean {
     return isWebSocket(method.http4kMethod, headers.toList())
   }
 
-  fun toRequest() = buildRequestX(url, InitRequest(method.http4kMethod,headers.toList(), body.raw))
+  fun toRequest() = buildRequestX(url, InitRequest(method.http4kMethod, headers.toList(), body.raw))
 
   val ipcReqMessage by lazy {
     IpcReqMessage(req_id, method, url, headers.toMap(), body.metaBody)

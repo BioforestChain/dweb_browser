@@ -89,12 +89,15 @@ inline fun <R, T> ApiResultData<T>.fold(
     isFailure -> {
       onFailure(exceptionOrNull())
     }
+
     isLoading -> {
       onLoading(value as ApiResultData.Progress)
     }
+
     isPrepare -> {
       onPrepare(exceptionOrNull())
     }
+
     else -> {
       onSuccess(value as T)
     }

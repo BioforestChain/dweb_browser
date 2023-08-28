@@ -5,12 +5,10 @@ import android.os.Bundle
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.browser.jmm.EIpcEvent
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.ChangeState
 import org.dweb_browser.helper.ChangeableMap
@@ -193,9 +191,7 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
         val inputStream = ReadableStream(onStart = { controller ->
           val off = taskBarController.onStatus { status ->
             try {
-              withContext(Dispatchers.IO) {
-                controller.enqueue((gson.toJson(status) + "\n").toByteArray())
-              }
+              controller.enqueueBackground((gson.toJson(status) + "\n").toByteArray())
             } catch (e: Exception) {
               controller.close()
               e.printStackTrace()

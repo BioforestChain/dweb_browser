@@ -175,7 +175,7 @@ private fun BrowserViewContent(viewModel: BrowserViewModel) {
   }
   viewModel.uiState.pagerStateNavigator.value = pagerStateNavigator
   viewModel.uiState.pagerStateContent.value = pagerStateContent
-    LaunchedEffect(pagerStateNavigator.currentPageOffsetFraction) {
+  LaunchedEffect(pagerStateNavigator.currentPageOffsetFraction) {
     pagerStateContent.scrollToPage(
       pagerStateNavigator.currentPage, pagerStateNavigator.currentPageOffsetFraction
     )

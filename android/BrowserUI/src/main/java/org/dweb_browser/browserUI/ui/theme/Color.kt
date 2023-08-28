@@ -60,7 +60,8 @@ internal object PaletteTokens {
   val Neutral80 = Color(red = 201, green = 197, blue = 202)
   val Neutral90 = Color(red = 230, green = 225, blue = 229)
   val Neutral95 = Color(red = 244, green = 239, blue = 244)
-  val Neutral99 = Color(red = 245, green = 246, blue = 247) // Color(red = 255, green = 251, blue = 254)
+  val Neutral99 =
+    Color(red = 245, green = 246, blue = 247) // Color(red = 255, green = 251, blue = 254)
   val Neutral100 = Color(red = 255, green = 255, blue = 255)
   val NeutralVariant0 = Color(red = 0, green = 0, blue = 0)
   val NeutralVariant10 = Color(red = 29, green = 26, blue = 34)
@@ -76,6 +77,7 @@ internal object PaletteTokens {
   val NeutralVariant99 = Color(red = 255, green = 251, blue = 254)
   val NeutralVariant100 = Color(red = 255, green = 255, blue = 255)
   val Primary0 = Color(red = 0, green = 0, blue = 0)
+
   /*val Primary10 = Color(red = 33, green = 0, blue = 93)
   val Primary20 = Color(red = 56, green = 30, blue = 114)
   val Primary30 = Color(red = 79, green = 55, blue = 139)

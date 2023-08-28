@@ -56,7 +56,7 @@ fun ListItemDeleteView(
       onClick != null && offsetX != -heightPx
     }
   }
-  val expand: MutableState<Boolean> = remember{ mutableStateOf(false) }
+  val expand: MutableState<Boolean> = remember { mutableStateOf(false) }
 
   Column {
     Box(

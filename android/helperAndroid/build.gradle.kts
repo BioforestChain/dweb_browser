@@ -58,5 +58,12 @@ dependencies {
   implementation(libs.compose.material.icons)
   implementation(libs.compose.ui.preview)
 
+  // 加载图片 coil
+  api(libs.coil.core)
+  api(libs.coil.compose)
+  api(libs.coil.svg)
+  api(libs.coil.video)
+  api(libs.coil.gif)
+
   implementation(project(mapOf("path" to ":helper")))
 }

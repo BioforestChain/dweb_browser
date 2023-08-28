@@ -10,10 +10,10 @@ import androidx.activity.compose.setContent
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.coroutineScope
 import info.bagen.dwebbrowser.R
-import org.dweb_browser.helper.android.ActivityBlurHelper
 import info.bagen.dwebbrowser.base.BaseThemeActivity
-import org.dweb_browser.helper.android.theme.DwebBrowserAppTheme
 import kotlinx.coroutines.launch
+import org.dweb_browser.helper.android.ActivityBlurHelper
+import org.dweb_browser.helper.android.theme.DwebBrowserAppTheme
 
 class TaskbarActivity : BaseThemeActivity() {
 
@@ -24,12 +24,12 @@ class TaskbarActivity : BaseThemeActivity() {
   @SuppressLint("UseCompatLoadingForDrawables", "ClickableViewAccessibility")
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    controller.activity  = this
+    controller.activity = this
     val density = resources.displayMetrics.density
 
     setContent {
       window.attributes = window.attributes.also { attributes ->
-        window.setLayout(controller.cacheResize.width,controller.cacheResize.height)
+        window.setLayout(controller.cacheResize.width, controller.cacheResize.height)
 //        /// 禁用模态窗口模式，使得点击可以向下穿透
 //        attributes.flags =
 //          WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
