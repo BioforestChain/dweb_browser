@@ -99,10 +99,12 @@ app.whenReady().then(() => {
   const iconPath = isElectronDev
     ? path.join(path.dirname(app.getAppPath()), devIcon)
     : path.join(path.dirname(app.getPath("exe")), depsIcon);
-  appIcon = new Tray(iconPath);
+  let img = Electron.nativeImage.createFromPath(iconPath)
+  appIcon = new Tray(img);
+  img = img.resize({width:16,height:16})
   const contextMenu = menu.buildFromTemplate([
     {
-      icon:iconPath,
+      icon:img,
       label: "quit",
       type: "normal",
       click: () => {
