@@ -9,6 +9,8 @@ public static class StringExtensions
 
     public static byte[] ToUtf8ByteArray(this string self) => Encoding.UTF8.GetBytes(self);
 
+    public static string Base64Decoded(this string self) => Encoding.UTF8.GetString(ToBase64ByteArray(self));
+
     public static int ToInt(this string self, NumberStyles numberStyles) => int.Parse(self, numberStyles);
 
     public static int? ToIntOrNull(this string self) =>

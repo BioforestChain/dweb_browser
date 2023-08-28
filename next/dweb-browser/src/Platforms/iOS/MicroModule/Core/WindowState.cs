@@ -338,7 +338,8 @@ public class WindowState
 
         bounds = Observable.Observe(WindowPropertyKeys.Bounds.FieldName, new WindowBounds());
         title = Observable.ObserveNullable<string>(WindowPropertyKeys.Title.FieldName);
-        iconUrl = Observable.ObserveNullable<string>(WindowPropertyKeys.IconUrl.FieldName, null);
+        //iconUrl = Observable.ObserveNullable<string>(WindowPropertyKeys.IconUrl.FieldName);
+        iconUrl = Observable.Observe(WindowPropertyKeys.IconUrl.FieldName, string.Empty);
         iconMaskable = Observable.Observe(WindowPropertyKeys.IconMaskable.FieldName, false);
         iconMonochrome = Observable.Observe(WindowPropertyKeys.IconMonochrome.FieldName, false);
         mode = Observable.Observe(WindowPropertyKeys.Mode.FieldName, WindowMode.FLOATING);

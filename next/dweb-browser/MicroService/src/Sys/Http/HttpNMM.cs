@@ -7,7 +7,7 @@ public static class UrlExtensions
 {
     public static string ToPublicDwebHref(this Uri internalHref) => HttpNMM.DwebServer.Origin + HttpNMM.X_DWEB_HREF + internalHref.AbsoluteUri;
 }
-public class HttpNMM : NativeMicroModule
+public partial class HttpNMM : NativeMicroModule
 {
     static readonly Debugger Console = new("HttpNMM");
     public static Http1Server DwebServer = new Http1Server();
@@ -65,7 +65,7 @@ public class HttpNMM : NativeMicroModule
 
         string? header_host = null;
         string? header_x_dweb_host = null;
-        string? header_user_agent_host = null;
+        string? header_auth_host = null;
         string? query_x_web_host = request.ParsedUrl?.SearchParams.Get(X_DWEB_HOST)?.DecodeURIComponent();
 
         foreach (var entry in request.Headers)
@@ -73,18 +73,43 @@ public class HttpNMM : NativeMicroModule
             switch (entry.Key)
             {
                 case "Host":
+                    if (entry.Value is not null && HostRegex().IsMatch(entry.Value))
+                    {
+                        header_host = entry.Value;
+                    }
                     header_host = entry.Value;
                     break;
                 case X_DWEB_HOST:
                     header_x_dweb_host = entry.Value;
                     break;
-                case "User-Agent":
-                    header_user_agent_host = _dwebHostRegex(string.Join(" ", entry.Value));
+                case "Authorization":
+                    if (entry.Value is not null)
+                    {
+                        var match = AuthorizationRegex().Match(entry.Value);
+                        if (match.Success)
+                        {
+                            return match.Groups[1].Value?.Let(base64Content =>
+                            {
+                                var userInfo = base64Content.Base64Decoded();
+                                //userInfo.Split(':');
+                                var splitIndex = userInfo.LastIndexOf(':');
+
+                                header_auth_host = splitIndex switch
+                                {
+                                    -1 => userInfo,
+                                    _ => userInfo[0..splitIndex]
+                                };
+
+                                return header_auth_host.DecodeURIComponent();
+
+                            });
+                        }
+                    }
                     break;
             }
         }
 
-        var host = (query_x_web_host ?? header_x_dweb_host ?? header_user_agent_host ?? header_host).Let(host =>
+        var host = (query_x_web_host ?? header_auth_host ?? header_x_dweb_host ?? header_host).Let(host =>
         {
             if (host is null) return "*";
 
@@ -99,6 +124,11 @@ public class HttpNMM : NativeMicroModule
 
         return host;
     }
+
+    [GeneratedRegex(@"\.dweb(:\d+)?$")]
+    private static partial Regex HostRegex();
+    [GeneratedRegex(@"^ *(?:[Bb][Aa][Ss][Ii][Cc]) +([A-Za-z0-9._~+/-]+=*) *$")]
+    private static partial Regex AuthorizationRegex();
 
     private async Task<PureResponse> _httpHandler(PureRequest request)
     {

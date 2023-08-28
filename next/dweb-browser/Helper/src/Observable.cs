@@ -2,6 +2,7 @@
 
 public class Observable
 {
+    static Debugger Console = new("Observable");
     public record Change(string Key, dynamic NewValue, dynamic OldValue);
 
     public Listener<Change> Listener = new();
@@ -30,7 +31,7 @@ public class Observable
 
     public Observer ObserveNullable<T>(string key, dynamic? initValue = null)
     {
-        Console.WriteLine($"key: {key} value: " + default(T));
+        Console.Log("ObserveNullable", $"key: {key} value: " + default(T));
 
         /// 字符串特殊处理，字符串默认值为null，修改为string.Empty，否则会出现空值无法赋值
         Observer observer;
@@ -42,6 +43,7 @@ public class Observable
         {
             observer = new Observer(this, key, default(T));
         }
+        Console.Log("ObserveNullable", $"key: {key} value: {observer.Value} type: {observer.Value.GetType()}");
 
         observer.Set(initValue);
 

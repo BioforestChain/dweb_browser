@@ -145,6 +145,7 @@ public class MultiWebViewNMM : IOSNativeMicroModule
             catch (Exception e)
             {
                 Console.Error("windowstate", e.Message);
+                Console.Error("windowstate", e.StackTrace);
             }
 
 
