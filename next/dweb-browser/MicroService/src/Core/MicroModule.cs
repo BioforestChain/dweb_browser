@@ -184,7 +184,7 @@ public abstract partial class MicroModule : IMicroModule
     }
 
     private readonly LazyBox<IMicroModuleManifest> Manifest = new();
-    public IMicroModuleManifest ToManifest() => Manifest.GetOrPut(() =>
+    public virtual IMicroModuleManifest ToManifest() => Manifest.GetOrPut(() =>
         new MicroModuleManifest(
             Mmid,
             IpcSupportProtocols,

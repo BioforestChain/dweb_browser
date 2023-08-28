@@ -278,8 +278,9 @@ public class JsMicroModule : MicroModule
         Console.Log("running!!", Mmid);
     }
 
-    private readonly ConcurrentDictionary<Mmid, PromiseOut<Ipc>> _fromMmid_originIpc_map = new();
+    public new IJmmAppInstallManifest ToManifest() => Metadata.Config;
 
+    private readonly ConcurrentDictionary<Mmid, PromiseOut<Ipc>> _fromMmid_originIpc_map = new();
 
     class JmmIpc : Native2JsIpc
     {

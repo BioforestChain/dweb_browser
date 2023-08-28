@@ -19,7 +19,6 @@ public class JmmController
     public async Task OpenDownloadPageAsync(JmmAppDownloadManifest jmmAppDownloadManifest)
     {
         var data = NSData.FromString(jmmAppDownloadManifest.ToJson(), NSStringEncoding.UTF8);
-        var vc = await IOSNativeMicroModule.RootViewController.WaitPromiseAsync();
         var manager = new DownloadAppManager(data);
 
         // 点击下载
@@ -54,7 +53,9 @@ public class JmmController
 
                     break;
                 case "back":
-                    vc.PopViewController(true);
+                    //vc.PopViewController(true);
+                    /// TODO: 关闭页面
+                    
                     break;
                 default:
                     break;
@@ -93,6 +94,12 @@ public class JmmController
         await deskConnectResult.IpcForFromMM.PostMessageAsync(IpcEvent.FromUtf8(EIpcEvent.Activity.Event, ""));
 
         Mutex.ReleaseMutex();
+    }
+
+    public async Task CloseApp(Mmid mmid)
+    {
+        Console.Log("closeApp", $"mmid={mmid}");
+        await JmmNmm.BootstrapContext.Dns.Close(mmid);
     }
 }
 

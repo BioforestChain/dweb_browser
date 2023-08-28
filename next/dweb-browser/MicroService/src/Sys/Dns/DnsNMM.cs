@@ -270,7 +270,13 @@ public class DnsNMM : NativeMicroModule
         {
             var mmid = request.SafeUrl.SearchParams.ForceGet("app_id");
             var microModule = await Query(mmid);
-            return microModule?.ToManifest();
+
+            if (microModule is null)
+            {
+                return new PureResponse(HttpStatusCode.NotFound, Body: new PureUtf8StringBody($"no found app for {mmid}"));
+            }
+
+            return microModule.ToManifest();
         });
 
         HttpRouter.AddRoute(IpcMethod.Get, "/observe/app", async (request, ipc) =>
