@@ -96,12 +96,12 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
    * @param mmid
    */
   @bindThis
-  async canOpenUrl(mmid: $MMID): Promise<boolean> {
+  async canOpenUrl(mmid: $MMID) {
     return this.fetchApi(`/check`, {
       search: {
         mmid: mmid,
       },
-    }).boolean();
+    }).object<$ExterResponse>();
   }
 
   /**

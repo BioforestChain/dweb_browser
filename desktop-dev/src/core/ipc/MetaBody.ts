@@ -1,5 +1,6 @@
 import { CacheGetter } from "../../helper/cacheGetter.ts";
 import { simpleDecoder } from "../../helper/encoding.ts";
+import "../helper/crypto.shims.ts";
 import type { $JSON } from "../ipc-web/$messageToIpcMessage.ts";
 import { IPC_DATA_ENCODING } from "./const.ts";
 import type { Ipc } from "./ipc.ts";

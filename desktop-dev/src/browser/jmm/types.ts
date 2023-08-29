@@ -31,13 +31,13 @@ export interface $JmmAppInstallManifest extends $JmmAppManifest {
   bundle_hash: string;
   bundle_size: number;
   // app 支持的语言
-  languages:string[]; // http://www.lingoes.net/zh/translator/langcode.htm
+  languages: string[]; // http://www.lingoes.net/zh/translator/langcode.htm
   /**格式为 `hex:{signature}` */
-  bundle_signature:string;
+  bundle_signature: string;
   /**该链接必须使用和app-id同域名的网站链接，
    * 请求回来是一个“算法+公钥地址”的格式 "{algorithm}:hex;{publicKey}"，
    * 比如说 `rsa-sha256:hex;2...1` */
-  public_key_url:string;
+  public_key_url: string;
   /**更新日志，直接放url */
   change_log: string;
   /** 安装时展示的作者信息 */

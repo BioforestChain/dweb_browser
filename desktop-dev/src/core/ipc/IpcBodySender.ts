@@ -1,14 +1,15 @@
-import { $Callback, createSignal } from "../../helper/createSignal.ts";
 import { PromiseOut } from "../../helper/PromiseOut.ts";
+import { $Callback, createSignal } from "../../helper/createSignal.ts";
 import { binaryStreamRead } from "../../helper/stream/readableStreamHelper.ts";
-import { IPC_MESSAGE_TYPE } from "./const.ts";
-import type { Ipc } from "./ipc.ts";
+import "../helper/crypto.shims.ts";
 import { BodyHub, IpcBody, type $BodyData } from "./IpcBody.ts";
 import { IpcStreamData } from "./IpcStreamData.ts";
 import { IpcStreamEnd } from "./IpcStreamEnd.ts";
 import type { IpcStreamPaused } from "./IpcStreamPaused.ts";
 import type { IpcStreamPulling } from "./IpcStreamPulling.ts";
 import { IPC_META_BODY_TYPE, MetaBody } from "./MetaBody.ts";
+import { IPC_MESSAGE_TYPE } from "./const.ts";
+import type { Ipc } from "./ipc.ts";
 
 /**
  * 控制信号
