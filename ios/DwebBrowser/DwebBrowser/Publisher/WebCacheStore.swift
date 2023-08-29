@@ -22,20 +22,22 @@ class WebCache: ObservableObject, Identifiable, Hashable, Codable, Equatable {
     
     var id = UUID()
     private var cancellables = Set<AnyCancellable>()
+    var snapshotCancellable: AnyCancellable?
+    let snapshotImageChangedPublisher = PassthroughSubject<Void, Never>()
+
     @Published var webIconUrl: URL // url to the source of somewhere in internet
     @Published var lastVisitedUrl: URL // the website that user has opened on webview
     @Published var shouldShowWeb: Bool
 
     @Published var title: String // page title
+    @Published var snapshotImage = UIImage()
     @Published var snapshotUrl: URL // local file path is direct to the image has saved in document dir
     {
         didSet {
-            WebCacheMgr.shared.saveCaches()
             snapshotImage = UIImage.snapshotImage(from: snapshotUrl)
+            snapshotImageChangedPublisher.send()
         }
     }
-
-    @Published var snapshotImage = UIImage()
     
     init(icon: URL = URL.defaultWebIconURL, showWeb: Bool = false, lastVisitedUrl: URL = emptyURL, title: String = "起始页", snapshotUrl: URL = URL.defaultSnapshotURL) {
         shouldShowWeb = false
@@ -45,6 +47,7 @@ class WebCache: ObservableObject, Identifiable, Hashable, Codable, Equatable {
         self.snapshotUrl = snapshotUrl
         snapshotImage = UIImage.snapshotImage(from: snapshotUrl)
         observeUrl()
+        snapshotCancellable = snapshotImageChangedPublisher.sink {}
     }
     
     required init(from decoder: Decoder) throws {
@@ -57,6 +60,11 @@ class WebCache: ObservableObject, Identifiable, Hashable, Codable, Equatable {
         snapshotUrl = try container.decodeIfPresent(URL.self, forKey: .snapshotUrl) ?? URL.defaultSnapshotURL
         snapshotImage = UIImage.snapshotImage(from: snapshotUrl)
         observeUrl()
+        snapshotCancellable = snapshotImageChangedPublisher.sink {}
+    }
+    
+    deinit {
+        snapshotCancellable?.cancel()
     }
     
     func encode(to encoder: Encoder) throws {
@@ -102,26 +110,52 @@ class WebCache: ObservableObject, Identifiable, Hashable, Codable, Equatable {
     }
 }
 
-class WebCacheMgr: ObservableObject {
-    static let shared = WebCacheMgr()
+class WebCacheStore: ObservableObject {
     private let userdefaultKey = "userdefaultWebCache"
-    @Published var store: [WebCache] = []
+    @Published var caches: [WebCache] = []
+    @Published var webWrappers: [WebWrapper] = []
 
+    var cancellables = Set<AnyCancellable>()
     init() {
         loadCaches()
+        caches.forEach { webCache in
+            webCache.snapshotImageChangedPublisher
+                .dropFirst()
+                .sink { [weak self] _ in
+                    self?.saveCaches()
+                }
+                .store(in: &cancellables)
+        }
+        
+        $caches.sink { [weak self] webCaches in
+                print("caches titles \(webCaches.map { $0.title })")
+                let cacheIds = webCaches.map { $0.id }
+                let newStore = cacheIds.map {
+                    self?.webWrapper(of: $0) ?? WebWrapper(cacheID: $0)
+                }
+                self?.webWrappers = newStore
+            }
+            .store(in: &cancellables)
     }
     
     func createOne() {
         let cache = WebCache()
-        store.append(cache)
+        cache.snapshotImageChangedPublisher
+            .dropFirst()
+            .sink { [weak self] _ in
+                self?.saveCaches()
+            }
+            .store(in: &cancellables)
+        
+        caches.append(cache)
         saveCaches()
     }
     
     func remove(webCache: WebCache) {
-        guard let index = store.firstIndex(of: webCache) else { return }
+        guard let index = caches.firstIndex(of: webCache) else { return }
         UIImage.removeImage(with: webCache.snapshotUrl)
         let _ = withAnimation(.easeInOut) {
-            store.remove(at: index)
+            caches.remove(at: index)
         }
         saveCaches()
     }
@@ -130,22 +164,40 @@ class WebCacheMgr: ObservableObject {
     func saveCaches() {
         saveCacheTimes += 1
         print("have saved times: \(saveCacheTimes)")
-        let data = try? JSONEncoder().encode(store)
+        let data = try? JSONEncoder().encode(caches)
         UserDefaults.standard.set(data, forKey: userdefaultKey)
     }
     
-    static func cache(at index: Int) -> WebCache {
-        return WebCacheMgr.shared.store[index]
+    func cache(at index: Int) -> WebCache {
+        return caches[index]
     }
     
-    func loadCaches() {
+    func index(of cache: WebCache) -> Int? {
+        return caches.firstIndex(of: cache)
+    }
+    
+    var cacheCount: Int {
+        return caches.count
+    }
+    
+    private func loadCaches() {
         if let data = UserDefaults.standard.data(forKey: userdefaultKey) {
             if let items = try? JSONDecoder().decode([WebCache].self, from: data) {
-                store = items
+                caches = items
             }
         }
-        if store.count == 0 {
-            store = [.init()]
+        if caches.count == 0 {
+            createOne()
+        }
+    }
+    
+    private func webWrapper(of expectedId: UUID) -> WebWrapper {
+        if let wrapper = webWrappers.filter({ $0.id == expectedId }).first {
+            return wrapper
+        } else {
+            let wrapper = WebWrapper(cacheID: expectedId)
+            webWrappers.append(wrapper)
+            return wrapper
         }
     }
 }

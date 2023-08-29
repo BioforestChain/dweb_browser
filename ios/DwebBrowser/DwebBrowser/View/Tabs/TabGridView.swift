@@ -24,13 +24,12 @@ struct CellFramePreferenceKey: PreferenceKey {
 struct TabGridView: View {
     @EnvironmentObject var selectedTab: SelectedTab
     @EnvironmentObject var toolbarState: ToolBarState
+    @EnvironmentObject var webcacheStore: WebCacheStore
     
-    @ObservedObject var cacheStore = WebCacheMgr.shared
     @ObservedObject var animation: ShiftAnimation
     @ObservedObject var gridState: TabGridState
     
     @State var isFirstRecord: Bool = true
-    
     @State var frames: [CellFrameInfo] = []
 
     @Binding var selectedCellFrame: CGRect
@@ -52,17 +51,17 @@ struct TabGridView: View {
                     LazyVGrid(columns: [
                         GridItem(.adaptive(minimum: screen_width/3.0, maximum: screen_width/2.0), spacing: gridHSpace),
                     ], spacing: gridVSpace) {
-                        ForEach(cacheStore.store, id: \.id) { webCache in
+                        ForEach(webcacheStore.caches, id: \.id) { webCache in
                             GridCell(webCache: webCache, isSelected: isSelected(webCache: webCache))
                                 .id(webCache.id)
                                 .background(GeometryReader { geometry in
                                     Color.clear
                                         .preference(key: CellFramePreferenceKey.self,
-                                                    value: [CellFrameInfo(index: cacheStore.store.firstIndex(of: webCache) ?? 0, frame: geometry.frame(in: .global))])
+                                                    value: [CellFrameInfo(index: webcacheStore.index(of: webCache) ?? 0, frame: geometry.frame(in: .global))])
                                 })
                             
                                 .onTapGesture {
-                                    guard let tapIndex = cacheStore.store.firstIndex(of: webCache) else { return }
+                                    guard let tapIndex = webcacheStore.index(of: webCache) else { return }
                                     let geoFrame = geo.frame(in: .global)
                                     if selectedTab.curIndex != tapIndex {
                                         selectedTab.curIndex = tapIndex
@@ -93,20 +92,20 @@ struct TabGridView: View {
                     if $0.count > 0 {
                         self.frames = $0
                     }
-                    printWithDate(msg: "end scrolling and record cell frames : \($0)")
+                    printWithDate("end scrolling and record cell frames : \($0)")
                 }
                 .onChange(of: deleteCache.cacheId, perform: { cacheId in
-                    if let cache = WebCacheMgr.shared.store.filter({ $0.id == cacheId }).first {
-                        cacheStore.remove(webCache: cache)
-                        if selectedTab.curIndex >= WebCacheMgr.shared.store.count {
-                            selectedTab.curIndex = WebCacheMgr.shared.store.count - 1
+                    if let cache = webcacheStore.caches.filter({ $0.id == cacheId }).first {
+                        webcacheStore.remove(webCache: cache)
+                        if selectedTab.curIndex >= webcacheStore.cacheCount {
+                            selectedTab.curIndex = webcacheStore.cacheCount - 1
                             selectedCellFrame = cellFrame(at: selectedTab.curIndex)
                         }
                     }
                 })
                 .onChange(of: toolbarState.shouldExpand) { shouldExpand in
                     if shouldExpand { // 准备放大动画
-                        animation.snapshotImage = WebCacheMgr.shared.store[selectedTab.curIndex].snapshotImage
+                        animation.snapshotImage = webcacheStore.cache(at: selectedTab.curIndex).snapshotImage
                         animation.progress = .startExpanding
                         if cellFrame(at: selectedTab.curIndex) != .zero {
                             selectedCellFrame = cellFrame(at: selectedTab.curIndex)
@@ -128,11 +127,11 @@ struct TabGridView: View {
                         }
                     }
                 }
-                .onChange(of: cacheStore.store) { store in
+                .onChange(of: webcacheStore.caches) { store in
                     if store.count == 0 { // 准备放大动画
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: {
-                            WebCacheMgr.shared.createOne()
-                            selectedTab.curIndex = WebCacheMgr.shared.store.count - 1
+                            webcacheStore.createOne()
+                            selectedTab.curIndex = webcacheStore.cacheCount - 1
                             selectedCellFrame = CGRect(origin: CGPoint(x: screen_width/2, y: screen_height/2), size: CGSize(width: 5, height: 5))
                             toolbarState.shouldExpand = true
                         })
@@ -149,24 +148,24 @@ struct TabGridView: View {
         let needScroll = !(geoFrame.minY <= currentFrame.minY && geoFrame.maxY >= currentFrame.maxY)
 
         if needScroll {
-            printWithDate(msg: "star scroll tp adjust")
+            printWithDate("star scroll tp adjust")
 
-            let webCache = cacheStore.store[selectedTab.curIndex]
+            let webCache = webcacheStore.cache(at: selectedTab.curIndex)
             withAnimation(.linear(duration: 0.1)) {
                 scrollproxy.scrollTo(webCache.id)
             }
         }
         
-        let waitingDuration = needScroll ? 0.6 : 0
+        let waitingDuration = needScroll ? 0.5 : 0.2  //0.5是试出来的，少于这个时间滚动未完成，cell的位置不正确. 0.2是因为tabpage在某种情况下会收到两次shouldExpand的onchange事件，0.2是为了等第二次截图完成
         DispatchQueue.main.asyncAfter(deadline: .now() + waitingDuration) {
             selectedCellFrame = cellFrame(at: selectedTab.curIndex)
-            printWithDate(msg: "cell at \(selectedTab.curIndex) frame is:\(selectedCellFrame)")
+            printWithDate("cell at \(selectedTab.curIndex) frame is:\(selectedCellFrame)")
             afterObtainCellFrame()
         }
     }
     
     func isSelected(webCache: WebCache) -> Bool {
-        cacheStore.store.firstIndex(of: webCache) == selectedTab.curIndex
+        webcacheStore.index(of: webCache) == selectedTab.curIndex
     }
     
     func cellFrame(at index: Int) -> CGRect {

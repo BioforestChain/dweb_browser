@@ -8,6 +8,8 @@
 import Combine
 import SwiftUI
 
+//let webWrapper = WebWrapper(cacheID: UUID())
+
 struct AddressBar: View {
     var index: Int
 
@@ -27,6 +29,7 @@ struct AddressBar: View {
     private var isVisible: Bool { index == selectedTab.curIndex }
     private var shouldShowProgress: Bool { webWrapper.estimatedProgress > 0.0 && webWrapper.estimatedProgress < 1.0 && !addressBar.isFocused }
     private var textColor: Color { isAdressBarFocused ? .black : webCache.isBlank() ? .networkTipColor : .black }
+//    var webWrapper: WebWrapper { WebWrapper(cacheID: webCache.id) }
 
     var body: some View {
         ZStack(alignment: .leading) {
@@ -99,7 +102,7 @@ struct AddressBar: View {
                 displayText = webCache.isBlank() ? addressbarHolder : webCache.lastVisitedUrl.getDomain()
             }
             .onChange(of: addressBar.isFocused) { isFocused in
-                printWithDate(msg: " addressBar.isFocused onChange:\(isFocused)")
+                printWithDate( " addressBar.isFocused onChange:\(isFocused)")
                 if !isFocused, isVisible {
                     isAdressBarFocused = isFocused
                     if addressBar.inputText.isEmpty { // 点击取消按钮
@@ -110,9 +113,8 @@ struct AddressBar: View {
             .onSubmit {
                 let url = URL.createUrl(inputText)
                 DispatchQueue.main.async {
-                    let webcache = WebCacheMgr.shared.store[index]
-                    if !webcache.shouldShowWeb {
-                        webcache.lastVisitedUrl = url
+                    if !webCache.shouldShowWeb {
+                        webCache.lastVisitedUrl = url
                     }
                     openingLink.clickedLink = url
                     isAdressBarFocused = false

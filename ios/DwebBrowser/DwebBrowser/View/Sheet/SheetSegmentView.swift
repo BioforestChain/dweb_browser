@@ -17,9 +17,10 @@ struct SheetSegmentView: View {
     @State var selectedCategory = SheetCategory.bookmark
 
     @EnvironmentObject var selectedTab:SelectedTab
-    @ObservedObject var webcacheMgr = WebCacheMgr.shared
+    @EnvironmentObject var webcacheStore: WebCacheStore
+//    @ObservedObject var webcacheMgr = WebCacheStore.shared
     var categoryList: [SheetCategory] {
-        let showWeb = webcacheMgr.store[selectedTab.curIndex].shouldShowWeb
+        let showWeb = webcacheStore.cache(at: selectedTab.curIndex).shouldShowWeb
         return showWeb ? [.menu, .bookmark, .history] : [.bookmark, .history]
     }
     

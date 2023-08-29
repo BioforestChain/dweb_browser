@@ -12,6 +12,7 @@ struct TabsContainerView: View {
     @EnvironmentObject var selectedTab: SelectedTab
     @EnvironmentObject var toolbarState: ToolBarState
     @EnvironmentObject var addressBar: AddressBarState
+    @EnvironmentObject var webcacheStore: WebCacheStore
 
     @StateObject var gridState = TabGridState()
     @StateObject var animation = ShiftAnimation()
@@ -33,12 +34,14 @@ struct TabsContainerView: View {
 
             ZStack {
                 TabGridView(animation: animation, gridState: gridState, selectedCellFrame: $selectedCellFrame)
+                    .environmentObject(webcacheStore)
 
                 if isExpanded, !animation.progress.isAnimating() {
                     Color.bkColor.ignoresSafeArea()
                 }
 
                 PagingScrollView(showTabPage: $showTabPage)
+                    .environmentObject(webcacheStore)
                     .environmentObject(animation)
                     .allowsHitTesting(showTabPage) // This line allows TabGridView to receive the tap event, down through click
 
@@ -68,15 +71,15 @@ struct TabsContainerView: View {
 
             .onReceive(toolbarState.$createTabTapped) { createTabTapped in
                 if createTabTapped { // 准备放大动画
-                    WebCacheMgr.shared.createOne()
-                    selectedTab.curIndex = WebCacheMgr.shared.store.count - 1
+                    webcacheStore.createOne()
+                    selectedTab.curIndex = webcacheStore.cacheCount - 1
                     selectedCellFrame = CGRect(origin: CGPoint(x: screen_width/2, y: screen_height/2), size: CGSize(width: 5, height: 5))
                     toolbarState.shouldExpand = true
                 }
             }
 
             .onChange(of: selectedCellFrame) { newValue in
-                printWithDate(msg: "selecte cell rect changes to : \(newValue)")
+                printWithDate( "selecte cell rect changes to : \(newValue)")
             }
         }
     }
@@ -84,9 +87,12 @@ struct TabsContainerView: View {
     var animationImage: some View {
         Rectangle()
             .overlay(
-                Image(uiImage: animation.snapshotImage)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
+                ZStack{
+                    Image(uiImage: animation.snapshotImage)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                }
+                    
             )
             .cornerRadius(isExpanded ? 0 : gridcellCornerR)
             .animation(.default, value: isExpanded)
@@ -94,17 +100,17 @@ struct TabsContainerView: View {
                 guard progress != lastProgress else {
                     return
                 }
-
+                printWithDate("animation turns into \(animation.progress)")
                 lastProgress = progress
 
                 if progress == .startShrinking || progress == .startExpanding {
                     let isExpanding = animation.progress == .startExpanding
-                    printWithDate(msg: "animation : \(progress)")
+                    printWithDate( "animation : \(progress)")
                     if progress == .startShrinking {
                         gridState.scale = 0.8
                     }
 
-                    printWithDate(msg: "start to shifting animation")
+                    printWithDate( "start to shifting animation")
                     withAnimation(.easeOut(duration: 0.3)) {
                         addressBar.shouldDisplay = isExpanding
                         gridState.scale = isExpanding ? 0.8 : 1

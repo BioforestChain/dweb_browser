@@ -10,7 +10,8 @@ import SwiftUI
 struct BookmarkCell: View {
     @Environment(\.presentationMode) var presentationMode
     @EnvironmentObject var openingLink: OpeningLink
-    @EnvironmentObject var selectedTab:SelectedTab
+    @EnvironmentObject var selectedTab: SelectedTab
+    @EnvironmentObject var webcacheStore: WebCacheStore
     var linkRecord: LinkRecord
     var isLast: Bool
     var loadMoreAction: ()->Void
@@ -48,7 +49,7 @@ struct BookmarkCell: View {
             Color(white: 0.01, opacity: 0.01) // 添加一个空的透明视图
                  .onTapGesture {
                      guard let link = URL(string: linkRecord.link) else { return }
-                     let webcache = WebCacheMgr.shared.store[selectedTab.curIndex]
+                     let webcache = webcacheStore.cache(at: selectedTab.curIndex)
                      if !webcache.shouldShowWeb {
                          webcache.shouldShowWeb = true
                      }

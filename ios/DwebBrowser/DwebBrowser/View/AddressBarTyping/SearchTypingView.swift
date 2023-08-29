@@ -9,6 +9,7 @@ import SwiftUI
 
 struct SearchTypingView: View {
     @EnvironmentObject var addressBar: AddressBarState
+
     var body: some View {
         VStack(spacing: 0) {
             Text("搜索")

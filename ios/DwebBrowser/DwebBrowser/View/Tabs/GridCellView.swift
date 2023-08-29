@@ -52,12 +52,15 @@ struct GridCell: View {
                     )
                 HStack {
                     WebsiteIconImage(iconUrl: webCache.webIconUrl)
-                        .frame(width: 22, height: 22)
+                        .aspectRatio(contentMode: .fit)
+//                        .frame(height: gridCellH * 0.1)
 
                     Text(webCache.title)
                         .fontWeight(.semibold)
                         .lineLimit(1)
-                }.frame(height: gridcellBottomH)
+                }
+                .padding(.vertical, 3)
+                .frame(height: gridcellBottomH)
             }
             deleteButton
         }

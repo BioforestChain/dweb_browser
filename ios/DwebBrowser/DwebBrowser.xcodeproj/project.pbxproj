@@ -39,7 +39,7 @@
 		F0531F1C2A3463C4001FBE06 /* NoResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0531F1B2A3463C4001FBE06 /* NoResultView.swift */; };
 		F0531F1E2A3463E6001FBE06 /* LinkConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0531F1D2A3463E6001FBE06 /* LinkConfig.swift */; };
 		F0531F242A36BB55001FBE06 /* InstalledApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0531F232A36BB55001FBE06 /* InstalledApp.swift */; };
-		F08E10402A04917600899DF8 /* WebCacheMgr.swift in Sources */ = {isa = PBXBuildFile; fileRef = F08E103F2A04917600899DF8 /* WebCacheMgr.swift */; };
+		F08E10402A04917600899DF8 /* WebCacheStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F08E103F2A04917600899DF8 /* WebCacheStore.swift */; };
 		F08E10452A04FBEE00899DF8 /* Button.swift in Sources */ = {isa = PBXBuildFile; fileRef = F08E10442A04FBEE00899DF8 /* Button.swift */; };
 		F08E10532A08DC9C00899DF8 /* Environment.swift in Sources */ = {isa = PBXBuildFile; fileRef = F08E10522A08DC9C00899DF8 /* Environment.swift */; };
 		F08E10592A0B3AD700899DF8 /* View+ancester+keyboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = F08E10582A0B3AD700899DF8 /* View+ancester+keyboard.swift */; };
@@ -104,7 +104,7 @@
 		F3D5AABE2A52C1C5007C93D0 /* Button.swift in Sources */ = {isa = PBXBuildFile; fileRef = F08E10442A04FBEE00899DF8 /* Button.swift */; };
 		F3D5AABF2A52C1C5007C93D0 /* PagingScroll.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0B68D062A162DF000215036 /* PagingScroll.swift */; };
 		F3D5AAC02A52C1C5007C93D0 /* WebWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0B2AB162A03AC40000AD502 /* WebWrapper.swift */; };
-		F3D5AAC12A52C1C5007C93D0 /* WebCacheMgr.swift in Sources */ = {isa = PBXBuildFile; fileRef = F08E103F2A04917600899DF8 /* WebCacheMgr.swift */; };
+		F3D5AAC12A52C1C5007C93D0 /* WebCacheStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F08E103F2A04917600899DF8 /* WebCacheStore.swift */; };
 		F3D5AAC22A52C1C5007C93D0 /* Environment.swift in Sources */ = {isa = PBXBuildFile; fileRef = F08E10522A08DC9C00899DF8 /* Environment.swift */; };
 		F3D5AAC32A52C1C5007C93D0 /* WebWrapperMgr.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0E984302A21DC6D00F7180A /* WebWrapperMgr.swift */; };
 		F3D5AAC42A52C1C5007C93D0 /* InstalledApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0531F232A36BB55001FBE06 /* InstalledApp.swift */; };
@@ -200,7 +200,7 @@
 		F0531F1B2A3463C4001FBE06 /* NoResultView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NoResultView.swift; sourceTree = "<group>"; };
 		F0531F1D2A3463E6001FBE06 /* LinkConfig.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LinkConfig.swift; sourceTree = "<group>"; };
 		F0531F232A36BB55001FBE06 /* InstalledApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstalledApp.swift; sourceTree = "<group>"; };
-		F08E103F2A04917600899DF8 /* WebCacheMgr.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebCacheMgr.swift; sourceTree = "<group>"; };
+		F08E103F2A04917600899DF8 /* WebCacheStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebCacheStore.swift; sourceTree = "<group>"; };
 		F08E10442A04FBEE00899DF8 /* Button.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Button.swift; sourceTree = "<group>"; };
 		F08E10522A08DC9C00899DF8 /* Environment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Environment.swift; sourceTree = "<group>"; };
 		F08E10582A0B3AD700899DF8 /* View+ancester+keyboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+ancester+keyboard.swift"; sourceTree = "<group>"; };
@@ -376,7 +376,7 @@
 			isa = PBXGroup;
 			children = (
 				F049EFFF2A6E0FD500B41C89 /* NetworkPermission.swift */,
-				F08E103F2A04917600899DF8 /* WebCacheMgr.swift */,
+				F08E103F2A04917600899DF8 /* WebCacheStore.swift */,
 				F08E10522A08DC9C00899DF8 /* Environment.swift */,
 				F0E984302A21DC6D00F7180A /* WebWrapperMgr.swift */,
 				F0531F232A36BB55001FBE06 /* InstalledApp.swift */,
@@ -671,7 +671,7 @@
 				F34A47662A4D738B001E105A /* CustomUIScrollView.swift in Sources */,
 				F0B231E02A301EF4001EEFB8 /* InnerAppGridView.swift in Sources */,
 				F34A47642A4D738B001E105A /* DownloadImageViewModel.swift in Sources */,
-				F08E10402A04917600899DF8 /* WebCacheMgr.swift in Sources */,
+				F08E10402A04917600899DF8 /* WebCacheStore.swift in Sources */,
 				F028997729F7C38500B8754A /* DwebBrowserApp.swift in Sources */,
 				F3F63C492A77898200893931 /* ConsoleSwift.swift in Sources */,
 				F0B231E62A301EF4001EEFB8 /* HomePageView.swift in Sources */,
@@ -711,7 +711,7 @@
 				F3D5AABE2A52C1C5007C93D0 /* Button.swift in Sources */,
 				F3D5AABF2A52C1C5007C93D0 /* PagingScroll.swift in Sources */,
 				F3D5AAC02A52C1C5007C93D0 /* WebWrapper.swift in Sources */,
-				F3D5AAC12A52C1C5007C93D0 /* WebCacheMgr.swift in Sources */,
+				F3D5AAC12A52C1C5007C93D0 /* WebCacheStore.swift in Sources */,
 				F3D5AAC22A52C1C5007C93D0 /* Environment.swift in Sources */,
 				F3D5AAC32A52C1C5007C93D0 /* WebWrapperMgr.swift in Sources */,
 				F3D5AAC42A52C1C5007C93D0 /* InstalledApp.swift in Sources */,

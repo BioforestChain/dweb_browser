@@ -10,12 +10,11 @@ import SwiftUI
 struct HistoryCell: View {
     @Environment(\.presentationMode) var presentationMode
     @EnvironmentObject var openingLink: OpeningLink
-    @EnvironmentObject var selectedTab:SelectedTab
     var linkRecord: LinkRecord
     var isLast: Bool
+//    @Binding var shouldShowWeb: Bool
     var loadMoreAction: ()->Void
     private var dividerWidth: CGFloat { isLast ? 0 : 1000.0 }
-    
     var body: some View {
         ZStack(alignment: .leading){
 
@@ -48,10 +47,9 @@ struct HistoryCell: View {
             Color(white: 0.01, opacity: 0.01) // 添加一个空的透明视图
                  .onTapGesture {
                      guard let link = URL(string: linkRecord.link) else { return }
-                     let webcache = WebCacheMgr.shared.store[selectedTab.curIndex]
-                     if !webcache.shouldShowWeb {
-                         webcache.shouldShowWeb = true
-                     }
+//                     if !shouldShowWeb {
+//                         shouldShowWeb = true
+//                     }
                      openingLink.clickedLink = link
                      presentationMode.wrappedValue.dismiss()
                  }

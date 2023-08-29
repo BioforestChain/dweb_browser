@@ -14,8 +14,9 @@ struct ToolbarView: View {
     @EnvironmentObject var addressBarState: AddressBarState
     @EnvironmentObject var openingLink: OpeningLink
     @EnvironmentObject var addressBar: AddressBarState
+    @EnvironmentObject var webcacheStore: WebCacheStore
 
-    @ObservedObject var wrapperMgr = WebWrapperMgr.shared
+//    @ObservedObject var wrapperMgr = WebWrapperMgr.shared
     private let itemSize = CGSize(width: 28, height: 28)
     @State private var toolbarHeight: CGFloat = toolBarH
     
@@ -38,11 +39,10 @@ struct ToolbarView: View {
             BiColorButton(size: itemSize, imageName: "add", disabled: false) {
                 print("open new tab was clicked")
                 toolbarState.createTabTapped = true
-
             }
             
             Spacer()
-            Text("\(wrapperMgr.store.count)个标签页")
+            Text("\(webcacheStore.cacheCount)个标签页")
                 .font(.system(size: 18, weight: .medium))
                 .foregroundColor(Color.ToolbarColor)
             Spacer()
@@ -72,7 +72,7 @@ struct ToolbarView: View {
                     toolbarState.goForwardTapped = true
                 }
                 Spacer()
-                if WebCacheMgr.cache(at: selectedTab.curIndex).shouldShowWeb {
+                if webcacheStore.cache(at: selectedTab.curIndex).shouldShowWeb {
                     BiColorButton(size: itemSize, imageName: "scan", disabled: false) {
                         print("scan qrcode")
                         isPresentingScanner = true
@@ -96,7 +96,7 @@ struct ToolbarView: View {
                     withAnimation {
                         showMoreSheet = true
                     }
-                    printWithDate(msg: "more menu was clicked")
+                    printWithDate("more menu was clicked")
                 }
                 
                 Spacer()
@@ -107,9 +107,9 @@ struct ToolbarView: View {
         .background(Color.bkColor)
 
         .onChange(of: selectedTab.curIndex, perform: { index in
-            let currentWrapper = wrapperMgr.store[index]
-            toolbarState.canGoBack = currentWrapper.canGoBack
-            toolbarState.canGoForward = currentWrapper.canGoForward
+//            let currentWrapper = wrapperMgr.store[index]
+//            toolbarState.canGoBack = currentWrapper.canGoBack
+//            toolbarState.canGoForward = currentWrapper.canGoForward
         })
         .onReceive(addressBarState.$isFocused) { isFocused in
             withAnimation {
@@ -120,7 +120,7 @@ struct ToolbarView: View {
         .sheet(isPresented: $isPresentingScanner) {
             CodeScannerView(codeTypes: [.qr], showViewfinder: true) { response in
                 if case let .success(result) = response {
-                    //TODO  扫描结果result.string
+                    // TODO: 扫描结果result.string
                     print(result.string)
                     isPresentingScanner = false
                     addressBar.inputText = result.string
@@ -133,8 +133,8 @@ struct ToolbarView: View {
             }
         }
         
-        .sheet(isPresented: $showMoreSheet){
-            SheetSegmentView(selectedCategory: WebCacheMgr.shared.store[selectedTab.curIndex].shouldShowWeb ? .menu : .bookmark)
+        .sheet(isPresented: $showMoreSheet) {
+            SheetSegmentView(selectedCategory: webcacheStore.cache(at: selectedTab.curIndex).shouldShowWeb ? .menu : .bookmark)
                 .environmentObject(selectedTab)
                 .environmentObject(openingLink)
                 .presentationDetents([.medium, .large])

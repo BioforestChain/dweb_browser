@@ -13,6 +13,8 @@ struct BrowserView: View {
     @StateObject var addressBar = AddressBarState()
     @StateObject var openingLink = OpeningLink()
     @StateObject var toolBarState = ToolBarState()
+    @StateObject var webcacheStore = WebCacheStore()
+
     @State private var isNetworkSegmentViewPresented = false
 
     @EnvironmentObject var network: NetworkManager
@@ -23,7 +25,9 @@ struct BrowserView: View {
                     TabsContainerView()
                     ToolbarView()
                 }
+                
                 .background(Color.bkColor)
+                .environmentObject(webcacheStore)
                 .environmentObject(openingLink)
                 .environmentObject(selectedTab)
                 .environmentObject(addressBar)

@@ -10,34 +10,37 @@ import SwiftUI
 var disabledDragGesture = DragGesture().onChanged { _ in }.onEnded { _ in }
 
 struct PagingScrollView: View {
-    @ObservedObject var cacheMgr = WebCacheMgr.shared
     @EnvironmentObject var toolBarState: ToolBarState
     @EnvironmentObject var addressBar: AddressBarState
     @EnvironmentObject var selectedTab: SelectedTab
     @EnvironmentObject var animation: ShiftAnimation
+    @EnvironmentObject var webcacheStore: WebCacheStore
 
     @StateObject var keyboard = KeyBoard()
     @Binding var showTabPage: Bool
 
     @State private var addressbarOffset: CGFloat = 0
-
+    var webwrappers: [WebWrapper] { webcacheStore.webWrappers }
+    
     var body: some View {
         GeometryReader { geometry in
             VStack {
                 TabView(selection: $selectedTab.curIndex) {
-                    ForEach(0 ..< cacheMgr.store.count, id: \.self) { index in
+                    
+                    ForEach(0 ..< webcacheStore.cacheCount, id: \.self) { index in
                         LazyVStack(spacing: 0) {
                             ZStack {
                                 if showTabPage {
                                     ZStack {
                                         HStack {
-                                            TabPageView(index: index, webWrapper: WebWrapperMgr.shared.store[index])
+                                            TabPageView(index: index, webWrapper: webwrappers[index])
                                                 .frame(height: geometry.size.height - addressBarH) // 使用GeometryReader获取父容器高度
                                                 .gesture(disabledDragGesture)
                                         }
 
                                         if addressBar.isFocused {
                                             SearchTypingView()
+                                                .environmentObject(webcacheStore)
                                         }
                                     }
                                 } else {
@@ -47,7 +50,7 @@ struct PagingScrollView: View {
                                 }
                             }
 
-                            AddressBar(index: index, webWrapper: WebWrapperMgr.shared.store[index], webCache: WebCacheMgr.cache(at: index))
+                            AddressBar(index: index, webWrapper: webwrappers[index], webCache: webcacheStore.cache(at: index))
                                 .environmentObject(keyboard)
                                 .frame(height: addressBarH)
                                 .background(Color.bkColor)
@@ -60,17 +63,17 @@ struct PagingScrollView: View {
 
                                 .onChange(of: keyboard.height) { height in
                                     if #available(iOS 16.3, *) {
-                                        printWithDate(msg: "observed keyboard height has changed")
+                                        printWithDate("observed keyboard height has changed")
 
 #if !DwebBrowser
-                                        printWithDate(msg: "now we are in C#########")
+                                        printWithDate( "now we are in C#########")
                                         if index == selectedTab.curIndex {
                                             if height == 0 {
                                                 addressbarOffset = 0
                                             } else {
                                                 addressbarOffset = -height
                                             }
-                                            printWithDate(msg: "addressbarOffset is \(addressbarOffset)")
+                                            printWithDate( "addressbarOffset is \(addressbarOffset)")
                                         }
 #endif
                                     }
@@ -81,6 +84,7 @@ struct PagingScrollView: View {
                 }
                 .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
             }
+            
             .onChange(of: animation.progress) { progress in
                 if progress.isAnimating() {
                     showTabPage = false

@@ -10,6 +10,8 @@ import SwiftUI
 struct HistoryView: View {
     @State private var searchText = ""
     @ObservedObject var histories: HistoryMgr
+    @EnvironmentObject var webcacheStore: WebCacheStore
+    @EnvironmentObject var selectedTab:SelectedTab
 
     var body: some View {
         
@@ -21,7 +23,7 @@ struct HistoryView: View {
                         ForEach(0..<section.items.count, id: \.self) { row in
                             let item = section.items[row]
                             let isLast = histories.sections.last?.items.last == item
-                                HistoryCell(linkRecord: item, isLast: isLast){
+                            HistoryCell(linkRecord: item, isLast: isLast){
                                     //click load more
                                     histories.loadMoreHistoryData()
                                 }

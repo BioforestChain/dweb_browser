@@ -22,7 +22,7 @@ class NetworkManager: ObservableObject {
         monitor?.start(queue: queue)
         monitor?.pathUpdateHandler = { [weak self] path in
             DispatchQueue.main.async {
-                printWithDate(msg: "network permission \(path.status)")
+                printWithDate( "network permission \(path.status)")
                 self?.isNetworkAvailable = path.status == .satisfied
             }
         }

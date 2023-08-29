@@ -14,10 +14,13 @@ struct TabPageView: View {
     @EnvironmentObject var selectedTab: SelectedTab
     @EnvironmentObject var openingLink: OpeningLink
     @EnvironmentObject var addressBar: AddressBarState
+    @EnvironmentObject var webcacheStore: WebCacheStore
 
     var index: Int
-    var webCache: WebCache { WebCacheMgr.shared.store[index] }
+    var webCache: WebCache { webcacheStore.cache(at: index) }
     @ObservedObject var webWrapper: WebWrapper
+
+//    var webWrapper: WebWrapper { WebWrapper(cacheID: webcacheStore.cache(at: index).id) }
 
     @State private var snapshotHeight: CGFloat = 0
     private var isVisible: Bool { index == selectedTab.curIndex }
@@ -26,6 +29,7 @@ struct TabPageView: View {
             ZStack {
                 if webCache.shouldShowWeb {
                     webComponent
+//                    Color.purple
                 }
 
                 if !webCache.shouldShowWeb {
@@ -50,27 +54,29 @@ struct TabPageView: View {
                     toolbarState.goBackTapped = false
                 }
             }
+
             .onChange(of: toolbarState.shouldExpand) { shouldExpand in
-                if !shouldExpand { // 截图，为缩小动画做准备
-                    let index = WebWrapperMgr.shared.store.firstIndex(of: webWrapper)
-                    if index == selectedTab.curIndex {
-                        self.environmentObject(selectedTab).environmentObject(toolbarState).environmentObject(animation).environmentObject(openingLink).environmentObject(addressBar)
-                            .takeSnapshot(completion: { image in
-                                let scale = image.scale
-                                let cropRect = CGRect(x: 0, y: safeAreaTopHeight * scale, width: screen_width * scale, height: (snapshotHeight - addressBarH - toolBarH) * scale)
-                                if let croppedCGImage = image.cgImage?.cropping(to: cropRect) {
-                                    let croppedImage = UIImage(cgImage: croppedCGImage)
-                                    animation.snapshotImage = croppedImage
-                                    webCache.snapshotUrl = UIImage.createLocalUrl(withImage: croppedImage, imageName: webCache.id.uuidString)
-                                }
-                                if animation.progress == .obtainedCellFrame {
-                                    animation.progress = .startShrinking
-                                    printWithDate(msg: "startShrinking in obtainedSnapshot")
-                                } else {
-                                    animation.progress = .obtainedSnapshot
-                                }
-                            })
-                    }
+                if isVisible, !shouldExpand { // 截图，为缩小动画做准备
+                    self
+                        .environmentObject(selectedTab).environmentObject(toolbarState).environmentObject(animation)
+                        .environmentObject(openingLink).environmentObject(addressBar).environmentObject(webcacheStore)
+                        .takeSnapshot(completion: { image in
+                            printWithDate("has took a snapshot")
+                            let scale = image.scale
+                            let cropRect = CGRect(x: 0, y: safeAreaTopHeight * scale, width: screen_width * scale, height: (snapshotHeight - addressBarH - toolBarH) * scale)
+                            if let croppedCGImage = image.cgImage?.cropping(to: cropRect) {
+                                let croppedImage = UIImage(cgImage: croppedCGImage)
+                                animation.snapshotImage = croppedImage
+                                webCache.snapshotUrl = UIImage.createLocalUrl(withImage: croppedImage, imageName: webCache.id.uuidString)
+                            }
+                            if animation.progress == .obtainedCellFrame {
+                                animation.progress = .startShrinking
+                                printWithDate("progress: start Shrinking in tabpage")
+                            } else {
+                                animation.progress = .obtainedSnapshot
+                                printWithDate("progress: obtained Snapshot")
+                            }
+                        })
                 }
             }
         }
@@ -118,7 +124,7 @@ struct TabPageView: View {
             })
             .onChange(of: webWrapper.estimatedProgress) { newValue in
                 if newValue >= 1.0 {
-                    WebCacheMgr.shared.saveCaches()
+                    webcacheStore.saveCaches()
                     if !TraceLessMode.shared.isON {
                         let manager = HistoryCoreDataManager()
                         let history = LinkRecord(link: webCache.lastVisitedUrl.absoluteString, imageName: webCache.webIconUrl.absoluteString, title: webCache.title, createdDate: Date().milliStamp)
@@ -126,12 +132,13 @@ struct TabPageView: View {
                     }
                 }
             }
-            .onReceive(addressBar.$needRefreshOfIndex) { refreshIndex in
+            .onChange(of: addressBar.needRefreshOfIndex, perform: { refreshIndex in
                 if refreshIndex == index {
                     webWrapper.webView.reload()
                     addressBar.needRefreshOfIndex = -1
                 }
-            }
+            })
+
             .onReceive(addressBar.$stopLoadingOfIndex) { stopIndex in
                 if stopIndex == index {
                     webWrapper.webView.stopLoading()

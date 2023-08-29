@@ -124,7 +124,7 @@ extension BrowserWebview: WKScriptMessageHandler, WKNavigationDelegate {
 @dynamicMemberLookup
 class WebWrapper: ObservableObject, Identifiable, Hashable, Equatable {
     var id = UUID()
-
+    
     @Published var webView: BrowserWebview {
         didSet {
             setupObservers()
@@ -196,7 +196,9 @@ struct WebView: View, UIViewRepresentable {
         return webView
     }
 
-    func updateUIView(_ uiView: BrowserWebview, context: UIViewRepresentableContext<WebView>) {}
+    func updateUIView(_ uiView: BrowserWebview, context: UIViewRepresentableContext<WebView>) {
+        printWithDate("visiting updateUIView function")
+    }
 
     func makeCoordinator() -> Coordinator {
         Coordinator(self)

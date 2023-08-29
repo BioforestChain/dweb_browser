@@ -10,7 +10,7 @@ import SwiftUI
 import UIKit
 import WebKit
 
-func printWithDate(msg: String = "") {
+func printWithDate(_ msg: String = "") {
     let date = Date()
     let formatter = DateFormatter()
     formatter.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS"

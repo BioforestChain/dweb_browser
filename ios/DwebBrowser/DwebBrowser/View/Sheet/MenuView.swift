@@ -9,12 +9,14 @@ import SwiftUI
 
 struct MenuView: View {
     @EnvironmentObject var selectedTab: SelectedTab
+    @EnvironmentObject var webcacheStore: WebCacheStore
     @State private var isTraceless: Bool = TraceLessMode.shared.isON
     @State var isShare: Bool = false
     @State var isAlert: Bool = false
     private let titles: [String] = ["添加书签","分享"]
     private let imagesNames: [String] = ["bookmark", "share"]
-    
+    var webCache: WebCache { webcacheStore.cache(at: selectedTab.curIndex) }
+
     @State private var offsetY: CGFloat = 300
     
     var body: some View {
@@ -29,7 +31,6 @@ struct MenuView: View {
                         MenuCell(title: titles[index], imageName: imagesNames[index])
                     }
                 } else if index == 1 {
-                    let webCache = WebCacheMgr.shared.store[selectedTab.curIndex]
                     ShareLink(item: webCache.lastVisitedUrl.absoluteString) {
                         MenuCell(title: titles[index], imageName: imagesNames[index])
                     }
@@ -70,7 +71,7 @@ struct MenuView: View {
     
     private func addToBookmark() {
     
-        let webCache = WebCacheMgr.shared.store[selectedTab.curIndex]
+//        let webCache = WebCacheStore.shared.store[selectedTab.curIndex]
         let manager = BookmarkCoreDataManager()
         let bookmark = LinkRecord(link: webCache.lastVisitedUrl.absoluteString, imageName: webCache.webIconUrl.absoluteString, title: webCache.title, createdDate: Date().milliStamp)
         let result = manager.insertBookmark(bookmark: bookmark)
