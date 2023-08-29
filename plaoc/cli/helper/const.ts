@@ -47,11 +47,16 @@ export const defaultMetadata: $JmmAppInstallManifest = {
   bundle_url: "./www.zip",
   bundle_hash: "sha256:",
   bundle_size: 0,
-  /**格式为 `hex:{signature}` */
+  /**
+   * 格式为 `hex:{signature}`
+   * */
   bundle_signature: "",
-  /**该链接必须使用和app-id同域名的网站链接，
+  /**
+   * 该链接必须使用和app-id同域名的网站链接，
    * 请求回来是一个“算法+公钥地址”的格式 "{algorithm}:hex;{publicKey}"，
-   * 比如说 `rsa-sha256:hex;2...1` */
+   * 比如说 `rsa-sha256:hex;2...1`
+   * 该字段将会用于验证应用持有者的身份
+   *  */
   public_key_url: "",
   release_date: new Date().toString(),
   change_log: "",

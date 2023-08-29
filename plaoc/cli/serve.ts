@@ -22,7 +22,7 @@ export const doServeFlags = new Command()
   })
   .option("-d --dir <dir:string>", "Root directory of the project, generally the same level as manifest.json.")
   .option("-m --mode <mode:serveMode>", "The processing mode of the service.")
-  .option("--dev [dev:boolean]", "Is it development mode.", {
+  .option("--dev <dev:boolean>", "Is it development mode.", {
     default: true,
   })
   .action((options, metadata) => {

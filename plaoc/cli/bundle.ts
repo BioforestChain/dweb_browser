@@ -6,16 +6,16 @@ import { $BundleOptions } from "./helper/const.ts";
 import { BundleZipGenerator, MetadataJsonGenerator, NameFlagHelper } from "./helper/generator.ts";
 
 export const doBundleFlags = new Command()
-  .arguments("<metadata:string>")
-  .description("Packaged items.")
+  .arguments("<source:string>")
+  .description("Packaged source code folder.")
   .option("-o --out <out:string>", "Directory for packaged output.",{
     default:"bundle"
   })
   .option("-v --version <version:string>", "Set app packaging version.")
   .option("-d --dir <dir:string>", "Root directory of the project, generally the same level as manifest.json.")
-  .option("-c --clear [clear:boolean]", "Empty the cache.")
+  .option("-c --clear <clear:boolean>", "Empty the cache.")
   .option("--id <id:string>", "set app id")
-  .option("--dev [dev:boolean]", "Is it development mode.")
+  .option("--dev <dev:boolean>", "Is it development mode.")
   .action((options, metadata) => {
     doBundle({ ...options, metadata });
   });
