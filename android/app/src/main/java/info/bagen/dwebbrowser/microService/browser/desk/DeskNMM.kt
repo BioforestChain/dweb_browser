@@ -9,6 +9,7 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.ChangeState
 import org.dweb_browser.helper.ChangeableMap
@@ -19,7 +20,6 @@ import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.MMID
 import org.dweb_browser.microservice.help.cors
-import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
 import org.dweb_browser.microservice.ipc.helper.IpcResponse
@@ -148,7 +148,7 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
         val inputStream = ReadableStream(onStart = { controller ->
           val off = deskController.onUpdate {
             try {
-              controller.enqueue((gson.toJson(deskController.getDesktopApps()) + "\n").toByteArray())
+              controller.enqueue((Json.encodeToString(deskController.getDesktopApps()) + "\n").toByteArray())
             } catch (e: Exception) {
               controller.close()
               e.printStackTrace()
@@ -172,7 +172,7 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
         val inputStream = ReadableStream(onStart = { controller ->
           val off = taskBarController.onUpdate {
             try {
-              controller.enqueue((gson.toJson(taskBarController.getTaskbarAppList(limit)) + "\n").toByteArray())
+              controller.enqueue((Json.encodeToString(taskBarController.getTaskbarAppList(limit)) + "\n").toByteArray())
             } catch (e: Exception) {
               controller.close()
               e.printStackTrace()
@@ -191,7 +191,7 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
         val inputStream = ReadableStream(onStart = { controller ->
           val off = taskBarController.onStatus { status ->
             try {
-              controller.enqueueBackground((gson.toJson(status) + "\n").toByteArray())
+              controller.enqueueBackground((Json.encodeToString(status) + "\n").toByteArray())
             } catch (e: Exception) {
               controller.close()
               e.printStackTrace()

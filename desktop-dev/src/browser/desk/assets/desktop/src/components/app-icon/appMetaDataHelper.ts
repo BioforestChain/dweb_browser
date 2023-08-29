@@ -5,6 +5,7 @@ import { readAcceptSvg } from "src/provider/api.ts";
 import { buildApiRequestArgs } from "src/provider/fetch.ts";
 import { $WidgetAppData } from "src/types/app.type.ts";
 import { ShallowRef, watchEffect } from "vue";
+import "../../shims.ts";
 import blankApp_svg from "./blankApp.svg";
 import { $AppIconInfo } from "./types.ts";
 
