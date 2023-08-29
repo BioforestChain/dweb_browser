@@ -89,7 +89,7 @@ public partial class WindowController
     {
         if (!IsMaximized())
         {
-            BeforeMaximizeBounds = (WindowBounds)State.Bounds.Clone();
+            BeforeMaximizeBounds = State.Bounds with { };
             State.Mode = WindowMode.MAXIMIZE;
         }
     }
@@ -114,11 +114,11 @@ public partial class WindowController
             {
                 case null:
                     var bounds = new WindowBounds(
-                        State.Bounds.Width / 4,
-                        State.Bounds.Height / 4,
-                        State.Bounds.Width / 2,
-                        State.Bounds.Height / 2);
-                    State.Bounds = (WindowBounds)bounds.Clone();
+                        State.Bounds.width / 4,
+                        State.Bounds.height / 4,
+                        State.Bounds.width / 2,
+                        State.Bounds.height / 2);
+                    State.Bounds = bounds with { };
 
                     break;
                 default:

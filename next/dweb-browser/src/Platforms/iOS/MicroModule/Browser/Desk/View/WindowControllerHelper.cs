@@ -44,10 +44,10 @@ public partial class WindowController
         else
         {
             var bounds = State.Bounds;
-            var winWidth = Math.Max(bounds.Width, limits.MinWidth);
-            var winHeight = Math.Max(bounds.Height, limits.MinHeight);
+            var winWidth = Math.Max(bounds.width, limits.MinWidth);
+            var winHeight = Math.Max(bounds.height, limits.MinHeight);
 
-            return State.UpdateBounds(new WindowBounds(bounds.Left, bounds.Top, winWidth, winHeight));
+            return State.UpdateBounds(new WindowBounds(bounds.left, bounds.top, winWidth, winHeight));
         }
     }
 }

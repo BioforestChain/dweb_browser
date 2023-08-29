@@ -23,7 +23,7 @@ public class DeskAppUIView : UIView
     public void Render(UIView view, WindowRenderScope windowRenderScope)
     {
         var bounds = windowRenderScope.Bounds;
-        Frame = new CGRect(bounds.Left, bounds.Top, bounds.Width, bounds.Height);
+        Frame = new CGRect(bounds.left, bounds.top, bounds.width, bounds.height);
 
         InitContentView();
 

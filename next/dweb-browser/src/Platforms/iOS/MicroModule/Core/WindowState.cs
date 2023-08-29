@@ -104,6 +104,16 @@ public class WindowState
         return Bounds;
     }
 
+    public WindowBounds UpdateMutableBounds(WindowBounds.Mutable updater)
+    {
+        if (!Bounds.ToMutable().Equals(updater))
+        {
+            Bounds = updater.ToImmutable();
+        }
+
+        return Bounds;
+    }
+
     /// <summary>
     /// 窗口模式
     /// </summary>

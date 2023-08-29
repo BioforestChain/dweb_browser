@@ -26,35 +26,38 @@ public partial class DesktopWindowsManager : WindowsManager
     {
         var offAdapter = WindowAdapterManager.Instance.Append(async winState =>
         {
+            var mutable = winState.Bounds.ToMutable();
             {
                 var bounds = UIScreen.MainScreen.Bounds;
                 var displayWidth = Convert.ToSingle(bounds.Width);
                 var displayHeight = Convert.ToSingle(bounds.Height);
-                if (float.IsNaN(winState.Bounds.Width))
+                if (float.IsNaN(mutable.Width))
                 {
-                    winState.Bounds.Width = (float)(displayWidth / Math.Sqrt(2));
+                    mutable.Width = (float)(displayWidth / Math.Sqrt(2));
                 }
-                if (float.IsNaN(winState.Bounds.Height))
+                if (float.IsNaN(mutable.Height))
                 {
-                    winState.Bounds.Height = (float)(displayHeight / Math.Sqrt(3));
+                    mutable.Height = (float)(displayHeight / Math.Sqrt(3));
                 }
-                if (float.IsNaN(winState.Bounds.Left))
+                if (float.IsNaN(mutable.Left))
                 {
-                    var maxLeft = displayWidth - winState.Bounds.Width;
+                    var maxLeft = displayWidth - mutable.Width;
                     var gapSize = 47f;
                     var gapCount = Convert.ToInt32(maxLeft / gapSize);
 
-                    winState.Bounds.Left = gapSize + AllWindows.Count % gapCount * gapSize;
+                    mutable.Left = gapSize + AllWindows.Count % gapCount * gapSize;
                 }
-                if (float.IsNaN(winState.Bounds.Top))
+                if (float.IsNaN(mutable.Top))
                 {
-                    var maxTop = displayHeight - winState.Bounds.Height;
+                    var maxTop = displayHeight - mutable.Height;
                     var gapSize = 71f;
                     var gapCount = Convert.ToInt32(maxTop / gapSize);
 
-                    winState.Bounds.Top = gapSize + AllWindows.Count % gapCount * gapSize;
+                    mutable.Top = gapSize + AllWindows.Count % gapCount * gapSize;
                 }
             }
+
+            winState.UpdateMutableBounds(mutable);
 
             var win = new DesktopWindowController(this, winState);
             AddNewWindow(win);
