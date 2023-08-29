@@ -1,8 +1,9 @@
 package info.bagen.dwebbrowser.microService.sys
 
 import android.content.res.AssetManager
-import android.webkit.MimeTypeMap
 import info.bagen.dwebbrowser.App
+import io.ktor.http.ContentType
+import io.ktor.http.fromFilePath
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.browserUI.util.APP_DIR_TYPE
@@ -44,8 +45,6 @@ class LocalFileFetch private constructor() {
       }
     }
   }
-
-  private val mimeTypeMap by lazy { MimeTypeMap.getSingleton() }
 
   /**
    * 安全的 AssetManager 文件读取工具
@@ -195,12 +194,9 @@ class LocalFileFetch private constructor() {
       }
 
       /// 尝试加入 Content-Type
-      val extension = MimeTypeMap.getFileExtensionFromUrl(request.uri.path)
-      if (extension != null) {
-        val type = mimeTypeMap.getMimeTypeFromExtension(extension)
-        if (type != null) {
-          response = response.header("Content-Type", type)
-        }
+      val extension = ContentType.fromFilePath(request.uri.path)
+      if (extension.isNotEmpty()) {
+        response = response.header("Content-Type", extension.first().toString())
       }
       return response
     }
