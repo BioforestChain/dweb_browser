@@ -60,10 +60,7 @@ class TaskBarController(
       }
       val metaData = desktopNMM.bootstrapContext.dns.query(appId)
       if (metaData != null) {
-        apps[appId] = DeskAppMetaData(
-          //...复制metaData属性
-          running = runningApps.contains(appId), winStates = emptyList()
-        ).setMetaData(metaData)
+        apps[appId] = DeskAppMetaData(running = runningApps.contains(appId), parent = metaData)
       }
     }
 

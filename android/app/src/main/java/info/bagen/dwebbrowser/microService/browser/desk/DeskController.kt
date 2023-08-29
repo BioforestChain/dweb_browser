@@ -46,8 +46,8 @@ class DeskController(
       val apps = desktopNMM.bootstrapContext.dns.search(MICRO_MODULE_CATEGORY.Application)
       runApps = apps.map { metaData ->
         return@map DeskAppMetaData(
-          running = runningApps.containsKey(metaData.mmid),
-        ).setMetaData(metaData)
+          running = runningApps.containsKey(metaData.mmid), parent = metaData
+        )
       }
     }.getOrThrow()
     return runApps
