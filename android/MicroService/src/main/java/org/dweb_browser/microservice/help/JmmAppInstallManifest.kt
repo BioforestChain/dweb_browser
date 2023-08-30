@@ -36,7 +36,7 @@ sealed class JmmAppManifest(
 @Serializable
 data class JmmAppInstallManifest(
   /** 安装是展示用的 icon */
-  val logo: String = "",
+  override val logo: String = "",
   /** 安装时展示用的截图 */
   val images: List<String> = emptyList(),
   var bundle_url: String = "",
@@ -93,6 +93,7 @@ open class MicroModuleManifest(
   override val dir: String? = null,
   override val lang: String? = null,
   override val name: String = "", // 应用名称
+  override val logo: String = "",
   override val short_name: String = "", // 应用副标题
   override val description: String? = null,
   override val icons: List<ImageResource> = listOf(),
@@ -115,6 +116,7 @@ sealed class CommonAppManifest {
   abstract val dir: String?
   abstract val lang: String?
   abstract val name: String// 应用名称
+  abstract val logo: String /** 安装是展示用的 icon */
   abstract val short_name: String // 应用副标题
   abstract val description: String?
   abstract val icons: List<ImageResource>
@@ -129,7 +131,10 @@ sealed class CommonAppManifest {
 }
 
 fun CommonAppManifest.toMicroModuleManifest(): MicroModuleManifest {
-  if (this is MicroModuleManifest) return this
+  var icons = this.icons;
+  if (icons.isEmpty()) {
+    icons = listOf(ImageResource(src = this.logo))
+  }
   return MicroModuleManifest(
     mmid = this.id,
     dweb_deeplinks = this.dweb_deeplinks,
@@ -138,7 +143,7 @@ fun CommonAppManifest.toMicroModuleManifest(): MicroModuleManifest {
     name = this.name,
     short_name = this.short_name,
     description = this.description,
-    icons = this.icons,
+    icons = icons,
     screenshots = this.screenshots,
     display = this.display,
     orientation = this.orientation,
