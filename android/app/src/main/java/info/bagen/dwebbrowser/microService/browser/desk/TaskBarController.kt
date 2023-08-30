@@ -19,7 +19,7 @@ class TaskBarController(
 ) {
   /** 展示在taskbar中的应用列表 */
   private val _appList = DeskStore.get(DeskStore.TASKBAR_APPS)
-  internal fun getFocusApp() = _appList.first()
+  internal fun getFocusApp() = _appList.firstOrNull()
   internal val updateSignal = SimpleSignal()
   val onUpdate = updateSignal.toListener()
 

@@ -70,9 +70,11 @@ class TaskbarActivity : BaseThemeActivity() {
     super.onWindowFocusChanged(hasFocus)
     this.lifecycle.coroutineScope.launch {
       controller.let { taskBarController ->
-        taskBarController.stateSignal.emit(
-          TaskBarController.TaskBarState(hasFocus, taskBarController.getFocusApp())
-        )
+        taskBarController.getFocusApp()?.let { focusApp ->
+          taskBarController.stateSignal.emit(
+            TaskBarController.TaskBarState(hasFocus, focusApp)
+          )
+        }
       }
     }
   }
