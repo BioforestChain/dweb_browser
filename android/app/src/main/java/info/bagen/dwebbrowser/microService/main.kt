@@ -91,7 +91,7 @@ suspend fun startDwebBrowser(): DnsNMM {
     )
 
     else -> addDebugTags(
-      listOf("Share", "browser")
+      listOf("desk", "browser")
     )
   }
 

@@ -3,7 +3,7 @@ import AppIcon from "src/components/app-icon/app-icon.vue";
 import { watchEffectAppMetadataToAppIcon } from "src/components/app-icon/appMetaDataHelper";
 import { $AppIconInfo } from "src/components/app-icon/types";
 import SvgIcon from "src/components/svg-icon/svg-icon.vue";
-import { detailApp, openApp, quitApp, vibrateHeavyClick } from "src/provider/api.ts";
+import { deleteWebApp, detailApp, openApp, quitApp, vibrateHeavyClick } from "src/provider/api.ts";
 import { $CloseWatcher, CloseWatcher } from "src/provider/shim.ts";
 import type { $WidgetAppData } from "src/types/app.type.ts";
 import { computed, onMounted, reactive, ref, shallowRef, watch, watchEffect } from "vue";
@@ -101,6 +101,10 @@ async function doOpen() {
 
 async function doQuit() {
   closing.value = true;
+  // 如果是移除 browserApp需要顺便把窗口移除
+  if (appid.value === "web.browser.dweb") {
+    deleteWebApp();
+  }
   if (await quitApp(appid.value).catch(() => (closing.value = false))) {
     snackbar.text = `${appname.value} 已退出后台。`;
     snackbar.timeOut = 1500;

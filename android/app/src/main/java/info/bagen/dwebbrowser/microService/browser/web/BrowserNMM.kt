@@ -36,7 +36,7 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
         listOf(ImageResource(src = "file:///sys/browser/web/logo.svg"))
     private lateinit var browserServer: HttpDwebServer
 
-    val queryAppId = Query.string().required("app_id")
+    val queryAppId = Query.string().optional("mmid")
     val queryKeyWord = Query.string().required("q")
     val queryUrl = Query.string().required("url")
     private val runningWebApps = mutableListOf<DeskLinkMetaData>()
@@ -92,8 +92,11 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
             },
             "/uninstall" bind Method.GET to defineHandler { request, ipc ->
                 debugBrowser("uninstall", request.uri)
-                val search = queryKeyWord(request)
-                browserController.uninstallWindow()
+                val mmid = queryAppId(request)
+                if (mmid == null) {
+                    browserController.uninstallWindow()
+                }
+                //TODO 卸载webApp
                 return@defineHandler true
             },
         )

@@ -101,10 +101,10 @@ export async function deleteApp(id: string) {
   });
 }
 
-export async function deleteWebApp(appName:string) {
+export async function deleteWebApp(mmid?:string) {
    return nativeFetch<Response>("/uninstall", {
     search: {
-      name: appName,
+      mmid: mmid,
     },
     mmid: "web.browser.dweb",
   });

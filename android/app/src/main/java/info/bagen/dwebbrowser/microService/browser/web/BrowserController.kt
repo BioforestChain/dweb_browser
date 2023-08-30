@@ -43,10 +43,7 @@ class BrowserController(
      */
     private var win: WindowController? = null
     suspend fun openBrowserWindow(ipc: Ipc, search: String? = null, url: String? = null) =
-        winLock.withLock {
-            if (win != null) {
-                return@withLock win!!
-            }
+        winLock.withLock<WindowController> {
             // 打开安装窗口
             val win = createWindowAdapterManager.createWindow(
                 WindowState(
