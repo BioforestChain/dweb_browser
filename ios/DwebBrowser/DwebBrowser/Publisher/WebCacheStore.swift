@@ -180,6 +180,12 @@ class WebCacheStore: ObservableObject {
         return caches.count
     }
     
+    func webWrapper(at index: Int) -> WebWrapper {
+        let cache = caches[index]
+        return webWrapper(of: cache.id)
+    }
+                   
+    
     private func loadCaches() {
         if let data = UserDefaults.standard.data(forKey: userdefaultKey) {
             if let items = try? JSONDecoder().decode([WebCache].self, from: data) {
@@ -191,11 +197,11 @@ class WebCacheStore: ObservableObject {
         }
     }
     
-    private func webWrapper(of expectedId: UUID) -> WebWrapper {
-        if let wrapper = webWrappers.filter({ $0.id == expectedId }).first {
+    private func webWrapper(of cacheId: UUID) -> WebWrapper {
+        if let wrapper = webWrappers.filter({ $0.id == cacheId }).first {
             return wrapper
         } else {
-            let wrapper = WebWrapper(cacheID: expectedId)
+            let wrapper = WebWrapper(cacheID: cacheId)
             webWrappers.append(wrapper)
             return wrapper
         }

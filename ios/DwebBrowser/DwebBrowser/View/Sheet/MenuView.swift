@@ -70,8 +70,6 @@ struct MenuView: View {
     }
     
     private func addToBookmark() {
-    
-//        let webCache = WebCacheStore.shared.store[selectedTab.curIndex]
         let manager = BookmarkCoreDataManager()
         let bookmark = LinkRecord(link: webCache.lastVisitedUrl.absoluteString, imageName: webCache.webIconUrl.absoluteString, title: webCache.title, createdDate: Date().milliStamp)
         let result = manager.insertBookmark(bookmark: bookmark)

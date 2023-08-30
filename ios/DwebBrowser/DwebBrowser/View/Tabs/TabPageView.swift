@@ -20,8 +20,6 @@ struct TabPageView: View {
     var webCache: WebCache { webcacheStore.cache(at: index) }
     @ObservedObject var webWrapper: WebWrapper
 
-//    var webWrapper: WebWrapper { WebWrapper(cacheID: webcacheStore.cache(at: index).id) }
-
     @State private var snapshotHeight: CGFloat = 0
     private var isVisible: Bool { index == selectedTab.curIndex }
     var body: some View {
@@ -29,7 +27,6 @@ struct TabPageView: View {
             ZStack {
                 if webCache.shouldShowWeb {
                     webComponent
-//                    Color.purple
                 }
 
                 if !webCache.shouldShowWeb {
@@ -90,14 +87,19 @@ struct TabPageView: View {
                 }
                 print("onappear progress:\(webWrapper.webView.estimatedProgress)")
             }
-            .onReceive(openingLink.$clickedLink) { link in
-                if isVisible {
-                    guard link != emptyURL else { return }
-                    print("clickedLink has changed: \(link)")
+            .onChange(of: openingLink.clickedLink, perform: { link in
+                guard link != emptyURL else { return }
+
+                print("clickedLink has changed: \(link)")
+                let webcache = webcacheStore.cache(at: selectedTab.curIndex)
+                webcache.lastVisitedUrl = link
+                if webcache.shouldShowWeb{
                     webWrapper.webView.load(URLRequest(url: link))
-                    openingLink.clickedLink = emptyURL
+                }else{
+                    webcache.shouldShowWeb = true
                 }
-            }
+                openingLink.clickedLink = emptyURL
+            })
 
             .onChange(of: webWrapper.url) { url in
                 if let validUrl = url, webCache.lastVisitedUrl != validUrl {

@@ -7,6 +7,7 @@
 
 import SwiftUI
 import UIKit
+import Combine
 
 struct ToolbarView: View {
     @EnvironmentObject var toolbarState: ToolBarState
@@ -16,18 +17,31 @@ struct ToolbarView: View {
     @EnvironmentObject var addressBar: AddressBarState
     @EnvironmentObject var webcacheStore: WebCacheStore
 
-//    @ObservedObject var wrapperMgr = WebWrapperMgr.shared
     private let itemSize = CGSize(width: 28, height: 28)
+
     @State private var toolbarHeight: CGFloat = toolBarH
-    
     @State private var isPresentingScanner = false
     @State private var showMoreSheet = false
+    @State private var cancellables: Set<AnyCancellable> = []
 
     var body: some View {
-        if toolbarState.shouldExpand {
-            fiveButtons
-        } else {
-            threeButtons
+        ZStack{
+            if toolbarState.shouldExpand {
+                fiveButtons
+            } else {
+                threeButtons
+            }
+        }.onAppear {
+            selectedTab.$curIndex
+                .sink { newIndex in
+                    print("Value changed: \(newIndex)")
+                    tabIndexChanged(to: newIndex)
+                }
+                .store(in: &cancellables) // Store the subscription
+        }
+        .onDisappear {
+            cancellables.forEach { $0.cancel() }
+            cancellables.removeAll()
         }
     }
     
@@ -105,12 +119,6 @@ struct ToolbarView: View {
         }
         .frame(height: toolbarHeight)
         .background(Color.bkColor)
-
-        .onChange(of: selectedTab.curIndex, perform: { index in
-//            let currentWrapper = wrapperMgr.store[index]
-//            toolbarState.canGoBack = currentWrapper.canGoBack
-//            toolbarState.canGoForward = currentWrapper.canGoForward
-        })
         .onReceive(addressBarState.$isFocused) { isFocused in
             withAnimation {
                 toolbarHeight = isFocused ? 0 : toolBarH
@@ -134,11 +142,16 @@ struct ToolbarView: View {
         }
         
         .sheet(isPresented: $showMoreSheet) {
-            SheetSegmentView(selectedCategory: webcacheStore.cache(at: selectedTab.curIndex).shouldShowWeb ? .menu : .bookmark)
+            SheetSegmentView(isShowingWeb: webcacheStore.cache(at: selectedTab.curIndex).shouldShowWeb)
                 .environmentObject(selectedTab)
                 .environmentObject(openingLink)
                 .presentationDetents([.medium, .large])
         }
+    }
+    func tabIndexChanged(to index: Int){
+        let currentWrapper = webcacheStore.webWrapper(at: index)
+        toolbarState.canGoBack = currentWrapper.canGoBack
+        toolbarState.canGoForward = currentWrapper.canGoForward
     }
 }
 

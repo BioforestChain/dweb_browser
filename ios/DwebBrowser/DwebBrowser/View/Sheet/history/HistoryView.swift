@@ -10,7 +10,6 @@ import SwiftUI
 struct HistoryView: View {
     @State private var searchText = ""
     @ObservedObject var histories: HistoryMgr
-    @EnvironmentObject var webcacheStore: WebCacheStore
     @EnvironmentObject var selectedTab:SelectedTab
 
     var body: some View {

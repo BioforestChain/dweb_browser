@@ -11,13 +11,9 @@ struct SearchResultView: View {
     @EnvironmentObject var addressBar: AddressBarState
     @EnvironmentObject var openingLink: OpeningLink
     @EnvironmentObject var selectedTab: SelectedTab
-    @EnvironmentObject var webcacheStore: WebCacheStore
     @ObservedObject var localLinkSearcher = LocalLinkSearcher.shared
 
-    //    @State private var inputText: String = ""
     var body: some View {
-        
-            
             Form {
                 Section {
                     ForEach(0..<WebSearcher.shared.searchers.count, id: \.self) { index in
@@ -25,10 +21,6 @@ struct SearchResultView: View {
                         Button {
                             guard let url = URL(string: searcher.inputHandler(addressBar.inputText)) else { return }
                             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                            let webcache = webcacheStore.cache(at: selectedTab.curIndex)
-                            if !webcache.shouldShowWeb {
-                                webcache.shouldShowWeb = true
-                            }
                             openingLink.clickedLink = url
                             addressBar.isFocused = false
                         } label: {
@@ -137,7 +129,6 @@ struct SearchResultView: View {
             }
             .scrollContentBackground(.hidden)
             .background(Color.bkColor)
-            //        .dismissKeyboard()
         }
     
 }

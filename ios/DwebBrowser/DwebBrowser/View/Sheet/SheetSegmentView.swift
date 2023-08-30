@@ -14,14 +14,11 @@ enum SheetCategory: String{
 }
 
 struct SheetSegmentView: View {
-    @State var selectedCategory = SheetCategory.bookmark
-
     @EnvironmentObject var selectedTab:SelectedTab
-    @EnvironmentObject var webcacheStore: WebCacheStore
-//    @ObservedObject var webcacheMgr = WebCacheStore.shared
+    @State var selectedCategory = SheetCategory.bookmark
+    var isShowingWeb: Bool
     var categoryList: [SheetCategory] {
-        let showWeb = webcacheStore.cache(at: selectedTab.curIndex).shouldShowWeb
-        return showWeb ? [.menu, .bookmark, .history] : [.bookmark, .history]
+        isShowingWeb ? [.menu, .bookmark, .history] : [.bookmark, .history]
     }
     
     var body: some View {
@@ -51,6 +48,6 @@ struct SheetSegmentView: View {
 
 struct HalfSheetPickerView_Previews: PreviewProvider {
     static var previews: some View {
-        SheetSegmentView()
+        SheetSegmentView(selectedCategory: .bookmark, isShowingWeb: false)
     }
 }
