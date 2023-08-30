@@ -61,7 +61,6 @@
 		F0B68D032A123B4F00215036 /* Url+Validator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0B68D022A123B4F00215036 /* Url+Validator.swift */; };
 		F0B68D072A162DF000215036 /* PagingScroll.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0B68D062A162DF000215036 /* PagingScroll.swift */; };
 		F0BC1C0D2A1219CA0077BE0A /* UIImage+Cache.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0BC1C0C2A1219CA0077BE0A /* UIImage+Cache.swift */; };
-		F0E984312A21DC6D00F7180A /* WebWrapperMgr.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0E984302A21DC6D00F7180A /* WebWrapperMgr.swift */; };
 		F0E984332A2356AC00F7180A /* AnimationProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0E984322A2356AC00F7180A /* AnimationProgress.swift */; };
 		F0E984512A24AC5800F7180A /* GridCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0E984502A24AC5800F7180A /* GridCellView.swift */; };
 		F0EB7B222A55669D0031FF16 /* PagingScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F09ABFC42A52D7BA00C32145 /* PagingScrollView.swift */; };
@@ -106,7 +105,6 @@
 		F3D5AAC02A52C1C5007C93D0 /* WebWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0B2AB162A03AC40000AD502 /* WebWrapper.swift */; };
 		F3D5AAC12A52C1C5007C93D0 /* WebCacheStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F08E103F2A04917600899DF8 /* WebCacheStore.swift */; };
 		F3D5AAC22A52C1C5007C93D0 /* Environment.swift in Sources */ = {isa = PBXBuildFile; fileRef = F08E10522A08DC9C00899DF8 /* Environment.swift */; };
-		F3D5AAC32A52C1C5007C93D0 /* WebWrapperMgr.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0E984302A21DC6D00F7180A /* WebWrapperMgr.swift */; };
 		F3D5AAC42A52C1C5007C93D0 /* InstalledApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0531F232A36BB55001FBE06 /* InstalledApp.swift */; };
 		F3D5AAC52A52C1C5007C93D0 /* CoreDataError.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0AF2C152A4BD9100005619B /* CoreDataError.swift */; };
 		F3D5AAC62A52C1C5007C93D0 /* DataController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0AF2C162A4BD9100005619B /* DataController.swift */; };
@@ -220,7 +218,6 @@
 		F0B68D022A123B4F00215036 /* Url+Validator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Url+Validator.swift"; sourceTree = "<group>"; };
 		F0B68D062A162DF000215036 /* PagingScroll.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PagingScroll.swift; sourceTree = "<group>"; };
 		F0BC1C0C2A1219CA0077BE0A /* UIImage+Cache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIImage+Cache.swift"; sourceTree = "<group>"; };
-		F0E984302A21DC6D00F7180A /* WebWrapperMgr.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebWrapperMgr.swift; sourceTree = "<group>"; };
 		F0E984322A2356AC00F7180A /* AnimationProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimationProgress.swift; sourceTree = "<group>"; };
 		F0E984502A24AC5800F7180A /* GridCellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GridCellView.swift; sourceTree = "<group>"; };
 		F34A475C2A4D738B001E105A /* JmmAppDownloadManifest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JmmAppDownloadManifest.swift; sourceTree = "<group>"; };
@@ -378,7 +375,6 @@
 				F049EFFF2A6E0FD500B41C89 /* NetworkPermission.swift */,
 				F08E103F2A04917600899DF8 /* WebCacheStore.swift */,
 				F08E10522A08DC9C00899DF8 /* Environment.swift */,
-				F0E984302A21DC6D00F7180A /* WebWrapperMgr.swift */,
 				F0531F232A36BB55001FBE06 /* InstalledApp.swift */,
 			);
 			path = Publisher;
@@ -637,7 +633,6 @@
 				F049F0002A6E0FD500B41C89 /* NetworkPermission.swift in Sources */,
 				F0531F122A346219001FBE06 /* BookmarkViewModel.swift in Sources */,
 				F0531F112A346219001FBE06 /* BookmarkCell.swift in Sources */,
-				F0E984312A21DC6D00F7180A /* WebWrapperMgr.swift in Sources */,
 				F0531EC52A3028EF001FBE06 /* Tools.swift in Sources */,
 				F028998A29F7C3DC00B8754A /* AddressBarView.swift in Sources */,
 				46A9C8412A77479B0027D427 /* String+Validator.swift in Sources */,
@@ -713,7 +708,6 @@
 				F3D5AAC02A52C1C5007C93D0 /* WebWrapper.swift in Sources */,
 				F3D5AAC12A52C1C5007C93D0 /* WebCacheStore.swift in Sources */,
 				F3D5AAC22A52C1C5007C93D0 /* Environment.swift in Sources */,
-				F3D5AAC32A52C1C5007C93D0 /* WebWrapperMgr.swift in Sources */,
 				F3D5AAC42A52C1C5007C93D0 /* InstalledApp.swift in Sources */,
 				F3D5AAC52A52C1C5007C93D0 /* CoreDataError.swift in Sources */,
 				F3D5AAC62A52C1C5007C93D0 /* DataController.swift in Sources */,

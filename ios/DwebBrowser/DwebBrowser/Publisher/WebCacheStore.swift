@@ -151,12 +151,12 @@ class WebCacheStore: ObservableObject {
         saveCaches()
     }
     
-    func remove(webCache: WebCache) {
-        guard let index = caches.firstIndex(of: webCache) else { return }
-        UIImage.removeImage(with: webCache.snapshotUrl)
-        let _ = withAnimation(.easeInOut) {
-            caches.remove(at: index)
-        }
+    func remove(by cacheId: UUID) {
+        guard let cache = caches.filter({ $0.id == cacheId }).first else { return }
+        guard let index = caches.firstIndex(of: cache) else { return }
+        UIImage.removeImage(with: cache.snapshotUrl)
+        caches.remove(at: index)
+        
         saveCaches()
     }
 

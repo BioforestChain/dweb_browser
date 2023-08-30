@@ -15,7 +15,7 @@ struct CellFrameInfo: Equatable {
 
 struct CellFramePreferenceKey: PreferenceKey {
     static var defaultValue: [CellFrameInfo] = []
-    
+
     static func reduce(value: inout [CellFrameInfo], nextValue: () -> [CellFrameInfo]) {
         value += nextValue()
     }
@@ -25,10 +25,10 @@ struct TabGridView: View {
     @EnvironmentObject var selectedTab: SelectedTab
     @EnvironmentObject var toolbarState: ToolBarState
     @EnvironmentObject var webcacheStore: WebCacheStore
-    
+
     @ObservedObject var animation: ShiftAnimation
     @ObservedObject var gridState: TabGridState
-    
+
     @State var isFirstRecord: Bool = true
     @State var frames: [CellFrameInfo] = []
 
@@ -40,10 +40,9 @@ struct TabGridView: View {
     var publisher: AnyPublisher<[CellFrameInfo], Never> {
         detector
             .debounce(for: .seconds(0.06), scheduler: DispatchQueue.main)
-//                        .dropFirst()
             .eraseToAnyPublisher()
     }
-    
+
     var body: some View {
         GeometryReader { geo in
             ScrollViewReader { scrollproxy in
@@ -59,7 +58,7 @@ struct TabGridView: View {
                                         .preference(key: CellFramePreferenceKey.self,
                                                     value: [CellFrameInfo(index: webcacheStore.index(of: webCache) ?? 0, frame: geometry.frame(in: .global))])
                                 })
-                            
+
                                 .onTapGesture {
                                     guard let tapIndex = webcacheStore.index(of: webCache) else { return }
                                     let geoFrame = geo.frame(in: .global)
@@ -87,20 +86,25 @@ struct TabGridView: View {
                     }
                 }
                 .background(Color.bkColor)
-                
+
                 .onReceive(publisher) {
                     if $0.count > 0 {
                         self.frames = $0
                     }
                     printWithDate("end scrolling and record cell frames : \($0)")
                 }
-                .onChange(of: deleteCache.cacheId, perform: { cacheId in
-                    if let cache = webcacheStore.caches.filter({ $0.id == cacheId }).first {
-                        webcacheStore.remove(webCache: cache)
-                        if selectedTab.curIndex >= webcacheStore.cacheCount {
-                            selectedTab.curIndex = webcacheStore.cacheCount - 1
-                            selectedCellFrame = cellFrame(at: selectedTab.curIndex)
+                .onChange(of: deleteCache.cacheId, perform: { _ in
+                    guard let cache = webcacheStore.caches.filter({ $0.id == deleteCache.cacheId }).first else { return }
+                    guard let deleteIndex = webcacheStore.index(of: cache) else { return }
+                    if deleteIndex <= selectedTab.curIndex {
+                        if selectedTab.curIndex > 0 {
+                            selectedTab.curIndex -= 1
                         }
+                    }
+                    selectedCellFrame = cellFrame(at: selectedTab.curIndex)
+
+                    _ = withAnimation(.easeIn) {
+                        webcacheStore.remove(by: deleteCache.cacheId)
                     }
                 })
                 .onChange(of: toolbarState.shouldExpand) { shouldExpand in
@@ -109,7 +113,7 @@ struct TabGridView: View {
                         animation.progress = .startExpanding
                         if cellFrame(at: selectedTab.curIndex) != .zero {
                             selectedCellFrame = cellFrame(at: selectedTab.curIndex)
-                        }else {
+                        } else {
                             selectedCellFrame = CGRect(x: screen_width/2.0, y: screen_height/2.0, width: 5, height: 5)
                         }
                     }
@@ -129,22 +133,21 @@ struct TabGridView: View {
                 }
                 .onChange(of: webcacheStore.caches) { store in
                     if store.count == 0 { // 准备放大动画
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                             webcacheStore.createOne()
-                            selectedTab.curIndex = webcacheStore.cacheCount - 1
+                            selectedTab.curIndex = 0
                             selectedCellFrame = CGRect(origin: CGPoint(x: screen_width/2, y: screen_height/2), size: CGSize(width: 5, height: 5))
                             toolbarState.shouldExpand = true
-                        })
-                        
+                        }
                     }
                 }
             }
         }
     }
-    
+
     func prepareToShrink(geoFrame: CGRect, scrollproxy: ScrollViewProxy, afterObtainCellFrame: @escaping () -> Void) {
         let currentFrame = cellFrame(at: selectedTab.curIndex)
-   
+
         let needScroll = !(geoFrame.minY <= currentFrame.minY && geoFrame.maxY >= currentFrame.maxY)
 
         if needScroll {
@@ -155,19 +158,19 @@ struct TabGridView: View {
                 scrollproxy.scrollTo(webCache.id)
             }
         }
-        
-        let waitingDuration = needScroll ? 0.5 : 0.2  //0.5是试出来的，少于这个时间滚动未完成，cell的位置不正确. 0.2是因为tabpage在某种情况下会收到两次shouldExpand的onchange事件，0.2是为了等第二次截图完成
+
+        let waitingDuration = needScroll ? 0.5 : 0.2 // 0.5是试出来的，少于这个时间滚动未完成，cell的位置不正确. 0.2是因为tabpage在某种情况下会收到两次shouldExpand的onchange事件，0.2是为了等第二次截图完成
         DispatchQueue.main.asyncAfter(deadline: .now() + waitingDuration) {
             selectedCellFrame = cellFrame(at: selectedTab.curIndex)
             printWithDate("cell at \(selectedTab.curIndex) frame is:\(selectedCellFrame)")
             afterObtainCellFrame()
         }
     }
-    
+
     func isSelected(webCache: WebCache) -> Bool {
         webcacheStore.index(of: webCache) == selectedTab.curIndex
     }
-    
+
     func cellFrame(at index: Int) -> CGRect {
         if let frame = frames.first(where: { $0.index == index })?.frame {
             return frame
