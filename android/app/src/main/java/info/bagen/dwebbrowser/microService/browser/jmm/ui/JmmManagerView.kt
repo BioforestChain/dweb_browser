@@ -137,8 +137,11 @@ fun MALLBrowserView(viewModel: JmmManagerViewModel, onBack: () -> Unit) {
       }
     }
     TopAppBar(topBarAlpha, jmmMetadata.name, onBack)
+    val scope = rememberCoroutineScope()
     BottomDownloadButton(viewModel.uiState.downloadInfo, jmmMetadata) {
-      viewModel.handlerIntent(JmmIntent.ButtonFunction)
+      scope.launch {
+        viewModel.handlerIntent(JmmIntent.ButtonFunction)
+      }
     }
     ImagePreview(jmmMetadata, previewState)
   }

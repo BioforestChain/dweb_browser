@@ -18,7 +18,7 @@ import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
 import java.util.Calendar
 
 data class JmmUIState(
-  var downloadInfo: MutableState<DownLoadInfo>,
+  val downloadInfo: MutableState<DownLoadInfo>,
   val jmmAppInstallManifest: JmmAppInstallManifest,
 )
 
@@ -29,7 +29,7 @@ sealed class JmmIntent {
 
 class JmmManagerViewModel(
   jmmAppInstallManifest: JmmAppInstallManifest, private val jmmController: JmmController
-) : ViewModel() {
+) {
   val uiState: JmmUIState
   private var downLoadObserver: DownLoadObserver? = null
 
@@ -38,71 +38,69 @@ class JmmManagerViewModel(
     uiState = JmmUIState(mutableStateOf(downLoadInfo), jmmAppInstallManifest)
     if (downLoadInfo.downLoadStatus != DownLoadStatus.INSTALLED) {
       downLoadObserver = DownLoadObserver(jmmAppInstallManifest.id)
-      initDownLoadStatusListener()
-    }
-  }
-
-  private fun initDownLoadStatusListener() {
-    viewModelScope.launch(Dispatchers.IO) {
-      downLoadObserver?.observe {
-        if (it.downLoadStatus == DownLoadStatus.IDLE &&
-          uiState.downloadInfo.value.downLoadStatus == DownLoadStatus.NewVersion
-        ) {// TODO 为了规避更新被IDLE重置
-          return@observe
-        }
-
-        when (it.downLoadStatus) {
-          DownLoadStatus.DownLoading -> {
-            uiState.downloadInfo.value = uiState.downloadInfo.value.copy(
-              downLoadStatus = it.downLoadStatus,
-              dSize = it.downLoadSize,
-              size = it.totalSize
-            )
-          }
-
-          else -> {
-            uiState.downloadInfo.value = uiState.downloadInfo.value.copy(
-              downLoadStatus = it.downLoadStatus
-            )
-          }
-        }
-        if (it.downLoadStatus == DownLoadStatus.INSTALLED) { // 移除监听列表
-          downLoadObserver?.close()
-        }
+      jmmController.win.coroutineScope.launch {
+        initDownLoadStatusListener()
       }
     }
   }
 
-  fun handlerIntent(action: JmmIntent) {
-    viewModelScope.launch(Dispatchers.IO) {
-      when (action) {
-        is JmmIntent.ButtonFunction -> {
-          when (uiState.downloadInfo.value.downLoadStatus) {
-            DownLoadStatus.IDLE, DownLoadStatus.FAIL, DownLoadStatus.CANCEL, DownLoadStatus.NewVersion -> { // 空闲点击是下载，失败点击也是重新下载
-              BrowserUIApp.Instance.mBinderService?.invokeDownloadAndSaveZip(
-                uiState.downloadInfo.value
-              )
-            }
+  private suspend fun initDownLoadStatusListener() {
+    downLoadObserver?.observe {
+      if (it.downLoadStatus == DownLoadStatus.IDLE &&
+        uiState.downloadInfo.value.downLoadStatus == DownLoadStatus.NewVersion
+      ) {// TODO 为了规避更新被IDLE重置
+        return@observe
+      }
 
-            DownLoadStatus.DownLoadComplete -> { /* TODO 无需响应 */
-            }
+      when (it.downLoadStatus) {
+        DownLoadStatus.DownLoading -> {
+          uiState.downloadInfo.value = uiState.downloadInfo.value.copy(
+            downLoadStatus = it.downLoadStatus,
+            dSize = it.downLoadSize,
+            size = it.totalSize
+          )
+        }
 
-            DownLoadStatus.DownLoading, DownLoadStatus.PAUSE -> {
-              BrowserUIApp.Instance.mBinderService?.invokeDownloadStatusChange(
-                uiState.downloadInfo.value.id//jmmMetadata.id
-              )
-            }
+        else -> {
+          uiState.downloadInfo.value = uiState.downloadInfo.value.copy(
+            downLoadStatus = it.downLoadStatus
+          )
+        }
+      }
+      if (it.downLoadStatus == DownLoadStatus.INSTALLED) { // 移除监听列表
+        downLoadObserver?.close()
+      }
+    }
+  }
 
-            DownLoadStatus.INSTALLED -> { // 点击打开app触发的事件
-              //jmmController?.openApp(uiState.downloadInfo.value.jmmMetadata.id)
-              jmmController.openApp(uiState.downloadInfo.value.id)
-            }
+  suspend fun handlerIntent(action: JmmIntent) {
+    when (action) {
+      is JmmIntent.ButtonFunction -> {
+        when (uiState.downloadInfo.value.downLoadStatus) {
+          DownLoadStatus.IDLE, DownLoadStatus.FAIL, DownLoadStatus.CANCEL, DownLoadStatus.NewVersion -> { // 空闲点击是下载，失败点击也是重新下载
+            BrowserUIApp.Instance.mBinderService?.invokeDownloadAndSaveZip(
+              uiState.downloadInfo.value
+            )
+          }
+
+          DownLoadStatus.DownLoadComplete -> { /* TODO 无需响应 */
+          }
+
+          DownLoadStatus.DownLoading, DownLoadStatus.PAUSE -> {
+            BrowserUIApp.Instance.mBinderService?.invokeDownloadStatusChange(
+              uiState.downloadInfo.value.id//jmmMetadata.id
+            )
+          }
+
+          DownLoadStatus.INSTALLED -> { // 点击打开app触发的事件
+            //jmmController?.openApp(uiState.downloadInfo.value.jmmMetadata.id)
+            jmmController.openApp(uiState.downloadInfo.value.id)
           }
         }
+      }
 
-        is JmmIntent.DestroyActivity -> {
-          downLoadObserver?.close()
-        }
+      is JmmIntent.DestroyActivity -> {
+        downLoadObserver?.close()
       }
     }
   }

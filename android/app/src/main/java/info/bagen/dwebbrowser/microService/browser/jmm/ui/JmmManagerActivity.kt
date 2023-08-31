@@ -7,8 +7,11 @@ import android.view.View
 import android.view.WindowManager
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.lifecycle.lifecycleScope
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.base.BaseThemeActivity
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
@@ -58,7 +61,9 @@ class JmmManagerActivity : BaseThemeActivity() {
   }
 
   override fun onDestroy() {
-    jmmManagerViewModel.handlerIntent(JmmIntent.DestroyActivity)
+    runBlocking(lifecycleScope.coroutineContext) {
+      jmmManagerViewModel.handlerIntent(JmmIntent.DestroyActivity)
+    }
     super.onDestroy()
   }
 
