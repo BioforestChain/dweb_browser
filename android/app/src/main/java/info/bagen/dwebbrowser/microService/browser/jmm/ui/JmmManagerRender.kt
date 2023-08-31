@@ -23,11 +23,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -58,8 +61,10 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
 import org.dweb_browser.browserUI.download.DownLoadInfo
 import org.dweb_browser.browserUI.download.DownLoadStatus
+import org.dweb_browser.helper.android.getCoilImageLoader
 import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
+import org.dweb_browser.microservice.sys.dns.httpFetch
 import java.text.DecimalFormat
 
 private val TopBarHeight = 44.dp
@@ -354,8 +359,21 @@ private fun AppInfoHeadView(jmmAppInstallManifest: JmmAppInstallManifest) {
       .padding(horizontal = HorizontalPadding, vertical = VerticalPadding),
     verticalAlignment = Alignment.CenterVertically
   ) {
+    val context = LocalContext.current
+    var logoModel by remember {
+      mutableStateOf<Any>(jmmAppInstallManifest.logo)
+    }
+    val scope = rememberCoroutineScope()
+    DisposableEffect(jmmAppInstallManifest.logo) {
+      val job = scope.launch {
+        logoModel = httpFetch(jmmAppInstallManifest.logo).body.payload
+      }
+      onDispose { job.cancel() }
+    }
+
     AsyncImage(
-      model = jmmAppInstallManifest.logo,
+      model = logoModel,
+      imageLoader = context.getCoilImageLoader(),
       contentDescription = "AppIcon",
       modifier = Modifier
         .size(size)

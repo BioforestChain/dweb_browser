@@ -46,60 +46,68 @@ class NativeFetchAdaptersManager : AdapterManager<FetchAdapter>() {
     this.client = client
   }
 
-  suspend fun httpFetch(request: Request): Response {
-    try {
-      debugFetch("httpFetch request", request.uri)
+  class HttpFetch(val manager: NativeFetchAdaptersManager) {
+    val client get() = manager.client
+    suspend operator fun invoke(request: Request) = fetch(request)
+    suspend operator fun invoke(url: String) = fetch(Request(Method.GET, url))
 
-      if (request.uri.scheme == "data") {
-        val dataUriContent = request.uri.path
-        val dataUriContentInfo = dataUriContent.split(',', limit = 2)
-        when (dataUriContentInfo.size) {
-          2 -> {
-            val meta = dataUriContentInfo[0]
-            val bodyContent = dataUriContentInfo[1]
-            val metaInfo = meta.split(';', limit = 2)
-            val response = Response(Status.OK)
-            when (metaInfo.size) {
-              1 -> {
-                return response.body(bodyContent).header("Content-Type", meta)
-              }
+    suspend fun fetch(request: Request): Response {
+      try {
+        debugFetch("httpFetch request", request.uri)
 
-              2 -> {
-                val encoding = metaInfo[1]
-                return if (encoding.trim().toLowerCasePreservingASCIIRules() == "base64") {
-                  response.header("Content-Type", metaInfo[0])
-                    .body(MemoryBody(bodyContent.base64DecodedArray()))
-                } else {
-                  response.header("Content-Type", meta).body(bodyContent)
+        if (request.uri.scheme == "data") {
+          val dataUriContent = request.uri.path
+          val dataUriContentInfo = dataUriContent.split(',', limit = 2)
+          when (dataUriContentInfo.size) {
+            2 -> {
+              val meta = dataUriContentInfo[0]
+              val bodyContent = dataUriContentInfo[1]
+              val metaInfo = meta.split(';', limit = 2)
+              val response = Response(Status.OK)
+              when (metaInfo.size) {
+                1 -> {
+                  return response.body(bodyContent).header("Content-Type", meta)
+                }
+
+                2 -> {
+                  val encoding = metaInfo[1]
+                  return if (encoding.trim().toLowerCasePreservingASCIIRules() == "base64") {
+                    response.header("Content-Type", metaInfo[0])
+                      .body(MemoryBody(bodyContent.base64DecodedArray()))
+                  } else {
+                    response.header("Content-Type", meta).body(bodyContent)
+                  }
                 }
               }
             }
           }
+          /// 保底操作
+          return Response(Status.OK).body(dataUriContent)
         }
-        /// 保底操作
-        return Response(Status.OK).body(dataUriContent)
-      }
-      val responsePo = PromiseOut<Response>()
-      CoroutineScope(ioAsyncExceptionHandler).launch {
-        client.prepareRequest(request.toHttpRequestBuilder()).execute {
-          val streamOut = ReadableStreamOut()
-          val response = it.toResponse(streamOut)
-          debugFetch("httpFetch response", request.uri)
-          responsePo.resolve(response)
-          streamOut.stream.waitClosed()
-          debugFetch("httpFetch end", request.uri)
+        val responsePo = PromiseOut<Response>()
+        CoroutineScope(ioAsyncExceptionHandler).launch {
+          client.prepareRequest(request.toHttpRequestBuilder()).execute {
+            val streamOut = ReadableStreamOut()
+            val response = it.toResponse(streamOut)
+            debugFetch("httpFetch response", request.uri)
+            responsePo.resolve(response)
+            streamOut.stream.waitClosed()
+            debugFetch("httpFetch end", request.uri)
+          }
         }
+        return responsePo.waitPromise().also {
+          debugFetch("httpFetch return", request.uri)
+        }
+      } catch (e: Throwable) {
+        return Response(Status.SERVICE_UNAVAILABLE).body(e.stackTraceToString())
       }
-      return responsePo.waitPromise().also {
-        debugFetch("httpFetch return", request.uri)
-      }
-    } catch (e: Throwable) {
-      return Response(Status.SERVICE_UNAVAILABLE).body(e.stackTraceToString())
     }
   }
+
+  val httpFetch = HttpFetch(this)
 }
 
-val httpFetch = nativeFetchAdaptersManager::httpFetch
+val httpFetch = nativeFetchAdaptersManager.httpFetch
 
 suspend fun MicroModule.nativeFetch(request: Request): Response {
   for (fetchAdapter in nativeFetchAdaptersManager.adapters) {
