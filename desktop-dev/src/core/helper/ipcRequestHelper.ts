@@ -87,5 +87,14 @@ export const buildRequestX = (url: string | URL, init: RequestInit = {}) => {
       value: "GET",
     });
   }
+  // 兼容浏览器不支持的情况chrome < 105
+  if(request_init.body instanceof ReadableStream && request.body!=request_init.body){
+    Object.defineProperty(request, "body", {
+      configurable: true,
+      enumerable: true,
+      writable: false,
+      value: request_init.body,
+    });
+  }
   return request;
 };

@@ -105,7 +105,7 @@ export function initWebSocketServer(this: HttpServerNMM, server: HttpServer) {
             /// 客户端关闭流
             ws.on("close", () => {
               inputStreamOut.controller.close();
-              console.always("websocket end", fullReqUrl);
+              // console.always("websocket end", fullReqUrl);
             });
 
             /// 监听异常

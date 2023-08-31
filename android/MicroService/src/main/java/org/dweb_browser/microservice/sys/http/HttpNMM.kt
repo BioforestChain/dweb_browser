@@ -50,48 +50,6 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
   private val tokenMap = ConcurrentHashMap</* token */ String, Gateway>();
   private val gatewayMap = ConcurrentHashMap</* host */ String, Gateway>();
 
-  private fun findRequestGateway(request: Request): String? {
-    var header_host: String? = null
-    var header_x_dweb_host: String? = null
-    var header_auth_host: String? = null
-    val query_x_dweb_host: String? = request.query("X-Dweb-Host")?.decodeURIComponent()
-    for ((key, value) in request.headers) {
-      when (key) {
-        "Host" -> {
-          if (value != null && Regex("""\.dweb(:\d+)?$""").matches(value)) header_host = value
-        }
-
-        "X-Dweb-Host" -> {
-          header_x_dweb_host = value
-        }
-
-        "Authorization" -> {
-          if (value != null) {
-            Regex("""^ *(?:[Bb][Aa][Ss][Ii][Cc]) +([A-Za-z0-9._~+/-]+=*) *$""").find(value)
-              ?.also { matchResult ->
-                matchResult.groupValues.getOrNull(1)?.also { base64Content ->
-                  val userInfo = base64Content.base64Decoded()
-                  val splitIndex = userInfo.lastIndexOf(':')
-                  header_auth_host = if (splitIndex == -1) {
-                    userInfo
-                  } else {
-                    userInfo.slice(0 until splitIndex)
-                  }.decodeURIComponent()
-                }
-              }
-          }
-        }
-      }
-    }
-    val x_dweb_host = query_x_dweb_host ?: header_auth_host ?: header_x_dweb_host ?: header_host
-    return x_dweb_host?.let { host ->
-      /// 如果没有端口，补全端口
-      if (!host.contains(":")) {
-        host + ":" + Http1Server.PORT;
-      } else host
-    }
-  }
-
   /**
    * 监听请求
    *
@@ -163,7 +121,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
             // 头部里添加 X-Dweb-Host
             .header("X-Dweb-Host", request.uri.getFullAuthority())
             // 替换 url 的 authority（host+port）
-            .uri(request.uri.scheme("http").authority(dwebServer.authority))
+//            .uri(request.uri.scheme("http").authority(dwebServer.authority))
         )
       } else null
     }.removeWhen(onAfterShutdown);
@@ -291,6 +249,50 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
       gateway.listener.destroy()
       true
     } ?: false
+  }
+}
+
+fun findRequestGateway(request: Request): String? {
+  var header_host: String? = null
+  var header_x_dweb_host: String? = null
+  var header_auth_host: String? = null
+  val query_x_dweb_host: String? = request.query("X-Dweb-Host")?.decodeURIComponent()
+  for ((key, value) in request.headers) {
+    when (key) {
+      "Host" -> {
+        if (value != null && Regex("""\.dweb(:\d+)?$""").matches(value))
+          header_host = value
+      }
+
+      "X-Dweb-Host" -> {
+        header_x_dweb_host = value
+      }
+
+      "Authorization" -> {
+        if (value != null) {
+          Regex("""^ *(?:[Bb][Aa][Ss][Ii][Cc]) +([A-Za-z0-9._~+/-]+=*) *$""").find(value)
+            ?.also { matchResult ->
+              matchResult.groupValues.getOrNull(1)?.also { base64Content ->
+                val userInfo = base64Content.base64Decoded()
+                val splitIndex = userInfo.lastIndexOf(':')
+                header_auth_host = if (splitIndex == -1) {
+                  userInfo
+                } else {
+                  userInfo.slice(0 until splitIndex)
+                }.decodeURIComponent()
+              }
+            }
+        }
+      }
+    }
+  }
+  val x_dweb_host = query_x_dweb_host ?: header_auth_host ?: header_x_dweb_host
+  ?: header_host
+  return x_dweb_host?.let { host ->
+    /// 如果没有端口，补全端口
+    if (!host.contains(":")) {
+      host + ":" + Http1Server.PORT;
+    } else host
   }
 }
 

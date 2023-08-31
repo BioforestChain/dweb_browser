@@ -16,6 +16,7 @@ import kotlinx.coroutines.withContext
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.readByteArray
+import org.dweb_browser.helper.toUtf8
 import org.dweb_browser.microservice.help.asHttp4k
 import org.dweb_browser.microservice.help.fromHttp4K
 import org.dweb_browser.microservice.help.isWebSocket
@@ -23,8 +24,10 @@ import org.dweb_browser.microservice.help.stream
 import org.dweb_browser.microservice.ipc.helper.ReadableStream
 import org.dweb_browser.microservice.sys.http.Gateway
 import org.dweb_browser.microservice.sys.http.debugHttp
+import org.dweb_browser.microservice.sys.http.findRequestGateway
 import org.http4k.core.Request
 import org.http4k.core.Response
+import org.http4k.core.Uri
 import org.http4k.server.Http4kServer
 import java.nio.ByteBuffer
 
@@ -65,7 +68,14 @@ class Http1Server {
 
               /// 将 ktor的request 构建成 http4k 的request
               call.request.asHttp4k()?.also { rawRequest ->
-                var request = rawRequest;
+
+                val uri = rawRequest.uri.toString();
+                val host = findRequestGateway(rawRequest)
+                val url = if (uri.startsWith("/") && host !== null) {
+                  "http://$host$uri"
+                } else uri
+                var request = rawRequest.uri(Uri.of(url));
+
                 var proxyRequestBody: ReadableStream.ReadableStreamController? = null
                 if (request.isWebSocket()) {
                   request = request.body(ReadableStream(onStart = {
@@ -77,7 +87,8 @@ class Http1Server {
                   else -> httpHandler(gateway, request) ?: errorHandler(request, gateway)
                 }
 
-                if (request.isWebSocket()) {
+                if (proxyRequestBody!=null) {
+                  val requestBodyController = proxyRequestBody!!
                   /// 如果是200响应头，那么使用WebSocket来作为双工的通讯标准进行传输
                   when (response.status.code) {
                     200 -> {
@@ -87,12 +98,20 @@ class Http1Server {
                         launch {
                           /// 将从客户端收到的数据，转成 200 的标准传输到 request 的 bodyStream 中
                           for (frame in ws.incoming) {
-                            proxyRequestBody?.enqueue(frame.buffer.moveToByteArray())
+                            val byteArray = frame.buffer.moveToByteArray()
+                            debugHttp(
+                              "wssss", "write request-body:${byteArray.toUtf8()}"
+                            )
+                            requestBodyController.enqueue(byteArray)
                           }
                           /// 等到双工关闭，同时也关闭读取层
                           stream.close()
                         }
                         /// 将从服务端收到的数据，转成 200 的标准传输到 websocket 的 frame 中
+
+                        debugHttp(
+                          "wssss", "start reading response"
+                        )
                         while (true) {
                           when (val readInt = stream.available()) {
                             -1 -> {
@@ -101,16 +120,19 @@ class Http1Server {
                             }
 
                             else -> {
+                              debugHttp(
+                                "wssss", "write response:${readInt}"
+                              )
                               val chunk = stream.readByteArray(readInt)
                               debugHttp(
-                                "createServer", "ws200 send response:${chunk}"
+                                "wssss", "write response:${chunk.toUtf8()}"
                               )
                               ws.send(Frame.Binary(true, chunk))
                             }
                           }
                         }
                         debugHttp(
-                          "createServer", "ws200 close ws"
+                          "wssss", "end reading response"
                         )
                         ws.close()
                       }
@@ -151,27 +173,23 @@ class Http1Server {
                     }
 
                     101 -> {
-                      when (val requestBodyStream = proxyRequestBody) {
-                        null -> {}
-                        else -> launch {
-                          val rawRequestChannel = call.request.receiveChannel()
-                          while (true) {
-                            val buffer = ByteBuffer.allocate(1024)
-                            when (val readSize = rawRequestChannel.readAvailable(buffer)) {
-                              -1 -> {
-                                requestBodyStream.close()
-                              }
+                      launch {
+                        val rawRequestChannel = call.request.receiveChannel()
+                        while (true) {
+                          val buffer = ByteBuffer.allocate(1024)
+                          when (val readSize = rawRequestChannel.readAvailable(buffer)) {
+                            -1 -> {
+                              requestBodyController.close()
+                            }
 
-                              else -> {
-                                val byteArray = ByteArray(readSize)
-                                buffer.get(byteArray)
-                                requestBodyStream.enqueue(byteArray)
-                              }
+                            else -> {
+                              val byteArray = ByteArray(readSize)
+                              buffer.get(byteArray)
+                              requestBodyController.enqueue(byteArray)
                             }
                           }
                         }
                       }
-
                       call.response.fromHttp4K(response)
                     }
 

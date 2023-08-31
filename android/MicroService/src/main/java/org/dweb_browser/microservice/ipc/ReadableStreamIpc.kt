@@ -16,11 +16,20 @@ import org.dweb_browser.helper.toUtf8ByteArray
 import org.dweb_browser.microservice.help.types.IMicroModuleManifest
 import org.dweb_browser.microservice.help.moshiPack
 import org.dweb_browser.microservice.ipc.helper.IPC_ROLE
+import org.dweb_browser.microservice.ipc.helper.IpcEvent
+import org.dweb_browser.microservice.ipc.helper.IpcEventJsonAble
 import org.dweb_browser.microservice.ipc.helper.IpcMessage
 import org.dweb_browser.microservice.ipc.helper.IpcMessageArgs
+import org.dweb_browser.microservice.ipc.helper.IpcReqMessage
 import org.dweb_browser.microservice.ipc.helper.IpcRequest
+import org.dweb_browser.microservice.ipc.helper.IpcResMessage
 import org.dweb_browser.microservice.ipc.helper.IpcResponse
+import org.dweb_browser.microservice.ipc.helper.IpcStreamAbort
 import org.dweb_browser.microservice.ipc.helper.IpcStreamData
+import org.dweb_browser.microservice.ipc.helper.IpcStreamDataJsonAble
+import org.dweb_browser.microservice.ipc.helper.IpcStreamEnd
+import org.dweb_browser.microservice.ipc.helper.IpcStreamPaused
+import org.dweb_browser.microservice.ipc.helper.IpcStreamPulling
 import org.dweb_browser.microservice.ipc.helper.ReadableStream
 import org.dweb_browser.microservice.ipc.helper.jsonToIpcMessage
 import java.io.InputStream
@@ -137,6 +146,15 @@ class ReadableStreamIpc(
         is IpcRequest -> Json.encodeToString(data.ipcReqMessage).toUtf8ByteArray()
         is IpcResponse -> Json.encodeToString(data.ipcResMessage).toUtf8ByteArray()
         is IpcStreamData -> Json.encodeToString(data).toUtf8ByteArray()
+        is IpcEvent -> Json.encodeToString(data).toUtf8ByteArray()
+        is IpcEventJsonAble -> Json.encodeToString(data).toUtf8ByteArray()
+        is IpcReqMessage -> Json.encodeToString(data).toUtf8ByteArray()
+        is IpcResMessage -> Json.encodeToString(data).toUtf8ByteArray()
+        is IpcStreamAbort -> Json.encodeToString(data).toUtf8ByteArray()
+        is IpcStreamDataJsonAble -> Json.encodeToString(data).toUtf8ByteArray()
+        is IpcStreamEnd -> Json.encodeToString(data).toUtf8ByteArray()
+        is IpcStreamPaused -> Json.encodeToString(data).toUtf8ByteArray()
+        is IpcStreamPulling -> Json.encodeToString(data).toUtf8ByteArray()
         else -> Json.encodeToString(data).toUtf8ByteArray()
       }
     }

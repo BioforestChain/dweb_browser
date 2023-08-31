@@ -25,6 +25,8 @@ import org.dweb_browser.microservice.ipc.helper.OnIpcMessage
 import org.dweb_browser.microservice.ipc.helper.OnIpcRequestMessage
 import org.dweb_browser.microservice.ipc.helper.OnIpcResponseMessage
 import org.dweb_browser.microservice.ipc.helper.OnIpcStreamMessage
+import org.http4k.core.Body
+import org.http4k.core.Headers
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Response
@@ -260,15 +262,42 @@ abstract class Ipc {
     return result.waitPromise()
   }
 
+  fun _buildIpcRequest(url: String, init: IpcRequestInit): IpcRequest {
+    val req_id = this.allocReqId();
+    val ipcRequest = IpcRequest.fromRequest(req_id, this, url, init);
+    return ipcRequest;
+  }
+
   suspend fun request(request: Request) =
     this.request(
       IpcRequest.fromRequest(
         allocReqId(),
-        request,
-        this
+        this,
+        request.uri.toString(),
+        IpcRequestInit(request.method, request.body, request.headers)
       )
     ).toResponse()
 
-  fun allocReqId() = req_id_acc.getAndAdd(1);
+
+  suspend fun request(url: String, init: IpcRequestInit): IpcResponse {
+    val ipcRequest = this._buildIpcRequest(url, init)
+    val result = this.registerReqId(ipcRequest.req_id);
+    this.postMessage(ipcRequest);
+    return result.waitPromise();
+  }
+
+  fun allocReqId() = req_id_acc.getAndAdd(1)
+
+  /** 自定义注册 请求与响应 的id */
+  fun registerReqId(req_id: Int = this.allocReqId()): PromiseOut<IpcResponse> {
+    return _reqResMap.getOrPut(req_id) {
+      return PromiseOut()
+    }
+  };
 }
 
+data class IpcRequestInit(
+  var method: Method = Method.GET,
+  var body: Body = Body.EMPTY,
+  var headers: Headers = listOf()
+)

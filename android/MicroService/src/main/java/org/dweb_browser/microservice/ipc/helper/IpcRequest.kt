@@ -5,8 +5,8 @@ import org.dweb_browser.microservice.help.InitRequest
 import org.dweb_browser.microservice.help.buildRequestX
 import org.dweb_browser.microservice.help.isWebSocket
 import org.dweb_browser.microservice.ipc.Ipc
+import org.dweb_browser.microservice.ipc.IpcRequestInit
 import org.http4k.core.Method
-import org.http4k.core.Request
 import org.http4k.core.Uri
 import java.io.InputStream
 
@@ -86,18 +86,20 @@ class IpcRequest(
     )
 
     fun fromRequest(
-      req_id: Int, request: Request, ipc: Ipc
+      req_id: Int, ipc: Ipc, url: String, init: IpcRequestInit
     ) = IpcRequest(
       req_id,
-      request.uri.toString(),
-      IpcMethod.from(request.method),
-      IpcHeaders(request.headers),
-      if (request.method == Method.GET || request.method == Method.HEAD) {
+      url,
+      IpcMethod.from(init.method),
+      IpcHeaders(init.headers),
+      if (isWebSocket(init.method, init.headers)) {
+        IpcBodySender.fromStream(init.body.stream, ipc)
+      } else if (init.method == Method.GET || init.method == Method.HEAD) {
         IpcBodySender.fromText("", ipc)
-      } else when (request.body.length) {
+      } else when (init.body.length) {
         0L -> IpcBodySender.fromText("", ipc)
-        null -> IpcBodySender.fromStream(request.body.stream, ipc)
-        else -> IpcBodySender.fromBinary(request.body.payload.array(), ipc)
+        null -> IpcBodySender.fromStream(init.body.stream, ipc)
+        else -> IpcBodySender.fromBinary(init.body.payload.array(), ipc)
       },
       ipc,
     )
