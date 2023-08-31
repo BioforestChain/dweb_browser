@@ -10,10 +10,7 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.browserUI.ui.entity.AppInfo
 import org.dweb_browser.browserUI.ui.view.DialogInfo
 import org.dweb_browser.browserUI.util.BrowserUIApp
-import org.dweb_browser.helper.with
-import org.dweb_browser.microservice.help.types.CommonAppManifest
 import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
-import org.dweb_browser.microservice.help.types.JmmAppManifest
 import org.dweb_browser.microservice.help.types.MMID
 import java.util.Calendar
 
@@ -68,7 +65,7 @@ class DownLoadViewModel(val mmid: MMID, val url: String) : ViewModel() {
       name = "",
       path = "${BrowserUIApp.Instance.appContext.cacheDir}/DL_${mmid}_${Calendar.MILLISECOND}.bfsa",
       downLoadStatus = DownLoadStatus.IDLE,
-      metaData = JmmAppInstallManifest().with {
+      metaData = JmmAppInstallManifest().apply {
         id = mmid
       }
     )

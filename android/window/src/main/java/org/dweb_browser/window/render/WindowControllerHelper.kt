@@ -590,7 +590,6 @@ suspend fun WindowController.loadIconModel(iconUrl: String?) = when (val url = i
   else -> when (val mm = state.constants.microModule) {
     null -> ImageState.Success(iconUrl)
     else -> sessionCache.getOrPut(url) {
-      println("download Icon: ${url}")
       mm.nativeFetch(url).let { response ->
         if (response.status.code >= 400) {
           ImageState.Error

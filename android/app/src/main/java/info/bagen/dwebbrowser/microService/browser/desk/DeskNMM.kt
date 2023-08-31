@@ -34,7 +34,9 @@ import org.http4k.core.Request
 import org.http4k.core.Response
 import org.http4k.core.Status
 import org.http4k.lens.Query
+import org.http4k.lens.boolean
 import org.http4k.lens.composite
+import org.http4k.lens.float
 import org.http4k.lens.int
 import org.http4k.lens.string
 import org.http4k.routing.bind
@@ -54,18 +56,22 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
   private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
 
   companion object {
-    val deskControllers = mutableMapOf<String, DeskController>()
-    lateinit var taskBarController: TaskBarController
+    data class DeskControllers(
+      val desktopController: DesktopController, val taskbarController: TaskbarController
+    )
+
+    val controllers = mutableMapOf<String, DeskControllers>()
   }
 
   val queryAppId = Query.string().required("app_id")
   val queryUrl = Query.string().required("url")
   val queryLimit = Query.int().optional("limit")
   val queryResize = Query.composite {
-    TaskBarController.ReSize(
-      width = int().required("width")(it), height = int().required("height")(it)
+    TaskbarController.ReSize(
+      width = float().required("width")(it), height = float().required("height")(it)
     )
   }
+  val queryOpen = Query.boolean().optional("open")
 
   private suspend fun listenApps() = ioAsyncScope.launch {
     val (openedAppIpc) = bootstrapContext.dns.connect("dns.std.dweb")
@@ -83,17 +89,16 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     // 创建桌面和任务的服务
     val taskbarServer = this.createTaskbarWebServer()
     val desktopServer = this.createDesktopWebServer()
-
-    val deskController = DeskController(this, desktopServer, runningApps)
     val deskSessionId = UUID.randomUUID().toString()
-    deskControllers[deskSessionId] = deskController
 
-    val mTaskBarController = TaskBarController(this, taskbarServer, runningApps)
-    taskBarController = mTaskBarController
+    val desktopController = DesktopController(deskSessionId, this, desktopServer, runningApps)
+    val taskBarController =
+      TaskbarController(deskSessionId, this, desktopController, taskbarServer, runningApps)
+    controllers[deskSessionId] = DeskControllers(desktopController, taskBarController)
 
     this.onAfterShutdown {
       runningApps.reset()
-      deskControllers.remove(deskSessionId)
+      controllers.remove(deskSessionId)
     }
 
     apiRouting = routes(
@@ -118,7 +123,7 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
             runningApps.remove(mmid)
           }
           /// 将所有的窗口聚焦，这个行为不依赖于 Activity 事件，而是Desk模块自身托管窗口的行为
-          deskController.desktopWindowsManager.focusWindow(mmid)
+          desktopController.desktopWindowsManager.focusWindow(mmid)
 
           return@defineHandler true
         } catch (e: Exception) {
@@ -128,7 +133,7 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       },
       "/toggleMaximize" bind Method.GET to defineHandler { request ->
         val mmid = queryAppId(request)
-        return@defineHandler deskController.desktopWindowsManager.toggleMaximize(mmid)
+        return@defineHandler desktopController.desktopWindowsManager.toggleMaximize(mmid)
       },
       "/closeApp" bind Method.GET to defineHandler { request ->
         val mmid = queryAppId(request);
@@ -142,14 +147,15 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         return@defineHandler closed
       },
       "/desktop/apps" bind Method.GET to defineHandler { _ ->
-        debugDesk("/desktop/apps", deskController.getDesktopApps())
-        return@defineHandler deskController.getDesktopApps()
+        debugDesk("/desktop/apps", desktopController.getDesktopApps())
+        return@defineHandler desktopController.getDesktopApps()
       },
       "/desktop/observe/apps" bind Method.GET to defineHandler { _, ipc ->
         val inputStream = ReadableStream(onStart = { controller ->
-          val off = deskController.onUpdate {
+          val off = desktopController.onUpdate {
             try {
-              controller.enqueue((Json.encodeToString(deskController.getDesktopApps()) + "\n").toByteArray())
+              val jsonData = Json.encodeToString(desktopController.getDesktopApps())
+              controller.enqueue((jsonData + "\n").toByteArray())
             } catch (e: Exception) {
               controller.close()
               e.printStackTrace()
@@ -160,7 +166,7 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
             controller.close()
           }
         })
-        deskController.updateSignal.emit()
+        desktopController.updateSignal.emit()
         return@defineHandler Response(Status.OK).body(inputStream)
       },
       "/taskbar/apps" bind Method.GET to defineHandler { request ->
@@ -173,7 +179,8 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         val inputStream = ReadableStream(onStart = { controller ->
           val off = taskBarController.onUpdate {
             try {
-              controller.enqueue((Json.encodeToString(taskBarController.getTaskbarAppList(limit)) + "\n").toByteArray())
+              val jsonData = Json.encodeToString(taskBarController.getTaskbarAppList(limit))
+              controller.enqueue((jsonData + "\n").toByteArray())
             } catch (e: Exception) {
               controller.close()
               e.printStackTrace()
@@ -192,7 +199,8 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         val inputStream = ReadableStream(onStart = { controller ->
           val off = taskBarController.onStatus { status ->
             try {
-              controller.enqueueBackground((Json.encodeToString(status) + "\n").toByteArray())
+              val jsonData = Json.encodeToString(status)
+              controller.enqueueBackground((jsonData + "\n").toByteArray())
             } catch (e: Exception) {
               controller.close()
               e.printStackTrace()
@@ -213,6 +221,10 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       "/taskbar/toggle-desktop-view" bind Method.GET to defineBooleanResponse {
         taskBarController.toggleDesktopView()
         true
+      },
+      "/taskbar/toggle-float-button-mode" bind Method.GET to defineBooleanResponse {
+        val open = queryOpen(request)
+        taskBarController.taskbarView.toggleFloatWindow(open)
       },
       "/browser/observe/apps" bind Method.GET to defineInputStreamHandler {
         debugDesk("/browser/observe/apps")
@@ -237,7 +249,7 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     onActivity {
       doActivity(deskSessionId)
     }
-    deskController.onActivity {
+    desktopController.onActivity {
       doActivity(deskSessionId)
     }
   }

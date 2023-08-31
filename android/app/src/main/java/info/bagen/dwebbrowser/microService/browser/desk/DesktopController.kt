@@ -14,9 +14,6 @@ import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.SimpleSignal
-import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.helper.runBlockingCatching
-import org.dweb_browser.helper.with
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.ipc.Ipc
@@ -24,7 +21,8 @@ import org.dweb_browser.microservice.sys.http.HttpDwebServer
 import org.http4k.core.query
 
 @Stable
-class DeskController(
+class DesktopController(
+  val deskSessionId: String,
   private val desktopNMM: DesktopNMM,
   private val desktopServer: HttpDwebServer,
   private val runningApps: ChangeableMap<MMID, Ipc>
@@ -42,12 +40,10 @@ class DeskController(
     }
   }
 
-  fun getDesktopApps(): List<DeskAppMetaData> {
-    val apps = runBlockingCatching(ioAsyncExceptionHandler) {
-      desktopNMM.bootstrapContext.dns.search(MICRO_MODULE_CATEGORY.Application)
-    }.getOrThrow()
+  suspend fun getDesktopApps(): List<DeskAppMetaData> {
+    val apps = desktopNMM.bootstrapContext.dns.search(MICRO_MODULE_CATEGORY.Application)
     val runApps = apps.map { metaData ->
-      return@map DeskAppMetaData().with {
+      return@map DeskAppMetaData().apply {
         running = runningApps.containsKey(metaData.mmid)
         assign(metaData.manifest)
       }
@@ -55,12 +51,7 @@ class DeskController(
     return runApps
   }
 
-  fun getInstallApps() = getDesktopApps().toMutableList()
-
-  fun getOpenApps() = getDesktopApps().filter { it.running }.toMutableList()
-
   private var activityTask = PromiseOut<DesktopActivity>()
-  suspend fun waitActivityCreated() = activityTask.waitPromise()
 
   var activity: DesktopActivity? = null
     set(value) {

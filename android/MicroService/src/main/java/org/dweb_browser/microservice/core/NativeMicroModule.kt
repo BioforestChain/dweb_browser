@@ -3,7 +3,6 @@ package org.dweb_browser.microservice.core
 import kotlinx.serialization.json.JsonElement
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.runBlockingCatching
-import org.dweb_browser.helper.with
 import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.help.jsonBody
 import org.dweb_browser.microservice.help.types.MMID
@@ -32,7 +31,7 @@ fun debugNMM(tag: String, msg: Any = "", err: Throwable? = null) = printDebug("D
 
 abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(manifest) {
   constructor(mmid: MMID, name: String) : this(
-    MicroModuleManifest().with {
+    MicroModuleManifest().apply {
       this.mmid = mmid
       this.name = name
     }

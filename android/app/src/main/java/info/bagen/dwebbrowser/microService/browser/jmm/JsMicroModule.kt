@@ -11,7 +11,6 @@ import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.helper.toBase64Url
-import org.dweb_browser.helper.with
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.ConnectResult
 import org.dweb_browser.microservice.core.MicroModule
@@ -44,7 +43,7 @@ fun debugJsMM(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("JsMM", tag, msg, err)
 
 open class JsMicroModule(val metadata: JmmAppInstallManifest) : MicroModule(
-  MicroModuleManifest().with {
+  MicroModuleManifest().apply {
     assign(metadata)
     categories += MICRO_MODULE_CATEGORY.Application
     icons.ifEmpty {

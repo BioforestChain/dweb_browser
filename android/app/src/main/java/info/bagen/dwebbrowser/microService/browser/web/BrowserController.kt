@@ -22,70 +22,71 @@ import org.dweb_browser.window.core.constant.WindowMode
 import org.dweb_browser.window.core.createWindowAdapterManager
 
 class BrowserController(
-    private val browserNMM: BrowserNMM,
-    browserServer: HttpDwebServer
+  private val browserNMM: BrowserNMM, browserServer: HttpDwebServer
 ) {
 
-    internal val updateSignal = SimpleSignal()
-    val onUpdate = updateSignal.toListener()
+  internal val updateSignal = SimpleSignal()
+  val onUpdate = updateSignal.toListener()
 
 
-    private var winLock = Mutex(false)
+  private var winLock = Mutex(false)
 
-    suspend fun uninstallWindow() {
-        winLock.withLock {
-            win?.close(false)
-        }
+  suspend fun uninstallWindow() {
+    winLock.withLock {
+      win?.close(false)
+    }
+  }
+
+  /**
+   * 窗口是单例模式
+   */
+  private var win: WindowController? = null
+  suspend fun openBrowserWindow(ipc: Ipc, search: String? = null, url: String? = null) =
+    winLock.withLock<WindowController> {
+      if (win != null) {
+        return win!!
+      }
+      // 打开安装窗口
+      val newWin = createWindowAdapterManager.createWindow(WindowState(
+        WindowConstants(
+          owner = ipc.remote.mmid,
+          ownerVersion = ipc.remote.version,
+          provider = browserNMM.mmid,
+          microModule = browserNMM
+        )
+      ).also {
+        it.mode = WindowMode.MAXIMIZE
+      })
+      newWin.state.closeTip =
+        newWin.manager?.state?.activity?.resources?.getString(R.string.browser_confirm_to_close)
+          ?: ""
+      this.win = newWin
+      val wid = newWin.id
+      /// 提供渲染适配
+      createWindowAdapterManager.renderProviders[wid] = @Composable { modifier ->
+        Render(modifier, this)
+      }
+      /// 窗口销毁的时候
+      newWin.onClose {
+        // 移除渲染适配器
+        createWindowAdapterManager.renderProviders.remove(wid)
+        ioAsyncScope.cancel()
+        win = null
+      }
+      return newWin
     }
 
-    /**
-     * 窗口是单例模式
-     */
-    private var win: WindowController? = null
-    suspend fun openBrowserWindow(ipc: Ipc, search: String? = null, url: String? = null) =
-        winLock.withLock<WindowController> {
-            // 打开安装窗口
-            val win = createWindowAdapterManager.createWindow(
-                WindowState(
-                    WindowConstants(
-                        owner = ipc.remote.mmid,
-                        ownerVersion = ipc.remote.version,
-                        provider = browserNMM.mmid,
-                        microModule = browserNMM
-                    )
-                ).also {
-                    it.mode = WindowMode.MAXIMIZE
-                })
-            win.state.closeTip =
-                win.manager?.state?.activity?.resources?.getString(R.string.browser_confirm_to_close)
-                    ?: ""
-            this.win = win
-            val wid = win.id
-            /// 提供渲染适配
-            createWindowAdapterManager.renderProviders[wid] =
-                @Composable { modifier ->
-                    Render(modifier, this)
-                }
-            /// 窗口销毁的时候
-            win.onClose {
-                // 移除渲染适配器
-                createWindowAdapterManager.renderProviders.remove(wid)
-                ioAsyncScope.cancel()
-            }
-            return win
-        }
-
-    private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
-    val showLoading: MutableState<Boolean> = mutableStateOf(false)
-    val viewModel = BrowserViewModel(browserNMM, browserServer) { mmid ->
-        ioAsyncScope.launch {
-            browserNMM.bootstrapContext.dns.open(mmid)
-        }
+  private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
+  val showLoading: MutableState<Boolean> = mutableStateOf(false)
+  val viewModel = BrowserViewModel(browserNMM, browserServer) { mmid ->
+    ioAsyncScope.launch {
+      browserNMM.bootstrapContext.dns.open(mmid)
     }
+  }
 
 
-    internal fun updateDWSearch(search: String) = viewModel.setDwebLinkSearch(search)
-    internal fun updateDWUrl(url: String) = viewModel.setDwebLinkUrl(url)
+  internal fun updateDWSearch(search: String) = viewModel.setDwebLinkSearch(search)
+  internal fun updateDWUrl(url: String) = viewModel.setDwebLinkUrl(url)
 
 
 //  val browserViewModel by lazy {

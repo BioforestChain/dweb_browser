@@ -10,11 +10,3 @@ suspend fun <T> debounce(
   delayMillis: Long,
   block: suspend () -> T
 ): T = flow { emit(block()) }.debounce(delayMillis).first()
-
-
-inline fun <T> T.with(block: T.() -> Unit): T {
-  with(this) {
-    this.block()
-  }
-  return this
-}

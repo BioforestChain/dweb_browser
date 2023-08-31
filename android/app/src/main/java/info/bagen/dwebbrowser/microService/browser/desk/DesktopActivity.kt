@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
@@ -26,26 +27,26 @@ fun WindowBounds.toModifier(
   .size(width.dp, height.dp)
 
 class DesktopActivity : BaseThemeActivity() {
-  private var controller: DeskController? = null
-  private fun bindController(sessionId: String?): DeskController {
+  private var desktopController: DesktopController? = null
+  private fun bindController(sessionId: String?): DesktopNMM.Companion.DeskControllers {
     /// 解除上一个 controller的activity绑定
-    controller?.activity = null
+    desktopController?.activity = null
 
-    return DesktopNMM.deskControllers[sessionId]?.also { desktopController ->
-      desktopController.activity = this
-      controller = desktopController
+    return DesktopNMM.controllers[sessionId]?.also { controllers ->
+      controllers.desktopController.activity = this
+      this.desktopController = controllers.desktopController
     } ?: throw Exception("no found controller by sessionId: $sessionId")
   }
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    val deskController = bindController(intent.getStringExtra("deskSessionId"))
+    val (desktopController, taskbarController) = bindController(intent.getStringExtra("deskSessionId"))
     /// 禁止自适应布局
     WindowCompat.setDecorFitsSystemWindows(window, false)
     /**
      * 窗口管理器
      */
-    val desktopWindowsManager = deskController.desktopWindowsManager
+    val desktopWindowsManager = desktopController.desktopWindowsManager
     setContent {
       BackHandler {
         this@DesktopActivity.moveTaskToBack(true) // 将界面移动到后台，避免重新点击又跑SplashActivity
@@ -53,10 +54,8 @@ class DesktopActivity : BaseThemeActivity() {
 
       DwebBrowserAppTheme {
         CompositionLocalProvider(
-          LocalInstallList provides deskController.getInstallApps(),
-          LocalOpenList provides deskController.getOpenApps(),
-          LocalDesktopView provides deskController.createMainDwebView(
-            "desktop", deskController.getDesktopUrl().toString()
+          LocalDesktopView provides desktopController.createMainDwebView(
+            "desktop", desktopController.getDesktopUrl().toString()
           ),
         ) {
           Box {
@@ -71,11 +70,18 @@ class DesktopActivity : BaseThemeActivity() {
             }
             /// 窗口视图
             desktopWindowsManager.Render()
-            /// 悬浮框
-            TaskbarModel.FloatWindow()
+          }
+          /// 悬浮框
+          Box(modifier = Modifier.fillMaxSize(), Alignment.TopStart) {
+            taskbarController.taskbarView.FloatWindow()
           }
         }
       }
     }
+  }
+
+  override fun onDestroy() {
+    super.onDestroy()
+    desktopController?.activity = null
   }
 }

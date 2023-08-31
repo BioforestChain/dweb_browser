@@ -195,7 +195,6 @@ fun WindowController.Render(
        * 窗口是否聚焦
        */
       val isFocus by win.watchedState { focus }
-//      println("isFocus: $isFocus compose ${win.id}")
 
       /// 失去焦点的时候，提供 moveable 的遮罩（在移动中需要确保遮罩存在）
       if (inMove or !isFocus) {

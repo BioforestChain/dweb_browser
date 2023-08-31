@@ -15,7 +15,6 @@ import org.dweb_browser.browserUI.util.FilesUtil
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.toJsonElement
-import org.dweb_browser.helper.with
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.help.bodyJson
 import org.dweb_browser.microservice.help.jsonBody
@@ -206,7 +205,7 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
       WindowConstants(
         owner = mmid, ownerVersion = version, provider = mmid, microModule = this
       )
-    ).with {
+    ).apply {
       mode = WindowMode.MAXIMIZE
     })
     jmmController = JmmController(win, this@JmmNMM, jmmAppInstallManifest)

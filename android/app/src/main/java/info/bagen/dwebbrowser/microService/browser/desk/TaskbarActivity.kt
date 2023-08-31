@@ -7,34 +7,60 @@ import android.view.MotionEvent
 import android.view.ViewGroup
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.lifecycle.coroutineScope
+import androidx.core.view.WindowCompat
+import androidx.lifecycle.lifecycleScope
 import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.base.BaseThemeActivity
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.android.ActivityBlurHelper
 import org.dweb_browser.helper.android.theme.DwebBrowserAppTheme
 
+
 class TaskbarActivity : BaseThemeActivity() {
 
   private val blurHelper = ActivityBlurHelper(this)
 
-  private var controller: TaskBarController = DesktopNMM.taskBarController
+  private var controller: TaskbarController? = null
+  private fun bindController(sessionId: String?): DesktopNMM.Companion.DeskControllers {
+    /// 解除上一个 controller的activity绑定
+    controller?.activity = null
+
+    return DesktopNMM.controllers[sessionId]?.also { controllers ->
+      controllers.taskbarController.activity = this
+      controller = controllers.taskbarController
+    } ?: throw Exception("no found controller by sessionId: $sessionId")
+  }
 
   @SuppressLint("UseCompatLoadingForDrawables", "ClickableViewAccessibility")
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    controller.activity = this
-    val density = resources.displayMetrics.density
+    val (_, taskbarController) = bindController(intent.getStringExtra("deskSessionId"))
+    /// 禁止自适应布局
+    WindowCompat.setDecorFitsSystemWindows(window, false)
+    val densityValue = resources.displayMetrics.density
+
+    fun toPx(dp: Float) = (densityValue * dp).toInt()
 
     setContent {
+      /// 关联到
+
       window.attributes = window.attributes.also { attributes ->
-        window.setLayout(controller.cacheResize.width, controller.cacheResize.height)
-//        /// 禁用模态窗口模式，使得点击可以向下穿透
-//        attributes.flags =
-//          WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
-        /// 将视图对其到右侧中央
-        attributes.gravity = Gravity.CENTER_VERTICAL or Gravity.END;
+        taskbarController.taskbarView.apply {
+          window.setLayout(
+            toPx(layoutWidth.value),
+            toPx(layoutHeight.value),
+          )
+
+          attributes.gravity = Gravity.TOP or Gravity.START
+          attributes.x = toPx(layoutX.value - layoutLeftPadding.value)
+          attributes.y = toPx(layoutY.value - layoutTopPadding.value)
+        }
       }
       DwebBrowserAppTheme {
         BackHandler {
@@ -42,7 +68,7 @@ class TaskbarActivity : BaseThemeActivity() {
         }
         /// 任务栏视图
         AndroidView(factory = {
-          TaskbarModel.taskbarDWebView.also { webView ->
+          taskbarController.taskbarView.taskbarDWebView.also { webView ->
             webView.parent?.let { parent ->
               (parent as ViewGroup).removeView(webView)
             }
@@ -57,7 +83,7 @@ class TaskbarActivity : BaseThemeActivity() {
 
     /// 启用模糊
     blurHelper.config(
-      backgroundBlurRadius = (10 * density).toInt(),
+      backgroundBlurRadius = (10 * densityValue).toInt(),
       windowBackgroundDrawable = getDrawable(R.drawable.taskbar_window_background),
       dimAmountNoBlur = 0.3f,
       dimAmountWithBlur = 0.1f,
@@ -68,11 +94,11 @@ class TaskbarActivity : BaseThemeActivity() {
   // Activity是否获得焦点
   override fun onWindowFocusChanged(hasFocus: Boolean) {
     super.onWindowFocusChanged(hasFocus)
-    this.lifecycle.coroutineScope.launch {
-      controller.let { taskBarController ->
-        taskBarController.getFocusApp()?.let { focusApp ->
-          taskBarController.stateSignal.emit(
-            TaskBarController.TaskBarState(hasFocus, focusApp)
+    this.lifecycleScope.launch {
+      controller?.let { taskbarController ->
+        taskbarController.getFocusApp()?.let { focusApp ->
+          taskbarController.stateSignal.emit(
+            TaskbarController.TaskBarState(hasFocus, focusApp)
           )
         }
       }
@@ -81,8 +107,11 @@ class TaskbarActivity : BaseThemeActivity() {
 
   override fun onDestroy() {
     super.onDestroy()
-    TaskbarModel.openFloatWindow() // 销毁 TaskbarActivity 后需要将悬浮框重新显示加载
-    controller.activity = null
+    controller?.also { taskBarController ->
+      taskBarController.taskbarView.closeFloatWindow() // 销毁 TaskbarActivity 后需要将悬浮框重新显示加载
+      taskBarController.activity = null
+    }
+
   }
 
   @SuppressLint("RestrictedApi")

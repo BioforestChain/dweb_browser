@@ -142,7 +142,7 @@
     </activity>
 
     <service android:name="org.dweb_browser.browserUI.download.DwebBrowserService" />
-    <service android:name=".microService.browser.desk.TaskbarService" />
+<!--    <service android:name=".microService.browser.desk.TaskbarService" />-->
 
     <provider
       android:name="androidx.core.content.FileProvider"

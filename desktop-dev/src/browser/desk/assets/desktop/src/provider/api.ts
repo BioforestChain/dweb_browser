@@ -32,9 +32,9 @@ export function watchTaskBarStatus() {
 }
 
 export function watchBrowserAppInfo() {
-  return nativeFetchStream<$DeskLinkMetaData[]>("/browser/observe/apps",{
-    mmid:"web.browser.dweb"
-  })
+  return nativeFetchStream<$DeskLinkMetaData[]>("/browser/observe/apps", {
+    mmid: "web.browser.dweb",
+  });
 }
 
 export async function getWidgetInfo() {
@@ -57,17 +57,17 @@ export async function detailApp(id: string) {
       app_id: id,
     },
     mmid: "jmm.browser.dweb",
-  })
+  });
 }
 
-export async function openBrowser(url:string) {
-  const xhr = new XMLHttpRequest()
-  xhr.open("GET",`dweb:openinbrowser?url=${url}`)
-  xhr.send()
+export async function openBrowser(url: string) {
+  const xhr = new XMLHttpRequest();
+  xhr.open("GET", `dweb:openinbrowser?url=${url}`);
+  xhr.send();
 }
 
 export function toggleMaximize(id: string) {
-  return  nativeFetch<boolean>("/toggleMaximize", {
+  return nativeFetch<boolean>("/toggleMaximize", {
     search: {
       app_id: id,
     },
@@ -101,8 +101,8 @@ export async function deleteApp(id: string) {
   });
 }
 
-export async function deleteWebApp(mmid?:string) {
-   return nativeFetch<Response>("/uninstall", {
+export async function deleteWebApp(mmid?: string) {
+  return nativeFetch<Response>("/uninstall", {
     search: {
       mmid: mmid,
     },
@@ -118,7 +118,14 @@ export function shareApp(id: string) {
   });
 }
 
-export function resizeTaskbar(width: number, height: number) {
+let preWidth = NaN;
+let preHeight = NaN;
+export function resizeTaskbar(width: number, height: number, force = false) {
+  if (width === preWidth && height === preHeight && !force) {
+    return { width: preWidth, height: preHeight };
+  }
+  preWidth = width;
+  preHeight = height;
   return nativeFetch<{ width: number; height: number }>("/taskbar/resize", { search: { width, height } });
 }
 

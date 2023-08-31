@@ -1,22 +1,22 @@
 <script setup lang="ts">
 import AppIcon from "src/components/app-icon/app-icon.vue";
 import {
-$WatchEffectAppMetadataToAppIconReturn,
-watchEffectAppMetadataToAppIcon,
+  $WatchEffectAppMetadataToAppIconReturn,
+  watchEffectAppMetadataToAppIcon,
 } from "src/components/app-icon/appMetaDataHelper.ts";
 import { $AppIconInfo } from "src/components/app-icon/types";
 import SvgIcon from "src/components/svg-icon/svg-icon.vue";
 import {
-openApp,
-quitApp,
-resizeTaskbar,
-toggleDesktopView,
-toggleMaximize,
-watchTaskBarStatus,
-watchTaskbarAppInfo,
+  openApp,
+  quitApp,
+  resizeTaskbar,
+  toggleDesktopView,
+  toggleMaximize,
+  watchTaskbarAppInfo,
+  watchTaskBarStatus,
 } from "src/provider/api.ts";
 import { $TaskBarState, $WidgetAppData } from "src/types/app.type.ts";
-import { ShallowRef, computed, onMounted, onUnmounted, reactive, ref, shallowRef, triggerRef } from "vue";
+import { computed, onMounted, onUnmounted, reactive, ref, ShallowRef, shallowRef, triggerRef } from "vue";
 import { icons } from "./icons/index.ts";
 import x_circle_svg from "./icons/x-circle.svg";
 
@@ -25,7 +25,7 @@ const toggleDesktopButton = async () => {
   const boundList = await toggleDesktopView();
 };
 
-const isDesktop = computed(() =>  navigator.userAgent.toLowerCase().indexOf(' electron/')> -1)
+const isDesktop = computed(() => navigator.userAgent.toLowerCase().indexOf(" electron/") > -1);
 
 const appRefList = shallowRef<
   Array<
@@ -127,9 +127,9 @@ const showAppIcons = computed(() => {
   const apps = appRefList.value.filter((app) => isFocus(app.metaData.mmid));
   // 如果第一次初始化，那么直接返回列表第一个
   if (apps.length === 0 && appRefList.value.length !== 0) {
-   return [appRefList.value[0]]
+    return [appRefList.value[0]];
   }
-  return apps
+  return apps;
 });
 // 如果不是聚焦模式，只返回当前聚焦的app
 const isFocus = (mmid: string) => {
@@ -137,20 +137,20 @@ const isFocus = (mmid: string) => {
   return focusState.isFocus || mmid == focusState.appId;
 };
 // 标记scale的元素
-const isActive = (mmid: string) => computed(() =>  focusState.isFocus && mmid == focusState.appId)
+const isActive = (mmid: string) => computed(() => focusState.isFocus && mmid == focusState.appId);
 const focusState = reactive({
-  isFocus: isDesktop.value?true:false,
+  isFocus: isDesktop.value ? true : false,
   appId: "",
 });
 // 触发样式更新
 const updateTaskBarState = async (state: $TaskBarState) => {
   const taskBarDom = taskbarEle.value;
   if (!taskBarDom) return;
-  focusState.isFocus = isDesktop.value?true:state.focus;
+  focusState.isFocus = isDesktop.value ? true : state.focus;
   focusState.appId = state.appId;
   // 聚焦模式下，显示所有的列表，但是对于当前focus的应用，需要有一定的scale显示
   if (state.focus) {
-    console.log("focusState.appId=>",focusState.appId)
+    console.log("focusState.appId=>", focusState.appId);
     // return await resizeTaskbar(67, 70 * (showAppIcons.value.length + 1));
   }
   // 没有聚焦的情况，只显示当前focus的应用
@@ -158,7 +158,8 @@ const updateTaskBarState = async (state: $TaskBarState) => {
 };
 let resizeOb: ResizeObserver | undefined;
 onMounted(() => {
-  if (taskbarEle.value) {
+  const element = taskbarEle.value;
+  if (element) {
     resizeOb = new ResizeObserver(async (entries) => {
       for (const entry of entries) {
         const { width: _width, height: _height } = entry.contentRect;
@@ -167,7 +168,10 @@ onMounted(() => {
         await resizeTaskbar(width, height);
       }
     });
-    resizeOb.observe(taskbarEle.value);
+    resizeOb.observe(element);
+    requestAnimationFrame(() => {
+      resizeTaskbar(element.clientWidth, element.clientHeight);
+    });
   }
 });
 const iconSize = "45px";
@@ -179,7 +183,7 @@ const iconSize = "45px";
         class="app-icon-wrapper z-grid"
         v-for="(appIcon, index) in showAppIcons"
         :key="index"
-        :class="{ active:isActive(appIcon.metaData.mmid) }"
+        :class="{ active: isActive(appIcon.metaData.mmid) }"
       >
         <transition name="scale">
           <AppIcon
@@ -208,11 +212,7 @@ const iconSize = "45px";
       </button>
     </div>
     <hr v-if="showAppIcons.length > 0 && focusState.isFocus" class="my-divider" />
-    <button
-      v-if="focusState.isFocus"
-      class="desktop-button app-icon-wrapper z-grid m-4"
-      @click="toggleDesktopButton"
-    >
+    <button v-if="focusState.isFocus" class="desktop-button app-icon-wrapper z-grid m-4" @click="toggleDesktopButton">
       <AppIcon
         class="z-view"
         :icon="icons.layout_panel_top"
