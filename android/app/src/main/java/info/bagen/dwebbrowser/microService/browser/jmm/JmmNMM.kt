@@ -7,24 +7,23 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
-import kotlinx.coroutines.withContext
 import org.dweb_browser.browserUI.database.JsMicroModuleStore
 import org.dweb_browser.browserUI.download.DownLoadController
 import org.dweb_browser.browserUI.download.compareAppVersionHigh
 import org.dweb_browser.browserUI.util.BrowserUIApp
 import org.dweb_browser.browserUI.util.FilesUtil
 import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.toJsonElement
+import org.dweb_browser.helper.with
 import org.dweb_browser.microservice.core.BootstrapContext
-import org.dweb_browser.microservice.help.DWEB_DEEPLINK
-import org.dweb_browser.microservice.help.JmmAppInstallManifest
-import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
-import org.dweb_browser.microservice.help.MMID
-import org.dweb_browser.microservice.help.MicroModuleManifest
 import org.dweb_browser.microservice.help.bodyJson
 import org.dweb_browser.microservice.help.jsonBody
+import org.dweb_browser.microservice.help.types.DWEB_DEEPLINK
+import org.dweb_browser.microservice.help.types.IMicroModuleManifest
+import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
+import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
+import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.dweb_browser.window.core.WindowState
@@ -59,11 +58,12 @@ inline fun <K, V> MutableMap<K, V>.getOrPutOrReplace(
 }
 
 class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Management") {
-
-  override val short_name = "JMM";
-  override val dweb_deeplinks = mutableListOf<DWEB_DEEPLINK>("dweb:install")
-  override val categories =
-    mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Hub_Service);
+  init {
+    short_name = "JMM";
+    dweb_deeplinks = mutableListOf<DWEB_DEEPLINK>("dweb:install")
+    categories =
+      mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Hub_Service);
+  }
 
   enum class EIpcEvent(val event: String) {
     State("state"), Ready("ready"), Activity("activity"), Close("close")
@@ -72,7 +72,7 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
   private var jmmController: JmmController? = null
   private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
 
-  fun getApps(mmid: MMID): MicroModuleManifest? {
+  fun getApps(mmid: MMID): IMicroModuleManifest? {
     return bootstrapContext.dns.query(mmid)
   }
 
@@ -91,7 +91,7 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
       val jmmAppInstallManifest = nativeFetch(metadataUrl).bodyJson<JmmAppInstallManifest>()
       val url = URL(metadataUrl)
       // 根据 jmmMetadata 打开一个应用信息的界面，用户阅读界面信息后，可以点击"安装"
-      jmmMetadataInstall(jmmAppInstallManifest, ipc, url)
+      installJsMicroModule(jmmAppInstallManifest, ipc, url)
       if (request.header("Accept")?.contains("application/json") == true) {
         Response(Status.OK).jsonBody(jmmAppInstallManifest.toJsonElement())
       } else {
@@ -122,7 +122,7 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
 
         // TODO: 系统原生应用如WebBrowser的详情页展示？
         if (microModule is JsMicroModule) {
-          jmmMetadataInstall(microModule.metadata, ipc)
+          installJsMicroModule(microModule.metadata, ipc)
           true
         } else {
           false
@@ -186,13 +186,16 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
     }
   }
 
-  private suspend fun jmmMetadataInstall(
+  private suspend fun installJsMicroModule(
     jmmAppInstallManifest: JmmAppInstallManifest, ipc: Ipc, url: URL? = null,
   ) {
     jmmController?.closeSelf() // 如果存在的话，关闭先，同时可以考虑置空
     if (!jmmAppInstallManifest.bundle_url.startsWith("http")) {
       url?.let {
-        jmmAppInstallManifest.bundle_url = URL(it, jmmAppInstallManifest.bundle_url).toString()
+        jmmAppInstallManifest.bundle_url = URL(
+          it,
+          jmmAppInstallManifest.bundle_url
+        ).toString()
       }
     }
     debugJMM("openJmmMetadataInstallPage", jmmAppInstallManifest.bundle_url)
@@ -201,14 +204,12 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
     // 打开安装窗口
     val win = createWindowAdapterManager.createWindow(WindowState(
       WindowConstants(
-        owner = mmid, provider = mmid, microModule = this
+        owner = mmid, ownerVersion = version, provider = mmid, microModule = this
       )
-    ).also {
-      it.mode = WindowMode.MAXIMIZE
+    ).with {
+      mode = WindowMode.MAXIMIZE
     })
-    withContext(mainAsyncExceptionHandler) { // 由于创建后，界面会同步执行，可能会存在主界面刷新界面比协程执行快，引发数据未初始化问题
-      jmmController = JmmController(win, this@JmmNMM, jmmAppInstallManifest)
-    }
+    jmmController = JmmController(win, this@JmmNMM, jmmAppInstallManifest)
   }
 
   private suspend fun jmmMetadataUninstall(mmid: MMID) {

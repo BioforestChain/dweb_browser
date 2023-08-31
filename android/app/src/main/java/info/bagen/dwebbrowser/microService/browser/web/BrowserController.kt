@@ -49,6 +49,7 @@ class BrowserController(
                 WindowState(
                     WindowConstants(
                         owner = ipc.remote.mmid,
+                        ownerVersion = ipc.remote.version,
                         provider = browserNMM.mmid,
                         microModule = browserNMM
                     )

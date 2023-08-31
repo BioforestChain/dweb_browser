@@ -5,9 +5,9 @@ import info.bagen.dwebbrowser.microService.browser.nativeui.helper.QueryHelper
 import info.bagen.dwebbrowser.microService.browser.nativeui.helper.fromMultiWebView
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
-import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
-import org.dweb_browser.microservice.help.MMID
 import org.dweb_browser.microservice.help.cors
+import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
+import org.dweb_browser.microservice.help.types.MMID
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
@@ -16,8 +16,10 @@ import org.http4k.routing.routes
 
 class SafeAreaNMM : NativeMicroModule("safe-area.nativeui.browser.dweb", "safeArea") {
 
-  override val categories =
-    mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service);
+  init {
+    categories =
+      mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service);
+  }
 
   private fun getController(mmid: MMID) = NativeUiController.fromMultiWebView(mmid).safeArea
 

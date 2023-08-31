@@ -11,7 +11,7 @@ import android.provider.Settings
 import android.webkit.WebView
 import info.bagen.dwebbrowser.App
 import org.dweb_browser.microservice.help.gson
-import java.util.*
+import java.util.Locale
 
 
 object Device {

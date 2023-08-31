@@ -10,9 +10,10 @@ import android.os.Looper
 import info.bagen.dwebbrowser.App
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
-import org.dweb_browser.helper.*
+import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.printError
 import org.dweb_browser.microservice.help.gson
-import java.util.*
+import java.util.Locale
 
 data class LocationData(
   var latitude: Double? = null,

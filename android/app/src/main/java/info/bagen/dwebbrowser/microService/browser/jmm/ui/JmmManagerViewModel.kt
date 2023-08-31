@@ -14,7 +14,7 @@ import org.dweb_browser.browserUI.download.DownLoadStatus
 import org.dweb_browser.browserUI.download.compareAppVersionHigh
 import org.dweb_browser.browserUI.util.BrowserUIApp
 import org.dweb_browser.browserUI.util.NotificationUtil
-import org.dweb_browser.microservice.help.JmmAppInstallManifest
+import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
 import java.util.Calendar
 
 data class JmmUIState(
@@ -124,7 +124,8 @@ class JmmManagerViewModel(
           id = jmmAppInstallManifest.id,
           url = jmmAppInstallManifest.bundle_url,
           name = jmmAppInstallManifest.name,
-          downLoadStatus = DownLoadStatus.INSTALLED
+          downLoadStatus = DownLoadStatus.INSTALLED,
+          metaData = jmmAppInstallManifest,
         )
       }
     } ?: run {

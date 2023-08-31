@@ -15,8 +15,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import org.dweb_browser.browserUI.util.BrowserUIApp
-import org.dweb_browser.microservice.help.JmmAppInstallManifest
-import org.dweb_browser.microservice.help.MMID
+import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
+import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.help.gson
 
 object JsMicroModuleStore {

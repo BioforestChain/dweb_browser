@@ -4,7 +4,6 @@ import android.content.Intent
 import android.os.Bundle
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.browser.jmm.EIpcEvent
-import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
@@ -17,9 +16,10 @@ import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.readByteArray
 import org.dweb_browser.microservice.core.BootstrapContext
-import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
-import org.dweb_browser.microservice.help.MMID
+import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.cors
+import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
+import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
 import org.dweb_browser.microservice.ipc.helper.IpcResponse
@@ -44,9 +44,10 @@ import java.util.UUID
 fun debugDesk(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("desk", tag, msg, err)
 
-class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
-  override val categories =
-    mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Desktop);
+class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
+  init {
+    categories = mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Desktop);
+  }
 
   private val runningApps = ChangeableMap<MMID, Ipc>()
 
@@ -209,9 +210,27 @@ class DesktopNMM : AndroidNativeMicroModule("desk.browser.dweb", "Desk") {
         debugDesk("/taskbar/resize", "$size")
         return@defineHandler taskBarController.resize(size)
       },
-      "/taskbar/toggle-desktop-view" bind Method.GET to defineHandler { request ->
+      "/taskbar/toggle-desktop-view" bind Method.GET to defineBooleanResponse {
         taskBarController.toggleDesktopView()
-        return@defineHandler Response(Status.OK)
+        true
+      },
+      "/browser/observe/apps" bind Method.GET to defineInputStreamHandler {
+        debugDesk("/browser/observe/apps")
+        val inputStream = ReadableStream(onStart = { controller ->
+          val off = taskBarController.onStatus { status ->
+            try {
+              controller.enqueueBackground((Json.encodeToString(status) + "\n").toByteArray())
+            } catch (e: Exception) {
+              controller.close()
+              e.printStackTrace()
+            }
+          }
+          ipc.onClose {
+            off()
+            controller.close()
+          }
+        })
+        inputStream
       },
     ).cors()
 

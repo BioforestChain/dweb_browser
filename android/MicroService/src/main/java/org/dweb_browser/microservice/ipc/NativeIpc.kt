@@ -6,7 +6,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printDebug
-import org.dweb_browser.microservice.help.MicroModuleManifest
+import org.dweb_browser.microservice.help.types.IMicroModuleManifest
 import org.dweb_browser.microservice.ipc.helper.IPC_ROLE
 import org.dweb_browser.microservice.ipc.helper.IpcMessage
 import org.dweb_browser.microservice.ipc.helper.IpcMessageArgs
@@ -16,7 +16,7 @@ fun debugNativeIpc(tag: String, msg: Any = "", err: Throwable? = null) =
 
 class NativeIpc(
   val port: NativePort<IpcMessage, IpcMessage>,
-  override val remote: MicroModuleManifest,
+  override val remote: IMicroModuleManifest,
   private val roleType: IPC_ROLE,
 ) : Ipc() {
   override val role get() = roleType.role

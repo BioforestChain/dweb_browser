@@ -8,8 +8,8 @@ import info.bagen.dwebbrowser.microService.sys.share.ShareController.Companion.c
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.core.BootstrapContext
-import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.cors
+import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.http4k.core.Method
 import org.http4k.core.MultipartFormBody
 import org.http4k.lens.Query
@@ -29,8 +29,10 @@ fun debugShare(tag: String, msg: Any? = "", err: Throwable? = null) =
 
 class ShareNMM : AndroidNativeMicroModule("share.sys.dweb", "share") {
 
-  override val categories =
-    mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Protocol_Service);
+  init {
+    categories =
+      mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Protocol_Service);
+  }
 
   private val plugin = CacheFilePlugin()
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {

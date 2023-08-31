@@ -1,7 +1,7 @@
 package org.dweb_browser.dwebview.ipcWeb
 
 import android.webkit.WebMessagePort
-import org.dweb_browser.microservice.help.MicroModuleManifest
+import org.dweb_browser.microservice.help.types.IMicroModuleManifest
 import org.dweb_browser.microservice.ipc.helper.IPC_ROLE
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -25,7 +25,7 @@ suspend fun saveNative2JsIpcPort(port: WebMessagePort) =
  */
 open class Native2JsIpc(
   val portId: Int,
-  remote: MicroModuleManifest,
+  remote: IMicroModuleManifest,
   role: IPC_ROLE = IPC_ROLE.CLIENT,
 ) : MessagePortIpc(
   ALL_MESSAGE_PORT_CACHE[portId] ?: throw Exception("no found port2(js-process) by id: $portId"),

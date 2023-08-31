@@ -1,9 +1,11 @@
 package info.bagen.dwebbrowser.microService.browser.nativeui.helper
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.runtime.*
-import androidx.core.view.*
-import com.google.gson.*
+import com.google.gson.JsonDeserializationContext
+import com.google.gson.JsonDeserializer
+import com.google.gson.JsonElement
+import com.google.gson.JsonPrimitive
+import com.google.gson.JsonSerializationContext
+import com.google.gson.JsonSerializer
 import com.google.gson.annotations.JsonAdapter
 import java.lang.reflect.Type
 

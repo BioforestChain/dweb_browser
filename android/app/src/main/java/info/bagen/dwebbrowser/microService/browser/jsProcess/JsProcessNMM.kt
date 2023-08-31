@@ -12,10 +12,10 @@ import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
-import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
-import org.dweb_browser.microservice.help.MMID
 import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.help.text
+import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
+import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.ReadableStreamIpc
 import org.dweb_browser.microservice.ipc.helper.IpcHeaders
@@ -36,9 +36,10 @@ fun debugJsProcess(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("js-process", tag, msg, err)
 
 class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
-  override val categories =
-    mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Process_Service);
-
+  init {
+    categories =
+      mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Process_Service);
+  }
   private val JS_PROCESS_WORKER_CODE by lazy {
     runBlockingCatching {
       nativeFetch("file:///sys/browser/js-process.worker/index.js").text()

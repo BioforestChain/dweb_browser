@@ -3,7 +3,7 @@ package info.bagen.dwebbrowser.microService.browser.nativeui.splashScreen
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
-import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
+import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
@@ -19,8 +19,10 @@ fun debugSplashScreen(tag: String, msg: Any? = "", err: Throwable? = null) =
 
 class SplashScreenNMM : NativeMicroModule("splash-screen.nativeui.browser.dweb", "splashScreen") {
 
-  override val categories =
-    mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service);
+  init {
+    categories =
+      mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service);
+  }
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     val querySplashScreenSettings = Query.composite {

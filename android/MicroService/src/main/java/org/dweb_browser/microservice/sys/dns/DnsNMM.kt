@@ -22,13 +22,10 @@ import org.dweb_browser.microservice.core.DnsMicroModule
 import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.core.connectMicroModules
-import org.dweb_browser.microservice.help.DWEB_DEEPLINK
 import org.dweb_browser.microservice.help.InitRequest
-import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
-import org.dweb_browser.microservice.help.MMID
-import org.dweb_browser.microservice.help.MicroModuleManifest
 import org.dweb_browser.microservice.help.buildRequestX
-import org.dweb_browser.microservice.help.toMicroModuleManifest
+import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
+import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
 import org.dweb_browser.microservice.ipc.helper.ReadableStream
 import org.http4k.core.Method
@@ -45,10 +42,13 @@ fun debugDNS(tag: String, msg: Any = "", err: Throwable? = null) =
   printDebug("fetch", tag, msg, err)
 
 class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
-  override val dweb_deeplinks = mutableListOf<DWEB_DEEPLINK>("dweb:open")
-  override val short_name = "DNS";
-  override val categories =
-    mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Routing_Service);
+  init {
+
+    dweb_deeplinks = mutableListOf("dweb:open")
+    short_name = "DNS";
+    categories =
+      mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Routing_Service);
+  }
 
   private val installApps = ChangeableMap<MMID, MicroModule>() // 已安装的应用
   private val runningApps = mutableMapOf<MMID, PromiseOut<MicroModule>>() // 正在运行的应用
@@ -62,14 +62,13 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
   data class MM(val fromMMID: MMID, val toMMID: MMID) {
     companion object {
       val values = mutableMapOf<MMID, MutableMap<MMID, MM>>()
-      fun from(fromMMID: MMID, toMMID: MMID) = values.getOrPut(fromMMID) { mutableMapOf() }
-        .getOrPut(toMMID) { MM(fromMMID, toMMID) }
+      fun from(fromMMID: MMID, toMMID: MMID) =
+        values.getOrPut(fromMMID) { mutableMapOf() }.getOrPut(toMMID) { MM(fromMMID, toMMID) }
     }
   }
 
   /** 对等连接列表 */
-  private val mmConnectsMap =
-    mutableMapOf<MM, PromiseOut<ConnectResult>>()
+  private val mmConnectsMap = mutableMapOf<MM, PromiseOut<ConnectResult>>()
   private val mmConnectsMapLock = Mutex()
   private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
 
@@ -100,8 +99,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
               mmConnectsMap.getOrPut(mmKey2) {
                 PromiseOut<ConnectResult>().also { po2 ->
                   val connectResult2 = ConnectResult(
-                    connectResult.ipcForToMM,
-                    connectResult.ipcForFromMM
+                    connectResult.ipcForToMM, connectResult.ipcForFromMM
                   );
                   connectResult2.ipcForToMM?.also {
                     it.onClose {
@@ -138,7 +136,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       return dnsMM.query(mmid)
     }
 
-    override suspend fun search(category: MICRO_MODULE_CATEGORY): MutableList<MicroModuleManifest> {
+    override suspend fun search(category: MICRO_MODULE_CATEGORY): MutableList<MicroModule> {
       return dnsMM.search(category)
     }
 
@@ -236,22 +234,18 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
         debugDNS("close/$mmid", request.uri.path)
         close(mmid)
         true
-      },
-      "/query" bind Method.GET to defineJsonResponse { request ->
+      }, "/query" bind Method.GET to defineJsonResponse { request ->
         val mmid = queryAppId(request)
         Json.encodeToString("")
         query(mmid)?.toManifest()?.toJsonElement() ?: Response(Status.OK).toJsonElement()
-      },
-      "/observe/app" bind Method.GET to defineResponse {
+      }, "/observe/app" bind Method.GET to defineResponse {
         val inputStream = ReadableStream(onStart = { controller ->
           val off = installApps.onChange { changes ->
             try {
               controller.enqueueBackground(
                 (Json.encodeToString(
                   ChangeState(
-                    changes.adds,
-                    changes.updates,
-                    changes.removes
+                    changes.adds, changes.updates, changes.removes
                   )
                 ) + "\n").toByteArray()
               )
@@ -266,8 +260,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
           }
         })
         Response(Status.OK).body(inputStream)
-      }
-    )
+      })
 
     /// 启动 boot 模块
     connect("boot.sys.dweb").postMessage(IpcEvent.fromUtf8("activity", ""))
@@ -304,11 +297,11 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
    * > 这里暂时不需要支持复合搜索，未来如果有需要另外开接口
    * @param category
    */
-  fun search(category: MICRO_MODULE_CATEGORY): MutableList<MicroModuleManifest> {
-    val categoryList = mutableListOf<MicroModuleManifest>()
+  fun search(category: MICRO_MODULE_CATEGORY): MutableList<MicroModule> {
+    val categoryList = mutableListOf<MicroModule>()
     for (app in this.installApps.values) {
       if (app.categories.contains(category)) {
-        categoryList.add(app.toManifest().toMicroModuleManifest())
+        categoryList.add(app)
       }
     }
     return categoryList

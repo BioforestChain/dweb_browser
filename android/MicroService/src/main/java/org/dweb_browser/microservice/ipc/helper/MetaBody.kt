@@ -91,7 +91,7 @@ data class MetaBody(
     }
 
     companion object {
-      val ALL_VALUES = values().associateBy { it.type }
+      val ALL_VALUES = entries.associateBy  { it.type }
     }
 
     override fun serialize(

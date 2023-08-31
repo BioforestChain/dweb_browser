@@ -6,6 +6,7 @@ import com.google.accompanist.web.WebContent
 import com.google.accompanist.web.WebViewNavigator
 import com.google.accompanist.web.WebViewState
 import info.bagen.dwebbrowser.App
+import info.bagen.dwebbrowser.microService.browser.desk.types.DeskAppMetaData
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -15,8 +16,9 @@ import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.runBlockingCatching
-import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
-import org.dweb_browser.microservice.help.MMID
+import org.dweb_browser.helper.with
+import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
+import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.sys.http.HttpDwebServer
 import org.http4k.core.query
@@ -45,9 +47,10 @@ class DeskController(
     runBlockingCatching(ioAsyncExceptionHandler) {
       val apps = desktopNMM.bootstrapContext.dns.search(MICRO_MODULE_CATEGORY.Application)
       runApps = apps.map { metaData ->
-        return@map DeskAppMetaData(
-          running = runningApps.containsKey(metaData.mmid), parent = metaData
-        )
+        return@map DeskAppMetaData().with {
+          running = runningApps.containsKey(metaData.mmid)
+          assign(metaData.manifest)
+        }
       }
     }.getOrThrow()
     return runApps

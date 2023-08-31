@@ -4,8 +4,8 @@ import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.core.Router
-import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
-import org.dweb_browser.microservice.help.MMID
+import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
+import org.dweb_browser.microservice.help.types.MMID
 import org.http4k.core.Method
 import org.http4k.routing.bind
 import org.http4k.routing.routes
@@ -15,10 +15,10 @@ fun debugBoot(tag: String, msg: Any? = "", err: Throwable? = null) =
 
 class BootNMM(initMmids: List<MMID>? = null) :
   NativeMicroModule("boot.sys.dweb", "Boot Management") {
-
-  override val short_name = "Boot";
-  override val categories =
-    mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Hub_Service)
+  init {
+    short_name = "Boot";
+    categories = mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Hub_Service)
+  }
 
   /**
    * 开机启动项注册表
@@ -34,14 +34,11 @@ class BootNMM(initMmids: List<MMID>? = null) :
 
   override val routers: Router = mutableMapOf()
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    apiRouting = routes(
-      "/register" bind Method.GET to defineBooleanResponse {
-        register(ipc.remote.mmid)
-      },
-      "/unregister" bind Method.GET to defineBooleanResponse {
-        unregister(ipc.remote.mmid)
-      }
-    )
+    apiRouting = routes("/register" bind Method.GET to defineBooleanResponse {
+      register(ipc.remote.mmid)
+    }, "/unregister" bind Method.GET to defineBooleanResponse {
+      unregister(ipc.remote.mmid)
+    })
 
     /// 基于activity事件来启动开机项
     onActivity { (event, ipc) ->

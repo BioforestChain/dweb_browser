@@ -11,7 +11,7 @@ import org.dweb_browser.helper.ChangeableSet
 import org.dweb_browser.helper.OffListener
 import org.dweb_browser.helper.android.BaseActivity
 import org.dweb_browser.helper.some
-import org.dweb_browser.microservice.help.MMID
+import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.window.core.constant.WindowColorScheme
 import org.dweb_browser.window.core.constant.WindowStyle
 import org.dweb_browser.window.core.constant.WindowsManagerScope

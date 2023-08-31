@@ -3,7 +3,7 @@ package org.dweb_browser.window.core.constant
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.dweb_browser.microservice.core.MicroModule
-import org.dweb_browser.microservice.help.MMID
+import org.dweb_browser.microservice.help.types.MMID
 
 /**
  * 窗口的不可变信息
@@ -20,12 +20,13 @@ data class WindowConstants(
    * 窗口创建者
    */
   val owner: MMID,
+  val ownerVersion: String,
   /**
    * 内容提提供方
    *
    * 比如若渲染的是web内容，那么应该是 mwebview.browser.dweb
    */
-  val provider: MMID,
+  val provider: MMID = owner,
   /**
    * 提供放的 mm 实例
    */

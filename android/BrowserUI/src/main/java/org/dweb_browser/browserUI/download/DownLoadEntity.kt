@@ -7,8 +7,8 @@ import kotlinx.coroutines.flow.asSharedFlow
 import org.dweb_browser.dwebview.serviceWorker.DownloadControllerEvent
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.runBlockingCatching
-import org.dweb_browser.microservice.help.JmmAppInstallManifest
-import org.dweb_browser.microservice.help.MMID
+import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
+import org.dweb_browser.microservice.help.types.MMID
 import java.math.RoundingMode
 import java.text.DecimalFormat
 
@@ -35,7 +35,7 @@ data class DownLoadInfo(
   var dSize: Long = 1L, // 已下载大小
   // var progress: Float = 0f, // 进度 0~1
   var downLoadStatus: DownLoadStatus = DownLoadStatus.IDLE, // 标记当前下载状态
-  val metaData: JmmAppInstallManifest = JmmAppInstallManifest(id), // 保存app数据，如jmmMetadata
+  val metaData: JmmAppInstallManifest, // 保存app数据，如jmmMetadata
 )
 
 data class DownLoadObserverListener(

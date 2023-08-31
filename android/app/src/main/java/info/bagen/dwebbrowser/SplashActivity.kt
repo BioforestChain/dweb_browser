@@ -2,7 +2,6 @@ package info.bagen.dwebbrowser
 
 import android.annotation.SuppressLint
 import android.os.Bundle
-import android.webkit.*
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.Image
@@ -12,7 +11,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -20,7 +24,6 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
-import com.google.accompanist.web.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.browserUI.ui.loading.LoadingView
@@ -29,8 +32,8 @@ import org.dweb_browser.browserUI.ui.view.PrivacyView
 import org.dweb_browser.browserUI.util.KEY_ENABLE_AGREEMENT
 import org.dweb_browser.browserUI.util.getBoolean
 import org.dweb_browser.browserUI.util.saveBoolean
-import org.dweb_browser.helper.*
 import org.dweb_browser.helper.android.theme.DwebBrowserAppTheme
+import org.dweb_browser.helper.ioAsyncExceptionHandler
 import kotlin.system.exitProcess
 
 @SuppressLint("CustomSplashScreen")

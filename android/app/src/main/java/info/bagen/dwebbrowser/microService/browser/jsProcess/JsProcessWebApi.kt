@@ -7,9 +7,9 @@ import kotlinx.coroutines.withContext
 import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.dwebview.ipcWeb.MessagePortIpc
 import org.dweb_browser.dwebview.ipcWeb.saveNative2JsIpcPort
-import org.dweb_browser.microservice.help.MMID
-import org.dweb_browser.microservice.help.MicroModuleManifest
 import org.dweb_browser.microservice.help.gson
+import org.dweb_browser.microservice.help.types.IMicroModuleManifest
+import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.ipc.helper.IPC_ROLE
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -29,7 +29,7 @@ class JsProcessWebApi(val dWebView: DWebView) {
     env_script_url: String,
     metadata_json: String,
     env_json: String,
-    remoteModule: MicroModuleManifest,
+    remoteModule: IMicroModuleManifest,
     host: String
   ) = withContext(Dispatchers.Main) {
     val channel = dWebView.createWebMessageChannel()

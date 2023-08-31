@@ -13,7 +13,7 @@ import org.dweb_browser.helper.readByteArray
 import org.dweb_browser.helper.readInt
 import org.dweb_browser.helper.toByteArray
 import org.dweb_browser.helper.toUtf8ByteArray
-import org.dweb_browser.microservice.help.MicroModuleManifest
+import org.dweb_browser.microservice.help.types.IMicroModuleManifest
 import org.dweb_browser.microservice.help.moshiPack
 import org.dweb_browser.microservice.ipc.helper.IPC_ROLE
 import org.dweb_browser.microservice.ipc.helper.IpcMessage
@@ -36,7 +36,7 @@ fun debugStreamIpc(tag: String, msg: Any = "", err: Throwable? = null) =
  * 以及需要手动绑定输入流 {@link bindIncomeStream}
  */
 class ReadableStreamIpc(
-  override val remote: MicroModuleManifest,
+  override val remote: IMicroModuleManifest,
   override val role: String,
 ) : Ipc() {
   companion object {
@@ -45,7 +45,7 @@ class ReadableStreamIpc(
   }
 
   constructor(
-    remote: MicroModuleManifest,
+    remote: IMicroModuleManifest,
     role: IPC_ROLE,
   ) : this(remote, role.role)
 

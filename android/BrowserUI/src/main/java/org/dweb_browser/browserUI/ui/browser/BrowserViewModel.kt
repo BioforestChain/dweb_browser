@@ -49,7 +49,7 @@ import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.microservice.core.MicroModule
-import org.dweb_browser.microservice.help.MMID
+import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.dweb_browser.microservice.sys.http.HttpDwebServer
 import org.http4k.core.query

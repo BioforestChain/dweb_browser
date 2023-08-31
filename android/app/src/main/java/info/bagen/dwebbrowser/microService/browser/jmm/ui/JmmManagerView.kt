@@ -58,8 +58,8 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
 import org.dweb_browser.browserUI.download.DownLoadInfo
 import org.dweb_browser.browserUI.download.DownLoadStatus
-import org.dweb_browser.microservice.help.JmmAppInstallManifest
-import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
+import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
+import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import java.text.DecimalFormat
 
 private val TopBarHeight = 44.dp
@@ -561,13 +561,10 @@ private fun OtherInfoView(jmmAppInstallManifest: JmmAppInstallManifest) {
   }
 }
 
-fun MutableList<MICRO_MODULE_CATEGORY>.print(): String {
+fun List<MICRO_MODULE_CATEGORY>.print(): String {
   val result = StringBuffer()
   this.forEach { category ->
-    // 不要去掉，可能会出现null
-    if (category !== null) {
-      result.append(category.name)
-    }
+    result.append(category.name)
   }
   return result.toString()
 }

@@ -25,7 +25,7 @@ import androidx.compose.ui.graphics.drawscope.translate
 import org.dweb_browser.browserUI.ui.view.DialogInfo
 import org.dweb_browser.browserUI.ui.view.DialogType
 import org.dweb_browser.browserUI.ui.view.DialogView
-import org.dweb_browser.microservice.help.MMID
+import org.dweb_browser.microservice.help.types.MMID
 
 /**
  * 显示下载进度框

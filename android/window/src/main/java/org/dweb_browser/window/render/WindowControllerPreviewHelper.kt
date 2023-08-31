@@ -10,7 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.UiComposable
 import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.CoroutineScope
-import org.dweb_browser.microservice.help.MMID
+import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.window.core.WindowController
 import org.dweb_browser.window.core.WindowRenderProvider
 import org.dweb_browser.window.core.WindowState
@@ -45,6 +45,7 @@ fun WindowPreviewer(
       WindowConstants(
         wid = wid,
         owner = owner,
+        ownerVersion = "0.0.0",
         provider = provider
       )
     ).also {

@@ -31,7 +31,7 @@ enum class DisplayMode(val mode: String) {
   Fullscreen("fullscreen"), Standalone("standalone"), MinimalUi("minimal_ui"), Browser("browser"), ;
 
   companion object {
-    val ALL_VALUES = values().associateBy { it.mode }
+    val ALL_VALUES = entries.associateBy  { it.mode }
   }
 }
 
@@ -40,7 +40,7 @@ enum class ImageResourcePurposes(val purpose: String) {
   Monochrome("monochrome"), Maskable("maskable"), Any("any"), ;
 
   companion object {
-    val ALL_VALUES = values().associateBy { it }
+    val ALL_VALUES = entries.associateBy  { it }
   }
 }
 

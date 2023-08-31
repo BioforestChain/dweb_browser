@@ -7,9 +7,9 @@ import info.bagen.dwebbrowser.microService.sys.biometrics.BiometricsActivity.Com
 import info.bagen.dwebbrowser.microService.sys.biometrics.BiometricsController.Companion.biometricsController
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.core.BootstrapContext
-import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
-import org.dweb_browser.microservice.help.MMID
 import org.dweb_browser.microservice.help.cors
+import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
+import org.dweb_browser.microservice.help.types.MMID
 import org.http4k.core.Method
 import org.http4k.lens.Query
 import org.http4k.lens.boolean
@@ -23,8 +23,10 @@ fun debugBiometrics(tag: String, msg: Any? = "", err: Throwable? = null) =
 
 class BiometricsNMM : AndroidNativeMicroModule("biometrics.sys.dweb", "biometrics") {
 
-  override val categories =
-    mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Machine_Learning_Service);
+  init {
+    categories =
+      mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Machine_Learning_Service);
+  }
 
   val queryType = Query.string().defaulted("type", "")
   val queryBiometricsData = Query.composite { spec ->

@@ -5,29 +5,28 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import org.dweb_browser.dwebview.ipcWeb.Native2JsIpc
-import org.dweb_browser.helper.DisplayMode
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.PromiseOut
-import org.dweb_browser.helper.ShortcutItem
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.helper.toBase64Url
+import org.dweb_browser.helper.with
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.ConnectResult
 import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.core.connectAdapterManager
-import org.dweb_browser.microservice.help.CommonAppManifest
-import org.dweb_browser.microservice.help.DWEB_DEEPLINK
-import org.dweb_browser.microservice.help.IpcSupportProtocols
-import org.dweb_browser.microservice.help.JmmAppInstallManifest
-import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
-import org.dweb_browser.microservice.help.MMID
-import org.dweb_browser.microservice.help.MicroModuleManifest
 import org.dweb_browser.microservice.help.boolean
 import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.help.int
 import org.dweb_browser.microservice.help.stream
+import org.dweb_browser.microservice.help.types.CommonAppManifest
+import org.dweb_browser.microservice.help.types.IMicroModuleManifest
+import org.dweb_browser.microservice.help.types.IpcSupportProtocols
+import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
+import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
+import org.dweb_browser.microservice.help.types.MMID
+import org.dweb_browser.microservice.help.types.MicroModuleManifest
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.ReadableStreamIpc
 import org.dweb_browser.microservice.ipc.helper.IpcMessageArgs
@@ -44,42 +43,18 @@ import java.util.Random
 fun debugJsMM(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("JsMM", tag, msg, err)
 
-open class JsMicroModule(var metadata: JmmAppInstallManifest) : MicroModule() {
-
-  override val ipc_support_protocols: IpcSupportProtocols = IpcSupportProtocols(
-    cbor = true,
-    protobuf = false,
-    raw = true
-  )
-  override val dweb_deeplinks: List<DWEB_DEEPLINK> = metadata.dweb_deeplinks
-  override val categories: MutableList<MICRO_MODULE_CATEGORY>
-    get() {
-      val categories = this.metadata.categories
-      if (!categories.contains(MICRO_MODULE_CATEGORY.Application)) {
-        categories.add(MICRO_MODULE_CATEGORY.Application)
-      }
-      return categories
+open class JsMicroModule(val metadata: JmmAppInstallManifest) : MicroModule(
+  MicroModuleManifest().with {
+    categories += MICRO_MODULE_CATEGORY.Application
+    icons.ifEmpty {
+      icons += ImageResource(src = metadata.logo)
     }
-  override val mmid = metadata.id
-  override val dir = metadata.dir
-  override val lang: String? = metadata.lang
-  override val name: String = metadata.name
-  override val short_name: String = metadata.short_name
-  override val description: String? = metadata.description
-  override val icons: List<ImageResource>
-    get() {
-      var icons = metadata.icons;
-      if (icons.isEmpty()) {
-        icons = listOf(ImageResource(src = metadata.logo))
-      }
-      return icons
-    }
-  override val display: DisplayMode? = metadata.display
-  override val orientation: String? = metadata.orientation
-  override val screenshots: List<ImageResource>? = metadata.screenshots
-  override val shortcuts: List<ShortcutItem> = metadata.shortcuts
-  override val theme_color: String? = metadata.theme_color
-  override val background_color: String? = metadata.background_color
+    mmid = metadata.id
+    ipc_support_protocols = IpcSupportProtocols(
+      cbor = true, protobuf = false, raw = true
+    )
+  }
+) {
 
   companion object {
     init {
@@ -94,8 +69,7 @@ open class JsMicroModule(var metadata: JmmAppInstallManifest) : MicroModule() {
         else null
 
         debugJsMM(
-          "JsMM/connectAdapter",
-          "fromMM:${fromMM.mmid} => toMM:${toMM.mmid} ==> jsMM:$jsMM"
+          "JsMM/connectAdapter", "fromMM:${fromMM.mmid} => toMM:${toMM.mmid} ==> jsMM:$jsMM"
         )
         jsMM?.let {
           /**
@@ -134,8 +108,7 @@ open class JsMicroModule(var metadata: JmmAppInstallManifest) : MicroModule() {
       } else {
         // 正则含义是将两个或以上的 / 斜杆直接转为单斜杆
         nativeFetch(
-          "file://" + (metadata.server.root + request.uri.path)
-            .replace(Regex("/{2,}"), "/")
+          "file://" + (metadata.server.root + request.uri.path).replace(Regex("/{2,}"), "/")
         )
       }
       ipc.postMessage(IpcResponse.fromResponse(request.req_id, response, ipc))
@@ -144,8 +117,8 @@ open class JsMicroModule(var metadata: JmmAppInstallManifest) : MicroModule() {
       nativeFetch(
         Request(
           Method.POST,
-          Uri.of("file://js.browser.dweb/create-process")
-            .query("entry", metadata.server.entry).query("process_id", pid)
+          Uri.of("file://js.browser.dweb/create-process").query("entry", metadata.server.entry)
+            .query("process_id", pid)
         ).body(streamIpc.stream)
       ).stream()
     )
@@ -189,7 +162,7 @@ open class JsMicroModule(var metadata: JmmAppInstallManifest) : MicroModule() {
           val ipcResponse = IpcResponse.fromResponse(ipcRequest.req_id, response, ipc)
           debugJsMM("onProxyRequest", "send ${ipcRequest.uri}")
           ipc.postMessage(ipcResponse)
-          debugJsMM("onProxyRequest", "sended ${ipcRequest.uri}")
+          debugJsMM("onProxyRequest", "send ${ipcRequest.uri}")
         }.onFailure {
           debugJsMM("onProxyRequest", "fail ${ipcRequest.uri} ${it}")
           ipc.postMessage(
@@ -248,63 +221,62 @@ open class JsMicroModule(var metadata: JmmAppInstallManifest) : MicroModule() {
 
   private val fromMMIDOriginIpcWM = mutableMapOf<MMID, PromiseOut<Ipc>>();
 
-  class JmmIpc(port_id: Int, remote: MicroModuleManifest) : Native2JsIpc(port_id, remote) {}
+  class JmmIpc(port_id: Int, remote: IMicroModuleManifest) : Native2JsIpc(port_id, remote) {}
 
   /**
    * 桥接ipc到js内部：
    * 使用 create-ipc 指令来创建一个代理的 WebMessagePortIpc ，然后我们进行中转
    */
-  private fun _ipcBridge(fromMMID: MMID, targetIpc: Ipc?) =
-    fromMMIDOriginIpcWM.getOrPut(fromMMID) {
-      PromiseOut<Ipc>().also { po ->
-        ioAsyncScope.launch {
-          try {
+  private fun _ipcBridge(fromMMID: MMID, targetIpc: Ipc?) = fromMMIDOriginIpcWM.getOrPut(fromMMID) {
+    PromiseOut<Ipc>().also { po ->
+      ioAsyncScope.launch {
+        try {
 
-            debugJsMM("ipcBridge", "fromMmid:$fromMMID targetIpc:$targetIpc")
+          debugJsMM("ipcBridge", "fromMmid:$fromMMID targetIpc:$targetIpc")
+          /**
+           * 向js模块发起连接
+           */
+          val portId = nativeFetch(
+            Uri.of("file://js.browser.dweb/create-ipc").query("process_id", pid)
+              .query("mmid", fromMMID)
+          ).int()
+          val originIpc = JmmIpc(portId, this@JsMicroModule)
+
+          /// 如果传入了 targetIpc，那么启动桥接模式，我们会中转所有的消息给 targetIpc，包括关闭，那么这个 targetIpc 理论上就可以作为 originIpc 的代理
+          if (targetIpc != null) {
             /**
-             * 向js模块发起连接
+             * 将两个消息通道间接互联
              */
-            val portId = nativeFetch(
-              Uri.of("file://js.browser.dweb/create-ipc").query("process_id", pid)
-                .query("mmid", fromMMID)
-            ).int()
-            val originIpc = JmmIpc(portId, this@JsMicroModule)
-
-            /// 如果传入了 targetIpc，那么启动桥接模式，我们会中转所有的消息给 targetIpc，包括关闭，那么这个 targetIpc 理论上就可以作为 originIpc 的代理
-            if (targetIpc != null) {
-              /**
-               * 将两个消息通道间接互联
-               */
-              originIpc.onMessage { (ipcMessage) ->
-                targetIpc.postMessage(ipcMessage)
-              }
-              targetIpc.onMessage { (ipcMessage) ->
-                originIpc.postMessage(ipcMessage)
-              }
-              /**
-               * 监听关闭事件
-               */
-              originIpc.onClose {
-                fromMMIDOriginIpcWM.remove(targetIpc.remote.mmid)
-                targetIpc.close()
-              }
-              targetIpc.onClose {
-                fromMMIDOriginIpcWM.remove(originIpc.remote.mmid)
-                originIpc.close()
-              }
-            } else {
-              originIpc.onClose {
-                fromMMIDOriginIpcWM.remove(originIpc.remote.mmid)
-              }
+            originIpc.onMessage { (ipcMessage) ->
+              targetIpc.postMessage(ipcMessage)
             }
-            po.resolve(originIpc);
-          } catch (e: Exception) {
-            debugJsMM("_ipcBridge Error", e)
-            po.reject(e)
+            targetIpc.onMessage { (ipcMessage) ->
+              originIpc.postMessage(ipcMessage)
+            }
+            /**
+             * 监听关闭事件
+             */
+            originIpc.onClose {
+              fromMMIDOriginIpcWM.remove(targetIpc.remote.mmid)
+              targetIpc.close()
+            }
+            targetIpc.onClose {
+              fromMMIDOriginIpcWM.remove(originIpc.remote.mmid)
+              originIpc.close()
+            }
+          } else {
+            originIpc.onClose {
+              fromMMIDOriginIpcWM.remove(originIpc.remote.mmid)
+            }
           }
+          po.resolve(originIpc);
+        } catch (e: Exception) {
+          debugJsMM("_ipcBridge Error", e)
+          po.reject(e)
         }
       }
     }
+  }
 
   private suspend fun ipcBridge(fromMMID: MMID, targetIpc: Ipc? = null) =
     _ipcBridge(fromMMID, targetIpc).waitPromise();
@@ -315,8 +287,7 @@ open class JsMicroModule(var metadata: JmmAppInstallManifest) : MicroModule() {
     } else {
       reason.toString()
     }
-    val url =
-      "file://js.browser.dweb/create-ipc-fail?process_id=$pid&mmid=$mmid&reason=$errMessage"
+    val url = "file://js.browser.dweb/create-ipc-fail?process_id=$pid&mmid=$mmid&reason=$errMessage"
     return nativeFetch(url).boolean()
   }
 
@@ -332,6 +303,6 @@ open class JsMicroModule(var metadata: JmmAppInstallManifest) : MicroModule() {
   }
 
   override fun toManifest(): CommonAppManifest {
-    return this.metadata
+    return this.metadata.toCommonAppManifest()
   }
 }

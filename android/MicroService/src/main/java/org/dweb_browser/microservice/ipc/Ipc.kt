@@ -9,7 +9,7 @@ import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.microservice.core.MicroModule
-import org.dweb_browser.microservice.help.MicroModuleManifest
+import org.dweb_browser.microservice.help.types.IMicroModuleManifest
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
 import org.dweb_browser.microservice.ipc.helper.IpcEventMessageArgs
 import org.dweb_browser.microservice.ipc.helper.IpcMessage
@@ -62,7 +62,7 @@ abstract class Ipc {
   /** 是否支持 二进制 传输 */
   open val supportBinary: Boolean = false // get() = supportMessagePack || supportProtobuf
 
-  abstract val remote: MicroModuleManifest
+  abstract val remote: IMicroModuleManifest
 
   fun asRemoteInstance() = if (remote is MicroModule) remote as MicroModule else null
 

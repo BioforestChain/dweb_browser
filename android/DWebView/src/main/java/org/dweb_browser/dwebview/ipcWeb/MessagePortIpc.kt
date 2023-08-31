@@ -15,7 +15,7 @@ import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.printDebug
-import org.dweb_browser.microservice.help.MicroModuleManifest
+import org.dweb_browser.microservice.help.types.IMicroModuleManifest
 import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.helper.IPC_ROLE
@@ -85,12 +85,12 @@ class MessagePort private constructor(private val port: WebMessagePort) {
 
 open class MessagePortIpc(
   val port: MessagePort,
-  override val remote: MicroModuleManifest,
+  override val remote: IMicroModuleManifest,
   private val roleType: IPC_ROLE,
 ) : Ipc() {
   companion object {
     suspend fun from(
-      port: WebMessagePort, remote: MicroModuleManifest, roleType: IPC_ROLE
+      port: WebMessagePort, remote: IMicroModuleManifest, roleType: IPC_ROLE
     ) = MessagePortIpc(MessagePort.from(port), remote, roleType)
   }
 

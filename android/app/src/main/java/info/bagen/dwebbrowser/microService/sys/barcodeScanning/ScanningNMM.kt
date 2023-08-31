@@ -9,7 +9,7 @@ import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
-import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
+import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.http4k.core.Method
 import org.http4k.lens.Query
 import org.http4k.lens.int
@@ -20,10 +20,11 @@ fun debugScanning(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("Scanning", tag, msg, err)
 
 class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb", "Barcode Scanning") {
-
-  override val categories =
-    mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Utilities);
-  override val short_name: String = "Scanning"
+  init {
+    categories =
+      mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Utilities);
+    short_name = "Scanning"
+  }
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     val query_rotationDegrees = Query.int().defaulted("rotation", 0)

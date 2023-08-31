@@ -18,7 +18,7 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
-import org.dweb_browser.microservice.help.MMID
+import org.dweb_browser.microservice.help.types.MMID
 
 enum class PluginType(
   val mmid: MMID, private val typeName: String, val description: String, val icon: ImageVector

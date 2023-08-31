@@ -19,7 +19,7 @@ import org.dweb_browser.browserUI.util.NotificationUtil
 import org.dweb_browser.browserUI.util.ZipUtil
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.mainAsyncExceptionHandler
-import org.dweb_browser.microservice.help.MMID
+import org.dweb_browser.microservice.help.types.MMID
 import java.io.File
 
 internal interface IDwebBrowserBinder {

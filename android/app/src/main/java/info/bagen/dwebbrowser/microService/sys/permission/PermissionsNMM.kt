@@ -4,8 +4,8 @@ import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
-import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
-import org.dweb_browser.microservice.help.MMID
+import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
+import org.dweb_browser.microservice.help.types.MMID
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
@@ -19,8 +19,10 @@ fun debugPermission(tag: String, msg: Any? = "", err: Throwable? = null) =
 
 class PermissionsNMM : NativeMicroModule("permission.sys.dweb", "permission") {
 
-  override val categories =
-    mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Protocol_Service);
+  init {
+    categories =
+      mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Protocol_Service);
+  }
 
   /** 存储每个微应用的权限*/
   private val permissionMap = mutableMapOf<MMID, MutableList<MMID>>()

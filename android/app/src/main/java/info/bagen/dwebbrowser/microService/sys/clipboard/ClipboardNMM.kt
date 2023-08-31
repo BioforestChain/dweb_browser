@@ -8,8 +8,8 @@ import info.bagen.dwebbrowser.App
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
-import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.gson
+import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
@@ -27,8 +27,10 @@ fun debugClipboard(tag: String, msg: Any? = "", err: Throwable? = null) =
 /** 剪切板微模块*/
 class ClipboardNMM : NativeMicroModule("clipboard.sys.dweb", "clipboard") {
 
-  override val categories =
-    mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Process_Service);
+  init {
+    categories =
+      mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Process_Service);
+  }
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     apiRouting = routes(

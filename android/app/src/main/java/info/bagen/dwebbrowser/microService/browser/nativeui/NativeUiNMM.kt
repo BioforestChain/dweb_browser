@@ -7,12 +7,13 @@ import info.bagen.dwebbrowser.microService.browser.nativeui.statusBar.StatusBarN
 import info.bagen.dwebbrowser.microService.browser.nativeui.virtualKeyboard.VirtualKeyboardNMM
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
-import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
+import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 
 class NativeUiNMM : NativeMicroModule("nativeui.browser.dweb", "nativeUi") {
-
-  override val categories =
-    mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service);
+  init {
+    categories =
+      mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service);
+  }
 
   private val navigationBarNMM = NavigationBarNMM()
   private val statusBarNMM = StatusBarNMM()

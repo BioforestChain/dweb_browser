@@ -82,7 +82,7 @@ enum class IPC_MESSAGE_TYPE(val type: Byte) : JsonSerializer<IPC_MESSAGE_TYPE>,
   ): IPC_MESSAGE_TYPE = json.asByte.let { type -> values().first { it.type == type } }
 
   companion object {
-    val ALL_VALUES = values().associateBy { it.type }
+    val ALL_VALUES = entries.associateBy  { it.type }
   }
 }
 
@@ -139,7 +139,7 @@ enum class IPC_DATA_ENCODING(val encoding: Int) : JsonSerializer<IPC_DATA_ENCODI
   ) = json.asInt.let { type -> values().find { it.encoding == type } }
 
   companion object {
-    val ALL_VALUES = values().associateBy { it.encoding }
+    val ALL_VALUES = entries.associateBy  { it.encoding }
   }
 }
 
@@ -160,7 +160,7 @@ enum class IPC_ROLE(val role: String) : JsonSerializer<IPC_ROLE>, JsonDeserializ
   ) = json.asString.let { role -> values().find { it.role == role } }
 
   companion object {
-    val ALL_VALUES = values().associateBy { it.role }
+    val ALL_VALUES = entries.associateBy  { it.role }
   }
 }
 

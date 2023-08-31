@@ -6,7 +6,7 @@ import org.dweb_browser.browserUI.util.saveString
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
-import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
+import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
@@ -18,10 +18,11 @@ fun debugDevice(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("Device", tag, msg, err)
 
 class DeviceNMM : NativeMicroModule("device.sys.dweb", "Device Info") {
-
-  override val short_name = "Device";
-  override val categories =
-    mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Device_Management_Service);
+  init {
+    short_name = "Device";
+    categories =
+      mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Device_Management_Service);
+  }
 
   val deviceInfo = DeviceInfo()
   val UUID_KEY = "UUID"

@@ -1,17 +1,13 @@
 package org.dweb_browser.microservice.core
 
 import kotlinx.serialization.json.JsonElement
-import org.dweb_browser.helper.DisplayMode
-import org.dweb_browser.helper.ImageResource
-import org.dweb_browser.helper.ShortcutItem
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.runBlockingCatching
-import org.dweb_browser.microservice.help.DWEB_DEEPLINK
-import org.dweb_browser.microservice.help.IpcSupportProtocols
-import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
-import org.dweb_browser.microservice.help.MMID
+import org.dweb_browser.helper.with
 import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.help.jsonBody
+import org.dweb_browser.microservice.help.types.MMID
+import org.dweb_browser.microservice.help.types.MicroModuleManifest
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.NativeIpc
 import org.dweb_browser.microservice.ipc.NativeMessageChannel
@@ -34,23 +30,13 @@ import java.io.InputStream
 
 fun debugNMM(tag: String, msg: Any = "", err: Throwable? = null) = printDebug("DNS", tag, msg, err)
 
-abstract class NativeMicroModule(override val mmid: MMID, override val name: String) :
-  MicroModule() {
-  override val ipc_support_protocols = IpcSupportProtocols(cbor = true, protobuf = true, raw = true)
-  override val categories: MutableList<MICRO_MODULE_CATEGORY> = mutableListOf()
-  override val dweb_deeplinks: List<DWEB_DEEPLINK> = emptyList()
-  override val dir: String? = null
-  override val lang: String? = null
-  override val short_name: String = ""
-  override val description: String? = null
-  override val icons: List<ImageResource> = emptyList()
-  override val display: DisplayMode? = null
-  override val orientation: String? = null
-  override val screenshots: List<ImageResource>? = null
-  override val shortcuts: List<ShortcutItem> = emptyList()
-  override val theme_color: String? = null
-  override val background_color: String = "#ffffff"
-
+abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(manifest) {
+  constructor(mmid: MMID, name: String) : this(
+    MicroModuleManifest().with {
+      this.mmid = mmid
+      this.name = name
+    }
+  )
 
   companion object {
     init {

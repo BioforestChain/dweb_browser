@@ -1,18 +1,13 @@
 package org.dweb_browser.microservice.core
 
 import org.dweb_browser.helper.Callback
-import org.dweb_browser.helper.DisplayMode
-import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.PromiseOut
-import org.dweb_browser.helper.ShortcutItem
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
-import org.dweb_browser.microservice.help.CommonAppManifest
-import org.dweb_browser.microservice.help.DWEB_DEEPLINK
-import org.dweb_browser.microservice.help.IpcSupportProtocols
-import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
-import org.dweb_browser.microservice.help.MMID
-import org.dweb_browser.microservice.help.MicroModuleManifest
+import org.dweb_browser.microservice.help.types.MMID
+import org.dweb_browser.microservice.help.types.CommonAppManifest
+import org.dweb_browser.microservice.help.types.IMicroModuleManifest
+import org.dweb_browser.microservice.help.types.MicroModuleManifest
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
 import org.http4k.core.Request
@@ -25,23 +20,7 @@ enum class MMState {
   BOOTSTRAP, SHUTDOWN,
 }
 
-abstract class MicroModule : MicroModuleManifest() {
-  abstract override val mmid: MMID
-  abstract override val dweb_deeplinks: List<DWEB_DEEPLINK>
-  abstract override val categories: MutableList<MICRO_MODULE_CATEGORY>
-  abstract override val dir: String?
-  abstract override val lang: String?
-  abstract override val name: String
-  abstract override val short_name: String
-  abstract override val description: String?
-  abstract override val icons: List<ImageResource>
-  abstract override val display: DisplayMode?
-  abstract override val orientation: String?
-  abstract override val screenshots: List<ImageResource>?
-  abstract override val shortcuts: List<ShortcutItem>
-  abstract override val theme_color: String?
-  abstract override val ipc_support_protocols: IpcSupportProtocols
-  abstract override val background_color: String?
+abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleManifest by manifest {
 
   open val routers: Router? = null
 
@@ -168,24 +147,7 @@ abstract class MicroModule : MicroModuleManifest() {
   }
 
   open fun toManifest(): CommonAppManifest {
-    return MicroModuleManifest(
-      mmid = mmid,
-      dweb_deeplinks = dweb_deeplinks,
-      ipc_support_protocols = ipc_support_protocols,
-      categories = categories,
-      dir = dir,
-      lang = lang,
-      name = name,
-      short_name = short_name,
-      description = description,
-      icons = icons,
-      display = display,
-      orientation = orientation,
-      screenshots = screenshots,
-      shortcuts = shortcuts,
-      theme_color = theme_color,
-      background_color = background_color,
-    )
+    return manifest.toCommonAppManifest()
   }
 }
 

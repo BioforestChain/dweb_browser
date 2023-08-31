@@ -8,7 +8,11 @@ import android.os.Build.MODEL
 import android.provider.Settings
 import android.telephony.TelephonyManager
 import info.bagen.dwebbrowser.App
-import info.bagen.dwebbrowser.microService.sys.device.model.*
+import info.bagen.dwebbrowser.microService.sys.device.model.AppInfo
+import info.bagen.dwebbrowser.microService.sys.device.model.BatteryInfo
+import info.bagen.dwebbrowser.microService.sys.device.model.MemoryData
+import info.bagen.dwebbrowser.microService.sys.device.model.MemoryInfo
+import info.bagen.dwebbrowser.microService.sys.device.model.StorageSize
 import org.dweb_browser.microservice.help.gson
 
 

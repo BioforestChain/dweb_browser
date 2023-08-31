@@ -9,7 +9,7 @@ import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.helper.toBase64Url
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
-import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
+import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.ReadableStreamIpc
 import org.dweb_browser.microservice.sys.dns.debugFetch
@@ -36,10 +36,11 @@ fun debugHttp(tag: String, msg: Any = "", err: Throwable? = null) =
 
 
 class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
-
-  override val short_name = "HTTP"
-  override val categories =
-    mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Protocol_Service)
+  init {
+    short_name = "HTTP"
+    categories =
+      mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Protocol_Service)
+  }
 
   companion object {
     val dwebServer = Http1Server()
@@ -57,8 +58,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     for ((key, value) in request.headers) {
       when (key) {
         "Host" -> {
-          if (value != null && Regex("""\.dweb(:\d+)?$""").matches(value))
-            header_host = value
+          if (value != null && Regex("""\.dweb(:\d+)?$""").matches(value)) header_host = value
         }
 
         "X-Dweb-Host" -> {
@@ -83,8 +83,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
         }
       }
     }
-    val x_dweb_host = query_x_dweb_host ?: header_auth_host ?: header_x_dweb_host
-    ?: header_host
+    val x_dweb_host = query_x_dweb_host ?: header_auth_host ?: header_x_dweb_host ?: header_host
     return x_dweb_host?.let { host ->
       /// 如果没有端口，补全端口
       if (!host.contains(":")) {
@@ -110,8 +109,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
    * 这些自定义操作，都需要在 header 中加入 X-Dweb-Host 字段来指明宿主
    */
   private suspend fun httpHandler(request: Request): Response {
-    val host = findRequestGateway(request)
-      ?: return noGatewayResponse
+    val host = findRequestGateway(request) ?: return noGatewayResponse
 
     /// TODO 这里提取完数据后，应该把header、query、uri重新整理一下组成一个新的request会比较好些
     /// TODO 30s 没有任何 body 写入的话，认为网关超时
@@ -134,31 +132,29 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
 
   public override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     /// 启动http后端服务
-    dwebServer.createServer(
-      { request ->
-        findRequestGateway(request)?.let {
-          gatewayMap[it]
-        }
-      },
-      { gateway, request ->
-        gateway.listener.hookHttpRequest(request)
-      },
-      { request, gateway ->
-        if (gateway == null) {
-          if (request.uri.path == "/debug") {
+    dwebServer.createServer({ request ->
+      findRequestGateway(request)?.let {
+        gatewayMap[it]
+      }
+    }, { gateway, request ->
+      gateway.listener.hookHttpRequest(request)
+    }, { request, gateway ->
+      if (gateway == null) {
+        if (request.uri.path == "/debug") {
 //            RequestResponseBuilder()
 //            kotlinx.coroutines.debug.DebugProbes.dumpCoroutines()
-            Response(Status.OK).body(
-              request.headers.toString()
-            )
-          } else noGatewayResponse
-        } else Response(Status.NOT_FOUND)
-      })
+          Response(Status.OK).body(
+            request.headers.toString()
+          )
+        } else noGatewayResponse
+      } else Response(Status.NOT_FOUND)
+    })
 
     /// 为 nativeFetch 函数提供支持
     nativeFetchAdaptersManager.append { fromMM, request ->
-      if ((request.uri.scheme == "http" || request.uri.scheme == "https") &&
-        request.uri.host.endsWith(".dweb")
+      if ((request.uri.scheme == "http" || request.uri.scheme == "https") && request.uri.host.endsWith(
+          ".dweb"
+        )
       ) {
         debugFetch("HTTP/nativeFetch", "$fromMM => ${request.uri}")
         // 无需走网络层，直接内部处理掉
@@ -182,19 +178,15 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     val query_token = Query.string().required("token")
     val query_routeConfig = Query.string().required("routes")
 
-    apiRouting = routes(
-      "/start" bind Method.GET to defineHandler { request, ipc ->
-        start(ipc, query_dwebServerOptions(request))
-      },
-      "/listen" bind Method.POST to defineHandler { request ->
-        val token = query_token(request)
-        val routes = Json.decodeFromString<List<Gateway.RouteConfig>>(query_routeConfig(request))
-        listen(token, request, routes)
-      },
-      "/close" bind Method.GET to defineHandler { request, ipc ->
-        close(ipc, query_dwebServerOptions(request))
-      }
-    )
+    apiRouting = routes("/start" bind Method.GET to defineHandler { request, ipc ->
+      start(ipc, query_dwebServerOptions(request))
+    }, "/listen" bind Method.POST to defineHandler { request ->
+      val token = query_token(request)
+      val routes = Json.decodeFromString<List<Gateway.RouteConfig>>(query_routeConfig(request))
+      listen(token, request, routes)
+    }, "/close" bind Method.GET to defineHandler { request, ipc ->
+      close(ipc, query_dwebServerOptions(request))
+    })
   }
 
   @Serializable
@@ -270,8 +262,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     token: String, message: Request, routes: List<Gateway.RouteConfig>
   ): Response {
     debugHttp("LISTEN", tokenMap.keys.toList())
-    val gateway = tokenMap[token]
-      ?: throw Exception("no gateway with token: $token")
+    val gateway = tokenMap[token] ?: throw Exception("no gateway with token: $token")
     debugHttp("LISTEN", "host: ${gateway.urlInfo.host}, token: $token")
 
     val streamIpc = ReadableStreamIpc(

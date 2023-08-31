@@ -16,8 +16,8 @@ import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.MicroModule
-import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
-import org.dweb_browser.microservice.help.MMID
+import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
+import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.window.core.WindowState
 import org.dweb_browser.window.core.constant.UUID
@@ -37,9 +37,11 @@ fun debugMultiWebView(tag: String, msg: Any? = "", err: Throwable? = null) =
 
 class MultiWebViewNMM :
   AndroidNativeMicroModule("mwebview.browser.dweb", "Multi Webview Renderer") {
-  override val short_name = "MWebview"
-  override val categories =
-    mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service)
+  init {
+    short_name = "MWebview"
+    categories =
+      mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service)
+  }
   private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
 
   companion object {
@@ -117,6 +119,7 @@ class MultiWebViewNMM :
         WindowState(
           WindowConstants(
             owner = ipc.remote.mmid,
+            ownerVersion = ipc.remote.version,
             provider = mmid,
             microModule = this
           )

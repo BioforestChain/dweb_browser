@@ -4,7 +4,7 @@ import info.bagen.dwebbrowser.microService.sys.device.model.LocationInfo
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
-import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
+import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
@@ -16,8 +16,10 @@ fun debugLocation(tag: String, msg: Any? = "", err: Throwable? = null) =
 
 class LocationNMM : NativeMicroModule("location.sys.dweb", "location") {
 
-  override val categories =
-    mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Process_Service);
+  init {
+    categories =
+      mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Process_Service);
+  }
 
   val locationInfo = LocationInfo()
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {

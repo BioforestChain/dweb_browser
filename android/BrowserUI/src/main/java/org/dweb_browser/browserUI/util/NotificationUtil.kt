@@ -7,7 +7,7 @@ import android.content.Context.NOTIFICATION_SERVICE
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import org.dweb_browser.browserUI.R
-import org.dweb_browser.microservice.help.MMID
+import org.dweb_browser.microservice.help.types.MMID
 
 class NotificationUtil {
   private val mNormalChannelId = "渠道id" // 唯一性

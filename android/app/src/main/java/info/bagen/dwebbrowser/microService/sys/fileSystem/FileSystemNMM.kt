@@ -3,7 +3,7 @@ package info.bagen.dwebbrowser.microService.sys.fileSystem
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
-import org.dweb_browser.microservice.help.MICRO_MODULE_CATEGORY
+import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.http4k.core.Method
 import org.http4k.routing.bind
 import org.http4k.routing.routes
@@ -13,8 +13,10 @@ fun debugFileSystem(tag: String, msg: Any? = "", err: Throwable? = null) =
 
 class FileSystemNMM : NativeMicroModule("file.sys.dweb", "file") {
 
-  override val categories =
-    mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Protocol_Service);
+  init {
+    categories =
+      mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Protocol_Service);
+  }
 
 //    val plugin = CacheFilePlugin()
 

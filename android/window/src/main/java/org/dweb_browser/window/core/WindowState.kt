@@ -44,7 +44,6 @@ class WindowStateSerializer : KSerializer<WindowState> {
             val field = WindowPropertyField.ALL_KEYS[idx] ?: continue@mainLoop
             val ob = observers[field.fieldKey] as Observable.Observer<WindowPropertyKeys, Any?>?
               ?: continue@mainLoop
-//            println("key: ${field.fieldKey.fieldName} => $idx")
 
             ob.set(decodeSerializableElement(descriptor, idx, field.serializer as KSerializer<Any>))
           }
@@ -58,11 +57,9 @@ class WindowStateSerializer : KSerializer<WindowState> {
   override fun serialize(encoder: Encoder, value: WindowState) =
     encoder.encodeStructure(descriptor) {
       encodeSerializableElement(descriptor, 0, WindowConstants.serializer(), value.constants)
-//      println("serialize/key: constants => 0")
       val observers = value.observable.observers
       for ((i, field) in WindowPropertyField.ALL_KEYS) {
         val key = field.fieldKey
-//        println("serialize/key: ${key.fieldName} => $i")
         val ob = observers[key] ?: continue
         if (field.isOptional) {
           if (ob.value == null) {
@@ -76,7 +73,6 @@ class WindowStateSerializer : KSerializer<WindowState> {
             descriptor, i, field.serializer as KSerializer<Any>, ob.value!!
           )
         }
-
       }
     }
 }

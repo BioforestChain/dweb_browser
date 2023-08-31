@@ -11,7 +11,7 @@ import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.base.BaseThemeActivity
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.dweb_browser.microservice.help.JmmAppInstallManifest
+import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
 
 class JmmManagerActivity : BaseThemeActivity() {
 

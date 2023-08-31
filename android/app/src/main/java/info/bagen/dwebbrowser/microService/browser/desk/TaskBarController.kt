@@ -1,16 +1,18 @@
 package info.bagen.dwebbrowser.microService.browser.desk
 
 import android.content.res.Resources
+import info.bagen.dwebbrowser.microService.browser.desk.types.DeskAppMetaData
+import kotlinx.serialization.Serializable
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.debounce
-import org.dweb_browser.microservice.help.MMID
+import org.dweb_browser.helper.with
+import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.sys.http.HttpDwebServer
 import org.http4k.core.query
-import java.io.Serializable
 
 class TaskBarController(
   val desktopNMM: DesktopNMM,
@@ -60,7 +62,11 @@ class TaskBarController(
       }
       val metaData = desktopNMM.bootstrapContext.dns.query(appId)
       if (metaData != null) {
-        apps[appId] = DeskAppMetaData(running = runningApps.contains(appId), parent = metaData)
+        apps[appId] = DeskAppMetaData().with {
+          running = runningApps.contains(appId)
+          //...复制metaData属性
+          assign(metaData.manifest)
+        }
       }
     }
 
@@ -80,12 +86,11 @@ class TaskBarController(
     val activity = waitActivityCreated()
     // val metrics = Resources.getSystem().displayMetrics // 当前屏幕密度
     // dp = px / (dpi / 160)
-    val width = reSize.width.toDp
-    val height = reSize.height.toDp
+    val width = reSize.width.toDpValue()
+    val height = reSize.height.toDpValue()
     cacheResize = ReSize(width, height)
     debugDesk(
-      "resize",
-      "${reSize.width},${reSize.height} activity"
+      "resize", "${reSize.width},${reSize.height} activity"
     )
     // 只能在ui 线程中更新ui
     activity.runOnUiThread {
@@ -126,9 +131,14 @@ class TaskBarController(
       .query("api-base", taskbarServer.startResult.urlInfo.buildPublicUrl().toString())
   }
 
+  @Serializable
   data class ReSize(val width: Int, val height: Int)
-  data class TaskBarState(val focus: Boolean, val appId: String) : Serializable
 
-  val kotlin.Int.toDp: kotlin.Int
-    get() = (this * Resources.getSystem().displayMetrics.density + 0.5f).toInt()
+  @Serializable
+  data class TaskBarState(val focus: Boolean, val appId: String)
+
+ private val density by lazy { Resources.getSystem().displayMetrics.density }
+
+  private fun Int.toDpValue()
+     = (this * density + 0.5f).toInt()
 }

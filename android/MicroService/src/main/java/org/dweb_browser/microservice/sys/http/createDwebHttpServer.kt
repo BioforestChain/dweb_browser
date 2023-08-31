@@ -4,7 +4,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.microservice.core.MicroModule
-import org.dweb_browser.microservice.help.MicroModuleManifest
+import org.dweb_browser.microservice.help.types.IMicroModuleManifest
 import org.dweb_browser.microservice.help.bodyJson
 import org.dweb_browser.microservice.help.boolean
 import org.dweb_browser.microservice.help.stream
@@ -38,7 +38,7 @@ suspend fun MicroModule.startHttpDwebServer(options: DwebHttpServerOptions) =
 
 
 suspend fun MicroModule.listenHttpDwebServer(
-  microModule: MicroModuleManifest,
+  microModule: IMicroModuleManifest,
   startResult: HttpNMM.ServerStartResult,
   routes: Array<Gateway.RouteConfig> = arrayOf(
     Gateway.RouteConfig(pathname = "", method = IpcMethod.GET),
