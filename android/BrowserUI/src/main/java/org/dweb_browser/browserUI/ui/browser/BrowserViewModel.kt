@@ -249,8 +249,9 @@ class BrowserViewModel(
 
         is BrowserIntent.RemoveBaseView -> {
           uiState.browserViewList.removeAt(action.id).also {
-            it.viewItem.webView.display
-            it.viewItem.webView.destroy() // 关闭后，需要释放掉
+            withContext(mainAsyncExceptionHandler) {
+              it.viewItem.webView.destroy() // 关闭后，需要释放掉
+            }
           }
           if (uiState.browserViewList.size == 0) {
             withContext(mainAsyncExceptionHandler) {
