@@ -10,7 +10,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.lifecycleScope
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.base.BaseThemeActivity
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -34,7 +33,7 @@ class JmmManagerActivity : BaseThemeActivity() {
     }
   }
 
-  private lateinit var jmmManagerViewModel: JmmManagerViewModel
+  private lateinit var jmmManagerViewHelper: JmmManagerViewHelper
 
   override fun onCreate(savedInstanceState: Bundle?) {
     transparentNavigatorBar()
@@ -52,7 +51,7 @@ class JmmManagerActivity : BaseThemeActivity() {
 
   @Composable
   override fun InitViews() {
-    MALLBrowserView(jmmManagerViewModel) { finish() }
+    MALLBrowserView(jmmManagerViewHelper) { finish() }
   }
 
   override fun onStop() {
@@ -62,7 +61,7 @@ class JmmManagerActivity : BaseThemeActivity() {
 
   override fun onDestroy() {
     runBlocking(lifecycleScope.coroutineContext) {
-      jmmManagerViewModel.handlerIntent(JmmIntent.DestroyActivity)
+      jmmManagerViewHelper.handlerIntent(JmmIntent.DestroyActivity)
     }
     super.onDestroy()
   }

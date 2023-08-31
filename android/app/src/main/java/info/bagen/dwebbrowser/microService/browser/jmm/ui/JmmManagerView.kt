@@ -88,7 +88,7 @@ private data class PreviewState(
 )
 
 @Composable
-fun MALLBrowserView(viewModel: JmmManagerViewModel, onBack: () -> Unit) {
+fun MALLBrowserView(viewModel: JmmManagerViewHelper, onBack: () -> Unit) {
   val jmmMetadata = viewModel.uiState.jmmAppInstallManifest
   val topBarAlpha = remember { mutableStateOf(0f) }
   val lazyListState = rememberLazyListState()

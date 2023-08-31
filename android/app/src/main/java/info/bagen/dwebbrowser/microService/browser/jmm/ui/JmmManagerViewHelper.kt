@@ -2,11 +2,8 @@ package info.bagen.dwebbrowser.microService.browser.jmm.ui
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.browser.jmm.JmmController
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.dweb_browser.browserUI.download.DownLoadInfo
 import org.dweb_browser.browserUI.download.DownLoadObserver
@@ -27,7 +24,7 @@ sealed class JmmIntent {
   object DestroyActivity : JmmIntent()
 }
 
-class JmmManagerViewModel(
+class JmmManagerViewHelper(
   jmmAppInstallManifest: JmmAppInstallManifest, private val jmmController: JmmController
 ) {
   val uiState: JmmUIState

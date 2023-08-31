@@ -16,6 +16,7 @@ import kotlinx.serialization.encoding.encodeStructure
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.serializer
+import kotlin.properties.Delegates
 import kotlin.reflect.KProperty
 
 interface GsonAble<T> {
@@ -161,27 +162,64 @@ open class PropMetas<T : PropMetas.Constructor<T>>(
       propMap.metas += this
     }
 
-    operator fun invoke(propValues: PropValues) = PropValue<V>(propName, propValues)
-
+    operator fun invoke(
+      propValues: PropValues, initConfig: (PropValueConfig<V>.() -> Unit)? = null
+    ) = PropValue(propName, propValues, initConfig)
 
   }
 
   class PropValues(internal val data: MutableMap<String, Any?>) {
     fun clone() = PropValues(data.toMutableMap())
+    fun set(propName: String, value: Any?) = if (data.containsKey(propName)) {
+      data[propName] = value
+      true
+    } else false
+
+    fun get(propName: String) = data.getOrDefault(propName, null)
   }
 
+  class PropValueConfig<T : Any?>(private val propValue: PropValue<T>) {
+    var value: T
+      get() = propValue.get()
+      set(value) {
+        propValue.set(value, false)
+      }
+    var beforeWrite by Delegates.observable(propValue.beforeWrite) { _, _, newVal ->
+      propValue.beforeWrite = newVal
+    }
+    var afterWrite by Delegates.observable(propValue.afterWrite) { _, _, newVal ->
+      propValue.afterWrite = newVal
+    }
+  }
 
   class PropValue<T : Any?>(
-    var propName: String, val propValues: PropValues
+    val propName: String, val propValues: PropValues, initConfig: (PropValueConfig<T>.() -> Unit)?
   ) {
-    fun set(inputValue: Any) {
-      propValues.data[propName] = inputValue
+    internal var beforeWrite: ((newValue: T, oldValue: T) -> T)? = null
+    internal var afterWrite: ((newValue: T) -> Unit)? = null
+
+    init {
+      if (initConfig != null) {
+        PropValueConfig(this).initConfig()
+      }
+      if (beforeWrite != null) {
+        set(get(), true) // 进行一次初始化的写入
+      }
     }
 
-    fun get() = propValues.data[propName]
-    operator fun setValue(thisRef: Any, property: KProperty<*>, newValue: T) = set(newValue as Any)
+    fun set(newValue: T, force: Boolean) {
+      val oldValue = get()
+      val inputValue = beforeWrite?.invoke(newValue, oldValue) ?: newValue
+      if (force || oldValue != inputValue) {
+        propValues.data[propName] = inputValue as Any
+        afterWrite?.invoke(inputValue)
+      }
+    }
 
-    operator fun getValue(thisRef: Any, property: KProperty<*>) = get() as T
+    fun get() = propValues.data[propName] as T
+    operator fun setValue(thisRef: Any, property: KProperty<*>, newValue: T) = set(newValue, false)
+
+    operator fun getValue(thisRef: Any, property: KProperty<*>) = get()
   }
 
   abstract class Constructor<T : Constructor<T>>(val p: PropValues, private val P: PropMetas<T>) {
@@ -197,6 +235,12 @@ open class PropMetas<T : PropMetas.Constructor<T>>(
       return P.factory(p.clone())
     }
   }
+
+  fun <T : Any> getRequired(propName: String) =
+    metas.first { it.propName == propName } as PropMeta<T, T>
+
+  fun <T : Any> getOptional(propName: String) =
+    metas.first { it.propName == propName } as PropMeta<T, T?>
 
   @OptIn(InternalSerializationApi::class)
   inline fun <reified T : Any> required(

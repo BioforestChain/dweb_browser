@@ -43,16 +43,15 @@ class DeskController(
   }
 
   fun getDesktopApps(): List<DeskAppMetaData> {
-    var runApps = listOf<DeskAppMetaData>()
-    runBlockingCatching(ioAsyncExceptionHandler) {
-      val apps = desktopNMM.bootstrapContext.dns.search(MICRO_MODULE_CATEGORY.Application)
-      runApps = apps.map { metaData ->
-        return@map DeskAppMetaData().with {
-          running = runningApps.containsKey(metaData.mmid)
-          assign(metaData.manifest)
-        }
-      }
+    val apps = runBlockingCatching(ioAsyncExceptionHandler) {
+      desktopNMM.bootstrapContext.dns.search(MICRO_MODULE_CATEGORY.Application)
     }.getOrThrow()
+    val runApps = apps.map { metaData ->
+      return@map DeskAppMetaData().with {
+        running = runningApps.containsKey(metaData.mmid)
+        assign(metaData.manifest)
+      }
+    }
     return runApps
   }
 
@@ -120,8 +119,7 @@ class DeskController(
     MainDwebView(name, webView, state, navigator)
   }
 
-  fun getDesktopUrl() = desktopServer.startResult.urlInfo.buildInternalUrl()
-    .path("/desktop.html")
+  fun getDesktopUrl() = desktopServer.startResult.urlInfo.buildInternalUrl().path("/desktop.html")
     .query("api-base", desktopServer.startResult.urlInfo.buildPublicUrl().toString())
 
 

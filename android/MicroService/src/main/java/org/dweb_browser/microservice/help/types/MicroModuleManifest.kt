@@ -27,13 +27,20 @@ class MicroModuleManifest private constructor(
   }
 
 
-  override var mmid by P_mmid(p)
-  override var ipc_support_protocols by P_ipc_support_protocols(p)
-  override var id: MMID
-    get() = mmid
-    set(value) {
-      mmid = value
+  override var mmid by P_mmid(p) {
+    p.set("id", value)
+    afterWrite = {
+      p.set("id", it)
     }
+  }
+  override var ipc_support_protocols by P_ipc_support_protocols(p)
+
+  override var id by P.getRequired<String>("id")(p) {
+    p.set("mmid", value)
+    afterWrite = {
+      p.set("mmid", it)
+    }
+  }
 
   override fun toCommonAppManifest() = data
 }

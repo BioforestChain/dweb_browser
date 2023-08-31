@@ -1,7 +1,7 @@
 package info.bagen.dwebbrowser.microService.browser.jmm
 
 import androidx.compose.runtime.Composable
-import info.bagen.dwebbrowser.microService.browser.jmm.ui.JmmManagerViewModel
+import info.bagen.dwebbrowser.microService.browser.jmm.ui.JmmManagerViewHelper
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.helper.SimpleSignal
@@ -22,7 +22,7 @@ class JmmController(
 ) {
 
   private val openLock = Mutex()
-  val viewModel: JmmManagerViewModel = JmmManagerViewModel(jmmAppInstallManifest, this)
+  val viewModel: JmmManagerViewHelper = JmmManagerViewHelper(jmmAppInstallManifest, this)
 
   fun hasApps(mmid: MMID) = jmmNMM.getApps(mmid) !== null
   fun getApp(mmid: MMID) = jmmNMM.getApps(mmid)

@@ -45,6 +45,7 @@ fun debugJsMM(tag: String, msg: Any? = "", err: Throwable? = null) =
 
 open class JsMicroModule(val metadata: JmmAppInstallManifest) : MicroModule(
   MicroModuleManifest().with {
+    assign(metadata)
     categories += MICRO_MODULE_CATEGORY.Application
     icons.ifEmpty {
       icons += ImageResource(src = metadata.logo)
