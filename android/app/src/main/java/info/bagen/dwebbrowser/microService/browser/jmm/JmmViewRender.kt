@@ -7,7 +7,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.unit.dp
-import info.bagen.dwebbrowser.microService.browser.jmm.ui.MALLBrowserView
+import info.bagen.dwebbrowser.microService.browser.jmm.render.MALLBrowserView
 import kotlinx.coroutines.launch
 import org.dweb_browser.window.core.WindowRenderScope
 

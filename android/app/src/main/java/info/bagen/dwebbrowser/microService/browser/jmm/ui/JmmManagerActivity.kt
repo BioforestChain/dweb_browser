@@ -10,6 +10,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.lifecycleScope
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.base.BaseThemeActivity
+import info.bagen.dwebbrowser.microService.browser.jmm.render.MALLBrowserView
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
