@@ -13,11 +13,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.browserUI.util.BrowserUIApp
 import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
 import org.dweb_browser.microservice.help.types.MMID
-import org.dweb_browser.microservice.help.gson
 
 object JsMicroModuleStore {
   private const val PREFERENCE_NAME = "AppInfo"
@@ -49,7 +49,7 @@ object JsMicroModuleStore {
     }.map { pref ->
       val list = mutableListOf<JmmAppInstallManifest>()
       pref.asMap().forEach { (key, value) ->
-        list.add(gson.fromJson(value as String, JmmAppInstallManifest::class.java))
+        list.add(Json.decodeFromString<JmmAppInstallManifest>(value as String))
       }
       list
     }
@@ -59,7 +59,7 @@ object JsMicroModuleStore {
     runBlocking(Dispatchers.IO) {
       // edit 函数需要在挂起环境中执行
       BrowserUIApp.Instance.appContext.dataStore.edit { pref ->
-        pref[stringPreferencesKey(mmid)] = gson.toJson(jmmAppInstallManifest)
+        pref[stringPreferencesKey(mmid)] = Json.encodeToString(jmmAppInstallManifest)
       }
     }
 

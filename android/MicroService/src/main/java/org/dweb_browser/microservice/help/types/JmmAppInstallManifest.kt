@@ -15,13 +15,15 @@ object JmmAppInstallManifestSerializer :
 class JmmAppInstallManifest private constructor(
   p: PropMetas.PropValues,
   private val data: JmmAppManifest,
-) :PropMetas.Constructor<JmmAppInstallManifest>(p, P), IJmmAppInstallManifest, IJmmAppManifest by data {
+) : PropMetas.Constructor<JmmAppInstallManifest>(p, P), IJmmAppInstallManifest,
+  IJmmAppManifest by data {
 
   constructor(p: PropMetas.PropValues = P.buildValues()) : this(p, JmmAppManifest(p))
 
   companion object {
 
-    internal val P = PropMetas("JmmAppInstallManifest", { JmmAppInstallManifest(it) })
+    internal val P =
+      PropMetas("JmmAppInstallManifest", { JmmAppInstallManifest(it) }).extends(JmmAppManifest.P)
 
     /** 安装是展示用的 icon */
     private val P_logo = P.required<String>("logo", "")
