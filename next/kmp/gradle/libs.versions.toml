@@ -9,7 +9,7 @@ kotlinCompilerExtensionVersion = "1.5.1"
 jvmTarget = "1.8"
 javaVersion = "VERSION_1_8" # JavaVersion.VERSION_17
 
-agp = "8.2.0-alpha16"
+agp = "8.2.0-beta01"
 kotlin-version = "1.9.0"
 ksp = "1.9.0-1.0.13"
 junit = "4.13.2"
@@ -17,6 +17,7 @@ androidx-test-ext-junit = "1.1.5"
 espresso-core = "3.5.1"
 lifecycle-runtime-ktx = "2.6.1"
 compose-bom = "2023.08.00"
+jetbrains-compose-version = "1.5.0"
 lifecycle-service = "2.6.1"
 
 androidx-activity = "1.8.0-alpha06"
@@ -70,6 +71,14 @@ compose-material_icons = { group = "androidx.compose.material", name = "material
 compose-material = { group = "androidx.compose.material", name = "material" }
 compose-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3Android" }
 compose-material3-window = { group = "androidx.compose.material3", name = "material3-window-size-class", version.ref = "material3Android" }
+
+# Jetbrains Compose
+jetbrains-compose-components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "jetbrains-compose-version" }
+jetbrains-compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "jetbrains-compose-version" }
+jetbrains-compose-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "jetbrains-compose-version" }
+jetbrains-compose-material = { module = "org.jetbrains.compose.material:material", version.ref = "jetbrains-compose-version" }
+jetbrains-compose-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "jetbrains-compose-version" }
+jetbrains-compose-materialIcons = { module = "org.jetbrains.compose.material:material-icons-extended", version.ref = "jetbrains-compose-version" }
 
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle-runtime-ktx" }
 androidx-lifecycle-common-java8 = { group = "androidx.lifecycle", name = "lifecycle-common-java8", version.ref = "lifecycle-runtime-ktx" }
@@ -150,5 +159,6 @@ kotlinxMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref 
 kotlinPluginSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinPluginSerializationVersion" }
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin-version" }
 kspAndroid = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "jetbrains-compose-version" }
 
 [bundles]

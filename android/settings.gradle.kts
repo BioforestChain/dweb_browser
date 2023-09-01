@@ -24,4 +24,7 @@ include(":BrowserUI")
 include(":window")
 include(":helperAndroid")
 include("shared")
-project(":shared").projectDir = file("../next/kmp/app/shared")
+project(":shared").apply {
+  projectDir = file("../next/kmp/shared")
+  buildFileName  = "build-android.gradle.kts"
+}

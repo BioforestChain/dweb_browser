@@ -20,7 +20,6 @@ include("androidApp")
 project(":androidApp").projectDir = file("app/androidApp")
 include("desktopApp")
 project(":desktopApp").projectDir = file("app/desktopApp")
-include("shared")
-project(":shared").projectDir = file("app/shared")
+include(":shared")
 
 

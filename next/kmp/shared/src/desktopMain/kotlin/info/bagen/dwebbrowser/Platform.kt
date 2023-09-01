@@ -1,7 +1,4 @@
-package info.bagen.dwebbrowser
-
-import androidx.compose.desktop.ui.tooling.preview.Preview
-import androidx.compose.runtime.Composable
+package org.dweb_browser.shared
 
 class DesktopPlatform: Platform {
     override val name: String = "Desktop"

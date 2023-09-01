@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.android
+package org.dweb_browser.app.android
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -8,7 +8,7 @@ import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import info.bagen.dwebbrowser.Greeting
+import org.dweb_browser.shared.Greeting
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

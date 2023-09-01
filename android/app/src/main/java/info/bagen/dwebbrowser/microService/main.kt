@@ -27,6 +27,7 @@ import org.dweb_browser.microservice.sys.boot.BootNMM
 import org.dweb_browser.microservice.sys.dns.DnsNMM
 import org.dweb_browser.microservice.sys.dns.nativeFetchAdaptersManager
 import org.dweb_browser.microservice.sys.http.HttpNMM
+import org.dweb_browser.shared.Greeting
 import java.io.File
 
 val InternalBranch = when (DEVELOPER.CURRENT) {
@@ -91,7 +92,7 @@ suspend fun startDwebBrowser(): DnsNMM {
     )
 
     else -> addDebugTags(
-      listOf("desk","/.+/")
+      listOf("desk", "/.+/")
     )
   }
 
@@ -194,6 +195,8 @@ suspend fun startDwebBrowser(): DnsNMM {
 
   /// 启动Web调试
   WebView.setWebContentsDebuggingEnabled(true)
+
+  println("!!!!!" + Greeting().greet())
 
   /// 启动
   dnsNMM.bootstrap()

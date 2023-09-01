@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser
+package org.dweb_browser.shared
 
 import platform.UIKit.UIDevice
 

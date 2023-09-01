@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser
+package org.dweb_browser.shared
 
 interface Platform {
     val name: String

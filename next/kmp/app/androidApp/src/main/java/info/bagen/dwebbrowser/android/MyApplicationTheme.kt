@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.android
+package org.dweb_browser.app.android
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.RoundedCornerShape
