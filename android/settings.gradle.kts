@@ -28,3 +28,8 @@ project(":shared").apply {
   projectDir = file("../next/kmp/shared")
   buildFileName  = "build-android.gradle.kts"
 }
+include("helperCompose")
+project(":helperCompose").apply {
+  projectDir = file("../next/kmp/helperCompose")
+  buildFileName  = "build-android.gradle.kts"
+}
