@@ -1,22 +1,25 @@
 package org.dweb_browser.helper
 
+import io.ktor.util.collections.ConcurrentSet
 import kotlinx.coroutines.InternalCoroutinesApi
+import kotlinx.coroutines.internal.SynchronizedObject
 import kotlinx.coroutines.internal.synchronized
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import java.util.Collections
 
 
 object StateShared {
   val obsStack = mutableListOf<StateBase>()
+  @OptIn(InternalCoroutinesApi::class)
+  val lock = SynchronizedObject()
 }
 
 abstract class StateBase {
 
-  val deps = Collections.synchronizedSet(HashSet<StateBase>());
+  val deps = ConcurrentSet<StateBase>()
 
-  val refs = Collections.synchronizedSet(HashSet<StateBase>());
+  val refs = ConcurrentSet<StateBase>()
 
   fun addDep(dep: StateBase): Boolean {
     val success = deps.add(dep)
@@ -115,7 +118,7 @@ class State<T>(private var defaultValue: T) : StateBase() {
 
   @OptIn(InternalCoroutinesApi::class)
   fun get(force: Boolean? = null): T {
-    synchronized(StateShared.obsStack) {
+    synchronized(StateShared.lock) {
       val caller = StateShared.obsStack.lastOrNull()
       if (caller !== null) {
         caller.addDep(this)
@@ -124,7 +127,7 @@ class State<T>(private var defaultValue: T) : StateBase() {
     val inForce = if (force == null) hasCache else true
     if (inForce) {
       /// 自己也将作为调用者
-      synchronized(StateShared.obsStack) {
+      synchronized(StateShared.lock) {
         StateShared.obsStack.add(this)
       }
       /// 调用之前，清空自己的依赖，重新收集依赖
@@ -137,7 +140,7 @@ class State<T>(private var defaultValue: T) : StateBase() {
         return cache!!
       } finally {
         /// 移除自己作为调用者的身份
-        synchronized(StateShared.obsStack) {
+        synchronized(StateShared.lock) {
           StateShared.obsStack.remove(this)
         }
       }
@@ -197,8 +200,8 @@ class State<T>(private var defaultValue: T) : StateBase() {
       yield(tmp)
       while (true) {
         while (true) {
-          var success: Boolean
-          var item: T?
+          var success: Boolean = false
+          var item: T? = null
           runBlocking {
             locker.withLock {
               item = cacheList.removeFirst()

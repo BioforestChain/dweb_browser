@@ -3,15 +3,15 @@ package org.dweb_browser.helper
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.runBlocking
-import java.time.Duration
-import java.time.LocalDateTime
+import kotlinx.datetime.LocalDateTime
 import kotlin.coroutines.CoroutineContext
 
-fun now() = LocalDateTime.now().toString().padEndAndSub(23)
+fun now() = LocalDateTime.toString().padEndAndSub(23)
 
 fun printError(tag: String, msg: Any?, err: Throwable? = null) {
-  System.err.println("${tag.padEnd(60, ' ')} $msg")
+  println("${tag.padEnd(60, ' ')} $msg")
   err?.printStackTrace()
 }
 
@@ -42,18 +42,19 @@ fun <T> runBlockingCatching(
   commonAsyncExceptionHandler.handleException(ioAsyncExceptionHandler, it)
 }
 
-private val times = mutableMapOf<String, LocalDateTime>()
+private val times = mutableMapOf<String, String>()
 fun timeStart(label: String) {
-  times[label] = LocalDateTime.now()
+  times[label] = LocalDateTime.toString()
 }
 
 fun timeEnd(label: String) {
   times.remove(label)?.also { startTime ->
-    val endTime = LocalDateTime.now()
+    val endTime = LocalDateTime.toString()
+    val betweenTime = LocalDateTime.parse(endTime).nanosecond - LocalDateTime.parse(startTime).nanosecond
     printDebug(
       "TIME-DURATION",
       label,
-      "${Duration.between(startTime, endTime).toNanos() / 1000000.0}ms"
+      "${betweenTime / 1000000.0}ms"
     )
   }
 }
@@ -99,7 +100,8 @@ class addDebugTags {
 
   companion object {
     init {
-      addDebugTags((System.getProperty("dweb-debug") ?: "").split(" "))
+      // TODO: System.getProperty 未处理
+//      addDebugTags((System.getProperty("dweb-debug") ?: "").split(" "))
     }
   }
 }

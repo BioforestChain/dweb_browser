@@ -16,7 +16,11 @@ dependencyResolutionManagement {
 
 rootProject.name = "dweb-browser"
 include(":app")
-include(":helper")
+//include(":helper")
+include("helper")
+project(":helper").apply {
+  projectDir = file("../next/kmp/helper")
+}
 include(":benchmark")
 include(":MicroService")
 include(":DWebView")
