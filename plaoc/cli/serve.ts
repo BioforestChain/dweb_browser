@@ -13,7 +13,7 @@ import { staticServe } from "./helper/http-static-helper.ts";
 
 const serveMode = new EnumType(SERVE_MODE);
 
-export const doServeFlags = new Command()
+export const doServeCommand = new Command()
   .type("serveMode", serveMode)
   .arguments("<metadata:string>")
   .description("Developer Service Extension Directive.")

@@ -6,20 +6,25 @@
 import { Command, EnumType } from "./deps.ts";
 
 export enum EHook {
+  webadvServerUrl = "webadv-server-url",
+  webadbServerAuth = "webadv-server-auth",
   bundleWebHook = "bundle-web-hook",
   bundleWebHookHeaders = "bundle-web-hook-headers",
 }
 const hookType = new EnumType(EHook);
-export const doConfigFlags = new Command()
+export const doConfigCommand = new Command()
   .type("hookType", hookType)
   .arguments("<set:string> <type:hookType> <key:string>")
   .description("Set up a hook to deploy to the server.")
   .env("PLAOC_ENV_HOOK=<value:string>", "Webhook environment variables.")
   .action((options, set, hooks, key) => {
     if (set === "set") {
+
+      //TODO
       if (hooks === EHook.bundleWebHook) {
         return bundleWebHook(key);
       }
+      //TODO
       if (hooks === EHook.bundleWebHookHeaders) {
         let headersHookKey = "";
         // 如果是$开头的字段，那么就会读取相对应的环境变量

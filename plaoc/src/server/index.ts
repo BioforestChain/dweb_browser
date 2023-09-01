@@ -1,3 +1,4 @@
+import "dweb/core/helper/crypto.shims.ts";
 import isMobile from "npm:is-mobile";
 import { X_PLAOC_QUERY } from "./const.ts";
 import { jsProcess, PromiseOut, queue } from "./deps.ts";

@@ -5,7 +5,7 @@ import { Command } from "./deps.ts";
 import { $BundleOptions } from "./helper/const.ts";
 import { BundleZipGenerator, MetadataJsonGenerator, NameFlagHelper } from "./helper/generator.ts";
 
-export const doBundleFlags = new Command()
+export const doBundleCommand = new Command()
   .arguments("<source:string>")
   .description("Packaged source code folder.")
   .option("-o --out <out:string>", "Directory for packaged output.",{

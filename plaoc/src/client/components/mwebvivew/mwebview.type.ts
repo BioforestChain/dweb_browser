@@ -4,4 +4,5 @@
  */
 export interface WebViewItem {
   webview_id: string;
+  wid:string
 }
