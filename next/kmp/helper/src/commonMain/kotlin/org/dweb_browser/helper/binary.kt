@@ -1,6 +1,9 @@
 package org.dweb_browser.helper
 
-import io.ktor.http.URLBuilder
+import io.ktor.http.decodeURLPart
+import io.ktor.http.decodeURLQueryComponent
+import io.ktor.http.encodeURLPath
+import io.ktor.http.encodeURLQueryComponent
 import io.ktor.utils.io.charsets.Charsets
 import io.ktor.utils.io.core.ByteReadPacket
 import io.ktor.utils.io.core.readAvailable
@@ -93,44 +96,10 @@ fun ByteReadPacket.readByteArray(): ByteArray {
   return bytes
 }
 
-fun String.encodeURIComponent(): String = URLBuilder(this).encodedFragment
-  .replace("\\+", "%20")
-  .replace("\\%21", "!")
-  .replace("\\%27", "'")
-  .replace("\\%28", "(")
-  .replace("\\%29", ")")
-  .replace("\\%7E", "~")
+fun String.encodeURIComponent(): String = this.encodeURLQueryComponent()
 
-fun String.decodeURIComponent(): String = URLBuilder(this).fragment
-  .replace("%20", "\\+")
-  .replace("!", "\\%21")
-  .replace("'", "\\%27")
-  .replace("(", "\\%28")
-  .replace(")", "\\%29")
-  .replace("~", "\\%7E")
+fun String.decodeURIComponent(): String = this.decodeURLQueryComponent()
 
-fun String.encodeURI(): String = URLBuilder(this).encodedFragment
-  .replace("%3B", ";")
-  .replace("%2F", "/")
-  .replace("%3F", "?")
-  .replace("%3A", ":")
-  .replace("%40", "@")
-  .replace("%26", "&")
-  .replace("%3D", "=")
-  .replace("%2B", "+")
-  .replace("%24", "$")
-  .replace("%2C", ",")
-  .replace("%23", "#")
+fun String.encodeURI(): String = this.encodeURLPath()
 
-fun String.decodeURI(): String = URLBuilder(this).fragment
-  .replace(";", "%3B")
-  .replace("/", "%2F")
-  .replace("?", "%3F")
-  .replace(":", "%3A")
-  .replace("@", "%40")
-  .replace("&", "%26")
-  .replace("=", "%3D")
-  .replace("+", "%2B")
-  .replace("$", "%24")
-  .replace(",", "%2C")
-  .replace("#", "%23")
+fun String.decodeURI(): String = this.decodeURLPart()

@@ -80,14 +80,16 @@ class Http1Server {
                 if (request.isWebSocket()) {
                   request = request.body(ReadableStream(onStart = {
                     proxyRequestBody = it
-                  }))
+                  })).also {
+                    debugHttp("WS-START", url)
+                  }
                 }
                 val response = when (val gateway = gatewayHandler(request)) {
                   null -> errorHandler(request, null)
                   else -> httpHandler(gateway, request) ?: errorHandler(request, gateway)
                 }
 
-                if (proxyRequestBody!=null) {
+                if (proxyRequestBody != null) {
                   val requestBodyController = proxyRequestBody!!
                   /// 如果是200响应头，那么使用WebSocket来作为双工的通讯标准进行传输
                   when (response.status.code) {
@@ -193,7 +195,9 @@ class Http1Server {
                       call.response.fromHttp4K(response)
                     }
 
-                    else -> call.response.fromHttp4K(response)
+                    else -> call.response.fromHttp4K(response).also {
+                      debugHttp("WS-ERROR", response.bodyString())
+                    }
                   }
                 } else {
                   call.response.fromHttp4K(response)
