@@ -182,13 +182,13 @@ dependencies {
   /// 依赖
   implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 
-  implementation(project(mapOf("path" to ":helper")))
-  implementation(project(mapOf("path" to ":MicroService")))
-  implementation(project(mapOf("path" to ":DWebView")))
-  implementation(project(mapOf("path" to ":BrowserUI")))
-  implementation(project(mapOf("path" to ":window")))
-  implementation(project(mapOf("path" to ":helperAndroid")))
-  implementation(project(mapOf("path" to ":shared")))
+  implementation(project(":helper"))
+  implementation(project(":MicroService"))
+  implementation(project(":DWebView"))
+  implementation(project(":BrowserUI"))
+  implementation(project(":window"))
+  implementation(project(":helperAndroid"))
+  implementation(project(":shared"))
 }
 
 tasks.withType<Test> {

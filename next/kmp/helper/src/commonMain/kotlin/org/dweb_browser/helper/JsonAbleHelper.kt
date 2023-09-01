@@ -19,9 +19,6 @@ import kotlinx.serialization.serializer
 import kotlin.properties.Delegates
 import kotlin.reflect.KProperty
 
-interface GsonAble<T> {
-  fun toJsonAble(): com.google.gson.JsonElement
-}
 
 inline fun <reified T> T.toJsonElement() = Json.encodeToJsonElement<T>(this)
 
@@ -277,4 +274,3 @@ open class PropMetas<T : PropMetas.Constructor<T>>(
     }
   })
 }
-

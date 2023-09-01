@@ -2,8 +2,10 @@ package org.dweb_browser.helper
 
 import kotlin.coroutines.CoroutineContext
 
+open class ChangeableHashSet<E> : MutableSet<E> by LinkedHashSet()
+
 class ChangeableSet<E>(context: CoroutineContext = ioAsyncExceptionHandler) :
-  LinkedHashSet<E>() {
+  ChangeableHashSet<E>() {
   private val changeable = Changeable(this, context)
   fun setContext(context: CoroutineContext) {
     changeable.context = context

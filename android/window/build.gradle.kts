@@ -77,7 +77,7 @@ dependencies {
   implementation(libs.coil.video)
   implementation(libs.coil.gif)
 
-  implementation(project(mapOf("path" to ":MicroService")))
-  implementation(project(mapOf("path" to ":helper")))
-  implementation(project(mapOf("path" to ":helperAndroid")))
+  implementation(project(":MicroService"))
+  implementation(project(":helper"))
+  implementation(project(":helperAndroid"))
 }

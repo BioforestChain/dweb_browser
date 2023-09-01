@@ -13,23 +13,23 @@ dependencyResolutionManagement {
     mavenCentral()
   }
 }
+val includeKmp = { kmpPath: String ->
+  include(kmpPath)
+  project(":$kmpPath").apply {
+    projectDir = file("../next/kmp/$kmpPath")
+    buildFileName = "build-android.gradle.kts"
+  }
+}
+
 
 rootProject.name = "dweb-browser"
 include(":app")
-include(":helper")
 include(":benchmark")
 include(":MicroService")
 include(":DWebView")
 include(":BrowserUI")
 include(":window")
 include(":helperAndroid")
-include("shared")
-project(":shared").apply {
-  projectDir = file("../next/kmp/shared")
-  buildFileName  = "build-android.gradle.kts"
-}
-include("helperCompose")
-project(":helperCompose").apply {
-  projectDir = file("../next/kmp/helperCompose")
-  buildFileName  = "build-android.gradle.kts"
-}
+includeKmp("shared")
+includeKmp("helper")
+includeKmp("helperCompose")

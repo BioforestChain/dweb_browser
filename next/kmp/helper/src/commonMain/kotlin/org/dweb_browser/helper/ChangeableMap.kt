@@ -6,8 +6,10 @@ import kotlin.coroutines.CoroutineContext
 @Serializable
 data class ChangeState<K>(val adds: Set<K>, val updates: Set<K>, val removes: Set<K>);
 
+/// TODO：LinkedHashMap 无法使用，会提示final type
+open class ChangeableHashMap<K, V> : MutableMap<K, V> by LinkedHashMap()
 class ChangeableMap<K, V>(context: CoroutineContext = ioAsyncExceptionHandler) :
-  LinkedHashMap<K, V>() {
+  ChangeableHashMap<K, V>() {
   data class Changes<K, V>(
     val origin: ChangeableMap<K, V>, val adds: Set<K>, val updates: Set<K>, val removes: Set<K>
   )

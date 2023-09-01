@@ -16,7 +16,6 @@ import kotlinx.coroutines.withContext
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.readByteArray
-import org.dweb_browser.helper.toUtf8
 import org.dweb_browser.microservice.help.asHttp4k
 import org.dweb_browser.microservice.help.fromHttp4K
 import org.dweb_browser.microservice.help.isWebSocket
@@ -68,7 +67,6 @@ class Http1Server {
 
               /// 将 ktor的request 构建成 http4k 的request
               call.request.asHttp4k()?.also { rawRequest ->
-
                 val uri = rawRequest.uri.toString();
                 val host = findRequestGateway(rawRequest)
                 val url = if (uri.startsWith("/") && host !== null) {
@@ -80,14 +78,16 @@ class Http1Server {
                 if (request.isWebSocket()) {
                   request = request.body(ReadableStream(onStart = {
                     proxyRequestBody = it
-                  }))
+                  })).also {
+                    debugHttp("WS-START", url)
+                  }
                 }
                 val response = when (val gateway = gatewayHandler(request)) {
                   null -> errorHandler(request, null)
                   else -> httpHandler(gateway, request) ?: errorHandler(request, gateway)
                 }
 
-                if (proxyRequestBody!=null) {
+                if (proxyRequestBody != null) {
                   val requestBodyController = proxyRequestBody!!
                   /// 如果是200响应头，那么使用WebSocket来作为双工的通讯标准进行传输
                   when (response.status.code) {
@@ -99,19 +99,12 @@ class Http1Server {
                           /// 将从客户端收到的数据，转成 200 的标准传输到 request 的 bodyStream 中
                           for (frame in ws.incoming) {
                             val byteArray = frame.buffer.moveToByteArray()
-                            debugHttp(
-                              "wssss", "write request-body:${byteArray.toUtf8()}"
-                            )
                             requestBodyController.enqueue(byteArray)
                           }
                           /// 等到双工关闭，同时也关闭读取层
                           stream.close()
                         }
                         /// 将从服务端收到的数据，转成 200 的标准传输到 websocket 的 frame 中
-
-                        debugHttp(
-                          "wssss", "start reading response"
-                        )
                         while (true) {
                           when (val readInt = stream.available()) {
                             -1 -> {
@@ -120,20 +113,11 @@ class Http1Server {
                             }
 
                             else -> {
-                              debugHttp(
-                                "wssss", "write response:${readInt}"
-                              )
                               val chunk = stream.readByteArray(readInt)
-                              debugHttp(
-                                "wssss", "write response:${chunk.toUtf8()}"
-                              )
                               ws.send(Frame.Binary(true, chunk))
                             }
                           }
                         }
-                        debugHttp(
-                          "wssss", "end reading response"
-                        )
                         ws.close()
                       }
                       call.respond(res)
@@ -193,7 +177,9 @@ class Http1Server {
                       call.response.fromHttp4K(response)
                     }
 
-                    else -> call.response.fromHttp4K(response)
+                    else -> call.response.fromHttp4K(response).also {
+                      debugHttp("WS-ERROR", response.bodyString())
+                    }
                   }
                 } else {
                   call.response.fromHttp4K(response)

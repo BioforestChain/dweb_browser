@@ -16,28 +16,28 @@ import org.dweb_browser.shared.Greeting
 
 
 fun main() = application {
-    Window(
-        onCloseRequest = ::exitApplication,
-        title = "Compose for Desktop",
-        state = rememberWindowState(width = 300.dp, height = 300.dp)
-    ) {
-        val count = remember { mutableStateOf(0) }
-        MaterialTheme {
-            Column(Modifier.fillMaxSize(), Arrangement.spacedBy(5.dp)) {
-                Button(modifier = Modifier.align(Alignment.CenterHorizontally),
-                    onClick = {
-                        count.value++
-                    }) {
-                    Text(if (count.value == 0) "Hello World" else "Clicked ${count.value}!")
-                    Text("${Greeting().greet()}")
-                }
-                Button(modifier = Modifier.align(Alignment.CenterHorizontally),
-                    onClick = {
-                        count.value = 0
-                    }) {
-                    Text("Reset")
-                }
-            }
+  Window(
+    onCloseRequest = ::exitApplication,
+    title = "Compose for Desktop",
+    state = rememberWindowState(width = 300.dp, height = 300.dp)
+  ) {
+    val count = remember { mutableStateOf(0) }
+    MaterialTheme {
+      Column(Modifier.fillMaxSize(), Arrangement.spacedBy(5.dp)) {
+        Button(modifier = Modifier.align(Alignment.CenterHorizontally),
+          onClick = {
+            count.value++
+          }) {
+          Text(if (count.value == 0) "Hello World" else "Clicked ${count.value}!")
+          Text("${Greeting().greet()}")
         }
+        Button(modifier = Modifier.align(Alignment.CenterHorizontally),
+          onClick = {
+            count.value = 0
+          }) {
+          Text("Reset")
+        }
+      }
     }
+  }
 }

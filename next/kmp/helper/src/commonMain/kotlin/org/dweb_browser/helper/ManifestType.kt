@@ -1,7 +1,6 @@
 package org.dweb_browser.helper
 
 import kotlinx.serialization.Serializable
-import java.net.URI
 
 @Serializable
 data class ImageResource(
@@ -31,7 +30,7 @@ enum class DisplayMode(val mode: String) {
   Fullscreen("fullscreen"), Standalone("standalone"), MinimalUi("minimal_ui"), Browser("browser"), ;
 
   companion object {
-    val ALL_VALUES = entries.associateBy  { it.mode }
+    val ALL_VALUES = values().associateBy { it.mode }
   }
 }
 
@@ -40,7 +39,7 @@ enum class ImageResourcePurposes(val purpose: String) {
   Monochrome("monochrome"), Maskable("maskable"), Any("any"), ;
 
   companion object {
-    val ALL_VALUES = entries.associateBy  { it }
+    val ALL_VALUES = values().associateBy { it }
   }
 }
 
@@ -56,7 +55,7 @@ data class StrictImageResource(
 ) {
   companion object {
     fun from(img: ImageResource, baseUrl: String? = null): StrictImageResource {
-      val imgUrl = if (baseUrl != null) URI(baseUrl).resolve(img.src) else URI(img.src)
+      val imgUrl = if (baseUrl != null) Uri.of(baseUrl).resolve(img.src) else Uri.of(img.src)
       var imageType = img.type
       if (imageType == null) {
         // path的获取解析可能会失败

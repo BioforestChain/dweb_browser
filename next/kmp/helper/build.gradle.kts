@@ -1,7 +1,7 @@
 plugins {
   alias(libs.plugins.kotlinxMultiplatform)
   alias(libs.plugins.androidLibrary)
-  alias(libs.plugins.jetbrainsCompose)
+  alias(libs.plugins.kotlinPluginSerialization)
 }
 
 kotlin {
@@ -19,30 +19,29 @@ kotlin {
   }
 
   listOf(
-    iosX64(),
-    iosArm64(),
-    iosSimulatorArm64()
+    iosX64(), iosArm64(), iosSimulatorArm64()
   ).forEach {
     it.binaries.framework {
-      baseName = "DwebHelperCompose"
-      isStatic = true
+      baseName = "DwebHelper"
     }
   }
 
   sourceSets {
     val commonMain by getting {
       dependencies {
-        implementation(libs.jetbrains.compose.runtime)
-        implementation(libs.jetbrains.compose.foundation)
-        @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
-        implementation(libs.jetbrains.compose.components.resources)
-
-        implementation(libs.jetbrains.compose.material3)
+        implementation(kotlin("stdlib"))
+        implementation(libs.kotlinx.coroutines.core)
+        api(libs.ktor.http)
+        api(libs.ktor.io)
+        api(libs.kotlinx.datetime)
+        api(libs.kotlin.serialization.json)
       }
     }
     val commonTest by getting {
       dependencies {
         implementation(kotlin("test"))
+        implementation(libs.test.kotlin.coroutines.test)
+        implementation(libs.test.kotlin.coroutines.debug)
       }
     }
     val androidMain by getting
@@ -65,19 +64,11 @@ kotlin {
       iosArm64Test.dependsOn(this)
       iosSimulatorArm64Test.dependsOn(this)
     }
-
-    val desktopMain by getting {
-      dependencies {
-        dependencies {
-          implementation(compose.desktop.common)
-        }
-      }
-    }
   }
 }
 
 android {
-  namespace = "org.dweb_browser.helper.compose"
+  namespace = "org.dweb_browser.helper"
   compileSdk = libs.versions.compileSdkVersion.get().toInt()
   defaultConfig {
     minSdk = libs.versions.minSdkVersion.get().toInt()
