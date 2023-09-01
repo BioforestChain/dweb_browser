@@ -15,12 +15,14 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.SnapshotMutationPolicy
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.structuralEqualityPolicy
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -32,26 +34,43 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.zIndex
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import info.bagen.dwebbrowser.App
 import kotlinx.coroutines.launch
 import org.dweb_browser.dwebview.DWebView
+import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.clamp
 
-/**
- * 用于和 Service 之间的交互，显示隐藏等操作
- */
-class TaskbarView(private val taskbarController: TaskbarController) : ViewModel() {
-  val isShowFloatWindow = MutableLiveData<Boolean>()
+class TaskbarView(private val taskbarController: TaskbarController) {
+  val state = TaskbarState()
 
-  val layoutX = mutableStateOf(Float.NaN)
-  val layoutY = mutableStateOf(Float.NaN)
-  val layoutWidth = mutableStateOf(75f)
-  val layoutHeight = mutableStateOf(75f)
-  val layoutTopPadding = mutableStateOf(0f)
-  val layoutLeftPadding = mutableStateOf(0f)
-
+  /**
+   * 提供一个计算函数，来获得一个在Compose中使用的 state
+   */
+  @Composable
+  fun <T> watchedState(
+    key: Any? = null,
+    policy: SnapshotMutationPolicy<T> = structuralEqualityPolicy(),
+    filter: ((change: Observable.Change<TASKBAR_PROPERTY_KEY, *>) -> Boolean)? = null,
+    watchKey: TASKBAR_PROPERTY_KEY? = null,
+    watchKeys: Set<TASKBAR_PROPERTY_KEY>? = null,
+    getter: TaskbarState.() -> T,
+  ) = remember(key) {
+    mutableStateOf(getter.invoke(state), policy)
+  }.also { rememberState ->
+    DisposableEffect(this) {
+      val off = state.observable.onChange {
+        if ((if (watchKey != null) watchKey == it.key else true) && (if (watchKeys != null) watchKeys.contains(
+            it.key
+          ) else true) && filter?.invoke(it) != false
+        ) {
+          rememberState.value = getter.invoke(state)
+        }
+      }
+      onDispose {
+        off()
+      }
+    }
+  } as State<T>
 
   val taskbarDWebView by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     DWebView(
@@ -67,35 +86,35 @@ class TaskbarView(private val taskbarController: TaskbarController) : ViewModel(
   /**
    * 打开悬浮框
    */
-  fun openFloatWindow() = if (!floatActivityState.value) {
-    floatActivityState.value = true
+  fun openFloatWindow() = if (!state.floatActivityState) {
+    state.floatActivityState = true
     true
   } else false
 
-  fun closeFloatWindow() = if (floatActivityState.value) {
-    floatActivityState.value = false
+  fun closeFloatWindow() = if (state.floatActivityState) {
+    state.floatActivityState = false
     true
   } else false
 
   fun toggleFloatWindow(open: Boolean? = null): Boolean {
-    val toggle = open ?: !floatActivityState.value
+    val toggle = open ?: !state.floatActivityState
     return if (toggle) openFloatWindow() else closeFloatWindow()
   }
 
   fun openTaskActivity() {
     closeFloatWindow()
-    App.appContext.startActivity(Intent(
-      App.appContext, TaskbarActivity::class.java
-    ).also { intent ->
-      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-      intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
-      intent.putExtras(Bundle().apply {
-        putString("deskSessionId", taskbarController.deskSessionId)
+    App.appContext.startActivity(
+      Intent(
+        App.appContext, TaskbarActivity::class.java
+      ).also { intent ->
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
+        intent.putExtras(Bundle().apply {
+          putString("deskSessionId", taskbarController.deskSessionId)
+        })
       })
-    })
   }
 
-  private val floatActivityState: MutableState<Boolean> = mutableStateOf(false)
 
   private data class SafeBounds(
     val left: Float,
@@ -109,7 +128,7 @@ class TaskbarView(private val taskbarController: TaskbarController) : ViewModel(
 
   @Composable
   fun FloatWindow() {
-    val isActivityMode by floatActivityState
+    val isActivityMode by watchedState { floatActivityState }
     if (isActivityMode) {
       val scope = rememberCoroutineScope()
       DisposableEffect(isActivityMode) {
@@ -142,8 +161,8 @@ class TaskbarView(private val taskbarController: TaskbarController) : ViewModel(
       val safeBounds = remember(screenWidth, screenHeight, layoutDirection, safePadding) {
         val topPadding = safePadding.calculateTopPadding().value
         val leftPadding = safePadding.calculateLeftPadding(layoutDirection).value
-        layoutTopPadding.value = topPadding
-        layoutLeftPadding.value = leftPadding
+        state.layoutTopPadding = topPadding
+        state.layoutLeftPadding = leftPadding
         SafeBounds(
           top = topPadding,
           left = leftPadding,
@@ -151,16 +170,16 @@ class TaskbarView(private val taskbarController: TaskbarController) : ViewModel(
           right = screenWidth - safePadding.calculateRightPadding(layoutDirection).value,
         )
       }
-      val boxX by layoutX
-      val boxY by layoutY
-      val boxWidth by layoutWidth
-      val boxHeight by layoutHeight
+      val boxX by watchedState { layoutX }
+      val boxY by watchedState { layoutY }
+      val boxWidth by watchedState { layoutWidth }
+      val boxHeight by watchedState { layoutHeight }
       fun setBoxX(toX: Float) {
-        layoutX.value = clamp(safeBounds.left, toX, safeBounds.right - boxWidth)
+        state.layoutX = clamp(safeBounds.left, toX, safeBounds.right - boxWidth)
       }
 
       fun setBoxY(toY: Float) {
-        layoutY.value = clamp(safeBounds.top, toY, safeBounds.bottom - boxHeight)
+        state.layoutY = clamp(safeBounds.top, toY, safeBounds.bottom - boxHeight)
       }
 
       if (boxX.isNaN()) {
@@ -216,6 +235,5 @@ class TaskbarView(private val taskbarController: TaskbarController) : ViewModel(
     }
   }
 }
-
 
 fun Offset.toIntOffset(density: Float) = IntOffset((density * x).toInt(), (density * y).toInt())

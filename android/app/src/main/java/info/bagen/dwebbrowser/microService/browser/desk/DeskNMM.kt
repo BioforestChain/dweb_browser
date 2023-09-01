@@ -15,6 +15,7 @@ import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.readByteArray
+import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.cors
@@ -213,10 +214,11 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         })
         return@defineHandler Response(Status.OK).body(inputStream)
       },
-      "/taskbar/resize" bind Method.GET to defineHandler { request ->
+      "/taskbar/resize" bind Method.GET to defineJsonResponse { request ->
         val size = queryResize(request)
         debugDesk("/taskbar/resize", "$size")
-        return@defineHandler taskBarController.resize(size)
+        taskBarController.resize(size)
+        size.toJsonElement()
       },
       "/taskbar/toggle-desktop-view" bind Method.GET to defineBooleanResponse {
         taskBarController.toggleDesktopView()

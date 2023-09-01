@@ -50,6 +50,14 @@ export async function openApp(id: string) {
   });
 }
 
+export async function doToggleTaskbar(toggle?: boolean) {
+  return await nativeFetch<boolean>("/taskbar/toggle-float-button-mode", {
+    search: {
+      open: toggle,
+    },
+  });
+}
+
 /** 点击打开应用详情下载页 */
 export async function detailApp(id: string) {
   return await nativeFetch<boolean>("/detailApp", {

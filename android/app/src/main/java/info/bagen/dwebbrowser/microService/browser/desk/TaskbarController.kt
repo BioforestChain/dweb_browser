@@ -82,8 +82,8 @@ class TaskbarController(
    * @returns 如果视图发生了真实的改变（不论是否变成说要的结果），则返回 true
    */
   fun resize(reSize: ReSize) {
-    taskbarView.layoutWidth.value = reSize.width
-    taskbarView.layoutHeight.value = reSize.height
+    taskbarView.state.layoutWidth = reSize.width
+    taskbarView.state.layoutHeight = reSize.height
   }
 
   /**

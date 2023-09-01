@@ -10,6 +10,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.viewinterop.AndroidView
@@ -52,14 +53,20 @@ class TaskbarActivity : BaseThemeActivity() {
 
       window.attributes = window.attributes.also { attributes ->
         taskbarController.taskbarView.apply {
+          val layoutWidth by watchedState { layoutWidth }
+          val layoutHeight by watchedState { layoutHeight }
+          val layoutX by watchedState { layoutX }
+          val layoutY by watchedState { layoutY }
+          val layoutLeftPadding by watchedState { layoutLeftPadding }
+          val layoutTopPadding by watchedState { layoutTopPadding }
           window.setLayout(
-            toPx(layoutWidth.value),
-            toPx(layoutHeight.value),
+            toPx(layoutWidth),
+            toPx(layoutHeight),
           )
 
           attributes.gravity = Gravity.TOP or Gravity.START
-          attributes.x = toPx(layoutX.value - layoutLeftPadding.value)
-          attributes.y = toPx(layoutY.value - layoutTopPadding.value)
+          attributes.x = toPx(layoutX - layoutLeftPadding)
+          attributes.y = toPx(layoutY - layoutTopPadding)
         }
       }
       DwebBrowserAppTheme {

@@ -7,16 +7,16 @@ import {
 import { $AppIconInfo } from "src/components/app-icon/types";
 import SvgIcon from "src/components/svg-icon/svg-icon.vue";
 import {
+  doToggleTaskbar,
   openApp,
   quitApp,
   resizeTaskbar,
   toggleDesktopView,
   toggleMaximize,
   watchTaskbarAppInfo,
-  watchTaskBarStatus,
 } from "src/provider/api.ts";
-import { $TaskBarState, $WidgetAppData } from "src/types/app.type.ts";
-import { computed, onMounted, onUnmounted, reactive, ref, ShallowRef, shallowRef, triggerRef } from "vue";
+import { $WidgetAppData } from "src/types/app.type.ts";
+import { computed, onMounted, onUnmounted, ref, ShallowRef, shallowRef, triggerRef } from "vue";
 import { icons } from "./icons/index.ts";
 import x_circle_svg from "./icons/x-circle.svg";
 
@@ -47,16 +47,6 @@ const updateApps = async () => {
     updateLayoutInfoList(appList);
   }
 };
-// 监听taskBar状态，来判断是否聚焦
-const watcherFocus = async () => {
-  const stateWatcher = watchTaskBarStatus();
-  onUnmounted(() => {
-    stateWatcher.return();
-  });
-  for await (const state of stateWatcher) {
-    updateTaskBarState(state);
-  }
-};
 //触发列表更新
 const updateLayoutInfoList = (appList: $WidgetAppData[]) => {
   for (const appRef of appRefList.value) {
@@ -76,6 +66,10 @@ const updateLayoutInfoList = (appList: $WidgetAppData[]) => {
   triggerRef(appRefList);
 };
 const doOpen = async (metaData: $WidgetAppData) => {
+  if (isSingleIconMode.value) {
+    await doToggleTaskbar(true);
+    return;
+  }
   if (showMenuOverlayRef.value === metaData.mmid) {
     return;
   }
@@ -107,7 +101,6 @@ window.addEventListener("blur", () => {
 
 onMounted(async () => {
   updateApps();
-  watcherFocus();
 });
 
 const calcMaxHeight = () => `${screen.availHeight - 45}px`;
@@ -122,40 +115,16 @@ window.addEventListener("resize", () => {
 
 /// 同步div的大小到原生的窗口上
 const taskbarEle = ref<HTMLDivElement>();
+// 是否使用单个App图标的模式
+const signalIcon = computed(() => {
+  // 寻找符合调教的应用
+  const findApp = appRefList.value.find((app) => app.metaData.winStates.find((win) => win.maximize && win.focus));
+  return findApp;
+});
+const isSingleIconMode = computed(() => signalIcon.value !== undefined);
 // 只显示需要显示的app
-const showAppIcons = computed(() => {
-  const apps = appRefList.value.filter((app) => isFocus(app.metaData.mmid));
-  // 如果第一次初始化，那么直接返回列表第一个
-  if (apps.length === 0 && appRefList.value.length !== 0) {
-    return [appRefList.value[0]];
-  }
-  return apps;
-});
-// 如果不是聚焦模式，只返回当前聚焦的app
-const isFocus = (mmid: string) => {
-  // 如果没激活过，不显示
-  return focusState.isFocus || mmid == focusState.appId;
-};
-// 标记scale的元素
-const isActive = (mmid: string) => computed(() => focusState.isFocus && mmid == focusState.appId);
-const focusState = reactive({
-  isFocus: isDesktop.value ? true : false,
-  appId: "",
-});
-// 触发样式更新
-const updateTaskBarState = async (state: $TaskBarState) => {
-  const taskBarDom = taskbarEle.value;
-  if (!taskBarDom) return;
-  focusState.isFocus = isDesktop.value ? true : state.focus;
-  focusState.appId = state.appId;
-  // 聚焦模式下，显示所有的列表，但是对于当前focus的应用，需要有一定的scale显示
-  if (state.focus) {
-    console.log("focusState.appId=>", focusState.appId);
-    // return await resizeTaskbar(67, 70 * (showAppIcons.value.length + 1));
-  }
-  // 没有聚焦的情况，只显示当前focus的应用
-  // return await resizeTaskbar(65, 65);
-};
+const showAppIcons = computed(() => (signalIcon.value ? [signalIcon.value] : appRefList.value));
+
 let resizeOb: ResizeObserver | undefined;
 onMounted(() => {
   const element = taskbarEle.value;
@@ -178,12 +147,12 @@ const iconSize = "45px";
 </script>
 <template>
   <div class="taskbar" ref="taskbarEle">
-    <div class="panel" :class="{ 'p-4': showAppIcons.length > 0 }">
+    <div class="panel" :class="{ 'p-4': isSingleIconMode }">
       <button
         class="app-icon-wrapper z-grid"
         v-for="(appIcon, index) in showAppIcons"
         :key="index"
-        :class="{ active: isActive(appIcon.metaData.mmid) }"
+        :class="{ active: appIcon.metaData.running }"
       >
         <transition name="scale">
           <AppIcon
@@ -211,16 +180,18 @@ const iconSize = "45px";
         </div>
       </button>
     </div>
-    <hr v-if="showAppIcons.length > 0 && focusState.isFocus" class="my-divider" />
-    <button v-if="focusState.isFocus" class="desktop-button app-icon-wrapper z-grid m-4" @click="toggleDesktopButton">
-      <AppIcon
-        class="z-view"
-        :icon="icons.layout_panel_top"
-        :size="iconSize"
-        bg-image="linear-gradient(to bottom, #f64f59, #c471ed, #12c2e9)"
-        bg-disable-translucent
-      ></AppIcon>
-    </button>
+    <template v-if="!isSingleIconMode">
+      <hr class="my-divider" />
+      <button class="desktop-button app-icon-wrapper z-grid m-4" @click="toggleDesktopButton">
+        <AppIcon
+          class="z-view"
+          :icon="icons.layout_panel_top"
+          :size="iconSize"
+          bg-image="linear-gradient(to bottom, #f64f59, #c471ed, #12c2e9)"
+          bg-disable-translucent
+        ></AppIcon>
+      </button>
+    </template>
   </div>
 </template>
 <style scoped lang="scss">
