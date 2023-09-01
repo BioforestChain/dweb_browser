@@ -10,11 +10,14 @@ class ChangeableSet<E>(context: CoroutineContext = ioAsyncExceptionHandler) :
   fun setContext(context: CoroutineContext) {
     changeable.context = context
   }
+
   val onChange = changeable.onChange
 
   suspend fun emitChange() = changeable.emitChange()
 
-  override fun add(element: E) = super.add(element).also { if (it) changeable.emitChangeBackground() }
+  override fun add(element: E) =
+    super.add(element).also { if (it) changeable.emitChangeBackground() }
+
   override fun clear() = super.clear().also { changeable.emitChangeBackground() }
   override fun remove(element: E) =
     super.remove(element).also { if (it) changeable.emitChangeBackground() }

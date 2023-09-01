@@ -11,6 +11,7 @@ import kotlinx.coroutines.sync.withLock
 
 object StateShared {
   val obsStack = mutableListOf<StateBase>()
+
   @OptIn(InternalCoroutinesApi::class)
   val lock = SynchronizedObject()
 }

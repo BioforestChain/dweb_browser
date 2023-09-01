@@ -5,9 +5,9 @@ minSdkVersion = "28" # Int
 targetSdkVersion = "34" # Int
 versionCode = "6" # Int
 versionName = "1.1.5"
-kotlinCompilerExtensionVersion = "1.5.1"
-jvmTarget = "1.8"
-javaVersion = "VERSION_1_8" # JavaVersion.VERSION_17
+kotlinCompilerExtensionVersion = "1.5.0"
+jvmTarget = "17"
+javaVersion = "VERSION_17" # JavaVersion.VERSION_17
 
 agp = "8.2.0-beta01"
 kotlin-version = "1.9.0"
@@ -114,8 +114,6 @@ ktor-client-cio = { group = "io.ktor", name = "ktor-client-cio", version.ref = "
 ktor-io = { group = "io.ktor", name = "ktor-io", version.ref = "ktor-version" }
 ktor-http = { group = "io.ktor", name = "ktor-http", version.ref = "ktor-version" }
 
-okio = { group = "com.squareup.okio", name = "okio", version.ref = "okio-version" }
-
 accompanist-webview = { group = "com.google.accompanist", name = "accompanist-webview", version.ref = "accompanist" }
 accompanist-navigation-material = { group = "com.google.accompanist", name = "accompanist-navigation-material", version.ref = "accompanist" }
 accompanist-navigation-animation = { group = "com.google.accompanist", name = "accompanist-navigation-animation", version.ref = "accompanist" }
@@ -125,8 +123,8 @@ accompanist-insets-ui = { group = "com.google.accompanist", name = "accompanist-
 
 google-material = { group = "com.google.android.material", name = "material", version.ref = "google-material" }
 # 数据 json
-data-gson = { group = "com.google.code.gson", name = "gson", version.ref = "data-gson" }
 kotlin-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationVersion" }
+kotlin-serialization-cbor = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-cbor", version.ref = "kotlinxSerializationVersion" }
 data-moshi-pack = { group = "com.daveanthonythomas.moshipack", name = "moshipack", version.ref = "data-moshi-pack" }
 # 键值存储
 data-store = { group = "androidx.datastore", name = "datastore", version.ref = "data-store" }

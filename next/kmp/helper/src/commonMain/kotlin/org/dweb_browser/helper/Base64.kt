@@ -125,7 +125,9 @@ fun String.fromBase64IgnoreSpaces(url: Boolean = false): ByteArray =
 fun String.fromBase64(ignoreSpaces: Boolean = false, url: Boolean = false): ByteArray =
   if (ignoreSpaces) Base64.decodeIgnoringSpaces(this, url) else Base64.decode(this, url)
 
-fun ByteArray.toBase64(url: Boolean = false, doPadding: Boolean = false): String = Base64.encode(this, url, doPadding)
+fun ByteArray.toBase64(url: Boolean = false, doPadding: Boolean = false): String =
+  Base64.encode(this, url, doPadding)
+
 val ByteArray.base64: String get() = Base64.encode(this)
 fun ByteArray.toBase64Url(): String = Base64.encode(this, true)
 

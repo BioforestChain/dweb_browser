@@ -1,12 +1,12 @@
 package org.dweb_browser.helper
 
-import okio.internal.commonToUtf8String
 import io.ktor.http.URLBuilder
+import io.ktor.utils.io.charsets.Charsets
 import io.ktor.utils.io.core.ByteReadPacket
 import io.ktor.utils.io.core.readAvailable
 
-fun ByteArray.byteArrayInputStream() : ByteReadPacket = ByteReadPacket(this)
-fun ByteArray.toUtf8(): String = this.commonToUtf8String()
+fun ByteArray.byteArrayInputStream(): ByteReadPacket = ByteReadPacket(this)
+fun ByteArray.toUtf8(): String = io.ktor.utils.io.core.String(this, 0, size, Charsets.UTF_8)
 
 private fun ByteReadPacket.tryReadByteArray(size: Int): Pair<ByteArray, Int> {
   var bytes = ByteArray(size)
@@ -21,14 +21,14 @@ private fun ByteReadPacket.tryReadByteArray(size: Int): Pair<ByteArray, Int> {
 
 fun ByteReadPacket.readInt(): Int {
   var (bytes, readLen) = tryReadByteArray(4)
-  if(readLen < 4) {
+  if (readLen < 4) {
     throw Exception("fail to read int($readLen/4 byte) in stream")
   }
 
   return bytes.toInt()
 }
 
-fun ByteReadPacket.readByteArray(size: Int) : ByteArray {
+fun ByteReadPacket.readByteArray(size: Int): ByteArray {
   val (bytes, readLen) = tryReadByteArray(size)
   if (readLen < size) {
     throw Exception("fail to read bytes($readLen/$size byte) in stream")

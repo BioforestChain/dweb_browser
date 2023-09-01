@@ -1,10 +1,19 @@
 package org.dweb_browser.helper
 
-data class Uri(val scheme: String, val userInfo: String, val host: String, val port: Int?, val path: String, val query: String, val fragment: String) : Comparable<Uri> {
+data class Uri(
+  val scheme: String,
+  val userInfo: String,
+  val host: String,
+  val port: Int?,
+  val path: String,
+  val query: String,
+  val fragment: String
+) : Comparable<Uri> {
 
   companion object {
     private val AUTHORITY = Regex("(?:([^@]+)@)?([^:]+)(?::([\\d]+))?")
-    private val RFC3986 = Regex("^(?:([^:/?#]+):)?(?://([^/?#]*))?([^?#]*)(?:\\?([^#]*))?(?:#(.*))?")
+    private val RFC3986 =
+      Regex("^(?:([^:/?#]+):)?(?://([^/?#]*))?([^?#]*)(?:\\?([^#]*))?(?:#(.*))?")
 
     fun of(value: String): Uri {
       val result = RFC3986.matchEntire(value) ?: throw RuntimeException("Invalid Uri: $value")
@@ -75,15 +84,19 @@ data class Uri(val scheme: String, val userInfo: String, val host: String, val p
   override fun toString() = StringBuilder()
     .appendIfNotBlank(scheme, scheme, ":")
     .appendIfNotBlank(authority, "//", authority)
-    .append(when {
-      authority.isBlank() -> path
-      path.isBlank() || path.startsWith("/") -> path
-      else -> "/$path"
-    })
+    .append(
+      when {
+        authority.isBlank() -> path
+        path.isBlank() || path.startsWith("/") -> path
+        else -> "/$path"
+      }
+    )
     .appendIfNotBlank(query, "?", query)
     .appendIfNotBlank(fragment, "#", fragment).toString()
 }
-fun Uri.removeQuery(name: String) = copy(query = query.toParameters().filterNot { it.first == name }.toUrlFormEncoded())
+
+fun Uri.removeQuery(name: String) =
+  copy(query = query.toParameters().filterNot { it.first == name }.toUrlFormEncoded())
 
 fun Uri.removeQueries(prefix: String) =
   copy(query = query.toParameters().filterNot { it.first.startsWith(prefix) }.toUrlFormEncoded())
@@ -129,14 +142,19 @@ fun Uri.appendToPath(pathToAppend: String?): Uri =
 fun StringBuilder.appendIfNotBlank(valueToCheck: String, vararg toAppend: String): StringBuilder =
   appendIf({ valueToCheck.isNotBlank() }, *toAppend)
 
-fun StringBuilder.appendIfNotEmpty(valueToCheck: List<Any>, vararg toAppend: String): StringBuilder =
+fun StringBuilder.appendIfNotEmpty(
+  valueToCheck: List<Any>,
+  vararg toAppend: String
+): StringBuilder =
   appendIf({ valueToCheck.isNotEmpty() }, *toAppend)
 
 fun StringBuilder.appendIfPresent(valueToCheck: Any?, vararg toAppend: String): StringBuilder =
   appendIf({ valueToCheck != null }, *toAppend)
 
-fun StringBuilder.appendIf(condition: () -> Boolean, vararg toAppend: String): StringBuilder = apply {
-  if (condition()) toAppend.forEach { append(it) }
-}
+fun StringBuilder.appendIf(condition: () -> Boolean, vararg toAppend: String): StringBuilder =
+  apply {
+    if (condition()) toAppend.forEach { append(it) }
+  }
 
-private fun String.toParameter(): Parameter = split("=", limit = 2).map(String::fromFormEncoded).let { l -> l.elementAt(0) to l.elementAtOrNull(1) }
+private fun String.toParameter(): Parameter = split("=", limit = 2).map(String::fromFormEncoded)
+  .let { l -> l.elementAt(0) to l.elementAtOrNull(1) }

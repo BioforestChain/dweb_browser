@@ -1,13 +1,23 @@
-@Suppress("DSL_SCOPE_VIOLATION") // TODO: Remove once KTIJ-19369 is fixed
 plugins {
-  id("java-library")
-  alias(libs.plugins.kotlinJvm)
+  alias(libs.plugins.androidLibrary)
+  alias(libs.plugins.kotlinAndroid)
   alias(libs.plugins.kotlinPluginSerialization)
 }
 
-java {
-  sourceCompatibility = JavaVersion.valueOf(libs.versions.javaVersion.get())
-  targetCompatibility = JavaVersion.valueOf(libs.versions.javaVersion.get())
+android {
+  namespace = "org.dweb_browser.microservice"
+  compileSdk = libs.versions.compileSdkVersion.get().toInt()
+
+  defaultConfig {
+    minSdk = libs.versions.minSdkVersion.get().toInt()
+  }
+  compileOptions {
+    sourceCompatibility = JavaVersion.valueOf(libs.versions.javaVersion.get())
+    targetCompatibility = JavaVersion.valueOf(libs.versions.javaVersion.get())
+  }
+  kotlinOptions {
+    jvmTarget = libs.versions.jvmTarget.get()
+  }
 }
 
 dependencies {
@@ -22,6 +32,7 @@ dependencies {
   api(libs.ktor.client.cio)
 
   implementation(libs.data.moshi.pack)
+  api(libs.data.gson)
 
   /// 测试相关
   testImplementation(kotlin("test"))
@@ -35,7 +46,7 @@ dependencies {
   }
   testImplementation(libs.test.junit.jupiter)
 
-  implementation(project(mapOf("path" to ":helper")))
+  implementation(project(":helper"))
 }
 
 tasks.withType<Test> {

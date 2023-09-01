@@ -32,6 +32,8 @@ http4k-bom = "5.5.0.0"
 ktor-version = "2.3.3"
 
 kotlinx-coroutines = "1.7.3"
+kotlinx-datetime-version = "0.4.0"
+kotlinx-atomicfu-version = "0.22.0"
 
 accompanist = "0.31.6-rc"
 google-material = "1.9.0"
@@ -97,6 +99,8 @@ androidx-profile-installer = { group = "androidx.profileinstaller", name = "prof
 androidx-animation-core-android = { group = "androidx.compose.animation", name = "animation-core-android", version.ref = "animation-core-android" }
 
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
+kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinx-datetime-version" }
+kotlinx-atomicfu = { group = "org.jetbrains.kotlinx", name = "atomicfu-gradle-plugin", version.ref = "kotlinx-atomicfu-version" }
 
 http4k-bom = { group = "org.http4k", name = "http4k-bom", version.ref = "http4k-bom" }
 http4k-core = { group = "org.http4k", name = "http4k-core" }
@@ -106,6 +110,8 @@ http4k-client-apache = { group = "org.http4k", name = "http4k-client-apache" }
 ktor-server-websockets = { group = "io.ktor", name = "ktor-server-websockets", version.ref = "ktor-version" }
 ktor-server-cio = { group = "io.ktor", name = "ktor-server-cio", version.ref = "ktor-version" }
 ktor-client-cio = { group = "io.ktor", name = "ktor-client-cio", version.ref = "ktor-version" }
+ktor-io = { group = "io.ktor", name = "ktor-io", version.ref = "ktor-version" }
+ktor-http = { group = "io.ktor", name = "ktor-http", version.ref = "ktor-version" }
 
 accompanist-webview = { group = "com.google.accompanist", name = "accompanist-webview", version.ref = "accompanist" }
 accompanist-navigation-material = { group = "com.google.accompanist", name = "accompanist-navigation-material", version.ref = "accompanist" }

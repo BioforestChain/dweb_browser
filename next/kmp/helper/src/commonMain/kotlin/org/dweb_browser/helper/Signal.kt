@@ -1,12 +1,12 @@
 package org.dweb_browser.helper
 
 import kotlinx.coroutines.InternalCoroutinesApi
-import kotlinx.coroutines.internal.SynchronizedObject
-import kotlinx.coroutines.internal.synchronized
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.internal.SynchronizedObject
+import kotlinx.coroutines.internal.synchronized
 import kotlinx.coroutines.launch
 
 typealias Callback<Args> = suspend SignalController<Args>.(args: Args) -> Unit
@@ -73,6 +73,7 @@ open class Signal<Args> {
   )
 
   private val children = mutableMapOf<Signal<*>, Child<Args, *>>()
+
   @OptIn(InternalCoroutinesApi::class)
   val lock = SynchronizedObject()
 

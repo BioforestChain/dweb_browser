@@ -21,7 +21,6 @@ data class ShortcutItem(
 )
 
 
-
 object DisplayMode_Serializer :
   StringEnumSerializer<DisplayMode>("DisplayMode", DisplayMode.ALL_VALUES, { mode })
 

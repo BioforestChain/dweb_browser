@@ -4,6 +4,7 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlin.coroutines.CoroutineContext
 
 open class ChangeableListBase<T> : MutableList<T> by ArrayList()
+
 @OptIn(DelicateCoroutinesApi::class)
 class ChangeableList<T>(context: CoroutineContext = ioAsyncExceptionHandler) :
   ChangeableListBase<T>() {

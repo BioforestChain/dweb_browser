@@ -93,8 +93,8 @@ dependencies {
   api(libs.data.store)
   api(libs.data.store.preferences)
 
-  implementation(project(mapOf("path" to ":helper")))
-  implementation(project(mapOf("path" to ":DWebView")))
-  implementation(project(mapOf("path" to ":MicroService")))
-  implementation(project(mapOf("path" to ":helperAndroid")))
+  implementation(project(":helper"))
+  implementation(project(":DWebView"))
+  implementation(project(":MicroService"))
+  implementation(project(":helperAndroid"))
 }

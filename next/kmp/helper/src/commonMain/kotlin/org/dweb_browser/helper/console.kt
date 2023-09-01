@@ -3,7 +3,6 @@ package org.dweb_browser.helper
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.LocalDateTime
 import kotlin.coroutines.CoroutineContext
@@ -50,7 +49,8 @@ fun timeStart(label: String) {
 fun timeEnd(label: String) {
   times.remove(label)?.also { startTime ->
     val endTime = LocalDateTime.toString()
-    val betweenTime = LocalDateTime.parse(endTime).nanosecond - LocalDateTime.parse(startTime).nanosecond
+    val betweenTime =
+      LocalDateTime.parse(endTime).nanosecond - LocalDateTime.parse(startTime).nanosecond
     printDebug(
       "TIME-DURATION",
       label,

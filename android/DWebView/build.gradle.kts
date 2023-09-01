@@ -47,7 +47,7 @@ dependencies {
   implementation(platform(libs.compose.bom))
   implementation(libs.compose.ui)
 
-  implementation(project(mapOf("path" to ":MicroService")))
-  implementation(project(mapOf("path" to ":helper")))
-  implementation(project(mapOf("path" to ":helperAndroid")))
+  implementation(project(":MicroService"))
+  implementation(project(":helper"))
+  implementation(project(":helperAndroid"))
 }

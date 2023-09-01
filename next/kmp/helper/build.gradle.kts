@@ -1,40 +1,40 @@
 plugins {
-
   alias(libs.plugins.kotlinxMultiplatform)
   alias(libs.plugins.androidLibrary)
-//  id("kotlinx-atomicfu")
-//    alias(libs.plugins.jetbrainsCompose)
+  alias(libs.plugins.kotlinPluginSerialization)
 }
 
 kotlin {
   androidTarget {
     compilations.all {
       kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = libs.versions.jvmTarget.get()
       }
     }
   }
 
   jvm("desktop")
+  jvmToolchain {
+    languageVersion.set(JavaLanguageVersion.of(libs.versions.jvmTarget.get()))
+  }
 
   listOf(
-    iosX64(),
-    iosArm64(),
-    iosSimulatorArm64()
+    iosX64(), iosArm64(), iosSimulatorArm64()
   ).forEach {
     it.binaries.framework {
-      baseName = "helper"
+      baseName = "DwebHelper"
     }
   }
 
   sourceSets {
     val commonMain by getting {
       dependencies {
-        implementation(libs.okio)
-        implementation(libs.ktor.http)
-        implementation(libs.ktor.io)
-        implementation(libs.kotlinx.datetime)
-        implementation(libs.kotlin.serialization.json)
+        implementation(kotlin("stdlib"))
+        implementation(libs.kotlinx.coroutines.core)
+        api(libs.ktor.http)
+        api(libs.ktor.io)
+        api(libs.kotlinx.datetime)
+        api(libs.kotlin.serialization.json)
       }
     }
     val commonTest by getting {
@@ -42,7 +42,6 @@ kotlin {
         implementation(kotlin("test"))
         implementation(libs.test.kotlin.coroutines.test)
         implementation(libs.test.kotlin.coroutines.debug)
-//                implementation("org.jetbrains.kotlinx:atomicfu-gradle-plugin:0.22.0")
       }
     }
     val androidMain by getting
@@ -70,8 +69,8 @@ kotlin {
 
 android {
   namespace = "org.dweb_browser.helper"
-  compileSdk = 33
+  compileSdk = libs.versions.compileSdkVersion.get().toInt()
   defaultConfig {
-    minSdk = 28
+    minSdk = libs.versions.minSdkVersion.get().toInt()
   }
 }

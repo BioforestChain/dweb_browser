@@ -5,7 +5,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.internal.SynchronizedObject
 import kotlinx.coroutines.internal.synchronized
-import kotlinx.coroutines.sync.Mutex
 
 open class PromiseOut<T> {
   companion object {
@@ -14,6 +13,7 @@ open class PromiseOut<T> {
   }
 
   private val _future = CompletableDeferred<T>()
+
   @OptIn(InternalCoroutinesApi::class)
   private val _lock = SynchronizedObject()
 
@@ -33,8 +33,10 @@ open class PromiseOut<T> {
 
   @OptIn(InternalCoroutinesApi::class)
   val isFinished get() = synchronized(_lock) { _future.isCompleted || _future.isCancelled }
+
   @OptIn(InternalCoroutinesApi::class)
   val isResolved get() = synchronized(_lock) { _future.isCompleted }
+
   @OptIn(InternalCoroutinesApi::class)
   val isRejected get() = synchronized(_lock) { _future.isCancelled }
 

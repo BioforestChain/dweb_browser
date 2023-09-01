@@ -66,5 +66,5 @@ dependencies {
   api(libs.coil.video)
   api(libs.coil.gif)
 
-  implementation(project(mapOf("path" to ":helper")))
+  implementation(project(":helper"))
 }

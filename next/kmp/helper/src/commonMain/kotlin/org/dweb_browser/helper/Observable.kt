@@ -3,7 +3,6 @@ package org.dweb_browser.helper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
 class Observable<K : Any> {
@@ -21,7 +20,7 @@ class Observable<K : Any> {
   val changeSignal = Signal<Change<K, *>>();
   val onChange = changeSignal.toListener()
 
-  class TransformContext<K : Any, T>(val key: K, val value: T, var targetValue: T) {
+  class TransformContext<K : Any, T : Any?>(val key: K, val value: T, var targetValue: T) {
     /**
      * 将该值标记成 true，将会让 setValue 取消赋值操作
      */
@@ -31,13 +30,12 @@ class Observable<K : Any> {
   private val _observers = mutableListOf<Observer<K, *>>()
 
   /// 只读列表
-  val observers get() = _observers.toList()
+  val observers get() = _observers.associateBy { it.key }
 
-  class Observer<K : Any, T>(
+  class Observer<K : Any, T : Any?>(
     private val ob: Observable<K>,
     val key: K,
     var value: T,
-    val valueClass: KClass<Any>,
     val transform: (TransformContext<K, T>.() -> Unit)? = null,
   ) {
     init {
@@ -75,26 +73,17 @@ class Observable<K : Any> {
     operator fun getValue(thisRef: Any, property: KProperty<*>) = value
   }
 
-  inline fun <reified T : Any> observe(key: K, initValue: T) =
-    Observer(this, key, initValue, T::class as KClass<Any>)
-
-  inline fun <reified T : Any> observe(
+  fun <T : Any> observe(
     key: K,
     initValue: T,
-    noinline transform: (TransformContext<K, T>.() -> Unit)
-  ) =
-    Observer(this, key, initValue, T::class as KClass<Any>, transform)
+    transform: (TransformContext<K, T>.() -> Unit)? = null
+  ) = Observer(this, key, initValue, transform)
 
 
-  fun <T : Any> observeNullable(key: K, valueClass: KClass<T>, initValue: T? = null) =
-    Observer(this, key, initValue, valueClass as KClass<Any>)
-
-  fun <T : Any> observeNullable(
+  fun <T : Any?> observeNullable(
     key: K,
-    valueClass: KClass<T>,
-    initValue: T? = null,
-    transform: (TransformContext<K, T?>.() -> Unit)
-  ) =
-    Observer(this, key, initValue, valueClass as KClass<Any>, transform)
+    initValue: T,
+    transform: (TransformContext<K, T>.() -> Unit)? = null
+  ) = Observer(this, key, initValue, transform)
 }
 
