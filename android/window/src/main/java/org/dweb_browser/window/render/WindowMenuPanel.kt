@@ -4,11 +4,16 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -54,6 +59,7 @@ import androidx.compose.material.icons.twotone.PushPin
 import androidx.compose.material.icons.twotone.VerifiedUser
 import androidx.compose.material.icons.twotone.VolumeUp
 import androidx.compose.material.icons.twotone.WifiTethering
+import androidx.compose.material3.Button
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -72,13 +78,14 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.dweb_browser.window.core.WindowController
 import org.dweb_browser.window.core.constant.WindowColorScheme
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -120,7 +127,9 @@ internal fun WindowMenuPanel(
       actionContentColor = winTheme.themeContentColor,
     )
   }
-  RichTooltipBox(
+  val maxHeight = win.state.bounds.height.dp
+    RichTooltipBox(
+    modifier = if (isMaximized) Modifier else Modifier.sizeIn(maxWidth = win.state.bounds.width.dp, maxHeight = maxHeight),
     tooltipState = tooltipState,
     shape = shape,
     colors = colors,
@@ -129,65 +138,20 @@ internal fun WindowMenuPanel(
         val owner = win.state.constants.owner
         win.IconRender(modifier = Modifier.size(24.dp))
         Spacer(modifier = Modifier.width(6.dp))
-        Text(text = owner)
+        Text(text = owner, maxLines = 1, overflow = TextOverflow.Ellipsis)
       }
     },
     text = {
-      val winMenuItemColor = remember(winTheme) {
-        NavigationRailItemColors(
-          unselectedIconColor = winTheme.onThemeContentDisableColor,
-          selectedIconColor = winTheme.themeContentColor,
-          selectedIndicatorColor = winTheme.onThemeContentColor,
-
-          unselectedTextColor = winTheme.onThemeContentColor,
-          selectedTextColor = winTheme.onThemeContentColor,
-
-          disabledIconColor = winTheme.themeContentDisableColor,
-          disabledTextColor = winTheme.themeContentDisableColor,
-        )
-      }
-
-      @Composable
-      fun WindowMenuItem(
-        iconVector: ImageVector,
-        labelText: String,
-        selected: Boolean = false,
-        selectedIconVector: ImageVector = iconVector,
-        enabled: Boolean = true,
-        onClick: suspend () -> Unit = {}
-      ) {
-        NavigationRailItem(
-          colors = winMenuItemColor,
-          icon = {
-            Icon(
-              if (selected) selectedIconVector else iconVector,
-              contentDescription = labelText,
-            )
-          },
-          label = {
-            Text(
-              labelText,
-              fontSize = MaterialTheme.typography.labelSmall.fontSize * 0.8f,
-              textAlign = TextAlign.Center
-            )
-          },
-          selected = selected,
-          enabled = enabled,
-          onClick = {
-            scope.launch { onClick() }
-          },
-        )
-      }
-      Box(
-        modifier = Modifier.padding(top = 12.dp)
-      ) {
+      Column(modifier = Modifier.padding(top = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)) {
         LazyVerticalGrid(
           columns = GridCells.Adaptive(68.dp),
           modifier = Modifier
             .clip(
               winPadding.boxRounded.toRoundedCornerShape()
             )
-            .background(winTheme.onThemeColor),
+            .background(winTheme.onThemeColor)
+            .then(if (isMaximized) Modifier else Modifier.height(maxHeight - 120.dp)), // 由于窗口模式时，LazyVerticalGrid适配整个窗口，导致action显示不全。
           contentPadding = PaddingValues(6.dp),
           verticalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterVertically)
         ) {
@@ -407,14 +371,62 @@ internal fun WindowMenuPanel(
             )
           }
         }
-      }
-    },
-    action = {
-      ElevatedButton(onClick = { scope.launch { win.hideMenuPanel() } }) {
 
-        Text("退出应用")
+        ElevatedButton(onClick = { scope.launch { win.hideMenuPanel() } }) {
+          Text("退出应用")
+        }
       }
     },
-  ) {}
+  ) {
+    Box(modifier = Modifier.fillMaxSize()) // 为了保证弹出的时候，不会覆盖工具栏
+  }
 }
 
+@Composable
+fun WindowMenuItem(
+  iconVector: ImageVector,
+  labelText: String,
+  selected: Boolean = false,
+  selectedIconVector: ImageVector = iconVector,
+  enabled: Boolean = true,
+  onClick: suspend () -> Unit = {}
+) {
+  val scope = rememberCoroutineScope()
+  val winTheme = LocalWindowControllerTheme.current
+
+  val winMenuItemColor = remember(winTheme) {
+    NavigationRailItemColors(
+      unselectedIconColor = winTheme.onThemeContentDisableColor,
+      selectedIconColor = winTheme.themeContentColor,
+      selectedIndicatorColor = winTheme.onThemeContentColor,
+
+      unselectedTextColor = winTheme.onThemeContentColor,
+      selectedTextColor = winTheme.onThemeContentColor,
+
+      disabledIconColor = winTheme.themeContentDisableColor,
+      disabledTextColor = winTheme.themeContentDisableColor,
+    )
+  }
+
+  NavigationRailItem(
+    colors = winMenuItemColor,
+    icon = {
+      Icon(
+        if (selected) selectedIconVector else iconVector,
+        contentDescription = labelText,
+      )
+    },
+    label = {
+      Text(
+        labelText,
+        fontSize = MaterialTheme.typography.labelSmall.fontSize * 0.8f,
+        textAlign = TextAlign.Center
+      )
+    },
+    selected = selected,
+    enabled = enabled,
+    onClick = {
+      scope.launch { onClick() }
+    },
+  )
+}

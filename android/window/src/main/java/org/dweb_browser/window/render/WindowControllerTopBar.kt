@@ -73,97 +73,98 @@ private fun WindowTopControllerBar(
   val coroutineScope = rememberCoroutineScope()
   val contentColor = LocalWindowControllerTheme.current.topContentColor
   val topBarHeight = LocalWindowPadding.current.top
-  Row(
-    horizontalArrangement = Arrangement.SpaceBetween,
-    verticalAlignment = Alignment.CenterVertically,
-  ) {
-    /// 关闭按钮
-    Box(
-      modifier = Modifier
-        .width(topBarHeight.dp)
-        .fillMaxHeight(),
-    ) {
-      IconButton(modifier = Modifier.align(Alignment.Center),
-        onClick = { coroutineScope.launch { win.close() } }) {
-        Icon(Icons.Rounded.Close, contentDescription = "Close the Window", tint = contentColor)
-      }
+  Box {
+    /// 菜单面板居中定位，主要为了适配锚点，目前范围是窗口的正行
+    Box(modifier = Modifier.align(Alignment.BottomCenter)) {
+      WindowMenuPanel(win)
     }
-    /// 应用图标
-    val iconSize = topBarHeight * 0.8f;
-    val scope = rememberCoroutineScope()
-    Box(
-      modifier = Modifier
-        .size(iconSize.dp)
-        .clickable { scope.launch { win.showMenuPanel() } },
+    Row(
+      horizontalArrangement = Arrangement.SpaceBetween,
+      verticalAlignment = Alignment.CenterVertically,
     ) {
-      win.IconRender(
+      /// 关闭按钮
+      Box(
         modifier = Modifier
-          .align(Alignment.CenterStart)
-          .fillMaxSize(), primaryColor = contentColor
-      )
-    }
-    /// 标题信息
-    AutoResizeTextContainer(
-      modifier = Modifier
-        .weight(1f)
-        .fillMaxHeight()
-        .clickable { scope.launch { win.showMenuPanel() } },
-    ) {
-      val inResize by win.inResize
-      val titleText by win.watchedState { title ?: constants.owner }
-
-      val baseFontStyle = MaterialTheme.typography.titleSmall
-      val fontStyle = remember(contentColor) {
-        baseFontStyle.copy(color = contentColor)
+          .width(topBarHeight.dp)
+          .fillMaxHeight(),
+      ) {
+        IconButton(modifier = Modifier.align(Alignment.Center),
+          onClick = { coroutineScope.launch { win.close() } }) {
+          Icon(Icons.Rounded.Close, contentDescription = "Close the Window", tint = contentColor)
+        }
       }
-
-      AutoSizeText(
+      /// 应用图标
+      val iconSize = topBarHeight * 0.8f;
+      val scope = rememberCoroutineScope()
+      Box(
         modifier = Modifier
-          .align(Alignment.Center)
-          .padding(2.dp),
-        text = titleText,
-        textAlign = TextAlign.Center,
-        style = fontStyle,
-        autoResizeEnabled = !inResize,
-        autoLineHeight = { (1.5f * it.value).sp }
-      )
-
-      /// 菜单面板居中定位
-      Box(modifier = Modifier.align(Alignment.BottomCenter)) {
-        WindowMenuPanel(win)
-      }
-    }
-
-    /// 右侧的控制按钮
-    /// 最小化
-    Box(
-      modifier = Modifier
-        .width(topBarHeight.dp)
-        .fillMaxHeight(),
-    ) {
-      IconButton(modifier = Modifier.align(Alignment.CenterEnd),
-        onClick = { coroutineScope.launch { win.minimize() } }) {
-        Icon(
-          Icons.Rounded.Minimize,
-          contentDescription = "Minimizes the window",
-          tint = contentColor
+          .size(iconSize.dp)
+          .clickable { scope.launch { win.showMenuPanel() } },
+      ) {
+        win.IconRender(
+          modifier = Modifier
+            .align(Alignment.CenterStart)
+            .fillMaxSize(), primaryColor = contentColor
         )
       }
-    }
-    /// 最大化
-    Box(
-      modifier = Modifier
-        .width(topBarHeight.dp)
-        .fillMaxHeight(),
-    ) {
-      IconButton(modifier = Modifier.align(Alignment.CenterEnd),
-        onClick = { coroutineScope.launch { win.maximize() } }) {
-        Icon(
-          Icons.Rounded.UnfoldMore,
-          contentDescription = "Maximizes the window",
-          modifier = Modifier.rotate(45f),
-          tint = contentColor
+      /// 标题信息
+      AutoResizeTextContainer(
+        modifier = Modifier
+          .weight(1f)
+          .fillMaxHeight()
+          .clickable { scope.launch { win.showMenuPanel() } },
+      ) {
+        val inResize by win.inResize
+        val titleText by win.watchedState { title ?: constants.owner }
+
+        val baseFontStyle = MaterialTheme.typography.titleSmall
+        val fontStyle = remember(contentColor) {
+          baseFontStyle.copy(color = contentColor)
+        }
+
+        AutoSizeText(
+          modifier = Modifier
+            .align(Alignment.Center)
+            .padding(2.dp),
+          text = titleText,
+          textAlign = TextAlign.Center,
+          style = fontStyle,
+          autoResizeEnabled = !inResize,
+          autoLineHeight = { (1.5f * it.value).sp }
         )
+      }
+
+      /// 右侧的控制按钮
+      /// 最小化
+      Box(
+        modifier = Modifier
+          .width(topBarHeight.dp)
+          .fillMaxHeight(),
+      ) {
+        IconButton(modifier = Modifier.align(Alignment.CenterEnd),
+          onClick = { coroutineScope.launch { win.minimize() } }) {
+          Icon(
+            Icons.Rounded.Minimize,
+            contentDescription = "Minimizes the window",
+            tint = contentColor
+          )
+        }
+      }
+      /// 最大化
+      Box(
+        modifier = Modifier
+          .width(topBarHeight.dp)
+          .fillMaxHeight(),
+      ) {
+        IconButton(modifier = Modifier.align(Alignment.CenterEnd),
+          onClick = { coroutineScope.launch { win.maximize() } }) {
+          Icon(
+            Icons.Rounded.UnfoldMore,
+            contentDescription = "Maximizes the window",
+            modifier = Modifier.rotate(45f),
+            tint = contentColor
+          )
+        }
       }
     }
   }
