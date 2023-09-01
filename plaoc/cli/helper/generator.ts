@@ -119,7 +119,7 @@ export class BundleZipGenerator {
             ...walkDirToZipEntries(www_dir).map((entry) => {
               return {
                 ...entry,
-                path: `usr/www/` + entry.path,
+                path: (`usr/www/` + entry.path).replace(/\\/g,'/'),
               };
             }),
           ])
@@ -150,7 +150,7 @@ export class BundleZipGenerator {
       }
       entries.push({
         dir: false,
-        path: `${pathbase}${pathalias}`,
+        path: `${pathbase}${pathalias}`.replace(/\\/g,'/'),
         data: data,
       });
     };

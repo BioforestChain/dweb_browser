@@ -1,7 +1,7 @@
 import "dweb/core/helper/crypto.shims.ts";
 import isMobile from "npm:is-mobile";
 import { X_PLAOC_QUERY } from "./const.ts";
-import { jsProcess, PromiseOut, queue } from "./deps.ts";
+import { jsProcess, PromiseOut } from "./deps.ts";
 import { Server_api } from "./http-api-server.ts";
 import { Server_external } from "./http-external-server.ts";
 import { Server_www } from "./http-www-server.ts";
@@ -20,7 +20,7 @@ export const main = async () => {
   /**
    * 尝试打开gui，或者激活窗口
    */
-  const tryOpenView = queue(async () => {
+  const tryOpenView = async () => {
     /// 等待http服务启动完毕，获得入口url
     const url = await indexUrlPo.promise;
     if (all_webview_status.size === 0) {
@@ -30,11 +30,16 @@ export const main = async () => {
     } else {
       await mwebview_activate();
     }
-  });
+  }
   /// 如果有人来激活，那我就唤醒我的界面
   jsProcess.onActivity(async (_ipcEvent) => {
+    console.log(`${jsProcess.mmid} onActivity`)
     tryOpenView();
   });
+
+  jsProcess.onClose(()=>{
+    console.log("app后台被关闭。")
+  })
 
   //#region 启动http服务
   const wwwServer = new Server_www();
@@ -49,7 +54,7 @@ export const main = async () => {
     const wwwStartResult = await wwwServer.getStartResult();
     const apiStartResult = await apiServer.getStartResult();
     const usePublic = isMobile.isMobile();
-    const indexUrl = wwwStartResult.urlInfo.buildHtmlUrl(false, (url) => {
+    const indexUrl = wwwStartResult.urlInfo.buildHtmlUrl(usePublic, (url) => {
       url.pathname = "/index.html";
       urlStore.set({
         [X_PLAOC_QUERY.API_INTERNAL_URL]: apiStartResult.urlInfo.buildUrl(usePublic).href,

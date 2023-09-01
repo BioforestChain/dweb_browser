@@ -6,6 +6,7 @@ import { HttpServer, cors } from "./http-helper.ts";
 
 /**给前端的文件服务 */
 export class Server_www extends HttpServer {
+
   protected _getOptions(): $DwebHttpServerOptions {
     return {
       subdomain: "www",
@@ -19,16 +20,14 @@ export class Server_www extends HttpServer {
   protected async _provider(request: FetchEvent, root = "www"): Promise<$OnFetchReturn> {
     let { pathname } = request;
     if (pathname.startsWith(`/${X_PLAOC_QUERY.GET_CONFIG_URL}`)) {
-      const obj = urlStore.get() ?? ""
-      return IpcResponse.fromJson(request.req_id,200,cors(new IpcHeaders()),obj,request.ipc)
+      const obj = urlStore.get() ?? "";
+      return IpcResponse.fromJson(request.req_id, 200, cors(new IpcHeaders()), obj, request.ipc);
     }
     if (pathname === "/") {
       pathname = "/index.html";
     }
-  
-    const remoteIpcResponse = await jsProcess.nativeRequest(
-      `file:///usr/${root}${pathname}?mode=stream`
-    );
+
+    const remoteIpcResponse = await jsProcess.nativeRequest(`file:///usr/${root}${pathname}?mode=stream`);
     /**
      * 流转发，是一种高性能的转发方式，等于没有真正意义上去读取response.body，
      * 而是将response.body的句柄直接转发回去，那么根据协议，一旦流开始被读取，自己就失去了读取权。
