@@ -188,6 +188,7 @@ dependencies {
   implementation(project(mapOf("path" to ":BrowserUI")))
   implementation(project(mapOf("path" to ":window")))
   implementation(project(mapOf("path" to ":helperAndroid")))
+  implementation(project(mapOf("path" to ":shared")))
 }
 
 tasks.withType<Test> {

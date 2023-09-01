@@ -1,15 +1,15 @@
 [versions]
-compileSdkVersion = "33" # Int
+compileSdkVersion = "34" # Int
 buildToolsVersion = "29.0.2"
 minSdkVersion = "28" # Int
-targetSdkVersion = "33" # Int
+targetSdkVersion = "34" # Int
 versionCode = "6" # Int
 versionName = "1.1.5"
-kotlinCompilerExtensionVersion = "1.5.0"
-jvmTarget = "17"
-javaVersion = "VERSION_17" # JavaVersion.VERSION_17
+kotlinCompilerExtensionVersion = "1.5.1"
+jvmTarget = "1.8"
+javaVersion = "VERSION_1_8" # JavaVersion.VERSION_17
 
-agp = "8.2.0-beta01"
+agp = "8.2.0-alpha16"
 kotlin-version = "1.9.0"
 ksp = "1.9.0-1.0.13"
 junit = "4.13.2"
@@ -63,6 +63,7 @@ compose-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
 compose-ui-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+compose-ui-foundation = { group = "androidx.compose.foundation", name = "foundation" }
 compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 compose-material_icons = { group = "androidx.compose.material", name = "material-icons-extended" }
@@ -108,7 +109,6 @@ google-material = { group = "com.google.android.material", name = "material", ve
 # 数据 json
 data-gson = { group = "com.google.code.gson", name = "gson", version.ref = "data-gson" }
 kotlin-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationVersion" }
-kotlin-serialization-cbor = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-cbor", version.ref = "kotlinxSerializationVersion" }
 data-moshi-pack = { group = "com.daveanthonythomas.moshipack", name = "moshipack", version.ref = "data-moshi-pack" }
 # 键值存储
 data-store = { group = "androidx.datastore", name = "datastore", version.ref = "data-store" }
@@ -150,6 +150,5 @@ kotlinxMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref 
 kotlinPluginSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinPluginSerializationVersion" }
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin-version" }
 kspAndroid = { id = "com.google.devtools.ksp", version.ref = "ksp" }
-jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "kotlinCompilerExtensionVersion" }
 
 [bundles]
