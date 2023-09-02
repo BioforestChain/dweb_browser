@@ -5,6 +5,8 @@ import kotlinx.datetime.Clock
 import org.dweb_browser.helper.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlinx.atomicfu.atomic
+import kotlinx.atomicfu.getAndUpdate
 
 class PromiseOutTest {
   @Test
@@ -82,29 +84,27 @@ class PromiseOutTest {
 
     val TIMES = 10000;
 
-
-    val result1 = AtomicInteger(0)
-    val result2 = AtomicInteger(0)
+    // 如果使用 atomic<Int>(0) 初始化，iOS测试会出现 result1 和 result2 最大值为128就无法在加1了？
+    val result1 = atomic(0)
+    val result2 = atomic(0)
     for (i in 1..TIMES) {
       val po = PromiseOut<Unit>()
       GlobalScope.launch {
         delay(100)
-        result1.addAndGet(1)
+        result1.getAndUpdate { cur -> cur.inc() }
         po.resolve(Unit)
       }
       GlobalScope.launch {
         po.waitPromise()
-        result2.addAndGet(1)
+        result2.getAndUpdate { cur -> cur.inc()}
       }
     }
 
-
-
-    while (result2.get() < TIMES) {
+    while (result2.value < TIMES) {
       delay(200)
-      println("times result1:${result1.get()} result2:${result2.get()}")
+      println("times result1:${result1.value} result2:${result2.value}")
 
     }
-    assertEquals(result1.get(), result2.get())
+    assertEquals(result1.value, result2.value)
   }
 }

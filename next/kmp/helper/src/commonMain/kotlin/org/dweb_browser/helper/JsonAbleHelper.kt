@@ -172,7 +172,7 @@ open class PropMetas<T : PropMetas.Constructor<T>>(
       true
     } else false
 
-    fun get(propName: String) = data.getOrDefault(propName, null)
+    fun get(propName: String) = data.get(propName)
   }
 
   class PropValueConfig<T : Any?>(private val propValue: PropValue<T>) {

@@ -100,7 +100,7 @@ androidx-animation-core-android = { group = "androidx.compose.animation", name =
 
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinx-datetime-version" }
-kotlinx-atomicfu = { group = "org.jetbrains.kotlinx", name = "atomicfu-gradle-plugin", version.ref = "kotlinx-atomicfu-version" }
+kotlinx-atomicfu = { group = "org.jetbrains.kotlinx", name = "atomicfu", version.ref = "kotlinx-atomicfu-version" }
 
 http4k-bom = { group = "org.http4k", name = "http4k-bom", version.ref = "http4k-bom" }
 http4k-core = { group = "org.http4k", name = "http4k-core" }
