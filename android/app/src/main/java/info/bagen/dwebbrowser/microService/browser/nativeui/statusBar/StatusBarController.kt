@@ -15,8 +15,8 @@ import info.bagen.dwebbrowser.microService.browser.nativeui.base.BarController
 import info.bagen.dwebbrowser.microService.browser.nativeui.helper.BarStyle
 import info.bagen.dwebbrowser.microService.browser.nativeui.helper.debugNativeUi
 import info.bagen.dwebbrowser.microService.browser.nativeui.helper.toWindowsInsets
-import org.dweb_browser.helper.android.ColorJson
-import org.dweb_browser.helper.android.toJsonAble
+import org.dweb_browser.helper.compose.ColorJson
+import org.dweb_browser.helper.compose.toJsonAble
 
 class StatusBarController(
   activity: ComponentActivity,

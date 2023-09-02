@@ -42,6 +42,7 @@ class MultiWebViewNMM :
     categories =
       mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service)
   }
+
   private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
 
   companion object {

@@ -507,6 +507,6 @@ enum class MICRO_MODULE_CATEGORY(val type: String) {
   Word_Games("word-games"), ;
 
   companion object {
-    val ALL_VALUES = entries.associateBy  { it.type }
+    val ALL_VALUES = entries.associateBy { it.type }
   }
 }

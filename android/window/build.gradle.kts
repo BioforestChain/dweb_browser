@@ -80,4 +80,5 @@ dependencies {
   implementation(project(":MicroService"))
   implementation(project(":helper"))
   implementation(project(":helperAndroid"))
+  implementation(project(":helperCompose"))
 }

@@ -1,7 +1,7 @@
 package org.dweb_browser.window.core.helper
 
 import androidx.compose.ui.graphics.Color
-import org.dweb_browser.helper.android.hex
+import org.dweb_browser.helper.compose.hex
 
 fun String.asWindowStateColorOr(autoColor: () -> Color) =
   Color.hex(this) ?: autoColor()

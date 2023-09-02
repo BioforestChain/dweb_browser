@@ -15,7 +15,7 @@ enum class MatchMode(val mode: String) : JsonDeserializer<MatchMode>, JsonSerial
   FULL("full"), PREFIX("prefix"), ;
 
   companion object {
-    val ALL_VALUES = entries.associateBy  { it.mode }
+    val ALL_VALUES = entries.associateBy { it.mode }
   }
 
   override fun deserialize(

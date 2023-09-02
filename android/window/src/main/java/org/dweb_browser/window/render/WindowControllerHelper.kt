@@ -35,13 +35,13 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.android.WindowInsetsHelper
-import org.dweb_browser.helper.android.noLocalProvidedFor
 import org.dweb_browser.helper.android.theme.md_theme_dark_inverseOnSurface
 import org.dweb_browser.helper.android.theme.md_theme_dark_onSurface
 import org.dweb_browser.helper.android.theme.md_theme_dark_surface
 import org.dweb_browser.helper.android.theme.md_theme_light_inverseOnSurface
 import org.dweb_browser.helper.android.theme.md_theme_light_onSurface
 import org.dweb_browser.helper.android.theme.md_theme_light_surface
+import org.dweb_browser.helper.compose.noLocalProvidedFor
 import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.dweb_browser.window.core.WindowBounds
 import org.dweb_browser.window.core.WindowController

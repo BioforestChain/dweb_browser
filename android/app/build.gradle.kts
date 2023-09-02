@@ -188,6 +188,7 @@ dependencies {
   implementation(project(":BrowserUI"))
   implementation(project(":window"))
   implementation(project(":helperAndroid"))
+  implementation(project(":helperCompose"))
   implementation(project(":shared"))
 }
 

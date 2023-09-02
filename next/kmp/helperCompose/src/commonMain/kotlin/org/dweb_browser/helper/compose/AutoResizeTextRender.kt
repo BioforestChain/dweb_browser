@@ -1,4 +1,4 @@
-package org.dweb_browser.helper.android
+package org.dweb_browser.helper.compose
 
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints

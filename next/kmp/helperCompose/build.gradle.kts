@@ -2,6 +2,13 @@ plugins {
   alias(libs.plugins.kotlinxMultiplatform)
   alias(libs.plugins.androidLibrary)
   alias(libs.plugins.jetbrainsCompose)
+  alias(libs.plugins.kotlinPluginSerialization)
+}
+
+android {
+  buildFeatures {
+    compose = true
+  }
 }
 
 kotlin {
@@ -38,6 +45,8 @@ kotlin {
         implementation(libs.jetbrains.compose.components.resources)
 
         implementation(libs.jetbrains.compose.material3)
+
+        implementation(project(":helper"))
       }
     }
     val commonTest by getting {

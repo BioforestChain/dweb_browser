@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
@@ -59,7 +58,6 @@ import androidx.compose.material.icons.twotone.PushPin
 import androidx.compose.material.icons.twotone.VerifiedUser
 import androidx.compose.material.icons.twotone.VolumeUp
 import androidx.compose.material.icons.twotone.WifiTethering
-import androidx.compose.material3.Button
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -78,7 +76,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -128,8 +125,11 @@ internal fun WindowMenuPanel(
     )
   }
   val maxHeight = win.state.bounds.height.dp
-    RichTooltipBox(
-    modifier = if (isMaximized) Modifier else Modifier.sizeIn(maxWidth = win.state.bounds.width.dp, maxHeight = maxHeight),
+  RichTooltipBox(
+    modifier = if (isMaximized) Modifier else Modifier.sizeIn(
+      maxWidth = win.state.bounds.width.dp,
+      maxHeight = maxHeight
+    ),
     tooltipState = tooltipState,
     shape = shape,
     colors = colors,
@@ -142,8 +142,10 @@ internal fun WindowMenuPanel(
       }
     },
     text = {
-      Column(modifier = Modifier.padding(top = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)) {
+      Column(
+        modifier = Modifier.padding(top = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+      ) {
         LazyVerticalGrid(
           columns = GridCells.Adaptive(68.dp),
           modifier = Modifier

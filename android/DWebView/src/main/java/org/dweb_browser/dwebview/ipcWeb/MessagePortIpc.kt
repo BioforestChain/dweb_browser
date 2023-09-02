@@ -15,8 +15,8 @@ import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.printDebug
-import org.dweb_browser.microservice.help.types.IMicroModuleManifest
 import org.dweb_browser.microservice.help.gson
+import org.dweb_browser.microservice.help.types.IMicroModuleManifest
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.helper.IPC_ROLE
 import org.dweb_browser.microservice.ipc.helper.IpcMessage

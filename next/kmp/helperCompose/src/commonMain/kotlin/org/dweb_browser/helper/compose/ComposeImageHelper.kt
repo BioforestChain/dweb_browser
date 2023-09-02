@@ -1,4 +1,4 @@
-package org.dweb_browser.helper.android
+package org.dweb_browser.helper.compose
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.BlendMode

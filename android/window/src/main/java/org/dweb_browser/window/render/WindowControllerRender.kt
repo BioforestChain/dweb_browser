@@ -29,7 +29,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import org.dweb_browser.helper.android.iosTween
+import org.dweb_browser.helper.compose.iosTween
 import org.dweb_browser.window.core.WindowController
 import org.dweb_browser.window.core.WindowRenderScope
 import org.dweb_browser.window.core.createWindowAdapterManager

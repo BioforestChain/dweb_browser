@@ -120,7 +120,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
           request
             // 头部里添加 X-Dweb-Host
             .header("X-Dweb-Host", request.uri.getFullAuthority())
-            // 替换 url 的 authority（host+port）
+          // 替换 url 的 authority（host+port）
 //            .uri(request.uri.scheme("http").authority(dwebServer.authority))
         )
       } else null

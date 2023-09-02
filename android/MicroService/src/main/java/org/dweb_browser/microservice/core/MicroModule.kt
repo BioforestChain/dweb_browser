@@ -4,9 +4,9 @@ import org.dweb_browser.helper.Callback
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
-import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.help.types.CommonAppManifest
 import org.dweb_browser.microservice.help.types.IMicroModuleManifest
+import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.help.types.MicroModuleManifest
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.helper.IpcEvent

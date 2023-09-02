@@ -71,7 +71,7 @@ enum class WindowMode(val mode: String) : JsonSerializer<WindowMode>, JsonDeseri
 
 
   companion object {
-    val ALL_VALUES = entries.associateBy  { it.mode }
+    val ALL_VALUES = entries.associateBy { it.mode }
     fun from(themeName: String) = values().firstOrNull { it.mode == themeName } ?: FLOATING
   }
 

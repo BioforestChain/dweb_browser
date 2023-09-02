@@ -32,8 +32,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
-import org.dweb_browser.helper.android.AutoResizeTextContainer
-import org.dweb_browser.helper.android.AutoSizeText
+import org.dweb_browser.helper.compose.AutoResizeTextContainer
+import org.dweb_browser.helper.compose.AutoSizeText
 import org.dweb_browser.window.core.WindowController
 
 

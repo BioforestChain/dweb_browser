@@ -1,6 +1,7 @@
 package info.bagen.dwebbrowser.microService.browser.desk
 
 import org.dweb_browser.helper.Observable
+import org.dweb_browser.helper.compose.toComposableHelper
 
 enum class TASKBAR_PROPERTY_KEY(val propertyKey: String) {
   LayoutX("x"),
@@ -17,6 +18,7 @@ enum class TASKBAR_PROPERTY_KEY(val propertyKey: String) {
  */
 class TaskbarState() {
   internal val observable = Observable<TASKBAR_PROPERTY_KEY>()
+  val composableHelper by lazy { observable.toComposableHelper(this@TaskbarState) }
   var layoutX by observable.observe(TASKBAR_PROPERTY_KEY.LayoutX, Float.NaN)
   var layoutY by observable.observe(TASKBAR_PROPERTY_KEY.LayoutY, Float.NaN)
   var layoutWidth by observable.observe(TASKBAR_PROPERTY_KEY.LayoutWidth, 75f)

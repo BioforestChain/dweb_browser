@@ -25,7 +25,7 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
 import coil.compose.rememberAsyncImagePainter
 import org.dweb_browser.helper.android.getCoilImageLoader
-import org.dweb_browser.helper.android.rememberVectorPainterWithTint
+import org.dweb_browser.helper.compose.rememberVectorPainterWithTint
 import squircleshape.SquircleShape
 
 

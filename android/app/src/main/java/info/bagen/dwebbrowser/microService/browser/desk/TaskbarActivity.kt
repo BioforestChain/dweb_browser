@@ -7,12 +7,7 @@ import android.view.MotionEvent
 import android.view.ViewGroup
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
@@ -52,13 +47,13 @@ class TaskbarActivity : BaseThemeActivity() {
       /// 关联到
 
       window.attributes = window.attributes.also { attributes ->
-        taskbarController.taskbarView.apply {
-          val layoutWidth by watchedState { layoutWidth }
-          val layoutHeight by watchedState { layoutHeight }
-          val layoutX by watchedState { layoutX }
-          val layoutY by watchedState { layoutY }
-          val layoutLeftPadding by watchedState { layoutLeftPadding }
-          val layoutTopPadding by watchedState { layoutTopPadding }
+        taskbarController.taskbarView.state.composableHelper.apply {
+          val layoutWidth by stateOf { layoutWidth }
+          val layoutHeight by stateOf { layoutHeight }
+          val layoutX by stateOf { layoutX }
+          val layoutY by stateOf { layoutY }
+          val layoutLeftPadding by stateOf { layoutLeftPadding }
+          val layoutTopPadding by stateOf { layoutTopPadding }
           window.setLayout(
             toPx(layoutWidth),
             toPx(layoutHeight),

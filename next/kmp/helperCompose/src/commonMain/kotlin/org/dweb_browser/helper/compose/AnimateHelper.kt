@@ -1,4 +1,4 @@
-package org.dweb_browser.helper.android
+package org.dweb_browser.helper.compose
 
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.Easing

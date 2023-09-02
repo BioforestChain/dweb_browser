@@ -8,7 +8,7 @@ import androidx.compose.ui.graphics.Color
 import info.bagen.dwebbrowser.microService.browser.nativeui.NativeUiController
 import info.bagen.dwebbrowser.microService.browser.nativeui.helper.BarStyle
 import info.bagen.dwebbrowser.util.IsChange
-import org.dweb_browser.helper.android.ColorJson
+import org.dweb_browser.helper.compose.ColorJson
 
 
 abstract class BarController(

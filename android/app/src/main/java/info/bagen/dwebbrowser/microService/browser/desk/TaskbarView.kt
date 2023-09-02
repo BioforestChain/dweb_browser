@@ -15,14 +15,11 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.SnapshotMutationPolicy
-import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.structuralEqualityPolicy
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -37,40 +34,10 @@ import androidx.compose.ui.zIndex
 import info.bagen.dwebbrowser.App
 import kotlinx.coroutines.launch
 import org.dweb_browser.dwebview.DWebView
-import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.clamp
 
 class TaskbarView(private val taskbarController: TaskbarController) {
   val state = TaskbarState()
-
-  /**
-   * 提供一个计算函数，来获得一个在Compose中使用的 state
-   */
-  @Composable
-  fun <T> watchedState(
-    key: Any? = null,
-    policy: SnapshotMutationPolicy<T> = structuralEqualityPolicy(),
-    filter: ((change: Observable.Change<TASKBAR_PROPERTY_KEY, *>) -> Boolean)? = null,
-    watchKey: TASKBAR_PROPERTY_KEY? = null,
-    watchKeys: Set<TASKBAR_PROPERTY_KEY>? = null,
-    getter: TaskbarState.() -> T,
-  ) = remember(key) {
-    mutableStateOf(getter.invoke(state), policy)
-  }.also { rememberState ->
-    DisposableEffect(this) {
-      val off = state.observable.onChange {
-        if ((if (watchKey != null) watchKey == it.key else true) && (if (watchKeys != null) watchKeys.contains(
-            it.key
-          ) else true) && filter?.invoke(it) != false
-        ) {
-          rememberState.value = getter.invoke(state)
-        }
-      }
-      onDispose {
-        off()
-      }
-    }
-  } as State<T>
 
   val taskbarDWebView by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     DWebView(
@@ -128,7 +95,7 @@ class TaskbarView(private val taskbarController: TaskbarController) {
 
   @Composable
   fun FloatWindow() {
-    val isActivityMode by watchedState { floatActivityState }
+    val isActivityMode by state.composableHelper.stateOf { floatActivityState }
     if (isActivityMode) {
       val scope = rememberCoroutineScope()
       DisposableEffect(isActivityMode) {
@@ -170,16 +137,18 @@ class TaskbarView(private val taskbarController: TaskbarController) {
           right = screenWidth - safePadding.calculateRightPadding(layoutDirection).value,
         )
       }
-      val boxX by watchedState { layoutX }
-      val boxY by watchedState { layoutY }
-      val boxWidth by watchedState { layoutWidth }
-      val boxHeight by watchedState { layoutHeight }
+      var boxX by state.composableHelper.mutableStateOf(getter = { layoutX },
+        setter = { layoutX = it })
+      var boxY by state.composableHelper.mutableStateOf(getter = { layoutY },
+        setter = { layoutY = it })
+      val boxWidth by state.composableHelper.stateOf { layoutWidth }
+      val boxHeight by state.composableHelper.stateOf { layoutHeight }
       fun setBoxX(toX: Float) {
-        state.layoutX = clamp(safeBounds.left, toX, safeBounds.right - boxWidth)
+        boxX = clamp(safeBounds.left, toX, safeBounds.right - boxWidth)
       }
 
       fun setBoxY(toY: Float) {
-        state.layoutY = clamp(safeBounds.top, toY, safeBounds.bottom - boxHeight)
+        boxY = clamp(safeBounds.top, toY, safeBounds.bottom - boxHeight)
       }
 
       if (boxX.isNaN()) {

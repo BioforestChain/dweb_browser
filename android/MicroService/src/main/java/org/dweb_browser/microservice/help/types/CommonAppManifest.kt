@@ -10,7 +10,8 @@ import org.dweb_browser.helper.ShortcutItem
 object CommonAppManifestSerializer : PropMetasSerializer<CommonAppManifest>(CommonAppManifest.P)
 
 @Serializable(with = CommonAppManifestSerializer::class)
-class CommonAppManifest(p: PropMetas.PropValues = P.buildValues()) : PropMetas.Constructor<CommonAppManifest>(p, P),
+class CommonAppManifest(p: PropMetas.PropValues = P.buildValues()) :
+  PropMetas.Constructor<CommonAppManifest>(p, P),
   ICommonAppManifest {
   companion object {
     internal val P = PropMetas("CommonAppManifest", { CommonAppManifest(it) })

@@ -40,6 +40,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
     categories =
       mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Process_Service);
   }
+
   private val JS_PROCESS_WORKER_CODE by lazy {
     runBlockingCatching {
       nativeFetch("file:///sys/browser/js-process.worker/index.js").text()

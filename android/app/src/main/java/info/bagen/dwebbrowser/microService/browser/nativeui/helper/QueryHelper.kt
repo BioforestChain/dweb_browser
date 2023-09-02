@@ -7,8 +7,8 @@ import info.bagen.dwebbrowser.microService.browser.nativeui.navigationBar.Naviga
 import info.bagen.dwebbrowser.microService.browser.nativeui.safeArea.SafeAreaController
 import info.bagen.dwebbrowser.microService.browser.nativeui.statusBar.StatusBarController
 import info.bagen.dwebbrowser.microService.browser.nativeui.virtualKeyboard.VirtualKeyboardController
-import org.dweb_browser.helper.android.ColorJson
-import org.dweb_browser.helper.android.toJsonAble
+import org.dweb_browser.helper.compose.ColorJson
+import org.dweb_browser.helper.compose.toJsonAble
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.gson
 import org.http4k.core.Request

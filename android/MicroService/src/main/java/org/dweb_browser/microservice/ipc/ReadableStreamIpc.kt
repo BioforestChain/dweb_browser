@@ -13,8 +13,8 @@ import org.dweb_browser.helper.readByteArray
 import org.dweb_browser.helper.readInt
 import org.dweb_browser.helper.toByteArray
 import org.dweb_browser.helper.toUtf8ByteArray
-import org.dweb_browser.microservice.help.types.IMicroModuleManifest
 import org.dweb_browser.microservice.help.moshiPack
+import org.dweb_browser.microservice.help.types.IMicroModuleManifest
 import org.dweb_browser.microservice.ipc.helper.IPC_ROLE
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
 import org.dweb_browser.microservice.ipc.helper.IpcEventJsonAble
