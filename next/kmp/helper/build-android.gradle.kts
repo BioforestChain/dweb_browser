@@ -21,6 +21,7 @@ kotlin {
       dependencies {
         implementation(kotlin("stdlib"))
         implementation(libs.kotlinx.coroutines.core)
+        implementation(libs.kotlinx.atomicfu)
         api(libs.ktor.http)
         api(libs.ktor.io)
         api(libs.kotlinx.datetime)
@@ -32,6 +33,7 @@ kotlin {
         implementation(kotlin("test"))
         implementation(libs.test.kotlin.coroutines.test)
         implementation(libs.test.kotlin.coroutines.debug)
+        implementation(libs.kotlinx.atomicfu)
       }
     }
     val androidMain by getting
