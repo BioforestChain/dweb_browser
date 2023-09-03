@@ -12,6 +12,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
+import org.dweb_browser.helper.compose.AutoResizeTextContainer
+import org.dweb_browser.helper.compose.AutoSizeText
 import org.dweb_browser.shared.Greeting
 
 
@@ -30,6 +32,9 @@ fun main() = application {
           }) {
           Text(if (count.value == 0) "Hello World" else "Clicked ${count.value}!")
           Text("${Greeting().greet()}")
+          AutoResizeTextContainer {
+            AutoSizeText(text = "哈哈哈")
+          }
         }
         Button(modifier = Modifier.align(Alignment.CenterHorizontally),
           onClick = {

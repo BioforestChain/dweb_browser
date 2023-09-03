@@ -1,8 +1,41 @@
 plugins {
-  id("com.android.application")
-  kotlin("android")
+  alias(libs.plugins.kotlinxMultiplatform)
+  alias(libs.plugins.androidApplication)
+  alias(libs.plugins.jetbrainsCompose)
 }
 
+kotlin {
+  androidTarget {
+    compilations.all {
+      kotlinOptions {
+        jvmTarget = libs.versions.jvmTarget.get()
+      }
+    }
+  }
+  jvmToolchain {
+    languageVersion.set(JavaLanguageVersion.of(libs.versions.jvmTarget.get()))
+  }
+  sourceSets {
+    val androidMain by getting {
+      dependencies {
+        dependencies {
+          implementation(project(":shared"))
+          implementation(project(":helper"))
+          implementation(project(":helperCompose"))
+          implementation(libs.androidx.appcompat)
+          implementation(libs.compose.bom)
+          implementation(libs.compose.ui)
+          implementation(libs.compose.ui.tooling)
+          implementation(libs.compose.ui.preview)
+          implementation(libs.compose.ui.foundation)
+          implementation(libs.compose.material)
+          implementation(libs.compose.material3)
+          implementation(libs.androidx.activity.compose)
+        }
+      }
+    }
+  }
+}
 android {
   namespace = "org.dweb_browser.app.android"
   compileSdk = libs.versions.compileSdkVersion.get().toInt()
@@ -12,12 +45,6 @@ android {
     targetSdk = libs.versions.targetSdkVersion.get().toInt()
     versionCode = libs.versions.versionCode.get().toInt()
     versionName = libs.versions.versionName.get()
-  }
-  buildFeatures {
-    compose = true
-  }
-  composeOptions {
-    kotlinCompilerExtensionVersion = libs.versions.kotlinCompilerExtensionVersion.get()
   }
   packagingOptions {
     resources {
@@ -29,23 +56,4 @@ android {
       isMinifyEnabled = false
     }
   }
-  compileOptions {
-    sourceCompatibility = JavaVersion.valueOf(libs.versions.javaVersion.get())
-    targetCompatibility = JavaVersion.valueOf(libs.versions.javaVersion.get())
-  }
-  kotlinOptions {
-    jvmTarget = libs.versions.jvmTarget.get()
-  }
-}
-
-dependencies {
-  implementation(project(":shared"))
-  implementation(libs.compose.bom)
-  implementation(libs.compose.ui)
-  implementation(libs.compose.ui.tooling)
-  implementation(libs.compose.ui.preview)
-  implementation(libs.compose.ui.foundation)
-  implementation(libs.compose.material)
-  implementation(libs.compose.material3)
-  implementation(libs.androidx.activity.compose)
 }

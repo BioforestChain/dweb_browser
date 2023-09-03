@@ -1,8 +1,8 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 plugins {
-  kotlin("multiplatform")
-  id("org.jetbrains.compose")
+  alias(libs.plugins.kotlinxMultiplatform)
+  alias(libs.plugins.jetbrainsCompose)
 }
 
 kotlin {
@@ -12,6 +12,8 @@ kotlin {
       dependencies {
         implementation(compose.desktop.currentOs)
         implementation(project(":shared"))
+        implementation(project(":helper"))
+        implementation(project(":helperCompose"))
       }
     }
   }

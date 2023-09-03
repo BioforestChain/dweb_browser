@@ -5,12 +5,6 @@ plugins {
   alias(libs.plugins.kotlinPluginSerialization)
 }
 
-android {
-  buildFeatures {
-    compose = true
-  }
-}
-
 kotlin {
   androidTarget {
     compilations.all {
