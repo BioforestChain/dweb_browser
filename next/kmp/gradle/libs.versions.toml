@@ -123,6 +123,7 @@ accompanist-insets-ui = { group = "com.google.accompanist", name = "accompanist-
 
 google-material = { group = "com.google.android.material", name = "material", version.ref = "google-material" }
 # 数据 json
+data-gson = { group = "com.google.code.gson", name = "gson", version.ref = "data-gson" }
 kotlin-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationVersion" }
 kotlin-serialization-cbor = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-cbor", version.ref = "kotlinxSerializationVersion" }
 data-moshi-pack = { group = "com.daveanthonythomas.moshipack", name = "moshipack", version.ref = "data-moshi-pack" }

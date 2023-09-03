@@ -95,6 +95,6 @@ dependencies {
 
   implementation(project(":helper"))
   implementation(project(":DWebView"))
-  implementation(project(":MicroService"))
-  implementation(project(":helperAndroid"))
+  implementation(project(":microService"))
+  implementation(project(":helperPlatform"))
 }

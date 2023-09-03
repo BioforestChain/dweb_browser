@@ -39,7 +39,6 @@ kotlin {
         implementation(libs.jetbrains.compose.components.resources)
 
         implementation(libs.jetbrains.compose.material3)
-        implementation(libs.jetbrains.compose.materialIcons)
 
         implementation(project(":helper"))
       }
@@ -49,7 +48,24 @@ kotlin {
         implementation(kotlin("test"))
       }
     }
-    val androidMain by getting
+    val androidMain by getting {
+      dependencies {
+        // Android Runtime
+        implementation(libs.androidx.core.ktx)
+        implementation(libs.androidx.activity)
+        implementation(libs.androidx.activity.ktx)
+        implementation(libs.androidx.appcompat)
+        implementation(libs.androidx.animation.core.android)
+        implementation(libs.androidx.lifecycle.runtime.ktx)
+        implementation(libs.google.material)
+        // 加载图片 coil
+        api(libs.coil.core)
+        api(libs.coil.compose)
+        api(libs.coil.svg)
+        api(libs.coil.video)
+        api(libs.coil.gif)
+      }
+    }
     val androidUnitTest by getting
     val iosX64Main by getting
     val iosArm64Main by getting
@@ -81,7 +97,7 @@ kotlin {
 }
 
 android {
-  namespace = "org.dweb_browser.helper.compose"
+  namespace = "org.dweb_browser.helper.android"
   compileSdk = libs.versions.compileSdkVersion.get().toInt()
   defaultConfig {
     minSdk = libs.versions.minSdkVersion.get().toInt()

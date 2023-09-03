@@ -12,18 +12,8 @@ kotlin {
       }
     }
   }
-
-  jvm("desktop")
   jvmToolchain {
     languageVersion.set(JavaLanguageVersion.of(libs.versions.jvmTarget.get()))
-  }
-
-  listOf(
-    iosX64(), iosArm64(), iosSimulatorArm64()
-  ).forEach {
-    it.binaries.framework {
-      baseName = "DwebHelper"
-    }
   }
 
   sourceSets {
@@ -32,11 +22,17 @@ kotlin {
         implementation(kotlin("stdlib"))
         implementation(libs.kotlinx.coroutines.core)
         implementation(libs.kotlinx.atomicfu)
-        api(libs.ktor.http)
-        api(libs.ktor.io)
-        api(libs.kotlinx.datetime)
+
+        api(libs.ktor.server.websockets)
+        api(libs.ktor.server.cio)
+        api(libs.ktor.client.cio)
+
+        api(libs.ktor.server.websockets)
+        api(libs.ktor.server.cio)
+        api(libs.ktor.client.cio)
         api(libs.kotlin.serialization.json)
-        api(libs.kotlin.serialization.cbor)
+
+        implementation(project(":helper"))
       }
     }
     val commonTest by getting {
@@ -47,31 +43,24 @@ kotlin {
         implementation(libs.kotlinx.atomicfu)
       }
     }
-    val androidMain by getting
-    val androidUnitTest by getting
-    val iosX64Main by getting
-    val iosArm64Main by getting
-    val iosSimulatorArm64Main by getting
-    val iosMain by creating {
-      dependsOn(commonMain)
-      iosX64Main.dependsOn(this)
-      iosArm64Main.dependsOn(this)
-      iosSimulatorArm64Main.dependsOn(this)
+    val androidMain by getting {
+      dependencies {
+
+        implementation(platform(libs.http4k.bom.get()))
+        api(libs.http4k.core)
+        api(libs.http4k.multipart)
+        api(libs.http4k.client.apache)
+
+        implementation(libs.data.moshi.pack)
+        api(libs.data.gson)
+      }
     }
-    val iosX64Test by getting
-    val iosArm64Test by getting
-    val iosSimulatorArm64Test by getting
-    val iosTest by creating {
-      dependsOn(commonTest)
-      iosX64Test.dependsOn(this)
-      iosArm64Test.dependsOn(this)
-      iosSimulatorArm64Test.dependsOn(this)
-    }
+
   }
 }
 
 android {
-  namespace = "org.dweb_browser.helper"
+  namespace = "org.dweb_browser.microservice"
   compileSdk = libs.versions.compileSdkVersion.get().toInt()
   defaultConfig {
     minSdk = libs.versions.minSdkVersion.get().toInt()

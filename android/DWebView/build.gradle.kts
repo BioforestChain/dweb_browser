@@ -47,7 +47,7 @@ dependencies {
   implementation(platform(libs.compose.bom))
   implementation(libs.compose.ui)
 
-  implementation(project(":MicroService"))
+  implementation(project(":microService"))
   implementation(project(":helper"))
-  implementation(project(":helperAndroid"))
+  implementation(project(":helperPlatform"))
 }

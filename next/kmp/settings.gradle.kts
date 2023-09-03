@@ -24,4 +24,7 @@ project(":desktopApp").projectDir = file("app/desktopApp")
 include(":shared")
 include(":helper")
 include(":helperCompose")
+include(":helperPlatform")
+include(":window")
+include(":microService")
 

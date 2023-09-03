@@ -183,11 +183,11 @@ dependencies {
   implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 
   implementation(project(":helper"))
-  implementation(project(":MicroService"))
+  implementation(project(":microService"))
   implementation(project(":DWebView"))
   implementation(project(":BrowserUI"))
   implementation(project(":window"))
-  implementation(project(":helperAndroid"))
+  implementation(project(":helperPlatform"))
   implementation(project(":helperCompose"))
   implementation(project(":shared"))
 }
