@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import com.google.accompanist.web.WebView
 import info.bagen.dwebbrowser.base.BaseThemeActivity
-import org.dweb_browser.helper.android.theme.DwebBrowserAppTheme
+import org.dweb_browser.helper.compose.theme.DwebBrowserAppTheme
 import org.dweb_browser.window.core.WindowBounds
 import org.dweb_browser.window.render.Render
 

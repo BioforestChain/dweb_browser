@@ -6,7 +6,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.core.view.WindowCompat
 import org.dweb_browser.helper.android.BaseActivity
-import org.dweb_browser.helper.android.theme.DwebBrowserAppTheme
+import org.dweb_browser.helper.compose.theme.DwebBrowserAppTheme
 
 abstract class BaseThemeActivity : BaseActivity() {
 

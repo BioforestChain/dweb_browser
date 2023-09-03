@@ -1,4 +1,4 @@
-package org.dweb_browser.helper.android.theme
+package org.dweb_browser.helper.compose.theme
 
 import androidx.compose.ui.graphics.Color
 

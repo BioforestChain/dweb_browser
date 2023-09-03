@@ -32,7 +32,7 @@ import org.dweb_browser.browserUI.ui.view.PrivacyView
 import org.dweb_browser.browserUI.util.KEY_ENABLE_AGREEMENT
 import org.dweb_browser.browserUI.util.getBoolean
 import org.dweb_browser.browserUI.util.saveBoolean
-import org.dweb_browser.helper.android.theme.DwebBrowserAppTheme
+import org.dweb_browser.helper.compose.theme.DwebBrowserAppTheme
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import kotlin.system.exitProcess
 

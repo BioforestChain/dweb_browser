@@ -15,7 +15,7 @@ import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.base.BaseThemeActivity
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.android.ActivityBlurHelper
-import org.dweb_browser.helper.android.theme.DwebBrowserAppTheme
+import org.dweb_browser.helper.compose.theme.DwebBrowserAppTheme
 
 
 class TaskbarActivity : BaseThemeActivity() {
