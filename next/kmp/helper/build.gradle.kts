@@ -31,6 +31,7 @@ kotlin {
       dependencies {
         implementation(kotlin("stdlib"))
         implementation(libs.kotlinx.coroutines.core)
+        implementation(libs.kotlinx.atomicfu)
         api(libs.ktor.http)
         api(libs.ktor.io)
         api(libs.kotlinx.datetime)

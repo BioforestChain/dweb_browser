@@ -1,9 +1,8 @@
 package org.dweb_browser.helper
 
 import io.ktor.util.collections.ConcurrentSet
-import kotlinx.coroutines.InternalCoroutinesApi
-import kotlinx.coroutines.internal.SynchronizedObject
-import kotlinx.coroutines.internal.synchronized
+import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -12,7 +11,6 @@ import kotlinx.coroutines.sync.withLock
 object StateShared {
   val obsStack = mutableListOf<StateBase>()
 
-  @OptIn(InternalCoroutinesApi::class)
   val lock = SynchronizedObject()
 }
 
@@ -117,7 +115,6 @@ class State<T>(private var defaultValue: T) : StateBase() {
     return locker.waitPromise()
   }
 
-  @OptIn(InternalCoroutinesApi::class)
   fun get(force: Boolean? = null): T {
     synchronized(StateShared.lock) {
       val caller = StateShared.obsStack.lastOrNull()
@@ -201,8 +198,8 @@ class State<T>(private var defaultValue: T) : StateBase() {
       yield(tmp)
       while (true) {
         while (true) {
-          var success: Boolean = false
-          var item: T? = null
+          var success: Boolean
+          var item: T?
           runBlocking {
             locker.withLock {
               item = cacheList.removeFirst()

@@ -1,12 +1,11 @@
 package org.dweb_browser.helper
 
-import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.internal.SynchronizedObject
-import kotlinx.coroutines.internal.synchronized
+import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.launch
 
 typealias Callback<Args> = suspend SignalController<Args>.(args: Args) -> Unit
@@ -27,7 +26,6 @@ private enum class SIGNAL_CTOR {
 }
 
 class OffListener<Args>(val origin: Signal<Args>, val cb: Callback<Args>) {
-  @OptIn(InternalCoroutinesApi::class)
   operator fun invoke() = synchronized(origin.lock) { origin.off(cb) }
 
   /**
@@ -51,14 +49,12 @@ open class Signal<Args> {
 
   val size get() = listenerSet.size
 
-  @OptIn(InternalCoroutinesApi::class)
   open fun listen(cb: Callback<Args>): OffListener<Args> = synchronized(lock) {
     // TODO emit 时的cbs 应该要同步进行修改？
     listenerSet.add(cb)
     return OffListener(this, cb)
   }
 
-  @OptIn(InternalCoroutinesApi::class)
   internal fun off(cb: Callback<Args>) = synchronized(lock) { listenerSet.remove(cb) }
 
 
@@ -74,10 +70,8 @@ open class Signal<Args> {
 
   private val children = mutableMapOf<Signal<*>, Child<Args, *>>()
 
-  @OptIn(InternalCoroutinesApi::class)
   val lock = SynchronizedObject()
 
-  @OptIn(InternalCoroutinesApi::class)
   fun <R> createChild(filter: (Args) -> Boolean, map: (Args) -> R) =
     Child(this, Signal(), filter, map).also {
       synchronized(lock) {
@@ -85,12 +79,10 @@ open class Signal<Args> {
       }
     }.childSignal
 
-  @OptIn(InternalCoroutinesApi::class)
   fun removeChild(childSignal: Signal<*>) = synchronized(lock) {
     children.remove(childSignal)?.let { true } ?: false
   }
 
-  @OptIn(InternalCoroutinesApi::class)
   open suspend fun emit(args: Args) {
     // 这里拷贝一份，避免中通对其读写的时候出问题
     val cbs = synchronized(lock) { listenerSet.toSet() }
@@ -115,7 +107,6 @@ open class Signal<Args> {
     }
 
     /// 然后触发孩子
-    @OptIn(InternalCoroutinesApi::class)
     val childList = synchronized(lock) {
       children.values.toList()
     }
@@ -132,7 +123,6 @@ open class Signal<Args> {
     }
   }
 
-  @OptIn(InternalCoroutinesApi::class)
   suspend fun emitAndClear(args: Args) {
     // 拷贝一份，然后立刻清理掉原来的
     val cbs = synchronized(lock) {
@@ -143,7 +133,6 @@ open class Signal<Args> {
     this._emit(args, cbs)
   };
 
-  @OptIn(InternalCoroutinesApi::class)
   fun clear() {
     synchronized(lock) {
       this.listenerSet.clear()

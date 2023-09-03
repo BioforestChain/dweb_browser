@@ -79,6 +79,7 @@ class PromiseOutTest {
   }
 
   @Test
+  @DelicateCoroutinesApi
   fun bench() = runBlocking {
     println("start")
 

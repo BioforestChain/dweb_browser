@@ -76,6 +76,7 @@ open class PropMetasSerializer<T : PropMetas.Constructor<T>>(
     }
   }
 
+  @OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
   override fun deserialize(decoder: Decoder): T {
     val propValues = propMeta.buildValues()
     decoder.decodeStructure(descriptor) {
@@ -111,6 +112,7 @@ open class PropMetasSerializer<T : PropMetas.Constructor<T>>(
     return propMeta.factory(propValues)
   }
 
+  @OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
   override fun serialize(encoder: Encoder, value: T) {
     val propValues = value.p
     encoder.encodeStructure(descriptor) {
