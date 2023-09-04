@@ -42,6 +42,7 @@ fun main() = application {
           }) {
           Text("Reset")
         }
+        DesktopWebView(modifier = Modifier.fillMaxSize(), "https://www.baidu.com")
       }
     }
   }
