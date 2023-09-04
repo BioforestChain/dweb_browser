@@ -10,7 +10,6 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -105,11 +104,11 @@ class AutoResizeTextContainerScope(
       val maxTextSize = calcTextSizeByLines(lines)
       val tryUnit = max(0.1f, (maxTextSize - minTextSize) / 5);// 5个档位
       var bestTextSize = minTextSize
-      while (true) {
+      while (bestTextSize < maxTextSize) {
         val tryTextSize = bestTextSize + tryUnit
         val tryTextCount = (maxWidth / tryTextSize) * lines
-        if (tryTextCount < textCount) {
-          bestTextSize = tryTextCount
+        if (tryTextCount >= textCount) {
+          bestTextSize = tryTextSize
           continue
         }
         break

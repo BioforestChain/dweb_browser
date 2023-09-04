@@ -34,7 +34,7 @@ class MainActivity : AppCompatActivity() {
         ) {
           Column {
             GreetingView(Greeting().greet())
-//            PreviewWindowTopBar()
+            PreviewWindowTopBar()
           }
         }
       }
