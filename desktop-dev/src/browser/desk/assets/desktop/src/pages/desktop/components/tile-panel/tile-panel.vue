@@ -27,8 +27,8 @@ let resizeOb: undefined | ResizeObserver;
 onMounted(() => {
   resizeOb = new ResizeObserver((entries) => {
     const { width, height } = entries[0].contentRect;
-    columns.value = Math.ceil(width / props.columnTemplateSize) || 1;
-    rows.value = Math.ceil(height / props.rowTemplateSize) || 1;
+    columns.value = Math.floor(width / props.columnTemplateSize) || 1;
+    rows.value = Math.floor(height / props.rowTemplateSize) || 1;
   });
   resizeOb.observe($panel.value!);
 });
