@@ -24,6 +24,9 @@ kotlin {
         implementation(libs.jetbrains.compose.components.resources)
 
         implementation(libs.jetbrains.compose.material3)
+        implementation(project(":helper"))
+        implementation(project(":helperCompose"))
+        implementation(project(":window"))
       }
     }
     val commonTest by getting {

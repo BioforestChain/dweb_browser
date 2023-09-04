@@ -15,7 +15,7 @@ dependencyResolutionManagement {
   }
 }
 
-rootProject.name = "dweb-browser"
+rootProject.name = "dweb-browser-kmp"
 include("androidApp")
 project(":androidApp").projectDir = file("app/androidApp")
 include("desktopApp")

@@ -2,6 +2,8 @@ package org.dweb_browser.window.core.constant
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import org.dweb_browser.helper.UUID
+import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.help.types.MMID
 
@@ -13,7 +15,7 @@ data class WindowConstants(
   /**
    * 窗口全局唯一编号，属于UUID的格式
    */
-  val wid: UUID = java.util.UUID.randomUUID().toString(),
+  val wid: UUID = randomUUID(),
   /**
    * 窗口持有者的元数据
    *

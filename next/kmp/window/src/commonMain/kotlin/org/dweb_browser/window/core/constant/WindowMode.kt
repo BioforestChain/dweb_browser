@@ -1,15 +1,7 @@
 package org.dweb_browser.window.core.constant
 
-import com.google.gson.JsonDeserializationContext
-import com.google.gson.JsonDeserializer
-import com.google.gson.JsonElement
-import com.google.gson.JsonPrimitive
-import com.google.gson.JsonSerializationContext
-import com.google.gson.JsonSerializer
-import com.google.gson.annotations.JsonAdapter
 import kotlinx.serialization.Serializable
 import org.dweb_browser.helper.StringEnumSerializer
-import java.lang.reflect.Type
 
 object WindowModeSerializer :
   StringEnumSerializer<WindowMode>("WindowMode", WindowMode.ALL_VALUES, { mode })
@@ -17,9 +9,8 @@ object WindowModeSerializer :
 /**
  * 窗口的模式
  */
-@Serializable
-@JsonAdapter(WindowMode::class)
-enum class WindowMode(val mode: String) : JsonSerializer<WindowMode>, JsonDeserializer<WindowMode> {
+@Serializable(with = WindowModeSerializer::class)
+enum class WindowMode(val mode: String) {
 
   /**
    * 浮动模式，默认值
@@ -72,15 +63,17 @@ enum class WindowMode(val mode: String) : JsonSerializer<WindowMode>, JsonDeseri
 
   companion object {
     val ALL_VALUES = entries.associateBy { it.mode }
-    fun from(themeName: String) = values().firstOrNull { it.mode == themeName } ?: FLOATING
+    fun from(themeName: String) = ALL_VALUES.getOrDefault(themeName, FLOATING)
   }
-
-
-  override fun serialize(
-    src: WindowMode, typeOfSrc: Type, context: JsonSerializationContext?
-  ) = JsonPrimitive(src.mode)
-
-  override fun deserialize(
-    json: JsonElement, typeOfT: Type?, context: JsonDeserializationContext?
-  ) = from(json.asString)
 }
+
+//  SPLIT_SCREEN, // 分屏模式
+//  SNAP_LEFT, // 屏幕左侧对齐
+//  SNAP_RIGHT, // 屏幕右侧对齐
+//  CASCADE, // 级联模式
+//  TILE_HORIZONTALLY, // 水平平铺
+//  TILE_VERTICALLY, // 垂直平铺
+//  FLOATING, // 浮动模式
+//  PIP, // 画中画模式
+//
+//  CUSTOM // 自定义模式

@@ -10,11 +10,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.UiComposable
 import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.CoroutineScope
+import org.dweb_browser.helper.UUID
 import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.window.core.WindowController
 import org.dweb_browser.window.core.WindowRenderProvider
 import org.dweb_browser.window.core.WindowState
-import org.dweb_browser.window.core.constant.UUID
 import org.dweb_browser.window.core.constant.WindowConstants
 import org.dweb_browser.window.core.createWindowAdapterManager
 

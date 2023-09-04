@@ -11,6 +11,7 @@ import org.dweb_browser.dwebview.serviceWorker.emitEvent
 import org.dweb_browser.helper.ComparableWrapper
 import org.dweb_browser.helper.ImageResourcePurposes
 import org.dweb_browser.helper.StrictImageResource
+import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.enumToComparable
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printDebug
@@ -20,7 +21,6 @@ import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.window.core.WindowState
-import org.dweb_browser.window.core.constant.UUID
 import org.dweb_browser.window.core.constant.WindowConstants
 import org.dweb_browser.window.core.createWindowAdapterManager
 import org.dweb_browser.window.render.emitFocusOrBlur

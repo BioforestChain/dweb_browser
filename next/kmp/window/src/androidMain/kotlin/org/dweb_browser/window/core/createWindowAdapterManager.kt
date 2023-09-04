@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.microservice.help.AdapterManager
-import org.dweb_browser.window.core.constant.UUID
+import org.dweb_browser.helper.UUID
 
 typealias CreateWindowAdapter = suspend (winState: WindowState) -> WindowController?
 

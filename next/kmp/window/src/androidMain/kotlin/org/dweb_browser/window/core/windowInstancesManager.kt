@@ -1,7 +1,7 @@
 package org.dweb_browser.window.core
 
 import org.dweb_browser.helper.ChangeableMap
-import org.dweb_browser.window.core.constant.UUID
+import org.dweb_browser.helper.UUID
 
 /**
  * 窗口实例管理

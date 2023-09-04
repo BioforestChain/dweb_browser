@@ -8,6 +8,7 @@ import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.serializer
 import org.dweb_browser.helper.Observable
+import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.compose.toHex
 import org.dweb_browser.window.core.WindowBounds
 import kotlin.reflect.KClass
