@@ -53,9 +53,6 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
   }
 
   private val runningApps = ChangeableMap<MMID, Ipc>()
-
-  private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
-
   companion object {
     data class DeskControllers(
       val desktopController: DesktopController, val taskbarController: TaskbarController
@@ -265,7 +262,6 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
   }
 
   override suspend fun _shutdown() {
-    ioAsyncScope.cancel()
   }
 
   private val API_PREFIX = "/api/"

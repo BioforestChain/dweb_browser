@@ -4,6 +4,7 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
+import kotlinx.coroutines.withContext
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.help.types.IMicroModuleManifest
@@ -40,7 +41,7 @@ class NativeIpc(
   }
 
 
-  override suspend fun _doPostMessage(data: IpcMessage) {
+  override suspend fun _doPostMessage(data: IpcMessage) = withContext(ioAsyncScope.coroutineContext) {
     port.postMessage(data)
   }
 

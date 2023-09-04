@@ -43,8 +43,6 @@ class MultiWebViewNMM :
       mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service)
   }
 
-  private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
-
   companion object {
     private val controllerMap = mutableMapOf<MMID, MultiWebViewController>()
   }
@@ -98,7 +96,6 @@ class MultiWebViewNMM :
 
   override suspend fun _shutdown() {
     apiRouting = null
-    ioAsyncScope.cancel()
   }
 
   private suspend fun openDwebView(
@@ -122,7 +119,7 @@ class MultiWebViewNMM :
           /**
            * 挑选合适的图标作为应用的图标
            */
-          val iconResource = ipc.remote.icons?.let { icons ->
+          val iconResource = ipc.remote.icons.let { icons ->
             val comparableBuilder =
               ComparableWrapper.Builder<StrictImageResource> { imageResource ->
                 mapOf(

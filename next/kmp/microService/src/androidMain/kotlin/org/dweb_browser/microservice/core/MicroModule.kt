@@ -1,9 +1,16 @@
 package org.dweb_browser.microservice.core
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.plus
+import kotlinx.coroutines.withContext
 import org.dweb_browser.helper.Callback
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
+import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.microservice.help.types.CommonAppManifest
 import org.dweb_browser.microservice.help.types.IMicroModuleManifest
 import org.dweb_browser.microservice.help.types.MMID
@@ -25,6 +32,8 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
   open val routers: Router? = null
 
   private var runningStateLock = StatePromiseOut.resolve(MMState.SHUTDOWN)
+
+  protected var ioAsyncScope = MainScope() + ioAsyncExceptionHandler
   val running get() = runningStateLock.value == MMState.BOOTSTRAP
 
   private suspend fun beforeBootstrap(bootstrapContext: BootstrapContext) {
@@ -34,13 +43,17 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
     this.runningStateLock.waitPromise() // 确保已经完成上一个状态
     this.runningStateLock = StatePromiseOut(MMState.BOOTSTRAP)
     this._bootstrapContext = bootstrapContext // 保存context
+    // 创建一个新的
+    if (!this.ioAsyncScope.isActive) {
+      this.ioAsyncScope = MainScope() + ioAsyncExceptionHandler
+    }
   }
 
   private var _bootstrapContext: BootstrapContext? = null
   val bootstrapContext get() = _bootstrapContext ?: throw Exception("module no run.")
 
   protected abstract suspend fun _bootstrap(bootstrapContext: BootstrapContext)
-  private suspend fun afterBootstrap(_dnsMM: BootstrapContext) {
+  private fun afterBootstrap(_dnsMM: BootstrapContext) {
     this.runningStateLock.resolve()
   }
 
@@ -74,6 +87,8 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
     _connectSignal.clear()
     runningStateLock.resolve()
     this._bootstrapContext = null
+    // 取消所有的工作
+    this.ioAsyncScope.cancel()
   }
 
 

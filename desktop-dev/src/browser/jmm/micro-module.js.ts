@@ -155,8 +155,8 @@ export class JsMicroModule extends MicroModule {
 
     const [jsIpc] = await context.dns.connect("js.browser.dweb");
 
-    jsIpc.onClose(() => {
-      this.shutdown();
+    jsIpc.onClose(async () => {
+      await this.isRunning && this.shutdown();
     });
 
     jsIpc.onRequest(async (ipcRequest, ipc) => {

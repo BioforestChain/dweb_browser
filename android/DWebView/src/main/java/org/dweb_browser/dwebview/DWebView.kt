@@ -491,9 +491,9 @@ class DWebView(
     _destroyed = true
     debugDWebView("DESTROY")
     super.destroy()
-    runBlockingCatching {
+    ioAsyncScope.launch {
       _destroySignal.emitAndClear(Unit)
-    }.getOrNull()
+    }
     ioAsyncScope.cancel()
   }
 

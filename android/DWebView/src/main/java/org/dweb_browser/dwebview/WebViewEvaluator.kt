@@ -24,7 +24,6 @@ class WebViewEvaluator(
   }
 
   private val channelMap = mutableMapOf<Int, AsyncChannel>()
-  // private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
 
   @SuppressLint("JavascriptInterface")
   private fun initKit() {

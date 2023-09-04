@@ -3,6 +3,7 @@ package org.dweb_browser.microservice.sys.dns
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.sync.Mutex
@@ -70,7 +71,6 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
   /** 对等连接列表 */
   private val mmConnectsMap = mutableMapOf<MM, PromiseOut<ConnectResult>>()
   private val mmConnectsMapLock = Mutex()
-  private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
 
   /** 为两个mm建立 ipc 通讯 */
   private suspend fun connectTo(
@@ -271,7 +271,6 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       it.value.shutdown()
     }
     installApps.clear()
-    ioAsyncScope.cancel()
   }
 
   /** 安装应用 */
@@ -280,7 +279,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
   }
 
   /** 卸载应用 */
-  @OptIn(DelicateCoroutinesApi::class)
+
   fun uninstall(mmid: MMID): Boolean {
     installApps.remove(mmid)
     ioAsyncScope.launch { close(mmid) }

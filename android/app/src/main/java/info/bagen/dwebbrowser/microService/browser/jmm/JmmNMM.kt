@@ -2,17 +2,14 @@ package info.bagen.dwebbrowser.microService.browser.jmm
 
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.plus
 import org.dweb_browser.browserUI.database.JsMicroModuleStore
 import org.dweb_browser.browserUI.download.DownLoadController
 import org.dweb_browser.browserUI.download.compareAppVersionHigh
 import org.dweb_browser.browserUI.util.BrowserUIApp
 import org.dweb_browser.browserUI.util.FilesUtil
-import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.microservice.core.BootstrapContext
@@ -69,7 +66,6 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
   }
 
   private var jmmController: JmmController? = null
-  private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
 
   fun getApps(mmid: MMID): IMicroModuleManifest? {
     return bootstrapContext.dns.query(mmid)
@@ -150,6 +146,9 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
       })
   }
 
+  override suspend fun _shutdown() {
+  }
+
   /**
    * 从内存中加载数据
    */
@@ -216,9 +215,5 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
     bootstrapContext.dns.uninstall(mmid)
     JsMicroModuleStore.deleteAppInfo(mmid)
     FilesUtil.uninstallApp(App.appContext, mmid)
-  }
-
-  override suspend fun _shutdown() {
-    ioAsyncScope.cancel()
   }
 }
