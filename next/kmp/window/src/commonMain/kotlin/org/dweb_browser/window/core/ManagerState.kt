@@ -1,9 +1,13 @@
 package org.dweb_browser.window.core
 
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SnapshotMutationPolicy
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -11,11 +15,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.structuralEqualityPolicy
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowInsetsCompat
 import org.dweb_browser.helper.Observable
-import org.dweb_browser.helper.android.BaseActivity
-import org.dweb_browser.helper.android.addOnApplyWindowInsetsCompatListener
+import org.dweb_browser.helper.platform.PlatformViewController
 import org.dweb_browser.window.core.constant.WindowManagerPropertyKeys
 import org.dweb_browser.window.core.constant.debugWindow
 import org.dweb_browser.window.render.LocalWindowController
@@ -24,12 +29,15 @@ import org.dweb_browser.window.render.LocalWindowsManager
 import org.dweb_browser.window.render.watchedBounds
 import kotlin.math.max
 
-class ManagerState(val activity: BaseActivity) {
-  val viewHeight get() = activity.window.decorView.height
-  val viewWidth get() = activity.window.decorView.width
-  val displayDensity get() = activity.resources.displayMetrics.density
-  val viewHeightDp get() = viewHeight / displayDensity
-  val viewWidthDp get() = viewWidth / displayDensity
+class ManagerState(
+  val viewController: PlatformViewController,
+) {
+//  val viewHeight get() = activity.window.decorView.height
+//  val viewWidth get() = activity.window.decorView.width
+//  val displayDensity get() = activity.resources.displayMetrics.density
+
+  val viewHeightDp get() = with(viewController) { getViewHeightPx() / getDisplayDensity() }
+  val viewWidthDp get() = with(viewController) { getViewWidthPx() / getDisplayDensity() }
 
   companion object {
     /// 一些提供给 WindowsManager 的扩展函数
@@ -133,10 +141,13 @@ class ManagerState(val activity: BaseActivity) {
     debugWindow("ManagerState/IME", "init")
 //    WindowCompat.setDecorFitsSystemWindows(activity.window, false)
 //    val imm = activity.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-    activity.window.decorView.addOnApplyWindowInsetsCompatListener { _, insets ->
-      updateKeyboardStates(insets)
-      insets
-    }
+//    viewController.onResize{
+//      viewController.ins
+//    }
+//    viewController.window.decorView.addOnApplyWindowInsetsCompatListener { _, insets ->
+//      updateKeyboardStates(insets)
+//      insets
+//    }
 //    decorView.viewTreeObserver.addOnGlobalLayoutListener {
 //
 //    }
@@ -145,26 +156,32 @@ class ManagerState(val activity: BaseActivity) {
 //    }
   }
 
-  private fun updateKeyboardStates(windowInsetsCompat: WindowInsetsCompat) {
-//    val windowInsetsCompat = WindowInsetsCompat.toWindowInsetsCompat(activity.window.decorView.rootWindowInsets)
-
-    val imeVisible = windowInsetsCompat.isVisible(imeType)
+  @OptIn(ExperimentalLayoutApi::class)
+  @Composable
+  fun EffectKeyboardStates() {
+    val imeVisible = WindowInsets.isImeVisible
     this.imeVisible = imeVisible
-    this.imeBounds = if (imeVisible) {
-      val imeInsets = windowInsetsCompat.getInsets(imeType)
-      val imeHeightDp = imeInsets.bottom / displayDensity
-      WindowBounds(
-        left = 0f,
-        top = viewHeightDp - imeHeightDp,
-        height = imeHeightDp,
-        width = viewWidthDp,
-      )
-    } else {
-      WindowBounds.Zero
+    val ime = WindowInsets.ime
+    val density = LocalDensity.current
+    val view = LocalView.current
+
+    LaunchedEffect(ime) {
+      this@ManagerState.imeBounds = if (imeVisible) {
+        val imeHeightDp = ime.getBottom(density) / density.density
+        WindowBounds(
+          left = 0f,
+          top = view.height / density.density - imeHeightDp,
+          height = imeHeightDp,
+          width = view.width / density.density,
+        )
+      } else {
+        WindowBounds.Zero
+      }
+
+      // 输入法高度即为 heightDiff
+      debugWindow("ManagerState/IME", "imeBounds:$imeBounds, imeVisible:$imeVisible")
     }
 
-    // 输入法高度即为 heightDiff
-    debugWindow("ManagerState/IME", "imeBounds:$imeBounds, imeVisible:$imeVisible")
   }
 
 }

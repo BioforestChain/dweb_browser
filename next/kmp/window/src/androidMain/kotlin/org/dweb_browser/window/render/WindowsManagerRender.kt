@@ -27,6 +27,8 @@ fun <T : WindowController> WindowsManager<T>.Render() {
     LocalWindowsManager provides this,
   ) {
     BoxWithConstraints {
+      /// 键盘的互操作性
+      state.EffectKeyboardStates()
       /// 底部导航栏的互操作
       DisposableEffect(hasMaximizedWins) {
         systemUiController.systemBarsBehavior =

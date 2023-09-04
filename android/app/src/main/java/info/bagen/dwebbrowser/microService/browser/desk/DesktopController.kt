@@ -1,7 +1,6 @@
 package info.bagen.dwebbrowser.microService.browser.desk
 
 import androidx.compose.runtime.Stable
-import androidx.lifecycle.lifecycleScope
 import com.google.accompanist.web.WebContent
 import com.google.accompanist.web.WebViewNavigator
 import com.google.accompanist.web.WebViewState
@@ -76,10 +75,10 @@ class DesktopController(
       /// 但有窗口信号变动的时候，确保 MicroModule.IpcEvent<Activity> 事件被激活
       dwm.allWindows.onChange {
         _activitySignal.emit()
-      }.removeWhen(dwm.activity.onDestroyActivity)
+      }.removeWhen(dwm.viewController.lifecycleScope)
 
       preDesktopWindowsManager?.also { preDwm ->
-        dwm.activity.lifecycleScope.launch {
+        dwm.viewController.lifecycleScope.launch {
           /// 窗口迁移
           preDwm.moveWindows(dwm)
           preDesktopWindowsManager = null

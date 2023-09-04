@@ -1,12 +1,12 @@
 package org.dweb_browser.window.core
 
-import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.SimpleSignal
+import org.dweb_browser.helper.platform.PlatformViewController
 import org.dweb_browser.window.core.constant.WindowBottomBarTheme
 import org.dweb_browser.window.core.constant.WindowColorScheme
 import org.dweb_browser.window.core.constant.WindowMode
@@ -49,7 +49,7 @@ abstract class WindowController(
   /**
    * 在Android中，一个窗口对象必然附加在某一个Context/Activity中
    */
-  abstract val context: Context
+  abstract val viewController: PlatformViewController
 
   /**
    * 需要提供一个生命周期对象

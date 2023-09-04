@@ -339,8 +339,8 @@ fun WindowController.calcWindowPaddingByLimits(limits: WindowLimits): WindowPadd
       max(safeDrawingPadding.calculateRightPadding(layoutDirection).value, windowFrameSize)
     borderRounded = WindowPadding.CornerRadius.from(0) // 全屏模式下，外部不需要圆角
     contentRounded = WindowPadding.CornerRadius.from(
-      WindowInsetsHelper.getCornerRadiusTop(context, density, 16f),
-      WindowInsetsHelper.getCornerRadiusBottom(context, density, 16f)
+      WindowInsetsHelper.getCornerRadiusTop(viewController.androidContext, density, 16f),
+      WindowInsetsHelper.getCornerRadiusBottom(viewController.androidContext, density, 16f)
     )
     contentSize = WindowPadding.ContentSize(
       bounds.width - leftWidth - rightWidth,

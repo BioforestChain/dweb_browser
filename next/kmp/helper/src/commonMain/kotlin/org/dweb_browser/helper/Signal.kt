@@ -1,11 +1,13 @@
 package org.dweb_browser.helper
 
+import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
-import kotlinx.atomicfu.locks.SynchronizedObject
-import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.launch
 
 typealias Callback<Args> = suspend SignalController<Args>.(args: Args) -> Unit
@@ -35,11 +37,23 @@ class OffListener<Args>(val origin: Signal<Args>, val cb: Callback<Args>) {
   fun removeWhen(listener: Signal.Listener<*>) = listener {
     this@OffListener()
   }
+
+  fun removeWhen(lifecycleScope: CoroutineScope) = lifecycleScope.launch {
+    CompletableDeferred<Unit>().await()
+  }.invokeOnCompletion {
+    this@OffListener()
+  }
 }
 
 typealias Remover = () -> Boolean
 
 fun <T> Remover.removeWhen(listener: Signal.Listener<T>) = listener {
+  this@removeWhen()
+}
+
+fun Remover.removeWhen(lifecycleScope: CoroutineScope) = lifecycleScope.launch {
+  CompletableDeferred<Unit>().await()
+}.invokeOnCompletion {
   this@removeWhen()
 }
 

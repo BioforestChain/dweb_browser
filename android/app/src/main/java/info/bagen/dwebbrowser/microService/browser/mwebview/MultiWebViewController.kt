@@ -109,7 +109,7 @@ class MultiWebViewController(
   suspend fun openWebView(url: String) = appendWebViewAsItem(createDwebView(url))
 
   suspend fun createDwebView(url: String): DWebView = withContext(mainAsyncExceptionHandler) {
-    val currentActivity = win.context;// App.appContext
+    val currentActivity = win.viewController.activity;// App.appContext
     val dWebView = DWebView(
       ContextThemeWrapper(currentActivity, R.style.Theme_dwebbrowser), remoteMM, DWebView.Options(
         url = url,

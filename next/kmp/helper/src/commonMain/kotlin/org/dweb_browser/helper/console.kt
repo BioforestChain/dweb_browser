@@ -3,7 +3,7 @@ package org.dweb_browser.helper
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.LocalDateTime
 import kotlin.coroutines.CoroutineContext
@@ -25,7 +25,7 @@ val commonAsyncExceptionHandler = CoroutineExceptionHandler { ctx, e ->
 }
 val defaultAsyncExceptionHandler = Dispatchers.Default + commonAsyncExceptionHandler
 val ioAsyncExceptionHandler = Dispatchers.IO + commonAsyncExceptionHandler
-val mainAsyncExceptionHandler = Dispatchers.Main + commonAsyncExceptionHandler
+val mainAsyncExceptionHandler = SupervisorJob() + Dispatchers.Main + commonAsyncExceptionHandler
 fun <T> runBlockingCatching(
   context: CoroutineContext, block: suspend CoroutineScope.() -> T
 ) = runCatching {
@@ -53,9 +53,7 @@ fun timeEnd(label: String) {
     val betweenTime =
       LocalDateTime.parse(endTime).nanosecond - LocalDateTime.parse(startTime).nanosecond
     printDebug(
-      "TIME-DURATION",
-      label,
-      "${betweenTime / 1000000.0}ms"
+      "TIME-DURATION", label, "${betweenTime / 1000000.0}ms"
     )
   }
 }

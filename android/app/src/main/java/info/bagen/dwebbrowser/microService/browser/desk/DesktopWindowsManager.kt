@@ -1,20 +1,21 @@
 package info.bagen.dwebbrowser.microService.browser.desk
 
+import org.dweb_browser.helper.platform.PlatformViewController
 import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.window.core.WindowsManager
 import org.dweb_browser.window.core.createWindowAdapterManager
 import java.util.WeakHashMap
 import kotlin.math.sqrt
 
-class DesktopWindowsManager(val activity: DesktopActivity) :
-  WindowsManager<DesktopWindowController>(activity) {
+class DesktopWindowsManager(val viewController: PlatformViewController) :
+  WindowsManager<DesktopWindowController>(viewController) {
 
   companion object {
     private val instances = WeakHashMap<DesktopActivity, DesktopWindowsManager>()
     fun getInstance(
       activity: DesktopActivity, onPut: (wm: DesktopWindowsManager) -> Unit
     ): DesktopWindowsManager = instances.getOrPut(activity) {
-      DesktopWindowsManager(activity).also { dwm ->
+      DesktopWindowsManager(PlatformViewController(activity)).also { dwm ->
         onPut(dwm);
         activity.onDestroyActivity {
           instances.remove(activity)
@@ -29,9 +30,9 @@ class DesktopWindowsManager(val activity: DesktopActivity) :
     createWindowAdapterManager.append { newWindowState ->
       /// 新窗口的bounds可能都是没有配置的，所以这时候默认给它们设置一个有效的值
       newWindowState.updateMutableBounds {
-        with(activity.resources.displayMetrics) {
-          val displayWidth = widthPixels / density
-          val displayHeight = heightPixels / density
+        with(viewController) {
+          val displayWidth = getViewWidthPx() / getDisplayDensity()
+          val displayHeight = getViewHeightPx() / getDisplayDensity()
           if (width.isNaN()) {
             width = displayWidth / sqrt(2f)
           }
@@ -61,8 +62,9 @@ class DesktopWindowsManager(val activity: DesktopActivity) :
 
       win
     }
-      /// Activity 销毁的时候，移除窗口适配器
-      .removeWhen(activity.onDestroyActivity)
+      /// 生命周期销毁的时候，移除窗口适配器
+      .removeWhen(viewController.lifecycleScope)
+
   }
 }
 

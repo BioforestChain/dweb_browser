@@ -58,7 +58,7 @@ class BrowserController(
         it.mode = WindowMode.MAXIMIZE
       })
       newWin.state.closeTip =
-        newWin.manager?.state?.activity?.resources?.getString(R.string.browser_confirm_to_close)
+        newWin.manager?.state?.viewController?.androidContext?.getString(R.string.browser_confirm_to_close)
           ?: ""
       this.win = newWin
       val wid = newWin.id

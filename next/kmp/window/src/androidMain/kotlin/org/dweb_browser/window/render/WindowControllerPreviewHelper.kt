@@ -1,6 +1,5 @@
 package org.dweb_browser.window.render
 
-import android.content.Context
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,6 +10,7 @@ import androidx.compose.ui.UiComposable
 import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.CoroutineScope
 import org.dweb_browser.helper.UUID
+import org.dweb_browser.helper.platform.PlatformViewController
 import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.window.core.WindowController
 import org.dweb_browser.window.core.WindowRenderProvider
@@ -34,8 +34,7 @@ fun WindowPreviewer(
 
 
   class PreviewWindowController(state: WindowState) : WindowController(state) {
-    override val context: Context
-      get() = context
+    override val viewController: PlatformViewController = PlatformViewController(context)
     override val coroutineScope: CoroutineScope
       get() = scope
   }
