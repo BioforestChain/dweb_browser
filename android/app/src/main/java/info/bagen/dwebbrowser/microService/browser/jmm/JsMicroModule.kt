@@ -137,7 +137,9 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) : MicroModule(
 
     // 监听关闭事件
     jsIpc.onClose {
-      shutdown()
+      if (running) {
+        shutdown()
+      }
     }
 
     /**

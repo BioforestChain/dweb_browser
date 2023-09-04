@@ -6,6 +6,9 @@ import { HttpServer, cors } from "./http-helper.ts";
 
 /**给前端的文件服务 */
 export class Server_www extends HttpServer {
+  constructor(readonly isDev = false) {
+    super();
+  }
 
   protected _getOptions(): $DwebHttpServerOptions {
     return {

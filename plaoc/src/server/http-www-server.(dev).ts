@@ -11,6 +11,11 @@ import { Server_www as _Server_www } from "./http-www-server.ts";
  * 2. emulator：为client所提供的插件提供模拟
  */
 export class Server_www extends _Server_www {
+
+  constructor(override readonly isDev = true) {
+    super(isDev);
+  }
+
   override async getStartResult() {
     const result = await super.getStartResult();
     // TODO 未来如果有需求，可以用 flags 传入参数来控制这个模拟器的初始化参数

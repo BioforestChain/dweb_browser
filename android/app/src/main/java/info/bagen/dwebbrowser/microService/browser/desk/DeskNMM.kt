@@ -138,14 +138,10 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       },
       "/closeApp" bind Method.GET to defineHandler { request ->
         val mmid = queryAppId(request);
-        var closed = false;
         if (runningApps.containsKey(mmid)) {
-          closed = bootstrapContext.dns.close(mmid);
-          if (closed) {
-            runningApps.remove(mmid)
-          }
+        return@defineHandler bootstrapContext.dns.close(mmid)
         }
-        return@defineHandler closed
+        return@defineHandler false
       },
       "/desktop/apps" bind Method.GET to defineHandler { _ ->
         debugDesk("/desktop/apps", desktopController.getDesktopApps())

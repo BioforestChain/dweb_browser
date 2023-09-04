@@ -215,44 +215,34 @@ class DWebView(
     ): WebResourceResponse? {
       // 转发请求
       if (request.method == "GET" && ((request.url.host?.endsWith(".dweb") == true) || (request.url.scheme == "dweb"))) {
-        // || request.url.userInfo?.matches(Regex(".*\\.dweb(:\\d+)?$")) == true
-        return dwebProxyer(request)
+        val response = runBlockingCatching(ioAsyncExceptionHandler) {
+          remoteMM.nativeFetch(
+            Request(
+              Method.GET, request.url.toString()
+            ).headers(request.requestHeaders.toList())
+          )
+        }.getOrThrow()
+
+        val contentType = Header.CONTENT_TYPE(response)
+        val body = ByteArrayInputStream(response.body.payload.array())
+        debugDWebView("dwebProxyer end", request.url)
+        val statusCode = response.status.code
+        if (statusCode in 301..399) {
+          return super.shouldInterceptRequest(view, request)
+        }
+        return WebResourceResponse(
+          contentType?.value,
+          contentType?.directives?.find { it.first == "charset" }?.second,
+          response.status.code,
+          response.status.description,
+          response.headers.toMap(),
+          body,
+        )
       }
       return super.shouldInterceptRequest(view, request)
     }
   }
 
-  /** 处理Dweb域名的转发 */
-  fun dwebProxyer(request: WebResourceRequest): WebResourceResponse {
-    /// http://*.dweb 由 MicroModule 来处理请求
-//    debugDWebView("shouldInterceptRequest/REQUEST", lazy {
-//      "${request.url} [${
-//        request.requestHeaders.toList().joinToString { "${it.first}=${it.second} " }
-//      }]"
-//    })
-    debugDWebView("dwebProxyer request", request.url)
-    val response = runBlockingCatching(ioAsyncExceptionHandler) {
-      remoteMM.nativeFetch(
-        Request(
-          Method.GET, request.url.toString()
-        ).headers(request.requestHeaders.toList())
-      )
-    }.getOrThrow()
-    debugDWebView("dwebProxyer response", request.url)
-
-    val contentType = Header.CONTENT_TYPE(response)
-    val body = ByteArrayInputStream(response.body.payload.array())
-    debugDWebView("dwebProxyer end", request.url)
-    return WebResourceResponse(
-      contentType?.value,
-      contentType?.directives?.find { it.first == "charset" }?.second,
-      response.status.code,
-      response.status.description,
-      response.headers.toMap(),
-      body,
-//      response.body.stream,
-    )
-  }
 
   override fun setWebViewClient(client: WebViewClient) {
     dWebViewClient.addWebViewClient(client)

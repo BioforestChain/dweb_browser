@@ -47,12 +47,6 @@ class MultiWebViewNMM :
 
   companion object {
     private val controllerMap = mutableMapOf<MMID, MultiWebViewController>()
-
-    /**获取当前的controller, 只能给nativeUI 使用，因为他们是和mwebview绑定在一起的
-     */
-    fun getCurrentWebViewController(mmid: MMID): MultiWebViewController? {
-      return controllerMap[mmid]
-    }
   }
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
