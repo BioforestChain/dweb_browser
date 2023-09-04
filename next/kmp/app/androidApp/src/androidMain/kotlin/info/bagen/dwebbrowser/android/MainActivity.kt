@@ -7,15 +7,17 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
+import org.dweb_browser.helper.compose.AutoResizeTextContainer
+import org.dweb_browser.helper.compose.AutoSizeText
+import org.dweb_browser.helper.compose.SimpleBox
 import org.dweb_browser.shared.Greeting
 import org.dweb_browser.window.render.LocalWindowController
 import org.dweb_browser.window.render.WindowPreviewer
@@ -28,11 +30,11 @@ class MainActivity : AppCompatActivity() {
       MyApplicationTheme {
         Surface(
           modifier = Modifier.fillMaxSize(),
-          color = MaterialTheme.colors.background
+          color = MaterialTheme.colorScheme.background
         ) {
           Column {
             GreetingView(Greeting().greet())
-            PreviewWindowTopBar()
+//            PreviewWindowTopBar()
           }
         }
       }
@@ -42,21 +44,25 @@ class MainActivity : AppCompatActivity() {
 
 @Composable
 fun GreetingView(text: String) {
-//  AutoResizeTextContainer {
-//    AutoSizeText(text = text)
-//  }
-//  SimpleBox()
-  Text("qaq")
-}
+  Column {
 
-@Preview
-@Composable
-fun DefaultPreview() {
-  MyApplicationTheme {
-    GreetingView("Hello, Android!")
+    AutoResizeTextContainer {
+      AutoSizeText(text = text)
+      Text("777")
+    }
+    SimpleBox()
+    Text("qaq")
   }
 }
 
+//@Preview
+//@Composable
+//fun DefaultPreview() {
+//  MyApplicationTheme {
+//    GreetingView("Hello, Android!")
+//  }
+//}
+//
 
 @Composable
 fun PreviewWindowTopBarContent(modifier: Modifier) {

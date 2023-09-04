@@ -31,12 +31,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.sqrt
 
 @Composable
 fun SimpleBox() {
-  Box(modifier = Modifier.background(Color.Red).size(30.dp).clip(squircleshape.SquircleShape())) { }
+  Box(
+    modifier = Modifier.background(Color.Red).size(200.dp).clip(squircleshape.SquircleShape())
+  ) { }
 }
 
 /**
@@ -71,18 +73,49 @@ class AutoResizeTextContainerScope(
 ) : BoxScope {
   fun calc(
     text: String,
-
     /**
      * 计算所用的文字宽高比
      * 一般来说 英文文字 宽高比不会超过 0.6，如果文字中包含中文，请使用 0.9/1 的比例
      */
-    fontRatio: Float = 0.6f
+    fontRatio: Float = 0.6f,
+    /**
+     * 行高比例
+     */
+    lineHeightRatio: Float = 1.5f,
   ): Float {
-    /// 根据面积计算字体大小
-    val maxArea = maxWidth * maxHeight
-    val textMaxUnit = maxArea / text.length //  min(textWidthUnit, textHeightUnit)
-    /// 计算出最大的文字宽高
-    return min(sqrt(textMaxUnit * fontRatio), min(maxWidth * 0.9f, maxHeight * 0.8f))
+    val textCount = max(text.length, 0)
+    fun calcTextSizeByLines(lines: Int): Float {
+      val lineSize = maxHeight / (lines * lineHeightRatio - (lineHeightRatio - 1))
+      return lineSize * fontRatio
+    }
+
+    /// 根据行数计算字体大小
+    var lines = 1;
+    while (true) {
+      // 首先计算出这个行数情况下能否满足填充需求
+      val minTextSize = calcTextSizeByLines(lines + 1)
+      val maxTextCount = (maxWidth / minTextSize) * lines
+      if (maxTextCount < textCount) {
+        // 这个行数下，还是放不下那么多文字，那么就增加行数，继续循环
+        lines += 1;
+        continue
+      }
+
+      // 在这个行数下，那么尽可能地放大字体
+      val maxTextSize = calcTextSizeByLines(lines)
+      val tryUnit = max(0.1f, (maxTextSize - minTextSize) / 5);// 5个档位
+      var bestTextSize = minTextSize
+      while (true) {
+        val tryTextSize = bestTextSize + tryUnit
+        val tryTextCount = (maxWidth / tryTextSize) * lines
+        if (tryTextCount < textCount) {
+          bestTextSize = tryTextCount
+          continue
+        }
+        break
+      }
+      return bestTextSize
+    }
   }
 
   override fun Modifier.align(alignment: Alignment): Modifier {
@@ -129,9 +162,9 @@ fun AutoResizeTextContainerScope.AutoSizeText(
       else -> fontSize.value
     }
     if (customFontSizeValue.isNaN()) {
-      mutableFloatStateOf(maxFontSizeValue)
+      mutableStateOf(maxFontSizeValue)
     } else {
-      mutableFloatStateOf(min(maxFontSizeValue, customFontSizeValue))
+      mutableStateOf(min(maxFontSizeValue, customFontSizeValue))
     }
   }
   val resizedFontSize = remember(fontSizeValue) {

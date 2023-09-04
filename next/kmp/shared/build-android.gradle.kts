@@ -1,7 +1,6 @@
 plugins {
   alias(libs.plugins.kotlinxMultiplatform)
   alias(libs.plugins.androidLibrary)
-  alias(libs.plugins.jetbrainsCompose)
 }
 
 kotlin {
@@ -33,6 +32,7 @@ kotlin {
       }
     }
     val androidMain by getting
+    val androidUnitTest by getting
   }
 }
 
@@ -41,5 +41,11 @@ android {
   compileSdk = libs.versions.compileSdkVersion.get().toInt()
   defaultConfig {
     minSdk = libs.versions.minSdkVersion.get().toInt()
+  }
+  buildFeatures {
+    compose = true
+  }
+  composeOptions {
+    kotlinCompilerExtensionVersion = libs.versions.kotlinCompilerExtensionVersion.get()
   }
 }

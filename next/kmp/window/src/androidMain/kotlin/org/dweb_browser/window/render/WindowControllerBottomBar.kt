@@ -53,8 +53,8 @@ import androidx.compose.ui.zIndex
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.compose.AutoResizeTextContainer
 import org.dweb_browser.helper.compose.AutoSizeText
-import org.dweb_browser.helper.compose.iosTween
 import org.dweb_browser.window.R
+import org.dweb_browser.helper.compose.iosTween
 import org.dweb_browser.window.core.WindowController
 import org.dweb_browser.window.core.constant.WindowBottomBarTheme
 import org.dweb_browser.window.core.constant.WindowPropertyKeys

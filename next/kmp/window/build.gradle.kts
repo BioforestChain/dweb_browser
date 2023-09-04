@@ -39,6 +39,7 @@ kotlin {
         implementation(libs.jetbrains.compose.components.resources)
 
         implementation(libs.jetbrains.compose.material3)
+        implementation(libs.jetbrains.compose.materialIcons)
 
         implementation(project(":helper"))
         implementation(project(":helperCompose"))
@@ -53,6 +54,7 @@ kotlin {
     }
     val androidMain by getting {
       dependencies {
+        // Android 标准
         implementation(libs.androidx.core.ktx)
         implementation(libs.androidx.activity)
         implementation(libs.androidx.activity.ktx)
@@ -60,6 +62,9 @@ kotlin {
         implementation(libs.androidx.animation.core.android)
         implementation(libs.androidx.lifecycle.runtime.ktx)
         implementation(libs.androidx.activity.compose)
+        // Compose 相关
+        implementation(libs.compose.material3)
+        implementation(libs.compose.material3.window)
         // Google.accompanist 相关
         implementation(libs.accompanist.webview)
         implementation(libs.accompanist.navigation.material)
@@ -101,9 +106,12 @@ kotlin {
 }
 
 android {
-  namespace = "org.dweb_browser.helper.compose"
+  namespace = "org.dweb_browser.window"
   compileSdk = libs.versions.compileSdkVersion.get().toInt()
   defaultConfig {
     minSdk = libs.versions.minSdkVersion.get().toInt()
+  }
+  sourceSets["main"].apply {
+    res.srcDirs("src/androidMain/res", "src/commonMain/res", "src/main/res")
   }
 }

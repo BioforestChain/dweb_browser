@@ -19,21 +19,34 @@ kotlin {
     val androidMain by getting {
       dependencies {
         dependencies {
+          // AndroidX
+          implementation(libs.androidx.activity.compose)
+          implementation(libs.androidx.appcompat)
+          implementation(libs.androidx.core.ktx)
+
+          // Jetbrains Compose
+          implementation(libs.jetbrains.compose.runtime)
+          implementation(libs.jetbrains.compose.foundation)
+          @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
+          implementation(libs.jetbrains.compose.components.resources)
+
+          implementation(libs.jetbrains.compose.material)
+          implementation(libs.jetbrains.compose.material3)
+          implementation(libs.jetbrains.compose.materialIcons)
+
           implementation(project(":shared"))
           implementation(project(":helper"))
           implementation(project(":helperCompose"))
           implementation(project(":helperPlatform"))
           implementation(project(":microService"))
           implementation(project(":window"))
-          implementation(libs.androidx.appcompat)
-          implementation(libs.compose.bom)
-          implementation(libs.compose.ui)
-          implementation(libs.compose.ui.tooling)
-          implementation(libs.compose.ui.preview)
-          implementation(libs.compose.ui.foundation)
-          implementation(libs.compose.material)
-          implementation(libs.compose.material3)
-          implementation(libs.androidx.activity.compose)
+//          implementation(libs.compose.bom)
+//          implementation(libs.compose.ui)
+//          implementation(libs.compose.ui.tooling)
+//          implementation(libs.compose.ui.foundation)
+//          implementation(libs.compose.material)
+//          implementation(libs.compose.material3)
+//          implementation(libs.androidx.activity.compose)
         }
       }
     }
@@ -49,9 +62,12 @@ android {
     versionCode = libs.versions.versionCode.get().toInt()
     versionName = libs.versions.versionName.get()
   }
-  packagingOptions {
+  packaging {
     resources {
       excludes += "/META-INF/{AL2.0,LGPL2.1}"
+      // 添加 http4k 框架后，会有异常报错，需要添加如下内容
+      excludes += "/META-INF/INDEX.LIST"
+      excludes += "/META-INF/DEPENDENCIES"
     }
   }
   buildTypes {

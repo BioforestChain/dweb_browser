@@ -73,4 +73,7 @@ android {
   composeOptions {
     kotlinCompilerExtensionVersion = libs.versions.kotlinCompilerExtensionVersion.get()
   }
+  sourceSets["main"].apply {
+    res.srcDirs("src/androidMain/res", "src/commonMain/res", "src/main/res")
+  }
 }
