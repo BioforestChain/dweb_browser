@@ -1,30 +1,5 @@
 <resources>
   <string name="app_name">Dweb Browser</string>>
-  <string name="web_host">dweb.bfchain.org</string>
-  <string name="title_activity_webview">WebviewActivity</string>
-
-  <!-- Strings used for fragments for navigation -->
-  <string name="first_fragment_label">First Fragment</string>
-  <string name="second_fragment_label">Second Fragment</string>
-  <string name="next">Next</string>
-  <string name="previous">Previous</string>
-
-  <string name="hello_first_fragment">Hello first fragment</string>
-  <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
-  <!-- Preference Titles -->
-  <string name="messages_header">Messages</string>
-  <string name="sync_header">Sync</string>
-
-  <!-- Messages Preferences -->
-  <string name="signature_title">Your signature</string>
-  <string name="reply_title">Default reply action</string>
-
-  <!-- Sync Preferences -->
-  <string name="sync_title">Sync email periodically</string>
-  <string name="attachment_title">Download incoming attachments</string>
-  <string name="attachment_summary_on">Automatically download attachments for incoming emails
-    </string>
-  <string name="attachment_summary_off">Only download attachments when manually requested</string>
 
   <!-- Permission String -->
   <string name="permission_allow">Allow</string>
@@ -44,12 +19,7 @@
   <string name="permission_deny_sms">SMS permission is required to read SMS and create/modify/delete/send information</string>
   <string name="permission_deny_device">Device permission is required to obtain information about the device</string>
 
-  <!-- 导航内容 -->
-  <string name="navitem_home">Home</string>
-  <string name="navitem_contact">Contact</string>
-  <string name="navitem_message">Message</string>
-  <string name="navitem_me">Me</string>
-
+  <!-- 协议相关 -->
   <string name="privacy_title">Tips</string>
   <string name="privacy_content_1">Welcome to Dweb Browser. It will use the internet when you use it. Please consult your local operator for traffic costs. Please read the</string>
   <string name="privacy_content_2">carefully before using Dweb Browser. You need to agree and accept all the terms before starting our service.</string>
@@ -60,24 +30,9 @@
   <string name="button_exit_app">exit app</string>
   <string name="button_i_know">I Know</string>
 
-  <!-- BrowserView 相关 -->
-  <string name="browser_search_hint">Search or Input Website</string>
-  <string name="browser_nav_add">New</string>
-  <string name="browser_nav_home">Home</string>
-  <string name="browser_nav_back">GoBack</string>
-  <string name="browser_nav_book">Book</string>
-  <string name="browser_nav_scan">Scan</string>
-  <string name="browser_nav_share">Share</string>
-  <string name="browser_nav_multi">Multi</string>
-  <string name="browser_nav_option">Option</string>
-  <string name="browser_nav_forward">Forward</string>
-  <string name="browser_nav_addhome">AddHome</string>
-  <string name="browser_nav_history">History</string>
-  <string name="browser_nav_favorite">Favorite</string>
-  <string name="browser_nav_multiview">Multiview</string>
-  <string name="browser_main_hot_web">Hot Website</string>
-  <string name="browser_main_my_app">My App</string>
-  <string name="browser_main_my_book">My Bookmark</string>
-  <string name="browser_main_hot_search">Hot Search</string>
-  <string name="browser_confirm_to_close">Are you sure you want to close this Browser Window?</string>
+  <!-- webview 版本提醒 -->
+  <string name="dialog_title_webview_upgrade">Version Upgrade</string>
+  <string name="dialog_text_webview_upgrade">The minimum version for running %s is %s, and the current Android system webview version is %s, which cannot be run. Please upgrade the version first!!</string>
+  <string name="dialog_confirm_webview_upgrade">Upgrade Suggestion</string>
+  <string name="dialog_dismiss_webview_upgrade">Ignore</string>
 </resources>

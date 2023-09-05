@@ -1,6 +1,7 @@
 package info.bagen.dwebbrowser.microService.browser.jmm.ui
 
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableStateOf
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.browser.jmm.JmmController
@@ -14,14 +15,18 @@ import org.dweb_browser.browserUI.util.NotificationUtil
 import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
 import java.util.Calendar
 
+internal val LocalShowWebViewVersion = compositionLocalOf {
+  mutableStateOf(false)
+}
+
 data class JmmUIState(
   val downloadInfo: MutableState<DownLoadInfo>,
   val jmmAppInstallManifest: JmmAppInstallManifest,
 )
 
 sealed class JmmIntent {
-  object ButtonFunction : JmmIntent()
-  object DestroyActivity : JmmIntent()
+  data object ButtonFunction : JmmIntent()
+  data object DestroyActivity : JmmIntent()
 }
 
 class JmmManagerViewHelper(

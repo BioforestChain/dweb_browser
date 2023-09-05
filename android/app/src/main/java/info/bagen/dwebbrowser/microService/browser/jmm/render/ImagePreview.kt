@@ -57,10 +57,12 @@ internal fun ImagePreview(
     ) + fadeOut(),
   ) {
     BackHandler { previewState.showPreview.targetState = false }
-    val pagerState = rememberPagerState(initialPage = previewState.selectIndex.value,
+    val pagerState = rememberPagerState(
+      initialPage = previewState.selectIndex.value,
       initialPageOffsetFraction = 0f,
-      pageCount = { jmmAppInstallManifest.images?.size ?: 0 })
-    val imageList = jmmAppInstallManifest.images ?: listOf()
+      pageCount = { jmmAppInstallManifest.images.size }
+    )
+    val imageList = jmmAppInstallManifest.images
 
     LaunchedEffect(previewState) { // 为了滑动图片后，刷新后端的图片中心点位置
       snapshotFlow { pagerState.currentPage }.collect { pager ->

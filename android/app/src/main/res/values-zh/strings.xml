@@ -1,30 +1,5 @@
 <resources>
   <string name="app_name">Dweb Browser</string>
-  <string name="web_host">dweb.bfchain.org</string>
-  <string name="title_activity_webview">WebviewActivity</string>
-
-  <!-- Strings used for fragments for navigation -->
-  <string name="first_fragment_label">First Fragment</string>
-  <string name="second_fragment_label">Second Fragment</string>
-  <string name="next">next</string>
-  <string name="previous">Previous</string>
-
-  <string name="hello_first_fragment">Hello first fragment</string>
-  <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
-  <!-- Preference Titles -->
-  <string name="messages_header">Messages</string>
-  <string name="sync_header">Sync</string>
-
-  <!-- Messages Preferences -->
-  <string name="signature_title">Your signature</string>
-  <string name="reply_title">Default reply action</string>
-
-  <!-- Sync Preferences -->
-  <string name="sync_title">Sync email periodically</string>
-  <string name="attachment_title">Download incoming attachments</string>
-  <string name="attachment_summary_on">Automatically download attachments for incoming emails
-    </string>
-  <string name="attachment_summary_off">Only download attachments when manually requested</string>
 
   <!-- 权限部分的字符串 -->
   <string name="permission_allow">允许</string>
@@ -44,11 +19,7 @@
   <string name="permission_deny_sms">需要信息权限许可才能阅读短信和新建/修改/删除/发送信息</string>
   <string name="permission_deny_device">需要设备权限许可才能获取设备的相关信息</string>
 
-  <string name="navitem_home">首页</string>
-  <string name="navitem_contact">联系人</string>
-  <string name="navitem_message">消息</string>
-  <string name="navitem_me">我的</string>
-
+  <!-- 协议相关 -->
   <string name="privacy_title">温馨提示</string>
   <string name="privacy_content_1">欢迎使用 Dweb Browser，在您使用的时候，需要连接网络，产生的流量费用请咨询当地运营商。在使用 Dweb Browser 前，请认真阅读</string>
   <string name="privacy_content_2">。您需要同意并接受全部条款后再开始我们的服务。</string>
@@ -59,24 +30,9 @@
   <string name="button_exit_app">退出应用</string>
   <string name="button_i_know">我知道了</string>
 
-  <!-- BrowserView 相关 -->
-  <string name="browser_search_hint">搜索或输入网址</string>
-  <string name="browser_nav_add">新增</string>
-  <string name="browser_nav_home">首页</string>
-  <string name="browser_nav_back">回退</string>
-  <string name="browser_nav_book">书签</string>
-  <string name="browser_nav_scan">扫码</string>
-  <string name="browser_nav_share">分享</string>
-  <string name="browser_nav_multi">多视图</string>
-  <string name="browser_nav_option">选项</string>
-  <string name="browser_nav_forward">前进</string>
-  <string name="browser_nav_addhome">添加到桌面</string>
-  <string name="browser_nav_history">历史记录</string>
-  <string name="browser_nav_favorite">收藏</string>
-  <string name="browser_nav_multiview">预览</string>
-  <string name="browser_main_hot_web">热门网站</string>
-  <string name="browser_main_my_app">我的应用</string>
-  <string name="browser_main_my_book">我的书签</string>
-  <string name="browser_main_hot_search">全网热搜</string>
-  <string name="browser_confirm_to_close">确定要关闭浏览器窗口？</string>
+  <!-- webview 版本提醒 -->
+  <string name="dialog_title_webview_upgrade">版本更新</string>
+  <string name="dialog_text_webview_upgrade">应用%s运行的最低版本是%s, 当前系统 android system webview 版本是%s, 无法运行, 请先升级版本!!</string>
+  <string name="dialog_confirm_webview_upgrade">升级建议</string>
+  <string name="dialog_dismiss_webview_upgrade">忽略</string>
 </resources>

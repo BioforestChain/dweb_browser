@@ -157,7 +157,7 @@ object PermissionUtil {
   }
 
   fun testRequestAllPermissions(activity: Activity) {
-    var permissions = arrayListOf<String>()
+    val permissions = arrayListOf<String>()
     permissions.add(Manifest.permission.READ_CALENDAR)
     permissions.add(Manifest.permission.WRITE_CALENDAR)
     permissions.add(Manifest.permission.CAMERA)
@@ -183,8 +183,7 @@ object PermissionUtil {
     permissions.add(Manifest.permission.READ_EXTERNAL_STORAGE)
     permissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
     ActivityCompat.requestPermissions(
-      activity!!, permissions.toTypedArray(),
-      PermissionManager.MY_PERMISSIONS
+      activity, permissions.toTypedArray(), PermissionManager.MY_PERMISSIONS
     )
   }
 

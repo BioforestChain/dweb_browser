@@ -23,22 +23,20 @@ import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
 internal fun CaptureListView(
   jmmAppInstallManifest: JmmAppInstallManifest, onSelectPic: (Int, LazyListState) -> Unit
 ) {
-  jmmAppInstallManifest.images?.let { images ->
-    val lazyListState = rememberLazyListState()
-    LazyRow(
-      modifier = Modifier.padding(vertical = VerticalPadding),
-      state = lazyListState,
-      contentPadding = PaddingValues(horizontal = HorizontalPadding)
-    ) {
-      itemsIndexed(images) { index, item ->
-        Card(
-          onClick = { onSelectPic(index, lazyListState) },
-          modifier = Modifier
-            .padding(end = 16.dp)
-            .size(ImageWidth, ImageHeight)
-        ) {
-          AsyncImage(model = item, contentDescription = null)
-        }
+  val lazyListState = rememberLazyListState()
+  LazyRow(
+    modifier = Modifier.padding(vertical = VerticalPadding),
+    state = lazyListState,
+    contentPadding = PaddingValues(horizontal = HorizontalPadding)
+  ) {
+    itemsIndexed(jmmAppInstallManifest.images) { index, item ->
+      Card(
+        onClick = { onSelectPic(index, lazyListState) },
+        modifier = Modifier
+          .padding(end = 16.dp)
+          .size(ImageWidth, ImageHeight)
+      ) {
+        AsyncImage(model = item, contentDescription = null)
       }
     }
   }

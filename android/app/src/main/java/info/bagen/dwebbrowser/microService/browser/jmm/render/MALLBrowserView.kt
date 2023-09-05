@@ -9,7 +9,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
@@ -25,7 +25,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun MALLBrowserView(viewModel: JmmManagerViewHelper, onBack: () -> Unit) {
   val jmmMetadata = viewModel.uiState.jmmAppInstallManifest
-  val topBarAlpha = remember { mutableStateOf(0f) }
+  val topBarAlpha = remember { mutableFloatStateOf(0f) }
   val lazyListState = rememberLazyListState()
   val screenWidth = LocalConfiguration.current.screenWidthDp
   val screenHeight = LocalConfiguration.current.screenHeightDp
@@ -45,7 +45,7 @@ fun MALLBrowserView(viewModel: JmmManagerViewHelper, onBack: () -> Unit) {
 
   LaunchedEffect(lazyListState) {
     snapshotFlow { lazyListState.firstVisibleItemScrollOffset }.collect {
-      topBarAlpha.value = when (lazyListState.firstVisibleItemIndex) {
+      topBarAlpha.floatValue = when (lazyListState.firstVisibleItemIndex) {
         0 -> if (it < firstHeightPx) {
           0f
         } else {
@@ -72,7 +72,6 @@ fun MALLBrowserView(viewModel: JmmManagerViewHelper, onBack: () -> Unit) {
       }
     }
     TopAppBar(topBarAlpha, jmmMetadata.name, onBack)
-    val scope = rememberCoroutineScope()
     BottomDownloadButton(viewModel.uiState.downloadInfo, jmmMetadata) {
       scope.launch {
         viewModel.handlerIntent(JmmIntent.ButtonFunction)
@@ -80,4 +79,5 @@ fun MALLBrowserView(viewModel: JmmManagerViewHelper, onBack: () -> Unit) {
     }
     ImagePreview(jmmMetadata, previewState)
   }
+  DialogForWebviewVersion(jmmMetadata.name)
 }
