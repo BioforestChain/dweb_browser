@@ -1,4 +1,5 @@
-import { $MicroModuleManifest, FetchEvent, IpcResponse } from "../../../common/deps.ts";
+
+import { $JmmAppInstallManifest, FetchEvent, IpcResponse } from "../../../common/deps.ts";
 import type { DwebServiceWorkerPlugin } from "./index.ts";
 
 export type $FetchEventType = "fetch";
@@ -11,7 +12,7 @@ export class ServiceWorkerFetchEvent extends Event {
     return this.fetchEvent.request;
   }
   /**查询连接者的信息 */
-  async getRemoteManifest():Promise<$MicroModuleManifest> {
+  async getRemoteManifest():Promise<$JmmAppInstallManifest> {
     const { ipc } = this.fetchEvent;
     const mmid = ipc.remote.mmid;
     const res = await this.plugin.buildApiRequest("/query",{

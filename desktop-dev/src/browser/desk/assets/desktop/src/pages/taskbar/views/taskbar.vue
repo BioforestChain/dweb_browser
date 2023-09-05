@@ -1,22 +1,22 @@
 <script setup lang="ts">
 import AppIcon from "src/components/app-icon/app-icon.vue";
 import {
-  $WatchEffectAppMetadataToAppIconReturn,
-  watchEffectAppMetadataToAppIcon,
+$WatchEffectAppMetadataToAppIconReturn,
+watchEffectAppMetadataToAppIcon,
 } from "src/components/app-icon/appMetaDataHelper.ts";
 import { $AppIconInfo } from "src/components/app-icon/types";
 import SvgIcon from "src/components/svg-icon/svg-icon.vue";
 import {
-  doToggleTaskbar,
-  openApp,
-  quitApp,
-  resizeTaskbar,
-  toggleDesktopView,
-  toggleMaximize,
-  watchTaskbarAppInfo,
+doToggleTaskbar,
+openApp,
+quitApp,
+resizeTaskbar,
+toggleDesktopView,
+toggleMaximize,
+watchTaskbarAppInfo,
 } from "src/provider/api.ts";
 import { $WidgetAppData } from "src/types/app.type.ts";
-import { computed, onMounted, onUnmounted, ref, ShallowRef, shallowRef, triggerRef } from "vue";
+import { ShallowRef, computed, onMounted, onUnmounted, ref, shallowRef, triggerRef } from "vue";
 import { icons } from "./icons/index.ts";
 import x_circle_svg from "./icons/x-circle.svg";
 
@@ -181,7 +181,7 @@ const iconSize = "45px";
       </button>
     </div>
     <template v-if="!isSingleIconMode">
-      <hr class="my-divider" />
+      <hr v-if="appRefList.length !== 0" class="my-divider" />
       <button class="desktop-button app-icon-wrapper z-grid m-4" @click="toggleDesktopButton">
         <AppIcon
           class="z-view"
@@ -223,7 +223,7 @@ const iconSize = "45px";
   border-radius: 1px;
   border: 0;
   background: linear-gradient(to right, transparent, currentColor, transparent);
-  margin: 0;
+  margin-top: 16px;
   flex-shrink: 0;
 }
 .desktop-button {
@@ -243,7 +243,7 @@ button {
   }
 }
 .active {
-  transform: scale(1.2);
+  box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.3);
 }
 .running-dot {
   width: 100%;

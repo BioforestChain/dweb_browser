@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { useThrottleFn } from "@vueuse/core";
 import AppIcon from "src/components/app-icon/app-icon.vue";
 import { watchEffectAppMetadataToAppIcon } from "src/components/app-icon/appMetaDataHelper";
 import { $AppIconInfo } from "src/components/app-icon/types";
@@ -6,7 +7,7 @@ import SvgIcon from "src/components/svg-icon/svg-icon.vue";
 import { deleteWebApp, detailApp, openApp, quitApp, vibrateHeavyClick } from "src/provider/api.ts";
 import { $CloseWatcher, CloseWatcher } from "src/provider/shim.ts";
 import type { $WidgetAppData } from "src/types/app.type.ts";
-import { computed, onMounted, reactive, ref, shallowRef, watch, watchEffect } from "vue";
+import { computed, onMounted, reactive, ref, shallowRef, watch } from "vue";
 import AppUnInstallDialog from "../app-uninstall-dialog/app-uninstall-dialog.vue";
 import { ownReason, showOverlay } from "../widget-menu-overlay/widget-menu-overlay.vue";
 import delete_svg from "./delete.svg";
@@ -50,7 +51,7 @@ watchEffectAppMetadataToAppIcon({ metaData: props.appMetaData }, appicon);
 const opening = ref(false);
 const closing = ref(false);
 const animationiteration = ref(false);
-watchEffect(() => {
+watch(animationiteration,() => {
   if (animationiteration.value === true) {
     animationiteration.value = false;
     /// 如果running的状态发生改变，那么修改ing的值
@@ -88,24 +89,27 @@ const $menu = {
   },
 };
 
-async function doOpen() {
-  opening.value = true;
-  if ((await openApp(appid.value).catch(() => (opening.value = false))) === false) {
-    snackbar.text = `${appname.value} 启动失败`;
-    snackbar.timeOut = 1500;
-    snackbar.type = "error";
-    snackbar.show = true;
-  }
-  opening.value = false;
-}
+const doOpen = () =>
+  useThrottleFn(
+    async () => {
+      opening.value = true;
+      if ((await openApp(appid.value).catch(() => (opening.value = false))) === false) {
+        snackbar.text = `${appname.value} 启动失败`;
+        snackbar.timeOut = 1500;
+        snackbar.type = "error";
+        snackbar.show = true;
+      }
+      opening.value = false;
+    },
+    500
+  )();
 
 async function doQuit() {
-  closing.value = true;
   // 如果是移除 browserApp需要顺便把窗口移除
   if (appid.value === "web.browser.dweb") {
     deleteWebApp();
   }
-  if (await quitApp(appid.value).catch(() => (closing.value = false))) {
+  if (await quitApp(appid.value)) {
     snackbar.text = `${appname.value} 已退出后台。`;
     snackbar.timeOut = 1500;
     snackbar.type = "primary";

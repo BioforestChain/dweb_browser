@@ -51,7 +51,7 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
   val bootstrapContext get() = _bootstrapContext ?: throw Exception("module no run.")
 
   protected abstract suspend fun _bootstrap(bootstrapContext: BootstrapContext)
-  private fun afterBootstrap(_dnsMM: BootstrapContext) {
+  private suspend fun afterBootstrap(_dnsMM: BootstrapContext) {
     this.runningStateLock.resolve()
   }
 
