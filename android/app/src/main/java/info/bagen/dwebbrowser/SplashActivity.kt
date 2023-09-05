@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -48,6 +47,8 @@ class SplashActivity : AppCompatActivity() {
     App.startMicroModuleProcess() // 启动MicroModule
     val enable = this.getBoolean(KEY_ENABLE_AGREEMENT, false) // 获取隐私协议状态
 
+    WindowCompat.setDecorFitsSystemWindows(window, false) // 全屏
+
     setContent {
       val scope = rememberCoroutineScope()
       LaunchedEffect(mKeepOnAtomicBool) { // 最多显示1s就需要隐藏欢迎界面
@@ -60,9 +61,6 @@ class SplashActivity : AppCompatActivity() {
       }
 
       DwebBrowserAppTheme {
-        SideEffect { // 为了全屏
-          WindowCompat.setDecorFitsSystemWindows(this@SplashActivity.window, false)
-        }
         val webUrl = remember { mutableStateOf("") }
         val showLoading = remember { mutableStateOf(false) }
 
