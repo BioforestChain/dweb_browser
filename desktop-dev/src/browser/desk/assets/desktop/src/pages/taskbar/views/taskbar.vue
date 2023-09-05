@@ -213,7 +213,6 @@ const iconSize = "45px";
   flex-direction: column;
   gap: 1em;
   flex: 1;
-  overflow: hidden;
   flex-wrap: wrap;
   justify-content: space-around;
 }
@@ -243,7 +242,8 @@ button {
   }
 }
 .active {
-  box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.3);
+  box-shadow: rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px;
+  border-radius: 16px;
 }
 .running-dot {
   width: 100%;
