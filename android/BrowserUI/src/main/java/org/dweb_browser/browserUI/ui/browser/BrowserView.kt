@@ -19,6 +19,22 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FormatSize
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.AddHome
+import androidx.compose.material.icons.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.ArrowForward
+import androidx.compose.material.icons.rounded.Filter1
+import androidx.compose.material.icons.rounded.Filter2
+import androidx.compose.material.icons.rounded.Filter3
+import androidx.compose.material.icons.rounded.Filter4
+import androidx.compose.material.icons.rounded.Filter5
+import androidx.compose.material.icons.rounded.Filter6
+import androidx.compose.material.icons.rounded.Filter7
+import androidx.compose.material.icons.rounded.Filter8
+import androidx.compose.material.icons.rounded.Filter9
+import androidx.compose.material.icons.rounded.Filter9Plus
+import androidx.compose.material.icons.rounded.Menu
+import androidx.compose.material.icons.rounded.QrCodeScanner
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -301,18 +317,27 @@ private fun BrowserViewNavigatorBar(viewModel: BrowserViewModel) {
       .height(dimenNavigationHeight)
   ) {
     val navigator = viewModel.uiState.currentBrowserBaseView.value.viewItem.navigator
-    NavigatorButton(
-      resId = R.drawable.ic_main_back,
+    // 屏蔽 goBack 和 goForward，功能转移到窗口的导航栏实现
+    /*NavigatorButton(
+      imageVector = Icons.Rounded.ArrowBack, // R.drawable.ic_main_back,
       resName = R.string.browser_nav_back,
       show = navigator.canGoBack
     ) { navigator.navigateBack() }
     NavigatorButton(
-      resId = R.drawable.ic_main_forward,
+      imageVector = Icons.Rounded.ArrowForward, // R.drawable.ic_main_forward,
       resName = R.string.browser_nav_forward,
       show = navigator.canGoForward ?: false
-    ) { navigator.navigateForward() }
+    ) { navigator.navigateForward() }*/
     NavigatorButton(
-      resId = if (navigator.canGoBack) R.drawable.ic_main_add else R.drawable.ic_main_qrcode_scan,
+      imageVector = Icons.Rounded.AddHome,
+      resName = R.string.browser_nav_addhome,
+      show = navigator.canGoBack
+    ) {
+      scope.launch { viewModel.addUrlToDesktop() }
+    }
+    NavigatorButton(
+      imageVector = if (navigator.canGoBack) Icons.Rounded.Add else Icons.Rounded.QrCodeScanner,
+      // resId = if (navigator.canGoBack) R.drawable.ic_main_add else R.drawable.ic_main_qrcode_scan,
       resName = if (navigator.canGoBack) R.string.browser_nav_add else R.string.browser_nav_scan,
       show = true
     ) {
@@ -323,12 +348,16 @@ private fun BrowserViewNavigatorBar(viewModel: BrowserViewModel) {
       }
     }
     NavigatorButton(
-      resId = R.drawable.ic_main_multi, resName = R.string.browser_nav_multi, show = true
+      imageVector = getMultiImageVector(viewModel.uiState.browserViewList.size), // resId = R.drawable.ic_main_multi,
+      resName = R.string.browser_nav_multi,
+      show = true
     ) {
       viewModel.handleIntent(BrowserIntent.UpdateMultiViewState(true))
     }
     NavigatorButton(
-      resId = R.drawable.ic_main_option, resName = R.string.browser_nav_option, show = true
+      imageVector = Icons.Rounded.Menu, // resId = R.drawable.ic_main_option,
+      resName = R.string.browser_nav_option,
+      show = true
     ) {
       scope.launch {
         bottomSheetModel.show()
@@ -337,9 +366,22 @@ private fun BrowserViewNavigatorBar(viewModel: BrowserViewModel) {
   }
 }
 
+private fun getMultiImageVector(size: Int) = when (size) {
+  1 -> Icons.Rounded.Filter1
+  2 -> Icons.Rounded.Filter2
+  3 -> Icons.Rounded.Filter3
+  4 -> Icons.Rounded.Filter4
+  5 -> Icons.Rounded.Filter5
+  6 -> Icons.Rounded.Filter6
+  7 -> Icons.Rounded.Filter7
+  8 -> Icons.Rounded.Filter8
+  9 -> Icons.Rounded.Filter9
+  else -> Icons.Rounded.Filter9Plus
+}
+
 @Composable
 private fun RowScope.NavigatorButton(
-  @DrawableRes resId: Int, @StringRes resName: Int, show: Boolean, onClick: () -> Unit
+  imageVector: ImageVector, @StringRes resName: Int, show: Boolean, onClick: () -> Unit
 ) {
   Box(modifier = Modifier
     .weight(1f)
@@ -349,7 +391,7 @@ private fun RowScope.NavigatorButton(
     Column(modifier = Modifier.align(Alignment.Center)) {
       Icon(
         modifier = Modifier.size(28.dp),
-        imageVector = ImageVector.vectorResource(id = resId),//ImageBitmap.imageResource(id = resId),
+        imageVector = imageVector, //ImageVector.vectorResource(id = resId),//ImageBitmap.imageResource(id = resId),
         contentDescription = stringResource(id = resName),
         tint = if (show) {
           MaterialTheme.colorScheme.onSecondaryContainer

@@ -35,8 +35,8 @@ private fun JFXPanel.buildWebView(url: String) {
     val webEngine = webView.engine
 
     // Set the user agent to simulate a browser for YouTube
-    webEngine.userAgent =
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
+    /*webEngine.userAgent =
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"*/
 
     // Enable JavaScript support for YouTube embed player
     webEngine.isJavaScriptEnabled = true

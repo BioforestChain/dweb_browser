@@ -1,6 +1,6 @@
 package info.bagen.dwebbrowser.microService.browser.mwebview
 
-import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
+import org.dweb_browser.microservice.core.AndroidNativeMicroModule
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch

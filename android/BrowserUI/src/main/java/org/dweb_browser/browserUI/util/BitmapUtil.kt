@@ -10,8 +10,11 @@ import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import android.provider.MediaStore.Video.Thumbnails.MINI_KIND
+import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
+import java.io.File
+import java.io.FileOutputStream
 
 object BitmapUtil {
   /**
@@ -137,5 +140,25 @@ object BitmapUtil {
         drawable.draw(canvas)
       }
     }
+  }
+
+  fun saveBitmapToLocalFile(bitmap: Bitmap) : String? {
+    try {
+      val filesDir = BrowserUIApp.Instance.appContext.filesDir.absolutePath // 获取data/file路径
+      val file = File(filesDir + File.separator + "icons").let { fileParent ->
+        if (!fileParent.exists()) {
+          fileParent.mkdirs()
+        }
+        File(fileParent.absolutePath + File.separator + "${System.currentTimeMillis()}.png")
+      }
+      val fos = FileOutputStream(file)
+      bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos)
+      fos.flush()
+      fos.close()
+      return file.absolutePath
+    } catch (e: Exception) {
+      Log.e("BitmapUtil", "saveBitmapToLocalFile fail!! -> ${e.message}")
+    }
+    return null
   }
 }

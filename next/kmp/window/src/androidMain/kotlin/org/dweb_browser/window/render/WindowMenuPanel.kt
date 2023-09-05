@@ -374,7 +374,12 @@ internal fun WindowMenuPanel(
           }
         }
 
-        ElevatedButton(onClick = { scope.launch { win.hideMenuPanel() } }) {
+        ElevatedButton(onClick = {
+          scope.launch {
+            win.hideMenuPanel()
+            win.close() // 增加关闭窗口
+          }
+        }) {
           Text("退出应用")
         }
       }

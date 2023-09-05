@@ -8,7 +8,7 @@ import info.bagen.dwebbrowser.microService.browser.jsProcess.JsProcessNMM
 import info.bagen.dwebbrowser.microService.browser.mwebview.MultiWebViewNMM
 import info.bagen.dwebbrowser.microService.browser.nativeui.NativeUiNMM
 import info.bagen.dwebbrowser.microService.browser.nativeui.torch.TorchNMM
-import info.bagen.dwebbrowser.microService.browser.web.BrowserNMM
+import org.dweb_browser.browserUI.microService.browser.web.BrowserNMM
 import info.bagen.dwebbrowser.microService.sys.LocalFileFetch
 import info.bagen.dwebbrowser.microService.sys.biometrics.BiometricsNMM
 import info.bagen.dwebbrowser.microService.sys.clipboard.ClipboardNMM
@@ -67,7 +67,7 @@ suspend fun startDwebBrowser(): DnsNMM {
     )
 
     DEVELOPER.HuangLin, DEVELOPER.HLVirtual, DEVELOPER.HLOppo, DEVELOPER.HBXiaomi, DEVELOPER.ZGSansung -> addDebugTags(
-      listOf("fetch", "http", "mwebview", "fetch-file", "js-process", "Desktop")
+      listOf("fetch", "http", "mwebview", "fetch-file", "js-process", "Desktop", "browser")
     )
 
     DEVELOPER.WaterBang -> addDebugTags(

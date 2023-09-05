@@ -13,7 +13,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.R
-import info.bagen.dwebbrowser.microService.browser.web.BrowserActivity
+import info.bagen.dwebbrowser.microService.browser.desk.DesktopActivity
 import info.bagen.dwebbrowser.microService.sys.deepLink.DWebReceiver
 
 class NotifyManager {
@@ -49,7 +49,7 @@ class NotifyManager {
     var requestCode = 1 // 用于通知栏点击时，避免都是点击到最后一个
 
     fun getDefaultPendingIntent(): PendingIntent {
-      val intent = Intent(App.appContext, BrowserActivity::class.java).apply {
+      val intent = Intent(App.appContext, DesktopActivity::class.java).apply {
         flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
       }
       return PendingIntent.getActivity(
@@ -88,8 +88,8 @@ class NotifyManager {
     channelType: ChannelType = ChannelType.DEFAULT,
     intent: PendingIntent = getDefaultPendingIntent()
   ) {
-    var context = App.appContext
-    var builder = NotificationCompat.Builder(context, channelType.channelID)
+    val context = App.appContext
+    val builder = NotificationCompat.Builder(context, channelType.channelID)
       .setContentTitle(title) // 通知标题
       .setContentText(text) // 通知内容
       .setSmallIcon(smallIcon) // 设置通知的小图标

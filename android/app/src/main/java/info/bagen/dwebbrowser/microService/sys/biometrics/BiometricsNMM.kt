@@ -2,7 +2,7 @@ package info.bagen.dwebbrowser.microService.sys.biometrics
 
 import android.content.Intent
 import info.bagen.dwebbrowser.App
-import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
+import org.dweb_browser.microservice.core.AndroidNativeMicroModule
 import info.bagen.dwebbrowser.microService.sys.biometrics.BiometricsActivity.Companion.biometrics_promise_out
 import info.bagen.dwebbrowser.microService.sys.biometrics.BiometricsController.Companion.biometricsController
 import org.dweb_browser.helper.printDebug

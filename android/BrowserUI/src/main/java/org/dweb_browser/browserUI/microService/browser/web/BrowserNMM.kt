@@ -1,13 +1,13 @@
-package info.bagen.dwebbrowser.microService.browser.web
+package org.dweb_browser.browserUI.microService.browser.web
 
-import info.bagen.dwebbrowser.microService.browser.desk.types.DeskLinkMetaData
-import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.dweb_browser.browserUI.microService.browser.types.DeskLinkMetaData
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.printDebug
+import org.dweb_browser.microservice.core.AndroidNativeMicroModule
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.ipc.helper.IpcResponse
@@ -39,7 +39,6 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
   val queryAppId = Query.string().optional("mmid")
   val queryKeyWord = Query.string().required("q")
   val queryUrl = Query.string().required("url")
-  private val runningWebApps = mutableListOf<DeskLinkMetaData>()
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     browserServer = this.createBrowserWebServer()
@@ -74,8 +73,9 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
         debugBrowser("/browser/observe/apps", ipc.remote.mmid)
         val inputStream = ReadableStream(onStart = { controller ->
           val off = browserController.onUpdate {
+            debugBrowser("/browser/observe/apps", "onUpdate -> ${browserController.runningWebApps.size}")
             try {
-              controller.enqueue((Json.encodeToString(runningWebApps) + "\n").toByteArray())
+              controller.enqueue((Json.encodeToString(browserController.runningWebApps) + "\n").toByteArray())
             } catch (e: Exception) {
               controller.close()
               e.printStackTrace()
@@ -91,6 +91,15 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
       },
       "/uninstall" bind Method.GET to defineHandler { request, ipc ->
         debugBrowser("uninstall", request.uri)
+        val mmid = queryAppId(request)
+        if (mmid == null) {
+          browserController.uninstallWindow()
+        }
+        //TODO 卸载webApp
+        return@defineHandler Response(Status.OK)
+      },
+      "/addToDesktop" bind Method.GET to defineHandler { request, ipc ->
+        debugBrowser("addToDesktop", request.uri)
         val mmid = queryAppId(request)
         if (mmid == null) {
           browserController.uninstallWindow()

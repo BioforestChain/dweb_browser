@@ -70,6 +70,7 @@
   <string name="browser_nav_multi">多视图</string>
   <string name="browser_nav_option">选项</string>
   <string name="browser_nav_forward">前进</string>
+  <string name="browser_nav_addhome">添加到桌面</string>
   <string name="browser_nav_history">历史记录</string>
   <string name="browser_nav_favorite">收藏</string>
   <string name="browser_nav_multiview">预览</string>

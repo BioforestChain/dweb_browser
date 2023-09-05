@@ -1,16 +1,22 @@
-package info.bagen.dwebbrowser.microService.browser.web
+package org.dweb_browser.browserUI.microService.browser.web
 
+import android.graphics.Bitmap
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
-import info.bagen.dwebbrowser.R
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.dweb_browser.browserUI.R
+import org.dweb_browser.browserUI.microService.browser.types.DeskLinkMetaData
+import org.dweb_browser.browserUI.microService.browser.types.DeskLinkMetaDataStore
 import org.dweb_browser.browserUI.ui.browser.BrowserViewModel
+import org.dweb_browser.browserUI.util.BitmapUtil
+import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.microservice.ipc.Ipc
@@ -27,7 +33,6 @@ class BrowserController(
 
   internal val updateSignal = SimpleSignal()
   val onUpdate = updateSignal.toListener()
-
 
   private var winLock = Mutex(false)
 
@@ -78,65 +83,39 @@ class BrowserController(
 
   private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
   val showLoading: MutableState<Boolean> = mutableStateOf(false)
-  val viewModel = BrowserViewModel(browserNMM, browserServer) { mmid ->
+  val viewModel = BrowserViewModel(this, browserNMM, browserServer) { mmid ->
     ioAsyncScope.launch {
       browserNMM.bootstrapContext.dns.open(mmid)
     }
   }
 
+  init {
+    ioAsyncScope.launch {
+      // 获取之前保存的列表
+      DeskLinkMetaDataStore.queryDeskLinkList().collectLatest {
+        runningWebApps.clear()
+        runningWebApps.addAll(it)
+        updateSignal.emit()
+      }
+    }
+  }
 
   internal fun updateDWSearch(search: String) = viewModel.setDwebLinkSearch(search)
   internal fun updateDWUrl(url: String) = viewModel.setDwebLinkUrl(url)
 
+  val runningWebApps = mutableListOf<DeskLinkMetaData>()
 
-//  val browserViewModel by lazy {
-//    BrowserViewModel(browserNMM,browserServer) { mmid ->
-//      activity?.lifecycleScope?.launch {
-//        browserNMM.bootstrapContext.dns.open(mmid)
-//      }
-//    }
-//  }
-//
-//  private var activityTask = PromiseOut<BrowserActivity>()
-//  suspend fun waitActivityCreated() = activityTask.waitPromise()
-//
-//  var activity: BrowserActivity? = null
-//    set(value) {
-//      if (field == value) {
-//        return
-//      }
-//      field = value
-//      if (value == null) {
-//        activityTask = PromiseOut()
-//      } else {
-//        activityTask.resolve(value)
-//      }
-//    }
-//
-//  val currentInsets: MutableState<WindowInsetsCompat> by lazy {
-//    mutableStateOf(
-//      WindowInsetsCompat.toWindowInsetsCompat(
-//        activity!!.window.decorView.rootWindowInsets
-//      )
-//    )
-//  }
-//
-//  @Composable
-//  fun effect(activity: BrowserActivity): BrowserController {
-//    /**
-//     * 这个 NativeUI 的逻辑是工作在全屏幕下，所以会使得默认覆盖 系统 UI
-//     */
-//    SideEffect {
-//      WindowCompat.setDecorFitsSystemWindows(activity.window, false)
-//      /// system-bar 一旦隐藏（visible = false），那么被手势划出来后，过一会儿自动回去
-//      //windowInsetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-//
-//      ViewCompat.setOnApplyWindowInsetsListener(activity.window.decorView) { _, insets ->
-//        currentInsets.value = insets
-//        insets
-//      }
-//
-//    }
-//    return this
-//  }
+  suspend fun addUrlToDesktop(title: String, url: String, icon: Bitmap?) {
+    val imageResource = icon?.let { bitmap ->
+      BitmapUtil.saveBitmapToLocalFile(bitmap)?.let { src ->
+        ImageResource(src = "file://$src")
+      }
+    }
+    val item = DeskLinkMetaData(
+      title = title, url = url, icon = imageResource, id = System.currentTimeMillis()
+    )
+    DeskLinkMetaDataStore.saveDeskLink(item)
+    /*runningWebApps.add(item)
+    updateSignal.emit()*/
+  }
 }

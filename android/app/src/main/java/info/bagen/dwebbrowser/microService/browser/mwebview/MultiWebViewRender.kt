@@ -3,7 +3,6 @@ package info.bagen.dwebbrowser.microService.browser.mwebview
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.SideEffect
@@ -20,7 +19,6 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.window.render.LocalWindowController
 import org.dweb_browser.window.render.watchedIsMaximized
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MultiWebViewController.Render(modifier: Modifier = Modifier, initialScale: Int) {
   val controller = this;

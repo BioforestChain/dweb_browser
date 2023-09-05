@@ -38,13 +38,14 @@ kotlin {
     val androidMain by getting {
       dependencies {
         // Android Runtime
-        implementation(libs.androidx.core.ktx)
-        implementation(libs.androidx.activity)
-        implementation(libs.androidx.activity.ktx)
-        implementation(libs.androidx.appcompat)
-        implementation(libs.androidx.animation.core.android)
-        implementation(libs.androidx.lifecycle.runtime.ktx)
-        implementation(libs.google.material)
+        api(libs.androidx.core.ktx)
+        api(libs.androidx.activity)
+        api(libs.androidx.activity.ktx)
+        api(libs.androidx.activity.compose)
+        api(libs.androidx.appcompat)
+        api(libs.androidx.animation.core.android)
+        api(libs.androidx.lifecycle.runtime.ktx)
+        api(libs.google.material)
         // 加载图片 coil
         api(libs.coil.core)
         api(libs.coil.compose)

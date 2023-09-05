@@ -32,6 +32,7 @@ import org.dweb_browser.browserUI.database.WebEngine
 import org.dweb_browser.browserUI.database.WebSiteDatabase
 import org.dweb_browser.browserUI.database.WebSiteInfo
 import org.dweb_browser.browserUI.database.WebSiteType
+import org.dweb_browser.browserUI.microService.browser.web.BrowserController
 import org.dweb_browser.browserUI.ui.entity.BrowserWebView
 import org.dweb_browser.browserUI.ui.qrcode.QRCodeScanState
 import org.dweb_browser.browserUI.util.BrowserUIApp
@@ -101,9 +102,9 @@ val LocalWebViewInitialScale = compositionLocalOf<Int> {
 }
 
 sealed class BrowserIntent {
-  object ShowMainView : BrowserIntent()
-  object WebViewGoBack : BrowserIntent()
-  object AddNewMainView : BrowserIntent()
+  data object ShowMainView : BrowserIntent()
+  data object WebViewGoBack : BrowserIntent()
+  data object AddNewMainView : BrowserIntent()
   class UpdateCurrentBaseView(val currentPage: Int) : BrowserIntent()
   class UpdateBottomViewState(val show: Boolean) : BrowserIntent()
   class UpdateMultiViewState(val show: Boolean, val index: Int? = null) : BrowserIntent()
@@ -112,22 +113,23 @@ sealed class BrowserIntent {
   class RemoveBaseView(val id: Int) : BrowserIntent()
   class OpenDwebBrowser(val mmid: MMID) : BrowserIntent()
   class SaveHistoryWebSiteInfo(val title: String?, val url: String?) : BrowserIntent()
-  object SaveBookWebSiteInfo : BrowserIntent() // 直接获取当前的界面来保存
+  data object SaveBookWebSiteInfo : BrowserIntent() // 直接获取当前的界面来保存
   class ShareWebSiteInfo(val activity: Activity) : BrowserIntent() // 直接获取当前的界面来保存
   class UpdateInputText(val text: String) : BrowserIntent()
   class ShowSnackbarMessage(val message: String, val actionLabel: String? = null) : BrowserIntent()
-  object ShowPrivacyView : BrowserIntent()
+  data object ShowPrivacyView : BrowserIntent()
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 class BrowserViewModel(
+  private val browserController: BrowserController,
   private val browserNMM: MicroModule,
   private val browserServer: HttpDwebServer,
   val onOpenDweb: (MMID) -> Unit
 ) : ViewModel() {
   val uiState: BrowserUIState
   val dwebLinkSearch: MutableState<String> = mutableStateOf("")
-  val dwebLinkUrl: MutableState<String> = mutableStateOf("")
+  private val dwebLinkUrl: MutableState<String> = mutableStateOf("")
 
   companion object {
     private var webviewId_acc = AtomicInteger(1)
@@ -328,7 +330,7 @@ class BrowserViewModel(
     }
   }
 
-  fun createDwebView(url: String = ""): DWebView = DWebView(
+  private fun createDwebView(url: String = ""): DWebView = DWebView(
     BrowserUIApp.Instance.appContext, browserNMM, DWebView.Options(
       url = url,
       /// 我们会完全控制页面将如何离开，所以这里兜底默认为留在页面
@@ -336,7 +338,7 @@ class BrowserViewModel(
     )
   )
 
-  fun appendWebViewAsItem(dWebView: DWebView): Pair<ViewItem, CloseWatcher> {
+  private fun appendWebViewAsItem(dWebView: DWebView): Pair<ViewItem, CloseWatcher> {
     val webviewId = "#w${webviewId_acc.getAndAdd(1)}"
     val state = WebViewState(WebContent.Url(getDesktopUrl().toString()))
     val coroutineScope = CoroutineScope(CoroutineName(webviewId))
@@ -401,6 +403,17 @@ class BrowserViewModel(
   fun saveBrowserMode(noTrace: Boolean) {
     isNoTrace.value = noTrace
     BrowserUIApp.Instance.appContext.saveBoolean(KEY_NO_TRACE, noTrace)
+  }
+
+  /**
+   * 添加到桌面功能
+   */
+  suspend fun addUrlToDesktop() {
+    uiState.currentBrowserBaseView.value.viewItem.state.let { state ->
+      state.lastLoadedUrl?.let { url ->
+        browserController.addUrlToDesktop(state.pageTitle ?: "无标题", url, state.pageIcon)
+      }
+    }
   }
 }
 

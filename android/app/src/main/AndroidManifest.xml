@@ -69,17 +69,6 @@
       </intent-filter>
     </activity>
     <activity
-      android:name=".microService.browser.web.BrowserActivity"
-      android:exported="true"
-      android:launchMode="singleTask"
-      android:screenOrientation="portrait"
-      android:theme="@style/Theme.dwebbrowser"
-      tools:ignore="LockedOrientationActivity">
-      <intent-filter>
-        <data android:scheme="dweb" />
-      </intent-filter>
-    </activity>
-    <activity
       android:name=".microService.browser.desk.DesktopActivity"
       android:exported="true"
       android:launchMode="singleTask"

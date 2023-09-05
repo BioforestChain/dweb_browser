@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.widget.Toast
 import info.bagen.dwebbrowser.App
-import info.bagen.dwebbrowser.microService.browser.web.BrowserActivity
 import org.dweb_browser.browserUI.util.APP_DIR_TYPE
 import org.dweb_browser.browserUI.util.FilesUtil
 import java.io.File
@@ -25,7 +24,7 @@ class DWebReceiver : BroadcastReceiver() {
         if (File(callUrl).exists()) {
 //                    createWorker(WorkerNative.valueOf("DenoRuntime"), callUrl)
         } else {
-          context?.let { cc -> cc.startActivity(Intent(cc, BrowserActivity::class.java)) }
+          //context?.let { cc -> cc.startActivity(Intent(cc, BrowserActivity::class.java)) }
           Toast.makeText(context, "请安装应用<$appName>", Toast.LENGTH_SHORT).show()
         }
       }

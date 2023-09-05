@@ -1,8 +1,7 @@
 package info.bagen.dwebbrowser.microService.browser.jmm
 
 import info.bagen.dwebbrowser.App
-import info.bagen.dwebbrowser.microService.core.AndroidNativeMicroModule
-import kotlinx.coroutines.cancel
+import org.dweb_browser.microservice.core.AndroidNativeMicroModule
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.dweb_browser.browserUI.database.JsMicroModuleStore

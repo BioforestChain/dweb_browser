@@ -71,6 +71,7 @@
   <string name="browser_nav_multi">Multi</string>
   <string name="browser_nav_option">Option</string>
   <string name="browser_nav_forward">Forward</string>
+  <string name="browser_nav_addhome">AddHome</string>
   <string name="browser_nav_history">History</string>
   <string name="browser_nav_favorite">Favorite</string>
   <string name="browser_nav_multiview">Multiview</string>

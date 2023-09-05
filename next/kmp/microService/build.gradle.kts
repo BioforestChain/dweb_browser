@@ -43,6 +43,7 @@ kotlin {
         api(libs.kotlin.serialization.json)
 
         implementation(project(":helper"))
+        implementation(project(":helperCompose"))
       }
     }
     val commonTest by getting {
@@ -55,7 +56,7 @@ kotlin {
     }
     val androidMain by getting {
       dependencies {
-
+        dependsOn(commonMain)
         implementation(platform(libs.http4k.bom.get()))
         api(libs.http4k.core)
         api(libs.http4k.multipart)
@@ -63,6 +64,7 @@ kotlin {
 
         implementation(libs.data.moshi.pack)
         api(libs.data.gson)
+        implementation(project(":helperPlatform"))
       }
     }
     val androidUnitTest by getting
