@@ -91,7 +91,7 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
 
     val desktopController = DesktopController(deskSessionId, this, desktopServer, runningApps)
     val taskBarController =
-      TaskbarController(deskSessionId, this, desktopController, taskbarServer, runningApps)
+      TaskbarController(deskSessionId, this,desktopController, taskbarServer, runningApps)
     controllers[deskSessionId] = DeskControllers(desktopController, taskBarController)
 
     this.onAfterShutdown {
@@ -129,6 +129,7 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
           return@defineHandler false
         }
       },
+      // 获取isMaximized 的值
       "/toggleMaximize" bind Method.GET to defineHandler { request ->
         val mmid = queryAppId(request)
         return@defineHandler desktopController.desktopWindowsManager.toggleMaximize(mmid)
@@ -213,32 +214,16 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         taskBarController.resize(size)
         size.toJsonElement()
       },
+      // 切换到桌面
       "/taskbar/toggle-desktop-view" bind Method.GET to defineBooleanResponse {
         taskBarController.toggleDesktopView()
         true
       },
+      // 在app为全屏的时候，调出周围的高斯模糊，调整完全的taskbar
       "/taskbar/toggle-float-button-mode" bind Method.GET to defineBooleanResponse {
         val open = queryOpen(request)
         taskBarController.taskbarView.toggleFloatWindow(open)
-      },
-      "/browser/observe/apps" bind Method.GET to defineInputStreamHandler {
-        debugDesk("/browser/observe/apps")
-        val inputStream = ReadableStream(onStart = { controller ->
-          val off = taskBarController.onStatus { status ->
-            try {
-              controller.enqueueBackground((Json.encodeToString(status) + "\n").toByteArray())
-            } catch (e: Exception) {
-              controller.close()
-              e.printStackTrace()
-            }
-          }
-          ipc.onClose {
-            off()
-            controller.close()
-          }
-        })
-        inputStream
-      },
+      }
     ).cors()
 
     onActivity {

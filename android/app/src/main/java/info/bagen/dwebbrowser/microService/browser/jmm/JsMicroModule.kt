@@ -1,6 +1,5 @@
 package info.bagen.dwebbrowser.microService.browser.jmm
 
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.dweb_browser.dwebview.ipcWeb.Native2JsIpc

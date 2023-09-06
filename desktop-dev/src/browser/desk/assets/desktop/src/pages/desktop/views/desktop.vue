@@ -48,27 +48,23 @@ const updateApps = async () => {
   const widgetList = await getWidgetInfo();
 
   let appList: $WidgetAppData[] = [];
-  let webAppList: $DeskLinkMetaData[] = []
-  updateLayoutInfoList(widgetList, appList,webAppList);
+
+  updateLayoutInfoList(widgetList, appList);
 
   const appInfoWatcher = watchDesktopAppInfo();
-  const webAppsWatcher = watchBrowserAppInfo();
   void (async () => {
     onUnmounted(() => {
       appInfoWatcher.return();
-      webAppsWatcher.return();
     });
     for await (const list of appInfoWatcher) {
-      appList = list
-      updateLayoutInfoList(widgetList, appList,webAppList);
-    }
-    for await (const list of webAppsWatcher) {
-      webAppList = list;
-      updateLayoutInfoList(widgetList, appList,webAppList);
+      console.log("desktop app=>", list);
+      appList = list;
+      updateLayoutInfoList(widgetList, appList);
     }
   })();
 };
-const updateLayoutInfoList = (widgetList: $WidgetCustomData[], appList: $WidgetAppData[],webAppList:$DeskLinkMetaData[]) => {
+
+const updateLayoutInfoList = (widgetList: $WidgetCustomData[], appList: $WidgetAppData[]) => {
   const layoutInfoList: $LayoutInfo[] = [];
   for (const data of widgetList) {
     layoutInfoList.push({
@@ -84,18 +80,40 @@ const updateLayoutInfoList = (widgetList: $WidgetCustomData[], appList: $WidgetA
       xywh: { w: 1, h: 1 },
     });
   }
+
+  layoutInfoListRef.value = layoutInfoList;
+};
+
+const updateWebApps = async () => {
+  let webAppList: $DeskLinkMetaData[] = [];
+  const webAppsWatcher = watchBrowserAppInfo();
+  void (async () => {
+    onUnmounted(() => {
+      webAppsWatcher.return();
+    });
+    for await (const list of webAppsWatcher) {
+      console.log("desktop webApp=>", list);
+      webAppList = list;
+      updateWebAppList(webAppList);
+    }
+  })();
+};
+
+const updateWebAppList = (webAppList:$DeskLinkMetaData[]) => {
+  const list: $LayoutInfo[] = [];
   for (const data of webAppList) {
-    layoutInfoList.push({
+    list.push({
       type: "webapp",
       data,
       xywh: { w: 1, h: 1 },
     });
   }
-  layoutInfoListRef.value = layoutInfoList;
-};
+  layoutInfoListRef.value = layoutInfoListRef.value.concat(list)
+}
 
-onMounted(async () => {
-  await updateApps();
+onMounted(() => {
+  updateApps();
+  updateWebApps();
 });
 
 const bgStyle = {
@@ -108,7 +126,12 @@ const bgStyle = {
     <TilePanel>
       <TileItem v-for="(info, index) in layoutInfoListRef" :key="index" :width="info.xywh.w" :height="info.xywh.h">
         <WidgetApp v-if="info.type === 'app'" :key="index" :index="index" :app-meta-data="info.data"></WidgetApp>
-        <WidgetWebApp v-if="info.type === 'webapp'" :key="index" :index="index" :app-meta-data="info.data"></WidgetWebApp>
+        <WidgetWebApp
+          v-if="info.type === 'webapp'"
+          :key="index"
+          :index="index"
+          :app-meta-data="info.data"
+        ></WidgetWebApp>
         <WidgetCustom
           v-if="info.type === 'widget'"
           :key="index"

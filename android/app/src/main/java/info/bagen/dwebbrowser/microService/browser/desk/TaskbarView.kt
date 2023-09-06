@@ -35,6 +35,7 @@ import info.bagen.dwebbrowser.App
 import kotlinx.coroutines.launch
 import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.helper.clamp
+import org.dweb_browser.window.render.emitFocusOrBlur
 
 class TaskbarView(private val taskbarController: TaskbarController) {
   val state = TaskbarState()
@@ -63,24 +64,30 @@ class TaskbarView(private val taskbarController: TaskbarController) {
     true
   } else false
 
-  fun toggleFloatWindow(open: Boolean? = null): Boolean {
+  suspend fun toggleFloatWindow(open: Boolean? = null): Boolean {
     val toggle = open ?: !state.floatActivityState
+    // 监听状态是否是float
+    taskbarController.getFocusApp()?.let { focusApp ->
+      taskbarController.stateSignal.emit(
+        TaskbarController.TaskBarState(toggle, focusApp)
+      )
+    }
     return if (toggle) openFloatWindow() else closeFloatWindow()
   }
 
-  fun openTaskActivity() {
-    closeFloatWindow()
-    App.appContext.startActivity(
-      Intent(
-        App.appContext, TaskbarActivity::class.java
-      ).also { intent ->
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
-        intent.putExtras(Bundle().apply {
-          putString("deskSessionId", taskbarController.deskSessionId)
-        })
-      })
-  }
+//  fun openTaskActivity() {
+//    closeFloatWindow()
+//    App.appContext.startActivity(
+//      Intent(
+//        App.appContext, TaskbarActivity::class.java
+//      ).also { intent ->
+//        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+//        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
+//        intent.putExtras(Bundle().apply {
+//          putString("deskSessionId", taskbarController.deskSessionId)
+//        })
+//      })
+//  }
 
 
   private data class SafeBounds(

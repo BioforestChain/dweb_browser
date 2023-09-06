@@ -4,6 +4,9 @@ import { $DwebHttpServerOptions, $OnFetchReturn, FetchEvent, IpcResponse, jsProc
 import { urlStore } from "./helper/urlStore.ts";
 import { HttpServer, cors } from "./http-helper.ts";
 
+//  new Function(exp,"pattern,url,headers,method,config") (pattern.exec(req.url),req.url,req.headers,req.method,configPlugin.value)
+// {{pattern.pathname.input.slice(0,pattern.pathname.groups.id.length)}}/xxx
+
 /**给前端的文件服务 */
 export class Server_www extends HttpServer {
   constructor(readonly isDev = false) {
@@ -45,5 +48,9 @@ export class Server_www extends HttpServer {
       request.ipc
     );
     return ipcResponse;
+  }
+
+  private async _proxy() {
+    
   }
 }

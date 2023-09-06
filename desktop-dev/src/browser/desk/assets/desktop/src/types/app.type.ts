@@ -5,7 +5,7 @@ import type { $WindowState } from "../../../../types.ts";
 
 export interface $TaskBarState {
   /**
-   * 是否聚焦
+   * 是否聚焦到taskBar
    */
   focus: boolean;
   appId: `${string}.dweb`;
@@ -14,7 +14,7 @@ export interface $TaskBarState {
 export interface $DeskLinkMetaData {
   title:string,
   icon:$AppIconInfo,
-  url:string 
+  url:string
 }
 
 

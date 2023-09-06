@@ -2,7 +2,6 @@ package org.dweb_browser.window.core
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
-import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
@@ -36,7 +35,8 @@ open class WindowsManager<T : WindowController>(internal val viewController: Pla
    */
   val hasMaximizedWins = ChangeableSet<T>(viewController.lifecycleScope.coroutineContext)
 
-  val allWindows = ChangeableMap<T, WindowsManagerScope>(viewController.lifecycleScope.coroutineContext);
+  val allWindows =
+    ChangeableMap<T, WindowsManagerScope>(viewController.lifecycleScope.coroutineContext);
 
   /**
    * 寻找最后一个聚焦的窗口
@@ -288,6 +288,19 @@ open class WindowsManager<T : WindowController>(internal val viewController: Pla
     allWindows.keys.filter { win -> win.state.constants.owner == mmid }.sortedBy { it.state.zIndex }
 
   /**
+   * 获取窗口状态
+   */
+  fun getWindowStates(mmid: MMID): MutableList<WindowState> {
+    val states = mutableListOf<WindowState>()
+    for (win in allWindows.keys) {
+      if (win.state.constants.owner == mmid) {
+        states.add(win.state)
+      }
+    }
+    return states
+  }
+
+  /**
    * 返回最终 isMaximized 的值
    */
   suspend fun toggleMaximize(mmid: MMID): Boolean {
@@ -347,9 +360,10 @@ open class WindowsManager<T : WindowController>(internal val viewController: Pla
     win.simpleHideCloseTip()
   }
 
-  fun windowToggleMenuPanel(win: WindowController, show: Boolean?) = viewController.lifecycleScope.async {
-    win.simpleToggleMenuPanel(show)
-  }
+  fun windowToggleMenuPanel(win: WindowController, show: Boolean?) =
+    viewController.lifecycleScope.async {
+      win.simpleToggleMenuPanel(show)
+    }
 
   fun windowToggleAlwaysOnTop(win: WindowController, onTop: Boolean?) =
     viewController.lifecycleScope.async {

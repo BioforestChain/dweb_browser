@@ -44,6 +44,7 @@ class DesktopController(
     val runApps = apps.map { metaData ->
       return@map DeskAppMetaData().apply {
         running = runningApps.containsKey(metaData.mmid)
+        winStates = desktopWindowsManager.getWindowStates(metaData.mmid)
         assign(metaData.manifest)
       }
     }
@@ -72,6 +73,11 @@ class DesktopController(
    */
   val desktopWindowsManager
     get() = DesktopWindowsManager.getInstance(this.activity!!) { dwm ->
+
+      dwm.hasMaximizedWins.onChange {
+        updateSignal.emit()
+      }
+
       /// 但有窗口信号变动的时候，确保 MicroModule.IpcEvent<Activity> 事件被激活
       dwm.allWindows.onChange {
         _activitySignal.emit()

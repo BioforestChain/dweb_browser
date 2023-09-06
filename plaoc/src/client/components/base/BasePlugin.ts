@@ -5,6 +5,7 @@ import { $BuildRequestInit, buildRequest } from "../../helper/request.ts";
 
 export abstract class BasePlugin {
   static internal_url: string = location?.href ?? "http://localhost";
+  private static urlData: Promise<"file:///" | { [key in X_PLAOC_QUERY]: string }> = BasePlugin.getBaseUrl();
   static public_url: Promise<string> | string = BasePlugin.getInternalUrl(X_PLAOC_QUERY.API_PUBLIC_URL);
   static external_url = BasePlugin.getInternalUrl(X_PLAOC_QUERY.EXTERNAL_URL);
   static internal_url_useable?: boolean;
@@ -33,19 +34,29 @@ export abstract class BasePlugin {
   }
 
   protected createSignal = createSignal;
-  private static urlData?: { [key in X_PLAOC_QUERY]: string };
+  /**
+   * 获取指定的url
+   * @param urlType 
+   * @returns 
+   */
   static async getInternalUrl(urlType: X_PLAOC_QUERY): Promise<string> {
-    if (this.urlData) {
-      return this.urlData[urlType];
+    const data = await this.urlData
+    if (data === "file:///") {
+      return "file:///";
     }
+    if (data) {
+      return data[urlType];
+    }
+    return data[urlType];
+  }
+  /**获取plaoc内置url */
+  static async getBaseUrl() {
     if (typeof location === "undefined") {
       return "file:///";
     }
     const url = new URL(location.href);
     url.pathname = `/${X_PLAOC_QUERY.GET_CONFIG_URL}`;
-
-    this.urlData = await buildRequest(url).fetch().object<{ [key in X_PLAOC_QUERY]: string }>();
-    return this.urlData[urlType];
+    return await buildRequest(url).fetch().object<{ [key in X_PLAOC_QUERY]: string }>();
   }
 }
 

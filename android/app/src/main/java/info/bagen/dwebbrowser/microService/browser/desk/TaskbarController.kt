@@ -15,7 +15,7 @@ import org.http4k.core.query
 class TaskbarController(
   val deskSessionId: String,
   val desktopNMM: DesktopNMM,
-  val desktopController: DesktopController,
+  private val desktopController: DesktopController,
   private val taskbarServer: HttpDwebServer,
   private val runningApps: ChangeableMap<MMID, Ipc>
 ) {
@@ -51,9 +51,15 @@ class TaskbarController(
     desktopNMM.bootstrapContext.dns.onChange { map ->
       updateSignal.emit()
     }
+
+    desktopController.onActivity {
+      desktopController.desktopWindowsManager.hasMaximizedWins.onChange {
+        updateSignal.emit()
+      }
+    }
   }
 
-  fun getTaskbarAppList(limit: kotlin.Int): List<DeskAppMetaData> {
+  fun getTaskbarAppList(limit: Int): List<DeskAppMetaData> {
     val apps = mutableMapOf<MMID, DeskAppMetaData>()
     for (appId in _appList) {
       if (apps.size >= limit) {
@@ -66,6 +72,7 @@ class TaskbarController(
       if (metaData != null) {
         apps[appId] = DeskAppMetaData().apply {
           running = runningApps.contains(appId)
+          winStates = desktopController.desktopWindowsManager.getWindowStates(metaData.mmid)
           //...复制metaData属性
           assign(metaData.manifest)
         }
@@ -89,8 +96,10 @@ class TaskbarController(
   /**
    * 将其它视图临时最小化到 TaskbarView/TooggleDesktopButton 按钮里头，在此点击该按钮可以释放这些临时视图到原本的状态
    */
-  fun toggleDesktopView() {
-
+  suspend fun toggleDesktopView() {
+    desktopController.desktopWindowsManager.allWindows.forEach { win ->
+      win.key.minimize()
+    }
   }
 
   private var activityTask = PromiseOut<TaskbarActivity>()

@@ -1,6 +1,5 @@
 package info.bagen.dwebbrowser.microService.browser.desk
 
-import org.dweb_browser.helper.platform.PlatformViewController
 import org.dweb_browser.window.core.WindowController
 import org.dweb_browser.window.core.WindowState
 import org.dweb_browser.window.core.WindowsManager

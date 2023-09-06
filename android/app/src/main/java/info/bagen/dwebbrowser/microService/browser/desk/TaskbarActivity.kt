@@ -96,15 +96,6 @@ class TaskbarActivity : BaseThemeActivity() {
   // Activity是否获得焦点
   override fun onWindowFocusChanged(hasFocus: Boolean) {
     super.onWindowFocusChanged(hasFocus)
-    this.lifecycleScope.launch {
-      controller?.let { taskbarController ->
-        taskbarController.getFocusApp()?.let { focusApp ->
-          taskbarController.stateSignal.emit(
-            TaskbarController.TaskBarState(hasFocus, focusApp)
-          )
-        }
-      }
-    }
   }
 
   override fun onDestroy() {
