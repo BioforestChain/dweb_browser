@@ -48,6 +48,8 @@ class BrowserController(
   private var win: WindowController? = null
   suspend fun openBrowserWindow(ipc: Ipc, search: String? = null, url: String? = null) =
     winLock.withLock<WindowController> {
+      search?.let { viewModel.setDwebLinkSearch(it) }
+      url?.let { viewModel.setDwebLinkUrl(it) }
       if (win != null) {
         return win!!
       }
