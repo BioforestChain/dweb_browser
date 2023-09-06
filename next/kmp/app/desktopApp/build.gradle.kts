@@ -14,6 +14,7 @@ kotlin {
         implementation(compose.desktop.currentOs)
         implementation(project(":shared"))
         implementation(project(":helper"))
+        implementation(project(":helperPlatform"))
         implementation(project(":helperCompose"))
 
         // https://stackoverflow.com/questions/73187027/use-javafx-in-kotlin-multiplatform
