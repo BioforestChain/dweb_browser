@@ -35,8 +35,10 @@ kotlin {
       dependencies {
         implementation(libs.jetbrains.compose.runtime)
         implementation(libs.jetbrains.compose.foundation)
+//        @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
+//        implementation(libs.jetbrains.compose.components.resources)
         @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
-        implementation(libs.jetbrains.compose.components.resources)
+        implementation(compose.components.resources)
 
         implementation(libs.jetbrains.compose.material3)
 
@@ -98,9 +100,12 @@ kotlin {
 }
 
 android {
-  namespace = "org.dweb_browser.helper.android"
+  namespace = "org.dweb_browser.helper.platform"
   compileSdk = libs.versions.compileSdkVersion.get().toInt()
   defaultConfig {
     minSdk = libs.versions.minSdkVersion.get().toInt()
   }
+  sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
+  sourceSets["main"].res.srcDirs("src/androidMain/res")
+  sourceSets["main"].resources.srcDirs("src/androidMain/resources","src/commonMain/resources")
 }

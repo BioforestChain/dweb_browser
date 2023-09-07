@@ -11,10 +11,6 @@ import org.dweb_browser.helper.android.addOnApplyWindowInsetsCompatListener
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 
 actual class PlatformViewController private actual constructor(arg1: Any?, arg2: Any?) {
-  companion object {
-    var appContext: Context? = null
-  }
-
   private val baseActivity: BaseActivity? = arg2 as BaseActivity?
   private val context: Context = arg1 as Context
 

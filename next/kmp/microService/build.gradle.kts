@@ -36,10 +36,6 @@ kotlin {
         api(libs.ktor.server.websockets)
         api(libs.ktor.server.cio)
         api(libs.ktor.client.cio)
-
-        api(libs.ktor.server.websockets)
-        api(libs.ktor.server.cio)
-        api(libs.ktor.client.cio)
         api(libs.kotlin.serialization.json)
 
         implementation(project(":helper"))

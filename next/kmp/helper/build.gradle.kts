@@ -29,11 +29,15 @@ kotlin {
   sourceSets {
     val commonMain by getting {
       dependencies {
-        implementation(kotlin("stdlib"))
-        implementation(libs.kotlinx.coroutines.core)
-        implementation(libs.kotlinx.atomicfu)
+        api(kotlin("stdlib"))
+        api(libs.kotlinx.coroutines.core)
+        api(libs.kotlinx.atomicfu)
         api(libs.ktor.http)
         api(libs.ktor.io)
+        api(libs.ktor.server.websockets)
+        api(libs.ktor.server.cio)
+        api(libs.ktor.client.cio)
+
         api(libs.kotlinx.datetime)
         api(libs.kotlin.serialization.json)
         api(libs.kotlin.serialization.cbor)

@@ -1,24 +1,21 @@
 package org.dweb_browser.helper.platform
-import Fun
+
+import org.dweb_browser.helper.platform.offscreenwebcanvas.RunCommandResult
 
 actual class OffscreenWebCanvas actual constructor(width: Int, height: Int) {
-    private val wkwebview = NS
-    actual companion object {
-        actual val Default: OffscreenWebCanvas
-            get() = TODO("Not yet implemented")
-    }
 
-    actual suspend fun evalJavaScriptWithResult(jsCode: String): kotlin.Result<String> {
-        TODO("Not yet implemented")
-    }
 
-    actual suspend fun evalJavaScriptWithVoid(jsCode: String): kotlin.Result<Unit> {
-        TODO("Not yet implemented")
-    }
+  actual val width: Int
+    get() = TODO("Not yet implemented")
+  actual val height: Int
+    get() = TODO("Not yet implemented")
 
-    actual val width: Int
-        get() = TODO("Not yet implemented")
-    actual val height: Int
-        get() = TODO("Not yet implemented")
+  internal actual suspend fun runJsCodeWithResult(
+    resultVoid: Boolean,
+    jsonIfyResult: Boolean,
+    jsCode: String
+  ): RunCommandResult {
+    TODO("Not yet implemented")
+  }
 
 }
