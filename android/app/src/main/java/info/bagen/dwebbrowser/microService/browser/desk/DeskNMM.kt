@@ -4,15 +4,11 @@ import android.content.Intent
 import android.os.Bundle
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.browser.jmm.EIpcEvent
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.plus
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.ChangeState
 import org.dweb_browser.helper.ChangeableMap
-import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.readByteArray
 import org.dweb_browser.helper.toJsonElement
@@ -53,6 +49,7 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
   }
 
   private val runningApps = ChangeableMap<MMID, Ipc>()
+
   companion object {
     data class DeskControllers(
       val desktopController: DesktopController, val taskbarController: TaskbarController
@@ -91,7 +88,7 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
 
     val desktopController = DesktopController(deskSessionId, this, desktopServer, runningApps)
     val taskBarController =
-      TaskbarController(deskSessionId, this,desktopController, taskbarServer, runningApps)
+      TaskbarController(deskSessionId, this, desktopController, taskbarServer, runningApps)
     controllers[deskSessionId] = DeskControllers(desktopController, taskBarController)
 
     this.onAfterShutdown {
@@ -137,7 +134,7 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       "/closeApp" bind Method.GET to defineHandler { request ->
         val mmid = queryAppId(request);
         if (runningApps.containsKey(mmid)) {
-        return@defineHandler bootstrapContext.dns.close(mmid)
+          return@defineHandler bootstrapContext.dns.close(mmid)
         }
         return@defineHandler false
       },

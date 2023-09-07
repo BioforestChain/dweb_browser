@@ -10,13 +10,11 @@ import androidx.activity.compose.setContent
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowCompat
-import androidx.lifecycle.lifecycleScope
 import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.base.BaseThemeActivity
-import kotlinx.coroutines.launch
 import org.dweb_browser.helper.android.ActivityBlurHelper
 import org.dweb_browser.helper.compose.theme.DwebBrowserAppTheme
-
+import org.dweb_browser.helper.runBlockingCatching
 
 class TaskbarActivity : BaseThemeActivity() {
 
@@ -44,8 +42,6 @@ class TaskbarActivity : BaseThemeActivity() {
     fun toPx(dp: Float) = (densityValue * dp).toInt()
 
     setContent {
-      /// 关联到
-
       window.attributes = window.attributes.also { attributes ->
         taskbarController.taskbarView.state.composableHelper.apply {
           val layoutWidth by stateOf { layoutWidth }
@@ -65,9 +61,7 @@ class TaskbarActivity : BaseThemeActivity() {
         }
       }
       DwebBrowserAppTheme {
-        BackHandler {
-          finish()
-        }
+        BackHandler { finish() }
         /// 任务栏视图
         AndroidView(factory = {
           taskbarController.taskbarView.taskbarDWebView.also { webView ->
@@ -93,18 +87,14 @@ class TaskbarActivity : BaseThemeActivity() {
     )
   }
 
-  // Activity是否获得焦点
-  override fun onWindowFocusChanged(hasFocus: Boolean) {
-    super.onWindowFocusChanged(hasFocus)
-  }
-
   override fun onDestroy() {
     super.onDestroy()
     controller?.also { taskBarController ->
-      taskBarController.taskbarView.closeFloatWindow() // 销毁 TaskbarActivity 后需要将悬浮框重新显示加载
-      taskBarController.activity = null
+      runBlockingCatching {
+        taskBarController.taskbarView.toggleFloatWindow(openTaskbar = false) // 销毁 TaskbarActivity 后需要将悬浮框重新显示加载
+        taskBarController.activity = null
+      }
     }
-
   }
 
   @SuppressLint("RestrictedApi")

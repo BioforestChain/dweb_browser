@@ -1,5 +1,6 @@
 package info.bagen.dwebbrowser.microService.browser.desk
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.view.ViewGroup
@@ -14,11 +15,10 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -32,10 +32,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.zIndex
 import info.bagen.dwebbrowser.App
-import kotlinx.coroutines.launch
 import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.helper.clamp
-import org.dweb_browser.window.render.emitFocusOrBlur
 
 class TaskbarView(private val taskbarController: TaskbarController) {
   val state = TaskbarState()
@@ -54,41 +52,26 @@ class TaskbarView(private val taskbarController: TaskbarController) {
   /**
    * 打开悬浮框
    */
-  fun openFloatWindow() = if (!state.floatActivityState) {
+  private fun openTaskbarActivity() = if (!state.floatActivityState) {
     state.floatActivityState = true
     true
   } else false
 
-  fun closeFloatWindow() = if (state.floatActivityState) {
+  private fun closeTaskbarActivity() = if (state.floatActivityState) {
     state.floatActivityState = false
     true
   } else false
 
-  suspend fun toggleFloatWindow(open: Boolean? = null): Boolean {
-    val toggle = open ?: !state.floatActivityState
+  suspend fun toggleFloatWindow(openTaskbar: Boolean?): Boolean {
+    val toggle = openTaskbar ?: !state.floatActivityState
     // 监听状态是否是float
     taskbarController.getFocusApp()?.let { focusApp ->
       taskbarController.stateSignal.emit(
         TaskbarController.TaskBarState(toggle, focusApp)
       )
     }
-    return if (toggle) openFloatWindow() else closeFloatWindow()
+    return if (toggle) openTaskbarActivity() else closeTaskbarActivity()
   }
-
-//  fun openTaskActivity() {
-//    closeFloatWindow()
-//    App.appContext.startActivity(
-//      Intent(
-//        App.appContext, TaskbarActivity::class.java
-//      ).also { intent ->
-//        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-//        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
-//        intent.putExtras(Bundle().apply {
-//          putString("deskSessionId", taskbarController.deskSessionId)
-//        })
-//      })
-//  }
-
 
   private data class SafeBounds(
     val left: Float,
@@ -100,12 +83,12 @@ class TaskbarView(private val taskbarController: TaskbarController) {
     val vCenter get() = top + (bottom - top) / 2
   }
 
+  @SuppressLint("IntentWithNullActionLaunch")
   @Composable
   fun FloatWindow() {
     val isActivityMode by state.composableHelper.stateOf { floatActivityState }
     if (isActivityMode) {
-      val scope = rememberCoroutineScope()
-      DisposableEffect(isActivityMode) {
+      LaunchedEffect(state.composableHelper) {
         App.appContext.startActivity(Intent(
           App.appContext, TaskbarActivity::class.java
         ).also { intent ->
@@ -115,14 +98,7 @@ class TaskbarView(private val taskbarController: TaskbarController) {
             putString("deskSessionId", taskbarController.deskSessionId)
           })
         })
-        val job = scope.launch {
-          taskbarController.waitActivityCreated().finish()
-        }
-        onDispose {
-          job.cancel()
-        }
       }
-      /// 如果在浮动中，那么取消渲染
       return
     }
 
