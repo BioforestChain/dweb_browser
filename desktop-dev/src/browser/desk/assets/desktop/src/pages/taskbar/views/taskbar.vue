@@ -14,7 +14,7 @@ resizeTaskbar,
 toggleDesktopView,
 toggleMaximize,
 watchTaskBarStatus,
-watchTaskbarAppInfo
+watchTaskbarAppInfo,
 } from "src/provider/api.ts";
 import { $TaskBarState, $WidgetAppData } from "src/types/app.type.ts";
 import { ShallowRef, computed, onMounted, onUnmounted, ref, shallowRef, triggerRef } from "vue";
@@ -50,15 +50,15 @@ const updateApps = async () => {
 };
 
 const updateTaskbarStatus = async () => {
-  const taskBarStatusWatcher = watchTaskBarStatus()
+  const taskBarStatusWatcher = watchTaskBarStatus();
   onUnmounted(() => {
-    taskBarStatusWatcher.return()
+    taskBarStatusWatcher.return();
   });
   for await (const taskBarStatus of taskBarStatusWatcher) {
     console.log("taskbar status=>", taskBarStatus);
-    updateTaskBarStatus(taskBarStatus)
+    updateTaskBarStatus(taskBarStatus);
   }
-}
+};
 
 //触发列表更新
 const updateLayoutInfoList = (appList: $WidgetAppData[]) => {
@@ -80,14 +80,14 @@ const updateLayoutInfoList = (appList: $WidgetAppData[]) => {
 };
 
 // 触发taskBar状态更新
-const updateTaskBarStatus = (taskBarStatus:$TaskBarState) => {
-  if (taskBarStatus.focus) {
-    isFocusTaskBar.value = true
-  }
-}
+const updateTaskBarStatus = (taskBarStatus: $TaskBarState) => {
+  isFocusTaskBar.value = taskBarStatus.focus;
+};
 
 const doOpen = async (metaData: $WidgetAppData) => {
+  // 是否是单app模式
   if (isSingleIconMode.value) {
+    // 是的话需要打开float
     await doToggleTaskbar(true);
     return;
   }
@@ -137,20 +137,26 @@ window.addEventListener("resize", () => {
 
 /// 同步div的大小到原生的窗口上
 const taskbarEle = ref<HTMLDivElement>();
-const isFocusTaskBar = ref(false)
+const isFocusTaskBar = ref(false);
 // 是否使用单个App图标的模式
 const signalIcon = computed(() => {
   // 寻找符合调教的应用
-  const findApp = appRefList.value.find((app) => app.metaData.winStates.find((win) => win.mode ==="maximize" && win.focus));
+  const findApp = appRefList.value.find((app) =>
+    app.metaData.winStates.find((win) => win.mode === "maximize" && win.focus)
+  );
   return findApp;
 });
-const isSingleIconMode = computed(() => signalIcon.value !== undefined);
+// 是否是单app 模式
+const isSingleIconMode = computed(() => {
+  if (isFocusTaskBar.value) return false
+  return signalIcon.value !== undefined
+});
 // 只显示需要显示的app
 const showAppIcons = computed(() => {
   if (!isFocusTaskBar.value) {
-    return signalIcon.value ? [signalIcon.value] : appRefList.value
+    return signalIcon.value ? [signalIcon.value] : appRefList.value;
   }
-  return appRefList.value
+  return appRefList.value;
 });
 
 let resizeOb: ResizeObserver | undefined;
@@ -175,7 +181,7 @@ const iconSize = "45px";
 </script>
 <template>
   <div class="taskbar" ref="taskbarEle">
-    <div class="panel" :class="{ 'p-4': isSingleIconMode }">
+    <div class="panel p-4">
       <button
         class="app-icon-wrapper z-grid"
         v-for="(appIcon, index) in showAppIcons"
@@ -250,7 +256,7 @@ const iconSize = "45px";
   border-radius: 1px;
   border: 0;
   background: linear-gradient(to right, transparent, currentColor, transparent);
-  margin-top: 16px;
+  margin: 0;
   flex-shrink: 0;
 }
 .desktop-button {
