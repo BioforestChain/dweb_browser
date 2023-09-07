@@ -14,6 +14,9 @@ expect class OffscreenWebCanvas(width: Int, height: Int) {
   val height: Int
 
 }
+internal val JavascriptCode = """
+    
+""";
 
 suspend fun OffscreenWebCanvas.clearRect(x: Int, y: Int, w: Int, h: Int) =
   evalJavaScriptWithVoid("ctx.clearRect($x,$y,$w,$h)").getOrThrow()
