@@ -1,17 +1,10 @@
 package org.dweb_browser.helper.platform
 
-import org.dweb_browser.helper.platform.offscreenwebcanvas.RunCommandResult
+import org.dweb_browser.helper.platform.offscreenwebcanvas.OffscreenWebCanvasCore
 
 
 expect class OffscreenWebCanvas private constructor(width: Int, height: Int) {
-
-  internal suspend fun runJsCodeWithResult(
-    resultVoid: Boolean,
-    jsonIfyResult: Boolean, jsCode: String,
-  ): RunCommandResult
-
-  val width: Int
-  val height: Int
+  internal val core: OffscreenWebCanvasCore
 }
 
 

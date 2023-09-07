@@ -7,7 +7,7 @@ suspend fun OffscreenWebCanvas.evalJavaScriptWithResult(
   jsonIfyResult: Boolean = false,
 ): Result<String> {
   return try {
-    val evalResult = runJsCodeWithResult(resultVoid = false, jsonIfyResult, jsCode)
+    val evalResult = core.runJsCodeWithResult(resultVoid = false, jsonIfyResult, jsCode)
     if (evalResult.error != null) {
       Result.failure(Throwable(evalResult.error))
     } else {
@@ -20,7 +20,7 @@ suspend fun OffscreenWebCanvas.evalJavaScriptWithResult(
 
 suspend fun OffscreenWebCanvas.evalJavaScriptWithVoid(jsCode: String): Result<Unit> {
   return try {
-    val evalResult = runJsCodeWithResult(resultVoid = true, jsonIfyResult = false, jsCode)
+    val evalResult = core.runJsCodeWithResult(resultVoid = true, jsonIfyResult = false, jsCode)
     if (evalResult.error != null) {
       Result.failure(Throwable(evalResult.error))
     } else {
