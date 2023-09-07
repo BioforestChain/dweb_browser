@@ -16,8 +16,6 @@ import io.ktor.server.response.respond
 import io.ktor.server.response.respondBytes
 import io.ktor.server.response.respondBytesWriter
 import io.ktor.server.routing.get
-import io.ktor.server.routing.post
-import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import io.ktor.server.util.getOrFail
 import io.ktor.server.websocket.DefaultWebSocketServerSession
@@ -108,11 +106,11 @@ internal class OffscreenWebCanvasMessageChannel {
     }
   }.start(wait = false)
 
-  suspend fun getEntryUrl(): String {
+  suspend fun getEntryUrl(width: Int, height: Int): String {
     val port = server.resolvedConnectors().first().port
     val host = "localhost"
-    val entry = "http://$host:$port/index.html"//"http://172.30.92.50:5173/index.html"
-    return "$entry?channel=${"ws://$host:$port/channel".encodeURIComponent()}&proxy=${"http://$host:$port/proxy".encodeURIComponent()}"
+    val entry = "http://$host:$port/index.html"//"http://172.30.92.50:5173/index.html"//
+    return "$entry?width=$width&height=$width&channel=${"ws://$host:$port/channel".encodeURIComponent()}&proxy=${"http://$host:$port/proxy".encodeURIComponent()}"
   }
 
 //  suspend fun postMessage(message: ByteArray) {

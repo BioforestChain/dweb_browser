@@ -78,7 +78,10 @@ fun GreetingView(text: String) {
     val webCanvas = remember { OffscreenWebCanvas(context) }
     val imageBitmap by produceState(Result.Loading) {
       value = try {
-        webCanvas.drawImage("https://static.oschina.net/uploads/logo/bun_G8BDG.png")
+        webCanvas.drawImage(
+          "https://static.oschina.net/uploads/logo/bun_G8BDG.png",
+          resizeCanvas = true
+        )
         val dataUrl = webCanvas.toDataURL()
         val imageBitmap =
           dataUrl.substring("data:image/png;base64,".length).toBase64ByteArray().toImageBitmap()

@@ -11,7 +11,6 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.JsonLoose
-import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.platform.offscreenwebcanvas.OffscreenWebCanvasMessageChannel
 import org.dweb_browser.helper.platform.offscreenwebcanvas.RunCommandReq
@@ -32,12 +31,11 @@ actual class OffscreenWebCanvas private actual constructor(width: Int, height: I
     CoroutineScope(mainAsyncExceptionHandler).launch {
       webview.webViewClient = WebViewClient();
       webview.settings.javaScriptEnabled = true;
-      webview.loadUrl(channel.getEntryUrl())
+      webview.loadUrl(channel.getEntryUrl(width, height))
     }
   }
 
   private val channel = OffscreenWebCanvasMessageChannel()
-  val scope = CoroutineScope(ioAsyncExceptionHandler)
   private val ridAcc = atomic(0)
   private var cacheWidth = width
   private var cacheHeight = height
