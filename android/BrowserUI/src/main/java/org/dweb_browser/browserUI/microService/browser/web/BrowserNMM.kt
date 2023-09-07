@@ -3,7 +3,6 @@ package org.dweb_browser.browserUI.microService.browser.web
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.dweb_browser.browserUI.microService.browser.types.DeskLinkMetaData
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.printDebug
@@ -50,23 +49,22 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
       }
 
     onActivity {
-      browserController.openBrowserWindow(it.second).also { win ->
+      browserController.openBrowserWindow().also { win ->
         win.focus()
       }
     }
 
     apiRouting = routes(
-      "search" bind Method.GET to defineHandler { request, ipc ->
+      "search" bind Method.GET to defineHandler { request ->
         debugBrowser("do search", request.uri)
         val search = queryKeyWord(request)
-        browserController.openBrowserWindow(ipc, search = search)
+        browserController.openBrowserWindow(search = search)
         return@defineHandler Response(Status.OK)
       },
-      "openinbrowser" bind Method.GET to defineHandler { request, ipc ->
+      "openinbrowser" bind Method.GET to defineHandler { request ->
         debugBrowser("do openinbrowser", request.uri)
         val url = queryUrl(request)
-        // openView(sessionId = sessionId, url = url)
-        browserController.openBrowserWindow(ipc, url = url)
+        browserController.openBrowserWindow(url = url)
         return@defineHandler Response(Status.OK)
       },
       "/browser/observe/apps" bind Method.GET to defineHandler { _, ipc ->

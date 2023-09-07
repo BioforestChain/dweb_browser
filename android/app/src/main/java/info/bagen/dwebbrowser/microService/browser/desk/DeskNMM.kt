@@ -86,7 +86,8 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     val desktopServer = this.createDesktopWebServer()
     val deskSessionId = UUID.randomUUID().toString()
 
-    val desktopController = DesktopController(deskSessionId, this, desktopServer, runningApps)
+    val desktopController =
+      DesktopController(deskSessionId, this, desktopServer, runningApps)
     val taskBarController =
       TaskbarController(deskSessionId, this, desktopController, taskbarServer, runningApps)
     controllers[deskSessionId] = DeskControllers(desktopController, taskBarController)

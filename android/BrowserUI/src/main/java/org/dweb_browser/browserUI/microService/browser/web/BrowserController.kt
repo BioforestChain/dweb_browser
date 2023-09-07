@@ -19,7 +19,6 @@ import org.dweb_browser.browserUI.util.BitmapUtil
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.sys.http.HttpDwebServer
 import org.dweb_browser.window.core.WindowController
 import org.dweb_browser.window.core.WindowState
@@ -46,7 +45,7 @@ class BrowserController(
    * 窗口是单例模式
    */
   private var win: WindowController? = null
-  suspend fun openBrowserWindow(ipc: Ipc, search: String? = null, url: String? = null) =
+  suspend fun openBrowserWindow(search: String? = null, url: String? = null) =
     winLock.withLock<WindowController> {
       search?.let { viewModel.setDwebLinkSearch(it) }
       url?.let { viewModel.setDwebLinkUrl(it) }
@@ -56,13 +55,14 @@ class BrowserController(
       // 打开安装窗口
       val newWin = createWindowAdapterManager.createWindow(WindowState(
         WindowConstants(
-          owner = ipc.remote.mmid,
-          ownerVersion = ipc.remote.version,
+          owner = browserNMM.mmid,
+          ownerVersion = browserNMM.version,
           provider = browserNMM.mmid,
           microModule = browserNMM
         )
       ).also {
         it.mode = WindowMode.MAXIMIZE
+        it.focus = true // 全屏和focus同时满足，才能显示浮窗而不是侧边栏
       })
       newWin.state.closeTip =
         newWin.manager?.state?.viewController?.androidContext?.getString(R.string.browser_confirm_to_close)

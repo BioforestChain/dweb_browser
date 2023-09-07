@@ -21,7 +21,7 @@ import org.http4k.core.query
 
 @Stable
 class DesktopController(
-  val deskSessionId: String,
+  private val deskSessionId: String,
   private val desktopNMM: DesktopNMM,
   private val desktopServer: HttpDwebServer,
   private val runningApps: ChangeableMap<MMID, Ipc>
@@ -31,12 +31,8 @@ class DesktopController(
   val onUpdate = updateSignal.toListener()
 
   init {
-    runningApps.onChange {
-      updateSignal.emit()
-    }
-    desktopNMM.bootstrapContext.dns.onChange {
-      updateSignal.emit()
-    }
+    runningApps.onChange { updateSignal.emit() }
+    desktopNMM.bootstrapContext.dns.onChange { updateSignal.emit() }
   }
 
   suspend fun getDesktopApps(): List<DeskAppMetaData> {
@@ -45,6 +41,9 @@ class DesktopController(
       return@map DeskAppMetaData().apply {
         running = runningApps.containsKey(metaData.mmid)
         winStates = desktopWindowsManager.getWindowStates(metaData.mmid)
+        winStates.firstOrNull()?.let { state ->
+          debugDesk("getDesktopApps", "winStates -> ${winStates.size}, ${state.mode}, ${state.focus}")
+        }
         assign(metaData.manifest)
       }
     }
@@ -74,9 +73,7 @@ class DesktopController(
   val desktopWindowsManager
     get() = DesktopWindowsManager.getInstance(this.activity!!) { dwm ->
 
-      dwm.hasMaximizedWins.onChange {
-        updateSignal.emit()
-      }
+      dwm.hasMaximizedWins.onChange { updateSignal.emit() }
 
       /// 但有窗口信号变动的时候，确保 MicroModule.IpcEvent<Activity> 事件被激活
       dwm.allWindows.onChange {

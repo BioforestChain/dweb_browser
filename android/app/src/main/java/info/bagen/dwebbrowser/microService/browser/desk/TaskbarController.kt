@@ -48,15 +48,9 @@ class TaskbarController(
     }
 
     // 监听移除app的改变,可能是增加或者减少
-    desktopNMM.bootstrapContext.dns.onChange { map ->
-      updateSignal.emit()
-    }
+    desktopNMM.bootstrapContext.dns.onChange { updateSignal.emit() }
 
-    desktopController.onActivity {
-      desktopController.desktopWindowsManager.hasMaximizedWins.onChange {
-        updateSignal.emit()
-      }
-    }
+    desktopController.onUpdate { updateSignal.emit() }
   }
 
   fun getTaskbarAppList(limit: Int): List<DeskAppMetaData> {
