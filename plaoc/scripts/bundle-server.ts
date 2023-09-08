@@ -3,7 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Chalk } from "npm:chalk";
 import _minifyHTML from "npm:rollup-plugin-minify-html-literals";
-import { build, InlineConfig, PluginOption } from "npm:vite";
+import { InlineConfig, PluginOption } from "npm:vite";
 import { ESBuild } from "../../scripts/helper/Esbuild.ts";
 const minifyHTML = _minifyHTML.default();
 const chalk = new Chalk({ level: 3 });
@@ -154,5 +154,5 @@ export const emulator = {
 if (import.meta.main) {
   void prod.auto();
   void dev.auto();
-  void build(emulator);
+  // void build(emulator);
 }

@@ -22,7 +22,6 @@ export class MetadataJsonGenerator {
           dirs = [www_dir, ...dirs];
         }
       }
-
       return [...GenerateTryFilepaths(tryFilenames, dirs)];
     })();
 
@@ -63,13 +62,46 @@ export class MetadataJsonGenerator {
   }
 }
 
+export class PlaocJsonGenerator {
+  readonly plaocFilepaths: string;
+
+  constructor(readonly flags: $MetadataJsonGeneratorOptions) {
+    // plaoc.json
+    this.plaocFilepaths = (() => {
+      const tryFilenames = "plaoc.json";
+      // 如果指定了项目目录，到项目目录里面搜索配置文件
+      const file = path.resolve(Deno.cwd(), flags.dir ?? "", tryFilenames);
+      return file;
+    })();
+  }
+
+  tryReadPlaoc() {
+    const entries: $ZipEntry[] = [];
+    try {
+      const entry = fs.statSync(this.plaocFilepaths);
+      if (entry.isFile()) {
+        const data = fs.readFileSync(this.plaocFilepaths);
+        entries.push({
+          dir: false,
+          path: `usr/www/plaoc.json`,
+          data: data,
+          time: entry.mtime,
+        });
+      }
+      // deno-lint-ignore no-empty
+    } catch {}
+    return entries;
+  }
+}
+
 export class BundleZipGenerator {
   private zipGetter: () => Promise<JSZip> = () => {
     throw new Error("no implement");
   };
   readonly www_dir: undefined | string;
-  constructor(readonly flags: $MetadataJsonGeneratorOptions, readonly id: $MMID) {
+  constructor(readonly flags: $MetadataJsonGeneratorOptions, readonly plaoc: PlaocJsonGenerator, readonly id: $MMID) {
     const bundleTarget = flags.metadata;
+
     /// 实时预览模式，使用代理html
     if (
       flags.mode === SERVE_MODE.LIVE ||
@@ -90,10 +122,15 @@ export class BundleZipGenerator {
         </script>`,
         time: new Date(0),
       } satisfies $ZipEntry;
-      this.zipGetter = async () =>
-        zipEntriesToZip(
-          this.normalizeZipEntries([...(await this.getBaseZipEntries(flags.dev)), index_html_file_entry])
+      this.zipGetter = async () => {
+        return zipEntriesToZip(
+          this.normalizeZipEntries([
+            ...(await this.getBaseZipEntries(flags.dev)),
+            index_html_file_entry,
+            ...plaoc.tryReadPlaoc(),
+          ])
         );
+      };
     }
     /// 生产模式
     else if (flags.mode === SERVE_MODE.PROD) {
@@ -112,18 +149,20 @@ export class BundleZipGenerator {
         throw new Error(`no found dir when serve-mode is '${flags.mode}'`);
       }
       this.www_dir = www_dir;
-      this.zipGetter = async () =>
-        await zipEntriesToZip(
+      this.zipGetter = async () => {
+        return zipEntriesToZip(
           this.normalizeZipEntries([
             ...(await this.getBaseZipEntries(flags.dev)),
+            ...plaoc.tryReadPlaoc(),
             ...walkDirToZipEntries(www_dir).map((entry) => {
               return {
                 ...entry,
-                path: (`usr/www/` + entry.path).replace(/\\/g,'/'),
+                path: (`usr/www/` + entry.path).replace(/\\/g, "/"),
               };
             }),
           ])
         );
+      };
     }
   }
   async getBaseZipEntries(dev = false) {
@@ -150,13 +189,13 @@ export class BundleZipGenerator {
       }
       entries.push({
         dir: false,
-        path: `${pathbase}${pathalias}`.replace(/\\/g,'/'),
+        path: `${pathbase}${pathalias}`.replace(/\\/g, "/"),
         data: data,
       });
     };
     if (dev) {
       await addFiles_DistToUsr("server/plaoc.server.dev.js", "server/plaoc.server.js");
-      await addFiles_DistToUsr("server/emulator");
+      // await addFiles_DistToUsr("server/emulator");
     } else {
       await addFiles_DistToUsr("server/plaoc.server.js");
     }

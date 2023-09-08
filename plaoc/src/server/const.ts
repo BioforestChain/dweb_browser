@@ -7,3 +7,28 @@ export const enum X_EMULATOR_ACTION {
   CLIENT_2_SERVER = "c2s",
   SERVER_2_CLIENT = "s2c",
 }
+
+export interface $PlaocConfig {
+  defaultConfig:$DefaultConfig,
+  redirect:$Redirect[]
+}
+
+export interface $DefaultConfig {
+  lang:string
+}
+
+export interface $Redirect {
+  matchMethod?: string[],
+  matchUrl: $MatchUrl,
+  to:$To
+}
+
+export interface $MatchUrl {
+  pathname: string
+}
+
+export interface $To {
+  url: string,
+  appendHeaders: Record<string, string>,
+  removeHeaders:string[]
+}

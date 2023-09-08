@@ -12,10 +12,6 @@ import { Server_www as _Server_www } from "./http-www-server.ts";
  */
 export class Server_www extends _Server_www {
 
-  constructor(override readonly isDev = true) {
-    super(isDev);
-  }
-
   override async getStartResult() {
     const result = await super.getStartResult();
     // TODO 未来如果有需求，可以用 flags 传入参数来控制这个模拟器的初始化参数
@@ -58,8 +54,8 @@ export class Server_www extends _Server_www {
         };
       }
     }
-
-    return super._provider(request, "server/emulator");
+    return super._provider(request, "www");
+    // return super._provider(request, "server/emulator");
   }
   private xPlaocProxy: string | null = null;
   override async _provider(request: FetchEvent): Promise<$OnFetchReturn> {

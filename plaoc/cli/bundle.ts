@@ -3,7 +3,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { Command } from "./deps.ts";
 import { $BundleOptions } from "./helper/const.ts";
-import { BundleZipGenerator, MetadataJsonGenerator, NameFlagHelper } from "./helper/generator.ts";
+import { BundleZipGenerator, MetadataJsonGenerator, NameFlagHelper, PlaocJsonGenerator } from "./helper/generator.ts";
 
 export const doBundleCommand = new Command()
   .arguments("<source:string>")
@@ -28,8 +28,9 @@ export const doBundleCommand = new Command()
  */
 export const doBundle = async (flags: $BundleOptions) => {
   const metadataFlagHelper = new MetadataJsonGenerator(flags);
+  const plaocHelper = new PlaocJsonGenerator(flags);
   const id = metadataFlagHelper.readMetadata().id;
-  const bundleFlagHelper = new BundleZipGenerator(flags, id);
+  const bundleFlagHelper = new BundleZipGenerator(flags,plaocHelper, id);
   const nameFlagHelper = new NameFlagHelper(flags, metadataFlagHelper);
 
   const outDir = path.resolve(Deno.cwd(), flags.out);

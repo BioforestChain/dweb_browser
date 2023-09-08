@@ -5,3 +5,7 @@ if (typeof Response.json !== "function") {
     return new Response(JSON.stringify(data), { ...init, headers });
   };
 }
+
+if (!globalThis.URLPattern) { 
+  await import("npm:urlpattern-polyfill");
+}

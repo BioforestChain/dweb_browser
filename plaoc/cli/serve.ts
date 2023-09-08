@@ -8,7 +8,7 @@ import { Command, EnumType, colors, createHash, debounce } from "./deps.ts";
 import { WalkFiles } from "./helper/WalkDir.ts";
 import { $ServeOptions, SERVE_MODE } from "./helper/const.ts";
 import { clearChangeState, fileHasChange, initFileState } from "./helper/fileHasChange.ts";
-import { BundleZipGenerator, MetadataJsonGenerator, NameFlagHelper } from "./helper/generator.ts";
+import { BundleZipGenerator, MetadataJsonGenerator, NameFlagHelper, PlaocJsonGenerator } from "./helper/generator.ts";
 import { staticServe } from "./helper/http-static-helper.ts";
 
 const serveMode = new EnumType(SERVE_MODE);
@@ -43,7 +43,8 @@ export const doServe = async (flags: $ServeOptions) => {
 
   const metadataFlagHelper = new MetadataJsonGenerator(flags);
   const id = metadataFlagHelper.readMetadata().id;
-  const bundleFlagHelper = new BundleZipGenerator(flags, id);
+  const plaocHelper = new PlaocJsonGenerator(flags);
+  const bundleFlagHelper = new BundleZipGenerator(flags,plaocHelper, id);
   const nameFlagHelper = new NameFlagHelper(flags, metadataFlagHelper);
 
   /// 启动http服务器

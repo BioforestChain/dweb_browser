@@ -54,8 +54,7 @@ export const main = async () => {
     const wwwStartResult = await wwwServer.getStartResult();
     const apiStartResult = await apiServer.getStartResult();
     const usePublic = isMobile.isMobile();
-    const isDev = wwwServer.isDev
-    const indexUrl = wwwStartResult.urlInfo.buildHtmlUrl(usePublic && isDev, (url) => {
+    const indexUrl = wwwStartResult.urlInfo.buildHtmlUrl(false, (url) => {
       url.pathname = "/index.html";
       urlStore.set({
         [X_PLAOC_QUERY.API_INTERNAL_URL]: apiStartResult.urlInfo.buildUrl(usePublic).href,
