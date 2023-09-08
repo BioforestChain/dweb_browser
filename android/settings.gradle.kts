@@ -12,6 +12,11 @@ dependencyResolutionManagement {
     google()
     mavenCentral()
   }
+  versionCatalogs {
+    create("libs") {
+      from(files("../next/kmp/gradle/libs.versions.toml"))
+    }
+  }
 }
 val includeKmp = { kmpPath: String ->
   include(kmpPath)
