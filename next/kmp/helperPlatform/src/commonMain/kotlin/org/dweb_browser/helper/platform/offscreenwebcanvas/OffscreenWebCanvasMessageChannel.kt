@@ -56,7 +56,7 @@ internal class OffscreenWebCanvasMessageChannel {
         val proxyUrl = call.request.queryParameters.getOrFail("url")
         client.prepareGet(proxyUrl) {
           for ((key, value) in call.request.headers.flattenEntries()) {
-            /// 把访问圆头过滤掉，未来甚至可能需要额外加上，避免同源限制，但具体如何去加，跟对方的服务器有关系，很难有标准答案，所以这里索性直接移除了
+            /// 把访问源头过滤掉，未来甚至可能需要额外加上，避免同源限制，但具体如何去加，跟对方的服务器有关系，很难有标准答案，所以这里索性直接移除了
             if (key == "Referer" || key == "Origin" || key == "Host") {
               continue
             }
