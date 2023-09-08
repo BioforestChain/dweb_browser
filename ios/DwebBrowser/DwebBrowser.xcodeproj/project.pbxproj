@@ -962,7 +962,7 @@
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
-					SharedUI,
+					DwebShared,
 				);
 				OTHER_SWIFT_FLAGS = "-D DwebBrowser";
 				PRODUCT_BUNDLE_IDENTIFIER = com.instinct.bfexplorer;
@@ -1004,7 +1004,7 @@
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
-					SharedUI,
+					DwebShared,
 				);
 				OTHER_SWIFT_FLAGS = "-D DwebBrowser";
 				PRODUCT_BUNDLE_IDENTIFIER = com.instinct.bfexplorer;
