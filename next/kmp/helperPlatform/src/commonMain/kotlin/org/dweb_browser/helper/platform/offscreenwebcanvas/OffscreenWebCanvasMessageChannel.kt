@@ -1,7 +1,6 @@
 package org.dweb_browser.helper.platform.offscreenwebcanvas
 
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
 import io.ktor.client.request.prepareGet
 import io.ktor.client.statement.bodyAsChannel
 import io.ktor.http.ContentType
@@ -31,6 +30,8 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.encodeURIComponent
+import org.dweb_browser.helper.platform.getKtorClientEngine
+import org.dweb_browser.helper.platform.getKtorServerEngine
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.resource
 
@@ -40,12 +41,12 @@ internal class OffscreenWebCanvasMessageChannel {
   private val lock = Mutex()
   private val onMessageSignal = Signal<ChannelMessage>()
   val onMessage = onMessageSignal.toListener()
-  private val client = HttpClient(CIO) {
+  private val client = HttpClient(getKtorClientEngine()) {
     //install(HttpCache)
   }
 
   @OptIn(ExperimentalResourceApi::class)
-  private val server = embeddedServer(io.ktor.server.cio.CIO, port = 23300) {
+  private val server = embeddedServer(getKtorServerEngine(), port = 0) {
     install(WebSockets)
     routing {
       /// 图片请求的代理, 暂时只支持 get 代理
@@ -109,8 +110,8 @@ internal class OffscreenWebCanvasMessageChannel {
   suspend fun getEntryUrl(width: Int, height: Int): String {
     val port = server.resolvedConnectors().first().port
     val host = "localhost"
-    val entry = "http://$host:$port/index.html"//"http://172.30.92.50:5173/index.html"//
-    return "$entry?width=$width&height=$width&channel=${"ws://$host:$port/channel".encodeURIComponent()}&proxy=${"http://$host:$port/proxy".encodeURIComponent()}"
+    val entry ="http://172.30.92.50:5173/index.html"// "http://$host:$port/index.html"//
+    return "$entry?width=$width&height=$height&channel=${"ws://$host:$port/channel".encodeURIComponent()}&proxy=${"http://$host:$port/proxy".encodeURIComponent()}"
   }
 
 //  suspend fun postMessage(message: ByteArray) {

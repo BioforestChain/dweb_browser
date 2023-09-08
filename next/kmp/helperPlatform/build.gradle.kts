@@ -35,10 +35,8 @@ kotlin {
       dependencies {
         implementation(libs.jetbrains.compose.runtime)
         implementation(libs.jetbrains.compose.foundation)
-//        @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
-//        implementation(libs.jetbrains.compose.components.resources)
         @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
-        implementation(compose.components.resources)
+        implementation(libs.jetbrains.compose.components.resources)
 
         implementation(libs.jetbrains.compose.material3)
 
