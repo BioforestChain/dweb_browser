@@ -1,13 +1,11 @@
 package org.dweb_browser.helper.platform.offscreenwebcanvas
 
-import org.dweb_browser.helper.platform.OffscreenWebCanvas
-
-suspend fun OffscreenWebCanvas.evalJavaScriptWithResult(
+internal suspend fun OffscreenWebCanvasCore.evalJavaScriptWithResult(
   jsCode: String,
   jsonIfyResult: Boolean = false,
 ): Result<String> {
   return try {
-    val evalResult = core.runJsCodeWithResult(resultVoid = false, jsonIfyResult, jsCode)
+    val evalResult = runJsCodeWithResult(resultVoid = false, jsonIfyResult, jsCode)
     if (evalResult.error != null) {
       Result.failure(Throwable(evalResult.error))
     } else {
@@ -18,9 +16,9 @@ suspend fun OffscreenWebCanvas.evalJavaScriptWithResult(
   }
 }
 
-suspend fun OffscreenWebCanvas.evalJavaScriptWithVoid(jsCode: String): Result<Unit> {
+internal suspend fun OffscreenWebCanvasCore.evalJavaScriptWithVoid(jsCode: String): Result<Unit> {
   return try {
-    val evalResult = core.runJsCodeWithResult(resultVoid = true, jsonIfyResult = false, jsCode)
+    val evalResult = runJsCodeWithResult(resultVoid = true, jsonIfyResult = false, jsCode)
     if (evalResult.error != null) {
       Result.failure(Throwable(evalResult.error))
     } else {

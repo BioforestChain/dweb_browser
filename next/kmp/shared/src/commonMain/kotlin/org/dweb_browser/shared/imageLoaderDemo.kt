@@ -9,10 +9,8 @@ import androidx.compose.runtime.produceState
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import org.dweb_browser.helper.platform.OffscreenWebCanvas
-import org.dweb_browser.helper.platform.offscreenwebcanvas.drawImage
-import org.dweb_browser.helper.platform.offscreenwebcanvas.toDataURL
-import org.dweb_browser.helper.platform.toImageBitmap
-import org.dweb_browser.helper.toBase64ByteArray
+import org.dweb_browser.helper.platform.offscreenwebcanvas.WebCanvasContextSession.Companion.buildTask
+import org.dweb_browser.helper.platform.offscreenwebcanvas.waitReady
 
 @Composable
 fun ImageLoaderDemo(webCanvas: OffscreenWebCanvas) {
@@ -33,10 +31,12 @@ fun ImageLoaderDemo(webCanvas: OffscreenWebCanvas) {
 fun WebCanvasImageLoader(webCanvas: OffscreenWebCanvas, url: String) {
   val imageBitmap by produceState(Result.Loading) {
     value = try {
-      webCanvas.drawImage(url, dw = 300, dh = 200, resizeCanvas = true)
-      val dataUrl = webCanvas.toDataURL()
-      val imageBitmap =
-        dataUrl.substring("data:image/png;base64,".length).toBase64ByteArray().toImageBitmap()
+      webCanvas.waitReady()
+      value = Result.Rendering;
+      val imageBitmap = webCanvas.buildTask {
+        drawImage(url, dw = 300, dh = 200, resizeCanvas = true)
+        toImageBitmap()
+      }
       Result.Success(imageBitmap)
     } catch (e: Throwable) {
       Result.Error(e)
@@ -47,14 +47,19 @@ fun WebCanvasImageLoader(webCanvas: OffscreenWebCanvas, url: String) {
   } else if (imageBitmap.error != null) {
     Text(imageBitmap.error!!.stackTraceToString(), color = Color.Red)
   } else {
-    Text("加载中")
+    Text(imageBitmap.busy ?: "...")
   }
 }
 
-class Result(val data: ImageBitmap? = null, val error: Throwable? = null) {
+class Result(
+  val data: ImageBitmap? = null,
+  val error: Throwable? = null,
+  val busy: String? = null
+) {
   companion object {
-    val Loading = Result()
-    fun Success(data: ImageBitmap) = Result(data, null)
-    fun Error(error: Throwable?) = Result(null, error)
+    val Loading = Result(busy = "加载中")
+    val Rendering = Result(busy = "渲染中")
+    fun Success(data: ImageBitmap) = Result(data = data)
+    fun Error(error: Throwable?) = Result(error = error)
   }
 }

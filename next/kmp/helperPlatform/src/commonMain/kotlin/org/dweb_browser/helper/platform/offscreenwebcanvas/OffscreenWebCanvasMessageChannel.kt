@@ -126,10 +126,13 @@ internal class OffscreenWebCanvasMessageChannel {
     return "$entry?width=$width&height=$height&channel=${"ws://$host:$port/channel".encodeURIComponent()}&proxy=${"http://$host:$port/proxy".encodeURIComponent()}"
   }
 
-//  suspend fun postMessage(message: ByteArray) {
+  //  suspend fun postMessage(message: ByteArray) {
 //    val session = this.session ?: dataChannel.await()
 //    session.send(message)
 //  }
+  suspend fun waitReady() {
+    this.session ?: dataChannel.await()
+  }
 
   suspend fun postMessage(message: String) {
     val session = this.session ?: dataChannel.await()
