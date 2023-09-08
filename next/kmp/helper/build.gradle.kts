@@ -37,6 +37,7 @@ kotlin {
         api(libs.ktor.server.websockets)
         api(libs.ktor.server.cio)
         api(libs.ktor.client.cio)
+        api(libs.ktor.client.encoding)
 
         api(libs.kotlinx.datetime)
         api(libs.kotlin.serialization.json)
@@ -58,9 +59,9 @@ kotlin {
     val iosSimulatorArm64Main by getting
     val iosMain by creating {
       dependsOn(commonMain)
-       dependencies {
+      dependencies {
         api(libs.ktor.client.darwin)
-       }
+      }
       iosX64Main.dependsOn(this)
       iosArm64Main.dependsOn(this)
       iosSimulatorArm64Main.dependsOn(this)

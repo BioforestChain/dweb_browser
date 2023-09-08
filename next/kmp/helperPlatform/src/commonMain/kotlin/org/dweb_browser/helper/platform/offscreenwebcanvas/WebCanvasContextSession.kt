@@ -1,11 +1,11 @@
 package org.dweb_browser.helper.platform.offscreenwebcanvas
 
 
+import androidx.compose.ui.graphics.ImageBitmap
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.platform.OffscreenWebCanvas
 import org.dweb_browser.helper.platform.toImageBitmap
-import org.dweb_browser.helper.toBase64ByteArray
 
 suspend fun OffscreenWebCanvas.waitReady() = core.channel.waitReady()
 class WebCanvasContextSession private constructor(internal val core: OffscreenWebCanvasCore) {
@@ -84,11 +84,13 @@ class WebCanvasContextSession private constructor(internal val core: OffscreenWe
 
   suspend fun toDataURL(type: String = "image/png", quality: Float = 1.0f): String {
     jsCode += "return canvasToDataURL(canvas,{type:`$type`,quality:$quality});"
-    return core.evalJavaScriptWithResult(getExecCode()).getOrThrow()
+    return core.evalJavaScriptReturnString(getExecCode())
   }
 
-  suspend fun toImageBitmap() =
-    toDataURL().substring("data:image/png;base64,".length).toBase64ByteArray().toImageBitmap()
+  suspend fun toImageBitmap(type: String = "image/png", quality: Float = 1.0f): ImageBitmap {
+    jsCode += "return canvasToBlob(canvas,{type:`$type`,quality:$quality});"
+    return core.evalJavaScriptReturnByteArray(getExecCode()).toImageBitmap()
+  }
 
   fun clearRect(x: Int, y: Int, w: Int, h: Int) {
     jsCode += "ctx.clearRect($x,$y,$w,$h);"

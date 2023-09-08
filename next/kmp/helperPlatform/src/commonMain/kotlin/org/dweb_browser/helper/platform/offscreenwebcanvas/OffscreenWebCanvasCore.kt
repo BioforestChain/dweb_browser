@@ -11,27 +11,35 @@ internal class OffscreenWebCanvasCore {
   private val ridAcc = atomic(0)
 
   suspend fun runJsCodeWithResult(
-    resultVoid: Boolean,
-    jsonIfyResult: Boolean, jsCode: String,
-  ): RunCommandResult {
+    returnType: ReturnType, jsCode: String,
+  ): Any? {
     val rid = ridAcc.incrementAndGet()
-    val evalResult = CompletableDeferred<RunCommandResult>()
+    val evalResult = CompletableDeferred<Any?>()
+    val resultPrefix = "$rid:"
+    val errorPrefix = "throw:"
+    val returnVoidPrefix = "void"
+    val returnAnyPrefix = "return:"
+    var waitingReturn = false
     val off = channel.onMessage {
-      if (!it.data.contains(""""rid":$rid""")) {
+      if (waitingReturn) {
+        evalResult.complete(it.text ?: it.binary)
         return@onMessage
       }
-      try {
-        val runResult = Json.decodeFromString<RunCommandResult>(it.data)
-        println("got message:${runResult}")
-        if (runResult.rid == rid) {
-          evalResult.complete(runResult)
-        }
-      } catch (e: Throwable) {
-        evalResult.completeExceptionally(e)
-        e.printStackTrace()
+      if (it.text?.startsWith(resultPrefix) != true) {
+        return@onMessage
+      }
+      val resultMetadata = it.text.substring(resultPrefix.length)
+      if (resultMetadata.startsWith(errorPrefix)) {
+        evalResult.completeExceptionally(Throwable(resultMetadata.substring(errorPrefix.length)))
+      } else if (resultMetadata == returnVoidPrefix) {
+        evalResult.complete(Unit)
+      } else if (resultMetadata == returnAnyPrefix) {
+        waitingReturn = true
+      } else {
+        evalResult.completeExceptionally(Throwable("Invalid response: $resultMetadata"))
       }
     }
-    channel.postMessage(Json.encodeToString(RunCommandReq(rid, resultVoid, jsonIfyResult, jsCode)))
+    channel.postMessage(Json.encodeToString(RunCommandReq(rid, returnType, jsCode)))
     return evalResult.await().also {
       off()
     }

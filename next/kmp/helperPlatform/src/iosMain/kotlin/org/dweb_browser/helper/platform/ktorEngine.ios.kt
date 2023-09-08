@@ -5,4 +5,3 @@ import io.ktor.server.engine.ApplicationEngineFactory
 
 actual fun getKtorClientEngine(): HttpClientEngineFactory<*> = io.ktor.client.engine.darwin.Darwin
 actual fun getKtorServerEngine(): ApplicationEngineFactory<*, *> = io.ktor.server.cio.CIO
-

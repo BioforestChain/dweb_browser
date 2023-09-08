@@ -1,6 +1,7 @@
 package org.dweb_browser.helper.platform.offscreenwebcanvas
 
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.compression.ContentEncoding
 import io.ktor.client.request.header
 import io.ktor.client.request.prepareGet
 import io.ktor.client.statement.bodyAsChannel
@@ -44,7 +45,7 @@ internal class OffscreenWebCanvasMessageChannel {
   private val onMessageSignal = Signal<ChannelMessage>()
   val onMessage = onMessageSignal.toListener()
   private val client = HttpClient(getKtorClientEngine()) {
-    //install(HttpCache)
+    install(ContentEncoding)
   }
 
   @OptIn(ExperimentalResourceApi::class)
@@ -57,7 +58,10 @@ internal class OffscreenWebCanvasMessageChannel {
         client.prepareGet(proxyUrl) {
           for ((key, value) in call.request.headers.flattenEntries()) {
             /// 把访问源头过滤掉，未来甚至可能需要额外加上，避免同源限制，但具体如何去加，跟对方的服务器有关系，很难有标准答案，所以这里索性直接移除了
-            if (key == "Referer" || key == "Origin" || key == "Host") {
+            if (key == "Referer" || key == "Origin" || key == "Host" ||
+              // 把编码头去掉，用ktor自己的编码头
+              key == "Accept-Encoding"
+            ) {
               continue
             }
             header(key, value)
@@ -106,8 +110,11 @@ internal class OffscreenWebCanvasMessageChannel {
         }
 
         for (frame in incoming) {
-          frame as? Frame.Text ?: continue
-          onMessageSignal.emit(ChannelMessage(frame.readText()))
+          when (frame) {
+            is Frame.Text -> onMessageSignal.emit(ChannelMessage(text = frame.readText()))
+            is Frame.Binary -> onMessageSignal.emit(ChannelMessage(binary = frame.data))
+            else -> {}
+          }
         }
 
         lock.withLock {
