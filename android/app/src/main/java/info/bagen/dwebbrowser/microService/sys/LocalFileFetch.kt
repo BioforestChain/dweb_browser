@@ -108,54 +108,62 @@ class LocalFileFetch private constructor() {
     }
   }
 
+  enum class PathType(val type:String, val dirName:String, val tag: String) {
+    SYS(type="/sys/", dirName = "", "LocalFetch > Assets"),
+    ICONS(type="/local_icons/", dirName = App.appContext.filesDir.absolutePath + "/icons", "LocalFetch > Tmp"),
+    OTHER(type=""   , dirName = App.appContext.dataDir.absolutePath + File.separator + APP_DIR_TYPE.SystemApp.rootName, "LocalFetch > DataSrc"),
+    ;
+  }
+  private fun String.checkPathType() = if (startsWith(PathType.SYS.type)) {
+    PathType.SYS
+  } else if (startsWith(PathType.ICONS.type)) {
+    PathType.ICONS
+  } else PathType.OTHER
+
   private fun getLocalFetch(remote: MicroModule, request: Request): Response {
-    val path = request.uri.path
-    val isSys = path.startsWith("/sys/")
     val mode = request.query("mode") ?: "auto"
     val chunk = request.query("chunk")?.toIntOrNull() ?: ChunkAssetsFileStream.defaultChunkSize
     val preRead = request.query("pre-read")?.toBooleanStrictOrNull() ?: false
+    val path = request.uri.path
+    val pathType = path.checkPathType()// path.startsWith("/sys/")
 
-    // 如果是sys需要移除sys 然后 转发到assets 如果是usr需要转发到data里
-    val src = if (isSys) {
-      request.uri.path.substring(5)
-    } else {
-      request.uri.path
-    }
-
-    lateinit var dirname: String
-    lateinit var filename: String
-    lateinit var filenameList: Array<String>
-    if (isSys) {
-      // 读取assets的文件
-      src.lastIndexOf('/').also {
-        when (it) {
-          -1 -> {
-            filename = src
-            dirname = ""
-          }
-
-          else -> {
-            filename = src.substring(it + 1)
-            dirname = src.substring(0..it)
+    lateinit var filePath: String
+    val src = path.replaceFirst(pathType.type, "")
+    val filenameList = when(pathType) {
+      PathType.SYS -> {
+        // 读取assets的文件
+        val dirname = src.lastIndexOf('/').let {
+          when (it) {
+            -1 -> {
+              filePath = src
+              ""
+            }
+            else -> {
+              filePath = src.substring(it + 1)
+              src.substring(0..it)
+            }
           }
         }
+        /// 尝试打开文件，如果打开失败就走 404 no found 响应
+        App.appContext.assets.list(dirname) ?: emptyArray()
       }
-      /// 尝试打开文件，如果打开失败就走 404 no found 响应
-      filenameList = App.appContext.assets.list(dirname) ?: emptyArray()
-    } else {
-      // 读取app内存的文件
-      dirname =
-        App.appContext.dataDir.absolutePath + File.separator + APP_DIR_TYPE.SystemApp.rootName + File.separator + remote.mmid
-      filename = dirname + src
-
-      filenameList = FilesUtil.traverseFileTree(dirname).toTypedArray()
+      PathType.ICONS -> {
+        // 读取tmp文件
+        filePath = pathType.dirName + File.separator + src
+        FilesUtil.traverseFileTree(pathType.dirName).toTypedArray()
+      }
+      else -> {
+        // 读取应用内的文件
+        filePath = pathType.dirName + "/${remote.mmid}/" + src
+        FilesUtil.traverseFileTree(pathType.dirName+ "/${remote.mmid}").toTypedArray()
+      }
     }
-    val tag = if (isSys) "LocalFetch > Assets" else "LocalFetch > DataSrc"
-    debugFetchFile(tag, "dirname=$dirname, src=$src, path=$path")
+    val tag = pathType.tag
+    debugFetchFile(tag, "dirname=${pathType.dirName}, filename=$filePath, path=$path")
 
     lateinit var response: Response
-    if (!filenameList.contains(filename)) {
-      debugFetchFile(tag, "NO-FOUND-File $filename")
+    if (!filenameList.contains(filePath)) {
+      debugFetchFile(tag, "NO-FOUND-File $filePath")
       response = Response(Status.NOT_FOUND).body("the file(${request.uri.path}) not found.")
     } else {
       response = Response(status = Status.OK)
@@ -163,33 +171,27 @@ class LocalFileFetch private constructor() {
       // buffer 模式，就是直接全部读取出来
       // TODO auto 模式就是在通讯次数和单次通讯延迟之间的一个取舍。如果分片次数少于2次，那么就直接发送，没必要分片
       response = if (mode == "stream") {
-        val streamBody = if (isSys) {
-          ChunkAssetsFileStream(
-            src, chunkSize = chunk, preReadableSize = if (preRead) chunk else 0, true
-          )
-        } else {
-          ChunkAssetsFileStream(
-            filename, chunkSize = chunk, preReadableSize = if (preRead) chunk else 0, false
-          )
+        val streamBody = when (pathType) {
+          PathType.SYS -> {
+            ChunkAssetsFileStream(
+              src, chunkSize = chunk, preReadableSize = if (preRead) chunk else 0, true
+            )
+          }
+          else -> {
+            ChunkAssetsFileStream(
+              filePath, chunkSize = chunk, preReadableSize = if (preRead) chunk else 0, false
+            )
+          }
         }
-        /**
-         * 将它分片读取
-         */
+        /// 将它分片读取
         response.header("X-Assets-Id", streamBody.id.toString()).body(streamBody)
       } else {
-        /**
-         * 打开一个读取流
-         */
-        val assetStream = if (isSys) {
-          App.appContext.assets.open(
-            src, AssetManager.ACCESS_BUFFER
-          )
-        } else {
-          File(filename).inputStream()
+        /// 打开一个读取流
+        val assetStream = when (pathType) {
+          PathType.SYS -> App.appContext.assets.open(src, AssetManager.ACCESS_BUFFER)
+          else -> File(filePath).inputStream()
         }
-        /**
-         * 一次性发送
-         */
+        /// 一次性发送
         response.body(MemoryBody(assetStream.readByteArray()))
       }
 
@@ -200,7 +202,6 @@ class LocalFileFetch private constructor() {
       }
       return response
     }
-
     return response
   }
 }

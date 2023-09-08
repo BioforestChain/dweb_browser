@@ -145,17 +145,18 @@ object BitmapUtil {
   fun saveBitmapToLocalFile(bitmap: Bitmap) : String? {
     try {
       val filesDir = BrowserUIApp.Instance.appContext.filesDir.absolutePath // 获取data/file路径
+      val fileName = "${System.currentTimeMillis()}.png"
       val file = File(filesDir + File.separator + "icons").let { fileParent ->
         if (!fileParent.exists()) {
           fileParent.mkdirs()
         }
-        File(fileParent.absolutePath + File.separator + "${System.currentTimeMillis()}.png")
+        File(fileParent.absolutePath + File.separator + fileName)
       }
       val fos = FileOutputStream(file)
       bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos)
       fos.flush()
       fos.close()
-      return file.absolutePath
+      return fileName // file.absolutePath
     } catch (e: Exception) {
       Log.e("BitmapUtil", "saveBitmapToLocalFile fail!! -> ${e.message}")
     }

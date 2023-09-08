@@ -110,14 +110,12 @@ class BrowserController(
   suspend fun addUrlToDesktop(title: String, url: String, icon: Bitmap?) {
     val imageResource = icon?.let { bitmap ->
       BitmapUtil.saveBitmapToLocalFile(bitmap)?.let { src ->
-        ImageResource(src = "file://$src")
+        ImageResource(src = "file:///local_icons/$src")
       }
     }
     val item = DeskLinkMetaData(
       title = title, url = url, icon = imageResource, id = System.currentTimeMillis()
     )
     DeskLinkMetaDataStore.saveDeskLink(item)
-    /*runningWebApps.add(item)
-    updateSignal.emit()*/
   }
 }
