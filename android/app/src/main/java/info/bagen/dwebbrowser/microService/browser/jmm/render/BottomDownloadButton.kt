@@ -10,20 +10,18 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.unit.dp
+import info.bagen.dwebbrowser.microService.browser.jmm.ui.JmmUIState
 import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
-import org.dweb_browser.browserUI.download.DownLoadInfo
 import org.dweb_browser.browserUI.download.DownLoadStatus
-import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
 
 @Composable
 internal fun BoxScope.BottomDownloadButton(
-  downLoadInfo: MutableState<DownLoadInfo>, jmmMetadata: JmmAppInstallManifest, onClick: () -> Unit
+  jmmUIState: JmmUIState, onClick: () -> Unit
 ) {
   val background = MaterialTheme.colorScheme.surface
   Box(
@@ -34,24 +32,27 @@ internal fun BoxScope.BottomDownloadButton(
         brush = Brush.verticalGradient(listOf(background.copy(0f), background))
       )
   ) {
+    val downloadStatus = jmmUIState.downloadStatus.value
+    val downloadSize = jmmUIState.downloadSize.value
+    val totalSize = jmmUIState.jmmAppInstallManifest.bundle_size
     var showLinearProgress = false
-    val text = when (downLoadInfo.value.downLoadStatus) {
+    val text = when (downloadStatus) {
       DownLoadStatus.IDLE, DownLoadStatus.CANCEL -> {
-        "下载 (${jmmMetadata.bundle_size.toSpaceSize()})"
+        "下载 (${totalSize.toSpaceSize()})"
       }
 
       DownLoadStatus.NewVersion -> {
-        "更新 (${jmmMetadata.bundle_size.toSpaceSize()})"
+        "更新 (${totalSize.toSpaceSize()})"
       }
 
       DownLoadStatus.DownLoading -> {
         showLinearProgress = true
-        "下载中".displayDownLoad(downLoadInfo.value.size, downLoadInfo.value.dSize)
+        "下载中".displayDownLoad(totalSize, downloadSize)
       }
 
       DownLoadStatus.PAUSE -> {
         showLinearProgress = true
-        "暂停".displayDownLoad(downLoadInfo.value.size, downLoadInfo.value.dSize)
+        "暂停".displayDownLoad(totalSize, downloadSize)
       }
 
       DownLoadStatus.DownLoadComplete -> "安装中..."
@@ -65,10 +66,10 @@ internal fun BoxScope.BottomDownloadButton(
       .fillMaxWidth()
       .height(50.dp)
     val m2 = if (showLinearProgress) {
-      val percent = if (downLoadInfo.value.size == 0L) {
+      val percent = if (totalSize == 0L) {
         0f
       } else {
-        downLoadInfo.value.dSize * 1.0f / downLoadInfo.value.size
+        downloadSize * 1.0f / totalSize
       }
       modifier.background(
         Brush.horizontalGradient(

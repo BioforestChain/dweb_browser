@@ -26,6 +26,7 @@ internal interface IDwebBrowserBinder {
   fun invokeDownloadAndSaveZip(downLoadInfo: DownLoadInfo)
   fun invokeDownloadStatusChange(mmid: MMID)
   fun invokeUpdateDownloadStatus(mmid: MMID, controller: DownLoadController)
+  fun invokeFindDownLoadInfo(mmid: MMID) : DownLoadInfo?
 }
 
 enum class DownLoadController { PAUSE, RESUME, CANCEL }
@@ -52,7 +53,11 @@ class DwebBrowserService : Service() {
     override fun invokeUpdateDownloadStatus(mmid: MMID, controller: DownLoadController) {
       updateDownloadStatus(mmid, controller)
     }
+
+    override fun invokeFindDownLoadInfo(mmid: MMID) = findDownLoadInfo(mmid)
   }
+
+  private fun findDownLoadInfo(mmid: MMID) = downloadMap[mmid]
 
   override fun onDestroy() {
     super.onDestroy()

@@ -4,13 +4,11 @@ import info.bagen.dwebbrowser.App
 import org.dweb_browser.microservice.core.AndroidNativeMicroModule
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.dweb_browser.browserUI.database.JsMicroModuleStore
 import org.dweb_browser.browserUI.download.DownLoadController
 import org.dweb_browser.browserUI.download.compareAppVersionHigh
 import org.dweb_browser.browserUI.util.BrowserUIApp
 import org.dweb_browser.browserUI.util.FilesUtil
-import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.microservice.core.BootstrapContext
@@ -208,9 +206,7 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
     ).apply {
       mode = WindowMode.MAXIMIZE
     })
-    withContext(mainAsyncExceptionHandler) {
-      jmmController = JmmController(win, this@JmmNMM, jmmAppInstallManifest)
-    }
+    jmmController = JmmController(win, this@JmmNMM, jmmAppInstallManifest)
   }
 
   private suspend fun jmmMetadataUninstall(mmid: MMID) {

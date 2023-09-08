@@ -72,7 +72,7 @@ fun MALLBrowserView(viewModel: JmmManagerViewHelper, onBack: () -> Unit) {
       }
     }
     TopAppBar(topBarAlpha, jmmMetadata.name, onBack)
-    BottomDownloadButton(viewModel.uiState.downloadInfo, jmmMetadata) {
+    BottomDownloadButton(viewModel.uiState) {
       scope.launch {
         viewModel.handlerIntent(JmmIntent.ButtonFunction)
       }
