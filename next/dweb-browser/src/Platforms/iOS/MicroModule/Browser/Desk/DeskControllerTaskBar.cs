@@ -1,6 +1,7 @@
 ﻿using CoreGraphics;
 using UIKit;
 using WebKit;
+using DwebBrowserFramework;
 
 namespace DwebBrowser.MicroService.Browser.Desk;
 
@@ -53,37 +54,39 @@ public partial class DeskController
                 return;
             }
 
-            TaskBarAppList.ForEach(it =>
-            {
-                Console.Log("TaskBarAppList", it.Mmid);
-            });
+            //CreateTaskBarView();
 
-            await OnTaskbarListener.Emit(new TaskBarState(TaskBarFocusState.Get(), TaskBarAppList.FirstOrDefault()?.Mmid));
+            //TaskBarAppList.ForEach(it =>
+            //{
+            //    Console.Log("TaskBarAppList", it.Mmid);
+            //});
 
-            if (v)
-            {
-                foreach (var view in View.Subviews)
-                {
-                    if (view.Tag == 32767)
-                    {
-                        view.RemoveFromSuperview();
-                    }
-                }
+            //await OnTaskbarListener.Emit(new TaskBarState(TaskBarFocusState.Get(), TaskBarAppList.FirstOrDefault()?.Mmid));
 
-                CreateTaskBarView();
-            }
-            else
-            {
-                foreach (var view in View.Subviews)
-                {
-                    if (view.Tag == 32768)
-                    {
-                        view.RemoveFromSuperview();
-                    }
-                }
+            //if (v)
+            //{
+            //    foreach (var view in View.Subviews)
+            //    {
+            //        if (view.Tag == 32767)
+            //        {
+            //            view.RemoveFromSuperview();
+            //        }
+            //    }
 
-                ShowFloatView();
-            }
+            //    CreateTaskBarView();
+            //}
+            //else
+            //{
+            //    foreach (var view in View.Subviews)
+            //    {
+            //        if (view.Tag == 32768)
+            //        {
+            //            view.RemoveFromSuperview();
+            //        }
+            //    }
+
+            //    ShowFloatView();
+            //}
         };
     }
 
@@ -98,47 +101,40 @@ public partial class DeskController
     public void CreateTaskBarView()
     {
         var bounds = UIScreen.MainScreen.Bounds;
+        TaskbarFloatView = new FloatingPannelView(bounds, TaskBarWebView);
+        View.AddSubview(TaskbarFloatView);
 
-        var taskbarParentView = new UIView
-        {
-            Frame = bounds,
-            BackgroundColor = UIColor.Clear,
-            Tag = 32768
-        };
+        //var taskbarBackView = new UIView
+        //{
+        //    Frame = bounds,
+        //    BackgroundColor = UIColor.DarkText,
+        //    Alpha = 0.5f
+        //};
+        //taskbarParentView.AddSubview(taskbarBackView);
 
-        View.AddSubview(taskbarParentView);
+        //var tapGesture = new UITapGestureRecognizer(OnTaskBarTap);
+        //taskbarBackView.AddGestureRecognizer(tapGesture);
 
-        var taskbarBackView = new UIView
-        {
-            Frame = bounds,
-            BackgroundColor = UIColor.DarkText,
-            Alpha = 0.5f
-        };
-        taskbarParentView.AddSubview(taskbarBackView);
+        //{
+        //    TaskBarView.ClipsToBounds = true;
+        //    TaskBarView.Layer.CornerRadius = 20f;
+        //    TaskBarView.Layer.ZPosition = nfloat.MaxValue;
 
-        var tapGesture = new UITapGestureRecognizer(OnTaskBarTap);
-        taskbarBackView.AddGestureRecognizer(tapGesture);
+        //    taskbarParentView.AddSubview(TaskBarView);
+        //    /// 背景层
+        //    {
+        //        var effect = UIBlurEffect.FromStyle(UIBlurEffectStyle.Dark);
+        //        var backgroundView = new UIVisualEffectView(effect);
+        //        backgroundView.ContentView.BackgroundColor = UIColor.FromWhiteAlpha(0.7f, 0.3f);
+        //        TaskBarView.AddSubview(backgroundView);
 
-        {
-            TaskBarView.ClipsToBounds = true;
-            TaskBarView.Layer.CornerRadius = 20f;
-            TaskBarView.Layer.ZPosition = nfloat.MaxValue;
+        //        /// 布局伸缩到父级
+        //        backgroundView.AutoResize("backgroundView", TaskBarView);
+        //    }
 
-            taskbarParentView.AddSubview(TaskBarView);
-            /// 背景层
-            {
-                var effect = UIBlurEffect.FromStyle(UIBlurEffectStyle.Dark);
-                var backgroundView = new UIVisualEffectView(effect);
-                backgroundView.ContentView.BackgroundColor = UIColor.FromWhiteAlpha(0.7f, 0.3f);
-                TaskBarView.AddSubview(backgroundView);
-
-                /// 布局伸缩到父级
-                backgroundView.AutoResize("backgroundView", TaskBarView);
-            }
-
-            TaskBarView.AddSubview(TaskBarWebView);
-            TaskBarWebView.AutoResize("TaskBarWebView", TaskBarView);
-        }
+        //    TaskBarView.AddSubview(TaskBarWebView);
+        //    TaskBarWebView.AutoResize("TaskBarWebView", TaskBarView);
+        //}
     }
 
     public List<TaskAppsStore.TaskApps> TaskBarAppList = TaskAppsStore.Instance.All();

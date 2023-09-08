@@ -1,5 +1,7 @@
 ﻿using CoreGraphics;
 using UIKit;
+using DwebBrowserFramework;
+
 
 namespace DwebBrowser.MicroService.Browser.Desk;
 
@@ -24,7 +26,8 @@ public class TaskBarHitView : UIView
 
 public partial class DeskController
 {
-    private TaskBarHitView TaskbarFloatView { get; set; }
+    //private TaskBarHitView TaskbarFloatView { get; set; }
+    private FloatingPannelView TaskbarFloatView { get; set; }
 
     public async Task CreateTaskbarFloatView()
     {
@@ -32,7 +35,7 @@ public partial class DeskController
         {
             Tag = 32767,
             Layer = {
-                ZPosition = nfloat.MaxValue
+                ZPosition = nfloat.MaxValue - 1
             }
         };
 
@@ -124,7 +127,9 @@ public partial class DeskController
             RecordTaskbarFloatViewFrame = new CGRect(RecordTaskbarFloatViewFrame.X, RecordTaskbarFloatViewFrame.Y, width, height);
         }
 
-        TaskbarFloatView.Frame = RecordTaskbarFloatViewFrame;
+        //TaskbarFloatView.Frame = RecordTaskbarFloatViewFrame;
+        TaskbarFloatView.UpdateSize(RecordTaskbarFloatViewFrame.Size);
+        
     }
 }
 

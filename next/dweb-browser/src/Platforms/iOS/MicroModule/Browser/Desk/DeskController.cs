@@ -1,5 +1,6 @@
 ﻿using DwebBrowser.Base;
 using UIKit;
+using DwebBrowserFramework;
 
 namespace DwebBrowser.MicroService.Browser.Desk;
 
@@ -36,6 +37,8 @@ public partial class DeskController : BaseViewController
         return deskAppUIViews;
     }
 
+
+
     public override void ViewDidLoad()
     {
         base.ViewDidLoad();
@@ -66,7 +69,8 @@ public partial class DeskController : BaseViewController
         DeskUIView.AddSubview(DesktopView);
 
         await CreateTaskBarWebView();
-        await CreateTaskbarFloatView();
+        //await CreateTaskbarFloatView();
+        CreateTaskBarView();
     }
 
     public bool IsOnTop = false;
