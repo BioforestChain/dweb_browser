@@ -10,7 +10,7 @@ import androidx.compose.ui.window.ComposeUIViewController
 import org.dweb_browser.helper.compose.AutoResizeTextContainer
 import org.dweb_browser.helper.compose.AutoSizeText
 import org.dweb_browser.helper.platform.OffscreenWebCanvas
-import org.dweb_browser.shared.WebCanvasImageLoader
+import org.dweb_browser.shared.ImageLoaderDemo
 import platform.UIKit.UIViewController
 
 @Suppress("FunctionName", "unused")
@@ -22,7 +22,7 @@ fun MainViewController(): UIViewController = ComposeUIViewController {
       }
     }
     val webCanvas = remember { OffscreenWebCanvas() }
-    WebCanvasImageLoader(webCanvas)
+    ImageLoaderDemo(webCanvas)
   }
 }
 

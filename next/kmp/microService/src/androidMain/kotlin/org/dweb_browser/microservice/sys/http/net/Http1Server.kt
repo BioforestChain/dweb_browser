@@ -64,7 +64,6 @@ class Http1Server {
         install(createApplicationPlugin("dweb") {
           onCall { call ->
             withContext(ioAsyncExceptionHandler) {
-
               /// 将 ktor的request 构建成 http4k 的request
               call.request.asHttp4k()?.also { rawRequest ->
                 val uri = rawRequest.uri.toString();

@@ -25,7 +25,7 @@ import org.dweb_browser.helper.compose.AutoSizeText
 import org.dweb_browser.helper.compose.SimpleBox
 import org.dweb_browser.helper.platform.OffscreenWebCanvas
 import org.dweb_browser.shared.Greeting
-import org.dweb_browser.shared.WebCanvasImageLoader
+import org.dweb_browser.shared.ImageLoaderDemo
 import org.dweb_browser.window.render.LocalWindowController
 import org.dweb_browser.window.render.WindowPreviewer
 import org.dweb_browser.window.render.watchedState
@@ -62,7 +62,7 @@ fun GreetingView(text: String) {
     Text("qaq")
     val context = LocalContext.current;
     val webCanvas = remember { OffscreenWebCanvas(context) }
-    WebCanvasImageLoader(webCanvas)
+    ImageLoaderDemo(webCanvas)
   }
 }
 
