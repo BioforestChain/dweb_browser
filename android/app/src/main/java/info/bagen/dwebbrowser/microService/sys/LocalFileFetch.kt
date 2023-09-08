@@ -111,7 +111,7 @@ class LocalFileFetch private constructor() {
   enum class PathType(val type:String, val dirName:String, val tag: String) {
     SYS(type="/sys/", dirName = "", "LocalFetch > Assets"),
     ICONS(type="/local_icons/", dirName = App.appContext.filesDir.absolutePath + "/icons", "LocalFetch > Tmp"),
-    OTHER(type=""   , dirName = App.appContext.dataDir.absolutePath + File.separator + APP_DIR_TYPE.SystemApp.rootName, "LocalFetch > DataSrc"),
+    OTHER(type="/"   , dirName = App.appContext.dataDir.absolutePath + File.separator + APP_DIR_TYPE.SystemApp.rootName, "LocalFetch > DataSrc"),
     ;
   }
   private fun String.checkPathType() = if (startsWith(PathType.SYS.type)) {
