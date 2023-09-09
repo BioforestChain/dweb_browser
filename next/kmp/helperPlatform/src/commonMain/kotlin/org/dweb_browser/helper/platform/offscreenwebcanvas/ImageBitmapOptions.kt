@@ -8,9 +8,9 @@ data class ImageBitmapOptions(
   val colorSpaceConversion: ColorSpaceConversion? = null,
   val imageOrientation: ImageOrientation? = null,
   val premultiplyAlpha: PremultiplyAlpha? = null,
-  val resizeHeight: Int? = null,
-  val resizeQuality: Float? = null,
-  val resizeWidth: Int? = null,
+//  val resizeHeight: Int? = null,
+//  val resizeQuality: Float? = null,
+//  val resizeWidth: Int? = null,
 ) {
   @Serializable
   enum class ColorSpaceConversion {
