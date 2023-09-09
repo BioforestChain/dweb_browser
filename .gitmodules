@@ -1,0 +1,3 @@
+[submodule "toolkit/offscreen-web-canvas"]
+	path = toolkit/offscreen-web-canvas
+	url = https://github.com/BioforestChain/offscreen-web-canvas

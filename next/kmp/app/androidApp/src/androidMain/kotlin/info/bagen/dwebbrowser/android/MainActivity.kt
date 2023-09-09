@@ -1,5 +1,6 @@
 package org.dweb_browser.app.android
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
@@ -7,18 +8,24 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import org.dweb_browser.helper.compose.AutoResizeTextContainer
 import org.dweb_browser.helper.compose.AutoSizeText
 import org.dweb_browser.helper.compose.SimpleBox
+import org.dweb_browser.helper.platform.OffscreenWebCanvas
 import org.dweb_browser.shared.Greeting
+import org.dweb_browser.shared.ImageLoaderDemo
 import org.dweb_browser.window.render.LocalWindowController
 import org.dweb_browser.window.render.WindowPreviewer
 import org.dweb_browser.window.render.watchedState
@@ -29,8 +36,7 @@ class MainActivity : AppCompatActivity() {
     setContent {
       MyApplicationTheme {
         Surface(
-          modifier = Modifier.fillMaxSize(),
-          color = MaterialTheme.colorScheme.background
+          modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background
         ) {
           Column {
             GreetingView(Greeting().greet())
@@ -42,18 +48,24 @@ class MainActivity : AppCompatActivity() {
   }
 }
 
+
+@SuppressLint("ProduceStateDoesNotAssignValue")
 @Composable
 fun GreetingView(text: String) {
   Column {
-
-    AutoResizeTextContainer {
-      AutoSizeText(text = text)
-      Text("777")
+    Box(Modifier.height(50.dp)) {
+      AutoResizeTextContainer {
+        AutoSizeText(text = text)
+      }
     }
     SimpleBox()
     Text("qaq")
+    val context = LocalContext.current;
+    val webCanvas = remember { OffscreenWebCanvas(context) }
+    ImageLoaderDemo(webCanvas)
   }
 }
+
 
 //@Preview
 //@Composable
@@ -67,8 +79,7 @@ fun GreetingView(text: String) {
 @Composable
 fun PreviewWindowTopBarContent(modifier: Modifier) {
   Box(
-    modifier
-      .background(Color.DarkGray)
+    modifier.background(Color.DarkGray)
   ) {
     val iconUrl by LocalWindowController.current.watchedState { iconUrl ?: "" }
     TextField(iconUrl, onValueChange = {}, modifier = Modifier.fillMaxSize())

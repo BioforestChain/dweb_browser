@@ -40,6 +40,7 @@ kotlin {
         implementation(libs.jetbrains.compose.material3)
         implementation(project(":helper"))
         implementation(project(":helperCompose"))
+        implementation(project(":helperPlatform"))
 //        implementation(project(":window"))
       }
     }
@@ -85,4 +86,7 @@ android {
   defaultConfig {
     minSdk = libs.versions.minSdkVersion.get().toInt()
   }
+  sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
+  sourceSets["main"].res.srcDirs("src/androidMain/res")
+  sourceSets["main"].resources.srcDirs("src/androidMain/resources","src/commonMain/resources")
 }

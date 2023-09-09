@@ -14,7 +14,6 @@ let gradient = LinearGradient(
 )
 struct ContentView: View {
     let greet = Greeting().greet()
-
     var body: some View {
      ZStack {
             ComposeView()
