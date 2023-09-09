@@ -129,7 +129,7 @@ internal class OffscreenWebCanvasMessageChannel {
   suspend fun getEntryUrl(width: Int, height: Int): String {
     val port = server.resolvedConnectors().first().port
     val host = "localhost"
-    val entry = "http://172.30.92.50:5173/index.html"// "http://$host:$port/index.html"//
+    val entry = "http://$host:$port/index.html"//"http://172.30.92.50:5173/index.html"//
     return "$entry?width=$width&height=$height&channel=${"ws://$host:$port/channel".encodeURIComponent()}&proxy=${"http://$host:$port/proxy".encodeURIComponent()}"
   }
 
