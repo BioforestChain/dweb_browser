@@ -43,6 +43,7 @@ kotlin {
         implementation(libs.jetbrains.compose.materialIcons)
 
         implementation(project(":helper"))
+        implementation(project(":helperPlatform"))
       }
     }
     val commonTest by getting {

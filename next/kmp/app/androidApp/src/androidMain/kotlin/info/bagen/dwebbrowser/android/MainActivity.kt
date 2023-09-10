@@ -17,15 +17,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.helper.compose.AutoResizeTextContainer
 import org.dweb_browser.helper.compose.AutoSizeText
 import org.dweb_browser.helper.compose.SimpleBox
-import org.dweb_browser.helper.platform.OffscreenWebCanvas
 import org.dweb_browser.shared.Greeting
 import org.dweb_browser.shared.ImageLoaderDemo
 import org.dweb_browser.window.render.LocalWindowController
@@ -62,10 +59,8 @@ fun GreetingView(text: String) {
     }
     SimpleBox()
     Text("qaq")
-    val context = LocalContext.current;
     Box(Modifier.height(400.dp).background(Color.LightGray)) {
-      val webCanvas = remember { OffscreenWebCanvas(context) }
-      ImageLoaderDemo(webCanvas)
+      ImageLoaderDemo()
     }
   }
 }

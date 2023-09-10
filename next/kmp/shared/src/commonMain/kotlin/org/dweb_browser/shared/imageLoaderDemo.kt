@@ -7,18 +7,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.platform.LocalDensity
-import org.dweb_browser.helper.platform.OffscreenWebCanvas
-import org.dweb_browser.helper.platform.offscreenwebcanvas.WebCanvasContextSession.Companion.buildTask
-import org.dweb_browser.helper.platform.offscreenwebcanvas.waitReady
+import org.dweb_browser.helper.compose.rememberImageLoader
 
 @Composable
-fun ImageLoaderDemo(webCanvas: OffscreenWebCanvas) {
+fun ImageLoaderDemo() {
   val urls = listOf(
     "https://static.oschina.net/uploads/logo/bun_G8BDG.png",
     "http://know.webhek.com/wp-content/uploads/svg/Ghostscript_Tiger.svg",
@@ -29,47 +23,25 @@ fun ImageLoaderDemo(webCanvas: OffscreenWebCanvas) {
   ) {
     for (url in urls) {
       Text(url)
-      WebCanvasImageLoader(webCanvas, url)
+      WebCanvasImageLoader(url)
     }
   }
 }
 
 @Composable
-fun WebCanvasImageLoader(webCanvas: OffscreenWebCanvas, url: String) {
+fun WebCanvasImageLoader(url: String) {
   BoxWithConstraints {
-    val density = LocalDensity.current
-    val containerWidth = (maxWidth.value * density.density).toInt()
-    val containerHeight = (maxHeight.value * density.density).toInt()
-    val imageBitmap by produceState(Result.Loading) {
-      value = try {
-        webCanvas.waitReady()
-        value = Result.Rendering;
-        val imageBitmap = webCanvas.buildTask {
-          renderImage(url, containerWidth, containerHeight)
-          toImageBitmap()
-        }
-        Result.Success(imageBitmap)
-      } catch (e: Throwable) {
-        Result.Error(e)
-      }
+    val imageLoader = rememberImageLoader()
+    val imageBitmap = imageLoader.load(url, maxWidth, maxHeight)
+    imageBitmap.with(
+      onError = {
+        Text(it.stackTraceToString(), color = Color.Red)
+      },
+      onBusy = {
+        Text(it)
+      },
+    ) {
+      Image(it, contentDescription = null)
     }
-    if (imageBitmap.data != null) {
-      Image(imageBitmap.data!!, contentDescription = null)
-    } else if (imageBitmap.error != null) {
-      Text(imageBitmap.error!!.stackTraceToString(), color = Color.Red)
-    } else {
-      Text(imageBitmap.busy ?: "...")
-    }
-  }
-}
-
-class Result(
-  val data: ImageBitmap? = null, val error: Throwable? = null, val busy: String? = null
-) {
-  companion object {
-    val Loading = Result(busy = "加载中")
-    val Rendering = Result(busy = "渲染中")
-    fun Success(data: ImageBitmap) = Result(data = data)
-    fun Error(error: Throwable?) = Result(error = error)
   }
 }
