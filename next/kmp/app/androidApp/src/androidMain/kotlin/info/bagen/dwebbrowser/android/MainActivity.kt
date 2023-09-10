@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -38,7 +40,7 @@ class MainActivity : AppCompatActivity() {
         Surface(
           modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background
         ) {
-          Column {
+          Column(Modifier.verticalScroll(rememberScrollState())) {
             GreetingView(Greeting().greet())
             PreviewWindowTopBar()
           }
@@ -61,8 +63,10 @@ fun GreetingView(text: String) {
     SimpleBox()
     Text("qaq")
     val context = LocalContext.current;
-    val webCanvas = remember { OffscreenWebCanvas(context) }
-    ImageLoaderDemo(webCanvas)
+    Box(Modifier.height(400.dp).background(Color.LightGray)) {
+      val webCanvas = remember { OffscreenWebCanvas(context) }
+      ImageLoaderDemo(webCanvas)
+    }
   }
 }
 
@@ -88,7 +92,7 @@ fun PreviewWindowTopBarContent(modifier: Modifier) {
 
 @Composable
 fun PreviewWindowTopBar() {
-  WindowPreviewer(config = {
+  WindowPreviewer(modifier = Modifier.height(500.dp), config = {
     state.title = "应用长长的标题的标题的标题～～"
     state.topBarContentColor = "#FF00FF"
     state.themeColor = "#Fd9F9F"

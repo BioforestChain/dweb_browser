@@ -24,6 +24,7 @@ fun WindowPreviewer(
   owner: MMID = "owner.preview.dweb",
   provider: MMID = "provider.preview.dweb",
   config: WindowController.() -> Unit = {},
+  modifier: Modifier = Modifier,
   winRender: @Composable @UiComposable() (BoxWithConstraintsScope.(win: WindowController) -> Unit) = { win ->
     win.Render(maxWinWidth = maxWidth.value, maxWinHeight = maxHeight.value)
   },
@@ -39,7 +40,7 @@ fun WindowPreviewer(
       get() = scope
   }
 
-  BoxWithConstraints(Modifier.fillMaxSize()) {
+  BoxWithConstraints(modifier.fillMaxSize()) {
     val state = WindowState(
       WindowConstants(
         wid = wid,
