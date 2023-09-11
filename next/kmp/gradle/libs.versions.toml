@@ -108,6 +108,7 @@ http4k-multipart = { group = "org.http4k", name = "http4k-multipart" }
 http4k-client-apache = { group = "org.http4k", name = "http4k-client-apache" }
 
 ktor-server-websockets = { group = "io.ktor", name = "ktor-server-websockets", version.ref = "ktor-version" }
+ktor-server-core = { group = "io.ktor", name = "ktor-server-core", version.ref = "ktor-version" }
 ktor-server-cio = { group = "io.ktor", name = "ktor-server-cio", version.ref = "ktor-version" }
 ktor-client-cio = { group = "io.ktor", name = "ktor-client-cio", version.ref = "ktor-version" }
 ktor-client-darwin = { group = "io.ktor", name = "ktor-client-darwin", version.ref = "ktor-version" }

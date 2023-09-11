@@ -20,6 +20,7 @@ import info.bagen.dwebbrowser.microService.sys.toast.ToastNMM
 import info.bagen.dwebbrowser.microService.sys.window.WindowNMM
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.cache.HttpCache
 import io.ktor.client.plugins.cache.storage.FileStorage
 import org.dweb_browser.browserUI.microService.browser.web.BrowserNMM
@@ -116,6 +117,10 @@ suspend fun startDwebBrowser(): DnsNMM {
       install(HttpCache) {
         val cacheFile = File(App.appContext.cacheDir, "http-fetch.cache")
         publicStorage(FileStorage(cacheFile))
+      }
+      install(HttpTimeout) {
+        requestTimeoutMillis = 5000L
+        connectTimeoutMillis = 5000L
       }
     }.also { client ->
       nativeFetchAdaptersManager.setClientProvider(client)
