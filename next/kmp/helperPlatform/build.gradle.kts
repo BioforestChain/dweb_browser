@@ -37,6 +37,11 @@ kotlin {
         implementation(libs.jetbrains.compose.foundation)
         @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
         implementation(libs.jetbrains.compose.components.resources)
+        implementation(libs.kotlinx.atomicfu)
+        api(libs.ktor.server.cio)
+        api(libs.ktor.client.cio)
+        api(libs.ktor.client.encoding)
+        api(libs.ktor.server.websockets)
 
         implementation(libs.jetbrains.compose.material3)
 

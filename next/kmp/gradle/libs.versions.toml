@@ -5,7 +5,7 @@ minSdkVersion = "28" # Int
 targetSdkVersion = "34" # Int
 versionCode = "6" # Int
 versionName = "1.1.5"
-kotlinCompilerExtensionVersion = "1.5.1"
+kotlinCompilerExtensionVersion = "1.5.3-dev-k1.9.10-593b4c95fce"
 jvmTarget = "17"
 javaVersion = "VERSION_17" # JavaVersion.VERSION_17
 
@@ -168,6 +168,6 @@ kotlinxMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref 
 kotlinPluginSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinPluginSerializationVersion" }
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin-version" }
 kspAndroid = { id = "com.google.devtools.ksp", version.ref = "ksp" }
-jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "kotlinCompilerExtensionVersion" }
+jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "jetbrains-compose-version" }
 
 [bundles]

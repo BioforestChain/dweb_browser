@@ -20,12 +20,15 @@ kotlin {
     val commonMain by getting {
       dependencies {
         implementation(kotlin("stdlib"))
-        implementation(libs.compose.ui)
-        implementation(libs.compose.material)
-        implementation(libs.compose.material3)
-        implementation(libs.compose.material3.window)
-        implementation(libs.compose.material.icons)
-        implementation(libs.compose.ui.preview)
+        implementation(libs.jetbrains.compose.runtime)
+        implementation(libs.jetbrains.compose.foundation)
+        @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
+        implementation(libs.jetbrains.compose.components.resources)
+        implementation(libs.kotlinx.atomicfu)
+        api(libs.ktor.server.cio)
+        api(libs.ktor.client.cio)
+        api(libs.ktor.client.encoding)
+        api(libs.ktor.server.websockets)
 
         implementation(project(":helper"))
       }
@@ -37,6 +40,12 @@ kotlin {
     }
     val androidMain by getting {
       dependencies {
+        implementation(libs.compose.ui)
+        implementation(libs.compose.material)
+        implementation(libs.compose.material3)
+        implementation(libs.compose.material3.window)
+        implementation(libs.compose.material.icons)
+        implementation(libs.compose.ui.preview)
         // Android Runtime
         api(libs.androidx.core.ktx)
         api(libs.androidx.activity)

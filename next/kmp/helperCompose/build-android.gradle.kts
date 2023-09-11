@@ -28,6 +28,7 @@ kotlin {
         implementation(libs.compose.ui.preview)
 
         implementation(project(":helper"))
+        implementation(project(":helperPlatform"))
       }
     }
     val commonTest by getting {
