@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.browser.jmm.EIpcEvent
+import io.ktor.http.fullPath
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -12,6 +13,7 @@ import org.dweb_browser.helper.ChangeState
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.printDebug
+import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.readByteArray
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.microservice.core.BootstrapContext
@@ -19,8 +21,12 @@ import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.cors
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.types.MMID
+import org.dweb_browser.microservice.http.bind
+import org.dweb_browser.microservice.http.routes
+import org.dweb_browser.microservice.http.toPure
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
+import org.dweb_browser.microservice.ipc.helper.IpcMethod
 import org.dweb_browser.microservice.ipc.helper.IpcResponse
 import org.dweb_browser.microservice.ipc.helper.ReadableStream
 import org.dweb_browser.microservice.sys.dns.nativeFetch
@@ -28,19 +34,6 @@ import org.dweb_browser.microservice.sys.http.CORS_HEADERS
 import org.dweb_browser.microservice.sys.http.DwebHttpServerOptions
 import org.dweb_browser.microservice.sys.http.HttpDwebServer
 import org.dweb_browser.microservice.sys.http.createHttpDwebServer
-import org.http4k.core.Method
-import org.http4k.core.Request
-import org.http4k.core.Response
-import org.http4k.core.Status
-import org.http4k.lens.Query
-import org.http4k.lens.boolean
-import org.http4k.lens.composite
-import org.http4k.lens.float
-import org.http4k.lens.int
-import org.http4k.lens.string
-import org.http4k.routing.bind
-import org.http4k.routing.routes
-import java.util.UUID
 
 fun debugDesk(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("desk", tag, msg, err)
@@ -138,10 +131,9 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     // 创建桌面和任务的服务
     val taskbarServer = this.createTaskbarWebServer()
     val desktopServer = this.createDesktopWebServer()
-    val deskSessionId = UUID.randomUUID().toString()
+    val deskSessionId = randomUUID()
 
-    val desktopController =
-      DesktopController(deskSessionId, this, desktopServer, runningApps)
+    val desktopController = DesktopController(deskSessionId, this, desktopServer, runningApps)
     val taskBarController =
       TaskbarController(deskSessionId, this, desktopController, taskbarServer, runningApps)
     val deskControllers = DeskControllers(desktopController, taskBarController)
@@ -152,16 +144,14 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       controllersMap.remove(deskSessionId)
     }
 
-    apiRouting = routes(
-      "/readFile" bind Method.GET to defineHandler { request ->
-        val url = queryUrl(request)
-        return@defineHandler nativeFetch(url)
-      },
+    apiRouting = routes("/readFile" bind IpcMethod.GET to defineHandler { request ->
+      val url = queryUrl(request)
+      return@defineHandler nativeFetch(url)
+    },
       // readAccept
       "{accept:readAccept\\.\\w+\$}" bind Method.GET to defineHandler { request ->
         return@defineHandler Response(Status.OK).body("""{"accept":"${request.header("Accept")}"}""")
-      },
-      "/openAppOrActivate" bind Method.GET to defineHandler { request ->
+      }, "/openAppOrActivate" bind Method.GET to defineHandler { request ->
         val mmid = queryAppId(request)
         debugDesk("/openAppOrActivate", mmid)
         try {
@@ -182,19 +172,16 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       "/toggleMaximize" bind Method.GET to defineHandler { request ->
         val mmid = queryAppId(request)
         return@defineHandler desktopController.desktopWindowsManager.toggleMaximize(mmid)
-      },
-      "/closeApp" bind Method.GET to defineHandler { request ->
+      }, "/closeApp" bind Method.GET to defineHandler { request ->
         val mmid = queryAppId(request);
         if (runningApps.containsKey(mmid)) {
           return@defineHandler bootstrapContext.dns.close(mmid)
         }
         return@defineHandler false
-      },
-      "/desktop/apps" bind Method.GET to defineHandler { _ ->
+      }, "/desktop/apps" bind Method.GET to defineHandler { _ ->
         debugDesk("/desktop/apps", desktopController.getDesktopApps())
         return@defineHandler desktopController.getDesktopApps()
-      },
-      "/desktop/observe/apps" bind Method.GET to defineHandler { _, ipc ->
+      }, "/desktop/observe/apps" bind Method.GET to defineHandler { _, ipc ->
         val inputStream = ReadableStream(onStart = { controller ->
           val off = desktopController.onUpdate {
             try {
@@ -212,12 +199,10 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         })
         desktopController.updateSignal.emit()
         return@defineHandler Response(Status.OK).body(inputStream)
-      },
-      "/taskbar/apps" bind Method.GET to defineHandler { request ->
+      }, "/taskbar/apps" bind Method.GET to defineHandler { request ->
         val limit = queryLimit(request) ?: Int.MAX_VALUE
         return@defineHandler taskBarController.getTaskbarAppList(limit)
-      },
-      "/taskbar/observe/apps" bind Method.GET to defineHandler { request, ipc ->
+      }, "/taskbar/observe/apps" bind Method.GET to defineHandler { request, ipc ->
         val limit = queryLimit(request) ?: Int.MAX_VALUE
         debugDesk("/taskbar/observe/apps", limit)
         val inputStream = ReadableStream(onStart = { controller ->
@@ -237,8 +222,7 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         })
         taskBarController.updateSignal.emit()
         return@defineHandler Response(Status.OK).body(inputStream)
-      },
-      "/taskbar/observe/status" bind Method.GET to defineHandler { _, ipc ->
+      }, "/taskbar/observe/status" bind Method.GET to defineHandler { _, ipc ->
         debugDesk("/taskbar/observe/status")
         val inputStream = ReadableStream(onStart = { controller ->
           val off = taskBarController.onStatus { status ->
@@ -256,8 +240,7 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
           }
         })
         return@defineHandler Response(Status.OK).body(inputStream)
-      },
-      "/taskbar/resize" bind Method.GET to defineJsonResponse { request ->
+      }, "/taskbar/resize" bind Method.GET to defineJsonResponse { request ->
         val size = queryResize(request)
         debugDesk("/taskbar/resize", "$size")
         taskBarController.resize(size)
@@ -272,8 +255,7 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       "/taskbar/toggle-float-button-mode" bind Method.GET to defineBooleanResponse {
         val open = queryOpen(request)
         taskBarController.taskbarView.toggleFloatWindow(open)
-      }
-    ).cors()
+      }).cors()
 
     onActivity {
       startActivity(deskSessionId)
@@ -306,15 +288,14 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     val taskbarServer =
       createHttpDwebServer(DwebHttpServerOptions(subdomain = "taskbar", port = 433))
     taskbarServer.listen().onRequest { (request, ipc) ->
-      val pathName = request.uri.path
+      val pathName = request.uri.encodedPathAndQuery
       val url = if (pathName.startsWith(API_PREFIX)) {
         val internalUri = pathName.substring(API_PREFIX.length)
-        "file://$internalUri?${request.uri.query}"
+        "file://$internalUri"
       } else {
         "file:///sys/browser/desk${pathName}?mode=stream"
       }
-      val response =
-        nativeFetch(Request(request.method.http4kMethod, url).headers(request.headers.toList()))
+      val response = nativeFetch(request.toPure().copy(url = url))
       ipc.postMessage(IpcResponse.fromResponse(request.req_id, response, ipc))
     }
     return taskbarServer
@@ -324,16 +305,19 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     val desktopServer =
       createHttpDwebServer(DwebHttpServerOptions(subdomain = "desktop", port = 433))
     desktopServer.listen().onRequest { (request, ipc) ->
-      val pathName = request.uri.path
+      val pathName = request.uri.encodedPathAndQuery
       val url = if (pathName.startsWith(API_PREFIX)) {
         val internalUri = pathName.substring(API_PREFIX.length)
-        "file://$internalUri?${request.uri.query}"
+        "file://$internalUri"
       } else {
         "file:///sys/browser/desk${pathName}?mode=stream"
       }
-      val response =
-        nativeFetch(Request(request.method.http4kMethod, url).headers(request.headers.toList()))
-      ipc.postMessage(IpcResponse.fromResponse(request.req_id, response.headers(CORS_HEADERS), ipc))
+      val response = nativeFetch(request.toPure().copy(url = url))
+      ipc.postMessage(
+        IpcResponse.fromResponse(
+          request.req_id, response.appendHeaders(CORS_HEADERS), ipc
+        )
+      )
     }
     return desktopServer
   }

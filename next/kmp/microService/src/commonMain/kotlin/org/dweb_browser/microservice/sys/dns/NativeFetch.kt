@@ -1,8 +1,6 @@
 package org.dweb_browser.microservice.sys.dns
 
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
-import io.ktor.client.plugins.compression.ContentEncoding
 import io.ktor.client.request.prepareRequest
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.Url
@@ -13,15 +11,16 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.platform.httpFetcher
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.help.AdapterManager
 import org.dweb_browser.microservice.help.toHttpRequestBuilder
 import org.dweb_browser.microservice.help.toResponse
-import org.dweb_browser.microservice.http.PureByteArrayBody
+import org.dweb_browser.microservice.http.PureBinaryBody
 import org.dweb_browser.microservice.http.PureRequest
 import org.dweb_browser.microservice.http.PureResponse
-import org.dweb_browser.microservice.http.PureUtf8StringBody
+import org.dweb_browser.microservice.http.PureStringBody
 import org.dweb_browser.microservice.ipc.helper.IpcHeaders
 import org.dweb_browser.microservice.ipc.helper.IpcMethod
 import org.dweb_browser.microservice.ipc.helper.ReadableStreamOut
@@ -71,7 +70,7 @@ class NativeFetchAdaptersManager : AdapterManager<FetchAdapter>() {
                   return PureResponse(
                     HttpStatusCode.OK,
                     headers = IpcHeaders().apply { set("Content-Type", meta) },
-                    body = PureUtf8StringBody(bodyContent)
+                    body = PureStringBody(bodyContent)
                   )
                 }
 
@@ -81,13 +80,13 @@ class NativeFetchAdaptersManager : AdapterManager<FetchAdapter>() {
                     PureResponse(
                       HttpStatusCode.OK,
                       headers = IpcHeaders().apply { set("Content-Type", metaInfo[0]) },
-                      body = PureByteArrayBody(bodyContent.decodeBase64Bytes())
+                      body = PureBinaryBody(bodyContent.decodeBase64Bytes())
                     )
                   } else {
                     PureResponse(
                       HttpStatusCode.OK,
                       headers = IpcHeaders().apply { set("Content-Type", meta) },
-                      body = PureUtf8StringBody(bodyContent)
+                      body = PureStringBody(bodyContent)
                     )
                   }
                 }
@@ -95,7 +94,7 @@ class NativeFetchAdaptersManager : AdapterManager<FetchAdapter>() {
             }
           }
           /// 保底操作
-          return PureResponse(HttpStatusCode.OK, body = PureUtf8StringBody(dataUriContent))
+          return PureResponse(HttpStatusCode.OK, body = PureStringBody(dataUriContent))
         }
         val responsePo = PromiseOut<PureResponse>()
         CoroutineScope(ioAsyncExceptionHandler).launch {
@@ -121,7 +120,7 @@ class NativeFetchAdaptersManager : AdapterManager<FetchAdapter>() {
         debugFetch("httpFetch Throwable", e.message)
         return PureResponse(
           HttpStatusCode.ServiceUnavailable,
-          body = PureUtf8StringBody(e.stackTraceToString())
+          body = PureStringBody(e.stackTraceToString())
         )
       }
     }

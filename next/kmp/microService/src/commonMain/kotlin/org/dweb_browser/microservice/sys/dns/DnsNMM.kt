@@ -1,6 +1,12 @@
 package org.dweb_browser.microservice.sys.dns
 
-import io.ktor.http.Url
+import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.fullPath
+import io.ktor.utils.io.core.toByteArray
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -20,14 +26,12 @@ import org.dweb_browser.microservice.core.DnsMicroModule
 import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.core.connectMicroModules
-import org.dweb_browser.microservice.help.InitRequest
 import org.dweb_browser.microservice.help.buildRequestX
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.http.PureRequest
 import org.dweb_browser.microservice.http.PureResponse
-import org.dweb_browser.microservice.http.PureStreamBody
-import org.dweb_browser.microservice.http.PureUtf8StringBody
+import org.dweb_browser.microservice.http.PureStringBody
 import org.dweb_browser.microservice.http.bind
 import org.dweb_browser.microservice.http.routes
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
@@ -184,11 +188,11 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
         debugFetch("DNS/nativeFetch", "$fromMM => ${request.url}")
         val url = request.url
         val reasonRequest =
-          buildRequestX(url, InitRequest(request.method, request.headers, request.body));
+          buildRequestX(url, request.method, request.headers, request.body);
         installApps[mmid]?.let {
           val (fromIpc) = connectTo(fromMM, mmid, reasonRequest)
           return@let fromIpc.request(request)
-        } ?: PureResponse(HttpStatusCode.BadGateway, body = PureUtf8StringBody(url))
+        } ?: PureResponse(HttpStatusCode.BadGateway, body = PureStringBody(url))
       } else null
     }.removeWhen(this.onAfterShutdown)
     /** dwebDeepLink 适配器*/
@@ -205,7 +209,10 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
             }
           }
         }
-        return@append PureResponse(HttpStatusCode.BadGateway, body = PureUtf8StringBody(request.url))
+        return@append PureResponse(
+          HttpStatusCode.BadGateway,
+          body = PureStringBody(request.url)
+        )
       } else null
     }.removeWhen(this.onAfterShutdown)
 
@@ -214,7 +221,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     /// 定义路由功能
     routes(
       // 打开应用
-      "/open" bind HttpMethod.Get to defineBooleanResponse { request ->
+      "/open" bind HttpMethod.Get to defineBooleanResponse {
         val mmid = queryAppId(request)
         debugDNS("open/$mmid", request.safeUrl.fullPath)
         open(mmid)
@@ -222,16 +229,18 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       },
       // 关闭应用
       // TODO 能否关闭一个应该应该由应用自己决定
-      "/close" bind HttpMethod.Get to defineBooleanResponse { request ->
+      "/close" bind HttpMethod.Get to defineBooleanResponse {
         val mmid = queryAppId(request)
         debugDNS("close/$mmid", request.safeUrl.fullPath)
         close(mmid)
         true
-      }, "/query" bind HttpMethod.Get to defineJsonResponse { request ->
+      },
+      //
+      "/query" bind HttpMethod.Get to defineJsonResponse {
         val mmid = queryAppId(request)
         Json.encodeToString("")
         query(mmid)?.toManifest()?.toJsonElement() ?: JsonPrimitive(null)
-      }, "/observe/install-apps" bind IpcMethod.GET to defineResponse {
+      }, "/observe/install-apps" bind HttpMethod.Get to definePureStreamHandler {
         val inputStream = ReadableStream(onStart = { controller ->
           val off = installApps.onChange { changes ->
             try {
@@ -252,9 +261,9 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
             controller.close()
           }
         })
-        PureResponse(HttpStatusCode.OK, body = PureStreamBody(inputStream.stream))
+        inputStream.stream
       },
-      "/observe/running-apps" bind Method.GET to defineResponse {
+      "/observe/running-apps" bind HttpMethod.Get to definePureStreamHandler {
         val inputStream = ReadableStream(onStart = { controller ->
           val off = runningApps.onChange { changes ->
             try {
@@ -275,7 +284,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
             controller.close()
           }
         })
-        PureResponse(HttpStatusCode.OK, body = PureStreamBody(inputStream.stream))
+        inputStream.stream
       })
 
     /// 启动 boot 模块

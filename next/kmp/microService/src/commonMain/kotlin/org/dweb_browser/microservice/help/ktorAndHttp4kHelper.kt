@@ -8,39 +8,78 @@ import io.ktor.client.statement.bodyAsChannel
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.request.ApplicationRequest
-import io.ktor.server.request.header
 import io.ktor.server.request.httpMethod
 import io.ktor.server.request.uri
+import io.ktor.server.response.ApplicationResponse
+import io.ktor.server.response.header
+import io.ktor.server.response.respondBytes
+import io.ktor.server.response.respondBytesWriter
+import io.ktor.server.response.respondNullable
+import io.ktor.server.response.respondText
 import io.ktor.utils.io.ByteReadChannel
+import io.ktor.utils.io.ByteWriteChannel
+import io.ktor.utils.io.bits.copyTo
+import io.ktor.utils.io.copyAndClose
+import io.ktor.utils.io.core.ByteReadPacket
+import io.ktor.utils.io.read
+import io.ktor.utils.io.writeAvailable
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printDebug
-import org.dweb_browser.microservice.ipc.helper.ReadableStream
-import org.dweb_browser.microservice.ipc.helper.ReadableStreamOut
-import org.dweb_browser.microservice.ipc.helper.debugStream
-import io.ktor.utils.io.ByteWriteChannel
-import io.ktor.utils.io.core.ByteReadPacket
-import io.ktor.utils.io.writeAvailable
-import kotlinx.atomicfu.atomic
 import org.dweb_browser.helper.readByteArray
+import org.dweb_browser.microservice.http.IPureBody
+import org.dweb_browser.microservice.http.PureBinaryBody
+import org.dweb_browser.microservice.http.PureEmptyBody
 import org.dweb_browser.microservice.http.PureRequest
 import org.dweb_browser.microservice.http.PureResponse
 import org.dweb_browser.microservice.http.PureStreamBody
+import org.dweb_browser.microservice.http.PureStringBody
 import org.dweb_browser.microservice.ipc.helper.DEFAULT_BUFFER_SIZE
 import org.dweb_browser.microservice.ipc.helper.IpcHeaders
 import org.dweb_browser.microservice.ipc.helper.IpcMethod
+import org.dweb_browser.microservice.ipc.helper.ReadableStream
+import org.dweb_browser.microservice.ipc.helper.ReadableStreamOut
+import org.dweb_browser.microservice.ipc.helper.debugStream
 
 fun debugHelper(tag: String, msg: Any = "", err: Throwable? = null) =
   printDebug("helper", tag, msg, err)
 
 fun ApplicationRequest.asPureRequest(): PureRequest {
+  val ipcMethod = IpcMethod.from(httpMethod)
+  val ipcHeaders = IpcHeaders(headers)
   return PureRequest(
-    this.uri,
-    IpcMethod.from(this.httpMethod),
-    IpcHeaders(this.headers),
-    PureStreamBody(receiveChannel())
+    uri, ipcMethod, ipcHeaders, body = if (//
+      (ipcMethod == IpcMethod.GET && !isWebSocket(ipcMethod, ipcHeaders)) //
+      || ipcHeaders.get("Content-Length") == "0"
+    ) IPureBody.Empty
+    else PureStreamBody(receiveChannel())
   )
+}
+
+suspend fun ApplicationResponse.fromPureResponse(response: PureResponse) {
+  status(response.status)
+
+  for ((key, value) in response.headers.toMap()) {
+    header(key, value)
+  }
+  when (val pureBody = response.body) {
+    is PureEmptyBody -> this.call.respondNullable<String?>(response.status, null)
+    is PureStringBody -> this.call.respondText(
+      text = pureBody.toPureString(), status = response.status
+    )
+
+    is PureBinaryBody -> this.call.respondBytes(
+      bytes = pureBody.toPureBinary(), status = response.status
+    )
+
+    is PureStreamBody -> this.call.respondBytesWriter(
+      status = response.status
+    ) {
+      pureBody.toPureStream().getReader().copyAndClose(this)
+    }
+  }
 }
 
 var debugStreamAccId = atomic(1)
@@ -93,7 +132,7 @@ fun PureRequest.toHttpRequestBuilder() = HttpRequestBuilder().also { httpRequest
   for ((key, value) in this.headers.toMap()) {
     httpRequestBuilder.headers.append(key, value ?: "")
   }
-  httpRequestBuilder.setBody(this.body.toStream())
+  httpRequestBuilder.setBody(this.body.toPureStream())
 }
 
 /**
@@ -119,14 +158,62 @@ fun ByteReadChannel.pipeToReadableStream(controller: ReadableStream.ReadableStre
   CoroutineScope(ioAsyncExceptionHandler).launch {
     val id = debugStreamAccId.incrementAndGet();
     debugStream("toReadableStream", "SS[$id] start")
-    consumeEachBufferRange { byteArray, last ->
-      debugStream("toReadableStream", "SS[$id] enqueue ${byteArray.length()}")
-      controller.enqueue(byteArray.moveToByteArray())
+    consumeEachArrayRange { byteArray, last ->
+      debugStream("toReadableStream", "SS[$id] enqueue ${byteArray.size}")
+      controller.enqueue(byteArray)
       if (last) {
         debugStream("toReadableStream", "SS[$id] end")
         controller.close()
       }
-      true
     }
   }
 
+
+/**
+ * Visitor function that is invoked for every available buffer (or chunk) of a channel.
+ * The last parameter shows that the buffer is known to be the last.
+ */
+typealias ConsumeEachArrayVisitor = ConsumeEachArrayRangeController. (byteArray: ByteArray, last: Boolean) -> Unit
+
+class ConsumeEachArrayRangeController {
+  var continueFlag = true
+  fun breakLoop() {
+    continueFlag = false
+  }
+}
+
+/**
+ * For every available bytes range invokes [visitor] function until it return false or end of stream encountered.
+ * The provided buffer should be never captured outside of the visitor block otherwise resource leaks, crashes and
+ * data corruptions may occur. The visitor block may be invoked multiple times, once or never.
+ */
+suspend inline fun ByteReadChannel.consumeEachArrayRange(visitor: ConsumeEachArrayVisitor) {
+
+  var continueFlag: Boolean
+  var lastChunkReported = false
+  val controller = ConsumeEachArrayRangeController()
+  do {
+    continueFlag = false
+    read { source, start, endExclusive ->
+      val nioBuffer: ByteArray = when {
+        endExclusive > start -> source.slice(start, endExclusive - start).run {
+          val remaining = (endExclusive - start).toInt()
+          val res = ByteArray(remaining)
+          copyTo(res, start, remaining)
+          res
+        }
+
+        else -> ByteArray(0)
+      }
+
+      lastChunkReported = availableForRead == 0 && isClosedForWrite
+      controller.visitor(nioBuffer, lastChunkReported)
+
+      nioBuffer.size
+    }
+
+    if (lastChunkReported && isClosedForRead) {
+      break
+    }
+  } while (controller.continueFlag)
+}

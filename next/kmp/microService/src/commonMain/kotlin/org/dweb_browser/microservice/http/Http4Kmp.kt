@@ -4,13 +4,13 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.fullPath
 import io.ktor.server.cio.CIO
 import io.ktor.server.engine.embeddedServer
+import org.dweb_browser.microservice.core.HttpHandler
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.helper.IpcMethod
 import org.dweb_browser.microservice.ipc.helper.IpcRequest
 import org.dweb_browser.microservice.sys.http.Gateway
 import org.dweb_browser.microservice.sys.http.MatchMode
 
-typealias HttpHandler = (request: PureRequest, ipc: Ipc?) -> PureResponse
 class HttpRouter {
   private val routes = mutableMapOf<Gateway.RouteConfig, HttpHandler>()
 

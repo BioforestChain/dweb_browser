@@ -31,7 +31,7 @@ suspend fun MicroModule.startHttpDwebServer(options: DwebHttpServerOptions) =
     Uri.of("file://http.std.dweb/start")
       .query("port", options.port.toString())
       .query("subdomain", options.subdomain).toString()
-  ).bodyJson<HttpNMM.ServerStartResult>()
+  ).json<HttpNMM.ServerStartResult>()
 
 
 suspend fun MicroModule.listenHttpDwebServer(
@@ -56,7 +56,7 @@ suspend fun MicroModule.listenHttpDwebServer(
         PureRequest(Uri.of("file://http.std.dweb/listen")
           .query("token", startResult.token)
           .query("routes", Json.encodeToString(routes)).toString(), IpcMethod.POST, body = PureStreamBody(it.stream.stream))
-        ).body.toStream()
+        ).body.toPureStream()
       )
   }
   this.addToIpcSet(streamIpc)

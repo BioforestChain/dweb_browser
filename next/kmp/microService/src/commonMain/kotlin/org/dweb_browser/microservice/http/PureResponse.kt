@@ -1,68 +1,62 @@
 package org.dweb_browser.microservice.http
 
 import io.ktor.http.HttpStatusCode
-import io.ktor.utils.io.cancel
-import io.ktor.utils.io.core.Closeable
+import io.ktor.utils.io.ByteReadChannel
 import kotlinx.serialization.encodeToString
-import org.dweb_browser.microservice.ipc.helper.IpcHeaders
 import kotlinx.serialization.json.Json.Default.decodeFromString
 import kotlinx.serialization.json.JsonElement
 import org.dweb_browser.helper.JsonLoose
+import org.dweb_browser.microservice.ipc.helper.IpcHeaders
 
-class PureResponse(
-  var statusCode: HttpStatusCode = HttpStatusCode.OK,
-  var headers: IpcHeaders = IpcHeaders(),
-  var body: IPureBody = IPureBody.Empty,
-  var statusText: String? = null,
-  var url: String? = null
-) : Closeable {
+data class PureResponse(
+  val status: HttpStatusCode = HttpStatusCode.OK,
+  val headers: IpcHeaders = IpcHeaders(),
+  val body: IPureBody = IPureBody.Empty,
+  val url: String? = null
+) {
 
-  fun ok() : PureResponse = if (statusCode.value >= 400) throw Exception(statusText ?: statusCode.description) else this
+  fun ok(): PureResponse =
+    if (status.value >= 400) throw Exception(status.description) else this
 
-  suspend fun text() = body.toUtf8String()
-
+  suspend fun stream() = ok().body.toPureStream()
+  suspend fun text() = ok().body.toPureString()
   suspend fun booleanStrict() = text().toBooleanStrict()
-
   suspend fun boolean() = text().toBoolean()
-
   suspend fun int() = text().toInt()
-
   suspend fun long() = text().toLong()
-
   suspend fun float() = text().toFloat()
-
   suspend fun floatOrNull(): Float? = text().toFloatOrNull()
-
   suspend fun double() = text().toDouble()
-
   suspend fun doubleOrNull() = text().toDoubleOrNull()
 
   suspend inline fun <reified T> json() = decodeFromString<T>(text())
 
   fun jsonBody(value: JsonElement): PureResponse {
     return PureResponse(
-      this.statusCode,
+      this.status,
       IpcHeaders().apply { set("Content-Type", "application/json") },
-      PureUtf8StringBody(
+      PureStringBody(
         JsonLoose.encodeToString(value)
       )
     )
   }
 
-  fun jsonBody(value: String): PureResponse {
-    return PureResponse(
-      this.statusCode,
-      IpcHeaders().apply { set("Content-Type", "application/json") },
-      PureUtf8StringBody(value)
-    )
-  }
+  fun jsonBody(value: String) = copy(
+    body = PureStringBody(value),
+    headers = headers.copy().apply { set("Content-Type", "application/json") })
 
   fun jsonBody(value: Boolean) = jsonBody("$value")
   fun jsonBody(value: Number) = jsonBody("$value")
 
-  suspend inline fun <reified T> bodyJson() = JsonLoose.decodeFromString<T>(ok().body.toUtf8String())
+  fun body(body: PureStream) = copy(body = PureStreamBody(body))
+  fun body(body: ByteReadChannel) = copy(body = PureStreamBody(body))
+  fun body(body: ByteArray) = copy(body = PureBinaryBody(body))
+  fun body(body: String) = copy(body = PureStringBody(body))
+  fun appendHeaders(headers: Iterable<Pair<String, String>>) =
+    copy(headers = this.headers.copy().apply {
+      for ((key, value) in headers) {
+        set(key, value)
+      }
+    })
 
-  override fun close() {
-    (body as? PureStreamBody)?.stream?.cancel()
-  }
 }

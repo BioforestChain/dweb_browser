@@ -6,6 +6,7 @@ import io.ktor.http.authority
 import io.ktor.http.fullPath
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import org.dweb_browser.helper.SafeHashMap
 import org.dweb_browser.helper.decodeURIComponent
 import org.dweb_browser.helper.encodeURI
 import org.dweb_browser.helper.printDebug
@@ -17,7 +18,7 @@ import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.http.PureRequest
 import org.dweb_browser.microservice.http.PureResponse
 import org.dweb_browser.microservice.http.PureStreamBody
-import org.dweb_browser.microservice.http.PureUtf8StringBody
+import org.dweb_browser.microservice.http.PureStringBody
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.ReadableStreamIpc
 import org.dweb_browser.microservice.ipc.helper.IpcHeaders
@@ -41,8 +42,8 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
   }
 
   /// 注册的域名与对应的 token
-  private val tokenMap = ConcurrentHashMap</* token */ String, Gateway>();
-  private val gatewayMap = ConcurrentHashMap</* host */ String, Gateway>();
+  private val tokenMap = SafeHashMap</* token */ String, Gateway>();
+  private val gatewayMap = SafeHashMap</* host */ String, Gateway>();
 
   /**
    * 监听请求
@@ -95,7 +96,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     }, { request, gateway ->
       if (gateway == null) {
         if (request.safeUrl.fullPath == "/debug") {
-          PureResponse(HttpStatusCode.OK, body = PureUtf8StringBody(request.headers.toString()))
+          PureResponse(HttpStatusCode.OK, body = PureStringBody(request.headers.toString()))
         } else noGatewayResponse
       } else PureResponse(HttpStatusCode.NotFound)
     })

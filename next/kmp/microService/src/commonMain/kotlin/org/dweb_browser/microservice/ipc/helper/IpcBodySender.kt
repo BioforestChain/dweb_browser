@@ -1,10 +1,7 @@
 package org.dweb_browser.microservice.ipc.helper
 
 import io.ktor.util.cio.toByteArray
-import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.cancel
-import io.ktor.utils.io.core.ByteReadPacket
-import io.ktor.utils.io.core.toByteArray
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
@@ -13,6 +10,9 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import org.dweb_browser.helper.SafeHashMap
 import org.dweb_browser.helper.SimpleCallback
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.WeakHashMap
@@ -21,9 +21,12 @@ import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printError
 import org.dweb_browser.helper.randomUUID
-import org.dweb_browser.helper.readByteArray
 import org.dweb_browser.helper.runBlockingCatching
+import org.dweb_browser.microservice.http.IPureBody
+import org.dweb_browser.microservice.http.PureBinary
 import org.dweb_browser.microservice.http.PureStream
+import org.dweb_browser.microservice.http.PureStreamBody
+import org.dweb_browser.microservice.http.PureString
 import org.dweb_browser.microservice.ipc.Ipc
 
 /**
@@ -40,10 +43,10 @@ import org.dweb_browser.microservice.ipc.Ipc
  *
  */
 class IpcBodySender(
-  override val raw: Any,
+  override val raw: IPureBody,
   ipc: Ipc,
 ) : IpcBody() {
-  val isStream by lazy { raw is ByteChannel }
+  val isStream by lazy { raw is PureStreamBody }
   val isStreamClosed get() = if (isStream) _isStreamClosed else true
   val isStreamOpened get() = if (isStream) _isStreamOpened else true
 
@@ -254,22 +257,10 @@ class IpcBodySender(
 
 
   override val metaBody: MetaBody
-  override val bodyHub by lazy {
-    BodyHub().also {
-      it.data = raw
-      when (raw) {
-        is String -> it.base64 = raw;
-        is ByteArray -> it.u8a = raw
-        is ByteReadPacket -> it.stream = raw
-      }
-    }
-  }
 
 
   init {
     metaBody = runBlockingCatching { bodyAsMeta(raw, ipc) }.getOrThrow()
-
-    CACHE.raw_ipcBody_WMap.put(raw, this)
 
     /// 作为 "生产者"，第一持有这个 IpcBodySender
     IPC.usableByIpc(ipc, this)
@@ -277,14 +268,18 @@ class IpcBodySender(
 
   companion object {
 
-    private fun fromAny(raw: Any, ipc: Ipc) =
-      CACHE.raw_ipcBody_WMap.get(raw) ?: IpcBodySender(raw, ipc)
 
-    fun fromText(raw: String, ipc: Ipc) = fromBinary(raw.toByteArray(), ipc)
+    fun from(raw: IPureBody, ipc: Ipc) = IpcBodySender(raw, ipc)
 
-    //    fun fromBase64(raw: String, ipc: Ipc) = fromAny(raw, ipc)
-    fun fromBinary(raw: ByteArray, ipc: Ipc) = fromAny(raw, ipc)
-    fun fromStream(raw: PureStream, ipc: Ipc) = fromAny(raw, ipc)
+
+    fun fromText(raw: PureString, ipc: Ipc) =
+      from(IPureBody.from(raw), ipc)
+
+    fun fromBase64(raw: PureString, ipc: Ipc) =
+      from(IPureBody.from(raw, IPureBody.Companion.PureStringEncoding.Base64), ipc)
+
+    fun fromBinary(raw: PureBinary, ipc: Ipc) = from(IPureBody.from(raw), ipc)
+    fun fromStream(raw: PureStream, ipc: Ipc) = from(IPureBody.from(raw), ipc)
 
 
     private val streamIdWM by lazy { WeakHashMap<PureStream, String>() }
@@ -295,6 +290,12 @@ class IpcBodySender(
       "rs-$env-${stream_id_acc++}"
     };
 
+    /**
+     * 任意的 RAW 背后都会有一个 IpcBodySender/IpcBodyReceiver
+     * 将它们缓存起来，那么使用这些 RAW 确保只拿到同一个 IpcBody，这对 RAW-Stream 很重要，流不可以被多次打开读取
+     */
+    private val asMatedStreams = SafeHashMap<PureStream, MetaBody>()
+    private val asMateLock = Mutex()
   }
 
 
@@ -306,7 +307,7 @@ class IpcBodySender(
   }
 
 
-  private suspend fun streamAsMeta(stream: PureStream, ipc: Ipc): MetaBody {
+  private suspend fun streamAsMeta(stream: PureStream, ipc: Ipc) = asMateLock.withLock {
     val stream_id = getStreamId(stream)
     debugIpcBody("sender/INIT/$stream", stream_id)
     val streamAsMetaScope =
@@ -389,11 +390,11 @@ class IpcBodySender(
     var streamType = MetaBody.IPC_META_BODY_TYPE.STREAM_ID
     var streamFirstData: Any = ""
     if (stream is PreReadableInputStream && stream.preReadableSize > 0) {
-      streamFirstData = reader.readPacket(stream.preReadableSize).readByteArray()
+      streamFirstData = reader.toByteArray(stream.preReadableSize)
       streamType = MetaBody.IPC_META_BODY_TYPE.STREAM_WITH_BINARY
     }
 
-    return MetaBody(
+    MetaBody(
       type = streamType, senderUid = ipc.uid, data = streamFirstData, streamId = stream_id
     ).also { metaBody ->
       // 流对象，写入缓存

@@ -1,11 +1,10 @@
 package org.dweb_browser.microservice.ipc.helper
 
 import io.ktor.http.Url
-import io.ktor.utils.io.core.ByteReadPacket
 import kotlinx.serialization.Serializable
-import org.dweb_browser.microservice.help.InitRequest
 import org.dweb_browser.microservice.help.buildRequestX
 import org.dweb_browser.microservice.help.isWebSocket
+import org.dweb_browser.microservice.http.PureStream
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.IpcRequestInit
 
@@ -67,7 +66,7 @@ class IpcRequest(
       method: IpcMethod,
       url: String,
       headers: IpcHeaders = IpcHeaders(),
-      stream: ByteReadPacket,
+      stream: PureStream,
       ipc: Ipc,
       size: Long? = null
     ) = IpcRequest(
@@ -91,15 +90,7 @@ class IpcRequest(
       url,
       init.method,
       init.headers,
-      if (isWebSocket(init.method, init.headers)) {
-        IpcBodySender.fromStream(init.body.toStream(), ipc)
-      } else if (init.method == IpcMethod.GET || init.method == IpcMethod.HEAD) {
-        IpcBodySender.fromText("", ipc)
-      } else when (init.body.contentLength) {
-        0L -> IpcBodySender.fromText("", ipc)
-        null -> IpcBodySender.fromStream(init.body.toStream(), ipc)
-        else -> IpcBodySender.fromBinary(init.body.toByteArray(), ipc)
-      },
+      IpcBodySender.from(init.body, ipc),
       ipc,
     )
   }
@@ -113,7 +104,7 @@ class IpcRequest(
     return isWebSocket(IpcMethod.from(method.ktorMethod), headers)
   }
 
-  fun toRequest() = buildRequestX(url, InitRequest(method, headers, body.raw))
+  fun toRequest() = buildRequestX(url, method, headers, body.raw)
 
   val ipcReqMessage by lazy {
     IpcReqMessage(req_id, method, url, headers.toMap(), body.metaBody)

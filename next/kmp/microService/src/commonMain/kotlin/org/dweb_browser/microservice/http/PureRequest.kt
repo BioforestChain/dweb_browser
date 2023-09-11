@@ -1,30 +1,20 @@
 package org.dweb_browser.microservice.http
 
 import io.ktor.http.Url
-import io.ktor.utils.io.core.Closeable
-import kotlinx.serialization.Serializable
 import org.dweb_browser.microservice.ipc.helper.IpcHeaders
 import org.dweb_browser.microservice.ipc.helper.IpcMethod
+import org.dweb_browser.microservice.ipc.helper.IpcRequest
 
-@Serializable
-class PureRequest(
-  var url: String,
-  var method: IpcMethod,
-  var headers: IpcHeaders = IpcHeaders(),
-  var body: IPureBody = IPureBody.Empty
-) : Closeable {
+data class PureRequest(
+  val url: String,
+  val method: IpcMethod,
+  val headers: IpcHeaders = IpcHeaders(),
+  val body: IPureBody = IPureBody.Empty
+) {
 
-  var parsedUrl: Url
-    get() = Url(url)
-    set(value) {
-      if(value.toString() != url) {
-        url = value.toString()
-      }
-    }
+  val parsedUrl by lazy { Url(url) }
 
   val safeUrl: Url get() = parsedUrl
-
-  override fun close() {
-    (body as? PureStreamBody)?.stream?.close()
-  }
 }
+
+fun IpcRequest.toPure() = PureRequest(url, method, headers, body.raw)

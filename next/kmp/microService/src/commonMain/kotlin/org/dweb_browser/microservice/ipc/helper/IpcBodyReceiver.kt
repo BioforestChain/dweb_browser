@@ -1,13 +1,10 @@
 package org.dweb_browser.microservice.ipc.helper
 
-import io.ktor.utils.io.ByteChannel
-import io.ktor.utils.io.ByteReadChannel
-import io.ktor.utils.io.core.ByteReadPacket
-import kotlinx.atomicfu.AtomicBoolean
 import kotlinx.atomicfu.atomic
-import org.dweb_browser.helper.printError
 import org.dweb_browser.helper.toBase64ByteArray
 import org.dweb_browser.helper.toUtf8ByteArray
+import org.dweb_browser.microservice.http.IPureBody
+import org.dweb_browser.microservice.http.PureStream
 import org.dweb_browser.microservice.ipc.Ipc
 
 /**
@@ -21,29 +18,21 @@ class IpcBodyReceiver(
 
 
   /// 因为是 abstract，所以得用 lazy 来延迟得到这些属性
-  override val bodyHub by lazy {
-    BodyHub().also {
-      try {
-        val data = if (metaBody.type.isStream) {
-          val ipc = CACHE.metaId_receiverIpc_Map[metaBody.metaId]
-            ?: throw Exception("no found ipc by metaId:${metaBody.metaId}")
-          metaToStream(metaBody, ipc)
-        } else when (metaBody.type.encoding) {
-          /// 文本模式，直接返回即可，因为 RequestInit/Response 支持支持传入 utf8 字符串
-          IPC_DATA_ENCODING.UTF8 -> metaBody.data as String
-          IPC_DATA_ENCODING.BINARY -> metaBody.data as ByteArray
-          IPC_DATA_ENCODING.BASE64 -> (metaBody.data as String).toBase64ByteArray()
-          else -> throw Exception("invalid metaBody type: ${metaBody.type}")
-        }
-        it.data = data
-        when (data) {
-          is String -> it.base64 = data;
-          is ByteArray -> it.u8a = data
-          is ByteReadPacket -> it.stream = data
-        }
-      } catch (e: Exception) {
-        printError("bodyHub", e)
-      }
+  override val raw by lazy {
+    if (metaBody.type.isStream) {
+      val rawIpc = CACHE.metaId_receiverIpc_Map[metaBody.metaId]
+        ?: throw Exception("no found ipc by metaId:${metaBody.metaId}")
+      IPureBody.from(metaToStream(metaBody, rawIpc))
+    } else when (metaBody.type.encoding) {
+      /// 文本模式，直接返回即可，因为 RequestInit/Response 支持支持传入 utf8 字符串
+      IPC_DATA_ENCODING.UTF8 -> IPureBody.from(metaBody.data as String)
+      IPC_DATA_ENCODING.BINARY -> IPureBody.from(metaBody.data as ByteArray)
+      IPC_DATA_ENCODING.BASE64 -> IPureBody.from(
+        metaBody.data as String,
+        IPureBody.Companion.PureStringEncoding.Base64
+      )
+
+      else -> throw Exception("invalid metaBody type: ${metaBody.type}")
     }
   }
 
@@ -70,15 +59,14 @@ class IpcBodyReceiver(
     /**
      * @return {String | ByteArray | InputStream}
      */
-    fun metaToStream(metaBody: MetaBody, ipc: Ipc): ByteChannel {
+    fun metaToStream(metaBody: MetaBody, ipc: Ipc): PureStream {
       /// metaToStream
       val stream_id = metaBody.streamId!!;
       /**
        * 默认是暂停状态
        */
       val paused = atomic(true);
-      val stream = ReadableStream(cid = "receiver-${stream_id}", onStart = { controller ->
-
+      val readableStream = ReadableStream(cid = "receiver-${stream_id}", onStart = { controller ->
         // 注册关闭事件
         ipc.onClose {
           controller.close()
@@ -122,9 +110,9 @@ class IpcBodyReceiver(
         ipc.postMessage(IpcStreamAbort(stream_id))
       });
 
-      debugIpcBody("receiver/$ipc/$stream", "start by stream-id:${stream_id}")
+      debugIpcBody("receiver/$ipc/$readableStream", "start by stream-id:${stream_id}")
 
-      return stream.stream
+      return readableStream.stream
     }
   }
 }

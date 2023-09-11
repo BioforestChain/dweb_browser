@@ -11,7 +11,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.SnapshotMutationPolicy
 import androidx.compose.runtime.State
@@ -19,7 +18,6 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.structuralEqualityPolicy
 import androidx.compose.ui.Modifier
@@ -42,6 +40,8 @@ import org.dweb_browser.helper.compose.theme.md_theme_dark_surface
 import org.dweb_browser.helper.compose.theme.md_theme_light_inverseOnSurface
 import org.dweb_browser.helper.compose.theme.md_theme_light_onSurface
 import org.dweb_browser.helper.compose.theme.md_theme_light_surface
+import org.dweb_browser.helper.platform.offscreenwebcanvas.FetchRequest
+import org.dweb_browser.helper.platform.offscreenwebcanvas.FetchResponse
 import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.dweb_browser.window.core.WindowBounds
 import org.dweb_browser.window.core.WindowController
@@ -114,46 +114,44 @@ val WindowController.inMove
 /**
  * 移动窗口的控制器
  */
-fun Modifier.windowMoveAble(win: WindowController) = this
-  .pointerInput(win) {
-    /// 触摸窗口的时候，聚焦，并且提示可以移动
-    detectTapGestures(
-      // touchStart 的时候，聚焦移动
-      onPress = {
-        win.inMove.value = true
-        win.emitFocusOrBlur(true)
-      },
-      /// touchEnd 的时候，取消移动
-      onTap = {
-        win.inMove.value = false
-      },
-      onLongPress = {
-        win.inMove.value = false
-      },
-    )
-  }
-  .pointerInput(win) {
-    /// 拖动窗口
-    detectDragGestures(
-      onDragStart = {
-        win.inMove.value = true
-        /// 开始移动的时候，同时进行聚焦
-        win.emitFocusOrBlur(true)
-      },
-      onDragEnd = {
-        win.inMove.value = false
-      },
-      onDragCancel = {
-        win.inMove.value = false
-      },
-    ) { change, dragAmount ->
-      change.consume()
-      win.state.updateMutableBounds {
-        left += dragAmount.x / density
-        top += dragAmount.y / density
-      }
+fun Modifier.windowMoveAble(win: WindowController) = this.pointerInput(win) {
+  /// 触摸窗口的时候，聚焦，并且提示可以移动
+  detectTapGestures(
+    // touchStart 的时候，聚焦移动
+    onPress = {
+      win.inMove.value = true
+      win.emitFocusOrBlur(true)
+    },
+    /// touchEnd 的时候，取消移动
+    onTap = {
+      win.inMove.value = false
+    },
+    onLongPress = {
+      win.inMove.value = false
+    },
+  )
+}.pointerInput(win) {
+  /// 拖动窗口
+  detectDragGestures(
+    onDragStart = {
+      win.inMove.value = true
+      /// 开始移动的时候，同时进行聚焦
+      win.emitFocusOrBlur(true)
+    },
+    onDragEnd = {
+      win.inMove.value = false
+    },
+    onDragCancel = {
+      win.inMove.value = false
+    },
+  ) { change, dragAmount ->
+    change.consume()
+    win.state.updateMutableBounds {
+      left += dragAmount.x / density
+      top += dragAmount.y / density
     }
   }
+}
 
 val inResizeStore = WeakHashMap<WindowController, MutableState<Boolean>>()
 
@@ -613,26 +611,21 @@ fun WindowController.IconRender(
   primaryContainerColor: Color? = null,
 ) {
   val iconUrl by watchedState { iconUrl }
-  var iconImageModel by remember(iconUrl) {
-    mutableStateOf<ImageState<out Any?>>(ImageState.Loading)
-  }
-  val scope = rememberCoroutineScope()
-  LaunchedEffect(iconUrl) {
-    scope.launch {
-      iconImageModel = loadIconModel(iconUrl)
-    }
-  }
 
   val iconMaskable by watchedState { iconMaskable }
   val iconMonochrome by watchedState { iconMonochrome }
-  AppIconRender(
+  AppIcon(icon = iconUrl,
     modifier,
     color = primaryColor,
     containerColor = primaryContainerColor,
-    iconModel = iconImageModel.model,
     iconMonochrome = iconMonochrome,
-    iconMaskable = iconMaskable
-  )
+    iconMaskable = iconMaskable,
+    iconFetchHook = state.constants.microModule?.let { mm ->
+      return@let { request: FetchRequest, returnBlock: suspend (FetchResponse) -> Unit ->
+        val response = mm.nativeFetch(request.url)
+        returnBlock(response)
+      }
+    })
 }
 
 sealed class ImageState<T>(val model: T) {

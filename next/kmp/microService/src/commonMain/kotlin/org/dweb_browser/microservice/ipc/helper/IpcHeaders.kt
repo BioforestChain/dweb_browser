@@ -1,9 +1,9 @@
 package org.dweb_browser.microservice.ipc.helper
 
 import io.ktor.http.Headers
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.Serializable
 import org.dweb_browser.helper.ProxySerializer
 
 object IpcHeadersSerializer : ProxySerializer<IpcHeaders, Map<String, String>>(
@@ -60,6 +60,8 @@ class IpcHeaders(private val headersMap: MutableMap<String, String> = mutableMap
   fun toMap(): MutableMap<String, String> {
     return headersMap
   }
+
+  fun copy() = IpcHeaders.from(toMap())
 }
 
 private fun String.asKey(): String {

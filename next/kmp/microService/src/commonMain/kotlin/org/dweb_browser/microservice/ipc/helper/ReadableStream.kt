@@ -22,6 +22,7 @@ import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.helper.toUtf8ByteArray
+import org.dweb_browser.microservice.http.PureStream
 
 fun debugStream(tag: String, msg: Any = "", err: Throwable? = null) = println("$tag $msg")
 //  printDebug("stream", tag, msg, err)
@@ -36,7 +37,8 @@ class ReadableStream(
   val onClose: suspend () -> Unit = {},
 ) {
 
-  val stream: ByteChannel = ByteChannel(true)
+  private val channel = ByteChannel(true)
+  val stream: PureStream = PureStream(channel)
 
   class ReadableStreamController(
     val stream: ReadableStream,
@@ -52,9 +54,9 @@ class ReadableStream(
 
     fun close() {
       // close ByteWriteChannel
-      stream.stream.close()
+      stream.channel.close()
       // close ByteReadChannel
-      stream.stream.cancel()
+      stream.channel.cancel()
       // close ReadableStream
       stream.close()
 
@@ -111,8 +113,8 @@ class ReadableStream(
   fun available(): Int {
     val requestSize = 1
 
-    if (stream.availableForRead >= requestSize) {
-      return stream.availableForRead
+    if (channel.availableForRead >= requestSize) {
+      return channel.availableForRead
     }
 
     // 如果还没有关闭，那就等待信号
@@ -131,23 +133,23 @@ class ReadableStream(
         dataChangeObserver.observe { count ->
           when {
             count == -1 -> {
-              debugStream("REQUEST-DATA/END", "$uid => ${stream.availableForRead}/$requestSize")
+              debugStream("REQUEST-DATA/END", "$uid => ${channel.availableForRead}/$requestSize")
               wait.resolve(Unit) // 不需要抛出错误
             }
 
-            stream.availableForRead >= requestSize -> {
+            channel.availableForRead >= requestSize -> {
               debugStream(
-                "REQUEST-DATA/CHANGED", "$uid => ${stream.availableForRead}/$requestSize"
+                "REQUEST-DATA/CHANGED", "$uid => ${channel.availableForRead}/$requestSize"
               )
               wait.resolve(Unit)
             }
 
             else -> {
               debugStream(
-                "REQUEST-DATA/WAIT&PULL", "$uid => ${stream.availableForRead}/$requestSize"
+                "REQUEST-DATA/WAIT&PULL", "$uid => ${channel.availableForRead}/$requestSize"
               )
               writeDataScope.launch {
-                val desiredSize = requestSize - stream.availableForRead
+                val desiredSize = requestSize - channel.availableForRead
                 onPull(Pair(desiredSize, controller))
               }
             }
@@ -160,10 +162,10 @@ class ReadableStream(
         closeWaits.remove(wait)
       }
       counterJob.cancel()
-      debugStream("REQUEST-DATA/DONE", "$uid => ${stream.availableForRead}")
+      debugStream("REQUEST-DATA/DONE", "$uid => ${channel.availableForRead}")
     }.getOrNull()
 
-    return stream.availableForRead
+    return channel.availableForRead
   }
 
   companion object {
@@ -187,9 +189,8 @@ class ReadableStream(
       // 一直等待数据
       for (chunk in dataChannel) {
         _dataLock.withLock {
-          stream.writeAvailable(chunk)
-          println("stream xxx")
-          debugStream("DATA-INIT", "$uid => +${chunk.size} ~> ${stream.availableForRead}")
+          channel.writeAvailable(chunk)
+          debugStream("DATA-INIT", "$uid => +${chunk.size} ~> ${channel.availableForRead}")
         }
         // 收到数据了，尝试解锁通知等待者
         dataChangeObserver.next()

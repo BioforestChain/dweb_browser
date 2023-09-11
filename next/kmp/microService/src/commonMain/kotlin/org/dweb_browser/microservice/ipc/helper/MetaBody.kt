@@ -1,6 +1,6 @@
 package org.dweb_browser.microservice.ipc.helper
 
-import kotlinx.serialization.*
+import kotlinx.serialization.Serializable
 import org.dweb_browser.helper.IntEnumSerializer
 import org.dweb_browser.helper.ProxySerializer
 import org.dweb_browser.helper.toBase64
@@ -75,7 +75,7 @@ data class MetaBody(
 
     val encoding by lazy {
       val encoding = type and 0b11111110;
-      IPC_DATA_ENCODING.values().find { it.encoding == encoding }
+      IPC_DATA_ENCODING.ALL_VALUES[encoding]
     }
     val isInline by lazy {
       type and 1 == 1
@@ -87,6 +87,7 @@ data class MetaBody(
     companion object {
       val ALL_VALUES = entries.associateBy { it.type }
     }
+
     private inline infix fun or(TYPE: IPC_DATA_ENCODING) = type or TYPE.encoding
   }
 
@@ -96,7 +97,7 @@ data class MetaBody(
 
 
   companion object {
-    private fun randomMetaId() = ByteArray(8).also {  Random.nextBytes(it) }.toBase64Url()
+    private fun randomMetaId() = ByteArray(8).also { Random.nextBytes(it) }.toBase64Url()
     fun fromText(
       senderUid: Int,
       data: String,

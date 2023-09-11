@@ -1,13 +1,10 @@
 package org.dweb_browser.microservice.ipc.helper
 
-import io.ktor.utils.io.core.ByteReadPacket
-import io.ktor.utils.io.core.readBytes
 import org.dweb_browser.helper.WeakHashMap
-import org.dweb_browser.helper.byteArrayInputStream
+import org.dweb_browser.helper.base64
 import org.dweb_browser.helper.printDebug
-import org.dweb_browser.helper.toBase64
-import org.dweb_browser.helper.toBase64ByteArray
-import org.dweb_browser.helper.toUtf8
+import org.dweb_browser.microservice.http.IPureBody
+import org.dweb_browser.microservice.http.PureStream
 import org.dweb_browser.microservice.ipc.Ipc
 
 
@@ -21,11 +18,6 @@ abstract class IpcBody {
    */
   class CACHE {
     companion object {
-      /**
-       * 任意的 RAW 背后都会有一个 IpcBodySender/IpcBodyReceiver
-       * 将它们缓存起来，那么使用这些 RAW 确保只拿到同一个 IpcBody，这对 RAW-Stream 很重要，流不可以被多次打开读取
-       */
-      val raw_ipcBody_WMap = WeakHashMap<Any, IpcBody>()
 
       /**
        * 每一个 metaBody 背后，都会有第一个 接收者IPC，这直接定义了它的应该由谁来接收这个数据，
@@ -43,52 +35,13 @@ abstract class IpcBody {
   }
 
 
-  protected inner class BodyHub {
-    var base64: String? = null
-    var stream: ByteReadPacket? = null
-    var u8a: ByteArray? = null
-    var data: Any? = null
-  }
-
-  protected abstract val bodyHub: BodyHub
+  abstract val raw: IPureBody
   abstract val metaBody: MetaBody
 
-  open val raw get() = bodyHub.data
+  fun stream() = raw.toPureStream()
 
-  private val _u8a by lazy(mode = LazyThreadSafetyMode.SYNCHRONIZED) {
-    (bodyHub.u8a ?: bodyHub.stream?.let {
-      it.readBytes()
-    } ?: bodyHub.base64?.toBase64ByteArray() ?: throw Exception("invalid body type")).also {
-      CACHE.raw_ipcBody_WMap.put(it, this)
-    }
-  }
+  suspend fun base64() = raw.toPureBinary().base64
 
-  suspend fun u8a() = this._u8a
-
-  private val _stream by lazy(mode = LazyThreadSafetyMode.SYNCHRONIZED) {
-    (bodyHub.stream ?: _u8a.let {
-      it.byteArrayInputStream()
-    }).also {
-      CACHE.raw_ipcBody_WMap.put(it, this)
-    }
-  }
-
-  fun stream() = this._stream
-
-  private val _base64 by lazy(mode = LazyThreadSafetyMode.SYNCHRONIZED) {
-    (bodyHub.base64 ?: _u8a.let {
-      it.toBase64()
-    }).also {
-      CACHE.raw_ipcBody_WMap.put(it, this)
-    }
-  }
-
-  fun base64() = this._base64
-
-  private val _text by lazy(mode = LazyThreadSafetyMode.SYNCHRONIZED) {
-    this._base64.toBase64ByteArray().toUtf8()
-  }
-
-  fun text() = this._text
+  suspend fun text() = raw.toPureString()
 
 }

@@ -1,29 +1,22 @@
 package org.dweb_browser.microservice.core
 
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.response.ApplicationResponse
-import io.ktor.utils.io.core.ByteReadPacket
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import org.dweb_browser.helper.printDebug
-import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.help.types.MicroModuleManifest
-import org.dweb_browser.microservice.http.PureByteArrayBody
+import org.dweb_browser.microservice.http.PureBinary
 import org.dweb_browser.microservice.http.PureRequest
 import org.dweb_browser.microservice.http.PureResponse
-import org.dweb_browser.microservice.http.PureStreamBody
-import org.dweb_browser.microservice.http.PureUtf8StringBody
+import org.dweb_browser.microservice.http.PureStream
+import org.dweb_browser.microservice.http.PureStringBody
 import org.dweb_browser.microservice.http.router
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.NativeIpc
 import org.dweb_browser.microservice.ipc.NativeMessageChannel
 import org.dweb_browser.microservice.ipc.helper.IPC_ROLE
-import org.dweb_browser.microservice.ipc.helper.IpcHeaders
 import org.dweb_browser.microservice.ipc.helper.IpcMessage
 import org.dweb_browser.microservice.ipc.helper.IpcResponse
-import kotlin.reflect.KClass
 
 fun debugNMM(tag: String, msg: Any = "", err: Throwable? = null) = printDebug("DNS", tag, msg, err)
 
@@ -51,13 +44,6 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
     }
   }
 
-//  var apiRouting: RoutingHttpHandler? = null
-
-
-//  private val requestContexts = RequestContexts()
-//  private val requestContextKey_ipc = RequestContextKey.required<Ipc>(requestContexts)
-//  private val ipcApiFilter = ServerFilters.InitialiseRequestContext(requestContexts)
-
   /**
    * 实现一整套简易的路由响应规则
    */
@@ -66,10 +52,11 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
       clientIpc.onRequest { (ipcRequest) ->
         val routesWithContext = router.withFilter(ipcRequest);
         debugNMM("NMM/Handler", ipcRequest.url)
-        val request = ipcRequest.toRequest()
-        val response = routesWithContext?.let { it(request, clientIpc) }
+        val response = routesWithContext?.let {
+          it(HandlerContext(ipcRequest.toRequest(), clientIpc))
+        }
 
-        if(response != null) {
+        if (response != null) {
           clientIpc.postMessage(
             IpcResponse.fromResponse(
               ipcRequest.req_id, response, clientIpc
@@ -80,61 +67,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
     }
   }
 
-  class ResponseRegistry {
-    companion object {
-      private val regMap = mutableMapOf<KClass<*>, (item: Any) -> PureResponse>()
-
-      fun <T : Any> registryResponse(type: KClass<T>, handler: (item: T) -> PureResponse) {
-        regMap[type] = handler as (item: Any) -> PureResponse
-      }
-
-      init {
-        registryResponse(ByteArray::class) {
-          PureResponse(HttpStatusCode.OK, body = PureByteArrayBody(it))
-        }
-        registryResponse(ByteReadPacket::class) {
-          PureResponse(HttpStatusCode.OK, body = PureStreamBody(it))
-        }
-      }
-
-      fun <T : Any> registryJsonAble(type: KClass<T>, handler: (item: T) -> Any) {
-        registryResponse(type) {
-          asJson(handler(it))
-        }
-      }
-
-      fun handle(result: Any): PureResponse {
-        val kClass = result::class
-
-        return when (val handler = regMap[kClass]) {
-          null -> {
-//            var superJavaClass = kClass.
-//            while (superJavaClass != null) {
-//              // 尝试寻找继承关系
-//              when (val handler = regMap[superJavaClass]) {
-//                null -> superJavaClass = superJavaClass.superclass
-//                else -> return handler(result)
-//              }
-//            }
-            // 否则默认当成JSON来返回
-            return asJson(result)
-          }
-          // 如果有注册处理函数，那么交给处理函数进行处理
-          else -> handler(result)
-        }
-      }
-
-      fun asJson(result: Any) =
-        PureResponse(
-          HttpStatusCode.OK,
-          headers = IpcHeaders().also { it.init("Content-Type", "application/json") },
-          body = PureUtf8StringBody(Json.encodeToString(result))
-        )
-    }
-  }
-
-  data class HandlerContext(val request: PureRequest, private val getIpc: RequestContextLens<Ipc>) {
-    val ipc get() = getIpc(request)
+  data class HandlerContext(val request: PureRequest, val ipc: Ipc) {
     fun throwException(
       code: HttpStatusCode = HttpStatusCode.InternalServerError,
       message: String = code.description,
@@ -143,113 +76,83 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
   }
 
   protected fun defineEmptyResponse(
-    beforeResponse: (PureResponse.() -> PureResponse)? = null,
-    handler: suspend HandlerContext.(request: PureRequest) -> Unit,
+    beforeResponse: BeforeResponse? = null,
+    handler: RequestHandler<Unit>,
   ) = wrapHandler(beforeResponse) {
-    HandlerContext(it, requestContextKey_ipc).handler(it)
+    handler()
     PureResponse(HttpStatusCode.NoContent)
   }
 
   protected fun defineStringResponse(
-    beforeResponse: (PureResponse.() -> PureResponse)? = null,
-    handler: suspend HandlerContext.(request: PureRequest) -> String
-  ) = wrapHandler(beforeResponse) { request ->
-    PureResponse(HttpStatusCode.OK).body(HandlerContext(request, requestContextKey_ipc).handler(request))
+    beforeResponse: BeforeResponse? = null,
+    handler: RequestHandler<String>,
+  ) = wrapHandler(beforeResponse) {
+    PureResponse(HttpStatusCode.OK).body(
+      handler()
+    )
   }
 
   protected fun defineBooleanResponse(
-    beforeResponse: (PureResponse.() -> PureResponse)? = null,
-    handler: suspend HandlerContext.(request: PureRequest) -> Boolean
+    beforeResponse: BeforeResponse? = null,
+    handler: RequestHandler<Boolean>,
   ) = wrapHandler(beforeResponse) {
-    PureResponse(HttpStatusCode.OK).jsonBody(HandlerContext(it, requestContextKey_ipc).handler(it))
+    PureResponse(HttpStatusCode.OK).jsonBody(handler())
   }
 
   protected fun defineJsonResponse(
-    beforeResponse: (PureResponse.() -> PureResponse)? = null,
-    handler: suspend HandlerContext.(request: PureRequest) -> JsonElement
+    beforeResponse: BeforeResponse? = null,
+    handler: RequestHandler<JsonElement>,
   ) = wrapHandler(beforeResponse) {
     PureResponse(HttpStatusCode.OK).jsonBody(
-      HandlerContext(
-        it, requestContextKey_ipc
-      ).handler(it)
+      handler()
     )
   }
 
   fun PureResponse.body(body: JsonElement) = jsonBody(body)
 
-  protected fun defineResponse(
-    beforeResponse: (PureResponse.() -> PureResponse)? = null,
-    handler: suspend HandlerContext.(request: PureRequest) -> PureResponse
+  protected fun definePureResponse(
+    beforeResponse: BeforeResponse? = null,
+    handler: RequestHandler<PureResponse>,
   ) = wrapHandler(beforeResponse) {
-    HandlerContext(it, requestContextKey_ipc).handler(it)
+    handler()
   }
 
-  protected fun defineByteArrayHandler(
-    beforeResponse: (PureResponse.() -> PureResponse)? = null,
-    handler: suspend HandlerContext.(request: PureRequest) -> ByteArray
+  protected fun definePureBinaryHandler(
+    beforeResponse: BeforeResponse? = null,
+    handler: RequestHandler<PureBinary>,
   ) = wrapHandler(beforeResponse) {
-    PureResponse(HttpStatusCode.OK).body(MemoryBody(HandlerContext(it, requestContextKey_ipc).handler(it)))
+    PureResponse(HttpStatusCode.OK).body(
+      handler()
+    )
   }
 
-  protected fun defineInputStreamHandler(
-    beforeResponse: (PureResponse.() -> PureResponse)? = null,
-    handler: suspend HandlerContext.(request: PureRequest) -> ByteReadPacket
+  protected fun definePureStreamHandler(
+    beforeResponse: BeforeResponse? = null,
+    handler: RequestHandler<PureStream>,
   ) = wrapHandler(beforeResponse) {
-    PureResponse(HttpStatusCode.OK).body(HandlerContext(it, requestContextKey_ipc).handler(it))
+    PureResponse(HttpStatusCode.OK).body(handler())
   }
 
   private fun wrapHandler(
-    beforeResponse: (PureResponse.() -> PureResponse)? = null,
-    handler: suspend (request: PureRequest) -> PureResponse?,
-  ) = { request: PureRequest ->
-    runBlockingCatching {
-      handler(request)?.let { response ->
-        if (beforeResponse != null) {
-          response.beforeResponse()
-        } else response
+    beforeResponse: BeforeResponse? = null,
+    handler: RequestHandler<PureResponse?>,
+  ): suspend (HandlerContext) -> PureResponse = { context: HandlerContext ->
+    try {
+      handler(context)?.let { response ->
+        beforeResponse?.invoke(response) ?: response
       } ?: PureResponse(HttpStatusCode.NotImplemented)
-    }.getOrElse { ex ->
-      debugNMM("NMM/Error", request.url, ex)
-      PureResponse(HttpStatusCode.InternalServerError, body = PureUtf8StringBody("""
-          <p>${request.url}</p>
+    } catch (ex: Exception) {
+      debugNMM("NMM/Error", context.request.url, ex)
+      PureResponse(
+        HttpStatusCode.InternalServerError, body = PureStringBody(
+          """
+          <p>${context.request.url}</p>
           <pre>${ex.message ?: "Unknown Error"}</pre>
-        """.trimIndent()))
+        """.trimIndent()
+        )
+      )
     }
   }
-
-
-  protected fun defineHandler(handler: suspend (request: PureRequest, ipc: Ipc) -> Any?) = { request: PureRequest ->
-    runBlockingCatching {
-      when (val result = handler(request)) {
-        null, Unit -> {
-          PureResponse(HttpStatusCode.OK)
-        }
-
-        is PureResponse -> result
-        is ByteArray -> PureResponse(HttpStatusCode.OK, body = PureByteArrayBody(result))
-        is ByteReadPacket -> PureResponse(HttpStatusCode.OK, body = PureStreamBody(result))
-        else -> {
-          // 如果有注册处理函数，那么交给处理函数进行处理
-          ResponseRegistry.handle(result)
-        }
-      }
-    }.getOrElse { ex ->
-      debugNMM("NMM/Error", request.url, ex)
-      val content = """
-          <p>${request.url}</p>
-          <pre>${ex.message ?: "Unknown Error"}</pre>
-        """.trimIndent();
-      when (ex) {
-        is ResponseException -> PureResponse(ex.code, body = PureUtf8StringBody(content))
-        else -> PureResponse(HttpStatusCode.InternalServerError, body = PureUtf8StringBody(content))
-      }
-    }
-  }
-
-  protected fun defineHandler(handler: suspend (request: PureRequest, ipc: Ipc) -> Any?) =
-    defineHandler { request ->
-      handler(request, ipc)
-    }
 
   class ResponseException(
     val code: HttpStatusCode = HttpStatusCode.InternalServerError,
@@ -257,3 +160,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
     cause: Throwable? = null
   ) : Exception(message, cause)
 }
+
+typealias BeforeResponse = suspend (PureResponse) -> PureResponse?
+typealias RequestHandler<T> = suspend NativeMicroModule.HandlerContext.() -> T
+typealias HttpHandler = suspend (NativeMicroModule.HandlerContext) -> PureResponse

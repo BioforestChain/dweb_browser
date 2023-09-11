@@ -1,13 +1,9 @@
 package org.dweb_browser.microservice.ipc.helper
 
 import io.ktor.http.HttpStatusCode
-import io.ktor.utils.io.ByteChannel
-import io.ktor.utils.io.core.ByteReadPacket
 import kotlinx.serialization.Serializable
-import org.dweb_browser.microservice.http.PureByteArrayBody
 import org.dweb_browser.microservice.http.PureResponse
-import org.dweb_browser.microservice.http.PureStreamBody
-import org.dweb_browser.microservice.http.PureUtf8StringBody
+import org.dweb_browser.microservice.http.PureStream
 import org.dweb_browser.microservice.ipc.Ipc
 
 class IpcResponse(
@@ -26,11 +22,7 @@ class IpcResponse(
 
   companion object {
     fun fromText(
-      req_id: Int,
-      statusCode: Int = 200,
-      headers: IpcHeaders = IpcHeaders(),
-      text: String,
-      ipc: Ipc
+      req_id: Int, statusCode: Int = 200, headers: IpcHeaders = IpcHeaders(), text: String, ipc: Ipc
     ) = IpcResponse(
       req_id,
       statusCode,
@@ -57,7 +49,7 @@ class IpcResponse(
       req_id: Int,
       statusCode: Int = 200,
       headers: IpcHeaders = IpcHeaders(),
-      stream: ByteReadPacket,
+      stream: PureStream,
       ipc: Ipc
     ) = IpcResponse(
       req_id,
@@ -70,16 +62,14 @@ class IpcResponse(
     )
 
     enum class BodyStrategy {
-      AUTO,
-      STREAM,
-      BINARY,
+      AUTO, STREAM, BINARY,
     }
 
-    fun fromResponse(
+    suspend fun fromResponse(
       req_id: Int, response: PureResponse, ipc: Ipc, bodyStrategy: BodyStrategy = BodyStrategy.AUTO
     ) = IpcResponse(
       req_id,
-      response.statusCode.value,
+      response.status.value,
       response.headers,
       when (val len = response.body.contentLength) {
         0L -> IpcBodySender.fromText("", ipc)
@@ -89,9 +79,9 @@ class IpcResponse(
           BodyStrategy.BINARY -> true
         }.let { asBinary ->
           if (asBinary) {
-            IpcBodySender.fromBinary(response.body.toByteArray(), ipc)
+            IpcBodySender.fromBinary(response.body.toPureBinary(), ipc)
           } else {
-            IpcBodySender.fromStream(response.body.toStream(), ipc)
+            IpcBodySender.fromStream(response.body.toPureStream(), ipc)
           }
         }
       },
@@ -100,14 +90,7 @@ class IpcResponse(
   }
 
   fun toResponse() =
-    PureResponse(
-      HttpStatusCode.fromValue(statusCode), this.headers, body = when (val body = body.raw) {
-        is String -> PureUtf8StringBody(body)
-        is ByteArray -> PureByteArrayBody(body)
-        is ByteChannel -> PureStreamBody(body)
-        else -> throw Exception("invalid body to response: $body")
-      }
-    )
+    PureResponse(HttpStatusCode.fromValue(statusCode), this.headers, body = body.raw)
 
   val ipcResMessage by lazy {
     IpcResMessage(req_id, statusCode, headers.toMap(), body.metaBody)
