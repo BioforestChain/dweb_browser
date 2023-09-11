@@ -10,7 +10,7 @@ import SwiftUI
 @objc(ConsoleSwift)
 public class ConsoleSwift: NSObject {
     public typealias Inject = (String) -> Void
-    public static var inject: Inject!
+    public static var inject: Inject?
 
     override public init() {
         super.init()
@@ -22,5 +22,13 @@ public class ConsoleSwift: NSObject {
 
     @objc func testAction() {
         print("haha")
+    }
+    
+    static func log(_ s: String) {
+        guard let injector = inject else {
+            return
+        }
+        
+        injector(s)
     }
 }

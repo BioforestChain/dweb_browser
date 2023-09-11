@@ -48,7 +48,7 @@ public class FloatingPannelView: UIView {
     }
     
     func setupSubViews() {
-        ConsoleSwift.inject("setupSubViews")
+        ConsoleSwift.log("setupSubViews")
         addSubview(hostVC.view)
     }
     
@@ -70,15 +70,15 @@ public class FloatingPannelView: UIView {
         
     public override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
         if floatingParams.floating {
-            ConsoleSwift.inject("hitTest: floating: \(point)")
+            ConsoleSwift.log("hitTest: floating: \(point)")
             return super.hitTest(point, with: event)
         }
                 
         if floatingParams.rect.contains(point) {
-            ConsoleSwift.inject("hitTest contain: \(point)")
+            ConsoleSwift.log("hitTest contain: \(point)")
             return super.hitTest(point, with: event)
         }
-        ConsoleSwift.inject("hitTest: pass: \(point)")
+        ConsoleSwift.log("hitTest: pass: \(point)")
         return nil
     }
 }

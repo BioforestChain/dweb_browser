@@ -18,7 +18,7 @@ func printWithDate(_ msg: String = "") {
 //#if DwebBrowser
     print("~~~~" + dateString + "--" + msg)
 //#else
-    ConsoleSwift.inject?("~~~~" + dateString + "--" + msg)
+    ConsoleSwift.log("~~~~" + dateString + "--" + msg)
 //#endif
 
 }

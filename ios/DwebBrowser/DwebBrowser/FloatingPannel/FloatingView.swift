@@ -58,12 +58,8 @@ struct FloatingView: View {
                 .frame(width: floatingParams.width, height: floatingParams.height)
                 .followDrag(mappers: {
                     let maps = FollowDragMap()
-                    maps.dragingPoistionMapper = { p in
-                        return dragingMapperFunc(p: p, size: geometry.size)
-                    }
-                    maps.dragedPoistionMapper = { p in
-                        return dragedMapperFunc(p: p, size: geometry.size)
-                    }
+                    maps.dragingPoistionMapper = { dragingMapperFunc(p: $0, size: geometry.size) }
+                    maps.dragedPoistionMapper = { dragedMapperFunc(p: $0, size: geometry.size)}
                     return maps
                 }())
             }
