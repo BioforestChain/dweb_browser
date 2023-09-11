@@ -1,3 +1,4 @@
+import org.apache.tools.ant.taskdefs.condition.Os
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 plugins {
   alias(libs.plugins.androidApplication) apply false
@@ -9,29 +10,20 @@ plugins {
   alias(libs.plugins.kotlinxMultiplatform) apply false
 }
 
-/*
-plugins {
-  id("com.google.devtools.ksp") version "1.9.0-1.0.13" apply false
-}
+/**
+ * 为了在根目录增加一个 libs.versions.toml 链接，方便查看版本信息
+ */
+tasks.run {
+    val externalFile = File("${project.rootDir}/../next/kmp/gradle/libs.versions.toml") // 替换为实际的文件路径
+    val targetFile = File("${project.rootDir}/libs.versions.toml")
 
-buildscript {
-  repositories {
-    google()
-    mavenCentral()
-    maven(
-      "https://maven.pkg.jetbrains.space/public/p/ktor/eap"
-    )
-    maven("https://jitpack.io")
-  }
-  dependencies {
-    classpath("com.android.tools.build:gradle:8.1.0")
-    classpath(kotlin("gradle-plugin", version = "1.9.0"))
-  }
+    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+      project.exec {
+        commandLine("cmd", "/c", "mklink", targetFile.absolutePath, externalFile.absolutePath)
+      }
+    } else {
+      project.exec {
+        commandLine("ln", "-s", externalFile.absolutePath, targetFile.absolutePath)
+      }
+    }
 }
-
-tasks.register<Delete>("clean").configure {
-  delete(rootProject.buildDir)
-}
-*/
-
-//
