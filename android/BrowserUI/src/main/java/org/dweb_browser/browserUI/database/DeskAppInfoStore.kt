@@ -23,7 +23,8 @@ import org.dweb_browser.microservice.help.types.MMID
 
 enum class AppType {
   MetaData, URL;
-  fun createId() = "$name${System.currentTimeMillis()}.dweb"
+
+  fun createId() = "${this.name}${System.currentTimeMillis()}.dweb"
 }
 
 @Serializable
@@ -45,23 +46,6 @@ object DeskAppInfoStore {
   private const val PREFERENCE_NAME = "DeskAppInfo"
   private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = PREFERENCE_NAME)
 
-  private suspend fun queryAppInfoList(): Flow<MutableList<JmmAppInstallManifest>> {
-    return BrowserUIApp.Instance.appContext.dataStore.data.catch { e ->  // Flow 中发生异常可使用这种方式捕获，catch 块是可选的
-      if (e is IOException) {
-        e.printStackTrace()
-        emit(emptyPreferences())
-      } else {
-        throw e
-      }
-    }.map { pref ->
-      val list = mutableListOf<JmmAppInstallManifest>()
-      pref.asMap().forEach { (key, value) ->
-        list.add(Json.decodeFromString<JmmAppInstallManifest>(value as String))
-      }
-      list
-    }
-  }
-
   suspend fun saveAppInfo(mmid: MMID, metadata: JmmAppInstallManifest) =
     runBlocking(Dispatchers.IO) {
       // edit 函数需要在挂起环境中执行
@@ -69,12 +53,6 @@ object DeskAppInfoStore {
         pref[stringPreferencesKey("${AppType.MetaData}$mmid")] = Json.encodeToString(metadata)
       }
     }
-
-  private suspend fun deleteAppInfo(mmid: MMID) {
-    BrowserUIApp.Instance.appContext.dataStore.edit { pref ->
-      pref.remove(stringPreferencesKey("${AppType.MetaData}$mmid"))
-    }
-  }
 
   suspend fun saveWebLink(item: DeskWebLink) =
     runBlocking(Dispatchers.IO) {
@@ -84,15 +62,9 @@ object DeskAppInfoStore {
       }
     }
 
-  private suspend fun deleteWebLink(mmid: MMID) {
-    BrowserUIApp.Instance.appContext.dataStore.edit { pref ->
-      pref.remove(stringPreferencesKey(mmid))
-    }
-  }
-
   suspend fun deleteDeskAppInfo(mmid: MMID) {
     BrowserUIApp.Instance.appContext.dataStore.edit { pref ->
-      val name = if(mmid.startsWith(AppType.URL.name)) mmid else "${AppType.MetaData}$mmid"
+      val name = if (mmid.startsWith(AppType.URL.name)) mmid else "${AppType.MetaData}$mmid"
       pref.remove(stringPreferencesKey(name))
     }
   }
@@ -108,13 +80,17 @@ object DeskAppInfoStore {
     }.map { pref ->
       val list = mutableListOf<DeskAppInfo>()
       pref.asMap().forEach { (key, value) ->
-        if (key.name.startsWith(AppType.MetaData.name)) {
-          DeskAppInfo(AppType.MetaData, metadata = Json.decodeFromString<JmmAppInstallManifest>(value as String))
+        val item = if (key.name.startsWith(AppType.MetaData.name)) {
+          DeskAppInfo(
+            AppType.MetaData,
+            metadata = Json.decodeFromString<JmmAppInstallManifest>(value as String)
+          )
         } else if (key.name.startsWith(AppType.URL.name)) {
-          DeskAppInfo(AppType.MetaData, weblink = Json.decodeFromString<DeskWebLink>(value as String))
-        } else { null }?.let {
-          list.add(it)
+          DeskAppInfo(AppType.URL, weblink = Json.decodeFromString<DeskWebLink>(value as String))
+        } else {
+          null
         }
+        item?.let { list.add(it) }
       }
       list
     }
