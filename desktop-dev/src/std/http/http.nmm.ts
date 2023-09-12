@@ -205,7 +205,7 @@ export class HttpServerNMM extends NativeMicroModule {
   /**
    * 释放监听
    */
-  private close(ipc: Ipc, hostOptions: $DwebHttpServerOptions) {
+  private async close(ipc: Ipc, hostOptions: $DwebHttpServerOptions) {
     const serverUrlInfo = this.getServerUrlInfo(ipc, hostOptions);
 
     const gateway = this._gatewayMap.get(serverUrlInfo.host);

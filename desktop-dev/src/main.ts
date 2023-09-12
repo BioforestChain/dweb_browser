@@ -14,6 +14,7 @@ import { BluetoothNMM } from "./std/bluetooth/bluetooth.main.ts";
 import { HttpServerNMM } from "./std/http/http.nmm.ts";
 import { BarcodeScanningNMM } from "./sys/barcode-scanning/barcode-scanning.main.ts";
 import { BootNMM } from "./sys/boot/boot.ts";
+import { ConfigNMM } from "./sys/config/config.ts";
 import { DeviceNMM } from "./sys/device/device.main.ts";
 import { DnsNMM } from "./sys/dns/dns.ts";
 import "./sys/dns/localeFileFetch.ts";
@@ -59,6 +60,7 @@ dns.install(new MultiWebviewNMM());
 dns.install(new JsProcessNMM());
 dns.install(new HttpServerNMM());
 dns.install(new DeviceNMM());
+dns.install(new ConfigNMM())
 const webBrowser = new WebBrowserNMM();
 dns.install(webBrowser);
 dns.install(new BarcodeScanningNMM());

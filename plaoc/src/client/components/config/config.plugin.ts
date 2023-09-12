@@ -1,17 +1,17 @@
 import { X_PLAOC_QUERY } from "../../../server/const.ts";
 import { bindThis } from "../../helper/bindThis.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
-import { $CommonCommands } from "./config.type.ts";
+import { dwebServiceWorker } from "../index.ts";
 
 export class ConfigPlugin extends BasePlugin {
   constructor() {
-    super("config.std.dweb");
+    super("config.sys.dweb");
     if (typeof location === "object") {
       this.initConfig();
     }
   }
   async initConfig() {
-    const internalUrl = await BasePlugin.getInternalUrl(X_PLAOC_QUERY.API_INTERNAL_URL)
+    const internalUrl = await BasePlugin.getInternalUrl(X_PLAOC_QUERY.API_INTERNAL_URL);
     internalUrl && this.setInternalUrl(internalUrl);
   }
 
@@ -30,18 +30,28 @@ export class ConfigPlugin extends BasePlugin {
   }
 
   /**
-   * 设置一些配置指令
-   * @param cmd 
+   * 设置语言
+   * @param lang 语言
+   * @param isReload 是否重新加载
    * @returns 
    */
   @bindThis
-  async command(cmd: keyof $CommonCommands) {
-    return await this.fetchApi(`/${cmd}`,{
-      search:{
-        local:"locales"
-      }
-    }).object<$CommonCommands[typeof cmd]>();
+  async setLang(lang: string,isReload = true) {
+    const res = await this.fetchApi(`/setLang`, {
+      base:location.href,
+      search: {
+        lang: lang,
+      },
+    }).boolean();
+    if(res && isReload) {
+      dwebServiceWorker.restart()
+    }
+    return res
   }
 
+  @bindThis
+  async getLang() {
+    return this.fetchApi("/getLang",{base:location.href}).text();
+  }
 }
 export const configPlugin = new ConfigPlugin();

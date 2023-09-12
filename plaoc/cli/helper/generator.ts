@@ -195,7 +195,7 @@ export class BundleZipGenerator {
     };
     if (dev) {
       await addFiles_DistToUsr("server/plaoc.server.dev.js", "server/plaoc.server.js");
-      // await addFiles_DistToUsr("server/emulator");
+      await addFiles_DistToUsr("server/emulator");
     } else {
       await addFiles_DistToUsr("server/plaoc.server.js");
     }

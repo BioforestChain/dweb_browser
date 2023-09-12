@@ -119,7 +119,7 @@ export class JsMicroModule extends MicroModule {
 
   /** 每个 JMM 启动都要依赖于某一个js */
   async _bootstrap(context: $BootstrapContext) {
-    console.log("jsmm", `[${this.metadata.config.id} micro-module.js.ct _bootstrap ${this.mmid}]`);
+    console.always("jsmm", `[${this.metadata.config.id} micro-module.js.ct _bootstrap ${this.mmid}]`);
     const pid = Math.ceil(Math.random() * 1000).toString();
     this._process_id = pid;
     // 这个 streamIpc 专门服务于 file://js.browser.dweb/create-process
@@ -135,7 +135,6 @@ export class JsMicroModule extends MicroModule {
         streamIpc.postMessage(IpcResponse.fromText(request.req_id, 200, undefined, main_code, streamIpc));
       }
     });
-
     // 创建一个 streamIpc
     void streamIpc.bindIncomeStream(
       this.nativeFetch(
@@ -156,7 +155,7 @@ export class JsMicroModule extends MicroModule {
     const [jsIpc] = await context.dns.connect("js.browser.dweb");
 
     jsIpc.onClose(async () => {
-      await this.isRunning && this.shutdown();
+      (await this.isRunning) && this.shutdown();
     });
 
     jsIpc.onRequest(async (ipcRequest, ipc) => {
@@ -240,16 +239,16 @@ export class JsMicroModule extends MicroModule {
              * 监听关闭事件
              */
             originIpc.onClose(() => {
-              this._fromMmid_originIpc_map.delete(originIpc.remote.mmid);
+              this._fromMmid_originIpc_map.delete(targetIpc.remote.mmid);
               targetIpc.close();
             });
             targetIpc.onClose(() => {
-              this._fromMmid_originIpc_map.delete(targetIpc.remote.mmid);
+              this._fromMmid_originIpc_map.delete(originIpc.remote.mmid);
               originIpc.close();
             });
           } else {
             originIpc.onClose(() => {
-              this._fromMmid_originIpc_map.delete(fromMmid);
+              this._fromMmid_originIpc_map.delete(originIpc.remote.mmid);
             });
           }
           task.resolve(originIpc);
@@ -283,12 +282,14 @@ export class JsMicroModule extends MicroModule {
     ).boolean();
   }
 
-  _shutdown() {
+  async _shutdown() {
     // 删除 _fromMmid_originIpc_map 里面的ipc
-    Array.from(this._fromMmid_originIpc_map.values()).forEach(async (item) => {
-      (await item.promise).close();
-    });
+    for (const item of Array.from(this._fromMmid_originIpc_map.values())) {
+      const ipc = await item.promise;
+      ipc.close();
+    }
 
+    this._fromMmid_originIpc_map.clear();
     this._process_id = undefined;
   }
 }
