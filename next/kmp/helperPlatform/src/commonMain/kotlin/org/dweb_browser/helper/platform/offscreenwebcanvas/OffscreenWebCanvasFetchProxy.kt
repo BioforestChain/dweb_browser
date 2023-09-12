@@ -13,7 +13,6 @@ import io.ktor.server.response.header
 import io.ktor.server.response.respondBytesWriter
 import io.ktor.server.util.getOrFail
 import io.ktor.util.flattenEntries
-import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.copyAndClose
 import org.dweb_browser.helper.platform.httpFetcher
@@ -26,13 +25,16 @@ internal class OffscreenWebCanvasFetchProxy(private val client: HttpClient = htt
     val proxyUrl = call.request.queryParameters.getOrFail("url")
     val hook = hooksMap[proxyUrl]?.last()
     if (hook != null) {
-      hook(
+      val hookReturn = FetchHookContext(
         FetchRequest(
           call.request.uri,
           call.request.headers.flattenEntries().removeOriginAndAcceptEncoding(),
           call.request.receiveChannel()
-        )
+        ),
       ) { res ->
+        if (res == null) {
+          return@FetchHookContext FetchHookReturn.Base
+        }
         for ((key, value) in res.headers.removeCorsAndContentEncoding()) {
           call.response.header(key, value)
         }
@@ -40,6 +42,10 @@ internal class OffscreenWebCanvasFetchProxy(private val client: HttpClient = htt
         call.respondBytesWriter(status = res.status) {
           res.body.copyAndClose(this)
         }
+        FetchHookReturn.Hooked
+      }.hook()
+      if (hookReturn == FetchHookReturn.Base) {
+        defaultProxy(proxyUrl, call)
       }
     } else defaultProxy(proxyUrl, call)
   }
@@ -107,8 +113,17 @@ class FetchRequest(
 class FetchResponse(
   val status: HttpStatusCode, val headers: List<Pair<String, String>>, val body: ByteReadChannel
 )
+
+data class FetchHookContext(
+  val request: FetchRequest, val returnResponse: suspend (FetchResponse?) -> FetchHookReturn
+)
+
+enum class FetchHookReturn {
+  Hooked,
+  Base,
+}
 /**
  * 这里使用异步调函数而不是直接返回FetchResponse，目的是使用异步回调函数来传递生命周期的概念，在调用returnBlock结束后，FetchHook可以对一些引用资源进行释放。
  * 这样就可以一些不必要的内存减少拷贝
  */
-typealias FetchHook = suspend (FetchRequest, returnBlock: suspend (FetchResponse) -> Unit) -> Unit
+typealias FetchHook = suspend FetchHookContext.() -> FetchHookReturn

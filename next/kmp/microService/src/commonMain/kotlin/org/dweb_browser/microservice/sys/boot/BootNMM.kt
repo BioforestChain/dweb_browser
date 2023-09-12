@@ -1,10 +1,6 @@
 package org.dweb_browser.microservice.sys.boot
 
 import io.ktor.http.HttpMethod
-import io.ktor.server.application.pluginRegistry
-import io.ktor.server.routing.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.core.AndroidNativeMicroModule
 import org.dweb_browser.microservice.core.BootstrapContext
@@ -39,7 +35,6 @@ class BootNMM(initMmids: List<MMID>? = null) :
 
   override val routers: Router = mutableMapOf()
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-
     routes("/register" bind HttpMethod.Get to defineBooleanResponse {
       register(ipc.remote.mmid)
     }, "/unregister" bind HttpMethod.Get to defineBooleanResponse {

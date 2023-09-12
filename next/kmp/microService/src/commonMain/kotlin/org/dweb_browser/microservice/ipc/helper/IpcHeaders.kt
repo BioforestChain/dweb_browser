@@ -61,7 +61,8 @@ class IpcHeaders(private val headersMap: MutableMap<String, String> = mutableMap
     return headersMap
   }
 
-  fun copy() = IpcHeaders.from(toMap())
+  fun copy() = from(toMap())
+  operator fun iterator() = headersMap.iterator()
 }
 
 private fun String.asKey(): String {

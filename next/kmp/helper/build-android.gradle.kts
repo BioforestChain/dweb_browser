@@ -26,6 +26,7 @@ kotlin {
         api(libs.ktor.io)
         api(libs.kotlinx.datetime)
         api(libs.kotlin.serialization.json)
+        api(libs.kotlin.serialization.cbor)
       }
     }
     val commonTest by getting {

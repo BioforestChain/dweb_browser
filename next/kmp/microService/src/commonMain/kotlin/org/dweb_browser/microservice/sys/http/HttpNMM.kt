@@ -1,9 +1,12 @@
 package org.dweb_browser.microservice.sys.http
 
+import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.URLBuilder
 import io.ktor.http.Url
 import io.ktor.http.authority
 import io.ktor.http.fullPath
+import io.ktor.util.decodeBase64String
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.SafeHashMap
@@ -12,13 +15,16 @@ import org.dweb_browser.helper.encodeURI
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.helper.toBase64Url
+import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.http.PureRequest
 import org.dweb_browser.microservice.http.PureResponse
-import org.dweb_browser.microservice.http.PureStreamBody
+import org.dweb_browser.microservice.http.PureStream
 import org.dweb_browser.microservice.http.PureStringBody
+import org.dweb_browser.microservice.http.bind
+import org.dweb_browser.microservice.http.routes
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.ReadableStreamIpc
 import org.dweb_browser.microservice.ipc.helper.IpcHeaders
@@ -117,24 +123,19 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     }.removeWhen(onAfterShutdown)
 
     /// 模块 API 接口
-    val query_dwebServerOptions = Query.composite {
-      DwebHttpServerOptions(
-        port = int().optional("port")(it),
-        subdomain = string().optional("subdomain")(it),
-      )
-    }
-    val query_token = Query.string().required("token")
-    val query_routeConfig = Query.string().required("routes")
-
-    apiRouting = routes("/start" bind Method.GET to defineHandler { request, ipc ->
-      start(ipc, query_dwebServerOptions(request))
-    }, "/listen" bind Method.POST to defineHandler { request ->
-      val token = query_token(request)
-      val routes = Json.decodeFromString<List<Gateway.RouteConfig>>(query_routeConfig(request))
-      listen(token, request, routes)
-    }, "/close" bind Method.GET to defineHandler { request, ipc ->
-      close(ipc, query_dwebServerOptions(request))
-    })
+    routes("/start" bind HttpMethod.Get to defineJsonResponse {
+      start(ipc, request.queryAsObject()).toJsonElement()
+    },
+      //
+      "/listen" bind HttpMethod.Post to definePureStreamHandler {
+        val token = request.queryOrFail("token")
+        val routes = Json.decodeFromString<List<Gateway.RouteConfig>>(request.queryOrFail("routes"))
+        listen(token, request, routes)
+      },
+      //
+      "/close" bind HttpMethod.Get to defineBooleanResponse {
+        close(ipc, request.queryAsObject())
+      })
   }
 
   @Serializable
@@ -152,10 +153,21 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
      */
     val public_origin: String,
   ) {
-    fun buildPublicUrl() = Uri.of(public_origin).query("X-Dweb-Host", host)
-    fun buildPublicHtmlUrl() = Uri.of(public_origin).userInfo(host.encodeURI())
+    fun buildPublicUrl(): Url {
+      val builder = URLBuilder(public_origin);
+      builder.parameters.append("X-Dweb-Host", host)
+      return builder.build()
+    }
 
-    fun buildInternalUrl() = Uri.of(internal_origin)
+    fun buildPublicHtmlUrl(): Url {
+      val builder = URLBuilder(public_origin);
+      builder.user = host.encodeURI()
+      return builder.build()
+    }
+
+    fun buildInternalUrl(): Url {
+      return Url(internal_origin);
+    }
   }
 
   private fun getServerUrlInfo(ipc: Ipc, options: DwebHttpServerOptions): ServerUrlInfo {
@@ -209,7 +221,8 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
    */
   private fun listen(
     token: String, message: PureRequest, routes: List<Gateway.RouteConfig>
-  ): PureResponse {
+  ): PureStream {
+    debugHttp("LISTEN", tokenMap.keys.toList())
     val gateway = tokenMap[token] ?: throw Exception("no gateway with token: $token")
     debugHttp("LISTEN/start", "host: ${gateway.urlInfo.host}, token: $token")
 
@@ -217,7 +230,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
       gateway.listener.ipc.remote, "http-gateway/${gateway.urlInfo.host}"
     )
     /// 接收一个body，body在关闭的时候，fetchIpc也会一同关闭
-    streamIpc.bindIncomeStream(message.body.stream)
+    streamIpc.bindIncomeStream(message.body.toPureStream())
     /// 自己nmm销毁的时候，ipc也会被全部销毁
     this.addToIpcSet(streamIpc)
     /// 自己创建的，就要自己销毁：这个listener被销毁的时候，streamIpc也要进行销毁
@@ -228,8 +241,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
       gateway.listener.addRouter(routeConfig, streamIpc).removeWhen(streamIpc.onClose)
     }
 
-    debugHttp("LISTEN/end", "host: ${gateway.urlInfo.host}, token: $token")
-    return PureResponse(HttpStatusCode.OK, body = PureStreamBody(streamIpc.stream.stream))
+    return streamIpc.input.stream
   }
 
   private suspend fun close(ipc: Ipc, options: DwebHttpServerOptions): Boolean {
@@ -251,8 +263,7 @@ fun findRequestGateway(request: PureRequest): String? {
   for ((key, value) in request.headers) {
     when (key) {
       "Host" -> {
-        if (value != null && Regex("""\.dweb(:\d+)?$""").matches(value))
-          header_host = value
+        if (Regex("""\.dweb(:\d+)?$""").matches(value)) header_host = value
       }
 
       "X-Dweb-Host" -> {
@@ -260,25 +271,22 @@ fun findRequestGateway(request: PureRequest): String? {
       }
 
       "Authorization" -> {
-        if (value != null) {
-          Regex("""^ *(?:[Bb][Aa][Ss][Ii][Cc]) +([A-Za-z0-9._~+/-]+=*) *$""").find(value)
-            ?.also { matchResult ->
-              matchResult.groupValues.getOrNull(1)?.also { base64Content ->
-                val userInfo = base64Content.base64Decoded()
-                val splitIndex = userInfo.lastIndexOf(':')
-                header_auth_host = if (splitIndex == -1) {
-                  userInfo
-                } else {
-                  userInfo.slice(0 until splitIndex)
-                }.decodeURIComponent()
-              }
+        Regex("""^ *(?:[Bb][Aa][Ss][Ii][Cc]) +([A-Za-z0-9._~+/-]+=*) *$""").find(value)
+          ?.also { matchResult ->
+            matchResult.groupValues.getOrNull(1)?.also { base64Content ->
+              val userInfo = base64Content.decodeBase64String()
+              val splitIndex = userInfo.lastIndexOf(':')
+              header_auth_host = if (splitIndex == -1) {
+                userInfo
+              } else {
+                userInfo.slice(0 until splitIndex)
+              }.decodeURIComponent()
             }
-        }
+          }
       }
     }
   }
-  val x_dweb_host = query_x_dweb_host ?: header_auth_host ?: header_x_dweb_host
-  ?: header_host
+  val x_dweb_host = query_x_dweb_host ?: header_auth_host ?: header_x_dweb_host ?: header_host
   return x_dweb_host?.let { host ->
     /// 如果没有端口，补全端口
     if (!host.contains(":")) {

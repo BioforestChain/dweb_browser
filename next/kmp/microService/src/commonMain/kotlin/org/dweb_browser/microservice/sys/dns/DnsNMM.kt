@@ -216,7 +216,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       } else null
     }.removeWhen(this.onAfterShutdown)
 
-    val queryAppId = Query.string().required("app_id")
+    val queryAppId = { request: PureRequest -> request.queryOrFail("app_id") }
 
     /// 定义路由功能
     routes(

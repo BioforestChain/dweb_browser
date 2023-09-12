@@ -70,7 +70,7 @@ class ReadableStreamIpc(
 
   private lateinit var controller: ReadableStream.ReadableStreamController
 
-  val stream = ReadableStream(cid = role, onStart = {
+  val input = ReadableStream(cid = role, onStart = {
     controller = it
   })
 
@@ -168,7 +168,7 @@ class ReadableStreamIpc(
         else -> Json.encodeToString(data).toUtf8ByteArray()
       }
     }
-    debugStreamIpc("post", "${message.size} => $stream => $data")
+    debugStreamIpc("post", "${message.size} => $input => $data")
     enqueue(message.size.toByteArray() + message)
   }
 

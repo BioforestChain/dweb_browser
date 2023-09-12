@@ -1,10 +1,10 @@
 package org.dweb_browser.microservice.sys.http
 
+import io.ktor.http.URLBuilder
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.PromiseOut
-import org.dweb_browser.helper.Uri
-import org.dweb_browser.helper.query
 import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.help.suspendOnce
 import org.dweb_browser.microservice.help.types.IMicroModuleManifest
@@ -16,6 +16,7 @@ import org.dweb_browser.microservice.sys.dns.nativeFetch
 
 /// 对外提供一套建议的操作来创建、使用、维护这个http服务
 
+@Serializable
 data class DwebHttpServerOptions(
   val port: Int,
   val subdomain: String,
@@ -28,9 +29,10 @@ data class DwebHttpServerOptions(
 
 suspend fun MicroModule.startHttpDwebServer(options: DwebHttpServerOptions) =
   this.nativeFetch(
-    Uri.of("file://http.std.dweb/start")
-      .query("port", options.port.toString())
-      .query("subdomain", options.subdomain).toString()
+    URLBuilder("file://http.std.dweb/start").apply {
+      parameters["port"] = options.port.toString()
+      parameters["subdomain"] = options.subdomain
+    }.buildString()
   ).json<HttpNMM.ServerStartResult>()
 
 
@@ -53,11 +55,16 @@ suspend fun MicroModule.listenHttpDwebServer(
   val streamIpc = ReadableStreamIpc(httpIpc.remote, "http-server/${startResult.urlInfo.host}").also {
     it.bindIncomeStream(
       this.nativeFetch(
-        PureRequest(Uri.of("file://http.std.dweb/listen")
-          .query("token", startResult.token)
-          .query("routes", Json.encodeToString(routes)).toString(), IpcMethod.POST, body = PureStreamBody(it.stream.stream))
-        ).body.toPureStream()
-      )
+        PureRequest(
+          URLBuilder("file://http.std.dweb/listen").apply {
+            parameters["token"] = startResult.token
+            parameters["routes"] = Json.encodeToString(routes)
+          }.buildString(),
+          IpcMethod.POST,
+          body = PureStreamBody(it.input.stream)
+        )
+      ).body.toPureStream()
+    )
   }
   this.addToIpcSet(streamIpc)
   return streamIpc
@@ -66,9 +73,10 @@ suspend fun MicroModule.listenHttpDwebServer(
 
 suspend fun MicroModule.closeHttpDwebServer(options: DwebHttpServerOptions) =
   this.nativeFetch(
-    Uri.of("file://http.std.dweb/close")
-      .query("port", options.port.toString())
-      .query("subdomain", options.subdomain).toString()
+    URLBuilder("file://http.std.dweb/close").apply {
+      parameters["port"] = options.port.toString()
+      parameters["subdomain"] = options.subdomain
+    }.buildString(),
   ).boolean()
 
 class HttpDwebServer(

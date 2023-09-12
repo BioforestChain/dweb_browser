@@ -6,6 +6,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json.Default.decodeFromString
 import kotlinx.serialization.json.JsonElement
 import org.dweb_browser.helper.JsonLoose
+import org.dweb_browser.helper.platform.offscreenwebcanvas.FetchResponse
 import org.dweb_browser.microservice.ipc.helper.IpcHeaders
 
 data class PureResponse(
@@ -60,3 +61,6 @@ data class PureResponse(
     })
 
 }
+
+fun PureResponse.toFetchResponse() =
+  FetchResponse(status, headers.toList(), body.toPureStream().getReader())

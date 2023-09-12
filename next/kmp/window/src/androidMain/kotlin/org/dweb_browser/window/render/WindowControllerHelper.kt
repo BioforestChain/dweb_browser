@@ -40,8 +40,7 @@ import org.dweb_browser.helper.compose.theme.md_theme_dark_surface
 import org.dweb_browser.helper.compose.theme.md_theme_light_inverseOnSurface
 import org.dweb_browser.helper.compose.theme.md_theme_light_onSurface
 import org.dweb_browser.helper.compose.theme.md_theme_light_surface
-import org.dweb_browser.helper.platform.offscreenwebcanvas.FetchRequest
-import org.dweb_browser.helper.platform.offscreenwebcanvas.FetchResponse
+import org.dweb_browser.microservice.http.toFetchResponse
 import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.dweb_browser.window.core.WindowBounds
 import org.dweb_browser.window.core.WindowController
@@ -53,7 +52,6 @@ import org.dweb_browser.window.core.constant.WindowMode
 import org.dweb_browser.window.core.constant.WindowPropertyKeys
 import org.dweb_browser.window.core.helper.asWindowStateColorOr
 import java.util.WeakHashMap
-import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
@@ -579,27 +577,27 @@ fun WindowController.buildTheme(): WindowControllerTheme {
   )
 }
 
-val WindowSessionStore = WeakHashMap<WindowController, MutableMap<Any, Any>>()
-val WindowController.sessionCache get() = WindowSessionStore.getOrPut(this) { ConcurrentHashMap() }
+//val WindowSessionStore = WeakHashMap<WindowController, MutableMap<Any, Any>>()
+//val WindowController.sessionCache get() = WindowSessionStore.getOrPut(this) { ConcurrentHashMap() }
 
-/**
- * 加载图标，如果有 state.microModule，那就让它去下载，否则就直接提供 string-url
- */
-suspend fun WindowController.loadIconModel(iconUrl: String?) = when (val url = iconUrl) {
-  null -> ImageState.Success(null)
-  else -> when (val mm = state.constants.microModule) {
-    null -> ImageState.Success(iconUrl)
-    else -> sessionCache.getOrPut(url) {
-      mm.nativeFetch(url).let { response ->
-        if (response.status.code >= 400) {
-          ImageState.Error
-        } else {
-          ImageState.Success(response.body.payload)
-        }
-      }
-    } as ImageState<out Any?>
-  }
-}
+///**
+// * 加载图标，如果有 state.microModule，那就让它去下载，否则就直接提供 string-url
+// */
+//suspend fun WindowController.loadIconModel(iconUrl: String?) = when (val url = iconUrl) {
+//  null -> ImageState.Success(null)
+//  else -> when (val mm = state.constants.microModule) {
+//    null -> ImageState.Success(iconUrl)
+//    else -> sessionCache.getOrPut(url) {
+//      mm.nativeFetch(url).let { response ->
+//        if (response.status.value >= 400) {
+//          ImageState.Error
+//        } else {
+//          ImageState.Success(response.body.toPureString())
+//        }
+//      }
+//    } as ImageState<out Any?>
+//  }
+//}
 
 /**
  * 图标渲染
@@ -621,9 +619,9 @@ fun WindowController.IconRender(
     iconMonochrome = iconMonochrome,
     iconMaskable = iconMaskable,
     iconFetchHook = state.constants.microModule?.let { mm ->
-      return@let { request: FetchRequest, returnBlock: suspend (FetchResponse) -> Unit ->
+      return@let {
         val response = mm.nativeFetch(request.url)
-        returnBlock(response)
+        returnResponse(response.toFetchResponse())
       }
     })
 }

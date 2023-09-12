@@ -1,5 +1,8 @@
 package org.dweb_browser.helper
 
+import io.ktor.http.URLBuilder
+import io.ktor.http.Url
+import io.ktor.http.takeFrom
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -55,11 +58,11 @@ data class StrictImageResource(
 ) {
   companion object {
     fun from(img: ImageResource, baseUrl: String? = null): StrictImageResource {
-      val imgUrl = if (baseUrl != null) Uri.of(baseUrl).resolve(img.src) else Uri.of(img.src)
+      val imgUrl = if (baseUrl != null) URLBuilder(baseUrl).takeFrom(img.src).build() else Url(img.src)
       var imageType = img.type
       if (imageType == null) {
         // path的获取解析可能会失败
-        val imageUrlExt = imgUrl.runCatching { path.substringAfterLast(".") }.getOrNull()
+        val imageUrlExt = imgUrl.runCatching { encodedPath.substringAfterLast(".") }.getOrNull()
         println("imageUrlExt:$imageUrlExt")
         imageType = when (imageUrlExt) {
           "jpg", "jpeg" -> "image/jpeg"
