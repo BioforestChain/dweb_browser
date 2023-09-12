@@ -28,7 +28,7 @@ private enum class SIGNAL_CTOR {
 }
 
 class OffListener<Args>(val origin: Signal<Args>, val cb: Callback<Args>) {
-  operator fun invoke() = synchronized(origin.lock) { origin.off(cb) }
+  operator fun invoke() = synchronized(origin) { origin.off(cb) }
 
   /**
    * 触发自身的监听函数
@@ -58,18 +58,18 @@ fun Remover.removeWhen(lifecycleScope: CoroutineScope) = lifecycleScope.launch {
 }
 
 @Suppress("UNCHECKED_CAST")
-open class Signal<Args> {
+open class Signal<Args> : SynchronizedObject() {
   protected val listenerSet = mutableSetOf<Callback<Args>>();
 
   val size get() = listenerSet.size
 
-  open fun listen(cb: Callback<Args>): OffListener<Args> = synchronized(lock) {
+  open fun listen(cb: Callback<Args>): OffListener<Args> = synchronized(this) {
     // TODO emit 时的cbs 应该要同步进行修改？
     listenerSet.add(cb)
     return OffListener(this, cb)
   }
 
-  internal fun off(cb: Callback<Args>) = synchronized(lock) { listenerSet.remove(cb) }
+  internal fun off(cb: Callback<Args>) = synchronized(this) { listenerSet.remove(cb) }
 
 
   /**
@@ -84,22 +84,20 @@ open class Signal<Args> {
 
   private val children = mutableMapOf<Signal<*>, Child<Args, *>>()
 
-  val lock = SynchronizedObject()
-
   fun <R> createChild(filter: (Args) -> Boolean, map: (Args) -> R) =
     Child(this, Signal(), filter, map).also {
-      synchronized(lock) {
+      synchronized(this) {
         children[it.childSignal] = it
       }
     }.childSignal
 
-  fun removeChild(childSignal: Signal<*>) = synchronized(lock) {
+  fun removeChild(childSignal: Signal<*>) = synchronized(this) {
     children.remove(childSignal)?.let { true } ?: false
   }
 
   open suspend fun emit(args: Args) {
     // 这里拷贝一份，避免中通对其读写的时候出问题
-    val cbs = synchronized(lock) { listenerSet.toSet() }
+    val cbs = synchronized(this) { listenerSet.toSet() }
     _emit(args, cbs)
   }
 
@@ -121,7 +119,7 @@ open class Signal<Args> {
     }
 
     /// 然后触发孩子
-    val childList = synchronized(lock) {
+    val childList = synchronized(this) {
       children.values.toList()
     }
 
@@ -139,7 +137,7 @@ open class Signal<Args> {
 
   suspend fun emitAndClear(args: Args) {
     // 拷贝一份，然后立刻清理掉原来的
-    val cbs = synchronized(lock) {
+    val cbs = synchronized(this) {
       listenerSet.toSet().also {
         listenerSet.clear()
       }
@@ -148,7 +146,7 @@ open class Signal<Args> {
   };
 
   fun clear() {
-    synchronized(lock) {
+    synchronized(this) {
       this.listenerSet.clear()
     }
   }
