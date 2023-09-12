@@ -31,8 +31,8 @@
   <string name="button_i_know">我知道了</string>
 
   <!-- webview 版本提醒 -->
-  <string name="dialog_title_webview_upgrade">版本更新</string>
-  <string name="dialog_text_webview_upgrade">应用%s运行的最低版本是%s, 当前系统 android system webview 版本是%s, 无法运行, 请先升级版本!!</string>
-  <string name="dialog_confirm_webview_upgrade">升级建议</string>
-  <string name="dialog_dismiss_webview_upgrade">忽略</string>
+  <string name="dialog_title_webview_upgrade">更新提示</string>
+  <string name="dialog_text_webview_upgrade">由于当前系统 Android System Webview 版本过低，无法进行安装。\n请将系统 Android System Webview 版本更新至（%s）后再重试。</string>
+  <string name="dialog_confirm_webview_upgrade">确定</string>
+  <string name="dialog_dismiss_webview_upgrade">帮助文档</string>
 </resources>

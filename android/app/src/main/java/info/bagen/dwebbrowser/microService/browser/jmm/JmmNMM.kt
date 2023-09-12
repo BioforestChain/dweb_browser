@@ -1,16 +1,19 @@
 package info.bagen.dwebbrowser.microService.browser.jmm
 
 import info.bagen.dwebbrowser.App
-import org.dweb_browser.microservice.core.AndroidNativeMicroModule
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import org.dweb_browser.browserUI.database.JsMicroModuleStore
+import org.dweb_browser.browserUI.database.AppType
+import org.dweb_browser.browserUI.database.DeskAppInfo
+import org.dweb_browser.browserUI.database.DeskAppInfoStore
 import org.dweb_browser.browserUI.download.DownLoadController
 import org.dweb_browser.browserUI.download.compareAppVersionHigh
+import org.dweb_browser.browserUI.microService.browser.link.WebLinkMicroModule
 import org.dweb_browser.browserUI.util.BrowserUIApp
 import org.dweb_browser.browserUI.util.FilesUtil
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.toJsonElement
+import org.dweb_browser.microservice.core.AndroidNativeMicroModule
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.help.bodyJson
 import org.dweb_browser.microservice.help.jsonBody
@@ -153,30 +156,33 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
    */
   private fun installJmmApps() {
     ioAsyncScope.launch {
-      var preList = mutableListOf<JmmAppInstallManifest>()
-      JsMicroModuleStore.queryAppInfoList().collectLatest { list -> // TODO 只要datastore更新，这边就会实时更新
+      var preList = mutableListOf<DeskAppInfo>()
+      DeskAppInfoStore.queryDeskAppInfoList().collectLatest { list -> // TODO 只要datastore更新，这边就会实时更新
         debugJMM("AppInfoDataStore", "size=${list.size}")
-        /// 将会被卸载的应用
-        val uninstalls = mutableMapOf<MMID, JmmAppInstallManifest>().also {
-          for (jmmApp in preList) {
-            it[jmmApp.id] = jmmApp
-          }
-        }
-        list.map { jsMetaData ->
-          // 如果存在，那么就不会卸载
-          uninstalls.remove(jsMetaData.id);
-          // 检测版本
-          val lastAppMetaData = bootstrapContext.dns.query(jsMetaData.id)
-          lastAppMetaData?.let {
-            if (compareAppVersionHigh(it.version, jsMetaData.version)) {
-              bootstrapContext.dns.close(it.mmid)
+        list.map { deskAppInfo ->
+          when (deskAppInfo.appType) {
+            AppType.MetaData -> deskAppInfo.metadata?.let { jsMetaData ->
+              preList.removeIf { it.metadata?.id == jsMetaData.id }
+              // 检测版本
+              bootstrapContext.dns.query(jsMetaData.id)?.let { lastMetaData ->
+                if (compareAppVersionHigh(lastMetaData.version, jsMetaData.version)) {
+                  bootstrapContext.dns.close(lastMetaData.mmid)
+                }
+              }
+              bootstrapContext.dns.install(JsMicroModule(jsMetaData))
+            }
+
+            AppType.URL -> deskAppInfo.weblink?.let { deskWebLink ->
+              preList.removeIf { it.weblink?.id == deskWebLink.id }
+              bootstrapContext.dns.install(WebLinkMicroModule(deskWebLink))
             }
           }
-          bootstrapContext.dns.install(JsMicroModule(jsMetaData))
         }
         /// 将剩余的应用卸载掉
-        for (jmmAppId in uninstalls.keys) {
-          bootstrapContext.dns.uninstall(jmmAppId)
+        for (jmmAppId in preList) {
+          (jmmAppId.metadata?.id ?: jmmAppId.weblink?.id)?.let { uninstallId ->
+            bootstrapContext.dns.uninstall(uninstallId)
+          }
         }
         preList = list
       }
@@ -212,7 +218,7 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
   private suspend fun jmmMetadataUninstall(mmid: MMID) {
     // 先从列表移除，然后删除文件
     bootstrapContext.dns.uninstall(mmid)
-    JsMicroModuleStore.deleteAppInfo(mmid)
+    DeskAppInfoStore.deleteDeskAppInfo(mmid)
     FilesUtil.uninstallApp(App.appContext, mmid)
   }
 }

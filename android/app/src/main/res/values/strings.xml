@@ -31,8 +31,8 @@
   <string name="button_i_know">I Know</string>
 
   <!-- webview 版本提醒 -->
-  <string name="dialog_title_webview_upgrade">Version Upgrade</string>
-  <string name="dialog_text_webview_upgrade">The minimum version for running %s is %s, and the current Android system webview version is %s, which cannot be run. Please upgrade the version first!!</string>
-  <string name="dialog_confirm_webview_upgrade">Upgrade Suggestion</string>
-  <string name="dialog_dismiss_webview_upgrade">Ignore</string>
+  <string name="dialog_title_webview_upgrade">Update Prompt</string>
+  <string name="dialog_text_webview_upgrade">Due to the current Android System Webview version being too low, installation cannot proceed. \nPlease update the Android System Webview version of the system to (%s) and try again.</string>
+  <string name="dialog_confirm_webview_upgrade">OK</string>
+  <string name="dialog_dismiss_webview_upgrade">Helper Documents</string>
 </resources>

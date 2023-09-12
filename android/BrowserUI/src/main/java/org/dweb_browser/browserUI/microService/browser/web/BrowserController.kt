@@ -6,14 +6,14 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.browserUI.R
-import org.dweb_browser.browserUI.microService.browser.types.DeskLinkMetaData
-import org.dweb_browser.browserUI.microService.browser.types.DeskLinkMetaDataStore
+import org.dweb_browser.browserUI.database.AppType
+import org.dweb_browser.browserUI.database.DeskAppInfoStore
+import org.dweb_browser.browserUI.database.DeskWebLink
 import org.dweb_browser.browserUI.ui.browser.BrowserViewModel
 import org.dweb_browser.browserUI.util.BitmapUtil
 import org.dweb_browser.helper.ImageResource
@@ -92,20 +92,15 @@ class BrowserController(
   }
 
   init {
-    ioAsyncScope.launch {
+    /*ioAsyncScope.launch {
       // 获取之前保存的列表
       DeskLinkMetaDataStore.queryDeskLinkList().collectLatest {
         runningWebApps.clear()
         runningWebApps.addAll(it)
         updateSignal.emit()
       }
-    }
+    }*/
   }
-
-  internal fun updateDWSearch(search: String) = viewModel.setDwebLinkSearch(search)
-  internal fun updateDWUrl(url: String) = viewModel.setDwebLinkUrl(url)
-
-  val runningWebApps = mutableListOf<DeskLinkMetaData>()
 
   suspend fun addUrlToDesktop(title: String, url: String, icon: Bitmap?) {
     val imageResource = icon?.let { bitmap ->
@@ -113,9 +108,12 @@ class BrowserController(
         ImageResource(src = "file:///local_icons/$src")
       }
     }
-    val item = DeskLinkMetaData(
-      title = title, url = url, icon = imageResource, id = System.currentTimeMillis()
+    val item = DeskWebLink(
+      id = AppType.URL.createId(),
+      title = title,
+      url = url,
+      icon = imageResource
     )
-    DeskLinkMetaDataStore.saveDeskLink(item)
+    DeskAppInfoStore.saveWebLink(item)
   }
 }

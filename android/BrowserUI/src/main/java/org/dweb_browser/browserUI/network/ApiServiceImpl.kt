@@ -19,7 +19,7 @@ class ApiServiceImpl(private val httpClient: HttpClient) : ApiService {
   }
 
   override suspend fun downloadAndSave(
-    path: String, file: File?, total: Long, isStop: () -> Boolean, DLProgress: (Long, Long) -> Unit
+    path: String, file: File?, total: Long, isStop: () -> Boolean, DLProgress: suspend (Long, Long) -> Unit
   ) {
     if (path.isEmpty()) throw (java.lang.Exception("地址有误，下载失败！"))
     DLProgress(0L, total)
@@ -57,7 +57,7 @@ class ApiServiceImpl(private val httpClient: HttpClient) : ApiService {
   }
 
   override suspend fun breakpointDownloadAndSave(
-    path: String, file: File?, total: Long, isStop: () -> Boolean, DLProgress: (Long, Long) -> Unit
+    path: String, file: File?, total: Long, isStop: () -> Boolean,  DLProgress: suspend (Long, Long) -> Unit
   ) {
     if (path.isEmpty()) throw (java.lang.Exception("地址有误，下载失败！"))
     var currentLength = file?.let { if (total > 0) it.length() else 0L } ?: 0L // 文件的大小
