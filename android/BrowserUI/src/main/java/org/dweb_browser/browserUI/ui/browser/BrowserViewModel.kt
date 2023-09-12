@@ -242,7 +242,15 @@ class BrowserViewModel(
             browserNMM.nativeFetch(action.url)
             return@launch
           }
-          uiState.currentBrowserBaseView.value.viewItem.state.content = WebContent.Url(action.url)
+
+          uiState.currentBrowserBaseView.value.viewItem.apply {
+            state.content = WebContent.Url(
+              url = action.url,
+              additionalHttpHeaders = hashMapOf<String, String>().also { map ->
+                map["temp"] = System.currentTimeMillis().toString()
+              } // 添加不同的 header 信息，会让WebView判定即使同一个url，也做新url处理
+            )
+          }
         }
 
         is BrowserIntent.OpenDwebBrowser -> {
