@@ -12,6 +12,7 @@ import org.dweb_browser.browserUI.microService.browser.web.BrowserNMM
 import info.bagen.dwebbrowser.microService.sys.LocalFileFetch
 import info.bagen.dwebbrowser.microService.sys.biometrics.BiometricsNMM
 import info.bagen.dwebbrowser.microService.sys.clipboard.ClipboardNMM
+import info.bagen.dwebbrowser.microService.sys.config.ConfigNMM
 import info.bagen.dwebbrowser.microService.sys.device.DeviceNMM
 import info.bagen.dwebbrowser.microService.sys.haptics.HapticsNMM
 import info.bagen.dwebbrowser.microService.sys.notification.NotificationNMM
@@ -125,6 +126,7 @@ suspend fun startDwebBrowser(): DnsNMM {
   val clipboardNMM = ClipboardNMM().also { dnsNMM.install(it) }
   ///设备信息
   val deviceNMM = DeviceNMM().also { dnsNMM.install(it) }
+  val configNMM = ConfigNMM().also { dnsNMM.install(it) }
   ///位置
 //  val locationNMM = LocationNMM().also { dnsNMM.install(it) }
 //    /// 蓝牙

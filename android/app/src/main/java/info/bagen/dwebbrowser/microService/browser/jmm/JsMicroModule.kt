@@ -159,11 +159,8 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) : MicroModule(
           // 转发请求
           val request = ipcRequest.toRequest()
           val response = nativeFetch(request)
-          debugJsMM("onProxyRequest", "end ${ipcRequest.uri}")
           val ipcResponse = IpcResponse.fromResponse(ipcRequest.req_id, response, ipc)
-          debugJsMM("onProxyRequest", "send ${ipcRequest.uri}")
           ipc.postMessage(ipcResponse)
-          debugJsMM("onProxyRequest", "send ${ipcRequest.uri}")
         }.onFailure {
           debugJsMM("onProxyRequest", "fail ${ipcRequest.uri} ${it}")
           ipc.postMessage(

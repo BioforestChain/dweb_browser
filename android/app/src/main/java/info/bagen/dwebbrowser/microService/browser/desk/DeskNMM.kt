@@ -254,12 +254,8 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     taskbarServer.listen().onRequest { (request, ipc) ->
       val pathName = request.uri.path
       val url = if (pathName.startsWith(API_PREFIX)) {
-        var internalUri = request.uri.path(request.uri.path.substring(API_PREFIX.length))
-        val search = ""
-        if (internalUri.scheme == "http") {
-          internalUri = internalUri.scheme("").host("").port(null)
-        }
-        "file://$internalUri$search"
+        val internalUri = pathName.substring(API_PREFIX.length)
+        "file://$internalUri?${request.uri.query}"
       } else {
         "file:///sys/browser/desk${pathName}?mode=stream"
       }
@@ -276,12 +272,8 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     desktopServer.listen().onRequest { (request, ipc) ->
       val pathName = request.uri.path
       val url = if (pathName.startsWith(API_PREFIX)) {
-        var internalUri = request.uri.path(request.uri.path.substring(API_PREFIX.length))
-        val search = ""
-        if (internalUri.scheme == "http") {
-          internalUri = internalUri.scheme("").host("").port(null)
-        }
-        "file://$internalUri$search"
+        val internalUri = pathName.substring(API_PREFIX.length)
+        "file://$internalUri?${request.uri.query}"
       } else {
         "file:///sys/browser/desk${pathName}?mode=stream"
       }
