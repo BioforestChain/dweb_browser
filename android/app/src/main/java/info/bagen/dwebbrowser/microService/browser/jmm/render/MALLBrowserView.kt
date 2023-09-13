@@ -78,6 +78,6 @@ fun MALLBrowserView(viewModel: JmmManagerViewHelper, onBack: () -> Unit) {
       }
     }
     ImagePreview(jmmMetadata, previewState)
+    DialogForWebviewVersion()
   }
-  DialogForWebviewVersion()
 }

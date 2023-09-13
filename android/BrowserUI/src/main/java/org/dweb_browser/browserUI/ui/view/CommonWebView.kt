@@ -13,8 +13,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
@@ -26,16 +27,21 @@ import com.google.accompanist.web.WebView
 import com.google.accompanist.web.WebViewState
 import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
 import org.dweb_browser.browserUI.ui.browser.ConstUrl
-import org.dweb_browser.browserUI.ui.browser.LocalBrowserShowPrivacy
 import org.dweb_browser.browserUI.ui.browser.setDarkMode
 import org.dweb_browser.browserUI.ui.loading.LoadingView
-import org.dweb_browser.browserUI.ui.loading.LoadingViewModel
 import org.dweb_browser.browserUI.ui.loading.LocalLoadingViewManager
+
+/**
+ * 用于判断是否显示隐私协议
+ */
+val LocalCommonUrl = compositionLocalOf {
+  mutableStateOf("")
+}
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
-fun PrivacyView() {
-  val localPrivacy = LocalBrowserShowPrivacy.current
+fun CommonWebView() {
+  val localPrivacy = LocalCommonUrl.current
   if (localPrivacy.value.isNotEmpty()) {
     BackHandler { localPrivacy.value = "" }
     val state = WebViewState(WebContent.Url(localPrivacy.value))
@@ -91,53 +97,50 @@ fun PrivacyView() {
       }
     }
 
-    CompositionLocalProvider(
-      LocalLoadingViewManager provides LoadingViewModel()
-    ) {
-      val loadingViewManager = LocalLoadingViewManager.current
-      LaunchedEffect(state) {
-        snapshotFlow { state.loadingState }.collect {
-          when (it) {
-            is LoadingState.Loading -> loadingViewManager.show.value = true
-            else -> loadingViewManager.show.value = false
-          }
+
+    val loadingViewManager = LocalLoadingViewManager.current
+    LaunchedEffect(state) {
+      snapshotFlow { state.loadingState }.collect {
+        when (it) {
+          is LoadingState.Loading -> loadingViewManager.show.value = true
+          else -> loadingViewManager.show.value = false
         }
       }
-      Box(
+    }
+    Box(
+      modifier = Modifier
+        .clickableWithNoEffect { }
+        .fillMaxSize()
+        .background(MaterialTheme.colorScheme.background)
+    ) {
+      val background = MaterialTheme.colorScheme.background
+      val isDark = isSystemInDarkTheme()
+      WebView(
+        state = state,
         modifier = Modifier
-          .clickableWithNoEffect { }
           .fillMaxSize()
-          .background(MaterialTheme.colorScheme.background)
-      ) {
-        val background = MaterialTheme.colorScheme.background
-        val isDark = isSystemInDarkTheme()
-        WebView(
-          state = state,
-          modifier = Modifier
-            .fillMaxSize()
-            .background(background), // TODO 为了避免暗模式突然闪一下白屏
-          client = remember { webViewClient },
-          chromeClient = remember { webChromeClient },
-          factory = {
-            WebView(it).also { webView ->
-              webView.setDarkMode(isDark, background) // 设置深色主题
-              webView.settings.also { settings ->
-                settings.javaScriptEnabled = true
-                settings.domStorageEnabled = true
-                settings.databaseEnabled = true
-                settings.safeBrowsingEnabled = true
-                settings.loadWithOverviewMode = true
-                settings.loadsImagesAutomatically = true
-                settings.setSupportMultipleWindows(true)
-                settings.allowFileAccess = true
-                settings.javaScriptCanOpenWindowsAutomatically = true
-                settings.allowContentAccess = true
-              }
+          .background(background), // TODO 为了避免暗模式突然闪一下白屏
+        client = remember { webViewClient },
+        chromeClient = remember { webChromeClient },
+        factory = {
+          WebView(it).also { webView ->
+            webView.setDarkMode(isDark, background) // 设置深色主题
+            webView.settings.also { settings ->
+              settings.javaScriptEnabled = true
+              settings.domStorageEnabled = true
+              settings.databaseEnabled = true
+              settings.safeBrowsingEnabled = true
+              settings.loadWithOverviewMode = true
+              settings.loadsImagesAutomatically = true
+              settings.setSupportMultipleWindows(true)
+              settings.allowFileAccess = true
+              settings.javaScriptCanOpenWindowsAutomatically = true
+              settings.allowContentAccess = true
             }
           }
-        )
-        LoadingView()
-      }
+        }
+      )
+      LoadingView()
     }
   }
 }

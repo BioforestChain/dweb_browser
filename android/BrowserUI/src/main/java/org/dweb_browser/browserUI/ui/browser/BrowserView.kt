@@ -63,7 +63,6 @@ import org.dweb_browser.browserUI.ui.browser.search.SearchView
 import org.dweb_browser.browserUI.ui.entity.BrowserBaseView
 import org.dweb_browser.browserUI.ui.entity.BrowserWebView
 import org.dweb_browser.browserUI.ui.qrcode.QRCodeScanView
-import org.dweb_browser.browserUI.ui.view.PrivacyView
 import org.dweb_browser.window.core.WindowRenderScope
 
 internal val dimenTextFieldFontSize = 16.sp
@@ -141,21 +140,20 @@ fun BrowserViewForWindow(
         BrowserMultiPopupView(viewModel)// 用于显示多界面
         BrowserSearchView(viewModel)
         BrowserBottomSheet(viewModel)
+
+        // 增加扫码的界面
+        QRCodeScanView(
+          qrCodeScanState = viewModel.uiState.qrCodeScanState,
+          onDataCallback = { data ->
+            if (data.startsWith("http://") || data.startsWith("https://")) {
+              viewModel.handleIntent(BrowserIntent.SearchWebView(data))
+            } else {
+              viewModel.handleIntent(BrowserIntent.ShowSnackbarMessage("扫码结果：$data"))
+            }
+          })
       }
     }
   }
-
-  // 增加扫码的界面
-  QRCodeScanView(
-    qrCodeScanState = viewModel.uiState.qrCodeScanState,
-    onDataCallback = { data ->
-      if (data.startsWith("http://") || data.startsWith("https://")) {
-        viewModel.handleIntent(BrowserIntent.SearchWebView(data))
-      } else {
-        viewModel.handleIntent(BrowserIntent.ShowSnackbarMessage("扫码结果：$data"))
-      }
-    })
-  PrivacyView()
 }
 
 @Composable

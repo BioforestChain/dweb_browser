@@ -19,12 +19,16 @@ import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.microService.browser.jmm.ui.LocalShowWebViewVersion
 import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
 import org.dweb_browser.browserUI.download.isGreaterThan
+import org.dweb_browser.browserUI.ui.loading.LocalLoadingViewManager
+import org.dweb_browser.browserUI.ui.view.LocalCommonUrl
+import org.dweb_browser.browserUI.util.SupportUrl
 
 @Preview
 @Composable
 internal fun DialogForWebviewVersion() {
   val showDialog = LocalShowWebViewVersion.current
-
+  val loadingManager = LocalLoadingViewManager.current
+  val loadingUrl = LocalCommonUrl.current
   val currentVersion = remember { mutableStateOf("") }
   val lowVersion = "196.0.4664.104" // TODO 目前暂定该版本信息最低要求为96.0.4664.104以上
   LaunchedEffect(Unit) {
@@ -57,7 +61,8 @@ internal fun DialogForWebviewVersion() {
               .weight(1f)
               .clickableWithNoEffect {
                 showDialog.value = false
-
+                loadingUrl.value = SupportUrl
+                loadingManager.show.value = true
               }
           )
 

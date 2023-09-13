@@ -6,10 +6,9 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
-import org.dweb_browser.browserUI.ui.browser.noLocalProvidedFor
 
-val LocalLoadingViewManager = compositionLocalOf<LoadingViewModel> {
-  noLocalProvidedFor("LoadingViewManager")
+val LocalLoadingViewManager = compositionLocalOf {
+  LoadingViewModel()
 }
 
 class LoadingViewModel {

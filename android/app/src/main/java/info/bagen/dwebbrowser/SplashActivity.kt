@@ -23,9 +23,9 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.dweb_browser.browserUI.ui.browser.LocalBrowserShowPrivacy
 import org.dweb_browser.browserUI.ui.splash.SplashPrivacyDialog
-import org.dweb_browser.browserUI.ui.view.PrivacyView
+import org.dweb_browser.browserUI.ui.view.LocalCommonUrl
+import org.dweb_browser.browserUI.ui.view.CommonWebView
 import org.dweb_browser.browserUI.util.KEY_ENABLE_AGREEMENT
 import org.dweb_browser.browserUI.util.getBoolean
 import org.dweb_browser.browserUI.util.saveBoolean
@@ -49,7 +49,7 @@ class SplashActivity : AppCompatActivity() {
 
     setContent {
       val scope = rememberCoroutineScope()
-      val localPrivacy = LocalBrowserShowPrivacy.current
+      val localPrivacy = LocalCommonUrl.current
       LaunchedEffect(mKeepOnAtomicBool) { // 最多显示1s就需要隐藏欢迎界面
         delay(1000L)
         if (enable) { // 如果已经同意协议了，不需要关闭欢迎界面，直接跳转主页
@@ -81,7 +81,7 @@ class SplashActivity : AppCompatActivity() {
             }
           }
         )
-        PrivacyView()
+        CommonWebView()
       }
     }
   }

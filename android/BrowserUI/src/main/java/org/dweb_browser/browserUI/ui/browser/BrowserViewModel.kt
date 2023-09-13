@@ -74,13 +74,6 @@ data class BrowserUIState(
 )
 
 /**
- * 用于判断是否显示隐私协议
- */
-val LocalBrowserShowPrivacy = compositionLocalOf {
-  mutableStateOf("")
-}
-
-/**
  * 用于指定输入的内容
  */
 val LocalInputText = compositionLocalOf {
