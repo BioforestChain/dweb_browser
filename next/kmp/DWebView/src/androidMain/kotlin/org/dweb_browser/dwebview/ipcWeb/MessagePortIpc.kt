@@ -15,15 +15,23 @@ import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.printDebug
-import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.help.types.IMicroModuleManifest
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.helper.IPC_ROLE
+import org.dweb_browser.microservice.ipc.helper.IpcEvent
+import org.dweb_browser.microservice.ipc.helper.IpcEventJsonAble
 import org.dweb_browser.microservice.ipc.helper.IpcMessage
 import org.dweb_browser.microservice.ipc.helper.IpcMessageArgs
+import org.dweb_browser.microservice.ipc.helper.IpcReqMessage
 import org.dweb_browser.microservice.ipc.helper.IpcRequest
+import org.dweb_browser.microservice.ipc.helper.IpcResMessage
 import org.dweb_browser.microservice.ipc.helper.IpcResponse
+import org.dweb_browser.microservice.ipc.helper.IpcStreamAbort
 import org.dweb_browser.microservice.ipc.helper.IpcStreamData
+import org.dweb_browser.microservice.ipc.helper.IpcStreamDataJsonAble
+import org.dweb_browser.microservice.ipc.helper.IpcStreamEnd
+import org.dweb_browser.microservice.ipc.helper.IpcStreamPaused
+import org.dweb_browser.microservice.ipc.helper.IpcStreamPulling
 import org.dweb_browser.microservice.ipc.helper.jsonToIpcMessage
 import java.util.WeakHashMap
 
@@ -122,7 +130,15 @@ open class MessagePortIpc(
       is IpcRequest -> Json.encodeToString(data.ipcReqMessage)
       is IpcResponse -> Json.encodeToString(data.ipcResMessage)
       is IpcStreamData -> Json.encodeToString(data)
-      else -> gson.toJson(data)
+      is IpcEvent -> Json.encodeToString(data)
+      is IpcEventJsonAble -> Json.encodeToString(data)
+      is IpcReqMessage -> Json.encodeToString(data)
+      is IpcResMessage -> Json.encodeToString(data)
+      is IpcStreamAbort -> Json.encodeToString(data)
+      is IpcStreamDataJsonAble -> Json.encodeToString(data)
+      is IpcStreamEnd -> Json.encodeToString(data)
+      is IpcStreamPaused -> Json.encodeToString(data)
+      is IpcStreamPulling -> Json.encodeToString(data)
     }
     this.port.postMessage(message)
   }

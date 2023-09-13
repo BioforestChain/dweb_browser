@@ -165,7 +165,6 @@ class ReadableStreamIpc(
         is IpcStreamEnd -> Json.encodeToString(data).toUtf8ByteArray()
         is IpcStreamPaused -> Json.encodeToString(data).toUtf8ByteArray()
         is IpcStreamPulling -> Json.encodeToString(data).toUtf8ByteArray()
-        else -> Json.encodeToString(data).toUtf8ByteArray()
       }
     }
     debugStreamIpc("post", "${message.size} => $input => $data")
