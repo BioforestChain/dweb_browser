@@ -1,6 +1,5 @@
 package org.dweb_browser.window.render
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -44,8 +43,6 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.input.pointer.pointerInteropFilter
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
@@ -54,7 +51,7 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.helper.compose.AutoResizeTextContainer
 import org.dweb_browser.helper.compose.AutoSizeText
 import org.dweb_browser.helper.compose.iosTween
-import org.dweb_browser.window.R
+import org.dweb_browser.window.WindowI18nResource
 import org.dweb_browser.window.core.WindowController
 import org.dweb_browser.window.core.constant.WindowBottomBarTheme
 import org.dweb_browser.window.core.constant.WindowPropertyKeys
@@ -288,7 +285,7 @@ internal fun WindowBottomNavigationThemeBar(
               }
             }
             /// 物理返回按钮的按揭
-            BackHandler(isFocus) {
+            win.BackHandler(isFocus) {
               goBackOrClose()
             }
 
@@ -310,11 +307,11 @@ internal fun WindowBottomNavigationThemeBar(
                 },
                 // 标题
                 title = {
-                  Text(text = stringResource(R.string.window_will_be_close))
+                  Text(text = WindowI18nResource.window_will_be_close.text)
                 },
                 // 内容
                 text = {
-                  Text(text = if (closeTip.isNullOrBlank()) stringResource(R.string.window_confirm_to_close) else closeTip!!)
+                  Text(text = if (closeTip.isNullOrBlank()) WindowI18nResource.window_confirm_to_close.text else closeTip!!)
                 },
                 // 确定按钮
                 confirmButton = {
@@ -322,7 +319,7 @@ internal fun WindowBottomNavigationThemeBar(
                     /// 强制关闭窗口
                     coroutineScope.launch { win.close(true) }
                   }) {
-                    Text(stringResource(R.string.window_confirm))
+                    Text(WindowI18nResource.window_confirm.text)
                   }
                 },
                 // 取消按钮
@@ -330,7 +327,7 @@ internal fun WindowBottomNavigationThemeBar(
                   TextButton(onClick = {
                     coroutineScope.launch { win.hideCloseTip() }
                   }) {
-                    Text(stringResource(R.string.window_dismiss))
+                    Text(WindowI18nResource.window_dismiss.text)
                   }
                 },
                 // 这个对话框可以通过返回按钮来关闭，同时触发窗口关闭
@@ -485,7 +482,7 @@ internal fun WindowBottomNavigationThemeBar(
         .fillMaxWidth(0.618f)
         .zIndex(2f)
         .align(Alignment.BottomCenter)
-        .pointerInteropFilter { false },
+//        .pointerInteropFilter { false },
     )
   }
 

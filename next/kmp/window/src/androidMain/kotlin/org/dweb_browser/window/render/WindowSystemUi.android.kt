@@ -73,3 +73,8 @@ actual fun <T : WindowController> WindowsManager<T>.EffectNavigationBar() {
     }
   }
 }
+
+@Composable
+actual fun WindowController.BackHandler(enabled: Boolean, onBack: () -> Unit) {
+  androidx.activity.compose.BackHandler(enabled, onBack)
+}

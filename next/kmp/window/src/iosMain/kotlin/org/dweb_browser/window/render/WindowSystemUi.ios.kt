@@ -11,3 +11,10 @@ actual fun <T:WindowController>WindowsManager<T>.EffectKeyboard() {
 @Composable
 actual fun <T:WindowController>WindowsManager<T>.EffectNavigationBar() {
 }
+
+@Composable
+actual fun WindowController.BackHandler(
+  enabled: Boolean,
+  onBack: () -> Unit
+) {
+}
