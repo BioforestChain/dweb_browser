@@ -6,7 +6,7 @@ import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.help.types.MicroModuleManifest
 
 abstract class AndroidNativeMicroModule(manifest: MicroModuleManifest) :
-  org.dweb_browser.microservice.core.NativeMicroModule(manifest) {
+  NativeMicroModule(manifest) {
   constructor(mmid: MMID, name: String) : this(
     MicroModuleManifest().apply {
       this.mmid = mmid

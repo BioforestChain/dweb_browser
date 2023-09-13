@@ -28,5 +28,5 @@ class SafeHashMap<K, V> : MutableMap<K, V> {
   override fun containsKey(key: K) = sync { origin.containsKey(key) }
   inline fun getOrPut(key: K, defaultValue: () -> V) = sync { origin.getOrPut(key, defaultValue) }
   inline fun getOrDefault(key: K, defaultValue: V) = sync { origin.getOrDefault(key, defaultValue) }
-  inline fun getOrElse(key: K,  defaultValue: () -> V) = sync { origin.getOrElse(key, defaultValue) }
+  inline fun getOrElse(key: K, defaultValue: () -> V) = sync { origin.getOrElse(key, defaultValue) }
 }

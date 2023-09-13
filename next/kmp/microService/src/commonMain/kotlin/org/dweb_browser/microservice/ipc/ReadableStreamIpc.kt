@@ -149,23 +149,22 @@ class ReadableStreamIpc(
   }
 
   override suspend fun _doPostMessage(data: IpcMessage) {
-    val message = when {
-//      supportMessagePack -> moshiPack.packToByteArray(data)
-      supportMessagePack -> byteArrayOf()
-      else -> when (data) {
-        is IpcRequest -> Json.encodeToString(data.ipcReqMessage).toUtf8ByteArray()
-        is IpcResponse -> Json.encodeToString(data.ipcResMessage).toUtf8ByteArray()
-        is IpcStreamData -> Json.encodeToString(data).toUtf8ByteArray()
-        is IpcEvent -> Json.encodeToString(data).toUtf8ByteArray()
-        is IpcEventJsonAble -> Json.encodeToString(data).toUtf8ByteArray()
-        is IpcReqMessage -> Json.encodeToString(data).toUtf8ByteArray()
-        is IpcResMessage -> Json.encodeToString(data).toUtf8ByteArray()
-        is IpcStreamAbort -> Json.encodeToString(data).toUtf8ByteArray()
-        is IpcStreamDataJsonAble -> Json.encodeToString(data).toUtf8ByteArray()
-        is IpcStreamEnd -> Json.encodeToString(data).toUtf8ByteArray()
-        is IpcStreamPaused -> Json.encodeToString(data).toUtf8ByteArray()
-        is IpcStreamPulling -> Json.encodeToString(data).toUtf8ByteArray()
-      }
+    if (supportMessagePack) {
+      throw Exception("no support support Message Pack")
+    }
+    val message = when (data) {
+      is IpcRequest -> Json.encodeToString(data.ipcReqMessage).toUtf8ByteArray()
+      is IpcResponse -> Json.encodeToString(data.ipcResMessage).toUtf8ByteArray()
+      is IpcStreamData -> Json.encodeToString(data).toUtf8ByteArray()
+      is IpcEvent -> Json.encodeToString(data).toUtf8ByteArray()
+      is IpcEventJsonAble -> Json.encodeToString(data).toUtf8ByteArray()
+      is IpcReqMessage -> Json.encodeToString(data).toUtf8ByteArray()
+      is IpcResMessage -> Json.encodeToString(data).toUtf8ByteArray()
+      is IpcStreamAbort -> Json.encodeToString(data).toUtf8ByteArray()
+      is IpcStreamDataJsonAble -> Json.encodeToString(data).toUtf8ByteArray()
+      is IpcStreamEnd -> Json.encodeToString(data).toUtf8ByteArray()
+      is IpcStreamPaused -> Json.encodeToString(data).toUtf8ByteArray()
+      is IpcStreamPulling -> Json.encodeToString(data).toUtf8ByteArray()
     }
     debugStreamIpc("post", "${message.size} => $input => $data")
     enqueue(message.size.toByteArray() + message)

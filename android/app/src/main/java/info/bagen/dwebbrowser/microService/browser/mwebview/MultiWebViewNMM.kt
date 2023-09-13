@@ -1,8 +1,6 @@
 package info.bagen.dwebbrowser.microService.browser.mwebview
 
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.browserUI.download.DownLoadObserver
 import org.dweb_browser.dwebview.serviceWorker.emitEvent
 import org.dweb_browser.helper.UUID

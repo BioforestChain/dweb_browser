@@ -1,6 +1,7 @@
 package org.dweb_browser.helper
 
 import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
 
 class SafeHashSet<T> : MutableSet<T> {
   private val origin = mutableSetOf<T>()

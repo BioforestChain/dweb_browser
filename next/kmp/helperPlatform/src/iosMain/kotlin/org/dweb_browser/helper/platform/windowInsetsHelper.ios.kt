@@ -1,17 +1,16 @@
 package org.dweb_browser.helper.platform
 
+import platform.Foundation.valueForKey
+import platform.UIKit.UIScreen
+
 actual fun getCornerRadiusTop(
-  viewController: PlatformViewController,
-  density: Float,
-  defaultValue: Float
+  viewController: PlatformViewController, density: Float, defaultValue: Float
 ): Float {
-  TODO("Not yet implemented")
+  val cornerRadius = UIScreen.mainScreen.valueForKey("_displayCornerRadius")
+  println("cornerRadius:$cornerRadius")
+  return defaultValue
 }
 
 actual fun getCornerRadiusBottom(
-  viewController: PlatformViewController,
-  density: Float,
-  defaultValue: Float
-): Float {
-  TODO("Not yet implemented")
-}
+  viewController: PlatformViewController, density: Float, defaultValue: Float
+) = getCornerRadiusTop(viewController, density, defaultValue)
