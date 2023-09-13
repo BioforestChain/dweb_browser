@@ -5,7 +5,7 @@ actual fun getCornerRadiusTop(
   density: Float,
   defaultValue: Float
 ): Float {
-  TODO("Not yet implemented")
+  return defaultValue
 }
 
 actual fun getCornerRadiusBottom(
@@ -13,5 +13,5 @@ actual fun getCornerRadiusBottom(
   density: Float,
   defaultValue: Float
 ): Float {
-  TODO("Not yet implemented")
+  return defaultValue
 }

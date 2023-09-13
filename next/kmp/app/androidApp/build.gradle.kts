@@ -34,19 +34,15 @@ kotlin {
           implementation(libs.jetbrains.compose.material3)
           implementation(libs.jetbrains.compose.materialIcons)
 
+          // test
+          implementation(libs.compose.ui.preview)
+
           implementation(project(":shared"))
           implementation(project(":helper"))
           implementation(project(":helperCompose"))
           implementation(project(":helperPlatform"))
           implementation(project(":microService"))
           implementation(project(":window"))
-//          implementation(libs.compose.bom)
-//          implementation(libs.compose.ui)
-//          implementation(libs.compose.ui.tooling)
-//          implementation(libs.compose.ui.foundation)
-//          implementation(libs.compose.material)
-//          implementation(libs.compose.material3)
-//          implementation(libs.androidx.activity.compose)
         }
       }
     }

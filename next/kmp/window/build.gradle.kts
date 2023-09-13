@@ -72,7 +72,7 @@ kotlin {
         implementation(libs.accompanist.systemui.controller)
         implementation(libs.accompanist.permissions)
         implementation(libs.accompanist.insets.ui)
-
+        implementation(libs.compose.ui.preview)
       }
     }
     val androidUnitTest by getting
@@ -97,9 +97,8 @@ kotlin {
 
     val desktopMain by getting {
       dependencies {
-        dependencies {
-          implementation(compose.desktop.common)
-        }
+        implementation(compose.desktop.common)
+        implementation(libs.jetbrains.compose.preview)
       }
     }
   }
@@ -110,6 +109,11 @@ android {
   compileSdk = libs.versions.compileSdkVersion.get().toInt()
   defaultConfig {
     minSdk = libs.versions.minSdkVersion.get().toInt()
+  }
+  packaging {
+    resources {
+      excludes += "/META-INF/DEPENDENCIES"
+    }
   }
   sourceSets["main"].apply {
     res.srcDirs("src/androidMain/res", "src/commonMain/res", "src/main/res")

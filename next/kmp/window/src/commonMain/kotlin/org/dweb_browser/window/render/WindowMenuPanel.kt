@@ -31,10 +31,15 @@ internal fun WindowMenuPanelByAlert(
     }
   }
   if (isShowMenuPanel) {
+    val winTheme = LocalWindowControllerTheme.current
     AlertDialog(
       onDismissRequest = {
         toggleMenu(false)
       },
+      containerColor = winTheme.themeColor,
+      iconContentColor = winTheme.themeContentColor,
+      textContentColor = winTheme.themeContentColor,
+      titleContentColor = winTheme.themeContentColor,
       icon = {
         win.IconRender(modifier = Modifier.size(36.dp))
       },

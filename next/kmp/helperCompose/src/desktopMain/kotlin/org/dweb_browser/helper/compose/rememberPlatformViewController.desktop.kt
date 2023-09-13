@@ -5,5 +5,5 @@ import org.dweb_browser.helper.platform.PlatformViewController
 
 @Composable
 actual fun _rememberPlatformViewController(): PlatformViewController {
-  TODO("Not yet implemented")
+  return PlatformViewController()
 }
