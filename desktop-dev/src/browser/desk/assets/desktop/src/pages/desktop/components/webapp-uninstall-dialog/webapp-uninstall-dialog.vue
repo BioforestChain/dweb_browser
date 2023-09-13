@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import AppIcon from "src/components/app-icon/app-icon.vue";
 import { $AppIconInfo } from "src/components/app-icon/types";
-import { deleteWebApp } from "src/provider/api.ts";
+import { deleteApp } from "src/provider/api.ts";
 import { $CloseWatcher, CloseWatcher } from "src/provider/shim.ts";
 import { watchEffect } from "vue";
 
 const props = defineProps({
-  name: { type: String, required: true },
+  appId: { type: String, required: true },
   appIcon: { type: Object as () => $AppIconInfo, required: true },
   appName: { type: String, required: true },
   show: { type: Boolean },
@@ -17,8 +17,8 @@ const emit = defineEmits<{
 }>();
 
 async function doUninstall() {
-  const response = await deleteWebApp(props.appName);
-  if (response.ok) {
+  const response = await deleteApp(props.appId);
+  if (response) {
     emit("close", true);
   }
   emit("close", true);

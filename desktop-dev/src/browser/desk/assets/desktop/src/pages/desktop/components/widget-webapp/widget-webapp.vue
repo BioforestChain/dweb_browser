@@ -34,6 +34,7 @@ const props = defineProps({
     required: true,
   },
 });
+const appid = computed(() => props.appMetaData.mmid);
 const appUrl = computed(() => props.appMetaData.name)
 const appname = computed(() => props.appMetaData.short_name!!);
 const appicon = shallowRef<$AppIconInfo>({ src: "", monochrome: false, maskable: false });
@@ -62,7 +63,7 @@ watchEffect(() => {
 });
 
 const emit = defineEmits<{
-  (event: "uninstall", appName: string): void;
+  (event: "uninstall"): void;
 }>();
 
 onMounted(() => {});
@@ -107,7 +108,7 @@ function showUninstall() {
 const onJmmUnInstallDialogClosed = (confirmed: boolean) => {
   showUninstallDialog.value = false;
   if (confirmed) {
-    emit("uninstall",appname.value);
+    emit("uninstall");
   }
 };
 </script>
@@ -154,7 +155,7 @@ const onJmmUnInstallDialogClosed = (confirmed: boolean) => {
     <div class="text-center">{{ snackbar.text }}</div>
   </v-snackbar>
   <WebAppUnInstallDialog
-    :name="appname"
+    :appId="appid"
     :appIcon="appicon"
     :appName="appname"
     :show="showUninstallDialog"
