@@ -11,6 +11,7 @@ import org.dweb_browser.dwebview.ipcWeb.Native2JsIpc
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.JsonLoose
 import org.dweb_browser.helper.PromiseOut
+import org.dweb_browser.helper.buildUnsafeString
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.printError
@@ -123,7 +124,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) : MicroModule(
           PureRequest(URLBuilder("file://js.browser.dweb/create-process").apply {
             parameters["entry"] = metadata.server.entry
             parameters["process_id"] = pid
-          }.buildString(), IpcMethod.POST, body = PureStreamBody(streamIpc.input.stream))
+          }.buildUnsafeString(), IpcMethod.POST, body = PureStreamBody(streamIpc.input.stream))
         ).stream()
       )
       this@JsMicroModule.addToIpcSet(streamIpc)
@@ -255,7 +256,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) : MicroModule(
             URLBuilder("file://js.browser.dweb/create-ipc").apply {
               parameters["process_id"] = pid
               parameters["mmid"] = fromMMID
-            }.buildString()
+            }.buildUnsafeString()
           ).int()
           val originIpc = JmmIpc(portId, this@JsMicroModule)
 

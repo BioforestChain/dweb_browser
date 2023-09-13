@@ -124,6 +124,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
 
     /// 模块 API 接口
     routes("/start" bind HttpMethod.Get to defineJsonResponse {
+//      debugHttp("xxxxx start query", "${request.queryAsObject<ServerStartResult>()}")
       start(ipc, request.queryAsObject()).toJsonElement()
     },
       //

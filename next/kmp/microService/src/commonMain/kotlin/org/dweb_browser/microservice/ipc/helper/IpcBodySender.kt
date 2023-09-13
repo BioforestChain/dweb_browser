@@ -25,6 +25,7 @@ import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.microservice.http.IPureBody
 import org.dweb_browser.microservice.http.PureBinary
 import org.dweb_browser.microservice.http.PureBinaryBody
+import org.dweb_browser.microservice.http.PureEmptyBody
 import org.dweb_browser.microservice.http.PureStream
 import org.dweb_browser.microservice.http.PureStreamBody
 import org.dweb_browser.microservice.http.PureString
@@ -302,10 +303,10 @@ class IpcBodySender(
 
 
   private suspend fun bodyAsMeta(body: IPureBody, ipc: Ipc) = when (body) {
+    is PureEmptyBody -> MetaBody.fromText(ipc.uid, body.toPureString())
     is PureStringBody -> MetaBody.fromText(ipc.uid, body.toPureString())
     is PureBinaryBody -> MetaBody.fromBinary(ipc, body.toPureBinary())
-    is PureStream -> streamAsMeta(body, ipc)
-    else -> throw Exception("invalid body type $body")
+    is PureStreamBody -> streamAsMeta(body.toPureStream(), ipc)
   }
 
 

@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.PromiseOut
+import org.dweb_browser.helper.buildUnsafeString
 import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.help.suspendOnce
 import org.dweb_browser.microservice.help.types.IMicroModuleManifest
@@ -18,13 +19,13 @@ import org.dweb_browser.microservice.sys.dns.nativeFetch
 
 @Serializable
 data class DwebHttpServerOptions(
-  val port: Int,
-  val subdomain: String,
+  val port: Int = 80,
+  val subdomain: String = "",
 ) {
-  constructor(
-    port: Int? = 80,
-    subdomain: String? = "",
-  ) : this(port ?: 80, subdomain ?: "")
+//  constructor(
+//    port: Int? = null,
+//    subdomain: String? = null,
+//  ) : this(port ?: 80, subdomain ?: "")
 }
 
 suspend fun MicroModule.startHttpDwebServer(options: DwebHttpServerOptions) =
@@ -59,7 +60,7 @@ suspend fun MicroModule.listenHttpDwebServer(
           URLBuilder("file://http.std.dweb/listen").apply {
             parameters["token"] = startResult.token
             parameters["routes"] = Json.encodeToString(routes)
-          }.buildString(),
+          }.buildUnsafeString(),
           IpcMethod.POST,
           body = PureStreamBody(it.input.stream)
         )
@@ -76,7 +77,7 @@ suspend fun MicroModule.closeHttpDwebServer(options: DwebHttpServerOptions) =
     URLBuilder("file://http.std.dweb/close").apply {
       parameters["port"] = options.port.toString()
       parameters["subdomain"] = options.subdomain
-    }.buildString(),
+    }.buildUnsafeString(),
   ).boolean()
 
 class HttpDwebServer(

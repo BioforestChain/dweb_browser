@@ -32,7 +32,7 @@ import org.dweb_browser.window.core.WindowController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun WindowMenuPanel(
+internal actual fun WindowMenuPanel(
   win: WindowController,
 ) {
   val winPadding = LocalWindowPadding.current

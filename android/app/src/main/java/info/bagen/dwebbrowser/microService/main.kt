@@ -95,7 +95,8 @@ suspend fun startDwebBrowser(): DnsNMM {
 
     DEVELOPER.Kingsword09, DEVELOPER.KVirtual -> addDebugTags(
       listOf(
-        "desk"
+        "desk",
+        "/.+/",
       )
     )
 

@@ -45,6 +45,7 @@ import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.dwebview.base.DWebViewItem
 import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
+import org.dweb_browser.helper.buildUnsafeString
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.runBlockingCatching
@@ -345,7 +346,7 @@ class BrowserViewModel(
 
   private fun appendWebViewAsItem(dWebView: DWebView): Pair<ViewItem, CloseWatcher> {
     val webviewId = "#w${webviewId_acc.getAndAdd(1)}"
-    val state = WebViewState(WebContent.Url(getDesktopUrl().toString()))
+    val state = WebViewState(WebContent.Url(getDesktopUrl().buildUnsafeString()))
     val coroutineScope = CoroutineScope(CoroutineName(webviewId))
     val navigator = WebViewNavigator(coroutineScope)
     val viewItem = DWebViewItem(
