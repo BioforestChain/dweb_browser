@@ -3,6 +3,8 @@ package info.bagen.dwebbrowser.microService.browser.desk
 import android.content.res.Resources
 import info.bagen.dwebbrowser.microService.browser.desk.types.DeskAppMetaData
 import kotlinx.serialization.Serializable
+import org.dweb_browser.browserUI.ui.browser.build
+import org.dweb_browser.browserUI.ui.browser.resolvePath
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.Signal
@@ -10,7 +12,6 @@ import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.sys.http.HttpDwebServer
-import org.http4k.core.query
 
 class TaskbarController(
   val deskSessionId: String,
@@ -117,10 +118,11 @@ class TaskbarController(
       }
     }
 
-  fun getTaskbarUrl() = taskbarServer.startResult.urlInfo.buildInternalUrl().let {
-    it.path("/taskbar.html")
-      .query("api-base", taskbarServer.startResult.urlInfo.buildPublicUrl().toString())
-  }
+  fun getTaskbarUrl() =
+    taskbarServer.startResult.urlInfo.buildInternalUrl().build {
+      resolvePath("/taskbar.html")
+      parameters["api-base"] = taskbarServer.startResult.urlInfo.buildPublicUrl().toString()
+    }
 
   @Serializable
   data class ReSize(val width: Float, val height: Float)

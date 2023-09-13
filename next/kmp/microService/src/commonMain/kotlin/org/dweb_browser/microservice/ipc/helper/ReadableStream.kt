@@ -113,6 +113,7 @@ class ReadableStream(
   fun available(): Int {
     val requestSize = 1
 
+    println("available: ${channel.availableForRead}")
     if (channel.availableForRead >= requestSize) {
       return channel.availableForRead
     }

@@ -1,9 +1,15 @@
 package info.bagen.dwebbrowser.microService.browser.jmm
 
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.URLBuilder
+import io.ktor.http.fullPath
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
 import kotlinx.coroutines.withContext
 import org.dweb_browser.dwebview.ipcWeb.Native2JsIpc
 import org.dweb_browser.helper.ImageResource
+import org.dweb_browser.helper.JsonLoose
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printDebug
@@ -14,10 +20,6 @@ import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.ConnectResult
 import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.core.connectAdapterManager
-import org.dweb_browser.microservice.help.boolean
-import org.dweb_browser.microservice.help.gson
-import org.dweb_browser.microservice.help.int
-import org.dweb_browser.microservice.help.stream
 import org.dweb_browser.microservice.help.types.CommonAppManifest
 import org.dweb_browser.microservice.help.types.IMicroModuleManifest
 import org.dweb_browser.microservice.help.types.IpcSupportProtocols
@@ -25,17 +27,15 @@ import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.help.types.MicroModuleManifest
+import org.dweb_browser.microservice.http.PureRequest
+import org.dweb_browser.microservice.http.PureResponse
+import org.dweb_browser.microservice.http.PureStreamBody
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.ReadableStreamIpc
 import org.dweb_browser.microservice.ipc.helper.IpcMessageArgs
+import org.dweb_browser.microservice.ipc.helper.IpcMethod
 import org.dweb_browser.microservice.ipc.helper.IpcResponse
 import org.dweb_browser.microservice.sys.dns.nativeFetch
-import org.http4k.core.Method
-import org.http4k.core.Request
-import org.http4k.core.Response
-import org.http4k.core.Status
-import org.http4k.core.Uri
-import org.http4k.core.query
 import java.util.Random
 
 fun debugJsMM(tag: String, msg: Any? = "", err: Throwable? = null) =
@@ -98,6 +98,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) : MicroModule(
    * 所以不会和其它程序所使用的 pid 冲突
    */
   private var processId: String? = null
+  private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
 
   val pid = ByteArray(8).also { Random().nextBytes(it) }.toBase64Url()
   private suspend fun createNativeStream(): ReadableStreamIpc =
@@ -106,24 +107,23 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) : MicroModule(
       processId = pid
       val streamIpc = ReadableStreamIpc(this@JsMicroModule, "code-server")
       streamIpc.onRequest { (request, ipc) ->
-        debugJsMM("streamIpc.onRequest", "path=${request.uri.path}")
-        val response = if (request.uri.path.endsWith("/")) {
-          Response(Status.FORBIDDEN)
+        debugJsMM("streamIpc.onRequest", "path=${request.uri.fullPath}")
+        val response = if (request.uri.fullPath.endsWith("/")) {
+          PureResponse(HttpStatusCode.Forbidden)
         } else {
           // 正则含义是将两个或以上的 / 斜杆直接转为单斜杆
           nativeFetch(
-            "file://" + (metadata.server.root + request.uri.path).replace(Regex("/{2,}"), "/")
+            "file://" + (metadata.server.root + request.uri.fullPath).replace(Regex("/{2,}"), "/")
           )
         }
         ipc.postMessage(IpcResponse.fromResponse(request.req_id, response, ipc))
       }
       streamIpc.bindIncomeStream(
         nativeFetch(
-          Request(
-            Method.POST,
-            Uri.of("file://js.browser.dweb/create-process").query("entry", metadata.server.entry)
-              .query("process_id", pid)
-          ).body(streamIpc.stream)
+          PureRequest(URLBuilder("file://js.browser.dweb/create-process").apply {
+            parameters["entry"] = metadata.server.entry
+            parameters["process_id"] = pid
+          }.buildString(), IpcMethod.POST, body = PureStreamBody(streamIpc.input.stream))
         ).stream()
       )
       this@JsMicroModule.addToIpcSet(streamIpc)
@@ -166,7 +166,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) : MicroModule(
      */
     jsIpc.onRequest { (ipcRequest, ipc) ->
       /// WARN 这里不再受理 file://<domain>/ 的请求，只处理 http[s]:// | file:/// 这些原生的请求
-      val scheme = ipcRequest.uri.scheme
+      val scheme = ipcRequest.uri.protocol.name
       val host = ipcRequest.uri.host
       debugJsMM("onProxyRequest", "start ${ipcRequest.uri}")
       if (scheme == "file" && host.endsWith(".dweb")) {
@@ -201,7 +201,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) : MicroModule(
       if (ipcEvent.name == "dns/connect") {
         data class DnsConnectEvent(val mmid: MMID, val sub_protocols: List<String>)
 
-        val event = gson.fromJson(ipcEvent.text, DnsConnectEvent::class.java)
+        val event = JsonLoose.decodeFromString<DnsConnectEvent>(ipcEvent.text)
         try {
           /**
            * 模块之间的ipc是单例模式，所以我们必须拿到这个单例，再去做消息转发
@@ -252,8 +252,10 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) : MicroModule(
            * 向js模块发起连接
            */
           val portId = nativeFetch(
-            Uri.of("file://js.browser.dweb/create-ipc").query("process_id", pid)
-              .query("mmid", fromMMID)
+            URLBuilder("file://js.browser.dweb/create-ipc").apply {
+              parameters["process_id"] = pid
+              parameters["mmid"] = fromMMID
+            }.buildString()
           ).int()
           val originIpc = JmmIpc(portId, this@JsMicroModule)
 

@@ -1,40 +1,41 @@
 package info.bagen.dwebbrowser.microService.browser.jmm
 
 import info.bagen.dwebbrowser.App
+import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.URLBuilder
+import io.ktor.http.Url
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
 import org.dweb_browser.browserUI.database.AppType
 import org.dweb_browser.browserUI.database.DeskAppInfo
 import org.dweb_browser.browserUI.database.DeskAppInfoStore
 import org.dweb_browser.browserUI.download.DownLoadController
 import org.dweb_browser.browserUI.download.isGreaterThan
 import org.dweb_browser.browserUI.microService.browser.link.WebLinkMicroModule
+import org.dweb_browser.browserUI.ui.browser.resolvePath
 import org.dweb_browser.browserUI.util.BrowserUIApp
 import org.dweb_browser.browserUI.util.FilesUtil
 import org.dweb_browser.helper.ImageResource
+import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.core.AndroidNativeMicroModule
 import org.dweb_browser.microservice.core.BootstrapContext
-import org.dweb_browser.microservice.help.bodyJson
 import org.dweb_browser.microservice.help.types.IMicroModuleManifest
 import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.types.MMID
+import org.dweb_browser.microservice.http.PureResponse
+import org.dweb_browser.microservice.http.bind
+import org.dweb_browser.microservice.http.routes
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.dweb_browser.window.core.WindowState
 import org.dweb_browser.window.core.constant.WindowConstants
 import org.dweb_browser.window.core.constant.WindowMode
 import org.dweb_browser.window.core.createWindowAdapterManager
-import org.dweb_browser.window.core.helper.setFromManifest
-import org.http4k.core.Method
-import org.http4k.core.Response
-import org.http4k.core.Status
-import org.http4k.lens.Query
-import org.http4k.lens.string
-import org.http4k.routing.bind
-import org.http4k.routing.routes
-import java.net.URL
 
 fun debugJMM(tag: String, msg: Any? = "", err: Throwable? = null) = printDebug("JMM", tag, msg, err)
 
@@ -71,13 +72,11 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
   }
 
   private var jmmController: JmmController? = null
+  private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
 
   fun getApps(mmid: MMID): IMicroModuleManifest? {
     return bootstrapContext.dns.query(mmid)
   }
-
-  val queryMetadataUrl = Query.string().required("url")
-  val queryMmid = Query.string().required("app_id")
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     installJmmApps()
@@ -86,41 +85,41 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
       jmmController = null
     }
 
-    val routeInstallHandler = defineResponse {
-      val metadataUrl = queryMetadataUrl(request)
+    val routeInstallHandler = definePureResponse {
+      val metadataUrl = request.queryOrFail("url")
       val response = nativeFetch(metadataUrl)
-      if (response.status == Status.OK) {
+      if (response.isOk()) {
         try {
-          val jmmAppInstallManifest = response.bodyJson<JmmAppInstallManifest>()
-          val url = URL(metadataUrl)
+          val jmmAppInstallManifest = response.json<JmmAppInstallManifest>()
+          val url = Url(metadataUrl)
           // 根据 jmmMetadata 打开一个应用信息的界面，用户阅读界面信息后，可以点击"安装"
           installJsMicroModule(jmmAppInstallManifest, ipc, url)
-          Response(Status.OK)
+          PureResponse(HttpStatusCode.OK)
         } catch (e: Throwable) {
-          Response(Status.EXPECTATION_FAILED).body(e.stackTraceToString())
+          PureResponse(HttpStatusCode.ExpectationFailed).body(e.stackTraceToString())
         }
       } else {
-        response // Response(Status.NO_CONTENT)
+        PureResponse(HttpStatusCode.ExpectationFailed).body("invalid status code: ${response.status}")
       }
     }
-    apiRouting = routes(
+    routes(
       // 安装
-      "install" bind Method.GET to routeInstallHandler,
-      "/install" bind Method.GET to routeInstallHandler,
-      "/uninstall" bind Method.GET to defineBooleanResponse { request ->
-        val mmid = queryMmid(request)
+      "install" bind HttpMethod.Get to routeInstallHandler,
+      "/install" bind HttpMethod.Get to routeInstallHandler,
+      "/uninstall" bind HttpMethod.Get to defineBooleanResponse {
+        val mmid = request.queryOrFail("app_id")
         debugJMM("uninstall", mmid)
         jmmMetadataUninstall(mmid)
         true
       },
-      "/closeApp" bind Method.GET to defineBooleanResponse { request ->
-        val mmid = queryMmid(request)
+      "/closeApp" bind HttpMethod.Get to defineBooleanResponse {
+        val mmid = request.queryOrFail("app_id")
         jmmController?.closeApp(mmid)
         true
       },
       // app详情
-      "/detailApp" bind Method.GET to defineBooleanResponse {
-        val mmid = queryMmid(request)
+      "/detailApp" bind HttpMethod.Get to defineBooleanResponse {
+        val mmid = request.queryOrFail("app_id")
         debugJMM("detailApp", mmid)
         val microModule = bootstrapContext.dns.query(mmid)
 
@@ -132,21 +131,21 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
           false
         }
       },
-      "/pause" bind Method.GET to defineBooleanResponse {
+      "/pause" bind HttpMethod.Get to defineBooleanResponse {
         BrowserUIApp.Instance.mBinderService?.invokeUpdateDownloadStatus(
           ipc.remote.mmid, DownLoadController.PAUSE
         )
         true
       },
       /**继续下载*/
-      "/resume" bind Method.GET to defineBooleanResponse {
+      "/resume" bind HttpMethod.Get to defineBooleanResponse {
         debugJMM("resume", ipc.remote.mmid)
         BrowserUIApp.Instance.mBinderService?.invokeUpdateDownloadStatus(
           ipc.remote.mmid, DownLoadController.RESUME
         )
         true
       },
-      "/cancel" bind Method.GET to defineBooleanResponse {
+      "/cancel" bind HttpMethod.Get to defineBooleanResponse {
         debugJMM("cancel", ipc.remote.mmid)
         BrowserUIApp.Instance.mBinderService?.invokeUpdateDownloadStatus(
           ipc.remote.mmid, DownLoadController.CANCEL
@@ -198,14 +197,16 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
   }
 
   private suspend fun installJsMicroModule(
-    jmmAppInstallManifest: JmmAppInstallManifest, ipc: Ipc, url: URL? = null,
+    jmmAppInstallManifest: JmmAppInstallManifest, ipc: Ipc, url: Url? = null,
   ) {
     jmmController?.closeSelf() // 如果存在的话，关闭先，同时可以考虑置空
     if (!jmmAppInstallManifest.bundle_url.startsWith("http")) {
       url?.let {
-        jmmAppInstallManifest.bundle_url = URL(
-          it, jmmAppInstallManifest.bundle_url
-        ).toString()
+        jmmAppInstallManifest.bundle_url =
+          URLBuilder(it).run {
+            resolvePath(jmmAppInstallManifest.bundle_url);
+            buildString()
+          }
       }
     }
     debugJMM("openJmmMetadataInstallPage", jmmAppInstallManifest.bundle_url)

@@ -1,6 +1,7 @@
 package info.bagen.dwebbrowser.microService.sys.window
 
 
+import io.ktor.http.HttpMethod
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -9,18 +10,13 @@ import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
+import org.dweb_browser.microservice.http.PureRequest
+import org.dweb_browser.microservice.http.bind
+import org.dweb_browser.microservice.http.routes
 import org.dweb_browser.microservice.ipc.helper.ReadableStream
 import org.dweb_browser.window.core.constant.WindowPropertyKeys
 import org.dweb_browser.window.core.constant.WindowStyle
 import org.dweb_browser.window.core.windowInstancesManager
-import org.http4k.core.Method
-import org.http4k.core.Request
-import org.http4k.lens.Query
-import org.http4k.lens.boolean
-import org.http4k.lens.composite
-import org.http4k.lens.string
-import org.http4k.routing.bind
-import org.http4k.routing.routes
 
 fun debugWindowNMM(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("window-nmm", tag, msg, err)
@@ -35,34 +31,13 @@ fun debugWindowNMM(tag: String, msg: Any? = "", err: Throwable? = null) =
 class WindowNMM : NativeMicroModule("window.sys.dweb", "Window Management") {
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    val query_wid = Query.string().required("wid")
-
-
-    val query_Style = Query.composite {
-      WindowStyle(
-        topBarOverlay = boolean().optional("topBarOverlay")(it),
-        bottomBarOverlay = boolean().optional("bottomBarOverlay")(it),
-        topBarContentColor = string().optional("topBarContentColor")(it),
-        topBarContentDarkColor = string().optional("topBarContentDarkColor")(it),
-        topBarBackgroundColor = string().optional("topBarBackgroundColor")(it),
-        topBarBackgroundDarkColor = string().optional("topBarBackgroundDarkColor")(it),
-        bottomBarContentColor = string().optional("bottomBarContentColor")(it),
-        bottomBarContentDarkColor = string().optional("bottomBarContentDarkColor")(it),
-        bottomBarBackgroundColor = string().optional("bottomBarBackgroundColor")(it),
-        bottomBarBackgroundDarkColor = string().optional("bottomBarBackgroundDarkColor")(it),
-        bottomBarTheme = string().optional("bottomBarTheme")(it),
-        themeColor = string().optional("themeColor")(it),
-        themeDarkColor = string().optional("themeDarkColor")(it),
-      )
-    }
-
-    fun getWindow(request: Request) = query_wid(request).let { wid ->
+    fun getWindow(request: PureRequest) = request.queryOrFail("wid").let { wid ->
       windowInstancesManager.get(wid) ?: throw Exception("No Found by window id: '$wid'")
     }
 
-    apiRouting = routes(
+    routes(
       /** 窗口的状态监听 */
-      "/observe" bind Method.GET to defineInputStreamHandler {
+      "/observe" bind HttpMethod.Get to definePureStreamHandler {
         val win = getWindow(request)
         debugWindowNMM("/observe", "wid: ${win.id} ,mmid: ${ipc.remote.mmid}")
         val inputStream = ReadableStream(onStart = { controller ->
@@ -87,21 +62,19 @@ class WindowNMM : NativeMicroModule("window.sys.dweb", "Window Management") {
             controller.close()
           }
         })
-        inputStream
+        inputStream.stream
       },
-      "/getState" bind Method.GET to defineJsonResponse {
+      "/getState" bind HttpMethod.Get to defineJsonResponse {
         getWindow(request).toJsonElement()
       },
-      "/focus" bind Method.GET to defineEmptyResponse { request -> getWindow(request).focus() },
-      "/blur" bind Method.GET to defineEmptyResponse { request -> getWindow(request).blur() },
-      "/maximize" bind Method.GET to defineEmptyResponse { request -> getWindow(request).maximize() },
-      "/unMaximize" bind Method.GET to defineEmptyResponse { request -> getWindow(request).unMaximize() },
-      "/minimize" bind Method.GET to defineEmptyResponse { request -> getWindow(request).toggleVisible() },
-      "/close" bind Method.GET to defineEmptyResponse { request -> getWindow(request).close() },
-      "/setStyle" bind Method.GET to defineEmptyResponse { request ->
-        getWindow(request).setStyle(
-          query_Style(request)
-        )
+      "/focus" bind HttpMethod.Get to defineEmptyResponse { getWindow(request).focus() },
+      "/blur" bind HttpMethod.Get to defineEmptyResponse { getWindow(request).blur() },
+      "/maximize" bind HttpMethod.Get to defineEmptyResponse { getWindow(request).maximize() },
+      "/unMaximize" bind HttpMethod.Get to defineEmptyResponse { getWindow(request).unMaximize() },
+      "/visible" bind HttpMethod.Get to defineEmptyResponse { getWindow(request).toggleVisible() },
+      "/close" bind HttpMethod.Get to defineEmptyResponse { getWindow(request).close() },
+      "/setStyle" bind HttpMethod.Get to defineEmptyResponse {
+        getWindow(request).setStyle(request.queryAsObject<WindowStyle>())
       },
     )
   }

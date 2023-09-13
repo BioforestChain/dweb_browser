@@ -9,6 +9,7 @@ import kotlinx.coroutines.channels.getOrElse
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.Callback
 import org.dweb_browser.helper.JsonLoose
 import org.dweb_browser.helper.Signal

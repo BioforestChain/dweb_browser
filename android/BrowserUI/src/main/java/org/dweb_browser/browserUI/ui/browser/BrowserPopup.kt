@@ -99,7 +99,7 @@ import org.dweb_browser.browserUI.ui.view.LocalCommonUrl
 import org.dweb_browser.browserUI.ui.view.findActivity
 import org.dweb_browser.browserUI.util.BitmapUtil
 import org.dweb_browser.browserUI.util.PrivacyUrl
-import org.dweb_browser.dwebview.base.WindowInsetsHelper
+import org.dweb_browser.helper.compose.rememberPlatformViewController
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.platform.PlatformViewController
 import org.dweb_browser.helper.platform.getCornerRadiusTop
@@ -142,8 +142,7 @@ internal fun BrowserBottomSheet(viewModel: BrowserViewModel) {
   val bottomSheetModel = LocalModalBottomSheet.current
   if (bottomSheetModel.show.value) {
     val density = LocalDensity.current.density
-    LocalPlatformViewController
-    val topLeftRadius = getCornerRadiusTop(LocalContext.current, density, 16f)
+    val topLeftRadius = getCornerRadiusTop(rememberPlatformViewController(), density, 16f)
     BrowserModalBottomSheet(
       onDismissRequest = { bottomSheetModel.show.value = false },
       shape = RoundedCornerShape(

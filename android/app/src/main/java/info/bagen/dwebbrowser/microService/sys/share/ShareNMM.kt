@@ -4,19 +4,25 @@ import android.content.Intent
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.sys.fileSystem.EFileType
 import info.bagen.dwebbrowser.microService.sys.share.ShareController.Companion.controller
+import io.ktor.http.ContentDisposition
+import io.ktor.http.HttpMethod
+import io.ktor.http.cio.MultipartEvent
+import io.ktor.http.cio.parseHeaders
+import io.ktor.http.cio.parseMultipart
+import io.ktor.utils.io.jvm.javaio.toInputStream
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.plus
+import kotlinx.serialization.Serializable
 import org.dweb_browser.helper.PromiseOut
+import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printDebug
+import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.microservice.core.AndroidNativeMicroModule
 import org.dweb_browser.microservice.core.BootstrapContext
-import org.dweb_browser.microservice.help.cors
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
-import org.http4k.core.Method
-import org.http4k.core.MultipartFormBody
-import org.http4k.lens.Query
-import org.http4k.lens.composite
-import org.http4k.lens.string
-import org.http4k.routing.bind
-import org.http4k.routing.routes
+import org.dweb_browser.microservice.http.bind
+import org.dweb_browser.microservice.http.routes
 
 data class ShareOptions(
   val title: String?,
@@ -33,37 +39,72 @@ class ShareNMM : AndroidNativeMicroModule("share.sys.dweb", "share") {
     categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Protocol_Service);
   }
 
+  private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
   private val plugin = CacheFilePlugin()
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    val shareOption = Query.composite { spec ->
-      ShareOptions(
-        title = string().optional("title")(spec),
-        text = string().optional("text")(spec),
-        url = string().optional("url")(spec)
-      )
-    }
-    apiRouting = routes(
+//    val shareOption = Query.composite { spec ->
+//      ShareOptions(
+//        title = string().optional("title")(spec),
+//        text = string().optional("text")(spec),
+//        url = string().optional("url")(spec)
+//      )
+//    }
+    routes(
       /** 分享*/
-      "/share" bind Method.POST to defineHandler { request, ipc ->
+      "/share" bind HttpMethod.Post to defineJsonResponse {
         val files = mutableListOf<String>()
         val result = PromiseOut<String>()
-        val ext = shareOption(request)
-        try {
-          val receivedForm = MultipartFormBody.from(request)
-          val fileByteArray = receivedForm.files("files")
-          // 写入缓存
-          fileByteArray.map { file ->
-            val url = plugin.writeFile(
-              file.filename,
-              EFileType.Cache,
-              file.content,
-              false
-            )
-            files.add(url)
+        val ext = ShareOptions(
+          title = request.query("title"),
+          text = request.query("text"),
+          url = request.query("url")
+        )
+//        try {
+        val readChannel = request.body.toPureStream().getReader()
+        val httpHeadersMap = parseHeaders(readChannel)
+
+        ioAsyncScope.parseMultipart(readChannel, httpHeadersMap).consumeEach {
+          if (it is MultipartEvent.MultipartPart) {
+            val headers = it.headers.await()
+            val contentDisposition =
+              headers["Content-Disposition"]?.let { ContentDisposition.parse(it.toString()) }
+            val filename = contentDisposition?.parameter("filename")
+//
+            if (filename != null) {
+              val url = plugin.writeFile(
+                filename,
+                EFileDirectory.Cache.location,
+                it.body.toInputStream(),
+                false
+              )
+
+              it.release()
+              files.add(url)
+            }
           }
-        } catch (e: Exception) {
-          debugShare("share catch", "e===>$e $files")
         }
+
+//          var a = PartData({
+//            controller.activity.finish()
+//          }, io.ktor.http.Headers(request.headers.toMap()))
+//
+//
+//          MultipartEvent.Preamble(request.body.toPureStream().getReader().readPacket())
+//          val receivedForm = MultipartFormBody.from(request)
+//          val fileByteArray = receivedForm.files("files")
+//          // 写入缓存
+//          fileByteArray.map { file ->
+//            val url = plugin.writeFile(
+//              file.filename,
+//              EFileDirectory.Cache.location,
+//              file.content,
+//              false
+//            )
+//            files.add(url)
+//          }
+//        } catch (e: Exception) {
+//          debugShare("share catch", "e===>$e $files")
+//        }
         openActivity()
         controller.waitActivityResultLauncherCreated()
 
@@ -79,11 +120,13 @@ class ShareNMM : AndroidNativeMicroModule("share.sys.dweb", "share") {
         if (data !== "OK") {
           controller.activity?.finish()
         }
-        return@defineHandler ShareResult(data == "OK", data)
+        return@defineJsonResponse ShareResult(data == "OK", data).toJsonElement()
       },
-    ).cors()
+    )
+//      .cors()
   }
 
+  @Serializable
   data class ShareResult(val success: Boolean, val message: String)
 
   private fun openActivity() {

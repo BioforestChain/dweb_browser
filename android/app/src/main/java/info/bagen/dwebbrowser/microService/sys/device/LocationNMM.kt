@@ -1,15 +1,16 @@
 package info.bagen.dwebbrowser.microService.sys.device
 
 import info.bagen.dwebbrowser.microService.sys.device.model.LocationInfo
+import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
-import org.http4k.core.Method
-import org.http4k.core.Response
-import org.http4k.core.Status
-import org.http4k.routing.bind
-import org.http4k.routing.routes
+import org.dweb_browser.microservice.http.PureResponse
+import org.dweb_browser.microservice.http.PureStringBody
+import org.dweb_browser.microservice.http.bind
+import org.dweb_browser.microservice.http.routes
 
 fun debugLocation(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("Location", tag, msg, err)
@@ -22,11 +23,11 @@ class LocationNMM : NativeMicroModule("location.sys.dweb", "location") {
 
   val locationInfo = LocationInfo()
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    apiRouting = routes(
+    routes(
       /** 获取当前位置信息*/
-      "/info" bind Method.GET to defineHandler { request ->
+      "/info" bind HttpMethod.Get to definePureResponse {
         val result = locationInfo.getLocationInfo()
-        Response(Status.OK).body(result)
+        PureResponse(HttpStatusCode.OK, body = PureStringBody(result))
       },
     )
   }

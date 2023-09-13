@@ -92,6 +92,15 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
     )
   }
 
+  protected fun defineNumberResponse(
+    beforeResponse: BeforeResponse? = null,
+    handler: RequestHandler<Number>,
+  ) = wrapHandler(beforeResponse) {
+    PureResponse(HttpStatusCode.OK).jsonBody(
+      handler()
+    )
+  }
+
   protected fun defineBooleanResponse(
     beforeResponse: BeforeResponse? = null,
     handler: RequestHandler<Boolean>,

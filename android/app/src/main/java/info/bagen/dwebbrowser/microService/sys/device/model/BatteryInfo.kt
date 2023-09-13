@@ -4,8 +4,11 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.BatteryManager
 import info.bagen.dwebbrowser.App
-import org.dweb_browser.microservice.help.gson
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
+@Serializable
 data class Battery(
   var batteryPercent: Int = 0,
   var isPhoneCharging: Boolean = false,
@@ -43,7 +46,7 @@ class BatteryInfo {
       chargingSource,
       isBatteryPresent
     )
-    return gson.toJson(battery)
+    return Json.encodeToString(battery)
   }
 
   /* Battery Info:

@@ -1,19 +1,13 @@
 package info.bagen.dwebbrowser.microService.sys.fileSystem
 
-import info.bagen.dwebbrowser.App
-import info.bagen.dwebbrowser.microService.sys.fileSystem.FileSystemController.Companion.controller
-import info.bagen.dwebbrowser.microService.sys.share.debugShare
+import io.ktor.http.HttpMethod
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.cors
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
-import org.http4k.core.Method
-import org.http4k.core.MultipartFormBody
-import org.http4k.core.Response
-import org.http4k.core.Status
-import org.http4k.routing.bind
-import org.http4k.routing.routes
+import org.dweb_browser.microservice.http.bind
+import org.dweb_browser.microservice.http.routes
 
 fun debugFileSystem(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("FileSystem", tag, msg, err)
@@ -25,36 +19,41 @@ class FileSystemNMM : NativeMicroModule("file.sys.dweb", "file") {
   }
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-//    val qurey_path = Query.string().required("path")
-//    val qurey_directory = Query.string().required("directory")
-//    val qurey_optional_directory = Query.string().optional("directory")
-//    val qurey_data = Query.string().required("data")
-//    val query_recursive = Query.boolean().defaulted("recursive", false)
-    apiRouting = routes(
-      "/writeFile" bind Method.GET to defineHandler { request, ipc ->
-//        val path = qurey_path(request)
-//        val data = qurey_data(request)
-//        val recursive = query_recursive(request)
-//        val directory = qurey_optional_directory(request)
-//        plugin.fileSystemPlugin.Filesystem(MultiWebViewNMM.getCurrentWebViewController(ipc.remote.mmid)?.activity)
-//        return@defineHandler plugin.writeFile(path,directory,data,recursive)
+//        val qurey_path = Query.string().required("path")
+//        val qurey_directory = Query.string().required("directory")
+//        val qurey_optional_directory = Query.string().optional("directory")
+//        val qurey_data = Query.string().required("data")
+//        val query_recursive = Query.boolean().defaulted("recursive",false)
+    routes(
+      "/writeFile" bind HttpMethod.Get to defineEmptyResponse {
+//                val path = qurey_path(request)
+//                val data = qurey_data(request)
+//                val recursive = query_recursive(request)
+//                val directory = qurey_optional_directory(request)
+//                plugin.fileSystemPlugin.Filesystem(MultiWebViewNMM.getCurrentWebViewController(ipc.remote.mmid)?.activity)
+//            return@defineHandler plugin.writeFile(path,directory,data,recursive)
       },
-      "/getUri" bind Method.GET to defineHandler { request, ipc ->
-//        val path: String = qurey_path(request)
-//        val directory: String = qurey_directory(request)
-//        plugin.fileSystemPlugin.Filesystem(MultiWebViewNMM.getCurrentWebViewController(ipc.remote.mmid)?.activity)
-//        val fileObject: File = plugin.fileSystemPlugin.getFileObject(path, directory)
-//        return@defineHandler Uri.fromFile(fileObject).toString()
+      "/getUri" bind HttpMethod.Get to defineEmptyResponse {
+//                val path: String = qurey_path(request)
+//                val directory: String = qurey_directory(request)
+//                plugin.fileSystemPlugin.Filesystem(MultiWebViewNMM.getCurrentWebViewController(ipc.remote.mmid)?.activity)
+//                val fileObject: File = plugin.fileSystemPlugin.getFileObject(path, directory)
+//               return@defineHandler Uri.fromFile(fileObject).toString()
       },
       /** 流写入*/
-      "/writeSteam" bind Method.POST to defineHandler { request ->
+      "/writeSteam" bind HttpMethod.Post to defineEmptyResponse {
+
       },
       /** 删除*/
-      "/delete" bind Method.DELETE to defineHandler { request ->
+      "/delete" bind HttpMethod.Delete to defineEmptyResponse {
+
       },
-      "/mkdir" bind Method.GET to defineHandler { request ->
+
+      "/mkdir" bind HttpMethod.Get to defineEmptyResponse {
+
       },
-      "/rename" bind Method.GET to defineHandler { request ->
+      "/rename" bind HttpMethod.Get to defineEmptyResponse {
+
       },
       "/savePictures" bind Method.GET to defineHandler { request, ipc ->
         try {

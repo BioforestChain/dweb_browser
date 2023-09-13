@@ -3,7 +3,9 @@ package info.bagen.dwebbrowser.microService.sys
 import android.content.res.AssetManager
 import info.bagen.dwebbrowser.App
 import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.fromFilePath
+import io.ktor.http.fullPath
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.browserUI.util.APP_DIR_TYPE
@@ -11,17 +13,21 @@ import org.dweb_browser.browserUI.util.FilesUtil
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.readByteArray
 import org.dweb_browser.microservice.core.MicroModule
+import org.dweb_browser.microservice.http.PureRequest
+import org.dweb_browser.microservice.http.PureResponse
+import org.dweb_browser.microservice.http.PureStreamBody
+import org.dweb_browser.microservice.http.PureStringBody
 import org.dweb_browser.microservice.ipc.helper.PreReadableInputStream
 import org.dweb_browser.microservice.sys.dns.debugFetch
 import org.dweb_browser.microservice.sys.dns.debugFetchFile
 import org.dweb_browser.microservice.sys.dns.nativeFetchAdaptersManager
-import org.http4k.core.MemoryBody
-import org.http4k.core.Request
-import org.http4k.core.Response
-import org.http4k.core.Status
 import java.io.File
 import java.io.InputStream
+import java.nio.ByteBuffer
+import java.nio.channels.ByteChannel
 import java.util.concurrent.atomic.AtomicInteger
+import io.ktor.util.cio.toByteReadChannel
+import io.ktor.util.toByteArray
 
 class LocalFileFetch private constructor() {
 
@@ -34,12 +40,12 @@ class LocalFileFetch private constructor() {
   init {
     CoroutineScope(ioAsyncExceptionHandler).launch {
       nativeFetchAdaptersManager.append { fromMM, request ->
-        if (request.uri.scheme == "file" && request.uri.host == "") {
-          debugFetch("LocalFile/nativeFetch", "$fromMM => ${request.uri}")
+        if (request.safeUrl.protocol.name == "file" && request.safeUrl.host == "") {
+          debugFetch("LocalFile/nativeFetch", "$fromMM => ${request.url}")
           runCatching {
             return@runCatching getLocalFetch(fromMM, request)
           }.getOrElse {
-            Response(Status.INTERNAL_SERVER_ERROR)
+            PureResponse(HttpStatusCode.InternalServerError)
           }
         } else null
       }
@@ -54,7 +60,7 @@ class LocalFileFetch private constructor() {
     val chunkSize: Int = defaultChunkSize,
     override val preReadableSize: Int = chunkSize,
     isSys: Boolean = true
-  ) : InputStream(), PreReadableInputStream {
+  ) : ByteChannel, PreReadableInputStream {
     companion object {
       /// 默认1mb切一次
       val defaultChunkSize = 1024 * 1024
@@ -71,41 +77,58 @@ class LocalFileFetch private constructor() {
       if (isSys) {
         return@lazy App.appContext.assets.open(
           src, AssetManager.ACCESS_STREAMING
-        )
+        ).toByteReadChannel()
       }
-      return@lazy File(src).inputStream()
+
+      return@lazy File(src).inputStream().toByteReadChannel()
     }
 
     var ptr = 0
-    val totalSize by lazy { source.available() }
-
-    override fun read() = source.read()
-    override fun available() = chunkSize.coerceAtMost(totalSize - ptr)
-
-    var readEnd = false
-
-    @Synchronized
-    override fun read(b: ByteArray, off: Int, len: Int) = when (readEnd) {
-      false -> source.read(b, off, len).also { readLen ->
-        if (readLen != len) {
-          // assets 的流内容是明确的，所以一般不会有 available 突变的问题，除非被重写
-          readEnd = true
-          debugFetchFile("READ", "$id/$src($totalSize) $off+$len~>$readLen")
-        }
-        if (readLen == -1) {
-          readEnd = true
-        }
-        ptr += readLen
-      }
-
-      else -> -1
-    }
-
+    val totalSize by lazy { source.availableForRead}
     override fun close() {
-      readEnd = true
       debugFetchFile("CLOSE", "$id/$src")
-      source.close()
+      source.cancel(null)
     }
+
+    override fun isOpen(): Boolean {
+      TODO("Not yet implemented")
+    }
+
+    override fun read(p0: ByteBuffer?): Int {
+      TODO("Not yet implemented")
+    }
+
+    override fun write(p0: ByteBuffer?): Int {
+      TODO("Not yet implemented")
+    }
+//
+//    override fun read() = source.read()
+//    override fun available() = chunkSize.coerceAtMost(totalSize - ptr)
+//
+//    var readEnd = false
+//
+//    @Synchronized
+//    override fun read(b: ByteArray, off: Int, len: Int) = when (readEnd) {
+//      false -> source.read(b, off, len).also { readLen ->
+//        if (readLen != len) {
+//          // assets 的流内容是明确的，所以一般不会有 available 突变的问题，除非被重写
+//          readEnd = true
+//          debugFetchFile("READ", "$id/$src($totalSize) $off+$len~>$readLen")
+//        }
+//        if (readLen == -1) {
+//          readEnd = true
+//        }
+//        ptr += readLen
+//      }
+//
+//      else -> -1
+//    }
+//
+//    override fun close() {
+//      readEnd = true
+//      debugFetchFile("CLOSE", "$id/$src")
+//      source.close()
+//    }
   }
 
   enum class PathType(val type: String, val dirName: String, val tag: String) {
@@ -129,11 +152,11 @@ class LocalFileFetch private constructor() {
     PathType.ICONS
   } else PathType.OTHER
 
-  private fun getLocalFetch(remote: MicroModule, request: Request): Response {
+  private fun getLocalFetch(remote: MicroModule, request: PureRequest): PureResponse {
     val mode = request.query("mode") ?: "auto"
     val chunk = request.query("chunk")?.toIntOrNull() ?: ChunkAssetsFileStream.defaultChunkSize
     val preRead = request.query("pre-read")?.toBooleanStrictOrNull() ?: false
-    val path = request.uri.path
+    val path = request.safeUrl.fullPath
     val pathType = path.checkPathType()// path.startsWith("/sys/")
 
     lateinit var filePath: String
@@ -173,45 +196,47 @@ class LocalFileFetch private constructor() {
     val tag = pathType.tag
     debugFetchFile(tag, "dirname=${pathType.dirName}, filename=$filePath, path=$path")
 
-    lateinit var response: Response
+    lateinit var response: PureResponse
     if (!filenameList.contains(filePath)) {
       debugFetchFile(tag, "NO-FOUND-File $filePath")
-      response = Response(Status.NOT_FOUND).body("the file(${request.uri.path}) not found.")
+      response = PureResponse(HttpStatusCode.NotFound, body = PureStringBody("the file(${request.safeUrl.fullPath}) not found."))
     } else {
-      response = Response(status = Status.OK)
+      response = PureResponse(HttpStatusCode.OK)
 
       // buffer 模式，就是直接全部读取出来
       // TODO auto 模式就是在通讯次数和单次通讯延迟之间的一个取舍。如果分片次数少于2次，那么就直接发送，没必要分片
       response = if (mode == "stream") {
         val streamBody = when (pathType) {
           PathType.SYS -> {
-            ChunkAssetsFileStream(
-              src, chunkSize = chunk, preReadableSize = if (preRead) chunk else 0, true
-            )
+            App.appContext.assets.open(
+              src, AssetManager.ACCESS_STREAMING
+            ).toByteReadChannel()
           }
 
           else -> {
-            ChunkAssetsFileStream(
-              filePath, chunkSize = chunk, preReadableSize = if (preRead) chunk else 0, false
-            )
+            File(src).inputStream().toByteReadChannel()
           }
         }
         /// 将它分片读取
-        response.header("X-Assets-Id", streamBody.id.toString()).body(streamBody)
+//        response.headers.apply { set("X-Assets-Id", streamBody.id.toString()) }
+//        response.body = PureStreamBody(streamBody)
+//        response.header("X-Assets-Id", streamBody.id.toString()).body(streamBody)
+
+        response.body(streamBody)
       } else {
         /// 打开一个读取流
         val assetStream = when (pathType) {
-          PathType.SYS -> App.appContext.assets.open(src, AssetManager.ACCESS_BUFFER)
-          else -> File(filePath).inputStream()
+          PathType.SYS -> App.appContext.assets.open(src, AssetManager.ACCESS_BUFFER).toByteReadChannel()
+          else -> File(filePath).inputStream().toByteReadChannel()
         }
         /// 一次性发送
-        response.body(MemoryBody(assetStream.readByteArray()))
+        response.body(assetStream)
       }
 
       /// 尝试加入 Content-Type
-      val extension = ContentType.fromFilePath(request.uri.path)
+      val extension = ContentType.fromFilePath(request.safeUrl.fullPath)
       if (extension.isNotEmpty()) {
-        response = response.header("Content-Type", extension.first().toString())
+        response.headers.apply { set("Content-Type", extension.first().toString()) }
       }
       return response
     }

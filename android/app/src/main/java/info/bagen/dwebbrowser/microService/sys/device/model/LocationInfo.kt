@@ -10,11 +10,14 @@ import android.os.Looper
 import info.bagen.dwebbrowser.App
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printError
-import org.dweb_browser.microservice.help.gson
 import java.util.Locale
 
+@Serializable
 data class LocationData(
   var latitude: Double? = null,
   var longitude: Double? = null,
@@ -28,12 +31,12 @@ data class LocationData(
 class LocationInfo : LocationListener {
   @SuppressLint("MissingPermission") // 先忽略权限
   fun getLocationInfo(): String {
-    return gson.toJson(locationData)
+    return Json.encodeToString(locationData)
   }
 
   fun getLocationInfo(getLocationData: (String) -> Unit) {
     MainScope().launch(ioAsyncExceptionHandler) {
-      getLocationData(gson.toJson(locationData))
+      getLocationData(getLocationInfo())
     }
   }
 

@@ -13,7 +13,8 @@ import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import info.bagen.dwebbrowser.App
-import org.dweb_browser.microservice.help.gson
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 
 object PermissionUtil {
   /*const val PERMISSION_CALENDAR = "info.bagen.rust.plaoc.CALENDAR"
@@ -77,6 +78,7 @@ object PermissionUtil {
     return hasPermission == PackageManager.PERMISSION_GRANTED
   }
 
+  @Serializable
   private data class PermissionData(
     val permissions: String
   )
@@ -84,8 +86,8 @@ object PermissionUtil {
   fun getActualPermissions(permission: String): ArrayList<String> {
     val actualPermissions = arrayListOf<String>()
     if (permission.contains("{")) {
-      val permissions = gson.fromJson(permission, PermissionData::class.java)
-      permissions?.permissions?.split(",")?.forEach {
+      val permissions = Json.decodeFromString<PermissionData>(permission)
+      permissions.permissions.split(",").forEach {
         actualPermissions.addAll(getActualPermissions(it))
       }
       return actualPermissions

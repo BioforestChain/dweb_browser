@@ -56,7 +56,7 @@ internal fun AppInfoHeadView(jmmAppInstallManifest: JmmAppInstallManifest) {
     val scope = rememberCoroutineScope()
     DisposableEffect(jmmAppInstallManifest.logo) {
       val job = scope.launch {
-        logoModel = httpFetch(jmmAppInstallManifest.logo).body.payload
+        logoModel = httpFetch(jmmAppInstallManifest.logo).body.toPureBinary()
       }
       onDispose { job.cancel() }
     }

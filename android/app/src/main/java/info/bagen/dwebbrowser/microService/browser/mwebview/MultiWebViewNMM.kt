@@ -1,28 +1,32 @@
 package info.bagen.dwebbrowser.microService.browser.mwebview
 
+import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
 import org.dweb_browser.browserUI.download.DownLoadObserver
 import org.dweb_browser.dwebview.serviceWorker.emitEvent
 import org.dweb_browser.helper.UUID
+import org.dweb_browser.helper.debounce
+import org.dweb_browser.helper.enumToComparable
+import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printDebug
+import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.microservice.core.AndroidNativeMicroModule
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.types.MMID
+import org.dweb_browser.microservice.http.PureResponse
+import org.dweb_browser.microservice.http.bind
+import org.dweb_browser.microservice.http.routes
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.window.core.WindowState
 import org.dweb_browser.window.core.constant.WindowConstants
 import org.dweb_browser.window.core.createWindowAdapterManager
 import org.dweb_browser.window.core.helper.setFromManifest
 import org.dweb_browser.window.render.emitFocusOrBlur
-import org.http4k.core.Method
-import org.http4k.core.Response
-import org.http4k.core.Status
-import org.http4k.lens.Query
-import org.http4k.lens.string
-import org.http4k.routing.bind
-import org.http4k.routing.routes
 
 fun debugMultiWebView(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("mwebview", tag, msg, err)
@@ -38,14 +42,16 @@ class MultiWebViewNMM :
     private val controllerMap = mutableMapOf<MMID, MultiWebViewController>()
   }
 
+  private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
+
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     // 打开webview
-    val queryUrl = Query.string().required("url")
-    val queryWebviewId = Query.string().required("webview_id")
-    apiRouting = routes(
+
+    routes(
       // 打开一个 webview，并将它以 窗口window 的标准进行展示
-      "/open" bind Method.GET to defineJsonResponse {
-        val url = queryUrl(request)
+      "/open" bind HttpMethod.Get to defineJsonResponse {
+        val url = request.queryOrFail("url")
+        debugMultiWebView("create/open",url)
         val remoteMm = ipc.asRemoteInstance()
           ?: throw Exception("mwebview.browser.dweb/open should be call by locale")
         ipc.onClose {
@@ -60,20 +66,20 @@ class MultiWebViewNMM :
         controller.getState()
       },
       // 关闭指定 webview 窗口
-      "/close" bind Method.GET to defineHandler { request, ipc ->
-        val webviewId = queryWebviewId(request)
+      "/close" bind HttpMethod.Get to defineBooleanResponse {
+        val webviewId = request.queryOrFail("webview_id")
         val remoteMmid = ipc.remote.mmid
         debugMultiWebView("/close", "webviewId:$webviewId,mmid:$remoteMmid")
         closeDwebView(remoteMmid, webviewId)
       },
-      "/close/app" bind Method.GET to defineHandler { request, ipc ->
-        val controller = controllerMap[ipc.remote.mmid] ?: return@defineHandler false;
+      "/close/app" bind HttpMethod.Get to defineBooleanResponse {
+        val controller = controllerMap[ipc.remote.mmid] ?: return@defineBooleanResponse false;
         controller.destroyWebView()
       },
       // 界面没有关闭，用于重新唤醒
-      "/activate" bind Method.GET to defineHandler { request, ipc ->
+      "/activate" bind HttpMethod.Get to defineBooleanResponse {
         val remoteMmid = ipc.remote.mmid
-        val controller = controllerMap[remoteMmid] ?: return@defineHandler false
+        val controller = controllerMap[remoteMmid] ?: return@defineBooleanResponse false
         debugMultiWebView("/activate", "激活 ${controller.ipc.remote.mmid}")
         controller.win.state.apply {
           focus = true
@@ -83,7 +89,7 @@ class MultiWebViewNMM :
         //  controller.ipc.postMessage(IpcEvent.fromUtf8(EIpcEvent.Activity.event, ""))
         controller.win.emitFocusOrBlur(true)
 
-        return@defineHandler Response(Status.OK)
+        return@defineBooleanResponse true
       },
     )
   }
@@ -91,7 +97,7 @@ class MultiWebViewNMM :
   data class ViewItemResponse(val webviewId: String, val wid: UUID)
 
   override suspend fun _shutdown() {
-    apiRouting = null
+
   }
 
   private val openLock = Mutex()

@@ -1,18 +1,15 @@
 package info.bagen.dwebbrowser.microService.browser.nativeui.splashScreen
 
+import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
-import org.http4k.core.Method
-import org.http4k.core.Response
-import org.http4k.core.Status
-import org.http4k.lens.Query
-import org.http4k.lens.boolean
-import org.http4k.lens.composite
-import org.http4k.lens.long
-import org.http4k.routing.bind
-import org.http4k.routing.routes
+import org.dweb_browser.microservice.http.PureResponse
+import org.dweb_browser.microservice.http.PureStringBody
+import org.dweb_browser.microservice.http.bind
+import org.dweb_browser.microservice.http.routes
 
 fun debugSplashScreen(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("SplashScreen", tag, msg, err)
@@ -24,23 +21,9 @@ class SplashScreenNMM : NativeMicroModule("splash-screen.nativeui.browser.dweb",
   }
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    val querySplashScreenSettings = Query.composite {
-      SplashScreenSettings(
-        autoHide = boolean().defaulted("autoHide", true)(it),
-        fadeInDuration = long().defaulted("fadeInDuration", 200L)(it),
-        fadeOutDuration = long().defaulted("fadeOutDuration", 200L)(it),
-        showDuration = long().defaulted("showDuration", 3000L)(it),
-      )
-    }
-    val queryHideOptions = Query.composite {
-      HideOptions(
-        fadeOutDuration = long().defaulted("fadeOutDuration", 200L)(it)
-      )
-    }
-
-    apiRouting = routes(
+    routes(
       /** 显示*/
-      "/show" bind Method.GET to defineHandler { request, ipc ->
+      "/show" bind HttpMethod.Get to definePureResponse {
 //                val options = querySplashScreenSettings(request)
 //                val currentController = currentController(ipc.remote.mmid)
 //                val microModule = bootstrapContext.dns.query(ipc.remote.mmid)
@@ -56,10 +39,13 @@ class SplashScreenNMM : NativeMicroModule("splash-screen.nativeui.browser.dweb",
 //                    }
 //                }
 
-        Response(Status.INTERNAL_SERVER_ERROR).body("No current activity found")
+        PureResponse(
+          HttpStatusCode.InternalServerError,
+          body = PureStringBody("No current activity found")
+        )
       },
       /** 隐藏*/
-      "/hide" bind Method.GET to defineHandler { request, ipc ->
+      "/hide" bind HttpMethod.Get to defineEmptyResponse {
 //                val options = queryHideOptions(request)
 //                val currentActivity = currentController(ipc.remote.mmid)?.activity
 //                debugSplashScreen("hide", "apiRouting hide===>${options}")

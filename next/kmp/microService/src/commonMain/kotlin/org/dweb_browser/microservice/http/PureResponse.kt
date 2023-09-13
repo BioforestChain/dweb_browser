@@ -16,7 +16,8 @@ data class PureResponse(
   val url: String? = null
 ) {
 
-  fun ok(): PureResponse =
+  fun isOk() = status.value == HttpStatusCode.OK.value
+  internal fun ok(): PureResponse =
     if (status.value >= 400) throw Exception(status.description) else this
 
   suspend fun stream() = ok().body.toPureStream()
@@ -59,6 +60,7 @@ data class PureResponse(
         set(key, value)
       }
     })
+
 
 }
 

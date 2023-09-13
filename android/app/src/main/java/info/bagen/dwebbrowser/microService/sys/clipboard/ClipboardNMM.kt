@@ -5,18 +5,18 @@ import android.content.ClipDescription
 import android.content.ClipboardManager
 import android.content.Context
 import info.bagen.dwebbrowser.App
+import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
-import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
-import org.http4k.core.Method
-import org.http4k.core.Response
-import org.http4k.core.Status
-import org.http4k.lens.Query
-import org.http4k.lens.string
-import org.http4k.routing.bind
-import org.http4k.routing.routes
+import org.dweb_browser.microservice.http.PureResponse
+import org.dweb_browser.microservice.http.PureStringBody
+import org.dweb_browser.microservice.http.bind
+import org.dweb_browser.microservice.http.routes
 
 data class ClipboardWriteResponse(val success: Boolean, val errorManager: String = "")
 data class ClipboardData(val value: String, val type: String)
@@ -32,29 +32,30 @@ class ClipboardNMM : NativeMicroModule("clipboard.sys.dweb", "clipboard") {
   }
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    apiRouting = routes(
+    routes(
       /** 读取剪切板*/
-      "/read" bind Method.GET to defineHandler { request ->
+      "/read" bind HttpMethod.Get to definePureResponse {
         val read = read()
         debugClipboard("/read", read)
-        Response(Status.OK).body(read)
+        PureResponse(HttpStatusCode.OK, body = PureStringBody(read))
       },
       /**
        * 写入剪切板
        * fetch("file://clipboard.sys.dweb/write?xxx=xxx")
        * */
-      "/write" bind Method.GET to defineHandler { request ->
-        val string = Query.string().optional("string")(request)
-        val image = Query.string().optional("image")(request)
-        val url = Query.string().optional("url")(request)
-        val label = Query.string().optional("label")(request)
+      "/write" bind HttpMethod.Get to defineBooleanResponse {
+
+        val string = request.query("string")
+        val image = request.query("image")
+        val url = request.query("url")
+        val label = request.query("label")
         debugClipboard("/write", "string:${string},image:${image},url:${url},label:${label}")
         // 如果都是空
         if (image.isNullOrEmpty() && url.isNullOrEmpty() && url.isNullOrEmpty()) {
-          Response(Status.UNSATISFIABLE_PARAMETERS)
+          PureResponse(HttpStatusCode.BadRequest)
         }
         write(string, image, url, labelValue = label) {
-          Response(Status.OK).body(it)
+          PureResponse(HttpStatusCode.OK, body = PureStringBody(it))
         }
         true
       }
@@ -86,7 +87,7 @@ class ClipboardNMM : NativeMicroModule("clipboard.sys.dweb", "clipboard") {
 
   fun read(): String {
     val clipboardData = readClipboard()
-    return gson.toJson(clipboardData)
+    return Json.encodeToString(clipboardData)
   }
 
   private val mClipboard =
