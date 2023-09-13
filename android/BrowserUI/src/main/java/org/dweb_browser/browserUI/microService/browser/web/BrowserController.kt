@@ -112,7 +112,7 @@ class BrowserController(
       id = AppType.URL.createId(),
       title = title,
       url = url,
-      icon = imageResource
+      icon = imageResource ?: ImageResource(src = "file:///sys/browser/web/logo.svg")
     )
     DeskAppInfoStore.saveWebLink(item)
   }

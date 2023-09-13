@@ -32,7 +32,7 @@ data class DeskWebLink(
   val id: String,
   val title: String,
   val url: String,
-  val icon: ImageResource?
+  val icon: ImageResource
 )
 
 @Serializable
