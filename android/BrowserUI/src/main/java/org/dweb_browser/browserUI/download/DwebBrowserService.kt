@@ -250,25 +250,24 @@ class DwebBrowserService : Service() {
     }
 }
 
-fun compareAppVersionHigh(localVersion: String, compareVersion: String): Boolean {
-  var localSplit = localVersion.split(".")
-  val compareSplit = compareVersion.split(".")
-  var tempLocalVersion = localVersion
-  if (localSplit.size < compareSplit.size) {
-    val cha = compareSplit.size - localSplit.size
-    for (i in 0 until cha) {
-      tempLocalVersion += ".0"
-    }
-    localSplit = tempLocalVersion.split(".")
-  }
+/**
+ * 比较版本的大小
+ */
+fun String.isGreaterThan(compare: String): Boolean {
+  val thisSplit = this.split(".")
+  val compareSplit = compare.split(".")
+  val minLength = minOf(thisSplit.size, compareSplit.size)
   try {
-    for (i in compareSplit.indices) {
-      val local = Integer.parseInt(localSplit[i])
-      val compare = Integer.parseInt(compareSplit[i])
-      if (compare > local) return true
+    for (index in 0 until minLength) {
+      val source = thisSplit[index].toInt()
+      val target = compareSplit[index].toInt()
+      if (source == target) continue
+      return source > target // 除非一样，否则直接返回结果
     }
-  } catch (e: Throwable) {
-    Log.e("DwebBrowserService", "compareAppVersionHigh issue -> $localVersion, $compareVersion")
+  } catch (e: Exception) {
+    Log.e("DwebBrowserService", "isGreaterThan issue -> $this, $compare")
+    return false
   }
-  return false
+  // 按照最小的长度判断，都相同时，则根据长度直接返回
+  return thisSplit.size > compareSplit.size
 }

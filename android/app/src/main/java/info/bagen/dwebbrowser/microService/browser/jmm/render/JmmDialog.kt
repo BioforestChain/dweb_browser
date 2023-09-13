@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.dp
 import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.microService.browser.jmm.ui.LocalShowWebViewVersion
 import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
-import org.dweb_browser.browserUI.download.compareAppVersionHigh
+import org.dweb_browser.browserUI.download.isGreaterThan
 
 @Preview
 @Composable
@@ -33,7 +33,7 @@ internal fun DialogForWebviewVersion() {
   LaunchedEffect(Unit) {
     WebView.getCurrentWebViewPackage()?.versionName?.let { version -> // 获取当前WebView版本号
       currentVersion.value = version // 103.0.5060.129
-      if (!compareAppVersionHigh(version, lowVersion)) {
+      if (lowVersion.isGreaterThan(version)) {
         showDialog.value = true
       }
     }

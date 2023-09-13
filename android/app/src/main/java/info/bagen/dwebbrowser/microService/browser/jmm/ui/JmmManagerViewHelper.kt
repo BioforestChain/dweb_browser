@@ -13,7 +13,7 @@ import kotlinx.coroutines.plus
 import org.dweb_browser.browserUI.download.DownLoadInfo
 import org.dweb_browser.browserUI.download.DownLoadObserver
 import org.dweb_browser.browserUI.download.DownLoadStatus
-import org.dweb_browser.browserUI.download.compareAppVersionHigh
+import org.dweb_browser.browserUI.download.isGreaterThan
 import org.dweb_browser.browserUI.util.BrowserUIApp
 import org.dweb_browser.browserUI.util.NotificationUtil
 import org.dweb_browser.helper.Observable
@@ -64,7 +64,7 @@ class JmmManagerViewHelper(
         uiState.downloadSize.value = it.dSize
         uiState.downloadStatus.value = it.downLoadStatus
       } ?: jmmController.getApp(jmmAppInstallManifest.id)?.let { curJmmMetadata ->
-        if (compareAppVersionHigh(curJmmMetadata.version, jmmAppInstallManifest.version)) {
+        if (jmmAppInstallManifest.version.isGreaterThan(curJmmMetadata.version)) {
           uiState.downloadStatus.value = DownLoadStatus.NewVersion
         } else {
           uiState.downloadStatus.value = DownLoadStatus.INSTALLED

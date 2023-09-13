@@ -7,7 +7,7 @@ import org.dweb_browser.browserUI.database.AppType
 import org.dweb_browser.browserUI.database.DeskAppInfo
 import org.dweb_browser.browserUI.database.DeskAppInfoStore
 import org.dweb_browser.browserUI.download.DownLoadController
-import org.dweb_browser.browserUI.download.compareAppVersionHigh
+import org.dweb_browser.browserUI.download.isGreaterThan
 import org.dweb_browser.browserUI.microService.browser.link.WebLinkMicroModule
 import org.dweb_browser.browserUI.util.BrowserUIApp
 import org.dweb_browser.browserUI.util.FilesUtil
@@ -165,7 +165,7 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
               preList.removeIf { it.metadata?.id == jsMetaData.id }
               // 检测版本
               bootstrapContext.dns.query(jsMetaData.id)?.let { lastMetaData ->
-                if (compareAppVersionHigh(lastMetaData.version, jsMetaData.version)) {
+                if (jsMetaData.version.isGreaterThan(lastMetaData.version)) {
                   bootstrapContext.dns.close(lastMetaData.mmid)
                 }
               }
