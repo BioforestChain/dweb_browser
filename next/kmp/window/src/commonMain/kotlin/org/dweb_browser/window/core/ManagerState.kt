@@ -2,7 +2,7 @@ package org.dweb_browser.window.core
 
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.imeAnimationTarget
 import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.Composable
@@ -18,7 +18,6 @@ import androidx.compose.ui.composed
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
-import androidx.core.view.WindowInsetsCompat
 import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.platform.PlatformViewController
 import org.dweb_browser.window.core.constant.WindowManagerPropertyKeys
@@ -71,16 +70,15 @@ class ManagerState(
     fun <T : WindowController> WindowsManager<T>.watchedImeBounds() =
       watchedState(WindowManagerPropertyKeys.ImeBounds) { this.imeBounds }
 
-
     fun Modifier.windowImeOutsetBounds() = composed {
       composed {
         this
           .runCatching {
-            val wsm = LocalWindowsManager.current;
-            val win = LocalWindowController.current;
+            val wsm = LocalWindowsManager.current
+            val win = LocalWindowController.current
             val imeVisible by wsm.watchedState { imeVisible }
-            val modifierOffsetY: Float;
-            val keyboardInsetBottom: Float;
+            val modifierOffsetY: Float
+            val keyboardInsetBottom: Float
             // 键盘不显示
             if (!imeVisible) {
               modifierOffsetY = 0f
@@ -107,7 +105,7 @@ class ManagerState(
                   val winPadding = LocalWindowPadding.current
                   val offsetY2 = offsetY - winPadding.bottom
                   // 窗口可以牺牲底部区域的显示，多出来的就是键盘的插入高度
-                  keyboardInsetBottom = max(offsetY2 - winBounds.top, 0f);
+                  keyboardInsetBottom = max(offsetY2 - winBounds.top, 0f)
                 }
               }
             }
@@ -117,14 +115,12 @@ class ManagerState(
           .getOrDefault(this)
       }
     }
-
-    fun Modifier.windowImeInsetBounds() = this
   }
 
   /**
    * 以下是可变属性，所以这里提供一个监听器，来监听所有的属性变更
    */
-  val observable = Observable<WindowManagerPropertyKeys>();
+  val observable = Observable<WindowManagerPropertyKeys>()
 
   /**
    * IME(input method editor 输入法) 的位置和大小
@@ -135,37 +131,19 @@ class ManagerState(
 
   var imeVisible by observable.observe(WindowManagerPropertyKeys.ImeVisible, false)
 
-  private val imeType = WindowInsetsCompat.Type.ime()
-
-  init {
-    debugWindow("ManagerState/IME", "init")
-//    WindowCompat.setDecorFitsSystemWindows(activity.window, false)
-//    val imm = activity.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-//    viewController.onResize{
-//      viewController.ins
-//    }
-//    viewController.window.decorView.addOnApplyWindowInsetsCompatListener { _, insets ->
-//      updateKeyboardStates(insets)
-//      insets
-//    }
-//    decorView.viewTreeObserver.addOnGlobalLayoutListener {
-//
-//    }
-//    decorView.viewTreeObserver.addOnGlobalLayoutListener {
-//
-//    }
-  }
-
+  /**
+   * 专门用来监听键盘的变化，然后修改WindowBounds的宽高等
+   */
   @OptIn(ExperimentalLayoutApi::class)
   @Composable
   fun EffectKeyboardStates() {
     val imeVisible = WindowInsets.isImeVisible
     this.imeVisible = imeVisible
-    val ime = WindowInsets.ime
+    val ime = WindowInsets.imeAnimationTarget // 直接使用ime，数据不稳定，会变化，改为imeAnimationTarget就是固定值
     val density = LocalDensity.current
     val view = LocalView.current
 
-    LaunchedEffect(ime) {
+    LaunchedEffect(imeVisible) { // WindowInsets.ime 对象并不会变化，所以导致这个重组不会重复执行
       this@ManagerState.imeBounds = if (imeVisible) {
         val imeHeightDp = ime.getBottom(density) / density.density
         WindowBounds(
@@ -177,11 +155,8 @@ class ManagerState(
       } else {
         WindowBounds.Zero
       }
-
       // 输入法高度即为 heightDiff
       debugWindow("ManagerState/IME", "imeBounds:$imeBounds, imeVisible:$imeVisible")
     }
-
   }
-
 }
