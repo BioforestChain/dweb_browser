@@ -5,7 +5,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import org.dweb_browser.browserUI.ui.browser.BrowserViewForWindow
 import org.dweb_browser.browserUI.ui.browser.LocalBrowserShowPrivacy
-import org.dweb_browser.browserUI.ui.loading.LoadingView
 import org.dweb_browser.window.core.WindowRenderScope
 import org.dweb_browser.window.render.LocalWindowController
 
@@ -31,6 +30,5 @@ fun BrowserController.Render(modifier: Modifier, windowRenderScope: WindowRender
       modifier,
       windowRenderScope,
     )
-    LoadingView(showLoading)
   }
 }

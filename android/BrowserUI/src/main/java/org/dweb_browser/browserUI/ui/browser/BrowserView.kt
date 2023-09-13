@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.view.MotionEvent
 import android.view.ViewGroup
 import androidx.activity.compose.BackHandler
-import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
@@ -21,8 +20,6 @@ import androidx.compose.material.icons.filled.FormatSize
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.AddHome
-import androidx.compose.material.icons.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.ArrowForward
 import androidx.compose.material.icons.rounded.Filter1
 import androidx.compose.material.icons.rounded.Filter2
 import androidx.compose.material.icons.rounded.Filter3
@@ -49,7 +46,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -66,7 +62,6 @@ import org.dweb_browser.browserUI.ui.browser.bottomsheet.SheetState
 import org.dweb_browser.browserUI.ui.browser.search.SearchView
 import org.dweb_browser.browserUI.ui.entity.BrowserBaseView
 import org.dweb_browser.browserUI.ui.entity.BrowserWebView
-import org.dweb_browser.browserUI.ui.loading.LoadingView
 import org.dweb_browser.browserUI.ui.qrcode.QRCodeScanView
 import org.dweb_browser.browserUI.ui.view.PrivacyView
 import org.dweb_browser.window.core.WindowRenderScope
@@ -160,10 +155,7 @@ fun BrowserViewForWindow(
         viewModel.handleIntent(BrowserIntent.ShowSnackbarMessage("扫码结果：$data"))
       }
     })
-
-  val showLoading = remember { mutableStateOf(false) }
-  PrivacyView(showLoading = showLoading)
-  LoadingView(showLoading = showLoading)
+  PrivacyView()
 }
 
 @Composable

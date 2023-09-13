@@ -13,8 +13,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
@@ -28,22 +28,17 @@ import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
 import org.dweb_browser.browserUI.ui.browser.ConstUrl
 import org.dweb_browser.browserUI.ui.browser.LocalBrowserShowPrivacy
 import org.dweb_browser.browserUI.ui.browser.setDarkMode
+import org.dweb_browser.browserUI.ui.loading.LoadingView
+import org.dweb_browser.browserUI.ui.loading.LoadingViewModel
+import org.dweb_browser.browserUI.ui.loading.LocalLoadingViewManager
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
-fun PrivacyView(showLoading: MutableState<Boolean>) {
+fun PrivacyView() {
   val localPrivacy = LocalBrowserShowPrivacy.current
   if (localPrivacy.value.isNotEmpty()) {
     BackHandler { localPrivacy.value = "" }
     val state = WebViewState(WebContent.Url(localPrivacy.value))
-    LaunchedEffect(state) {
-      snapshotFlow { state.loadingState }.collect {
-        when (it) {
-          is LoadingState.Loading -> showLoading.value = true
-          else -> showLoading.value = false
-        }
-      }
-    }
 
     val webViewClient = object : AccompanistWebViewClient() {
       override fun onReceivedError(
@@ -96,39 +91,53 @@ fun PrivacyView(showLoading: MutableState<Boolean>) {
       }
     }
 
-    Box(
-      modifier = Modifier
-        .clickableWithNoEffect { }
-        .fillMaxSize()
-        .background(MaterialTheme.colorScheme.background)
+    CompositionLocalProvider(
+      LocalLoadingViewManager provides LoadingViewModel()
     ) {
-      val background = MaterialTheme.colorScheme.background
-      val isDark = isSystemInDarkTheme()
-      WebView(
-        state = state,
-        modifier = Modifier
-          .fillMaxSize()
-          .background(background), // TODO 为了避免暗模式突然闪一下白屏
-        client = remember { webViewClient },
-        chromeClient = remember { webChromeClient },
-        factory = {
-          WebView(it).also { webView ->
-            webView.setDarkMode(isDark, background) // 设置深色主题
-            webView.settings.also { settings ->
-              settings.javaScriptEnabled = true
-              settings.domStorageEnabled = true
-              settings.databaseEnabled = true
-              settings.safeBrowsingEnabled = true
-              settings.loadWithOverviewMode = true
-              settings.loadsImagesAutomatically = true
-              settings.setSupportMultipleWindows(true)
-              settings.allowFileAccess = true
-              settings.javaScriptCanOpenWindowsAutomatically = true
-              settings.allowContentAccess = true
-            }
+      val loadingViewManager = LocalLoadingViewManager.current
+      LaunchedEffect(state) {
+        snapshotFlow { state.loadingState }.collect {
+          when (it) {
+            is LoadingState.Loading -> loadingViewManager.show.value = true
+            else -> loadingViewManager.show.value = false
           }
         }
-      )
+      }
+      Box(
+        modifier = Modifier
+          .clickableWithNoEffect { }
+          .fillMaxSize()
+          .background(MaterialTheme.colorScheme.background)
+      ) {
+        val background = MaterialTheme.colorScheme.background
+        val isDark = isSystemInDarkTheme()
+        WebView(
+          state = state,
+          modifier = Modifier
+            .fillMaxSize()
+            .background(background), // TODO 为了避免暗模式突然闪一下白屏
+          client = remember { webViewClient },
+          chromeClient = remember { webChromeClient },
+          factory = {
+            WebView(it).also { webView ->
+              webView.setDarkMode(isDark, background) // 设置深色主题
+              webView.settings.also { settings ->
+                settings.javaScriptEnabled = true
+                settings.domStorageEnabled = true
+                settings.databaseEnabled = true
+                settings.safeBrowsingEnabled = true
+                settings.loadWithOverviewMode = true
+                settings.loadsImagesAutomatically = true
+                settings.setSupportMultipleWindows(true)
+                settings.allowFileAccess = true
+                settings.javaScriptCanOpenWindowsAutomatically = true
+                settings.allowContentAccess = true
+              }
+            }
+          }
+        )
+        LoadingView()
+      }
     }
   }
 }
