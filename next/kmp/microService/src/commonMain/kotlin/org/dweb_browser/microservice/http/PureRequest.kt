@@ -20,6 +20,17 @@ data class PureRequest(
   fun query(key: String) = parsedUrl.parameters[key]
   fun queryOrFail(key: String) = parsedUrl.parameters.getOrFail(key)
   inline fun <reified T> queryAsObject() = Query.decodeFromUrl<T>(parsedUrl)
+
+  companion object {
+
+    fun query(key: String): PureRequest.() -> String? = { query(key) }
+    fun <T> query(key: String, transform: String.() -> T): PureRequest.() -> T? =
+      { query(key)?.run(transform) }
+
+    fun queryOrFail(key: String): PureRequest.() -> String = { queryOrFail(key) }
+    fun <T> queryOrFail(key: String, transform: String.() -> T): PureRequest.() -> T =
+      { queryOrFail(key).run(transform) }
+  }
 }
 
 fun IpcRequest.toPure() = PureRequest(url, method, headers, body.raw)

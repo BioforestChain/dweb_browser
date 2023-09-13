@@ -216,13 +216,13 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       } else null
     }.removeWhen(this.onAfterShutdown)
 
-    val queryAppId = { request: PureRequest -> request.queryOrFail("app_id") }
+    val queryAppId = PureRequest.queryOrFail("app_id")
 
     /// 定义路由功能
     routes(
       // 打开应用
       "/open" bind HttpMethod.Get to defineBooleanResponse {
-        val mmid = queryAppId(request)
+        val mmid = request.queryAppId()
         debugDNS("open/$mmid", request.safeUrl.fullPath)
         open(mmid)
         true
@@ -230,14 +230,14 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       // 关闭应用
       // TODO 能否关闭一个应该应该由应用自己决定
       "/close" bind HttpMethod.Get to defineBooleanResponse {
-        val mmid = queryAppId(request)
+        val mmid = request.queryAppId()
         debugDNS("close/$mmid", request.safeUrl.fullPath)
         close(mmid)
         true
       },
       //
       "/query" bind HttpMethod.Get to defineJsonResponse {
-        val mmid = queryAppId(request)
+        val mmid = request.queryAppId()
         Json.encodeToString("")
         query(mmid)?.toManifest()?.toJsonElement() ?: JsonPrimitive(null)
       }, "/observe/install-apps" bind HttpMethod.Get to definePureStreamHandler {
