@@ -71,16 +71,19 @@ export class MultiWebviewNMM extends NativeMicroModule {
 
     this.onFetch(onFetchHanlder.run).internalServerError();
   }
-
+  openLock = false;
   /**
    * 打开 应用
    * 如果 是由 jsProcess 调用 会在当前的 browserWindow 打开一个新的 webview
    * 如果 是由 NMM 调用的 会打开一个新的 borserWindow 同时打开一个新的 webview
    */
   private async _open(url: string, clientIpc: Ipc) {
+    if (this.openLock) return;
+    this.openLock = true;
     const mww = await getOrOpenMWebViewWindow(clientIpc);
     const view = mww.createBrowserView(url);
     // console.always("_open", view.webContents.id,mww.ipc.remote.mmid);
+    this.openLock = false;
     return view.webContents.id;
   }
 

@@ -184,9 +184,9 @@ export class JsProcessNMM extends NativeMicroModule {
         po.resolve(result.processInfo.process_id);
 
         /// 创建成功了，注册销毁函数
-        ipc.onClose(async () => {
-          await this.closeAllProcessByIpc(apis, ipcProcessIdMap, event.ipc.remote.mmid);
-        });
+        // ipc.onClose(async () => {
+        //   await this.closeAllProcessByIpc(apis, ipcProcessIdMap, event.ipc.remote.mmid);
+        // });
 
         return { body: result.streamIpc.stream };
       })

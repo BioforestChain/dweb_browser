@@ -6,7 +6,7 @@ import os from "node:os";
 import path from "node:path";
 import { isDeepStrictEqual } from "node:util";
 import tar from "tar";
-import { FetchEvent, IpcEvent } from "../../core/ipc/index.ts";
+import { FetchEvent } from "../../core/ipc/index.ts";
 import { $MMID } from "../../core/types.ts";
 import { resolveToDataRoot } from "../../helper/createResolveTo.ts";
 import { Store } from "../../helper/electronStore.ts";
@@ -89,9 +89,7 @@ export async function createApiServer(this: JmmNMM) {
           if (connectResult === undefined) {
             throw new Error(`${id} not found!`);
           }
-          /// 发送激活指令
-          const [opendAppIpc] = await connectResult;
-          opendAppIpc.postMessage(IpcEvent.fromText("activity", ""));
+          // opendAppIpc.postMessage(IpcEvent.fromText("activity", ""));
           return Response.json(true);
         }
       }

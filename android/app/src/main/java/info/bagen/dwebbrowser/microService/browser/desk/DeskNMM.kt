@@ -111,7 +111,9 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         debugDesk("/openAppOrActivate", mmid)
         try {
           val ipc = runningApps[mmid] ?: connect(mmid)
-          ipc.postMessage(IpcEvent.fromUtf8(EIpcEvent.Activity.event, ""))
+          if (runningApps[mmid] !== null) {
+            ipc.postMessage(IpcEvent.fromUtf8(EIpcEvent.Activity.event, ""))
+          }
           /// 如果成功打开，将它“追加”到列表中
           if (!runningApps.containsKey(mmid)) runningApps[mmid] = ipc
           /// 如果应用关闭，将它从列表中移除

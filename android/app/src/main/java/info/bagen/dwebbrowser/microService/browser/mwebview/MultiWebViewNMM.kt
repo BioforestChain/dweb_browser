@@ -5,6 +5,8 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.browserUI.download.DownLoadObserver
 import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.dwebview.serviceWorker.emitEvent
@@ -51,7 +53,7 @@ class MultiWebViewNMM :
     // 打开webview
     val queryUrl = Query.string().required("url")
     val queryWebviewId = Query.string().required("webview_id")
-
+    var openLock = false
     apiRouting = routes(
       // 打开一个 webview，并将它以 窗口window 的标准进行展示
       "/open" bind Method.GET to defineHandler { request, ipc ->
@@ -63,6 +65,7 @@ class MultiWebViewNMM :
           val controller = controllerMap[ipc.remote.mmid]
           controller?.destroyWebView()
         }
+        debugMultiWebView("/open", "MultiWebViewNMM open!!!")
 
         val (viewItem, controller) = openDwebView(url, remoteMm, ipc)
         return@defineHandler ViewItemResponse(viewItem.webviewId, controller.win.id)

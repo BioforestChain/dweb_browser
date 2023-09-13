@@ -11,7 +11,7 @@ import type { WebSocketDuplex } from "./types.ts";
 export function initWebSocketServer(this: HttpServerNMM, server: HttpServer) {
   const getHostByReq = (req: IncomingMessage) => this.getHostByReq(req.url, Object.entries(req.headers));
   const getFullReqUrl = (req: IncomingMessage) => this.getFullReqUrl(req);
-  const getGateway = (host: string) => this._gatewayMap.get(host);
+  const getGateway = (host: string) => this._gatewayTable.get(host);
   type $OnConnection = (client: InstanceType<typeof WebSocketClient>, request: IncomingMessage) => void;
 
   class MyWebSocketServer extends WebSocketServer {

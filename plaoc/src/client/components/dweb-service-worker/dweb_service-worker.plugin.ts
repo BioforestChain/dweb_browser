@@ -81,7 +81,7 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
 
   /**
    * 关闭前端
-   * @returns 
+   * @returns
    */
   @bindThis
   close() {
@@ -99,12 +99,20 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
    * @param mmid
    */
   @bindThis
-  async canOpenUrl(mmid: $MMID) {
-    return this.fetchApi(`/check`, {
-      search: {
-        mmid: mmid,
-      },
-    }).object<$ExterResponse>();
+  async canOpenUrl(mmid: $MMID): Promise<$ExterResponse> {
+    try {
+      const res = await this.fetchApi(`/query`, {
+        search: {
+          mmid: mmid,
+        },
+      });
+      if (res.status !== 404) {
+        return { success: true, message: "true" };
+      }
+      return { success: false, message: "false" };
+    } catch (e) {
+      return { success: false, message: e };
+    }
   }
 
   /**

@@ -43,20 +43,6 @@ export class Server_api extends HttpServer {
     const url = new URL("file:/" + event.pathname + event.search);
     const pathname = url.pathname;
     const result = async () => {
-      // 检查应用是否安装
-      if (pathname === "/check") {
-        const mmid = event.searchParams.get("mmid");
-        if (!mmid) {
-          return Response.json("mmid must be passed", { status: 400 });
-        }
-        // 连接需要传递信息的jsMicroModule
-        try {
-          await jsProcess.connect(mmid as $MMID);
-          return Response.json({ success: true, message: true });
-        } catch {
-          return Response.json({ success: false, message: false });
-        }
-      }
       if (pathname === "/restart") {
         // 这里只需要把请求发送过去，因为app已经被关闭，已经无法拿到返回值
         jsProcess.restart();

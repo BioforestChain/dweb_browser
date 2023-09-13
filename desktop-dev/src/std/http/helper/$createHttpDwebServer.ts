@@ -48,8 +48,8 @@ export class HttpDwebServer {
     if (this._listenIpcP) {
       const ipc = await this._listenIpcP;
       ipc.close();
-      this._listenIpcP = undefined;
-      this._listenIpcPo = PromiseOut.reject("dweb-http listen closed");
+      // this._listenIpcP = undefined;
+      // this._listenIpcPo = PromiseOut.reject("dweb-http listen closed");
     }
     await closeHttpDwebServer(this.nmm, this.options);
   });

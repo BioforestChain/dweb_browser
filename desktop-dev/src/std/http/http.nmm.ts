@@ -12,6 +12,7 @@ import { NativeMicroModule } from "../../core/micro-module.native.ts";
 import { nativeFetchAdaptersManager } from "../../sys/dns/nativeFetch.ts";
 import { ServerStartResult, ServerUrlInfo } from "./const.ts";
 import { defaultErrorResponse } from "./defaultErrorResponse.ts";
+import { MemoryTable } from "./helper/$memoryTable.ts";
 import { Http1Server } from "./net/Http1Server.ts";
 import type { $DwebHttpServerOptions } from "./net/createNetServer.ts";
 import { PortListener } from "./portListener.ts";
@@ -39,8 +40,7 @@ export class HttpServerNMM extends NativeMicroModule {
   override categories = [MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Protocol_Service];
   private _dwebServer = new Http1Server();
 
-  private _tokenMap = new Map</* token */ string, $Gateway>();
-  protected _gatewayMap = new Map</* host */ string, $Gateway>();
+  protected _gatewayTable = new MemoryTable<$Gateway>();
   private _info:
     | {
         hostname: string;
@@ -71,7 +71,7 @@ export class HttpServerNMM extends NativeMicroModule {
       const host = this.getHostByReq(req.url, Object.entries(req.headers));
       {
         // 在网关中寻址能够处理该 host 的监听者
-        const gateway = this._gatewayMap.get(host);
+        const gateway = this._gatewayTable.get(host);
         if (gateway == undefined) {
           console.error("http", `[http-server onRequest 既没分发也没有匹配 gatewaty请求] ${req.url}`);
           return defaultErrorResponse(
@@ -92,7 +92,7 @@ export class HttpServerNMM extends NativeMicroModule {
         const host = this.getHostByReq(parsedUrl, []);
         if (host) {
           // 在网关中寻址能够处理该 host 的监听者
-          const gateway = this._gatewayMap.get(host);
+          const gateway = this._gatewayTable.get(host);
           if (gateway) {
             const hasMatch = gateway.listener.findMatchedBind(parsedUrl.pathname, requestInit.method || "GET");
             if (hasMatch === undefined) {
@@ -162,7 +162,7 @@ export class HttpServerNMM extends NativeMicroModule {
   /** 申请监听，获得一个连接地址 */
   private async start(ipc: Ipc, hostOptions: $DwebHttpServerOptions) {
     const serverUrlInfo = this.getServerUrlInfo(ipc, hostOptions);
-    if (this._gatewayMap.has(serverUrlInfo.host)) {
+    if (this._gatewayTable.has(serverUrlInfo.host)) {
       throw new Error(`already in listen: ${serverUrlInfo.internal_origin}`);
     }
     const listener = new PortListener(ipc, serverUrlInfo.host, serverUrlInfo.internal_origin);
@@ -173,14 +173,14 @@ export class HttpServerNMM extends NativeMicroModule {
     });
     const token = Buffer.from(crypto.getRandomValues(new Uint8Array(64))).toString();
     const gateway: $Gateway = { listener, urlInfo: serverUrlInfo, token };
-    this._tokenMap.set(token, gateway);
-    this._gatewayMap.set(serverUrlInfo.host, gateway);
+    this._gatewayTable.set(token, gateway);
+    this._gatewayTable.set(serverUrlInfo.host, gateway);
     return new ServerStartResult(token, serverUrlInfo);
   }
 
   /** 远端监听请求，将提供一个 ReadableStreamIpc 流 */
   private async listen(token: string, message: IpcRequest, routes: $ReqMatcher[]) {
-    const gateway = this._tokenMap.get(token);
+    const gateway = this._gatewayTable.get(token);
     if (gateway === undefined) {
       throw new Error(`no gateway with token: ${token}`);
     }
@@ -208,12 +208,11 @@ export class HttpServerNMM extends NativeMicroModule {
   private async close(ipc: Ipc, hostOptions: $DwebHttpServerOptions) {
     const serverUrlInfo = this.getServerUrlInfo(ipc, hostOptions);
 
-    const gateway = this._gatewayMap.get(serverUrlInfo.host);
+    const gateway = this._gatewayTable.get(serverUrlInfo.host);
     if (gateway === undefined) {
       return false;
     }
-    this._tokenMap.delete(gateway.token);
-    this._gatewayMap.delete(serverUrlInfo.host);
+    this._gatewayTable.delete(serverUrlInfo.host);
     /// 执行销毁
     gateway.listener.destroy();
 

@@ -66,6 +66,7 @@ export const main = async () => {
     });
     console.log("open in browser:", indexUrl.href);
     indexUrlPo.resolve(indexUrl.href);
+    tryOpenView();
   }
   //#endregion
 };
