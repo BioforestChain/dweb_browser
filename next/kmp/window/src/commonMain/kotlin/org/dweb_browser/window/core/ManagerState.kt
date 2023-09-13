@@ -1,13 +1,8 @@
 package org.dweb_browser.window.core
 
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.imeAnimationTarget
-import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SnapshotMutationPolicy
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
@@ -16,8 +11,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.structuralEqualityPolicy
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.platform.PlatformViewController
@@ -134,32 +127,4 @@ class ManagerState(
 
   var imeVisible by observable.observe(WindowManagerPropertyKeys.ImeVisible, false)
 
-  /**
-   * 专门用来监听键盘的变化，然后修改WindowBounds的宽高等
-   */
-  @OptIn(ExperimentalLayoutApi::class)
-  @Composable
-  fun EffectKeyboardStates() {
-    val imeVisible = WindowInsets.isImeVisible
-    this.imeVisible = imeVisible
-    val ime = WindowInsets.imeAnimationTarget // 直接使用ime，数据不稳定，会变化，改为imeAnimationTarget就是固定值
-    val density = LocalDensity.current
-    val view = LocalView.current
-
-    LaunchedEffect(imeVisible) { // WindowInsets.ime 对象并不会变化，所以导致这个重组不会重复执行
-      this@ManagerState.imeBounds = if (imeVisible) {
-        val imeHeightDp = ime.getBottom(density) / density.density
-        WindowBounds(
-          left = 0f,
-          top = view.height / density.density - imeHeightDp,
-          height = imeHeightDp,
-          width = view.width / density.density,
-        )
-      } else {
-        WindowBounds.Zero
-      }
-      // 输入法高度即为 heightDiff
-      debugWindow("ManagerState/IME", "imeBounds:$imeBounds, imeVisible:$imeVisible")
-    }
-  }
 }

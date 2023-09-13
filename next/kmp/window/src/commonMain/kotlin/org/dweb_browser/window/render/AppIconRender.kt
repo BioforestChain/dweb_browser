@@ -126,7 +126,7 @@ private fun AppIconOuter(
 
       null -> ImageLoadResult(busy = "no icon")
 
-      else -> throw TypeCastException("Invalid icon src type: $iconSrc")
+      else -> throw Exception("Invalid icon src type: $iconSrc")
     }
     // 如果没有提供背景色，那么就根据图标颜色进行自适应显示显示黑色或者白色的底色
     val safeContainerColor = containerColor
