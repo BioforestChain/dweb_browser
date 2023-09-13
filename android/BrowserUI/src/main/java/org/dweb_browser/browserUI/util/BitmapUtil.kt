@@ -142,17 +142,10 @@ object BitmapUtil {
     }
   }
 
-  fun saveBitmapToLocalFile(bitmap: Bitmap) : String? {
+  fun saveBitmapToIcons(bitmap: Bitmap): String? {
     try {
-      val filesDir = BrowserUIApp.Instance.appContext.filesDir.absolutePath // 获取data/file路径
       val fileName = "${System.currentTimeMillis()}.png"
-      val file = File(filesDir + File.separator + "icons").let { fileParent ->
-        if (!fileParent.exists()) {
-          fileParent.mkdirs()
-        }
-        File(fileParent.absolutePath + File.separator + fileName)
-      }
-      val fos = FileOutputStream(file)
+      val fos = FileOutputStream(getIconsFile(fileName))
       bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos)
       fos.flush()
       fos.close()
@@ -161,5 +154,17 @@ object BitmapUtil {
       Log.e("BitmapUtil", "saveBitmapToLocalFile fail!! -> ${e.message}")
     }
     return null
+  }
+
+  fun deleteIconsFile(fileName: String) = FilesUtil.deleteQuietly(getIconsFile(fileName))
+
+  private fun getIconsFile(fileName: String): File {
+    val filesDir = BrowserUIApp.Instance.appContext.filesDir.absolutePath // 获取data/file路径
+    return File(filesDir + File.separator + "icons").let { fileParent ->
+      if (!fileParent.exists()) {
+        fileParent.mkdirs()
+      }
+      File(fileParent.absolutePath + File.separator + fileName)
+    }
   }
 }

@@ -173,14 +173,15 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
             }
 
             AppType.URL -> deskAppInfo.weblink?.let { deskWebLink ->
-              preList.removeIf { it.weblink?.id == deskWebLink.id }
+              preList.removeIf { preDeskAppInfo -> preDeskAppInfo.weblink?.id == deskWebLink.id }
               bootstrapContext.dns.install(WebLinkMicroModule(deskWebLink))
             }
           }
         }
         /// 将剩余的应用卸载掉
-        for (jmmAppId in preList) {
-          (jmmAppId.metadata?.id ?: jmmAppId.weblink?.id)?.let { uninstallId ->
+        for (uninstallItem in preList) {
+          uninstallItem.weblink?.deleteIconFile() // 删除已下载的图标
+          (uninstallItem.metadata?.id ?: uninstallItem.weblink?.id)?.let { uninstallId ->
             bootstrapContext.dns.uninstall(uninstallId)
           }
         }

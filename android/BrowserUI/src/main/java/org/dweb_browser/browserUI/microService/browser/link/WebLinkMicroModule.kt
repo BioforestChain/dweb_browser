@@ -1,6 +1,5 @@
 package org.dweb_browser.browserUI.microService.browser.link
 
-import okhttp3.internal.trimSubstring
 import org.dweb_browser.browserUI.database.DeskWebLink
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.core.AndroidNativeMicroModule
@@ -12,9 +11,9 @@ fun debugWebLink(tag: String, msg: Any? = "", err: Throwable? = null) =
 
 class WebLinkMicroModule(webLink: DeskWebLink) : AndroidNativeMicroModule(webLink.id, webLink.url) {
   init {
-    short_name = webLink.title.trimSubstring(0, minOf(5, webLink.title.length))
+    short_name = webLink.title.substring(0, minOf(5, webLink.title.length))
     categories = mutableListOf(MICRO_MODULE_CATEGORY.Application, MICRO_MODULE_CATEGORY.Web_Browser)
-    icons.add(webLink.icon)
+    icons = mutableListOf(webLink.icon)
   }
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {

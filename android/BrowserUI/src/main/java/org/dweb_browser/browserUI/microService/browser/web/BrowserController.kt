@@ -11,12 +11,9 @@ import kotlinx.coroutines.plus
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.browserUI.R
-import org.dweb_browser.browserUI.database.AppType
 import org.dweb_browser.browserUI.database.DeskAppInfoStore
-import org.dweb_browser.browserUI.database.DeskWebLink
+import org.dweb_browser.browserUI.database.createDeskWebLink
 import org.dweb_browser.browserUI.ui.browser.BrowserViewModel
-import org.dweb_browser.browserUI.util.BitmapUtil
-import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.microservice.sys.http.HttpDwebServer
@@ -102,18 +99,6 @@ class BrowserController(
     }*/
   }
 
-  suspend fun addUrlToDesktop(title: String, url: String, icon: Bitmap?) {
-    val imageResource = icon?.let { bitmap ->
-      BitmapUtil.saveBitmapToLocalFile(bitmap)?.let { src ->
-        ImageResource(src = "file:///local_icons/$src")
-      }
-    }
-    val item = DeskWebLink(
-      id = AppType.URL.createId(),
-      title = title,
-      url = url,
-      icon = imageResource ?: ImageResource(src = "file:///sys/browser/web/logo.svg")
-    )
-    DeskAppInfoStore.saveWebLink(item)
-  }
+  suspend fun addUrlToDesktop(title: String, url: String, icon: Bitmap?) =
+    DeskAppInfoStore.saveWebLink(createDeskWebLink(title, url, icon))
 }

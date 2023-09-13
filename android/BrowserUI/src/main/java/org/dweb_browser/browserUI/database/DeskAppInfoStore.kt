@@ -1,6 +1,7 @@
 package org.dweb_browser.browserUI.database
 
 import android.content.Context
+import android.graphics.Bitmap
 import androidx.datastore.core.DataStore
 import androidx.datastore.core.IOException
 import androidx.datastore.preferences.core.Preferences
@@ -16,6 +17,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.dweb_browser.browserUI.util.BitmapUtil
 import org.dweb_browser.browserUI.util.BrowserUIApp
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
@@ -27,13 +29,35 @@ enum class AppType {
   fun createId() = "${this.name}${System.currentTimeMillis()}.dweb"
 }
 
+private const val DeskWebLinkStart = "file:///local_icons/"
+
+fun createDeskWebLink(title: String, url: String, bitmap: Bitmap?) : DeskWebLink {
+  val imageResource = bitmap?.let {
+    BitmapUtil.saveBitmapToIcons(it)?.let { src ->
+      ImageResource(src = "$DeskWebLinkStart$src")
+    }
+  }
+  return DeskWebLink(
+    id = AppType.URL.createId(),
+    title = title,
+    url = url,
+    icon = imageResource ?: ImageResource(src = "file:///sys/browser/web/logo.svg")
+  )
+}
+
 @Serializable
 data class DeskWebLink(
   val id: String,
   val title: String,
   val url: String,
   val icon: ImageResource
-)
+) {
+  fun deleteIconFile() {
+    if (icon.src.startsWith(DeskWebLinkStart)) {
+      BitmapUtil.deleteIconsFile(icon.src.replaceFirst(DeskWebLinkStart, ""))
+    }
+  }
+}
 
 @Serializable
 data class DeskAppInfo(
