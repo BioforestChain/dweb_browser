@@ -6,10 +6,7 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.browser.jmm.JmmController
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.plus
 import org.dweb_browser.browserUI.download.DownLoadInfo
 import org.dweb_browser.browserUI.download.DownLoadObserver
 import org.dweb_browser.browserUI.download.DownLoadStatus
@@ -18,7 +15,6 @@ import org.dweb_browser.browserUI.util.BrowserUIApp
 import org.dweb_browser.browserUI.util.NotificationUtil
 import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.compose.toComposableHelper
-import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
 import java.util.Calendar
 
@@ -52,29 +48,24 @@ sealed class JmmIntent {
 class JmmManagerViewHelper(
   jmmAppInstallManifest: JmmAppInstallManifest, private val jmmController: JmmController
 ) {
-  val jmmState = JMMState()
-
   val uiState: JmmUIState = JmmUIState(jmmAppInstallManifest)
   private var downLoadObserver: DownLoadObserver? = null
-  private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
 
   init {
-    ioAsyncScope.launch {
-      BrowserUIApp.Instance.mBinderService?.invokeFindDownLoadInfo(jmmAppInstallManifest.id)?.let {
-        uiState.downloadSize.value = it.dSize
-        uiState.downloadStatus.value = it.downLoadStatus
-      } ?: jmmController.getApp(jmmAppInstallManifest.id)?.let { curJmmMetadata ->
-        if (jmmAppInstallManifest.version.isGreaterThan(curJmmMetadata.version)) {
-          uiState.downloadStatus.value = DownLoadStatus.NewVersion
-        } else {
-          uiState.downloadStatus.value = DownLoadStatus.INSTALLED
-        }
-      } ?: run { uiState.downloadStatus.value = DownLoadStatus.IDLE }
+    BrowserUIApp.Instance.mBinderService?.invokeFindDownLoadInfo(jmmAppInstallManifest.id)?.let {
+      uiState.downloadSize.value = it.dSize
+      uiState.downloadStatus.value = it.downLoadStatus
+    } ?: jmmController.getApp(jmmAppInstallManifest.id)?.let { curJmmMetadata ->
+      if (jmmAppInstallManifest.version.isGreaterThan(curJmmMetadata.version)) {
+        uiState.downloadStatus.value = DownLoadStatus.NewVersion
+      } else {
+        uiState.downloadStatus.value = DownLoadStatus.INSTALLED
+      }
+    } ?: run { uiState.downloadStatus.value = DownLoadStatus.IDLE }
 
-      if (uiState.downloadStatus.value != DownLoadStatus.INSTALLED) {
-        jmmController.win.coroutineScope.launch {
-          initDownLoadStatusListener()
-        }
+    if (uiState.downloadStatus.value != DownLoadStatus.INSTALLED) {
+      jmmController.win.coroutineScope.launch {
+        initDownLoadStatusListener()
       }
     }
   }
@@ -127,7 +118,6 @@ class JmmManagerViewHelper(
       }
 
       is JmmIntent.DestroyActivity -> {
-        ioAsyncScope.cancel()
         downLoadObserver?.close()
       }
     }
