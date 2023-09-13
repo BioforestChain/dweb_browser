@@ -16,7 +16,6 @@ export const main = async () => {
    */
   const indexUrlPo = new PromiseOut<string>();
   const widPo = new PromiseOut<string>();
-
   /**
    * 尝试打开gui，或者激活窗口
    */
@@ -30,16 +29,16 @@ export const main = async () => {
     } else {
       await mwebview_activate();
     }
-  }
+  };
   /// 如果有人来激活，那我就唤醒我的界面
   jsProcess.onActivity(async (_ipcEvent) => {
-    console.log(`${jsProcess.mmid} onActivity`)
+    console.log(`${jsProcess.mmid} onActivity`);
     tryOpenView();
   });
 
-  jsProcess.onClose(()=>{
-    console.log("app后台被关闭。")
-  })
+  jsProcess.onClose(() => {
+    console.log("app后台被关闭。");
+  });
 
   //#region 启动http服务
   const wwwServer = new Server_www();

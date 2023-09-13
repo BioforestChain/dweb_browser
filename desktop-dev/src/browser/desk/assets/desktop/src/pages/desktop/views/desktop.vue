@@ -1,7 +1,12 @@
 <script lang="ts" setup>
 import wallpaper_url from "src/assets/wallpaper.webp";
-import { getWidgetInfo, watchBrowserAppInfo, watchDesktopAppInfo } from "src/provider/api.ts";
-import type { $DeskLinkMetaData, $TileSizeType, $WidgetAppData, $WidgetCustomData } from "src/types/app.type.ts";
+import { getWidgetInfo, watchDesktopAppInfo } from "src/provider/api.ts";
+import {
+MICRO_MODULE_CATEGORY,
+type $TileSizeType,
+type $WidgetAppData,
+type $WidgetCustomData
+} from "src/types/app.type.ts";
 import { Ref, StyleValue, onMounted, onUnmounted, ref } from "vue";
 import TileItem from "../components/tile-item/tile-item.vue";
 import TilePanel from "../components/tile-panel/tile-panel.vue";
@@ -17,11 +22,11 @@ type $LayoutInfo = (
     }
   | {
       type: "webapp";
-      data: $DeskLinkMetaData;
+      data: $WidgetAppData;
     }
   | {
       type: "link";
-      data: $DeskLinkMetaData;
+      data: $WidgetAppData;
     }
   | {
       type: "widget";
@@ -42,7 +47,6 @@ interface $XYWH {
 }
 
 const layoutInfoListRef: Ref<$LayoutInfo[]> = ref([]);
-
 // 监听app消息的更新
 const updateApps = async () => {
   const widgetList = await getWidgetInfo();
@@ -73,47 +77,27 @@ const updateLayoutInfoList = (widgetList: $WidgetCustomData[], appList: $WidgetA
       xywh: { w: data.size.column, h: data.size.row },
     });
   }
-  for (const data of appList) {
-    layoutInfoList.push({
-      type: "app",
-      data,
-      xywh: { w: 1, h: 1 },
-    });
-  }
 
+  for (const data of appList) {
+    if (data.categories.includes(MICRO_MODULE_CATEGORY.Web_Browser) && data.mmid !== "web.browser.dweb") {
+      layoutInfoList.push({
+        type: "webapp",
+        data,
+        xywh: { w: 1, h: 1 },
+      });
+    } else {
+      layoutInfoList.push({
+        type: "app",
+        data,
+        xywh: { w: 1, h: 1 },
+      });
+    }
+  }
   layoutInfoListRef.value = layoutInfoList;
 };
 
-const updateWebApps = async () => {
-  let webAppList: $DeskLinkMetaData[] = [];
-  const webAppsWatcher = watchBrowserAppInfo();
-  void (async () => {
-    onUnmounted(() => {
-      webAppsWatcher.return();
-    });
-    for await (const list of webAppsWatcher) {
-      console.log("desktop webApp=>", list);
-      webAppList = list;
-      updateWebAppList(webAppList);
-    }
-  })();
-};
-
-const updateWebAppList = (webAppList:$DeskLinkMetaData[]) => {
-  const list: $LayoutInfo[] = [];
-  for (const data of webAppList) {
-    list.push({
-      type: "webapp",
-      data,
-      xywh: { w: 1, h: 1 },
-    });
-  }
-  layoutInfoListRef.value = layoutInfoListRef.value.concat(list)
-}
-
 onMounted(() => {
   updateApps();
-  updateWebApps();
 });
 
 const bgStyle = {

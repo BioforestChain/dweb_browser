@@ -1,10 +1,12 @@
 <script lang="ts" setup>
 import AppIcon from "src/components/app-icon/app-icon.vue";
+import { watchEffectAppMetadataToAppIcon } from "src/components/app-icon/appMetaDataHelper";
+import { $AppIconInfo } from "src/components/app-icon/types";
 import SvgIcon from "src/components/svg-icon/svg-icon.vue";
 import { openBrowser, vibrateHeavyClick } from "src/provider/api.ts";
 import { $CloseWatcher, CloseWatcher } from "src/provider/shim.ts";
-import { $DeskLinkMetaData } from "src/types/app.type";
-import { computed, onMounted, reactive, ref, watchEffect } from "vue";
+import { $WidgetAppData } from "src/types/app.type";
+import { computed, onMounted, reactive, ref, shallowRef, watch, watchEffect } from "vue";
 import WebAppUnInstallDialog from "../webapp-uninstall-dialog/webapp-uninstall-dialog.vue";
 import delete_svg from "../widget-app/delete.svg";
 import share_svg from "../widget-app/share.svg";
@@ -24,7 +26,7 @@ const snackbar = reactive({
 
 const props = defineProps({
   appMetaData: {
-    type: Object as () => $DeskLinkMetaData,
+    type: Object as () => $WidgetAppData,
     required: true,
   },
   index: {
@@ -32,9 +34,17 @@ const props = defineProps({
     required: true,
   },
 });
-const appUrl = computed(() => props.appMetaData.url)
-const appname = computed(() => props.appMetaData.title);
-const appicon = computed(()=> props.appMetaData.icon)
+const appUrl = computed(() => props.appMetaData.name)
+const appname = computed(() => props.appMetaData.short_name!!);
+const appicon = shallowRef<$AppIconInfo>({ src: "", monochrome: false, maskable: false });
+watch(
+  () => props.appMetaData.icons,
+  () => {
+    watchEffectAppMetadataToAppIcon({ metaData: props.appMetaData }, appicon);
+  }
+);
+watchEffectAppMetadataToAppIcon({ metaData: props.appMetaData }, appicon);
+
 
 const opening = ref(false);
 const closing = ref(false);

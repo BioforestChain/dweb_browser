@@ -79,7 +79,10 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
     return this.updateController;
   }
 
-  /**关闭前端 */
+  /**
+   * 关闭前端
+   * @returns 
+   */
   @bindThis
   close() {
     return this.fetchApi("/close").boolean();

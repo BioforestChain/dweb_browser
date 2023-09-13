@@ -1,4 +1,4 @@
-import { $DeskLinkMetaData, $TaskBarState, $WidgetAppData, $WidgetCustomData } from "../types/app.type.ts";
+import { $TaskBarState, $WidgetAppData, $WidgetCustomData } from "../types/app.type.ts";
 import { searchWidget } from "./custom/search.widget.ts";
 import { nativeFetch, nativeFetchStream } from "./fetch.ts";
 
@@ -31,12 +31,10 @@ export function watchTaskBarStatus() {
   return nativeFetchStream<$TaskBarState>("/taskbar/observe/status");
 }
 
-export function watchBrowserAppInfo() {
-  return nativeFetchStream<$DeskLinkMetaData[]>("/browser/observe/apps", {
-    mmid: "web.browser.dweb",
-  });
-}
-
+/**
+ * 获取search组件
+ * @returns
+ */
 export async function getWidgetInfo() {
   return [searchWidget] as $WidgetCustomData[];
 }

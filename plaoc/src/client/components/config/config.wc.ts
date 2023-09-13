@@ -1,11 +1,23 @@
+import { cacheGetter } from "../../helper/cacheGetter.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
 import { configPlugin } from "./config.plugin.ts";
 
 export class HTMLDwebConfigElement extends HTMLElement {
   static readonly tagName = "dweb-config";
   readonly plugin = configPlugin;
+
+  @cacheGetter()
+  get setLang() {
+    return this.plugin.setLang
+  }
+
+  @cacheGetter() 
+  get getLang() {
+    return this.plugin.getLang
+  }
+
   get public_url() {
-    return configPlugin.public_url;
+    return this.plugin.public_url;
   }
   getPublicUrl() {
     return BasePlugin.public_url

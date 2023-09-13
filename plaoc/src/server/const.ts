@@ -24,7 +24,8 @@ export interface $Redirect {
 }
 
 export interface $MatchUrl {
-  pathname: string
+  pathname?: string,
+  search?:string
 }
 
 export interface $To {

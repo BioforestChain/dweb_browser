@@ -4,9 +4,11 @@ import { $DwebHttpServerOptions, $OnFetchReturn, FetchEvent, IpcResponse, jsProc
 import { urlStore } from "./helper/urlStore.ts";
 import { HttpServer, cors } from "./http-helper.ts";
 
+const CONFIG_PREFIX = "/config.sys.dweb/";
 /**给前端的文件服务 */
 export class Server_www extends HttpServer {
   jsonPlaoc: $PlaocConfig | null = null;
+  lang: string | null = null;
 
   protected _getOptions(): $DwebHttpServerOptions {
     return {
@@ -16,6 +18,15 @@ export class Server_www extends HttpServer {
   }
   async start() {
     await this._analyzePlaocConfig();
+    // 设置默认语言
+    const lang = await jsProcess
+      .nativeFetch("file://config.sys.dweb/getLang").text()
+    if (lang) {
+      this.lang = lang;
+    } else if (this.jsonPlaoc) {
+      this.lang = this.jsonPlaoc.defaultConfig.lang;
+    }
+
     const serverIpc = await this._listener;
     return serverIpc.onFetch(this._provider.bind(this)).noFound();
   }
@@ -26,10 +37,14 @@ export class Server_www extends HttpServer {
       const obj = urlStore.get() ?? "";
       return IpcResponse.fromJson(request.req_id, 200, cors(new IpcHeaders()), obj, request.ipc);
     }
+    // 配置config
+    if (pathname.startsWith(CONFIG_PREFIX)) {
+      return this._config(request);
+    }
 
     let remoteIpcResponse;
     // 进入plaoc转发器
-    if (this.jsonPlaoc) {
+    if (this.jsonPlaoc && root !== "server/emulator") {
       const proxyRequest = await this._plaocForwarder(request, this.jsonPlaoc);
       pathname = proxyRequest.url.pathname;
       remoteIpcResponse = await jsProcess.nativeRequest(`file:///usr/${root}${pathname}?mode=stream`, {
@@ -61,6 +76,16 @@ export class Server_www extends HttpServer {
       // deno-lint-ignore no-empty
     } catch {}
   }
+
+  async _config(event: FetchEvent) {
+    const pathname = event.pathname.slice(CONFIG_PREFIX.length);
+    if (pathname.startsWith("/setLang")) {
+      const lang = event.searchParams.get("lang");
+      this.lang = lang;
+    }
+    return jsProcess.nativeFetch(`file:/${event.pathname}${event.search}`);
+  }
+
   /**
    * 转发plaoc.json请求
    * @param request
@@ -74,20 +99,21 @@ export class Server_www extends HttpServer {
       }
       const urlPattern = new URLPattern({
         pathname: redirect.matchUrl.pathname,
+        search: redirect.matchUrl.search,
       });
-      const pattern = urlPattern.exec({ pathname: request.pathname });
-      if (!pattern)  continue;
+      const pattern = urlPattern.exec(request.url);
+      if (!pattern) continue;
 
       const url = redirect.to.url;
       const matches = url.matchAll(/{{\s*(.*?)\s*}}/g); // {{[\w\W]*?}}
-      const lang = config.defaultConfig.lang;
+      const lang = this.lang;
       let pathname = url;
       // 执行表达式
       for (const match of matches) {
         const func = new Function("pattern", "lang", `return ${match[1]}`);
         pathname = pathname.replace(/{{\s*(.*?)\s*}}/, func(pattern, lang));
       }
-      request.url.pathname = pathname.replace(/\\/g, "/").replace(/\/\//g,"/");
+      request.url.pathname = pathname.replace(/\\/g, "/").replace(/\/\//g, "/");
       // appendHeaders
       const appendHeaders = redirect.to.appendHeaders;
       if (appendHeaders && Object.keys(appendHeaders).length !== 0) {

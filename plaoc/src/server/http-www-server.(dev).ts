@@ -54,13 +54,13 @@ export class Server_www extends _Server_www {
         };
       }
     }
-    return super._provider(request, "www");
-    // return super._provider(request, "server/emulator");
+    // return super._provider(request, "www");
+    return super._provider(request, "server/emulator");
   }
   private xPlaocProxy: string | null = null;
   override async _provider(request: FetchEvent): Promise<$OnFetchReturn> {
     // 请求申请
-    if (request.pathname.startsWith(`/${X_PLAOC_QUERY.GET_CONFIG_URL}`)) {
+    if (request.pathname.startsWith(`/${X_PLAOC_QUERY.GET_CONFIG_URL}`) || request.pathname.startsWith("/config.sys.dweb")) {
       return super._provider(request);
     }
 
