@@ -97,6 +97,7 @@ import org.dweb_browser.browserUI.ui.entity.BrowserWebView
 import org.dweb_browser.browserUI.ui.theme.DimenBottomBarHeight
 import org.dweb_browser.browserUI.ui.view.findActivity
 import org.dweb_browser.browserUI.util.BitmapUtil
+import org.dweb_browser.browserUI.util.PrivacyUrl
 import org.dweb_browser.dwebview.base.WindowInsetsHelper
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 
@@ -440,6 +441,7 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel) {
   val scope = rememberCoroutineScope()
   val activity = LocalContext.current.findActivity()
   val bottomSheetModel = LocalModalBottomSheet.current
+  val localPrivacy = LocalBrowserShowPrivacy.current
   // 判断权限
   val launcher =
     rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestPermission(),
@@ -494,7 +496,7 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel) {
         }) {
           scope.launch {
             bottomSheetModel.hide()
-            viewModel.handleIntent(BrowserIntent.ShowPrivacyView)
+            localPrivacy.value = PrivacyUrl
           }
         } // 隐私政策
       }

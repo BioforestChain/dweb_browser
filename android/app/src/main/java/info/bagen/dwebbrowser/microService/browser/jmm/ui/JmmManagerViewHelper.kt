@@ -21,6 +21,9 @@ import java.util.Calendar
 internal val LocalShowWebViewVersion = compositionLocalOf {
   mutableStateOf(false)
 }
+internal val LocalShowWebViewHelper = compositionLocalOf {
+  mutableStateOf(false)
+}
 
 enum class JMMPropertyKey {
   DownloadSize, TotalSize, DownloadStatus;

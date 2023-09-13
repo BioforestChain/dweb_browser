@@ -38,7 +38,6 @@ import org.dweb_browser.browserUI.ui.qrcode.QRCodeScanState
 import org.dweb_browser.browserUI.util.BrowserUIApp
 import org.dweb_browser.browserUI.util.KEY_LAST_SEARCH_KEY
 import org.dweb_browser.browserUI.util.KEY_NO_TRACE
-import org.dweb_browser.browserUI.util.PrivacyUrl
 import org.dweb_browser.browserUI.util.getBoolean
 import org.dweb_browser.browserUI.util.saveBoolean
 import org.dweb_browser.browserUI.util.saveString
@@ -72,8 +71,14 @@ data class BrowserUIState(
   val inputText: MutableState<String> = mutableStateOf(""), // 用于指定输入的内容
   val showSearchEngine: MutableTransitionState<Boolean> = MutableTransitionState(false), // 用于在输入内容后，显示本地检索以及提供搜索引擎
   val qrCodeScanState: QRCodeScanState = QRCodeScanState(), // 用于判断桌面的显示隐藏
-  val privacyState: MutableState<String> = mutableStateOf(""), // 用于判断桌面的显示隐藏
 )
+
+/**
+ * 用于判断是否显示隐私协议
+ */
+val LocalBrowserShowPrivacy = compositionLocalOf {
+  mutableStateOf("")
+}
 
 /**
  * 用于指定输入的内容
@@ -117,7 +122,6 @@ sealed class BrowserIntent {
   class ShareWebSiteInfo(val activity: Activity) : BrowserIntent() // 直接获取当前的界面来保存
   class UpdateInputText(val text: String) : BrowserIntent()
   class ShowSnackbarMessage(val message: String, val actionLabel: String? = null) : BrowserIntent()
-  data object ShowPrivacyView : BrowserIntent()
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -329,10 +333,6 @@ class BrowserViewModel(
               action.message, action.actionLabel
             )
           }*/
-        }
-
-        is BrowserIntent.ShowPrivacyView -> {
-          uiState.privacyState.value = PrivacyUrl
         }
       }
     }

@@ -26,14 +26,16 @@ import com.google.accompanist.web.WebView
 import com.google.accompanist.web.WebViewState
 import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
 import org.dweb_browser.browserUI.ui.browser.ConstUrl
+import org.dweb_browser.browserUI.ui.browser.LocalBrowserShowPrivacy
 import org.dweb_browser.browserUI.ui.browser.setDarkMode
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
-fun PrivacyView(url: MutableState<String>, showLoading: MutableState<Boolean>) {
-  if (url.value.isNotEmpty()) {
-    BackHandler { url.value = "" }
-    val state = WebViewState(WebContent.Url(url.value))
+fun PrivacyView(showLoading: MutableState<Boolean>) {
+  val localPrivacy = LocalBrowserShowPrivacy.current
+  if (localPrivacy.value.isNotEmpty()) {
+    BackHandler { localPrivacy.value = "" }
+    val state = WebViewState(WebContent.Url(localPrivacy.value))
     LaunchedEffect(state) {
       snapshotFlow { state.loadingState }.collect {
         when (it) {

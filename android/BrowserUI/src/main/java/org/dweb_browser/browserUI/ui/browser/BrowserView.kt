@@ -162,7 +162,7 @@ fun BrowserViewForWindow(
     })
 
   val showLoading = remember { mutableStateOf(false) }
-  PrivacyView(url = viewModel.uiState.privacyState, showLoading = showLoading)
+  PrivacyView(showLoading = showLoading)
   LoadingView(showLoading = showLoading)
 }
 
