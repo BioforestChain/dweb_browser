@@ -24,9 +24,11 @@ import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.microservice.http.IPureBody
 import org.dweb_browser.microservice.http.PureBinary
+import org.dweb_browser.microservice.http.PureBinaryBody
 import org.dweb_browser.microservice.http.PureStream
 import org.dweb_browser.microservice.http.PureStreamBody
 import org.dweb_browser.microservice.http.PureString
+import org.dweb_browser.microservice.http.PureStringBody
 import org.dweb_browser.microservice.ipc.Ipc
 
 /**
@@ -299,9 +301,9 @@ class IpcBodySender(
   }
 
 
-  private suspend fun bodyAsMeta(body: Any, ipc: Ipc) = when (body) {
-    is String -> MetaBody.fromText(ipc.uid, body)
-    is ByteArray -> MetaBody.fromBinary(ipc, body)
+  private suspend fun bodyAsMeta(body: IPureBody, ipc: Ipc) = when (body) {
+    is PureStringBody -> MetaBody.fromText(ipc.uid, body.toPureString())
+    is PureBinaryBody -> MetaBody.fromBinary(ipc, body.toPureBinary())
     is PureStream -> streamAsMeta(body, ipc)
     else -> throw Exception("invalid body type $body")
   }
