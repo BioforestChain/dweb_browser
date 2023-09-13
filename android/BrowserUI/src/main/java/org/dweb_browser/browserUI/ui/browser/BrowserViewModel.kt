@@ -19,6 +19,10 @@ import androidx.lifecycle.viewModelScope
 import com.google.accompanist.web.WebContent
 import com.google.accompanist.web.WebViewNavigator
 import com.google.accompanist.web.WebViewState
+import io.ktor.http.URLBuilder
+import io.ktor.http.Url
+import io.ktor.http.fullPath
+import io.ktor.http.path
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -494,3 +498,5 @@ internal fun String.isSystemUrl(): Boolean {
     "about:"
   ) || this.startsWith("https://web.browser.dweb")
 }
+
+fun Url.path(path: String) = URLBuilder(this).apply { path(path) }.build()

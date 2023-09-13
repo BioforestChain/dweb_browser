@@ -14,16 +14,19 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
 import org.dweb_browser.browserUI.R
 import org.dweb_browser.browserUI.util.BrowserUIApp
+import org.dweb_browser.helper.JsonLoose
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.now
-import org.dweb_browser.microservice.help.gson
 
 /**
  * 该文件主要定义搜索引擎和引擎默认值，以及配置存储
  */
 
+@Serializable
 data class WebEngine(
   val name: String,
   val host: String,
@@ -106,7 +109,7 @@ object WebEngineDB {
     }.map { pref ->
       val list = mutableListOf<WebEngine>()
       pref.asMap().forEach { (_, value) ->
-        val webSiteInfo = gson.fromJson((value as String), WebEngine::class.java)
+        val webSiteInfo = JsonLoose.decodeFromString<WebEngine>(value as String)
         list.add(webSiteInfo)
       }
       list
@@ -117,7 +120,7 @@ object WebEngineDB {
     // edit 函数需要在挂起环境中执行
     BrowserUIApp.Instance.appContext.dataStoreWebEngine.edit { pref ->
       val timeMillis = webEngine.timeMillis.takeIf { it.isNotEmpty() } ?: now()
-      pref[stringPreferencesKey(timeMillis)] = gson.toJson(webEngine)
+      pref[stringPreferencesKey(timeMillis)] = JsonLoose.encodeToString(webEngine)
     }
   }
 

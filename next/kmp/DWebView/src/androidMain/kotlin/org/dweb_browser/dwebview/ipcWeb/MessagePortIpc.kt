@@ -9,9 +9,10 @@ import kotlinx.coroutines.channels.getOrElse
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.Callback
+import org.dweb_browser.helper.JsonLoose
 import org.dweb_browser.helper.Signal
+import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.printDebug
@@ -33,7 +34,6 @@ import org.dweb_browser.microservice.ipc.helper.IpcStreamEnd
 import org.dweb_browser.microservice.ipc.helper.IpcStreamPaused
 import org.dweb_browser.microservice.ipc.helper.IpcStreamPulling
 import org.dweb_browser.microservice.ipc.helper.jsonToIpcMessage
-import java.util.WeakHashMap
 
 fun printThreadName(): String = Thread.currentThread().name
 fun debugMessagePortIpc(tag: String, msg: Any = "", err: Throwable? = null) =

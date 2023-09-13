@@ -1,5 +1,8 @@
 package org.dweb_browser.browserUI.microService.browser.web
 
+import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.fullPath
 import kotlinx.coroutines.withContext
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.mainAsyncExceptionHandler
@@ -7,18 +10,14 @@ import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.core.AndroidNativeMicroModule
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
+import org.dweb_browser.microservice.http.PureResponse
+import org.dweb_browser.microservice.http.bind
+import org.dweb_browser.microservice.http.routes
 import org.dweb_browser.microservice.ipc.helper.IpcResponse
 import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.dweb_browser.microservice.sys.http.DwebHttpServerOptions
 import org.dweb_browser.microservice.sys.http.HttpDwebServer
 import org.dweb_browser.microservice.sys.http.createHttpDwebServer
-import org.http4k.core.Method
-import org.http4k.core.Response
-import org.http4k.core.Status
-import org.http4k.lens.Query
-import org.http4k.lens.string
-import org.http4k.routing.bind
-import org.http4k.routing.routes
 
 fun debugBrowser(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("browser", tag, msg, err)
@@ -32,9 +31,6 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
   }
 
   private lateinit var browserServer: HttpDwebServer
-  val queryAppId = Query.string().optional("mmid")
-  val queryKeyWord = Query.string().required("q")
-  val queryUrl = Query.string().required("url")
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     browserServer = this.createBrowserWebServer()
@@ -49,27 +45,25 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
       browserController.openBrowserWindow()
     }
 
-    apiRouting = routes(
-      "search" bind Method.GET to defineHandler { request ->
-        debugBrowser("do search", request.uri)
-        val search = queryKeyWord(request)
-        browserController.openBrowserWindow(search = search)
-        return@defineHandler Response(Status.OK)
+    routes(
+      "search" bind HttpMethod.Get to definePureResponse {
+        debugBrowser("do search", request.url)
+        browserController.openBrowserWindow(search = request.queryOrFail("q"))
+        return@definePureResponse PureResponse(HttpStatusCode.OK)
       },
-      "openinbrowser" bind Method.GET to defineHandler { request ->
-        debugBrowser("do openinbrowser", request.uri)
-        val url = queryUrl(request)
-        browserController.openBrowserWindow(url = url)
-        return@defineHandler Response(Status.OK)
+      "openinbrowser" bind HttpMethod.Get to definePureResponse {
+        debugBrowser("do openinbrowser", request.url)
+        browserController.openBrowserWindow(url = request.queryOrFail("url"))
+        return@definePureResponse PureResponse(HttpStatusCode.OK)
       },
-      "/uninstall" bind Method.GET to defineHandler { request, ipc ->
-        debugBrowser("uninstall", request.uri)
-        val mmid = queryAppId(request)
+      "/uninstall" bind HttpMethod.Get to definePureResponse {
+        debugBrowser("uninstall", request.url)
+        val mmid = request.query("mmid")
         if (mmid == null) {
           browserController.uninstallWindow()
         }
         //TODO 卸载webApp
-        return@defineHandler Response(Status.OK)
+        return@definePureResponse PureResponse(HttpStatusCode.OK)
       },
     )
   }
@@ -78,7 +72,7 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
   private suspend fun createBrowserWebServer(): HttpDwebServer {
     val browserServer = createHttpDwebServer(DwebHttpServerOptions(subdomain = "", port = 433))
     browserServer.listen().onRequest { (request, ipc) ->
-      val pathName = request.uri.path
+      val pathName = request.uri.fullPath
       debugBrowser("createBrowserWebServer", pathName)
       if (!pathName.startsWith(API_PREFIX)) {
         val response = nativeFetch("file:///sys/browser/web${pathName}?mode=stream")

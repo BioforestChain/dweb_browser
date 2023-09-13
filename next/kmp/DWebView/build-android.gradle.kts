@@ -24,6 +24,7 @@ kotlin {
         implementation(libs.kotlinx.atomicfu)
 
         implementation(project(":helper"))
+        implementation(project(":microService"))
       }
     }
     val commonTest by getting {
@@ -47,7 +48,6 @@ kotlin {
 
         implementation(libs.compose.ui)
 
-        implementation(project(":microService"))
         implementation(project(":helperPlatform"))
       }
     }
