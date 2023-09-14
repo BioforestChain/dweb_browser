@@ -19,7 +19,7 @@ export class Server_api extends HttpServer {
   }
   protected _getOptions(): $DwebHttpServerOptions {
     return {
-      subdomain: "api2",
+      subdomain: "api",
       port: 443,
     };
   }

@@ -159,8 +159,10 @@ export class Server_external extends HttpServer {
               ipc.request(`file://${mmid}${ExternalState.WAIT_CLOSE}`).finally(() => {
                 deleteCache();
               });
-              // 激活对面窗口
-              ipc.postMessage(IpcEvent.fromText(ExternalState.ACTIVITY, ExternalState.ACTIVITY));
+              // 如果对面已经启动则，激活对面窗口
+              if (jsProcess.hasConnect(mmid)) {
+                ipc.postMessage(IpcEvent.fromText(ExternalState.ACTIVITY, ExternalState.ACTIVITY));
+              }
             } catch (err) {
               this.externalWaitters.delete(mmid);
               throw err;

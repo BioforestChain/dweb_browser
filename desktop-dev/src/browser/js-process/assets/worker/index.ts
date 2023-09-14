@@ -250,6 +250,10 @@ export class JsProcessMicroModule implements $MicroModule {
     }).promise;
   }
 
+  hasConnect(mmid: $MMID) {
+    return this._ipcConnectsMap.has(mmid)
+  }
+
   private _ipcSet = new Set<Ipc>();
   addToIpcSet(ipc: Ipc) {
     this._ipcSet.add(ipc);
