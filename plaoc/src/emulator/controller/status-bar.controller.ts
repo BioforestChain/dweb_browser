@@ -5,7 +5,7 @@ import { createMockModuleServerIpc } from "../helper/mokeServerIpcHelper.ts";
 import { $BAR_STYLE, $BarState } from "../types.ts";
 import { BaseController } from "./base-controller.ts";
 export class StatusBarController extends BaseController {
-  private _init = (async () => {
+  protected _initer = async () => {
     this.emitInit();
     const ipc = await createMockModuleServerIpc("status-bar.nativeui.browser.dweb");
     const query_state = z.object({
@@ -50,7 +50,7 @@ export class StatusBarController extends BaseController {
       .forbidden()
       .cors();
     this.emitReady();
-  })();
+  };
 
   observer = new StateObservable(() => {
     return JSON.stringify(this.statusBarGetState());

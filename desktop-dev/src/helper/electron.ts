@@ -4,7 +4,6 @@ export * as micaElectron from "mica-electron";
 Object.assign(globalThis, {
   Electron: _Electron,
 });
-
 // import { createRequire } from "node:module";
 // import os from "node:os";
 // class MicaBrowserWindow extends Electron.BrowserWindow {

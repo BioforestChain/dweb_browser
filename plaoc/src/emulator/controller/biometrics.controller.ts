@@ -8,7 +8,7 @@ export interface $BiometricsReuslt {
 }
 
 export class BiometricsController extends BaseController {
-  private _init = (async () => {
+  protected _initer = async () => {
     this.emitInit();
     const ipc = await createMockModuleServerIpc("biometrics.sys.dweb");
     ipc
@@ -24,7 +24,7 @@ export class BiometricsController extends BaseController {
       .forbidden()
       .cors();
     this.emitReady();
-  })();
+  };
   private queue: PromiseOut<$BiometricsReuslt>[] = [];
   get state() {
     return this.queue.at(0);

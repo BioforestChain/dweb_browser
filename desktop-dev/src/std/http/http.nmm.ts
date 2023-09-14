@@ -19,6 +19,7 @@ import { PortListener } from "./portListener.ts";
 import { initWebSocketServer } from "./portListener.ws.ts";
 import { WebServerRequest } from "./types.ts";
 
+Electron.app.commandLine.appendSwitch("ignore-connections-limit","api.plaoc.html.demo.dweb-443.localhost")
 interface $Gateway {
   listener: PortListener;
   urlInfo: ServerUrlInfo;
@@ -173,8 +174,7 @@ export class HttpServerNMM extends NativeMicroModule {
     });
     const token = Buffer.from(crypto.getRandomValues(new Uint8Array(64))).toString();
     const gateway: $Gateway = { listener, urlInfo: serverUrlInfo, token };
-    this._gatewayTable.set(token, gateway);
-    this._gatewayTable.set(serverUrlInfo.host, gateway);
+    this._gatewayTable.set({[serverUrlInfo.host]:gateway,[token]:gateway});
     return new ServerStartResult(token, serverUrlInfo);
   }
 
@@ -184,7 +184,6 @@ export class HttpServerNMM extends NativeMicroModule {
     if (gateway === undefined) {
       throw new Error(`no gateway with token: ${token}`);
     }
-
     const streamIpc = new ReadableStreamIpc(gateway.listener.ipc.remote, IPC_ROLE.CLIENT);
     void streamIpc.bindIncomeStream(message.body.stream());
     // 自己nmm销毁的时候，ipc也会被全部销毁

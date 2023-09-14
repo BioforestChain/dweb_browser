@@ -5,7 +5,7 @@ export class ToastController extends BaseController {
   constructor(readonly show: $Show) {
     super();
   }
-  private _init = (async () => {
+  protected _initer = async () => {
     this.emitInit();
     const ipc = await createMockModuleServerIpc("toast.nativeui.browser.dweb");
     ipc
@@ -26,7 +26,7 @@ export class ToastController extends BaseController {
       .forbidden()
       .cors();
     this.emitReady();
-  })();
+  };
 
   override emitUpdate(): void {
     super.emitUpdate();

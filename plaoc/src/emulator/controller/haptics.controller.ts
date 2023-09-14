@@ -3,7 +3,7 @@ import { createMockModuleServerIpc } from "../helper/mokeServerIpcHelper.ts";
 import { BaseController } from "./base-controller.ts";
 
 export class HapticsController extends BaseController {
-  private _init = (async () => {
+  protected _initer = async () => {
     this.emitInit();
     const ipc = await createMockModuleServerIpc("haptics.sys.dweb");
     const query_state = z.object({
@@ -21,7 +21,7 @@ export class HapticsController extends BaseController {
       .forbidden()
       .cors();
     this.emitReady();
-  })();
+  };
 
   hapticsMock(text: string) {
     console.log("hapticsMock", text);

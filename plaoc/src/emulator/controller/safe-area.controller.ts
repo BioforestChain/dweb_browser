@@ -7,7 +7,7 @@ import { createMockModuleServerIpc } from "./../helper/mokeServerIpcHelper.ts";
 import { BaseController } from "./base-controller.ts";
 
 export class SafeAreaController extends BaseController {
-  private _init = (async () => {
+  protected _initer = async () => {
     this.emitInit();
     const ipc = await createMockModuleServerIpc("safe-area.nativeui.browser.dweb");
     const query_state = z.object({
@@ -47,7 +47,7 @@ export class SafeAreaController extends BaseController {
       .forbidden()
       .cors();
     this.emitReady();
-  })();
+  };
 
   observer = new StateObservable(() => {
     return JSON.stringify(this.state);

@@ -1,24 +1,23 @@
-interface Row<T> {
-  [key: string]: T;
+interface Row<V> {
+  [key: string]: V;
 }
 
 export class MemoryTable<T> {
   private rows: Row<T>[] = [];
 
-  set(criteria: string, value: T) {
-    this.rows.push({ [criteria]: value });
+  set(criteria: Row<T>) {
+    this.rows.push(criteria);
   }
 
-
   delete(criteria: string) {
-    for (const row of this.rows) {
-      for (const key of Object.keys(row)) {
+    for (let i = 0; i < this.rows.length; i++) {
+      const row = this.rows[i];
+      for (const key in row) {
         if (key === criteria) {
-          return delete row[key];
+          return this.rows.splice(i, 1);
         }
       }
     }
-    false;
   }
 
   get(criteria: string) {

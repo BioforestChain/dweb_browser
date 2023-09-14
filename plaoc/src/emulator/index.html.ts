@@ -197,23 +197,7 @@ export class RootComp extends LitElement {
       <div class="root">
         <emulator-toolbar .url=${this.src}></emulator-toolbar>
         <multi-webview-comp-mobile-shell class="main-view" id="shell">
-          ${when(this.biometricsController.state, () => {
-            const state = this.biometricsController.state!;
-            html`<multi-webview-comp-biometrics
-              @pass=${state.resolve({ success: true, message: "okk" })}
-              @no-pass=${state.resolve({ success: false, message: "...." })}
-            ></multi-webview-comp-biometrics>`;
-          })}
-          <multi-webview-comp-status-bar
-            slot="status-bar"
-            ._color=${this.statusBarState.color}
-            ._style=${this.statusBarState.style}
-            ._overlay=${this.statusBarState.overlay}
-            ._visible=${this.statusBarState.visible}
-            ._insets=${this.statusBarState.insets}
-            ._torchIsOpen=${this.torchState.isOpen}
-          ></multi-webview-comp-status-bar>
-          ${when(
+        ${when(
             this.controllers.size === 0,
             () => html`
               <iframe
@@ -226,32 +210,6 @@ export class RootComp extends LitElement {
               ></iframe>
             `,
             () => html`<div class="boot-logo" slot="shell-content">开机中</div>`
-          )}
-          ${when(
-            this.virtualKeyboardController.isShowVirtualKeyboard,
-            () => html`
-              <multi-webview-comp-virtual-keyboard
-                slot="bottom-bar"
-                ._visible=${this.virtualKeyboardState.visible}
-                ._overlay=${this.virtualKeyboardState.overlay}
-                @first-updated=${this.virtualKeyboardController.virtualKeyboardFirstUpdated}
-                @hide-completed=${this.virtualKeyboardController.virtualKeyboardHideCompleted}
-                @show-completed=${this.virtualKeyboardController.virtualKeyboardShowCompleted}
-              ></multi-webview-comp-virtual-keyboard>
-            `,
-            () => {
-              return html`
-                <multi-webview-comp-navigation-bar
-                  slot="bottom-bar"
-                  ._color=${this.navigationBarState.color}
-                  ._style=${this.navigationBarState.style}
-                  ._overlay=${this.navigationBarState.overlay}
-                  ._visible=${this.navigationBarState.visible}
-                  ._inserts=${this.navigationBarState.insets}
-                  @back=${this.navigationbarBack}
-                ></multi-webview-comp-navigation-bar>
-              `;
-            }
           )}
         </multi-webview-comp-mobile-shell>
       </div>

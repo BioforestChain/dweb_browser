@@ -9,7 +9,7 @@ export class ShareController extends BaseController {
   constructor(readonly share: $Share) {
     super();
   }
-  private _init = (async () => {
+  protected _initer = async () => {
     this.emitInit();
     const ipc = await createMockModuleServerIpc("share.sys.dweb");
     ipc
@@ -37,7 +37,7 @@ export class ShareController extends BaseController {
       .forbidden()
       .cors();
     this.emitReady();
-  })();
+  };
 
   override emitUpdate(): void {
     super.emitUpdate();

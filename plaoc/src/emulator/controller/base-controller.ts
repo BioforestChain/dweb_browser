@@ -1,4 +1,4 @@
-export class BaseController {
+export abstract class BaseController {
   // private _onUpdate?: (controller: this) => void;
 
   // // Using the Web Animations API
@@ -23,6 +23,7 @@ export class BaseController {
     this._onUpdate?.forEach((callback) => callback(this));
     // this._onUpdate?.(this);
   }
+  protected abstract _initer: () => Promise<void>;
 
   private _onInit?: (controller: this) => void;
   onInit(cb: (controller: this) => void) {

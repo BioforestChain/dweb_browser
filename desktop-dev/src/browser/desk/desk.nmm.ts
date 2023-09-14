@@ -68,7 +68,7 @@ export class DeskNMM extends NativeMicroModule {
         console.always("activity", app_id);
         const ipc = this.runingApps.get(app_id) ?? (await this.connect(app_id));
 
-        if (!!this.runingApps.get(app_id)) {
+        if (this.runingApps.get(app_id)) {
           ipc?.postMessage(IpcEvent.fromText("activity", ""));
         }
 

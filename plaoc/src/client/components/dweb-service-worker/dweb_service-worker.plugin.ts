@@ -91,7 +91,7 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
   /**重启后前端 */
   @bindThis
   restart() {
-    return this.fetchApi("/restart").boolean();
+    return this.fetchApi("/restart");
   }
 
   /**

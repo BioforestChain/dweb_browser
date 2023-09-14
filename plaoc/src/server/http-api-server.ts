@@ -19,7 +19,7 @@ export class Server_api extends HttpServer {
   }
   protected _getOptions(): $DwebHttpServerOptions {
     return {
-      subdomain: "api",
+      subdomain: "api2",
       port: 443,
     };
   }
@@ -45,7 +45,9 @@ export class Server_api extends HttpServer {
     const result = async () => {
       if (pathname === "/restart") {
         // 这里只需要把请求发送过去，因为app已经被关闭，已经无法拿到返回值
-        jsProcess.restart();
+        setTimeout(()=>{
+          jsProcess.restart();
+        }, 200);
         return Response.json({ success: true, message: "restart ok" });
       }
 
