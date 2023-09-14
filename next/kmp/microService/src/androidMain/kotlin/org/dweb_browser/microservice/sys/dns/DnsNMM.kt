@@ -66,6 +66,10 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
   private val mmConnectsMap = mutableMapOf<MM, PromiseOut<ConnectResult>>()
   private val mmConnectsMapLock = Mutex()
 
+  private fun hasConnect(fromMMID:MMID,toMMID:MMID):  ConnectResult? {
+    return mmConnectsMap[MM.from(fromMMID,toMMID)]?.value
+  }
+
   /** 为两个mm建立 ipc 通讯 */
   private suspend fun connectTo(
     fromMM: MicroModule, toMMID: MMID, reason: Request
@@ -139,6 +143,10 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       // 关闭后端连接
       dnsMM.close(mmid)
       dnsMM.open(mmid)
+    }
+
+    override suspend fun hasConnect(mmid:MMID) :ConnectResult? {
+      return dnsMM.hasConnect(fromMM.mmid,mmid)
     }
 
     override suspend fun connect(

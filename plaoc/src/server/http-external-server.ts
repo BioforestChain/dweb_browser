@@ -145,11 +145,24 @@ export class Server_external extends HttpServer {
           if (!mmid) {
             return new Response(null, { status: 502 });
           }
+          
+          const poIpc = jsProcess.hasConnect(mmid);
+          if (poIpc && poIpc.is_resolved && this.externalWaitters.has(mmid)) {
+            const ipc = await poIpc.promise;
+            // 如果对面已经启动则，激活对面窗口
+            ipc.postMessage(IpcEvent.fromText(ExternalState.ACTIVITY, ExternalState.ACTIVITY));
+          }
 
           await mapHelper.getOrPut(this.externalWaitters, mmid, async (_key) => {
             let ipc: $Ipc;
             try {
-              ipc = await jsProcess.connect(mmid);
+              if (poIpc && poIpc.is_resolved) {
+                ipc = await poIpc.promise;
+                // 如果对面已经启动则，激活对面窗口
+                ipc.postMessage(IpcEvent.fromText(ExternalState.ACTIVITY, ExternalState.ACTIVITY));
+              } else {
+                ipc = await jsProcess.connect(mmid);
+              }
               const deleteCache = () => {
                 this.externalWaitters.delete(mmid);
                 off1();
@@ -159,10 +172,6 @@ export class Server_external extends HttpServer {
               ipc.request(`file://${mmid}${ExternalState.WAIT_CLOSE}`).finally(() => {
                 deleteCache();
               });
-              // 如果对面已经启动则，激活对面窗口
-              if (jsProcess.hasConnect(mmid)) {
-                ipc.postMessage(IpcEvent.fromText(ExternalState.ACTIVITY, ExternalState.ACTIVITY));
-              }
             } catch (err) {
               this.externalWaitters.delete(mmid);
               throw err;

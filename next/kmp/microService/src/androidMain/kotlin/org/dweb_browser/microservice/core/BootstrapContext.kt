@@ -42,6 +42,11 @@ interface DnsMicroModule {
   suspend fun restart(mmid: MMID)
 
   /**
+   * 是否已经建立连接
+   */
+  suspend fun hasConnect(mmid: MMID): ConnectResult?
+
+  /**
    * 与其它应用建立连接
    */
   suspend fun connect(mmid: MMID, reason: Request? = null): ConnectResult

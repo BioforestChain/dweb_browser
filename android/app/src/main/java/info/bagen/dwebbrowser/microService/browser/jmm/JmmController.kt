@@ -49,9 +49,10 @@ class JmmController(
 
   suspend fun openApp(mmid: MMID) {
     openLock.withLock {
-      val (ipc) = jmmNMM.bootstrapContext.dns.connect(mmid)
-      debugJMM("openApp", "postMessage==>activity ${ipc.remote.mmid}")
-      ipc.postMessage(IpcEvent.fromUtf8(EIpcEvent.Activity.event, ""))
+
+      jmmNMM.bootstrapContext.dns.hasConnect(mmid)?.let { (ipc) ->
+        ipc.postMessage(IpcEvent.fromUtf8(EIpcEvent.Activity.event, ""))
+      } ?: jmmNMM.bootstrapContext.dns.connect(mmid)
 
       val (deskIpc) = jmmNMM.bootstrapContext.dns.connect("desk.browser.dweb")
       debugJMM("openApp", "postMessage==>activity desk.browser.dweb")

@@ -1,6 +1,6 @@
 import { bindThis } from "../../helper/bindThis.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
-import type { GetUriOptions, GetUriResult, WriteFileOptions, WriteFileResult } from "./file-system.type.ts";
+import type { FilesOption, GetUriOptions, GetUriResult, WriteFileOptions, WriteFileResult } from "./file-system.type.ts";
 
 export class FileSystemPlugin extends BasePlugin {
   constructor() {
@@ -15,6 +15,31 @@ export class FileSystemPlugin extends BasePlugin {
     return {
       uri: result,
     };
+  }
+
+  /**
+   * 保存图片到相册
+   * @compatibility android/ios only
+   * @param options 
+   * @returns
+   */
+  @bindThis
+  async savePictures(options:FilesOption) {
+    const data = new FormData();
+    if (options.files && options.files.length !== 0) {
+      for (let i = 0; i < options.files.length; i++) {
+        const file = options.files.item(i)!;
+        data.append("files", file);
+      }
+    }
+    const result = await this.buildApiRequest("/savePictures", {
+      method: "POST",
+      body: data,
+      base: await BasePlugin.public_url,
+    })
+      .fetch()
+      .boolean();
+    return result;
   }
 
   @bindThis

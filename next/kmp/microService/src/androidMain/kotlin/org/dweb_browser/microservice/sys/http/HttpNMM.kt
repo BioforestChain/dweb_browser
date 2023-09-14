@@ -114,14 +114,14 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
           ".dweb"
         )
       ) {
-        debugFetch("HTTP/nativeFetch", "$fromMM => ${request.uri}")
+        debugFetch("HTTP/nativeFetch", "$fromMM => ${request.uri} authority-> ${dwebServer.authority}")
         // 无需走网络层，直接内部处理掉
         httpHandler(
           request
             // 头部里添加 X-Dweb-Host
             .header("X-Dweb-Host", request.uri.getFullAuthority())
           // 替换 url 的 authority（host+port）
-//            .uri(request.uri.scheme("http").authority(dwebServer.authority))
+            .uri(request.uri.scheme("http").authority(dwebServer.authority))
         )
       } else null
     }.removeWhen(onAfterShutdown);

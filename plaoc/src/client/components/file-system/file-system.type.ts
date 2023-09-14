@@ -1,3 +1,9 @@
+
+export interface FilesOption {
+  files?: FileList;
+}
+
+
 export enum Directory {
   /**
    * The Documents directory
@@ -466,85 +472,6 @@ export interface CopyResult {
    * @since 4.0.0
    */
   uri: string;
-}
-
-export interface FilesystemPlugin {
-  /**
-   * Read a file from disk
-   *
-   * @since 1.0.0
-   */
-  readFile(options: ReadFileOptions): Promise<ReadFileResult>;
-
-  /**
-   * Write a file to disk in the specified location on device
-   *
-   * @since 1.0.0
-   */
-  writeFile(options: WriteFileOptions): Promise<WriteFileResult>;
-
-  /**
-   * Append to a file on disk in the specified location on device
-   *
-   * @since 1.0.0
-   */
-  appendFile(options: AppendFileOptions): Promise<void>;
-
-  /**
-   * Delete a file from disk
-   *
-   * @since 1.0.0
-   */
-  deleteFile(options: DeleteFileOptions): Promise<void>;
-
-  /**
-   * Create a directory.
-   *
-   * @since 1.0.0
-   */
-  mkdir(options: MkdirOptions): Promise<void>;
-
-  /**
-   * Remove a directory
-   *
-   * @since 1.0.0
-   */
-  rmdir(options: RmdirOptions): Promise<void>;
-
-  /**
-   * Return a list of files from the directory (not recursive)
-   *
-   * @since 1.0.0
-   */
-  readdir(options: ReaddirOptions): Promise<ReaddirResult>;
-
-  /**
-   * Return full File URI for a path and directory
-   *
-   * @since 1.0.0
-   */
-  getUri(options: GetUriOptions): Promise<GetUriResult>;
-
-  /**
-   * Return data about a file
-   *
-   * @since 1.0.0
-   */
-  stat(options: StatOptions): Promise<StatResult>;
-
-  /**
-   * Rename a file or directory
-   *
-   * @since 1.0.0
-   */
-  rename(options: RenameOptions): Promise<void>;
-
-  /**
-   * Copy a file or directory
-   *
-   * @since 1.0.0
-   */
-  copy(options: CopyOptions): Promise<CopyResult>;
 }
 
 /**

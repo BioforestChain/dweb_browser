@@ -1,7 +1,6 @@
 import isMobile from "npm:is-mobile";
 import { X_PLAOC_QUERY } from "./const.ts";
 import { $OnFetchReturn, FetchEvent, IpcHeaders, jsProcess } from "./deps.ts";
-import { emulatorDuplexs } from "./http-api-server.(dev).ts";
 import { Server_www as _Server_www } from "./http-www-server.ts";
 
 /**
@@ -23,37 +22,36 @@ export class Server_www extends _Server_www {
   }
 
   protected async _onEmulator(request: FetchEvent, _emulatorFlags: string): Promise<$OnFetchReturn> {
-    const indexUrl = (await super.getStartResult()).urlInfo.buildInternalUrl((url) => {
-      url.pathname = request.pathname;
-      url.search = request.search;
-    });
-
-    if (indexUrl.pathname.endsWith(".html") || indexUrl.pathname.endsWith("/")) {
-      /// 判 定SessionId 的唯一性，如果已经被使用，创新一个新的 SessionId 进行跳转
-      const sessionId = indexUrl.searchParams.get(X_PLAOC_QUERY.SESSION_ID);
-      if (sessionId === null || emulatorDuplexs.has(sessionId)) {
-        const newSessionId = crypto.randomUUID();
-        const updateUrlWithSessionId = (url: URL) => {
-          url.searchParams.set(X_PLAOC_QUERY.SESSION_ID, newSessionId);
-          return url;
-        };
-        updateUrlWithSessionId(indexUrl);
-        indexUrl.searchParams.set(
-          X_PLAOC_QUERY.API_INTERNAL_URL,
-          updateUrlWithSessionId(new URL(indexUrl.searchParams.get(X_PLAOC_QUERY.API_INTERNAL_URL)!)).href
-        );
-        indexUrl.searchParams.set(
-          X_PLAOC_QUERY.API_PUBLIC_URL,
-          updateUrlWithSessionId(new URL(indexUrl.searchParams.get(X_PLAOC_QUERY.API_PUBLIC_URL)!)).href
-        );
-        return {
-          status: 301,
-          headers: {
-            Location: indexUrl.href,
-          },
-        };
-      }
-    }
+    // const indexUrl = (await super.getStartResult()).urlInfo.buildInternalUrl((url) => {
+    //   url.pathname = request.pathname;
+    //   url.search = request.search;
+    // });
+    // if (indexUrl.pathname.endsWith(".html") || indexUrl.pathname.endsWith("/")) {
+    //   /// 判 定SessionId 的唯一性，如果已经被使用，创新一个新的 SessionId 进行跳转
+    //   const sessionId = indexUrl.searchParams.get(X_PLAOC_QUERY.SESSION_ID);
+    //   if (sessionId === null || emulatorDuplexs.has(sessionId)) {
+    //     const newSessionId = crypto.randomUUID();
+    //     const updateUrlWithSessionId = (url: URL) => {
+    //       url.searchParams.set(X_PLAOC_QUERY.SESSION_ID, newSessionId);
+    //       return url;
+    //     };
+    //     updateUrlWithSessionId(indexUrl);
+    //     indexUrl.searchParams.set(
+    //       X_PLAOC_QUERY.API_INTERNAL_URL,
+    //       updateUrlWithSessionId(new URL(indexUrl.searchParams.get(X_PLAOC_QUERY.API_INTERNAL_URL)!)).href
+    //     );
+    //     indexUrl.searchParams.set(
+    //       X_PLAOC_QUERY.API_PUBLIC_URL,
+    //       updateUrlWithSessionId(new URL(indexUrl.searchParams.get(X_PLAOC_QUERY.API_PUBLIC_URL)!)).href
+    //     );
+    //     return {
+    //       status: 301,
+    //       headers: {
+    //         Location: indexUrl.href,
+    //       },
+    //     };
+    //   }
+    // }
     // return super._provider(request, "www");
     return super._provider(request, "server/emulator");
   }

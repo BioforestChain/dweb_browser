@@ -88,7 +88,7 @@ suspend fun startDwebBrowser(): DnsNMM {
     )
 
     else -> addDebugTags(
-      listOf("desk","mwebview")
+      listOf("desk","mwebview","fetch")
     )
   }
 
