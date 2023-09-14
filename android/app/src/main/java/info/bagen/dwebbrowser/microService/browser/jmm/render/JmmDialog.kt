@@ -30,7 +30,7 @@ internal fun DialogForWebviewVersion() {
   val loadingManager = LocalLoadingViewManager.current
   val loadingUrl = LocalCommonUrl.current
   val currentVersion = remember { mutableStateOf("") }
-  val lowVersion = "196.0.4664.104" // TODO 目前暂定该版本信息最低要求为96.0.4664.104以上
+  val lowVersion = "96.0.4664.104" // TODO 目前暂定该版本信息最低要求为96.0.4664.104以上
   LaunchedEffect(Unit) {
     WebView.getCurrentWebViewPackage()?.versionName?.let { version -> // 获取当前WebView版本号
       currentVersion.value = version // 103.0.5060.129
