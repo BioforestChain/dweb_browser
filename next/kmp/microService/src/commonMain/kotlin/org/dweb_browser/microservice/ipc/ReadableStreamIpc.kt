@@ -1,5 +1,6 @@
 package org.dweb_browser.microservice.ipc
 
+import io.ktor.util.moveToByteArray
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.cancel
 import io.ktor.utils.io.core.toByteArray
@@ -16,8 +17,10 @@ import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.printError
 import org.dweb_browser.helper.readByteArray
 import org.dweb_browser.helper.toByteArray
+import org.dweb_browser.helper.toInt
 import org.dweb_browser.helper.toUtf8
 import org.dweb_browser.helper.toUtf8ByteArray
+import org.dweb_browser.microservice.help.consumeEachArrayRange
 import org.dweb_browser.microservice.help.types.IMicroModuleManifest
 import org.dweb_browser.microservice.http.PureStream
 import org.dweb_browser.microservice.ipc.helper.IPC_ROLE
@@ -113,6 +116,11 @@ class ReadableStreamIpc(
     val readStream: suspend () -> Unit = {
       try {
         // 如果通道关闭并且没有剩余字节可供读取，则返回 true
+//        reader.readAvailable(4) {
+//          val size = it.moveToByteArray().toInt()
+//
+//          if(size <= 0)
+//        }
         while (reader.availableForRead > 0) {
           val size = reader.readInt()
           if (size <= 0) {

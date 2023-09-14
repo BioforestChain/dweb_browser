@@ -188,12 +188,9 @@ class ConsumeEachArrayRangeController {
  * data corruptions may occur. The visitor block may be invoked multiple times, once or never.
  */
 suspend inline fun ByteReadChannel.consumeEachArrayRange(visitor: ConsumeEachArrayVisitor) {
-
-  var continueFlag: Boolean
   var lastChunkReported = false
   val controller = ConsumeEachArrayRangeController()
   do {
-    continueFlag = false
     read { source, start, endExclusive ->
       val nioBuffer: ByteArray = when {
         endExclusive > start -> source.slice(start, endExclusive - start).run {

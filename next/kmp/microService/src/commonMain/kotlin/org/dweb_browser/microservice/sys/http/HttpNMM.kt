@@ -2,6 +2,7 @@ package org.dweb_browser.microservice.sys.http
 
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.ParametersBuilder
 import io.ktor.http.URLBuilder
 import io.ktor.http.Url
 import io.ktor.http.authority
@@ -126,10 +127,8 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     /// 模块 API 接口
     routes("/start" bind HttpMethod.Get to defineJsonResponse {
       start(
-        ipc,
-        DwebHttpServerOptions(
-          request.queryOrFail("port").toInt(),
-          request.queryOrFail("subdomain")
+        ipc, DwebHttpServerOptions(
+          request.queryOrFail("port").toInt(), request.queryOrFail("subdomain")
         )
       ).toJsonElement()
     },
@@ -162,6 +161,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
   ) {
     fun buildPublicUrl(): Url {
       val builder = URLBuilder(public_origin);
+//      builder.encodedParameters.caseInsensitiveName = true
       builder.parameters.append("X-Dweb-Host", host)
       return builder.build()
     }
@@ -262,35 +262,32 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
   }
 }
 
+val reg_host = Regex("Host", RegexOption.IGNORE_CASE)
+val reg_x_dweb_host = Regex("X-Dweb-Host", RegexOption.IGNORE_CASE)
+val reg_authorization = Regex("Authorization", RegexOption.IGNORE_CASE)
 fun findRequestGateway(request: PureRequest): String? {
   var header_host: String? = null
   var header_x_dweb_host: String? = null
   var header_auth_host: String? = null
   val query_x_dweb_host: String? = request.query("X-Dweb-Host")?.decodeURIComponent()
   for ((key, value) in request.headers) {
-    when (key) {
-      "Host" -> {
-        if (Regex("""\.dweb(:\d+)?$""").matches(value)) header_host = value
-      }
-
-      "X-Dweb-Host" -> {
-        header_x_dweb_host = value
-      }
-
-      "Authorization" -> {
-        Regex("""^ *(?:[Bb][Aa][Ss][Ii][Cc]) +([A-Za-z0-9._~+/-]+=*) *$""").find(value)
-          ?.also { matchResult ->
-            matchResult.groupValues.getOrNull(1)?.also { base64Content ->
-              val userInfo = base64Content.decodeBase64String()
-              val splitIndex = userInfo.lastIndexOf(':')
-              header_auth_host = if (splitIndex == -1) {
-                userInfo
-              } else {
-                userInfo.slice(0 until splitIndex)
-              }.decodeURIComponent()
-            }
+    if (reg_host.matches(key)) {
+      if (Regex("""\.dweb(:\d+)?$""").matches(value)) header_host = value
+    } else if (reg_x_dweb_host.matches(key)) {
+      header_x_dweb_host = value
+    } else if (reg_authorization.matches(key)) {
+      Regex("""^ *(?:[Bb][Aa][Ss][Ii][Cc]) +([A-Za-z0-9._~+/-]+=*) *$""").find(value)
+        ?.also { matchResult ->
+          matchResult.groupValues.getOrNull(1)?.also { base64Content ->
+            val userInfo = base64Content.decodeBase64String()
+            val splitIndex = userInfo.lastIndexOf(':')
+            header_auth_host = if (splitIndex == -1) {
+              userInfo
+            } else {
+              userInfo.slice(0 until splitIndex)
+            }.decodeURIComponent()
           }
-      }
+        }
     }
   }
   val x_dweb_host = query_x_dweb_host ?: header_auth_host ?: header_x_dweb_host ?: header_host
