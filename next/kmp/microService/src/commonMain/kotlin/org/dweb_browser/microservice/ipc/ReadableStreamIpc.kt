@@ -104,7 +104,7 @@ class ReadableStreamIpc(
     if (isClosed) {
       throw Exception("")
     }
-    val reader = stream.getReader().also { this.reader = it }
+    val reader = stream.getReader("ReadableStreamIpc bindIncomeStream").also { this.reader = it }
     signal.signal.listen {
       debugStreamIpc("ReadableStreamIpc", "readStream close")
       reader.cancel()

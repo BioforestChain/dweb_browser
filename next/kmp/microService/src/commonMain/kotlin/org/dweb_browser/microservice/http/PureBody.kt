@@ -19,7 +19,7 @@ sealed interface IPureBody {
   suspend fun toPureString(): PureString
 
   companion object {
-    val Empty: PureEmptyBody = PureEmptyBody()
+    val Empty get() = PureEmptyBody()
 
     enum class PureStringEncoding {
       Utf8,
@@ -78,7 +78,8 @@ class PureStreamBody(private val stream: PureStream) : IPureBody {
   private var byteArray: ByteArray? = null
   private val lock = Mutex()
   override suspend fun toPureBinary() = lock.withLock {
-    byteArray ?: stream.getReader().toByteArray().also { byteArray = it }
+    byteArray ?: stream.getReader("PureStreamBody toPureBinary").toByteArray()
+      .also { byteArray = it }
   }
 
   override suspend fun toPureString() = toPureBinary().toUtf8()
@@ -105,6 +106,7 @@ class PureStringBody(private val data: PureString) : IPureBody {
 class PureEmptyBody : IPureBody {
   override val contentLength = 0L
 
+  private val emptyStream by lazy { PureStream(ByteReadChannel(emptyByteArray)) }
   override fun toPureStream() = emptyStream
 
   override suspend fun toPureBinary() = emptyByteArray
@@ -113,6 +115,5 @@ class PureEmptyBody : IPureBody {
 
   companion object {
     private val emptyByteArray = ByteArray(0)
-    private val emptyStream = PureStream(ByteReadChannel(emptyByteArray))
   }
 }

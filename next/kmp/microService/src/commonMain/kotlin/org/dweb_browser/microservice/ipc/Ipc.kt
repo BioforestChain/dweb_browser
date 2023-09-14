@@ -329,6 +329,6 @@ abstract class Ipc {
 
 data class IpcRequestInit(
   var method: IpcMethod = IpcMethod.GET,
-  var body: IPureBody = PureEmptyBody(),
+  var body: IPureBody = IPureBody.Empty,
   var headers: IpcHeaders = IpcHeaders()
 )

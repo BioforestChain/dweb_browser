@@ -5,15 +5,15 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 
 open class PureStream(private val readChannel: ByteReadChannel) {
-  private var opened = false
-  val isOpened get() = opened
+  private var opened: String? = null
+  val isOpened get() = opened != null
   private val openedDeferred = CompletableDeferred<Unit>()
   val afterOpened: Deferred<Unit> = openedDeferred
-  fun getReader(): ByteReadChannel {
-    if (opened) {
-      throw Exception("stream already been read")
+  fun getReader(reason: String): ByteReadChannel {
+    if (opened != null) {
+      throw Exception("stream already been read: $opened")
     }
-    opened = true
+    opened = reason
     openedDeferred.complete(Unit)
     return readChannel
   }

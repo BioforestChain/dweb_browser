@@ -23,18 +23,24 @@ data class DwebHttpServerOptions(
   val subdomain: String = "",
 ) {
 //  constructor(
-//    port: Int? = null,
-//    subdomain: String? = null,
+//    port: Int? = 80,
+//    subdomain: String? = "",
 //  ) : this(port ?: 80, subdomain ?: "")
 }
 
-suspend fun MicroModule.startHttpDwebServer(options: DwebHttpServerOptions) =
-  this.nativeFetch(
-    URLBuilder("file://http.std.dweb/start").apply {
-      parameters["port"] = options.port.toString()
-      parameters["subdomain"] = options.subdomain
-    }.buildString()
+suspend fun MicroModule.startHttpDwebServer(options: DwebHttpServerOptions) : HttpNMM.ServerStartResult {
+  val urlString = URLBuilder("file://http.std.dweb/start").apply {
+    parameters["port"] = options.port.toString()
+    parameters["subdomain"] = options.subdomain
+  }.buildUnsafeString()
+
+  println("xxxxxx urlString : $urlString")
+
+  return this.nativeFetch(
+    urlString
   ).json<HttpNMM.ServerStartResult>()
+}
+
 
 
 suspend fun MicroModule.listenHttpDwebServer(

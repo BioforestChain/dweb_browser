@@ -32,7 +32,7 @@ class ReadableStreamTestTest {
 
     val result = atomic(0)
 
-    val readChannel = stream.stream.getReader()
+    val readChannel = stream.stream.getReader("")
     while(stream.available() > 0) {
       println("byteArray: ${readChannel.readPacket(readChannel.availableForRead).readByteArray()}")
       result.incrementAndGet()

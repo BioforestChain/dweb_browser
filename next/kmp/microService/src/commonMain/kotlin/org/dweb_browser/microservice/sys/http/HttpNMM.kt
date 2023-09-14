@@ -86,10 +86,11 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     return response ?: PureResponse(HttpStatusCode.NotFound)
   }
 
-  private val noGatewayResponse = PureResponse(
-    HttpStatusCode.Unauthorized,
-    IpcHeaders(mutableMapOf(Pair("WWW-Authenticate", """Basic realm="dweb"""")))
-  )
+  private val noGatewayResponse
+    get() = PureResponse(
+      HttpStatusCode.Unauthorized,
+      IpcHeaders(mutableMapOf(Pair("WWW-Authenticate", """Basic realm="dweb"""")))
+    )
 
   public override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     /// 启动http后端服务
@@ -124,8 +125,13 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
 
     /// 模块 API 接口
     routes("/start" bind HttpMethod.Get to defineJsonResponse {
-//      debugHttp("xxxxx start query", "${request.queryAsObject<ServerStartResult>()}")
-      start(ipc, request.queryAsObject()).toJsonElement()
+      start(
+        ipc,
+        DwebHttpServerOptions(
+          request.queryOrFail("port").toInt(),
+          request.queryOrFail("subdomain")
+        )
+      ).toJsonElement()
     },
       //
       "/listen" bind HttpMethod.Post to definePureStreamHandler {

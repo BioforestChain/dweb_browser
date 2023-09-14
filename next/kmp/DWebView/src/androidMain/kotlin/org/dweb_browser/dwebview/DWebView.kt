@@ -248,6 +248,9 @@ class DWebView(
           )
         }.getOrThrow()
 
+        val stream = response.body.toPureStream()
+        println("shouldInterceptRequest isOpened: ${stream.isOpened}")
+        val inputStream = stream.getReader("dwebview shouldInterceptRequest").toInputStream()
         val contentType = ContentType.parse(response.headers.get("Content-Type") ?: "")
 
         debugDWebView("dwebProxyer end", request.url)
@@ -261,7 +264,8 @@ class DWebView(
           response.status.value,
           response.status.description,
           response.headers.toMap(),
-          response.body.toPureStream().getReader().toInputStream(),
+          inputStream
+//          response.body.toPureStream().getReader().toInputStream(),
         )
       }
       return super.shouldInterceptRequest(view, request)

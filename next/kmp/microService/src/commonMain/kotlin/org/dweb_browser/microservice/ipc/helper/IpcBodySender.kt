@@ -315,7 +315,7 @@ class IpcBodySender(
     debugIpcBody("sender/INIT/$stream", stream_id)
     val streamAsMetaScope =
       CoroutineScope(CoroutineName("sender/$stream/$stream_id") + ioAsyncExceptionHandler)
-    val reader by lazy { stream.getReader() }
+    val reader by lazy { stream.getReader("ipcBodySender StreamAsMeta") }
     streamAsMetaScope.launch {
       /**
        * 流的使用锁(Future 锁)

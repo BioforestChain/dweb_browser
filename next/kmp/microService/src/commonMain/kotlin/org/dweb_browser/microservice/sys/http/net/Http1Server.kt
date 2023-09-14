@@ -89,7 +89,7 @@ class Http1Server {
                     200 -> {
                       val res = WebSocketUpgrade(call, null) {
                         val ws = this;
-                        val streamReader = response.stream().getReader()
+                        val streamReader = response.stream().getReader("Http1Server websocket")
                         launch {
                           /// 将从客户端收到的数据，转成 200 的标准传输到 request 的 bodyStream 中
                           for (frame in ws.incoming) {

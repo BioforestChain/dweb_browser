@@ -77,7 +77,7 @@ suspend fun ApplicationResponse.fromPureResponse(response: PureResponse) {
     is PureStreamBody -> this.call.respondBytesWriter(
       status = response.status
     ) {
-      pureBody.toPureStream().getReader().copyAndClose(this)
+      pureBody.toPureStream().getReader("ktorAndHttp4kHelper toApplicationResponse").copyAndClose(this)
     }
   }
 }

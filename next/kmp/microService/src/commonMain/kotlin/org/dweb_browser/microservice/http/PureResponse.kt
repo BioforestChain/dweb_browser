@@ -65,4 +65,4 @@ data class PureResponse(
 }
 
 fun PureResponse.toFetchResponse() =
-  FetchResponse(status, headers.toList(), body.toPureStream().getReader())
+  FetchResponse(status, headers.toList(), body.toPureStream().getReader("toFetchResponse"))

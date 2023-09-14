@@ -56,7 +56,7 @@ class ShareNMM : AndroidNativeMicroModule("share.sys.dweb", "share") {
           url = request.query("url")
         )
 //        try {
-        val readChannel = request.body.toPureStream().getReader()
+        val readChannel = request.body.toPureStream().getReader("share /share")
         val httpHeadersMap = parseHeaders(readChannel)
 
         ioAsyncScope.parseMultipart(readChannel, httpHeadersMap).consumeEach {
