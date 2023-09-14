@@ -3,9 +3,7 @@ package info.bagen.dwebbrowser.microService.browser.jmm
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLBuilder
 import io.ktor.http.fullPath
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.plus
 import kotlinx.coroutines.withContext
 import org.dweb_browser.dwebview.ipcWeb.Native2JsIpc
 import org.dweb_browser.helper.ImageResource
@@ -99,7 +97,6 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) : MicroModule(
    * 所以不会和其它程序所使用的 pid 冲突
    */
   private var processId: String? = null
-  private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
 
   val pid = ByteArray(8).also { Random().nextBytes(it) }.toBase64Url()
   private suspend fun createNativeStream(): ReadableStreamIpc =

@@ -5,10 +5,8 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLBuilder
 import io.ktor.http.Url
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.plus
 import org.dweb_browser.browserUI.database.AppType
 import org.dweb_browser.browserUI.database.DeskAppInfo
 import org.dweb_browser.browserUI.database.DeskAppInfoStore
@@ -18,8 +16,6 @@ import org.dweb_browser.browserUI.microService.browser.link.WebLinkMicroModule
 import org.dweb_browser.browserUI.ui.browser.resolvePath
 import org.dweb_browser.browserUI.util.BrowserUIApp
 import org.dweb_browser.browserUI.util.FilesUtil
-import org.dweb_browser.helper.ImageResource
-import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.core.AndroidNativeMicroModule
 import org.dweb_browser.microservice.core.BootstrapContext
@@ -72,7 +68,6 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
   }
 
   private var jmmController: JmmController? = null
-  private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
 
   fun getApps(mmid: MMID): IMicroModuleManifest? {
     return bootstrapContext.dns.query(mmid)

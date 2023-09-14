@@ -1,6 +1,6 @@
 package info.bagen.dwebbrowser.microService.browser.desk
 
-import android.app.Activity
+//import org.dweb_browser.microservice.help.cors
 import android.content.Intent
 import android.os.Bundle
 import info.bagen.dwebbrowser.App
@@ -8,9 +8,7 @@ import info.bagen.dwebbrowser.microService.browser.jmm.EIpcEvent
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.util.moveToByteArray
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.plus
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.ChangeState

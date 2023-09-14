@@ -5,7 +5,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.fullPath
 import io.ktor.utils.io.core.toByteArray
 import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -69,7 +68,6 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
   /** 对等连接列表 */
   private val mmConnectsMap = mutableMapOf<MM, PromiseOut<ConnectResult>>()
   private val mmConnectsMapLock = Mutex()
-  private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
 
 
   /** 为两个mm建立 ipc 通讯 */

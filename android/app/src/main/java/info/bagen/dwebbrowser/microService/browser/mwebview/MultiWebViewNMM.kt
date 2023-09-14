@@ -1,16 +1,12 @@
 package info.bagen.dwebbrowser.microService.browser.mwebview
 
 import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.plus
 import org.dweb_browser.browserUI.download.DownLoadObserver
 import org.dweb_browser.dwebview.serviceWorker.emitEvent
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.debounce
 import org.dweb_browser.helper.enumToComparable
-import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.microservice.core.AndroidNativeMicroModule
@@ -18,7 +14,6 @@ import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.types.MMID
-import org.dweb_browser.microservice.http.PureResponse
 import org.dweb_browser.microservice.http.bind
 import org.dweb_browser.microservice.http.routes
 import org.dweb_browser.microservice.ipc.Ipc
@@ -41,8 +36,6 @@ class MultiWebViewNMM :
   companion object {
     private val controllerMap = mutableMapOf<MMID, MultiWebViewController>()
   }
-
-  private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     // 打开webview

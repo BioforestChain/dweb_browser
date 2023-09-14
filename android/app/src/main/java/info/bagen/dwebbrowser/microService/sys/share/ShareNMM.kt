@@ -10,12 +10,9 @@ import io.ktor.http.cio.MultipartEvent
 import io.ktor.http.cio.parseHeaders
 import io.ktor.http.cio.parseMultipart
 import io.ktor.utils.io.jvm.javaio.toInputStream
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.channels.consumeEach
-import kotlinx.coroutines.plus
 import kotlinx.serialization.Serializable
 import org.dweb_browser.helper.PromiseOut
-import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.microservice.core.AndroidNativeMicroModule
@@ -39,7 +36,6 @@ class ShareNMM : AndroidNativeMicroModule("share.sys.dweb", "share") {
     categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Protocol_Service);
   }
 
-  private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
   private val plugin = CacheFilePlugin()
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
 //    val shareOption = Query.composite { spec ->
