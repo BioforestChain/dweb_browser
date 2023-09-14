@@ -1,6 +1,4 @@
 import org.apache.tools.ant.taskdefs.condition.Os
-import org.jetbrains.kotlin.diagnostics.deprecationError0
-import kotlin.system.exitProcess
 
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 plugins {

@@ -58,15 +58,16 @@ android {
       isMinifyEnabled = true //开启代码混淆
       setProguardFiles(listOf("proguard-rules.pro"))
       isShrinkResources = true //移除无用的resource文件
+      applicationIdSuffix = null
+      versionNameSuffix = null
     }
     debug {
-      defaultConfig {
-        val userName = System.getProperty("user.name")
-          .replace("[^a-zA-Z0-9]".toRegex(), "").lowercase()
-        resValue("string", "appName", "Dev-$userName")
-        applicationIdSuffix = "debug$userName"
-        versionNameSuffix = "debug-$userName"
-      }
+      signingConfig = signingConfigs.getByName("debug")
+      val userName = System.getProperty("user.name")
+        .replace("[^a-zA-Z0-9]".toRegex(), "").lowercase()
+      resValue("string", "appName", "Dev-$userName")
+      applicationIdSuffix = ".debug$userName"
+      versionNameSuffix = ".debug-$userName"
     }
     create("benchmark") {
       matchingFallbacks += listOf("debug")
