@@ -133,7 +133,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
       //
       "/listen" bind HttpMethod.Post to definePureStreamHandler {
         val token = request.queryOrFail("token")
-        val routes = Json.decodeFromString<List<Gateway.RouteConfig>>(request.queryOrFail("routes"))
+        val routes = Json.decodeFromString<List<RouteConfig>>(request.queryOrFail("routes"))
         listen(token, request, routes)
       },
       //
@@ -225,7 +225,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
    *  绑定流监听
    */
   private fun listen(
-    token: String, message: PureRequest, routes: List<Gateway.RouteConfig>
+    token: String, message: PureRequest, routes: List<RouteConfig>
   ): PureStream {
     debugHttp("LISTEN", tokenMap.keys.toList())
     val gateway = tokenMap[token] ?: throw Exception("no gateway with token: $token")

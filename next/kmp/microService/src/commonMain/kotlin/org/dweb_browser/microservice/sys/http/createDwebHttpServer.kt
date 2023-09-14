@@ -34,8 +34,6 @@ suspend fun MicroModule.startHttpDwebServer(options: DwebHttpServerOptions) : Ht
     parameters["subdomain"] = options.subdomain
   }.buildUnsafeString()
 
-  println("xxxxxx urlString : $urlString")
-
   return this.nativeFetch(
     urlString
   ).json<HttpNMM.ServerStartResult>()
@@ -46,16 +44,16 @@ suspend fun MicroModule.startHttpDwebServer(options: DwebHttpServerOptions) : Ht
 suspend fun MicroModule.listenHttpDwebServer(
   microModule: IMicroModuleManifest,
   startResult: HttpNMM.ServerStartResult,
-  routes: Array<Gateway.RouteConfig> = arrayOf(
-    Gateway.RouteConfig(pathname = "", method = IpcMethod.GET),
-    Gateway.RouteConfig(pathname = "", method = IpcMethod.POST),
-    Gateway.RouteConfig(pathname = "", method = IpcMethod.PUT),
-    Gateway.RouteConfig(pathname = "", method = IpcMethod.DELETE),
-    Gateway.RouteConfig(pathname = "", method = IpcMethod.OPTIONS),
-    Gateway.RouteConfig(pathname = "", method = IpcMethod.PATCH),
-    Gateway.RouteConfig(pathname = "", method = IpcMethod.HEAD),
-    Gateway.RouteConfig(pathname = "", method = IpcMethod.CONNECT),
-    Gateway.RouteConfig(pathname = "", method = IpcMethod.TRACE)
+  routes: Array<RouteConfig> = arrayOf(
+    RouteConfig(pathname = "", method = IpcMethod.GET),
+    RouteConfig(pathname = "", method = IpcMethod.POST),
+    RouteConfig(pathname = "", method = IpcMethod.PUT),
+    RouteConfig(pathname = "", method = IpcMethod.DELETE),
+    RouteConfig(pathname = "", method = IpcMethod.OPTIONS),
+    RouteConfig(pathname = "", method = IpcMethod.PATCH),
+    RouteConfig(pathname = "", method = IpcMethod.HEAD),
+    RouteConfig(pathname = "", method = IpcMethod.CONNECT),
+    RouteConfig(pathname = "", method = IpcMethod.TRACE)
   )
 ): ReadableStreamIpc {
   val httpIpc = this.connect("http.std.dweb")

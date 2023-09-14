@@ -1,15 +1,13 @@
 package org.dweb_browser.microservice.http
 
 import io.ktor.http.HttpMethod
-import io.ktor.http.fullPath
 import org.dweb_browser.microservice.core.HttpHandler
 import org.dweb_browser.microservice.ipc.helper.IpcMethod
 import org.dweb_browser.microservice.ipc.helper.IpcRequest
-import org.dweb_browser.microservice.sys.http.Gateway
-import org.dweb_browser.microservice.sys.http.MatchMode
+import org.dweb_browser.microservice.sys.http.RouteConfig
 
 class HttpRouter {
-  private val routes = mutableMapOf<Gateway.RouteConfig, HttpHandler>()
+  private val routes = mutableMapOf<RouteConfig, HttpHandler>()
 
   fun addRoutes(vararg list: RoutingHttpHandler) {
     list.forEach {
@@ -18,18 +16,9 @@ class HttpRouter {
   }
 
   fun withFilter(request: IpcRequest): HttpHandler? {
-    for (route in routes) {
-      when (route.key.matchMode) {
-        MatchMode.PREFIX -> if (route.key.method == request.method && request.uri.encodedPath.startsWith(
-            route.key.pathname
-          )
-        ) {
-          return route.value
-        }
-
-        MatchMode.FULL -> if (route.key.method == request.method && request.uri.encodedPath == route.key.pathname) {
-          return route.value
-        }
+    for ((config, handler) in routes) {
+      if (config.isMatch(request.toPure())) {
+        return handler
       }
     }
 
@@ -54,12 +43,16 @@ class HttpRouter {
 }
 
 
-data class RoutingHttpHandler(val routeConfig: Gateway.RouteConfig, val handler: HttpHandler)
+data class RoutingHttpHandler(val routeConfig: RouteConfig, val handler: HttpHandler)
 
 
 class PathMethod(private val path: String, private val method: HttpMethod) {
-  infix fun to(action: HttpHandler): RoutingHttpHandler =
-    RoutingHttpHandler(Gateway.RouteConfig(path, IpcMethod.from(method)), action)
+  infix fun to(action: HttpHandler): RoutingHttpHandler = RoutingHttpHandler(
+    RouteConfig(pathname = path, method = IpcMethod.from(method)), action
+  )
 }
 
-infix fun String.bind(method: HttpMethod): PathMethod = PathMethod(this, method)
+infix fun String.bind(method: HttpMethod) = PathMethod(this, method)
+infix fun String.bindDwebDeeplink(action: HttpHandler) = RoutingHttpHandler(
+  RouteConfig(dwebDeeplink = true, pathname = this, method = IpcMethod.GET), action
+)

@@ -1,8 +1,6 @@
 package org.dweb_browser.microservice.sys.http
 
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.fullPath
-import kotlinx.serialization.Serializable
 import org.dweb_browser.helper.SimpleCallback
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.microservice.http.PureRequest
@@ -17,8 +15,7 @@ class Gateway(
 ) {
 
   class PortListener(
-    val ipc: Ipc,
-    val host: String
+    val ipc: Ipc, val host: String
   ) {
     private val _routerSet = mutableSetOf<StreamIpcRouter>();
 
@@ -56,30 +53,8 @@ class Gateway(
     }
   }
 
-  @Serializable
-  data class RouteConfig(
-    val pathname: String,
-    val method: IpcMethod,
-    val matchMode: MatchMode = MatchMode.PREFIX
-  )
-
   class StreamIpcRouter(val config: RouteConfig, val streamIpc: ReadableStreamIpc) {
-
-    val isMatch: (request: PureRequest) -> Boolean by lazy {
-      when (config.matchMode) {
-        MatchMode.PREFIX -> { request ->
-          request.method == config.method && request.safeUrl.encodedPath.startsWith(
-            config.pathname
-          )
-        }
-
-        MatchMode.FULL -> { request ->
-          request.method == config.method && request.safeUrl.encodedPath == config.pathname
-        }
-      }
-    }
-
-    suspend fun handler(request: PureRequest) = if (isMatch(request)) {
+    suspend fun handler(request: PureRequest) = if (config.isMatch(request)) {
       streamIpc.request(request)
     } else if (request.method == IpcMethod.OPTIONS) {
       // 处理options请求

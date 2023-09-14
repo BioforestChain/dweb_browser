@@ -194,7 +194,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     }.removeWhen(this.onAfterShutdown)
     /** dwebDeepLink 适配器*/
     nativeFetchAdaptersManager.append { fromMM, request ->
-      if (request.safeUrl.protocol.name == "dweb" && request.safeUrl.host == "") {
+      if (request.safeUrl.protocol.name == "dweb") {
         debugFetch("DPLink/nativeFetch", "$fromMM => ${request.url}")
         val dwebDeeplinkUri = Url(request.href.replace(Regex("^dweb:/+"), "dweb:"))
         val requestWithDeeplink = request.copy(href = dwebDeeplinkUri)

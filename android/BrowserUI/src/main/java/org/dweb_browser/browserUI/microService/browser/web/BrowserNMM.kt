@@ -2,7 +2,6 @@ package org.dweb_browser.browserUI.microService.browser.web
 
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.fullPath
 import kotlinx.coroutines.withContext
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.mainAsyncExceptionHandler
@@ -12,6 +11,7 @@ import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.http.PureResponse
 import org.dweb_browser.microservice.http.bind
+import org.dweb_browser.microservice.http.bindDwebDeeplink
 import org.dweb_browser.microservice.ipc.helper.IpcResponse
 import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.dweb_browser.microservice.sys.http.DwebHttpServerOptions
@@ -45,12 +45,12 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
     }
 
     routes(
-      "search" bind HttpMethod.Get to definePureResponse {
+      "search" bindDwebDeeplink definePureResponse {
         debugBrowser("do search", request.url)
         browserController.openBrowserWindow(search = request.queryOrFail("q"))
         return@definePureResponse PureResponse(HttpStatusCode.OK)
       },
-      "openinbrowser" bind HttpMethod.Get to definePureResponse {
+      "openinbrowser" bindDwebDeeplink definePureResponse {
         debugBrowser("do openinbrowser", request.url)
         browserController.openBrowserWindow(url = request.queryOrFail("url"))
         return@definePureResponse PureResponse(HttpStatusCode.OK)
