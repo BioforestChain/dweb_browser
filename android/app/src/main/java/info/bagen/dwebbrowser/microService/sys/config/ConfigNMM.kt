@@ -8,7 +8,6 @@ import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.http.PureResponse
 import org.dweb_browser.microservice.http.PureStringBody
 import org.dweb_browser.microservice.http.bind
-import org.dweb_browser.microservice.http.routes
 
 class ConfigNMM: NativeMicroModule("config.sys.dweb", "Device Info")  {
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {

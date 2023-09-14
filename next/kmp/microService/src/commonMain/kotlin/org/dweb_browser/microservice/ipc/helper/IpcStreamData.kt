@@ -13,6 +13,7 @@ data class IpcStreamDataJsonAble(
 }
 
 object IpcStreamDataSerializer : ProxySerializer<IpcStreamData, IpcStreamDataJsonAble>(
+  "IpcStreamData",
   IpcStreamDataJsonAble.serializer(),
   { jsonAble },
   { toIpcStreamData() })

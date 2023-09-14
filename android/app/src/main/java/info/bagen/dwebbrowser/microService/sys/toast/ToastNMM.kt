@@ -7,7 +7,6 @@ import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.http.bind
-import org.dweb_browser.microservice.http.routes
 
 class ToastNMM : NativeMicroModule("toast.sys.dweb", "toast") {
 
@@ -34,8 +33,7 @@ class ToastNMM : NativeMicroModule("toast.sys.dweb", "toast") {
         ToastController.show(message, durationType, positionType)
         return@defineBooleanResponse true
       },
-    )
-//      .cors()
+    ).cors()
   }
 
   override suspend fun _shutdown() {
@@ -44,6 +42,5 @@ class ToastNMM : NativeMicroModule("toast.sys.dweb", "toast") {
 }
 
 enum class EToast(val type: String) {
-  Long("long"),
-  Short("short")
+  Long("long"), Short("short")
 }

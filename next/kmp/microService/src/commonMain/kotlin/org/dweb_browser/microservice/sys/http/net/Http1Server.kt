@@ -4,6 +4,7 @@ import io.ktor.server.application.createApplicationPlugin
 import io.ktor.server.application.install
 import io.ktor.server.engine.ApplicationEngine
 import io.ktor.server.engine.embeddedServer
+import io.ktor.server.request.receiveMultipart
 import io.ktor.server.response.respond
 import io.ktor.server.websocket.WebSocketUpgrade
 import io.ktor.server.websocket.WebSockets
@@ -55,7 +56,6 @@ class Http1Server {
 
     val portPo = PromiseOut<Int>()
     CoroutineScope(ioAsyncExceptionHandler).launch {
-      bindingPort = 22206
       server = embeddedServer(getKtorServerEngine(), port = 0) {
         install(WebSockets)
         install(createApplicationPlugin("dweb") {
@@ -66,7 +66,7 @@ class Http1Server {
                 val rawUrl = rawRequest.url
                 val host = findRequestGateway(rawRequest)
                 val url = if (rawUrl.startsWith("/") && host !== null) {
-                  "http://$host$rawUrl"
+                  "${if (rawRequest.isWebSocket()) "ws" else "http"}://$host$rawUrl"
                 } else rawUrl
                 var request = rawRequest.copy(url = url);
 
@@ -131,7 +131,7 @@ class Http1Server {
           }
         })
       }.start(wait = false).also {
-        val bindingPort = it.resolvedConnectors().first().port
+        bindingPort = it.resolvedConnectors().first().port
         portPo.resolve(bindingPort)
       }
     }

@@ -7,7 +7,6 @@ import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.http.bind
-import org.dweb_browser.microservice.http.routes
 
 class HapticsNMM : NativeMicroModule("haptics.sys.dweb", "haptics") {
 
@@ -78,8 +77,7 @@ class HapticsNMM : NativeMicroModule("haptics.sys.dweb", "haptics") {
           ResponseData(e.toString()).toJsonElement()
         }
       },
-    )
-//      .cors()
+    ).cors()
   }
 
   @Serializable

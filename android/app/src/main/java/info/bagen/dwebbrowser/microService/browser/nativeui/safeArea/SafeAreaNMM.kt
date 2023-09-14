@@ -13,7 +13,6 @@ import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.http.PureResponse
 import org.dweb_browser.microservice.http.PureStreamBody
 import org.dweb_browser.microservice.http.bind
-import org.dweb_browser.microservice.http.routes
 
 class SafeAreaNMM : NativeMicroModule("safe-area.nativeui.browser.dweb", "safeArea") {
 
@@ -40,10 +39,11 @@ class SafeAreaNMM : NativeMicroModule("safe-area.nativeui.browser.dweb", "safeAr
        */
       "/observe" bind HttpMethod.Get to definePureResponse {
         val inputStream = getController(ipc.remote.mmid).observer.startObserve(ipc)
-        return@definePureResponse PureResponse(HttpStatusCode.OK, body = PureStreamBody(inputStream))
+        return@definePureResponse PureResponse(
+          HttpStatusCode.OK, body = PureStreamBody(inputStream)
+        )
       },
-    )
-//      .cors()
+    ).cors()
   }
 
   override suspend fun _shutdown() {

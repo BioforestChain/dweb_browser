@@ -70,7 +70,7 @@ suspend fun MicroModule.listenHttpDwebServer(
           IpcMethod.POST,
           body = PureStreamBody(it.input.stream)
         )
-      ).body.toPureStream()
+      ).stream()
     )
   }
   this.addToIpcSet(streamIpc)

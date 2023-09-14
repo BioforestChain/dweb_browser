@@ -13,7 +13,6 @@ import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.http.PureResponse
 import org.dweb_browser.microservice.http.PureStreamBody
 import org.dweb_browser.microservice.http.bind
-import org.dweb_browser.microservice.http.routes
 
 class NavigationBarNMM :
   NativeMicroModule("navigation-bar.nativeui.browser.dweb", "navigationBar") {
@@ -22,8 +21,7 @@ class NavigationBarNMM :
     categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service);
   }
 
-  private fun getController(mmid: MMID) =
-    NativeUiController.fromMultiWebView(mmid).navigationBar
+  private fun getController(mmid: MMID) = NativeUiController.fromMultiWebView(mmid).navigationBar
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     routes(
@@ -50,12 +48,10 @@ class NavigationBarNMM :
       "/observe" bind HttpMethod.Get to definePureResponse {
         val inputStream = getController(ipc.remote.mmid).observer.startObserve(ipc)
         return@definePureResponse PureResponse(
-          HttpStatusCode.OK,
-          body = PureStreamBody(inputStream)
+          HttpStatusCode.OK, body = PureStreamBody(inputStream)
         )
       },
-    )
-//      .cors()
+    ).cors()
   }
 
   override suspend fun _shutdown() {

@@ -6,7 +6,7 @@ import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import org.dweb_browser.helper.ProxySerializer
 
-object IpcHeadersSerializer : ProxySerializer<IpcHeaders, Map<String, String>>(
+object IpcHeadersSerializer : ProxySerializer<IpcHeaders, Map<String, String>>("IpcHeaders",
   MapSerializer(
     String.serializer(),
     String.serializer()
@@ -59,6 +59,10 @@ class IpcHeaders(private val headersMap: MutableMap<String, String> = mutableMap
 
   fun toMap(): MutableMap<String, String> {
     return headersMap
+  }
+
+  fun toHttpHeaders() = headersMap.map { (key, value) ->
+    Pair(key.split('-').joinToString("-") { it.first().uppercaseChar() + it.substring(1) }, value)
   }
 
   fun copy() = from(toMap())

@@ -1,9 +1,11 @@
 package org.dweb_browser.helper
 
-import io.ktor.http.DEFAULT_PORT
+import io.ktor.http.ParametersBuilder
 import io.ktor.http.URLBuilder
 import io.ktor.http.URLProtocol
 import io.ktor.http.Url
+import io.ktor.http.parametersOf
+import io.ktor.http.parseQueryString
 
 //import io.ktor.http.Url
 
@@ -15,18 +17,16 @@ fun URLBuilder.buildUnsafeString(): String {
   } else buildString()
 }
 
-fun String.keepFileParameters(): Url {
-  val tmpUrl = Url(this)
-
-  return URLBuilder(
-    tmpUrl.protocol,
-    tmpUrl.host,
-    tmpUrl.port,
-    tmpUrl.user,
-    tmpUrl.password,
-    tmpUrl.pathSegments,
-    Url(this.replaceFirst("file", "http")).parameters,
-    tmpUrl.fragment,
-    tmpUrl.trailingQuery
-  ).build()
+val ipcProtocol = URLProtocol.createOrDefault("file")
+fun String.toIpcUrl(): Url {
+  val isIpcProtocol = startsWith(ipcProtocol.name)
+  return URLBuilder(this).run {
+    if (isIpcProtocol) {
+      val index = indexOf("?")
+      if (index != -1) {
+        parameters.appendAll(parseQueryString(substring(index + 1)))
+      }
+    }
+    build()
+  }
 }

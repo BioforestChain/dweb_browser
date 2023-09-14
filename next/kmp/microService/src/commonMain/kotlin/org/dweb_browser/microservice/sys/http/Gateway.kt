@@ -68,13 +68,13 @@ class Gateway(
     val isMatch: (request: PureRequest) -> Boolean by lazy {
       when (config.matchMode) {
         MatchMode.PREFIX -> { request ->
-          request.method == config.method && request.safeUrl.fullPath.startsWith(
+          request.method == config.method && request.safeUrl.encodedPath.startsWith(
             config.pathname
           )
         }
 
         MatchMode.FULL -> { request ->
-          request.method == config.method && request.safeUrl.fullPath == config.pathname
+          request.method == config.method && request.safeUrl.encodedPath == config.pathname
         }
       }
     }

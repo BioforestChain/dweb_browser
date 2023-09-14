@@ -14,7 +14,7 @@ data class IpcEventJsonAble(
 }
 
 object IpcEventSerializer :
-  ProxySerializer<IpcEvent, IpcEventJsonAble>(IpcEventJsonAble.serializer(),
+  ProxySerializer<IpcEvent, IpcEventJsonAble>("IpcEvent", IpcEventJsonAble.serializer(),
     { jsonAble },
     { toIpcEvent() })
 

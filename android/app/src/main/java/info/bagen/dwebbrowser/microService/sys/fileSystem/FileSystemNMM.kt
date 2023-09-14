@@ -7,7 +7,6 @@ import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.cors
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.http.bind
-import org.dweb_browser.microservice.http.routes
 
 fun debugFileSystem(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("FileSystem", tag, msg, err)

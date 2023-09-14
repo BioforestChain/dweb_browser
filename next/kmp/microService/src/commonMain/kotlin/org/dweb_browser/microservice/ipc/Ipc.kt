@@ -15,7 +15,6 @@ import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.help.types.IMicroModuleManifest
 import org.dweb_browser.microservice.http.IPureBody
-import org.dweb_browser.microservice.http.PureEmptyBody
 import org.dweb_browser.microservice.http.PureRequest
 import org.dweb_browser.microservice.http.PureResponse
 import org.dweb_browser.microservice.ipc.helper.IpcEvent

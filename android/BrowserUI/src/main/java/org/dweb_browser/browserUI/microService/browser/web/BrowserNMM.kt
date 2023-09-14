@@ -12,7 +12,6 @@ import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.http.PureResponse
 import org.dweb_browser.microservice.http.bind
-import org.dweb_browser.microservice.http.routes
 import org.dweb_browser.microservice.ipc.helper.IpcResponse
 import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.dweb_browser.microservice.sys.http.DwebHttpServerOptions
@@ -72,7 +71,7 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
   private suspend fun createBrowserWebServer(): HttpDwebServer {
     val browserServer = createHttpDwebServer(DwebHttpServerOptions(subdomain = "", port = 433))
     browserServer.listen().onRequest { (request, ipc) ->
-      val pathName = request.uri.fullPath
+      val pathName = request.uri.encodedPath
       debugBrowser("createBrowserWebServer", pathName)
       if (!pathName.startsWith(API_PREFIX)) {
         val response = nativeFetch("file:///sys/browser/web${pathName}?mode=stream")

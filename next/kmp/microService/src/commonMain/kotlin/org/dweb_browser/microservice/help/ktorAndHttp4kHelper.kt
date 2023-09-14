@@ -5,6 +5,7 @@ import io.ktor.client.request.setBody
 import io.ktor.client.request.url
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsChannel
+import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.request.ApplicationRequest
@@ -54,14 +55,27 @@ fun ApplicationRequest.asPureRequest(): PureRequest {
       (ipcMethod == IpcMethod.GET && !isWebSocket(ipcMethod, ipcHeaders)) //
       || ipcHeaders.get("Content-Length") == "0"
     ) IPureBody.Empty
-    else PureStreamBody(receiveChannel())
+    else PureStreamBody(receiveChannel()),
+    from = this,
   )
 }
 
 suspend fun ApplicationResponse.fromPureResponse(response: PureResponse) {
   status(response.status)
 
-  for ((key, value) in response.headers.toMap()) {
+  var contentType: ContentType? = null
+  var contentLength: Long? = null
+  for ((key, value) in response.headers.toHttpHeaders()) {
+    when (key) {
+      "Content-Type" -> {
+        contentType = ContentType.parse(value)
+        continue
+      }
+
+      "Content-Length" -> {
+        contentLength = value.toLong()
+      }
+    }
     header(key, value)
   }
   when (val pureBody = response.body) {
@@ -75,9 +89,12 @@ suspend fun ApplicationResponse.fromPureResponse(response: PureResponse) {
     )
 
     is PureStreamBody -> this.call.respondBytesWriter(
-      status = response.status
+      contentType = contentType,
+      status = response.status,
+      contentLength = contentLength,
     ) {
-      pureBody.toPureStream().getReader("ktorAndHttp4kHelper toApplicationResponse").copyAndClose(this)
+      pureBody.toPureStream().getReader("ktorAndHttp4kHelper toApplicationResponse")
+        .copyAndClose(this)
     }
   }
 }
@@ -132,7 +149,7 @@ fun PureRequest.toHttpRequestBuilder() = HttpRequestBuilder().also { httpRequest
   for ((key, value) in this.headers.toMap()) {
     httpRequestBuilder.headers.append(key, value ?: "")
   }
-  httpRequestBuilder.setBody(this.body.toPureStream())
+  httpRequestBuilder.setBody(this.body.toPureStream().getReader("toHttpRequestBuilder"))
 }
 
 /**
@@ -175,7 +192,7 @@ fun ByteReadChannel.pipeToReadableStream(controller: ReadableStream.ReadableStre
  */
 typealias ConsumeEachArrayVisitor = ConsumeEachArrayRangeController. (byteArray: ByteArray, last: Boolean) -> Unit
 
-class ConsumeEachArrayRangeController {
+class ConsumeEachArrayRangeController() {
   var continueFlag = true
   fun breakLoop() {
     continueFlag = false
@@ -187,10 +204,12 @@ class ConsumeEachArrayRangeController {
  * The provided buffer should be never captured outside of the visitor block otherwise resource leaks, crashes and
  * data corruptions may occur. The visitor block may be invoked multiple times, once or never.
  */
-suspend inline fun ByteReadChannel.consumeEachArrayRange(visitor: ConsumeEachArrayVisitor) {
-  var lastChunkReported = false
+suspend inline fun ByteReadChannel.consumeEachArrayRange(
+  visitor: ConsumeEachArrayVisitor,
+) {
   val controller = ConsumeEachArrayRangeController()
   do {
+    var lastChunkReported = false
     read { source, start, endExclusive ->
       val nioBuffer: ByteArray = when {
         endExclusive > start -> source.slice(start, endExclusive - start).run {
@@ -214,3 +233,5 @@ suspend inline fun ByteReadChannel.consumeEachArrayRange(visitor: ConsumeEachArr
     }
   } while (controller.continueFlag)
 }
+
+val ByteReadChannel.canRead get() = !(availableForRead == 0 && isClosedForWrite && isClosedForRead)

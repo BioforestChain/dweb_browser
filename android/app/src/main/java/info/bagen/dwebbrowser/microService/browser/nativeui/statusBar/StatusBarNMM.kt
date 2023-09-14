@@ -13,7 +13,6 @@ import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.http.PureResponse
 import org.dweb_browser.microservice.http.PureStreamBody
 import org.dweb_browser.microservice.http.bind
-import org.dweb_browser.microservice.http.routes
 
 class StatusBarNMM : NativeMicroModule("status-bar.nativeui.browser.dweb", "statusBar") {
 
@@ -47,8 +46,7 @@ class StatusBarNMM : NativeMicroModule("status-bar.nativeui.browser.dweb", "stat
           HttpStatusCode.OK, body = PureStreamBody(inputStream)
         )
       },
-    )
-//      .cors()
+    ).cors()
   }
 
   override suspend fun _shutdown() {

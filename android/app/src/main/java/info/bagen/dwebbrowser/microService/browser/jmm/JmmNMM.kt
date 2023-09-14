@@ -25,7 +25,6 @@ import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.http.PureResponse
 import org.dweb_browser.microservice.http.bind
-import org.dweb_browser.microservice.http.routes
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.dweb_browser.window.core.WindowState

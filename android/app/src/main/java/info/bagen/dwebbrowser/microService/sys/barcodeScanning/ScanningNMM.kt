@@ -13,7 +13,6 @@ import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.http.bind
-import org.dweb_browser.microservice.http.routes
 
 fun debugScanning(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("Scanning", tag, msg, err)

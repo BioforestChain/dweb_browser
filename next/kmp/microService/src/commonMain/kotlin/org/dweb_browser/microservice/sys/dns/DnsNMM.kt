@@ -32,7 +32,6 @@ import org.dweb_browser.microservice.http.PureRequest
 import org.dweb_browser.microservice.http.PureResponse
 import org.dweb_browser.microservice.http.PureStringBody
 import org.dweb_browser.microservice.http.bind
-import org.dweb_browser.microservice.http.routes
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
 import org.dweb_browser.microservice.ipc.helper.IpcMethod
 import org.dweb_browser.microservice.ipc.helper.ReadableStream

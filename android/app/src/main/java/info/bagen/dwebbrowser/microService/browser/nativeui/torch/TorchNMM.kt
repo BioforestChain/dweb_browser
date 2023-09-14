@@ -5,7 +5,6 @@ import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.http.bind
-import org.dweb_browser.microservice.http.routes
 
 class TorchNMM : NativeMicroModule("torch.nativeui.browser.dweb", "torch") {
 
@@ -20,12 +19,9 @@ class TorchNMM : NativeMicroModule("torch.nativeui.browser.dweb", "torch") {
       "/toggleTorch" bind HttpMethod.Get to defineBooleanResponse {
         toggleTorch()
         return@defineBooleanResponse true
-      },
-      "/torchState" bind HttpMethod.Get to defineBooleanResponse {
+      }, "/torchState" bind HttpMethod.Get to defineBooleanResponse {
         return@defineBooleanResponse torchState()
-      }
-    )
-//      .cors()
+      }).cors()
   }
 
   private fun toggleTorch() {

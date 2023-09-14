@@ -6,28 +6,25 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.fromFilePath
 import io.ktor.http.fullPath
+import io.ktor.util.cio.toByteReadChannel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.browserUI.util.APP_DIR_TYPE
 import org.dweb_browser.browserUI.util.FilesUtil
 import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.helper.readByteArray
 import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.http.PureRequest
 import org.dweb_browser.microservice.http.PureResponse
-import org.dweb_browser.microservice.http.PureStreamBody
 import org.dweb_browser.microservice.http.PureStringBody
+import org.dweb_browser.microservice.ipc.helper.IpcHeaders
 import org.dweb_browser.microservice.ipc.helper.PreReadableInputStream
 import org.dweb_browser.microservice.sys.dns.debugFetch
 import org.dweb_browser.microservice.sys.dns.debugFetchFile
 import org.dweb_browser.microservice.sys.dns.nativeFetchAdaptersManager
 import java.io.File
-import java.io.InputStream
 import java.nio.ByteBuffer
 import java.nio.channels.ByteChannel
 import java.util.concurrent.atomic.AtomicInteger
-import io.ktor.util.cio.toByteReadChannel
-import io.ktor.util.toByteArray
 
 class LocalFileFetch private constructor() {
 
@@ -84,7 +81,7 @@ class LocalFileFetch private constructor() {
     }
 
     var ptr = 0
-    val totalSize by lazy { source.availableForRead}
+    val totalSize by lazy { source.availableForRead }
     override fun close() {
       debugFetchFile("CLOSE", "$id/$src")
       source.cancel(null)
@@ -156,7 +153,7 @@ class LocalFileFetch private constructor() {
     val mode = request.query("mode") ?: "auto"
     val chunk = request.query("chunk")?.toIntOrNull() ?: ChunkAssetsFileStream.defaultChunkSize
     val preRead = request.query("pre-read")?.toBooleanStrictOrNull() ?: false
-    val path = request.safeUrl.fullPath
+    val path = request.safeUrl.encodedPath
     val pathType = path.checkPathType()// path.startsWith("/sys/")
 
     lateinit var filePath: String
@@ -199,7 +196,9 @@ class LocalFileFetch private constructor() {
     lateinit var response: PureResponse
     if (!filenameList.contains(filePath)) {
       debugFetchFile(tag, "NO-FOUND-File $filePath")
-      response = PureResponse(HttpStatusCode.NotFound, body = PureStringBody("the file(${request.safeUrl.fullPath}) not found."))
+      response = PureResponse(
+        HttpStatusCode.NotFound, body = PureStringBody("the file(${request.url}) not found.")
+      )
     } else {
       response = PureResponse(HttpStatusCode.OK)
 
@@ -226,19 +225,19 @@ class LocalFileFetch private constructor() {
       } else {
         /// 打开一个读取流
         val assetStream = when (pathType) {
-          PathType.SYS -> App.appContext.assets.open(src, AssetManager.ACCESS_BUFFER).toByteReadChannel()
+          PathType.SYS -> App.appContext.assets.open(src, AssetManager.ACCESS_BUFFER)
+            .toByteReadChannel()
+
           else -> File(filePath).inputStream().toByteReadChannel()
         }
         /// 一次性发送
         response.body(assetStream)
       }
-
-      /// 尝试加入 Content-Type
-      val extension = ContentType.fromFilePath(request.safeUrl.fullPath)
-      if (extension.isNotEmpty()) {
-        response.headers.apply { set("Content-Type", extension.first().toString()) }
-      }
-      return response
+    }
+    /// 尝试加入 Content-Type
+    val extension = ContentType.fromFilePath(filePath)
+    if (extension.isNotEmpty()) {
+      response.headers.init("Content-Type", extension.first().toString())
     }
     return response
   }

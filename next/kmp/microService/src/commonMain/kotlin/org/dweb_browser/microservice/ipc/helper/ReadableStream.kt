@@ -1,8 +1,6 @@
 package org.dweb_browser.microservice.ipc.helper
 
 import io.ktor.utils.io.ByteChannel
-import io.ktor.utils.io.ByteReadChannel
-import io.ktor.utils.io.ByteWriteChannel
 import io.ktor.utils.io.cancel
 import io.ktor.utils.io.close
 import io.ktor.utils.io.writeAvailable
@@ -18,7 +16,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.SimpleObserver
-import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.helper.toUtf8ByteArray

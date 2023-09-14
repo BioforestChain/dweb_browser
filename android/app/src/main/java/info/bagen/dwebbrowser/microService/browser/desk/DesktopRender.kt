@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.Color
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.accompanist.web.WebView
 import org.dweb_browser.browserUI.ui.view.CommonWebView
+import org.dweb_browser.helper.buildUnsafeString
 import org.dweb_browser.window.render.Render
 
 
@@ -33,7 +34,7 @@ fun DesktopController.Render(taskbarController: TaskbarController) {
 
   CompositionLocalProvider(
     LocalDesktopView provides createMainDwebView(
-      "desktop", getDesktopUrl().toString()
+      "desktop", getDesktopUrl().buildUnsafeString()
     ),
   ) {
     Box(modifier = Modifier.fillMaxSize()) {

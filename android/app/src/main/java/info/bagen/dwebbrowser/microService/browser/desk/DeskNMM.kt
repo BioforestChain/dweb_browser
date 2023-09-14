@@ -7,26 +7,25 @@ import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.browser.jmm.EIpcEvent
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.util.moveToByteArray
+import io.ktor.utils.io.readUTF8Line
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.ChangeState
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.PromiseOut
-import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
+import org.dweb_browser.microservice.help.canRead
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.http.PureResponse
 import org.dweb_browser.microservice.http.PureStreamBody
 import org.dweb_browser.microservice.http.PureStringBody
 import org.dweb_browser.microservice.http.bind
-import org.dweb_browser.microservice.http.routes
 import org.dweb_browser.microservice.http.toPure
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
@@ -91,10 +90,9 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     val (openedAppIpc) = bootstrapContext.dns.connect("dns.std.dweb")
     suspend fun doObserve(urlPath: String, cb: suspend ChangeState<MMID>.() -> Unit) {
       val res = openedAppIpc.request(urlPath)
-      val stream = res.body.toPureStream()
-      stream.getReader("Desk listenApps").readAvailable {
-        val chunk = it.moveToByteArray()
-        val state = Json.decodeFromString<ChangeState<MMID>>(chunk.toString())
+      val reader = res.stream().getReader("Desk listenApps");
+      while (reader.canRead) {
+        val state = Json.decodeFromString<ChangeState<MMID>>(reader.readUTF8Line() ?: break)
         state.cb()
       }
     }
@@ -132,10 +130,10 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     }
 
     routes("/readFile" bind HttpMethod.Get to definePureResponse {
-      return@definePureResponse nativeFetch(request.queryOrFail("url"))
+      nativeFetch(request.queryOrFail("url"))
     },
       // readAccept
-      "{accept:readAccept\\.\\w+\$}" bind HttpMethod.Get to definePureResponse {
+      "/readAccept." bind HttpMethod.Get to definePureResponse {
         return@definePureResponse PureResponse(
           HttpStatusCode.OK,
           body = PureStringBody("""{"accept":"${request.headers.get("Accept")}"}""")
@@ -150,11 +148,11 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
           /// 将所有的窗口聚焦，这个行为不依赖于 Activity 事件，而是Desk模块自身托管窗口的行为
           desktopController.desktopWindowsManager.focusWindow(mmid)
 
-          return@defineBooleanResponse true
+          true
         } catch (e: Exception) {
           desktopController.showAlert(e)
           e.printStackTrace()
-          return@defineBooleanResponse false
+          false
         }
       },
       // 获取isMaximized 的值
@@ -181,15 +179,21 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
               e.printStackTrace()
             }
           }
+          ioAsyncScope.launch {
+            controller.awaitClose {
+              off()
+            }
+          }
           ipc.onClose {
             off()
             controller.close()
           }
         })
-        desktopController.updateSignal.emit()
+        ioAsyncScope.launch {
+          desktopController.updateSignal.emit()
+        }
         return@definePureResponse PureResponse(
-          HttpStatusCode.OK,
-          body = PureStreamBody(inputStream.stream)
+          HttpStatusCode.OK, body = PureStreamBody(inputStream.stream)
         )
       }, "/taskbar/apps" bind HttpMethod.Get to defineJsonResponse {
         val limit = request.query("limit")?.toInt() ?: Int.MAX_VALUE
@@ -207,15 +211,21 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
               e.printStackTrace()
             }
           }
+          ioAsyncScope.launch {
+            controller.awaitClose {
+              off()
+            }
+          }
           ipc.onClose {
             off()
             controller.close()
           }
         })
-        taskBarController.updateSignal.emit()
+        ioAsyncScope.launch {
+          taskBarController.updateSignal.emit()
+        }
         return@definePureResponse PureResponse(
-          HttpStatusCode.OK,
-          body = PureStreamBody(inputStream.stream)
+          HttpStatusCode.OK, body = PureStreamBody(inputStream.stream)
         )
       }, "/taskbar/observe/status" bind HttpMethod.Get to definePureResponse {
         debugDesk("/taskbar/observe/status")
@@ -229,14 +239,18 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
               e.printStackTrace()
             }
           }
+          ioAsyncScope.launch {
+            controller.awaitClose {
+              off()
+            }
+          }
           ipc.onClose {
             off()
             controller.close()
           }
         })
         return@definePureResponse PureResponse(
-          HttpStatusCode.OK,
-          body = PureStreamBody(inputStream.stream)
+          HttpStatusCode.OK, body = PureStreamBody(inputStream.stream)
         )
       }, "/taskbar/resize" bind HttpMethod.Get to defineJsonResponse {
         val size = request.queryAsObject<TaskbarController.ReSize>()
@@ -251,9 +265,10 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       },
       // 在app为全屏的时候，调出周围的高斯模糊，调整完全的taskbar
       "/taskbar/toggle-float-button-mode" bind HttpMethod.Get to defineBooleanResponse {
-        taskBarController.taskbarView.toggleFloatWindow(request.query("open")?.toBooleanStrictOrNull())
-      })
-//      .cors()
+        taskBarController.taskbarView.toggleFloatWindow(
+          request.query("open")?.toBooleanStrictOrNull()
+        )
+      }).cors()
 
     onActivity {
       startActivity(deskSessionId)
@@ -308,7 +323,7 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         val internalUri = pathName.substring(API_PREFIX.length)
         "file://$internalUri"
       } else {
-        "file:///sys/browser/desk${pathName}?mode=stream"
+        "file:///sys/browser/desk${request.uri.encodedPath}?mode=stream"
       }
       val response = nativeFetch(request.toPure().copy(url = url))
       ipc.postMessage(

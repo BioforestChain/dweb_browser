@@ -248,7 +248,7 @@ class DWebView(
           )
         }.getOrThrow()
 
-        val contentType = ContentType.parse(response.headers.get("Content-Type") ?: "")
+        val contentType = (response.headers.get("Content-Type") ?: "").split(';', limit = 2)
 
         debugDWebView("dwebProxyer end", request.url)
         val statusCode = response.status.value
@@ -256,8 +256,8 @@ class DWebView(
           return super.shouldInterceptRequest(view, request)
         }
         return WebResourceResponse(
-          contentType.contentType,
-          contentType.charset()?.name(),
+          contentType.firstOrNull(),
+          contentType.lastOrNull(),
           response.status.value,
           response.status.description,
           response.headers.toMap(),

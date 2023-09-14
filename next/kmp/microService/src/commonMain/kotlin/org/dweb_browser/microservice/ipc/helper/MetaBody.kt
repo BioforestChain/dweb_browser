@@ -21,10 +21,10 @@ data class MetaBodyJsonAble(
 }
 
 
-object MetaBodySerializer :
-  ProxySerializer<MetaBody, MetaBodyJsonAble>(MetaBodyJsonAble.serializer(),
-    { jsonAble },
-    { toMetaBody() })
+object MetaBodySerializer : ProxySerializer<MetaBody, MetaBodyJsonAble>("MetaBody",
+  MetaBodyJsonAble.serializer(),
+  { jsonAble },
+  { toMetaBody() })
 
 @Serializable(with = MetaBodySerializer::class)
 data class MetaBody(
@@ -91,7 +91,8 @@ data class MetaBody(
     private inline infix fun or(TYPE: IPC_DATA_ENCODING) = type or TYPE.encoding
   }
 
-  object IPC_META_BODY_TYPE_Serializer : IntEnumSerializer<IPC_META_BODY_TYPE>("IPC_META_BODY_TYPE",
+  object IPC_META_BODY_TYPE_Serializer : IntEnumSerializer<IPC_META_BODY_TYPE>(
+    "IPC_META_BODY_TYPE",
     IPC_META_BODY_TYPE.ALL_VALUES,
     { type })
 

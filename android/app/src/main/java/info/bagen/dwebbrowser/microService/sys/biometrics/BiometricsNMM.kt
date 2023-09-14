@@ -12,7 +12,6 @@ import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.http.bind
-import org.dweb_browser.microservice.http.routes
 
 fun debugBiometrics(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("biometrics", tag, msg, err)
@@ -54,8 +53,7 @@ class BiometricsNMM : AndroidNativeMicroModule("biometrics.sys.dweb", "biometric
         val context = biometricsController.waitActivityCreated()
         context.biometrics()
         return@defineJsonResponse biometrics_promise_out.waitPromise().toJsonElement()
-      })
-//      .cors()
+      }).cors()
   }
 
   fun openActivity(remoteMMID: MMID) {

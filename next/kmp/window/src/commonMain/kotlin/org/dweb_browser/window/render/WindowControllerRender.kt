@@ -148,16 +148,7 @@ fun WindowController.Render(
           val viewWidth = winPadding.contentBounds.width
           val viewHeight = winPadding.contentBounds.height
 
-          var render by
-          remember { mutableStateOf(createWindowAdapterManager.renderProviders[win.state.constants.wid]); }
-          DisposableEffect(win.state.constants.wid) {
-            val off = createWindowAdapterManager.renderProviders.onChange {
-              render = it.origin[win.state.constants.wid]
-            }
-            onDispose {
-              off()
-            }
-          }
+          val render = createWindowAdapterManager.rememberRender(win.state.constants.wid)
           /**
            * 视图的宽高随着窗口的缩小而缩小，随着窗口的放大而放大，
            * 但这些缩放不是等比的，而是会以一定比例进行换算。

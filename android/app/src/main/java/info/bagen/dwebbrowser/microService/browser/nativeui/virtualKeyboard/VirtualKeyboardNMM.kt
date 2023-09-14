@@ -14,7 +14,6 @@ import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.http.PureResponse
 import org.dweb_browser.microservice.http.PureStreamBody
 import org.dweb_browser.microservice.http.bind
-import org.dweb_browser.microservice.http.routes
 
 class VirtualKeyboardNMM :
   NativeMicroModule("virtual-keyboard.nativeui.browser.dweb", "virtualKeyBoard") {
@@ -23,8 +22,7 @@ class VirtualKeyboardNMM :
     categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service);
   }
 
-  private fun getController(mmid: MMID) =
-    NativeUiController.fromMultiWebView(mmid).virtualKeyboard
+  private fun getController(mmid: MMID) = NativeUiController.fromMultiWebView(mmid).virtualKeyboard
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     QueryHelper.init()
@@ -48,12 +46,10 @@ class VirtualKeyboardNMM :
       "/observe" bind HttpMethod.Get to definePureResponse {
         val inputStream = getController(ipc.remote.mmid).observer.startObserve(ipc)
         return@definePureResponse PureResponse(
-          HttpStatusCode.OK,
-          body = PureStreamBody(inputStream)
+          HttpStatusCode.OK, body = PureStreamBody(inputStream)
         )
       },
-    )
-//      .cors()
+    ).cors()
   }
 
   override suspend fun _shutdown() {

@@ -1,9 +1,9 @@
 package org.dweb_browser.microservice.ipc
 
-import io.ktor.util.moveToByteArray
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.cancel
 import io.ktor.utils.io.core.toByteArray
+import io.ktor.utils.io.readIntLittleEndian
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.CoroutineName
@@ -17,10 +17,9 @@ import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.printError
 import org.dweb_browser.helper.readByteArray
 import org.dweb_browser.helper.toByteArray
-import org.dweb_browser.helper.toInt
 import org.dweb_browser.helper.toUtf8
 import org.dweb_browser.helper.toUtf8ByteArray
-import org.dweb_browser.microservice.help.consumeEachArrayRange
+import org.dweb_browser.microservice.help.canRead
 import org.dweb_browser.microservice.help.types.IMicroModuleManifest
 import org.dweb_browser.microservice.http.PureStream
 import org.dweb_browser.microservice.ipc.helper.IPC_ROLE
@@ -113,16 +112,10 @@ class ReadableStreamIpc(
       reader.cancel()
     }
 
-    val readStream: suspend () -> Unit = {
+    val readStream = suspend {
       try {
-        // 如果通道关闭并且没有剩余字节可供读取，则返回 true
-//        reader.readAvailable(4) {
-//          val size = it.moveToByteArray().toInt()
-//
-//          if(size <= 0)
-//        }
-        while (reader.availableForRead > 0) {
-          val size = reader.readInt()
+        while (reader.canRead) {
+          val size = reader.readIntLittleEndian()
           if (size <= 0) {
             continue
           }
@@ -132,22 +125,21 @@ class ReadableStreamIpc(
 
           val message = jsonToIpcMessage(chunk, this@ReadableStreamIpc)
           when (message) {
-            "close" -> close()
-            "ping" -> enqueue(PONG_DATA)
-            "pong" -> debugStreamIpc("PONG", "$stream")
             is IpcMessage -> {
               debugStreamIpc(
                 "ON-MESSAGE", "$size => $message => ${this@ReadableStreamIpc}"
               )
               _messageSignal.emit(IpcMessageArgs(message, this@ReadableStreamIpc))
             }
-
+            "close" -> close()
+            "ping" -> enqueue(PONG_DATA)
+            "pong" -> debugStreamIpc("PONG", "$stream")
             else -> throw Exception("unknown message: $message")
           }
         }
         debugStreamIpc("END", "$stream")
       } catch (e: Exception) {
-        printError("ReadableStreamIpc", "output stream closed")
+        printError("ReadableStreamIpc", "output stream closed", e)
       }
       // 流是双向的，对方关闭的时候，自己也要关闭掉
       this.close()

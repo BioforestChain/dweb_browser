@@ -4,9 +4,11 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.fromFilePath
 import io.ktor.server.application.call
+import io.ktor.server.application.createApplicationPlugin
 import io.ktor.server.application.install
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.request.path
+import io.ktor.server.request.uri
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondBytes
 import io.ktor.server.routing.get
@@ -19,6 +21,8 @@ import io.ktor.websocket.close
 import io.ktor.websocket.readText
 import io.ktor.websocket.send
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.helper.Signal
@@ -34,6 +38,22 @@ internal class OffscreenWebCanvasMessageChannel {
   private val onMessageSignal = Signal<ChannelMessage>()
   val onMessage = onMessageSignal.toListener()
   val proxy = OffscreenWebCanvasFetchProxy()
+
+  private val testLo = embeddedServer(getKtorServerEngine(), port = 0) {
+    install(
+      createApplicationPlugin("dweb") {
+        onCall { call ->
+          call.respond("path:${call.request.uri}")
+        }
+      })
+  }.start(wait = false).also {
+    MainScope().launch {
+      val port = it.resolvedConnectors().first().port
+      val host = "localhost"
+      val entry = "http://$host:$port/"//"http://172.30.92.50:5173/index.html"//
+      println("test server:$entry")
+    }
+  }
 
   @OptIn(ExperimentalResourceApi::class)
   private val server = embeddedServer(getKtorServerEngine(), port = 0) {

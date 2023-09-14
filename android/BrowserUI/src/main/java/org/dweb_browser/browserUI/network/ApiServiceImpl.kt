@@ -40,7 +40,7 @@ class ApiServiceImpl : ApiService {
       val contentLength = httpResponse.headers.get("content-length").let {
         it?.toInt() ?: total // 网络请求数据的大小
       }
-      val inputStream = httpResponse.body.toPureStream().getReader("ApiServiceImpl download").toInputStream()
+      val inputStream = httpResponse.stream().getReader("ApiServiceImpl download").toInputStream()
       var currentLength = 0
       val byteArray = ByteArray(DEFAULT_BUFFER_SIZE)
       var length = inputStream.read(byteArray)
@@ -90,7 +90,7 @@ class ApiServiceImpl : ApiService {
         currentLength = 0 // 如果没有content-length，说明没办法断点续传，只能重新下载
         total
       } // 网络请求数据的大小
-      val inputStream = httpResponse.body.toPureStream().getReader("ApiServiceImpl break").toInputStream()
+      val inputStream = httpResponse.stream().getReader("ApiServiceImpl break").toInputStream()
       // inputStream.skip(currentLength) // 如果请求时，没有在Head 添加 Range 参数，可以改用这个方法
       val byteArray = ByteArray(DEFAULT_BUFFER_SIZE)
       var length = inputStream.read(byteArray)

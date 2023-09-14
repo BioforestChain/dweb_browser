@@ -12,7 +12,6 @@ import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.http.PureRequest
 import org.dweb_browser.microservice.http.bind
-import org.dweb_browser.microservice.http.routes
 import org.dweb_browser.microservice.ipc.helper.ReadableStream
 import org.dweb_browser.window.core.constant.WindowPropertyKeys
 import org.dweb_browser.window.core.constant.WindowStyle

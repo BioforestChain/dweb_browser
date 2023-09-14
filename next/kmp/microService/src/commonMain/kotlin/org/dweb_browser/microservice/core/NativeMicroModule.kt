@@ -5,12 +5,13 @@ import kotlinx.serialization.json.JsonElement
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.help.types.MicroModuleManifest
+import org.dweb_browser.microservice.http.HttpRouter
 import org.dweb_browser.microservice.http.PureBinary
 import org.dweb_browser.microservice.http.PureRequest
 import org.dweb_browser.microservice.http.PureResponse
 import org.dweb_browser.microservice.http.PureStream
 import org.dweb_browser.microservice.http.PureStringBody
-import org.dweb_browser.microservice.http.router
+import org.dweb_browser.microservice.http.RoutingHttpHandler
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.NativeIpc
 import org.dweb_browser.microservice.ipc.NativeMessageChannel
@@ -44,6 +45,9 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
     }
   }
 
+  protected val router = HttpRouter()
+  fun routes(vararg list: RoutingHttpHandler) = router.apply { addRoutes(*list) }
+
   /**
    * 实现一整套简易的路由响应规则
    */
@@ -54,15 +58,13 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
         debugNMM("NMM/Handler", ipcRequest.url)
         val response = routesWithContext?.let {
           it(HandlerContext(ipcRequest.toRequest(), clientIpc))
-        }
+        } ?: PureResponse(HttpStatusCode.BadGateway)
 
-        if (response != null) {
-          clientIpc.postMessage(
-            IpcResponse.fromResponse(
-              ipcRequest.req_id, response, clientIpc
-            )
+        clientIpc.postMessage(
+          IpcResponse.fromResponse(
+            ipcRequest.req_id, response, clientIpc
           )
-        }
+        )
       }
     }
   }

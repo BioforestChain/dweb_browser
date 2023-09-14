@@ -15,7 +15,6 @@ import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.http.PureResponse
 import org.dweb_browser.microservice.http.PureStringBody
 import org.dweb_browser.microservice.http.bind
-import org.dweb_browser.microservice.http.routes
 
 fun debugDevice(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("Device", tag, msg, err)

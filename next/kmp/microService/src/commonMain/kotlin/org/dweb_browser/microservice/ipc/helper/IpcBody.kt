@@ -1,10 +1,8 @@
 package org.dweb_browser.microservice.ipc.helper
 
-import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.base64
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.http.IPureBody
-import org.dweb_browser.microservice.http.PureStream
 import org.dweb_browser.microservice.ipc.Ipc
 
 
