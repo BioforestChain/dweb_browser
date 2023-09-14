@@ -55,6 +55,7 @@ class Http1Server {
 
     val portPo = PromiseOut<Int>()
     CoroutineScope(ioAsyncExceptionHandler).launch {
+      bindingPort = 22206
       server = embeddedServer(getKtorServerEngine(), port = 0) {
         install(WebSockets)
         install(createApplicationPlugin("dweb") {
