@@ -15,6 +15,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.platform.getKtorServerEngine
 import org.dweb_browser.microservice.help.asPureRequest
 import org.dweb_browser.microservice.help.consumeEachArrayRange
 import org.dweb_browser.microservice.help.fromPureResponse
@@ -54,8 +55,7 @@ class Http1Server {
 
     val portPo = PromiseOut<Int>()
     CoroutineScope(ioAsyncExceptionHandler).launch {
-      bindingPort = 22206//ktor_ws_server.environment.config.port
-      server = embeddedServer(io.ktor.server.cio.CIO, port = bindingPort) {
+      server = embeddedServer(getKtorServerEngine(), port = 0) {
         install(WebSockets)
         install(createApplicationPlugin("dweb") {
           onCall { call ->
@@ -129,9 +129,10 @@ class Http1Server {
             }
           }
         })
-      }.start(wait = false)
-
-      portPo.resolve(bindingPort)
+      }.start(wait = false).also {
+        val bindingPort = it.resolvedConnectors().first().port
+        portPo.resolve(bindingPort)
+      }
     }
     portPo.waitPromise()
   }
