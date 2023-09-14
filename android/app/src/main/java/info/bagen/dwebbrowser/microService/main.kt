@@ -31,11 +31,6 @@ import org.dweb_browser.microservice.sys.http.HttpNMM
 import org.dweb_browser.shared.Greeting
 import java.io.File
 
-val InternalBranch = when (DEVELOPER.CURRENT) {
-  DEVELOPER.GAUBEE, DEVELOPER.HuangLin, DEVELOPER.HLOppo, DEVELOPER.WaterBang, DEVELOPER.HLVirtual -> true
-  else -> false
-} // 用户临时区分上架时的分支,false为上架的apk
-
 suspend fun startDwebBrowser(): DnsNMM {
   /**
   "message-port-ipc",
