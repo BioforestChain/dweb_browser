@@ -2,6 +2,8 @@ package org.dweb_browser.window.render
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,6 +20,12 @@ internal expect fun WindowMenuPanel(
   win: WindowController,
 )
 
+@Composable
+fun WindowControllerTheme.toButtonColors() = ButtonDefaults.buttonColors(
+  contentColor = themeContentColor,
+  containerColor = themeColor,
+  disabledContentColor = themeContentDisableColor
+)
 
 @Composable
 internal fun WindowMenuPanelByAlert(
@@ -32,6 +40,7 @@ internal fun WindowMenuPanelByAlert(
   }
   if (isShowMenuPanel) {
     val winTheme = LocalWindowControllerTheme.current
+    val buttonColors = winTheme.toButtonColors()
     AlertDialog(
       onDismissRequest = {
         toggleMenu(false)
@@ -51,19 +60,25 @@ internal fun WindowMenuPanelByAlert(
         WindowControlPanel(win)
       },
       confirmButton = {
-        ElevatedButton(onClick = {
-          scope.launch {
-            win.hideMenuPanel()
-            win.close() // 增加关闭窗口
-          }
-        }) {
+        ElevatedButton(
+          onClick = {
+            scope.launch {
+              win.hideMenuPanel()
+              win.close() // 增加关闭窗口
+            }
+          },
+          colors = buttonColors,
+        ) {
           Text("退出应用")
         }
       },
       dismissButton = {
-        ElevatedButton({
-          toggleMenu(false)
-        }) {
+        Button(
+          onClick = {
+            toggleMenu(false)
+          },
+          colors = buttonColors,
+        ) {
           Text("关闭面板")
         }
       },
