@@ -19,6 +19,8 @@ class BrowserUIApp private constructor() {
   }
 
   private var mContext: Context? = null
+
+  /// TODO 应该使用 BrowserNMM().appContext 来获取全局上下文
   val appContext
     get() = mContext
       ?: throw Exception("The app context is empty. Please initialize the content in the Application")

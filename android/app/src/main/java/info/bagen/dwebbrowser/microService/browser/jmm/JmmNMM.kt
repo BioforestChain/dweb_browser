@@ -13,10 +13,12 @@ import org.dweb_browser.browserUI.database.DeskAppInfoStore
 import org.dweb_browser.browserUI.download.DownLoadController
 import org.dweb_browser.browserUI.download.isGreaterThan
 import org.dweb_browser.browserUI.microService.browser.link.WebLinkMicroModule
-import org.dweb_browser.browserUI.ui.browser.resolvePath
+import org.dweb_browser.browserUI.ui.browser.path
+import org.dweb_browser.browserUI.util.APP_DIR_TYPE
 import org.dweb_browser.browserUI.util.BrowserUIApp
 import org.dweb_browser.browserUI.util.FilesUtil
-import org.dweb_browser.helper.printDebug
+import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.microservice.core.AndroidNativeMicroModule
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.help.types.IMicroModuleManifest
@@ -27,13 +29,17 @@ import org.dweb_browser.microservice.http.PureResponse
 import org.dweb_browser.microservice.http.bind
 import org.dweb_browser.microservice.http.bindDwebDeeplink
 import org.dweb_browser.microservice.ipc.Ipc
+import org.dweb_browser.microservice.sys.dns.RespondLocalFileContext.Companion.respondLocalFile
 import org.dweb_browser.microservice.sys.dns.nativeFetch
+import org.dweb_browser.microservice.sys.dns.nativeFetchAdaptersManager
+import org.dweb_browser.microservice.sys.dns.returnAndroidFile
 import org.dweb_browser.window.core.WindowState
 import org.dweb_browser.window.core.constant.WindowConstants
 import org.dweb_browser.window.core.constant.WindowMode
 import org.dweb_browser.window.core.createWindowAdapterManager
+import java.io.File
 
-fun debugJMM(tag: String, msg: Any? = "", err: Throwable? = null) = printDebug("JMM", tag, msg, err)
+val debugJMM = Debugger("JMM")
 
 /**
  * 获取 map 值，如果不存在，则使用defaultValue; 如果replace 为true也替换为defaultValue
@@ -61,6 +67,20 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
         src = "file:///sys/icons/$mmid.svg", type = "image/svg+xml", purpose = "monochrome"
       )
     )
+
+    /// 提供JsMicroModule的文件适配器
+    /// 这个适配器不需要跟着bootstrap声明周期，只要存在JmmNMM模块，就能生效
+    nativeFetchAdaptersManager.append { fromMM, request ->
+      return@append request.respondLocalFile {
+        if (filePath.startsWith("/usr/")) {
+          debugJMM("UsrFile", "$fromMM => ${request.href}")
+          returnAndroidFile(
+            getAppContext().dataDir.absolutePath + File.separator + APP_DIR_TYPE.SystemApp.rootName + File.separator + fromMM.mmid,
+            filePath
+          )
+        } else returnNext()
+      }
+    }
   }
 
   enum class EIpcEvent(val event: String) {

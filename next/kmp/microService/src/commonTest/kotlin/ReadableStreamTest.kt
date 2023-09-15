@@ -6,9 +6,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import org.dweb_browser.microservice.help.canRead
-import org.dweb_browser.microservice.help.canRead2
-import org.dweb_browser.microservice.help.consumeEachArrayRange
+import org.dweb_browser.microservice.help.canReadContent
 import org.dweb_browser.microservice.help.readAvailableByteArray
 import org.dweb_browser.microservice.ipc.helper.ReadableStream
 import kotlin.test.Test
@@ -35,7 +33,7 @@ class ReadableStreamTestTest {
     var result by atomic(0)
 
     val reader = stream.stream.getReader("")
-    while (reader.canRead2()) {
+    while (reader.canReadContent()) {
       reader.awaitContent()
       println("availableForRead: ${reader.availableForRead}, isClosedForRead:${reader.isClosedForRead}, isClosedForWrite:${reader.isClosedForWrite}")
       val size = reader.readAvailableByteArray().size

@@ -22,8 +22,7 @@ import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printError
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.runBlockingCatching
-import org.dweb_browser.microservice.help.canRead
-import org.dweb_browser.microservice.help.readAvailableByteArray
+import org.dweb_browser.microservice.help.consumeEachArrayRange
 import org.dweb_browser.microservice.http.IPureBody
 import org.dweb_browser.microservice.http.PureBinary
 import org.dweb_browser.microservice.http.PureBinaryBody
@@ -154,11 +153,9 @@ class IpcBodySender(
   inner class UsedIpcInfo(
     val ipcBody: IpcBodySender, val ipc: Ipc, var bandwidth: Int = 0, var fuse: Int = 0
   ) {
-    suspend fun emitStreamPull(message: IpcStreamPulling) =
-      ipcBody.emitStreamPull(this, message)
+    suspend fun emitStreamPull(message: IpcStreamPulling) = ipcBody.emitStreamPull(this, message)
 
-    suspend fun emitStreamPaused(message: IpcStreamPaused) =
-      ipcBody.emitStreamPaused(this, message)
+    suspend fun emitStreamPaused(message: IpcStreamPaused) = ipcBody.emitStreamPaused(this, message)
 
     suspend fun emitStreamAborted() = ipcBody.emitStreamAborted(this)
   }
@@ -277,8 +274,7 @@ class IpcBodySender(
     fun from(raw: IPureBody, ipc: Ipc) = IpcBodySender(raw, ipc)
 
 
-    fun fromText(raw: PureString, ipc: Ipc) =
-      from(IPureBody.from(raw), ipc)
+    fun fromText(raw: PureString, ipc: Ipc) = from(IPureBody.from(raw), ipc)
 
     fun fromBase64(raw: PureString, ipc: Ipc) =
       from(IPureBody.from(raw, IPureBody.Companion.PureStringEncoding.Base64), ipc)
@@ -349,7 +345,7 @@ class IpcBodySender(
       // 等待流开始被拉取
       pullingLock.await()
       /// READ-ALL 持续发送数据
-      while (reader.canRead) {
+      reader.consumeEachArrayRange { byteArray, last ->
         // 等待暂停状态释放
         pullingLock.await()
 
@@ -358,11 +354,9 @@ class IpcBodySender(
         // 开光了，流已经开始被读取
         _isStreamOpened = true
         debugIpcBody(
-          "sender/READ/$stream", "${reader.availableForRead} >> $stream_id"
+          "sender/READ/$stream", "${byteArray.size} >> $stream_id"
         )
-        val message = IpcStreamData.fromBinary(
-          stream_id, reader.readAvailableByteArray()
-        )
+        val message = IpcStreamData.fromBinary(stream_id, byteArray)
         for (usedIpc in usedIpcMap.keys) {
           usedIpc.postMessage(message)
         }

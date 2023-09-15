@@ -70,6 +70,7 @@ class PureBinaryBody(private val data: PureBinary) : IPureBody {
 
 class PureStreamBody(private val stream: PureStream) : IPureBody {
   constructor(stream: ByteReadChannel) : this(PureStream(stream))
+  constructor(binary: ByteArray) : this(ByteReadChannel(binary))
 
   override val contentLength = null
 

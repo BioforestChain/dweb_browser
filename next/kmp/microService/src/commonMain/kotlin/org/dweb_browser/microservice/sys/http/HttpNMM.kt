@@ -3,7 +3,6 @@ package org.dweb_browser.microservice.sys.http
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLBuilder
-import io.ktor.http.URLProtocol
 import io.ktor.http.Url
 import io.ktor.http.authority
 import io.ktor.http.fullPath
@@ -118,13 +117,9 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
           "HTTP/nativeFetch", "$fromMM => ${request.href} authority-> ${dwebServer.authority}"
         )
         // 头部里添加 X-Dweb-Host
-        request.headers.set("X-Dweb-Host", request.url.authority)
+        request.headers.set("X-Dweb-Host", request.url.run { "$host:$port" })
         // 无需走网络层，直接内部处理掉
-        httpHandler(request.copy(href = URLBuilder(request.url).run {
-          protocol = URLProtocol.HTTP;
-          dwebServer.authority.split(':', limit = 2).also { host = it[0]; port = it[1].toInt() };
-          buildString()
-        }))
+        httpHandler(request)
       } else null
     }.removeWhen(onAfterShutdown)
 

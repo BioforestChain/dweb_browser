@@ -2,6 +2,7 @@ package info.bagen.dwebbrowser.microService.browser.mwebview
 
 import io.ktor.http.HttpMethod
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import org.dweb_browser.browserUI.download.DownLoadObserver
 import org.dweb_browser.dwebview.serviceWorker.emitEvent
 import org.dweb_browser.helper.UUID
@@ -86,6 +87,7 @@ class MultiWebViewNMM :
     )
   }
 
+  @Serializable
   data class ViewItemResponse(val webviewId: String, val wid: UUID)
 
   override suspend fun _shutdown() {

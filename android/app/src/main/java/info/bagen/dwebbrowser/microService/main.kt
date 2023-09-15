@@ -8,12 +8,12 @@ import info.bagen.dwebbrowser.microService.browser.jsProcess.JsProcessNMM
 import info.bagen.dwebbrowser.microService.browser.mwebview.MultiWebViewNMM
 import info.bagen.dwebbrowser.microService.browser.nativeui.NativeUiNMM
 import info.bagen.dwebbrowser.microService.browser.nativeui.torch.TorchNMM
-import info.bagen.dwebbrowser.microService.sys.LocalFileFetch
 import info.bagen.dwebbrowser.microService.sys.biometrics.BiometricsNMM
 import info.bagen.dwebbrowser.microService.sys.clipboard.ClipboardNMM
 import info.bagen.dwebbrowser.microService.sys.config.ConfigNMM
 import info.bagen.dwebbrowser.microService.sys.device.DeviceNMM
 import info.bagen.dwebbrowser.microService.sys.haptics.HapticsNMM
+import info.bagen.dwebbrowser.microService.sys.installNativeFetchSysFile
 import info.bagen.dwebbrowser.microService.sys.notification.NotificationNMM
 import info.bagen.dwebbrowser.microService.sys.share.ShareNMM
 import info.bagen.dwebbrowser.microService.sys.toast.ToastNMM
@@ -93,7 +93,9 @@ suspend fun startDwebBrowser(): DnsNMM {
     )
   }
 
-  LocalFileFetch.INSTANCE // 注入 localFileFetch
+  /// 安装文件请求服务
+  installNativeFetchSysFile()
+  /// 初始化DNS服务
   val dnsNMM = DnsNMM()
 
   /// 安装系统应用

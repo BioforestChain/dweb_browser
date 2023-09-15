@@ -16,6 +16,7 @@ import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.browserUI.util.BrowserUIApp
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.microservice.core.AndroidNativeMicroModule
 import org.dweb_browser.microservice.sys.dns.DnsNMM
 
 class App : Application() {
@@ -68,6 +69,7 @@ class App : Application() {
   override fun onCreate() {
     super.onCreate()
     appContext = this
+    AndroidNativeMicroModule.appContext = this
     PlaocUtil.addShortcut(this) // 添加桌面快捷方式
     // startService(Intent(this@App, DwebBrowserService::class.java))
     // DwebBrowserUtil.INSTANCE.bindDwebBrowserService()

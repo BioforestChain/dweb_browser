@@ -65,7 +65,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) : MicroModule(
       val nativeToWhiteList = listOf<MMID>("js.browser.dweb")
 
       data class JsMM(val jmm: JsMicroModule, val rmm: MicroModule)
-      connectAdapterManager.append(-1) { fromMM, toMM, reason ->
+      connectAdapterManager.append(1) { fromMM, toMM, reason ->
 
         val jsMM = if (nativeToWhiteList.contains(toMM.mmid)) null
         else if (toMM is JsMicroModule) JsMM(toMM, fromMM)
