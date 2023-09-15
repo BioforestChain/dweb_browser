@@ -35,6 +35,19 @@ struct TabPageView: View {
                     }
                 }
             }
+            .onChange(of: openingLink.clickedLink, perform: { link in
+                guard link != emptyURL else { return }
+
+                print("clickedLink has changed: \(link)")
+                let webcache = webcacheStore.cache(at: selectedTab.curIndex)
+                webcache.lastVisitedUrl = link
+                if webcache.shouldShowWeb{
+                    webWrapper.webView.load(URLRequest(url: link))
+                }else{
+                    webcache.shouldShowWeb = true
+                }
+                openingLink.clickedLink = emptyURL
+            })
             .onAppear {
                 print("tabPage rect: \(geo.frame(in: .global))")
                 snapshotHeight = geo.frame(in: .global).height
@@ -87,19 +100,6 @@ struct TabPageView: View {
                 }
                 print("onappear progress:\(webWrapper.webView.estimatedProgress)")
             }
-            .onChange(of: openingLink.clickedLink, perform: { link in
-                guard link != emptyURL else { return }
-
-                print("clickedLink has changed: \(link)")
-                let webcache = webcacheStore.cache(at: selectedTab.curIndex)
-                webcache.lastVisitedUrl = link
-                if webcache.shouldShowWeb{
-                    webWrapper.webView.load(URLRequest(url: link))
-                }else{
-                    webcache.shouldShowWeb = true
-                }
-                openingLink.clickedLink = emptyURL
-            })
 
             .onChange(of: webWrapper.url) { url in
                 if let validUrl = url, webCache.lastVisitedUrl != validUrl {

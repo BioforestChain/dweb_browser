@@ -47,9 +47,6 @@ struct HistoryCell: View {
             Color(white: 0.01, opacity: 0.01) // 添加一个空的透明视图
                  .onTapGesture {
                      guard let link = URL(string: linkRecord.link) else { return }
-//                     if !shouldShowWeb {
-//                         shouldShowWeb = true
-//                     }
                      openingLink.clickedLink = link
                      presentationMode.wrappedValue.dismiss()
                  }
