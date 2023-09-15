@@ -1,42 +1,33 @@
 package info.bagen.dwebbrowser.microService.sys.fileSystem
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.net.Uri
 import android.os.Environment
 import android.util.Base64
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.sys.fileSystem.exeprions.CopyFailedException
-import info.bagen.dwebbrowser.microService.sys.fileSystem.exeprions.DirectoryExistsException
-import info.bagen.dwebbrowser.microService.sys.fileSystem.exeprions.DirectoryNotFoundException
 import kotlinx.coroutines.*
 import java.io.*
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 import java.util.*
 
-typealias path = String
+@SuppressLint("StaticFieldLeak")
+object FileSystemPlugin {
 
-class FileSystemPlugin {
+  private val context: Context = App.appContext
 
-  private var context: Context? = App.appContext
-
-  fun Filesystem(context: Context?) {
-    this.context = context
-  }
-
-  @Throws(IOException::class)
-  fun readFile(path: String?, directory: String?, charset: Charset?): String? {
-    val `is` = getInputStream(path, directory)
-    val dataStr: String
-    if (charset != null) {
-      dataStr = readFileAsString(`is`, charset.name())
-    } else {
-      dataStr = readFileAsBase64EncodedData(`is`)
+  fun readFile(path: String, eFileType: EFileType?, charset: Charset?): String? {
+    return getInputStream(path, eFileType)?.let { inputStream ->
+      if (charset != null) {
+        readFileAsString(inputStream, charset.name())
+      } else {
+        readFileAsBase64EncodedData(inputStream)
+      }
     }
-    return dataStr
   }
 
-  @Throws(IOException::class)
   fun saveFile(file: File?, data: InputStream, append: Boolean = false) {
     FileOutputStream(file, append).use { outputStream ->
       var read: Int
@@ -47,62 +38,38 @@ class FileSystemPlugin {
     }
   }
 
-  @Throws(FileNotFoundException::class)
-  fun deleteFile(file: String?, directory: String?): Boolean {
-    val fileObject = getFileObject(file, directory)
-    if (!fileObject.exists()) {
-      throw FileNotFoundException("File does not exist")
-    }
-    return fileObject.delete()
+  fun deleteFile(file: String, eFileType: EFileType?) =
+    getFileObject(file, eFileType)?.delete() ?: throw FileNotFoundException("File does not exist")
+
+  fun mkdir(path: String, eFileType: EFileType?, recursive: Boolean): Boolean {
+    return getFileObject(path, eFileType)?.let { fileObject ->
+      if (recursive) {
+        fileObject.mkdirs()
+      } else {
+        fileObject.mkdir()
+      }
+    } ?: false
   }
 
-  @Throws(DirectoryExistsException::class)
-  fun mkdir(path: String?, directory: String?, recursive: Boolean): Boolean {
-    val fileObject: File = getFileObject(path, directory)
-    if (fileObject.exists()) {
-      throw DirectoryExistsException("Directory exists")
-    }
-    var created = false
-    created = if (recursive) {
-      fileObject.mkdirs()
-    } else {
-      fileObject.mkdir()
-    }
-    return created
+  fun readDir(path: String, eFileType: EFileType?): Array<File>? {
+    return getFileObject(path, eFileType)?.listFiles()
   }
 
-  @Throws(DirectoryNotFoundException::class)
-  fun readdir(path: String?, directory: String?): Array<File?>? {
-    var files: Array<File?>? = null
-    val fileObject: File = getFileObject(path, directory)
-    files = if (fileObject != null && fileObject.exists()) {
-      fileObject.listFiles()
-    } else {
-      throw DirectoryNotFoundException("Directory does not exist")
-    }
-    return files
-  }
-
-  @Throws(IOException::class, CopyFailedException::class)
   fun copy(
-    from: String?,
-    directory: String?,
-    to: String?,
-    toDirectory: String?,
-    doRename: Boolean
+    from: String, fromFileType: EFileType?, to: String, toFileType: EFileType?, doRename: Boolean
   ): File {
-    val fromObject: File = getFileObject(from, directory)
-    val toObject: File = getFileObject(to, toDirectory)
+    val fromObject = getFileObject(from, fromFileType) ?: throw Exception("source file err!!")
+    val toObject = getFileObject(to, toFileType) ?: throw Exception("target file err!!")
     if (toObject == fromObject) {
       return toObject
     }
     if (!fromObject.exists()) {
       throw CopyFailedException("The source object does not exist")
     }
-    if (toObject.parentFile.isFile) {
+    if (toObject.parentFile?.isFile == true) {
       throw CopyFailedException("The parent object of the destination is a file")
     }
-    if (!toObject.parentFile.exists()) {
+    if (toObject.parentFile?.exists() == false) {
       throw CopyFailedException("The parent object of the destination does not exist")
     }
     if (toObject.isDirectory) {
@@ -120,7 +87,6 @@ class FileSystemPlugin {
     return toObject
   }
 
-  @Throws(IOException::class)
   fun readFileAsString(`is`: InputStream, encoding: String): String {
     val outputStream = ByteArrayOutputStream()
     val buffer = ByteArray(1024)
@@ -131,7 +97,6 @@ class FileSystemPlugin {
     return outputStream.toString(encoding)
   }
 
-  @Throws(IOException::class)
   fun readFileAsBase64EncodedData(`is`: InputStream): String {
     val fileInputStreamReader = `is` as FileInputStream
     val byteStream = ByteArrayOutputStream()
@@ -144,53 +109,48 @@ class FileSystemPlugin {
     return Base64.encodeToString(byteStream.toByteArray(), Base64.NO_WRAP)
   }
 
-
-  @Throws(IOException::class)
-  fun getInputStream(path: String?, directory: String?): InputStream {
-    if (directory == null) {
+  fun getInputStream(path: String, eFileType: EFileType?): InputStream? {
+    eFileType?.let {
+      val androidDirectory: File = this.getDirectory(eFileType)
+      return FileInputStream(File(androidDirectory, path))
+    } ?: run {
       val u: Uri = Uri.parse(path)
-      return if (u.getScheme().equals("content")) {
-        context?.contentResolver?.openInputStream(u)!!
-      } else {
-        FileInputStream(File(u.getPath()))
+      if (u.scheme.equals("content")) {
+        return context.contentResolver?.openInputStream(u)!!
+      } else if (u.path != null) {
+        return FileInputStream(File(u.path!!))
       }
+      return null
     }
-    val androidDirectory: File = this.getDirectory(directory)
-      ?: throw IOException("Directory not found")
-    return FileInputStream(File(androidDirectory, path))
   }
 
-  fun getDirectory(directory: String?): File? {
-    val c: Context = context!!
-    when (directory) {
-      EFileDirectory.Documents.location -> return Environment.getExternalStoragePublicDirectory(
+  fun getDirectory(eFileType: EFileType): File {
+    return when (eFileType) {
+      EFileType.Documents -> Environment.getExternalStoragePublicDirectory(
         Environment.DIRECTORY_DOCUMENTS
       )
 
-      EFileDirectory.Data.location, EFileDirectory.Library.location -> return c.getFilesDir()
-      EFileDirectory.Cache.location -> return c.getCacheDir()
-      EFileDirectory.External.location -> return c.getExternalFilesDir(null)
-      EFileDirectory.ExternalStorage.location -> return Environment.getExternalStorageDirectory()
+      EFileType.Data, EFileType.Library -> context.filesDir
+      EFileType.Cache -> context.cacheDir
+      EFileType.External -> Environment.getExternalStorageDirectory()
+      EFileType.ExternalStorage -> Environment.getExternalStorageDirectory()
     }
-    return null
   }
 
-  fun getFileObject(path: String?, directory: String?): File {
-    if (directory == null) {
-      val u = Uri.parse(path)
-      if (u.scheme == null || u.scheme == "file") {
-        return File(u.path)
-      }
-    }
-    val androidDirectory = getDirectory(directory)
-    if (androidDirectory == null) {
-      throw Throwable("androidDirectory is null")
-    } else {
+  fun getFileObject(path: String, eFileType: EFileType?): File? {
+    eFileType?.let {
+      val androidDirectory = getDirectory(eFileType)
       if (!androidDirectory.exists()) {
         androidDirectory.mkdir()
       }
+      return File(androidDirectory, path)
+    } ?: run {
+      val u = Uri.parse(path)
+      if (u.scheme == null || u.scheme == "file") {
+        u.path?.let { return File(it) }
+      }
+      return null
     }
-    return File(androidDirectory, path)
   }
 
   fun getEncoding(encoding: String?): Charset? {
@@ -211,7 +171,6 @@ class FileSystemPlugin {
    * @param file The file or directory to recursively delete
    * @throws IOException
    */
-  @Throws(IOException::class)
   fun deleteRecursively(file: File) {
     if (file.isFile) {
       file.delete()
@@ -230,17 +189,17 @@ class FileSystemPlugin {
    * @param dst The destination location
    * @throws IOException
    */
-  @Throws(IOException::class)
   fun copyRecursively(src: File, dst: File) {
     if (src.isDirectory) {
       dst.mkdir()
       for (file in src.list()!!) {
         copyRecursively(File(src, file), File(dst, file))
       }
+
       return
     }
-    if (!dst.parentFile.exists()) {
-      dst.parentFile.mkdirs()
+    if (dst.parentFile?.exists() == false) {
+      dst.parentFile?.mkdirs()
     }
     if (!dst.exists()) {
       dst.createNewFile()
@@ -256,7 +215,14 @@ class FileSystemPlugin {
     }
   }
 
-
+  fun saveToPictureDirectory(fileName: String, inputStream: InputStream) {
+    val path = "Pictures/dwebbrowser"
+    Environment.getExternalStoragePublicDirectory(path)?.let { pictureDir ->
+      pictureDir.mkdirs() // 先创建所有目录，避免有目录不存在
+      val pictureFile = pictureDir.absolutePath + File.separator + fileName
+      saveFile(File(pictureFile), inputStream, false)
+    }
+  }
 }
 
 /**
@@ -283,7 +249,7 @@ enum class PermissionState(val state: Int) {
 
 }
 
-enum class EFileDirectory(val location: String) {
+enum class EFileType(val location: String) {
   /**
    * The Documents directory
    * On iOS it's the app's documents directory.

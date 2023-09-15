@@ -130,6 +130,11 @@
       </intent-filter>
     </activity>
 
+    <activity
+      android:name=".microService.sys.fileSystem.FileSystemActivity"
+      android:exported="true"
+      android:theme="@style/Theme.AppCompat.Transparent" />
+
     <service android:name="org.dweb_browser.browserUI.download.DwebBrowserService" />
     <!--    <service android:name=".microService.browser.desk.TaskbarService" />-->
 

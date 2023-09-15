@@ -34,7 +34,10 @@ class App : Application() {
             return@withLock // TODO 用户拒绝协议应该做的事情
           }
 
-          val intent = Intent(appContext, cls)
+          val intent = Intent(appContext, cls).also {
+            it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            it.`package` = appContext.packageName
+          }
           onIntent(intent)
           appContext.startActivity(intent)
         }

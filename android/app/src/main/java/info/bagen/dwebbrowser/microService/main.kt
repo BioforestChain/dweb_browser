@@ -63,7 +63,7 @@ suspend fun startDwebBrowser(): DnsNMM {
     )
 
     DEVELOPER.HuangLin, DEVELOPER.HLVirtual, DEVELOPER.HLOppo, DEVELOPER.HBXiaomi, DEVELOPER.ZGSansung -> addDebugTags(
-      listOf("fetch", "http", "mwebview", "fetch-file", "js-process", "browser", "desk", "JMM", "window")
+      listOf("fetch", "http", "mwebview", "fetch-file", "js-process", "browser", "desk", "JMM", "window", "dwebview")
     )
 
     DEVELOPER.WaterBang -> addDebugTags(
