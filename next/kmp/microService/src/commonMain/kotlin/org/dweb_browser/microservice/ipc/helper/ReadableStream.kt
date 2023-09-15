@@ -2,7 +2,7 @@ package org.dweb_browser.microservice.ipc.helper
 
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.close
-import io.ktor.utils.io.writeFully
+import io.ktor.utils.io.core.ByteReadPacket
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -117,8 +117,9 @@ class ReadableStream(
     scope.launch {
       // 一直等待数据
       for (chunk in input) {
-        output.writeFully(chunk)
-        debugStream("DATA-INIT", "$uid => +${chunk.size} ~> ${output.availableForRead}")
+        debugStream("DATA-IN", "$uid => +${chunk.size}")
+        // chunk 可能很大，所以需要打包成 ByteReadPacket ，可以一点一点地写入
+        output.writePacket(ByteReadPacket(chunk))
       }
       // 执行生命周期回调
       onClose()
