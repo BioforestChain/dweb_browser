@@ -3,6 +3,7 @@ import { createMockModuleServerIpc } from "../../../common/websocketIpc.ts";
 import { bindThis } from "../../helper/bindThis.ts";
 import type { $BuildRequestWithBaseInit } from "../base/BasePlugin.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
+import { $DwebResult } from "../base/base.type.ts";
 
 
 export class DwebServiceWorkerPlugin extends BasePlugin {
@@ -47,7 +48,7 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
   /**重启后前端 */
   @bindThis
   restart() {
-    return this.fetchApi("/restart");
+    return this.fetchApi("/restart").object<$DwebResult>();
   }
 
   /**
@@ -55,7 +56,7 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
    * @param mmid
    */
   @bindThis
-  async canOpenUrl(mmid: $MMID): Promise<$ExterResponse> {
+  async canOpenUrl(mmid: $MMID): Promise<$DwebResult> {
     try {
       const res = await this.fetchApi(`/query`, {
         search: {
@@ -98,9 +99,5 @@ export interface $ExternalFetchHandle {
   response: Promise<Response>;
 }
 
-export interface $ExterResponse {
-  success: boolean;
-  message: string;
-}
 
 export const dwebServiceWorkerPlugin = new DwebServiceWorkerPlugin();

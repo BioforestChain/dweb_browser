@@ -1,7 +1,8 @@
 import { bindThis } from "../../helper/bindThis.ts";
 import { ListenerCallback } from "../base/BaseEvent.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
-import { UpdateControllerMap, VersionResult } from "./dweb-update-controller.type.ts";
+import { $DwebResult } from "../base/base.type.ts";
+import { UpdateControllerMap } from "./dweb-update-controller.type.ts";
 
 class UpdateControllerPlugin extends BasePlugin {
   readonly tagName = "dweb-update-controller";
@@ -40,7 +41,7 @@ class UpdateControllerPlugin extends BasePlugin {
    * @returns
    */
   checkNewVersion() {
-    return this.fetchApi(`/check`).object<VersionResult>();
+    return this.fetchApi(`/check`).object<$DwebResult>();
   }
 
   // 暂停

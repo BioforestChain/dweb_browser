@@ -8,7 +8,7 @@ export interface $JmmAppManifest extends Required<$CommonAppManifest> {
   baseURI?: string;
   /** 版本信息 */
   version: string;
-  /**  */
+  /**dweb deeplinks */
   dweb_deeplinks?: $DWEB_DEEPLINK[];
   /** 类目 */
   categories: MICRO_MODULE_CATEGORY[];
