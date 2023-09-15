@@ -8,7 +8,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.IO
 import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDateTime
 import kotlin.coroutines.CoroutineContext
@@ -126,7 +125,11 @@ fun addDebugTags(tags: Iterable<String>) {
 
 
 fun printDebug(scope: String, tag: String, message: Any?, err: Throwable? = null) {
-  if (!debugTags.contains(scope) && debugTagsRegex.firstOrNull { regex -> regex.matches(scope) } == null) {
+  if (err == null && !debugTags.contains(scope) && debugTagsRegex.firstOrNull { regex ->
+      regex.matches(
+        scope
+      )
+    } == null) {
     return
   }
   var msg = message
@@ -138,4 +141,10 @@ fun printDebug(scope: String, tag: String, message: Any?, err: Throwable? = null
 
 fun String.padEndAndSub(length: Int): String {
   return this.padEnd(length, ' ').substring(0, length)
+}
+
+class Debugger(val scope: String) {
+  operator fun invoke(tag: String, msg: Any = "", err: Throwable? = null) {
+    printDebug(scope, tag, msg, err)
+  }
 }
