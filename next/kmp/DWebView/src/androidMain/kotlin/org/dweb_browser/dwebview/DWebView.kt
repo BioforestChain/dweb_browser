@@ -423,6 +423,7 @@ class DWebView(
     settings.allowFileAccess = true
     settings.javaScriptCanOpenWindowsAutomatically = true
     settings.allowContentAccess = true
+    settings.mediaPlaybackRequiresUserGesture = false
     setLayerType(View.LAYER_TYPE_HARDWARE, null) // 增加硬件加速，避免滑动时画面出现撕裂
 
     super.setWebViewClient(internalWebViewClient)

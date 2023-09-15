@@ -8,12 +8,6 @@ export interface DwebWorkerEventMap {
   // onFetch: FetchEvent;
 }
 
-export interface UpdateControllerMap {
-  start: Event; // 监听启动
-  progress: string; // 进度每秒触发一次
-  end: Event; // 结束
-  cancel: Event; // 取消
-}
 
 export interface BFSMetaData {
   id: string;
@@ -21,7 +15,6 @@ export interface BFSMetaData {
   name: string; // 应用名称
   short_name: string; // 应用副标题
   icon: string; // 应用图标
-  downloadUrl: string; // 下载应用地址
   images: string[]; // 应用截图
   description: string; // 应用描述
   author: string[]; // 开发者，作者

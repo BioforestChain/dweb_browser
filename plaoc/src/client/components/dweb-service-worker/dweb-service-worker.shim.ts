@@ -1,8 +1,8 @@
 import { cacheGetter } from "../../helper/cacheGetter.ts";
 import { ListenerCallback } from "../base/BaseEvent.ts";
 import { ServiceWorkerFetchEvent } from "./FetchEvent.ts";
-import { DwebWorkerEventMap, UpdateControllerMap } from "./dweb-service-worker.type.ts";
-import { dwebServiceWorkerPlugin } from "./dweb_service-worker.plugin.ts";
+import { dwebServiceWorkerPlugin } from "./dweb-service-worker.plugin.ts";
+import { DwebWorkerEventMap } from "./dweb-service-worker.type.ts";
 class DwebServiceWorker extends EventTarget {
   plugin = dwebServiceWorkerPlugin;
   ws: WebSocket | undefined;
@@ -15,7 +15,6 @@ class DwebServiceWorker extends EventTarget {
     })
   }
 
-  updateContoller = new UpdateController();
 
   @cacheGetter()
   get externalFetch() {
@@ -25,11 +24,6 @@ class DwebServiceWorker extends EventTarget {
   @cacheGetter()
   get canOpenUrl() {
     return this.plugin.canOpenUrl;
-  }
-
-  @cacheGetter()
-  get update() {
-    return this.updateContoller;
   }
 
   @cacheGetter()
@@ -66,54 +60,7 @@ class DwebServiceWorker extends EventTarget {
   }
 }
 
-class UpdateController extends EventTarget {
-  constructor() {
-    super();
-  }
 
-  @cacheGetter()
-  get download() {
-    return dwebServiceWorkerPlugin.update().download;
-  }
-
-  // 暂停
-  @cacheGetter()
-  get pause() {
-    return dwebServiceWorkerPlugin.update().pause;
-  }
-  // 重下
-  @cacheGetter()
-  get resume() {
-    return dwebServiceWorkerPlugin.update().resume;
-  }
-  // 取消
-  @cacheGetter()
-  get cancel() {
-    return dwebServiceWorkerPlugin.update().cancel;
-  }
-  /**
-   *  dwebview 注册一个监听事件
-   * @param eventName
-   * @param listenerFunc
-   * @returns
-   */
-  override addEventListener<K extends keyof UpdateControllerMap>(
-    eventName: K,
-    listenerFunc: ListenerCallback<UpdateControllerMap[K]>,
-    options?: boolean | AddEventListenerOptions
-  ) {
-    return super.addEventListener(eventName, listenerFunc as EventListenerOrEventListenerObject, options);
-  }
-
-  /**移除监听器 */
-  override removeEventListener<K extends keyof UpdateControllerMap>(
-    eventName: K,
-    listenerFunc: ListenerCallback<UpdateControllerMap[K]>,
-    options?: boolean | EventListenerOptions
-  ) {
-    return super.removeEventListener(eventName, listenerFunc as EventListenerOrEventListenerObject, options);
-  }
-}
 
 export const dwebServiceWorker = new DwebServiceWorker();
 

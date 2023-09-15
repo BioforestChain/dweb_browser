@@ -3,46 +3,10 @@ import { createMockModuleServerIpc } from "../../../common/websocketIpc.ts";
 import { bindThis } from "../../helper/bindThis.ts";
 import type { $BuildRequestWithBaseInit } from "../base/BasePlugin.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
-import { BFSMetaData } from "./dweb-service-worker.type.ts";
-class UpdateControllerPlugin extends BasePlugin {
-  readonly tagName = "dweb-update-controller";
 
-  progressNum = 0;
-
-  constructor() {
-    super("jmm.browser.dweb");
-  }
-  /**下载 */
-  @bindThis
-  async download(metadataUrl: string): Promise<BFSMetaData> {
-    return await this.fetchApi(`/install`, {
-      search: {
-        metadataUrl,
-      },
-    }).object();
-  }
-
-  // 暂停
-  @bindThis
-  async pause(): Promise<boolean> {
-    return await this.fetchApi("/pause").boolean();
-  }
-  // 重下
-  @bindThis
-  async resume(): Promise<boolean> {
-    return await this.fetchApi("/resume").boolean();
-  }
-  // 取消
-  @bindThis
-  async cancel(): Promise<boolean> {
-    return await this.fetchApi("/cancel").boolean();
-  }
-}
 
 export class DwebServiceWorkerPlugin extends BasePlugin {
   readonly tagName = "dweb-service-worker";
-
-  updateController = new UpdateControllerPlugin();
 
   constructor() {
     super("dns.std.dweb");
@@ -69,14 +33,6 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
       name: mmid,
     });
     return ipc;
-  }
-
-  // 我前端 ->
-
-  /**拿到更新句柄 */
-  @bindThis
-  update(): UpdateControllerPlugin {
-    return this.updateController;
   }
 
   /**

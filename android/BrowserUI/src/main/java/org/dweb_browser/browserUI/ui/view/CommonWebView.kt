@@ -135,6 +135,7 @@ fun CommonWebView() {
               settings.setSupportMultipleWindows(true)
               settings.allowFileAccess = true
               settings.javaScriptCanOpenWindowsAutomatically = true
+              settings.mediaPlaybackRequiresUserGesture = false
               settings.allowContentAccess = true
             }
           }

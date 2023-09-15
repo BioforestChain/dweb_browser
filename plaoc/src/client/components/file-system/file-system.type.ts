@@ -3,6 +3,11 @@ export interface FilesOption {
   files?: FileList;
 }
 
+export interface FilesResult {
+  success:string,
+  message:string
+}
+
 
 export enum Directory {
   /**

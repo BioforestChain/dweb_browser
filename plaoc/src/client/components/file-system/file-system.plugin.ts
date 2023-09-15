@@ -1,6 +1,13 @@
 import { bindThis } from "../../helper/bindThis.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
-import type { FilesOption, GetUriOptions, GetUriResult, WriteFileOptions, WriteFileResult } from "./file-system.type.ts";
+import type {
+  FilesOption,
+  FilesResult,
+  GetUriOptions,
+  GetUriResult,
+  WriteFileOptions,
+  WriteFileResult,
+} from "./file-system.type.ts";
 
 export class FileSystemPlugin extends BasePlugin {
   constructor() {
@@ -20,11 +27,11 @@ export class FileSystemPlugin extends BasePlugin {
   /**
    * 保存图片到相册
    * @compatibility android/ios only
-   * @param options 
+   * @param options
    * @returns
    */
   @bindThis
-  async savePictures(options:FilesOption) {
+  async savePictures(options: FilesOption) {
     const data = new FormData();
     if (options.files && options.files.length !== 0) {
       for (let i = 0; i < options.files.length; i++) {
@@ -32,14 +39,13 @@ export class FileSystemPlugin extends BasePlugin {
         data.append("files", file);
       }
     }
-    const result = await this.buildApiRequest("/savePictures", {
+    return this.buildApiRequest("/savePictures", {
       method: "POST",
       body: data,
       base: await BasePlugin.public_url,
     })
       .fetch()
-      .boolean();
-    return result;
+      .object<FilesResult>();
   }
 
   @bindThis
