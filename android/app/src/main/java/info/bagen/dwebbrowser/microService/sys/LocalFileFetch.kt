@@ -5,7 +5,6 @@ import info.bagen.dwebbrowser.App
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.fromFilePath
-import io.ktor.http.fullPath
 import io.ktor.util.cio.toByteReadChannel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -16,7 +15,6 @@ import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.http.PureRequest
 import org.dweb_browser.microservice.http.PureResponse
 import org.dweb_browser.microservice.http.PureStringBody
-import org.dweb_browser.microservice.ipc.helper.IpcHeaders
 import org.dweb_browser.microservice.ipc.helper.PreReadableInputStream
 import org.dweb_browser.microservice.sys.dns.debugFetch
 import org.dweb_browser.microservice.sys.dns.debugFetchFile
@@ -37,8 +35,8 @@ class LocalFileFetch private constructor() {
   init {
     CoroutineScope(ioAsyncExceptionHandler).launch {
       nativeFetchAdaptersManager.append { fromMM, request ->
-        if (request.safeUrl.protocol.name == "file" && request.safeUrl.host == "") {
-          debugFetch("LocalFile/nativeFetch", "$fromMM => ${request.url}")
+        if (request.url.protocol.name == "file" && request.url.host == "") {
+          debugFetch("LocalFile/nativeFetch", "$fromMM => ${request.href}")
           runCatching {
             return@runCatching getLocalFetch(fromMM, request)
           }.getOrElse {
@@ -153,7 +151,7 @@ class LocalFileFetch private constructor() {
     val mode = request.query("mode") ?: "auto"
     val chunk = request.query("chunk")?.toIntOrNull() ?: ChunkAssetsFileStream.defaultChunkSize
     val preRead = request.query("pre-read")?.toBooleanStrictOrNull() ?: false
-    val path = request.safeUrl.encodedPath
+    val path = request.url.encodedPath
     val pathType = path.checkPathType()// path.startsWith("/sys/")
 
     lateinit var filePath: String
@@ -197,7 +195,7 @@ class LocalFileFetch private constructor() {
     if (!filenameList.contains(filePath)) {
       debugFetchFile(tag, "NO-FOUND-File $filePath")
       response = PureResponse(
-        HttpStatusCode.NotFound, body = PureStringBody("the file(${request.url}) not found.")
+        HttpStatusCode.NotFound, body = PureStringBody("the file(${request.href}) not found.")
       )
     } else {
       response = PureResponse(HttpStatusCode.OK)

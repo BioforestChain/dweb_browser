@@ -46,17 +46,17 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
 
     routes(
       "search" bindDwebDeeplink definePureResponse {
-        debugBrowser("do search", request.url)
+        debugBrowser("do search", request.href)
         browserController.openBrowserWindow(search = request.queryOrFail("q"))
         return@definePureResponse PureResponse(HttpStatusCode.OK)
       },
       "openinbrowser" bindDwebDeeplink definePureResponse {
-        debugBrowser("do openinbrowser", request.url)
+        debugBrowser("do openinbrowser", request.href)
         browserController.openBrowserWindow(url = request.queryOrFail("url"))
         return@definePureResponse PureResponse(HttpStatusCode.OK)
       },
       "/uninstall" bind HttpMethod.Get to definePureResponse {
-        debugBrowser("uninstall", request.url)
+        debugBrowser("uninstall", request.href)
         val mmid = request.query("mmid")
         if (mmid == null) {
           browserController.uninstallWindow()

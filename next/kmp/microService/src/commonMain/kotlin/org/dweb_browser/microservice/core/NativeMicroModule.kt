@@ -153,11 +153,11 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
         beforeResponse?.invoke(response) ?: response
       } ?: PureResponse(HttpStatusCode.NotImplemented)
     } catch (ex: Exception) {
-      debugNMM("NMM/Error", context.request.url, ex)
+      debugNMM("NMM/Error", context.request.href, ex)
       PureResponse(
         HttpStatusCode.InternalServerError, body = PureStringBody(
           """
-          <p>${context.request.url}</p>
+          <p>${context.request.href}</p>
           <pre>${ex.message ?: "Unknown Error"}</pre>
         """.trimIndent()
         )

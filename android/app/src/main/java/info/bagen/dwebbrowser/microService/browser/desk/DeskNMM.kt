@@ -308,7 +308,7 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       } else {
         "file:///sys/browser/desk${pathName}?mode=stream"
       }
-      val response = nativeFetch(request.toPure().copy(url = url))
+      val response = nativeFetch(request.toPure().copy(href = url))
       ipc.postMessage(IpcResponse.fromResponse(request.req_id, response, ipc))
     }
     return taskbarServer
@@ -325,7 +325,7 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       } else {
         "file:///sys/browser/desk${request.uri.encodedPath}?mode=stream"
       }
-      val response = nativeFetch(request.toPure().copy(url = url))
+      val response = nativeFetch(request.toPure().copy(href = url))
       ipc.postMessage(
         IpcResponse.fromResponse(
           request.req_id, response.appendHeaders(CORS_HEADERS), ipc

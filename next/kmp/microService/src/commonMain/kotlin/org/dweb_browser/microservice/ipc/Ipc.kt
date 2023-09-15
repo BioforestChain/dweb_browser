@@ -242,10 +242,10 @@ abstract class Ipc {
    * 发送请求
    */
   suspend fun request(url: String) =
-    request(PureRequest(method = IpcMethod.GET, url = url))
+    request(PureRequest(method = IpcMethod.GET, href = url))
 
   suspend fun request(url: Url) =
-    request(PureRequest(method = IpcMethod.GET, url = url.toString()))
+    request(PureRequest(method = IpcMethod.GET, href = url.toString()))
 
   private val _reqResMap by lazy {
     mutableMapOf<Int, PromiseOut<IpcResponse>>().also { reqResMap ->
@@ -275,7 +275,7 @@ abstract class Ipc {
       IpcRequest.fromRequest(
         allocReqId(),
         this,
-        request.url,
+        request.href,
         IpcRequestInit(request.method, request.body, request.headers)
       )
     ).toResponse()

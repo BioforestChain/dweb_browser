@@ -4,7 +4,6 @@ import io.ktor.server.application.createApplicationPlugin
 import io.ktor.server.application.install
 import io.ktor.server.engine.ApplicationEngine
 import io.ktor.server.engine.embeddedServer
-import io.ktor.server.request.receiveMultipart
 import io.ktor.server.response.respond
 import io.ktor.server.websocket.WebSocketUpgrade
 import io.ktor.server.websocket.WebSockets
@@ -63,12 +62,12 @@ class Http1Server {
             withContext(ioAsyncExceptionHandler) {
               /// 将 ktor的request 构建成 pureRequest
               call.request.asPureRequest().also { rawRequest ->
-                val rawUrl = rawRequest.url
+                val rawUrl = rawRequest.href
                 val host = findRequestGateway(rawRequest)
                 val url = if (rawUrl.startsWith("/") && host !== null) {
                   "${if (rawRequest.isWebSocket()) "ws" else "http"}://$host$rawUrl"
                 } else rawUrl
-                var request = rawRequest.copy(url = url);
+                var request = rawRequest.copy(href = url);
 
                 var proxyRequestBody: ReadableStream.ReadableStreamController? = null
                 if (request.isWebSocket()) {

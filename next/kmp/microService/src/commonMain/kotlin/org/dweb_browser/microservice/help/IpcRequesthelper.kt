@@ -67,5 +67,5 @@ internal fun buildRequestX(
     else -> throw Exception("invalid body to request: $anyBody")
   }
 
-  return PureRequest(method = method, url = url, headers = headers, body = pureBody);
+  return PureRequest(method = method, href = url, headers = headers, body = pureBody);
 }

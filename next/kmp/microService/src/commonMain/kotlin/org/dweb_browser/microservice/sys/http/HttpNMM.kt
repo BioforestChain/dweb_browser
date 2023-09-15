@@ -3,6 +3,7 @@ package org.dweb_browser.microservice.sys.http
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLBuilder
+import io.ktor.http.URLProtocol
 import io.ktor.http.Url
 import io.ktor.http.authority
 import io.ktor.http.fullPath
@@ -72,7 +73,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     /// TODO 这里提取完数据后，应该把header、query、uri重新整理一下组成一个新的request会比较好些
     /// TODO 30s 没有任何 body 写入的话，认为网关超时
 
-    debugHttp("httpHandler start", request.url)
+    debugHttp("httpHandler start", request.href)
     /**
      * WARNING 我们底层使用 KtorCIO，它是完全以流的形式来将response的内容传输给web
      * 所以这里要小心，不要去读取 response 对象，否则 pos 会被偏移
@@ -80,7 +81,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     val response = gatewayMap[host]?.let { gateway ->
       gateway.listener.hookHttpRequest(request)
     }
-    debugHttp("httpHandler end", request.url)
+    debugHttp("httpHandler end", request.href)
 
     return response ?: PureResponse(HttpStatusCode.NotFound)
   }
@@ -101,7 +102,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
       gateway.listener.hookHttpRequest(request)
     }, { request, gateway ->
       if (gateway == null) {
-        if (request.safeUrl.fullPath == "/debug") {
+        if (request.url.fullPath == "/debug") {
           PureResponse(HttpStatusCode.OK, body = PureStringBody(request.headers.toString()))
         } else noGatewayResponse
       } else PureResponse(HttpStatusCode.NotFound)
@@ -109,16 +110,21 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
 
     /// 为 nativeFetch 函数提供支持
     nativeFetchAdaptersManager.append { fromMM, request ->
-      if ((request.safeUrl.protocol.name == "http" || request.safeUrl.protocol.name == "https") && request.safeUrl.host.endsWith(
+      if ((request.url.protocol.name == "http" || request.url.protocol.name == "https") && request.url.host.endsWith(
           ".dweb"
         )
       ) {
-        debugFetch("HTTP/nativeFetch", "$fromMM => ${request.url} authority-> ${dwebServer.authority}")
+        debugFetch(
+          "HTTP/nativeFetch", "$fromMM => ${request.href} authority-> ${dwebServer.authority}"
+        )
         // 头部里添加 X-Dweb-Host
-        request.headers.set("X-Dweb-Host", request.safeUrl.authority)
+        request.headers.set("X-Dweb-Host", request.url.authority)
         // 无需走网络层，直接内部处理掉
-        // FIXME rebase
-        httpHandler(request.copy(url = URLBuilder(request.safeUrl).apply{protocol = URLProtocol.HTTP; authority = dwebServer.authority; buildString()}))
+        httpHandler(request.copy(href = URLBuilder(request.url).run {
+          protocol = URLProtocol.HTTP;
+          dwebServer.authority.split(':', limit = 2).also { host = it[0]; port = it[1].toInt() };
+          buildString()
+        }))
       } else null
     }.removeWhen(onAfterShutdown)
 

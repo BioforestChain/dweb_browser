@@ -13,13 +13,13 @@ class ConfigNMM: NativeMicroModule("config.sys.dweb", "Device Info")  {
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     routes(
       "/setLang" bind HttpMethod.Get to defineBooleanResponse {
-        debugBrowser("ConfigNMM setLang", request.url)
+        debugBrowser("ConfigNMM setLang", request.href)
         val lang = request.queryOrFail("lang")
         ConfigStore.set("${ConfigStore.Config}.${ipc.remote.mmid}",lang)
         return@defineBooleanResponse true
       },
       "/getLang" bind HttpMethod.Get to definePureResponse {
-        debugBrowser("getLang", request.url)
+        debugBrowser("getLang", request.href)
         val lang = ConfigStore.get("${ConfigStore.Config}.${ipc.remote.mmid}")
         return@definePureResponse PureResponse(HttpStatusCode.OK, body = PureStringBody(lang))
       }

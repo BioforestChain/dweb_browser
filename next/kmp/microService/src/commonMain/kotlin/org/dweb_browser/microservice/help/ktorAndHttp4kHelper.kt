@@ -145,7 +145,7 @@ fun PureRequest.isWebSocket() = isWebSocket(this.method, this.headers)
 
 fun PureRequest.toHttpRequestBuilder() = HttpRequestBuilder().also { httpRequestBuilder ->
   httpRequestBuilder.method = HttpMethod.parse(this.method.name)
-  httpRequestBuilder.url(this.url)
+  httpRequestBuilder.url(this.href)
   for ((key, value) in this.headers.toMap()) {
     httpRequestBuilder.headers.append(key, value ?: "")
   }

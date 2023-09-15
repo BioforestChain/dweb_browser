@@ -180,10 +180,10 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
      * 对 nativeFetch 定义 file://xxx.dweb的解析
      */
     nativeFetchAdaptersManager.append { fromMM, request ->
-      if (request.safeUrl.protocol.name == "file" && request.safeUrl.host.endsWith(".dweb")) {
-        val mmid = request.safeUrl.host
-        debugFetch("DNS/nativeFetch", "$fromMM => ${request.url}")
-        val url = request.url
+      if (request.url.protocol.name == "file" && request.url.host.endsWith(".dweb")) {
+        val mmid = request.url.host
+        debugFetch("DNS/nativeFetch", "$fromMM => ${request.href}")
+        val url = request.href
         val reasonRequest =
           buildRequestX(url, request.method, request.headers, request.body);
         installApps[mmid]?.let {
@@ -195,7 +195,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     /** dwebDeepLink 适配器*/
     nativeFetchAdaptersManager.append { fromMM, request ->
       if (request.safeUrl.protocol.name == "dweb") {
-        debugFetch("DPLink/nativeFetch", "$fromMM => ${request.url}")
+        debugFetch("DPLink/nativeFetch", "$fromMM => ${request.href}")
         val dwebDeeplinkUri = Url(request.href.replace(Regex("^dweb:/+"), "dweb:"))
         val requestWithDeeplink = request.copy(href = dwebDeeplinkUri)
         for (microModule in installApps) {
@@ -208,7 +208,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
         }
         return@append PureResponse(
           HttpStatusCode.BadGateway,
-          body = PureStringBody(request.url)
+          body = PureStringBody(request.href)
         )
       } else null
     }.removeWhen(this.onAfterShutdown)
@@ -220,7 +220,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       // 打开应用
       "/open" bind HttpMethod.Get to defineBooleanResponse {
         val mmid = request.queryAppId()
-        debugDNS("open/$mmid", request.safeUrl.fullPath)
+        debugDNS("open/$mmid", request.url.fullPath)
         open(mmid)
         true
       },
@@ -228,7 +228,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       // TODO 能否关闭一个应该应该由应用自己决定
       "/close" bind HttpMethod.Get to defineBooleanResponse {
         val mmid = request.queryAppId()
-        debugDNS("close/$mmid", request.safeUrl.fullPath)
+        debugDNS("close/$mmid", request.url.fullPath)
         close(mmid)
         true
       },

@@ -3,10 +3,8 @@ package org.dweb_browser.microservice.http
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
-import io.ktor.http.URLBuilder
 import io.ktor.http.Url
 import io.ktor.http.content.MultiPartData
-import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.createApplicationPlugin
 import io.ktor.server.application.install
 import io.ktor.server.engine.embeddedServer
@@ -14,13 +12,9 @@ import io.ktor.server.request.ApplicationRequest
 import io.ktor.server.request.receiveMultipart
 import io.ktor.server.response.respond
 import io.ktor.server.util.getOrFail
-import io.ktor.util.InternalAPI
-import io.ktor.utils.io.copyAndClose
-import io.ktor.utils.io.writer
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.withContext
-import okhttp3.internal.wait
 import org.dweb_browser.helper.Query
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.platform.getKtorServerEngine
@@ -31,19 +25,18 @@ import org.dweb_browser.microservice.ipc.helper.IpcMethod
 import org.dweb_browser.microservice.ipc.helper.IpcRequest
 
 data class PureRequest(
-  val url: String,
+  val href: String,
   val method: IpcMethod,
   val headers: IpcHeaders = IpcHeaders(),
   val body: IPureBody = IPureBody.Empty,
   val from: Any? = null
 ) {
-  private val parsedUrl by lazy {
-    url.toIpcUrl()
+  val url by lazy {
+    href.toIpcUrl()
   }
-  val safeUrl: Url get() = parsedUrl
-  fun query(key: String) = parsedUrl.parameters[key]
-  fun queryOrFail(key: String) = parsedUrl.parameters.getOrFail(key)
-  inline fun <reified T> queryAsObject() = Query.decodeFromUrl<T>(safeUrl)
+  fun query(key: String) = this.url.parameters[key]
+  fun queryOrFail(key: String) = this.url.parameters.getOrFail(key)
+  inline fun <reified T> queryAsObject() = Query.decodeFromUrl<T>(this.url)
 
   companion object {
 

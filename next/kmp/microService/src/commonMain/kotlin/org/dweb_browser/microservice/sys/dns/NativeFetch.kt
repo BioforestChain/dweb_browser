@@ -50,14 +50,14 @@ class NativeFetchAdaptersManager : AdapterManager<FetchAdapter>() {
   class HttpFetch(val manager: NativeFetchAdaptersManager) {
     val client get() = manager.client
     suspend operator fun invoke(request: PureRequest) = fetch(request)
-    suspend operator fun invoke(url: String) = fetch(PureRequest(method = IpcMethod.GET, url = url))
+    suspend operator fun invoke(url: String) = fetch(PureRequest(method = IpcMethod.GET, href = url))
 
     suspend fun fetch(request: PureRequest): PureResponse {
       try {
-        debugFetch("httpFetch request", request.url)
+        debugFetch("httpFetch request", request.href)
 
-        if (request.safeUrl.protocol.name == "data") {
-          val dataUriContent = request.safeUrl.fullPath
+        if (request.url.protocol.name == "data") {
+          val dataUriContent = request.url.fullPath
           val dataUriContentInfo = dataUriContent.split(',', limit = 2)
           when (dataUriContentInfo.size) {
             2 -> {
@@ -114,7 +114,7 @@ class NativeFetchAdaptersManager : AdapterManager<FetchAdapter>() {
           }
         }
         return responsePo.waitPromise().also {
-          debugFetch("httpFetch return", request.url)
+          debugFetch("httpFetch return", request.href)
         }
       } catch (e: Throwable) {
         debugFetch("httpFetch Throwable", e.message)
