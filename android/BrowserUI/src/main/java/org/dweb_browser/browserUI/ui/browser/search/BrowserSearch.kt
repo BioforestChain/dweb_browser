@@ -199,7 +199,8 @@ internal fun BoxScope.BrowserTextField(
       )
     },
     keyboardOptions = KeyboardOptions(
-      imeAction = if (webEngine != null || inputText.isUrlOrHost()) ImeAction.Search else ImeAction.Done
+      //imeAction = if (webEngine != null || inputText.isUrlOrHost()) ImeAction.Search else ImeAction.Done
+      imeAction = ImeAction.Search // 增加上面的切换功能，会引起荣耀手机输入法异常多输出一个空格。
     ),
     keyboardActions = KeyboardActions(
       onDone = { focusManager.clearFocus(); keyboardController?.hide() },
