@@ -7,6 +7,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
@@ -34,6 +35,8 @@ import org.dweb_browser.microservice.ipc.helper.OnIpcMessage
 import org.dweb_browser.microservice.ipc.helper.OnIpcRequestMessage
 import org.dweb_browser.microservice.ipc.helper.OnIpcResponseMessage
 import org.dweb_browser.microservice.ipc.helper.OnIpcStreamMessage
+
+val debugIpc = Debugger("ipc")
 
 abstract class Ipc {
   companion object {
@@ -77,6 +80,7 @@ abstract class Ipc {
 
   suspend fun postMessage(message: IpcMessage) {
     if (this._closed) {
+      debugIpc("fail to post message, already closed")
       return;
     }
     this._doPostMessage(message);
@@ -86,9 +90,7 @@ abstract class Ipc {
   suspend fun postResponse(req_id: Int, response: PureResponse) {
     postMessage(
       IpcResponse.fromResponse(
-        req_id,
-        response,
-        this
+        req_id, response, this
       )
     )
   }
@@ -118,8 +120,7 @@ abstract class Ipc {
           ipcMessageCoroutineScope.launch {
             signal.emit(
               IpcRequestMessageArgs(
-                args.message,
-                args.ipc
+                args.message, args.ipc
               )
             );
           }
@@ -137,8 +138,7 @@ abstract class Ipc {
           ipcMessageCoroutineScope.launch {
             signal.emit(
               IpcResponseMessageArgs(
-                args.message,
-                args.ipc
+                args.message, args.ipc
               )
             );
           }
@@ -163,8 +163,7 @@ abstract class Ipc {
       if (args.message is IpcStream) {
         streamChannel.trySend(
           IpcStreamMessageArgs(
-            args.message,
-            args.ipc
+            args.message, args.ipc
           )
         )
       }
@@ -184,8 +183,7 @@ abstract class Ipc {
           ipcMessageCoroutineScope.launch {
             signal.emit(
               IpcEventMessageArgs(
-                args.message,
-                args.ipc
+                args.message, args.ipc
               )
             );
           }
@@ -241,8 +239,7 @@ abstract class Ipc {
   /**
    * 发送请求
    */
-  suspend fun request(url: String) =
-    request(PureRequest(method = IpcMethod.GET, href = url))
+  suspend fun request(url: String) = request(PureRequest(method = IpcMethod.GET, href = url))
 
   suspend fun request(url: Url) =
     request(PureRequest(method = IpcMethod.GET, href = url.toString()))
@@ -270,15 +267,14 @@ abstract class Ipc {
     return ipcRequest;
   }
 
-  suspend fun request(request: PureRequest) =
-    this.request(
-      IpcRequest.fromRequest(
-        allocReqId(),
-        this,
-        request.href,
-        IpcRequestInit(request.method, request.body, request.headers)
-      )
-    ).toResponse()
+  suspend fun request(request: PureRequest) = this.request(
+    IpcRequest.fromRequest(
+      allocReqId(),
+      this,
+      request.href,
+      IpcRequestInit(request.method, request.body, request.headers)
+    )
+  ).toResponse()
 
 
   suspend fun request(url: String, init: IpcRequestInit): IpcResponse {

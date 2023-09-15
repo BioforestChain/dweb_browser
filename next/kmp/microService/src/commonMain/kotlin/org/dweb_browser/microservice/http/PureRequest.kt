@@ -3,7 +3,6 @@ package org.dweb_browser.microservice.http
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
-import io.ktor.http.Url
 import io.ktor.http.content.MultiPartData
 import io.ktor.server.application.createApplicationPlugin
 import io.ktor.server.application.install

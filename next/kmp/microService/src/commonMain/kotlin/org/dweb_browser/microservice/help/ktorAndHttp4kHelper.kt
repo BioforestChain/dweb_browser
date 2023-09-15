@@ -235,3 +235,5 @@ suspend inline fun ByteReadChannel.consumeEachArrayRange(
 }
 
 val ByteReadChannel.canRead get() = !(availableForRead == 0 && isClosedForWrite && isClosedForRead)
+suspend fun ByteReadChannel.readAvailablePacket() = readPacket(availableForRead)
+suspend fun ByteReadChannel.readAvailableByteArray() = readAvailablePacket().readByteArray()

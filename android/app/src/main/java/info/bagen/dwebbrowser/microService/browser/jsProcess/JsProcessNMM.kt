@@ -7,6 +7,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.browserUI.ui.browser.build
@@ -42,11 +43,11 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
 
   private val JS_PROCESS_WORKER_CODE by lazy {
     runBlockingCatching {
-      nativeFetch("file:///sys/browser/js-process.worker/index.js").text()
+      nativeFetch("file:///sys/browser/js-process.worker/index.js").binary()
     }.getOrThrow()
   }
 
-  private val CORS_HEADERS = mapOf(
+  private val JS_CORS_HEADERS = mapOf(
     Pair("Content-Type", "text/javascript"),
     Pair("Access-Control-Allow-Origin", "*"),
     Pair("Access-Control-Allow-Headers", "*"),// 要支持 X-Dweb-Host
@@ -62,16 +63,14 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
       val serverIpc = server.listen();
       serverIpc.onRequest { (request, ipc) ->
         // <internal>开头的是特殊路径，给Worker用的，不会拿去请求文件
-        if (request.uri.fullPath.startsWith(INTERNAL_PATH)) {
-          val internalUri = request.uri.build {
-            resolvePath(request.uri.fullPath.substring(INTERNAL_PATH.length))
-          }
-          if (internalUri.fullPath == "/bootstrap.js") {
+        if (request.uri.encodedPath.startsWith(INTERNAL_PATH)) {
+          val internalPath = request.uri.encodedPath.substring(INTERNAL_PATH.length)
+          if (internalPath == "/bootstrap.js") {
             ipc.postMessage(
-              IpcResponse.fromText(
+              IpcResponse.fromBinary(
                 request.req_id,
                 200,
-                IpcHeaders(CORS_HEADERS.toMutableMap()),
+                IpcHeaders(JS_CORS_HEADERS),
                 JS_PROCESS_WORKER_CODE,
                 ipc
               )
@@ -81,8 +80,8 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
               IpcResponse.fromText(
                 request.req_id,
                 404,
-                IpcHeaders(CORS_HEADERS.toMutableMap()),
-                "// no found ${internalUri.fullPath}",
+                IpcHeaders(JS_CORS_HEADERS),
+                "// no found $internalPath",
                 ipc
               )
             )
@@ -160,7 +159,9 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
       /// 关闭process
       "/close-all-process" bind HttpMethod.Get to defineBooleanResponse {
         return@defineBooleanResponse closeAllProcessByIpc(
-          apis, ipcProcessIdMap, ipc.remote.mmid
+          apis,
+          ipcProcessIdMap,
+          ipc.remote.mmid
         ).also {
           /// 强制关闭Ipc
           ipc.close()
@@ -254,7 +255,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
         streamIpc.request(request.toRequest()).let {
           /// 加入跨域配置
           var response = it;
-          for ((key, value) in CORS_HEADERS) {
+          for ((key, value) in JS_CORS_HEADERS) {
             response.headers.apply { set(key, value) }
           }
           response
@@ -262,6 +263,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
       )
     }
 
+    @Serializable
     data class JsProcessMetadata(val mmid: MMID) {}
     /// TODO 需要传过来，而不是自己构建
     val metadata = JsProcessMetadata(ipc.remote.mmid)

@@ -108,7 +108,7 @@ class ReadableStreamIpc(
       throw Exception("")
     }
     val reader = stream.getReader("ReadableStreamIpc bindIncomeStream").also { this.reader = it }
-    signal.signal.listen {
+    val offAbort = signal.signal.listen {
       debugStreamIpc("ReadableStreamIpc", "readStream close")
       reader.cancel()
     }
@@ -149,7 +149,10 @@ class ReadableStreamIpc(
       this.close()
     }
     /// 后台执行数据拉取
-    incomeStreamCoroutineScope.launch { readStream() }
+    incomeStreamCoroutineScope.launch {
+      readStream();
+      offAbort();
+    }
   }
 
   override suspend fun _doPostMessage(data: IpcMessage) {

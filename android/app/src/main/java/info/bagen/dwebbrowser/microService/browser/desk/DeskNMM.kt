@@ -129,16 +129,20 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       controllersMap.remove(deskSessionId)
     }
 
-    routes("/readFile" bind HttpMethod.Get to definePureResponse {
-      nativeFetch(request.queryOrFail("url"))
-    },
+    routes(
+      //
+      "/readFile" bind HttpMethod.Get to definePureResponse {
+        nativeFetch(request.queryOrFail("url"))
+      },
       // readAccept
       "/readAccept." bind HttpMethod.Get to definePureResponse {
         return@definePureResponse PureResponse(
           HttpStatusCode.OK,
           body = PureStringBody("""{"accept":"${request.headers.get("Accept")}"}""")
         )
-      }, "/openAppOrActivate" bind HttpMethod.Get to defineBooleanResponse {
+      },
+      //
+      "/openAppOrActivate" bind HttpMethod.Get to defineBooleanResponse {
         val mmid = request.queryOrFail("app_id")
         debugDesk("/openAppOrActivate", mmid)
         try {
@@ -159,16 +163,22 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       "/toggleMaximize" bind HttpMethod.Get to defineBooleanResponse {
         val mmid = request.queryOrFail("app_id")
         return@defineBooleanResponse desktopController.desktopWindowsManager.toggleMaximize(mmid)
-      }, "/closeApp" bind HttpMethod.Get to defineBooleanResponse {
+      },
+      //
+      "/closeApp" bind HttpMethod.Get to defineBooleanResponse {
         val mmid = request.queryOrFail("app_id")
         if (runningApps.containsKey(mmid)) {
           return@defineBooleanResponse bootstrapContext.dns.close(mmid)
         }
         return@defineBooleanResponse false
-      }, "/desktop/apps" bind HttpMethod.Get to defineJsonResponse() {
+      },
+      //
+      "/desktop/apps" bind HttpMethod.Get to defineJsonResponse() {
         debugDesk("/desktop/apps", desktopController.getDesktopApps())
         return@defineJsonResponse desktopController.getDesktopApps().toJsonElement()
-      }, "/desktop/observe/apps" bind HttpMethod.Get to definePureResponse {
+      },
+      //
+      "/desktop/observe/apps" bind HttpMethod.Get to definePureResponse {
         val inputStream = ReadableStream(onStart = { controller ->
           val off = desktopController.onUpdate {
             try {
@@ -195,10 +205,14 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         return@definePureResponse PureResponse(
           HttpStatusCode.OK, body = PureStreamBody(inputStream.stream)
         )
-      }, "/taskbar/apps" bind HttpMethod.Get to defineJsonResponse {
+      },
+      //
+      "/taskbar/apps" bind HttpMethod.Get to defineJsonResponse {
         val limit = request.query("limit")?.toInt() ?: Int.MAX_VALUE
         return@defineJsonResponse taskBarController.getTaskbarAppList(limit).toJsonElement()
-      }, "/taskbar/observe/apps" bind HttpMethod.Get to definePureResponse {
+      },
+      //
+      "/taskbar/observe/apps" bind HttpMethod.Get to definePureResponse {
         val limit = request.query("limit")?.toInt() ?: Int.MAX_VALUE
         debugDesk("/taskbar/observe/apps", limit)
         val inputStream = ReadableStream(onStart = { controller ->
@@ -227,7 +241,9 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         return@definePureResponse PureResponse(
           HttpStatusCode.OK, body = PureStreamBody(inputStream.stream)
         )
-      }, "/taskbar/observe/status" bind HttpMethod.Get to definePureResponse {
+      },
+      //
+      "/taskbar/observe/status" bind HttpMethod.Get to definePureResponse {
         debugDesk("/taskbar/observe/status")
         val inputStream = ReadableStream(onStart = { controller ->
           val off = taskBarController.onStatus { status ->
@@ -252,7 +268,9 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         return@definePureResponse PureResponse(
           HttpStatusCode.OK, body = PureStreamBody(inputStream.stream)
         )
-      }, "/taskbar/resize" bind HttpMethod.Get to defineJsonResponse {
+      },
+      //
+      "/taskbar/resize" bind HttpMethod.Get to defineJsonResponse {
         val size = request.queryAsObject<TaskbarController.ReSize>()
         debugDesk("/taskbar/resize", "$size")
         taskBarController.resize(size)

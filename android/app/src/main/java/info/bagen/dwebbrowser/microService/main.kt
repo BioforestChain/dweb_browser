@@ -50,30 +50,19 @@ suspend fun startDwebBrowser(): DnsNMM {
   "SplashScreen",
   "js-process",
   "desk",
+  "JsMM",
+  "http",
    */
   when (DEVELOPER.CURRENT) {
-    DEVELOPER.GAUBEE -> addDebugTags(
+    DEVELOPER.GAUBEE, DEVELOPER.WaterbangXiaoMi -> addDebugTags(
       listOf<String>(
-        "JsMM",
-        "http",
         "/.+/",
-//        "fetch",
-//        "message-port-ipc"
       )
     )
 
     DEVELOPER.HuangLin, DEVELOPER.HLVirtual, DEVELOPER.HLOppo, DEVELOPER.HBXiaomi, DEVELOPER.ZGSansung -> addDebugTags(
       listOf(
-        "fetch",
-        "http",
-        "mwebview",
-        "fetch-file",
-        "js-process",
-        "browser",
-        "desk",
-        "JMM",
-        "window",
-        "dwebview"
+        "fetch", "http", "mwebview", "fetch-file", "js-process", "browser", "desk", "JMM", "window"
       )
     )
 

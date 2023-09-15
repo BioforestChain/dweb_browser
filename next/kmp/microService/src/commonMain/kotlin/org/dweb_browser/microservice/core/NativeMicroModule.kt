@@ -2,7 +2,7 @@ package org.dweb_browser.microservice.core
 
 import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.json.JsonElement
-import org.dweb_browser.helper.printDebug
+import org.dweb_browser.helper.Debugger
 import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.help.types.MicroModuleManifest
 import org.dweb_browser.microservice.http.HttpRouter
@@ -19,15 +19,13 @@ import org.dweb_browser.microservice.ipc.helper.IPC_ROLE
 import org.dweb_browser.microservice.ipc.helper.IpcMessage
 import org.dweb_browser.microservice.ipc.helper.IpcResponse
 
-fun debugNMM(tag: String, msg: Any = "", err: Throwable? = null) = printDebug("DNS", tag, msg, err)
+val debugNMM = Debugger("NMM")
 
 abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(manifest) {
-  constructor(mmid: MMID, name: String) : this(
-    MicroModuleManifest().apply {
-      this.mmid = mmid
-      this.name = name
-    }
-  )
+  constructor(mmid: MMID, name: String) : this(MicroModuleManifest().apply {
+    this.mmid = mmid
+    this.name = name
+  })
 
   companion object {
     init {
@@ -54,9 +52,9 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
   init {
     onConnect { (clientIpc) ->
       clientIpc.onRequest { (ipcRequest) ->
-        val routesWithContext = router.withFilter(ipcRequest);
         debugNMM("NMM/Handler", ipcRequest.url)
-        val response = routesWithContext?.let {
+        val routingHandler = router.withFilter(ipcRequest);
+        val response = routingHandler?.let {
           it(HandlerContext(ipcRequest.toRequest(), clientIpc))
         } ?: PureResponse(HttpStatusCode.BadGateway)
 

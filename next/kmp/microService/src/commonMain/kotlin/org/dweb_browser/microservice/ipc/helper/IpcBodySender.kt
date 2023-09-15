@@ -22,6 +22,8 @@ import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printError
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.runBlockingCatching
+import org.dweb_browser.microservice.help.canRead
+import org.dweb_browser.microservice.help.readAvailableByteArray
 import org.dweb_browser.microservice.http.IPureBody
 import org.dweb_browser.microservice.http.PureBinary
 import org.dweb_browser.microservice.http.PureBinaryBody
@@ -344,49 +346,42 @@ class IpcBodySender(
         }
       }
 
-      /// 持续发送数据
-      while (true) {
-        // 等待流开始被拉取
+      // 等待流开始被拉取
+      pullingLock.await()
+      /// READ-ALL 持续发送数据
+      while (reader.canRead) {
+        // 等待暂停状态释放
         pullingLock.await()
 
         debugIpcBody("sender/PULLING/$stream", stream_id)
 
-        when (val availableLen = reader.availableForRead) {
-          -1 -> {
-            debugIpcBody(
-              "sender/END/$stream", "$availableLen >> $stream_id"
-            )
-            /// 不论是不是被 aborted，都发送结束信号
-            val message = IpcStreamEnd(stream_id)
-            for (ipc in usedIpcMap.keys) {
-              ipc.postMessage(message)
-            }
-            reader.cancel()
-            emitStreamClose()
-            break
-          }
-
-          0 -> {
-            debugIpcBody("sender/EMPTY/$stream", stream_id)
-          }
-
-          else -> {
-            // 开光了，流已经开始被读取
-            _isStreamOpened = true
-            debugIpcBody(
-              "sender/READ/$stream", "$availableLen >> $stream_id"
-            )
-            val message = IpcStreamData.fromBinary(
-              stream_id, reader.toByteArray(availableLen)
-            )
-            for (ipc in usedIpcMap.keys) {
-              ipc.postMessage(message)
-            }
-          }
+        // 开光了，流已经开始被读取
+        _isStreamOpened = true
+        debugIpcBody(
+          "sender/READ/$stream", "${reader.availableForRead} >> $stream_id"
+        )
+        val message = IpcStreamData.fromBinary(
+          stream_id, reader.readAvailableByteArray()
+        )
+        for (usedIpc in usedIpcMap.keys) {
+          usedIpc.postMessage(message)
         }
+
         // 发送完成，并将 sendingLock 解锁
         debugIpcBody("sender/PULL-END/$stream", stream_id)
       }
+
+      /// END
+      debugIpcBody(
+        "sender/END/$stream", stream_id
+      )
+      /// 不论是不是被 aborted，都发送结束信号
+      val message = IpcStreamEnd(stream_id)
+      for (usedIpc in usedIpcMap.keys) {
+        usedIpc.postMessage(message)
+      }
+      reader.cancel()
+      emitStreamClose()
     }
 
     // 写入第一帧数据

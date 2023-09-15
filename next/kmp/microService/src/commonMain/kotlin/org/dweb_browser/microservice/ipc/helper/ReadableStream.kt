@@ -90,9 +90,9 @@ class ReadableStream(
       return
     }
     debugStream("CLOSE", uid)
-    // close ByteWriteChannel
+    // close Channel<ArrayBuffer>
     input.close()
-    // close ByteReadChannel
+    // close ByteChannel
     output.close()
     // cancel ReadableStream
     cancelPo.resolve(Unit)

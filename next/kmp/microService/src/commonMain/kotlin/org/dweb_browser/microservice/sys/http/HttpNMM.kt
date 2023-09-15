@@ -129,13 +129,15 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     }.removeWhen(onAfterShutdown)
 
     /// 模块 API 接口
-    routes("/start" bind HttpMethod.Get to defineJsonResponse {
-      start(
-        ipc, DwebHttpServerOptions(
-          request.queryOrFail("port").toInt(), request.queryOrFail("subdomain")
-        )
-      ).toJsonElement()
-    },
+    routes(
+      //
+      "/start" bind HttpMethod.Get to defineJsonResponse {
+        start(
+          ipc, DwebHttpServerOptions(
+            request.queryOrFail("port").toInt(), request.queryOrFail("subdomain")
+          )
+        ).toJsonElement()
+      },
       //
       "/listen" bind HttpMethod.Post to definePureStreamHandler {
         val token = request.queryOrFail("token")

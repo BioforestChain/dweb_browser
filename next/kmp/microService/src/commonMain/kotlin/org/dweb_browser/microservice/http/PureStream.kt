@@ -5,6 +5,8 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 
 open class PureStream(private val readChannel: ByteReadChannel) {
+  constructor(byteArray: ByteArray) : this(ByteReadChannel(byteArray))
+
   private var opened: String? = null
   val isOpened get() = opened != null
   private val openedDeferred = CompletableDeferred<Unit>()

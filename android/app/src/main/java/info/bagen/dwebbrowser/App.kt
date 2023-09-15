@@ -16,8 +16,6 @@ import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.browserUI.util.BrowserUIApp
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.helper.runBlockingCatching
-import org.dweb_browser.microservice.core.AndroidNativeMicroModule
 import org.dweb_browser.microservice.sys.dns.DnsNMM
 
 class App : Application() {
@@ -45,21 +43,25 @@ class App : Application() {
       }
     }
 
-    private val dnsNMMPo = PromiseOut<DnsNMM>()
-    fun startMicroModuleProcess(): DnsNMM {
-      if (dnsNMMPo.isResolved) {
-        runBlockingCatching {
-          dnsNMMPo.value!!.bootstrap()
-        }.getOrThrow()
+    private var dnsNMMPo: PromiseOut<DnsNMM>? = null
+    fun startMicroModuleProcess(): PromiseOut<DnsNMM> = synchronized(this) {
+      if (dnsNMMPo == null) {
+        dnsNMMPo = PromiseOut<DnsNMM>().also { dnsNMMPo ->
+          MainScope().launch {
+            try {
+              val dnsNMM = startDwebBrowser()
+              dnsNMMPo.resolve(dnsNMM)
+            } catch (e: Throwable) {
+              dnsNMMPo.reject(e)
+            }
+          }
+        }
       } else {
-        synchronized(dnsNMMPo) {
-          val dnsNMM = runBlockingCatching {
-            startDwebBrowser()
-          }.getOrThrow()
-          dnsNMMPo.resolve(dnsNMM)
+        MainScope().launch {
+          dnsNMMPo!!.waitPromise().bootstrap()
         }
       }
-      return dnsNMMPo.value!!
+      return dnsNMMPo!!
     }
   }
 

@@ -4,6 +4,7 @@ import android.net.Uri
 import android.webkit.WebMessage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.dwebview.DWebView
@@ -18,6 +19,7 @@ class JsProcessWebApi(val dWebView: DWebView) {
   suspend fun isReady() =
     dWebView.evaluateSyncJavascriptCode("typeof createProcess") == "function"
 
+  @Serializable
   data class ProcessInfo(val process_id: Int) {}
   inner class ProcessHandler(val info: ProcessInfo, var ipc: MessagePortIpc)
 

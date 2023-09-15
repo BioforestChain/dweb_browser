@@ -5,6 +5,7 @@ import io.ktor.http.URLBuilder
 import io.ktor.http.fullPath
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
 import org.dweb_browser.dwebview.ipcWeb.Native2JsIpc
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.JsonLoose
@@ -197,6 +198,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) : MicroModule(
        * 收到要与其它模块进行ipc连接的指令
        */
       if (ipcEvent.name == "dns/connect") {
+        @Serializable
         data class DnsConnectEvent(val mmid: MMID, val sub_protocols: List<String>)
 
         val event = JsonLoose.decodeFromString<DnsConnectEvent>(ipcEvent.text)
