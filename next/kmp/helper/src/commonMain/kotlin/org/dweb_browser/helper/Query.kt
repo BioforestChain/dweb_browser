@@ -213,40 +213,45 @@ class Query {
       }
     }
 
-    class QueryDecoder(params: Parameters) :
-      Decoder, CompositeDecoder {
+    class QueryDecoder(params: Parameters) : Decoder, CompositeDecoder {
       private val paramList = params.entries().toList()
-      private var walkIndex = 0;
+      private var walkIndex = -1;
       override val serializersModule: SerializersModule = Query.serializersModule
+      private fun takeFist() = paramList[walkIndex].value.first()
 
       override fun decodeBooleanElement(descriptor: SerialDescriptor, index: Int): Boolean {
-        return paramList[index].value.first().toBoolean()
+        return takeFist().toBoolean()
       }
 
       override fun decodeByteElement(descriptor: SerialDescriptor, index: Int): Byte {
-        return paramList[index].value.first().toByte()
+        return takeFist().toByte()
       }
 
       override fun decodeCharElement(descriptor: SerialDescriptor, index: Int): Char {
-        return paramList[index].value.first().toCharArray().first()
+        return takeFist().toCharArray().first()
       }
 
       override fun decodeDoubleElement(descriptor: SerialDescriptor, index: Int): Double {
-        return paramList[index].value.first().toDouble()
+        return takeFist().toDouble()
       }
 
       @OptIn(ExperimentalSerializationApi::class)
       override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
-        val param = paramList.getOrNull(walkIndex++) ?: return CompositeDecoder.DECODE_DONE
-        val index = descriptor.elementNames.indexOf(param.key)
-        if (index == -1) {
-          return CompositeDecoder.UNKNOWN_NAME
+        while (true) {
+
+          val param = paramList.getOrNull(++walkIndex) ?: return CompositeDecoder.DECODE_DONE
+          val index = descriptor.elementNames.indexOf(param.key)
+          if (index != -1) {
+            return index
+          }
+          // 默认跳过未知参数
+          // return CompositeDecoder.UNKNOWN_NAME
         }
-        return index
+
       }
 
       override fun decodeFloatElement(descriptor: SerialDescriptor, index: Int): Float {
-        TODO("Not yet implemented")
+        return takeFist().toFloat()
       }
 
       override fun decodeInlineElement(descriptor: SerialDescriptor, index: Int): Decoder {
@@ -254,11 +259,11 @@ class Query {
       }
 
       override fun decodeIntElement(descriptor: SerialDescriptor, index: Int): Int {
-        TODO("Not yet implemented")
+        return takeFist().toInt()
       }
 
       override fun decodeLongElement(descriptor: SerialDescriptor, index: Int): Long {
-        TODO("Not yet implemented")
+        return takeFist().toLong()
       }
 
       @ExperimentalSerializationApi
