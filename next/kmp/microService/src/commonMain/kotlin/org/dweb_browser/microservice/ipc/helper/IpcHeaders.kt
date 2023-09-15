@@ -13,7 +13,13 @@ object IpcHeadersSerializer : ProxySerializer<IpcHeaders, Map<String, String>>("
   ), { toMap() }, { IpcHeaders.from(this) })
 
 @Serializable(IpcHeadersSerializer::class)
-class IpcHeaders(private val headersMap: MutableMap<String, String> = mutableMapOf()) {
+class IpcHeaders() {
+  private val headersMap: MutableMap<String, String> = mutableMapOf()
+
+  constructor(headers: Map<String, String>) : this() {
+    append(headers)
+  }
+
   companion object {
     fun from(headers: Map<String, String>) = IpcHeaders(headers.toMutableMap())
   }
@@ -21,6 +27,12 @@ class IpcHeaders(private val headersMap: MutableMap<String, String> = mutableMap
   constructor(headers: Headers) : this() {
     for (header in headers.entries()) {
       headersMap[header.key.asKey()] = header.value.first()
+    }
+  }
+
+  fun append(headers: Map<String, String>) {
+    for ((key, value) in headers) {
+      headersMap[key.asKey()] = value
     }
   }
 
@@ -65,7 +77,7 @@ class IpcHeaders(private val headersMap: MutableMap<String, String> = mutableMap
     Pair(key.split('-').joinToString("-") { it.first().uppercaseChar() + it.substring(1) }, value)
   }
 
-  fun copy() = from(toMap())
+  fun copy() = IpcHeaders(headersMap)
   operator fun iterator() = headersMap.iterator()
 }
 
