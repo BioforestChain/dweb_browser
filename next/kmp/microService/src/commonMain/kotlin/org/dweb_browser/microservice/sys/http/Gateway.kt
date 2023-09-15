@@ -47,7 +47,7 @@ class Gateway(
 
     suspend fun destroy() {
       _routerSet.map {
-        it.streamIpc.input.close()
+        it.streamIpc.input.cancel()
       }
       destroySignal.emit()
     }

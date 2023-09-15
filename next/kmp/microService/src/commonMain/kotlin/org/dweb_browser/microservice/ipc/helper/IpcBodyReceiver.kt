@@ -99,7 +99,7 @@ class IpcBodyReceiver(
             else -> {}
           }
         }
-      }, onPull = { (_, controller) ->
+      }, onOpenReader = { controller ->
         debugIpcBody(
           "receiver/postPullMessage/$ipc/${controller.stream}", stream_id
         )

@@ -16,7 +16,7 @@ import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.printError
 import org.dweb_browser.helper.readByteArray
-import org.dweb_browser.helper.toByteArray
+import org.dweb_browser.helper.toLittleEndianByteArray
 import org.dweb_browser.helper.toUtf8
 import org.dweb_browser.helper.toUtf8ByteArray
 import org.dweb_browser.microservice.help.canRead
@@ -77,12 +77,13 @@ class ReadableStreamIpc(
   })
 
   private suspend fun enqueue(data: ByteArray) = controller.enqueue(data)
+  private suspend fun enqueue(vararg dataArray: ByteArray) = controller.enqueue(*dataArray)
 
   private var _incomeStream: PureStream? = null
 
   private val PONG_DATA by lazy {
     val pong = "pong".toByteArray()
-    pong.size.toByteArray() + pong
+    pong.size.toLittleEndianByteArray() + pong
   }
 
   class AbortAble {
@@ -131,6 +132,7 @@ class ReadableStreamIpc(
               )
               _messageSignal.emit(IpcMessageArgs(message, this@ReadableStreamIpc))
             }
+
             "close" -> close()
             "ping" -> enqueue(PONG_DATA)
             "pong" -> debugStreamIpc("PONG", "$stream")
@@ -167,7 +169,7 @@ class ReadableStreamIpc(
       is IpcStreamPulling -> Json.encodeToString(data).toUtf8ByteArray()
     }
     debugStreamIpc("post", "${message.size} => $input => $data")
-    enqueue(message.size.toByteArray() + message)
+    enqueue(message.size.toLittleEndianByteArray(), message)// 必须合并起来发送，否则中间可能插入其他写入
   }
 
 
