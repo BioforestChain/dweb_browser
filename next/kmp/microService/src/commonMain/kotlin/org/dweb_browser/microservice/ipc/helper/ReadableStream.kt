@@ -1,8 +1,11 @@
 package org.dweb_browser.microservice.ipc.helper
 
 import io.ktor.utils.io.ByteChannel
+import io.ktor.utils.io.cancel
 import io.ktor.utils.io.close
 import io.ktor.utils.io.core.ByteReadPacket
+import io.ktor.utils.io.writeAvailable
+import io.ktor.utils.io.writeFully
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -14,6 +17,7 @@ import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.toUtf8ByteArray
+import org.dweb_browser.microservice.help.canRead
 import org.dweb_browser.microservice.http.PureStream
 
 fun debugStream(tag: String, msg: Any = "", err: Throwable? = null) = println("$tag $msg")
@@ -92,8 +96,6 @@ class ReadableStream(
     debugStream("CLOSE", uid)
     // close Channel<ArrayBuffer>
     input.close()
-    // close ByteChannel
-    output.close()
     // cancel ReadableStream
     cancelPo.resolve(Unit)
   }
@@ -121,6 +123,9 @@ class ReadableStream(
         // chunk 可能很大，所以需要打包成 ByteReadPacket ，可以一点一点地写入
         output.writePacket(ByteReadPacket(chunk))
       }
+      // close ByteChannel
+      output.close()
+      output.cancel()
       // 执行生命周期回调
       onClose()
     }

@@ -23,6 +23,7 @@ import io.ktor.utils.io.bits.copyTo
 import io.ktor.utils.io.copyAndClose
 import io.ktor.utils.io.core.ByteReadPacket
 import io.ktor.utils.io.read
+import io.ktor.utils.io.readAvailable
 import io.ktor.utils.io.writeAvailable
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CoroutineScope
@@ -51,7 +52,8 @@ fun ApplicationRequest.asPureRequest(): PureRequest {
   val ipcMethod = IpcMethod.from(httpMethod)
   val ipcHeaders = IpcHeaders(headers)
   return PureRequest(
-    uri, ipcMethod, ipcHeaders, body = if (//
+    uri, ipcMethod, ipcHeaders,
+    body = if (//
       (ipcMethod == IpcMethod.GET && !isWebSocket(ipcMethod, ipcHeaders)) //
       || ipcHeaders.get("Content-Length") == "0"
     ) IPureBody.Empty
@@ -235,5 +237,18 @@ suspend inline fun ByteReadChannel.consumeEachArrayRange(
 }
 
 val ByteReadChannel.canRead get() = !(availableForRead == 0 && isClosedForWrite && isClosedForRead)
+suspend fun ByteReadChannel.canRead2(): Boolean {
+  do {
+    if (availableForRead > 0) {
+      return true
+    }
+    if (isClosedForRead) {
+      return false
+    }
+    awaitContent()
+  } while (true)
+}
+
 suspend fun ByteReadChannel.readAvailablePacket() = readPacket(availableForRead)
-suspend fun ByteReadChannel.readAvailableByteArray() = readAvailablePacket().readByteArray()
+suspend fun ByteReadChannel.readAvailableByteArray() =
+  ByteArray(availableForRead).also { readAvailable(it) }// readAvailablePacket().readByteArray()

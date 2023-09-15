@@ -7,6 +7,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.dweb_browser.microservice.help.canRead
+import org.dweb_browser.microservice.help.canRead2
+import org.dweb_browser.microservice.help.consumeEachArrayRange
 import org.dweb_browser.microservice.help.readAvailableByteArray
 import org.dweb_browser.microservice.ipc.helper.ReadableStream
 import kotlin.test.Test
@@ -30,15 +32,23 @@ class ReadableStreamTestTest {
       println("onClose xxx")
     })
 
-    val result = atomic(0)
+    var result by atomic(0)
 
     val reader = stream.stream.getReader("")
-    while (reader.canRead) {
+    while (reader.canRead2()) {
+      reader.awaitContent()
       println("availableForRead: ${reader.availableForRead}, isClosedForRead:${reader.isClosedForRead}, isClosedForWrite:${reader.isClosedForWrite}")
-      println("byteArray: ${reader.readAvailableByteArray().size}")
-      result.incrementAndGet()
+      val size = reader.readAvailableByteArray().size
+      println("byteArray: $size")
+      result += size
+//      delay(200)
     }
+//    reader.consumeEachArrayRange { byteArray, last ->
+//      val size = byteArray.size
+//      println("byteArray: $size")
+//      result += size
+//    }
 
-    assertEquals(5, result.value)
+    assertEquals(5, result)
   }
 }
