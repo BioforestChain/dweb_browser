@@ -150,7 +150,7 @@ public class MicroService
         {
             jmmNMM.Mmid,
             deskNMM.Mmid,
-            //webBrowserNMM.Mmid
+            webBrowserNMM.Mmid
         };
         /// 启动程序
         var bootNMM = new BootNMM(

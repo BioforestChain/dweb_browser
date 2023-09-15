@@ -1,4 +1,5 @@
 ﻿using DwebBrowser.Base;
+using DwebBrowserFramework;
 using UIKit;
 
 namespace DwebBrowser.MicroService.Browser.Desk;
@@ -63,10 +64,13 @@ public partial class DeskController : BaseViewController
             Tag = 32766
         };
         _ = DesktopView.LoadURL(desktopInternalUrl).NoThrow();
-        DeskUIView.AddSubview(DesktopView);
 
-        await CreateTaskBarWebView();
-        await CreateTaskbarFloatView();
+        var manager = new BridgeManager();
+        manager.BrowserView.Frame = bounds;
+        DeskUIView.AddSubview(manager.BrowserView);
+
+        //await CreateTaskBarWebView();
+        //await CreateTaskbarFloatView();
     }
 
     public bool IsOnTop = false;

@@ -308,12 +308,12 @@ public class DeskNMM : IOSNativeMicroModule
 
         OnActivity += async (Event, ipc, _) =>
         {
-            await OpenActivity();
+            //await OpenActivity();
         };
 
         DeskController.OnActivity.OnListener += async (_) =>
         {
-            await OpenActivity();
+            //await OpenActivity();
         };
     }
 

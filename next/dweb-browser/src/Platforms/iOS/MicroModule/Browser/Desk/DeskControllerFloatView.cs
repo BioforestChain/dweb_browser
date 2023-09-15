@@ -48,10 +48,10 @@ public partial class DeskController
 
     public void ShowFloatView()
     {
-        DeskUIView.AddSubview(TaskbarFloatView);
-        ResizeTaskbarFloatView();
-        TaskbarFloatView.AddSubview(TaskBarWebView);
-        TaskBarWebView.AutoResize("TaskBarWebView", TaskbarFloatView);
+        //DeskUIView.AddSubview(TaskbarFloatView);
+        //ResizeTaskbarFloatView();
+        //TaskbarFloatView.AddSubview(TaskBarWebView);
+        //TaskBarWebView.AutoResize("TaskBarWebView", TaskbarFloatView);
     }
 
     private void OnFloatTap(UITapGestureRecognizer tap)
