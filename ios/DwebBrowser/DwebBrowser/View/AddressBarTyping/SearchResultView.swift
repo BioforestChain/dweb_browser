@@ -21,8 +21,12 @@ struct SearchResultView: View {
                         Button {
                             guard let url = URL(string: searcher.inputHandler(addressBar.inputText)) else { return }
                             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                            openingLink.clickedLink = url
-                            addressBar.isFocused = false
+                            DispatchQueue.main.async {
+                                openingLink.clickedLink = url
+                                addressBar.isFocused = false
+                            }
+//                            openingLink.clickedLink = url
+//                            addressBar.isFocused = false
                         } label: {
                             VStack {
                                 HStack(spacing: 12) {

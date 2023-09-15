@@ -51,6 +51,19 @@ struct TabPageView: View {
                     toolbarState.goBackTapped = false
                 }
             }
+            .onChange(of: openingLink.clickedLink, perform: { link in
+                guard link != emptyURL else { return }
+
+                print("clickedLink has changed: \(link)")
+                let webcache = webcacheStore.cache(at: selectedTab.curIndex)
+                webcache.lastVisitedUrl = link
+                if webcache.shouldShowWeb{
+                    webWrapper.webView.load(URLRequest(url: link))
+                }else{
+                    webcache.shouldShowWeb = true
+                }
+                openingLink.clickedLink = emptyURL
+            })
 
             .onChange(of: toolbarState.shouldExpand) { shouldExpand in
                 if isVisible, !shouldExpand { // 截图，为缩小动画做准备
@@ -87,20 +100,6 @@ struct TabPageView: View {
                 }
                 print("onappear progress:\(webWrapper.webView.estimatedProgress)")
             }
-            .onChange(of: openingLink.clickedLink, perform: { link in
-                guard link != emptyURL else { return }
-
-                print("clickedLink has changed: \(link)")
-                let webcache = webcacheStore.cache(at: selectedTab.curIndex)
-                webcache.lastVisitedUrl = link
-                if webcache.shouldShowWeb{
-                    webWrapper.webView.load(URLRequest(url: link))
-                }else{
-                    webcache.shouldShowWeb = true
-                }
-                openingLink.clickedLink = emptyURL
-            })
-
             .onChange(of: webWrapper.url) { url in
                 if let validUrl = url, webCache.lastVisitedUrl != validUrl {
                     webCache.lastVisitedUrl = validUrl
