@@ -3,3 +3,4 @@ packages:
   - "desktop-dev/**/assets/*"
   - "desktop-dev/**/assets"
   - plaoc/demo/
+  - toolkit/*

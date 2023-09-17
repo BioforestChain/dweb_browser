@@ -1,7 +1,8 @@
 import path from "node:path";
+import process from "node:process";
 import { fileURLToPath } from "node:url";
 import type { $Task } from "./ConTasks.ts";
-export const createBaseResolveTo = (baseDir: string = Deno.cwd()) => {
+export const createBaseResolveTo = (baseDir: string = process.cwd()) => {
   if (baseDir.startsWith("file://")) {
     baseDir = fileURLToPath(baseDir);
   }
