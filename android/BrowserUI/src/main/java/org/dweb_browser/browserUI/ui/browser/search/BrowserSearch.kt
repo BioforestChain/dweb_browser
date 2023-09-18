@@ -21,7 +21,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
@@ -127,7 +126,6 @@ internal fun SearchView(
   }
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 internal fun BoxScope.BrowserTextField(
   text: MutableState<String>,
@@ -199,14 +197,18 @@ internal fun BoxScope.BrowserTextField(
       )
     },
     keyboardOptions = KeyboardOptions(
-      //imeAction = if (webEngine != null || inputText.isUrlOrHost()) ImeAction.Search else ImeAction.Done
+      // imeAction = if (webEngine != null || inputText.isUrlOrHost()) ImeAction.Search else ImeAction.Done
       imeAction = ImeAction.Search // 增加上面的切换功能，会引起荣耀手机输入法异常多输出一个空格。
     ),
     keyboardActions = KeyboardActions(
-      onDone = { focusManager.clearFocus(); keyboardController?.hide() },
+      // onDone = { focusManager.clearFocus(); keyboardController?.hide() },
       onSearch = {
-        webEngine?.let { onSearch(String.format(it.format, inputText)) }
-          ?: onSearch(inputText.toRequestUrl())
+        if (webEngine != null || inputText.isUrlOrHost()) {
+          webEngine?.let { onSearch(String.format(it.format, inputText)) }
+            ?: onSearch(inputText.toRequestUrl())
+        } else {
+          focusManager.clearFocus(); keyboardController?.hide()
+        }
       }
     )
   )
