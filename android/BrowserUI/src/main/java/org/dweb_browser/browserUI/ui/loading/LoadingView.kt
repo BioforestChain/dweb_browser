@@ -47,9 +47,9 @@ fun LoadingView(show: MutableState<Boolean>) {
     val rotateAngle = (360 / count).toDouble()
     Box(
       modifier = Modifier
-        .fillMaxSize()
-        .background(MaterialTheme.colorScheme.background)
-        .clickableWithNoEffect { },
+        .fillMaxSize(),
+        // .background(MaterialTheme.colorScheme.background) // 背景不显示，需要看到后面内容
+        //.clickableWithNoEffect { }, // 不拦截点击吧
       contentAlignment = Alignment.Center
     ) {
       //1284总宽度  计划宽度：209    17宽 38长     106     17/53  38/53
@@ -57,7 +57,8 @@ fun LoadingView(show: MutableState<Boolean>) {
         modifier = Modifier
           .width((width * 0.16f).dp)
           .aspectRatio(1f)
-          .clip(RoundedCornerShape(10.dp)),
+          .clip(RoundedCornerShape(10.dp))
+          .background(MaterialTheme.colorScheme.background),
         contentAlignment = Alignment.Center
       ) {
         Canvas(
