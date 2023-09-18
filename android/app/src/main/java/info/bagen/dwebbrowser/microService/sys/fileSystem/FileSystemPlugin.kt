@@ -215,12 +215,13 @@ object FileSystemPlugin {
     }
   }
 
-  fun saveToPictureDirectory(fileName: String, inputStream: InputStream) {
-    val path = "Pictures/dwebbrowser"
-    Environment.getExternalStoragePublicDirectory(path)?.let { pictureDir ->
+  fun saveToPictureDirectory(fileName: String, inputStream: InputStream): String {
+    val path = "Pictures/dweb-browser"
+    return Environment.getExternalStoragePublicDirectory(path).let { pictureDir ->
       pictureDir.mkdirs() // 先创建所有目录，避免有目录不存在
       val pictureFile = pictureDir.absolutePath + File.separator + fileName
       saveFile(File(pictureFile), inputStream, false)
+      pictureFile
     }
   }
 }

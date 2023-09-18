@@ -4,16 +4,10 @@ import android.content.Intent
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.sys.fileSystem.EFileType
 import info.bagen.dwebbrowser.microService.sys.share.ShareController.Companion.controller
-import io.ktor.http.ContentDisposition
 import io.ktor.http.HttpMethod
-import io.ktor.http.cio.MultipartEvent
-import io.ktor.http.cio.parseHeaders
-import io.ktor.http.cio.parseMultipart
 import io.ktor.http.content.PartData
 import io.ktor.http.content.forEachPart
 import io.ktor.http.content.streamProvider
-import io.ktor.utils.io.jvm.javaio.toInputStream
-import kotlinx.coroutines.channels.consumeEach
 import kotlinx.serialization.Serializable
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.printDebug
@@ -62,7 +56,7 @@ class ShareNMM : AndroidNativeMicroModule("share.sys.dweb", "share") {
             is PartData.FileItem -> {
               partData.originalFileName?.also { filename ->
                 val url = plugin.writeFile(
-                  filename, EFileDirectory.Cache.location, partData.streamProvider(), false
+                  filename, EFileType.Cache, partData.streamProvider(), false
                 )
                 files.add(url)
               }
