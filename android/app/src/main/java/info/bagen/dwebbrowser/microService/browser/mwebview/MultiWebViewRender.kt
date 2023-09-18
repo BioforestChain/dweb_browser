@@ -50,6 +50,7 @@ fun MultiWebViewController.Render(modifier: Modifier = Modifier, initialScale: I
             controller, viewItem, isLastView(viewItem)
           )
         }
+
         /// 返回按钮的拦截只跟最后一个视图有关系，直到这最后一个视图被关闭了
         if (viewItem == list.last()) {
           val isMaximized by win.watchedIsMaximized()

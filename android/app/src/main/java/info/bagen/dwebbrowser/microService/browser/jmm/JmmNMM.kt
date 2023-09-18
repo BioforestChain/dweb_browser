@@ -12,11 +12,9 @@ import org.dweb_browser.browserUI.microService.browser.link.WebLinkMicroModule
 import org.dweb_browser.browserUI.util.BrowserUIApp
 import org.dweb_browser.browserUI.util.FilesUtil
 import org.dweb_browser.helper.printDebug
-import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.microservice.core.AndroidNativeMicroModule
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.help.bodyJson
-import org.dweb_browser.microservice.help.jsonBody
 import org.dweb_browser.microservice.help.types.DWEB_DEEPLINK
 import org.dweb_browser.microservice.help.types.IMicroModuleManifest
 import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
@@ -85,15 +83,21 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
 
     val routeInstallHandler = defineResponse {
       val metadataUrl = queryMetadataUrl(request)
-      val jmmAppInstallManifest = nativeFetch(metadataUrl).bodyJson<JmmAppInstallManifest>()
-      val url = URL(metadataUrl)
-      // 根据 jmmMetadata 打开一个应用信息的界面，用户阅读界面信息后，可以点击"安装"
-      installJsMicroModule(jmmAppInstallManifest, ipc, url)
-      if (request.header("Accept")?.contains("application/json") == true) {
-        Response(Status.OK).jsonBody(jmmAppInstallManifest.toJsonElement())
+      val response = nativeFetch(metadataUrl)
+      if (response.status == Status.OK) {
+        val jmmAppInstallManifest = response.bodyJson<JmmAppInstallManifest>()
+        val url = URL(metadataUrl)
+        // 根据 jmmMetadata 打开一个应用信息的界面，用户阅读界面信息后，可以点击"安装"
+        installJsMicroModule(jmmAppInstallManifest, ipc, url)
+        Response(Status.OK)
       } else {
         Response(Status.NO_CONTENT)
       }
+      /*if (request.header("Accept")?.contains("application/json") == true) {
+        Response(Status.OK).jsonBody(jmmAppInstallManifest.toJsonElement())
+      } else {
+        Response(Status.NO_CONTENT)
+      }*/
     }
     apiRouting = routes(
       // 安装

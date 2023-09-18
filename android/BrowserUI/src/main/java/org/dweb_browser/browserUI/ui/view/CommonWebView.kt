@@ -29,7 +29,6 @@ import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
 import org.dweb_browser.browserUI.ui.browser.ConstUrl
 import org.dweb_browser.browserUI.ui.browser.setDarkMode
 import org.dweb_browser.browserUI.ui.loading.LoadingView
-import org.dweb_browser.browserUI.ui.loading.LocalLoadingViewManager
 
 /**
  * 用于判断是否显示隐私协议
@@ -97,13 +96,12 @@ fun CommonWebView() {
       }
     }
 
-
-    val loadingViewManager = LocalLoadingViewManager.current
+    val showLoading = remember { mutableStateOf(false) }
     LaunchedEffect(state) {
       snapshotFlow { state.loadingState }.collect {
         when (it) {
-          is LoadingState.Loading -> loadingViewManager.show.value = true
-          else -> loadingViewManager.show.value = false
+          is LoadingState.Loading -> showLoading.value = true
+          else -> showLoading.value = false
         }
       }
     }
@@ -141,7 +139,7 @@ fun CommonWebView() {
           }
         }
       )
-      LoadingView()
+      LoadingView(showLoading)
     }
   }
 }

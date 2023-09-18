@@ -35,12 +35,12 @@ class DWebChromeClient : WebChromeClient() {
 
 
   override fun getDefaultVideoPoster(): Bitmap? {
-    return inners("getDefaultVideoPoster").mapFindNoNull { it.getDefaultVideoPoster() }
+    return inners("getDefaultVideoPoster").mapFindNoNull { it.defaultVideoPoster }
       ?: super.getDefaultVideoPoster()
   }
 
   override fun getVideoLoadingProgressView(): View? {
-    return inners("getVideoLoadingProgressView").mapFindNoNull { it.getVideoLoadingProgressView() }
+    return inners("getVideoLoadingProgressView").mapFindNoNull { it.videoLoadingProgressView }
       ?: super.getVideoLoadingProgressView()
   }
 

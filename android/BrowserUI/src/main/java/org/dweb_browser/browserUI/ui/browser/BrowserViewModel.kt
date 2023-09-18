@@ -52,6 +52,7 @@ import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.dweb_browser.microservice.sys.http.HttpDwebServer
+import org.http4k.core.Status
 import org.http4k.core.query
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -238,15 +239,19 @@ class BrowserViewModel(
           if (action.url.startsWith("dweb:")) { // 负责拦截browser的dweb_deeplink
             browserNMM.nativeFetch(action.url)
             return@launch
-          }
-
-          uiState.currentBrowserBaseView.value.viewItem.apply {
-            state.content = WebContent.Url(
-              url = action.url,
-              additionalHttpHeaders = hashMapOf<String, String>().also { map ->
-                map["temp"] = System.currentTimeMillis().toString()
-              } // 添加不同的 header 信息，会让WebView判定即使同一个url，也做新url处理
-            )
+          } else {
+            val url = "dweb:install?url=${action.url}"
+            val response = browserNMM.nativeFetch(url) // 增加一个判断，如果不是ok就直接打开地址
+            if (response.status != Status.OK) {
+              uiState.currentBrowserBaseView.value.viewItem.apply {
+                state.content = WebContent.Url(
+                  url = action.url,
+                  additionalHttpHeaders = hashMapOf<String, String>().also { map ->
+                    map["temp"] = System.currentTimeMillis().toString()
+                  } // 添加不同的 header 信息，会让WebView判定即使同一个url，也做新url处理
+                )
+              }
+            }
           }
         }
 

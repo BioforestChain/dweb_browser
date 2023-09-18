@@ -14,6 +14,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -26,11 +27,10 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 @Composable
-fun LoadingView() {
-  val localLoadingManager = LocalLoadingViewManager.current
+fun LoadingView(show: MutableState<Boolean>) {
   val viewModel = LoadingViewModel()
   val whiteBackground = !isSystemInDarkTheme()
-  if (localLoadingManager.show.value) {
+  if (show.value) {
     LaunchedEffect(Unit) {
       viewModel.setBackground(whiteBackground)
       viewModel.startTimer(System.currentTimeMillis())
@@ -41,7 +41,7 @@ fun LoadingView() {
         viewModel.timerDestroy()
       }
     }
-    BackHandler { localLoadingManager.show.value = false }
+    BackHandler { show.value = false }
     val width = LocalConfiguration.current.screenWidthDp
     val count = 8
     val rotateAngle = (360 / count).toDouble()

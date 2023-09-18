@@ -2,17 +2,10 @@ package org.dweb_browser.browserUI.ui.loading
 
 import android.annotation.SuppressLint
 import android.os.CountDownTimer
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
 
-val LocalLoadingViewManager = compositionLocalOf {
-  LoadingViewModel()
-}
-
 class LoadingViewModel {
-  val show: MutableState<Boolean> = mutableStateOf(false)
   private var mTimer: CountDownTimer? = null
 
   private val white1 = Color(0xFFCCCCCC)

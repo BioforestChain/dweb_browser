@@ -13,6 +13,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -25,18 +27,22 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import org.dweb_browser.browserUI.ui.entity.BrowserWebView
+import org.dweb_browser.browserUI.ui.loading.LoadingView
 import org.dweb_browser.browserUI.ui.view.drawToBitmapPostLaidOut
 
 @SuppressLint("ClickableViewAccessibility")
 @Composable
 internal fun BrowserWebView(viewModel: BrowserViewModel, browserWebView: BrowserWebView) {
   var webViewY = 0 // 用于截图的时候进行定位截图
+  val showLoading = remember { mutableStateOf(false) }
   LaunchedEffect(browserWebView.viewItem.state) { // 点击跳转时，加载状态变化，将底部栏显示
     snapshotFlow { browserWebView.viewItem.state.loadingState }.collect {
       if (it is LoadingState.Loading) {
         viewModel.handleIntent(BrowserIntent.UpdateBottomViewState(true))
+        showLoading.value = true
       }
       if (it is LoadingState.Finished) {
+        showLoading.value = false
         delay(500)
         viewModel.handleIntent(
           BrowserIntent.SaveHistoryWebSiteInfo(
@@ -65,7 +71,6 @@ internal fun BrowserWebView(viewModel: BrowserViewModel, browserWebView: Browser
   SideEffect {
     browserWebView.viewItem.webView.setInitialScale(initialScale)
   }
-  //val webViewClient = BrowserWebViewClient()
   WebView(
     state = browserWebView.viewItem.state,
     modifier = Modifier
@@ -95,6 +100,7 @@ internal fun BrowserWebView(viewModel: BrowserViewModel, browserWebView: Browser
       browserWebView.viewItem.webView.parent?.let { (it as ViewGroup).removeAllViews() }
       browserWebView.viewItem.webView
     })
+  LoadingView(showLoading)
 }
 
 /**
