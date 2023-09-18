@@ -2,14 +2,18 @@ package org.dweb_browser.helper
 
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers.Default
+import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDateTime
 import kotlin.coroutines.CoroutineContext
 
-fun now() = Clock.System.now().toString().padEndAndSub(23) // kmp中LocalDateTime跟android不一样 // LocalDateTime.toString().padEndAndSub(23)
+fun now() = Clock.System.now().toString()
+  .padEndAndSub(23) // kmp中LocalDateTime跟android不一样 // LocalDateTime.toString().padEndAndSub(23)
 
 fun printError(tag: String, msg: Any?, err: Throwable? = null) {
   println("${tag.padEnd(60, ' ')} $msg")
@@ -24,9 +28,9 @@ val commonAsyncExceptionHandler = CoroutineExceptionHandler { ctx, e ->
   printError(ctx.toString(), e.message, e)
   debugger(ctx, e)
 }
-val defaultAsyncExceptionHandler = Dispatchers.Default + commonAsyncExceptionHandler
+val defaultAsyncExceptionHandler = Default + commonAsyncExceptionHandler
 val ioAsyncExceptionHandler = Dispatchers.IO + commonAsyncExceptionHandler
-val mainAsyncExceptionHandler = SupervisorJob() + Dispatchers.Main + commonAsyncExceptionHandler
+val mainAsyncExceptionHandler = SupervisorJob() + Main + commonAsyncExceptionHandler
 fun <T> runBlockingCatching(
   context: CoroutineContext, block: suspend CoroutineScope.() -> T
 ) = runCatching {
