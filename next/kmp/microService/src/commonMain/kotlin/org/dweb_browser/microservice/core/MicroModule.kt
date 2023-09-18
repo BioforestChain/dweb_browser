@@ -3,8 +3,10 @@ package org.dweb_browser.microservice.core
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import org.dweb_browser.helper.Callback
+import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
@@ -24,6 +26,8 @@ typealias NativeOptions = MutableMap<String, String>
 enum class MMState {
   BOOTSTRAP, SHUTDOWN,
 }
+
+val debugMicroModule = Debugger("MicroModule")
 
 abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleManifest by manifest {
 
@@ -53,7 +57,7 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
   protected abstract suspend fun _bootstrap(bootstrapContext: BootstrapContext)
   private suspend fun afterBootstrap(_dnsMM: BootstrapContext) {
     this.runningStateLock.resolve()
-    printDebug("MicroModule", "afterBootstrap", "ready: $mmid")
+    debugMicroModule("afterBootstrap", "ready: $mmid")
     onConnect { (ipc) ->
       ipc.readyInMicroModule("onConnect")
     }
@@ -63,7 +67,7 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
   }
 
   private fun Ipc.readyInMicroModule(tag: String) {
-    printDebug("MicroModule", "ready/$tag", "(self)$mmid => ${remote.mmid}(remote)")
+    debugMicroModule("ready/$tag", "(self)$mmid => ${remote.mmid}(remote)")
     ioAsyncScope.launch {
       this@readyInMicroModule.ready(this@MicroModule)
     }

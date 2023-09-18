@@ -199,7 +199,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) : MicroModule(
        */
       if (ipcEvent.name == "dns/connect") {
         @Serializable
-        data class DnsConnectEvent(val mmid: MMID, val sub_protocols: List<String>)
+        data class DnsConnectEvent(val mmid: MMID, val sub_protocols: List<String> = listOf())
 
         val event = JsonLoose.decodeFromString<DnsConnectEvent>(ipcEvent.text)
         try {
