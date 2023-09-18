@@ -26,9 +26,6 @@ import io.ktor.utils.io.read
 import io.ktor.utils.io.readAvailable
 import io.ktor.utils.io.writeAvailable
 import kotlinx.atomicfu.atomic
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
-import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.readByteArray
 import org.dweb_browser.microservice.http.IPureBody
@@ -42,7 +39,6 @@ import org.dweb_browser.microservice.ipc.helper.DEFAULT_BUFFER_SIZE
 import org.dweb_browser.microservice.ipc.helper.IpcHeaders
 import org.dweb_browser.microservice.ipc.helper.IpcMethod
 import org.dweb_browser.microservice.ipc.helper.ReadableStream
-import org.dweb_browser.microservice.ipc.helper.ReadableStreamOut
 import org.dweb_browser.microservice.ipc.helper.debugStream
 
 fun debugHelper(tag: String, msg: Any = "", err: Throwable? = null) =
@@ -156,36 +152,39 @@ fun PureRequest.toHttpRequestBuilder() = HttpRequestBuilder().also { httpRequest
 
 /**
  * 这个函数发生在 prepareRequest(request.toHttpRequestBuilder()).execute 之内，
+ * 所以如果有需要，外部需要这样去构建：
+ * .execute {
+ *  val bodyReadableStream = it.bodyAsChannel().consumeToReadableStream()
+ *  val response = it.toPureResponse(body = PureStreamBody(bodyReadableStream.stream))
+ *  bodyReadableStream.waitCanceled()
+ * }
  * 要求外部传入一个 ReadableStreamOut ，并且一定要在返回 response 后等待 stream.waitClosed
  *
  * 请仔细阅读文档： https://ktor.io/docs/response.html#streaming 了解原因
  */
-suspend fun HttpResponse.toResponse(
-  streamOut: ReadableStreamOut
+suspend fun HttpResponse.toPureResponse(
+  status: HttpStatusCode = this.status,
+  headers: IpcHeaders = IpcHeaders(this.headers),
+  body: IPureBody? = null,
 ): PureResponse {
-  this.bodyAsChannel().pipeToReadableStream(streamOut.controller)
   return PureResponse(
-    HttpStatusCode(this.status.value, this.status.description),
-    IpcHeaders(this.headers),
-    body = PureStreamBody(streamOut.stream.stream)
+    status = status,
+    headers = headers,
+    body = body ?: PureStreamBody(this.bodyAsChannel())
   )
 }
 
-fun ByteReadChannel.toReadableStream() = ReadableStream(onStart = { pipeToReadableStream(it) })
-
-fun ByteReadChannel.pipeToReadableStream(controller: ReadableStream.ReadableStreamController) =
-  CoroutineScope(ioAsyncExceptionHandler).launch {
-    val id = debugStreamAccId.incrementAndGet();
-    debugStream("toReadableStream", "SS[$id] start")
-    consumeEachArrayRange { byteArray, last ->
-      debugStream("toReadableStream", "SS[$id] enqueue ${byteArray.size}")
-      controller.enqueue(byteArray)
-      if (last) {
-        debugStream("toReadableStream", "SS[$id] end")
-        controller.close()
-      }
+fun ByteReadChannel.consumeToReadableStream() = ReadableStream(onOpenReader = { controller ->
+  val id = debugStreamAccId.incrementAndGet();
+  debugStream("toReadableStream", "SS[$id] start")
+  this@consumeToReadableStream.consumeEachArrayRange { byteArray, last ->
+    controller.enqueue(byteArray)
+    if (last) {
+      debugStream("toReadableStream", "SS[$id] end")
+      controller.close()
     }
   }
+});
 
 
 /**

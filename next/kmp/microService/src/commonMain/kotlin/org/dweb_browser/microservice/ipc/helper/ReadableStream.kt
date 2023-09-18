@@ -4,8 +4,6 @@ import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.cancel
 import io.ktor.utils.io.close
 import io.ktor.utils.io.core.ByteReadPacket
-import io.ktor.utils.io.writeAvailable
-import io.ktor.utils.io.writeFully
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -17,7 +15,6 @@ import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.toUtf8ByteArray
-import org.dweb_browser.microservice.help.canRead
 import org.dweb_browser.microservice.http.PureStream
 
 fun debugStream(tag: String, msg: Any = "", err: Throwable? = null) = println("$tag $msg")
@@ -28,12 +25,11 @@ fun debugStream(tag: String, msg: Any = "", err: Throwable? = null) = println("$
  */
 class ReadableStream(
   cid: String? = null,
-  val onStart: (controller: ReadableStreamController) -> Unit = {},
-  val onOpenReader: suspend (arg: ReadableStreamController) -> Unit = {},
-  val onClose: suspend () -> Unit = {},
+  val onOpenReader: suspend CoroutineScope.(arg: ReadableStreamController) -> Unit = {},
+  val onClose: suspend CoroutineScope.() -> Unit = {},
+  val onStart: CoroutineScope.(controller: ReadableStreamController) -> Unit = {},
 ) {
-
-  private val scope = CoroutineScope(CoroutineName("readableStream") + ioAsyncExceptionHandler)
+  val scope = CoroutineScope(CoroutineName("readableStream") + ioAsyncExceptionHandler)
 
   /**
    * 内部的写入器，这里不直接写入 output，是因为 需要 Channel 来作为写入缓冲器
@@ -111,7 +107,7 @@ class ReadableStream(
 
   /// 生命周期
   init {
-    onStart(controller)
+    scope.onStart(controller)
     scope.launch {
       stream.afterOpened.await()
       onOpenReader(controller)
@@ -134,8 +130,8 @@ class ReadableStream(
 
 class ReadableStreamOut {
   private lateinit var _controller: ReadableStream.ReadableStreamController
-  val stream = ReadableStream(onStart = {
+  val stream = ReadableStream {
     _controller = it
-  })
+  }
   val controller get() = _controller
 }

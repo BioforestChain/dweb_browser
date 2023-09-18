@@ -2,12 +2,14 @@ package org.dweb_browser.microservice.sys.dns
 
 import io.ktor.client.HttpClient
 import io.ktor.client.request.prepareRequest
+import io.ktor.client.statement.bodyAsChannel
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.Url
 import io.ktor.http.fullPath
 import io.ktor.util.decodeBase64Bytes
 import io.ktor.util.toLowerCasePreservingASCIIRules
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.ioAsyncExceptionHandler
@@ -15,15 +17,16 @@ import org.dweb_browser.helper.platform.httpFetcher
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.help.AdapterManager
+import org.dweb_browser.microservice.help.canReadContent
 import org.dweb_browser.microservice.help.toHttpRequestBuilder
-import org.dweb_browser.microservice.help.toResponse
+import org.dweb_browser.microservice.help.toPureResponse
 import org.dweb_browser.microservice.http.PureBinaryBody
 import org.dweb_browser.microservice.http.PureRequest
 import org.dweb_browser.microservice.http.PureResponse
+import org.dweb_browser.microservice.http.PureStreamBody
 import org.dweb_browser.microservice.http.PureStringBody
 import org.dweb_browser.microservice.ipc.helper.IpcHeaders
 import org.dweb_browser.microservice.ipc.helper.IpcMethod
-import org.dweb_browser.microservice.ipc.helper.ReadableStreamOut
 
 typealias FetchAdapter = suspend (remote: MicroModule, request: PureRequest) -> PureResponse?
 
@@ -50,7 +53,8 @@ class NativeFetchAdaptersManager : AdapterManager<FetchAdapter>() {
   class HttpFetch(val manager: NativeFetchAdaptersManager) {
     val client get() = manager.client
     suspend operator fun invoke(request: PureRequest) = fetch(request)
-    suspend operator fun invoke(url: String) = fetch(PureRequest(method = IpcMethod.GET, href = url))
+    suspend operator fun invoke(url: String) =
+      fetch(PureRequest(method = IpcMethod.GET, href = url))
 
     suspend fun fetch(request: PureRequest): PureResponse {
       try {
@@ -102,11 +106,13 @@ class NativeFetchAdaptersManager : AdapterManager<FetchAdapter>() {
           try {
             client.prepareRequest(request.toHttpRequestBuilder()).execute {
               debugFetch("httpFetch execute", request.uri)
-              val streamOut = ReadableStreamOut()
-              val response = it.toResponse(streamOut)
+              val byteChannel = it.bodyAsChannel()
+              val response = it.toPureResponse(body = PureStreamBody(byteChannel))
               debugFetch("httpFetch response", request.uri)
               responsePo.resolve(response)
-              streamOut.stream.waitClosed()
+              while (byteChannel.canReadContent()) {
+                delay(1000)
+              }
               debugFetch("httpFetch end", request.uri)
             }
           } catch (e: Throwable) {

@@ -71,9 +71,9 @@ class Http1Server {
 
                 var proxyRequestBody: ReadableStream.ReadableStreamController? = null
                 if (request.isWebSocket()) {
-                  request = request.copy(body = (ReadableStream(onStart = {
+                  request = request.copy(body = (ReadableStream {
                     proxyRequestBody = it
-                  })).also {
+                  }).also {
                     debugHttp("WS-START", url)
                   }.stream.toBody())
                 }

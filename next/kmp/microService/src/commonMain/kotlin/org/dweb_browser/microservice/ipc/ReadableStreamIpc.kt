@@ -72,9 +72,9 @@ class ReadableStreamIpc(
 
   private lateinit var controller: ReadableStream.ReadableStreamController
 
-  val input = ReadableStream(cid = role, onStart = {
+  val input = ReadableStream(cid = role) {
     controller = it
-  })
+  }
 
   private suspend fun enqueue(data: ByteArray) = controller.enqueue(data)
   private suspend fun enqueue(vararg dataArray: ByteArray) = controller.enqueue(*dataArray)

@@ -39,7 +39,7 @@ class WindowNMM : NativeMicroModule("window.sys.dweb", "Window Management") {
       "/observe" bind HttpMethod.Get to definePureStreamHandler {
         val win = getWindow(request)
         debugWindowNMM("/observe", "wid: ${win.id} ,mmid: ${ipc.remote.mmid}")
-        val inputStream = ReadableStream(onStart = { controller ->
+        val inputStream = ReadableStream { controller ->
           val off = win.state.observable.onChange {
             try {
               controller.enqueue(Json.encodeToString(win.state.toJsonElement()) + "\n")
@@ -60,7 +60,7 @@ class WindowNMM : NativeMicroModule("window.sys.dweb", "Window Management") {
             off()
             controller.close()
           }
-        })
+        }
         inputStream.stream
       },
       "/getState" bind HttpMethod.Get to defineJsonResponse {

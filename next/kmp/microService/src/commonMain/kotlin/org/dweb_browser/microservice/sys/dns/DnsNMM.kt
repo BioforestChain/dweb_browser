@@ -68,7 +68,6 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
   private val mmConnectsMap = mutableMapOf<MM, PromiseOut<ConnectResult>>()
   private val mmConnectsMapLock = Mutex()
 
-
   /** 为两个mm建立 ipc 通讯 */
   private suspend fun connectTo(
     fromMM: MicroModule, toMMID: MMID, reason: PureRequest
@@ -237,8 +236,10 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
         val mmid = request.queryAppId()
         Json.encodeToString("")
         query(mmid)?.toManifest()?.toJsonElement() ?: JsonPrimitive(null)
-      }, "/observe/install-apps" bind HttpMethod.Get to definePureStreamHandler {
-        val inputStream = ReadableStream(onStart = { controller ->
+      },
+      //
+      "/observe/install-apps" bind HttpMethod.Get to definePureStreamHandler {
+        val inputStream = ReadableStream { controller ->
           val off = installApps.onChange { changes ->
             try {
               controller.enqueueBackground(
@@ -257,9 +258,10 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
             off()
             controller.close()
           }
-        })
+        }
         inputStream.stream
       },
+      //
       "/observe/running-apps" bind HttpMethod.Get to definePureStreamHandler {
         val inputStream = ReadableStream(onStart = { controller ->
           val off = runningApps.onChange { changes ->

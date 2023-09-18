@@ -20,7 +20,6 @@ import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.canRead
-import org.dweb_browser.microservice.help.consumeEachArrayRange
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.http.PureResponse
@@ -180,7 +179,7 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       },
       //
       "/desktop/observe/apps" bind HttpMethod.Get to definePureResponse {
-        val inputStream = ReadableStream(onStart = { controller ->
+        val inputStream = ReadableStream { controller ->
           val off = desktopController.onUpdate {
             try {
               val jsonData = Json.encodeToString(desktopController.getDesktopApps())
@@ -199,7 +198,7 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
             off()
             controller.close()
           }
-        })
+        }
         ioAsyncScope.launch {
           desktopController.updateSignal.emit()
         }
@@ -216,7 +215,7 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       "/taskbar/observe/apps" bind HttpMethod.Get to definePureResponse {
         val limit = request.query("limit")?.toInt() ?: Int.MAX_VALUE
         debugDesk("/taskbar/observe/apps", limit)
-        val inputStream = ReadableStream(onStart = { controller ->
+        val inputStream = ReadableStream { controller ->
           val off = taskBarController.onUpdate {
             try {
               val jsonData = Json.encodeToString(taskBarController.getTaskbarAppList(limit))
@@ -235,7 +234,7 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
             off()
             controller.close()
           }
-        })
+        }
         ioAsyncScope.launch {
           taskBarController.updateSignal.emit()
         }
@@ -246,7 +245,7 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       //
       "/taskbar/observe/status" bind HttpMethod.Get to definePureResponse {
         debugDesk("/taskbar/observe/status")
-        val inputStream = ReadableStream(onStart = { controller ->
+        val inputStream = ReadableStream { controller ->
           val off = taskBarController.onStatus { status ->
             try {
               val jsonData = Json.encodeToString(status)
@@ -265,7 +264,7 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
             off()
             controller.close()
           }
-        })
+        }
         return@definePureResponse PureResponse(
           HttpStatusCode.OK, body = PureStreamBody(inputStream.stream)
         )

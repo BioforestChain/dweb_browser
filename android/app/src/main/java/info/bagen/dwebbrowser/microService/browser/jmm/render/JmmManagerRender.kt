@@ -53,10 +53,10 @@ internal suspend fun measureCenterOffset(index: Int, previewState: PreviewState)
 internal fun CustomerDivider(modifier: Modifier = Modifier) =
   HorizontalDivider(modifier = modifier, color = MaterialTheme.colorScheme.background)
 
-internal fun String.displayDownLoad(total: Long, progress: Long): String {
-  val GB = 1024 * 1024 * 1024 // 定义GB的计算常量
-  val MB = 1024 * 1024 // 定义MB的计算常量
-  val KB = 1024 // 定义KB的计算常量
+private const val GB = 1024 * 1024 * 1024 // 定义GB的计算常量
+private const val MB = 1024 * 1024 // 定义MB的计算常量
+private const val KB = 1024 // 定义KB的计算常量
+internal fun displayDownLoad(total: Long, progress: Long): String {
   val df = DecimalFormat("0.0");//格式化小数
   val dValue: String
   val totalValue = if (total / GB >= 1) {
@@ -72,7 +72,7 @@ internal fun String.displayDownLoad(total: Long, progress: Long): String {
     dValue = "$progress"
     "$total B";
   }
-  return if (dValue.isEmpty()) "$this ($totalValue)" else "$this ($dValue/$totalValue)"
+  return if (dValue.isEmpty()) "($totalValue)" else "($dValue/$totalValue)"
 }
 
 internal fun Number.toSpaceSize() = toString().toSpaceSize()
