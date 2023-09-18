@@ -506,7 +506,7 @@ fun BrowserSearchView(viewModel: BrowserViewModel) {
       inputText
     }
 
-    val inputTextState = LocalInputText.current;
+    val inputTextState = LocalInputText.current
 
     SearchView(
       text = text,

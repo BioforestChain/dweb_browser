@@ -83,7 +83,7 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
       val pathName = request.uri.path
       debugBrowser("createBrowserWebServer", pathName)
       if (!pathName.startsWith(API_PREFIX)) {
-        val response = nativeFetch("file:///sys/browser/desk${pathName}?mode=stream")
+        val response = nativeFetch("file:///sys/browser/web${pathName}?mode=stream")
         ipc.postMessage(IpcResponse.fromResponse(request.req_id, response, ipc))
       }
     }

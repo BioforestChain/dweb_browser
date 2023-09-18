@@ -5,48 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>Browser</title>
-    <script type="module" src="./src/index.ts"></script>
     <style>
-      .browser-views {
-        display: grid;
-        grid-template-rows: 2em 1fr;
-        grid-template-columns: 1fr;
+      /* 将图像和名称容器居中对齐 */
+      .container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        text-align: center;
       }
-      .web-view {
-        display: grid;
-        grid-row: 1 / 3;
-        grid-column: 1 / 2;
-        grid-template-rows: subgrid;
-        grid-template-columns: subgrid;
-      }
-      .web-view-tab {
-        min-width: 5em;
-      }
-      .web-view-content {
-        width: 100%;
-        height: max-content;
+
+      /* 调整图像和名称之间的间距 */
+      .name {
+        margin-top: 10px;
       }
     </style>
   </head>
   <body>
-    <h1 class="win-title">这是一个网页浏览器</h1>
-    <div class="browser-views">
-      <details class="web-view">
-        <summary class="web-view-tab">WaterBang</summary>
-        <webview class="web-view-content" src="https://dweb.waterbang.top"></webview>
-      </details>
-      <details class="web-view">
-        <summary class="web-view-tab">百度</summary>
-        <webview class="web-view-content" src="https://baidu.com"></webview>
-      </details>
-      <details class="web-view">
-        <summary class="web-view-tab">Google</summary>
-        <webview class="web-view-content" src="https://google.com"></webview>
-      </details>
-      <details class="web-view">
-        <summary class="web-view-tab">Bing</summary>
-        <webview class="web-view-content" src="https://new.bing.com"></webview>
-      </details>
+    <div class="container">
+      <!-- SVG 图片 -->
+      <img src="logo.svg" alt="logo" />
+  
+      <!-- 名称 -->
+      <div class="name">
+        Dweb Browser
+      </div>
     </div>
   </body>
 </html>

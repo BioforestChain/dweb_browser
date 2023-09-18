@@ -162,7 +162,7 @@ class BrowserViewModel(
   }
 
   private fun getDesktopUrl() =
-    browserServer.startResult.urlInfo.buildInternalUrl().path("/desktop.html")
+    browserServer.startResult.urlInfo.buildInternalUrl().path("/index.html")
       .query("api-base", browserServer.startResult.urlInfo.buildPublicUrl().toString())
 
   fun getNewTabBrowserView(url: String? = null): BrowserWebView {
@@ -181,7 +181,7 @@ class BrowserViewModel(
     )
   }
 
-  @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+  @OptIn(ExperimentalFoundationApi::class)
   fun handleIntent(action: BrowserIntent) {
     viewModelScope.launch(ioAsyncExceptionHandler) {
       when (action) {
