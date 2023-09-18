@@ -193,7 +193,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
    */
   private fun start(ipc: Ipc, options: DwebHttpServerOptions): ServerStartResult {
     val serverUrlInfo = getServerUrlInfo(ipc, options)
-    debugHttp("start", "$serverUrlInfo => $options")
+    debugHttp("START/start", "$serverUrlInfo => $options")
     if (gatewayMap.contains(serverUrlInfo.host)) throw Exception("already in listen: ${serverUrlInfo.internal_origin}")
     val listener = Gateway.PortListener(ipc, serverUrlInfo.host)
 
@@ -210,6 +210,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     val gateway = Gateway(listener, serverUrlInfo, token)
     gatewayMap[serverUrlInfo.host] = gateway
     tokenMap[token] = gateway
+    debugHttp("START/end","$serverUrlInfo => $options")
     return ServerStartResult(token, serverUrlInfo)
   }
 
@@ -219,9 +220,8 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
   private fun listen(
     token: String, message: Request, routes: List<Gateway.RouteConfig>
   ): Response {
-    debugHttp("LISTEN", tokenMap.keys.toList())
     val gateway = tokenMap[token] ?: throw Exception("no gateway with token: $token")
-    debugHttp("LISTEN", "host: ${gateway.urlInfo.host}, token: $token")
+    debugHttp("LISTEN/start", "host: ${gateway.urlInfo.host}, token: $token")
 
     val streamIpc = ReadableStreamIpc(
       gateway.listener.ipc.remote, "http-gateway/${gateway.urlInfo.host}"
@@ -237,7 +237,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     for (routeConfig in routes) {
       gateway.listener.addRouter(routeConfig, streamIpc).removeWhen(streamIpc.onClose)
     }
-
+    debugHttp("LISTEN/end", "host: ${gateway.urlInfo.host}, token: $token")
     return Response(Status.OK).body(streamIpc.stream)
   }
 

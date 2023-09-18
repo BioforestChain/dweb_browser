@@ -17,10 +17,9 @@ export class Server_www extends HttpServer {
     };
   }
   async start() {
-    await this._analyzePlaocConfig();
+    this.jsonPlaoc = await this._analyzePlaocConfig();
     // 设置默认语言
-    const lang = await jsProcess
-      .nativeFetch("file://config.sys.dweb/getLang").text()
+    const lang = await jsProcess.nativeFetch("file://config.sys.dweb/getLang").text();
     if (lang) {
       this.lang = lang;
     } else if (this.jsonPlaoc) {
@@ -72,9 +71,10 @@ export class Server_www extends HttpServer {
   private async _analyzePlaocConfig() {
     try {
       const readPlaoc = await jsProcess.nativeRequest(`file:///usr/www/plaoc.json`);
-      this.jsonPlaoc = JSON.parse(await readPlaoc.body.text());
-      // deno-lint-ignore no-empty
-    } catch {}
+      return JSON.parse(await readPlaoc.body.text());
+    } catch {
+      return null;
+    }
   }
 
   async _config(event: FetchEvent) {

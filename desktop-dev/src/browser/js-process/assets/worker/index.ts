@@ -236,11 +236,20 @@ export class JsProcessMicroModule implements $MicroModule {
   }
 
   private _ipcConnectsMap = new Map<$MMID, PromiseOut<Ipc>>();
-  connect(mmid: $MMID) {
-    return mapHelper.getOrPut(this._ipcConnectsMap, mmid, () => {
+  async connect(mmid: $MMID) {
+    const ipc = await mapHelper.getOrPut(this._ipcConnectsMap, mmid, () => {
       const ipc_po = new PromiseOut<Ipc>();
       // 发送指令
-      this.fetchIpc.postMessage(IpcEvent.fromText("dns/connect", JSON.stringify({ mmid })));
+      this.fetchIpc.postMessage(
+        IpcEvent.fromText(
+          "dns/connect",
+          JSON.stringify({
+            mmid,
+            /// 要求使用 ready 协议
+            sub_protocols: ["ready"],
+          })
+        )
+      );
       ipc_po.onSuccess((ipc) => {
         ipc.onClose(() => {
           this._ipcConnectsMap.delete(ipc.remote.mmid);
@@ -248,10 +257,9 @@ export class JsProcessMicroModule implements $MicroModule {
       });
       return ipc_po;
     }).promise;
-  }
-
-  hasConnect(mmid: $MMID) {
-    return this._ipcConnectsMap.get(mmid)
+    /// 等待对方响应ready协议
+    await ipc.ready();
+    return ipc;
   }
 
   private _ipcSet = new Set<Ipc>();
@@ -260,6 +268,7 @@ export class JsProcessMicroModule implements $MicroModule {
     ipc.onClose(() => {
       this._ipcSet.delete(ipc);
     });
+    void ipc.ready();
   }
 
   private _connectSignal = createSignal<$Callback<[Ipc]>>(false);

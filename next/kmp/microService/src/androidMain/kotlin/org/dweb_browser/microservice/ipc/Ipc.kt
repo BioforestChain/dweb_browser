@@ -3,10 +3,12 @@ package org.dweb_browser.microservice.ipc
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
+import org.dweb_browser.helper.defaultAsyncExceptionHandler
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.help.types.IMicroModuleManifest
@@ -294,6 +296,32 @@ abstract class Ipc {
       return PromiseOut()
     }
   };
+
+  /// 应用级别的 Ready协议，使用ping-pong方式来等待对方准备完毕，这不是必要的，确保双方都准寻这个协议才有必要去使用
+  /// 目前使用这个协议的主要是Web端（它同时还使用了 Activity协议）
+  private val readyListener by lazy {
+    val ready = PromiseOut<IpcEvent>()
+    this.onEvent { (event, ipc) ->
+      if (event.name == "ping") {
+        ipc.postMessage(IpcEvent("pong", event.data, event.encoding))
+        ready.resolve(event)
+      } else if (event.name == "pong") {
+        ready.resolve(event)
+      }
+    }
+    CoroutineScope(defaultAsyncExceptionHandler).launch {
+      val ipc = this@Ipc
+      while (!ready.isResolved && !ipc.isClosed) {
+        ipc.postMessage(IpcEvent.fromUtf8("ping", ""))
+        delay(1000)
+      }
+    }
+    ready
+  }
+
+  suspend fun ready(self: MicroModule) {
+    this.readyListener.waitPromise();// get once
+  }
 }
 
 data class IpcRequestInit(

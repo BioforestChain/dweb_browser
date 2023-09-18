@@ -58,6 +58,7 @@ class MultiWebViewNMM :
       // 打开一个 webview，并将它以 窗口window 的标准进行展示
       "/open" bind Method.GET to defineHandler { request, ipc ->
         val url = queryUrl(request)
+        debugMultiWebView("create/open",url)
         val remoteMm = ipc.asRemoteInstance()
           ?: throw Exception("mwebview.browser.dweb/open should be call by locale")
         ipc.onClose {
@@ -68,6 +69,7 @@ class MultiWebViewNMM :
         debugMultiWebView("/open", "MultiWebViewNMM open!!!")
 
         val (viewItem, controller) = openDwebView(url, remoteMm, ipc)
+        debugMultiWebView("create/open end", "${viewItem.webviewId}, ${controller.win.id}")
         return@defineHandler ViewItemResponse(viewItem.webviewId, controller.win.id)
       },
       // 关闭指定 webview 窗口

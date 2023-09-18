@@ -15,8 +15,10 @@ import {
   type $OnIpcMessage,
 } from "./const.ts";
 
+import { once } from "../../helper/helper.ts";
 import { mapHelper } from "../../helper/mapHelper.ts";
 import { $OnFetch, createFetchHandler } from "../helper/ipcFetchHelper.ts";
+import { IpcEvent } from "./IpcEvent.ts";
 export {
   FetchError,
   FetchEvent,
@@ -206,6 +208,28 @@ export abstract class Ipc {
   /** 自定义注册 请求与响应 的id */
   registerReqId(req_id = this.allocReqId()) {
     return mapHelper.getOrPut(this._reqresMap, req_id, () => new PromiseOut());
+  }
+
+  private readyListener = once(async () => {
+    const ready = new PromiseOut<IpcEvent>();
+    this.onEvent((event, ipc) => {
+      if (event.name === "ping") {
+        ipc.postMessage(new IpcEvent("pong", event.data, event.encoding));
+        ready.resolve(event);
+      } else if (event.name === "pong") {
+        ready.resolve(event);
+      }
+    });
+    (async()=>{
+      while (!ready.is_resolved && !this.isClosed) {
+        this.postMessage(IpcEvent.fromText("ping", ""));
+        await PromiseOut.sleep(1000).promise;
+      }
+    })();
+    await ready.promise;
+  });
+  ready() {
+    return this.readyListener();
   }
 }
 export type $IpcRequestInit = {

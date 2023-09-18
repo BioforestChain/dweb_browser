@@ -52,7 +52,8 @@ suspend fun MicroModule.listenHttpDwebServer(
     Gateway.RouteConfig(pathname = "", method = IpcMethod.TRACE)
   )
 ): ReadableStreamIpc {
-  val streamIpc = ReadableStreamIpc(microModule, "http-server/${startResult.urlInfo.host}").also {
+  val httpIpc = this.connect("http.std.dweb")
+  val streamIpc = ReadableStreamIpc(httpIpc.remote, "http-server/${startResult.urlInfo.host}").also {
     it.bindIncomeStream(
       this.nativeFetch(
         Request(

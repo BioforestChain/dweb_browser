@@ -3,12 +3,14 @@ package org.dweb_browser.microservice.core
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import org.dweb_browser.helper.Callback
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.help.types.CommonAppManifest
 import org.dweb_browser.microservice.help.types.IMicroModuleManifest
 import org.dweb_browser.microservice.help.types.MMID
@@ -53,6 +55,20 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
   protected abstract suspend fun _bootstrap(bootstrapContext: BootstrapContext)
   private suspend fun afterBootstrap(_dnsMM: BootstrapContext) {
     this.runningStateLock.resolve()
+    printDebug("MicroModule", "afterBootstrap", "ready: $mmid")
+    onConnect { (ipc) ->
+      ipc.readyInMicroModule("onConnect")
+    }
+    for (ipc in _ipcSet) {
+      ipc.readyInMicroModule("afterBootstrap")
+    }
+  }
+
+  private fun Ipc.readyInMicroModule(tag: String) {
+    printDebug("MicroModule", "ready/$tag", "(self)$mmid => ${remote.mmid}(remote)")
+    ioAsyncScope.launch {
+      this@readyInMicroModule.ready(this@MicroModule)
+    }
   }
 
   suspend fun bootstrap(bootstrapContext: BootstrapContext) {
@@ -108,6 +124,9 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
   protected val _ipcSet = mutableSetOf<Ipc>();
 
   fun addToIpcSet(ipc: Ipc) {
+    if (runningStateLock.isResolved && runningStateLock.value == MMState.BOOTSTRAP) {
+      ipc.readyInMicroModule("addToIpcSet")
+    }
     this._ipcSet.add(ipc)
     ipc.onClose {
       _ipcSet.remove(ipc)

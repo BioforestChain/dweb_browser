@@ -4,6 +4,7 @@ import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -58,14 +59,35 @@ fun Remover.removeWhen(lifecycleScope: CoroutineScope) = lifecycleScope.launch {
 }
 
 @Suppress("UNCHECKED_CAST")
-open class Signal<Args> : SynchronizedObject() {
+open class Signal<Args>(autoStart: Boolean = true) : SynchronizedObject() {
   protected val listenerSet = mutableSetOf<Callback<Args>>();
+  private var emitCached: MutableList<Args>? = null
+
+  init {
+    if (!autoStart) {
+      emitCached = mutableListOf()
+    }
+  }
+  private fun consumeEmitCache() = synchronized(this){
+    if (emitCached != null) {
+      // 这里拷贝一份，避免中通对其读写的时候出问题
+      val argsList = emitCached!!.toList()
+      emitCached = null
+      CoroutineScope(defaultAsyncExceptionHandler).launch {
+        val cbs = synchronized(this) { listenerSet.toSet() }
+        for (args in argsList) {
+          _emit(args, cbs)
+        }
+      }
+    }
+  }
 
   val size get() = listenerSet.size
 
   open fun listen(cb: Callback<Args>): OffListener<Args> = synchronized(this) {
     // TODO emit 时的cbs 应该要同步进行修改？
     listenerSet.add(cb)
+    consumeEmitCache()
     return OffListener(this, cb)
   }
 
@@ -96,9 +118,19 @@ open class Signal<Args> : SynchronizedObject() {
   }
 
   open suspend fun emit(args: Args) {
-    // 这里拷贝一份，避免中通对其读写的时候出问题
-    val cbs = synchronized(this) { listenerSet.toSet() }
-    _emit(args, cbs)
+    if (emitCached != null) {
+      synchronized(this) {
+        printDebug("Signal","cache args", args)
+        emitCached!!.add(args)
+        if (emitCached!!.size > 20) {
+          printError("Signal", "too many emit cache args: ${emitCached!!.size}")
+        }
+      }
+    } else {
+      // 这里拷贝一份，避免中通对其读写的时候出问题
+      val cbs = synchronized(this) { listenerSet.toSet() }
+      _emit(args, cbs)
+    }
   }
 
   internal suspend fun _emit(args: Args, cbs: Set<Callback<Args>>) {
@@ -147,7 +179,8 @@ open class Signal<Args> : SynchronizedObject() {
 
   fun clear() {
     synchronized(this) {
-      this.listenerSet.clear()
+      listenerSet.clear()
+      emitCached = null
     }
   }
 
@@ -163,8 +196,7 @@ open class Signal<Args> : SynchronizedObject() {
   class Listener<Args>(val signal: Signal<Args>) {
     operator fun invoke(cb: Callback<Args>) = signal.listen(cb)
     fun <R> createChild(
-      filter: (Args) -> Boolean,
-      map: (Args) -> R
+      filter: (Args) -> Boolean, map: (Args) -> R
     ) = signal.createChild(filter, map).toListener()
 
     fun toFlow() = signal.toFlow()

@@ -182,7 +182,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) : MicroModule(
        * 收到要与其它模块进行ipc连接的指令
        */
       if (ipcEvent.name == "dns/connect") {
-        data class DnsConnectEvent(val mmid: MMID)
+        data class DnsConnectEvent(val mmid: MMID, val sub_protocols: List<String>)
 
         val event = gson.fromJson(ipcEvent.text, DnsConnectEvent::class.java)
         try {

@@ -37,6 +37,9 @@ export abstract class MicroModule implements $MicroModule {
   protected _ipcSet = new Set<Ipc>();
 
   public addToIpcSet(ipc: Ipc) {
+    if (this._running_state_lock.value === true) {
+      void ipc.ready();
+    }
     this._ipcSet.add(ipc);
     ipc.onClose(() => {
       this._ipcSet.delete(ipc);
@@ -64,6 +67,13 @@ export abstract class MicroModule implements $MicroModule {
 
   protected after_bootstrap(_context: $BootstrapContext) {
     this._running_state_lock.resolve(true);
+    /// 默认承认ready协议的存在，并在模块启动完成后，通知对方ready了
+    this.onConnect((ipc) => {
+      void ipc.ready();
+    });
+    for (const ipc of this._ipcSet) {
+      void ipc.ready();
+    }
   }
 
   async bootstrap(context: $BootstrapContext) {

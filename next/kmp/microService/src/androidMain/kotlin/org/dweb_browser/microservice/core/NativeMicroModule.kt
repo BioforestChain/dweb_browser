@@ -55,7 +55,6 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
 
   var apiRouting: RoutingHttpHandler? = null
 
-
   private val requestContexts = RequestContexts()
   private val requestContextKey_ipc = RequestContextKey.required<Ipc>(requestContexts)
   private val ipcApiFilter = ServerFilters.InitialiseRequestContext(requestContexts)
