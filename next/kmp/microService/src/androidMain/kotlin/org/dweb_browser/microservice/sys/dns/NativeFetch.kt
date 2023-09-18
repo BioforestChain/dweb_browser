@@ -2,6 +2,7 @@ package org.dweb_browser.microservice.sys.dns
 
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.request.prepareRequest
 import io.ktor.util.toLowerCasePreservingASCIIRules
 import kotlinx.coroutines.CoroutineScope
@@ -40,6 +41,10 @@ class NativeFetchAdaptersManager : AdapterManager<FetchAdapter>() {
 
   private var client = HttpClient(CIO) {
     //install(HttpCache)
+    install(HttpTimeout) {
+      requestTimeoutMillis = 5000L
+      connectTimeoutMillis = 5000L
+    }
   }
 
   fun setClientProvider(client: HttpClient) {
@@ -86,19 +91,26 @@ class NativeFetchAdaptersManager : AdapterManager<FetchAdapter>() {
         }
         val responsePo = PromiseOut<Response>()
         CoroutineScope(ioAsyncExceptionHandler).launch {
-          client.prepareRequest(request.toHttpRequestBuilder()).execute {
-            val streamOut = ReadableStreamOut()
-            val response = it.toResponse(streamOut)
-            debugFetch("httpFetch response", request.uri)
-            responsePo.resolve(response)
-            streamOut.stream.waitClosed()
-            debugFetch("httpFetch end", request.uri)
+          debugFetch("httpFetch prepareRequest", request.uri)
+          try {
+            client.prepareRequest(request.toHttpRequestBuilder()).execute {
+              debugFetch("httpFetch execute", request.uri)
+              val streamOut = ReadableStreamOut()
+              val response = it.toResponse(streamOut)
+              debugFetch("httpFetch response", request.uri)
+              responsePo.resolve(response)
+              streamOut.stream.waitClosed()
+              debugFetch("httpFetch end", request.uri)
+            }
+          } catch (e: Throwable) {
+            responsePo.reject(e)
           }
         }
         return responsePo.waitPromise().also {
           debugFetch("httpFetch return", request.uri)
         }
       } catch (e: Throwable) {
+        debugFetch("httpFetch Throwable", e.message)
         return Response(Status.SERVICE_UNAVAILABLE).body(e.stackTraceToString())
       }
     }
@@ -116,7 +128,6 @@ suspend fun MicroModule.nativeFetch(request: Request): Response {
       return response
     }
   }
-
   return nativeFetchAdaptersManager.httpFetch(request)
 }
 
