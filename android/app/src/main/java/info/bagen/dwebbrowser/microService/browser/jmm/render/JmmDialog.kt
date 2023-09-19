@@ -1,6 +1,5 @@
 package info.bagen.dwebbrowser.microService.browser.jmm.render
 
-import android.util.Log
 import android.webkit.WebView
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -31,7 +30,6 @@ internal fun DialogForWebviewVersion() {
   LaunchedEffect(Unit) {
     WebView.getCurrentWebViewPackage()?.let { webViewPackage -> // 获取当前WebView版本号
       // 这边过滤华为的webview版本：com.huawei.webview,,,android.webkit.webview
-      Log.e("lin.huang", webViewPackage.packageName)
       if (webViewPackage.packageName == "com.google.android.webview" &&
         lowVersion.isGreaterThan(webViewPackage.versionName)
       ) {
