@@ -280,7 +280,7 @@ open class WindowsManager<T : WindowController>(internal val viewController: Pla
       }
     }
     for (win in windows) {
-      win.simpleFocus()
+      focusWindow(win).join()
     }
   }
 
