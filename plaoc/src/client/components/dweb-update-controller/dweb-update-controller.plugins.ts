@@ -49,7 +49,7 @@ class UpdateControllerPlugin extends BasePlugin {
   async pause(): Promise<boolean> {
     return await this.fetchApi("/pause").boolean();
   }
-  // 重下
+  // 恢复
   @bindThis
   async resume(): Promise<boolean> {
     return await this.fetchApi("/resume").boolean();

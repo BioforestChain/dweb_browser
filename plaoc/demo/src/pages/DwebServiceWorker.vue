@@ -76,7 +76,7 @@ const download = defineLogAction(
   async () => {
     return await updateControllerPlugin.download("http://127.0.0.1:8096/metadata.json");
   },
-  { name: "cancel", args: [], logPanel: $logPanel }
+  { name: "download", args: [], logPanel: $logPanel }
 );
 const message = ref("这里显示收到的消息");
 

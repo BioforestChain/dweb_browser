@@ -243,6 +243,7 @@ class DwebBrowserService : Service() {
 
         DownLoadController.CANCEL -> if (this.downLoadStatus != DownLoadStatus.CANCEL) {
           this.downLoadStatus = DownLoadStatus.CANCEL
+          downloadMap.remove(this.id)
           NotificationUtil.INSTANCE.cancelNotification(this.notificationId)
           DownLoadObserver.emit(this.id, downLoadStatus, dSize, size)
         }
