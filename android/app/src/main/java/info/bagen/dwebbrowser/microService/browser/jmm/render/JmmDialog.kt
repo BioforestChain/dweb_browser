@@ -1,5 +1,6 @@
 package info.bagen.dwebbrowser.microService.browser.jmm.render
 
+import android.util.Log
 import android.webkit.WebView
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,9 +29,13 @@ internal fun DialogForWebviewVersion() {
   val currentVersion = remember { mutableStateOf("") }
   val lowVersion = "96.0.4664.104" // TODO 目前暂定该版本信息最低要求为96.0.4664.104以上
   LaunchedEffect(Unit) {
-    WebView.getCurrentWebViewPackage()?.versionName?.let { version -> // 获取当前WebView版本号
-      currentVersion.value = version // 103.0.5060.129
-      if (lowVersion.isGreaterThan(version)) {
+    WebView.getCurrentWebViewPackage()?.let { webViewPackage -> // 获取当前WebView版本号
+      // 这边过滤华为的webview版本：com.huawei.webview,,,android.webkit.webview
+      Log.e("lin.huang", webViewPackage.packageName)
+      if (webViewPackage.packageName == "com.google.android.webview" &&
+        lowVersion.isGreaterThan(webViewPackage.versionName)
+      ) {
+        currentVersion.value = webViewPackage.versionName // 103.0.5060.129
         showDialog.value = true
       }
     }
