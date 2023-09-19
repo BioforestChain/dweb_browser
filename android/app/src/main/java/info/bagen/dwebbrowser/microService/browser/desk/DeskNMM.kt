@@ -126,6 +126,7 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
 
           return@defineHandler true
         } catch (e: Exception) {
+          desktopController.showAlert(e)
           e.printStackTrace()
           return@defineHandler false
         }

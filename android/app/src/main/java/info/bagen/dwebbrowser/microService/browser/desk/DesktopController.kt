@@ -1,6 +1,7 @@
 package info.bagen.dwebbrowser.microService.browser.desk
 
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.mutableStateListOf
 import com.google.accompanist.web.WebContent
 import com.google.accompanist.web.WebViewNavigator
 import com.google.accompanist.web.WebViewState
@@ -42,7 +43,10 @@ class DesktopController(
         running = runningApps.containsKey(metaData.mmid)
         winStates = desktopWindowsManager.getWindowStates(metaData.mmid)
         winStates.firstOrNull()?.let { state ->
-          debugDesk("getDesktopApps", "winStates -> ${winStates.size}, ${state.mode}, ${state.focus}")
+          debugDesk(
+            "getDesktopApps",
+            "winStates -> ${winStates.size}, ${state.mode}, ${state.focus}"
+          )
         }
         assign(metaData.manifest)
       }
@@ -118,4 +122,14 @@ class DesktopController(
 
   private val _activitySignal = SimpleSignal()
   val onActivity = _activitySignal.toListener()
+
+
+  data class AlertMessage(val title: String, val message: String)
+
+  internal val alertMessages = mutableStateListOf<AlertMessage>()
+  fun showAlert(reason: Throwable) {
+    val title = reason.cause?.message ?: "异常"
+    val message = reason.message ?: "未知原因"
+    alertMessages.add(AlertMessage(title, message))
+  }
 }

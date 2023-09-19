@@ -27,7 +27,6 @@ import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.help.types.MicroModuleManifest
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.ReadableStreamIpc
-import org.dweb_browser.microservice.ipc.helper.IpcEvent
 import org.dweb_browser.microservice.ipc.helper.IpcMessageArgs
 import org.dweb_browser.microservice.ipc.helper.IpcResponse
 import org.dweb_browser.microservice.sys.dns.nativeFetch
@@ -57,6 +56,11 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) : MicroModule(
 ) {
 
   companion object {
+    /**
+     * 当前JsMicroModule的版本
+     */
+    const val VERSION = 1.0f
+
     init {
       val nativeToWhiteList = listOf<MMID>("js.browser.dweb")
 
@@ -128,6 +132,17 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) : MicroModule(
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     debugJsMM("bootstrap...", "$mmid/$metadata")
+    metadata.canSupportTarget(VERSION, disMatchMinTarget = {
+      throw RuntimeException(
+        "应用($mmid)与容器版本不匹配，当前版本:${VERSION}，应用最低要求:${metadata.minTarget}",
+        Exception("$short_name 无法启动"),
+      )
+    }, disMatchMaxTarget = {
+      throw RuntimeException(
+        "应用($mmid)与容器版本不匹配，当前版本:${VERSION}，应用最高兼容到:${metadata.maxTarget}",
+        Exception("$short_name 无法启动"),
+      )
+    })
 
     createNativeStream()
     /**
@@ -171,7 +186,6 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) : MicroModule(
           )
         }
       }
-
     }
 
     /**

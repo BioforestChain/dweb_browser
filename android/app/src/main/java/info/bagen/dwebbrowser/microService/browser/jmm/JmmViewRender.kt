@@ -16,13 +16,11 @@ fun JmmController.Render(modifier: Modifier, renderScope: WindowRenderScope) {
   val jmmController = this
   val scope = rememberCoroutineScope()
   Box(modifier = modifier) {
-    Box(
-      modifier = with(renderScope) {
-        Modifier
-          .requiredSize((width / scale).dp, (height / scale).dp) // 原始大小
-          .scale(scale)
-      }
-    ) {
+    Box(modifier = with(renderScope) {
+      Modifier
+        .requiredSize((width / scale).dp, (height / scale).dp) // 原始大小
+        .scale(scale)
+    }) {
       MALLBrowserView(viewModel = jmmController.viewModel) {
         scope.launch { jmmController.closeSelf() }
       }

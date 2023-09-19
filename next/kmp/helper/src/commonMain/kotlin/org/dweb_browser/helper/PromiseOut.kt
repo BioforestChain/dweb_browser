@@ -1,9 +1,11 @@
 package org.dweb_browser.helper
 
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.launch
 
 open class PromiseOut<T> : SynchronizedObject() {
   companion object {
@@ -41,4 +43,17 @@ open class PromiseOut<T> : SynchronizedObject() {
     }
 
   suspend fun waitPromise(): T = _future.await()
+
+  fun alsoLaunchIn(scope: CoroutineScope, block: suspend CoroutineScope.() -> T) =
+    this.also { launchIn(scope, block) }
+
+  fun launchIn(scope: CoroutineScope, block: suspend CoroutineScope.() -> T) {
+    scope.launch {
+      try {
+        resolve(block())
+      } catch (e: Throwable) {
+        reject(e)
+      }
+    }
+  }
 }

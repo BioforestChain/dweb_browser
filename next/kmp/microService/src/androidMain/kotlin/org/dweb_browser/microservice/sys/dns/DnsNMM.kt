@@ -76,37 +76,35 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
      * 一个互联实例
      */
     mmConnectsMap.getOrPut(mmKey) {
-      PromiseOut<ConnectResult>().also { po ->
-        ioAsyncScope.launch {
-          debugFetch("DNS/open", "${fromMM.mmid} => $toMMID")
-          val toMM = open(toMMID)
-          debugFetch("DNS/connect", "${fromMM.mmid} <=> $toMMID")
-          val connectResult = connectMicroModules(fromMM, toMM, reason)
-          connectResult.ipcForFromMM.onClose {
-            mmConnectsMap.remove(mmKey)
-          }
-          po.resolve(connectResult)
+      PromiseOut<ConnectResult>().alsoLaunchIn(ioAsyncScope) {
+        debugFetch("DNS/open", "${fromMM.mmid} => $toMMID")
+        val toMM = open(toMMID)
+        debugFetch("DNS/connect", "${fromMM.mmid} <=> $toMMID")
+        val connectResult = connectMicroModules(fromMM, toMM, reason)
+        connectResult.ipcForFromMM.onClose {
+          mmConnectsMap.remove(mmKey)
+        }
 
-          // 如果可以，反向存储
-          if (connectResult.ipcForToMM != null) {
-            val mmKey2 = MM.from(toMMID, fromMM.mmid)
-            mmConnectsMapLock.withLock {
-              mmConnectsMap.getOrPut(mmKey2) {
-                PromiseOut<ConnectResult>().also { po2 ->
-                  val connectResult2 = ConnectResult(
-                    connectResult.ipcForToMM, connectResult.ipcForFromMM
-                  );
-                  connectResult2.ipcForToMM?.also {
-                    it.onClose {
-                      mmConnectsMap.remove(mmKey2)
-                    }
+        // 如果可以，反向存储
+        if (connectResult.ipcForToMM != null) {
+          val mmKey2 = MM.from(toMMID, fromMM.mmid)
+          mmConnectsMapLock.withLock {
+            mmConnectsMap.getOrPut(mmKey2) {
+              PromiseOut<ConnectResult>().also { po2 ->
+                val connectResult2 = ConnectResult(
+                  connectResult.ipcForToMM, connectResult.ipcForFromMM
+                );
+                connectResult2.ipcForToMM?.also {
+                  it.onClose {
+                    mmConnectsMap.remove(mmKey2)
                   }
-                  po2.resolve(connectResult2)
                 }
+                po2.resolve(connectResult2)
               }
             }
           }
         }
+        connectResult
       }
     }
 
@@ -304,20 +302,22 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
   /** 打开应用 */
   private fun _open(mmid: MMID): PromiseOut<MicroModule> {
     return runningApps.getOrPut(mmid) {
-      PromiseOut<MicroModule>().also { promiseOut ->
-        query(mmid)?.also { openingMm ->
-          ioAsyncScope.launch {
+      PromiseOut<MicroModule>().alsoLaunchIn(ioAsyncScope) {
+        when (val openingMm = query(mmid)) {
+          null -> {
+            runningApps.remove(mmid)
+            throw Exception("no found app: $mmid")
+          }
+
+          else -> {
             bootstrapMicroModule(openingMm)
             openingMm.onAfterShutdown {
               if (runningApps[mmid] !== null) {
                 runningApps.remove(mmid)
               }
             }
-            promiseOut.resolve(openingMm)
+            openingMm
           }
-        } ?: {
-          this.runningApps.remove(mmid)
-          promiseOut.reject(Exception("no found app: $mmid"))
         }
       }
     }

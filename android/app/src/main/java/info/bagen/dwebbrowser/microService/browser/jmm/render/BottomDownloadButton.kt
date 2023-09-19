@@ -4,19 +4,22 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import info.bagen.dwebbrowser.microService.browser.jmm.JsMicroModule
 import info.bagen.dwebbrowser.microService.browser.jmm.ui.JmmUIState
-import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
 import org.dweb_browser.browserUI.download.DownLoadStatus
 
 @Composable
@@ -24,6 +27,7 @@ internal fun BoxScope.BottomDownloadButton(
   jmmUIState: JmmUIState, onClick: () -> Unit
 ) {
   val background = MaterialTheme.colorScheme.surface
+
   Box(
     modifier = Modifier
       .fillMaxWidth()
@@ -31,12 +35,17 @@ internal fun BoxScope.BottomDownloadButton(
       .background(
         brush = Brush.verticalGradient(listOf(background.copy(0f), background))
       )
+      .padding(16.dp),
+    contentAlignment = Alignment.Center
   ) {
     val downloadStatus = jmmUIState.downloadStatus.value
     val downloadSize = jmmUIState.downloadSize.value
     val totalSize = jmmUIState.jmmAppInstallManifest.bundle_size
     var showLinearProgress = false
-    val text = when (downloadStatus) {
+    val canSupportTarget = remember {
+      jmmUIState.jmmAppInstallManifest.canSupportTarget(JsMicroModule.VERSION)
+    }
+    val text = if (canSupportTarget) when (downloadStatus) {
       DownLoadStatus.IDLE, DownLoadStatus.CANCEL -> {
         "下载 (${totalSize.toSpaceSize()})"
       }
@@ -58,13 +67,12 @@ internal fun BoxScope.BottomDownloadButton(
       DownLoadStatus.DownLoadComplete -> "安装中..."
       DownLoadStatus.INSTALLED -> "打开"
       DownLoadStatus.FAIL -> "重新下载"
-    }
+    } else "该应用与您的设备不兼容"
 
     val modifier = Modifier
-      .padding(horizontal = 64.dp, vertical = 16.dp)
-      .shadow(elevation = 2.dp, shape = RoundedCornerShape(ShapeCorner))
+      .requiredSize(height = 50.dp, width = 300.dp)
       .fillMaxWidth()
-      .height(50.dp)
+      .clip(ButtonDefaults.elevatedShape)
     val m2 = if (showLinearProgress) {
       val percent = if (totalSize == 0L) {
         0f
@@ -83,10 +91,18 @@ internal fun BoxScope.BottomDownloadButton(
       modifier.background(MaterialTheme.colorScheme.primary)
     }
 
-    Box(
-      modifier = m2.clickableWithNoEffect { onClick() }, contentAlignment = Alignment.Center
+    ElevatedButton(
+      onClick = onClick,
+      modifier = m2,
+      colors = ButtonDefaults.elevatedButtonColors(
+        containerColor = Color.Transparent,
+        contentColor = MaterialTheme.colorScheme.onPrimary,
+        disabledContainerColor = MaterialTheme.colorScheme.errorContainer,
+        disabledContentColor = MaterialTheme.colorScheme.onErrorContainer,
+      ),
+      enabled = canSupportTarget,
     ) {
-      Text(text = text, color = MaterialTheme.colorScheme.onPrimary)
+      Text(text = text)
     }
   }
 }

@@ -38,6 +38,7 @@ export const defaultMetadata: $JmmAppInstallManifest = {
     root: "/usr",
     entry: "/server/plaoc.server.js",
   },
+  minTarget: 1,
   name: "Demo",
   short_name: "plaoc demo",
   description: "This is WebApp bundle by plaoc",

@@ -19,6 +19,8 @@ export interface $JmmAppManifest extends Required<$CommonAppManifest> {
     /** root 定义程序的启动文件 */
     entry: string;
   };
+  minTarget: number;
+  maxTarget?: number;
 }
 
 /** Js模块应用安装使用的元数据 */
