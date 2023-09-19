@@ -88,14 +88,14 @@ class ShareNMM : AndroidNativeMicroModule("share.sys.dweb", "share") {
   data class ShareResult(val success: Boolean, val message: String)
 
   private fun openActivity() {
-    val activity = getActivity()
-    val intent = Intent(getActivity(), ShareActivity::class.java)
+    val context = getAppContext()
+    val intent = Intent(context, ShareActivity::class.java)
     intent.action = "${App.appContext.packageName}.share"
     intent.`package` = App.appContext.packageName
 //         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_DOCUMENT)
-//         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
-    activity?.startActivity(intent)
+    context.startActivity(intent)
   }
 
   override suspend fun _shutdown() {

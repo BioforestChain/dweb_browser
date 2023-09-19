@@ -1,5 +1,6 @@
 package org.dweb_browser.microservice.core
 
+import android.content.Context
 import org.dweb_browser.helper.android.BaseActivity
 import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.help.types.MicroModuleManifest
@@ -16,9 +17,10 @@ abstract class AndroidNativeMicroModule(manifest: MicroModuleManifest) :
   companion object {
     //  管理所有的activity
     private val activity: BaseActivity? = null
+    lateinit var appContext: Context
   }
 
   protected fun getActivity(): BaseActivity? = activity
-
+  protected fun getAppContext() = appContext
 }
 
