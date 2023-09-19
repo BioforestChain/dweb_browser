@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.microService.browser.jmm.render
+package info.bagen.dwebbrowser.microService.browser.jmm.render.appinstall
 
 import android.webkit.WebView
 import androidx.compose.foundation.layout.Row
@@ -9,13 +9,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import info.bagen.dwebbrowser.R
-import info.bagen.dwebbrowser.microService.browser.jmm.ui.LocalShowWebViewVersion
 import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
 import org.dweb_browser.browserUI.download.isGreaterThan
 import org.dweb_browser.browserUI.ui.view.LocalCommonUrl
@@ -23,7 +24,9 @@ import org.dweb_browser.browserUI.util.SupportUrl
 
 @Composable
 internal fun DialogForWebviewVersion() {
-  val showDialog = LocalShowWebViewVersion.current
+  var showDialog by remember {
+    mutableStateOf(false)
+  }
   val loadingUrl = LocalCommonUrl.current
   val currentVersion = remember { mutableStateOf("") }
   val lowVersion = "96.0.4664.104" // TODO 目前暂定该版本信息最低要求为96.0.4664.104以上
@@ -34,11 +37,11 @@ internal fun DialogForWebviewVersion() {
         lowVersion.isGreaterThan(webViewPackage.versionName)
       ) {
         currentVersion.value = webViewPackage.versionName // 103.0.5060.129
-        showDialog.value = true
+        showDialog = true
       }
     }
   }
-  if (showDialog.value) {
+  if (showDialog) {
     AlertDialog(
       onDismissRequest = { /*showDialog.value = false*/ },
       title = {
@@ -59,12 +62,12 @@ internal fun DialogForWebviewVersion() {
             modifier = Modifier
               .weight(1f)
               .clickableWithNoEffect {
-                showDialog.value = false
+                showDialog = false
                 loadingUrl.value = SupportUrl // 地址变化，会引起webview加载，加载状态决定是否显示loading
               }
           )
 
-          Button(onClick = { showDialog.value = false }) {
+          Button(onClick = { showDialog = false }) {
             Text(text = stringResource(id = R.string.dialog_confirm_webview_upgrade))
           }
         }

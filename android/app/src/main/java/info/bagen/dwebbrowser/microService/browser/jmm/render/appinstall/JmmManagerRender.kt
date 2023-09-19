@@ -1,5 +1,6 @@
-package info.bagen.dwebbrowser.microService.browser.jmm.render
+package info.bagen.dwebbrowser.microService.browser.jmm.render.appinstall
 
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -51,7 +52,7 @@ internal suspend fun measureCenterOffset(index: Int, previewState: PreviewState)
 
 @Composable
 internal fun CustomerDivider(modifier: Modifier = Modifier) =
-  HorizontalDivider(modifier = modifier, color = MaterialTheme.colorScheme.background)
+  HorizontalDivider(modifier = modifier.padding(horizontal = HorizontalPadding), color = MaterialTheme.colorScheme.background)
 
 internal fun String.displayDownLoad(total: Long, progress: Long): String {
   val GB = 1024 * 1024 * 1024 // 定义GB的计算常量

@@ -123,14 +123,6 @@
       android:theme="@style/Theme.AppCompat.Transparent" />
 
     <activity
-      android:name=".microService.browser.jmm.ui.JmmManagerActivity"
-      android:exported="true">
-      <intent-filter>
-        <action android:name="${applicationId}.openjmm" />
-      </intent-filter>
-    </activity>
-
-    <activity
       android:name=".microService.sys.fileSystem.FileSystemActivity"
       android:exported="true"
       android:theme="@style/Theme.AppCompat.Transparent" />

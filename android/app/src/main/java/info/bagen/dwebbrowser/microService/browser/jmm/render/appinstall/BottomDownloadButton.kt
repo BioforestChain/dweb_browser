@@ -1,8 +1,7 @@
-package info.bagen.dwebbrowser.microService.browser.jmm.render
+package info.bagen.dwebbrowser.microService.browser.jmm.render.appinstall
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
@@ -18,12 +17,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import info.bagen.dwebbrowser.microService.browser.jmm.JmmUIState
 import info.bagen.dwebbrowser.microService.browser.jmm.JsMicroModule
-import info.bagen.dwebbrowser.microService.browser.jmm.ui.JmmUIState
 import org.dweb_browser.browserUI.download.DownLoadStatus
 
 @Composable
-internal fun BoxScope.BottomDownloadButton(
+internal fun BottomDownloadButton(
+  modifier: Modifier = Modifier,
   jmmUIState: JmmUIState, onClick: () -> Unit
 ) {
   val background = MaterialTheme.colorScheme.surface
@@ -31,7 +31,6 @@ internal fun BoxScope.BottomDownloadButton(
   Box(
     modifier = Modifier
       .fillMaxWidth()
-      .align(Alignment.BottomCenter)
       .background(
         brush = Brush.verticalGradient(listOf(background.copy(0f), background))
       )

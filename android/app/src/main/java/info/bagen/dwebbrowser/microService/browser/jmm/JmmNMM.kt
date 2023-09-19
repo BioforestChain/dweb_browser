@@ -65,7 +65,7 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
     State("state"), Ready("ready"), Activity("activity"), Close("close")
   }
 
-  private var jmmController: JmmController? = null
+  private var jmmController = JmmController(this@JmmNMM, getAppContext())
 
   fun getApps(mmid: MMID): IMicroModuleManifest? {
     return bootstrapContext.dns.query(mmid)
@@ -76,10 +76,6 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     installJmmApps()
-
-    this.onAfterShutdown {
-      jmmController = null
-    }
 
     val routeInstallHandler = defineResponse {
       val metadataUrl = queryMetadataUrl(request)
@@ -111,7 +107,7 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
       },
       "/closeApp" bind Method.GET to defineBooleanResponse { request ->
         val mmid = queryMmid(request)
-        jmmController?.closeApp(mmid)
+        jmmController.closeApp(mmid)
         true
       },
       // app详情
@@ -197,7 +193,7 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
   private suspend fun installJsMicroModule(
     jmmAppInstallManifest: JmmAppInstallManifest, ipc: Ipc, url: URL? = null,
   ) {
-    jmmController?.closeSelf() // 如果存在的话，关闭先，同时可以考虑置空
+    jmmController.closeSelf() // 如果存在的话，关闭先，同时可以考虑置空
     if (!jmmAppInstallManifest.bundle_url.startsWith("http")) {
       url?.let {
         jmmAppInstallManifest.bundle_url = URL(
@@ -217,7 +213,10 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
     ).apply {
       mode = WindowMode.MAXIMIZE
     })
-    jmmController = JmmController(win, this@JmmNMM, jmmAppInstallManifest)
+    jmmController.bindWindow(win)
+    jmmController.installingApps[jmmAppInstallManifest.id] =
+      JmmAppInstallController(jmmAppInstallManifest, jmmController)
+    jmmController.routeToPath.value = "install-app/${jmmAppInstallManifest.id}"
   }
 
   private suspend fun jmmMetadataUninstall(mmid: MMID) {

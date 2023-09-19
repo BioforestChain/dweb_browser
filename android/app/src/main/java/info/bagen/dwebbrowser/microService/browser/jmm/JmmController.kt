@@ -1,11 +1,13 @@
 package info.bagen.dwebbrowser.microService.browser.jmm
 
+import android.content.Context
 import androidx.compose.runtime.Composable
-import info.bagen.dwebbrowser.microService.browser.jmm.ui.JmmManagerViewHelper
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
+import info.bagen.dwebbrowser.microService.browser.jmm.render.Render
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.helper.SimpleSignal
-import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
 import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
 import org.dweb_browser.window.core.WindowController
@@ -16,21 +18,24 @@ enum class EIpcEvent(val event: String) {
 }
 
 class JmmController(
-  val win: WindowController, // 窗口控制器
   private val jmmNMM: JmmNMM,
-  private val jmmAppInstallManifest: JmmAppInstallManifest
+  private val context: Context,
+//  private val scope: CoroutineScope
 ) {
 
   private val openLock = Mutex()
-  val viewModel: JmmManagerViewHelper = JmmManagerViewHelper(jmmAppInstallManifest, this)
+  val managerApps = JmmManagerController()
+  val installingApps =
+    mutableStateMapOf<String, JmmAppInstallController>()//  = JmmManagerViewHelper(jmmAppInstallManifest, this)
 
   fun hasApps(mmid: MMID) = jmmNMM.getApps(mmid) !== null
   fun getApp(mmid: MMID) = jmmNMM.getApps(mmid)
 
   private val closeSignal = SimpleSignal()
   val onClosed = closeSignal.toListener()
+  val routeToPath = mutableStateOf<String?>(null)
 
-  init {
+  fun bindWindow(win: WindowController) {
     val wid = win.id
     /// 提供渲染适配
     createWindowAdapterManager.renderProviders[wid] =
@@ -42,6 +47,7 @@ class JmmController(
       // 移除渲染适配器
       createWindowAdapterManager.renderProviders.remove(wid)
     }
+    /// 监听关闭信号，如果触发，那么关闭窗口
     onClosed {
       win.close(true)
     }
@@ -50,7 +56,7 @@ class JmmController(
   suspend fun openApp(mmid: MMID) {
     openLock.withLock {
 
-      val (ipc) =  jmmNMM.bootstrapContext.dns.connect(mmid)
+      val (ipc) = jmmNMM.bootstrapContext.dns.connect(mmid)
       ipc.postMessage(IpcEvent.fromUtf8(EIpcEvent.Activity.event, ""))
 
       val (deskIpc) = jmmNMM.bootstrapContext.dns.connect("desk.browser.dweb")
@@ -65,6 +71,6 @@ class JmmController(
   }
 
   suspend fun closeSelf() {
-    closeSignal.emit()
+    closeSignal.emitAndClear()
   }
 }

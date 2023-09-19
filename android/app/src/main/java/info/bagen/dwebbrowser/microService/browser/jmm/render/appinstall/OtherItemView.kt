@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.microService.browser.jmm.render
+package info.bagen.dwebbrowser.microService.browser.jmm.render.appinstall
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row

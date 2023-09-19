@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.microService.browser.jmm.render
+package info.bagen.dwebbrowser.microService.browser.jmm.render.appinstall
 
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.lazy.LazyListState
