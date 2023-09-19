@@ -67,13 +67,16 @@ val multipartProxyServer by lazy {
             deferred.complete(call.receiveMultipart())
           } catch (e: Throwable) {
             deferred.completeExceptionally(e)
+          } finally {
+            call.respond("ok")
           }
         }
-        call.respond("ok")
       }
     })
-  }.let {
-    suspend { it.resolvedConnectors().first().port }
+  }.start(wait = false).let {
+    suspend {
+      it.resolvedConnectors().first().port
+    }
   }
 }
 
