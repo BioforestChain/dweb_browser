@@ -61,6 +61,7 @@
     <activity
       android:name=".SplashActivity"
       android:exported="true"
+      android:launchMode="singleTask"
       android:theme="@style/Theme.App.Starting">
       <intent-filter>
         <action android:name="android.intent.action.MAIN" />
@@ -75,15 +76,37 @@
       android:screenOrientation="portrait"
       android:theme="@style/Theme.dwebbrowser"
       tools:ignore="LockedOrientationActivity">
-      <intent-filter>
-        <data android:scheme="dweb" />
-      </intent-filter>
     </activity>
     <!--      android:windowSoftInputMode="adjustResize"-->
     <activity
       android:name=".microService.browser.desk.TaskbarActivity"
       android:exported="true"
       android:theme="@style/Theme.dwebbrowser.desk.taskbar" />
+    <activity
+      android:name=".microService.sys.deepLink.DeepLinkActivity"
+      android:exported="true"
+      android:theme="@style/Theme.AppCompat.Transparent" >
+
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+
+        <data android:scheme="dweb" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+
+        <data android:scheme="https"/>
+        <data android:host="dweb-browser.org"/>
+        <data android:pathPrefix="/dweb:"/>
+      </intent-filter>
+    </activity>
+
     <!--<activity
       android:name=".microService.browser.mwebviewbak.MultiWebViewPlaceholder1Activity"
       android:exported="true"

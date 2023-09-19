@@ -1,5 +1,6 @@
 package info.bagen.dwebbrowser.microService.browser.desk
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import info.bagen.dwebbrowser.App
@@ -9,6 +10,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.ChangeState
 import org.dweb_browser.helper.ChangeableMap
+import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.readByteArray
 import org.dweb_browser.helper.toJsonElement
@@ -53,9 +55,11 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
   companion object {
     data class DeskControllers(
       val desktopController: DesktopController, val taskbarController: TaskbarController
-    )
+    ){
+      val activityPo = PromiseOut<Activity>()
+    }
 
-    val controllers = mutableMapOf<String, DeskControllers>()
+    val controllersMap = mutableMapOf<String, DeskControllers>()
   }
 
   val queryAppId = Query.string().required("app_id")
@@ -80,6 +84,7 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
   }
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
+    debugDesk("START")
     listenApps()
     // 创建桌面和任务的服务
     val taskbarServer = this.createTaskbarWebServer()
@@ -90,11 +95,12 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       DesktopController(deskSessionId, this, desktopServer, runningApps)
     val taskBarController =
       TaskbarController(deskSessionId, this, desktopController, taskbarServer, runningApps)
-    controllers[deskSessionId] = DeskControllers(desktopController, taskBarController)
+    val deskControllers = DeskControllers(desktopController, taskBarController)
+    controllersMap[deskSessionId] = deskControllers
 
     this.onAfterShutdown {
       runningApps.reset()
-      controllers.remove(deskSessionId)
+      controllersMap.remove(deskSessionId)
     }
 
     apiRouting = routes(
@@ -229,14 +235,17 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     ).cors()
 
     onActivity {
-      doActivity(deskSessionId)
+      startActivity(deskSessionId)
     }
     desktopController.onActivity {
-      doActivity(deskSessionId)
+      startActivity(deskSessionId)
     }
+    startActivity(deskSessionId)
+    deskControllers.activityPo.waitPromise()
+    debugDesk("BBBBBB")
   }
 
-  private fun doActivity(deskSessionId: String) {
+  private fun startActivity(deskSessionId: String) {
     /// 启动对应的Activity视图，如果在后端也需要唤醒到最前面，所以需要在AndroidManifest.xml 配置 launchMode 为 singleTask
     App.startActivity(DesktopActivity::class.java) { intent ->
       intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

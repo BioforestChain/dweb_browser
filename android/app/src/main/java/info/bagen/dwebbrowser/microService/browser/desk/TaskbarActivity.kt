@@ -25,7 +25,7 @@ class TaskbarActivity : BaseThemeActivity() {
     /// 解除上一个 controller的activity绑定
     controller?.activity = null
 
-    return DesktopNMM.controllers[sessionId]?.also { controllers ->
+    return DesktopNMM.controllersMap[sessionId]?.also { controllers ->
       controllers.taskbarController.activity = this
       controller = controllers.taskbarController
     } ?: throw Exception("no found controller by sessionId: $sessionId")

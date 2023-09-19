@@ -29,6 +29,7 @@ import org.dweb_browser.browserUI.ui.view.CommonWebView
 import org.dweb_browser.browserUI.util.KEY_ENABLE_AGREEMENT
 import org.dweb_browser.browserUI.util.getBoolean
 import org.dweb_browser.browserUI.util.saveBoolean
+import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.compose.theme.DwebBrowserAppTheme
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import kotlin.system.exitProcess
@@ -47,13 +48,15 @@ class SplashActivity : AppCompatActivity() {
 
     WindowCompat.setDecorFitsSystemWindows(window, false) // 全屏
 
+    val grant = PromiseOut<Boolean>().also { App.grant = it }
+
     setContent {
       val scope = rememberCoroutineScope()
       val localPrivacy = LocalCommonUrl.current
       LaunchedEffect(mKeepOnAtomicBool) { // 最多显示1s就需要隐藏欢迎界面
         delay(1000L)
         if (enable) { // 如果已经同意协议了，不需要关闭欢迎界面，直接跳转主页
-          App.grant.resolve(true)
+          grant.resolve(true)
         } else {
           mKeepOnAtomicBool.getAndSet(false)
         }
@@ -69,11 +72,11 @@ class SplashActivity : AppCompatActivity() {
         SplashPrivacyDialog(
           openHome = {
             App.appContext.saveBoolean(KEY_ENABLE_AGREEMENT, true)
-            App.grant.resolve(true)
+            grant.resolve(true)
           },
           openWebView = { url -> localPrivacy.value = url },
           closeApp = {
-            App.grant.resolve(false)
+            grant.resolve(false)
             finish()
             scope.launch(ioAsyncExceptionHandler) {  // 如果不同意协议就把整个应用停了
               delay(100)

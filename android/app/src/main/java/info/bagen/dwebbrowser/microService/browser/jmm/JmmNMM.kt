@@ -91,7 +91,7 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
         installJsMicroModule(jmmAppInstallManifest, ipc, url)
         Response(Status.OK)
       } else {
-        Response(Status.NO_CONTENT)
+        response // Response(Status.NO_CONTENT)
       }
       /*if (request.header("Accept")?.contains("application/json") == true) {
         Response(Status.OK).jsonBody(jmmAppInstallManifest.toJsonElement())

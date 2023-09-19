@@ -26,9 +26,10 @@ class DesktopActivity : BaseThemeActivity() {
     /// 解除上一个 controller的activity绑定
     desktopController?.activity = null
 
-    return DesktopNMM.controllers[sessionId]?.also { controllers ->
+    return DesktopNMM.controllersMap[sessionId]?.also { controllers ->
       controllers.desktopController.activity = this
       this.desktopController = controllers.desktopController
+      controllers.activityPo.resolve(this)
     } ?: throw Exception("no found controller by sessionId: $sessionId")
   }
 

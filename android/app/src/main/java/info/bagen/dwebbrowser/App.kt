@@ -5,6 +5,7 @@ import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import info.bagen.dwebbrowser.microService.startDwebBrowser
 import info.bagen.dwebbrowser.util.PlaocUtil
 import kotlinx.coroutines.MainScope
@@ -24,14 +25,14 @@ class App : Application() {
   companion object {
     lateinit var appContext: Context
 
-    val grant = PromiseOut<Boolean>()
+    var grant: PromiseOut<Boolean>? = null
     private val lockActivityState = Mutex()
     private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
 
     fun <T> startActivity(cls: Class<T>, onIntent: (intent: Intent) -> Unit) {
       ioAsyncScope.launch {
         lockActivityState.withLock {
-          if (!grant.waitPromise()) {
+          if (grant?.waitPromise() == false) {
             return@withLock // TODO 用户拒绝协议应该做的事情
           }
 
@@ -46,7 +47,8 @@ class App : Application() {
     }
 
     private val dnsNMMPo = PromiseOut<DnsNMM>()
-    fun startMicroModuleProcess() {
+    fun startMicroModuleProcess() :DnsNMM{
+      Log.e("lin.huang", "startMicroModuleProcess")
       if (dnsNMMPo.isResolved) {
         runBlockingCatching {
           dnsNMMPo.value!!.bootstrap()
@@ -59,17 +61,20 @@ class App : Application() {
           dnsNMMPo.resolve(dnsNMM)
         }
       }
+      return dnsNMMPo.value!!
     }
   }
 
   override fun onCreate() {
+    Log.e("lin.huang", "App onCreate111111")
     super.onCreate()
     appContext = this
     PlaocUtil.addShortcut(this) // 添加桌面快捷方式
     // startService(Intent(this@App, DwebBrowserService::class.java))
     // DwebBrowserUtil.INSTANCE.bindDwebBrowserService()
     BrowserUIApp.Instance.setAppContext(this) // 初始化BrowserUI模块
-    AndroidNativeMicroModule.appContext = this;
+    AndroidNativeMicroModule.appContext = this
+    Log.e("lin.huang", "App onCreate22222222")
   }
 
   override fun onTerminate() {

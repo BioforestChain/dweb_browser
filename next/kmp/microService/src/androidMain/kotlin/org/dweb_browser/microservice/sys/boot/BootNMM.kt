@@ -1,11 +1,13 @@
 package org.dweb_browser.microservice.sys.boot
 
 import org.dweb_browser.helper.printDebug
+import org.dweb_browser.microservice.core.AndroidNativeMicroModule
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.core.Router
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.types.MMID
+import org.dweb_browser.microservice.ipc.helper.IpcEvent
 import org.http4k.core.Method
 import org.http4k.routing.bind
 import org.http4k.routing.routes
@@ -14,7 +16,7 @@ fun debugBoot(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("boot", tag, msg, err)
 
 class BootNMM(initMmids: List<MMID>? = null) :
-  NativeMicroModule("boot.sys.dweb", "Boot Management") {
+  AndroidNativeMicroModule("boot.sys.dweb", "Boot Management") {
   init {
     short_name = "Boot";
     categories = mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Hub_Service)
@@ -39,17 +41,17 @@ class BootNMM(initMmids: List<MMID>? = null) :
     }, "/unregister" bind Method.GET to defineBooleanResponse {
       unregister(ipc.remote.mmid)
     })
-
-    /// 基于activity事件来启动开机项
+    for (mmid in registeredMmids) {
+      debugBoot("open", mmid)
+      bootstrapContext.dns.open(mmid)
+    }
     onActivity { (event, ipc) ->
       // 只响应 dns 模块的激活事件
-      if (ipc.remote.mmid != "dns.std.dweb") {
-        return@onActivity
-      }
-      for (mmid in registeredMmids) {
-        debugBoot("launch", mmid)
-        bootstrapContext.dns.open(mmid)
-        bootstrapContext.dns.connect(mmid).ipcForFromMM.postMessage(event)
+      if (ipc.remote.mmid == "dns.std.dweb") {
+        for (mmid in registeredMmids) {
+          debugBoot("activity", mmid)
+          bootstrapContext.dns.connect(mmid).ipcForFromMM.postMessage(event)
+        }
       }
     }
   }
