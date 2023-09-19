@@ -21,7 +21,7 @@ export const routes = [
 
   { title: "bluetooth", path: "/bluetooth", component: () => import("./pages/Bluetooth.vue") },
 
-  { title: "device", path: "/device", component: () => import("./pages/device.vue") },
+  { title: "device", path: "/device", component: () => import("./pages/Device.vue") },
   { title: "webview", path: "/webview", component: () => import("./pages/Webview.vue") },
 ];
 //satisfies (RouteRecordRaw & { title: string })[];

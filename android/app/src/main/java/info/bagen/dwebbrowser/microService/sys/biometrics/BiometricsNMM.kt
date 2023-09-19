@@ -62,20 +62,22 @@ class BiometricsNMM : AndroidNativeMicroModule("biometrics.sys.dweb", "biometric
   }
 
   fun openActivity(remoteMMID: MMID) {
-    val activity = getActivity()
-    val intent = Intent(getActivity(), BiometricsActivity::class.java)
+    val context = getAppContext()
+    val intent = Intent(context, BiometricsActivity::class.java)
     intent.`package` = App.appContext.packageName
     intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
-    activity?.startActivity(intent)
+    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    context.startActivity(intent)
   }
 
   private fun openActivity(remoteMMID: MMID, data: BiometricsData) {
-    val activity = getActivity()
-    val intent = Intent(getActivity(), BiometricsActivity::class.java)
+    val context = getAppContext()
+    val intent = Intent(context, BiometricsActivity::class.java)
     intent.`package` = App.appContext.packageName
     intent.putExtra("data", data)
     intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
-    activity?.startActivity(intent)
+    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    context.startActivity(intent)
   }
 
   override suspend fun _shutdown() {
