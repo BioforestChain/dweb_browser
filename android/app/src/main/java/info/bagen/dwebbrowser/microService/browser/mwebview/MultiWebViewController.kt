@@ -186,6 +186,7 @@ class MultiWebViewController(
       val viewItem = JSONObject()
       viewItem.put("webviewId", it.webviewId)
       viewItem.put("isActivated", it.hidden)
+      viewItem.put("mmid",ipc.remote.mmid)
       viewItem.put("url", (it.state.content as WebContent.Url).url)
       currentState.put(it.webviewId, viewItem)
     }

@@ -46,9 +46,15 @@ export const main = async () => {
   const wwwServer = new Server_www();
   const externalServer = new Server_external();
   const apiServer = new Server_api(widPo);
-  const wwwListenerTask = wwwServer.start().finally(()=>console.log('wwwServer started'));
-  const externalListenerTask = externalServer.start().finally(()=>console.log('externalServer started'));
-  const apiListenerTask = apiServer.start().finally(()=>console.log('apiServer started'));
+  const wwwListenerTask = wwwServer.start().finally(() => console.log("wwwServer started"));
+  const externalListenerTask = externalServer.start().finally(() => console.log("externalServer started"));
+  const apiListenerTask = apiServer.start().finally(() => console.log("apiServer started"));
+
+  all_webview_status.signal.listen((size) => {
+    if (size === 0) {
+      externalServer.closeRegisterIpc();
+    }
+  });
 
   /// 生成 index-url
   {

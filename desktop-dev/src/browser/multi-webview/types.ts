@@ -85,6 +85,7 @@ export interface $WebViewState {
   // navigationBarState: $BarState;
   // safeAreaState: $SafeAreaState;
   webviewId: number;
+  mmid:string;
   isActivated: boolean;
   src: string;
 }

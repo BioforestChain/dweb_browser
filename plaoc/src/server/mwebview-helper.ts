@@ -1,4 +1,4 @@
-import { jsProcess } from "./deps.ts";
+import { createSignal, jsProcess } from "./deps.ts";
 
 /**开启新页面 */
 export const mwebview_open = async (url: string) => {
@@ -35,16 +35,21 @@ import { DetailedDiff, detailedDiff } from "npm:deep-object-diff";
 export type $WebViewState = {
   isActivated: boolean;
   webviewId: string;
+  mmid: string;
 };
 export interface $AllWebviewState {
   [key: number]: $WebViewState;
 }
+
+export type DiffFn = (size: number) => unknown;
 
 // 管理webView
 export const all_webview_status = new (class extends Map<string, $WebViewState> {
   last() {
     return [...this.entries()].at(-1)!;
   }
+
+  signal = createSignal<DiffFn>();
   /**
    * 对比状态的更新
    * @param diff
@@ -62,6 +67,7 @@ export const all_webview_status = new (class extends Map<string, $WebViewState> 
     for (const id in diff.updated) {
       this.set(id, diff.updated[id as keyof typeof diff.updated]);
     }
+    this.signal.emit(this.size);
   }
 })();
 

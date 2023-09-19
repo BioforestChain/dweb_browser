@@ -7,6 +7,7 @@ export * from "./close-watcher/index.ts";
 export * from "./config/index.ts";
 export * from "./device/index.ts";
 export * from "./dweb-service-worker/index.ts";
+export * from "./dweb-update-controller/index.ts";
 export * from "./file-system/index.ts";
 export * from "./haptics/index.ts";
 export * from "./mwebvivew/index.ts";

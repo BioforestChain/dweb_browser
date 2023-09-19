@@ -79,6 +79,7 @@ export class MWebviewController {
       for (const viewItem of this.getAllBrowserView()) {
         allWebviewState[viewItem.zIndex] = {
           webviewId: viewItem.view.webContents.id,
+          mmid: this.ipc.remote.mmid,
           isActivated: viewItem.isVisiable,
           src: viewItem.view.webContents.getURL(),
         };

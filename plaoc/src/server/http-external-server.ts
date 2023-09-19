@@ -112,7 +112,15 @@ export class Server_external extends HttpServer {
   }
 
   private ipcPo = new PromiseToggle<$ReadableStreamIpc, void>({ type: "close", value: undefined });
-  private externalWaitters = new Map<$MMID, Promise<void>>();
+
+  //窗口关闭的时候需要重新等待连接
+  closeRegisterIpc() {
+    this.ipcPo.toggleClose();
+  }
+
+  private externalWaitters = new Map<$MMID, Promise<$Ipc>>();
+  // 是否需要激活
+  private needActivity = true
   protected async _provider(event: FetchEvent): Promise<$OnFetchReturn> {
     const { pathname } = event;
     if (pathname.startsWith(`/${this.token}`)) {
@@ -145,7 +153,6 @@ export class Server_external extends HttpServer {
           if (!mmid) {
             return new Response(null, { status: 502 });
           }
-
           await mapHelper.getOrPut(this.externalWaitters, mmid, async (_key) => {
             let ipc: $Ipc;
             try {
@@ -159,14 +166,21 @@ export class Server_external extends HttpServer {
               ipc.request(`file://${mmid}${ExternalState.WAIT_CLOSE}`).finally(() => {
                 deleteCache();
               });
-              // 激活对面窗口
-              ipc.postMessage(IpcEvent.fromText(ExternalState.ACTIVITY, ExternalState.ACTIVITY));
             } catch (err) {
               this.externalWaitters.delete(mmid);
               throw err;
             }
+            // 激活对面窗口
+            ipc.postMessage(IpcEvent.fromText(ExternalState.ACTIVITY, ExternalState.ACTIVITY));
+            this.needActivity = false
             await ipc.request(`file://${mmid}${ExternalState.WAIT_EXTERNAL_READY}`);
+            return ipc;
           });
+          const ipc = await this.externalWaitters.get(mmid);
+          if (ipc) {
+            // 激活对面窗口
+            ipc.postMessage(IpcEvent.fromText(ExternalState.ACTIVITY, ExternalState.ACTIVITY));
+          }
           const ext_options = this._getOptions();
           // 请求跟外部app通信，并拿到返回值
           return await jsProcess.nativeFetch(

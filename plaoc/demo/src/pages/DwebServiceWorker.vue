@@ -1,26 +1,26 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import LogPanel, { defineLogAction } from "../components/LogPanel.vue";
-import { dwebServiceWorker as sw } from "../plugin";
+import { dwebServiceWorker, updateControllerPlugin } from "../plugin";
 const $logPanel = ref<typeof LogPanel>();
 // let console: Console;
 
-Object.assign(globalThis, { sw });
+Object.assign(globalThis, { dwebServiceWorker });
 
 const progress = ref(0);
 
 onMounted(async () => {
   // console = toConsole($logPanel);
   // app暂停触发事件（这个时候后台还会运行，前端界面被关闭）
-  sw.addEventListener("pause", (event) => {
+  dwebServiceWorker.addEventListener("pause", (event) => {
     console.log("app pause", event);
   });
   // app恢复触发事件
-  sw.addEventListener("resume", (event) => {
+  dwebServiceWorker.addEventListener("resume", (event) => {
     console.log("app resume", event);
   });
 
-  const updateContoller = sw.update;
+  const updateContoller = updateControllerPlugin.listen;
 
   updateContoller.addEventListener("start", (event) => {
     console.log("Dweb Service Worker updateContoller start =>", event);
@@ -39,42 +39,42 @@ onMounted(async () => {
 
 const close = defineLogAction(
   async () => {
-    return await sw.close();
+    return await dwebServiceWorker.close();
   },
   { name: "close", args: [], logPanel: $logPanel }
 );
 
 const restart = defineLogAction(
   async () => {
-    return await sw.restart();
+    return await dwebServiceWorker.restart();
   },
   { name: "restart", args: [], logPanel: $logPanel }
 );
 
 const pause = defineLogAction(
   async () => {
-    return await sw.updateContoller.pause();
+    return await updateControllerPlugin.pause();
   },
   { name: "pause", args: [], logPanel: $logPanel }
 );
 
 const resume = defineLogAction(
   async () => {
-    return await sw.updateContoller.resume();
+    return await updateControllerPlugin.resume();
   },
   { name: "resume", args: [], logPanel: $logPanel }
 );
 
 const cancel = defineLogAction(
   async () => {
-    return await sw.updateContoller.cancel();
+    return await updateControllerPlugin.cancel();
   },
   { name: "cancel", args: [], logPanel: $logPanel }
 );
 
 const download = defineLogAction(
   async () => {
-    return await sw.updateContoller.download("http://127.0.0.1:8096/metadata.json");
+    return await updateControllerPlugin.download("http://127.0.0.1:8096/metadata.json");
   },
   { name: "cancel", args: [], logPanel: $logPanel }
 );
@@ -84,11 +84,11 @@ const message = ref("这里显示收到的消息");
 const sayHi = async () => {
   const url = new URL("/say/hi",document.baseURI);
   url.searchParams.set("message", "今晚吃螃🦀️蟹吗？");
-  const response = await sw.externalFetch(`plaoc.html.demo.dweb`, url);
+  const response = await dwebServiceWorker.externalFetch(`plaoc.html.demo.dweb`, url);
   message.value = await response.text();
   console.log("sayHi return => ", message.value);
 };
-sw.addEventListener("fetch", async (event) => {
+dwebServiceWorker.addEventListener("fetch", async (event) => {
   console.log("Dweb Service Worker fetch!", event);
   const url = new URL(event.request.url);
   if (url.pathname.endsWith("/say/hi")) {

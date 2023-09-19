@@ -5,7 +5,6 @@ import type { $BuildRequestWithBaseInit } from "../base/BasePlugin.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
 import { $DwebResult } from "../base/base.type.ts";
 
-
 export class DwebServiceWorkerPlugin extends BasePlugin {
   readonly tagName = "dweb-service-worker";
 
@@ -98,6 +97,5 @@ export interface $ExternalFetchHandle {
   close: () => void;
   response: Promise<Response>;
 }
-
 
 export const dwebServiceWorkerPlugin = new DwebServiceWorkerPlugin();
