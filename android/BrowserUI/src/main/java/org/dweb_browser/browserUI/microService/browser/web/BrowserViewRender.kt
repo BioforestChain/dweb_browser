@@ -2,6 +2,7 @@ package org.dweb_browser.browserUI.microService.browser.web
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
 import org.dweb_browser.browserUI.ui.browser.BrowserViewForWindow
 import org.dweb_browser.browserUI.ui.view.LocalCommonUrl
@@ -14,13 +15,15 @@ fun BrowserController.Render(modifier: Modifier, windowRenderScope: WindowRender
   val win = LocalWindowController.current
   val localCommonUrl = LocalCommonUrl.current
 
-  val navigator = controller.viewModel.uiState.currentBrowserBaseView.value.viewItem.navigator
-  win.state.canGoBack = navigator.canGoBack || localCommonUrl.value.isNotEmpty()
-  win.GoBackHandler {
-    if (localCommonUrl.value.isNotEmpty()) {
-      localCommonUrl.value = ""
-    } else {
-      navigator.navigateBack()
+  val viewItem = controller.viewModel.uiState.currentBrowserBaseView.value.viewItem
+  key(viewItem) {
+    win.state.canGoBack = viewItem.navigator.canGoBack || localCommonUrl.value.isNotEmpty()
+    win.GoBackHandler {
+      if (localCommonUrl.value.isNotEmpty()) {
+        localCommonUrl.value = ""
+      } else {
+        viewItem.navigator.navigateBack()
+      }
     }
   }
 
