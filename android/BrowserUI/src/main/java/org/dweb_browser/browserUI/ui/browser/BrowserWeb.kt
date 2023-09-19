@@ -34,15 +34,14 @@ import org.dweb_browser.browserUI.ui.view.drawToBitmapPostLaidOut
 @Composable
 internal fun BrowserWebView(viewModel: BrowserViewModel, browserWebView: BrowserWebView) {
   var webViewY = 0 // 用于截图的时候进行定位截图
-  val showLoading = remember { mutableStateOf(false) }
   LaunchedEffect(browserWebView.viewItem.state) { // 点击跳转时，加载状态变化，将底部栏显示
     snapshotFlow { browserWebView.viewItem.state.loadingState }.collect {
       if (it is LoadingState.Loading) {
         viewModel.handleIntent(BrowserIntent.UpdateBottomViewState(true))
-        showLoading.value = true
+        browserWebView.loadState.value = true
       }
       if (it is LoadingState.Finished) {
-        showLoading.value = false
+        browserWebView.loadState.value = false
         delay(500)
         viewModel.handleIntent(
           BrowserIntent.SaveHistoryWebSiteInfo(
@@ -100,7 +99,7 @@ internal fun BrowserWebView(viewModel: BrowserViewModel, browserWebView: Browser
       browserWebView.viewItem.webView.parent?.let { (it as ViewGroup).removeAllViews() }
       browserWebView.viewItem.webView
     })
-  LoadingView(showLoading)
+  LoadingView(browserWebView.loadState)
 }
 
 /**

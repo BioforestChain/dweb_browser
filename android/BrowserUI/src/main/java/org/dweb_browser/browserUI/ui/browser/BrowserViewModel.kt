@@ -9,7 +9,6 @@ import android.webkit.WebView
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.pager.PagerState
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableStateListOf
@@ -64,11 +63,6 @@ data class BrowserUIState(
   val pagerStateNavigator: MutableState<PagerState?> = mutableStateOf(null), // 用于表示下面搜索框等内容
   val multiViewShow: MutableTransitionState<Boolean> = MutableTransitionState(false),
   val showBottomBar: MutableTransitionState<Boolean> = MutableTransitionState(true), // 用于网页上滑或者下滑时，底下搜索框和导航栏的显示
-  /*val bottomSheetScaffoldState: BottomSheetScaffoldState = BottomSheetScaffoldState(
-    bottomSheetState = SheetState(
-      skipPartiallyExpanded = false, initialValue = SheetValue.Hidden, skipHiddenState = false
-    ), snackbarHostState = SnackbarHostState()
-  ),*/
   val inputText: MutableState<String> = mutableStateOf(""), // 用于指定输入的内容
   val showSearchEngine: MutableTransitionState<Boolean> = MutableTransitionState(false), // 用于在输入内容后，显示本地检索以及提供搜索引擎
   val qrCodeScanState: QRCodeScanState = QRCodeScanState(), // 用于判断桌面的显示隐藏
@@ -236,8 +230,11 @@ class BrowserViewModel(
 
         is BrowserIntent.SearchWebView -> {
           uiState.showSearchEngine.targetState = false // 到搜索功能了，搜索引擎必须关闭
+          val loadingState = uiState.currentBrowserBaseView.value.loadState
+          loadingState.value = true
           if (action.url.startsWith("dweb:")) { // 负责拦截browser的dweb_deeplink
             browserNMM.nativeFetch(action.url)
+            loadingState.value = false
             return@launch
           } else {
             val url = "dweb:install?url=${action.url}"
@@ -252,6 +249,7 @@ class BrowserViewModel(
                 )
               }
             }
+            loadingState.value = false
           }
         }
 

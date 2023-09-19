@@ -197,17 +197,20 @@ internal fun BoxScope.BrowserTextField(
       )
     },
     keyboardOptions = KeyboardOptions(
+      // 旧版本判断，如果搜索过一次，那么就直接按照之前搜索的来搜索，不进行输入内容是否域名的判断
       // imeAction = if (webEngine != null || inputText.isUrlOrHost()) ImeAction.Search else ImeAction.Done
       imeAction = ImeAction.Search // 增加上面的切换功能，会引起荣耀手机输入法异常多输出一个空格。
     ),
     keyboardActions = KeyboardActions(
       // onDone = { focusManager.clearFocus(); keyboardController?.hide() },
       onSearch = {
-        if (webEngine != null || inputText.isUrlOrHost()) {
-          webEngine?.let { onSearch(String.format(it.format, inputText)) }
-            ?: onSearch(inputText.toRequestUrl())
+        // 如果内容符合地址，直接进行搜索，其他情况就按照如果有搜索引擎就按照搜索引擎来，没有的就隐藏键盘
+        if (inputText.isUrlOrHost()) {
+          onSearch(inputText.toRequestUrl())
         } else {
-          focusManager.clearFocus(); keyboardController?.hide()
+          webEngine?.let { onSearch(String.format(it.format, inputText)) } ?: run {
+            focusManager.clearFocus(); keyboardController?.hide()
+          }
         }
       }
     )

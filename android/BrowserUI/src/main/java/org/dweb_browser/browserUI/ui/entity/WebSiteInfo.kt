@@ -33,6 +33,7 @@ data class BrowserWebView(
   override val focus: MutableState<Boolean> = mutableStateOf(false),
   override val controller: CaptureController = CaptureController(),
   override var bitmap: ImageBitmap? = null,
+  val loadState: MutableState<Boolean> = mutableStateOf(false),
   val viewItem: ViewItem,
   val closeWatcher: CloseWatcher,
 ) : BrowserBaseView
