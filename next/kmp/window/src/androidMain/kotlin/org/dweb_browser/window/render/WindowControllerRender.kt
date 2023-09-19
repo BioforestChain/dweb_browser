@@ -23,7 +23,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
@@ -88,7 +87,7 @@ fun WindowController.Render(
     LocalWindowController provides win,
   ) {
 
-    val isMinimize by win.watchedState { isMinimize() }
+    val isVisible by win.watchedState { isVisible() }
 
     /**
      * 窗口缩放
@@ -96,17 +95,18 @@ fun WindowController.Render(
      * 目前，它只适配了 拖动窗口时将窗口放大的动画效果
      * TODO 需要监听 winBounds 的 height/width 变化，将这个变化适配到窗口的 scaleX、scaleY 上，只有在动画完成的时候，才会正式将真正的 size 传递给内容渲染，这样可以有效避免内容频繁的resize渲染计算。这种resize有两种情况，一种是基于用户行为的resize、一种是基于接口行为的（比如最大化），所以应该统一通过监听winBounds变更来动态生成scale动画
      */
+    val scaleTargetValue = if (inMove) 1.05f else if (isVisible) 1f else 0.38f
     val scale by animateFloatAsState(
-      targetValue = if (isMinimize) 0f else if (inMove) 1.05f else 1f,
-      animationSpec = iosTween(durationIn = !(inMove || isMinimize)),
+      targetValue = scaleTargetValue,
+      animationSpec = iosTween(durationIn = scaleTargetValue != 1f),
       label = "scale"
     )
     if (scale == 0f) {
       return@CompositionLocalProvider
     }
     val opacity by animateFloatAsState(
-      targetValue = if (isMinimize) 0f else 1f,
-      animationSpec = iosTween(durationIn = !isMinimize),
+      targetValue = if (isVisible) 1f else 0f,
+      animationSpec = iosTween(durationIn = isVisible),
       label = "opacity"
     )
     if (opacity == 0f) {
@@ -120,13 +120,13 @@ fun WindowController.Render(
           .size(width.dp, height.dp)
       }
         .graphicsLayer {
+          alpha = opacity
           scaleX = scale
           scaleY = scale
         }
         .shadow(
           elevation = elevation.dp, shape = winPadding.boxRounded.toRoundedCornerShape()
-        )
-        .alpha(opacity),
+        ),
     ) {
       //#region 窗口内容
       Column(

@@ -329,13 +329,10 @@ open class WindowsManager<T : WindowController>(internal val viewController: Pla
     win.simpleUnMaximize()
   }
 
-  fun unMinimizeWindow(win: WindowController) = winLifecycleScopeAsync(win) {
-    win.simpleUnMinimize()
-  }
-
-  fun minimizeWindow(win: WindowController) = winLifecycleScopeAsync(win) {
-    win.simpleMinimize()
-  }
+  fun toggleVisibleWindow(win: WindowController, visible: Boolean? = null) =
+    winLifecycleScopeAsync(win) {
+      win.simpleToggleVisible(visible)
+    }
 
   fun closeWindow(win: WindowController, force: Boolean = false) = winLifecycleScopeAsync(win) {
     win.simpleClose(force)

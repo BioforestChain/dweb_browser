@@ -96,7 +96,7 @@ class WindowNMM : NativeMicroModule("window.sys.dweb", "Window Management") {
       "/blur" bind Method.GET to defineEmptyResponse { request -> getWindow(request).blur() },
       "/maximize" bind Method.GET to defineEmptyResponse { request -> getWindow(request).maximize() },
       "/unMaximize" bind Method.GET to defineEmptyResponse { request -> getWindow(request).unMaximize() },
-      "/minimize" bind Method.GET to defineEmptyResponse { request -> getWindow(request).minimize() },
+      "/minimize" bind Method.GET to defineEmptyResponse { request -> getWindow(request).toggleVisible() },
       "/close" bind Method.GET to defineEmptyResponse { request -> getWindow(request).close() },
       "/setStyle" bind Method.GET to defineEmptyResponse { request ->
         getWindow(request).setStyle(

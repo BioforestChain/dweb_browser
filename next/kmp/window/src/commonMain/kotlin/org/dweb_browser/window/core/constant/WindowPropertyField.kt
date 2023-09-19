@@ -80,6 +80,7 @@ open class WindowPropertyField<T : Any> private constructor(
     val IconMaskable = required(WindowPropertyKeys.IconMaskable, false);
     val IconMonochrome = required(WindowPropertyKeys.IconMonochrome, false);
     val Mode = required(WindowPropertyKeys.Mode, WindowMode.FLOATING);
+    val Visible = required(WindowPropertyKeys.Visible, true);
     val CanGoBack = optional<Boolean>(WindowPropertyKeys.CanGoBack, false);
     val CanGoForward = optional<Boolean>(WindowPropertyKeys.CanGoForward);
     val Resizable = required(WindowPropertyKeys.Resizable, true);

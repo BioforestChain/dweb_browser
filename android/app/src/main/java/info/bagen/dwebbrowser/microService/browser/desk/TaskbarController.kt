@@ -91,8 +91,15 @@ class TaskbarController(
    * 将其它视图临时最小化到 TaskbarView/TooggleDesktopButton 按钮里头，在此点击该按钮可以释放这些临时视图到原本的状态
    */
   suspend fun toggleDesktopView() {
-    desktopController.desktopWindowsManager.allWindows.forEach { win ->
-      win.key.minimize()
+    val allWindows = desktopController.desktopWindowsManager.allWindows.keys.toList()
+    if (allWindows.find { it.isVisible() } != null) {
+      allWindows.forEach { win ->
+        win.toggleVisible(false)
+      }
+    } else {
+      allWindows.forEach { win ->
+        win.toggleVisible(true)
+      }
     }
   }
 

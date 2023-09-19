@@ -23,11 +23,6 @@ enum class WindowMode(val mode: String) {
   MAXIMIZE("maximize"),
 
   /**
-   * 最小化
-   */
-  MINIMIZE("minimize"),
-
-  /**
    * 全屏
    */
   FULLSCREEN("fullscreen"),

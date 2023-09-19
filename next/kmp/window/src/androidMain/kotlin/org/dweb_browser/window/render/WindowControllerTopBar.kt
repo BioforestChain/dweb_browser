@@ -142,7 +142,7 @@ private fun WindowTopControllerBar(
           .fillMaxHeight(),
       ) {
         IconButton(modifier = Modifier.align(Alignment.CenterEnd),
-          onClick = { coroutineScope.launch { win.minimize() } }) {
+          onClick = { coroutineScope.launch { win.toggleVisible() } }) {
           Icon(
             Icons.Rounded.Minimize,
             contentDescription = "Minimizes the window",

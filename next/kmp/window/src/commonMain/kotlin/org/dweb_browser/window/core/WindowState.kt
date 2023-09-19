@@ -154,9 +154,14 @@ class WindowState(
   var iconMonochrome by WindowPropertyField.IconMonochrome.toObserve(observable)
 
   /**
-   * 是否全屏
+   * 窗口模式
    */
   var mode by WindowPropertyField.Mode.toObserve(observable)
+
+  /**
+   * 窗口是否可见
+   */
+  var visible by WindowPropertyField.Visible.toObserve(observable)
 
   /**
    * 导航是否可以后退

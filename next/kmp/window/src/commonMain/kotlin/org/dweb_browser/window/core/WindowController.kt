@@ -74,8 +74,8 @@ abstract class WindowController(
   fun isFocused() = state.focus
   internal open suspend fun simpleFocus() {
     state.focus = true
-    // 如果窗口聚焦，那么要同时取消最小化的状态
-    simpleUnMinimize()
+    // 如果窗口聚焦，那么同时要确保可见性
+    simpleToggleVisible(true)
   }
 
   suspend fun focus() = managerRunOr({ it.focusWindow(this) }, { simpleFocus() })
@@ -93,8 +93,7 @@ abstract class WindowController(
   fun isMaximized(mode: WindowMode = state.mode) =
     mode == WindowMode.MAXIMIZE || mode == WindowMode.FULLSCREEN
 
-  val onMaximize = createStateListener(
-    WindowPropertyKeys.Mode,
+  val onMaximize = createStateListener(WindowPropertyKeys.Mode,
     { isMaximized(mode) }) { debugWindow("emit onMaximize", id) }
 
   internal open suspend fun simpleMaximize() {
@@ -150,31 +149,32 @@ abstract class WindowController(
 
   suspend fun unMaximize() = managerRunOr({ it.unMaximizeWindow(this) }, { simpleUnMaximize() })
 
-  fun isMinimize(mode: WindowMode = state.mode) = mode == WindowMode.MINIMIZE
+  fun isVisible() = state.visible
 
-  private var _beforeMinimizeMode: WindowMode? = null
+  val onVisible = createStateListener(WindowPropertyKeys.Visible, { visible }) {
+    debugWindow(
+      "emit onVisible",
+      id
+    )
+  }
+  val onHidden = createStateListener(WindowPropertyKeys.Visible, { !visible }) {
+    debugWindow(
+      "emit onHidden",
+      id
+    )
+  }
 
-  val onMinimize = createStateListener(
-    WindowPropertyKeys.Mode,
-    { mode == WindowMode.MINIMIZE }) { debugWindow("emit onMinimize", id) }
-
-  internal open suspend fun simpleUnMinimize() {
-    if (isMinimize()) {
-      state.mode = _beforeMinimizeMode ?: WindowMode.FLOATING
-      _beforeMinimizeMode = null
+  internal open suspend fun simpleToggleVisible(visible: Boolean? = null) {
+    val value = visible ?: !state.visible
+    if (value != state.visible) {
+      state.visible = value
     }
   }
 
-  suspend fun unMinimize() = managerRunOr({ it.unMinimizeWindow(this) }, { simpleUnMinimize() })
+  suspend fun toggleVisible(visible: Boolean? = null) =
+    managerRunOr({ it.toggleVisibleWindow(this, visible) }, { simpleToggleVisible(visible) })
 
-  internal open suspend fun simpleMinimize() {
-    state.mode = WindowMode.MINIMIZE
-  }
-
-  suspend fun minimize() = managerRunOr({ it.minimizeWindow(this) }, { simpleMinimize() })
-
-  val onClose = createStateListener(
-    WindowPropertyKeys.Mode,
+  val onClose = createStateListener(WindowPropertyKeys.Mode,
     { mode == WindowMode.CLOSED }) { debugWindow("emit onClose", id) }
 
   fun isClosed() = state.mode == WindowMode.CLOSED
