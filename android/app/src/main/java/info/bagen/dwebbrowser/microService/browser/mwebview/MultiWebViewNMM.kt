@@ -1,22 +1,17 @@
 package info.bagen.dwebbrowser.microService.browser.mwebview
 
-import org.dweb_browser.microservice.core.AndroidNativeMicroModule
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.plus
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.browserUI.download.DownLoadObserver
-import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.dwebview.serviceWorker.emitEvent
 import org.dweb_browser.helper.ComparableWrapper
 import org.dweb_browser.helper.ImageResourcePurposes
 import org.dweb_browser.helper.StrictImageResource
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.enumToComparable
-import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printDebug
+import org.dweb_browser.microservice.core.AndroidNativeMicroModule
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
@@ -58,7 +53,7 @@ class MultiWebViewNMM :
       // 打开一个 webview，并将它以 窗口window 的标准进行展示
       "/open" bind Method.GET to defineHandler { request, ipc ->
         val url = queryUrl(request)
-        debugMultiWebView("create/open",url)
+        debugMultiWebView("create/open", url)
         val remoteMm = ipc.asRemoteInstance()
           ?: throw Exception("mwebview.browser.dweb/open should be call by locale")
         ipc.onClose {
@@ -86,8 +81,12 @@ class MultiWebViewNMM :
       // 界面没有关闭，用于重新唤醒
       "/activate" bind Method.GET to defineHandler { request, ipc ->
         val remoteMmid = ipc.remote.mmid
-        val controller = controllerMap[remoteMmid] ?: return@defineHandler false;
+        val controller = controllerMap[remoteMmid] ?: return@defineHandler false
         debugMultiWebView("/activate", "激活 ${controller.ipc.remote.mmid}")
+        controller.win.state.apply {
+          focus = true
+          visible = true
+        }
         // TODO 将当前的界面移动到最上层
         //  controller.ipc.postMessage(IpcEvent.fromUtf8(EIpcEvent.Activity.event, ""))
         controller.win.emitFocusOrBlur(true)

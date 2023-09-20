@@ -45,8 +45,10 @@ class BrowserController(
   suspend fun openBrowserWindow(search: String? = null, url: String? = null) =
     winLock.withLock<WindowController> {
       viewModel.createNewTab(search, url)
-      if (win != null) {
-        return win!!
+      win?.let { preWin ->
+        preWin.state.focus = true
+        preWin.state.visible = true
+        return preWin
       }
       // 打开安装窗口
       val newWin = createWindowAdapterManager.createWindow(WindowState(
