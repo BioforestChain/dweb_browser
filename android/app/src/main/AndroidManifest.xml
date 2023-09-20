@@ -102,7 +102,7 @@
         <category android:name="android.intent.category.BROWSABLE" />
 
         <data android:scheme="https"/>
-        <data android:host="dweb-browser.org"/>
+        <data android:host="docs.dweb-browser.org"/>
         <data android:pathPrefix="/dweb:"/>
       </intent-filter>
     </activity>
