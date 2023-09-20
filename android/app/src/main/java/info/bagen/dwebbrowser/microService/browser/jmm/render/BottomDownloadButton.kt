@@ -12,6 +12,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -19,14 +20,16 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import info.bagen.dwebbrowser.microService.browser.jmm.JsMicroModule
-import info.bagen.dwebbrowser.microService.browser.jmm.ui.JmmUIState
+import info.bagen.dwebbrowser.microService.browser.jmm.ui.JmmIntent
+import info.bagen.dwebbrowser.microService.browser.jmm.ui.LocalJmmViewHelper
+import kotlinx.coroutines.launch
 import org.dweb_browser.browserUI.download.DownLoadStatus
 
 @Composable
-internal fun BoxScope.BottomDownloadButton(
-  jmmUIState: JmmUIState, onClick: () -> Unit
-) {
+internal fun BoxScope.BottomDownloadButton() {
   val background = MaterialTheme.colorScheme.surface
+  val scope = rememberCoroutineScope()
+  val viewModel = LocalJmmViewHelper.current
 
   Box(
     modifier = Modifier
@@ -38,12 +41,12 @@ internal fun BoxScope.BottomDownloadButton(
       .padding(16.dp),
     contentAlignment = Alignment.Center
   ) {
-    val downloadStatus = jmmUIState.downloadStatus.value
-    val downloadSize = jmmUIState.downloadSize.value
-    val totalSize = jmmUIState.jmmAppInstallManifest.bundle_size
+    val downloadStatus = viewModel.uiState.downloadStatus.value
+    val downloadSize = viewModel.uiState.downloadSize.value
+    val totalSize = viewModel.uiState.jmmAppInstallManifest.bundle_size
     var showLinearProgress = false
     val canSupportTarget = remember {
-      jmmUIState.jmmAppInstallManifest.canSupportTarget(JsMicroModule.VERSION)
+      viewModel.uiState.jmmAppInstallManifest.canSupportTarget(JsMicroModule.VERSION)
     }
     val text = if (canSupportTarget) when (downloadStatus) {
       DownLoadStatus.IDLE, DownLoadStatus.CANCEL -> {
@@ -92,7 +95,11 @@ internal fun BoxScope.BottomDownloadButton(
     }
 
     ElevatedButton(
-      onClick = onClick,
+      onClick = {
+        scope.launch {
+          viewModel.handlerIntent(JmmIntent.ButtonFunction)
+        }
+      },
       modifier = m2,
       colors = ButtonDefaults.elevatedButtonColors(
         containerColor = Color.Transparent,

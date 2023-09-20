@@ -14,6 +14,7 @@ import org.dweb_browser.browserUI.download.isGreaterThan
 import org.dweb_browser.browserUI.util.BrowserUIApp
 import org.dweb_browser.browserUI.util.NotificationUtil
 import org.dweb_browser.helper.Observable
+import org.dweb_browser.helper.compose.noLocalProvidedFor
 import org.dweb_browser.helper.compose.toComposableHelper
 import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
 import java.util.Calendar
@@ -25,16 +26,8 @@ internal val LocalShowWebViewHelper = compositionLocalOf {
   mutableStateOf(false)
 }
 
-enum class JMMPropertyKey {
-  DownloadSize, TotalSize, DownloadStatus;
-}
-
-class JMMState {
-  private val observable = Observable<JMMPropertyKey>()
-  val composableHelper by lazy { observable.toComposableHelper(this@JMMState) }
-  val downloadSize by observable.observe(JMMPropertyKey.DownloadSize, 0L)
-  val totalSize by observable.observe(JMMPropertyKey.TotalSize, 0L)
-  val downloadStatus by observable.observe(JMMPropertyKey.DownloadStatus, DownLoadStatus.IDLE)
+internal val LocalJmmViewHelper = compositionLocalOf<JmmManagerViewHelper> {
+  noLocalProvidedFor("LocalJmmViewHelper")
 }
 
 data class JmmUIState(

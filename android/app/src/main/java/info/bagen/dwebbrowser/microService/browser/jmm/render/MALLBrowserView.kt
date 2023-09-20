@@ -19,12 +19,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Density
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.browser.jmm.ui.JmmIntent
-import info.bagen.dwebbrowser.microService.browser.jmm.ui.JmmManagerViewHelper
+import info.bagen.dwebbrowser.microService.browser.jmm.ui.LocalJmmViewHelper
 import kotlinx.coroutines.launch
 
 @Composable
-fun MALLBrowserView(viewModel: JmmManagerViewHelper, onBack: () -> Unit) {
-  val jmmMetadata = viewModel.uiState.jmmAppInstallManifest
+fun MALLBrowserView(onBack: () -> Unit) {
+  val jmmMetadata = LocalJmmViewHelper.current.uiState.jmmAppInstallManifest
   val topBarAlpha = remember { mutableFloatStateOf(0f) }
   val lazyListState = rememberLazyListState()
   val screenWidth = LocalConfiguration.current.screenWidthDp
@@ -72,11 +72,7 @@ fun MALLBrowserView(viewModel: JmmManagerViewHelper, onBack: () -> Unit) {
       }
     }
     TopAppBar(topBarAlpha, jmmMetadata.name, onBack)
-    BottomDownloadButton(viewModel.uiState) {
-      scope.launch {
-        viewModel.handlerIntent(JmmIntent.ButtonFunction)
-      }
-    }
+    BottomDownloadButton()
     ImagePreview(jmmMetadata, previewState)
     DialogForWebviewVersion()
   }
