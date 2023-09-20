@@ -47,10 +47,8 @@ class TaskbarController(
       updateSignal.emit()
     }
 
-    // 监听移除app的改变,可能是增加或者减少
-    desktopNMM.bootstrapContext.dns.onChange { updateSignal.emit() }
-
     desktopController.onUpdate { updateSignal.emit() }
+
   }
 
   fun getTaskbarAppList(limit: Int): List<DeskAppMetaData> {

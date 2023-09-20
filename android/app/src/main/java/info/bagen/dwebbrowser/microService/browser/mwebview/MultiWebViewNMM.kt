@@ -2,6 +2,7 @@ package info.bagen.dwebbrowser.microService.browser.mwebview
 
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.browserUI.download.DownLoadObserver
 import org.dweb_browser.dwebview.serviceWorker.emitEvent
@@ -9,11 +10,13 @@ import org.dweb_browser.helper.ComparableWrapper
 import org.dweb_browser.helper.ImageResourcePurposes
 import org.dweb_browser.helper.StrictImageResource
 import org.dweb_browser.helper.UUID
+import org.dweb_browser.helper.debounce
 import org.dweb_browser.helper.enumToComparable
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.core.AndroidNativeMicroModule
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.MicroModule
+import org.dweb_browser.microservice.help.suspendOnce
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.ipc.Ipc
@@ -48,12 +51,10 @@ class MultiWebViewNMM :
     // 打开webview
     val queryUrl = Query.string().required("url")
     val queryWebviewId = Query.string().required("webview_id")
-    var openLock = false
     apiRouting = routes(
       // 打开一个 webview，并将它以 窗口window 的标准进行展示
-      "/open" bind Method.GET to defineHandler { request, ipc ->
+      "/open" bind Method.GET to defineJsonResponse {
         val url = queryUrl(request)
-        debugMultiWebView("create/open", url)
         val remoteMm = ipc.asRemoteInstance()
           ?: throw Exception("mwebview.browser.dweb/open should be call by locale")
         ipc.onClose {
@@ -61,11 +62,11 @@ class MultiWebViewNMM :
           val controller = controllerMap[ipc.remote.mmid]
           controller?.destroyWebView()
         }
-        debugMultiWebView("/open", "MultiWebViewNMM open!!!")
+        debugMultiWebView("/open", "MultiWebViewNMM open!!! ${remoteMm.mmid}")
 
         val (viewItem, controller) = openDwebView(url, remoteMm, ipc)
         debugMultiWebView("create/open end", "${viewItem.webviewId}, ${controller.win.id}")
-        return@defineHandler ViewItemResponse(viewItem.webviewId, controller.win.id)
+        controller.getState()
       },
       // 关闭指定 webview 窗口
       "/close" bind Method.GET to defineHandler { request, ipc ->

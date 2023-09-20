@@ -58,6 +58,7 @@ export interface $MicroModule extends $MicroModuleManifest {
     input: RequestInfo | URL,
     init?: RequestInit
   ): Promise<Response> & typeof import("../helper/fetchExtends/index.ts")["fetchExtends"];
+  connect(mmid: $MMID): Promise<import("./ipc/ipc.ts").Ipc | undefined>;
 
   /**
    * 添加双工连接到自己的池子中，但自己销毁，这些双工连接都会被断掉

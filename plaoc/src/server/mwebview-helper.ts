@@ -2,9 +2,11 @@ import { createSignal, jsProcess } from "./deps.ts";
 
 /**开启新页面 */
 export const mwebview_open = async (url: string) => {
-  return await jsProcess
+  const state = await jsProcess
     .nativeFetch(`file://mwebview.browser.dweb/open?url=${encodeURIComponent(url)}`)
-    .object<{ webviewId: string; wid: string }>();
+    .object<$AllWebviewState>();
+  all_webview_status.diffState(state);
+  return state;
 };
 
 /**
@@ -35,10 +37,13 @@ import { DetailedDiff, detailedDiff } from "npm:deep-object-diff";
 export type $WebViewState = {
   isActivated: boolean;
   webviewId: string;
+  index: number;
   mmid: string;
 };
+
 export interface $AllWebviewState {
-  [key: number]: $WebViewState;
+  wid: string;
+  views: { [key: string]: $WebViewState };
 }
 
 export type DiffFn = (size: number) => unknown;
@@ -69,6 +74,14 @@ export const all_webview_status = new (class extends Map<string, $WebViewState> 
     }
     this.signal.emit(this.size);
   }
+
+  private oldWebviewState: $AllWebviewState["views"] = {};
+
+  diffState(newState: $AllWebviewState) {
+    const diff = detailedDiff(this.oldWebviewState, newState.views);
+    this.oldWebviewState = newState.views;
+    this.diffFactory(diff);
+  }
 })();
 
 let _false = true;
@@ -79,18 +92,12 @@ export const sync_mwebview_status = async () => {
   _false = false;
 
   const ipc = await navigator.dweb.jsProcess.connect("mwebview.browser.dweb");
-  // 管理webview的状态，因为当前webview是通过状态判断操作的，比如激活，关闭
-  let oldWebviewState: $WebViewState[] = [];
 
   ipc.onEvent((ipcEvent) => {
     /// 同步 mwebview 的状态机
     if (ipcEvent.name === "state") {
-      const newState = JSON.parse(ipcEvent.text);
-      const diff = detailedDiff(oldWebviewState, newState);
-      oldWebviewState = newState;
-      all_webview_status.diffFactory(diff);
-    } else if (ipcEvent.name === "diff-state") {
-      throw new Error("no implement");
+      const newState = JSON.parse(ipcEvent.text) as $AllWebviewState;
+      all_webview_status.diffState(newState);
     }
   });
   // TODO 这里应该进行一次主动同步全部状态

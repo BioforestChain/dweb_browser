@@ -22,8 +22,6 @@ interface DnsMicroModule {
    */
   fun uninstall(mmid: MMID): Boolean
 
-  val onChange: Signal.Listener<ChangeableMap<MMID /* = String */, MicroModule>>
-
   /**
    * 动态js应用查询
    */

@@ -302,18 +302,20 @@ abstract class Ipc {
   private val readyListener by lazy {
     val ready = PromiseOut<IpcEvent>()
     this.onEvent { (event, ipc) ->
+
       if (event.name == "ping") {
         ipc.postMessage(IpcEvent("pong", event.data, event.encoding))
-        ready.resolve(event)
       } else if (event.name == "pong") {
         ready.resolve(event)
       }
     }
     CoroutineScope(defaultAsyncExceptionHandler).launch {
       val ipc = this@Ipc
-      while (!ready.isResolved && !ipc.isClosed) {
+      var pingDelay = 50L
+      while (!ready.isResolved && !ipc.isClosed && pingDelay < 5000L) {
         ipc.postMessage(IpcEvent.fromUtf8("ping", ""))
-        delay(1000)
+        delay(pingDelay)
+        pingDelay *= 3;
       }
     }
     ready

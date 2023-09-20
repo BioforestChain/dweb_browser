@@ -32,8 +32,10 @@ class DesktopController(
   val onUpdate = updateSignal.toListener()
 
   init {
-    runningApps.onChange { updateSignal.emit() }
-    desktopNMM.bootstrapContext.dns.onChange { updateSignal.emit() }
+    runningApps.onChange { map ->
+      updateSignal.emit()
+    }
+
   }
 
   suspend fun getDesktopApps(): List<DeskAppMetaData> {
@@ -81,6 +83,7 @@ class DesktopController(
 
       /// 但有窗口信号变动的时候，确保 MicroModule.IpcEvent<Activity> 事件被激活
       dwm.allWindows.onChange {
+        updateSignal.emit()
         _activitySignal.emit()
       }.removeWhen(dwm.viewController.lifecycleScope)
 

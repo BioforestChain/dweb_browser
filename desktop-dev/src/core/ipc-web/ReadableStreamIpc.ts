@@ -42,12 +42,12 @@ export class ReadableStreamIpc extends Ipc {
 
   private PONG_DATA = once(() => {
     const pong = encode("pong");
-    return ReadableStreamIpc.concatLen(pong)
+    return ReadableStreamIpc.concatLen(pong);
   });
 
   private CLOSE_DATA = once(() => {
     const close = encode("close");
-    return ReadableStreamIpc.concatLen(close)
+    return ReadableStreamIpc.concatLen(close);
   });
 
   private _incomne_stream?: ReadableStream<Uint8Array>;

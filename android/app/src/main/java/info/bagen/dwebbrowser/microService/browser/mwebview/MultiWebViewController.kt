@@ -12,6 +12,11 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import org.dweb_browser.browserUI.download.DownLoadObserver
 import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.dwebview.base.ViewItem
@@ -25,7 +30,6 @@ import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
 import org.dweb_browser.window.core.WindowController
 import org.dweb_browser.window.core.createWindowAdapterManager
-import org.json.JSONObject
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -93,12 +97,6 @@ class MultiWebViewController(
     override var hidden: Boolean = false,
     val win: WindowController
   ) : ViewItem {
-//    val nativeUiController by lazy {
-//      webView.activity?.let {
-//        NativeUiController(it)
-//      }
-//        ?: throw Exception("webview un attached to activity")
-//    }
   }
 
   var downLoadObserver: DownLoadObserver? = null
@@ -115,7 +113,7 @@ class MultiWebViewController(
         url = url,
         /// 我们会完全控制页面将如何离开，所以这里兜底默认为留在页面
         onDetachedFromWindowStrategy = DWebView.Options.DetachedFromWindowStrategy.Ignore,
-      ),currentActivity
+      ), currentActivity
     )
     dWebView
   }
@@ -179,19 +177,26 @@ class MultiWebViewController(
     return true
   }
 
-  private suspend fun updateStateHook() {
-    val currentState = JSONObject()
+  fun getState(): JsonObject {
+    val views = mutableMapOf<String, JsonElement>()
     debugMultiWebView("updateStateHook =>", webViewList.size)
-    webViewList.map {
-      val viewItem = JSONObject()
-      viewItem.put("webviewId", it.webviewId)
-      viewItem.put("isActivated", it.hidden)
-      viewItem.put("mmid",ipc.remote.mmid)
-      viewItem.put("url", (it.state.content as WebContent.Url).url)
-      currentState.put(it.webviewId, viewItem)
+    webViewList.forEachIndexed { index, it ->
+      val viewItem = mutableMapOf<String, JsonElement>()
+      viewItem["index"] = JsonPrimitive(index)
+      viewItem["webviewId"] = JsonPrimitive(it.webviewId)
+      viewItem["isActivated"] = JsonPrimitive(it.hidden)
+      viewItem["mmid"] = JsonPrimitive(ipc.remote.mmid)
+      viewItem["url"] = JsonPrimitive((it.state.content as WebContent.Url).url)
+      views[it.webviewId] = JsonObject(viewItem)
     }
+    val state = mutableMapOf<String, JsonElement>()
+    state["wid"] = JsonPrimitive(win.id)
+    state["views"] = JsonObject(views)
+    return JsonObject(state)
+  }
 
-    ipc.postMessage(IpcEvent.fromUtf8("state", currentState.toString()))
+  private suspend fun updateStateHook() {
+    ipc.postMessage(IpcEvent.fromUtf8("state", Json.encodeToString(getState())))
   }
 
   private val webViewCloseSignal = Signal<String>()

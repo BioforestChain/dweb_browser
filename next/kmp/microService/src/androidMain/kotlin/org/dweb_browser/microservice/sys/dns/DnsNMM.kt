@@ -46,7 +46,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
   }
 
   private val installApps = ChangeableMap<MMID, MicroModule>() // 已安装的应用
-  private val runningApps = mutableMapOf<MMID, PromiseOut<MicroModule>>() // 正在运行的应用
+  private val runningApps = ChangeableMap<MMID, PromiseOut<MicroModule>>() // 正在运行的应用
 
   suspend fun bootstrap() {
     if (!this.running) {
@@ -112,9 +112,6 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
 
   class MyDnsMicroModule(private val dnsMM: DnsNMM, private val fromMM: MicroModule) :
     DnsMicroModule {
-
-    override val onChange = dnsMM.installApps.onChange.createChild({ true }, { it.origin })
-
     override fun install(mm: MicroModule) {
       // TODO 作用域保护
       dnsMM.install(mm)
@@ -231,9 +228,32 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
         val mmid = queryAppId(request)
         Json.encodeToString("")
         query(mmid)?.toManifest()?.toJsonElement() ?: Response(Status.OK).toJsonElement()
-      }, "/observe/app" bind Method.GET to defineResponse {
+      }, "/observe/install-apps" bind Method.GET to defineResponse {
         val inputStream = ReadableStream(onStart = { controller ->
           val off = installApps.onChange { changes ->
+            try {
+              controller.enqueueBackground(
+                (Json.encodeToString(
+                  ChangeState(
+                    changes.adds, changes.updates, changes.removes
+                  )
+                ) + "\n").toByteArray()
+              )
+            } catch (e: Exception) {
+              controller.close()
+              e.printStackTrace()
+            }
+          }
+          ipc.onClose {
+            off()
+            controller.close()
+          }
+        })
+        Response(Status.OK).body(inputStream)
+      },
+      "/observe/running-apps" bind Method.GET to defineResponse {
+        val inputStream = ReadableStream(onStart = { controller ->
+          val off = runningApps.onChange { changes ->
             try {
               controller.enqueueBackground(
                 (Json.encodeToString(

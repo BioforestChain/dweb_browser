@@ -24,9 +24,9 @@ export class IpcRequest extends IpcMessage<IPC_MESSAGE_TYPE.REQUEST> {
     }
   }
 
-  #parsed_url?: URL;
+  private _parsed_url?: URL;
   get parsed_url() {
-    return (this.#parsed_url ??= parseUrl(this.url));
+    return (this._parsed_url ??= parseUrl(this.url));
   }
 
   static fromText(

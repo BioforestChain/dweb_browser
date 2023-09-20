@@ -71,8 +71,9 @@ export const listenHttpDwebServer = async (
     { pathname: "/", matchMode: "prefix", method: "TRACE" },
   ] satisfies $ReqMatcher[]
 ) => {
+  const httpModule = await microModule.connect("http.std.dweb");
   /// 创建一个基于 二进制流的 ipc 信道
-  const httpServerIpc = new ReadableStreamIpc(microModule, IPC_ROLE.CLIENT);
+  const httpServerIpc = new ReadableStreamIpc(httpModule?.remote || microModule, IPC_ROLE.CLIENT);
   const url = new URL(`file://http.std.dweb`);
   const ext = {
     pathname: "/listen",

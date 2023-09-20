@@ -57,26 +57,24 @@ export const main = async () => {
   });
 
   /// 生成 index-url
-  {
-    const wwwStartResult = await wwwServer.getStartResult();
-    const apiStartResult = await apiServer.getStartResult();
-    const usePublic = isMobile.isMobile();
-    const indexUrl = wwwStartResult.urlInfo.buildHtmlUrl(false, (url) => {
-      url.pathname = "/index.html";
-      urlStore.set({
-        [X_PLAOC_QUERY.API_INTERNAL_URL]: apiStartResult.urlInfo.buildUrl(usePublic).href,
-        [X_PLAOC_QUERY.API_PUBLIC_URL]: apiStartResult.urlInfo.buildPublicUrl().href,
-        [X_PLAOC_QUERY.EXTERNAL_URL]: externalServer.token,
-      });
-      url.searchParams.set(X_PLAOC_QUERY.API_INTERNAL_URL, apiStartResult.urlInfo.buildUrl(usePublic).href);
-      url.searchParams.set(X_PLAOC_QUERY.API_PUBLIC_URL, apiStartResult.urlInfo.buildPublicUrl().href);
-      url.searchParams.set(X_PLAOC_QUERY.EXTERNAL_URL, externalServer.token);
+  const wwwStartResult = await wwwServer.getStartResult();
+  const apiStartResult = await apiServer.getStartResult();
+  const usePublic = isMobile.isMobile();
+  const indexUrl = wwwStartResult.urlInfo.buildHtmlUrl(false, (url) => {
+    url.pathname = "/index.html";
+    urlStore.set({
+      [X_PLAOC_QUERY.API_INTERNAL_URL]: apiStartResult.urlInfo.buildUrl(usePublic).href,
+      [X_PLAOC_QUERY.API_PUBLIC_URL]: apiStartResult.urlInfo.buildPublicUrl().href,
+      [X_PLAOC_QUERY.EXTERNAL_URL]: externalServer.token,
     });
-    console.log("open in browser:", indexUrl.href);
-    await Promise.all([wwwListenerTask, externalListenerTask, apiListenerTask]);
-    indexUrlPo.resolve(indexUrl.href);
-    tryOpenView();
-  }
+    url.searchParams.set(X_PLAOC_QUERY.API_INTERNAL_URL, apiStartResult.urlInfo.buildUrl(usePublic).href);
+    url.searchParams.set(X_PLAOC_QUERY.API_PUBLIC_URL, apiStartResult.urlInfo.buildPublicUrl().href);
+    url.searchParams.set(X_PLAOC_QUERY.EXTERNAL_URL, externalServer.token);
+  });
+  console.log("open in browser:", indexUrl.href);
+  await Promise.all([wwwListenerTask, externalListenerTask, apiListenerTask]);
+  indexUrlPo.resolve(indexUrl.href);
+  tryOpenView();
   //#endregion
 };
 

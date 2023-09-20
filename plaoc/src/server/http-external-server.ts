@@ -90,9 +90,7 @@ export class Server_external extends HttpServer {
     jsProcess.onFetch(async (event) => {
       if (event.pathname == ExternalState.WAIT_EXTERNAL_READY) {
         await this.ipcPo.waitOpen();
-      } else if (event.pathname == ExternalState.WAIT_CLOSE) {
-        await this.ipcPo.waitClose();
-      }
+      } 
       return { status: 200 };
     });
   }
@@ -120,7 +118,7 @@ export class Server_external extends HttpServer {
 
   private externalWaitters = new Map<$MMID, Promise<$Ipc>>();
   // 是否需要激活
-  private needActivity = true
+  private needActivity = true;
   protected async _provider(event: FetchEvent): Promise<$OnFetchReturn> {
     const { pathname } = event;
     if (pathname.startsWith(`/${this.token}`)) {
@@ -153,6 +151,7 @@ export class Server_external extends HttpServer {
           if (!mmid) {
             return new Response(null, { status: 502 });
           }
+          this.needActivity = true;
           await mapHelper.getOrPut(this.externalWaitters, mmid, async (_key) => {
             let ipc: $Ipc;
             try {
@@ -163,21 +162,21 @@ export class Server_external extends HttpServer {
               };
               const off1 = ipc.onClose(deleteCache);
               //监听窗口关闭请求，做销毁动作
-              ipc.request(`file://${mmid}${ExternalState.WAIT_CLOSE}`).finally(() => {
-                deleteCache();
-              });
+              // ipc.request(`file://${mmid}${ExternalState.WAIT_CLOSE}`).finally(() => {
+              //   deleteCache();
+              // });
             } catch (err) {
               this.externalWaitters.delete(mmid);
               throw err;
             }
             // 激活对面窗口
             ipc.postMessage(IpcEvent.fromText(ExternalState.ACTIVITY, ExternalState.ACTIVITY));
-            this.needActivity = false
+            this.needActivity = false;
             await ipc.request(`file://${mmid}${ExternalState.WAIT_EXTERNAL_READY}`);
             return ipc;
           });
           const ipc = await this.externalWaitters.get(mmid);
-          if (ipc) {
+          if (ipc && this.needActivity) {
             // 激活对面窗口
             ipc.postMessage(IpcEvent.fromText(ExternalState.ACTIVITY, ExternalState.ACTIVITY));
           }

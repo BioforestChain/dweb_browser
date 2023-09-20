@@ -13,10 +13,12 @@ import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.readByteArray
+import org.dweb_browser.helper.readInt
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.cors
+import org.dweb_browser.microservice.help.types.CommonAppManifest
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.ipc.Ipc
@@ -51,6 +53,23 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
   }
 
   private val runningApps = ChangeableMap<MMID, Ipc>()
+  private suspend fun addRunningApp(mmid: MMID) :Ipc?{
+    /// 如果成功打开，将它“追加”到列表中
+    return when (val ipc = runningApps[mmid]) {
+      null -> {
+        val ipc = connect(mmid)
+        if(ipc.remote.categories.contains(MICRO_MODULE_CATEGORY.Application)){
+          runningApps[mmid] = ipc
+          /// 如果应用关闭，将它从列表中移除
+          ipc.onClose {
+            runningApps.remove(mmid)
+          }
+          ipc
+        } else null
+      }
+      else -> ipc
+    }
+  }
 
   companion object {
     data class DeskControllers(
@@ -74,12 +93,43 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
 
   private suspend fun listenApps() = ioAsyncScope.launch {
     val (openedAppIpc) = bootstrapContext.dns.connect("dns.std.dweb")
-    val res = openedAppIpc.request("/observe/app")
-    val stream = res.body.stream
-    while (stream.available() > 0) {
-      val chunk = stream.readByteArray()
-      val state = Json.decodeFromString<ChangeState<MMID>>(chunk.toString())
-      runningApps.emitChangeBackground(state.adds, state.updates, state.removes)
+    suspend fun doObserve(urlPath: String,cb: suspend ChangeState<MMID>.()->Unit) {
+      val res = openedAppIpc.request(urlPath)
+      val stream = res.body.stream
+      var cache = ""
+      while (true) {
+        val size = stream.available()
+        if (size <= 0) {
+          break;
+        }
+        cache += stream.readByteArray(size).toString(Charsets.UTF_8)
+        if (!cache.contains("\n")) {
+          continue
+        }
+        while (true) {
+          val lines = cache.split("\n", limit = 2)
+          if (lines.size > 1) {
+            cache = lines[1]
+            val line = lines[0]
+            val state = Json.decodeFromString<ChangeState<MMID>>(line)
+            state.cb()
+          } else {
+            break
+          }
+        }
+      }
+    }
+    launch {
+      doObserve("/observe/install-apps"){
+        runningApps.emitChangeBackground(adds, updates, removes)
+      }
+    }
+    launch {
+      doObserve("/observe/running-apps"){
+        for (mmid in adds) {
+          addRunningApp(mmid)
+        }
+      }
     }
   }
 
@@ -116,17 +166,9 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         val mmid = queryAppId(request)
         debugDesk("/openAppOrActivate", mmid)
         try {
-          val ipc = runningApps[mmid] ?: connect(mmid)
-          if (mmid == "web.browser.dweb" || runningApps[mmid] !== null) {
-            debugDesk("/openAppOrActivate activity", mmid)
-            ipc.postMessage(IpcEvent.fromUtf8(EIpcEvent.Activity.event, ""))
-          }
-          /// 如果成功打开，将它“追加”到列表中
-          if (!runningApps.containsKey(mmid)) runningApps[mmid] = ipc
-          /// 如果应用关闭，将它从列表中移除
-          ipc.onClose {
-            runningApps.remove(mmid)
-          }
+          val ipc = addRunningApp(mmid)
+          ipc?.postMessage(IpcEvent.fromUtf8(EIpcEvent.Activity.event, ""))
+
           /// 将所有的窗口聚焦，这个行为不依赖于 Activity 事件，而是Desk模块自身托管窗口的行为
           desktopController.desktopWindowsManager.focusWindow(mmid)
 

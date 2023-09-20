@@ -98,7 +98,7 @@ export abstract class Ipc {
    */
   emitMessage = (args: IpcRequest) => this._messageSignal.emit(args, this);
 
-  #onRequestSignal = new CacheGetter(() => {
+  private __onRequestSignal = new CacheGetter(() => {
     const signal = this._createSignal<$OnIpcRequestMessage>(false);
     this.onMessage((request, ipc) => {
       if (request.type === IPC_MESSAGE_TYPE.REQUEST) {
@@ -108,7 +108,7 @@ export abstract class Ipc {
     return signal;
   });
   private get _onRequestSignal() {
-    return this.#onRequestSignal.value;
+    return this.__onRequestSignal.value;
   }
 
   onRequest(cb: $OnIpcRequestMessage) {
@@ -119,7 +119,7 @@ export abstract class Ipc {
     const onRequest = createFetchHandler(handlers);
     return onRequest.extendsTo(this.onRequest(onRequest));
   }
-  #onStreamSignal = new CacheGetter(() => {
+  private __onStreamSignal = new CacheGetter(() => {
     const signal = this._createSignal<$OnIpcStreamMessage>(false);
     this.onMessage((request, ipc) => {
       if ("stream_id" in request) {
@@ -129,13 +129,13 @@ export abstract class Ipc {
     return signal;
   });
   private get _onStreamSignal() {
-    return this.#onStreamSignal.value;
+    return this.__onStreamSignal.value;
   }
   onStream(cb: $OnIpcStreamMessage) {
     return this._onStreamSignal.listen(cb);
   }
 
-  #onEventSignal = new CacheGetter(() => {
+  private __onEventSignal = new CacheGetter(() => {
     const signal = this._createSignal<$OnIpcEventMessage>(false);
     this.onMessage((event, ipc) => {
       if (event.type === IPC_MESSAGE_TYPE.EVENT) {
@@ -145,7 +145,7 @@ export abstract class Ipc {
     return signal;
   });
   private get _onEventSignal() {
-    return this.#onEventSignal.value;
+    return this.__onEventSignal.value;
   }
 
   onEvent(cb: $OnIpcEventMessage) {
@@ -171,7 +171,7 @@ export abstract class Ipc {
   allocReqId(_url?: string) {
     return this._req_id_acc++;
   }
-  #reqresMap = new CacheGetter(() => {
+  private __reqresMap = new CacheGetter(() => {
     const reqresMap = new Map<number, PromiseOut<IpcResponse>>();
     this.onMessage((message) => {
       if (message.type === IPC_MESSAGE_TYPE.RESPONSE) {
@@ -187,7 +187,7 @@ export abstract class Ipc {
     return reqresMap;
   });
   private get _reqresMap() {
-    return this.#reqresMap.value;
+    return this.__reqresMap.value;
   }
 
   private _buildIpcRequest(url: string, init?: $IpcRequestInit) {
@@ -215,18 +215,19 @@ export abstract class Ipc {
     this.onEvent((event, ipc) => {
       if (event.name === "ping") {
         ipc.postMessage(new IpcEvent("pong", event.data, event.encoding));
-        ready.resolve(event);
       } else if (event.name === "pong") {
         ready.resolve(event);
       }
     });
-    (async()=>{
-      while (!ready.is_resolved && !this.isClosed) {
+    (async () => {
+      let timeDelay = 50;
+      while (!ready.is_resolved && !this.isClosed && timeDelay < 5000) {
         this.postMessage(IpcEvent.fromText("ping", ""));
-        await PromiseOut.sleep(1000).promise;
+        await PromiseOut.sleep(timeDelay).promise;
+        timeDelay *= 3;
       }
     })();
-    await ready.promise;
+    return await ready.promise;
   });
   ready() {
     return this.readyListener();
