@@ -51,7 +51,6 @@ import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.dweb_browser.microservice.sys.http.HttpDwebServer
-import org.http4k.core.Status
 import org.http4k.core.query
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -140,9 +139,17 @@ class BrowserViewModel(
         }
       }
     }
+    browserController.onCloseWindow {
+      withContext(mainAsyncExceptionHandler) {
+        uiState.browserViewList.forEach { webview ->
+          webview.viewItem.webView.destroy()
+        }
+        uiState.browserViewList.clear()
+      }
+    }
   }
 
-  fun setDwebLinkSearch(search: String) {
+  internal fun setDwebLinkSearch(search: String) {
     // 如果搜索内容含有schema，直接按照地址进行搜索
     if (Uri.parse(search).scheme?.isNotEmpty() == true) {
       dwebLinkUrl.value = search
@@ -151,8 +158,16 @@ class BrowserViewModel(
     }
   }
 
-  fun setDwebLinkUrl(url: String) {
+  internal fun setDwebLinkUrl(url: String) {
     dwebLinkUrl.value = url
+  }
+
+  internal suspend fun addFirstTab() = withContext(mainAsyncExceptionHandler) {
+    if (uiState.browserViewList.isEmpty()) {
+      val item = getNewTabBrowserView()
+      uiState.currentBrowserBaseView.value = item
+      uiState.browserViewList.add(item)
+    }
   }
 
   private fun getDesktopUrl() =

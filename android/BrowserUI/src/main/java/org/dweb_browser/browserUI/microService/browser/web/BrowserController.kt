@@ -24,11 +24,11 @@ import org.dweb_browser.window.core.constant.WindowMode
 import org.dweb_browser.window.core.createWindowAdapterManager
 
 class BrowserController(
-  private val browserNMM: BrowserNMM, browserServer: HttpDwebServer
+  private val browserNMM: BrowserNMM, private val browserServer: HttpDwebServer
 ) {
 
-  internal val updateSignal = SimpleSignal()
-  val onUpdate = updateSignal.toListener()
+  private val closeWindowSignal = SimpleSignal()
+  val onCloseWindow = closeWindowSignal.toListener()
 
   private var winLock = Mutex(false)
 
@@ -46,6 +46,7 @@ class BrowserController(
     winLock.withLock<WindowController> {
       search?.let { viewModel.setDwebLinkSearch(it) }
       url?.let { viewModel.setDwebLinkUrl(it) }
+      viewModel.addFirstTab()
       if (win != null) {
         return win!!
       }
@@ -61,9 +62,7 @@ class BrowserController(
         it.mode = WindowMode.MAXIMIZE
         it.focus = true // 全屏和focus同时满足，才能显示浮窗而不是侧边栏
       })
-      newWin.state.closeTip =
-        newWin.manager?.state?.viewController?.androidContext?.getString(R.string.browser_confirm_to_close)
-          ?: ""
+      newWin.state.closeTip = newWin.manager?.state?.viewController?.androidContext?.getString(R.string.browser_confirm_to_close) ?: ""
       this.win = newWin
       val wid = newWin.id
       /// 提供渲染适配
@@ -72,6 +71,7 @@ class BrowserController(
       }
       /// 窗口销毁的时候
       newWin.onClose {
+        closeWindowSignal.emit()
         // 移除渲染适配器
         createWindowAdapterManager.renderProviders.remove(wid)
         ioAsyncScope.cancel()
@@ -82,21 +82,10 @@ class BrowserController(
 
   private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
   val showLoading: MutableState<Boolean> = mutableStateOf(false)
-  val viewModel = BrowserViewModel(this, browserNMM, browserServer) { mmid ->
+  var viewModel = BrowserViewModel(this, browserNMM, browserServer) { mmid ->
     ioAsyncScope.launch {
       browserNMM.bootstrapContext.dns.open(mmid)
     }
-  }
-
-  init {
-    /*ioAsyncScope.launch {
-      // 获取之前保存的列表
-      DeskLinkMetaDataStore.queryDeskLinkList().collectLatest {
-        runningWebApps.clear()
-        runningWebApps.addAll(it)
-        updateSignal.emit()
-      }
-    }*/
   }
 
   suspend fun addUrlToDesktop(title: String, url: String, icon: Bitmap?) =
