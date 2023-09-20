@@ -56,7 +56,6 @@ struct Watermark: ViewModifier{
     }
 }
 
-
 struct WatermarkModifier_Previews: PreviewProvider {
     static var previews: some View {
         WatermarkModifier()

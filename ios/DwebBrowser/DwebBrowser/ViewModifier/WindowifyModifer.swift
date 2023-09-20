@@ -20,26 +20,26 @@ var maxAvailableHeight: CGFloat {
 }
 
 extension CGSize {
-    static var wndInitSize = CGSize(width: minWndWidth, height: minWndHeight)
+    static var wndInit = CGSize(width: minWndWidth, height: minWndHeight)
 }
 
 extension View {
-    func windowed() -> some View {
-        modifier(WindowedModifier())
+    func windowify() -> some View {
+        modifier(WindowifyModifier())
     }
 }
 
-struct WindowedModifier: ViewModifier {
-    @State private var wndStartSize: CGSize = .wndInitSize
-    @State private var wndDragingSize: CGSize = .wndInitSize
+struct WindowifyModifier: ViewModifier {
+    @State private var wndStartSize: CGSize = .zero
+    @State private var wndDragingSize: CGSize = .zero
 
     @State private var wndCenterOffset: CGSize = .zero
 
     @State private var wndStartPositionOffset: CGSize = .zero
     @State private var wndDragingPositionOffset: CGSize = .zero
 
-    @State private var wndWidth: CGFloat = CGSize.wndInitSize.width
-    @State private var wndHeight: CGFloat = CGSize.wndInitSize.height
+    @State private var wndWidth: CGFloat = minWndWidth
+    @State private var wndHeight: CGFloat = minWndHeight
     var isFullMode: Bool{
         wndWidth == screen_width && wndHeight == screen_height - safeAreaTopHeight - safeAreaBottomHeight
         && wndCenterOffset.width == -wndStartPositionOffset.width && wndCenterOffset.height == -wndStartPositionOffset.height
@@ -47,11 +47,6 @@ struct WindowedModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 20)
-                .padding(.horizontal, 8)
-                .padding(.vertical, toolAreaHeight)
-                .foregroundColor(.green)
-
             content
                 .padding(.horizontal, 8)
                 .padding(.vertical, toolAreaHeight)
@@ -62,15 +57,14 @@ struct WindowedModifier: ViewModifier {
                 maxWndButton
                     .offset(x: wndWidth/2 - toolBtnHeight + 3, y: -(wndHeight/2 - toolBtnHeight + 3))
             }
-            
-//            dragResizeView(isLeft: true)
+
             dragResizeView(isLeft: false)
         }
         .watermark(text: "desk.browser.dweb")
-
+        
         .frame(width: wndWidth, height: wndHeight)
         .background(Color(white: 0.9))
-        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .clipShape(RoundedRectangle(cornerRadius: 10))
         .offset(wndStartPositionOffset)
         .offset(wndDragingPositionOffset)
 
@@ -79,8 +73,7 @@ struct WindowedModifier: ViewModifier {
             DragGesture()
                 .onChanged { value in
                     if value.startLocation.y - wndStartPositionOffset.height < 30 {
-                        wndDragingPositionOffset.width = value.translation.width
-                        wndDragingPositionOffset.height = value.translation.height
+                        wndDragingPositionOffset = value.translation
                     }
                 }
                 .onEnded { _ in
@@ -89,9 +82,6 @@ struct WindowedModifier: ViewModifier {
                     wndDragingPositionOffset = .zero
                 }
         )
-        .onChange(of: wndDragingSize) { offset in
-            print("width2:\(offset.width), height:\(offset.height)")
-        }
     }
 
     func dragResizeView(isLeft: Bool) -> some View {
@@ -131,9 +121,14 @@ struct WindowedModifier: ViewModifier {
 
     var minWndButton: some View {
         Button {
-            wndWidth = wndDragingSize.width
-            wndHeight = wndDragingSize.height
-
+            let isFullSize = wndDragingSize.width == maxDragWndWidth &&  wndDragingSize.height == maxDragWndHeight
+            if isFullSize{
+                wndWidth = minWndWidth
+                wndHeight = minWndHeight
+            }else{
+                wndWidth = wndDragingSize.width
+                wndHeight = wndDragingSize.height
+            }
             wndCenterOffset = .zero
             print("minimize")
         } label: {
@@ -143,84 +138,3 @@ struct WindowedModifier: ViewModifier {
     }
 }
 
-struct SimpleBrowserView: View {
-    @State private var isPresented = false // 初始 Z 轴索引
-    var body: some View {
-        ZStack {
-            Color.orange
-            VStack {
-                Text("www.apple.com")
-                Spacer()
-                Button("GO") {
-                    print("tap GO Button")
-                }
-                Button("sheet") {
-                    isPresented = true
-                }
-            }
-        }
-    }
-}
-
-struct MultiResizableView: View {
-    @State private var zIndexs = Array(repeating: 0, count: 3) // 初始 Z 轴索引
-    @State private var wndSizes = Array(repeating: CGSize.wndInitSize, count: 3) // 初始 Z 轴索引
-
-    @State private var maxZindex = 0 // 初始 Z 轴索引
-
-    var body: some View {
-        ZStack {
-            Color.green.ignoresSafeArea()
-            Color.white
-
-            ForEach(0 ..< wndSizes.count) { i in
-                SimpleBrowserView()
-                    .windowed()
-                    .zIndex(Double(zIndexs[i]))
-                    .offset(x: CGFloat(i * 50), y: CGFloat(i * 50))
-                    .onTapGesture {
-                        maxZindex = zIndexs.max()!
-                        zIndexs[i] = maxZindex + 1
-                    }
-                    .onAppear {}
-            }
-        }
-    }
-}
-
-struct FractionFont: View {
-    @State var dragAmount = 300.0
-    var body: some View {
-        VStack {
-            Text("Hello, SwiftUI")
-                .padding()
-                .background(.green)
-                .font(Font.system(size: 18.0))
-                .scaleEffect(dragAmount/300.0) // 缩小字体大小到 90%
-                .offset(y: 40)
-
-            ZStack {
-                RoundedRectangle(cornerRadius: 15)
-                    .frame(width: 30, height: 30)
-                    .foregroundColor(.green)
-                    .offset(x: -200 + dragAmount)
-                    .gesture(
-                        DragGesture()
-                            .onChanged { value in
-                                dragAmount = value.translation.width
-                            }
-                    )
-
-                Rectangle().frame(height: 3).background(.red)
-            }
-            .offset(y: 100)
-        }
-    }
-}
-
-struct ResizableView_Previews: PreviewProvider {
-    static var previews: some View {
-        MultiResizableView()
-        FractionFont()
-    }
-}
