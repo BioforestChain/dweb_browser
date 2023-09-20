@@ -1,6 +1,6 @@
 package info.bagen.dwebbrowser.microService.browser.desk
 
-//import org.dweb_browser.microservice.help.cors
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import info.bagen.dwebbrowser.App

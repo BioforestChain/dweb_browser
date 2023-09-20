@@ -38,10 +38,6 @@ class DesktopActivity : BaseThemeActivity() {
     val (desktopController, taskbarController) = bindController(intent.getStringExtra("deskSessionId"))
     /// 禁止自适应布局，执行后，可以将我们的内容嵌入到状态栏和导航栏，但是会发现我们的界面呗状态栏和导航栏给覆盖了，这时候就需要systemUiController来改颜色
     WindowCompat.setDecorFitsSystemWindows(window, false)
-    /**
-     * 窗口管理器
-     */
-    val desktopWindowsManager = desktopController.desktopWindowsManager
     setContent {
       BackHandler {
         this@DesktopActivity.moveTaskToBack(true) // 将界面移动到后台，避免重新点击又跑SplashActivity

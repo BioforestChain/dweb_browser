@@ -29,10 +29,16 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.dweb_browser.window.core.WindowController
 
+@Composable
+internal actual fun WindowMenuPanel(
+  win: WindowController,
+) {
+  WindowMenuPanelByAlert(win)
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal actual fun WindowMenuPanel(
+internal fun WindowMenuPanelByRichTooltip(
   win: WindowController,
 ) {
   val winPadding = LocalWindowPadding.current

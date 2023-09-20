@@ -78,7 +78,7 @@ class DesktopController(
    * 窗口管理器
    */
   val desktopWindowsManager
-    get() = DesktopWindowsManager.getInstance(this.activity!!) { dwm ->
+    get() = DesktopWindowsManager.getOrPutInstance(this.activity!!) { dwm ->
 
       dwm.hasMaximizedWins.onChange { updateSignal.emit() }
 
