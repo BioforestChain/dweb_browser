@@ -135,20 +135,25 @@ class BrowserViewModel(
   }
 
   internal suspend fun createNewTab(search: String? = null, url: String? = null) {
-    val requestUrl = url
-      ?: if (search != null && Uri.parse(search).scheme?.isNotEmpty() == true) {
-        search
-      } else null
-
-    search?.let { dwebLinkSearch.value = it }
-
-    requestUrl?.let {
-      handleIntent(BrowserIntent.AddNewMainView(it))
-    } ?: withContext(mainAsyncExceptionHandler) {
-      if (uiState.browserViewList.isEmpty()) {
-        val item = getNewTabBrowserView()
-        uiState.browserViewList.add(item)
-        uiState.currentBrowserBaseView.value = item
+    // 先判断search是否不为空，然后在判断search是否是地址，
+    if (search?.startsWith("dweb:") == true || url?.startsWith("dweb:") == true) {
+      withContext(mainAsyncExceptionHandler) {
+        if (uiState.browserViewList.isEmpty()) {
+          val item = getNewTabBrowserView()
+          uiState.browserViewList.add(item)
+          uiState.currentBrowserBaseView.value = item
+        }
+        handleIntent(BrowserIntent.SearchWebView(search ?: url ?: ""))
+      }
+    } else if (search?.isUrlOrHost() == true || url?.isUrlOrHost() == true) {
+      handleIntent(BrowserIntent.AddNewMainView(search ?: url))
+    } else {
+      withContext(mainAsyncExceptionHandler) {
+        if (uiState.browserViewList.isEmpty()) {
+          val item = getNewTabBrowserView()
+          uiState.browserViewList.add(item)
+          uiState.currentBrowserBaseView.value = item
+        }
       }
     }
   }
@@ -227,11 +232,11 @@ class BrowserViewModel(
 
         is BrowserIntent.SearchWebView -> {
           uiState.showSearchEngine.targetState = false // 到搜索功能了，搜索引擎必须关闭
-          val loadingState = uiState.currentBrowserBaseView.value?.loadState ?: return@launch
-          loadingState.value = true
+          val loadingState = uiState.currentBrowserBaseView.value?.loadState
+          loadingState?.value = true
           if (action.url.startsWith("dweb:")) { // 负责拦截browser的dweb_deeplink
             browserNMM.nativeFetch(action.url)
-            loadingState.value = false
+            loadingState?.value = false
             return@launch
           } else {
             uiState.currentBrowserBaseView.value?.viewItem?.apply {
@@ -242,7 +247,7 @@ class BrowserViewModel(
                 } // 添加不同的 header 信息，会让WebView判定即使同一个url，也做新url处理
               )
             }
-            loadingState.value = false
+            loadingState?.value = false
           }
         }
 

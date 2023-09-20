@@ -15,7 +15,6 @@ import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.core.AndroidNativeMicroModule
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.help.bodyJson
-import org.dweb_browser.microservice.help.types.DWEB_DEEPLINK
 import org.dweb_browser.microservice.help.types.IMicroModuleManifest
 import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
@@ -56,7 +55,7 @@ inline fun <K, V> MutableMap<K, V>.getOrPutOrReplace(
 class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Management") {
   init {
     short_name = "JMM";
-    dweb_deeplinks = mutableListOf<DWEB_DEEPLINK>("dweb:install")
+    dweb_deeplinks = mutableListOf("dweb:install")
     categories =
       mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Hub_Service);
   }
@@ -85,19 +84,18 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
       val metadataUrl = queryMetadataUrl(request)
       val response = nativeFetch(metadataUrl)
       if (response.status == Status.OK) {
-        val jmmAppInstallManifest = response.bodyJson<JmmAppInstallManifest>()
-        val url = URL(metadataUrl)
-        // 根据 jmmMetadata 打开一个应用信息的界面，用户阅读界面信息后，可以点击"安装"
-        installJsMicroModule(jmmAppInstallManifest, ipc, url)
-        Response(Status.OK)
+        try {
+          val jmmAppInstallManifest = response.bodyJson<JmmAppInstallManifest>()
+          val url = URL(metadataUrl)
+          // 根据 jmmMetadata 打开一个应用信息的界面，用户阅读界面信息后，可以点击"安装"
+          installJsMicroModule(jmmAppInstallManifest, ipc, url)
+          Response(Status.OK)
+        } catch (e: Throwable) {
+          Response(Status.EXPECTATION_FAILED).body(e.stackTraceToString())
+        }
       } else {
         response // Response(Status.NO_CONTENT)
       }
-      /*if (request.header("Accept")?.contains("application/json") == true) {
-        Response(Status.OK).jsonBody(jmmAppInstallManifest.toJsonElement())
-      } else {
-        Response(Status.NO_CONTENT)
-      }*/
     }
     apiRouting = routes(
       // 安装
