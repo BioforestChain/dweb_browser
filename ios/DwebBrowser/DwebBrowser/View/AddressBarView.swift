@@ -187,8 +187,55 @@ struct AddressBar: View {
     }
 }
 
+struct AverageView: View{
+    @State var width = 200.0
+    var body: some View{
+        VStack{
+            HStack{
+                Spacer()
+                Rectangle()
+                    .frame(minWidth: 15,maxWidth: 30)
+                Spacer()
+                Rectangle()
+                
+                    .frame(minWidth: 15,maxWidth: 30)
+                Spacer()
+                Rectangle()
+                
+                    .frame(minWidth: 15,maxWidth: 30)
+                Spacer()
+                Group{
+                    Rectangle()
+                    
+                        .frame(minWidth: 15,maxWidth: 30)
+                    Spacer()
+                    Rectangle()
+                    
+                        .frame(minWidth: 15,maxWidth: 30)
+                    Spacer()
+                }
+            }
+            .frame(width: width,height: 50)
+            .background(.red
+            )
+            Button("change"){
+                if width + 60 > 400 {
+                    width = width + 100 - 400
+                }else{
+                    width += 60
+                }
+                
+            }
+                .offset(y: 100)
+        }
+    }
+}
+
 struct AddressBarHStack_Previews: PreviewProvider {
     static var previews: some View {
-        Text("")
+        ZStack{
+            AverageView()
+                
+        }
     }
 }

@@ -8,24 +8,21 @@
 import SwiftUI
 
 struct BiColorButton: View {
-    let size: CGSize
     let imageName: String
     let disabled: Bool
     let action: () -> Void
-    
+
     var body: some View {
-        Button(action: action) {
-            HStack {
-                Image(uiImage: .assetsImage(name: (imageName)))
+            Button(action: action) {
+                Image(uiImage: .assetsImage(name: imageName))
                     .renderingMode(.template)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .background(Color.bkColor)
                     .foregroundColor(disabled ? Color.gray : Color.ToolbarColor)
-                    .frame(width: size.width, height: size.height)
+                    .frame(minWidth: toolItemMinWidth, maxWidth: 28, minHeight: toolItemMinWidth, maxHeight: 28)
             }
+            .disabled(disabled)
         }
-        .disabled(disabled)
-    }
-}
 
+}

@@ -87,3 +87,22 @@ extension View {
         modifier(sheetYOffsetModifier(isPresented: isPresented, sheetView: content()))
     }
 }
+
+struct MySheetView: View{
+    var body: some View{
+        ZStack {
+            VStack {
+                Text("this is sheet view")
+                Spacer()
+
+                HStack {
+                    Text("leading bottom")
+                    Spacer()
+                    Text("trealing bottom")
+                }
+            }
+        }
+        .background(.green)
+    }
+}
+

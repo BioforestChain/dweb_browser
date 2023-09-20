@@ -5,9 +5,9 @@
 //  Created by ui06 on 4/16/23.
 //
 
+import Combine
 import SwiftUI
 import UIKit
-import Combine
 
 struct ToolbarView: View {
     @EnvironmentObject var toolbarState: ToolBarState
@@ -17,21 +17,24 @@ struct ToolbarView: View {
     @EnvironmentObject var addressBar: AddressBarState
     @EnvironmentObject var webcacheStore: WebCacheStore
 
-    private let itemSize = CGSize(width: 28, height: 28)
-
     @State private var toolbarHeight: CGFloat = toolBarH
     @State private var isPresentingScanner = false
     @State private var showMoreSheet = false
     @State private var cancellables: Set<AnyCancellable> = []
 
+    @State private var wndWidth: CGFloat = .zero
+
     var body: some View {
-        ZStack{
+        ZStack {
             if toolbarState.shouldExpand {
                 fiveButtons
             } else {
                 threeButtons
             }
-        }.onAppear {
+        }
+        .background(.yellow)
+
+        .onAppear {
             selectedTab.$curIndex
                 .sink { newIndex in
                     print("Value changed: \(newIndex)")
@@ -44,134 +47,122 @@ struct ToolbarView: View {
             cancellables.removeAll()
         }
     }
-    
+
     var threeButtons: some View {
-        HStack(spacing: 5) {
+        GeometryReader{ geo in
+        HStack(alignment: .center) {
             Spacer()
-                .frame(width: 25)
-            
-            BiColorButton(size: itemSize, imageName: "add", disabled: false) {
+//                .frame(width: 25)
+
+            BiColorButton(imageName: "add", disabled: false) {
                 print("open new tab was clicked")
                 toolbarState.createTabTapped = true
             }
-            
+
             Spacer()
             Text("\(webcacheStore.cacheCount)个标签页")
-                .font(.system(size: 18, weight: .medium))
+//                .font(.system(size: 18, weight: .medium))
                 .foregroundColor(Color.ToolbarColor)
+                .font(.system(size: 10))
             Spacer()
-            
-            ToolbarItem(title: "完成") {
+
+            Button {
                 toolbarState.shouldExpand = true
+
+            } label: {
+                Text("完成")
+                    .foregroundColor(Color.dwebTint)
+                    .font(.system(size: 10))
+
+//                    .fontWeight(.semibold)
             }
-            .fontWeight(.semibold)
+
             Spacer()
-                .frame(width: 25)
+//                .frame(width: 25)
+        }
         }
         .frame(height: toolbarHeight)
         .background(Color.bkColor)
     }
-    
+
     var fiveButtons: some View {
-        HStack(spacing: 5) {
-            Group {
-                Spacer()
-                    .frame(width: 25)
-                BiColorButton(size: itemSize, imageName: "back", disabled: !toolbarState.canGoBack) {
-                    toolbarState.goBackTapped = true
-                }
-                
-                Spacer()
-                BiColorButton(size: itemSize, imageName: "forward", disabled: !toolbarState.canGoForward) {
-                    toolbarState.goForwardTapped = true
-                }
-                Spacer()
-                if webcacheStore.cache(at: selectedTab.curIndex).shouldShowWeb {
-                    BiColorButton(size: itemSize, imageName: "scan", disabled: false) {
-                        print("scan qrcode")
-                        isPresentingScanner = true
+        ZStack {
+            GeometryReader { geo in
+                HStack(alignment: .center) {
+                    Spacer()
+                    BiColorButton(imageName: "back", disabled: !toolbarState.canGoBack) {
+                        toolbarState.goBackTapped = true
                     }
-                } else {
-                    BiColorButton(size: itemSize, imageName: "add", disabled: false) {
-                        print("open new tab was clicked")
-                        toolbarState.createTabTapped = true
+                    Spacer()
+                    BiColorButton(imageName: "forward", disabled: !toolbarState.canGoForward) {
+                        toolbarState.goForwardTapped = true
+                    }
+                    Spacer()
+                    if webcacheStore.cache(at: selectedTab.curIndex).shouldShowWeb {
+                        BiColorButton(imageName: "scan", disabled: false) {
+                            print("scan qrcode")
+                            isPresentingScanner = true
+                        }
+                    } else {
+                        BiColorButton(imageName: "add", disabled: false) {
+                            print("open new tab was clicked")
+                            toolbarState.createTabTapped = true
+                        }
+                    }
+                    Spacer()
+                    Group {
+                        BiColorButton(imageName: "shift", disabled: false) {
+                            print("shift tab was clicked")
+                            toolbarState.shouldExpand = false
+                        }
+                        Spacer()
+                        BiColorButton(imageName: "more", disabled: false) {
+                            withAnimation {
+                                showMoreSheet = true
+                            }
+                            printWithDate("more menu was clicked")
+                        }
+                        Spacer()
                     }
                 }
-            }
-            Group {
-                Spacer()
-                BiColorButton(size: itemSize, imageName: "shift", disabled: false) {
-                    print("shift tab was clicked")
-                    toolbarState.shouldExpand = false
-                }
-                Spacer()
-                
-                BiColorButton(size: itemSize, imageName: "more", disabled: false) {
+
+                .frame(height: geo.size.height)
+                .background(Color.bkColor)
+                .onReceive(addressBarState.$isFocused) { isFocused in
                     withAnimation {
-                        showMoreSheet = true
-                    }
-                    printWithDate("more menu was clicked")
-                }
-                
-                Spacer()
-                    .frame(width: 25)
-            }
-        }
-        .frame(height: toolbarHeight)
-        .background(Color.bkColor)
-        .onReceive(addressBarState.$isFocused) { isFocused in
-            withAnimation {
-                toolbarHeight = isFocused ? 0 : toolBarH
-            }
-        }
-        .clipped()
-        .sheet(isPresented: $isPresentingScanner) {
-            CodeScannerView(codeTypes: [.qr], showViewfinder: true) { response in
-                if case let .success(result) = response {
-                    // TODO: 扫描结果result.string
-                    print(result.string)
-                    isPresentingScanner = false
-                    addressBar.inputText = result.string
-                    let url = URL.createUrl(addressBar.inputText)
-                    DispatchQueue.main.async {
-                        openingLink.clickedLink = url
-                        addressBar.isFocused = false
+                        toolbarHeight = isFocused ? 0 : toolBarH
                     }
                 }
+                .clipped()
+                .sheet(isPresented: $isPresentingScanner) {
+                    CodeScannerView(codeTypes: [.qr], showViewfinder: true) { response in
+                        if case let .success(result) = response {
+                            // TODO: 扫描结果result.string
+                            print(result.string)
+                            isPresentingScanner = false
+                            addressBar.inputText = result.string
+                            let url = URL.createUrl(addressBar.inputText)
+                            DispatchQueue.main.async {
+                                openingLink.clickedLink = url
+                                addressBar.isFocused = false
+                            }
+                        }
+                    }
+                }
+
+                .sheet(isPresented: $showMoreSheet) {
+                    SheetSegmentView(isShowingWeb: webcacheStore.cache(at: selectedTab.curIndex).shouldShowWeb)
+                        .environmentObject(selectedTab)
+                        .environmentObject(openingLink)
+                        .presentationDetents([.medium, .large])
+                }
             }
-        }
-        
-        .sheet(isPresented: $showMoreSheet) {
-            SheetSegmentView(isShowingWeb: webcacheStore.cache(at: selectedTab.curIndex).shouldShowWeb)
-                .environmentObject(selectedTab)
-                .environmentObject(openingLink)
-                .presentationDetents([.medium, .large])
         }
     }
-    func tabIndexChanged(to index: Int){
+
+    func tabIndexChanged(to index: Int) {
         let currentWrapper = webcacheStore.webWrapper(at: index)
         toolbarState.canGoBack = currentWrapper.canGoBack
         toolbarState.canGoForward = currentWrapper.canGoForward
-    }
-}
-
-struct ToolbarItem: View {
-    var imageName: String?
-    var title: String?
-    var tapAction: () -> ()
-    var body: some View {
-        Button(action: {
-            tapAction()
-        }) {
-            if imageName != nil {
-                Image(systemName: imageName!)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(height: 25)
-            } else {
-                Text(title!)
-                    .foregroundColor(Color.dwebTint)
-            }
-        }
     }
 }
