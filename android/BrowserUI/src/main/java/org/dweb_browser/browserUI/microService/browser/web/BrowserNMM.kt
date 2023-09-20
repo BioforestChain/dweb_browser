@@ -46,9 +46,7 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
       }
 
     onActivity {
-      browserController.openBrowserWindow().also { win ->
-        win.focus()
-      }
+      browserController.openBrowserWindow()
     }
 
     apiRouting = routes(

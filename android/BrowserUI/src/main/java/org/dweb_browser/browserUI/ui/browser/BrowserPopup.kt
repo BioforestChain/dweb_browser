@@ -564,7 +564,7 @@ internal fun BrowserMultiPopupView(viewModel: BrowserViewModel) {
         .background(MaterialTheme.colorScheme.background)
     ) {
       if (Build.VERSION.SDK_INT > Build.VERSION_CODES.S_V2) {
-        viewModel.uiState.currentBrowserBaseView.value.bitmap?.let { bitmap ->
+        viewModel.uiState.currentBrowserBaseView.value?.bitmap?.let { bitmap ->
           Image(
             bitmap = bitmap,
             contentDescription = "BackGround",
@@ -625,7 +625,7 @@ internal fun BrowserMultiPopupView(viewModel: BrowserViewModel) {
             .padding(start = 8.dp, end = 8.dp)
             .size(28.dp)
             .align(CenterVertically)
-            .clickable { viewModel.handleIntent(BrowserIntent.AddNewMainView) },
+            .clickable { viewModel.handleIntent(BrowserIntent.AddNewMainView()) },
           tint = MaterialTheme.colorScheme.primary,
         )
         Text(

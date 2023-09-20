@@ -13,7 +13,6 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -23,7 +22,6 @@ import com.google.accompanist.web.WebViewState
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.dweb_browser.browserUI.database.DefaultAllWebEngine
@@ -56,7 +54,7 @@ import java.util.concurrent.atomic.AtomicInteger
 
 @OptIn(ExperimentalFoundationApi::class)
 data class BrowserUIState(
-  val currentBrowserBaseView: MutableState<BrowserWebView>,
+  val currentBrowserBaseView: MutableState<BrowserWebView?> = mutableStateOf(null),
   val browserViewList: MutableList<BrowserWebView> = mutableStateListOf(), // 多浏览器列表
   val pagerStateContent: MutableState<PagerState?> = mutableStateOf(null), // 用于表示展示内容
   val pagerStateNavigator: MutableState<PagerState?> = mutableStateOf(null), // 用于表示下面搜索框等内容
@@ -96,7 +94,7 @@ val LocalWebViewInitialScale = compositionLocalOf<Int> {
 sealed class BrowserIntent {
   data object ShowMainView : BrowserIntent()
   data object WebViewGoBack : BrowserIntent()
-  data object AddNewMainView : BrowserIntent()
+  class AddNewMainView(val url: String? = null) : BrowserIntent()
   class UpdateCurrentBaseView(val currentPage: Int) : BrowserIntent()
   class UpdateBottomViewState(val show: Boolean) : BrowserIntent()
   class UpdateMultiViewState(val show: Boolean, val index: Int? = null) : BrowserIntent()
@@ -118,27 +116,14 @@ class BrowserViewModel(
   private val browserServer: HttpDwebServer,
   val onOpenDweb: (MMID) -> Unit
 ) : ViewModel() {
-  val uiState: BrowserUIState
+  val uiState: BrowserUIState = BrowserUIState()
   val dwebLinkSearch: MutableState<String> = mutableStateOf("")
-  private val dwebLinkUrl: MutableState<String> = mutableStateOf("")
 
   companion object {
     private var webviewId_acc = AtomicInteger(1)
   }
 
   init {
-    val browserWebView = getNewTabBrowserView().also {
-      uiState = BrowserUIState(currentBrowserBaseView = mutableStateOf(it))
-    }
-    uiState.browserViewList.add(browserWebView)
-    viewModelScope.launch(ioAsyncExceptionHandler) {
-      snapshotFlow { dwebLinkUrl.value }.collect { url ->
-        if (url.isNotEmpty()) {
-          delay(100)
-          uiState.currentBrowserBaseView.value.viewItem.state.content = WebContent.Url(url)
-        }
-      }
-    }
     browserController.onCloseWindow {
       withContext(mainAsyncExceptionHandler) {
         uiState.browserViewList.forEach { webview ->
@@ -149,24 +134,22 @@ class BrowserViewModel(
     }
   }
 
-  internal fun setDwebLinkSearch(search: String) {
-    // 如果搜索内容含有schema，直接按照地址进行搜索
-    if (Uri.parse(search).scheme?.isNotEmpty() == true) {
-      dwebLinkUrl.value = search
-    } else {
-      dwebLinkSearch.value = search
-    }
-  }
+  internal suspend fun createNewTab(search: String? = null, url: String? = null) {
+    val requestUrl = url
+      ?: if (search != null && Uri.parse(search).scheme?.isNotEmpty() == true) {
+        search
+      } else null
 
-  internal fun setDwebLinkUrl(url: String) {
-    dwebLinkUrl.value = url
-  }
+    search?.let { dwebLinkSearch.value = it }
 
-  internal suspend fun addFirstTab() = withContext(mainAsyncExceptionHandler) {
-    if (uiState.browserViewList.isEmpty()) {
-      val item = getNewTabBrowserView()
-      uiState.currentBrowserBaseView.value = item
-      uiState.browserViewList.add(item)
+    requestUrl?.let {
+      handleIntent(BrowserIntent.AddNewMainView(it))
+    } ?: withContext(mainAsyncExceptionHandler) {
+      if (uiState.browserViewList.isEmpty()) {
+        val item = getNewTabBrowserView()
+        uiState.browserViewList.add(item)
+        uiState.currentBrowserBaseView.value = item
+      }
     }
   }
 
@@ -175,9 +158,8 @@ class BrowserViewModel(
       .query("api-base", browserServer.startResult.urlInfo.buildPublicUrl().toString())
 
   fun getNewTabBrowserView(url: String? = null): BrowserWebView {
-    val (viewItem, closeWatcher) = appendWebViewAsItem(
-      createDwebView()
-    )
+    val (viewItem, closeWatcher) = appendWebViewAsItem(createDwebView())
+    url?.let { viewItem.state.content = WebContent.Url(it) } // 初始化时，直接提供地址
     return BrowserWebView(
       viewItem = viewItem, closeWatcher = closeWatcher
     )
@@ -201,7 +183,7 @@ class BrowserViewModel(
         }
 
         is BrowserIntent.WebViewGoBack -> {
-          uiState.currentBrowserBaseView.value.viewItem.navigator.navigateBack()
+          uiState.currentBrowserBaseView.value?.viewItem?.navigator?.navigateBack()
         }
 
         is BrowserIntent.UpdateCurrentBaseView -> {
@@ -216,7 +198,7 @@ class BrowserViewModel(
 
         is BrowserIntent.UpdateMultiViewState -> {
           if (action.show) {
-            uiState.currentBrowserBaseView.value.controller.capture()
+            uiState.currentBrowserBaseView.value?.controller?.capture()
           }
           uiState.multiViewShow.targetState = action.show
           action.index?.let {
@@ -233,7 +215,7 @@ class BrowserViewModel(
 
         is BrowserIntent.AddNewMainView -> {
           withContext(mainAsyncExceptionHandler) {
-            val itemView = getNewTabBrowserView()
+            val itemView = getNewTabBrowserView(action.url)
             uiState.browserViewList.add(itemView)
             uiState.currentBrowserBaseView.value = itemView
 //            delay(100)
@@ -245,14 +227,14 @@ class BrowserViewModel(
 
         is BrowserIntent.SearchWebView -> {
           uiState.showSearchEngine.targetState = false // 到搜索功能了，搜索引擎必须关闭
-          val loadingState = uiState.currentBrowserBaseView.value.loadState
+          val loadingState = uiState.currentBrowserBaseView.value?.loadState ?: return@launch
           loadingState.value = true
           if (action.url.startsWith("dweb:")) { // 负责拦截browser的dweb_deeplink
             browserNMM.nativeFetch(action.url)
             loadingState.value = false
             return@launch
           } else {
-            uiState.currentBrowserBaseView.value.viewItem.apply {
+            uiState.currentBrowserBaseView.value?.viewItem?.apply {
               state.content = WebContent.Url(
                 url = action.url,
                 additionalHttpHeaders = hashMapOf<String, String>().also { map ->
@@ -296,7 +278,7 @@ class BrowserViewModel(
         }
 
         is BrowserIntent.SaveBookWebSiteInfo -> {
-          uiState.currentBrowserBaseView.value.let {
+          uiState.currentBrowserBaseView.value?.let {
             val url = it.viewItem.state.lastLoadedUrl ?: ""
             if (url.isEmpty() || url.isSystemUrl()) {
               handleIntent(BrowserIntent.ShowSnackbarMessage("无效书签页"))
@@ -315,7 +297,7 @@ class BrowserViewModel(
         }
 
         is BrowserIntent.ShareWebSiteInfo -> {
-          uiState.currentBrowserBaseView.value.let {
+          uiState.currentBrowserBaseView.value?.let {
             if (it.viewItem.state.lastLoadedUrl?.isSystemUrl() == true) {
               handleIntent(BrowserIntent.ShowSnackbarMessage("无效的分享"))
               return@let
@@ -374,15 +356,15 @@ class BrowserViewModel(
         val transport = resultMsg.obj;
         if (transport is WebView.WebViewTransport) {
           viewItem.coroutineScope.launch {
-            val dWebView = createDwebView()
-            transport.webView = dWebView;
+            val dwebView = createDwebView()
+            transport.webView = dwebView;
             resultMsg.sendToTarget();
 
             // 它是有内部链接的，所以等到它ok了再说
-            var mainUrl = dWebView.getUrlInMain()
+            var mainUrl = dwebView.getUrlInMain()
             if (mainUrl?.isEmpty() != true) {
-              dWebView.waitReady()
-              mainUrl = dWebView.getUrlInMain()
+              dwebView.waitReady()
+              mainUrl = dwebView.getUrlInMain()
             }
 
             /// 内部特殊行为，有时候，我们需要知道 isUserGesture 这个属性，所以需要借助 onCreateWindow 这个回调来实现
@@ -391,7 +373,7 @@ class BrowserViewModel(
               val consumeToken = mainUrl!!
               closeWatcherController.apply(isUserGesture).also {
                 withContext(mainAsyncExceptionHandler) {
-                  dWebView.destroy()
+                  dwebView.destroy()
                   closeWatcherController.resolveToken(consumeToken, it)
                 }
               }
@@ -399,7 +381,7 @@ class BrowserViewModel(
               /// 打开一个新窗口
               runBlockingCatching(Dispatchers.Main) {
                 appendWebViewAsItem(
-                  dWebView
+                  dwebView
                 )
               }
             }
@@ -424,7 +406,7 @@ class BrowserViewModel(
    * 添加到桌面功能
    */
   suspend fun addUrlToDesktop() {
-    uiState.currentBrowserBaseView.value.viewItem.state.let { state ->
+    uiState.currentBrowserBaseView.value?.viewItem?.state?.let { state ->
       state.lastLoadedUrl?.let { url ->
         browserController.addUrlToDesktop(state.pageTitle ?: "无标题", url, state.pageIcon)
       }

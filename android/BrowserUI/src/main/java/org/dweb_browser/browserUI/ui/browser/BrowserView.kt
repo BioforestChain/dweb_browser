@@ -100,20 +100,20 @@ fun BrowserViewForWindow(
   ) {
     val bottomSheetModel = LocalModalBottomSheet.current
     BackHandler {
-      val watcher = viewModel.uiState.currentBrowserBaseView.value.closeWatcher;
+      val watcher = viewModel.uiState.currentBrowserBaseView.value?.closeWatcher;
       if (bottomSheetModel.state.value != SheetState.Hidden) {
         scope.launch {
           bottomSheetModel.hide()
         }
-      } else if (watcher.canClose) {
+      } else if (watcher?.canClose == true) {
         scope.launch {
           watcher.close()
         }
       } else {
-        val browserWebView = viewModel.uiState.currentBrowserBaseView.value
-        val navigator = browserWebView.viewItem.navigator
-        if (navigator.canGoBack) {
-          navigator.navigateBack()
+        viewModel.uiState.currentBrowserBaseView.value?.viewItem?.navigator?.let { navigator ->
+          if (navigator.canGoBack) {
+            navigator.navigateBack()
+          }
         }
       }
     }
@@ -223,7 +223,7 @@ private fun BrowserViewContent(viewModel: BrowserViewModel) {
 @Composable
 fun ColumnScope.MiniTitle(viewModel: BrowserViewModel) {
   val browserBaseView = viewModel.uiState.currentBrowserBaseView.value
-  val inputText = parseInputText(browserBaseView.viewItem.state.lastLoadedUrl ?: "")
+  val inputText = parseInputText(browserBaseView?.viewItem?.state?.lastLoadedUrl ?: "")
 
   Text(
     text = inputText, fontSize = 12.sp, modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -306,7 +306,7 @@ private fun BrowserViewNavigatorBar(viewModel: BrowserViewModel) {
       .fillMaxWidth()
       .height(dimenNavigationHeight)
   ) {
-    val navigator = viewModel.uiState.currentBrowserBaseView.value.viewItem.navigator
+    val navigator = viewModel.uiState.currentBrowserBaseView.value?.viewItem?.navigator ?: return
     // 屏蔽 goBack 和 goForward，功能转移到窗口的导航栏实现
     /*NavigatorButton(
       imageVector = Icons.Rounded.ArrowBack, // R.drawable.ic_main_back,
@@ -332,7 +332,7 @@ private fun BrowserViewNavigatorBar(viewModel: BrowserViewModel) {
       show = true
     ) {
       if (navigator.canGoBack) {
-        viewModel.handleIntent(BrowserIntent.AddNewMainView)
+        viewModel.handleIntent(BrowserIntent.AddNewMainView())
       } else {
         scope.launch { viewModel.uiState.qrCodeScanState.show() }
       }
@@ -496,7 +496,7 @@ fun BrowserSearchView(viewModel: BrowserViewModel) {
   var showSearchView by LocalShowSearchView.current
   if (showSearchView) {
     val inputText = viewModel.dwebLinkSearch.value.ifEmpty {
-      viewModel.uiState.currentBrowserBaseView.value.viewItem.state.lastLoadedUrl ?: ""
+      viewModel.uiState.currentBrowserBaseView.value?.viewItem?.state?.lastLoadedUrl ?: ""
     }
     val text = if (inputText.isSystemUrl() ||
       inputText == stringResource(id = R.string.browser_search_hint)

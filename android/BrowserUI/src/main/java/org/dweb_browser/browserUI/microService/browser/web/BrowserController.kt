@@ -44,9 +44,7 @@ class BrowserController(
   private var win: WindowController? = null
   suspend fun openBrowserWindow(search: String? = null, url: String? = null) =
     winLock.withLock<WindowController> {
-      search?.let { viewModel.setDwebLinkSearch(it) }
-      url?.let { viewModel.setDwebLinkUrl(it) }
-      viewModel.addFirstTab()
+      viewModel.createNewTab(search, url)
       if (win != null) {
         return win!!
       }
@@ -62,7 +60,9 @@ class BrowserController(
         it.mode = WindowMode.MAXIMIZE
         it.focus = true // 全屏和focus同时满足，才能显示浮窗而不是侧边栏
       })
-      newWin.state.closeTip = newWin.manager?.state?.viewController?.androidContext?.getString(R.string.browser_confirm_to_close) ?: ""
+      newWin.state.closeTip =
+        newWin.manager?.state?.viewController?.androidContext?.getString(R.string.browser_confirm_to_close)
+          ?: ""
       this.win = newWin
       val wid = newWin.id
       /// 提供渲染适配

@@ -15,17 +15,20 @@ fun BrowserController.Render(modifier: Modifier, windowRenderScope: WindowRender
   val win = LocalWindowController.current
   val localCommonUrl = LocalCommonUrl.current
 
-  val viewModel = controller.viewModel
-  val viewItem = viewModel.uiState.currentBrowserBaseView.value.viewItem
-  key(viewItem) {
-    win.state.canGoBack = viewItem.navigator.canGoBack || localCommonUrl.value.isNotEmpty()
-    win.GoBackHandler {
-      if (localCommonUrl.value.isNotEmpty()) {
-        localCommonUrl.value = ""
-      } else {
-        viewItem.navigator.navigateBack()
+  controller.viewModel.uiState.currentBrowserBaseView.value?.viewItem?.let { viewItem ->
+    key(viewItem) {
+      win.state.canGoBack = viewItem.navigator.canGoBack || localCommonUrl.value.isNotEmpty()
+      win.GoBackHandler {
+        if (localCommonUrl.value.isNotEmpty()) {
+          localCommonUrl.value = ""
+        } else {
+          viewItem.navigator.navigateBack()
+        }
       }
     }
   }
-  Box(modifier = modifier) { BrowserViewForWindow(viewModel, modifier, windowRenderScope) }
+
+  Box(modifier = modifier) {
+    BrowserViewForWindow(controller.viewModel, modifier, windowRenderScope)
+  }
 }

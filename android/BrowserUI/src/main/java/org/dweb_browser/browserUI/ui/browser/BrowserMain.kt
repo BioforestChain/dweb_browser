@@ -51,7 +51,7 @@ internal fun BrowserMainView(viewModel: BrowserViewModel, browserMainView: Brows
     controller = browserMainView.controller,
     onCaptured = { imageBitmap, _ ->
       imageBitmap?.let { bitmap ->
-        viewModel.uiState.currentBrowserBaseView.value.bitmap = bitmap
+        viewModel.uiState.currentBrowserBaseView.value?.bitmap = bitmap
       }
     }) {
     HomePage(viewModel) // 暂时屏蔽下面的内容，直接显示空白主页
