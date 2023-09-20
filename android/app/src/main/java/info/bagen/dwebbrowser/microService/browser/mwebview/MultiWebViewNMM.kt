@@ -103,11 +103,12 @@ class MultiWebViewNMM :
     apiRouting = null
   }
 
+  private val openLock = Mutex()
   private suspend fun openDwebView(
     url: String,
     remoteMm: MicroModule,
     ipc: Ipc,
-  ): Pair<ViewItem, MultiWebViewController> {
+  ) = openLock.withLock(remoteMm.mmid) {
     val remoteMmid = remoteMm.mmid
     debugMultiWebView("/open", "remote-mmid: $remoteMmid / url:$url")
 
@@ -152,8 +153,6 @@ class MultiWebViewNMM :
             state.iconUrl = iconResource.src
             state.iconMaskable = iconResource.purpose.contains(ImageResourcePurposes.Maskable)
             state.iconMonochrome = iconResource.purpose.contains(ImageResourcePurposes.Monochrome)
-          } else {
-
           }
         }
       )
@@ -177,7 +176,7 @@ class MultiWebViewNMM :
       }
     }
 
-    return Pair(controller.openWebView(url), controller)
+    Pair(controller.openWebView(url), controller)
   }
 
   private suspend fun closeDwebView(remoteMmid: String, webviewId: String): Boolean {
