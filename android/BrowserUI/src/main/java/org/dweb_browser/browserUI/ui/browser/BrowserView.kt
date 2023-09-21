@@ -321,7 +321,7 @@ private fun BrowserViewNavigatorBar(viewModel: BrowserViewModel) {
     NavigatorButton(
       imageVector = Icons.Rounded.AddHome,
       resName = R.string.browser_nav_addhome,
-      show = navigator.canGoBack
+      show = viewModel.uiState.currentBrowserBaseView.value?.viewItem?.state?.lastLoadedUrl != null
     ) {
       scope.launch { viewModel.addUrlToDesktop() }
     }
