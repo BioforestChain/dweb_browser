@@ -136,6 +136,7 @@ class BrowserViewModel(
 
   internal suspend fun createNewTab(search: String? = null, url: String? = null) {
     // 先判断search是否不为空，然后在判断search是否是地址，
+    dwebLinkSearch.value = "" // 先清空搜索的内容
     if (search?.startsWith("dweb:") == true || url?.startsWith("dweb:") == true) {
       withContext(mainAsyncExceptionHandler) {
         if (uiState.browserViewList.isEmpty()) {
