@@ -12,11 +12,9 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonNull
-import kotlinx.serialization.json.JsonPrimitive
 import org.dweb_browser.helper.ChangeState
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.PromiseOut
-import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.helper.toJsonElement
@@ -33,6 +31,7 @@ import org.dweb_browser.microservice.http.PureRequest
 import org.dweb_browser.microservice.http.PureResponse
 import org.dweb_browser.microservice.http.PureStringBody
 import org.dweb_browser.microservice.http.bind
+import org.dweb_browser.microservice.http.bindDwebDeeplink
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
 import org.dweb_browser.microservice.ipc.helper.IpcMethod
 import org.dweb_browser.microservice.ipc.helper.ReadableStream
@@ -42,8 +41,7 @@ fun debugDNS(tag: String, msg: Any = "", err: Throwable? = null) =
 
 class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
   init {
-
-    dweb_deeplinks = mutableListOf("dweb:open")
+    dweb_deeplinks = mutableListOf("dweb://open")
     short_name = "DNS";
     categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Routing_Service);
   }
@@ -194,15 +192,13 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     }.removeWhen(this.onAfterShutdown)
     /** dwebDeepLink 适配器*/
     nativeFetchAdaptersManager.append { fromMM, request ->
-      if (request.safeUrl.protocol.name == "dweb") {
+      if (request.href.startsWith("dweb:")) {
         debugFetch("DPLink/nativeFetch", "$fromMM => ${request.href}")
-        val dwebDeeplinkUri = Url(request.href.replace(Regex("^dweb:/+"), "dweb:"))
-        val requestWithDeeplink = request.copy(href = dwebDeeplinkUri)
         for (microModule in installApps) {
           for (deeplink in microModule.value.dweb_deeplinks) {
             if (request.href.startsWith(deeplink)) {
-              val (fromIpc) = connectTo(fromMM, microModule.key, requestWithDeeplink)
-              return@append fromIpc.request(requestWithDeeplink)
+              val (fromIpc) = connectTo(fromMM, microModule.key, request)
+              return@append fromIpc.request(request)
             }
           }
         }
@@ -214,16 +210,17 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     }.removeWhen(this.onAfterShutdown)
 
     val queryAppId = PureRequest.queryOrFail("app_id")
-
+    val openApp = defineBooleanResponse {
+      val mmid = request.queryAppId()
+      debugDNS("open/$mmid", request.url.fullPath)
+      open(mmid)
+      true
+    }
     /// 定义路由功能
     routes(
+      "open" bindDwebDeeplink openApp,
       // 打开应用
-      "/open" bind HttpMethod.Get to defineBooleanResponse {
-        val mmid = request.queryAppId()
-        debugDNS("open/$mmid", request.url.fullPath)
-        open(mmid)
-        true
-      },
+      "/open" bind HttpMethod.Get to openApp,
       // 关闭应用
       // TODO 能否关闭一个应该应该由应用自己决定
       "/close" bind HttpMethod.Get to defineBooleanResponse {

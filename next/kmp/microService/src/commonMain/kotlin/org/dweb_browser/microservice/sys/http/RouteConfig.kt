@@ -15,13 +15,16 @@ data class RouteConfig(
   private fun dwebDeeplinkMatcher(request: PureRequest) =
     if (dwebDeeplink) request.href.startsWith("dweb:") else true
 
-  private fun pathnameMatcher(request: PureRequest) =
-    ((if (dwebDeeplink) "/" else "") + pathname).let { pathname ->
-      when (matchMode) {
-        MatchMode.PREFIX -> request.url.encodedPath.startsWith(pathname)
-        MatchMode.FULL -> request.url.encodedPath == pathname
-      }
+  private fun pathnameMatcher(request: PureRequest) = if (dwebDeeplink) {
+    request.href.substring("dweb://".length)
+  } else {
+    request.url.encodedPath
+  }.let { target ->
+    when (matchMode) {
+      MatchMode.PREFIX -> target.startsWith(pathname)
+      MatchMode.FULL -> target == pathname
     }
+  }
 
   fun isMatch(request: PureRequest): Boolean {
     return methodMatcher(request)

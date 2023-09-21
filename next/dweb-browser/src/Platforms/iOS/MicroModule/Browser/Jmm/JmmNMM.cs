@@ -35,7 +35,7 @@ public class JmmNMM : NativeMicroModule
 
     }
 
-    public override List<Dweb_DeepLink> Dweb_deeplinks { get; init; } = new() { "dweb:install" };
+    public override List<Dweb_DeepLink> Dweb_deeplinks { get; init; } = new() { "dweb://install" };
     public override List<MicroModuleCategory> Categories { get; init; } = new()
     {
         MicroModuleCategory.Service,

@@ -47,7 +47,7 @@ data class RoutingHttpHandler(val routeConfig: RouteConfig, val handler: HttpHan
 
 
 class PathMethod(private val path: String, private val method: HttpMethod) {
-  infix fun to(action: HttpHandler): RoutingHttpHandler = RoutingHttpHandler(
+  infix fun to(action: HttpHandler) = RoutingHttpHandler(
     RouteConfig(pathname = path, method = IpcMethod.from(method)), action
   )
 }

@@ -10,7 +10,7 @@ public class ManifestTest
 		var manifest = new MicroModuleManifest(
 			"test.sys.dweb",
 			new IpcSupportProtocols { Cbor = true, Raw = false, Protobuf = true },
-			new List<string> { "dweb:open" },
+			new List<string> { "dweb://open" },
 			new List<MicroModuleCategory> { MicroModuleCategory.Application, MicroModuleCategory.Books },
 			"test app",
 			"1.0.1",

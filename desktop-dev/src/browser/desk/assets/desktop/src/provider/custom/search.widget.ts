@@ -6,7 +6,7 @@ const css = String.raw;
 export const searchWidget = {
   appId: `browser.dweb`,
   widgetName: "search",
-  templateHtml: html`<form action="dweb:search" method="get" part="form">
+  templateHtml: html`<form action="dweb://search" method="get" part="form">
     <input name="q" part="input glass ani" />
     <button type="submit" part="btn btn-primary">
       <span class="icon"> ${search_svg_raw} </span>

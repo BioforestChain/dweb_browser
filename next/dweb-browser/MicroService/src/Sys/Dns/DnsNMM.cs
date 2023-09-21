@@ -10,7 +10,7 @@ public class DnsNMM : NativeMicroModule
 
     // 正在运行的应用
     private Dictionary<Mmid, PromiseOut<MicroModule>> _runningApps = new();
-    public override List<Dweb_DeepLink> Dweb_deeplinks { get; init; } = new() { "dweb:open" };
+    public override List<Dweb_DeepLink> Dweb_deeplinks { get; init; } = new() { "dweb://open" };
     public override List<MicroModuleCategory> Categories { get; init; } = new()
     {
         MicroModuleCategory.Service,

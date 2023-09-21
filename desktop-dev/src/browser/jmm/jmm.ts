@@ -57,7 +57,7 @@ export class JmmNMM extends NativeMicroModule {
   mmid = "jmm.browser.dweb" as const;
   name = "Js MicroModule Management";
   override short_name = "JMM";
-  override dweb_deeplinks = ["dweb:install"] as $DWEB_DEEPLINK[];
+  override dweb_deeplinks = ["dweb://install"] as $DWEB_DEEPLINK[];
   override categories = [MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Hub_Service];
   downloadStatus: DOWNLOAD_STATUS = 0;
   jmmServer: JmmServer | undefined;
@@ -106,6 +106,11 @@ export class JmmNMM extends NativeMicroModule {
         }
         return Response.json(appInfo);
       })
+      .deeplink("install", async (event) => {
+        const { url } = query_url(event.searchParams);
+        /// 安装应用并打开
+        this.jmmServer?.show(url);
+      })
       .get("/install", async (event) => {
         const { metadataUrl } = query_metadataUrl(event.searchParams);
         const res = Response.json(this.jmmServer?.show(metadataUrl));
@@ -124,11 +129,6 @@ export class JmmNMM extends NativeMicroModule {
       })
       .get("/cancel", async (event) => {
         return Response.json(await this.cancelInstall());
-      })
-      .deeplink("install", async (event) => {
-        const { url } = query_url(event.searchParams);
-        /// 安装应用并打开
-        this.jmmServer?.show(url);
       });
     this.onFetch(onFetchMatcher.run).internalServerError();
   }

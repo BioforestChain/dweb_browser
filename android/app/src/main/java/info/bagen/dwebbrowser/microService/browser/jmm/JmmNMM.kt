@@ -61,7 +61,7 @@ inline fun <K, V> MutableMap<K, V>.getOrPutOrReplace(
 class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Management") {
   init {
     short_name = "JMM";
-    dweb_deeplinks = listOf("dweb:install")
+    dweb_deeplinks = listOf("dweb://install")
     categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Hub_Service);
     icons = listOf(
       ImageResource(
