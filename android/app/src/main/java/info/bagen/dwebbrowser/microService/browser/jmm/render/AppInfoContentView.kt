@@ -27,12 +27,12 @@ internal fun AppInfoContentView(
     modifier = Modifier
       .fillMaxSize()
       .background(MaterialTheme.colorScheme.background)
-      .padding(top = TopBarHeight)
+      //.padding(top = TopBarHeight)
   ) {
     // 头部内容， HeadHeight 128.dp
     item { AppInfoHeadView(jmmAppInstallManifest) }
     // 应用信息， 88.dp
-    item {
+    /*item {
       Column(
         modifier = Modifier
           .fillMaxWidth()
@@ -41,7 +41,7 @@ internal fun AppInfoContentView(
       ) {
         AppInfoLazyRow(jmmAppInstallManifest)
       }
-    }
+    }*/
     // 上面padding 16.dp
     item {
       Column(

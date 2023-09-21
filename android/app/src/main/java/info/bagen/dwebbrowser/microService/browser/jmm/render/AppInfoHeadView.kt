@@ -97,12 +97,13 @@ internal fun AppInfoHeadView(jmmAppInstallManifest: JmmAppInstallManifest) {
 
       Spacer(modifier = Modifier.height(8.dp))
 
-      Text(
+      Text(text = "版本 ${jmmAppInstallManifest.version}", fontSize = 12.sp)
+      /*Text(
         text = buildAnnotatedString {
           append("人工复检 · ")
           withStyle(style = SpanStyle(color = Color.Green)) { append("无广告") }
         }, fontSize = 12.sp
-      )
+      )*/
     }
   }
 }

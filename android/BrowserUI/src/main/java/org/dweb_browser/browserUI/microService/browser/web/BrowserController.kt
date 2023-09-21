@@ -22,6 +22,7 @@ import org.dweb_browser.window.core.WindowState
 import org.dweb_browser.window.core.constant.WindowConstants
 import org.dweb_browser.window.core.constant.WindowMode
 import org.dweb_browser.window.core.createWindowAdapterManager
+import org.dweb_browser.window.core.helper.setIconFromManifest
 
 class BrowserController(
   private val browserNMM: BrowserNMM, private val browserServer: HttpDwebServer
@@ -58,9 +59,10 @@ class BrowserController(
           provider = browserNMM.mmid,
           microModule = browserNMM
         )
-      ).also {
-        it.mode = WindowMode.MAXIMIZE
-        it.focus = true // 全屏和focus同时满足，才能显示浮窗而不是侧边栏
+      ).also { state ->
+        state.mode = WindowMode.MAXIMIZE
+        state.focus = true // 全屏和focus同时满足，才能显示浮窗而不是侧边栏
+        state.setIconFromManifest(browserNMM)
       })
       newWin.state.closeTip =
         newWin.manager?.state?.viewController?.androidContext?.getString(R.string.browser_confirm_to_close)
