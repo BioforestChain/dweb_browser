@@ -2,10 +2,10 @@ package info.bagen.dwebbrowser.microService.sys.biometrics
 
 import android.content.Intent
 import info.bagen.dwebbrowser.App
-import org.dweb_browser.microservice.core.AndroidNativeMicroModule
 import info.bagen.dwebbrowser.microService.sys.biometrics.BiometricsActivity.Companion.biometrics_promise_out
 import info.bagen.dwebbrowser.microService.sys.biometrics.BiometricsController.Companion.biometricsController
 import org.dweb_browser.helper.printDebug
+import org.dweb_browser.microservice.core.AndroidNativeMicroModule
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.help.cors
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
@@ -25,7 +25,7 @@ class BiometricsNMM : AndroidNativeMicroModule("biometrics.sys.dweb", "biometric
 
   init {
     categories =
-      mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Machine_Learning_Service);
+      listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Machine_Learning_Service);
   }
 
   val queryType = Query.string().defaulted("type", "")

@@ -15,8 +15,7 @@ import org.http4k.routing.routes
 class ToastNMM : NativeMicroModule("toast.sys.dweb", "toast") {
 
   init {
-    categories =
-      mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service);
+    categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service);
   }
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {

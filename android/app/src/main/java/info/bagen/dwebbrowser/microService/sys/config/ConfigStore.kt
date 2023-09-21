@@ -7,7 +7,7 @@ import org.dweb_browser.browserUI.util.saveString
 object ConfigStore {
   const val Config = "config"
   fun get(key: String): String {
-    return App.appContext.getString(key,"")
+    return App.appContext.getString(key, "")
   }
 
   fun set(key: String, data: String) {

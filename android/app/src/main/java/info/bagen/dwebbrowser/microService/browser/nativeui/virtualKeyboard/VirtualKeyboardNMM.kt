@@ -19,8 +19,7 @@ class VirtualKeyboardNMM :
   NativeMicroModule("virtual-keyboard.nativeui.browser.dweb", "virtualKeyBoard") {
 
   init {
-    categories =
-      mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service);
+    categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service);
   }
 
   private fun getController(mmid: MMID) =

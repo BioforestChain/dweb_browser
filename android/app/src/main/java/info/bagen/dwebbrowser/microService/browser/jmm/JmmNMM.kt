@@ -11,6 +11,7 @@ import org.dweb_browser.browserUI.download.isGreaterThan
 import org.dweb_browser.browserUI.microService.browser.link.WebLinkMicroModule
 import org.dweb_browser.browserUI.util.BrowserUIApp
 import org.dweb_browser.browserUI.util.FilesUtil
+import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.core.AndroidNativeMicroModule
 import org.dweb_browser.microservice.core.BootstrapContext
@@ -55,9 +56,13 @@ inline fun <K, V> MutableMap<K, V>.getOrPutOrReplace(
 class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Management") {
   init {
     short_name = "JMM";
-    dweb_deeplinks = mutableListOf("dweb:install")
-    categories =
-      mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Hub_Service);
+    dweb_deeplinks = listOf("dweb:install")
+    categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Hub_Service);
+    icons = listOf(
+      ImageResource(
+        src = "file:///sys/icons/$mmid.svg", type = "image/svg+xml", purpose = "monochrome"
+      )
+    )
   }
 
   enum class EIpcEvent(val event: String) {
@@ -116,8 +121,7 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
       "/detailApp" bind Method.GET to defineBooleanResponse {
         val mmid = queryMmid(request)
         debugJMM("detailApp", mmid)
-        val microModule =
-          bootstrapContext.dns.query(mmid)
+        val microModule = bootstrapContext.dns.query(mmid)
 
         // TODO: 系统原生应用如WebBrowser的详情页展示？
         if (microModule is JsMicroModule) {
@@ -199,8 +203,7 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
     if (!jmmAppInstallManifest.bundle_url.startsWith("http")) {
       url?.let {
         jmmAppInstallManifest.bundle_url = URL(
-          it,
-          jmmAppInstallManifest.bundle_url
+          it, jmmAppInstallManifest.bundle_url
         ).toString()
       }
     }

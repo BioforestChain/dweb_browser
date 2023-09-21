@@ -28,8 +28,7 @@ fun debugClipboard(tag: String, msg: Any? = "", err: Throwable? = null) =
 class ClipboardNMM : NativeMicroModule("clipboard.sys.dweb", "clipboard") {
 
   init {
-    categories =
-      mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Process_Service);
+    categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Process_Service);
   }
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {

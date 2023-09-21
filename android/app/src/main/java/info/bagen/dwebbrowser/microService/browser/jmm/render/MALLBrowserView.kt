@@ -18,7 +18,6 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Density
 import info.bagen.dwebbrowser.App
-import info.bagen.dwebbrowser.microService.browser.jmm.ui.JmmIntent
 import info.bagen.dwebbrowser.microService.browser.jmm.ui.LocalJmmViewHelper
 import kotlinx.coroutines.launch
 

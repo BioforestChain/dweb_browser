@@ -17,8 +17,7 @@ fun debugLocation(tag: String, msg: Any? = "", err: Throwable? = null) =
 class LocationNMM : NativeMicroModule("location.sys.dweb", "location") {
 
   init {
-    categories =
-      mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Process_Service);
+    categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Process_Service);
   }
 
   val locationInfo = LocationInfo()

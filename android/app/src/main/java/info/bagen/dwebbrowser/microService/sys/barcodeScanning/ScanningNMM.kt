@@ -21,8 +21,7 @@ fun debugScanning(tag: String, msg: Any? = "", err: Throwable? = null) =
 
 class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb", "Barcode Scanning") {
   init {
-    categories =
-      mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Utilities);
+    categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Utilities);
     short_name = "Scanning"
   }
 

@@ -41,6 +41,6 @@ class DeskAppMetaData private constructor(
 
 interface IDeskAppMetaData : IMicroModuleManifest {
   var running: Boolean
-  var winStates: MutableList<WindowState>
+  var winStates: List<WindowState>
 }
 

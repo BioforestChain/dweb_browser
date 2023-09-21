@@ -11,8 +11,7 @@ import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 
 class NativeUiNMM : NativeMicroModule("nativeui.browser.dweb", "nativeUi") {
   init {
-    categories =
-      mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service);
+    categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service);
   }
 
   private val navigationBarNMM = NavigationBarNMM()

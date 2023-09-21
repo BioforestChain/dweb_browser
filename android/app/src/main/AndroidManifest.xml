@@ -75,8 +75,7 @@
       android:launchMode="singleTask"
       android:screenOrientation="portrait"
       android:theme="@style/Theme.dwebbrowser"
-      tools:ignore="LockedOrientationActivity">
-    </activity>
+      tools:ignore="LockedOrientationActivity"></activity>
     <!--      android:windowSoftInputMode="adjustResize"-->
     <activity
       android:name=".microService.browser.desk.TaskbarActivity"
@@ -85,7 +84,7 @@
     <activity
       android:name=".microService.sys.deepLink.DeepLinkActivity"
       android:exported="true"
-      android:theme="@style/Theme.AppCompat.Transparent" >
+      android:theme="@style/Theme.AppCompat.Transparent">
 
       <intent-filter>
         <action android:name="android.intent.action.VIEW" />
@@ -101,9 +100,9 @@
         <category android:name="android.intent.category.DEFAULT" />
         <category android:name="android.intent.category.BROWSABLE" />
 
-        <data android:scheme="https"/>
-        <data android:host="docs.dweb-browser.org"/>
-        <data android:pathPrefix="/dweb:"/>
+        <data android:scheme="https" />
+        <data android:host="docs.dweb-browser.org" />
+        <data android:pathPrefix="/dweb:" />
       </intent-filter>
     </activity>
 

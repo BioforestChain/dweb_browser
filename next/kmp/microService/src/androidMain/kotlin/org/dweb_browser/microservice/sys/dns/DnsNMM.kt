@@ -41,8 +41,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
 
     dweb_deeplinks = mutableListOf("dweb:open")
     short_name = "DNS";
-    categories =
-      mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Routing_Service);
+    categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Routing_Service);
   }
 
   private val installApps = ChangeableMap<MMID, MicroModule>() // 已安装的应用

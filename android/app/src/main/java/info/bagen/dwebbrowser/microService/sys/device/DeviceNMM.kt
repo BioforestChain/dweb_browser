@@ -21,7 +21,7 @@ class DeviceNMM : NativeMicroModule("device.sys.dweb", "Device Info") {
   init {
     short_name = "Device";
     categories =
-      mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Device_Management_Service);
+      listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Device_Management_Service);
   }
 
   val deviceInfo = DeviceInfo()

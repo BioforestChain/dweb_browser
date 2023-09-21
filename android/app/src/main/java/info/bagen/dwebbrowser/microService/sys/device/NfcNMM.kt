@@ -13,7 +13,7 @@ class NfcNMM : NativeMicroModule("nfc.sys.dweb", "nfc") {
 
   init {
     categories =
-      mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Device_Management_Service);
+      listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Device_Management_Service);
   }
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {

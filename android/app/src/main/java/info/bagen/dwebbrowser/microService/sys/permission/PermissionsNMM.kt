@@ -20,8 +20,7 @@ fun debugPermission(tag: String, msg: Any? = "", err: Throwable? = null) =
 class PermissionsNMM : NativeMicroModule("permission.sys.dweb", "permission") {
 
   init {
-    categories =
-      mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Protocol_Service);
+    categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Protocol_Service);
   }
 
   /** 存储每个微应用的权限*/

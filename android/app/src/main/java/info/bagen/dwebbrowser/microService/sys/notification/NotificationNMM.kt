@@ -16,8 +16,7 @@ import org.http4k.routing.routes
 class NotificationNMM : NativeMicroModule("notification.sys.dweb", "notification") {
 
   init {
-    categories =
-      mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Protocol_Service);
+    categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Protocol_Service);
   }
 
   private val notifyManager = NotifyManager()

@@ -37,8 +37,7 @@ fun debugJsProcess(tag: String, msg: Any? = "", err: Throwable? = null) =
 
 class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
   init {
-    categories =
-      mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Process_Service);
+    categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Process_Service);
   }
 
   private val JS_PROCESS_WORKER_CODE by lazy {

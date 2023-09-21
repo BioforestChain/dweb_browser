@@ -54,19 +54,19 @@ class CommonAppManifest(p: PropMetas.PropValues = P.buildValues()) :
 
 interface ICommonAppManifest {
   var id: MMID
-  var dweb_deeplinks: MutableList<DWEB_DEEPLINK>
+  var dweb_deeplinks: List<DWEB_DEEPLINK>
   var dir: String?// 文本方向
   var lang: String?
   var name: String// 应用名称
   var short_name: String // 应用副标题
   var description: String?
-  var icons: MutableList<ImageResource>
-  var screenshots: MutableList<ImageResource>?
+  var icons: List<ImageResource>
+  var screenshots: List<ImageResource>?
   var display: DisplayMode?
   var orientation: String?
-  var categories: MutableList<MICRO_MODULE_CATEGORY>// 应用类型
+  var categories: List<MICRO_MODULE_CATEGORY>// 应用类型
   var theme_color: String?
   var background_color: String?
-  var shortcuts: MutableList<ShortcutItem>
+  var shortcuts: List<ShortcutItem>
   var version: String
 }

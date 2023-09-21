@@ -1,5 +1,5 @@
 /build
 /src/main/libs
 /src/main/jni
-/src/main/assets/
+/src/main/assets/browser
 *.jks

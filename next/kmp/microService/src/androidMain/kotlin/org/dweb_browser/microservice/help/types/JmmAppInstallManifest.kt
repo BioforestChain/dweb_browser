@@ -91,19 +91,19 @@ class JmmAppInstallManifest private constructor(
 /** Js模块应用安装使用的元数据 */
 internal interface IJmmAppInstallManifest : IJmmAppManifest {
   var logo: String
-  var images: MutableList<String>
+  var images: List<String>
   var bundle_url: String
   var bundle_hash: String
   var bundle_size: Long
   var bundle_signature: String
   var public_key_url: String
-  var author: MutableList<String>
+  var author: List<String>
   var home: String
   var change_log: String
   var release_date: String
-  var permissions: MutableList<String>
-  var plugins: MutableList<String>
-  var languages: MutableList<String>
+  var permissions: List<String>
+  var plugins: List<String>
+  var languages: List<String>
   fun toJmmAppManifest(): JmmAppManifest
 }
 

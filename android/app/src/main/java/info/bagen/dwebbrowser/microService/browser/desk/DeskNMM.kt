@@ -13,12 +13,10 @@ import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.readByteArray
-import org.dweb_browser.helper.readInt
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.cors
-import org.dweb_browser.microservice.help.types.CommonAppManifest
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.ipc.Ipc
@@ -49,16 +47,16 @@ fun debugDesk(tag: String, msg: Any? = "", err: Throwable? = null) =
 
 class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
   init {
-    categories = mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Desktop);
+    categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Desktop);
   }
 
   private val runningApps = ChangeableMap<MMID, Ipc>()
-  private suspend fun addRunningApp(mmid: MMID) :Ipc?{
+  private suspend fun addRunningApp(mmid: MMID): Ipc? {
     /// 如果成功打开，将它“追加”到列表中
     return when (val ipc = runningApps[mmid]) {
       null -> {
         val ipc = connect(mmid)
-        if(ipc.remote.categories.contains(MICRO_MODULE_CATEGORY.Application)){
+        if (ipc.remote.categories.contains(MICRO_MODULE_CATEGORY.Application)) {
           runningApps[mmid] = ipc
           /// 如果应用关闭，将它从列表中移除
           ipc.onClose {
@@ -67,6 +65,7 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
           ipc
         } else null
       }
+
       else -> ipc
     }
   }
@@ -74,7 +73,7 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
   companion object {
     data class DeskControllers(
       val desktopController: DesktopController, val taskbarController: TaskbarController
-    ){
+    ) {
       val activityPo = PromiseOut<Activity>()
     }
 
@@ -93,7 +92,7 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
 
   private suspend fun listenApps() = ioAsyncScope.launch {
     val (openedAppIpc) = bootstrapContext.dns.connect("dns.std.dweb")
-    suspend fun doObserve(urlPath: String,cb: suspend ChangeState<MMID>.()->Unit) {
+    suspend fun doObserve(urlPath: String, cb: suspend ChangeState<MMID>.() -> Unit) {
       val res = openedAppIpc.request(urlPath)
       val stream = res.body.stream
       var cache = ""
@@ -120,12 +119,12 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       }
     }
     launch {
-      doObserve("/observe/install-apps"){
+      doObserve("/observe/install-apps") {
         runningApps.emitChangeBackground(adds, updates, removes)
       }
     }
     launch {
-      doObserve("/observe/running-apps"){
+      doObserve("/observe/running-apps") {
         for (mmid in adds) {
           addRunningApp(mmid)
         }

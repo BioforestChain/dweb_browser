@@ -46,7 +46,7 @@ class App : Application() {
     }
 
     private val dnsNMMPo = PromiseOut<DnsNMM>()
-    fun startMicroModuleProcess() :DnsNMM{
+    fun startMicroModuleProcess(): DnsNMM {
       if (dnsNMMPo.isResolved) {
         runBlockingCatching {
           dnsNMMPo.value!!.bootstrap()

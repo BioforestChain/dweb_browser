@@ -18,8 +18,7 @@ class NavigationBarNMM :
   NativeMicroModule("navigation-bar.nativeui.browser.dweb", "navigationBar") {
 
   init {
-    categories =
-      mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service);
+    categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service);
   }
 
   private fun getController(mmid: MMID) =

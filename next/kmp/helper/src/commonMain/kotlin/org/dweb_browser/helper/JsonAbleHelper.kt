@@ -148,7 +148,7 @@ open class PropMetas<T : PropMetas.Constructor<T>>(
   class PropMeta<T : Any, V : Any?>(
     private val propMap: PropMetas<*>,
     val propName: String,
-    val initValue: V,
+    val initValue:  V,
     val nullable: Boolean,
     val serializer: KSerializer<T>
   ) {
@@ -244,18 +244,18 @@ open class PropMetas<T : PropMetas.Constructor<T>>(
   @OptIn(InternalSerializationApi::class)
   inline fun <reified T : Any> required(
     propName: String, initValue: T, serializer: KSerializer<T> = T::class.serializer()
-  ) = PropMeta(this, propName, initValue, false, serializer)
+  ) = PropMeta(this, propName, initValue , false, serializer)
 
   @OptIn(InternalSerializationApi::class)
   inline fun <reified T : Any> optional(
     propName: String, initValue: T? = null, serializer: KSerializer<T> = T::class.serializer()
-  ) = PropMeta(this, propName, initValue, true, serializer)
+  ) = PropMeta(this, propName, initValue , true, serializer)
 
 
   @OptIn(InternalSerializationApi::class)
   inline fun <reified T : Any> list(
     propName: String,
-    initValue: MutableList<T> = mutableListOf(),
+    initValue: List<T> = listOf() ,
     serializer: KSerializer<T> = T::class.serializer()
   ) = PropMeta(
     this, propName, initValue, false, ListSerializer(serializer)
@@ -264,7 +264,7 @@ open class PropMetas<T : PropMetas.Constructor<T>>(
   @OptIn(InternalSerializationApi::class)
   inline fun <reified T : Any> mutableListOptional(
     propName: String,
-    initValue: MutableList<T>? = null,
+    initValue: List<T>? = null,
     serializer: KSerializer<T> = T::class.serializer()
   ) = PropMeta(
     this, propName, initValue, true, ListSerializer(serializer)

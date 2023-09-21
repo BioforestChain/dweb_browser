@@ -38,8 +38,7 @@ fun debugHttp(tag: String, msg: Any = "", err: Throwable? = null) =
 class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
   init {
     short_name = "HTTP"
-    categories =
-      mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Protocol_Service)
+    categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Protocol_Service)
   }
 
   companion object {

@@ -17,8 +17,7 @@ import org.http4k.routing.routes
 class SafeAreaNMM : NativeMicroModule("safe-area.nativeui.browser.dweb", "safeArea") {
 
   init {
-    categories =
-      mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service);
+    categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service);
   }
 
   private fun getController(mmid: MMID) = NativeUiController.fromMultiWebView(mmid).safeArea

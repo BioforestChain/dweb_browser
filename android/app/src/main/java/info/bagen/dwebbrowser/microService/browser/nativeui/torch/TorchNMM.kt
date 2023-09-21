@@ -12,7 +12,7 @@ class TorchNMM : NativeMicroModule("torch.nativeui.browser.dweb", "torch") {
 
   init {
     categories =
-      mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Device_Management_Service);
+      listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Device_Management_Service);
   }
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {

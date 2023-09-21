@@ -16,7 +16,7 @@ class HapticsNMM : NativeMicroModule("haptics.sys.dweb", "haptics") {
 
   init {
     categories =
-      mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Device_Management_Service);
+      listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Device_Management_Service);
   }
 
   private val vibrateManage = VibrateManage()

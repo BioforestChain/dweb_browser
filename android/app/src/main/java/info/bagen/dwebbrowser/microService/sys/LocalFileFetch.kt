@@ -108,12 +108,21 @@ class LocalFileFetch private constructor() {
     }
   }
 
-  enum class PathType(val type:String, val dirName:String, val tag: String) {
-    SYS(type="/sys/", dirName = "", "LocalFetch > Assets"),
-    ICONS(type="/local_icons/", dirName = App.appContext.filesDir.absolutePath + "/icons", "LocalFetch > Tmp"),
-    OTHER(type="/"   , dirName = App.appContext.dataDir.absolutePath + File.separator + APP_DIR_TYPE.SystemApp.rootName, "LocalFetch > DataSrc"),
+  enum class PathType(val type: String, val dirName: String, val tag: String) {
+    SYS(type = "/sys/", dirName = "", "LocalFetch > Assets"),
+    ICONS(
+      type = "/local_icons/",
+      dirName = App.appContext.filesDir.absolutePath + "/icons",
+      "LocalFetch > Tmp"
+    ),
+    OTHER(
+      type = "/",
+      dirName = App.appContext.dataDir.absolutePath + File.separator + APP_DIR_TYPE.SystemApp.rootName,
+      "LocalFetch > DataSrc"
+    ),
     ;
   }
+
   private fun String.checkPathType() = if (startsWith(PathType.SYS.type)) {
     PathType.SYS
   } else if (startsWith(PathType.ICONS.type)) {
@@ -129,7 +138,7 @@ class LocalFileFetch private constructor() {
 
     lateinit var filePath: String
     val src = path.replaceFirst(pathType.type, "")
-    val filenameList = when(pathType) {
+    val filenameList = when (pathType) {
       PathType.SYS -> {
         // 读取assets的文件
         val dirname = src.lastIndexOf('/').let {
@@ -138,6 +147,7 @@ class LocalFileFetch private constructor() {
               filePath = src
               ""
             }
+
             else -> {
               filePath = src.substring(it + 1)
               src.substring(0..it)
@@ -147,15 +157,17 @@ class LocalFileFetch private constructor() {
         /// 尝试打开文件，如果打开失败就走 404 no found 响应
         App.appContext.assets.list(dirname) ?: emptyArray()
       }
+
       PathType.ICONS -> {
         // 读取tmp文件
         filePath = pathType.dirName + File.separator + src
         FilesUtil.traverseFileTree(pathType.dirName).toTypedArray()
       }
+
       else -> {
         // 读取应用内的文件
         filePath = pathType.dirName + "/${remote.mmid}/" + src
-        FilesUtil.traverseFileTree(pathType.dirName+ "/${remote.mmid}").toTypedArray()
+        FilesUtil.traverseFileTree(pathType.dirName + "/${remote.mmid}").toTypedArray()
       }
     }
     val tag = pathType.tag
@@ -177,6 +189,7 @@ class LocalFileFetch private constructor() {
               src, chunkSize = chunk, preReadableSize = if (preRead) chunk else 0, true
             )
           }
+
           else -> {
             ChunkAssetsFileStream(
               filePath, chunkSize = chunk, preReadableSize = if (preRead) chunk else 0, false

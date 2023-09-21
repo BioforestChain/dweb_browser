@@ -11,17 +11,17 @@ import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 
-class ConfigNMM: NativeMicroModule("config.sys.dweb", "Device Info")  {
+class ConfigNMM : NativeMicroModule("config.sys.dweb", "Device Info") {
   val queryLang = Query.string().required("lang")
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     apiRouting = routes(
-      "/setLang" bind Method.GET to defineHandler { request,ipc ->
+      "/setLang" bind Method.GET to defineHandler { request, ipc ->
         debugBrowser("ConfigNMM setLang", request.uri)
         val lang = queryLang(request)
-        ConfigStore.set("${ConfigStore.Config}.${ipc.remote.mmid}",lang)
+        ConfigStore.set("${ConfigStore.Config}.${ipc.remote.mmid}", lang)
         return@defineHandler true
       },
-      "/getLang" bind Method.GET to defineHandler { request,ipc ->
+      "/getLang" bind Method.GET to defineHandler { request, ipc ->
         debugBrowser("getLang", request.uri)
         val lang = ConfigStore.get("${ConfigStore.Config}.${ipc.remote.mmid}")
         return@defineHandler Response(Status.OK).body(lang)

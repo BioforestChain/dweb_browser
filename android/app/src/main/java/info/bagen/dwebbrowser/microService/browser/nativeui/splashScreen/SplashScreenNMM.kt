@@ -20,8 +20,7 @@ fun debugSplashScreen(tag: String, msg: Any? = "", err: Throwable? = null) =
 class SplashScreenNMM : NativeMicroModule("splash-screen.nativeui.browser.dweb", "splashScreen") {
 
   init {
-    categories =
-      mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service);
+    categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service);
   }
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {

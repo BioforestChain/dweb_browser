@@ -12,8 +12,8 @@ fun debugWebLink(tag: String, msg: Any? = "", err: Throwable? = null) =
 class WebLinkMicroModule(webLink: DeskWebLink) : AndroidNativeMicroModule(webLink.id, webLink.url) {
   init {
     short_name = webLink.title.substring(0, minOf(5, webLink.title.length))
-    categories = mutableListOf(MICRO_MODULE_CATEGORY.Application, MICRO_MODULE_CATEGORY.Web_Browser)
-    icons = mutableListOf(webLink.icon)
+    categories = listOf(MICRO_MODULE_CATEGORY.Application, MICRO_MODULE_CATEGORY.Web_Browser)
+    icons = listOf(webLink.icon)
   }
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {

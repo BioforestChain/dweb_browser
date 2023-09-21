@@ -8,7 +8,6 @@ import info.bagen.dwebbrowser.microService.browser.jsProcess.JsProcessNMM
 import info.bagen.dwebbrowser.microService.browser.mwebview.MultiWebViewNMM
 import info.bagen.dwebbrowser.microService.browser.nativeui.NativeUiNMM
 import info.bagen.dwebbrowser.microService.browser.nativeui.torch.TorchNMM
-import org.dweb_browser.browserUI.microService.browser.web.BrowserNMM
 import info.bagen.dwebbrowser.microService.sys.LocalFileFetch
 import info.bagen.dwebbrowser.microService.sys.biometrics.BiometricsNMM
 import info.bagen.dwebbrowser.microService.sys.clipboard.ClipboardNMM
@@ -23,6 +22,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.cache.HttpCache
 import io.ktor.client.plugins.cache.storage.FileStorage
+import org.dweb_browser.browserUI.microService.browser.web.BrowserNMM
 import org.dweb_browser.helper.addDebugTags
 import org.dweb_browser.microservice.sys.boot.BootNMM
 import org.dweb_browser.microservice.sys.dns.DnsNMM
@@ -63,7 +63,18 @@ suspend fun startDwebBrowser(): DnsNMM {
     )
 
     DEVELOPER.HuangLin, DEVELOPER.HLVirtual, DEVELOPER.HLOppo, DEVELOPER.HBXiaomi, DEVELOPER.ZGSansung -> addDebugTags(
-      listOf("fetch", "http", "mwebview", "fetch-file", "js-process", "browser", "desk", "JMM", "window", "dwebview")
+      listOf(
+        "fetch",
+        "http",
+        "mwebview",
+        "fetch-file",
+        "js-process",
+        "browser",
+        "desk",
+        "JMM",
+        "window",
+        "dwebview"
+      )
     )
 
     DEVELOPER.WaterBang -> addDebugTags(
@@ -88,7 +99,7 @@ suspend fun startDwebBrowser(): DnsNMM {
     )
 
     else -> addDebugTags(
-      listOf("desk","mwebview","fetch")
+      listOf("desk", "mwebview", "fetch")
     )
   }
 

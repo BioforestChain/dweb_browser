@@ -21,8 +21,7 @@ fun debugFileSystem(tag: String, msg: Any? = "", err: Throwable? = null) =
 class FileSystemNMM : NativeMicroModule("file.sys.dweb", "file") {
 
   init {
-    categories =
-      mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Protocol_Service);
+    categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Protocol_Service);
   }
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
