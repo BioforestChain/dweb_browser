@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SnapshotMutationPolicy
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,22 +49,24 @@ class ManagerState(
       watchKey: WindowManagerPropertyKeys? = null,
       watchKeys: Set<WindowManagerPropertyKeys>? = null,
       getter: ManagerState.() -> T,
-    ) = remember(key) {
-      mutableStateOf(getter.invoke(state), policy)
-    }.also { rememberState ->
-      DisposableEffect(state) {
-        val off = state.observable.onChange {
-          if ((if (watchKey != null) watchKey == it.key else true) && (if (watchKeys != null) watchKeys.contains(
-              it.key
-            ) else true) && filter?.invoke(it) != false
-          ) {
-            rememberState.value = getter.invoke(state)
-          }
+    ): State<T> = remember(key) {
+      val rememberState = mutableStateOf(getter.invoke(state), policy)
+      val off = state.observable.onChange {
+        if ((if (watchKey != null) watchKey == it.key else true) && (if (watchKeys != null) watchKeys.contains(
+            it.key
+          ) else true) && filter?.invoke(it) != false
+        ) {
+          rememberState.value = getter.invoke(state)
         }
+      }
+      Pair(rememberState, off)
+    }.let { (rememberState, off) ->
+      DisposableEffect(off) {
         onDispose {
           off()
         }
       }
+      rememberState
     }
 
     @Composable

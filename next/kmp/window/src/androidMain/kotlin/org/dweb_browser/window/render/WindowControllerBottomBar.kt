@@ -53,8 +53,8 @@ import androidx.compose.ui.zIndex
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.compose.AutoResizeTextContainer
 import org.dweb_browser.helper.compose.AutoSizeText
-import org.dweb_browser.window.R
 import org.dweb_browser.helper.compose.iosTween
+import org.dweb_browser.window.R
 import org.dweb_browser.window.core.WindowController
 import org.dweb_browser.window.core.constant.WindowBottomBarTheme
 import org.dweb_browser.window.core.constant.WindowPropertyKeys
@@ -260,7 +260,7 @@ internal fun WindowBottomNavigationThemeBar(
       .padding(bottom = (infoHeight / 2).dp, top = (infoHeight / 3).dp)
       //
     ) {
-      val canGoBack by win.watchedState { canGoBack }
+      val canGoBack by win.watchedState(watchKey = WindowPropertyKeys.CanGoBack) { canGoBack }
       /// 返回按钮
       BoxWithConstraints(
         modifier = Modifier

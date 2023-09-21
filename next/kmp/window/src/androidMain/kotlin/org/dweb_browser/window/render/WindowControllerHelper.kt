@@ -35,13 +35,13 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.android.WindowInsetsHelper
+import org.dweb_browser.helper.compose.noLocalProvidedFor
 import org.dweb_browser.helper.compose.theme.md_theme_dark_inverseOnSurface
 import org.dweb_browser.helper.compose.theme.md_theme_dark_onSurface
 import org.dweb_browser.helper.compose.theme.md_theme_dark_surface
 import org.dweb_browser.helper.compose.theme.md_theme_light_inverseOnSurface
 import org.dweb_browser.helper.compose.theme.md_theme_light_onSurface
 import org.dweb_browser.helper.compose.theme.md_theme_light_surface
-import org.dweb_browser.helper.compose.noLocalProvidedFor
 import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.dweb_browser.window.core.WindowBounds
 import org.dweb_browser.window.core.WindowController
@@ -70,23 +70,25 @@ fun <T> WindowController.watchedState(
   watchKey: WindowPropertyKeys? = null,
   watchKeys: Set<WindowPropertyKeys>? = null,
   getter: WindowState .() -> T,
-) = remember(key) {
-  mutableStateOf(getter.invoke(state), policy)
-}.also { rememberState ->
-  DisposableEffect(state) {
-    val off = state.observable.onChange {
-      if ((if (watchKey != null) watchKey == it.key else true) && (if (watchKeys != null) watchKeys.contains(
-          it.key
-        ) else true) && filter?.invoke(it) != false
-      ) {
-        rememberState.value = getter.invoke(state)
-      }
+): State<T> = remember(key) {
+  val rememberState = mutableStateOf(getter.invoke(state), policy);
+  val off = state.observable.onChange {
+    if ((if (watchKey != null) watchKey == it.key else true) && (if (watchKeys != null) watchKeys.contains(
+        it.key
+      ) else true) && filter?.invoke(it) != false
+    ) {
+      rememberState.value = getter.invoke(state)
     }
+  }
+  Pair(rememberState, off)
+}.let { (rememberState, off) ->
+  DisposableEffect(off) {
     onDispose {
       off()
     }
   }
-} as State<T>
+  rememberState
+}
 
 /**
  * 触发 window 聚焦状态的更新事件监听
