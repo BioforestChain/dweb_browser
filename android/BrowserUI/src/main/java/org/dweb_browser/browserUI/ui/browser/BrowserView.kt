@@ -145,7 +145,7 @@ fun BrowserViewForWindow(
         QRCodeScanView(
           qrCodeScanState = viewModel.uiState.qrCodeScanState,
           onDataCallback = { data ->
-            if (data.startsWith("http://") || data.startsWith("https://")) {
+            if (data.isUrlOrHost() || data.startsWith("dweb:")) {
               viewModel.handleIntent(BrowserIntent.SearchWebView(data))
             } else {
               viewModel.handleIntent(BrowserIntent.ShowSnackbarMessage("扫码结果：$data"))
