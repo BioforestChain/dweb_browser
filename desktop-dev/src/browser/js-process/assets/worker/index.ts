@@ -150,9 +150,9 @@ export class JsProcessMicroModule implements $MicroModule {
           ipc.onEvent((event) => {
             try {
               if (event.name === "web-message-port-live") {
-                console.warn(self.name, ipc.remote.mmid, "web-message-port living", event.text);
+                // console.warn(self.name, ipc.remote.mmid, "web-message-port living", event.text);
                 void navigator.locks.request(event.text, () => {
-                  console.warn(self.name, ipc.remote.mmid, "web-message-port ipc closed");
+                  // console.warn(self.name, ipc.remote.mmid, "web-message-port ipc closed");
                   ipc.close();
                 });
               }
@@ -160,11 +160,11 @@ export class JsProcessMicroModule implements $MicroModule {
               console.error("locks-2", e);
             }
           });
-          ipc.ready().then((readyEvent) => {
+          ipc.ready().then(() => {
             const liveId = "live-" + Date.now() + Math.random() + "-for-" + ipc.remote.mmid;
             try {
               void navigator.locks.request(liveId, () => {
-                console.warn(self.name, "web-message-port live start", liveId);
+                // console.warn(self.name, "web-message-port live start", liveId);
                 return new Promise(() => {}); /// 永远不释放
               });
               ipc.postMessage(IpcEvent.fromText("web-message-port-live", liveId));
@@ -179,7 +179,7 @@ export class JsProcessMicroModule implements $MicroModule {
         this.beConnect(ipc);
         /// 分发绑定的事件
         ipc.onRequest((ipcRequest, ipc) => this._onRequestSignal.emit(ipcRequest, ipc));
-        ipc.onEvent(async (ipcEvent, ipc) => {
+        ipc.onEvent((ipcEvent, ipc) => {
           if (ipcEvent.name === MWEBVIEW_LIFECYCLE_EVENT.Activity) {
             return this._activitySignal.emit(ipcEvent, ipc);
           }

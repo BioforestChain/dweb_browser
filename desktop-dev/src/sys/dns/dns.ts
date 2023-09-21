@@ -81,7 +81,8 @@ export class DnsNMM extends NativeMicroModule {
   override short_name = "DNS";
   override dweb_deeplinks = ["dweb:open"] as $DWEB_DEEPLINK[];
   override categories = [MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Routing_Service];
-  private apps = new ChangeableMap<$MMID, MicroModule>();
+  private installApps = new ChangeableMap<$MMID, MicroModule>();
+  readonly running_apps = new ChangeableMap<$MMID, Promise<MicroModule>>();
 
   override bootstrap(ctx: $BootstrapContext = new MyBootstrapContext(new MyDnsMicroModule(this, this))) {
     return super.bootstrap(ctx);
@@ -166,20 +167,33 @@ export class DnsNMM extends NativeMicroModule {
       })
       .get("/query", async (event) => {
         const { app_id } = query_appId(event.searchParams);
-        const app = this.query(app_id as $MMID)
-        if (!app)  return new Response(`not found app for ${app_id}`,{status:404})
+        const app = this.query(app_id as $MMID);
+        if (!app) return new Response(`not found app for ${app_id}`, { status: 404 });
         if (app instanceof JsMicroModule) {
           return Response.json(app.metadata.config);
         }
-        return  Response.json(app.toManifest());
+        return Response.json(app.toManifest());
       })
-      .get("/observe/app", async (event) => {
+      .get("/observe/install-apps", async (event) => {
         const responseBody = new ReadableStreamOut<Uint8Array>();
         const doWriteJsonline = async (state: changeState<string>) => {
           responseBody.controller.enqueue(simpleEncoder(JSON.stringify(state) + "\n", "utf8"));
         };
         /// 监听变更，推送数据
-        const off = this.apps.onChange((state) => doWriteJsonline(state));
+        const off = this.installApps.onChange((state) => doWriteJsonline(state));
+        event.ipc.onClose(() => {
+          off();
+          responseBody.controller.close();
+        });
+        return { body: responseBody.stream };
+      })
+      .get("/observe/running-apps", async (event) => {
+        const responseBody = new ReadableStreamOut<Uint8Array>();
+        const doWriteJsonline = async (state: changeState<string>) => {
+          responseBody.controller.enqueue(simpleEncoder(JSON.stringify(state) + "\n", "utf8"));
+        };
+        /// 监听变更，推送数据
+        const off = this.running_apps.onChange((state) => doWriteJsonline(state));
         event.ipc.onClose(() => {
           off();
           responseBody.controller.close();
@@ -262,7 +276,7 @@ export class DnsNMM extends NativeMicroModule {
   /** 执行 deeplink 指令 */
   private async postDeeplink(fromMM: MicroModule, deeplinkUrl: string) {
     /// 查询匹配deeplink的程序
-    for (const app of this.apps.values()) {
+    for (const app of this.installApps.values()) {
       if (undefined !== app.dweb_deeplinks.find((dl) => deeplinkUrl.startsWith(dl))) {
         const req = buildRequestX(deeplinkUrl);
         const [ipc] = await this[connectTo_symbol](fromMM, app.mmid, req);
@@ -281,28 +295,27 @@ export class DnsNMM extends NativeMicroModule {
 
   /** 安装应用 */
   install(mm: MicroModule) {
-    this.apps.set(mm.mmid, mm);
+    this.installApps.set(mm.mmid, mm);
   }
 
   /** 卸载应用 */
   uninstall(mmid: $MMID) {
-    return this.apps.delete(mmid);
+    return this.installApps.delete(mmid);
   }
 
   /** 查询应用 */
   query(mmid: $MMID) {
-    return this.apps.get(mmid);
+    return this.installApps.get(mmid);
   }
 
   *search(category: MICRO_MODULE_CATEGORY) {
-    for (const app of this.apps.values()) {
+    for (const app of this.installApps.values()) {
       if (app.categories.includes(category)) {
         yield app;
       }
     }
   }
 
-  readonly running_apps = new Map<$MMID, Promise<MicroModule>>();
   /** 打开应用 */
   async open(mmid: $MMID) {
     const app = await mapHelper.getOrPut(this.running_apps, mmid, async () => {

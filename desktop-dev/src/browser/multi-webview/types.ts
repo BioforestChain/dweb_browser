@@ -77,17 +77,15 @@ export type $ImpactLightStyle = "HEAVY" | "MEDIUM" | "LIGHT";
 export type $NotificationStyle = "SUCCESS" | "WARNING" | "ERROR";
 
 export interface $AllWebviewState {
-  [key: number]: $WebViewState;
+  wid: string;
+  views: { [key: string]: $WebViewState };
 }
 
 export interface $WebViewState {
-  // statusBarState: $BarState;
-  // navigationBarState: $BarState;
-  // safeAreaState: $SafeAreaState;
-  webviewId: number;
+  webviewId: string;
   mmid:string;
   isActivated: boolean;
-  src: string;
+  index:number
 }
 export const enum MWEBVIEW_OBSERVE {
   State = "observe",

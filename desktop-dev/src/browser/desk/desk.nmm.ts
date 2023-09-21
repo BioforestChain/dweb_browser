@@ -20,6 +20,21 @@ export class DeskNMM extends NativeMicroModule {
   override categories = [MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Desktop];
   readonly runingApps = new ChangeableMap<$MMID, Ipc>();
 
+  async addRunningApp(mmid: $MMID) {
+    let ipc = this.runingApps.get(mmid);
+    if (ipc) {
+      return ipc;
+    }
+    ipc = await this.connect(mmid);
+    if (ipc && ipc.remote.categories.includes(MICRO_MODULE_CATEGORY.Application)) {
+      this.runingApps.set(mmid, ipc);
+      ipc.onClose(() => {
+        this.runingApps.delete(mmid);
+      });
+      return ipc;
+    }
+  }
+
   protected async _bootstrap(context: $BootstrapContext) {
     // 当前激活的app
     let focusApp: string | null = null;
@@ -78,7 +93,7 @@ export class DeskNMM extends NativeMicroModule {
           this.runingApps.set(app_id, ipc);
           /// 如果应用关闭，将它从列表中移除
           ipc.onClose(() => {
-            this.runingApps.delete(app_id,false);
+            this.runingApps.delete(app_id, false);
           });
         }
 
@@ -91,7 +106,7 @@ export class DeskNMM extends NativeMicroModule {
         if (this.runingApps.has(app_id)) {
           closed = await context.dns.close(app_id);
           if (closed) {
-            this.runingApps.delete(app_id,false);
+            this.runingApps.delete(app_id, false);
           }
         }
         return Response.json(closed);
@@ -185,10 +200,25 @@ export class DeskNMM extends NativeMicroModule {
     }
     /// 发送激活指令
     const [opendAppIpc] = await connectResult;
-    const res = await opendAppIpc.request("/observe/app");
-    const stream = await res.body.stream();
-    for await (const state of jsonlinesStreamRead<changeState<$MMID>>(stream)) {
-      this.runingApps.emitChange(state);
+    {
+      (async () => {
+        const res = await opendAppIpc.request("/observe/install-apps");
+        const stream = await res.body.stream();
+        for await (const state of jsonlinesStreamRead<changeState<$MMID>>(stream)) {
+          this.runingApps.emitChange(state);
+        }
+      })();
+    }
+    {
+      (async () => {
+        const res = await opendAppIpc.request("/observe/running-apps");
+        const stream = await res.body.stream();
+        for await (const state of jsonlinesStreamRead<changeState<$MMID>>(stream)) {
+          state.add.forEach((mmid) => {
+            this.addRunningApp(mmid);
+          });
+        }
+      })();
     }
   }
 

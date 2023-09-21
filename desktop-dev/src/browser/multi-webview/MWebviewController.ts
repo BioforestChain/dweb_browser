@@ -75,15 +75,16 @@ export class MWebviewController {
 
     /// 绑定变更，将状态同步通过ipc发送
     this.onChange.listen(() => {
-      const allWebviewState: $AllWebviewState = {};
+      const allWebviewState: $AllWebviewState = {wid:"",views:{}};
       for (const viewItem of this.getAllBrowserView()) {
-        allWebviewState[viewItem.zIndex] = {
-          webviewId: viewItem.view.webContents.id,
+        allWebviewState.views[viewItem.zIndex] = {
+          webviewId: viewItem.view.webContents.id.toString(),
+          index:viewItem.zIndex,
           mmid: this.ipc.remote.mmid,
           isActivated: viewItem.isVisiable,
-          src: viewItem.view.webContents.getURL(),
         };
       }
+      allWebviewState.wid = this.win.id.toString()
       ipc.postMessage(IpcEvent.fromText("state", JSON.stringify(allWebviewState)));
     });
   }

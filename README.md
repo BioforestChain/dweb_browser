@@ -67,4 +67,17 @@ plaoc 是基于 dweb-browser 平台的一个对标 Cordova、Capacitor、Tauri �
 
 具体文档查看：[plugins文档](https://docs.dweb-browser.org/plaoc/)
 
+### Q&A
+
+mac 桌面端如果出现： “Dweb Browser” 已损坏，无法打开。 你应该将它移到废纸篓。
+
+可以使用下面命令运行。
+
+```bash
+sudo xattr -d com.apple.quarantine /Applications/Dweb\ Browser.app
+```
+
+更多问题可以查看文档[dweb_browser](https://docs.dweb-browser.org/)
+
+
 

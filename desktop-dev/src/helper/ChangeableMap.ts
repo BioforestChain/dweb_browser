@@ -1,6 +1,6 @@
 import { $Callback, createSignal } from "./createSignal.ts";
 
-type stateKey = "add"| "delete"
+type stateKey = "add"| "delete" 
 export type changeState<K> = {
   [key in stateKey]: K[];
 }
