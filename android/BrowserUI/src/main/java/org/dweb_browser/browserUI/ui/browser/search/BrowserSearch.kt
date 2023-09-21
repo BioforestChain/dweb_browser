@@ -69,7 +69,9 @@ internal fun SearchView(
   onSearch: (String) -> Unit,
 ) {
   val focusManager = LocalFocusManager.current
-  val inputText = remember { mutableStateOf(parseInputText(text, false)) }
+  val inputText = key(text) {
+    remember { mutableStateOf(parseInputText(text, false)) }
+  }
   val searchPreviewState = remember { MutableTransitionState(text.isNotEmpty()) }
   val webEngine = findWebEngine(text)
 
@@ -117,12 +119,14 @@ internal fun SearchView(
       )
     }
 
-    BrowserTextField(
-      text = inputText,
-      webEngine = webEngine,
-      onSearch = { onSearch(it) },
-      onValueChanged = { inputText.value = it; searchPreviewState.targetState = it.isNotEmpty() }
-    )
+    key(inputText) {
+      BrowserTextField(
+        text = inputText,
+        webEngine = webEngine,
+        onSearch = { onSearch(it) },
+        onValueChanged = { inputText.value = it; searchPreviewState.targetState = it.isNotEmpty() }
+      )
+    }
   }
 }
 

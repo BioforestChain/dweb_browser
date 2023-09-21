@@ -279,6 +279,8 @@ private fun BrowserViewSearch(viewModel: BrowserViewModel) {
     snapshotFlow { viewModel.dwebLinkSearch.value }.collect {
       if (it.isNotEmpty()) {
         showSearchView.value = true
+      } else {
+        showSearchView.value = false
       }
     }
   }
