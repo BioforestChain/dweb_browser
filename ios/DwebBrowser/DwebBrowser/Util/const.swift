@@ -49,7 +49,3 @@ var safeAreaTopHeight: CGFloat {
 var safeAreaBottomHeight: CGFloat {
     return curSafeAreaInsets.bottom
 }
-
-let toolBarScale = 1.0 / 14.0
-let toolItemMinWidth = 14.0
-let toolBarMinHeight = toolItemMinWidth + 4.0

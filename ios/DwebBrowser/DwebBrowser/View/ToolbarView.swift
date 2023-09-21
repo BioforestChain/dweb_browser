@@ -25,109 +25,111 @@ struct ToolbarView: View {
     @State private var wndWidth: CGFloat = .zero
 
     var body: some View {
-        ZStack {
-            if toolbarState.shouldExpand {
-                fiveButtons
-            } else {
-                threeButtons
-            }
-        }
-        .background(.yellow)
-
-        .onAppear {
-            selectedTab.$curIndex
-                .sink { newIndex in
-                    print("Value changed: \(newIndex)")
-                    tabIndexChanged(to: newIndex)
+        GeometryReader { geo in
+            ZStack {
+                if toolbarState.shouldExpand {
+                    fiveButtons
+                } else {
+                    threeButtons
                 }
-                .store(in: &cancellables) // Store the subscription
+            }.frame(height: geo.size.height)
         }
-        .onDisappear {
-            cancellables.forEach { $0.cancel() }
-            cancellables.removeAll()
-        }
+            .onAppear {
+                selectedTab.$curIndex
+                    .sink { newIndex in
+                        print("Value changed: \(newIndex)")
+                        tabIndexChanged(to: newIndex)
+                    }
+                    .store(in: &cancellables) // Store the subscription
+            }
+            .onDisappear {
+                cancellables.forEach { $0.cancel() }
+                cancellables.removeAll()
+            }
+    }
+
+    func getFont(by width: CGFloat) -> Font {
+        var size = width / 15.0
+        size = min(18, max(10, size))
+        return Font.system(size: size)
     }
 
     var threeButtons: some View {
-        GeometryReader{ geo in
-        HStack(alignment: .center) {
-            Spacer()
-//                .frame(width: 25)
+        ZStack {
+            GeometryReader { geo in
+                let size = geo.size
+                HStack(alignment: .center) {
+                    Spacer().frame(width: size.width / 15)
 
-            BiColorButton(imageName: "add", disabled: false) {
-                print("open new tab was clicked")
-                toolbarState.createTabTapped = true
+                    BiColorButton(imageName: "add", disabled: false) {
+                        print("open new tab was clicked")
+                        toolbarState.createTabTapped = true
+                    }
+                    .frame(height: min(size.width / 14, size.height / 1.9))
+
+                    Spacer()
+                    Text("\(webcacheStore.cacheCount)个标签页")
+                        .foregroundColor(Color.ToolbarColor)
+                        .font(getFont(by: geo.size.width))
+                        .fontWeight(.semibold)
+
+                    Spacer()
+
+                    Button {
+                        toolbarState.shouldExpand = true
+                    } label: {
+                        Text("完成")
+                            .foregroundColor(Color.dwebTint)
+                            .font(getFont(by: size.width))
+                            .fontWeight(.semibold)
+                    }
+
+                    Spacer().frame(width: size.width / 15)
+                }
+                .frame(height: size.height)
             }
-
-            Spacer()
-            Text("\(webcacheStore.cacheCount)个标签页")
-//                .font(.system(size: 18, weight: .medium))
-                .foregroundColor(Color.ToolbarColor)
-                .font(.system(size: 10))
-            Spacer()
-
-            Button {
-                toolbarState.shouldExpand = true
-
-            } label: {
-                Text("完成")
-                    .foregroundColor(Color.dwebTint)
-                    .font(.system(size: 10))
-
-//                    .fontWeight(.semibold)
-            }
-
-            Spacer()
-//                .frame(width: 25)
         }
-        }
-        .frame(height: toolbarHeight)
-        .background(Color.bkColor)
     }
 
     var fiveButtons: some View {
         ZStack {
-            GeometryReader { geo in
-                HStack(alignment: .center) {
-                    Spacer()
-                    BiColorButton(imageName: "back", disabled: !toolbarState.canGoBack) {
-                        toolbarState.goBackTapped = true
+            HStack(alignment: .center) {
+                Spacer()
+                BiColorButton(imageName: "back", disabled: !toolbarState.canGoBack) {
+                    toolbarState.goBackTapped = true
+                }
+                Spacer()
+                BiColorButton(imageName: "forward", disabled: !toolbarState.canGoForward) {
+                    toolbarState.goForwardTapped = true
+                }
+                Spacer()
+                if webcacheStore.cache(at: selectedTab.curIndex).shouldShowWeb {
+                    BiColorButton(imageName: "scan", disabled: false) {
+                        print("scan qrcode")
+                        isPresentingScanner = true
                     }
-                    Spacer()
-                    BiColorButton(imageName: "forward", disabled: !toolbarState.canGoForward) {
-                        toolbarState.goForwardTapped = true
-                    }
-                    Spacer()
-                    if webcacheStore.cache(at: selectedTab.curIndex).shouldShowWeb {
-                        BiColorButton(imageName: "scan", disabled: false) {
-                            print("scan qrcode")
-                            isPresentingScanner = true
-                        }
-                    } else {
-                        BiColorButton(imageName: "add", disabled: false) {
-                            print("open new tab was clicked")
-                            toolbarState.createTabTapped = true
-                        }
-                    }
-                    Spacer()
-                    Group {
-                        BiColorButton(imageName: "shift", disabled: false) {
-                            print("shift tab was clicked")
-                            toolbarState.shouldExpand = false
-                        }
-                        Spacer()
-                        BiColorButton(imageName: "more", disabled: false) {
-                            withAnimation {
-                                showMoreSheet = true
-                            }
-                            printWithDate("more menu was clicked")
-                        }
-                        Spacer()
+                } else {
+                    BiColorButton(imageName: "add", disabled: false) {
+                        print("open new tab was clicked")
+                        toolbarState.createTabTapped = true
                     }
                 }
+                Spacer()
+                Group {
+                    BiColorButton(imageName: "shift", disabled: false) {
+                        print("shift tab was clicked")
+                        toolbarState.shouldExpand = false
+                    }
+                    Spacer()
+                    BiColorButton(imageName: "more", disabled: false) {
+                        withAnimation {
+                            showMoreSheet = true
+                        }
+                        printWithDate("more menu was clicked")
+                    }
+                    Spacer()
+                }
 
-                .frame(height: geo.size.height)
-                .background(Color.bkColor)
                 .onReceive(addressBarState.$isFocused) { isFocused in
                     withAnimation {
                         toolbarHeight = isFocused ? 0 : toolBarH
@@ -166,3 +168,8 @@ struct ToolbarView: View {
         toolbarState.canGoForward = currentWrapper.canGoForward
     }
 }
+
+
+let toolItemMinWidth = 14.0
+let toolItemMaxWidth = toolItemMinWidth * 2
+let toolBarMinHeight = toolItemMinWidth + 4.0

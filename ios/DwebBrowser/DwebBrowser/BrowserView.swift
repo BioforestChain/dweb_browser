@@ -16,22 +16,24 @@ struct BrowserView: View {
     @StateObject var webcacheStore = WebCacheStore()
 
     var body: some View {
-        ZStack { GeometryReader { geometry in
-
-            VStack(spacing: 0) {
-                TabsContainerView()
-                ToolbarView()
-                    .frame()
-                    .frame(minHeight: toolBarMinHeight, maxHeight: geometry.size.height * toolBarScale)
-                    .background(Color.green)
+        ZStack {
+            GeometryReader { geometry in
+                VStack(spacing: 0) {
+                    TabsContainerView()
+                    ToolbarView()
+                        .frame(height: toolbarHeight(baseOn: geometry.size))
+                }
+                .background(Color.bkColor)
+                .environmentObject(webcacheStore)
+                .environmentObject(openingLink)
+                .environmentObject(selectedTab)
+                .environmentObject(addressBar)
+                .environmentObject(toolBarState)
             }
-            .background(Color.bkColor)
-            .environmentObject(webcacheStore)
-            .environmentObject(openingLink)
-            .environmentObject(selectedTab)
-            .environmentObject(addressBar)
-            .environmentObject(toolBarState)
         }
-        }
+    }
+    func toolbarHeight(baseOn wndSize: CGSize) -> CGFloat{
+        let scale = min(wndSize.width / (maxDragWndWidth - maxDragWndWidth), wndSize.height / (maxDragWndHeight - 60))
+        return max(toolBarMinHeight, min(toolBarH, scale * wndSize.height))
     }
 }

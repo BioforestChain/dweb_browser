@@ -13,16 +13,15 @@ struct BiColorButton: View {
     let action: () -> Void
 
     var body: some View {
-            Button(action: action) {
-                Image(uiImage: .assetsImage(name: imageName))
-                    .renderingMode(.template)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .background(Color.bkColor)
-                    .foregroundColor(disabled ? Color.gray : Color.ToolbarColor)
-                    .frame(minWidth: toolItemMinWidth, maxWidth: 28, minHeight: toolItemMinWidth, maxHeight: 28)
-            }
-            .disabled(disabled)
+        Button(action: action) {
+            Image(uiImage: .assetsImage(name: imageName))
+                .renderingMode(.template)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .background(Color.bkColor)
+                .foregroundColor(disabled ? Color.gray : Color.ToolbarColor)
+                .frame(minWidth: toolItemMinWidth, maxWidth: toolItemMaxWidth, minHeight: toolItemMinWidth, maxHeight: toolItemMaxWidth)
         }
-
+        .disabled(disabled)
+    }
 }
