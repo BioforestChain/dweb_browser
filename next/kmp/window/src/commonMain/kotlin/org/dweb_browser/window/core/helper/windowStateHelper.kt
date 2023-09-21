@@ -8,6 +8,14 @@ import org.dweb_browser.microservice.help.types.ICommonAppManifest
 import org.dweb_browser.window.core.WindowState
 import kotlin.math.sqrt
 
+fun WindowState.setFromManifest(manifest: ICommonAppManifest) {
+  title = manifest.name
+  manifest.theme_color?.let {
+    themeColor = it
+  }
+  setIconFromManifest(manifest);
+}
+
 fun WindowState.setIconFromManifest(manifest: ICommonAppManifest) {
   /**
    * 挑选合适的图标作为应用的图标

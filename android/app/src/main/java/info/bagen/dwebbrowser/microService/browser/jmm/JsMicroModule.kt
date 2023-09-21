@@ -46,7 +46,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) : MicroModule(
     assign(metadata)
     categories += MICRO_MODULE_CATEGORY.Application
     icons.ifEmpty {
-      icons += ImageResource(src = metadata.logo)
+      icons = listOf(ImageResource(src = metadata.logo))
     }
     mmid = metadata.id
     ipc_support_protocols = IpcSupportProtocols(
@@ -131,7 +131,10 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) : MicroModule(
     }
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    debugJsMM("bootstrap...", "$mmid/ minTarget:${metadata.minTarget} maxTarget:${metadata.maxTarget}")
+    debugJsMM(
+      "bootstrap...",
+      "$mmid/ minTarget:${metadata.minTarget} maxTarget:${metadata.maxTarget}"
+    )
     metadata.canSupportTarget(VERSION, disMatchMinTarget = {
       throw RuntimeException(
         "应用($mmid)与容器版本不匹配，当前版本:${VERSION}，应用最低要求:${metadata.minTarget}",

@@ -36,14 +36,23 @@ fun String.asColorHex(start: Int = 0, len: Int = 2): Int {
   return hex.toInt(16)
 }
 
-fun Color.Companion.hex(hex: String) = if (hex[0] == '#') when (hex.length) {
-  // #RGB
-  4 -> Color(hex.asColorHex(1, 1), hex.asColorHex(2, 1), hex.asColorHex(3, 1))
-  // #RGBA
-  5 -> Color(hex.asColorHex(1, 1), hex.asColorHex(2, 1), hex.asColorHex(3, 1), hex.asColorHex(4, 1))
-  // #RRGGBB
-  7 -> Color(hex.asColorHex(1), hex.asColorHex(3), hex.asColorHex(5))
-  // #RRGGBBAA
-  9 -> Color(hex.asColorHex(1), hex.asColorHex(3), hex.asColorHex(5), hex.asColorHex(7))
-  else -> null
-} else null
+fun Color.Companion.hex(hex: String) = try {
+  if (hex[0] == '#') when (hex.length) {
+    // #RGB
+    4 -> Color(hex.asColorHex(1, 1), hex.asColorHex(2, 1), hex.asColorHex(3, 1))
+    // #RGBA
+    5 -> Color(
+      hex.asColorHex(1, 1),
+      hex.asColorHex(2, 1),
+      hex.asColorHex(3, 1),
+      hex.asColorHex(4, 1)
+    )
+    // #RRGGBB
+    7 -> Color(hex.asColorHex(1), hex.asColorHex(3), hex.asColorHex(5))
+    // #RRGGBBAA
+    9 -> Color(hex.asColorHex(1), hex.asColorHex(3), hex.asColorHex(5), hex.asColorHex(7))
+    else -> null
+  } else null
+} catch (e: Throwable) {
+  null
+}

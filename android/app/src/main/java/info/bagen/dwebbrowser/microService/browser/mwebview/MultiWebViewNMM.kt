@@ -16,7 +16,7 @@ import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.window.core.WindowState
 import org.dweb_browser.window.core.constant.WindowConstants
 import org.dweb_browser.window.core.createWindowAdapterManager
-import org.dweb_browser.window.core.helper.setIconFromManifest
+import org.dweb_browser.window.core.helper.setFromManifest
 import org.dweb_browser.window.render.emitFocusOrBlur
 import org.http4k.core.Method
 import org.http4k.core.Response
@@ -33,8 +33,7 @@ class MultiWebViewNMM :
   AndroidNativeMicroModule("mwebview.browser.dweb", "Multi Webview Renderer") {
   init {
     short_name = "MWebview"
-    categories =
-      listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service)
+    categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service)
   }
 
   companion object {
@@ -107,16 +106,14 @@ class MultiWebViewNMM :
     debugMultiWebView("/open", "remote-mmid: $remoteMmid / url:$url")
 
     val controller = controllerMap.getOrPut(remoteMmid) {
-      val win = createWindowAdapterManager.createWindow(
-        WindowState(
-          WindowConstants(
-            owner = ipc.remote.mmid,
-            ownerVersion = ipc.remote.version,
-            provider = mmid,
-            microModule = this
-          )
-        ).apply { setIconFromManifest(ipc.remote) }
-      )
+      val win = createWindowAdapterManager.createWindow(WindowState(
+        WindowConstants(
+          owner = ipc.remote.mmid,
+          ownerVersion = ipc.remote.version,
+          provider = mmid,
+          microModule = this
+        )
+      ).apply { setFromManifest(ipc.remote) })
 
       MultiWebViewController(win, ipc, remoteMm, this).also { controller ->
         /// 窗口销毁的时候，释放这个Controller
