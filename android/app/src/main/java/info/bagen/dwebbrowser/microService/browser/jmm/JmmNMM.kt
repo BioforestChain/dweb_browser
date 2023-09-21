@@ -220,7 +220,13 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
       mode = WindowMode.FLOATING
       setFromManifest(this@JmmNMM)
     })
-    jmmController = JmmController(win, this@JmmNMM, jmmAppInstallManifest)
+    jmmController = JmmController(win, this@JmmNMM, jmmAppInstallManifest).also { ctrl ->
+      ctrl.onClosed {
+        if (jmmController == ctrl) {
+          jmmController = null
+        }
+      }
+    }
   }
 
   private suspend fun jmmMetadataUninstall(mmid: MMID) {
