@@ -13,6 +13,7 @@ import org.dweb_browser.window.core.constant.WindowMode
 import org.dweb_browser.window.core.constant.WindowPropertyKeys
 import org.dweb_browser.window.core.constant.WindowStyle
 import org.dweb_browser.window.core.constant.debugWindow
+import org.dweb_browser.window.core.helper.setDefaultFloatWindowBounds
 
 abstract class WindowController(
   /**
@@ -128,14 +129,12 @@ abstract class WindowController(
     if (isMaximized()) {
       when (val value = _beforeMaximizeBounds) {
         null -> {
-          state.bounds = with(state.bounds) {
-            copy(
-              left = width / 4,
-              top = height / 4,
-              width = width / 2,
-              height = height / 2,
-            )
-          }
+          state.setDefaultFloatWindowBounds(
+            state.bounds.width,
+            state.bounds.height,
+            state.zIndex.toFloat(),
+            true
+          )
         }
 
         else -> {

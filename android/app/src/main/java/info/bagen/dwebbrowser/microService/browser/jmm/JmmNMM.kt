@@ -26,6 +26,7 @@ import org.dweb_browser.window.core.WindowState
 import org.dweb_browser.window.core.constant.WindowConstants
 import org.dweb_browser.window.core.constant.WindowMode
 import org.dweb_browser.window.core.createWindowAdapterManager
+import org.dweb_browser.window.core.helper.setIconFromManifest
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
@@ -216,7 +217,8 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
         owner = mmid, ownerVersion = version, provider = mmid, microModule = this
       )
     ).apply {
-      mode = WindowMode.MAXIMIZE
+      mode = WindowMode.FLOATING
+      setIconFromManifest(this@JmmNMM)
     })
     jmmController = JmmController(win, this@JmmNMM, jmmAppInstallManifest)
   }
