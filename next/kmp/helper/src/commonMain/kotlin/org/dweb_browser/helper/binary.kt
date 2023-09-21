@@ -64,7 +64,7 @@ fun ByteArray.toInt(): Int {
 /**
  * Converts a [Int] to [LITTLE_ENDIAN] ordered bytes
  * */
-fun Int.toByteArray(): ByteArray {
+fun Int.toLittleEndianByteArray(): ByteArray {
   val b0 = this.toByte()
   val b1 = (this ushr 8).toByte()
   val b2 = (this ushr 16).toByte()

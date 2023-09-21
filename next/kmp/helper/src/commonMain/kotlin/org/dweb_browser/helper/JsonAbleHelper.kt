@@ -53,11 +53,12 @@ open class ByteEnumSerializer<T>(
 }
 
 open class ProxySerializer<T, P>(
+  serialName: String,
   private val serializer: KSerializer<P>,
   private val valueToProxy: T.() -> P,
   private val proxyToValue: P.() -> T
 ) : KSerializer<T> {
-  override val descriptor: SerialDescriptor = serializer.descriptor
+  override val descriptor: SerialDescriptor = buildClassSerialDescriptor(serialName)
 
   override fun serialize(encoder: Encoder, value: T): Unit =
     serializer.serialize(encoder, value.valueToProxy())

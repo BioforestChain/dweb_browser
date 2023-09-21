@@ -2,6 +2,7 @@ package org.dweb_browser.dwebview.closeWatcher
 
 import android.annotation.SuppressLint
 import android.webkit.JavascriptInterface
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
@@ -11,14 +12,13 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.helper.*
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicInteger
+
 
 @SuppressLint("JavascriptInterface")
 class CloseWatcher(val viewItem: ViewItem) {
 
   companion object {
-    val acc_id = AtomicInteger(1)
+    val acc_id = atomic(1)
     const val JS_POLYFILL_KIT = "__native_close_watcher_kit__"
   }
 
@@ -61,10 +61,10 @@ class CloseWatcher(val viewItem: ViewItem) {
 
   inner class Watcher {
     val id = acc_id.getAndAdd(1).toString()
-    private var _destroy = AtomicBoolean(false)
+    private var _destroy = atomic(false)
     private val closeMutex = Mutex()
     suspend fun tryClose(): Boolean = closeMutex.withLock {
-      if (_destroy.get()) {
+      if (_destroy.value) {
         return false
       }
       val defaultPrevented = false;

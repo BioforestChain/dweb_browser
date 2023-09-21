@@ -29,7 +29,7 @@ enum class AppType {
   fun createId() = "${this.name}${System.currentTimeMillis()}.dweb"
 }
 
-private const val DeskWebLinkStart = "file:///local_icons/"
+private const val DeskWebLinkStart = "file:///web_icons/"
 
 fun createDeskWebLink(title: String, url: String, bitmap: Bitmap?) : DeskWebLink {
   val imageResource = bitmap?.let {

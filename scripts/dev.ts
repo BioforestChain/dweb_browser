@@ -1,4 +1,6 @@
 import { assetsTasks } from "../desktop-dev/scripts/assets-tasks.ts";
+import { toolkitTasks } from "../toolkit/toolkit-dev.ts";
+
 import { ConTasks, ExitAbortController } from "./helper/ConTasks.ts";
 export const devTasks = new ConTasks(
   {
@@ -23,14 +25,11 @@ export const devTasks = new ConTasks(
       cmd: "deno",
       args: "task sync --watch",
     },
-    "toolkit:fort-test-image": {
-      cmd: "npx",
-      args: "vite --host 0.0.0.0",
-      cwd: "./toolkit/for-test-images",
-    },
   },
   import.meta.resolve("../")
-).merge(assetsTasks, "assets:");
+)
+  .merge(assetsTasks, "assets:")
+  .merge(toolkitTasks, "toolkit:");
 
 if (import.meta.main) {
   Deno.addSignalListener("SIGINT", () => {

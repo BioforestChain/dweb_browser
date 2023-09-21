@@ -7,7 +7,9 @@ import android.net.wifi.WifiManager
 import android.os.Build
 import android.provider.Settings
 import info.bagen.dwebbrowser.App
-import org.dweb_browser.microservice.help.gson
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileReader
@@ -17,6 +19,7 @@ import java.net.NetworkInterface
 import java.util.Collections
 import java.util.regex.Pattern
 
+@Serializable
 data class NetWorkData(
   var enableInternet: Boolean = false,
   var enableWifi: Boolean = false,
@@ -31,7 +34,7 @@ data class NetWorkData(
 class NetWorkInfo {
 
   fun getNetWorkInfo(): String {
-    return gson.toJson(netWorkData)
+    return Json.encodeToString(netWorkData)
   }
 
   val netWorkData: NetWorkData

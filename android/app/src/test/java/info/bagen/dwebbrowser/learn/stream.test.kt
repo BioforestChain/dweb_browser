@@ -2,6 +2,7 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.microservice.help.canRead
 import org.dweb_browser.microservice.ipc.helper.ReadableStream
 
 /**
@@ -10,23 +11,24 @@ import org.dweb_browser.microservice.ipc.helper.ReadableStream
  */
 fun main() {
   var b: Byte = 0
-  val stream = ReadableStream(onPull = { (_, controller) ->
+  val readableStream = ReadableStream(onOpenReader = { controller ->
     Thread.sleep(500)
     controller.enqueue(byteArrayOf(b++))
     if (b > 10) {
       controller.close()
     }
   });
+  val reader = readableStream.stream.getReader("")
 
 
   MainScope().launch(ioAsyncExceptionHandler) {
     println("reading")
-    while (stream.available() > 0) {
-      println("read ${stream.read()}")
+    while (reader.canRead) {
+      println("read ${reader.readRemaining()}")
     }
   }
   runBlocking {
-    stream.waitClosed()
+    readableStream.waitCanceled()
   }
   println("DONE")
 }

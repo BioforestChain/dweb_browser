@@ -4,8 +4,11 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import info.bagen.dwebbrowser.App
-import org.dweb_browser.microservice.help.gson
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
+@Serializable
 data class AppData(
   var versionCode: Int = 0,
   var versionName: String = "",
@@ -17,7 +20,7 @@ class AppInfo {
   private val NOT_FOUND_VAL = "unknown"
 
   fun getAppInfo(): String {
-    return gson.toJson(appData)
+    return Json.encodeToString(appData)
   }
 
   val appData: AppData get() = AppData(versionCode, versionName, packageName, appName)

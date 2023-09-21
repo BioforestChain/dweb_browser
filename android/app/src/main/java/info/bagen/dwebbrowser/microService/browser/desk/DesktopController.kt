@@ -10,6 +10,8 @@ import info.bagen.dwebbrowser.microService.browser.desk.types.DeskAppMetaData
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import org.dweb_browser.browserUI.ui.browser.build
+import org.dweb_browser.browserUI.ui.browser.resolvePath
 import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.PromiseOut
@@ -18,7 +20,6 @@ import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.sys.http.HttpDwebServer
-import org.http4k.core.query
 
 @Stable
 class DesktopController(
@@ -77,7 +78,7 @@ class DesktopController(
    * 窗口管理器
    */
   val desktopWindowsManager
-    get() = DesktopWindowsManager.getInstance(this.activity!!) { dwm ->
+    get() = DesktopWindowsManager.getOrPutInstance(this.activity!!) { dwm ->
 
       dwm.hasMaximizedWins.onChange { updateSignal.emit() }
 
@@ -119,8 +120,11 @@ class DesktopController(
     MainDwebView(name, webView, state, navigator)
   }
 
-  fun getDesktopUrl() = desktopServer.startResult.urlInfo.buildInternalUrl().path("/desktop.html")
-    .query("api-base", desktopServer.startResult.urlInfo.buildPublicUrl().toString())
+  fun getDesktopUrl() =
+    desktopServer.startResult.urlInfo.buildInternalUrl().build {
+      resolvePath("/desktop.html")
+      parameters["api-base"] = desktopServer.startResult.urlInfo.buildPublicUrl().toString()
+    }
 
 
   private val _activitySignal = SimpleSignal()

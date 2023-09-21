@@ -4,19 +4,19 @@ import android.content.Intent
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.sys.fileSystem.EFileType
 import info.bagen.dwebbrowser.microService.sys.share.ShareController.Companion.controller
+import io.ktor.http.HttpMethod
+import io.ktor.http.content.PartData
+import io.ktor.http.content.forEachPart
+import io.ktor.http.content.streamProvider
+import kotlinx.serialization.Serializable
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.printDebug
+import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.microservice.core.AndroidNativeMicroModule
 import org.dweb_browser.microservice.core.BootstrapContext
-import org.dweb_browser.microservice.help.cors
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
-import org.http4k.core.Method
-import org.http4k.core.MultipartFormBody
-import org.http4k.lens.Query
-import org.http4k.lens.composite
-import org.http4k.lens.string
-import org.http4k.routing.bind
-import org.http4k.routing.routes
+import org.dweb_browser.microservice.http.bind
+import org.dweb_browser.microservice.http.receiveMultipart
 
 data class ShareOptions(
   val title: String?,
@@ -35,35 +35,38 @@ class ShareNMM : AndroidNativeMicroModule("share.sys.dweb", "share") {
 
   private val plugin = CacheFilePlugin()
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    val shareOption = Query.composite { spec ->
-      ShareOptions(
-        title = string().optional("title")(spec),
-        text = string().optional("text")(spec),
-        url = string().optional("url")(spec)
-      )
-    }
-    apiRouting = routes(
+//    val shareOption = Query.composite { spec ->
+//      ShareOptions(
+//        title = string().optional("title")(spec),
+//        text = string().optional("text")(spec),
+//        url = string().optional("url")(spec)
+//      )
+//    }
+    routes(
       /** 分享*/
-      "/share" bind Method.POST to defineHandler { request, ipc ->
+      "/share" bind HttpMethod.Post to defineJsonResponse {
         val files = mutableListOf<String>()
         val result = PromiseOut<String>()
-        val ext = shareOption(request)
-        try {
-          val receivedForm = MultipartFormBody.from(request)
-          val fileByteArray = receivedForm.files("files")
-          // 写入缓存
-          fileByteArray.map { file ->
-            val url = plugin.writeFile(
-              file.filename,
-              EFileType.Cache,
-              file.content,
-              false
-            )
-            files.add(url)
+        val ext = ShareOptions(
+          title = request.query("title"), text = request.query("text"), url = request.query("url")
+        )
+        val multiPartData = request.receiveMultipart()
+        multiPartData.forEachPart { partData ->
+          when (partData) {
+            is PartData.FileItem -> {
+              partData.originalFileName?.also { filename ->
+                val url = plugin.writeFile(
+                  filename, EFileType.Cache, partData.streamProvider(), false
+                )
+                files.add(url)
+              }
+            }
+
+            else -> {}
           }
-        } catch (e: Exception) {
-          debugShare("share catch", "e===>$e $files")
+          partData.dispose()
         }
+
         openActivity()
         controller.waitActivityResultLauncherCreated()
 
@@ -79,11 +82,12 @@ class ShareNMM : AndroidNativeMicroModule("share.sys.dweb", "share") {
         if (data !== "OK") {
           controller.activity?.finish()
         }
-        return@defineHandler ShareResult(data == "OK", data)
+        return@defineJsonResponse ShareResult(data == "OK", data).toJsonElement()
       },
     ).cors()
   }
 
+  @Serializable
   data class ShareResult(val success: Boolean, val message: String)
 
   private fun openActivity() {

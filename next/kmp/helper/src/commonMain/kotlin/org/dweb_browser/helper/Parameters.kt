@@ -2,8 +2,6 @@ package org.dweb_browser.helper
 
 typealias Parameters = List<Parameter>
 
-fun Uri.queries(): Parameters = query.toParameters()
-
 fun Parameters.toUrlFormEncoded(): String = joinToString("&") {
   it.first.toFormEncoded() + it.second?.let { "=" + it.toFormEncoded() }.orEmpty()
 }

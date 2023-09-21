@@ -15,6 +15,7 @@ import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.microService.browser.desk.DesktopActivity
 import info.bagen.dwebbrowser.microService.sys.deepLink.DWebReceiver
+import kotlinx.serialization.Serializable
 
 class NotifyManager {
   enum class ChannelType(
@@ -143,6 +144,7 @@ enum class MessageSource(value: String) {
 
 
 /** 消息中心返回数据结构 */
+@Serializable
 data class NotificationMsgItem(
   val app_id: String = "",
   val title: String = "",

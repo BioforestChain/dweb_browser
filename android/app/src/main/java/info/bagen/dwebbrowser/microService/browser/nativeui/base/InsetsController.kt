@@ -8,7 +8,8 @@ import info.bagen.dwebbrowser.helper.InsetsJson
 import info.bagen.dwebbrowser.helper.StateObservable
 import info.bagen.dwebbrowser.microService.browser.nativeui.NativeUiController
 import info.bagen.dwebbrowser.util.IsChange
-import org.dweb_browser.microservice.help.gson
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 abstract class InsetsController(
   val activity: ComponentActivity,
@@ -27,7 +28,7 @@ abstract class InsetsController(
   /**
    * 状态监听器
    */
-  val observer = StateObservable { gson.toJson(toJsonAble()) }
+  val observer = StateObservable { Json.encodeToString(toJsonAble()) }
 
   @Composable
   protected open fun observerWatchStates(stateChanges: IsChange) {

@@ -59,12 +59,12 @@ internal fun BoxScope.BottomDownloadButton() {
 
       DownLoadStatus.DownLoading -> {
         showLinearProgress = true
-        "下载中".displayDownLoad(totalSize, downloadSize)
+        "下载中 " + displayDownLoad(totalSize, downloadSize)
       }
 
       DownLoadStatus.PAUSE -> {
         showLinearProgress = true
-        "暂停".displayDownLoad(totalSize, downloadSize)
+        "暂停 " + displayDownLoad(totalSize, downloadSize)
       }
 
       DownLoadStatus.DownLoadComplete -> "安装中..."

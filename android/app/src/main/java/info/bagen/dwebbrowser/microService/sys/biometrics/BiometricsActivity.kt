@@ -18,9 +18,11 @@ import androidx.fragment.app.FragmentActivity
 import info.bagen.dwebbrowser.microService.sys.biometrics.BiometricsController.Companion.biometricsController
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
 import org.dweb_browser.helper.PromiseOut
 import java.util.concurrent.Executor
 
+@Serializable
 data class BiometricsResult(val success: Boolean, val message: String)
 
 

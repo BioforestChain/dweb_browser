@@ -10,7 +10,9 @@ import android.os.StatFs
 import android.provider.Settings
 import android.webkit.WebView
 import info.bagen.dwebbrowser.App
-import org.dweb_browser.microservice.help.gson
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import java.util.Locale
 
 
@@ -36,14 +38,16 @@ object Device {
       name = getName(),
       webViewVersion = getWebViewVersion(),
     )
-    return gson.toJson(deviceInfo)
+
+    return Json.encodeToString(deviceInfo)
   }
 
   fun getBatteryInfo(): String {
     val batteryInfo = StructBatteryInfo(
       batteryLevel = getBatteryLevel(), isCharging = isCharging()
     )
-    return gson.toJson(batteryInfo)
+
+    return Json.encodeToString(batteryInfo)
   }
 
   fun getLanguageCode(): String {
@@ -147,11 +151,13 @@ object Device {
   }
 }
 
+@Serializable
 private data class StructBatteryInfo(
   val batteryLevel: Float,
   val isCharging: Boolean,
 )
 
+@Serializable
 private data class StructDeviceInfo(
   val memUsed: Long,
   val diskFree: Long,

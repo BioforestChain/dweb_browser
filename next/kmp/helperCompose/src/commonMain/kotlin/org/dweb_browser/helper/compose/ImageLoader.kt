@@ -8,8 +8,10 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import org.dweb_browser.helper.platform.OffscreenWebCanvas
+import org.dweb_browser.helper.platform.offscreenwebcanvas.FetchHook
 import org.dweb_browser.helper.platform.offscreenwebcanvas.WebCanvasContextSession.Companion.buildTask
 import org.dweb_browser.helper.platform.offscreenwebcanvas.waitReady
+import org.dweb_browser.helper.platform.setHook
 
 
 @Composable
@@ -25,17 +27,27 @@ internal expect fun rememberOffscreenWebCanvas(): OffscreenWebCanvas
 
 class ImageLoader {
   @Composable
-  fun load(url: String, maxWidth: Dp, maxHeight: Dp): ImageLoadResult {
+  fun load(
+    url: String,
+    maxWidth: Dp,
+    maxHeight: Dp,
+    hook: FetchHook? = null
+  ): ImageLoadResult {
     val density = LocalDensity.current.density
     val containerWidth = (maxWidth.value * density).toInt()
     val containerHeight = (maxHeight.value * density).toInt()
-    return load(url, containerWidth, containerHeight)
+    return load(url, containerWidth, containerHeight, hook)
   }
 
   @Composable
-  fun load(url: String, containerWidth: Int, containerHeight: Int): ImageLoadResult {
+  fun load(
+    url: String, containerWidth: Int, containerHeight: Int, hook: (FetchHook)? = null
+  ): ImageLoadResult {
     val webCanvas = rememberOffscreenWebCanvas();
     val imageBitmap by produceState(ImageLoadResult.Setup) {
+      val dispose = if (hook != null) {
+        webCanvas.setHook(url, hook)
+      } else null
       value = try {
         webCanvas.waitReady()
         value = ImageLoadResult.Rendering;
@@ -46,6 +58,8 @@ class ImageLoader {
         ImageLoadResult.success(imageBitmap)
       } catch (e: Throwable) {
         ImageLoadResult.error(e)
+      } finally {
+        dispose?.invoke()
       }
     }
     return imageBitmap
@@ -66,6 +80,7 @@ class ImageLoadResult(
     internal val Rendering = ImageLoadResult(busy = "loading and rendering...")
   }
 
+  val isSuccess get() = success != null
   inline fun with(
     onBusy: (String) -> Unit = {},
     onError: (Throwable) -> Unit = {},

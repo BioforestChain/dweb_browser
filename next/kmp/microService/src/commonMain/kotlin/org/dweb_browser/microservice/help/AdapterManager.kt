@@ -9,7 +9,7 @@ open class AdapterManager<T> {
   fun append(order: Int = 0, adapter: T): () -> Boolean {
     adapterOrderMap[adapter] = order
     orderAdapters =
-      adapterOrderMap.toList().sortedBy { (_, b) -> b }.map { (adapter) -> adapter }
+      adapterOrderMap.toList().sortedBy { (_, b) -> -b }.map { (adapter) -> adapter }
     return { remove(adapter) }
   }
 

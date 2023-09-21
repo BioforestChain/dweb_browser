@@ -1,6 +1,10 @@
 package info.bagen.dwebbrowser.microService.browser.jmm
 
 import info.bagen.dwebbrowser.App
+import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.URLBuilder
+import io.ktor.http.Url
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.dweb_browser.browserUI.database.AppType
@@ -9,34 +13,34 @@ import org.dweb_browser.browserUI.database.DeskAppInfoStore
 import org.dweb_browser.browserUI.download.DownLoadController
 import org.dweb_browser.browserUI.download.isGreaterThan
 import org.dweb_browser.browserUI.microService.browser.link.WebLinkMicroModule
+import org.dweb_browser.browserUI.ui.browser.resolvePath
+import org.dweb_browser.browserUI.util.APP_DIR_TYPE
 import org.dweb_browser.browserUI.util.BrowserUIApp
 import org.dweb_browser.browserUI.util.FilesUtil
+import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
-import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.core.AndroidNativeMicroModule
 import org.dweb_browser.microservice.core.BootstrapContext
-import org.dweb_browser.microservice.help.bodyJson
 import org.dweb_browser.microservice.help.types.IMicroModuleManifest
 import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.types.MMID
+import org.dweb_browser.microservice.http.PureResponse
+import org.dweb_browser.microservice.http.bind
+import org.dweb_browser.microservice.http.bindDwebDeeplink
 import org.dweb_browser.microservice.ipc.Ipc
+import org.dweb_browser.microservice.sys.dns.RespondLocalFileContext.Companion.respondLocalFile
 import org.dweb_browser.microservice.sys.dns.nativeFetch
+import org.dweb_browser.microservice.sys.dns.nativeFetchAdaptersManager
+import org.dweb_browser.microservice.sys.dns.returnAndroidFile
 import org.dweb_browser.window.core.WindowState
 import org.dweb_browser.window.core.constant.WindowConstants
 import org.dweb_browser.window.core.constant.WindowMode
 import org.dweb_browser.window.core.createWindowAdapterManager
 import org.dweb_browser.window.core.helper.setFromManifest
-import org.http4k.core.Method
-import org.http4k.core.Response
-import org.http4k.core.Status
-import org.http4k.lens.Query
-import org.http4k.lens.string
-import org.http4k.routing.bind
-import org.http4k.routing.routes
-import java.net.URL
+import java.io.File
 
-fun debugJMM(tag: String, msg: Any? = "", err: Throwable? = null) = printDebug("JMM", tag, msg, err)
+val debugJMM = Debugger("JMM")
 
 /**
  * 获取 map 值，如果不存在，则使用defaultValue; 如果replace 为true也替换为defaultValue
@@ -57,13 +61,27 @@ inline fun <K, V> MutableMap<K, V>.getOrPutOrReplace(
 class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Management") {
   init {
     short_name = "JMM";
-    dweb_deeplinks = listOf("dweb:install")
+    dweb_deeplinks = listOf("dweb://install")
     categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Hub_Service);
     icons = listOf(
       ImageResource(
         src = "file:///sys/icons/$mmid.svg", type = "image/svg+xml", purpose = "monochrome"
       )
     )
+
+    /// 提供JsMicroModule的文件适配器
+    /// 这个适配器不需要跟着bootstrap声明周期，只要存在JmmNMM模块，就能生效
+    nativeFetchAdaptersManager.append { fromMM, request ->
+      return@append request.respondLocalFile {
+        if (filePath.startsWith("/usr/")) {
+          debugJMM("UsrFile", "$fromMM => ${request.href}")
+          returnAndroidFile(
+            getAppContext().dataDir.absolutePath + File.separator + APP_DIR_TYPE.SystemApp.rootName + File.separator + fromMM.mmid,
+            filePath
+          )
+        } else returnNext()
+      }
+    }
   }
 
   enum class EIpcEvent(val event: String) {
@@ -76,9 +94,6 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
     return bootstrapContext.dns.query(mmid)
   }
 
-  val queryMetadataUrl = Query.string().required("url")
-  val queryMmid = Query.string().required("app_id")
-
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     installJmmApps()
 
@@ -86,41 +101,41 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
       jmmController = null
     }
 
-    val routeInstallHandler = defineResponse {
-      val metadataUrl = queryMetadataUrl(request)
+    val routeInstallHandler = definePureResponse {
+      val metadataUrl = request.queryOrFail("url")
       val response = nativeFetch(metadataUrl)
-      if (response.status == Status.OK) {
+      if (response.isOk()) {
         try {
-          val jmmAppInstallManifest = response.bodyJson<JmmAppInstallManifest>()
-          val url = URL(metadataUrl)
+          val jmmAppInstallManifest = response.json<JmmAppInstallManifest>()
+          val url = Url(metadataUrl)
           // 根据 jmmMetadata 打开一个应用信息的界面，用户阅读界面信息后，可以点击"安装"
           installJsMicroModule(jmmAppInstallManifest, ipc, url)
-          Response(Status.OK)
+          PureResponse(HttpStatusCode.OK)
         } catch (e: Throwable) {
-          Response(Status.EXPECTATION_FAILED).body(e.stackTraceToString())
+          PureResponse(HttpStatusCode.ExpectationFailed).body(e.stackTraceToString())
         }
       } else {
-        response // Response(Status.NO_CONTENT)
+        PureResponse(HttpStatusCode.ExpectationFailed).body("invalid status code: ${response.status}")
       }
     }
-    apiRouting = routes(
+    routes(
       // 安装
-      "install" bind Method.GET to routeInstallHandler,
-      "/install" bind Method.GET to routeInstallHandler,
-      "/uninstall" bind Method.GET to defineBooleanResponse { request ->
-        val mmid = queryMmid(request)
+      "install" bindDwebDeeplink routeInstallHandler,
+      "/install" bind HttpMethod.Get to routeInstallHandler,
+      "/uninstall" bind HttpMethod.Get to defineBooleanResponse {
+        val mmid = request.queryOrFail("app_id")
         debugJMM("uninstall", mmid)
         jmmMetadataUninstall(mmid)
         true
       },
-      "/closeApp" bind Method.GET to defineBooleanResponse { request ->
-        val mmid = queryMmid(request)
+      "/closeApp" bind HttpMethod.Get to defineBooleanResponse {
+        val mmid = request.queryOrFail("app_id")
         jmmController?.closeApp(mmid)
         true
       },
       // app详情
-      "/detailApp" bind Method.GET to defineBooleanResponse {
-        val mmid = queryMmid(request)
+      "/detailApp" bind HttpMethod.Get to defineBooleanResponse {
+        val mmid = request.queryOrFail("app_id")
         debugJMM("detailApp", mmid)
         val microModule = bootstrapContext.dns.query(mmid)
 
@@ -132,21 +147,21 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
           false
         }
       },
-      "/pause" bind Method.GET to defineBooleanResponse {
+      "/pause" bind HttpMethod.Get to defineBooleanResponse {
         BrowserUIApp.Instance.mBinderService?.invokeUpdateDownloadStatus(
           ipc.remote.mmid, DownLoadController.PAUSE
         )
         true
       },
       /**继续下载*/
-      "/resume" bind Method.GET to defineBooleanResponse {
+      "/resume" bind HttpMethod.Get to defineBooleanResponse {
         debugJMM("resume", ipc.remote.mmid)
         BrowserUIApp.Instance.mBinderService?.invokeUpdateDownloadStatus(
           ipc.remote.mmid, DownLoadController.RESUME
         )
         true
       },
-      "/cancel" bind Method.GET to defineBooleanResponse {
+      "/cancel" bind HttpMethod.Get to defineBooleanResponse {
         debugJMM("cancel", ipc.remote.mmid)
         BrowserUIApp.Instance.mBinderService?.invokeUpdateDownloadStatus(
           ipc.remote.mmid, DownLoadController.CANCEL
@@ -198,14 +213,16 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
   }
 
   private suspend fun installJsMicroModule(
-    jmmAppInstallManifest: JmmAppInstallManifest, ipc: Ipc, url: URL? = null,
+    jmmAppInstallManifest: JmmAppInstallManifest, ipc: Ipc, url: Url? = null,
   ) {
     jmmController?.closeSelf() // 如果存在的话，关闭先，同时可以考虑置空
     if (!jmmAppInstallManifest.bundle_url.startsWith("http")) {
       url?.let {
-        jmmAppInstallManifest.bundle_url = URL(
-          it, jmmAppInstallManifest.bundle_url
-        ).toString()
+        jmmAppInstallManifest.bundle_url =
+          URLBuilder(it).run {
+            resolvePath(jmmAppInstallManifest.bundle_url);
+            buildString()
+          }
       }
     }
     debugJMM("openJmmMetadataInstallPage", jmmAppInstallManifest.bundle_url)

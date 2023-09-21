@@ -1,5 +1,8 @@
 package org.dweb_browser.window.core.constant
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class WindowStyle(
   val topBarOverlay: Boolean? = null,
   val bottomBarOverlay: Boolean? = null,

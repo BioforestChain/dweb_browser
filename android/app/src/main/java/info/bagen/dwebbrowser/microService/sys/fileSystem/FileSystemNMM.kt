@@ -1,22 +1,23 @@
 package info.bagen.dwebbrowser.microService.sys.fileSystem
 
 import info.bagen.dwebbrowser.App
-import info.bagen.dwebbrowser.microService.sys.fileSystem.FileSystemController.Companion.controller
-import info.bagen.dwebbrowser.microService.sys.share.debugShare
-import org.dweb_browser.helper.printDebug
+import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.content.PartData
+import io.ktor.http.content.forEachPart
+import io.ktor.http.content.streamProvider
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import org.dweb_browser.helper.Debugger
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
-import org.dweb_browser.microservice.help.cors
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
-import org.http4k.core.Method
-import org.http4k.core.MultipartFormBody
-import org.http4k.core.Response
-import org.http4k.core.Status
-import org.http4k.routing.bind
-import org.http4k.routing.routes
+import org.dweb_browser.microservice.http.PureResponse
+import org.dweb_browser.microservice.http.PureStringBody
+import org.dweb_browser.microservice.http.bind
+import org.dweb_browser.microservice.http.receiveMultipart
 
-fun debugFileSystem(tag: String, msg: Any? = "", err: Throwable? = null) =
-  printDebug("FileSystem", tag, msg, err)
+val debugFileSystem = Debugger("FsNmm")
 
 class FileSystemNMM : NativeMicroModule("file.sys.dweb", "file") {
 
@@ -25,57 +26,74 @@ class FileSystemNMM : NativeMicroModule("file.sys.dweb", "file") {
   }
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-//    val qurey_path = Query.string().required("path")
-//    val qurey_directory = Query.string().required("directory")
-//    val qurey_optional_directory = Query.string().optional("directory")
-//    val qurey_data = Query.string().required("data")
-//    val query_recursive = Query.boolean().defaulted("recursive", false)
-    apiRouting = routes(
-      "/writeFile" bind Method.GET to defineHandler { request, ipc ->
-//        val path = qurey_path(request)
-//        val data = qurey_data(request)
-//        val recursive = query_recursive(request)
-//        val directory = qurey_optional_directory(request)
-//        plugin.fileSystemPlugin.Filesystem(MultiWebViewNMM.getCurrentWebViewController(ipc.remote.mmid)?.activity)
-//        return@defineHandler plugin.writeFile(path,directory,data,recursive)
+//        val qurey_path = Query.string().required("path")
+//        val qurey_directory = Query.string().required("directory")
+//        val qurey_optional_directory = Query.string().optional("directory")
+//        val qurey_data = Query.string().required("data")
+//        val query_recursive = Query.boolean().defaulted("recursive",false)
+    routes(
+      "/writeFile" bind HttpMethod.Get to defineEmptyResponse {
+//                val path = qurey_path(request)
+//                val data = qurey_data(request)
+//                val recursive = query_recursive(request)
+//                val directory = qurey_optional_directory(request)
+//                plugin.fileSystemPlugin.Filesystem(MultiWebViewNMM.getCurrentWebViewController(ipc.remote.mmid)?.activity)
+//            return@defineHandler plugin.writeFile(path,directory,data,recursive)
       },
-      "/getUri" bind Method.GET to defineHandler { request, ipc ->
-//        val path: String = qurey_path(request)
-//        val directory: String = qurey_directory(request)
-//        plugin.fileSystemPlugin.Filesystem(MultiWebViewNMM.getCurrentWebViewController(ipc.remote.mmid)?.activity)
-//        val fileObject: File = plugin.fileSystemPlugin.getFileObject(path, directory)
-//        return@defineHandler Uri.fromFile(fileObject).toString()
+      "/getUri" bind HttpMethod.Get to defineEmptyResponse {
+//                val path: String = qurey_path(request)
+//                val directory: String = qurey_directory(request)
+//                plugin.fileSystemPlugin.Filesystem(MultiWebViewNMM.getCurrentWebViewController(ipc.remote.mmid)?.activity)
+//                val fileObject: File = plugin.fileSystemPlugin.getFileObject(path, directory)
+//               return@defineHandler Uri.fromFile(fileObject).toString()
       },
       /** 流写入*/
-      "/writeSteam" bind Method.POST to defineHandler { request ->
+      "/writeSteam" bind HttpMethod.Post to defineEmptyResponse {
+
       },
       /** 删除*/
-      "/delete" bind Method.DELETE to defineHandler { request ->
+      "/delete" bind HttpMethod.Delete to defineEmptyResponse {
+
       },
-      "/mkdir" bind Method.GET to defineHandler { request ->
+
+      "/mkdir" bind HttpMethod.Get to defineEmptyResponse {
+
       },
-      "/rename" bind Method.GET to defineHandler { request ->
+      "/rename" bind HttpMethod.Get to defineEmptyResponse {
+
       },
-      "/savePictures" bind Method.GET to defineHandler { request, ipc ->
+      "/savePictures" bind HttpMethod.Post to definePureResponse {
         try {
-          openActivity()
-          if (controller.waitPermissionGrants()) {
-            val receivedForm = MultipartFormBody.from(request)
-            val fileByteArray = receivedForm.files("files")
-            // 写入到Pictures目录
-            fileByteArray.map { multipartFormFile ->
-              FileSystemPlugin.saveToPictureDirectory(
-                multipartFormFile.filename, multipartFormFile.content
-              )
+          if (requestPermissions()) {
+            val multiPartData = request.receiveMultipart()
+            val files = mutableListOf<String>()
+            multiPartData.forEachPart { partData ->
+              when (partData) {
+                is PartData.FileItem -> {
+                  partData.originalFileName?.also { filename ->
+                    val savedFilePath = FileSystemPlugin.saveToPictureDirectory(
+                      filename, partData.streamProvider(),
+                    )
+                    files.add(savedFilePath)
+                  }
+                }
+
+                else -> {}
+              }
+              partData.dispose()
             }
+            return@definePureResponse PureResponse(body = PureStringBody(Json.encodeToString(files)))
+
           } else {
-            return@defineHandler Response(Status.FORBIDDEN)
+            return@definePureResponse PureResponse(HttpStatusCode.Forbidden)
           }
         } catch (e: Exception) {
-          debugShare("share catch", "e===>$e")
-          return@defineHandler Response(Status.EXPECTATION_FAILED)
+          debugFileSystem("savePictures", "Error", e)
+          return@definePureResponse PureResponse(
+            HttpStatusCode.ExpectationFailed,
+            body = PureStringBody(e.message ?: e.stackTraceToString())
+          )
         }
-        return@defineHandler Response(Status.OK)
       }
     ).cors()
   }
@@ -84,9 +102,10 @@ class FileSystemNMM : NativeMicroModule("file.sys.dweb", "file") {
     TODO("Not yet implemented")
   }
 
-  private fun openActivity() {
+  private suspend fun requestPermissions(): Boolean {
     App.startActivity(FileSystemActivity::class.java) {
       // 有啥参数？好像没有
     }
+    return FileSystemController.controller.waitPermissionGrants()
   }
 }

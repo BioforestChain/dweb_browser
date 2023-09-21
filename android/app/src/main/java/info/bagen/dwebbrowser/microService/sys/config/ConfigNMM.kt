@@ -1,30 +1,27 @@
 package info.bagen.dwebbrowser.microService.sys.config
 
+import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
 import org.dweb_browser.browserUI.microService.browser.web.debugBrowser
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
-import org.http4k.core.Method
-import org.http4k.core.Response
-import org.http4k.core.Status
-import org.http4k.lens.Query
-import org.http4k.lens.string
-import org.http4k.routing.bind
-import org.http4k.routing.routes
+import org.dweb_browser.microservice.http.PureResponse
+import org.dweb_browser.microservice.http.PureStringBody
+import org.dweb_browser.microservice.http.bind
 
-class ConfigNMM : NativeMicroModule("config.sys.dweb", "Device Info") {
-  val queryLang = Query.string().required("lang")
+class ConfigNMM: NativeMicroModule("config.sys.dweb", "Device Info")  {
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    apiRouting = routes(
-      "/setLang" bind Method.GET to defineHandler { request, ipc ->
-        debugBrowser("ConfigNMM setLang", request.uri)
-        val lang = queryLang(request)
-        ConfigStore.set("${ConfigStore.Config}.${ipc.remote.mmid}", lang)
-        return@defineHandler true
+    routes(
+      "/setLang" bind HttpMethod.Get to defineBooleanResponse {
+        debugBrowser("ConfigNMM setLang", request.href)
+        val lang = request.queryOrFail("lang")
+        ConfigStore.set("${ConfigStore.Config}.${ipc.remote.mmid}",lang)
+        return@defineBooleanResponse true
       },
-      "/getLang" bind Method.GET to defineHandler { request, ipc ->
-        debugBrowser("getLang", request.uri)
+      "/getLang" bind HttpMethod.Get to definePureResponse {
+        debugBrowser("getLang", request.href)
         val lang = ConfigStore.get("${ConfigStore.Config}.${ipc.remote.mmid}")
-        return@defineHandler Response(Status.OK).body(lang)
+        return@definePureResponse PureResponse(HttpStatusCode.OK, body = PureStringBody(lang))
       }
     )
   }

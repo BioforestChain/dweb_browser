@@ -15,7 +15,7 @@ public class WebBrowserNMM : IOSNativeMicroModule
     {
     }
 
-    public override List<Dweb_DeepLink> Dweb_deeplinks { get; init; } = new() { "dweb:search" };
+    public override List<Dweb_DeepLink> Dweb_deeplinks { get; init; } = new() { "dweb://search" };
     public override List<MicroModuleCategory> Categories { get; init; } = new()
     {
         MicroModuleCategory.Application,

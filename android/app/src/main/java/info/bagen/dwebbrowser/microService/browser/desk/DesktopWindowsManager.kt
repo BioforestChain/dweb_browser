@@ -13,7 +13,7 @@ class DesktopWindowsManager(val viewController: PlatformViewController) :
 
   companion object {
     private val instances = WeakHashMap<DesktopActivity, DesktopWindowsManager>()
-    fun getInstance(
+    fun getOrPutInstance(
       activity: DesktopActivity, onPut: (wm: DesktopWindowsManager) -> Unit
     ): DesktopWindowsManager = instances.getOrPut(activity) {
       DesktopWindowsManager(PlatformViewController(activity)).also { dwm ->

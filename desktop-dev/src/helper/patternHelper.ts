@@ -30,7 +30,7 @@ export const fetchMatch = () => {
       return this;
     },
     deeplink(pathname: $PatternPathname, callback: $OnFetch) {
-      withList.push([{ url: { protocol: "dweb:" }, pathname }, callback]);
+      withList.push([{ url: { protocol: "dweb:" }, pathname: "//" + pathname }, callback]);
       return this;
     },
     duplex(pathname: $PatternPathname, callback: $OnFetch) {

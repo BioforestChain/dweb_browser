@@ -19,6 +19,11 @@ import androidx.lifecycle.viewModelScope
 import com.google.accompanist.web.WebContent
 import com.google.accompanist.web.WebViewNavigator
 import com.google.accompanist.web.WebViewState
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.URLBuilder
+import io.ktor.http.Url
+import io.ktor.http.encodedPath
+import io.ktor.http.path
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -42,6 +47,7 @@ import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.dwebview.base.DWebViewItem
 import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
+import org.dweb_browser.helper.buildUnsafeString
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.runBlockingCatching
@@ -49,7 +55,6 @@ import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.dweb_browser.microservice.sys.http.HttpDwebServer
-import org.http4k.core.query
 import java.util.concurrent.atomic.AtomicInteger
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -160,9 +165,10 @@ class BrowserViewModel(
     }
   }
 
-  private fun getDesktopUrl() =
-    browserServer.startResult.urlInfo.buildInternalUrl().path("/index.html")
-      .query("api-base", browserServer.startResult.urlInfo.buildPublicUrl().toString())
+  private fun getDesktopUrl() = browserServer.startResult.urlInfo.buildInternalUrl().build {
+    resolvePath("/index.html")
+    parameters["api-base"] = browserServer.startResult.urlInfo.buildPublicUrl().toString()
+  }
 
   fun getNewTabBrowserView(url: String? = null): BrowserWebView {
     val (viewItem, closeWatcher) = appendWebViewAsItem(createDwebView())
@@ -242,8 +248,7 @@ class BrowserViewModel(
             return@launch
           } else {
             uiState.currentBrowserBaseView.value?.viewItem?.apply {
-              state.content = WebContent.Url(
-                url = action.url,
+              state.content = WebContent.Url(url = action.url,
                 additionalHttpHeaders = hashMapOf<String, String>().also { map ->
                   map["temp"] = System.currentTimeMillis().toString()
                 } // 添加不同的 header 信息，会让WebView判定即使同一个url，也做新url处理
@@ -323,8 +328,7 @@ class BrowserViewModel(
           uiState.inputText.value = action.text
         }
 
-        is BrowserIntent.ShowSnackbarMessage -> {
-          /*withContext(mainAsyncExceptionHandler) {
+        is BrowserIntent.ShowSnackbarMessage -> {/*withContext(mainAsyncExceptionHandler) {
             uiState.bottomSheetScaffoldState.snackbarHostState.showSnackbar(
               action.message, action.actionLabel
             )
@@ -493,4 +497,35 @@ internal fun String.isSystemUrl(): Boolean {
   return this.startsWith("file:///android_asset") || this.startsWith("chrome://") || this.startsWith(
     "about:"
   ) || this.startsWith("https://web.browser.dweb")
+}
+
+fun Url.build(block: URLBuilder.() -> Unit) = URLBuilder(this).run { block(); build() }
+
+/**
+ * 参考 [URLBuilder.encodedPath]
+ */
+fun URLBuilder.resolvePath(path: String) {
+  if (path.isBlank()) {
+    return
+  }
+  if (path.startsWith("/")) {
+    encodedPath = path
+    return
+  }
+  val basePathSegments =
+    if (!path.endsWith("/")) pathSegments.toMutableList() else pathSegments.toMutableList()
+      .also { it.removeLastOrNull() }
+
+  val toPathSegments = path.split("/").toMutableList()
+  for (part in toPathSegments.toList()) {
+    if (part == ".") {
+      toPathSegments.remove(part)
+    } else if (part == "..") {
+      toPathSegments.remove(part)
+      basePathSegments.removeLastOrNull()
+    } else {
+      break
+    }
+  }
+  pathSegments = basePathSegments + basePathSegments
 }

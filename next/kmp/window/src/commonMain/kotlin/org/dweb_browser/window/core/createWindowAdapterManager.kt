@@ -1,6 +1,12 @@
 package org.dweb_browser.window.core
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.microservice.help.AdapterManager
@@ -16,6 +22,21 @@ typealias WindowRenderProvider = @Composable WindowRenderScope.(modifier: Modifi
  */
 class CreateWindowAdapterManager : AdapterManager<CreateWindowAdapter>() {
   val renderProviders = ChangeableMap<UUID, WindowRenderProvider>()
+
+  @Composable
+  fun rememberRender(wid: UUID): WindowRenderProvider? {
+    var render by remember(wid) { mutableStateOf< WindowRenderProvider?>(null); }
+    DisposableEffect(wid) {
+      val off = createWindowAdapterManager.renderProviders.onChange {
+        render = it.origin[wid]
+      }
+      render = createWindowAdapterManager.renderProviders[wid]
+      onDispose {
+        off()
+      }
+    }
+    return render
+  }
 
   suspend fun createWindow(winState: WindowState): WindowController {
     for (adapter in adapters) {

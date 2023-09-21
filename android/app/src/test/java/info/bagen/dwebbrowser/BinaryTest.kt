@@ -1,6 +1,6 @@
 package info.bagen.dwebbrowser
 
-import org.dweb_browser.helper.toByteArray
+import org.dweb_browser.helper.toLittleEndianByteArray
 import org.dweb_browser.helper.toInt
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -9,8 +9,8 @@ class BinaryTest {
   @Test
   fun testInt2ByteArray() {
     for (num in 0..10000) {
-      val arr1 = num.toByteArray()
-      val arr2 = num.toByteArray()
+      val arr1 = num.toLittleEndianByteArray()
+      val arr2 = num.toLittleEndianByteArray()
       val num1 = arr1.toInt()
       val num2 = arr2.toInt()
       assertEquals(num, num1, "fail at num1 $num")

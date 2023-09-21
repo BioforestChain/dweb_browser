@@ -2,15 +2,11 @@ package info.bagen.dwebbrowser.microService.sys.toast
 
 import info.bagen.dwebbrowser.microService.sys.toast.ToastController.DurationType
 import info.bagen.dwebbrowser.microService.sys.toast.ToastController.PositionType
+import io.ktor.http.HttpMethod
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
-import org.dweb_browser.microservice.help.cors
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
-import org.http4k.core.Method
-import org.http4k.lens.Query
-import org.http4k.lens.string
-import org.http4k.routing.bind
-import org.http4k.routing.routes
+import org.dweb_browser.microservice.http.bind
 
 class ToastNMM : NativeMicroModule("toast.sys.dweb", "toast") {
 
@@ -19,12 +15,12 @@ class ToastNMM : NativeMicroModule("toast.sys.dweb", "toast") {
   }
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    apiRouting = routes(
+    routes(
       /** 显示弹框*/
-      "/show" bind Method.GET to defineHandler { request ->
-        val duration = Query.string().defaulted("duration", EToast.Short.type)(request)
-        val message = Query.string().required("message")(request)
-        val position = Query.string().defaulted("position", PositionType.BOTTOM.position)(request)
+      "/show" bind HttpMethod.Get to defineBooleanResponse {
+        val duration = request.query("duration") ?: EToast.Short.type
+        val message = request.queryOrFail("message")
+        val position = request.query("position") ?: PositionType.BOTTOM.position
         val durationType = when (duration) {
           EToast.Long.type -> DurationType.LONG
           else -> DurationType.SHORT
@@ -35,7 +31,7 @@ class ToastNMM : NativeMicroModule("toast.sys.dweb", "toast") {
           else -> PositionType.TOP
         }
         ToastController.show(message, durationType, positionType)
-        return@defineHandler true
+        return@defineBooleanResponse true
       },
     ).cors()
   }
@@ -46,6 +42,5 @@ class ToastNMM : NativeMicroModule("toast.sys.dweb", "toast") {
 }
 
 enum class EToast(val type: String) {
-  Long("long"),
-  Short("short")
+  Long("long"), Short("short")
 }

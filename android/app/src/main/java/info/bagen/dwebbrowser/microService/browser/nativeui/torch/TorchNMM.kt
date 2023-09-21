@@ -1,12 +1,10 @@
 package info.bagen.dwebbrowser.microService.browser.nativeui.torch
 
+import io.ktor.http.HttpMethod
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
-import org.dweb_browser.microservice.help.cors
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
-import org.http4k.core.Method
-import org.http4k.routing.bind
-import org.http4k.routing.routes
+import org.dweb_browser.microservice.http.bind
 
 class TorchNMM : NativeMicroModule("torch.nativeui.browser.dweb", "torch") {
 
@@ -16,16 +14,14 @@ class TorchNMM : NativeMicroModule("torch.nativeui.browser.dweb", "torch") {
   }
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    apiRouting = routes(
+    routes(
       // 打开关闭手电筒
-      "/toggleTorch" bind Method.GET to defineHandler { request ->
+      "/toggleTorch" bind HttpMethod.Get to defineBooleanResponse {
         toggleTorch()
-        return@defineHandler true
-      },
-      "/torchState" bind Method.GET to defineHandler { request ->
-        return@defineHandler torchState()
-      }
-    ).cors()
+        return@defineBooleanResponse true
+      }, "/torchState" bind HttpMethod.Get to defineBooleanResponse {
+        return@defineBooleanResponse torchState()
+      }).cors()
   }
 
   private fun toggleTorch() {

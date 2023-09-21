@@ -15,7 +15,8 @@ abstract class AndroidNativeMicroModule(manifest: MicroModuleManifest) :
   )
 
   companion object {
-    //  管理所有的activity
+
+    // 管理所有的activity
     private val activity: BaseActivity? = null
     lateinit var appContext: Context
   }

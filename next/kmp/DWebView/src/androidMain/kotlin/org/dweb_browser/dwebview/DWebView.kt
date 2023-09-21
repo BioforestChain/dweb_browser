@@ -18,6 +18,9 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
+import io.ktor.http.ContentType
+import io.ktor.http.charset
+import io.ktor.utils.io.jvm.javaio.toInputStream
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
@@ -38,10 +41,10 @@ import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.microservice.core.MicroModule
+import org.dweb_browser.microservice.http.PureRequest
+import org.dweb_browser.microservice.ipc.helper.IpcHeaders
+import org.dweb_browser.microservice.ipc.helper.IpcMethod
 import org.dweb_browser.microservice.sys.dns.nativeFetch
-import org.http4k.core.Method
-import org.http4k.core.Request
-import org.http4k.lens.Header
 import java.io.ByteArrayInputStream
 import java.io.File
 
@@ -241,26 +244,24 @@ class DWebView(
       if (request.method == "GET" && ((request.url.host?.endsWith(".dweb") == true) || (request.url.scheme == "dweb"))) {
         val response = runBlockingCatching(ioAsyncExceptionHandler) {
           remoteMM.nativeFetch(
-            Request(
-              Method.GET, request.url.toString()
-            ).headers(request.requestHeaders.toList())
+            PureRequest(request.url.toString(), IpcMethod.GET, IpcHeaders(request.requestHeaders))
           )
         }.getOrThrow()
 
-        val contentType = Header.CONTENT_TYPE(response)
-        val body = ByteArrayInputStream(response.body.payload.array())
+        val contentType = (response.headers.get("Content-Type") ?: "").split(';', limit = 2)
+
         debugDWebView("dwebProxyer end", request.url)
-        val statusCode = response.status.code
+        val statusCode = response.status.value
         if (statusCode in 301..399) {
           return super.shouldInterceptRequest(view, request)
         }
         return WebResourceResponse(
-          contentType?.value,
-          contentType?.directives?.find { it.first == "charset" }?.second,
-          response.status.code,
+          contentType.firstOrNull(),
+          contentType.lastOrNull(),
+          response.status.value,
           response.status.description,
           response.headers.toMap(),
-          body,
+          response.body.toPureStream().getReader("dwebview shouldInterceptRequest").toInputStream(),
         )
       }
       return super.shouldInterceptRequest(view, request)

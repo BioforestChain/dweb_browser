@@ -25,7 +25,8 @@ class DeepLinkActivity : BaseThemeActivity() {
     lifecycleScope.launch {
       intent.dataString?.let { uri ->
         Regex("dweb:.+").matchEntire(uri)?.groupValues?.get(0)?.let { dweb_uri ->
-          App.startMicroModuleProcess().nativeFetch(dweb_uri)
+          val dnsNMM = App.startMicroModuleProcess().waitPromise();
+          dnsNMM.nativeFetch(dweb_uri)
         }
       }
       finish()

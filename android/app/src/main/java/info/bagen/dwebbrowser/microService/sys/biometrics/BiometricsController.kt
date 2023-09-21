@@ -1,8 +1,8 @@
 package info.bagen.dwebbrowser.microService.sys.biometrics
 
 
+import kotlinx.serialization.Serializable
 import org.dweb_browser.helper.PromiseOut
-import java.io.Serializable
 
 class BiometricsController {
   companion object {
@@ -42,10 +42,11 @@ class BiometricsController {
 //        }
 }
 
+@Serializable
 data class BiometricsData(
   val title: String?,
   val subtitle: String?,
   val description: String?,
   val useFallback: Boolean?,
   val negativeButtonText: String?,
-) : Serializable
+) : java.io.Serializable

@@ -15,7 +15,7 @@ import org.http4k.lens.Query
 import org.http4k.lens.string
 
 fun main() {
-  val stream = ReadableStream(onStart = { controller ->
+  val stream = ReadableStream { controller ->
     MainScope().launch {
       var i = 5
       while (i-- > 0) {
@@ -24,9 +24,9 @@ fun main() {
       }
       controller.close()
     }
-  });
+  }
 
-  val req = Request(Method.POST, Uri.of("/listen").query("data", "xxxi")).body(stream)
+  val req = Request(Method.POST, Uri.of("/listen").query("data", "xxxi")).body(stream.stream)
 
   val query_data = Query.string().required("data")
 

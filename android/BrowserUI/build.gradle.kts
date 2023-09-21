@@ -98,4 +98,5 @@ dependencies {
   implementation(project(":DWebView"))
   implementation(project(":microService"))
   implementation(project(":helperPlatform"))
+  implementation(project(":helperCompose"))
 }

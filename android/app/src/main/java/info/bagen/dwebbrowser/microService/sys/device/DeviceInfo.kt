@@ -13,9 +13,12 @@ import info.bagen.dwebbrowser.microService.sys.device.model.BatteryInfo
 import info.bagen.dwebbrowser.microService.sys.device.model.MemoryData
 import info.bagen.dwebbrowser.microService.sys.device.model.MemoryInfo
 import info.bagen.dwebbrowser.microService.sys.device.model.StorageSize
-import org.dweb_browser.microservice.help.gson
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 
+@Serializable
 data class DeviceData(
   var deviceName: String = "", // 设备名称
   var deviceMode: String = "", // 设备型号
@@ -42,7 +45,7 @@ class DeviceInfo {
   }
 
   fun getDeviceInfo(): String {
-    return gson.toJson(deviceData)
+    return Json.encodeToString(deviceData)
   }
 
   fun getMemory(): String {
@@ -50,7 +53,7 @@ class DeviceInfo {
   }
 
   fun getStorage(): String {
-    return gson.toJson(deviceData.storage)
+    return Json.encodeToString(deviceData.storage)
   }
 
 

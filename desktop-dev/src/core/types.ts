@@ -42,11 +42,11 @@ export interface $MicroModuleManifest extends RequiredByKey<Omit<$CommonAppManif
   readonly ipc_support_protocols: $IpcSupportProtocols;
   /**
    * 匹配的“DWEB深层链接”
-   * 取代明确的 mmid，dweb-deeplinks 可以用来表征一种特性、一种共识，它必须是 'dweb:{domain}[/pathname[/pathname...]]' 的格式规范
+   * 取代明确的 mmid，dweb-deeplinks 可以用来表征一种特性、一种共识，它必须是 'dweb://{domain}[/pathname[/pathname...]]' 的格式规范
    * 为了交付给用户清晰的可管理的模式，这里的 deeplink 仅仅允许精确的前缀匹配，因此我们通常会规范它的动作层级依次精确
    *
-   * 比如说：'dweb:mailto'，那么在面对 'dweb:mailto?address=someone@mail.com&title=xxx' 的链接时，该链接会被打包成一个 IpcRequest 消息传输过来
-   * 比如说：'dweb:open/file/image'，那么就会匹配这样的链接 'dweb:open/file/image/svg?uri=file:///example.svg'
+   * 比如说：'dweb://mailto'，那么在面对 'dweb://mailto?address=someone@mail.com&title=xxx' 的链接时，该链接会被打包成一个 IpcRequest 消息传输过来
+   * 比如说：'dweb://open/file/image'，那么就会匹配这样的链接 'dweb://open/file/image/svg?uri=file:///example.svg'
    *
    * dweb_deeplinks 由 dns 模块进行统一管理，也由它提供相关的管理界面、控制策略
    */

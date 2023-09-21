@@ -5,16 +5,14 @@ import android.graphics.Point
 import android.graphics.Rect
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
+import io.ktor.http.HttpMethod
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.printDebug
+import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
-import org.http4k.core.Method
-import org.http4k.lens.Query
-import org.http4k.lens.int
-import org.http4k.routing.bind
-import org.http4k.routing.routes
+import org.dweb_browser.microservice.http.bind
 
 fun debugScanning(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("Scanning", tag, msg, err)
@@ -26,25 +24,22 @@ class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb", "Barcode Scan
   }
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    val query_rotationDegrees = Query.int().defaulted("rotation", 0)
-
-    apiRouting = routes(
+    routes(
       // 处理二维码图像
-      "/process" bind Method.POST to defineHandler { request, ipc ->
+      "/process" bind HttpMethod.Post to defineJsonResponse {
         debugScanning(
           "process",
-          " ${query_rotationDegrees(request)} ${request.body.length}"
+          " ${request.query("rotation")?.toInt() ?: 0} ${request.body.contentLength}"
         )
         val image = InputImage.fromBitmap(
-          request.body.payload.let { buff ->
-            val byteArray = buff.array()
+          request.body.toPureBinary().let { byteArray ->
             BitmapFactory.decodeByteArray(
               byteArray,
               0,
               byteArray.size
             )
           },
-          query_rotationDegrees(request)
+          request.query("rotation")?.toInt() ?: 0
         )
         val result = mutableListOf<String>()
         process(image).forEach {
@@ -54,12 +49,12 @@ class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb", "Barcode Scan
           "process",
           "result=> $result"
         )
-        return@defineHandler result
+        return@defineJsonResponse result.toJsonElement()
       },
       // 停止处理
-      "/stop" bind Method.GET to defineHandler { request ->
+      "/stop" bind HttpMethod.Get to defineBooleanResponse {
         stop()
-        return@defineHandler true
+        return@defineBooleanResponse true
       }
     )
   }

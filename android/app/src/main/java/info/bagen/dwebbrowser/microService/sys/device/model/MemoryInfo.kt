@@ -3,10 +3,13 @@ package info.bagen.dwebbrowser.microService.sys.device.model
 import android.os.Build
 import android.os.Environment
 import android.os.StatFs
-import org.dweb_browser.microservice.help.gson
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import java.io.IOException
 import java.io.RandomAccessFile
 
+@Serializable
 data class MemoryData(
   var total: String = "",
   var usage: String = "",
@@ -14,6 +17,7 @@ data class MemoryData(
   var buffers: String = ""
 )
 
+@Serializable
 data class StorageSize(
   var hasExternalSDCard: Boolean = false,
   var internalTotalSize: String = "",
@@ -31,11 +35,11 @@ data class StorageSize(
 class MemoryInfo {
 
   fun getMemoryInfo(): String {
-    return gson.toJson(memoryData)
+    return Json.encodeToString(memoryData)
   }
 
   fun getStorageInfo(): String {
-    return gson.toJson(storageSize)
+    return Json.encodeToString(storageSize)
   }
 
   val storageSize: StorageSize

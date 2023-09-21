@@ -8,22 +8,23 @@ import info.bagen.dwebbrowser.microService.browser.jsProcess.JsProcessNMM
 import info.bagen.dwebbrowser.microService.browser.mwebview.MultiWebViewNMM
 import info.bagen.dwebbrowser.microService.browser.nativeui.NativeUiNMM
 import info.bagen.dwebbrowser.microService.browser.nativeui.torch.TorchNMM
-import info.bagen.dwebbrowser.microService.sys.LocalFileFetch
 import info.bagen.dwebbrowser.microService.sys.biometrics.BiometricsNMM
 import info.bagen.dwebbrowser.microService.sys.clipboard.ClipboardNMM
 import info.bagen.dwebbrowser.microService.sys.config.ConfigNMM
 import info.bagen.dwebbrowser.microService.sys.device.DeviceNMM
 import info.bagen.dwebbrowser.microService.sys.haptics.HapticsNMM
+import info.bagen.dwebbrowser.microService.sys.installNativeFetchSysFile
 import info.bagen.dwebbrowser.microService.sys.notification.NotificationNMM
 import info.bagen.dwebbrowser.microService.sys.share.ShareNMM
 import info.bagen.dwebbrowser.microService.sys.toast.ToastNMM
 import info.bagen.dwebbrowser.microService.sys.window.WindowNMM
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.cache.HttpCache
 import io.ktor.client.plugins.cache.storage.FileStorage
 import org.dweb_browser.browserUI.microService.browser.web.BrowserNMM
 import org.dweb_browser.helper.addDebugTags
+import org.dweb_browser.helper.platform.getKtorClientEngine
 import org.dweb_browser.microservice.sys.boot.BootNMM
 import org.dweb_browser.microservice.sys.dns.DnsNMM
 import org.dweb_browser.microservice.sys.dns.nativeFetchAdaptersManager
@@ -50,30 +51,19 @@ suspend fun startDwebBrowser(): DnsNMM {
   "SplashScreen",
   "js-process",
   "desk",
+  "JsMM",
+  "http",
    */
   when (DEVELOPER.CURRENT) {
-    DEVELOPER.GAUBEE -> addDebugTags(
+    DEVELOPER.GAUBEE, DEVELOPER.WaterbangXiaoMi -> addDebugTags(
       listOf<String>(
-        "JsMM",
-        "http",
         "/.+/",
-//        "fetch",
-//        "message-port-ipc"
       )
     )
 
     DEVELOPER.HuangLin, DEVELOPER.HLVirtual, DEVELOPER.HLOppo, DEVELOPER.HBXiaomi, DEVELOPER.ZGSansung -> addDebugTags(
       listOf(
-        "fetch",
-        "http",
-        "mwebview",
-        "fetch-file",
-        "js-process",
-        "browser",
-        "desk",
-        "JMM",
-        "window",
-        "dwebview"
+        "fetch", "http", "mwebview", "fetch-file", "js-process", "browser", "desk", "JMM", "window"
       )
     )
 
@@ -94,7 +84,8 @@ suspend fun startDwebBrowser(): DnsNMM {
 
     DEVELOPER.Kingsword09, DEVELOPER.KVirtual -> addDebugTags(
       listOf(
-        "desk"
+        "desk",
+        "/.+/",
       )
     )
 
@@ -103,7 +94,9 @@ suspend fun startDwebBrowser(): DnsNMM {
     )
   }
 
-  LocalFileFetch.INSTANCE // 注入 localFileFetch
+  /// 安装文件请求服务
+  installNativeFetchSysFile()
+  /// 初始化DNS服务
   val dnsNMM = DnsNMM()
 
   /// 安装系统应用
@@ -112,10 +105,14 @@ suspend fun startDwebBrowser(): DnsNMM {
   val httpNMM = HttpNMM().also {
     dnsNMM.install(it)
     /// 自定义 httpClient 的缓存
-    HttpClient(CIO) {
+    HttpClient(getKtorClientEngine()) {
       install(HttpCache) {
         val cacheFile = File(App.appContext.cacheDir, "http-fetch.cache")
         publicStorage(FileStorage(cacheFile))
+      }
+      install(HttpTimeout) {
+        requestTimeoutMillis = 5000L
+        connectTimeoutMillis = 5000L
       }
     }.also { client ->
       nativeFetchAdaptersManager.setClientProvider(client)

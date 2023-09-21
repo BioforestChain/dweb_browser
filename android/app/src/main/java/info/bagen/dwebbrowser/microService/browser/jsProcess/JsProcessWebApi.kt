@@ -4,10 +4,12 @@ import android.net.Uri
 import android.webkit.WebMessage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.dwebview.ipcWeb.MessagePortIpc
 import org.dweb_browser.dwebview.ipcWeb.saveNative2JsIpcPort
-import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.help.types.IMicroModuleManifest
 import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.ipc.helper.IPC_ROLE
@@ -17,6 +19,7 @@ class JsProcessWebApi(val dWebView: DWebView) {
   suspend fun isReady() =
     dWebView.evaluateSyncJavascriptCode("typeof createProcess") == "function"
 
+  @Serializable
   data class ProcessInfo(val process_id: Int) {}
   inner class ProcessHandler(val info: ProcessInfo, var ipc: MessagePortIpc)
 
@@ -35,8 +38,8 @@ class JsProcessWebApi(val dWebView: DWebView) {
     val channel = dWebView.createWebMessageChannel()
     val port1 = channel[0]
     val port2 = channel[1]
-    val metadata_json_str = gson.toJson(metadata_json)
-    val env_json_str = gson.toJson(env_json)
+    val metadata_json_str = Json.encodeToString(metadata_json)
+    val env_json_str = Json.encodeToString(env_json)
 
     val hid = hidAcc.addAndGet(1);
     val processInfo_json = dWebView.evaluateAsyncJavascriptCode("""
@@ -63,7 +66,7 @@ class JsProcessWebApi(val dWebView: DWebView) {
       }
     })
     debugJsProcess("processInfo", processInfo_json)
-    val info = gson.fromJson(processInfo_json, ProcessInfo::class.java)
+    val info = Json.decodeFromString<ProcessInfo>(processInfo_json)
     val ipc = MessagePortIpc.from(port2, remoteModule, IPC_ROLE.CLIENT)
     ProcessHandler(info, ipc)
   }

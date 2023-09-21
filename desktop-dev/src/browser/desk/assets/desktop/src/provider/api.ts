@@ -68,7 +68,7 @@ export async function detailApp(id: string) {
 
 export async function openBrowser(url: string) {
   const xhr = new XMLHttpRequest();
-  xhr.open("GET", `dweb:openinbrowser?url=${url}`);
+  xhr.open("GET", `dweb://openinbrowser?url=${url}`);
   xhr.send();
 }
 

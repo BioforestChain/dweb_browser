@@ -79,7 +79,7 @@ export class DnsNMM extends NativeMicroModule {
   mmid = "dns.std.dweb" as const;
   name = "Dweb Name System";
   override short_name = "DNS";
-  override dweb_deeplinks = ["dweb:open"] as $DWEB_DEEPLINK[];
+  override dweb_deeplinks = ["dweb://open"] as $DWEB_DEEPLINK[];
   override categories = [MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Routing_Service];
   private installApps = new ChangeableMap<$MMID, MicroModule>();
   readonly running_apps = new ChangeableMap<$MMID, Promise<MicroModule>>();
@@ -156,6 +156,11 @@ export class DnsNMM extends NativeMicroModule {
       app_id: zq.mmid(),
     });
     const onFetchHanlder = fetchMatch()
+      .deeplink("open", async (event) => {
+        const app_id = event.url.pathname.replace("open/", "");
+        await this.open(app_id as $MMID);
+        return Response.json(true);
+      })
       .get("/open", async (event) => {
         const { app_id } = query_appId(event.searchParams);
         await this.open(app_id);
@@ -199,11 +204,6 @@ export class DnsNMM extends NativeMicroModule {
           responseBody.controller.close();
         });
         return { body: responseBody.stream };
-      })
-      .deeplink("open", async (event) => {
-        const app_id = event.url.pathname.replace("open/", "");
-        await this.open(app_id as $MMID);
-        return Response.json(true);
       });
     this.onFetch((event) => onFetchHanlder.run(event)).internalServerError();
 

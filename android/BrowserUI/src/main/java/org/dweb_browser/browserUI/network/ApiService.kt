@@ -1,5 +1,6 @@
 package org.dweb_browser.browserUI.network
 
+import org.dweb_browser.microservice.sys.dns.NativeFetchAdaptersManager
 import java.io.File
 
 interface ApiService {
@@ -26,7 +27,7 @@ interface ApiService {
 
   companion object {
     val instance by lazy(mode = LazyThreadSafetyMode.SYNCHRONIZED) {
-      ApiServiceImpl(HttpClient())
+      ApiServiceImpl()
     }
   }
 }
