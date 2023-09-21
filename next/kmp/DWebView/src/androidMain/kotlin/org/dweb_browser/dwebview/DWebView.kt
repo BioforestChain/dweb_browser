@@ -3,7 +3,9 @@ package org.dweb_browser.dwebview
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.graphics.Canvas
+import android.os.Build
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.JsResult
@@ -23,6 +25,8 @@ import kotlinx.coroutines.plus
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import org.dweb_browser.dwebview.base.isSchemeAppInstalled
+import org.dweb_browser.dwebview.base.isWebUrlScheme
 import org.dweb_browser.helper.Callback
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.Signal
@@ -40,6 +44,7 @@ import org.http4k.core.Request
 import org.http4k.lens.Header
 import java.io.ByteArrayInputStream
 import java.io.File
+
 
 fun debugDWebView(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("dwebview", tag, msg, err)
@@ -210,6 +215,25 @@ class DWebView(
     }
   }
   private val internalWebViewClient = object : WebViewClient() {
+    override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
+      if (!isWebUrlScheme(request.url.scheme ?: "http")) {
+        /// TODO 显示询问对话框
+        try {
+          val ins = Intent(Intent.ACTION_VIEW, request.url).also {
+            it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+              it.addFlags(Intent.FLAG_ACTIVITY_REQUIRE_NON_BROWSER)
+            }
+          }
+          context.packageManager.queryIntentActivities(ins, 0)
+          context.startActivity(ins)
+        } catch (_: Exception) {
+        }
+        return true
+      }
+      return super.shouldOverrideUrlLoading(view, request)
+    }
+
     override fun shouldInterceptRequest(
       view: WebView, request: WebResourceRequest
     ): WebResourceResponse? {
