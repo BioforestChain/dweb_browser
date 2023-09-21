@@ -18,7 +18,7 @@ const readPackageJson = () => {
 
 /// before build
 Deno.copyFileSync(resolveTo(".npmrc"), resolveTo("electron/.npmrc"));
-const ID = "org.dweb-browser.devtools";
+const ID = "com.instinct.macApp1st";
 const productName = "Dweb Browser";
 /// do build
 await dnt.build({
@@ -86,6 +86,7 @@ await dnt.build({
           target: "default",
           arch: ["x64", "arm64"],
         },
+        provisioningProfile: "scripts/macApp1st_prov.provisionprofile"
       },
       win: {
         icon:"./icons/win/icon.ico",
@@ -100,7 +101,7 @@ await dnt.build({
   packageManager: "yarn",
   postBuild() {
     /// STEP1:
-    Deno.copyFileSync(resolveTo("logo.svg"), resolveTo("electron/logo.svg"));
+    Deno.copyFileSync(resolveTo("logo.png"), resolveTo("electron/logo.png"));
 
     /// STEP2: 强行进行源码映射
     type $SourceMap = {

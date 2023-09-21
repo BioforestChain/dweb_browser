@@ -19,7 +19,7 @@ build/
 android/app/src/main/assets/plaoc-demo/
 
 # desktop
-
+*.provisionprofile
 
 # node/deno/typescript
 node_modules/
