@@ -149,6 +149,7 @@ class BrowserViewModel(
       handleIntent(BrowserIntent.AddNewMainView(search ?: url))
     } else {
       withContext(mainAsyncExceptionHandler) {
+        dwebLinkSearch.value = search ?: url ?: ""
         if (uiState.browserViewList.isEmpty()) {
           val item = getNewTabBrowserView()
           uiState.browserViewList.add(item)
