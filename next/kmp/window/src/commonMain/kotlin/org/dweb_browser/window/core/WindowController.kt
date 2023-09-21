@@ -225,9 +225,11 @@ abstract class WindowController(
 
   @Composable
   fun GoBackHandler(enabled: Boolean = true, onBack: () -> Unit) {
+    state.canGoBack = enabled
     DisposableEffect(this, enabled) {
       val off = goBackSignal.listen { if (enabled) onBack() }
       onDispose {
+        state.canGoBack = null
         off()
       }
     }
@@ -245,9 +247,11 @@ abstract class WindowController(
 
   @Composable
   fun GoForwardHandler(enabled: Boolean = true, onForward: () -> Unit) {
+    state.canGoForward = enabled
     DisposableEffect(this, enabled) {
       val off = goForwardSignal.listen { if (enabled) onForward() }
       onDispose {
+        state.canGoForward = null
         off()
       }
     }

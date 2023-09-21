@@ -12,11 +12,17 @@ import info.bagen.dwebbrowser.microService.browser.jmm.render.MALLBrowserView
 import info.bagen.dwebbrowser.microService.browser.jmm.ui.LocalJmmViewHelper
 import kotlinx.coroutines.launch
 import org.dweb_browser.window.core.WindowRenderScope
+import org.dweb_browser.window.render.LocalWindowController
 
 @Composable
 fun JmmController.Render(modifier: Modifier, renderScope: WindowRenderScope) {
   val jmmController = this
   val scope = rememberCoroutineScope()
+  val win = LocalWindowController.current
+  win.state.title = this.viewModel.uiState.jmmAppInstallManifest.name
+  win.GoBackHandler {
+    scope.launch { jmmController.closeSelf() }
+  }
   CompositionLocalProvider(
     LocalJmmViewHelper provides jmmController.viewModel
   ) {

@@ -3,7 +3,7 @@ package info.bagen.dwebbrowser.microService.browser.jmm.render
 import androidx.compose.ui.unit.dp
 
 internal val HeadHeight = 128.dp
-internal val TopBarHeight = 44.dp
+internal val TopBarHeight = 0.dp
 internal val AppInfoHeight = 88.dp
 internal val VerticalPadding = 16.dp
 internal val HorizontalPadding = 16.dp

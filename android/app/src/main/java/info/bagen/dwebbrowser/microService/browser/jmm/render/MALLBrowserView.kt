@@ -71,7 +71,7 @@ fun MALLBrowserView(onBack: () -> Unit) {
         previewState.showPreview.targetState = true
       }
     }
-    TopAppBar(topBarAlpha, jmmMetadata.name, onBack)
+//    TopAppBar(topBarAlpha, jmmMetadata.name, onBack)
     BottomDownloadButton()
     ImagePreview(jmmMetadata, previewState)
     DialogForWebviewVersion()
