@@ -131,7 +131,7 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) : MicroModule(
     }
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    debugJsMM("bootstrap...", "$mmid/$metadata")
+    debugJsMM("bootstrap...", "$mmid/ minTarget:${metadata.minTarget} maxTarget:${metadata.maxTarget}")
     metadata.canSupportTarget(VERSION, disMatchMinTarget = {
       throw RuntimeException(
         "应用($mmid)与容器版本不匹配，当前版本:${VERSION}，应用最低要求:${metadata.minTarget}",

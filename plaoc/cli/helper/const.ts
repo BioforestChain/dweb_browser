@@ -33,12 +33,13 @@ export enum SERVE_MODE {
   PROD = "prod",
 }
 export const defaultMetadata: $JmmAppInstallManifest = {
-  id: "app.plaoc.dweb",
+  id: "app-test.plaoc.dweb",
   server: {
     root: "/usr",
     entry: "/server/plaoc.server.js",
   },
   minTarget: 1,
+  maxTarget:1,
   name: "Demo",
   short_name: "plaoc demo",
   description: "This is WebApp bundle by plaoc",
