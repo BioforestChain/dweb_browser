@@ -18,7 +18,6 @@ import org.dweb_browser.browserUI.util.APP_DIR_TYPE
 import org.dweb_browser.browserUI.util.BrowserUIApp
 import org.dweb_browser.browserUI.util.FilesUtil
 import org.dweb_browser.helper.Debugger
-import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.microservice.core.AndroidNativeMicroModule
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.help.types.IMicroModuleManifest

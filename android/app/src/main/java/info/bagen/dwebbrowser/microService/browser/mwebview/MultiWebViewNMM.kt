@@ -2,6 +2,8 @@ package info.bagen.dwebbrowser.microService.browser.mwebview
 
 import io.ktor.http.HttpMethod
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
 import org.dweb_browser.browserUI.download.DownLoadObserver
 import org.dweb_browser.dwebview.serviceWorker.emitEvent

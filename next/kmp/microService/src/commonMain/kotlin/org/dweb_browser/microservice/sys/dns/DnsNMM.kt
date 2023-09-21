@@ -11,6 +11,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonPrimitive
 import org.dweb_browser.helper.ChangeState
 import org.dweb_browser.helper.ChangeableMap
@@ -235,7 +236,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       "/query" bind HttpMethod.Get to defineJsonResponse {
         val mmid = request.queryAppId()
         Json.encodeToString("")
-        query(mmid)?.toManifest()?.toJsonElement() ?: JsonPrimitive(null)
+        query(mmid)?.toManifest()?.toJsonElement() ?: JsonNull
       },
       //
       "/observe/install-apps" bind HttpMethod.Get to definePureStreamHandler {

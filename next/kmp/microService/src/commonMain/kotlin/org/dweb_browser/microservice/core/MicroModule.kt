@@ -1,10 +1,10 @@
 package org.dweb_browser.microservice.core
 
-import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.plus
 import org.dweb_browser.helper.Callback
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.PromiseOut
@@ -35,7 +35,10 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
 
   private var runningStateLock = StatePromiseOut.resolve(MMState.SHUTDOWN)
 
-  protected var ioAsyncScope = MainScope() + ioAsyncExceptionHandler
+  private fun getModuleCoroutineScope() = CoroutineScope(SupervisorJob() + ioAsyncExceptionHandler)
+  private var _scope :CoroutineScope = getModuleCoroutineScope()
+  protected val ioAsyncScope get() = _scope
+
   val running get() = runningStateLock.value == MMState.BOOTSTRAP
 
   private suspend fun beforeBootstrap(bootstrapContext: BootstrapContext) {
@@ -46,8 +49,8 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
     this.runningStateLock = StatePromiseOut(MMState.BOOTSTRAP)
     this._bootstrapContext = bootstrapContext // 保存context
     // 创建一个新的
-    if (!this.ioAsyncScope.isActive) {
-      this.ioAsyncScope = MainScope() + ioAsyncExceptionHandler
+    if (!_scope.isActive) {
+      _scope = getModuleCoroutineScope()
     }
   }
 

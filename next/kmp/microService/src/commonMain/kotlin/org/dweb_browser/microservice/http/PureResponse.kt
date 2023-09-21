@@ -17,12 +17,12 @@ data class PureResponse(
 ) {
 
   fun isOk() = status.value == HttpStatusCode.OK.value
-  internal fun ok(): PureResponse =
+  internal fun requestOk(): PureResponse =
     if (status.value >= 400) throw Exception("PureResponse not ok: ${status.description}") else this
 
-  suspend fun stream() = ok().body.toPureStream()
-  suspend fun text() = ok().body.toPureString()
-  suspend fun binary() = ok().body.toPureBinary()
+  suspend fun stream() = requestOk().body.toPureStream()
+  suspend fun text() = requestOk().body.toPureString()
+  suspend fun binary() = requestOk().body.toPureBinary()
   suspend fun booleanStrict() = text().toBooleanStrict()
   suspend fun boolean() = text().toBoolean()
   suspend fun int() = text().toInt()

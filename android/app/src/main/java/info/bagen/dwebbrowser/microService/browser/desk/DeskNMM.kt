@@ -64,7 +64,6 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       else -> ipc
     }
   }
-  private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
 
   companion object {
     data class DeskControllers(
