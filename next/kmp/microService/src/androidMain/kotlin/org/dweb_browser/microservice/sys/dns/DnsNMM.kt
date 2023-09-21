@@ -191,13 +191,15 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     }.removeWhen(this.onAfterShutdown)
     /** dwebDeepLink 适配器*/
     nativeFetchAdaptersManager.append { fromMM, request ->
-      if (request.uri.scheme == "dweb" && request.uri.host == "") {
+      if (request.uri.scheme == "dweb") {
+        val dwebDeeplinkUri = Uri.of(request.uri.toString().replace(Regex("^dweb:/+"), "dweb:"))
+        val requestWithDeeplink = request.uri(dwebDeeplinkUri)
         debugFetch("DPLink/nativeFetch", "$fromMM => ${request.uri}")
         for (microModule in installApps) {
           for (deeplink in microModule.value.dweb_deeplinks) {
-            if (request.uri.toString().startsWith(deeplink)) {
-              val (fromIpc) = connectTo(fromMM, microModule.key, request)
-              return@append fromIpc.request(request)
+            if (dwebDeeplinkUri.toString().startsWith(deeplink)) {
+              val (fromIpc) = connectTo(fromMM, microModule.key, requestWithDeeplink)
+              return@append fromIpc.request(requestWithDeeplink)
             }
           }
         }
