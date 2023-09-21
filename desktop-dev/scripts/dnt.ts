@@ -70,7 +70,7 @@ await dnt.build({
       productName: productName,
       artifactName: "${productName}-${version}-${arch}.${ext}",
       asar: true,
-      // icon: "/logo.png",
+      // icon: "/logo.svg",
       files: ["assets", "bundle", "!node_modules"],
       directories: { output: "../build" },
       extraResources:[
@@ -100,7 +100,7 @@ await dnt.build({
   packageManager: "yarn",
   postBuild() {
     /// STEP1:
-    Deno.copyFileSync(resolveTo("logo.png"), resolveTo("electron/logo.png"));
+    Deno.copyFileSync(resolveTo("logo.svg"), resolveTo("electron/logo.svg"));
 
     /// STEP2: 强行进行源码映射
     type $SourceMap = {
