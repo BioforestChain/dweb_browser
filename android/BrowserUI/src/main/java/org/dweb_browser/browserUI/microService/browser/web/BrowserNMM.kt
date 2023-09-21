@@ -29,7 +29,7 @@ val debugBrowser = Debugger("browser")
 class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
   init {
     short_name = "Browser";
-    dweb_deeplinks = listOf("dweb:search", "dweb:openinbrowser")
+    dweb_deeplinks = listOf("dweb://search", "dweb://openinbrowser")
     categories = listOf(MICRO_MODULE_CATEGORY.Application, MICRO_MODULE_CATEGORY.Web_Browser)
     icons = listOf(ImageResource(src = "file:///sys/icons/$mmid.svg", type = "image/svg+xml"))
 

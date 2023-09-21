@@ -348,7 +348,7 @@ class BrowserViewModel(
 
   private fun appendWebViewAsItem(dWebView: DWebView): Pair<ViewItem, CloseWatcher> {
     val webviewId = "#w${webviewId_acc.getAndAdd(1)}"
-    val state = WebViewState(WebContent.Url(getDesktopUrl().buildUnsafeString()))
+    val state = WebViewState(WebContent.Url(getDesktopUrl().toString()))
     val coroutineScope = CoroutineScope(CoroutineName(webviewId))
     val navigator = WebViewNavigator(coroutineScope)
     val viewItem = DWebViewItem(

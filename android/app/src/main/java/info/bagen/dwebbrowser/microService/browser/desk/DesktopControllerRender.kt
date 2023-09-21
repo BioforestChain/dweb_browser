@@ -34,7 +34,7 @@ fun DesktopController.Render(taskbarController: TaskbarController) {
 
   CompositionLocalProvider(
     LocalDesktopView provides createMainDwebView(
-      "desktop", getDesktopUrl().buildUnsafeString()
+      "desktop", getDesktopUrl().toString()
     ),
   ) {
     Box(modifier = Modifier.fillMaxSize()) {

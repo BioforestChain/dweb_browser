@@ -42,7 +42,7 @@ class TaskbarView(private val taskbarController: TaskbarController) {
   val taskbarDWebView by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     DWebView(
       context = App.appContext, remoteMM = taskbarController.desktopNMM, options = DWebView.Options(
-        url = taskbarController.getTaskbarUrl().buildUnsafeString(),
+        url = taskbarController.getTaskbarUrl().toString(),
         onDetachedFromWindowStrategy = DWebView.Options.DetachedFromWindowStrategy.Ignore,
       )
     ).also {
