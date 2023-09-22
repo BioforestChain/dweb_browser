@@ -10,13 +10,6 @@ import java.io.File
 import java.io.FileOutputStream
 
 class ApiServiceImpl : ApiService {
-
-  /*override suspend fun getAppVersion(path: String): ApiResultData<BaseData<AppVersion>> =
-    info.bagen.dwebbrowser.network.base.runCatching {
-      val type = ParameterizedTypeImpl(BaseData::class.java, arrayOf(AppVersion::class.java))
-      gson.fromJson(byteBufferToString(httpClient.requestPath(path).body.payload), type)
-    }*/
-
   override suspend fun getNetWorker(url: String): String {
     return httpFetch(url).body.toPureString()
   }
@@ -26,10 +19,10 @@ class ApiServiceImpl : ApiService {
     file: File?,
     total: Long,
     isStop: () -> Boolean,
-    DLProgress: suspend (Long, Long) -> Unit
+    onProgress: suspend (Long, Long) -> Unit
   ) {
     if (path.isEmpty()) throw (java.lang.Exception("地址有误，下载失败！"))
-    DLProgress(0L, total)
+    onProgress(0L, total)
     val httpResponse = httpFetch.fetch(PureRequest(path, IpcMethod.GET))
     val fileOutputStream: FileOutputStream? = file?.let { FileOutputStream(file) }
     try {
@@ -47,14 +40,14 @@ class ApiServiceImpl : ApiService {
       while (length != -1 && !isStop()) {
         currentLength += length
         fileOutputStream?.write(byteArray, 0, length)
-        DLProgress(currentLength.toLong(), contentLength.toLong()) // 将下载进度回调
+        onProgress(currentLength.toLong(), contentLength.toLong()) // 将下载进度回调
         //delay(1000)
         length = inputStream.read(byteArray)
       }
       // Log.e("ApiServiceImpl", "downloadAndSave-> $contentLength,$currentLength,${file?.length()}")
     } catch (e: Exception) {
       println("${file?.absoluteFile}->$path, issue[${httpResponse.status}]==>${e.message}")
-      DLProgress(-1, httpResponse.status.value.toLong())
+      onProgress(-1, httpResponse.status.value.toLong())
     } finally {
       fileOutputStream?.flush()
       fileOutputStream?.close()
@@ -66,11 +59,11 @@ class ApiServiceImpl : ApiService {
     file: File?,
     total: Long,
     isStop: () -> Boolean,
-    DLProgress: suspend (Long, Long) -> Unit
+    onProgress: suspend (Long, Long) -> Unit
   ) {
     if (path.isEmpty()) throw (java.lang.Exception("地址有误，下载失败！"))
     var currentLength = file?.let { if (total > 0) it.length() else 0L } ?: 0L // 文件的大小
-    DLProgress(currentLength, total)
+    onProgress(currentLength, total)
     val httpResponse = httpFetch.fetch(
       PureRequest(
         path,
@@ -97,13 +90,13 @@ class ApiServiceImpl : ApiService {
       while (length != -1 && !isStop()) {
         currentLength += length
         fileOutputStream?.write(byteArray, 0, length)
-        DLProgress(currentLength, contentLength) // 将下载进度回调
+        onProgress(currentLength, contentLength) // 将下载进度回调
         //delay(1000)
         length = inputStream.read(byteArray)
       }
     } catch (e: Exception) {
       println("${file?.absoluteFile}->$path, issue[${httpResponse.status}]==>${e.message}")
-      DLProgress(-1, httpResponse.status.value.toLong())
+      onProgress(-1, httpResponse.status.value.toLong())
     } finally {
       fileOutputStream?.flush()
       fileOutputStream?.close()

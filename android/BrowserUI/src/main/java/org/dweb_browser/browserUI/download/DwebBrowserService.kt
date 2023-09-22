@@ -99,7 +99,7 @@ class DwebBrowserService : Service() {
               else -> false
             }
           },
-          DLProgress = { current, total ->
+          onProgress = { current, total ->
             downLoadInfo.callDownLoadProgress(current, total)
           }
         )
@@ -132,7 +132,7 @@ class DwebBrowserService : Service() {
               else -> false
             }
           },
-          DLProgress = { current, total ->
+          onProgress = { current, total ->
             downLoadInfo.callDownLoadProgress(current, total)
           }
         )

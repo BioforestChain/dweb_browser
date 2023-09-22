@@ -56,12 +56,7 @@ kotlin {
     val androidMain by getting {
       dependencies {
         dependsOn(commonMain)
-        implementation(platform(libs.http4k.bom.get()))
-        api(libs.http4k.core)
-        api(libs.http4k.multipart)
-        api(libs.http4k.client.apache)
 
-        implementation(libs.data.moshi.pack)
         api(libs.data.gson)
         implementation(project(":helperPlatform"))
       }

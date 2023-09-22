@@ -17,12 +17,11 @@ android {
     versionName = libs.versions.versionName.get()
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-    //ndk.abiFilters.addAll(listOf("armeabi-v7a", "x86", "x86_64"))
-    // ndk.abiFilters.addAll(listOf("arm64-v8a", "x86")) // 上架需要32位的包
+    //ndk.abiFilters.addAll(listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64"))
+    //ndk.abiFilters.addAll(listOf("arm64-v8a"))
     vectorDrawables {
       useSupportLibrary = true
     }
-
   }
 
   sourceSets {
@@ -111,13 +110,6 @@ android {
 }
 
 dependencies {
-  /// 网络开发相关
-  //implementation(platform(libs.http4k.bom))
-  //implementation(libs.http4k.core)
-  //implementation(libs.http4k.multipart)
-  //implementation(libs.http4k.client.apache)
-  //implementation(libs.ktor.client.cio)
-
   // Android 相关
   implementation(libs.androidx.core.splashscreen)
   implementation(libs.androidx.navigation.ui.kotlin)
@@ -152,6 +144,7 @@ dependencies {
   androidTestImplementation(libs.compose.ui.test.junit4)
   debugImplementation(libs.compose.ui.tooling)
   implementation(libs.google.material)
+
 
   //扫码核心库
   implementation(libs.camera.barcode)
