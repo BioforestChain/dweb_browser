@@ -1,6 +1,7 @@
 package org.dweb_browser.helper.compose
 
 import android.content.Context
+import android.view.ContextThemeWrapper
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
@@ -12,9 +13,14 @@ private val contextOffscreenWebCanvasCache = WeakHashMap<Context, OffscreenWebCa
 @Composable
 internal actual fun rememberOffscreenWebCanvas(): OffscreenWebCanvas {
   val context = LocalContext.current
+
   return remember(context) {
-    contextOffscreenWebCanvasCache.getOrPut(context) {
-      OffscreenWebCanvas(context)
+    var baseContext = context
+    while (baseContext is ContextThemeWrapper) {
+      baseContext = baseContext.baseContext;
+    }
+    contextOffscreenWebCanvasCache.getOrPut(baseContext) {
+      OffscreenWebCanvas(baseContext)
     }
   }
 }
