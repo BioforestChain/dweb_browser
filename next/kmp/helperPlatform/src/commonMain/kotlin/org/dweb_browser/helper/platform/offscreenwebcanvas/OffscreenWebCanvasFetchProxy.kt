@@ -3,6 +3,7 @@ package org.dweb_browser.helper.platform.offscreenwebcanvas
 import io.ktor.client.HttpClient
 import io.ktor.client.request.header
 import io.ktor.client.request.prepareGet
+import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsChannel
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
@@ -27,7 +28,7 @@ internal class OffscreenWebCanvasFetchProxy(private val client: HttpClient = htt
     if (hook != null) {
       val hookReturn = FetchHookContext(
         FetchRequest(
-          call.request.uri,
+          proxyUrl,
           call.request.headers.flattenEntries().removeOriginAndAcceptEncoding(),
           call.request.receiveChannel()
         ),
