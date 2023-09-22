@@ -17,8 +17,8 @@ android {
     versionName = libs.versions.versionName.get()
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-    //ndk.abiFilters.addAll(listOf("armeabi-v7a", "x86", "x86_64"))
-    // ndk.abiFilters.addAll(listOf("arm64-v8a", "x86")) // 上架需要32位的包
+    //ndk.abiFilters.addAll(listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64"))
+    //ndk.abiFilters.addAll(listOf("arm64-v8a")) // 上架需要32位的包
     vectorDrawables {
       useSupportLibrary = true
     }

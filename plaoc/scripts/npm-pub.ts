@@ -1,7 +1,9 @@
+import { whichSync } from "../../scripts/helper/WhichCommand.ts";
 import { cwdResolve } from "./cwd.ts";
 
 export const doPubCore = async (cwd: string) => {
-  const npm_cmd = new Deno.Command("npm", {
+  const cmdWhich = whichSync("npm")
+  const npm_cmd = new Deno.Command(cmdWhich!, {
     cwd,
     args: ["publish", "--access", "public"],
     stdout: "inherit",

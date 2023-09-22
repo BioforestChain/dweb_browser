@@ -52,51 +52,7 @@ suspend fun startDwebBrowser(): DnsNMM {
   "desk",
    */
   when (DEVELOPER.CURRENT) {
-    DEVELOPER.GAUBEE -> addDebugTags(
-      listOf<String>(
-        "JsMM",
-        "http",
-        "/.+/",
-//        "fetch",
-//        "message-port-ipc"
-      )
-    )
-
-    DEVELOPER.HuangLin, DEVELOPER.HLVirtual, DEVELOPER.HLOppo, DEVELOPER.HBXiaomi, DEVELOPER.ZGSansung -> addDebugTags(
-      listOf(
-        "fetch",
-        "http",
-        "mwebview",
-        "fetch-file",
-        "js-process",
-        "browser",
-        "desk",
-        "JMM",
-        "window",
-        "dwebview"
-      )
-    )
-
-    DEVELOPER.WaterBang -> addDebugTags(
-      listOf(
-        "dwebview",
-        "mwebview",
-        "http",
-        "JsMM",
-        "js-process",
-        "DNS",
-        "desk",
-        "browser",
-        "JMM",
-        "/.+/",
-      )
-    )
-
-    DEVELOPER.Kingsword09, DEVELOPER.KVirtual -> addDebugTags(
-      listOf(
-        "desk"
-      )
-    )
+    DEVELOPER.KVirtual -> addDebugTags(listOf("JsMM", "http", "/.+/"))
 
     else -> addDebugTags(
       listOf("desk", "mwebview", "fetch")
@@ -172,29 +128,7 @@ suspend fun startDwebBrowser(): DnsNMM {
    * cotJMM.mmid,
    * toyJMM.mmid,
    */
-  val bootMmidList = when (DEVELOPER.CURRENT) {
-    DEVELOPER.HLOppo, DEVELOPER.GAUBEE -> listOf(
-      desktopNMM.mmid,
-//            browserNMM.mmid,
-    )
-
-    DEVELOPER.HuangLin, DEVELOPER.HLVirtual, DEVELOPER.HBXiaomi, DEVELOPER.ZGSansung -> listOf(
-      browserNMM.mmid,
-      // desktopNMM.mmid,
-    )
-
-    DEVELOPER.WaterBang -> listOf(
-//      browserNMM.mmid,
-      desktopNMM.mmid,
-    )
-
-    DEVELOPER.Kingsword09, DEVELOPER.KVirtual -> listOf(
-//            browserNMM.mmid,
-      desktopNMM.mmid,
-    )
-
-    else -> listOf(desktopNMM.mmid)
-  }
+  val bootMmidList = listOf(desktopNMM.mmid)
 
   /// 启动程序
   val bootNMM = BootNMM(
