@@ -92,7 +92,7 @@ await dnt.build({
         icon:"./icons/win/icon.ico",
         target: {
           target: "portable",
-          arch: ["x64"], //, "arm64"
+          arch: ["x64", "arm64"],
         },
         publisherName: "Bnqkl Dweb Team",
       },

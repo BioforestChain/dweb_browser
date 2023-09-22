@@ -73,8 +73,9 @@ open class Signal<Args>(autoStart: Boolean = true) : SynchronizedObject() {
       // 这里拷贝一份，避免中通对其读写的时候出问题
       val argsList = emitCached!!.toList()
       emitCached = null
+      val lockObject = this
       CoroutineScope(defaultAsyncExceptionHandler).launch {
-        val cbs = synchronized(this) { listenerSet.toSet() }
+        val cbs = synchronized(lockObject) { listenerSet.toSet() }
         for (args in argsList) {
           _emit(args, cbs)
         }
