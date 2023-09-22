@@ -75,16 +75,6 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     val controllersMap = mutableMapOf<String, DeskControllers>()
   }
 
-//  val queryAppId = Query.string().required("app_id")
-//  val queryUrl = Query.string().required("url")
-//  val queryLimit = Query.int().optional("limit")
-//  val queryResize = Query.composite {
-//    TaskbarController.ReSize(
-//      width = float().required("width")(it), height = float().required("height")(it)
-//    )
-//  }
-//  val queryOpen = Query.boolean().optional("open")
-
   private suspend fun listenApps() = ioAsyncScope.launch {
     val (openedAppIpc) = bootstrapContext.dns.connect("dns.std.dweb")
     suspend fun doObserve(urlPath: String, cb: suspend ChangeState<MMID>.() -> Unit) {

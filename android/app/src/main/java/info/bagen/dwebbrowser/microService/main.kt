@@ -12,6 +12,7 @@ import info.bagen.dwebbrowser.microService.sys.biometrics.BiometricsNMM
 import info.bagen.dwebbrowser.microService.sys.clipboard.ClipboardNMM
 import info.bagen.dwebbrowser.microService.sys.config.ConfigNMM
 import info.bagen.dwebbrowser.microService.sys.device.DeviceNMM
+import info.bagen.dwebbrowser.microService.sys.fileSystem.FileSystemNMM
 import info.bagen.dwebbrowser.microService.sys.haptics.HapticsNMM
 import info.bagen.dwebbrowser.microService.sys.installNativeFetchSysFile
 import info.bagen.dwebbrowser.microService.sys.notification.NotificationNMM
@@ -137,7 +138,7 @@ suspend fun startDwebBrowser(): DnsNMM {
 //    ///权限
 //    val permissionNMM = PermissionsNMM().also { dnsNMM.install(it) }
   ///文件系统
-//  val fileSystemNMM = FileSystemNMM().also { dnsNMM.install(it) }
+  val fileSystemNMM = FileSystemNMM().also { dnsNMM.install(it) }
   /// NFC
 //  val nfcNMM = NfcNMM().also { dnsNMM.install(it) }
   /// 通知

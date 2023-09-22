@@ -26,11 +26,6 @@ class FileSystemNMM : NativeMicroModule("file.sys.dweb", "file") {
   }
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-//        val qurey_path = Query.string().required("path")
-//        val qurey_directory = Query.string().required("directory")
-//        val qurey_optional_directory = Query.string().optional("directory")
-//        val qurey_data = Query.string().required("data")
-//        val query_recursive = Query.boolean().defaulted("recursive",false)
     routes(
       "/writeFile" bind HttpMethod.Get to defineEmptyResponse {
 //                val path = qurey_path(request)
@@ -77,7 +72,6 @@ class FileSystemNMM : NativeMicroModule("file.sys.dweb", "file") {
                     files.add(savedFilePath)
                   }
                 }
-
                 else -> {}
               }
               partData.dispose()
