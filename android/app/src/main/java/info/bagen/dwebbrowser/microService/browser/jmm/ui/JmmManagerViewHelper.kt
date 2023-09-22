@@ -122,7 +122,7 @@ class JmmManagerViewHelper(
     url = bundle_url,
     name = name,
     downLoadStatus = DownLoadStatus.IDLE,
-    path = "${App.appContext.cacheDir}/DL_${id}_${Calendar.MILLISECOND}.bfsa",
+    path = "${App.appContext.cacheDir}/DL_${id}_${Calendar.MILLISECOND}.zip",
     notificationId = (NotificationUtil.notificationId++),
     metaData = this,
   )
