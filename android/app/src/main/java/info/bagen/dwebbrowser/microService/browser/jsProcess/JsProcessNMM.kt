@@ -11,6 +11,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.dwebview.DWebView
+import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.build
 import org.dweb_browser.helper.encodeURI
@@ -189,7 +190,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
 
       val urlInfo = mainServer.startResult.urlInfo
       JsProcessWebApi(DWebView(
-        App.appContext, this@JsProcessNMM, DWebView.Options(
+        App.appContext, this@JsProcessNMM, DWebViewOptions(
           url = urlInfo.buildInternalUrl().build { resolvePath("/index.html") }.toString()
         )
       ).also { it.settings.safeBrowsingEnabled = false }).also { api ->

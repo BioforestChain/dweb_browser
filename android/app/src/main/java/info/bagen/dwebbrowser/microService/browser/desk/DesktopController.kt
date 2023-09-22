@@ -11,6 +11,7 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.dwebview.DWebView
+import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.SimpleSignal
@@ -109,9 +110,9 @@ class DesktopController(
 
   fun createMainDwebView(name: String, initUrl: String = "") = mainDwebViews.getOrPut(name) {
     val webView = DWebView(
-      activity ?: App.appContext, desktopNMM, DWebView.Options(
+      activity ?: App.appContext, desktopNMM, DWebViewOptions(
         url = initUrl,
-        onDetachedFromWindowStrategy = DWebView.Options.DetachedFromWindowStrategy.Ignore,
+        onDetachedFromWindowStrategy = DWebViewOptions.DetachedFromWindowStrategy.Ignore,
       )
     );
     val state = WebViewState(WebContent.Url(initUrl))

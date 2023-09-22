@@ -35,7 +35,6 @@ import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.android.BaseActivity
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.mainAsyncExceptionHandler
-import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.http.PureRequest
@@ -45,8 +44,6 @@ import org.dweb_browser.microservice.sys.dns.nativeFetch
 import java.io.File
 
 
-fun debugDWebView(tag: String, msg: Any? = "", err: Throwable? = null) =
-  printDebug("dwebview", tag, msg, err)
 
 /**
  * DWebView ,将 WebView 与 dweb 的 dwebHttpServer 设计进行兼容性绑定的模块
@@ -95,61 +92,13 @@ class DWebView(
   /**
    * 一些DWebView自定义的参数
    */
-  val options: Options,
+  val options: DWebViewOptions,
   /**
    * 该参数的存在，是用来做一些跟交互式界面相关的行为的，交互式界面需要有一个上下文，比如文件选择、权限申请等行为。
    * 我们将这些功能都写到了BaseActivity上，如果没有提供该对象，则相关的功能将会被禁用
    */
   var activity: BaseActivity? = if (context is BaseActivity) context else null
 ) : WebView(context), IDWebView {
-
-  data class Options(
-    /**
-     * 要加载的页面
-     */
-    val url: String = "",
-    /**
-     * WebChromeClient.onJsBeforeUnload 的策略
-     *
-     * 用户可以额外地进行策略补充
-     */
-    val onJsBeforeUnloadStrategy: JsBeforeUnloadStrategy = JsBeforeUnloadStrategy.Default,
-    /**
-     * WebView.onDetachedFromWindow 的策略
-     *
-     * 如果修改了它，就务必注意 WebView 的销毁需要自己去管控
-     */
-    val onDetachedFromWindowStrategy: DetachedFromWindowStrategy = DetachedFromWindowStrategy.Default,
-  ) {
-    enum class JsBeforeUnloadStrategy {
-      /**
-       * 默认行为，会弹出原生的弹窗提示用户是否要离开页面
-       */
-      Default,
-
-      /**
-       * 不会弹出提示框，总是取消，留下
-       */
-      Cancel,
-
-      /**
-       * 不会弹出提示框，总是确认，离开
-       */
-      Confirm, ;
-    }
-
-    enum class DetachedFromWindowStrategy {
-      /**
-       * 默认行为，会触发销毁
-       */
-      Default,
-
-      /**
-       * 忽略默认行为，不做任何事情
-       */
-      Ignore,
-    }
-  }
 
   private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
   private var readyHelper: DWebViewClient.ReadyHelper? = null
@@ -431,9 +380,6 @@ class DWebView(
     layoutParams = ViewGroup.LayoutParams(
       ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT
     )
-//    setUA()
-    settings.allowFileAccessFromFileURLs = true
-    settings.allowUniversalAccessFromFileURLs = true
     settings.javaScriptEnabled = true
     settings.domStorageEnabled = true
     settings.databaseEnabled = true
@@ -450,15 +396,15 @@ class DWebView(
     super.setWebViewClient(internalWebViewClient)
     super.setWebChromeClient(internalWebChromeClient)
 
-    if (options.onJsBeforeUnloadStrategy != Options.JsBeforeUnloadStrategy.Default) {
+    if (options.onJsBeforeUnloadStrategy != DWebViewOptions.JsBeforeUnloadStrategy.Default) {
       dWebChromeClient.addWebChromeClient(object : WebChromeClient() {
         override fun onJsBeforeUnload(
           view: WebView?, url: String?, message: String?, result: JsResult?
         ): Boolean {
           when (options.onJsBeforeUnloadStrategy) {
-            Options.JsBeforeUnloadStrategy.Cancel -> result?.cancel()
-            Options.JsBeforeUnloadStrategy.Confirm -> result?.confirm()
-            Options.JsBeforeUnloadStrategy.Default -> return super.onJsBeforeUnload(
+            DWebViewOptions.JsBeforeUnloadStrategy.Cancel -> result?.cancel()
+            DWebViewOptions.JsBeforeUnloadStrategy.Confirm -> result?.confirm()
+            DWebViewOptions.JsBeforeUnloadStrategy.Default -> return super.onJsBeforeUnload(
               view, url, message, result
             )
           }
@@ -519,8 +465,20 @@ class DWebView(
     ioAsyncScope.cancel()
   }
 
+  override fun createMessageChannel(): IMessageChannel {
+    TODO("Not yet implemented")
+  }
+
+  override fun setContentScale(scale: Float) {
+    TODO("Not yet implemented")
+  }
+
+  override suspend fun evalJavascriptAsync(code: String): String {
+    TODO("Not yet implemented")
+  }
+
   override fun onDetachedFromWindow() {
-    if (options.onDetachedFromWindowStrategy == Options.DetachedFromWindowStrategy.Default) {
+    if (options.onDetachedFromWindowStrategy == DWebViewOptions.DetachedFromWindowStrategy.Default) {
       super.onDetachedFromWindow()
     }
   }

@@ -33,6 +33,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.zIndex
 import info.bagen.dwebbrowser.App
 import org.dweb_browser.dwebview.DWebView
+import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.helper.buildUnsafeString
 import org.dweb_browser.helper.clamp
 
@@ -41,9 +42,9 @@ class TaskbarView(private val taskbarController: TaskbarController) {
 
   val taskbarDWebView by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     DWebView(
-      context = App.appContext, remoteMM = taskbarController.desktopNMM, options = DWebView.Options(
+      context = App.appContext, remoteMM = taskbarController.desktopNMM, options = DWebViewOptions(
         url = taskbarController.getTaskbarUrl().toString(),
-        onDetachedFromWindowStrategy = DWebView.Options.DetachedFromWindowStrategy.Ignore,
+        onDetachedFromWindowStrategy = DWebViewOptions.DetachedFromWindowStrategy.Ignore,
       )
     ).also {
       it.setBackgroundColor(Color.Transparent.toArgb())
