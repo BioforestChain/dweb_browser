@@ -35,6 +35,7 @@ kotlin {
 
         implementation(project(":helper"))
         implementation(project(":microService"))
+        implementation(project(":helperPlatform"))
       }
     }
     val commonTest by getting {
@@ -56,8 +57,6 @@ kotlin {
 
         api(libs.accompanist.webview)
         implementation(libs.compose.ui)
-
-        implementation(project(":helperPlatform"))
       }
     }
     val androidUnitTest by getting

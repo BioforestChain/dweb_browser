@@ -18,8 +18,6 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
-import io.ktor.http.ContentType
-import io.ktor.http.charset
 import io.ktor.utils.io.jvm.javaio.toInputStream
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
@@ -28,7 +26,6 @@ import kotlinx.coroutines.plus
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import org.dweb_browser.dwebview.base.isSchemeAppInstalled
 import org.dweb_browser.dwebview.base.isWebUrlScheme
 import org.dweb_browser.helper.Callback
 import org.dweb_browser.helper.PromiseOut
@@ -45,7 +42,6 @@ import org.dweb_browser.microservice.http.PureRequest
 import org.dweb_browser.microservice.ipc.helper.IpcHeaders
 import org.dweb_browser.microservice.ipc.helper.IpcMethod
 import org.dweb_browser.microservice.sys.dns.nativeFetch
-import java.io.ByteArrayInputStream
 import java.io.File
 
 
@@ -105,7 +101,7 @@ class DWebView(
    * 我们将这些功能都写到了BaseActivity上，如果没有提供该对象，则相关的功能将会被禁用
    */
   var activity: BaseActivity? = if (context is BaseActivity) context else null
-) : WebView(context) {
+) : WebView(context), IDWebView {
 
   data class Options(
     /**

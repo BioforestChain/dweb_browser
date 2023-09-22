@@ -25,6 +25,7 @@ kotlin {
 
         implementation(project(":helper"))
         implementation(project(":microService"))
+        implementation(project(":helperPlatform"))
       }
     }
     val commonTest by getting {
