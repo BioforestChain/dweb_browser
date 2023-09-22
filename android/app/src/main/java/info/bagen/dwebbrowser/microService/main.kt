@@ -170,29 +170,7 @@ suspend fun startDwebBrowser(): DnsNMM {
    * cotJMM.mmid,
    * toyJMM.mmid,
    */
-  val bootMmidList = when (DEVELOPER.CURRENT) {
-    DEVELOPER.HLOppo, DEVELOPER.GAUBEE -> listOf(
-      desktopNMM.mmid,
-//            browserNMM.mmid,
-    )
-
-    DEVELOPER.HuangLin, DEVELOPER.HLVirtual, DEVELOPER.HBXiaomi, DEVELOPER.ZGSansung -> listOf(
-      browserNMM.mmid,
-      // desktopNMM.mmid,
-    )
-
-    DEVELOPER.WaterBang -> listOf(
-//      browserNMM.mmid,
-      desktopNMM.mmid,
-    )
-
-    DEVELOPER.Kingsword09, DEVELOPER.KVirtual -> listOf(
-//            browserNMM.mmid,
-      desktopNMM.mmid,
-    )
-
-    else -> listOf(desktopNMM.mmid)
-  }
+  val bootMmidList = listOf(desktopNMM.mmid)
 
   /// 启动程序
   val bootNMM = BootNMM(
