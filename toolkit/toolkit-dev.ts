@@ -3,12 +3,14 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createBaseResolveTo } from "../scripts/helper/ConTasks.helper.ts";
 import { ConTasks } from "../scripts/helper/ConTasks.ts";
+import { whichSync } from "../scripts/helper/WhichCommand.ts";
 const $ = async (cmd: string | string[], cwd?: string) => {
   if (typeof cmd === "string") {
     cmd = cmd.split(/\s+/);
   }
   const [exec, ...args] = cmd;
-  const command = new Deno.Command(exec, { args, cwd: cwd && resolveTo(cwd) });
+  const cmdWhich = whichSync(exec);
+  const command = new Deno.Command(cmdWhich!, { args, cwd: cwd && resolveTo(cwd) });
   await command.output();
 };
 const resolveTo = createBaseResolveTo(path.dirname(fileURLToPath(import.meta.url)));
