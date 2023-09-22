@@ -97,6 +97,12 @@ fun URLBuilder.resolvePath(path: String) {
   if (path.isBlank()) {
     return
   }
+
+  if(path.startsWith("./")) {
+    encodedPath = path.replaceFirst(".", "")
+    return
+  }
+
   if (path.startsWith("/")) {
     encodedPath = path
     return

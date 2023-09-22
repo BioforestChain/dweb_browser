@@ -63,7 +63,7 @@ class DownLoadViewModel(val mmid: MMID, val url: String) : ViewModel() {
       id = mmid,
       url = url,
       name = "",
-      path = "${BrowserUIApp.Instance.appContext.cacheDir}/DL_${mmid}_${Calendar.MILLISECOND}.bfsa",
+      path = "${BrowserUIApp.Instance.appContext.cacheDir}/DL_${mmid}_${Calendar.MILLISECOND}.zip",
       downLoadStatus = DownLoadStatus.IDLE,
       metaData = JmmAppInstallManifest().apply {
         id = mmid
