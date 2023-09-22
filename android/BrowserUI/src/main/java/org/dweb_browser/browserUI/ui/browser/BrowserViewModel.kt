@@ -47,9 +47,11 @@ import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.dwebview.base.DWebViewItem
 import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
+import org.dweb_browser.helper.build
 import org.dweb_browser.helper.buildUnsafeString
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.mainAsyncExceptionHandler
+import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.help.types.MMID
@@ -497,35 +499,4 @@ internal fun String.isSystemUrl(): Boolean {
   return this.startsWith("file:///android_asset") || this.startsWith("chrome://") || this.startsWith(
     "about:"
   ) || this.startsWith("https://web.browser.dweb")
-}
-
-fun Url.build(block: URLBuilder.() -> Unit) = URLBuilder(this).run { block(); build() }
-
-/**
- * 参考 [URLBuilder.encodedPath]
- */
-fun URLBuilder.resolvePath(path: String) {
-  if (path.isBlank()) {
-    return
-  }
-  if (path.startsWith("/")) {
-    encodedPath = path
-    return
-  }
-  val basePathSegments =
-    if (!path.endsWith("/")) pathSegments.toMutableList() else pathSegments.toMutableList()
-      .also { it.removeLastOrNull() }
-
-  val toPathSegments = path.split("/").toMutableList()
-  for (part in toPathSegments.toList()) {
-    if (part == ".") {
-      toPathSegments.remove(part)
-    } else if (part == "..") {
-      toPathSegments.remove(part)
-      basePathSegments.removeLastOrNull()
-    } else {
-      break
-    }
-  }
-  pathSegments = basePathSegments + basePathSegments
 }

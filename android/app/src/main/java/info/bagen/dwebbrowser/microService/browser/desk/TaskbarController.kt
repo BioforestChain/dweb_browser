@@ -3,12 +3,12 @@ package info.bagen.dwebbrowser.microService.browser.desk
 import android.content.res.Resources
 import info.bagen.dwebbrowser.microService.browser.desk.types.DeskAppMetaData
 import kotlinx.serialization.Serializable
-import org.dweb_browser.browserUI.ui.browser.build
-import org.dweb_browser.browserUI.ui.browser.resolvePath
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
+import org.dweb_browser.helper.build
+import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.sys.http.HttpDwebServer

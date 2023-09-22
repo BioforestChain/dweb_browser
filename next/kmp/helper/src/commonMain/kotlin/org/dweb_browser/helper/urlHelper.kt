@@ -3,6 +3,7 @@ package org.dweb_browser.helper
 import io.ktor.http.URLBuilder
 import io.ktor.http.URLProtocol
 import io.ktor.http.Url
+import io.ktor.http.encodedPath
 import io.ktor.http.parseQueryString
 
 //import io.ktor.http.Url
@@ -86,3 +87,34 @@ fun String.toIpcUrl() = if (startsWith(fileProtocol.name + ":")) {
 //
 //  }
 //}
+
+fun Url.build(block: URLBuilder.() -> Unit) = URLBuilder(this).run { block(); build() }
+
+/**
+ * 参考 [URLBuilder.encodedPath]
+ */
+fun URLBuilder.resolvePath(path: String) {
+  if (path.isBlank()) {
+    return
+  }
+  if (path.startsWith("/")) {
+    encodedPath = path
+    return
+  }
+  val basePathSegments =
+    if (!path.endsWith("/")) pathSegments.toMutableList() else pathSegments.toMutableList()
+      .also { it.removeLastOrNull() }
+
+  val toPathSegments = path.split("/").toMutableList()
+  for (part in toPathSegments.toList()) {
+    if (part == ".") {
+      toPathSegments.remove(part)
+    } else if (part == "..") {
+      toPathSegments.remove(part)
+      basePathSegments.removeLastOrNull()
+    } else {
+      break
+    }
+  }
+  pathSegments = basePathSegments + basePathSegments
+}

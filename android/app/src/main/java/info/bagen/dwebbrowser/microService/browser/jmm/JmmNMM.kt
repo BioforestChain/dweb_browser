@@ -13,12 +13,12 @@ import org.dweb_browser.browserUI.database.DeskAppInfoStore
 import org.dweb_browser.browserUI.download.DownLoadController
 import org.dweb_browser.browserUI.download.isGreaterThan
 import org.dweb_browser.browserUI.microService.browser.link.WebLinkMicroModule
-import org.dweb_browser.browserUI.ui.browser.resolvePath
 import org.dweb_browser.browserUI.util.APP_DIR_TYPE
 import org.dweb_browser.browserUI.util.BrowserUIApp
 import org.dweb_browser.browserUI.util.FilesUtil
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
+import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.microservice.core.AndroidNativeMicroModule
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.help.types.IMicroModuleManifest

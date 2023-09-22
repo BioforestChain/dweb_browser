@@ -10,12 +10,12 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.dweb_browser.browserUI.ui.browser.build
-import org.dweb_browser.browserUI.ui.browser.resolvePath
 import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.helper.PromiseOut
+import org.dweb_browser.helper.build
 import org.dweb_browser.helper.encodeURI
 import org.dweb_browser.helper.printDebug
+import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
