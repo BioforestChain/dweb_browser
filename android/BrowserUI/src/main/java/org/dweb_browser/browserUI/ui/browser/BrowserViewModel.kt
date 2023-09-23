@@ -44,6 +44,7 @@ import org.dweb_browser.browserUI.util.getBoolean
 import org.dweb_browser.browserUI.util.saveBoolean
 import org.dweb_browser.browserUI.util.saveString
 import org.dweb_browser.dwebview.DWebView
+import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.base.DWebViewItem
 import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
@@ -341,10 +342,10 @@ class BrowserViewModel(
   }
 
   private fun createDwebView(url: String = ""): DWebView = DWebView(
-    BrowserUIApp.Instance.appContext, browserNMM, DWebView.Options(
+    BrowserUIApp.Instance.appContext, browserNMM, DWebViewOptions(
       url = url,
       /// 我们会完全控制页面将如何离开，所以这里兜底默认为留在页面
-      onDetachedFromWindowStrategy = DWebView.Options.DetachedFromWindowStrategy.Ignore,
+      onDetachedFromWindowStrategy = DWebViewOptions.DetachedFromWindowStrategy.Ignore,
     )
   )
 

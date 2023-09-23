@@ -19,6 +19,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import org.dweb_browser.browserUI.download.DownLoadObserver
 import org.dweb_browser.dwebview.DWebView
+import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.helper.Callback
 import org.dweb_browser.helper.ChangeableList
@@ -109,10 +110,10 @@ class MultiWebViewController(
   suspend fun createDwebView(url: String): DWebView = withContext(mainAsyncExceptionHandler) {
     val currentActivity = win.viewController.activity;// App.appContext
     val dWebView = DWebView(
-      ContextThemeWrapper(currentActivity, R.style.Theme_dwebbrowser), remoteMM, DWebView.Options(
+      ContextThemeWrapper(currentActivity, R.style.Theme_dwebbrowser), remoteMM, DWebViewOptions(
         url = url,
         /// 我们会完全控制页面将如何离开，所以这里兜底默认为留在页面
-        onDetachedFromWindowStrategy = DWebView.Options.DetachedFromWindowStrategy.Ignore,
+        onDetachedFromWindowStrategy = DWebViewOptions.DetachedFromWindowStrategy.Ignore,
       ), currentActivity
     )
     dWebView

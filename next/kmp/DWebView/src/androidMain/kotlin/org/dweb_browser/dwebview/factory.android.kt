@@ -5,7 +5,8 @@ import org.dweb_browser.microservice.core.MicroModule
 
 actual fun createDWebView(
   platformViewController: PlatformViewController,
-  remoteMM: MicroModule
+  remoteMM: MicroModule,
+  options: DWebViewOptions
 ): IDWebView {
-  return DWebView(platformViewController.androidContext, remoteMM, DWebView.Options())
+  return DWebView(platformViewController.androidContext, remoteMM, options)
 }
