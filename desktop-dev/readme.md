@@ -1,3 +1,9 @@
+## 如何运行
+
+- 先执行`deno task icon` 生成应用图标
+
+- 然后执行`deno task start install --url http://xx.xx.xx.xx:8096/metadata.json` 启动app安装。
+
 # 工程中运行 plugin/demo 应用流程
 
 - `deno task assets --dev` 开启监听

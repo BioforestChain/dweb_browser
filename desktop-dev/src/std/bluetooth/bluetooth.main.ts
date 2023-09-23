@@ -17,7 +17,7 @@ export class BluetoothNMM extends NativeMicroModule {
   name = "Bluetooth Devices Management";
   override short_name = "Bluetooth";
   override categories = [MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Protocol_Service];
-  override dweb_deeplinks = ["dweb://bluetooth"] as $DWEB_DEEPLINK[];
+  override dweb_deeplinks = ["dweb:bluetooth"] as $DWEB_DEEPLINK[];
   private _encode = new TextEncoder().encode;
   private _responseHeader = new IpcHeaders().init("Content-Type", "application/json");
   private _STATE: STATE = STATE.CLOSED;

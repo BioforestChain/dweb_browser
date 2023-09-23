@@ -79,7 +79,7 @@ export class DnsNMM extends NativeMicroModule {
   mmid = "dns.std.dweb" as const;
   name = "Dweb Name System";
   override short_name = "DNS";
-  override dweb_deeplinks = ["dweb://open"] as $DWEB_DEEPLINK[];
+  override dweb_deeplinks = ["dweb:open"] as $DWEB_DEEPLINK[];
   override categories = [MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Routing_Service];
   private installApps = new ChangeableMap<$MMID, MicroModule>();
   readonly running_apps = new ChangeableMap<$MMID, Promise<MicroModule>>();
@@ -241,7 +241,7 @@ export class DnsNMM extends NativeMicroModule {
 
     if (args.length > 0) {
       const [domain, ...deeplink_args] = args;
-      const dweb_deeplink = `dweb:${domain}`;
+      const dweb_deeplink = `dweb://${domain}`;
       const buildDeeplinkUrl = () => {
         const normalizePath: string[] = [];
         const normalizeQuery = new URLSearchParams();
@@ -262,7 +262,7 @@ export class DnsNMM extends NativeMicroModule {
         }
         const pathname = "/" + normalizePath.join("/");
         const url = new URL(
-          (dweb_deeplink + pathname).replace(/\/{2,}/g, "/").replace(/\/$/, "") +
+          (dweb_deeplink + pathname).replace(/\:{1}\/{2}/, ":").replace(/\/{2,}/g, "/").replace(/\/$/, "") +
             (hasSearch ? "?" + normalizeQuery.toString() : "")
         );
         return url;
