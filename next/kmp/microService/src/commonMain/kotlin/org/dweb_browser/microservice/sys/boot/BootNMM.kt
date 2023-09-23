@@ -2,7 +2,6 @@ package org.dweb_browser.microservice.sys.boot
 
 import io.ktor.http.HttpMethod
 import org.dweb_browser.helper.printDebug
-import org.dweb_browser.microservice.core.AndroidNativeMicroModule
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.core.Router
@@ -14,7 +13,7 @@ fun debugBoot(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("boot", tag, msg, err)
 
 class BootNMM(initMmids: List<MMID>? = null) :
-  AndroidNativeMicroModule("boot.sys.dweb", "Boot Management") {
+  NativeMicroModule("boot.sys.dweb", "Boot Management") {
   init {
     short_name = "Boot";
     categories = mutableListOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Hub_Service)
