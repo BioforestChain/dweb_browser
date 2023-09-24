@@ -1,12 +1,16 @@
 package info.bagen.dwebbrowser.microService.sys.fileSystem
 
 import android.annotation.SuppressLint
+import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
+import android.os.Build
 import android.os.Environment
+import android.provider.MediaStore
 import android.util.Base64
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.sys.fileSystem.exeprions.CopyFailedException
+import info.bagen.dwebbrowser.microService.sys.fileSystem.fileopener.FileOpener
 import kotlinx.coroutines.*
 import java.io.*
 import java.nio.charset.Charset
@@ -216,11 +220,30 @@ object FileSystemPlugin {
   }
 
   fun saveToPictureDirectory(fileName: String, inputStream: InputStream) {
-    val path = "Pictures/dwebbrowser"
-    Environment.getExternalStoragePublicDirectory(path)?.let { pictureDir ->
-      pictureDir.mkdirs() // 先创建所有目录，避免有目录不存在
-      val pictureFile = pictureDir.absolutePath + File.separator + fileName
-      saveFile(File(pictureFile), inputStream, false)
+    val contentValues = ContentValues().apply {
+      put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
+      put(MediaStore.MediaColumns.MIME_TYPE, "image/${FileOpener.getMimeType(fileName)}")
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        put(MediaStore.MediaColumns.RELATIVE_PATH, "${Environment.DIRECTORY_PICTURES}/DWeb")
+        put(MediaStore.Video.Media.IS_PENDING, 1)
+      }
+    }
+    val imageUri =
+      context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+    imageUri?.let { context.contentResolver.openOutputStream(it) }?.let { outputStream ->
+      val byteArray = ByteArray(1024)
+      while (inputStream.read(byteArray) != -1) {
+        outputStream.write(byteArray)
+      }
+      outputStream.flush()
+      outputStream.close()
+    }
+    inputStream.close()
+
+    imageUri?.let {
+      contentValues.clear()
+      contentValues.put(MediaStore.Video.Media.IS_PENDING, 0)
+      context.contentResolver.update(imageUri, contentValues, null, null)
     }
   }
 }
