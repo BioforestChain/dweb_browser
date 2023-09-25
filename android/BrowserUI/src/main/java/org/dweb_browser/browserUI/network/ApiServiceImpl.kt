@@ -1,105 +1,88 @@
 package org.dweb_browser.browserUI.network
 
-import io.ktor.http.isSuccess
-import io.ktor.utils.io.jvm.javaio.toInputStream
-import org.dweb_browser.microservice.http.PureRequest
-import org.dweb_browser.microservice.ipc.helper.IpcHeaders
-import org.dweb_browser.microservice.ipc.helper.IpcMethod
+import android.util.Log
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.request.headers
+import io.ktor.client.request.prepareGet
+import io.ktor.utils.io.ByteReadChannel
+import io.ktor.utils.io.core.isNotEmpty
+import io.ktor.utils.io.core.readBytes
+import org.dweb_browser.helper.platform.getKtorClientEngine
 import org.dweb_browser.microservice.sys.dns.httpFetch
 import java.io.File
-import java.io.FileOutputStream
 
 class ApiServiceImpl : ApiService {
+  private val httpClient = HttpClient(getKtorClientEngine()) {
+    install(HttpTimeout) {
+      requestTimeoutMillis = 600_000L
+    }
+  }
+
   override suspend fun getNetWorker(url: String): String {
     return httpFetch(url).body.toPureString()
   }
 
   override suspend fun downloadAndSave(
-    path: String,
-    file: File?,
+    url: String,
+    file: File,
     total: Long,
     isStop: () -> Boolean,
     onProgress: suspend (Long, Long) -> Unit
   ) {
-    if (path.isEmpty()) throw (java.lang.Exception("地址有误，下载失败！"))
+    if (url.isEmpty()) throw (java.lang.Exception("地址有误，下载失败！"))
     onProgress(0L, total)
-    val httpResponse = httpFetch.fetch(PureRequest(path, IpcMethod.GET))
-    val fileOutputStream: FileOutputStream? = file?.let { FileOutputStream(file) }
-    try {
-      if (!httpResponse.status.isSuccess()) { // 如果网络请求失败，直接抛异常
-        throw (java.lang.Exception(httpResponse.status.toString()))
+
+    httpClient.prepareGet(url).execute { httpResponse ->
+      val contentLength = httpResponse.headers["content-length"]?.toLong() ?: total
+      var currentLength = 0L
+      val channel: ByteReadChannel = httpResponse.body()
+      while (!channel.isClosedForRead && !isStop()) {
+        val packet = channel.readRemaining(limit = DEFAULT_BUFFER_SIZE.toLong())
+        while (packet.isNotEmpty && !isStop()) {
+          val bytes: ByteArray = packet.readBytes()
+          file.appendBytes(array = bytes)
+          currentLength += bytes.size
+          onProgress(currentLength, contentLength)
+          Log.e("lin.huang", "currentLength=$currentLength, contentLength=$contentLength")
+        }
       }
 
-      val contentLength = httpResponse.headers.get("content-length").let {
-        it?.toInt() ?: total // 网络请求数据的大小
-      }
-      val inputStream = httpResponse.stream().getReader("ApiServiceImpl download").toInputStream()
-      var currentLength = 0
-      val byteArray = ByteArray(DEFAULT_BUFFER_SIZE)
-      var length = inputStream.read(byteArray)
-      while (length != -1 && !isStop()) {
-        currentLength += length
-        fileOutputStream?.write(byteArray, 0, length)
-        onProgress(currentLength.toLong(), contentLength.toLong()) // 将下载进度回调
-        //delay(1000)
-        length = inputStream.read(byteArray)
-      }
-      // Log.e("ApiServiceImpl", "downloadAndSave-> $contentLength,$currentLength,${file?.length()}")
-    } catch (e: Exception) {
-      println("${file?.absoluteFile}->$path, issue[${httpResponse.status}]==>${e.message}")
-      onProgress(-1, httpResponse.status.value.toLong())
-    } finally {
-      fileOutputStream?.flush()
-      fileOutputStream?.close()
+      Log.e("lin.huang", "finally currentLength=$currentLength, contentLength=$contentLength")
     }
   }
 
   override suspend fun breakpointDownloadAndSave(
-    path: String,
-    file: File?,
+    url: String,
+    file: File,
     total: Long,
     isStop: () -> Boolean,
     onProgress: suspend (Long, Long) -> Unit
   ) {
-    if (path.isEmpty()) throw (java.lang.Exception("地址有误，下载失败！"))
-    var currentLength = file?.let { if (total > 0) it.length() else 0L } ?: 0L // 文件的大小
+    if (url.isEmpty()) throw (java.lang.Exception("地址有误，下载失败！"))
+    var currentLength = if (total > 0) file.length() else 0L // 文件的大小
     onProgress(currentLength, total)
-    val httpResponse = httpFetch.fetch(
-      PureRequest(
-        path,
-        IpcMethod.GET,
-        IpcHeaders().apply { set("Range", "bytes=$currentLength-${total}") })
-    )
 
-    val fileOutputStream: FileOutputStream? = file?.let { FileOutputStream(file, true) }
-    try {
-      if (!httpResponse.status.isSuccess()) { // 如果网络请求失败，直接抛异常
-        throw (java.lang.Exception(httpResponse.status.toString()))
-      }
-
-      val contentLength = httpResponse.headers.get("content-length")?.let {
+    httpClient.prepareGet(url) {
+      headers { set("Range", "bytes=$currentLength-${total}") }
+    }.execute { httpResponse ->
+      val contentLength = httpResponse.headers["content-length"]?.let {
         currentLength + it.toLong()
       } ?: run {
         currentLength = 0 // 如果没有content-length，说明没办法断点续传，只能重新下载
         total
       } // 网络请求数据的大小
-      val inputStream = httpResponse.stream().getReader("ApiServiceImpl break").toInputStream()
-      // inputStream.skip(currentLength) // 如果请求时，没有在Head 添加 Range 参数，可以改用这个方法
-      val byteArray = ByteArray(DEFAULT_BUFFER_SIZE)
-      var length = inputStream.read(byteArray)
-      while (length != -1 && !isStop()) {
-        currentLength += length
-        fileOutputStream?.write(byteArray, 0, length)
-        onProgress(currentLength, contentLength) // 将下载进度回调
-        //delay(1000)
-        length = inputStream.read(byteArray)
+      val channel: ByteReadChannel = httpResponse.body()
+      while (!channel.isClosedForRead && !isStop()) {
+        val packet = channel.readRemaining(limit = DEFAULT_BUFFER_SIZE.toLong())
+        while (packet.isNotEmpty && !isStop()) {
+          val bytes: ByteArray = packet.readBytes()
+          file.appendBytes(array = bytes)
+          currentLength += bytes.size
+          onProgress(currentLength, contentLength)
+        }
       }
-    } catch (e: Exception) {
-      println("${file?.absoluteFile}->$path, issue[${httpResponse.status}]==>${e.message}")
-      onProgress(-1, httpResponse.status.value.toLong())
-    } finally {
-      fileOutputStream?.flush()
-      fileOutputStream?.close()
     }
   }
 }

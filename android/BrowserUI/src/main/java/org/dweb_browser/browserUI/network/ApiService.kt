@@ -6,16 +6,16 @@ interface ApiService {
   suspend fun getNetWorker(url: String): String
 
   suspend fun downloadAndSave(
-    path: String,
-    file: File?,
+    url: String,
+    file: File,
     total: Long,
     isStop: () -> Boolean,
     onProgress: suspend (Long, Long) -> Unit
   )
 
   suspend fun breakpointDownloadAndSave(
-    path: String,
-    file: File?,
+    url: String,
+    file: File,
     total: Long,
     isStop: () -> Boolean,
     onProgress: suspend (Long, Long) -> Unit

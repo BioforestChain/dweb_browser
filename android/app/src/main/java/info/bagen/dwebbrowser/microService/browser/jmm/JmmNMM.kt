@@ -112,6 +112,7 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
           installJsMicroModule(jmmAppInstallManifest, ipc, url)
           PureResponse(HttpStatusCode.OK)
         } catch (e: Throwable) {
+          debugJMM("install", "fail -> ${e.message}")
           PureResponse(HttpStatusCode.ExpectationFailed).body(e.stackTraceToString())
         }
       } else {

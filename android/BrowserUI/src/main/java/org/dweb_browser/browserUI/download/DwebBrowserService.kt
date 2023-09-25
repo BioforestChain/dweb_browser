@@ -80,7 +80,7 @@ class DwebBrowserService : Service() {
     ioAsyncScope.launch {
       try {
         ApiService.instance.downloadAndSave(
-          path = downLoadInfo.url,
+          url = downLoadInfo.url,
           file = File(downLoadInfo.path),
           downLoadInfo.metaData.bundle_size,
           isStop = {
@@ -115,7 +115,7 @@ class DwebBrowserService : Service() {
     ioAsyncScope.launch {
       try {
         ApiService.instance.breakpointDownloadAndSave(
-          path = downLoadInfo.url, file = File(downLoadInfo.path), total = downLoadInfo.size,
+          url = downLoadInfo.url, file = File(downLoadInfo.path), total = downLoadInfo.size,
           isStop = {
             when (downLoadInfo.downLoadStatus) {
               DownLoadStatus.PAUSE -> {

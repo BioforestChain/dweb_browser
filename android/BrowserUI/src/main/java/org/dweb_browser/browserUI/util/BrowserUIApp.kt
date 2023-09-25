@@ -7,8 +7,8 @@ import android.content.ServiceConnection
 import android.os.IBinder
 import org.dweb_browser.browserUI.download.DwebBrowserService
 
-const val PrivacyUrl = "https://www.bagen.info/dweb_privacy_policy.html" // 隐私协议地址
-const val SupportUrl = "https://www.bagen.info/support.html" // webview版本升级帮助界面
+const val PrivacyUrl = "https://dweb-browser.bagen.info/protocol.html" // 隐私协议地址
+const val SupportUrl = "https://dweb-browser.bagen.info/support.html" // webview版本升级帮助界面
 
 class BrowserUIApp private constructor() {
 
