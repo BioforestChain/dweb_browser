@@ -1,5 +1,6 @@
 package info.bagen.dwebbrowser.microService.sys.fileSystem
 
+import android.net.Uri
 import info.bagen.dwebbrowser.App
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -61,15 +62,17 @@ class FileSystemNMM : NativeMicroModule("file.sys.dweb", "file") {
         try {
           if (requestPermissions()) {
             val multiPartData = request.receiveMultipart()
-            val files = mutableListOf<String>()
+            val files = mutableListOf<Uri>()
             multiPartData.forEachPart { partData ->
               when (partData) {
                 is PartData.FileItem -> {
                   partData.originalFileName?.also { filename ->
-                    val savedFilePath = FileSystemPlugin.saveToPictureDirectory(
+                    FileSystemPlugin.saveToPictureDirectory(
                       filename, partData.streamProvider(),
-                    )
-                    files.add(savedFilePath)
+                    )?.let { uri ->
+                      files.add(uri)
+                    }
+
                   }
                 }
                 else -> {}

@@ -66,7 +66,7 @@ object FileOpener {
     }
   }
 
-  private fun getMimeType(url: String): String {
+  fun getMimeType(url: String): String {
     var mimeType = "*/*"
     val extensionIndex = url.lastIndexOf('.')
     if (extensionIndex > 0) {
