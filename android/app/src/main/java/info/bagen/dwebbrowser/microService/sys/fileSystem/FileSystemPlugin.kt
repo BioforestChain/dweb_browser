@@ -219,7 +219,7 @@ object FileSystemPlugin {
     }
   }
 
-  fun saveToPictureDirectory(fileName: String, inputStream: InputStream): Uri? {
+  fun saveToPictureDirectory(fileName: String, inputStream: InputStream): Boolean {
     val contentValues = ContentValues().apply {
       put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
       put(MediaStore.MediaColumns.MIME_TYPE, "image/${FileOpener.getMimeType(fileName)}")
@@ -241,8 +241,9 @@ object FileSystemPlugin {
       contentValues.clear()
       contentValues.put(MediaStore.Video.Media.IS_PENDING, 0)
       context.contentResolver.update(imageUri, contentValues, null, null)
+      return true
     }
-    return imageUri
+    return false
   }
 }
 

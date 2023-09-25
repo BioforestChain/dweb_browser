@@ -128,9 +128,9 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
         jmmMetadataUninstall(mmid)
         true
       },
-      "/closeApp" bind HttpMethod.Get to defineBooleanResponse {
+      //检查是否有新版本
+      "/check" bind HttpMethod.Get to defineBooleanResponse {
         val mmid = request.queryOrFail("app_id")
-        jmmController?.closeApp(mmid)
         true
       },
       // app详情

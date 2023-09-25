@@ -1,15 +1,16 @@
 package info.bagen.dwebbrowser.microService.sys.fileSystem
 
-import android.net.Uri
 import info.bagen.dwebbrowser.App
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.PartData
 import io.ktor.http.content.forEachPart
 import io.ktor.http.content.streamProvider
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
@@ -58,42 +59,38 @@ class FileSystemNMM : NativeMicroModule("file.sys.dweb", "file") {
       "/rename" bind HttpMethod.Get to defineEmptyResponse {
 
       },
-      "/savePictures" bind HttpMethod.Post to definePureResponse {
+      "/savePictures" bind HttpMethod.Post to defineJsonResponse {
+        var success = false
         try {
           if (requestPermissions()) {
             val multiPartData = request.receiveMultipart()
-            val files = mutableListOf<Uri>()
             multiPartData.forEachPart { partData ->
               when (partData) {
                 is PartData.FileItem -> {
                   partData.originalFileName?.also { filename ->
-                    FileSystemPlugin.saveToPictureDirectory(
+                    success = FileSystemPlugin.saveToPictureDirectory(
                       filename, partData.streamProvider(),
-                    )?.let { uri ->
-                      files.add(uri)
-                    }
-
+                    )
                   }
                 }
                 else -> {}
               }
               partData.dispose()
             }
-            return@definePureResponse PureResponse(body = PureStringBody(Json.encodeToString(files)))
-
+            return@defineJsonResponse DwebResult(success).toJsonElement()
           } else {
-            return@definePureResponse PureResponse(HttpStatusCode.Forbidden)
+            return@defineJsonResponse DwebResult(false, "User denied permission！").toJsonElement()
           }
         } catch (e: Exception) {
           debugFileSystem("savePictures", "Error", e)
-          return@definePureResponse PureResponse(
-            HttpStatusCode.ExpectationFailed,
-            body = PureStringBody(e.message ?: e.stackTraceToString())
-          )
+          return@defineJsonResponse DwebResult(false, e.message ?: "").toJsonElement()
         }
       }
     ).cors()
   }
+
+  @Serializable
+  data class DwebResult(val success: Boolean, val message: String = "")
 
   override suspend fun _shutdown() {
     TODO("Not yet implemented")

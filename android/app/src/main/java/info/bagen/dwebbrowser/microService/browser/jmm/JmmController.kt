@@ -59,10 +59,6 @@ class JmmController(
     }
   }
 
-  suspend fun closeApp(mmid: MMID) {
-    debugJMM("closeApp", "mmid=$mmid")
-    jmmNMM.bootstrapContext.dns.close(mmid)
-  }
 
   suspend fun closeSelf() {
     closeSignal.emit()
