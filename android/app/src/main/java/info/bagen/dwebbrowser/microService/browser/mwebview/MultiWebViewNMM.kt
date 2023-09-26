@@ -1,5 +1,6 @@
 package info.bagen.dwebbrowser.microService.browser.mwebview
 
+import info.bagen.dwebbrowser.microService.browser.jmm.EIpcEvent
 import io.ktor.http.HttpMethod
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -19,6 +20,7 @@ import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.http.bind
 import org.dweb_browser.microservice.ipc.Ipc
+import org.dweb_browser.microservice.ipc.helper.IpcEvent
 import org.dweb_browser.window.core.WindowState
 import org.dweb_browser.window.core.constant.WindowConstants
 import org.dweb_browser.window.core.createWindowAdapterManager
@@ -46,7 +48,7 @@ class MultiWebViewNMM :
       // 打开一个 webview，并将它以 窗口window 的标准进行展示
       "/open" bind HttpMethod.Get to defineJsonResponse {
         val url = request.queryOrFail("url")
-        debugMultiWebView("create/open",url)
+        debugMultiWebView("create/open", url)
         val remoteMm = ipc.asRemoteInstance()
           ?: throw Exception("mwebview.browser.dweb/open should be call by locale")
         ipc.onClose {
@@ -81,7 +83,7 @@ class MultiWebViewNMM :
           visible = true
         }
         // TODO 将当前的界面移动到最上层
-        //  controller.ipc.postMessage(IpcEvent.fromUtf8(EIpcEvent.Activity.event, ""))
+//        controller.ipc.postMessage(IpcEvent.fromUtf8(EIpcEvent.Activity.event, ""))
         controller.win.emitFocusOrBlur(true)
 
         return@defineBooleanResponse true

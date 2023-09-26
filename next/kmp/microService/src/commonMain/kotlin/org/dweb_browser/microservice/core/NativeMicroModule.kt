@@ -1,6 +1,7 @@
 package org.dweb_browser.microservice.core
 
 import io.ktor.http.HttpStatusCode
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.microservice.help.types.MMID
@@ -173,3 +174,5 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
 typealias BeforeResponse = suspend (PureResponse) -> PureResponse?
 typealias RequestHandler<T> = suspend NativeMicroModule.HandlerContext.() -> T
 typealias HttpHandler = suspend (NativeMicroModule.HandlerContext) -> PureResponse
+@Serializable
+data class DwebResult(val success: Boolean, val message: String = "")

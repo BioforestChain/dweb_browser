@@ -12,10 +12,6 @@ class UpdateControllerPlugin extends BasePlugin {
   // 获取监听的消息
   listen = new UpdateController();
 
-  private getDownloadUrl() {
-    return this.fetchApi(`/getDownloadUrl`).text();
-  }
-
   /**
    * 跳转下载新版本
    * 可以默认不传递medatadaUrl,系统会去识别第一次下载的地址去对比版本
@@ -25,9 +21,6 @@ class UpdateControllerPlugin extends BasePlugin {
    */
   @bindThis
   async download(medatadaUrl?: string): Promise<boolean> {
-    if (!medatadaUrl) {
-      medatadaUrl = await this.getDownloadUrl();
-    }
     return this.fetchApi(`/install`, {
       search: {
         url: medatadaUrl,

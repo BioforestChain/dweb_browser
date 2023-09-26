@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import LogPanel, { defineLogAction } from "../components/LogPanel.vue";
-import { dwebServiceWorker, updateControllerPlugin } from "../plugin";
+import { dwebServiceWorker, toastPlugin, updateControllerPlugin } from "../plugin";
 const $logPanel = ref<typeof LogPanel>();
 // let console: Console;
 
@@ -74,15 +74,24 @@ const cancel = defineLogAction(
 
 const download = defineLogAction(
   async () => {
-    return await updateControllerPlugin.download("http://127.0.0.1:8096/metadata.json");
+    return await updateControllerPlugin.download();
   },
   { name: "download", args: [], logPanel: $logPanel }
 );
+
+const check = defineLogAction(
+  async () => {
+    const { success } = await updateControllerPlugin.checkNewVersion();
+    toastPlugin.show({ text: `${success ? "有新版本" : "没有新版本"}` });
+  },
+  { name: "check", args: [], logPanel: $logPanel }
+);
+
 const message = ref("这里显示收到的消息");
 
 // 向desktop.dweb.waterbang.top.dweb 发送消息
 const sayHi = async () => {
-  const url = new URL("/say/hi",document.baseURI);
+  const url = new URL("/say/hi", document.baseURI);
   url.searchParams.set("message", "今晚吃螃🦀️蟹吗？");
   const response = await dwebServiceWorker.externalFetch(`plaoc.html.demo.dweb`, url);
   message.value = await response.text();
@@ -123,8 +132,9 @@ const title = "Dweb Service Worker";
     </article>
     <article class="card-body">
       <h2 class="card-title">下载测试</h2>
-      <div class="justify-end card-actions">
+      <div class="justify-end card-actions btn-group">
         <button class="inline-block rounded-full btn btn-accent" @click="download">下载新版本</button>
+        <button class="inline-block rounded-full btn btn-accent" @click="check">检查版本升级</button>
       </div>
       <div>
         <progress class="w-56 progress progress-accent" :value="progress" max="100"></progress>

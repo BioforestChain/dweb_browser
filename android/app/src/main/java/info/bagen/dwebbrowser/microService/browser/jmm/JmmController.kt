@@ -24,7 +24,6 @@ class JmmController(
   private val openLock = Mutex()
   val viewModel: JmmManagerViewHelper = JmmManagerViewHelper(jmmAppInstallManifest, this)
 
-  fun hasApps(mmid: MMID) = jmmNMM.getApps(mmid) !== null
   fun getApp(mmid: MMID) = jmmNMM.getApps(mmid)
 
   private val closeSignal = SimpleSignal()

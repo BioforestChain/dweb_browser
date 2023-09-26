@@ -2,20 +2,15 @@ package info.bagen.dwebbrowser.microService.sys.fileSystem
 
 import info.bagen.dwebbrowser.App
 import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.PartData
 import io.ktor.http.content.forEachPart
 import io.ktor.http.content.streamProvider
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.microservice.core.BootstrapContext
+import org.dweb_browser.microservice.core.DwebResult
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
-import org.dweb_browser.microservice.http.PureResponse
-import org.dweb_browser.microservice.http.PureStringBody
 import org.dweb_browser.microservice.http.bind
 import org.dweb_browser.microservice.http.receiveMultipart
 
@@ -77,7 +72,7 @@ class FileSystemNMM : NativeMicroModule("file.sys.dweb", "file") {
               }
               partData.dispose()
             }
-            return@defineJsonResponse DwebResult(success).toJsonElement()
+            return@defineJsonResponse DwebResult(success,"Saved successfully！").toJsonElement()
           } else {
             return@defineJsonResponse DwebResult(false, "User denied permission！").toJsonElement()
           }
@@ -89,8 +84,7 @@ class FileSystemNMM : NativeMicroModule("file.sys.dweb", "file") {
     ).cors()
   }
 
-  @Serializable
-  data class DwebResult(val success: Boolean, val message: String = "")
+
 
   override suspend fun _shutdown() {
     TODO("Not yet implemented")

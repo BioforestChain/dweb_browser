@@ -19,8 +19,10 @@ import org.dweb_browser.browserUI.util.FilesUtil
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.resolvePath
+import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.microservice.core.AndroidNativeMicroModule
 import org.dweb_browser.microservice.core.BootstrapContext
+import org.dweb_browser.microservice.core.DwebResult
 import org.dweb_browser.microservice.help.types.IMicroModuleManifest
 import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
@@ -84,9 +86,6 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
     }
   }
 
-  enum class EIpcEvent(val event: String) {
-    State("state"), Ready("ready"), Activity("activity"), Close("close")
-  }
 
   private var jmmController: JmmController? = null
 
@@ -102,11 +101,17 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
     }
 
     val routeInstallHandler = definePureResponse {
-      val metadataUrl = request.queryOrFail("url")
+      val metadataUrl = request.query("url") ?: JmmStore.getMetadataUrl(ipc.remote.mmid)
+      if (metadataUrl == "") {
+        return@definePureResponse PureResponse(HttpStatusCode.ExpectationFailed).body("You need to pass metadataUrl！")
+      }
       val response = nativeFetch(metadataUrl)
       if (response.isOk()) {
         try {
           val jmmAppInstallManifest = response.json<JmmAppInstallManifest>()
+          // 保存下载链接
+          debugJMM("save->", "$metadataUrl ${jmmAppInstallManifest.id}")
+          JmmStore.setMetadataUrl(jmmAppInstallManifest.id, metadataUrl)
           val url = Url(metadataUrl)
           // 根据 jmmMetadata 打开一个应用信息的界面，用户阅读界面信息后，可以点击"安装"
           installJsMicroModule(jmmAppInstallManifest, ipc, url)
@@ -130,9 +135,20 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
         true
       },
       //检查是否有新版本
-      "/check" bind HttpMethod.Get to defineBooleanResponse {
-        val mmid = request.queryOrFail("app_id")
-        true
+      "/check" bind HttpMethod.Get to defineJsonResponse {
+        val metadataUrl = JmmStore.getMetadataUrl(ipc.remote.mmid)
+        val response = nativeFetch(metadataUrl)
+        debugJMM("check-> ${ipc.remote.mmid}", " $metadataUrl ${response.isOk()}")
+        if (!response.isOk()) {
+          return@defineJsonResponse DwebResult(false, "network anomaly！").toJsonElement()
+        }
+        val jmmAppInstallManifest = response.json<JmmAppInstallManifest>()
+        val needUpdate = jmmAppInstallManifest.version.isGreaterThan(ipc.remote.version)
+        println("needUpdate=>$needUpdate  ${ipc.remote.version}  ${jmmAppInstallManifest.version}")
+        if (needUpdate) {
+          return@defineJsonResponse DwebResult(true, "Need update").toJsonElement()
+        }
+        return@defineJsonResponse DwebResult(false, "No update required").toJsonElement()
       },
       // app详情
       "/detailApp" bind HttpMethod.Get to defineBooleanResponse {
