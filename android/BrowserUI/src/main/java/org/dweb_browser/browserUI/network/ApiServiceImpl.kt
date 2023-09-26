@@ -1,6 +1,5 @@
 package org.dweb_browser.browserUI.network
 
-import android.util.Log
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.HttpTimeout
@@ -45,11 +44,8 @@ class ApiServiceImpl : ApiService {
           file.appendBytes(array = bytes)
           currentLength += bytes.size
           onProgress(currentLength, contentLength)
-          Log.e("lin.huang", "currentLength=$currentLength, contentLength=$contentLength")
         }
       }
-
-      Log.e("lin.huang", "finally currentLength=$currentLength, contentLength=$contentLength")
     }
   }
 

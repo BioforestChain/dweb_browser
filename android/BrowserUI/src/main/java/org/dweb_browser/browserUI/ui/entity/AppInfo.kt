@@ -1,6 +1,6 @@
 package org.dweb_browser.browserUI.ui.entity
 
-import org.dweb_browser.browserUI.util.APP_DIR_TYPE
+import org.dweb_browser.helper.APP_DIR_TYPE
 
 /**
  * version: {Semantic Version} 该文件格式的版本号，用于告知解析器该如何认知接下来的字段。以下字段是 1.0.0 的字段描述（未来默认向下兼容）

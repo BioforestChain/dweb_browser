@@ -1,5 +1,6 @@
 package org.dweb_browser.browserUI.microService.browser.web
 
+import android.content.Context
 import android.graphics.Bitmap
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -11,11 +12,11 @@ import kotlinx.coroutines.plus
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.browserUI.R
-import org.dweb_browser.browserUI.database.DeskAppInfoStore
-import org.dweb_browser.browserUI.database.createDeskWebLink
 import org.dweb_browser.browserUI.ui.browser.BrowserViewModel
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.microservice.sys.download.db.DownloadDBStore
+import org.dweb_browser.microservice.sys.download.db.createDeskWebLink
 import org.dweb_browser.microservice.sys.http.HttpDwebServer
 import org.dweb_browser.window.core.WindowController
 import org.dweb_browser.window.core.WindowState
@@ -92,6 +93,6 @@ class BrowserController(
     }
   }
 
-  suspend fun addUrlToDesktop(title: String, url: String, icon: Bitmap?) =
-    DeskAppInfoStore.saveWebLink(createDeskWebLink(title, url, icon))
+  suspend fun addUrlToDesktop(context: Context, title: String, url: String, icon: Bitmap?) =
+    DownloadDBStore.saveWebLink(context, createDeskWebLink(context, title, url, icon))
 }

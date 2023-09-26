@@ -1,18 +1,11 @@
 package info.bagen.dwebbrowser.microService.browser.mwebview
 
-import info.bagen.dwebbrowser.microService.browser.jmm.EIpcEvent
 import io.ktor.http.HttpMethod
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
-import org.dweb_browser.browserUI.download.DownLoadObserver
-import org.dweb_browser.dwebview.serviceWorker.emitEvent
 import org.dweb_browser.helper.UUID
-import org.dweb_browser.helper.debounce
-import org.dweb_browser.helper.enumToComparable
 import org.dweb_browser.helper.printDebug
-import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.microservice.core.AndroidNativeMicroModule
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.MicroModule
@@ -20,7 +13,6 @@ import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.http.bind
 import org.dweb_browser.microservice.ipc.Ipc
-import org.dweb_browser.microservice.ipc.helper.IpcEvent
 import org.dweb_browser.window.core.WindowState
 import org.dweb_browser.window.core.constant.WindowConstants
 import org.dweb_browser.window.core.createWindowAdapterManager
@@ -122,17 +114,17 @@ class MultiWebViewNMM :
         win.onClose {
           controllerMap.remove(remoteMmid)
         }
-        ioAsyncScope.launch {
-          controller.downLoadObserver = DownLoadObserver(remoteMmid).apply {
-            observe { listener ->
-              controller.lastViewOrNull?.webView?.let { dWebView ->
-                emitEvent(
-                  dWebView, listener.downLoadStatus.toServiceWorkerEvent(), listener.progress
-                )
-              }
-            }
-          }
-        }
+//        ioAsyncScope.launch {
+//          controller.downLoadObserver = DownLoadObserver(remoteMmid).apply {
+//            observe { listener ->
+//              controller.lastViewOrNull?.webView?.let { dWebView ->
+//                emitEvent(
+//                  dWebView, listener.downLoadStatus.toServiceWorkerEvent(), listener.progress
+//                )
+//              }
+//            }
+//          }
+//        }
       }
     }
 

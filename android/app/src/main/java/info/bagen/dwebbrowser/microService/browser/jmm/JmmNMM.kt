@@ -1,5 +1,6 @@
 package info.bagen.dwebbrowser.microService.browser.jmm
 
+import android.content.Context
 import info.bagen.dwebbrowser.App
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -7,16 +8,11 @@ import io.ktor.http.URLBuilder
 import io.ktor.http.Url
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import org.dweb_browser.browserUI.database.AppType
-import org.dweb_browser.browserUI.database.DeskAppInfo
-import org.dweb_browser.browserUI.database.DeskAppInfoStore
-import org.dweb_browser.browserUI.download.DownLoadController
 import org.dweb_browser.browserUI.download.isGreaterThan
 import org.dweb_browser.browserUI.microService.browser.link.WebLinkMicroModule
-import org.dweb_browser.browserUI.util.APP_DIR_TYPE
-import org.dweb_browser.browserUI.util.BrowserUIApp
-import org.dweb_browser.browserUI.util.FilesUtil
+import org.dweb_browser.helper.APP_DIR_TYPE
 import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.FilesUtil
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.helper.toJsonElement
@@ -35,6 +31,9 @@ import org.dweb_browser.microservice.sys.dns.RespondLocalFileContext.Companion.r
 import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.dweb_browser.microservice.sys.dns.nativeFetchAdaptersManager
 import org.dweb_browser.microservice.sys.dns.returnAndroidFile
+import org.dweb_browser.microservice.sys.download.db.AppType
+import org.dweb_browser.microservice.sys.download.db.DeskAppInfo
+import org.dweb_browser.microservice.sys.download.db.DownloadDBStore
 import org.dweb_browser.window.core.WindowState
 import org.dweb_browser.window.core.constant.WindowConstants
 import org.dweb_browser.window.core.constant.WindowMode
@@ -44,23 +43,8 @@ import java.io.File
 
 val debugJMM = Debugger("JMM")
 
-/**
- * 获取 map 值，如果不存在，则使用defaultValue; 如果replace 为true也替换为defaultValue
- */
-inline fun <K, V> MutableMap<K, V>.getOrPutOrReplace(
-  key: K, replaceValue: (V) -> V, defaultValue: () -> V
-): V {
-  val value = get(key)
-  return if (value == null) {
-    val answer = defaultValue()
-    put(key, answer)
-    answer
-  } else {
-    replaceValue(value)
-  }
-}
-
-class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Management") {
+class JmmNMM(val context: Context) :
+  AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Management") {
   init {
     short_name = "JMM";
     dweb_deeplinks = listOf("dweb://install")
@@ -85,7 +69,6 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
       }
     }
   }
-
 
   private var jmmController: JmmController? = null
 
@@ -163,27 +146,6 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
         } else {
           false
         }
-      },
-      "/pause" bind HttpMethod.Get to defineBooleanResponse {
-        BrowserUIApp.Instance.mBinderService?.invokeUpdateDownloadStatus(
-          ipc.remote.mmid, DownLoadController.PAUSE
-        )
-        true
-      },
-      /**继续下载*/
-      "/resume" bind HttpMethod.Get to defineBooleanResponse {
-        debugJMM("resume", ipc.remote.mmid)
-        BrowserUIApp.Instance.mBinderService?.invokeUpdateDownloadStatus(
-          ipc.remote.mmid, DownLoadController.RESUME
-        )
-        true
-      },
-      "/cancel" bind HttpMethod.Get to defineBooleanResponse {
-        debugJMM("cancel", ipc.remote.mmid)
-        BrowserUIApp.Instance.mBinderService?.invokeUpdateDownloadStatus(
-          ipc.remote.mmid, DownLoadController.CANCEL
-        )
-        true
       })
   }
 
@@ -196,36 +158,37 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
   private fun installJmmApps() {
     ioAsyncScope.launch {
       var preList = mutableListOf<DeskAppInfo>()
-      DeskAppInfoStore.queryDeskAppInfoList().collectLatest { list -> // TODO 只要datastore更新，这边就会实时更新
-        debugJMM("AppInfoDataStore", "size=${list.size}")
-        list.map { deskAppInfo ->
-          when (deskAppInfo.appType) {
-            AppType.MetaData -> deskAppInfo.metadata?.let { jsMetaData ->
-              preList.removeIf { it.metadata?.id == jsMetaData.id }
-              // 检测版本
-              bootstrapContext.dns.query(jsMetaData.id)?.let { lastMetaData ->
-                if (jsMetaData.version.isGreaterThan(lastMetaData.version)) {
-                  bootstrapContext.dns.close(lastMetaData.mmid)
+      DownloadDBStore.queryDeskAppInfoList(context)
+        .collectLatest { list -> // TODO 只要datastore更新，这边就会实时更新
+          debugJMM("AppInfoDataStore", "size=${list.size}")
+          list.map { deskAppInfo ->
+            when (deskAppInfo.appType) {
+              AppType.MetaData -> deskAppInfo.metadata?.let { jsMetaData ->
+                preList.removeIf { it.metadata?.id == jsMetaData.id }
+                // 检测版本
+                bootstrapContext.dns.query(jsMetaData.id)?.let { lastMetaData ->
+                  if (jsMetaData.version.isGreaterThan(lastMetaData.version)) {
+                    bootstrapContext.dns.close(lastMetaData.mmid)
+                  }
                 }
+                bootstrapContext.dns.install(JsMicroModule(jsMetaData))
               }
-              bootstrapContext.dns.install(JsMicroModule(jsMetaData))
-            }
 
-            AppType.URL -> deskAppInfo.weblink?.let { deskWebLink ->
-              preList.removeIf { preDeskAppInfo -> preDeskAppInfo.weblink?.id == deskWebLink.id }
-              bootstrapContext.dns.install(WebLinkMicroModule(deskWebLink))
+              AppType.URL -> deskAppInfo.weblink?.let { deskWebLink ->
+                preList.removeIf { preDeskAppInfo -> preDeskAppInfo.weblink?.id == deskWebLink.id }
+                bootstrapContext.dns.install(WebLinkMicroModule(deskWebLink))
+              }
             }
           }
-        }
-        /// 将剩余的应用卸载掉
-        for (uninstallItem in preList) {
-          uninstallItem.weblink?.deleteIconFile() // 删除已下载的图标
-          (uninstallItem.metadata?.id ?: uninstallItem.weblink?.id)?.let { uninstallId ->
-            bootstrapContext.dns.uninstall(uninstallId)
+          /// 将剩余的应用卸载掉
+          for (uninstallItem in preList) {
+            uninstallItem.weblink?.deleteIconFile(context) // 删除已下载的图标
+            (uninstallItem.metadata?.id ?: uninstallItem.weblink?.id)?.let { uninstallId ->
+              bootstrapContext.dns.uninstall(uninstallId)
+            }
           }
+          preList = list
         }
-        preList = list
-      }
     }
   }
 
@@ -266,7 +229,7 @@ class JmmNMM : AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Mana
   private suspend fun jmmMetadataUninstall(mmid: MMID) {
     // 先从列表移除，然后删除文件
     bootstrapContext.dns.uninstall(mmid)
-    DeskAppInfoStore.deleteDeskAppInfo(mmid)
+    DownloadDBStore.deleteDeskAppInfo(context, mmid)
     FilesUtil.uninstallApp(App.appContext, mmid)
   }
 }

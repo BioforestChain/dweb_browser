@@ -29,6 +29,7 @@ import org.dweb_browser.helper.platform.getKtorClientEngine
 import org.dweb_browser.microservice.sys.boot.BootNMM
 import org.dweb_browser.microservice.sys.dns.DnsNMM
 import org.dweb_browser.microservice.sys.dns.nativeFetchAdaptersManager
+import org.dweb_browser.microservice.sys.download.DownloadNMM
 import org.dweb_browser.microservice.sys.http.HttpNMM
 import org.dweb_browser.shared.Greeting
 import java.io.File
@@ -63,9 +64,7 @@ suspend fun startDwebBrowser(): DnsNMM {
     )
 
     DEVELOPER.HuangLin, DEVELOPER.HLVirtual, DEVELOPER.HLOppo, DEVELOPER.HBXiaomi, DEVELOPER.ZGSansung -> addDebugTags(
-      listOf(
-        "fetch", "http", "mwebview", "fetch-file", "js-process", "browser", "desk", "JMM", "window"
-      )
+      listOf("/.+/")
     )
 
     DEVELOPER.WaterBang -> addDebugTags(
@@ -123,6 +122,9 @@ suspend fun startDwebBrowser(): DnsNMM {
   /// 安装系统桌面
   val browserNMM = BrowserNMM().also { dnsNMM.install(it) }
 
+  /// 下载功能
+  val downloadNMM = DownloadNMM(App.appContext).also { dnsNMM.install(it) }
+
   /// 扫码
   val scannerNMM = info.bagen.dwebbrowser.microService.sys.barcodeScanning.ScanningNMM()
     .also { dnsNMM.install(it) }
@@ -158,7 +160,7 @@ suspend fun startDwebBrowser(): DnsNMM {
   val nativeUiNMM = NativeUiNMM().also { dnsNMM.install(it) }
 
   /// 安装Jmm
-  val jmmNMM = JmmNMM().also { dnsNMM.install(it) }
+  val jmmNMM = JmmNMM(App.appContext).also { dnsNMM.install(it) }
   val desktopNMM = DesktopNMM().also { dnsNMM.install(it) }
   val windowNMM = WindowNMM().also { dnsNMM.install(it) }
 

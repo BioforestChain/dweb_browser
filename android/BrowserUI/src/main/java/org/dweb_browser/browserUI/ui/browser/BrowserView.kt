@@ -43,6 +43,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
@@ -302,6 +303,7 @@ private fun BrowserViewSearch(viewModel: BrowserViewModel) {
 @Composable
 private fun BrowserViewNavigatorBar(viewModel: BrowserViewModel) {
   val scope = rememberCoroutineScope()
+  val context = LocalContext.current
   val bottomSheetModel = LocalModalBottomSheet.current
   Row(
     modifier = Modifier
@@ -325,7 +327,7 @@ private fun BrowserViewNavigatorBar(viewModel: BrowserViewModel) {
       resName = R.string.browser_nav_addhome,
       show = viewModel.uiState.currentBrowserBaseView.value?.viewItem?.state?.lastLoadedUrl != null
     ) {
-      scope.launch { viewModel.addUrlToDesktop() }
+      scope.launch { viewModel.addUrlToDesktop(context) }
     }
     NavigatorButton(
       imageVector = if (navigator.canGoBack) Icons.Rounded.Add else Icons.Rounded.QrCodeScanner,

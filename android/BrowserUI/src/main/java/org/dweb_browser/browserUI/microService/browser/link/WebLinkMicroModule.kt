@@ -1,10 +1,10 @@
 package org.dweb_browser.browserUI.microService.browser.link
 
-import org.dweb_browser.browserUI.database.DeskWebLink
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
+import org.dweb_browser.microservice.sys.download.db.DeskWebLink
 
 fun debugWebLink(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("link", tag, msg, err)

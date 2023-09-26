@@ -90,10 +90,6 @@ dependencies {
 
   implementation(libs.accompanist.permissions)
 
-  implementation(libs.commons.compress)
-  api(libs.data.store)
-  api(libs.data.store.preferences)
-
   implementation(project(":helper"))
   implementation(project(":DWebView"))
   implementation(project(":microService"))

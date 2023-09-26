@@ -1,4 +1,4 @@
-package org.dweb_browser.browserUI.database
+package org.dweb_browser.microservice.sys.download.db
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -17,8 +17,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.dweb_browser.browserUI.util.BitmapUtil
-import org.dweb_browser.browserUI.util.BrowserUIApp
+import org.dweb_browser.helper.BitmapUtil
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
 import org.dweb_browser.microservice.help.types.MMID
@@ -31,9 +30,9 @@ enum class AppType {
 
 private const val DeskWebLinkStart = "file:///web_icons/"
 
-fun createDeskWebLink(title: String, url: String, bitmap: Bitmap?) : DeskWebLink {
+fun createDeskWebLink(context: Context, title: String, url: String, bitmap: Bitmap?): DeskWebLink {
   val imageResource = bitmap?.let {
-    BitmapUtil.saveBitmapToIcons(it)?.let { src ->
+    BitmapUtil.saveBitmapToIcons(context, it)?.let { src ->
       ImageResource(src = "$DeskWebLinkStart$src")
     }
   }
@@ -52,9 +51,9 @@ data class DeskWebLink(
   val url: String,
   val icon: ImageResource
 ) {
-  fun deleteIconFile() {
+  fun deleteIconFile(context: Context) {
     if (icon.src.startsWith(DeskWebLinkStart)) {
-      BitmapUtil.deleteIconsFile(icon.src.replaceFirst(DeskWebLinkStart, ""))
+      BitmapUtil.deleteIconsFile(context, icon.src.replaceFirst(DeskWebLinkStart, ""))
     }
   }
 }
@@ -66,35 +65,35 @@ data class DeskAppInfo(
   val weblink: DeskWebLink? = null,
 )
 
-object DeskAppInfoStore {
-  private const val PREFERENCE_NAME = "DeskAppInfo"
+object DownloadDBStore {
+  private const val PREFERENCE_NAME = "DownloadDBStore"
   private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = PREFERENCE_NAME)
 
-  suspend fun saveAppInfo(mmid: MMID, metadata: JmmAppInstallManifest) =
+  suspend fun saveAppInfo(context: Context, mmid: MMID, metadata: JmmAppInstallManifest) =
     runBlocking(Dispatchers.IO) {
       // edit 函数需要在挂起环境中执行
-      BrowserUIApp.Instance.appContext.dataStore.edit { pref ->
+      context.dataStore.edit { pref ->
         pref[stringPreferencesKey("${AppType.MetaData}$mmid")] = Json.encodeToString(metadata)
       }
     }
 
-  suspend fun saveWebLink(item: DeskWebLink) =
+  suspend fun saveWebLink(context: Context, item: DeskWebLink) =
     runBlocking(Dispatchers.IO) {
       // edit 函数需要在挂起环境中执行
-      BrowserUIApp.Instance.appContext.dataStore.edit { pref ->
+      context.dataStore.edit { pref ->
         pref[stringPreferencesKey(item.id)] = Json.encodeToString(item)
       }
     }
 
-  suspend fun deleteDeskAppInfo(mmid: MMID) {
-    BrowserUIApp.Instance.appContext.dataStore.edit { pref ->
+  suspend fun deleteDeskAppInfo(context: Context, mmid: MMID) {
+    context.dataStore.edit { pref ->
       val name = if (mmid.startsWith(AppType.URL.name)) mmid else "${AppType.MetaData}$mmid"
       pref.remove(stringPreferencesKey(name))
     }
   }
 
-  suspend fun queryDeskAppInfoList(): Flow<MutableList<DeskAppInfo>> {
-    return BrowserUIApp.Instance.appContext.dataStore.data.catch { e ->  // Flow 中发生异常可使用这种方式捕获，catch 块是可选的
+  suspend fun queryDeskAppInfoList(context: Context): Flow<MutableList<DeskAppInfo>> {
+    return context.dataStore.data.catch { e ->  // Flow 中发生异常可使用这种方式捕获，catch 块是可选的
       if (e is IOException) {
         e.printStackTrace()
         emit(emptyPreferences())

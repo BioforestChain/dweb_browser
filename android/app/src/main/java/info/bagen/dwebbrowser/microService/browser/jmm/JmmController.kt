@@ -2,12 +2,22 @@ package info.bagen.dwebbrowser.microService.browser.jmm
 
 import androidx.compose.runtime.Composable
 import info.bagen.dwebbrowser.microService.browser.jmm.ui.JmmManagerViewHelper
+import io.ktor.http.URLBuilder
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.SimpleSignal
+import org.dweb_browser.helper.buildUnsafeString
 import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
 import org.dweb_browser.microservice.help.types.MMID
+import org.dweb_browser.microservice.http.PureRequest
+import org.dweb_browser.microservice.http.PureStringBody
+import org.dweb_browser.microservice.ipc.ReadableStreamIpc
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
+import org.dweb_browser.microservice.ipc.helper.IpcMethod
+import org.dweb_browser.microservice.sys.dns.nativeFetch
+import org.dweb_browser.microservice.sys.download.DownloadInfo
 import org.dweb_browser.window.core.WindowController
 import org.dweb_browser.window.core.createWindowAdapterManager
 
@@ -58,6 +68,33 @@ class JmmController(
     }
   }
 
+  suspend fun downloadAndSaveZip(appInstallManifest: JmmAppInstallManifest) {
+    jmmNMM.nativeFetch(
+      PureRequest(
+        href = "file://download.sys.dweb/download",
+        method = IpcMethod.POST,
+        body = PureStringBody(Json.encodeToString(appInstallManifest))
+      )
+    )
+  }
+
+  suspend fun observeDownloadState(mmid: MMID, onChange: (DownloadInfo) -> Unit) {
+    val streamIpc = ReadableStreamIpc(jmmNMM, "observe download-$mmid")
+    streamIpc.bindIncomeStream(
+      jmmNMM.nativeFetch(
+        PureRequest(
+          URLBuilder("file://download.sys.dweb/observe").apply {
+            parameters["mmid"] = mmid
+          }.buildUnsafeString(),
+          IpcMethod.GET
+        )
+      ).stream()
+    )
+    streamIpc.onEvent {
+      debugJMM("observeDownloadState", "$mmid, ${it.event}")
+    }
+    jmmNMM.addToIpcSet(streamIpc)
+  }
 
   suspend fun closeSelf() {
     closeSignal.emit()

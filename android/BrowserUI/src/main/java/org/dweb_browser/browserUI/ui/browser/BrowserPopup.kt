@@ -97,11 +97,10 @@ import org.dweb_browser.browserUI.ui.entity.BrowserWebView
 import org.dweb_browser.browserUI.ui.theme.DimenBottomBarHeight
 import org.dweb_browser.browserUI.ui.view.LocalCommonUrl
 import org.dweb_browser.browserUI.ui.view.findActivity
-import org.dweb_browser.browserUI.util.BitmapUtil
 import org.dweb_browser.browserUI.util.PrivacyUrl
+import org.dweb_browser.helper.BitmapUtil
 import org.dweb_browser.helper.compose.rememberPlatformViewController
 import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.helper.platform.PlatformViewController
 import org.dweb_browser.helper.platform.getCornerRadiusTop
 
 private val screenHeight: Dp
@@ -120,7 +119,7 @@ enum class PopupViewState(
   Share(percentage = 0.5f, title = "分享");
 
   fun getLocalHeight(screenHeight: Dp? = null): Dp {
-    return screenHeight?.let { screenHeight ->
+    return screenHeight?.let {
       percentage?.let { percentage ->
         screenHeight * percentage
       }
@@ -655,6 +654,7 @@ private fun MultiItemView(
   onlyOne: Boolean = false,
   index: Int = 0
 ) {
+  val context = LocalContext.current
   val screenWidth = LocalConfiguration.current.screenWidthDp.dp
   val sizeTriple = if (onlyOne) {
     val with = screenWidth - 120.dp
@@ -686,12 +686,12 @@ private fun MultiItemView(
       )
       val contentPair = when (browserBaseView) {
         is BrowserMainView -> {
-          Pair("起始页", BitmapUtil.decodeBitmapFromResource(R.drawable.ic_main_star))
+          Pair("起始页", BitmapUtil.decodeBitmapFromResource(context, R.drawable.ic_main_star))
         }
 
         is BrowserWebView -> {
           if (browserBaseView.viewItem.state.lastLoadedUrl?.isSystemUrl() == true) {
-            Pair("起始页", BitmapUtil.decodeBitmapFromResource(R.drawable.ic_main_star))
+            Pair("起始页", BitmapUtil.decodeBitmapFromResource(context, R.drawable.ic_main_star))
           } else {
             Pair(browserBaseView.viewItem.state.pageTitle, browserBaseView.viewItem.state.pageIcon)
           }

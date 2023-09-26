@@ -4,18 +4,13 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
-import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.browser.jmm.JmmController
 import kotlinx.coroutines.launch
-import org.dweb_browser.browserUI.download.DownLoadInfo
-import org.dweb_browser.browserUI.download.DownLoadObserver
-import org.dweb_browser.browserUI.download.DownLoadStatus
 import org.dweb_browser.browserUI.download.isGreaterThan
 import org.dweb_browser.browserUI.util.BrowserUIApp
-import org.dweb_browser.browserUI.util.NotificationUtil
 import org.dweb_browser.helper.compose.noLocalProvidedFor
 import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
-import java.util.Calendar
+import org.dweb_browser.microservice.sys.download.DownloadStatus
 
 internal val LocalShowWebViewVersion = compositionLocalOf {
   mutableStateOf(false)
@@ -31,7 +26,7 @@ internal val LocalJmmViewHelper = compositionLocalOf<JmmManagerViewHelper> {
 data class JmmUIState(
   val jmmAppInstallManifest: JmmAppInstallManifest,
   val downloadSize: MutableState<Long> = mutableLongStateOf(0L),
-  val downloadStatus: MutableState<DownLoadStatus> = mutableStateOf(DownLoadStatus.IDLE)
+  val downloadStatus: MutableState<DownloadStatus> = mutableStateOf(DownloadStatus.IDLE)
 )
 
 sealed class JmmIntent {
@@ -43,21 +38,21 @@ class JmmManagerViewHelper(
   jmmAppInstallManifest: JmmAppInstallManifest, private val jmmController: JmmController
 ) {
   val uiState: JmmUIState = JmmUIState(jmmAppInstallManifest)
-  private var downLoadObserver: DownLoadObserver? = null
+  //private var downLoadObserver: DownLoadObserver? = null
 
   init {
     BrowserUIApp.Instance.mBinderService?.invokeFindDownLoadInfo(jmmAppInstallManifest.id)?.let {
       uiState.downloadSize.value = it.dSize
-      uiState.downloadStatus.value = it.downLoadStatus
+      uiState.downloadStatus.value = it.downloadStatus
     } ?: jmmController.getApp(jmmAppInstallManifest.id)?.let { curJmmMetadata ->
       if (jmmAppInstallManifest.version.isGreaterThan(curJmmMetadata.version)) {
-        uiState.downloadStatus.value = DownLoadStatus.NewVersion
+        uiState.downloadStatus.value = DownloadStatus.NewVersion
       } else {
-        uiState.downloadStatus.value = DownLoadStatus.INSTALLED
+        uiState.downloadStatus.value = DownloadStatus.INSTALLED
       }
-    } ?: run { uiState.downloadStatus.value = DownLoadStatus.IDLE }
+    } ?: run { uiState.downloadStatus.value = DownloadStatus.IDLE }
 
-    if (uiState.downloadStatus.value != DownLoadStatus.INSTALLED) {
+    if (uiState.downloadStatus.value != DownloadStatus.INSTALLED) {
       jmmController.win.coroutineScope.launch {
         initDownLoadStatusListener()
       }
@@ -65,7 +60,7 @@ class JmmManagerViewHelper(
   }
 
   private suspend fun initDownLoadStatusListener() {
-    downLoadObserver = DownLoadObserver(uiState.jmmAppInstallManifest.id).also { observe ->
+    /*downLoadObserver = DownLoadObserver(uiState.jmmAppInstallManifest.id).also { observe ->
       observe.observe {
         if (it.downLoadStatus == DownLoadStatus.IDLE) return@observe
 
@@ -83,6 +78,24 @@ class JmmManagerViewHelper(
           downLoadObserver?.close()
         }
       }
+    }*/
+    jmmController.observeDownloadState(uiState.jmmAppInstallManifest.id) { downloadInfo ->
+      if (downloadInfo.downloadStatus == DownloadStatus.IDLE) return@observeDownloadState
+
+      when (downloadInfo.downloadStatus) {
+        DownloadStatus.DownLoading -> {
+          uiState.downloadStatus.value = downloadInfo.downloadStatus
+          uiState.downloadSize.value = downloadInfo.dSize
+        }
+
+        else -> {
+          uiState.downloadStatus.value = downloadInfo.downloadStatus
+        }
+      }
+      if (downloadInfo.downloadStatus == DownloadStatus.INSTALLED) { // 移除监听列表
+        // downLoadObserver?.close()
+        // TODO 移除监听
+      }
     }
   }
 
@@ -90,40 +103,32 @@ class JmmManagerViewHelper(
     when (action) {
       is JmmIntent.ButtonFunction -> {
         when (uiState.downloadStatus.value) {
-          DownLoadStatus.IDLE, DownLoadStatus.FAIL, DownLoadStatus.CANCEL, DownLoadStatus.NewVersion -> { // 空闲点击是下载，失败点击也是重新下载
-            BrowserUIApp.Instance.mBinderService?.invokeDownloadAndSaveZip(
+          DownloadStatus.IDLE, DownloadStatus.FAIL, DownloadStatus.CANCEL, DownloadStatus.NewVersion -> { // 空闲点击是下载，失败点击也是重新下载
+            /*BrowserUIApp.Instance.mBinderService?.invokeDownloadAndSaveZip(
               uiState.jmmAppInstallManifest.toDownLoadInfo()
-            )
+            )*/
+            jmmController.downloadAndSaveZip(uiState.jmmAppInstallManifest)
           }
 
-          DownLoadStatus.DownLoadComplete -> { /* TODO 无需响应 */
+          DownloadStatus.DownLoadComplete -> { /* TODO 无需响应 */
           }
 
-          DownLoadStatus.DownLoading, DownLoadStatus.PAUSE -> {
+          DownloadStatus.DownLoading, DownloadStatus.PAUSE -> {
             BrowserUIApp.Instance.mBinderService?.invokeDownloadStatusChange(
               uiState.jmmAppInstallManifest.id
             )
           }
 
-          DownLoadStatus.INSTALLED -> { // 点击打开app触发的事件
+          DownloadStatus.INSTALLED -> { // 点击打开app触发的事件
             jmmController.openApp(uiState.jmmAppInstallManifest.id)
           }
         }
       }
 
       is JmmIntent.DestroyActivity -> {
-        downLoadObserver?.close()
+        // downLoadObserver?.close()
+        // TODO 移除监听
       }
     }
   }
-
-  private fun JmmAppInstallManifest.toDownLoadInfo() = DownLoadInfo(
-    id = id,
-    url = bundle_url,
-    name = name,
-    downLoadStatus = DownLoadStatus.IDLE,
-    path = "${App.appContext.cacheDir}/DL_${id}_${Calendar.MILLISECOND}.zip",
-    notificationId = (NotificationUtil.notificationId++),
-    metaData = this,
-  )
 }

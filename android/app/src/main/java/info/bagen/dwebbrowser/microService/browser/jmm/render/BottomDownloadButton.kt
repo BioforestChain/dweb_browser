@@ -23,7 +23,7 @@ import info.bagen.dwebbrowser.microService.browser.jmm.JsMicroModule
 import info.bagen.dwebbrowser.microService.browser.jmm.ui.JmmIntent
 import info.bagen.dwebbrowser.microService.browser.jmm.ui.LocalJmmViewHelper
 import kotlinx.coroutines.launch
-import org.dweb_browser.browserUI.download.DownLoadStatus
+import org.dweb_browser.microservice.sys.download.DownloadStatus
 
 @Composable
 internal fun BoxScope.BottomDownloadButton() {
@@ -49,27 +49,27 @@ internal fun BoxScope.BottomDownloadButton() {
       viewModel.uiState.jmmAppInstallManifest.canSupportTarget(JsMicroModule.VERSION)
     }
     val text = if (canSupportTarget) when (downloadStatus) {
-      DownLoadStatus.IDLE, DownLoadStatus.CANCEL -> {
+      DownloadStatus.IDLE, DownloadStatus.CANCEL -> {
         "下载 (${totalSize.toSpaceSize()})"
       }
 
-      DownLoadStatus.NewVersion -> {
+      DownloadStatus.NewVersion -> {
         "更新 (${totalSize.toSpaceSize()})"
       }
 
-      DownLoadStatus.DownLoading -> {
+      DownloadStatus.DownLoading -> {
         showLinearProgress = true
         "下载中 " + displayDownLoad(totalSize, downloadSize)
       }
 
-      DownLoadStatus.PAUSE -> {
+      DownloadStatus.PAUSE -> {
         showLinearProgress = true
         "暂停 " + displayDownLoad(totalSize, downloadSize)
       }
 
-      DownLoadStatus.DownLoadComplete -> "安装中..."
-      DownLoadStatus.INSTALLED -> "打开"
-      DownLoadStatus.FAIL -> "重新下载"
+      DownloadStatus.DownLoadComplete -> "安装中..."
+      DownloadStatus.INSTALLED -> "打开"
+      DownloadStatus.FAIL -> "重新下载"
     } else "该应用与您的设备不兼容"
 
     val modifier = Modifier

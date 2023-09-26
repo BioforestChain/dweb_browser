@@ -1,7 +1,8 @@
-package org.dweb_browser.browserUI.util
+package org.dweb_browser.helper
 
 import android.annotation.SuppressLint
 import android.content.ContentResolver
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
@@ -9,7 +10,7 @@ import android.media.ThumbnailUtils
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
-import android.provider.MediaStore.Video.Thumbnails.MINI_KIND
+import android.provider.MediaStore.Images.Thumbnails.MINI_KIND
 import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
@@ -127,10 +128,7 @@ object BitmapUtil {
     )
   }
 
-  fun decodeBitmapFromResource(@DrawableRes drawableId: Int): Bitmap? {
-    val context = BrowserUIApp.Instance.appContext
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP)
-      return BitmapFactory.decodeResource(context.resources, drawableId)
+  fun decodeBitmapFromResource(context: Context, @DrawableRes drawableId: Int): Bitmap? {
     return ContextCompat.getDrawable(context, drawableId)?.let { drawable ->
       Bitmap.createBitmap(
         drawable.intrinsicWidth, drawable.intrinsicHeight, Bitmap.Config.ARGB_8888
@@ -142,10 +140,10 @@ object BitmapUtil {
     }
   }
 
-  fun saveBitmapToIcons(bitmap: Bitmap): String? {
+  fun saveBitmapToIcons(context: Context, bitmap: Bitmap): String? {
     try {
       val fileName = "${System.currentTimeMillis()}.png"
-      val fos = FileOutputStream(getIconsFile(fileName))
+      val fos = FileOutputStream(getIconsFile(context, fileName))
       bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos)
       fos.flush()
       fos.close()
@@ -156,10 +154,11 @@ object BitmapUtil {
     return null
   }
 
-  fun deleteIconsFile(fileName: String) = FilesUtil.deleteQuietly(getIconsFile(fileName))
+  fun deleteIconsFile(context: Context, fileName: String) =
+    FilesUtil.deleteQuietly(getIconsFile(context, fileName))
 
-  private fun getIconsFile(fileName: String): File {
-    val filesDir = BrowserUIApp.Instance.appContext.filesDir.absolutePath // 获取data/file路径
+  private fun getIconsFile(context: Context, fileName: String): File {
+    val filesDir = context.filesDir.absolutePath // 获取data/file路径
     return File(filesDir + File.separator + "icons").let { fileParent ->
       if (!fileParent.exists()) {
         fileParent.mkdirs()

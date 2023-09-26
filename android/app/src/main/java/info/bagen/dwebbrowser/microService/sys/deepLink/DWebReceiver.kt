@@ -5,8 +5,8 @@ import android.content.Context
 import android.content.Intent
 import android.widget.Toast
 import info.bagen.dwebbrowser.App
-import org.dweb_browser.browserUI.util.APP_DIR_TYPE
-import org.dweb_browser.browserUI.util.FilesUtil
+import org.dweb_browser.helper.APP_DIR_TYPE
+import org.dweb_browser.helper.FilesUtil
 import java.io.File
 
 class DWebReceiver : BroadcastReceiver() {

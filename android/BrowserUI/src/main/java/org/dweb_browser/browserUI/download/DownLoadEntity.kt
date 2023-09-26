@@ -4,14 +4,13 @@ import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import org.dweb_browser.dwebview.serviceWorker.DownloadControllerEvent
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.runBlockingCatching
-import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
 import org.dweb_browser.microservice.help.types.MMID
+import org.dweb_browser.microservice.sys.download.DownloadStatus
 import java.math.RoundingMode
 import java.text.DecimalFormat
-
+/*
 enum class DownLoadStatus {
   IDLE, DownLoading, DownLoadComplete, PAUSE, INSTALLED, FAIL, CANCEL, NewVersion;
 
@@ -36,11 +35,11 @@ data class DownLoadInfo(
   // var progress: Float = 0f, // 进度 0~1
   var downLoadStatus: DownLoadStatus = DownLoadStatus.IDLE, // 标记当前下载状态
   val metaData: JmmAppInstallManifest, // 保存app数据，如jmmMetadata
-)
+)*/
 
 data class DownLoadObserverListener(
   val mmid: MMID,
-  val downLoadStatus: DownLoadStatus,
+  val downLoadStatus: DownloadStatus,
   val downLoadSize: Long = 0L,
   val totalSize: Long = 1L,
   val progress: String = if (totalSize == 0L) "0" else (1.0f * downLoadSize / totalSize).moreThanTwoDigits()
@@ -51,7 +50,7 @@ class DownLoadObserver(private val mmid: MMID) {
     private val downloadMap = mutableMapOf<MMID, MutableList<DownLoadObserver>>()
 
     fun emit(
-      mmid: MMID, status: DownLoadStatus, downLoadSize: Long = 0L, totalSize: Long = 1L
+      mmid: MMID, status: DownloadStatus, downLoadSize: Long = 0L, totalSize: Long = 1L
     ) {
       runBlockingCatching(ioAsyncExceptionHandler) {
         val listener = DownLoadObserverListener(mmid, status, downLoadSize, totalSize)
@@ -69,7 +68,7 @@ class DownLoadObserver(private val mmid: MMID) {
 
   init {
     downloadMap.getOrPut(mmid) { mutableListOf() }.add(this)
-    state = MutableStateFlow(DownLoadObserverListener(mmid, DownLoadStatus.IDLE))
+    state = MutableStateFlow(DownLoadObserverListener(mmid, DownloadStatus.IDLE))
     flow = state.asSharedFlow()
   }
 

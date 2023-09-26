@@ -1,4 +1,4 @@
-package org.dweb_browser.browserUI.util
+package org.dweb_browser.helper
 
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream

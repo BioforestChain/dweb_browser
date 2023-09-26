@@ -1,9 +1,8 @@
-package org.dweb_browser.browserUI.util
+package org.dweb_browser.helper
 
 import android.content.Context
 import android.net.Uri
 import android.os.Build
-import org.dweb_browser.microservice.help.types.MMID
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -282,20 +281,19 @@ object FilesUtil {
 
       val byte = ByteArray(fis.available())
       fis.read(byte)
-
       return android.util.Base64.encodeToString(byte, android.util.Base64.DEFAULT)
-    } catch (e: Throwable) {
+    } catch (_: Throwable) {
     } finally {
       try {
         fis?.close()
       } catch (e: IOException) {
         //e.printStackTrace()
       }
-      return null
     }
+    return null
   }
 
-  fun uninstallApp(context: Context, mmid: MMID) {
+  fun uninstallApp(context: Context, mmid: String) {
     val path =
       getAndroidRootDirectory(context) + File.separator + APP_DIR_TYPE.SystemApp.rootName + File.separator + mmid
     deleteQuietly(path)

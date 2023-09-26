@@ -1,6 +1,7 @@
 package org.dweb_browser.browserUI.ui.browser
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Message
@@ -419,10 +420,10 @@ class BrowserViewModel(
   /**
    * 添加到桌面功能
    */
-  suspend fun addUrlToDesktop() {
+  suspend fun addUrlToDesktop(context: Context) {
     uiState.currentBrowserBaseView.value?.viewItem?.state?.let { state ->
       state.lastLoadedUrl?.let { url ->
-        browserController.addUrlToDesktop(state.pageTitle ?: "无标题", url, state.pageIcon)
+        browserController.addUrlToDesktop(context, state.pageTitle ?: "无标题", url, state.pageIcon)
       }
     }
   }
