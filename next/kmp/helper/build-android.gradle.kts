@@ -27,11 +27,6 @@ kotlin {
         api(libs.kotlinx.datetime)
         api(libs.kotlin.serialization.json)
         api(libs.kotlin.serialization.cbor)
-
-        implementation(libs.androidx.core.ktx)
-        implementation(libs.commons.compress)
-        api(libs.data.store)
-        api(libs.data.store.preferences)
       }
     }
     val commonTest by getting {
@@ -42,7 +37,14 @@ kotlin {
         implementation(libs.kotlinx.atomicfu)
       }
     }
-    val androidMain by getting
+    val androidMain by getting {
+      dependencies {
+        implementation(libs.androidx.core.ktx)
+        implementation(libs.commons.compress)
+        api(libs.data.store)
+        api(libs.data.store.preferences)
+      }
+    }
 
   }
 }

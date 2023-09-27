@@ -8,7 +8,6 @@ import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.media.ThumbnailUtils
 import android.net.Uri
-import android.os.Build
 import android.provider.MediaStore
 import android.provider.MediaStore.Images.Thumbnails.MINI_KIND
 import android.util.Log
@@ -23,7 +22,7 @@ object BitmapUtil {
    */
   @SuppressLint("Range")
   fun getVideoThumbnail(cr: ContentResolver, uri: Uri): Bitmap? {
-    var options = BitmapFactory.Options()
+    val options = BitmapFactory.Options()
     options.inDither = false
     options.inPreferredConfig = Bitmap.Config.ARGB_8888
     var cursor = cr.query(uri, arrayOf(MediaStore.Video.Media._ID), null, null)

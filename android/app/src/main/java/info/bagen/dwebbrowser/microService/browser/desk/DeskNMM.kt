@@ -79,7 +79,7 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     val (openedAppIpc) = bootstrapContext.dns.connect("dns.std.dweb")
     suspend fun doObserve(urlPath: String, cb: suspend ChangeState<MMID>.() -> Unit) {
       val res = openedAppIpc.request(urlPath)
-      val reader = res.stream().getReader("Desk listenApps");
+      val reader = res.stream().getReader("Desk listenApps")
       while (reader.canRead) {
         val state = Json.decodeFromString<ChangeState<MMID>>(reader.readUTF8Line() ?: break)
         state.cb()
