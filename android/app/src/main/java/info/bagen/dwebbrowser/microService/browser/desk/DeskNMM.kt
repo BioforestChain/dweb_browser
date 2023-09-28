@@ -285,7 +285,6 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     }
     startActivity(deskSessionId)
     deskControllers.activityPo.waitPromise()
-    debugDesk("BBBBBB")
   }
 
   private fun startActivity(deskSessionId: String) {

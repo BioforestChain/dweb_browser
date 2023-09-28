@@ -2,8 +2,6 @@
 import { $JmmAppInstallManifest, FetchEvent, IpcResponse } from "../../../common/deps.ts";
 import type { DwebServiceWorkerPlugin } from "./index.ts";
 
-export type $FetchEventType = "fetch";
-
 export class ServiceWorkerFetchEvent extends Event {
   constructor(private fetchEvent: FetchEvent,private plugin: DwebServiceWorkerPlugin) {
     super("fetch");

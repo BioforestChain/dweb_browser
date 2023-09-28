@@ -1,8 +1,9 @@
+import { createMockModuleServerIpc } from "../../../common/websocketIpc.ts";
 import { bindThis } from "../../helper/bindThis.ts";
 import { ListenerCallback } from "../base/BaseEvent.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
-import { $DwebResult } from "../base/base.type.ts";
-import { UpdateControllerMap } from "./dweb-update-controller.type.ts";
+import { $DwebResult, $MMID } from "../base/base.type.ts";
+import { UpdateControllerEvent, UpdateControllerMap } from "./dweb-update-controller.type.ts";
 
 class UpdateControllerPlugin extends BasePlugin {
   readonly tagName = "dweb-update-controller";
@@ -40,23 +41,59 @@ class UpdateControllerPlugin extends BasePlugin {
   // 暂停
   @bindThis
   async pause(): Promise<boolean> {
-    return await this.fetchApi("/pause").boolean();
+    return await this.fetchApi("/pause", {
+      pathPrefix: "download.sys.dweb",
+    }).boolean();
   }
   // 恢复
   @bindThis
   async resume(): Promise<boolean> {
-    return await this.fetchApi("/resume").boolean();
+    return await this.fetchApi("/resume", {
+      pathPrefix: "download.sys.dweb",
+    }).boolean();
   }
   // 取消
   @bindThis
   async cancel(): Promise<boolean> {
-    return await this.fetchApi("/cancel").boolean();
+    return await this.fetchApi("/cancel", {
+      pathPrefix: "download.sys.dweb",
+    }).boolean();
   }
 }
 
 class UpdateController extends EventTarget {
+  mmid: $MMID = "download.sys.dweb";
+  readonly ipcPromise = this.createIpc();
+
   constructor() {
     super();
+    this.ipcPromise.then((ipc) => {
+      ipc.onEvent((event) => {
+        if (event.name === UpdateControllerEvent.progress) {
+         return this.dispatchEvent(new CustomEvent(event.name, { detail: { progress: event.text } }));
+        }
+        // start/end/cancel
+        this.dispatchEvent(new Event(event.name))
+      });
+    });
+  }
+
+  private async createIpc() {
+    const pub_url = await BasePlugin.public_url;
+    const url = new URL(pub_url.replace(/^http:/, "ws:"));
+    url.pathname = `${this.mmid}/listen`;
+    const ipc = await createMockModuleServerIpc(url, {
+      mmid: this.mmid,
+      ipc_support_protocols: {
+        cbor: false,
+        protobuf: false,
+        raw: false,
+      },
+      dweb_deeplinks: [],
+      categories: [],
+      name: this.mmid,
+    });
+    return ipc;
   }
 
   /**

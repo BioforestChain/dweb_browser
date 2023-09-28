@@ -161,10 +161,6 @@ export class Server_external extends HttpServer {
                 off1();
               };
               const off1 = ipc.onClose(deleteCache);
-              //监听窗口关闭请求，做销毁动作
-              // ipc.request(`file://${mmid}${ExternalState.WAIT_CLOSE}`).finally(() => {
-              //   deleteCache();
-              // });
             } catch (err) {
               this.externalWaitters.delete(mmid);
               throw err;

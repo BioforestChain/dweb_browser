@@ -1,7 +1,5 @@
 import { CameraDirection } from "../camera/camera.type.ts";
 
-export type CallbackID = string;
-
 export enum SupportedFormat {
   // BEGIN 1D Product
   /**

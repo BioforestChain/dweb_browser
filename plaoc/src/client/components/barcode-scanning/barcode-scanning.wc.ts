@@ -278,10 +278,6 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
       resolve(true);
     });
   }
-
-  getSupportedFormats() {
-    return this.plugin.getSupportedFormats();
-  }
 }
 
 customElements.define(HTMLDwebBarcodeScanningElement.tagName, HTMLDwebBarcodeScanningElement);

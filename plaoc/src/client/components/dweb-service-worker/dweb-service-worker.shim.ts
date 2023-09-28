@@ -63,13 +63,3 @@ class DwebServiceWorker extends EventTarget {
 
 
 export const dwebServiceWorker = new DwebServiceWorker();
-
-// // deno-lint-ignore no-explicit-any
-// if (typeof (globalThis as any)["DwebServiceWorker"] === "undefined") {
-//   Object.assign(globalThis, { DwebServiceWorker });
-// }
-
-// // deno-lint-ignore no-explicit-any
-// if (typeof (globalThis as any)["UpdateController"] === "undefined") {
-//   Object.assign(globalThis, { UpdateController });
-// }
