@@ -1,43 +1,98 @@
 package org.dweb_browser.dwebview
 
-import kotlinx.cinterop.CValue
-import kotlinx.cinterop.ExperimentalForeignApi
-import org.dweb_browser.microservice.core.MicroModule
-import platform.CoreGraphics.CGRect
-import platform.Foundation.NSURL
-import platform.Foundation.NSURLRequest
-import platform.WebKit.WKWebView
-import platform.WebKit.WKWebViewConfiguration
+import kotlinx.atomicfu.atomic
+import kotlinx.atomicfu.getAndUpdate
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Deferred
 
-@OptIn(ExperimentalForeignApi::class)
 class DWebView(
-    frame: CValue<CGRect>,
-    remoteMM: MicroModule,
-    options: DWebViewOptions,
-    configuration: WKWebViewConfiguration,
-) : WKWebView(frame, configuration), IDWebView {
-    override fun loadUrl(url: String) {
-        val nsUrl = NSURL.URLWithString(url)
-        if (nsUrl != null) {
-            super.loadRequest(NSURLRequest.requestWithURL(nsUrl))
-        }
-    }
+  private val engine: DWebViewEngine,
+) : IDWebView {
 
-    override fun destroy() {
-        loadUrl("about:blank")
-        removeFromSuperview()
+  private suspend fun loadUrl(task: LoadUrlTask): String {
+    engine.loadUrl(task.url)
+    engine.addNavigationDelegate(DNavigationDelegateProtocol(decidePolicyForNavigationAction = { _, action, _ ->
+      this();
+      task.deferred.complete(
+        action.request.URL?.absoluteString ?: "about:blank"
+      )
+    },
+      didFailNavigation = { _, _, error ->
+        this();
+        task.deferred.completeExceptionally(Exception("[${error.code}] ${error.description}"))
+      }
+    ));
+    task.deferred.invokeOnCompletion {
+      engine.setNavigationDelegate(null)
     }
+    return task.deferred.await()
+  }
 
-    override fun createMessageChannel(): IMessageChannel {
-        TODO("Not yet implemented")
-    }
+  private val loadUrlTask = atomic<LoadUrlTask?>(null)
 
-    override fun setViewScale(scale: Float) {
-        super.setContentScaleFactor(scale.toDouble())
+  override suspend fun loadUrl(url: String, force: Boolean) = loadUrlTask.getAndUpdate { preTask ->
+    if (!force && preTask?.url == url) {
+      return@getAndUpdate preTask
+    } else {
+      preTask?.deferred?.cancel(CancellationException("load new url: $url"));
     }
+    val newTask = LoadUrlTask(url)
+    loadUrl(newTask)
+    newTask.deferred.invokeOnCompletion {
+      loadUrlTask.getAndUpdate { preTask ->
+        if (preTask == newTask) null else preTask
+      }
+    }
+    newTask
+  }!!.deferred.await()
 
-    override suspend fun evaluateAsyncJavascriptCode(code: String): String {
-        TODO("Not yet implemented")
+  override fun getUrl(): String = loadUrlTask.value?.url ?: "about:blank"
+
+
+  override suspend fun getTitle(): String {
+    return engine.title ?: ""
+  }
+
+  override suspend fun getIcon(): String {
+    TODO("Not yet implemented")
+  }
+
+  override suspend fun destroy() {
+    loadUrl("about:blank", true)
+    engine.removeFromSuperview()
+  }
+
+  override suspend fun canGoBack(): Boolean {
+    return engine.canGoBack
+  }
+
+  override suspend fun canGoForward(): Boolean {
+    return engine.canGoForward
+  }
+
+  override suspend fun goBack(): Boolean {
+    return if (engine.canGoBack) {
+      false
+    } else {
+      engine.goBack()
+      true
     }
+  }
+
+  override suspend fun goForward(): Boolean {
+    TODO("Not yet implemented")
+  }
+
+  override suspend fun createMessageChannel(): IMessageChannel {
+    TODO("Not yet implemented")
+  }
+
+  override suspend fun setContentScale(scale: Float) {
+    engine.setContentScaleFactor(scale.toDouble())
+  }
+
+  override fun evalAsyncJavascript(code: String): Deferred<String> {
+    TODO("Not yet implemented")
+  }
 }
 

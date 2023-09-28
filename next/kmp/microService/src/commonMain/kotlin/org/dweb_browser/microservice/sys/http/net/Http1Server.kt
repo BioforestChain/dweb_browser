@@ -17,7 +17,7 @@ import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.platform.getKtorServerEngine
 import org.dweb_browser.microservice.help.asPureRequest
-import org.dweb_browser.microservice.help.consumeEachArrayRange
+import org.dweb_browser.helper.consumeEachArrayRange
 import org.dweb_browser.microservice.help.fromPureResponse
 import org.dweb_browser.microservice.help.isWebSocket
 import org.dweb_browser.microservice.http.PureRequest

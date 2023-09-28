@@ -22,7 +22,7 @@ import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printError
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.runBlockingCatching
-import org.dweb_browser.microservice.help.consumeEachArrayRange
+import org.dweb_browser.helper.consumeEachArrayRange
 import org.dweb_browser.microservice.http.IPureBody
 import org.dweb_browser.microservice.http.PureBinary
 import org.dweb_browser.microservice.http.PureBinaryBody

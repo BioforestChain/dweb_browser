@@ -3,7 +3,7 @@ package org.dweb_browser.dwebview.base
 import com.google.accompanist.web.WebViewNavigator
 import com.google.accompanist.web.WebViewState
 import kotlinx.coroutines.CoroutineScope
-import org.dweb_browser.dwebview.DWebView
+import org.dweb_browser.dwebview.DWebViewEngine
 
 /*data class ViewItem(
   val webviewId: String,
@@ -16,7 +16,7 @@ import org.dweb_browser.dwebview.DWebView
 
 interface ViewItem {
   val webviewId: String
-  val webView: DWebView
+  val webView: DWebViewEngine
   val state: WebViewState
   val navigator: WebViewNavigator
   val coroutineScope: CoroutineScope
@@ -25,7 +25,7 @@ interface ViewItem {
 
 data class DWebViewItem(
   override val webviewId: String,
-  override val webView: DWebView,
+  override val webView: DWebViewEngine,
   override val state: WebViewState,
   override val navigator: WebViewNavigator,
   override val coroutineScope: CoroutineScope,

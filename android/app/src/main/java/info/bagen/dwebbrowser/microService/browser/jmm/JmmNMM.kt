@@ -13,7 +13,6 @@ import kotlinx.serialization.json.Json
 import org.dweb_browser.browserUI.download.isGreaterThan
 import org.dweb_browser.browserUI.microService.browser.link.WebLinkMicroModule
 import org.dweb_browser.helper.APP_DIR_TYPE
-import org.dweb_browser.helper.ChangeState
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.FilesUtil
@@ -23,7 +22,7 @@ import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.microservice.core.AndroidNativeMicroModule
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.DwebResult
-import org.dweb_browser.microservice.help.canRead
+import org.dweb_browser.helper.canRead
 import org.dweb_browser.microservice.help.types.IMicroModuleManifest
 import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY

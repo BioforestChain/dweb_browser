@@ -46,7 +46,7 @@ coil-version = "2.4.0"
 camera-version = "1.3.0-rc01"
 camera-barcode = "17.2.0"
 commons-compress = "1.23.0"
-jetbrains-compose-version = "1.5.1"
+jetbrains-compose-version = "1.5.2"
 
 # 测试
 test-junit-bom = "5.9.2"
@@ -116,6 +116,8 @@ ktor-client-darwin = { group = "io.ktor", name = "ktor-client-darwin", version.r
 ktor-client-encoding = { group = "io.ktor", name = "ktor-client-encoding", version.ref = "ktor-version" }
 ktor-io = { group = "io.ktor", name = "ktor-io", version.ref = "ktor-version" }
 ktor-http = { group = "io.ktor", name = "ktor-http", version.ref = "ktor-version" }
+ktor-network = { group = "io.ktor", name = "ktor-network", version.ref = "ktor-version" }
+ktor-network-tls = { group = "io.ktor", name = "ktor-network-tls", version.ref = "ktor-version" }
 
 accompanist-webview = { group = "com.google.accompanist", name = "accompanist-webview", version.ref = "accompanist" }
 accompanist-navigation-material = { group = "com.google.accompanist", name = "accompanist-navigation-material", version.ref = "accompanist" }

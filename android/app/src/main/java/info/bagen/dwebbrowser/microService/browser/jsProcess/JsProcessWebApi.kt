@@ -8,6 +8,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.dwebview.DWebView
+import org.dweb_browser.dwebview.DWebViewEngine
 import org.dweb_browser.dwebview.ipcWeb.MessagePortIpc
 import org.dweb_browser.dwebview.ipcWeb.saveNative2JsIpcPort
 import org.dweb_browser.microservice.help.types.IMicroModuleManifest
@@ -15,7 +16,7 @@ import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.ipc.helper.IPC_ROLE
 import java.util.concurrent.atomic.AtomicInteger
 
-class JsProcessWebApi(val dWebView: DWebView) {
+class JsProcessWebApi(val dWebView: DWebViewEngine) {
   suspend fun isReady() =
     dWebView.evaluateSyncJavascriptCode("typeof createProcess") == "function"
 

@@ -2,6 +2,7 @@ package org.dweb_browser.dwebview.serviceWorker
 
 import kotlinx.coroutines.withContext
 import org.dweb_browser.dwebview.DWebView
+import org.dweb_browser.dwebview.DWebViewEngine
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 
 const val DWEB_SERVICE_WORKER = "__app_upgrade_watcher_kit__"
@@ -14,7 +15,7 @@ enum class DownloadControllerEvent(val event: String) {
   Pause("pause"), // 暂停
 }
 
-suspend fun emitEvent(dwebView: DWebView, eventName: String, data: String = ""): Boolean {
+suspend fun emitEvent(dwebView: DWebViewEngine, eventName: String, data: String = ""): Boolean {
   var payload = """new Event("$eventName")"""
   // progress,fetch,onFetch为自定义构造返回
   if (eventName == DownloadControllerEvent.Progress.event) {

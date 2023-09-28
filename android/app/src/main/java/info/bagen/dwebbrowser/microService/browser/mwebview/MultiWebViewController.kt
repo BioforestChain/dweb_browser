@@ -19,6 +19,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import org.dweb_browser.browserUI.download.DownLoadObserver
 import org.dweb_browser.dwebview.DWebView
+import org.dweb_browser.dwebview.DWebViewEngine
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.helper.Callback
@@ -91,7 +92,7 @@ class MultiWebViewController(
 
   data class MultiViewItem(
     override val webviewId: String,
-    override val webView: DWebView,
+    override val webView: DWebViewEngine,
     override val state: WebViewState,
     override val navigator: WebViewNavigator,
     override val coroutineScope: CoroutineScope,
@@ -107,9 +108,9 @@ class MultiWebViewController(
    */
   suspend fun openWebView(url: String) = appendWebViewAsItem(createDwebView(url))
 
-  suspend fun createDwebView(url: String): DWebView = withContext(mainAsyncExceptionHandler) {
+  suspend fun createDwebView(url: String): DWebViewEngine = withContext(mainAsyncExceptionHandler) {
     val currentActivity = win.viewController.activity;// App.appContext
-    val dWebView = DWebView(
+    val dWebView = DWebViewEngine(
       ContextThemeWrapper(currentActivity, R.style.Theme_dwebbrowser), remoteMM, DWebViewOptions(
         url = url,
         /// 我们会完全控制页面将如何离开，所以这里兜底默认为留在页面
@@ -120,7 +121,7 @@ class MultiWebViewController(
   }
 
   @Synchronized
-  fun appendWebViewAsItem(dWebView: DWebView) = runBlockingCatching(mainAsyncExceptionHandler) {
+  fun appendWebViewAsItem(dWebView: DWebViewEngine) = runBlockingCatching(mainAsyncExceptionHandler) {
     val webviewId = "#w${webviewId_acc.getAndAdd(1)}"
     val state = WebViewState(WebContent.Url(dWebView.url ?: ""))
     val coroutineScope = CoroutineScope(CoroutineName(webviewId))

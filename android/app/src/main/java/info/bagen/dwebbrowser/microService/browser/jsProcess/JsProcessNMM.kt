@@ -10,7 +10,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.dweb_browser.dwebview.DWebView
+import org.dweb_browser.dwebview.DWebViewEngine
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.build
@@ -69,21 +69,13 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
           if (internalPath == "/bootstrap.js") {
             ipc.postMessage(
               IpcResponse.fromBinary(
-                request.req_id,
-                200,
-                IpcHeaders(JS_CORS_HEADERS),
-                JS_PROCESS_WORKER_CODE,
-                ipc
+                request.req_id, 200, IpcHeaders(JS_CORS_HEADERS), JS_PROCESS_WORKER_CODE, ipc
               )
             )
           } else {
             ipc.postMessage(
               IpcResponse.fromText(
-                request.req_id,
-                404,
-                IpcHeaders(JS_CORS_HEADERS),
-                "// no found $internalPath",
-                ipc
+                request.req_id, 404, IpcHeaders(JS_CORS_HEADERS), "// no found $internalPath", ipc
               )
             )
           }
@@ -160,9 +152,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
       /// 关闭process
       "/close-all-process" bind HttpMethod.Get to defineBooleanResponse {
         return@defineBooleanResponse closeAllProcessByIpc(
-          apis,
-          ipcProcessIdMap,
-          ipc.remote.mmid
+          apis, ipcProcessIdMap, ipc.remote.mmid
         ).also {
           /// 强制关闭Ipc
           ipc.close()
@@ -189,7 +179,7 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
     val apis = withContext(Dispatchers.Main) {
 
       val urlInfo = mainServer.startResult.urlInfo
-      JsProcessWebApi(DWebView(
+      JsProcessWebApi(DWebViewEngine(
         App.appContext, this@JsProcessNMM, DWebViewOptions(
           url = urlInfo.buildInternalUrl().build { resolvePath("/index.html") }.toString()
         )
@@ -315,9 +305,12 @@ class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
     /**
      * 开始执行代码
      */
-    apis.runProcessMain(processHandler.info.process_id,
-      JsProcessWebApi.RunProcessMainOptions(main_url = httpDwebServer.startResult.urlInfo.buildInternalUrl()
-        .build { resolvePath(entry ?: "/index.js") }.toString()))
+    apis.runProcessMain(
+      processHandler.info.process_id, JsProcessWebApi.RunProcessMainOptions(
+        main_url = httpDwebServer.startResult.urlInfo.buildInternalUrl()
+          .build { resolvePath(entry ?: "/index.js") }.toString()
+      )
+    )
 
     return CreateProcessAndRunResult(streamIpc, processHandler)
   }
