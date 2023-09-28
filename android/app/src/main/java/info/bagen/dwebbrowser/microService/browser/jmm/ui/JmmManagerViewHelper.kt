@@ -10,6 +10,7 @@ import org.dweb_browser.browserUI.download.isGreaterThan
 import org.dweb_browser.browserUI.util.BrowserUIApp
 import org.dweb_browser.helper.compose.noLocalProvidedFor
 import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
+import org.dweb_browser.microservice.sys.download.DownloadController
 import org.dweb_browser.microservice.sys.download.DownloadStatus
 
 internal val LocalShowWebViewVersion = compositionLocalOf {
@@ -59,28 +60,10 @@ class JmmManagerViewHelper(
     }
   }
 
-  private suspend fun initDownLoadStatusListener() {
-    /*downLoadObserver = DownLoadObserver(uiState.jmmAppInstallManifest.id).also { observe ->
-      observe.observe {
-        if (it.downLoadStatus == DownLoadStatus.IDLE) return@observe
-
-        when (it.downLoadStatus) {
-          DownLoadStatus.DownLoading -> {
-            uiState.downloadStatus.value = it.downLoadStatus
-            uiState.downloadSize.value = it.downLoadSize
-          }
-
-          else -> {
-            uiState.downloadStatus.value = it.downLoadStatus
-          }
-        }
-        if (it.downLoadStatus == DownLoadStatus.INSTALLED) { // 移除监听列表
-          downLoadObserver?.close()
-        }
-      }
-    }*/
-    jmmController.observeDownloadState(uiState.jmmAppInstallManifest.id) { downloadInfo ->
-      if (downloadInfo.downloadStatus == DownloadStatus.IDLE) return@observeDownloadState
+  private fun initDownLoadStatusListener() {
+    jmmController.onDownload { downloadInfo ->
+      if (downloadInfo.id != uiState.jmmAppInstallManifest.id) return@onDownload
+      if (downloadInfo.downloadStatus == DownloadStatus.IDLE) return@onDownload
 
       when (downloadInfo.downloadStatus) {
         DownloadStatus.DownLoading -> {
@@ -104,20 +87,26 @@ class JmmManagerViewHelper(
       is JmmIntent.ButtonFunction -> {
         when (uiState.downloadStatus.value) {
           DownloadStatus.IDLE, DownloadStatus.FAIL, DownloadStatus.CANCEL, DownloadStatus.NewVersion -> { // 空闲点击是下载，失败点击也是重新下载
-            /*BrowserUIApp.Instance.mBinderService?.invokeDownloadAndSaveZip(
-              uiState.jmmAppInstallManifest.toDownLoadInfo()
-            )*/
             jmmController.downloadAndSaveZip(uiState.jmmAppInstallManifest)
           }
 
           DownloadStatus.DownLoadComplete -> { /* TODO 无需响应 */
           }
 
-          DownloadStatus.DownLoading, DownloadStatus.PAUSE -> {
+          DownloadStatus.DownLoading -> {
+            jmmController.updateDownloadState(DownloadController.PAUSE)
+          }
+
+          DownloadStatus.PAUSE -> {
+            jmmController.updateDownloadState(DownloadController.RESUME)
+          }
+
+          /*DownloadStatus.DownLoading, DownloadStatus.PAUSE -> {
+            jmmController.downloadAndSaveZip(uiState.jmmAppInstallManifest)
             BrowserUIApp.Instance.mBinderService?.invokeDownloadStatusChange(
               uiState.jmmAppInstallManifest.id
             )
-          }
+          }*/
 
           DownloadStatus.INSTALLED -> { // 点击打开app触发的事件
             jmmController.openApp(uiState.jmmAppInstallManifest.id)

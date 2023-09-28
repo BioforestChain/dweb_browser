@@ -75,7 +75,12 @@ class DownloadModel(val downloadNMM: DownloadNMM) {
     if (downloadAppMap.containsKey(jmm.id)) downloadingMap[jmm.id] = true
     val downloadInfo = jmm.toDownloadInfo(context)
     downloadAppMap[jmm.id] = downloadInfo
-    HttpDownload.downloadAndSave(downloadInfo, isStop = { false }) { current, total ->
+    HttpDownload.downloadAndSave(downloadInfo, isStop = {
+      when (downloadInfo.downloadStatus) {
+        DownloadStatus.CANCEL, DownloadStatus.FAIL, DownloadStatus.PAUSE -> true
+        else -> false
+      }
+    }) { current, total ->
       debugDownload("Downloading", "current=$current, total=$total")
       ioAsyncScope.launch {
         downloadInfo.callDownLoadProgress(context, current, total)
@@ -89,7 +94,13 @@ class DownloadModel(val downloadNMM: DownloadNMM) {
   }
 
   internal fun updateDownloadState(mmid: MMID, event: DownloadController) {
-
+    downloadAppMap[mmid]?.apply {
+      downloadStatus = when (event) {
+        DownloadController.CANCEL -> DownloadStatus.CANCEL
+        DownloadController.RESUME -> DownloadStatus.DownLoading
+        DownloadController.PAUSE -> DownloadStatus.PAUSE
+    }
+    }
   }
 
   private suspend fun DownloadInfo.callDownLoadProgress(

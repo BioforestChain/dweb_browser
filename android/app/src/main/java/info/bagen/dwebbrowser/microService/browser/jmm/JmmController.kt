@@ -7,6 +7,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.buildUnsafeString
 import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
@@ -17,6 +18,7 @@ import org.dweb_browser.microservice.ipc.ReadableStreamIpc
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
 import org.dweb_browser.microservice.ipc.helper.IpcMethod
 import org.dweb_browser.microservice.sys.dns.nativeFetch
+import org.dweb_browser.microservice.sys.download.DownloadController
 import org.dweb_browser.microservice.sys.download.DownloadInfo
 import org.dweb_browser.window.core.WindowController
 import org.dweb_browser.window.core.createWindowAdapterManager
@@ -38,6 +40,9 @@ class JmmController(
 
   private val closeSignal = SimpleSignal()
   val onClosed = closeSignal.toListener()
+
+  internal val downloadSignal = Signal<DownloadInfo>()
+  val onDownload = downloadSignal.toListener()
 
   init {
     val wid = win.id
@@ -78,22 +83,13 @@ class JmmController(
     )
   }
 
-  suspend fun observeDownloadState(mmid: MMID, onChange: (DownloadInfo) -> Unit) {
-    val streamIpc = ReadableStreamIpc(jmmNMM, "observe download-$mmid")
-    streamIpc.bindIncomeStream(
-      jmmNMM.nativeFetch(
-        PureRequest(
-          URLBuilder("file://download.sys.dweb/observe").apply {
-            parameters["mmid"] = mmid
-          }.buildUnsafeString(),
-          IpcMethod.GET
-        )
-      ).stream()
-    )
-    streamIpc.onEvent {
-      debugJMM("observeDownloadState", "$mmid, ${it.event}")
+  suspend fun updateDownloadState(downloadController: DownloadController) {
+    val url = when (downloadController) {
+      DownloadController.PAUSE -> "file://download.sys.dweb/pause"
+      DownloadController.CANCEL -> "file://download.sys.dweb/cancel"
+      DownloadController.RESUME -> "file://download.sys.dweb/resume"
     }
-    jmmNMM.addToIpcSet(streamIpc)
+    jmmNMM.nativeFetch(PureRequest(href = url, method = IpcMethod.GET))
   }
 
   suspend fun closeSelf() {

@@ -37,7 +37,6 @@ class DownloadNMM(val appContext: Context) :
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
 
-
     routes(
       "/download" bind HttpMethod.Post to definePureResponse {
         // TODO 判断当前map是否存在，如果存在，修改状态即可，如果不存在，就重新进行下载

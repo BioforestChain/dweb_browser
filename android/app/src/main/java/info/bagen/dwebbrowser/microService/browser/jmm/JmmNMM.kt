@@ -6,11 +6,15 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLBuilder
 import io.ktor.http.Url
+import io.ktor.utils.io.readUTF8Line
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
 import org.dweb_browser.browserUI.download.isGreaterThan
 import org.dweb_browser.browserUI.microService.browser.link.WebLinkMicroModule
 import org.dweb_browser.helper.APP_DIR_TYPE
+import org.dweb_browser.helper.ChangeState
+import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.FilesUtil
 import org.dweb_browser.helper.ImageResource
@@ -19,6 +23,7 @@ import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.microservice.core.AndroidNativeMicroModule
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.DwebResult
+import org.dweb_browser.microservice.help.canRead
 import org.dweb_browser.microservice.help.types.IMicroModuleManifest
 import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
@@ -31,6 +36,7 @@ import org.dweb_browser.microservice.sys.dns.RespondLocalFileContext.Companion.r
 import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.dweb_browser.microservice.sys.dns.nativeFetchAdaptersManager
 import org.dweb_browser.microservice.sys.dns.returnAndroidFile
+import org.dweb_browser.microservice.sys.download.DownloadInfo
 import org.dweb_browser.microservice.sys.download.db.AppType
 import org.dweb_browser.microservice.sys.download.db.DeskAppInfo
 import org.dweb_browser.microservice.sys.download.db.DownloadDBStore
@@ -71,6 +77,7 @@ class JmmNMM(val context: Context) :
   }
 
   private var jmmController: JmmController? = null
+  private val downloadingApp = ChangeableMap<MMID, DownloadInfo>() // 正在下载的列表
 
   fun getApps(mmid: MMID): IMicroModuleManifest? {
     return bootstrapContext.dns.query(mmid)
@@ -91,15 +98,19 @@ class JmmNMM(val context: Context) :
       val response = nativeFetch(metadataUrl)
       if (response.isOk()) {
         try {
+          debugJMM("parseJson")
           val jmmAppInstallManifest = response.json<JmmAppInstallManifest>()
+          debugJMM("listenDownload", "$metadataUrl ${jmmAppInstallManifest.id}")
+          listenDownloadState(jmmAppInstallManifest.id) // 监听下载
           // 保存下载链接
-          debugJMM("save->", "$metadataUrl ${jmmAppInstallManifest.id}")
+          debugJMM("saveDownload", "$metadataUrl ${jmmAppInstallManifest.id}")
           JmmStore.setMetadataUrl(jmmAppInstallManifest.id, metadataUrl)
           val url = Url(metadataUrl)
           // 根据 jmmMetadata 打开一个应用信息的界面，用户阅读界面信息后，可以点击"安装"
           installJsMicroModule(jmmAppInstallManifest, ipc, url)
           PureResponse(HttpStatusCode.OK)
         } catch (e: Throwable) {
+          e.printStackTrace()
           debugJMM("install", "fail -> ${e.message}")
           PureResponse(HttpStatusCode.ExpectationFailed).body(e.stackTraceToString())
         }
@@ -231,5 +242,23 @@ class JmmNMM(val context: Context) :
     bootstrapContext.dns.uninstall(mmid)
     DownloadDBStore.deleteDeskAppInfo(context, mmid)
     FilesUtil.uninstallApp(App.appContext, mmid)
+  }
+
+  private suspend fun listenDownloadState(mmid: MMID) = ioAsyncScope.launch {
+    val (observeDownloadIpc) = bootstrapContext.dns.connect("download.sys.dweb")
+    suspend fun doObserve(urlPath: String, cb: suspend DownloadInfo.() -> Unit) {
+      val res = observeDownloadIpc.request(urlPath)
+      val reader = res.stream().getReader("Jmm listenDownloadState")
+      while (reader.canRead) {
+        val state = Json.decodeFromString<DownloadInfo>(reader.readUTF8Line() ?: break)
+        state.cb()
+      }
+    }
+    launch {
+      doObserve("/observe?mmid=$mmid") {
+        jmmController?.downloadSignal?.emit(this)
+        //downloadingApp[this.id] = this
+      }
+    }
   }
 }
