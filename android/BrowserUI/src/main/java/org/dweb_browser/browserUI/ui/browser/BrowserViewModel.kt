@@ -40,7 +40,7 @@ import org.dweb_browser.browserUI.util.getBoolean
 import org.dweb_browser.browserUI.util.saveBoolean
 import org.dweb_browser.browserUI.util.saveString
 import org.dweb_browser.dwebview.DWebView
-import org.dweb_browser.dwebview.DWebViewEngine
+import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.base.DWebViewItem
 import org.dweb_browser.dwebview.base.ViewItem

@@ -31,7 +31,6 @@ import org.dweb_browser.microservice.sys.dns.DnsNMM
 import org.dweb_browser.microservice.sys.dns.nativeFetchAdaptersManager
 import org.dweb_browser.microservice.sys.download.DownloadNMM
 import org.dweb_browser.microservice.sys.http.HttpNMM
-import org.dweb_browser.shared.Greeting
 import java.io.File
 
 suspend fun startDwebBrowser(): DnsNMM {
@@ -181,8 +180,6 @@ suspend fun startDwebBrowser(): DnsNMM {
 
   /// 启动Web调试
   WebView.setWebContentsDebuggingEnabled(true)
-
-  println("!!!!!" + Greeting().greet())
 
   /// 启动
   dnsNMM.bootstrap()

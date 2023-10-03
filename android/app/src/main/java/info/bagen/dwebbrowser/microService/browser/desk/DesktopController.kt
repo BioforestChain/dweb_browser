@@ -11,7 +11,7 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.dwebview.DWebView
-import org.dweb_browser.dwebview.DWebViewEngine
+import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.PromiseOut

@@ -11,6 +11,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import org.dweb_browser.dwebview.engine.DWebViewEngine
 import java.util.concurrent.CancellationException
 
 class DWebView(private val engine: DWebViewEngine) : IDWebView {
@@ -65,7 +66,7 @@ class DWebView(private val engine: DWebViewEngine) : IDWebView {
 
   override suspend fun getIcon(): String {
     val GET_ICON_CODE = """
-(function getAndroidIcon(çΩ6 = 64) {
+(function getAndroidIcon(preference_size = 64) {
   const iconLinks = [
     ...document.head.querySelectorAll(`link[rel*="icon"]`).values(),
   ]
@@ -153,7 +154,7 @@ class DWebView(private val engine: DWebViewEngine) : IDWebView {
   }
 
   override suspend fun createMessageChannel(): IMessageChannel {
-    TODO("Not yet implemented")
+    return DWebMessageChannel(engine.createWebMessageChannel())
   }
 
   override suspend fun setContentScale(scale: Float) = runMain {

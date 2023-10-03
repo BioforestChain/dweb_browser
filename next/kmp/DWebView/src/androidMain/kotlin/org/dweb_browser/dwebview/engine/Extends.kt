@@ -1,4 +1,4 @@
-package org.dweb_browser.dwebview
+package org.dweb_browser.dwebview.engine
 
 class Extends<T : Any> {
   class Config(val order: Int = 0)

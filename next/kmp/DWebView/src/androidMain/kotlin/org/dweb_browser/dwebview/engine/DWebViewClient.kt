@@ -1,4 +1,4 @@
-package org.dweb_browser.dwebview
+package org.dweb_browser.dwebview.engine
 
 import android.graphics.Bitmap
 import android.net.http.SslError

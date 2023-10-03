@@ -33,7 +33,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.zIndex
 import info.bagen.dwebbrowser.App
 import org.dweb_browser.dwebview.DWebView
-import org.dweb_browser.dwebview.DWebViewEngine
+import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.helper.buildUnsafeString
 import org.dweb_browser.helper.clamp

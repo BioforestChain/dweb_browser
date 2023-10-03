@@ -1,4 +1,4 @@
-package org.dweb_browser.dwebview
+package org.dweb_browser.dwebview.engine
 
 import android.graphics.Bitmap
 import android.net.Uri
@@ -13,6 +13,7 @@ import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebStorage
 import android.webkit.WebView
+import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.helper.mapFindNoNull
 import org.dweb_browser.helper.one
 import org.dweb_browser.helper.someOrNull

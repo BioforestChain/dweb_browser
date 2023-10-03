@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.dwebview.DWebView
-import org.dweb_browser.dwebview.DWebViewEngine
+import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.dwebview.ipcWeb.MessagePortIpc
 import org.dweb_browser.dwebview.ipcWeb.saveNative2JsIpcPort
 import org.dweb_browser.microservice.help.types.IMicroModuleManifest

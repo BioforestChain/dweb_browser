@@ -46,7 +46,7 @@ class DWebView(
     newTask
   }!!.deferred.await()
 
-  override fun getUrl(): String = loadUrlTask.value?.url ?: "about:blank"
+  override suspend fun getUrl(): String = loadUrlTask.value?.url ?: "about:blank"
 
 
   override suspend fun getTitle(): String {
@@ -84,7 +84,7 @@ class DWebView(
   }
 
   override suspend fun createMessageChannel(): IMessageChannel {
-    TODO("Not yet implemented")
+
   }
 
   override suspend fun setContentScale(scale: Float) {

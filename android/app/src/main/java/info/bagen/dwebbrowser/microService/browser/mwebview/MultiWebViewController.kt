@@ -19,7 +19,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import org.dweb_browser.browserUI.download.DownLoadObserver
 import org.dweb_browser.dwebview.DWebView
-import org.dweb_browser.dwebview.DWebViewEngine
+import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.helper.Callback

@@ -3,7 +3,7 @@ package org.dweb_browser.dwebview.base
 import com.google.accompanist.web.WebViewNavigator
 import com.google.accompanist.web.WebViewState
 import kotlinx.coroutines.CoroutineScope
-import org.dweb_browser.dwebview.DWebViewEngine
+import org.dweb_browser.dwebview.engine.DWebViewEngine
 
 /*data class ViewItem(
   val webviewId: String,

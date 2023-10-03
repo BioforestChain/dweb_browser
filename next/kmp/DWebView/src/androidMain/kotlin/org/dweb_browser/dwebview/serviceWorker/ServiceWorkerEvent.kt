@@ -2,7 +2,7 @@ package org.dweb_browser.dwebview.serviceWorker
 
 import kotlinx.coroutines.withContext
 import org.dweb_browser.dwebview.DWebView
-import org.dweb_browser.dwebview.DWebViewEngine
+import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 
 const val DWEB_SERVICE_WORKER = "__app_upgrade_watcher_kit__"

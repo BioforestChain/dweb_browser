@@ -1,11 +1,11 @@
-package org.dweb_browser.dwebview
+package org.dweb_browser.dwebview.engine
 
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
-import android.view.View
 import android.view.ViewGroup
 import android.webkit.JsResult
 import android.webkit.PermissionRequest
@@ -24,7 +24,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.base.isWebUrlScheme
+import org.dweb_browser.dwebview.debugDWebView
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.SimpleCallback
 import org.dweb_browser.helper.SimpleSignal
@@ -38,7 +40,6 @@ import org.dweb_browser.microservice.ipc.helper.IpcHeaders
 import org.dweb_browser.microservice.ipc.helper.IpcMethod
 import org.dweb_browser.microservice.sys.dns.nativeFetch
 import java.io.File
-
 
 /**
  * DWebView ,将 WebView 与 dweb 的 dwebHttpServer 设计进行兼容性绑定的模块
@@ -244,7 +245,7 @@ class DWebViewEngine(
 
     override fun onShowFileChooser(
       webView: WebView,
-      filePathCallback: ValueCallback<Array<android.net.Uri>>,
+      filePathCallback: ValueCallback<Array<Uri>>,
       fileChooserParams: FileChooserParams
     ) = activity?.let { context ->
       val mimeTypes = fileChooserParams.acceptTypes.joinToString(",").ifEmpty { "*/*" }
@@ -393,7 +394,7 @@ class DWebViewEngine(
   init {
     debugDWebView("INIT", options)
 
-    layoutParams = ViewGroup.LayoutParams(
+    layoutParams = LayoutParams(
       ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT
     )
     settings.javaScriptEnabled = true
@@ -407,7 +408,7 @@ class DWebViewEngine(
     settings.javaScriptCanOpenWindowsAutomatically = true
     settings.allowContentAccess = true
     settings.mediaPlaybackRequiresUserGesture = false
-    setLayerType(View.LAYER_TYPE_HARDWARE, null) // 增加硬件加速，避免滑动时画面出现撕裂
+    setLayerType(LAYER_TYPE_HARDWARE, null) // 增加硬件加速，避免滑动时画面出现撕裂
 
     super.setWebViewClient(internalWebViewClient)
     super.setWebChromeClient(internalWebChromeClient)
