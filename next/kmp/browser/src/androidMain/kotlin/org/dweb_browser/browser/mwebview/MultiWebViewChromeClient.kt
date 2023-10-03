@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.microService.browser.mwebview
+package org.dweb_browser.browser.mwebview
 
 import android.os.Message
 import android.webkit.JsResult

@@ -5,7 +5,7 @@ import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.browser.desk.DesktopNMM
 import info.bagen.dwebbrowser.microService.browser.jmm.JmmNMM
 import info.bagen.dwebbrowser.microService.browser.jsProcess.JsProcessNMM
-import info.bagen.dwebbrowser.microService.browser.mwebview.MultiWebViewNMM
+import org.dweb_browser.browser.mwebview.MultiWebViewNMM
 import org.dweb_browser.browser.nativeui.NativeUiNMM
 import org.dweb_browser.browser.nativeui.torch.TorchNMM
 import info.bagen.dwebbrowser.microService.sys.biometrics.BiometricsNMM

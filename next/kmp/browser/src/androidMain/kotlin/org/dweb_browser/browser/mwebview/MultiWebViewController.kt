@@ -1,13 +1,11 @@
-package info.bagen.dwebbrowser.microService.browser.mwebview
+package org.dweb_browser.browser.mwebview
 
-import androidx.appcompat.view.ContextThemeWrapper
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.platform.LocalDensity
 import com.google.accompanist.web.WebContent
 import com.google.accompanist.web.WebViewNavigator
 import com.google.accompanist.web.WebViewState
-import info.bagen.dwebbrowser.R
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -17,11 +15,9 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import org.dweb_browser.browserUI.download.DownLoadObserver
-import org.dweb_browser.dwebview.DWebView
-import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.base.ViewItem
+import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.helper.Callback
 import org.dweb_browser.helper.ChangeableList
 import org.dweb_browser.helper.Signal
@@ -64,11 +60,10 @@ class MultiWebViewController(
     }
     val wid = win.id
     /// 提供渲染适配
-    createWindowAdapterManager.renderProviders[wid] =
-      @Composable { modifier ->
-        val webViewScale = (LocalDensity.current.density * scale * 100).toInt()
-        Render(modifier, webViewScale)
-      }
+    createWindowAdapterManager.renderProviders[wid] = @Composable { modifier ->
+      val webViewScale = (LocalDensity.current.density * scale * 100).toInt()
+      Render(modifier, webViewScale)
+    }
     /// ipc 断开的时候，强制关闭窗口
     val off = ipc.onClose {
       win.close(force = true)
@@ -98,10 +93,9 @@ class MultiWebViewController(
     override val coroutineScope: CoroutineScope,
     override var hidden: Boolean = false,
     val win: WindowController
-  ) : ViewItem {
-  }
+  ) : ViewItem {}
 
-  var downLoadObserver: DownLoadObserver? = null
+  private var downLoadTaskId: String? = null
 
   /**
    * 打开WebView
@@ -109,9 +103,9 @@ class MultiWebViewController(
   suspend fun openWebView(url: String) = appendWebViewAsItem(createDwebView(url))
 
   suspend fun createDwebView(url: String): DWebViewEngine = withContext(mainAsyncExceptionHandler) {
-    val currentActivity = win.viewController.activity;// App.appContext
+    val currentActivity = win.viewController.activity!!;// App.appContext
     val dWebView = DWebViewEngine(
-      ContextThemeWrapper(currentActivity, R.style.Theme_dwebbrowser), remoteMM, DWebViewOptions(
+      currentActivity, remoteMM, DWebViewOptions(
         url = url,
         /// 我们会完全控制页面将如何离开，所以这里兜底默认为留在页面
         onDetachedFromWindowStrategy = DWebViewOptions.DetachedFromWindowStrategy.Ignore,
@@ -121,26 +115,27 @@ class MultiWebViewController(
   }
 
   @Synchronized
-  fun appendWebViewAsItem(dWebView: DWebViewEngine) = runBlockingCatching(mainAsyncExceptionHandler) {
-    val webviewId = "#w${webviewId_acc.getAndAdd(1)}"
-    val state = WebViewState(WebContent.Url(dWebView.url ?: ""))
-    val coroutineScope = CoroutineScope(CoroutineName(webviewId))
-    val navigator = WebViewNavigator(coroutineScope)
-    MultiViewItem(
-      webviewId = webviewId,
-      webView = dWebView,
-      state = state,
-      coroutineScope = coroutineScope,
-      navigator = navigator,
-      win = win,
-    ).also { viewItem ->
-      webViewList.add(viewItem)
-      dWebView.onCloseWindow {
-        closeWebView(webviewId)
+  fun appendWebViewAsItem(dWebView: DWebViewEngine) =
+    runBlockingCatching(mainAsyncExceptionHandler) {
+      val webviewId = "#w${webviewId_acc.getAndAdd(1)}"
+      val state = WebViewState(WebContent.Url(dWebView.url ?: ""))
+      val coroutineScope = CoroutineScope(CoroutineName(webviewId))
+      val navigator = WebViewNavigator(coroutineScope)
+      MultiViewItem(
+        webviewId = webviewId,
+        webView = dWebView,
+        state = state,
+        coroutineScope = coroutineScope,
+        navigator = navigator,
+        win = win,
+      ).also { viewItem ->
+        webViewList.add(viewItem)
+        dWebView.onCloseWindow {
+          closeWebView(webviewId)
+        }
+        webViewOpenSignal.emit(webviewId)
       }
-      webViewOpenSignal.emit(webviewId)
-    }
-  }.getOrThrow()
+    }.getOrThrow()
 
   /**
    * 关闭WebView
@@ -165,7 +160,7 @@ class MultiWebViewController(
       }
     }
     webViewList.clear()
-    this.downLoadObserver?.close() // 移除下载状态监听
+//    this.downLoadTaskId?.close() // 移除下载状态监听
     return true
   }
 
