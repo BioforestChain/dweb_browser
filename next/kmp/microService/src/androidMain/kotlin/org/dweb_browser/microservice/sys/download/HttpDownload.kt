@@ -1,6 +1,5 @@
 package org.dweb_browser.microservice.sys.download
 
-import android.util.Log
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.HttpTimeout
@@ -19,7 +18,7 @@ object HttpDownload {
   }
 
   suspend fun downloadAndSave(
-    downloadInfo: DownloadInfo, isStop: () -> Boolean, onProgress: (Long, Long) -> Unit
+    downloadInfo: JmmDownloadInfo, isStop: () -> Boolean, onProgress: (Long, Long) -> Unit
   ) {
     onProgress(0L, downloadInfo.size)
     val file = File(downloadInfo.path)

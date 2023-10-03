@@ -37,7 +37,7 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
 
   private fun getModuleCoroutineScope() = CoroutineScope(SupervisorJob() + ioAsyncExceptionHandler)
   private var _scope :CoroutineScope = getModuleCoroutineScope()
-  protected val ioAsyncScope get() = _scope
+  val ioAsyncScope get() = _scope
 
   val running get() = runningStateLock.value == MMState.BOOTSTRAP
 

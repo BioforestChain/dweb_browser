@@ -1,0 +1,4 @@
+package org.dweb_browser.helper
+
+const val PrivacyUrl = "https://dweb-browser.bagen.info/protocol.html" // 隐私协议地址
+const val SupportUrl = "https://dweb-browser.bagen.info/support.html" // webview版本升级帮助界面

@@ -26,7 +26,7 @@ import org.dweb_browser.browserUI.ui.view.DialogInfo
 import org.dweb_browser.browserUI.ui.view.DialogType
 import org.dweb_browser.browserUI.ui.view.DialogView
 import org.dweb_browser.microservice.help.types.MMID
-import org.dweb_browser.microservice.sys.download.DownloadStatus
+import org.dweb_browser.microservice.sys.download.JmmDownloadStatus
 
 /**
  * 显示下载进度框
@@ -37,7 +37,7 @@ import org.dweb_browser.microservice.sys.download.DownloadStatus
  */
 @Composable
 fun DownloadDialogView(
-  mmid: MMID, path: String, callbackState: (DownloadStatus, DialogInfo) -> Unit
+  mmid: MMID, path: String, callbackState: (JmmDownloadStatus, DialogInfo) -> Unit
 ) {
   val downLoadViewModel = DownLoadViewModel(mmid, path)
   downLoadViewModel.handleIntent(DownLoadIntent.DownLoad)
@@ -58,7 +58,7 @@ fun DownloadAppMaskView(
   mmid: MMID,
   path: String,
   modifier: Modifier = Modifier,
-  callbackState: (DownloadStatus, DialogInfo) -> Unit,
+  callbackState: (JmmDownloadStatus, DialogInfo) -> Unit,
 ) {
   val downLoadViewModel = DownLoadViewModel(mmid, path)
   downLoadViewModel.handleIntent(DownLoadIntent.DownLoad)
@@ -73,7 +73,7 @@ fun DownloadAppMaskView(
 fun DownloadAppMaskView(
   downLoadViewModel: DownLoadViewModel,
   modifier: Modifier = Modifier,
-  callbackState: (DownloadStatus, DialogInfo) -> Unit,
+  callbackState: (JmmDownloadStatus, DialogInfo) -> Unit,
 ) {
   DownloadAppProgressView(
     downLoadViewModel = downLoadViewModel,
@@ -86,7 +86,7 @@ fun DownloadAppMaskView(
 private fun DownloadAppProgressView(
   downLoadViewModel: DownLoadViewModel,
   modifier: Modifier,
-  callbackState: (DownloadStatus, DialogInfo) -> Unit,
+  callbackState: (JmmDownloadStatus, DialogInfo) -> Unit,
 ) {
   val dialogInfo = DialogInfo(
     type = DialogType.PROGRESS,
@@ -95,7 +95,7 @@ private fun DownloadAppProgressView(
   val show = remember {
     derivedStateOf { // 多个状态归类判断，只有出现变化后，才会刷新show值
       when (downLoadViewModel.uiState.value.downLoadState.value) {
-        DownloadStatus.DownLoading, DownloadStatus.DownLoadComplete, DownloadStatus.PAUSE -> true
+        JmmDownloadStatus.DownLoading, JmmDownloadStatus.DownLoadComplete, JmmDownloadStatus.PAUSE -> true
         else -> false
       }
     }
@@ -151,7 +151,7 @@ fun HideAppMaskView(
   radius: Float,
   canvasSize: Float,
   modifier: Modifier,
-  callbackState: (DownloadStatus, DialogInfo) -> Unit
+  callbackState: (JmmDownloadStatus, DialogInfo) -> Unit
 ) {
   var trigger by remember { mutableFloatStateOf(if (radius == 0f) 90f else radius) }
   var isFinished by remember { mutableStateOf(false) }
@@ -161,7 +161,7 @@ fun HideAppMaskView(
       durationMillis = 200, easing = LinearEasing
     ), finishedListener = {
       isFinished = true
-      callbackState(DownloadStatus.INSTALLED, DialogInfo())
+      callbackState(JmmDownloadStatus.INSTALLED, DialogInfo())
     }, label = ""
   )
 
@@ -188,7 +188,7 @@ fun HideAppMaskView(
 
 @Composable
 private fun DownloadDialogProgressView(
-  downLoadViewModel: DownLoadViewModel, callbackState: (DownloadStatus, DialogInfo) -> Unit
+  downLoadViewModel: DownLoadViewModel, callbackState: (JmmDownloadStatus, DialogInfo) -> Unit
 ) {
   val dialogInfo = DialogInfo(
     type = DialogType.PROGRESS,
@@ -197,13 +197,13 @@ private fun DownloadDialogProgressView(
   val show = remember {
     derivedStateOf { // 多个状态归类判断，只有出现变化后，才会刷新show值
       when (downLoadViewModel.uiState.value.downLoadState.value) {
-        DownloadStatus.DownLoading, DownloadStatus.DownLoadComplete, DownloadStatus.PAUSE -> true
+        JmmDownloadStatus.DownLoading, JmmDownloadStatus.DownLoadComplete, JmmDownloadStatus.PAUSE -> true
         else -> false
       }
     }
   }
   when (downLoadViewModel.uiState.value.downLoadState.value) { // 为了在状态变化后能够及时通知调用方刷新状态
-    DownloadStatus.INSTALLED, DownloadStatus.FAIL -> {
+    JmmDownloadStatus.INSTALLED, JmmDownloadStatus.FAIL -> {
       callbackState(
         downLoadViewModel.uiState.value.downLoadState.value,
         downLoadViewModel.uiState.value.dialogInfo

@@ -3,8 +3,7 @@ package info.bagen.dwebbrowser.microService
 import android.webkit.WebView
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.browser.desk.DesktopNMM
-import info.bagen.dwebbrowser.microService.browser.jmm.JmmNMM
-import info.bagen.dwebbrowser.microService.browser.jsProcess.JsProcessNMM
+import org.dweb_browser.browser.jsProcess.JsProcessNMM
 import org.dweb_browser.browser.mwebview.MultiWebViewNMM
 import org.dweb_browser.browser.nativeui.NativeUiNMM
 import org.dweb_browser.browser.nativeui.torch.TorchNMM
@@ -23,6 +22,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.cache.HttpCache
 import io.ktor.client.plugins.cache.storage.FileStorage
+import org.dweb_browser.browser.jmm.JmmNMM
 import org.dweb_browser.browserUI.microService.browser.web.BrowserNMM
 import org.dweb_browser.helper.addDebugTags
 import org.dweb_browser.helper.platform.getKtorClientEngine

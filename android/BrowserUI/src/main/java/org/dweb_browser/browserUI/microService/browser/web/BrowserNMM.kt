@@ -2,7 +2,10 @@ package org.dweb_browser.browserUI.microService.browser.web
 
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.dweb_browser.browserUI.microService.browser.link.WebLinkMicroModule
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.mainAsyncExceptionHandler
@@ -17,6 +20,9 @@ import org.dweb_browser.microservice.sys.dns.RespondLocalFileContext.Companion.r
 import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.dweb_browser.microservice.sys.dns.nativeFetchAdaptersManager
 import org.dweb_browser.microservice.sys.dns.returnAndroidFile
+import org.dweb_browser.microservice.sys.download.db.AppType
+import org.dweb_browser.microservice.sys.download.db.DeskAppInfo
+import org.dweb_browser.microservice.sys.download.db.DownloadDBStore
 import org.dweb_browser.microservice.sys.http.DwebHttpServerOptions
 import org.dweb_browser.microservice.sys.http.HttpDwebServer
 import org.dweb_browser.microservice.sys.http.createHttpDwebServer
@@ -51,7 +57,31 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
   private lateinit var browserServer: HttpDwebServer
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
+    ioAsyncScope.launch {
+      var preList = mutableListOf<DeskAppInfo>()
+      DownloadDBStore.queryDeskAppInfoList(getAppContext())
+        .collectLatest { list -> // TODO 只要datastore更新，这边就会实时更新
+          debugBrowser("AppInfoDataStore", "size=${list.size}")
+          list.map { deskAppInfo ->
+            when (deskAppInfo.appType) {
+              AppType.URL -> deskAppInfo.weblink?.let { deskWebLink ->
+                preList.removeIf { preDeskAppInfo -> preDeskAppInfo.weblink?.id == deskWebLink.id }
+                bootstrapContext.dns.install(WebLinkMicroModule(deskWebLink))
+              }
 
+              else -> {}
+            }
+          }
+          /// 将剩余的应用卸载掉
+          for (uninstallItem in preList) {
+            uninstallItem.weblink?.deleteIconFile(getAppContext()) // 删除已下载的图标
+            (uninstallItem.metadata?.id ?: uninstallItem.weblink?.id)?.let { uninstallId ->
+              bootstrapContext.dns.uninstall(uninstallId)
+            }
+          }
+          preList = list
+        }
+    }
 
     browserServer = this.createBrowserWebServer()
     val browserController = // 由于 WebView创建需要在主线程，所以这边做了 withContext 操作

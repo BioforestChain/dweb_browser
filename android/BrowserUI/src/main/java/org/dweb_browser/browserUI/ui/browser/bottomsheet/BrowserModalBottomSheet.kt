@@ -25,7 +25,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
+import org.dweb_browser.helper.compose.clickableWithNoEffect
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

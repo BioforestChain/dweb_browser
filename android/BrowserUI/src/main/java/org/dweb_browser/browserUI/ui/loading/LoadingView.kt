@@ -22,7 +22,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
-import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
 import kotlin.math.cos
 import kotlin.math.sin
 

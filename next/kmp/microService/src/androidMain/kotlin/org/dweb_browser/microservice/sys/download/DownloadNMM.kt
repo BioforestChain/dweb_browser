@@ -56,18 +56,18 @@ class DownloadNMM(val appContext: Context) :
       },
       "/pause" bind HttpMethod.Get to defineBooleanResponse {
         debugDownload("pause", ipc.remote.mmid)
-        downloadModel.updateDownloadState(ipc.remote.mmid, DownloadController.PAUSE)
+        downloadModel.updateDownloadState(ipc.remote.mmid, JmmDownloadController.PAUSE)
         true
       },
       /**继续下载*/
       "/resume" bind HttpMethod.Get to defineBooleanResponse {
         debugDownload("resume", ipc.remote.mmid)
-        downloadModel.updateDownloadState(ipc.remote.mmid, DownloadController.RESUME)
+        downloadModel.updateDownloadState(ipc.remote.mmid, JmmDownloadController.RESUME)
         true
       },
       "/cancel" bind HttpMethod.Get to defineBooleanResponse {
         debugDownload("cancel", ipc.remote.mmid)
-        downloadModel.updateDownloadState(ipc.remote.mmid, DownloadController.CANCEL)
+        downloadModel.updateDownloadState(ipc.remote.mmid, JmmDownloadController.CANCEL)
         true
       },
       "/listen" bind HttpMethod.Get to definePureStreamHandler {

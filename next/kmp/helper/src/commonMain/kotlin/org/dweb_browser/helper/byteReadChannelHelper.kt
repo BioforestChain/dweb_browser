@@ -4,6 +4,8 @@ import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.bits.copyTo
 import io.ktor.utils.io.read
 import io.ktor.utils.io.readAvailable
+import io.ktor.utils.io.readUTF8Line
+import kotlinx.serialization.json.Json
 
 val ByteReadChannel.canRead get() = !(availableForRead == 0 && isClosedForWrite && isClosedForRead)
 suspend fun ByteReadChannel.canReadContent(): Boolean {
@@ -66,5 +68,12 @@ class ConsumeEachArrayRangeController() {
   var continueFlag = true
   fun breakLoop() {
     continueFlag = false
+  }
+}
+
+suspend inline fun <reified T> ByteReadChannel.consumeEachJsonLine(visitor: T.() -> Unit) {
+  while (canRead) {
+    val line = readUTF8Line() ?: break
+    Json.decodeFromString<T>(line).visitor()
   }
 }

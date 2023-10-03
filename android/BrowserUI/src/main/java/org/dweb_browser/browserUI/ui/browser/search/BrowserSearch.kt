@@ -42,7 +42,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import kotlinx.coroutines.delay
 import org.dweb_browser.browserUI.R
-import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
+import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.browserUI.database.DefaultSearchWebEngine
 import org.dweb_browser.browserUI.database.WebEngine
 import org.dweb_browser.browserUI.database.WebSiteDatabase

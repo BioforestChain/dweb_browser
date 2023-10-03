@@ -3,17 +3,17 @@ package info.bagen.dwebbrowser.microService
 import android.os.Build
 
 enum class DEVELOPER(val deviceName: String) {
-  GAUBEE("Xiaomi/M2006J10C"),
-  WaterbangXiaoMi("Xiaomi/2107119DC"),
-  HuangLin("HUAWEI/ELE-AL00"),
-  HLVirtual("Google/sdk_gphone64_x86_64"),
-  HLOppo("OPPO/PGJM10"),
+  GAUBEE("Xiaomi/M2006J10C"), //
+  WaterbangXiaoMi("Xiaomi/2107119DC"), //
+  HuangLin("HUAWEI/ELE-AL00"), //
+  HLVirtual("Google/sdk_gphone64_x86_64"), //
+  HLOppo("OPPO/PGJM10"), //
   HBXiaomi("Xiaomi/2209129SC"), // 海兵测试机
   ZGSansung("samsung/SM-A5360"),// 专桂测试机
-  WaterBang("HONOR/ADT-AN00"),
-  Kingsword09("HUAWEI/BKL-AL20"),
-  KVirtual("Google/sdk_gphone64_arm64"),
-  ANONYMOUS("*");
+  WaterBang("HONOR/ADT-AN00"), //
+  Kingsword09("HUAWEI/BKL-AL20"), //
+  KVirtual("Google/sdk_gphone64_arm64"), //
+  ANONYMOUS("*"); //
 
 
   companion object {

@@ -4,22 +4,20 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import info.bagen.dwebbrowser.App
-import info.bagen.dwebbrowser.microService.browser.jmm.EIpcEvent
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.utils.io.readUTF8Line
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.ChangeState
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.PromiseOut
+import org.dweb_browser.helper.consumeEachJsonLine
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
-import org.dweb_browser.helper.canRead
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.http.PureResponse
@@ -79,10 +77,8 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     val (openedAppIpc) = bootstrapContext.dns.connect("dns.std.dweb")
     suspend fun doObserve(urlPath: String, cb: suspend ChangeState<MMID>.() -> Unit) {
       val res = openedAppIpc.request(urlPath)
-      val reader = res.stream().getReader("Desk listenApps")
-      while (reader.canRead) {
-        val state = Json.decodeFromString<ChangeState<MMID>>(reader.readUTF8Line() ?: break)
-        state.cb()
+      res.stream().getReader("Desk listenApps").consumeEachJsonLine<ChangeState<MMID>> {
+        cb()
       }
     }
     launch {
@@ -136,7 +132,11 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         debugDesk("/openAppOrActivate", mmid)
         try {
           val ipc = addRunningApp(mmid)
-          ipc?.postMessage(IpcEvent.fromUtf8(EIpcEvent.Activity.event, ""))
+          ipc?.postMessage(
+            IpcEvent.fromUtf8(
+              org.dweb_browser.browser.jmm.EIpcEvent.Activity.event, ""
+            )
+          )
 
           /// 将所有的窗口聚焦，这个行为不依赖于 Activity 事件，而是Desk模块自身托管窗口的行为
           desktopController.desktopWindowsManager.focusWindow(mmid)

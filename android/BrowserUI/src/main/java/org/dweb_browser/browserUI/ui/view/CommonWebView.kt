@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
@@ -25,17 +24,11 @@ import com.google.accompanist.web.LoadingState
 import com.google.accompanist.web.WebContent
 import com.google.accompanist.web.WebView
 import com.google.accompanist.web.WebViewState
-import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
+import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.browserUI.ui.browser.ConstUrl
 import org.dweb_browser.browserUI.ui.browser.setDarkMode
 import org.dweb_browser.browserUI.ui.loading.LoadingView
-
-/**
- * 用于判断是否显示隐私协议
- */
-val LocalCommonUrl = compositionLocalOf {
-  mutableStateOf("")
-}
+import org.dweb_browser.helper.compose.LocalCommonUrl
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
