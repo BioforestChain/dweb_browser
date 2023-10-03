@@ -10,8 +10,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.luminance
 import androidx.core.view.WindowInsetsCompat
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import info.bagen.dwebbrowser.helper.InsetsJson
-import info.bagen.dwebbrowser.helper.toJsonAble
+import org.dweb_browser.helper.android.InsetsJson
+import org.dweb_browser.helper.android.toJsonAble
 import info.bagen.dwebbrowser.microService.browser.nativeui.NativeUiController
 import info.bagen.dwebbrowser.microService.browser.nativeui.base.BarController
 import info.bagen.dwebbrowser.microService.browser.nativeui.helper.BarStyle
@@ -80,6 +80,6 @@ class NavigationBarController(
     style = styleState.value,
     overlay = overlayState.value,
     color = colorState.value.toJsonAble(),
-    insets = insetsState.value.toJsonAble(),
+    insets = insetsState.value.toJsonAble(activity),
   )
 }

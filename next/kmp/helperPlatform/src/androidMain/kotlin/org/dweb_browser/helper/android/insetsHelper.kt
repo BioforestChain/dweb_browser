@@ -1,17 +1,18 @@
-package info.bagen.dwebbrowser.helper
+package org.dweb_browser.helper.android
 
+import android.content.Context
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.core.graphics.Insets
-import info.bagen.dwebbrowser.App
 
 
 //data class RectJson(val x: Float, val y: Float, val width: Float, val height: Float)
 data class InsetsJson(val top: Float, val left: Float, val right: Float, val bottom: Float)
 
+fun WindowInsets.toJsonAble(context: Context) = toJsonAble(Density(context))
 fun WindowInsets.toJsonAble(
-  density: Density = Density(App.appContext), direction: LayoutDirection = LayoutDirection.Ltr
+  density: Density, direction: LayoutDirection = LayoutDirection.Ltr
 ) = InsetsJson(
   top = getTop(density).toFloat(),
   left = getLeft(density, direction).toFloat(),

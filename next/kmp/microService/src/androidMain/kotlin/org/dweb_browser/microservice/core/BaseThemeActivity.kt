@@ -1,4 +1,4 @@
-package info.bagen.dwebbrowser.base
+package org.dweb_browser.microservice.core
 
 import android.os.Bundle
 import androidx.activity.compose.setContent

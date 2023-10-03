@@ -1,6 +1,6 @@
-package info.bagen.dwebbrowser.helper
+package org.dweb_browser.microservice.help
 
-import info.bagen.dwebbrowser.util.IsChange
+import org.dweb_browser.helper.compose.IsChange
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.Callback

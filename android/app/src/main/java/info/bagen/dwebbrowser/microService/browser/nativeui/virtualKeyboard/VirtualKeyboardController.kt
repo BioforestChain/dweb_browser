@@ -9,8 +9,8 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.core.view.WindowInsetsCompat
-import info.bagen.dwebbrowser.helper.InsetsJson
-import info.bagen.dwebbrowser.helper.toJsonAble
+import org.dweb_browser.helper.android.InsetsJson
+import org.dweb_browser.helper.android.toJsonAble
 import info.bagen.dwebbrowser.microService.browser.nativeui.NativeUiController
 import info.bagen.dwebbrowser.microService.browser.nativeui.base.InsetsController
 import info.bagen.dwebbrowser.microService.browser.nativeui.helper.toWindowsInsets
@@ -66,6 +66,6 @@ class VirtualKeyboardController(
   override fun toJsonAble() = VirtualKeyboardState(
     visible = visibleState.value,
     overlay = overlayState.value,
-    insets = insetsState.value.toJsonAble(),
+    insets = insetsState.value.toJsonAble(activity),
   )
 }

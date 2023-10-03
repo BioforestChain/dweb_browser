@@ -11,7 +11,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowCompat
 import info.bagen.dwebbrowser.R
-import info.bagen.dwebbrowser.base.BaseThemeActivity
+import org.dweb_browser.microservice.core.BaseThemeActivity
 import org.dweb_browser.helper.android.ActivityBlurHelper
 import org.dweb_browser.helper.compose.theme.DwebBrowserAppTheme
 import org.dweb_browser.helper.runBlockingCatching

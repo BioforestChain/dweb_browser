@@ -9,8 +9,8 @@ import androidx.compose.foundation.layout.union
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import info.bagen.dwebbrowser.helper.InsetsJson
-import info.bagen.dwebbrowser.helper.toJsonAble
+import org.dweb_browser.helper.android.InsetsJson
+import org.dweb_browser.helper.android.toJsonAble
 import info.bagen.dwebbrowser.microService.browser.nativeui.NativeUiController
 import info.bagen.dwebbrowser.microService.browser.nativeui.base.InsetsController
 import info.bagen.dwebbrowser.microService.browser.nativeui.helper.debugNativeUi
@@ -113,9 +113,9 @@ class SafeAreaController(
   ) : InsetsState
 
   override fun toJsonAble() = SafeAreaState(
-    cutoutInsets = cutoutInsetsState.value.toJsonAble(),
+    cutoutInsets = cutoutInsetsState.value.toJsonAble(activity),
     overlay = overlayState.value,
-    outerInsets = outerAreaInsetsState.value.toJsonAble(),
-    insets = insetsState.value.toJsonAble(),
+    outerInsets = outerAreaInsetsState.value.toJsonAble(activity),
+    insets = insetsState.value.toJsonAble(activity),
   )
 }
