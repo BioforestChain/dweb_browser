@@ -74,7 +74,7 @@ class DownloadNMM(val appContext: Context) :
         listen(ipc, request)
       },
       "/observe" bind HttpMethod.Get to definePureResponse {
-        val mmid = request.queryOrFail("mmid")
+        val mmid = request.query("mmid")
         debugDownload("observe", "ipc->${ipc.remote.mmid}, mmid->$mmid")
         val inputStream = ReadableStream { controller ->
           val off = downloadModel.onDownload { downloadInfo ->

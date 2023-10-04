@@ -38,7 +38,7 @@ import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.http.PureRequest
 import org.dweb_browser.microservice.ipc.helper.IpcHeaders
 import org.dweb_browser.microservice.ipc.helper.IpcMethod
-import org.dweb_browser.microservice.sys.dns.nativeFetch
+import org.dweb_browser.microservice.std.dns.nativeFetch
 import java.io.File
 
 /**

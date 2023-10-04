@@ -48,7 +48,7 @@ class ShareNMM : AndroidNativeMicroModule("share.sys.dweb", "share") {
         val files = mutableListOf<String>()
         val result = PromiseOut<String>()
         val ext = ShareOptions(
-          title = request.query("title"), text = request.query("text"), url = request.query("url")
+          title = request.queryOrNull("title"), text = request.queryOrNull("text"), url = request.queryOrNull("url")
         )
         val multiPartData = request.receiveMultipart()
         multiPartData.forEachPart { partData ->

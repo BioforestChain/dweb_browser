@@ -11,8 +11,6 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.core.view.WindowInsetsCompat
 import org.dweb_browser.helper.android.InsetsJson
 import org.dweb_browser.helper.android.toJsonAble
-import org.dweb_browser.browser.nativeui.NativeUiController
-import org.dweb_browser.browser.nativeui.base.InsetsController
 import org.dweb_browser.browser.nativeui.helper.toWindowsInsets
 
 @Stable
@@ -47,7 +45,7 @@ class VirtualKeyboardController(
 
     observer.stateChanges.also {
       observerWatchStates(it)
-      it.effectChange {
+      it.HandleChange {
         observer.notifyObserver()
       }
     }

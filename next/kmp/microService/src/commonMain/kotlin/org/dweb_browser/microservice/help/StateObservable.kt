@@ -1,5 +1,6 @@
 package org.dweb_browser.microservice.help
 
+import io.ktor.utils.io.core.toByteArray
 import org.dweb_browser.helper.compose.IsChange
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json

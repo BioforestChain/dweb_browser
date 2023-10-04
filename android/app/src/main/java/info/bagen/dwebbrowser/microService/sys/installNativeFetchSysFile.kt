@@ -1,9 +1,9 @@
 package info.bagen.dwebbrowser.microService.sys
 
 import info.bagen.dwebbrowser.App
-import org.dweb_browser.microservice.sys.dns.RespondLocalFileContext.Companion.respondLocalFile
-import org.dweb_browser.microservice.sys.dns.debugFetch
-import org.dweb_browser.microservice.sys.dns.nativeFetchAdaptersManager
+import org.dweb_browser.microservice.std.dns.RespondLocalFileContext.Companion.respondLocalFile
+import org.dweb_browser.microservice.std.dns.debugFetch
+import org.dweb_browser.microservice.std.dns.nativeFetchAdaptersManager
 import org.dweb_browser.microservice.sys.dns.returnAndroidAsset
 
 fun installNativeFetchSysFile() {

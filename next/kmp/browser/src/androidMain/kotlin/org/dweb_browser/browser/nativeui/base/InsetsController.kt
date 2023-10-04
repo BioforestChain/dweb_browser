@@ -6,7 +6,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import org.dweb_browser.helper.android.InsetsJson
 import org.dweb_browser.microservice.help.StateObservable
-import org.dweb_browser.browser.nativeui.NativeUiController
 import org.dweb_browser.helper.compose.IsChange
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -32,8 +31,8 @@ abstract class InsetsController(
 
   @Composable
   protected open fun observerWatchStates(stateChanges: IsChange) {
-    stateChanges.rememberByState(overlayState)
-    stateChanges.rememberByState(insetsState)
+    stateChanges.watchState(overlayState)
+    stateChanges.watchState(insetsState)
   }
 
   @Composable

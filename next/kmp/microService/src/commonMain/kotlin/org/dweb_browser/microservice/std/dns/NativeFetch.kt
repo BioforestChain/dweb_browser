@@ -1,4 +1,4 @@
-package org.dweb_browser.microservice.sys.dns
+package org.dweb_browser.microservice.std.dns
 
 import io.ktor.client.HttpClient
 import io.ktor.client.request.prepareRequest

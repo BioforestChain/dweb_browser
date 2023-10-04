@@ -27,11 +27,11 @@ import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.ReadableStreamIpc
 import org.dweb_browser.microservice.ipc.helper.IpcHeaders
 import org.dweb_browser.microservice.ipc.helper.IpcResponse
-import org.dweb_browser.microservice.sys.dns.nativeFetch
-import org.dweb_browser.microservice.sys.http.DwebHttpServerOptions
-import org.dweb_browser.microservice.sys.http.HttpDwebServer
-import org.dweb_browser.microservice.sys.http.closeHttpDwebServer
-import org.dweb_browser.microservice.sys.http.createHttpDwebServer
+import org.dweb_browser.microservice.std.dns.nativeFetch
+import org.dweb_browser.microservice.std.http.DwebHttpServerOptions
+import org.dweb_browser.microservice.std.http.HttpDwebServer
+import org.dweb_browser.microservice.std.http.closeHttpDwebServer
+import org.dweb_browser.microservice.std.http.createHttpDwebServer
 
 fun debugJsProcess(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("js-process", tag, msg, err)
@@ -105,7 +105,7 @@ class JsProcessNMM : AndroidNativeMicroModule("js.browser.dweb", "Js Process") {
       "/create-process" bind HttpMethod.Post to definePureStreamHandler {
         debugJsProcess("create-process", ipc.remote.mmid)
         val po = ipcProcessIdMapLock.withLock {
-          val processId = request.queryOrFail("process_id")
+          val processId = request.query("process_id")
           val processIdMap = ipcProcessIdMap.getOrPut(ipc.remote.mmid) {
             mutableMapOf()
           }
@@ -123,7 +123,7 @@ class JsProcessNMM : AndroidNativeMicroModule("js.browser.dweb", "Js Process") {
         val result = createProcessAndRun(
           ipc, apis,
           bootstrapUrl,
-          request.query("entry"), request,
+          request.queryOrNull("entry"), request,
         )
         // 将自定义的 processId 与真实的 js-process_id 进行关联
         po.resolve(result.processHandler.info.process_id)
@@ -133,13 +133,13 @@ class JsProcessNMM : AndroidNativeMicroModule("js.browser.dweb", "Js Process") {
       },
       /// 创建 web 通讯管道
       "/create-ipc" bind HttpMethod.Get to defineNumberResponse {
-        val processId = request.queryOrFail("process_id")
+        val processId = request.query("process_id")
 
         /**
          * 虽然 mmid 是从远程直接传来的，但风险与jsProcess无关，
          * 因为首先我们是基于 ipc 来得到 processId 的，所以这个 mmid 属于 ipc 自己的定义
          */
-        val mmid = request.queryOrFail("mmid")
+        val mmid = request.query("mmid")
         val ipcProcessID = ipcProcessIdMapLock.withLock {
           ipcProcessIdMap[ipc.remote.mmid]?.get(processId)
             ?: throw Exception("ipc:${ipc.remote.mmid}/processId:$processId invalid")
@@ -159,14 +159,14 @@ class JsProcessNMM : AndroidNativeMicroModule("js.browser.dweb", "Js Process") {
       },
       // ipc 创建错误
       "/create-ipc-fail" bind HttpMethod.Get to defineBooleanResponse {
-        val processId = request.queryOrFail("process_id")
+        val processId = request.query("process_id")
         val processMap = ipcProcessIdMap[ipc.remote.mmid]?.get(processId)
         debugJsProcess("create-ipc-fail", ipc.remote.mmid)
         if (processMap === null) {
           throw Exception("ipc:${ipc.remote.mmid}/processId:${processId} invalid")
         }
-        val mmid = request.queryOrFail("mmid")
-        val reason = request.queryOrFail("reason")
+        val mmid = request.query("mmid")
+        val reason = request.query("reason")
         apis.createIpcFail(processId, mmid, reason)
         return@defineBooleanResponse false
       })

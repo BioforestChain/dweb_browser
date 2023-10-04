@@ -39,7 +39,7 @@ class MultiWebViewNMM :
     routes(
       // 打开一个 webview，并将它以 窗口window 的标准进行展示
       "/open" bind HttpMethod.Get to defineJsonResponse {
-        val url = request.queryOrFail("url")
+        val url = request.query("url")
         debugMultiWebView("create/open", url)
         val remoteMm = ipc.asRemoteInstance()
           ?: throw Exception("mwebview.browser.dweb/open should be call by locale")
@@ -56,7 +56,7 @@ class MultiWebViewNMM :
       },
       // 关闭指定 webview 窗口
       "/close" bind HttpMethod.Get to defineBooleanResponse {
-        val webviewId = request.queryOrFail("webview_id")
+        val webviewId = request.query("webview_id")
         val remoteMmid = ipc.remote.mmid
         debugMultiWebView("/close", "webviewId:$webviewId,mmid:$remoteMmid")
         closeDwebView(remoteMmid, webviewId)

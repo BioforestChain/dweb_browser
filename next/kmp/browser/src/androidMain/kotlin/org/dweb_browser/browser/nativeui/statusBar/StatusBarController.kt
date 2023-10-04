@@ -10,9 +10,6 @@ import androidx.core.view.WindowInsetsCompat
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import org.dweb_browser.helper.android.InsetsJson
 import org.dweb_browser.helper.android.toJsonAble
-import org.dweb_browser.browser.nativeui.NativeUiController
-import org.dweb_browser.browser.nativeui.base.BarController
-import org.dweb_browser.browser.nativeui.helper.BarStyle
 import org.dweb_browser.browser.nativeui.helper.debugNativeUi
 import org.dweb_browser.browser.nativeui.helper.toWindowsInsets
 import org.dweb_browser.helper.compose.ColorJson
@@ -56,7 +53,7 @@ class StatusBarController(
     observer.stateChanges.also {
       observerWatchStates(it)
 
-      it.effectChange {
+      it.HandleChange {
         debugNativeUi("StatusBar", "CHANGED")
         observer.notifyObserver()
       }

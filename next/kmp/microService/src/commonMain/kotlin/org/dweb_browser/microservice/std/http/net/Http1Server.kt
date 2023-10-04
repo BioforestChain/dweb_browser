@@ -1,4 +1,4 @@
-package org.dweb_browser.microservice.sys.http.net
+package org.dweb_browser.microservice.std.http.net
 
 import io.ktor.server.application.createApplicationPlugin
 import io.ktor.server.application.install
@@ -23,9 +23,9 @@ import org.dweb_browser.microservice.help.isWebSocket
 import org.dweb_browser.microservice.http.PureRequest
 import org.dweb_browser.microservice.http.PureResponse
 import org.dweb_browser.microservice.ipc.helper.ReadableStream
-import org.dweb_browser.microservice.sys.http.Gateway
-import org.dweb_browser.microservice.sys.http.debugHttp
-import org.dweb_browser.microservice.sys.http.findRequestGateway
+import org.dweb_browser.microservice.std.http.Gateway
+import org.dweb_browser.microservice.std.http.debugHttp
+import org.dweb_browser.microservice.std.http.findRequestGateway
 
 typealias GatewayHandler = suspend (request: PureRequest) -> Gateway?
 typealias GatewayHttpHandler = suspend (gateway: Gateway, request: PureRequest) -> PureResponse?

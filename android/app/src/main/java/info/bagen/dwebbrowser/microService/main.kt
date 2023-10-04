@@ -27,10 +27,10 @@ import org.dweb_browser.browserUI.microService.browser.web.BrowserNMM
 import org.dweb_browser.helper.addDebugTags
 import org.dweb_browser.helper.platform.getKtorClientEngine
 import org.dweb_browser.microservice.sys.boot.BootNMM
-import org.dweb_browser.microservice.sys.dns.DnsNMM
-import org.dweb_browser.microservice.sys.dns.nativeFetchAdaptersManager
+import org.dweb_browser.microservice.std.dns.DnsNMM
+import org.dweb_browser.microservice.std.dns.nativeFetchAdaptersManager
 import org.dweb_browser.microservice.sys.download.DownloadNMM
-import org.dweb_browser.microservice.sys.http.HttpNMM
+import org.dweb_browser.microservice.std.http.HttpNMM
 import java.io.File
 
 suspend fun startDwebBrowser(): DnsNMM {

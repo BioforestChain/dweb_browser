@@ -1,4 +1,4 @@
-package org.dweb_browser.microservice.sys.dns
+package org.dweb_browser.microservice.std.dns
 
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -209,7 +209,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       } else null
     }.removeWhen(this.onAfterShutdown)
 
-    val queryAppId = PureRequest.queryOrFail("app_id")
+    val queryAppId = PureRequest.query("app_id")
     val openApp = defineBooleanResponse {
       val mmid = request.queryAppId()
       debugDNS("open/$mmid", request.url.fullPath)

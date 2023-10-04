@@ -11,7 +11,7 @@ import org.dweb_browser.helper.compose.noLocalProvidedFor
 import org.dweb_browser.helper.consumeEachJsonLine
 import org.dweb_browser.helper.isGreaterThan
 import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
-import org.dweb_browser.microservice.sys.dns.nativeFetch
+import org.dweb_browser.microservice.std.dns.nativeFetch
 import org.dweb_browser.microservice.sys.download.JmmDownloadController
 import org.dweb_browser.microservice.sys.download.JmmDownloadStatus
 

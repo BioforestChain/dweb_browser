@@ -1,4 +1,4 @@
-package org.dweb_browser.microservice.sys.http
+package org.dweb_browser.microservice.std.http
 
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -27,9 +27,9 @@ import org.dweb_browser.microservice.http.bind
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.ReadableStreamIpc
 import org.dweb_browser.microservice.ipc.helper.IpcHeaders
-import org.dweb_browser.microservice.sys.dns.debugFetch
-import org.dweb_browser.microservice.sys.dns.nativeFetchAdaptersManager
-import org.dweb_browser.microservice.sys.http.net.Http1Server
+import org.dweb_browser.microservice.std.dns.debugFetch
+import org.dweb_browser.microservice.std.dns.nativeFetchAdaptersManager
+import org.dweb_browser.microservice.std.http.net.Http1Server
 import kotlin.random.Random
 
 fun debugHttp(tag: String, msg: Any = "", err: Throwable? = null) =
@@ -129,19 +129,19 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
       "/start" bind HttpMethod.Get to defineJsonResponse {
         start(
           ipc, DwebHttpServerOptions(
-            request.queryOrFail("port").toInt(), request.queryOrFail("subdomain")
+            request.query("port").toInt(), request.query("subdomain")
           )
         ).toJsonElement()
       },
       //
       "/listen" bind HttpMethod.Post to definePureStreamHandler {
-        val token = request.queryOrFail("token")
-        val routes = Json.decodeFromString<List<RouteConfig>>(request.queryOrFail("routes"))
+        val token = request.query("token")
+        val routes = Json.decodeFromString<List<RouteConfig>>(request.query("routes"))
         listen(token, request, routes)
       },
       //
       "/close" bind HttpMethod.Get to defineBooleanResponse {
-        close(ipc, request.queryAsObject())
+        close(ipc, request.queryAs())
       })
   }
 
@@ -270,7 +270,7 @@ fun findRequestGateway(request: PureRequest): String? {
   var header_host: String? = null
   var header_x_dweb_host: String? = null
   var header_auth_host: String? = null
-  val query_x_dweb_host: String? = request.query("X-Dweb-Host")?.decodeURIComponent()
+  val query_x_dweb_host: String? = request.queryOrNull("X-Dweb-Host")?.decodeURIComponent()
   for ((key, value) in request.headers) {
     if (reg_host.matches(key)) {
       if (Regex("""\.dweb(:\d+)?$""").matches(value)) header_host = value

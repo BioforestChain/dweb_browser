@@ -1,4 +1,4 @@
-package org.dweb_browser.microservice.sys.dns
+package org.dweb_browser.microservice.std.dns
 
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
@@ -17,7 +17,7 @@ import org.dweb_browser.microservice.ipc.helper.IpcHeaders
 
 class RespondLocalFileContext(val request: PureRequest) {
   val filePath by lazy { request.url.encodedPath }
-  private val mode = request.query("mode") ?: "auto"
+  private val mode = request.queryOrNull("mode") ?: "auto"
   val preferenceStream = mode == "stream"
   private fun asModePureBody(binary: PureBinary) =
     if (preferenceStream) PureStreamBody(binary) else PureBinaryBody(binary)

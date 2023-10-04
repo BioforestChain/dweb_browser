@@ -11,8 +11,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import org.dweb_browser.helper.android.InsetsJson
 import org.dweb_browser.helper.android.toJsonAble
-import org.dweb_browser.browser.nativeui.NativeUiController
-import org.dweb_browser.browser.nativeui.base.InsetsController
 import org.dweb_browser.browser.nativeui.helper.debugNativeUi
 import org.dweb_browser.browser.nativeui.helper.plus
 
@@ -44,19 +42,19 @@ class SafeAreaController(
     val safeArea = this
 
     observer.stateChanges.let {
-      val isSafeAreaOverlay by it.rememberByState(safeArea.overlayState)
-      val safeAreaCutoutInsets by it.rememberByState(safeArea.cutoutInsetsState)
+      val isSafeAreaOverlay by it.watchState(safeArea.overlayState)
+      val safeAreaCutoutInsets by it.watchState(safeArea.cutoutInsetsState)
 
-      val isStatusBarOverlay by it.rememberByState(statusBar.overlayState)
-      val statusBarsInsets by it.rememberByState(statusBar.insetsState)
+      val isStatusBarOverlay by it.watchState(statusBar.overlayState)
+      val statusBarsInsets by it.watchState(statusBar.insetsState)
 
-      val isVirtualKeyboardOverlay by it.rememberByState(virtualKeyboard.overlayState)
-      val imeInsets by it.rememberByState(virtualKeyboard.insetsState)
+      val isVirtualKeyboardOverlay by it.watchState(virtualKeyboard.overlayState)
+      val imeInsets by it.watchState(virtualKeyboard.insetsState)
 
-      val isNavigationBarOverlay by it.rememberByState(navigationBar.overlayState)
-      val navigationBarsInsets by it.rememberByState(navigationBar.insetsState)
+      val isNavigationBarOverlay by it.watchState(navigationBar.overlayState)
+      val navigationBarsInsets by it.watchState(navigationBar.insetsState)
 
-      it.effectChange {
+      it.HandleChange {
         var RES_safeAreaInsets = WindowInsets(0)
         var RES_outerAreaArea = WindowInsets(0)
 

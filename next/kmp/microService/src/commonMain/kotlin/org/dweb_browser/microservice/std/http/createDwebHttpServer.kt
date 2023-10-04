@@ -1,4 +1,4 @@
-package org.dweb_browser.microservice.sys.http
+package org.dweb_browser.microservice.std.http
 
 import io.ktor.http.URLBuilder
 import kotlinx.serialization.Serializable
@@ -13,7 +13,7 @@ import org.dweb_browser.microservice.http.PureRequest
 import org.dweb_browser.microservice.http.PureStreamBody
 import org.dweb_browser.microservice.ipc.ReadableStreamIpc
 import org.dweb_browser.microservice.ipc.helper.IpcMethod
-import org.dweb_browser.microservice.sys.dns.nativeFetch
+import org.dweb_browser.microservice.std.dns.nativeFetch
 
 /// 对外提供一套建议的操作来创建、使用、维护这个http服务
 

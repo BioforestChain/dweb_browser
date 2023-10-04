@@ -27,9 +27,9 @@ import org.dweb_browser.microservice.http.PureResponse
 import org.dweb_browser.microservice.http.bind
 import org.dweb_browser.microservice.http.bindDwebDeeplink
 import org.dweb_browser.microservice.ipc.Ipc
-import org.dweb_browser.microservice.sys.dns.RespondLocalFileContext.Companion.respondLocalFile
-import org.dweb_browser.microservice.sys.dns.nativeFetch
-import org.dweb_browser.microservice.sys.dns.nativeFetchAdaptersManager
+import org.dweb_browser.microservice.std.dns.RespondLocalFileContext.Companion.respondLocalFile
+import org.dweb_browser.microservice.std.dns.nativeFetch
+import org.dweb_browser.microservice.std.dns.nativeFetchAdaptersManager
 import org.dweb_browser.microservice.sys.dns.returnAndroidFile
 import org.dweb_browser.microservice.sys.download.JmmDownloadInfo
 import org.dweb_browser.microservice.sys.download.db.AppType
@@ -86,7 +86,7 @@ class JmmNMM(val context: Context) :
     }
 
     val routeInstallHandler = definePureResponse {
-      val metadataUrl = request.query("url") ?: getMetadataUrl(ipc.remote.mmid)
+      val metadataUrl = request.queryOrNull("url") ?: getMetadataUrl(ipc.remote.mmid)
       ?: return@definePureResponse PureResponse(HttpStatusCode.ExpectationFailed).body("You need to pass metadataUrl！")
       val response = nativeFetch(metadataUrl)
       if (response.isOk()) {
@@ -116,7 +116,7 @@ class JmmNMM(val context: Context) :
       "install" bindDwebDeeplink routeInstallHandler,
       "/install" bind HttpMethod.Get to routeInstallHandler,
       "/uninstall" bind HttpMethod.Get to defineBooleanResponse {
-        val mmid = request.queryOrFail("app_id")
+        val mmid = request.query("app_id")
         debugJMM("uninstall", mmid)
         jmmMetadataUninstall(mmid)
         true
@@ -142,7 +142,7 @@ class JmmNMM(val context: Context) :
       },
       // app详情
       "/detailApp" bind HttpMethod.Get to defineBooleanResponse {
-        val mmid = request.queryOrFail("app_id")
+        val mmid = request.query("app_id")
         debugJMM("detailApp", mmid)
         val microModule = bootstrapContext.dns.query(mmid)
 

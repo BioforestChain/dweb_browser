@@ -5,8 +5,6 @@ import androidx.activity.ComponentActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
-import org.dweb_browser.browser.nativeui.NativeUiController
-import org.dweb_browser.browser.nativeui.helper.BarStyle
 import org.dweb_browser.helper.compose.IsChange
 import org.dweb_browser.helper.compose.ColorJson
 
@@ -35,9 +33,9 @@ abstract class BarController(
   protected open override fun observerWatchStates(stateChanges: IsChange) {
 
     super.observerWatchStates(stateChanges)
-    stateChanges.rememberByState(colorState)
-    stateChanges.rememberByState(styleState)
-    stateChanges.rememberByState(visibleState)
+    stateChanges.watchState(colorState)
+    stateChanges.watchState(styleState)
+    stateChanges.watchState(visibleState)
   }
 
   @Composable

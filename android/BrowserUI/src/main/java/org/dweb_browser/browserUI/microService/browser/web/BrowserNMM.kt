@@ -16,16 +16,16 @@ import org.dweb_browser.microservice.http.PureResponse
 import org.dweb_browser.microservice.http.bind
 import org.dweb_browser.microservice.http.bindDwebDeeplink
 import org.dweb_browser.microservice.ipc.helper.IpcResponse
-import org.dweb_browser.microservice.sys.dns.RespondLocalFileContext.Companion.respondLocalFile
-import org.dweb_browser.microservice.sys.dns.nativeFetch
-import org.dweb_browser.microservice.sys.dns.nativeFetchAdaptersManager
+import org.dweb_browser.microservice.std.dns.RespondLocalFileContext.Companion.respondLocalFile
+import org.dweb_browser.microservice.std.dns.nativeFetch
+import org.dweb_browser.microservice.std.dns.nativeFetchAdaptersManager
 import org.dweb_browser.microservice.sys.dns.returnAndroidFile
 import org.dweb_browser.microservice.sys.download.db.AppType
 import org.dweb_browser.microservice.sys.download.db.DeskAppInfo
 import org.dweb_browser.microservice.sys.download.db.DownloadDBStore
-import org.dweb_browser.microservice.sys.http.DwebHttpServerOptions
-import org.dweb_browser.microservice.sys.http.HttpDwebServer
-import org.dweb_browser.microservice.sys.http.createHttpDwebServer
+import org.dweb_browser.microservice.std.http.DwebHttpServerOptions
+import org.dweb_browser.microservice.std.http.HttpDwebServer
+import org.dweb_browser.microservice.std.http.createHttpDwebServer
 
 val debugBrowser = Debugger("browser")
 
@@ -98,17 +98,17 @@ class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
     routes(
       "search" bindDwebDeeplink definePureResponse {
         debugBrowser("do search", request.href)
-        browserController.openBrowserWindow(search = request.queryOrFail("q"))
+        browserController.openBrowserWindow(search = request.query("q"))
         return@definePureResponse PureResponse(HttpStatusCode.OK)
       },
       "openinbrowser" bindDwebDeeplink definePureResponse {
         debugBrowser("do openinbrowser", request.href)
-        browserController.openBrowserWindow(url = request.queryOrFail("url"))
+        browserController.openBrowserWindow(url = request.query("url"))
         return@definePureResponse PureResponse(HttpStatusCode.OK)
       },
       "/uninstall" bind HttpMethod.Get to definePureResponse {
         debugBrowser("uninstall", request.href)
-        val mmid = request.query("mmid")
+        val mmid = request.queryOrNull("mmid")
         if (mmid == null) {
           browserController.uninstallWindow()
         }

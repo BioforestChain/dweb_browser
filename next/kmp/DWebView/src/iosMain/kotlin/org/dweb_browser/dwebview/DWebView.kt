@@ -84,7 +84,7 @@ class DWebView(
   }
 
   override suspend fun createMessageChannel(): IMessageChannel {
-
+    TODO("Not yet implemented")
   }
 
   override suspend fun setContentScale(scale: Float) {

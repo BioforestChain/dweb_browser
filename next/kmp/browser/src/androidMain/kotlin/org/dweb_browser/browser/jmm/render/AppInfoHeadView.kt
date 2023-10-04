@@ -35,7 +35,7 @@ import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.android.getCoilImageLoader
 import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
-import org.dweb_browser.microservice.sys.dns.httpFetch
+import org.dweb_browser.microservice.std.dns.httpFetch
 
 /**
  * 顶部的头像和应用名称

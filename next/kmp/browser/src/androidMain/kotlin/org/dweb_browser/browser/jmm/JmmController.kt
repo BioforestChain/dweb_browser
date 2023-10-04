@@ -14,7 +14,7 @@ import org.dweb_browser.microservice.http.PureRequest
 import org.dweb_browser.microservice.http.PureStringBody
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
 import org.dweb_browser.microservice.ipc.helper.IpcMethod
-import org.dweb_browser.microservice.sys.dns.nativeFetch
+import org.dweb_browser.microservice.std.dns.nativeFetch
 import org.dweb_browser.microservice.sys.download.JmmDownloadController
 import org.dweb_browser.microservice.sys.download.JmmDownloadInfo
 import org.dweb_browser.window.core.WindowController

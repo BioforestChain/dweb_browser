@@ -3,6 +3,7 @@ package org.dweb_browser.microservice.sys.dns
 import android.content.res.AssetManager
 import io.ktor.util.cio.toByteReadChannel
 import org.dweb_browser.microservice.http.PureResponse
+import org.dweb_browser.microservice.std.dns.RespondLocalFileContext
 import java.io.File
 import java.io.InputStream
 

@@ -17,7 +17,7 @@ import org.dweb_browser.browserUI.util.BrowserUIApp
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.microservice.core.AndroidNativeMicroModule
-import org.dweb_browser.microservice.sys.dns.DnsNMM
+import org.dweb_browser.microservice.std.dns.DnsNMM
 
 class App : Application() {
   companion object {

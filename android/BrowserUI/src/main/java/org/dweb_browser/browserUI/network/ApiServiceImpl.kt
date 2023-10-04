@@ -9,7 +9,7 @@ import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.core.isNotEmpty
 import io.ktor.utils.io.core.readBytes
 import org.dweb_browser.helper.platform.getKtorClientEngine
-import org.dweb_browser.microservice.sys.dns.httpFetch
+import org.dweb_browser.microservice.std.dns.httpFetch
 import java.io.File
 
 class ApiServiceImpl : ApiService {

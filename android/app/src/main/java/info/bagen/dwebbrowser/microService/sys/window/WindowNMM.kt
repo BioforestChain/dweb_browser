@@ -30,7 +30,7 @@ fun debugWindowNMM(tag: String, msg: Any? = "", err: Throwable? = null) =
 class WindowNMM : NativeMicroModule("window.sys.dweb", "Window Management") {
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    fun getWindow(request: PureRequest) = request.queryOrFail("wid").let { wid ->
+    fun getWindow(request: PureRequest) = request.query("wid").let { wid ->
       windowInstancesManager.get(wid) ?: throw Exception("No Found by window id: '$wid'")
     }
 
@@ -73,7 +73,7 @@ class WindowNMM : NativeMicroModule("window.sys.dweb", "Window Management") {
       "/visible" bind HttpMethod.Get to defineEmptyResponse { getWindow(request).toggleVisible() },
       "/close" bind HttpMethod.Get to defineEmptyResponse { getWindow(request).close() },
       "/setStyle" bind HttpMethod.Get to defineEmptyResponse {
-        getWindow(request).setStyle(request.queryAsObject<WindowStyle>())
+        getWindow(request).setStyle(request.queryAs<WindowStyle>())
       },
     )
   }

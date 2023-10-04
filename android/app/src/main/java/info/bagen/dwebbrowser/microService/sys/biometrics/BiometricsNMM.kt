@@ -37,10 +37,10 @@ class BiometricsNMM : AndroidNativeMicroModule("biometrics.sys.dweb", "biometric
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     routes(/** 检查识别支持生物识别*/
       "/check" bind HttpMethod.Get to defineBooleanResponse {
-        val type = request.query("type") ?: ""
+        val type = request.queryOrNull("type") ?: ""
         debugBiometrics("check", type)
 
-        openActivity(ipc.remote.mmid, request.queryAsObject<BiometricsData>())
+        openActivity(ipc.remote.mmid, request.queryAs<BiometricsData>())
         val context = biometricsController.waitActivityCreated()
         val result = context.chuck()
         context.finish()

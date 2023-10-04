@@ -29,11 +29,11 @@ import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
 import org.dweb_browser.microservice.ipc.helper.IpcResponse
 import org.dweb_browser.microservice.ipc.helper.ReadableStream
-import org.dweb_browser.microservice.sys.dns.nativeFetch
-import org.dweb_browser.microservice.sys.http.CORS_HEADERS
-import org.dweb_browser.microservice.sys.http.DwebHttpServerOptions
-import org.dweb_browser.microservice.sys.http.HttpDwebServer
-import org.dweb_browser.microservice.sys.http.createHttpDwebServer
+import org.dweb_browser.microservice.std.dns.nativeFetch
+import org.dweb_browser.microservice.std.http.CORS_HEADERS
+import org.dweb_browser.microservice.std.http.DwebHttpServerOptions
+import org.dweb_browser.microservice.std.http.HttpDwebServer
+import org.dweb_browser.microservice.std.http.createHttpDwebServer
 
 fun debugDesk(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("desk", tag, msg, err)
@@ -117,7 +117,7 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     routes(
       //
       "/readFile" bind HttpMethod.Get to definePureResponse {
-        nativeFetch(request.queryOrFail("url"))
+        nativeFetch(request.query("url"))
       },
       // readAccept
       "/readAccept." bind HttpMethod.Get to definePureResponse {
@@ -128,7 +128,7 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       },
       //
       "/openAppOrActivate" bind HttpMethod.Get to defineBooleanResponse {
-        val mmid = request.queryOrFail("app_id")
+        val mmid = request.query("app_id")
         debugDesk("/openAppOrActivate", mmid)
         try {
           val ipc = addRunningApp(mmid)
@@ -150,12 +150,12 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       },
       // 获取isMaximized 的值
       "/toggleMaximize" bind HttpMethod.Get to defineBooleanResponse {
-        val mmid = request.queryOrFail("app_id")
+        val mmid = request.query("app_id")
         return@defineBooleanResponse desktopController.desktopWindowsManager.toggleMaximize(mmid)
       },
       //
       "/closeApp" bind HttpMethod.Get to defineBooleanResponse {
-        val mmid = request.queryOrFail("app_id")
+        val mmid = request.query("app_id")
         if (runningApps.containsKey(mmid)) {
           return@defineBooleanResponse bootstrapContext.dns.close(mmid)
         }
@@ -197,12 +197,12 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       },
       //
       "/taskbar/apps" bind HttpMethod.Get to defineJsonResponse {
-        val limit = request.query("limit")?.toInt() ?: Int.MAX_VALUE
+        val limit = request.queryOrNull("limit")?.toInt() ?: Int.MAX_VALUE
         return@defineJsonResponse taskBarController.getTaskbarAppList(limit).toJsonElement()
       },
       //
       "/taskbar/observe/apps" bind HttpMethod.Get to definePureResponse {
-        val limit = request.query("limit")?.toInt() ?: Int.MAX_VALUE
+        val limit = request.queryOrNull("limit")?.toInt() ?: Int.MAX_VALUE
         debugDesk("/taskbar/observe/apps", limit)
         val inputStream = ReadableStream { controller ->
           val off = taskBarController.onUpdate {
@@ -260,7 +260,7 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       },
       //
       "/taskbar/resize" bind HttpMethod.Get to defineJsonResponse {
-        val size = request.queryAsObject<TaskbarController.ReSize>()
+        val size = request.queryAs<TaskbarController.ReSize>()
         debugDesk("/taskbar/resize", "$size")
         taskBarController.resize(size)
         size.toJsonElement()
@@ -273,7 +273,7 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       // 在app为全屏的时候，调出周围的高斯模糊，调整完全的taskbar
       "/taskbar/toggle-float-button-mode" bind HttpMethod.Get to defineBooleanResponse {
         taskBarController.taskbarView.toggleFloatWindow(
-          request.query("open")?.toBooleanStrictOrNull()
+          request.queryOrNull("open")?.toBooleanStrictOrNull()
         )
       }).cors()
 

@@ -1,4 +1,4 @@
-package org.dweb_browser.microservice.sys.http
+package org.dweb_browser.microservice.std.http
 
 import kotlinx.serialization.Serializable
 import org.dweb_browser.helper.StringEnumSerializer
