@@ -10,6 +10,7 @@ import kotlinx.serialization.json.JsonNull
 import okio.Path
 import okio.Path.Companion.toPath
 import okio.buffer
+import org.dweb_browser.helper.StringEnumSerializer
 import org.dweb_browser.helper.SystemFileSystem
 import org.dweb_browser.helper.copyTo
 import org.dweb_browser.helper.removeWhen
@@ -25,7 +26,7 @@ import org.dweb_browser.microservice.http.bind
  *
  * 比如 视频、相册、音乐、办公 等模块都是对文件读写有刚性依赖的，因此会基于标准文件模块实现同样的标准，这样别的模块可以将同类型的文件存储到它们的文件夹标准下管理
  */
-class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
+class FileNMM(serialName: String) : NativeMicroModule("file.std.dweb", "File Manager") {
   private fun findFileDirectory(type: String?): FileDirectory {
     for (adapter in fileTypeAdapterManager.adapters) {
       if (adapter.isMatch(type)) {
@@ -40,9 +41,12 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
     fileTypeAdapterManager.append(adapter = getDataFileDirectory()).removeWhen(onAfterShutdown)
     fileTypeAdapterManager.append(adapter = getDacheFileDirectory()).removeWhen(onAfterShutdown)
 
-    fun HandlerContext.getRootAndPath(): Pair<Path, Path> {
-      val filepath = request.queryOrNull("path")
-      val fileDirectory = findFileDirectory(request.queryOrNull("type"))
+    fun IHandlerContext.getRootAndPath(
+      pathKey: String = "path",
+      typeKey: String = "type"
+    ): Pair<Path, Path> {
+      val filepath = request.queryOrNull(pathKey)
+      val fileDirectory = findFileDirectory(request.queryOrNull(typeKey))
       val baseDir = fileDirectory.getDir(ipc.remote)
 
       if (filepath.isNullOrBlank()) {
@@ -59,12 +63,12 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
       return Pair(baseDir, fullPath)
     }
 
-    fun HandlerContext.getPath(): Path {
-      return getRootAndPath().second
+    fun IHandlerContext.getPath(pathKey: String = "path", typeKey: String = "type"): Path {
+      return getRootAndPath(pathKey, typeKey).second
     }
 
-    fun HandlerContext.getFileInfo(): JsonElement {
-      val metadata = SystemFileSystem.metadataOrNull(getPath());
+    fun IHandlerContext.getPathInfo(path: Path = getPath()): JsonElement {
+      val metadata = SystemFileSystem.metadataOrNull(path);
       return if (metadata == null) {
         JsonNull
       } else {
@@ -90,18 +94,23 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
     }
 
     routes(
+      // 创建文件夹
+      "/createDir" bind HttpMethod.Post to defineBooleanResponse {
+        SystemFileSystem.createDirectories(getPath(), true)
+        true
+      },
       // 列出列表
-      "/list" bind HttpMethod.Get to defineJsonResponse {
+      "/listDir" bind HttpMethod.Get to defineJsonResponse {
         val (root, path) = getRootAndPath()
-        val recursively = request.queryAsOrNull<Boolean>("all") ?: false
+        val recursive = request.queryAsOrNull<Boolean>("recursive") ?: false
 
-        (if (recursively) SystemFileSystem.listRecursively(path)
+        (if (recursive) SystemFileSystem.listRecursively(path)
           .toList() else SystemFileSystem.list(path))
           .map {
             it.relativeTo(root).toString()
           }.toJsonElement()
       },
-      // 顺序读取文件，一次性读取，但是可以指定开始位置
+      // 读取文件，一次性读取，可以指定开始位置
       "/read" bind HttpMethod.Get to definePureStreamHandler {
         val fileSource = SystemFileSystem.source(getPath()).buffer()
 
@@ -111,39 +120,115 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
         }
         PureStream(fileSource.toByteReadChannel(ioAsyncScope))
       },
-      // 顺序写入文件，一次性写入，但是可以用追加的方式
+      // 写入文件，一次性写入
       "/write" bind HttpMethod.Post to defineEmptyResponse {
         val fileSource =
-          SystemFileSystem.sink(getPath(), request.queryAsOrNull("append") ?: false).buffer()
+          SystemFileSystem.sink(getPath(), request.queryAsOrNull("create") ?: false).buffer()
 
         request.body.toPureStream().getReader("write to file").copyTo(fileSource)
       },
-      // 文件是否存在
+      // 追加文件，一次性追加
+      "/append" bind HttpMethod.Put to defineEmptyResponse {
+        val fileSource =
+          SystemFileSystem.appendingSink(getPath(), request.queryAsOrNull("create") ?: false)
+            .buffer()
+
+        request.body.toPureStream().getReader("write to file").copyTo(fileSource)
+      },
+      // 路径是否存在
       "/exist" bind HttpMethod.Get to defineBooleanResponse {
         SystemFileSystem.exists(getPath())
       },
       // 获取路径的基本信息
       "/info" bind HttpMethod.Get to defineJsonResponse {
-        getFileInfo()
+        getPathInfo()
       },
       "/remove" bind HttpMethod.Delete to defineBooleanResponse {
-        try {
+        val recursive = request.queryAsOrNull<Boolean>("recursive") ?: false
+        if (recursive) {
           SystemFileSystem.deleteRecursively(getPath(), false)
-          true
-        } catch (e: Throwable) {
-          false
+        } else {
+          SystemFileSystem.delete(getPath(), false)
         }
-      }
-//      "/watch" bind HttpMethod.Get to defineJsonLineResponse {
-//        emit(getFileInfo())
-////        SystemFileSystem.
-//
-//        val watcher = FileWatcher
-//      }
+        true
+      },
+      "/move" bind HttpMethod.Put to defineBooleanResponse {
+        SystemFileSystem.atomicMove(
+          getPath("sourcePath", "sourceType"),
+          getPath("targetPath", "targetType")
+        )
+        true
+      },
+      "/watch" bind HttpMethod.Get to defineJsonLineResponse {
+        val (root, path) = getRootAndPath()
+        val recursive = request.queryAsOrNull<Boolean>("recursive") ?: false
+
+        // TODO 开启文件监听，将这个路径添加到监听列表中
+
+        if (request.queryAsOrNull<Boolean>("first") != false) {
+          emitPath(FileWatchEventName.First, path, root);
+          if (recursive) {
+            for (childPath in SystemFileSystem.listRecursively(path)) {
+              emitPath(FileWatchEventName.First, childPath, root)
+            }
+          }
+        }
+      },
     )
   }
 
   override suspend fun _shutdown() {
   }
 
+  object FileWatchEventNameSerializer :
+    StringEnumSerializer<FileWatchEventName>(
+      "FileWatchEventName",
+      FileWatchEventName.ALL_VALUES,
+      { eventName });
+  @Serializable(with = FileWatchEventNameSerializer::class)
+  enum class FileWatchEventName(val eventName: String) {
+    /** 初始化监听时，执行的触发 */
+    First("first"),
+
+    /** 路径被实例化成文件 */
+    Add("add"),
+
+    /** 路径被实例化成文件夹 */
+    AddDir("addDir"),
+
+    /** 文件被执行写入或追加 */
+    Change("change"),
+
+    /** 文件被移除 */
+    Unlink("unlink"),
+
+    /** 文件夹被移除*/
+    UnlinkDir("unlinkDir"),
+    ;
+
+    companion object {
+      val ALL_VALUES = entries.associateBy { it.eventName }
+    }
+  }
+
+  data class FileWatchEvent(
+    val type: FileWatchEventName,
+    val path: String,
+//    val exists: Boolean,
+//    val isFile: Boolean,
+//    val isDirectory: Boolean,
+  )
+
+  suspend fun JsonLineHandlerContext.emitPath(type: FileWatchEventName, path: Path, root: Path) {
+//    val metadata = SystemFileSystem.metadataOrNull(path)
+    emit(
+      FileWatchEvent(
+        type,
+        path.relativeTo(root).toString(),
+//        metadata != null,
+//        metadata?.isRegularFile ?: false,
+//        metadata?.isDirectory ?: false,
+      )
+    )
+  }
 }

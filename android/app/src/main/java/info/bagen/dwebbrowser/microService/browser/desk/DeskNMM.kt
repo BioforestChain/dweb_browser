@@ -7,8 +7,6 @@ import info.bagen.dwebbrowser.App
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.launch
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.ChangeState
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.PromiseOut
@@ -21,14 +19,12 @@ import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.http.PureResponse
-import org.dweb_browser.microservice.http.PureStreamBody
 import org.dweb_browser.microservice.http.PureStringBody
 import org.dweb_browser.microservice.http.bind
 import org.dweb_browser.microservice.http.toPure
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
 import org.dweb_browser.microservice.ipc.helper.IpcResponse
-import org.dweb_browser.microservice.ipc.helper.ReadableStream
 import org.dweb_browser.microservice.std.dns.nativeFetch
 import org.dweb_browser.microservice.std.http.CORS_HEADERS
 import org.dweb_browser.microservice.std.http.DwebHttpServerOptions
@@ -167,33 +163,15 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         return@defineJsonResponse desktopController.getDesktopApps().toJsonElement()
       },
       //
-      "/desktop/observe/apps" bind HttpMethod.Get to definePureResponse {
-        val inputStream = ReadableStream { controller ->
-          val off = desktopController.onUpdate {
-            try {
-              val jsonData = Json.encodeToString(desktopController.getDesktopApps())
-              controller.enqueue((jsonData + "\n").toByteArray())
-            } catch (e: Exception) {
-              controller.close()
-              e.printStackTrace()
-            }
+      "/desktop/observe/apps" bind HttpMethod.Get to defineJsonLineResponse {
+        desktopController.onUpdate {
+          try {
+            emit(desktopController.getDesktopApps())
+          } catch (e: Throwable) {
+            end(reason = e)
           }
-          ioAsyncScope.launch {
-            controller.awaitClose {
-              off()
-            }
-          }
-          ipc.onClose {
-            off()
-            controller.close()
-          }
-        }
-        ioAsyncScope.launch {
-          desktopController.updateSignal.emit()
-        }
-        return@definePureResponse PureResponse(
-          HttpStatusCode.OK, body = PureStreamBody(inputStream.stream)
-        )
+        }.removeWhen(onDispose)
+        desktopController.updateSignal.emit()
       },
       //
       "/taskbar/apps" bind HttpMethod.Get to defineJsonResponse {
@@ -201,62 +179,24 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         return@defineJsonResponse taskBarController.getTaskbarAppList(limit).toJsonElement()
       },
       //
-      "/taskbar/observe/apps" bind HttpMethod.Get to definePureResponse {
+      "/taskbar/observe/apps" bind HttpMethod.Get to defineJsonLineResponse {
         val limit = request.queryOrNull("limit")?.toInt() ?: Int.MAX_VALUE
         debugDesk("/taskbar/observe/apps", limit)
-        val inputStream = ReadableStream { controller ->
-          val off = taskBarController.onUpdate {
-            try {
-              val jsonData = Json.encodeToString(taskBarController.getTaskbarAppList(limit))
-              controller.enqueue((jsonData + "\n").toByteArray())
-            } catch (e: Exception) {
-              controller.close()
-              e.printStackTrace()
-            }
+        taskBarController.onUpdate {
+          try {
+            emit(taskBarController.getTaskbarAppList(limit))
+          } catch (e: Exception) {
+            end(e)
           }
-          ioAsyncScope.launch {
-            controller.awaitClose {
-              off()
-            }
-          }
-          ipc.onClose {
-            off()
-            controller.close()
-          }
-        }
-        ioAsyncScope.launch {
-          taskBarController.updateSignal.emit()
-        }
-        return@definePureResponse PureResponse(
-          HttpStatusCode.OK, body = PureStreamBody(inputStream.stream)
-        )
+        }.removeWhen(onDispose)
+        taskBarController.updateSignal.emit()
       },
       //
-      "/taskbar/observe/status" bind HttpMethod.Get to definePureResponse {
+      "/taskbar/observe/status" bind HttpMethod.Get to defineJsonLineResponse {
         debugDesk("/taskbar/observe/status")
-        val inputStream = ReadableStream { controller ->
-          val off = taskBarController.onStatus { status ->
-            try {
-              val jsonData = Json.encodeToString(status)
-              controller.enqueueBackground((jsonData + "\n").toByteArray())
-            } catch (e: Exception) {
-              controller.close()
-              e.printStackTrace()
-            }
-          }
-          ioAsyncScope.launch {
-            controller.awaitClose {
-              off()
-            }
-          }
-          ipc.onClose {
-            off()
-            controller.close()
-          }
-        }
-        return@definePureResponse PureResponse(
-          HttpStatusCode.OK, body = PureStreamBody(inputStream.stream)
-        )
+        taskBarController.onStatus { status ->
+          emit(status)
+        }.removeWhen(onDispose)
       },
       //
       "/taskbar/resize" bind HttpMethod.Get to defineJsonResponse {
