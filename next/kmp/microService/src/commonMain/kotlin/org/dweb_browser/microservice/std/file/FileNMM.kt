@@ -2,8 +2,6 @@ package org.dweb_browser.microservice.std.file
 
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import kotlinx.atomicfu.atomic
-import kotlinx.coroutines.sync.Mutex
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
@@ -27,19 +25,24 @@ import org.dweb_browser.microservice.http.bind
  * 比如 视频、相册、音乐、办公 等模块都是对文件读写有刚性依赖的，因此会基于标准文件模块实现同样的标准，这样别的模块可以将同类型的文件存储到它们的文件夹标准下管理
  */
 class FileNMM(serialName: String) : NativeMicroModule("file.std.dweb", "File Manager") {
-  private fun findFileDirectory(type: String?): FileDirectory {
-    for (adapter in fileTypeAdapterManager.adapters) {
-      if (adapter.isMatch(type)) {
-        return adapter
-      }
-    }
-  }
+  fun Path.toSafeString(root: Path) = (root / this).toString()
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    var lockIdAcc by atomic(0);
-    val openFileSourceMap = mutableMapOf<String, Mutex>()
-    fileTypeAdapterManager.append(adapter = getDataFileDirectory()).removeWhen(onAfterShutdown)
-    fileTypeAdapterManager.append(adapter = getDacheFileDirectory()).removeWhen(onAfterShutdown)
+    val dataFileDirectory = getDataFileDirectory().also {
+      fileTypeAdapterManager.append(adapter = it).removeWhen(onAfterShutdown)
+    }
+    val cacheFileDirectory = getCacheFileDirectory().also {
+      fileTypeAdapterManager.append(adapter = it).removeWhen(onAfterShutdown)
+    }
+
+    fun findFileDirectory(type: String?): FileDirectory {
+      for (adapter in fileTypeAdapterManager.adapters) {
+        if (adapter.isMatch(type)) {
+          return adapter
+        }
+      }
+      return dataFileDirectory
+    }
 
     fun IHandlerContext.getRootAndPath(
       pathKey: String = "path",
@@ -56,7 +59,7 @@ class FileNMM(serialName: String) : NativeMicroModule("file.std.dweb", "File Man
       if (filepath.startsWith("..") || filepath.startsWith('/')) {
         throwException(HttpStatusCode.BadRequest, "File path should by relative path")
       }
-      val fullPath = baseDir.relativeTo(filepath.toPath())
+      val fullPath = baseDir.resolve(filepath.toPath())
       if (!SystemFileSystem.exists(fullPath)) {
         throwException(HttpStatusCode.NotFound, "No found file: $fullPath")
       }
@@ -93,6 +96,7 @@ class FileNMM(serialName: String) : NativeMicroModule("file.std.dweb", "File Man
       }
     }
 
+
     routes(
       // 创建文件夹
       "/createDir" bind HttpMethod.Post to defineBooleanResponse {
@@ -105,10 +109,10 @@ class FileNMM(serialName: String) : NativeMicroModule("file.std.dweb", "File Man
         val recursive = request.queryAsOrNull<Boolean>("recursive") ?: false
 
         (if (recursive) SystemFileSystem.listRecursively(path)
+          /// 列出
           .toList() else SystemFileSystem.list(path))
-          .map {
-            it.relativeTo(root).toString()
-          }.toJsonElement()
+          /// 取想对路径
+          .map { it.toSafeString(root) }.toJsonElement()
       },
       // 读取文件，一次性读取，可以指定开始位置
       "/read" bind HttpMethod.Get to definePureStreamHandler {
@@ -154,6 +158,13 @@ class FileNMM(serialName: String) : NativeMicroModule("file.std.dweb", "File Man
       },
       "/move" bind HttpMethod.Put to defineBooleanResponse {
         SystemFileSystem.atomicMove(
+          getPath("sourcePath", "sourceType"),
+          getPath("targetPath", "targetType")
+        )
+        true
+      },
+      "/copy" bind HttpMethod.Post to defineBooleanResponse {
+        SystemFileSystem.copy(
           getPath("sourcePath", "sourceType"),
           getPath("targetPath", "targetType")
         )
@@ -214,20 +225,13 @@ class FileNMM(serialName: String) : NativeMicroModule("file.std.dweb", "File Man
   data class FileWatchEvent(
     val type: FileWatchEventName,
     val path: String,
-//    val exists: Boolean,
-//    val isFile: Boolean,
-//    val isDirectory: Boolean,
   )
 
   suspend fun JsonLineHandlerContext.emitPath(type: FileWatchEventName, path: Path, root: Path) {
-//    val metadata = SystemFileSystem.metadataOrNull(path)
     emit(
       FileWatchEvent(
         type,
-        path.relativeTo(root).toString(),
-//        metadata != null,
-//        metadata?.isRegularFile ?: false,
-//        metadata?.isDirectory ?: false,
+        path.toSafeString(root),
       )
     )
   }

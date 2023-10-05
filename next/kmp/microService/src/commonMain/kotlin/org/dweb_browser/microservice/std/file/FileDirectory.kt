@@ -1,6 +1,5 @@
 package org.dweb_browser.microservice.std.file
 
-import kotlinx.io.files.Path
 import okio.Path
 import org.dweb_browser.microservice.help.AdapterManager
 import org.dweb_browser.microservice.help.types.IMicroModuleManifest
@@ -49,7 +48,7 @@ expect fun FileNMM.getDataFileDirectory(): FileDirectory
 /**
  * 缓存文件夹，这里的空间会被按需回收
  */
-expect fun FileNMM.getDacheFileDirectory(): FileDirectory
+expect fun FileNMM.getCacheFileDirectory(): FileDirectory
 
 class FileDirectoryAdapterManager internal constructor() : AdapterManager<FileDirectory>()
 
