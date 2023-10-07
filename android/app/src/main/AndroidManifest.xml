@@ -62,7 +62,6 @@
     <activity
       android:name=".SplashActivity"
       android:exported="true"
-      android:launchMode="singleTask"
       android:theme="@style/Theme.App.Starting">
       <intent-filter>
         <action android:name="android.intent.action.MAIN" />
@@ -85,6 +84,7 @@
     <activity
       android:name=".microService.sys.deepLink.DeepLinkActivity"
       android:exported="true"
+      android:launchMode="singleTask"
       android:theme="@style/Theme.AppCompat.Transparent">
 
       <intent-filter>
