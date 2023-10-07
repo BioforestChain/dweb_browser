@@ -87,18 +87,13 @@ class JmmNMM(val context: Context) :
     }
 
     val routeInstallHandler = definePureResponse {
-      val metadataUrl = request.queryOrNull("url") ?: getMetadataUrl(ipc.remote.mmid)
-      ?: return@definePureResponse PureResponse(HttpStatusCode.ExpectationFailed).body("You need to pass metadataUrl！")
+      val metadataUrl = request.query("url")
       val response = nativeFetch(metadataUrl)
       if (response.isOk()) {
         try {
-          debugJMM("parseJson")
           val jmmAppInstallManifest = response.json<JmmAppInstallManifest>()
           debugJMM("listenDownload", "$metadataUrl ${jmmAppInstallManifest.id}")
           listenDownloadState(jmmAppInstallManifest.id) // 监听下载
-          // 保存下载链接
-          debugJMM("saveDownload", "$metadataUrl ${jmmAppInstallManifest.id}")
-          setMetadataUrl(jmmAppInstallManifest.id, metadataUrl)
           val url = Url(metadataUrl)
           // 根据 jmmMetadata 打开一个应用信息的界面，用户阅读界面信息后，可以点击"安装"
           installJsMicroModule(jmmAppInstallManifest, ipc, url)
@@ -121,24 +116,6 @@ class JmmNMM(val context: Context) :
         debugJMM("uninstall", mmid)
         jmmMetadataUninstall(mmid)
         true
-      },
-      //检查是否有新版本
-      "/check" bind HttpMethod.Get to defineJsonResponse {
-        val metadataUrl = getMetadataUrl(ipc.remote.mmid) ?: return@defineJsonResponse DwebResult(
-          false, "No Found"
-        ).toJsonElement()
-        val response = nativeFetch(metadataUrl)
-        debugJMM("check-> ${ipc.remote.mmid}", " $metadataUrl ${response.isOk()}")
-        if (!response.isOk()) {
-          return@defineJsonResponse DwebResult(false, "network anomaly！").toJsonElement()
-        }
-        val jmmAppInstallManifest = response.json<JmmAppInstallManifest>()
-        val needUpdate = jmmAppInstallManifest.version.isGreaterThan(ipc.remote.version)
-        println("needUpdate=>$needUpdate  ${ipc.remote.version}  ${jmmAppInstallManifest.version}")
-        if (needUpdate) {
-          return@defineJsonResponse DwebResult(true, "Need update").toJsonElement()
-        }
-        return@defineJsonResponse DwebResult(false, "No update required").toJsonElement()
       },
       // app详情
       "/detailApp" bind HttpMethod.Get to defineBooleanResponse {

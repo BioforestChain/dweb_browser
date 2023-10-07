@@ -99,9 +99,20 @@ export class BundleZipGenerator {
     throw new Error("no implement");
   };
   readonly www_dir: undefined | string;
-  constructor(readonly flags: $MetadataJsonGeneratorOptions, readonly plaoc: PlaocJsonGenerator, readonly id: $MMID) {
+  constructor(
+    readonly flags: $MetadataJsonGeneratorOptions,
+    readonly plaoc: PlaocJsonGenerator,
+    readonly id: $MMID,
+    readonly version: string
+  ) {
     const bundleTarget = flags.metadata;
-
+    // 写入版本信息
+    const writeVersion = {
+      dir: false,
+      path: `usr/version.json`,
+      data: JSON.stringify({ version: this.version }, null, 2),
+      time: new Date(0),
+    } satisfies $ZipEntry;
     /// 实时预览模式，使用代理html
     if (
       flags.mode === SERVE_MODE.LIVE ||
@@ -127,6 +138,7 @@ export class BundleZipGenerator {
           this.normalizeZipEntries([
             ...(await this.getBaseZipEntries(flags.dev)),
             index_html_file_entry,
+            writeVersion,
             ...plaoc.tryReadPlaoc(),
           ])
         );
@@ -153,6 +165,7 @@ export class BundleZipGenerator {
         return zipEntriesToZip(
           this.normalizeZipEntries([
             ...(await this.getBaseZipEntries(flags.dev)),
+            writeVersion,
             ...plaoc.tryReadPlaoc(),
             ...walkDirToZipEntries(www_dir).map((entry) => {
               return {

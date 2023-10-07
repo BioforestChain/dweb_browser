@@ -1,3 +1,4 @@
+import { IpcResponse } from "../../deps.ts";
 import {
   $DwebHttpServerOptions,
   $MMID,
@@ -45,7 +46,7 @@ export class Server_api extends HttpServer {
     const result = async () => {
       if (pathname === "/restart") {
         // 这里只需要把请求发送过去，因为app已经被关闭，已经无法拿到返回值
-        setTimeout(()=>{
+        setTimeout(() => {
           jsProcess.restart();
         }, 200);
         return Response.json({ success: true, message: "restart ok" });
@@ -58,8 +59,8 @@ export class Server_api extends HttpServer {
       }
       if (pathname === "/query") {
         const mmid = event.searchParams.get("mmid");
-        const res =  await jsProcess.nativeFetch(`file://dns.std.dweb/query?app_id=${mmid}`)
-        return res
+        const res = await jsProcess.nativeFetch(`file://dns.std.dweb/query?app_id=${mmid}`);
+        return res;
       }
       return Response.json({ success: false, message: "no action for serviceWorker Factory !!!" });
     };
@@ -71,6 +72,10 @@ export class Server_api extends HttpServer {
     const pathname = event.pathname.slice(INTERNAL_PREFIX.length);
     if (pathname === "window-info") {
       return Response.json({ wid: await this.widPo.promise });
+    }
+    if (pathname.startsWith("/usr")) {
+      const response = await jsProcess.nativeRequest(`file://${pathname}`);
+      return new IpcResponse(event.req_id, response.statusCode, response.headers, response.body, event.ipc);
     }
   }
 

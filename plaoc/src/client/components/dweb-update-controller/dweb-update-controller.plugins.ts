@@ -2,7 +2,7 @@ import { createMockModuleServerIpc } from "../../../common/websocketIpc.ts";
 import { bindThis } from "../../helper/bindThis.ts";
 import { ListenerCallback } from "../base/BaseEvent.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
-import { $DwebResult, $MMID } from "../base/base.type.ts";
+import { $MMID } from "../base/base.type.ts";
 import { UpdateControllerEvent, UpdateControllerMap } from "./dweb-update-controller.type.ts";
 
 class UpdateControllerPlugin extends BasePlugin {
@@ -14,17 +14,15 @@ class UpdateControllerPlugin extends BasePlugin {
   listen = new UpdateController();
 
   /**
-   * 跳转下载新版本
-   * 可以默认不传递medatadaUrl,系统会去识别第一次下载的地址去对比版本
-   * 当需要下载新app或者下载地址更改的时候再去传递
-   * @compatibility android/ios only
-   * @returns
+   *  调出下载界面
+   * @param metadataUrl 传递需要下载的metadata.json地址
+   * @returns 
    */
   @bindThis
-  async download(medatadaUrl?: string): Promise<boolean> {
+  async download(metadataUrl: string): Promise<boolean> {
     return this.fetchApi(`/install`, {
       search: {
-        url: medatadaUrl,
+        url: metadataUrl,
       },
     }).boolean();
   }
@@ -34,8 +32,19 @@ class UpdateControllerPlugin extends BasePlugin {
    * @compatibility android/ios only
    * @returns
    */
-  checkNewVersion() {
-    return this.fetchApi(`/check`).object<$DwebResult>();
+  getVersion() {
+    return this.buildApiRequest("/usr/version.json", {
+      pathPrefix: "/internal/",
+    })
+      .fetch()
+      .object<{ version: string }>();
+    // const metadata = await fetch(metadataUrl);
+    // const newVersion = (await metadata.json()).version
+    // console.log("checkNewVersion=>", result,newVersion,this.compareVersion(result.version,newVersion));
+    // if (this.compareVersion(result.version,newVersion) < 0) {
+    //     return true
+    // }
+    // return false;
   }
 
   // 暂停
@@ -59,6 +68,27 @@ class UpdateControllerPlugin extends BasePlugin {
       pathPrefix: "download.sys.dweb",
     }).boolean();
   }
+
+  // /**
+  //  * 比对版本
+  //  * @param v1
+  //  * @param v2
+  //  * @returns
+  //  */
+  // compareVersion(v1: string, v2: string): number {
+  //   const v1Parts = v1.split(".");
+  //   const v2Parts = v2.split(".");
+
+  //   for (let i = 0; i < Math.max(v1Parts.length, v2Parts.length); i++) {
+  //     const v1Part = parseInt(v1Parts[i]) || 0;
+  //     const v2Part = parseInt(v2Parts[i]) || 0;
+
+  //     if (v1Part < v2Part) return -1;
+  //     if (v1Part > v2Part) return 1;
+  //   }
+
+  //   return 0;
+  // }
 }
 
 class UpdateController extends EventTarget {
@@ -70,10 +100,10 @@ class UpdateController extends EventTarget {
     this.ipcPromise.then((ipc) => {
       ipc.onEvent((event) => {
         if (event.name === UpdateControllerEvent.progress) {
-         return this.dispatchEvent(new CustomEvent(event.name, { detail: { progress: event.text } }));
+          return this.dispatchEvent(new CustomEvent(event.name, { detail: { progress: event.text } }));
         }
         // start/end/cancel
-        this.dispatchEvent(new Event(event.name))
+        this.dispatchEvent(new Event(event.name));
       });
     });
   }

@@ -42,9 +42,9 @@ export const doServe = async (flags: $ServeOptions) => {
   }
 
   const metadataFlagHelper = new MetadataJsonGenerator(flags);
-  const id = metadataFlagHelper.readMetadata().id;
   const plaocHelper = new PlaocJsonGenerator(flags);
-  const bundleFlagHelper = new BundleZipGenerator(flags,plaocHelper, id);
+  const data = metadataFlagHelper.readMetadata();
+  const bundleFlagHelper = new BundleZipGenerator(flags,plaocHelper, data.id,data.version);
   const nameFlagHelper = new NameFlagHelper(flags, metadataFlagHelper);
 
   /// 启动http服务器
@@ -130,7 +130,7 @@ export const doServe = async (flags: $ServeOptions) => {
       const emulatorDestDir = path.join(
         adp.getAppDataPath(ROOT_PACKAGE.default.productName),
         "jmm-apps",
-        id,
+        data.id,
         "usr/server/emulator"
       );
       console.log(

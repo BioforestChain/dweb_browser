@@ -75,15 +75,15 @@ const cancel = defineLogAction(
 
 const download = defineLogAction(
   async () => {
-    return await updateControllerPlugin.download();
+    return await updateControllerPlugin.download("http://172.30.95.28:8096/metadata.json");
   },
   { name: "download", args: [], logPanel: $logPanel }
 );
 
 const check = defineLogAction(
   async () => {
-    const { success } = await updateControllerPlugin.checkNewVersion();
-    toastPlugin.show({ text: `${success ? "有新版本" : "没有新版本"}` });
+    const { version } = await updateControllerPlugin.getVersion();
+    toastPlugin.show({ text: `当前版本：${version}` });
   },
   { name: "check", args: [], logPanel: $logPanel }
 );

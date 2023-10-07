@@ -99,7 +99,7 @@ class DownloadNMM(val appContext: Context) :
   override suspend fun _shutdown() {}
 
   private fun listen(ipc: Ipc, message: PureRequest): PureStream {
-    debugDownload("LISTEN", ipc.remote.mmid)
+    debugDownload("download_listen", ipc.remote.mmid)
 
     val streamIpc = ReadableStreamIpc(ipc.remote, "download/${ipc.remote.mmid}")
     /// 接收一个body，body在关闭的时候，fetchIpc也会一同关闭
@@ -107,7 +107,7 @@ class DownloadNMM(val appContext: Context) :
     /// 自己nmm销毁的时候，ipc也会被全部销毁
     this.addToIpcSet(streamIpc)
     downloadModel.onDownload {
-      debugDownload("listen", "download -> $it")
+      debugDownload("download_listen", "download -> $it")
       val downloadInfo = it
       if (ipc.remote.mmid == downloadInfo.id) {
         streamIpc.postMessage(IpcEvent.fromUtf8(downloadInfo.toEvent(), downloadInfo.toData()))
