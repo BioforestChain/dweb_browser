@@ -95,6 +95,7 @@ const app = Electron.app;
 const menu = Electron.Menu;
 const Tray = Electron.Tray;
 let appIcon = null;
+
 app.whenReady().then(() => {
   const devIcon = isWindows ? "./electron/icons/win/icon.ico" : "./electron/icons/png/16x16.png";
   const depsIcon = isWindows ? "./resources/icons/win/icon.ico": "./resources/icons/png/16x16.png";
@@ -118,6 +119,20 @@ app.whenReady().then(() => {
   // 对于 Linux 再次调用此命令，因为我们修改了上下文菜单
   appIcon.setToolTip("dweb_browser");
   appIcon.setContextMenu(contextMenu);
+});
+
+// 设置deeplink
+app.setAsDefaultProtocolClient("dweb");
+app.on('will-finish-launching', () => {
+  // macOS only
+  app.on('open-url', (event, url) => {
+    event.preventDefault()
+    console.always("url: " + url);
+    if(url.startsWith("dweb:")) {
+      url = url.replace(/\:{1}\/{2}/, ":")
+    }
+    dns.nativeFetch(url);
+  })
 });
 
 app.on("window-all-closed", () => {

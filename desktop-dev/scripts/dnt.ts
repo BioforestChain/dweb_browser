@@ -61,8 +61,8 @@ await dnt.build({
     darwinDarkModeSupport: true,
     protocols: [
       {
-        name: ID,
-        schemes: ["dweb"],
+        name: productName,
+        schemes: ["dweb"]
       },
     ],
     build: {
