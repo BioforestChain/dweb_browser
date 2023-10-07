@@ -2,11 +2,13 @@ package info.bagen.dwebbrowser.microService.sys.toast
 
 import android.view.Gravity
 import android.view.View
-import info.bagen.dwebbrowser.App
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
+import org.dweb_browser.core.getAppContext
+import org.dweb_browser.microservice.core.NativeMicroModule
 
 object ToastController {
+  val context get() = NativeMicroModule.getAppContext()
 
   enum class DurationType(duration: Long) {
     SHORT(2000L), LONG(3500L)
@@ -47,7 +49,7 @@ object ToastController {
       else -> android.widget.Toast.LENGTH_SHORT
     }
     runBlocking(Dispatchers.Main) {
-      val toast = android.widget.Toast.makeText(App.appContext, text, duration)
+      val toast = android.widget.Toast.makeText(context, text, duration)
       when (positionType) {
         PositionType.TOP -> {
           toast.setGravity(Gravity.TOP or Gravity.CENTER_HORIZONTAL, 0, 40)

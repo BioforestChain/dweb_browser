@@ -9,11 +9,15 @@ import android.os.Build
 import android.webkit.MimeTypeMap
 import androidx.core.content.FileProvider
 import info.bagen.dwebbrowser.App
+import org.dweb_browser.core.getAppContext
 import org.dweb_browser.helper.PromiseOut
+import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.types.MMID
 import java.io.File
 
 object SharePlugin {
+
+  val context get() = NativeMicroModule.getAppContext()
 
   /**
    * 打开分享界面
@@ -31,8 +35,7 @@ object SharePlugin {
     po: PromiseOut<String>,
   ) {
     debugShare(
-      "open_share",
-      "title==>$title text==>$text  url==>$url,${url.isNullOrEmpty()} files==>$files"
+      "open_share", "title==>$title text==>$text  url==>$url,${url.isNullOrEmpty()} files==>$files"
     )
     if (text.isNullOrEmpty() && url.isNullOrEmpty() && (files != null && files.isEmpty())) {
       po.resolve("Must provide a URL or Message or files")
@@ -82,10 +85,7 @@ object SharePlugin {
       flags = flags or PendingIntent.FLAG_MUTABLE
     }
     val pi = PendingIntent.getBroadcast(
-      App.appContext,
-      0,
-      Intent(Intent.EXTRA_CHOSEN_COMPONENT),
-      flags
+      context, 0, Intent(Intent.EXTRA_CHOSEN_COMPONENT), flags
     )
     val chooserIntent = Intent.createChooser(intent, title, pi.intentSender).apply {
       addCategory(Intent.CATEGORY_DEFAULT)
@@ -97,9 +97,7 @@ object SharePlugin {
   }
 
   private fun shareFiles(
-    files: List<String>,
-    intent: Intent,
-    po: PromiseOut<String>
+    files: List<String>, intent: Intent, po: PromiseOut<String>
   ): ArrayList<Uri> {
     val arrayListFiles = arrayListOf<Uri>()
     try {
@@ -114,9 +112,7 @@ object SharePlugin {
           // android7 以上不能对外直接分享file://
           val shareFile = App.appContext.let {
             FileProvider.getUriForFile(
-              it,
-              "${App.appContext.packageName}.file.opener.provider",
-              File(fileUrl.path!!)
+              it, "${App.appContext.packageName}.file.opener.provider", File(fileUrl.path!!)
             )
           }
           arrayListFiles.add(shareFile)
@@ -276,11 +272,7 @@ object SharePlugin {
   }
 
   private fun setIntent(
-    type: String?,
-    packageName: String?,
-    className: String?,
-    file: File,
-    mmid: MMID
+    type: String?, packageName: String?, className: String?, file: File, mmid: MMID
   ) {
     if (file.exists()) {
       val uri: Uri = Uri.fromFile(file)

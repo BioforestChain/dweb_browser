@@ -3,10 +3,11 @@ package info.bagen.dwebbrowser.microService.sys.device.model
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
-import info.bagen.dwebbrowser.App
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.dweb_browser.core.getAppContext
+import org.dweb_browser.microservice.core.NativeMicroModule
 
 @Serializable
 data class AppData(
@@ -18,6 +19,7 @@ data class AppData(
 
 class AppInfo {
   private val NOT_FOUND_VAL = "unknown"
+  val context = NativeMicroModule.getAppContext()
 
   fun getAppInfo(): String {
     return Json.encodeToString(appData)
@@ -28,7 +30,6 @@ class AppInfo {
   val versionName: String
     get() {
       val pInfo: PackageInfo
-      val context = App.appContext
       return try {
         pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
         pInfo.versionName
@@ -40,7 +41,7 @@ class AppInfo {
   val versionCode: Int
     get() {
       val pInfo: PackageInfo
-      val context = App.appContext
+
       return try {
         pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
         pInfo.versionCode
@@ -49,11 +50,10 @@ class AppInfo {
       }
     }
 
-  val packageName: String get() = App.appContext.packageName
+  val packageName: String get() = context.packageName
 
   val appName: String
     get() {
-      val context = App.appContext
       val packageManager = context.packageManager
       var applicationInfo: ApplicationInfo? = null
       try {

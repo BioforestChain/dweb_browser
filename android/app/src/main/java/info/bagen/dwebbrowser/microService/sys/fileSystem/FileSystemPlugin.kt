@@ -2,16 +2,16 @@ package info.bagen.dwebbrowser.microService.sys.fileSystem
 
 import android.annotation.SuppressLint
 import android.content.ContentValues
-import android.content.Context
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Base64
-import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.sys.fileSystem.exeprions.CopyFailedException
 import info.bagen.dwebbrowser.microService.sys.fileSystem.fileopener.FileOpener
 import kotlinx.coroutines.*
+import org.dweb_browser.core.getAppContext
+import org.dweb_browser.microservice.core.NativeMicroModule
 import java.io.*
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
@@ -20,7 +20,7 @@ import java.util.*
 @SuppressLint("StaticFieldLeak")
 object FileSystemPlugin {
 
-  private val context: Context = App.appContext
+  private val context get() = NativeMicroModule.getAppContext()
 
   fun readFile(path: String, eFileType: EFileType?, charset: Charset?): String? {
     return getInputStream(path, eFileType)?.let { inputStream ->
@@ -211,9 +211,7 @@ object FileSystemPlugin {
     FileInputStream(src).channel.use { source ->
       FileOutputStream(dst).channel.use { destination ->
         destination.transferFrom(
-          source,
-          0,
-          source.size()
+          source, 0, source.size()
         )
       }
     }

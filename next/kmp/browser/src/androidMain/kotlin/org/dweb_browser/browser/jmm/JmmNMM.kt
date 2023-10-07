@@ -1,6 +1,5 @@
 package org.dweb_browser.browser.jmm
 
-import android.content.Context
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLBuilder
@@ -45,7 +44,7 @@ import java.io.File
 
 val debugJMM = Debugger("JMM")
 
-class JmmNMM(val context: Context) :
+class JmmNMM() :
   NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management") {
   init {
     short_name = "JMM";
@@ -152,7 +151,7 @@ class JmmNMM(val context: Context) :
   private fun installJmmApps() {
     ioAsyncScope.launch {
       var preList = mutableListOf<DeskAppInfo>()
-      DownloadDBStore.queryDeskAppInfoList(context)
+      DownloadDBStore.queryDeskAppInfoList(getAppContext())
         .collectLatest { list -> // TODO 只要datastore更新，这边就会实时更新
           debugJMM("AppInfoDataStore", "size=${list.size}")
           list.map { deskAppInfo ->
@@ -173,7 +172,7 @@ class JmmNMM(val context: Context) :
           }
           /// 将剩余的应用卸载掉
           for (uninstallItem in preList) {
-            uninstallItem.weblink?.deleteIconFile(context) // 删除已下载的图标
+            uninstallItem.weblink?.deleteIconFile(getAppContext()) // 删除已下载的图标
             (uninstallItem.metadata?.id ?: uninstallItem.weblink?.id)?.let { uninstallId ->
               bootstrapContext.dns.uninstall(uninstallId)
             }
@@ -221,7 +220,7 @@ class JmmNMM(val context: Context) :
   private suspend fun jmmMetadataUninstall(mmid: MMID) {
     // 先从列表移除，然后删除文件
     bootstrapContext.dns.uninstall(mmid)
-    DownloadDBStore.deleteDeskAppInfo(context, mmid)
+    DownloadDBStore.deleteDeskAppInfo(getAppContext(), mmid)
     FilesUtil.uninstallApp(getAppContext(), mmid)
   }
 

@@ -13,8 +13,10 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.dweb_browser.core.getAppContext
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printError
+import org.dweb_browser.microservice.core.NativeMicroModule
 import java.util.Locale
 
 @Serializable
@@ -29,6 +31,8 @@ data class LocationData(
 )
 
 class LocationInfo : LocationListener {
+  val context = NativeMicroModule.getAppContext()
+
   @SuppressLint("MissingPermission") // 先忽略权限
   fun getLocationInfo(): String {
     return Json.encodeToString(locationData)
@@ -47,7 +51,7 @@ class LocationInfo : LocationListener {
     }
 
   private fun getAddressFromLocation(latitude: Double, longitude: Double): LocationData {
-    val geocoder = Geocoder(App.appContext, Locale.getDefault())
+    val geocoder = Geocoder(context, Locale.getDefault())
     val locationData = LocationData()
     try {
       val addressList = geocoder.getFromLocation(latitude, longitude, 1)

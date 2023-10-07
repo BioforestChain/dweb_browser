@@ -36,6 +36,7 @@ kotlinx-datetime-version = "0.4.0"
 kotlinx-atomicfu-version = "0.22.0"
 kotlinx-io-version = "0.3.0"
 okio-version = "3.6.0"
+cryptography-version = "0.2.0"
 
 accompanist = "0.31.6-rc"
 google-material = "1.9.0"
@@ -106,6 +107,13 @@ kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime",
 kotlinx-atomicfu = { group = "org.jetbrains.kotlinx", name = "atomicfu", version.ref = "kotlinx-atomicfu-version" }
 kotlinx-io = { group = "org.jetbrains.kotlinx", name = "kotlinx-io-core", version.ref = "kotlinx-io-version" }
 squareup-okio = { group = "com.squareup.okio", name = "okio", version.ref = "okio-version" }
+whyoleg-cryptography-core = { group = "dev.whyoleg.cryptography", name = "cryptography-core", version.ref = "cryptography-version" }
+whyoleg-cryptography-provider-jdk = { group = "dev.whyoleg.cryptography", name = "cryptography-provider-jdk", version.ref = "cryptography-version" }
+whyoleg-cryptography-provider-web = { group = "dev.whyoleg.cryptography", name = "cryptography-provider-web", version.ref = "cryptography-version" }
+whyoleg-cryptography-provider-apple = { group = "dev.whyoleg.cryptography", name = "cryptography-provider-apple", version.ref = "cryptography-version" }
+whyoleg-cryptography-provider-openssl3-api = { group = "dev.whyoleg.cryptography", name = "cryptography-provider-openssl3-api", version.ref = "cryptography-version" }
+whyoleg-cryptography-provider-openssl3-shared = { group = "dev.whyoleg.cryptography", name = "cryptography-provider-openssl3-shared", version.ref = "cryptography-version" }
+whyoleg-cryptography-provider-openssl3-prebuilt = { group = "dev.whyoleg.cryptography", name = "cryptography-provider-openssl3-prebuilt", version.ref = "cryptography-version" }
 
 http4k-bom = { group = "org.http4k", name = "http4k-bom", version.ref = "http4k-bom" }
 http4k-core = { group = "org.http4k", name = "http4k-core" }

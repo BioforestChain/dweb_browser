@@ -1,11 +1,7 @@
 package info.bagen.dwebbrowser.microService
 
 import android.webkit.WebView
-import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.browser.desk.DeskNMM
-import org.dweb_browser.browser.jsProcess.JsProcessNMM
-import org.dweb_browser.browser.mwebview.MultiWebViewNMM
-import org.dweb_browser.browser.nativeui.torch.TorchNMM
 import info.bagen.dwebbrowser.microService.sys.biometrics.BiometricsNMM
 import info.bagen.dwebbrowser.microService.sys.clipboard.ClipboardNMM
 import info.bagen.dwebbrowser.microService.sys.config.ConfigNMM
@@ -22,14 +18,18 @@ import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.cache.HttpCache
 import io.ktor.client.plugins.cache.storage.FileStorage
 import org.dweb_browser.browser.jmm.JmmNMM
+import org.dweb_browser.browser.jsProcess.JsProcessNMM
+import org.dweb_browser.browser.mwebview.MultiWebViewNMM
+import org.dweb_browser.browser.nativeui.torch.TorchNMM
 import org.dweb_browser.browserUI.microService.browser.web.BrowserNMM
+import org.dweb_browser.core.getAppContext
 import org.dweb_browser.helper.addDebugTags
 import org.dweb_browser.helper.platform.getKtorClientEngine
-import org.dweb_browser.microservice.sys.boot.BootNMM
 import org.dweb_browser.microservice.std.dns.DnsNMM
 import org.dweb_browser.microservice.std.dns.nativeFetchAdaptersManager
-import org.dweb_browser.microservice.sys.download.DownloadNMM
 import org.dweb_browser.microservice.std.http.HttpNMM
+import org.dweb_browser.microservice.sys.boot.BootNMM
+import org.dweb_browser.microservice.sys.download.DownloadNMM
 import java.io.File
 
 suspend fun startDwebBrowser(): DnsNMM {
@@ -105,7 +105,7 @@ suspend fun startDwebBrowser(): DnsNMM {
     /// 自定义 httpClient 的缓存
     HttpClient(getKtorClientEngine()) {
       install(HttpCache) {
-        val cacheFile = File(App.appContext.cacheDir, "http-fetch.cache")
+        val cacheFile = File(it.getAppContext().cacheDir, "http-fetch.cache")
         publicStorage(FileStorage(cacheFile))
       }
       install(HttpTimeout) {
@@ -121,7 +121,7 @@ suspend fun startDwebBrowser(): DnsNMM {
   val browserNMM = BrowserNMM().also { dnsNMM.install(it) }
 
   /// 下载功能
-  val downloadNMM = DownloadNMM(App.appContext).also { dnsNMM.install(it) }
+  val downloadNMM = DownloadNMM().also { dnsNMM.install(it) }
 
   /// 扫码
   val scannerNMM = info.bagen.dwebbrowser.microService.sys.barcodeScanning.ScanningNMM()
@@ -158,7 +158,7 @@ suspend fun startDwebBrowser(): DnsNMM {
   val nativeUiNMM = org.dweb_browser.browser.nativeui.NativeUiNMM().also { dnsNMM.install(it) }
 
   /// 安装Jmm
-  val jmmNMM = JmmNMM(App.appContext).also { dnsNMM.install(it) }
+  val jmmNMM = JmmNMM().also { dnsNMM.install(it) }
   val deskNMM = DeskNMM().also { dnsNMM.install(it) }
   val windowNMM = WindowNMM().also { dnsNMM.install(it) }
 

@@ -5,7 +5,8 @@ import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
-import info.bagen.dwebbrowser.App
+import org.dweb_browser.core.getAppContext
+import org.dweb_browser.microservice.core.NativeMicroModule
 
 enum class HapticsNotificationType(
   val type: String, val timings: LongArray, val amplitudes: IntArray, val oldSDKPattern: LongArray
@@ -55,14 +56,15 @@ enum class VibrateType(
 
 class VibrateManage() {
   private var mVibrate: Vibrator
+  private val context get() = NativeMicroModule.getAppContext()
 
   init {
     mVibrate = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
       val vm =
-        App.appContext.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+        context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
       vm.defaultVibrator
     } else {
-      getDeprecatedVibrator(App.appContext)
+      getDeprecatedVibrator(context)
     }
   }
 

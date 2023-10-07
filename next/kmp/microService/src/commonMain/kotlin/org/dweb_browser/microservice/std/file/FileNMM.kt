@@ -138,6 +138,14 @@ class FileNMM(serialName: String) : NativeMicroModule("file.std.dweb", "File Man
       },
       // 读取文件，一次性读取，可以指定开始位置
       "/read" bind HttpMethod.Get to definePureStreamHandler {
+        val filepath = getPath()
+        val create = request.queryAsOrNull<Boolean>("create") ?: false
+        if (create) {
+          if (!SystemFileSystem.exists(filepath)) {
+            SystemFileSystem.createDirectories(filepath.resolve(".."), true)
+            SystemFileSystem.sink(filepath, true)
+          }
+        }
         val fileSource = SystemFileSystem.source(getPath()).buffer()
 
         val skip = request.queryAsOrNull<Long>("skip")
@@ -148,8 +156,15 @@ class FileNMM(serialName: String) : NativeMicroModule("file.std.dweb", "File Man
       },
       // 写入文件，一次性写入
       "/write" bind HttpMethod.Post to defineEmptyResponse {
+        val filepath = getPath()
+        val create = request.queryAsOrNull<Boolean>("create") ?: false
+        if (create) {
+          if (!SystemFileSystem.exists(filepath)) {
+            SystemFileSystem.createDirectories(filepath.resolve(".."), true)
+          }
+        }
         val fileSource =
-          SystemFileSystem.sink(getPath(), request.queryAsOrNull("create") ?: false).buffer()
+          SystemFileSystem.sink(getPath(), create).buffer()
 
         request.body.toPureStream().getReader("write to file").copyTo(fileSource)
       },

@@ -16,13 +16,12 @@ import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.microService.browser.desk.DesktopActivity
 import info.bagen.dwebbrowser.microService.sys.deepLink.DWebReceiver
 import kotlinx.serialization.Serializable
+import org.dweb_browser.core.getAppContext
+import org.dweb_browser.microservice.core.NativeMicroModule
 
 class NotifyManager {
   enum class ChannelType(
-    val typeName: String,
-    val channelID: String,
-    val property: Int,
-    val importance: Int
+    val typeName: String, val channelID: String, val property: Int, val importance: Int
   ) {
     // 默认消息，只需要任务栏有显示即可
     DEFAULT(
@@ -48,13 +47,14 @@ class NotifyManager {
     }
     var notifyId = 100 // 消息id，如果notify的id相同时，相当于修改而不是新增
     var requestCode = 1 // 用于通知栏点击时，避免都是点击到最后一个
+    val context get() = NativeMicroModule.getAppContext()
 
     fun getDefaultPendingIntent(): PendingIntent {
-      val intent = Intent(App.appContext, DesktopActivity::class.java).apply {
+      val intent = Intent(context, DesktopActivity::class.java).apply {
         flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
       }
       return PendingIntent.getActivity(
-        App.appContext,
+        context,
         ++requestCode,
         intent,
         PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
@@ -72,7 +72,7 @@ class NotifyManager {
         flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
       }
       return PendingIntent.getBroadcast(
-        App.appContext,
+        context,
         ++requestCode,
         intent,
         PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
@@ -89,28 +89,22 @@ class NotifyManager {
     channelType: ChannelType = ChannelType.DEFAULT,
     intent: PendingIntent = getDefaultPendingIntent()
   ) {
-    val context = App.appContext
-    val builder = NotificationCompat.Builder(context, channelType.channelID)
-      .setContentTitle(title) // 通知标题
-      .setContentText(text) // 通知内容
-      .setSmallIcon(smallIcon) // 设置通知的小图标
-      //.setLargeIcon(BitmapFactory.decodeResource(context.resources, R.mipmap.ic_launcher)) // 设置通知的大图标
-      .setStyle(
-        NotificationCompat.BigTextStyle().bigText(bigText)
-      )
-      .setContentIntent(intent)
-      .setPriority(channelType.property) // 设置通知的优先级
-      .setAutoCancel(true) // 设置点击通知之后通知是否消失
-      .setWhen(System.currentTimeMillis()) // 设定通知显示的时间
-      .setDefaults(NotificationCompat.DEFAULT_ALL)
+    val builder =
+      NotificationCompat.Builder(context, channelType.channelID).setContentTitle(title) // 通知标题
+        .setContentText(text) // 通知内容
+        .setSmallIcon(smallIcon) // 设置通知的小图标
+        //.setLargeIcon(BitmapFactory.decodeResource(context.resources, R.mipmap.ic_launcher)) // 设置通知的大图标
+        .setStyle(
+          NotificationCompat.BigTextStyle().bigText(bigText)
+        ).setContentIntent(intent).setPriority(channelType.property) // 设置通知的优先级
+        .setAutoCancel(true) // 设置点击通知之后通知是否消失
+        .setWhen(System.currentTimeMillis()) // 设定通知显示的时间
+        .setDefaults(NotificationCompat.DEFAULT_ALL)
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) { // 创建渠道，针对不同类别的消息进行独立管理
-      val channel =
-        NotificationChannel(
-          channelType.channelID,
-          channelType.typeName,
-          channelType.importance
-        )
+      val channel = NotificationChannel(
+        channelType.channelID, channelType.typeName, channelType.importance
+      )
       // channel.setBypassDnd(true) // 是否绕过勿打扰模式
       // channel.enableLights(true) // 是否允许呼吸灯闪烁
       // channel.lightColor = Color.RED // 闪关灯的灯光颜色
@@ -125,8 +119,7 @@ class NotifyManager {
 
     with(NotificationManagerCompat.from(context)) {
       if (ActivityCompat.checkSelfPermission(
-          App.appContext,
-          Manifest.permission.POST_NOTIFICATIONS
+          context, Manifest.permission.POST_NOTIFICATIONS
         ) != PackageManager.PERMISSION_GRANTED
       ) {
         // TODO: 权限申请

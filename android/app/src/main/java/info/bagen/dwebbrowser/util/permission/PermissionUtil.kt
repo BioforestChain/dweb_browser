@@ -15,8 +15,11 @@ import androidx.core.content.ContextCompat
 import info.bagen.dwebbrowser.App
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import org.dweb_browser.core.getAppContext
+import org.dweb_browser.microservice.core.NativeMicroModule
 
 object PermissionUtil {
+  val context get() = NativeMicroModule.getAppContext()
   /*const val PERMISSION_CALENDAR = "info.bagen.rust.plaoc.CALENDAR"
   const val PERMISSION_CAMERA = "info.bagen.rust.plaoc.CAMERA"
   const val PERMISSION_CONTACTS = "info.bagen.rust.plaoc.CONTACTS"
@@ -73,7 +76,7 @@ object PermissionUtil {
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M)
       return App.appContext.checkCallingOrSelfPermission(permission) == PackageManager.PERMISSION_GRANTED
     val hasPermission =
-      ContextCompat.checkSelfPermission(App.appContext, permission)
+      ContextCompat.checkSelfPermission(context, permission)
     Manifest.permission.INSTALL_PACKAGES
     return hasPermission == PackageManager.PERMISSION_GRANTED
   }

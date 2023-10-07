@@ -4,7 +4,6 @@ import android.content.ClipData
 import android.content.ClipDescription
 import android.content.ClipboardManager
 import android.content.Context
-import info.bagen.dwebbrowser.App
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.encodeToString
@@ -118,7 +117,7 @@ class ClipboardNMM : NativeMicroModule("clipboard.sys.dweb", "clipboard") {
           item?.text
         } else {
           val item = mClipboard.primaryClip?.getItemAt(0)
-          item?.coerceToText(App.appContext).toString()
+          item?.coerceToText(getAppContext()).toString()
         }
     }
     var type = "text/plain"

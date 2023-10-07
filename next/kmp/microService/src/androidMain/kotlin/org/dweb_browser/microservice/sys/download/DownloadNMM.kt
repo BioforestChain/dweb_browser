@@ -1,11 +1,11 @@
 package org.dweb_browser.microservice.sys.download
 
-import android.content.Context
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.dweb_browser.core.getAppContext
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
@@ -26,7 +26,7 @@ internal val debugDownload = Debugger("Download")
 /**
  * 下载模块
  */
-class DownloadNMM(val appContext: Context) :
+class DownloadNMM() :
   NativeMicroModule("download.sys.dweb", "Download Browser") {
   private val downloadModel = DownloadModel(this)
 
@@ -43,7 +43,7 @@ class DownloadNMM(val appContext: Context) :
         debugDownload("download", ipc.remote.mmid)
         val jmmAppInstallManifest =
           Json.decodeFromString<JmmAppInstallManifest>(request.body.toPureString())
-        if (downloadModel.downloadApp(appContext, jmmAppInstallManifest)) {
+        if (downloadModel.downloadApp(getAppContext(), jmmAppInstallManifest)) {
           return@definePureResponse PureResponse(HttpStatusCode.OK)
         } else {
           return@definePureResponse PureResponse(HttpStatusCode.ExpectationFailed).body("Download Process exists ${ipc.remote.mmid}")

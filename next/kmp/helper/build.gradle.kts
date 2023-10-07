@@ -38,8 +38,8 @@ kotlin {
         api(libs.ktor.server.cio)
         api(libs.ktor.client.cio)
         api(libs.ktor.client.encoding)
+        api(libs.whyoleg.cryptography.core)
 
-//        api(libs.kotlinx.io)
         api(libs.squareup.okio)
         api(libs.kotlinx.datetime)
         api(libs.kotlin.serialization.json)
@@ -60,6 +60,7 @@ kotlin {
         implementation(libs.commons.compress)
         api(libs.data.store)
         api(libs.data.store.preferences)
+        api(libs.whyoleg.cryptography.provider.jdk)
       }
     }
     val androidUnitTest by getting
@@ -70,6 +71,7 @@ kotlin {
       dependsOn(commonMain)
       dependencies {
         api(libs.ktor.client.darwin)
+        api(libs.whyoleg.cryptography.provider.openssl3.prebuilt)
       }
       iosX64Main.dependsOn(this)
       iosArm64Main.dependsOn(this)
