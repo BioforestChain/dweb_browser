@@ -5,6 +5,8 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.add
+import kotlinx.serialization.json.buildJsonArray
 import okio.Path
 import okio.Path.Companion.toPath
 import okio.buffer
@@ -16,6 +18,7 @@ import org.dweb_browser.helper.toByteReadChannel
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
+import org.dweb_browser.microservice.help.types.IMicroModuleManifest
 import org.dweb_browser.microservice.http.PureStream
 import org.dweb_browser.microservice.http.bind
 
@@ -25,49 +28,64 @@ import org.dweb_browser.microservice.http.bind
  * 比如 视频、相册、音乐、办公 等模块都是对文件读写有刚性依赖的，因此会基于标准文件模块实现同样的标准，这样别的模块可以将同类型的文件存储到它们的文件夹标准下管理
  */
 class FileNMM(serialName: String) : NativeMicroModule("file.std.dweb", "File Manager") {
-  fun Path.toSafeString(root: Path) = (root / this).toString()
+  val dataFileDirectory by lazy {
+    getDataVirtualFsDirectory().also {
+      fileTypeAdapterManager.append(adapter = it).removeWhen(onAfterShutdown)
+    }
+  }
+  val cacheFileDirectory by lazy {
+    getCacheVirtualFsDirectory().also {
+      fileTypeAdapterManager.append(adapter = it).removeWhen(onAfterShutdown)
+    }
+  }
+
+  fun findVfsDirectory(firstSegment: String): IVirtualFsDirectory {
+    for (adapter in fileTypeAdapterManager.adapters) {
+      if (adapter.isMatch(firstSegment)) {
+        return adapter
+      }
+    }
+    return dataFileDirectory
+  }
+
+  /**
+   * 虚拟的路径映射
+   */
+  class VirtualFsPath(
+    context: IMicroModuleManifest,
+    virtualPathString: String,
+    findVfsDirectory: (firstSegment: String) -> IVirtualFsDirectory
+  ) {
+    val virtualFullPath = virtualPathString.toPath(true).also {
+      if (!it.isAbsolute) {
+        throw ResponseException(HttpStatusCode.BadRequest, "File path should be absolute path")
+      }
+      if (it.segments.isEmpty()) {
+        throw ResponseException(
+          HttpStatusCode.BadRequest, "File path required one segment at least"
+        )
+      }
+    }
+    private val virtualFirstSegment = virtualFullPath.segments.first()
+    val virtualFirstPath = "/$virtualFirstSegment".toPath()
+    val virtualContentPath = virtualFullPath.relativeTo(virtualFirstPath)
+
+    private val vfsDirectory = findVfsDirectory(virtualFirstSegment)
+    val fsBasePath = vfsDirectory.getFsBasePath(context)
+    val fsFullPath = fsBasePath.resolve(virtualContentPath)
+
+    fun toVirtualPath(fsPath: Path) = virtualFirstPath.resolve(fsPath.relativeTo(fsBasePath))
+    fun toVirtualPathString(fsPath: Path) = toVirtualPath(fsPath).toString()
+  }
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    val dataFileDirectory = getDataFileDirectory().also {
-      fileTypeAdapterManager.append(adapter = it).removeWhen(onAfterShutdown)
-    }
-    val cacheFileDirectory = getCacheFileDirectory().also {
-      fileTypeAdapterManager.append(adapter = it).removeWhen(onAfterShutdown)
-    }
 
-    fun findFileDirectory(type: String?): FileDirectory {
-      for (adapter in fileTypeAdapterManager.adapters) {
-        if (adapter.isMatch(type)) {
-          return adapter
-        }
-      }
-      return dataFileDirectory
-    }
-
-    fun IHandlerContext.getRootAndPath(
+    fun IHandlerContext.getVfsPath(
       pathKey: String = "path",
-      typeKey: String = "type"
-    ): Pair<Path, Path> {
-      val filepath = request.queryOrNull(pathKey)
-      val fileDirectory = findFileDirectory(request.queryOrNull(typeKey))
-      val baseDir = fileDirectory.getDir(ipc.remote)
+    ) = VirtualFsPath(ipc.remote, request.query(pathKey), ::findVfsDirectory)
 
-      if (filepath.isNullOrBlank()) {
-        return Pair(baseDir, baseDir)
-      }
-
-      if (filepath.startsWith("..") || filepath.startsWith('/')) {
-        throwException(HttpStatusCode.BadRequest, "File path should by relative path")
-      }
-      val fullPath = baseDir.resolve(filepath.toPath())
-      if (!SystemFileSystem.exists(fullPath)) {
-        throwException(HttpStatusCode.NotFound, "No found file: $fullPath")
-      }
-      return Pair(baseDir, fullPath)
-    }
-
-    fun IHandlerContext.getPath(pathKey: String = "path", typeKey: String = "type"): Path {
-      return getRootAndPath(pathKey, typeKey).second
+    fun IHandlerContext.getPath(pathKey: String = "path"): Path {
+      return getVfsPath(pathKey).fsFullPath
     }
 
     fun IHandlerContext.getPathInfo(path: Path = getPath()): JsonElement {
@@ -105,14 +123,18 @@ class FileNMM(serialName: String) : NativeMicroModule("file.std.dweb", "File Man
       },
       // 列出列表
       "/listDir" bind HttpMethod.Get to defineJsonResponse {
-        val (root, path) = getRootAndPath()
+        val vfsPath = getVfsPath()
         val recursive = request.queryAsOrNull<Boolean>("recursive") ?: false
 
-        (if (recursive) SystemFileSystem.listRecursively(path)
+        val paths = (if (recursive) SystemFileSystem.listRecursively(vfsPath.fsFullPath)
           /// 列出
-          .toList() else SystemFileSystem.list(path))
-          /// 取想对路径
-          .map { it.toSafeString(root) }.toJsonElement()
+          .iterator() else SystemFileSystem.list(vfsPath.fsFullPath).iterator());
+
+        buildJsonArray {
+          for (path in paths) {
+            add(vfsPath.toVirtualPathString(path))
+          }
+        }
       },
       // 读取文件，一次性读取，可以指定开始位置
       "/read" bind HttpMethod.Get to definePureStreamHandler {
@@ -158,29 +180,27 @@ class FileNMM(serialName: String) : NativeMicroModule("file.std.dweb", "File Man
       },
       "/move" bind HttpMethod.Put to defineBooleanResponse {
         SystemFileSystem.atomicMove(
-          getPath("sourcePath", "sourceType"),
-          getPath("targetPath", "targetType")
+          getPath("sourcePath"), getPath("targetPath")
         )
         true
       },
       "/copy" bind HttpMethod.Post to defineBooleanResponse {
         SystemFileSystem.copy(
-          getPath("sourcePath", "sourceType"),
-          getPath("targetPath", "targetType")
+          getPath("sourcePath"), getPath("targetPath")
         )
         true
       },
       "/watch" bind HttpMethod.Get to defineJsonLineResponse {
-        val (root, path) = getRootAndPath()
+        val vfsPath = getVfsPath()
         val recursive = request.queryAsOrNull<Boolean>("recursive") ?: false
 
         // TODO 开启文件监听，将这个路径添加到监听列表中
 
         if (request.queryAsOrNull<Boolean>("first") != false) {
-          emitPath(FileWatchEventName.First, path, root);
+          emitPath(FileWatchEventName.First, vfsPath.fsFullPath, vfsPath);
           if (recursive) {
-            for (childPath in SystemFileSystem.listRecursively(path)) {
-              emitPath(FileWatchEventName.First, childPath, root)
+            for (childPath in SystemFileSystem.listRecursively(vfsPath.fsFullPath)) {
+              emitPath(FileWatchEventName.First, childPath, vfsPath)
             }
           }
         }
@@ -191,11 +211,10 @@ class FileNMM(serialName: String) : NativeMicroModule("file.std.dweb", "File Man
   override suspend fun _shutdown() {
   }
 
-  object FileWatchEventNameSerializer :
-    StringEnumSerializer<FileWatchEventName>(
-      "FileWatchEventName",
-      FileWatchEventName.ALL_VALUES,
-      { eventName });
+  object FileWatchEventNameSerializer : StringEnumSerializer<FileWatchEventName>(
+    "FileWatchEventName",
+    FileWatchEventName.ALL_VALUES,
+    { eventName });
   @Serializable(with = FileWatchEventNameSerializer::class)
   enum class FileWatchEventName(val eventName: String) {
     /** 初始化监听时，执行的触发 */
@@ -214,8 +233,7 @@ class FileNMM(serialName: String) : NativeMicroModule("file.std.dweb", "File Man
     Unlink("unlink"),
 
     /** 文件夹被移除*/
-    UnlinkDir("unlinkDir"),
-    ;
+    UnlinkDir("unlinkDir"), ;
 
     companion object {
       val ALL_VALUES = entries.associateBy { it.eventName }
@@ -227,11 +245,13 @@ class FileNMM(serialName: String) : NativeMicroModule("file.std.dweb", "File Man
     val path: String,
   )
 
-  suspend fun JsonLineHandlerContext.emitPath(type: FileWatchEventName, path: Path, root: Path) {
+  suspend fun JsonLineHandlerContext.emitPath(
+    type: FileWatchEventName, path: Path, vfsPath: VirtualFsPath
+  ) {
     emit(
       FileWatchEvent(
         type,
-        path.toSafeString(root),
+        vfsPath.toVirtualPathString(path),
       )
     )
   }
