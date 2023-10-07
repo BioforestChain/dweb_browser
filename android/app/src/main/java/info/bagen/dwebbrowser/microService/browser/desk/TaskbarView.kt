@@ -25,17 +25,16 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.zIndex
-import info.bagen.dwebbrowser.App
-import org.dweb_browser.dwebview.DWebView
-import org.dweb_browser.dwebview.engine.DWebViewEngine
+import org.dweb_browser.core.getAppContext
 import org.dweb_browser.dwebview.DWebViewOptions
-import org.dweb_browser.helper.buildUnsafeString
+import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.helper.clamp
 
 class TaskbarView(private val taskbarController: TaskbarController) {
@@ -43,7 +42,9 @@ class TaskbarView(private val taskbarController: TaskbarController) {
 
   val taskbarDWebView by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
     DWebViewEngine(
-      context = App.appContext, remoteMM = taskbarController.desktopNMM, options = DWebViewOptions(
+      context = taskbarController.deskNMM.getAppContext(),
+      remoteMM = taskbarController.deskNMM,
+      options = DWebViewOptions(
         url = taskbarController.getTaskbarUrl().toString(),
         onDetachedFromWindowStrategy = DWebViewOptions.DetachedFromWindowStrategy.Ignore,
       )
@@ -91,9 +92,10 @@ class TaskbarView(private val taskbarController: TaskbarController) {
   fun FloatWindow() {
     val isActivityMode by state.composableHelper.stateOf { floatActivityState }
     if (isActivityMode) {
+      val context = LocalContext.current
       LaunchedEffect(state.composableHelper) {
-        App.appContext.startActivity(Intent(
-          App.appContext, TaskbarActivity::class.java
+        context.startActivity(Intent(
+          context, TaskbarActivity::class.java
         ).also { intent ->
           intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
           intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)

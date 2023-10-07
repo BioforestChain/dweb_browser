@@ -150,9 +150,6 @@
       android:exported="true"
       android:theme="@style/Theme.AppCompat.Transparent" />
 
-    <service android:name="org.dweb_browser.browserUI.download.DwebBrowserService" />
-    <!--    <service android:name=".microService.browser.desk.TaskbarService" />-->
-
     <provider
       android:name="androidx.core.content.FileProvider"
       android:authorities="${applicationId}.file.opener.provider"

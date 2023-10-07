@@ -6,11 +6,12 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.dweb_browser.browserUI.microService.browser.link.WebLinkMicroModule
+import org.dweb_browser.core.getAppContext
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.mainAsyncExceptionHandler
-import org.dweb_browser.microservice.core.AndroidNativeMicroModule
 import org.dweb_browser.microservice.core.BootstrapContext
+import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.http.PureResponse
 import org.dweb_browser.microservice.http.bind
@@ -19,20 +20,20 @@ import org.dweb_browser.microservice.ipc.helper.IpcResponse
 import org.dweb_browser.microservice.std.dns.RespondLocalFileContext.Companion.respondLocalFile
 import org.dweb_browser.microservice.std.dns.nativeFetch
 import org.dweb_browser.microservice.std.dns.nativeFetchAdaptersManager
+import org.dweb_browser.microservice.std.http.DwebHttpServerOptions
+import org.dweb_browser.microservice.std.http.HttpDwebServer
+import org.dweb_browser.microservice.std.http.createHttpDwebServer
 import org.dweb_browser.microservice.sys.dns.returnAndroidFile
 import org.dweb_browser.microservice.sys.download.db.AppType
 import org.dweb_browser.microservice.sys.download.db.DeskAppInfo
 import org.dweb_browser.microservice.sys.download.db.DownloadDBStore
-import org.dweb_browser.microservice.std.http.DwebHttpServerOptions
-import org.dweb_browser.microservice.std.http.HttpDwebServer
-import org.dweb_browser.microservice.std.http.createHttpDwebServer
 
 val debugBrowser = Debugger("browser")
 
 /**
  * TODO 这个模块应该进一步抽象，从而共享给IOS侧
  */
-class BrowserNMM : AndroidNativeMicroModule("web.browser.dweb", "Web Browser") {
+class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
   init {
     short_name = "Browser";
     dweb_deeplinks = listOf("dweb://search", "dweb://openinbrowser")

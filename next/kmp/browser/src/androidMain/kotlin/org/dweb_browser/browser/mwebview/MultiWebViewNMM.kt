@@ -6,9 +6,9 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.printDebug
-import org.dweb_browser.microservice.core.AndroidNativeMicroModule
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.MicroModule
+import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.http.bind
@@ -22,8 +22,7 @@ import org.dweb_browser.window.render.emitFocusOrBlur
 fun debugMultiWebView(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("mwebview", tag, msg, err)
 
-class MultiWebViewNMM :
-  AndroidNativeMicroModule("mwebview.browser.dweb", "Multi Webview Renderer") {
+class MultiWebViewNMM : NativeMicroModule("mwebview.browser.dweb", "Multi Webview Renderer") {
   init {
     short_name = "MWebview"
     categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Render_Service)

@@ -5,14 +5,13 @@ import androidx.compose.runtime.mutableStateListOf
 import com.google.accompanist.web.WebContent
 import com.google.accompanist.web.WebViewNavigator
 import com.google.accompanist.web.WebViewState
-import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.browser.desk.types.DeskAppMetaData
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import org.dweb_browser.dwebview.DWebView
-import org.dweb_browser.dwebview.engine.DWebViewEngine
+import org.dweb_browser.core.getAppContext
 import org.dweb_browser.dwebview.DWebViewOptions
+import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.SimpleSignal
@@ -26,7 +25,7 @@ import org.dweb_browser.microservice.std.http.HttpDwebServer
 @Stable
 class DesktopController(
   private val deskSessionId: String,
-  private val desktopNMM: DesktopNMM,
+  private val deskNMM: DeskNMM,
   private val desktopServer: HttpDwebServer,
   private val runningApps: ChangeableMap<MMID, Ipc>
 ) {
@@ -42,7 +41,7 @@ class DesktopController(
   }
 
   suspend fun getDesktopApps(): List<DeskAppMetaData> {
-    val apps = desktopNMM.bootstrapContext.dns.search(MICRO_MODULE_CATEGORY.Application)
+    val apps = deskNMM.bootstrapContext.dns.search(MICRO_MODULE_CATEGORY.Application)
     val runApps = apps.map { metaData ->
       return@map DeskAppMetaData().apply {
         running = runningApps.containsKey(metaData.mmid)
@@ -110,7 +109,7 @@ class DesktopController(
 
   fun createMainDwebView(name: String, initUrl: String = "") = mainDwebViews.getOrPut(name) {
     val webView = DWebViewEngine(
-      activity ?: App.appContext, desktopNMM, DWebViewOptions(
+      activity ?: deskNMM.getAppContext(), deskNMM, DWebViewOptions(
         url = initUrl,
         onDetachedFromWindowStrategy = DWebViewOptions.DetachedFromWindowStrategy.Ignore,
       )

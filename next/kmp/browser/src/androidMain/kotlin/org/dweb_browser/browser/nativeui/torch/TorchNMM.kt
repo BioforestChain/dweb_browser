@@ -1,12 +1,13 @@
 package org.dweb_browser.browser.nativeui.torch
 
 import io.ktor.http.HttpMethod
-import org.dweb_browser.microservice.core.AndroidNativeMicroModule
+import org.dweb_browser.core.getAppContext
 import org.dweb_browser.microservice.core.BootstrapContext
+import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.http.bind
 
-class TorchNMM : AndroidNativeMicroModule("torch.nativeui.browser.dweb", "torch") {
+class TorchNMM : NativeMicroModule("torch.nativeui.browser.dweb", "torch") {
 
   init {
     categories =

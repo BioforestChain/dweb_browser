@@ -1,14 +1,14 @@
 package info.bagen.dwebbrowser.microService.sys.biometrics
 
 import android.content.Intent
-import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.sys.biometrics.BiometricsActivity.Companion.biometrics_promise_out
 import info.bagen.dwebbrowser.microService.sys.biometrics.BiometricsController.Companion.biometricsController
 import io.ktor.http.HttpMethod
+import org.dweb_browser.core.getAppContext
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.toJsonElement
-import org.dweb_browser.microservice.core.AndroidNativeMicroModule
 import org.dweb_browser.microservice.core.BootstrapContext
+import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.http.bind
@@ -16,7 +16,7 @@ import org.dweb_browser.microservice.http.bind
 fun debugBiometrics(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("biometrics", tag, msg, err)
 
-class BiometricsNMM : AndroidNativeMicroModule("biometrics.sys.dweb", "biometrics") {
+class BiometricsNMM : NativeMicroModule("biometrics.sys.dweb", "biometrics") {
 
   init {
     categories =
@@ -59,7 +59,6 @@ class BiometricsNMM : AndroidNativeMicroModule("biometrics.sys.dweb", "biometric
   fun openActivity(remoteMMID: MMID) {
     val context = getAppContext()
     val intent = Intent(context, BiometricsActivity::class.java)
-    intent.`package` = App.appContext.packageName
     intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     context.startActivity(intent)
@@ -68,7 +67,6 @@ class BiometricsNMM : AndroidNativeMicroModule("biometrics.sys.dweb", "biometric
   private fun openActivity(remoteMMID: MMID, data: BiometricsData) {
     val context = getAppContext()
     val intent = Intent(context, BiometricsActivity::class.java)
-    intent.`package` = App.appContext.packageName
     intent.putExtra("data", data)
     intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

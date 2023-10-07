@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
-import org.dweb_browser.microservice.core.BaseThemeActivity
+import org.dweb_browser.core.BaseThemeActivity
 import org.dweb_browser.helper.compose.theme.DwebBrowserAppTheme
 import org.dweb_browser.window.core.WindowBounds
 
@@ -22,11 +22,11 @@ fun WindowBounds.toModifier(
 
 class DesktopActivity : BaseThemeActivity() {
   private var desktopController: DesktopController? = null
-  private fun bindController(sessionId: String?): DesktopNMM.Companion.DeskControllers {
+  private fun bindController(sessionId: String?): DeskNMM.Companion.DeskControllers {
     /// 解除上一个 controller的activity绑定
     desktopController?.activity = null
 
-    return DesktopNMM.controllersMap[sessionId]?.also { controllers ->
+    return DeskNMM.controllersMap[sessionId]?.also { controllers ->
       controllers.desktopController.activity = this
       this.desktopController = controllers.desktopController
       controllers.activityPo.resolve(this)

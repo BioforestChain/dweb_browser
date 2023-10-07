@@ -11,7 +11,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowCompat
 import info.bagen.dwebbrowser.R
-import org.dweb_browser.microservice.core.BaseThemeActivity
+import org.dweb_browser.core.BaseThemeActivity
 import org.dweb_browser.helper.android.ActivityBlurHelper
 import org.dweb_browser.helper.compose.theme.DwebBrowserAppTheme
 import org.dweb_browser.helper.runBlockingCatching
@@ -21,11 +21,11 @@ class TaskbarActivity : BaseThemeActivity() {
   private val blurHelper = ActivityBlurHelper(this)
 
   private var controller: TaskbarController? = null
-  private fun bindController(sessionId: String?): DesktopNMM.Companion.DeskControllers {
+  private fun bindController(sessionId: String?): DeskNMM.Companion.DeskControllers {
     /// 解除上一个 controller的activity绑定
     controller?.activity = null
 
-    return DesktopNMM.controllersMap[sessionId]?.also { controllers ->
+    return DeskNMM.controllersMap[sessionId]?.also { controllers ->
       controllers.taskbarController.activity = this
       controller = controllers.taskbarController
     } ?: throw Exception("no found controller by sessionId: $sessionId")

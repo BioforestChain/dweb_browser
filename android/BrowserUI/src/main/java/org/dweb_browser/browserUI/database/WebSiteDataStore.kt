@@ -20,7 +20,8 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
 import androidx.room.Update
-import org.dweb_browser.browserUI.util.BrowserUIApp
+import org.dweb_browser.core.getAppContext
+import org.dweb_browser.microservice.core.NativeMicroModule
 import java.io.ByteArrayOutputStream
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -157,7 +158,7 @@ abstract class WebSiteDatabase : RoomDatabase() {
   companion object {
     val INSTANCE by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
       Room.databaseBuilder(
-        BrowserUIApp.Instance.appContext,
+        NativeMicroModule.getAppContext(),
         WebSiteDatabase::class.java,
         WebSiteFileName
       ).build()

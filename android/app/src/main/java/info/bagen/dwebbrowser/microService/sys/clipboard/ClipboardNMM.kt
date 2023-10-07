@@ -9,6 +9,7 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.dweb_browser.core.getAppContext
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
@@ -31,8 +32,7 @@ class ClipboardNMM : NativeMicroModule("clipboard.sys.dweb", "clipboard") {
   }
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    routes(
-      /** 读取剪切板*/
+    routes(/** 读取剪切板*/
       "/read" bind HttpMethod.Get to definePureResponse {
         val read = read()
         debugClipboard("/read", read)
@@ -57,8 +57,7 @@ class ClipboardNMM : NativeMicroModule("clipboard.sys.dweb", "clipboard") {
           PureResponse(HttpStatusCode.OK, body = PureStringBody(it))
         }
         true
-      }
-    )
+      })
   }
 
   fun write(
@@ -90,7 +89,7 @@ class ClipboardNMM : NativeMicroModule("clipboard.sys.dweb", "clipboard") {
   }
 
   private val mClipboard =
-    App.appContext.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+    getAppContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
 
   /**
    *label – 剪辑数据的用户可见标签。

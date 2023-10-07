@@ -3,10 +3,10 @@ package info.bagen.dwebbrowser.microService.browser.desk
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
-import info.bagen.dwebbrowser.App
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.launch
+import org.dweb_browser.core.startAppActivity
 import org.dweb_browser.helper.ChangeState
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.PromiseOut
@@ -34,7 +34,7 @@ import org.dweb_browser.microservice.std.http.createHttpDwebServer
 fun debugDesk(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("desk", tag, msg, err)
 
-class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
+class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
   init {
     categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Desktop);
   }
@@ -229,7 +229,7 @@ class DesktopNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
 
   private fun startActivity(deskSessionId: String) {
     /// 启动对应的Activity视图，如果在后端也需要唤醒到最前面，所以需要在AndroidManifest.xml 配置 launchMode 为 singleTask
-    App.startActivity(DesktopActivity::class.java) { intent ->
+    startAppActivity(DesktopActivity::class.java) { intent ->
       intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
       intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
       // 不可以添加 Intent.FLAG_ACTIVITY_NEW_DOCUMENT ，否则 TaskbarActivity 就没发和 DesktopActivity 混合渲染、点击穿透

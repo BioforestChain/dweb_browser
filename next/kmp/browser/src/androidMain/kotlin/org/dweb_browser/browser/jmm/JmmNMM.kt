@@ -7,6 +7,7 @@ import io.ktor.http.URLBuilder
 import io.ktor.http.Url
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import org.dweb_browser.core.getAppContext
 import org.dweb_browser.helper.APP_DIR_TYPE
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.Debugger
@@ -16,9 +17,9 @@ import org.dweb_browser.helper.consumeEachJsonLine
 import org.dweb_browser.helper.isGreaterThan
 import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.helper.toJsonElement
-import org.dweb_browser.microservice.core.AndroidNativeMicroModule
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.DwebResult
+import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.types.IMicroModuleManifest
 import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
@@ -45,7 +46,7 @@ import java.io.File
 val debugJMM = Debugger("JMM")
 
 class JmmNMM(val context: Context) :
-  AndroidNativeMicroModule("jmm.browser.dweb", "Js MicroModule Management") {
+  NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management") {
   init {
     short_name = "JMM";
     dweb_deeplinks = listOf("dweb://install")
@@ -71,7 +72,7 @@ class JmmNMM(val context: Context) :
     }
   }
 
-  private var jmmController: org.dweb_browser.browser.jmm.JmmController? = null
+  private var jmmController: JmmController? = null
   private val downloadingApp = ChangeableMap<MMID, JmmDownloadInfo>() // 正在下载的列表
 
   fun getApps(mmid: MMID): IMicroModuleManifest? {
@@ -124,8 +125,7 @@ class JmmNMM(val context: Context) :
       //检查是否有新版本
       "/check" bind HttpMethod.Get to defineJsonResponse {
         val metadataUrl = getMetadataUrl(ipc.remote.mmid) ?: return@defineJsonResponse DwebResult(
-          false,
-          "No Found"
+          false, "No Found"
         ).toJsonElement()
         val response = nativeFetch(metadataUrl)
         debugJMM("check-> ${ipc.remote.mmid}", " $metadataUrl ${response.isOk()}")

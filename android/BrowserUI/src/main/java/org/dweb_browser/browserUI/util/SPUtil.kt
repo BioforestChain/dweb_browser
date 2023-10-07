@@ -10,6 +10,7 @@ const val KEY_MEDIA_IS_LOADED = "media.is.loaded" // 判断media数据是否已�
 const val KEY_NO_TRACE = "browser.no.trace" // 无痕浏览
 const val KEY_LAST_SEARCH_KEY = "browser.last.keyword" // 最后一次使用引擎搜索的关键字
 
+/// TODO 这里统一使用 NativeMicroModule 替代 Context
 fun Context.saveString(key: String, value: String) {
   val sp = getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE)
   sp.edit { putString(key, value) }

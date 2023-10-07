@@ -9,6 +9,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.dweb_browser.core.getAppContext
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.helper.PromiseOut
@@ -17,8 +18,8 @@ import org.dweb_browser.helper.encodeURI
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.helper.runBlockingCatching
-import org.dweb_browser.microservice.core.AndroidNativeMicroModule
 import org.dweb_browser.microservice.core.BootstrapContext
+import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.http.PureRequest
@@ -36,7 +37,7 @@ import org.dweb_browser.microservice.std.http.createHttpDwebServer
 fun debugJsProcess(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("js-process", tag, msg, err)
 
-class JsProcessNMM : AndroidNativeMicroModule("js.browser.dweb", "Js Process") {
+class JsProcessNMM : NativeMicroModule("js.browser.dweb", "Js Process") {
   init {
     categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Process_Service);
   }
@@ -178,12 +179,11 @@ class JsProcessNMM : AndroidNativeMicroModule("js.browser.dweb", "Js Process") {
     val apis = withContext(Dispatchers.Main) {
 
       val urlInfo = mainServer.startResult.urlInfo
-      JsProcessWebApi(
-        DWebViewEngine(
-          getAppContext(), this@JsProcessNMM, DWebViewOptions(
-            url = urlInfo.buildInternalUrl().build { resolvePath("/index.html") }.toString()
-          )
-        ).also { it.settings.safeBrowsingEnabled = false }).also { api ->
+      JsProcessWebApi(DWebViewEngine(
+        getAppContext(), this@JsProcessNMM, DWebViewOptions(
+          url = urlInfo.buildInternalUrl().build { resolvePath("/index.html") }.toString()
+        )
+      ).also { it.settings.safeBrowsingEnabled = false }).also { api ->
         api.dWebView.onReady { afterReadyPo.resolve(Unit) }
       }
     }

@@ -1,4 +1,4 @@
-package org.dweb_browser.microservice.core
+package org.dweb_browser.core
 
 import android.os.Bundle
 import androidx.activity.compose.setContent

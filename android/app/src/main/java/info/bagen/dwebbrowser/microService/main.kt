@@ -2,10 +2,9 @@ package info.bagen.dwebbrowser.microService
 
 import android.webkit.WebView
 import info.bagen.dwebbrowser.App
-import info.bagen.dwebbrowser.microService.browser.desk.DesktopNMM
+import info.bagen.dwebbrowser.microService.browser.desk.DeskNMM
 import org.dweb_browser.browser.jsProcess.JsProcessNMM
 import org.dweb_browser.browser.mwebview.MultiWebViewNMM
-import org.dweb_browser.browser.nativeui.NativeUiNMM
 import org.dweb_browser.browser.nativeui.torch.TorchNMM
 import info.bagen.dwebbrowser.microService.sys.biometrics.BiometricsNMM
 import info.bagen.dwebbrowser.microService.sys.clipboard.ClipboardNMM
@@ -160,7 +159,7 @@ suspend fun startDwebBrowser(): DnsNMM {
 
   /// 安装Jmm
   val jmmNMM = JmmNMM(App.appContext).also { dnsNMM.install(it) }
-  val desktopNMM = DesktopNMM().also { dnsNMM.install(it) }
+  val deskNMM = DeskNMM().also { dnsNMM.install(it) }
   val windowNMM = WindowNMM().also { dnsNMM.install(it) }
 
   /**
@@ -171,7 +170,7 @@ suspend fun startDwebBrowser(): DnsNMM {
    * cotJMM.mmid,
    * toyJMM.mmid,
    */
-  val bootMmidList = listOf(desktopNMM.mmid)
+  val bootMmidList = listOf(deskNMM.mmid)
 
   /// 启动程序
   val bootNMM = BootNMM(

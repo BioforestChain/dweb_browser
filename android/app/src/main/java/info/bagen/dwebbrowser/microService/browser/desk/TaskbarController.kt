@@ -15,7 +15,7 @@ import org.dweb_browser.microservice.std.http.HttpDwebServer
 
 class TaskbarController(
   val deskSessionId: String,
-  val desktopNMM: DesktopNMM,
+  val deskNMM: DeskNMM,
   private val desktopController: DesktopController,
   private val taskbarServer: HttpDwebServer,
   private val runningApps: ChangeableMap<MMID, Ipc>
@@ -58,10 +58,10 @@ class TaskbarController(
       if (apps.size >= limit) {
         break
       }
-      if (appId == desktopNMM.mmid || apps.containsKey(appId)) {
+      if (appId == deskNMM.mmid || apps.containsKey(appId)) {
         continue
       }
-      val metaData = desktopNMM.bootstrapContext.dns.query(appId)
+      val metaData = deskNMM.bootstrapContext.dns.query(appId)
       if (metaData != null) {
         apps[appId] = DeskAppMetaData().apply {
           running = runningApps.contains(appId)

@@ -38,7 +38,7 @@ class DeviceNMM : NativeMicroModule("device.sys.dweb", "Device Info") {
           App.appContext.saveString(UUID_KEY, uuid)
         }
         debugDevice("getUUID", uuid)
-        return@defineJsonResponse UUIDResponse(uuid).toJsonElement()
+        UUIDResponse(uuid).toJsonElement()
       },
       /** 获取手机基本信息*/
       "/info" bind HttpMethod.Get to definePureResponse {
@@ -69,14 +69,13 @@ class DeviceNMM : NativeMicroModule("device.sys.dweb", "Device Info") {
       "/module" bind HttpMethod.Get to definePureResponse {
         PureResponse(HttpStatusCode.OK, body = PureStringBody(deviceInfo.deviceData.module))
       },
-
-      )
+    )
   }
 
   @Serializable
   data class UUIDResponse(val uuid: String)
 
   override suspend fun _shutdown() {
-    TODO("Not yet implemented")
+
   }
 }

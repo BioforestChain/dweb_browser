@@ -29,9 +29,11 @@ import org.dweb_browser.helper.compose.LocalCommonUrl
 import org.dweb_browser.browserUI.util.KEY_ENABLE_AGREEMENT
 import org.dweb_browser.browserUI.util.getBoolean
 import org.dweb_browser.browserUI.util.saveBoolean
+import org.dweb_browser.core.interceptStartAppActivity
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.compose.theme.DwebBrowserAppTheme
 import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.microservice.core.NativeMicroModule
 import kotlin.system.exitProcess
 
 @SuppressLint("CustomSplashScreen")
@@ -48,7 +50,7 @@ class SplashActivity : AppCompatActivity() {
 
     WindowCompat.setDecorFitsSystemWindows(window, false) // 全屏
 
-    val grant = PromiseOut<Boolean>().also { App.grant = it }
+    val grant = PromiseOut<Boolean>().also { NativeMicroModule.interceptStartAppActivity( it) }
 
     setContent {
       val scope = rememberCoroutineScope()

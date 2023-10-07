@@ -9,11 +9,12 @@ import io.ktor.http.content.PartData
 import io.ktor.http.content.forEachPart
 import io.ktor.http.content.streamProvider
 import kotlinx.serialization.Serializable
+import org.dweb_browser.core.getAppContext
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.toJsonElement
-import org.dweb_browser.microservice.core.AndroidNativeMicroModule
 import org.dweb_browser.microservice.core.BootstrapContext
+import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.http.bind
 import org.dweb_browser.microservice.http.receiveMultipart
@@ -27,7 +28,7 @@ data class ShareOptions(
 fun debugShare(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("Share", tag, msg, err)
 
-class ShareNMM : AndroidNativeMicroModule("share.sys.dweb", "share") {
+class ShareNMM : NativeMicroModule("share.sys.dweb", "share") {
 
   init {
     categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Protocol_Service);
@@ -48,7 +49,9 @@ class ShareNMM : AndroidNativeMicroModule("share.sys.dweb", "share") {
         val files = mutableListOf<String>()
         val result = PromiseOut<String>()
         val ext = ShareOptions(
-          title = request.queryOrNull("title"), text = request.queryOrNull("text"), url = request.queryOrNull("url")
+          title = request.queryOrNull("title"),
+          text = request.queryOrNull("text"),
+          url = request.queryOrNull("url")
         )
         val multiPartData = request.receiveMultipart()
         multiPartData.forEachPart { partData ->

@@ -56,7 +56,6 @@ import com.google.accompanist.web.WebView
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.browserUI.R
-import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.browserUI.ui.browser.bottomsheet.LocalModalBottomSheet
 import org.dweb_browser.browserUI.ui.browser.bottomsheet.ModalBottomModel
 import org.dweb_browser.browserUI.ui.browser.bottomsheet.SheetState
@@ -64,6 +63,7 @@ import org.dweb_browser.browserUI.ui.browser.search.SearchView
 import org.dweb_browser.browserUI.ui.entity.BrowserBaseView
 import org.dweb_browser.browserUI.ui.entity.BrowserWebView
 import org.dweb_browser.browserUI.ui.qrcode.QRCodeScanView
+import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.window.core.WindowRenderScope
 
 internal val dimenTextFieldFontSize = 16.sp
@@ -120,8 +120,7 @@ fun BrowserViewForWindow(
     }
 
     Box(
-      modifier = Modifier
-        .background(MaterialTheme.colorScheme.background)
+      modifier = Modifier.background(MaterialTheme.colorScheme.background)
       //.statusBarsPadding()
       //.navigationBarsPadding()
     ) {
@@ -143,8 +142,7 @@ fun BrowserViewForWindow(
         BrowserBottomSheet(viewModel)
 
         // 增加扫码的界面
-        QRCodeScanView(
-          qrCodeScanState = viewModel.uiState.qrCodeScanState,
+        QRCodeScanView(qrCodeScanState = viewModel.uiState.qrCodeScanState,
           onDataCallback = { data ->
             if (data.isUrlOrHost() || data.startsWith("dweb:")) {
               viewModel.handleIntent(BrowserIntent.SearchWebView(data))
@@ -165,8 +163,7 @@ private fun BrowserMaskView(viewModel: BrowserViewModel, onClick: () -> Unit) {
     Box(modifier = Modifier
       .fillMaxSize()
       .background(MaterialTheme.colorScheme.onSurface.copy(0.2f))
-      .clickableWithNoEffect { onClick() }
-    )
+      .clickableWithNoEffect { onClick() })
   }
 }
 
@@ -191,18 +188,15 @@ private fun BrowserViewContent(viewModel: BrowserViewModel) {
     viewModel.handleIntent(BrowserIntent.UpdateCurrentBaseView(pagerStateContent.currentPage))
   }
 
-  Box(
-    modifier = Modifier
-      .fillMaxSize()
-      .clickableWithNoEffect { localFocusManager.clearFocus() }
-  ) {
+  Box(modifier = Modifier
+    .fillMaxSize()
+    .clickableWithNoEffect { localFocusManager.clearFocus() }) {
     // 创建一个不可滑动的 HorizontalPager , 然后由底下的 Search 来控制滑动效果
     /*when (val item = viewModel.uiState.browserViewList[currentPage]) {
         is BrowserMainView -> BrowserViewContentMain(viewModel, item)
         is BrowserWebView -> BrowserViewContentWeb(viewModel, item)
       }*/
-    HorizontalPager(
-      modifier = Modifier,
+    HorizontalPager(modifier = Modifier,
       state = pagerStateContent,
       pageSpacing = 0.dp,
       userScrollEnabled = false,
@@ -211,13 +205,11 @@ private fun BrowserViewContent(viewModel: BrowserViewModel) {
       beyondBoundsPageCount = 5,
 
       pageContent = { currentPage ->
-        BrowserViewContentWeb(viewModel, viewModel.uiState.browserViewList[currentPage])
-        /*when (val item = viewModel.uiState.browserViewList[currentPage]) {
+        BrowserViewContentWeb(viewModel, viewModel.uiState.browserViewList[currentPage])/*when (val item = viewModel.uiState.browserViewList[currentPage]) {
           is BrowserMainView -> BrowserViewContentMain(viewModel, item)
           is BrowserWebView -> BrowserViewContentWeb(viewModel, item)
         }*/
-      }
-    )
+      })
   }
 }
 
@@ -286,8 +278,7 @@ private fun BrowserViewSearch(viewModel: BrowserViewModel) {
     }
   }
 
-  HorizontalPager(
-    modifier = Modifier,
+  HorizontalPager(modifier = Modifier,
     state = pagerStateNavigator,
     pageSpacing = 0.dp,
     userScrollEnabled = true,
@@ -296,8 +287,7 @@ private fun BrowserViewSearch(viewModel: BrowserViewModel) {
     beyondBoundsPageCount = 0,
     pageContent = { currentPage ->
       SearchBox(viewModel.uiState.browserViewList[currentPage])
-    }
-  )
+    })
 }
 
 @Composable
@@ -343,15 +333,13 @@ private fun BrowserViewNavigatorBar(viewModel: BrowserViewModel) {
     }
     NavigatorButton(
       imageVector = getMultiImageVector(viewModel.uiState.browserViewList.size), // resId = R.drawable.ic_main_multi,
-      resName = R.string.browser_nav_multi,
-      show = true
+      resName = R.string.browser_nav_multi, show = true
     ) {
       viewModel.handleIntent(BrowserIntent.UpdateMultiViewState(true))
     }
     NavigatorButton(
       imageVector = Icons.Rounded.Menu, // resId = R.drawable.ic_main_option,
-      resName = R.string.browser_nav_option,
-      show = true
+      resName = R.string.browser_nav_option, show = true
     ) {
       scope.launch {
         bottomSheetModel.show()
@@ -416,7 +404,9 @@ private fun SearchBox(baseView: BrowserBaseView) {
   var showSearchView by LocalShowSearchView.current
 
   Box(modifier = Modifier
-    .padding(horizontal = dimenSearchHorizontalAlign, vertical = dimenSearchVerticalAlign)
+    .padding(
+      horizontal = dimenSearchHorizontalAlign, vertical = dimenSearchVerticalAlign
+    )
     .fillMaxWidth()
     .shadow(
       elevation = dimenShadowElevation, shape = RoundedCornerShape(dimenSearchRoundedCornerShape)
@@ -435,20 +425,15 @@ private fun SearchBox(baseView: BrowserBaseView) {
 
       else -> mutableStateOf("")
     }
-    val search =
-      if (inputText.value.isEmpty() || inputText.value.isSystemUrl()) {
-        Triple(
-          stringResource(id = R.string.browser_search_hint),
-          TextAlign.Start,
-          Icons.Default.Search
-        )
-      } else {
-        Triple(
-          parseInputText(inputText.value),
-          TextAlign.Center,
-          Icons.Default.FormatSize
-        )
-      }
+    val search = if (inputText.value.isEmpty() || inputText.value.isSystemUrl()) {
+      Triple(
+        stringResource(id = R.string.browser_search_hint), TextAlign.Start, Icons.Default.Search
+      )
+    } else {
+      Triple(
+        parseInputText(inputText.value), TextAlign.Center, Icons.Default.FormatSize
+      )
+    }
     Row(
       modifier = Modifier
         .fillMaxWidth()
@@ -502,29 +487,24 @@ fun BrowserSearchView(viewModel: BrowserViewModel) {
     val inputText = viewModel.dwebLinkSearch.value.ifEmpty {
       viewModel.uiState.currentBrowserBaseView.value?.viewItem?.state?.lastLoadedUrl ?: ""
     }
-    val text = if (inputText.isSystemUrl() ||
-      inputText == stringResource(id = R.string.browser_search_hint)
-    ) {
-      ""
-    } else {
-      inputText
-    }
+    val text =
+      if (inputText.isSystemUrl() || inputText == stringResource(id = R.string.browser_search_hint)) {
+        ""
+      } else {
+        inputText
+      }
 
     val inputTextState = LocalInputText.current
 
-    SearchView(
-      text = text,
-      homePreview = { onMove ->
-        HomeWebviewPage(viewModel, onMove)
-      },
-      onClose = {
-        showSearchView = false
-      },
-      onSearch = { url -> // 第一个是搜索关键字，第二个是搜索地址
-        showSearchView = false
-        BrowserViewModelHelper.saveLastKeyword(inputTextState, url)
-        viewModel.handleIntent(BrowserIntent.SearchWebView(url))
-      })
+    SearchView(text = text, homePreview = { onMove ->
+      HomeWebviewPage(viewModel, onMove)
+    }, onClose = {
+      showSearchView = false
+    }, onSearch = { url -> // 第一个是搜索关键字，第二个是搜索地址
+      showSearchView = false
+      BrowserViewModelHelper.saveLastKeyword(inputTextState, url)
+      viewModel.handleIntent(BrowserIntent.SearchWebView(url))
+    })
   }
 }
 
@@ -535,8 +515,7 @@ internal fun HomeWebviewPage(viewModel: BrowserViewModel, onClickOrMove: (Boolea
   val background = MaterialTheme.colorScheme.background
   val isDark = isSystemInDarkTheme()
   var isRemove = false
-  WebView(
-    state = webView.viewItem.state,
+  WebView(state = webView.viewItem.state,
     modifier = Modifier
       .fillMaxSize()
       .background(background),
@@ -555,6 +534,5 @@ internal fun HomeWebviewPage(viewModel: BrowserViewModel, onClickOrMove: (Boolea
     factory = {
       webView.viewItem.webView.parent?.let { (it as ViewGroup).removeAllViews() }
       webView.viewItem.webView
-    }
-  )
+    })
 }

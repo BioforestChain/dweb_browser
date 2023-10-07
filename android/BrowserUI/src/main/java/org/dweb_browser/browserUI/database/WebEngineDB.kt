@@ -1,26 +1,9 @@
 package org.dweb_browser.browserUI.database
 
-import android.content.Context
 import android.net.Uri
 import androidx.annotation.DrawableRes
-import androidx.datastore.core.DataStore
-import androidx.datastore.core.IOException
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.emptyPreferences
-import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import org.dweb_browser.browserUI.R
-import org.dweb_browser.browserUI.util.BrowserUIApp
-import org.dweb_browser.helper.JsonLoose
-import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.helper.now
 
 /**
  * 该文件主要定义搜索引擎和引擎默认值，以及配置存储
@@ -75,9 +58,7 @@ val DefaultAllWebEngine: List<WebEngine>
     WebEngine(name = "百度", host = "m.baidu.com", format = "https://m.baidu.com/s?word=%s"),
     WebEngine(name = "百度", host = "www.baidu.com", format = "https://www.baidu.com/s?wd=%s"),
     WebEngine(
-      name = "谷歌",
-      host = "www.google.com",
-      format = "https://www.google.com/search?q=%s"
+      name = "谷歌", host = "www.google.com", format = "https://www.google.com/search?q=%s"
     ),
     WebEngine(
       name = "搜狗",
@@ -88,51 +69,6 @@ val DefaultAllWebEngine: List<WebEngine>
     WebEngine(name = "360搜索", host = "m.so.com", format = "https://m.so.com/s?q=%s"),
     WebEngine(name = "360搜索", host = "www.so.com", format = "https://www.so.com/s?q=%s"),
     WebEngine(
-      name = "雅虎",
-      host = "search.yahoo.com",
-      format = "https://search.yahoo.com/search?p=%s"
+      name = "雅虎", host = "search.yahoo.com", format = "https://search.yahoo.com/search?p=%s"
     )
   )
-
-object WebEngineDB {
-  private const val PREFERENCE_NAME_WebEngine = "WebEngine"
-  private val Context.dataStoreWebEngine: DataStore<Preferences> by preferencesDataStore(name = PREFERENCE_NAME_WebEngine)
-
-  suspend fun queryBookWebsiteInfoList(): Flow<MutableList<WebEngine>> {
-    return BrowserUIApp.Instance.appContext.dataStoreWebEngine.data.catch { e ->  // Flow 中发生异常可使用这种方式捕获，catch 块是可选的
-      if (e is IOException) {
-        e.printStackTrace()
-        emit(emptyPreferences())
-      } else {
-        throw e
-      }
-    }.map { pref ->
-      val list = mutableListOf<WebEngine>()
-      pref.asMap().forEach { (_, value) ->
-        val webSiteInfo = JsonLoose.decodeFromString<WebEngine>(value as String)
-        list.add(webSiteInfo)
-      }
-      list
-    }
-  }
-
-  fun saveBookWebsiteInfo(webEngine: WebEngine) = runBlocking(ioAsyncExceptionHandler) {
-    // edit 函数需要在挂起环境中执行
-    BrowserUIApp.Instance.appContext.dataStoreWebEngine.edit { pref ->
-      val timeMillis = webEngine.timeMillis.takeIf { it.isNotEmpty() } ?: now()
-      pref[stringPreferencesKey(timeMillis)] = JsonLoose.encodeToString(webEngine)
-    }
-  }
-
-  fun deleteBookWebsiteInfo(webEngine: WebEngine) = runBlocking(ioAsyncExceptionHandler) {
-    BrowserUIApp.Instance.appContext.dataStoreWebEngine.edit { pref ->
-      pref.remove(stringPreferencesKey(webEngine.timeMillis))
-    }
-  }
-
-  fun clearBookWebsiteInfo() = runBlocking(ioAsyncExceptionHandler) {
-    BrowserUIApp.Instance.appContext.dataStoreWebEngine.edit { pref ->
-      pref.clear()
-    }
-  }
-}

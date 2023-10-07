@@ -33,24 +33,23 @@ import org.dweb_browser.browserUI.database.WebSiteType
 import org.dweb_browser.browserUI.microService.browser.web.BrowserController
 import org.dweb_browser.browserUI.ui.entity.BrowserWebView
 import org.dweb_browser.browserUI.ui.qrcode.QRCodeScanState
-import org.dweb_browser.browserUI.util.BrowserUIApp
 import org.dweb_browser.browserUI.util.KEY_LAST_SEARCH_KEY
 import org.dweb_browser.browserUI.util.KEY_NO_TRACE
 import org.dweb_browser.browserUI.util.getBoolean
 import org.dweb_browser.browserUI.util.saveBoolean
 import org.dweb_browser.browserUI.util.saveString
-import org.dweb_browser.dwebview.DWebView
-import org.dweb_browser.dwebview.engine.DWebViewEngine
+import org.dweb_browser.core.getAppContext
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.base.DWebViewItem
 import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
+import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.helper.build
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.helper.runBlockingCatching
-import org.dweb_browser.microservice.core.MicroModule
+import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.std.dns.nativeFetch
 import org.dweb_browser.microservice.std.http.HttpDwebServer
@@ -116,7 +115,7 @@ sealed class BrowserIntent {
 @OptIn(ExperimentalFoundationApi::class)
 class BrowserViewModel(
   private val browserController: BrowserController,
-  private val browserNMM: MicroModule,
+  private val browserNMM: NativeMicroModule,
   private val browserServer: HttpDwebServer,
   val onOpenDweb: (MMID) -> Unit
 ) : ViewModel() {
@@ -338,7 +337,7 @@ class BrowserViewModel(
   }
 
   private fun createDwebViewEngine(url: String = "") = DWebViewEngine(
-    BrowserUIApp.Instance.appContext, browserNMM, DWebViewOptions(
+    browserNMM.getAppContext(), browserNMM, DWebViewOptions(
       url = url,
       /// 我们会完全控制页面将如何离开，所以这里兜底默认为留在页面
       onDetachedFromWindowStrategy = DWebViewOptions.DetachedFromWindowStrategy.Ignore,
@@ -406,10 +405,10 @@ class BrowserViewModel(
     return Pair(viewItem, closeWatcherController)
   }
 
-  val isNoTrace = mutableStateOf(BrowserUIApp.Instance.appContext.getBoolean(KEY_NO_TRACE, false))
+  val isNoTrace = mutableStateOf(browserNMM.getAppContext().getBoolean(KEY_NO_TRACE, false))
   fun saveBrowserMode(noTrace: Boolean) {
     isNoTrace.value = noTrace
-    BrowserUIApp.Instance.appContext.saveBoolean(KEY_NO_TRACE, noTrace)
+    browserNMM.getAppContext().saveBoolean(KEY_NO_TRACE, noTrace)
   }
 
   /**
@@ -427,7 +426,7 @@ class BrowserViewModel(
 class BrowserViewModelHelper {
   companion object {
     fun saveLastKeyword(inputText: MutableState<String>, url: String) {
-      BrowserUIApp.Instance.appContext.saveString(KEY_LAST_SEARCH_KEY, url)
+      NativeMicroModule.getAppContext().saveString(KEY_LAST_SEARCH_KEY, url)
       inputText.value = url
     }
   }

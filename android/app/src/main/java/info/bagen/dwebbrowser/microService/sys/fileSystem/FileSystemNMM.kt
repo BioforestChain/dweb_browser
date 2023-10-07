@@ -1,10 +1,10 @@
 package info.bagen.dwebbrowser.microService.sys.fileSystem
 
-import info.bagen.dwebbrowser.App
 import io.ktor.http.HttpMethod
 import io.ktor.http.content.PartData
 import io.ktor.http.content.forEachPart
 import io.ktor.http.content.streamProvider
+import org.dweb_browser.core.startAppActivity
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.microservice.core.BootstrapContext
@@ -68,11 +68,12 @@ class FileSystemNMM : NativeMicroModule("file.sys.dweb", "file") {
                     )
                   }
                 }
+
                 else -> {}
               }
               partData.dispose()
             }
-            return@defineJsonResponse DwebResult(success,"Saved successfully！").toJsonElement()
+            return@defineJsonResponse DwebResult(success, "Saved successfully！").toJsonElement()
           } else {
             return@defineJsonResponse DwebResult(false, "User denied permission！").toJsonElement()
           }
@@ -85,13 +86,12 @@ class FileSystemNMM : NativeMicroModule("file.sys.dweb", "file") {
   }
 
 
-
   override suspend fun _shutdown() {
     TODO("Not yet implemented")
   }
 
   private suspend fun requestPermissions(): Boolean {
-    App.startActivity(FileSystemActivity::class.java) {
+    startAppActivity(FileSystemActivity::class.java) {
       // 有啥参数？好像没有
     }
     return FileSystemController.controller.waitPermissionGrants()
