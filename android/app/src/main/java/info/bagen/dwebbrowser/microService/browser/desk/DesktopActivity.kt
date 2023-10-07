@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
-import info.bagen.dwebbrowser.base.BaseThemeActivity
+import org.dweb_browser.microservice.core.BaseThemeActivity
 import org.dweb_browser.helper.compose.theme.DwebBrowserAppTheme
 import org.dweb_browser.window.core.WindowBounds
 

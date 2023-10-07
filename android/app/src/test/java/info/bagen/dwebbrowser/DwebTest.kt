@@ -12,11 +12,11 @@ import org.dweb_browser.microservice.help.text
 import org.dweb_browser.microservice.ipc.helper.IpcHeaders
 import org.dweb_browser.microservice.ipc.helper.IpcResponse
 import org.dweb_browser.microservice.sys.boot.BootNMM
-import org.dweb_browser.microservice.sys.dns.DnsNMM
-import org.dweb_browser.microservice.sys.dns.nativeFetch
-import org.dweb_browser.microservice.sys.http.DwebHttpServerOptions
-import org.dweb_browser.microservice.sys.http.HttpNMM
-import org.dweb_browser.microservice.sys.http.createHttpDwebServer
+import org.dweb_browser.microservice.std.dns.DnsNMM
+import org.dweb_browser.microservice.std.dns.nativeFetch
+import org.dweb_browser.microservice.std.http.DwebHttpServerOptions
+import org.dweb_browser.microservice.std.http.HttpNMM
+import org.dweb_browser.microservice.std.http.createHttpDwebServer
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 

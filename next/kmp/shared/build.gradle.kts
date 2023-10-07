@@ -42,6 +42,7 @@ kotlin {
         implementation(project(":helperCompose"))
         implementation(project(":helperPlatform"))
         implementation(project(":window"))
+        implementation(project(":browser"))
       }
     }
     val commonTest by getting {

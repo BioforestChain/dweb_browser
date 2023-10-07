@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.microservice.help.types.MMID
-import org.dweb_browser.microservice.sys.download.DownloadStatus
+import org.dweb_browser.microservice.sys.download.JmmDownloadStatus
 import java.math.RoundingMode
 import java.text.DecimalFormat
 /*
@@ -39,7 +39,7 @@ data class DownLoadInfo(
 
 data class DownLoadObserverListener(
   val mmid: MMID,
-  val downLoadStatus: DownloadStatus,
+  val downLoadStatus: JmmDownloadStatus,
   val downLoadSize: Long = 0L,
   val totalSize: Long = 1L,
   val progress: String = if (totalSize == 0L) "0" else (1.0f * downLoadSize / totalSize).moreThanTwoDigits()
@@ -50,7 +50,7 @@ class DownLoadObserver(private val mmid: MMID) {
     private val downloadMap = mutableMapOf<MMID, MutableList<DownLoadObserver>>()
 
     fun emit(
-      mmid: MMID, status: DownloadStatus, downLoadSize: Long = 0L, totalSize: Long = 1L
+      mmid: MMID, status: JmmDownloadStatus, downLoadSize: Long = 0L, totalSize: Long = 1L
     ) {
       runBlockingCatching(ioAsyncExceptionHandler) {
         val listener = DownLoadObserverListener(mmid, status, downLoadSize, totalSize)
@@ -68,7 +68,7 @@ class DownLoadObserver(private val mmid: MMID) {
 
   init {
     downloadMap.getOrPut(mmid) { mutableListOf() }.add(this)
-    state = MutableStateFlow(DownLoadObserverListener(mmid, DownloadStatus.IDLE))
+    state = MutableStateFlow(DownLoadObserverListener(mmid, JmmDownloadStatus.IDLE))
     flow = state.asSharedFlow()
   }
 

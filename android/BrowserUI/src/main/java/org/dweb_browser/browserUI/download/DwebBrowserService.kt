@@ -19,22 +19,22 @@ import org.dweb_browser.helper.ZipUtil
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.microservice.help.types.MMID
-import org.dweb_browser.microservice.sys.download.DownloadInfo
-import org.dweb_browser.microservice.sys.download.DownloadStatus
+import org.dweb_browser.microservice.sys.download.JmmDownloadInfo
+import org.dweb_browser.microservice.sys.download.JmmDownloadStatus
 import org.dweb_browser.microservice.sys.download.db.DownloadDBStore
 import java.io.File
 
 internal interface IDwebBrowserBinder {
-  suspend fun invokeDownloadAndSaveZip(downLoadInfo: DownloadInfo)
+  suspend fun invokeDownloadAndSaveZip(downLoadInfo: JmmDownloadInfo)
   suspend fun invokeDownloadStatusChange(mmid: MMID)
   suspend fun invokeUpdateDownloadStatus(mmid: MMID, controller: DownloadController)
-  fun invokeFindDownLoadInfo(mmid: MMID): DownloadInfo?
+  fun invokeFindDownLoadInfo(mmid: MMID): JmmDownloadInfo?
 }
 
 enum class DownloadController { PAUSE, RESUME, CANCEL }
 
 class DwebBrowserService : Service() {
-  private val downloadMap = mutableMapOf<MMID, DownloadInfo>() // 用于监听下载列表
+  private val downloadMap = mutableMapOf<MMID, JmmDownloadInfo>() // 用于监听下载列表
   private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler // 用于全局的协程调用
 
   override fun onBind(intent: Intent?): IBinder {
@@ -44,7 +44,7 @@ class DwebBrowserService : Service() {
   //服务中的Binder对象，实现自定义接口IMyBinder，决定暴露那些方法给绑定该服务的Activity
   inner class DwebBrowserBinder : Binder(), IDwebBrowserBinder {
     //注意实现接口的方式
-    override suspend fun invokeDownloadAndSaveZip(downLoadInfo: DownloadInfo) {
+    override suspend fun invokeDownloadAndSaveZip(downLoadInfo: JmmDownloadInfo) {
       downloadAndSaveZip(downLoadInfo)//暴露给Activity的方法
     }
 
@@ -66,7 +66,7 @@ class DwebBrowserService : Service() {
     ioAsyncScope.cancel()
   }
 
-  fun downloadAndSaveZip(downLoadInfo: DownloadInfo): Boolean {
+  fun downloadAndSaveZip(downLoadInfo: JmmDownloadInfo): Boolean {
     // 1. 根据path进行下载，并且创建notification
     if (downloadMap.containsKey(downLoadInfo.id)) {
       ioAsyncScope.launch(mainAsyncExceptionHandler) {
@@ -78,7 +78,7 @@ class DwebBrowserService : Service() {
     NotificationUtil.INSTANCE.createNotificationForProgress(
       downLoadInfo.id, downLoadInfo.notificationId, downLoadInfo.name
     ) // 显示通知
-    DownLoadObserver.emit(downLoadInfo.id, DownloadStatus.DownLoading) // 同步更新所有注册
+    DownLoadObserver.emit(downLoadInfo.id, JmmDownloadStatus.DownLoading) // 同步更新所有注册
     ioAsyncScope.launch {
       try {
         ApiService.instance.downloadAndSave(
@@ -87,14 +87,14 @@ class DwebBrowserService : Service() {
           downLoadInfo.metaData.bundle_size,
           isStop = {
             when (downLoadInfo.downloadStatus) {
-              DownloadStatus.PAUSE -> {
+              JmmDownloadStatus.PAUSE -> {
                 DownLoadObserver.emit(downLoadInfo.id, downLoadInfo.downloadStatus)
                 true
               }
 
-              DownloadStatus.CANCEL -> {
+              JmmDownloadStatus.CANCEL -> {
                 DownLoadObserver.emit(downLoadInfo.id, downLoadInfo.downloadStatus)
-                downLoadInfo.downloadStatus = DownloadStatus.IDLE // 如果取消的话，那么就置为空
+                downLoadInfo.downloadStatus = JmmDownloadStatus.IDLE // 如果取消的话，那么就置为空
                 true
               }
 
@@ -113,21 +113,21 @@ class DwebBrowserService : Service() {
     return true
   }
 
-  private suspend fun breakPointDownLoadAndSave(downLoadInfo: DownloadInfo) {
+  private suspend fun breakPointDownLoadAndSave(downLoadInfo: JmmDownloadInfo) {
     ioAsyncScope.launch {
       try {
         ApiService.instance.breakpointDownloadAndSave(
           url = downLoadInfo.url, file = File(downLoadInfo.path), total = downLoadInfo.size,
           isStop = {
             when (downLoadInfo.downloadStatus) {
-              DownloadStatus.PAUSE -> {
+              JmmDownloadStatus.PAUSE -> {
                 DownLoadObserver.emit(downLoadInfo.id, downLoadInfo.downloadStatus)
                 true
               }
 
-              DownloadStatus.CANCEL -> {
+              JmmDownloadStatus.CANCEL -> {
                 DownLoadObserver.emit(downLoadInfo.id, downLoadInfo.downloadStatus)
-                downLoadInfo.downloadStatus = DownloadStatus.IDLE // 如果取消的话，那么就置为空
+                downLoadInfo.downloadStatus = JmmDownloadStatus.IDLE // 如果取消的话，那么就置为空
                 true
               }
 
@@ -145,24 +145,24 @@ class DwebBrowserService : Service() {
     }
   }
 
-  private suspend fun DownloadInfo.callDownLoadProgress(current: Long, total: Long) {
+  private suspend fun JmmDownloadInfo.callDownLoadProgress(current: Long, total: Long) {
     if (current < 0) { // 专门针对下载异常情况，直接返回-1和0
-      this.downloadStatus = DownloadStatus.FAIL
-      DownLoadObserver.emit(this.id, DownloadStatus.FAIL)
+      this.downloadStatus = JmmDownloadStatus.FAIL
+      DownLoadObserver.emit(this.id, JmmDownloadStatus.FAIL)
       downloadMap.remove(id) // 下载失败后也需要移除
       DownLoadObserver.close(id) // 同时移除当前mmid所有关联推送
       return
     }
-    this.downloadStatus = DownloadStatus.DownLoading
+    this.downloadStatus = JmmDownloadStatus.DownLoading
     this.size = total
     this.dSize = current
     NotificationUtil.INSTANCE.updateNotificationForProgress(
       (current * 1.0 / total * 100).toInt(), notificationId
     )
-    DownLoadObserver.emit(this.id, DownloadStatus.DownLoading, current, total)
+    DownLoadObserver.emit(this.id, JmmDownloadStatus.DownLoading, current, total)
 
     if (current == total) {
-      this.downloadStatus = DownloadStatus.DownLoadComplete
+      this.downloadStatus = JmmDownloadStatus.DownLoadComplete
       // TODO 这边需要做到跳转
       /*NotificationUtil.INSTANCE.updateNotificationForProgress(
         100, notificationId, "下载完成"
@@ -185,7 +185,7 @@ class DwebBrowserService : Service() {
         pendingIntent
       }*/
       NotificationUtil.INSTANCE.cancelNotification(notificationId) // 下载完成，隐藏通知栏
-      DownLoadObserver.emit(this.id, DownloadStatus.DownLoadComplete)
+      DownLoadObserver.emit(this.id, JmmDownloadStatus.DownLoadComplete)
       runBlocking { delay(1000) }
       val unzip = ZipUtil.ergodicDecompress(
         this.path, FilesUtil.getAppUnzipPath(this@DwebBrowserService), mmid = id
@@ -197,15 +197,15 @@ class DwebBrowserService : Service() {
   /**
    * 用于下载完成，安装的结果处理
    */
-  private suspend fun DownloadInfo.downloadInstalled(success: Boolean) {
+  private suspend fun JmmDownloadInfo.downloadInstalled(success: Boolean) {
     if (success) {
       DownloadDBStore.saveAppInfo(this@DwebBrowserService, id, metaData) // 保存的
       // 删除下面的方法，调用saveJmmMetadata时，会自动更新datastore，而datastore在jmmNMM中有执行了installApp
-      DownLoadObserver.emit(this.id, DownloadStatus.INSTALLED)
-      this.downloadStatus = DownloadStatus.INSTALLED
+      DownLoadObserver.emit(this.id, JmmDownloadStatus.INSTALLED)
+      this.downloadStatus = JmmDownloadStatus.INSTALLED
     } else {
-      DownLoadObserver.emit(this.id, DownloadStatus.FAIL)
-      this.downloadStatus = DownloadStatus.FAIL
+      DownLoadObserver.emit(this.id, JmmDownloadStatus.FAIL)
+      this.downloadStatus = JmmDownloadStatus.FAIL
     }
     downloadMap.remove(id) // 下载完成后需要移除
     DownLoadObserver.close(id) // 移除当前mmid所有关联推送
@@ -214,7 +214,7 @@ class DwebBrowserService : Service() {
   suspend fun downloadStatusChange(mmid: MMID) = downloadMap[mmid]?.apply {
     if (size == dSize) return@apply // 如果下载完成，就不执行操作
     when (this.downloadStatus) {
-      DownloadStatus.PAUSE -> updateDownloadStatus(mmid, DownloadController.RESUME)
+      JmmDownloadStatus.PAUSE -> updateDownloadStatus(mmid, DownloadController.RESUME)
       else -> updateDownloadStatus(mmid, DownloadController.PAUSE)
     }
   }
@@ -223,16 +223,16 @@ class DwebBrowserService : Service() {
     downloadMap[mmid]?.apply {
       if (size == dSize) return@apply
       when (controller) {
-        DownloadController.PAUSE -> if (this.downloadStatus == DownloadStatus.DownLoading) {
-          this.downloadStatus = DownloadStatus.PAUSE
+        DownloadController.PAUSE -> if (this.downloadStatus == JmmDownloadStatus.DownLoading) {
+          this.downloadStatus = JmmDownloadStatus.PAUSE
           NotificationUtil.INSTANCE.updateNotificationForProgress(
             (this.dSize * 1.0 / this.size * 100).toInt(), this.notificationId, "暂停"
           )
           DownLoadObserver.emit(this.id, downloadStatus, dSize, size)
         }
 
-        DownloadController.RESUME -> if (this.downloadStatus == DownloadStatus.PAUSE) {
-          this.downloadStatus = DownloadStatus.DownLoading
+        DownloadController.RESUME -> if (this.downloadStatus == JmmDownloadStatus.PAUSE) {
+          this.downloadStatus = JmmDownloadStatus.DownLoading
           NotificationUtil.INSTANCE.updateNotificationForProgress(
             (this.dSize * 1.0 / this.size * 100).toInt(), this.notificationId, "下载中"
           )
@@ -243,34 +243,12 @@ class DwebBrowserService : Service() {
           downloadAndSaveZip(this)
         }
 
-        DownloadController.CANCEL -> if (this.downloadStatus != DownloadStatus.CANCEL) {
-          this.downloadStatus = DownloadStatus.CANCEL
+        DownloadController.CANCEL -> if (this.downloadStatus != JmmDownloadStatus.CANCEL) {
+          this.downloadStatus = JmmDownloadStatus.CANCEL
           downloadMap.remove(this.id)
           NotificationUtil.INSTANCE.cancelNotification(this.notificationId)
           DownLoadObserver.emit(this.id, downloadStatus, dSize, size)
         }
       }
     }
-}
-
-/**
- * 比较版本的大小
- */
-fun String.isGreaterThan(compare: String): Boolean {
-  val thisSplit = this.split(".")
-  val compareSplit = compare.split(".")
-  val minLength = minOf(thisSplit.size, compareSplit.size)
-  try {
-    for (index in 0 until minLength) {
-      val source = thisSplit[index].toInt()
-      val target = compareSplit[index].toInt()
-      if (source == target) continue
-      return source > target // 除非一样，否则直接返回结果
-    }
-  } catch (e: Exception) {
-    Log.e("DwebBrowserService", "isGreaterThan issue -> $this, $compare")
-    return false
-  }
-  // 按照最小的长度判断，都相同时，则根据长度直接返回
-  return thisSplit.size > compareSplit.size
 }

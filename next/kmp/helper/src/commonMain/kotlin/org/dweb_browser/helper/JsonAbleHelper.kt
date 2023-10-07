@@ -21,6 +21,8 @@ import kotlin.reflect.KProperty
 
 
 inline fun <reified T> T.toJsonElement() = Json.encodeToJsonElement<T>(this)
+inline fun <reified T> T.toJsonElement(serializer: KSerializer<T>) =
+  Json.encodeToJsonElement<T>(serializer, this)
 
 
 val JsonLoose = Json {
@@ -149,7 +151,7 @@ open class PropMetas<T : PropMetas.Constructor<T>>(
   class PropMeta<T : Any, V : Any?>(
     private val propMap: PropMetas<*>,
     val propName: String,
-    val initValue:  V,
+    val initValue: V,
     val nullable: Boolean,
     val serializer: KSerializer<T>
   ) {
@@ -245,18 +247,18 @@ open class PropMetas<T : PropMetas.Constructor<T>>(
   @OptIn(InternalSerializationApi::class)
   inline fun <reified T : Any> required(
     propName: String, initValue: T, serializer: KSerializer<T> = T::class.serializer()
-  ) = PropMeta(this, propName, initValue , false, serializer)
+  ) = PropMeta(this, propName, initValue, false, serializer)
 
   @OptIn(InternalSerializationApi::class)
   inline fun <reified T : Any> optional(
     propName: String, initValue: T? = null, serializer: KSerializer<T> = T::class.serializer()
-  ) = PropMeta(this, propName, initValue , true, serializer)
+  ) = PropMeta(this, propName, initValue, true, serializer)
 
 
   @OptIn(InternalSerializationApi::class)
   inline fun <reified T : Any> list(
     propName: String,
-    initValue: List<T> = listOf() ,
+    initValue: List<T> = listOf(),
     serializer: KSerializer<T> = T::class.serializer()
   ) = PropMeta(
     this, propName, initValue, false, ListSerializer(serializer)

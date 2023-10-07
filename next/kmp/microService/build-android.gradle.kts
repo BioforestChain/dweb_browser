@@ -61,4 +61,10 @@ android {
   defaultConfig {
     minSdk = libs.versions.minSdkVersion.get().toInt()
   }
+  buildFeatures {
+    compose = true
+  }
+  composeOptions {
+    kotlinCompilerExtensionVersion = libs.versions.kotlinCompilerExtensionVersion.get()
+  }
 }

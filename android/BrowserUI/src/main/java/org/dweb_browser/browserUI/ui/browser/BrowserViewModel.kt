@@ -20,11 +20,6 @@ import androidx.lifecycle.viewModelScope
 import com.google.accompanist.web.WebContent
 import com.google.accompanist.web.WebViewNavigator
 import com.google.accompanist.web.WebViewState
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.URLBuilder
-import io.ktor.http.Url
-import io.ktor.http.encodedPath
-import io.ktor.http.path
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -45,20 +40,20 @@ import org.dweb_browser.browserUI.util.getBoolean
 import org.dweb_browser.browserUI.util.saveBoolean
 import org.dweb_browser.browserUI.util.saveString
 import org.dweb_browser.dwebview.DWebView
+import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.base.DWebViewItem
 import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
 import org.dweb_browser.helper.build
-import org.dweb_browser.helper.buildUnsafeString
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.help.types.MMID
-import org.dweb_browser.microservice.sys.dns.nativeFetch
-import org.dweb_browser.microservice.sys.http.HttpDwebServer
+import org.dweb_browser.microservice.std.dns.nativeFetch
+import org.dweb_browser.microservice.std.http.HttpDwebServer
 import java.util.concurrent.atomic.AtomicInteger
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -175,7 +170,7 @@ class BrowserViewModel(
   }
 
   fun getNewTabBrowserView(url: String? = null): BrowserWebView {
-    val (viewItem, closeWatcher) = appendWebViewAsItem(createDwebView())
+    val (viewItem, closeWatcher) = appendWebViewAsItem(createDwebViewEngine())
     url?.let { viewItem.state.content = WebContent.Url(it) } // 初始化时，直接提供地址
     return BrowserWebView(
       viewItem = viewItem, closeWatcher = closeWatcher
@@ -183,7 +178,7 @@ class BrowserViewModel(
   }
 
   val searchBackBrowserView by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-    val (viewItem, closeWatcher) = appendWebViewAsItem(createDwebView())
+    val (viewItem, closeWatcher) = appendWebViewAsItem(createDwebViewEngine())
     BrowserWebView(
       viewItem = viewItem, closeWatcher = closeWatcher
     )
@@ -342,7 +337,7 @@ class BrowserViewModel(
     }
   }
 
-  private fun createDwebView(url: String = ""): DWebView = DWebView(
+  private fun createDwebViewEngine(url: String = "") = DWebViewEngine(
     BrowserUIApp.Instance.appContext, browserNMM, DWebViewOptions(
       url = url,
       /// 我们会完全控制页面将如何离开，所以这里兜底默认为留在页面
@@ -350,7 +345,7 @@ class BrowserViewModel(
     )
   )
 
-  private fun appendWebViewAsItem(dWebView: DWebView): Pair<ViewItem, CloseWatcher> {
+  private fun appendWebViewAsItem(dWebView: DWebViewEngine): Pair<ViewItem, CloseWatcher> {
     val webviewId = "#w${webviewId_acc.getAndAdd(1)}"
     val state = WebViewState(WebContent.Url(getDesktopUrl().toString()))
     val coroutineScope = CoroutineScope(CoroutineName(webviewId))
@@ -371,7 +366,7 @@ class BrowserViewModel(
         val transport = resultMsg.obj;
         if (transport is WebView.WebViewTransport) {
           viewItem.coroutineScope.launch {
-            val dwebView = createDwebView()
+            val dwebView = createDwebViewEngine()
             transport.webView = dwebView;
             resultMsg.sendToTarget();
 

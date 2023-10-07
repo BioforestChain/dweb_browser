@@ -31,4 +31,5 @@ include(":helperPlatform")
 include(":window")
 include(":microService")
 include(":DWebView")
-
+include(":browser")
+include(":mdns")

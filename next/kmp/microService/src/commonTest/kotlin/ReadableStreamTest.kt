@@ -6,8 +6,8 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import org.dweb_browser.microservice.help.canReadContent
-import org.dweb_browser.microservice.help.readAvailableByteArray
+import org.dweb_browser.helper.canReadContent
+import org.dweb_browser.helper.readAvailableByteArray
 import org.dweb_browser.microservice.ipc.helper.ReadableStream
 import kotlin.test.Test
 import kotlin.test.assertEquals

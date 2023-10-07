@@ -19,7 +19,7 @@ class NotificationNMM : NativeMicroModule("notification.sys.dweb", "notification
     routes(
       /** 创建消息*/
       "/create" bind HttpMethod.Get to definePureResponse {
-        val message = request.queryAsObject<NotificationMsgItem>()
+        val message = request.queryAs<NotificationMsgItem>()
         val channelType = when (message.msg_src) {
           "app_message" -> NotifyManager.ChannelType.DEFAULT
           "push_message" -> NotifyManager.ChannelType.IMPORTANT

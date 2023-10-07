@@ -29,7 +29,7 @@ class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb", "Barcode Scan
       "/process" bind HttpMethod.Post to defineJsonResponse {
         debugScanning(
           "process",
-          " ${request.query("rotation")?.toInt() ?: 0} ${request.body.contentLength}"
+          " ${request.queryOrNull("rotation")?.toInt() ?: 0} ${request.body.contentLength}"
         )
         val image = InputImage.fromBitmap(
           request.body.toPureBinary().let { byteArray ->
@@ -39,7 +39,7 @@ class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb", "Barcode Scan
               byteArray.size
             )
           },
-          request.query("rotation")?.toInt() ?: 0
+          request.queryOrNull("rotation")?.toInt() ?: 0
         )
         val result = mutableListOf<String>()
         process(image).forEach {

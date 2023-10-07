@@ -95,9 +95,9 @@ import org.dweb_browser.browserUI.ui.entity.BrowserBaseView
 import org.dweb_browser.browserUI.ui.entity.BrowserMainView
 import org.dweb_browser.browserUI.ui.entity.BrowserWebView
 import org.dweb_browser.browserUI.ui.theme.DimenBottomBarHeight
-import org.dweb_browser.browserUI.ui.view.LocalCommonUrl
+import org.dweb_browser.helper.compose.LocalCommonUrl
 import org.dweb_browser.browserUI.ui.view.findActivity
-import org.dweb_browser.browserUI.util.PrivacyUrl
+import org.dweb_browser.helper.PrivacyUrl
 import org.dweb_browser.helper.BitmapUtil
 import org.dweb_browser.helper.compose.rememberPlatformViewController
 import org.dweb_browser.helper.ioAsyncExceptionHandler

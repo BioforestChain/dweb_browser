@@ -39,6 +39,8 @@ kotlin {
         api(libs.ktor.client.cio)
         api(libs.ktor.client.encoding)
 
+//        api(libs.kotlinx.io)
+        api(libs.squareup.okio)
         api(libs.kotlinx.datetime)
         api(libs.kotlin.serialization.json)
         api(libs.kotlin.serialization.cbor)

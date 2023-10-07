@@ -14,6 +14,7 @@ import io.ktor.server.util.getOrFail
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.Query
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.platform.getKtorServerEngine
@@ -33,19 +34,23 @@ data class PureRequest(
   val url by lazy {
     href.toIpcUrl()
   }
-  fun query(key: String) = this.url.parameters[key]
-  fun queryOrFail(key: String) = this.url.parameters.getOrFail(key)
-  inline fun <reified T> queryAsObject() = Query.decodeFromUrl<T>(this.url)
+
+  fun queryOrNull(key: String) = this.url.parameters[key]
+  fun query(key: String) = this.url.parameters.getOrFail(key)
+  inline fun <reified T> queryAs() = Query.decodeFromUrl<T>(this.url)
+  inline fun <reified T> queryAs(key: String) = Json.decodeFromString<T>(query(key))
+  inline fun <reified T> queryAsOrNull(key: String) =
+    queryOrNull(key)?.let { Json.decodeFromString<T>(it) }
 
   companion object {
 
-    fun query(key: String): PureRequest.() -> String? = { query(key) }
-    fun <T> query(key: String, transform: String.() -> T): PureRequest.() -> T? =
-      { query(key)?.run(transform) }
+    fun queryOrNull(key: String): PureRequest.() -> String? = { queryOrNull(key) }
+    fun <T> queryOrNull(key: String, transform: String.() -> T): PureRequest.() -> T? =
+      { queryOrNull(key)?.run(transform) }
 
-    fun queryOrFail(key: String): PureRequest.() -> String = { queryOrFail(key) }
-    fun <T> queryOrFail(key: String, transform: String.() -> T): PureRequest.() -> T =
-      { queryOrFail(key).run(transform) }
+    fun query(key: String): PureRequest.() -> String = { query(key) }
+    fun <T> query(key: String, transform: String.() -> T): PureRequest.() -> T =
+      { query(key).run(transform) }
   }
 }
 

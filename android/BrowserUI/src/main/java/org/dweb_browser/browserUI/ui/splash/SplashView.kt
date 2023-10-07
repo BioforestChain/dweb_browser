@@ -46,7 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import org.dweb_browser.browserUI.R
-import org.dweb_browser.browserUI.util.PrivacyUrl
+import org.dweb_browser.helper.PrivacyUrl
 import org.dweb_browser.helper.android.getCoilImageLoader
 
 @OptIn(ExperimentalFoundationApi::class)

@@ -3,7 +3,6 @@ package org.dweb_browser.browserUI.bookmark
 import android.annotation.SuppressLint
 import androidx.compose.animation.*
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -20,6 +19,7 @@ import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.R
+import org.dweb_browser.helper.compose.clickableWithNoEffect
 
 val DefaultEmptyBookListContent = @Composable { modifier: Modifier ->
   Text(
@@ -118,13 +118,6 @@ fun BookRecentList(
     }
   }
 }
-
-@SuppressLint("RememberReturnType")
-@Composable
-fun Modifier.clickableWithNoEffect(onClick: () -> Unit) = this.clickable(indication = null,
-  onClick = onClick,
-  interactionSource = remember { MutableInteractionSource() }
-)
 
 @Composable
 private fun PreviewBrowserListOfBook(size: Int) {

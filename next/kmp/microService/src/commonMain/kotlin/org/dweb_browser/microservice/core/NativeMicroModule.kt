@@ -1,9 +1,17 @@
 package org.dweb_browser.microservice.core
 
 import io.ktor.http.HttpStatusCode
+import io.ktor.utils.io.CancellationException
+import io.ktor.utils.io.core.toByteArray
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.SimpleSignal
+import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.help.types.MicroModuleManifest
 import org.dweb_browser.microservice.http.HttpRouter
@@ -19,6 +27,7 @@ import org.dweb_browser.microservice.ipc.NativeMessageChannel
 import org.dweb_browser.microservice.ipc.helper.IPC_ROLE
 import org.dweb_browser.microservice.ipc.helper.IpcMessage
 import org.dweb_browser.microservice.ipc.helper.IpcResponse
+import org.dweb_browser.microservice.ipc.helper.ReadableStreamOut
 
 val debugNMM = Debugger("NMM")
 
@@ -68,13 +77,18 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
     }
   }
 
-  data class HandlerContext(val request: PureRequest, val ipc: Ipc) {
+  interface IHandlerContext {
+    val request: PureRequest
+    val ipc: Ipc
     fun throwException(
       code: HttpStatusCode = HttpStatusCode.InternalServerError,
       message: String = code.description,
       cause: Throwable? = null
     ): Nothing = throw ResponseException(code, message, cause)
   }
+
+  open class HandlerContext(override val request: PureRequest, override val ipc: Ipc) :
+    IHandlerContext
 
   protected fun defineEmptyResponse(
     beforeResponse: BeforeResponse? = null,
@@ -106,7 +120,14 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
     beforeResponse: BeforeResponse? = null,
     handler: RequestHandler<Boolean>,
   ) = wrapHandler(beforeResponse) {
-    PureResponse(HttpStatusCode.OK).jsonBody(handler())
+    PureResponse(HttpStatusCode.OK).jsonBody(
+      try {
+        handler()
+      } catch (e: Throwable) {
+        e.printStackTrace()
+        false
+      }
+    )
   }
 
   protected fun defineJsonResponse(
@@ -116,6 +137,65 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
     PureResponse(HttpStatusCode.OK).jsonBody(
       handler()
     )
+  }
+
+  class JsonLineHandlerContext constructor(context: HandlerContext) : IHandlerContext by context {
+    internal val responseReadableStream = ReadableStreamOut()
+    suspend fun emit(line: JsonElement) {
+      responseReadableStream.controller.enqueue((Json.encodeToString(line) + "\n").toByteArray())
+    }
+
+    suspend inline fun <reified T> emit(lineData: T) = emit(lineData.toJsonElement())
+
+    suspend fun end(reason: Throwable? = null) {
+      if (reason != null) {
+        responseReadableStream.controller.error(reason)
+      } else {
+        responseReadableStream.controller.close()
+      }
+    }
+
+    internal val onDisposeSignal = SimpleSignal()
+
+    init {
+      responseReadableStream.stream.scope.launch {
+        responseReadableStream.controller.awaitClose { onDisposeSignal.emitAndClear() }
+      }
+    }
+
+    val onDispose = onDisposeSignal.toListener()
+  }
+
+  protected fun defineJsonLineResponse(
+    beforeResponse: BeforeResponse? = null,
+    handler: suspend JsonLineHandlerContext.() -> Unit,
+  ) = wrapHandler(beforeResponse) {
+    JsonLineHandlerContext(this).run {
+      // 执行分发器
+      val job = ioAsyncScope.async {
+        try {
+          handler()
+        } catch (e: Throwable) {
+          e.printStackTrace()
+        } finally {
+          end()
+        }
+      }
+      val doClose = suspend {
+        if (job.isActive) {
+          job.cancel(CancellationException("ipc closed"))
+          end()
+        }
+      }
+      // 监听 response 流关闭，这可能发生在网页刷新
+      responseReadableStream.controller.awaitClose(doClose)
+      // 监听 ipc 关闭，这可能由程序自己控制
+      val off = ipc.onClose { doClose() }
+      // 监听 job 完成，释放相关的监听
+      job.invokeOnCompletion { off() }
+      // 返回响应流
+      PureResponse(HttpStatusCode.OK).body(responseReadableStream.stream.stream)
+    }
   }
 
   fun PureResponse.body(body: JsonElement) = jsonBody(body)
@@ -174,5 +254,6 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
 typealias BeforeResponse = suspend (PureResponse) -> PureResponse?
 typealias RequestHandler<T> = suspend NativeMicroModule.HandlerContext.() -> T
 typealias HttpHandler = suspend (NativeMicroModule.HandlerContext) -> PureResponse
+
 @Serializable
 data class DwebResult(val success: Boolean, val message: String = "")

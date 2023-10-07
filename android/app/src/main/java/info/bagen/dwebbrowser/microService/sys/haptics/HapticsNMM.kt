@@ -22,7 +22,7 @@ class HapticsNMM : NativeMicroModule("haptics.sys.dweb", "haptics") {
     routes(
       /** 触碰轻质量物体 */
       "/impactLight" bind HttpMethod.Get to defineJsonResponse {
-        val style = when (request.query("style")) {
+        val style = when (request.queryOrNull("style")) {
           "MEDIUM" -> HapticsImpactType.MEDIUM
           "HEAVY" -> HapticsImpactType.HEAVY
           else -> HapticsImpactType.LIGHT
@@ -32,7 +32,7 @@ class HapticsNMM : NativeMicroModule("haptics.sys.dweb", "haptics") {
       },
       /** 警告分隔的振动通知 */
       "/notification" bind HttpMethod.Get to defineJsonResponse {
-        val type = when (request.query("style")) {
+        val type = when (request.queryOrNull("style")) {
           "SUCCESS" -> HapticsNotificationType.SUCCESS
           "WARNING" -> HapticsNotificationType.WARNING
           else -> HapticsNotificationType.ERROR
@@ -67,7 +67,7 @@ class HapticsNMM : NativeMicroModule("haptics.sys.dweb", "haptics") {
       },
       /** 自定义传递 振动频率 */
       "/customize" bind HttpMethod.Get to defineJsonResponse {
-        val duration = request.queryOrFail("duration")
+        val duration = request.query("duration")
         try {
           val array = duration.removeArrayMark().split(",")
           val longArray = LongArray(array.size) { array[it].toLong() }

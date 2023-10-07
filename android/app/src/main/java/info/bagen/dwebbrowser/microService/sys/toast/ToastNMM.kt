@@ -18,9 +18,9 @@ class ToastNMM : NativeMicroModule("toast.sys.dweb", "toast") {
     routes(
       /** 显示弹框*/
       "/show" bind HttpMethod.Get to defineBooleanResponse {
-        val duration = request.query("duration") ?: EToast.Short.type
-        val message = request.queryOrFail("message")
-        val position = request.query("position") ?: PositionType.BOTTOM.position
+        val duration = request.queryOrNull("duration") ?: EToast.Short.type
+        val message = request.query("message")
+        val position = request.queryOrNull("position") ?: PositionType.BOTTOM.position
         val durationType = when (duration) {
           EToast.Long.type -> DurationType.LONG
           else -> DurationType.SHORT

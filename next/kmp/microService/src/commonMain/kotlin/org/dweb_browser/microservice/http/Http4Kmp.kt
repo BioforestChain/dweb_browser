@@ -4,7 +4,7 @@ import io.ktor.http.HttpMethod
 import org.dweb_browser.microservice.core.HttpHandler
 import org.dweb_browser.microservice.ipc.helper.IpcMethod
 import org.dweb_browser.microservice.ipc.helper.IpcRequest
-import org.dweb_browser.microservice.sys.http.RouteConfig
+import org.dweb_browser.microservice.std.http.RouteConfig
 
 class HttpRouter {
   private val routes = mutableMapOf<RouteConfig, HttpHandler>()

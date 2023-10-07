@@ -11,6 +11,7 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.dwebview.DWebView
+import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.PromiseOut
@@ -20,7 +21,7 @@ import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.ipc.Ipc
-import org.dweb_browser.microservice.sys.http.HttpDwebServer
+import org.dweb_browser.microservice.std.http.HttpDwebServer
 
 @Stable
 class DesktopController(
@@ -48,8 +49,7 @@ class DesktopController(
         winStates = desktopWindowsManager.getWindowStates(metaData.mmid)
         winStates.firstOrNull()?.let { state ->
           debugDesk(
-            "getDesktopApps",
-            "winStates -> ${winStates.size}, ${state.mode}, ${state.focus}"
+            "getDesktopApps", "winStates -> ${winStates.size}, ${state.mode}, ${state.focus}"
           )
         }
         assign(metaData.manifest)
@@ -101,7 +101,7 @@ class DesktopController(
 
   data class MainDwebView(
     val name: String,
-    val webView: DWebView,
+    val webView: DWebViewEngine,
     val state: WebViewState,
     val navigator: WebViewNavigator
   )
@@ -109,7 +109,7 @@ class DesktopController(
   val mainDwebViews = mutableMapOf<String, MainDwebView>()
 
   fun createMainDwebView(name: String, initUrl: String = "") = mainDwebViews.getOrPut(name) {
-    val webView = DWebView(
+    val webView = DWebViewEngine(
       activity ?: App.appContext, desktopNMM, DWebViewOptions(
         url = initUrl,
         onDetachedFromWindowStrategy = DWebViewOptions.DetachedFromWindowStrategy.Ignore,
@@ -121,11 +121,10 @@ class DesktopController(
     MainDwebView(name, webView, state, navigator)
   }
 
-  fun getDesktopUrl() =
-    desktopServer.startResult.urlInfo.buildInternalUrl().build {
-      resolvePath("/desktop.html")
-      parameters["api-base"] = desktopServer.startResult.urlInfo.buildPublicUrl().toString()
-    }
+  fun getDesktopUrl() = desktopServer.startResult.urlInfo.buildInternalUrl().build {
+    resolvePath("/desktop.html")
+    parameters["api-base"] = desktopServer.startResult.urlInfo.buildPublicUrl().toString()
+  }
 
 
   private val _activitySignal = SimpleSignal()

@@ -45,7 +45,7 @@ import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.helper.platform.getCornerRadiusBottom
 import org.dweb_browser.helper.platform.getCornerRadiusTop
 import org.dweb_browser.microservice.http.toFetchResponse
-import org.dweb_browser.microservice.sys.dns.nativeFetch
+import org.dweb_browser.microservice.std.dns.nativeFetch
 import org.dweb_browser.window.core.WindowBounds
 import org.dweb_browser.window.core.WindowController
 import org.dweb_browser.window.core.WindowState

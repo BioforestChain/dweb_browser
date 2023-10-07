@@ -56,7 +56,7 @@ import com.google.accompanist.web.WebView
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.browserUI.R
-import org.dweb_browser.browserUI.bookmark.clickableWithNoEffect
+import org.dweb_browser.helper.compose.clickableWithNoEffect
 import org.dweb_browser.browserUI.ui.browser.bottomsheet.LocalModalBottomSheet
 import org.dweb_browser.browserUI.ui.browser.bottomsheet.ModalBottomModel
 import org.dweb_browser.browserUI.ui.browser.bottomsheet.SheetState

@@ -3,11 +3,10 @@ package info.bagen.dwebbrowser.microService
 import android.webkit.WebView
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.browser.desk.DesktopNMM
-import info.bagen.dwebbrowser.microService.browser.jmm.JmmNMM
-import info.bagen.dwebbrowser.microService.browser.jsProcess.JsProcessNMM
-import info.bagen.dwebbrowser.microService.browser.mwebview.MultiWebViewNMM
-import info.bagen.dwebbrowser.microService.browser.nativeui.NativeUiNMM
-import info.bagen.dwebbrowser.microService.browser.nativeui.torch.TorchNMM
+import org.dweb_browser.browser.jsProcess.JsProcessNMM
+import org.dweb_browser.browser.mwebview.MultiWebViewNMM
+import org.dweb_browser.browser.nativeui.NativeUiNMM
+import org.dweb_browser.browser.nativeui.torch.TorchNMM
 import info.bagen.dwebbrowser.microService.sys.biometrics.BiometricsNMM
 import info.bagen.dwebbrowser.microService.sys.clipboard.ClipboardNMM
 import info.bagen.dwebbrowser.microService.sys.config.ConfigNMM
@@ -23,15 +22,15 @@ import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.cache.HttpCache
 import io.ktor.client.plugins.cache.storage.FileStorage
+import org.dweb_browser.browser.jmm.JmmNMM
 import org.dweb_browser.browserUI.microService.browser.web.BrowserNMM
 import org.dweb_browser.helper.addDebugTags
 import org.dweb_browser.helper.platform.getKtorClientEngine
 import org.dweb_browser.microservice.sys.boot.BootNMM
-import org.dweb_browser.microservice.sys.dns.DnsNMM
-import org.dweb_browser.microservice.sys.dns.nativeFetchAdaptersManager
+import org.dweb_browser.microservice.std.dns.DnsNMM
+import org.dweb_browser.microservice.std.dns.nativeFetchAdaptersManager
 import org.dweb_browser.microservice.sys.download.DownloadNMM
-import org.dweb_browser.microservice.sys.http.HttpNMM
-import org.dweb_browser.shared.Greeting
+import org.dweb_browser.microservice.std.http.HttpNMM
 import java.io.File
 
 suspend fun startDwebBrowser(): DnsNMM {
@@ -157,7 +156,7 @@ suspend fun startDwebBrowser(): DnsNMM {
   val biometricsNMM = BiometricsNMM().also { dnsNMM.install(it) }
 
   /// NativeUi 是将众多原生UI在一个视图中组合的复合组件
-  val nativeUiNMM = NativeUiNMM().also { dnsNMM.install(it) }
+  val nativeUiNMM = org.dweb_browser.browser.nativeui.NativeUiNMM().also { dnsNMM.install(it) }
 
   /// 安装Jmm
   val jmmNMM = JmmNMM(App.appContext).also { dnsNMM.install(it) }
@@ -181,8 +180,6 @@ suspend fun startDwebBrowser(): DnsNMM {
 
   /// 启动Web调试
   WebView.setWebContentsDebuggingEnabled(true)
-
-  println("!!!!!" + Greeting().greet())
 
   /// 启动
   dnsNMM.bootstrap()

@@ -12,12 +12,12 @@ import org.dweb_browser.browserUI.ui.view.DialogInfo
 import org.dweb_browser.browserUI.util.BrowserUIApp
 import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
 import org.dweb_browser.microservice.help.types.MMID
-import org.dweb_browser.microservice.sys.download.DownloadInfo
-import org.dweb_browser.microservice.sys.download.DownloadStatus
+import org.dweb_browser.microservice.sys.download.JmmDownloadInfo
+import org.dweb_browser.microservice.sys.download.JmmDownloadStatus
 import java.util.Calendar
 
 data class DownLoadUIState(
-  val downLoadState: MutableState<DownloadStatus> = mutableStateOf(DownloadStatus.IDLE),
+  val downLoadState: MutableState<JmmDownloadStatus> = mutableStateOf(JmmDownloadStatus.IDLE),
   val downLoadProgress: MutableState<Float> = mutableFloatStateOf(0f),
   var dialogInfo: DialogInfo = DialogInfo(),
   var downloadAppInfo: AppInfo? = null,
@@ -57,16 +57,16 @@ sealed class DownLoadIntent {
 class DownLoadViewModel(val mmid: MMID, val url: String) : ViewModel() {
   val uiState = mutableStateOf(DownLoadUIState())
 
-  private val downLoadInfo: DownloadInfo
+  private val downLoadInfo: JmmDownloadInfo
   private val downLoadObserver: DownLoadObserver
 
   init {
-    downLoadInfo = DownloadInfo(
+    downLoadInfo = JmmDownloadInfo(
       id = mmid,
       url = url,
       name = "",
       path = "${BrowserUIApp.Instance.appContext.cacheDir}/DL_${mmid}_${Calendar.MILLISECOND}.zip",
-      downloadStatus = DownloadStatus.IDLE,
+      downloadStatus = JmmDownloadStatus.IDLE,
       metaData = JmmAppInstallManifest().apply {
         id = mmid
       }
@@ -79,10 +79,10 @@ class DownLoadViewModel(val mmid: MMID, val url: String) : ViewModel() {
     viewModelScope.launch(Dispatchers.IO) {
       downLoadObserver.observe {
         uiState.value.downLoadState.value = it.downLoadStatus
-        if (it.downLoadStatus == DownloadStatus.DownLoading) {
+        if (it.downLoadStatus == JmmDownloadStatus.DownLoading) {
           uiState.value.downLoadProgress.value = it.downLoadSize / it.totalSize * 1.0f
         }
-        if (it.downLoadStatus == DownloadStatus.INSTALLED) {
+        if (it.downLoadStatus == JmmDownloadStatus.INSTALLED) {
           downLoadObserver.close()
         }
       }

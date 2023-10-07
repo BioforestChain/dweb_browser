@@ -44,10 +44,10 @@ class ClipboardNMM : NativeMicroModule("clipboard.sys.dweb", "clipboard") {
        * */
       "/write" bind HttpMethod.Get to defineBooleanResponse {
 
-        val string = request.query("string")
-        val image = request.query("image")
-        val url = request.query("url")
-        val label = request.query("label")
+        val string = request.queryOrNull("string")
+        val image = request.queryOrNull("image")
+        val url = request.queryOrNull("url")
+        val label = request.queryOrNull("label")
         debugClipboard("/write", "string:${string},image:${image},url:${url},label:${label}")
         // 如果都是空
         if (image.isNullOrEmpty() && url.isNullOrEmpty() && url.isNullOrEmpty()) {

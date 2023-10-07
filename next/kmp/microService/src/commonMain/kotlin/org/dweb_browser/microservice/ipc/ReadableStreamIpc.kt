@@ -19,7 +19,7 @@ import org.dweb_browser.helper.readByteArray
 import org.dweb_browser.helper.toLittleEndianByteArray
 import org.dweb_browser.helper.toUtf8
 import org.dweb_browser.helper.toUtf8ByteArray
-import org.dweb_browser.microservice.help.canRead
+import org.dweb_browser.helper.canRead
 import org.dweb_browser.microservice.help.types.IMicroModuleManifest
 import org.dweb_browser.microservice.http.PureStream
 import org.dweb_browser.microservice.ipc.helper.IPC_ROLE
