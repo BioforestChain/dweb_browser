@@ -123,11 +123,30 @@ app.whenReady().then(() => {
 
 // 设置deeplink
 app.setAsDefaultProtocolClient("dweb");
+const gotTheLock = app.requestSingleInstanceLock()
+if(gotTheLock) {
+  app.on('second-instance', (event, argv, workingDirectory) => {
+    event.preventDefault();
+
+    if(argv.length > 0) {
+      try {
+        let url = argv.pop()!;
+        if(url.startsWith("dweb:")) {
+          url = url.replace(/\:{1}\/{2}/, ":")
+        }
+        dns.nativeFetch(url); 
+      } catch {
+        //
+      }
+    }
+  });
+} else {
+  app.quit();
+}
 app.on('will-finish-launching', () => {
   // macOS only
   app.on('open-url', (event, url) => {
-    event.preventDefault()
-    console.always("url: " + url);
+    event.preventDefault();
     if(url.startsWith("dweb:")) {
       url = url.replace(/\:{1}\/{2}/, ":")
     }

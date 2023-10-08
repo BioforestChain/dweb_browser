@@ -278,6 +278,10 @@ export class DnsNMM extends NativeMicroModule {
     /// 查询匹配deeplink的程序
     for (const app of this.installApps.values()) {
       if (undefined !== app.dweb_deeplinks.find((dl) => deeplinkUrl.startsWith(dl))) {
+        /// 在win平台，deeplink链接会变成 dweb:search/?q=xxx ，需要把/去掉
+        if(process.platform === "win32") {
+          deeplinkUrl = deeplinkUrl.replace(/\/{1}\?{1}/, "?");
+        }
         const req = buildRequestX(deeplinkUrl);
         const [ipc] = await this[connectTo_symbol](fromMM, app.mmid, req);
         const ipc_req_init = await $normalizeRequestInitAsIpcRequestArgs(req);
