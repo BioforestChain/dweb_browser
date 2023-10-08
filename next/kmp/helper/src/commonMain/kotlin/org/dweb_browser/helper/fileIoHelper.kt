@@ -36,6 +36,7 @@ fun BufferedSource.toByteReadChannel(scope: CoroutineScope = CoroutineScope(ioAs
       }
     }
     channel.close()
+    close()
   }
   return channel
 }

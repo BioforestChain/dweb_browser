@@ -10,6 +10,7 @@ import kotlinx.serialization.json.buildJsonArray
 import okio.Path
 import okio.Path.Companion.toPath
 import okio.buffer
+import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.StringEnumSerializer
 import org.dweb_browser.helper.SystemFileSystem
 import org.dweb_browser.helper.copyTo
@@ -21,6 +22,10 @@ import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.types.IMicroModuleManifest
 import org.dweb_browser.microservice.http.PureStream
 import org.dweb_browser.microservice.http.bind
+import org.dweb_browser.microservice.std.dns.nativeFetchAdaptersManager
+import org.dweb_browser.microservice.std.file.ext.RespondLocalFileContext.Companion.respondLocalFile
+
+val debugFile = Debugger("file")
 
 /**
  * 文件模块属于一种标准，会有很多模块都实现这个标准
@@ -28,24 +33,15 @@ import org.dweb_browser.microservice.http.bind
  * 比如 视频、相册、音乐、办公 等模块都是对文件读写有刚性依赖的，因此会基于标准文件模块实现同样的标准，这样别的模块可以将同类型的文件存储到它们的文件夹标准下管理
  */
 class FileNMM(serialName: String) : NativeMicroModule("file.std.dweb", "File Manager") {
-  val dataFileDirectory by lazy {
-    getDataVirtualFsDirectory().also {
-      fileTypeAdapterManager.append(adapter = it).removeWhen(onAfterShutdown)
-    }
-  }
-  val cacheFileDirectory by lazy {
-    getCacheVirtualFsDirectory().also {
-      fileTypeAdapterManager.append(adapter = it).removeWhen(onAfterShutdown)
-    }
-  }
 
-  fun findVfsDirectory(firstSegment: String): IVirtualFsDirectory {
+
+  fun findVfsDirectory(firstSegment: String): IVirtualFsDirectory? {
     for (adapter in fileTypeAdapterManager.adapters) {
       if (adapter.isMatch(firstSegment)) {
         return adapter
       }
     }
-    return dataFileDirectory
+    return null
   }
 
   /**
@@ -54,7 +50,7 @@ class FileNMM(serialName: String) : NativeMicroModule("file.std.dweb", "File Man
   class VirtualFsPath(
     context: IMicroModuleManifest,
     virtualPathString: String,
-    findVfsDirectory: (firstSegment: String) -> IVirtualFsDirectory
+    findVfsDirectory: (firstSegment: String) -> IVirtualFsDirectory?
   ) {
     val virtualFullPath = virtualPathString.toPath(true).also {
       if (!it.isAbsolute) {
@@ -70,7 +66,9 @@ class FileNMM(serialName: String) : NativeMicroModule("file.std.dweb", "File Man
     val virtualFirstPath = "/$virtualFirstSegment".toPath()
     val virtualContentPath = virtualFullPath.relativeTo(virtualFirstPath)
 
-    private val vfsDirectory = findVfsDirectory(virtualFirstSegment)
+    private val vfsDirectory = findVfsDirectory(virtualFirstSegment) ?: throw ResponseException(
+      HttpStatusCode.NotFound, "No found top-folder: $virtualFirstSegment"
+    )
     val fsBasePath = vfsDirectory.getFsBasePath(context)
     val fsFullPath = fsBasePath.resolve(virtualContentPath)
 
@@ -78,42 +76,62 @@ class FileNMM(serialName: String) : NativeMicroModule("file.std.dweb", "File Man
     fun toVirtualPathString(fsPath: Path) = toVirtualPath(fsPath).toString()
   }
 
+  fun IHandlerContext.getVfsPath(
+    pathKey: String = "path",
+  ) = VirtualFsPath(ipc.remote, request.query(pathKey), ::findVfsDirectory)
+
+  fun IHandlerContext.getPath(pathKey: String = "path"): Path {
+    return getVfsPath(pathKey).fsFullPath
+  }
+
+  fun IHandlerContext.getPathInfo(path: Path = getPath()): JsonElement {
+    val metadata = SystemFileSystem.metadataOrNull(path);
+    return if (metadata == null) {
+      JsonNull
+    } else {
+      @Serializable
+      data class FileMetadata(
+        val isFile: Boolean,
+        val isDirectory: Boolean,
+        val size: Long? = null,
+        val createdTime: Long = 0,
+        val lastReadTime: Long = 0,
+        val lastWriteTime: Long = 0,
+      )
+
+      FileMetadata(
+        metadata.isRegularFile,
+        metadata.isDirectory,
+        metadata.size,
+        metadata.createdAtMillis ?: 0,
+        metadata.lastAccessedAtMillis ?: 0,
+        metadata.lastModifiedAtMillis ?: 0
+      ).toJsonElement()
+    }
+  }
+
+
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-
-    fun IHandlerContext.getVfsPath(
-      pathKey: String = "path",
-    ) = VirtualFsPath(ipc.remote, request.query(pathKey), ::findVfsDirectory)
-
-    fun IHandlerContext.getPath(pathKey: String = "path"): Path {
-      return getVfsPath(pathKey).fsFullPath
+    getDataVirtualFsDirectory().also {
+      fileTypeAdapterManager.append(adapter = it).removeWhen(onAfterShutdown)
     }
-
-    fun IHandlerContext.getPathInfo(path: Path = getPath()): JsonElement {
-      val metadata = SystemFileSystem.metadataOrNull(path);
-      return if (metadata == null) {
-        JsonNull
-      } else {
-        @Serializable
-        data class FileMetadata(
-          val isFile: Boolean,
-          val isDirectory: Boolean,
-          val size: Long? = null,
-          val createdTime: Long = 0,
-          val lastReadTime: Long = 0,
-          val lastWriteTime: Long = 0,
-        )
-
-        FileMetadata(
-          metadata.isRegularFile,
-          metadata.isDirectory,
-          metadata.size,
-          metadata.createdAtMillis ?: 0,
-          metadata.lastAccessedAtMillis ?: 0,
-          metadata.lastModifiedAtMillis ?: 0
-        ).toJsonElement()
+    getCacheVirtualFsDirectory().also {
+      fileTypeAdapterManager.append(adapter = it).removeWhen(onAfterShutdown)
+    }
+    /// nativeFetch 适配 file:///*/** 的请求
+    nativeFetchAdaptersManager.append { fromMM, request ->
+      return@append request.respondLocalFile {
+        val vfsDirectory = findVfsDirectory(filePath.split("/", limit = 2)[1])
+        if (vfsDirectory != null) {
+          debugFile("read virtual fs", "$fromMM => ${request.href}")
+          val vfsPath = VirtualFsPath(fromMM, filePath) { vfsDirectory }
+          returnFile(
+            SystemFileSystem.source(vfsPath.fsFullPath).buffer()
+              .toByteReadChannel(fromMM.ioAsyncScope)
+          )
+        } else returnNext()
       }
-    }
-
+    }.removeWhen(onAfterShutdown)
 
     routes(
       // 创建文件夹
@@ -163,8 +181,7 @@ class FileNMM(serialName: String) : NativeMicroModule("file.std.dweb", "File Man
             SystemFileSystem.createDirectories(filepath.resolve(".."), true)
           }
         }
-        val fileSource =
-          SystemFileSystem.sink(getPath(), create).buffer()
+        val fileSource = SystemFileSystem.sink(getPath(), create).buffer()
 
         request.body.toPureStream().getReader("write to file").copyTo(fileSource)
       },
@@ -226,10 +243,10 @@ class FileNMM(serialName: String) : NativeMicroModule("file.std.dweb", "File Man
   override suspend fun _shutdown() {
   }
 
-  object FileWatchEventNameSerializer : StringEnumSerializer<FileWatchEventName>(
-    "FileWatchEventName",
-    FileWatchEventName.ALL_VALUES,
-    { eventName });
+  object FileWatchEventNameSerializer :
+    StringEnumSerializer<FileWatchEventName>("FileWatchEventName",
+      FileWatchEventName.ALL_VALUES,
+      { eventName });
   @Serializable(with = FileWatchEventNameSerializer::class)
   enum class FileWatchEventName(val eventName: String) {
     /** 初始化监听时，执行的触发 */

@@ -3,8 +3,8 @@ package info.bagen.dwebbrowser.microService.sys
 import android.content.res.AssetManager
 import info.bagen.dwebbrowser.App
 import org.dweb_browser.microservice.http.PureResponse
-import org.dweb_browser.microservice.std.dns.RespondLocalFileContext
-import org.dweb_browser.microservice.std.dns.RespondLocalFileContext.Companion.respondLocalFile
+import org.dweb_browser.microservice.std.file.ext.RespondLocalFileContext
+import org.dweb_browser.microservice.std.file.ext.RespondLocalFileContext.Companion.respondLocalFile
 import org.dweb_browser.microservice.std.dns.debugFetch
 import org.dweb_browser.microservice.std.dns.nativeFetchAdaptersManager
 import org.dweb_browser.microservice.sys.dns.parseToDirnameAndBasename

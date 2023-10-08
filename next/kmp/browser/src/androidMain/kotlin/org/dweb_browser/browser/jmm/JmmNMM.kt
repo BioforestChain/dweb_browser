@@ -15,9 +15,7 @@ import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.consumeEachJsonLine
 import org.dweb_browser.helper.isGreaterThan
 import org.dweb_browser.helper.resolvePath
-import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.microservice.core.BootstrapContext
-import org.dweb_browser.microservice.core.DwebResult
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.types.IMicroModuleManifest
 import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
@@ -27,7 +25,7 @@ import org.dweb_browser.microservice.http.PureResponse
 import org.dweb_browser.microservice.http.bind
 import org.dweb_browser.microservice.http.bindDwebDeeplink
 import org.dweb_browser.microservice.ipc.Ipc
-import org.dweb_browser.microservice.std.dns.RespondLocalFileContext.Companion.respondLocalFile
+import org.dweb_browser.microservice.std.file.ext.RespondLocalFileContext.Companion.respondLocalFile
 import org.dweb_browser.microservice.std.dns.nativeFetch
 import org.dweb_browser.microservice.std.dns.nativeFetchAdaptersManager
 import org.dweb_browser.microservice.sys.dns.returnAndroidFile

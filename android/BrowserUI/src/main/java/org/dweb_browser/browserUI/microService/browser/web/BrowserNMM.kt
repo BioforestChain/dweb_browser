@@ -17,7 +17,7 @@ import org.dweb_browser.microservice.http.PureResponse
 import org.dweb_browser.microservice.http.bind
 import org.dweb_browser.microservice.http.bindDwebDeeplink
 import org.dweb_browser.microservice.ipc.helper.IpcResponse
-import org.dweb_browser.microservice.std.dns.RespondLocalFileContext.Companion.respondLocalFile
+import org.dweb_browser.microservice.std.file.ext.RespondLocalFileContext.Companion.respondLocalFile
 import org.dweb_browser.microservice.std.dns.nativeFetch
 import org.dweb_browser.microservice.std.dns.nativeFetchAdaptersManager
 import org.dweb_browser.microservice.std.http.DwebHttpServerOptions

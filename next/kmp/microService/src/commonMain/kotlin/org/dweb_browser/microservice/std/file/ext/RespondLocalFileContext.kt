@@ -1,4 +1,4 @@
-package org.dweb_browser.microservice.std.dns
+package org.dweb_browser.microservice.std.file.ext
 
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
@@ -13,6 +13,7 @@ import org.dweb_browser.microservice.http.PureStream
 import org.dweb_browser.microservice.http.PureStreamBody
 import org.dweb_browser.microservice.http.PureStringBody
 import org.dweb_browser.microservice.ipc.helper.IpcHeaders
+import org.dweb_browser.microservice.std.dns.debugFetchFile
 
 
 class RespondLocalFileContext(val request: PureRequest) {
