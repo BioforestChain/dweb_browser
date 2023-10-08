@@ -6,7 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import info.bagen.dwebbrowser.microService.startDwebBrowser
-import info.bagen.dwebbrowser.util.PlaocUtil
+import info.bagen.dwebbrowser.util.CrashUtil
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
@@ -66,7 +66,8 @@ class App : Application() {
   override fun onCreate() {
     super.onCreate()
     appContext = this
-    PlaocUtil.addShortcut(this) // 添加桌面快捷方式
+    CrashUtil.instance.init(this) // 初始化捕获异常
+    // PlaocUtil.addShortcut(this) // 添加桌面快捷方式
     // startService(Intent(this@App, DwebBrowserService::class.java))
     // DwebBrowserUtil.INSTANCE.bindDwebBrowserService()
     BrowserUIApp.Instance.setAppContext(this) // 初始化BrowserUI模块

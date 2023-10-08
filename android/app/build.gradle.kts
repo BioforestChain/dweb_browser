@@ -183,6 +183,8 @@ dependencies {
   /// 依赖
   implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 
+  implementation(libs.qiniu.upload)
+
   implementation(project(":helper"))
   implementation(project(":microService"))
   implementation(project(":DWebView"))
