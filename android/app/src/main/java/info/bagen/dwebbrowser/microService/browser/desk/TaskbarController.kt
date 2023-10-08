@@ -2,6 +2,7 @@ package info.bagen.dwebbrowser.microService.browser.desk
 
 import android.content.res.Resources
 import info.bagen.dwebbrowser.microService.browser.desk.types.DeskAppMetaData
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.PromiseOut
@@ -23,8 +24,8 @@ class TaskbarController(
   val taskbarView = TaskbarView(this)
 
   /** 展示在taskbar中的应用列表 */
-  private val _appList = DeskStore.get(DeskStore.TASKBAR_APPS)
-  internal fun getFocusApp() = _appList.firstOrNull()
+  private suspend fun getApps() = deskNMM.deskStore.getTaskbarApps()
+  internal suspend fun getFocusApp() = getApps().firstOrNull()
   internal val updateSignal = SimpleSignal()
   val onUpdate = updateSignal.toListener()
 
@@ -36,25 +37,28 @@ class TaskbarController(
     /**
      * 绑定 runningApps 集合
      */
-    runningApps.onChange { map ->
-      /// 将新增的打开应用追加到列表签名
-      for (mmid in map.origin.keys) {
-        if (!_appList.contains(mmid)) {
-          _appList.add(0, mmid) // 追加到第一个
+    deskNMM.ioAsyncScope.launch {
+      val apps = getApps()
+      runningApps.onChange { map ->
+        /// 将新增的打开应用追加到列表签名
+        for (mmid in map.origin.keys) {
+          if (!apps.contains(mmid)) {
+            apps.add(0, mmid) // 追加到第一个
+          }
         }
+        /// 保存到数据库
+        deskNMM.deskStore.setTaskbarApps(apps)
+        updateSignal.emit()
       }
-      /// 保存到数据库
-      DeskStore.set(DeskStore.TASKBAR_APPS, _appList)
-      updateSignal.emit()
-    }
 
-    desktopController.onUpdate { updateSignal.emit() }
+      desktopController.onUpdate { updateSignal.emit() }
+    }
 
   }
 
-  fun getTaskbarAppList(limit: Int): List<DeskAppMetaData> {
+  suspend fun getTaskbarAppList(limit: Int): List<DeskAppMetaData> {
     val apps = mutableMapOf<MMID, DeskAppMetaData>()
-    for (appId in _appList) {
+    for (appId in getApps()) {
       if (apps.size >= limit) {
         break
       }

@@ -1,19 +1,17 @@
 package info.bagen.dwebbrowser.microService.browser.desk
 
-import info.bagen.dwebbrowser.App
-import org.dweb_browser.browserUI.util.getList
-import org.dweb_browser.browserUI.util.saveList
+import org.dweb_browser.microservice.core.MicroModule
+import org.dweb_browser.microservice.std.file.ext.createStore
 
 
-object DeskStore {
+class DeskStore(mm: MicroModule) {
+  private val store = mm.createStore("desk", false)// createStore("taskbar/apps", false)
 
-  const val TASKBAR_APPS = "taskbar/apps"
-
-  fun get(key: String): MutableList<String> {
-    return App.appContext.getList(key) ?: mutableListOf()
+  suspend fun getTaskbarApps(): MutableList<String> {
+    return store.get("taskbar/apps")
   }
 
-  fun set(key: String, data: MutableList<String>) {
-    return App.appContext.saveList(key, data)
+  suspend fun setTaskbarApps(data: MutableList<String>) {
+    return store.set("taskbar/apps", data)
   }
 }

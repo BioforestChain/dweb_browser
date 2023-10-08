@@ -6,9 +6,10 @@ import dev.whyoleg.cryptography.algorithms.symmetric.AES
 import dev.whyoleg.cryptography.operations.cipher.AuthenticatedCipher
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.decodeFromByteArray
@@ -24,23 +25,22 @@ import org.dweb_browser.microservice.ipc.helper.IpcMethod
 import org.dweb_browser.microservice.std.dns.nativeFetch
 
 
-@ExperimentalSerializationApi
-fun MicroModule.createSimpleStore(storeName: String = "default") = MicroModuleStore(this, storeName)
+@OptIn(ExperimentalSerializationApi::class)
+fun MicroModule.createStore(storeName: String, encrypt: Boolean) =
+  MicroModuleStore(this, storeName, encrypt)
 
-@ExperimentalSerializationApi
+@OptIn(ExperimentalSerializationApi::class)
 private val defaultSimpleStoreCache by atomic(WeakHashMap<MicroModule, MicroModuleStore>())
 
-@ExperimentalSerializationApi
+@OptIn(ExperimentalSerializationApi::class)
 val MicroModule.store: MicroModuleStore
   get() = defaultSimpleStoreCache.getOrPut(this) {
-    createSimpleStore()
+    createStore("default", true)
   }
 
-@ExperimentalSerializationApi
+@OptIn(ExperimentalSerializationApi::class)
 class MicroModuleStore(
-  private val mm: MicroModule,
-  val storeName: String,
-  val encrypt: Boolean = true
+  private val mm: MicroModule, val storeName: String, val encrypt: Boolean
 ) {
   private val cipherPlainKey = mm.mmid + "/" + storeName
   private var cipher: AuthenticatedCipher? = null
@@ -59,39 +59,47 @@ class MicroModuleStore(
     ).cipher()
   }
 
-  val store = mutableMapOf<String, ByteArray>()
+  lateinit var _store: Deferred<MutableMap<String, ByteArray>>
+  val store get() = _store
   private val queryPath =
     "/data/store/$storeName${if (encrypt) ".ebor" else ".cbor"}".encodeURIComponent()
 
   init {
-    runBlocking {
-      exec {
-        cipher = if (encrypt) getCipher(cipherPlainKey) else null
+    exec {
+      cipher = if (encrypt) getCipher(cipherPlainKey) else null
 
-        val data =
-          mm.nativeFetch("file://file.std.dweb/read?path=$queryPath&create=true").binary().let {
-            cipher?.decrypt(it) ?: it
-          }
+      val data =
+        mm.nativeFetch("file://file.std.dweb/read?path=$queryPath&create=true").binary().let {
+          cipher?.decrypt(it) ?: it
+        }
 
-        store += Cbor.decodeFromByteArray<Map<String, ByteArray>>(data)
-      }
+      Cbor.decodeFromByteArray<Map<String, ByteArray>>(data)
     }
   }
 
   internal class Task<T>(val deferred: CompletableDeferred<T>, val action: suspend () -> T) {}
 
   private val taskQueues = Channel<Task<*>>(onBufferOverflow = BufferOverflow.SUSPEND)
-  private suspend fun <T> exec(action: suspend () -> T): T {
+  private fun <T> exec(action: suspend () -> T): Deferred<T> {
     val deferred = CompletableDeferred<T>()
-    taskQueues.send(Task(deferred, action))
-    return deferred.await()
+    mm.ioAsyncScope.launch {
+      taskQueues.send(Task(deferred, action))
+    }
+    return deferred
   }
 
-  inline fun <reified T> getOrNull(key: String) =
-    store[key]?.let { Cbor.decodeFromByteArray<T>(it) }
+  suspend inline fun <reified T> getOrNull(key: String) =
+    store.await()[key]?.let { Cbor.decodeFromByteArray<T>(it) }
 
-  inline fun <reified T> get(key: String) =
-    getOrNull<T>(key) ?: throw Exception("no found data for key: $key")
+  suspend inline fun <reified T> getOrPut(key: String, put: () -> T) =
+    store.await()[key].let {
+      if (it != null) Cbor.decodeFromByteArray<T>(it)
+      else put().also { set(key, it) }
+    }
+
+  suspend inline fun <reified T> get(key: String) = getOrPut<T>(key) {
+    throw Exception("no found data for key: $key")
+  }
 
   suspend fun save() {
     exec {
@@ -102,11 +110,11 @@ class MicroModuleStore(
           body = IPureBody.from(Cbor.encodeToByteArray(store).let { cipher?.encrypt(it) ?: it })
         )
       )
-    }
+    }.await()
   }
 
   suspend inline fun <reified T> set(key: String, value: T) {
-    store[key] = Cbor.encodeToByteArray(value)
+    store.await()[key] = Cbor.encodeToByteArray(value)
     save()
   }
 }

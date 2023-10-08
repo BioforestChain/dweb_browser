@@ -1,11 +1,8 @@
 package info.bagen.dwebbrowser.microService.sys.device
 
-import info.bagen.dwebbrowser.App
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.Serializable
-import org.dweb_browser.browserUI.util.getString
-import org.dweb_browser.browserUI.util.saveString
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.toJsonElement
@@ -15,6 +12,7 @@ import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.http.PureResponse
 import org.dweb_browser.microservice.http.PureStringBody
 import org.dweb_browser.microservice.http.bind
+import org.dweb_browser.microservice.std.file.ext.store
 
 fun debugDevice(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("Device", tag, msg, err)
@@ -32,11 +30,7 @@ class DeviceNMM : NativeMicroModule("device.sys.dweb", "Device Info") {
     routes(
       /** 获取设备唯一标识uuid*/
       "/uuid" bind HttpMethod.Get to defineJsonResponse {
-        var uuid = App.appContext.getString(UUID_KEY, "")
-        if (uuid == "") {
-          uuid = randomUUID()
-          App.appContext.saveString(UUID_KEY, uuid)
-        }
+        val uuid = store.getOrPut(UUID_KEY) { randomUUID() }
         debugDevice("getUUID", uuid)
         UUIDResponse(uuid).toJsonElement()
       },

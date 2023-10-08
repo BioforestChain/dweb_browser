@@ -28,6 +28,7 @@ kotlin {
         api(libs.ktor.server.cio)
         api(libs.ktor.client.cio)
         api(libs.ktor.client.encoding)
+        api(libs.whyoleg.cryptography.core)
 
 //        api(libs.kotlinx.io)
         api(libs.squareup.okio)
@@ -50,6 +51,7 @@ kotlin {
         implementation(libs.commons.compress)
         api(libs.data.store)
         api(libs.data.store.preferences)
+        api(libs.whyoleg.cryptography.provider.jdk)
       }
     }
 

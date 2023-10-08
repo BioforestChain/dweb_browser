@@ -39,6 +39,8 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Desktop);
   }
 
+  val deskStore = DeskStore(this)
+
   private val runningApps = ChangeableMap<MMID, Ipc>()
   private suspend fun addRunningApp(mmid: MMID): Ipc? {
     /// 如果成功打开，将它“追加”到列表中
