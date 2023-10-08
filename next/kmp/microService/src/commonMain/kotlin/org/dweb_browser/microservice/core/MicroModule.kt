@@ -36,7 +36,7 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
   private var runningStateLock = StatePromiseOut.resolve(MMState.SHUTDOWN)
 
   private fun getModuleCoroutineScope() = CoroutineScope(SupervisorJob() + ioAsyncExceptionHandler)
-  private var _scope :CoroutineScope = getModuleCoroutineScope()
+  private var _scope: CoroutineScope = getModuleCoroutineScope()
   val ioAsyncScope get() = _scope
 
   val running get() = runningStateLock.value == MMState.BOOTSTRAP

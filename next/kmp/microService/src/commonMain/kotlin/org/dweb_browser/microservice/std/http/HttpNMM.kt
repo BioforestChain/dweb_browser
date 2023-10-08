@@ -220,7 +220,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     val gateway = Gateway(listener, serverUrlInfo, token)
     gatewayMap[serverUrlInfo.host] = gateway
     tokenMap[token] = gateway
-    debugHttp("START/end","$serverUrlInfo => $options")
+    debugHttp("START/end", "$serverUrlInfo => $options")
     return ServerStartResult(token, serverUrlInfo)
   }
 

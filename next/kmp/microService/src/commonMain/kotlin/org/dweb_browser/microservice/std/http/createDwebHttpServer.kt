@@ -28,7 +28,7 @@ data class DwebHttpServerOptions(
 //  ) : this(port ?: 80, subdomain ?: "")
 }
 
-suspend fun MicroModule.startHttpDwebServer(options: DwebHttpServerOptions) : HttpNMM.ServerStartResult {
+suspend fun MicroModule.startHttpDwebServer(options: DwebHttpServerOptions): HttpNMM.ServerStartResult {
   val urlString = URLBuilder("file://http.std.dweb/start").apply {
     parameters["port"] = options.port.toString()
     parameters["subdomain"] = options.subdomain
@@ -38,7 +38,6 @@ suspend fun MicroModule.startHttpDwebServer(options: DwebHttpServerOptions) : Ht
     urlString
   ).json<HttpNMM.ServerStartResult>()
 }
-
 
 
 suspend fun MicroModule.listenHttpDwebServer(
@@ -57,20 +56,21 @@ suspend fun MicroModule.listenHttpDwebServer(
   )
 ): ReadableStreamIpc {
   val httpIpc = this.connect("http.std.dweb")
-  val streamIpc = ReadableStreamIpc(httpIpc.remote, "http-server/${startResult.urlInfo.host}").also {
-    it.bindIncomeStream(
-      this.nativeFetch(
-        PureRequest(
-          URLBuilder("file://http.std.dweb/listen").apply {
-            parameters["token"] = startResult.token
-            parameters["routes"] = Json.encodeToString(routes)
-          }.buildUnsafeString(),
-          IpcMethod.POST,
-          body = PureStreamBody(it.input.stream)
-        )
-      ).stream()
-    )
-  }
+  val streamIpc =
+    ReadableStreamIpc(httpIpc.remote, "http-server/${startResult.urlInfo.host}").also {
+      it.bindIncomeStream(
+        this.nativeFetch(
+          PureRequest(
+            URLBuilder("file://http.std.dweb/listen").apply {
+              parameters["token"] = startResult.token
+              parameters["routes"] = Json.encodeToString(routes)
+            }.buildUnsafeString(),
+            IpcMethod.POST,
+            body = PureStreamBody(it.input.stream)
+          )
+        ).stream()
+      )
+    }
   this.addToIpcSet(streamIpc)
   return streamIpc
 }

@@ -34,10 +34,9 @@ class DesktopController(
   val onUpdate = updateSignal.toListener()
 
   init {
-    runningApps.onChange { map ->
+    runningApps.onChange {
       updateSignal.emit()
     }
-
   }
 
   suspend fun getDesktopApps(): List<DeskAppMetaData> {

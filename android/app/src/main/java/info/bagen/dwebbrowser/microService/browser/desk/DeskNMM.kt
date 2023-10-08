@@ -94,7 +94,6 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
   }
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    debugDesk("START")
     listenApps()
     // 创建桌面和任务的服务
     val taskbarServer = this.createTaskbarWebServer()
@@ -151,7 +150,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         val mmid = request.query("app_id")
         return@defineBooleanResponse desktopController.desktopWindowsManager.toggleMaximize(mmid)
       },
-      //
+      // 关闭app
       "/closeApp" bind HttpMethod.Get to defineBooleanResponse {
         val mmid = request.query("app_id")
         if (runningApps.containsKey(mmid)) {
@@ -159,12 +158,12 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         }
         return@defineBooleanResponse false
       },
-      //
-      "/desktop/apps" bind HttpMethod.Get to defineJsonResponse() {
+      // 获取全部app数据
+      "/desktop/apps" bind HttpMethod.Get to defineJsonResponse {
         debugDesk("/desktop/apps", desktopController.getDesktopApps())
         return@defineJsonResponse desktopController.getDesktopApps().toJsonElement()
       },
-      //
+      // 监听所有app数据
       "/desktop/observe/apps" bind HttpMethod.Get to defineJsonLineResponse {
         desktopController.onUpdate {
           try {
@@ -175,12 +174,12 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         }.removeWhen(onDispose)
         desktopController.updateSignal.emit()
       },
-      //
+      // 获取所有taskbar数据
       "/taskbar/apps" bind HttpMethod.Get to defineJsonResponse {
         val limit = request.queryOrNull("limit")?.toInt() ?: Int.MAX_VALUE
         return@defineJsonResponse taskBarController.getTaskbarAppList(limit).toJsonElement()
       },
-      //
+      // 监听所有taskbar数据
       "/taskbar/observe/apps" bind HttpMethod.Get to defineJsonLineResponse {
         val limit = request.queryOrNull("limit")?.toInt() ?: Int.MAX_VALUE
         debugDesk("/taskbar/observe/apps", limit)
@@ -188,19 +187,19 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
           try {
             emit(taskBarController.getTaskbarAppList(limit))
           } catch (e: Exception) {
-            end(e)
+            end(reason = e)
           }
         }.removeWhen(onDispose)
         taskBarController.updateSignal.emit()
       },
-      //
+      // 监听所有taskbar状态
       "/taskbar/observe/status" bind HttpMethod.Get to defineJsonLineResponse {
         debugDesk("/taskbar/observe/status")
         taskBarController.onStatus { status ->
           emit(status)
         }.removeWhen(onDispose)
       },
-      //
+      // 负责resize taskbar大小
       "/taskbar/resize" bind HttpMethod.Get to defineJsonResponse {
         val size = request.queryAs<TaskbarController.ReSize>()
         debugDesk("/taskbar/resize", "$size")

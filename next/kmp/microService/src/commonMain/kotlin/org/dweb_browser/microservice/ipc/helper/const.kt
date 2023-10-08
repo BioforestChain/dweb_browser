@@ -73,6 +73,7 @@ enum class IPC_MESSAGE_TYPE(val type: Byte) {
   EVENT(7),
 
   ;
+
   companion object {
     val ALL_VALUES = entries.associateBy { it.type }
   }

@@ -3,7 +3,6 @@ package org.dweb_browser.microservice.core
 import io.ktor.http.HttpStatusCode
 import io.ktor.utils.io.CancellationException
 import io.ktor.utils.io.core.toByteArray
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -149,19 +148,13 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
 
     suspend fun end(reason: Throwable? = null) {
       if (reason != null) {
-        responseReadableStream.controller.error(reason)
+        responseReadableStream.controller.closeWrite(reason)
       } else {
-        responseReadableStream.controller.close()
+        responseReadableStream.controller.closeWrite()
       }
     }
 
     internal val onDisposeSignal = SimpleSignal()
-
-    init {
-      responseReadableStream.stream.scope.launch {
-        responseReadableStream.controller.awaitClose { onDisposeSignal.emitAndClear() }
-      }
-    }
 
     val onDispose = onDisposeSignal.toListener()
   }
@@ -172,15 +165,15 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
   ) = wrapHandler(beforeResponse) {
     JsonLineHandlerContext(this).run {
       // 执行分发器
-      val job = ioAsyncScope.async {
+      val job = ioAsyncScope.launch {
         try {
           handler()
         } catch (e: Throwable) {
           e.printStackTrace()
-        } finally {
-          end()
+          end(reason = e)
         }
       }
+
       val doClose = suspend {
         if (job.isActive) {
           job.cancel(CancellationException("ipc closed"))
@@ -188,7 +181,10 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
         }
       }
       // 监听 response 流关闭，这可能发生在网页刷新
-      responseReadableStream.controller.awaitClose(doClose)
+      responseReadableStream.controller.awaitClose {
+        onDisposeSignal.emit()
+        doClose()
+      }
       // 监听 ipc 关闭，这可能由程序自己控制
       val off = ipc.onClose { doClose() }
       // 监听 job 完成，释放相关的监听

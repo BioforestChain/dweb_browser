@@ -5,6 +5,13 @@ import org.dweb_browser.core.getAppContext
 
 
 /**
+ * 下载存储数据
+ */
+actual fun FileNMM.getDownloadVirtualFsDirectory() = commonVirtualFsDirectoryFactory(
+  "download", getAppContext().dataDir.absolutePath.toPath()
+)
+
+/**
  * 持久化数据
  */
 actual fun FileNMM.getDataVirtualFsDirectory() = commonVirtualFsDirectoryFactory(

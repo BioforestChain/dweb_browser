@@ -15,7 +15,7 @@ fun main() {
     Thread.sleep(500)
     controller.enqueue(byteArrayOf(b++))
     if (b > 10) {
-      controller.close()
+      controller.closeWrite()
     }
   });
   val reader = readableStream.stream.getReader("")
@@ -28,7 +28,7 @@ fun main() {
     }
   }
   runBlocking {
-    readableStream.waitCanceled()
+    readableStream.waitClosed()
   }
   println("DONE")
 }

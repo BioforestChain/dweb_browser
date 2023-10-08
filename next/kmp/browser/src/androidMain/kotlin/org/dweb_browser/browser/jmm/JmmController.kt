@@ -73,7 +73,7 @@ class JmmController(
   suspend fun downloadAndSaveZip(appInstallManifest: JmmAppInstallManifest) {
     jmmNMM.nativeFetch(
       PureRequest(
-        href = "file://download.sys.dweb/download",
+        href = "file://download.browser.dweb/download",
         method = IpcMethod.POST,
         body = PureStringBody(Json.encodeToString(appInstallManifest))
       )
@@ -82,9 +82,9 @@ class JmmController(
 
   suspend fun updateDownloadState(downloadController: JmmDownloadController) {
     val url = when (downloadController) {
-      JmmDownloadController.PAUSE -> "file://download.sys.dweb/pause"
-      JmmDownloadController.CANCEL -> "file://download.sys.dweb/cancel"
-      JmmDownloadController.RESUME -> "file://download.sys.dweb/resume"
+      JmmDownloadController.PAUSE -> "file://download.browser.dweb/pause"
+      JmmDownloadController.CANCEL -> "file://download.browser.dweb/cancel"
+      JmmDownloadController.RESUME -> "file://download.browser.dweb/resume"
     }
     jmmNMM.nativeFetch(PureRequest(href = url, method = IpcMethod.GET))
   }

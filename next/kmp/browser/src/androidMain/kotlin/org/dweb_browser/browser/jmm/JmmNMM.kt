@@ -130,16 +130,6 @@ class JmmNMM() :
       })
   }
 
-  /// TODO 这里临时用map顶替，请使用 file.std.dweb 来统一做管理
-  private val metadataMap = mutableMapOf<MMID, String>()
-  private fun getMetadataUrl(key: MMID): String? {
-    return metadataMap[key]
-  }
-
-  private fun setMetadataUrl(key: MMID, data: String) {
-    metadataMap[key] = data
-  }
-
   override suspend fun _shutdown() {
   }
 
@@ -223,7 +213,7 @@ class JmmNMM() :
   }
 
   private suspend fun listenDownloadState(mmid: MMID) = ioAsyncScope.launch {
-    val (observeDownloadIpc) = bootstrapContext.dns.connect("download.sys.dweb")
+    val (observeDownloadIpc) = bootstrapContext.dns.connect("download.browser.dweb")
     suspend fun doObserve(urlPath: String, cb: suspend JmmDownloadInfo.() -> Unit) {
       val res = observeDownloadIpc.request(urlPath)
       res.stream().getReader("Jmm listenDownloadState")

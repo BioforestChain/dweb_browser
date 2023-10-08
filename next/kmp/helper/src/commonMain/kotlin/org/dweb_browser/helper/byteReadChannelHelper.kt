@@ -52,11 +52,15 @@ suspend inline fun ByteReadChannel.consumeEachArrayRange(
 
       nioBuffer.size
     }
+    /// 这个要在 isClosedForRead 属性之前，否则会出问题
+    if (!controller.continueFlag) {
+      break
+    }
 
     if (lastChunkReported && isClosedForRead) {
       break
     }
-  } while (controller.continueFlag)
+  } while (true)
 }
 /**
  * Visitor function that is invoked for every available buffer (or chunk) of a channel.

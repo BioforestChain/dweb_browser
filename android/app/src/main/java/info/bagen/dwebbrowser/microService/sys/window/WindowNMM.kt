@@ -44,7 +44,7 @@ class WindowNMM : NativeMicroModule("window.sys.dweb", "Window Management") {
             try {
               controller.enqueue(Json.encodeToString(win.state.toJsonElement()) + "\n")
             } catch (e: Exception) {
-              controller.close()
+              controller.closeWrite()
               e.printStackTrace()
             }
           }.also {
@@ -58,7 +58,7 @@ class WindowNMM : NativeMicroModule("window.sys.dweb", "Window Management") {
           }
           ipc.onClose {
             off()
-            controller.close()
+            controller.closeWrite()
           }
         }
         inputStream.stream

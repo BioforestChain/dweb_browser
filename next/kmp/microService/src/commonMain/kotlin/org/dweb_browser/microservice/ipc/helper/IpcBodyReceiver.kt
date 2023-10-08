@@ -69,7 +69,7 @@ class IpcBodyReceiver(
       val readableStream = ReadableStream(cid = "receiver-${stream_id}", onStart = { controller ->
         // 注册关闭事件
         ipc.onClose {
-          controller.close()
+          controller.closeWrite()
         }
         /// 如果有初始帧，直接存起来
         when (metaBody.type.encoding) {
@@ -92,7 +92,7 @@ class IpcBodyReceiver(
               debugIpcBody(
                 "receiver/StreamEnd/$ipc/${controller.stream}", message
               )
-              controller.close()
+              controller.closeWrite()
               offListener()
             }
 

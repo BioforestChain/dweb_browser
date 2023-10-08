@@ -179,7 +179,7 @@ fun ByteReadChannel.consumeToReadableStream() = ReadableStream(onOpenReader = { 
     controller.enqueue(byteArray)
     if (last) {
       debugStream("toReadableStream", "SS[$id] end")
-      controller.close()
+      controller.closeWrite()
     }
   }
 });

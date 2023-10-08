@@ -14,10 +14,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.dweb_browser.helper.PromiseOut
+import org.dweb_browser.helper.consumeEachArrayRange
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.platform.getKtorServerEngine
 import org.dweb_browser.microservice.help.asPureRequest
-import org.dweb_browser.helper.consumeEachArrayRange
 import org.dweb_browser.microservice.help.fromPureResponse
 import org.dweb_browser.microservice.help.isWebSocket
 import org.dweb_browser.microservice.http.PureRequest
@@ -113,7 +113,7 @@ class Http1Server {
                         rawRequestChannel.consumeEachArrayRange { byteArray, _ ->
                           requestBodyController.enqueue(byteArray)
                         }
-                        requestBodyController.close()
+                        requestBodyController.closeWrite()
                       }
                       call.response.fromPureResponse(response)
                     }

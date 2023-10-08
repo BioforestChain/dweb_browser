@@ -37,6 +37,11 @@ fun commonVirtualFsDirectoryFactory(firstSegment: String, basePath: String) =
 
 
 /**
+ * 下载存储数据
+ */
+expect fun FileNMM.getDownloadVirtualFsDirectory(): IVirtualFsDirectory
+
+/**
  * 持久化数据
  */
 expect fun FileNMM.getDataVirtualFsDirectory(): IVirtualFsDirectory

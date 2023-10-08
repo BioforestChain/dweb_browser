@@ -10,8 +10,8 @@ fun jsonToIpcMessage(data: String, ipc: Ipc): Any {
   }
 
   try {
-    val typeInfo = Regex(""""type"\s*:\s*(\d+)""").find(data)?:return data
-    return when (JsonLoose.decodeFromString<IPC_MESSAGE_TYPE>(typeInfo.groupValues[1]) ) {
+    val typeInfo = Regex(""""type"\s*:\s*(\d+)""").find(data) ?: return data
+    return when (JsonLoose.decodeFromString<IPC_MESSAGE_TYPE>(typeInfo.groupValues[1])) {
       IPC_MESSAGE_TYPE.REQUEST -> Json.decodeFromString<IpcReqMessage>(data).let {
         IpcRequest(
           it.req_id,

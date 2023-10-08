@@ -12,6 +12,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.SimpleSignal
+import org.dweb_browser.helper.canRead
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.printError
@@ -19,7 +20,6 @@ import org.dweb_browser.helper.readByteArray
 import org.dweb_browser.helper.toLittleEndianByteArray
 import org.dweb_browser.helper.toUtf8
 import org.dweb_browser.helper.toUtf8ByteArray
-import org.dweb_browser.helper.canRead
 import org.dweb_browser.microservice.help.types.IMicroModuleManifest
 import org.dweb_browser.microservice.http.PureStream
 import org.dweb_browser.microservice.ipc.helper.IPC_ROLE
@@ -179,7 +179,9 @@ class ReadableStreamIpc(
 
 
   override suspend fun _doClose(): Unit = synchronized(_lock) {
-    controller.close()
-    reader?.cancel()
+    controller.closeWrite()
+    reader?.isClosedForWrite.let {
+      reader?.cancel()
+    }
   }
 }

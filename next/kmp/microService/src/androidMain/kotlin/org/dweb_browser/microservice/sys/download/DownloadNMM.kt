@@ -26,8 +26,8 @@ internal val debugDownload = Debugger("Download")
 /**
  * 下载模块
  */
-class DownloadNMM() :
-  NativeMicroModule("download.sys.dweb", "Download Browser") {
+class DownloadNMM :
+  NativeMicroModule("download.browser.dweb", "Download Browser") {
   private val downloadModel = DownloadModel(this)
 
   init {
@@ -82,12 +82,12 @@ class DownloadNMM() :
               val jsonData = Json.encodeToString(downloadInfo)
               controller.enqueue((jsonData + "\n").toByteArray())
             } catch (e: Exception) {
-              controller.close()
+              controller.closeWrite()
               e.printStackTrace()
             }
           }
           ioAsyncScope.launch { controller.awaitClose { off() } }
-          ipc.onClose { off(); controller.close() }
+          ipc.onClose { off(); controller.closeWrite() }
         }
         return@definePureResponse PureResponse(
           HttpStatusCode.OK, body = PureStreamBody(inputStream.stream)

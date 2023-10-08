@@ -4,7 +4,6 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.fullPath
 import io.ktor.utils.io.core.toByteArray
-import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -248,13 +247,13 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
                 ) + "\n").toByteArray()
               )
             } catch (e: Exception) {
-              controller.close()
+              controller.closeWrite()
               e.printStackTrace()
             }
           }
           ipc.onClose {
             off()
-            controller.close()
+            controller.closeWrite()
           }
         }
         inputStream.stream
@@ -272,13 +271,13 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
                 ) + "\n").toByteArray()
               )
             } catch (e: Exception) {
-              controller.close()
+              controller.closeWrite()
               e.printStackTrace()
             }
           }
           ipc.onClose {
             off()
-            controller.close()
+            controller.closeWrite()
           }
         })
         inputStream.stream
@@ -302,7 +301,6 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
   }
 
   /** 卸载应用 */
-  @OptIn(DelicateCoroutinesApi::class)
   fun uninstall(mmid: MMID): Boolean {
     installApps.remove(mmid)
     ioAsyncScope.launch { close(mmid) }
@@ -336,7 +334,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
         when (val openingMm = query(mmid)) {
           null -> {
             runningApps.remove(mmid)
-            throw Exception("no found app: $mmid")
+            throw Exception("no found app: $mmid") // todo 有几率触发导致崩溃
           }
 
           else -> {

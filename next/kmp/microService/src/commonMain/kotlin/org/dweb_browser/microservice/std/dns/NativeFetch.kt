@@ -12,12 +12,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.PromiseOut
+import org.dweb_browser.helper.canReadContent
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.platform.httpFetcher
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.help.AdapterManager
-import org.dweb_browser.helper.canReadContent
 import org.dweb_browser.microservice.help.toHttpRequestBuilder
 import org.dweb_browser.microservice.help.toPureResponse
 import org.dweb_browser.microservice.http.PureBinaryBody

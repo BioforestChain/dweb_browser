@@ -34,7 +34,6 @@ val debugFile = Debugger("file")
  */
 class FileNMM(serialName: String) : NativeMicroModule("file.std.dweb", "File Manager") {
 
-
   fun findVfsDirectory(firstSegment: String): IVirtualFsDirectory? {
     for (adapter in fileTypeAdapterManager.adapters) {
       if (adapter.isMatch(firstSegment)) {

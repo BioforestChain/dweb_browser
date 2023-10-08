@@ -1,14 +1,11 @@
 package org.dweb_browser.microservice.ipc.helper
 
 import io.ktor.utils.io.ByteChannel
-import io.ktor.utils.io.cancel
-import io.ktor.utils.io.close
+import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.core.ByteReadPacket
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -32,31 +29,43 @@ class ReadableStream(
   val scope = CoroutineScope(CoroutineName("readableStream") + ioAsyncExceptionHandler)
 
   /**
-   * 内部的写入器，这里不直接写入 output，是因为 需要 Channel 来作为写入缓冲器
-   */
-  private val input = Channel<ByteArray>()
-
-  /**
    * 内部的输出器
    */
-  private val output = ByteChannel(true)
+  private val _stream = ByteChannel(true)
 
-  val stream: PureStream = PureStream(output)
+  val stream: PureStream = PureStream(object : ByteReadChannel by _stream {
+    override fun cancel(cause: Throwable?): Boolean {
+      return this@ReadableStream.closeRead(cause)
+    }
+  })
 
   private val controller = ReadableStreamController(this)
-  private val cancelPo = PromiseOut<Unit>()
+  private val closePo = PromiseOut<Unit>()
 
   class ReadableStreamController(
     val stream: ReadableStream,
   ) {
     private val lock = Mutex()
     suspend fun enqueue(vararg byteArrays: ByteArray) = lock.withLock {
-      for (byteArray in byteArrays) {
-        stream.input.send(byteArray)
+      try {
+        for (byteArray in byteArrays) {
+          stream._stream.writePacket(ByteReadPacket(byteArray))
+        }
+        true
+      } catch (e: Throwable) {
+        false
       }
     }
 
-    suspend fun enqueue(byteArray: ByteArray) = lock.withLock { stream.input.send(byteArray) }
+    suspend fun enqueue(byteArray: ByteArray) = lock.withLock {
+      try {
+        stream._stream.writePacket(ByteReadPacket(byteArray))
+        true
+      } catch (e: Throwable) {
+        false
+      }
+    }
+
     suspend fun enqueue(data: String) = enqueue(data.toUtf8ByteArray())
 
     fun enqueueBackground(byteArray: ByteArray) = stream.scope.launch {
@@ -65,36 +74,34 @@ class ReadableStream(
 
     fun enqueueBackground(data: String) = enqueueBackground(data.toUtf8ByteArray())
 
-    fun close() = stream.cancel()
-
-    fun error(e: Throwable?) = stream.input.close(e)
-    suspend fun awaitClose(function: suspend () -> Unit) {
-      coroutineScope {
-        launch {
-          stream.waitCanceled()
-          function()
-        }
+    fun closeWrite(cause: Throwable? = null) = stream.closeWrite(cause)
+    fun awaitClose(onClosed: suspend () -> Unit) {
+      stream.scope.launch {
+        stream.waitClosed()
+        onClosed()
       }
     }
   }
 
-
-  suspend fun waitCanceled() {
-    cancelPo.waitPromise()
-  }
-
-  val isCanceled get() = cancelPo.isFinished
-
-  fun cancel() {
-    if (isCanceled) {
-      return
+  suspend fun waitClosed() = closePo.waitPromise()
+  private fun emitClose() = scope.launch {
+    if (!closePo.isResolved) {
+      closePo.resolve(Unit)
+      onClose(this)
     }
-    debugStream("CLOSE", uid)
-    // close Channel<ArrayBuffer>
-    input.close()
-    // cancel ReadableStream
-    cancelPo.resolve(Unit)
   }
+
+
+  fun closeRead(reason: Throwable? = null) =
+    _stream.cancel(reason).also {
+      emitClose()
+    }
+
+  private fun closeWrite(cause: Throwable? = null) =
+    _stream.close(cause).also {
+      emitClose()
+    }
+
 
   companion object {
     private var id_acc by atomic(1)
@@ -111,19 +118,6 @@ class ReadableStream(
     scope.launch {
       stream.afterOpened.await()
       onOpenReader(controller)
-    }
-    scope.launch {
-      // 一直等待数据
-      for (chunk in input) {
-        debugStream("DATA-IN", "$uid => +${chunk.size}")
-        // chunk 可能很大，所以需要打包成 ByteReadPacket ，可以一点一点地写入
-        output.writePacket(ByteReadPacket(chunk))
-      }
-      // close ByteChannel
-      output.close()
-      output.cancel()
-      // 执行生命周期回调
-      onClose()
     }
   }
 }
