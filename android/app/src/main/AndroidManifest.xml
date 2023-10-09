@@ -84,6 +84,7 @@
     <activity
       android:name=".microService.sys.deepLink.DeepLinkActivity"
       android:exported="true"
+      android:launchMode="singleTask"
       android:theme="@style/Theme.AppCompat.Transparent">
 
       <intent-filter>
