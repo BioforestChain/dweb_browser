@@ -80,13 +80,13 @@ class JmmController(
     )
   }
 
-  suspend fun updateDownloadState(downloadController: JmmDownloadController) {
+  suspend fun updateDownloadState(downloadController: JmmDownloadController, mmid: MMID) :Boolean {
     val url = when (downloadController) {
-      JmmDownloadController.PAUSE -> "file://download.browser.dweb/pause"
-      JmmDownloadController.CANCEL -> "file://download.browser.dweb/cancel"
-      JmmDownloadController.RESUME -> "file://download.browser.dweb/resume"
+      JmmDownloadController.PAUSE -> "file://download.browser.dweb/pause?mmid=$mmid"
+      JmmDownloadController.CANCEL -> "file://download.browser.dweb/cancel?mmid=$mmid"
+      JmmDownloadController.RESUME -> "file://download.browser.dweb/resume?mmid=$mmid"
     }
-    jmmNMM.nativeFetch(PureRequest(href = url, method = IpcMethod.GET))
+    return jmmNMM.nativeFetch(PureRequest(href = url, method = IpcMethod.GET)).boolean()
   }
 
   suspend fun closeSelf() {

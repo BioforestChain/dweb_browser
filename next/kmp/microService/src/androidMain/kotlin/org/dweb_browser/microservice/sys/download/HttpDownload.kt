@@ -7,6 +7,7 @@ import io.ktor.client.request.prepareGet
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.core.isNotEmpty
 import io.ktor.utils.io.core.readBytes
+import kotlinx.coroutines.delay
 import org.dweb_browser.helper.platform.getKtorClientEngine
 import java.io.File
 
@@ -27,9 +28,10 @@ object HttpDownload {
       val contentLength = httpResponse.headers["content-length"]?.toLong() ?: downloadInfo.size
       var currentLength = 0L
       val channel: ByteReadChannel = httpResponse.body()
-      while (!channel.isClosedForRead && !isStop()) {
+      while (!channel.isClosedForRead) {
         val packet = channel.readRemaining(limit = DEFAULT_BUFFER_SIZE.toLong())
-        while (packet.isNotEmpty && !isStop()) {
+        while (packet.isNotEmpty) {
+          while (isStop()) delay(200)
           val bytes: ByteArray = packet.readBytes()
           file.appendBytes(array = bytes)
           currentLength += bytes.size

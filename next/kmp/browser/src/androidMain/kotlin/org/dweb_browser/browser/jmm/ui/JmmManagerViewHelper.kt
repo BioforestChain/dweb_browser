@@ -97,7 +97,7 @@ class JmmManagerViewHelper(
 //    }
   }
 
-  private fun initDownLoadStatusListener() {
+  private suspend fun initDownLoadStatusListener() {
     jmmController.onDownload { downloadInfo ->
       if (downloadInfo.id != uiState.jmmAppInstallManifest.id) return@onDownload
       if (downloadInfo.downloadStatus == JmmDownloadStatus.IDLE) return@onDownload
@@ -112,10 +112,9 @@ class JmmManagerViewHelper(
           uiState.downloadStatus.value = downloadInfo.downloadStatus
         }
       }
-      if (downloadInfo.downloadStatus == JmmDownloadStatus.INSTALLED) { // 移除监听列表
-        // downLoadObserver?.close()
-        // TODO 移除监听
-      }
+      /*if (downloadInfo.downloadStatus == JmmDownloadStatus.INSTALLED) { // 移除监听列表
+
+      }*/
     }
   }
 
@@ -131,11 +130,21 @@ class JmmManagerViewHelper(
           }
 
           JmmDownloadStatus.DownLoading -> {
-            jmmController.updateDownloadState(JmmDownloadController.PAUSE)
+            val success = jmmController.updateDownloadState(
+              JmmDownloadController.PAUSE, uiState.jmmAppInstallManifest.id
+            )
+            if (success) {
+              uiState.downloadStatus.value = JmmDownloadStatus.PAUSE
+            }
           }
 
           JmmDownloadStatus.PAUSE -> {
-            jmmController.updateDownloadState(JmmDownloadController.RESUME)
+            val success =jmmController.updateDownloadState(
+              JmmDownloadController.RESUME, uiState.jmmAppInstallManifest.id
+            )
+            if (success) {
+              uiState.downloadStatus.value = JmmDownloadStatus.DownLoading
+            }
           }
 
           /*DownloadStatus.DownLoading, DownloadStatus.PAUSE -> {

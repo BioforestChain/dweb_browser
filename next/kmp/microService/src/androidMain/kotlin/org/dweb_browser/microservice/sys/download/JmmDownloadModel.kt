@@ -63,7 +63,6 @@ class DownloadModel(val downloadNMM: DownloadNMM) {
     private var notificationId = AtomicInteger(999)
   }
 
-  fun findDownloadApp(mmid: MMID) = downloadAppMap[mmid]
   fun exists(mmid: MMID) = downloadAppMap.containsKey(mmid)
 
   private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler // 用于全局的协程调用
@@ -76,12 +75,19 @@ class DownloadModel(val downloadNMM: DownloadNMM) {
     val downloadInfo = jmm.toDownloadInfo(context)
     downloadAppMap[jmm.id] = downloadInfo
     HttpDownload.downloadAndSave(downloadInfo, isStop = {
+      // debugDownload("Downloading", "${jmm.id}, downloadStatus=${downloadInfo.downloadStatus}")
       when (downloadInfo.downloadStatus) {
-        JmmDownloadStatus.CANCEL, JmmDownloadStatus.FAIL, JmmDownloadStatus.PAUSE -> true
+        JmmDownloadStatus.CANCEL, JmmDownloadStatus.FAIL -> {
+          // 如果是cancel和fail，移除当前下载
+          downloadAppMap.remove(jmm.id)
+          downloadingMap.remove(jmm.id)
+          true
+        }
+        JmmDownloadStatus.PAUSE -> true
         else -> false
       }
     }) { current, total ->
-      debugDownload("Downloading", "current=$current, total=$total")
+      // debugDownload("Downloading", "current=$current, total=$total")
       ioAsyncScope.launch {
         downloadInfo.callDownLoadProgress(context, current, total)
       }
@@ -89,12 +95,9 @@ class DownloadModel(val downloadNMM: DownloadNMM) {
     return true
   }
 
-  internal suspend fun breakDownloadApp() {
-
-  }
-
   internal fun updateDownloadState(mmid: MMID, event: JmmDownloadController) {
     downloadAppMap[mmid]?.apply {
+      debugDownload("updateDownloadState", "event=$event, mmid=$mmid")
       downloadStatus = when (event) {
         JmmDownloadController.CANCEL -> JmmDownloadStatus.CANCEL
         JmmDownloadController.RESUME -> JmmDownloadStatus.DownLoading
