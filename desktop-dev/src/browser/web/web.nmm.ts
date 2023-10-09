@@ -14,7 +14,7 @@ export class WebBrowserNMM extends NativeMicroModule {
   mmid = "web.browser.dweb" as const;
   name = "Web Browser";
   override short_name = "Browser";
-  override dweb_deeplinks = ["dweb:search", "dweb:openinbrowser"] as $DWEB_DEEPLINK[];
+  override dweb_deeplinks = ["dweb://search", "dweb://openinbrowser"] as $DWEB_DEEPLINK[];
   override categories = [MICRO_MODULE_CATEGORY.Application, MICRO_MODULE_CATEGORY.Web_Browser];
   override icons: NativeMicroModule["icons"] = [
     {

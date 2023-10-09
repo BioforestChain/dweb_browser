@@ -43,7 +43,7 @@ await dnt.build({
     companyName: "Bnqkl, Inc.",
     appCopyright: "Copyright © 2023 Bnqkl, Inc.",
     productName: productName,
-
+    homepage: "https://github.com/BioforestChain/dweb_browser",
     version: Deno.args.filter((arg) => /^\d/.test(arg))[0] || readPackageJson()?.version || "0.0.0",
     description: "Distributed web browser",
     license: "MIT",
@@ -62,7 +62,7 @@ await dnt.build({
     protocols: [
       {
         name: productName,
-        schemes: ["dweb"]
+        schemes: ["dweb"],
       },
     ],
     build: {
@@ -73,28 +73,46 @@ await dnt.build({
       // icon: "/logo.svg",
       files: ["assets", "bundle", "!node_modules"],
       directories: { output: "../build" },
-      extraResources:[
+      extraResources: [
         {
-          from:"./icons",
-          to:"./icons"
-        }
+          from: "./icons",
+          to: "./icons",
+        },
       ],
       mac: {
-        icon:"./icons/mac/icon.icns",
+        icon: "./icons/mac/icon.icns",
         category: "public.app-category.developer-tools",
         target: {
           target: "default",
           arch: ["x64", "arm64"],
         },
-        provisioningProfile: "scripts/macApp1st_prov.provisionprofile"
+        provisioningProfile: "scripts/macApp1st_prov.provisionprofile",
       },
       win: {
-        icon:"./icons/win/icon.ico",
+        icon: "./icons/win/icon.ico",
         target: {
           target: "portable",
           arch: ["x64", "arm64"],
         },
         publisherName: "Bnqkl Dweb Team",
+      },
+      linux: {
+        icon: "./icons/mac/icon.icns",
+        category: "Development;Network",
+        maintainer: "Bnqkl Dweb Team",
+        mimeTypes: ["x-scheme-handler/dweb"],
+        desktop: {
+          StartupNotify: "false",
+          StartupWMClass: "dweb",
+          Encoding: "UTF-8",
+          MimeType: "x-scheme-handler/dweb",
+          // exec: "dweb %U"
+        },
+        target: [
+          { target: "deb", arch: ["x64", "arm64"] },
+          // { target: "rpm", arch: ["x64", "arm64"] },
+          // { target: "tar.xz", arch: ["x64", "arm64"] },
+        ],
       },
     },
   },

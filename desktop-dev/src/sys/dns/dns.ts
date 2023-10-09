@@ -79,7 +79,7 @@ export class DnsNMM extends NativeMicroModule {
   mmid = "dns.std.dweb" as const;
   name = "Dweb Name System";
   override short_name = "DNS";
-  override dweb_deeplinks = ["dweb:open"] as $DWEB_DEEPLINK[];
+  override dweb_deeplinks = ["dweb://open"] as $DWEB_DEEPLINK[];
   override categories = [MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Routing_Service];
   private installApps = new ChangeableMap<$MMID, MicroModule>();
   readonly running_apps = new ChangeableMap<$MMID, Promise<MicroModule>>();
@@ -277,7 +277,7 @@ export class DnsNMM extends NativeMicroModule {
   private async postDeeplink(fromMM: MicroModule, deeplinkUrl: string) {
     /// 查询匹配deeplink的程序
     for (const app of this.installApps.values()) {
-      if (undefined !== app.dweb_deeplinks.find((dl) => deeplinkUrl.startsWith(dl))) {
+      if (undefined !== app.dweb_deeplinks.find((dl) => deeplinkUrl.startsWith(dl.replace(/\:{1}\/{2}/, ":")))) {
         /// 在win平台，deeplink链接会变成 dweb:search/?q=xxx ，需要把/去掉
         if(process.platform === "win32") {
           deeplinkUrl = deeplinkUrl.replace(/\/{1}\?{1}/, "?");
