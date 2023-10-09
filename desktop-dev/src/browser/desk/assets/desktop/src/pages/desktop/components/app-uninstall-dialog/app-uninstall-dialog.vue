@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AppIcon from "src/components/app-icon/app-icon.vue";
 import { $AppIconInfo } from "src/components/app-icon/types";
-import { deleteApp, deleteWebApp } from "src/provider/api.ts";
+import { deleteApp } from "src/provider/api.ts";
 import { $CloseWatcher, CloseWatcher } from "src/provider/shim.ts";
 import { watchEffect } from "vue";
 
@@ -17,10 +17,6 @@ const emit = defineEmits<{
 }>();
 
 async function doUninstall() {
-  // 如果是移除 browserApp需要顺便把窗口移除
-  if(props.appId === "web.browser.dweb") {
-    deleteWebApp()
-  }
   if (await deleteApp(props.appId)) {
     emit("close", true);
   }

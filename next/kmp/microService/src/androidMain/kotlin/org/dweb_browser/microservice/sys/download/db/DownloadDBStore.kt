@@ -99,7 +99,7 @@ object DownloadDBStore {
 
   suspend fun deleteDeskAppInfo(context: Context, mmid: MMID) {
     context.dataStore.edit { pref ->
-      val name = if (mmid.startsWith(AppType.Link.type)) mmid else "${AppType.Jmm}$mmid"
+      val name = if (mmid.endsWith("${AppType.Link.type}.dweb")) mmid else "${AppType.Jmm}$mmid"
       pref.remove(stringPreferencesKey(name))
     }
   }

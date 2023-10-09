@@ -169,7 +169,7 @@ suspend fun startDwebBrowser(): DnsNMM {
 
   /// 启动程序
   val bootNMM = BootNMM(
-    bootMmidList.plus(jmmNMM.mmid).plus(browserNMM.mmid).plus(httpNMM.mmid).plus(nativeUiNMM.mmid),
+    bootMmidList.plus(jmmNMM.mmid).plus(httpNMM.mmid).plus(nativeUiNMM.mmid),
   ).also { dnsNMM.install(it) }
 
   /// 启动Web调试

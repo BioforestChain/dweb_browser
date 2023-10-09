@@ -1,4 +1,4 @@
-package org.dweb_browser.browserUI.microService.browser.link
+package org.dweb_browser.browser.link
 
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.core.BootstrapContext

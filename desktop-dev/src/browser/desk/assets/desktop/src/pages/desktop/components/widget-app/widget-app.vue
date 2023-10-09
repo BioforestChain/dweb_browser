@@ -4,7 +4,7 @@ import AppIcon from "src/components/app-icon/app-icon.vue";
 import { watchEffectAppMetadataToAppIcon } from "src/components/app-icon/appMetaDataHelper";
 import { $AppIconInfo } from "src/components/app-icon/types";
 import SvgIcon from "src/components/svg-icon/svg-icon.vue";
-import { deleteWebApp, detailApp, openApp, quitApp, vibrateHeavyClick } from "src/provider/api.ts";
+import { closeBrowser, detailApp, openApp, quitApp, vibrateHeavyClick } from "src/provider/api.ts";
 import { $CloseWatcher, CloseWatcher } from "src/provider/shim.ts";
 import type { $WidgetAppData } from "src/types/app.type.ts";
 import { computed, onMounted, reactive, ref, shallowRef, watch } from "vue";
@@ -107,7 +107,7 @@ const doOpen = () =>
 async function doQuit() {
   // 如果是移除 browserApp需要顺便把窗口移除
   if (appid.value === "web.browser.dweb") {
-    deleteWebApp();
+    closeBrowser();
   }
   if (await quitApp(appid.value)) {
     snackbar.text = `${appname.value} 已退出后台。`;
@@ -176,7 +176,7 @@ const onJmmUnInstallDialogClosed = (confirmed: boolean) => {
           <SvgIcon class="icon" :src="details_svg" alt="详情" />
           <p class="title">详情</p>
         </button>
-        <button v-ripple class="item delete" @click="showUninstall">
+        <button v-ripple v-if="appMetaData.mmid !== 'web.browser.dweb'" class="item delete" @click="showUninstall">
           <SvgIcon class="icon" :src="delete_svg" alt="卸载" />
           <p class="title">卸载</p>
         </button>

@@ -290,6 +290,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     val categoryList = mutableListOf<MicroModule>()
     for (app in this.installApps.values) {
       if (app.categories.contains(category)) {
+        println("apps=> ${app.mmid}")
         categoryList.add(app)
       }
     }

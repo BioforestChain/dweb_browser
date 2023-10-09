@@ -6,6 +6,7 @@ import io.ktor.http.URLBuilder
 import io.ktor.http.Url
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import org.dweb_browser.browser.link.WebLinkMicroModule
 import org.dweb_browser.core.getAppContext
 import org.dweb_browser.helper.APP_DIR_TYPE
 import org.dweb_browser.helper.ChangeableMap
@@ -25,13 +26,12 @@ import org.dweb_browser.microservice.http.PureResponse
 import org.dweb_browser.microservice.http.bind
 import org.dweb_browser.microservice.http.bindDwebDeeplink
 import org.dweb_browser.microservice.ipc.Ipc
-import org.dweb_browser.microservice.std.file.ext.RespondLocalFileContext.Companion.respondLocalFile
 import org.dweb_browser.microservice.std.dns.nativeFetch
 import org.dweb_browser.microservice.std.dns.nativeFetchAdaptersManager
+import org.dweb_browser.microservice.std.file.ext.RespondLocalFileContext.Companion.respondLocalFile
 import org.dweb_browser.microservice.sys.dns.returnAndroidFile
 import org.dweb_browser.microservice.sys.download.JmmDownloadInfo
 import org.dweb_browser.microservice.sys.download.db.AppType
-import org.dweb_browser.microservice.sys.download.db.DeskAppInfo
 import org.dweb_browser.microservice.sys.download.db.DownloadDBStore
 import org.dweb_browser.window.core.WindowState
 import org.dweb_browser.window.core.constant.WindowConstants
@@ -138,14 +138,12 @@ class JmmNMM() :
    */
   private fun installJmmApps() {
     ioAsyncScope.launch {
-      var preList = mutableListOf<DeskAppInfo>()
       DownloadDBStore.queryDeskAppInfoList(getAppContext())
         .collectLatest { list -> // TODO 只要datastore更新，这边就会实时更新
           debugJMM("AppInfoDataStore", "size=${list.size}")
           list.map { deskAppInfo ->
             when (deskAppInfo.appType) {
               AppType.Jmm -> deskAppInfo.metadata?.let { jsMetaData ->
-                preList.removeIf { it.metadata?.id == jsMetaData.id }
                 // 检测版本
                 bootstrapContext.dns.query(jsMetaData.id)?.let { lastMetaData ->
                   if (jsMetaData.version.isGreaterThan(lastMetaData.version)) {
@@ -154,18 +152,16 @@ class JmmNMM() :
                 }
                 bootstrapContext.dns.install(JsMicroModule(jsMetaData))
               }
-
+              AppType.Link -> deskAppInfo.weblink?.let { deskWebLink ->
+                bootstrapContext.dns.install(
+                  WebLinkMicroModule(
+                    deskWebLink
+                  )
+                )
+              }
               else -> {}
             }
           }
-          /// 将剩余的应用卸载掉
-          for (uninstallItem in preList) {
-            uninstallItem.weblink?.deleteIconFile(getAppContext()) // 删除已下载的图标
-            (uninstallItem.metadata?.id ?: uninstallItem.weblink?.id)?.let { uninstallId ->
-              bootstrapContext.dns.uninstall(uninstallId)
-            }
-          }
-          preList = list
         }
     }
   }
