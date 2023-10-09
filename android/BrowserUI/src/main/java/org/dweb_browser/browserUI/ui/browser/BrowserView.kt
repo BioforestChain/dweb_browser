@@ -118,16 +118,13 @@ fun BrowserViewForWindow(
       }
     }
 
-    Box(
-      modifier = Modifier
-        .background(MaterialTheme.colorScheme.background)
-      //.statusBarsPadding()
-      //.navigationBarsPadding()
-    ) {
+    Box(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
       CompositionLocalProvider(
         LocalWebViewInitialScale provides initialScale
       ) {
-        BrowserViewContent(viewModel)   // 中间主体部分
+        Box(modifier = Modifier.fillMaxSize().padding(bottom = dimenBottomHeight * windowRenderScope.scale)) {
+          BrowserViewContent(viewModel)   // 中间主体部分
+        }
       }
       Box(modifier = with(windowRenderScope) {
         Modifier
@@ -398,13 +395,14 @@ private fun RowScope.NavigatorButton(
 @Composable
 private fun BrowserViewContentWeb(viewModel: BrowserViewModel, browserWebView: BrowserWebView) {
   key(browserWebView.viewItem.webviewId) {
-    Box(
-      modifier = Modifier
-        .fillMaxSize()
-        .padding(bottom = if (viewModel.uiState.showBottomBar.currentState) dimenBottomHeight else dimenHorizontalPagerHorizontal)
-    ) {
-      BrowserWebView(viewModel = viewModel, browserWebView = browserWebView)
-    }
+    BrowserWebView(viewModel = viewModel, browserWebView = browserWebView)
+//    Box(
+//      modifier = Modifier
+//        .fillMaxSize()
+//        .padding(bottom = if (viewModel.uiState.showBottomBar.currentState) dimenBottomHeight else dimenHorizontalPagerHorizontal)
+//    ) {
+//      BrowserWebView(viewModel = viewModel, browserWebView = browserWebView)
+//    }
   }
 }
 
