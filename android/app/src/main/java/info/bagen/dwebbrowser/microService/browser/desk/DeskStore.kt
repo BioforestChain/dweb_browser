@@ -8,10 +8,12 @@ class DeskStore(mm: MicroModule) {
   private val store = mm.createStore("desk", false)// createStore("taskbar/apps", false)
 
   suspend fun getTaskbarApps(): MutableList<String> {
-    return store.get("taskbar/apps")
+    return store.getOrPut("taskbar/apps") {
+     return@getOrPut mutableListOf()
+    }
   }
 
   suspend fun setTaskbarApps(data: MutableList<String>) {
-    return store.set("taskbar/apps", data)
+    return store.set<MutableList<String>>("taskbar/apps", data)
   }
 }

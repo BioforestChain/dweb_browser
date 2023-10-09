@@ -24,8 +24,8 @@ class TaskbarController(
   val taskbarView = TaskbarView(this)
 
   /** 展示在taskbar中的应用列表 */
-  private suspend fun getApps() = deskNMM.deskStore.getTaskbarApps()
-  internal suspend fun getFocusApp() = getApps().firstOrNull()
+  private suspend fun getTaskbarShowAppList() = deskNMM.deskStore.getTaskbarApps()
+  internal suspend fun getFocusApp() = getTaskbarShowAppList().firstOrNull()
   internal val updateSignal = SimpleSignal()
   val onUpdate = updateSignal.toListener()
 
@@ -38,7 +38,7 @@ class TaskbarController(
      * 绑定 runningApps 集合
      */
     deskNMM.ioAsyncScope.launch {
-      val apps = getApps()
+      val apps = getTaskbarShowAppList()
       runningApps.onChange { map ->
         /// 将新增的打开应用追加到列表签名
         for (mmid in map.origin.keys) {
@@ -46,6 +46,7 @@ class TaskbarController(
             apps.add(0, mmid) // 追加到第一个
           }
         }
+
         /// 保存到数据库
         deskNMM.deskStore.setTaskbarApps(apps)
         updateSignal.emit()
@@ -58,7 +59,7 @@ class TaskbarController(
 
   suspend fun getTaskbarAppList(limit: Int): List<DeskAppMetaData> {
     val apps = mutableMapOf<MMID, DeskAppMetaData>()
-    for (appId in getApps()) {
+    for (appId in getTaskbarShowAppList()) {
       if (apps.size >= limit) {
         break
       }

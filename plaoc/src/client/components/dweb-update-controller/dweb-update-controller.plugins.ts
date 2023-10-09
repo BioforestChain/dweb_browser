@@ -51,21 +51,21 @@ class UpdateControllerPlugin extends BasePlugin {
   @bindThis
   async pause(): Promise<boolean> {
     return await this.fetchApi("/pause", {
-      pathPrefix: "download.sys.dweb",
+      pathPrefix: this.listen.mmid,
     }).boolean();
   }
   // 恢复
   @bindThis
   async resume(): Promise<boolean> {
     return await this.fetchApi("/resume", {
-      pathPrefix: "download.sys.dweb",
+      pathPrefix: this.listen.mmid,
     }).boolean();
   }
   // 取消
   @bindThis
   async cancel(): Promise<boolean> {
     return await this.fetchApi("/cancel", {
-      pathPrefix: "download.sys.dweb",
+      pathPrefix: this.listen.mmid,
     }).boolean();
   }
 
@@ -92,7 +92,7 @@ class UpdateControllerPlugin extends BasePlugin {
 }
 
 class UpdateController extends EventTarget {
-  mmid: $MMID = "download.sys.dweb";
+  mmid: $MMID = "download.browser.dweb";
   readonly ipcPromise = this.createIpc();
 
   constructor() {

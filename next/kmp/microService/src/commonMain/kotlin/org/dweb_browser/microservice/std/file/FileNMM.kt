@@ -32,7 +32,7 @@ val debugFile = Debugger("file")
  *
  * 比如 视频、相册、音乐、办公 等模块都是对文件读写有刚性依赖的，因此会基于标准文件模块实现同样的标准，这样别的模块可以将同类型的文件存储到它们的文件夹标准下管理
  */
-class FileNMM(serialName: String) : NativeMicroModule("file.std.dweb", "File Manager") {
+class FileNMM() : NativeMicroModule("file.std.dweb", "File Manager") {
 
   fun findVfsDirectory(firstSegment: String): IVirtualFsDirectory? {
     for (adapter in fileTypeAdapterManager.adapters) {
@@ -132,6 +132,13 @@ class FileNMM(serialName: String) : NativeMicroModule("file.std.dweb", "File Man
       }
     }.removeWhen(onAfterShutdown)
 
+    fun touchFile (filepath:Path){
+      if (!SystemFileSystem.exists(filepath)) {
+        SystemFileSystem.createDirectories(filepath.resolve("..",true), false)
+        SystemFileSystem.sink(filepath, true).close()
+      }
+    }
+
     routes(
       // 创建文件夹
       "/createDir" bind HttpMethod.Post to defineBooleanResponse {
@@ -158,12 +165,9 @@ class FileNMM(serialName: String) : NativeMicroModule("file.std.dweb", "File Man
         val filepath = getPath()
         val create = request.queryAsOrNull<Boolean>("create") ?: false
         if (create) {
-          if (!SystemFileSystem.exists(filepath)) {
-            SystemFileSystem.createDirectories(filepath.resolve(".."), true)
-            SystemFileSystem.sink(filepath, true)
-          }
+          touchFile(filepath)
         }
-        val fileSource = SystemFileSystem.source(getPath()).buffer()
+        val fileSource = SystemFileSystem.source(filepath).buffer()
 
         val skip = request.queryAsOrNull<Long>("skip")
         if (skip != null) {
@@ -174,20 +178,25 @@ class FileNMM(serialName: String) : NativeMicroModule("file.std.dweb", "File Man
       // 写入文件，一次性写入
       "/write" bind HttpMethod.Post to defineEmptyResponse {
         val filepath = getPath()
+        debugFile("/write",filepath)
         val create = request.queryAsOrNull<Boolean>("create") ?: false
         if (create) {
-          if (!SystemFileSystem.exists(filepath)) {
-            SystemFileSystem.createDirectories(filepath.resolve(".."), true)
-          }
+          touchFile(filepath)
         }
-        val fileSource = SystemFileSystem.sink(getPath(), create).buffer()
+        val fileSource = SystemFileSystem.sink(filepath, false).buffer()
 
         request.body.toPureStream().getReader("write to file").copyTo(fileSource)
       },
       // 追加文件，一次性追加
       "/append" bind HttpMethod.Put to defineEmptyResponse {
+        val filepath = getPath()
+        debugFile("/append",filepath)
+        val create = request.queryAsOrNull<Boolean>("create") ?: false
+        if (create) {
+          touchFile(filepath)
+        }
         val fileSource =
-          SystemFileSystem.appendingSink(getPath(), request.queryAsOrNull("create") ?: false)
+          SystemFileSystem.appendingSink(filepath, false)
             .buffer()
 
         request.body.toPureStream().getReader("write to file").copyTo(fileSource)

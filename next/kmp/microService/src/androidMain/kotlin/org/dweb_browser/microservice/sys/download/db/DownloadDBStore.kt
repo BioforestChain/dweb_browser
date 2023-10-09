@@ -9,6 +9,8 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import dev.whyoleg.cryptography.CryptographyProvider
+import dev.whyoleg.cryptography.algorithms.digest.SHA256
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -19,25 +21,35 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.BitmapUtil
 import org.dweb_browser.helper.ImageResource
+import org.dweb_browser.helper.toUtf8ByteArray
 import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
 import org.dweb_browser.microservice.help.types.MMID
 
-enum class AppType {
-  MetaData, URL;
+enum class AppType(val type:String) {
+  Jmm("jmm"),
+  Link("link"),
+  ;
 
-  fun createId() = "${this.name}${System.currentTimeMillis()}.dweb"
-}
+  companion object{
+    private val sha256 = CryptographyProvider.Default.get(SHA256)
+
+    @OptIn(ExperimentalStdlibApi::class)
+    suspend fun createLinkId(url: String) = "${
+      sha256.hasher().hash(url.toUtf8ByteArray()).toHexString(0, 4, HexFormat.Default)
+    }.link.dweb"
+  }
+ }
 
 private const val DeskWebLinkStart = "file:///web_icons/"
 
-fun createDeskWebLink(context: Context, title: String, url: String, bitmap: Bitmap?): DeskWebLink {
+suspend fun createDeskWebLink(context: Context, title: String, url: String, bitmap: Bitmap?): DeskWebLink {
   val imageResource = bitmap?.let {
     BitmapUtil.saveBitmapToIcons(context, it)?.let { src ->
       ImageResource(src = "$DeskWebLinkStart$src")
     }
   }
   return DeskWebLink(
-    id = AppType.URL.createId(),
+    id = AppType.createLinkId(url),
     title = title,
     url = url,
     icon = imageResource ?: ImageResource(src = "file:///sys/browser/web/logo.svg")
@@ -73,7 +85,7 @@ object DownloadDBStore {
     runBlocking(Dispatchers.IO) {
       // edit 函数需要在挂起环境中执行
       context.dataStore.edit { pref ->
-        pref[stringPreferencesKey("${AppType.MetaData}$mmid")] = Json.encodeToString(metadata)
+        pref[stringPreferencesKey("${AppType.Jmm}$mmid")] = Json.encodeToString(metadata)
       }
     }
 
@@ -87,7 +99,7 @@ object DownloadDBStore {
 
   suspend fun deleteDeskAppInfo(context: Context, mmid: MMID) {
     context.dataStore.edit { pref ->
-      val name = if (mmid.startsWith(AppType.URL.name)) mmid else "${AppType.MetaData}$mmid"
+      val name = if (mmid.startsWith(AppType.Link.type)) mmid else "${AppType.Jmm}$mmid"
       pref.remove(stringPreferencesKey(name))
     }
   }
@@ -103,13 +115,13 @@ object DownloadDBStore {
     }.map { pref ->
       val list = mutableListOf<DeskAppInfo>()
       pref.asMap().forEach { (key, value) ->
-        val item = if (key.name.startsWith(AppType.MetaData.name)) {
+        val item = if (key.name.startsWith(AppType.Jmm.name)) {
           DeskAppInfo(
-            AppType.MetaData,
+            AppType.Jmm,
             metadata = Json.decodeFromString<JmmAppInstallManifest>(value as String)
           )
-        } else if (key.name.startsWith(AppType.URL.name)) {
-          DeskAppInfo(AppType.URL, weblink = Json.decodeFromString<DeskWebLink>(value as String))
+        } else if (key.name.endsWith("${AppType.Link.type}.dweb")) {
+          DeskAppInfo(AppType.Link, weblink = Json.decodeFromString<DeskWebLink>(value as String))
         } else {
           null
         }

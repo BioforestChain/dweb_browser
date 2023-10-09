@@ -24,7 +24,6 @@ import org.dweb_browser.microservice.std.http.HttpDwebServer
 
 @Stable
 class DesktopController(
-  private val deskSessionId: String,
   private val deskNMM: DeskNMM,
   private val desktopServer: HttpDwebServer,
   private val runningApps: ChangeableMap<MMID, Ipc>
@@ -104,7 +103,7 @@ class DesktopController(
     val navigator: WebViewNavigator
   )
 
-  val mainDwebViews = mutableMapOf<String, MainDwebView>()
+  private val mainDwebViews = mutableMapOf<String, MainDwebView>()
 
   fun createMainDwebView(name: String, initUrl: String = "") = mainDwebViews.getOrPut(name) {
     val webView = DWebViewEngine(

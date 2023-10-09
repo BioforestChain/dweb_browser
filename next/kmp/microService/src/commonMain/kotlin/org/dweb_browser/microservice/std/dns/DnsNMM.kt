@@ -3,7 +3,6 @@ package org.dweb_browser.microservice.std.dns
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.fullPath
-import io.ktor.utils.io.core.toByteArray
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -33,7 +32,6 @@ import org.dweb_browser.microservice.http.bind
 import org.dweb_browser.microservice.http.bindDwebDeeplink
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
 import org.dweb_browser.microservice.ipc.helper.IpcMethod
-import org.dweb_browser.microservice.ipc.helper.ReadableStream
 
 fun debugDNS(tag: String, msg: Any = "", err: Throwable? = null) =
   printDebug("fetch", tag, msg, err)
@@ -235,54 +233,25 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
         query(mmid)?.toManifest()?.toJsonElement() ?: JsonNull
       },
       //
-      "/observe/install-apps" bind HttpMethod.Get to definePureStreamHandler {
-        val inputStream = ReadableStream { controller ->
-          val off = installApps.onChange { changes ->
-            try {
-              controller.enqueueBackground(
-                (Json.encodeToString(
-                  ChangeState(
-                    changes.adds, changes.updates, changes.removes
-                  )
-                ) + "\n").toByteArray()
-              )
-            } catch (e: Exception) {
-              controller.closeWrite()
-              e.printStackTrace()
-            }
-          }
-          ipc.onClose {
-            off()
-            controller.closeWrite()
-          }
-        }
-        inputStream.stream
+      "/observe/install-apps" bind HttpMethod.Get to defineJsonLineResponse {
+        installApps.onChange { changes ->
+          emit(
+            ChangeState(
+              changes.adds, changes.updates, changes.removes
+            )
+          )
+        }.removeWhen(onDispose)
       },
       //
-      "/observe/running-apps" bind HttpMethod.Get to definePureStreamHandler {
-        val inputStream = ReadableStream(onStart = { controller ->
-          val off = runningApps.onChange { changes ->
-            try {
-              controller.enqueueBackground(
-                (Json.encodeToString(
-                  ChangeState(
-                    changes.adds, changes.updates, changes.removes
-                  )
-                ) + "\n").toByteArray()
-              )
-            } catch (e: Exception) {
-              controller.closeWrite()
-              e.printStackTrace()
-            }
-          }
-          ipc.onClose {
-            off()
-            controller.closeWrite()
-          }
-        })
-        inputStream.stream
+      "/observe/running-apps" bind HttpMethod.Get to defineJsonLineResponse {
+        runningApps.onChange { changes ->
+          emit(
+            ChangeState(
+              changes.adds, changes.updates, changes.removes
+            )
+          )
+        }
       })
-
     /// 启动 boot 模块
     connect("boot.sys.dweb").postMessage(IpcEvent.fromUtf8("activity", ""))
   }

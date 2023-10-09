@@ -27,6 +27,7 @@ import org.dweb_browser.helper.addDebugTags
 import org.dweb_browser.helper.platform.getKtorClientEngine
 import org.dweb_browser.microservice.std.dns.DnsNMM
 import org.dweb_browser.microservice.std.dns.nativeFetchAdaptersManager
+import org.dweb_browser.microservice.std.file.FileNMM
 import org.dweb_browser.microservice.std.http.HttpNMM
 import org.dweb_browser.microservice.sys.boot.BootNMM
 import org.dweb_browser.microservice.sys.download.DownloadNMM
@@ -48,6 +49,7 @@ suspend fun startDwebBrowser(): DnsNMM {
   "native-ipc" ,
   "browser",
   "jmm",
+  "file",
   "SplashScreen",
   "js-process",
   "desk",
@@ -67,15 +69,6 @@ suspend fun startDwebBrowser(): DnsNMM {
 
     DEVELOPER.WaterBang -> addDebugTags(
       listOf(
-        "dwebview",
-        "mwebview",
-        "http",
-        "JsMM",
-        "js-process",
-        "DNS",
-        "desk",
-        "browser",
-        "JMM",
         "/.+/",
       )
     )
@@ -139,6 +132,8 @@ suspend fun startDwebBrowser(): DnsNMM {
 //    val permissionNMM = PermissionsNMM().also { dnsNMM.install(it) }
   ///文件系统
   val fileSystemNMM = FileSystemNMM().also { dnsNMM.install(it) }
+  // 标准文件模块
+  val fileNMM = FileNMM().also { dnsNMM.install(it) }
   /// NFC
 //  val nfcNMM = NfcNMM().also { dnsNMM.install(it) }
   /// 通知
@@ -174,7 +169,7 @@ suspend fun startDwebBrowser(): DnsNMM {
 
   /// 启动程序
   val bootNMM = BootNMM(
-    bootMmidList.plus(jmmNMM.mmid).plus(httpNMM.mmid).plus(nativeUiNMM.mmid),
+    bootMmidList.plus(jmmNMM.mmid).plus(browserNMM.mmid).plus(httpNMM.mmid).plus(nativeUiNMM.mmid),
   ).also { dnsNMM.install(it) }
 
   /// 启动Web调试

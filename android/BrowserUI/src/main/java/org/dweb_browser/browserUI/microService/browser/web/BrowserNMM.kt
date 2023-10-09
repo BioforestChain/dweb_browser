@@ -65,7 +65,7 @@ class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
           debugBrowser("AppInfoDataStore", "size=${list.size}")
           list.map { deskAppInfo ->
             when (deskAppInfo.appType) {
-              AppType.URL -> deskAppInfo.weblink?.let { deskWebLink ->
+              AppType.Link -> deskAppInfo.weblink?.let { deskWebLink ->
                 preList.removeIf { preDeskAppInfo -> preDeskAppInfo.weblink?.id == deskWebLink.id }
                 bootstrapContext.dns.install(WebLinkMicroModule(deskWebLink))
               }

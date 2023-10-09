@@ -144,7 +144,7 @@ class JmmNMM() :
           debugJMM("AppInfoDataStore", "size=${list.size}")
           list.map { deskAppInfo ->
             when (deskAppInfo.appType) {
-              AppType.MetaData -> deskAppInfo.metadata?.let { jsMetaData ->
+              AppType.Jmm -> deskAppInfo.metadata?.let { jsMetaData ->
                 preList.removeIf { it.metadata?.id == jsMetaData.id }
                 // 检测版本
                 bootstrapContext.dns.query(jsMetaData.id)?.let { lastMetaData ->
@@ -183,8 +183,6 @@ class JmmNMM() :
       }
     }
     debugJMM("openJmmMetadataInstallPage", jmmAppInstallManifest.bundle_url)
-    // 打开安装的界面
-    // JmmManagerActivity.startActivity(jmmAppInstallManifest)
     // 打开安装窗口
     val win = createWindowAdapterManager.createWindow(WindowState(
       WindowConstants(
@@ -194,7 +192,7 @@ class JmmNMM() :
       mode = WindowMode.FLOATING
       setFromManifest(this@JmmNMM)
     })
-    jmmController = org.dweb_browser.browser.jmm.JmmController(
+    jmmController = JmmController(
       win, this@JmmNMM, jmmAppInstallManifest
     ).also { ctrl ->
       ctrl.onClosed {

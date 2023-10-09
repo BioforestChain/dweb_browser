@@ -4,9 +4,11 @@ import dev.whyoleg.cryptography.CryptographyProvider
 import dev.whyoleg.cryptography.algorithms.digest.SHA256
 import dev.whyoleg.cryptography.algorithms.symmetric.AES
 import dev.whyoleg.cryptography.operations.cipher.AuthenticatedCipher
+import io.ktor.http.URLBuilder
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
@@ -15,6 +17,7 @@ import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
 import org.dweb_browser.helper.WeakHashMap
+import org.dweb_browser.helper.buildUnsafeString
 import org.dweb_browser.helper.encodeURIComponent
 import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.helper.toUtf8ByteArray
@@ -23,22 +26,16 @@ import org.dweb_browser.microservice.http.IPureBody
 import org.dweb_browser.microservice.http.PureRequest
 import org.dweb_browser.microservice.ipc.helper.IpcMethod
 import org.dweb_browser.microservice.std.dns.nativeFetch
-
-
-@OptIn(ExperimentalSerializationApi::class)
 fun MicroModule.createStore(storeName: String, encrypt: Boolean) =
   MicroModuleStore(this, storeName, encrypt)
 
-@OptIn(ExperimentalSerializationApi::class)
 private val defaultSimpleStoreCache by atomic(WeakHashMap<MicroModule, MicroModuleStore>())
 
-@OptIn(ExperimentalSerializationApi::class)
 val MicroModule.store: MicroModuleStore
   get() = defaultSimpleStoreCache.getOrPut(this) {
     createStore("default", true)
   }
 
-@OptIn(ExperimentalSerializationApi::class)
 class MicroModuleStore(
   private val mm: MicroModule, val storeName: String, val encrypt: Boolean
 ) {
@@ -59,7 +56,11 @@ class MicroModuleStore(
     ).cipher()
   }
 
-  lateinit var _store: Deferred<MutableMap<String, ByteArray>>
+  private var _store: Deferred<MutableMap<String, ByteArray>> = mm.ioAsyncScope.async {
+    val map = mutableMapOf<String, ByteArray>()
+    // 计算map的值
+    map
+  }
   val store get() = _store
   private val queryPath =
     "/data/store/$storeName${if (encrypt) ".ebor" else ".cbor"}".encodeURIComponent()
@@ -80,6 +81,18 @@ class MicroModuleStore(
   internal class Task<T>(val deferred: CompletableDeferred<T>, val action: suspend () -> T) {}
 
   private val taskQueues = Channel<Task<*>>(onBufferOverflow = BufferOverflow.SUSPEND)
+
+  init {
+    mm.ioAsyncScope.launch {
+      for (task in taskQueues) {
+        try {
+          (task.deferred as CompletableDeferred<Any>).complete(task.action() as Any)
+        }catch (e:Throwable){
+          task.deferred.completeExceptionally(e)
+        }
+      }
+    }
+  }
   private fun <T> exec(action: suspend () -> T): Deferred<T> {
     val deferred = CompletableDeferred<T>()
     mm.ioAsyncScope.launch {
@@ -91,11 +104,17 @@ class MicroModuleStore(
   suspend inline fun <reified T> getOrNull(key: String) =
     store.await()[key]?.let { Cbor.decodeFromByteArray<T>(it) }
 
-  suspend inline fun <reified T> getOrPut(key: String, put: () -> T) =
-    store.await()[key].let {
+  suspend inline fun <reified T> getOrPut(key: String, put: () -> T): T {
+    val obj = store.await()
+    return obj[key].let { it ->
       if (it != null) Cbor.decodeFromByteArray<T>(it)
-      else put().also { set(key, it) }
+      else put().also {
+        obj[key] = Cbor.encodeToByteArray<T>(it)
+        save()
+      }
     }
+  }
+
 
   suspend inline fun <reified T> get(key: String) = getOrPut<T>(key) {
     throw Exception("no found data for key: $key")
@@ -103,11 +122,16 @@ class MicroModuleStore(
 
   suspend fun save() {
     exec {
+      val map = store.await()
       mm.nativeFetch(
         PureRequest(
-          "file://file.std.dweb/write?path=$queryPath&create=true",
+          URLBuilder("file://file.std.dweb/write").apply {
+            parameters["path"] = queryPath
+            parameters["create"] = "true"
+          }.buildUnsafeString(),
           IpcMethod.POST,
-          body = IPureBody.from(Cbor.encodeToByteArray(store).let { cipher?.encrypt(it) ?: it })
+          body = IPureBody.from(
+            Cbor.encodeToByteArray(map).let { cipher?.encrypt(it) ?: it })
         )
       )
     }.await()

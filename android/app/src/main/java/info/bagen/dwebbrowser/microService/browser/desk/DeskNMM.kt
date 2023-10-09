@@ -100,7 +100,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     val desktopServer = this.createDesktopWebServer()
     val deskSessionId = randomUUID()
 
-    val desktopController = DesktopController(deskSessionId, this, desktopServer, runningApps)
+    val desktopController = DesktopController(this, desktopServer, runningApps)
     val taskBarController =
       TaskbarController(deskSessionId, this, desktopController, taskbarServer, runningApps)
     val deskControllers = DeskControllers(desktopController, taskBarController)
@@ -134,10 +134,8 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
               org.dweb_browser.browser.jmm.EIpcEvent.Activity.event, ""
             )
           )
-
           /// 将所有的窗口聚焦，这个行为不依赖于 Activity 事件，而是Desk模块自身托管窗口的行为
           desktopController.desktopWindowsManager.focusWindow(mmid)
-
           true
         } catch (e: Exception) {
           desktopController.showAlert(e)
