@@ -64,7 +64,8 @@ class WindowNMM : NativeMicroModule("window.sys.dweb", "Window Management") {
         inputStream.stream
       },
       "/getState" bind HttpMethod.Get to defineJsonResponse {
-        getWindow(request).toJsonElement()
+        val controller = getWindow(request)
+        controller.state.toJsonElement()
       },
       "/focus" bind HttpMethod.Get to defineEmptyResponse { getWindow(request).focus() },
       "/blur" bind HttpMethod.Get to defineEmptyResponse { getWindow(request).blur() },

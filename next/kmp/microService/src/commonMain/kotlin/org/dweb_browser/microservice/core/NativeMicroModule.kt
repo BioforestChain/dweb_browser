@@ -94,7 +94,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
     handler: RequestHandler<Unit>,
   ) = wrapHandler(beforeResponse) {
     handler()
-    PureResponse(HttpStatusCode.NoContent)
+    PureResponse(HttpStatusCode.OK)
   }
 
   protected fun defineStringResponse(

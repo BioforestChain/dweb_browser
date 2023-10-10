@@ -4,6 +4,7 @@ import io.ktor.http.HttpMethod
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
+import org.dweb_browser.helper.DisplayMode
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.core.BootstrapContext
@@ -39,16 +40,15 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.browser.dweb", "Multi Webvie
       // 打开一个 webview，并将它以 窗口window 的标准进行展示
       "/open" bind HttpMethod.Get to defineJsonResponse {
         val url = request.query("url")
-        debugMultiWebView("create/open", url)
+
         val remoteMm = ipc.asRemoteInstance()
           ?: throw Exception("mwebview.browser.dweb/open should be call by locale")
+        debugMultiWebView("/open", "MultiWebViewNMM open!!! ${remoteMm.mmid}")
         ipc.onClose {
           debugMultiWebView("/open", "listen ipc close destroy window")
           val controller = controllerMap[ipc.remote.mmid]
           controller?.destroyWebView()
         }
-        debugMultiWebView("/open", "MultiWebViewNMM open!!! ${remoteMm.mmid}")
-
         val (viewItem, controller) = openDwebView(url, remoteMm, ipc)
         debugMultiWebView("create/open end", "${viewItem.webviewId}, ${controller.win.id}")
         controller.getState()
@@ -73,8 +73,6 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.browser.dweb", "Multi Webvie
           focus = true
           visible = true
         }
-        // TODO 将当前的界面移动到最上层
-//        controller.ipc.postMessage(IpcEvent.fromUtf8(EIpcEvent.Activity.event, ""))
         controller.win.emitFocusOrBlur(true)
 
         return@defineBooleanResponse true
@@ -82,11 +80,7 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.browser.dweb", "Multi Webvie
     )
   }
 
-  @Serializable
-  data class ViewItemResponse(val webviewId: String, val wid: UUID)
-
   override suspend fun _shutdown() {
-
   }
 
   private val openLock = Mutex()
@@ -107,24 +101,16 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.browser.dweb", "Multi Webvie
           microModule = this
         )
       ).apply { setFromManifest(ipc.remote) })
-
-      MultiWebViewController(win, ipc, remoteMm, this).also { controller ->
-        /// 窗口销毁的时候，释放这个Controller
-        win.onClose {
-          controllerMap.remove(remoteMmid)
+      remoteMm.manifest.display?.let { mode ->
+        if (mode == DisplayMode.Fullscreen) {
+          win.maximize()
         }
-//        ioAsyncScope.launch {
-//          controller.downLoadObserver = DownLoadObserver(remoteMmid).apply {
-//            observe { listener ->
-//              controller.lastViewOrNull?.webView?.let { dWebView ->
-//                emitEvent(
-//                  dWebView, listener.downLoadStatus.toServiceWorkerEvent(), listener.progress
-//                )
-//              }
-//            }
-//          }
-//        }
       }
+      /// 窗口销毁的时候，释放这个Controller
+      win.onClose {
+        controllerMap.remove(remoteMmid)
+      }
+      MultiWebViewController(win, ipc, remoteMm, this)
     }
 
     Pair(controller.openWebView(url), controller)

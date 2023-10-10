@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { UnwrapRef, onMounted, ref } from "vue";
-import LogPanel, { toConsole, defineLogAction } from "../components/LogPanel.vue";
-import { HTMLDwebWindowElement, $WindowState, $WindowStyleColor } from "../plugin";
+import LogPanel, { defineLogAction, toConsole } from "../components/LogPanel.vue";
+import { $WindowState, $WindowStyleColor, HTMLDwebWindowElement } from "../plugin";
 
 const title = "StatusBar";
 
@@ -9,11 +9,11 @@ const $logPanel = ref<typeof LogPanel>();
 const $window = ref<HTMLDwebWindowElement>();
 
 let console: Console;
-let statusBar: HTMLDwebWindowElement;
+let windowPlugin: HTMLDwebWindowElement;
 onMounted(async () => {
   console = toConsole($logPanel);
-  statusBar = $window.value!;
-  onStatusBarChange(await statusBar.getState(), "init");
+  windowPlugin = $window.value!;
+  onStatusBarChange(await windowPlugin.getState(), "init");
 });
 function defineRef<T>(
   name: string,
@@ -44,21 +44,40 @@ const onStatusBarChange = (info: $WindowState, type: string) => {
 
 const [topBarContentColor, setTopBarContentColor, getTopBarContentColor] = defineRef<$WindowStyleColor>(
   "topBarContentColor",
-  async () => (await statusBar.getState()).topBarContentColor,
-  (topBarContentColor) => statusBar.setStyle({ topBarContentColor })
+  async () => (await windowPlugin.getState()).topBarContentColor,
+  (topBarContentColor) => windowPlugin.setStyle({ topBarContentColor })
 );
 
 const [topBarBackgroundColor, setTopBarBackgroundColor, getTopBarBackgroundColor] = defineRef<$WindowStyleColor>(
   "topBarBackgroundColor",
-  async () => (await statusBar.getState()).topBarBackgroundColor,
-  (topBarBackgroundColor) => statusBar.setStyle({ topBarBackgroundColor })
+  async () => (await windowPlugin.getState()).topBarBackgroundColor,
+  (topBarBackgroundColor) => windowPlugin.setStyle({ topBarBackgroundColor })
 );
 
 const [topBarOverlay, setTopBarOverlay, getTopBarOverlay] = defineRef<boolean>(
   "topBarOverlay",
-  async () => (await statusBar.getState()).topBarOverlay,
-  (topBarOverlay) => statusBar.setStyle({ topBarOverlay })
+  async () => (await windowPlugin.getState()).topBarOverlay,
+  (topBarOverlay) => windowPlugin.setStyle({ topBarOverlay })
 );
+
+const focus = () => {
+  return windowPlugin.focusWindow();
+};
+const blur = () => {
+  return windowPlugin.blurWindow();
+};
+const maximize = () => {
+  return windowPlugin.maximize();
+};
+const unMaximize = () => {
+  return windowPlugin.unMaximize();
+};
+const visible = () => {
+  return windowPlugin.visible();
+};
+const close = () => {
+  return windowPlugin.close();
+};
 </script>
 <template>
   <dweb-window ref="$window" @statechange="onStatusBarChange($event.detail, 'change')"></dweb-window>
@@ -66,6 +85,21 @@ const [topBarOverlay, setTopBarOverlay, getTopBarOverlay] = defineRef<boolean>(
     <figure class="icon">
       <img src="../../assets/statusbar.svg" :alt="title" />
     </figure>
+    <article class="card-body">
+      <h2 class="card-title">设置窗口状态</h2>
+      <div class="justify-end card-actions btn-group">
+        <button class="inline-block rounded-full btn btn-accent" @click="focus">聚焦</button>
+        <button class="inline-block rounded-full btn btn-accent" @click="blur">模糊</button>
+      </div>
+      <div class="justify-end card-actions btn-group">
+        <button class="inline-block rounded-full btn btn-accent" @click="maximize">最大化</button>
+        <button class="inline-block rounded-full btn btn-accent" @click="unMaximize">最小化</button>
+      </div>
+      <div class="justify-end card-actions btn-group">
+        <button class="inline-block rounded-full btn btn-accent" @click="visible">隐藏</button>
+        <button class="inline-block rounded-full btn btn-accent" @click="close">关闭窗口</button>
+      </div>
+    </article>
     <article class="card-body">
       <h2 class="card-title">Window Top Bar Content Color</h2>
       <v-color-picker v-model="topBarContentColor" :modes="['hex']"></v-color-picker>

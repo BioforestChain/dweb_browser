@@ -59,5 +59,38 @@ export class WindowPlugin extends BasePlugin {
   }) {
     return this.fetchApi("/setStyle", { search: { ...options, ...(await this.windowInfo) } }).void();
   }
+
+  /**
+   * 聚焦窗口
+   */
+  @bindThis
+  async focusWindow() {
+    return this.fetchApi("/focus", { search: await this.windowInfo }).void();
+  }
+  /**模糊窗口 */
+  @bindThis
+  async blurWindow() {
+    return this.fetchApi("/blur", { search: await this.windowInfo }).void();
+  }
+  /**最大化窗口 */
+  @bindThis
+  async maximize() {
+    return this.fetchApi("/maximize", { search: await this.windowInfo }).void();
+  }
+  /**取消最大化窗口 */
+  @bindThis
+  async unMaximize() {
+    return this.fetchApi("/unMaximize", { search: await this.windowInfo }).void();
+  }
+  /**隐藏或显示窗口 */
+  @bindThis
+  async visible() {
+    return this.fetchApi("/visible", { search: await this.windowInfo }).void();
+  }
+  /**关闭窗口 */
+  @bindThis
+  async close() {
+    return this.fetchApi("/close", { search: await this.windowInfo }).void();
+  }
 }
 export const windowPlugin = new WindowPlugin();

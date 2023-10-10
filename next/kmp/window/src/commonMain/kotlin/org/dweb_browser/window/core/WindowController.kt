@@ -86,7 +86,7 @@ abstract class WindowController(
     state.focus = false
   }
 
-  suspend fun blur() = managerRunOr({ it.focusWindow(this) }, { simpleBlur() })
+  suspend fun blur() = managerRunOr({ it.blurWindow(this) }, { simpleBlur() })
 
   val onModeChange =
     createStateListener(WindowPropertyKeys.Mode) { debugWindow("emit onModeChange", "$id $it") };
