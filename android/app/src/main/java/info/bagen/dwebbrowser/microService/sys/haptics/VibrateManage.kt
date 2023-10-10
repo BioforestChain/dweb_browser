@@ -5,8 +5,8 @@ import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
-import org.dweb_browser.core.getAppContext
-import org.dweb_browser.microservice.core.NativeMicroModule
+import org.dweb_browser.core.module.getAppContext
+import org.dweb_browser.core.module.NativeMicroModule
 
 enum class HapticsNotificationType(
   val type: String, val timings: LongArray, val amplitudes: IntArray, val oldSDKPattern: LongArray

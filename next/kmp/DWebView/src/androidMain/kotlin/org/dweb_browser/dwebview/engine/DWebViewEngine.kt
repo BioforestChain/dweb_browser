@@ -34,11 +34,11 @@ import org.dweb_browser.helper.android.BaseActivity
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.runBlockingCatching
-import org.dweb_browser.microservice.core.MicroModule
-import org.dweb_browser.microservice.http.PureRequest
-import org.dweb_browser.microservice.ipc.helper.IpcHeaders
-import org.dweb_browser.microservice.ipc.helper.IpcMethod
-import org.dweb_browser.microservice.std.dns.nativeFetch
+import org.dweb_browser.core.module.MicroModule
+import org.dweb_browser.core.http.PureRequest
+import org.dweb_browser.core.ipc.helper.IpcHeaders
+import org.dweb_browser.core.ipc.helper.IpcMethod
+import org.dweb_browser.core.std.dns.nativeFetch
 import java.io.File
 
 /**

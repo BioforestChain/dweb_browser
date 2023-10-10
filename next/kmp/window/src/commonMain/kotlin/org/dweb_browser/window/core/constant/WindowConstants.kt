@@ -4,8 +4,8 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.randomUUID
-import org.dweb_browser.microservice.core.MicroModule
-import org.dweb_browser.microservice.help.types.MMID
+import org.dweb_browser.core.module.MicroModule
+import org.dweb_browser.core.help.types.MMID
 
 /**
  * 窗口的不可变信息

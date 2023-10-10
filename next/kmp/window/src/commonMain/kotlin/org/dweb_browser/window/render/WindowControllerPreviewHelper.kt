@@ -12,7 +12,7 @@ import kotlinx.coroutines.CoroutineScope
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.compose.rememberPlatformViewController
 import org.dweb_browser.helper.platform.PlatformViewController
-import org.dweb_browser.microservice.help.types.MMID
+import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.window.core.WindowController
 import org.dweb_browser.window.core.WindowRenderProvider
 import org.dweb_browser.window.core.WindowState

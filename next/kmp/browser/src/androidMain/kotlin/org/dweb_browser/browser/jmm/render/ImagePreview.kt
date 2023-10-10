@@ -32,7 +32,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import org.dweb_browser.helper.compose.clickableWithNoEffect
-import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
+import org.dweb_browser.core.help.types.JmmAppInstallManifest
 
 /**
  * 图片预览图

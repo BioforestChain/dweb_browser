@@ -3,8 +3,8 @@ package info.bagen.dwebbrowser.microService.browser.desk.types
 import kotlinx.serialization.Serializable
 import org.dweb_browser.helper.PropMetas
 import org.dweb_browser.helper.PropMetasSerializer
-import org.dweb_browser.microservice.help.types.IMicroModuleManifest
-import org.dweb_browser.microservice.help.types.MicroModuleManifest
+import org.dweb_browser.core.help.types.IMicroModuleManifest
+import org.dweb_browser.core.help.types.MicroModuleManifest
 import org.dweb_browser.window.core.WindowState
 
 

@@ -9,7 +9,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.dweb_browser.core.getAppContext
+import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.helper.PromiseOut
@@ -18,21 +18,21 @@ import org.dweb_browser.helper.encodeURI
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.helper.runBlockingCatching
-import org.dweb_browser.microservice.core.BootstrapContext
-import org.dweb_browser.microservice.core.NativeMicroModule
-import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
-import org.dweb_browser.microservice.help.types.MMID
-import org.dweb_browser.microservice.http.PureRequest
-import org.dweb_browser.microservice.http.bind
-import org.dweb_browser.microservice.ipc.Ipc
-import org.dweb_browser.microservice.ipc.ReadableStreamIpc
-import org.dweb_browser.microservice.ipc.helper.IpcHeaders
-import org.dweb_browser.microservice.ipc.helper.IpcResponse
-import org.dweb_browser.microservice.std.dns.nativeFetch
-import org.dweb_browser.microservice.std.http.DwebHttpServerOptions
-import org.dweb_browser.microservice.std.http.HttpDwebServer
-import org.dweb_browser.microservice.std.http.closeHttpDwebServer
-import org.dweb_browser.microservice.std.http.createHttpDwebServer
+import org.dweb_browser.core.module.BootstrapContext
+import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
+import org.dweb_browser.core.help.types.MMID
+import org.dweb_browser.core.http.PureRequest
+import org.dweb_browser.core.http.bind
+import org.dweb_browser.core.ipc.Ipc
+import org.dweb_browser.core.ipc.ReadableStreamIpc
+import org.dweb_browser.core.ipc.helper.IpcHeaders
+import org.dweb_browser.core.ipc.helper.IpcResponse
+import org.dweb_browser.core.std.dns.nativeFetch
+import org.dweb_browser.core.std.http.DwebHttpServerOptions
+import org.dweb_browser.core.std.http.HttpDwebServer
+import org.dweb_browser.core.std.http.closeHttpDwebServer
+import org.dweb_browser.core.std.http.createHttpDwebServer
 
 fun debugJsProcess(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("js-process", tag, msg, err)

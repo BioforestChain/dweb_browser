@@ -1,13 +1,11 @@
 package org.dweb_browser.window.core.helper
 
 import org.dweb_browser.helper.ComparableWrapper
-import org.dweb_browser.helper.DisplayMode
 import org.dweb_browser.helper.ImageResourcePurposes
 import org.dweb_browser.helper.StrictImageResource
 import org.dweb_browser.helper.enumToComparable
-import org.dweb_browser.microservice.help.types.ICommonAppManifest
+import org.dweb_browser.core.help.types.ICommonAppManifest
 import org.dweb_browser.window.core.WindowState
-import org.dweb_browser.window.core.constant.WindowMode
 import kotlin.math.sqrt
 
 fun WindowState.setFromManifest(manifest: ICommonAppManifest) {

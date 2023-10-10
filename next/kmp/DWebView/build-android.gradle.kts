@@ -24,7 +24,7 @@ kotlin {
         implementation(libs.kotlinx.atomicfu)
 
         implementation(project(":helper"))
-        implementation(project(":microService"))
+        implementation(project(":core"))
         implementation(project(":helperPlatform"))
       }
     }

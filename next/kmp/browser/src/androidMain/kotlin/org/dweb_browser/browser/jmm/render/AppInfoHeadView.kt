@@ -22,20 +22,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.android.getCoilImageLoader
-import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
-import org.dweb_browser.microservice.std.dns.httpFetch
+import org.dweb_browser.core.help.types.JmmAppInstallManifest
+import org.dweb_browser.core.std.dns.httpFetch
 
 /**
  * 顶部的头像和应用名称

@@ -16,8 +16,8 @@ import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.microService.browser.desk.DesktopActivity
 import info.bagen.dwebbrowser.microService.sys.deepLink.DWebReceiver
 import kotlinx.serialization.Serializable
-import org.dweb_browser.core.getAppContext
-import org.dweb_browser.microservice.core.NativeMicroModule
+import org.dweb_browser.core.module.getAppContext
+import org.dweb_browser.core.module.NativeMicroModule
 
 class NotifyManager {
   enum class ChannelType(

@@ -1,24 +1,23 @@
 package org.dweb_browser.browserUI.microService.browser.web
 
-import io.ktor.http.HttpMethod
 import kotlinx.coroutines.withContext
-import org.dweb_browser.core.getAppContext
+import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.mainAsyncExceptionHandler
-import org.dweb_browser.microservice.core.BootstrapContext
-import org.dweb_browser.microservice.core.NativeMicroModule
-import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
-import org.dweb_browser.microservice.http.bind
-import org.dweb_browser.microservice.http.bindDwebDeeplink
-import org.dweb_browser.microservice.ipc.helper.IpcResponse
-import org.dweb_browser.microservice.std.dns.nativeFetch
-import org.dweb_browser.microservice.std.dns.nativeFetchAdaptersManager
-import org.dweb_browser.microservice.std.file.ext.RespondLocalFileContext.Companion.respondLocalFile
-import org.dweb_browser.microservice.std.http.DwebHttpServerOptions
-import org.dweb_browser.microservice.std.http.HttpDwebServer
-import org.dweb_browser.microservice.std.http.createHttpDwebServer
-import org.dweb_browser.microservice.sys.dns.returnAndroidFile
+import org.dweb_browser.core.module.BootstrapContext
+import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
+import org.dweb_browser.core.http.bindDwebDeeplink
+import org.dweb_browser.core.ipc.helper.IpcResponse
+import org.dweb_browser.core.std.dns.nativeFetch
+import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
+import org.dweb_browser.core.std.file.ext.RespondLocalFileContext.Companion.respondLocalFile
+import org.dweb_browser.core.std.http.DwebHttpServerOptions
+import org.dweb_browser.core.std.http.HttpDwebServer
+import org.dweb_browser.core.std.http.createHttpDwebServer
+import org.dweb_browser.core.sys.dns.returnAndroidFile
+import org.dweb_browser.window.core.onRenderer
 
 val debugBrowser = Debugger("browser")
 
@@ -58,11 +57,8 @@ class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
         )
       }
 
-    onActivity { (event) ->
-      if (event.text.startsWith("wid:")) {
-        val wid = event.text.substring(4);
-        browserController.openBrowserWindow(wid)
-      }
+    onRenderer {
+      browserController.openBrowserWindow(wid)
     }
 
     routes(

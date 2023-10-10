@@ -22,15 +22,15 @@ import org.dweb_browser.browser.jsProcess.JsProcessNMM
 import org.dweb_browser.browser.mwebview.MultiWebViewNMM
 import org.dweb_browser.browser.nativeui.torch.TorchNMM
 import org.dweb_browser.browserUI.microService.browser.web.BrowserNMM
-import org.dweb_browser.core.getAppContext
+import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.helper.addDebugTags
 import org.dweb_browser.helper.platform.getKtorClientEngine
-import org.dweb_browser.microservice.std.dns.DnsNMM
-import org.dweb_browser.microservice.std.dns.nativeFetchAdaptersManager
-import org.dweb_browser.microservice.std.file.FileNMM
-import org.dweb_browser.microservice.std.http.HttpNMM
-import org.dweb_browser.microservice.sys.boot.BootNMM
-import org.dweb_browser.microservice.sys.download.DownloadNMM
+import org.dweb_browser.core.std.dns.DnsNMM
+import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
+import org.dweb_browser.core.std.file.FileNMM
+import org.dweb_browser.core.std.http.HttpNMM
+import org.dweb_browser.core.sys.boot.BootNMM
+import org.dweb_browser.core.sys.download.DownloadNMM
 import java.io.File
 
 suspend fun startDwebBrowser(): DnsNMM {

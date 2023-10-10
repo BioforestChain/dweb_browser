@@ -34,7 +34,7 @@ kotlin {
         api(libs.kotlinx.atomicfu)
 
         implementation(project(":helper"))
-        implementation(project(":microService"))
+        implementation(project(":core"))
         implementation(project(":helperPlatform"))
       }
     }

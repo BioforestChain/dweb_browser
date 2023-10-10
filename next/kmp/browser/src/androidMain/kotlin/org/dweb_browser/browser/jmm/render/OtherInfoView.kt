@@ -10,8 +10,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
-import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
+import org.dweb_browser.core.help.types.JmmAppInstallManifest
+import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 
 /**
  * 应用的其他相关内容

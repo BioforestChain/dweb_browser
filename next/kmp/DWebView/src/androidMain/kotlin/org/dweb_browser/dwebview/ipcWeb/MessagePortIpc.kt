@@ -16,24 +16,24 @@ import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.printDebug
-import org.dweb_browser.microservice.help.types.IMicroModuleManifest
-import org.dweb_browser.microservice.ipc.Ipc
-import org.dweb_browser.microservice.ipc.helper.IPC_ROLE
-import org.dweb_browser.microservice.ipc.helper.IpcEvent
-import org.dweb_browser.microservice.ipc.helper.IpcEventJsonAble
-import org.dweb_browser.microservice.ipc.helper.IpcMessage
-import org.dweb_browser.microservice.ipc.helper.IpcMessageArgs
-import org.dweb_browser.microservice.ipc.helper.IpcReqMessage
-import org.dweb_browser.microservice.ipc.helper.IpcRequest
-import org.dweb_browser.microservice.ipc.helper.IpcResMessage
-import org.dweb_browser.microservice.ipc.helper.IpcResponse
-import org.dweb_browser.microservice.ipc.helper.IpcStreamAbort
-import org.dweb_browser.microservice.ipc.helper.IpcStreamData
-import org.dweb_browser.microservice.ipc.helper.IpcStreamDataJsonAble
-import org.dweb_browser.microservice.ipc.helper.IpcStreamEnd
-import org.dweb_browser.microservice.ipc.helper.IpcStreamPaused
-import org.dweb_browser.microservice.ipc.helper.IpcStreamPulling
-import org.dweb_browser.microservice.ipc.helper.jsonToIpcMessage
+import org.dweb_browser.core.help.types.IMicroModuleManifest
+import org.dweb_browser.core.ipc.Ipc
+import org.dweb_browser.core.ipc.helper.IPC_ROLE
+import org.dweb_browser.core.ipc.helper.IpcEvent
+import org.dweb_browser.core.ipc.helper.IpcEventJsonAble
+import org.dweb_browser.core.ipc.helper.IpcMessage
+import org.dweb_browser.core.ipc.helper.IpcMessageArgs
+import org.dweb_browser.core.ipc.helper.IpcReqMessage
+import org.dweb_browser.core.ipc.helper.IpcRequest
+import org.dweb_browser.core.ipc.helper.IpcResMessage
+import org.dweb_browser.core.ipc.helper.IpcResponse
+import org.dweb_browser.core.ipc.helper.IpcStreamAbort
+import org.dweb_browser.core.ipc.helper.IpcStreamData
+import org.dweb_browser.core.ipc.helper.IpcStreamDataJsonAble
+import org.dweb_browser.core.ipc.helper.IpcStreamEnd
+import org.dweb_browser.core.ipc.helper.IpcStreamPaused
+import org.dweb_browser.core.ipc.helper.IpcStreamPulling
+import org.dweb_browser.core.ipc.helper.jsonToIpcMessage
 
 fun printThreadName(): String = Thread.currentThread().name
 fun debugMessagePortIpc(tag: String, msg: Any = "", err: Throwable? = null) =

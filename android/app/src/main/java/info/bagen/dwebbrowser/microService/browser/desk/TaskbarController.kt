@@ -10,8 +10,8 @@ import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.build
 import org.dweb_browser.helper.resolvePath
-import org.dweb_browser.microservice.help.types.MMID
-import org.dweb_browser.microservice.std.http.HttpDwebServer
+import org.dweb_browser.core.help.types.MMID
+import org.dweb_browser.core.std.http.HttpDwebServer
 
 class TaskbarController(
   val deskSessionId: String,

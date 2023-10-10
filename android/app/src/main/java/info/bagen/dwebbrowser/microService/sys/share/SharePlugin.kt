@@ -9,10 +9,10 @@ import android.os.Build
 import android.webkit.MimeTypeMap
 import androidx.core.content.FileProvider
 import info.bagen.dwebbrowser.App
-import org.dweb_browser.core.getAppContext
+import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.helper.PromiseOut
-import org.dweb_browser.microservice.core.NativeMicroModule
-import org.dweb_browser.microservice.help.types.MMID
+import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.core.help.types.MMID
 import java.io.File
 
 object SharePlugin {

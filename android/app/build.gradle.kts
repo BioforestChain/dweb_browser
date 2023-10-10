@@ -179,7 +179,7 @@ dependencies {
   implementation(project(":helper"))
   implementation(project(":helperPlatform"))
   implementation(project(":helperCompose"))
-  implementation(project(":microService"))
+  implementation(project(":core"))
   implementation(project(":DWebView"))
   implementation(project(":window"))
   implementation(project(":browser"))

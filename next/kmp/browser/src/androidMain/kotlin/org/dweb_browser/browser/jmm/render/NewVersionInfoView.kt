@@ -15,7 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
+import org.dweb_browser.core.help.types.JmmAppInstallManifest
 
 /**
  * 应用新版本信息部分

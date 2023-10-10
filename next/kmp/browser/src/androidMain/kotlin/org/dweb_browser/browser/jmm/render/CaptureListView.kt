@@ -13,7 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
+import org.dweb_browser.core.help.types.JmmAppInstallManifest
 
 /**
  * 应用介绍的图片展示部分

@@ -1,7 +1,7 @@
 package info.bagen.dwebbrowser.microService.browser.desk
 
-import org.dweb_browser.microservice.core.MicroModule
-import org.dweb_browser.microservice.std.file.ext.createStore
+import org.dweb_browser.core.module.MicroModule
+import org.dweb_browser.core.std.file.ext.createStore
 
 
 class DeskStore(mm: MicroModule) {

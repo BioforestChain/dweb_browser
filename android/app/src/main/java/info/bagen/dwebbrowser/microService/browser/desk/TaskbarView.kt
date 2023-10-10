@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.zIndex
-import org.dweb_browser.core.getAppContext
+import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.helper.clamp

@@ -6,7 +6,7 @@ import android.os.Bundle
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.launch
-import org.dweb_browser.core.startAppActivity
+import org.dweb_browser.core.module.startAppActivity
 import org.dweb_browser.helper.ChangeState
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.PromiseOut
@@ -14,21 +14,23 @@ import org.dweb_browser.helper.consumeEachJsonLine
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.toJsonElement
-import org.dweb_browser.microservice.core.BootstrapContext
-import org.dweb_browser.microservice.core.InternalIpcEvent
-import org.dweb_browser.microservice.core.NativeMicroModule
-import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
-import org.dweb_browser.microservice.help.types.MMID
-import org.dweb_browser.microservice.http.PureResponse
-import org.dweb_browser.microservice.http.PureStringBody
-import org.dweb_browser.microservice.http.bind
-import org.dweb_browser.microservice.http.toPure
-import org.dweb_browser.microservice.ipc.helper.IpcResponse
-import org.dweb_browser.microservice.std.dns.nativeFetch
-import org.dweb_browser.microservice.std.http.CORS_HEADERS
-import org.dweb_browser.microservice.std.http.DwebHttpServerOptions
-import org.dweb_browser.microservice.std.http.HttpDwebServer
-import org.dweb_browser.microservice.std.http.createHttpDwebServer
+import org.dweb_browser.core.module.BootstrapContext
+import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
+import org.dweb_browser.core.help.types.MMID
+import org.dweb_browser.core.http.PureResponse
+import org.dweb_browser.core.http.PureStringBody
+import org.dweb_browser.core.http.bind
+import org.dweb_browser.core.http.toPure
+import org.dweb_browser.core.ipc.helper.IpcEvent
+import org.dweb_browser.core.ipc.helper.IpcResponse
+import org.dweb_browser.core.std.dns.nativeFetch
+import org.dweb_browser.core.std.dns.onActivity
+import org.dweb_browser.core.std.http.CORS_HEADERS
+import org.dweb_browser.core.std.http.DwebHttpServerOptions
+import org.dweb_browser.core.std.http.HttpDwebServer
+import org.dweb_browser.core.std.http.createHttpDwebServer
+import org.dweb_browser.window.core.createRenderer
 
 fun debugDesk(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("desk", tag, msg, err)
@@ -135,9 +137,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
           /// desk直接为应用打开窗口，因为窗口由desk统一管理，所以由desk窗口，并提供句柄
           val appMainWindow = runningApp.openMainWindow()
           runningApp.ipc.postMessage(
-            InternalIpcEvent.Activity.create(
-              "wid:${appMainWindow.id}"
-            )
+            IpcEvent.createRenderer(appMainWindow.id)
           )
           /// 将所有的窗口聚焦，这个行为不依赖于 Activity 事件，而是Desk模块自身托管窗口的行为
           desktopController.desktopWindowsManager.focusWindow(mmid)

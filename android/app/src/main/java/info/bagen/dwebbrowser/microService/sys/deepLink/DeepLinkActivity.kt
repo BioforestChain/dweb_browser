@@ -9,11 +9,11 @@ import androidx.compose.ui.Alignment
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import info.bagen.dwebbrowser.App
-import org.dweb_browser.core.BaseThemeActivity
+import org.dweb_browser.core.module.BaseThemeActivity
 import kotlinx.coroutines.launch
 import org.dweb_browser.browserUI.ui.loading.LoadingView
 import org.dweb_browser.helper.compose.theme.DwebBrowserAppTheme
-import org.dweb_browser.microservice.std.dns.nativeFetch
+import org.dweb_browser.core.std.dns.nativeFetch
 
 class DeepLinkActivity : BaseThemeActivity() {
 

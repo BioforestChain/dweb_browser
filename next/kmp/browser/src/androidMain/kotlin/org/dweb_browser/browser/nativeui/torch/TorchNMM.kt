@@ -1,11 +1,11 @@
 package org.dweb_browser.browser.nativeui.torch
 
 import io.ktor.http.HttpMethod
-import org.dweb_browser.core.getAppContext
-import org.dweb_browser.microservice.core.BootstrapContext
-import org.dweb_browser.microservice.core.NativeMicroModule
-import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
-import org.dweb_browser.microservice.http.bind
+import org.dweb_browser.core.module.getAppContext
+import org.dweb_browser.core.module.BootstrapContext
+import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
+import org.dweb_browser.core.http.bind
 
 class TorchNMM : NativeMicroModule("torch.nativeui.browser.dweb", "torch") {
 

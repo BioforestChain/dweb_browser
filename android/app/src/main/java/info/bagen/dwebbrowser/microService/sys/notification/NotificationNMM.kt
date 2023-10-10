@@ -2,11 +2,11 @@ package info.bagen.dwebbrowser.microService.sys.notification
 
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import org.dweb_browser.microservice.core.BootstrapContext
-import org.dweb_browser.microservice.core.NativeMicroModule
-import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
-import org.dweb_browser.microservice.http.PureResponse
-import org.dweb_browser.microservice.http.bind
+import org.dweb_browser.core.module.BootstrapContext
+import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
+import org.dweb_browser.core.http.PureResponse
+import org.dweb_browser.core.http.bind
 
 class NotificationNMM : NativeMicroModule("notification.sys.dweb", "notification") {
 

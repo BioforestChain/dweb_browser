@@ -3,11 +3,11 @@ package info.bagen.dwebbrowser.microService.sys.config
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import org.dweb_browser.browserUI.microService.browser.web.debugBrowser
-import org.dweb_browser.microservice.core.BootstrapContext
-import org.dweb_browser.microservice.core.NativeMicroModule
-import org.dweb_browser.microservice.http.PureResponse
-import org.dweb_browser.microservice.http.PureStringBody
-import org.dweb_browser.microservice.http.bind
+import org.dweb_browser.core.module.BootstrapContext
+import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.core.http.PureResponse
+import org.dweb_browser.core.http.PureStringBody
+import org.dweb_browser.core.http.bind
 
 class ConfigNMM: NativeMicroModule("config.sys.dweb", "Device Info")  {
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {

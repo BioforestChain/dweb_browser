@@ -10,8 +10,8 @@ import android.util.Base64
 import info.bagen.dwebbrowser.microService.sys.fileSystem.exeprions.CopyFailedException
 import info.bagen.dwebbrowser.microService.sys.fileSystem.fileopener.FileOpener
 import kotlinx.coroutines.*
-import org.dweb_browser.core.getAppContext
-import org.dweb_browser.microservice.core.NativeMicroModule
+import org.dweb_browser.core.module.getAppContext
+import org.dweb_browser.core.module.NativeMicroModule
 import java.io.*
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets

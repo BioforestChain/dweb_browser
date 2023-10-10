@@ -6,17 +6,16 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.runBlocking
 import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.microservice.core.BootstrapContext
-import org.dweb_browser.microservice.core.NativeMicroModule
-import org.dweb_browser.microservice.help.text
-import org.dweb_browser.microservice.ipc.helper.IpcHeaders
-import org.dweb_browser.microservice.ipc.helper.IpcResponse
-import org.dweb_browser.microservice.sys.boot.BootNMM
-import org.dweb_browser.microservice.std.dns.DnsNMM
-import org.dweb_browser.microservice.std.dns.nativeFetch
-import org.dweb_browser.microservice.std.http.DwebHttpServerOptions
-import org.dweb_browser.microservice.std.http.HttpNMM
-import org.dweb_browser.microservice.std.http.createHttpDwebServer
+import org.dweb_browser.core.module.BootstrapContext
+import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.core.ipc.helper.IpcHeaders
+import org.dweb_browser.core.ipc.helper.IpcResponse
+import org.dweb_browser.core.sys.boot.BootNMM
+import org.dweb_browser.core.std.dns.DnsNMM
+import org.dweb_browser.core.std.dns.nativeFetch
+import org.dweb_browser.core.std.http.DwebHttpServerOptions
+import org.dweb_browser.core.std.http.HttpNMM
+import org.dweb_browser.core.std.http.createHttpDwebServer
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 

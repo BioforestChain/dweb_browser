@@ -15,8 +15,8 @@ import androidx.core.content.ContextCompat
 import info.bagen.dwebbrowser.App
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import org.dweb_browser.core.getAppContext
-import org.dweb_browser.microservice.core.NativeMicroModule
+import org.dweb_browser.core.module.getAppContext
+import org.dweb_browser.core.module.NativeMicroModule
 
 object PermissionUtil {
   val context get() = NativeMicroModule.getAppContext()

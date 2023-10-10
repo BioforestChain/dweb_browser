@@ -7,9 +7,9 @@ import android.os.Bundle
 import info.bagen.dwebbrowser.microService.startDwebBrowser
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
-import org.dweb_browser.core.nativeMicroModuleAppContext
+import org.dweb_browser.core.module.nativeMicroModuleAppContext
 import org.dweb_browser.helper.PromiseOut
-import org.dweb_browser.microservice.std.dns.DnsNMM
+import org.dweb_browser.core.std.dns.DnsNMM
 
 class App : Application() {
   companion object {

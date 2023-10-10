@@ -15,9 +15,9 @@ import org.dweb_browser.browserUI.ui.browser.BrowserViewModel
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.microservice.std.http.HttpDwebServer
-import org.dweb_browser.microservice.sys.download.db.DownloadDBStore
-import org.dweb_browser.microservice.sys.download.db.createDeskWebLink
+import org.dweb_browser.core.std.http.HttpDwebServer
+import org.dweb_browser.core.sys.download.db.DownloadDBStore
+import org.dweb_browser.core.sys.download.db.createDeskWebLink
 import org.dweb_browser.window.core.WindowController
 import org.dweb_browser.window.core.constant.WindowMode
 import org.dweb_browser.window.core.createWindowAdapterManager

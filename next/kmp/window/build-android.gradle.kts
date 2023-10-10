@@ -30,7 +30,7 @@ kotlin {
         implementation(project(":helper"))
         implementation(project(":helperCompose"))
         implementation(project(":helperPlatform"))
-        implementation(project(":microService"))
+        implementation(project(":core"))
       }
     }
     val commonTest by getting {

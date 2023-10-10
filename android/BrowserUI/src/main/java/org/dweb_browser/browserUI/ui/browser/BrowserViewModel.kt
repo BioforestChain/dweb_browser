@@ -38,7 +38,7 @@ import org.dweb_browser.browserUI.util.KEY_NO_TRACE
 import org.dweb_browser.browserUI.util.getBoolean
 import org.dweb_browser.browserUI.util.saveBoolean
 import org.dweb_browser.browserUI.util.saveString
-import org.dweb_browser.core.getAppContext
+import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.base.DWebViewItem
 import org.dweb_browser.dwebview.base.ViewItem
@@ -49,10 +49,10 @@ import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.helper.runBlockingCatching
-import org.dweb_browser.microservice.core.NativeMicroModule
-import org.dweb_browser.microservice.help.types.MMID
-import org.dweb_browser.microservice.std.dns.nativeFetch
-import org.dweb_browser.microservice.std.http.HttpDwebServer
+import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.core.help.types.MMID
+import org.dweb_browser.core.std.dns.nativeFetch
+import org.dweb_browser.core.std.http.HttpDwebServer
 import java.util.concurrent.atomic.AtomicInteger
 
 @OptIn(ExperimentalFoundationApi::class)

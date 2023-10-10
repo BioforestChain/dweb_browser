@@ -10,10 +10,10 @@ import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.helper.compose.noLocalProvidedFor
 import org.dweb_browser.helper.consumeEachJsonLine
 import org.dweb_browser.helper.isGreaterThan
-import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
-import org.dweb_browser.microservice.std.dns.nativeFetch
-import org.dweb_browser.microservice.sys.download.JmmDownloadController
-import org.dweb_browser.microservice.sys.download.JmmDownloadStatus
+import org.dweb_browser.core.help.types.JmmAppInstallManifest
+import org.dweb_browser.core.std.dns.nativeFetch
+import org.dweb_browser.core.sys.download.JmmDownloadController
+import org.dweb_browser.core.sys.download.JmmDownloadStatus
 
 internal val LocalShowWebViewVersion = compositionLocalOf {
   mutableStateOf(false)

@@ -3,10 +3,11 @@ package org.dweb_browser.browser.download
 import io.ktor.http.HttpMethod
 import kotlinx.serialization.Serializable
 import org.dweb_browser.helper.ImageResource
-import org.dweb_browser.microservice.core.BootstrapContext
-import org.dweb_browser.microservice.core.NativeMicroModule
-import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
-import org.dweb_browser.microservice.http.bind
+import org.dweb_browser.core.module.BootstrapContext
+import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
+import org.dweb_browser.core.http.bind
+import org.dweb_browser.window.core.onRenderer
 
 class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
   init {
@@ -57,7 +58,7 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
         true
       },
     )
-    onActivity {
+    onRenderer {
 
     }
   }

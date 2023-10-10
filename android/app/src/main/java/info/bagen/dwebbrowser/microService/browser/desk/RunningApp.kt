@@ -2,7 +2,7 @@ package info.bagen.dwebbrowser.microService.browser.desk
 
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.dweb_browser.microservice.ipc.Ipc
+import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.window.core.WindowController
 import org.dweb_browser.window.core.WindowState
 import org.dweb_browser.window.core.constant.WindowConstants

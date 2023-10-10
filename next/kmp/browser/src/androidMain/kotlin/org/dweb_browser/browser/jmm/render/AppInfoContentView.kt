@@ -11,7 +11,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
+import org.dweb_browser.core.help.types.JmmAppInstallManifest
 
 @Composable
 internal fun AppInfoContentView(

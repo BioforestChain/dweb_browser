@@ -1,7 +1,7 @@
 package org.dweb_browser.browser.download
 
 import kotlinx.serialization.Serializable
-import org.dweb_browser.microservice.help.types.MMID
+import org.dweb_browser.core.help.types.MMID
 
 
 data class DownloadTask(

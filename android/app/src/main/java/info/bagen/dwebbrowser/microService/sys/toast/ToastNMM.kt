@@ -3,10 +3,10 @@ package info.bagen.dwebbrowser.microService.sys.toast
 import info.bagen.dwebbrowser.microService.sys.toast.ToastController.DurationType
 import info.bagen.dwebbrowser.microService.sys.toast.ToastController.PositionType
 import io.ktor.http.HttpMethod
-import org.dweb_browser.microservice.core.BootstrapContext
-import org.dweb_browser.microservice.core.NativeMicroModule
-import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
-import org.dweb_browser.microservice.http.bind
+import org.dweb_browser.core.module.BootstrapContext
+import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
+import org.dweb_browser.core.http.bind
 
 class ToastNMM : NativeMicroModule("toast.sys.dweb", "toast") {
 

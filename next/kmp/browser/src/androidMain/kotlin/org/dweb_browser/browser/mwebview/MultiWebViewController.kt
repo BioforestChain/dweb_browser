@@ -23,9 +23,9 @@ import org.dweb_browser.helper.ChangeableList
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.runBlockingCatching
-import org.dweb_browser.microservice.core.MicroModule
-import org.dweb_browser.microservice.ipc.Ipc
-import org.dweb_browser.microservice.ipc.helper.IpcEvent
+import org.dweb_browser.core.module.MicroModule
+import org.dweb_browser.core.ipc.Ipc
+import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.window.core.WindowController
 import org.dweb_browser.window.core.createWindowAdapterManager
 import java.util.concurrent.atomic.AtomicInteger

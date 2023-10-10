@@ -2,8 +2,8 @@ package org.dweb_browser.dwebview.ipcWeb
 
 import android.webkit.WebMessagePort
 import kotlinx.atomicfu.atomic
-import org.dweb_browser.microservice.help.types.IMicroModuleManifest
-import org.dweb_browser.microservice.ipc.helper.IPC_ROLE
+import org.dweb_browser.core.help.types.IMicroModuleManifest
+import org.dweb_browser.core.ipc.helper.IPC_ROLE
 
 val ALL_MESSAGE_PORT_CACHE = mutableMapOf<Int, MessagePort>();
 private var all_ipc_id_acc = atomic(1);

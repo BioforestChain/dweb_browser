@@ -4,8 +4,8 @@ import android.view.Gravity
 import android.view.View
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
-import org.dweb_browser.core.getAppContext
-import org.dweb_browser.microservice.core.NativeMicroModule
+import org.dweb_browser.core.module.getAppContext
+import org.dweb_browser.core.module.NativeMicroModule
 
 object ToastController {
   val context get() = NativeMicroModule.getAppContext()

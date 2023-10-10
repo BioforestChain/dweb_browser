@@ -9,7 +9,7 @@ import info.bagen.dwebbrowser.microService.browser.desk.types.DeskAppMetaData
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import org.dweb_browser.core.getAppContext
+import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.helper.ChangeableMap
@@ -17,9 +17,9 @@ import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.build
 import org.dweb_browser.helper.resolvePath
-import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
-import org.dweb_browser.microservice.help.types.MMID
-import org.dweb_browser.microservice.std.http.HttpDwebServer
+import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
+import org.dweb_browser.core.help.types.MMID
+import org.dweb_browser.core.std.http.HttpDwebServer
 
 @Stable
 class DesktopController(

@@ -8,15 +8,16 @@ import kotlinx.serialization.json.Json
 import org.dweb_browser.browser.jmm.ui.JmmManagerViewHelper
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
-import org.dweb_browser.microservice.core.InternalIpcEvent
-import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
-import org.dweb_browser.microservice.help.types.MMID
-import org.dweb_browser.microservice.http.PureRequest
-import org.dweb_browser.microservice.http.PureStringBody
-import org.dweb_browser.microservice.ipc.helper.IpcMethod
-import org.dweb_browser.microservice.std.dns.nativeFetch
-import org.dweb_browser.microservice.sys.download.JmmDownloadController
-import org.dweb_browser.microservice.sys.download.JmmDownloadInfo
+import org.dweb_browser.core.std.dns.createActivity
+import org.dweb_browser.core.help.types.JmmAppInstallManifest
+import org.dweb_browser.core.help.types.MMID
+import org.dweb_browser.core.http.PureRequest
+import org.dweb_browser.core.http.PureStringBody
+import org.dweb_browser.core.ipc.helper.IpcEvent
+import org.dweb_browser.core.ipc.helper.IpcMethod
+import org.dweb_browser.core.std.dns.nativeFetch
+import org.dweb_browser.core.sys.download.JmmDownloadController
+import org.dweb_browser.core.sys.download.JmmDownloadInfo
 import org.dweb_browser.window.core.WindowController
 import org.dweb_browser.window.core.createWindowAdapterManager
 
@@ -58,11 +59,11 @@ class JmmController(
     openLock.withLock {
 
       val (ipc) = jmmNMM.bootstrapContext.dns.connect(mmid)
-      ipc.postMessage(InternalIpcEvent.Activity.create(""))
+      ipc.postMessage(IpcEvent.createActivity(""))
 
       val (deskIpc) = jmmNMM.bootstrapContext.dns.connect("desk.browser.dweb")
       org.dweb_browser.browser.jmm.debugJMM("openApp", "postMessage==>activity desk.browser.dweb")
-      deskIpc.postMessage(InternalIpcEvent.Activity.create(""))
+      deskIpc.postMessage(IpcEvent.createActivity(""))
     }
   }
 
@@ -76,7 +77,7 @@ class JmmController(
     )
   }
 
-  suspend fun updateDownloadState(downloadController: JmmDownloadController, mmid: MMID) :Boolean {
+  suspend fun updateDownloadState(downloadController: JmmDownloadController, mmid: MMID): Boolean {
     val url = when (downloadController) {
       JmmDownloadController.PAUSE -> "file://download.browser.dweb/pause?mmid=$mmid"
       JmmDownloadController.CANCEL -> "file://download.browser.dweb/cancel?mmid=$mmid"

@@ -3,7 +3,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.canRead
-import org.dweb_browser.microservice.ipc.helper.ReadableStream
+import org.dweb_browser.core.ipc.helper.ReadableStream
 
 /**
  * You can edit, run, and share this code.

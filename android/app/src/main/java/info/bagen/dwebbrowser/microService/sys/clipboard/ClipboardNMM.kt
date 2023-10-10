@@ -8,14 +8,14 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.dweb_browser.core.getAppContext
+import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.helper.printDebug
-import org.dweb_browser.microservice.core.BootstrapContext
-import org.dweb_browser.microservice.core.NativeMicroModule
-import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
-import org.dweb_browser.microservice.http.PureResponse
-import org.dweb_browser.microservice.http.PureStringBody
-import org.dweb_browser.microservice.http.bind
+import org.dweb_browser.core.module.BootstrapContext
+import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
+import org.dweb_browser.core.http.PureResponse
+import org.dweb_browser.core.http.PureStringBody
+import org.dweb_browser.core.http.bind
 
 data class ClipboardWriteResponse(val success: Boolean, val errorManager: String = "")
 data class ClipboardData(val value: String, val type: String)
