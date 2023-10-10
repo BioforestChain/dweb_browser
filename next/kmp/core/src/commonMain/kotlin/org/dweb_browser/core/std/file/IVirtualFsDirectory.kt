@@ -24,16 +24,23 @@ interface IVirtualFsDirectory {
 }
 
 /**
- * 一种通用的虚拟文件目录，就是根据mmid来进行区分
+ * 一种通用的虚拟文件目录，需要提供真实的物理设备的
  */
-fun commonVirtualFsDirectoryFactory(firstSegment: String, basePath: Path) =
+fun commonVirtualFsDirectoryFactory(firstSegment: String, nativeFsPath: Path) =
   object : IVirtualFsDirectory {
     override fun isMatch(segment: String) = firstSegment == segment
-    override fun getFsBasePath(remote: IMicroModuleManifest) = basePath.resolve(remote.mmid)
+    override fun getFsBasePath(remote: IMicroModuleManifest) = nativeFsPath.resolve(remote.mmid)
   }
 
-fun commonVirtualFsDirectoryFactory(firstSegment: String, basePath: String) =
-  commonVirtualFsDirectoryFactory(firstSegment, basePath.toPath())
+fun commonVirtualFsDirectoryFactory(firstSegment: String, nativeFsPath: String) =
+  commonVirtualFsDirectoryFactory(firstSegment, nativeFsPath.toPath())
+
+//
+//class CommonVirtualFsDirectory(val firstSegment: String, val nativeFsPath: Path) : IVirtualFsDirectory {
+//  override fun isMatch(segment: String) = firstSegment == segment
+//  override fun getFsBasePath(remote: IMicroModuleManifest) = nativeFsPath.resolve(remote.mmid)
+//}
+
 
 /**
  * 持久化数据

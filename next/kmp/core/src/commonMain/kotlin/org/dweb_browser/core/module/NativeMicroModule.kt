@@ -5,12 +5,11 @@ import io.ktor.utils.io.CancellationException
 import io.ktor.utils.io.core.toByteArray
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.cbor.Cbor
+import kotlinx.serialization.encodeToByteArray
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
-import org.dweb_browser.helper.Debugger
-import org.dweb_browser.helper.SimpleSignal
-import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.help.types.MicroModuleManifest
 import org.dweb_browser.core.http.HttpRouter
@@ -27,6 +26,10 @@ import org.dweb_browser.core.ipc.helper.IPC_ROLE
 import org.dweb_browser.core.ipc.helper.IpcMessage
 import org.dweb_browser.core.ipc.helper.IpcResponse
 import org.dweb_browser.core.ipc.helper.ReadableStreamOut
+import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.SimpleSignal
+import org.dweb_browser.helper.toJsonElement
+import org.dweb_browser.helper.toLittleEndianByteArray
 
 val debugNMM = Debugger("NMM")
 
@@ -164,6 +167,63 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
     handler: suspend JsonLineHandlerContext.() -> Unit,
   ) = wrapHandler(beforeResponse) {
     JsonLineHandlerContext(this).run {
+      // 执行分发器
+      val job = ioAsyncScope.launch {
+        try {
+          handler()
+        } catch (e: Throwable) {
+          e.printStackTrace()
+          end(reason = e)
+        }
+      }
+
+      val doClose = suspend {
+        if (job.isActive) {
+          job.cancel(CancellationException("ipc closed"))
+          end()
+        }
+      }
+      // 监听 response 流关闭，这可能发生在网页刷新
+      responseReadableStream.controller.awaitClose {
+        onDisposeSignal.emit()
+        doClose()
+      }
+      // 监听 ipc 关闭，这可能由程序自己控制
+      val off = ipc.onClose { doClose() }
+      // 监听 job 完成，释放相关的监听
+      job.invokeOnCompletion { off() }
+      // 返回响应流
+      PureResponse(HttpStatusCode.OK).body(responseReadableStream.stream.stream)
+    }
+  }
+
+
+  class CborPacketHandlerContext constructor(context: HandlerContext) : IHandlerContext by context {
+    internal val responseReadableStream = ReadableStreamOut()
+    suspend fun emit(data: ByteArray) {
+      responseReadableStream.controller.enqueue(data.size.toLittleEndianByteArray(), data)
+    }
+
+    suspend inline fun <reified T> emit(lineData: T) = emit(Cbor.encodeToByteArray(lineData))
+
+    suspend fun end(reason: Throwable? = null) {
+      if (reason != null) {
+        responseReadableStream.controller.closeWrite(reason)
+      } else {
+        responseReadableStream.controller.closeWrite()
+      }
+    }
+
+    internal val onDisposeSignal = SimpleSignal()
+
+    val onDispose = onDisposeSignal.toListener()
+  }
+
+  protected fun defineCborLineResponse(
+    beforeResponse: BeforeResponse? = null,
+    handler: suspend CborPacketHandlerContext.() -> Unit,
+  ) = wrapHandler(beforeResponse) {
+    CborPacketHandlerContext(this).run {
       // 执行分发器
       val job = ioAsyncScope.launch {
         try {

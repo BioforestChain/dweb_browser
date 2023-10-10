@@ -53,8 +53,8 @@ class JmmManagerViewHelper(
         val bodyStream = queryProgress.stream()
 
         bodyStream.getReader("getDownloadProgress").consumeEachJsonLine<DownloadProgressEvent> {
-          uiState.downloadSize.value = current
-          uiState.downloadStatus.value = when (state) {
+          uiState.downloadSize.value = it.current
+          uiState.downloadStatus.value = when (it.state) {
             DownloadState.Init -> JmmDownloadStatus.IDLE
             DownloadState.Downloading -> JmmDownloadStatus.DownLoading
             DownloadState.Paused -> JmmDownloadStatus.PAUSE

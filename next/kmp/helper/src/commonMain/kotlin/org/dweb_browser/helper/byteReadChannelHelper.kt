@@ -4,7 +4,11 @@ import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.bits.copyTo
 import io.ktor.utils.io.read
 import io.ktor.utils.io.readAvailable
+import io.ktor.utils.io.readIntLittleEndian
 import io.ktor.utils.io.readUTF8Line
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.cbor.Cbor
+import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.json.Json
 
 val ByteReadChannel.canRead get() = !(availableForRead == 0 && isClosedForWrite && isClosedForRead)
@@ -32,7 +36,7 @@ suspend fun ByteReadChannel.readAvailableByteArray() =
 suspend inline fun ByteReadChannel.consumeEachArrayRange(
   visitor: ConsumeEachArrayVisitor,
 ) {
-  val controller = ConsumeEachArrayRangeController()
+  val controller = ChannelConsumeEachController()
   do {
     var lastChunkReported = false
     read { source, start, endExclusive ->
@@ -66,18 +70,29 @@ suspend inline fun ByteReadChannel.consumeEachArrayRange(
  * Visitor function that is invoked for every available buffer (or chunk) of a channel.
  * The last parameter shows that the buffer is known to be the last.
  */
-typealias ConsumeEachArrayVisitor = ConsumeEachArrayRangeController. (byteArray: ByteArray, last: Boolean) -> Unit
+typealias ConsumeEachArrayVisitor = ChannelConsumeEachController. (byteArray: ByteArray, last: Boolean) -> Unit
 
-class ConsumeEachArrayRangeController() {
+class ChannelConsumeEachController() {
   var continueFlag = true
   fun breakLoop() {
     continueFlag = false
   }
 }
 
-suspend inline fun <reified T> ByteReadChannel.consumeEachJsonLine(visitor: T.() -> Unit) {
+suspend inline fun <reified T> ByteReadChannel.consumeEachJsonLine(visitor: ChannelConsumeEachController.(T) -> Unit) {
+  val controller = ChannelConsumeEachController()
   while (canRead) {
     val line = readUTF8Line() ?: break
-    Json.decodeFromString<T>(line).visitor()
+    controller.visitor(Json.decodeFromString<T>(line))
+  }
+}
+
+@OptIn(ExperimentalSerializationApi::class)
+suspend inline fun <reified T> ByteReadChannel.consumeEachCborPacket(visitor: ChannelConsumeEachController.(T) -> Unit) {
+  val controller = ChannelConsumeEachController()
+  while (controller.continueFlag) {
+    val size = readIntLittleEndian()
+    val packet = readPacket(size)
+    controller.visitor(Cbor.decodeFromByteArray<T>(packet.readByteArray()))
   }
 }

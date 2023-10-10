@@ -214,7 +214,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
     suspend fun doObserve(urlPath: String, cb: suspend JmmDownloadInfo.() -> Unit) {
       val res = observeDownloadIpc.request(urlPath)
       res.stream().getReader("Jmm listenDownloadState")
-        .consumeEachJsonLine<JmmDownloadInfo> { cb() }
+        .consumeEachJsonLine<JmmDownloadInfo> { it.cb() }
     }
     launch {
       doObserve("/observe?mmid=$mmid") {

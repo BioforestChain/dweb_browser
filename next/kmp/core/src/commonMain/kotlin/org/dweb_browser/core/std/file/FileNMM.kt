@@ -10,20 +10,21 @@ import kotlinx.serialization.json.buildJsonArray
 import okio.Path
 import okio.Path.Companion.toPath
 import okio.buffer
+import org.dweb_browser.core.help.types.IMicroModuleManifest
+import org.dweb_browser.core.http.PureStream
+import org.dweb_browser.core.http.bind
+import org.dweb_browser.core.module.BootstrapContext
+import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
+import org.dweb_browser.core.std.file.ext.RespondLocalFileContext.Companion.respondLocalFile
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.StringEnumSerializer
 import org.dweb_browser.helper.SystemFileSystem
+import org.dweb_browser.helper.consumeEachCborPacket
 import org.dweb_browser.helper.copyTo
 import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.helper.toByteReadChannel
 import org.dweb_browser.helper.toJsonElement
-import org.dweb_browser.core.module.BootstrapContext
-import org.dweb_browser.core.module.NativeMicroModule
-import org.dweb_browser.core.help.types.IMicroModuleManifest
-import org.dweb_browser.core.http.PureStream
-import org.dweb_browser.core.http.bind
-import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
-import org.dweb_browser.core.std.file.ext.RespondLocalFileContext.Companion.respondLocalFile
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.resource
 
@@ -35,6 +36,8 @@ val debugFile = Debugger("file")
  * 比如 视频、相册、音乐、办公 等模块都是对文件读写有刚性依赖的，因此会基于标准文件模块实现同样的标准，这样别的模块可以将同类型的文件存储到它们的文件夹标准下管理
  */
 class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
+  companion object {}
+
   fun findVfsDirectory(firstSegment: String): IVirtualFsDirectory? {
     for (adapter in fileTypeAdapterManager.adapters) {
       if (adapter.isMatch(firstSegment)) {
@@ -154,6 +157,46 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
     }
 
     routes(
+      // 使用Duplex打开文件句柄，当这个Duplex关闭的时候，自动释放文件句柄
+      "/open" bind HttpMethod.Get to defineJsonLineResponse {
+        val handler = SystemFileSystem.openReadWrite(getPath())
+        // TODO 这里需要定义完整的操作指令
+        request.body.toPureStream().getReader("open file").consumeEachCborPacket<FileOp<*>> { op ->
+          when (op) {
+            // 获取大小
+            is FileOpSize -> emit(handler.size())
+            // 读取内容
+            is FileOpRead -> emit(when (val fileOffset = op.input.first) {
+              null -> handler.source()
+              else -> handler.source(fileOffset)
+            }.buffer().let { bufferedSource ->
+              when (val byteCount = op.input.second) {
+                null -> bufferedSource.readByteArray()
+                else -> bufferedSource.readByteArray(byteCount)
+              }.also { bufferedSource.close() }
+            })
+            // 写入内容
+            is FileOpWrite -> emit(when (val fileOffset = op.input.first) {
+              null -> handler.sink()
+              else -> handler.sink(fileOffset)
+            }.buffer().let { bufferedSink ->
+              bufferedSink.write(op.input.second)
+              bufferedSink.close()
+            })
+            // 追加内容
+            is FileOpAppend -> handler.appendingSink().buffer().let { bufferedSink ->
+              bufferedSink.write(op.input)
+              bufferedSink.close()
+            }
+            // 主动关闭
+            is FileOpClose -> this@consumeEachCborPacket.breakLoop()
+          }
+        }
+        // 关闭句柄
+        handler.close()
+        // 结束算工流
+        end()
+      },
       // 创建文件夹
       "/createDir" bind HttpMethod.Post to defineBooleanResponse {
         SystemFileSystem.createDirectories(getPath(), true)
