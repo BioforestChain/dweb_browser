@@ -15,7 +15,7 @@ import org.dweb_browser.window.core.WindowRenderScope
 import org.dweb_browser.window.render.LocalWindowController
 
 @Composable
-fun org.dweb_browser.browser.jmm.JmmController.Render(modifier: Modifier, renderScope: WindowRenderScope) {
+fun JmmController.Render(modifier: Modifier, renderScope: WindowRenderScope) {
   val jmmController = this
   val scope = rememberCoroutineScope()
   val win = LocalWindowController.current
@@ -23,6 +23,7 @@ fun org.dweb_browser.browser.jmm.JmmController.Render(modifier: Modifier, render
   win.GoBackHandler {
     scope.launch { jmmController.closeSelf() }
   }
+
   CompositionLocalProvider(
     LocalJmmViewHelper provides jmmController.viewModel
   ) {
@@ -38,6 +39,4 @@ fun org.dweb_browser.browser.jmm.JmmController.Render(modifier: Modifier, render
       }
     }
   }
-
-
 }
