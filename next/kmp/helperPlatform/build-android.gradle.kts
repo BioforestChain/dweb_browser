@@ -19,12 +19,12 @@ kotlin {
   sourceSets {
     val commonMain by getting {
       dependencies {
-        implementation(kotlin("stdlib"))
-        implementation(libs.jetbrains.compose.runtime)
-        implementation(libs.jetbrains.compose.foundation)
+        api(kotlin("stdlib"))
+        api(libs.jetbrains.compose.runtime)
+        api(libs.jetbrains.compose.foundation)
         @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
-        implementation(libs.jetbrains.compose.components.resources)
-        implementation(libs.kotlinx.atomicfu)
+        api(libs.jetbrains.compose.components.resources)
+        api(libs.kotlinx.atomicfu)
         api(libs.ktor.server.cio)
         api(libs.ktor.client.cio)
         api(libs.ktor.client.encoding)

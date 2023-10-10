@@ -6,7 +6,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.sync.Mutex
@@ -14,16 +13,16 @@ import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.browserUI.R
 import org.dweb_browser.browserUI.ui.browser.BrowserViewModel
 import org.dweb_browser.helper.SimpleSignal
+import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.microservice.std.http.HttpDwebServer
 import org.dweb_browser.microservice.sys.download.db.DownloadDBStore
 import org.dweb_browser.microservice.sys.download.db.createDeskWebLink
-import org.dweb_browser.microservice.std.http.HttpDwebServer
 import org.dweb_browser.window.core.WindowController
-import org.dweb_browser.window.core.WindowState
-import org.dweb_browser.window.core.constant.WindowConstants
 import org.dweb_browser.window.core.constant.WindowMode
 import org.dweb_browser.window.core.createWindowAdapterManager
 import org.dweb_browser.window.core.helper.setFromManifest
+import org.dweb_browser.window.core.windowInstancesManager
 
 class BrowserController(
   private val browserNMM: BrowserNMM, private val browserServer: HttpDwebServer
@@ -34,55 +33,43 @@ class BrowserController(
 
   private var winLock = Mutex(false)
 
-  suspend fun uninstallWindow() {
-    winLock.withLock {
-      win?.close(false)
-    }
-  }
 
   /**
    * 窗口是单例模式
    */
   private var win: WindowController? = null
-  suspend fun openBrowserWindow(search: String? = null, url: String? = null) =
-    winLock.withLock<WindowController> {
-      viewModel.createNewTab(search, url)
-      win?.let { preWin ->
-        preWin.state.focus = true
-        preWin.state.visible = true
-        return preWin
+  suspend fun openBrowserWindow(wid: UUID) = winLock.withLock {
+    (windowInstancesManager.get(wid) ?: throw Exception("invalid wid: $wid")).also { newWin ->
+      win = newWin
+      newWin.state.apply {
+        constants.microModule = browserNMM
+        mode = WindowMode.MAXIMIZE
+        focus = true
+        setFromManifest(browserNMM)
+        closeTip =
+          newWin.manager?.state?.viewController?.androidContext?.getString(R.string.browser_confirm_to_close) // TODO 这里改成 kmp 的 i18n 标准
+            ?: ""
       }
-      // 打开安装窗口
-      val newWin = createWindowAdapterManager.createWindow(WindowState(
-        WindowConstants(
-          owner = browserNMM.mmid,
-          ownerVersion = browserNMM.version,
-          provider = browserNMM.mmid,
-          microModule = browserNMM
-        )
-      ).also { state ->
-        state.mode = WindowMode.MAXIMIZE
-        state.focus = true // 全屏和focus同时满足，才能显示浮窗而不是侧边栏
-        state.setFromManifest(browserNMM)
-      })
-      newWin.state.closeTip =
-        newWin.manager?.state?.viewController?.androidContext?.getString(R.string.browser_confirm_to_close)
-          ?: ""
-      this.win = newWin
-      val wid = newWin.id
       /// 提供渲染适配
       createWindowAdapterManager.renderProviders[wid] = @Composable { modifier ->
         Render(modifier, this)
       }
-      /// 窗口销毁的时候
       newWin.onClose {
         closeWindowSignal.emit()
         // 移除渲染适配器
         createWindowAdapterManager.renderProviders.remove(wid)
-        ioAsyncScope.cancel()
-        win = null
+        winLock.withLock {
+          if (newWin == win) {
+            win = null
+          }
+        }
       }
-      return newWin
+    }
+  }
+
+  suspend fun openBrowserView(search: String? = null, url: String? = null) =
+    winLock.withLock {
+      viewModel.createNewTab(search, url)
     }
 
   private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler

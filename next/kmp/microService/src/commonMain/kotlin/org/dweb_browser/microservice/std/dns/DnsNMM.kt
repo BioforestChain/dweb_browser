@@ -19,6 +19,7 @@ import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.ConnectResult
 import org.dweb_browser.microservice.core.DnsMicroModule
+import org.dweb_browser.microservice.core.InternalIpcEvent
 import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.core.connectMicroModules
@@ -30,7 +31,6 @@ import org.dweb_browser.microservice.http.PureResponse
 import org.dweb_browser.microservice.http.PureStringBody
 import org.dweb_browser.microservice.http.bind
 import org.dweb_browser.microservice.http.bindDwebDeeplink
-import org.dweb_browser.microservice.ipc.helper.IpcEvent
 import org.dweb_browser.microservice.ipc.helper.IpcMethod
 
 fun debugDNS(tag: String, msg: Any = "", err: Throwable? = null) =
@@ -253,7 +253,8 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
         }
       })
     /// 启动 boot 模块
-    connect("boot.sys.dweb").postMessage(IpcEvent.fromUtf8("activity", ""))
+    val bootIpc = connect("boot.sys.dweb");
+    bootIpc.postMessage(InternalIpcEvent.Activity.create(""))
   }
 
   override suspend fun _shutdown() {

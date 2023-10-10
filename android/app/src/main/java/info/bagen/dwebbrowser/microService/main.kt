@@ -157,19 +157,15 @@ suspend fun startDwebBrowser(): DnsNMM {
   val deskNMM = DeskNMM().also { dnsNMM.install(it) }
   val windowNMM = WindowNMM().also { dnsNMM.install(it) }
 
-  /**
-   *
-   * browserNMM.mmid,
-   * desktopJMM.mmid,
-   * plaocDemoJMM.mmid,
-   * cotJMM.mmid,
-   * toyJMM.mmid,
-   */
-  val bootMmidList = listOf(deskNMM.mmid)
-
   /// 启动程序
   val bootNMM = BootNMM(
-    bootMmidList.plus(jmmNMM.mmid).plus(httpNMM.mmid).plus(nativeUiNMM.mmid),
+    listOf(
+      fileNMM.mmid,//
+      jmmNMM.mmid,//
+      httpNMM.mmid,//
+      nativeUiNMM.mmid,//
+      deskNMM.mmid,//
+    ),
   ).also { dnsNMM.install(it) }
 
   /// 启动Web调试

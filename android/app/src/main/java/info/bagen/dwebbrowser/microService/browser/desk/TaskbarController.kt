@@ -11,7 +11,6 @@ import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.build
 import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.microservice.help.types.MMID
-import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.std.http.HttpDwebServer
 
 class TaskbarController(
@@ -19,7 +18,7 @@ class TaskbarController(
   val deskNMM: DeskNMM,
   private val desktopController: DesktopController,
   private val taskbarServer: HttpDwebServer,
-  private val runningApps: ChangeableMap<MMID, Ipc>
+  private val runningApps: ChangeableMap<MMID, RunningApp>
 ) {
   val taskbarView = TaskbarView(this)
 

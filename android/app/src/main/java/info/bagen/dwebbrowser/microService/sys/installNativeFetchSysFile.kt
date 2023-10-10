@@ -11,14 +11,14 @@ import org.dweb_browser.microservice.sys.dns.parseToDirnameAndBasename
 import org.dweb_browser.microservice.sys.dns.returnFile
 
 fun installNativeFetchSysFile() {
-  nativeFetchAdaptersManager.append { fromMM, request ->
-    return@append request.respondLocalFile {
-      if (filePath.startsWith("/sys/")) {
-        debugFetch("SysFile", "$fromMM => ${request.href}")
-        returnAndroidAsset(App.appContext.assets, filePath.substring("/sys/".length))
-      } else returnNext()
-    }
-  }
+//  nativeFetchAdaptersManager.append { fromMM, request ->
+//    return@append request.respondLocalFile {
+//      if (filePath.startsWith("/sys/")) {
+//        debugFetch("SysFile", "$fromMM => ${request.href}")
+//        returnAndroidAsset(App.appContext.assets, filePath.substring("/sys/".length))
+//      } else returnNext()
+//    }
+//  }
 }
 
 fun RespondLocalFileContext.returnAndroidAsset(

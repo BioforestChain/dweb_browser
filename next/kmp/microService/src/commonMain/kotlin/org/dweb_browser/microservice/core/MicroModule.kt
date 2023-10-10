@@ -166,7 +166,7 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
   suspend fun beConnect(ipc: Ipc, reason: PureRequest) {
     this.addToIpcSet(ipc)
     ipc.onEvent { (event, ipc) ->
-      if (event.name == "activity") {
+      if (event isTypeof InternalIpcEvent.Activity) {
         _activitySignal.emit(Pair(event, ipc))
       }
     }
@@ -174,6 +174,10 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
   }
 
   protected val _activitySignal = Signal<IpcActivityArgs>()
+
+  /**
+   * 详见 `InternalIpcEvent.Activity`
+   */
   protected fun onActivity(cb: Callback<IpcActivityArgs>) = _activitySignal.listen(cb)
 
 //  /** 激活NMM入口*/

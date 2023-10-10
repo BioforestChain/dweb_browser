@@ -1,7 +1,6 @@
 package org.dweb_browser.browserUI.microService.browser.web
 
 import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.withContext
 import org.dweb_browser.core.getAppContext
 import org.dweb_browser.helper.Debugger
@@ -10,7 +9,6 @@ import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
-import org.dweb_browser.microservice.http.PureResponse
 import org.dweb_browser.microservice.http.bind
 import org.dweb_browser.microservice.http.bindDwebDeeplink
 import org.dweb_browser.microservice.ipc.helper.IpcResponse
@@ -60,26 +58,25 @@ class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
         )
       }
 
-    onActivity {
-      browserController.openBrowserWindow()
+    onActivity { (event) ->
+      if (event.text.startsWith("wid:")) {
+        val wid = event.text.substring(4);
+        browserController.openBrowserWindow(wid)
+      }
     }
 
     routes(
-      "search" bindDwebDeeplink definePureResponse {
+      "search" bindDwebDeeplink defineEmptyResponse {
         debugBrowser("do search", request.href)
-        browserController.openBrowserWindow(search = request.query("q"))
-        return@definePureResponse PureResponse(HttpStatusCode.OK)
+        browserController.openBrowserView(search = request.query("q"))
+        val wid = nativeFetch("file://window.std.dweb/openMainWindow").text();
+        browserController.openBrowserWindow(wid)
       },
-      "openinbrowser" bindDwebDeeplink definePureResponse {
+      "openinbrowser" bindDwebDeeplink defineEmptyResponse {
         debugBrowser("do openinbrowser", request.href)
-        browserController.openBrowserWindow(url = request.query("url"))
-        return@definePureResponse PureResponse(HttpStatusCode.OK)
-      },
-      // 前端退出按钮触发的时候，需要关闭窗口
-      "/close" bind HttpMethod.Get to definePureResponse {
-        debugBrowser("close", request.href)
-        browserController.uninstallWindow()
-        return@definePureResponse PureResponse(HttpStatusCode.OK)
+        browserController.openBrowserView(url = request.query("url"))
+        val wid = nativeFetch("file://window.std.dweb/openMainWindow").text();
+        browserController.openBrowserWindow(wid)
       },
     )
   }

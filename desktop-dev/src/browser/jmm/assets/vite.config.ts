@@ -9,6 +9,12 @@ export default defineConfig({
   build: {
     assetsDir: "./", // 资源目录,相对于 dist 目录
     assetsInlineLimit: 4096, // 小于该大小的资源将内联为 base64 编码
+    rollupOptions: {
+      output: {
+        assetFileNames: `assets/[hash].[ext]`,
+        chunkFileNames: `[hash].js`,
+      },
+    },
   },
   server: {
     port: 5174,

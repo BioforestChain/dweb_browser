@@ -8,21 +8,17 @@ import kotlinx.serialization.json.Json
 import org.dweb_browser.browser.jmm.ui.JmmManagerViewHelper
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
+import org.dweb_browser.microservice.core.InternalIpcEvent
 import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
 import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.http.PureRequest
 import org.dweb_browser.microservice.http.PureStringBody
-import org.dweb_browser.microservice.ipc.helper.IpcEvent
 import org.dweb_browser.microservice.ipc.helper.IpcMethod
 import org.dweb_browser.microservice.std.dns.nativeFetch
 import org.dweb_browser.microservice.sys.download.JmmDownloadController
 import org.dweb_browser.microservice.sys.download.JmmDownloadInfo
 import org.dweb_browser.window.core.WindowController
 import org.dweb_browser.window.core.createWindowAdapterManager
-
-enum class EIpcEvent(val event: String) {
-  State("state"), Ready("ready"), Activity("activity"), Close("close")
-}
 
 class JmmController(
   val win: WindowController, // 窗口控制器
@@ -62,11 +58,11 @@ class JmmController(
     openLock.withLock {
 
       val (ipc) = jmmNMM.bootstrapContext.dns.connect(mmid)
-      ipc.postMessage(IpcEvent.fromUtf8(org.dweb_browser.browser.jmm.EIpcEvent.Activity.event, ""))
+      ipc.postMessage(InternalIpcEvent.Activity.create(""))
 
       val (deskIpc) = jmmNMM.bootstrapContext.dns.connect("desk.browser.dweb")
       org.dweb_browser.browser.jmm.debugJMM("openApp", "postMessage==>activity desk.browser.dweb")
-      deskIpc.postMessage(IpcEvent.fromUtf8(org.dweb_browser.browser.jmm.EIpcEvent.Activity.event, ""))
+      deskIpc.postMessage(InternalIpcEvent.Activity.create(""))
     }
   }
 

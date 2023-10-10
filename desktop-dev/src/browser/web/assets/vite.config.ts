@@ -19,6 +19,10 @@ export default defineConfig({
       },
     },
     copyPublicDir: true,
+    output: {
+      assetFileNames: `assets/[hash].[ext]`,
+      chunkFileNames: `[hash].js`,
+    },
   },
   plugins: [
     renderer(),

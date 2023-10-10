@@ -33,5 +33,5 @@ data class WindowConstants(
    * 提供放的 mm 实例
    */
   @Transient
-  val microModule: MicroModule? = null,
+  var microModule: MicroModule? = null,
 )

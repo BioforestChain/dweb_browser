@@ -19,6 +19,8 @@ data class DownloadTask(
   val originUrl: String?,
   /** 下载回调链接 */
   val completeCallbackUrl: String?,
+  /** 文件的元数据类型，可以用来做“打开文件”时的参考类型 */
+  val mime: String,
 )
 
 @Serializable

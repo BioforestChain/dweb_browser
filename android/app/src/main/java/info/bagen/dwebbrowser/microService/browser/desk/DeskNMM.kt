@@ -15,6 +15,7 @@ import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.microservice.core.BootstrapContext
+import org.dweb_browser.microservice.core.InternalIpcEvent
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.types.MMID
@@ -22,8 +23,6 @@ import org.dweb_browser.microservice.http.PureResponse
 import org.dweb_browser.microservice.http.PureStringBody
 import org.dweb_browser.microservice.http.bind
 import org.dweb_browser.microservice.http.toPure
-import org.dweb_browser.microservice.ipc.Ipc
-import org.dweb_browser.microservice.ipc.helper.IpcEvent
 import org.dweb_browser.microservice.ipc.helper.IpcResponse
 import org.dweb_browser.microservice.std.dns.nativeFetch
 import org.dweb_browser.microservice.std.http.CORS_HEADERS
@@ -41,23 +40,25 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
 
   val deskStore = DeskStore(this)
 
-  private val runningApps = ChangeableMap<MMID, Ipc>()
-  private suspend fun addRunningApp(mmid: MMID): Ipc? {
+  private val runningApps = ChangeableMap<MMID, RunningApp>()
+  private suspend fun addRunningApp(mmid: MMID): RunningApp? {
     /// 如果成功打开，将它“追加”到列表中
-    return when (val ipc = runningApps[mmid]) {
+    return when (val runningApp = runningApps[mmid]) {
       null -> {
         val ipc = connect(mmid)
         if (ipc.remote.categories.contains(MICRO_MODULE_CATEGORY.Application)) {
-          runningApps[mmid] = ipc
-          /// 如果应用关闭，将它从列表中移除
-          ipc.onClose {
-            runningApps.remove(mmid)
+          RunningApp(ipc).also {
+            runningApps[mmid] = it
+            /// 如果应用关闭，将它从列表中移除
+            it.onClose {
+              runningApps.remove(mmid)
+              bootstrapContext.dns.close(mmid)
+            }
           }
-          ipc
         } else null
       }
 
-      else -> ipc
+      else -> runningApp
     }
   }
 
@@ -124,23 +125,27 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         )
       },
       //
-      "/openAppOrActivate" bind HttpMethod.Get to defineBooleanResponse {
+      "/openAppOrActivate" bind HttpMethod.Get to defineStringResponse {
         val mmid = request.query("app_id")
         debugDesk("/openAppOrActivate", mmid)
         try {
-          val ipc = addRunningApp(mmid)
-          ipc?.postMessage(
-            IpcEvent.fromUtf8(
-              org.dweb_browser.browser.jmm.EIpcEvent.Activity.event, ""
+          val runningApp = addRunningApp(mmid) ?: throwException(
+            HttpStatusCode.NotFound, "No found application by id: $mmid"
+          )
+          /// desk直接为应用打开窗口，因为窗口由desk统一管理，所以由desk窗口，并提供句柄
+          val appMainWindow = runningApp.openMainWindow()
+          runningApp.ipc.postMessage(
+            InternalIpcEvent.Activity.create(
+              "wid:${appMainWindow.id}"
             )
           )
           /// 将所有的窗口聚焦，这个行为不依赖于 Activity 事件，而是Desk模块自身托管窗口的行为
           desktopController.desktopWindowsManager.focusWindow(mmid)
-          true
+          appMainWindow.id
         } catch (e: Exception) {
           desktopController.showAlert(e)
           e.printStackTrace()
-          false
+          throwException(cause = e)
         }
       },
       // 获取isMaximized 的值

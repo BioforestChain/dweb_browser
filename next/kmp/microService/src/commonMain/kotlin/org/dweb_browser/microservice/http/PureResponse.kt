@@ -16,7 +16,7 @@ data class PureResponse(
   val url: String? = null
 ) {
 
-  fun isOk() = status.value == HttpStatusCode.OK.value
+  fun isOk() = status.value in 200..299
   internal fun requestOk(): PureResponse =
     if (status.value >= 400) throw Exception("PureResponse not ok: ${status.description}") else this
 

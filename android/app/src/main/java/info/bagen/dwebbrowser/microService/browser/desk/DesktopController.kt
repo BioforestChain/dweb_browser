@@ -19,14 +19,13 @@ import org.dweb_browser.helper.build
 import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.microservice.help.types.MMID
-import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.std.http.HttpDwebServer
 
 @Stable
 class DesktopController(
   private val deskNMM: DeskNMM,
   private val desktopServer: HttpDwebServer,
-  private val runningApps: ChangeableMap<MMID, Ipc>
+  private val runningApps: ChangeableMap<MMID, RunningApp>
 ) {
 
   internal val updateSignal = SimpleSignal()
