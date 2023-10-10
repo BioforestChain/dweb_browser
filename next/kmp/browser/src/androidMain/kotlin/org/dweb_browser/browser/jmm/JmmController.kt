@@ -6,25 +6,24 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.browser.jmm.ui.JmmManagerViewHelper
-import org.dweb_browser.helper.Signal
-import org.dweb_browser.helper.SimpleSignal
-import org.dweb_browser.core.std.dns.createActivity
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.http.PureStringBody
 import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.ipc.helper.IpcMethod
+import org.dweb_browser.core.std.dns.createActivity
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.sys.download.JmmDownloadController
 import org.dweb_browser.core.sys.download.JmmDownloadInfo
-import org.dweb_browser.window.core.WindowController
-import org.dweb_browser.window.core.createWindowAdapterManager
+import org.dweb_browser.helper.Signal
+import org.dweb_browser.helper.SimpleSignal
+import org.dweb_browser.sys.window.core.WindowController
+import org.dweb_browser.sys.window.core.createWindowAdapterManager
 
 class JmmController(
   val win: WindowController, // 窗口控制器
-  internal val jmmNMM: JmmNMM,
-  private val jmmAppInstallManifest: JmmAppInstallManifest
+  internal val jmmNMM: JmmNMM, private val jmmAppInstallManifest: JmmAppInstallManifest
 ) {
 
   private val openLock = Mutex()
@@ -32,8 +31,6 @@ class JmmController(
 
   fun getApp(mmid: MMID) = jmmNMM.getApps(mmid)
 
-  private val closeSignal = SimpleSignal()
-  val onClosed = closeSignal.toListener()
 
   internal val downloadSignal = Signal<JmmDownloadInfo>()
   val onDownload = downloadSignal.toListener()
@@ -41,17 +38,8 @@ class JmmController(
   init {
     val wid = win.id
     /// 提供渲染适配
-    createWindowAdapterManager.renderProviders[wid] =
-      @Composable { modifier ->
-        Render(modifier, this)
-      }
-    /// 窗口销毁的时候
-    win.onClose {
-      // 移除渲染适配器
-      createWindowAdapterManager.renderProviders.remove(wid)
-    }
-    onClosed {
-      win.close(true)
+    createWindowAdapterManager.renderProviders[wid] = @Composable { modifier ->
+      Render(modifier, this)
     }
   }
 
@@ -87,6 +75,6 @@ class JmmController(
   }
 
   suspend fun closeSelf() {
-    closeSignal.emit()
+    win.close(true)
   }
 }

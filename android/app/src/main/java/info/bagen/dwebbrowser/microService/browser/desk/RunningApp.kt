@@ -4,11 +4,11 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.helper.IpcEvent
-import org.dweb_browser.window.core.WindowController
-import org.dweb_browser.window.core.WindowState
-import org.dweb_browser.window.core.constant.WindowConstants
-import org.dweb_browser.window.core.createRenderer
-import org.dweb_browser.window.core.createWindowAdapterManager
+import org.dweb_browser.sys.window.core.WindowController
+import org.dweb_browser.sys.window.core.WindowState
+import org.dweb_browser.sys.window.core.constant.WindowConstants
+import org.dweb_browser.sys.window.core.createRenderer
+import org.dweb_browser.sys.window.core.createWindowAdapterManager
 
 
 class RunningApp(

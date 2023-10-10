@@ -17,7 +17,8 @@ import org.dweb_browser.core.sys.dns.returnAndroidFile
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.mainAsyncExceptionHandler
-import org.dweb_browser.window.core.onRenderer
+import org.dweb_browser.sys.window.ext.openMainWindow
+import org.dweb_browser.sys.window.core.onRenderer
 
 val debugBrowser = Debugger("browser")
 
@@ -58,19 +59,19 @@ class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
       }
 
     onRenderer {
-      browserController.openBrowserWindow(wid)
+      browserController.renderBrowserWindow(wid)
     }
 
     routes(
       "search" bindDwebDeeplink defineEmptyResponse {
         debugBrowser("do search", request.href)
         browserController.openBrowserView(search = request.query("q"))
-        nativeFetch("file://window.sys.dweb/openMainWindow")
+        openMainWindow()
       },
       "openinbrowser" bindDwebDeeplink defineEmptyResponse {
         debugBrowser("do openinbrowser", request.href)
         browserController.openBrowserView(url = request.query("url"))
-        nativeFetch("file://window.sys.dweb/openMainWindow")
+        openMainWindow()
       },
     )
   }

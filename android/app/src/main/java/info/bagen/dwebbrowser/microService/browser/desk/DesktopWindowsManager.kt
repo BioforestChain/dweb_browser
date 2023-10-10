@@ -2,9 +2,9 @@ package info.bagen.dwebbrowser.microService.browser.desk
 
 import org.dweb_browser.helper.platform.PlatformViewController
 import org.dweb_browser.helper.removeWhen
-import org.dweb_browser.window.core.WindowsManager
-import org.dweb_browser.window.core.createWindowAdapterManager
-import org.dweb_browser.window.core.helper.setDefaultFloatWindowBounds
+import org.dweb_browser.sys.window.core.WindowsManager
+import org.dweb_browser.sys.window.core.createWindowAdapterManager
+import org.dweb_browser.sys.window.core.helper.setDefaultFloatWindowBounds
 import java.util.WeakHashMap
 import kotlin.math.sqrt
 

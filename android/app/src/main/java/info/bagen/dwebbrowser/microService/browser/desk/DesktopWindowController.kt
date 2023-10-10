@@ -1,8 +1,8 @@
 package info.bagen.dwebbrowser.microService.browser.desk
 
-import org.dweb_browser.window.core.WindowController
-import org.dweb_browser.window.core.WindowState
-import org.dweb_browser.window.core.WindowsManager
+import org.dweb_browser.sys.window.core.WindowController
+import org.dweb_browser.sys.window.core.WindowState
+import org.dweb_browser.sys.window.core.WindowsManager
 
 class DesktopWindowController(
   manager: DesktopWindowsManager,

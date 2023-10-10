@@ -14,10 +14,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
-import org.dweb_browser.window.core.constant.WindowBottomBarTheme
-import org.dweb_browser.window.core.constant.WindowMode
-import org.dweb_browser.window.render.LocalWindowController
-import org.dweb_browser.window.render.WindowPreviewer
+import org.dweb_browser.sys.window.core.constant.WindowBottomBarTheme
+import org.dweb_browser.sys.window.core.constant.WindowMode
+import org.dweb_browser.sys.window.render.LocalWindowController
+import org.dweb_browser.sys.window.render.WindowPreviewer
 
 
 @Composable

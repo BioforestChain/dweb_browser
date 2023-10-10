@@ -7,17 +7,6 @@ import io.ktor.http.Url
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.link.WebLinkMicroModule
-import org.dweb_browser.core.module.getAppContext
-import org.dweb_browser.helper.APP_DIR_TYPE
-import org.dweb_browser.helper.ChangeableMap
-import org.dweb_browser.helper.Debugger
-import org.dweb_browser.helper.FilesUtil
-import org.dweb_browser.helper.ImageResource
-import org.dweb_browser.helper.consumeEachJsonLine
-import org.dweb_browser.helper.isGreaterThan
-import org.dweb_browser.helper.resolvePath
-import org.dweb_browser.core.module.BootstrapContext
-import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
@@ -26,6 +15,9 @@ import org.dweb_browser.core.http.PureResponse
 import org.dweb_browser.core.http.bind
 import org.dweb_browser.core.http.bindDwebDeeplink
 import org.dweb_browser.core.ipc.Ipc
+import org.dweb_browser.core.module.BootstrapContext
+import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
 import org.dweb_browser.core.std.file.ext.RespondLocalFileContext.Companion.respondLocalFile
@@ -33,21 +25,30 @@ import org.dweb_browser.core.sys.dns.returnAndroidFile
 import org.dweb_browser.core.sys.download.JmmDownloadInfo
 import org.dweb_browser.core.sys.download.db.AppType
 import org.dweb_browser.core.sys.download.db.DownloadDBStore
-import org.dweb_browser.window.core.WindowState
-import org.dweb_browser.window.core.constant.WindowConstants
-import org.dweb_browser.window.core.constant.WindowMode
-import org.dweb_browser.window.core.createWindowAdapterManager
-import org.dweb_browser.window.core.helper.setFromManifest
+import org.dweb_browser.helper.APP_DIR_TYPE
+import org.dweb_browser.helper.ChangeableMap
+import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.FilesUtil
+import org.dweb_browser.helper.ImageResource
+import org.dweb_browser.helper.consumeEachJsonLine
+import org.dweb_browser.helper.isGreaterThan
+import org.dweb_browser.helper.resolvePath
+import org.dweb_browser.sys.window.core.constant.WindowMode
+import org.dweb_browser.sys.window.core.helper.setFromManifest
+import org.dweb_browser.sys.window.ext.openMainWindow
 import java.io.File
 
 val debugJMM = Debugger("JMM")
 
-class JmmNMM() :
-  NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management") {
+class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management") {
   init {
     short_name = "JMM";
     dweb_deeplinks = listOf("dweb://install")
-    categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Hub_Service);
+    categories = listOf(
+      MICRO_MODULE_CATEGORY.Application,
+      MICRO_MODULE_CATEGORY.Service,
+      MICRO_MODULE_CATEGORY.Hub_Service
+    );
     icons = listOf(
       ImageResource(
         src = "file:///sys/icons/$mmid.svg", type = "image/svg+xml", purpose = "monochrome"
@@ -152,6 +153,7 @@ class JmmNMM() :
                 }
                 bootstrapContext.dns.install(JsMicroModule(jsMetaData))
               }
+
               AppType.Link -> deskAppInfo.weblink?.let { deskWebLink ->
                 bootstrapContext.dns.install(
                   WebLinkMicroModule(
@@ -159,6 +161,7 @@ class JmmNMM() :
                   )
                 )
               }
+
               else -> {}
             }
           }
@@ -180,18 +183,18 @@ class JmmNMM() :
     }
     debugJMM("openJmmMetadataInstallPage", jmmAppInstallManifest.bundle_url)
     // 打开安装窗口
-    val win = createWindowAdapterManager.createWindow(WindowState(
-      WindowConstants(
-        owner = mmid, ownerVersion = version, provider = mmid, microModule = this
-      )
-    ).apply {
+    // TODO 使用 bottomSheet
+
+    val win = openMainWindow() ?: return
+    win.state.apply {
       mode = WindowMode.FLOATING
       setFromManifest(this@JmmNMM)
-    })
+    }
+
     jmmController = JmmController(
       win, this@JmmNMM, jmmAppInstallManifest
     ).also { ctrl ->
-      ctrl.onClosed {
+      win.onClose {
         if (jmmController == ctrl) {
           jmmController = null
         }

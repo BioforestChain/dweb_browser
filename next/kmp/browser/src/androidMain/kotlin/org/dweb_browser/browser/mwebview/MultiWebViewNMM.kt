@@ -12,11 +12,11 @@ import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.bind
 import org.dweb_browser.core.ipc.Ipc
-import org.dweb_browser.window.core.WindowState
-import org.dweb_browser.window.core.constant.WindowConstants
-import org.dweb_browser.window.core.createWindowAdapterManager
-import org.dweb_browser.window.core.helper.setFromManifest
-import org.dweb_browser.window.render.emitFocusOrBlur
+import org.dweb_browser.sys.window.core.WindowState
+import org.dweb_browser.sys.window.core.constant.WindowConstants
+import org.dweb_browser.sys.window.core.createWindowAdapterManager
+import org.dweb_browser.sys.window.core.helper.setFromManifest
+import org.dweb_browser.sys.window.render.emitFocusOrBlur
 
 fun debugMultiWebView(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("mwebview", tag, msg, err)
@@ -91,7 +91,8 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.browser.dweb", "Multi Webvie
     debugMultiWebView("/open", "remote-mmid: $remoteMmid / url:$url")
 
     val controller = controllerMap.getOrPut(remoteMmid) {
-      val win = createWindowAdapterManager.createWindow(WindowState(
+      val win = createWindowAdapterManager.createWindow(
+        WindowState(
         WindowConstants(
           owner = ipc.remote.mmid,
           ownerVersion = ipc.remote.version,

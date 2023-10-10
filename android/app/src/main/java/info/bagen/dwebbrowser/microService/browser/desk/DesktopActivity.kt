@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import org.dweb_browser.core.module.BaseThemeActivity
 import org.dweb_browser.helper.compose.theme.DwebBrowserAppTheme
-import org.dweb_browser.window.core.WindowBounds
+import org.dweb_browser.sys.window.core.WindowBounds
 
 @SuppressLint("ModifierFactoryExtensionFunction")
 fun WindowBounds.toModifier(

@@ -11,8 +11,8 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.jmm.render.MALLBrowserView
 import org.dweb_browser.browser.jmm.ui.LocalJmmViewHelper
-import org.dweb_browser.window.core.WindowRenderScope
-import org.dweb_browser.window.render.LocalWindowController
+import org.dweb_browser.sys.window.core.WindowRenderScope
+import org.dweb_browser.sys.window.render.LocalWindowController
 
 @Composable
 fun JmmController.Render(modifier: Modifier, renderScope: WindowRenderScope) {

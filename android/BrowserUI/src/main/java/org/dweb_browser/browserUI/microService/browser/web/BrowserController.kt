@@ -18,11 +18,11 @@ import org.dweb_browser.core.sys.download.db.createDeskWebLink
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.window.core.WindowController
-import org.dweb_browser.window.core.constant.WindowMode
-import org.dweb_browser.window.core.createWindowAdapterManager
-import org.dweb_browser.window.core.helper.setFromManifest
-import org.dweb_browser.window.core.windowInstancesManager
+import org.dweb_browser.sys.window.core.WindowController
+import org.dweb_browser.sys.window.core.constant.WindowMode
+import org.dweb_browser.sys.window.core.createWindowAdapterManager
+import org.dweb_browser.sys.window.core.helper.setFromManifest
+import org.dweb_browser.sys.window.core.windowInstancesManager
 
 class BrowserController(
   private val browserNMM: BrowserNMM, private val browserServer: HttpDwebServer
@@ -38,16 +38,14 @@ class BrowserController(
    * 窗口是单例模式
    */
   private var win: WindowController? = null
-  suspend fun openBrowserWindow(wid: UUID) = winLock.withLock {
+  suspend fun renderBrowserWindow(wid: UUID) = winLock.withLock {
     (windowInstancesManager.get(wid) ?: throw Exception("invalid wid: $wid")).also { newWin ->
       if (win == newWin) {
         return@withLock
       }
       win = newWin
       newWin.state.apply {
-        constants.microModule = browserNMM
         mode = WindowMode.MAXIMIZE
-        focus = true
         setFromManifest(browserNMM)
         closeTip =
           newWin.manager?.state?.viewController?.androidContext?.getString(R.string.browser_confirm_to_close) // TODO 这里改成 kmp 的 i18n 标准

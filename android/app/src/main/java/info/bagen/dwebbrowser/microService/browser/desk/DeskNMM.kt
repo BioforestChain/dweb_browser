@@ -22,7 +22,6 @@ import org.dweb_browser.core.http.PureResponse
 import org.dweb_browser.core.http.PureStringBody
 import org.dweb_browser.core.http.bind
 import org.dweb_browser.core.http.toPure
-import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.ipc.helper.IpcResponse
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.dns.onActivity
@@ -30,7 +29,6 @@ import org.dweb_browser.core.std.http.CORS_HEADERS
 import org.dweb_browser.core.std.http.DwebHttpServerOptions
 import org.dweb_browser.core.std.http.HttpDwebServer
 import org.dweb_browser.core.std.http.createHttpDwebServer
-import org.dweb_browser.window.core.createRenderer
 
 fun debugDesk(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("desk", tag, msg, err)

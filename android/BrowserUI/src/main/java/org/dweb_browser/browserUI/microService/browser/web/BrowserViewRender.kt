@@ -6,8 +6,8 @@ import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
 import org.dweb_browser.browserUI.ui.browser.BrowserViewForWindow
 import org.dweb_browser.helper.compose.LocalCommonUrl
-import org.dweb_browser.window.core.WindowRenderScope
-import org.dweb_browser.window.render.LocalWindowController
+import org.dweb_browser.sys.window.core.WindowRenderScope
+import org.dweb_browser.sys.window.render.LocalWindowController
 
 @Composable
 fun BrowserController.Render(modifier: Modifier, windowRenderScope: WindowRenderScope) {

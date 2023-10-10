@@ -16,8 +16,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import com.google.accompanist.web.WebView
 import kotlinx.coroutines.launch
-import org.dweb_browser.window.render.LocalWindowController
-import org.dweb_browser.window.render.watchedIsMaximized
+import org.dweb_browser.sys.window.render.LocalWindowController
+import org.dweb_browser.sys.window.render.watchedIsMaximized
 
 @Composable
 fun MultiWebViewController.Render(modifier: Modifier = Modifier, initialScale: Int) {

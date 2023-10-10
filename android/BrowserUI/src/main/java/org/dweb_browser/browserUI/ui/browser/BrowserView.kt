@@ -64,7 +64,7 @@ import org.dweb_browser.browserUI.ui.entity.BrowserBaseView
 import org.dweb_browser.browserUI.ui.entity.BrowserWebView
 import org.dweb_browser.browserUI.ui.qrcode.QRCodeScanView
 import org.dweb_browser.helper.compose.clickableWithNoEffect
-import org.dweb_browser.window.core.WindowRenderScope
+import org.dweb_browser.sys.window.core.WindowRenderScope
 
 internal val dimenTextFieldFontSize = 16.sp
 internal val dimenSearchHorizontalAlign = 5.dp

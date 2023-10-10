@@ -7,7 +7,7 @@ import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.bind
-import org.dweb_browser.window.core.onRenderer
+import org.dweb_browser.sys.window.core.onRenderer
 
 class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
   init {
