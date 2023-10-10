@@ -38,6 +38,4 @@ fun JmmController.Render(modifier: Modifier, renderScope: WindowRenderScope) {
       }
     }
   }
-
-
 }

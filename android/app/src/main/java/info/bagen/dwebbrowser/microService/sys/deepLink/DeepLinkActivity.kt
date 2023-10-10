@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.base.BaseThemeActivity
@@ -18,14 +19,13 @@ class DeepLinkActivity : BaseThemeActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    println("DeepLink onCreate enter")
-
     application.onCreate()
+    WindowCompat.setDecorFitsSystemWindows(window, false)
 
     lifecycleScope.launch {
       intent.dataString?.let { uri ->
-        Regex("dweb:.+").matchEntire(uri)?.groupValues?.get(0)?.let { dweb_uri ->
-          App.startMicroModuleProcess().nativeFetch(dweb_uri)
+        Regex("dweb:.+").matchEntire(uri)?.groupValues?.get(0)?.let { dwebUri ->
+          App.startMicroModuleProcess().nativeFetch(dwebUri)
         }
       }
       finish()

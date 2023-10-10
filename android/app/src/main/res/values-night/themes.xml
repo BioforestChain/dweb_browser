@@ -18,6 +18,18 @@
     <item name="isLightTheme">false</item>
   </style>
 
+  <style name="Theme.DwebBrowser.Transparent" parent="Theme.Material3.Dark.NoActionBar">
+    <item name="android:windowNoTitle">true</item>
+    <item name="android:windowBackground">@android:color/transparent</item>
+    <item name="android:windowIsTranslucent">true</item>
+    <item name="android:background">@android:color/transparent</item>
+    <item name="android:windowFrame">@null</item>
+    <item name="android:title">null</item>
+    <item name="android:windowContentOverlay">@null</item>
+    <item name="android:backgroundDimEnabled">false</item>
+    <item name="android:windowIsFloating">true</item>
+  </style>
+
   <style name="Theme.RustExample" parent="android:Theme.Material.NoActionBar">
     <item name="android:statusBarColor">@color/purple_700</item>
   </style>

@@ -80,12 +80,12 @@
     <activity
       android:name=".microService.browser.desk.TaskbarActivity"
       android:exported="true"
-      android:theme="@style/Theme.dwebbrowser.desk.taskbar" />
+      android:theme="@style/Theme.DwebBrowser.Transparent" />
     <activity
       android:name=".microService.sys.deepLink.DeepLinkActivity"
       android:exported="true"
       android:launchMode="singleTask"
-      android:theme="@style/Theme.AppCompat.Transparent">
+      android:theme="@style/Theme.DwebBrowser.Transparent">
 
       <intent-filter>
         <action android:name="android.intent.action.VIEW" />
@@ -135,7 +135,7 @@
     <activity
       android:name=".microService.sys.share.ShareActivity"
       android:exported="true"
-      android:theme="@style/Theme.AppCompat.Transparent">
+      android:theme="@style/Theme.DwebBrowser.Transparent">
       <intent-filter>
         <action android:name="${applicationId}.share" />
       </intent-filter>
@@ -143,12 +143,12 @@
     <activity
       android:name=".microService.sys.biometrics.BiometricsActivity"
       android:exported="true"
-      android:theme="@style/Theme.AppCompat.Transparent" />
+      android:theme="@style/Theme.DwebBrowser.Transparent" />
 
     <activity
       android:name=".microService.sys.fileSystem.FileSystemActivity"
       android:exported="true"
-      android:theme="@style/Theme.AppCompat.Transparent" />
+      android:theme="@style/Theme.DwebBrowser.Transparent" />
 
     <service android:name="org.dweb_browser.browserUI.download.DwebBrowserService" />
     <!--    <service android:name=".microService.browser.desk.TaskbarService" />-->
