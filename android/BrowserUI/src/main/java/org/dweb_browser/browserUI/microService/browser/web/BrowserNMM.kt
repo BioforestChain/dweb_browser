@@ -65,14 +65,12 @@ class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
       "search" bindDwebDeeplink defineEmptyResponse {
         debugBrowser("do search", request.href)
         browserController.openBrowserView(search = request.query("q"))
-        val wid = nativeFetch("file://window.std.dweb/openMainWindow").text();
-        browserController.openBrowserWindow(wid)
+        nativeFetch("file://window.sys.dweb/openMainWindow")
       },
       "openinbrowser" bindDwebDeeplink defineEmptyResponse {
         debugBrowser("do openinbrowser", request.href)
         browserController.openBrowserView(url = request.query("url"))
-        val wid = nativeFetch("file://window.std.dweb/openMainWindow").text();
-        browserController.openBrowserWindow(wid)
+        nativeFetch("file://window.sys.dweb/openMainWindow")
       },
     )
   }

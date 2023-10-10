@@ -40,6 +40,9 @@ class BrowserController(
   private var win: WindowController? = null
   suspend fun openBrowserWindow(wid: UUID) = winLock.withLock {
     (windowInstancesManager.get(wid) ?: throw Exception("invalid wid: $wid")).also { newWin ->
+      if (win == newWin) {
+        return@withLock
+      }
       win = newWin
       newWin.state.apply {
         constants.microModule = browserNMM

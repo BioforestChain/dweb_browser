@@ -5,15 +5,15 @@ import io.ktor.http.HttpMethod
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.dweb_browser.helper.Observable
-import org.dweb_browser.helper.printDebug
-import org.dweb_browser.helper.toJsonElement
-import org.dweb_browser.core.module.BootstrapContext
-import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.http.bind
 import org.dweb_browser.core.ipc.helper.ReadableStream
+import org.dweb_browser.core.module.BootstrapContext
+import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
+import org.dweb_browser.helper.Observable
+import org.dweb_browser.helper.printDebug
+import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.window.core.constant.WindowPropertyKeys
 import org.dweb_browser.window.core.constant.WindowStyle
 import org.dweb_browser.window.core.windowInstancesManager
@@ -40,8 +40,9 @@ class WindowNMM : NativeMicroModule("window.sys.dweb", "Window Management") {
 
     routes(
       /// 打开主窗口，获取主窗口句柄
-      "/openMainWindow" bind HttpMethod.Get to defineEmptyResponse {
-        nativeFetch("file://desk.browser.dweb/openAppOrActivate?app_id=${ipc.remote.mmid}")
+      // TODO 这样需要跳出授权窗口，获得OTP（一次性密钥），然后在让 desk.browser.dweb 打开窗口
+      "/openMainWindow" bind HttpMethod.Get to defineStringResponse {
+        nativeFetch("file://desk.browser.dweb/openAppOrActivate?app_id=${ipc.remote.mmid}").text()
       },
       /** 窗口的状态监听 */
       "/observe" bind HttpMethod.Get to definePureStreamHandler {
