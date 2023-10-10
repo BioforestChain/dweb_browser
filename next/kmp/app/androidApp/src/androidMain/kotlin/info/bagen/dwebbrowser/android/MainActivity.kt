@@ -25,9 +25,9 @@ import org.dweb_browser.helper.compose.AutoSizeText
 import org.dweb_browser.helper.compose.SimpleBox
 import org.dweb_browser.shared.Greeting
 import org.dweb_browser.shared.ImageLoaderDemo
-import org.dweb_browser.window.render.LocalWindowController
-import org.dweb_browser.window.render.WindowPreviewer
-import org.dweb_browser.window.render.watchedState
+import org.dweb_browser.sys.window.render.LocalWindowController
+import org.dweb_browser.sys.window.render.WindowPreviewer
+import org.dweb_browser.sys.window.render.watchedState
 
 class MainActivity : AppCompatActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
