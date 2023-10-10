@@ -1,6 +1,7 @@
 package org.dweb_browser.browserUI.network
 
 import info.bagen.dwebbrowser.network.base.checkAndBody
+import kotlinx.coroutines.delay
 import org.http4k.core.Method
 import org.http4k.core.Request
 import java.io.File
@@ -19,7 +20,12 @@ class ApiServiceImpl(private val httpClient: HttpClient) : ApiService {
   }
 
   override suspend fun downloadAndSave(
-    path: String, file: File?, total: Long, isStop: () -> Boolean, DLProgress: suspend (Long, Long) -> Unit
+    path: String,
+    file: File?,
+    total: Long,
+    isPause: () -> Boolean,
+    isStop: () -> Boolean,
+    DLProgress: suspend (Long, Long) -> Unit
   ) {
     if (path.isEmpty()) throw (java.lang.Exception("地址有误，下载失败！"))
     DLProgress(0L, total)
@@ -41,7 +47,7 @@ class ApiServiceImpl(private val httpClient: HttpClient) : ApiService {
         currentLength += length
         fileOutputStream?.write(byteArray, 0, length)
         DLProgress(currentLength.toLong(), contentLength.toLong()) // 将下载进度回调
-        //delay(1000)
+        while (isPause()) delay(500) // 如果被暂停了，这边循环等待
         length = inputStream.read(byteArray)
       }
       // Log.e("ApiServiceImpl", "downloadAndSave-> $contentLength,$currentLength,${file?.length()}")
@@ -56,8 +62,13 @@ class ApiServiceImpl(private val httpClient: HttpClient) : ApiService {
     if (isStop()) httpResponse.close()
   }
 
+  @Deprecated("No Support")
   override suspend fun breakpointDownloadAndSave(
-    path: String, file: File?, total: Long, isStop: () -> Boolean,  DLProgress: suspend (Long, Long) -> Unit
+    path: String,
+    file: File?,
+    total: Long,
+    isStop: () -> Boolean,
+    DLProgress: suspend (Long, Long) -> Unit
   ) {
     if (path.isEmpty()) throw (java.lang.Exception("地址有误，下载失败！"))
     var currentLength = file?.let { if (total > 0) it.length() else 0L } ?: 0L // 文件的大小

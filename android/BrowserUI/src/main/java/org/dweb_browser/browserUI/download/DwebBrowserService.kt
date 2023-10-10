@@ -83,20 +83,22 @@ class DwebBrowserService : Service() {
           path = downLoadInfo.url,
           file = File(downLoadInfo.path),
           downLoadInfo.metaData.bundle_size,
+          isPause = {
+            if (downLoadInfo.downLoadStatus == DownLoadStatus.PAUSE) {
+              DownLoadObserver.emit(downLoadInfo.id, downLoadInfo.downLoadStatus)
+              true
+            } else {
+              false
+            }
+          },
           isStop = {
-            when (downLoadInfo.downLoadStatus) {
-              DownLoadStatus.PAUSE -> {
-                DownLoadObserver.emit(downLoadInfo.id, downLoadInfo.downLoadStatus)
-                true
-              }
-
-              DownLoadStatus.CANCEL -> {
-                DownLoadObserver.emit(downLoadInfo.id, downLoadInfo.downLoadStatus)
-                downLoadInfo.downLoadStatus = DownLoadStatus.IDLE // 如果取消的话，那么就置为空
-                true
-              }
-
-              else -> false
+            if (downLoadInfo.downLoadStatus == DownLoadStatus.CANCEL) {
+              DownLoadObserver.emit(downLoadInfo.id, downLoadInfo.downLoadStatus)
+              downLoadInfo.downLoadStatus = DownLoadStatus.IDLE // 如果取消的话，那么就置为空
+              downloadMap.remove(downLoadInfo.id)
+              true
+            } else {
+              false
             }
           },
           DLProgress = { current, total ->
@@ -111,6 +113,7 @@ class DwebBrowserService : Service() {
     return true
   }
 
+  @Deprecated("No Support")
   private suspend fun breakPointDownLoadAndSave(downLoadInfo: DownLoadInfo) {
     ioAsyncScope.launch {
       try {
@@ -235,7 +238,7 @@ class DwebBrowserService : Service() {
             (this.dSize * 1.0 / this.size * 100).toInt(), this.notificationId, "下载中"
           )
           DownLoadObserver.emit(this.id, downLoadStatus, dSize, size)
-          breakPointDownLoadAndSave(this)
+          // breakPointDownLoadAndSave(this)
         } else {
           downloadMap.remove(this.id)
           downloadAndSaveZip(this)

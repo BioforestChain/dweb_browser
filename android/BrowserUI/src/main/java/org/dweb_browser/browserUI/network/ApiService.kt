@@ -12,6 +12,7 @@ interface ApiService {
     path: String,
     file: File?,
     total: Long,
+    isPause: () -> Boolean,
     isStop: () -> Boolean,
     DLProgress: suspend (Long, Long) -> Unit
   )
