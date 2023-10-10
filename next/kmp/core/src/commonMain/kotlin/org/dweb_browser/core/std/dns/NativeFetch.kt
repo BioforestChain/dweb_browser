@@ -11,6 +11,8 @@ import io.ktor.util.toLowerCasePreservingASCIIRules
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.canReadContent
 import org.dweb_browser.helper.ioAsyncExceptionHandler
@@ -107,12 +109,15 @@ class NativeFetchAdaptersManager : AdapterManager<FetchAdapter>() {
             client.prepareRequest(request.toHttpRequestBuilder()).execute {
               debugFetch("httpFetch execute", request.href)
               val byteChannel = it.bodyAsChannel()
-              val response = it.toPureResponse(body = PureStreamBody(byteChannel))
+              val streamBody = PureStreamBody(byteChannel)
+              val response = it.toPureResponse(body = streamBody)
               debugFetch("httpFetch response", request.href)
               responsePo.resolve(response)
-              while (byteChannel.canReadContent()) {
-                delay(1000)
+              val lock = Mutex(true)
+              streamBody.toPureStream().onClose {
+                lock.unlock()
               }
+              lock.withLock {  }
               debugFetch("httpFetch end", request.href)
             }
           } catch (e: Throwable) {

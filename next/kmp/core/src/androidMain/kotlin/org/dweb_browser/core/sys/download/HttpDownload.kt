@@ -19,7 +19,10 @@ object HttpDownload {
   }
 
   suspend fun downloadAndSave(
-    downloadInfo: JmmDownloadInfo, isStop: () -> Boolean, onProgress: (Long, Long) -> Unit
+    downloadInfo: JmmDownloadInfo,
+    isStop: () -> Boolean,
+    isPause: () -> Boolean,
+    onProgress: (Long, Long) -> Unit
   ) {
     onProgress(0L, downloadInfo.size)
     val file = File(downloadInfo.path)
@@ -30,8 +33,8 @@ object HttpDownload {
       val channel: ByteReadChannel = httpResponse.body()
       while (!channel.isClosedForRead) {
         val packet = channel.readRemaining(limit = DEFAULT_BUFFER_SIZE.toLong())
-        while (packet.isNotEmpty) {
-          while (isStop()) delay(200)
+        while (packet.isNotEmpty && !isStop()) {
+          while (isPause()) delay(500)
           val bytes: ByteArray = packet.readBytes()
           file.appendBytes(array = bytes)
           currentLength += bytes.size

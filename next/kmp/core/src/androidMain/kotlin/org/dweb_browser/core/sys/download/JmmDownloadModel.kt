@@ -57,7 +57,6 @@ data class JmmDownloadInfo(
 
 class DownloadModel(val downloadNMM: DownloadNMM) {
   private val downloadAppMap = mutableMapOf<MMID, JmmDownloadInfo>() // 用于监听下载列表
-  private val downloadingMap = mutableMapOf<MMID, Boolean>() // 用于判断是否正在下载，便于更好的实现断点续传问题
 
   companion object {
     private var notificationId = AtomicInteger(999)
@@ -70,26 +69,39 @@ class DownloadModel(val downloadNMM: DownloadNMM) {
   val onDownload = downloadSignal.toListener()
 
   internal suspend fun downloadApp(context: Context, jmm: JmmAppInstallManifest): Boolean {
-    if (downloadingMap.containsKey(jmm.id)) return false
-    if (downloadAppMap.containsKey(jmm.id)) downloadingMap[jmm.id] = true
-    val downloadInfo = jmm.toDownloadInfo(context)
-    downloadAppMap[jmm.id] = downloadInfo
-    HttpDownload.downloadAndSave(downloadInfo, isStop = {
-      // debugDownload("Downloading", "${jmm.id}, downloadStatus=${downloadInfo.downloadStatus}")
-      when (downloadInfo.downloadStatus) {
-        JmmDownloadStatus.CANCEL, JmmDownloadStatus.FAIL -> {
-          // 如果是cancel和fail，移除当前下载
-          downloadAppMap.remove(jmm.id)
-          downloadingMap.remove(jmm.id)
-          true
-        }
-        JmmDownloadStatus.PAUSE -> true
-        else -> false
+    val downloadInfo = downloadAppMap.getOrPut(jmm.id) {
+      jmm.toDownloadInfo(context)
+    }
+    when (downloadInfo.downloadStatus) {
+      JmmDownloadStatus.PAUSE -> { // 如果找到，并且状态是暂停的，直接修改状态为下载，即可继续下载
+        downloadInfo.downloadStatus = JmmDownloadStatus.DownLoading
       }
-    }) { current, total ->
-      // debugDownload("Downloading", "current=$current, total=$total")
-      ioAsyncScope.launch {
-        downloadInfo.callDownLoadProgress(context, current, total)
+
+      JmmDownloadStatus.DownLoading -> { // 如果状态是正在下载的，不进行任何变更
+      }
+
+      else -> { // 其他状态直接重新下载即可
+        HttpDownload.downloadAndSave(
+          downloadInfo = downloadInfo,
+          isStop = {
+            if (downloadInfo.downloadStatus == JmmDownloadStatus.CANCEL ||
+              downloadInfo.downloadStatus == JmmDownloadStatus.FAIL
+            ) {
+              downloadAppMap.remove(jmm.id)
+              true
+            } else {
+              false
+            }
+          },
+          isPause = {
+            // debugDownload("Downloading", "${jmm.id}, downloadStatus=${downloadInfo.downloadStatus}")
+            downloadInfo.downloadStatus == JmmDownloadStatus.PAUSE
+          }) { current, total ->
+          // debugDownload("Downloading", "current=$current, total=$total")
+          ioAsyncScope.launch {
+            downloadInfo.callDownLoadProgress(context, current, total)
+          }
+        }
       }
     }
     return true
@@ -115,7 +127,6 @@ class DownloadModel(val downloadNMM: DownloadNMM) {
 
       // 下载失败后也需要移除
       downloadAppMap.remove(id)
-      downloadingMap.remove(id)
       return
     }
     this.downloadStatus = JmmDownloadStatus.DownLoading
@@ -146,7 +157,6 @@ class DownloadModel(val downloadNMM: DownloadNMM) {
       downloadSignal.emit(this)
     }
     downloadAppMap.remove(id) // 下载完成后需要移除
-    downloadingMap.remove(id)
   }
 
 
