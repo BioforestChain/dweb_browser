@@ -3,9 +3,11 @@ package info.bagen.dwebbrowser.microService.browser.desk
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.core.ipc.Ipc
+import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.window.core.WindowController
 import org.dweb_browser.window.core.WindowState
 import org.dweb_browser.window.core.constant.WindowConstants
+import org.dweb_browser.window.core.createRenderer
 import org.dweb_browser.window.core.createWindowAdapterManager
 
 
@@ -33,7 +35,6 @@ class RunningApp(
     windows.add(newWin)
 
     val wid = newWin.id
-
     /// 窗口销毁的时候
     newWin.onClose {
       // 移除渲染适配器
@@ -41,6 +42,9 @@ class RunningApp(
       // 从引用中移除
       windows.remove(newWin)
     }
+
+    /// 通知模块，提供渲染
+    ipc.postMessage(IpcEvent.createRenderer(wid))
     return newWin
   }
 

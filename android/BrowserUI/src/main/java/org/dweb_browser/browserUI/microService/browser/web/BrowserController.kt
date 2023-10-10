@@ -12,12 +12,12 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.browserUI.R
 import org.dweb_browser.browserUI.ui.browser.BrowserViewModel
-import org.dweb_browser.helper.SimpleSignal
-import org.dweb_browser.helper.UUID
-import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.core.std.http.HttpDwebServer
 import org.dweb_browser.core.sys.download.db.DownloadDBStore
 import org.dweb_browser.core.sys.download.db.createDeskWebLink
+import org.dweb_browser.helper.SimpleSignal
+import org.dweb_browser.helper.UUID
+import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.window.core.WindowController
 import org.dweb_browser.window.core.constant.WindowMode
 import org.dweb_browser.window.core.createWindowAdapterManager
@@ -50,14 +50,17 @@ class BrowserController(
           newWin.manager?.state?.viewController?.androidContext?.getString(R.string.browser_confirm_to_close) // TODO 这里改成 kmp 的 i18n 标准
             ?: ""
       }
+      // 如果没有tab，那么创建一个新的
+      // TODO 这里的tab应该从存储中恢复
+      if (viewModel.currentTab == null) {
+        viewModel.createNewTab()
+      }
       /// 提供渲染适配
       createWindowAdapterManager.renderProviders[wid] = @Composable { modifier ->
         Render(modifier, this)
       }
       newWin.onClose {
         closeWindowSignal.emit()
-        // 移除渲染适配器
-        createWindowAdapterManager.renderProviders.remove(wid)
         winLock.withLock {
           if (newWin == win) {
             win = null

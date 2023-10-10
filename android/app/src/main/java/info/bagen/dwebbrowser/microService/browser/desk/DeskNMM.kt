@@ -59,7 +59,6 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
           }
         } else null
       }
-
       else -> runningApp
     }
   }
@@ -136,9 +135,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
           )
           /// desk直接为应用打开窗口，因为窗口由desk统一管理，所以由desk窗口，并提供句柄
           val appMainWindow = runningApp.openMainWindow()
-          runningApp.ipc.postMessage(
-            IpcEvent.createRenderer(appMainWindow.id)
-          )
+
           /// 将所有的窗口聚焦，这个行为不依赖于 Activity 事件，而是Desk模块自身托管窗口的行为
           desktopController.desktopWindowsManager.focusWindow(mmid)
           appMainWindow.id
