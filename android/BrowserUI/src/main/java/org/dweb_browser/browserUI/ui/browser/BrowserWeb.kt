@@ -24,7 +24,12 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
-import org.dweb_browser.browserUI.ui.entity.BrowserWebView
+import org.dweb_browser.browserUI.ui.browser.model.BrowserIntent
+import org.dweb_browser.browserUI.ui.browser.model.BrowserViewModel
+import org.dweb_browser.browserUI.ui.browser.model.BrowserWebView
+import org.dweb_browser.browserUI.ui.browser.model.LocalWebViewInitialScale
+import org.dweb_browser.browserUI.ui.browser.model.WebSiteType
+import org.dweb_browser.browserUI.ui.browser.model.toWebSiteInfo
 import org.dweb_browser.browserUI.ui.loading.LoadingView
 import org.dweb_browser.browserUI.ui.view.drawToBitmapPostLaidOut
 
@@ -41,10 +46,8 @@ internal fun BrowserWebView(viewModel: BrowserViewModel, browserWebView: Browser
       if (it is LoadingState.Finished) {
         browserWebView.loadState.value = false
         delay(500)
-        viewModel.handleIntent(
-          BrowserIntent.SaveHistoryWebSiteInfo(
-            browserWebView.viewItem.state.pageTitle, browserWebView.viewItem.state.lastLoadedUrl
-          )
+        viewModel.changeHistoryLink(
+          add = browserWebView.viewItem.state.toWebSiteInfo(WebSiteType.History)
         )
         browserWebView.controller.capture()
       }

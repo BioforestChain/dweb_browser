@@ -1,6 +1,7 @@
 package org.dweb_browser.browserUI.microService.browser.web
 
 import kotlinx.coroutines.withContext
+import org.dweb_browser.browserUI.ui.browser.model.BrowserStore
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.bindDwebDeeplink
 import org.dweb_browser.core.ipc.helper.IpcResponse
@@ -46,6 +47,7 @@ class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
       }
     }
   }
+
 
   private lateinit var browserServer: HttpDwebServer
 

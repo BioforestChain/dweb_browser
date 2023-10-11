@@ -19,7 +19,6 @@ import androidx.room.TypeConverter
 import androidx.room.TypeConverters
 import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
-import org.dweb_browser.browserUI.database.Converters
 import java.io.ByteArrayOutputStream
 
 class BookmarkView {

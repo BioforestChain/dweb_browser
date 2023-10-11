@@ -1,4 +1,4 @@
-package org.dweb_browser.browserUI.ui.entity
+package org.dweb_browser.browserUI.ui.browser.model
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf

@@ -4,16 +4,16 @@ import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.file.ext.createStore
 
 
-class DeskStore(mm: MicroModule) {
-  private val store = mm.createStore("desk", false)// createStore("taskbar/apps", false)
+class TaskbarStore(mm: MicroModule) {
+  private val store = mm.createStore("taskbar", false)// createStore("taskbar/apps", false)
 
-  suspend fun getTaskbarApps(): MutableList<String> {
-    return store.getOrPut("taskbar/apps") {
-     return@getOrPut mutableListOf()
+  suspend fun getApps(): MutableList<String> {
+    return store.getOrPut("apps") {
+      return@getOrPut mutableListOf()
     }
   }
 
-  suspend fun setTaskbarApps(data: MutableList<String>) {
-    return store.set<MutableList<String>>("taskbar/apps", data)
+  suspend fun setApps(data: MutableList<String>) {
+    return store.set("apps", data)
   }
 }
