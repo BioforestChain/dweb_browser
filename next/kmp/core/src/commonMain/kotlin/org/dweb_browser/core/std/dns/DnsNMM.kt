@@ -10,18 +10,6 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonNull
-import org.dweb_browser.helper.ChangeState
-import org.dweb_browser.helper.ChangeableMap
-import org.dweb_browser.helper.PromiseOut
-import org.dweb_browser.helper.printDebug
-import org.dweb_browser.helper.removeWhen
-import org.dweb_browser.helper.toJsonElement
-import org.dweb_browser.core.module.BootstrapContext
-import org.dweb_browser.core.module.ConnectResult
-import org.dweb_browser.core.module.DnsMicroModule
-import org.dweb_browser.core.module.MicroModule
-import org.dweb_browser.core.module.NativeMicroModule
-import org.dweb_browser.core.module.connectMicroModules
 import org.dweb_browser.core.help.buildRequestX
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
@@ -32,19 +20,39 @@ import org.dweb_browser.core.http.bind
 import org.dweb_browser.core.http.bindDwebDeeplink
 import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.ipc.helper.IpcMethod
+import org.dweb_browser.core.module.BootstrapContext
+import org.dweb_browser.core.module.ConnectResult
+import org.dweb_browser.core.module.DnsMicroModule
+import org.dweb_browser.core.module.MicroModule
+import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.core.module.connectMicroModules
+import org.dweb_browser.helper.ChangeState
+import org.dweb_browser.helper.ChangeableMap
+import org.dweb_browser.helper.ChangeableSet
+import org.dweb_browser.helper.PromiseOut
+import org.dweb_browser.helper.printDebug
+import org.dweb_browser.helper.removeWhen
+import org.dweb_browser.helper.toJsonElement
 
 fun debugDNS(tag: String, msg: Any = "", err: Throwable? = null) =
   printDebug("fetch", tag, msg, err)
 
 class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
   init {
-    dweb_deeplinks = mutableListOf("dweb://open")
+    dweb_deeplinks = listOf("dweb://open")
     short_name = "DNS";
     categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Routing_Service);
   }
 
-  private val installApps = ChangeableMap<MMID, MicroModule>() // 已安装的应用
+  private val allApps = ChangeableSet<MicroModule>()
+  private val installApps = ChangeableMap<MMID, ChangeableSet<MicroModule>>() // 已安装的应用
   private val runningApps = ChangeableMap<MMID, PromiseOut<MicroModule>>() // 正在运行的应用
+
+  /**
+   * 根据mmid获取模块
+   * TODO 一个MMID被多个模块同时实现时，需要提供选择器
+   */
+  private fun getPreferenceApp(mmid: MMID) = installApps[mmid]?.first()
 
   suspend fun bootstrap() {
     if (!this.running) {
@@ -179,8 +187,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
         val mmid = request.url.host
         debugFetch("DNS/nativeFetch", "$fromMM => ${request.href}")
         val url = request.href
-        val reasonRequest =
-          buildRequestX(url, request.method, request.headers, request.body);
+        val reasonRequest = buildRequestX(url, request.method, request.headers, request.body);
         installApps[mmid]?.let {
           val (fromIpc) = connectTo(fromMM, mmid, reasonRequest)
           return@let fromIpc.request(request)
@@ -191,17 +198,16 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     nativeFetchAdaptersManager.append { fromMM, request ->
       if (request.href.startsWith("dweb:")) {
         debugFetch("DPLink/nativeFetch", "$fromMM => ${request.href}")
-        for (microModule in installApps) {
-          for (deeplink in microModule.value.dweb_deeplinks) {
+        for (microModule in allApps) {
+          for (deeplink in microModule.dweb_deeplinks) {
             if (request.href.startsWith(deeplink)) {
-              val (fromIpc) = connectTo(fromMM, microModule.key, request)
+              val (fromIpc) = connectTo(fromMM, microModule.mmid, request)
               return@append fromIpc.request(request)
             }
           }
         }
         return@append PureResponse(
-          HttpStatusCode.BadGateway,
-          body = PureStringBody(request.href)
+          HttpStatusCode.BadGateway, body = PureStringBody(request.href)
         )
       } else null
     }.removeWhen(this.onAfterShutdown)
@@ -214,8 +220,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       true
     }
     /// 定义路由功能
-    routes(
-      "open" bindDwebDeeplink openApp,
+    routes("open" bindDwebDeeplink openApp,
       // 打开应用
       "/open" bind HttpMethod.Get to openApp,
       // 关闭应用
@@ -258,16 +263,21 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
   }
 
   override suspend fun _shutdown() {
-    installApps.forEach {
-      it.value.shutdown()
+    allApps.forEach {
+      it.shutdown()
     }
+    allApps.clear()
     installApps.clear()
     ioAsyncScope.cancel()
   }
 
   /** 安装应用 */
   fun install(mm: MicroModule) {
-    installApps[mm.mmid] = mm
+    allApps.add(mm)
+    installApps.getOrPut(mm.mmid) { ChangeableSet() }.add(mm)
+    for (protocol in mm.dweb_protocols) {
+      installApps.getOrPut(protocol) { ChangeableSet() }.add(mm)
+    }
   }
 
   /** 卸载应用 */
@@ -279,7 +289,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
 
   /** 查询应用 */
   fun query(mmid: MMID): MicroModule? {
-    return installApps[mmid]
+    return getPreferenceApp(mmid)
   }
 
   /**
@@ -289,7 +299,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
    */
   fun search(category: MICRO_MODULE_CATEGORY): MutableList<MicroModule> {
     val categoryList = mutableListOf<MicroModule>()
-    for (app in this.installApps.values) {
+    for (app in allApps) {
       if (app.categories.contains(category)) {
         categoryList.add(app)
       }

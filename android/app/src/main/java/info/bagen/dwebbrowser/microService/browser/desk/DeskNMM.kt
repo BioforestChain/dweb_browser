@@ -24,18 +24,23 @@ import org.dweb_browser.core.std.http.HttpDwebServer
 import org.dweb_browser.core.std.http.createHttpDwebServer
 import org.dweb_browser.helper.ChangeState
 import org.dweb_browser.helper.ChangeableMap
+import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.consumeEachJsonLine
-import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.toJsonElement
+import org.dweb_browser.sys.window.core.constant.WindowPropertyKeys
+import org.dweb_browser.sys.window.core.constant.WindowStyle
+import org.dweb_browser.sys.window.core.windowInstancesManager
 
-fun debugDesk(tag: String, msg: Any? = "", err: Throwable? = null) =
-  printDebug("desk", tag, msg, err)
+val debugDesk = Debugger("desk")
+val debugWindow = Debugger("window")
 
 class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
   init {
     categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Desktop);
+    dweb_protocols = listOf("window.std.dweb")
   }
 
   private val runningApps = ChangeableMap<MMID, RunningApp>()
@@ -110,6 +115,59 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       controllersMap.remove(deskSessionId)
     }
 
+    /// 实现协议
+    protocol("window.sys.dweb") {
+      fun IHandlerContext.getWindow() = request.query("wid").let { wid ->
+        windowInstancesManager.get(wid) ?: throw Exception("No Found by window id: '$wid'")
+      }
+      routes(
+        /// 打开主窗口，获取主窗口句柄
+        // TODO 这样需要跳出授权窗口，获得OTP（一次性密钥），然后在让 desk.browser.dweb 打开窗口
+        "/openMainWindow" bind HttpMethod.Get to defineStringResponse {
+          nativeFetch("file://desk.browser.dweb/openAppOrActivate?app_id=${ipc.remote.mmid}").text()
+        },
+        "/openBottomSheets" bind HttpMethod.Get to defineStringResponse {
+//        nativeFetch("file://desk.browser.dweb/open")
+          ""
+        },
+        /** 窗口的状态监听 */
+        "/observe" bind HttpMethod.Get to defineJsonLineResponse {
+          val win = getWindow()
+          debugWindow("/observe", "wid: ${win.id} ,mmid: ${ipc.remote.mmid}")
+          win.state.observable.onChange {
+            try {
+              emit(win.state.toJsonElement())
+            } catch (e: Exception) {
+              e.printStackTrace()
+              end()
+            }
+          }.also {
+            it.removeWhen(onDispose)
+            win.coroutineScope.launch {
+              it.emitSelf(
+                Observable.Change(
+                  WindowPropertyKeys.Constants, null, null
+                )
+              )
+            }
+          }
+        },
+        "/getState" bind HttpMethod.Get to defineJsonResponse {
+          getWindow().state.toJsonElement()
+        },
+        "/focus" bind HttpMethod.Get to defineEmptyResponse { getWindow().focus() },
+        "/blur" bind HttpMethod.Get to defineEmptyResponse { getWindow().blur() },
+        "/maximize" bind HttpMethod.Get to defineEmptyResponse { getWindow().maximize() },
+        "/unMaximize" bind HttpMethod.Get to defineEmptyResponse { getWindow().unMaximize() },
+        "/visible" bind HttpMethod.Get to defineEmptyResponse { getWindow().toggleVisible() },
+        "/close" bind HttpMethod.Get to defineEmptyResponse { getWindow().close() },
+        "/setStyle" bind HttpMethod.Get to defineEmptyResponse {
+          getWindow().setStyle(request.queryAs<WindowStyle>())
+        },
+      )
+    }
+
+    /// 接口
     routes(
       //
       "/readFile" bind HttpMethod.Get to definePureResponse {
@@ -141,6 +199,9 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
           e.printStackTrace()
           throwException(cause = e)
         }
+      },
+      "/addBottomSheetView" bind HttpMethod.Get to defineStringResponse {
+        ""
       },
       // 获取isMaximized 的值
       "/toggleMaximize" bind HttpMethod.Get to defineBooleanResponse {

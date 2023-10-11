@@ -12,7 +12,6 @@ import info.bagen.dwebbrowser.microService.sys.installNativeFetchSysFile
 import info.bagen.dwebbrowser.microService.sys.notification.NotificationNMM
 import info.bagen.dwebbrowser.microService.sys.share.ShareNMM
 import info.bagen.dwebbrowser.microService.sys.toast.ToastNMM
-import org.dweb_browser.sys.window.WindowNMM
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.cache.HttpCache
@@ -155,7 +154,6 @@ suspend fun startDwebBrowser(): DnsNMM {
   /// 安装Jmm
   val jmmNMM = JmmNMM().also { dnsNMM.install(it) }
   val deskNMM = DeskNMM().also { dnsNMM.install(it) }
-  val windowNMM = WindowNMM().also { dnsNMM.install(it) }
 
   /// 启动程序
   val bootNMM = BootNMM(

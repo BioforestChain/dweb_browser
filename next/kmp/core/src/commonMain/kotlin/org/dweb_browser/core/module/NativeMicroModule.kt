@@ -10,6 +10,7 @@ import kotlinx.serialization.encodeToByteArray
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
+import org.dweb_browser.core.help.types.DWEB_PROTOCOL
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.help.types.MicroModuleManifest
 import org.dweb_browser.core.http.HttpRouter
@@ -55,8 +56,25 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
     }
   }
 
-  protected val router = HttpRouter()
-  fun routes(vararg list: RoutingHttpHandler) = router.apply { addRoutes(*list) }
+  private val protocolMap = mutableMapOf<DWEB_PROTOCOL, HttpRouter>()
+  fun routes(vararg list: RoutingHttpHandler) = HttpRouter().also {
+    it.addRoutes(*list)
+    protocolMap["*"] = it
+  }
+
+  class ProtocolBuilderContext() {
+    internal val router = HttpRouter()
+    fun routes(vararg list: RoutingHttpHandler) = router.apply { addRoutes(*list) }
+  }
+
+  suspend fun protocol(
+    protocol: DWEB_PROTOCOL,
+    buildProtocol: suspend ProtocolBuilderContext.() -> Unit
+  ) {
+    val context = ProtocolBuilderContext()
+    context.buildProtocol()
+    protocolMap[protocol] = context.router
+  }
 
   /**
    * 实现一整套简易的路由响应规则
@@ -65,8 +83,9 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
     onConnect { (clientIpc) ->
       clientIpc.onRequest { (ipcRequest) ->
         debugNMM("NMM/Handler", ipcRequest.url)
-        val routingHandler = router.withFilter(ipcRequest);
-        val response = routingHandler?.let {
+        /// 根据host找到对应的路由模块
+        val router = protocolMap[ipcRequest.uri.host] ?: protocolMap["*"]
+        val response = router?.withFilter(ipcRequest)?.let {
           it(HandlerContext(ipcRequest.toRequest(), clientIpc))
         } ?: PureResponse(HttpStatusCode.BadGateway)
 
