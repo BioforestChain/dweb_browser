@@ -17,6 +17,7 @@ import org.dweb_browser.helper.ZipUtil
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 
 
+@Serializable
 data class DownloadTask(
   /** 下载编号 */
   val id: String,
