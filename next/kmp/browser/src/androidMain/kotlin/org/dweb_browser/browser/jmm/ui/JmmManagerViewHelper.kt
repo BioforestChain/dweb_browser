@@ -4,16 +4,10 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
-import kotlinx.coroutines.launch
-import org.dweb_browser.browser.download.DownloadProgressEvent
-import org.dweb_browser.browser.download.DownloadState
-import org.dweb_browser.helper.compose.noLocalProvidedFor
-import org.dweb_browser.helper.consumeEachJsonLine
-import org.dweb_browser.helper.isGreaterThan
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
-import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.sys.download.JmmDownloadController
 import org.dweb_browser.core.sys.download.JmmDownloadStatus
+import org.dweb_browser.helper.compose.noLocalProvidedFor
 
 internal val LocalShowWebViewVersion = compositionLocalOf {
   mutableStateOf(false)
@@ -45,40 +39,40 @@ class JmmManagerViewHelper(
   //private var downLoadObserver: DownLoadObserver? = null
 
   init {
-    jmmController.jmmNMM.ioAsyncScope.launch {
-      /// TODO 重新实现这个DownloadNMM
-      val queryProgress =
-        jmmController.jmmNMM.nativeFetch("file://download.browser.dweb/progress")
-      if (queryProgress.isOk()) {
-        val bodyStream = queryProgress.stream()
-
-        bodyStream.getReader("getDownloadProgress").consumeEachJsonLine<DownloadProgressEvent> {
-          uiState.downloadSize.value = it.current
-          uiState.downloadStatus.value = when (it.state) {
-            DownloadState.Init -> JmmDownloadStatus.IDLE
-            DownloadState.Downloading -> JmmDownloadStatus.DownLoading
-            DownloadState.Paused -> JmmDownloadStatus.PAUSE
-            DownloadState.Canceld -> JmmDownloadStatus.CANCEL
-            DownloadState.Failed -> JmmDownloadStatus.FAIL
-            DownloadState.Completed -> JmmDownloadStatus.DownLoadComplete
-          }
-        }
-      } else {
-        jmmController.getApp(jmmAppInstallManifest.id)?.let { curJmmMetadata ->
-          if (jmmAppInstallManifest.version.isGreaterThan(curJmmMetadata.version)) {
-            uiState.downloadStatus.value = JmmDownloadStatus.NewVersion
-          } else {
-            uiState.downloadStatus.value = JmmDownloadStatus.INSTALLED
-          }
-        } ?: run { uiState.downloadStatus.value = JmmDownloadStatus.IDLE }
-
-        if (uiState.downloadStatus.value != JmmDownloadStatus.INSTALLED) {
-          jmmController.win.coroutineScope.launch {
-            initDownLoadStatusListener()
-          }
-        }
-      }
-    }
+//    jmmController.jmmNMM.ioAsyncScope.launch {
+//      /// TODO 重新实现这个DownloadNMM
+//      val queryProgress =
+//        jmmController.jmmNMM.nativeFetch("file://download.browser.dweb/watch/progress")
+//      if (queryProgress.isOk()) {
+//        val bodyStream = queryProgress.stream()
+//
+//        bodyStream.getReader("getDownloadProgress").consumeEachJsonLine<DownloadProgressEvent> {
+//          uiState.downloadSize.value = current
+//          uiState.downloadStatus.value = when (state) {
+//            DownloadState.Init -> JmmDownloadStatus.IDLE
+//            DownloadState.Downloading -> JmmDownloadStatus.DownLoading
+//            DownloadState.Paused -> JmmDownloadStatus.PAUSE
+//            DownloadState.Canceld -> JmmDownloadStatus.CANCEL
+//            DownloadState.Failed -> JmmDownloadStatus.FAIL
+//            DownloadState.Completed -> JmmDownloadStatus.DownLoadComplete
+//          }
+//        }
+//      } else {
+//        jmmController.getApp(jmmAppInstallManifest.id)?.let { curJmmMetadata ->
+//          if (jmmAppInstallManifest.version.isGreaterThan(curJmmMetadata.version)) {
+//            uiState.downloadStatus.value = JmmDownloadStatus.NewVersion
+//          } else {
+//            uiState.downloadStatus.value = JmmDownloadStatus.INSTALLED
+//          }
+//        } ?: run { uiState.downloadStatus.value = JmmDownloadStatus.IDLE }
+//
+//        if (uiState.downloadStatus.value != JmmDownloadStatus.INSTALLED) {
+//          jmmController.win.coroutineScope.launch {
+//            initDownLoadStatusListener()
+//          }
+//        }
+//      }
+//    }
 //    BrowserUIApp.Instance.mBinderService?.invokeFindDownLoadInfo(jmmAppInstallManifest.id)?.let {
 //      uiState.downloadSize.value = it.dSize
 //      uiState.downloadStatus.value = it.downloadStatus

@@ -6,6 +6,7 @@ import io.ktor.http.URLBuilder
 import io.ktor.http.Url
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import okio.Path.Companion.toPath
 import org.dweb_browser.browser.link.WebLinkMicroModule
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
@@ -14,13 +15,14 @@ import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.PureResponse
 import org.dweb_browser.core.http.bind
 import org.dweb_browser.core.http.bindDwebDeeplink
-import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
+import org.dweb_browser.core.std.file.commonVirtualFsDirectoryFactory
 import org.dweb_browser.core.std.file.ext.RespondLocalFileContext.Companion.respondLocalFile
+import org.dweb_browser.core.std.file.fileTypeAdapterManager
 import org.dweb_browser.core.sys.dns.returnAndroidFile
 import org.dweb_browser.core.sys.download.JmmDownloadInfo
 import org.dweb_browser.core.sys.download.db.AppType
@@ -42,7 +44,7 @@ val debugJMM = Debugger("JMM")
 
 class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management") {
   init {
-    short_name = "JMM";
+    short_name = "模块管理";
     dweb_deeplinks = listOf("dweb://install")
     categories = listOf(
       MICRO_MODULE_CATEGORY.Application,
@@ -70,6 +72,10 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
     }
   }
 
+  /**
+   * jmm app数据
+   */
+
   private var jmmController: JmmController? = null
   private val downloadingApp = ChangeableMap<MMID, JmmDownloadInfo>() // 正在下载的列表
 
@@ -94,7 +100,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
           listenDownloadState(jmmAppInstallManifest.id) // 监听下载
           val url = Url(metadataUrl)
           // 根据 jmmMetadata 打开一个应用信息的界面，用户阅读界面信息后，可以点击"安装"
-          installJsMicroModule(jmmAppInstallManifest, ipc, url)
+          installJsMicroModule(jmmAppInstallManifest, url)
           PureResponse(HttpStatusCode.OK)
         } catch (e: Throwable) {
           e.printStackTrace()
@@ -121,9 +127,8 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
         debugJMM("detailApp", mmid)
         val microModule = bootstrapContext.dns.query(mmid)
 
-        // TODO: 系统原生应用如WebBrowser的详情页展示？
         if (microModule is JsMicroModule) {
-          installJsMicroModule(microModule.metadata, ipc)
+          installJsMicroModule(microModule.metadata)
           true
         } else {
           false
@@ -170,7 +175,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
   }
 
   private suspend fun installJsMicroModule(
-    jmmAppInstallManifest: JmmAppInstallManifest, ipc: Ipc, url: Url? = null,
+    jmmAppInstallManifest: JmmAppInstallManifest, url: Url? = null,
   ) {
     jmmController?.closeSelf() // 如果存在的话，关闭先，同时可以考虑置空
     if (!jmmAppInstallManifest.bundle_url.startsWith("http")) {

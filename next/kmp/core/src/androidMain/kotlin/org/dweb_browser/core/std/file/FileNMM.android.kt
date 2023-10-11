@@ -7,7 +7,7 @@ import org.dweb_browser.core.module.getAppContext
  * 持久化数据
  */
 actual fun FileNMM.getDataVirtualFsDirectory() = commonVirtualFsDirectoryFactory(
-  "data", getAppContext().dataDir.absolutePath.toPath()
+  "data", "${getAppContext().dataDir.absolutePath}/data".toPath()
 )
 
 /**
@@ -16,3 +16,7 @@ actual fun FileNMM.getDataVirtualFsDirectory() = commonVirtualFsDirectoryFactory
 actual fun FileNMM.getCacheVirtualFsDirectory() = commonVirtualFsDirectoryFactory(
   "cache", getAppContext().cacheDir.absolutePath.toPath()
 )
+
+actual fun FileNMM.unCompress(compressFile:String,unCompressDirectory:String) {
+
+}

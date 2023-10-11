@@ -60,7 +60,7 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
     virtualPathString: String,
     findVfsDirectory: (firstSegment: String) -> IVirtualFsDirectory?
   ) {
-    val virtualFullPath = virtualPathString.toPath(true).also {
+    private val virtualFullPath = virtualPathString.toPath(true).also {
       if (!it.isAbsolute) {
         throw ResponseException(HttpStatusCode.BadRequest, "File path should be absolute path")
       }
@@ -71,13 +71,13 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
       }
     }
     private val virtualFirstSegment = virtualFullPath.segments.first()
-    val virtualFirstPath = "/$virtualFirstSegment".toPath()
-    val virtualContentPath = virtualFullPath.relativeTo(virtualFirstPath)
+    private val virtualFirstPath = "/$virtualFirstSegment".toPath()
+    private val virtualContentPath = virtualFullPath.relativeTo(virtualFirstPath)
 
     private val vfsDirectory = findVfsDirectory(virtualFirstSegment) ?: throw ResponseException(
       HttpStatusCode.NotFound, "No found top-folder: $virtualFirstSegment"
     )
-    val fsBasePath = vfsDirectory.getFsBasePath(context)
+    private val fsBasePath = vfsDirectory.getFsBasePath(context)
     val fsFullPath = fsBasePath.resolve(virtualContentPath)
 
     fun toVirtualPath(fsPath: Path) = virtualFirstPath.resolve(fsPath.relativeTo(fsBasePath))
@@ -284,6 +284,9 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
           getPath("sourcePath"), getPath("targetPath")
         )
         true
+      },
+      "/unCompress" bind HttpMethod.Get to defineEmptyResponse {
+        unCompress(getPath("sourcePath").toString(), getPath("targetPath").toString())
       },
       "/copy" bind HttpMethod.Post to defineBooleanResponse {
         SystemFileSystem.copy(
