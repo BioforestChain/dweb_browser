@@ -11,7 +11,8 @@ import kotlinx.coroutines.plus
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.browserUI.R
-import org.dweb_browser.browserUI.ui.browser.BrowserViewModel
+import org.dweb_browser.browserUI.ui.browser.model.WebSiteInfo
+import org.dweb_browser.browserUI.ui.browser.model.BrowserViewModel
 import org.dweb_browser.core.std.http.HttpDwebServer
 import org.dweb_browser.core.sys.download.db.DownloadDBStore
 import org.dweb_browser.core.sys.download.db.createDeskWebLink
@@ -33,6 +34,26 @@ class BrowserController(
 
   private var winLock = Mutex(false)
 
+  private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
+
+  val bookLinks: MutableList<WebSiteInfo> = mutableListOf()
+  val historyLinks: MutableMap<String, MutableList<WebSiteInfo>> = mutableMapOf()
+
+  init {
+    ioAsyncScope.launch {
+      browserNMM.browserStore.getBookLinks().forEach { webSiteInfo ->
+        bookLinks.add(webSiteInfo)
+      }
+      browserNMM.browserStore.getHistoryLinks().forEach { (key, webSiteInfoList) ->
+        historyLinks[key] = webSiteInfoList
+      }
+    }
+  }
+
+  suspend fun saveBookLinks() = browserNMM.browserStore.setBookLinks(bookLinks)
+
+  suspend fun saveHistoryLinks(key: String, historyLinks: MutableList<WebSiteInfo>) =
+    browserNMM.browserStore.setHistoryLinks(key, historyLinks)
 
   /**
    * 窗口是单例模式
@@ -76,7 +97,6 @@ class BrowserController(
       viewModel.createNewTab(search, url)
     }
 
-  private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
   val showLoading: MutableState<Boolean> = mutableStateOf(false)
   var viewModel = BrowserViewModel(this, browserNMM, browserServer) { mmid ->
     ioAsyncScope.launch {

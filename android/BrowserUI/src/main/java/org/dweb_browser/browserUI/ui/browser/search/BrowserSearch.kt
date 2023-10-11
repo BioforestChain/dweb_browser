@@ -3,7 +3,6 @@ package org.dweb_browser.browserUI.ui.browser.search
 import android.annotation.SuppressLint
 import android.view.KeyEvent
 import androidx.activity.compose.BackHandler
-import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -15,7 +14,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Card
 import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -32,7 +30,6 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -42,20 +39,15 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import kotlinx.coroutines.delay
 import org.dweb_browser.browserUI.R
-import org.dweb_browser.helper.compose.clickableWithNoEffect
-import org.dweb_browser.browserUI.database.DefaultSearchWebEngine
-import org.dweb_browser.browserUI.database.WebEngine
-import org.dweb_browser.browserUI.database.WebSiteDatabase
-import org.dweb_browser.browserUI.database.WebSiteInfo
-import org.dweb_browser.browserUI.database.WebSiteType
-import org.dweb_browser.browserUI.ui.browser.BrowserIntent
-import org.dweb_browser.browserUI.ui.browser.BrowserViewModel
+import org.dweb_browser.browserUI.ui.browser.model.WebEngine
 import org.dweb_browser.browserUI.ui.browser.dimenSearchHeight
 import org.dweb_browser.browserUI.ui.browser.dimenTextFieldFontSize
-import org.dweb_browser.browserUI.ui.browser.findWebEngine
-import org.dweb_browser.browserUI.ui.browser.isUrlOrHost
-import org.dweb_browser.browserUI.ui.browser.parseInputText
-import org.dweb_browser.browserUI.ui.browser.toRequestUrl
+import org.dweb_browser.browserUI.ui.browser.model.DefaultSearchWebEngine
+import org.dweb_browser.browserUI.ui.browser.model.findWebEngine
+import org.dweb_browser.browserUI.ui.browser.model.isUrlOrHost
+import org.dweb_browser.browserUI.ui.browser.model.parseInputText
+import org.dweb_browser.browserUI.ui.browser.model.toRequestUrl
+import org.dweb_browser.helper.compose.clickableWithNoEffect
 
 /**
  * 组件： 搜索组件
@@ -339,101 +331,6 @@ private fun SearchItemEngines(text: String, onSearch: (String) -> Unit) {
               modifier = Modifier.size(40.dp)
             )
           }
-        )
-      }
-    }
-  }
-}
-
-@Composable
-private fun SearchItemForTab(viewModel: BrowserViewModel, text: String) {
-  var firstIndex: Int? = null
-  viewModel.uiState.browserViewList.filterIndexed { index, browserBaseView ->
-    if (browserBaseView.viewItem.state.pageTitle?.contains(text) == true) {
-      if (firstIndex == null) firstIndex = index
-      true
-    } else {
-      false
-    }
-  }.firstOrNull()?.also { browserBaseView ->
-    if (browserBaseView === viewModel.uiState.currentBrowserBaseView.value) return@also // TODO 如果搜索到的界面就是我当前显示的界面，就不显示该项
-    val website = browserBaseView.viewItem.state.let {
-      WebSiteInfo(
-        title = it.pageTitle ?: "无标题",
-        url = it.lastLoadedUrl ?: "localhost",
-        type = WebSiteType.Multi
-      )
-    }
-    SearchWebsiteCardView(webSiteInfo = website, drawableId = R.drawable.ic_main_multi) {
-      // TODO 调转到指定的标签页
-      viewModel.handleIntent(BrowserIntent.UpdateMultiViewState(false, firstIndex))
-    }
-  }
-}
-
-
-@Composable
-private fun SearchItemHistory(text: String, onSearch: (String) -> Unit) {
-  val list = remember { mutableListOf<WebSiteInfo>() }
-  LaunchedEffect(list) {
-    WebSiteDatabase.INSTANCE.websiteDao().findByNameTop10(text).observeForever {
-      list.clear()
-      it.forEach { webSiteInfo ->
-        list.add(webSiteInfo)
-      }
-    }
-  }
-
-  Column(
-    modifier = Modifier
-      .fillMaxWidth()
-      .clip(RoundedCornerShape(8.dp))
-      .background(MaterialTheme.colorScheme.background)
-  ) {
-    list.forEachIndexed { index, webSiteInfo ->
-      if (index > 0) Divider()
-      SearchWebsiteCardView(webSiteInfo, drawableId = R.drawable.ic_main_history) {
-        // TODO 调转到指定的标签页
-        onSearch(webSiteInfo.url)
-      }
-    }
-  }
-}
-
-@Composable
-private fun SearchWebsiteCardView(
-  webSiteInfo: WebSiteInfo,
-  @DrawableRes drawableId: Int = R.drawable.ic_web,
-  onClick: () -> Unit
-) {
-  Card(modifier = Modifier
-    .fillMaxWidth()
-    .height(50.dp)
-    .clickable { onClick() }) {
-    Row(
-      modifier = Modifier
-        .fillMaxWidth()
-        .padding(horizontal = 10.dp),
-      verticalAlignment = Alignment.CenterVertically
-    ) {
-      AsyncImage(
-        model = webSiteInfo.icon ?: drawableId,
-        contentDescription = null,
-        modifier = Modifier.size(20.dp)
-      )
-      Spacer(modifier = Modifier.width(10.dp))
-      Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-          text = webSiteInfo.title,
-          //color = MaterialTheme.colorScheme.surfaceTint,
-          fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis
-        )
-        Text(
-          text = webSiteInfo.url,
-          color = MaterialTheme.colorScheme.outlineVariant,
-          fontSize = 12.sp,
-          maxLines = 1,
-          overflow = TextOverflow.Ellipsis
         )
       }
     }

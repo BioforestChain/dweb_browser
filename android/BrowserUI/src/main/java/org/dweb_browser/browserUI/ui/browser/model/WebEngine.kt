@@ -1,4 +1,4 @@
-package org.dweb_browser.browserUI.database
+package org.dweb_browser.browserUI.ui.browser.model
 
 import android.net.Uri
 import androidx.annotation.DrawableRes

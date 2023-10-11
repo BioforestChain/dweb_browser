@@ -128,7 +128,7 @@ class NativeFetchAdaptersManager : AdapterManager<FetchAdapter>() {
           debugFetch("httpFetch return", request.href)
         }
       } catch (e: Throwable) {
-        debugFetch("httpFetch Throwable", e.message)
+        debugFetch("httpFetch", request, e)
         return PureResponse(
           HttpStatusCode.ServiceUnavailable,
           body = PureStringBody(e.stackTraceToString())

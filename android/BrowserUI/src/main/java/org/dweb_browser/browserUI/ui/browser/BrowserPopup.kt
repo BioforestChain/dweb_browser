@@ -86,27 +86,26 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.dweb_browser.browserUI.R
-import org.dweb_browser.browserUI.database.WebSiteDatabase
-import org.dweb_browser.browserUI.database.WebSiteInfo
+import org.dweb_browser.browserUI.ui.browser.model.WebSiteInfo
 import org.dweb_browser.browserUI.ui.browser.bottomsheet.BrowserModalBottomSheet
 import org.dweb_browser.browserUI.ui.browser.bottomsheet.LocalModalBottomSheet
 import org.dweb_browser.browserUI.ui.browser.search.CustomTextField
-import org.dweb_browser.browserUI.ui.entity.BrowserBaseView
-import org.dweb_browser.browserUI.ui.entity.BrowserMainView
-import org.dweb_browser.browserUI.ui.entity.BrowserWebView
-import org.dweb_browser.browserUI.ui.theme.DimenBottomBarHeight
-import org.dweb_browser.helper.compose.LocalCommonUrl
+import org.dweb_browser.browserUI.ui.browser.model.BrowserBaseView
+import org.dweb_browser.browserUI.ui.browser.model.BrowserIntent
+import org.dweb_browser.browserUI.ui.browser.model.BrowserMainView
+import org.dweb_browser.browserUI.ui.browser.model.BrowserViewModel
+import org.dweb_browser.browserUI.ui.browser.model.BrowserWebView
+import org.dweb_browser.browserUI.ui.browser.model.WebSiteType
+import org.dweb_browser.browserUI.ui.browser.model.isSystemUrl
+import org.dweb_browser.browserUI.ui.browser.model.toWebSiteInfo
 import org.dweb_browser.browserUI.ui.view.findActivity
-import org.dweb_browser.helper.PrivacyUrl
 import org.dweb_browser.helper.BitmapUtil
+import org.dweb_browser.helper.PrivacyUrl
+import org.dweb_browser.helper.compose.LocalCommonUrl
 import org.dweb_browser.helper.compose.rememberPlatformViewController
+import org.dweb_browser.helper.compose.theme.DimenBottomBarHeight
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.platform.getCornerRadiusTop
-
-private val screenHeight: Dp
-  @Composable get() {
-    return LocalConfiguration.current.screenHeightDp.dp
-  }
 
 enum class PopupViewState(
   private val height: Dp = 0.dp,
@@ -139,6 +138,7 @@ class TabItem(
 @Composable
 internal fun BrowserBottomSheet(viewModel: BrowserViewModel) {
   val bottomSheetModel = LocalModalBottomSheet.current
+
   if (bottomSheetModel.show.value) {
     val density = LocalDensity.current.density
     val topLeftRadius = getCornerRadiusTop(rememberPlatformViewController(), density, 16f)
@@ -162,16 +162,6 @@ internal fun BrowserPopView(viewModel: BrowserViewModel) {
   val selectedTabIndex = remember { mutableIntStateOf(0) }
   val pageIndex = remember { mutableIntStateOf(0) }
   var webSiteInfo: WebSiteInfo? = null
-  /*val scope = rememberCoroutineScope()
-
-  LaunchedEffect(pageIndex) {
-    snapshotFlow { pageIndex.value }.collect {
-      if (it == 1) {
-        delay(200)
-        scope.launch { viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.expand() }
-      }
-    }
-  }*/
 
   AnimatedContent(targetState = pageIndex, label = "",
     transitionSpec = {
@@ -199,7 +189,7 @@ internal fun BrowserPopView(viewModel: BrowserViewModel) {
       }
 
       1 -> {
-        PopBookManagerView(webSiteInfo = webSiteInfo) { pageIndex.intValue = 0 }
+        PopBookManagerView(viewModel, webSiteInfo = webSiteInfo) { pageIndex.intValue = 0 }
       }
 
       else -> {}
@@ -211,7 +201,9 @@ internal fun BrowserPopView(viewModel: BrowserViewModel) {
  * 书签管理界面
  */
 @Composable
-private fun PopBookManagerView(webSiteInfo: WebSiteInfo?, onBack: () -> Unit) {
+private fun PopBookManagerView(
+  viewModel: BrowserViewModel, webSiteInfo: WebSiteInfo?, onBack: () -> Unit
+) {
   val scope = rememberCoroutineScope()
   val inputTitle = remember { mutableStateOf(webSiteInfo?.title ?: "") }
   val inputUrl = remember { mutableStateOf(webSiteInfo?.url ?: "") }
@@ -244,9 +236,7 @@ private fun PopBookManagerView(webSiteInfo: WebSiteInfo?, onBack: () -> Unit) {
               title = inputTitle.value
               url = inputUrl.value
               scope.launch(ioAsyncExceptionHandler) {
-                WebSiteDatabase.INSTANCE
-                  .websiteDao()
-                  .update(this@apply)
+                viewModel.changeBookLink()
               }
               onBack()
             }
@@ -285,9 +275,7 @@ private fun PopBookManagerView(webSiteInfo: WebSiteInfo?, onBack: () -> Unit) {
           .background(MaterialTheme.colorScheme.surface)
           .clickable {
             scope.launch(ioAsyncExceptionHandler) {
-              WebSiteDatabase.INSTANCE
-                .websiteDao()
-                .delete(webSiteInfo)
+              viewModel.changeBookLink(del = webSiteInfo)
               onBack()
             }
           },
@@ -405,8 +393,6 @@ private fun PopContentView(
   viewModel: BrowserViewModel,
   openBookManager: (WebSiteInfo) -> Unit
 ) {
-  val historyViewModel = remember { HistoryViewModel() }
-  val bookViewModel = remember { BookViewModel() }
   val scope = rememberCoroutineScope()
   val bottomSheetModel = LocalModalBottomSheet.current
 
@@ -416,7 +402,7 @@ private fun PopContentView(
       .background(MaterialTheme.colorScheme.background)
   ) {
     when (popupViewState.value) {
-      PopupViewState.BookList -> BrowserListOfBook(bookViewModel,
+      PopupViewState.BookList -> BrowserListOfBook(viewModel,
         onOpenSetting = { openBookManager(it) },
         onSearch = {
           scope.launch {
@@ -426,7 +412,7 @@ private fun PopContentView(
         }
       )
 
-      PopupViewState.HistoryList -> BrowserListOfHistory(historyViewModel) {
+      PopupViewState.HistoryList -> BrowserListOfHistory(viewModel) {
         scope.launch {
           bottomSheetModel.hide()
           viewModel.handleIntent(BrowserIntent.SearchWebView(it))
@@ -461,7 +447,11 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel) {
           .padding(horizontal = 16.dp, vertical = 12.dp)
       ) {
         RowItemMenuView(text = "添加书签", trailingIcon = R.drawable.ic_main_book) {
-          viewModel.handleIntent(BrowserIntent.SaveBookWebSiteInfo)
+          viewModel.uiState.currentBrowserBaseView.value?.let {
+            scope.launch {
+              viewModel.changeBookLink(add = it.viewItem.state.toWebSiteInfo(WebSiteType.Book))
+            }
+          }
         } // 添加书签
 
         Spacer(modifier = Modifier.height(12.dp))

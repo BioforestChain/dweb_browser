@@ -18,7 +18,9 @@ data class PureResponse(
 
   fun isOk() = status.value in 200..299
   internal fun requestOk(): PureResponse =
-    if (status.value >= 400) throw Exception("PureResponse not ok: ${status.description}") else this
+    if (!isOk())
+      throw Exception("PureResponse not ok: [${status.value}]${status.description}")
+    else this
 
   suspend fun stream() = requestOk().body.toPureStream()
   suspend fun text() = requestOk().body.toPureString()

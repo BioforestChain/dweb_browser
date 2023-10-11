@@ -75,7 +75,7 @@ const cancel = defineLogAction(
 
 const download = defineLogAction(
   async () => {
-    return await updateControllerPlugin.download("http://172.30.95.28:8096/metadata.json");
+    return await updateControllerPlugin.download("http://172.30.93.165:8096/metadata.json");
   },
   { name: "download", args: [], logPanel: $logPanel }
 );

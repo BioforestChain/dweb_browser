@@ -25,6 +25,9 @@ import org.dweb_browser.core.http.IPureBody
 import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.std.dns.nativeFetch
+import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.debugger
+
 fun MicroModule.createStore(storeName: String, encrypt: Boolean) =
   MicroModuleStore(this, storeName, encrypt)
 
@@ -38,6 +41,18 @@ val MicroModule.store: MicroModuleStore
 class MicroModuleStore(
   private val mm: MicroModule, val storeName: String, val encrypt: Boolean
 ) {
+  private val taskQueues = Channel<Task<*>>(onBufferOverflow = BufferOverflow.SUSPEND)
+  init {
+    mm.ioAsyncScope.launch {
+      for (task in taskQueues) {
+        try {
+          (task.deferred as CompletableDeferred<Any>).complete(task.action() as Any)
+        }catch (e:Throwable){
+          task.deferred.completeExceptionally(e)
+        }
+      }
+    }
+  }
   private val cipherPlainKey = mm.mmid + "/" + storeName
   private var cipher: AuthenticatedCipher? = null
 
@@ -55,43 +70,28 @@ class MicroModuleStore(
     ).cipher()
   }
 
-  private var _store: Deferred<MutableMap<String, ByteArray>> = mm.ioAsyncScope.async {
-    val map = mutableMapOf<String, ByteArray>()
-    // 计算map的值
-    map
-  }
-  val store get() = _store
-  private val queryPath =
-    "/data/store/$storeName${if (encrypt) ".ebor" else ".cbor"}".encodeURIComponent()
+  private var _store = exec {
+    cipher = if (encrypt) getCipher(cipherPlainKey) else null
 
-  init {
-    exec {
-      cipher = if (encrypt) getCipher(cipherPlainKey) else null
+    try {
 
       val data =
         mm.nativeFetch("file://file.std.dweb/read?path=$queryPath&create=true").binary().let {
           cipher?.decrypt(it) ?: it
         }
 
-      Cbor.decodeFromByteArray<Map<String, ByteArray>>(data)
+      Cbor.decodeFromByteArray<MutableMap<String, ByteArray>>(data)
+    }catch (e:Throwable){
+      debugger(e)
+      throw e
     }
   }
+  suspend fun store() = _store.await()
+  private val queryPath =
+    "/data/store/$storeName${if (encrypt) ".ebor" else ".cbor"}".encodeURIComponent()
 
   internal class Task<T>(val deferred: CompletableDeferred<T>, val action: suspend () -> T) {}
 
-  private val taskQueues = Channel<Task<*>>(onBufferOverflow = BufferOverflow.SUSPEND)
-
-  init {
-    mm.ioAsyncScope.launch {
-      for (task in taskQueues) {
-        try {
-          (task.deferred as CompletableDeferred<Any>).complete(task.action() as Any)
-        }catch (e:Throwable){
-          task.deferred.completeExceptionally(e)
-        }
-      }
-    }
-  }
   private fun <T> exec(action: suspend () -> T): Deferred<T> {
     val deferred = CompletableDeferred<T>()
     mm.ioAsyncScope.launch {
@@ -101,10 +101,10 @@ class MicroModuleStore(
   }
 
   suspend inline fun <reified T> getOrNull(key: String) =
-    store.await()[key]?.let { Cbor.decodeFromByteArray<T>(it) }
+    store()[key]?.let { Cbor.decodeFromByteArray<T>(it) }
 
   suspend inline fun <reified T> getOrPut(key: String, put: () -> T): T {
-    val obj = store.await()
+    val obj = store()
     return obj[key].let { it ->
       if (it != null) Cbor.decodeFromByteArray<T>(it)
       else put().also {
@@ -121,7 +121,7 @@ class MicroModuleStore(
 
   suspend fun save() {
     exec {
-      val map = store.await()
+      val map = store()
       mm.nativeFetch(
         PureRequest(
           URLBuilder("file://file.std.dweb/write").apply {
@@ -137,7 +137,7 @@ class MicroModuleStore(
   }
 
   suspend inline fun <reified T> set(key: String, value: T) {
-    store.await()[key] = Cbor.encodeToByteArray(value)
+    store()[key] = Cbor.encodeToByteArray(value)
     save()
   }
 }
