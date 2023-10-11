@@ -36,16 +36,21 @@ val debugFile = Debugger("file")
  * 比如 视频、相册、音乐、办公 等模块都是对文件读写有刚性依赖的，因此会基于标准文件模块实现同样的标准，这样别的模块可以将同类型的文件存储到它们的文件夹标准下管理
  */
 class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
-  companion object {}
-
-  fun findVfsDirectory(firstSegment: String): IVirtualFsDirectory? {
-    for (adapter in fileTypeAdapterManager.adapters) {
-      if (adapter.isMatch(firstSegment)) {
-        return adapter
+  companion object {
+    internal fun findVfsDirectory(firstSegment: String): IVirtualFsDirectory? {
+      for (adapter in fileTypeAdapterManager.adapters) {
+        if (adapter.isMatch(firstSegment)) {
+          return adapter
+        }
       }
+      return null
     }
-    return null
+
+    /// TODO 这个函数给出来是给内部使用的
+    fun getVirtualFsPath(context: IMicroModuleManifest, virtualPathString: String) =
+      VirtualFsPath(context, virtualPathString, ::findVfsDirectory)
   }
+
 
   /**
    * 虚拟的路径映射
@@ -81,7 +86,7 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
 
   fun IHandlerContext.getVfsPath(
     pathKey: String = "path",
-  ) = VirtualFsPath(ipc.remote, request.query(pathKey), ::findVfsDirectory)
+  ) = getVirtualFsPath(ipc.remote, request.query(pathKey))
 
   fun IHandlerContext.getPath(pathKey: String = "path"): Path {
     return getVfsPath(pathKey).fsFullPath
@@ -307,10 +312,10 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
   override suspend fun _shutdown() {
   }
 
-  object FileWatchEventNameSerializer :
-    StringEnumSerializer<FileWatchEventName>("FileWatchEventName",
-      FileWatchEventName.ALL_VALUES,
-      { eventName });
+  object FileWatchEventNameSerializer : StringEnumSerializer<FileWatchEventName>(
+    "FileWatchEventName",
+    FileWatchEventName.ALL_VALUES,
+    { eventName });
   @Serializable(with = FileWatchEventNameSerializer::class)
   enum class FileWatchEventName(val eventName: String) {
     /** 初始化监听时，执行的触发 */
