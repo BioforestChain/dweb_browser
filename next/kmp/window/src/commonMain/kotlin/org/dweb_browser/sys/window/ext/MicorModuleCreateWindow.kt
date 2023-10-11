@@ -6,4 +6,4 @@ import org.dweb_browser.sys.window.core.windowInstancesManager
 
 suspend fun MicroModule.openMainWindow() =
   windowInstancesManager.get(nativeFetch("file://window.sys.dweb/openMainWindow").text())
-    ?.also { it.state.constants.microModule = this }
+    ?.also { it.state.constants.microModule.value = this }

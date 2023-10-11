@@ -593,13 +593,14 @@ fun WindowController.IconRender(
 
   val iconMaskable by watchedState { iconMaskable }
   val iconMonochrome by watchedState { iconMonochrome }
+  val microModule by state.constants.microModule
   AppIcon(icon = iconUrl,
     modifier,
     color = primaryColor,
     containerColor = primaryContainerColor,
     iconMonochrome = iconMonochrome,
     iconMaskable = iconMaskable,
-    iconFetchHook = state.constants.microModule?.let { mm ->
+    iconFetchHook = microModule?.let { mm ->
       return@let {
         val response = mm.nativeFetch(request.url)
         returnResponse(response.toFetchResponse())

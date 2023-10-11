@@ -6,16 +6,6 @@ import android.os.Bundle
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.launch
-import org.dweb_browser.core.module.startAppActivity
-import org.dweb_browser.helper.ChangeState
-import org.dweb_browser.helper.ChangeableMap
-import org.dweb_browser.helper.PromiseOut
-import org.dweb_browser.helper.consumeEachJsonLine
-import org.dweb_browser.helper.printDebug
-import org.dweb_browser.helper.randomUUID
-import org.dweb_browser.helper.toJsonElement
-import org.dweb_browser.core.module.BootstrapContext
-import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.PureResponse
@@ -23,12 +13,22 @@ import org.dweb_browser.core.http.PureStringBody
 import org.dweb_browser.core.http.bind
 import org.dweb_browser.core.http.toPure
 import org.dweb_browser.core.ipc.helper.IpcResponse
+import org.dweb_browser.core.module.BootstrapContext
+import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.core.module.startAppActivity
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.dns.onActivity
 import org.dweb_browser.core.std.http.CORS_HEADERS
 import org.dweb_browser.core.std.http.DwebHttpServerOptions
 import org.dweb_browser.core.std.http.HttpDwebServer
 import org.dweb_browser.core.std.http.createHttpDwebServer
+import org.dweb_browser.helper.ChangeState
+import org.dweb_browser.helper.ChangeableMap
+import org.dweb_browser.helper.PromiseOut
+import org.dweb_browser.helper.consumeEachJsonLine
+import org.dweb_browser.helper.printDebug
+import org.dweb_browser.helper.randomUUID
+import org.dweb_browser.helper.toJsonElement
 
 fun debugDesk(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("desk", tag, msg, err)
@@ -45,7 +45,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       null -> {
         val ipc = connect(mmid)
         if (ipc.remote.categories.contains(MICRO_MODULE_CATEGORY.Application)) {
-          RunningApp(ipc).also {
+          RunningApp(ipc, this).also {
             runningApps[mmid] = it
             /// 如果应用关闭，将它从列表中移除
             it.onClose {
@@ -55,6 +55,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
           }
         } else null
       }
+
       else -> runningApp
     }
   }

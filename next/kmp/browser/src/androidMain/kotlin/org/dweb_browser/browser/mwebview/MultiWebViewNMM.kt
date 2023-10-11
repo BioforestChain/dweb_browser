@@ -3,19 +3,16 @@ package org.dweb_browser.browser.mwebview
 import io.ktor.http.HttpMethod
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.dweb_browser.helper.DisplayMode
-import org.dweb_browser.helper.printDebug
-import org.dweb_browser.core.module.BootstrapContext
-import org.dweb_browser.core.module.MicroModule
-import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.bind
 import org.dweb_browser.core.ipc.Ipc
-import org.dweb_browser.sys.window.core.WindowState
-import org.dweb_browser.sys.window.core.constant.WindowConstants
-import org.dweb_browser.sys.window.core.createWindowAdapterManager
-import org.dweb_browser.sys.window.core.helper.setFromManifest
+import org.dweb_browser.core.module.BootstrapContext
+import org.dweb_browser.core.module.MicroModule
+import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.helper.DisplayMode
+import org.dweb_browser.helper.printDebug
+import org.dweb_browser.sys.window.ext.openMainWindow
 import org.dweb_browser.sys.window.render.emitFocusOrBlur
 
 fun debugMultiWebView(tag: String, msg: Any? = "", err: Throwable? = null) =
@@ -91,15 +88,8 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.browser.dweb", "Multi Webvie
     debugMultiWebView("/open", "remote-mmid: $remoteMmid / url:$url")
 
     val controller = controllerMap.getOrPut(remoteMmid) {
-      val win = createWindowAdapterManager.createWindow(
-        WindowState(
-        WindowConstants(
-          owner = ipc.remote.mmid,
-          ownerVersion = ipc.remote.version,
-          provider = mmid,
-          microModule = this
-        )
-      ).apply { setFromManifest(ipc.remote) })
+      val win =
+        remoteMm.openMainWindow() ?: throw Exception("fail to got window for ${remoteMm.mmid}")
       remoteMm.manifest.display?.let { mode ->
         if (mode == DisplayMode.Fullscreen) {
           win.maximize()
