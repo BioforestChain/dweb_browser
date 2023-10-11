@@ -28,6 +28,17 @@ data class WebSiteInfo(
   }
 }
 
+fun Long.formatToStickyName(): String {
+  val currentOfEpochDay = LocalDate.now().toEpochDay()
+  return if (this >= currentOfEpochDay) {
+    "今天"
+  } else if (this == currentOfEpochDay - 1) {
+    "昨天"
+  } else {
+    LocalDate.ofEpochDay(this).format(DateTimeFormatter.ofPattern("yyyy-MM-dd EEEE"))
+  }
+}
+
 enum class WebSiteType(val id: Int) {
   History(0), Book(1), Multi(2)
   ;
@@ -46,7 +57,7 @@ class BrowserStore(mm: MicroModule) {
   }
 
   suspend fun setBookLinks(data: MutableList<WebSiteInfo>) =
-    storeBook.set<MutableList<WebSiteInfo>>(storeKey, data)
+    storeBook.set(storeKey, data)
 
   /**
    * 历史部分，需要特殊处理
@@ -56,16 +67,16 @@ class BrowserStore(mm: MicroModule) {
   suspend fun getHistoryLinks(): MutableMap<String, MutableList<WebSiteInfo>> {
     val current = LocalDate.now().toEpochDay()
     val maps = mutableMapOf<String, MutableList<WebSiteInfo>>()
-    for (day in current - 6..current) { // 获取最近一周的数据
-      val webSiteInfoList = storeHistory.getOrPut(day.toString()) {
-        return@getOrPut mutableListOf<WebSiteInfo>()
+    for (day in current downTo current - 6) { // 获取最近一周的数据
+      val webSiteInfoList = storeHistory.getOrNull<MutableList<WebSiteInfo>>(day.toString())
+      if (webSiteInfoList?.isNotEmpty() == true) {
+        maps[day.toString()] = webSiteInfoList
       }
-      maps[day.toString()] = webSiteInfoList
     }
     return maps
   }
 
   suspend fun setHistoryLinks(key: String, data: MutableList<WebSiteInfo>) {
-    storeHistory.set<MutableList<WebSiteInfo>>(key, data)
+    storeHistory.set(key, data)
   }
 }

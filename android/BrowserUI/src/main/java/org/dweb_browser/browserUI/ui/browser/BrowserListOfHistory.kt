@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import org.dweb_browser.browserUI.ui.browser.model.WebSiteInfo
 import org.dweb_browser.browserUI.ui.browser.model.BrowserViewModel
+import org.dweb_browser.browserUI.ui.browser.model.formatToStickyName
 import org.dweb_browser.helper.*
 import java.time.LocalDate
 
@@ -54,11 +55,11 @@ fun BrowserListOfHistory(
       .background(MaterialTheme.colorScheme.background)
       .padding(horizontal = 16.dp)
   ) {
-    for (day in currentTime - 7..currentTime) {
+    for (day in currentTime downTo currentTime - 6) {
       val webSiteInfoList = list[day.toString()] ?: break
       stickyHeader {
         Text(
-          text = day.toString(),
+          text = day.formatToStickyName(),
           modifier = Modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.background)
