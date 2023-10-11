@@ -36,6 +36,9 @@ declare global {
     core: typeof core;
     ipc: typeof core;
     http: typeof http;
+    versions: Record<string, string>;
+    version: number;
+    patch: number;
   }
   interface WorkerNavigator {
     readonly dweb: DWebCore;
@@ -330,14 +333,17 @@ const waitFetchPort = () => {
 /**
  * 安装上下文
  */
-export const installEnv = async (metadata: Metadata) => {
+export const installEnv = async (metadata: Metadata, versions: Record<string, string>) => {
   const jsProcess = new JsProcessMicroModule(metadata, await waitFetchPort());
-
+  const [version, patch] = versions.jsMicroModule.split(".").map((v) => parseInt(v));
   const dweb = {
     jsProcess,
     core,
     ipc: core,
     http,
+    versions,
+    version,
+    patch,
   } satisfies DWebCore;
   // Object.assign(globalThis, dweb);
   Object.assign(navigator, { dweb });

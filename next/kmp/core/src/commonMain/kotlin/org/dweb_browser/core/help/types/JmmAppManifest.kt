@@ -23,8 +23,8 @@ class JmmAppManifest private constructor(
      * 要求的目标平台(JsMicroModule这个平台)的最小版本号
      * 未来还会加入对一些附属模块的最低版本号要求，但这里主要是针对平台这个不可变环境的要求
      */
-    private val P_minTarget = P.required<Float>("minTarget", 1f)
-    private val P_maxTarget = P.optional<Float>("maxTarget")
+    private val P_minTarget = P.required<Int>("minTarget", 1)
+    private val P_maxTarget = P.optional<Int>("maxTarget")
   }
 
   override var baseURI by P_baseURI(p)
@@ -35,9 +35,9 @@ class JmmAppManifest private constructor(
   override fun toCommonAppManifest() = data
 
   override fun canSupportTarget(
-    version: Float,
-    disMatchMinTarget: (minTarget: Float) -> Boolean,
-    disMatchMaxTarget: (maxTarget: Float) -> Boolean,
+    version: Int,
+    disMatchMinTarget: (minTarget: Int) -> Boolean,
+    disMatchMaxTarget: (maxTarget: Int) -> Boolean,
   ): Boolean {
     if (minTarget > version) {
       return disMatchMinTarget(minTarget)
@@ -54,12 +54,12 @@ class JmmAppManifest private constructor(
 internal interface IJmmAppManifest : ICommonAppManifest {
   var baseURI: String?
   var server: MainServer
-  var minTarget: Float
-  var maxTarget: Float?
+  var minTarget: Int
+  var maxTarget: Int?
   fun toCommonAppManifest(): CommonAppManifest
   fun canSupportTarget(
-    version: Float,
-    disMatchMinTarget: (minTarget: Float) -> Boolean = { false },
-    disMatchMaxTarget: (maxTarget: Float) -> Boolean = { false }
+    version: Int,
+    disMatchMinTarget: (minTarget: Int) -> Boolean = { false },
+    disMatchMaxTarget: (maxTarget: Int) -> Boolean = { false }
   ): Boolean
 }

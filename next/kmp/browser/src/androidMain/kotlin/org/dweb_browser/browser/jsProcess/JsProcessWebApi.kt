@@ -7,6 +7,8 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.dweb_browser.browser.jmm.JsMicroModule
+import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.dwebview.ipcWeb.MessagePortIpc
 import org.dweb_browser.dwebview.ipcWeb.saveNative2JsIpcPort
@@ -49,7 +51,7 @@ class JsProcessWebApi(val dWebView: DWebViewEngine) {
                      try{
                         removeEventListener("message", doCreateProcess);
                         const fetch_port = event.ports[0];
-                        resolve(await createProcess(`$env_script_url`,$metadata_json_str,$env_json_str,fetch_port,`$host`))
+                        resolve(await createProcess(`$env_script_url`,$metadata_json_str,$env_json_str,fetch_port,`$host`,`{"jsMicroModule":"${JsMicroModule.VERSION}.${JsMicroModule.PATCH}"}`))
                         }catch(err){
                             reject(err)
                         }

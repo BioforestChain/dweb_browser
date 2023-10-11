@@ -59,7 +59,8 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) : MicroModule(
     /**
      * 当前JsMicroModule的版本
      */
-    const val VERSION = 1.0f
+    const val VERSION = 1
+    const val PATCH = 0
 
     init {
       val nativeToWhiteList = listOf<MMID>("js.browser.dweb")
