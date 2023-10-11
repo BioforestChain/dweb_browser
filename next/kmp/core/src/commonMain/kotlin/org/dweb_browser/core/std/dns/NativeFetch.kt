@@ -9,16 +9,9 @@ import io.ktor.http.fullPath
 import io.ktor.util.decodeBase64Bytes
 import io.ktor.util.toLowerCasePreservingASCIIRules
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.dweb_browser.helper.PromiseOut
-import org.dweb_browser.helper.canReadContent
-import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.helper.platform.httpFetcher
-import org.dweb_browser.helper.printDebug
-import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.help.AdapterManager
 import org.dweb_browser.core.help.toHttpRequestBuilder
 import org.dweb_browser.core.help.toPureResponse
@@ -29,14 +22,17 @@ import org.dweb_browser.core.http.PureStreamBody
 import org.dweb_browser.core.http.PureStringBody
 import org.dweb_browser.core.ipc.helper.IpcHeaders
 import org.dweb_browser.core.ipc.helper.IpcMethod
+import org.dweb_browser.core.module.MicroModule
+import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.PromiseOut
+import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.platform.httpFetcher
 
 typealias FetchAdapter = suspend (remote: MicroModule, request: PureRequest) -> PureResponse?
 
-fun debugFetch(tag: String, msg: Any? = "", err: Throwable? = null) =
-  printDebug("fetch", tag, msg, err)
+val debugFetch = Debugger("fetch")
 
-fun debugFetchFile(tag: String, msg: Any? = "", err: Throwable? = null) =
-  printDebug("fetch-file", tag, msg, err)
+val debugFetchFile = Debugger("fetch-file")
 
 /**
  * file:/// => /usr & /sys as const
@@ -117,7 +113,7 @@ class NativeFetchAdaptersManager : AdapterManager<FetchAdapter>() {
               streamBody.toPureStream().onClose {
                 lock.unlock()
               }
-              lock.withLock {  }
+              lock.withLock { }
               debugFetch("httpFetch end", request.href)
             }
           } catch (e: Throwable) {
@@ -128,10 +124,10 @@ class NativeFetchAdaptersManager : AdapterManager<FetchAdapter>() {
           debugFetch("httpFetch return", request.href)
         }
       } catch (e: Throwable) {
-        debugFetch("httpFetch Throwable", e.message)
+        debugFetch("httpFetch", request.url, e)
         return PureResponse(
           HttpStatusCode.ServiceUnavailable,
-          body = PureStringBody(e.stackTraceToString())
+          body = PureStringBody(request.url.toString() + "\n" + e.stackTraceToString())
         )
       }
     }

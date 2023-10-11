@@ -1,4 +1,4 @@
-package org.dweb_browser.browserUI.ui.browser
+package org.dweb_browser.browserUI.ui.browser.model
 
 import android.app.Activity
 import android.content.Context
@@ -25,13 +25,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.dweb_browser.browserUI.database.DefaultAllWebEngine
-import org.dweb_browser.browserUI.database.WebEngine
-import org.dweb_browser.browserUI.database.WebSiteDatabase
-import org.dweb_browser.browserUI.database.WebSiteInfo
-import org.dweb_browser.browserUI.database.WebSiteType
 import org.dweb_browser.browserUI.microService.browser.web.BrowserController
-import org.dweb_browser.browserUI.ui.entity.BrowserWebView
 import org.dweb_browser.browserUI.ui.qrcode.QRCodeScanState
 import org.dweb_browser.browserUI.util.KEY_LAST_SEARCH_KEY
 import org.dweb_browser.browserUI.util.KEY_NO_TRACE
@@ -105,8 +99,6 @@ sealed class BrowserIntent {
   class SearchWebView(val url: String) : BrowserIntent()
   class RemoveBaseView(val id: Int) : BrowserIntent()
   class OpenDwebBrowser(val mmid: MMID) : BrowserIntent()
-  class SaveHistoryWebSiteInfo(val title: String?, val url: String?) : BrowserIntent()
-  data object SaveBookWebSiteInfo : BrowserIntent() // 直接获取当前的界面来保存
   class ShareWebSiteInfo(val activity: Activity) : BrowserIntent() // 直接获取当前的界面来保存
   class UpdateInputText(val text: String) : BrowserIntent()
   class ShowSnackbarMessage(val message: String, val actionLabel: String? = null) : BrowserIntent()
@@ -279,35 +271,6 @@ class BrowserViewModel(
           }
         }
 
-        is BrowserIntent.SaveHistoryWebSiteInfo -> {
-          action.url?.let {
-            if (!isNoTrace.value && !it.isSystemUrl()) { // 无痕模式，不保存历史搜索记录
-              WebSiteDatabase.INSTANCE.websiteDao().insert(
-                WebSiteInfo(title = action.title ?: it, url = it, type = WebSiteType.History)
-              )
-            }
-          }
-        }
-
-        is BrowserIntent.SaveBookWebSiteInfo -> {
-          uiState.currentBrowserBaseView.value?.let {
-            val url = it.viewItem.state.lastLoadedUrl ?: ""
-            if (url.isEmpty() || url.isSystemUrl()) {
-              handleIntent(BrowserIntent.ShowSnackbarMessage("无效书签页"))
-              return@let
-            }
-            WebSiteDatabase.INSTANCE.websiteDao().insert(
-              WebSiteInfo(
-                title = it.viewItem.state.pageTitle ?: "",
-                url = url,
-                type = WebSiteType.Book,
-                icon = it.viewItem.state.pageIcon?.asImageBitmap()
-              )
-            )
-            handleIntent(BrowserIntent.ShowSnackbarMessage("添加书签成功"))
-          }
-        }
-
         is BrowserIntent.ShareWebSiteInfo -> {
           uiState.currentBrowserBaseView.value?.let {
             if (it.viewItem.state.lastLoadedUrl?.isSystemUrl() == true) {
@@ -337,6 +300,7 @@ class BrowserViewModel(
       }
     }
   }
+
 
   private fun createDwebViewEngine(url: String = "") = DWebViewEngine(
     browserNMM.getAppContext(), browserNMM, DWebViewOptions(
@@ -422,6 +386,65 @@ class BrowserViewModel(
         browserController.addUrlToDesktop(context, state.pageTitle ?: "无标题", url, state.pageIcon)
       }
     }
+  }
+
+  fun getBookLinks() = browserController.bookLinks
+  fun getHistoryLinks() = browserController.historyLinks
+
+  /**
+   * 操作历史数据
+   * 新增：需要新增数据
+   * 修改：历史数据没有修改
+   * 删除：需要删除数据
+   */
+  suspend fun changeHistoryLink(add: WebSiteInfo? = null, del: WebSiteInfo? = null) {
+    if (isNoTrace.value) return // 如果是无痕的，则不能进行存储历史操作
+    add?.let {
+      val key = add.timeMillis.toString()
+      browserController.historyLinks[key]?.let { list ->
+        list.add(0, add)
+        browserController.saveHistoryLinks(key, list)
+      }
+    }
+    del?.let {
+      val key = del.timeMillis.toString()
+      browserController.historyLinks[key]?.let { list ->
+        list.remove(del)
+        browserController.saveHistoryLinks(key, list)
+      }
+    }
+  }
+
+  /**
+   * 操作书签数据
+   * 新增：需要新增数据
+   * 修改：该对象已经变更，可直接保存，所以不需要传
+   * 删除：需要删除数据
+   */
+  suspend fun changeBookLink(add: WebSiteInfo? = null, del: WebSiteInfo? = null) {
+    add?.let {
+      browserController.bookLinks.add(add)
+    }
+    del?.let {
+      browserController.bookLinks.remove(del)
+    }
+    browserController.saveBookLinks()
+  }
+}
+
+/**
+ * 将WebViewState转为WebSiteInfo
+ */
+fun WebViewState.toWebSiteInfo(type: WebSiteType) : WebSiteInfo? {
+  return this.lastLoadedUrl?.let { url ->
+    if (!url.isSystemUrl()) { // 无痕模式，不保存历史搜索记录
+      WebSiteInfo(
+        title = pageTitle ?: url,
+        url = url,
+        type = type,
+        //icon = pageIcon?.asImageBitmap()
+      )
+    } else null
   }
 }
 

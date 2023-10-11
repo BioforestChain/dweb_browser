@@ -32,7 +32,8 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import kotlinx.coroutines.delay
 import org.dweb_browser.browserUI.R
-import org.dweb_browser.browserUI.ui.entity.BrowserMainView
+import org.dweb_browser.browserUI.ui.browser.model.BrowserMainView
+import org.dweb_browser.browserUI.ui.browser.model.BrowserViewModel
 import org.dweb_browser.browserUI.ui.view.Captureable
 
 @Composable

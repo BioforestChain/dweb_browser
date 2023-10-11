@@ -4,14 +4,14 @@ import android.content.res.Resources
 import info.bagen.dwebbrowser.microService.browser.desk.types.DeskAppMetaData
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import org.dweb_browser.core.help.types.MMID
+import org.dweb_browser.core.std.http.HttpDwebServer
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.build
 import org.dweb_browser.helper.resolvePath
-import org.dweb_browser.core.help.types.MMID
-import org.dweb_browser.core.std.http.HttpDwebServer
 
 class TaskbarController(
   val deskSessionId: String,
@@ -21,9 +21,10 @@ class TaskbarController(
   private val runningApps: ChangeableMap<MMID, RunningApp>
 ) {
   val taskbarView = TaskbarView(this)
+  val taskbarStore = TaskbarStore(deskNMM)
 
   /** 展示在taskbar中的应用列表 */
-  private suspend fun getTaskbarShowAppList() = deskNMM.deskStore.getTaskbarApps()
+  private suspend fun getTaskbarShowAppList() = taskbarStore.getApps()
   internal suspend fun getFocusApp() = getTaskbarShowAppList().firstOrNull()
   internal val updateSignal = SimpleSignal()
   val onUpdate = updateSignal.toListener()
@@ -47,7 +48,7 @@ class TaskbarController(
         }
 
         /// 保存到数据库
-        deskNMM.deskStore.setTaskbarApps(apps)
+        taskbarStore.setApps(apps)
         updateSignal.emit()
       }
 

@@ -5,9 +5,9 @@ import io.ktor.utils.io.ByteReadChannel
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json.Default.decodeFromString
 import kotlinx.serialization.json.JsonElement
+import org.dweb_browser.core.ipc.helper.IpcHeaders
 import org.dweb_browser.helper.JsonLoose
 import org.dweb_browser.helper.platform.offscreenwebcanvas.FetchResponse
-import org.dweb_browser.core.ipc.helper.IpcHeaders
 
 data class PureResponse(
   val status: HttpStatusCode = HttpStatusCode.OK,
@@ -17,8 +17,10 @@ data class PureResponse(
 ) {
 
   fun isOk() = status.value in 200..299
-  internal fun requestOk(): PureResponse =
-    if (status.value >= 400) throw Exception("PureResponse not ok: ${status.description}") else this
+  internal suspend fun requestOk(): PureResponse =
+    if (!isOk())
+      throw Exception("PureResponse not ok: [${status.value}]${status.description}\n${body.toPureString()}")
+    else this
 
   suspend fun stream() = requestOk().body.toPureStream()
   suspend fun text() = requestOk().body.toPureString()

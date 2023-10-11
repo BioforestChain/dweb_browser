@@ -11,7 +11,7 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -19,23 +19,24 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
-import org.dweb_browser.browserUI.database.WebSiteDatabase
-import org.dweb_browser.browserUI.database.WebSiteInfo
-import org.dweb_browser.browserUI.database.WebSiteType
+import org.dweb_browser.browserUI.ui.browser.model.WebSiteInfo
+import org.dweb_browser.browserUI.ui.browser.model.BrowserViewModel
 import org.dweb_browser.helper.*
+import java.time.LocalDate
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun BrowserListOfHistory(
-  viewModel: HistoryViewModel = HistoryViewModel(),
+  viewModel: BrowserViewModel,
   @SuppressLint("ModifierParameter") modifier: Modifier = Modifier,
   noFoundTip: (@Composable () -> Unit)? = null,
   onSearch: (String) -> Unit
 ) {
-  if (viewModel.historyList.isEmpty()) {
+  val list = viewModel.getHistoryLinks()
+  val scope = rememberCoroutineScope()
+  val currentTime = LocalDate.now().toEpochDay()
+  if (list.isEmpty()) {
     noFoundTip?.let { it() }
       ?: Box(modifier = Modifier.fillMaxWidth()) {
         Text(
@@ -53,10 +54,11 @@ fun BrowserListOfHistory(
       .background(MaterialTheme.colorScheme.background)
       .padding(horizontal = 16.dp)
   ) {
-    viewModel.historyList.forEach { webSiteInfoList ->
+    for (day in currentTime - 7..currentTime) {
+      val webSiteInfoList = list[day.toString()] ?: break
       stickyHeader {
         Text(
-          text = webSiteInfoList.key,
+          text = day.toString(),
           modifier = Modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.background)
@@ -67,18 +69,19 @@ fun BrowserListOfHistory(
         )
       }
 
-      items(webSiteInfoList.value.size) { index ->
-        val webSiteInfo = webSiteInfoList.value[index]
+      items(webSiteInfoList.size) { index ->
+        val webSiteInfo = webSiteInfoList[index]
         if (index > 0) Divider()
         ListSwipeItem(
           webSiteInfo = webSiteInfo,
-          onRemove = { viewModel.deleteWebSiteInfo(webSiteInfoList, it) }
+          onRemove = {
+            scope.launch { viewModel.changeHistoryLink(del = webSiteInfo) }
+          }
         ) {
           val shape = when (index) {
             0 -> RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp)
-            webSiteInfoList.value.size - 1 -> RoundedCornerShape(
-              bottomStart = 6.dp,
-              bottomEnd = 6.dp
+            webSiteInfoList.size - 1 -> RoundedCornerShape(
+              bottomStart = 6.dp, bottomEnd = 6.dp
             )
 
             else -> RoundedCornerShape(0.dp)
@@ -138,37 +141,3 @@ data class WebSiteInfoList(
   val key: String,
   val value: MutableList<WebSiteInfo>,
 )
-
-class HistoryViewModel : ViewModel() {
-  val historyList: MutableList<WebSiteInfoList> = mutableStateListOf()
-
-  init {
-    viewModelScope.launch(mainAsyncExceptionHandler) {
-      WebSiteDatabase.INSTANCE.websiteDao().loadAllByTypeAscObserve(WebSiteType.History)
-        .observeForever {
-          var currentKey: String? = null
-          var list: MutableList<WebSiteInfo> = mutableStateListOf()
-          historyList.clear()
-          it.forEach { webSiteInfo ->
-            val stickyName = webSiteInfo.getStickyName()
-            if (currentKey != stickyName) {
-              currentKey?.let { key ->
-                historyList.add(0, WebSiteInfoList(key, list))
-              }
-              currentKey = stickyName
-              list = mutableStateListOf()
-            }
-            list.add(0, webSiteInfo)
-          }
-          currentKey?.let { key -> historyList.add(0, WebSiteInfoList(key, list)) }
-        }
-    }
-  }
-
-  fun deleteWebSiteInfo(webSiteInfoList: WebSiteInfoList, webSiteInfo: WebSiteInfo) {
-    webSiteInfoList.value.remove(webSiteInfo)
-    viewModelScope.launch(ioAsyncExceptionHandler) {
-      WebSiteDatabase.INSTANCE.websiteDao().delete(webSiteInfo)
-    }
-  }
-}

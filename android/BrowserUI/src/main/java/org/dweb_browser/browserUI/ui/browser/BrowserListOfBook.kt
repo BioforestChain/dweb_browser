@@ -19,25 +19,29 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.browserUI.R
-import org.dweb_browser.browserUI.database.WebSiteDatabase
-import org.dweb_browser.browserUI.database.WebSiteInfo
-import org.dweb_browser.browserUI.database.WebSiteType
+import org.dweb_browser.browserUI.ui.browser.model.WebSiteInfo
+import org.dweb_browser.browserUI.ui.browser.model.BrowserViewModel
 import org.dweb_browser.helper.*
 
 @Composable
 fun BrowserListOfBook(
-  viewModel: BookViewModel = BookViewModel(),
+  viewModel: BrowserViewModel,
   @SuppressLint("ModifierParameter") modifier: Modifier = Modifier,
   noFoundTip: (@Composable () -> Unit)? = null,
   onOpenSetting: (WebSiteInfo) -> Unit,
   onSearch: (String) -> Unit
 ) {
-  if (viewModel.bookList.isNotEmpty()) {
-    BookListContent(viewModel, modifier, onOpenSetting) { onSearch(it) }
+  val bookLinks = viewModel.getBookLinks()
+  val scope = rememberCoroutineScope()
+  if (bookLinks.isNotEmpty()) {
+    BookListContent(
+      bookList = bookLinks,
+      modifier = modifier,
+      onDelete = { scope.launch { viewModel.changeBookLink(del = it) } },
+      onOpenSetting = onOpenSetting
+    ) { onSearch(it) }
     return
   }
 
@@ -54,8 +58,9 @@ fun BrowserListOfBook(
 
 @Composable
 private fun BookListContent(
-  viewModel: BookViewModel = BookViewModel(),
+  bookList: MutableList<WebSiteInfo>,
   @SuppressLint("ModifierParameter") modifier: Modifier = Modifier,
+  onDelete: (WebSiteInfo) -> Unit,
   onOpenSetting: (WebSiteInfo) -> Unit,
   onSearch: (String) -> Unit
 ) {
@@ -64,7 +69,7 @@ private fun BookListContent(
       .background(MaterialTheme.colorScheme.background)
       .padding(16.dp)
   ) {
-    itemsIndexed(viewModel.bookList) { index, webSiteInfo ->
+    itemsIndexed(bookList) { index, webSiteInfo ->
       if (index > 0) {
         //Divider(modifier = Modifier.padding(start = 52.dp))
         Spacer(
@@ -75,11 +80,11 @@ private fun BookListContent(
       }
       ListSwipeItem(
         webSiteInfo = webSiteInfo,
-        onRemove = { viewModel.deleteWebSiteInfo(it) }
+        onRemove = { onDelete(it) }
       ) {
         val shape = when (index) {
           0 -> RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp)
-          viewModel.bookList.size - 1 -> RoundedCornerShape(bottomStart = 6.dp, bottomEnd = 6.dp)
+          bookList.size - 1 -> RoundedCornerShape(bottomStart = 6.dp, bottomEnd = 6.dp)
           else -> RoundedCornerShape(0.dp)
         }
         RowItemBook(webSiteInfo, shape, { onSearch(it.url) }) { onOpenSetting(it) }
@@ -172,29 +177,5 @@ private fun RowItemBook(
         .graphicsLayer(rotationZ = -90f),
       tint = MaterialTheme.colorScheme.outlineVariant
     )
-  }
-}
-
-class BookViewModel : ViewModel() {
-  val bookList: MutableList<WebSiteInfo> = mutableStateListOf()
-  var currentWebSiteInfo: WebSiteInfo? = null
-
-  init {
-    viewModelScope.launch(mainAsyncExceptionHandler) {
-      WebSiteDatabase.INSTANCE.websiteDao().loadAllByTypeAscObserve(WebSiteType.Book)
-        .observeForever {
-          bookList.clear()
-          it.forEach { webSiteInfo ->
-            bookList.add(webSiteInfo)
-          }
-        }
-    }
-  }
-
-  fun deleteWebSiteInfo(webSiteInfo: WebSiteInfo) {
-    bookList.remove(webSiteInfo)
-    viewModelScope.launch(ioAsyncExceptionHandler) {
-      WebSiteDatabase.INSTANCE.websiteDao().delete(webSiteInfo)
-    }
   }
 }
