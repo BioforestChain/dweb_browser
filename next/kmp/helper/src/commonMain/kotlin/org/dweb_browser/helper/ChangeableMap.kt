@@ -44,7 +44,7 @@ class ChangeableMap<K, V>(context: CoroutineContext = ioAsyncExceptionHandler) :
     }
   }
 
-  private operator fun set(key: K, value: V) {
+  operator fun set(key: K, value: V) {
     this.put(key, value)
   }
 

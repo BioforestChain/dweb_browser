@@ -60,8 +60,7 @@ class HttpRouter(private val mm: MicroModule) {
   fun protected(allows: Set<MMID>): HttpRouter {
     for ((key, handler) in routes) {
       val privateHandler: HttpHandler = { ctx ->
-        if (!allows.contains(ctx.ipc.remote.mmid))
-          PureResponse(HttpStatusCode.Forbidden)
+        if (!allows.contains(ctx.ipc.remote.mmid)) PureResponse(HttpStatusCode.Forbidden)
         else handler(ctx)
       }
       routes[key] = privateHandler
@@ -75,9 +74,7 @@ data class RoutingHttpHandler(val routeConfig: RouteConfig, val handler: HttpHan
 
 
 class PathMethod(
-  private val path: String,
-  private val method: HttpMethod,
-  private val matchMode: MatchMode
+  private val path: String, private val method: HttpMethod, private val matchMode: MatchMode
 ) {
   infix fun to(action: HttpHandler) = RoutingHttpHandler(
     RouteConfig(pathname = path, method = IpcMethod.from(method), matchMode = matchMode), action
@@ -88,18 +85,6 @@ infix fun String.bind(method: HttpMethod) = PathMethod(this, method, MatchMode.F
 infix fun String.bindPrefix(method: HttpMethod) = PathMethod(this, method, MatchMode.PREFIX)
 infix fun String.bindDwebDeeplink(action: HttpHandler) = RoutingHttpHandler(
   RouteConfig(
-    dwebDeeplink = true,
-    pathname = this,
-    method = IpcMethod.GET,
-    matchMode = MatchMode.FULL
-  ), action
-)
-
-infix fun String.bindDwebDeeplinkPrefix(action: HttpHandler) = RoutingHttpHandler(
-  RouteConfig(
-    dwebDeeplink = true,
-    pathname = this,
-    method = IpcMethod.GET,
-    matchMode = MatchMode.PREFIX
+    dwebDeeplink = true, pathname = this, method = IpcMethod.GET, matchMode = MatchMode.FULL
   ), action
 )

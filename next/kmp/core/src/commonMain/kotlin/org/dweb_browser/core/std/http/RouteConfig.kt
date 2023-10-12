@@ -12,11 +12,11 @@ data class RouteConfig(
   val matchMode: MatchMode = MatchMode.PREFIX
 ) {
   private fun methodMatcher(request: PureRequest) = request.method == method
-  private fun dwebDeeplinkMatcher(request: PureRequest) =
+  private fun protocolMatcher(request: PureRequest) =
     if (dwebDeeplink) request.href.startsWith("dweb:") else true
 
   private fun pathnameMatcher(request: PureRequest) = if (dwebDeeplink) {
-    request.href.substring("dweb://".length)
+    request.href.substring("dweb://".length).split('?', limit = 2)[0]
   } else {
     request.url.encodedPath
   }.let { target ->
@@ -29,7 +29,7 @@ data class RouteConfig(
   fun isMatch(request: PureRequest): Boolean {
     return methodMatcher(request)
         //
-        && dwebDeeplinkMatcher(request)
+        && protocolMatcher(request)
         //
         && pathnameMatcher(request)
   }

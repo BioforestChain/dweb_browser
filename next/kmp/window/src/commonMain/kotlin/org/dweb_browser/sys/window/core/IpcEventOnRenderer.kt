@@ -5,7 +5,7 @@ import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.ipc.helper.IpcEventMessageArgs
 
 /**
- * Renderer：窗口由 window.std.dweb 被创建后，要求窗口拥有着对内容进行渲染
+ * Renderer：窗口由 window.sys.dweb 被创建后，要求窗口拥有着对内容进行渲染
  */
 private const val RENDERER_EVENT_NAME = "renderer"
 fun IpcEvent.Companion.createRenderer(data: String) = IpcEvent.fromUtf8(RENDERER_EVENT_NAME, data)

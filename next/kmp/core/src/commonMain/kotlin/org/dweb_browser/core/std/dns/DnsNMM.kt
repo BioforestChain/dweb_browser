@@ -45,8 +45,32 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
   }
 
   private val allApps = ChangeableSet<MicroModule>()
-  private val installApps = ChangeableMap<MMID, ChangeableSet<MicroModule>>() // 已安装的应用
-  private val runningApps = ChangeableMap<MMID, PromiseOut<MicroModule>>() // 正在运行的应用
+  private val installApps = ChangeableMap<MMID, MutableSet<MicroModule>>() // 已安装的应用
+  private val _runningApps =
+    ChangeableMap<MMID, Map<MicroModule, PromiseOut<MicroModule>>>() // 正在运行的应用
+
+  fun runningApps(mmid: MMID) = _runningApps.getOrPut(mmid) { mapOf() }
+  fun addRunningApp(app: MicroModule, task: PromiseOut<MicroModule>) {
+    fun add(mmid: MMID) {
+      val apps = runningApps(mmid)
+      if (!apps.containsKey(app)) {
+        _runningApps[mmid] = apps + Pair(app, task)
+      }
+    }
+    add(app.mmid)
+    app.dweb_protocols.forEach { add(it) }
+  }
+
+  fun removeRunningApp(app: MicroModule) {
+    fun remove(mmid: MMID) {
+      val apps = runningApps(mmid)
+      if (apps.containsKey(app)) {
+        _runningApps[mmid] = apps.filter { it.key != app }
+      }
+    }
+    remove(app.mmid)
+    app.dweb_protocols.forEach { remove(it) }
+  }
 
   /**
    * 根据mmid获取模块
@@ -152,15 +176,15 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     }
 
     override suspend fun open(mmid: MMID): Boolean {
-      if (this.dnsMM.runningApps[mmid] == null) {
-        return false
+      if (this.dnsMM.runningApps(mmid).isEmpty()) {
+        dnsMM.open(mmid)
+        return true
       }
-      dnsMM.open(mmid)
-      return true
+      return false
     }
 
     override suspend fun close(mmid: MMID): Boolean {
-      if (this.dnsMM.runningApps[mmid] !== null) {
+      if (this.dnsMM.runningApps(mmid).isNotEmpty()) {
         dnsMM.close(mmid);
         return true;
       }
@@ -176,7 +200,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     install(this)
-    runningApps[this.mmid] = PromiseOut.resolve(this)
+    addRunningApp(this, PromiseOut.resolve(this))
 
     /**
      * 对全局的自定义路由提供适配器
@@ -188,10 +212,10 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
         debugFetch("DNS/nativeFetch", "$fromMM => ${request.href}")
         val url = request.href
         val reasonRequest = buildRequestX(url, request.method, request.headers, request.body);
-        installApps[mmid]?.let {
+        if (installApps.containsKey(mmid)) {
           val (fromIpc) = connectTo(fromMM, mmid, reasonRequest)
-          return@let fromIpc.request(request)
-        } ?: PureResponse(HttpStatusCode.BadGateway, body = PureStringBody(url))
+          fromIpc.request(request)
+        } else PureResponse(HttpStatusCode.BadGateway, body = PureStringBody(url))
       } else null
     }.removeWhen(this.onAfterShutdown)
     /** dwebDeepLink 适配器*/
@@ -249,7 +273,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       },
       //
       "/observe/running-apps" bind HttpMethod.Get to defineJsonLineResponse {
-        runningApps.onChange { changes ->
+        _runningApps.onChange { changes ->
           emit(
             ChangeState(
               changes.adds, changes.updates, changes.removes
@@ -309,25 +333,23 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
 
   /** 打开应用 */
   private fun _open(mmid: MMID): PromiseOut<MicroModule> {
-    return runningApps.getOrPut(mmid) {
-      PromiseOut<MicroModule>().alsoLaunchIn(ioAsyncScope) {
-        when (val openingMm = query(mmid)) {
-          null -> {
-            runningApps.remove(mmid)
-            throw Exception("no found app: $mmid") // todo 有几率触发导致崩溃
-          }
-
-          else -> {
-            bootstrapMicroModule(openingMm)
-            openingMm.onAfterShutdown {
-              if (runningApps[mmid] !== null) {
-                runningApps.remove(mmid)
-              }
-            }
-            openingMm
-          }
-        }
+    return runningApps(mmid).let { apps ->
+      when (val task = apps.firstNotNullOfOrNull { it.value }) {
+        null -> {}
+        else -> return@let task
       }
+
+      val app = query(mmid) ?: throw Exception("no found app: $mmid")
+      val task = PromiseOut<MicroModule>().also { addRunningApp(app, it) }
+        //
+        .alsoLaunchIn(ioAsyncScope) {
+          bootstrapMicroModule(app)
+          app.onAfterShutdown {
+            removeRunningApp(app)
+          }
+          app
+        }
+      return@let task
     }
   }
 
@@ -337,13 +359,14 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
 
   /** 关闭应用 */
   suspend fun close(mmid: MMID): Int {
-    return runningApps.remove(mmid)?.let { microModulePo ->
-      runCatching {
-        val microModule = microModulePo.waitPromise()
-        microModule.shutdown()
-        1
-      }.getOrDefault(0)
-    } ?: -1
+    return runningApps(mmid).let { apps ->
+      var count = 0;
+      apps.filter { it.key.mmid == mmid }.forEach {
+        it.value.waitPromise().shutdown();
+        count += 1
+      }
+      count
+    }
   }
 }
 

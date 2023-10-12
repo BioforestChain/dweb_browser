@@ -6,6 +6,7 @@ import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.sys.window.core.constant.WindowPropertyKeys
 import org.dweb_browser.sys.window.core.constant.WindowStyle
+import org.dweb_browser.sys.window.core.constant.debugWindow
 
 suspend fun DeskNMM.windowProtocol(desktopController: DesktopController) {
   protocol("window.sys.dweb") {

@@ -35,12 +35,11 @@ import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.sys.window.core.windowInstancesManager
 
 val debugDesk = Debugger("desk")
-val debugWindow = Debugger("window")
 
 class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
   init {
     categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Desktop);
-    dweb_protocols = listOf("window.std.dweb")
+    dweb_protocols = listOf("window.sys.dweb")
   }
 
   private val runningApps = ChangeableMap<MMID, RunningApp>()
