@@ -111,7 +111,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
   open class HandlerContext(override val request: PureRequest, override val ipc: Ipc) :
     IHandlerContext
 
-  protected fun defineEmptyResponse(
+  fun defineEmptyResponse(
     beforeResponse: BeforeResponse? = null,
     handler: RequestHandler<Unit>,
   ) = wrapHandler(beforeResponse) {
@@ -119,7 +119,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
     PureResponse(HttpStatusCode.OK)
   }
 
-  protected fun defineStringResponse(
+  fun defineStringResponse(
     beforeResponse: BeforeResponse? = null,
     handler: RequestHandler<String>,
   ) = wrapHandler(beforeResponse) {
@@ -128,7 +128,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
     )
   }
 
-  protected fun defineNumberResponse(
+  fun defineNumberResponse(
     beforeResponse: BeforeResponse? = null,
     handler: RequestHandler<Number>,
   ) = wrapHandler(beforeResponse) {
@@ -137,7 +137,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
     )
   }
 
-  protected fun defineBooleanResponse(
+  fun defineBooleanResponse(
     beforeResponse: BeforeResponse? = null,
     handler: RequestHandler<Boolean>,
   ) = wrapHandler(beforeResponse) {
@@ -151,7 +151,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
     )
   }
 
-  protected fun defineJsonResponse(
+  fun defineJsonResponse(
     beforeResponse: BeforeResponse? = null,
     handler: RequestHandler<JsonElement>,
   ) = wrapHandler(beforeResponse) {
@@ -181,7 +181,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
     val onDispose = onDisposeSignal.toListener()
   }
 
-  protected fun defineJsonLineResponse(
+  fun defineJsonLineResponse(
     beforeResponse: BeforeResponse? = null,
     handler: suspend JsonLineHandlerContext.() -> Unit,
   ) = wrapHandler(beforeResponse) {
@@ -238,7 +238,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
     val onDispose = onDisposeSignal.toListener()
   }
 
-  protected fun defineCborPackageResponse(
+  fun defineCborPackageResponse(
     beforeResponse: BeforeResponse? = null,
     handler: suspend CborPacketHandlerContext.() -> Unit,
   ) = wrapHandler(beforeResponse) {
@@ -275,14 +275,14 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
 
   fun PureResponse.body(body: JsonElement) = jsonBody(body)
 
-  protected fun definePureResponse(
+  fun definePureResponse(
     beforeResponse: BeforeResponse? = null,
     handler: RequestHandler<PureResponse>,
   ) = wrapHandler(beforeResponse) {
     handler()
   }
 
-  protected fun definePureBinaryHandler(
+  fun definePureBinaryHandler(
     beforeResponse: BeforeResponse? = null,
     handler: RequestHandler<PureBinary>,
   ) = wrapHandler(beforeResponse) {
@@ -291,7 +291,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
     )
   }
 
-  protected fun definePureStreamHandler(
+  fun definePureStreamHandler(
     beforeResponse: BeforeResponse? = null,
     handler: RequestHandler<PureStream>,
   ) = wrapHandler(beforeResponse) {
