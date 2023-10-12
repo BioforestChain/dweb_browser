@@ -1,13 +1,16 @@
 package org.dweb_browser.core.http
 
 import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
+import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.ipc.helper.IpcRequest
 import org.dweb_browser.core.module.HttpHandler
+import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.http.MatchMode
 import org.dweb_browser.core.std.http.RouteConfig
 
-class HttpRouter {
+class HttpRouter(private val mm: MicroModule) {
   private val routes = mutableMapOf<RouteConfig, HttpHandler>()
 
   fun addRoutes(vararg list: RoutingHttpHandler) {
@@ -26,7 +29,10 @@ class HttpRouter {
     return null
   }
 
-  fun cors() {
+  /**
+   * 允许跨域
+   */
+  fun cors(): HttpRouter {
     for ((key, handler) in routes) {
       val corsHandler: HttpHandler = { ctx ->
         handler(ctx).also {
@@ -40,6 +46,27 @@ class HttpRouter {
       }
       routes[key] = corsHandler
     }
+    return this
+  }
+
+  /**
+   * 接口私有化
+   */
+  fun private() = protected(setOf(mm.mmid))
+
+  /**
+   * 接口访问保护
+   */
+  fun protected(allows: Set<MMID>): HttpRouter {
+    for ((key, handler) in routes) {
+      val privateHandler: HttpHandler = { ctx ->
+        if (!allows.contains(ctx.ipc.remote.mmid))
+          PureResponse(HttpStatusCode.Forbidden)
+        else handler(ctx)
+      }
+      routes[key] = privateHandler
+    }
+    return this
   }
 }
 

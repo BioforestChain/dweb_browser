@@ -237,7 +237,9 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         taskBarController.taskbarView.toggleFloatWindow(
           request.queryOrNull("open")?.toBooleanStrictOrNull()
         )
-      }).cors()
+      })
+      .private()
+      .cors()
 
     onActivity {
       startDesktopView(deskSessionId)

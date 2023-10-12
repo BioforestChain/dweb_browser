@@ -57,13 +57,13 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
   }
 
   private val protocolMap = mutableMapOf<DWEB_PROTOCOL, HttpRouter>()
-  fun routes(vararg list: RoutingHttpHandler) = HttpRouter().also {
+  fun routes(vararg list: RoutingHttpHandler) = HttpRouter(this).also {
     it.addRoutes(*list)
     protocolMap["*"] = it
   }
 
-  class ProtocolBuilderContext() {
-    internal val router = HttpRouter()
+  class ProtocolBuilderContext(mm: MicroModule) {
+    internal val router = HttpRouter(mm)
     fun routes(vararg list: RoutingHttpHandler) = router.apply { addRoutes(*list) }
   }
 
@@ -71,7 +71,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
     protocol: DWEB_PROTOCOL,
     buildProtocol: suspend ProtocolBuilderContext.() -> Unit
   ) {
-    val context = ProtocolBuilderContext()
+    val context = ProtocolBuilderContext(this)
     context.buildProtocol()
     protocolMap[protocol] = context.router
   }
