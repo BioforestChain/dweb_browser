@@ -1,9 +1,10 @@
 package org.dweb_browser.core.http
 
 import io.ktor.http.HttpMethod
-import org.dweb_browser.core.module.HttpHandler
 import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.ipc.helper.IpcRequest
+import org.dweb_browser.core.module.HttpHandler
+import org.dweb_browser.core.std.http.MatchMode
 import org.dweb_browser.core.std.http.RouteConfig
 
 class HttpRouter {
@@ -46,13 +47,32 @@ class HttpRouter {
 data class RoutingHttpHandler(val routeConfig: RouteConfig, val handler: HttpHandler)
 
 
-class PathMethod(private val path: String, private val method: HttpMethod) {
+class PathMethod(
+  private val path: String,
+  private val method: HttpMethod,
+  private val matchMode: MatchMode
+) {
   infix fun to(action: HttpHandler) = RoutingHttpHandler(
-    RouteConfig(pathname = path, method = IpcMethod.from(method)), action
+    RouteConfig(pathname = path, method = IpcMethod.from(method), matchMode = matchMode), action
   )
 }
 
-infix fun String.bind(method: HttpMethod) = PathMethod(this, method)
+infix fun String.bind(method: HttpMethod) = PathMethod(this, method, MatchMode.FULL)
+infix fun String.bindPrefix(method: HttpMethod) = PathMethod(this, method, MatchMode.PREFIX)
 infix fun String.bindDwebDeeplink(action: HttpHandler) = RoutingHttpHandler(
-  RouteConfig(dwebDeeplink = true, pathname = this, method = IpcMethod.GET), action
+  RouteConfig(
+    dwebDeeplink = true,
+    pathname = this,
+    method = IpcMethod.GET,
+    matchMode = MatchMode.FULL
+  ), action
+)
+
+infix fun String.bindDwebDeeplinkPrefix(action: HttpHandler) = RoutingHttpHandler(
+  RouteConfig(
+    dwebDeeplink = true,
+    pathname = this,
+    method = IpcMethod.GET,
+    matchMode = MatchMode.PREFIX
+  ), action
 )
