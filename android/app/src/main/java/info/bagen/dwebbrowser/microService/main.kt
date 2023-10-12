@@ -20,7 +20,7 @@ import org.dweb_browser.browser.jmm.JmmNMM
 import org.dweb_browser.browser.jsProcess.JsProcessNMM
 import org.dweb_browser.browser.mwebview.MultiWebViewNMM
 import org.dweb_browser.browser.nativeui.torch.TorchNMM
-import org.dweb_browser.browserUI.microService.browser.web.BrowserNMM
+import org.dweb_browser.browser.web.BrowserNMM
 import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.helper.addDebugTags
 import org.dweb_browser.helper.platform.getKtorClientEngine

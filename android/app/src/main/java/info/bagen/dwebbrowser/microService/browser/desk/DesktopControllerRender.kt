@@ -18,7 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.accompanist.web.WebView
-import org.dweb_browser.browserUI.ui.view.CommonWebView
+import org.dweb_browser.browser.web.ui.view.CommonWebView
 import org.dweb_browser.sys.window.render.Render
 
 

@@ -95,7 +95,7 @@ import com.google.mlkit.vision.barcode.common.Barcode
 import kotlinx.coroutines.delay
 import org.dweb_browser.browserUI.R
 import org.dweb_browser.helper.compose.clickableWithNoEffect
-import org.dweb_browser.browserUI.ui.view.PermissionSingleView
+import org.dweb_browser.browser.web.ui.view.PermissionSingleView
 import java.util.concurrent.Executors
 
 internal const val PERMISSION_CAMERA = android.Manifest.permission.CAMERA

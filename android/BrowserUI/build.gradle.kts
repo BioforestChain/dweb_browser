@@ -95,4 +95,5 @@ dependencies {
   implementation(project(":core"))
   implementation(project(":helperPlatform"))
   implementation(project(":helperCompose"))
+  implementation(project(":browser"))
 }

@@ -1,8 +1,8 @@
 package info.bagen.dwebbrowser.microService.sys.config
 
 import info.bagen.dwebbrowser.App
-import org.dweb_browser.browserUI.util.getString
-import org.dweb_browser.browserUI.util.saveString
+import org.dweb_browser.browser.web.util.getString
+import org.dweb_browser.browser.web.util.saveString
 
 object ConfigStore {
   const val Config = "config"

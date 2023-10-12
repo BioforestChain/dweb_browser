@@ -23,12 +23,12 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.dweb_browser.browserUI.ui.splash.SplashPrivacyDialog
-import org.dweb_browser.browserUI.ui.view.CommonWebView
+import org.dweb_browser.browser.web.ui.splash.SplashPrivacyDialog
+import org.dweb_browser.browser.web.ui.view.CommonWebView
+import org.dweb_browser.browser.web.util.KEY_ENABLE_AGREEMENT
+import org.dweb_browser.browser.web.util.getBoolean
+import org.dweb_browser.browser.web.util.saveBoolean
 import org.dweb_browser.helper.compose.LocalCommonUrl
-import org.dweb_browser.browserUI.util.KEY_ENABLE_AGREEMENT
-import org.dweb_browser.browserUI.util.getBoolean
-import org.dweb_browser.browserUI.util.saveBoolean
 import org.dweb_browser.core.module.interceptStartAppActivity
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.compose.theme.DwebBrowserAppTheme
