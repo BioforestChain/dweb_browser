@@ -238,7 +238,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
     val onDispose = onDisposeSignal.toListener()
   }
 
-  protected fun defineCborLineResponse(
+  protected fun defineCborPackageResponse(
     beforeResponse: BeforeResponse? = null,
     handler: suspend CborPacketHandlerContext.() -> Unit,
   ) = wrapHandler(beforeResponse) {
