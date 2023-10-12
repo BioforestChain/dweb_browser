@@ -163,7 +163,7 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
 
     routes(
       // 使用Duplex打开文件句柄，当这个Duplex关闭的时候，自动释放文件句柄
-      "/open" bind HttpMethod.Get to defineJsonLineResponse {
+      "/open" bind HttpMethod.Get to defineCborPackageResponse {
         val handler = SystemFileSystem.openReadWrite(getPath())
         // TODO 这里需要定义完整的操作指令
         request.body.toPureStream().getReader("open file").consumeEachCborPacket<FileOp<*>> { op ->
