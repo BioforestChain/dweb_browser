@@ -5,8 +5,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import java.text.DecimalFormat
-
 
 internal suspend fun measureCenterOffset(index: Int, previewState: PreviewState): Offset {
   val firstVisible = previewState.imageLazy?.firstVisibleItemIndex ?: 0
@@ -52,28 +50,6 @@ internal suspend fun measureCenterOffset(index: Int, previewState: PreviewState)
 @Composable
 internal fun CustomerDivider(modifier: Modifier = Modifier) =
   HorizontalDivider(modifier = modifier, color = MaterialTheme.colorScheme.background)
-
-private const val GB = 1024 * 1024 * 1024 // 定义GB的计算常量
-private const val MB = 1024 * 1024 // 定义MB的计算常量
-private const val KB = 1024 // 定义KB的计算常量
-internal fun displayDownLoad(total: Long, progress: Long): String {
-  val df = DecimalFormat("0.0");//格式化小数
-  val dValue: String
-  val totalValue = if (total / GB >= 1) {
-    dValue = df.format(progress.toFloat() / GB)
-    df.format(total.toFloat() / GB) + " GB";
-  } else if (total.toFloat() / MB >= 1) {
-    dValue = df.format(progress.toFloat() / MB)
-    df.format(total.toFloat() / MB) + " MB";
-  } else if (total.toFloat() / KB >= 1) { //如果当前Byte的值大于等于1KB
-    dValue = df.format(progress.toFloat() / KB)
-    df.format(total.toFloat() / KB) + " KB";
-  } else {
-    dValue = "$progress"
-    "$total B";
-  }
-  return if (dValue.isEmpty()) "($totalValue)" else "($dValue/$totalValue)"
-}
 
 fun List<String>.toContent(): String {
   val sb = StringBuffer()

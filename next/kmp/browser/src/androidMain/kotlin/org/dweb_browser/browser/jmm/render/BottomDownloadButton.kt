@@ -60,12 +60,12 @@ internal fun BoxScope.BottomDownloadButton() {
 
       JmmDownloadStatus.DownLoading -> {
         showLinearProgress = true
-        "下载中 " + displayDownLoad(totalSize, downloadSize)
+        "下载中 ${downloadSize.toSpaceSize()} / ${totalSize.toSpaceSize()}"
       }
 
       JmmDownloadStatus.PAUSE -> {
         showLinearProgress = true
-        "暂停 " + displayDownLoad(totalSize, downloadSize)
+        "暂停 ${downloadSize.toSpaceSize()} / ${totalSize.toSpaceSize()}"
       }
 
       JmmDownloadStatus.DownLoadComplete -> "安装中..."
