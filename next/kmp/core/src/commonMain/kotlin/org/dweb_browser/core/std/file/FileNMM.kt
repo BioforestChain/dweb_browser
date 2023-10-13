@@ -36,6 +36,10 @@ val debugFile = Debugger("file")
  * 比如 视频、相册、音乐、办公 等模块都是对文件读写有刚性依赖的，因此会基于标准文件模块实现同样的标准，这样别的模块可以将同类型的文件存储到它们的文件夹标准下管理
  */
 class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
+
+  init {
+    dweb_protocols = listOf("window.std.dweb")
+  }
   companion object {
     internal fun findVfsDirectory(firstSegment: String): IVirtualFsDirectory? {
       for (adapter in fileTypeAdapterManager.adapters) {

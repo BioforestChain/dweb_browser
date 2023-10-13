@@ -4,6 +4,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
+import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.sys.download.JmmDownloadController
 import org.dweb_browser.core.sys.download.JmmDownloadStatus
@@ -36,60 +37,6 @@ class JmmManagerViewHelper(
   private val jmmController: org.dweb_browser.browser.jmm.JmmController
 ) {
   val uiState: JmmUIState = JmmUIState(jmmAppInstallManifest)
-  //private var downLoadObserver: DownLoadObserver? = null
-
-  init {
-//    jmmController.jmmNMM.ioAsyncScope.launch {
-//      /// TODO 重新实现这个DownloadNMM
-//      val queryProgress =
-//        jmmController.jmmNMM.nativeFetch("file://download.browser.dweb/watch/progress")
-//      if (queryProgress.isOk()) {
-//        val bodyStream = queryProgress.stream()
-//
-//        bodyStream.getReader("getDownloadProgress").consumeEachJsonLine<DownloadProgressEvent> {
-//          uiState.downloadSize.value = current
-//          uiState.downloadStatus.value = when (state) {
-//            DownloadState.Init -> JmmDownloadStatus.IDLE
-//            DownloadState.Downloading -> JmmDownloadStatus.DownLoading
-//            DownloadState.Paused -> JmmDownloadStatus.PAUSE
-//            DownloadState.Canceld -> JmmDownloadStatus.CANCEL
-//            DownloadState.Failed -> JmmDownloadStatus.FAIL
-//            DownloadState.Completed -> JmmDownloadStatus.DownLoadComplete
-//          }
-//        }
-//      } else {
-//        jmmController.getApp(jmmAppInstallManifest.id)?.let { curJmmMetadata ->
-//          if (jmmAppInstallManifest.version.isGreaterThan(curJmmMetadata.version)) {
-//            uiState.downloadStatus.value = JmmDownloadStatus.NewVersion
-//          } else {
-//            uiState.downloadStatus.value = JmmDownloadStatus.INSTALLED
-//          }
-//        } ?: run { uiState.downloadStatus.value = JmmDownloadStatus.IDLE }
-//
-//        if (uiState.downloadStatus.value != JmmDownloadStatus.INSTALLED) {
-//          jmmController.win.coroutineScope.launch {
-//            initDownLoadStatusListener()
-//          }
-//        }
-//      }
-//    }
-//    BrowserUIApp.Instance.mBinderService?.invokeFindDownLoadInfo(jmmAppInstallManifest.id)?.let {
-//      uiState.downloadSize.value = it.dSize
-//      uiState.downloadStatus.value = it.downloadStatus
-//    } ?: jmmController.getApp(jmmAppInstallManifest.id)?.let { curJmmMetadata ->
-//      if (jmmAppInstallManifest.version.isGreaterThan(curJmmMetadata.version)) {
-//        uiState.downloadStatus.value = JmmDownloadStatus.NewVersion
-//      } else {
-//        uiState.downloadStatus.value = JmmDownloadStatus.INSTALLED
-//      }
-//    } ?: run { uiState.downloadStatus.value = JmmDownloadStatus.IDLE }
-//
-//    if (uiState.downloadStatus.value != JmmDownloadStatus.INSTALLED) {
-//      jmmController.win.coroutineScope.launch {
-//        initDownLoadStatusListener()
-//      }
-//    }
-  }
 
   private suspend fun initDownLoadStatusListener() {
     jmmController.onDownload { downloadInfo ->
@@ -106,9 +53,6 @@ class JmmManagerViewHelper(
           uiState.downloadStatus.value = downloadInfo.downloadStatus
         }
       }
-      /*if (downloadInfo.downloadStatus == JmmDownloadStatus.INSTALLED) { // 移除监听列表
-
-      }*/
     }
   }
 
@@ -117,7 +61,16 @@ class JmmManagerViewHelper(
       is JmmIntent.ButtonFunction -> {
         when (uiState.downloadStatus.value) {
           JmmDownloadStatus.IDLE, JmmDownloadStatus.FAIL, JmmDownloadStatus.CANCEL, JmmDownloadStatus.NewVersion -> { // 空闲点击是下载，失败点击也是重新下载
-            jmmController.downloadAndSaveZip(uiState.jmmAppInstallManifest)
+            val taskId = jmmController.createDownloadTask(uiState.jmmAppInstallManifest.bundle_url)
+            jmmController.watchProcess(taskId) {
+              println("watch=> ${this.status.state.name} ${this.status.current}")
+              if (this.status.state == DownloadState.Downloading) {
+              }
+              // 下载完成触发解压
+              if(this.status.state == DownloadState.Completed) {
+                jmmController.unCompress(this)
+              }
+            }
           }
 
           JmmDownloadStatus.DownLoadComplete -> { /* TODO 无需响应 */

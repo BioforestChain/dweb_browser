@@ -3,21 +3,21 @@ package org.dweb_browser.browser.jmm
 import androidx.compose.runtime.Composable
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import org.dweb_browser.browser.download.DownloadTask
 import org.dweb_browser.browser.jmm.ui.JmmManagerViewHelper
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.PureRequest
-import org.dweb_browser.core.http.PureStringBody
+import org.dweb_browser.core.http.PureString
 import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.std.dns.createActivity
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.sys.download.JmmDownloadController
 import org.dweb_browser.core.sys.download.JmmDownloadInfo
+import org.dweb_browser.helper.ChangeState
 import org.dweb_browser.helper.Signal
-import org.dweb_browser.helper.SimpleSignal
+import org.dweb_browser.helper.consumeEachJsonLine
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.createWindowAdapterManager
 
@@ -55,14 +55,22 @@ class JmmController(
     }
   }
 
-  suspend fun downloadAndSaveZip(appInstallManifest: JmmAppInstallManifest) {
-    jmmNMM.nativeFetch(
-      PureRequest(
-        href = "file://download.browser.dweb/download",
-        method = IpcMethod.POST,
-        body = PureStringBody(Json.encodeToString(appInstallManifest))
-      )
-    )
+  suspend fun createDownloadTask(metadataUrl: String): PureString {
+    val response = jmmNMM.nativeFetch("file://download.browser.dweb/create?url=$metadataUrl")
+    return response.text()
+  }
+
+  suspend fun watchProcess(taskId:String, cb: suspend DownloadTask.() -> Unit) {
+   val res =  jmmNMM.nativeFetch("file://download.browser.dweb/watch/progress?taskId=$taskId")
+    res.stream().getReader("jmm watchProcess").consumeEachJsonLine<DownloadTask> {
+      it.cb()
+    }
+  }
+
+  suspend fun unCompress(task: DownloadTask) {
+     var jmm = task.url.substring(task.url.lastIndexOf("/")+1)
+    jmm = jmm.substring(0,jmm.lastIndexOf("."))
+    jmmNMM.nativeFetch("file://file.std.dweb/unCompress?sourcePath=${task.filepath}&targetPath=/data/usr/${jmm}")
   }
 
   suspend fun updateDownloadState(downloadController: JmmDownloadController, mmid: MMID): Boolean {

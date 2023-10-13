@@ -103,9 +103,20 @@ class MicroModuleStore(
     return deferred
   }
 
+  @OptIn(ExperimentalSerializationApi::class)
+  suspend inline fun  <reified T> getAll():MutableMap<String, T> {
+    val data = mutableMapOf<String,T>()
+    for (item in store()) {
+      data[item.key] = Cbor.decodeFromByteArray<T>(item.value)
+    }
+    return data
+  }
+
+  @OptIn(ExperimentalSerializationApi::class)
   suspend inline fun <reified T> getOrNull(key: String) =
     store()[key]?.let { Cbor.decodeFromByteArray<T>(it) }
 
+  @OptIn(ExperimentalSerializationApi::class)
   suspend inline fun <reified T> getOrPut(key: String, put: () -> T): T {
     val obj = store()
     return obj[key].let { it ->
@@ -122,6 +133,7 @@ class MicroModuleStore(
     throw Exception("no found data for key: $key")
   }
 
+  @OptIn(ExperimentalSerializationApi::class)
   suspend fun save() {
     exec {
       val map = store()
@@ -139,6 +151,7 @@ class MicroModuleStore(
     }.await()
   }
 
+  @OptIn(ExperimentalSerializationApi::class)
   suspend inline fun <reified T> set(key: String, value: T) {
     store()[key] = Cbor.encodeToByteArray(value)
     save()

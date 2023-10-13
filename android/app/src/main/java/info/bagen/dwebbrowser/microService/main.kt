@@ -16,6 +16,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.cache.HttpCache
 import io.ktor.client.plugins.cache.storage.FileStorage
+import org.dweb_browser.browser.download.DownloadNMM
 import org.dweb_browser.browser.jmm.JmmNMM
 import org.dweb_browser.browser.jsProcess.JsProcessNMM
 import org.dweb_browser.browser.mwebview.MultiWebViewNMM
@@ -29,7 +30,6 @@ import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
 import org.dweb_browser.core.std.file.FileNMM
 import org.dweb_browser.core.std.http.HttpNMM
 import org.dweb_browser.core.sys.boot.BootNMM
-import org.dweb_browser.core.sys.download.DownloadNMM
 import java.io.File
 
 suspend fun startDwebBrowser(): DnsNMM {
@@ -101,7 +101,7 @@ suspend fun startDwebBrowser(): DnsNMM {
         publicStorage(FileStorage(cacheFile))
       }
       install(HttpTimeout) {
-        requestTimeoutMillis = 5000L
+        requestTimeoutMillis = 10000L
         connectTimeoutMillis = 5000L
       }
     }.also { client ->

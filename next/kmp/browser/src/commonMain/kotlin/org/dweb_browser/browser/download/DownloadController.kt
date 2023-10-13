@@ -1,20 +1,18 @@
 package org.dweb_browser.browser.download
 
-import io.ktor.http.URLBuilder
-import kotlinx.coroutines.MainScope
+import io.ktor.utils.io.ByteChannel
+import io.ktor.utils.io.ByteReadChannel
+import io.ktor.utils.io.close
+import io.ktor.utils.io.core.ByteReadPacket
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.plus
 import kotlinx.serialization.Serializable
-import org.dweb_browser.browser.MimeTypes
+import kotlinx.serialization.Transient
 import org.dweb_browser.core.help.types.MMID
+import org.dweb_browser.core.http.PureStream
 import org.dweb_browser.core.std.dns.nativeFetch
-import org.dweb_browser.core.std.file.FileNMM
-import org.dweb_browser.core.sys.download.db.DownloadDBStore
-import org.dweb_browser.helper.APP_DIR_TYPE
-import org.dweb_browser.helper.FilesUtil
 import org.dweb_browser.helper.Signal
-import org.dweb_browser.helper.ZipUtil
-import org.dweb_browser.helper.ioAsyncExceptionHandler
+import org.dweb_browser.helper.consumeEachArrayRange
 
 
 @Serializable
@@ -33,14 +31,26 @@ data class DownloadTask(
   val completeCallbackUrl: String?,
   /** 文件的元数据类型，可以用来做“打开文件”时的参考类型 */
   val mime: String,
-  /** 标记当前下载状态 */
-  val status: DownloadProgressEvent,
-) {
   /** 文件路径 */
-  val filepath: String = getFilePath()
-  private fun getFilePath(): String {
-    // 放到各个模块各自下载文件夹下，这些模块可能来自网络
-    return "$originMmid/download${url.substring(url.lastIndexOf("/"))}"
+  val filepath: String,
+  @Transient
+  val stream: PureStream? = null,
+) {
+  /** 标记当前下载状态 */
+  var status: DownloadStateEvent = DownloadStateEvent()
+
+  // 缓存下载进度
+  @Transient
+  val emitQueue = mutableListOf<DownloadTask>()
+  // 监听下载进度 不存储到内存
+  @Transient
+  val downloadSignal: Signal<DownloadTask> = Signal()
+  @Transient
+  val onDownload = downloadSignal.toListener()
+  init {
+    onDownload { task->
+        emitQueue.add(task)
+    }
   }
 }
 
@@ -66,105 +76,87 @@ enum class DownloadState {
 }
 
 @Serializable
-data class DownloadProgressEvent(
+data class DownloadStateEvent(
   var current: Long = 0,
   var total: Long = 1,
-  var state: DownloadState = DownloadState.Init
+  var state: DownloadState = DownloadState.Init,
+  var stateMessage: String = ""
 )
 
+private typealias taskId = String
+
 class DownloadController(val mm: DownloadNMM) {
+  lateinit var downloadManagers: MutableMap<taskId, DownloadTask> // 用于监听下载列表
+  val store = DownloadStore(mm)
+
+  // 状态改变监听
+  private val downloadState: Signal<Pair<String, DownloadStateEvent>> = Signal()
+  private val onState = downloadState.toListener()
+
+  init {
+    // 从内存中恢复状态
+    mm.ioAsyncScope.launch {
+      downloadManagers = store.getAll()
+    }
+    // 状态改变的时候存储保存到内存
+    onState { (id, event) ->
+      downloadManagers[id]?.let { task ->
+        task.status = event
+        store.set(id, task)
+      }
+    }
+  }
+
   fun openDownloadWindow() {
 
   }
 
-  val downloadTaskMap = mutableMapOf<MMID, DownloadTask>() // 用于监听下载列表
-  private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler // 用于全局的协程调用
-  private val downloadSignal: Signal<DownloadTask> = Signal()
-  val onDownload = downloadSignal.toListener()
-
-  internal suspend fun downloadFactory(downloadTask: DownloadTask): Boolean {
-    when (downloadTask.status.state) {
-      DownloadState.Paused -> { // 如果找到，并且状态是暂停的，直接修改状态为下载，即可继续下载
-        downloadTask.status.state = DownloadState.Downloading
+  internal suspend fun downloadFactory(task: DownloadTask): Boolean {
+    val stream = task.stream ?: return false
+    // 存储到任务管理器
+    downloadManagers[task.id] = task
+    // 开始下载 存储状态到内存
+    downloadState.emit(Pair(task.id, task.status))
+    // 已经存在了从断点开始
+    if (mm.exist(task.filepath)) {
+      val current = mm.info(task.filepath).size
+      // 当前进度
+      current?.let {
+        task.status.current = it
       }
-
-      DownloadState.Downloading -> { // 如果状态是正在下载的，不进行任何变更
-      }
-
-      else -> { // 其他状态直接重新下载即可
-        HttpDownload.downloadAndSave(
-          downloadInfo = downloadTask,
-          isStop = {
-            if (downloadTask.status.state == DownloadState.Canceld ||
-              downloadTask.status.state == DownloadState.Failed
-            ) {
-              downloadTaskMap.remove(downloadTask.id)
-              true
-            } else {
-              false
-            }
-          },
-          isPause = {
-            downloadTask.status.state == DownloadState.Paused
-          }) { current, total ->
-          ioAsyncScope.launch {
-            downloadTask.callDownLoadProgress(current, total)
-          }
+    }
+    val channel: ByteReadChannel = stream.getReader("taskId:${task.id}")
+    val buffer = task.middleware(channel)
+    mm.appendFile(task, buffer)
+    return true
+  }
+  /**
+   * 下载 task 中间件
+   */
+  private fun DownloadTask.middleware(input: ByteReadChannel): ByteReadChannel {
+    val output = ByteChannel(true)
+    status.state = DownloadState.Downloading
+    mm.ioAsyncScope.launch {
+      input.consumeEachArrayRange { byteArray, last ->
+        if (output.isClosedForRead) {
+          breakLoop()
+          status.state = DownloadState.Canceld
+          // 触发取消
+          downloadSignal.emit(this@middleware)
+        } else if (last) {
+          output.close()
+          status.state = DownloadState.Completed
+          // 触发完成
+          downloadSignal.emit(this@middleware)
+        } else {
+          status.current += byteArray.size
+          // 触发进度更新
+          println("触发进度 ${status.current}")
+          downloadSignal.emit(this@middleware)
+          output.writePacket(ByteReadPacket(byteArray))
         }
       }
     }
-    return true
+    return output
   }
-
-  internal fun DownloadTask.updateDownloadState(event: DownloadState) {
-    status.state = event
-  }
-
-  private suspend fun DownloadTask.callDownLoadProgress(
-    current: Long, total: Long
-  ) {
-    if (current < 0) { // 专门针对下载异常情况，直接返回-1和0
-      this.status.state = DownloadState.Init
-      downloadSignal.emit(this)
-
-      // 下载失败后也需要移除
-      downloadTaskMap.remove(id)
-      return
-    }
-    this.status.state = DownloadState.Downloading
-    this.status.total = total
-    this.status.current = current
-    downloadSignal.emit(this)
-    if (current == total) { // 下载完成，隐藏通知栏
-      this.status.state = DownloadState.Completed
-      jmmFactory()
-    }
-  }
-
-  /**
-   * 针对JMM模块做特殊处理，因为jmm是下载app的zip,因此需要解压到systemApp
-   */
-  private suspend fun DownloadTask.jmmFactory() {
-    if (this.originMmid == "jmm.browser.dweb" && mime == MimeTypes.getMimeType(".zip")) {
-      mm.nativeFetch(URLBuilder("file://file.std.dweb/unCompress").apply{
-        parameters["sourcePath"] = filepath
-        parameters["targetPath"] = FileNMM.getVirtualFsPath(mm,"system-app").fsFullPath.toString()
-      }.buildString())
-    }
-  }
-
-  /**
-   * 用于下载完成，安装的结果处理
-   */
-//  private suspend fun DownloadTask.installed(success: Boolean) {
-//    if (success) {
-//      DownloadDBStore.saveAppInfo(id) // 保存
-//      this.status.state = DownloadState.Completed
-//      downloadSignal.emit(this)
-//    } else {
-//      this.status.state = DownloadState.Init
-//      downloadSignal.emit(this)
-//    }
-//    downloadTaskMap.remove(id) // 下载完成后需要移除
-//  }
 }

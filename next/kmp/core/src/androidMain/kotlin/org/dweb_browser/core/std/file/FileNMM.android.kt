@@ -2,6 +2,7 @@ package org.dweb_browser.core.std.file
 
 import okio.Path.Companion.toPath
 import org.dweb_browser.core.module.getAppContext
+import org.dweb_browser.helper.ZipUtil
 
 /**
  * 持久化数据
@@ -17,6 +18,8 @@ actual fun FileNMM.getCacheVirtualFsDirectory() = commonVirtualFsDirectoryFactor
   "cache", getAppContext().cacheDir.absolutePath.toPath()
 )
 
-actual fun FileNMM.unCompress(compressFile:String,unCompressDirectory:String) {
-
+actual fun FileNMM.unCompress(compressFile: String, unCompressDirectory: String) {
+  ZipUtil.ergodicDecompress(
+    compressFile, unCompressDirectory
+  )
 }
