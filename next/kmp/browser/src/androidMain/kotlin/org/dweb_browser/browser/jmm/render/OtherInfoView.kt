@@ -12,6 +12,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
+import org.dweb_browser.helper.toSpaceSize
 
 /**
  * 应用的其他相关内容

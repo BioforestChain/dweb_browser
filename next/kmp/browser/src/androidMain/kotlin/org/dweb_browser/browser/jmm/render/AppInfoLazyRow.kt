@@ -16,6 +16,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
+import org.dweb_browser.helper.toSpaceSize
 
 /**
  * 中间的横向数据

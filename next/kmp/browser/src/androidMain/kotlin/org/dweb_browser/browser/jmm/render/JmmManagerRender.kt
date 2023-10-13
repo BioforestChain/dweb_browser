@@ -75,25 +75,6 @@ internal fun displayDownLoad(total: Long, progress: Long): String {
   return if (dValue.isEmpty()) "($totalValue)" else "($dValue/$totalValue)"
 }
 
-internal fun Number.toSpaceSize() = toString().toSpaceSize()
-internal fun String.toSpaceSize(): String {
-  if (this.isEmpty()) return "0"
-  val size = this.toFloat()
-  val GB = 1024 * 1024 * 1024 // 定义GB的计算常量
-  val MB = 1024 * 1024 // 定义MB的计算常量
-  val KB = 1024 // 定义KB的计算常量
-  val df = DecimalFormat("0.0");//格式化小数
-  return if (size / GB >= 1) {
-    df.format(size / GB) + " GB";
-  } else if (size / MB >= 1) {
-    df.format(size / MB) + " MB";
-  } else if (size / KB >= 1) { //如果当前Byte的值大于等于1KB
-    df.format(size / KB) + " KB";
-  } else {
-    "$size B";
-  }
-}
-
 fun List<String>.toContent(): String {
   val sb = StringBuffer()
   this.forEachIndexed { index, data ->

@@ -24,6 +24,7 @@ import org.dweb_browser.browser.jmm.ui.JmmIntent
 import org.dweb_browser.browser.jmm.ui.LocalJmmViewHelper
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.sys.download.JmmDownloadStatus
+import org.dweb_browser.helper.toSpaceSize
 
 @Composable
 internal fun BoxScope.BottomDownloadButton() {
