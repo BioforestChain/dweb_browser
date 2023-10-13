@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -70,14 +71,7 @@ private fun BookListContent(
       .padding(16.dp)
   ) {
     itemsIndexed(bookList) { index, webSiteInfo ->
-      if (index > 0) {
-        //Divider(modifier = Modifier.padding(start = 52.dp))
-        Spacer(
-          modifier = Modifier
-            .size(width = 52.dp, height = 1.dp)
-            .background(MaterialTheme.colorScheme.surface)
-        )
-      }
+      if (index > 0) HorizontalDivider(color = MaterialTheme.colorScheme.surface)
       ListSwipeItem(
         webSiteInfo = webSiteInfo,
         onRemove = { onDelete(it) }
@@ -101,7 +95,12 @@ internal fun ListSwipeItem(
   listItemView: @Composable RowScope.() -> Unit
 ) {
   val dismissState = // rememberDismissState() // 不能用这个，不然会导致移除后remember仍然存在，显示错乱问题
-    DismissState(DismissValue.Default, { true }, SwipeToDismissDefaults.fixedPositionalThreshold)
+    DismissState(
+      initialValue = DismissValue.Default,
+      density = LocalDensity.current,
+      confirmValueChange = { true },
+      positionalThreshold = SwipeToDismissDefaults.fixedPositionalThreshold
+    )
   LaunchedEffect(dismissState) {
     snapshotFlow { dismissState.currentValue }.collect {
       if (it != DismissValue.Default) {
@@ -109,8 +108,9 @@ internal fun ListSwipeItem(
       }
     }
   }
+  Row { listItemView() }
 
-  SwipeToDismiss(
+  /*SwipeToDismiss(
     state = dismissState,
     background = { // "背景 "，即原来显示的内容被划走一部分时显示什么
       Box(
@@ -123,7 +123,7 @@ internal fun ListSwipeItem(
       listItemView()
     },
     directions = setOf(DismissDirection.StartToEnd, DismissDirection.EndToStart)
-  )
+  )*/
 }
 
 @Composable

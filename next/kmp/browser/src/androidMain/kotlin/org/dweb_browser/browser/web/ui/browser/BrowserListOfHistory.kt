@@ -1,15 +1,18 @@
 package org.dweb_browser.browser.web.ui.browser
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -36,7 +39,6 @@ fun BrowserListOfHistory(
 ) {
   val list = viewModel.getHistoryLinks()
   val scope = rememberCoroutineScope()
-  val currentTime = LocalDate.now().toEpochDay()
   if (list.isEmpty()) {
     noFoundTip?.let { it() }
       ?: Box(modifier = Modifier.fillMaxWidth()) {
@@ -49,6 +51,8 @@ fun BrowserListOfHistory(
       }
     return
   }
+  val currentTime = LocalDate.now().toEpochDay()
+  Log.e("lin.huang", "BrowserListOfHistory enter")
 
   LazyColumn(
     modifier = modifier
@@ -56,8 +60,8 @@ fun BrowserListOfHistory(
       .padding(horizontal = 16.dp)
   ) {
     for (day in currentTime downTo currentTime - 6) {
-      val webSiteInfoList = list[day.toString()] ?: break
-      stickyHeader {
+      val webSiteInfoList = list[day.toString()] ?: continue
+      stickyHeader(key = webSiteInfoList) {
         Text(
           text = day.formatToStickyName(),
           modifier = Modifier
@@ -70,9 +74,8 @@ fun BrowserListOfHistory(
         )
       }
 
-      items(webSiteInfoList.size) { index ->
-        val webSiteInfo = webSiteInfoList[index]
-        if (index > 0) Divider()
+      itemsIndexed(webSiteInfoList, key = {_, item -> item.hashCode() }) { index, webSiteInfo ->
+        if (index > 0) VerticalDivider()
         ListSwipeItem(
           webSiteInfo = webSiteInfo,
           onRemove = {

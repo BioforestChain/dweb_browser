@@ -396,10 +396,12 @@ class BrowserViewModel(
    * 删除：需要删除数据
    */
   suspend fun changeHistoryLink(add: WebSiteInfo? = null, del: WebSiteInfo? = null) {
-    if (isNoTrace.value) return // 如果是无痕模式，则不能进行存储历史操作
     add?.apply {
+      if (isNoTrace.value) return // 如果是无痕模式，则不能进行存储历史操作
       val key = timeMillis.toString()
-      browserController.historyLinks[key]?.apply {
+      browserController.historyLinks.getOrPut(key) {
+        mutableListOf()
+      }.apply {
         add(0, add)
         browserController.saveHistoryLinks(key, this)
       }

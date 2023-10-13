@@ -105,10 +105,7 @@ fun BookRecentList(
 
       showList.forEachIndexed { index, webSiteInfo ->
         key(webSiteInfo.id) {
-          if (index > 0) {
-            //Divider(modifier = Modifier.padding(start = 52.dp))
-            Divider(color = Color.Transparent)
-          }
+          if (index > 0) VerticalDivider(color = MaterialTheme.colorScheme.background)
           RowItemBook(
             data = webSiteInfo,
             modifier = Modifier.clickable(onClick = { onSearch(webSiteInfo.url) })
