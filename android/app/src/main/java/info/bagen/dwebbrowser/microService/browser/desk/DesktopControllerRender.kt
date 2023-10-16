@@ -19,11 +19,13 @@ import androidx.compose.ui.graphics.Color
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.accompanist.web.WebView
 import org.dweb_browser.browser.web.ui.view.CommonWebView
+import org.dweb_browser.core.module.MicroModule
+import org.dweb_browser.sys.window.core.constant.LocalWindowMM
 import org.dweb_browser.sys.window.render.Render
 
 
 @Composable
-fun DesktopController.Render(taskbarController: TaskbarController) {
+fun DesktopController.Render(taskbarController: TaskbarController, microModule: MicroModule) {
   // 通过systemUiController来改systemBar颜色
   val systemUiController = rememberSystemUiController()
   val isDarkTheme = isSystemInDarkTheme()
@@ -35,6 +37,7 @@ fun DesktopController.Render(taskbarController: TaskbarController) {
     LocalDesktopView provides createMainDwebView(
       "desktop", getDesktopUrl().toString()
     ),
+    LocalWindowMM provides microModule,
   ) {
     Box(modifier = Modifier.fillMaxSize()) {
       /// 桌面视图

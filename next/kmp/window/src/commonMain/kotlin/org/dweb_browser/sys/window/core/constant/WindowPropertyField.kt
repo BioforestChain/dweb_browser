@@ -5,11 +5,13 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.serializer
 import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.compose.toHex
+import org.dweb_browser.sys.window.core.ModalState
 import org.dweb_browser.sys.window.core.WindowBounds
 import kotlin.reflect.KClass
 
@@ -120,7 +122,11 @@ open class WindowPropertyField<T : Any> private constructor(
     val ShowCloseTip = required(WindowPropertyKeys.ShowCloseTip, false);
     val ShowMenuPanel = required(WindowPropertyKeys.ShowMenuPanel, false);
     val ColorScheme = required(WindowPropertyKeys.ColorScheme, WindowColorScheme.Normal);
-
+    val Modals = required<Map<UUID, ModalState>>(
+      WindowPropertyKeys.Modals,
+      mapOf(),
+      serializer = MapSerializer(String.serializer(), ModalState.serializer())
+    );
   }
 
 }

@@ -1,5 +1,6 @@
 package org.dweb_browser.browser.download
 
+//import org.dweb_browser.core.module.getAppContext
 import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.fromFilePath
@@ -8,7 +9,6 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import okio.FileMetadata
-import okio.Path.Companion.toPath
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.PureRequest
@@ -18,12 +18,10 @@ import org.dweb_browser.core.ipc.helper.IpcHeaders
 import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
-import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.core.std.dns.nativeFetch
-import org.dweb_browser.core.std.file.commonVirtualFsDirectoryFactory
-import org.dweb_browser.core.std.file.fileTypeAdapterManager
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
+import org.dweb_browser.helper.datetimeNow
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.sys.window.core.onRenderer
 
@@ -39,13 +37,13 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
       MICRO_MODULE_CATEGORY.Application,
     )
     icons = listOf(ImageResource(src = "file:///sys/icons/$mmid.svg", type = "image/svg+xml"))
-    // 初始化下载适配器
-    fileTypeAdapterManager.append(
-      adapter = commonVirtualFsDirectoryFactory(
-        "download",
-        getAppContext().dataDir.absolutePath.toPath()
-      )
-    )
+//    // 初始化下载适配器
+//    fileTypeAdapterManager.append(
+//      adapter = commonVirtualFsDirectoryFactory(
+//        "download",
+//        getAppContext().dataDir.absolutePath.toPath()
+//      )
+//    )
   }
 
   private val controller = DownloadController(this)
@@ -93,7 +91,7 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
         val taskId = request.query("taskId")
         val downloadTask = controller.downloadManagers[taskId]
           ?: return@defineJsonLineResponse emit("not Found download task!")
-        debugDownload("/watch/progress","taskId=$taskId ${downloadTask.emitQueue.size}")
+        debugDownload("/watch/progress", "taskId=$taskId ${downloadTask.emitQueue.size}")
         ioAsyncScope.launch {
           for (task in downloadTask.emitQueue) {
             emit(task)
@@ -134,7 +132,7 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
     val task = DownloadTask(
       id = randomUUID(),
       url = url,
-      createTime = System.currentTimeMillis(),
+      createTime = datetimeNow(),
       originMmid = originMmid,
       originUrl = params.originUrl,
       completeCallbackUrl = params.completeCallbackUrl,
@@ -200,7 +198,6 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
 
   //  追加写入文件，断点续传
   suspend fun appendFile(task: DownloadTask, stream: ByteReadChannel) {
-
 
 
     nativeFetch(

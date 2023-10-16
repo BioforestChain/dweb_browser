@@ -35,7 +35,7 @@ class DesktopActivity : BaseThemeActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    val (desktopController, taskbarController) = bindController(intent.getStringExtra("deskSessionId"))
+    val (desktopController, taskbarController, microModule) = bindController(intent.getStringExtra("deskSessionId"))
     /// 禁止自适应布局，执行后，可以将我们的内容嵌入到状态栏和导航栏，但是会发现我们的界面呗状态栏和导航栏给覆盖了，这时候就需要systemUiController来改颜色
     WindowCompat.setDecorFitsSystemWindows(window, false)
     setContent {
@@ -44,7 +44,7 @@ class DesktopActivity : BaseThemeActivity() {
       }
 
       DwebBrowserAppTheme {
-        desktopController.Render(taskbarController)
+        desktopController.Render(taskbarController, microModule)
       }
     }
   }

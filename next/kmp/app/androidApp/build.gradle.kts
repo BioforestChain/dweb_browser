@@ -60,6 +60,7 @@ android {
   }
   packaging {
     resources {
+      excludes += "/META-INF/versions/9/previous-compilation-data.bin"
       excludes += "/META-INF/{AL2.0,LGPL2.1}"
       // 添加 http4k 框架后，会有异常报错，需要添加如下内容
       excludes += "/META-INF/INDEX.LIST"

@@ -21,7 +21,7 @@ import org.dweb_browser.sys.window.render.LocalWindowsManager
 import org.dweb_browser.sys.window.render.watchedBounds
 import kotlin.math.max
 
-class ManagerState(
+class WindowsManagerState(
   val viewController: PlatformViewController,
 ) {
 //  val viewHeight get() = activity.window.decorView.height
@@ -40,7 +40,7 @@ class ManagerState(
       filter: ((change: Observable.Change<WindowManagerPropertyKeys, *>) -> Boolean)? = null,
       watchKey: WindowManagerPropertyKeys? = null,
       watchKeys: Set<WindowManagerPropertyKeys>? = null,
-      getter: ManagerState.() -> T,
+      getter: WindowsManagerState.() -> T,
     ): State<T> = remember(key) {
       val rememberState = mutableStateOf(getter.invoke(state), policy)
       val off = state.observable.onChange {

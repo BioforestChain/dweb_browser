@@ -3,6 +3,7 @@ package org.dweb_browser.sys.window.core
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.ipc.helper.IpcEventMessageArgs
+import kotlin.jvm.JvmInline
 
 /**
  * Renderer：窗口由 window.sys.dweb 被创建后，要求窗口拥有着对内容进行渲染

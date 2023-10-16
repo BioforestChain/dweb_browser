@@ -88,11 +88,18 @@ suspend inline fun <reified T> ByteReadChannel.consumeEachJsonLine(visitor: Chan
 }
 
 @OptIn(ExperimentalSerializationApi::class)
-suspend inline fun <reified T> ByteReadChannel.consumeEachCborPacket(visitor: ChannelConsumeEachController.(T) -> Unit) {
+suspend inline fun <reified T> ByteReadChannel.consumeEachCborPacket(visitor: ChannelConsumeEachController.(T) -> Unit) =
+  consumeEachByteArrayPacket {
+    this.visitor(Cbor.decodeFromByteArray(it))
+  }
+
+suspend inline fun ByteReadChannel.consumeEachByteArrayPacket(visitor: ChannelConsumeEachController.(ByteArray) -> Unit) {
   val controller = ChannelConsumeEachController()
   while (controller.continueFlag) {
-    val size = readIntLittleEndian()
+    val sizePacket = readPacket(4)
+    val sizeBytes = sizePacket.readByteArray()
+    val size = sizeBytes.toInt()
     val packet = readPacket(size)
-    controller.visitor(Cbor.decodeFromByteArray<T>(packet.readByteArray()))
+    controller.visitor(packet.readByteArray())
   }
 }

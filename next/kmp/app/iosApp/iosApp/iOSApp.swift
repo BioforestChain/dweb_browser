@@ -1,4 +1,5 @@
 import SwiftUI
+import WebRTC
 
 @main
 struct iOSApp: App {

@@ -348,5 +348,10 @@ class WindowState(
    * 配色方案
    */
   var colorScheme by WindowPropertyField.ColorScheme.toObserve(observable)
+
+  /**
+   * 模态窗口
+   */
+  var modals by WindowPropertyField.Modals.toObserve(observable)
 }
 

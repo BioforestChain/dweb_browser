@@ -5,7 +5,9 @@ import androidx.compose.runtime.DisposableEffect
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import org.dweb_browser.helper.Observable
+import org.dweb_browser.helper.ReasonLock
 import org.dweb_browser.helper.SimpleSignal
+import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.platform.PlatformViewController
 import org.dweb_browser.sys.window.core.constant.WindowBottomBarTheme
 import org.dweb_browser.sys.window.core.constant.WindowColorScheme
@@ -94,8 +96,7 @@ abstract class WindowController(
   fun isMaximized(mode: WindowMode = state.mode) =
     mode == WindowMode.MAXIMIZE || mode == WindowMode.FULLSCREEN
 
-  val onMaximize = createStateListener(
-    WindowPropertyKeys.Mode,
+  val onMaximize = createStateListener(WindowPropertyKeys.Mode,
     { isMaximized(mode) }) { debugWindow("emit onMaximize", id) }
 
   internal open suspend fun simpleMaximize() {
@@ -131,10 +132,7 @@ abstract class WindowController(
       when (val value = _beforeMaximizeBounds) {
         null -> {
           state.setDefaultFloatWindowBounds(
-            state.bounds.width,
-            state.bounds.height,
-            state.zIndex.toFloat(),
-            true
+            state.bounds.width, state.bounds.height, state.zIndex.toFloat(), true
           )
         }
 
@@ -153,14 +151,12 @@ abstract class WindowController(
 
   val onVisible = createStateListener(WindowPropertyKeys.Visible, { visible }) {
     debugWindow(
-      "emit onVisible",
-      id
+      "emit onVisible", id
     )
   }
   val onHidden = createStateListener(WindowPropertyKeys.Visible, { !visible }) {
     debugWindow(
-      "emit onHidden",
-      id
+      "emit onHidden", id
     )
   }
 
@@ -174,8 +170,7 @@ abstract class WindowController(
   suspend fun toggleVisible(visible: Boolean? = null) =
     managerRunOr({ it.toggleVisibleWindow(this, visible) }, { simpleToggleVisible(visible) })
 
-  val onClose = createStateListener(
-    WindowPropertyKeys.Mode,
+  val onClose = createStateListener(WindowPropertyKeys.Mode,
     { mode == WindowMode.CLOSED }) { debugWindow("emit onClose", id) }
 
   fun isClosed() = state.mode == WindowMode.CLOSED
@@ -303,4 +298,66 @@ abstract class WindowController(
   suspend fun toggleColorScheme(colorScheme: WindowColorScheme? = null) =
     managerRunOr({ it.windowToggleColorScheme(this, colorScheme) },
       { simpleToggleColorScheme(colorScheme) })
+
+  private val modalsLock = ReasonLock()
+
+
+  /**
+   * 尝试添加一个 modal
+   */
+  private suspend fun appendModal(modal: ModalState) = modalsLock.withLock("write") {
+    if (!state.modals.containsKey(modal.modalId)) {
+      state.modals += modal.modalId to modal
+      true
+    } else false
+  }
+
+  /**
+   * 尝试移除一个 modal
+   */
+  private suspend fun removeModal(modalId: UUID) = modalsLock.withLock("write") {
+    if (state.modals.containsKey(modalId)) {
+      state.modals -= modalId
+      true
+    } else false
+  }
+
+  /**
+   * 取当前正在显示的 modal
+   */
+  private suspend fun getOpenModal() = modalsLock.withLock("read") {
+    state.modals.firstNotNullOfOrNull { if (it.value.isOpen.value) it.value else null }
+  }
+
+  /**
+   * 尝试显示指定 modal
+   *
+   * @return 返回true说明指定 modal 已经在显示了
+   */
+  suspend fun openModal(modalId: UUID) = modalsLock.withLock("write") {
+    val modal = state.modals[modalId] ?: return@withLock false
+    /// 找寻当前
+    when (getOpenModal()) {
+      modal -> true
+      null -> {
+        modal.isOpen.value = true
+        true
+      }
+
+      else -> false
+    }
+  }
+
+  /**
+   * 尝试关闭指定 modal
+   *
+   * @return 返回true说明这次操作让这个 modal 关闭了。否则可能是 modal不存在、或者modal本来就是关闭的
+   */
+  suspend fun closeModal(modalId: UUID) = modalsLock.withLock("write") {
+    val modal = state.modals[modalId] ?: return@withLock false
+    if (modal.isOpen.value) {
+      modal.isOpen.value = false
+      true
+    } else false
+  }
 }

@@ -3,7 +3,7 @@ plugins {
   alias(libs.plugins.androidLibrary)
   alias(libs.plugins.jetbrainsCompose)
   alias(libs.plugins.kotlinPluginSerialization)
-  id ("com.google.osdetector") version "1.7.3"
+  id("com.google.osdetector") version "1.7.3"
 }
 
 kotlin {
@@ -43,6 +43,7 @@ kotlin {
         api(libs.ktor.client.cio)
         api(libs.ktor.client.encoding)
         api(libs.ktor.server.websockets)
+        api("com.shepeliev:webrtc-kmp:0.114.4")
 
         implementation(libs.jetbrains.compose.material3)
 

@@ -71,4 +71,6 @@ class RunningApp(
     mainWin!!
   }
 
+  suspend fun getMainWindow() = openLock.withLock { mainWin }
+
 }

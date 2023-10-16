@@ -32,6 +32,7 @@ import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.consumeEachJsonLine
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.toJsonElement
+import org.dweb_browser.sys.window.core.AlertModal
 import org.dweb_browser.sys.window.core.windowInstancesManager
 
 val debugDesk = Debugger("desk")
@@ -66,7 +67,9 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
 
   companion object {
     data class DeskControllers(
-      val desktopController: DesktopController, val taskbarController: TaskbarController
+      val desktopController: DesktopController,
+      val taskbarController: TaskbarController,
+      val deskNMM: DeskNMM,
     ) {
       val activityPo = PromiseOut<Activity>()
     }
@@ -98,8 +101,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
 
   private val openAppLock = Mutex()
   suspend fun IHandlerContext.openOrActivateAppWindow(
-    desktopController: DesktopController,
-    mmid: MMID
+    desktopController: DesktopController, mmid: MMID
   ) = openAppLock.withLock {
     debugDesk("/openAppOrActivate", mmid)
     try {
@@ -119,6 +121,21 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     }
   }
 
+  suspend fun IHandlerContext.createAlertModal(
+    desktopController: DesktopController, mmid: MMID
+  ) = openAppLock.withLock {
+    val runningApp =
+      runningApps[mmid] ?: throwException(HttpStatusCode.NotFound, "App:$mmid no running")
+    val appMainWindow = runningApp.getMainWindow() ?: throwException(
+      HttpStatusCode.Forbidden,
+      "App:$mmid's main window should be open"
+    )
+
+    val alertModal = request.queryAs<AlertModal>()
+    appMainWindow.appendAlertModal(alertModal)
+
+  }
+
   fun IHandlerContext.getWindow() = request.query("wid").let { wid ->
     windowInstancesManager.get(wid) ?: throw Exception("No Found by window id: '$wid'")
   }
@@ -133,7 +150,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     val desktopController = DesktopController(this, desktopServer, runningApps)
     val taskBarController =
       TaskbarController(deskSessionId, this, desktopController, taskbarServer, runningApps)
-    val deskControllers = DeskControllers(desktopController, taskBarController)
+    val deskControllers = DeskControllers(desktopController, taskBarController, this)
     controllersMap[deskSessionId] = deskControllers
 
     this.onAfterShutdown {
@@ -161,8 +178,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       "/openAppOrActivate" bind HttpMethod.Get to defineStringResponse {
         val mmid = request.query("app_id")
         openOrActivateAppWindow(desktopController, mmid)
-      },
-      "/addBottomSheetView" bind HttpMethod.Get to defineStringResponse {
+      }, "/addBottomSheetView" bind HttpMethod.Get to defineStringResponse {
         ""
       },
       // 获取isMaximized 的值
@@ -236,9 +252,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         taskBarController.taskbarView.toggleFloatWindow(
           request.queryOrNull("open")?.toBooleanStrictOrNull()
         )
-      })
-      .private()
-      .cors()
+      }).private().cors()
 
     onActivity {
       startDesktopView(deskSessionId)

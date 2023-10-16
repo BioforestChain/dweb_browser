@@ -2,6 +2,7 @@ package org.dweb_browser.sys.window.core.constant
 
 import kotlinx.serialization.Serializable
 import org.dweb_browser.helper.StringEnumSerializer
+import org.dweb_browser.helper.getOrDefault
 
 object WindowModeSerializer :
   StringEnumSerializer<WindowMode>("WindowMode", WindowMode.ALL_VALUES, { mode })

@@ -44,4 +44,5 @@ enum class WindowPropertyKeys(val fieldName: String) {
   ShowCloseTip("showCloseTip"),
   ShowMenuPanel("showMenuPanel"),
   ColorScheme("colorScheme"),
+  Modals("modals"),
 }

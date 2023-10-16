@@ -8,12 +8,10 @@ import androidx.compose.runtime.key
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.zIndex
-import org.dweb_browser.sys.window.core.ManagerState.Companion.windowImeOutsetBounds
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowsManager
+import org.dweb_browser.sys.window.core.WindowsManagerState.Companion.windowImeOutsetBounds
 import org.dweb_browser.sys.window.core.constant.debugWindow
-import org.dweb_browser.sys.window.render.EffectKeyboard
-import org.dweb_browser.sys.window.render.EffectNavigationBar
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -51,9 +49,7 @@ fun <T : WindowController> WindowsManager<T>.Render() {
           win.Render(
             modifier = Modifier
               .zIndex(winList.size + win.state.zIndex.toFloat())
-              .windowImeOutsetBounds(),
-            maxWinWidth = maxWidth.value,
-            maxWinHeight = maxHeight.value
+              .windowImeOutsetBounds(), maxWinWidth = maxWidth.value, maxWinHeight = maxHeight.value
           )
         }
       }

@@ -18,7 +18,7 @@ import org.dweb_browser.sys.window.core.constant.debugWindow
 import kotlin.math.abs
 
 open class WindowsManager<T : WindowController>(internal val viewController: PlatformViewController) {
-  val state = ManagerState(viewController)
+  val state = WindowsManagerState(viewController)
 
   /**
    * 一个已经根据 zIndex 排序完成的只读列表

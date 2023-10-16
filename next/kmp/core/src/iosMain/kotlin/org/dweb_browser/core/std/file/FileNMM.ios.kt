@@ -1,4 +1,4 @@
-package org.dweb_browser.microservice.std.file
+package org.dweb_browser.core.std.file
 
 import platform.Foundation.NSApplicationDirectory
 import platform.Foundation.NSCachesDirectory
@@ -23,3 +23,7 @@ actual fun FileNMM.getCacheVirtualFsDirectory() = commonVirtualFsDirectoryFactor
     NSCachesDirectory, NSUserDomainMask, true
   ).first().toString()
 )
+
+actual fun FileNMM.unCompress(compressFile: String, unCompressDirectory: String) {
+  TODO()
+}

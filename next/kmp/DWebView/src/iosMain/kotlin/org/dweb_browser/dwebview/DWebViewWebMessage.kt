@@ -1,5 +1,6 @@
 package org.dweb_browser.dwebview
 
+import platform.CoreGraphics.CGFloat
 import platform.Foundation.valueForKey
 import platform.WebKit.WKContentWorld
 import platform.WebKit.WKScriptMessage
@@ -79,20 +80,21 @@ internal class DWebViewWebMessage(val webview: DWebView) {
     val allPorts = mutableMapOf<Int, DWebMessagePort>()
 
   }
-internal  class WebMessagePortMessageHanlder:NSObject(), WKScriptMessageHandlerProtocol{
-  override fun userContentController(
-    userContentController: WKUserContentController,
-    didReceiveScriptMessage: WKScriptMessage
-  ) {
-    val message = didReceiveScriptMessage.body as NSObject;
-    val type = message.valueForKey("type") as String;
-    var data = message.valueForKey("data") as String;
-    var id = (message.valueForKey("id") as CGFloat).toInt();
-    val ports = mutableListOf<DWebMessagePort>();
-    var originPort = allPorts[id] ?? throw new KeyNotFoundException();
+
+  internal class WebMessagePortMessageHanlder : NSObject(), WKScriptMessageHandlerProtocol {
+    override fun userContentController(
+      userContentController: WKUserContentController,
+      didReceiveScriptMessage: WKScriptMessage
+    ) {
+      val message = didReceiveScriptMessage.body as NSObject;
+      val type = message.valueForKey("type") as String;
+      var data = message.valueForKey("data") as String;
+      var id = (message.valueForKey("id") as CGFloat).toInt();
+      val ports = mutableListOf<DWebMessagePort>();
+      var originPort = allPorts[id] ?: throw Exception("no found port by id:$id");
+
+    }
 
   }
-
-}
 //  val webMessagePortMessageHanlder = WebMessage
 }
