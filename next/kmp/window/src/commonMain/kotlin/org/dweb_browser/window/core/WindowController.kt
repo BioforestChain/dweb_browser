@@ -23,7 +23,7 @@ abstract class WindowController(
   /**
    * 传入多窗口管理器，可以不提供，那么由 Controller 自身以缺省的逻辑对 WindowState 进行修改
    */
-  manager: WindowsManager<*>? = null,
+   manager: WindowsManager<*>? = null,
 ) {
   protected var _manager: WindowsManager<*>? = null
 
@@ -106,7 +106,7 @@ abstract class WindowController(
 
   suspend fun maximize() = managerRunOr({ it.maximizeWindow(this) }, { simpleMaximize() })
 
-  private var _beforeMaximizeBounds: WindowBounds? = null
+  private var _beforeMaximizeBounds: Rect? = null
 
   /**
    * 记忆窗口最大化之前的记忆

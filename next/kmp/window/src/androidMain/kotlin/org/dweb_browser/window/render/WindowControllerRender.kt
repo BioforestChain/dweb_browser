@@ -116,7 +116,7 @@ fun WindowController.Render(
     Box(
       modifier = with(winBounds) {
         modifier
-          .offset(left.dp, top.dp)
+          .offset(x.dp, y.dp)
           .size(width.dp, height.dp)
       }
         .graphicsLayer {

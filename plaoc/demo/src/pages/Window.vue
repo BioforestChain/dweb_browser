@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { UnwrapRef, onMounted, ref } from "vue";
-import LogPanel, { toConsole, defineLogAction } from "../components/LogPanel.vue";
-import { HTMLDwebWindowElement, $WindowState, $WindowStyleColor } from "../plugin";
+import LogPanel, { defineLogAction, toConsole } from "../components/LogPanel.vue";
+import { $WindowState, $WindowStyleColor, HTMLDwebWindowElement } from "../plugin";
 
 const title = "StatusBar";
 
@@ -59,6 +59,11 @@ const [topBarOverlay, setTopBarOverlay, getTopBarOverlay] = defineRef<boolean>(
   async () => (await statusBar.getState()).topBarOverlay,
   (topBarOverlay) => statusBar.setStyle({ topBarOverlay })
 );
+
+const getDisplay = async () => {
+  const data = await statusBar.getDisplay()
+  console.log("getDisplay=>",data)
+}
 </script>
 <template>
   <dweb-window ref="$window" @statechange="onStatusBarChange($event.detail, 'change')"></dweb-window>
@@ -111,6 +116,7 @@ const [topBarOverlay, setTopBarOverlay, getTopBarOverlay] = defineRef<boolean>(
           Set
         </button>
         <button class="inline-block rounded-full btn btn-accent" @click="getTopBarOverlay">Get</button>
+        <button class="inline-block rounded-full btn btn-accent" @click="getDisplay">getDisplay</button>
       </div>
     </article>
   </div>

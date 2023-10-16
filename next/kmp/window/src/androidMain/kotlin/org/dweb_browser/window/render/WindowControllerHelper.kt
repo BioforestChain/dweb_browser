@@ -43,7 +43,7 @@ import org.dweb_browser.helper.compose.theme.md_theme_light_inverseOnSurface
 import org.dweb_browser.helper.compose.theme.md_theme_light_onSurface
 import org.dweb_browser.helper.compose.theme.md_theme_light_surface
 import org.dweb_browser.microservice.sys.dns.nativeFetch
-import org.dweb_browser.window.core.WindowBounds
+import org.dweb_browser.window.core.Rect
 import org.dweb_browser.window.core.WindowController
 import org.dweb_browser.window.core.WindowState
 import org.dweb_browser.window.core.WindowsManager
@@ -149,8 +149,8 @@ fun Modifier.windowMoveAble(win: WindowController) = this
     ) { change, dragAmount ->
       change.consume()
       win.state.updateMutableBounds {
-        left += dragAmount.x / density
-        top += dragAmount.y / density
+        x += dragAmount.x / density
+        y += dragAmount.y / density
       }
     }
   }
@@ -171,7 +171,7 @@ fun Modifier.windowResizeByLeftBottom(win: WindowController) = this.pointerInput
     change.consume()
     win.state.updateBounds {
       copy(
-        left = left + dragAmount.x / density,
+        x = x + dragAmount.x / density,
         width = width - dragAmount.x / density,
         height = height + dragAmount.y / density,
       )
@@ -238,14 +238,14 @@ fun WindowController.watchedBounds() = watchedState(watchKey = WindowPropertyKey
 @Composable
 fun WindowController.calcWindowBoundsByLimits(
   limits: WindowLimits
-): WindowBounds {
+): Rect {
   val maximize by watchedIsMaximized()
   return if (maximize) {
     inMove.value = false
     state.updateBounds {
       copy(
-        left = 0f,
-        top = 0f,
+        x = 0f,
+        y = 0f,
         width = limits.maxWidth,
         height = limits.maxHeight,
       )
@@ -271,8 +271,8 @@ fun WindowController.calcWindowBoundsByLimits(
       limits.maxHeight - safeBottomPadding - limits.topBarBaseHeight // 确保 topBar 在可触摸的空间内
     state.updateBounds {
       copy(
-        left = min(max(minLeft, bounds.left), maxLeft),
-        top = min(max(minTop, bounds.top), maxTop),
+        x = min(max(minLeft, bounds.x), maxLeft),
+        y = min(max(minTop, bounds.y), maxTop),
         width = winWidth,
         height = winHeight,
       )

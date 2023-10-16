@@ -9,3 +9,5 @@ captures
 local.properties
 xcuserdata
 X-Build
+
+shared/src/commonMain/resources/browser

@@ -2,6 +2,7 @@ package info.bagen.dwebbrowser.microService.sys.window
 
 
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.Observable
@@ -10,6 +11,7 @@ import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.ipc.helper.ReadableStream
+import org.dweb_browser.window.core.Rect
 import org.dweb_browser.window.core.constant.WindowPropertyKeys
 import org.dweb_browser.window.core.constant.WindowStyle
 import org.dweb_browser.window.core.windowInstancesManager
@@ -90,7 +92,7 @@ class WindowNMM : NativeMicroModule("window.sys.dweb", "Window Management") {
         inputStream
       },
       "/getState" bind Method.GET to defineJsonResponse {
-        getWindow(request).toJsonElement()
+        getWindow(request).state.toJsonElement()
       },
       "/focus" bind Method.GET to defineEmptyResponse { request -> getWindow(request).focus() },
       "/blur" bind Method.GET to defineEmptyResponse { request -> getWindow(request).blur() },
@@ -103,6 +105,17 @@ class WindowNMM : NativeMicroModule("window.sys.dweb", "Window Management") {
           query_Style(request)
         )
       },
+      "/display" bind Method.GET to defineJsonResponse {
+        val manager =  getWindow(request).manager?:return@defineJsonResponse "not found window".toJsonElement()
+        val state = manager.state
+        @Serializable
+        data class Display(
+          val height:Float,
+          val width: Float,
+          val imeBoundingRect: Rect
+        )
+        Display(state.viewHeightDp,state.viewWidthDp,state.imeBoundingRect).toJsonElement()
+      }
     )
   }
 

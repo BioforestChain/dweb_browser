@@ -71,7 +71,7 @@ class ManagerState(
 
     @Composable
     fun <T : WindowController> WindowsManager<T>.watchedImeBounds() =
-      watchedState(WindowManagerPropertyKeys.ImeBounds) { this.imeBounds }
+      watchedState(WindowManagerPropertyKeys.ImeBoundingRect) { this.imeBoundingRect }
 
     fun Modifier.windowImeOutsetBounds() = composed {
       composed {
@@ -89,26 +89,26 @@ class ManagerState(
             } else {
               val winBounds by win.watchedBounds()
               val imeBounds by wsm.watchedImeBounds()
-              val winOuterY = winBounds.top + winBounds.height
+              val winOuterY = winBounds.y + winBounds.height
 
-              if (winOuterY <= imeBounds.top) {
+              if (winOuterY <= imeBounds.y) {
                 // 两个矩形没有交集
                 modifierOffsetY = 0f
                 keyboardInsetBottom = 0f
               }
               /// 尝试进行偏移修饰
               else {
-                val offsetY = winOuterY - imeBounds.top
+                val offsetY = winOuterY - imeBounds.y
                 // 窗口可以通过向上偏移来确保键盘与窗口同时显示
-                if (offsetY <= winBounds.top) {
+                if (offsetY <= winBounds.y) {
                   modifierOffsetY = -offsetY
                   keyboardInsetBottom = 0f
                 } else {
-                  modifierOffsetY = -winBounds.top
+                  modifierOffsetY = -winBounds.y
                   val winPadding = LocalWindowPadding.current
                   val offsetY2 = offsetY - winPadding.bottom
                   // 窗口可以牺牲底部区域的显示，多出来的就是键盘的插入高度
-                  keyboardInsetBottom = max(offsetY2 - winBounds.top, 0f)
+                  keyboardInsetBottom = max(offsetY2 - winBounds.y, 0f)
                 }
               }
             }
@@ -128,8 +128,8 @@ class ManagerState(
   /**
    * IME(input method editor 输入法) 的位置和大小
    */
-  var imeBounds by observable.observe(
-    WindowManagerPropertyKeys.ImeBounds, WindowBounds(0f, 0f, 0f, 0f)
+  var imeBoundingRect by observable.observe(
+    WindowManagerPropertyKeys.ImeBoundingRect, Rect.Zero
   )
 
   var imeVisible by observable.observe(WindowManagerPropertyKeys.ImeVisible, false)
@@ -147,19 +147,19 @@ class ManagerState(
     val view = LocalView.current
 
     LaunchedEffect(imeVisible) { // WindowInsets.ime 对象并不会变化，所以导致这个重组不会重复执行
-      this@ManagerState.imeBounds = if (imeVisible) {
+      this@ManagerState.imeBoundingRect = if (imeVisible) {
         val imeHeightDp = ime.getBottom(density) / density.density
-        WindowBounds(
-          left = 0f,
-          top = view.height / density.density - imeHeightDp,
+        Rect(
+          x = 0f,
+          y = view.height / density.density - imeHeightDp,
           height = imeHeightDp,
           width = view.width / density.density,
         )
       } else {
-        WindowBounds.Zero
+        Rect.Zero
       }
       // 输入法高度即为 heightDiff
-      debugWindow("ManagerState/IME", "imeBounds:$imeBounds, imeVisible:$imeVisible")
+      debugWindow("ManagerState/IME", "imeBoundingRect:$imeBoundingRect, imeVisible:$imeVisible")
     }
   }
 }
