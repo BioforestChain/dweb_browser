@@ -71,6 +71,8 @@ class JmmManagerViewHelper(
                 jmmController.unCompress(this)
               }
             }
+            // 已经注册完监听了，开始
+            jmmController.start(taskId)
           }
 
           JmmDownloadStatus.DownLoadComplete -> { /* TODO 无需响应 */

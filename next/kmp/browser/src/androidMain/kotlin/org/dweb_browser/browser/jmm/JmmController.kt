@@ -1,6 +1,7 @@
 package org.dweb_browser.browser.jmm
 
 import androidx.compose.runtime.Composable
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.browser.download.DownloadTask
@@ -15,7 +16,6 @@ import org.dweb_browser.core.std.dns.createActivity
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.sys.download.JmmDownloadController
 import org.dweb_browser.core.sys.download.JmmDownloadInfo
-import org.dweb_browser.helper.ChangeState
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.consumeEachJsonLine
 import org.dweb_browser.sys.window.core.WindowController
@@ -60,16 +60,23 @@ class JmmController(
     return response.text()
   }
 
-  suspend fun watchProcess(taskId:String, cb: suspend DownloadTask.() -> Unit) {
-   val res =  jmmNMM.nativeFetch("file://download.browser.dweb/watch/progress?taskId=$taskId")
-    res.stream().getReader("jmm watchProcess").consumeEachJsonLine<DownloadTask> {
-      it.cb()
+  fun watchProcess(taskId: String, cb: suspend DownloadTask.() -> Unit) {
+    jmmNMM.ioAsyncScope.launch {
+      val res = jmmNMM.nativeFetch("file://download.browser.dweb/watch/progress?taskId=$taskId")
+      res.stream().getReader("jmm watchProcess").consumeEachJsonLine<DownloadTask> {
+        it.cb()
+      }
     }
   }
 
+  suspend fun start(taskId: String): Boolean {
+    val response = jmmNMM.nativeFetch("file://download.browser.dweb/start?taskId=$taskId")
+    return response.boolean()
+  }
+
   suspend fun unCompress(task: DownloadTask) {
-     var jmm = task.url.substring(task.url.lastIndexOf("/")+1)
-    jmm = jmm.substring(0,jmm.lastIndexOf("."))
+    var jmm = task.url.substring(task.url.lastIndexOf("/") + 1)
+    jmm = jmm.substring(0, jmm.lastIndexOf("."))
     jmmNMM.nativeFetch("file://file.std.dweb/unCompress?sourcePath=${task.filepath}&targetPath=/data/usr/${jmm}")
   }
 

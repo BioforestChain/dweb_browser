@@ -4,13 +4,11 @@ import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.close
 import io.ktor.utils.io.core.ByteReadPacket
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.PureStream
-import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.consumeEachArrayRange
 
@@ -41,19 +39,21 @@ data class DownloadTask(
 
   // 缓存下载进度
   @Transient
-  val emitQueue = mutableListOf<DownloadTask>()
+  val emitQueue = arrayListOf<DownloadTask>()
+
   // 监听下载进度 不存储到内存
   @Transient
   val downloadSignal: Signal<DownloadTask> = Signal()
+
   @Transient
   val onDownload = downloadSignal.toListener()
+
   init {
-    onDownload { task->
-        emitQueue.add(task)
+    onDownload { task ->
+      emitQueue.add(task)
     }
   }
 }
-
 @Serializable
 enum class DownloadState {
   /** 初始化中，做下载前的准备，包括寻址、创建文件、保存任务等工作 */
@@ -113,8 +113,6 @@ class DownloadController(val mm: DownloadNMM) {
 
   internal suspend fun downloadFactory(task: DownloadTask): Boolean {
     val stream = task.stream ?: return false
-    // 存储到任务管理器
-    downloadManagers[task.id] = task
     // 开始下载 存储状态到内存
     downloadState.emit(Pair(task.id, task.status))
     // 已经存在了从断点开始
@@ -130,6 +128,7 @@ class DownloadController(val mm: DownloadNMM) {
     mm.appendFile(task, buffer)
     return true
   }
+
   /**
    * 下载 task 中间件
    */
@@ -151,7 +150,7 @@ class DownloadController(val mm: DownloadNMM) {
         } else {
           status.current += byteArray.size
           // 触发进度更新
-          println("触发进度 ${status.current}")
+          println("xxxx=> ${this@middleware}")
           downloadSignal.emit(this@middleware)
           output.writePacket(ByteReadPacket(byteArray))
         }

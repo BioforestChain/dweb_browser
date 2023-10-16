@@ -5,7 +5,6 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.fromFilePath
 import io.ktor.utils.io.ByteReadChannel
-import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import okio.FileMetadata
@@ -66,6 +65,8 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
     val completeCallbackUrl: String? = null,
     /** 文件的元数据类型，可以用来做“打开文件”时的参考类型 */
     val mime: String? = null,
+    /** 是否直接开始下载(如果您需要监听完整的进度流程，可以先监听再调用下载)*/
+    val start: Boolean = false
   )
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
@@ -83,8 +84,17 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
         debugDownload("/create", mmid)
         val params = request.queryAs<DownloadTaskParams>()
         val task = createTaskFactory(params, mmid)
-        controller.downloadFactory(task)
+        if (params.start) {
+          controller.downloadFactory(task)
+        }
         task.id
+      },
+      // 开始/恢复 下载
+      "/start" bind HttpMethod.Get to defineBooleanResponse {
+        val taskId = request.query("taskId")
+        val task = controller.downloadManagers[taskId]
+          ?: return@defineBooleanResponse false
+        controller.downloadFactory(task)
       },
       // 监控下载进度
       "/watch/progress" bind HttpMethod.Get to defineJsonLineResponse {
@@ -92,23 +102,13 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
         val downloadTask = controller.downloadManagers[taskId]
           ?: return@defineJsonLineResponse emit("not Found download task!")
         debugDownload("/watch/progress", "taskId=$taskId ${downloadTask.emitQueue.size}")
-        ioAsyncScope.launch {
-          for (task in downloadTask.emitQueue) {
-            emit(task)
-            // 已经完成全部事件了，清空这个任务
-            if (task.status.state == DownloadState.Completed) {
-              downloadTask.emitQueue.clear()
-              controller.downloadManagers.remove(task.id)
-            }
-          }
+        downloadTask.onDownload {
+          emit(it)
         }
+        downloadTask.downloadSignal.emit(downloadTask)
       },
       // 暂停下载
       "/pause" bind HttpMethod.Put to defineBooleanResponse {
-        true
-      },
-      // 恢复下载
-      "/resume" bind HttpMethod.Put to defineBooleanResponse {
         true
       },
       // 取消下载
@@ -153,8 +153,8 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
         total = response.headers.get("content-length")?.toLong() ?: 1L
       )
     }
-    // 初始化成功
-    task.downloadSignal.emit(task)
+    // 存储到任务管理器
+    controller.downloadManagers[task.id] = task
     return task
   }
 
