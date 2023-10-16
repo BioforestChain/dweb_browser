@@ -9,6 +9,7 @@ export const enum X_EMULATOR_ACTION {
 }
 
 export interface $PlaocConfig {
+  usePublicUrl?:boolean,
   defaultConfig:$DefaultConfig,
   redirect:$Redirect[]
 }

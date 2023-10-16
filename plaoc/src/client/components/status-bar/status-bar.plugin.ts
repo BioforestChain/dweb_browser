@@ -1,31 +1,34 @@
 import { bindThis } from "../../helper/bindThis.ts";
-import { COLOR_FORMAT, convertColorToArga, normalizeArgaToColor } from "../../util/color.ts";
-import { $Coder } from "../../util/StateObserver.ts";
-import { BarPlugin } from "../base/BarPlugin.ts";
-import { $StatusBarWritableState, type $StatusBarRawState, type $StatusBarState } from "./status-bar.type.ts";
+import { DOMInsets } from "../../util/insets.ts";
+import { BAR_STYLE } from "../base/BarPlugin.ts";
+import { BasePlugin } from "../base/BasePlugin.ts";
+import { windowPlugin } from "../index.ts";
+import { $StatusBarState, $StatusBarWritableState } from "./status-bar.type.ts";
 /**
  * 访问 status-bar 能力的插件
  */
-export class StatusBarPlugin extends BarPlugin<$StatusBarRawState, $StatusBarState, $StatusBarWritableState> {
+export class StatusBarPlugin extends BasePlugin {
   constructor() {
-    super("status-bar.nativeui.browser.dweb");
+    super("window.sys.dweb");
   }
-  coder: $Coder<$StatusBarRawState, $StatusBarState> = {
-    decode: (raw: $StatusBarRawState) => ({
-      ...this.baseCoder.decode(raw),
-      color: normalizeArgaToColor(raw.color, COLOR_FORMAT.HEXA),
-    }),
-    encode: (state: $StatusBarState) => ({
-      ...this.baseCoder.encode(state),
-      color: convertColorToArga(state.color),
-    }),
-  };
 
   @bindThis
   async setState(state: Partial<$StatusBarWritableState>) {
-    await this.commonSetState({
-      ...state,
-      color: state.color ? convertColorToArga(state.color) : undefined,
+    let topBarContentColor: string | undefined = undefined;
+    switch (state.style) {
+      case BAR_STYLE.Dark:
+        topBarContentColor = "#000000";
+        break;
+      case BAR_STYLE.Light:
+        topBarContentColor = "#FFFFFF";
+        break;
+      default:
+        topBarContentColor = "auto";
+    }
+    windowPlugin.setStyle({
+      topBarBackgroundColor: state.color,
+      topBarContentColor,
+      topBarOverlay: state.overlay,
     });
   }
   @bindThis
@@ -34,8 +37,24 @@ export class StatusBarPlugin extends BarPlugin<$StatusBarRawState, $StatusBarSta
       [key]: value,
     });
   }
-  override get getState() {
-    return this.state.getState;
+  async getState() {
+    const winState = await windowPlugin.getState();
+    let style = BAR_STYLE.Default;
+    switch (winState.topBarContentColor) {
+      case "#FFFFFF":
+        style = BAR_STYLE.Light;
+        break;
+      case "#000000":
+        style = BAR_STYLE.Dark;
+        break;
+    }
+    return {
+      color: winState.topBarBackgroundColor,
+      style,
+      overlay: winState.topBarOverlay,
+      visible: true,
+      insets: new DOMInsets(0, 0, 0, 0),
+    } satisfies $StatusBarState;
   }
 }
 export const statusBarPlugin = new StatusBarPlugin();
