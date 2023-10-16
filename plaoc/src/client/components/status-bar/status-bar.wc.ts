@@ -1,14 +1,9 @@
 import { cacheGetter } from "../../helper/cacheGetter.ts";
-import { HTMLStateObserverElement } from "../../util/HTMLStateObserverElement.ts";
 import { statusBarPlugin } from "./status-bar.plugin.ts";
-import { $StatusBarRawState, $StatusBarState } from "./status-bar.type.ts";
 
-export class HTMLDwebStatusBarElement extends HTMLStateObserverElement<$StatusBarRawState, $StatusBarState> {
+export class HTMLDwebStatusBarElement extends HTMLElement {
   static readonly tagName = "dweb-status-bar";
   readonly plugin = statusBarPlugin;
-  constructor() {
-    super(statusBarPlugin.state);
-  }
   @cacheGetter()
   get setColor() {
     return statusBarPlugin.setColor;

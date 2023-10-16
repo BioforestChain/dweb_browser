@@ -37,6 +37,7 @@ export class StatusBarPlugin extends BasePlugin {
       [key]: value,
     });
   }
+  @bindThis
   async getState() {
     const winState = await windowPlugin.getState();
     let style = BAR_STYLE.Default;
@@ -56,5 +57,41 @@ export class StatusBarPlugin extends BasePlugin {
       insets: new DOMInsets(0, 0, 0, 0),
     } satisfies $StatusBarState;
   }
+  @bindThis
+  setColor(color: string) {
+    return this.setStateByKey("color", color);
+  }
+  @bindThis
+  async getColor() {
+    return (await this.getState()).color;
+  }
+  @bindThis
+  setStyle(style: BAR_STYLE) {
+    return this.setState({ style });
+  }
+  @bindThis
+  async getStyle() {
+    return (await this.getState()).style;
+  }
+  @bindThis
+  setOverlay(overlay: boolean) {
+    return this.setState({ overlay });
+  }
+  @bindThis
+  async getOverlay() {
+    return (await this.getState()).overlay;
+  }
+  @bindThis
+  setVisible(visible: boolean) {
+    return this.setState({ visible });
+  }
+  @bindThis
+  async getVisible() {
+    return (await this.getState()).visible;
+  }
+  @bindThis
+  async show(){}
+  @bindThis
+  async hide(){}
 }
 export const statusBarPlugin = new StatusBarPlugin();

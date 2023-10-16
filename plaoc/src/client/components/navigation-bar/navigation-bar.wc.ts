@@ -1,17 +1,9 @@
 import { cacheGetter } from "../../helper/cacheGetter.ts";
-import { HTMLStateObserverElement } from "../../util/HTMLStateObserverElement.ts";
 import { navigationBarPlugin } from "./navigation-bar.plugin.ts";
-import { $NavigationBarRawState, $NavigationBarState } from "./navigation-bar.type.ts";
 
-export class HTMLDwebNavigationBarElement extends HTMLStateObserverElement<
-  $NavigationBarRawState,
-  $NavigationBarState
-> {
+export class HTMLDwebNavigationBarElement extends HTMLElement {
   static readonly tagName = "dweb-navigation-bar";
   readonly plugin = navigationBarPlugin;
-  constructor() {
-    super(navigationBarPlugin.state);
-  }
   @cacheGetter()
   get setColor() {
     return navigationBarPlugin.setColor;

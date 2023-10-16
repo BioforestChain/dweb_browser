@@ -1,18 +1,11 @@
 import { cacheGetter } from "../../helper/cacheGetter.ts";
-import { HTMLStateObserverElement } from "../../util/HTMLStateObserverElement.ts";
 import { safeAreaPlugin } from "./safe-area.plugin.ts";
-import { $SafeAreaRawState, $SafeAreaState } from "./safe-area.type.ts";
 
-export class HTMLDwebSafeAreaElement extends HTMLStateObserverElement<$SafeAreaRawState, $SafeAreaState> {
+export class HTMLDwebSafeAreaElement extends HTMLElement {
   static readonly tagName = "dweb-safe-area";
   readonly plugin = safeAreaPlugin;
-  constructor() {
-    super(safeAreaPlugin.state);
-  }
-  @cacheGetter()
-  get getState() {
-    return safeAreaPlugin.getState;
-  }
+
+
   @cacheGetter()
   get setState() {
     return safeAreaPlugin.setStateByKey;

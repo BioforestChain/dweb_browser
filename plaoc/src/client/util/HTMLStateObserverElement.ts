@@ -25,3 +25,14 @@ export class HTMLStateObserverElement<RAW, STATE> extends HTMLElement {
     await this.state.stopObserve();
   }
 }
+export class HTMLIteratorObserverElement<STATE> extends HTMLElement {
+  constructor(readonly state: Iterable<STATE>) {
+    super();
+    (async () => {
+      for await (const info of state) {
+        // console.log("stateChange", _info);
+        this.dispatchEvent(new CustomEvent("statechange", { detail: info }));
+      }
+    })();
+  }
+}
