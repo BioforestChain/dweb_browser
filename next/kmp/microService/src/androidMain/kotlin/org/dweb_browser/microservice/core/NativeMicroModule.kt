@@ -144,7 +144,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
     handler: suspend HandlerContext.(request: Request) -> Unit,
   ) = wrapHandler(beforeResponse) {
     HandlerContext(it, requestContextKey_ipc).handler(it)
-    Response(Status.NO_CONTENT)
+    Response(Status.OK)
   }
 
   protected fun defineStringResponse(
