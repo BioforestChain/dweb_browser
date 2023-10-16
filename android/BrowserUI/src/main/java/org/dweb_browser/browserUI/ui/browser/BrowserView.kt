@@ -63,6 +63,7 @@ import org.dweb_browser.browserUI.ui.browser.search.SearchView
 import org.dweb_browser.browserUI.ui.entity.BrowserBaseView
 import org.dweb_browser.browserUI.ui.entity.BrowserWebView
 import org.dweb_browser.browserUI.ui.qrcode.QRCodeScanView
+import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.window.core.WindowRenderScope
 
 internal val dimenTextFieldFontSize = 16.sp
@@ -122,7 +123,9 @@ fun BrowserViewForWindow(
       CompositionLocalProvider(
         LocalWebViewInitialScale provides initialScale
       ) {
-        Box(modifier = Modifier.fillMaxSize().padding(bottom = dimenBottomHeight * windowRenderScope.scale)) {
+        Box(modifier = Modifier
+          .fillMaxSize()
+          .padding(bottom = dimenBottomHeight * windowRenderScope.scale)) {
           BrowserViewContent(viewModel)   // 中间主体部分
         }
       }
@@ -527,7 +530,14 @@ fun BrowserSearchView(viewModel: BrowserViewModel) {
 @SuppressLint("ClickableViewAccessibility")
 @Composable
 internal fun HomeWebviewPage(viewModel: BrowserViewModel, onClickOrMove: (Boolean) -> Unit) {
-  val webView = viewModel.searchBackBrowserView // getNewTabBrowserView()
+  var _webView by remember {
+    mutableStateOf<BrowserWebView?>(null)
+  }
+  LaunchedEffect(Unit) {
+    _webView = viewModel.searchBackBrowserView.await()
+  }
+  val webView = _webView?:return
+ // getNewTabBrowserView()
   val background = MaterialTheme.colorScheme.background
   val isDark = isSystemInDarkTheme()
   var isRemove = false

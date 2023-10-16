@@ -1,16 +1,18 @@
 package org.dweb_browser.helper
 
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDateTime
 import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.coroutineContext
 
 fun now() = Clock.System.now().toString()
   .padEndAndSub(23) // kmp中LocalDateTime跟android不一样 // LocalDateTime.toString().padEndAndSub(23)
@@ -37,6 +39,15 @@ fun <T> runBlockingCatching(
   runBlocking(context, block)
 }.onFailure {
   commonAsyncExceptionHandler.handleException(context, it)
+}
+
+@OptIn(ExperimentalStdlibApi::class)
+suspend inline fun <T> withMainContext(crossinline block: suspend () -> T): T {
+  return if (coroutineContext[CoroutineDispatcher.Key] == Main) {
+    block()
+  } else {
+    withContext(mainAsyncExceptionHandler) { block() }
+  }
 }
 
 fun <T> runBlockingCatching(

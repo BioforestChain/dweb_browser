@@ -65,6 +65,7 @@ class JmmManagerViewHelper(
   }
 
   private suspend fun initDownLoadStatusListener() {
+    if (downLoadObserver != null) return
     downLoadObserver = DownLoadObserver(uiState.jmmAppInstallManifest.id).also { observe ->
       observe.observe {
         if (it.downLoadStatus == DownLoadStatus.IDLE) return@observe
@@ -81,6 +82,7 @@ class JmmManagerViewHelper(
         }
         if (it.downLoadStatus == DownLoadStatus.INSTALLED) { // 移除监听列表
           downLoadObserver?.close()
+          downLoadObserver = null
         }
       }
     }
@@ -91,9 +93,10 @@ class JmmManagerViewHelper(
       is JmmIntent.ButtonFunction -> {
         when (uiState.downloadStatus.value) {
           DownLoadStatus.IDLE, DownLoadStatus.FAIL, DownLoadStatus.CANCEL, DownLoadStatus.NewVersion -> { // 空闲点击是下载，失败点击也是重新下载
-            BrowserUIApp.Instance.mBinderService?.invokeDownloadAndSaveZip(
-              uiState.jmmAppInstallManifest.toDownLoadInfo()
-            )
+            BrowserUIApp.Instance.mBinderService?.let {
+              initDownLoadStatusListener()
+              it.invokeDownloadAndSaveZip(uiState.jmmAppInstallManifest.toDownLoadInfo())
+            }
           }
 
           DownLoadStatus.DownLoadComplete -> { /* TODO 无需响应 */
@@ -113,6 +116,7 @@ class JmmManagerViewHelper(
 
       is JmmIntent.DestroyActivity -> {
         downLoadObserver?.close()
+        downLoadObserver = null
       }
     }
   }

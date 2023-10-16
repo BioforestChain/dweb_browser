@@ -5,6 +5,7 @@ import android.os.Build
 import android.os.Process
 import android.widget.Toast
 import com.qiniu.android.storage.UploadManager
+import io.ktor.server.engine.DefaultUncaughtExceptionHandler
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
@@ -21,6 +22,7 @@ class CrashUtil : UncaughtExceptionHandler {
   private val UPTOKEN_Z0 =
     "vO3IeF4GypmPpjMnkHcZZo67hHERojsvLikJxzj5:s9dW6FAc8c88zMiZorpm6eudjAc=:eyJzY29wZSI6ImphY2tpZS15ZWxsb3c6Y3Jhc2giLCJkZWFkbGluZSI6MTY5ODc1NjI4NSwiaXNQcmVmaXhhbFNjb3BlIjoxfQ=="
   private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler // 用于全局的协程调用
+  private val defaultException = Thread.getDefaultUncaughtExceptionHandler()
 
   companion object {
     val instance by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
@@ -44,7 +46,6 @@ class CrashUtil : UncaughtExceptionHandler {
   }
 
   override fun uncaughtException(p0: Thread, p1: Throwable) {
-    Toast.makeText(appContext, "很抱歉,程序出现异常,即将退出.", Toast.LENGTH_SHORT).show()
     try {
       val fileName = "crash_${Build.MANUFACTURER}_${System.currentTimeMillis()}.log"
       val file = File("${appContext.cacheDir.absolutePath}/$fileName")
@@ -63,6 +64,7 @@ class CrashUtil : UncaughtExceptionHandler {
       printStream.flush()
       printStream.close()
       fos.close()
+      defaultException?.uncaughtException(p0, p1)
       val uploadManager = UploadManager()
       upload(file, uploadManager) {
         Process.killProcess(Process.myPid())

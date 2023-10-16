@@ -21,9 +21,8 @@ import com.google.accompanist.web.WebViewNavigator
 import com.google.accompanist.web.WebViewState
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.dweb_browser.browserUI.database.DefaultAllWebEngine
 import org.dweb_browser.browserUI.database.WebEngine
 import org.dweb_browser.browserUI.database.WebSiteDatabase
@@ -43,8 +42,7 @@ import org.dweb_browser.dwebview.base.DWebViewItem
 import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
 import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.helper.mainAsyncExceptionHandler
-import org.dweb_browser.helper.runBlockingCatching
+import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.help.types.MMID
 import org.dweb_browser.microservice.sys.dns.nativeFetch
@@ -63,7 +61,15 @@ data class BrowserUIState(
   val inputText: MutableState<String> = mutableStateOf(""), // 用于指定输入的内容
   val showSearchEngine: MutableTransitionState<Boolean> = MutableTransitionState(false), // 用于在输入内容后，显示本地检索以及提供搜索引擎
   val qrCodeScanState: QRCodeScanState = QRCodeScanState(), // 用于判断桌面的显示隐藏
-)
+) {
+  suspend fun focusBrowserView(view: BrowserWebView) = withMainContext {
+    val index = browserViewList.indexOf(view);
+    currentBrowserBaseView.value = view
+    multiViewShow.targetState = false
+    pagerStateNavigator.value?.scrollToPage(index)
+    pagerStateContent.value?.scrollToPage(index)
+  }
+}
 
 /**
  * 用于指定输入的内容
@@ -125,7 +131,7 @@ class BrowserViewModel(
 
   init {
     browserController.onCloseWindow {
-      withContext(mainAsyncExceptionHandler) {
+      withMainContext {
         uiState.browserViewList.forEach { webview ->
           webview.viewItem.webView.destroy()
         }
@@ -138,7 +144,7 @@ class BrowserViewModel(
     // 先判断search是否不为空，然后在判断search是否是地址，
     dwebLinkSearch.value = "" // 先清空搜索的内容
     if (search?.startsWith("dweb:") == true || url?.startsWith("dweb:") == true) {
-      withContext(mainAsyncExceptionHandler) {
+      withMainContext {
         if (uiState.browserViewList.isEmpty()) {
           val item = getNewTabBrowserView()
           uiState.browserViewList.add(item)
@@ -149,7 +155,7 @@ class BrowserViewModel(
     } else if (search?.isUrlOrHost() == true || url?.isUrlOrHost() == true) {
       handleIntent(BrowserIntent.AddNewMainView(search ?: url))
     } else {
-      withContext(mainAsyncExceptionHandler) {
+      withMainContext {
         dwebLinkSearch.value = search ?: url ?: ""
         if (uiState.browserViewList.isEmpty()) {
           val item = getNewTabBrowserView()
@@ -164,7 +170,7 @@ class BrowserViewModel(
     browserServer.startResult.urlInfo.buildInternalUrl().path("/index.html")
       .query("api-base", browserServer.startResult.urlInfo.buildPublicUrl().toString())
 
-  fun getNewTabBrowserView(url: String? = null): BrowserWebView {
+  suspend fun getNewTabBrowserView(url: String? = null): BrowserWebView {
     val (viewItem, closeWatcher) = appendWebViewAsItem(createDwebView())
     url?.let { viewItem.state.content = WebContent.Url(it) } // 初始化时，直接提供地址
     return BrowserWebView(
@@ -173,10 +179,12 @@ class BrowserViewModel(
   }
 
   val searchBackBrowserView by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-    val (viewItem, closeWatcher) = appendWebViewAsItem(createDwebView())
-    BrowserWebView(
-      viewItem = viewItem, closeWatcher = closeWatcher
-    )
+    CoroutineScope(ioAsyncExceptionHandler).async {
+      val (viewItem, closeWatcher) = appendWebViewAsItem(createDwebView())
+      BrowserWebView(
+        viewItem = viewItem, closeWatcher = closeWatcher
+      )
+    }
   }
 
   @OptIn(ExperimentalFoundationApi::class)
@@ -209,7 +217,7 @@ class BrowserViewModel(
           }
           uiState.multiViewShow.targetState = action.show
           action.index?.let {
-            withContext(mainAsyncExceptionHandler) {
+            withMainContext {
               uiState.pagerStateNavigator.value?.scrollToPage(it)
               uiState.pagerStateContent.value?.scrollToPage(it)
             }
@@ -221,14 +229,10 @@ class BrowserViewModel(
         }
 
         is BrowserIntent.AddNewMainView -> {
-          withContext(mainAsyncExceptionHandler) {
+          withMainContext {
             val itemView = getNewTabBrowserView(action.url)
             uiState.browserViewList.add(itemView)
-            uiState.currentBrowserBaseView.value = itemView
-//            delay(100)
-            uiState.multiViewShow.targetState = false
-            uiState.pagerStateNavigator.value?.scrollToPage(uiState.browserViewList.size - 1)
-            uiState.pagerStateContent.value?.scrollToPage(uiState.browserViewList.size - 1)
+            uiState.focusBrowserView(itemView)
           }
         }
 
@@ -259,12 +263,12 @@ class BrowserViewModel(
 
         is BrowserIntent.RemoveBaseView -> {
           uiState.browserViewList.removeAt(action.id).also {
-            withContext(mainAsyncExceptionHandler) {
+            withMainContext {
               it.viewItem.webView.destroy() // 关闭后，需要释放掉
             }
           }
           if (uiState.browserViewList.size == 0) {
-            withContext(mainAsyncExceptionHandler) {
+            withMainContext {
               getNewTabBrowserView().also {
                 uiState.browserViewList.add(it)
                 uiState.currentBrowserBaseView.value = it
@@ -324,7 +328,7 @@ class BrowserViewModel(
         }
 
         is BrowserIntent.ShowSnackbarMessage -> {
-          /*withContext(mainAsyncExceptionHandler) {
+          /*withMainContext {
             uiState.bottomSheetScaffoldState.snackbarHostState.showSnackbar(
               action.message, action.actionLabel
             )
@@ -334,17 +338,22 @@ class BrowserViewModel(
     }
   }
 
-  private fun createDwebView(url: String = ""): DWebView = DWebView(
-    BrowserUIApp.Instance.appContext, browserNMM, DWebView.Options(
-      url = url,
-      /// 我们会完全控制页面将如何离开，所以这里兜底默认为留在页面
-      onDetachedFromWindowStrategy = DWebView.Options.DetachedFromWindowStrategy.Ignore,
+  private suspend fun createDwebView(url: String = "") = withMainContext {
+    DWebView(
+      BrowserUIApp.Instance.appContext, browserNMM, DWebView.Options(
+        url = url,
+        /// 我们会完全控制页面将如何离开，所以这里兜底默认为留在页面
+        onDetachedFromWindowStrategy = DWebView.Options.DetachedFromWindowStrategy.Ignore,
+      )
     )
-  )
+  }
 
-  private fun appendWebViewAsItem(dWebView: DWebView): Pair<ViewItem, CloseWatcher> {
+  private suspend fun appendWebViewAsItem(
+    dWebView: DWebView,
+    url: String? = null
+  ): Pair<ViewItem, CloseWatcher> = withMainContext {
     val webviewId = "#w${webviewId_acc.getAndAdd(1)}"
-    val state = WebViewState(WebContent.Url(getDesktopUrl().toString()))
+    val state = WebViewState(WebContent.Url(url ?: getDesktopUrl().toString()))
     val coroutineScope = CoroutineScope(CoroutineName(webviewId))
     val navigator = WebViewNavigator(coroutineScope)
     val viewItem = DWebViewItem(
@@ -364,8 +373,8 @@ class BrowserViewModel(
         if (transport is WebView.WebViewTransport) {
           viewItem.coroutineScope.launch {
             val dwebView = createDwebView()
-            transport.webView = dwebView;
-            resultMsg.sendToTarget();
+            transport.webView = dwebView
+            resultMsg.sendToTarget()
 
             // 它是有内部链接的，所以等到它ok了再说
             var mainUrl = dwebView.getUrlInMain()
@@ -379,17 +388,20 @@ class BrowserViewModel(
             if (closeWatcherController.consuming.remove(mainUrl)) {
               val consumeToken = mainUrl!!
               closeWatcherController.apply(isUserGesture).also {
-                withContext(mainAsyncExceptionHandler) {
-                  dwebView.destroy()
-                  closeWatcherController.resolveToken(consumeToken, it)
-                }
+                dwebView.destroy()
+                closeWatcherController.resolveToken(consumeToken, it)
               }
             } else {
               /// 打开一个新窗口
-              runBlockingCatching(Dispatchers.Main) {
-                appendWebViewAsItem(
-                  dwebView
+              val (newViewItem, closeWatcher) = appendWebViewAsItem(dwebView, mainUrl)
+              //view.originalUrl?.let { newViewItem.state.content = WebContent.Url(it) }
+              withMainContext {
+                val browserWebView = BrowserWebView(
+                  viewItem = newViewItem, closeWatcher = closeWatcher
                 )
+                if (uiState.browserViewList.add(browserWebView)) {
+                  uiState.focusBrowserView(browserWebView)
+                }
               }
             }
           }
@@ -400,7 +412,7 @@ class BrowserViewModel(
         )
       }
     }
-    return Pair(viewItem, closeWatcherController)
+    Pair(viewItem, closeWatcherController)
   }
 
   val isNoTrace = mutableStateOf(BrowserUIApp.Instance.appContext.getBoolean(KEY_NO_TRACE, false))
