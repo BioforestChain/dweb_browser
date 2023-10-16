@@ -2,10 +2,8 @@ package org.dweb_browser.dwebview.closeWatcher
 
 import android.annotation.SuppressLint
 import android.webkit.JavascriptInterface
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.plus
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -23,7 +21,7 @@ class CloseWatcher(val viewItem: ViewItem) {
   }
 
   val consuming = mutableSetOf<String>()
-  private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler
+  private val mainScope = MainScope()
 
   init {
     viewItem.webView.addJavascriptInterface(
@@ -37,10 +35,8 @@ class CloseWatcher(val viewItem: ViewItem) {
             throw Exception("CloseWatcher.registryToken invalid arguments");
           }
           consuming.add(consumeToken)
-          ioAsyncScope.launch {
-            withContext(Dispatchers.Main) {
-              viewItem.webView.evaluateJavascript("open('$consumeToken')", {})
-            }
+          mainScope.launch {
+            viewItem.webView.evaluateJavascript("open('$consumeToken')", {})
           }
         }
 
@@ -50,7 +46,7 @@ class CloseWatcher(val viewItem: ViewItem) {
         @JavascriptInterface
         fun tryClose(id: String) =
           watchers.find { watcher -> watcher.id == id }?.also {
-            ioAsyncScope.launch { close(it) }
+            mainScope.launch { close(it) }
           }
       },
       JS_POLYFILL_KIT
@@ -88,7 +84,7 @@ class CloseWatcher(val viewItem: ViewItem) {
 //            ) {}.toBoolean();
 
       /// 尝试去触发客户端的监听，如果客户端有监听的话
-      withContext(mainAsyncExceptionHandler) {
+      withMainContext {
         viewItem.webView.evaluateJavascript(
           """
                     $JS_POLYFILL_KIT._watchers?.get("$id")?.dispatchEvent(new CloseEvent('close'));

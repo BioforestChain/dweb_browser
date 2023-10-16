@@ -16,6 +16,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
 import org.dweb_browser.helper.mainAsyncExceptionHandler
+import org.dweb_browser.helper.withMainContext
 
 class MultiWebViewChromeClient(
   private val controller: MultiWebViewController,
@@ -100,7 +101,7 @@ class MultiWebViewChromeClient(
 
         // 它是有内部链接的，所以等到它ok了再说
         var url = dWebView.getUrlInMain()
-        if (url?.isEmpty() != true) {
+        if (url.isNullOrEmpty()) {
           dWebView.waitReady()
           url = dWebView.getUrlInMain()
         }
@@ -111,7 +112,7 @@ class MultiWebViewChromeClient(
         if (closeWatcherController.consuming.remove(url)) {
           val consumeToken = url!!
           closeWatcherController.apply(isUserGesture).also {
-            withContext(mainAsyncExceptionHandler) {
+            withMainContext {
               dWebView.destroy()
               closeWatcherController.resolveToken(consumeToken, it)
             }

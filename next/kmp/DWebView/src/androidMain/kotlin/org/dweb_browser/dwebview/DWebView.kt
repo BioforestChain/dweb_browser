@@ -37,6 +37,7 @@ import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.runBlockingCatching
+import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.http4k.core.Method
@@ -161,7 +162,7 @@ class DWebView(
       if (readyHelper == null) {
         DWebViewClient.ReadyHelper().also {
           readyHelper = it
-          withContext(mainAsyncExceptionHandler) {
+          withMainContext {
             dWebViewClient.addWebViewClient(it)
           }
           it.afterReady {
@@ -180,7 +181,7 @@ class DWebView(
   }
 
   private val evaluator = WebViewEvaluator(this, ioAsyncScope)
-  suspend fun getUrlInMain() = withContext(mainAsyncExceptionHandler) { url }
+  suspend fun getUrlInMain() = withMainContext { url }
 
   /**
    * 初始化设置 userAgent
@@ -500,7 +501,7 @@ class DWebView(
    * 执行异步JS代码，需要传入一个表达式
    */
   suspend fun evaluateAsyncJavascriptCode(script: String, afterEval: suspend () -> Unit = {}) =
-    withContext(mainAsyncExceptionHandler) {
+    withMainContext {
       evaluator.evaluateAsyncJavascriptCode(
         script, afterEval
       )

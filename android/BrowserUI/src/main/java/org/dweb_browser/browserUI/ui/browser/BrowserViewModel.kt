@@ -378,7 +378,7 @@ class BrowserViewModel(
 
             // 它是有内部链接的，所以等到它ok了再说
             var mainUrl = dwebView.getUrlInMain()
-            if (mainUrl?.isEmpty() != true) {
+            if (mainUrl.isNullOrEmpty()) {
               dwebView.waitReady()
               mainUrl = dwebView.getUrlInMain()
             }

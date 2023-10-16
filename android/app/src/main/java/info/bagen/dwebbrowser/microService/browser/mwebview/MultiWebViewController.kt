@@ -25,6 +25,7 @@ import org.dweb_browser.helper.ChangeableList
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.runBlockingCatching
+import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.helper.IpcEvent
@@ -106,7 +107,7 @@ class MultiWebViewController(
    */
   suspend fun openWebView(url: String) = appendWebViewAsItem(createDwebView(url))
 
-  suspend fun createDwebView(url: String): DWebView = withContext(mainAsyncExceptionHandler) {
+  suspend fun createDwebView(url: String): DWebView = withMainContext {
     val currentActivity = win.viewController.activity;// App.appContext
     val dWebView = DWebView(
       ContextThemeWrapper(currentActivity, R.style.Theme_dwebbrowser), remoteMM, DWebView.Options(
@@ -119,7 +120,7 @@ class MultiWebViewController(
   }
 
   @Synchronized
-  fun appendWebViewAsItem(dWebView: DWebView) = runBlockingCatching(mainAsyncExceptionHandler) {
+  fun appendWebViewAsItem(dWebView: DWebView) = runBlockingCatching { withMainContext {
     val webviewId = "#w${webviewId_acc.getAndAdd(1)}"
     val state = WebViewState(WebContent.Url(dWebView.url ?: ""))
     val coroutineScope = CoroutineScope(CoroutineName(webviewId))
@@ -138,7 +139,7 @@ class MultiWebViewController(
       }
       webViewOpenSignal.emit(webviewId)
     }
-  }.getOrThrow()
+  } } .getOrThrow()
 
   /**
    * 关闭WebView

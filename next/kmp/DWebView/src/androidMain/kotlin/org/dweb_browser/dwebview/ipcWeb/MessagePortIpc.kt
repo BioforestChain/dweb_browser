@@ -15,6 +15,7 @@ import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.printDebug
+import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.microservice.help.gson
 import org.dweb_browser.microservice.help.types.IMicroModuleManifest
 import org.dweb_browser.microservice.ipc.Ipc
@@ -42,7 +43,7 @@ class MessagePort private constructor(private val port: WebMessagePort) {
 
   val messageChannel = Channel<WebMessage>(capacity = Channel.UNLIMITED)
 
-  private suspend fun installMessageSignal() = withContext(mainAsyncExceptionHandler) {
+  private suspend fun installMessageSignal() = withMainContext {
     port.setWebMessageCallback(object : WebMessagePort.WebMessageCallback() {
       override fun onMessage(port: WebMessagePort, event: WebMessage) {
         messageChannel.trySend(event).getOrElse { err ->
@@ -68,7 +69,7 @@ class MessagePort private constructor(private val port: WebMessagePort) {
   }
 
   fun onWebMessage(cb: Callback<WebMessage>) = _messageSignal.listen(cb)
-  suspend fun postMessage(data: String) = withContext(mainAsyncExceptionHandler) {
+  suspend fun postMessage(data: String) = withMainContext {
     port.postMessage(WebMessage(data))
   }
 
