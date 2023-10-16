@@ -9,6 +9,7 @@ import "./polyfill.ts";
 
 import { urlStore } from "./helper/urlStore.ts";
 import { all_webview_status, mwebview_activate, mwebview_open, sync_mwebview_status } from "./mwebview-helper.ts";
+import { PlaocConfig } from "./plaoc-config.ts";
 
 export const main = async () => {
   /**
@@ -43,7 +44,8 @@ export const main = async () => {
   });
 
   //#region 启动http服务
-  const wwwServer = new Server_www();
+  const plaocConfig = await PlaocConfig.init()
+  const wwwServer = new Server_www(plaocConfig);
   const externalServer = new Server_external();
   const apiServer = new Server_api(widPo);
   const wwwListenerTask = wwwServer.start().finally(() => console.log("wwwServer started"));
@@ -59,8 +61,8 @@ export const main = async () => {
   /// 生成 index-url
   const wwwStartResult = await wwwServer.getStartResult();
   const apiStartResult = await apiServer.getStartResult();
-  const usePublic = isMobile.isMobile();
-  const indexUrl = wwwStartResult.urlInfo.buildHtmlUrl(false, (url) => {
+  const usePublic = plaocConfig.config.usePublicUrl ?? isMobile.isMobile();
+  const indexUrl = wwwStartResult.urlInfo.buildHtmlUrl(plaocConfig.config.usePublicUrl, (url) => {
     url.pathname = "/index.html";
     urlStore.set({
       [X_PLAOC_QUERY.API_INTERNAL_URL]: apiStartResult.urlInfo.buildUrl(usePublic).href,

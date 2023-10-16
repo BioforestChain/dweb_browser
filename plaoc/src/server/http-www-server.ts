@@ -3,11 +3,17 @@ import { $PlaocConfig, X_PLAOC_QUERY } from "./const.ts";
 import { $DwebHttpServerOptions, $OnFetchReturn, FetchEvent, IpcResponse, jsProcess } from "./deps.ts";
 import { urlStore } from "./helper/urlStore.ts";
 import { HttpServer, cors } from "./http-helper.ts";
+import { PlaocConfig } from "./plaoc-config.ts";
 
 const CONFIG_PREFIX = "/config.sys.dweb/";
 /**给前端的文件服务 */
 export class Server_www extends HttpServer {
-  jsonPlaoc: $PlaocConfig | null = null;
+  constructor(readonly plaocConfig:PlaocConfig){
+    super()
+  }
+ get jsonPlaoc(){
+  return this.plaocConfig.config
+ }
   lang: string | null = null;
 
   protected _getOptions(): $DwebHttpServerOptions {
@@ -17,7 +23,6 @@ export class Server_www extends HttpServer {
     };
   }
   async start() {
-    this.jsonPlaoc = await this._analyzePlaocConfig();
     // 设置默认语言
     const lang = await jsProcess.nativeFetch("file://config.sys.dweb/getLang").text();
     if (lang) {
@@ -66,15 +71,6 @@ export class Server_www extends HttpServer {
       request.ipc
     );
     return ipcResponse;
-  }
-  // 解析plaoc.json
-  private async _analyzePlaocConfig() {
-    try {
-      const readPlaoc = await jsProcess.nativeRequest(`file:///usr/www/plaoc.json`);
-      return JSON.parse(await readPlaoc.body.text());
-    } catch {
-      return null;
-    }
   }
 
   async _config(event: FetchEvent) {
