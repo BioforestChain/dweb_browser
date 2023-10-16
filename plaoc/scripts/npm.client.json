@@ -6,7 +6,7 @@
     "watchDir": "./src/client",
     "denoShim": false,
     "name": "@plaoc/plugins",
-    "version": "0.3.0",
+    "version": "0.3.2",
     "importMap": "./import_map.json",
     "lib": [
       "ES2022",

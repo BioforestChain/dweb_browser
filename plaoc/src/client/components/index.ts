@@ -3,6 +3,7 @@ export * from "./barcode-scanning/index.ts";
 export * from "./biometrics/index.ts";
 export * from "./bluetooth/index.ts";
 export * from "./camera/index.ts";
+export * from "./clipboard/index.ts";
 export * from "./close-watcher/index.ts";
 export * from "./config/index.ts";
 export * from "./device/index.ts";
