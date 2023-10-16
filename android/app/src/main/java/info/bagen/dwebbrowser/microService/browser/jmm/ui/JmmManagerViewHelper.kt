@@ -94,8 +94,10 @@ class JmmManagerViewHelper(
         when (uiState.downloadStatus.value) {
           DownLoadStatus.IDLE, DownLoadStatus.FAIL, DownLoadStatus.CANCEL, DownLoadStatus.NewVersion -> { // 空闲点击是下载，失败点击也是重新下载
             BrowserUIApp.Instance.mBinderService?.let {
-              initDownLoadStatusListener()
               it.invokeDownloadAndSaveZip(uiState.jmmAppInstallManifest.toDownLoadInfo())
+              jmmController.win.coroutineScope.launch {
+                initDownLoadStatusListener()
+              }
             }
           }
 
