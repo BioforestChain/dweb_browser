@@ -48,11 +48,11 @@ export const doBundle = async (flags: $BundleOptions) => {
   /// 先写入bundle.zip
   fs.writeFileSync(
     path.resolve(outDir, nameFlagHelper.bundleName),
-    await (await bundleFlagHelper.bundleZip()).generateAsync({ type: "nodebuffer" })
+    await (await bundleFlagHelper.bundleZip()).generateAsync({ type: "nodebuffer", compression: "DEFLATE", compressionOptions: { level: 9 } })
   );
   // 生成打包文件名称，大小
   const zip = await bundleFlagHelper.bundleZip(true);
-  const zipData = await zip.generateAsync({ type: "uint8array" });
+  const zipData = await zip.generateAsync({ type: "uint8array", compression: "DEFLATE", compressionOptions: { level: 9 } });
   const hasher = crypto.createHash("sha256").update(zipData);
   const metadata = metadataFlagHelper.readMetadata(true);
   metadata.bundle_size = zipData.byteLength;
