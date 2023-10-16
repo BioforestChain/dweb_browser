@@ -29,6 +29,7 @@ kotlin {
         api(libs.ktor.client.cio)
         api(libs.ktor.client.encoding)
         api(libs.ktor.server.websockets)
+        api("com.shepeliev:webrtc-kmp:0.114.4")
 
         implementation(project(":helper"))
       }
