@@ -33,6 +33,9 @@ export class FileSystemPlugin extends BasePlugin {
   @bindThis
   async savePictures(options: FilesOption) {
     const data = new FormData();
+    if (options.file) {
+      data.append("files", options.file);
+    }
     if (options.files && options.files.length !== 0) {
       for (let i = 0; i < options.files.length; i++) {
         const file = options.files.item(i)!;

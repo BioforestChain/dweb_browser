@@ -1,6 +1,7 @@
 
 export interface FilesOption {
   files?: FileList;
+  file?:File
 }
 
 export interface FilesResult {

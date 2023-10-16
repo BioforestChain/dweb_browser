@@ -16,6 +16,36 @@ export class HTMLDwebWindowElement extends HTMLStateObserverElement<$WindowRawSt
   get getDisplay() {
     return this.plugin.getDisplay
   }
+
+  @cacheGetter()
+  get focusWindow() {
+    return this.plugin.focusWindow;
+  }
+
+  @cacheGetter()
+  get blurWindow() {
+    return this.plugin.blurWindow;
+  }
+
+  @cacheGetter()
+  get maximize() {
+    return this.plugin.maximize;
+  }
+
+  @cacheGetter()
+  get unMaximize() {
+    return this.plugin.unMaximize;
+  }
+
+  @cacheGetter()
+  get visible() {
+    return this.plugin.visible;
+  }
+
+  @cacheGetter()
+  get close() {
+    return this.plugin.close;
+  }
 }
 
 customElements.define(HTMLDwebWindowElement.tagName, HTMLDwebWindowElement);
