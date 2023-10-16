@@ -3,9 +3,7 @@ package info.bagen.dwebbrowser.util
 import android.content.Context
 import android.os.Build
 import android.os.Process
-import android.widget.Toast
 import com.qiniu.android.storage.UploadManager
-import io.ktor.server.engine.DefaultUncaughtExceptionHandler
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
@@ -22,7 +20,6 @@ class CrashUtil : UncaughtExceptionHandler {
   private val UPTOKEN_Z0 =
     "vO3IeF4GypmPpjMnkHcZZo67hHERojsvLikJxzj5:s9dW6FAc8c88zMiZorpm6eudjAc=:eyJzY29wZSI6ImphY2tpZS15ZWxsb3c6Y3Jhc2giLCJkZWFkbGluZSI6MTY5ODc1NjI4NSwiaXNQcmVmaXhhbFNjb3BlIjoxfQ=="
   private val ioAsyncScope = MainScope() + ioAsyncExceptionHandler // 用于全局的协程调用
-  private val defaultException = Thread.getDefaultUncaughtExceptionHandler()
 
   companion object {
     val instance by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
@@ -64,7 +61,7 @@ class CrashUtil : UncaughtExceptionHandler {
       printStream.flush()
       printStream.close()
       fos.close()
-      defaultException?.uncaughtException(p0, p1)
+      // Thread.getDefaultUncaughtExceptionHandler()?.uncaughtException(p0, p1)
       val uploadManager = UploadManager()
       upload(file, uploadManager) {
         Process.killProcess(Process.myPid())
@@ -76,14 +73,20 @@ class CrashUtil : UncaughtExceptionHandler {
   }
 
   private fun upload(file: File, uploadManager: UploadManager, handlerCallback: () -> Unit) {
-    uploadManager.put(file, file.name, UPTOKEN_Z0, { _, respInfo, jsonData ->
-      if (respInfo.isOK) {
-        // println("异常上报成功")
-        file.deleteRecursively()
-      } else {
-        println("异常上报失败")
-      }
-      handlerCallback()
-    }, null)
+    uploadManager.put(
+      file,
+      "crash_${Build.MANUFACTURER}/${file.name}",
+      UPTOKEN_Z0,
+      { _, respInfo, jsonData ->
+        if (respInfo.isOK) {
+          // println("异常上报成功")
+          file.deleteRecursively()
+        } else {
+          println("异常上报失败 ${respInfo.error}")
+        }
+        handlerCallback()
+      },
+      null
+    )
   }
 }
