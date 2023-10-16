@@ -1,41 +1,37 @@
 import { bindThis } from "../../helper/bindThis.ts";
-import { COLOR_FORMAT, convertColorToArga, normalizeArgaToColor } from "../../util/color.ts";
-import { domInsetsToJson } from "../../util/insets.ts";
-import { $Coder } from "../../util/StateObserver.ts";
-import { BarPlugin } from "../base/BarPlugin.ts";
+import { DOMInsets } from "../../util/insets.ts";
+import { BAR_STYLE } from "../base/BarPlugin.ts";
+import { BasePlugin } from "../base/BasePlugin.ts";
+import { windowPlugin } from "../index.ts";
 import {
   $NavigationBarWritableState,
-  type $NavigationBarRawState,
-  type $NavigationBarState,
+  type $NavigationBarState
 } from "./navigation-bar.type.ts";
 /**
  * 访问 navigation-bar 能力的插件
  */
-export class NavigationBarPlugin extends BarPlugin<
-  $NavigationBarRawState,
-  $NavigationBarState,
-  $NavigationBarWritableState
-> {
+export class NavigationBarPlugin extends BasePlugin{
   constructor() {
-    super("navigation-bar.nativeui.browser.dweb");
+    super("window.sys.dweb");
   }
-  coder: $Coder<$NavigationBarRawState, $NavigationBarState> = {
-    decode: (raw) => ({
-      ...this.baseCoder.decode(raw),
-      color: normalizeArgaToColor(raw.color, COLOR_FORMAT.HEXA),
-    }),
-    encode: (state) => ({
-      ...state,
-      color: convertColorToArga(state.color),
-      insets: domInsetsToJson(state.insets),
-    }),
-  };
 
   @bindThis
   async setState(state: Partial<$NavigationBarWritableState>) {
-    await this.commonSetState({
-      ...state,
-      color: state.color ? convertColorToArga(state.color) : undefined,
+    let topBarContentColor: string | undefined = undefined;
+    switch (state.style) {
+      case BAR_STYLE.Dark:
+        topBarContentColor = "#000000";
+        break;
+      case BAR_STYLE.Light:
+        topBarContentColor = "#FFFFFF";
+        break;
+      default:
+        topBarContentColor = "auto";
+    }
+    windowPlugin.setStyle({
+      topBarBackgroundColor: state.color,
+      topBarContentColor,
+      topBarOverlay: state.overlay,
     });
   }
   @bindThis
@@ -44,8 +40,61 @@ export class NavigationBarPlugin extends BarPlugin<
       [key]: value,
     });
   }
-  override get getState() {
-    return this.state.getState;
+  @bindThis
+  async getState() {
+    const winState = await windowPlugin.getState();
+    let style = BAR_STYLE.Default;
+    switch (winState.topBarContentColor) {
+      case "#FFFFFF":
+        style = BAR_STYLE.Light;
+        break;
+      case "#000000":
+        style = BAR_STYLE.Dark;
+        break;
+    }
+    return {
+      color: winState.topBarBackgroundColor,
+      style,
+      overlay: winState.topBarOverlay,
+      visible: true,
+      insets: new DOMInsets(0, 0, 0, 0),
+    } satisfies $NavigationBarState;
   }
+  @bindThis
+  setColor(color: string) {
+    return this.setStateByKey("color", color);
+  }
+  @bindThis
+  async getColor() {
+    return (await this.getState()).color;
+  }
+  @bindThis
+  setStyle(style: BAR_STYLE) {
+    return this.setState({ style });
+  }
+  @bindThis
+  async getStyle() {
+    return (await this.getState()).style;
+  }
+  @bindThis
+  setOverlay(overlay: boolean) {
+    return this.setState({ overlay });
+  }
+  @bindThis
+  async getOverlay() {
+    return (await this.getState()).overlay;
+  }
+  @bindThis
+  setVisible(visible: boolean) {
+    return this.setState({ visible });
+  }
+  @bindThis
+  async getVisible() {
+    return (await this.getState()).visible;
+  }
+  @bindThis
+  async show(){}
+  @bindThis
+  async hide(){}
 }
 export const navigationBarPlugin = new NavigationBarPlugin();
