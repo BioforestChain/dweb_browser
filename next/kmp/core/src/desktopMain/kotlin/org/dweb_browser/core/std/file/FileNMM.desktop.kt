@@ -12,3 +12,7 @@ actual fun FileNMM.getDataVirtualFsDirectory() =
  */
 actual fun FileNMM.getCacheVirtualFsDirectory() =
   commonVirtualFsDirectoryFactory("cache", "/cache/dweb-browser")
+
+actual fun FileNMM.unCompress(compressFile:String,unCompressDirectory:String) {
+
+}

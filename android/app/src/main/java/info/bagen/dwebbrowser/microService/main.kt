@@ -30,6 +30,8 @@ import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
 import org.dweb_browser.core.std.file.FileNMM
 import org.dweb_browser.core.std.http.HttpNMM
 import org.dweb_browser.core.sys.boot.BootNMM
+import org.dweb_browser.core.sys.download.DownloadNMM
+import org.dweb_browser.shared.microService.sys.motionSensors.MotionSensorsNMM
 import java.io.File
 
 suspend fun startDwebBrowser(): DnsNMM {
@@ -147,6 +149,8 @@ suspend fun startDwebBrowser(): DnsNMM {
   val torchNMM = TorchNMM().also() { dnsNMM.install(it) }
   /// 生物识别
   val biometricsNMM = BiometricsNMM().also { dnsNMM.install(it) }
+  /// 运动传感器
+  val motionSensorsNMM = MotionSensorsNMM().also { dnsNMM.install(it) }
 
   /// NativeUi 是将众多原生UI在一个视图中组合的复合组件
   val nativeUiNMM = org.dweb_browser.browser.nativeui.NativeUiNMM().also { dnsNMM.install(it) }
