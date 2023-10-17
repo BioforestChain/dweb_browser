@@ -17,21 +17,21 @@ export class NavigationBarPlugin extends BasePlugin{
 
   @bindThis
   async setState(state: Partial<$NavigationBarWritableState>) {
-    let topBarContentColor: string | undefined = undefined;
+    let bottomBarContentColor: string | undefined = undefined;
     switch (state.style) {
       case BAR_STYLE.Dark:
-        topBarContentColor = "#000000";
+        bottomBarContentColor = "#000000";
         break;
       case BAR_STYLE.Light:
-        topBarContentColor = "#FFFFFF";
+        bottomBarContentColor = "#FFFFFF";
         break;
       default:
-        topBarContentColor = "auto";
+        bottomBarContentColor = "auto";
     }
     windowPlugin.setStyle({
-      topBarBackgroundColor: state.color,
-      topBarContentColor,
-      topBarOverlay: state.overlay,
+      bottomBarBackgroundColor: state.color,
+      bottomBarContentColor,
+      bottomBarOverlay: state.overlay,
     });
   }
   @bindThis
@@ -44,7 +44,7 @@ export class NavigationBarPlugin extends BasePlugin{
   async getState() {
     const winState = await windowPlugin.getState();
     let style = BAR_STYLE.Default;
-    switch (winState.topBarContentColor) {
+    switch (winState.bottomBarContentColor) {
       case "#FFFFFF":
         style = BAR_STYLE.Light;
         break;
@@ -53,9 +53,9 @@ export class NavigationBarPlugin extends BasePlugin{
         break;
     }
     return {
-      color: winState.topBarBackgroundColor,
+      color: winState.bottomBarBackgroundColor,
       style,
-      overlay: winState.topBarOverlay,
+      overlay: winState.bottomBarOverlay,
       visible: true,
       insets: new DOMInsets(0, 0, 0, 0),
     } satisfies $NavigationBarState;

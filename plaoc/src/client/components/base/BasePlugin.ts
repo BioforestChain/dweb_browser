@@ -5,21 +5,16 @@ import { $BuildRequestInit, buildRequest } from "../../helper/request.ts";
 
 export abstract class BasePlugin {
   static internal_url: string = location?.href ?? "http://localhost";
-  private static urlData: Promise<"file:///" | { [key in X_PLAOC_QUERY]: string }> = BasePlugin.getBaseUrl();
-  static public_url: Promise<string> | string = BasePlugin.getInternalUrl(X_PLAOC_QUERY.API_PUBLIC_URL);
-  static external_url = BasePlugin.getInternalUrl(X_PLAOC_QUERY.EXTERNAL_URL);
-  static internal_url_useable?: boolean;
+  private static urlData = new URLSearchParams(location.search);
+  static public_url = BasePlugin.getUrl(X_PLAOC_QUERY.API_PUBLIC_URL);
+  static external_url = BasePlugin.getUrl(X_PLAOC_QUERY.EXTERNAL_URL);
+  static internal_url_useable = false;
   /** internal_url or public_url */
   static get url() {
-    if (
-      typeof this.public_url === "string" &&
-      this.public_url !== "" &&
-      /// 如果不能明确知道 internal_url 可用，则使用 public_url
-      this.internal_url_useable !== true
-    ) {
-      return this.public_url;
+    if (this.internal_url_useable) {
+      return this.internal_url;
     }
-    return this.internal_url;
+    return this.public_url;
   }
 
   constructor(readonly mmid: $MMID) {}
@@ -36,18 +31,16 @@ export abstract class BasePlugin {
   protected createSignal = createSignal;
   /**
    * 获取指定的url
-   * @param urlType 
-   * @returns 
+   * @param urlType
+   * @returns
    */
-  static async getInternalUrl(urlType: X_PLAOC_QUERY): Promise<string> {
-    const data = await this.urlData
-    if (data === "file:///") {
-      return "file:///";
+  static getUrl(urlType: X_PLAOC_QUERY) {
+    const url = this.urlData.get(urlType) || localStorage.getItem("url:" + urlType);
+    if (url === null) {
+      throw new Error(`unconfig url: ${urlType}`);
     }
-    if (data) {
-      return data[urlType];
-    }
-    return data[urlType];
+    localStorage.setItem("url:" + urlType, url);
+    return url;
   }
   /**获取plaoc内置url */
   static async getBaseUrl() {

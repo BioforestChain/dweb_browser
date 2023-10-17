@@ -1,4 +1,3 @@
-import { X_PLAOC_QUERY } from "../const.ts";
 
 export class Store<T> {
   constructor() {}
@@ -13,4 +12,4 @@ export class Store<T> {
     this.data = obj;
   }
 }
-export const urlStore = new Store<{ [key in X_PLAOC_QUERY]?: string }>();
+// export const urlStore = new Store<{ [key in X_PLAOC_QUERY]?: string }>();

@@ -1,7 +1,6 @@
 import { bindThis } from "../../helper/bindThis.ts";
 import { ListenerCallback } from "../base/BaseEvent.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
-import { $DwebResult } from "../base/base.type.ts";
 import { UpdateControllerMap } from "./dweb-update-controller.type.ts";
 
 class UpdateControllerPlugin extends BasePlugin {
@@ -12,10 +11,6 @@ class UpdateControllerPlugin extends BasePlugin {
   // 获取监听的消息
   listen = new UpdateController();
 
-  private getDownloadUrl() {
-    return this.fetchApi(`/getDownloadUrl`).text();
-  }
-
   /**
    * 跳转下载新版本
    * 可以默认不传递medatadaUrl,系统会去识别第一次下载的地址去对比版本
@@ -24,24 +19,12 @@ class UpdateControllerPlugin extends BasePlugin {
    * @returns
    */
   @bindThis
-  async download(medatadaUrl?: string): Promise<boolean> {
-    if (!medatadaUrl) {
-      medatadaUrl = await this.getDownloadUrl();
-    }
+  async download(medatadaUrl: string): Promise<boolean> {
     return this.fetchApi(`/install`, {
       search: {
         url: medatadaUrl,
       },
     }).boolean();
-  }
-
-  /**
-   * 检查是否有新版本
-   * @compatibility android/ios only
-   * @returns
-   */
-  checkNewVersion() {
-    return this.fetchApi(`/check`).object<$DwebResult>();
   }
 
   // 暂停

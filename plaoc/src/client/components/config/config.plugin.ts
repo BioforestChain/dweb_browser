@@ -11,8 +11,13 @@ export class ConfigPlugin extends BasePlugin {
     }
   }
   async initConfig() {
-    const internalUrl = await BasePlugin.getInternalUrl(X_PLAOC_QUERY.API_INTERNAL_URL);
-    internalUrl && this.setInternalUrl(internalUrl);
+    const internalUrl = BasePlugin.getUrl(X_PLAOC_QUERY.API_INTERNAL_URL);
+    try {
+      if ((await fetch(new URL("/internal/window-info", internalUrl))).ok) {
+        this.setInternalUrl(internalUrl);
+        BasePlugin.internal_url_useable = true;
+      }
+    } catch {}
   }
 
   getInternalUrl() {
@@ -33,25 +38,25 @@ export class ConfigPlugin extends BasePlugin {
    * 设置语言
    * @param lang 语言
    * @param isReload 是否重新加载
-   * @returns 
+   * @returns
    */
   @bindThis
-  async setLang(lang: string,isReload = true) {
+  async setLang(lang: string, isReload = true) {
     const res = await this.fetchApi(`/setLang`, {
-      base:location.href,
+      base: location.href,
       search: {
         lang: lang,
       },
     }).boolean();
-    if(res && isReload) {
-      dwebServiceWorker.restart()
+    if (res && isReload) {
+      dwebServiceWorker.restart();
     }
-    return res
+    return res;
   }
 
   @bindThis
   async getLang() {
-    return this.fetchApi("/getLang",{base:location.href}).text();
+    return this.fetchApi("/getLang", { base: location.href }).text();
   }
 }
 export const configPlugin = new ConfigPlugin();
