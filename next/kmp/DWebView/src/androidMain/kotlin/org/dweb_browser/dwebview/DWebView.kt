@@ -24,8 +24,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
-import org.dweb_browser.dwebview.base.isSchemeAppInstalled
 import org.dweb_browser.dwebview.base.isWebUrlScheme
 import org.dweb_browser.helper.Callback
 import org.dweb_browser.helper.PromiseOut
@@ -34,7 +32,6 @@ import org.dweb_browser.helper.SimpleCallback
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.android.BaseActivity
 import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.helper.withMainContext
@@ -45,7 +42,6 @@ import org.http4k.core.Request
 import org.http4k.lens.Header
 import java.io.ByteArrayInputStream
 import java.io.File
-
 
 fun debugDWebView(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("dwebview", tag, msg, err)
@@ -239,6 +235,7 @@ class DWebView(
       view: WebView, request: WebResourceRequest
     ): WebResourceResponse? {
       // 转发请求
+
       if (request.method == "GET" && ((request.url.host?.endsWith(".dweb") == true) || (request.url.scheme == "dweb"))) {
         val response = runBlockingCatching(ioAsyncExceptionHandler) {
           remoteMM.nativeFetch(
@@ -255,6 +252,7 @@ class DWebView(
         if (statusCode in 301..399) {
           return super.shouldInterceptRequest(view, request)
         }
+
         return WebResourceResponse(
           contentType?.value,
           contentType?.directives?.find { it.first == "charset" }?.second,
