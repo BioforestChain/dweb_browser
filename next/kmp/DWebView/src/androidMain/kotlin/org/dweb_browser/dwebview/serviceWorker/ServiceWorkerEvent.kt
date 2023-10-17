@@ -1,9 +1,7 @@
 package org.dweb_browser.dwebview.serviceWorker
 
-import kotlinx.coroutines.withContext
-import org.dweb_browser.dwebview.DWebView
 import org.dweb_browser.dwebview.engine.DWebViewEngine
-import org.dweb_browser.helper.mainAsyncExceptionHandler
+import org.dweb_browser.helper.withMainContext
 
 const val DWEB_SERVICE_WORKER = "__app_upgrade_watcher_kit__"
 
@@ -22,7 +20,7 @@ suspend fun emitEvent(dwebView: DWebViewEngine, eventName: String, data: String 
     payload = data
   }
   /// 尝试去触发客户端的监听，如果客户端有监听的话
-  withContext(mainAsyncExceptionHandler) {
+  withMainContext {
     dwebView.evaluateAsyncJavascriptCode(
       """
             new Promise((resolve,reject)=>{

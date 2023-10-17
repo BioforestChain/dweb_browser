@@ -1,6 +1,5 @@
 package org.dweb_browser.browser.web
 
-import kotlinx.coroutines.withContext
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.bindDwebDeeplink
 import org.dweb_browser.core.ipc.helper.IpcResponse
@@ -16,7 +15,7 @@ import org.dweb_browser.core.std.http.createHttpDwebServer
 import org.dweb_browser.core.sys.dns.returnAndroidFile
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
-import org.dweb_browser.helper.mainAsyncExceptionHandler
+import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.sys.window.core.onRenderer
 import org.dweb_browser.sys.window.ext.openMainWindow
 
@@ -47,13 +46,12 @@ class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
     }
   }
 
-
   private lateinit var browserServer: HttpDwebServer
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     browserServer = this.createBrowserWebServer()
     val browserController = // 由于 WebView创建需要在主线程，所以这边做了 withContext 操作
-      withContext(mainAsyncExceptionHandler) {
+      withMainContext {
         BrowserController(
           this@BrowserNMM, browserServer
         )

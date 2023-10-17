@@ -517,7 +517,13 @@ fun BrowserSearchView(viewModel: BrowserViewModel) {
 @SuppressLint("ClickableViewAccessibility")
 @Composable
 internal fun HomeWebviewPage(viewModel: BrowserViewModel, onClickOrMove: (Boolean) -> Unit) {
-  val webView = viewModel.searchBackBrowserView // getNewTabBrowserView()
+  var _webView by remember {
+    mutableStateOf<BrowserWebView?>(null)
+  }
+  LaunchedEffect(Unit) {
+    _webView = viewModel.searchBackBrowserView.await()
+  }
+  val webView = _webView ?: return
   val background = MaterialTheme.colorScheme.background
   val isDark = isSystemInDarkTheme()
   var isRemove = false

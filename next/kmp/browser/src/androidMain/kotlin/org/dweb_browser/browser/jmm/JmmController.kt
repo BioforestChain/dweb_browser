@@ -84,7 +84,7 @@ class JmmController(
     val url = when (downloadController) {
       JmmDownloadController.PAUSE -> "file://download.browser.dweb/pause?mmid=$mmid"
       JmmDownloadController.CANCEL -> "file://download.browser.dweb/cancel?mmid=$mmid"
-      JmmDownloadController.RESUME -> "file://download.browser.dweb/resume?mmid=$mmid"
+      JmmDownloadController.RESUME -> "file://download.browser.dweb/start?mmid=$mmid"
     }
     return jmmNMM.nativeFetch(PureRequest(href = url, method = IpcMethod.GET)).boolean()
   }

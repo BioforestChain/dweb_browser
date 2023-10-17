@@ -38,7 +38,7 @@ class JmmManagerViewHelper(
 ) {
   val uiState: JmmUIState = JmmUIState(jmmAppInstallManifest)
 
-  private suspend fun initDownLoadStatusListener() {
+  private suspend fun x() {
     jmmController.onDownload { downloadInfo ->
       if (downloadInfo.id != uiState.jmmAppInstallManifest.id) return@onDownload
       if (downloadInfo.downloadStatus == JmmDownloadStatus.IDLE) return@onDownload

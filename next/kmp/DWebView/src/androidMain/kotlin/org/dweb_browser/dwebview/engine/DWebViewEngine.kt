@@ -7,6 +7,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.view.ViewGroup
+import android.view.ViewGroup.LayoutParams
 import android.webkit.JsResult
 import android.webkit.PermissionRequest
 import android.webkit.ValueCallback
@@ -23,7 +24,11 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
+import org.dweb_browser.core.http.PureRequest
+import org.dweb_browser.core.ipc.helper.IpcHeaders
+import org.dweb_browser.core.ipc.helper.IpcMethod
+import org.dweb_browser.core.module.MicroModule
+import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.base.isWebUrlScheme
 import org.dweb_browser.dwebview.debugDWebView
@@ -32,13 +37,8 @@ import org.dweb_browser.helper.SimpleCallback
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.android.BaseActivity
 import org.dweb_browser.helper.ioAsyncExceptionHandler
-import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.runBlockingCatching
-import org.dweb_browser.core.module.MicroModule
-import org.dweb_browser.core.http.PureRequest
-import org.dweb_browser.core.ipc.helper.IpcHeaders
-import org.dweb_browser.core.ipc.helper.IpcMethod
-import org.dweb_browser.core.std.dns.nativeFetch
+import org.dweb_browser.helper.withMainContext
 import java.io.File
 
 /**
@@ -110,7 +110,7 @@ class DWebViewEngine(
       if (readyHelper == null) {
         DWebViewClient.ReadyHelper().also {
           readyHelper = it
-          withContext(mainAsyncExceptionHandler) {
+          withMainContext {
             dWebViewClient.addWebViewClient(it)
           }
           it.afterReady {
@@ -129,7 +129,7 @@ class DWebViewEngine(
   }
 
   private val evaluator = WebViewEvaluator(this, mainScope)
-  suspend fun getUrlInMain() = withContext(mainAsyncExceptionHandler) { url }
+  suspend fun getUrlInMain() = withMainContext { url }
 
   /**
    * 初始化设置 userAgent
@@ -208,14 +208,13 @@ class DWebViewEngine(
           contentType.lastOrNull(),
           response.status.value,
           response.status.description,
-          response.headers.toMap(),
+          response.headers.toMap().let { it - "Content-Type" }, // 修复 content-type 问题
           response.body.toPureStream().getReader("dwebview shouldInterceptRequest").toInputStream(),
         )
       }
       return super.shouldInterceptRequest(view, request)
     }
   }
-
 
   fun addWebViewClient(client: WebViewClient): () -> Unit {
     dWebViewClient.addWebViewClient(client)
@@ -460,7 +459,7 @@ class DWebViewEngine(
    * 执行异步JS代码，需要传入一个表达式
    */
   suspend fun evaluateAsyncJavascriptCode(script: String, afterEval: suspend () -> Unit = {}) =
-    withContext(mainAsyncExceptionHandler) {
+    withMainContext {
       evaluator.evaluateAsyncJavascriptCode(
         script, afterEval
       )

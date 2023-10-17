@@ -57,9 +57,8 @@ class IpcHeaders() {
     return headersMap.contains(key.asKey())
   }
 
-  fun delete(key: String) {
+  fun delete(key: String) =
     headersMap.remove(key.asKey())
-  }
 
   fun forEach(fn: (Map.Entry<String, String>) -> Unit) {
     headersMap.forEach(fn)

@@ -13,9 +13,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import com.google.accompanist.web.AccompanistWebChromeClient
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.dweb_browser.dwebview.closeWatcher.CloseWatcher
-import org.dweb_browser.helper.mainAsyncExceptionHandler
+import org.dweb_browser.helper.withMainContext
 
 class MultiWebViewChromeClient(
   private val controller: MultiWebViewController,
@@ -111,7 +110,7 @@ class MultiWebViewChromeClient(
         if (closeWatcherController.consuming.remove(url)) {
           val consumeToken = url!!
           closeWatcherController.apply(isUserGesture).also {
-            withContext(mainAsyncExceptionHandler) {
+            withMainContext {
               dWebView.destroy()
               closeWatcherController.resolveToken(consumeToken, it)
             }

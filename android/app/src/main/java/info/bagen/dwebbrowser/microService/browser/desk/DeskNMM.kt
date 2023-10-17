@@ -32,7 +32,6 @@ import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.consumeEachJsonLine
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.toJsonElement
-import org.dweb_browser.sys.window.core.AlertModal
 import org.dweb_browser.sys.window.core.windowInstancesManager
 
 val debugDesk = Debugger("desk")
@@ -121,20 +120,20 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     }
   }
 
-  suspend fun IHandlerContext.createAlertModal(
-    desktopController: DesktopController, mmid: MMID
-  ) = openAppLock.withLock {
-    val runningApp =
-      runningApps[mmid] ?: throwException(HttpStatusCode.NotFound, "App:$mmid no running")
-    val appMainWindow = runningApp.getMainWindow() ?: throwException(
-      HttpStatusCode.Forbidden,
-      "App:$mmid's main window should be open"
-    )
-
-    val alertModal = request.queryAs<AlertModal>()
-    appMainWindow.appendAlertModal(alertModal)
-
-  }
+//  suspend fun IHandlerContext.createAlertModal(
+//    desktopController: DesktopController, mmid: MMID
+//  ) = openAppLock.withLock {
+//    val runningApp =
+//      runningApps[mmid] ?: throwException(HttpStatusCode.NotFound, "App:$mmid no running")
+//    val appMainWindow = runningApp.getMainWindow() ?: throwException(
+//      HttpStatusCode.Forbidden,
+//      "App:$mmid's main window should be open"
+//    )
+//
+//    val alertModal = request.queryAs<AlertModal>()
+//    appMainWindow.appendAlertModal(alertModal)
+//
+//  }
 
   fun IHandlerContext.getWindow() = request.query("wid").let { wid ->
     windowInstancesManager.get(wid) ?: throw Exception("No Found by window id: '$wid'")

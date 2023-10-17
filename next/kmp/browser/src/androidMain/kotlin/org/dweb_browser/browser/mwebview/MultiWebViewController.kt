@@ -8,13 +8,14 @@ import com.google.accompanist.web.WebViewNavigator
 import com.google.accompanist.web.WebViewState
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import org.dweb_browser.core.ipc.Ipc
+import org.dweb_browser.core.ipc.helper.IpcEvent
+import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.dwebview.engine.DWebViewEngine
@@ -23,9 +24,7 @@ import org.dweb_browser.helper.ChangeableList
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.runBlockingCatching
-import org.dweb_browser.core.module.MicroModule
-import org.dweb_browser.core.ipc.Ipc
-import org.dweb_browser.core.ipc.helper.IpcEvent
+import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.createWindowAdapterManager
 import java.util.concurrent.atomic.AtomicInteger
@@ -102,7 +101,7 @@ class MultiWebViewController(
    */
   suspend fun openWebView(url: String) = appendWebViewAsItem(createDwebView(url))
 
-  suspend fun createDwebView(url: String): DWebViewEngine = withContext(mainAsyncExceptionHandler) {
+  suspend fun createDwebView(url: String): DWebViewEngine = withMainContext {
     val currentActivity = win.viewController.activity!!;// App.appContext
     val dWebView = DWebViewEngine(
       currentActivity, remoteMM, DWebViewOptions(
@@ -143,7 +142,7 @@ class MultiWebViewController(
   suspend fun closeWebView(webViewId: String) =
     webViewList.find { it.webviewId == webViewId }?.let { viewItem ->
       webViewList.remove(viewItem)
-      withContext(Dispatchers.Main) {
+      withMainContext {
         viewItem.webView.destroy()
       }
       webViewCloseSignal.emit(webViewId)
@@ -154,7 +153,7 @@ class MultiWebViewController(
    * 移除所有列表
    */
   suspend fun destroyWebView(): Boolean {
-    withContext(Dispatchers.Main) {
+    withMainContext {
       webViewList.forEach { viewItem ->
         viewItem.webView.destroy()
       }

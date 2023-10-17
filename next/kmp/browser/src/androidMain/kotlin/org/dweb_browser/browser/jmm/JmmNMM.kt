@@ -1,5 +1,6 @@
 package org.dweb_browser.browser.jmm
 
+import android.util.Log
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLBuilder
@@ -37,6 +38,7 @@ import org.dweb_browser.helper.isGreaterThan
 import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.sys.window.core.constant.WindowMode
 import org.dweb_browser.sys.window.core.helper.setFromManifest
+import org.dweb_browser.sys.window.core.onRenderer
 import org.dweb_browser.sys.window.ext.openMainWindow
 import java.io.File
 
