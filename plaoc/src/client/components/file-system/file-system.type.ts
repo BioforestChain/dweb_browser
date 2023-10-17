@@ -2,7 +2,7 @@
 export interface FilesOption {
   files?: FileList;
   file?:File;
-  saveLocation:string
+  saveLocation?:string
 }
 
 export interface FilesResult {
