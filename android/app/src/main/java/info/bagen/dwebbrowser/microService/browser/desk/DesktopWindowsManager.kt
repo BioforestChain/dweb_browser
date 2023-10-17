@@ -51,18 +51,18 @@ class DesktopWindowsManager(val viewController: PlatformViewController) :
             height = displayHeight / sqrt(5f)
           }
           /// 在 top 和 left 上，为窗口动态配置坐标，避免层叠在一起
-          if (left.isNaN()) {
+          if (x.isNaN()) {
             val maxLeft = displayWidth - width
             val gapSize = 47f; // 质数
             val gapCount = (maxLeft / gapSize).toInt();
 
-            left = gapSize + (allWindows.size % gapCount) * gapSize
+            x = gapSize + (allWindows.size % gapCount) * gapSize
           }
-          if (top.isNaN()) {
+          if (y.isNaN()) {
             val maxTop = displayHeight - height
             val gapSize = 71f; // 质数
             val gapCount = (maxTop / gapSize).toInt();
-            top = gapSize + (allWindows.size % gapCount) * gapSize
+            y = gapSize + (allWindows.size % gapCount) * gapSize
           }
         }
       }

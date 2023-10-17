@@ -12,7 +12,7 @@ import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.compose.toHex
 import org.dweb_browser.sys.window.core.ModalState
-import org.dweb_browser.sys.window.core.WindowBounds
+import org.dweb_browser.sys.window.core.Rect
 import kotlin.reflect.KClass
 
 /**
@@ -76,57 +76,57 @@ open class WindowPropertyField<T : Any> private constructor(
     val ALL_KEYS by lazy { _ALL_VALUES.mapIndexed { index, field -> index to field }.toMap() }
     val ALL_VALUES by lazy { _ALL_VALUES.associateBy { it.fieldKey } }
 
-    val Constants = required(WindowPropertyKeys.Constants, WindowConstants("", "", ""));
-    val Title = optional<String>(WindowPropertyKeys.Title);
-    val IconUrl = optional<String>(WindowPropertyKeys.IconUrl);
-    val IconMaskable = required(WindowPropertyKeys.IconMaskable, false);
-    val IconMonochrome = required(WindowPropertyKeys.IconMonochrome, false);
-    val Mode = required(WindowPropertyKeys.Mode, WindowMode.FLOATING);
-    val Visible = required(WindowPropertyKeys.Visible, true);
-    val CanGoBack = optional<Boolean>(WindowPropertyKeys.CanGoBack, false);
-    val CanGoForward = optional<Boolean>(WindowPropertyKeys.CanGoForward);
-    val Resizable = required(WindowPropertyKeys.Resizable, true);
-    val Focus = required(WindowPropertyKeys.Focus, false);
-    val ZIndex = required(WindowPropertyKeys.ZIndex, 0);
+    val Constants = required(WindowPropertyKeys.Constants, WindowConstants("", "", ""))
+    val Title = optional<String>(WindowPropertyKeys.Title)
+    val IconUrl = optional<String>(WindowPropertyKeys.IconUrl)
+    val IconMaskable = required(WindowPropertyKeys.IconMaskable, false)
+    val IconMonochrome = required(WindowPropertyKeys.IconMonochrome, false)
+    val Mode = required(WindowPropertyKeys.Mode, WindowMode.FLOATING)
+    val Visible = required(WindowPropertyKeys.Visible, true)
+    val CanGoBack = optional<Boolean>(WindowPropertyKeys.CanGoBack, false)
+    val CanGoForward = optional<Boolean>(WindowPropertyKeys.CanGoForward)
+    val Resizable = required(WindowPropertyKeys.Resizable, true)
+    val Focus = required(WindowPropertyKeys.Focus, false)
+    val ZIndex = required(WindowPropertyKeys.ZIndex, 0)
     val Children = required<List<UUID>>(
       WindowPropertyKeys.Children,
       listOf(),
       serializer = ListSerializer(String.serializer())
-    );
-    val Parent = optional<String>(WindowPropertyKeys.Parent);
-    val Flashing = required(WindowPropertyKeys.Flashing, false);
-    val FlashColor = required(WindowPropertyKeys.FlashColor, Color.White.toHex(true));
-    val ProgressBar = required(WindowPropertyKeys.ProgressBar, -1f);
-    val AlwaysOnTop = required(WindowPropertyKeys.AlwaysOnTop, false);
-    val DesktopIndex = required(WindowPropertyKeys.DesktopIndex, 1);
-    val ScreenId = required(WindowPropertyKeys.ScreenId, -1);
-    val TopBarOverlay = required(WindowPropertyKeys.TopBarOverlay, false);
-    val BottomBarOverlay = required(WindowPropertyKeys.BottomBarOverlay, false);
-    val TopBarContentColor = required(WindowPropertyKeys.TopBarContentColor, "auto");
-    val TopBarContentDarkColor = required(WindowPropertyKeys.TopBarContentDarkColor, "auto");
-    val TopBarBackgroundColor = required(WindowPropertyKeys.TopBarBackgroundColor, "auto");
-    val TopBarBackgroundDarkColor = required(WindowPropertyKeys.TopBarBackgroundDarkColor, "auto");
-    val BottomBarContentColor = required(WindowPropertyKeys.BottomBarContentColor, "auto");
-    val BottomBarContentDarkColor = required(WindowPropertyKeys.BottomBarContentDarkColor, "auto");
-    val BottomBarBackgroundColor = required(WindowPropertyKeys.BottomBarBackgroundColor, "auto");
+    )
+    val Parent = optional<String>(WindowPropertyKeys.Parent)
+    val Flashing = required(WindowPropertyKeys.Flashing, false)
+    val FlashColor = required(WindowPropertyKeys.FlashColor, Color.White.toHex(true))
+    val ProgressBar = required(WindowPropertyKeys.ProgressBar, -1f)
+    val AlwaysOnTop = required(WindowPropertyKeys.AlwaysOnTop, false)
+    val DesktopIndex = required(WindowPropertyKeys.DesktopIndex, 1)
+    val ScreenId = required(WindowPropertyKeys.ScreenId, -1)
+    val TopBarOverlay = required(WindowPropertyKeys.TopBarOverlay, false)
+    val BottomBarOverlay = required(WindowPropertyKeys.BottomBarOverlay, false)
+    val TopBarContentColor = required(WindowPropertyKeys.TopBarContentColor, "auto")
+    val TopBarContentDarkColor = required(WindowPropertyKeys.TopBarContentDarkColor, "auto")
+    val TopBarBackgroundColor = required(WindowPropertyKeys.TopBarBackgroundColor, "auto")
+    val TopBarBackgroundDarkColor = required(WindowPropertyKeys.TopBarBackgroundDarkColor, "auto")
+    val BottomBarContentColor = required(WindowPropertyKeys.BottomBarContentColor, "auto")
+    val BottomBarContentDarkColor = required(WindowPropertyKeys.BottomBarContentDarkColor, "auto")
+    val BottomBarBackgroundColor = required(WindowPropertyKeys.BottomBarBackgroundColor, "auto")
     val BottomBarBackgroundDarkColor =
-      required(WindowPropertyKeys.BottomBarBackgroundDarkColor, "auto");
+      required(WindowPropertyKeys.BottomBarBackgroundDarkColor, "auto")
     val BottomBarTheme =
-      required(WindowPropertyKeys.BottomBarTheme, WindowBottomBarTheme.Navigation);
-    val ThemeColor = required(WindowPropertyKeys.ThemeColor, "auto");
-    val ThemeDarkColor = required(WindowPropertyKeys.ThemeDarkColor, "auto");
-    val Bounds = required(WindowPropertyKeys.Bounds, WindowBounds());
-    val KeyboardInsetBottom = required(WindowPropertyKeys.KeyboardInsetBottom, 0f);
-    val KeyboardOverlaysContent = required(WindowPropertyKeys.KeyboardOverlaysContent, false);
-    val CloseTip = optional<String>(WindowPropertyKeys.CloseTip);
-    val ShowCloseTip = required(WindowPropertyKeys.ShowCloseTip, false);
-    val ShowMenuPanel = required(WindowPropertyKeys.ShowMenuPanel, false);
-    val ColorScheme = required(WindowPropertyKeys.ColorScheme, WindowColorScheme.Normal);
+      required(WindowPropertyKeys.BottomBarTheme, WindowBottomBarTheme.Navigation)
+    val ThemeColor = required(WindowPropertyKeys.ThemeColor, "auto")
+    val ThemeDarkColor = required(WindowPropertyKeys.ThemeDarkColor, "auto")
+    val Bounds = required(WindowPropertyKeys.Bounds, Rect())
+    val KeyboardInsetBottom = required(WindowPropertyKeys.KeyboardInsetBottom, 0f)
+    val KeyboardOverlaysContent = required(WindowPropertyKeys.KeyboardOverlaysContent, false)
+    val CloseTip = optional<String>(WindowPropertyKeys.CloseTip)
+    val ShowCloseTip = required(WindowPropertyKeys.ShowCloseTip, false)
+    val ShowMenuPanel = required(WindowPropertyKeys.ShowMenuPanel, false)
+    val ColorScheme = required(WindowPropertyKeys.ColorScheme, WindowColorScheme.Normal)
     val Modals = required<Map<UUID, ModalState>>(
       WindowPropertyKeys.Modals,
       mapOf(),
       serializer = MapSerializer(String.serializer(), ModalState.serializer())
-    );
+    )
   }
 
 }

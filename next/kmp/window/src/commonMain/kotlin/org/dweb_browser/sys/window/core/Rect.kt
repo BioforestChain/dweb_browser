@@ -8,23 +8,23 @@ import kotlinx.serialization.Serializable
  * 默认值是NaN，这种情况下，窗口构建者需要自己对其进行赋值
  */
 @Serializable
-data class WindowBounds(
-  val left: Float = Float.NaN,
-  val top: Float = Float.NaN,
+data class Rect(
+  val x: Float = Float.NaN,
+  val y: Float = Float.NaN,
   val width: Float = Float.NaN,
   val height: Float = Float.NaN,
 ) {
   companion object {
-    val Zero = WindowBounds(0f, 0f, 0f, 0f)
+    val Zero = Rect(0f, 0f, 0f, 0f)
   }
 
-  fun toMutable() = Mutable(left, top, width, height)
+  fun toMutable() = Mutable(x, y, width, height)
   class Mutable(
-    var left: Float,
-    var top: Float,
+    var x: Float,
+    var y: Float,
     var width: Float,
     var height: Float,
   ) {
-    fun toImmutable() = WindowBounds(left, top, width, height)
+    fun toImmutable() = Rect(x, y, width, height)
   }
 }

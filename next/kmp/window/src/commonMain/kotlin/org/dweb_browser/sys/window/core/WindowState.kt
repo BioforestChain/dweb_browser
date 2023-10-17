@@ -16,7 +16,6 @@ import org.dweb_browser.sys.window.core.constant.WindowConstants
 import org.dweb_browser.sys.window.core.constant.WindowPropertyField
 import org.dweb_browser.sys.window.core.constant.WindowPropertyKeys
 
-
 @Suppress("UNCHECKED_CAST")
 class WindowStateSerializer : KSerializer<WindowState> {
   override val descriptor = buildClassSerialDescriptor("WindowState") {
@@ -101,10 +100,10 @@ class WindowState(
   @Serializable
   var bounds by WindowPropertyField.Bounds.toObserve(observable)
 
-  fun updateBounds(updater: WindowBounds.() -> WindowBounds) =
+  fun updateBounds(updater: Rect.() -> Rect) =
     updater.invoke(bounds).also { bounds = it }
 
-  fun updateMutableBounds(updater: WindowBounds.Mutable.() -> Unit) =
+  fun updateMutableBounds(updater: Rect.Mutable.() -> Unit) =
     bounds.toMutable().also(updater).also { bounds = it.toImmutable() }
 
   /**

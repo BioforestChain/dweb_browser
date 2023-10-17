@@ -108,7 +108,7 @@ abstract class WindowController(
 
   suspend fun maximize() = managerRunOr({ it.maximizeWindow(this) }, { simpleMaximize() })
 
-  private var _beforeMaximizeBounds: WindowBounds? = null
+  private var _beforeMaximizeBounds: Rect? = null
 
   /**
    * 记忆窗口最大化之前的记忆

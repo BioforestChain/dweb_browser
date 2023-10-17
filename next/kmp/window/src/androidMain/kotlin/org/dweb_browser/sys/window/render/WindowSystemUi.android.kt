@@ -14,7 +14,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowInsetsControllerCompat
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.launch
-import org.dweb_browser.sys.window.core.WindowBounds
+import org.dweb_browser.sys.window.core.Rect
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowsManager
 import org.dweb_browser.sys.window.core.constant.debugWindow
@@ -31,20 +31,20 @@ actual fun <T : WindowController> WindowsManager<T>.EffectKeyboard() {
   val view = LocalView.current
 
   LaunchedEffect(imeVisible) { // WindowInsets.ime 对象并不会变化，所以导致这个重组不会重复执行
-    state.imeBounds = if (imeVisible) {
+    state.imeBoundingRect = if (imeVisible) {
       val imeHeightDp = ime.getBottom(density) / density.density
-      WindowBounds(
-        left = 0f,
-        top = view.height / density.density - imeHeightDp,
+      Rect(
+        x = 0f,
+        y = view.height / density.density - imeHeightDp,
         height = imeHeightDp,
         width = view.width / density.density,
       )
     } else {
-      WindowBounds.Zero
+      Rect.Zero
     }
 
     // 输入法高度即为 heightDiff
-    debugWindow("ManagerState/IME", "imeBounds:${state.imeBounds}, imeVisible:${state.imeVisible}")
+    debugWindow("ManagerState/IME", "imeBounds:${state.imeBoundingRect}, imeVisible:${state.imeVisible}")
   }
 
 }

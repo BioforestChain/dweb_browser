@@ -1,9 +1,11 @@
 package info.bagen.dwebbrowser.microService.browser.desk
 
 import io.ktor.http.HttpMethod
+import kotlinx.serialization.Serializable
 import org.dweb_browser.core.http.bind
 import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.toJsonElement
+import org.dweb_browser.sys.window.core.Rect
 import org.dweb_browser.sys.window.core.constant.WindowPropertyKeys
 import org.dweb_browser.sys.window.core.constant.WindowStyle
 import org.dweb_browser.sys.window.core.constant.debugWindow
@@ -52,6 +54,19 @@ suspend fun DeskNMM.windowProtocol(desktopController: DesktopController) {
       "/setStyle" bind HttpMethod.Get to defineEmptyResponse {
         getWindow().setStyle(request.queryAs<WindowStyle>())
       },
+      "/display" bind HttpMethod.Get to defineJsonResponse {
+        val manager =
+          getWindow().manager ?: return@defineJsonResponse "not found window".toJsonElement()
+        val state = manager.state
+
+        @Serializable
+        data class Display(
+          val height: Float,
+          val width: Float,
+          val imeBoundingRect: Rect
+        )
+        Display(state.viewHeightDp, state.viewWidthDp, state.imeBoundingRect).toJsonElement()
+      }
     )
   }
 }

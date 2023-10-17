@@ -1,6 +1,6 @@
 package org.dweb_browser.sys.window.core.constant
 
 enum class WindowManagerPropertyKeys(val fieldName: String) {
-  ImeBounds("ImeBounds"),
+  ImeBoundingRect("ImeBounds"),
   ImeVisible("ImeVisible"),
 }

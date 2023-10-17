@@ -65,18 +65,18 @@ fun WindowState.setDefaultFloatWindowBounds(
       height = displayHeight / sqrt(5f)
     }
     /// 在 top 和 left 上，为窗口动态配置坐标，避免层叠在一起
-    if (force || left.isNaN()) {
+    if (force || x.isNaN()) {
       val maxLeft = displayWidth - width
       val gapSize = 47f; // 质数
       val gapCount = (maxLeft / gapSize).toInt();
 
-      left = gapSize + (seed % gapCount) * gapSize
+      x = gapSize + (seed % gapCount) * gapSize
     }
-    if (force || top.isNaN()) {
+    if (force || y.isNaN()) {
       val maxTop = displayHeight - height
       val gapSize = 71f; // 质数
       val gapCount = (maxTop / gapSize).toInt();
-      top = gapSize + (seed % gapCount) * gapSize
+      y = gapSize + (seed % gapCount) * gapSize
     }
   }
 }

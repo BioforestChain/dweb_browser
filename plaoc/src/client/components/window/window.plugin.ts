@@ -2,7 +2,7 @@ import { bindThis } from "../../helper/bindThis.ts";
 import { cacheGetter } from "../../helper/cacheGetter.ts";
 import { $Coder, StateObserver } from "../../util/StateObserver.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
-import { $WindowRawState, $WindowState } from "./window.type.ts";
+import { $DisplayState, $WindowRawState, $WindowState } from "./window.type.ts";
 /**
  * 访问 window 能力的插件
  */
@@ -37,6 +37,13 @@ export class WindowPlugin extends BasePlugin {
   protected async fetchState<S extends $WindowRawState>() {
     return await this.fetchApi("/getState", { search: await this.windowInfo }).object<S>();
   }
+
+
+  @bindThis
+  async getDisplay<S extends $DisplayState>() {
+    return await this.fetchApi("/display", { search: await this.windowInfo }).object<S>();
+  }
+
   get getState() {
     return this.state.getState;
   }

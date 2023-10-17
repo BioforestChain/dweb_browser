@@ -54,8 +54,8 @@ fun WindowPreviewer(
       it.updateMutableBounds {
         width = maxWidth.value;
         height = maxHeight.value;
-        left = 0f;
-        top = 0f;
+        x = 0f;
+        y = 0f;
       }
     }
     val platformViewController = rememberPlatformViewController()

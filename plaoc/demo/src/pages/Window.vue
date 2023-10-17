@@ -9,11 +9,11 @@ const $logPanel = ref<typeof LogPanel>();
 const $window = ref<HTMLDwebWindowElement>();
 
 let console: Console;
-let windowPlugin: HTMLDwebWindowElement;
+let statusBar: HTMLDwebWindowElement;
 onMounted(async () => {
   console = toConsole($logPanel);
-  windowPlugin = $window.value!;
-  onStatusBarChange(await windowPlugin.getState(), "init");
+  statusBar = $window.value!;
+  onStatusBarChange(await statusBar.getState(), "init");
 });
 function defineRef<T>(
   name: string,
@@ -44,39 +44,44 @@ const onStatusBarChange = (info: $WindowState, type: string) => {
 
 const [topBarContentColor, setTopBarContentColor, getTopBarContentColor] = defineRef<$WindowStyleColor>(
   "topBarContentColor",
-  async () => (await windowPlugin.getState()).topBarContentColor,
-  (topBarContentColor) => windowPlugin.setStyle({ topBarContentColor })
+  async () => (await statusBar.getState()).topBarContentColor,
+  (topBarContentColor) => statusBar.setStyle({ topBarContentColor })
 );
 
 const [topBarBackgroundColor, setTopBarBackgroundColor, getTopBarBackgroundColor] = defineRef<$WindowStyleColor>(
   "topBarBackgroundColor",
-  async () => (await windowPlugin.getState()).topBarBackgroundColor,
-  (topBarBackgroundColor) => windowPlugin.setStyle({ topBarBackgroundColor })
+  async () => (await statusBar.getState()).topBarBackgroundColor,
+  (topBarBackgroundColor) => statusBar.setStyle({ topBarBackgroundColor })
 );
 
 const [topBarOverlay, setTopBarOverlay, getTopBarOverlay] = defineRef<boolean>(
   "topBarOverlay",
-  async () => (await windowPlugin.getState()).topBarOverlay,
-  (topBarOverlay) => windowPlugin.setStyle({ topBarOverlay })
+  async () => (await statusBar.getState()).topBarOverlay,
+  (topBarOverlay) => statusBar.setStyle({ topBarOverlay })
 );
 
+const getDisplay = async () => {
+  const data = await statusBar.getDisplay()
+  console.log("getDisplay=>",data)
+}
+
 const focus = () => {
-  return windowPlugin.focusWindow();
+  return statusBar.focusWindow();
 };
 const blur = () => {
-  return windowPlugin.blurWindow();
+  return statusBar.blurWindow();
 };
 const maximize = () => {
-  return windowPlugin.maximize();
+  return statusBar.maximize();
 };
 const unMaximize = () => {
-  return windowPlugin.unMaximize();
+  return statusBar.unMaximize();
 };
 const visible = () => {
-  return windowPlugin.visible();
+  return statusBar.visible();
 };
 const close = () => {
-  return windowPlugin.close();
+  return statusBar.close();
 };
 </script>
 <template>
@@ -145,6 +150,7 @@ const close = () => {
           Set
         </button>
         <button class="inline-block rounded-full btn btn-accent" @click="getTopBarOverlay">Get</button>
+        <button class="inline-block rounded-full btn btn-accent" @click="getDisplay">getDisplay</button>
       </div>
     </article>
   </div>

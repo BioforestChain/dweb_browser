@@ -11,13 +11,13 @@ import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import org.dweb_browser.core.module.BaseThemeActivity
 import org.dweb_browser.helper.compose.theme.DwebBrowserAppTheme
-import org.dweb_browser.sys.window.core.WindowBounds
+import org.dweb_browser.sys.window.core.Rect
 
 @SuppressLint("ModifierFactoryExtensionFunction")
-fun WindowBounds.toModifier(
+fun Rect.toModifier(
   modifier: Modifier = Modifier,
 ) = modifier
-  .offset(left.dp, top.dp)
+  .offset(x.dp, y.dp)
   .size(width.dp, height.dp)
 
 class DesktopActivity : BaseThemeActivity() {
