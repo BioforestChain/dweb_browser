@@ -219,12 +219,19 @@ object FileSystemPlugin {
     }
   }
 
-  fun saveToPictureDirectory(fileName: String, inputStream: InputStream) {
+  fun saveToPictureDirectory(
+    fileName: String,
+    inputStream: InputStream,
+    saveLocation: String? = "DWeb"
+  ) {
     val contentValues = ContentValues().apply {
       put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
       put(MediaStore.MediaColumns.MIME_TYPE, "image/${FileOpener.getMimeType(fileName)}")
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        put(MediaStore.MediaColumns.RELATIVE_PATH, "${Environment.DIRECTORY_PICTURES}/DWeb")
+        put(
+          MediaStore.MediaColumns.RELATIVE_PATH,
+          "${Environment.DIRECTORY_PICTURES}/${saveLocation}"
+        )
         put(MediaStore.Video.Media.IS_PENDING, 1)
       }
     }

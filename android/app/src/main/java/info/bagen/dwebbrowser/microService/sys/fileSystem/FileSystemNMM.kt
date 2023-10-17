@@ -16,6 +16,8 @@ import org.http4k.core.Method
 import org.http4k.core.MultipartFormBody
 import org.http4k.core.Response
 import org.http4k.core.Status
+import org.http4k.lens.Query
+import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 
@@ -29,7 +31,7 @@ class FileSystemNMM : NativeMicroModule("file.sys.dweb", "file") {
   }
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-//    val qurey_path = Query.string().required("path")
+    val save_location = Query.string().optional("saveLocation")
 //    val qurey_directory = Query.string().required("directory")
 //    val qurey_optional_directory = Query.string().optional("directory")
 //    val qurey_data = Query.string().required("data")
@@ -61,6 +63,7 @@ class FileSystemNMM : NativeMicroModule("file.sys.dweb", "file") {
       "/rename" bind Method.GET to defineHandler { request ->
       },
       "/savePictures" bind Method.POST to defineHandler { request, ipc ->
+        val saveLocation = save_location(request)
         try {
           openActivity()
 
@@ -70,7 +73,7 @@ class FileSystemNMM : NativeMicroModule("file.sys.dweb", "file") {
             // 写入到Pictures目录
             fileByteArray.map { multipartFormFile ->
               FileSystemPlugin.saveToPictureDirectory(
-                multipartFormFile.filename, multipartFormFile.content
+                multipartFormFile.filename, multipartFormFile.content, saveLocation
               )
             }
           } else {

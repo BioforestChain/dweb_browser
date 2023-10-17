@@ -311,11 +311,12 @@ abstract class Ipc {
     }
     CoroutineScope(defaultAsyncExceptionHandler).launch {
       val ipc = this@Ipc
-      var pingDelay = 50L
-      while (!ready.isResolved && !ipc.isClosed && pingDelay < 5000L) {
+      var pingDelay = 200L
+      var timeout = 30000L
+      while (!ready.isResolved && !ipc.isClosed && timeout > 0L) {
         ipc.postMessage(IpcEvent.fromUtf8("ping", ""))
         delay(pingDelay)
-        pingDelay *= 3;
+        timeout -= pingDelay
       }
     }
     ready
