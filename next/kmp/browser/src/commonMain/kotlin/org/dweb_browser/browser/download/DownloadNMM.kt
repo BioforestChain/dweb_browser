@@ -5,6 +5,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.fromFilePath
 import io.ktor.utils.io.ByteReadChannel
+import io.ktor.utils.io.cancel
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import okio.FileMetadata
@@ -108,11 +109,21 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
         downloadTask.downloadSignal.emit(downloadTask)
       },
       // 暂停下载
-      "/pause" bind HttpMethod.Put to defineBooleanResponse {
+      "/pause" bind HttpMethod.Get to defineBooleanResponse {
+        val taskId = request.query("taskId")
+        val task = controller.downloadManagers[taskId]
+          ?: return@defineBooleanResponse false
+        val readChannel = task.readChannel ?: return@defineBooleanResponse  false
+        readChannel.cancel()
         true
       },
       // 取消下载
-      "/cancel" bind HttpMethod.Put to defineBooleanResponse {
+      "/cancel" bind HttpMethod.Get to defineBooleanResponse {
+        val taskId = request.query("taskId")
+        val task = controller.downloadManagers[taskId]
+          ?: return@defineBooleanResponse false
+        val pureStream = task.readChannel ?: return@defineBooleanResponse  false
+//        pureStream.getReader("taskId:${task.id}").cancel()
         true
       },
     )
@@ -138,7 +149,7 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
       completeCallbackUrl = params.completeCallbackUrl,
       mime = mimeFactory(response.headers, url),
       filepath = createFlePath(url),
-      stream = response.stream()
+      readChannel = null
     )
     // 直接变成失败
     if (!response.isOk()) {
@@ -152,6 +163,7 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
         state = DownloadState.Init,
         total = response.headers.get("content-length")?.toLong() ?: 1L
       )
+//      task.readChannel = t
     }
     // 存储到任务管理器
     controller.downloadManagers[task.id] = task

@@ -8,7 +8,6 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.dweb_browser.core.help.types.MMID
-import org.dweb_browser.core.http.PureStream
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.consumeEachArrayRange
 
@@ -32,7 +31,7 @@ data class DownloadTask(
   /** 文件路径 */
   val filepath: String,
   @Transient
-  val stream: PureStream? = null,
+  val readChannel: ByteReadChannel? = null,
 ) {
   /** 标记当前下载状态 */
   var status: DownloadStateEvent = DownloadStateEvent()
@@ -112,7 +111,7 @@ class DownloadController(val mm: DownloadNMM) {
   }
 
   internal suspend fun downloadFactory(task: DownloadTask): Boolean {
-    val stream = task.stream ?: return false
+    val channel = task.readChannel ?: return false
     // 开始下载 存储状态到内存
     downloadState.emit(Pair(task.id, task.status))
     // 已经存在了从断点开始
@@ -123,7 +122,6 @@ class DownloadController(val mm: DownloadNMM) {
         task.status.current = it
       }
     }
-    val channel: ByteReadChannel = stream.getReader("taskId:${task.id}")
     val buffer = task.middleware(channel)
     mm.appendFile(task, buffer)
     return true
@@ -150,7 +148,6 @@ class DownloadController(val mm: DownloadNMM) {
         } else {
           status.current += byteArray.size
           // 触发进度更新
-          println("xxxx=> ${this@middleware}")
           downloadSignal.emit(this@middleware)
           output.writePacket(ByteReadPacket(byteArray))
         }
