@@ -3,13 +3,13 @@ compileSdkVersion = "34" # Int
 buildToolsVersion = "29.0.2"
 minSdkVersion = "28" # Int
 targetSdkVersion = "34" # Int
-versionCode = "18" # Int
-versionName = "2.231016.1"
+versionCode = "20" # Int
+versionName = "2.231017.0"
 kotlinCompilerExtensionVersion = "1.5.3-dev-k1.9.10-593b4c95fce"
 jvmTarget = "17"
 javaVersion = "VERSION_17" # JavaVersion.VERSION_17
 
-agp = "8.2.0-beta05"
+agp = "8.1.2"
 kotlin-version = "1.9.10"
 ksp = "1.9.10-1.0.13"
 junit = "4.13.2"
