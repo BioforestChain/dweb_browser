@@ -2,7 +2,7 @@ import { createMockModuleServerIpc } from "../../../common/websocketIpc.ts";
 import { bindThis } from "../../helper/bindThis.ts";
 import { ListenerCallback } from "../base/BaseEvent.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
-import { $MMID } from "../base/base.type.ts";
+import { $MMID } from "../index.ts";
 import { UpdateControllerEvent, UpdateControllerMap } from "./dweb-update-controller.type.ts";
 
 class UpdateControllerPlugin extends BasePlugin {
@@ -25,26 +25,6 @@ class UpdateControllerPlugin extends BasePlugin {
         url: metadataUrl,
       },
     }).boolean();
-  }
-
-  /**
-   * 检查是否有新版本
-   * @compatibility android/ios only
-   * @returns
-   */
-  getVersion() {
-    return this.buildApiRequest("/usr/version.json", {
-      pathPrefix: "/internal/",
-    })
-      .fetch()
-      .object<{ version: string }>();
-    // const metadata = await fetch(metadataUrl);
-    // const newVersion = (await metadata.json()).version
-    // console.log("checkNewVersion=>", result,newVersion,this.compareVersion(result.version,newVersion));
-    // if (this.compareVersion(result.version,newVersion) < 0) {
-    //     return true
-    // }
-    // return false;
   }
 
   // 暂停

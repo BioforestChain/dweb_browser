@@ -1,7 +1,5 @@
-import { IpcHeaders } from "../../deps.ts";
-import { $PlaocConfig, X_PLAOC_QUERY } from "./const.ts";
+import { $PlaocConfig } from "./const.ts";
 import { $DwebHttpServerOptions, $OnFetchReturn, FetchEvent, IpcResponse, jsProcess } from "./deps.ts";
-import { urlStore } from "./helper/urlStore.ts";
 import { HttpServer, cors } from "./http-helper.ts";
 import { PlaocConfig } from "./plaoc-config.ts";
 import { setupDB } from "./shim/db.shim.ts";
@@ -36,11 +34,6 @@ export class Server_www extends HttpServer {
   }
   protected async _provider(request: FetchEvent, root = "www"): Promise<$OnFetchReturn> {
     let { pathname } = request;
-    // 前端获取一些配置的param
-    if (pathname.startsWith(`/${X_PLAOC_QUERY.GET_CONFIG_URL}`)) {
-      const obj = urlStore.get() ?? "";
-      return IpcResponse.fromJson(request.req_id, 200, cors(new IpcHeaders()), obj, request.ipc);
-    }
     // 配置config
     if (pathname.startsWith(CONFIG_PREFIX)) {
       return this._config(request);
