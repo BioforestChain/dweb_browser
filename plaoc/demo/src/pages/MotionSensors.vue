@@ -1,0 +1,62 @@
+<script setup lang="ts">
+import { onMounted, ref } from "vue";
+import LogPanel, { toConsole, defineLogAction } from "../components/LogPanel.vue";
+import type { HTMLDwebMotionSensorsElement, $Axis } from "../plugin";
+const title = "MotionSensors";
+
+const $logPanel = ref<typeof LogPanel>();
+const $motionSensorsPlugin = ref<HTMLDwebMotionSensorsElement>();
+
+let console: Console;
+let motionSensors: HTMLDwebMotionSensorsElement;
+onMounted(() => {
+  console = toConsole($logPanel);
+  motionSensors = $motionSensorsPlugin.value!;
+});
+
+
+const startAccelerometer = defineLogAction(
+  async () => {
+    motionSensors.startAccelerometer();
+    console.info("启动加速计传感器");
+    motionSensors.addEventListener("readAccelerometer", (event: Event) => {
+      const e = event as CustomEvent<$Axis>;
+      console.info("加速计: ", e.detail);
+    });
+  },
+  { name: "startAccelerometer", args: [], logPanel: $logPanel }
+);
+
+const startGyroscope = defineLogAction(
+  async () => {
+    motionSensors.startGyroscope();
+    console.info("启动陀螺仪传感器");
+    motionSensors.addEventListener("readGyroscope", (event: Event) => {
+      const e = event as CustomEvent<$Axis>;
+      console.info("陀螺仪: ", e.detail);
+    });
+  },
+  { name: "startGyroscope", args: [], logPanel: $logPanel }
+);
+
+</script>
+<template>
+  <dweb-torch ref="$motionSensorsPlugin"></dweb-torch>
+  <div class="card glass">
+    <figure class="icon">
+      <img src="../../assets/toast.svg" :alt="title" />
+    </figure>
+
+    <article class="card-body">
+      <h2 class="card-title">MotionSensors</h2>
+
+      <div class="justify-end card-actions">
+        <button class="inline-block rounded-full btn btn-accent" @click="startAccelerometer">启动加速计传感器</button>
+        <button class="inline-block rounded-full btn btn-accent" @click="startGyroscope">启动陀螺仪传感器</button>
+      </div>
+    </article>
+  </div>
+
+  <div class="divider">LOG</div>
+  <LogPanel ref="$logPanel"></LogPanel>
+</template>

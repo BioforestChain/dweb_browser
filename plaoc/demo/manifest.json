@@ -2,6 +2,7 @@
   "id":"game.dweb.waterbang.top.dweb",
   "name":"vue3-game",
   "short_name":"game",
+  "dweb_protocols": [],
   "description":"这是一个实例应用，包含了dweb_plugins全部组件的实例。",
   "logo":"https://www.bfmeta.info/imgs/logo3.webp",
   "images": [

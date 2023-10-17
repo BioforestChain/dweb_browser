@@ -21,4 +21,5 @@ export * from "./toast/index.ts";
 export * from "./torch/index.ts";
 export * from "./virtual-keyboard/index.ts";
 export * from "./window/index.ts";
+export * from "./motionSensors/index.ts";
 
