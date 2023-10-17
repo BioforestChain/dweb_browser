@@ -4,8 +4,8 @@ import App from "./App.vue";
 import "./app.css";
 
 // Vuetify
-import "vuetify/styles";
 import { createVuetify } from "vuetify";
+import "vuetify/styles";
 import { routes } from "./routes";
 
 createApp(App)

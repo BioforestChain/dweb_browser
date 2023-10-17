@@ -1,16 +1,19 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
+import * as PLAOC from "./plugin";
 import { dwebServiceWorker } from "./plugin";
 import { routes } from "./routes";
 
 const router = useRouter();
-
+onMounted(() => {
+  Object.assign(globalThis, { PLAOC });
+});
 // router.push("/biometrics")
 // router.push("/share")
 // router.push("/webview");
 // router.push("/splashscreen")
-router.push("/serviceworker")
+router.push("/serviceworker");
 // router.push("/inputfile");
 // router.push("/barcodescanning");
 // router.push("/network");
