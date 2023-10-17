@@ -27,7 +27,7 @@ data class BiometricsResult(val success: Boolean, val message: String)
 class BiometricsActivity : FragmentActivity() {
 
   companion object {
-    val biometrics_promise_out = PromiseOut<BiometricsResult>()
+    var biometrics_promise_out = PromiseOut<BiometricsResult>()
   }
 
   private lateinit var executor: Executor

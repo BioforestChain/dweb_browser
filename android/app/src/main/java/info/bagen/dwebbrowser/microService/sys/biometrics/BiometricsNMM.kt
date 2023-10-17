@@ -4,6 +4,7 @@ import android.content.Intent
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.sys.biometrics.BiometricsActivity.Companion.biometrics_promise_out
 import info.bagen.dwebbrowser.microService.sys.biometrics.BiometricsController.Companion.biometricsController
+import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.core.AndroidNativeMicroModule
 import org.dweb_browser.microservice.core.BootstrapContext
@@ -53,6 +54,7 @@ class BiometricsNMM : AndroidNativeMicroModule("biometrics.sys.dweb", "biometric
       },
       /** 生物识别*/
       "/biometrics" bind Method.GET to defineHandler { request, ipc ->
+        biometrics_promise_out = PromiseOut()
         debugBiometrics("fingerprint", ipc.remote.mmid)
         openActivity(ipc.remote.mmid)
         val context = biometricsController.waitActivityCreated()
