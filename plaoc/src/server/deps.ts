@@ -18,6 +18,7 @@ export const {
   IPC_METHOD,
   ReadableStreamIpc,
   ReadableStreamOut,
+  IpcBodySender,
 } = ipc;
 export type $Ipc = InstanceType<typeof Ipc>;
 export type $IpcRequest = InstanceType<typeof IpcRequest>;

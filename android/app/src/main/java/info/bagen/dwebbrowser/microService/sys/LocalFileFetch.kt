@@ -95,10 +95,19 @@ class LocalFileFetch private constructor() {
         if (readLen == -1) {
           readEnd = true
         }
-        ptr += readLen
+        if (readEnd) {
+          ptr = totalSize + 1
+        } else {
+          ptr += readLen
+        }
+        if (ptr == readLen) {
+          ptr += 1
+        }
       }
 
-      else -> -1
+      else -> {
+        -1
+      }
     }
 
     override fun close() {

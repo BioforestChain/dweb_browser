@@ -2,16 +2,17 @@ import { $PlaocConfig } from "./const.ts";
 import { $DwebHttpServerOptions, $OnFetchReturn, FetchEvent, IpcResponse, jsProcess } from "./deps.ts";
 import { HttpServer, cors } from "./http-helper.ts";
 import { PlaocConfig } from "./plaoc-config.ts";
+import { setupFetch } from "./shim/fetch.shim.ts";
 
 const CONFIG_PREFIX = "/config.sys.dweb/";
 /**给前端的文件服务 */
 export class Server_www extends HttpServer {
-  constructor(readonly plaocConfig:PlaocConfig){
-    super()
+  constructor(readonly plaocConfig: PlaocConfig) {
+    super();
   }
- get jsonPlaoc(){
-  return this.plaocConfig.config
- }
+  get jsonPlaoc() {
+    return this.plaocConfig.config;
+  }
   lang: string | null = null;
 
   protected _getOptions(): $DwebHttpServerOptions {
@@ -44,9 +45,24 @@ export class Server_www extends HttpServer {
     if (this.jsonPlaoc && root !== "server/emulator") {
       const proxyRequest = await this._plaocForwarder(request, this.jsonPlaoc);
       pathname = proxyRequest.url.pathname;
-      remoteIpcResponse = await jsProcess.nativeRequest(`file:///usr/${root}${pathname}?mode=stream`, {
-        headers: proxyRequest.headers,
-      });
+      const plaocShims = new Set((proxyRequest.url.searchParams.get("plaoc-shim") ?? "").split(",").filter(Boolean));
+      if (plaocShims.has("fetch")) {
+        remoteIpcResponse = await jsProcess.nativeRequest(`file:///usr/${root}${pathname}`, {
+          headers: proxyRequest.headers,
+        });
+        const rawText = await remoteIpcResponse.toResponse().text();
+        remoteIpcResponse = IpcResponse.fromText(
+          remoteIpcResponse.req_id,
+          remoteIpcResponse.statusCode,
+          remoteIpcResponse.headers,
+          `;(${setupFetch.toString()})();${rawText}`,
+          remoteIpcResponse.ipc
+        );
+      }else{
+        remoteIpcResponse = await jsProcess.nativeRequest(`file:///usr/${root}${pathname}?mode=stream`, {
+          headers: proxyRequest.headers,
+        });
+      }
     } else {
       remoteIpcResponse = await jsProcess.nativeRequest(`file:///usr/${root}${pathname}?mode=stream`);
     }
@@ -93,16 +109,24 @@ export class Server_www extends HttpServer {
       const pattern = urlPattern.exec(request.url);
       if (!pattern) continue;
 
-      const url = redirect.to.url;
-      const matches = url.matchAll(/{{\s*(.*?)\s*}}/g); // {{[\w\W]*?}}
-      const lang = this.lang;
-      let pathname = url;
-      // 执行表达式
-      for (const match of matches) {
-        const func = new Function("pattern", "lang", `return ${match[1]}`);
-        pathname = pathname.replace(/{{\s*(.*?)\s*}}/, func(pattern, lang));
-      }
-      request.url.pathname = pathname.replace(/\\/g, "/").replace(/\/\//g, "/");
+      const url = redirect.to.url
+        .replace(/\{\{\s*(.*?)\s*\}\}/g, (_exp, match) => {
+          const func = new Function("pattern", "lang", "config", `return ${match}`);
+          return func(pattern, this.lang, config);
+        })
+        .replace(/\\/g, "/")
+        .replace(/\/\//g, "/");
+      const newUrl = new URL(url, request.url);
+      request.url.hash = newUrl.hash;
+      request.url.host = newUrl.host;
+      request.url.hostname = newUrl.hostname;
+      request.url.href = newUrl.href;
+      request.url.password = newUrl.password;
+      request.url.pathname = newUrl.pathname;
+      request.url.port = newUrl.port;
+      request.url.protocol = newUrl.protocol;
+      request.url.search = newUrl.search;
+      request.url.username = newUrl.username;
       // appendHeaders
       const appendHeaders = redirect.to.appendHeaders;
       if (appendHeaders && Object.keys(appendHeaders).length !== 0) {

@@ -13,7 +13,7 @@ export class MetadataJsonGenerator {
   readonly baseMetadata: Partial<$JmmAppInstallManifest>;
   constructor(readonly flags: $MetadataJsonGeneratorOptions) {
     this.metadataFilepaths = (() => {
-      const tryFilenames = ["manifest.json", "package.json"];
+      const tryFilenames = ["metadata.json", "manifest.json", "package.json"];
       // 如果指定了项目目录，到项目目录里面搜索配置文件
       let dirs = [path.resolve(Deno.cwd(), flags.dir ?? "")];
       if (flags.mode === SERVE_MODE.USR_WWW) {

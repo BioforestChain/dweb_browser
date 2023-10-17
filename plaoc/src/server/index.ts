@@ -64,11 +64,8 @@ export const main = async () => {
   const wwwStartResult = await wwwServer.getStartResult();
   const apiStartResult = await apiServer.getStartResult();
   const usePublic =
-    plaocConfig.config.usePublicUrl ?? isMobile.isMobile()
-      ? navigator.userAgent.includes("Android")
-        ? false
-        : true
-      : true;
+    plaocConfig.config.usePublicUrl ??
+    (isMobile.isMobile() ? (navigator.userAgent.includes("Android") ? false : true) : true);
   const indexUrl = wwwStartResult.urlInfo.buildHtmlUrl(usePublic, (url) => {
     url.pathname = "/index.html";
     url.searchParams.set(X_PLAOC_QUERY.API_INTERNAL_URL, apiStartResult.urlInfo.buildUrl(usePublic).href);

@@ -336,7 +336,7 @@ class IpcBodySender(
 
         debugIpcBody("sender/PULLING/$stream", stream_id)
         when (val availableLen = stream.available()) {
-          -1 -> {
+          -1,0 -> {
             debugIpcBody(
               "sender/END/$stream", "$availableLen >> $stream_id"
             )
@@ -350,9 +350,9 @@ class IpcBodySender(
             break
           }
 
-          0 -> {
-            debugIpcBody("sender/EMPTY/$stream", stream_id)
-          }
+//          0 -> {
+//            debugIpcBody("sender/EMPTY/$stream", stream_id)
+//          }
 
           else -> {
             // 开光了，流已经开始被读取
