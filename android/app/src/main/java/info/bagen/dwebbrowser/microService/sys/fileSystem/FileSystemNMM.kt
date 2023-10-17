@@ -3,10 +3,14 @@ package info.bagen.dwebbrowser.microService.sys.fileSystem
 import info.bagen.dwebbrowser.App
 import info.bagen.dwebbrowser.microService.sys.fileSystem.FileSystemController.Companion.controller
 import info.bagen.dwebbrowser.microService.sys.share.debugShare
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.cors
+import org.dweb_browser.microservice.help.jsonBody
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
 import org.http4k.core.Method
 import org.http4k.core.MultipartFormBody
@@ -56,9 +60,10 @@ class FileSystemNMM : NativeMicroModule("file.sys.dweb", "file") {
       },
       "/rename" bind Method.GET to defineHandler { request ->
       },
-      "/savePictures" bind Method.GET to defineHandler { request, ipc ->
+      "/savePictures" bind Method.POST to defineHandler { request, ipc ->
         try {
           openActivity()
+
           if (controller.waitPermissionGrants()) {
             val receivedForm = MultipartFormBody.from(request)
             val fileByteArray = receivedForm.files("files")
@@ -69,16 +74,40 @@ class FileSystemNMM : NativeMicroModule("file.sys.dweb", "file") {
               )
             }
           } else {
-            return@defineHandler Response(Status.FORBIDDEN)
+            return@defineHandler Response(Status.OK).jsonBody(
+              Json.encodeToString(
+                FilesResult(
+                  false,
+                  "User denied permission！"
+                )
+              )
+            )
           }
         } catch (e: Exception) {
           debugShare("share catch", "e===>$e")
-          return@defineHandler Response(Status.EXPECTATION_FAILED)
+          return@defineHandler Response(Status.OK).jsonBody(
+            Json.encodeToString(
+              FilesResult(
+                false,
+                e.message ?: ""
+              )
+            )
+          )
         }
-        return@defineHandler Response(Status.OK)
+        return@defineHandler Response(Status.OK).jsonBody(
+          Json.encodeToString(
+            FilesResult(
+              true,
+              "Saved successfully！"
+            )
+          )
+        )
       }
     ).cors()
   }
+
+  @Serializable
+  data class FilesResult(val success: Boolean, val message: String)
 
   override suspend fun _shutdown() {
     TODO("Not yet implemented")
