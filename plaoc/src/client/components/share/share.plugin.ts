@@ -35,6 +35,11 @@ export class SharePlugin extends BasePlugin {
         data.append("files", file);
       }
     }
+
+    if(options.file) {
+      data.append("files", options.file)
+    }
+
     const result = await this.buildApiRequest("/share", {
       search: {
         title: options?.title,

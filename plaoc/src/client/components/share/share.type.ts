@@ -21,6 +21,11 @@ export interface ShareOptions {
   url?: string;
 
   /**
+   * 要共享的文件 单文件
+   */
+  file?: File;
+
+  /**
    * 要共享的文件的 file:// URL 数组。
    * 仅支持 iOS 和 Android。
    * @since 4.1.0
