@@ -236,10 +236,11 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
         return { message: "camera already started" };
       }
       const parent = document.createElement("div");
-      parent.setAttribute(
-        "style",
-        "position:fixed; top: 0; left: 0; width:100%; height: 100%; background-color: black;visibility: hidden;"
-      );
+      parent.setAttribute("class","plaoc-scanning")
+      // parent.setAttribute(
+      //   "style",
+      //   "position:fixed; top: 0; left: 0; width:100%; height: 100%; background-color: black;visibility: hidden;"
+      // );
       this._video = document.createElement("video");
       this._video.id = "video";
 
