@@ -1,5 +1,6 @@
 package org.dweb_browser.microservice.help
 
+import androidx.compose.ui.text.toLowerCase
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.setBody
 import io.ktor.client.request.url
@@ -62,7 +63,7 @@ private fun KtorHeaders.toHttp4kHeaders(): Headers = names().flatMap { name ->
 
 suspend fun ApplicationResponse.fromHttp4K(response: Response) {
   status(HttpStatusCode.fromValue(response.status.code))
-  response.headers.filterNot { HttpHeaders.isUnsafe(it.first) || it.first == CONTENT_TYPE.meta.name }
+  response.headers.filterNot { HttpHeaders.isUnsafe(it.first) || it.first.lowercase() == "content-type" }
     .forEach { header(it.first, it.second ?: "") }
   call.respondOutputStream(CONTENT_TYPE(response)?.let { ContentType.parse(it.toHeaderValue()) }) {
     response.body.stream.copyToWithFlush(this)
