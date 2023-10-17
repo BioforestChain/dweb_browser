@@ -260,7 +260,7 @@ class DWebView(
           contentType?.directives?.find { it.first == "charset" }?.second,
           response.status.code,
           response.status.description,
-          response.headers.toMap(),
+          response.headers.toMap().let {it-"Content-Type" },
           body,
         )
       }
