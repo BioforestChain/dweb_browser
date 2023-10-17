@@ -1,7 +1,7 @@
 import { u8aConcat } from "./binaryHelper.ts";
 import { createSignal, Signal } from "./createSignal.ts";
 
-async function* _doRead<T extends unknown>(reader: ReadableStreamDefaultReader<T>) {
+async function* _doRead<T extends unknown>(reader: ReadableStreamDefaultReader<T>, doCancelOnFinally = true) {
   try {
     while (true) {
       const item = await reader.read();
@@ -11,7 +11,11 @@ async function* _doRead<T extends unknown>(reader: ReadableStreamDefaultReader<T
       yield item.value;
     }
   } finally {
-    reader.releaseLock();
+    if (doCancelOnFinally) {
+      reader.cancel();
+    } else {
+      reader.releaseLock();
+    }
   }
 }
 
