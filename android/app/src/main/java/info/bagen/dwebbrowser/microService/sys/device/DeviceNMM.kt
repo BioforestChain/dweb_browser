@@ -1,9 +1,11 @@
 package info.bagen.dwebbrowser.microService.sys.device
 
+import android.os.Build
 import info.bagen.dwebbrowser.App
 import org.dweb_browser.browserUI.util.getString
 import org.dweb_browser.browserUI.util.saveString
 import org.dweb_browser.helper.printDebug
+import org.dweb_browser.helper.toUtf8ByteArray
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
@@ -12,6 +14,7 @@ import org.http4k.core.Response
 import org.http4k.core.Status
 import org.http4k.routing.bind
 import org.http4k.routing.routes
+import java.security.MessageDigest
 import java.util.UUID
 
 fun debugDevice(tag: String, msg: Any? = "", err: Throwable? = null) =
@@ -25,14 +28,17 @@ class DeviceNMM : NativeMicroModule("device.sys.dweb", "Device Info") {
   }
 
   val deviceInfo = DeviceInfo()
-  val UUID_KEY = "UUID"
+  val UUID_KEY = "FINGERPRINT"
+  @OptIn(ExperimentalStdlibApi::class)
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     apiRouting = routes(
       /** 获取设备唯一标识uuid*/
       "/uuid" bind Method.GET to defineHandler { request ->
         var uuid = App.appContext.getString(UUID_KEY, "")
         if (uuid == "") {
-          uuid = UUID.randomUUID().toString()
+          val messageDigest = MessageDigest.getInstance("SHA-256");
+          messageDigest.update(Build.FINGERPRINT.toUtf8ByteArray());
+          uuid = messageDigest.digest().toHexString()
           App.appContext.saveString(UUID_KEY, uuid)
         }
         debugDevice("getUUID", uuid)
