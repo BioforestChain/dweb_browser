@@ -13,11 +13,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.buildJsonObject
+import okio.FileSystem
 import okio.Path.Companion.toPath
+import okio.buffer
 import org.dweb_browser.browserUI.database.DeskAppInfoStore
 import org.dweb_browser.browserUI.network.ApiService
 import org.dweb_browser.browserUI.util.FilesUtil
@@ -25,6 +26,7 @@ import org.dweb_browser.browserUI.util.NotificationUtil
 import org.dweb_browser.browserUI.util.ZipUtil
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.mainAsyncExceptionHandler
+import org.dweb_browser.helper.toUtf8
 import org.dweb_browser.microservice.help.types.MMID
 import java.io.File
 
@@ -85,8 +87,7 @@ class DwebBrowserService : Service() {
     DownLoadObserver.emit(downLoadInfo.id, DownLoadStatus.DownLoading) // 同步更新所有注册
     ioAsyncScope.launch {
       try {
-        ApiService.instance.downloadAndSave(
-          path = downLoadInfo.url,
+        ApiService.instance.downloadAndSave(path = downLoadInfo.url,
           file = File(downLoadInfo.path),
           downLoadInfo.metaData.bundle_size,
           isPause = {
@@ -109,8 +110,7 @@ class DwebBrowserService : Service() {
           },
           DLProgress = { current, total ->
             downLoadInfo.callDownLoadProgress(current, total)
-          }
-        )
+          })
       } catch (e: Exception) {
         Log.e("DwebBrowserService", "downloadAndSaveZip 下载失败: ${e.message}")
         downLoadInfo.downloadInstalled(false)
@@ -123,8 +123,9 @@ class DwebBrowserService : Service() {
   private suspend fun breakPointDownLoadAndSave(downLoadInfo: DownLoadInfo) {
     ioAsyncScope.launch {
       try {
-        ApiService.instance.breakpointDownloadAndSave(
-          path = downLoadInfo.url, file = File(downLoadInfo.path), total = downLoadInfo.size,
+        ApiService.instance.breakpointDownloadAndSave(path = downLoadInfo.url,
+          file = File(downLoadInfo.path),
+          total = downLoadInfo.size,
           isStop = {
             when (downLoadInfo.downLoadStatus) {
               DownLoadStatus.PAUSE -> {
@@ -143,8 +144,7 @@ class DwebBrowserService : Service() {
           },
           DLProgress = { current, total ->
             downLoadInfo.callDownLoadProgress(current, total)
-          }
-        )
+          })
       } catch (e: Exception) {
         Log.e("DwebBrowserService", "breakPointDownLoadAndSave 下载失败: ${e.message}")
         downLoadInfo.downloadInstalled(false)
@@ -203,12 +203,22 @@ class DwebBrowserService : Service() {
         unzipPath.toPath().resolve("$id/usr/sys/metadata.json").toString(),
         Json.encodeToString(metaData)
       )
+      val session = unzipPath.toPath().resolve("$id/usr/sys/session.json")
+
+      @Serializable
+      data class SessionInfo(val installTime: Long, val upgradeTime: Long, val installUrl: String)
+
+      val now = Clock.System.now().toEpochMilliseconds()
+      val sessionInfo = if (!FileSystem.SYSTEM.exists(session)) {
+        SessionInfo(now, now, url)
+      } else {
+        val session = Json.decodeFromString<SessionInfo>(
+          FileSystem.SYSTEM.source(session).buffer().readByteArray().toUtf8()
+        )
+        session.copy(upgradeTime = now)
+      }
       FilesUtil.writeFileContent(
-        unzipPath.toPath().resolve("$id/usr/sys/session.json").toString(),
-        Json.encodeToString(buildJsonObject {
-          put("installTime", JsonPrimitive(Clock.System.now().toEpochMilliseconds()))
-          put("installUrl", JsonPrimitive(url))
-        })
+        session.toString(), Json.encodeToString(sessionInfo)
       )
       downloadInstalled(unzip)
     }
