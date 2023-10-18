@@ -28,12 +28,10 @@ class VirtualKeyboardController(
    */
   val visibleState = mutableStateOf(false)
 
-  @OptIn(ExperimentalComposeUiApi::class)
   @Composable
   override fun effect(): VirtualKeyboardController {
     insetsState.value =
-      nativeUiController.currentInsets.value.getInsets(WindowInsetsCompat.Type.ime())
-        .toWindowsInsets()
+      nativeUiController.getCurrentInsets(WindowInsetsCompat.Type.ime()).toWindowsInsets()
 
     val visible by visibleState
     LocalSoftwareKeyboardController.current?.also { keyboard ->

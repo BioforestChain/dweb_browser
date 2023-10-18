@@ -25,6 +25,7 @@ import org.dweb_browser.window.core.constant.WindowManagerPropertyKeys
 import org.dweb_browser.window.core.constant.debugWindow
 import org.dweb_browser.window.render.LocalWindowController
 import org.dweb_browser.window.render.LocalWindowPadding
+import org.dweb_browser.window.render.LocalWindowsImeVisible
 import org.dweb_browser.window.render.LocalWindowsManager
 import org.dweb_browser.window.render.watchedBounds
 import kotlin.math.max
@@ -140,13 +141,12 @@ class ManagerState(
   @OptIn(ExperimentalLayoutApi::class)
   @Composable
   fun EffectKeyboardStates() {
-    val imeVisible = WindowInsets.isImeVisible
-    this.imeVisible = imeVisible
+    imeVisible = LocalWindowsImeVisible.current.value // WindowInsets.isImeVisible // 由于小米手机的安全键盘存在问题，会出现WindowInsets.isImeVisible不正确的情况
     val ime = WindowInsets.imeAnimationTarget // 直接使用ime，数据不稳定，会变化，改为imeAnimationTarget就是固定值
     val density = LocalDensity.current
     val view = LocalView.current
 
-    LaunchedEffect(imeVisible) { // WindowInsets.ime 对象并不会变化，所以导致这个重组不会重复执行
+    LaunchedEffect(view, imeVisible) { // WindowInsets.ime 对象并不会变化，所以导致这个重组不会重复执行
       this@ManagerState.imeBoundingRect = if (imeVisible) {
         val imeHeightDp = ime.getBottom(density) / density.density
         Rect(
@@ -159,7 +159,26 @@ class ManagerState(
         Rect.Zero
       }
       // 输入法高度即为 heightDiff
-      debugWindow("ManagerState/IME", "imeBoundingRect:$imeBoundingRect, imeVisible:$imeVisible")
+      debugWindow("ManagerState/IME", "imeVisible:$imeVisible, imeBoundingRect:$imeBoundingRect")
     }
+//    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+//      val scope = rememberCoroutineScope()
+//      DisposableEffect(view) {
+//        var lastJob = scope.launch { }
+//        val off = view.addWindowInsetsAnimationListener { insets, runningAnimations ->
+//          val imeInsets = insets.getInsets(WindowInsetsCompat.Type.ime())
+//          lastJob.cancel()
+//          //debugWindow("ManagerState/IME", "imeInsets.bottom=${imeInsets.bottom}")
+//          lastJob = scope.launch {
+//            delay(100);
+//            imeVisible = imeInsets.bottom != 0
+//          }
+//          insets
+//        }
+//        onDispose {
+//          off();
+//        }
+//      }
+//    }
   }
 }

@@ -203,6 +203,7 @@ val LocalWindowController =
   compositionLocalOf<WindowController> { noLocalProvidedFor("WindowController") }
 val LocalWindowsManager =
   compositionLocalOf<WindowsManager<*>> { noLocalProvidedFor("WindowsManager") }
+val LocalWindowsImeVisible = compositionLocalOf { mutableStateOf(false) }
 
 data class WindowLimits(
   val minWidth: Float,
