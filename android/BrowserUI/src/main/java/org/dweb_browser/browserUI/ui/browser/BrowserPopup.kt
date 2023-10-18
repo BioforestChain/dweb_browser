@@ -230,13 +230,13 @@ private fun PopBookManagerView(webSiteInfo: WebSiteInfo?, onBack: () -> Unit) {
         tint = MaterialTheme.colorScheme.onBackground
       )
       Text(
-        text = "编辑书签",
+        text = stringResource(id = R.string.browser_options_editbook),
         modifier = Modifier.weight(1f),
         textAlign = TextAlign.Center,
         fontSize = 18.sp
       )
       Text(
-        text = "存储",
+        text = stringResource(id = R.string.browser_options_store),
         modifier = Modifier
           .clickable {
             webSiteInfo?.apply {
@@ -293,7 +293,7 @@ private fun PopBookManagerView(webSiteInfo: WebSiteInfo?, onBack: () -> Unit) {
         contentAlignment = Center
       ) {
         Text(
-          text = "删除",
+          text = stringResource(id = R.string.browser_search_delete),
           color = MaterialTheme.colorScheme.error,
           fontSize = 16.sp,
           fontWeight = FontWeight(400)
@@ -459,12 +459,18 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel) {
           .fillMaxWidth()
           .padding(horizontal = 16.dp, vertical = 12.dp)
       ) {
-        RowItemMenuView(text = "添加书签", trailingIcon = R.drawable.ic_main_book) {
+        RowItemMenuView(
+          text = stringResource(id = R.string.browser_options_book),
+          trailingIcon = R.drawable.ic_main_book
+        ) {
           viewModel.handleIntent(BrowserIntent.SaveBookWebSiteInfo)
         } // 添加书签
 
         Spacer(modifier = Modifier.height(12.dp))
-        RowItemMenuView(text = "分享", trailingIcon = R.drawable.ic_main_share) {
+        RowItemMenuView(
+          text = stringResource(id = R.string.browser_options_share),
+          trailingIcon = R.drawable.ic_main_share
+        ) {
           if (Build.VERSION.SDK_INT > Build.VERSION_CODES.S_V2) {
             viewModel.handleIntent(BrowserIntent.ShareWebSiteInfo(activity))
           } else {
@@ -473,28 +479,32 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel) {
         } // 分享
 
         Spacer(modifier = Modifier.height(12.dp))
-        RowItemMenuView(text = "无痕浏览", trailingContent = { modifier ->
-          Switch(
-            modifier = modifier
-              .padding(horizontal = 12.dp, vertical = 10.dp)
-              .size(width = 50.dp, height = 30.dp),
-            checked = viewModel.isNoTrace.value,
-            onCheckedChange = { viewModel.saveBrowserMode(it) }
-          )
-        }) {} // 无痕浏览
+        RowItemMenuView(
+          text = stringResource(id = R.string.browser_options_notrace),
+          trailingContent = { modifier ->
+            Switch(
+              modifier = modifier
+                .padding(horizontal = 12.dp, vertical = 10.dp)
+                .size(width = 50.dp, height = 30.dp),
+              checked = viewModel.isNoTrace.value,
+              onCheckedChange = { viewModel.saveBrowserMode(it) }
+            )
+          }) {} // 无痕浏览
 
         Spacer(modifier = Modifier.height(12.dp))
-        RowItemMenuView(text = "隐私政策", trailingContent = { modifier ->
-          Icon(
-            imageVector = ImageVector.vectorResource(R.drawable.ic_more),
-            contentDescription = "Manager",
-            modifier = modifier
-              .padding(horizontal = 12.dp, vertical = 15.dp)
-              .size(20.dp)
-              .graphicsLayer(rotationZ = -90f),
-            tint = MaterialTheme.colorScheme.outlineVariant
-          )
-        }) {
+        RowItemMenuView(
+          text = stringResource(id = R.string.browser_options_privacy),
+          trailingContent = { modifier ->
+            Icon(
+              imageVector = ImageVector.vectorResource(R.drawable.ic_more),
+              contentDescription = "Manager",
+              modifier = modifier
+                .padding(horizontal = 12.dp, vertical = 15.dp)
+                .size(20.dp)
+                .graphicsLayer(rotationZ = -90f),
+              tint = MaterialTheme.colorScheme.outlineVariant
+            )
+          }) {
           scope.launch {
             bottomSheetModel.hide()
             localCommonUrl.value = PrivacyUrl
@@ -629,12 +639,12 @@ internal fun BrowserMultiPopupView(viewModel: BrowserViewModel) {
           tint = MaterialTheme.colorScheme.primary,
         )
         Text(
-          text = "${browserViewList.size}个标签页",
+          text = "${browserViewList.size} ${stringResource(id = R.string.browser_tabs_count)}",
           modifier = Modifier.weight(1f),
           textAlign = TextAlign.Center
         )
         Text(
-          text = "完成",
+          text = stringResource(id = R.string.browser_done),
           modifier = Modifier
             .padding(start = 8.dp, end = 8.dp)
             .clickable { viewModel.handleIntent(BrowserIntent.UpdateMultiViewState(false)) },
@@ -684,12 +694,18 @@ private fun MultiItemView(
       )
       val contentPair = when (browserBaseView) {
         is BrowserMainView -> {
-          Pair("起始页", BitmapUtil.decodeBitmapFromResource(R.drawable.ic_main_star))
+          Pair(
+            stringResource(id = R.string.browser_home_page),
+            BitmapUtil.decodeBitmapFromResource(R.drawable.ic_main_star)
+          )
         }
 
         is BrowserWebView -> {
           if (browserBaseView.viewItem.state.lastLoadedUrl?.isSystemUrl() == true) {
-            Pair("起始页", BitmapUtil.decodeBitmapFromResource(R.drawable.ic_main_star))
+            Pair(
+              stringResource(id = R.string.browser_home_page),
+              BitmapUtil.decodeBitmapFromResource(R.drawable.ic_main_star)
+            )
           } else {
             Pair(browserBaseView.viewItem.state.pageTitle, browserBaseView.viewItem.state.pageIcon)
           }
@@ -714,7 +730,7 @@ private fun MultiItemView(
           Spacer(modifier = Modifier.width(2.dp))
         }
         Text(
-          text = contentPair.first ?: "无标题",
+          text = contentPair.first ?: stringResource(id = R.string.browser_no_title),
           maxLines = 1,
           overflow = TextOverflow.Ellipsis,
           fontSize = 12.sp

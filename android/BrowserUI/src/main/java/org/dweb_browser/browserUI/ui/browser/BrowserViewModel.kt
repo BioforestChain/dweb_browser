@@ -14,6 +14,7 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.accompanist.web.WebContent
@@ -23,6 +24,7 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import org.dweb_browser.browserUI.R
 import org.dweb_browser.browserUI.database.DefaultAllWebEngine
 import org.dweb_browser.browserUI.database.WebEngine
 import org.dweb_browser.browserUI.database.WebSiteDatabase
@@ -427,7 +429,10 @@ class BrowserViewModel(
   suspend fun addUrlToDesktop() {
     uiState.currentBrowserBaseView.value?.viewItem?.state?.let { state ->
       state.lastLoadedUrl?.let { url ->
-        browserController.addUrlToDesktop(state.pageTitle ?: "无标题", url, state.pageIcon)
+        browserController.addUrlToDesktop(
+          title = state.pageTitle ?: "" ,
+          url = url, icon = state.pageIcon
+        )
       }
     }
   }

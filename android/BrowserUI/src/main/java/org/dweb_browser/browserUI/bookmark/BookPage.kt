@@ -65,7 +65,7 @@ fun BookPage() {
       }, actions = {
         IconButton(onClick = { /*TODO*/ }) {
           Icon(
-            imageVector = Icons.Filled.Search, contentDescription = "搜索"
+            imageVector = Icons.Filled.Search, contentDescription = "Search"
           )
         }
         IconButton(onClick = { editMode = !editMode }) {

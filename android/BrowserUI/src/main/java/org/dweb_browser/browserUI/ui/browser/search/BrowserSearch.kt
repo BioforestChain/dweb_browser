@@ -289,10 +289,14 @@ internal fun SearchPreview( // 输入搜索内容后，显示的搜索信息
             .fillMaxWidth()
             .padding(vertical = 20.dp)
         ) {
-          Text(text = "搜索", modifier = Modifier.align(Alignment.Center), fontSize = 20.sp)
+          Text(
+            text = stringResource(id = R.string.browser_search_title),
+            modifier = Modifier.align(Alignment.Center),
+            fontSize = 20.sp
+          )
 
           Text(
-            text = "取消",
+            text = stringResource(id = R.string.browser_search_cancel),
             modifier = Modifier
               .align(Alignment.TopEnd)
               .clickable { onClose() },
@@ -312,7 +316,7 @@ internal fun SearchPreview( // 输入搜索内容后，显示的搜索信息
 private fun SearchItemEngines(text: String, onSearch: (String) -> Unit) {
   Column(modifier = Modifier.fillMaxWidth()) {
     Text(
-      text = "搜索引擎",
+      text = stringResource(id = R.string.browser_search_engine),
       color = MaterialTheme.colorScheme.outline,
       modifier = Modifier.padding(vertical = 10.dp)
     )
@@ -359,7 +363,7 @@ private fun SearchItemForTab(viewModel: BrowserViewModel, text: String) {
     if (browserBaseView === viewModel.uiState.currentBrowserBaseView.value) return@also // TODO 如果搜索到的界面就是我当前显示的界面，就不显示该项
     val website = browserBaseView.viewItem.state.let {
       WebSiteInfo(
-        title = it.pageTitle ?: "无标题",
+        title = it.pageTitle ?: stringResource(id = R.string.browser_no_title),
         url = it.lastLoadedUrl ?: "localhost",
         type = WebSiteType.Multi
       )

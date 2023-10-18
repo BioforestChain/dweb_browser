@@ -15,6 +15,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -22,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
+import org.dweb_browser.browserUI.R
 import org.dweb_browser.browserUI.database.WebSiteDatabase
 import org.dweb_browser.browserUI.database.WebSiteInfo
 import org.dweb_browser.browserUI.database.WebSiteType
@@ -39,7 +41,7 @@ fun BrowserListOfHistory(
     noFoundTip?.let { it() }
       ?: Box(modifier = Modifier.fillMaxWidth()) {
         Text(
-          text = "暂无数据",
+          text = stringResource(id = R.string.browser_empty_list),
           modifier = Modifier
             .align(Alignment.TopCenter)
             .padding(top = 100.dp)

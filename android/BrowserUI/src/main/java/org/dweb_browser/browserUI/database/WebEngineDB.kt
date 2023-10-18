@@ -47,19 +47,19 @@ data class WebEngine(
 val DefaultSearchWebEngine: List<WebEngine>
   get() = listOf(
     WebEngine(
-      name = "百度",
+      name = BrowserUIApp.Instance.appContext.getString(R.string.browser_engine_baidu),
       host = "m.baidu.com",
       iconRes = R.drawable.ic_engine_baidu,
       format = "https://m.baidu.com/s?word=%s"
     ),
     WebEngine(
-      name = "搜狗",
+      name = BrowserUIApp.Instance.appContext.getString(R.string.browser_engine_sougou),
       host = "wap.sogou.com",
       iconRes = R.drawable.ic_engine_sougou,
       format = "https://wap.sogou.com/web/searchList.jsp?keyword=%s"
     ),
     WebEngine(
-      name = "360",
+      name = BrowserUIApp.Instance.appContext.getString(R.string.browser_engine_qihu),
       host = "m.so.com",
       iconRes = R.drawable.ic_engine_360,
       format = "https://m.so.com/s?q=%s"
