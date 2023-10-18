@@ -117,9 +117,29 @@ export class JsMicroModule extends MicroModule {
    */
   private _process_id?: string;
 
+  static readonly VERSION: number = 1;
+  static readonly PATCH: number = 0;
+
   /** 每个 JMM 启动都要依赖于某一个js */
   async _bootstrap(context: $BootstrapContext) {
     console.always("jsmm", `[${this.metadata.config.id} micro-module.js.ct _bootstrap ${this.mmid}]`);
+    console.always(
+      "jsmm",
+      `bootstrap minTarget: ${this.metadata.config.minTarget} maxTarget: ${this.metadata.config.maxTarget}`
+    );
+
+    this.metadata.canSupportTarget(JsMicroModule.VERSION, (minTarget) => {
+      throw new Error(
+        `应用${this.mmid}与容器版本不匹配，当前版本:${JsMicroModule.VERSION}，应用最低要求:${minTarget}",
+        ${this.short_name} 无法启动`
+      );
+    }, (maxTarget) => {
+      throw new Error(
+        `应用${this.mmid}与容器版本不匹配，当前版本:${JsMicroModule.VERSION}，应用最高兼容到:${maxTarget}",
+        ${this.short_name} 无法启动`
+      );
+    });
+
     const pid = Math.ceil(Math.random() * 1000).toString();
     this._process_id = pid;
     // 这个 streamIpc 专门服务于 file://js.browser.dweb/create-process
@@ -298,4 +318,19 @@ class JmmIpc extends Native2JsIpc {}
 
 export class JsMMMetadata {
   constructor(readonly config: $JmmAppInstallManifest) {}
+
+  public canSupportTarget(
+    version: number,
+    disMatchMinTarget: (minTarget: number) => boolean,
+    disMatchMaxTarget: (maxTarget: number) => boolean
+  ): boolean {
+    if (this.config.minTarget > version) {
+      return disMatchMinTarget(this.config.minTarget)
+    }
+    if (this.config.maxTarget != null && this.config.maxTarget < version) {
+      return disMatchMaxTarget(this.config.maxTarget!);
+    }
+
+    return true;
+  }
 }

@@ -16,6 +16,7 @@ import { z, zq } from "../../helper/zodHelper.ts";
 import { closeHttpDwebServer, createHttpDwebServer } from "../../std/http/helper/$createHttpDwebServer.ts";
 import { saveNative2JsIpcPort } from "./ipc.native2js.ts";
 import { jsProcessOpenWindow } from "./js-process.openWindow.ts";
+import { JsMicroModule } from "../jmm/micro-module.js.ts";
 
 type $APIS = typeof import("./assets/main/index.ts")["APIS"];
 
@@ -323,9 +324,9 @@ export class JsProcessNMM extends NativeMicroModule {
       bootstrap_url,
       metadata,
       env,
-      // JSON.stringify(metadata),
-      // JSON.stringify(env),
-      transfer(channel_for_worker.port2, [channel_for_worker.port2])
+      transfer(channel_for_worker.port2, [channel_for_worker.port2]),
+      httpDwebServer.startResult.urlInfo.host,
+      JSON.stringify({jsMicroModule: `${JsMicroModule.VERSION}.${JsMicroModule.PATCH}`})
     );
 
     /**

@@ -111,7 +111,7 @@ await dnt.build({
         target: [
           { target: "deb", arch: ["x64", "arm64"] },
           // { target: "rpm", arch: ["x64", "arm64"] },
-          // { target: "tar.xz", arch: ["x64", "arm64"] },
+          { target: "tar.xz", arch: ["x64", "arm64"] },
         ],
       },
     },
