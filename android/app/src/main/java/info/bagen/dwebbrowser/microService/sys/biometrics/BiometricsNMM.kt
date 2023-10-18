@@ -12,6 +12,7 @@ import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.bind
+import org.dweb_browser.helper.PromiseOut
 
 fun debugBiometrics(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("biometrics", tag, msg, err)
@@ -48,6 +49,7 @@ class BiometricsNMM : NativeMicroModule("biometrics.sys.dweb", "biometrics") {
       },
       /** 生物识别*/
       "/biometrics" bind HttpMethod.Get to defineJsonResponse {
+        biometrics_promise_out = PromiseOut()
         debugBiometrics("fingerprint", ipc.remote.mmid)
         openActivity(ipc.remote.mmid)
         val context = biometricsController.waitActivityCreated()
