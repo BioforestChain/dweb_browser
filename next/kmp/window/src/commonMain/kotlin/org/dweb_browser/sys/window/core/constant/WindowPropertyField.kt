@@ -89,9 +89,7 @@ open class WindowPropertyField<T : Any> private constructor(
     val Focus = required(WindowPropertyKeys.Focus, false)
     val ZIndex = required(WindowPropertyKeys.ZIndex, 0)
     val Children = required<List<UUID>>(
-      WindowPropertyKeys.Children,
-      listOf(),
-      serializer = ListSerializer(String.serializer())
+      WindowPropertyKeys.Children, listOf(), serializer = ListSerializer(String.serializer())
     )
     val Parent = optional<String>(WindowPropertyKeys.Parent)
     val Flashing = required(WindowPropertyKeys.Flashing, false)
@@ -122,7 +120,7 @@ open class WindowPropertyField<T : Any> private constructor(
     val ShowCloseTip = required(WindowPropertyKeys.ShowCloseTip, false)
     val ShowMenuPanel = required(WindowPropertyKeys.ShowMenuPanel, false)
     val ColorScheme = required(WindowPropertyKeys.ColorScheme, WindowColorScheme.Normal)
-    val Modals = required<Map<UUID, ModalState>>(
+    val Modals = required<Map<String, ModalState>>(
       WindowPropertyKeys.Modals,
       mapOf(),
       serializer = MapSerializer(String.serializer(), ModalState.serializer())

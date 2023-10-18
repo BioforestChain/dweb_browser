@@ -1,4 +1,4 @@
-import { IpcResponse } from "../../deps.ts";
+import { IpcHeaders, IpcResponse } from "../../deps.ts";
 import {
   $DwebHttpServerOptions,
   $MMID,
@@ -7,6 +7,7 @@ import {
   IpcRequest,
   PromiseOut,
   jsProcess,
+  mapHelper,
 } from "./deps.ts";
 import { HttpServer } from "./http-helper.ts";
 import { mwebview_destroy } from "./mwebview-helper.ts";
@@ -68,10 +69,60 @@ export class Server_api extends HttpServer {
     return await result();
   }
 
+  private callbacks = new Map<
+    string,
+    PromiseOut<{ status: number; headers: Record<string, string>; body: Uint8Array }>
+  >();
   protected async _onInternal(event: FetchEvent): Promise<$OnFetchReturn> {
     const pathname = event.pathname.slice(INTERNAL_PREFIX.length);
     if (pathname === "window-info") {
       return Response.json({ wid: await this.widPo.promise });
+    }
+    if (pathname === "callback") {
+      const id = event.searchParams.get("id");
+      if (!id) {
+        return IpcResponse.fromText(event.req_id, 500, new IpcHeaders(), "invalid search params, miss 'id'", event.ipc);
+      }
+      const po = mapHelper.getAndRemove(this.callbacks, id);
+      if (!po) {
+        throw IpcResponse.fromText(event.req_id, 500, new IpcHeaders(), `id:'${id}' unregistered`, event.ipc);
+      }
+      let status = 200;
+      const custom_status = event.searchParams.get("status");
+      if (custom_status) {
+        status = parseInt(custom_status) || 200;
+      }
+      const headers = {};
+      const custom_headers = event.searchParams.get("headers");
+      try {
+        if (custom_headers) {
+          Object.assign(headers, JSON.parse(custom_headers));
+        }
+      } catch {}
+      po.resolve({
+        status,
+        headers,
+        body: new Uint8Array(await event.arrayBuffer()),
+      });
+      return Response.json(true);
+    }
+    if (pathname === "registry-callback") {
+      const id = event.searchParams.get("id");
+      if (!id) {
+        return IpcResponse.fromText(event.req_id, 500, new IpcHeaders(), "invalid search params, miss 'id'", event.ipc);
+      }
+      if (this.callbacks.has(id)) {
+        return IpcResponse.fromText(event.req_id, 500, new IpcHeaders(), `id:'${id}' already registered`, event.ipc);
+      }
+      const custom_response_po = mapHelper.getOrPut(this.callbacks, id, () => new PromiseOut());
+      const custom_response = await custom_response_po.promise;
+      return IpcResponse.fromBinary(
+        event.req_id,
+        custom_response.status,
+        new IpcHeaders(custom_response.headers),
+        custom_response.body,
+        event.ipc
+      );
     }
     if (pathname.startsWith("/usr")) {
       const response = await jsProcess.nativeRequest(`file://${pathname}`);

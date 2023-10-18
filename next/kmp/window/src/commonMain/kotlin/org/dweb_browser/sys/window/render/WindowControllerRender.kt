@@ -9,15 +9,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
@@ -141,36 +139,17 @@ fun WindowController.Render(
             .zIndex(2f)
             .padding(start = winPadding.left.dp, end = winPadding.right.dp)// TODO 这里要注意布局方向
         ) {
-          val viewWidth = winPadding.contentBounds.width
-          val viewHeight = winPadding.contentBounds.height
-
-          val render = createWindowAdapterManager.rememberRender(win.state.constants.wid)
-          /**
-           * 视图的宽高随着窗口的缩小而缩小，随着窗口的放大而放大，
-           * 但这些缩放不是等比的，而是会以一定比例进行换算。
-           */
-          render?.also {
-            val viewScale = win.calcContentScale(limits, winPadding)
-            CompositionLocalProvider(
-              LocalContentColor provides theme.themeContentColor,
-            ) {
-              it.invoke(
-                WindowRenderScope(
-                  width = viewWidth,
-                  height = viewHeight,
-                  scale = viewScale,
-                ),
-                modifier = Modifier
-                  .requiredSize(viewWidth.dp, viewHeight.dp)
-                  .clip(winPadding.contentRounded.toRoundedCornerShape()),
-              )
-            }
-          } ?: Text(
-            "Op！视图被销毁了",
-            modifier = Modifier.align(Alignment.Center),
-            style = MaterialTheme.typography.bodyMedium.copy(
-              color = MaterialTheme.colorScheme.error,
+          val windowRenderScope = remember(limits, winPadding) {
+            WindowRenderScope(
+              winPadding.contentBounds.width,
+              winPadding.contentBounds.height,
+              win.calcContentScale(limits, winPadding)
             )
+          }
+          createWindowAdapterManager.Renderer(
+            win.state.constants.wid,
+            windowRenderScope,
+            Modifier.clip(winPadding.contentRounded.toRoundedCornerShape())
           )
         }
         /// 显示底部控制条
@@ -178,12 +157,15 @@ fun WindowController.Render(
       }
       //#endregion
 
+      val modal by win.openingModal
+      modal?.Render()
+
       /**
        * 窗口是否聚焦
        */
       val isFocus by win.watchedState { focus }
 
-      /// 失去焦点的时候，提供 moveable 的遮罩（在移动中需要确保遮罩存在）
+      /// 失去焦点的时候，提供 movable 的遮罩（在移动中需要确保遮罩存在）
       if (inMove or !isFocus) {
         Box(
           modifier = Modifier

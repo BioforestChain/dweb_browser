@@ -1,6 +1,5 @@
 package org.dweb_browser.browser.jmm
 
-import androidx.compose.runtime.Composable
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -36,9 +35,9 @@ class JmmController(
   val onDownload = downloadSignal.toListener()
 
   init {
-    val wid = win.id
+    val rid = win.id
     /// 提供渲染适配
-    createWindowAdapterManager.renderProviders[wid] = @Composable { modifier ->
+    createWindowAdapterManager.provideRender(rid) { modifier ->
       Render(modifier, this)
     }
   }

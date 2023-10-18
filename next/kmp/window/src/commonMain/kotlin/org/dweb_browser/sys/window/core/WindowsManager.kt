@@ -5,12 +5,12 @@ import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
+import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.ChangeableSet
 import org.dweb_browser.helper.OffListener
 import org.dweb_browser.helper.platform.PlatformViewController
 import org.dweb_browser.helper.some
-import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.sys.window.core.constant.WindowColorScheme
 import org.dweb_browser.sys.window.core.constant.WindowStyle
 import org.dweb_browser.sys.window.core.constant.WindowsManagerScope
@@ -119,7 +119,7 @@ open class WindowsManager<T : WindowController>(internal val viewController: Pla
     }
     /// 第一次装载窗口，默认将它聚焦到最顶层
     if (autoFocus) {
-      focusWindow(win)
+      focusWindow(win) // void job
     }
   }
 

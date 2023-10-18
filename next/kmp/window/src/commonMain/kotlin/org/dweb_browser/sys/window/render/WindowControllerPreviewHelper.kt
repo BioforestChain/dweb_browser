@@ -9,10 +9,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.UiComposable
 import kotlinx.coroutines.CoroutineScope
+import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.compose.rememberPlatformViewController
 import org.dweb_browser.helper.platform.PlatformViewController
-import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowRenderProvider
 import org.dweb_browser.sys.window.core.WindowState
@@ -61,7 +61,7 @@ fun WindowPreviewer(
     val platformViewController = rememberPlatformViewController()
     val win =
       remember(state) { PreviewWindowController(state, platformViewController) }.also(config)
-    createWindowAdapterManager.renderProviders[wid] = content
+    createWindowAdapterManager.provideRender(wid, content)
     winRender(win)
   }
 }

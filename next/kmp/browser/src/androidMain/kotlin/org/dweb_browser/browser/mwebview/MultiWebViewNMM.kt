@@ -29,7 +29,7 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.browser.dweb", "Multi Webvie
   }
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
-    // 打开webview
+    webViewSysProtocol()
 
     routes(
       // 打开一个 webview，并将它以 窗口window 的标准进行展示

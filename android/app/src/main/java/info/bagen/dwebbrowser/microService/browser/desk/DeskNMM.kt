@@ -32,6 +32,9 @@ import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.consumeEachJsonLine
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.toJsonElement
+import org.dweb_browser.sys.window.core.AlertModal
+import org.dweb_browser.sys.window.core.BottomSheetsModal
+import org.dweb_browser.sys.window.core.ModalState
 import org.dweb_browser.sys.window.core.windowInstancesManager
 
 val debugDesk = Debugger("desk")
@@ -120,20 +123,39 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     }
   }
 
-//  suspend fun IHandlerContext.createAlertModal(
-//    desktopController: DesktopController, mmid: MMID
-//  ) = openAppLock.withLock {
-//    val runningApp =
-//      runningApps[mmid] ?: throwException(HttpStatusCode.NotFound, "App:$mmid no running")
-//    val appMainWindow = runningApp.getMainWindow() ?: throwException(
-//      HttpStatusCode.Forbidden,
-//      "App:$mmid's main window should be open"
-//    )
-//
-//    val alertModal = request.queryAs<AlertModal>()
-//    appMainWindow.appendAlertModal(alertModal)
-//
-//  }
+  suspend fun IHandlerContext.getAppMainWindow(mmid: MMID) = openAppLock.withLock {
+    val runningApp =
+      runningApps[mmid] ?: throwException(HttpStatusCode.NotFound, "App:$mmid no running")
+    val appMainWindow = runningApp.getMainWindow() ?: throwException(
+      HttpStatusCode.Forbidden, "App:$mmid's main window should be open"
+    )
+    appMainWindow
+  }
+
+  suspend fun IHandlerContext.createAlertModal(mmid: MMID) = openAppLock.withLock {
+    request.queryAs<AlertModal>().also {
+      createAndTryOpenModal(mmid, it)
+    }
+  }
+
+  suspend fun IHandlerContext.createBottomSheetsModal(mmid: MMID) = openAppLock.withLock {
+    request.queryAs<BottomSheetsModal>().also {
+      createAndTryOpenModal(mmid, it)
+    }
+  }
+
+  private suspend fun IHandlerContext.createAndTryOpenModal(
+    mmid: MMID,
+    modal: ModalState,
+  ) {
+    val appMainWindow = getAppMainWindow(mmid)
+    if (!appMainWindow.createModal(modal)) {
+      throwException(HttpStatusCode.ExpectationFailed, "fail to create modal")
+    }
+    if (request.queryAsOrNull<Boolean>("open") == true) {
+      appMainWindow.openModal(modal.modalId)
+    }
+  }
 
   fun IHandlerContext.getWindow() = request.query("wid").let { wid ->
     windowInstancesManager.get(wid) ?: throw Exception("No Found by window id: '$wid'")

@@ -2,6 +2,7 @@ package org.dweb_browser.sys.window.core
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import org.dweb_browser.helper.Observable
@@ -304,10 +305,12 @@ abstract class WindowController(
 
   /**
    * 尝试添加一个 modal
+   * 如果ID已经存在，创建会失败（并不会更新属性）
    */
-  private suspend fun appendModal(modal: ModalState) = modalsLock.withLock("write") {
+  suspend fun createModal(modal: ModalState) = modalsLock.withLock("write") {
     if (!state.modals.containsKey(modal.modalId)) {
       state.modals += modal.modalId to modal
+      modal.setParent(this)
       true
     } else false
   }
@@ -315,7 +318,7 @@ abstract class WindowController(
   /**
    * 尝试移除一个 modal
    */
-  private suspend fun removeModal(modalId: UUID) = modalsLock.withLock("write") {
+  suspend fun removeModal(modalId: UUID) = modalsLock.withLock("write") {
     if (state.modals.containsKey(modalId)) {
       state.modals -= modalId
       true
@@ -329,18 +332,21 @@ abstract class WindowController(
     state.modals.firstNotNullOfOrNull { if (it.value.isOpen.value) it.value else null }
   }
 
+  val openingModal = mutableStateOf<ModalState?>(null)
+
   /**
    * 尝试显示指定 modal
    *
    * @return 返回true说明指定 modal 已经在显示了
    */
-  suspend fun openModal(modalId: UUID) = modalsLock.withLock("write") {
+  suspend fun openModal(modalId: String) = modalsLock.withLock("write") {
     val modal = state.modals[modalId] ?: return@withLock false
     /// 找寻当前
     when (getOpenModal()) {
       modal -> true
       null -> {
         modal.isOpen.value = true
+        openingModal.value = modal
         true
       }
 
@@ -357,6 +363,7 @@ abstract class WindowController(
     val modal = state.modals[modalId] ?: return@withLock false
     if (modal.isOpen.value) {
       modal.isOpen.value = false
+      openingModal.value = getOpenModal()
       true
     } else false
   }

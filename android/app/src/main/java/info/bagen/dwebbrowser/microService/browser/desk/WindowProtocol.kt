@@ -18,9 +18,20 @@ suspend fun DeskNMM.windowProtocol(desktopController: DesktopController) {
       "/openMainWindow" bind HttpMethod.Get to defineStringResponse {
         openOrActivateAppWindow(desktopController, ipc.remote.mmid)
       },
-      "/openBottomSheets" bind HttpMethod.Get to defineStringResponse {
-//        nativeFetch("file://desk.browser.dweb/open")
-        ""
+      "/createBottomSheets" bind HttpMethod.Get to defineJsonResponse {
+        createBottomSheetsModal(ipc.remote.mmid).toJsonElement()
+      },
+      "/createAlert" bind HttpMethod.Get to defineJsonResponse {
+        createAlertModal(ipc.remote.mmid).toJsonElement()
+      },
+      "/openModal" bind HttpMethod.Get to defineBooleanResponse {
+        getAppMainWindow(ipc.remote.mmid).openModal(request.query("modalId"))
+      },
+      "/closeModal" bind HttpMethod.Get to defineBooleanResponse {
+        getAppMainWindow(ipc.remote.mmid).closeModal(request.query("modalId"))
+      },
+      "/removeModal" bind HttpMethod.Get to defineBooleanResponse {
+        getAppMainWindow(ipc.remote.mmid).removeModal(request.query("modalId"))
       },
       /** 窗口的状态监听 */
       "/observe" bind HttpMethod.Get to defineJsonLineResponse {
@@ -61,12 +72,9 @@ suspend fun DeskNMM.windowProtocol(desktopController: DesktopController) {
 
         @Serializable
         data class Display(
-          val height: Float,
-          val width: Float,
-          val imeBoundingRect: Rect
+          val height: Float, val width: Float, val imeBoundingRect: Rect
         )
         Display(state.viewHeightDp, state.viewWidthDp, state.imeBoundingRect).toJsonElement()
-      }
-    )
+      })
   }
 }

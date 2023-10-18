@@ -15,11 +15,11 @@ import kotlin.test.assertIs
 class ModalStateTest {
   @Test
   fun testJson() {
-    val m1 = BottomSheetModal("qaq")
+    val m1 = BottomSheetsModal("qaq")
     val j1 = Json.encodeToString<ModalState>(m1)
     assertContains(j1, "bottom-sheet")
     val m11 = Json.decodeFromString<ModalState>(j1)
-    assertIs<BottomSheetModal>(m11)
+    assertIs<BottomSheetsModal>(m11)
 
     val m2 = AlertModal(title = "hi", message = "xxx")
     val j2 = Json.encodeToString<ModalState>(m2)
@@ -31,11 +31,11 @@ class ModalStateTest {
   @OptIn(ExperimentalSerializationApi::class)
   @Test
   fun testCbor() {
-    val m1 = BottomSheetModal("qaq")
+    val m1 = BottomSheetsModal("qaq")
     val j1 = Cbor.encodeToByteArray<ModalState>(m1)
     assertContains(j1.toUtf8(), "bottom-sheet")
     val m11 = Cbor.decodeFromByteArray<ModalState>(j1)
-    assertIs<BottomSheetModal>(m11)
+    assertIs<BottomSheetsModal>(m11)
 
     val m2 = AlertModal(title = "hi", message = "xxx")
     val j2 = Cbor.encodeToByteArray<ModalState>(m2)

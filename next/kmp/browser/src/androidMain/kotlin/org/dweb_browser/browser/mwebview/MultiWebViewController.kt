@@ -1,6 +1,5 @@
 package org.dweb_browser.browser.mwebview
 
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.platform.LocalDensity
 import com.google.accompanist.web.WebContent
@@ -16,7 +15,6 @@ import kotlinx.serialization.json.JsonPrimitive
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.module.MicroModule
-import org.dweb_browser.dwebview.DWebViewOptions
 import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.helper.Callback
@@ -57,9 +55,9 @@ class MultiWebViewController(
     webViewList.onChange {
       updateStateHook()
     }
-    val wid = win.id
+    val rid = win.id
     /// 提供渲染适配
-    createWindowAdapterManager.renderProviders[wid] = @Composable { modifier ->
+    createWindowAdapterManager.provideRender(rid) { modifier ->
       val webViewScale = (LocalDensity.current.density * scale * 100).toInt()
       Render(modifier, webViewScale)
     }
@@ -70,8 +68,6 @@ class MultiWebViewController(
     /// 窗口销毁的时候
     win.onClose {
       off();
-      // 移除渲染适配器
-      createWindowAdapterManager.renderProviders.remove(wid)
       // 清除释放所有的 webview
       for (item in webViewList) {
         closeWebView(item.webviewId)
@@ -100,18 +96,7 @@ class MultiWebViewController(
    * 打开WebView
    */
   suspend fun openWebView(url: String) = appendWebViewAsItem(createDwebView(url))
-
-  suspend fun createDwebView(url: String): DWebViewEngine = withMainContext {
-    val currentActivity = win.viewController.activity!!;// App.appContext
-    val dWebView = DWebViewEngine(
-      currentActivity, remoteMM, DWebViewOptions(
-        url = url,
-        /// 我们会完全控制页面将如何离开，所以这里兜底默认为留在页面
-        onDetachedFromWindowStrategy = DWebViewOptions.DetachedFromWindowStrategy.Ignore,
-      ), currentActivity
-    )
-    dWebView
-  }
+  suspend fun createDwebView(url: String) = win.createDwebView(remoteMM, url)
 
   @Synchronized
   fun appendWebViewAsItem(dWebView: DWebViewEngine) =

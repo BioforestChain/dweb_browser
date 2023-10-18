@@ -2,7 +2,6 @@ package org.dweb_browser.browser.web
 
 import android.content.Context
 import android.graphics.Bitmap
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.MainScope
@@ -80,7 +79,7 @@ class BrowserController(
         viewModel.createNewTab()
       }
       /// 提供渲染适配
-      createWindowAdapterManager.renderProviders[wid] = @Composable { modifier ->
+      createWindowAdapterManager.provideRender(wid) { modifier ->
         Render(modifier, this)
       }
       newWin.onClose {
