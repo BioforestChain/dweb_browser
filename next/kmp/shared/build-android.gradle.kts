@@ -28,6 +28,7 @@ kotlin {
         implementation(project(":helperCompose"))
         implementation(project(":helperPlatform"))
         implementation(project(":window"))
+        implementation(project(":core"))
         implementation(project(":browser"))
       }
     }

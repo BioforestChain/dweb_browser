@@ -4,6 +4,7 @@ import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import io.ktor.utils.io.CancellationException
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.getAndUpdate
 import kotlinx.coroutines.CompletableDeferred
@@ -12,7 +13,6 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import org.dweb_browser.dwebview.engine.DWebViewEngine
-import java.util.concurrent.CancellationException
 
 class DWebView(private val engine: DWebViewEngine) : IDWebView {
   suspend fun <T> runMain(block: suspend CoroutineScope.() -> T) =
