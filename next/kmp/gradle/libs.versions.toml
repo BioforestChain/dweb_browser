@@ -51,6 +51,12 @@ camera-barcode = "17.2.0"
 commons-compress = "1.23.0"
 jetbrains-compose-version = "1.5.3"
 
+# kotlin native C库编译
+cklib-version = "0.2.5"
+
+# webrtc-kmp
+webrtc-kmp-version = "0.114.4"
+
 # 测试
 test-junit-bom = "5.9.2"
 animation-core-android = "1.5.1"
@@ -176,6 +182,9 @@ test-junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter" }
 test-junit-jupiter-engine = { group = "org.junit.jupiter", name = "junit-jupiter-engine" }
 test-junit-vintage-engine = { group = "org.junit.vintage", name = "junit-vintage-engine" }
 
+# webrtc
+webrtc-kmp = { group = "com.shepeliev", name = "webrtc-kmp", version.ref = "webrtc-kmp-version" }
+
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin-version" }
@@ -185,5 +194,6 @@ kotlinPluginSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", 
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin-version" }
 kspAndroid = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "jetbrains-compose-version" }
+cklib = { id = "co.touchlab.cklib", version.ref = "cklib-version" }
 
 [bundles]

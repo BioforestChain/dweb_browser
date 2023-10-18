@@ -14,11 +14,6 @@ kotlin {
     }
   }
 
-  jvm("desktop")
-  jvmToolchain {
-    languageVersion.set(JavaLanguageVersion.of(libs.versions.jvmTarget.get()))
-  }
-
   listOf(
     iosX64(),
     iosArm64(),
@@ -70,14 +65,6 @@ kotlin {
       iosX64Test.dependsOn(this)
       iosArm64Test.dependsOn(this)
       iosSimulatorArm64Test.dependsOn(this)
-    }
-
-    val desktopMain by getting {
-      dependencies {
-        dependencies {
-          implementation(compose.desktop.common)
-        }
-      }
     }
   }
 }

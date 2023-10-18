@@ -21,8 +21,8 @@ dependencyResolutionManagement {
 rootProject.name = "dweb-browser-kmp"
 include("androidApp")
 project(":androidApp").projectDir = file("app/androidApp")
-include("desktopApp")
-project(":desktopApp").projectDir = file("app/desktopApp")
+//include("desktopApp")
+//project(":desktopApp").projectDir = file("app/desktopApp")
 
 include(":shared")
 include(":helper")

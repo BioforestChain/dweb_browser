@@ -15,11 +15,6 @@ kotlin {
     }
   }
 
-  jvm("desktop")
-  jvmToolchain {
-    languageVersion.set(JavaLanguageVersion.of(libs.versions.jvmTarget.get()))
-  }
-
   listOf(
     iosX64(),
     iosArm64(),
@@ -43,7 +38,7 @@ kotlin {
         api(libs.ktor.client.cio)
         api(libs.ktor.client.encoding)
         api(libs.ktor.server.websockets)
-        api("com.shepeliev:webrtc-kmp:0.114.4")
+        api(libs.webrtc.kmp)
 
         implementation(libs.jetbrains.compose.material3)
 
@@ -92,30 +87,6 @@ kotlin {
       iosX64Test.dependsOn(this)
       iosArm64Test.dependsOn(this)
       iosSimulatorArm64Test.dependsOn(this)
-    }
-
-    val desktopMain by getting {
-      dependencies {
-        dependencies {
-          implementation(compose.desktop.common)
-          // https://stackoverflow.com/questions/73187027/use-javafx-in-kotlin-multiplatform
-          // As JavaFX have platform-specific dependencies, we need to add them manually
-          val fxSuffix = when (osdetector.classifier) {
-            "linux-x86_64" -> "linux"
-            "linux-aarch_64" -> "linux-aarch64"
-            "windows-x86_64" -> "win"
-            "osx-x86_64" -> "mac"
-            "osx-aarch_64" -> "mac-aarch64"
-            else -> throw IllegalStateException("Unknown OS: ${osdetector.classifier}")
-          }
-          implementation("org.openjfx:javafx-base:19:${fxSuffix}")
-          implementation("org.openjfx:javafx-graphics:19:${fxSuffix}")
-          implementation("org.openjfx:javafx-controls:19:${fxSuffix}")
-          implementation("org.openjfx:javafx-swing:19:${fxSuffix}")
-          implementation("org.openjfx:javafx-web:19:${fxSuffix}")
-          implementation("org.openjfx:javafx-media:19:${fxSuffix}")
-        }
-      }
     }
   }
 }
