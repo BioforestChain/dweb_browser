@@ -2,6 +2,7 @@ import { $PlaocConfig } from "./const.ts";
 import { $DwebHttpServerOptions, $OnFetchReturn, FetchEvent, IpcResponse, jsProcess } from "./deps.ts";
 import { HttpServer, cors } from "./http-helper.ts";
 import { PlaocConfig } from "./plaoc-config.ts";
+import { setupDB } from "./shim/db.shim.ts";
 import { setupFetch } from "./shim/fetch.shim.ts";
 
 const CONFIG_PREFIX = "/config.sys.dweb/";
@@ -14,6 +15,7 @@ export class Server_www extends HttpServer {
     return this.plaocConfig.config;
   }
   lang: string | null = null;
+  private sessionInfo = jsProcess.nativeFetch("file:///usr/sys/session.json").then(res=>res.json() as Promise<{installTime:number,installUrl:string}>)
 
   protected _getOptions(): $DwebHttpServerOptions {
     return {
@@ -58,10 +60,20 @@ export class Server_www extends HttpServer {
           `;(${setupFetch.toString()})();${rawText}`,
           remoteIpcResponse.ipc
         );
-      }else{
+      } else {
         remoteIpcResponse = await jsProcess.nativeRequest(`file:///usr/${root}${pathname}?mode=stream`, {
           headers: proxyRequest.headers,
         });
+        if (remoteIpcResponse.headers.get("Content-Type")?.includes("text/html") && !plaocShims.has("raw")) {
+          const rawText = await remoteIpcResponse.toResponse().text();
+          remoteIpcResponse = IpcResponse.fromText(
+            remoteIpcResponse.req_id,
+            remoteIpcResponse.statusCode,
+            remoteIpcResponse.headers,
+            `<script>(${setupDB.toString()})("${(await this.sessionInfo).installTime}");</script>${rawText}`,
+            remoteIpcResponse.ipc
+          );
+        }
       }
     } else {
       remoteIpcResponse = await jsProcess.nativeRequest(`file:///usr/${root}${pathname}?mode=stream`);

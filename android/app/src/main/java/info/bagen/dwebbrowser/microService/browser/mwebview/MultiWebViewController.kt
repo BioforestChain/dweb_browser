@@ -23,7 +23,6 @@ import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.helper.Callback
 import org.dweb_browser.helper.ChangeableList
 import org.dweb_browser.helper.Signal
-import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.microservice.core.MicroModule
@@ -120,26 +119,28 @@ class MultiWebViewController(
   }
 
   @Synchronized
-  fun appendWebViewAsItem(dWebView: DWebView) = runBlockingCatching { withMainContext {
-    val webviewId = "#w${webviewId_acc.getAndAdd(1)}"
-    val state = WebViewState(WebContent.Url(dWebView.url ?: ""))
-    val coroutineScope = CoroutineScope(CoroutineName(webviewId))
-    val navigator = WebViewNavigator(coroutineScope)
-    MultiViewItem(
-      webviewId = webviewId,
-      webView = dWebView,
-      state = state,
-      coroutineScope = coroutineScope,
-      navigator = navigator,
-      win = win,
-    ).also { viewItem ->
-      webViewList.add(viewItem)
-      dWebView.onCloseWindow {
-        closeWebView(webviewId)
+  fun appendWebViewAsItem(dWebView: DWebView) = runBlockingCatching {
+    withMainContext {
+      val webviewId = "#w${webviewId_acc.getAndAdd(1)}"
+      val state = WebViewState(WebContent.Url(dWebView.url ?: ""))
+      val coroutineScope = CoroutineScope(CoroutineName(webviewId))
+      val navigator = WebViewNavigator(coroutineScope)
+      MultiViewItem(
+        webviewId = webviewId,
+        webView = dWebView,
+        state = state,
+        coroutineScope = coroutineScope,
+        navigator = navigator,
+        win = win,
+      ).also { viewItem ->
+        webViewList.add(viewItem)
+        dWebView.onCloseWindow {
+          closeWebView(webviewId)
+        }
+        webViewOpenSignal.emit(webviewId)
       }
-      webViewOpenSignal.emit(webviewId)
     }
-  } } .getOrThrow()
+  }.getOrThrow()
 
   /**
    * 关闭WebView

@@ -20,7 +20,7 @@ interface DnsMicroModule {
   /**
    * 动态卸载应用
    */
-  fun uninstall(mmid: MMID): Boolean
+  suspend fun uninstall(mmid: MMID): Boolean
 
   /**
    * 动态js应用查询

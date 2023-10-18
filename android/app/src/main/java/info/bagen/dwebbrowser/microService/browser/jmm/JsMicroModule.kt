@@ -1,7 +1,12 @@
 package info.bagen.dwebbrowser.microService.browser.jmm
 
+import android.webkit.CookieManager
+import android.webkit.WebStorage
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okio.FileSystem
+import okio.Path.Companion.toPath
+import okio.Sink
 import org.dweb_browser.dwebview.ipcWeb.Native2JsIpc
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.PromiseOut
@@ -10,9 +15,11 @@ import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.printError
 import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.helper.toBase64Url
+import org.dweb_browser.microservice.core.AndroidNativeMicroModule
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.ConnectResult
 import org.dweb_browser.microservice.core.MicroModule
+import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.core.connectAdapterManager
 import org.dweb_browser.microservice.help.boolean
 import org.dweb_browser.microservice.help.gson
@@ -41,7 +48,7 @@ import java.util.Random
 fun debugJsMM(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("JsMM", tag, msg, err)
 
-open class JsMicroModule(val metadata: JmmAppInstallManifest) : MicroModule(
+open class JsMicroModule(val metadata: JmmAppInstallManifest) : AndroidNativeMicroModule(
   MicroModuleManifest().apply {
     assign(metadata)
     categories += MICRO_MODULE_CATEGORY.Application
@@ -54,7 +61,6 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) : MicroModule(
     )
   }
 ) {
-
   companion object {
     /**
      * 当前JsMicroModule的版本

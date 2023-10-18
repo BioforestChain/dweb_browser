@@ -14,6 +14,7 @@ import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
+import android.webkit.WebStorage
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.core.content.FileProvider
@@ -266,7 +267,6 @@ class DWebView(
     }
   }
 
-
   override fun setWebViewClient(client: WebViewClient) {
     dWebViewClient.addWebViewClient(client)
   }
@@ -452,6 +452,7 @@ class DWebView(
     super.setWebViewClient(internalWebViewClient)
     super.setWebChromeClient(internalWebChromeClient)
 
+
     if (options.onJsBeforeUnloadStrategy != Options.JsBeforeUnloadStrategy.Default) {
       dWebChromeClient.addWebChromeClient(object : WebChromeClient() {
         override fun onJsBeforeUnload(
@@ -475,6 +476,7 @@ class DWebView(
   }
 
   private var preLoadedUrlArgs: String? = null
+
 
   /**
    * 避免 com.google.accompanist.web 在切换 Compose 上下文的时候重复加载同样的URL

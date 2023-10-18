@@ -56,7 +56,7 @@ suspend fun startDwebBrowser(): DnsNMM {
     DEVELOPER.KVirtual -> addDebugTags(listOf("JsMM", "http", "/.+/"))
 
     else -> addDebugTags(
-      listOf("desk", "mwebview", "fetch")
+      listOf("/.+/")
     )
   }
 

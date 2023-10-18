@@ -12,6 +12,12 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.runBlocking
+import kotlinx.datetime.Clock
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
+import okio.Path.Companion.toPath
 import org.dweb_browser.browserUI.database.DeskAppInfoStore
 import org.dweb_browser.browserUI.network.ApiService
 import org.dweb_browser.browserUI.util.FilesUtil
@@ -188,8 +194,21 @@ class DwebBrowserService : Service() {
       NotificationUtil.INSTANCE.cancelNotification(notificationId) // 下载完成，隐藏通知栏
       DownLoadObserver.emit(this.id, DownLoadStatus.DownLoadComplete)
       runBlocking { delay(1000) }
+      val unzipPath = FilesUtil.getAppUnzipPath(this@DwebBrowserService)
       val unzip = ZipUtil.ergodicDecompress(
-        this.path, FilesUtil.getAppUnzipPath(this@DwebBrowserService), mmid = id
+        this.path, unzipPath, mmid = id
+      )
+
+      FilesUtil.writeFileContent(
+        unzipPath.toPath().resolve("$id/usr/sys/metadata.json").toString(),
+        Json.encodeToString(metaData)
+      )
+      FilesUtil.writeFileContent(
+        unzipPath.toPath().resolve("$id/usr/sys/session.json").toString(),
+        Json.encodeToString(buildJsonObject {
+          put("installTime", JsonPrimitive(Clock.System.now().toEpochMilliseconds()))
+          put("installUrl", JsonPrimitive(url))
+        })
       )
       downloadInstalled(unzip)
     }
