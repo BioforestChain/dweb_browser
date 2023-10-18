@@ -37,7 +37,8 @@ export abstract class BasePlugin {
   static getUrl(urlType: X_PLAOC_QUERY) {
     const url = this.urlData.get(urlType) || localStorage.getItem("url:" + urlType);
     if (url === null) {
-      throw new Error(`unconfig url: ${urlType}`);
+      console.error(`unconfig url: ${urlType}`);
+      return "";
     }
     localStorage.setItem("url:" + urlType, url);
     return url;
