@@ -13,6 +13,9 @@ kotlin {
       }
     }
   }
+  jvmToolchain {
+    languageVersion.set(JavaLanguageVersion.of(libs.versions.jvmTarget.get()))
+  }
 
   listOf(
     iosX64(),

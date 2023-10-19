@@ -8,6 +8,7 @@ import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -202,8 +203,8 @@ class IpcBodySender(
 
     /// 如果所有的读取者都暂停了，那么就触发暂停
     var paused = true
-    for (info in usedIpcMap.values) {
-      if (info.bandwidth >= 0) {
+    for (value in usedIpcMap.values) {
+      if (value.bandwidth >= 0) {
         paused = false
         break
       }
@@ -250,6 +251,7 @@ class IpcBodySender(
       }
     }
 
+  @OptIn(ExperimentalCoroutinesApi::class)
   private inline fun emitStreamClose() {
     if (_isStreamClosed) return
     _isStreamOpened = true

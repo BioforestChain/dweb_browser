@@ -143,7 +143,7 @@ fun PureRequest.toHttpRequestBuilder() = HttpRequestBuilder().also { httpRequest
   httpRequestBuilder.method = HttpMethod.parse(this.method.name)
   httpRequestBuilder.url(this.href)
   for ((key, value) in this.headers.toMap()) {
-    httpRequestBuilder.headers.append(key, value ?: "")
+    httpRequestBuilder.headers.append(key, value)
   }
   httpRequestBuilder.setBody(this.body.toPureStream().getReader("toHttpRequestBuilder"))
 }

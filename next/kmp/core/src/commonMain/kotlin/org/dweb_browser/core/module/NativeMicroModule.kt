@@ -223,6 +223,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
       responseReadableStream.controller.enqueue(data.size.toLittleEndianByteArray(), data)
     }
 
+    @kotlinx.serialization.ExperimentalSerializationApi
     suspend inline fun <reified T> emit(lineData: T) = emit(Cbor.encodeToByteArray(lineData))
 
     suspend fun end(reason: Throwable? = null) {

@@ -131,9 +131,9 @@ object ZipUtil {
     return when (entryName) {
       ".", "..", "__MACOSX" -> entryName
       else -> {
-        mmid?.let { mmid ->
+        mmid?.let { id ->
           val sss = dirName(entryName)
-          entryName.replaceFirst(sss, "$mmid/")// 由于entryName如果是目录最后一个字符是 /
+          entryName.replaceFirst(sss, "$id/")// 由于entryName如果是目录最后一个字符是 /
         } ?: entryName
       }
     }

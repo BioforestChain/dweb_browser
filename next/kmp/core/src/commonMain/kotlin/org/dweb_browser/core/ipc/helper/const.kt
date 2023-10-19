@@ -144,7 +144,6 @@ fun dataToBinary(
   IPC_DATA_ENCODING.BINARY -> data as ByteArray
   IPC_DATA_ENCODING.BASE64 -> (data as String).toBase64ByteArray()
   IPC_DATA_ENCODING.UTF8 -> (data as String).toUtf8ByteArray()
-  else -> throw Exception("unknown encoding")
 }
 
 
@@ -154,5 +153,4 @@ fun dataToText(
   IPC_DATA_ENCODING.BINARY -> (data as ByteArray).toUtf8()
   IPC_DATA_ENCODING.BASE64 -> (data as String).toBase64ByteArray().toUtf8()
   IPC_DATA_ENCODING.UTF8 -> data as String
-  else -> throw Exception("unknown encoding")
 }
