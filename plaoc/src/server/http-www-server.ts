@@ -1,3 +1,4 @@
+import isMobile from "npm:is-mobile";
 import { $PlaocConfig } from "./const.ts";
 import { $DwebHttpServerOptions, $OnFetchReturn, FetchEvent, IpcResponse, jsProcess } from "./deps.ts";
 import { HttpServer, cors } from "./http-helper.ts";
@@ -64,13 +65,14 @@ export class Server_www extends HttpServer {
         remoteIpcResponse = await jsProcess.nativeRequest(`file:///usr/${root}${pathname}?mode=stream`, {
           headers: proxyRequest.headers,
         });
-        if (remoteIpcResponse.headers.get("Content-Type")?.includes("text/html") && !plaocShims.has("raw")) {
+        if (remoteIpcResponse.headers.get("Content-Type")?.includes("text/html") && !plaocShims.has("raw") && isMobile.isMobile()) {
           const rawText = await remoteIpcResponse.toResponse().text();
+          const text = `<script>(${setupDB.toString()})("${(await this.sessionInfo).installTime}");</script>${rawText}`
           remoteIpcResponse = IpcResponse.fromText(
             remoteIpcResponse.req_id,
             remoteIpcResponse.statusCode,
             remoteIpcResponse.headers,
-            `<script>(${setupDB.toString()})("${(await this.sessionInfo).installTime}");</script>${rawText}`,
+            text,
             remoteIpcResponse.ipc
           );
         }
