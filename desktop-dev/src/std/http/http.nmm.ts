@@ -228,6 +228,12 @@ export class HttpServerNMM extends NativeMicroModule {
       url = new URL(url, this._dwebServer.origin);
     }
     let query_x_web_host: string | null = url.searchParams.get("X-Dweb-Host");
+    // if (query_x_web_host == null) {
+    //   const internal = url.searchParams.get("X-Plaoc-Internal-Url")
+    //   if (internal !== null) {
+    //     query_x_web_host = (new URL(internal)).searchParams.get("X-Dweb-Host")
+    //   }
+    // }
     let url_host: string | null = null;
     if (url) {
       const hostname = url.hostname;

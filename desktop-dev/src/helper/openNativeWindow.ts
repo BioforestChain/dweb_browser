@@ -76,7 +76,7 @@ export const createNativeWindow = async (sessionId: string, createOptions: $Crea
     webPreferences: {
       ..._options.webPreferences,
       sandbox: false,
-      devTools: !Electron.app.isPackaged,
+      devTools: true,
       webSecurity: false,
       nodeIntegration: true,
       contextIsolation: false,
