@@ -69,9 +69,7 @@ internal fun SearchView(
   onSearch: (String) -> Unit,
 ) {
   val focusManager = LocalFocusManager.current
-  val inputText = key(text) {
-    remember { mutableStateOf(parseInputText(text, false)) }
-  }
+  val inputText = remember { mutableStateOf(parseInputText(text, false)) }
   val searchPreviewState = remember { MutableTransitionState(text.isNotEmpty()) }
   val webEngine = findWebEngine(text)
 
@@ -90,13 +88,11 @@ internal fun SearchView(
       modifier = Modifier
         .fillMaxWidth()
         .background(MaterialTheme.colorScheme.background)
-      //.navigationBarsPadding()
-      //.padding(bottom = dimenBottomHeight)
     ) {
       homePreview?.let { it { moved -> focusManager.clearFocus(); if (!moved) onClose() } }
 
       Text(
-        text = "取消",
+        text = stringResource(id = R.string.browser_search_cancel),
         modifier = Modifier
           .align(Alignment.TopEnd)
           .padding(20.dp)

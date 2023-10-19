@@ -75,4 +75,6 @@
   <string name="browser_engine_baidu">Baidu</string>
   <string name="browser_engine_sougou">Sougou</string>
   <string name="browser_engine_qihu">360</string>
+  <string name="browser_history_today">Today</string>
+  <string name="browser_history_yesterday">Yesterday</string>
 </resources>

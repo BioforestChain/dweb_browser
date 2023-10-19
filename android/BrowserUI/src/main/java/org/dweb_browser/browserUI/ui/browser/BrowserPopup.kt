@@ -46,7 +46,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -90,22 +90,17 @@ import org.dweb_browser.browserUI.database.WebSiteDatabase
 import org.dweb_browser.browserUI.database.WebSiteInfo
 import org.dweb_browser.browserUI.ui.browser.bottomsheet.BrowserModalBottomSheet
 import org.dweb_browser.browserUI.ui.browser.bottomsheet.LocalModalBottomSheet
+import org.dweb_browser.browserUI.ui.browser.bottomsheet.SheetState
 import org.dweb_browser.browserUI.ui.browser.search.CustomTextField
 import org.dweb_browser.browserUI.ui.entity.BrowserBaseView
 import org.dweb_browser.browserUI.ui.entity.BrowserMainView
 import org.dweb_browser.browserUI.ui.entity.BrowserWebView
 import org.dweb_browser.browserUI.ui.theme.DimenBottomBarHeight
-import org.dweb_browser.browserUI.ui.view.LocalCommonUrl
 import org.dweb_browser.browserUI.ui.view.findActivity
 import org.dweb_browser.browserUI.util.BitmapUtil
 import org.dweb_browser.browserUI.util.PrivacyUrl
 import org.dweb_browser.dwebview.base.WindowInsetsHelper
 import org.dweb_browser.helper.ioAsyncExceptionHandler
-
-private val screenHeight: Dp
-  @Composable get() {
-    return LocalConfiguration.current.screenHeightDp.dp
-  }
 
 enum class PopupViewState(
   private val height: Dp = 0.dp,
@@ -118,7 +113,7 @@ enum class PopupViewState(
   Share(percentage = 0.5f, title = "分享");
 
   fun getLocalHeight(screenHeight: Dp? = null): Dp {
-    return screenHeight?.let { screenHeight ->
+    return screenHeight?.let {
       percentage?.let { percentage ->
         screenHeight * percentage
       }
@@ -136,13 +131,20 @@ class TabItem(
 }
 
 @Composable
-internal fun BrowserBottomSheet(viewModel: BrowserViewModel) {
+fun BrowserBottomSheet(viewModel: BrowserViewModel) {
   val bottomSheetModel = LocalModalBottomSheet.current
+  val scope = rememberCoroutineScope()
   if (bottomSheetModel.show.value) {
+    BackHandler {
+      if (bottomSheetModel.state.value != SheetState.Hidden) {
+        scope.launch { bottomSheetModel.hide() }
+      }
+    }
+
     val density = LocalDensity.current.density
     val topLeftRadius = WindowInsetsHelper.getCornerRadiusTop(LocalContext.current, density, 16f)
     BrowserModalBottomSheet(
-      onDismissRequest = { bottomSheetModel.show.value = false },
+      onDismissRequest = { scope.launch { bottomSheetModel.hide() } },
       shape = RoundedCornerShape(
         topStart = topLeftRadius * density,
         topEnd = topLeftRadius * density
@@ -158,20 +160,9 @@ internal fun BrowserBottomSheet(viewModel: BrowserViewModel) {
  */
 @Composable
 internal fun BrowserPopView(viewModel: BrowserViewModel) {
-  val selectedTabIndex = remember { mutableIntStateOf(0) }
-  val pageIndex = remember { mutableIntStateOf(0) }
-  var webSiteInfo: WebSiteInfo? = null
-  /*val scope = rememberCoroutineScope()
-
-  LaunchedEffect(pageIndex) {
-    snapshotFlow { pageIndex.value }.collect {
-      if (it == 1) {
-        delay(200)
-        scope.launch { viewModel.uiState.bottomSheetScaffoldState.bottomSheetState.expand() }
-      }
-    }
-  }*/
-
+  val selectedTabIndex = LocalModalBottomSheet.current.tabIndex
+  val pageIndex = LocalModalBottomSheet.current.pageIndex
+  val webSiteInfo = LocalModalBottomSheet.current.webSiteInfo
   AnimatedContent(targetState = pageIndex, label = "",
     transitionSpec = {
       if (targetState.intValue > initialState.intValue) {
@@ -191,14 +182,16 @@ internal fun BrowserPopView(viewModel: BrowserViewModel) {
           viewModel = viewModel,
           selectedTabIndex = selectedTabIndex,
           openBookManager = {
-            webSiteInfo = it
+            webSiteInfo.value = it
             pageIndex.intValue = 1
           }
         )
       }
 
       1 -> {
-        PopBookManagerView(webSiteInfo = webSiteInfo) { pageIndex.intValue = 0 }
+        key(webSiteInfo) {
+          PopBookManagerView { pageIndex.intValue = 0 }
+        }
       }
 
       else -> {}
@@ -210,10 +203,12 @@ internal fun BrowserPopView(viewModel: BrowserViewModel) {
  * 书签管理界面
  */
 @Composable
-private fun PopBookManagerView(webSiteInfo: WebSiteInfo?, onBack: () -> Unit) {
+private fun PopBookManagerView(onBack: () -> Unit) {
   val scope = rememberCoroutineScope()
-  val inputTitle = remember { mutableStateOf(webSiteInfo?.title ?: "") }
-  val inputUrl = remember { mutableStateOf(webSiteInfo?.url ?: "") }
+  val webSiteInfo = LocalModalBottomSheet.current.webSiteInfo
+  val inputTitle = key(webSiteInfo) { remember { mutableStateOf(webSiteInfo.value?.title ?: "") } }
+  val inputUrl = key(webSiteInfo) { remember { mutableStateOf(webSiteInfo.value?.url ?: "") } }
+
   Box(modifier = Modifier.fillMaxSize()) {
     Row(
       modifier = Modifier
@@ -239,7 +234,7 @@ private fun PopBookManagerView(webSiteInfo: WebSiteInfo?, onBack: () -> Unit) {
         text = stringResource(id = R.string.browser_options_store),
         modifier = Modifier
           .clickable {
-            webSiteInfo?.apply {
+            webSiteInfo.value?.apply {
               title = inputTitle.value
               url = inputUrl.value
               scope.launch(ioAsyncExceptionHandler) {
@@ -255,10 +250,10 @@ private fun PopBookManagerView(webSiteInfo: WebSiteInfo?, onBack: () -> Unit) {
         fontSize = 18.sp
       )
     }
-    val item = webSiteInfo ?: return
-    val focusRequester = FocusRequester()
+    val item = webSiteInfo.value ?: return
+    val focusRequester = remember { FocusRequester() }
     LaunchedEffect(focusRequester) {
-      delay(500)
+      delay(100)
       focusRequester.requestFocus()
     }
 
@@ -281,12 +276,12 @@ private fun PopBookManagerView(webSiteInfo: WebSiteInfo?, onBack: () -> Unit) {
           .fillMaxWidth()
           .height(50.dp)
           .clip(RoundedCornerShape(6.dp))
-          .background(MaterialTheme.colorScheme.surface)
+          .background(MaterialTheme.colorScheme.surfaceVariant)
           .clickable {
             scope.launch(ioAsyncExceptionHandler) {
               WebSiteDatabase.INSTANCE
                 .websiteDao()
-                .delete(webSiteInfo)
+                .delete(item)
               onBack()
             }
           },
@@ -442,7 +437,6 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel) {
   val scope = rememberCoroutineScope()
   val activity = LocalContext.current.findActivity()
   val bottomSheetModel = LocalModalBottomSheet.current
-  val localCommonUrl = LocalCommonUrl.current
   // 判断权限
   val launcher =
     rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestPermission(),
@@ -507,7 +501,8 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel) {
           }) {
           scope.launch {
             bottomSheetModel.hide()
-            localCommonUrl.value = PrivacyUrl
+            // localCommonUrl.value = PrivacyUrl // 打开一个全新的webview显示，删除掉
+            viewModel.handleIntent(BrowserIntent.SearchWebView(PrivacyUrl))
           }
         } // 隐私政策
       }

@@ -20,6 +20,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
 import androidx.room.Update
+import org.dweb_browser.browserUI.R
 import org.dweb_browser.browserUI.util.BrowserUIApp
 import java.io.ByteArrayOutputStream
 import java.time.LocalDate
@@ -49,9 +50,9 @@ data class WebSiteInfo(
   fun getStickyName(): String {
     val currentOfEpochDay = LocalDate.now().toEpochDay()
     return if (timeMillis >= currentOfEpochDay) {
-      "今天"
+      BrowserUIApp.Instance.appContext.getString(R.string.browser_history_today)
     } else if (timeMillis == currentOfEpochDay - 1) {
-      "昨天"
+      BrowserUIApp.Instance.appContext.getString(R.string.browser_history_yesterday)
     } else {
       LocalDate.ofEpochDay(timeMillis).format(DateTimeFormatter.ofPattern("yyyy-MM-dd EEEE"))
     }

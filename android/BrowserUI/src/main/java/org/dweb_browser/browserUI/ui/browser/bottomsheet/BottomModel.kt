@@ -2,8 +2,11 @@ package org.dweb_browser.browserUI.ui.browser.bottomsheet
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.delay
+import org.dweb_browser.browserUI.database.WebSiteInfo
+import org.dweb_browser.browserUI.database.WebSiteType
 import org.dweb_browser.browserUI.ui.browser.noLocalProvidedFor
 
 val LocalModalBottomSheet = compositionLocalOf<ModalBottomModel> {
@@ -24,9 +27,13 @@ data class ModalBottomModel(
   val state: MutableState<SheetState>,
 ) {
   val show: MutableState<Boolean> = mutableStateOf(false)
+  val tabIndex = mutableIntStateOf(0)
+  val pageIndex = mutableIntStateOf(0)
+  val webSiteInfo: MutableState<WebSiteInfo?> = mutableStateOf(null)
 
   suspend fun hide() {
     state.value = SheetState.Hidden
+    pageIndex.intValue = 0
     delay(50)
     show.value = false
   }

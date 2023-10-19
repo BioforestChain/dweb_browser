@@ -75,4 +75,6 @@
   <string name="browser_engine_baidu">百度</string>
   <string name="browser_engine_sougou">搜狗</string>
   <string name="browser_engine_qihu">360</string>
+  <string name="browser_history_today">今天</string>
+  <string name="browser_history_yesterday">昨天</string>
 </resources>

@@ -63,7 +63,6 @@ import org.dweb_browser.browserUI.ui.browser.search.SearchView
 import org.dweb_browser.browserUI.ui.entity.BrowserBaseView
 import org.dweb_browser.browserUI.ui.entity.BrowserWebView
 import org.dweb_browser.browserUI.ui.qrcode.QRCodeScanView
-import org.dweb_browser.dwebview.base.ViewItem
 import org.dweb_browser.window.core.WindowRenderScope
 
 internal val dimenTextFieldFontSize = 16.sp
@@ -94,19 +93,15 @@ fun BrowserViewForWindow(
   val scope = rememberCoroutineScope()
   val initialScale =
     (LocalDensity.current.density * windowRenderScope.scale * 100).toInt() // 用于WebView缩放，避免点击后位置不对
-
+  val modalBottomModel = remember { ModalBottomModel(mutableStateOf(SheetState.PartiallyExpanded)) }
 
   CompositionLocalProvider(
-    LocalModalBottomSheet provides ModalBottomModel(remember { mutableStateOf(SheetState.PartiallyExpanded) })
+    LocalModalBottomSheet provides modalBottomModel,
+    LocalWebViewInitialScale provides initialScale
   ) {
-    val bottomSheetModel = LocalModalBottomSheet.current
     BackHandler {
-      val watcher = viewModel.uiState.currentBrowserBaseView.value?.closeWatcher;
-      if (bottomSheetModel.state.value != SheetState.Hidden) {
-        scope.launch {
-          bottomSheetModel.hide()
-        }
-      } else if (watcher?.canClose == true) {
+      val watcher = viewModel.uiState.currentBrowserBaseView.value?.closeWatcher
+      if (watcher?.canClose == true) {
         scope.launch {
           watcher.close()
         }
@@ -120,14 +115,12 @@ fun BrowserViewForWindow(
     }
 
     Box(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
-      CompositionLocalProvider(
-        LocalWebViewInitialScale provides initialScale
-      ) {
-        Box(modifier = Modifier
+      Box(
+        modifier = Modifier
           .fillMaxSize()
-          .padding(bottom = dimenBottomHeight * windowRenderScope.scale)) {
-          BrowserViewContent(viewModel)   // 中间主体部分
-        }
+          .padding(bottom = dimenBottomHeight * windowRenderScope.scale)
+      ) {
+        BrowserViewContent(viewModel)   // 中间主体部分
       }
       Box(modifier = with(windowRenderScope) {
         Modifier
@@ -153,19 +146,6 @@ fun BrowserViewForWindow(
           })
       }
     }
-  }
-}
-
-@Composable
-private fun BrowserMaskView(viewModel: BrowserViewModel, onClick: () -> Unit) {
-  // 如果显示了sheet，这边做一层遮罩
-  val bottomSheetModel = LocalModalBottomSheet.current
-  if (bottomSheetModel.state.value != SheetState.Hidden) {
-    Box(modifier = Modifier
-      .fillMaxSize()
-      .background(MaterialTheme.colorScheme.onSurface.copy(0.2f))
-      .clickableWithNoEffect { onClick() }
-    )
   }
 }
 
@@ -309,17 +289,6 @@ private fun BrowserViewNavigatorBar(viewModel: BrowserViewModel) {
       .height(dimenNavigationHeight)
   ) {
     val navigator = viewModel.uiState.currentBrowserBaseView.value?.viewItem?.navigator ?: return
-    // 屏蔽 goBack 和 goForward，功能转移到窗口的导航栏实现
-    /*NavigatorButton(
-      imageVector = Icons.Rounded.ArrowBack, // R.drawable.ic_main_back,
-      resName = R.string.browser_nav_back,
-      show = navigator.canGoBack
-    ) { navigator.navigateBack() }
-    NavigatorButton(
-      imageVector = Icons.Rounded.ArrowForward, // R.drawable.ic_main_forward,
-      resName = R.string.browser_nav_forward,
-      show = navigator.canGoForward ?: false
-    ) { navigator.navigateForward() }*/
     NavigatorButton(
       imageVector = Icons.Rounded.AddHome,
       resName = R.string.browser_nav_addhome,
@@ -536,8 +505,8 @@ internal fun HomeWebviewPage(viewModel: BrowserViewModel, onClickOrMove: (Boolea
   LaunchedEffect(Unit) {
     _webView = viewModel.searchBackBrowserView.await()
   }
-  val webView = _webView?:return
- // getNewTabBrowserView()
+  val webView = _webView ?: return
+  // getNewTabBrowserView()
   val background = MaterialTheme.colorScheme.background
   val isDark = isSystemInDarkTheme()
   var isRemove = false
