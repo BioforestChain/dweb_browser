@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { Chalk } from "npm:chalk";
 import _minifyHTML from "npm:rollup-plugin-minify-html-literals";
 import { InlineConfig, PluginOption, build } from "npm:vite";
-import { ESBuild } from "../../scripts/helper/Esbuild.ts";
+import { ESBuild } from "../../scripts/helper/ESBuild.ts";
 const minifyHTML = _minifyHTML.default();
 const chalk = new Chalk({ level: 3 });
 
