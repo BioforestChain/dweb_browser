@@ -2,7 +2,7 @@ package info.bagen.dwebbrowser.microService.browser.desk
 
 import io.ktor.http.HttpMethod
 import kotlinx.serialization.Serializable
-import org.dweb_browser.core.http.bind
+import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.sys.window.core.Rect

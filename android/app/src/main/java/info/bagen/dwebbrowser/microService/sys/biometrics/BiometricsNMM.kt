@@ -11,7 +11,7 @@ import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
-import org.dweb_browser.core.http.bind
+import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.helper.PromiseOut
 
 fun debugBiometrics(tag: String, msg: Any? = "", err: Throwable? = null) =

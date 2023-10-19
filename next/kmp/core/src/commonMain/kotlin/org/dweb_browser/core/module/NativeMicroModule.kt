@@ -13,14 +13,18 @@ import kotlinx.serialization.json.JsonElement
 import org.dweb_browser.core.help.types.DWEB_PROTOCOL
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.help.types.MicroModuleManifest
-import org.dweb_browser.core.http.HttpRouter
 import org.dweb_browser.core.http.PureBinary
-import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.http.PureResponse
 import org.dweb_browser.core.http.PureStream
-import org.dweb_browser.core.http.PureStringBody
-import org.dweb_browser.core.http.RoutingHttpHandler
-import org.dweb_browser.core.ipc.Ipc
+import org.dweb_browser.core.http.router.HandlerContext
+import org.dweb_browser.core.http.router.HttpHandler
+import org.dweb_browser.core.http.router.HttpHandlerChain
+import org.dweb_browser.core.http.router.HttpRouter
+import org.dweb_browser.core.http.router.IHandlerContext
+import org.dweb_browser.core.http.router.MiddlewareHttpHandler
+import org.dweb_browser.core.http.router.RoutingHttpHandler
+import org.dweb_browser.core.http.router.TypedHttpHandler
+import org.dweb_browser.core.http.router.toChain
 import org.dweb_browser.core.ipc.NativeIpc
 import org.dweb_browser.core.ipc.NativeMessageChannel
 import org.dweb_browser.core.ipc.helper.IPC_ROLE
@@ -59,7 +63,11 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
   private val protocolMap = mutableMapOf<DWEB_PROTOCOL, HttpRouter>()
   fun routes(vararg list: RoutingHttpHandler) = HttpRouter(this).also {
     it.addRoutes(*list)
-    protocolMap["*"] = it
+    protocolMap.getOrPut("*") { it } += it
+  }
+
+  fun removeRouter(router: HttpRouter) {
+    protocolMap["*"]?.also { it -= router }
   }
 
   class ProtocolBuilderContext(mm: MicroModule) {
@@ -68,12 +76,16 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
   }
 
   suspend fun protocol(
-    protocol: DWEB_PROTOCOL,
-    buildProtocol: suspend ProtocolBuilderContext.() -> Unit
+    protocol: DWEB_PROTOCOL, buildProtocol: suspend ProtocolBuilderContext.() -> Unit
   ) {
     val context = ProtocolBuilderContext(this)
     context.buildProtocol()
     protocolMap[protocol] = context.router
+  }
+
+  override suspend fun afterShutdown() {
+    super.afterShutdown()
+    protocolMap.clear()
   }
 
   /**
@@ -98,49 +110,36 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
     }
   }
 
-  interface IHandlerContext {
-    val request: PureRequest
-    val ipc: Ipc
-    fun throwException(
-      code: HttpStatusCode = HttpStatusCode.InternalServerError,
-      message: String = code.description,
-      cause: Throwable? = null
-    ): Nothing = throw ResponseException(code, message, cause)
-  }
-
-  open class HandlerContext(override val request: PureRequest, override val ipc: Ipc) :
-    IHandlerContext
-
   fun defineEmptyResponse(
-    beforeResponse: BeforeResponse? = null,
-    handler: RequestHandler<Unit>,
-  ) = wrapHandler(beforeResponse) {
+    middlewareHttpHandler: MiddlewareHttpHandler? = null,
+    handler: TypedHttpHandler<Unit>,
+  ) = wrapHandler(middlewareHttpHandler) {
     handler()
     PureResponse(HttpStatusCode.OK)
   }
 
   fun defineStringResponse(
-    beforeResponse: BeforeResponse? = null,
-    handler: RequestHandler<String>,
-  ) = wrapHandler(beforeResponse) {
+    middlewareHttpHandler: MiddlewareHttpHandler? = null,
+    handler: TypedHttpHandler<String>,
+  ) = wrapHandler(middlewareHttpHandler) {
     PureResponse(HttpStatusCode.OK).body(
       handler()
     )
   }
 
   fun defineNumberResponse(
-    beforeResponse: BeforeResponse? = null,
-    handler: RequestHandler<Number>,
-  ) = wrapHandler(beforeResponse) {
+    middlewareHttpHandler: MiddlewareHttpHandler? = null,
+    handler: TypedHttpHandler<Number>,
+  ) = wrapHandler(middlewareHttpHandler) {
     PureResponse(HttpStatusCode.OK).jsonBody(
       handler()
     )
   }
 
   fun defineBooleanResponse(
-    beforeResponse: BeforeResponse? = null,
-    handler: RequestHandler<Boolean>,
-  ) = wrapHandler(beforeResponse) {
+    middlewareHttpHandler: MiddlewareHttpHandler? = null,
+    handler: TypedHttpHandler<Boolean>,
+  ) = wrapHandler(middlewareHttpHandler) {
     PureResponse(HttpStatusCode.OK).jsonBody(
       try {
         handler()
@@ -152,9 +151,9 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
   }
 
   fun defineJsonResponse(
-    beforeResponse: BeforeResponse? = null,
-    handler: RequestHandler<JsonElement>,
-  ) = wrapHandler(beforeResponse) {
+    middlewareHttpHandler: MiddlewareHttpHandler? = null,
+    handler: TypedHttpHandler<JsonElement>,
+  ) = wrapHandler(middlewareHttpHandler) {
     PureResponse(HttpStatusCode.OK).jsonBody(
       handler()
     )
@@ -182,9 +181,9 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
   }
 
   fun defineJsonLineResponse(
-    beforeResponse: BeforeResponse? = null,
+    middlewareHttpHandler: MiddlewareHttpHandler? = null,
     handler: suspend JsonLineHandlerContext.() -> Unit,
-  ) = wrapHandler(beforeResponse) {
+  ) = wrapHandler(middlewareHttpHandler) {
     JsonLineHandlerContext(this).run {
       // 执行分发器
       val job = ioAsyncScope.launch {
@@ -240,9 +239,9 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
   }
 
   fun defineCborPackageResponse(
-    beforeResponse: BeforeResponse? = null,
+    middlewareHttpHandler: MiddlewareHttpHandler? = null,
     handler: suspend CborPacketHandlerContext.() -> Unit,
-  ) = wrapHandler(beforeResponse) {
+  ) = wrapHandler(middlewareHttpHandler) {
     CborPacketHandlerContext(this).run {
       // 执行分发器
       val job = ioAsyncScope.launch {
@@ -277,59 +276,45 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
   fun PureResponse.body(body: JsonElement) = jsonBody(body)
 
   fun definePureResponse(
-    beforeResponse: BeforeResponse? = null,
-    handler: RequestHandler<PureResponse>,
-  ) = wrapHandler(beforeResponse) {
+    middlewareHttpHandler: MiddlewareHttpHandler? = null,
+    handler: TypedHttpHandler<PureResponse>,
+  ) = wrapHandler(middlewareHttpHandler) {
     handler()
   }
 
   fun definePureBinaryHandler(
-    beforeResponse: BeforeResponse? = null,
-    handler: RequestHandler<PureBinary>,
-  ) = wrapHandler(beforeResponse) {
+    middlewareHttpHandler: MiddlewareHttpHandler? = null,
+    handler: TypedHttpHandler<PureBinary>,
+  ) = wrapHandler(middlewareHttpHandler) {
     PureResponse(HttpStatusCode.OK).body(
       handler()
     )
   }
 
   fun definePureStreamHandler(
-    beforeResponse: BeforeResponse? = null,
-    handler: RequestHandler<PureStream>,
-  ) = wrapHandler(beforeResponse) {
+    middlewareHttpHandler: MiddlewareHttpHandler? = null,
+    handler: TypedHttpHandler<PureStream>,
+  ) = wrapHandler(middlewareHttpHandler) {
     PureResponse(HttpStatusCode.OK).body(handler())
   }
 
   private fun wrapHandler(
-    beforeResponse: BeforeResponse? = null,
-    handler: RequestHandler<PureResponse?>,
-  ): suspend (HandlerContext) -> PureResponse = { context: HandlerContext ->
-    try {
-      handler(context)?.let { response ->
-        beforeResponse?.invoke(response) ?: response
-      } ?: PureResponse(HttpStatusCode.NotImplemented)
-    } catch (ex: Exception) {
-      debugNMM("NMM/Error", context.request.href, ex)
-      PureResponse(
-        HttpStatusCode.InternalServerError, body = PureStringBody(
-          """
-          <p>${context.request.href}</p>
-          <pre>${ex.message ?: "Unknown Error"}</pre>
-        """.trimIndent()
-        )
-      )
+    middlewareHttpHandler: MiddlewareHttpHandler? = null,
+    handler: TypedHttpHandler<PureResponse?>,
+  ): HttpHandlerChain {
+
+    val httpHandler: HttpHandler = {
+      handler() ?: PureResponse(HttpStatusCode.NotImplemented)
     }
+    return httpHandler.toChain().also {
+      if (middlewareHttpHandler != null) {
+        it.use(middlewareHttpHandler)
+      }
+    };
   }
 
-  class ResponseException(
-    val code: HttpStatusCode = HttpStatusCode.InternalServerError,
-    message: String = code.description,
-    cause: Throwable? = null
-  ) : Exception(message, cause)
 }
 
-typealias BeforeResponse = suspend (PureResponse) -> PureResponse?
-typealias RequestHandler<T> = suspend NativeMicroModule.HandlerContext.() -> T
-typealias HttpHandler = suspend (NativeMicroModule.HandlerContext) -> PureResponse
 
 @Serializable
 data class DwebResult(val success: Boolean, val message: String = "")

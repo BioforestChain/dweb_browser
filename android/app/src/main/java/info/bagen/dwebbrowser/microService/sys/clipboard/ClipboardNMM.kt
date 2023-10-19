@@ -15,7 +15,7 @@ import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.PureResponse
 import org.dweb_browser.core.http.PureStringBody
-import org.dweb_browser.core.http.bind
+import org.dweb_browser.core.http.router.bind
 
 data class ClipboardWriteResponse(val success: Boolean, val errorManager: String = "")
 data class ClipboardData(val value: String, val type: String)

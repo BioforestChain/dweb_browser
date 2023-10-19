@@ -1,29 +1,25 @@
 package org.dweb_browser.browser.jmm
 
-import android.util.Log
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLBuilder
 import io.ktor.http.Url
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import okio.Path.Companion.toPath
 import org.dweb_browser.browser.link.WebLinkMicroModule
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.PureResponse
-import org.dweb_browser.core.http.bind
-import org.dweb_browser.core.http.bindDwebDeeplink
+import org.dweb_browser.core.http.router.bind
+import org.dweb_browser.core.http.router.bindDwebDeeplink
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
-import org.dweb_browser.core.std.file.commonVirtualFsDirectoryFactory
 import org.dweb_browser.core.std.file.ext.RespondLocalFileContext.Companion.respondLocalFile
-import org.dweb_browser.core.std.file.fileTypeAdapterManager
 import org.dweb_browser.core.sys.dns.returnAndroidFile
 import org.dweb_browser.core.sys.download.JmmDownloadInfo
 import org.dweb_browser.core.sys.download.db.AppType
@@ -38,7 +34,6 @@ import org.dweb_browser.helper.isGreaterThan
 import org.dweb_browser.helper.resolvePath
 import org.dweb_browser.sys.window.core.constant.WindowMode
 import org.dweb_browser.sys.window.core.helper.setFromManifest
-import org.dweb_browser.sys.window.core.onRenderer
 import org.dweb_browser.sys.window.ext.openMainWindow
 import java.io.File
 

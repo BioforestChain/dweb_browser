@@ -1,7 +1,7 @@
 package org.dweb_browser.browser.web
 
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
-import org.dweb_browser.core.http.bindDwebDeeplink
+import org.dweb_browser.core.http.router.bindDwebDeeplink
 import org.dweb_browser.core.ipc.helper.IpcResponse
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule

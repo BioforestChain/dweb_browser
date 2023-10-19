@@ -16,8 +16,8 @@ import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.http.PureResponse
 import org.dweb_browser.core.http.PureStringBody
-import org.dweb_browser.core.http.bind
-import org.dweb_browser.core.http.bindDwebDeeplink
+import org.dweb_browser.core.http.router.bind
+import org.dweb_browser.core.http.router.bindDwebDeeplink
 import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.module.BootstrapContext

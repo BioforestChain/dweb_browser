@@ -4,7 +4,7 @@ import androidx.compose.ui.platform.LocalDensity
 import com.google.accompanist.web.WebView
 import com.google.accompanist.web.rememberWebViewState
 import io.ktor.http.HttpMethod
-import org.dweb_browser.core.http.bind
+import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.sys.window.core.createWindowAdapterManager
 import org.dweb_browser.sys.window.ext.openMainWindow

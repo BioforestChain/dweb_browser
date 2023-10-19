@@ -12,11 +12,12 @@ import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.PureResponse
 import org.dweb_browser.core.http.PureStringBody
-import org.dweb_browser.core.http.bind
-import org.dweb_browser.core.http.bindPrefix
+import org.dweb_browser.core.http.router.bind
+import org.dweb_browser.core.http.router.bindPrefix
 import org.dweb_browser.core.http.toPure
 import org.dweb_browser.core.ipc.helper.IpcResponse
 import org.dweb_browser.core.module.BootstrapContext
+import org.dweb_browser.core.http.router.IHandlerContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.startAppActivity
 import org.dweb_browser.core.std.dns.nativeFetch

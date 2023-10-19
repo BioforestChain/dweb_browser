@@ -5,7 +5,7 @@ import io.ktor.http.content.PartData
 import io.ktor.http.content.forEachPart
 import io.ktor.http.content.streamProvider
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
-import org.dweb_browser.core.http.bind
+import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.receiveMultipart
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.DwebResult

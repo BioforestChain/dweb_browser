@@ -23,7 +23,7 @@ import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.http.PureResponse
 import org.dweb_browser.core.http.PureStream
 import org.dweb_browser.core.http.PureStringBody
-import org.dweb_browser.core.http.bind
+import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.ReadableStreamIpc
 import org.dweb_browser.core.ipc.helper.IpcHeaders

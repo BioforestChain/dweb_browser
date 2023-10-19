@@ -4,7 +4,7 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import org.dweb_browser.core.http.PureResponse
 import org.dweb_browser.core.http.PureStringBody
-import org.dweb_browser.core.http.bind
+import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.helper.Debugger
