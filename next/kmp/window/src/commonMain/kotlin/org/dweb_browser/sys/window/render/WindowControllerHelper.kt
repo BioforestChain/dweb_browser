@@ -201,6 +201,7 @@ val LocalWindowController =
   compositionLocalOf<WindowController> { noLocalProvidedFor("WindowController") }
 val LocalWindowsManager =
   compositionLocalOf<WindowsManager<*>> { noLocalProvidedFor("WindowsManager") }
+val LocalWindowsImeVisible = compositionLocalOf { mutableStateOf(false) } // 由于小米手机键盘收起会有异常，所以自行维护键盘的显示和隐藏
 
 data class WindowLimits(
   val minWidth: Float,

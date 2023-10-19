@@ -16,7 +16,7 @@ export const main = async () => {
    * 启动主页面的地址
    */
   const indexUrlPo = new PromiseOut<string>();
-  const widPo = new PromiseOut<string>();
+  let widPo = new PromiseOut<string>();
   /**
    * 尝试打开gui，或者激活窗口
    */
@@ -26,6 +26,9 @@ export const main = async () => {
     if (all_webview_status.size === 0) {
       await sync_mwebview_status();
       console.log("mwebview_open=>", url);
+      if (widPo.is_resolved) {
+        apiServer.widPo = widPo = new PromiseOut();
+      }
       const { wid } = await mwebview_open(url);
       widPo.resolve(wid);
     } else {
@@ -44,7 +47,7 @@ export const main = async () => {
   });
 
   //#region 启动http服务
-  const plaocConfig = await PlaocConfig.init()
+  const plaocConfig = await PlaocConfig.init();
   const wwwServer = new Server_www(plaocConfig);
   const externalServer = new Server_external();
   const apiServer = new Server_api(widPo);
@@ -61,7 +64,7 @@ export const main = async () => {
   /// 生成 index-url
   const wwwStartResult = await wwwServer.getStartResult();
   const apiStartResult = await apiServer.getStartResult();
-  const usePublic = plaocConfig.config.usePublicUrl ?? isMobile.isMobile();
+  const usePublic = plaocConfig.config.usePublicUrl ?? isMobile.isMobile() ? navigator.userAgent.includes("Android") ? false : true : true;
   const indexUrl = wwwStartResult.urlInfo.buildHtmlUrl(plaocConfig.config.usePublicUrl, (url) => {
     url.pathname = "/index.html";
     urlStore.set({

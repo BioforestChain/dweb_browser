@@ -43,6 +43,9 @@ export class FileSystemPlugin extends BasePlugin {
       }
     }
     return this.buildApiRequest("/savePictures", {
+      search:{
+        saveLocation:options.saveLocation
+      },
       method: "POST",
       body: data,
       base: await BasePlugin.public_url,

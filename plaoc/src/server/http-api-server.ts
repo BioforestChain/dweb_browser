@@ -16,7 +16,7 @@ const INTERNAL_PREFIX = "/internal/";
 
 /**给前端的api服务 */
 export class Server_api extends HttpServer {
-  constructor(private widPo: PromiseOut<string>) {
+  constructor(public widPo: PromiseOut<string>) {
     super();
   }
   protected _getOptions(): $DwebHttpServerOptions {

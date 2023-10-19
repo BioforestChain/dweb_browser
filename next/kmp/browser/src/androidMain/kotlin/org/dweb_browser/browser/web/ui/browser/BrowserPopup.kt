@@ -88,6 +88,7 @@ import kotlinx.coroutines.launch
 import org.dweb_browser.browser.R
 import org.dweb_browser.browser.web.ui.browser.bottomsheet.BrowserModalBottomSheet
 import org.dweb_browser.browser.web.ui.browser.bottomsheet.LocalModalBottomSheet
+import org.dweb_browser.browser.web.ui.browser.bottomsheet.SheetState
 import org.dweb_browser.browser.web.ui.browser.model.BrowserBaseView
 import org.dweb_browser.browser.web.ui.browser.model.BrowserIntent
 import org.dweb_browser.browser.web.ui.browser.model.BrowserMainView
@@ -138,12 +139,19 @@ class TabItem(
 @Composable
 internal fun BrowserBottomSheet(viewModel: BrowserViewModel) {
   val bottomSheetModel = LocalModalBottomSheet.current
+  val scope = rememberCoroutineScope()
 
   if (bottomSheetModel.show.value) {
+    BackHandler {
+      if (bottomSheetModel.state.value != SheetState.Hidden) {
+        scope.launch { bottomSheetModel.hide() }
+      }
+    }
+
     val density = LocalDensity.current.density
     val topLeftRadius = getCornerRadiusTop(rememberPlatformViewController(), density, 16f)
     BrowserModalBottomSheet(
-      onDismissRequest = { bottomSheetModel.show.value = false },
+      onDismissRequest = { scope.launch { bottomSheetModel.hide() } },
       shape = RoundedCornerShape(
         topStart = topLeftRadius * density,
         topEnd = topLeftRadius * density
@@ -159,9 +167,9 @@ internal fun BrowserBottomSheet(viewModel: BrowserViewModel) {
  */
 @Composable
 internal fun BrowserPopView(viewModel: BrowserViewModel) {
-  val selectedTabIndex = remember { mutableIntStateOf(0) }
-  val pageIndex = remember { mutableIntStateOf(0) }
-  var webSiteInfo: WebSiteInfo? = null
+  val selectedTabIndex = LocalModalBottomSheet.current.tabIndex
+  val pageIndex = LocalModalBottomSheet.current.pageIndex
+  val webSiteInfo = LocalModalBottomSheet.current.webSiteInfo
 
   AnimatedContent(targetState = pageIndex, label = "",
     transitionSpec = {
@@ -182,14 +190,14 @@ internal fun BrowserPopView(viewModel: BrowserViewModel) {
           viewModel = viewModel,
           selectedTabIndex = selectedTabIndex,
           openBookManager = {
-            webSiteInfo = it
+            webSiteInfo.value = it
             pageIndex.intValue = 1
           }
         )
       }
 
       1 -> {
-        PopBookManagerView(viewModel, webSiteInfo = webSiteInfo) { pageIndex.intValue = 0 }
+        PopBookManagerView(viewModel) { pageIndex.intValue = 0 }
       }
 
       else -> {}
@@ -201,12 +209,11 @@ internal fun BrowserPopView(viewModel: BrowserViewModel) {
  * 书签管理界面
  */
 @Composable
-private fun PopBookManagerView(
-  viewModel: BrowserViewModel, webSiteInfo: WebSiteInfo?, onBack: () -> Unit
-) {
+private fun PopBookManagerView(viewModel: BrowserViewModel, onBack: () -> Unit) {
   val scope = rememberCoroutineScope()
-  val inputTitle = remember { mutableStateOf(webSiteInfo?.title ?: "") }
-  val inputUrl = remember { mutableStateOf(webSiteInfo?.url ?: "") }
+  val webSiteInfo = LocalModalBottomSheet.current.webSiteInfo
+  val inputTitle = remember { mutableStateOf(webSiteInfo.value?.title ?: "") }
+  val inputUrl = remember { mutableStateOf(webSiteInfo.value?.url ?: "") }
   Box(modifier = Modifier.fillMaxSize()) {
     Row(
       modifier = Modifier
@@ -223,16 +230,16 @@ private fun PopBookManagerView(
         tint = MaterialTheme.colorScheme.onBackground
       )
       Text(
-        text = "编辑书签",
+        text = stringResource(id = R.string.browser_options_editbook),
         modifier = Modifier.weight(1f),
         textAlign = TextAlign.Center,
         fontSize = 18.sp
       )
       Text(
-        text = "存储",
+        text = stringResource(id = R.string.browser_options_store),
         modifier = Modifier
           .clickable {
-            webSiteInfo?.apply {
+            webSiteInfo.value?.apply {
               title = inputTitle.value
               url = inputUrl.value
               scope.launch(ioAsyncExceptionHandler) {
@@ -246,10 +253,10 @@ private fun PopBookManagerView(
         fontSize = 18.sp
       )
     }
-    val item = webSiteInfo ?: return
-    val focusRequester = FocusRequester()
+    val item = webSiteInfo.value ?: return
+    val focusRequester = remember { FocusRequester() }
     LaunchedEffect(focusRequester) {
-      delay(500)
+      delay(100)
       focusRequester.requestFocus()
     }
 
@@ -272,17 +279,17 @@ private fun PopBookManagerView(
           .fillMaxWidth()
           .height(50.dp)
           .clip(RoundedCornerShape(6.dp))
-          .background(MaterialTheme.colorScheme.surface)
+          .background(MaterialTheme.colorScheme.surfaceVariant)
           .clickable {
             scope.launch(ioAsyncExceptionHandler) {
-              viewModel.changeBookLink(del = webSiteInfo)
+              viewModel.changeBookLink(del = item)
               onBack()
             }
           },
         contentAlignment = Center
       ) {
         Text(
-          text = "删除",
+          text = stringResource(id = R.string.browser_search_delete),
           color = MaterialTheme.colorScheme.error,
           fontSize = 16.sp,
           fontWeight = FontWeight(400)
@@ -429,7 +436,6 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel) {
   val scope = rememberCoroutineScope()
   val activity = LocalContext.current.findActivity()
   val bottomSheetModel = LocalModalBottomSheet.current
-  val localCommonUrl = LocalCommonUrl.current
   // 判断权限
   val launcher =
     rememberLauncherForActivityResult(contract = ActivityResultContracts.RequestPermission(),
@@ -446,7 +452,10 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel) {
           .fillMaxWidth()
           .padding(horizontal = 16.dp, vertical = 12.dp)
       ) {
-        RowItemMenuView(text = "添加书签", trailingIcon = R.drawable.ic_main_book) {
+        RowItemMenuView(
+          text = stringResource(id = R.string.browser_options_book),
+          trailingIcon = R.drawable.ic_main_book
+        ) {
           viewModel.uiState.currentBrowserBaseView.value?.let {
             scope.launch {
               viewModel.changeBookLink(add = it.viewItem.state.toWebSiteInfo(WebSiteType.Book))
@@ -455,7 +464,10 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel) {
         } // 添加书签
 
         Spacer(modifier = Modifier.height(12.dp))
-        RowItemMenuView(text = "分享", trailingIcon = R.drawable.ic_main_share) {
+        RowItemMenuView(
+          text = stringResource(id = R.string.browser_options_share),
+          trailingIcon = R.drawable.ic_main_share
+        ) {
           if (Build.VERSION.SDK_INT > Build.VERSION_CODES.S_V2) {
             viewModel.handleIntent(BrowserIntent.ShareWebSiteInfo(activity))
           } else {
@@ -464,31 +476,37 @@ private fun PopContentOptionItem(viewModel: BrowserViewModel) {
         } // 分享
 
         Spacer(modifier = Modifier.height(12.dp))
-        RowItemMenuView(text = "无痕浏览", trailingContent = { modifier ->
-          Switch(
-            modifier = modifier
-              .padding(horizontal = 12.dp, vertical = 10.dp)
-              .size(width = 50.dp, height = 30.dp),
-            checked = viewModel.isNoTrace.value,
-            onCheckedChange = { viewModel.saveBrowserMode(it) }
-          )
-        }) {} // 无痕浏览
+        RowItemMenuView(
+          text = stringResource(id = R.string.browser_options_notrace),
+          trailingContent = { modifier ->
+            Switch(
+              modifier = modifier
+                .padding(horizontal = 12.dp, vertical = 10.dp)
+                .size(width = 50.dp, height = 30.dp),
+              checked = viewModel.isNoTrace.value,
+              onCheckedChange = { viewModel.saveBrowserMode(it) }
+            )
+          }) {} // 无痕浏览
 
         Spacer(modifier = Modifier.height(12.dp))
-        RowItemMenuView(text = "隐私政策", trailingContent = { modifier ->
-          Icon(
-            imageVector = ImageVector.vectorResource(R.drawable.ic_more),
-            contentDescription = "Manager",
-            modifier = modifier
-              .padding(horizontal = 12.dp, vertical = 15.dp)
-              .size(20.dp)
-              .graphicsLayer(rotationZ = -90f),
-            tint = MaterialTheme.colorScheme.outlineVariant
-          )
-        }) {
+        RowItemMenuView(
+          text = stringResource(id = R.string.browser_options_privacy),
+          trailingContent = { modifier ->
+            Icon(
+              imageVector = ImageVector.vectorResource(R.drawable.ic_more),
+              contentDescription = "Manager",
+              modifier = modifier
+                .padding(horizontal = 12.dp, vertical = 15.dp)
+                .size(20.dp)
+                .graphicsLayer(rotationZ = -90f),
+              tint = MaterialTheme.colorScheme.outlineVariant
+            )
+          }
+        ) {
           scope.launch {
             bottomSheetModel.hide()
-            localCommonUrl.value = PrivacyUrl
+            // localCommonUrl.value = PrivacyUrl
+            viewModel.handleIntent(BrowserIntent.SearchWebView(PrivacyUrl))
           }
         } // 隐私政策
       }
@@ -620,12 +638,12 @@ internal fun BrowserMultiPopupView(viewModel: BrowserViewModel) {
           tint = MaterialTheme.colorScheme.primary,
         )
         Text(
-          text = "${browserViewList.size}个标签页",
+          text = "${browserViewList.size} ${stringResource(id = R.string.browser_tabs_count)}",
           modifier = Modifier.weight(1f),
           textAlign = TextAlign.Center
         )
         Text(
-          text = "完成",
+          text = stringResource(id = R.string.browser_done),
           modifier = Modifier
             .padding(start = 8.dp, end = 8.dp)
             .clickable { viewModel.handleIntent(BrowserIntent.UpdateMultiViewState(false)) },
@@ -676,12 +694,18 @@ private fun MultiItemView(
       )
       val contentPair = when (browserBaseView) {
         is BrowserMainView -> {
-          Pair("起始页", BitmapUtil.decodeBitmapFromResource(context, R.drawable.ic_main_star))
+          Pair(
+            stringResource(id = R.string.browser_home_page),
+            BitmapUtil.decodeBitmapFromResource(context, R.drawable.ic_main_star)
+          )
         }
 
         is BrowserWebView -> {
           if (browserBaseView.viewItem.state.lastLoadedUrl?.isSystemUrl() == true) {
-            Pair("起始页", BitmapUtil.decodeBitmapFromResource(context, R.drawable.ic_main_star))
+            Pair(
+              stringResource(id = R.string.browser_home_page),
+              BitmapUtil.decodeBitmapFromResource(context, R.drawable.ic_main_star)
+            )
           } else {
             Pair(browserBaseView.viewItem.state.pageTitle, browserBaseView.viewItem.state.pageIcon)
           }
@@ -706,7 +730,7 @@ private fun MultiItemView(
           Spacer(modifier = Modifier.width(2.dp))
         }
         Text(
-          text = contentPair.first ?: "无标题",
+          text = contentPair.first ?: stringResource(id = R.string.browser_no_title),
           maxLines = 1,
           overflow = TextOverflow.Ellipsis,
           fontSize = 12.sp

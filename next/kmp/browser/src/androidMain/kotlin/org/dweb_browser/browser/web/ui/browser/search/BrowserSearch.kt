@@ -61,9 +61,7 @@ internal fun SearchView(
   onSearch: (String) -> Unit,
 ) {
   val focusManager = LocalFocusManager.current
-  val inputText = key(text) {
-    remember { mutableStateOf(parseInputText(text, false)) }
-  }
+  val inputText = remember { mutableStateOf(parseInputText(text, false)) }
   val searchPreviewState = remember { MutableTransitionState(text.isNotEmpty()) }
   val webEngine = findWebEngine(text)
 
@@ -82,13 +80,11 @@ internal fun SearchView(
       modifier = Modifier
         .fillMaxWidth()
         .background(MaterialTheme.colorScheme.background)
-      //.navigationBarsPadding()
-      //.padding(bottom = dimenBottomHeight)
     ) {
       homePreview?.let { it { moved -> focusManager.clearFocus(); if (!moved) onClose() } }
 
       Text(
-        text = "取消",
+        text = stringResource(id = R.string.browser_search_cancel),
         modifier = Modifier
           .align(Alignment.TopEnd)
           .padding(20.dp)
@@ -281,10 +277,14 @@ internal fun SearchPreview( // 输入搜索内容后，显示的搜索信息
             .fillMaxWidth()
             .padding(vertical = 20.dp)
         ) {
-          Text(text = "搜索", modifier = Modifier.align(Alignment.Center), fontSize = 20.sp)
+          Text(
+            text = stringResource(id = R.string.browser_search_title),
+            modifier = Modifier.align(Alignment.Center),
+            fontSize = 20.sp
+          )
 
           Text(
-            text = "取消",
+            text = stringResource(id = R.string.browser_search_cancel),
             modifier = Modifier
               .align(Alignment.TopEnd)
               .clickable { onClose() },
@@ -304,7 +304,7 @@ internal fun SearchPreview( // 输入搜索内容后，显示的搜索信息
 private fun SearchItemEngines(text: String, onSearch: (String) -> Unit) {
   Column(modifier = Modifier.fillMaxWidth()) {
     Text(
-      text = "搜索引擎",
+      text = stringResource(id = R.string.browser_search_engine),
       color = MaterialTheme.colorScheme.outline,
       modifier = Modifier.padding(vertical = 10.dp)
     )

@@ -149,7 +149,7 @@ fun printDebug(scope: String, tag: String, message: Any?, err: Throwable? = null
   if (msg is Lazy<*>) {
     msg = msg.value
   }
-  printError("${now()} │ ${scope.padEndAndSub(16)} │ ${tag.padEndAndSub(22)} |", msg, err)
+  printError("${now()} | ${scope.padEndAndSub(16)} | ${tag.padEndAndSub(22)} |", msg, err)
 }
 
 fun String.padEndAndSub(length: Int): String {

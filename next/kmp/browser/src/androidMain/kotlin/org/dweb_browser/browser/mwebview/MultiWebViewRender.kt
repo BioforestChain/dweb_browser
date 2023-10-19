@@ -55,12 +55,12 @@ fun MultiWebViewController.Render(modifier: Modifier = Modifier, initialScale: I
         if (viewItem == list.last()) {
           val isMaximized by win.watchedIsMaximized()
           // 在 MWebView 的全屏窗口中，默认将返回按钮的行为与应用退出关联在一起
-          win.state.canGoBack =
-            if (isMaximized) true else chromeClient.closeWatcherController.canClose || navigator.canGoBack
           if (win.state.canGoForward != null) {
             win.state.canGoForward = navigator.canGoForward
           }
-          win.GoBackHandler {
+          val canGoBack =
+            if (isMaximized) true else chromeClient.closeWatcherController.canClose || navigator.canGoBack
+          win.GoBackHandler(canGoBack) {
             if (chromeClient.closeWatcherController.canClose) {
               viewItem.coroutineScope.launch {
                 chromeClient.closeWatcherController.close()

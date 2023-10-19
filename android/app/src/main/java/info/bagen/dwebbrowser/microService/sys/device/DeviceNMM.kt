@@ -1,5 +1,6 @@
 package info.bagen.dwebbrowser.microService.sys.device
 
+import android.os.Build
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.Serializable
@@ -13,6 +14,8 @@ import org.dweb_browser.core.http.PureResponse
 import org.dweb_browser.core.http.PureStringBody
 import org.dweb_browser.core.http.bind
 import org.dweb_browser.core.std.file.ext.store
+import org.dweb_browser.helper.toUtf8ByteArray
+import java.security.MessageDigest
 
 fun debugDevice(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("Device", tag, msg, err)
@@ -25,12 +28,17 @@ class DeviceNMM : NativeMicroModule("device.sys.dweb", "Device Info") {
   }
 
   val deviceInfo = DeviceInfo()
-  val UUID_KEY = "UUID"
+  val UUID_KEY = "FINGERPRINT"
+  @OptIn(ExperimentalStdlibApi::class)
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     routes(
       /** 获取设备唯一标识uuid*/
       "/uuid" bind HttpMethod.Get to defineJsonResponse {
-        val uuid = store.getOrPut(UUID_KEY) { randomUUID() }
+        val uuid = store.getOrPut(UUID_KEY) {
+          val messageDigest = MessageDigest.getInstance("SHA-256");
+          messageDigest.update(Build.FINGERPRINT.toUtf8ByteArray());
+          messageDigest.digest().toHexString()
+        }
         debugDevice("getUUID", uuid)
         UUIDResponse(uuid).toJsonElement()
       },

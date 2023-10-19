@@ -50,4 +50,31 @@
   <string name="browser_main_hot_search">全网热搜</string>
 
   <string name="browser_confirm_to_close">确定要关闭浏览器窗口？</string>
+
+  <!-- 补充英文内容 -->
+  <string name="browser_home_page">起始页</string>
+  <string name="browser_options_book">添加到书签</string>
+  <string name="browser_options_share">分享</string>
+  <string name="browser_options_notrace">无痕浏览</string>
+  <string name="browser_options_privacy">隐私政策</string>
+  <string name="browser_options_store">存储</string>
+  <string name="browser_options_editbook">编辑书签</string>
+  <string name="browser_options_tab_option">选项</string>
+  <string name="browser_options_tab_booklist">书签列表</string>
+  <string name="browser_options_tab_history">历史列表</string>
+  <string name="browser_options_tab_share">分享</string>
+  <string name="browser_empty_list">暂无数据</string>
+  <string name="browser_done">完成</string>
+  <string name="browser_tabs_count">个标签页</string>
+  <string name="browser_no_title">无标题</string>
+  <string name="browser_downloading">下载中，请稍后...</string>
+  <string name="browser_search_title">搜索</string>
+  <string name="browser_search_cancel">取消</string>
+  <string name="browser_search_engine">搜索引擎</string>
+  <string name="browser_search_delete">删除</string>
+  <string name="browser_engine_baidu">百度</string>
+  <string name="browser_engine_sougou">搜狗</string>
+  <string name="browser_engine_qihu">360</string>
+  <string name="browser_history_today">今天</string>
+  <string name="browser_history_yesterday">昨天</string>
 </resources>

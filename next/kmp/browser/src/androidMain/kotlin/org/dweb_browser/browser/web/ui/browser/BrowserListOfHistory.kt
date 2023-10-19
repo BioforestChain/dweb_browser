@@ -18,11 +18,14 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
+import org.dweb_browser.browser.R
 import org.dweb_browser.browser.web.ui.browser.model.BrowserViewModel
 import org.dweb_browser.browser.web.ui.browser.model.WebSiteInfo
 import org.dweb_browser.browser.web.ui.browser.model.formatToStickyName
@@ -39,11 +42,12 @@ fun BrowserListOfHistory(
 ) {
   val list = viewModel.getHistoryLinks()
   val scope = rememberCoroutineScope()
+  val context = LocalContext.current
   if (list.isEmpty()) {
     noFoundTip?.let { it() }
       ?: Box(modifier = Modifier.fillMaxWidth()) {
         Text(
-          text = "暂无数据",
+          text = stringResource(id = R.string.browser_empty_list),
           modifier = Modifier
             .align(Alignment.TopCenter)
             .padding(top = 100.dp)
@@ -52,7 +56,6 @@ fun BrowserListOfHistory(
     return
   }
   val currentTime = LocalDate.now().toEpochDay()
-  Log.e("lin.huang", "BrowserListOfHistory enter")
 
   LazyColumn(
     modifier = modifier
@@ -63,7 +66,7 @@ fun BrowserListOfHistory(
       val webSiteInfoList = list[day.toString()] ?: continue
       stickyHeader(key = webSiteInfoList) {
         Text(
-          text = day.formatToStickyName(),
+          text = day.formatToStickyName { context.getString(it) },
           modifier = Modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.background)

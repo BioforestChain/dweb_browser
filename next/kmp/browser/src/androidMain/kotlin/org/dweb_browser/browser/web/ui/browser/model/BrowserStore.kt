@@ -2,6 +2,7 @@ package org.dweb_browser.browser.web.ui.browser.model
 
 import androidx.compose.ui.graphics.ImageBitmap
 import kotlinx.serialization.Serializable
+import org.dweb_browser.browser.R
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.file.ext.createStore
 import java.time.LocalDate
@@ -15,25 +16,14 @@ data class WebSiteInfo(
   val type: WebSiteType,
   val timeMillis: Long = LocalDate.now().toEpochDay(),
   val icon: ImageBitmap? = null,
-) {
-  fun getStickyName(): String {
-    val currentOfEpochDay = LocalDate.now().toEpochDay()
-    return if (timeMillis >= currentOfEpochDay) {
-      "今天"
-    } else if (timeMillis == currentOfEpochDay - 1) {
-      "昨天"
-    } else {
-      LocalDate.ofEpochDay(timeMillis).format(DateTimeFormatter.ofPattern("yyyy-MM-dd EEEE"))
-    }
-  }
-}
+)
 
-fun Long.formatToStickyName(): String {
+fun Long.formatToStickyName(callName: (Int) -> String): String {
   val currentOfEpochDay = LocalDate.now().toEpochDay()
   return if (this >= currentOfEpochDay) {
-    "今天"
+    callName(R.string.browser_history_today)
   } else if (this == currentOfEpochDay - 1) {
-    "昨天"
+    callName(R.string.browser_history_yesterday)
   } else {
     LocalDate.ofEpochDay(this).format(DateTimeFormatter.ofPattern("yyyy-MM-dd EEEE"))
   }

@@ -23,6 +23,7 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import org.dweb_browser.browser.R
 import org.dweb_browser.browser.web.BrowserController
 import org.dweb_browser.browser.web.util.KEY_LAST_SEARCH_KEY
 import org.dweb_browser.browser.web.util.KEY_NO_TRACE
@@ -394,7 +395,12 @@ class BrowserViewModel(
   suspend fun addUrlToDesktop(context: Context) {
     uiState.currentBrowserBaseView.value?.viewItem?.state?.let { state ->
       state.lastLoadedUrl?.let { url ->
-        browserController.addUrlToDesktop(context, state.pageTitle ?: "无标题", url, state.pageIcon)
+        browserController.addUrlToDesktop(
+          context = context,
+          title = state.pageTitle ?: browserNMM.getAppContext().getString(R.string.browser_no_title),
+          url = url,
+          icon = state.pageIcon
+        )
       }
     }
   }

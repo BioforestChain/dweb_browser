@@ -4,15 +4,15 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.content.PartData
 import io.ktor.http.content.forEachPart
 import io.ktor.http.content.streamProvider
-import org.dweb_browser.core.module.startAppActivity
-import org.dweb_browser.helper.Debugger
-import org.dweb_browser.helper.toJsonElement
-import org.dweb_browser.core.module.BootstrapContext
-import org.dweb_browser.core.module.DwebResult
-import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.bind
 import org.dweb_browser.core.http.receiveMultipart
+import org.dweb_browser.core.module.BootstrapContext
+import org.dweb_browser.core.module.DwebResult
+import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.core.module.startAppActivity
+import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.toJsonElement
 
 val debugFileSystem = Debugger("FsNmm")
 
@@ -56,6 +56,7 @@ class FileSystemNMM : NativeMicroModule("file.sys.dweb", "file") {
       },
       "/savePictures" bind HttpMethod.Post to defineJsonResponse {
         var success = false
+        val saveLocation = request.queryOrNull("saveLocation")
         try {
           if (requestPermissions()) {
             val multiPartData = request.receiveMultipart()
@@ -64,7 +65,7 @@ class FileSystemNMM : NativeMicroModule("file.sys.dweb", "file") {
                 is PartData.FileItem -> {
                   partData.originalFileName?.also { filename ->
                     success = FileSystemPlugin.saveToPictureDirectory(
-                      filename, partData.streamProvider(),
+                      filename, partData.streamProvider(), saveLocation
                     )
                   }
                 }

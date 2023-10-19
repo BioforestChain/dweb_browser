@@ -1,10 +1,8 @@
 package org.dweb_browser.sys.window.render
 
-
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.imeAnimationTarget
-import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -19,19 +17,16 @@ import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowsManager
 import org.dweb_browser.sys.window.core.constant.debugWindow
 
-
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 actual fun <T : WindowController> WindowsManager<T>.EffectKeyboard() {
-
-  val imeVisible = WindowInsets.isImeVisible
-  state.imeVisible = imeVisible
+  state.imeVisible = LocalWindowsImeVisible.current.value // 由于小米手机的安全键盘存在问题，会出现WindowInsets.isImeVisible不正确的情况
   val ime = WindowInsets.imeAnimationTarget // 直接使用ime，数据不稳定，会变化，改为imeAnimationTarget就是固定值
   val density = LocalDensity.current
   val view = LocalView.current
 
-  LaunchedEffect(imeVisible) { // WindowInsets.ime 对象并不会变化，所以导致这个重组不会重复执行
-    state.imeBoundingRect = if (imeVisible) {
+  LaunchedEffect(view, state.imeVisible) { // WindowInsets.ime 对象并不会变化，所以导致这个重组不会重复执行
+    state.imeBoundingRect = if (state.imeVisible) {
       val imeHeightDp = ime.getBottom(density) / density.density
       Rect(
         x = 0f,
@@ -44,7 +39,7 @@ actual fun <T : WindowController> WindowsManager<T>.EffectKeyboard() {
     }
 
     // 输入法高度即为 heightDiff
-    debugWindow("ManagerState/IME", "imeBounds:${state.imeBoundingRect}, imeVisible:${state.imeVisible}")
+    debugWindow("ManagerState/IME", "imeVisible:${state.imeVisible}, imeBounds:${state.imeBoundingRect}")
   }
 
 }

@@ -17,6 +17,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -49,7 +50,7 @@ fun BrowserListOfBook(
   noFoundTip?.let { it() }
     ?: Box(modifier = Modifier.fillMaxWidth()) {
       Text(
-        text = "暂无数据",
+        text = stringResource(id = R.string.browser_empty_list),
         modifier = Modifier
           .align(Alignment.TopCenter)
           .padding(top = 100.dp)

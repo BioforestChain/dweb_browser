@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.util.archivesName
+
 @Suppress("DSL_SCOPE_VIOLATION") // TODO: Remove once KTIJ-19369 is fixed
 plugins {
   alias(libs.plugins.androidApplication)
@@ -59,6 +61,7 @@ android {
       isShrinkResources = true //移除无用的resource文件
       applicationIdSuffix = null
       versionNameSuffix = null
+      archivesName = "Dweb Browser_v${libs.versions.versionName.get()}"
     }
     debug {
       signingConfig = signingConfigs.getByName("debug")

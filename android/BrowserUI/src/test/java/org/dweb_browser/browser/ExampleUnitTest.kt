@@ -18,7 +18,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 fun debugUnitTest(tag: String, msg: Any? = "", err: Throwable? = null) {
-  val scopeTag = "${now()} │ ${"unitTest".padEndAndSub(16)} │ ${tag.padEndAndSub(22)} |"
+  val scopeTag = "${now()} | ${"unitTest".padEndAndSub(16)} | ${tag.padEndAndSub(22)} |"
   println("${scopeTag.padEnd(60, ' ')} $msg")
   err?.printStackTrace()
 }

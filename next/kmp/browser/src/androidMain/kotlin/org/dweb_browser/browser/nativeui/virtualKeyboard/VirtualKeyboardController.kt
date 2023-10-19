@@ -5,11 +5,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.core.view.WindowInsetsCompat
-import kotlinx.coroutines.flow.channelFlow
 import org.dweb_browser.helper.android.InsetsJson
 import org.dweb_browser.helper.android.toJsonAble
 import org.dweb_browser.browser.nativeui.helper.toWindowsInsets
@@ -27,12 +25,10 @@ class VirtualKeyboardController(
    */
   val visibleState = mutableStateOf(false)
 
-  @OptIn(ExperimentalComposeUiApi::class)
   @Composable
   override fun effect(): VirtualKeyboardController {
     insetsState.value =
-      nativeUiController.currentInsets.value.getInsets(WindowInsetsCompat.Type.ime())
-        .toWindowsInsets()
+      nativeUiController.getCurrentInsets(WindowInsetsCompat.Type.ime()).toWindowsInsets()
 
     val visible by visibleState
     LocalSoftwareKeyboardController.current?.also { keyboard ->

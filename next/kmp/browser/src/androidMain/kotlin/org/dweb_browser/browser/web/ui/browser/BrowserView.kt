@@ -50,7 +50,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.web.LoadingState
 import com.google.accompanist.web.WebView
 import kotlinx.coroutines.delay
@@ -94,7 +93,6 @@ private val bottomExitAnimator = slideOutVertically(animationSpec = tween(300),/
     it//初始位置在负一屏的位置，也就是说初始位置我们看不到，动画动起来的时候会从负一屏位置滑动到屏幕位置
   })
 
-@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun BrowserViewForWindow(
   viewModel: BrowserViewModel, modifier: Modifier, windowRenderScope: WindowRenderScope
@@ -102,18 +100,16 @@ fun BrowserViewForWindow(
   val scope = rememberCoroutineScope()
   val initialScale =
     (LocalDensity.current.density * windowRenderScope.scale * 100).toInt() // 用于WebView缩放，避免点击后位置不对
+  val modalBottomModel = remember { ModalBottomModel(mutableStateOf(SheetState.PartiallyExpanded)) }
 
   CompositionLocalProvider(
-    LocalModalBottomSheet provides ModalBottomModel(remember { mutableStateOf(SheetState.PartiallyExpanded) })
+    LocalModalBottomSheet provides modalBottomModel,
+    LocalWebViewInitialScale provides initialScale
   ) {
     val bottomSheetModel = LocalModalBottomSheet.current
     BackHandler {
-      val watcher = viewModel.uiState.currentBrowserBaseView.value?.closeWatcher;
-      if (bottomSheetModel.state.value != SheetState.Hidden) {
-        scope.launch {
-          bottomSheetModel.hide()
-        }
-      } else if (watcher?.canClose == true) {
+      val watcher = viewModel.uiState.currentBrowserBaseView.value?.closeWatcher
+      if (watcher?.canClose == true) {
         scope.launch {
           watcher.close()
         }
@@ -127,16 +123,12 @@ fun BrowserViewForWindow(
     }
 
     Box(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
-      CompositionLocalProvider(
-        LocalWebViewInitialScale provides initialScale
+      Box(
+        modifier = Modifier
+          .fillMaxSize()
+          .padding(bottom = dimenBottomHeight * windowRenderScope.scale)
       ) {
-        Box(
-          modifier = Modifier
-            .fillMaxSize()
-            .padding(bottom = dimenBottomHeight * windowRenderScope.scale)
-        ) {
-          BrowserViewContent(viewModel)   // 中间主体部分
-        }
+        BrowserViewContent(viewModel)   // 中间主体部分
       }
       Box(modifier = with(windowRenderScope) {
         Modifier
@@ -161,18 +153,6 @@ fun BrowserViewForWindow(
           })*/
       }
     }
-  }
-}
-
-@Composable
-private fun BrowserMaskView(viewModel: BrowserViewModel, onClick: () -> Unit) {
-  // 如果显示了sheet，这边做一层遮罩
-  val bottomSheetModel = LocalModalBottomSheet.current
-  if (bottomSheetModel.state.value != SheetState.Hidden) {
-    Box(modifier = Modifier
-      .fillMaxSize()
-      .background(MaterialTheme.colorScheme.onSurface.copy(0.2f))
-      .clickableWithNoEffect { onClick() })
   }
 }
 

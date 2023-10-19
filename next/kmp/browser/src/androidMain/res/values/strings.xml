@@ -50,4 +50,31 @@
   <string name="browser_main_hot_search">Hot Search</string>
 
   <string name="browser_confirm_to_close">Are you sure you want to close this Browser Window?</string>
+
+  <!-- 补充英文内容 -->
+  <string name="browser_home_page">home page</string>
+  <string name="browser_options_book">Add Bookmark</string>
+  <string name="browser_options_share">Share</string>
+  <string name="browser_options_notrace">Private Browsing</string>
+  <string name="browser_options_privacy">Privacy Policy</string>
+  <string name="browser_options_store">Store</string>
+  <string name="browser_options_editbook">Edit Book</string>
+  <string name="browser_options_tab_option">Option</string>
+  <string name="browser_options_tab_booklist">Book List</string>
+  <string name="browser_options_tab_history">History List</string>
+  <string name="browser_options_tab_share">Share</string>
+  <string name="browser_empty_list">No Data</string>
+  <string name="browser_done">Done</string>
+  <string name="browser_tabs_count">tabs</string>
+  <string name="browser_no_title">No Title</string>
+  <string name="browser_downloading">Downloading, please wait</string>
+  <string name="browser_search_title">Search</string>
+  <string name="browser_search_cancel">Cancel</string>
+  <string name="browser_search_engine">Search Engine</string>
+  <string name="browser_search_delete">Delete</string>
+  <string name="browser_engine_baidu">Baidu</string>
+  <string name="browser_engine_sougou">Sougou</string>
+  <string name="browser_engine_qihu">360</string>
+  <string name="browser_history_today">Today</string>
+  <string name="browser_history_yesterday">Yesterday</string>
 </resources>

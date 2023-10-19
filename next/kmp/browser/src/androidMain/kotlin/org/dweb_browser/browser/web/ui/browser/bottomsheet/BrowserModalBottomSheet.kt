@@ -41,7 +41,7 @@ internal fun BrowserModalBottomSheet(
       .fillMaxSize()
       .background(MaterialTheme.colorScheme.surfaceVariant.copy(0.3f)),
   ) {
-    key(maxHeight) {
+    key(state) {
       val density = LocalDensity.current.density
       val parentHeight = maxHeight.value * density
       val currentState = remember { mutableFloatStateOf(state.value.defaultHeight(parentHeight)) }
