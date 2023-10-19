@@ -65,14 +65,14 @@ export const main = async () => {
   const apiStartResult = await apiServer.getStartResult();
   const usePublic =
     plaocConfig.config.usePublicUrl ??
-    (isMobile.isMobile() ? (navigator.userAgent.includes("Android") ? false : true) : true);
+    (isMobile.isMobile() ? (navigator.userAgent.includes("Android") ? false : true) : false);
   const indexUrl = wwwStartResult.urlInfo.buildHtmlUrl(usePublic, (url) => {
     url.pathname = "/index.html";
     url.searchParams.set(X_PLAOC_QUERY.API_INTERNAL_URL, apiStartResult.urlInfo.buildUrl(usePublic).href);
     url.searchParams.set(X_PLAOC_QUERY.API_PUBLIC_URL, apiStartResult.urlInfo.buildPublicUrl().href);
     url.searchParams.set(X_PLAOC_QUERY.EXTERNAL_URL, externalServer.token);
   });
-  console.log("open in browser:", indexUrl.href);
+  console.log("open in browser:", indexUrl.href,usePublic);
   await Promise.all([wwwListenerTask, externalListenerTask, apiListenerTask]);
   indexUrlPo.resolve(indexUrl.href);
   tryOpenView();
