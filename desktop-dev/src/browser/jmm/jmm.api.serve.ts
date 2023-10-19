@@ -253,6 +253,17 @@ async function _appInstall(this: JmmNMM, event: FetchEvent, appInfo: $JmmAppInst
     } else {
       return enqueueInstallProgress("install", 0, true, `invalid bundle-mime-type: ${bundleMime}`);
     }
+    // createSession
+    const sessionFilePath = path.join(installDir,"/usr/sys/session.json")
+    const nowDate = Date.now();
+    if(fs.existsSync(sessionFilePath)) {
+      const sessionInfo = fs.readFileSync(sessionFilePath).toJSON() as unknown as $SessionInfo
+      sessionInfo.upgradeTime = nowDate
+      fs.writeFileSync(sessionFilePath,JSON.stringify(sessionInfo))
+    } {
+      fs.mkdirSync(path.join(installDir,"/usr/sys"), { recursive: true });
+      fs.writeFileSync(sessionFilePath,`{"installTime":${nowDate},"upgradeTime":${nowDate},"installUrl":"${appInfo.bundle_url}"}`,{})
+    }
     fs.unlinkSync(tempFilePath);
     fs.unlinkSync(hashFilePath);
 
@@ -268,6 +279,12 @@ async function _appInstall(this: JmmNMM, event: FetchEvent, appInfo: $JmmAppInst
     console.always("jmm serve", green("安装成功！"));
     enqueueInstallProgress("install", 0, true);
   }
+}
+
+export type $SessionInfo = {
+  installTime:number,
+  upgradeTime:number,
+  installUrl:string
 }
 
 export type $InstallProgressInfo = {
