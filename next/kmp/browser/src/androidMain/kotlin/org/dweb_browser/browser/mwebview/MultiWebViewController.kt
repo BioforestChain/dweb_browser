@@ -99,8 +99,8 @@ class MultiWebViewController(
   suspend fun createDwebView(url: String) = win.createDwebView(remoteMM, url)
 
   @Synchronized
-  fun appendWebViewAsItem(dWebView: DWebViewEngine) =
-    runBlockingCatching(mainAsyncExceptionHandler) {
+  fun appendWebViewAsItem(dWebView: DWebViewEngine) = runBlockingCatching {
+    withMainContext {
       val webviewId = "#w${webviewId_acc.getAndAdd(1)}"
       val state = WebViewState(WebContent.Url(dWebView.url ?: ""))
       val coroutineScope = CoroutineScope(CoroutineName(webviewId))
@@ -119,7 +119,8 @@ class MultiWebViewController(
         }
         webViewOpenSignal.emit(webviewId)
       }
-    }.getOrThrow()
+    }
+  }.getOrThrow()
 
   /**
    * 关闭WebView

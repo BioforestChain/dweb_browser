@@ -119,6 +119,13 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
     }
   }
 
+  suspend fun dispose() {
+    this._dispose()
+  }
+
+  protected open suspend fun _dispose() {
+  }
+
   protected val _afterShutdownSignal = SimpleSignal();
   val onAfterShutdown = _afterShutdownSignal.toListener()
 

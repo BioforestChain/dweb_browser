@@ -146,7 +146,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       dnsMM.install(mm)
     }
 
-    override fun uninstall(mmid: MMID): Boolean {
+    override suspend fun uninstall(mmid: MMID): Boolean {
       // TODO 作用域保护
       return dnsMM.uninstall(mmid)
     }
@@ -305,8 +305,10 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
   }
 
   /** 卸载应用 */
-  fun uninstall(mmid: MMID): Boolean {
-    installApps.remove(mmid)
+  suspend fun uninstall(mmid: MMID): Boolean {
+    installApps.remove(mmid)?.let {mm ->
+      mm.forEach { it.dispose() }
+    }
     ioAsyncScope.launch { close(mmid) }
     return true
   }
