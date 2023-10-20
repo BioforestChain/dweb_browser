@@ -17,8 +17,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.interop.UIKitView
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.ComposeUIViewController
+import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.compose.AutoResizeTextContainer
 import org.dweb_browser.helper.compose.AutoSizeText
@@ -27,76 +29,83 @@ import org.dweb_browser.shared.ImageLoaderDemo
 import org.dweb_browser.sys.window.render.LocalWindowController
 import org.dweb_browser.sys.window.render.WindowPreviewer
 import org.dweb_browser.sys.window.render.watchedState
+import platform.CoreGraphics.CGRectMake
+import platform.UIKit.UIColor.Companion.blueColor
+import platform.UIKit.UIView
 import platform.UIKit.UIViewController
+import platform.WebKit.WKWebView
+import platform.Foundation.NSURLRequest
+import platform.Foundation.NSURL
 
 @Suppress("FunctionName", "unused")
-fun MainViewController(): UIViewController = ComposeUIViewController {
-  Column(Modifier.verticalScroll(rememberScrollState())) {
-    Box(modifier = Modifier.size(200.dp, 50.dp)) {
-      AutoResizeTextContainer {
-        AutoSizeText("你好！！")
-      }
-    }
-    val jsRuntime = JsRuntime();
-    val scope = rememberCoroutineScope()
-    Row {
-      Button({
-        scope.launch {
-          jsRuntime.core.testNative2Js()
-        }
-      }) {
-        Text("Native2Js")
-      }
-      Button({
-        scope.launch {
-          jsRuntime.core.testJs2Native()
-        }
-      }) {
-        Text("Js2Native")
-      }
-    }
-    Row {
-      Button({
-        scope.launch {
-          jsRuntime.core.testNative2Js2()
-        }
-      }) {
-        Text("Native2Js2")
-      }
-      Button({
-        scope.launch {
-          jsRuntime.core.testJs2Native2()
-        }
-      }) {
-        Text("Js2Native2")
-      }
-    }
-    Row {
-      Button({
-        scope.launch {
-          jsRuntime.core.testNative2Js4()
-        }
-      }) {
-        Text("Native2Js4")
-      }
-      Button({
-        scope.launch {
-          jsRuntime.core.testJs2Native4()
-        }
-      }) {
-        Text("Js2Native4")
-      }
-    }
-    Box(Modifier.height(400.dp).background(Color.LightGray)) {
-      ImageLoaderDemo()
-    }
-    PreviewWindowTopBar()
+fun MainViewController(iosView: UIView): UIViewController = ComposeUIViewController {
+  Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+//    Box(modifier = Modifier.size(200.dp, 50.dp)) {
+//      AutoResizeTextContainer {
+//        AutoSizeText("你好！！")
+//      }
+//    }
+//    val jsRuntime = JsRuntime();
+//    val scope = rememberCoroutineScope()
+//    Row {
+//      Button({
+//        scope.launch {
+//          jsRuntime.core.testNative2Js()
+//        }
+//      }) {
+//        Text("Native2Js")
+//      }
+//      Button({
+//        scope.launch {
+//          jsRuntime.core.testJs2Native()
+//        }
+//      }) {
+//        Text("Js2Native")
+//      }
+//    }
+//    Row {
+//      Button({
+//        scope.launch {
+//          jsRuntime.core.testNative2Js2()
+//        }
+//      }) {
+//        Text("Native2Js2")
+//      }
+//      Button({
+//        scope.launch {
+//          jsRuntime.core.testJs2Native2()
+//        }
+//      }) {
+//        Text("Js2Native2")
+//      }
+//    }
+//    Row {
+//      Button({
+//        scope.launch {
+//          jsRuntime.core.testNative2Js4()
+//        }
+//      }) {
+//        Text("Native2Js4")
+//      }
+//      Button({
+//        scope.launch {
+//          jsRuntime.core.testJs2Native4()
+//        }
+//      }) {
+//        Text("Js2Native4")
+//      }
+//    }
+//    Box(Modifier.height(400.dp).background(Color.LightGray)) {
+//      ImageLoaderDemo()
+//    }
+    PreviewWindowTopBar(iosView)
   }
 }
 
 
+@OptIn(ExperimentalForeignApi::class)
 @Composable
-fun PreviewWindowTopBar() {
+fun PreviewWindowTopBar(iosView: UIView) {
   WindowPreviewer(modifier = Modifier.height(500.dp), config = {
     state.title = "应用长长的标题的标题的标题～～"
     state.topBarContentColor = "#FF00FF"
@@ -105,7 +114,17 @@ fun PreviewWindowTopBar() {
     state.iconMaskable = true
     state.showMenuPanel = true
   }) { modifier ->
-    PreviewWindowTopBarContent(modifier)
+
+    UIKitView(factory =
+    {
+      iosView
+//        WKWebView().also {
+//            it.loadRequest(NSURLRequest.requestWithURL(NSURL.URLWithString("https://m.163.com")?:throw Exception()))
+//        }
+
+    },modifier
+    )
+//    PreviewWindowTopBarContent(modifier)
   }
 }
 

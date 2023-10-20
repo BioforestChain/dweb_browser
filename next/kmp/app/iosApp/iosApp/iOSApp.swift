@@ -1,22 +1,29 @@
 import SwiftUI
 import WebRTC
+import Network
+
+let DWEB_OS = false
 
 @main
 struct iOSApp: App {
+    @StateObject private var networkManager = NetworkManager()
+    @State private var isNetworkSegmentViewPresented = false
+
 	var body: some Scene {
 		WindowGroup {
-            Text("xxx")
-			ContentView()
+            ZStack{
+                if DWEB_OS {
+                    DWebOS()
+                }else{
+                    DwebBrowser()
+                }
+            }
+            .sheet(isPresented: $isNetworkSegmentViewPresented) {
+                NetworkGuidView()
+            }
+            .onReceive(networkManager.$isNetworkAvailable) { isAvailable in
+                isNetworkSegmentViewPresented = !isAvailable
+            }
 		}
 	}
-    
-    init(){
-        
-        let url = URL(string: "http://know.webhek.com/wp-content/uploads/svg/Ghostscript_Tiger.svg")
-        let request = URLRequest(url: url!)
-        URLSession.shared.dataTask(with: request) { data, response, error in
-              print("data?.count: \(data?.count)")
-        }.resume()
-        
-    }
 }
