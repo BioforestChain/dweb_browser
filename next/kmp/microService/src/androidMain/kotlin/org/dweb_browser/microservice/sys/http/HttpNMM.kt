@@ -14,6 +14,7 @@ import org.dweb_browser.microservice.ipc.Ipc
 import org.dweb_browser.microservice.ipc.ReadableStreamIpc
 import org.dweb_browser.microservice.sys.dns.debugFetch
 import org.dweb_browser.microservice.sys.dns.nativeFetchAdaptersManager
+import org.dweb_browser.microservice.sys.http.HttpNMM.Companion.dwebServer
 import org.dweb_browser.microservice.sys.http.net.Http1Server
 import org.http4k.base64Decoded
 import org.http4k.core.Method
@@ -113,13 +114,16 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
           ".dweb"
         )
       ) {
-        debugFetch("HTTP/nativeFetch", "$fromMM => ${request.uri} authority-> ${dwebServer.authority}")
+        debugFetch(
+          "HTTP/nativeFetch",
+          "$fromMM => ${request.uri} authority-> ${dwebServer.authority}"
+        )
         // 无需走网络层，直接内部处理掉
         httpHandler(
           request
             // 头部里添加 X-Dweb-Host
             .header("X-Dweb-Host", request.uri.getFullAuthority())
-          // 替换 url 的 authority（host+port）
+            // 替换 url 的 authority（host+port）
             .uri(request.uri.scheme("http").authority(dwebServer.authority))
         )
       } else null
@@ -209,7 +213,7 @@ class HttpNMM : NativeMicroModule("http.std.dweb", "HTTP Server Provider") {
     val gateway = Gateway(listener, serverUrlInfo, token)
     gatewayMap[serverUrlInfo.host] = gateway
     tokenMap[token] = gateway
-    debugHttp("START/end","$serverUrlInfo => $options")
+    debugHttp("START/end", "$serverUrlInfo => $options")
     return ServerStartResult(token, serverUrlInfo)
   }
 
@@ -258,9 +262,12 @@ fun findRequestGateway(request: Request): String? {
   val query_x_dweb_host: String? = request.query("X-Dweb-Host")?.decodeURIComponent()
   for ((key, value) in request.headers) {
     when (key) {
+      "host" -> {
+        header_host = parseHost(value)
+      }
+
       "Host" -> {
-        if (value != null && Regex("""\.dweb(:\d+)?$""").matches(value))
-          header_host = value
+        header_host = parseHost(value)
       }
 
       "X-Dweb-Host" -> {
@@ -294,6 +301,26 @@ fun findRequestGateway(request: Request): String? {
     } else host
   }
 }
+
+fun parseHost(value: String?): String? {
+  if (value != null) {
+    // 解析subDomain
+    if (value.endsWith(".${dwebServer.authority}")) {
+      var queryXWebHost =
+        value.substring(0, value.length - dwebServer.authority.length - 1)
+      val portStartIndex = queryXWebHost.lastIndexOf("-")
+      queryXWebHost = queryXWebHost.substring(0, portStartIndex) + ":" +
+          queryXWebHost.substring(portStartIndex + 1)
+      return queryXWebHost
+    }
+
+    if (Regex("""\.dweb(:\d+)?$""").matches(value)) {
+      return value
+    }
+  }
+  return null
+}
+
 
 fun Uri.getFullAuthority(hostOrAuthority: String = authority): String {
   var authority1 = hostOrAuthority
