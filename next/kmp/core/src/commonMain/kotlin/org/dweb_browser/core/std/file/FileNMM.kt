@@ -2,6 +2,7 @@ package org.dweb_browser.core.std.file
 
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
@@ -24,6 +25,7 @@ import org.dweb_browser.helper.StringEnumSerializer
 import org.dweb_browser.helper.SystemFileSystem
 import org.dweb_browser.helper.consumeEachCborPacket
 import org.dweb_browser.helper.copyTo
+import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.helper.toByteReadChannel
 import org.dweb_browser.helper.toJsonElement
@@ -55,6 +57,11 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
     /// TODO 这个函数给出来是给内部使用的
     fun getVirtualFsPath(context: IMicroModuleManifest, virtualPathString: String) =
       VirtualFsPath(context, virtualPathString, ::findVfsDirectory)
+
+    /**
+     * 用于picker映射真实路径
+     */
+    val pickerPathToActualPathMap = mutableMapOf<String, VirtualFsPath>()
   }
 
 
@@ -124,13 +131,15 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
     }
   }
 
-
   @OptIn(ExperimentalResourceApi::class)
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     getDataVirtualFsDirectory().also {
       fileTypeAdapterManager.append(adapter = it).removeWhen(onAfterShutdown)
     }
     getCacheVirtualFsDirectory().also {
+      fileTypeAdapterManager.append(adapter = it).removeWhen(onAfterShutdown)
+    }
+    getPickerVirtualFsDirectory().also {
       fileTypeAdapterManager.append(adapter = it).removeWhen(onAfterShutdown)
     }
     /// nativeFetch 适配 file:///*/** 的请求
@@ -315,6 +324,21 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
           }
         }
       },
+      "/picker" bind HttpMethod.Get to defineStringResponse {
+        val filePath = request.queryAs<String>("filePath")
+
+//        val virtualFsDirectory = getPickerVirtualFsDirectory().also {
+//          fileTypeAdapterManager.append(adapter = it).removeWhen(onAfterShutdown)
+//        }
+
+        val pickerDirectory = "/picker/${randomUUID()}".toPath()
+        val vfsPath = getVirtualFsPath(ipc.remote, filePath)
+        val pickerPathString = vfsPath.toVirtualPathString(pickerDirectory)
+
+        pickerPathToActualPathMap[pickerPathString] = vfsPath
+
+        pickerPathString
+      }
     )
   }
 

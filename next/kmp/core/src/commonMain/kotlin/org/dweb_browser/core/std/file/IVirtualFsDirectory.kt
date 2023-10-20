@@ -53,6 +53,11 @@ expect fun FileNMM.getDataVirtualFsDirectory(): IVirtualFsDirectory
  */
 expect fun FileNMM.getCacheVirtualFsDirectory(): IVirtualFsDirectory
 
+/**
+ * 用于picker时使用的临时文件夹
+ */
+expect fun FileNMM.getPickerVirtualFsDirectory(): IVirtualFsDirectory
+
 expect fun FileNMM.unCompress(compressFile: String, unCompressDirectory: String)
 
 class FileDirectoryAdapterManager internal constructor() : AdapterManager<IVirtualFsDirectory>()
