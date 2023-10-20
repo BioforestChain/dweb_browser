@@ -273,7 +273,7 @@ fun findRequestGateway(request: PureRequest): String? {
   val query_x_dweb_host: String? = request.queryOrNull("X-Dweb-Host")?.decodeURIComponent()
   for ((key, value) in request.headers) {
     if (reg_host.matches(key)) {
-      if (Regex("""\.dweb(:\d+)?$""").matches(value)) header_host = value
+       header_host = parseHost(value)
     } else if (reg_x_dweb_host.matches(key)) {
       header_x_dweb_host = value
     } else if (reg_authorization.matches(key)) {
@@ -300,7 +300,27 @@ fun findRequestGateway(request: PureRequest): String? {
   }
 }
 
-fun Url.getFullAuthority(hostOrAuthority: String = authority): String {
+fun parseHost(value: String?): String? {
+  if (value != null) {
+    // 解析subDomain
+    if (value.endsWith(".${dwebServer.authority}")) {
+      var queryXWebHost =
+        value.substring(0, value.length - dwebServer.authority.length - 1)
+      val portStartIndex = queryXWebHost.lastIndexOf("-")
+      queryXWebHost = queryXWebHost.substring(0, portStartIndex) + ":" +
+          queryXWebHost.substring(portStartIndex + 1)
+      return queryXWebHost
+    }
+
+    if (Regex("""\.dweb(:\d+)?$""").matches(value)) {
+      return value
+    }
+  }
+  return null
+}
+
+
+fun Uri.getFullAuthority(hostOrAuthority: String = authority): String {
   var authority1 = hostOrAuthority
   if (!authority1.contains(":")) {
     if (protocol.name == "http") {
