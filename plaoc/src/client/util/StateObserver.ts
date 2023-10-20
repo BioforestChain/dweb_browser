@@ -20,7 +20,7 @@ export class StateObserver<RAW, STATE> {
   ) {}
 
   async *jsonlines(options?: { signal?: AbortSignal }) {
-    const pub_url = await BasePlugin.public_url;
+    const pub_url = BasePlugin.public_url;
     const url = new URL(pub_url.replace(/^http:/, "ws:"));
     // 内部的监听
     url.pathname = `/${this.plugin.mmid}/observe`;
@@ -51,7 +51,6 @@ export class StateObserver<RAW, STATE> {
 
   stopObserve() {
     this._ws?.close();
-    return this.plugin.fetchApi(`/stopObserve`);
   }
 
   private _currentState?: STATE;

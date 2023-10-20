@@ -48,7 +48,7 @@ export class FileSystemPlugin extends BasePlugin {
       },
       method: "POST",
       body: data,
-      base: await BasePlugin.public_url,
+      base: BasePlugin.public_url,
     })
       .fetch()
       .object<FilesResult>();
