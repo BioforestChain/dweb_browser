@@ -18,16 +18,3 @@ actual fun FileNMM.getDataVirtualFsDirectory() = commonVirtualFsDirectoryFactory
 actual fun FileNMM.getCacheVirtualFsDirectory() = commonVirtualFsDirectoryFactory(
   "cache", getAppContext().cacheDir.absolutePath.toPath()
 )
-
-/**
- * 用于picker时使用的临时文件夹
- */
-actual fun FileNMM.getPickerVirtualFsDirectory() = commonVirtualFsDirectoryFactory(
-  "picker", "${  getAppContext().dataDir.absolutePath}/picker".toPath()
-)
-
-actual fun FileNMM.unCompress(compressFile: String, unCompressDirectory: String) {
-  ZipUtil.ergodicDecompress(
-    compressFile, unCompressDirectory
-  )
-}
