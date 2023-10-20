@@ -17,7 +17,7 @@ import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowRenderProvider
 import org.dweb_browser.sys.window.core.WindowState
 import org.dweb_browser.sys.window.core.constant.WindowConstants
-import org.dweb_browser.sys.window.core.createWindowAdapterManager
+import org.dweb_browser.sys.window.core.windowAdapterManager
 
 @Composable
 fun WindowPreviewer(
@@ -61,7 +61,7 @@ fun WindowPreviewer(
     val platformViewController = rememberPlatformViewController()
     val win =
       remember(state) { PreviewWindowController(state, platformViewController) }.also(config)
-    createWindowAdapterManager.provideRender(wid, content)
+    windowAdapterManager.provideRender(wid, content)
     winRender(win)
   }
 }

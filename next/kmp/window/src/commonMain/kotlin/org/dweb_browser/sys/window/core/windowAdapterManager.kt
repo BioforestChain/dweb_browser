@@ -1,6 +1,5 @@
 package org.dweb_browser.sys.window.core
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -50,9 +49,10 @@ data class WindowRenderScope internal constructor(
 typealias WindowRenderProvider = @Composable WindowRenderScope.(modifier: Modifier) -> Unit
 
 /**
- * 创建器窗口 的适配器管理
+ * 窗口的适配器管理
+ * 提供了窗口创建、窗口渲染的相关适配器功能
  */
-class CreateWindowAdapterManager : AdapterManager<CreateWindowAdapter>() {
+class WindowAdapterManager : AdapterManager<CreateWindowAdapter>() {
   val renderProviders = ChangeableMap<String, WindowRenderProvider>()
   fun provideRender(rid: String, render: WindowRenderProvider): () -> Boolean {
     renderProviders[rid] = render
@@ -74,10 +74,10 @@ class CreateWindowAdapterManager : AdapterManager<CreateWindowAdapter>() {
       });
     }
     DisposableEffect(rid) {
-      val off = createWindowAdapterManager.renderProviders.onChange {
+      val off = windowAdapterManager.renderProviders.onChange {
         render = it.origin[rid]
       }
-      render = createWindowAdapterManager.renderProviders[rid]
+      render = windowAdapterManager.renderProviders[rid]
       onDispose {
         off()
       }
@@ -89,9 +89,9 @@ class CreateWindowAdapterManager : AdapterManager<CreateWindowAdapter>() {
   fun Renderer(
     rid: String,
     windowRenderScope: WindowRenderScope,
-    @SuppressLint("ModifierParameter") contentModifier: Modifier = Modifier
+    contentModifier: Modifier = Modifier
   ) {
-    when (val render = createWindowAdapterManager.rememberRender(rid)) {
+    when (val render = windowAdapterManager.rememberRender(rid)) {
       null -> {
         val colorScheme = MaterialTheme.colorScheme;
         val typography = MaterialTheme.typography;
@@ -143,6 +143,6 @@ class CreateWindowAdapterManager : AdapterManager<CreateWindowAdapter>() {
   }
 }
 
-val createWindowAdapterManager = CreateWindowAdapterManager();
+val windowAdapterManager = WindowAdapterManager();
 
 

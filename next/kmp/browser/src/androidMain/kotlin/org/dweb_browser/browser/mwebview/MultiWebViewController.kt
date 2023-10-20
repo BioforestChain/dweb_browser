@@ -20,11 +20,10 @@ import org.dweb_browser.dwebview.engine.DWebViewEngine
 import org.dweb_browser.helper.Callback
 import org.dweb_browser.helper.ChangeableList
 import org.dweb_browser.helper.Signal
-import org.dweb_browser.helper.mainAsyncExceptionHandler
 import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.sys.window.core.WindowController
-import org.dweb_browser.sys.window.core.createWindowAdapterManager
+import org.dweb_browser.sys.window.core.windowAdapterManager
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -57,7 +56,7 @@ class MultiWebViewController(
     }
     val rid = win.id
     /// 提供渲染适配
-    createWindowAdapterManager.provideRender(rid) { modifier ->
+    windowAdapterManager.provideRender(rid) { modifier ->
       val webViewScale = (LocalDensity.current.density * scale * 100).toInt()
       Render(modifier, webViewScale)
     }

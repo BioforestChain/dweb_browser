@@ -142,7 +142,7 @@ abstract class WindowController(
           _beforeMaximizeBounds = null
         }
       }
-      state.mode = WindowMode.FLOATING
+      state.mode = WindowMode.FLOAT
     }
   }
 
@@ -172,9 +172,9 @@ abstract class WindowController(
     managerRunOr({ it.toggleVisibleWindow(this, visible) }, { simpleToggleVisible(visible) })
 
   val onClose = createStateListener(WindowPropertyKeys.Mode,
-    { mode == WindowMode.CLOSED }) { debugWindow("emit onClose", id) }
+    { mode == WindowMode.CLOSE }) { debugWindow("emit onClose", id) }
 
-  fun isClosed() = state.mode == WindowMode.CLOSED
+  fun isClosed() = state.mode == WindowMode.CLOSE
   internal open suspend fun simpleClose(force: Boolean = false) {
     if (!force) {
       /// 如果有关闭提示，并且没有显示，那么就显示一下
@@ -183,7 +183,7 @@ abstract class WindowController(
         return
       }
     }
-    state.mode = WindowMode.CLOSED
+    state.mode = WindowMode.CLOSE
   }
 
   suspend fun close(force: Boolean = false) =
@@ -319,10 +319,14 @@ abstract class WindowController(
    * 尝试移除一个 modal
    */
   suspend fun removeModal(modalId: UUID) = modalsLock.withLock("write") {
-    if (state.modals.containsKey(modalId)) {
-      state.modals -= modalId
-      true
-    } else false
+    when (val modal = state.modals[modalId]) {
+      null -> false
+      else -> {
+        state.modals -= modalId
+        windowAdapterManager.renderProviders.remove(modal.renderId)
+        true
+      }
+    }
   }
 
   /**

@@ -8,7 +8,7 @@ import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowState
 import org.dweb_browser.sys.window.core.constant.WindowConstants
 import org.dweb_browser.sys.window.core.createRenderer
-import org.dweb_browser.sys.window.core.createWindowAdapterManager
+import org.dweb_browser.sys.window.core.windowAdapterManager
 
 
 class RunningApp(
@@ -24,7 +24,7 @@ class RunningApp(
   suspend fun openWindow(): WindowController {
     val manifest = ipc.remote
     // 打开安装窗口
-    val newWin = createWindowAdapterManager.createWindow(
+    val newWin = windowAdapterManager.createWindow(
       WindowState(
         WindowConstants(
           owner = manifest.mmid,
@@ -39,7 +39,7 @@ class RunningApp(
     /// 窗口销毁的时候
     newWin.onClose {
       // 移除渲染适配器
-      createWindowAdapterManager.renderProviders.remove(wid)
+      windowAdapterManager.renderProviders.remove(wid)
       // 从引用中移除
       windows.remove(newWin)
     }

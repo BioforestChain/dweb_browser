@@ -4,32 +4,32 @@ import { $BottomSheetsModal } from "./window.type.ts";
 
 export const enum BottomSheetsState {
   INIT = "init",
-  SHOWING = "opening",
-  SHOW = "open",
-  HIDING = "hiding",
-  HIDE = "hide",
+  OPENING = "opening",
+  OPEN = "open",
   CLOSING = "closing",
   CLOSE = "close",
+  DESTROYING = "destroying",
+  DESTROY = "destroy",
 }
 export class BottomSheets extends SafeEventTarget<{
-  show: SafeEvent<"show">;
-  hide: SafeEvent<"hide">;
-  close: SafeEvent<"close">;
+  open: SafeEvent<BottomSheetsState.OPEN>;
+  close: SafeEvent<BottomSheetsState.CLOSE>;
+  destroy: SafeEvent<BottomSheetsState.DESTROY>;
 }> {
   constructor(readonly modal: $BottomSheetsModal, onDismiss: Promise<void>) {
     super();
     onDismiss.finally(() => {
       if (
         this.isState(
-          BottomSheetsState.HIDE,
-          BottomSheetsState.HIDING,
+          BottomSheetsState.CLOSE,
           BottomSheetsState.CLOSING,
-          BottomSheetsState.CLOSE
+          BottomSheetsState.DESTROYING,
+          BottomSheetsState.DESTROY
         )
       ) {
         return;
       }
-      this.state = BottomSheetsState.HIDE;
+      this.state = BottomSheetsState.CLOSE;
     });
   }
   #state = BottomSheetsState.INIT;
@@ -42,13 +42,13 @@ export class BottomSheets extends SafeEventTarget<{
     }
     this.#state = state;
     switch (state) {
-      case BottomSheetsState.SHOW:
+      case BottomSheetsState.OPEN:
         this.dispatchEvent(new SafeEvent("show"));
         break;
-      case BottomSheetsState.HIDE:
+      case BottomSheetsState.CLOSE:
         this.dispatchEvent(new SafeEvent("hide"));
         break;
-      case BottomSheetsState.CLOSE:
+      case BottomSheetsState.DESTROY:
         this.dispatchEvent(new SafeEvent("close"));
         break;
     }
@@ -62,34 +62,34 @@ export class BottomSheets extends SafeEventTarget<{
     return false;
   }
   async show() {
-    if (this.isState(BottomSheetsState.SHOW, BottomSheetsState.SHOWING)) {
+    if (this.isState(BottomSheetsState.OPEN, BottomSheetsState.OPENING)) {
       return;
     }
-    if (this.isState(BottomSheetsState.CLOSING, BottomSheetsState.CLOSE)) {
+    if (this.isState(BottomSheetsState.DESTROYING, BottomSheetsState.DESTROY)) {
       return;
     }
-    this.state = BottomSheetsState.SHOWING;
+    this.state = BottomSheetsState.OPENING;
     await windowPlugin.fetchApi("/openModal", { search: { modalId: this.modal.modalId } }).boolean();
-    this.state = BottomSheetsState.SHOW;
+    this.state = BottomSheetsState.OPEN;
   }
   async hide() {
-    if (this.isState(BottomSheetsState.HIDE, BottomSheetsState.HIDING)) {
+    if (this.isState(BottomSheetsState.CLOSE, BottomSheetsState.CLOSING)) {
       return;
     }
-    if (this.isState(BottomSheetsState.CLOSING, BottomSheetsState.CLOSE)) {
-      return;
-    }
-    this.state = BottomSheetsState.HIDING;
-    await windowPlugin.fetchApi("/closeModal", { search: { modalId: this.modal.modalId } }).boolean();
-    this.state = BottomSheetsState.HIDE;
-  }
-  async close() {
-    if (this.isState(BottomSheetsState.CLOSING, BottomSheetsState.CLOSE)) {
+    if (this.isState(BottomSheetsState.DESTROYING, BottomSheetsState.DESTROY)) {
       return;
     }
     this.state = BottomSheetsState.CLOSING;
+    await windowPlugin.fetchApi("/closeModal", { search: { modalId: this.modal.modalId } }).boolean();
+    this.state = BottomSheetsState.CLOSE;
+  }
+  async close() {
+    if (this.isState(BottomSheetsState.DESTROYING, BottomSheetsState.DESTROY)) {
+      return;
+    }
+    this.state = BottomSheetsState.DESTROYING;
     await windowPlugin.fetchApi("/removeModal", { search: { modalId: this.modal.modalId } }).boolean();
     this.dispatchEvent(new SafeEvent("close"));
-    this.state = BottomSheetsState.CLOSE;
+    this.state = BottomSheetsState.DESTROY;
   }
 }

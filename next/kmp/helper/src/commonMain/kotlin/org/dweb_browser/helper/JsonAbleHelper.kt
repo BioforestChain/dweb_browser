@@ -24,6 +24,8 @@ inline fun <reified T> T.toJsonElement() = Json.encodeToJsonElement<T>(this)
 inline fun <reified T> T.toJsonElement(serializer: KSerializer<T>) =
   Json.encodeToJsonElement<T>(serializer, this)
 
+inline fun <reified T> String.decodeTo() = Json.decodeFromString<T>(this)
+
 
 val JsonLoose = Json {
   ignoreUnknownKeys = true

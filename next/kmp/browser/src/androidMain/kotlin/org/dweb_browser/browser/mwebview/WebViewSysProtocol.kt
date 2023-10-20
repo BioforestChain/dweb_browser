@@ -6,7 +6,7 @@ import com.google.accompanist.web.rememberWebViewState
 import io.ktor.http.HttpMethod
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.helper.removeWhen
-import org.dweb_browser.sys.window.core.createWindowAdapterManager
+import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.ext.openMainWindow
 
 suspend fun MultiWebViewNMM.webViewSysProtocol() {
@@ -23,7 +23,7 @@ suspend fun MultiWebViewNMM.webViewSysProtocol() {
           remoteMm.openMainWindow() ?: throw Exception("fail to got window for ${remoteMm.mmid}")
         val engine = win.createDwebView(remoteMm, url)
 
-        createWindowAdapterManager.provideRender(rid) { modifier ->
+        windowAdapterManager.provideRender(rid) { modifier ->
           val webViewScale = (LocalDensity.current.density * scale * 100).toInt()
           engine.setInitialScale(webViewScale)
           WebView(state = rememberWebViewState(url = url), modifier = modifier, factory = {

@@ -32,7 +32,6 @@ import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.consumeEachJsonLine
 import org.dweb_browser.helper.isGreaterThan
 import org.dweb_browser.helper.resolvePath
-import org.dweb_browser.sys.window.core.constant.WindowMode
 import org.dweb_browser.sys.window.core.helper.setFromManifest
 import org.dweb_browser.sys.window.ext.openMainWindow
 import java.io.File
@@ -189,12 +188,12 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
 
     val win = openMainWindow() ?: return
     win.state.apply {
-      mode = WindowMode.FLOATING
+//      mode = WindowMode.CLOSE
       setFromManifest(this@JmmNMM)
     }
 
     jmmController = JmmController(
-      win, this@JmmNMM, jmmAppInstallManifest
+      this@JmmNMM, jmmAppInstallManifest
     ).also { ctrl ->
       win.onClose {
         if (jmmController == ctrl) {

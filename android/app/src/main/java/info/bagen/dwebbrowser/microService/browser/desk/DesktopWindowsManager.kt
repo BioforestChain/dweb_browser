@@ -3,7 +3,7 @@ package info.bagen.dwebbrowser.microService.browser.desk
 import org.dweb_browser.helper.platform.PlatformViewController
 import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.sys.window.core.WindowsManager
-import org.dweb_browser.sys.window.core.createWindowAdapterManager
+import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.core.helper.setDefaultFloatWindowBounds
 import java.util.WeakHashMap
 import kotlin.math.sqrt
@@ -28,7 +28,7 @@ class DesktopWindowsManager(val viewController: PlatformViewController) :
   /// 初始化一些监听
   init {
     /// 创建成功，提供适配器来渲染窗口
-    createWindowAdapterManager.append { newWindowState ->
+    windowAdapterManager.append { newWindowState ->
       /// 新窗口的bounds可能都是没有配置的，所以这时候默认给它们设置一个有效的值
 
       with(viewController) {

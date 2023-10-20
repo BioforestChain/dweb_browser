@@ -25,7 +25,7 @@ import androidx.compose.ui.zIndex
 import org.dweb_browser.helper.compose.iosTween
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowRenderScope
-import org.dweb_browser.sys.window.core.createWindowAdapterManager
+import org.dweb_browser.sys.window.core.windowAdapterManager
 
 @Composable
 fun WindowController.Render(
@@ -146,7 +146,7 @@ fun WindowController.Render(
               win.calcContentScale(limits, winPadding)
             )
           }
-          createWindowAdapterManager.Renderer(
+          windowAdapterManager.Renderer(
             win.state.constants.wid,
             windowRenderScope,
             Modifier.clip(winPadding.contentRounded.toRoundedCornerShape())
@@ -158,7 +158,10 @@ fun WindowController.Render(
       //#endregion
 
       val modal by win.openingModal
-      modal?.Render()
+      modal?.also {
+        println("QAQ $modal")
+        it.Render()
+      }
 
       /**
        * 窗口是否聚焦

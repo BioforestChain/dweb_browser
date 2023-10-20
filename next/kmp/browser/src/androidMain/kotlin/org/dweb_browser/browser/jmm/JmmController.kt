@@ -1,5 +1,6 @@
 package org.dweb_browser.browser.jmm
 
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -17,11 +18,10 @@ import org.dweb_browser.core.sys.download.JmmDownloadController
 import org.dweb_browser.core.sys.download.JmmDownloadInfo
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.consumeEachJsonLine
-import org.dweb_browser.sys.window.core.WindowController
-import org.dweb_browser.sys.window.core.createWindowAdapterManager
+import org.dweb_browser.sys.window.ext.BottomSheets
+import org.dweb_browser.sys.window.ext.createBottomSheets
 
 class JmmController(
-  val win: WindowController, // 窗口控制器
   internal val jmmNMM: JmmNMM, private val jmmAppInstallManifest: JmmAppInstallManifest
 ) {
 
@@ -33,12 +33,16 @@ class JmmController(
 
   internal val downloadSignal = Signal<JmmDownloadInfo>()
   val onDownload = downloadSignal.toListener()
+  private val viewDeferred = CompletableDeferred<BottomSheets>()
+  suspend fun getView() = viewDeferred.await()
 
   init {
-    val rid = win.id
-    /// 提供渲染适配
-    createWindowAdapterManager.provideRender(rid) { modifier ->
-      Render(modifier, this)
+    jmmNMM.ioAsyncScope.launch {
+      /// 提供渲染适配
+      val bottomSheets = jmmNMM.createBottomSheets { modifier ->
+        Render(modifier, this)
+      }.also { viewDeferred.complete(it) }
+      bottomSheets.open()
     }
   }
 
@@ -89,6 +93,6 @@ class JmmController(
   }
 
   suspend fun closeSelf() {
-    win.close(true)
+    getView().close()
   }
 }

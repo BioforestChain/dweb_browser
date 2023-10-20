@@ -21,7 +21,7 @@ import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.constant.WindowMode
-import org.dweb_browser.sys.window.core.createWindowAdapterManager
+import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.core.helper.setFromManifest
 import org.dweb_browser.sys.window.core.windowInstancesManager
 
@@ -79,7 +79,7 @@ class BrowserController(
         viewModel.createNewTab()
       }
       /// 提供渲染适配
-      createWindowAdapterManager.provideRender(wid) { modifier ->
+      windowAdapterManager.provideRender(wid) { modifier ->
         Render(modifier, this)
       }
       newWin.onClose {

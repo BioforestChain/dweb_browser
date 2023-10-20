@@ -195,7 +195,7 @@ data class BottomSheetsModal(override val dismissCallbackUrl: String?) : ModalSt
         val windowRenderScope = remember(maxWidth, maxHeight) {
           WindowRenderScope.fromDp(maxWidth, maxHeight, 1f)
         }
-        createWindowAdapterManager.Renderer(renderId, windowRenderScope)
+        windowAdapterManager.Renderer(renderId, windowRenderScope)
       }
     }
 

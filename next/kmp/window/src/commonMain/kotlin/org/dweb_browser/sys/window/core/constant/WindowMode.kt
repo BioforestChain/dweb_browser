@@ -16,7 +16,7 @@ enum class WindowMode(val mode: String) {
   /**
    * 浮动模式，默认值
    */
-  FLOATING("floating"),
+  FLOAT("float"),
 
   /**
    * 最大化
@@ -54,12 +54,12 @@ enum class WindowMode(val mode: String) {
   /**
    * 窗口关闭
    */
-  CLOSED("closed"), ;
+  CLOSE("close"), ;
 
 
   companion object {
     val ALL_VALUES = entries.associateBy { it.mode }
-    fun from(themeName: String) = ALL_VALUES.getOrDefault(themeName, FLOATING)
+    fun from(themeName: String) = ALL_VALUES.getOrDefault(themeName, FLOAT)
   }
 }
 

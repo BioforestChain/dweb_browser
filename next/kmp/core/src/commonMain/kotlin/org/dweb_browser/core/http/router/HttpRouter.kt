@@ -10,6 +10,7 @@ import org.dweb_browser.core.ipc.helper.IpcRequest
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.http.MatchMode
 import org.dweb_browser.core.std.http.RouteConfig
+import org.dweb_browser.helper.remove
 
 class HttpRouter(private val mm: MicroModule) {
   private val routes = mutableMapOf<RouteConfig, HttpHandlerChain>()

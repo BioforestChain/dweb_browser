@@ -64,6 +64,11 @@ class ChangeableMap<K, V>(context: CoroutineContext = ioAsyncExceptionHandler) :
   override fun remove(key: K) =
     super.remove(key)?.also { emitChangeBackground(removes = setOf(key)) }
 
+  fun remove(key: K, value: V) =
+    (this as MutableMap<K,V>).remove(key,value)
+
+  fun delete(key: K) = remove(key) != null
+
 
   /** 重置 清空所有的事件监听，清空所有的数据
    * 注意，这里不会触发任何事件，如果有需要，请使用 clear ，然后再 reset
