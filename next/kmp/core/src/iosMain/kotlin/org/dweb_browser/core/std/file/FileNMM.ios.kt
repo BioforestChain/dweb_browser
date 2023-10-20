@@ -27,16 +27,3 @@ actual fun FileNMM.getCacheVirtualFsDirectory() = commonVirtualFsDirectoryFactor
     NSCachesDirectory, NSUserDomainMask, true
   ).first().toString()
 )
-
-/**
- * 用于picker时使用的临时文件夹
- */
-actual fun FileNMM.getPickerVirtualFsDirectory() = commonVirtualFsDirectoryFactory(
-  "picker", NSSearchPathForDirectoriesInDomains(
-    NSDocumentDirectory, NSUserDomainMask, true
-  ).first().toString()
-)
-
-actual fun FileNMM.unCompress(compressFile: String, unCompressDirectory: String) {
-  // TODO()
-}
