@@ -14,12 +14,12 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
 
   readonly ipcPromise = this.createIpc();
   private async createIpc() {
-    let pub_url = await BasePlugin.public_url;
+    let pub_url = BasePlugin.public_url;
     pub_url = pub_url.replace("X-Dweb-Host=api", "X-Dweb-Host=external");
     const url = new URL(pub_url.replace(/^http:/, "ws:"));
 
     const mmid = url.searchParams.get("X-Dweb-Host")?.slice(9, -4) as $MMID;
-    const hash = await BasePlugin.external_url;
+    const hash = BasePlugin.external_url;
     url.pathname = `/${hash}`;
     const ipc = await createMockModuleServerIpc(url, {
       mmid: mmid,
@@ -62,7 +62,7 @@ export class DwebServiceWorkerPlugin extends BasePlugin {
           mmid: mmid,
         },
       });
-      if (res.status !== 404) {
+      if (res.ok) {
         return { success: true, message: "true" };
       }
       return { success: false, message: "false" };
