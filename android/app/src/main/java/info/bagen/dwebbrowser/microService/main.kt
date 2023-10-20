@@ -55,7 +55,7 @@ suspend fun startDwebBrowser(): DnsNMM {
   when (DEVELOPER.CURRENT) {
     DEVELOPER.KVirtual -> addDebugTags(listOf("JsMM", "http", "/.+/"))
 
-    else -> addDebugTags(listOf("/.+/"))
+    else -> addDebugTags(listOf())
   }
 
   LocalFileFetch.INSTANCE // 注入 localFileFetch

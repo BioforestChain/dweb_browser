@@ -14,7 +14,6 @@ import org.http4k.core.Response
 import org.http4k.core.Status
 import org.http4k.routing.bind
 import org.http4k.routing.routes
-import java.security.MessageDigest
 import java.util.UUID
 
 fun debugDevice(tag: String, msg: Any? = "", err: Throwable? = null) =
@@ -28,18 +27,16 @@ class DeviceNMM : NativeMicroModule("device.sys.dweb", "Device Info") {
   }
 
   val deviceInfo = DeviceInfo()
-  val UUID_KEY = "FINGERPRINT"
-  @OptIn(ExperimentalStdlibApi::class)
+  val UUID_KEY = "DeviceUUID"
+
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     apiRouting = routes(
       /** 获取设备唯一标识uuid*/
-      "/uuid" bind Method.GET to defineHandler { request ->
-        var uuid = App.appContext.getString(UUID_KEY, "")
-        if (uuid == "") {
-          val messageDigest = MessageDigest.getInstance("SHA-256");
-          messageDigest.update(Build.FINGERPRINT.toUtf8ByteArray());
-          uuid = messageDigest.digest().toHexString()
-          App.appContext.saveString(UUID_KEY, uuid)
+      "/uuid" bind Method.GET to defineHandler { _ ->
+        val uuid = App.appContext.getString(UUID_KEY).ifEmpty {
+          val deviceUUID = getDeviceUUID()
+          App.appContext.saveString(UUID_KEY, deviceUUID)
+          deviceUUID
         }
         debugDevice("getUUID", uuid)
         return@defineHandler UUIDResponse(uuid)
@@ -79,7 +76,16 @@ class DeviceNMM : NativeMicroModule("device.sys.dweb", "Device Info") {
 
   data class UUIDResponse(val uuid: String)
 
-  override suspend fun _shutdown() {
-    TODO("Not yet implemented")
-  }
+  override suspend fun _shutdown() {}
+}
+
+fun getDeviceUUID(): String {
+  val devIDShort = "35" + Build.BRAND.length % 10 +
+      Build.BOARD.length % 10 + Build.DEVICE.length % 10 + Build.DISPLAY.length % 10 +
+      Build.HOST.length % 10 + Build.ID.length % 10 + Build.MANUFACTURER.length % 10 +
+      Build.MODEL.length % 10 + Build.PRODUCT.length % 10 + Build.TAGS.length % 10 +
+      Build.TYPE.length % 10 + Build.USER.length % 10 + Build.FINGERPRINT.length % 10 // 13位
+  debugDevice("uuid", "devIDShort=$devIDShort, ${devIDShort.hashCode()}")
+  return UUID.nameUUIDFromBytes(devIDShort.toUtf8ByteArray()).toString()
+  // return UUID(devIDShort.hashCode().toLong(), Build.MANUFACTURER.hashCode().toLong()).toString()
 }
