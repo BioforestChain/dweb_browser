@@ -1,10 +1,15 @@
 package info.bagen.dwebbrowser.microService.sys.share
 
+import android.content.BroadcastReceiver
+import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
+import android.os.Build
+import android.util.Log
 import androidx.activity.result.ActivityResultLauncher
 import org.dweb_browser.helper.PromiseOut
 
-class ShareController() {
+class ShareController {
 
   companion object {
     val controller = ShareController()
@@ -29,4 +34,21 @@ class ShareController() {
         activityResultLauncherTask.resolve(value)
       }
     }
+}
+
+internal class ShareBroadcastReceiver: BroadcastReceiver() {
+  companion object {
+    private var shareReceiver = false
+    fun resetState() { shareReceiver = false }
+    val shareState get() = shareReceiver
+  }
+
+  override fun onReceive(context: Context, intent: Intent) {
+    shareReceiver = true
+    /*val clickedComponent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+      intent.getParcelableExtra(Intent.EXTRA_CHOSEN_COMPONENT, ComponentName::class.java)
+    } else {
+      intent.getParcelableExtra(Intent.EXTRA_CHOSEN_COMPONENT)
+    }*/
+  }
 }

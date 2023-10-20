@@ -162,6 +162,8 @@
         android:name="android.support.FILE_PROVIDER_PATHS"
         android:resource="@xml/file_opener_paths" />
     </provider>
+
+    <receiver android:name=".microService.sys.share.ShareBroadcastReceiver"/>
   </application>
 
 </manifest>

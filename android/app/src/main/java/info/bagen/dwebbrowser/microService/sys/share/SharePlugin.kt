@@ -76,24 +76,19 @@ object SharePlugin {
       }
     }
 
-    var flags = PendingIntent.FLAG_UPDATE_CURRENT
-    // 如果当前sdk >= 31
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-      flags = flags or PendingIntent.FLAG_MUTABLE
+    val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) { // 如果当前sdk >= 31
+      PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
+    } else {
+      PendingIntent.FLAG_UPDATE_CURRENT
     }
     val pi = PendingIntent.getBroadcast(
-      App.appContext,
-      0,
-      Intent(Intent.EXTRA_CHOSEN_COMPONENT),
-      flags
+      App.appContext, 0, Intent(App.appContext, ShareBroadcastReceiver::class.java), flags
     )
     val chooserIntent = Intent.createChooser(intent, title, pi.intentSender).apply {
       addCategory(Intent.CATEGORY_DEFAULT)
     }
 
-    controller.let {
-      it.shareLauncher?.launch(chooserIntent)
-    }
+    controller.shareLauncher?.launch(chooserIntent)
   }
 
   private fun shareFiles(
@@ -354,5 +349,4 @@ object SharePlugin {
   private fun stringCheck(str: String?): Boolean {
     return str?.isNotEmpty() ?: false
   }
-
 }

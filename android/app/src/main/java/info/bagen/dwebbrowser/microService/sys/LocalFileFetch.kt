@@ -8,6 +8,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.browserUI.util.APP_DIR_TYPE
 import org.dweb_browser.browserUI.util.FilesUtil
+import org.dweb_browser.helper.decodeURIComponent
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.readByteArray
 import org.dweb_browser.microservice.core.MicroModule
@@ -142,7 +143,7 @@ class LocalFileFetch private constructor() {
     val mode = request.query("mode") ?: "auto"
     val chunk = request.query("chunk")?.toIntOrNull() ?: ChunkAssetsFileStream.defaultChunkSize
     val preRead = request.query("pre-read")?.toBooleanStrictOrNull() ?: false
-    val path = request.uri.path
+    val path = request.uri.path.decodeURIComponent() // 空格引起的问题
     val pathType = path.checkPathType()// path.startsWith("/sys/")
 
     lateinit var filePath: String

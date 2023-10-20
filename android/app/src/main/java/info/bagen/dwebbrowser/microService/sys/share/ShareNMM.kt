@@ -70,15 +70,12 @@ class ShareNMM : AndroidNativeMicroModule("share.sys.dweb", "share") {
         SharePlugin.share(controller, ext.title, ext.text, ext.url, files, result)
 
         // 等待结果回调
-        controller.activity?.getShareData { it ->
+        controller.activity?.getShareData {
           result.resolve(it)
         }
 
         val data = result.waitPromise()
         debugShare("share", "result => $data")
-        if (data !== "OK") {
-          controller.activity?.finish()
-        }
         return@defineHandler ShareResult(data == "OK", data)
       },
     ).cors()
