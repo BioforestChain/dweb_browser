@@ -5,6 +5,7 @@ pluginManagement {
     mavenCentral()
     maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
   }
+  includeBuild("../../toolkit/cklib")
 }
 plugins {
   id("org.gradle.toolchains.foojay-resolver-convention") version ("0.4.0")
@@ -33,3 +34,4 @@ include(":core")
 include(":DWebView")
 include(":browser")
 include(":mdns")
+include(":ziplib")
