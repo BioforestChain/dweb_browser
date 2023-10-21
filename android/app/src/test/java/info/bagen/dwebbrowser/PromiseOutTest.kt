@@ -34,7 +34,7 @@ class PromiseOutTest {
     val po = PromiseOut<Unit>()
     launch {
       delay(1000)
-      po.reject(Exception("QAQ"))
+      po.reject(Exception("Reject"))
     }
 
     println("start wait")
@@ -43,7 +43,7 @@ class PromiseOutTest {
       throw Error("should no happened")
     } catch (e: Exception) {
       println("rejected")
-      assertEquals(e.message, "QAQ")
+      assertEquals(e.message, "Reject")
     }
   }
 

@@ -186,7 +186,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
     // 打开安装窗口
     // TODO 使用 bottomSheet
 
-    val win = openMainWindow() ?: return
+    val win = openMainWindow()
     win.state.apply {
 //      mode = WindowMode.CLOSE
       setFromManifest(this@JmmNMM)

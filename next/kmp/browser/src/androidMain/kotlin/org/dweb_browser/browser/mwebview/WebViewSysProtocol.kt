@@ -19,8 +19,7 @@ suspend fun MultiWebViewNMM.webViewSysProtocol() {
         val url = request.query("url")
         val remoteMm = ipc.asRemoteInstance()
           ?: throw Exception("webview.sys.dweb/open should be call by locale")
-        val win =
-          remoteMm.openMainWindow() ?: throw Exception("fail to got window for ${remoteMm.mmid}")
+        val win = remoteMm.openMainWindow()
         val engine = win.createDwebView(remoteMm, url)
 
         windowAdapterManager.provideRender(rid) { modifier ->

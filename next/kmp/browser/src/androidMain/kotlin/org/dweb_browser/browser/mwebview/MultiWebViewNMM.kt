@@ -88,8 +88,7 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.browser.dweb", "Multi Webvie
     debugMultiWebView("/open", "remote-mmid: $remoteMmid / url:$url")
 
     val controller = controllerMap.getOrPut(remoteMmid) {
-      val win =
-        remoteMm.openMainWindow() ?: throw Exception("fail to got window for ${remoteMm.mmid}")
+      val win = remoteMm.openMainWindow()
       remoteMm.manifest.display?.let { mode ->
         if (mode == DisplayMode.Fullscreen) {
           win.maximize()

@@ -87,74 +87,63 @@ class Query {
         return this
       }
 
-      override fun decodeBoolean(): Boolean {
-        TODO("Not yet implemented")
-      }
+      private val firstValue get() = values.first()
+      private val firstValueOrNull get() = values.firstOrNull()
 
-      override fun decodeByte(): Byte {
-        TODO("Not yet implemented")
-      }
+      override fun decodeBoolean() = firstValue.toBoolean()
 
-      override fun decodeChar(): Char {
-        TODO("Not yet implemented")
-      }
+      override fun decodeByte() = firstValue.toByte()
 
-      override fun decodeDouble(): Double {
-        TODO("Not yet implemented")
-      }
+      override fun decodeChar() = firstValue[0]
 
+      override fun decodeDouble() = firstValue.toDouble()
+
+      @OptIn(ExperimentalSerializationApi::class)
       override fun decodeEnum(enumDescriptor: SerialDescriptor): Int {
-        TODO("Not yet implemented")
+        TODO("Not yet implemented decodeEnum")
       }
 
-      override fun decodeFloat(): Float {
-        TODO("Not yet implemented")
-      }
+      override fun decodeFloat() = firstValue.toFloat()
 
       override fun decodeInline(descriptor: SerialDescriptor): Decoder {
-        TODO("Not yet implemented")
+        TODO("Not yet implemented decodeInline")
       }
 
-      override fun decodeInt(): Int {
-        TODO("Not yet implemented")
-      }
+      override fun decodeInt() = firstValue.toInt()
 
-      override fun decodeLong(): Long {
-        TODO("Not yet implemented")
-      }
+      override fun decodeLong() = firstValue.toLong()
 
       @ExperimentalSerializationApi
       override fun decodeNotNullMark(): Boolean {
-        TODO("Not yet implemented")
+        TODO("Not yet implemented decodeNotNullMark")
       }
 
       @ExperimentalSerializationApi
       override fun decodeNull(): Nothing? {
-        TODO("Not yet implemented")
+        return when (val value = firstValueOrNull) {
+          null -> null
+          else -> if (value == "null" || value.isEmpty()) null else throw Exception("fail to decode to null: $value")
+        }
       }
 
-      override fun decodeShort(): Short {
-        TODO("Not yet implemented")
-      }
+      override fun decodeShort()=firstValue.toShort()
 
-      override fun decodeString(): String {
-        TODO("Not yet implemented")
-      }
+      override fun decodeString()=firstValue
 
       override fun decodeBooleanElement(descriptor: SerialDescriptor, index: Int): Boolean {
-        TODO("Not yet implemented")
+        TODO("Not yet implemented decodeBooleanElement")
       }
 
       override fun decodeByteElement(descriptor: SerialDescriptor, index: Int): Byte {
-        TODO("Not yet implemented")
+        TODO("Not yet implemented decodeByteElement")
       }
 
       override fun decodeCharElement(descriptor: SerialDescriptor, index: Int): Char {
-        TODO("Not yet implemented")
+        TODO("Not yet implemented decodeCharElement")
       }
 
       override fun decodeDoubleElement(descriptor: SerialDescriptor, index: Int): Double {
-        TODO("Not yet implemented")
+        TODO("Not yet implemented decodeDoubleElement")
       }
 
       override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
@@ -166,19 +155,19 @@ class Query {
       }
 
       override fun decodeFloatElement(descriptor: SerialDescriptor, index: Int): Float {
-        TODO("Not yet implemented")
+        TODO("Not yet implemented decodeFloatElement")
       }
 
       override fun decodeInlineElement(descriptor: SerialDescriptor, index: Int): Decoder {
-        TODO("Not yet implemented")
+        TODO("Not yet implemented decodeInlineElement")
       }
 
       override fun decodeIntElement(descriptor: SerialDescriptor, index: Int): Int {
-        TODO("Not yet implemented")
+        TODO("Not yet implemented decodeIntElement")
       }
 
       override fun decodeLongElement(descriptor: SerialDescriptor, index: Int): Long {
-        TODO("Not yet implemented")
+        TODO("Not yet implemented decodeLongElement")
       }
 
       @ExperimentalSerializationApi
@@ -188,7 +177,7 @@ class Query {
         deserializer: DeserializationStrategy<T?>,
         previousValue: T?
       ): T? {
-        TODO("Not yet implemented")
+        TODO("Not yet implemented decodeNullableSerializableElement")
       }
 
       override fun <T> decodeSerializableElement(
@@ -201,11 +190,11 @@ class Query {
       }
 
       override fun decodeShortElement(descriptor: SerialDescriptor, index: Int): Short {
-        TODO("Not yet implemented")
+        TODO("Not yet implemented decodeShortElement")
       }
 
       override fun decodeStringElement(descriptor: SerialDescriptor, index: Int): String {
-        TODO("Not yet implemented")
+        TODO("Not yet implemented decodeStringElement")
       }
 
       override fun endStructure(descriptor: SerialDescriptor) {
@@ -217,6 +206,7 @@ class Query {
       private val paramList = params.entries().toList()
       private var walkIndex = -1;
       override val serializersModule: SerializersModule = Query.serializersModule
+      private fun takeList() = paramList[walkIndex].value
       private fun takeFist() = paramList[walkIndex].value.first()
 
       override fun decodeBooleanElement(descriptor: SerialDescriptor, index: Int): Boolean {
@@ -273,7 +263,7 @@ class Query {
         deserializer: DeserializationStrategy<T?>,
         previousValue: T?
       ): T? {
-        return null
+        return deserializer.deserialize(QueryValuesDecoder(takeList()))
       }
 
       override fun <T> decodeSerializableElement(
@@ -282,15 +272,15 @@ class Query {
         deserializer: DeserializationStrategy<T>,
         previousValue: T?
       ): T {
-        return deserializer.deserialize(QueryValuesDecoder(paramList[index].value))
+        return deserializer.deserialize(QueryValuesDecoder(takeList()))
       }
 
       override fun decodeShortElement(descriptor: SerialDescriptor, index: Int): Short {
-        return paramList[index].value.first().toShort()
+        return takeFist().toShort()
       }
 
       override fun decodeStringElement(descriptor: SerialDescriptor, index: Int): String {
-        return paramList[index].value.first()
+        return takeFist()
       }
 
       override fun endStructure(descriptor: SerialDescriptor) {
@@ -302,19 +292,19 @@ class Query {
       }
 
       override fun decodeBoolean(): Boolean {
-        return paramList[walkIndex].value.first().toBoolean()
+        return takeFist().toBoolean()
       }
 
       override fun decodeByte(): Byte {
-        return paramList[walkIndex].value.first().toByte()
+        return takeFist().toByte()
       }
 
       override fun decodeChar(): Char {
-        return paramList[walkIndex].value.first().toCharArray().first()
+        return takeFist().toCharArray().first()
       }
 
       override fun decodeDouble(): Double {
-        return paramList[walkIndex].value.first().toDouble()
+        return takeFist().toDouble()
       }
 
       override fun decodeEnum(enumDescriptor: SerialDescriptor): Int {
@@ -322,7 +312,7 @@ class Query {
       }
 
       override fun decodeFloat(): Float {
-        return paramList[walkIndex].value.first().toFloat()
+        return takeFist().toFloat()
       }
 
       override fun decodeInline(descriptor: SerialDescriptor): Decoder {
@@ -330,16 +320,16 @@ class Query {
       }
 
       override fun decodeInt(): Int {
-        return paramList[walkIndex].value.first().toInt()
+        return takeFist().toInt()
       }
 
       override fun decodeLong(): Long {
-        return paramList[walkIndex].value.first().toLong()
+        return takeFist().toLong()
       }
 
       @ExperimentalSerializationApi
       override fun decodeNotNullMark(): Boolean {
-        return paramList[walkIndex].value.first().toBooleanStrict()
+        return takeFist().toBooleanStrict()
       }
 
       @ExperimentalSerializationApi
@@ -348,7 +338,7 @@ class Query {
       }
 
       override fun decodeShort(): Short {
-        return paramList[walkIndex].value.first().toShort()
+        return takeFist().toShort()
       }
 
       override fun decodeString(): String {

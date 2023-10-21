@@ -6,18 +6,17 @@ import android.os.Bundle
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.PureResponse
 import org.dweb_browser.core.http.PureStringBody
+import org.dweb_browser.core.http.router.IHandlerContext
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.bindPrefix
 import org.dweb_browser.core.http.toPure
+import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.helper.IpcResponse
 import org.dweb_browser.core.module.BootstrapContext
-import org.dweb_browser.core.http.router.IHandlerContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.startAppActivity
 import org.dweb_browser.core.std.dns.nativeFetch
@@ -30,12 +29,14 @@ import org.dweb_browser.helper.ChangeState
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.PromiseOut
+import org.dweb_browser.helper.ReasonLock
 import org.dweb_browser.helper.consumeEachJsonLine
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.sys.window.core.AlertModal
 import org.dweb_browser.sys.window.core.BottomSheetsModal
 import org.dweb_browser.sys.window.core.ModalState
+import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.windowInstancesManager
 
 val debugDesk = Debugger("desk")
@@ -47,11 +48,11 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
   }
 
   private val runningApps = ChangeableMap<MMID, RunningApp>()
-  private suspend fun addRunningApp(mmid: MMID): RunningApp? {
+  private suspend fun getRunningApp(ipc: Ipc): RunningApp? {
+    val mmid = ipc.remote.mmid
     /// 如果成功打开，将它“追加”到列表中
     return when (val runningApp = runningApps[mmid]) {
       null -> {
-        val ipc = connect(mmid)
         if (ipc.remote.categories.contains(MICRO_MODULE_CATEGORY.Application)) {
           RunningApp(ipc, this).also {
             runningApps[mmid] = it
@@ -93,30 +94,26 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
         runningApps.emitChangeBackground(adds, updates, removes)
       }
     }
-    launch {
-      doObserve("/observe/running-apps") {
-        for (mmid in adds) {
-          addRunningApp(mmid)
-        }
-      }
-    }
   }
 
-  private val openAppLock = Mutex()
+  private suspend fun IHandlerContext.getRunningApp(ipc: Ipc) = openAppLock.withLock("app") {
+    this@DeskNMM.getRunningApp(ipc) ?: throwException(
+      HttpStatusCode.NotFound, "microModule(${ipc.remote.mmid}) is not an application"
+    )
+  }
+
+  private val openAppLock = ReasonLock()
   suspend fun IHandlerContext.openOrActivateAppWindow(
-    desktopController: DesktopController, mmid: MMID
-  ) = openAppLock.withLock {
+    ipc: Ipc, desktopController: DesktopController
+  ): WindowController {
     debugDesk("/openAppOrActivate", mmid)
     try {
-      val runningApp = addRunningApp(mmid) ?: throwException(
-        HttpStatusCode.NotFound, "No found application by id: $mmid"
-      )
       /// desk直接为应用打开窗口，因为窗口由desk统一管理，所以由desk窗口，并提供句柄
-      val appMainWindow = runningApp.openMainWindow()
+      val appMainWindow = getAppMainWindow(ipc)
 
       /// 将所有的窗口聚焦，这个行为不依赖于 Activity 事件，而是Desk模块自身托管窗口的行为
       desktopController.desktopWindowsManager.focusWindow(mmid)
-      appMainWindow.id
+      return appMainWindow
     } catch (e: Exception) {
       desktopController.showAlert(e)
       e.printStackTrace()
@@ -124,35 +121,32 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     }
   }
 
-  suspend fun IHandlerContext.getAppMainWindow(mmid: MMID) = openAppLock.withLock {
-    val runningApp =
-      runningApps[mmid] ?: throwException(HttpStatusCode.NotFound, "App:$mmid no running")
-    val appMainWindow = runningApp.getMainWindow() ?: throwException(
-      HttpStatusCode.Forbidden, "App:$mmid's main window should be open"
-    )
+  suspend fun IHandlerContext.getAppMainWindow(ipc: Ipc) = openAppLock.withLock("window") {
+    val runningApp = getRunningApp(ipc)
+    /// desk直接为应用打开窗口，因为窗口由desk统一管理，所以由desk窗口，并提供句柄
+    val appMainWindow = runningApp.getMainWindow()
     appMainWindow
   }
 
-  suspend fun IHandlerContext.createAlertModal(mmid: MMID) = openAppLock.withLock {
+  suspend fun IHandlerContext.createAlertModal(ipc: Ipc) = openAppLock.withLock("write-modal") {
     request.queryAs<AlertModal>().also {
-      createAndTryOpenModal(mmid, it)
+      saveAndTryOpenModal(ipc, it)
     }
   }
 
-  suspend fun IHandlerContext.createBottomSheetsModal(mmid: MMID) = openAppLock.withLock {
-    request.queryAs<BottomSheetsModal>().also {
-      createAndTryOpenModal(mmid, it)
+  suspend fun IHandlerContext.createBottomSheetsModal(ipc: Ipc) =
+    openAppLock.withLock("write-modal") {
+      request.queryAs<BottomSheetsModal>().also {
+        saveAndTryOpenModal(ipc, it)
+      }
     }
-  }
 
-  private suspend fun IHandlerContext.createAndTryOpenModal(
-    mmid: MMID,
+  private suspend fun IHandlerContext.saveAndTryOpenModal(
+    ipc: Ipc,
     modal: ModalState,
   ) {
-    val appMainWindow = getAppMainWindow(mmid)
-    if (!appMainWindow.createModal(modal)) {
-      throwException(HttpStatusCode.ExpectationFailed, "fail to create modal")
-    }
+    val appMainWindow = getAppMainWindow(ipc)
+    appMainWindow.saveModal(modal)
     if (request.queryAsOrNull<Boolean>("open") == true) {
       appMainWindow.openModal(modal.modalId)
     }
@@ -199,9 +193,8 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       //
       "/openAppOrActivate" bind HttpMethod.Get to defineStringResponse {
         val mmid = request.query("app_id")
-        openOrActivateAppWindow(desktopController, mmid)
-      }, "/addBottomSheetView" bind HttpMethod.Get to defineStringResponse {
-        ""
+        // 内部接口，所以ipc通过connect获得
+        openOrActivateAppWindow(connect(mmid), desktopController).id
       },
       // 获取isMaximized 的值
       "/toggleMaximize" bind HttpMethod.Get to defineBooleanResponse {

@@ -11,13 +11,10 @@ import kotlinx.serialization.Serializable
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.NativeMicroModule
-import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.WeakHashMap
-import org.dweb_browser.helper.decodeTo
-import org.dweb_browser.helper.encodeURIComponent
 import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.helper.randomUUID
-import org.dweb_browser.sys.window.core.BottomSheetsModal
+import org.dweb_browser.sys.window.core.BottomSheetsModal.Companion.createBottomSheetsModal
 import org.dweb_browser.sys.window.core.WindowRenderProvider
 import org.dweb_browser.sys.window.core.windowAdapterManager
 
@@ -43,9 +40,9 @@ suspend fun NativeMicroModule.createBottomSheets(renderProvider: WindowRenderPro
     });
     val callbackUrl = "file://$mmid$callbackUrlPathname"
 
-    val bottomSheetsModal =
-      nativeFetch("file://window.sys.dweb/createBottomSheets?dismissCallbackUrl=${callbackUrl.encodeURIComponent()}").body.toPureString()
-        .decodeTo<BottomSheetsModal>()
+    val mainWindow = getMainWindow()
+    val bottomSheetsModal = mainWindow.createBottomSheetsModal(callbackUrl)
+
     windowAdapterManager.provideRender(bottomSheetsModal.renderId, renderProvider)
     BottomSheets(bottomSheetsModal, onDismiss, this)
   }

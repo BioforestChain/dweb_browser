@@ -16,22 +16,25 @@ suspend fun DeskNMM.windowProtocol(desktopController: DesktopController) {
       /// 打开主窗口，获取主窗口句柄
       // TODO 这样需要跳出授权窗口，获得OTP（一次性密钥），然后在让 desk.browser.dweb 打开窗口
       "/openMainWindow" bind HttpMethod.Get to defineStringResponse {
-        openOrActivateAppWindow(desktopController, ipc.remote.mmid)
+        openOrActivateAppWindow(ipc, desktopController).id
+      },
+      "/mainWindow" bind HttpMethod.Get to defineStringResponse {
+        getAppMainWindow(ipc).id
       },
       "/createBottomSheets" bind HttpMethod.Get to defineJsonResponse {
-        createBottomSheetsModal(ipc.remote.mmid).toJsonElement()
+        createBottomSheetsModal(ipc).toJsonElement()
       },
       "/createAlert" bind HttpMethod.Get to defineJsonResponse {
-        createAlertModal(ipc.remote.mmid).toJsonElement()
+        createAlertModal(ipc).toJsonElement()
       },
       "/openModal" bind HttpMethod.Get to defineBooleanResponse {
-        getAppMainWindow(ipc.remote.mmid).openModal(request.query("modalId"))
+        getAppMainWindow(ipc).openModal(request.query("modalId"))
       },
       "/closeModal" bind HttpMethod.Get to defineBooleanResponse {
-        getAppMainWindow(ipc.remote.mmid).closeModal(request.query("modalId"))
+        getAppMainWindow(ipc).closeModal(request.query("modalId"))
       },
       "/removeModal" bind HttpMethod.Get to defineBooleanResponse {
-        getAppMainWindow(ipc.remote.mmid).removeModal(request.query("modalId"))
+        getAppMainWindow(ipc).removeModal(request.query("modalId"))
       },
       /** 窗口的状态监听 */
       "/observe" bind HttpMethod.Get to defineJsonLineResponse {
