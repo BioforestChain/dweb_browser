@@ -16,11 +16,6 @@ export class HTMLDwebUpdateControllerElement extends HTMLElement {
   }
 
   @cacheGetter()
-  get getVersion() {
-    return this.plugin.getVersion;
-  }
-
-  @cacheGetter()
   get pause() {
     return this.plugin.pause;
   }
