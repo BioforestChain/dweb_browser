@@ -29,6 +29,7 @@ import org.dweb_browser.core.ipc.ReadableStreamIpc
 import org.dweb_browser.core.ipc.helper.IpcHeaders
 import org.dweb_browser.core.std.dns.debugFetch
 import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
+import org.dweb_browser.core.std.http.HttpNMM.Companion.dwebServer
 import org.dweb_browser.core.std.http.net.Http1Server
 import kotlin.random.Random
 
@@ -320,7 +321,7 @@ fun parseHost(value: String?): String? {
 }
 
 
-fun Uri.getFullAuthority(hostOrAuthority: String = authority): String {
+fun Url.getFullAuthority(hostOrAuthority: String = authority): String {
   var authority1 = hostOrAuthority
   if (!authority1.contains(":")) {
     if (protocol.name == "http") {
