@@ -2,8 +2,16 @@ package org.dweb_browser.browser.web
 
 import android.content.Context
 import android.graphics.Bitmap
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.Alignment
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
@@ -21,9 +29,11 @@ import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.constant.WindowMode
-import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.core.helper.setFromManifest
+import org.dweb_browser.sys.window.core.windowAdapterManager
 import org.dweb_browser.sys.window.core.windowInstancesManager
+import org.dweb_browser.sys.window.ext.createAlert
+import org.dweb_browser.sys.window.ext.createBottomSheets
 
 class BrowserController(
   private val browserNMM: BrowserNMM, private val browserServer: HttpDwebServer
@@ -91,12 +101,34 @@ class BrowserController(
         }
       }
     }
+  }.also {
+    val bottomSheetsController = browserNMM.createBottomSheets { modifier ->
+      Column(
+        modifier = modifier
+          .verticalScroll(rememberScrollState())
+          .background(MaterialTheme.colors.background),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+      ) {
+        for (i in 1..100) {
+          Text(text = "hi~$i")
+        }
+      }
+    };
+    bottomSheetsController.open()
+    bottomSheetsController.onClose {
+      val alertController = browserNMM.createAlert("你好", "关闭了")
+      alertController.open()
+      alertController.onClose {
+        bottomSheetsController.destroy()
+        alertController.destroy()
+      }
+    }
   }
 
-  suspend fun openBrowserView(search: String? = null, url: String? = null) =
-    winLock.withLock {
-      viewModel.createNewTab(search, url)
-    }
+  suspend fun openBrowserView(search: String? = null, url: String? = null) = winLock.withLock {
+    viewModel.createNewTab(search, url)
+  }
 
   val showLoading: MutableState<Boolean> = mutableStateOf(false)
   var viewModel = BrowserViewModel(this, browserNMM, browserServer) { mmid ->

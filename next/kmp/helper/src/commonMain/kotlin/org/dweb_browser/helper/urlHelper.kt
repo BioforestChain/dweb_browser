@@ -26,17 +26,20 @@ fun URLBuilder.buildUnsafeString(): String {
 
 val fileProtocol = URLProtocol.createOrDefault("file")
 val dwebProtocol = URLProtocol.createOrDefault("dweb")
-fun String.toIpcUrl() = if (startsWith(fileProtocol.name + ":")) {
-  URLBuilder(this).run {
-    val index = indexOf("?")
-    if (index != -1) {
-      parameters.appendAll(parseQueryString(substring(index + 1)))
+fun String.toIpcUrl(builder: (URLBuilder.() -> Unit)? = null) =
+  (if (startsWith(fileProtocol.name + ":")) {
+    URLBuilder(this).apply {
+      val index = indexOf("?")
+      if (index != -1) {
+        parameters.appendAll(parseQueryString(substring(index + 1)))
+      }
     }
+  } else if (startsWith(dwebProtocol.name + ":")) {
+    URLBuilder("${dwebProtocol.name}://" + this.replaceFirst(':', '/'))
+  } else URLBuilder(this)).run {
+    builder?.invoke(this)
     build()
   }
-} else if (startsWith(dwebProtocol.name + ":")) {
-  URLBuilder("${dwebProtocol.name}://" + this.replaceFirst(':', '/')).build()
-} else Url(this)
 
 
 ///**
@@ -98,7 +101,7 @@ fun URLBuilder.resolvePath(path: String) {
     return
   }
 
-  if(path.startsWith("./")) {
+  if (path.startsWith("./")) {
     encodedPath = path.replaceFirst(".", "")
     return
   }

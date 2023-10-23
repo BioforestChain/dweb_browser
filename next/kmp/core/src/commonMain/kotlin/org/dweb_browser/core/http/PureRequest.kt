@@ -14,22 +14,23 @@ import io.ktor.server.util.getOrFail
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.dweb_browser.core.ipc.helper.IpcHeaders
+import org.dweb_browser.core.ipc.helper.IpcMethod
+import org.dweb_browser.core.ipc.helper.IpcRequest
 import org.dweb_browser.helper.Query
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.platform.getKtorServerEngine
 import org.dweb_browser.helper.platform.httpFetcher
 import org.dweb_browser.helper.toIpcUrl
-import org.dweb_browser.core.ipc.helper.IpcHeaders
-import org.dweb_browser.core.ipc.helper.IpcMethod
-import org.dweb_browser.core.ipc.helper.IpcRequest
 
 data class PureRequest(
   val href: String,
   val method: IpcMethod,
   val headers: IpcHeaders = IpcHeaders(),
   val body: IPureBody = IPureBody.Empty,
-  val from: Any? = null
+  val origin: Any? = null
 ) {
   val url by lazy {
     href.toIpcUrl()
@@ -51,6 +52,18 @@ data class PureRequest(
     fun query(key: String): PureRequest.() -> String = { query(key) }
     fun <T> query(key: String, transform: String.() -> T): PureRequest.() -> T =
       { query(key).run(transform) }
+
+    inline fun <reified T> fromJson(
+      href: String,
+      method: IpcMethod,
+      body: T,
+      headers: IpcHeaders = IpcHeaders(),
+      origin: Any? = null
+    ) = PureRequest(
+      href, method, headers.apply { init("Content-Type", "application/json") }, IPureBody.from(
+        Json.encodeToString(body)
+      ), origin = origin
+    )
   }
 }
 
@@ -85,8 +98,8 @@ val multipartProxyServer by lazy {
   }
 }
 
-suspend fun PureRequest.receiveMultipart() = if (from is ApplicationRequest) {
-  from.call.receiveMultipart()
+suspend fun PureRequest.receiveMultipart() = if (origin is ApplicationRequest) {
+  origin.call.receiveMultipart()
 } else {
   val pureRequest = this
   val mid = midAcc++

@@ -60,14 +60,17 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
     }
   }
 
-  private val protocolMap = mutableMapOf<DWEB_PROTOCOL, HttpRouter>()
-  fun routes(vararg list: RoutingHttpHandler) = HttpRouter(this).also {
+  private val protocolRouters = mutableMapOf<DWEB_PROTOCOL, MutableList<HttpRouter>>()
+  private fun getProtocolRouters(protocol: DWEB_PROTOCOL) =
+    protocolRouters.getOrPut(protocol) { mutableListOf() }
+
+  fun routes(vararg list: RoutingHttpHandler) = HttpRouter(this).also { it ->
     it.addRoutes(*list)
-    protocolMap.getOrPut("*") { it } += it
+    getProtocolRouters("*") += it
   }
 
   fun removeRouter(router: HttpRouter) {
-    protocolMap["*"]?.also { it -= router }
+    getProtocolRouters("*") -= router
   }
 
   class ProtocolBuilderContext(mm: MicroModule) {
@@ -80,12 +83,12 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
   ) {
     val context = ProtocolBuilderContext(this)
     context.buildProtocol()
-    protocolMap[protocol] = context.router
+    getProtocolRouters(protocol) += context.router
   }
 
   override suspend fun afterShutdown() {
     super.afterShutdown()
-    protocolMap.clear()
+    protocolRouters.clear()
   }
 
   /**
@@ -97,10 +100,16 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
       clientIpc.onRequest { (ipcRequest) ->
         debugNMM("NMM/Handler", ipcRequest.url)
         /// 根据host找到对应的路由模块
-        val router = protocolMap[ipcRequest.uri.host] ?: protocolMap["*"]
-        val response = router?.withFilter(ipcRequest)?.let {
-          it(HandlerContext(ipcRequest.toRequest(), clientIpc))
-        } ?: PureResponse(HttpStatusCode.BadGateway)
+        val routers = protocolRouters[ipcRequest.uri.host] ?: protocolRouters["*"]
+        var response = PureResponse(HttpStatusCode.BadGateway)
+        if (routers != null) for (router in routers) {
+          val res = router.withFilter(ipcRequest)
+            ?.invoke(HandlerContext(ipcRequest.toRequest(), clientIpc));
+          if (res != null) {
+            response = res
+            break
+          }
+        }
 
         clientIpc.postMessage(
           IpcResponse.fromResponse(
