@@ -41,9 +41,10 @@ class NativeIpc(
   }
 
 
-  override suspend fun _doPostMessage(data: IpcMessage) = withContext(ioAsyncScope.coroutineContext) {
-    port.postMessage(data)
-  }
+  override suspend fun _doPostMessage(data: IpcMessage) =
+    withContext(ioAsyncScope.coroutineContext) {
+      port.postMessage(data)
+    }
 
   override suspend fun _doClose() {
     port.close()
