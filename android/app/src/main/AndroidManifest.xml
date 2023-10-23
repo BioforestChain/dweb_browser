@@ -150,6 +150,11 @@
       android:exported="true"
       android:theme="@style/Theme.DwebBrowser.Transparent" />
 
+    <activity
+      android:name=".microService.sys.permission.PermissionActivity"
+      android:exported="true"
+      android:theme="@style/Theme.DwebBrowser.Transparent" />
+
     <provider
       android:name="androidx.core.content.FileProvider"
       android:authorities="${applicationId}.file.opener.provider"

@@ -10,6 +10,7 @@ import info.bagen.dwebbrowser.microService.sys.fileSystem.FileSystemNMM
 import info.bagen.dwebbrowser.microService.sys.haptics.HapticsNMM
 import info.bagen.dwebbrowser.microService.sys.installNativeFetchSysFile
 import info.bagen.dwebbrowser.microService.sys.notification.NotificationNMM
+import info.bagen.dwebbrowser.microService.sys.permission.PermissionsNMM
 import info.bagen.dwebbrowser.microService.sys.share.ShareNMM
 import info.bagen.dwebbrowser.microService.sys.toast.ToastNMM
 import io.ktor.client.HttpClient
@@ -23,13 +24,13 @@ import org.dweb_browser.browser.mwebview.MultiWebViewNMM
 import org.dweb_browser.browser.nativeui.torch.TorchNMM
 import org.dweb_browser.browser.web.BrowserNMM
 import org.dweb_browser.core.module.getAppContext
-import org.dweb_browser.helper.addDebugTags
-import org.dweb_browser.helper.platform.getKtorClientEngine
 import org.dweb_browser.core.std.dns.DnsNMM
 import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
 import org.dweb_browser.core.std.file.FileNMM
 import org.dweb_browser.core.std.http.HttpNMM
 import org.dweb_browser.core.sys.boot.BootNMM
+import org.dweb_browser.helper.addDebugTags
+import org.dweb_browser.helper.platform.getKtorClientEngine
 import org.dweb_browser.shared.microService.sys.motionSensors.MotionSensorsNMM
 import java.io.File
 
@@ -57,32 +58,9 @@ suspend fun startDwebBrowser(): DnsNMM {
   "http",
    */
   when (DEVELOPER.CURRENT) {
-    DEVELOPER.GAUBEE, DEVELOPER.WaterbangXiaoMi -> addDebugTags(
-      listOf<String>(
-        "/.+/",
-      )
-    )
-
-    DEVELOPER.HuangLin, DEVELOPER.HLVirtual, DEVELOPER.HLOppo, DEVELOPER.HBXiaomi, DEVELOPER.ZGSansung -> addDebugTags(
-      listOf("/.+/")
-    )
-
-    DEVELOPER.WaterBang -> addDebugTags(
-      listOf(
-        "/.+/",
-      )
-    )
-
-    DEVELOPER.Kingsword09, DEVELOPER.KVirtual -> addDebugTags(
-      listOf(
-        "desk",
-        "/.+/",
-      )
-    )
-
-    else -> addDebugTags(
-      listOf("desk", "mwebview", "fetch")
-    )
+    DEVELOPER.GAUBEE -> addDebugTags(listOf("/.+/"))
+    DEVELOPER.WaterBang -> addDebugTags(listOf("/.+/"))
+    else -> addDebugTags(listOf())
   }
 
   /// 安装文件请求服务
@@ -129,7 +107,7 @@ suspend fun startDwebBrowser(): DnsNMM {
 //    /// 蓝牙
 //    val bluetoothNMM = BluetoothNMM().also { dnsNMM.install(it) }
 //    ///权限
-//    val permissionNMM = PermissionsNMM().also { dnsNMM.install(it) }
+  val permissionNMM = PermissionsNMM().also { dnsNMM.install(it) }
   ///文件系统
   val fileSystemNMM = FileSystemNMM().also { dnsNMM.install(it) }
   // 标准文件模块
