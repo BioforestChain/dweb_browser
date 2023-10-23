@@ -32,6 +32,7 @@ nativeFetchAdaptersManager.append((remote, parsedUrl) => {
     }
     /// read file
     if (filepath) {
+      filepath = decodeURIComponent(filepath);
       try {
         const stats = fs.statSync(filepath);
         if (stats.isDirectory()) {
