@@ -16,6 +16,7 @@ import info.bagen.dwebbrowser.microService.sys.device.DeviceNMM
 import info.bagen.dwebbrowser.microService.sys.fileSystem.FileSystemNMM
 import info.bagen.dwebbrowser.microService.sys.haptics.HapticsNMM
 import info.bagen.dwebbrowser.microService.sys.notification.NotificationNMM
+import info.bagen.dwebbrowser.microService.sys.permission.PermissionsNMM
 import info.bagen.dwebbrowser.microService.sys.share.ShareNMM
 import info.bagen.dwebbrowser.microService.sys.toast.ToastNMM
 import info.bagen.dwebbrowser.microService.sys.window.WindowNMM
@@ -54,7 +55,7 @@ suspend fun startDwebBrowser(): DnsNMM {
    */
   when (DEVELOPER.CURRENT) {
     DEVELOPER.KVirtual -> addDebugTags(listOf("JsMM", "http", "/.+/"))
-    DEVELOPER.WaterBang ->  addDebugTags(listOf( "/.+/"))
+    DEVELOPER.WaterBang -> addDebugTags(listOf("/.+/"))
     else -> addDebugTags(listOf())
   }
 
@@ -93,7 +94,7 @@ suspend fun startDwebBrowser(): DnsNMM {
 //    /// 蓝牙
 //    val bluetoothNMM = BluetoothNMM().also { dnsNMM.install(it) }
 //    ///权限
-//    val permissionNMM = PermissionsNMM().also { dnsNMM.install(it) }
+  val permissionNMM = PermissionsNMM().also { dnsNMM.install(it) }
   ///文件系统
   val fileSystemNMM = FileSystemNMM().also { dnsNMM.install(it) }
   /// NFC

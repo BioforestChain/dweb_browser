@@ -1,20 +1,23 @@
 package info.bagen.dwebbrowser.microService.sys.device
 
 import android.os.Build
-import info.bagen.dwebbrowser.App
-import org.dweb_browser.browserUI.util.getString
-import org.dweb_browser.browserUI.util.saveString
+import android.os.Environment
 import org.dweb_browser.helper.printDebug
+import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.toUtf8ByteArray
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
+import org.dweb_browser.microservice.help.boolean
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
+import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
 import org.http4k.routing.bind
 import org.http4k.routing.routes
-import java.util.UUID
+import java.io.File
+import java.io.FileInputStream
+import java.io.InputStreamReader
 
 fun debugDevice(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("Device", tag, msg, err)
@@ -33,13 +36,23 @@ class DeviceNMM : NativeMicroModule("device.sys.dweb", "Device Info") {
     apiRouting = routes(
       /** 获取设备唯一标识uuid*/
       "/uuid" bind Method.GET to defineHandler { _ ->
-        val uuid = App.appContext.getString(UUID_KEY).ifEmpty {
-          val deviceUUID = getDeviceUUID()
-          App.appContext.saveString(UUID_KEY, deviceUUID)
-          deviceUUID
+        // 先请求权限，看是否有外部权限，
+        // 然后获取 device.ini文件，看是否有数据
+        // 没有就通过 randomUUID 产生随机的 UUID， 并保存到 device.ini
+        val permission = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+          nativeFetch("file://permission.sys.dweb/query?permission=PERMISSION_STORAGE").boolean()
+        } else true
+        debugDevice("uuid", "permission=$permission")
+        if (permission) {
+          getDeviceUUID()?.let { uuid ->
+            debugDevice("getUUID", uuid)
+            return@defineHandler UUIDResponse(uuid)
+          } ?: run {
+            return@defineHandler Response(Status.EXPECTATION_FAILED, "no found uuid")
+          }
+        } else {
+          return@defineHandler Response(Status.EXPECTATION_FAILED, "permission denied")
         }
-        debugDevice("getUUID", uuid)
-        return@defineHandler UUIDResponse(uuid)
       },
       /** 获取手机基本信息*/
       "/info" bind Method.GET to defineHandler { request ->
@@ -79,7 +92,7 @@ class DeviceNMM : NativeMicroModule("device.sys.dweb", "Device Info") {
   override suspend fun _shutdown() {}
 }
 
-fun getDeviceUUID(): String {
+/*fun getDeviceUUID(): String {
   val devIDShort = "35" + Build.BRAND.length % 10 +
       Build.BOARD.length % 10 + Build.DEVICE.length % 10 + Build.DISPLAY.length % 10 +
       Build.HOST.length % 10 + Build.ID.length % 10 + Build.MANUFACTURER.length % 10 +
@@ -88,4 +101,26 @@ fun getDeviceUUID(): String {
   debugDevice("uuid", "devIDShort=$devIDShort, ${devIDShort.hashCode()}")
   return UUID.nameUUIDFromBytes(devIDShort.toUtf8ByteArray()).toString()
   // return UUID(devIDShort.hashCode().toLong(), Build.MANUFACTURER.hashCode().toLong()).toString()
+}*/
+
+fun getDeviceUUID(): String? {
+  val fileName = "dweb-browser.ini"
+  val root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
+  val file = File(root, fileName)
+  try {
+    if (file.exists()) {
+      return InputStreamReader(FileInputStream(file)).readText()
+    }
+    file.parentFile?.let { parentFile ->
+      if (!parentFile.exists()) parentFile.mkdirs()
+    }
+    if (file.createNewFile()) {
+      val uuid = randomUUID()
+      file.outputStream().write(uuid.toUtf8ByteArray())
+      return uuid
+    }
+  } catch (e: Exception) {
+    debugDevice("uuid", "${e.message}")
+  }
+  return null
 }

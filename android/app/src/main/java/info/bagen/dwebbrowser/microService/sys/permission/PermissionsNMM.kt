@@ -1,5 +1,8 @@
 package info.bagen.dwebbrowser.microService.sys.permission
 
+import android.os.Bundle
+import info.bagen.dwebbrowser.App
+import info.bagen.dwebbrowser.util.permission.PermissionUtil
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.core.BootstrapContext
@@ -20,7 +23,9 @@ fun debugPermission(tag: String, msg: Any? = "", err: Throwable? = null) =
 class PermissionsNMM : NativeMicroModule("permission.sys.dweb", "permission") {
 
   init {
-    categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Protocol_Service);
+    name = "Permissions"
+    categories =
+      listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Device_Management_Service);
   }
 
   /** 存储每个微应用的权限*/
@@ -37,6 +42,7 @@ class PermissionsNMM : NativeMicroModule("permission.sys.dweb", "permission") {
     apiRouting = routes(
       /** 申请权限*/
       "/apply" bind Method.GET to defineHandler { request, ipc ->
+        debugPermission("apply", "apply permission")
         val permissions = ArrayList(Query.string().multi.required("permission")(request))
         applyPermissions(permissions, ipc.remote.mmid)
         // TODO 向用户申请之后这里应该有回调
@@ -44,24 +50,32 @@ class PermissionsNMM : NativeMicroModule("permission.sys.dweb", "permission") {
         return@defineHandler Response(Status.OK)
       },
       /** 查询是否有该权限，如果没有会向用户申请该权限*/
-      "/query" bind Method.GET to defineHandler { request, ipc ->
+      "/query" bind Method.GET to defineBooleanResponse {
         val permission = Query.string().required("permission")(request)
-        val res = permissionMap[ipc.remote.mmid]?.contains(permission) ?: false
+        debugPermission("query", "permission=$permission")
+        permissionMap[ipc.remote.mmid]?.contains(permission) ?: run {
+          requestPermissionByActivity(permission)
+        }
+        /*val res = permissionMap[ipc.remote.mmid]?.contains(permission) ?: false
         if (!res) {
           applyPermission(permission, ipc.remote.mmid)
         }
         val response = """{"hasPermission":${res}}"""
-        Response(Status.OK).body(response)
+        Response(Status.OK).body(response)*/
       },
     )
   }
 
-  private fun applyPermission(permission: String, mmid: MMID) {
-
+  private fun applyPermissions(permissions: ArrayList<String>, mmid: MMID) {
   }
 
-  private fun applyPermissions(permissions: ArrayList<String>, mmid: MMID) {
-
+  private suspend fun requestPermissionByActivity(permission: String): Boolean {
+    val permissions = PermissionUtil.getActualPermissions(permission)
+    debugPermission("requestPermissionByActivity", "permissions = $permissions")
+    App.startActivity(PermissionActivity::class.java) { intent ->
+      intent.putExtras(Bundle().also { it.putStringArrayList("permissions", permissions) })
+    }
+    return PermissionController.controller.waitGrantResult()
   }
 
   override suspend fun _shutdown() {
