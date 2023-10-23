@@ -13,4 +13,4 @@ object AndroidMiniz {
 }
 
 //actual fun unCompress(zipFilePath: String, destPath: String) = AndroidMiniz.unzipFromJNI(zipFilePath, destPath) == 0
-actual fun unCompress(zipFilePath: String, destPath: String) = ZipUtil.ergodicDecompress(zipFilePath, destPath)
+actual fun decompress(zipFilePath: String, destPath: String) = ZipUtil.ergodicDecompress(zipFilePath, destPath)

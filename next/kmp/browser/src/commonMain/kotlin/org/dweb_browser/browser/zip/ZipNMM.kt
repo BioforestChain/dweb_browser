@@ -9,9 +9,8 @@ import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.file.FileNMM
 import org.dweb_browser.helper.ImageResource
-import org.dweb_browser.helper.consumeEachJsonLine
 import org.dweb_browser.helper.randomUUID
-import org.dweb_browser.ziplib.unCompress
+import org.dweb_browser.ziplib.decompress
 
 class ZipNMM : NativeMicroModule("zip.browser.dweb", "Zip") {
     init {
@@ -24,10 +23,7 @@ class ZipNMM : NativeMicroModule("zip.browser.dweb", "Zip") {
 
     override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
         routes(
-            "/compress" bind HttpMethod.Get to defineStringResponse {
-                ""
-            },
-            "/uncompress" bind HttpMethod.Get to defineStringResponse {
+            "/decompress" bind HttpMethod.Get to defineStringResponse {
                 val zipVfsPath = nativeFetch(
                     "file://file.std.dweb/realPath?path=${request.queryAs<String>("sourcePath")}"
                 ).body.toPureString()
@@ -40,7 +36,7 @@ class ZipNMM : NativeMicroModule("zip.browser.dweb", "Zip") {
                 nativeFetch(
                     "file://file.std.dweb/virtualPathRealPathMapping?pickerPath=${pickerDirectory}&realPath=${targetVfsPath}"
                 )
-                unCompress(zipVfsPath, targetVfsPath.fsFullPath.toString())
+                decompress(zipVfsPath, targetVfsPath.fsFullPath.toString())
 
                 pickerPathString
             }
