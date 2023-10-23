@@ -41,7 +41,7 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
 
   val running get() = runningStateLock.value == MMState.BOOTSTRAP
 
-  private suspend fun beforeBootstrap(bootstrapContext: BootstrapContext) {
+  protected open suspend fun beforeBootstrap(bootstrapContext: BootstrapContext) {
     if (this.runningStateLock.state == MMState.BOOTSTRAP) {
       throw Exception("module ${this.mmid} already running");
     }

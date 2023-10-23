@@ -91,7 +91,8 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
   /**
    * 实现一整套简易的路由响应规则
    */
-  init {
+  override suspend fun beforeBootstrap(bootstrapContext: BootstrapContext) {
+    super.beforeBootstrap(bootstrapContext)
     onConnect { (clientIpc) ->
       clientIpc.onRequest { (ipcRequest) ->
         debugNMM("NMM/Handler", ipcRequest.url)
