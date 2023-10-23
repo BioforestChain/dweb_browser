@@ -2,6 +2,9 @@ package info.bagen.dwebbrowser.microService.sys.device
 
 import android.os.Build
 import android.os.Environment
+import info.bagen.dwebbrowser.App
+import org.dweb_browser.browserUI.util.getString
+import org.dweb_browser.browserUI.util.saveString
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.toUtf8ByteArray
@@ -30,7 +33,7 @@ class DeviceNMM : NativeMicroModule("device.sys.dweb", "Device Info") {
   }
 
   val deviceInfo = DeviceInfo()
-  val UUID_KEY = "DeviceUUID"
+  val UUID_KEY = "DEVICE_UUID"
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     apiRouting = routes(
@@ -39,20 +42,20 @@ class DeviceNMM : NativeMicroModule("device.sys.dweb", "Device Info") {
         // 先请求权限，看是否有外部权限，
         // 然后获取 device.ini文件，看是否有数据
         // 没有就通过 randomUUID 产生随机的 UUID， 并保存到 device.ini
-        val permission = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-          nativeFetch("file://permission.sys.dweb/query?permission=PERMISSION_STORAGE").boolean()
-        } else true
-        debugDevice("uuid", "permission=$permission")
-        if (permission) {
-          getDeviceUUID()?.let { uuid ->
-            debugDevice("getUUID", uuid)
-            return@defineHandler UUIDResponse(uuid)
-          } ?: run {
-            return@defineHandler Response(Status.EXPECTATION_FAILED, "no found uuid")
+        val uuid = App.appContext.getString(UUID_KEY).ifEmpty {
+          val permission = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            nativeFetch("file://permission.sys.dweb/query?permission=PERMISSION_STORAGE").boolean()
+          } else true
+          val id = if (permission) {
+            getDeviceUUID() ?: randomUUID()
+          } else {
+            randomUUID()
           }
-        } else {
-          return@defineHandler Response(Status.EXPECTATION_FAILED, "permission denied")
+          App.appContext.saveString(UUID_KEY, id)
+          id
         }
+        debugDevice("uuid", uuid)
+        return@defineHandler UUIDResponse(uuid)
       },
       /** 获取手机基本信息*/
       "/info" bind Method.GET to defineHandler { request ->

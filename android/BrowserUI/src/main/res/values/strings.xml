@@ -25,7 +25,7 @@
   <string name="privacy_policy">《privacy policy》</string>
   <string name="privacy_content_deny">This product can only be used after agreeing to the relevant agreement</string>
   <string name="button_not_agree">Not Agree</string>
-  <string name="button_agree_continue">Agree and Continue</string>
+  <string name="button_agree_continue">Agree</string>
   <string name="button_exit_app">exit app</string>
   <string name="button_i_know">I Know</string>
 
