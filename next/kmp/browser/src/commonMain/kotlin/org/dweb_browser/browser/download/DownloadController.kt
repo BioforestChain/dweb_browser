@@ -30,28 +30,18 @@ data class DownloadTask(
   val mime: String,
   /** 文件路径 */
   val filepath: String,
-  @Transient
-  val readChannel: ByteReadChannel? = null,
 ) {
   /** 标记当前下载状态 */
   var status: DownloadStateEvent = DownloadStateEvent()
 
-  // 缓存下载进度
   @Transient
-  val emitQueue = arrayListOf<DownloadTask>()
-
+  var readChannel: ByteReadChannel? = null
   // 监听下载进度 不存储到内存
   @Transient
   val downloadSignal: Signal<DownloadTask> = Signal()
 
   @Transient
   val onDownload = downloadSignal.toListener()
-
-  init {
-    onDownload { task ->
-      emitQueue.add(task)
-    }
-  }
 }
 @Serializable
 enum class DownloadState {
@@ -85,7 +75,7 @@ data class DownloadStateEvent(
 private typealias taskId = String
 
 class DownloadController(val mm: DownloadNMM) {
-  lateinit var downloadManagers: MutableMap<taskId, DownloadTask> // 用于监听下载列表
+  var downloadManagers: MutableMap<taskId, DownloadTask> = mutableMapOf() // 用于监听下载列表
   val store = DownloadStore(mm)
 
   // 状态改变监听
@@ -96,12 +86,12 @@ class DownloadController(val mm: DownloadNMM) {
     // 从内存中恢复状态
     mm.ioAsyncScope.launch {
       downloadManagers = store.getAll()
-    }
-    // 状态改变的时候存储保存到内存
-    onState { (id, event) ->
-      downloadManagers[id]?.let { task ->
-        task.status = event
-        store.set(id, task)
+      // 状态改变的时候存储保存到内存
+      onState { (id, event) ->
+        downloadManagers[id]?.let { task ->
+          task.status = event
+          store.set(id, task)
+        }
       }
     }
   }
@@ -111,9 +101,10 @@ class DownloadController(val mm: DownloadNMM) {
   }
 
   internal suspend fun downloadFactory(task: DownloadTask): Boolean {
-    val channel = task.readChannel ?: return false
+    val stream = task.readChannel ?: return false
     // 开始下载 存储状态到内存
     downloadState.emit(Pair(task.id, task.status))
+    debugDownload("downloadFactory",task.id)
     // 已经存在了从断点开始
     if (mm.exist(task.filepath)) {
       val current = mm.info(task.filepath).size
@@ -122,7 +113,7 @@ class DownloadController(val mm: DownloadNMM) {
         task.status.current = it
       }
     }
-    val buffer = task.middleware(channel)
+    val buffer = task.middleware(stream)
     mm.appendFile(task, buffer)
     return true
   }

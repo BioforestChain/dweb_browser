@@ -5,9 +5,10 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import org.dweb_browser.browser.download.DownloadState
+import org.dweb_browser.browser.jmm.JmmController
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
-import org.dweb_browser.core.sys.download.JmmDownloadController
 import org.dweb_browser.core.sys.download.JmmDownloadStatus
+import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.compose.noLocalProvidedFor
 
 internal val LocalShowWebViewVersion = compositionLocalOf {
@@ -24,7 +25,7 @@ internal val LocalJmmViewHelper = compositionLocalOf<JmmManagerViewHelper> {
 data class JmmUIState(
   val jmmAppInstallManifest: JmmAppInstallManifest,
   val downloadSize: MutableState<Long> = mutableLongStateOf(0L),
-  val downloadStatus: MutableState<JmmDownloadStatus> = mutableStateOf(JmmDownloadStatus.IDLE)
+  val downloadStatus: MutableState<JmmDownloadStatus> = mutableStateOf(JmmDownloadStatus.Init)
 )
 
 sealed class JmmIntent {
@@ -34,36 +35,22 @@ sealed class JmmIntent {
 
 class JmmManagerViewHelper(
   jmmAppInstallManifest: JmmAppInstallManifest,
-  private val jmmController: org.dweb_browser.browser.jmm.JmmController
+  private val jmmController: JmmController
 ) {
   val uiState: JmmUIState = JmmUIState(jmmAppInstallManifest)
-
-  private suspend fun x() {
-    jmmController.onDownload { downloadInfo ->
-      if (downloadInfo.id != uiState.jmmAppInstallManifest.id) return@onDownload
-      if (downloadInfo.downloadStatus == JmmDownloadStatus.IDLE) return@onDownload
-
-      when (downloadInfo.downloadStatus) {
-        JmmDownloadStatus.DownLoading -> {
-          uiState.downloadStatus.value = downloadInfo.downloadStatus
-          uiState.downloadSize.value = downloadInfo.dSize
-        }
-
-        else -> {
-          uiState.downloadStatus.value = downloadInfo.downloadStatus
-        }
-      }
-    }
-  }
+   val viewHandler = Signal<Pair<String,DownloadState>>()
+  val onDownload = viewHandler.toListener()
 
   suspend fun handlerIntent(action: JmmIntent) {
     when (action) {
       is JmmIntent.ButtonFunction -> {
         when (uiState.downloadStatus.value) {
-          JmmDownloadStatus.IDLE, JmmDownloadStatus.FAIL, JmmDownloadStatus.CANCEL, JmmDownloadStatus.NewVersion -> { // 空闲点击是下载，失败点击也是重新下载
+          JmmDownloadStatus.Init,JmmDownloadStatus.Failed,JmmDownloadStatus.Canceld, JmmDownloadStatus.NewVersion -> { // 空闲点击是下载，失败点击也是重新下载
             val taskId = jmmController.createDownloadTask(uiState.jmmAppInstallManifest.bundle_url)
+            jmmController.taskId = taskId
             jmmController.watchProcess(taskId) {
               println("watch=> ${this.status.state.name} ${this.status.current}")
+
               if (this.status.state == DownloadState.Downloading) {
               }
               // 下载完成触发解压
@@ -75,25 +62,25 @@ class JmmManagerViewHelper(
             jmmController.start(taskId)
           }
 
-          JmmDownloadStatus.DownLoadComplete -> { /* TODO 无需响应 */
+          JmmDownloadStatus.Completed -> { /* TODO 无需响应 */
           }
 
-          JmmDownloadStatus.DownLoading -> {
-            val success = jmmController.updateDownloadState(
-              JmmDownloadController.PAUSE, uiState.jmmAppInstallManifest.id
-            )
-            if (success) {
-              uiState.downloadStatus.value = JmmDownloadStatus.PAUSE
-            }
+          JmmDownloadStatus.Downloading -> {
+//            val success = jmmController.updateDownloadState(
+//              JmmDownloadController.PAUSE
+//            )
+//            if (success) {
+//              uiState.downloadStatus.value = JmmDownloadStatus.Paused
+//            }
           }
 
-          JmmDownloadStatus.PAUSE -> {
-            val success =jmmController.updateDownloadState(
-              JmmDownloadController.RESUME, uiState.jmmAppInstallManifest.id
-            )
-            if (success) {
-              uiState.downloadStatus.value = JmmDownloadStatus.DownLoading
-            }
+          JmmDownloadStatus.Paused -> {
+//            val success =jmmController.updateDownloadState(
+//              JmmDownloadController.RESUME
+//            )
+//            if (success) {
+//              uiState.downloadStatus.value = JmmDownloadStatus.Downloading
+//            }
           }
 
           /*DownloadStatus.DownLoading, DownloadStatus.PAUSE -> {

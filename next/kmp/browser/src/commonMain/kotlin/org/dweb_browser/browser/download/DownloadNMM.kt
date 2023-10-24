@@ -1,6 +1,5 @@
 package org.dweb_browser.browser.download
 
-//import org.dweb_browser.core.module.getAppContext
 import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.fromFilePath
@@ -36,13 +35,6 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
       MICRO_MODULE_CATEGORY.Network_Service,
     )
     icons = listOf(ImageResource(src = "file:///sys/icons/$mmid.svg", type = "image/svg+xml"))
-//    // 初始化下载适配器
-//    fileTypeAdapterManager.append(
-//      adapter = commonVirtualFsDirectoryFactory(
-//        "download",
-//        getAppContext().dataDir.absolutePath.toPath()
-//      )
-//    )
   }
 
   private val controller = DownloadController(this)
@@ -92,6 +84,7 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
       // 开始/恢复 下载
       "/start" bind HttpMethod.Get to defineBooleanResponse {
         val taskId = request.query("taskId")
+        debugDownload("/start", "$taskId -> ${controller.downloadManagers[taskId]}")
         val task = controller.downloadManagers[taskId]
           ?: return@defineBooleanResponse false
         controller.downloadFactory(task)
@@ -101,7 +94,7 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
         val taskId = request.query("taskId")
         val downloadTask = controller.downloadManagers[taskId]
           ?: return@defineJsonLineResponse emit("not Found download task!")
-        debugDownload("/watch/progress", "taskId=$taskId ${downloadTask.emitQueue.size}")
+        debugDownload("/watch/progress", "taskId=$taskId")
         downloadTask.onDownload {
           emit(it)
         }
@@ -121,8 +114,8 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
         val taskId = request.query("taskId")
         val task = controller.downloadManagers[taskId]
           ?: return@defineBooleanResponse false
-        val pureStream = task.readChannel ?: return@defineBooleanResponse  false
-//        pureStream.getReader("taskId:${task.id}").cancel()
+        val channel = task.readChannel ?: return@defineBooleanResponse  false
+        channel.cancel()
         true
       },
     )
@@ -136,7 +129,6 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
     originMmid: MMID
   ): DownloadTask {
     val url = params.url
-    // 验证response ok
     val response = nativeFetch(params.url)
     // 查看是否创建过相同的task,并且相同的task已经下载完成
     val task = DownloadTask(
@@ -148,7 +140,6 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
       completeCallbackUrl = params.completeCallbackUrl,
       mime = mimeFactory(response.headers, url),
       filepath = createFlePath(url),
-      readChannel = null
     )
     // 直接变成失败
     if (!response.isOk()) {
@@ -162,10 +153,11 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
         state = DownloadState.Init,
         total = response.headers.get("content-length")?.toLong() ?: 1L
       )
-//      task.readChannel = t
+      task.readChannel = response.stream().getReader("downloadTask#${task.id}")
     }
     // 存储到任务管理器
     controller.downloadManagers[task.id] = task
+    debugDownload("初始化成功！","${task.id} -> ${controller.downloadManagers[task.id]}")
     return task
   }
 

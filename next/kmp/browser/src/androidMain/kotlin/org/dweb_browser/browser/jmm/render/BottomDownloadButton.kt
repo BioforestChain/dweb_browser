@@ -50,7 +50,7 @@ internal fun BoxScope.BottomDownloadButton() {
       viewModel.uiState.jmmAppInstallManifest.canSupportTarget(JsMicroModule.VERSION)
     }
     val text = if (canSupportTarget) when (downloadStatus) {
-      JmmDownloadStatus.IDLE, JmmDownloadStatus.CANCEL -> {
+      JmmDownloadStatus.Init, JmmDownloadStatus.Canceld -> {
         "下载 (${totalSize.toSpaceSize()})"
       }
 
@@ -58,19 +58,19 @@ internal fun BoxScope.BottomDownloadButton() {
         "更新 (${totalSize.toSpaceSize()})"
       }
 
-      JmmDownloadStatus.DownLoading -> {
+      JmmDownloadStatus.Downloading -> {
         showLinearProgress = true
         "下载中 ${downloadSize.toSpaceSize()} / ${totalSize.toSpaceSize()}"
       }
 
-      JmmDownloadStatus.PAUSE -> {
+      JmmDownloadStatus.Paused -> {
         showLinearProgress = true
         "暂停 ${downloadSize.toSpaceSize()} / ${totalSize.toSpaceSize()}"
       }
 
-      JmmDownloadStatus.DownLoadComplete -> "安装中..."
+      JmmDownloadStatus.Completed -> "安装中..."
       JmmDownloadStatus.INSTALLED -> "打开"
-      JmmDownloadStatus.FAIL -> "重新下载"
+      JmmDownloadStatus.Failed -> "重新下载"
     } else "该应用与您的设备不兼容"
 
     val modifier = Modifier

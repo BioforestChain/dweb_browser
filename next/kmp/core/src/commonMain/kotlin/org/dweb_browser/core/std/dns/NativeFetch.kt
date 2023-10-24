@@ -100,29 +100,16 @@ class NativeFetchAdaptersManager : AdapterManager<FetchAdapter>() {
         }
         val responsePo = PromiseOut<PureResponse>()
         CoroutineScope(ioAsyncExceptionHandler).launch {
-          debugFetch("httpFetch prepareRequest", request.href)
-          try {
-            client.prepareRequest(request.toHttpRequestBuilder()).execute {
-              debugFetch("httpFetch execute", request.href)
-              val byteChannel = it.bodyAsChannel()
-              val streamBody = PureStreamBody(byteChannel)
-              val response = it.toPureResponse(body = streamBody)
-              debugFetch("httpFetch response", request.href)
-              responsePo.resolve(response)
-              val lock = Mutex(true)
-              streamBody.toPureStream().onClose {
-                lock.unlock()
-              }
-              lock.withLock { }
-              debugFetch("httpFetch end", request.href)
-            }
-          } catch (e: Throwable) {
-            responsePo.reject(e)
+          client.prepareRequest(request.toHttpRequestBuilder()).execute {
+            debugFetch("httpFetch execute", request.href)
+            val byteChannel = it.bodyAsChannel()
+            val streamBody = PureStreamBody(byteChannel)
+            val response = it.toPureResponse(body = streamBody)
+            debugFetch("httpFetch response", request.href)
+            responsePo.resolve(response)
           }
         }
-        return responsePo.waitPromise().also {
-          debugFetch("httpFetch return", request.href)
-        }
+        return responsePo.waitPromise()
       } catch (e: Throwable) {
         debugFetch("httpFetch", request.url, e)
         return PureResponse(

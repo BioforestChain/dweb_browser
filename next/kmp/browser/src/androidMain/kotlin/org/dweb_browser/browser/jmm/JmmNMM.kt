@@ -29,11 +29,8 @@ import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.FilesUtil
 import org.dweb_browser.helper.ImageResource
-import org.dweb_browser.helper.consumeEachJsonLine
 import org.dweb_browser.helper.isGreaterThan
 import org.dweb_browser.helper.resolvePath
-import org.dweb_browser.sys.window.core.helper.setFromManifest
-import org.dweb_browser.sys.window.ext.openMainWindow
 import java.io.File
 
 val debugJMM = Debugger("JMM")
@@ -93,7 +90,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
         try {
           val jmmAppInstallManifest = response.json<JmmAppInstallManifest>()
           debugJMM("listenDownload", "$metadataUrl ${jmmAppInstallManifest.id}")
-          listenDownloadState(jmmAppInstallManifest.id) // 监听下载
+//          listenDownloadState(jmmAppInstallManifest.id) // 监听下载
           val url = Url(metadataUrl)
           // 根据 jmmMetadata 打开一个应用信息的界面，用户阅读界面信息后，可以点击"安装"
           installJsMicroModule(jmmAppInstallManifest, url)
@@ -183,24 +180,9 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
       }
     }
     debugJMM("openJmmMetadataInstallPage", jmmAppInstallManifest.bundle_url)
-    // 打开安装窗口
-    // TODO 使用 bottomSheet
-
-    val win = openMainWindow()
-    win.state.apply {
-//      mode = WindowMode.CLOSE
-      setFromManifest(this@JmmNMM)
-    }
-
     jmmController = JmmController(
       this@JmmNMM, jmmAppInstallManifest
-    ).also { ctrl ->
-      win.onClose {
-        if (jmmController == ctrl) {
-          jmmController = null
-        }
-      }
-    }
+    )
   }
 
   private suspend fun jmmMetadataUninstall(mmid: MMID) {
@@ -210,18 +192,18 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
     FilesUtil.uninstallApp(getAppContext(), mmid)
   }
 
-  private suspend fun listenDownloadState(mmid: MMID) = ioAsyncScope.launch {
-    val (observeDownloadIpc) = bootstrapContext.dns.connect("download.browser.dweb")
-    suspend fun doObserve(urlPath: String, cb: suspend JmmDownloadInfo.() -> Unit) {
-      val res = observeDownloadIpc.request(urlPath)
-      res.stream().getReader("Jmm listenDownloadState")
-        .consumeEachJsonLine<JmmDownloadInfo> { it.cb() }
-    }
-    launch {
-      doObserve("/observe?mmid=$mmid") {
-        jmmController?.downloadSignal?.emit(this)
-        //downloadingApp[this.id] = this
-      }
-    }
-  }
+//  private suspend fun listenDownloadState(mmid: MMID) = ioAsyncScope.launch {
+//    val (observeDownloadIpc) = bootstrapContext.dns.connect("download.browser.dweb")
+//    suspend fun doObserve(urlPath: String, cb: suspend JmmDownloadInfo.() -> Unit) {
+//      val res = observeDownloadIpc.request(urlPath)
+//      res.stream().getReader("Jmm listenDownloadState")
+//        .consumeEachJsonLine<JmmDownloadInfo> { it.cb() }
+//    }
+//    launch {
+//      doObserve("/watch/progress?mmid=$mmid") {
+//        jmmController?.downloadSignal?.emit(this)
+//        //downloadingApp[this.id] = this
+//      }
+//    }
+//  }
 }
