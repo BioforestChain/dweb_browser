@@ -13,6 +13,9 @@ kotlin {
       }
     }
   }
+  jvmToolchain {
+    languageVersion.set(JavaLanguageVersion.of(libs.versions.jvmTarget.get()))
+  }
 
   listOf(
     iosX64(),
@@ -42,6 +45,7 @@ kotlin {
         implementation(project(":core"))
         implementation(project(":DWebView"))
         implementation(project(":window"))
+        implementation(project(":ziplib"))
       }
     }
     val commonTest by getting {

@@ -1,7 +1,9 @@
 package org.dweb_browser.core.std.file
 
+import org.dweb_browser.helper.randomUUID
 import platform.Foundation.NSApplicationDirectory
 import platform.Foundation.NSCachesDirectory
+import platform.Foundation.NSDocumentDirectory
 import platform.Foundation.NSSearchPathForDirectoriesInDomains
 import platform.Foundation.NSUserDomainMask
 import platform.Foundation.NSFileManager
@@ -25,7 +27,3 @@ actual fun FileNMM.getCacheVirtualFsDirectory() = commonVirtualFsDirectoryFactor
     NSCachesDirectory, NSUserDomainMask, true
   ).first().toString()
 )
-
-actual fun FileNMM.unCompress(compressFile: String, unCompressDirectory: String) {
-  // TODO()
-}

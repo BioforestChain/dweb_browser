@@ -1,7 +1,5 @@
 package org.dweb_browser.sys.window.core
 
-//import androidx.compose.material3.ModalBottomSheet
-//import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.width
@@ -15,9 +13,12 @@ import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -27,14 +28,17 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import org.dweb_browser.core.http.PureRequest
+import org.dweb_browser.core.ipc.helper.IpcMethod
+import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
-import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.compose.rememberImageLoader
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.sys.window.core.constant.LocalWindowMM
 
 @Serializable
 sealed class ModalState() {
+  abstract val callbackUrl: String?
   val modalId = randomUUID()
 
   /**
@@ -45,78 +49,124 @@ sealed class ModalState() {
 
   @Transient
   val isOpen = mutableStateOf(false)
-
-  @Transient
-  protected val onDismissSignal = SimpleSignal()
-
-  @Transient
-  val onDismiss = onDismissSignal.toListener()
+//
+//  @Transient
+//  protected val onDismissSignal = SimpleSignal()
+//
+//  @Transient
+//  val onDismiss = onDismissSignal.toListener()
 
   @Composable
   abstract fun Render()
 
-  val renderId get() = parent.id + "/" + modalId
+  @Transient
+  private var _renderId: String? = null
+
+  var renderId
+    get() = _renderId ?: (parent.id + "/" + modalId)
+    protected set(value) {
+      _renderId = value
+    }
 
   @Transient
   private lateinit var parent: WindowController
   internal fun setParent(win: WindowController) {
     parent = win
+    win.state.modals += modalId to this
+  }
+
+
+  fun sendCallback(mm: MicroModule, callbackData: ModalCallback) = callbackUrl?.also { url ->
+    mm.ioAsyncScope.launch {
+      mm.nativeFetch(
+        PureRequest.fromJson(
+          url, IpcMethod.POST, body = callbackData
+        )
+      )
+    }
   }
 }
 
-interface IAlertModal {
+interface IAlertModalArgs {
   val title: String
   val message: String
   val iconUrl: String?
   val iconAlt: String?
   val confirmText: String?
   val dismissText: String?
-  val confirmCallbackUrl: String?
-  val dismissCallbackUrl: String?
 }
 
 @Serializable
+sealed class ModalCallback {
+  abstract val sessionId: Int
+}
+
+@Serializable
+@SerialName("open")
+data class OpenModalCallback(override val sessionId: Int) : ModalCallback();
+@Serializable
+@SerialName("close")
+data class CloseModalCallback(override val sessionId: Int) : ModalCallback();
+@Serializable
+@SerialName("close-alert")
+data class CloseAlertModalCallback(override val sessionId: Int, val confirm: Boolean) :
+  ModalCallback();
+
+@Serializable
 @SerialName("alert")
-data class AlertModal(
+data class AlertModal internal constructor(
   override val title: String,
   override val message: String,
   override val iconUrl: String? = null,
   override val iconAlt: String? = null,
   override val confirmText: String? = null,
   override val dismissText: String? = null,
-  override val confirmCallbackUrl: String? = null,
-  override val dismissCallbackUrl: String? = null,
-) : ModalState(), IAlertModal {
+  override val callbackUrl: String? = null,
+) : ModalState(), IAlertModalArgs {
+  companion object {
+    fun WindowController.createAlertModal(
+      title: String,
+      message: String,
+      iconUrl: String?,
+      iconAlt: String?,
+      confirmText: String?,
+      dismissText: String?,
+      callbackUrl: String?,
+    ) = AlertModal(
+      title,
+      message,
+      iconUrl,
+      iconAlt,
+      confirmText,
+      dismissText,
+      callbackUrl,
+    ).also { it.setParent(this) }
+  }
 
   @Composable
   override fun Render() {
     val mm = LocalWindowMM.current
     var show by isOpen
+    var sessionAcc = remember { 0 }
 
     if (!show) {
       return
     }
+    val sessionId = remember { sessionAcc++; sessionAcc }
+    // 发送 open 的信号
+    LaunchedEffect(sessionId) { sendCallback(mm, OpenModalCallback(sessionId)) }
+    // alert的默认返回值
+    var confirm = remember { false }
+
     AlertDialog(
       onDismissRequest = {
         show = false
-        mm.ioAsyncScope.launch {
-          onDismissSignal.emitAndClear()
-          dismissCallbackUrl?.also { url ->
-            mm.nativeFetch(url)
-          }
-        }
+        sendCallback(mm, CloseAlertModalCallback(sessionId, confirm))
       },
       confirmButton = {
         when (val text = confirmText) {
           null -> {}
-          else -> ElevatedButton(onClick = {
-            show = false
-            confirmCallbackUrl?.also { url ->
-              mm.ioAsyncScope.launch {
-                mm.nativeFetch(url)
-              }
-            }
-          }) {
+          else -> ElevatedButton(onClick = { confirm = true; show = false }) {
             Text(text)
           }
         }
@@ -164,38 +214,52 @@ data class AlertModal(
 }
 
 interface IBottomSheetModal {
-  val dismissCallbackUrl: String?
+  /// 这几个参数是未来使用FullScreenBottomSheets来实现，就是顶部有一条信息栏，将 bottom-sheets 拉上去的时候，融合信息栏，信息栏会变成 top-bar
+  val title: String?
+  val iconUrl: String?
+  val iconAlt: String?
 }
 
 @Serializable
 @SerialName("bottom-sheets")
-data class BottomSheetsModal(override val dismissCallbackUrl: String?) : ModalState(),
-  IBottomSheetModal {
+class BottomSheetsModal private constructor(
+  override val title: String? = null,
+  override val iconUrl: String? = null,
+  override val iconAlt: String? = null,
+  override val callbackUrl: String? = null
+) : ModalState(), IBottomSheetModal {
+  companion object {
+    fun WindowController.createBottomSheetsModal(
+      title: String?, iconUrl: String?, iconAlt: String?, callbackUrl: String?
+    ) = BottomSheetsModal(title, iconUrl, iconAlt, callbackUrl).also { it.setParent(this) }
+  }
 
   @OptIn(ExperimentalMaterial3Api::class)
   @Composable
   override fun Render() {
     val mm = LocalWindowMM.current
     var show by isOpen
+    var sessionAcc = remember { 0 }
+
     if (!show) {
       return
     }
-    /// TODO 等1.5.10稳定版放出，我们就使用真正的BottomSheet组件来进行绘制，代码几乎不变
-    AlertDialog(onDismissRequest = {
-      show = false;
-      mm.ioAsyncScope.launch {
-        onDismissSignal.emitAndClear()
-        dismissCallbackUrl?.also { url ->
-          mm.nativeFetch(url)
-        }
-      }
-    }) {
+    val sessionId = remember { sessionAcc++; sessionAcc }
+    // 发送 open 的信号
+    LaunchedEffect(sessionId) { sendCallback(mm, OpenModalCallback(sessionId)) }
+    key(sessionId) {
 
-      BoxWithConstraints {
-        val windowRenderScope = remember(maxWidth, maxHeight) {
-          WindowRenderScope.fromDp(maxWidth, maxHeight, 1f)
+      /// TODO 等1.5.10稳定版放出，我们就使用 ModalBottomSheet 组件来进行绘制，代码几乎不变
+      ModalBottomSheet(onDismissRequest = {
+        show = false;
+        sendCallback(mm, CloseModalCallback(sessionId))
+      }) {
+        BoxWithConstraints {
+          val windowRenderScope = remember(maxWidth, maxHeight) {
+            WindowRenderScope.fromDp(maxWidth, maxHeight, 1f)
+          }
+          windowAdapterManager.Renderer(renderId, windowRenderScope)
         }
-        windowAdapterManager.Renderer(renderId, windowRenderScope)
       }
     }
 

@@ -53,8 +53,6 @@ expect fun FileNMM.getDataVirtualFsDirectory(): IVirtualFsDirectory
  */
 expect fun FileNMM.getCacheVirtualFsDirectory(): IVirtualFsDirectory
 
-expect fun FileNMM.unCompress(compressFile: String, unCompressDirectory: String)
-
 class FileDirectoryAdapterManager internal constructor() : AdapterManager<IVirtualFsDirectory>()
 
 val fileTypeAdapterManager = FileDirectoryAdapterManager()

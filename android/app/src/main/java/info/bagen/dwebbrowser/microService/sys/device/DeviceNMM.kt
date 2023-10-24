@@ -1,21 +1,26 @@
 package info.bagen.dwebbrowser.microService.sys.device
 
 import android.os.Build
+import android.os.Environment
+import info.bagen.dwebbrowser.microService.sys.permission.EPermission
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.Serializable
-import org.dweb_browser.helper.printDebug
-import org.dweb_browser.helper.randomUUID
-import org.dweb_browser.helper.toJsonElement
-import org.dweb_browser.core.module.BootstrapContext
-import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.PureResponse
 import org.dweb_browser.core.http.PureStringBody
 import org.dweb_browser.core.http.router.bind
+import org.dweb_browser.core.module.BootstrapContext
+import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.file.ext.store
+import org.dweb_browser.helper.printDebug
+import org.dweb_browser.helper.randomUUID
+import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.helper.toUtf8ByteArray
-import java.security.MessageDigest
+import java.io.File
+import java.io.FileInputStream
+import java.io.InputStreamReader
 
 fun debugDevice(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("Device", tag, msg, err)
@@ -28,16 +33,20 @@ class DeviceNMM : NativeMicroModule("device.sys.dweb", "Device Info") {
   }
 
   val deviceInfo = DeviceInfo()
-  val UUID_KEY = "FINGERPRINT"
-  @OptIn(ExperimentalStdlibApi::class)
+  val UUID_KEY = "DEVICE_UUID"
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     routes(
       /** 获取设备唯一标识uuid*/
       "/uuid" bind HttpMethod.Get to defineJsonResponse {
         val uuid = store.getOrPut(UUID_KEY) {
-          val messageDigest = MessageDigest.getInstance("SHA-256");
-          messageDigest.update(Build.FINGERPRINT.toUtf8ByteArray());
-          messageDigest.digest().toHexString()
+          val grant = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            nativeFetch("file://permission.sys.dweb/query?permission=${EPermission.PERMISSION_STORAGE}").boolean()
+          } else true
+          if (grant) {
+            getDeviceUUID() ?: kotlin.run { randomUUID() }
+          } else {
+            randomUUID()
+          }
         }
         debugDevice("getUUID", uuid)
         UUIDResponse(uuid).toJsonElement()
@@ -80,4 +89,26 @@ class DeviceNMM : NativeMicroModule("device.sys.dweb", "Device Info") {
   override suspend fun _shutdown() {
 
   }
+}
+
+fun getDeviceUUID(): String? {
+  val fileName = "dweb-browser.ini"
+  val root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
+  val file = File(root, fileName)
+  try {
+    if (file.exists()) {
+      return InputStreamReader(FileInputStream(file)).readText()
+    }
+    file.parentFile?.let { parentFile ->
+      if (!parentFile.exists()) parentFile.mkdirs()
+    }
+    if (file.createNewFile()) {
+      val uuid = randomUUID()
+      file.outputStream().write(uuid.toUtf8ByteArray())
+      return uuid
+    }
+  } catch (e: Exception) {
+    debugDevice("uuid", "${e.message}")
+  }
+  return null
 }

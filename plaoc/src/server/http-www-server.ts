@@ -1,21 +1,24 @@
-import { IpcHeaders } from "../../deps.ts";
-import { $PlaocConfig, X_PLAOC_QUERY } from "./const.ts";
+import isMobile from "npm:is-mobile";
+import { $PlaocConfig } from "./const.ts";
 import { $DwebHttpServerOptions, $OnFetchReturn, FetchEvent, IpcResponse, jsProcess } from "./deps.ts";
-import { urlStore } from "./helper/urlStore.ts";
 import { HttpServer, cors } from "./http-helper.ts";
 import { PlaocConfig } from "./plaoc-config.ts";
 import { setupDB } from "./shim/db.shim.ts";
+import { setupFetch } from "./shim/fetch.shim.ts";
+
 const CONFIG_PREFIX = "/config.sys.dweb/";
 /**给前端的文件服务 */
 export class Server_www extends HttpServer {
-  constructor(readonly plaocConfig:PlaocConfig){
-    super()
+  constructor(readonly plaocConfig: PlaocConfig) {
+    super();
   }
- get jsonPlaoc(){
-  return this.plaocConfig.config
- }
+  get jsonPlaoc() {
+    return this.plaocConfig.config;
+  }
   lang: string | null = null;
-  private sessionInfo = jsProcess.nativeFetch("file:///usr/sys/session.json").then(res=>res.json() as Promise<{installTime:number,installUrl:string}>)
+  private sessionInfo = jsProcess
+    .nativeFetch("file:///usr/sys/session.json")
+    .then((res) => res.json() as Promise<{ installTime: number; installUrl: string }>);
   protected _getOptions(): $DwebHttpServerOptions {
     return {
       subdomain: "www",
@@ -36,11 +39,6 @@ export class Server_www extends HttpServer {
   }
   protected async _provider(request: FetchEvent, root = "www"): Promise<$OnFetchReturn> {
     let { pathname } = request;
-    // 前端获取一些配置的param
-    if (pathname.startsWith(`/${X_PLAOC_QUERY.GET_CONFIG_URL}`)) {
-      const obj = urlStore.get() ?? "";
-      return IpcResponse.fromJson(request.req_id, 200, cors(new IpcHeaders()), obj, request.ipc);
-    }
     // 配置config
     if (pathname.startsWith(CONFIG_PREFIX)) {
       return this._config(request);
@@ -51,18 +49,38 @@ export class Server_www extends HttpServer {
     if (this.jsonPlaoc && root !== "server/emulator") {
       const proxyRequest = await this._plaocForwarder(request, this.jsonPlaoc);
       pathname = proxyRequest.url.pathname;
-      remoteIpcResponse = await jsProcess.nativeRequest(`file:///usr/${root}${pathname}?mode=stream`, {
-        headers: proxyRequest.headers,
-      });
-      if (remoteIpcResponse.headers.get("Content-Type")?.includes("text/html") && !plaocShims.has("raw")) {
+      const plaocShims = new Set((proxyRequest.url.searchParams.get("plaoc-shim") ?? "").split(",").filter(Boolean));
+      if (plaocShims.has("fetch")) {
+        remoteIpcResponse = await jsProcess.nativeRequest(`file:///usr/${root}${pathname}`, {
+          headers: proxyRequest.headers,
+        });
         const rawText = await remoteIpcResponse.toResponse().text();
         remoteIpcResponse = IpcResponse.fromText(
           remoteIpcResponse.req_id,
           remoteIpcResponse.statusCode,
           remoteIpcResponse.headers,
-          `<script>(${setupDB.toString()})("${(await this.sessionInfo).installTime}");</script>${rawText}`,
+          `;(${setupFetch.toString()})();${rawText}`,
           remoteIpcResponse.ipc
         );
+      } else {
+        remoteIpcResponse = await jsProcess.nativeRequest(`file:///usr/${root}${pathname}?mode=stream`, {
+          headers: proxyRequest.headers,
+        });
+        if (
+          remoteIpcResponse.headers.get("Content-Type")?.includes("text/html") &&
+          !plaocShims.has("raw") &&
+          isMobile.isMobile()
+        ) {
+          const rawText = await remoteIpcResponse.toResponse().text();
+          const text = `<script>(${setupDB.toString()})("${(await this.sessionInfo).installTime}");</script>${rawText}`;
+          remoteIpcResponse = IpcResponse.fromText(
+            remoteIpcResponse.req_id,
+            remoteIpcResponse.statusCode,
+            remoteIpcResponse.headers,
+            text,
+            remoteIpcResponse.ipc
+          );
+        }
       }
     } else {
       remoteIpcResponse = await jsProcess.nativeRequest(`file:///usr/${root}${pathname}?mode=stream`);
@@ -110,16 +128,24 @@ export class Server_www extends HttpServer {
       const pattern = urlPattern.exec(request.url);
       if (!pattern) continue;
 
-      const url = redirect.to.url;
-      const matches = url.matchAll(/{{\s*(.*?)\s*}}/g); // {{[\w\W]*?}}
-      const lang = this.lang;
-      let pathname = url;
-      // 执行表达式
-      for (const match of matches) {
-        const func = new Function("pattern", "lang", `return ${match[1]}`);
-        pathname = pathname.replace(/{{\s*(.*?)\s*}}/, func(pattern, lang));
-      }
-      request.url.pathname = pathname.replace(/\\/g, "/").replace(/\/\//g, "/");
+      const url = redirect.to.url
+        .replace(/\{\{\s*(.*?)\s*\}\}/g, (_exp, match) => {
+          const func = new Function("pattern", "lang", "config", `return ${match}`);
+          return func(pattern, this.lang, config);
+        })
+        .replace(/\\/g, "/")
+        .replace(/\/\//g, "/");
+      const newUrl = new URL(url, request.url);
+      request.url.hash = newUrl.hash;
+      request.url.host = newUrl.host;
+      request.url.hostname = newUrl.hostname;
+      request.url.href = newUrl.href;
+      request.url.password = newUrl.password;
+      request.url.pathname = newUrl.pathname;
+      request.url.port = newUrl.port;
+      request.url.protocol = newUrl.protocol;
+      request.url.search = newUrl.search;
+      request.url.username = newUrl.username;
       // appendHeaders
       const appendHeaders = redirect.to.appendHeaders;
       if (appendHeaders && Object.keys(appendHeaders).length !== 0) {

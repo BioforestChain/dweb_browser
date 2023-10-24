@@ -18,7 +18,7 @@ import org.dweb_browser.core.sys.download.JmmDownloadController
 import org.dweb_browser.core.sys.download.JmmDownloadInfo
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.consumeEachJsonLine
-import org.dweb_browser.sys.window.ext.BottomSheets
+import org.dweb_browser.sys.window.ext.WindowBottomSheetsController
 import org.dweb_browser.sys.window.ext.createBottomSheets
 
 class JmmController(
@@ -33,7 +33,7 @@ class JmmController(
 
   internal val downloadSignal = Signal<JmmDownloadInfo>()
   val onDownload = downloadSignal.toListener()
-  private val viewDeferred = CompletableDeferred<BottomSheets>()
+  private val viewDeferred = CompletableDeferred<WindowBottomSheetsController>()
   suspend fun getView() = viewDeferred.await()
 
   init {

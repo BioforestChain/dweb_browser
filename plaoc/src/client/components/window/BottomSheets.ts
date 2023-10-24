@@ -43,13 +43,13 @@ export class BottomSheets extends SafeEventTarget<{
     this.#state = state;
     switch (state) {
       case BottomSheetsState.OPEN:
-        this.dispatchEvent(new SafeEvent("show"));
+        this.dispatchEvent(new SafeEvent(BottomSheetsState.OPEN));
         break;
       case BottomSheetsState.CLOSE:
-        this.dispatchEvent(new SafeEvent("hide"));
+        this.dispatchEvent(new SafeEvent(BottomSheetsState.CLOSE));
         break;
       case BottomSheetsState.DESTROY:
-        this.dispatchEvent(new SafeEvent("close"));
+        this.dispatchEvent(new SafeEvent(BottomSheetsState.DESTROY));
         break;
     }
   }
@@ -61,7 +61,7 @@ export class BottomSheets extends SafeEventTarget<{
     }
     return false;
   }
-  async show() {
+  async open() {
     if (this.isState(BottomSheetsState.OPEN, BottomSheetsState.OPENING)) {
       return;
     }
@@ -72,7 +72,7 @@ export class BottomSheets extends SafeEventTarget<{
     await windowPlugin.fetchApi("/openModal", { search: { modalId: this.modal.modalId } }).boolean();
     this.state = BottomSheetsState.OPEN;
   }
-  async hide() {
+  async close() {
     if (this.isState(BottomSheetsState.CLOSE, BottomSheetsState.CLOSING)) {
       return;
     }
@@ -83,13 +83,12 @@ export class BottomSheets extends SafeEventTarget<{
     await windowPlugin.fetchApi("/closeModal", { search: { modalId: this.modal.modalId } }).boolean();
     this.state = BottomSheetsState.CLOSE;
   }
-  async close() {
+  async destroy() {
     if (this.isState(BottomSheetsState.DESTROYING, BottomSheetsState.DESTROY)) {
       return;
     }
     this.state = BottomSheetsState.DESTROYING;
     await windowPlugin.fetchApi("/removeModal", { search: { modalId: this.modal.modalId } }).boolean();
-    this.dispatchEvent(new SafeEvent("close"));
     this.state = BottomSheetsState.DESTROY;
   }
 }

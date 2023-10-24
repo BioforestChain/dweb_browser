@@ -58,7 +58,7 @@ class RunningApp(
   /**
    * 打开主窗口，默认只会有一个主窗口，重复打开不会重复创建
    */
-  suspend fun openMainWindow() = openLock.withLock {
+  suspend fun getMainWindow() = openLock.withLock {
     if (mainWin == null) {
       mainWin = openWindow().also { win ->
         win.onClose {
@@ -70,7 +70,5 @@ class RunningApp(
     }
     mainWin!!
   }
-
-  suspend fun getMainWindow() = openLock.withLock { mainWin }
 
 }

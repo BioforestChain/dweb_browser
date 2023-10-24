@@ -29,6 +29,7 @@ import org.dweb_browser.core.ipc.ReadableStreamIpc
 import org.dweb_browser.core.ipc.helper.IpcHeaders
 import org.dweb_browser.core.std.dns.debugFetch
 import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
+import org.dweb_browser.core.std.http.HttpNMM.Companion.dwebServer
 import org.dweb_browser.core.std.http.net.Http1Server
 import kotlin.random.Random
 
@@ -273,7 +274,7 @@ fun findRequestGateway(request: PureRequest): String? {
   val query_x_dweb_host: String? = request.queryOrNull("X-Dweb-Host")?.decodeURIComponent()
   for ((key, value) in request.headers) {
     if (reg_host.matches(key)) {
-      if (Regex("""\.dweb(:\d+)?$""").matches(value)) header_host = value
+       header_host = parseHost(value)
     } else if (reg_x_dweb_host.matches(key)) {
       header_x_dweb_host = value
     } else if (reg_authorization.matches(key)) {
@@ -299,6 +300,26 @@ fun findRequestGateway(request: PureRequest): String? {
     } else host
   }
 }
+
+fun parseHost(value: String?): String? {
+  if (value != null) {
+    // 解析subDomain
+    if (value.endsWith(".${dwebServer.authority}")) {
+      var queryXWebHost =
+        value.substring(0, value.length - dwebServer.authority.length - 1)
+      val portStartIndex = queryXWebHost.lastIndexOf("-")
+      queryXWebHost = queryXWebHost.substring(0, portStartIndex) + ":" +
+          queryXWebHost.substring(portStartIndex + 1)
+      return queryXWebHost
+    }
+
+    if (Regex("""\.dweb(:\d+)?$""").matches(value)) {
+      return value
+    }
+  }
+  return null
+}
+
 
 fun Url.getFullAuthority(hostOrAuthority: String = authority): String {
   var authority1 = hostOrAuthority

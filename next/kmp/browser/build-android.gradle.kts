@@ -33,6 +33,7 @@ kotlin {
         implementation(project(":core"))
         implementation(project(":DWebView"))
         implementation(project(":window"))
+        implementation(project(":ziplib"))
       }
     }
     val commonTest by getting {

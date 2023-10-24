@@ -84,6 +84,7 @@ class HttpRouter(private val mm: MicroModule) {
   /**
    * 接口访问保护
    */
+  fun protected(allows: MMID) = protected(setOf(allows))
   fun protected(allows: Set<MMID>): HttpRouter {
     val protectedHandler = getProtectedHandler(allows)
     for (handler in routes.values) {

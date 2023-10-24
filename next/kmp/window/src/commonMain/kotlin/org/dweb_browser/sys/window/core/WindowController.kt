@@ -305,14 +305,12 @@ abstract class WindowController(
 
   /**
    * 尝试添加一个 modal
-   * 如果ID已经存在，创建会失败（并不会更新属性）
+   * 如果ID已经存在，返回成功
    */
-  suspend fun createModal(modal: ModalState) = modalsLock.withLock("write") {
+  suspend fun saveModal(modal: ModalState) = modalsLock.withLock("write") {
     if (!state.modals.containsKey(modal.modalId)) {
-      state.modals += modal.modalId to modal
       modal.setParent(this)
-      true
-    } else false
+    }
   }
 
   /**
