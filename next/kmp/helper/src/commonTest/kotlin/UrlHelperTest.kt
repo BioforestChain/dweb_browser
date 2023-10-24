@@ -1,7 +1,7 @@
 package info.bagen.dwebbrowser
 
 import org.dweb_browser.helper.toIpcUrl
-import org.junit.Test
+import kotlin.test.Test
 
 class UrlHelperTest {
   @Test

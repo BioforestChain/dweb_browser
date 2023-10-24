@@ -1,5 +1,6 @@
 package info.bagen.dwebbrowser
 
+import io.ktor.utils.io.ByteReadChannel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.io.Buffer
@@ -8,7 +9,6 @@ import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.readByteArray
 import org.dweb_browser.helper.consumeEachArrayRange
-import org.dweb_browser.helper.toByteReadChannel
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 
@@ -26,7 +26,7 @@ class fileIoTest {
       buffer.readByteArray()
     }
     val fileSource = SystemFileSystem.source(Path("/tmp/test.file")).buffered()
-    val channel = fileSource.toByteReadChannel()
+    val channel = ByteReadChannel(fileSource.readByteArray())
 
     var readByteArray = byteArrayOf();
     println("start read")
