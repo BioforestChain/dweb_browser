@@ -14,6 +14,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import org.dweb_browser.core.module.BaseThemeActivity
+import org.dweb_browser.helper.compose.LanguageWatch
 import org.dweb_browser.helper.compose.theme.DwebBrowserAppTheme
 import org.dweb_browser.sys.window.core.Rect
 import org.dweb_browser.sys.window.render.LocalWindowsImeVisible
@@ -54,6 +55,7 @@ class DesktopActivity : BaseThemeActivity() {
       }
 
       DwebBrowserAppTheme {
+        LanguageWatch()
         desktopController.Render(taskbarController, microModule)
       }
 

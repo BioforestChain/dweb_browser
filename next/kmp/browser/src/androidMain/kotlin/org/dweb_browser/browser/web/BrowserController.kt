@@ -17,7 +17,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.dweb_browser.browser.R
 import org.dweb_browser.browser.web.ui.browser.model.BrowserStore
 import org.dweb_browser.browser.web.ui.browser.model.BrowserViewModel
 import org.dweb_browser.browser.web.ui.browser.model.WebSiteInfo
@@ -79,9 +78,6 @@ class BrowserController(
       newWin.state.apply {
         mode = WindowMode.MAXIMIZE
         setFromManifest(browserNMM)
-        closeTip =
-          newWin.manager?.state?.viewController?.androidContext?.getString(R.string.browser_confirm_to_close) // TODO 这里改成 kmp 的 i18n 标准
-            ?: ""
       }
       // 如果没有tab，那么创建一个新的
       // TODO 这里的tab应该从存储中恢复

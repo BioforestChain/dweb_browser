@@ -293,7 +293,6 @@ internal fun WindowBottomNavigationThemeBar(
             /// 显示关闭窗口的提示框
             if (showCloseTip) {
               /// 会不会有人专门监听showCloseTip然后一直动态地控制closeTip参数呀？
-              val closeTip by win.watchedState { closeTip };
               AlertDialog(
                 // 按钮以外的关闭对话框的行为
                 onDismissRequest = {
@@ -312,7 +311,7 @@ internal fun WindowBottomNavigationThemeBar(
                 },
                 // 内容
                 text = {
-                  Text(text = if (closeTip.isNullOrBlank()) WindowI18nResource.window_confirm_to_close.text else closeTip!!)
+                  Text(text = WindowI18nResource.window_confirm_to_close.text)
                 },
                 // 确定按钮
                 confirmButton = {
