@@ -1,32 +1,17 @@
-import UIKit
 import DwebShared
 import SwiftUI
+import UIKit
 
-let gradient = LinearGradient(
-        colors: [
-            Color.black.opacity(0.6),
-            Color.black.opacity(0.6),
-            Color.black.opacity(0.5),
-            Color.black.opacity(0.3),
-            Color.black.opacity(0.0),
-        ],
-        startPoint: .top, endPoint: .bottom
-)
 struct DWebOS: View {
     let greet = Greeting().greet()
     var body: some View {
-     ZStack {
+        ZStack {
             ComposeView()
-                    .ignoresSafeArea(.all) // Compose has own keyboard handler
-//            VStack {
-//                gradient.ignoresSafeArea(edges: .top).frame(height: 0)
-//                Spacer()
-//                Text(greet)
-//            }
+                .ignoresSafeArea(.all) // Compose has own keyboard handler
+
         }.preferredColorScheme(.dark)
     }
 }
-
 
 struct ComposeView: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> UIViewController {
@@ -35,11 +20,18 @@ struct ComposeView: UIViewControllerRepresentable {
         return controller
     }
 
-    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
+    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
+        print(context)
+    }
 }
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         DWebOS()
     }
+}
+
+
+class SizeModel: ObservableObject {
+  @Published var size: CGSize = .zero
 }

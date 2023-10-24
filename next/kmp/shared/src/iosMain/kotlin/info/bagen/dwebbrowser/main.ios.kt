@@ -40,64 +40,6 @@ import platform.Foundation.NSURL
 @Suppress("FunctionName", "unused")
 fun MainViewController(iosView: UIView): UIViewController = ComposeUIViewController {
   Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-//    Box(modifier = Modifier.size(200.dp, 50.dp)) {
-//      AutoResizeTextContainer {
-//        AutoSizeText("你好！！")
-//      }
-//    }
-//    val jsRuntime = JsRuntime();
-//    val scope = rememberCoroutineScope()
-//    Row {
-//      Button({
-//        scope.launch {
-//          jsRuntime.core.testNative2Js()
-//        }
-//      }) {
-//        Text("Native2Js")
-//      }
-//      Button({
-//        scope.launch {
-//          jsRuntime.core.testJs2Native()
-//        }
-//      }) {
-//        Text("Js2Native")
-//      }
-//    }
-//    Row {
-//      Button({
-//        scope.launch {
-//          jsRuntime.core.testNative2Js2()
-//        }
-//      }) {
-//        Text("Native2Js2")
-//      }
-//      Button({
-//        scope.launch {
-//          jsRuntime.core.testJs2Native2()
-//        }
-//      }) {
-//        Text("Js2Native2")
-//      }
-//    }
-//    Row {
-//      Button({
-//        scope.launch {
-//          jsRuntime.core.testNative2Js4()
-//        }
-//      }) {
-//        Text("Native2Js4")
-//      }
-//      Button({
-//        scope.launch {
-//          jsRuntime.core.testJs2Native4()
-//        }
-//      }) {
-//        Text("Js2Native4")
-//      }
-//    }
-//    Box(Modifier.height(400.dp).background(Color.LightGray)) {
-//      ImageLoaderDemo()
-//    }
     PreviewWindowTopBar(iosView)
   }
 }
@@ -117,12 +59,15 @@ fun PreviewWindowTopBar(iosView: UIView) {
 
     UIKitView(factory =
     {
-      iosView
-//        WKWebView().also {
-//            it.loadRequest(NSURLRequest.requestWithURL(NSURL.URLWithString("https://m.163.com")?:throw Exception()))
-//        }
+      iosView.also{
 
-    },modifier
+      }
+    },modifier.fillMaxSize(), update = {view ->
+      println( "update:::: $view")
+    },
+      onResize = { t, rect ->
+        println( "onResize::: $t, $rect")
+      }
     )
 //    PreviewWindowTopBarContent(modifier)
   }

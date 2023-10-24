@@ -2,7 +2,7 @@ import SwiftUI
 import WebRTC
 import Network
 
-let DWEB_OS = false
+let DWEB_OS = true
 
 @main
 struct iOSApp: App {
