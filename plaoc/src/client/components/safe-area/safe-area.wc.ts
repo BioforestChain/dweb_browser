@@ -5,7 +5,6 @@ export class HTMLDwebSafeAreaElement extends HTMLElement {
   static readonly tagName = "dweb-safe-area";
   readonly plugin = safeAreaPlugin;
 
-
   @cacheGetter()
   get setState() {
     return safeAreaPlugin.setStateByKey;
@@ -19,7 +18,10 @@ export class HTMLDwebSafeAreaElement extends HTMLElement {
     return safeAreaPlugin.getOverlay;
   }
 }
-customElements.define(HTMLDwebSafeAreaElement.tagName, HTMLDwebSafeAreaElement);
+
+if (!customElements.get(HTMLDwebSafeAreaElement.tagName)) {
+  customElements.define(HTMLDwebSafeAreaElement.tagName, HTMLDwebSafeAreaElement);
+}
 
 declare global {
   interface HTMLElementTagNameMap {

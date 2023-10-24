@@ -12,9 +12,9 @@ export class HTMLDwebWindowElement extends HTMLStateObserverElement<$WindowRawSt
   getState = windowPlugin.getState;
   setStyle = windowPlugin.setStyle;
 
-  @cacheGetter() 
+  @cacheGetter()
   get getDisplay() {
-    return this.plugin.getDisplay
+    return this.plugin.getDisplay;
   }
 
   @cacheGetter()
@@ -48,7 +48,9 @@ export class HTMLDwebWindowElement extends HTMLStateObserverElement<$WindowRawSt
   }
 }
 
-customElements.define(HTMLDwebWindowElement.tagName, HTMLDwebWindowElement);
+if (!customElements.get(HTMLDwebWindowElement.tagName)) {
+  customElements.define(HTMLDwebWindowElement.tagName, HTMLDwebWindowElement);
+}
 
 declare global {
   interface HTMLElementTagNameMap {

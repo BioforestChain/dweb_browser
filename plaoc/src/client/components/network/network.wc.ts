@@ -16,7 +16,9 @@ export class HTMLDwebNetworkElement extends HTMLElement {
   }
 }
 
-customElements.define(HTMLDwebNetworkElement.tagName, HTMLDwebNetworkElement);
+if (!customElements.get(HTMLDwebNetworkElement.tagName)) {
+  customElements.define(HTMLDwebNetworkElement.tagName, HTMLDwebNetworkElement);
+}
 declare global {
   interface HTMLElementTagNameMap {
     [HTMLDwebNetworkElement.tagName]: HTMLDwebNetworkElement;

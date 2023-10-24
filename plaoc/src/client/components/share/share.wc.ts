@@ -16,7 +16,9 @@ export class HTMLDwebShareElement extends HTMLElement {
   }
 }
 
-customElements.define(HTMLDwebShareElement.tagName, HTMLDwebShareElement);
+if (!customElements.get(HTMLDwebShareElement.tagName)) {
+  customElements.define(HTMLDwebShareElement.tagName, HTMLDwebShareElement);
+}
 declare global {
   interface HTMLElementTagNameMap {
     [HTMLDwebShareElement.tagName]: HTMLDwebShareElement;

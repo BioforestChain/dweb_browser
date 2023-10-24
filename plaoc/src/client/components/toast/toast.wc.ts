@@ -10,7 +10,10 @@ export class HTMLDwebToastElement extends HTMLElement {
     return toastPlugin.show;
   }
 }
-customElements.define(HTMLDwebToastElement.tagName, HTMLDwebToastElement);
+
+if (!customElements.get(HTMLDwebToastElement.tagName)) {
+  customElements.define(HTMLDwebToastElement.tagName, HTMLDwebToastElement);
+}
 declare global {
   interface HTMLElementTagNameMap {
     [HTMLDwebToastElement.tagName]: HTMLDwebToastElement;

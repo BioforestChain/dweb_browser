@@ -16,7 +16,9 @@ export class HTMLDwebBiometricsElement extends HTMLElement {
   }
 }
 
-customElements.define(HTMLDwebBiometricsElement.tagName, HTMLDwebBiometricsElement);
+if (!customElements.get(HTMLDwebBiometricsElement.tagName)) {
+  customElements.define(HTMLDwebBiometricsElement.tagName, HTMLDwebBiometricsElement);
+}
 declare global {
   interface HTMLElementTagNameMap {
     [HTMLDwebBiometricsElement.tagName]: HTMLDwebBiometricsElement;

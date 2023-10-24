@@ -50,7 +50,9 @@ export class HTMLDwebNavigationBarElement extends HTMLElement {
   }
 }
 
-customElements.define(HTMLDwebNavigationBarElement.tagName, HTMLDwebNavigationBarElement);
+if (!customElements.get(HTMLDwebNavigationBarElement.tagName)) {
+  customElements.define(HTMLDwebNavigationBarElement.tagName, HTMLDwebNavigationBarElement);
+}
 
 declare global {
   interface HTMLElementTagNameMap {

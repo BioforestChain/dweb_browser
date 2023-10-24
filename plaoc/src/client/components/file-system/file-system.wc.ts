@@ -22,7 +22,9 @@ export class HTMLDwebFileSystemElement extends HTMLElement {
 
 }
 
+if (!customElements.get(HTMLDwebFileSystemElement.tagName)) {
 customElements.define(HTMLDwebFileSystemElement.tagName, HTMLDwebFileSystemElement);
+}
 declare global {
   interface HTMLElementTagNameMap {
     [HTMLDwebFileSystemElement.tagName]: HTMLDwebFileSystemElement;

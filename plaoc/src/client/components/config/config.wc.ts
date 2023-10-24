@@ -8,19 +8,19 @@ export class HTMLDwebConfigElement extends HTMLElement {
 
   @cacheGetter()
   get setLang() {
-    return this.plugin.setLang
+    return this.plugin.setLang;
   }
 
-  @cacheGetter() 
+  @cacheGetter()
   get getLang() {
-    return this.plugin.getLang
+    return this.plugin.getLang;
   }
 
   get public_url() {
     return this.plugin.public_url;
   }
   getPublicUrl() {
-    return BasePlugin.public_url
+    return BasePlugin.public_url;
   }
   static get observedAttributes() {
     return ["api-url"];
@@ -31,8 +31,9 @@ export class HTMLDwebConfigElement extends HTMLElement {
     }
   }
 }
-
-customElements.define(HTMLDwebConfigElement.tagName, HTMLDwebConfigElement);
+if (!customElements.get(HTMLDwebConfigElement.tagName)) {
+  customElements.define(HTMLDwebConfigElement.tagName, HTMLDwebConfigElement);
+}
 declare global {
   interface HTMLElementTagNameMap {
     [HTMLDwebConfigElement.tagName]: HTMLDwebConfigElement;
