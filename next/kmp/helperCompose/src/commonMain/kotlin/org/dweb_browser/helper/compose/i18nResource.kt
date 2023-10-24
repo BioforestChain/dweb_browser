@@ -5,7 +5,7 @@ import androidx.compose.runtime.compositionLocalOf
 
 @Composable
 fun i18nResource(res: SimpleI18nResource): String {
-  val lang = LocalLang.current;
+  val lang = LocalLang.current
   return res.valuesMap[lang] ?: res.i18nValues.first().second
 }
 

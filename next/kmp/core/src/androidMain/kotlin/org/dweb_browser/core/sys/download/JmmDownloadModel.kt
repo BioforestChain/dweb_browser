@@ -136,7 +136,10 @@ class DownloadModel(val downloadNMM: DownloadNMM) {
       this.downloadStatus = JmmDownloadStatus.Completed
       delay(1000)
       val unzip = ZipUtil.ergodicDecompress(
-        this.path, FilesUtil.getAppUnzipPath(context, APP_DIR_TYPE.SystemApp), mmid = id
+        this.path,
+        FilesUtil.getAppUnzipPath(context, APP_DIR_TYPE.SystemApp),
+        isDeleted = false,
+        mmid = id
       )
       downloadInstalled(context, unzip)
     }
