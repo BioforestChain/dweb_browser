@@ -61,6 +61,7 @@ class PermissionsNMM : NativeMicroModule("permission.sys.dweb", "permission") {
     debugPermission("requestPermissionByActivity", "permissions = $permissions")
     startAppActivity(PermissionActivity::class.java) { intent ->
       intent.putExtras(Bundle().also { it.putStringArrayList("permissions", permissions) })
+      PermissionController.controller.granted = null
     }
     return PermissionController.controller.waitGrantResult()
   }

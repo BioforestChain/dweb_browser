@@ -149,13 +149,12 @@ dependencies {
   debugImplementation(libs.compose.ui.tooling)
   implementation(libs.google.material)
 
-
   //扫码核心库
+  implementation(libs.camera.core)
+  implementation(libs.camera.view)
+  implementation(libs.camera.camera2)
+  implementation(libs.camera.lifecycle)
   implementation(libs.camera.barcode)
-  //implementation(libs.camera.core)
-  //implementation(libs.camera.camera2)
-  //implementation(libs.camera.view)
-  //implementation(libs.camera.lifecycle)
 
   /// 测试相关
   testImplementation(kotlin("test"))
@@ -187,7 +186,6 @@ dependencies {
   implementation(project(":DWebView"))
   implementation(project(":window"))
   implementation(project(":browser"))
-  implementation(project(":BrowserUI"))
   implementation(project(":shared"))
 }
 

@@ -5,14 +5,17 @@ import android.graphics.Point
 import android.graphics.Rect
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
+import info.bagen.dwebbrowser.microService.sys.permission.EPermission
 import io.ktor.http.HttpMethod
+import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
+import org.dweb_browser.core.http.router.bind
+import org.dweb_browser.core.module.BootstrapContext
+import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.core.module.startAppActivity
+import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.toJsonElement
-import org.dweb_browser.core.module.BootstrapContext
-import org.dweb_browser.core.module.NativeMicroModule
-import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
-import org.dweb_browser.core.http.router.bind
 
 fun debugScanning(tag: String, msg: Any? = "", err: Throwable? = null) =
   printDebug("Scanning", tag, msg, err)
@@ -45,18 +48,31 @@ class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb", "Barcode Scan
         process(image).forEach {
           result.add(String(it.data))
         }
-        debugScanning(
-          "process",
-          "result=> $result"
-        )
+        debugScanning("process", "result=> $result")
         return@defineJsonResponse result.toJsonElement()
       },
       // 停止处理
       "/stop" bind HttpMethod.Get to defineBooleanResponse {
         stop()
         return@defineBooleanResponse true
+      },
+      "/open" bind HttpMethod.Get to defineStringResponse {
+        val grant =
+          nativeFetch("file://permission.sys.dweb/query?permission=${EPermission.PERMISSION_CAMERA}").boolean()
+        if (grant) {
+          openScanningActivity()
+        } else {
+          "permission denied"
+        }
       }
     )
+  }
+
+  private suspend fun openScanningActivity(): String {
+    startAppActivity(ScanningActivity::class.java) {
+      ScanningController.controller.scanData = null
+    }
+    return ScanningController.controller.waitScanResult()
   }
 
   override suspend fun _shutdown() {

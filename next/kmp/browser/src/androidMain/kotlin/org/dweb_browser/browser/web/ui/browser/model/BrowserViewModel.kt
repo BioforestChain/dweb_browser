@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Message
+import android.util.Log
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import androidx.compose.animation.core.MutableTransitionState
@@ -448,6 +449,12 @@ class BrowserViewModel(
       browserController.bookLinks.remove(this)
     }
     browserController.saveBookLinks()
+  }
+
+  suspend fun openQRCodeScanning() {
+    val data = browserNMM.nativeFetch("file://barcode-scanning.sys.dweb/open").body.toPureString()
+    // 如果是url，进行跳转，如果不是，就直接弹出对话框
+    handleIntent(BrowserIntent.SearchWebView(data))
   }
 }
 

@@ -47,7 +47,7 @@ class PermissionActivity : BaseThemeActivity() {
 
     setContent {
       DwebBrowserAppTheme {
-        PermissionController.controller.deniedPermission.value?.let { premission ->
+        PermissionController.controller.deniedPermission.value?.let { permission ->
           AlertDialog(
             onDismissRequest = {
               PermissionController.controller.deniedPermission.value = null
@@ -68,7 +68,7 @@ class PermissionActivity : BaseThemeActivity() {
               Text(text = stringResource(id = R.string.permission_deny_title))
             },
             text = {
-              Text(text = getDenyDialogText(permission = premission))
+              Text(text = getDenyDialogText(permission = permission))
             }
           )
         }

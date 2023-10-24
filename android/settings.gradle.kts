@@ -31,11 +31,6 @@ val includeKmp = { kmpPath: String ->
 rootProject.name = "dweb-browser"
 include(":app")
 include(":benchmark")
-//include(":MicroService")
-//include(":DWebView")
-include(":BrowserUI")
-//include(":window")
-//include(":helperAndroid")
 includeKmp("shared")
 includeKmp("helper")
 includeKmp("helperCompose")

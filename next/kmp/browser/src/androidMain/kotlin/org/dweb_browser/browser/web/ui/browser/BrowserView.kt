@@ -313,7 +313,7 @@ private fun BrowserViewNavigatorBar(viewModel: BrowserViewModel) {
       if (navigator.canGoBack) {
         viewModel.handleIntent(BrowserIntent.AddNewMainView())
       } else {
-        // scope.launch { viewModel.uiState.qrCodeScanState.show() } // 暂时屏蔽qrCode
+        scope.launch { viewModel.openQRCodeScanning() }
       }
     }
     NavigatorButton(

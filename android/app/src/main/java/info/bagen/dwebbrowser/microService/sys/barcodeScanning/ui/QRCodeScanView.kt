@@ -1,4 +1,4 @@
-package org.dweb_browser.browserUI.ui.qrcode
+package info.bagen.dwebbrowser.microService.sys.barcodeScanning.ui
 
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
@@ -18,7 +18,6 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateColor
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -141,7 +140,7 @@ fun rememberQRCodeScanState(): QRCodeScanState {
   return remember { QRCodeScanState() }
 }
 
-@OptIn(ExperimentalPermissionsApi::class, ExperimentalAnimationApi::class)
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun QRCodeScanView(
   qrCodeScanState: QRCodeScanState = rememberQRCodeScanState(),
@@ -149,11 +148,12 @@ fun QRCodeScanView(
   onDataCallback: (String) -> Unit, // 返回数据
   enableBeep: Boolean = true, // 扫码成功后是否打开提示音
   launchCamera: PermissionState = rememberPermissionState(permission = PERMISSION_CAMERA),
+  onClose: () -> Unit,
   scanningContent: @Composable (Camera) -> Unit = {
     DefaultScanningView(camera = it, onSelect = { uri ->
       qrCodeScanState.uri = uri
       qrCodeScanState.state.value = QRCodeScanState.QRCodeState.AnalyzePhoto
-    }, onClose = { qrCodeScanState.state.value = QRCodeScanState.QRCodeState.Hide })
+    }, onClose = { qrCodeScanState.state.value = QRCodeScanState.QRCodeState.Hide; onClose() })
   },
   scanResultContent: @Composable (QRCodeScanState.AnalyzeResult) -> Unit = { analyzeResult ->
     DefaultScanResultView(analyzeResult = analyzeResult,
@@ -168,19 +168,24 @@ fun QRCodeScanView(
       launchCamera.status == PermissionStatus.Granted
 
   BackHandler(enabled = enableBackHandler) {
-    val type = when (qrCodeScanState.state.value) {
-      QRCodeScanState.QRCodeState.Completed -> QRCodeScanState.QRCodeState.Scanning
+    when (qrCodeScanState.state.value) {
+      QRCodeScanState.QRCodeState.Completed -> {
+        qrCodeScanState.state.value = QRCodeScanState.QRCodeState.Scanning
+      }
       else -> {
-        QRCodeScanState.QRCodeState.Hide
+        qrCodeScanState.state.value = QRCodeScanState.QRCodeState.Hide
+        onClose()
       }
     }
-    qrCodeScanState.state.value = type
   }
   val context = LocalContext.current
 
   PermissionSingleView(
     permissionState = launchCamera,
-    onPermissionDenied = { qrCodeScanState.state.value = QRCodeScanState.QRCodeState.Hide }
+    onPermissionDenied = {
+      qrCodeScanState.state.value = QRCodeScanState.QRCodeState.Hide
+      onClose()
+    }
   ) {
 
     AnimatedContent(targetState = qrCodeScanState.state.value.type, label = "", transitionSpec = {
@@ -379,6 +384,20 @@ private fun DefaultScanResultView(
   DisposableEffect(animatedLinePosition) {
     pointScale.value = animatedLinePosition
     onDispose { }
+  }
+
+  LaunchedEffect(Unit) { // 判断是否只有一个结果，如果只有一个，等待500ms后，直接跳转
+    analyzeResult.barcodes?.let { barcodes ->
+      if (barcodes.size == 1) {
+        delay(500)
+        val data = try {
+          barcodes.first().displayValue ?: "data is null"
+        } catch (e: java.lang.Exception) {
+          "data get fail -> ${e.message}"
+        }
+        onDataCallback(data)
+      }
+    }
   }
 
   Box(
