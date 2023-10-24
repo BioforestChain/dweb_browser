@@ -15,7 +15,9 @@ export class HTMLDwebSplashScreenElement extends HTMLElement {
   }
 }
 
-customElements.define(HTMLDwebSplashScreenElement.tagName, HTMLDwebSplashScreenElement);
+if (!customElements.get(HTMLDwebSplashScreenElement.tagName)) {
+  customElements.define(HTMLDwebSplashScreenElement.tagName, HTMLDwebSplashScreenElement);
+}
 declare global {
   interface HTMLElementTagNameMap {
     [HTMLDwebSplashScreenElement.tagName]: HTMLDwebSplashScreenElement;

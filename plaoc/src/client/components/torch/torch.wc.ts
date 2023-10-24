@@ -14,7 +14,10 @@ export class HTMLDwebTorchElement extends HTMLElement {
     return torchPlugin.getTorchState;
   }
 }
-customElements.define(HTMLDwebTorchElement.tagName, HTMLDwebTorchElement);
+
+if (!customElements.get(HTMLDwebTorchElement.tagName)) {
+  customElements.define(HTMLDwebTorchElement.tagName, HTMLDwebTorchElement);
+}
 declare global {
   interface HTMLElementTagNameMap {
     [HTMLDwebTorchElement.tagName]: HTMLDwebTorchElement;

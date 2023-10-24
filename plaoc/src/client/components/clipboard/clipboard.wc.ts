@@ -15,8 +15,9 @@ export class HTMLDwebClipboardElement extends HTMLElement {
     return this.plugin.write;
   }
 }
-
-customElements.define(HTMLDwebClipboardElement.tagName, HTMLDwebClipboardElement);
+if (!customElements.get(HTMLDwebClipboardElement.tagName)) {
+  customElements.define(HTMLDwebClipboardElement.tagName, HTMLDwebClipboardElement);
+}
 declare global {
   interface HTMLElementTagNameMap {
     [HTMLDwebClipboardElement.tagName]: HTMLDwebClipboardElement;

@@ -50,7 +50,9 @@ export class HTMLDwebStatusBarElement extends HTMLElement {
   }
 }
 
-customElements.define(HTMLDwebStatusBarElement.tagName, HTMLDwebStatusBarElement);
+if (!customElements.get(HTMLDwebStatusBarElement.tagName)) {
+  customElements.define(HTMLDwebStatusBarElement.tagName, HTMLDwebStatusBarElement);
+}
 
 declare global {
   interface HTMLElementTagNameMap {

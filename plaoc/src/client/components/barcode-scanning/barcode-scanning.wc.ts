@@ -236,7 +236,7 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
         return { message: "camera already started" };
       }
       const parent = document.createElement("div");
-      parent.setAttribute("class","plaoc-scanning")
+      parent.setAttribute("class", "plaoc-scanning");
       // parent.setAttribute(
       //   "style",
       //   "position:fixed; top: 0; left: 0; width:100%; height: 100%; background-color: black;visibility: hidden;"
@@ -280,8 +280,9 @@ export class HTMLDwebBarcodeScanningElement extends HTMLElement {
     });
   }
 }
-
-customElements.define(HTMLDwebBarcodeScanningElement.tagName, HTMLDwebBarcodeScanningElement);
+if (!customElements.get(HTMLDwebBarcodeScanningElement.tagName)) {
+  customElements.define(HTMLDwebBarcodeScanningElement.tagName, HTMLDwebBarcodeScanningElement);
+}
 declare global {
   interface HTMLElementTagNameMap {
     [HTMLDwebBarcodeScanningElement.tagName]: HTMLDwebBarcodeScanningElement;

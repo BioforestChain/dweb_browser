@@ -46,7 +46,9 @@ export class HTMLDwebHapticsElement extends HTMLElement {
   }
 }
 
-customElements.define(HTMLDwebHapticsElement.tagName, HTMLDwebHapticsElement);
+if (!customElements.get(HTMLDwebHapticsElement.tagName)) {
+  customElements.define(HTMLDwebHapticsElement.tagName, HTMLDwebHapticsElement);
+}
 declare global {
   interface HTMLElementTagNameMap {
     [HTMLDwebHapticsElement.tagName]: HTMLDwebHapticsElement;

@@ -9,8 +9,9 @@ export class HTMLDeviceElement extends HTMLElement {
   }
 }
 
-// 注册
-customElements.define(HTMLDeviceElement.tagName, HTMLDeviceElement);
+if (!customElements.get(HTMLDeviceElement.tagName)) {
+  customElements.define(HTMLDeviceElement.tagName, HTMLDeviceElement);
+}
 declare global {
   interface HTMLElementTagNameMap {
     [HTMLDeviceElement.tagName]: HTMLDeviceElement;

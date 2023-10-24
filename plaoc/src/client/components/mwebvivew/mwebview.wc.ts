@@ -20,8 +20,9 @@ export class HTMLMWebviewElement extends HTMLElement {
     return this.plugin.closeApp();
   }
 }
-
-customElements.define(HTMLMWebviewElement.tagName, HTMLMWebviewElement);
+if (!customElements.get(HTMLMWebviewElement.tagName)) {
+  customElements.define(HTMLMWebviewElement.tagName, HTMLMWebviewElement);
+}
 declare global {
   interface HTMLElementTagNameMap {
     [HTMLMWebviewElement.tagName]: HTMLMWebviewElement;

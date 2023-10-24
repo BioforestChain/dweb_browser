@@ -29,7 +29,10 @@ export class HTMLDwebVirtualKeyboardElement extends HTMLStateObserverElement<
     return virtualKeyboardPlugin.getOverlay;
   }
 }
-customElements.define(HTMLDwebVirtualKeyboardElement.tagName, HTMLDwebVirtualKeyboardElement);
+
+if (!customElements.get(HTMLDwebVirtualKeyboardElement.tagName)) {
+  customElements.define(HTMLDwebVirtualKeyboardElement.tagName, HTMLDwebVirtualKeyboardElement);
+}
 declare global {
   interface HTMLElementTagNameMap {
     [HTMLDwebVirtualKeyboardElement.tagName]: HTMLDwebVirtualKeyboardElement;

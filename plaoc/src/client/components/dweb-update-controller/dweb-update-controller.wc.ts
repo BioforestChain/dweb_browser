@@ -31,7 +31,9 @@ export class HTMLDwebUpdateControllerElement extends HTMLElement {
   }
 }
 
-customElements.define(HTMLDwebUpdateControllerElement.tagName, HTMLDwebUpdateControllerElement);
+if (!customElements.get(HTMLDwebUpdateControllerElement.tagName)) {
+  customElements.define(HTMLDwebUpdateControllerElement.tagName, HTMLDwebUpdateControllerElement);
+}
 declare global {
   interface HTMLElementTagNameMap {
     [HTMLDwebUpdateControllerElement.tagName]: HTMLDwebUpdateControllerElement;

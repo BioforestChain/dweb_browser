@@ -17,4 +17,12 @@ export class HTMLBluetoothElement extends HTMLElement {
 }
 
 // 注册
-customElements.define(HTMLBluetoothElement.tagName, HTMLBluetoothElement);
+if (!customElements.get(HTMLBluetoothElement.tagName)) {
+  customElements.define(HTMLBluetoothElement.tagName, HTMLBluetoothElement);
+}
+
+declare global {
+  interface HTMLElementTagNameMap {
+    [HTMLBluetoothElement.tagName]: HTMLBluetoothElement;
+  }
+}
