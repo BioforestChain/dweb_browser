@@ -9,9 +9,9 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
@@ -20,6 +20,7 @@ import kotlinx.serialization.json.Json
 import org.dweb_browser.browserUI.util.BitmapUtil
 import org.dweb_browser.browserUI.util.BrowserUIApp
 import org.dweb_browser.helper.ImageResource
+import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.microservice.help.types.JmmAppInstallManifest
 import org.dweb_browser.microservice.help.types.MMID
 
@@ -31,7 +32,7 @@ enum class AppType {
 
 private const val DeskWebLinkStart = "file:///local_icons/"
 
-fun createDeskWebLink(title: String, url: String, bitmap: Bitmap?) : DeskWebLink {
+fun createDeskWebLink(title: String, url: String, bitmap: Bitmap?): DeskWebLink {
   val imageResource = bitmap?.let {
     BitmapUtil.saveBitmapToIcons(it)?.let { src ->
       ImageResource(src = "$DeskWebLinkStart$src")
@@ -71,7 +72,7 @@ object DeskAppInfoStore {
   private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = PREFERENCE_NAME)
 
   suspend fun saveAppInfo(mmid: MMID, metadata: JmmAppInstallManifest) =
-    runBlocking(Dispatchers.IO) {
+    runBlocking(ioAsyncExceptionHandler) {
       // edit 函数需要在挂起环境中执行
       BrowserUIApp.Instance.appContext.dataStore.edit { pref ->
         pref[stringPreferencesKey("${AppType.MetaData}$mmid")] = Json.encodeToString(metadata)
@@ -79,12 +80,27 @@ object DeskAppInfoStore {
     }
 
   suspend fun saveWebLink(item: DeskWebLink) =
-    runBlocking(Dispatchers.IO) {
+    runBlocking(ioAsyncExceptionHandler) {
       // edit 函数需要在挂起环境中执行
       BrowserUIApp.Instance.appContext.dataStore.edit { pref ->
         pref[stringPreferencesKey(item.id)] = Json.encodeToString(item)
       }
     }
+
+  suspend fun getWebLinkByUrl(url: String) =
+    BrowserUIApp.Instance.appContext.dataStore.data.map { pref ->
+      var item: DeskWebLink? = null
+      pref.asMap().forEach { (key, value) ->
+        if (key.name.startsWith(AppType.URL.name)) {
+          val data = Json.decodeFromString<DeskWebLink>(value as String)
+          if (data.url == url) {
+            item = data
+            return@forEach
+          }
+        }
+      }
+      item
+    }.first()
 
   suspend fun deleteDeskAppInfo(mmid: MMID) {
     BrowserUIApp.Instance.appContext.dataStore.edit { pref ->

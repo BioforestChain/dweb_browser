@@ -160,6 +160,8 @@ class HistoryViewModel : ViewModel() {
               currentKey = stickyName
               list = mutableStateListOf()
             }
+            // 增加判断是否重复，当天重复的只显示最后一个
+            list.removeIf { item -> item.url == webSiteInfo.url }
             list.add(0, webSiteInfo)
           }
           currentKey?.let { key -> historyList.add(0, WebSiteInfoList(key, list)) }

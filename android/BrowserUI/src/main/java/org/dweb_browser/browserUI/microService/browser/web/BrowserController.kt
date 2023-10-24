@@ -10,7 +10,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.dweb_browser.browserUI.R
 import org.dweb_browser.browserUI.database.DeskAppInfoStore
 import org.dweb_browser.browserUI.database.createDeskWebLink
 import org.dweb_browser.browserUI.ui.browser.BrowserViewModel
@@ -64,9 +63,6 @@ class BrowserController(
         state.focus = true // 全屏和focus同时满足，才能显示浮窗而不是侧边栏
         state.setFromManifest(browserNMM)
       })
-      newWin.state.closeTip =
-        newWin.manager?.state?.viewController?.androidContext?.getString(R.string.browser_confirm_to_close)
-          ?: ""
       this.win = newWin
       val wid = newWin.id
       /// 提供渲染适配
@@ -92,6 +88,10 @@ class BrowserController(
     }
   }
 
-  suspend fun addUrlToDesktop(title: String, url: String, icon: Bitmap?) =
-    DeskAppInfoStore.saveWebLink(createDeskWebLink(title, url, icon))
+  suspend fun addUrlToDesktop(title: String, url: String, icon: Bitmap?) {
+    // 如果获取到url，则不执行添加操作
+    DeskAppInfoStore.getWebLinkByUrl(url) ?: run {
+      DeskAppInfoStore.saveWebLink(createDeskWebLink(title, url, icon))
+    }
+  }
 }
