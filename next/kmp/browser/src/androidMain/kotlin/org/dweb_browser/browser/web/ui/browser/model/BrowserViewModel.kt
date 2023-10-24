@@ -454,7 +454,9 @@ class BrowserViewModel(
   suspend fun openQRCodeScanning() {
     val data = browserNMM.nativeFetch("file://barcode-scanning.sys.dweb/open").body.toPureString()
     // 如果是url，进行跳转，如果不是，就直接弹出对话框
-    handleIntent(BrowserIntent.SearchWebView(data))
+    if (data.isNotEmpty()) {
+      handleIntent(BrowserIntent.SearchWebView(data))
+    }
   }
 }
 
