@@ -1,94 +1,81 @@
-import co.touchlab.cklib.gradle.CompileToBitcode.Language.C
-
 plugins {
-    alias(libs.plugins.kotlinxMultiplatform)
-    alias(libs.plugins.androidLibrary)
-    alias(libs.plugins.cklib)
+  alias(libs.plugins.kotlinxMultiplatform)
+  alias(libs.plugins.androidLibrary)
 }
 
 @OptIn(org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi::class)
 kotlin {
-    targetHierarchy.default()
+  targetHierarchy.default()
 
-    androidTarget {
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = libs.versions.jvmTarget.get()
-            }
-        }
+  androidTarget {
+    compilations.all {
+      kotlinOptions {
+        jvmTarget = libs.versions.jvmTarget.get()
+      }
     }
-    jvmToolchain {
-        languageVersion.set(JavaLanguageVersion.of(libs.versions.jvmTarget.get()))
+  }
+
+  jvmToolchain {
+    languageVersion.set(JavaLanguageVersion.of(libs.versions.jvmTarget.get()))
+  }
+
+  listOf(
+    iosX64(),
+    iosArm64(),
+    iosSimulatorArm64()
+  ).forEach {
+    it.binaries.framework {
+      baseName = "ziplib"
+    }
+    val main by it.compilations.getting
+    main.cinterops.create("ziplib") {
+      includeDirs(project.file("src/nativeInterop/cinterop/headers/ziplib"), project.file("src/libs/${it.targetName}"))
+    }
+  }
+
+  sourceSets {
+    all {
+      languageSettings.optIn("kotlinx.cinterop.ExperimentalForeignApi")
     }
 
-    listOf(
-        iosX64(),
-        iosArm64(),
-        iosSimulatorArm64()
-    ).forEach {
-        it.binaries {
-            framework {
-                baseName = "ziplib"
-            }
-        }
-        val main by it.compilations.getting
-        main.cinterops.create("miniz") {
-            header("native/miniz/zip.h")
-        }
+    val commonMain by getting {
+      dependencies {
+        //put your multiplatform dependencies here
+        api(libs.kotlinx.atomicfu)
+        implementation(libs.squareup.okio)
+        implementation(libs.kotlinx.datetime)
+      }
+    }
+    val commonTest by getting {
+      dependencies {
+        kotlin("test")
+      }
     }
 
-    sourceSets {
-        val commonMain by getting {
-            dependencies {
-                //put your multiplatform dependencies here
-            }
-        }
-        val commonTest by getting {
-            dependencies {
-                kotlin("test")
-            }
-        }
-
-        val androidMain by getting {
-            dependencies {
-                implementation(project(":helper"))
-            }
-        }
-
-        val iosX64Main by getting
-        val iosArm64Main by getting
-        val iosSimulatorArm64Main by getting
-        val iosMain by getting {
-            dependsOn(commonMain)
-            iosX64Main.dependsOn(this)
-            iosArm64Main.dependsOn(this)
-            iosSimulatorArm64Main.dependsOn(this)
-        }
+    val androidMain by getting {
+      dependsOn(commonMain)
+      dependencies {
+        implementation(libs.java.jna)
+      }
     }
-}
 
-cklib {
-    config.kotlinVersion = libs.versions.kotlin.version.get()
-    create("miniz") {
-        language = C
-        srcDirs = project.files(file("native/miniz"))
+    val iosX64Main by getting
+    val iosArm64Main by getting
+    val iosSimulatorArm64Main by getting
+    val iosMain by getting {
+      dependsOn(commonMain)
+      iosX64Main.dependsOn(this)
+      iosArm64Main.dependsOn(this)
+      iosSimulatorArm64Main.dependsOn(this)
     }
+  }
 }
 
 android {
-    namespace = "org.dweb_browser.ziplib"
-    compileSdk = 34
-    defaultConfig {
-        minSdk = 28
-
-        ndk {
-            abiFilters += listOf("x86", "x86_64", "armeabi-v7a", "arm64-v8a")
-        }
-    }
-
-    externalNativeBuild {
-        cmake {
-            path = file("src/androidMain/CMakeLists.txt")
-        }
-    }
+  namespace = "org.dweb_browser.ziplib"
+  compileSdk = 34
+  defaultConfig {
+    minSdk = 29
+    consumerProguardFiles("consumer-rules.pro")
+  }
 }

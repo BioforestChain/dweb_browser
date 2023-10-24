@@ -10,7 +10,6 @@ import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.file.FileNMM
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.randomUUID
-import org.dweb_browser.ziplib.decompress
 
 class ZipNMM : NativeMicroModule("zip.browser.dweb", "Zip") {
     init {

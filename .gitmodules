@@ -4,6 +4,3 @@
 [submodule "toolkit/plaoc-html-demo"]
 	path = toolkit/plaoc-html-demo
 	url = https://github.com/HighValyrian/plaoc-html-demo
-[submodule "toolkit/cklib"]
-	path = toolkit/cklib
-	url = https://github.com/kingsword09/cklib

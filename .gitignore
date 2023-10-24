@@ -40,3 +40,6 @@ plaoc/cli/bin
 # bak
 .*.bak
 *.bak
+
+# rust
+next/kmp/ziplib/uniffi/target

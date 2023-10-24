@@ -65,6 +65,9 @@ material3Android = "1.2.0-alpha07"
 kotlinPluginSerializationVersion = "1.9.10"
 kotlinxSerializationVersion = "1.6.0"
 
+# jna
+java-jna-version = "5.13.0"
+
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidx-test-ext-junit" }
@@ -184,6 +187,8 @@ test-junit-vintage-engine = { group = "org.junit.vintage", name = "junit-vintage
 
 # webrtc
 webrtc-kmp = { group = "com.shepeliev", name = "webrtc-kmp", version.ref = "webrtc-kmp-version" }
+# jna
+java-jna = { module = "net.java.dev.jna:jna", version.ref = "java-jna-version" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
