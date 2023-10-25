@@ -1,5 +1,5 @@
 /// <reference lib="dom"/>
-import { isWindows } from "https://deno.land/std@0.182.0/_util/os.ts";
+import { isWindows } from "https://deno.land/std@0.193.0/_util/os.ts";
 import { webcrypto } from "node:crypto";
 import path from "node:path";
 import process from "node:process";

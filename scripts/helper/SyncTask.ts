@@ -1,6 +1,6 @@
-import { debounce } from "https://deno.land/std@0.182.0/async/debounce.ts";
-import { copySync } from "https://deno.land/std@0.182.0/fs/copy.ts";
-import { emptyDirSync } from "https://deno.land/std@0.182.0/fs/empty_dir.ts";
+import { debounce } from "https://deno.land/std@0.193.0/async/debounce.ts";
+import { copySync } from "https://deno.land/std@0.193.0/fs/copy.ts";
+import { emptyDirSync } from "https://deno.land/std@0.193.0/fs/empty_dir.ts";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
@@ -63,7 +63,7 @@ export class SyncTask {
   watch(recursive = true) {
     const watcherList = this.tasks.map((task) => {
       const watcher = (() => {
-        // https://deno.land/std@0.186.0/fs/mod.ts?s=existsSync
+        // https://deno.land/std@0.193.0/fs/mod.ts?s=existsSync
         // deno去掉了exists和existsSync方法，改用try/catch方式处理
         console.log("watching", task.from);
         Deno.mkdirSync(task.from, { recursive: true });

@@ -2,6 +2,7 @@ import { assetsTasks } from "../desktop-dev/scripts/assets-tasks.ts";
 import { toolkitTasks } from "../toolkit/toolkit-dev.ts";
 
 import { ConTasks, ExitAbortController } from "./helper/ConTasks.ts";
+import { spmTasks } from "./iOS-spm.ts";
 export const devTasks = new ConTasks(
   {
     "plaoc:server": {
@@ -29,7 +30,8 @@ export const devTasks = new ConTasks(
   import.meta.resolve("../")
 )
   .merge(assetsTasks, "assets:")
-  .merge(toolkitTasks, "toolkit:");
+  .merge(toolkitTasks, "toolkit:")
+  .merge(spmTasks, "spmTask:");
 
 if (import.meta.main) {
   Deno.addSignalListener("SIGINT", () => {

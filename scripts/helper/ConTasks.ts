@@ -6,12 +6,14 @@ import picocolors from "npm:picocolors";
 import { PromiseOut } from "../../desktop-dev/src/helper/PromiseOut.ts";
 import { mapHelper } from "../../desktop-dev/src/helper/mapHelper.ts";
 import { whichSync } from "./WhichCommand.ts";
+import { DenoOS } from "../deps.ts";
 
 export const ExitAbortController = new AbortController();
 export type $Tasks = Record<string, $Task>;
 export type $Task = {
   cmd: string;
   args: string[] | string;
+  os?: DenoOS.OSType;
   cwd?: string;
   signal?: AbortSignal;
   devArgs?: string[] | string;
@@ -264,6 +266,11 @@ export class ConTasks {
       if (this.tasks[newTaskName]) {
         throw new Error(`Duplicate task name: ${newTaskName}`);
       }
+
+      if(task.os && task.os !== Deno.build.os) {
+        continue;
+      }
+
       this.tasks[newTaskName] = task;
     }
     return this;
