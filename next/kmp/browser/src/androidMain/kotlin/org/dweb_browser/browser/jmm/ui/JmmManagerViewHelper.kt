@@ -46,10 +46,18 @@ class JmmManagerViewHelper(
       println("watch=> ${this.status.state.name} ${this.status.current}")
 
       if (this.status.state == DownloadState.Downloading) {
+        uiState.downloadSize.value = this.status.current
+        uiState.downloadStatus.value = JmmDownloadStatus.Downloading
       }
       // 下载完成触发解压
       if (this.status.state == DownloadState.Completed) {
-        jmmController.decompress(this)
+        val success = jmmController.decompress(this)
+        if (success) {
+          uiState.downloadStatus.value = JmmDownloadStatus.INSTALLED
+        } else {
+          uiState.downloadSize.value = 0L
+          uiState.downloadStatus.value = JmmDownloadStatus.Failed
+        }
       }
     }
     // 已经注册完监听了，开始

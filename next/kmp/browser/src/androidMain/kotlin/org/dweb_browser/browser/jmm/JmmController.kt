@@ -42,7 +42,6 @@ class JmmController(
       }.also { viewDeferred.complete(it) }
       bottomSheets.open()
     }
-
   }
 
   suspend fun openApp(mmid: MMID) {
@@ -90,12 +89,12 @@ class JmmController(
     return response.boolean()
   }
 
-  suspend fun decompress(task: DownloadTask) {
+  suspend fun decompress(task: DownloadTask) : Boolean {
     var jmm = task.url.substring(task.url.lastIndexOf("/") + 1)
     jmm = jmm.substring(0, jmm.lastIndexOf("."))
     val sourcePath = jmmNMM.nativeFetch("file://file.std.dweb/picker?path=${task.filepath}").text()
     val targetPath = jmmNMM.nativeFetch("file://file.std.dweb/picker?path=/data/apps/${jmm}").text()
-    jmmNMM.nativeFetch("file://zip.browser.dweb/decompress?sourcePath=$sourcePath&targetPath=$targetPath ")
+    return jmmNMM.nativeFetch("file://zip.browser.dweb/decompress?sourcePath=$sourcePath&targetPath=$targetPath ").boolean()
   }
 
   suspend fun closeSelf() {

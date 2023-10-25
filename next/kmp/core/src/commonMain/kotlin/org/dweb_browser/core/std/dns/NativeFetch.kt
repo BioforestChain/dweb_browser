@@ -10,8 +10,6 @@ import io.ktor.util.decodeBase64Bytes
 import io.ktor.util.toLowerCasePreservingASCIIRules
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.core.help.AdapterManager
 import org.dweb_browser.core.help.toHttpRequestBuilder
 import org.dweb_browser.core.help.toPureResponse
@@ -100,12 +98,20 @@ class NativeFetchAdaptersManager : AdapterManager<FetchAdapter>() {
         }
         val responsePo = PromiseOut<PureResponse>()
         CoroutineScope(ioAsyncExceptionHandler).launch {
-          client.prepareRequest(request.toHttpRequestBuilder()).execute {
-            debugFetch("httpFetch execute", request.href)
-            val byteChannel = it.bodyAsChannel()
-            val streamBody = PureStreamBody(byteChannel)
-            val response = it.toPureResponse(body = streamBody)
-            debugFetch("httpFetch response", request.href)
+          try {
+            client.prepareRequest(request.toHttpRequestBuilder()).execute {
+              debugFetch("httpFetch execute", request.href)
+              val byteChannel = it.bodyAsChannel()
+              val streamBody = PureStreamBody(byteChannel)
+              val response = it.toPureResponse(body = streamBody)
+              debugFetch("httpFetch response", request.href)
+              responsePo.resolve(response)
+            }
+          } catch (e: Throwable) {
+            val response = PureResponse(
+              HttpStatusCode.ServiceUnavailable,
+              body = PureStringBody(request.url.toString() + "\n" + e.stackTraceToString())
+            )
             responsePo.resolve(response)
           }
         }
