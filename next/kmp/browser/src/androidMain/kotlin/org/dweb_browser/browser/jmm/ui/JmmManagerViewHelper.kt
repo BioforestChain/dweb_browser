@@ -6,7 +6,7 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.download.DownloadState
-import org.dweb_browser.browser.jmm.JmmController
+import org.dweb_browser.browser.jmm.JsMicroModuleInstallController
 import org.dweb_browser.browser.jmm.JmmNMM
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.sys.download.JmmDownloadStatus
@@ -34,14 +34,14 @@ data class JmmUIState(
 )
 
 class JmmManagerViewHelper(
-  jmmAppInstallManifest: JmmAppInstallManifest, private val jmmController: JmmController
+  jmmAppInstallManifest: JmmAppInstallManifest, private val jsMicroModuleInstallController: JsMicroModuleInstallController
 ) {
   val uiState: JmmUIState = JmmUIState(jmmAppInstallManifest)
-  private val jmmNMM = jmmController.jmmNMM
+  private val jmmNMM = jsMicroModuleInstallController.jmmNMM
 
   fun startDownload() = jmmNMM.ioAsyncScope.launch {
-    val taskId = jmmController.createDownloadTask(uiState.jmmAppInstallManifest.bundle_url)
-    jmmController.watchProcess(taskId) {
+    val taskId = jsMicroModuleInstallController.createDownloadTask(uiState.jmmAppInstallManifest.bundle_url)
+    jsMicroModuleInstallController.watchProcess(taskId) {
       println("watch=> ${this.status.state.name} ${this.status.current}")
 
       if (this.status.state == DownloadState.Downloading) {
@@ -50,7 +50,7 @@ class JmmManagerViewHelper(
       }
       // 下载完成触发解压
       if (this.status.state == DownloadState.Completed) {
-        val success = jmmController.decompress(this)
+        val success = jsMicroModuleInstallController.decompress(this)
         if (success) {
           uiState.downloadStatus.value = JmmDownloadStatus.INSTALLED
         } else {
@@ -60,23 +60,23 @@ class JmmManagerViewHelper(
       }
     }
     // 已经注册完监听了，开始
-    jmmController.start()
+    jsMicroModuleInstallController.start()
   }
 
   fun pause() = jmmNMM.ioAsyncScope.launch {
-    jmmController.pause().falseAlso {
+    jsMicroModuleInstallController.pause().falseAlso {
       uiState.downloadStatus.value = JmmDownloadStatus.Failed
     }
   }
 
   fun start() = jmmNMM.ioAsyncScope.launch {
-    jmmController.start().falseAlso {
+    jsMicroModuleInstallController.start().falseAlso {
       uiState.downloadStatus.value = JmmDownloadStatus.Failed
     }
   }
 
   fun open() = jmmNMM.ioAsyncScope.launch {
-    jmmController.openApp(uiState.jmmAppInstallManifest.id)
+    jsMicroModuleInstallController.openApp(uiState.jmmAppInstallManifest.id)
   }
 
 }

@@ -16,7 +16,7 @@ import org.dweb_browser.sys.window.core.WindowRenderScope
 import org.dweb_browser.sys.window.render.LocalWindowController
 
 @Composable
-fun JmmController.Render(modifier: Modifier, renderScope: WindowRenderScope) {
+fun JsMicroModuleInstallController.Render(modifier: Modifier, renderScope: WindowRenderScope) {
   val jmmController = this
   val scope = rememberCoroutineScope()
   val win = LocalWindowController.current

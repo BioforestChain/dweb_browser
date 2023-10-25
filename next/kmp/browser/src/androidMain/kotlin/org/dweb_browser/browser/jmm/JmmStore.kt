@@ -2,50 +2,46 @@ package org.dweb_browser.browser.jmm
 
 import kotlinx.serialization.Serializable
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
+import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.file.ext.createStore
 import org.dweb_browser.helper.ImageResource
 
+@Serializable
+data class JsMicroModuleDBItem(val installManifest: JmmAppInstallManifest, val originUrl: String)
+
 class JmmStore(microModule: MicroModule) {
   private val store = microModule.createStore("JmmApps", false)
 
-  suspend fun getOrPut(key: String, value: DeskAppInfo): DeskAppInfo {
+  suspend fun getOrPut(key: MMID, value: JsMicroModuleDBItem): JsMicroModuleDBItem {
     return store.getOrPut(key) { value }
   }
 
-  suspend fun get(key: String): DeskAppInfo {
-    return store.get(key)
+  suspend fun get(key: MMID): JsMicroModuleDBItem? {
+    return store.getOrNull(key)
   }
 
-  suspend fun getAll(): MutableMap<String, DeskAppInfo> {
+  suspend fun getAll(): MutableMap<MMID, JsMicroModuleDBItem> {
     return store.getAll()
   }
 
-  suspend fun set(key: String, value: DeskAppInfo) {
+  suspend fun set(key: MMID, value: JsMicroModuleDBItem) {
     store.set(key, value)
   }
-  suspend fun delete(key: String): Boolean {
-   return store.delete(key)
+
+  suspend fun delete(key: MMID): Boolean {
+    return store.delete(key)
   }
 }
 
-enum class AppType(val type: String) {
-  Jmm("jmm"),
-  Link("link"),
-}
 
 @Serializable
-data class DeskWebLink(
-  val id: String,
-  val title: String,
-  val url: String,
-  val icon: ImageResource
+data class WebLinkManifest(
+  val id: String, val title: String, val url: String, val icons: List<ImageResource>
 )
 
 @Serializable
-data class DeskAppInfo(
-  val appType: AppType,
-  val metadata: JmmAppInstallManifest? = null,
-  val weblink: DeskWebLink? = null,
+data class LinkMicroModuleDBItem(
+  val weblink: WebLinkManifest,
 )
 

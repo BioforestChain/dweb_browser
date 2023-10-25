@@ -58,7 +58,7 @@ export async function doToggleTaskbar(toggle?: boolean) {
 
 /** 点击打开应用详情下载页 */
 export async function detailApp(id: string) {
-  return await nativeFetch<boolean>("/detailApp", {
+  return await nativeFetch<boolean>("/detail", {
     search: {
       app_id: id,
     },

@@ -3,14 +3,10 @@ package org.dweb_browser.browser.jmm
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLBuilder
-import io.ktor.http.Url
-import kotlinx.coroutines.launch
-import org.dweb_browser.browser.link.WebLinkMicroModule
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
-import org.dweb_browser.core.http.PureResponse
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.bindDwebDeeplink
 import org.dweb_browser.core.module.BootstrapContext
@@ -19,11 +15,8 @@ import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
 import org.dweb_browser.core.std.file.ext.RespondLocalFileContext.Companion.respondLocalFile
 import org.dweb_browser.core.sys.dns.returnAndroidFile
-import org.dweb_browser.core.sys.download.JmmDownloadInfo
-import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
-import org.dweb_browser.helper.isGreaterThan
 import org.dweb_browser.helper.resolvePath
 
 val debugJMM = Debugger("JMM")
@@ -61,7 +54,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
   /**
    * jmm app数据
    */
-  private val downloadingApp = ChangeableMap<MMID, JmmDownloadInfo>() // 正在下载的列表
+  private val controllerMap = mutableMapOf<MMID, JsMicroModuleInstallController>()
 
   fun getApps(mmid: MMID): IMicroModuleManifest? {
     return bootstrapContext.dns.query(mmid)
@@ -69,33 +62,23 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
     val store = JmmStore(this)
-    installJmmApps(store)
+    /**
+     * 从磁盘中恢复应用
+     */
+    for (dbItem in store.getAll().values) {
+      bootstrapContext.dns.install(JsMicroModule(dbItem.installManifest))
+    }
 
-    val routeInstallHandler = definePureResponse {
+    val routeInstallHandler = defineEmptyResponse {
       val metadataUrl = request.query("url")
       val response = nativeFetch(metadataUrl)
-      if (response.isOk()) {
-        try {
-          val jmmAppInstallManifest = response.json<JmmAppInstallManifest>()
-          debugJMM("listenDownload", "$metadataUrl ${jmmAppInstallManifest.id}")
-          bootstrapContext.dns.query(jmmAppInstallManifest.id)?.let { currentApp ->
-            if (jmmAppInstallManifest.version.isGreaterThan(currentApp.version)) {
-
-            }
-          }
-
-          val url = Url(metadataUrl)
-          // 根据 jmmMetadata 打开一个应用信息的界面，用户阅读界面信息后，可以点击"安装"
-          installJsMicroModule(jmmAppInstallManifest, url)
-          PureResponse(HttpStatusCode.OK)
-        } catch (e: Throwable) {
-          e.printStackTrace()
-          debugJMM("install", "fail -> ${e.message}")
-          PureResponse(HttpStatusCode.ExpectationFailed).body(e.stackTraceToString())
-        }
-      } else {
-        PureResponse(HttpStatusCode.ExpectationFailed).body("invalid status code: ${response.status}")
+      if (!response.isOk()) {
+        throwException(HttpStatusCode.ExpectationFailed, "invalid status code: ${response.status}")
       }
+      val jmmAppInstallManifest = response.json<JmmAppInstallManifest>()
+      val mmid = jmmAppInstallManifest.id
+      debugJMM("listenDownload", "$metadataUrl $mmid")
+      openInstaller(jmmAppInstallManifest, metadataUrl)
     }
     routes(
       // 安装
@@ -105,83 +88,42 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
         val mmid = request.query("app_id")
         debugJMM("uninstall", mmid)
         uninstall(mmid, ipc.remote.version)
-        // 在缓存中移除
+        // 从磁盘中移除
         store.delete(mmid)
         true
       },
       // app详情
-      "/detailApp" bind HttpMethod.Get to defineBooleanResponse {
+      "/detail" bind HttpMethod.Get to defineBooleanResponse {
         val mmid = request.query("app_id")
         debugJMM("detailApp", mmid)
-        val microModule = bootstrapContext.dns.query(mmid)
-        if (microModule is JsMicroModule) {
-          installJsMicroModule(microModule.metadata)
-          true
-        } else {
-          false
-        }
+        val info = store.get(mmid) ?: return@defineBooleanResponse false
+        openInstaller(info.installManifest, info.originUrl)
+        true
       })
   }
 
-  override suspend fun _shutdown() {
-  }
 
-  /**
-   * 从内存中加载数据
-   */
-  private fun installJmmApps(store: JmmStore) {
-    ioAsyncScope.launch {
-      store.getAll().map { (key, deskAppInfo) ->
-        when (deskAppInfo.appType) {
-          AppType.Jmm -> deskAppInfo.metadata?.let { jsMetaData ->
-            // 检测版本
-            bootstrapContext.dns.query(jsMetaData.id)?.let { lastMetaData ->
-              if (jsMetaData.version.isGreaterThan(lastMetaData.version)) {
-                bootstrapContext.dns.close(lastMetaData.mmid)
-              }
-            }
-            bootstrapContext.dns.install(JsMicroModule(jsMetaData))
-          }
-
-          AppType.Link -> deskAppInfo.weblink?.let { deskWebLink ->
-            bootstrapContext.dns.install(
-              WebLinkMicroModule(
-                deskWebLink
-              )
-            )
-          }
-
-          else -> {}
-        }
-      }
-    }
-  }
-
-  private fun installJsMicroModule(
-    jmmAppInstallManifest: JmmAppInstallManifest, url: Url? = null,
-  ): JmmController {
-    if (!jmmAppInstallManifest.bundle_url.startsWith("http")) {
-      url?.let {
-        jmmAppInstallManifest.bundle_url = URLBuilder(it).run {
-          resolvePath(jmmAppInstallManifest.bundle_url);
-          buildString()
-        }
+  private suspend fun openInstaller(
+    jmmAppInstallManifest: JmmAppInstallManifest, originUrl: String,
+  ) {
+    if (!jmmAppInstallManifest.bundle_url.let { it.startsWith("http://") || it.startsWith("https://") }) {
+      jmmAppInstallManifest.bundle_url = URLBuilder(originUrl).run {
+        resolvePath(jmmAppInstallManifest.bundle_url);
+        buildString()
       }
     }
     debugJMM("openJmmMetadataInstallPage", jmmAppInstallManifest.bundle_url)
-    return JmmController(
+    val controller = JsMicroModuleInstallController(
       this@JmmNMM, jmmAppInstallManifest
-    ).also {
-      it.onDownloadCompleted {
-        bootstrapContext.dns.query(jmmAppInstallManifest.id)?.let { lastMetaData ->
-          bootstrapContext.dns.close(lastMetaData.mmid)
-        }
-        bootstrapContext.dns.install(JsMicroModule(jmmAppInstallManifest))
-        JmmStore(this@JmmNMM).set(
-          jmmAppInstallManifest.id, DeskAppInfo(AppType.Jmm, jmmAppInstallManifest)
-        )
-      }
+    )
+    controller.onDownloadCompleted {
+      bootstrapContext.dns.uninstall(jmmAppInstallManifest.id)
+      bootstrapContext.dns.install(JsMicroModule(jmmAppInstallManifest))
+      JmmStore(this@JmmNMM).set(
+        jmmAppInstallManifest.id, JsMicroModuleDBItem(jmmAppInstallManifest, originUrl)
+      )
     }
+    controller.openRender()
   }
 
   private suspend fun uninstall(mmid: MMID, version: String) {
@@ -189,5 +131,8 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
     bootstrapContext.dns.uninstall(mmid)
     // 在存储中移除文件
     nativeFetch("file://file.std.dweb/remove?path=/data/app/${mmid}-${version}&recursive=true")
+  }
+
+  override suspend fun _shutdown() {
   }
 }

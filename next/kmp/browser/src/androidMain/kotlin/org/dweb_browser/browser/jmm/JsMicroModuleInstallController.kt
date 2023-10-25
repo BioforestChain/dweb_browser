@@ -19,7 +19,10 @@ import org.dweb_browser.helper.consumeEachJsonLine
 import org.dweb_browser.sys.window.ext.WindowBottomSheetsController
 import org.dweb_browser.sys.window.ext.createBottomSheets
 
-class JmmController(
+/**
+ * JS 模块安装 的 控制器
+ */
+class JsMicroModuleInstallController(
   val jmmNMM: JmmNMM, jmmAppInstallManifest: JmmAppInstallManifest
 ) {
 
@@ -34,14 +37,12 @@ class JmmController(
   private val viewDeferred = CompletableDeferred<WindowBottomSheetsController>()
   suspend fun getView() = viewDeferred.await()
 
-  init {
-    jmmNMM.ioAsyncScope.launch {
-      /// 提供渲染适配
-      val bottomSheets = jmmNMM.createBottomSheets { modifier ->
-        Render(modifier, this)
-      }.also { viewDeferred.complete(it) }
-      bottomSheets.open()
-    }
+  suspend fun openRender(){
+    /// 提供渲染适配
+    val bottomSheets = jmmNMM.createBottomSheets { modifier ->
+      Render(modifier, this)
+    }.also { viewDeferred.complete(it) }
+    bottomSheets.open()
   }
 
   suspend fun openApp(mmid: MMID) {

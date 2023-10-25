@@ -91,15 +91,7 @@ export class JmmNMM extends NativeMicroModule {
     const query_url = zq.object({ url: z.string().url() });
 
     const onFetchMatcher = fetchMatch()
-      .get("/openApp", async (event) => {
-        const { app_id: mmid } = query_app_id(event.searchParams);
-        return Response.json(await this.openApp(context, mmid));
-      })
-      .get("/closeApp", async (event) => {
-        const { app_id: mmid } = query_app_id(event.searchParams);
-        return Response.json(await this.closeApp(context, mmid));
-      })
-      .get("/detailApp", async (event) => {
+      .get("/detail", async (event) => {
         const { app_id: mmid } = query_app_id(event.searchParams);
         const appInfo = await JMM_DB.find(mmid);
         if (appInfo === undefined) {
