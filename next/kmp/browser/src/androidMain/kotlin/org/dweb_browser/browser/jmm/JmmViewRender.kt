@@ -10,6 +10,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.jmm.render.MALLBrowserView
+import org.dweb_browser.browser.jmm.ui.LocalJmmNMM
 import org.dweb_browser.browser.jmm.ui.LocalJmmViewHelper
 import org.dweb_browser.sys.window.core.WindowRenderScope
 import org.dweb_browser.sys.window.render.LocalWindowController
@@ -25,7 +26,8 @@ fun JmmController.Render(modifier: Modifier, renderScope: WindowRenderScope) {
   }
 
   CompositionLocalProvider(
-    LocalJmmViewHelper provides jmmController.viewModel
+    LocalJmmViewHelper provides jmmController.viewModel,
+    LocalJmmNMM provides jmmController.jmmNMM
   ) {
     Box(modifier = modifier) {
       Box(modifier = with(renderScope) {

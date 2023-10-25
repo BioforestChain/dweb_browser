@@ -18,7 +18,7 @@ import org.dweb_browser.sys.window.ext.WindowBottomSheetsController
 import org.dweb_browser.sys.window.ext.createBottomSheets
 
 class JmmController(
-  private val jmmNMM: JmmNMM, jmmAppInstallManifest: JmmAppInstallManifest
+  val jmmNMM: JmmNMM, jmmAppInstallManifest: JmmAppInstallManifest
 ) {
 
   // 一个jmmManager 只会创建一个task

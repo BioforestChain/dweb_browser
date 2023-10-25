@@ -4,11 +4,14 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
+import kotlinx.coroutines.launch
 import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.browser.jmm.JmmController
+import org.dweb_browser.browser.jmm.JmmNMM
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.sys.download.JmmDownloadStatus
 import org.dweb_browser.helper.compose.noLocalProvidedFor
+import org.dweb_browser.helper.falseAlso
 
 internal val LocalShowWebViewVersion = compositionLocalOf {
   mutableStateOf(false)
@@ -20,6 +23,9 @@ internal val LocalShowWebViewHelper = compositionLocalOf {
 internal val LocalJmmViewHelper = compositionLocalOf<JmmManagerViewHelper> {
   noLocalProvidedFor("LocalJmmViewHelper")
 }
+internal val LocalJmmNMM = compositionLocalOf<JmmNMM> {
+  noLocalProvidedFor("JmmNMM")
+}
 
 data class JmmUIState(
   val jmmAppInstallManifest: JmmAppInstallManifest,
@@ -27,61 +33,43 @@ data class JmmUIState(
   val downloadStatus: MutableState<JmmDownloadStatus> = mutableStateOf(JmmDownloadStatus.Init)
 )
 
-sealed class JmmIntent {
-  data object ButtonFunction : JmmIntent()
-  data object DestroyActivity : JmmIntent()
-}
-
 class JmmManagerViewHelper(
-  jmmAppInstallManifest: JmmAppInstallManifest,
-  private val jmmController: JmmController
+  jmmAppInstallManifest: JmmAppInstallManifest, private val jmmController: JmmController
 ) {
   val uiState: JmmUIState = JmmUIState(jmmAppInstallManifest)
+  private val jmmNMM = jmmController.jmmNMM
 
-  suspend fun handlerIntent(action: JmmIntent) {
-    if (action == JmmIntent.DestroyActivity) {
-      // TODO 移除监听
-      return
+  fun startDownload() = jmmNMM.ioAsyncScope.launch {
+    val taskId = jmmController.createDownloadTask(uiState.jmmAppInstallManifest.bundle_url)
+    jmmController.taskId = taskId
+    jmmController.watchProcess(taskId) {
+      println("watch=> ${this.status.state.name} ${this.status.current}")
+
+      if (this.status.state == DownloadState.Downloading) {
+      }
+      // 下载完成触发解压
+      if (this.status.state == DownloadState.Completed) {
+        jmmController.decompress(this)
+      }
     }
+    // 已经注册完监听了，开始
+    jmmController.start()
+  }
 
-    when (uiState.downloadStatus.value) {
-      JmmDownloadStatus.Init, JmmDownloadStatus.Failed, JmmDownloadStatus.Canceld, JmmDownloadStatus.NewVersion -> { // 空闲点击是下载，失败点击也是重新下载
-        val taskId = jmmController.createDownloadTask(uiState.jmmAppInstallManifest.bundle_url)
-        jmmController.taskId = taskId
-        jmmController.watchProcess(taskId) {
-          println("watch=> ${this.status.state.name} ${this.status.current}")
-
-          if (this.status.state == DownloadState.Downloading) {
-          }
-          // 下载完成触发解压
-          if (this.status.state == DownloadState.Completed) {
-            jmmController.decompress(this)
-          }
-        }
-        // 已经注册完监听了，开始
-        jmmController.start()
-      }
-
-      JmmDownloadStatus.Completed -> { /* TODO 无需响应 */
-      }
-
-      JmmDownloadStatus.Downloading -> {
-        val success = jmmController.pause()
-        if (success) {
-          uiState.downloadStatus.value = JmmDownloadStatus.Paused
-        }
-      }
-
-      JmmDownloadStatus.Paused -> {
-        val success = jmmController.start()
-        if (success) {
-          uiState.downloadStatus.value = JmmDownloadStatus.Downloading
-        }
-      }
-
-      JmmDownloadStatus.INSTALLED -> { // 点击打开app触发的事件
-        jmmController.openApp(uiState.jmmAppInstallManifest.id)
-      }
+  fun pause() = jmmNMM.ioAsyncScope.launch {
+    jmmController.pause().falseAlso {
+      uiState.downloadStatus.value = JmmDownloadStatus.Failed
     }
   }
+
+  fun start() = jmmNMM.ioAsyncScope.launch {
+    jmmController.start().falseAlso {
+      uiState.downloadStatus.value = JmmDownloadStatus.Failed
+    }
+  }
+
+  fun open() = jmmNMM.ioAsyncScope.launch {
+    jmmController.openApp(uiState.jmmAppInstallManifest.id)
+  }
+
 }

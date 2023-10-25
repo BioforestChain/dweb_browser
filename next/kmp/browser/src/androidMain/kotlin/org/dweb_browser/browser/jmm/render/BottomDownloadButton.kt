@@ -11,8 +11,9 @@ import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -20,16 +21,13 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.browser.jmm.JsMicroModule
-import org.dweb_browser.browser.jmm.ui.JmmIntent
 import org.dweb_browser.browser.jmm.ui.LocalJmmViewHelper
-import kotlinx.coroutines.launch
 import org.dweb_browser.core.sys.download.JmmDownloadStatus
 import org.dweb_browser.helper.toSpaceSize
 
 @Composable
 internal fun BoxScope.BottomDownloadButton() {
   val background = MaterialTheme.colorScheme.surface
-  val scope = rememberCoroutineScope()
   val viewModel = LocalJmmViewHelper.current
 
   Box(
@@ -39,10 +37,9 @@ internal fun BoxScope.BottomDownloadButton() {
       .background(
         brush = Brush.verticalGradient(listOf(background.copy(0f), background))
       )
-      .padding(16.dp),
-    contentAlignment = Alignment.Center
+      .padding(16.dp), contentAlignment = Alignment.Center
   ) {
-    val downloadStatus = viewModel.uiState.downloadStatus.value
+    var downloadStatus by viewModel.uiState.downloadStatus
     val downloadSize = viewModel.uiState.downloadSize.value
     val totalSize = viewModel.uiState.jmmAppInstallManifest.bundle_size
     var showLinearProgress = false
@@ -97,8 +94,26 @@ internal fun BoxScope.BottomDownloadButton() {
 
     ElevatedButton(
       onClick = {
-        scope.launch {
-          viewModel.handlerIntent(JmmIntent.ButtonFunction)
+        when (downloadStatus) {
+          JmmDownloadStatus.Init, JmmDownloadStatus.Failed, JmmDownloadStatus.Canceld, JmmDownloadStatus.NewVersion -> {
+            downloadStatus = JmmDownloadStatus.Downloading
+            viewModel.startDownload()
+          }
+
+          JmmDownloadStatus.Downloading -> {
+            downloadStatus = JmmDownloadStatus.Paused
+            viewModel.pause()
+          }
+
+          JmmDownloadStatus.Paused -> {
+            downloadStatus = JmmDownloadStatus.Downloading
+            viewModel.start()
+          }
+
+          JmmDownloadStatus.Completed -> {}
+          JmmDownloadStatus.INSTALLED -> {
+            viewModel.open()
+          }
         }
       },
       modifier = m2,
