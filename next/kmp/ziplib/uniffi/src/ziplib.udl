@@ -1,3 +1,0 @@
-namespace ziplib {
-  u64 decompress(string zip_file_path, string dest_path);
-};
