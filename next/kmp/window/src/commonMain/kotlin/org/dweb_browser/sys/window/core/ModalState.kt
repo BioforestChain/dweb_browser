@@ -26,6 +26,7 @@ import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,6 +40,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -285,7 +291,7 @@ class BottomSheetsModal private constructor(
     ) = BottomSheetsModal(title, iconUrl, iconAlt, callbackUrl).also { it.setParent(this) }
   }
 
-  @OptIn(ExperimentalMaterial3Api::class)
+  @OptIn(ExperimentalMaterial3Api::class, FlowPreview::class)
   @Composable
   override fun Render() {
     val mm = LocalWindowMM.current
@@ -300,30 +306,56 @@ class BottomSheetsModal private constructor(
     LaunchedEffect(sessionId) { sendCallback(mm, OpenModalCallback(sessionId)) }
 
     /// TODO 等1.5.10稳定版放出，IOS才能使用这个组件
+
+    val onModalDismissRequestFlow = remember {
+      MutableSharedFlow<Boolean>()
+    }
+    DisposableEffect(onModalDismissRequestFlow) {
+      val job = onModalDismissRequestFlow.debounce(400).map {
+        println("SSSR $it")
+        if (show && it) {
+          show = false;
+          sendCallback(mm, CloseModalCallback(sessionId))
+          if (once) {
+            mm.ioAsyncScope.launch {
+              parent.removeModal(modalId)
+            }
+          }
+        }
+      }.launchIn(mm.ioAsyncScope)
+      onDispose {
+        job.cancel()
+      }
+    }
+    fun onModalDismissRequest(isDismiss: Boolean) = mm.ioAsyncScope.launch {
+      onModalDismissRequestFlow.emit(isDismiss)
+    }
+
+
     val sheetState = rememberModalBottomSheetState(confirmValueChange = {
-      println("SSSS:$it")
+      println("SSS $it")
       when (it) {
         SheetValue.Hidden -> {
-          if (closeTip.isNullOrEmpty() || isShowCloseTip) true else {
+          if (closeTip.isNullOrEmpty() || isShowCloseTip) {
+            onModalDismissRequest(true)
+            true
+          } else {
             showCloseTip.value = closeTip
             false
           }
         }
 
-        SheetValue.Expanded -> true
-        SheetValue.PartiallyExpanded -> true
-      }
-    })
+        SheetValue.Expanded -> {
+          onModalDismissRequest(false);
+          true
+        }
 
-    val onModalDismissRequest = {
-      show = false;
-      sendCallback(mm, CloseModalCallback(sessionId))
-      if (once) {
-        mm.ioAsyncScope.launch {
-          parent.removeModal(modalId)
+        SheetValue.PartiallyExpanded -> {
+          onModalDismissRequest(false);
+          true
         }
       }
-    }
+    });
 
     val density = LocalDensity.current
     val defaultWindowInsets = BottomSheetDefaults.windowInsets
@@ -335,37 +367,34 @@ class BottomSheetsModal private constructor(
     val winPadding = LocalWindowPadding.current
     val winTheme = LocalWindowControllerTheme.current
     val contentColor = winTheme.topContentColor
-    ModalBottomSheet(
-      sheetState = sheetState, dragHandle = {
+    ModalBottomSheet(sheetState = sheetState, dragHandle = {
+      Box(
+        modifier = Modifier
+          .height(48.dp)
+          .fillMaxSize()
+          .padding(horizontal = 14.dp),
+        Alignment.Center
+      ) {
+        BottomSheetDefaults.DragHandle()
+        /// 应用图标
         Box(
-          modifier = Modifier
-            .height(48.dp)
-            .fillMaxSize()
-            .padding(horizontal = 14.dp), Alignment.Center
+          modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.CenterStart
         ) {
-          BottomSheetDefaults.DragHandle()
-          /// 应用图标
-          Box(
-            modifier = Modifier
-              .fillMaxSize(),
-            contentAlignment = Alignment.CenterStart
-          ) {
-            win.IconRender(
-              modifier = Modifier.size(28.dp), primaryColor = contentColor
-            )
-          }
-          /// 应用身份
-          win.IdRender(
-            Modifier
-              .align(Alignment.BottomEnd)
-              .height(22.dp)
-              .padding(vertical = 2.dp)
-              .alpha(0.4f),
-            contentColor = contentColor
+          win.IconRender(
+            modifier = Modifier.size(28.dp), primaryColor = contentColor
           )
         }
-      }, windowInsets = modalWindowInsets, onDismissRequest = onModalDismissRequest
-    ) {
+        /// 应用身份
+        win.IdRender(
+          Modifier
+            .align(Alignment.BottomEnd)
+            .height(22.dp)
+            .padding(vertical = 2.dp)
+            .alpha(0.4f),
+          contentColor = contentColor
+        )
+      }
+    }, windowInsets = modalWindowInsets, onDismissRequest = { onModalDismissRequest(true) }) {
       /// 显示内容
       BoxWithConstraints(
         Modifier.padding(
