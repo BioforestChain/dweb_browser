@@ -13,7 +13,7 @@ class WebLinkMicroModule(webLink: WebLinkManifest) : NativeMicroModule(webLink.i
   init {
     short_name = webLink.title.substring(0, minOf(5, webLink.title.length))
     categories = listOf(MICRO_MODULE_CATEGORY.Application, MICRO_MODULE_CATEGORY.Web_Browser)
-    icons = listOf(webLink.icon)
+    icons = webLink.icons
   }
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {

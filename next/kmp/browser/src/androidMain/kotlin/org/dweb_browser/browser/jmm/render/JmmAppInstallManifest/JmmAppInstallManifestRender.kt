@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.jmm.render
+package org.dweb_browser.browser.jmm.render.JmmAppInstallManifest
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -11,20 +11,22 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import org.dweb_browser.browser.jmm.render.AppBottomHeight
+import org.dweb_browser.browser.jmm.render.CaptureListView
+import org.dweb_browser.browser.jmm.render.CustomerDivider
+import org.dweb_browser.browser.jmm.render.HorizontalPadding
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 
 @Composable
-internal fun AppInfoContentView(
-  lazyListState: LazyListState,
-  jmmAppInstallManifest: JmmAppInstallManifest,
+internal fun JmmAppInstallManifest.Render(
   onSelectPic: (Int, LazyListState) -> Unit
 ) {
+  val jmmAppInstallManifest = this
   LazyColumn(
-    state = lazyListState,
     modifier = Modifier
       .fillMaxSize()
       .background(MaterialTheme.colorScheme.background)
-      //.padding(top = TopBarHeight)
+    //.padding(top = TopBarHeight)
   ) {
     // 头部内容， HeadHeight 128.dp
     item { AppInfoHeadView(jmmAppInstallManifest) }

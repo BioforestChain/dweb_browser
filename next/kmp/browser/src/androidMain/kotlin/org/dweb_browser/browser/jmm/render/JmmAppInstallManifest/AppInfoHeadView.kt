@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.jmm.render
+package org.dweb_browser.browser.jmm.render.JmmAppInstallManifest
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -29,6 +29,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
+import org.dweb_browser.browser.jmm.render.HeadHeight
+import org.dweb_browser.browser.jmm.render.HorizontalPadding
+import org.dweb_browser.browser.jmm.render.VerticalPadding
 import org.dweb_browser.helper.android.getCoilImageLoader
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.std.dns.httpFetch

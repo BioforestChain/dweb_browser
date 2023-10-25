@@ -310,10 +310,17 @@ class BottomSheetsModal private constructor(
     val onModalDismissRequestFlow = remember {
       MutableSharedFlow<Boolean>()
     }
+
     DisposableEffect(onModalDismissRequestFlow) {
-      val job = onModalDismissRequestFlow.debounce(400).map {
-        println("SSSR $it")
-        if (show && it) {
+      var hasStart = false
+      val job = onModalDismissRequestFlow.map {
+        if (!it) {
+          hasStart = true
+        }
+        it
+      }.debounce(200).map {
+        println("SSSR hide=$it opend=$hasStart")
+        if (show && it && hasStart) {
           show = false;
           sendCallback(mm, CloseModalCallback(sessionId))
           if (once) {
@@ -330,7 +337,6 @@ class BottomSheetsModal private constructor(
     fun onModalDismissRequest(isDismiss: Boolean) = mm.ioAsyncScope.launch {
       onModalDismissRequestFlow.emit(isDismiss)
     }
-
 
     val sheetState = rememberModalBottomSheetState(confirmValueChange = {
       println("SSS $it")

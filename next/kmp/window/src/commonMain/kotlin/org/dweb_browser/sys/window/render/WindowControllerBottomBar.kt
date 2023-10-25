@@ -303,11 +303,11 @@ internal fun WindowBottomNavigationThemeBar(
                 },
                 // 标题
                 title = {
-                  Text(text = WindowI18nResource.window_will_be_close.text)
+                  Text(text = WindowI18nResource.window_will_be_close())
                 },
                 // 内容
                 text = {
-                  Text(text = WindowI18nResource.window_confirm_to_close.text)
+                  Text(text = WindowI18nResource.window_confirm_to_close())
                 },
                 // 确定按钮
                 confirmButton = {
@@ -315,7 +315,7 @@ internal fun WindowBottomNavigationThemeBar(
                     /// 强制关闭窗口
                     coroutineScope.launch { win.close(true) }
                   }) {
-                    Text(WindowI18nResource.window_confirm.text)
+                    Text(WindowI18nResource.window_confirm())
                   }
                 },
                 // 取消按钮
@@ -323,7 +323,7 @@ internal fun WindowBottomNavigationThemeBar(
                   TextButton(onClick = {
                     coroutineScope.launch { win.hideCloseTip() }
                   }) {
-                    Text(WindowI18nResource.window_dismiss.text)
+                    Text(WindowI18nResource.window_dismiss())
                   }
                 },
                 // 这个对话框可以通过返回按钮来关闭，同时触发窗口关闭

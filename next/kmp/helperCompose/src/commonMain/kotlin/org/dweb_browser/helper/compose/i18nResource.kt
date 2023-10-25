@@ -25,12 +25,14 @@ fun i18nResource(res: SimpleI18nResource): String {
   return res.valuesMap[language.value] ?: res.i18nValues.first().second
 }
 
-enum class Language(val code: String) {
-  EN("en"),
-  ZH("zh"),
-  ;
+@Composable
+fun <T> i18nResource(res: OneParamI18nResource<T>, param: T): String {
+  val language = LocalLanguage.current
+  return (res.valuesMap[language.value] ?: res.i18nValues.first().second).invoke(param)
+}
 
-  infix fun by(value: String) = Pair(this, value)
+enum class Language(val code: String) {
+  EN("en"), ZH("zh"), ;
 }
 
 val LocalLanguage = compositionLocalOf { mutableStateOf(Language.ZH) }
@@ -44,7 +46,38 @@ class SimpleI18nResource(
 
   internal val valuesMap = i18nValues.toMap()
 
-  val text
-    @Composable
-    get() = i18nResource(this)
+  @Composable
+  operator fun invoke() = i18nResource(this)
+}
+
+typealias OneParam<T> = T.() -> String
+
+class OneParamI18nResource<T>(
+  val paramBuilder: () -> T,
+  val i18nValues: List<Pair<Language, OneParam<T>>>,
+) {
+  constructor(paramBuilder: () -> T, vararg i18nValues: Pair<Language, OneParam<T>>) : this(
+    paramBuilder, i18nValues.toList()
+  )
+
+  internal val valuesMap = mutableMapOf(*i18nValues.toTypedArray())
+  fun define(builder: ResourceDefiner<T>.() -> Unit) = this.also {
+    ResourceDefiner(it).builder()
+  }
+
+  class ResourceDefiner<T>(private val resource: OneParamI18nResource<T>) {
+    infix fun Language.to(param: OneParam<T>) {
+      resource.valuesMap[this] = param
+    }
+  }
+
+
+  @Composable
+  operator fun invoke(buildParam: T.() -> Unit) = paramBuilder().let {
+    it.buildParam()
+    i18nResource(this, it)
+  }
+
+  @Composable
+  operator fun invoke(param: T) = i18nResource(this, param)
 }

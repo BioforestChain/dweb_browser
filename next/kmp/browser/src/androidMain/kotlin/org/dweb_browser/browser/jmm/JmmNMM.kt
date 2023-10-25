@@ -54,7 +54,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
   /**
    * jmm app数据
    */
-  private val controllerMap = mutableMapOf<MMID, JsMicroModuleInstallController>()
+  private val controllerMap = mutableMapOf<MMID, JmmInstallerController>()
 
   fun getApps(mmid: MMID): IMicroModuleManifest? {
     return bootstrapContext.dns.query(mmid)
@@ -78,7 +78,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
       val jmmAppInstallManifest = response.json<JmmAppInstallManifest>()
       val mmid = jmmAppInstallManifest.id
       debugJMM("listenDownload", "$metadataUrl $mmid")
-      openInstaller(jmmAppInstallManifest, metadataUrl)
+      openInstallerView(jmmAppInstallManifest, metadataUrl)
     }
     routes(
       // 安装
@@ -97,13 +97,15 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
         val mmid = request.query("app_id")
         debugJMM("detailApp", mmid)
         val info = store.get(mmid) ?: return@defineBooleanResponse false
-        openInstaller(info.installManifest, info.originUrl)
+        openInstallerView(info.installManifest, info.originUrl)
         true
       })
   }
 
-
-  private suspend fun openInstaller(
+  /**
+   * 打开安装器视图
+   */
+  private suspend fun openInstallerView(
     jmmAppInstallManifest: JmmAppInstallManifest, originUrl: String,
   ) {
     if (!jmmAppInstallManifest.bundle_url.let { it.startsWith("http://") || it.startsWith("https://") }) {
@@ -113,16 +115,20 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
       }
     }
     debugJMM("openJmmMetadataInstallPage", jmmAppInstallManifest.bundle_url)
-    val controller = JsMicroModuleInstallController(
-      this@JmmNMM, jmmAppInstallManifest
-    )
-    controller.onDownloadCompleted {
-      bootstrapContext.dns.uninstall(jmmAppInstallManifest.id)
-      bootstrapContext.dns.install(JsMicroModule(jmmAppInstallManifest))
-      JmmStore(this@JmmNMM).set(
-        jmmAppInstallManifest.id, JsMicroModuleDBItem(jmmAppInstallManifest, originUrl)
-      )
+    val controller = controllerMap.getOrPut(jmmAppInstallManifest.id) {
+      JmmInstallerController(
+        this@JmmNMM, jmmAppInstallManifest
+      ).also {
+        it.onDownloadCompleted {
+          bootstrapContext.dns.uninstall(jmmAppInstallManifest.id)
+          bootstrapContext.dns.install(JsMicroModule(jmmAppInstallManifest))
+          JmmStore(this@JmmNMM).set(
+            jmmAppInstallManifest.id, JsMicroModuleDBItem(jmmAppInstallManifest, originUrl)
+          )
+        }
+      }
     }
+    // 打开渲染
     controller.openRender()
   }
 

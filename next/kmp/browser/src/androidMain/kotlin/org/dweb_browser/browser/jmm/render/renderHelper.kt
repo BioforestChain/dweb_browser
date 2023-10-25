@@ -6,7 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 
-internal suspend fun measureCenterOffset(index: Int, previewState: PreviewState): Offset {
+internal fun measureCenterOffset(index: Int, previewState: PreviewState): Offset {
   val firstVisible = previewState.imageLazy?.firstVisibleItemIndex ?: 0
   val firstVisibleOffset = previewState.imageLazy?.firstVisibleItemScrollOffset ?: 0
   val density = previewState.density

@@ -20,6 +20,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.jmm.JsMicroModule
 import org.dweb_browser.browser.jmm.ui.LocalJmmViewHelper
 import org.dweb_browser.core.sys.download.JmmDownloadStatus
@@ -46,29 +47,30 @@ internal fun BoxScope.BottomDownloadButton() {
     val canSupportTarget = remember {
       viewModel.uiState.jmmAppInstallManifest.canSupportTarget(JsMicroModule.VERSION)
     }
+    val installByteLength = BrowserI18nResource.Companion.InstallByteLength(downloadSize, totalSize)
     val text = if (canSupportTarget) when (downloadStatus) {
       JmmDownloadStatus.Init, JmmDownloadStatus.Canceld -> {
-        "下载 (${totalSize.toSpaceSize()})"
+        BrowserI18nResource.install_button_download(installByteLength)
       }
 
       JmmDownloadStatus.NewVersion -> {
-        "更新 (${totalSize.toSpaceSize()})"
+        BrowserI18nResource.install_button_update(installByteLength)
       }
 
       JmmDownloadStatus.Downloading -> {
         showLinearProgress = true
-        "下载中 ${downloadSize.toSpaceSize()} / ${totalSize.toSpaceSize()}"
+        BrowserI18nResource.install_button_downloading(installByteLength)
       }
 
       JmmDownloadStatus.Paused -> {
         showLinearProgress = true
-        "暂停 ${downloadSize.toSpaceSize()} / ${totalSize.toSpaceSize()}"
+        BrowserI18nResource.install_button_paused(installByteLength)
       }
 
-      JmmDownloadStatus.Completed -> "安装中..."
-      JmmDownloadStatus.INSTALLED -> "打开"
-      JmmDownloadStatus.Failed -> "重新下载"
-    } else "该应用与您的设备不兼容"
+      JmmDownloadStatus.Completed -> BrowserI18nResource.install_button_installing()
+      JmmDownloadStatus.INSTALLED -> BrowserI18nResource.install_button_open()
+      JmmDownloadStatus.Failed -> BrowserI18nResource.install_button_retry()
+    } else BrowserI18nResource.install_button_incompatible()
 
     val modifier = Modifier
       .requiredSize(height = 50.dp, width = 300.dp)

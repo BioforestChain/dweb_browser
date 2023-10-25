@@ -22,7 +22,7 @@ import org.dweb_browser.sys.window.ext.createBottomSheets
 /**
  * JS 模块安装 的 控制器
  */
-class JsMicroModuleInstallController(
+class JmmInstallerController(
   val jmmNMM: JmmNMM, jmmAppInstallManifest: JmmAppInstallManifest
 ) {
 

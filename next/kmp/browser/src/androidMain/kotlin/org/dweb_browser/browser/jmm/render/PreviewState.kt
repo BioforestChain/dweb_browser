@@ -6,7 +6,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.geometry.Offset
 
-internal data class PreviewState(
+internal class PreviewState(
   val showPreview: MutableTransitionState<Boolean> = MutableTransitionState(false), // 用于判断是否显示预览界面
   val selectIndex: MutableState<Int> = mutableStateOf(0), // 用于保存当前选中的图片下标
   //val firstVisible: MutableState<Int> = mutableStateOf(0), // 用于记录第一个有效显示的照片

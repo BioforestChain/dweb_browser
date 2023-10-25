@@ -1,4 +1,4 @@
-package org.dweb_browser.browser.jmm.render
+package org.dweb_browser.browser.jmm.render.JmmAppInstallManifest
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
@@ -14,6 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
+import org.dweb_browser.browser.jmm.render.HorizontalPadding
+import org.dweb_browser.browser.jmm.render.VerticalPadding
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 
 /**
