@@ -19,14 +19,15 @@ class DWebReceiver : BroadcastReceiver() {
       if (ACTION_OPEN_DWEB == it.action) {
         val appName = it.getStringExtra("AppName")
         val url = it.getStringExtra("URL")
-        val callUrl =
-          "${App.appContext.dataDir.absolutePath}/${APP_DIR_TYPE.SystemApp}/$appName/${FilesUtil.DIR_HOME}/$url"
-        if (File(callUrl).exists()) {
-//                    createWorker(WorkerNative.valueOf("DenoRuntime"), callUrl)
-        } else {
-          //context?.let { cc -> cc.startActivity(Intent(cc, BrowserActivity::class.java)) }
-          Toast.makeText(context, "请安装应用<$appName>", Toast.LENGTH_SHORT).show()
-        }
+        // 暂时注释，这是用来点击手机下拉后的下载状态，然后下载的
+//        val callUrl =
+//          "${App.appContext.dataDir.absolutePath}/${APP_DIR_TYPE.SystemApp}/$appName/${FilesUtil.DIR_HOME}/$url"
+//        if (File(callUrl).exists()) {
+////                    createWorker(WorkerNative.valueOf("DenoRuntime"), callUrl)
+//        } else {
+//          //context?.let { cc -> cc.startActivity(Intent(cc, BrowserActivity::class.java)) }
+//          Toast.makeText(context, "请安装应用<$appName>", Toast.LENGTH_SHORT).show()
+//        }
       }
     }
   }

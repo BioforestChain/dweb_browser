@@ -80,15 +80,16 @@ class JmmController(
   }
 
   suspend fun cancel(): Boolean {
-    val response = jmmNMM.nativeFetch("file://download.browser.dweb/pause?taskId=$taskId")
+    val response = jmmNMM.nativeFetch("file://download.browser.dweb/cancel?taskId=$taskId")
     return response.boolean()
   }
 
   suspend fun decompress(task: DownloadTask) {
     var jmm = task.url.substring(task.url.lastIndexOf("/") + 1)
     jmm = jmm.substring(0, jmm.lastIndexOf("."))
-    val vfsPath = jmmNMM.nativeFetch("file://file.std.dweb/picker?path=${task.filepath}").text()
-    jmmNMM.nativeFetch("file://zip.browser.dweb/decompress?sourcePath=$vfsPath&targetPath=/data/apps/${jmm} ")
+    val sourcePath = jmmNMM.nativeFetch("file://file.std.dweb/picker?path=${task.filepath}").text()
+    val targetPath = jmmNMM.nativeFetch("file://file.std.dweb/picker?path=/data/apps/${jmm}").text()
+    jmmNMM.nativeFetch("file://zip.browser.dweb/decompress?sourcePath=$sourcePath&targetPath=$targetPath ")
   }
 
   suspend fun closeSelf() {

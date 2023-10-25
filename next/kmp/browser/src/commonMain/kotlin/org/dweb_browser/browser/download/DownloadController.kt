@@ -2,6 +2,7 @@ package org.dweb_browser.browser.download
 
 import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.ByteReadChannel
+import io.ktor.utils.io.cancel
 import io.ktor.utils.io.close
 import io.ktor.utils.io.core.ByteReadPacket
 import kotlinx.coroutines.launch
@@ -130,9 +131,11 @@ class DownloadController(val mm: DownloadNMM) {
           breakLoop()
           status.state = DownloadState.Canceld
           // 触发取消
+          input.cancel()
           downloadSignal.emit(this@middleware)
         } else if (last) {
           output.close()
+          input.cancel()
           status.state = DownloadState.Completed
           // 触发完成
           downloadSignal.emit(this@middleware)

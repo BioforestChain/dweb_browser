@@ -24,14 +24,12 @@ import org.dweb_browser.core.sys.dns.returnAndroidFile
 import org.dweb_browser.core.sys.download.JmmDownloadInfo
 import org.dweb_browser.core.sys.download.db.AppType
 import org.dweb_browser.core.sys.download.db.DownloadDBStore
-import org.dweb_browser.helper.APP_DIR_TYPE
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.FilesUtil
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.isGreaterThan
 import org.dweb_browser.helper.resolvePath
-import java.io.File
 
 val debugJMM = Debugger("JMM")
 
@@ -57,7 +55,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
         if (filePath.startsWith("/usr/")) {
           debugJMM("UsrFile", "$fromMM => ${request.href}")
           returnAndroidFile(
-            getAppContext().dataDir.absolutePath + File.separator + APP_DIR_TYPE.SystemApp.rootName + File.separator + fromMM.mmid,
+            nativeFetch("file://file.std.dweb/realPath?path=/data/apps/${fromMM.mmid}-${fromMM.version}").text(),
             filePath
           )
         } else returnNext()
@@ -119,7 +117,6 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
         val mmid = request.query("app_id")
         debugJMM("detailApp", mmid)
         val microModule = bootstrapContext.dns.query(mmid)
-
         if (microModule is JsMicroModule) {
           installJsMicroModule(microModule.metadata)
           true

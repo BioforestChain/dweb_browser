@@ -6,7 +6,6 @@ import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
-import org.dweb_browser.core.std.file.FileNMM
 import org.dweb_browser.helper.ImageResource
 
 class ZipNMM : NativeMicroModule("zip.browser.dweb", "Zip") {
@@ -25,8 +24,20 @@ class ZipNMM : NativeMicroModule("zip.browser.dweb", "Zip") {
           "file://file.std.dweb/realPath?path=${request.query("sourcePath")}"
         ).text()
         val targetPath = request.query("targetPath")
-        val targetVfsPath = FileNMM.getVirtualFsPath(ipc.remote, targetPath)
-        decompress(sourcePath, targetVfsPath.fsFullPath.toString())
+        // 先解压到一个临时目录
+        val tmpVfsPath = "/data/tmp/${targetPath.substring(targetPath.lastIndexOf("/") + 1)}"
+        // 获取真实目录
+        val tmpPath = nativeFetch(
+          "file://file.std.dweb/realPath?path=$tmpVfsPath"
+        ).text()
+        // 开始解压
+        val ok = decompress(sourcePath, tmpPath)
+        if (ok) {
+          return@defineBooleanResponse nativeFetch(
+            "file://file.std.dweb/move?sourcePath=${tmpVfsPath}&targetPath=${targetPath}"
+          ).boolean()
+        }
+        return@defineBooleanResponse false
       }
     )
   }

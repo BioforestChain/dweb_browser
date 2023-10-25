@@ -55,7 +55,7 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
     }
 
     /// TODO 这个函数给出来是给内部使用的
-    fun getVirtualFsPath(context: IMicroModuleManifest, virtualPathString: String) =
+    private fun getVirtualFsPath(context: IMicroModuleManifest, virtualPathString: String) =
       VirtualFsPath(context, virtualPathString, ::findVfsDirectory)
 
     /**
@@ -308,10 +308,11 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
         }
         true
       },
-      "/move" bind HttpMethod.Put to defineBooleanResponse {
-        SystemFileSystem.atomicMove(
-          getPath("sourcePath"), getPath("targetPath")
-        )
+      "/move" bind HttpMethod.Get to defineBooleanResponse {
+        val sourcePath = getPath("sourcePath")
+        val targetPath = getPath("targetPath")
+        debugFile("/move", "sourcePath:$sourcePath => $targetPath")
+        SystemFileSystem.atomicMove(sourcePath, targetPath)
         true
       },
       "/copy" bind HttpMethod.Post to defineBooleanResponse {
