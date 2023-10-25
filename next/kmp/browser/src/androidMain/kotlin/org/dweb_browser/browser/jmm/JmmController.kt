@@ -29,8 +29,8 @@ class JmmController(
   val viewModel: JmmManagerViewHelper = JmmManagerViewHelper(jmmAppInstallManifest, this)
 
 
-  val downloadSignal = Signal<String>()
-  val onDownload = downloadSignal.toListener()
+  private val downloadCompletedSignal = Signal<String>()
+  val onDownloadCompleted = downloadCompletedSignal.toListener()
   private val viewDeferred = CompletableDeferred<WindowBottomSheetsController>()
   suspend fun getView() = viewDeferred.await()
 
@@ -58,7 +58,7 @@ class JmmController(
 
   suspend fun createDownloadTask(metadataUrl: String): PureString {
     val response = jmmNMM.nativeFetch("file://download.browser.dweb/create?url=$metadataUrl")
-    return response.text()
+    return response.text().also { this.taskId = it }
   }
 
   fun watchProcess(taskId: String, cb: suspend DownloadTask.() -> Unit) {
@@ -69,6 +69,7 @@ class JmmController(
         it.cb()
         if (it.status.state == DownloadState.Completed) {
           readChannel.cancel()
+          downloadCompletedSignal.emit(taskId)
         }
       }
     }
@@ -89,12 +90,13 @@ class JmmController(
     return response.boolean()
   }
 
-  suspend fun decompress(task: DownloadTask) : Boolean {
+  suspend fun decompress(task: DownloadTask): Boolean {
     var jmm = task.url.substring(task.url.lastIndexOf("/") + 1)
     jmm = jmm.substring(0, jmm.lastIndexOf("."))
     val sourcePath = jmmNMM.nativeFetch("file://file.std.dweb/picker?path=${task.filepath}").text()
     val targetPath = jmmNMM.nativeFetch("file://file.std.dweb/picker?path=/data/apps/${jmm}").text()
-    return jmmNMM.nativeFetch("file://zip.browser.dweb/decompress?sourcePath=$sourcePath&targetPath=$targetPath ").boolean()
+    return jmmNMM.nativeFetch("file://zip.browser.dweb/decompress?sourcePath=$sourcePath&targetPath=$targetPath ")
+      .boolean()
   }
 
   suspend fun closeSelf() {

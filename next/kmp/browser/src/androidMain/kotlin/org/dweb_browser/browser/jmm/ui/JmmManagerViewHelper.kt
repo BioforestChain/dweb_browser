@@ -41,7 +41,6 @@ class JmmManagerViewHelper(
 
   fun startDownload() = jmmNMM.ioAsyncScope.launch {
     val taskId = jmmController.createDownloadTask(uiState.jmmAppInstallManifest.bundle_url)
-    jmmController.taskId = taskId
     jmmController.watchProcess(taskId) {
       println("watch=> ${this.status.state.name} ${this.status.current}")
 

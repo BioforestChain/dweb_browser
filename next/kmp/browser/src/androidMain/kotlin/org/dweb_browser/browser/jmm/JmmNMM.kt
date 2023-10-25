@@ -78,6 +78,12 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
         try {
           val jmmAppInstallManifest = response.json<JmmAppInstallManifest>()
           debugJMM("listenDownload", "$metadataUrl ${jmmAppInstallManifest.id}")
+          bootstrapContext.dns.query(jmmAppInstallManifest.id)?.let { currentApp ->
+            if (jmmAppInstallManifest.version.isGreaterThan(currentApp.version)) {
+
+            }
+          }
+
           val url = Url(metadataUrl)
           // 根据 jmmMetadata 打开一个应用信息的界面，用户阅读界面信息后，可以点击"安装"
           installJsMicroModule(jmmAppInstallManifest, url)
@@ -165,7 +171,17 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
     debugJMM("openJmmMetadataInstallPage", jmmAppInstallManifest.bundle_url)
     return JmmController(
       this@JmmNMM, jmmAppInstallManifest
-    )
+    ).also {
+      it.onDownloadCompleted {
+        bootstrapContext.dns.query(jmmAppInstallManifest.id)?.let { lastMetaData ->
+          bootstrapContext.dns.close(lastMetaData.mmid)
+        }
+        bootstrapContext.dns.install(JsMicroModule(jmmAppInstallManifest))
+        JmmStore(this@JmmNMM).set(
+          jmmAppInstallManifest.id, DeskAppInfo(AppType.Jmm, jmmAppInstallManifest)
+        )
+      }
+    }
   }
 
   private suspend fun uninstall(mmid: MMID, version: String) {
