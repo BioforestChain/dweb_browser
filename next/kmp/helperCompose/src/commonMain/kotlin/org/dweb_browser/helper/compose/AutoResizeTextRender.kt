@@ -1,11 +1,8 @@
 package org.dweb_browser.helper.compose
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -16,7 +13,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.UiComposable
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
@@ -28,17 +24,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.math.max
 import kotlin.math.min
-
-@Composable
-fun SimpleBox() {
-  Box(
-    modifier = Modifier.background(Color.Red).size(200.dp).clip(squircleshape.SquircleShape())
-  ) { }
-}
 
 /**
  * 自适应伸缩的文本容器
@@ -48,7 +36,7 @@ fun SimpleBox() {
 @Composable
 fun AutoResizeTextContainer(
   modifier: Modifier = Modifier,
-  content: @Composable @UiComposable() (AutoResizeTextContainerScope.() -> Unit)
+  content: @Composable @UiComposable (AutoResizeTextContainerScope.() -> Unit)
 ) {
   BoxWithConstraints(modifier) {
     val scope = remember {
@@ -89,12 +77,12 @@ class AutoResizeTextContainerScope(
     }
 
     /// 根据行数计算字体大小
-    var lines = 1;
+    var lines = 1
     while (true) {
       // 首先计算出这个行数情况下能否满足填充需求
       val minTextSize = calcTextSizeByLines(lines + 1)
       val maxTextCount = (maxWidth / minTextSize) * lines
-      if (maxTextCount < textCount) {
+      if (maxTextCount < textCount && lines <= 3) { // 超过三行没必要处理。
         // 这个行数下，还是放不下那么多文字，那么就增加行数，继续循环
         lines += 1;
         continue
@@ -128,7 +116,6 @@ class AutoResizeTextContainerScope(
       this@matchParentSize.matchParentSize()
     }
   }
-
 }
 
 @Composable
