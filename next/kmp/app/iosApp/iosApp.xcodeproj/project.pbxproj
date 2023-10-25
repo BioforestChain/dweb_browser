@@ -10,9 +10,8 @@
 		058557BB273AAA24004C7B11 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 058557BA273AAA24004C7B11 /* Assets.xcassets */; };
 		058557D9273AAEEB004C7B11 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 058557D8273AAEEB004C7B11 /* Preview Assets.xcassets */; };
 		2152FB042600AC8F00CF470E /* iOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2152FB032600AC8F00CF470E /* iOSApp.swift */; };
+		46DDA4CC2AE8AD84005C2709 /* WebRTC.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 46DDA4CB2AE8AD84005C2709 /* WebRTC.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		7555FF83242A565900829871 /* DWebOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7555FF82242A565900829871 /* DWebOS.swift */; };
-		F03444372AE25279004F732E /* WebRTC.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = F03444362AE25279004F732E /* WebRTC.xcframework */; };
-		F03444382AE25C8F004F732E /* WebRTC.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F03444362AE25279004F732E /* WebRTC.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F034443C2AE26F64004F732E /* DwebBrowser.swift in Sources */ = {isa = PBXBuildFile; fileRef = F034443A2AE26F64004F732E /* DwebBrowser.swift */; };
 		F034443D2AE26F64004F732E /* BrowserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F034443B2AE26F64004F732E /* BrowserView.swift */; };
 		F03444872AE26FAB004F732E /* View+snapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = F034443F2AE26FA9004F732E /* View+snapshot.swift */; };
@@ -90,7 +89,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				F03444382AE25C8F004F732E /* WebRTC.xcframework in Embed Frameworks */,
+				46DDA4CC2AE8AD84005C2709 /* WebRTC.xcframework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -101,10 +100,10 @@
 		058557BA273AAA24004C7B11 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		058557D8273AAEEB004C7B11 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		2152FB032600AC8F00CF470E /* iOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOSApp.swift; sourceTree = "<group>"; };
+		46DDA4CB2AE8AD84005C2709 /* WebRTC.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = WebRTC.xcframework; path = .build/artifacts/webrtc/WebRTC/WebRTC.xcframework; sourceTree = "<group>"; };
 		7555FF7B242A565900829871 /* iosApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iosApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7555FF82242A565900829871 /* DWebOS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DWebOS.swift; sourceTree = "<group>"; };
 		7555FF8C242A565B00829871 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		F03444362AE25279004F732E /* WebRTC.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = WebRTC.xcframework; sourceTree = "<group>"; };
 		F034443A2AE26F64004F732E /* DwebBrowser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DwebBrowser.swift; sourceTree = "<group>"; };
 		F034443B2AE26F64004F732E /* BrowserView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BrowserView.swift; sourceTree = "<group>"; };
 		F034443F2AE26FA9004F732E /* View+snapshot.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "View+snapshot.swift"; sourceTree = "<group>"; };
@@ -180,7 +179,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F03444372AE25279004F732E /* WebRTC.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -228,7 +226,7 @@
 		7555FFB0242A642200829871 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				F03444362AE25279004F732E /* WebRTC.xcframework */,
+				46DDA4CB2AE8AD84005C2709 /* WebRTC.xcframework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
