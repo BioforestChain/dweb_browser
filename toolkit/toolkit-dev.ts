@@ -20,7 +20,11 @@ if (!fs.existsSync(resolveTo("./offscreen-web-canvas"))) {
   await $(`git submodule init`, "../");
 }
 
-if (!fs.existsSync(resolveTo("./dweb_browser_libs"))) {
+const dweb_browser_libs = resolveTo("./dweb_browser_libs");
+if (!fs.existsSync(dweb_browser_libs + "/README.md")) {
+  if(fs.existsSync(dweb_browser_libs)) {
+    Deno.removeSync(dweb_browser_libs, { recursive: true });
+  }
   await $(`git submodule update --init`, "../")
 }
 
