@@ -15,8 +15,7 @@ import info.bagen.dwebbrowser.microService.sys.share.ShareNMM
 import info.bagen.dwebbrowser.microService.sys.toast.ToastNMM
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
-import io.ktor.client.plugins.cache.HttpCache
-import io.ktor.client.plugins.cache.storage.FileStorage
+import io.ktor.util.InternalAPI
 import org.dweb_browser.browser.download.DownloadNMM
 import org.dweb_browser.browser.jmm.JmmNMM
 import org.dweb_browser.browser.jsProcess.JsProcessNMM
@@ -24,7 +23,6 @@ import org.dweb_browser.browser.mwebview.MultiWebViewNMM
 import org.dweb_browser.browser.nativeui.torch.TorchNMM
 import org.dweb_browser.browser.web.BrowserNMM
 import org.dweb_browser.browser.zip.ZipNMM
-import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.core.std.dns.DnsNMM
 import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
 import org.dweb_browser.core.std.file.FileNMM
@@ -33,8 +31,8 @@ import org.dweb_browser.core.sys.boot.BootNMM
 import org.dweb_browser.helper.addDebugTags
 import org.dweb_browser.helper.platform.getKtorClientEngine
 import org.dweb_browser.shared.microService.sys.motionSensors.MotionSensorsNMM
-import java.io.File
 
+@OptIn(InternalAPI::class)
 suspend fun startDwebBrowser(): DnsNMM {
   /**
   "message-port-ipc",
@@ -61,6 +59,7 @@ suspend fun startDwebBrowser(): DnsNMM {
   when (DEVELOPER.CURRENT) {
     DEVELOPER.GAUBEE -> addDebugTags(listOf("/.+/"))
     DEVELOPER.WaterBang -> addDebugTags(listOf("/.+/"))
+    DEVELOPER.Kingsword09 -> addDebugTags(listOf("/.+/"))
     else -> addDebugTags(listOf())
   }
 
@@ -72,17 +71,13 @@ suspend fun startDwebBrowser(): DnsNMM {
   /// 安装系统应用
   val jsProcessNMM = JsProcessNMM().also { dnsNMM.install(it) }
   val multiWebViewNMM = MultiWebViewNMM().also { dnsNMM.install(it) }
-  val httpNMM = HttpNMM().also {
+  val httpNMM = HttpNMM().also { it ->
     dnsNMM.install(it)
     /// 自定义 httpClient 的缓存
     HttpClient(getKtorClientEngine()) {
-      install(HttpCache) {
-        val cacheFile = File(it.getAppContext().cacheDir, "http-fetch.cache")
-        publicStorage(FileStorage(cacheFile))
-      }
       install(HttpTimeout) {
-        requestTimeoutMillis = 10000L
-        connectTimeoutMillis = 5000L
+        requestTimeoutMillis = 30000L
+        connectTimeoutMillis = 10000L
       }
     }.also { client ->
       nativeFetchAdaptersManager.setClientProvider(client)

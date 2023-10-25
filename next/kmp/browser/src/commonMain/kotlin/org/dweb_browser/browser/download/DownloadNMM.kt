@@ -7,7 +7,6 @@ import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.cancel
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import okio.FileMetadata
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.PureRequest
@@ -18,6 +17,7 @@ import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
+import org.dweb_browser.core.std.file.FileMetadata
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.datetimeNow
@@ -37,7 +37,6 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
     icons = listOf(ImageResource(src = "file:///sys/icons/$mmid.svg", type = "image/svg+xml"))
   }
 
-  private val controller = DownloadController(this)
 
   /**
    * 用来记录文件是否被下载完成，用来做断点续传
@@ -62,6 +61,7 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
   )
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
+    val controller = DownloadController(this)
     onAfterShutdown {
       for (task in controller.downloadManagers) {
         task.value.pause()
@@ -75,7 +75,7 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
         val mmid = ipc.remote.mmid
         val params = request.queryAs<DownloadTaskParams>()
         debugDownload("/create", "mmid=$mmid params=$params")
-        val task = createTaskFactory(params, mmid)
+        val task = createTaskFactory(controller, params, mmid)
         if (params.start) {
           controller.downloadFactory(task)
         }
@@ -85,8 +85,7 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
       "/start" bind HttpMethod.Get to defineBooleanResponse {
         val taskId = request.query("taskId")
         debugDownload("/start", "$taskId -> ${controller.downloadManagers[taskId]}")
-        val task = controller.downloadManagers[taskId]
-          ?: return@defineBooleanResponse false
+        val task = controller.downloadManagers[taskId] ?: return@defineBooleanResponse false
         controller.downloadFactory(task)
       },
       // 监控下载进度
@@ -103,18 +102,16 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
       // 暂停下载
       "/pause" bind HttpMethod.Get to defineBooleanResponse {
         val taskId = request.query("taskId")
-        val task = controller.downloadManagers[taskId]
-          ?: return@defineBooleanResponse false
-        val readChannel = task.readChannel ?: return@defineBooleanResponse  false
+        val task = controller.downloadManagers[taskId] ?: return@defineBooleanResponse false
+        val readChannel = task.readChannel ?: return@defineBooleanResponse false
         readChannel.cancel()
         true
       },
       // 取消下载
       "/cancel" bind HttpMethod.Get to defineBooleanResponse {
         val taskId = request.query("taskId")
-        val task = controller.downloadManagers[taskId]
-          ?: return@defineBooleanResponse false
-        val channel = task.readChannel ?: return@defineBooleanResponse  false
+        val task = controller.downloadManagers[taskId] ?: return@defineBooleanResponse false
+        val channel = task.readChannel ?: return@defineBooleanResponse false
         channel.cancel()
         true
       },
@@ -125,8 +122,7 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
   }
 
   private suspend fun createTaskFactory(
-    params: DownloadTaskParams,
-    originMmid: MMID
+    controller: DownloadController, params: DownloadTaskParams, originMmid: MMID
   ): DownloadTask {
     val url = params.url
     val response = nativeFetch(params.url)
@@ -150,14 +146,13 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
     } else {
       // 下载流程初始化成功
       task.status = DownloadStateEvent(
-        state = DownloadState.Init,
-        total = response.headers.get("content-length")?.toLong() ?: 1L
+        state = DownloadState.Init, total = response.headers.get("content-length")?.toLong() ?: 1L
       )
       task.readChannel = response.stream().getReader("downloadTask#${task.id}")
     }
     // 存储到任务管理器
     controller.downloadManagers[task.id] = task
-    debugDownload("初始化成功！","${task.id} -> ${controller.downloadManagers[task.id]}")
+    debugDownload("初始化成功！", "${task.id} -> ${controller.downloadManagers[task.id]}")
     return task
   }
 

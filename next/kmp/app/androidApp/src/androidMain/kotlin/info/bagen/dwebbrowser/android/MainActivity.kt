@@ -26,7 +26,6 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.compose.AutoResizeTextContainer
 import org.dweb_browser.helper.compose.AutoSizeText
-import org.dweb_browser.helper.compose.SimpleBox
 import org.dweb_browser.helper.platform.JsRuntime
 import org.dweb_browser.shared.Greeting
 import org.dweb_browser.shared.ImageLoaderDemo
@@ -112,7 +111,6 @@ fun GreetingView(text: String) {
         AutoSizeText(text = text)
       }
     }
-    SimpleBox()
     Text("qaq")
     Box(Modifier.height(400.dp).background(Color.LightGray)) {
       ImageLoaderDemo()

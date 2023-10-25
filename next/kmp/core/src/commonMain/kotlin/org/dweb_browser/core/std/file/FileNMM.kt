@@ -120,15 +120,6 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
     return if (metadata == null) {
       JsonNull
     } else {
-      @Serializable
-      data class FileMetadata(
-        val isFile: Boolean,
-        val isDirectory: Boolean,
-        val size: Long? = null,
-        val createdTime: Long = 0,
-        val lastReadTime: Long = 0,
-        val lastWriteTime: Long = 0,
-      )
 
       FileMetadata(
         metadata.isRegularFile,
@@ -156,11 +147,11 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
         val (_, firstSegment, contentPath) = filePath.split("/", limit = 3)
         // TODO 未来多平台下，sys的提供由 resource 函数统一供给
         if (firstSegment == "sys") {
-          try {
-            return@respondLocalFile returnFile(resource(contentPath).readBytes())
+          return@respondLocalFile try {
+            returnFile(resource(contentPath).readBytes())
           } catch (e: Throwable) {
-            e.printStackTrace()
-            /// 不终止，继续尝试从其它地方读取文件
+            /// 终止，不继续尝试从其它地方读取文件
+            returnNoFound(e.message)
           }
         } else if (firstSegment == "picker") {
           return@respondLocalFile returnFile(

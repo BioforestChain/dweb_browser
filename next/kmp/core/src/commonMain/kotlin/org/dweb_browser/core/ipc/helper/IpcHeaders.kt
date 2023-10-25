@@ -6,10 +6,9 @@ import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import org.dweb_browser.helper.ProxySerializer
 
-object IpcHeadersSerializer : ProxySerializer<IpcHeaders, Map<String, String>>("IpcHeaders",
-  MapSerializer(
-    String.serializer(),
-    String.serializer()
+object IpcHeadersSerializer :
+  ProxySerializer<IpcHeaders, Map<String, String>>("IpcHeaders", MapSerializer(
+    String.serializer(), String.serializer()
   ), { toMap() }, { IpcHeaders.from(this) })
 
 @Serializable(IpcHeadersSerializer::class)
@@ -57,8 +56,7 @@ class IpcHeaders() {
     return headersMap.contains(key.asKey())
   }
 
-  fun delete(key: String) =
-    headersMap.remove(key.asKey())
+  fun delete(key: String) = headersMap.remove(key.asKey())
 
   fun forEach(fn: (Map.Entry<String, String>) -> Unit) {
     headersMap.forEach(fn)
@@ -72,14 +70,12 @@ class IpcHeaders() {
     return headersMap
   }
 
-  fun toHttpHeaders() = headersMap.map { (key, value) ->
-    Pair(key.split('-').joinToString("-") { it.first().uppercaseChar() + it.substring(1) }, value)
-  }
+  fun toHttpHeaders() = headersMap.toList()
 
   fun copy() = IpcHeaders(headersMap)
   operator fun iterator() = headersMap.iterator()
-}
-
-private fun String.asKey(): String {
-  return this.lowercase()
+  private fun String.asKey(): String {
+    return this.lowercase().split('-')
+      .joinToString("-") { it.first().uppercaseChar() + it.substring(1) }
+  }
 }
