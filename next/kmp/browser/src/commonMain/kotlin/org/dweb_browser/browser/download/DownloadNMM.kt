@@ -73,8 +73,8 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
       // 开始下载
       "/create" bind HttpMethod.Get to defineStringResponse {
         val mmid = ipc.remote.mmid
-        debugDownload("/create", mmid)
         val params = request.queryAs<DownloadTaskParams>()
+        debugDownload("/create", "mmid=$mmid params=$params")
         val task = createTaskFactory(params, mmid)
         if (params.start) {
           controller.downloadFactory(task)
@@ -172,7 +172,7 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
       path = "/data/download/${index++}_${fileName}"
       val boolean = exist(path)
     } while (boolean)
-    return path
+    return nativeFetch("file://file.std.dweb/picker?path=${path}").text()
   }
 
   private fun mimeFactory(header: IpcHeaders, filePath: String): String {
@@ -201,8 +201,6 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
 
   //  追加写入文件，断点续传
   suspend fun appendFile(task: DownloadTask, stream: ByteReadChannel) {
-
-
     nativeFetch(
       PureRequest(
         "file://file.std.dweb/append?path=${task.filepath}&create=true",

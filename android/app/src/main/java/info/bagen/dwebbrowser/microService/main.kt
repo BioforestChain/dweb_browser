@@ -23,6 +23,7 @@ import org.dweb_browser.browser.jsProcess.JsProcessNMM
 import org.dweb_browser.browser.mwebview.MultiWebViewNMM
 import org.dweb_browser.browser.nativeui.torch.TorchNMM
 import org.dweb_browser.browser.web.BrowserNMM
+import org.dweb_browser.browser.zip.ZipNMM
 import org.dweb_browser.core.module.getAppContext
 import org.dweb_browser.core.std.dns.DnsNMM
 import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
@@ -93,6 +94,7 @@ suspend fun startDwebBrowser(): DnsNMM {
 
   /// 下载功能
   val downloadNMM = DownloadNMM().also { dnsNMM.install(it) }
+  val zipNMM = ZipNMM().also { dnsNMM.install(it) }
 
   /// 扫码
   val scannerNMM = info.bagen.dwebbrowser.microService.sys.barcodeScanning.ScanningNMM()

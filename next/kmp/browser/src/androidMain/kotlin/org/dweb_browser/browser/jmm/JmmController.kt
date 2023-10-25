@@ -4,36 +4,30 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.browser.download.DownloadTask
 import org.dweb_browser.browser.jmm.ui.JmmManagerViewHelper
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MMID
-import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.http.PureString
 import org.dweb_browser.core.ipc.helper.IpcEvent
-import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.std.dns.createActivity
 import org.dweb_browser.core.std.dns.nativeFetch
-import org.dweb_browser.core.sys.download.JmmDownloadInfo
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.consumeEachJsonLine
 import org.dweb_browser.sys.window.ext.WindowBottomSheetsController
 import org.dweb_browser.sys.window.ext.createBottomSheets
 
 class JmmController(
-  internal val jmmNMM: JmmNMM, jmmAppInstallManifest: JmmAppInstallManifest
+  private val jmmNMM: JmmNMM, jmmAppInstallManifest: JmmAppInstallManifest
 ) {
 
   // 一个jmmManager 只会创建一个task
-  var taskId:String? = null
+  var taskId: String? = null
   private val openLock = Mutex()
   val viewModel: JmmManagerViewHelper = JmmManagerViewHelper(jmmAppInstallManifest, this)
 
-  fun getApp(mmid: MMID) = jmmNMM.getApps(mmid)
 
-
-  internal val downloadSignal = Signal<JmmDownloadInfo>()
+  val downloadSignal = Signal<String>()
   val onDownload = downloadSignal.toListener()
   private val viewDeferred = CompletableDeferred<WindowBottomSheetsController>()
   suspend fun getView() = viewDeferred.await()
@@ -46,6 +40,7 @@ class JmmController(
       }.also { viewDeferred.complete(it) }
       bottomSheets.open()
     }
+
   }
 
   suspend fun openApp(mmid: MMID) {
@@ -74,25 +69,27 @@ class JmmController(
     }
   }
 
-  suspend fun start(taskId: String): Boolean {
+  suspend fun start(): Boolean {
     val response = jmmNMM.nativeFetch("file://download.browser.dweb/start?taskId=$taskId")
     return response.boolean()
   }
 
-  suspend fun unCompress(task: DownloadTask) {
-    var jmm = task.url.substring(task.url.lastIndexOf("/") + 1)
-    jmm = jmm.substring(0, jmm.lastIndexOf("."))
-    jmmNMM.nativeFetch("file://file.std.dweb/unCompress?sourcePath=${task.filepath}&targetPath=/data/usr/${jmm}")
+  suspend fun pause(): Boolean {
+    val response = jmmNMM.nativeFetch("file://download.browser.dweb/pause?taskId=$taskId")
+    return response.boolean()
   }
 
-//  suspend fun updateDownloadState(downloadState: DownloadState): Boolean {
-//    val url = when (downloadState) {
-//      downloadState -> "file://download.browser.dweb/pause?taskId=$taskId"
-//      downloadState -> "file://download.browser.dweb/cancel?taskId=$taskId"
-//      downloadState -> "file://download.browser.dweb/start?taskId=$taskId"
-//    }
-//    return jmmNMM.nativeFetch(PureRequest(href = url, method = IpcMethod.GET)).boolean()
-//  }
+  suspend fun cancel(): Boolean {
+    val response = jmmNMM.nativeFetch("file://download.browser.dweb/pause?taskId=$taskId")
+    return response.boolean()
+  }
+
+  suspend fun decompress(task: DownloadTask) {
+    var jmm = task.url.substring(task.url.lastIndexOf("/") + 1)
+    jmm = jmm.substring(0, jmm.lastIndexOf("."))
+    val vfsPath = jmmNMM.nativeFetch("file://file.std.dweb/picker?path=${task.filepath}").text()
+    jmmNMM.nativeFetch("file://zip.browser.dweb/decompress?sourcePath=$vfsPath&targetPath=/data/apps/${jmm} ")
+  }
 
   suspend fun closeSelf() {
     getView().close()
