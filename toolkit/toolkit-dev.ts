@@ -19,6 +19,11 @@ const resolveTo = createBaseResolveTo(path.dirname(fileURLToPath(import.meta.url
 if (!fs.existsSync(resolveTo("./offscreen-web-canvas"))) {
   await $(`git submodule init`, "../");
 }
+
+if (!fs.existsSync(resolveTo("./dweb_browser_libs"))) {
+  await $(`git submodule init && git submodule update`, "./")
+}
+
 /// 拉取更新
 await $(
   `git submodule foreach git pull origi
