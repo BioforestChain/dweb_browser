@@ -21,7 +21,7 @@ if (!fs.existsSync(resolveTo("./offscreen-web-canvas"))) {
 }
 
 if (!fs.existsSync(resolveTo("./dweb_browser_libs"))) {
-  await $(`git submodule init && git submodule update`, "./")
+  await $(`git submodule update --init`, "../")
 }
 
 /// 拉取更新
