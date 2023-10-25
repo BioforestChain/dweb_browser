@@ -6,4 +6,4 @@
 	url = https://github.com/HighValyrian/plaoc-html-demo
 [submodule "toolkit/dweb_browser_libs"]
 	path = toolkit/dweb_browser_libs
-	url = https://github.com/BioforestChain/dweb_browser_libs
+	url = https://github.com/BioforestChain/dweb_browser_libs.git
