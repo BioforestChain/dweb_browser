@@ -68,6 +68,9 @@
 
         <category android:name="android.intent.category.LAUNCHER" />
       </intent-filter>
+      <meta-data
+        android:name="android.app.shortcuts"
+        android:resource="@xml/shortcuts" />
     </activity>
     <activity
       android:name=".microService.browser.desk.DesktopActivity"
@@ -158,7 +161,11 @@
     <activity
       android:name=".microService.sys.barcodeScanning.ScanningActivity"
       android:exported="true"
-      android:theme="@style/Theme.dwebbrowser" />
+      android:theme="@style/Theme.dwebbrowser">
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW"/>
+      </intent-filter>
+    </activity>
 
     <provider
       android:name="androidx.core.content.FileProvider"

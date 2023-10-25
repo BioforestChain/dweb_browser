@@ -70,6 +70,7 @@ class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb", "Barcode Scan
 
   private suspend fun openScanningActivity(): String {
     startAppActivity(ScanningActivity::class.java) {
+      it.putExtra(ScanningActivity.IntentFromIPC, true) // 为了和shortcut做区分
       ScanningController.controller.scanData = null
     }
     return ScanningController.controller.waitScanResult()

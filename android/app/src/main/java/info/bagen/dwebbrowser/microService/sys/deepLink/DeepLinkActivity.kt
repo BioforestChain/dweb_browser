@@ -9,13 +9,16 @@ import androidx.compose.ui.Alignment
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import info.bagen.dwebbrowser.App
-import org.dweb_browser.core.module.BaseThemeActivity
 import kotlinx.coroutines.launch
 import org.dweb_browser.browser.web.ui.loading.LoadingView
-import org.dweb_browser.helper.compose.theme.DwebBrowserAppTheme
+import org.dweb_browser.core.module.BaseThemeActivity
 import org.dweb_browser.core.std.dns.nativeFetch
+import org.dweb_browser.helper.compose.theme.DwebBrowserAppTheme
 
 class DeepLinkActivity : BaseThemeActivity() {
+  companion object {
+    fun String.regexDeepLink() = Regex("dweb:.+").matchEntire(this)?.groupValues?.get(0)
+  }
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -23,7 +26,7 @@ class DeepLinkActivity : BaseThemeActivity() {
     WindowCompat.setDecorFitsSystemWindows(window, false)
     lifecycleScope.launch {
       intent.dataString?.let { uri ->
-        Regex("dweb:.+").matchEntire(uri)?.groupValues?.get(0)?.let { dwebUri ->
+        uri.regexDeepLink()?.let { dwebUri ->
           val dnsNMM = App.startMicroModuleProcess().waitPromise();
           dnsNMM.nativeFetch(dwebUri)
         }
