@@ -38,7 +38,7 @@ val MicroModule.store: MicroModuleStore
   }
 
 class MicroModuleStore(
-  private val mm: MicroModule, val storeName: String, val encrypt: Boolean
+  private val mm: MicroModule, private val storeName: String, private val encrypt: Boolean
 ) {
   private val taskQueues = Channel<Task<*>>(onBufferOverflow = BufferOverflow.SUSPEND)
 
@@ -79,7 +79,6 @@ class MicroModuleStore(
     cipher = if (encrypt) getCipher(cipherPlainKey) else null
 
     try {
-
       val readRequest = mm.nativeFetch("file://file.std.dweb/read?path=$queryPath&create=true")
       val data = readRequest.binary().let {
         cipher?.decrypt(it) ?: it
@@ -104,12 +103,19 @@ class MicroModuleStore(
   }
 
   @OptIn(ExperimentalSerializationApi::class)
-  suspend inline fun  <reified T> getAll():MutableMap<String, T> {
-    val data = mutableMapOf<String,T>()
+  suspend inline fun <reified T> getAll(): MutableMap<String, T> {
+    val data = mutableMapOf<String, T>()
     for (item in store()) {
       data[item.key] = Cbor.decodeFromByteArray<T>(item.value)
     }
     return data
+  }
+
+  @OptIn(ExperimentalSerializationApi::class)
+  suspend inline fun delete(key: String): Boolean {
+    val res = store().remove(key)
+    save()
+    return res !== null
   }
 
   @OptIn(ExperimentalSerializationApi::class)

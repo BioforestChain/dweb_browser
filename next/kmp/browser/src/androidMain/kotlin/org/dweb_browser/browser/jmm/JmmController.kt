@@ -1,9 +1,11 @@
 package org.dweb_browser.browser.jmm
 
+import io.ktor.utils.io.cancel
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.browser.download.DownloadTask
 import org.dweb_browser.browser.jmm.ui.JmmManagerViewHelper
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
@@ -63,8 +65,12 @@ class JmmController(
   fun watchProcess(taskId: String, cb: suspend DownloadTask.() -> Unit) {
     jmmNMM.ioAsyncScope.launch {
       val res = jmmNMM.nativeFetch("file://download.browser.dweb/watch/progress?taskId=$taskId")
-      res.stream().getReader("jmm watchProcess").consumeEachJsonLine<DownloadTask> {
+      val readChannel = res.stream().getReader("jmm watchProcess")
+      readChannel.consumeEachJsonLine<DownloadTask> {
         it.cb()
+        if (it.status.state == DownloadState.Completed) {
+          readChannel.cancel()
+        }
       }
     }
   }

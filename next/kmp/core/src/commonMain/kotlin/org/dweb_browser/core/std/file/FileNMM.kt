@@ -312,6 +312,13 @@ class FileNMM : NativeMicroModule("file.std.dweb", "File Manager") {
         val sourcePath = getPath("sourcePath")
         val targetPath = getPath("targetPath")
         debugFile("/move", "sourcePath:$sourcePath => $targetPath")
+        // 如果不存在则需要创建空文件夹
+        if (!SystemFileSystem.exists(targetPath)) {
+          SystemFileSystem.createDirectories(targetPath, true)
+        }else {
+          // 需要保证文件夹为空
+          SystemFileSystem.deleteRecursively(targetPath, false)
+        }
         SystemFileSystem.atomicMove(sourcePath, targetPath)
         true
       },

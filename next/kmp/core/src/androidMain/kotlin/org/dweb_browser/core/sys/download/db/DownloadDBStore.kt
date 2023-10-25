@@ -39,6 +39,19 @@ enum class AppType(val type:String) {
     }.link.dweb"
   }
  }
+@Serializable
+data class DeskWebLink(
+  val id: String,
+  val title: String,
+  val url: String,
+  val icon: ImageResource
+)
+@Serializable
+data class DeskAppInfo(
+  val appType: AppType,
+  val metadata: JmmAppInstallManifest? = null,
+  val weblink: DeskWebLink? = null,
+)
 
 private const val DeskWebLinkStart = "file:///web_icons/"
 
@@ -55,27 +68,6 @@ suspend fun createDeskWebLink(context: Context, title: String, url: String, bitm
     icon = imageResource ?: ImageResource(src = "file:///sys/browser/web/logo.svg")
   )
 }
-
-@Serializable
-data class DeskWebLink(
-  val id: String,
-  val title: String,
-  val url: String,
-  val icon: ImageResource
-) {
-  fun deleteIconFile(context: Context) {
-    if (icon.src.startsWith(DeskWebLinkStart)) {
-      BitmapUtil.deleteIconsFile(context, icon.src.replaceFirst(DeskWebLinkStart, ""))
-    }
-  }
-}
-
-@Serializable
-data class DeskAppInfo(
-  val appType: AppType,
-  val metadata: JmmAppInstallManifest? = null,
-  val weblink: DeskWebLink? = null,
-)
 
 object DownloadDBStore {
   private const val PREFERENCE_NAME = "DownloadDBStore"
