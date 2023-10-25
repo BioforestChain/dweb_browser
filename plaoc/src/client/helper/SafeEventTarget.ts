@@ -1,41 +1,41 @@
 export class SafeEventTarget<T extends Record<string, Event>> extends EventTarget {
-  addEventListener<K extends keyof T>(
+  override addEventListener<K extends keyof T>(
     type: K,
     callback: $SafeEventListenerOrEventListenerObject<T[K]> | null,
     options?: boolean | AddEventListenerOptions | undefined
   ): void;
-  addEventListener<K extends keyof T>(
+  override addEventListener<K extends keyof T>(
     type: K,
     callback: $SafeEventListenerOrEventListenerObject<T[K]> | null,
     options?: boolean | AddEventListenerOptions | undefined
   ): void;
-  addEventListener<K extends keyof T>(
+  override addEventListener<K extends keyof T>(
     type: K,
     listener: $SafeEventListenerOrEventListenerObject<T[K]> | null,
     options?: boolean | AddEventListenerOptions | undefined
   ): void;
-  addEventListener(type: any, listener: any, options?: any): void {
+  override addEventListener(type: any, listener: any, options?: any): void {
     super.addEventListener(type, listener, options);
   }
-  removeEventListener<K extends keyof T>(
+  override removeEventListener<K extends keyof T>(
     type: K,
     callback: $SafeEventListenerOrEventListenerObject<T[K]> | null,
     options?: boolean | EventListenerOptions | undefined
   ): void;
-  removeEventListener<K extends keyof T>(
+  override removeEventListener<K extends keyof T>(
     type: K,
     callback: $SafeEventListenerOrEventListenerObject<T[K]> | null,
     options?: boolean | EventListenerOptions | undefined
   ): void;
-  removeEventListener<K extends keyof T>(
+  override removeEventListener<K extends keyof T>(
     type: K,
     callback: $SafeEventListenerOrEventListenerObject<T[K]> | null,
     options?: boolean | EventListenerOptions | undefined
   ): void;
-  removeEventListener(type: any, callback: any, options?: any): void {
+  override removeEventListener(type: any, callback: any, options?: any): void {
     super.removeEventListener(type, callback, options);
   }
-  dispatchEvent(event: T[keyof T]): boolean {
+  override dispatchEvent(event: T[keyof T]): boolean {
     const hanlder = Reflect.get(this, "on" + event.type);
     if (typeof hanlder === "function") {
       try {

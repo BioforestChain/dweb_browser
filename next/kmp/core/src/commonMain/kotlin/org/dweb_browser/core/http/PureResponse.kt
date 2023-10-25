@@ -3,7 +3,6 @@ package org.dweb_browser.core.http
 import io.ktor.http.HttpStatusCode
 import io.ktor.utils.io.ByteReadChannel
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json.Default.decodeFromString
 import kotlinx.serialization.json.JsonElement
 import org.dweb_browser.core.ipc.helper.IpcHeaders
 import org.dweb_browser.helper.JsonLoose
@@ -34,7 +33,7 @@ data class PureResponse(
   suspend fun double() = text().toDouble()
   suspend fun doubleOrNull() = text().toDoubleOrNull()
 
-  suspend inline fun <reified T> json() = decodeFromString<T>(text())
+  suspend inline fun <reified T> json() = JsonLoose.decodeFromString<T>(text())
 
   fun jsonBody(value: JsonElement): PureResponse {
     return PureResponse(

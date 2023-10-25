@@ -21,11 +21,8 @@ suspend fun DeskNMM.windowProtocol(desktopController: DesktopController) {
       "/mainWindow" bind HttpMethod.Get to defineStringResponse {
         getAppMainWindow(ipc).id
       },
-      "/createBottomSheets" bind HttpMethod.Get to defineJsonResponse {
-        createBottomSheetsModal(ipc).toJsonElement()
-      },
-      "/createAlert" bind HttpMethod.Get to defineJsonResponse {
-        createAlertModal(ipc).toJsonElement()
+      "/createModal" bind HttpMethod.Get to defineJsonResponse {
+        createModal(ipc).toJsonElement()
       },
       "/openModal" bind HttpMethod.Get to defineBooleanResponse {
         getAppMainWindow(ipc).openModal(request.query("modalId"))

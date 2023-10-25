@@ -44,17 +44,38 @@ export interface $AlertOptions {
 
 export interface $AlertModal extends $Modal, $AlertOptions {
   type: "alert";
-  confirmCallbackUrl?: string;
-  dismissCallbackUrl?: string;
 }
 
-export interface $BottomSheetsModal extends $Modal {
+export interface $BottomSheetsOptions {
+  title?: string;
+  iconUrl?: string;
+  iconAlt?: string;
+}
+
+export interface $BottomSheetsModal extends $BottomSheetsOptions, $Modal {
   type: "bottom-sheets";
-  dismissCallbackUrl?: string;
 }
 
 export interface $Modal {
+  type: string;
   modalId: string;
   closeTip?: string;
   renderId: string;
+  callbackUrl?: string;
 }
+
+interface _$ModalCallback {
+  type: string;
+  sessionId: number;
+}
+export interface $OpenModalCallback extends _$ModalCallback {
+  type: "open";
+}
+export interface $CloseModalCallback extends _$ModalCallback {
+  type: "close";
+}
+export interface $CloseAlertModalCallback extends _$ModalCallback {
+  type: "close-alert";
+  confirm: boolean;
+}
+export type $ModalCallback = $OpenModalCallback | $CloseModalCallback | $CloseAlertModalCallback;

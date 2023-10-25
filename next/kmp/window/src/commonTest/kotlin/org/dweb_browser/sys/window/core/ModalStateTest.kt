@@ -1,21 +1,33 @@
 package org.dweb_browser.sys.window.core
 
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.dweb_browser.helper.defaultAsyncExceptionHandler
+import org.dweb_browser.helper.platform.PlatformViewController
 import org.dweb_browser.helper.toUtf8
+import org.dweb_browser.sys.window.core.BottomSheetsModal.Companion.createBottomSheetsModal
+import org.dweb_browser.sys.window.core.constant.WindowConstants
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertIs
 
 
 class ModalStateTest {
+  class SimpleWindowController(
+    override val coroutineScope: CoroutineScope = CoroutineScope(defaultAsyncExceptionHandler)
+  ) : WindowController(WindowState(WindowConstants(owner = "", ownerVersion = ""))) {
+    override val viewController: PlatformViewController get() = TODO("???")
+  }
+
   @Test
   fun testJson() {
-    val m1 = BottomSheetsModal("m1")
+    val win = SimpleWindowController()
+    val m1 = win.createBottomSheetsModal(title = "m1")
     val j1 = Json.encodeToString<ModalState>(m1)
     assertContains(j1, "bottom-sheet")
     val m11 = Json.decodeFromString<ModalState>(j1)
@@ -31,7 +43,8 @@ class ModalStateTest {
   @OptIn(ExperimentalSerializationApi::class)
   @Test
   fun testCbor() {
-    val m1 = BottomSheetsModal("m1")
+    val win = SimpleWindowController()
+    val m1 = win.createBottomSheetsModal(title = "m1")
     val j1 = Cbor.encodeToByteArray<ModalState>(m1)
     assertContains(j1.toUtf8(), "bottom-sheet")
     val m11 = Cbor.decodeFromByteArray<ModalState>(j1)

@@ -30,7 +30,7 @@ data class WindowConstants(
    * 比如若渲染的是web内容，那么应该是 mwebview.browser.dweb
    */
   val provider: MMID = owner,
-){
+) {
   /**
    * 提供放的 mm 实例
    */

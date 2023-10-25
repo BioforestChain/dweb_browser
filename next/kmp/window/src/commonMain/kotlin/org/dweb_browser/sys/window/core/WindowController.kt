@@ -5,11 +5,13 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
+import kotlinx.serialization.Transient
 import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.ReasonLock
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.platform.PlatformViewController
+import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.sys.window.core.constant.WindowBottomBarTheme
 import org.dweb_browser.sys.window.core.constant.WindowColorScheme
 import org.dweb_browser.sys.window.core.constant.WindowMode
@@ -334,6 +336,7 @@ abstract class WindowController(
     state.modals.firstNotNullOfOrNull { if (it.value.isOpen.value) it.value else null }
   }
 
+  @Transient
   val openingModal = mutableStateOf<ModalState?>(null)
 
   /**
@@ -363,10 +366,9 @@ abstract class WindowController(
    */
   suspend fun closeModal(modalId: UUID) = modalsLock.withLock("write") {
     val modal = state.modals[modalId] ?: return@withLock false
-    if (modal.isOpen.value) {
+    modal.isOpen.value.trueAlso {
       modal.isOpen.value = false
       openingModal.value = getOpenModal()
-      true
-    } else false
+    }
   }
 }

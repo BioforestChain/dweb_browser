@@ -1,14 +1,21 @@
+import { IPC_ROLE, IpcResponse, ReadableStreamIpc } from "../../../common/deps.ts";
+import { PromiseOut } from "../../helper/PromiseOut.ts";
 import { bindThis } from "../../helper/bindThis.ts";
 import { cacheGetter } from "../../helper/cacheGetter.ts";
+import { $Callback, Signal } from "../../helper/createSignal.ts";
+import { ReadableStreamOut, binaryStreamRead } from "../../helper/readableStreamHelper.ts";
 import { $Coder, StateObserver } from "../../util/StateObserver.ts";
 import { BasePlugin } from "../base/BasePlugin.ts";
-import { Alert } from "./Alert.ts";
-import { BottomSheets } from "./BottomSheets.ts";
+import { WindowAlertController } from "./WindowAlertController.ts";
+import { WindowBottomSheetsController } from "./WindowBottomSheetsController.ts";
 import type {
   $AlertModal,
   $AlertOptions,
   $BottomSheetsModal,
+  $BottomSheetsOptions,
   $DisplayState,
+  $Modal,
+  $ModalCallback,
   $WindowRawState,
   $WindowState,
 } from "./window.type.ts";
@@ -76,13 +83,13 @@ export class WindowPlugin extends BasePlugin {
   }
 
   /**
-   * 聚焦窗口
+   * 窗口聚焦
    */
   @bindThis
   async focusWindow() {
     return this.fetchApi("/focus", { search: await this.windowInfo }).void();
   }
-  /**模糊窗口 */
+  /**窗口失焦 */
   @bindThis
   async blurWindow() {
     return this.fetchApi("/blur", { search: await this.windowInfo }).void();
@@ -107,54 +114,93 @@ export class WindowPlugin extends BasePlugin {
   async close() {
     return this.fetchApi("/close", { search: await this.windowInfo }).void();
   }
+  /** */
+  private async wsToIpc(url: string) {
+    const afterOpen = new PromiseOut<void>();
+    const ipc = new ReadableStreamIpc(
+      {
+        mmid: "localhost.dweb",
+        ipc_support_protocols: { cbor: false, protobuf: false, raw: false },
+        dweb_deeplinks: [],
+        categories: [],
+        name: "",
+      },
+      IPC_ROLE.CLIENT
+    );
+    const ws = new WebSocket(url);
+    ws.binaryType = "arraybuffer";
+    const streamout = new ReadableStreamOut();
+    ws.onmessage = (event) => {
+      const data = event.data;
+      streamout.controller.enqueue(data);
+    };
+    ws.onclose = async () => {
+      streamout.controller.close();
+    };
+    ws.onerror = async (event) => {
+      streamout.controller.error(event);
+    };
+    ws.onopen = async () => {
+      afterOpen.resolve();
+      for await (const data of binaryStreamRead(ipc.stream)) {
+        ws.send(data);
+      }
+    };
+    ipc.bindIncomeStream(streamout.stream);
+    await afterOpen.promise;
+    return ipc;
+  }
+  private async createModalArgs<I extends $AlertOptions | $BottomSheetsOptions, O extends $Modal>(
+    type: O["type"],
+    input: I,
+    open = false,
+    once = false
+  ) {
+    const callbackId = `${type}-${Math.random().toString(26).substring(2)}`;
+    const callbackUrl = new URL(`/internal/callback?id=${callbackId}`, BasePlugin.public_url);
+    // 注册回调地址
+    const registryUrl = new URL("/internal/registry-callback", BasePlugin.public_url);
+    registryUrl.protocol = "ws";
+    registryUrl.searchParams.set("id", callbackId);
+    const callbackIpc = await this.wsToIpc(registryUrl.href);
+    const onCallback = new Signal<$Callback<[$ModalCallback]>>();
+    callbackIpc.onRequest(async (request, ipc) => {
+      const callbackData = JSON.parse(await request.body.text());
+      onCallback.emit(callbackData);
+      callbackIpc.postMessage(IpcResponse.fromText(request.req_id, 200, undefined, "", ipc));
+    });
+    const modal = await this.fetchApi(`/createModal`, {
+      search: { type, ...input, callbackUrl, open, once },
+    }).object<O>();
+
+    return {
+      onCallback,
+      modal,
+    };
+  }
+
   /**关闭窗口 */
   @bindThis
-  async createAlert(options: $AlertOptions) {
-    const confirmCallbackUrl = new URL(
-      `/internal/callback?id=${encodeURIComponent(`confirm-alert-${Math.random().toString(26).substring(2)}`)}`,
-      BasePlugin.url
-    );
-    const dismissCallbackUrl = new URL(
-      `/internal/callback?id=${encodeURIComponent(`dismiss-alert-${Math.random().toString(26).substring(2)}`)}`,
-      BasePlugin.url
-    );
-    // 注册回调地址
-    const onConfirm = this.fetchApi("/registry-callback", {
-      pathPrefix: "internal",
-      search: { id: confirmCallbackUrl.searchParams.get("id") },
-    }).void();
-    const onDismiss = this.fetchApi("/registry-callback", {
-      pathPrefix: "internal",
-      search: { id: dismissCallbackUrl.searchParams.get("id") },
-    }).void();
-    const onResult = Promise.any([onConfirm.then(() => true), onDismiss.then(() => false)]);
-    const modal = await this.fetchApi("/createAlert", {
-      search: { ...options, open: true, confirmCallbackUrl, dismissCallbackUrl },
-    }).object<$AlertModal>();
-    return new Alert(modal, onResult);
+  async alert(options: $AlertOptions) {
+    const args = await this.createModalArgs<$AlertOptions, $AlertModal>("alert", options, true, true);
+    const alert = new WindowAlertController(this, args.modal, args.onCallback);
+    const result = new PromiseOut<boolean>();
+    alert.addEventListener("close", () => {
+      result.resolve(alert.result);
+    });
+    return result.promise;
   }
   /**关闭窗口 */
   @bindThis
   async createBottomSheets(contentUrl: string) {
-    const dismissCallbackUrl = new URL(
-      `/internal/callback?id=${encodeURIComponent(`dismiss-bottomsheets-${Math.random().toString(26).substring(2)}`)}`,
-      BasePlugin.url
-    );
-    // 注册回调地址
-    const onDismiss = this.fetchApi("/registry-callback", {
-      pathPrefix: "internal",
-      search: { id: dismissCallbackUrl.searchParams.get("id") },
-    }).void();
-    // 创建modal
-    const modal = await this.fetchApi("/createBottomSheets", {
-      search: { dismissCallbackUrl },
-    }).object<$BottomSheetsModal>();
+    const args = await this.createModalArgs<$BottomSheetsOptions, $BottomSheetsModal>("bottom-sheets", {}, true, true);
+    const bottomSheets = new WindowBottomSheetsController(this, args.modal, args.onCallback);
     // 提供渲染内容
     await this.fetchApi("/open", {
       pathPrefix: "webview.sys.dweb",
-      search: { url: contentUrl, rid: modal.renderId },
+      search: { url: contentUrl, rid: bottomSheets.modal.renderId },
     }).void();
-    return new BottomSheets(modal, onDismiss);
+    return bottomSheets;
   }
 }
 

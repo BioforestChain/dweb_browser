@@ -12,6 +12,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
@@ -102,7 +103,7 @@ class BrowserController(
       Column(
         modifier = modifier
           .verticalScroll(rememberScrollState())
-          .background(MaterialTheme.colors.background),
+          .background(Color.Green),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
       ) {

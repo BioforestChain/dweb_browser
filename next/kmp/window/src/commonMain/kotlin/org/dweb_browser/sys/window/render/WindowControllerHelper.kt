@@ -5,10 +5,12 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.safeGestures
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.MutableState
@@ -20,6 +22,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.structuralEqualityPolicy
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -29,10 +32,15 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+import org.dweb_browser.core.http.toFetchResponse
+import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.WeakHashMap
+import org.dweb_browser.helper.compose.AutoResizeTextContainer
+import org.dweb_browser.helper.compose.AutoSizeText
 import org.dweb_browser.helper.compose.noLocalProvidedFor
 import org.dweb_browser.helper.compose.rememberPlatformViewController
 import org.dweb_browser.helper.compose.theme.md_theme_dark_inverseOnSurface
@@ -44,8 +52,6 @@ import org.dweb_browser.helper.compose.theme.md_theme_light_surface
 import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.helper.platform.getCornerRadiusBottom
 import org.dweb_browser.helper.platform.getCornerRadiusTop
-import org.dweb_browser.core.http.toFetchResponse
-import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.sys.window.core.Rect
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.WindowState
@@ -114,44 +120,46 @@ val WindowController.inMove
 /**
  * 移动窗口的控制器
  */
-fun Modifier.windowMoveAble(win: WindowController) = this.pointerInput(win) {
-  /// 触摸窗口的时候，聚焦，并且提示可以移动
-  detectTapGestures(
-    // touchStart 的时候，聚焦移动
-    onPress = {
-      win.inMove.value = true
-      win.emitFocusOrBlur(true)
-    },
-    /// touchEnd 的时候，取消移动
-    onTap = {
-      win.inMove.value = false
-    },
-    onLongPress = {
-      win.inMove.value = false
-    },
-  )
-}.pointerInput(win) {
-  /// 拖动窗口
-  detectDragGestures(
-    onDragStart = {
-      win.inMove.value = true
-      /// 开始移动的时候，同时进行聚焦
-      win.emitFocusOrBlur(true)
-    },
-    onDragEnd = {
-      win.inMove.value = false
-    },
-    onDragCancel = {
-      win.inMove.value = false
-    },
-  ) { change, dragAmount ->
-    change.consume()
-    win.state.updateMutableBounds {
-      x += dragAmount.x / density
-      y += dragAmount.y / density
+fun Modifier.windowMoveAble(win: WindowController) = this
+  .pointerInput(win) {
+    /// 触摸窗口的时候，聚焦，并且提示可以移动
+    detectTapGestures(
+      // touchStart 的时候，聚焦移动
+      onPress = {
+        win.inMove.value = true
+        win.emitFocusOrBlur(true)
+      },
+      /// touchEnd 的时候，取消移动
+      onTap = {
+        win.inMove.value = false
+      },
+      onLongPress = {
+        win.inMove.value = false
+      },
+    )
+  }
+  .pointerInput(win) {
+    /// 拖动窗口
+    detectDragGestures(
+      onDragStart = {
+        win.inMove.value = true
+        /// 开始移动的时候，同时进行聚焦
+        win.emitFocusOrBlur(true)
+      },
+      onDragEnd = {
+        win.inMove.value = false
+      },
+      onDragCancel = {
+        win.inMove.value = false
+      },
+    ) { change, dragAmount ->
+      change.consume()
+      win.state.updateMutableBounds {
+        x += dragAmount.x / density
+        y += dragAmount.y / density
+      }
     }
   }
-}
 
 val inResizeStore = WeakHashMap<WindowController, MutableState<Boolean>>()
 
@@ -201,7 +209,8 @@ val LocalWindowController =
   compositionLocalOf<WindowController> { noLocalProvidedFor("WindowController") }
 val LocalWindowsManager =
   compositionLocalOf<WindowsManager<*>> { noLocalProvidedFor("WindowsManager") }
-val LocalWindowsImeVisible = compositionLocalOf { mutableStateOf(false) } // 由于小米手机键盘收起会有异常，所以自行维护键盘的显示和隐藏
+val LocalWindowsImeVisible =
+  compositionLocalOf { mutableStateOf(false) } // 由于小米手机键盘收起会有异常，所以自行维护键盘的显示和隐藏
 
 data class WindowLimits(
   val minWidth: Float,
@@ -607,4 +616,24 @@ fun WindowController.IconRender(
         returnResponse(response.toFetchResponse())
       }
     })
+}
+
+/**
+ * 身份渲染
+ */
+@Composable
+fun WindowController.IdRender(
+  modifier: Modifier = Modifier, contentColor: Color = LocalContentColor.current
+) {
+  AutoResizeTextContainer(modifier.fillMaxHeight()) {
+    val footerText = state.constants.owner
+    val textStyle = MaterialTheme.typography.bodySmall
+    AutoSizeText(text = footerText,
+      color = contentColor,
+      style = textStyle,
+      modifier = Modifier.align(Alignment.Center),
+      overflow = TextOverflow.Visible,
+      softWrap = false,
+      autoLineHeight = { it * 1.25f })
+  }
 }

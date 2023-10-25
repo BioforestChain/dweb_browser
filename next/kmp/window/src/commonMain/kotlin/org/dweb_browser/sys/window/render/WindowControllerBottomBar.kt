@@ -28,7 +28,6 @@ import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -43,19 +42,15 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.zIndex
 import kotlinx.coroutines.launch
-import org.dweb_browser.helper.compose.AutoResizeTextContainer
-import org.dweb_browser.helper.compose.AutoSizeText
 import org.dweb_browser.helper.compose.iosTween
 import org.dweb_browser.sys.window.WindowI18nResource
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.constant.WindowBottomBarTheme
 import org.dweb_browser.sys.window.core.constant.WindowPropertyKeys
-import org.dweb_browser.sys.window.render.BackHandler
 import kotlin.math.min
 
 /**
@@ -198,10 +193,11 @@ internal fun WindowBottomThemeBar(
 @Composable
 internal fun WindowBottomImmersionThemeBar(
   win: WindowController,
+  modifier: Modifier = Modifier,
 ) {
   val winTheme = LocalWindowControllerTheme.current
   val coroutineScope = rememberCoroutineScope()
-  Row(modifier = Modifier
+  Row(modifier = modifier
     .fillMaxSize()
     .pointerInput(Unit) {
       detectTapGestures(onDoubleTap = {
@@ -495,16 +491,5 @@ internal fun WindowBottomNavigationThemeBar(
 @Composable
 fun WindowBottomBarInfoText(win: WindowController, modifier: Modifier) {
   val contentColor = LocalWindowControllerTheme.current.bottomContentColor
-  AutoResizeTextContainer(modifier.fillMaxHeight()) {
-
-    val footerText = win.state.constants.owner
-    val textStyle = MaterialTheme.typography.bodySmall
-    AutoSizeText(text = footerText,
-      color = contentColor,
-      style = textStyle,
-      modifier = Modifier.align(Alignment.Center),
-      overflow = TextOverflow.Visible,
-      softWrap = false,
-      autoLineHeight = { it * 1.25f })
-  }
+  win.IdRender(modifier, contentColor)
 }

@@ -7,6 +7,7 @@ import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.sys.window.core.AlertModal
 import org.dweb_browser.sys.window.core.CloseAlertModalCallback
 import org.dweb_browser.sys.window.core.ModalCallback
+import org.dweb_browser.sys.window.core.OpenModalCallback
 
 class WindowAlertController(
   mm: NativeMicroModule,
@@ -19,6 +20,7 @@ class WindowAlertController(
   init {
     onCallback.map {
       when (it) {
+        is OpenModalCallback -> _result = false
         is CloseAlertModalCallback -> _result = it.confirm
         else -> {}
       }

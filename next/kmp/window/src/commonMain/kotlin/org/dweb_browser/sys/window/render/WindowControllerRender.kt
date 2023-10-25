@@ -158,10 +158,7 @@ fun WindowController.Render(
       //#endregion
 
       val modal by win.openingModal
-      modal?.also {
-        println("QAQ $modal")
-        it.Render()
-      }
+      modal?.Render()
 
       /**
        * 窗口是否聚焦

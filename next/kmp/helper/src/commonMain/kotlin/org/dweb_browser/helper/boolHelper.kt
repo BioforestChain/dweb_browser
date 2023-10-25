@@ -1,13 +1,13 @@
 package org.dweb_browser.helper
 
-inline fun Boolean.ifTrue(block: () -> Unit): Boolean {
+inline fun Boolean.trueAlso(block: () -> Unit): Boolean {
   if (this) {
     block()
   }
   return this
 }
 
-inline fun Boolean.ifFalse(block: () -> Unit): Boolean {
+inline fun Boolean.falseAlso(block: () -> Unit): Boolean {
   if (!this) {
     block()
   }

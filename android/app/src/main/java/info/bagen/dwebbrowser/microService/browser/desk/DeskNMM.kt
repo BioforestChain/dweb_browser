@@ -33,8 +33,6 @@ import org.dweb_browser.helper.ReasonLock
 import org.dweb_browser.helper.consumeEachJsonLine
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.helper.toJsonElement
-import org.dweb_browser.sys.window.core.AlertModal
-import org.dweb_browser.sys.window.core.BottomSheetsModal
 import org.dweb_browser.sys.window.core.ModalState
 import org.dweb_browser.sys.window.core.WindowController
 import org.dweb_browser.sys.window.core.windowInstancesManager
@@ -128,15 +126,9 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
     appMainWindow
   }
 
-  suspend fun IHandlerContext.createAlertModal(ipc: Ipc) = openAppLock.withLock("write-modal") {
-    request.queryAs<AlertModal>().also {
-      saveAndTryOpenModal(ipc, it)
-    }
-  }
-
-  suspend fun IHandlerContext.createBottomSheetsModal(ipc: Ipc) =
+  suspend fun IHandlerContext.createModal(ipc: Ipc) =
     openAppLock.withLock("write-modal") {
-      request.queryAs<BottomSheetsModal>().also {
+      request.queryAs<ModalState>().also {
         saveAndTryOpenModal(ipc, it)
       }
     }
