@@ -1,6 +1,5 @@
-package org.dweb_browser.browser.link
+package org.dweb_browser.browser.web.model
 
-import org.dweb_browser.browser.jmm.WebLinkManifest
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule

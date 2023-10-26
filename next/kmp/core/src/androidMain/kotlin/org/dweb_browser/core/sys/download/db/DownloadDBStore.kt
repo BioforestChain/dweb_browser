@@ -14,23 +14,24 @@ import dev.whyoleg.cryptography.algorithms.digest.SHA256
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.dweb_browser.core.help.types.JmmAppInstallManifest
+import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.helper.BitmapUtil
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.toUtf8ByteArray
-import org.dweb_browser.core.help.types.JmmAppInstallManifest
-import org.dweb_browser.core.help.types.MMID
 
-enum class AppType(val type:String) {
+enum class AppType(val type: String) {
   Jmm("jmm"),
   Link("link"),
   ;
 
-  companion object{
+  companion object {
     private val sha256 = CryptographyProvider.Default.get(SHA256)
 
     @OptIn(ExperimentalStdlibApi::class)
@@ -38,7 +39,8 @@ enum class AppType(val type:String) {
       sha256.hasher().hash(url.toUtf8ByteArray()).toHexString(0, 4, HexFormat.Default)
     }.link.dweb"
   }
- }
+}
+
 @Serializable
 data class DeskWebLink(
   val id: String,
@@ -46,6 +48,7 @@ data class DeskWebLink(
   val url: String,
   val icon: ImageResource
 )
+
 @Serializable
 data class DeskAppInfo(
   val appType: AppType,
@@ -55,7 +58,12 @@ data class DeskAppInfo(
 
 private const val DeskWebLinkStart = "file:///web_icons/"
 
-suspend fun createDeskWebLink(context: Context, title: String, url: String, bitmap: Bitmap?): DeskWebLink {
+suspend fun createDeskWebLink(
+  context: Context,
+  title: String,
+  url: String,
+  bitmap: Bitmap?
+): DeskWebLink {
   val imageResource = bitmap?.let {
     BitmapUtil.saveBitmapToIcons(context, it)?.let { src ->
       ImageResource(src = "$DeskWebLinkStart$src")
@@ -88,6 +96,21 @@ object DownloadDBStore {
         pref[stringPreferencesKey(item.id)] = Json.encodeToString(item)
       }
     }
+
+  suspend fun checkWebLinkNotExists(context: Context, url: String) =
+    context.dataStore.data.map { pref ->
+      var exists = true
+      pref.asMap().forEach { (key, value) ->
+        if (key.name.endsWith("link.dweb")) {
+          val deskWebLink = Json.decodeFromString<DeskWebLink>(value as String)
+          if (deskWebLink.url == url) {
+            exists = false
+            return@forEach
+          }
+        }
+      }
+      exists
+    }.first()
 
   suspend fun deleteDeskAppInfo(context: Context, mmid: MMID) {
     context.dataStore.edit { pref ->

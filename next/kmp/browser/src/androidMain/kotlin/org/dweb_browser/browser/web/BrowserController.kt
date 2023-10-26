@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -18,12 +17,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.dweb_browser.browser.web.model.WebLinkManifest
 import org.dweb_browser.browser.web.ui.browser.model.BrowserStore
 import org.dweb_browser.browser.web.ui.browser.model.BrowserViewModel
 import org.dweb_browser.browser.web.ui.browser.model.WebSiteInfo
 import org.dweb_browser.core.std.http.HttpDwebServer
-import org.dweb_browser.core.sys.download.db.DownloadDBStore
-import org.dweb_browser.core.sys.download.db.createDeskWebLink
+import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.ioAsyncExceptionHandler
@@ -42,6 +41,9 @@ class BrowserController(
 
   private val closeWindowSignal = SimpleSignal()
   val onCloseWindow = closeWindowSignal.toListener()
+
+  private val addWebLinkSignal = Signal<WebLinkManifest>()
+  val onWebLinkAdded = addWebLinkSignal.toListener()
 
   private var winLock = Mutex(false)
 
@@ -134,6 +136,16 @@ class BrowserController(
     }
   }
 
-  suspend fun addUrlToDesktop(context: Context, title: String, url: String, icon: Bitmap?) =
-    DownloadDBStore.saveWebLink(context, createDeskWebLink(context, title, url, icon))
+  suspend fun addUrlToDesktop(context: Context, title: String, url: String, icon: Bitmap?) {
+    // 由于已经放弃了DataStore，所有这边改为直接走WebLinkStore
+    val linkId = WebLinkManifest.createLinkId(url)
+    val icons = icon?.let { WebLinkManifest.bitmapToImageResource(context, it) }?.let {listOf(it) }
+      ?: emptyList()
+    val webLinkManifest = WebLinkManifest(id = linkId, title = title, url = url, icons = icons)
+    addWebLinkSignal.emit(webLinkManifest)
+    // 先判断是否存在，如果存在就不重复执行
+    /*if (DownloadDBStore.checkWebLinkNotExists(context, url)) {
+      DownloadDBStore.saveWebLink(context, createDeskWebLink(context, title, url, icon))
+    }*/
+  }
 }

@@ -5,7 +5,6 @@ import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.file.ext.createStore
-import org.dweb_browser.helper.ImageResource
 
 @Serializable
 data class JsMicroModuleDBItem(val installManifest: JmmAppInstallManifest, val originUrl: String)
@@ -33,15 +32,3 @@ class JmmStore(microModule: MicroModule) {
     return store.delete(key)
   }
 }
-
-
-@Serializable
-data class WebLinkManifest(
-  val id: String, val title: String, val url: String, val icons: List<ImageResource>
-)
-
-@Serializable
-data class LinkMicroModuleDBItem(
-  val weblink: WebLinkManifest,
-)
-

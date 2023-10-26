@@ -60,6 +60,7 @@ suspend fun startDwebBrowser(): DnsNMM {
     DEVELOPER.GAUBEE -> addDebugTags(listOf("/.+/"))
     DEVELOPER.WaterBang -> addDebugTags(listOf("/.+/"))
     DEVELOPER.Kingsword09 -> addDebugTags(listOf("/.+/"))
+    DEVELOPER.HLOppo -> addDebugTags(listOf("/.+/"))
     else -> addDebugTags(listOf())
   }
 
@@ -141,6 +142,7 @@ suspend fun startDwebBrowser(): DnsNMM {
       httpNMM.mmid,//
       nativeUiNMM.mmid,//
       deskNMM.mmid,//
+      browserNMM.mmid // 为了启动后能够顺利加载添加到桌面的哪些数据，不加载browser界面
     ),
   ).also { dnsNMM.install(it) }
 

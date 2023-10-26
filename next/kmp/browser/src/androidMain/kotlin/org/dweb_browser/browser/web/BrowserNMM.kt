@@ -1,5 +1,7 @@
 package org.dweb_browser.browser.web
 
+import org.dweb_browser.browser.web.model.WebLinkMicroModule
+import org.dweb_browser.browser.web.model.WebLinkStore
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.http.router.bindDwebDeeplink
 import org.dweb_browser.core.ipc.helper.IpcResponse
@@ -49,6 +51,7 @@ class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
   private lateinit var browserServer: HttpDwebServer
 
   override suspend fun _bootstrap(bootstrapContext: BootstrapContext) {
+    val webLinkStore = WebLinkStore(this)
     browserServer = this.createBrowserWebServer()
     val browserController = // 由于 WebView创建需要在主线程，所以这边做了 withContext 操作
       withMainContext {
@@ -56,6 +59,7 @@ class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
           this@BrowserNMM, browserServer
         )
       }
+    loadWebLinkApps(browserController, webLinkStore)
 
     onRenderer {
       browserController.renderBrowserWindow(wid)
@@ -87,6 +91,26 @@ class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
       }
     }
     return browserServer
+  }
+
+  /**
+   * 用来加载WebLink数据的，并且监听是否添加到桌面操作
+   */
+  private suspend fun loadWebLinkApps(
+    browserController: BrowserController, webLinkStore: WebLinkStore
+  ) {
+    webLinkStore.getAll().map { (key, webLinkManifest) ->
+      bootstrapContext.dns.install(WebLinkMicroModule(webLinkManifest))
+    }
+    browserController.onWebLinkAdded { webLinkManifest -> // 监听是否添加到桌面操作
+      // TODO 先存储，再注入到dns
+      webLinkStore.delete(webLinkManifest.id)
+      webLinkStore.set(webLinkManifest.id, webLinkManifest)
+      bootstrapContext.dns.query(webLinkManifest.id)?.let {
+        bootstrapContext.dns.uninstall(webLinkManifest.id)
+      }
+      bootstrapContext.dns.install(WebLinkMicroModule(webLinkManifest))
+    }
   }
 
   override suspend fun _shutdown() {

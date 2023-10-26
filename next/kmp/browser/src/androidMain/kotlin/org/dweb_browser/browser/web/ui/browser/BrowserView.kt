@@ -141,16 +141,6 @@ fun BrowserViewForWindow(
         BrowserMultiPopupView(viewModel)// 用于显示多界面
         BrowserSearchView(viewModel)
         BrowserBottomSheet(viewModel)
-
-        // 增加扫码的界面 // 暂时屏蔽qrCode
-        /*QRCodeScanView(qrCodeScanState = viewModel.uiState.qrCodeScanState,
-          onDataCallback = { data ->
-            if (data.isUrlOrHost() || data.startsWith("dweb:")) {
-              viewModel.handleIntent(BrowserIntent.SearchWebView(data))
-            } else {
-              viewModel.handleIntent(BrowserIntent.ShowSnackbarMessage("扫码结果：$data"))
-            }
-          })*/
       }
     }
   }
@@ -179,12 +169,8 @@ private fun BrowserViewContent(viewModel: BrowserViewModel) {
 
   Box(modifier = Modifier
     .fillMaxSize()
-    .clickableWithNoEffect { localFocusManager.clearFocus() }) {
-    // 创建一个不可滑动的 HorizontalPager , 然后由底下的 Search 来控制滑动效果
-    /*when (val item = viewModel.uiState.browserViewList[currentPage]) {
-        is BrowserMainView -> BrowserViewContentMain(viewModel, item)
-        is BrowserWebView -> BrowserViewContentWeb(viewModel, item)
-      }*/
+    .clickableWithNoEffect { localFocusManager.clearFocus() }
+  ) {
     HorizontalPager(modifier = Modifier,
       state = pagerStateContent,
       pageSpacing = 0.dp,
@@ -194,10 +180,7 @@ private fun BrowserViewContent(viewModel: BrowserViewModel) {
       beyondBoundsPageCount = 5,
 
       pageContent = { currentPage ->
-        BrowserViewContentWeb(viewModel, viewModel.uiState.browserViewList[currentPage])/*when (val item = viewModel.uiState.browserViewList[currentPage]) {
-          is BrowserMainView -> BrowserViewContentMain(viewModel, item)
-          is BrowserWebView -> BrowserViewContentWeb(viewModel, item)
-        }*/
+        BrowserViewContentWeb(viewModel, viewModel.uiState.browserViewList[currentPage])
       })
   }
 }
@@ -286,17 +269,6 @@ private fun BrowserViewNavigatorBar(viewModel: BrowserViewModel) {
       .height(dimenNavigationHeight)
   ) {
     val navigator = viewModel.uiState.currentBrowserBaseView.value?.viewItem?.navigator ?: return
-    // 屏蔽 goBack 和 goForward，功能转移到窗口的导航栏实现
-    /*NavigatorButton(
-      imageVector = Icons.Rounded.ArrowBack, // R.drawable.ic_main_back,
-      resName = R.string.browser_nav_back,
-      show = navigator.canGoBack
-    ) { navigator.navigateBack() }
-    NavigatorButton(
-      imageVector = Icons.Rounded.ArrowForward, // R.drawable.ic_main_forward,
-      resName = R.string.browser_nav_forward,
-      show = navigator.canGoForward ?: false
-    ) { navigator.navigateForward() }*/
     NavigatorButton(
       imageVector = Icons.Rounded.AddHome,
       resName = R.string.browser_nav_addhome,
@@ -306,7 +278,6 @@ private fun BrowserViewNavigatorBar(viewModel: BrowserViewModel) {
     }
     NavigatorButton(
       imageVector = if (navigator.canGoBack) Icons.Rounded.Add else Icons.Rounded.QrCodeScanner,
-      // resId = if (navigator.canGoBack) R.drawable.ic_main_add else R.drawable.ic_main_qrcode_scan,
       resName = if (navigator.canGoBack) R.string.browser_nav_add else R.string.browser_nav_scan,
       show = true
     ) {
@@ -374,13 +345,6 @@ private fun RowScope.NavigatorButton(
 private fun BrowserViewContentWeb(viewModel: BrowserViewModel, browserWebView: BrowserWebView) {
   key(browserWebView.viewItem.webviewId) {
     BrowserWebView(viewModel = viewModel, browserWebView = browserWebView)
-    /*Box(
-      modifier = Modifier
-        .fillMaxSize()
-        .padding(bottom = if (viewModel.uiState.showBottomBar.currentState) dimenBottomHeight else dimenHorizontalPagerHorizontal)
-    ) {
-      BrowserWebView(viewModel = viewModel, browserWebView = browserWebView)
-    }*/
   }
 }
 

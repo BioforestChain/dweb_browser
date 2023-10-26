@@ -419,9 +419,11 @@ class BrowserViewModel(
     add?.apply {
       if (isNoTrace.value) return // 如果是无痕模式，则不能进行存储历史操作
       val key = timeMillis.toString()
+      val addUrl = this.url
       browserController.historyLinks.getOrPut(key) {
         mutableListOf()
       }.apply {
+        removeIf { it.url == addUrl } // 删除同一天的重复数据
         add(0, add)
         browserController.saveHistoryLinks(key, this)
       }
