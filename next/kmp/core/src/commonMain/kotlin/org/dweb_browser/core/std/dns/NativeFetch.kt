@@ -141,8 +141,12 @@ suspend fun MicroModule.nativeFetch(request: PureRequest): PureResponse {
   return nativeFetchAdaptersManager.httpFetch(request)
 }
 
-suspend inline fun MicroModule.nativeFetch(url: Url) =
-  nativeFetch(PureRequest(url.toString(), IpcMethod.GET))
+suspend inline fun MicroModule.nativeFetch(url: Url) = nativeFetch(IpcMethod.GET, url)
 
-suspend inline fun MicroModule.nativeFetch(url: String) =
-  nativeFetch(PureRequest(url, IpcMethod.GET))
+suspend inline fun MicroModule.nativeFetch(url: String) = nativeFetch(IpcMethod.GET, url)
+
+suspend inline fun MicroModule.nativeFetch(method: IpcMethod, url: Url) =
+  nativeFetch(PureRequest(url.toString(), method))
+
+suspend inline fun MicroModule.nativeFetch(method: IpcMethod, url: String) =
+  nativeFetch(PureRequest(url, method))

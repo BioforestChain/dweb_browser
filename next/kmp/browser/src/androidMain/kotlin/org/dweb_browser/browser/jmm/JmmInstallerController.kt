@@ -37,11 +37,12 @@ class JmmInstallerController(
   private val viewDeferred = CompletableDeferred<WindowBottomSheetsController>()
   suspend fun getView() = viewDeferred.await()
 
-  suspend fun openRender(){
+  suspend fun openRender() {
     /// 提供渲染适配
-    val bottomSheets = jmmNMM.createBottomSheets { modifier ->
+    val bottomSheets = jmmNMM.createBottomSheets() { modifier ->
       Render(modifier, this)
     }.also { viewDeferred.complete(it) }
+    bottomSheets.setCloseTip("应用正在安装中")
     bottomSheets.open()
   }
 

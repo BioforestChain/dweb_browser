@@ -53,6 +53,7 @@ import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
+import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.compose.rememberImageLoader
 import org.dweb_browser.helper.randomUUID
 import org.dweb_browser.sys.window.core.constant.LocalWindowMM
@@ -61,25 +62,40 @@ import org.dweb_browser.sys.window.render.IdRender
 import org.dweb_browser.sys.window.render.LocalWindowControllerTheme
 import org.dweb_browser.sys.window.render.LocalWindowPadding
 
+val debugModal = Debugger("modal")
+
 @Serializable
-sealed class ModalState() {
-  abstract val callbackUrl: String?
+sealed class ModalState(
+) {
   val modalId = randomUUID()
-  val once = false
+  abstract val callbackUrl: String?
 
   /**
    * 关闭提示
    * 如果非空，那么在用户尝试主动关闭模态窗口的时候，会弹出报警提示
    */
-  val closeTip: String? = null
+  var closeTip
+    get() = _closeTip
+    set(value) {
+      _closeTip = value
+    }
+
+  @SerialName("closeTip")
+  private var _closeTip: String? = null
+
+
+  /**
+   * 是否只展示一次，之后自动销毁
+   */
+  val once = false
 
   @Transient
   val isOpen = mutableStateOf(false)
 
   @Transient
-  val showCloseTip = mutableStateOf("")
+  protected val showCloseTip = mutableStateOf("")
 
-  val isShowCloseTip get() = showCloseTip.value.isNotEmpty()
+  protected val isShowCloseTip get() = showCloseTip.value.isNotEmpty()
 
   @Composable
   abstract fun Render()
@@ -182,13 +198,7 @@ data class AlertModal internal constructor(
       dismissText: String? = null,
       callbackUrl: String? = null,
     ) = AlertModal(
-      title,
-      message,
-      iconUrl,
-      iconAlt,
-      confirmText,
-      dismissText,
-      callbackUrl,
+      title, message, iconUrl, iconAlt, confirmText, dismissText, callbackUrl,
     ).also { it.setParent(this) }
   }
 
@@ -280,15 +290,17 @@ class BottomSheetsModal private constructor(
   override val title: String? = null,
   override val iconUrl: String? = null,
   override val iconAlt: String? = null,
-  override val callbackUrl: String? = null
+  override val callbackUrl: String? = null,
 ) : ModalState(), IBottomSheetModal {
   companion object {
     fun WindowController.createBottomSheetsModal(
       title: String? = null,
       iconUrl: String? = null,
       iconAlt: String? = null,
-      callbackUrl: String? = null
-    ) = BottomSheetsModal(title, iconUrl, iconAlt, callbackUrl).also { it.setParent(this) }
+      callbackUrl: String? = null,
+    ) = BottomSheetsModal(title, iconUrl, iconAlt, callbackUrl).also {
+      it.setParent(this);
+    }
   }
 
   @OptIn(ExperimentalMaterial3Api::class, FlowPreview::class)
@@ -316,14 +328,14 @@ class BottomSheetsModal private constructor(
     }
 
     DisposableEffect(onModalDismissRequestFlow) {
-      println("SSSZ disposable")
+      debugModal("DisposableEffect", " disposable")
       val job = onModalDismissRequestFlow.map {
         if (!it) {
           hasStart = true
         }
         it
       }.debounce(200).map {
-        println("SSSR hide=$it opend=$hasStart")
+        debugModal("onModalDismissRequestFlow", " hide=$it opend=$hasStart")
         if (show && it && hasStart) {
           show = false;
           sendCallback(mm, CloseModalCallback(sessionId))
@@ -343,9 +355,9 @@ class BottomSheetsModal private constructor(
     }
 
     val sheetState = rememberModalBottomSheetState(confirmValueChange = {
-      println("SSS $it")
+      debugModal("confirmValueChange", " $it")
       when (it) {
-        SheetValue.Hidden -> {
+        SheetValue.Hidden -> closeTip.let { closeTip ->
           if (closeTip.isNullOrEmpty() || isShowCloseTip) {
             onModalDismissRequest(true)
             hasStart

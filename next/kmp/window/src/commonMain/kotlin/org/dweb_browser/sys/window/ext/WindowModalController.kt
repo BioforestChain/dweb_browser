@@ -18,7 +18,7 @@ import org.dweb_browser.sys.window.core.OpenModalCallback
 
 sealed class WindowModalController(
   val mm: NativeMicroModule,
-  val modal: ModalState,
+  private val modal: ModalState,
   onCallback: SharedFlow<ModalCallback>,
 ) {
   protected val onOpenSignal = SimpleSignal()
@@ -97,6 +97,14 @@ sealed class WindowModalController(
     mm.nativeFetch("file://window.sys.dweb/closeModal?modalId=${modal.modalId.encodeURIComponent()}")
       .boolean()
     awaitState(WindowModalState.CLOSE)
+  }
+
+  suspend fun setCloseTip(closeTip: String?) {
+    if (isDestroyed) {
+      return
+    }
+    mm.nativeFetch("file://window.sys.dweb/updateModalCloseTip?modalId=${modal.modalId.encodeURIComponent()}&closeTip=${closeTip?.encodeURIComponent()}")
+      .boolean()
   }
 
   suspend fun destroy() {

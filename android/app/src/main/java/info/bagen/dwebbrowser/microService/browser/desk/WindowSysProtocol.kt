@@ -27,6 +27,12 @@ suspend fun DeskNMM.windowProtocol(desktopController: DesktopController) {
       "/openModal" bind HttpMethod.Get to defineBooleanResponse {
         getAppMainWindow(ipc).openModal(request.query("modalId"))
       },
+      "/updateModalCloseTip" bind HttpMethod.Get to defineBooleanResponse {
+        getAppMainWindow(ipc).updateModalCloseTip(
+          request.query("modalId"),
+          request.queryOrNull("closeTip")
+        )
+      },
       "/closeModal" bind HttpMethod.Get to defineBooleanResponse {
         getAppMainWindow(ipc).closeModal(request.query("modalId"))
       },

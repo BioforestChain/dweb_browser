@@ -6,7 +6,6 @@ import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.cancel
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.dweb_browser.core.http.router.bind
@@ -51,7 +50,7 @@ suspend fun NativeMicroModule.createBottomSheets(
     title = title,
     iconUrl = iconUrl,
     iconAlt = iconAlt,
-    callbackUrl = "file://$mmid$callbackUrlPathname"
+    callbackUrl = "file://$mmid$callbackUrlPathname",
   )
 
   windowAdapterManager.provideRender(modal.renderId, renderProvider)

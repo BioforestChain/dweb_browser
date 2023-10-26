@@ -9,7 +9,6 @@ import kotlinx.serialization.Transient
 import org.dweb_browser.helper.Observable
 import org.dweb_browser.helper.ReasonLock
 import org.dweb_browser.helper.SimpleSignal
-import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.platform.PlatformViewController
 import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.sys.window.core.constant.WindowBottomBarTheme
@@ -318,16 +317,19 @@ abstract class WindowController(
   /**
    * 尝试移除一个 modal
    */
-  suspend fun removeModal(modalId: UUID) = modalsLock.withLock("write") {
-    when (val modal = state.modals[modalId]) {
-      null -> false
-      else -> {
-        state.modals -= modalId
-        windowAdapterManager.renderProviders.remove(modal.renderId)
-        true
-      }
-    }
+  suspend fun removeModal(modalId: String) = modalsLock.withLock("write") {
+    val modal = state.modals[modalId] ?: return@withLock false
+    state.modals -= modalId
+    windowAdapterManager.renderProviders.remove(modal.renderId)
+    true
   }
+
+  suspend fun updateModalCloseTip(modalId: String, closeTip: String?) =
+    modalsLock.withLock("write") {
+      val modal = state.modals[modalId] ?: return@withLock false
+      modal.closeTip = closeTip
+      true
+    }
 
   /**
    * 取当前正在显示的 modal
@@ -364,7 +366,7 @@ abstract class WindowController(
    *
    * @return 返回true说明这次操作让这个 modal 关闭了。否则可能是 modal不存在、或者modal本来就是关闭的
    */
-  suspend fun closeModal(modalId: UUID) = modalsLock.withLock("write") {
+  suspend fun closeModal(modalId: String) = modalsLock.withLock("write") {
     val modal = state.modals[modalId] ?: return@withLock false
     modal.isOpen.value.trueAlso {
       modal.isOpen.value = false
