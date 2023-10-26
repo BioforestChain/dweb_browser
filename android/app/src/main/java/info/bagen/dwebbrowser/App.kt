@@ -5,7 +5,11 @@ import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import androidx.core.content.pm.ShortcutInfoCompat
+import androidx.core.content.pm.ShortcutManagerCompat
+import androidx.core.graphics.drawable.IconCompat
 import info.bagen.dwebbrowser.microService.startDwebBrowser
+import info.bagen.dwebbrowser.microService.sys.barcodeScanning.ScanningActivity
 import info.bagen.dwebbrowser.util.CrashUtil
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
@@ -72,6 +76,26 @@ class App : Application() {
     // DwebBrowserUtil.INSTANCE.bindDwebBrowserService()
     BrowserUIApp.Instance.setAppContext(this) // 初始化BrowserUI模块
     AndroidNativeMicroModule.appContext = this
+    if (packageName != "info.bagen.dwebbrowser") { // 动态创建需要运行后太会添加到长按中，所以考虑正式版还是用静态的
+      createShortCuts()
+    }
+  }
+
+  /**
+   * 原先想作为静态入口的，配置在 shortcut.xml 中，后面发现 android:targetPackage是字符串，没法动态配置包名
+   * 包名由于debug有执行了特殊处理，导致静态的包名不适用，所以使用动态创建 shortcut 的方式
+   */
+  private fun createShortCuts() {
+    val build = ShortcutInfoCompat.Builder(this, "dweb_qrcode_debug")
+      .setShortLabel(getString(R.string.shortcut_short_label))
+      .setLongLabel(getString(R.string.shortcut_long_label))
+      .setIcon(IconCompat.createWithResource(this, R.drawable.ic_main_qrcode_scan))
+      .setIntent(Intent(this, ScanningActivity::class.java).also {
+        it.action = Intent.ACTION_VIEW
+        it.putExtra(ScanningActivity.IntentFromIPC, false)
+      })
+      .build()
+    ShortcutManagerCompat.pushDynamicShortcut(this, build)
   }
 
   override fun onTerminate() {

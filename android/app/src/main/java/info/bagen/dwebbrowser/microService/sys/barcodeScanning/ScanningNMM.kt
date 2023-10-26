@@ -5,11 +5,15 @@ import android.graphics.Point
 import android.graphics.Rect
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
+import info.bagen.dwebbrowser.App
+import info.bagen.dwebbrowser.util.permission.EPermission
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.printDebug
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.NativeMicroModule
+import org.dweb_browser.microservice.help.boolean
 import org.dweb_browser.microservice.help.types.MICRO_MODULE_CATEGORY
+import org.dweb_browser.microservice.sys.dns.nativeFetch
 import org.http4k.core.Method
 import org.http4k.lens.Query
 import org.http4k.lens.int
@@ -60,8 +64,26 @@ class ScanningNMM : NativeMicroModule("barcode-scanning.sys.dweb", "Barcode Scan
       "/stop" bind Method.GET to defineHandler { request ->
         stop()
         return@defineHandler true
+      },
+      "/open" bind Method.GET to defineStringResponse {
+        val grant =
+          nativeFetch("file://permission.sys.dweb/query?permission=${EPermission.PERMISSION_CAMERA}").boolean()
+        if (grant) {
+          openScanningActivity()
+        } else {
+          "permission denied"
+        }
       }
     )
+  }
+
+  private suspend fun openScanningActivity(): String {
+    ScanningController.controller.scanData = null
+    debugScanning("qrcode", "openScanningActivity")
+    App.startActivity(ScanningActivity::class.java) {
+      it.putExtra(ScanningActivity.IntentFromIPC, true) // 为了和shortcut做区分
+    }
+    return ScanningController.controller.waitScanResult()
   }
 
   override suspend fun _shutdown() {

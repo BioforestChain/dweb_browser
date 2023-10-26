@@ -35,4 +35,8 @@
   <string name="dialog_text_webview_upgrade">Due to the current Android System Webview version being too low, installation cannot proceed. \nPlease update the Android System Webview version of the system to (%s) and try again.</string>
   <string name="dialog_confirm_webview_upgrade">OK</string>
   <string name="dialog_dismiss_webview_upgrade">Helper Documents</string>
+
+  <string name="shortcut_short_label">Scan</string>
+  <string name="shortcut_long_label">Scan</string>
+  <string name="shortcut_toast">no support data -> </string>
 </resources>

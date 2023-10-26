@@ -15,6 +15,8 @@ import org.dweb_browser.browserUI.ui.loading.LoadingView
 import org.dweb_browser.helper.compose.theme.DwebBrowserAppTheme
 import org.dweb_browser.microservice.sys.dns.nativeFetch
 
+fun String.regexDeepLink() = Regex("dweb:.+").matchEntire(this)?.groupValues?.get(0)
+
 class DeepLinkActivity : BaseThemeActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -24,7 +26,7 @@ class DeepLinkActivity : BaseThemeActivity() {
 
     lifecycleScope.launch {
       intent.dataString?.let { uri ->
-        Regex("dweb:.+").matchEntire(uri)?.groupValues?.get(0)?.let { dwebUri ->
+        uri.regexDeepLink()?.let { dwebUri ->
           App.startMicroModuleProcess().nativeFetch(dwebUri)
         }
       }

@@ -62,7 +62,6 @@ import org.dweb_browser.browserUI.ui.browser.bottomsheet.SheetState
 import org.dweb_browser.browserUI.ui.browser.search.SearchView
 import org.dweb_browser.browserUI.ui.entity.BrowserBaseView
 import org.dweb_browser.browserUI.ui.entity.BrowserWebView
-import org.dweb_browser.browserUI.ui.qrcode.QRCodeScanView
 import org.dweb_browser.window.core.WindowRenderScope
 
 internal val dimenTextFieldFontSize = 16.sp
@@ -85,7 +84,6 @@ private val bottomExitAnimator = slideOutVertically(animationSpec = tween(300),/
     it//初始位置在负一屏的位置，也就是说初始位置我们看不到，动画动起来的时候会从负一屏位置滑动到屏幕位置
   })
 
-@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun BrowserViewForWindow(
   viewModel: BrowserViewModel, modifier: Modifier, windowRenderScope: WindowRenderScope
@@ -133,17 +131,6 @@ fun BrowserViewForWindow(
         BrowserMultiPopupView(viewModel)// 用于显示多界面
         BrowserSearchView(viewModel)
         BrowserBottomSheet(viewModel)
-
-        // 增加扫码的界面
-        QRCodeScanView(
-          qrCodeScanState = viewModel.uiState.qrCodeScanState,
-          onDataCallback = { data ->
-            if (data.isUrlOrHost() || data.startsWith("dweb:")) {
-              viewModel.handleIntent(BrowserIntent.SearchWebView(data))
-            } else {
-              viewModel.handleIntent(BrowserIntent.ShowSnackbarMessage("扫码结果：$data"))
-            }
-          })
       }
     }
   }
@@ -305,7 +292,7 @@ private fun BrowserViewNavigatorBar(viewModel: BrowserViewModel) {
       if (navigator.canGoBack) {
         viewModel.handleIntent(BrowserIntent.AddNewMainView())
       } else {
-        scope.launch { viewModel.uiState.qrCodeScanState.show() }
+        scope.launch { viewModel.openQRCodeScanning() }
       }
     }
     NavigatorButton(
@@ -466,6 +453,9 @@ private fun BoxScope.ShowLinearProgressIndicator(browserWebView: BrowserWebView?
 @Composable
 fun BrowserSearchView(viewModel: BrowserViewModel) {
   var showSearchView by LocalShowSearchView.current
+  BackHandler {
+    showSearchView = false // 隐藏当前的所搜索界面
+  }
   if (showSearchView) {
     val inputText = viewModel.dwebLinkSearch.value.ifEmpty {
       viewModel.uiState.currentBrowserBaseView.value?.viewItem?.state?.lastLoadedUrl ?: ""

@@ -56,12 +56,6 @@ class PermissionsNMM : NativeMicroModule("permission.sys.dweb", "permission") {
         permissionMap[ipc.remote.mmid]?.contains(permission) ?: run {
           requestPermissionByActivity(permission)
         }
-        /*val res = permissionMap[ipc.remote.mmid]?.contains(permission) ?: false
-        if (!res) {
-          applyPermission(permission, ipc.remote.mmid)
-        }
-        val response = """{"hasPermission":${res}}"""
-        Response(Status.OK).body(response)*/
       },
     )
   }
@@ -72,6 +66,7 @@ class PermissionsNMM : NativeMicroModule("permission.sys.dweb", "permission") {
   private suspend fun requestPermissionByActivity(permission: String): Boolean {
     val permissions = PermissionUtil.getActualPermissions(permission)
     debugPermission("requestPermissionByActivity", "permissions = $permissions")
+    PermissionController.controller.granted = null
     App.startActivity(PermissionActivity::class.java) { intent ->
       intent.putExtras(Bundle().also { it.putStringArrayList("permissions", permissions) })
     }

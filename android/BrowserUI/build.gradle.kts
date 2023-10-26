@@ -82,12 +82,6 @@ dependencies {
   implementation(libs.coil.video)
   implementation(libs.coil.gif)
 
-  implementation(libs.camera.core)
-  implementation(libs.camera.view)
-  implementation(libs.camera.camera2)
-  implementation(libs.camera.lifecycle)
-  implementation(libs.camera.barcode)
-
   implementation(libs.accompanist.permissions)
 
   implementation(libs.commons.compress)

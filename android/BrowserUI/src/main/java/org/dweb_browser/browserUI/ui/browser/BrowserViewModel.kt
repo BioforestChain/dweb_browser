@@ -14,7 +14,6 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.accompanist.web.WebContent
@@ -24,7 +23,6 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import org.dweb_browser.browserUI.R
 import org.dweb_browser.browserUI.database.DefaultAllWebEngine
 import org.dweb_browser.browserUI.database.WebEngine
 import org.dweb_browser.browserUI.database.WebSiteDatabase
@@ -32,7 +30,6 @@ import org.dweb_browser.browserUI.database.WebSiteInfo
 import org.dweb_browser.browserUI.database.WebSiteType
 import org.dweb_browser.browserUI.microService.browser.web.BrowserController
 import org.dweb_browser.browserUI.ui.entity.BrowserWebView
-import org.dweb_browser.browserUI.ui.qrcode.QRCodeScanState
 import org.dweb_browser.browserUI.util.BrowserUIApp
 import org.dweb_browser.browserUI.util.KEY_LAST_SEARCH_KEY
 import org.dweb_browser.browserUI.util.KEY_NO_TRACE
@@ -62,7 +59,6 @@ data class BrowserUIState(
   val showBottomBar: MutableTransitionState<Boolean> = MutableTransitionState(true), // 用于网页上滑或者下滑时，底下搜索框和导航栏的显示
   val inputText: MutableState<String> = mutableStateOf(""), // 用于指定输入的内容
   val showSearchEngine: MutableTransitionState<Boolean> = MutableTransitionState(false), // 用于在输入内容后，显示本地检索以及提供搜索引擎
-  val qrCodeScanState: QRCodeScanState = QRCodeScanState(), // 用于判断桌面的显示隐藏
 ) {
   suspend fun focusBrowserView(view: BrowserWebView) = withMainContext {
     val index = browserViewList.indexOf(view);
@@ -430,11 +426,16 @@ class BrowserViewModel(
     uiState.currentBrowserBaseView.value?.viewItem?.state?.let { state ->
       state.lastLoadedUrl?.let { url ->
         browserController.addUrlToDesktop(
-          title = state.pageTitle ?: "" ,
+          title = state.pageTitle ?: "",
           url = url, icon = state.pageIcon
         )
       }
     }
+  }
+
+  suspend fun openQRCodeScanning() {
+    val data = browserNMM.nativeFetch("file://barcode-scanning.sys.dweb/open").bodyString()
+    handleIntent(BrowserIntent.SearchWebView(data))
   }
 }
 
