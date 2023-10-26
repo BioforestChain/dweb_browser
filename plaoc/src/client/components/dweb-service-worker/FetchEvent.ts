@@ -13,8 +13,9 @@ export class ServiceWorkerFetchEvent extends Event {
   }
   /**查询连接者的信息 */
   async getRemoteManifest():Promise<$JmmAppInstallManifest> {
-    const { ipc } = this.fetchEvent;
-    const mmid = ipc.remote.mmid;
+    const { request } = this.fetchEvent;
+    const mmid = request.headers.get("x-Dweb-Host");
+    console.log("getRemoteManifest查询id=>",mmid)
     const res = await this.plugin.buildApiRequest("/query",{
       pathPrefix:"dns.std.dweb",
       search:{
