@@ -3,7 +3,7 @@ import type { $InstallProgressInfo } from "&/jmm.api.serve.ts";
 import type { $JmmAppInstallManifest } from "&/types.ts";
 import { toJsonlinesStream } from "helper/stream/jsonlinesStreamHelper.ts";
 import { streamRead } from "helper/stream/readableStreamHelper";
-import { ref } from "vue";
+import { ref, watchEffect } from "vue";
 const enum DOWNLOAD_STATUS {
   INIT = -1, // 初始状态
   PAUSE = 0, // 暂停
@@ -22,6 +22,23 @@ const props = defineProps({
     required: true,
   },
 });
+
+watchEffect(async () => {
+  if (props.appInfo.id && downloadState.value !== DOWNLOAD_STATUS.DONE) {
+    await querySelf();
+  }
+});
+
+async function querySelf() {
+  const mmid = props.appInfo.id;
+  const url = `${getApiOrigin()}/app/query?mmid=${mmid}`;
+  const res = await fetch(url);
+  const result: Boolean = await res.json();
+
+  if (res.ok && result) {
+    downloadState.value = DOWNLOAD_STATUS.DONE;
+  }
+}
 
 /**
  * 关闭当前APP
@@ -75,6 +92,7 @@ const openApp = async () => {
   // 然后打开指定的应用
   const mmid = props.appInfo.id;
   const res = await fetch(`${url}/app/open?mmid=${mmid}`);
+
   if (res.ok) {
     closeSelf();
   }

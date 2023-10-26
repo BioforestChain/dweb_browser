@@ -32,6 +32,9 @@ export class WebBrowserNMM extends NativeMicroModule {
     // 激活的逻辑
     this.onActivity(async (event, ipc) => {
       this.win = await this.openBrowserWindow(browserUrl);
+      this.win?.addListener("close", (_) => {
+        this.win = undefined;
+      });
       void this.win?.loadURL(
         buildUrl(browserUrl, {
           search: {

@@ -13,6 +13,7 @@ import { Store } from "../../helper/electronStore.ts";
 import { simpleEncoder } from "../../helper/encoding.ts";
 import { headersGetTotalLength } from "../../helper/httpHelper.ts";
 import { locks } from "../../helper/locksManager.ts";
+import { fetchMatch } from "../../helper/patternHelper.ts";
 import { ReadableStreamOut } from "../../helper/stream/readableStreamHelper.ts";
 import { createHttpDwebServer } from "../../std/http/helper/$createHttpDwebServer.ts";
 import type { JmmNMM } from "./jmm.ts";
@@ -65,37 +66,37 @@ export async function createApiServer(this: JmmNMM) {
     port: 6363,
   });
   const serverIpc = await this.apiServer.listen();
-  serverIpc
-    .onFetch(
-      async (event) => {
-        if (event.pathname === "/app/install") {
-          const appInfo = await event.json<$JmmAppInstallManifest>();
-          const res = await locks.request(`jmm-install:${appInfo.id}`, () => _appInstall.call(this, event, appInfo));
-          /// 上锁
-          return res
-        }
-      },
-      async (event) => {
-        if (event.pathname === "/close/self") {
-          return this.jmmServer?.close();
-        }
-      },
-      async (event) => {
-        if (event.pathname === "/app/open") {
-          const id = event.searchParams.get("mmid") as $MMID;
-          // 打开之前需要先关闭 否者更新后无法实现 更新打开 ？？
-          await this.context?.dns.close(id);
-          const connectResult = this.context?.dns.connect(id);
-          if (connectResult === undefined) {
-            throw new Error(`${id} not found!`);
-          }
-          // opendAppIpc.postMessage(IpcEvent.fromText("activity", ""));
-          return Response.json(true);
-        }
+
+  const onFetchMatcher = fetchMatch()
+    .post("/app/install", async (event) => {
+      const appInfo = await event.json<$JmmAppInstallManifest>();
+      const res = await locks.request(`jmm-install:${appInfo.id}`, () => _appInstall.call(this, event, appInfo));
+      /// 上锁
+      return res;
+    })
+    .get("/close/self", async (event) => {
+      return this.jmmServer?.close();
+    })
+    .get("/app/open", async (event) => {
+      const id = event.searchParams.get("mmid") as $MMID;
+      // 打开之前需要先关闭 否者更新后无法实现 更新打开 ？？
+      await this.context?.dns.close(id);
+      const connectResult = this.context?.dns.connect(id);
+      if (connectResult === undefined) {
+        throw new Error(`${id} not found!`);
       }
-    )
-    .internalServerError()
-    .cors();
+      // opendAppIpc.postMessage(IpcEvent.fromText("activity", ""));
+      return Response.json(true);
+    })
+    .get("/app/query", async (event) => {
+      const id = event.searchParams.get("mmid") as $MMID;
+      if(await this.context?.dns.query(id)) {
+        return Response.json(true);
+      } else {
+        return Response.json(false);
+      }
+    });
+  serverIpc.onFetch(onFetchMatcher.run).internalServerError().cors();
 }
 /**
  * 应用程序安装的核心逻辑
@@ -254,15 +255,20 @@ async function _appInstall(this: JmmNMM, event: FetchEvent, appInfo: $JmmAppInst
       return enqueueInstallProgress("install", 0, true, `invalid bundle-mime-type: ${bundleMime}`);
     }
     // createSession
-    const sessionFilePath = path.join(installDir,"/usr/sys/session.json")
+    const sessionFilePath = path.join(installDir, "/usr/sys/session.json");
     const nowDate = Date.now();
-    if(fs.existsSync(sessionFilePath)) {
-      const sessionInfo = fs.readFileSync(sessionFilePath).toJSON() as unknown as $SessionInfo
-      sessionInfo.upgradeTime = nowDate
-      fs.writeFileSync(sessionFilePath,JSON.stringify(sessionInfo))
-    } {
-      fs.mkdirSync(path.join(installDir,"/usr/sys"), { recursive: true });
-      fs.writeFileSync(sessionFilePath,`{"installTime":${nowDate},"upgradeTime":${nowDate},"installUrl":"${appInfo.bundle_url}"}`,{})
+    if (fs.existsSync(sessionFilePath)) {
+      const sessionInfo = fs.readFileSync(sessionFilePath).toJSON() as unknown as $SessionInfo;
+      sessionInfo.upgradeTime = nowDate;
+      fs.writeFileSync(sessionFilePath, JSON.stringify(sessionInfo));
+    }
+    {
+      fs.mkdirSync(path.join(installDir, "/usr/sys"), { recursive: true });
+      fs.writeFileSync(
+        sessionFilePath,
+        `{"installTime":${nowDate},"upgradeTime":${nowDate},"installUrl":"${appInfo.bundle_url}"}`,
+        {}
+      );
     }
     fs.unlinkSync(tempFilePath);
     fs.unlinkSync(hashFilePath);
@@ -282,10 +288,10 @@ async function _appInstall(this: JmmNMM, event: FetchEvent, appInfo: $JmmAppInst
 }
 
 export type $SessionInfo = {
-  installTime:number,
-  upgradeTime:number,
-  installUrl:string
-}
+  installTime: number;
+  upgradeTime: number;
+  installUrl: string;
+};
 
 export type $InstallProgressInfo = {
   state: "download" | "install";

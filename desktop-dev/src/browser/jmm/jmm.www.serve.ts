@@ -1,3 +1,4 @@
+import { $MMID } from "../../core/types.ts";
 import { tryDevUrl } from "../../helper/electronIsDev.ts";
 import { createNativeWindow } from "../../helper/openNativeWindow.ts";
 import { buildUrl } from "../../helper/urlHelper.ts";
@@ -6,17 +7,30 @@ import type { JmmNMM } from "./jmm.ts";
 
 export class JmmServer {
   constructor(
-    private win: Electron.BrowserWindow,
     private mm: JmmNMM,
     private jmmUrl: string,
     private jmmServer: HttpDwebServer
   ) {}
 
+  private win?: Electron.BrowserWindow = undefined;
+
   close() {
-    this.win.close();
+    this.win?.close();
   }
 
-  show(metadataUrl: string) {
+  async show(metadataUrl: string) {
+    if(!this.win) {
+      this.win = await createNativeWindow(this.mm.mmid, {
+        width: 350,
+        height: 750,
+        show: false,
+      });
+      this.win.setVisibleOnAllWorkspaces(true);
+      this.win.addListener("close", _ => {
+        this.win = undefined;
+      });
+    }
+
     this.win.loadURL(
       buildUrl(this.jmmUrl, {
         search: {
@@ -34,12 +48,12 @@ export class JmmServer {
     }).href;
     const jmmUrl = await tryDevUrl(jmmProdUrl, `http://localhost:3601/index.html`);
 
-    const jmmWin = await createNativeWindow(mm.mmid, {
-      width: 350,
-      height: 750,
-      show: false,
-    });
-    jmmWin.setVisibleOnAllWorkspaces(true);
-    return new JmmServer(jmmWin, mm, jmmUrl, jmmServer);
+    // const jmmWin = await createNativeWindow(mm.mmid, {
+    //   width: 350,
+    //   height: 750,
+    //   show: false,
+    // });
+    // jmmWin.setVisibleOnAllWorkspaces(true);
+    return new JmmServer(mm, jmmUrl, jmmServer);
   }
 }
