@@ -8,6 +8,7 @@ import io.ktor.http.Url
 import io.ktor.http.fullPath
 import io.ktor.util.decodeBase64Bytes
 import io.ktor.util.toLowerCasePreservingASCIIRules
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.dweb_browser.core.help.AdapterManager
@@ -16,6 +17,7 @@ import org.dweb_browser.core.help.toPureResponse
 import org.dweb_browser.core.http.PureBinaryBody
 import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.http.PureResponse
+import org.dweb_browser.core.http.PureStream
 import org.dweb_browser.core.http.PureStreamBody
 import org.dweb_browser.core.http.PureStringBody
 import org.dweb_browser.core.ipc.helper.IpcHeaders
@@ -102,10 +104,15 @@ class NativeFetchAdaptersManager : AdapterManager<FetchAdapter>() {
             client.prepareRequest(request.toHttpRequestBuilder()).execute {
               debugFetch("httpFetch execute", request.href)
               val byteChannel = it.bodyAsChannel()
-              val streamBody = PureStreamBody(byteChannel)
-              val response = it.toPureResponse(body = streamBody)
+              val pureStream = PureStream(byteChannel)
+              val onClosePo = CompletableDeferred<Unit>()
+              pureStream.onClose {
+                onClosePo.complete(Unit)
+              }
+              val response = it.toPureResponse(body = PureStreamBody(pureStream))
               debugFetch("httpFetch response", request.href)
               responsePo.resolve(response)
+              onClosePo.await()
             }
           } catch (e: Throwable) {
             val response = PureResponse(

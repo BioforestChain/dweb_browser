@@ -146,7 +146,7 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
     } else {
       // 下载流程初始化成功
       task.status = DownloadStateEvent(
-        state = DownloadState.Init, total = response.headers.get("content-length")?.toLong() ?: 1L
+        state = DownloadState.Init, total = response.headers.get("Content-Length")?.toLong() ?: 1L
       )
       task.readChannel = response.stream().getReader("downloadTask#${task.id}")
     }

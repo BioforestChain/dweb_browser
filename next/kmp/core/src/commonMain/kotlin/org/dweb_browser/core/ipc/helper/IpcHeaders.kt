@@ -75,7 +75,7 @@ class IpcHeaders() {
   fun copy() = IpcHeaders(headersMap)
   operator fun iterator() = headersMap.iterator()
   private fun String.asKey(): String {
-    return this.lowercase().split('-')
+    return lowercase().split('-')
       .joinToString("-") { it.first().uppercaseChar() + it.substring(1) }
   }
 }
