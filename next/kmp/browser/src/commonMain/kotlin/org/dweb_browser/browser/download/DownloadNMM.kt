@@ -77,7 +77,7 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
         debugDownload("/create", "mmid=$mmid params=$params")
         val task = createTaskFactory(controller, params, mmid)
         if (params.start) {
-          controller.downloadFactory(task)
+          downloadFactory(controller, task)
         }
         task.id
       },
@@ -86,7 +86,7 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
         val taskId = request.query("taskId")
         debugDownload("/start", "$taskId -> ${controller.downloadManagers[taskId]}")
         val task = controller.downloadManagers[taskId] ?: return@defineBooleanResponse false
-        controller.downloadFactory(task)
+        downloadFactory(controller, task)
       },
       // 监控下载进度
       "/watch/progress" bind HttpMethod.Get to defineJsonLineResponse {
@@ -184,18 +184,18 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
     return "application/octet-stream"
   }
 
-  suspend fun exist(path: String): Boolean {
+  private suspend fun exist(path: String): Boolean {
     val response = nativeFetch("file://file.std.dweb/exist?path=$path")
     return response.boolean()
   }
 
-  suspend fun info(path: String): FileMetadata {
+  private suspend fun info(path: String): FileMetadata {
     val response = nativeFetch("file://file.std.dweb/info?path=$path")
     return Json.decodeFromString(response.text())
   }
 
   //  追加写入文件，断点续传
-  suspend fun appendFile(task: DownloadTask, stream: ByteReadChannel) {
+  private suspend fun appendFile(task: DownloadTask, stream: ByteReadChannel) {
     nativeFetch(
       PureRequest(
         "file://file.std.dweb/append?path=${task.filepath}&create=true",
@@ -205,8 +205,22 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
     )
   }
 
-  fun DownloadTask.pause() {
+  fun DownloadTask.pause() {}
 
+  private suspend fun downloadFactory(controller: DownloadController, task: DownloadTask): Boolean {
+    val stream = task.readChannel ?: return false
+    debugDownload("downloadFactory", task.id)
+    // 已经存在了从断点开始
+    if (exist(task.filepath)) {
+      val current = info(task.filepath).size
+      // 当前进度
+      current?.let {
+        task.status.current = it
+      }
+    }
+    val buffer = controller.middleware(task, stream)
+    appendFile(task, buffer)
+    return true
   }
 
   override suspend fun _shutdown() {

@@ -13,7 +13,6 @@ import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.consumeEachArrayRange
 import org.dweb_browser.helper.toUtf8
 
-
 @Serializable
 data class DownloadTask(
   /** 下载编号 */
@@ -100,54 +99,32 @@ class DownloadController(val mm: DownloadNMM) {
     }
   }
 
-  fun openDownloadWindow() {
-
-  }
-
-  internal suspend fun downloadFactory(task: DownloadTask): Boolean {
-    val stream = task.readChannel ?: return false
-    // 开始下载 存储状态到内存
-    downloadState.emit(Pair(task.id, task.status))
-    debugDownload("downloadFactory", task.id)
-    // 已经存在了从断点开始
-    if (mm.exist(task.filepath)) {
-      val current = mm.info(task.filepath).size
-      // 当前进度
-      current?.let {
-        task.status.current = it
-      }
-    }
-    val buffer = task.middleware(stream)
-    mm.appendFile(task, buffer)
-    return true
-  }
-
   /**
    * 下载 task 中间件
    */
-  private fun DownloadTask.middleware(input: ByteReadChannel): ByteReadChannel {
-    val downloadTask = this;
+  fun middleware(downloadTask: DownloadTask, input: ByteReadChannel): ByteReadChannel {
     val output = ByteChannel(true)
-    status.state = DownloadState.Downloading
+    downloadTask.status.state = DownloadState.Downloading
     mm.ioAsyncScope.launch {
+      downloadTask.downloadSignal.emit(downloadTask)
       input.consumeEachArrayRange { byteArray, last ->
-        println("byteArray:${byteArray.toUtf8()}")
+        debugDownload("middleware","byteArray:${byteArray.toUtf8()}")
         if (output.isClosedForRead) {
           breakLoop()
-          status.state = DownloadState.Canceled
+          downloadTask.status.state = DownloadState.Canceled
           // 触发取消
           input.cancel()
-          downloadSignal.emit(downloadTask)
+          downloadTask.downloadSignal.emit(downloadTask)
         } else if (last) {
           output.close()
           input.cancel()
-          status.state = DownloadState.Completed
+          downloadTask.status.state = DownloadState.Completed
           // 触发完成
-          downloadSignal.emit(downloadTask)
+          downloadTask.downloadSignal.emit(downloadTask)
         } else {
-          status.current += byteArray.size
+          downloadTask.status.current += byteArray.size
           // 触发进度更新
-          downloadSignal.emit(downloadTask)
+          downloadTask.downloadSignal.emit(downloadTask)
           output.writePacket(ByteReadPacket(byteArray))
         }
       }
