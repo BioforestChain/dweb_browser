@@ -58,10 +58,10 @@ class PermissionsNMM : NativeMicroModule("permission.sys.dweb", "permission") {
 
   private suspend fun requestPermissionByActivity(permission: String): Boolean {
     val permissions = getActualPermissions(permission)
+    PermissionController.controller.granted = null
     debugPermission("requestPermissionByActivity", "permissions = $permissions")
     startAppActivity(PermissionActivity::class.java) { intent ->
       intent.putExtras(Bundle().also { it.putStringArrayList("permissions", permissions) })
-      PermissionController.controller.granted = null
     }
     return PermissionController.controller.waitGrantResult()
   }
