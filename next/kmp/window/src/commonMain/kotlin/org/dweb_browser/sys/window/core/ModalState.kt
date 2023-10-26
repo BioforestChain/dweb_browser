@@ -310,9 +310,13 @@ class BottomSheetsModal private constructor(
     val onModalDismissRequestFlow = remember {
       MutableSharedFlow<Boolean>()
     }
+    println("SSSZ start")
+    var hasStart = remember {
+      false
+    }
 
     DisposableEffect(onModalDismissRequestFlow) {
-      var hasStart = false
+      println("SSSZ disposable")
       val job = onModalDismissRequestFlow.map {
         if (!it) {
           hasStart = true
@@ -344,7 +348,7 @@ class BottomSheetsModal private constructor(
         SheetValue.Hidden -> {
           if (closeTip.isNullOrEmpty() || isShowCloseTip) {
             onModalDismissRequest(true)
-            true
+            hasStart
           } else {
             showCloseTip.value = closeTip
             false
