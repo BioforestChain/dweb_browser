@@ -42,7 +42,6 @@ actual fun readClipboard(): ClipboardData {
         value = "data:image/png;base64,$base64"
         type = "text/png"
     } else if (pasteboard.hasURLs) {
-        var base64 = pasteboard.image?.pngData()?.base64Encoding()
         value = pasteboard.URL?.absoluteString.toString()
         type = "text/plain"
     }
