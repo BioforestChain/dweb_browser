@@ -1,12 +1,8 @@
 package info.bagen.dwebbrowser.microService.browser.jmm
 
-import android.webkit.CookieManager
-import android.webkit.WebStorage
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import okio.FileSystem
-import okio.Path.Companion.toPath
-import okio.Sink
+import kotlinx.serialization.json.JsonElement
 import org.dweb_browser.dwebview.ipcWeb.Native2JsIpc
 import org.dweb_browser.helper.ImageResource
 import org.dweb_browser.helper.PromiseOut
@@ -15,11 +11,11 @@ import org.dweb_browser.helper.printDebug
 import org.dweb_browser.helper.printError
 import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.helper.toBase64Url
+import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.microservice.core.AndroidNativeMicroModule
 import org.dweb_browser.microservice.core.BootstrapContext
 import org.dweb_browser.microservice.core.ConnectResult
 import org.dweb_browser.microservice.core.MicroModule
-import org.dweb_browser.microservice.core.NativeMicroModule
 import org.dweb_browser.microservice.core.connectAdapterManager
 import org.dweb_browser.microservice.help.boolean
 import org.dweb_browser.microservice.help.gson
@@ -326,5 +322,9 @@ open class JsMicroModule(val metadata: JmmAppInstallManifest) : AndroidNativeMic
 
   override fun toManifest(): CommonAppManifest {
     return this.metadata.toCommonAppManifest()
+  }
+
+  override fun toManifestJsonElement(): JsonElement {
+    return this.metadata.toJsonElement()
   }
 }

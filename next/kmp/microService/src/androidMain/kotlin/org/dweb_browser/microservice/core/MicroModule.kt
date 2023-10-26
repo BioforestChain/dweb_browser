@@ -11,6 +11,7 @@ import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.helper.printDebug
+import org.dweb_browser.helper.toJsonElement
 import org.dweb_browser.microservice.help.types.CommonAppManifest
 import org.dweb_browser.microservice.help.types.IMicroModuleManifest
 import org.dweb_browser.microservice.help.types.MMID
@@ -189,6 +190,11 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
   open fun toManifest(): CommonAppManifest {
     return manifest.toCommonAppManifest()
   }
+
+  /**
+   * 可以得到更加精细完整的
+   */
+  open fun toManifestJsonElement() = toManifest().toJsonElement()
 }
 
 typealias IpcConnectArgs = Pair<Ipc, Request>

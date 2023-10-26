@@ -227,7 +227,6 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
         true
       }, "/query" bind Method.GET to defineJsonResponse { request ->
         val mmid = queryAppId(request)
-        Json.encodeToString("")
         query(mmid)?.toManifest()?.toJsonElement() ?: Response(Status.OK).toJsonElement()
       }, "/observe/install-apps" bind Method.GET to defineResponse {
         val inputStream = ReadableStream(onStart = { controller ->

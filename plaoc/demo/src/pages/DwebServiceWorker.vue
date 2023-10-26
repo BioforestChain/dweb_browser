@@ -28,10 +28,10 @@ onMounted(async () => {
   updateContoller.addEventListener("end", (event) => {
     console.log("Dweb Service Worker updateContoller end =>", event);
   });
-  updateContoller.addEventListener("progress", (progressRate) => {
-    progress.value = parseFloat(progressRate);
-    console.log("Dweb Service Worker updateContoller progress =>", progressRate, parseFloat(progressRate));
-  });
+  // updateContoller.addEventListener("progress", (progressRate) => {
+  //   progress.value = parseFloat(progressRate);
+  //   console.log("Dweb Service Worker updateContoller progress =>", progressRate, parseFloat(progressRate));
+  // });
   updateContoller.addEventListener("cancel", (event) => {
     console.log("Dweb Service Worker updateContoller cancel =>", event);
   });
