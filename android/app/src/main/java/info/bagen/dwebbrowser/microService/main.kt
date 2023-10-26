@@ -8,14 +8,12 @@ import info.bagen.dwebbrowser.microService.sys.config.ConfigNMM
 import info.bagen.dwebbrowser.microService.sys.device.DeviceNMM
 import info.bagen.dwebbrowser.microService.sys.fileSystem.FileSystemNMM
 import info.bagen.dwebbrowser.microService.sys.haptics.HapticsNMM
-import info.bagen.dwebbrowser.microService.sys.installNativeFetchSysFile
 import info.bagen.dwebbrowser.microService.sys.notification.NotificationNMM
 import info.bagen.dwebbrowser.microService.sys.permission.PermissionsNMM
 import info.bagen.dwebbrowser.microService.sys.share.ShareNMM
 import info.bagen.dwebbrowser.microService.sys.toast.ToastNMM
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
-import io.ktor.util.InternalAPI
 import org.dweb_browser.browser.download.DownloadNMM
 import org.dweb_browser.browser.jmm.JmmNMM
 import org.dweb_browser.browser.jsProcess.JsProcessNMM
@@ -32,7 +30,6 @@ import org.dweb_browser.helper.addDebugTags
 import org.dweb_browser.helper.platform.getKtorClientEngine
 import org.dweb_browser.shared.microService.sys.motionSensors.MotionSensorsNMM
 
-@OptIn(InternalAPI::class)
 suspend fun startDwebBrowser(): DnsNMM {
   /**
   "message-port-ipc",
@@ -64,8 +61,6 @@ suspend fun startDwebBrowser(): DnsNMM {
     else -> addDebugTags(listOf())
   }
 
-  /// 安装文件请求服务
-  installNativeFetchSysFile()
   /// 初始化DNS服务
   val dnsNMM = DnsNMM()
 
