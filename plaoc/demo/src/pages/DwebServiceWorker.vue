@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import LogPanel, { defineLogAction } from "../components/LogPanel.vue";
-import { dwebServiceWorker, toastPlugin, updateControllerPlugin } from "../plugin";
+import { dwebServiceWorker, updateControllerPlugin } from "../plugin";
 const $logPanel = ref<typeof LogPanel>();
 // let console: Console;
 
@@ -80,14 +80,6 @@ const download = defineLogAction(
   { name: "download", args: [], logPanel: $logPanel }
 );
 
-const check = defineLogAction(
-  async () => {
-    const { version } = await updateControllerPlugin.getVersion();
-    toastPlugin.show({ text: `当前版本：${version}` });
-  },
-  { name: "check", args: [], logPanel: $logPanel }
-);
-
 const message = ref("这里显示收到的消息");
 
 // 向desktop.dweb.waterbang.top.dweb 发送消息
@@ -100,6 +92,7 @@ const sayHi = async () => {
 };
 dwebServiceWorker.addEventListener("fetch", async (event) => {
   console.log("Dweb Service Worker fetch!", event);
+  console.log("xxxx=>", await event.getRemoteManifest());
   const url = new URL(event.request.url);
   if (url.pathname.endsWith("/say/hi")) {
     const hiMessage = url.searchParams.get("message");
@@ -135,7 +128,6 @@ const title = "Dweb Service Worker";
       <h2 class="card-title">下载测试</h2>
       <div class="justify-end card-actions btn-group">
         <button class="inline-block rounded-full btn btn-accent" @click="download">下载新版本</button>
-        <button class="inline-block rounded-full btn btn-accent" @click="check">检查版本升级</button>
       </div>
       <div>
         <progress class="w-56 progress progress-accent" :value="progress" max="100"></progress>
