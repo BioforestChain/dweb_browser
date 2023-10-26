@@ -5,11 +5,11 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.browser.jmm.JmmInstallerController
 import org.dweb_browser.browser.jmm.JmmNMM
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
-import org.dweb_browser.core.sys.download.JmmDownloadStatus
 import org.dweb_browser.helper.compose.noLocalProvidedFor
 import org.dweb_browser.helper.falseAlso
 
@@ -27,10 +27,37 @@ internal val LocalJmmNMM = compositionLocalOf<JmmNMM> {
   noLocalProvidedFor("JmmNMM")
 }
 
+@Serializable
+enum class JmmStatus {
+  /** 初始化中，做下载前的准备，包括寻址、创建文件、保存任务等工作 */
+  Init,
+
+  /** 下载中*/
+  Downloading,
+
+  /** 暂停下载*/
+  Paused,
+
+  /** 取消下载*/
+  Canceld,
+
+  /** 下载失败*/
+  Failed,
+
+  /** 下载完成*/
+  Completed,
+
+  /**安装中*/
+  INSTALLED,
+
+  /** 新版本*/
+  NewVersion;
+}
+
 data class JmmUIState(
   val jmmAppInstallManifest: JmmAppInstallManifest,
   val downloadSize: MutableState<Long> = mutableLongStateOf(0L),
-  val downloadStatus: MutableState<JmmDownloadStatus> = mutableStateOf(JmmDownloadStatus.Init)
+  val downloadStatus: MutableState<JmmStatus> = mutableStateOf(JmmStatus.Init)
 )
 
 class JmmManagerViewHelper(
@@ -46,16 +73,16 @@ class JmmManagerViewHelper(
 
       if (this.status.state == DownloadState.Downloading) {
         uiState.downloadSize.value = this.status.current
-        uiState.downloadStatus.value = JmmDownloadStatus.Downloading
+        uiState.downloadStatus.value = JmmStatus.Downloading
       }
       // 下载完成触发解压
       if (this.status.state == DownloadState.Completed) {
         val success = jmmInstallerController.decompress(this)
         if (success) {
-          uiState.downloadStatus.value = JmmDownloadStatus.INSTALLED
+          uiState.downloadStatus.value = JmmStatus.INSTALLED
         } else {
           uiState.downloadSize.value = 0L
-          uiState.downloadStatus.value = JmmDownloadStatus.Failed
+          uiState.downloadStatus.value = JmmStatus.Failed
         }
       }
     }
@@ -65,13 +92,13 @@ class JmmManagerViewHelper(
 
   fun pause() = jmmNMM.ioAsyncScope.launch {
     jmmInstallerController.pause().falseAlso {
-      uiState.downloadStatus.value = JmmDownloadStatus.Failed
+      uiState.downloadStatus.value = JmmStatus.Failed
     }
   }
 
   fun start() = jmmNMM.ioAsyncScope.launch {
     jmmInstallerController.start().falseAlso {
-      uiState.downloadStatus.value = JmmDownloadStatus.Failed
+      uiState.downloadStatus.value = JmmStatus.Failed
     }
   }
 

@@ -22,9 +22,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import org.dweb_browser.browser.BrowserI18nResource
 import org.dweb_browser.browser.jmm.JsMicroModule
+import org.dweb_browser.browser.jmm.ui.JmmStatus
 import org.dweb_browser.browser.jmm.ui.LocalJmmViewHelper
-import org.dweb_browser.core.sys.download.JmmDownloadStatus
-import org.dweb_browser.helper.toSpaceSize
 
 @Composable
 internal fun BoxScope.BottomDownloadButton() {
@@ -49,27 +48,27 @@ internal fun BoxScope.BottomDownloadButton() {
     }
     val installByteLength = BrowserI18nResource.Companion.InstallByteLength(downloadSize, totalSize)
     val text = if (canSupportTarget) when (downloadStatus) {
-      JmmDownloadStatus.Init, JmmDownloadStatus.Canceld -> {
+      JmmStatus.Init, JmmStatus.Canceld -> {
         BrowserI18nResource.install_button_download(installByteLength)
       }
 
-      JmmDownloadStatus.NewVersion -> {
+      JmmStatus.NewVersion -> {
         BrowserI18nResource.install_button_update(installByteLength)
       }
 
-      JmmDownloadStatus.Downloading -> {
+      JmmStatus.Downloading -> {
         showLinearProgress = true
         BrowserI18nResource.install_button_downloading(installByteLength)
       }
 
-      JmmDownloadStatus.Paused -> {
+      JmmStatus.Paused -> {
         showLinearProgress = true
         BrowserI18nResource.install_button_paused(installByteLength)
       }
 
-      JmmDownloadStatus.Completed -> BrowserI18nResource.install_button_installing()
-      JmmDownloadStatus.INSTALLED -> BrowserI18nResource.install_button_open()
-      JmmDownloadStatus.Failed -> BrowserI18nResource.install_button_retry()
+      JmmStatus.Completed -> BrowserI18nResource.install_button_installing()
+      JmmStatus.INSTALLED -> BrowserI18nResource.install_button_open()
+      JmmStatus.Failed -> BrowserI18nResource.install_button_retry()
     } else BrowserI18nResource.install_button_incompatible()
 
     val modifier = Modifier
@@ -97,23 +96,23 @@ internal fun BoxScope.BottomDownloadButton() {
     ElevatedButton(
       onClick = {
         when (downloadStatus) {
-          JmmDownloadStatus.Init, JmmDownloadStatus.Failed, JmmDownloadStatus.Canceld, JmmDownloadStatus.NewVersion -> {
-            downloadStatus = JmmDownloadStatus.Downloading
+          JmmStatus.Init, JmmStatus.Failed, JmmStatus.Canceld, JmmStatus.NewVersion -> {
+            downloadStatus = JmmStatus.Downloading
             viewModel.startDownload()
           }
 
-          JmmDownloadStatus.Downloading -> {
-            downloadStatus = JmmDownloadStatus.Paused
+          JmmStatus.Downloading -> {
+            downloadStatus = JmmStatus.Paused
             viewModel.pause()
           }
 
-          JmmDownloadStatus.Paused -> {
-            downloadStatus = JmmDownloadStatus.Downloading
+          JmmStatus.Paused -> {
+            downloadStatus = JmmStatus.Downloading
             viewModel.start()
           }
 
-          JmmDownloadStatus.Completed -> {}
-          JmmDownloadStatus.INSTALLED -> {
+          JmmStatus.Completed -> {}
+          JmmStatus.INSTALLED -> {
             viewModel.open()
           }
         }
