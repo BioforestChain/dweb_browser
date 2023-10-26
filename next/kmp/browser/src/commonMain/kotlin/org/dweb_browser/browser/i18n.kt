@@ -12,10 +12,8 @@ class BrowserI18nResource {
 
     class WebViewVersions(var currentVersion: String, var requiredVersion: String)
 
-    val dialog_text_webview_upgrade =
-      OneParamI18nResource(
-        { WebViewVersions("", "") },
-        Language.ZH to { "当前系统中的 Android System Webview 版本过低 (${currentVersion})，所安装扩展软件可能无法正确运行。\n如果遇到此类情况，请优先将 Android System Webview 版本更新至 ${it.requiredVersion} 后再重试。" })
+    val dialog_text_webview_upgrade = OneParamI18nResource({ WebViewVersions("", "") },
+      Language.ZH to { "当前系统中的 Android System Webview 版本过低 ($currentVersion)，所安装扩展软件可能无法正确运行。\n如果遇到此类情况，请优先将 Android System Webview 版本更新至 $requiredVersion 以上再重试。" })
     val dialog_confirm_webview_upgrade = SimpleI18nResource(Language.ZH to "确定")
     val dialog_dismiss_webview_upgrade = SimpleI18nResource(Language.ZH to "帮助文档")
 
@@ -25,14 +23,12 @@ class BrowserI18nResource {
       }
     }
 
-    val install_button_download =
-      InstallByteLength.asI18nResource()
-        .define { Language.ZH to { "下载 (${total.toSpaceSize()})" } }
+    val install_button_download = InstallByteLength.asI18nResource()
+      .define { Language.ZH to { "下载 (${total.toSpaceSize()})" } }
     val install_button_update = InstallByteLength.asI18nResource()
       .define { Language.ZH to { "更新 (${total.toSpaceSize()})" } }
-    val install_button_downloading =
-      InstallByteLength.asI18nResource()
-        .define { Language.ZH to { "下载中 ${current.toSpaceSize()} / ${total.toSpaceSize()}" } }
+    val install_button_downloading = InstallByteLength.asI18nResource()
+      .define { Language.ZH to { "下载中 ${current.toSpaceSize()} / ${total.toSpaceSize()}" } }
     val install_button_paused = InstallByteLength.asI18nResource()
       .define { Language.ZH to { "暂停  ${current.toSpaceSize()} / ${total.toSpaceSize()}" } }
     val install_button_installing = SimpleI18nResource(Language.ZH to "安装中...")
