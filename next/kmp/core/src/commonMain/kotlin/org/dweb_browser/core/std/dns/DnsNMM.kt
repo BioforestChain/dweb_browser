@@ -5,7 +5,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.fullPath
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.encodeToString
@@ -31,7 +30,6 @@ import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.module.connectMicroModules
 import org.dweb_browser.helper.ChangeState
 import org.dweb_browser.helper.ChangeableMap
-import org.dweb_browser.helper.ChangeableSet
 import org.dweb_browser.helper.Debugger
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.removeWhen
@@ -46,8 +44,30 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     categories = listOf(MICRO_MODULE_CATEGORY.Service, MICRO_MODULE_CATEGORY.Routing_Service);
   }
 
-  private val allApps = ChangeableSet<MicroModule>()
-  private val installApps = ChangeableMap<MMID, MutableSet<MicroModule>>() // 已安装的应用
+  /**
+   * 所有应用列表，这里基于 MMID 存储，ChangeableMap 提供变动监听功能
+   */
+  private val allApps = ChangeableMap<MMID, MicroModule>()
+
+  /**
+   * 所有应用和协议列表，这里基于 MMID 与 Protocol 存储
+   */
+  private val _installApps = mutableMapOf<MPID, MutableSet<MicroModule>>()
+  private fun installApps(mpid: MPID) = _installApps.getOrElse(mpid) { emptySet() }
+  private fun addInstallApps(mpid: MPID, app: MicroModule) {
+    when (val beforeMms = _installApps[mpid]) {
+      null -> _installApps[mpid] = mutableSetOf(app)
+      else -> beforeMms += app
+    }
+  }
+
+  private fun removeInstallApps(mpid: MPID, app: MicroModule) =
+    when (val beforeMms = _installApps[mpid]) {
+      null -> false
+      else -> beforeMms.remove(app)
+    }
+
+
   private val _runningApps =
     ChangeableMap</* mmid or dweb-protocol */MPID, Map</*真正的 realMmid*/MMID, RunningApp>>() // 正在运行的应用
 
@@ -89,7 +109,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
    * TODO 一个MMID被多个模块同时实现时，需要提供选择器
    */
   private fun getPreferenceApp(mpid: MPID, fromMM: IMicroModuleManifest) =
-    installApps[mpid]?.firstOrNull { it.mmid != fromMM.mmid }
+    installApps(mpid).firstOrNull { it.mmid != fromMM.mmid }
 
   suspend fun bootstrap() {
     if (!this.running) {
@@ -210,7 +230,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
         debugDNS("fetch ipc", "$fromMM => ${request.href}")
         val url = request.href
         val reasonRequest = buildRequestX(url, request.method, request.headers, request.body);
-        if (installApps.containsKey(mpid)) {
+        if (installApps(mpid).isNotEmpty()) {
           val (fromIpc) = connectTo(fromMM, mpid, reasonRequest)
           fromIpc.request(request)
         } else PureResponse(HttpStatusCode.BadGateway, body = PureStringBody(url))
@@ -220,7 +240,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     nativeFetchAdaptersManager.append { fromMM, request ->
       if (request.href.startsWith("dweb:")) {
         debugDNS("fetch deeplink", "$fromMM => ${request.href}")
-        for (microModule in allApps) {
+        for (microModule in allApps.values) {
           for (deeplink in microModule.dweb_deeplinks) {
             if (request.href.startsWith(deeplink)) {
               val (fromIpc) = connectTo(fromMM, microModule.mmid, request)
@@ -261,7 +281,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
       },
       //
       "/observe/install-apps" bind HttpMethod.Get to defineJsonLineResponse {
-        installApps.onChange { changes ->
+        allApps.onChange { changes ->
           emit(
             ChangeState(
               changes.adds, changes.updates, changes.removes
@@ -285,29 +305,34 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
   }
 
   override suspend fun _shutdown() {
-    allApps.forEach {
+    allApps.values.forEach {
       it.shutdown()
     }
     allApps.clear()
-    installApps.clear()
+    _installApps.clear()
     ioAsyncScope.cancel()
   }
 
   /** 安装应用 */
   fun install(mm: MicroModule) {
-    allApps.add(mm)
-    installApps.getOrPut(mm.mmid) { ChangeableSet() }.add(mm)
+    allApps[mm.mmid] = mm
+    addInstallApps(mm.mmid, mm)
     for (protocol in mm.dweb_protocols) {
-      installApps.getOrPut(protocol) { ChangeableSet() }.add(mm)
+      addInstallApps(protocol, mm)
     }
   }
 
   /** 卸载应用 */
   suspend fun uninstall(mmid: MMID): Boolean {
-    installApps.remove(mmid)?.let { mm ->
-      mm.forEach { it.dispose() }
+    val mm = allApps[mmid] ?: return false
+    /// 首先进行关闭
+    close(mmid)
+    /// 执行销毁的生命周期函数
+    mm.dispose()
+    removeInstallApps(mmid, mm)
+    for (protocol in mm.dweb_protocols) {
+      removeInstallApps(protocol, mm)
     }
-    ioAsyncScope.launch { close(mmid) }
     return true
   }
 
@@ -323,7 +348,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
    */
   fun search(category: MICRO_MODULE_CATEGORY): MutableList<MicroModule> {
     val categoryList = mutableListOf<MicroModule>()
-    for (app in allApps) {
+    for (app in allApps.values) {
       if (app.categories.contains(category)) {
         categoryList.add(app)
       }
