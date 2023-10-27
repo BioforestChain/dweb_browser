@@ -11,8 +11,9 @@ import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.helper.DisplayMode
+import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.printDebug
-import org.dweb_browser.sys.window.ext.openMainWindow
+import org.dweb_browser.sys.window.ext.getWindow
 import org.dweb_browser.sys.window.render.emitFocusOrBlur
 
 fun debugMultiWebView(tag: String, msg: Any? = "", err: Throwable? = null) =
@@ -35,16 +36,17 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.browser.dweb", "Multi Webvie
       // 打开一个 webview，并将它以 窗口window 的标准进行展示
       "/open" bind HttpMethod.Get to defineJsonResponse {
         val url = request.query("url")
+        val wid = request.query("wid")
 
-        val remoteMm = ipc.asRemoteInstance()
-          ?: throw Exception("mwebview.browser.dweb/open should be call by locale")
+        val remoteMm = ipc.remoteAsInstance()
+          ?: throw Exception("mwebview.browser.dweb/open should be call by locale for now")
         debugMultiWebView("/open", "MultiWebViewNMM open!!! ${remoteMm.mmid}")
         ipc.onClose {
           debugMultiWebView("/open", "listen ipc close destroy window")
           val controller = controllerMap[ipc.remote.mmid]
           controller?.destroyWebView()
         }
-        val (viewItem, controller) = openDwebView(url, remoteMm, ipc)
+        val (viewItem, controller) = openDwebView(remoteMm, wid, url, ipc)
         debugMultiWebView("create/open end", "${viewItem.webviewId}, ${controller.win.id}")
         controller.getState()
       },
@@ -80,15 +82,16 @@ class MultiWebViewNMM : NativeMicroModule("mwebview.browser.dweb", "Multi Webvie
 
   private val openLock = Mutex()
   private suspend fun openDwebView(
-    url: String,
     remoteMm: MicroModule,
+    wid: UUID,
+    url: String,
     ipc: Ipc,
   ) = openLock.withLock(remoteMm.mmid) {
     val remoteMmid = remoteMm.mmid
     debugMultiWebView("/open", "remote-mmid: $remoteMmid / url:$url")
 
     val controller = controllerMap.getOrPut(remoteMmid) {
-      val win = remoteMm.openMainWindow()
+      val win = remoteMm.getWindow(wid)
       remoteMm.manifest.display?.let { mode ->
         if (mode == DisplayMode.Fullscreen) {
           win.maximize()

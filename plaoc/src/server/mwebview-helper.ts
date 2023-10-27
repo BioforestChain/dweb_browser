@@ -1,10 +1,11 @@
 import { createSignal, jsProcess } from "./deps.ts";
 
 /**开启新页面 */
-export const mwebview_open = async (url: string) => {
-  const state = await jsProcess
-    .nativeFetch(`file://mwebview.browser.dweb/open?url=${encodeURIComponent(url)}`)
-    .object<$AllWebviewState>();
+export const mwebview_open = async (wid: string, url: string) => {
+  const openUrl = new URL(`file://mwebview.browser.dweb/open`);
+  openUrl.searchParams.set("wid", wid);
+  openUrl.searchParams.set("url", url);
+  const state = await jsProcess.nativeFetch(openUrl).object<$AllWebviewState>();
   all_webview_status.diffState(state);
   return state;
 };
@@ -14,8 +15,10 @@ export const mwebview_open = async (url: string) => {
  * TODO 未来，激活窗口需要消耗token，而token必须基于用户的touchend手势，一个touchend手势在只能创建一个token
  * @returns
  */
-export const mwebview_activate = async () => {
-  return await jsProcess.nativeFetch(`file://mwebview.browser.dweb/activate`).text();
+export const mwebview_activate = async (wid: string) => {
+  const activateUrl = new URL(`file://mwebview.browser.dweb/activate`);
+  activateUrl.searchParams.set("wid", wid);
+  return await jsProcess.nativeFetch(activateUrl).text();
 };
 
 /**关闭app */

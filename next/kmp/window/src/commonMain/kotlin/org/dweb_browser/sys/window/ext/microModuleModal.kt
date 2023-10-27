@@ -19,6 +19,7 @@ import org.dweb_browser.sys.window.core.AlertModal.Companion.createAlertModal
 import org.dweb_browser.sys.window.core.BottomSheetsModal.Companion.createBottomSheetsModal
 import org.dweb_browser.sys.window.core.ModalCallback
 import org.dweb_browser.sys.window.core.WindowRenderProvider
+import org.dweb_browser.sys.window.core.requestMainWindowId
 import org.dweb_browser.sys.window.core.windowAdapterManager
 
 private val microModuleModalLocks = WeakHashMap<MicroModule, Mutex>()
@@ -45,7 +46,7 @@ suspend fun NativeMicroModule.createBottomSheets(
     onCallback.emit(request.body.toPureString().decodeTo())
   });
 
-  val mainWindow = getMainWindow()
+  val mainWindow = getWindow(requestMainWindowId())
   val modal = mainWindow.createBottomSheetsModal(
     title = title,
     iconUrl = iconUrl,
@@ -75,7 +76,8 @@ suspend fun NativeMicroModule.createAlert(
   val callbackRouter = routes(callbackUrlPathname bind HttpMethod.Post to defineEmptyResponse {
     onCallback.emit(request.body.toPureString().decodeTo())
   });
-  val mainWindow = getMainWindow()
+
+  val mainWindow = getWindow(requestMainWindowId())
   val modal = mainWindow.createAlertModal(
     title = title,
     message = message,

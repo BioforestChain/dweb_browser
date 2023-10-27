@@ -7,7 +7,7 @@ import io.ktor.http.HttpMethod
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.helper.removeWhen
 import org.dweb_browser.sys.window.core.windowAdapterManager
-import org.dweb_browser.sys.window.ext.openMainWindow
+import org.dweb_browser.sys.window.ext.getWindow
 
 suspend fun MultiWebViewNMM.webViewSysProtocol() {
   protocol("webview.sys.dweb") {
@@ -17,9 +17,10 @@ suspend fun MultiWebViewNMM.webViewSysProtocol() {
       "/open" bind HttpMethod.Post to defineEmptyResponse {
         val rid = request.query("rid")
         val url = request.query("url")
-        val remoteMm = ipc.asRemoteInstance()
+        val wid = request.query("wid")
+        val remoteMm = ipc.remoteAsInstance()
           ?: throw Exception("webview.sys.dweb/open should be call by locale")
-        val win = remoteMm.openMainWindow()
+        val win = remoteMm.getWindow(wid)
         val engine = win.createDwebView(remoteMm, url)
 
         windowAdapterManager.provideRender(rid) { modifier ->

@@ -15,29 +15,31 @@ export const main = async () => {
    * 启动主页面的地址
    */
   const indexUrlPo = new PromiseOut<string>();
-  let widPo = new PromiseOut<string>();
+  const widPo = new PromiseOut<string>();
   /**
    * 尝试打开gui，或者激活窗口
    */
   const tryOpenView = queue(async () => {
     /// 等待http服务启动完毕，获得入口url
     const url = await indexUrlPo.promise;
+    const wid = await widPo.promise;
     if (all_webview_status.size === 0) {
       await sync_mwebview_status();
-      console.log("mwebview_open=>", url);
-      if (widPo.is_resolved) {
-        apiServer.widPo = widPo = new PromiseOut();
-      }
-      const { wid } = await mwebview_open(url);
-      widPo.resolve(wid);
+      console.log("mwebview_open=>", url, wid);
+      await mwebview_open(wid, url);
     } else {
-      console.log("mwebview_activate=>", url);
-      await mwebview_activate();
+      console.log("mwebview_activate=>", url, wid);
+      await mwebview_activate(wid);
     }
   });
   /// 如果有人来激活，那我就唤醒我的界面
   jsProcess.onActivity(async (_ipcEvent) => {
     console.log(`${jsProcess.mmid} onActivity`);
+  });
+  /// 如果主窗口已经激活，那么我就开始渲染
+  jsProcess.onRenderer((ipcEvent) => {
+    console.log(`${jsProcess.mmid} onRenderer`);
+    widPo.resolve(ipcEvent.text);
     tryOpenView();
   });
 
@@ -72,7 +74,7 @@ export const main = async () => {
     url.searchParams.set(X_PLAOC_QUERY.API_PUBLIC_URL, apiStartResult.urlInfo.buildPublicUrl().href);
     url.searchParams.set(X_PLAOC_QUERY.EXTERNAL_URL, externalServer.token);
   });
-  console.log("open in browser:", indexUrl.href,usePublic);
+  console.log("open in browser:", indexUrl.href, usePublic);
   await Promise.all([wwwListenerTask, externalListenerTask, apiListenerTask]);
   indexUrlPo.resolve(indexUrl.href);
   tryOpenView();

@@ -10,10 +10,8 @@ import org.dweb_browser.browser.download.DownloadTask
 import org.dweb_browser.browser.jmm.ui.JmmManagerViewHelper
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MMID
-import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.http.PureString
 import org.dweb_browser.core.ipc.helper.IpcEvent
-import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.std.dns.createActivity
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.Signal
@@ -39,11 +37,17 @@ class JmmInstallerController(
   private val viewDeferred = CompletableDeferred<WindowBottomSheetsController>()
   suspend fun getView() = viewDeferred.await()
 
+  init {
+    jmmNMM.ioAsyncScope.launch {
+      jmmNMM.createBottomSheets() { modifier ->
+        Render(modifier, this)
+      }.also { viewDeferred.complete(it) }
+    }
+  }
+
   suspend fun openRender() {
     /// 提供渲染适配
-    val bottomSheets = jmmNMM.createBottomSheets() { modifier ->
-      Render(modifier, this)
-    }.also { viewDeferred.complete(it) }
+    val bottomSheets = getView()
     bottomSheets.setCloseTip("应用正在安装中")
     bottomSheets.open()
   }

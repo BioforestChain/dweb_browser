@@ -71,7 +71,7 @@ abstract class Ipc {
 
   abstract val remote: IMicroModuleManifest
 
-  fun asRemoteInstance() = if (remote is MicroModule) remote as MicroModule else null
+  fun remoteAsInstance() = if (remote is MicroModule) remote as MicroModule else null
 
 
   abstract val role: String

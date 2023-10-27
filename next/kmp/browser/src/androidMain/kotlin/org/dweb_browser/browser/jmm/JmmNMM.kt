@@ -88,11 +88,11 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
       "/install" bind HttpMethod.Get to routeInstallHandler,
       "/uninstall" bind HttpMethod.Get to defineBooleanResponse {
         val mmid = request.query("app_id")
-        val data = store.get(mmid) ?: return@defineBooleanResponse  false
+        val data = store.get(mmid) ?: return@defineBooleanResponse false
         val installMetadata = data.installManifest
         debugJMM("uninstall", "$mmid-${installMetadata.bundle_url} ${installMetadata.version} ")
         uninstall(mmid, installMetadata.version)
-       // 从磁盘中移除
+        // 从磁盘中移除
         store.delete(mmid)
         true
       },
@@ -118,7 +118,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
         buildString()
       }
     }
-    debugJMM("openJmmMetadataInstallPage", jmmAppInstallManifest.bundle_url)
+    debugJMM("openInstallerView", jmmAppInstallManifest.bundle_url)
     val controller = controllerMap.getOrPut(jmmAppInstallManifest.id) {
       JmmInstallerController(
         this@JmmNMM, jmmAppInstallManifest

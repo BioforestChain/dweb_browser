@@ -1,20 +1,38 @@
 package org.dweb_browser.sys.window.core
 
-import org.dweb_browser.core.module.MicroModule
+import kotlinx.coroutines.CompletableDeferred
 import org.dweb_browser.core.ipc.helper.IpcEvent
 import org.dweb_browser.core.ipc.helper.IpcEventMessageArgs
-import kotlin.jvm.JvmInline
+import org.dweb_browser.core.module.NativeMicroModule
+import org.dweb_browser.helper.UUID
+import org.dweb_browser.helper.WeakHashMap
+import org.dweb_browser.helper.getOrPut
+import org.dweb_browser.sys.window.ext.openMainWindow
 
 /**
  * Renderer：窗口由 window.sys.dweb 被创建后，要求窗口拥有着对内容进行渲染
  */
 private const val RENDERER_EVENT_NAME = "renderer"
-fun IpcEvent.Companion.createRenderer(data: String) = IpcEvent.fromUtf8(RENDERER_EVENT_NAME, data)
+fun IpcEvent.Companion.createRenderer(data: String) = fromUtf8(RENDERER_EVENT_NAME, data)
 fun IpcEvent.isRenderer() = name == RENDERER_EVENT_NAME
-fun MicroModule.onRenderer(cb: suspend RendererContext.() -> Unit) = onConnect { (ipc) ->
+
+private val mainWindowIdWM = WeakHashMap<NativeMicroModule, CompletableDeferred<UUID>>()
+private fun getMainWindowIdWMDeferred(mm: NativeMicroModule) =
+  mainWindowIdWM.getOrPut(mm) { CompletableDeferred() }
+
+suspend fun NativeMicroModule.getMainWindowId() = getMainWindowIdWMDeferred(this).await()
+suspend fun NativeMicroModule.requestMainWindowId() =
+  if (!hasMainWindow) openMainWindow().id else getMainWindowId()
+
+val NativeMicroModule.hasMainWindow
+  get() = getMainWindowIdWMDeferred(this).isCompleted
+
+fun NativeMicroModule.onRenderer(cb: suspend RendererContext.() -> Unit) = onConnect { (ipc) ->
   ipc.onEvent { args ->
     if (args.event.isRenderer()) {
-      RendererContext(args).cb()
+      val context = RendererContext(args)
+      getMainWindowIdWMDeferred(this@onRenderer).complete(context.wid)
+      context.cb()
     }
   }
 }

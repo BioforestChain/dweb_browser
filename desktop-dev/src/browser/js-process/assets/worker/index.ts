@@ -186,6 +186,9 @@ export class JsProcessMicroModule implements $MicroModule {
           if (ipcEvent.name === MWEBVIEW_LIFECYCLE_EVENT.Activity) {
             return this._activitySignal.emit(ipcEvent, ipc);
           }
+          if (ipcEvent.name === MWEBVIEW_LIFECYCLE_EVENT.Renderer) {
+            return this._rendererSignal.emit(ipcEvent, ipc);
+          }
           if (ipcEvent.name === MWEBVIEW_LIFECYCLE_EVENT.Close) {
             return this._onCloseSignal.emit(ipcEvent, ipc);
           }
@@ -243,14 +246,17 @@ export class JsProcessMicroModule implements $MicroModule {
   restart() {
     this.fetchIpc.postMessage(IpcEvent.fromText("restart", "")); // 发送指令
   }
-  // 激活信号
-  private _activitySignal = createSignal<$OnIpcEventMessage>(false);
-  // app关闭信号
-  private _onCloseSignal = createSignal<$OnIpcEventMessage>(false);
   // 外部request信号
   private _onRequestSignal = createSignal<$OnIpcRequestMessage>(false);
+  // 应用激活信号
+  private _activitySignal = createSignal<$OnIpcEventMessage>(false);
   onActivity(cb: $OnIpcEventMessage) {
     return this._activitySignal.listen(cb);
+  }
+  // 窗口激活信号
+  private _rendererSignal = createSignal<$OnIpcEventMessage>(false);
+  onRenderer(cb: $OnIpcEventMessage) {
+    return this._rendererSignal.listen(cb);
   }
 
   onRequest(request: $OnIpcRequestMessage) {
@@ -262,6 +268,8 @@ export class JsProcessMicroModule implements $MicroModule {
     return onRequest.extendsTo(this.onRequest(onRequest));
   }
 
+  // app关闭信号
+  private _onCloseSignal = createSignal<$OnIpcEventMessage>(false);
   onClose(cb: $OnIpcEventMessage) {
     return this._onCloseSignal.listen(cb);
   }
