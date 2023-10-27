@@ -5,12 +5,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import org.dweb_browser.helper.Callback
-import org.dweb_browser.helper.Debugger
-import org.dweb_browser.helper.PromiseOut
-import org.dweb_browser.helper.Signal
-import org.dweb_browser.helper.SimpleSignal
-import org.dweb_browser.helper.ioAsyncExceptionHandler
 import org.dweb_browser.core.help.types.CommonAppManifest
 import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.help.types.MMID
@@ -18,6 +12,12 @@ import org.dweb_browser.core.help.types.MicroModuleManifest
 import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.ipc.Ipc
 import org.dweb_browser.core.ipc.helper.IpcEvent
+import org.dweb_browser.helper.Callback
+import org.dweb_browser.helper.Debugger
+import org.dweb_browser.helper.PromiseOut
+import org.dweb_browser.helper.Signal
+import org.dweb_browser.helper.SimpleSignal
+import org.dweb_browser.helper.ioAsyncExceptionHandler
 
 typealias Router = MutableMap<String, AppRun>
 typealias AppRun = (options: NativeOptions) -> Any
@@ -162,8 +162,8 @@ abstract class MicroModule(val manifest: MicroModuleManifest) : IMicroModuleMani
   /**
    * 尝试连接到指定对象
    */
-  suspend fun connect(mmid: MMID): Ipc {
-    val (ipc) = this.bootstrapContext.dns.connect(mmid)
+  suspend fun connect(mmid: MMID, reason: PureRequest? = null): Ipc {
+    val (ipc) = this.bootstrapContext.dns.connect(mmid, reason)
     return ipc
   }
 

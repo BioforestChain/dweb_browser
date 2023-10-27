@@ -186,7 +186,7 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       "/openAppOrActivate" bind HttpMethod.Get to defineStringResponse {
         val mmid = request.query("app_id")
         // 内部接口，所以ipc通过connect获得
-        openOrActivateAppWindow(connect(mmid), desktopController).id
+        openOrActivateAppWindow(connect(mmid, request), desktopController).id
       },
       // 获取isMaximized 的值
       "/toggleMaximize" bind HttpMethod.Get to defineBooleanResponse {

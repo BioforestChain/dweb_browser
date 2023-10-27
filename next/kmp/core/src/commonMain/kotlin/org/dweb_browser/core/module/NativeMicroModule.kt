@@ -101,7 +101,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
         debugNMM("NMM/Handler", ipcRequest.url)
         /// 根据host找到对应的路由模块
         val routers = protocolRouters[ipcRequest.uri.host] ?: protocolRouters["*"]
-        var response = PureResponse(HttpStatusCode.BadGateway)
+        var response: PureResponse? = null
         if (routers != null) for (router in routers) {
           val res = router.withFilter(ipcRequest)
             ?.invoke(HandlerContext(ipcRequest.toRequest(), clientIpc));
@@ -113,7 +113,7 @@ abstract class NativeMicroModule(manifest: MicroModuleManifest) : MicroModule(ma
 
         clientIpc.postMessage(
           IpcResponse.fromResponse(
-            ipcRequest.req_id, response, clientIpc
+            ipcRequest.req_id, response ?: PureResponse(HttpStatusCode.BadGateway), clientIpc
           )
         )
       }

@@ -55,6 +55,7 @@ suspend fun startDwebBrowser(): DnsNMM {
    */
   when (DEVELOPER.CURRENT) {
     DEVELOPER.GAUBEE -> addDebugTags(listOf("/.+/"))
+    DEVELOPER.WaterbangXiaoMi -> addDebugTags(listOf("/.+/"))
     DEVELOPER.WaterBang -> addDebugTags(listOf("/.+/"))
     DEVELOPER.Kingsword09 -> addDebugTags(listOf("/.+/"))
     DEVELOPER.HLOppo -> addDebugTags(listOf("/.+/"))

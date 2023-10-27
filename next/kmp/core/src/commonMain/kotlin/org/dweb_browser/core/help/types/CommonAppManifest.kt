@@ -9,7 +9,12 @@ import org.dweb_browser.helper.ShortcutItem
 
 typealias MMID = String
 typealias DWEB_DEEPLINK = String
-typealias DWEB_PROTOCOL = String
+typealias DWEB_PROTOCOL = MMID
+/**
+ * MMID or Protocol
+ * 这里的定义，目的是在代码中明确区分出需求
+ */
+typealias MPID = MMID
 
 object CommonAppManifestSerializer : PropMetasSerializer<CommonAppManifest>(CommonAppManifest.P)
 
@@ -21,7 +26,7 @@ class CommonAppManifest(p: PropMetas.PropValues = P.buildValues()) :
     internal val P = PropMetas("CommonAppManifest", { CommonAppManifest(it) })
     private val P_id = P.required("id", "")
     private val P_dweb_deeplinks = P.list<DWEB_DEEPLINK>("dweb_deeplinks")
-    private val P_dweb_protocols = P.list<DWEB_DEEPLINK>("dweb_protocols")
+    private val P_dweb_protocols = P.list<DWEB_PROTOCOL>("dweb_protocols")
     private val P_dir = P.optional<String>("dir")
     private val P_lang = P.optional<String>("lang")
     private val P_name = P.required("name", "")
