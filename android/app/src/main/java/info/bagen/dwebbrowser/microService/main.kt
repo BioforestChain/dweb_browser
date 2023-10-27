@@ -137,6 +137,7 @@ suspend fun startDwebBrowser(): DnsNMM {
       jmmNMM.mmid,//
       httpNMM.mmid,//
       nativeUiNMM.mmid,//
+      downloadNMM.mmid, // 为了获取下载的数据
       deskNMM.mmid,//
       browserNMM.mmid // 为了启动后能够顺利加载添加到桌面的哪些数据，不加载browser界面
     ),

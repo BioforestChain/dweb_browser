@@ -9,9 +9,9 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.dweb_browser.core.help.types.MMID
+import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.Signal
 import org.dweb_browser.helper.consumeEachArrayRange
-import org.dweb_browser.helper.toUtf8
 
 @Serializable
 data class DownloadTask(
@@ -31,9 +31,9 @@ data class DownloadTask(
   val mime: String,
   /** 文件路径 */
   val filepath: String,
-) {
   /** 标记当前下载状态 */
-  var status: DownloadStateEvent = DownloadStateEvent()
+  val status: DownloadStateEvent = DownloadStateEvent()
+) {
 
   @Transient
   var readChannel: ByteReadChannel? = null
@@ -75,26 +75,23 @@ data class DownloadStateEvent(
   var stateMessage: String = ""
 )
 
-private typealias taskId = String
-
 class DownloadController(val mm: DownloadNMM) {
-  var downloadManagers: MutableMap<taskId, DownloadTask> = mutableMapOf() // 用于监听下载列表
   val store = DownloadStore(mm)
-
-  // 状态改变监听
-  private val downloadState: Signal<Pair<String, DownloadStateEvent>> = Signal()
-  private val onState = downloadState.toListener()
+  val downloadManagers: ChangeableMap<TaskId, DownloadTask> = ChangeableMap() // 用于监听下载列表
 
   init {
     // 从内存中恢复状态
     mm.ioAsyncScope.launch {
-      downloadManagers = store.getAll()
+      downloadManagers.putAll(store.getAll())
       // 状态改变的时候存储保存到内存
-      onState { (id, event) ->
-        downloadManagers[id]?.let { task ->
-          task.status = event
-          store.set(id, task)
-        }
+      downloadManagers.onChange {
+        debugDownload(
+          "DownloadController",
+          "add=${it.adds.size}, del=${it.removes.size}, upd=${it.updates.size}"
+        )
+        it.adds.forEach { key -> store.set(key, it.origin[key]!!) }
+        it.removes.forEach { key -> store.delete(key) }
+        it.updates.forEach { key -> store.set(key, it.origin[key]!!) }
       }
     }
   }

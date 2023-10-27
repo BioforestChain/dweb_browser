@@ -19,7 +19,6 @@ import org.dweb_browser.browser.jmm.render.ImagePreview
 import org.dweb_browser.browser.jmm.render.PreviewState
 import org.dweb_browser.browser.jmm.render.JmmAppInstallManifest.Render
 import org.dweb_browser.browser.jmm.render.measureCenterOffset
-import org.dweb_browser.browser.jmm.ui.LocalJmmNMM
 import org.dweb_browser.browser.jmm.ui.LocalJmmViewHelper
 import org.dweb_browser.sys.window.core.WindowRenderScope
 import org.dweb_browser.sys.window.render.LocalWindowController
@@ -32,10 +31,7 @@ fun JmmInstallerController.Render(modifier: Modifier, renderScope: WindowRenderS
     closeSelf()
   }
 
-  CompositionLocalProvider(
-    LocalJmmViewHelper provides viewModel,
-    LocalJmmNMM provides jmmNMM
-  ) {
+  CompositionLocalProvider(LocalJmmViewHelper provides viewModel) {
     Box(modifier = with(renderScope) {
       modifier
         .requiredSize((width / scale).dp, (height / scale).dp) // 原始大小
