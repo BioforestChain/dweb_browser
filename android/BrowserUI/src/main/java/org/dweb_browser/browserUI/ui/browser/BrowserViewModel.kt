@@ -141,7 +141,7 @@ class BrowserViewModel(
   internal suspend fun createNewTab(search: String? = null, url: String? = null) {
     // 先判断search是否不为空，然后在判断search是否是地址，
     dwebLinkSearch.value = "" // 先清空搜索的内容
-    if (search?.startsWith("dweb:") == true || url?.startsWith("dweb:") == true) {
+    if (search?.isDeepLink() == true || url?.isDeepLink() == true) {
       withMainContext {
         if (uiState.browserViewList.isEmpty()) {
           val item = getNewTabBrowserView()
@@ -238,7 +238,7 @@ class BrowserViewModel(
           uiState.showSearchEngine.targetState = false // 到搜索功能了，搜索引擎必须关闭
           val loadingState = uiState.currentBrowserBaseView.value?.loadState
           loadingState?.value = true
-          if (action.url.startsWith("dweb:")) { // 负责拦截browser的dweb_deeplink
+          if (action.url.isDeepLink()) { // 负责拦截browser的dweb_deeplink
             browserNMM.nativeFetch(action.url)
             loadingState?.value = false
             return@launch
@@ -481,34 +481,39 @@ internal fun findWebEngine(url: String): WebEngine? {
 /**
  * 判断输入内容是否是域名或者有效的网址
  */
-internal fun String.isUrlOrHost(): Boolean {
-  // 只判断 host(长度1~63,结尾是.然后带2~6个字符如[.com]，没有端口判断)：val regex = "^((?!-)[A-Za-z0-9-]{1,63}(?<!-)\\.)+[A-Za-z]{2,6}\$".toRegex()
+private fun String.isUrl(): Boolean {
   // 以 http 或者 https 或者 ftp 打头，可以没有
   // 字符串中只能包含数字和字母，同时可以存在-
   // 最后以 2~5个字符 结尾，可能还存在端口信息，端口信息限制数字，长度为1~5位
   val regex =
     "^((https?|ftp)://)?([a-zA-Z0-9]+([-.][a-zA-Z0-9]+)*\\.[a-zA-Z]{2,5}(:[0-9]{1,5})?(/.*)?)$".toRegex()
-  val regex2 =
-    "((https?|ftp)://)(((2(5[0-5]|[0-4]\\d))|[0-1]?\\d{1,2})(\\.((2(5[0-5]|[0-4]\\d))|[0-1]?\\d{1,2})){3}(:[0-9]{1,5})?(/.*)?)".toRegex()
-  return regex.matches(this) || regex2.matches(this)
+  return regex.matches(this)
 }
+
+private fun String.isHost(): Boolean {
+  // 只判断 host(长度1~63,结尾是.然后带2~6个字符如[.com]，没有端口判断)：val regex = "^((?!-)[A-Za-z0-9-]{1,63}(?<!-)\\.)+[A-Za-z]{2,6}\$".toRegex()
+  val regex =
+    "((https?|ftp)://)(((2(5[0-5]|[0-4]\\d))|[0-1]?\\d{1,2})(\\.((2(5[0-5]|[0-4]\\d))|[0-1]?\\d{1,2})){3}(:[0-9]{1,5})?(/.*)?)".toRegex()
+  return regex.matches(this)
+}
+
+internal fun String.isUrlOrHost() = this.isUrl() || this.isHost()
+internal fun String.isDeepLink() = this.startsWith("dweb://")
 
 /**
  * 将输入的内容补充为网址，如果本身就是网址直接返回
  */
-internal fun String.toRequestUrl(): String {
-  return if (this.startsWith("http://") || this.startsWith("https://") || this.startsWith("ftp://")) {
-    this
-  } else {
-    "https://$this"
-  }
+internal fun String.toRequestUrl() = if (this.isUrl() || this.isDeepLink()) {
+  this
+} else if (this.isHost()) {
+  "https://$this"
+} else {
+  null
 }
 
 /**
  * 为了判断字符串是否是内置的地址
  */
-internal fun String.isSystemUrl(): Boolean {
-  return this.startsWith("file:///android_asset") || this.startsWith("chrome://") || this.startsWith(
-    "about:"
-  ) || this.startsWith("https://web.browser.dweb")
-}
+internal fun String.isSystemUrl() = this.startsWith("file:///android_asset") ||
+    this.startsWith("chrome://") || this.startsWith("about:") ||
+    this.startsWith("https://web.browser.dweb") // || this.isDeepLink()

@@ -38,8 +38,10 @@ import org.dweb_browser.helper.runBlockingCatching
 import org.dweb_browser.helper.withMainContext
 import org.dweb_browser.microservice.core.MicroModule
 import org.dweb_browser.microservice.sys.dns.nativeFetch
+import org.dweb_browser.microservice.sys.http.getFullAuthority
 import org.http4k.core.Method
 import org.http4k.core.Request
+import org.http4k.core.Uri
 import org.http4k.lens.Header
 import java.io.ByteArrayInputStream
 import java.io.File
@@ -183,25 +185,24 @@ class DWebView(
   /**
    * 初始化设置 userAgent
    */
-//  private fun setUA() {
-//    val baseUserAgentString = settings.userAgentString
-//    val baseDwebHost = remoteMM.mmid
-//    var dwebHost = baseDwebHost
-//
-//    // 初始化设置 ua，这个是无法动态修改的
-//    val uri = Uri.of(options.url)
-//    if ((uri.scheme == "http" || uri.scheme == "https" || uri.scheme == "dweb") && uri.host.endsWith(
-//        ".dweb"
-//      )
-//    ) {
-//      dwebHost = uri.authority
-//    }
-//    // 加入默认端口
-//    if (!dwebHost.contains(":")) {
-//      dwebHost = uri.getFullAuthority(dwebHost)
-//    }
-//    settings.userAgentString = "$baseUserAgentString dweb-host/${dwebHost}"
-//  }
+  private fun setUA() {
+    val baseUserAgentString = settings.userAgentString
+    val baseDwebHost = remoteMM.mmid
+    var dwebHost = baseDwebHost
+
+    // 初始化设置 ua，这个是无法动态修改的
+    val uri = Uri.of(options.url)
+    if ((uri.scheme == "http" || uri.scheme == "https" || uri.scheme == "dweb") &&
+      uri.host.endsWith(".dweb")) {
+      dwebHost = uri.authority
+    }
+    // 加入默认端口
+    if (!dwebHost.contains(":")) {
+      dwebHost = uri.getFullAuthority(dwebHost)
+    }
+    val versionName = context.packageManager.getPackageInfo(context.packageName, 0).versionName
+    settings.userAgentString = "$baseUserAgentString Dweb/$versionName (Android; ${dwebHost})"
+  }
 
   private val closeSignal = SimpleSignal()
   val onCloseWindow = closeSignal.toListener()
@@ -248,7 +249,7 @@ class DWebView(
 
         val contentType = Header.CONTENT_TYPE(response)
         val body = ByteArrayInputStream(response.body.payload.array())
-        debugDWebView("dwebProxyer end", request.url)
+        debugDWebView("dwebProxy end", request.url)
         val statusCode = response.status.code
         if (statusCode in 301..399) {
           return super.shouldInterceptRequest(view, request)
@@ -433,7 +434,7 @@ class DWebView(
     layoutParams = ViewGroup.LayoutParams(
       ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT
     )
-//    setUA()
+    setUA()
     settings.allowFileAccessFromFileURLs = true
     settings.allowUniversalAccessFromFileURLs = true
     settings.javaScriptEnabled = true
