@@ -115,7 +115,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
     debugJMM("openInstallerView", jmmAppInstallManifest.bundle_url)
     val controller = controllerMap.getOrPut(jmmAppInstallManifest.id) {
       JmmInstallerController(
-        this@JmmNMM, jmmAppInstallManifest, downloadTaskIdMap[jmmAppInstallManifest.id]
+        this@JmmNMM, jmmAppInstallManifest, originUrl, downloadTaskIdMap[jmmAppInstallManifest.id]
       ).also { controller ->
         ioAsyncScope.launch {
           controller.onDownloadComplete {
@@ -149,8 +149,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
   suspend fun remove(filepath: String): Boolean {
     return nativeFetch(
       PureRequest(
-        "file://file.std.dweb/remove?path=${filepath}&recursive=true",
-        IpcMethod.DELETE
+        "file://file.std.dweb/remove?path=${filepath}&recursive=true", IpcMethod.DELETE
       )
     ).boolean()
   }

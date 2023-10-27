@@ -5,18 +5,28 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
 import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.browser.download.DownloadTask
 import org.dweb_browser.browser.download.TaskId
 import org.dweb_browser.browser.jmm.ui.JmmManagerViewHelper
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MMID
+import org.dweb_browser.core.http.IPureBody
+import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.http.PureString
 import org.dweb_browser.core.ipc.helper.IpcEvent
+import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.std.dns.createActivity
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.Signal
+import org.dweb_browser.helper.buildUrlString
 import org.dweb_browser.helper.consumeEachJsonLine
+import org.dweb_browser.helper.datetimeNow
+import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.sys.window.ext.WindowBottomSheetsController
 import org.dweb_browser.sys.window.ext.createBottomSheets
 
@@ -24,11 +34,12 @@ import org.dweb_browser.sys.window.ext.createBottomSheets
  * JS 模块安装 的 控制器
  */
 class JmmInstallerController(
-  private val jmmNMM: JmmNMM, val jmmAppInstallManifest: JmmAppInstallManifest, saveTaskId: String?
-) {
-
+  private val jmmNMM: JmmNMM,
+  val jmmAppInstallManifest: JmmAppInstallManifest,
+  val originUrl: String,
   // 一个jmmManager 只会创建一个task
-  private var downloadTaskId = saveTaskId
+  private var downloadTaskId: String?
+) {
   private val openLock = Mutex()
   val viewModel: JmmManagerViewHelper = JmmManagerViewHelper(jmmAppInstallManifest, this)
   val ioAsyncScope = jmmNMM.ioAsyncScope
@@ -79,7 +90,7 @@ class JmmInstallerController(
     }
   }
 
-  suspend fun getDownloadingTaskId() : String? {
+  suspend fun getDownloadingTaskId(): String? {
     return downloadTaskId?.let { taskId ->
       if (jmmNMM.nativeFetch("file://download.browser.dweb/running?taskId=$taskId").boolean()) {
         taskId
@@ -122,10 +133,28 @@ class JmmInstallerController(
   suspend fun decompress(task: DownloadTask): Boolean {
     var jmm = task.url.substring(task.url.lastIndexOf("/") + 1)
     jmm = jmm.substring(0, jmm.lastIndexOf("."))
-    val sourcePath = jmmNMM.nativeFetch("file://file.std.dweb/picker?path=${task.filepath}").text()
-    val targetPath = jmmNMM.nativeFetch("file://file.std.dweb/picker?path=/data/apps/${jmm}").text()
-    return jmmNMM.nativeFetch("file://zip.browser.dweb/decompress?sourcePath=$sourcePath&targetPath=$targetPath ")
-      .boolean()
+    val sourcePath = jmmNMM.nativeFetch(buildUrlString("file://file.std.dweb/picker") {
+      parameters.append("path", task.filepath)
+    }).text()
+    val targetPath = jmmNMM.nativeFetch(buildUrlString("file://file.std.dweb/picker") {
+      parameters.append("path", "/data/apps/$jmm")
+    }).text()
+    return jmmNMM.nativeFetch(buildUrlString("file://zip.browser.dweb/decompress") {
+      parameters.append("sourcePath", sourcePath)
+      parameters.append("targetPath", targetPath)
+    }).boolean().trueAlso {
+      jmmNMM.nativeFetch(PureRequest(buildUrlString("file://file.std.dweb/write") {
+        parameters.append("path", "/data/apps/$jmm/usr/sys/metadata.json")
+        parameters.append("create", "true")
+      }, IpcMethod.POST, body = IPureBody.from(Json.encodeToString(jmmAppInstallManifest))))
+      jmmNMM.nativeFetch(PureRequest(buildUrlString("file://file.std.dweb/write") {
+        parameters.append("path", "/data/apps/$jmm/usr/sys/session.json")
+        parameters.append("create", "true")
+      }, IpcMethod.POST, body = IPureBody.from(Json.encodeToString(buildJsonObject {
+        put("installTime", JsonPrimitive(datetimeNow()))
+        put("installUrl", JsonPrimitive(originUrl))
+      }))))
+    }
   }
 
   suspend fun closeSelf() {

@@ -327,6 +327,9 @@ class BottomSheetsModal private constructor(
     }
 
     DisposableEffect(onModalDismissRequestFlow) {
+      /// 初始化 showCloseTip
+      showCloseTip.value = "";
+
       debugModal("DisposableEffect", " disposable")
       val job = onModalDismissRequestFlow.map {
         if (!it) {

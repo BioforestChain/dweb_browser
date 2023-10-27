@@ -41,6 +41,12 @@ fun String.toIpcUrl(builder: (URLBuilder.() -> Unit)? = null) =
     build()
   }
 
+fun buildUrlString(url: String, builder: URLBuilder.() -> Unit) =
+  URLBuilder(url).run {
+    builder();
+    buildUnsafeString()
+  }
+
 
 ///**
 // * like web url
