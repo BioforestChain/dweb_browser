@@ -161,6 +161,7 @@
     <activity
       android:name=".microService.sys.barcodeScanning.ScanningActivity"
       android:exported="true"
+      android:launchMode="singleTask"
       android:theme="@style/Theme.dwebbrowser">
       <intent-filter>
         <action android:name="android.intent.action.VIEW"/>

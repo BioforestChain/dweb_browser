@@ -44,7 +44,6 @@ import org.dweb_browser.browser.web.ui.browser.dimenTextFieldFontSize
 import org.dweb_browser.browser.web.ui.browser.model.DefaultSearchWebEngine
 import org.dweb_browser.browser.web.ui.browser.model.WebEngine
 import org.dweb_browser.browser.web.ui.browser.model.findWebEngine
-import org.dweb_browser.browser.web.ui.browser.model.isUrlOrHost
 import org.dweb_browser.browser.web.ui.browser.model.parseInputText
 import org.dweb_browser.browser.web.ui.browser.model.toRequestUrl
 import org.dweb_browser.helper.compose.clickableWithNoEffect
@@ -158,13 +157,11 @@ internal fun BoxScope.BrowserTextField(
       .focusRequester(focusRequester)
       .onKeyEvent {
         if (it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ENTER) {
-          webEngine?.let { webEngine ->
+          inputText.toRequestUrl()?.let { url ->
+            onSearch(url)
+          } ?: webEngine?.let { webEngine ->
             onSearch(String.format(webEngine.format, inputText))
-          } ?: if (inputText.isUrlOrHost()) {
-            onSearch(inputText.toRequestUrl())
-          } else {
-            focusManager.clearFocus(); keyboardController?.hide()
-          }
+          } ?: focusManager.clearFocus(); keyboardController?.hide()
           true
         } else {
           false
@@ -197,13 +194,11 @@ internal fun BoxScope.BrowserTextField(
       // onDone = { focusManager.clearFocus(); keyboardController?.hide() },
       onSearch = {
         // 如果内容符合地址，直接进行搜索，其他情况就按照如果有搜索引擎就按照搜索引擎来，没有的就隐藏键盘
-        if (inputText.isUrlOrHost()) {
-          onSearch(inputText.toRequestUrl())
-        } else {
-          webEngine?.let { onSearch(String.format(it.format, inputText)) } ?: run {
-            focusManager.clearFocus(); keyboardController?.hide()
-          }
-        }
+        inputText.toRequestUrl()?.let { url ->
+          onSearch(url)
+        } ?: webEngine?.let { webEngine ->
+          onSearch(String.format(webEngine.format, inputText))
+        } ?: focusManager.clearFocus(); keyboardController?.hide()
       }
     )
   )

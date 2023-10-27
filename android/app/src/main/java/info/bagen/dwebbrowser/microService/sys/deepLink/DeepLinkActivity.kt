@@ -15,11 +15,9 @@ import org.dweb_browser.core.module.BaseThemeActivity
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.compose.theme.DwebBrowserAppTheme
 
-class DeepLinkActivity : BaseThemeActivity() {
-  companion object {
-    fun String.regexDeepLink() = Regex("dweb:.+").matchEntire(this)?.groupValues?.get(0)
-  }
+fun String.regexDeepLink() = Regex("dweb:.+").matchEntire(this)?.groupValues?.get(0)
 
+class DeepLinkActivity : BaseThemeActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     application.onCreate()
@@ -27,7 +25,7 @@ class DeepLinkActivity : BaseThemeActivity() {
     lifecycleScope.launch {
       intent.dataString?.let { uri ->
         uri.regexDeepLink()?.let { dwebUri ->
-          val dnsNMM = App.startMicroModuleProcess().waitPromise();
+          val dnsNMM = App.startMicroModuleProcess().waitPromise()
           dnsNMM.nativeFetch(dwebUri)
         }
       }

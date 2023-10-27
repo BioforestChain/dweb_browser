@@ -134,25 +134,21 @@ class DWebViewEngine(
   /**
    * 初始化设置 userAgent
    */
-//  private fun setUA() {
-//    val baseUserAgentString = settings.userAgentString
-//    val baseDwebHost = remoteMM.mmid
-//    var dwebHost = baseDwebHost
-//
-//    // 初始化设置 ua，这个是无法动态修改的
-//    val uri = Uri.of(options.url)
-//    if ((uri.scheme == "http" || uri.scheme == "https" || uri.scheme == "dweb") && uri.host.endsWith(
-//        ".dweb"
-//      )
-//    ) {
-//      dwebHost = uri.authority
-//    }
-//    // 加入默认端口
-//    if (!dwebHost.contains(":")) {
-//      dwebHost = uri.getFullAuthority(dwebHost)
-//    }
-//    settings.userAgentString = "$baseUserAgentString dweb-host/${dwebHost}"
-//  }
+  private fun setUA() {
+    val baseUserAgentString = settings.userAgentString
+    val baseDwebHost = remoteMM.mmid
+    var dwebHost = baseDwebHost
+
+    // 初始化设置 ua，这个是无法动态修改的
+    val uri = Uri.parse(options.url)
+    if ((uri.scheme == "http" || uri.scheme == "https" || uri.scheme == "dweb") &&
+      uri.host?.endsWith(".dweb") == true
+    ) {
+      dwebHost = uri.host!!
+    }
+    val versionName = context.packageManager.getPackageInfo(context.packageName, 0).versionName
+    settings.userAgentString = "$baseUserAgentString Dweb/$versionName (Android; ${dwebHost})"
+  }
 
   private val closeSignal = SimpleSignal()
   val onCloseWindow = closeSignal.toListener()
@@ -198,7 +194,7 @@ class DWebViewEngine(
 
         val contentType = (response.headers.get("Content-Type") ?: "").split(';', limit = 2)
 
-        debugDWebView("dwebProxyer end", request.url)
+        debugDWebView("dwebProxy end", request.url)
         val statusCode = response.status.value
         if (statusCode in 301..399) {
           return super.shouldInterceptRequest(view, request)
@@ -209,7 +205,7 @@ class DWebViewEngine(
           response.status.value,
           response.status.description,
           response.headers.toMap().let { it - "Content-Type" }, // 修复 content-type 问题
-          response.body.toPureStream().getReader("dwebview shouldInterceptRequest").toInputStream(),
+          response.body.toPureStream().getReader("DwebView shouldInterceptRequest").toInputStream(),
         )
       }
       return super.shouldInterceptRequest(view, request)
@@ -396,6 +392,7 @@ class DWebViewEngine(
     layoutParams = LayoutParams(
       ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT
     )
+    setUA()
     settings.javaScriptEnabled = true
     settings.domStorageEnabled = true
     settings.databaseEnabled = true

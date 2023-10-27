@@ -13,7 +13,7 @@ import info.bagen.dwebbrowser.R
 import info.bagen.dwebbrowser.microService.sys.barcodeScanning.ui.QRCodeScanView
 import info.bagen.dwebbrowser.microService.sys.barcodeScanning.ui.rememberQRCodeScanState
 import info.bagen.dwebbrowser.microService.sys.deepLink.DeepLinkActivity
-import info.bagen.dwebbrowser.microService.sys.deepLink.DeepLinkActivity.Companion.regexDeepLink
+import info.bagen.dwebbrowser.microService.sys.deepLink.regexDeepLink
 import org.dweb_browser.core.module.BaseThemeActivity
 import org.dweb_browser.helper.compose.theme.DwebBrowserAppTheme
 
