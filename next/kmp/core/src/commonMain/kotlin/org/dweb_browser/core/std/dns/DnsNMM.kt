@@ -324,7 +324,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
 
   /** 卸载应用 */
   suspend fun uninstall(mmid: MMID): Boolean {
-    val mm = allApps[mmid] ?: return false
+    val mm = allApps.remove(mmid) ?: return false
     /// 首先进行关闭
     close(mmid)
     /// 执行销毁的生命周期函数
