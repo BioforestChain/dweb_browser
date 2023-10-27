@@ -1,0 +1,15 @@
+[
+  {
+    "buildFromRootDir": "./src/is-dweb/main.ts",
+    "mainExports": ".",
+    "buildToRootDir": "./build/is-dweb",
+    "watchDir": "./src/is-dweb",
+    "denoShim": false,
+    "name": "@plaoc/is-dweb",
+    "version": "0.0.2",
+    "lib": [
+      "ES2022",
+      "DOM"
+    ]
+  }
+]
