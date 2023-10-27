@@ -22,6 +22,11 @@ export const devTasks = new ConTasks(
       devArgs: "task build:client:watch",
       cwd: "./plaoc",
     },
+    "plaoc:is-dweb": {
+      cmd: "deno",
+      args: "task build:is-dweb",
+      cwd: "./plaoc",
+    },
     sync: {
       cmd: "deno",
       args: "task sync --watch",
