@@ -116,6 +116,15 @@ export async function closeBrowser(mmid?: string) {
   });
 }
 
+export async function deleteWebLink(mmid: string) {
+  return nativeFetch<Response>("/uninstall", {
+    search: {
+      app_id: mmid,
+    },
+    mmid: "web.browser.dweb"
+  });
+}
+
 export function shareApp(id: string) {
   nativeFetch("/shareApp", {
     search: {
