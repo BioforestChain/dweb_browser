@@ -10,8 +10,10 @@ import org.dweb_browser.browser.download.DownloadTask
 import org.dweb_browser.browser.jmm.ui.JmmManagerViewHelper
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MMID
+import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.http.PureString
 import org.dweb_browser.core.ipc.helper.IpcEvent
+import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.std.dns.createActivity
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.Signal
@@ -70,8 +72,11 @@ class JmmInstallerController(
       readChannel.consumeEachJsonLine<DownloadTask> {
         it.cb()
         if (it.status.state == DownloadState.Completed) {
+          // 关闭watchProcess
           readChannel.cancel()
           downloadCompletedSignal.emit(taskId)
+          // 删除缓存的zip文件
+          jmmNMM.remove(it.filepath)
         }
       }
     }

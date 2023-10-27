@@ -75,6 +75,12 @@ class JmmManagerViewHelper(
         uiState.downloadSize.value = this.status.current
         uiState.downloadStatus.value = JmmStatus.Downloading
       }
+
+      if (this.status.state == DownloadState.Failed) {
+        uiState.downloadSize.value = this.status.current
+        uiState.downloadStatus.value = JmmStatus.Failed
+      }
+
       // 下载完成触发解压
       if (this.status.state == DownloadState.Completed) {
         val success = jmmInstallerController.decompress(this)

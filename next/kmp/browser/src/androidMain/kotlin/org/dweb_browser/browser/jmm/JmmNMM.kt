@@ -7,8 +7,10 @@ import org.dweb_browser.core.help.types.IMicroModuleManifest
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
+import org.dweb_browser.core.http.PureRequest
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.http.router.bindDwebDeeplink
+import org.dweb_browser.core.ipc.helper.IpcMethod
 import org.dweb_browser.core.module.BootstrapContext
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
@@ -86,9 +88,11 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
       "/install" bind HttpMethod.Get to routeInstallHandler,
       "/uninstall" bind HttpMethod.Get to defineBooleanResponse {
         val mmid = request.query("app_id")
-        debugJMM("uninstall", mmid)
-        uninstall(mmid, ipc.remote.version)
-        // 从磁盘中移除
+        val data = store.get(mmid) ?: return@defineBooleanResponse  false
+        val installMetadata = data.installManifest
+        debugJMM("uninstall", "$mmid-${installMetadata.bundle_url} ${installMetadata.version} ")
+        uninstall(mmid, installMetadata.version)
+       // 从磁盘中移除
         store.delete(mmid)
         true
       },
@@ -135,8 +139,17 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
   private suspend fun uninstall(mmid: MMID, version: String) {
     // 在dns中移除app
     bootstrapContext.dns.uninstall(mmid)
-    // 在存储中移除文件
-    nativeFetch("file://file.std.dweb/remove?path=/data/app/${mmid}-${version}&recursive=true")
+    // 在存储中移除整个app
+    remove("/data/apps/${mmid}-${version}")
+  }
+
+  suspend fun remove(filepath: String): Boolean {
+    return nativeFetch(
+      PureRequest(
+        "file://file.std.dweb/remove?path=${filepath}&recursive=true",
+        IpcMethod.DELETE
+      )
+    ).boolean()
   }
 
   override suspend fun _shutdown() {

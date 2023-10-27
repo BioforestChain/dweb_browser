@@ -108,7 +108,6 @@ class DownloadController(val mm: DownloadNMM) {
     mm.ioAsyncScope.launch {
       downloadTask.downloadSignal.emit(downloadTask)
       input.consumeEachArrayRange { byteArray, last ->
-        debugDownload("middleware","byteArray:${byteArray.toUtf8()}")
         if (output.isClosedForRead) {
           breakLoop()
           downloadTask.status.state = DownloadState.Canceled

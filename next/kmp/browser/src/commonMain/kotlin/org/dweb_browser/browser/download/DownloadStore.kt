@@ -10,8 +10,8 @@ class DownloadStore(mm:MicroModule) {
     return store.getOrPut(key) {value}
   }
 
-  suspend fun get(key: String):DownloadTask {
-    return store.get(key)
+  suspend fun get(key: String):DownloadTask? {
+    return store.getOrNull(key)
   }
 
   suspend fun getAll():MutableMap<String, DownloadTask> {

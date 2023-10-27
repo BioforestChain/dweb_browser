@@ -114,6 +114,7 @@ class NativeFetchAdaptersManager : AdapterManager<FetchAdapter>() {
               responsePo.resolve(response)
               onClosePo.await()
             }
+            // 线程里面的错误需要在线程里捕捉
           } catch (e: Throwable) {
             val response = PureResponse(
               HttpStatusCode.ServiceUnavailable,

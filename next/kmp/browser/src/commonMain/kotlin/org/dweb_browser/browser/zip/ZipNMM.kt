@@ -32,12 +32,12 @@ class ZipNMM : NativeMicroModule("zip.browser.dweb", "Zip") {
         ).text()
         // 开始解压
         val ok = decompress(sourcePath, tmpPath)
-        if (ok) {
-          return@defineBooleanResponse nativeFetch(
-            "file://file.std.dweb/move?sourcePath=${tmpVfsPath}&targetPath=${targetPath}"
-          ).boolean()
+        if (!ok) {
+          return@defineBooleanResponse false
         }
-        return@defineBooleanResponse false
+        return@defineBooleanResponse nativeFetch(
+          "file://file.std.dweb/move?sourcePath=${tmpVfsPath}&targetPath=${targetPath}"
+        ).boolean()
       }
     )
   }
