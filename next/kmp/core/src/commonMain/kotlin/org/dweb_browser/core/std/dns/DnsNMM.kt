@@ -65,7 +65,7 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
     fun add(mpid: MPID) {
       val apps = runningApps(mpid)
       if (!apps.containsKey(mmid)) {
-        _runningApps[mmid] = apps + (mmid to runningApp)
+        _runningApps[mpid] = apps + (mmid to runningApp)
       }
     }
     add(runningApp.module.mmid)
@@ -206,12 +206,12 @@ class DnsNMM : NativeMicroModule("dns.std.dweb", "Dweb Name System") {
      */
     nativeFetchAdaptersManager.append { fromMM, request ->
       if (request.url.protocol.name == "file" && request.url.host.endsWith(".dweb")) {
-        val mmid = request.url.host
+        val mpid = request.url.host
         debugDNS("fetch ipc", "$fromMM => ${request.href}")
         val url = request.href
         val reasonRequest = buildRequestX(url, request.method, request.headers, request.body);
-        if (installApps.containsKey(mmid)) {
-          val (fromIpc) = connectTo(fromMM, mmid, reasonRequest)
+        if (installApps.containsKey(mpid)) {
+          val (fromIpc) = connectTo(fromMM, mpid, reasonRequest)
           fromIpc.request(request)
         } else PureResponse(HttpStatusCode.BadGateway, body = PureStringBody(url))
       } else null
