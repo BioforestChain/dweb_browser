@@ -34,6 +34,7 @@ kotlin {
         implementation(libs.jetbrains.compose.foundation)
         @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
         implementation(libs.jetbrains.compose.components.resources)
+        implementation(libs.androidx.biometric)
 
         implementation(libs.jetbrains.compose.material3)
         implementation(project(":helper"))
