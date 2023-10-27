@@ -27,19 +27,20 @@ struct ZDeckView: View {
 
             ForEach(0 ..< zIndexs.count) { i in
                 ZStack {
-                    BrowserView()
-                        .resizableSheet(isPresented: $isPrested) {
-                            MySheetView()
-                        }
-                        .windowify()
-                        .offset(x: CGFloat(i) * 50.0, y: 50.0 * CGFloat(i))
-
-                        .overlay {
-                            Button("sheet") {
-                                isPrested.toggle()
-                            }
-                            .offset(y: -50)
-                        }
+                    Text("")
+//                    BrowserView()
+//                        .resizableSheet(isPresented: $isPrested) {
+//                            MySheetView()
+//                        }
+//                        .windowify()
+//                        .offset(x: CGFloat(i) * 50.0, y: 50.0 * CGFloat(i))
+//
+//                        .overlay {
+//                            Button("sheet") {
+//                                isPrested.toggle()
+//                            }
+//                            .offset(y: -50)
+//                        }
                 }
             }
         }

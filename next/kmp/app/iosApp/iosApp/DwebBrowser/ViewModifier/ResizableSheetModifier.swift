@@ -30,8 +30,6 @@ internal struct sheetYOffsetModifier<SheetView>: ViewModifier where SheetView: V
                         sheetView
                             .padding(.horizontal, 4)
                             .padding(.vertical, 12)
-                            .background(.orange)
-
                             .cornerRadius(10)
                             .offset(y: startOffsetY)
                             .offset(y: curDragOffsetY)

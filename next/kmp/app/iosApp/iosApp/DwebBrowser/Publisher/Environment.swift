@@ -17,6 +17,19 @@ class SelectedTab: ObservableObject {
     @Published var curIndex: Int = 0
 }
 
+class WndDragScale: ObservableObject {
+    @Published var onWidth: CGFloat = 1
+    func properValue(floor: CGFloat, ceiling: CGFloat) -> CGFloat{
+        min(ceiling, max(floor, ceiling * onWidth))
+    }
+    func scaledFont(maxSize: CGFloat = 18) -> Font{
+        Font.system(size:  max(10, onWidth * maxSize))
+    }
+    func scaledFontSize(maxSize: CGFloat = 18) -> CGFloat{
+        max(10, onWidth * maxSize)
+    }
+}
+
 class AddressBarState: ObservableObject {
     @Published var isFocused = false
     @Published var inputText: String = ""

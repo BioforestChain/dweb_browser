@@ -14,7 +14,7 @@ public class BridgeManager: NSObject {
     static let shared = BridgeManager()
     @objc public var browserView: UIView?
     
-    let browserSubView = BrowserView()
+    let browserSubView = BrowserView(size: .constant(.zero))
     
     @StateObject var networkManager = NetworkManager()
     

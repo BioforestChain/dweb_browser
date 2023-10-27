@@ -15,6 +15,7 @@ struct PagingScrollView: View {
     @EnvironmentObject var selectedTab: SelectedTab
     @EnvironmentObject var animation: ShiftAnimation
     @EnvironmentObject var webcacheStore: WebCacheStore
+    
 
     @StateObject var keyboard = KeyBoard()
     @Binding var showTabPage: Bool
@@ -52,7 +53,6 @@ struct PagingScrollView: View {
 
                             AddressBar(index: index, webWrapper: webwrappers[index], webCache: webcacheStore.cache(at: index))
                                 .environmentObject(keyboard)
-                                .frame(height: addressBarH)
                                 .background(Color.bkColor)
                                 .offset(y: addressbarOffset)
                                 .animation(.default, value: addressbarOffset)
@@ -79,7 +79,6 @@ struct PagingScrollView: View {
                                     }
                                 }
                         }
-                        .frame(width: screen_width)
                     }
                 }
                 .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))

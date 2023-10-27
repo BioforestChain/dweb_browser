@@ -35,34 +35,42 @@ struct GridCell: View {
     var isSelected: Bool
     @EnvironmentObject var selectedTab: SelectedTab
     @EnvironmentObject var deleteCache: DeleteCache
-//    var deleteAction: ()->Void
+    @EnvironmentObject var dragScale: WndDragScale
+
     var body: some View {
-        Self._printChanges()
+            ZStack(alignment: .topTrailing) {
+                GeometryReader { geo in
 
-        return ZStack(alignment: .topTrailing) {
-            VStack(spacing: 0) {
-                Image(uiImage: webCache.snapshotImage)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: gridCellW, height: cellImageH)
-                    .cornerRadius(gridcellCornerR)
-                    .overlay(RoundedRectangle(cornerRadius: 10)
-                        .stroke(Color.dwebTint, lineWidth: 2)
-                        .opacity(isSelected ? 1 : 0)
-                    )
-                HStack {
-                    WebsiteIconImage(iconUrl: webCache.webIconUrl)
-                        .aspectRatio(contentMode: .fit)
-//                        .frame(height: gridCellH * 0.1)
+                VStack(spacing: 0) {
+                    Image(uiImage: webCache.snapshotImage)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(height: geo.size.height * 0.85)
+                        .cornerRadius(gridcellCornerR)
+                        .overlay(RoundedRectangle(cornerRadius: 10)
+                            .stroke(Color.dwebTint, lineWidth: 2)
+                            .opacity(isSelected ? 1 : 0)
+                        )
+                    HStack {
+                        WebsiteIconImage(iconUrl: webCache.webIconUrl)
+                            .aspectRatio(contentMode: .fit)
 
-                    Text(webCache.title)
-                        .fontWeight(.semibold)
-                        .lineLimit(1)
+                        Text(webCache.title)
+                            .font(.system(size: dragScale.scaledFontSize(maxSize: 20), weight: .semibold)) // 设置字体大小为 20，粗细为 semibold
+//                            .fontWeight(.semibold)
+                            .lineLimit(1)
+                            .aspectRatio(contentMode: .fit)
+                    }
+                    .padding(.vertical, 3)
+                    .frame(height: geo.size.height * 0.15)
+
+//                    .frame(height: gridcellBottomH)
                 }
-                .padding(.vertical, 3)
-                .frame(height: gridcellBottomH)
+//                deleteButton
             }
-            deleteButton
+
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .aspectRatio(0.66, contentMode: .fit)
         }
     }
 
@@ -81,7 +89,6 @@ struct GridCell: View {
         .padding(.trailing, 8)
     }
 }
-
 
 struct GridCell_Previews: PreviewProvider {
     static var previews: some View {
