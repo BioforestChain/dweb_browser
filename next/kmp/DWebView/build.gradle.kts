@@ -24,6 +24,11 @@ kotlin {
     }
   }
 
+  js(IR){
+    binaries.executable()
+    nodejs {  }
+  }
+
   sourceSets {
     val commonMain by getting {
       dependencies {
@@ -79,6 +84,14 @@ kotlin {
       iosArm64Test.dependsOn(this)
       iosSimulatorArm64Test.dependsOn(this)
     }
+
+    val jsMain by getting{
+      dependencies {
+        implementation(kotlin("stdlib-js"))
+        implementation(npm("electron", "27.0.1"))
+      }
+    }
+
   }
 }
 
