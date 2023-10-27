@@ -39,7 +39,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.debounce
@@ -125,7 +124,7 @@ sealed class ModalState(
   }
 
   @Composable
-  protected fun RenderCloseTip(onConfirmToClose: suspend CoroutineScope.() -> Unit) {
+  protected fun RenderCloseTip(onConfirmToClose: () -> Unit) {
     if (isShowCloseTip) {
       val scope = rememberCoroutineScope()
       AlertDialog(
@@ -141,8 +140,8 @@ sealed class ModalState(
         },
         dismissButton = {
           Button(onClick = {
-            showCloseTip.value = "";
-            scope.launch(block = onConfirmToClose)
+            onConfirmToClose()
+            // showCloseTip.value = "";
           }) {
             Text("关闭")
           }
@@ -437,7 +436,7 @@ class BottomSheetsModal private constructor(
 
     }
 
-    RenderCloseTip(onConfirmToClose = { sheetState.hide() })
+    RenderCloseTip(onConfirmToClose = { onModalDismissRequest(true) })
   }
 }
 
