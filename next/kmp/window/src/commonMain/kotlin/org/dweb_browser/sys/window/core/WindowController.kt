@@ -172,6 +172,9 @@ abstract class WindowController(
   suspend fun toggleVisible(visible: Boolean? = null) =
     managerRunOr({ it.toggleVisibleWindow(this, visible) }, { simpleToggleVisible(visible) })
 
+  suspend fun show() = toggleVisible(true)
+  suspend fun hide() = toggleVisible(false)
+
   val onClose = createStateListener(WindowPropertyKeys.Mode,
     { mode == WindowMode.CLOSE }) { debugWindow("emit onClose", id) }
 
@@ -335,7 +338,7 @@ abstract class WindowController(
    * 取当前正在显示的 modal
    */
   private suspend fun getOpenModal() = modalsLock.withLock("read") {
-    state.modals.firstNotNullOfOrNull { if (it.value.isOpen.value) it.value else null }
+    state.modals.firstNotNullOfOrNull { if (it.value.isOpen) it.value else null }
   }
 
   @Transient
@@ -352,7 +355,7 @@ abstract class WindowController(
     when (getOpenModal()) {
       modal -> true
       null -> {
-        modal.isOpen.value = true
+        modal.open()
         openingModal.value = modal
         true
       }
@@ -368,8 +371,8 @@ abstract class WindowController(
    */
   suspend fun closeModal(modalId: String) = modalsLock.withLock("write") {
     val modal = state.modals[modalId] ?: return@withLock false
-    modal.isOpen.value.trueAlso {
-      modal.isOpen.value = false
+    modal.isOpen.trueAlso {
+      modal.close()
       openingModal.value = getOpenModal()
     }
   }

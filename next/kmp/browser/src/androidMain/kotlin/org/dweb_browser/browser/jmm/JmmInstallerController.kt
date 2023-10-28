@@ -29,6 +29,7 @@ import org.dweb_browser.helper.datetimeNow
 import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.sys.window.ext.WindowBottomSheetsController
 import org.dweb_browser.sys.window.ext.createBottomSheets
+import org.dweb_browser.sys.window.ext.requestMainWindow
 
 /**
  * JS 模块安装 的 控制器
@@ -54,6 +55,7 @@ class JmmInstallerController(
 
   init {
     jmmNMM.ioAsyncScope.launch {
+      /// 创建 BottomSheets 视图，提供渲染适配
       jmmNMM.createBottomSheets() { modifier ->
         Render(modifier, this)
       }.also { viewDeferred.complete(it) }
@@ -61,10 +63,14 @@ class JmmInstallerController(
   }
 
   suspend fun openRender(hasNewVersion: Boolean) {
-    /// 提供渲染适配
+    /// 隐藏主窗口
+    jmmNMM.requestMainWindow().hide()
+    /// 显示抽屉
     val bottomSheets = getView()
-    bottomSheets.setCloseTip("应用正在安装中")
     bottomSheets.open()
+    bottomSheets.onClose {
+      /// TODO 如果应用正在下载，则显示toast应用正在安装中
+    }
     viewModel.refreshStatus(hasNewVersion)
   }
 

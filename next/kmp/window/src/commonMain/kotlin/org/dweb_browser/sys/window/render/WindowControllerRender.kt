@@ -80,6 +80,9 @@ fun WindowController.Render(
     LocalWindowControllerTheme provides theme,
     LocalWindowController provides win,
   ) {
+    /// 显示模态层，模态层不受 isVisible 的控制
+    val modal by win.openingModal
+    modal?.Render()
 
     val isVisible by win.watchedState { isVisible() }
 
@@ -156,9 +159,6 @@ fun WindowController.Render(
         WindowBottomBar(win, Modifier.zIndex(1f))
       }
       //#endregion
-
-      val modal by win.openingModal
-      modal?.Render()
 
       /**
        * 窗口是否聚焦

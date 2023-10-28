@@ -27,12 +27,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -89,7 +86,33 @@ sealed class ModalState(
   val once = false
 
   @Transient
-  val isOpen = mutableStateOf(false)
+  protected val isOpenState = mutableStateOf(false)
+
+  @SerialName("isOpen")
+  private var _isOpen = false
+
+  /**
+   * 是否开启
+   */
+  val isOpen get() = _isOpen
+
+
+  @SerialName("sessionId")
+  private var _sessionId = 1;
+
+  val sessionId get() = _sessionId
+
+  open fun open() {
+    this._sessionId += 1;
+    this._isOpen = true
+    this.isOpenState.value = true
+  }
+
+  open fun close() {
+    this._isOpen = false
+    this.isOpenState.value = false
+    this.showCloseTip.value = ""
+  }
 
   @Transient
   protected val showCloseTip = mutableStateOf("")
@@ -123,10 +146,15 @@ sealed class ModalState(
     }
   }
 
+  /**
+   * 关闭modal指令的发送器
+   */
+  @Transient
+  protected val dismissFlow = MutableSharedFlow<Boolean>()
+
   @Composable
   protected fun RenderCloseTip(onConfirmToClose: () -> Unit) {
     if (isShowCloseTip) {
-      val scope = rememberCoroutineScope()
       AlertDialog(
         onDismissRequest = {
           showCloseTip.value = ""
@@ -148,6 +176,11 @@ sealed class ModalState(
         },
       )
     }
+  }
+
+  init {
+    // 强制重制状态
+    close()
   }
 }
 
@@ -201,24 +234,53 @@ data class AlertModal internal constructor(
     ).also { it.setParent(this) }
   }
 
+  @OptIn(FlowPreview::class)
   @Composable
   override fun Render() {
     val mm = LocalWindowMM.current
-    var show by isOpen
-    var sessionAcc = remember { 0 }
+    val show by isOpenState
+
+    fun onModalDismissRequest(isDismiss: Boolean) = mm.ioAsyncScope.launch {
+      dismissFlow.emit(isDismiss)
+    }
+
+    /// 渲染关闭提示
+    RenderCloseTip(onConfirmToClose = { onModalDismissRequest(true) })
+
 
     if (!show) {
       return
     }
-    val sessionId = remember { sessionAcc++; sessionAcc }
-    // 发送 open 的信号
-    LaunchedEffect(sessionId) { sendCallback(mm, OpenModalCallback(sessionId)) }
+
+    DisposableEffect(Unit) {
+      // 发送 open 的信号
+      sendCallback(mm, OpenModalCallback(sessionId))
+
+      debugModal("DisposableEffect", " disposable")
+      val job = dismissFlow.debounce(200).map {
+        debugModal("dismissFlow", "close=$it")
+        if (show && it) {
+          close();
+          // 发送 close 的信号
+          sendCallback(mm, CloseModalCallback(sessionId))
+          // 如果是一次性显示的，那么直接关闭它
+          if (once) {
+            mm.ioAsyncScope.launch {
+              parent.removeModal(modalId)
+            }
+          }
+        }
+      }.launchIn(mm.ioAsyncScope)
+      onDispose {
+        job.cancel()
+      }
+    }
     // alert的默认返回值
     var confirm = remember { false }
 
     AlertDialog(
       onDismissRequest = {
-        show = false
+        onModalDismissRequest(true)
         sendCallback(mm, CloseAlertModalCallback(sessionId, confirm))
         if (once) {
           mm.ioAsyncScope.launch {
@@ -229,7 +291,7 @@ data class AlertModal internal constructor(
       confirmButton = {
         when (val text = confirmText) {
           null -> {}
-          else -> ElevatedButton(onClick = { confirm = true; show = false }) {
+          else -> ElevatedButton(onClick = { confirm = true; onModalDismissRequest(true) }) {
             Text(text)
           }
         }
@@ -237,7 +299,7 @@ data class AlertModal internal constructor(
       dismissButton = {
         when (val text = dismissText) {
           null -> {}
-          else -> Button(onClick = { show = false }) {
+          else -> Button(onClick = { onModalDismissRequest(true) }) {
             Text(text)
           }
         }
@@ -302,45 +364,51 @@ class BottomSheetsModal private constructor(
     }
   }
 
+  /**
+   * 是否已经展开，用于确保展开后才能进行 hidden 收回
+   */
+  @Transient
+  private var hasExpanded = false
+  override fun close() {
+    super.close()
+    this.hasExpanded = false
+  }
+
   @OptIn(ExperimentalMaterial3Api::class, FlowPreview::class)
   @Composable
   override fun Render() {
     val mm = LocalWindowMM.current
-    var show by isOpen
-    var sessionAcc = remember { 0 }
+    val show by isOpenState
+
+    fun onModalDismissRequest(isDismiss: Boolean) = mm.ioAsyncScope.launch {
+      dismissFlow.emit(isDismiss)
+    }
+
+    /// 渲染关闭提示
+    RenderCloseTip(onConfirmToClose = { onModalDismissRequest(true) })
 
     if (!show) {
       return
     }
-    val sessionId = remember { sessionAcc++; sessionAcc }
-    // 发送 open 的信号
-    LaunchedEffect(sessionId) { sendCallback(mm, OpenModalCallback(sessionId)) }
 
-    /// TODO 等1.5.10稳定版放出，IOS才能使用这个组件
-
-    val onModalDismissRequestFlow = remember {
-      MutableSharedFlow<Boolean>()
-    }
     println("SSSZ start")
-    var hasStart = remember {
-      false
-    }
-
-    DisposableEffect(onModalDismissRequestFlow) {
-      /// 初始化 showCloseTip
-      showCloseTip.value = "";
+    DisposableEffect(Unit) {
+      // 发送 open 的信号
+      sendCallback(mm, OpenModalCallback(sessionId))
 
       debugModal("DisposableEffect", " disposable")
-      val job = onModalDismissRequestFlow.map {
+      val job = dismissFlow.map {
         if (!it) {
-          hasStart = true
+          hasExpanded = true
         }
         it
       }.debounce(200).map {
-        debugModal("onModalDismissRequestFlow", " hide=$it opend=$hasStart")
-        if (show && it && hasStart) {
-          show = false;
+        debugModal("dismissFlow", "close=$it hasExpanded=$hasExpanded")
+        if (show && it && hasExpanded) {
+          close();
+          // 发送 close 的信号
           sendCallback(mm, CloseModalCallback(sessionId))
+          // 如果是一次性显示的，那么直接关闭它
           if (once) {
             mm.ioAsyncScope.launch {
               parent.removeModal(modalId)
@@ -352,9 +420,6 @@ class BottomSheetsModal private constructor(
         job.cancel()
       }
     }
-    fun onModalDismissRequest(isDismiss: Boolean) = mm.ioAsyncScope.launch {
-      onModalDismissRequestFlow.emit(isDismiss)
-    }
 
     val sheetState = rememberModalBottomSheetState(confirmValueChange = {
       debugModal("confirmValueChange", " $it")
@@ -362,7 +427,7 @@ class BottomSheetsModal private constructor(
         SheetValue.Hidden -> closeTip.let { closeTip ->
           if (closeTip.isNullOrEmpty() || isShowCloseTip) {
             onModalDismissRequest(true)
-            hasStart
+            hasExpanded
           } else {
             showCloseTip.value = closeTip
             false
@@ -391,6 +456,7 @@ class BottomSheetsModal private constructor(
     val winPadding = LocalWindowPadding.current
     val winTheme = LocalWindowControllerTheme.current
     val contentColor = winTheme.topContentColor
+    /// TODO 等1.5.10稳定版放出，IOS才能使用这个组件
     ModalBottomSheet(sheetState = sheetState, dragHandle = {
       Box(
         modifier = Modifier
@@ -439,7 +505,6 @@ class BottomSheetsModal private constructor(
 
     }
 
-    RenderCloseTip(onConfirmToClose = { onModalDismissRequest(true) })
   }
 }
 
