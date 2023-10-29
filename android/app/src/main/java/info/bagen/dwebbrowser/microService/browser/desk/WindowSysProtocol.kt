@@ -67,7 +67,7 @@ suspend fun DeskNMM.windowProtocol(desktopController: DesktopController) {
       "/maximize" bind HttpMethod.Get to defineEmptyResponse { getWindow().maximize() },
       "/unMaximize" bind HttpMethod.Get to defineEmptyResponse { getWindow().unMaximize() },
       "/visible" bind HttpMethod.Get to defineEmptyResponse { getWindow().toggleVisible() },
-      "/close" bind HttpMethod.Get to defineEmptyResponse { getWindow().close() },
+      "/close" bind HttpMethod.Get to defineEmptyResponse { getWindow().tryCloseOrHide() },
       "/setStyle" bind HttpMethod.Get to defineEmptyResponse {
         getWindow().setStyle(request.queryAs<WindowStyle>())
       },

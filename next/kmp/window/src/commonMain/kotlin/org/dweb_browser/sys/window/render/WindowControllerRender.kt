@@ -84,6 +84,9 @@ fun WindowController.Render(
     val modal by win.openingModal
     modal?.Render()
 
+    /// 渲染窗口关闭提示，该提示不受 isVisible 的控制
+    win.RenderCloseTip()
+
     val isVisible by win.watchedState { isVisible() }
 
     /**

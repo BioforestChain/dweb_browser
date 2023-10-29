@@ -17,6 +17,10 @@ class WindowI18nResource {
       Language.EN to "This Window will be close",
       Language.ZH to "窗口将会关闭",
     )
+    val application_will_be_close = SimpleI18nResource(
+      Language.EN to "This Application will be close",
+      Language.ZH to "应用将会关闭",
+    )
     val window_confirm_to_close = SimpleI18nResource(
       Language.EN to "Are you sure you want to close this Window?",
       Language.ZH to "确定要关闭窗口？",

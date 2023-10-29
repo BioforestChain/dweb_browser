@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.safeGestures
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -462,10 +463,45 @@ data class WindowControllerTheme(
   val winFrameBrush by lazy {
     Brush.verticalGradient(listOf(topBackgroundColor, themeColor, bottomBackgroundColor))
   }
+  val themeDisableColor by lazy { themeColor.copy(alpha = themeColor.alpha * 0.2f) }
   val themeContentDisableColor by lazy { themeContentColor.copy(alpha = themeContentColor.alpha * 0.2f) }
   val onThemeContentDisableColor by lazy { onThemeContentColor.copy(alpha = onThemeContentColor.alpha * 0.5f) }
   val topContentDisableColor by lazy { topContentColor.copy(alpha = topContentColor.alpha * 0.2f) }
   val bottomContentDisableColor by lazy { bottomContentColor.copy(alpha = bottomContentColor.alpha * 0.2f) }
+
+
+  val themeButtonColors by lazy {
+    ButtonColors(
+      contentColor = themeContentColor,
+      containerColor = themeColor,
+      disabledContentColor = themeContentDisableColor,
+      disabledContainerColor = themeDisableColor,
+    )
+  }
+  val themeContentButtonColors by lazy {
+    ButtonColors(
+      contentColor = onThemeContentColor,
+      containerColor = themeContentColor,
+      disabledContentColor = onThemeContentDisableColor,
+      disabledContainerColor = themeContentDisableColor,
+    )
+  }
+
+  class AlertDialogColors(
+    val containerColor: Color,
+    val iconContentColor: Color,
+    val titleContentColor: Color,
+    val textContentColor: Color,
+  )
+
+  val alertDialogColors by lazy {
+    AlertDialogColors(
+      containerColor = themeColor,
+      iconContentColor = themeContentColor,
+      titleContentColor = themeContentColor,
+      textContentColor = themeContentColor,
+    )
+  }
 }
 
 /**

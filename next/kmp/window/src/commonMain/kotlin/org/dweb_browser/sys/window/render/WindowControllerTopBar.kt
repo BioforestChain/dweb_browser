@@ -70,7 +70,7 @@ internal fun WindowTopBar(
 private fun WindowTopControllerBar(
   win: WindowController,
 ) {
-  val coroutineScope = rememberCoroutineScope()
+  val scope = rememberCoroutineScope()
   val contentColor = LocalWindowControllerTheme.current.topContentColor
   val topBarHeight = LocalWindowPadding.current.top
   Box {
@@ -89,13 +89,12 @@ private fun WindowTopControllerBar(
           .fillMaxHeight(),
       ) {
         IconButton(modifier = Modifier.align(Alignment.Center),
-          onClick = { coroutineScope.launch { win.close() } }) {
+          onClick = { scope.launch { win.tryCloseOrHide() } }) {
           Icon(Icons.Rounded.Close, contentDescription = "Close the Window", tint = contentColor)
         }
       }
       /// 应用图标
       val iconSize = topBarHeight * 0.8f;
-      val scope = rememberCoroutineScope()
       Box(
         modifier = Modifier
           .size(iconSize.dp)
@@ -142,7 +141,7 @@ private fun WindowTopControllerBar(
           .fillMaxHeight(),
       ) {
         IconButton(modifier = Modifier.align(Alignment.CenterEnd),
-          onClick = { coroutineScope.launch { win.toggleVisible() } }) {
+          onClick = { scope.launch { win.toggleVisible() } }) {
           Icon(
             Icons.Rounded.Minimize,
             contentDescription = "Minimizes the window",
@@ -157,7 +156,7 @@ private fun WindowTopControllerBar(
           .fillMaxHeight(),
       ) {
         IconButton(modifier = Modifier.align(Alignment.CenterEnd),
-          onClick = { coroutineScope.launch { win.maximize() } }) {
+          onClick = { scope.launch { win.maximize() } }) {
           Icon(
             Icons.Rounded.UnfoldMore,
             contentDescription = "Maximizes the window",
