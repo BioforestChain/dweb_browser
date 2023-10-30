@@ -49,10 +49,10 @@ kotlin {
   }
 }
 android {
-  namespace = "org.dweb_browser.app.android"
+  namespace = "info.bagen.dwebbrowser"
   compileSdk = libs.versions.compileSdkVersion.get().toInt()
   defaultConfig {
-    applicationId = "org.dweb_browser.app"
+    applicationId = "info.bagen.dwebbrowser"
     minSdk = libs.versions.minSdkVersion.get().toInt()
     targetSdk = libs.versions.targetSdkVersion.get().toInt()
     versionCode = libs.versions.versionCode.get().toInt()
@@ -70,6 +70,17 @@ android {
   buildTypes {
     getByName("release") {
       isMinifyEnabled = false
+      resValue("string", "appName", "Dweb Browser")
+      applicationIdSuffix = null
+      versionNameSuffix = null
+    }
+    debug {
+      signingConfig = signingConfigs.getByName("debug")
+      val userName = System.getProperty("user.name")
+        .replace("[^a-zA-Z0-9]".toRegex(), "").lowercase()
+      resValue("string", "appName", "Dev-$userName")
+      applicationIdSuffix = ".kmp.$userName"
+      versionNameSuffix = ".kmp.$userName"
     }
   }
 }

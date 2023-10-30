@@ -1,4 +1,4 @@
-package org.dweb_browser.app.android
+package info.bagen.dwebbrowser
 
 import android.annotation.SuppressLint
 import android.os.Bundle
@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+import org.dweb_browser.app.android.MyApplicationTheme
 import org.dweb_browser.helper.compose.AutoResizeTextContainer
 import org.dweb_browser.helper.compose.AutoSizeText
 import org.dweb_browser.helper.platform.JsRuntime
