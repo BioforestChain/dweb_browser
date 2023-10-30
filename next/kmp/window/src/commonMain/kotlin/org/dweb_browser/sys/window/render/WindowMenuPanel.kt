@@ -30,7 +30,7 @@ fun WindowController.ExitAppButton() {
         closeRoot()
       }
     },
-    colors = winTheme.themeContentButtonColors,
+    colors = winTheme.ThemeContentButtonColors(),
   ) {
     Text("退出应用")
   }
@@ -46,7 +46,7 @@ fun WindowController.CloseMenuPanelButton() {
         hideMenuPanel()
       }
     },
-    colors = winTheme.themeButtonColors,
+    colors = winTheme.ThemeButtonColors(),
   ) {
     Text("关闭面板")
   }
@@ -65,7 +65,7 @@ internal fun WindowMenuPanelByAlert(
   }
   if (isShowMenuPanel) {
     val winTheme = LocalWindowControllerTheme.current
-    val buttonColors = winTheme.themeButtonColors
+    val buttonColors = winTheme.ThemeButtonColors()
     AlertDialog(
       onDismissRequest = {
         toggleMenu(false)

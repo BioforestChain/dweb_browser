@@ -8,6 +8,7 @@ import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.WeakHashMap
 import org.dweb_browser.helper.getOrPut
 import org.dweb_browser.sys.window.ext.openMainWindow
+import kotlin.jvm.JvmInline
 
 /**
  * Renderer：窗口由 window.sys.dweb 被创建后，要求窗口拥有着对内容进行渲染

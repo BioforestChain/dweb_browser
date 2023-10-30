@@ -61,7 +61,7 @@ fun WindowController.RenderCloseTip() {
           onClick = {
             /// 强制关闭窗口
             scope.launch { win.close(true) }
-          }, colors = winTheme.themeContentButtonColors
+          }, colors = winTheme.ThemeContentButtonColors()
         ) {
           Text(WindowI18nResource.window_confirm())
         }
@@ -70,7 +70,7 @@ fun WindowController.RenderCloseTip() {
       dismissButton = {
         TextButton(onClick = {
           scope.launch { win.hideCloseTip() }
-        }, colors = winTheme.themeButtonColors) {
+        }, colors = winTheme.ThemeButtonColors()) {
           Text(WindowI18nResource.window_dismiss())
         }
       },
