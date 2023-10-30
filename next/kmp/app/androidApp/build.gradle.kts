@@ -43,6 +43,7 @@ kotlin {
           implementation(project(":helperPlatform"))
           implementation(project(":core"))
           implementation(project(":window"))
+          implementation(project(":sys"))
         }
       }
     }

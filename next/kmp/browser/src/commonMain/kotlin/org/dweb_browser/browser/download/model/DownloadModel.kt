@@ -8,8 +8,10 @@ import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material.icons.filled.VideoFile
 import androidx.compose.ui.graphics.vector.ImageVector
 import kotlinx.datetime.LocalDate
+import org.dweb_browser.browser.download.DownloadController
 
-class DownloadModel {
+class DownloadModel(val downloadController: DownloadController) {
+
 }
 
 fun getIconByMime(mime: String) : ImageVector {

@@ -16,6 +16,7 @@ kotlin {
         implementation(project(":helper"))
         implementation(project(":helperPlatform"))
         implementation(project(":helperCompose"))
+        implementation(project(":sys"))
 
         // https://stackoverflow.com/questions/73187027/use-javafx-in-kotlin-multiplatform
         // As JavaFX have platform-specific dependencies, we need to add them manually

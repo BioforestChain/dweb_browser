@@ -187,6 +187,7 @@ dependencies {
   implementation(project(":window"))
   implementation(project(":browser"))
   implementation(project(":shared"))
+  implementation(project(":sys"))
 }
 
 tasks.withType<Test> {
