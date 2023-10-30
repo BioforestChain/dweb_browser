@@ -11,6 +11,7 @@ import org.dweb_browser.helper.ChangeableSet
 import org.dweb_browser.helper.OffListener
 import org.dweb_browser.helper.platform.PlatformViewController
 import org.dweb_browser.helper.some
+import org.dweb_browser.sys.window.core.constant.LowLevelWindowAPI
 import org.dweb_browser.sys.window.core.constant.WindowColorScheme
 import org.dweb_browser.sys.window.core.constant.WindowStyle
 import org.dweb_browser.sys.window.core.constant.WindowsManagerScope
@@ -247,8 +248,15 @@ open class WindowsManager<T : WindowController>(internal val viewController: Pla
    * 对一个窗口做聚焦操作
    */
   fun focusWindow(win: WindowController) = winLifecycleScopeAsync(win) {
+    // 要聚焦窗口，首先切换它的可见性
+    win.toggleVisible(true)
+
+    // 然后再触发它的 focus 属性
     when (val preFocusedWin = lastFocusedWin) {
-      win -> false
+      win -> {
+        false
+      }
+
       else -> {
         preFocusedWin?.simpleBlur()
         win.simpleFocus()
@@ -334,6 +342,7 @@ open class WindowsManager<T : WindowController>(internal val viewController: Pla
       win.simpleToggleVisible(visible)
     }
 
+  @LowLevelWindowAPI
   fun closeWindow(win: WindowController, force: Boolean = false) = winLifecycleScopeAsync(win) {
     win.simpleClose(force)
   }

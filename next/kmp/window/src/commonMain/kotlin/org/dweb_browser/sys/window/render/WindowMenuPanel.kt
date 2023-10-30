@@ -3,7 +3,6 @@ package org.dweb_browser.sys.window.render
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,11 +20,37 @@ internal expect fun WindowMenuPanel(
 )
 
 @Composable
-fun WindowControllerTheme.toButtonColors() = ButtonDefaults.buttonColors(
-  contentColor = themeContentColor,
-  containerColor = themeColor,
-  disabledContentColor = themeContentDisableColor
-)
+fun WindowController.ExitAppButton() {
+  val winTheme = LocalWindowControllerTheme.current
+  val scope = rememberCoroutineScope()
+  ElevatedButton(
+    onClick = {
+      scope.launch {
+        hideMenuPanel()
+        closeRoot()
+      }
+    },
+    colors = winTheme.ThemeContentButtonColors(),
+  ) {
+    Text("退出应用")
+  }
+}
+
+@Composable
+fun WindowController.CloseMenuPanelButton() {
+  val winTheme = LocalWindowControllerTheme.current
+  val scope = rememberCoroutineScope()
+  Button(
+    onClick = {
+      scope.launch {
+        hideMenuPanel()
+      }
+    },
+    colors = winTheme.ThemeButtonColors(),
+  ) {
+    Text("关闭面板")
+  }
+}
 
 @Composable
 internal fun WindowMenuPanelByAlert(
@@ -40,7 +65,7 @@ internal fun WindowMenuPanelByAlert(
   }
   if (isShowMenuPanel) {
     val winTheme = LocalWindowControllerTheme.current
-    val buttonColors = winTheme.toButtonColors()
+    val buttonColors = winTheme.ThemeButtonColors()
     AlertDialog(
       onDismissRequest = {
         toggleMenu(false)
@@ -60,27 +85,10 @@ internal fun WindowMenuPanelByAlert(
         WindowControlPanel(win)
       },
       confirmButton = {
-        ElevatedButton(
-          onClick = {
-            scope.launch {
-              win.hideMenuPanel()
-              win.close() // 增加关闭窗口
-            }
-          },
-          colors = buttonColors,
-        ) {
-          Text("退出应用")
-        }
+        win.ExitAppButton()
       },
       dismissButton = {
-        Button(
-          onClick = {
-            toggleMenu(false)
-          },
-          colors = buttonColors,
-        ) {
-          Text("关闭面板")
-        }
+        win.CloseMenuPanelButton()
       },
     )// AlertDialog
 

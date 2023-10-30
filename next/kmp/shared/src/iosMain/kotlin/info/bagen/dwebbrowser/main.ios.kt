@@ -11,29 +11,18 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.interop.UIKitView
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.ComposeUIViewController
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.coroutines.launch
-import org.dweb_browser.helper.compose.AutoResizeTextContainer
-import org.dweb_browser.helper.compose.AutoSizeText
-import org.dweb_browser.helper.platform.JsRuntime
-import org.dweb_browser.shared.ImageLoaderDemo
 import org.dweb_browser.sys.window.render.LocalWindowController
 import org.dweb_browser.sys.window.render.WindowPreviewer
 import org.dweb_browser.sys.window.render.watchedState
-import platform.CoreGraphics.CGRectMake
-import platform.UIKit.UIColor.Companion.blueColor
 import platform.UIKit.UIView
 import platform.UIKit.UIViewController
 import platform.WebKit.WKWebView
@@ -45,7 +34,6 @@ import platform.CoreGraphics.CGSize
 import platform.CoreGraphics.CGSizeMake
 import platform.CoreGraphics.CGFloat
 import kotlinx.cinterop.useContents
-
 
 
 @Suppress("FunctionName", "unused")
@@ -77,8 +65,7 @@ fun PreviewWindowTopBar(iosView: UIView, onSizeChange: (CGFloat, CGFloat)->Unit)
       modifier =Modifier,
       update = { view ->
       println( "update:::: $view")
-    })
-//    PreviewWindowTopBarContent(modifier)
+    })//    PreviewWindowTopBarContent(modifier)
   }
 }
 

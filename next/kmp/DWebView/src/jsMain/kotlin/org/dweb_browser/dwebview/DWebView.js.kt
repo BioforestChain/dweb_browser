@@ -4,65 +4,65 @@ import kotlin.js.Promise
 import kotlin.math.*
 
 
-interface IDWebView {
-     fun loadUrl(url: String, force: Boolean = false): Promise<Unit>
-     fun getUrl(): String
-     fun getTitle(): String
-     fun getIcon(): Promise<String>
-     fun destroy()
-     fun canGoBack(): Boolean
-     fun canGoForward(): Boolean
-     fun goBack()
-     fun goForward()
-
-    /**
-     * 在 electron 的范畴内，主进程同 渲染进程之间通信是不需要创建
-     * messageChannel 的所以
-     */
-//     fun createMessageChannel(): IMessageChannel
-
-    /**
-     * 向webview发送消息
-     * TODO("发送消息给webview中载入的htm内容")
-     */
-    fun send(channel: String, message: String)
-
-    /**
-     * 添加监听器
-     * TODO("监听通过某个频道中从webView的内容中发送的消息")
-     */
-    fun on(channel: String, listener: ipcMainListener<Any>){
-
-    }
-
-    /**
-     * TODO("只监听一次webview通过某个频道发送过来的消息")
-     */
-    fun once(channel: String, listener: ipcMainListener<Any>)
-
-    /**
-     * TODO("移除某一个频道的监听器")
-     */
-    fun removeListener(channel: String, listener: ipcMainRemoveListener<Any>)
-
-    /**
-     * TODO("移除某个频道上的全部监听器")
-     */
-    fun removeAllListeners(channel: String)
-
-    /**
-     * 缩、放 webveiw 的尺寸
-     * TODO("缩放 webview 的尺寸")
-     */
-     fun setContentScale(scale: Float)
-
-    /**
-     * 执行一段JS代码，这个代码将会包裹在 (async()=>{ YOUR_CODE })() 中
-     * 返回一个字符串？？
-     * TODO("让 webveiw 执行指定代码的方法")
-     */
-    fun evalAsyncJavascript(code: String, userGesture: Boolean): Promise<Any>
-}
+//interface IDWebView {
+//     fun loadUrl(url: String, force: Boolean = false): Promise<Unit>
+//     fun getUrl(): String
+//     fun getTitle(): String
+//     fun getIcon(): Promise<String>
+//     fun destroy()
+//     fun canGoBack(): Boolean
+//     fun canGoForward(): Boolean
+//     fun goBack()
+//     fun goForward()
+//
+//    /**
+//     * 在 electron 的范畴内，主进程同 渲染进程之间通信是不需要创建
+//     * messageChannel 的所以
+//     */
+////     fun createMessageChannel(): IMessageChannel
+//
+//    /**
+//     * 向webview发送消息
+//     * TODO("发送消息给webview中载入的htm内容")
+//     */
+//    fun send(channel: String, message: String)
+//
+//    /**
+//     * 添加监听器
+//     * TODO("监听通过某个频道中从webView的内容中发送的消息")
+//     */
+//    fun on(channel: String, listener: ipcMainListener<Any>){
+//
+//    }
+//
+//    /**
+//     * TODO("只监听一次webview通过某个频道发送过来的消息")
+//     */
+//    fun once(channel: String, listener: ipcMainListener<Any>)
+//
+//    /**
+//     * TODO("移除某一个频道的监听器")
+//     */
+//    fun removeListener(channel: String, listener: ipcMainRemoveListener<Any>)
+//
+//    /**
+//     * TODO("移除某个频道上的全部监听器")
+//     */
+//    fun removeAllListeners(channel: String)
+//
+//    /**
+//     * 缩、放 webveiw 的尺寸
+//     * TODO("缩放 webview 的尺寸")
+//     */
+//     fun setContentScale(scale: Float)
+//
+//    /**
+//     * 执行一段JS代码，这个代码将会包裹在 (async()=>{ YOUR_CODE })() 中
+//     * 返回一个字符串？？
+//     * TODO("让 webveiw 执行指定代码的方法")
+//     */
+//    fun evalAsyncJavascript(code: String, userGesture: Boolean): Promise<Any>
+//}
 
 
 class DWebView(

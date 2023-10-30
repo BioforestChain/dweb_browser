@@ -17,7 +17,6 @@ import android.webkit.WebViewClient
 import kotlinx.coroutines.runBlocking
 import org.dweb_browser.helper.SimpleCallback
 import org.dweb_browser.helper.SimpleSignal
-import org.dweb_browser.helper.all
 import org.dweb_browser.helper.mapFindNoNull
 import org.dweb_browser.helper.one
 
@@ -64,21 +63,15 @@ class DWebViewClient : WebViewClient() {
   }
 
   override fun onPageCommitVisible(view: WebView?, url: String?) {
-    inners("onPageCommitVisible").all { it.onPageCommitVisible(view, url) }
-      ?: super.onPageCommitVisible(view, url)
+    inners("onPageCommitVisible").forEach { it.onPageCommitVisible(view, url) }
   }
 
   override fun onPageFinished(view: WebView?, url: String?) {
-    inners("onPageFinished").all { it.onPageFinished(view, url) } ?: super.onPageFinished(
-      view, url
-    )
+    inners("onPageFinished").forEach { it.onPageFinished(view, url) }
   }
 
   override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
-    inners("onPageStarted").all { it.onPageStarted(view, url, favicon) }
-      ?: super.onPageStarted(
-        view, url, favicon
-      )
+    inners("onPageStarted").forEach { it.onPageStarted(view, url, favicon) }
   }
 
   override fun onReceivedClientCertRequest(view: WebView?, request: ClientCertRequest?) {

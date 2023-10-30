@@ -1,6 +1,7 @@
 package org.dweb_browser.browser.jmm
 
 import kotlinx.serialization.Serializable
+import org.dweb_browser.browser.download.TaskId
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.module.MicroModule
@@ -10,25 +11,37 @@ import org.dweb_browser.core.std.file.ext.createStore
 data class JsMicroModuleDBItem(val installManifest: JmmAppInstallManifest, val originUrl: String)
 
 class JmmStore(microModule: MicroModule) {
-  private val store = microModule.createStore("JmmApps", false)
+  private val storeApp = microModule.createStore("JmmApps", false)
+  private val storeTaskId = microModule.createStore("DownloadTaskId", false)
 
-  suspend fun getOrPut(key: MMID, value: JsMicroModuleDBItem): JsMicroModuleDBItem {
-    return store.getOrPut(key) { value }
+  suspend fun getOrPutApp(key: MMID, value: JsMicroModuleDBItem): JsMicroModuleDBItem {
+    return storeApp.getOrPut(key) { value }
   }
 
-  suspend fun get(key: MMID): JsMicroModuleDBItem? {
-    return store.getOrNull(key)
+  suspend fun getApp(key: MMID): JsMicroModuleDBItem? {
+    return storeApp.getOrNull(key)
   }
 
-  suspend fun getAll(): MutableMap<MMID, JsMicroModuleDBItem> {
-    return store.getAll()
+  suspend fun getAllApps(): MutableMap<MMID, JsMicroModuleDBItem> {
+    return storeApp.getAll()
   }
 
-  suspend fun set(key: MMID, value: JsMicroModuleDBItem) {
-    store.set(key, value)
+  suspend fun setApp(key: MMID, value: JsMicroModuleDBItem) {
+    storeApp.set(key, value)
   }
 
-  suspend fun delete(key: MMID): Boolean {
-    return store.delete(key)
+  suspend fun deleteApp(key: MMID): Boolean {
+    return storeApp.delete(key)
+  }
+
+  /*****************************************************************************
+   * 下载相关的函数
+   */
+  suspend fun saveDownload(mmid: MMID, taskId: TaskId) {
+    storeTaskId.set(mmid, taskId)
+  }
+
+  suspend fun getAllDownload(): MutableMap<MMID, String> {
+    return storeTaskId.getAll()
   }
 }

@@ -100,30 +100,31 @@ class BrowserController(
         }
       }
     }
-  }.also {
-    val bottomSheetsController = browserNMM.createBottomSheets { modifier ->
-      Column(
-        modifier = modifier
-          .verticalScroll(rememberScrollState())
-          .background(Color.Green),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-      ) {
-        for (i in 1..100) {
-          Text(text = "hi~$i")
-        }
-      }
-    };
-    bottomSheetsController.open()
-    bottomSheetsController.onClose {
-      val alertController = browserNMM.createAlert("你好", "关闭了")
-      alertController.open()
-      alertController.onClose {
-        bottomSheetsController.destroy()
-        alertController.destroy()
-      }
-    }
   }
+//    .also {
+//    val bottomSheetsController = browserNMM.createBottomSheets { modifier ->
+//      Column(
+//        modifier = modifier
+//          .verticalScroll(rememberScrollState())
+//          .background(Color.Green),
+//        horizontalAlignment = Alignment.CenterHorizontally,
+//        verticalArrangement = Arrangement.Center
+//      ) {
+//        for (i in 1..100) {
+//          Text(text = "hi~$i")
+//        }
+//      }
+//    };
+//    bottomSheetsController.open()
+//    bottomSheetsController.onClose {
+//      val alertController = browserNMM.createAlert("你好", "关闭了")
+//      alertController.open()
+//      alertController.onClose {
+//        bottomSheetsController.destroy()
+//        alertController.destroy()
+//      }
+//    }
+//  }
 
   suspend fun openBrowserView(search: String? = null, url: String? = null) = winLock.withLock {
     viewModel.createNewTab(search, url)

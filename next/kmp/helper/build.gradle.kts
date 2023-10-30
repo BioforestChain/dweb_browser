@@ -24,67 +24,38 @@ kotlin {
     }
   }
 
-  sourceSets {
-    val commonMain by getting {
-      dependencies {
-        api(kotlin("stdlib"))
-        api(libs.kotlinx.coroutines.core)
-        api(libs.kotlinx.atomicfu)
-        api(libs.ktor.http)
-        api(libs.ktor.io)
-        api(libs.ktor.server.websockets)
-        api(libs.ktor.server.cio)
-        api(libs.ktor.client.cio)
-        api(libs.ktor.client.encoding)
-        api(libs.whyoleg.cryptography.core)
+  applyDefaultHierarchyTemplate()
 
-        api(libs.squareup.okio)
-        api(libs.kotlinx.datetime)
-        api(libs.kotlin.serialization.json)
-        api(libs.kotlin.serialization.cbor)
-      }
-    }
-    val commonTest by getting {
-      dependencies {
-        implementation(kotlin("test"))
-        implementation(libs.test.kotlin.coroutines.test)
-        implementation(libs.test.kotlin.coroutines.debug)
-        implementation(libs.kotlinx.atomicfu)
-        implementation(libs.kotlinx.io)
-      }
-    }
-    val androidMain by getting {
-      dependencies {
-        implementation(libs.androidx.core.ktx)
-        implementation(libs.commons.compress)
-        api(libs.data.store)
-        api(libs.data.store.preferences)
-        api(libs.whyoleg.cryptography.provider.jdk)
-      }
-    }
-    val androidUnitTest by getting
-    val iosX64Main by getting
-    val iosArm64Main by getting
-    val iosSimulatorArm64Main by getting
-    val iosMain by creating {
-      dependsOn(commonMain)
-      dependencies {
-        api(libs.ktor.client.darwin)
-        api(libs.whyoleg.cryptography.provider.openssl3.prebuilt)
-      }
-      iosX64Main.dependsOn(this)
-      iosArm64Main.dependsOn(this)
-      iosSimulatorArm64Main.dependsOn(this)
-    }
-    val iosX64Test by getting
-    val iosArm64Test by getting
-    val iosSimulatorArm64Test by getting
-    val iosTest by creating {
-      dependsOn(commonTest)
-      iosX64Test.dependsOn(this)
-      iosArm64Test.dependsOn(this)
-      iosSimulatorArm64Test.dependsOn(this)
-    }
+  sourceSets.commonMain.dependencies {
+    api(kotlin("stdlib"))
+    api(libs.kotlinx.coroutines.core)
+    api(libs.kotlinx.atomicfu)
+    api(libs.ktor.http)
+    api(libs.ktor.io)
+    api(libs.ktor.server.websockets)
+    api(libs.ktor.server.cio)
+    api(libs.ktor.client.cio)
+    api(libs.ktor.client.encoding)
+    api(libs.whyoleg.cryptography.core)
+
+    api(libs.squareup.okio)
+    api(libs.kotlinx.datetime)
+    api(libs.kotlin.serialization.json)
+    api(libs.kotlin.serialization.cbor)
+  }
+  sourceSets.commonTest.dependencies {
+    implementation(kotlin("test"))
+    implementation(libs.test.kotlin.coroutines.test)
+    implementation(libs.test.kotlin.coroutines.debug)
+    implementation(libs.kotlinx.atomicfu)
+    implementation(libs.kotlinx.io)
+  }
+  sourceSets.androidMain.dependencies {
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.commons.compress)
+    api(libs.data.store)
+    api(libs.data.store.preferences)
+    api(libs.whyoleg.cryptography.provider.jdk)
   }
 }
 

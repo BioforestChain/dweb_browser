@@ -11,6 +11,7 @@ import org.dweb_browser.helper.ReasonLock
 import org.dweb_browser.helper.SimpleSignal
 import org.dweb_browser.helper.platform.PlatformViewController
 import org.dweb_browser.helper.trueAlso
+import org.dweb_browser.sys.window.core.constant.LowLevelWindowAPI
 import org.dweb_browser.sys.window.core.constant.WindowBottomBarTheme
 import org.dweb_browser.sys.window.core.constant.WindowColorScheme
 import org.dweb_browser.sys.window.core.constant.WindowMode
@@ -172,6 +173,9 @@ abstract class WindowController(
   suspend fun toggleVisible(visible: Boolean? = null) =
     managerRunOr({ it.toggleVisibleWindow(this, visible) }, { simpleToggleVisible(visible) })
 
+  suspend fun show() = toggleVisible(true)
+  suspend fun hide() = toggleVisible(false)
+
   val onClose = createStateListener(WindowPropertyKeys.Mode,
     { mode == WindowMode.CLOSE }) { debugWindow("emit onClose", id) }
 
@@ -187,10 +191,50 @@ abstract class WindowController(
     state.mode = WindowMode.CLOSE
   }
 
+  /**
+   * 关闭窗口
+   * 一般来来说不要直接使用该核心接口，请使用 tryCloseOrHide 、 closeRoot 等业务接口进行替代
+   */
+  @LowLevelWindowAPI
   suspend fun close(force: Boolean = false) =
     managerRunOr({ it.closeWindow(this, force) }, { simpleClose(force) })
 
-//#endregion
+  val isMainWindow get() = state.parent == null
+
+  /**
+   * 尝试关闭或者将窗口隐藏
+   * 如果有父窗口，那么采用关闭
+   * 如果自己就是主窗口，那么采用隐藏
+   */
+  @OptIn(LowLevelWindowAPI::class)
+  suspend fun tryCloseOrHide(force: Boolean = false) {
+    if (isMainWindow) hide()
+    else close(force)
+  }
+
+  val mainWindow: WindowController
+    get() {
+      var root = this
+      while (true) {
+        when (val parentWid = state.parent) {
+          null -> break;
+          else -> {
+            root = windowInstancesManager.get(parentWid) ?: break
+          }
+        }
+      }
+      return root
+    }
+
+  /**
+   * 关闭主窗口，就能退出应用
+   */
+  @OptIn(LowLevelWindowAPI::class)
+  suspend fun closeRoot(force: Boolean = false) {
+    mainWindow.close(force)
+  }
+
+  //#endregion
 
   //#region 窗口样式修饰
   internal open suspend fun simpleSetStyle(style: WindowStyle) {
@@ -222,7 +266,10 @@ abstract class WindowController(
   val onGoBack = goBackSignal.toListener()
 
   @Composable
-  fun GoBackHandler(enabled: Boolean = true, onBack: suspend () -> Unit) {
+  fun GoBackHandler(
+    enabled: Boolean = true, closeTip: String? = state.closeTip, onBack: suspend () -> Unit
+  ) {
+    state.closeTip = closeTip
     DisposableEffect(this, enabled) {
       state.canGoBack = enabled
       val off = goBackSignal.listen { if (enabled) onBack() }
@@ -335,7 +382,7 @@ abstract class WindowController(
    * 取当前正在显示的 modal
    */
   private suspend fun getOpenModal() = modalsLock.withLock("read") {
-    state.modals.firstNotNullOfOrNull { if (it.value.isOpen.value) it.value else null }
+    state.modals.firstNotNullOfOrNull { if (it.value.isOpen) it.value else null }
   }
 
   @Transient
@@ -352,7 +399,7 @@ abstract class WindowController(
     when (getOpenModal()) {
       modal -> true
       null -> {
-        modal.isOpen.value = true
+        modal.open()
         openingModal.value = modal
         true
       }
@@ -368,8 +415,8 @@ abstract class WindowController(
    */
   suspend fun closeModal(modalId: String) = modalsLock.withLock("write") {
     val modal = state.modals[modalId] ?: return@withLock false
-    modal.isOpen.value.trueAlso {
-      modal.isOpen.value = false
+    modal.isOpen.trueAlso {
+      modal.close()
       openingModal.value = getOpenModal()
     }
   }

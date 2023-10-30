@@ -31,7 +31,7 @@ fun MultiWebViewController.Render(modifier: Modifier = Modifier, initialScale: I
       val off = webViewList.onChange {
         list = it.toList()
         if (list.isEmpty()) {
-          win.close()
+          win.tryCloseOrHide()
         }
         return@onChange;
       }

@@ -7,8 +7,10 @@ import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.dweb_browser.browser.download.DownloadState
+import org.dweb_browser.browser.download.TaskId
 import org.dweb_browser.browser.jmm.JmmInstallerController
 import org.dweb_browser.browser.jmm.JmmNMM
+import org.dweb_browser.browser.jmm.debugJMM
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.helper.compose.noLocalProvidedFor
 import org.dweb_browser.helper.falseAlso
@@ -61,19 +63,45 @@ data class JmmUIState(
 )
 
 class JmmManagerViewHelper(
-  jmmAppInstallManifest: JmmAppInstallManifest, private val jmmInstallerController: JmmInstallerController
+  jmmAppInstallManifest: JmmAppInstallManifest, private val controller: JmmInstallerController
 ) {
   val uiState: JmmUIState = JmmUIState(jmmAppInstallManifest)
-  private val jmmNMM = jmmInstallerController.jmmNMM
 
-  fun startDownload() = jmmNMM.ioAsyncScope.launch {
-    val taskId = jmmInstallerController.createDownloadTask(uiState.jmmAppInstallManifest.bundle_url)
-    jmmInstallerController.watchProcess(taskId) {
+  fun startDownload() = controller.ioAsyncScope.launch {
+    val taskId = controller.createDownloadTask(uiState.jmmAppInstallManifest.bundle_url)
+    watchProcess(taskId)
+    // 已经注册完监听了，开始
+    controller.start()
+  }
+
+  fun pause() = controller.ioAsyncScope.launch {
+    controller.pause().falseAlso {
+      uiState.downloadStatus.value = JmmStatus.Failed
+    }
+  }
+
+  fun start() = controller.ioAsyncScope.launch {
+    controller.start().falseAlso {
+      uiState.downloadStatus.value = JmmStatus.Failed
+    }
+  }
+
+  fun open() = controller.ioAsyncScope.launch {
+    controller.openApp(uiState.jmmAppInstallManifest.id)
+  }
+
+  private suspend fun watchProcess(taskId: TaskId) {
+    controller.watchProcess(taskId) {
       println("watch=> ${this.status.state.name} ${this.status.current}")
 
       if (this.status.state == DownloadState.Downloading) {
         uiState.downloadSize.value = this.status.current
         uiState.downloadStatus.value = JmmStatus.Downloading
+      }
+
+      if (this.status.state == DownloadState.Paused) {
+        uiState.downloadSize.value = this.status.current
+        uiState.downloadStatus.value = JmmStatus.Paused
       }
 
       if (this.status.state == DownloadState.Failed) {
@@ -83,7 +111,7 @@ class JmmManagerViewHelper(
 
       // 下载完成触发解压
       if (this.status.state == DownloadState.Completed) {
-        val success = jmmInstallerController.decompress(this)
+        val success = controller.decompress(this)
         if (success) {
           uiState.downloadStatus.value = JmmStatus.INSTALLED
         } else {
@@ -92,24 +120,27 @@ class JmmManagerViewHelper(
         }
       }
     }
-    // 已经注册完监听了，开始
-    jmmInstallerController.start()
   }
 
-  fun pause() = jmmNMM.ioAsyncScope.launch {
-    jmmInstallerController.pause().falseAlso {
-      uiState.downloadStatus.value = JmmStatus.Failed
+  /**
+   * 打开之后更新状态值，主要是为了退出应用后重新打开时需要
+   */
+  fun refreshStatus(hasNewVersion: Boolean) = controller.ioAsyncScope.launch {
+    debugJMM(
+      "refreshStatus",
+      "是否是恢复 ${controller.downloadTaskId} 是否有新版本:${hasNewVersion}"
+    )
+    controller.downloadTaskId?.let { taskId ->
+      // 继续/恢复 下载，不管什么状态都会推送过来
+      controller.start()
+      // 监听推送的变化
+      watchProcess(taskId)
+    } ?: if (hasNewVersion) {
+      uiState.downloadStatus.value = JmmStatus.NewVersion
+    } else if (controller.hasInstallApp()) {
+      uiState.downloadStatus.value = JmmStatus.INSTALLED
+    } else {
+      null
     }
   }
-
-  fun start() = jmmNMM.ioAsyncScope.launch {
-    jmmInstallerController.start().falseAlso {
-      uiState.downloadStatus.value = JmmStatus.Failed
-    }
-  }
-
-  fun open() = jmmNMM.ioAsyncScope.launch {
-    jmmInstallerController.openApp(uiState.jmmAppInstallManifest.id)
-  }
-
 }

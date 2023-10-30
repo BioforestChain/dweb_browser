@@ -13,7 +13,7 @@ actual fun <T:WindowController>WindowsManager<T>.EffectNavigationBar() {
 }
 
 @Composable
-actual fun WindowController.BackHandler(
+actual fun NativeBackHandler(
   enabled: Boolean,
   onBack: () -> Unit
 ) {

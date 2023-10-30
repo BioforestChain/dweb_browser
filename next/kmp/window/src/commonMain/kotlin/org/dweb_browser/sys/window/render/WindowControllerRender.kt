@@ -80,6 +80,12 @@ fun WindowController.Render(
     LocalWindowControllerTheme provides theme,
     LocalWindowController provides win,
   ) {
+    /// 显示模态层，模态层不受 isVisible 的控制
+    val modal by win.openingModal
+    modal?.Render()
+
+    /// 渲染窗口关闭提示，该提示不受 isVisible 的控制
+    win.RenderCloseTip()
 
     val isVisible by win.watchedState { isVisible() }
 
@@ -156,9 +162,6 @@ fun WindowController.Render(
         WindowBottomBar(win, Modifier.zIndex(1f))
       }
       //#endregion
-
-      val modal by win.openingModal
-      modal?.Render()
 
       /**
        * 窗口是否聚焦

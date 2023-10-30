@@ -7,14 +7,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -22,13 +20,12 @@ import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.ArrowForward
 import androidx.compose.material.icons.rounded.ChevronLeft
 import androidx.compose.material.icons.rounded.ChevronRight
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.FullscreenExit
 import androidx.compose.material.icons.rounded.KeyboardDoubleArrowUp
 import androidx.compose.material.icons.rounded.Menu
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -43,12 +40,11 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.zIndex
 import kotlinx.coroutines.launch
 import org.dweb_browser.helper.compose.iosTween
-import org.dweb_browser.sys.window.WindowI18nResource
 import org.dweb_browser.sys.window.core.WindowController
+import org.dweb_browser.sys.window.core.constant.LowLevelWindowAPI
 import org.dweb_browser.sys.window.core.constant.WindowBottomBarTheme
 import org.dweb_browser.sys.window.core.constant.WindowPropertyKeys
 import kotlin.math.min
@@ -206,16 +202,10 @@ internal fun WindowBottomImmersionThemeBar(
         }
       })
     }) {
-    /// 应用图标
-    Spacer(
-      modifier = Modifier
-        .weight(0.618f)
-        .fillMaxHeight()
-    )
     /// 应用标题
     WindowBottomBarInfoText(
       win,
-      Modifier.weight(1f),
+      Modifier.fillMaxSize(),
     )
   }
 }
@@ -224,12 +214,12 @@ internal fun WindowBottomImmersionThemeBar(
  * 导航模式
  *
  */
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class, LowLevelWindowAPI::class)
 @Composable
 internal fun WindowBottomNavigationThemeBar(
   win: WindowController,
 ) {
-  val coroutineScope = rememberCoroutineScope()
+  val scope = rememberCoroutineScope()
   val winTheme = LocalWindowControllerTheme.current
   val contentColor = winTheme.bottomContentColor
   val contentDisableColor = winTheme.bottomContentDisableColor
@@ -245,7 +235,7 @@ internal fun WindowBottomNavigationThemeBar(
       .zIndex(1f)
       .pointerInput(Unit) {
         detectTapGestures(onDoubleTap = {
-          coroutineScope.launch {
+          scope.launch {
             win.unMaximize()
           }
         })
@@ -255,88 +245,57 @@ internal fun WindowBottomNavigationThemeBar(
       //
     ) {
       val canGoBack by win.watchedState(watchKey = WindowPropertyKeys.CanGoBack) { canGoBack }
-      /// 返回按钮
+      /// 后退或关闭按钮
       BoxWithConstraints(
         modifier = Modifier
           .weight(1f)
           .fillMaxHeight()
       ) {
-        when (val enabled = canGoBack) {
+        /// 在最大化的情况下，如果不能后退，那么显示关闭
+        val isShowCloseBtn = isMaximized && canGoBack != true
+
+        if (isShowCloseBtn) {
+          /// 关闭按钮
+          TextButton(
+            onClick = { scope.launch { win.tryCloseOrHide() } },
+            contentPadding = PaddingValues(0.dp),
+            shape = RoundedCornerShape(buttonRoundedSize),
+            modifier = Modifier
+              .align(Alignment.CenterEnd)
+              .fillMaxWidth(),
+          ) {
+            Icon(
+              Icons.Rounded.Close,
+              contentDescription = "Close the Window",
+              tint = contentColor,
+              modifier = Modifier.align(Alignment.CenterVertically)
+            )
+          }
+        } else when (val btnCanGoBack = canGoBack) {
           null -> {}
           else -> {
             // 窗口是否聚焦，如果聚焦，那么将会拦截系统的返回事件
             val isFocus by win.watchedState { focus }
-            // 是否显示窗口关闭的提示
-            val showCloseTip by win.watchedState { showCloseTip }
 
             /**
              * 尝试返回或者关闭窗口
              */
             fun goBackOrClose() {
-              coroutineScope.launch {
-                if (enabled) {
-                  win.emitGoBack()
-                } else {
-                  win.close()
-                }
+              scope.launch {
+                win.emitGoBack()
               }
             }
-            /// 物理返回按钮的按揭
-            win.BackHandler(isFocus) {
+            /// 监听物理返回按钮，只有当前聚焦的窗口可以执行这个监听
+            NativeBackHandler(isFocus && btnCanGoBack) {
               goBackOrClose()
             }
 
-            /// 显示关闭窗口的提示框
-            if (showCloseTip) {
-              /// 会不会有人专门监听showCloseTip然后一直动态地控制closeTip参数呀？
-              AlertDialog(
-                // 按钮以外的关闭对话框的行为
-                onDismissRequest = {
-                  /// 强制关闭窗口
-                  coroutineScope.launch { win.close(true) }
-                },
-                // 图标
-                icon = {
-                  win.IconRender(
-                    modifier = Modifier.size(24.0.dp) // IconButtonTokens.IconSize
-                  )
-                },
-                // 标题
-                title = {
-                  Text(text = WindowI18nResource.window_will_be_close())
-                },
-                // 内容
-                text = {
-                  Text(text = WindowI18nResource.window_confirm_to_close())
-                },
-                // 确定按钮
-                confirmButton = {
-                  TextButton(onClick = {
-                    /// 强制关闭窗口
-                    coroutineScope.launch { win.close(true) }
-                  }) {
-                    Text(WindowI18nResource.window_confirm())
-                  }
-                },
-                // 取消按钮
-                dismissButton = {
-                  TextButton(onClick = {
-                    coroutineScope.launch { win.hideCloseTip() }
-                  }) {
-                    Text(WindowI18nResource.window_dismiss())
-                  }
-                },
-                // 这个对话框可以通过返回按钮来关闭，同时触发窗口关闭
-                properties = DialogProperties(dismissOnClickOutside = false)
-              )
-
-            }
             /// 返回按钮
             TextButton(
               onClick = {
                 goBackOrClose()
               },
-              enabled = enabled,
+              enabled = btnCanGoBack,
               contentPadding = PaddingValues(0.dp),
               shape = RoundedCornerShape(buttonRoundedSize),
               modifier = Modifier
@@ -346,7 +305,7 @@ internal fun WindowBottomNavigationThemeBar(
               Icon(
                 Icons.Rounded.ArrowBack,
                 contentDescription = "Go Back",
-                tint = if (enabled) contentColor else contentDisableColor,
+                tint = if (btnCanGoBack) contentColor else contentDisableColor,
                 modifier = Modifier.align(Alignment.CenterVertically)
               )
             }
@@ -354,6 +313,7 @@ internal fun WindowBottomNavigationThemeBar(
         }
       }
       val canGoForward by win.watchedState { canGoForward }
+      /// 前进按钮
       BoxWithConstraints(
         modifier = Modifier
           .weight(1f)
@@ -364,7 +324,7 @@ internal fun WindowBottomNavigationThemeBar(
           else -> {
             TextButton(
               onClick = {
-                coroutineScope.launch {
+                scope.launch {
                   win.emitGoForward()
                 }
               },
@@ -400,7 +360,7 @@ internal fun WindowBottomNavigationThemeBar(
 
           TextButton(
             onClick = {
-              coroutineScope.launch { win.toggleMenuPanel() }
+              scope.launch { win.toggleMenuPanel() }
             },
             contentPadding = PaddingValues(0.dp),
             shape = RoundedCornerShape(buttonRoundedSize),
@@ -450,7 +410,7 @@ internal fun WindowBottomNavigationThemeBar(
         ) {
           TextButton(
             onClick = {
-              coroutineScope.launch { win.unMaximize() }
+              scope.launch { win.unMaximize() }
             },
             contentPadding = PaddingValues(0.dp),
             shape = RoundedCornerShape(buttonRoundedSize),
@@ -493,3 +453,4 @@ fun WindowBottomBarInfoText(win: WindowController, modifier: Modifier) {
   val contentColor = LocalWindowControllerTheme.current.bottomContentColor
   win.IdRender(modifier, contentColor)
 }
+

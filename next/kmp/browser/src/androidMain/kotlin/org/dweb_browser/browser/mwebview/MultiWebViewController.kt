@@ -60,13 +60,8 @@ class MultiWebViewController(
       val webViewScale = (LocalDensity.current.density * scale * 100).toInt()
       Render(modifier, webViewScale)
     }
-    /// ipc 断开的时候，强制关闭窗口
-    val off = ipc.onClose {
-      win.close(force = true)
-    }
     /// 窗口销毁的时候
     win.onClose {
-      off();
       // 清除释放所有的 webview
       for (item in webViewList) {
         closeWebView(item.webviewId)

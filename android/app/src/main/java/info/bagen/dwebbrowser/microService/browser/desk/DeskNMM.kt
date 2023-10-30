@@ -46,18 +46,21 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
   }
 
   private val runningApps = ChangeableMap<MMID, RunningApp>()
-  private suspend fun getRunningApp(ipc: Ipc): RunningApp? {
+
+  /**
+   * 将ipc作为Application实例进行打开
+   */
+  private fun getRunningApp(ipc: Ipc): RunningApp? {
     val mmid = ipc.remote.mmid
     /// 如果成功打开，将它“追加”到列表中
     return when (val runningApp = runningApps[mmid]) {
       null -> {
         if (ipc.remote.categories.contains(MICRO_MODULE_CATEGORY.Application)) {
-          RunningApp(ipc, this).also {
+          RunningApp(ipc, this, bootstrapContext).also {
             runningApps[mmid] = it
             /// 如果应用关闭，将它从列表中移除
             it.onClose {
               runningApps.remove(mmid)
-              bootstrapContext.dns.close(mmid)
             }
           }
         } else null
@@ -104,13 +107,14 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
   suspend fun IHandlerContext.openOrActivateAppWindow(
     ipc: Ipc, desktopController: DesktopController
   ): WindowController {
-    debugDesk("/openAppOrActivate", mmid)
+    val appId = ipc.remote.mmid;
+    debugDesk("/openAppOrActivate", appId)
     try {
       /// desk直接为应用打开窗口，因为窗口由desk统一管理，所以由desk窗口，并提供句柄
       val appMainWindow = getAppMainWindow(ipc)
 
-      /// 将所有的窗口聚焦，这个行为不依赖于 Activity 事件，而是Desk模块自身托管窗口的行为
-      desktopController.desktopWindowsManager.focusWindow(mmid)
+      /// 将所有的窗口聚焦
+      desktopController.desktopWindowsManager.focusWindow(appId)
       return appMainWindow
     } catch (e: Exception) {
       desktopController.showAlert(e)
@@ -196,10 +200,13 @@ class DeskNMM : NativeMicroModule("desk.browser.dweb", "Desk") {
       // 关闭app
       "/closeApp" bind HttpMethod.Get to defineBooleanResponse {
         val mmid = request.query("app_id")
-        if (runningApps.containsKey(mmid)) {
-          return@defineBooleanResponse bootstrapContext.dns.close(mmid)
+        when (val runningApp = runningApps[mmid]) {
+          null -> false
+          else -> {
+            runningApp.closeMainWindow();
+            true
+          }
         }
-        return@defineBooleanResponse false
       },
       // 获取全部app数据
       "/desktop/apps" bind HttpMethod.Get to defineJsonResponse {

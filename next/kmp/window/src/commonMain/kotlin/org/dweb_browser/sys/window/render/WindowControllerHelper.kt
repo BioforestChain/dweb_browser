@@ -8,7 +8,10 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.safeGestures
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -462,10 +465,61 @@ data class WindowControllerTheme(
   val winFrameBrush by lazy {
     Brush.verticalGradient(listOf(topBackgroundColor, themeColor, bottomBackgroundColor))
   }
+  val themeDisableColor by lazy { themeColor.copy(alpha = themeColor.alpha * 0.2f) }
   val themeContentDisableColor by lazy { themeContentColor.copy(alpha = themeContentColor.alpha * 0.2f) }
   val onThemeContentDisableColor by lazy { onThemeContentColor.copy(alpha = onThemeContentColor.alpha * 0.5f) }
   val topContentDisableColor by lazy { topContentColor.copy(alpha = topContentColor.alpha * 0.2f) }
   val bottomContentDisableColor by lazy { bottomContentColor.copy(alpha = bottomContentColor.alpha * 0.2f) }
+
+
+//  val themeButtonColors by lazy {
+//    ButtonColors(
+//      contentColor = themeContentColor,
+//      containerColor = themeColor,
+//      disabledContentColor = themeContentDisableColor,
+//      disabledContainerColor = themeDisableColor,
+//    )
+//  }
+//  val themeContentButtonColors by lazy {
+//    ButtonColors(
+//      contentColor = onThemeContentColor,
+//      containerColor = themeContentColor,
+//      disabledContentColor = onThemeContentDisableColor,
+//      disabledContainerColor = themeContentDisableColor,
+//    )
+//  }
+
+  @Composable
+  fun ThemeButtonColors() = ButtonDefaults.buttonColors(
+    themeContentColor,
+    themeColor,
+    themeContentDisableColor,
+    themeDisableColor
+  )
+
+  @Composable
+  fun ThemeContentButtonColors() = ButtonDefaults.buttonColors(
+    onThemeContentColor,
+    themeContentColor,
+    onThemeContentDisableColor,
+    themeContentDisableColor
+  )
+
+  class AlertDialogColors(
+    val containerColor: Color,
+    val iconContentColor: Color,
+    val titleContentColor: Color,
+    val textContentColor: Color,
+  )
+
+  val alertDialogColors by lazy {
+    AlertDialogColors(
+      containerColor = themeColor,
+      iconContentColor = themeContentColor,
+      titleContentColor = themeContentColor,
+      textContentColor = themeContentColor,
+    )
+  }
 }
 
 /**
@@ -625,7 +679,12 @@ fun WindowController.IconRender(
 fun WindowController.IdRender(
   modifier: Modifier = Modifier, contentColor: Color = LocalContentColor.current
 ) {
-  AutoResizeTextContainer(modifier.fillMaxHeight()) {
+  val minWidth = LocalWindowLimits.current.minWidth
+  AutoResizeTextContainer(
+    modifier
+      .fillMaxHeight()
+      .widthIn(min = minWidth.dp)
+  ) {
     val footerText = state.constants.owner
     val textStyle = MaterialTheme.typography.bodySmall
     AutoSizeText(text = footerText,
@@ -634,6 +693,6 @@ fun WindowController.IdRender(
       modifier = Modifier.align(Alignment.Center),
       overflow = TextOverflow.Visible,
       softWrap = false,
-      autoLineHeight = { it * 1.25f })
+      onResize = { lightHeight = fontSize * 1.25f })
   }
 }

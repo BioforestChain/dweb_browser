@@ -39,13 +39,11 @@ fun AutoResizeTextContainer(
   content: @Composable @UiComposable (AutoResizeTextContainerScope.() -> Unit)
 ) {
   BoxWithConstraints(modifier) {
-    val scope = remember {
+    val scope = remember(maxWidth, maxHeight) {
       AutoResizeTextContainerScope(
         maxWidth.value, maxHeight.value, this
       )
     }
-    scope.maxWidth = maxWidth.value
-    scope.maxHeight = maxHeight.value
     scope.content()
   }
 }
@@ -119,6 +117,8 @@ class AutoResizeTextContainerScope(
 
 }
 
+class AutoResizeContext(var fontSize: TextUnit, var lightHeight: TextUnit)
+
 @Composable
 fun AutoResizeTextContainerScope.AutoSizeText(
   text: AnnotatedString,
@@ -137,7 +137,7 @@ fun AutoResizeTextContainerScope.AutoSizeText(
   maxLines: Int = Int.MAX_VALUE,
   style: TextStyle = LocalTextStyle.current,
   autoResizeEnabled: Boolean = true,
-  autoLineHeight: ((fontSize: TextUnit) -> TextUnit)? = null
+  onResize: (AutoResizeContext.() -> Unit)? = null,
 ) {
   var readyToDraw by remember(
     maxWidth, maxHeight, autoResizeEnabled
@@ -154,39 +154,20 @@ fun AutoResizeTextContainerScope.AutoSizeText(
       mutableStateOf(min(maxFontSizeValue, customFontSizeValue))
     }
   }
-  val resizedFontSize = remember(fontSizeValue) {
-    fontSizeValue.sp
+  val context = remember {
+    AutoResizeContext(TextUnit.Unspecified, lineHeight)
   }
-  val resizedLineHeight = remember(fontSizeValue) {
-    when (autoLineHeight) {
-      null -> lineHeight
-      else -> autoLineHeight(resizedFontSize)
-    }
-  }
-//  Text(modifier = Modifier
-//    .align(Alignment.Center)
-//    .padding(2.dp)
-//    .drawWithContent {
-//      if (readyToDraw) drawContent()
-//    },
-//    text = titleText,
-//    textAlign = TextAlign.Center,
-//    style = fontStyle,
-//    onTextLayout = { textLayoutResult ->
-//      if (!inResize && (textLayoutResult.didOverflowWidth || textLayoutResult.didOverflowHeight)) {
-//        fontSize *= 0.9f
-//      } else {
-//        readyToDraw = true
-//      }
-//    })
+  context.fontSize = fontSizeValue.sp
+  context.lightHeight = lineHeight
+  onResize?.invoke(context)
 
   Text(modifier = modifier.drawWithContent {
     if (readyToDraw) drawContent()
   },
     text = text,
     color = color,
-    fontSize = resizedFontSize,
-    lineHeight = resizedLineHeight,
+    fontSize = context.fontSize,
+    lineHeight = context.lightHeight,
     fontStyle = fontStyle,
     fontWeight = fontWeight,
     fontFamily = fontFamily,
@@ -225,7 +206,7 @@ fun AutoResizeTextContainerScope.AutoSizeText(
   maxLines: Int = Int.MAX_VALUE,
   style: TextStyle = LocalTextStyle.current,
   autoResizeEnabled: Boolean = true,
-  autoLineHeight: ((fontSize: TextUnit) -> TextUnit)? = null
+  onResize: (AutoResizeContext.() -> Unit)? = null,
 ) {
   AutoSizeText(
     modifier = modifier,
@@ -244,6 +225,6 @@ fun AutoResizeTextContainerScope.AutoSizeText(
     maxLines = maxLines,
     style = style,
     autoResizeEnabled = autoResizeEnabled,
-    autoLineHeight = autoLineHeight,
+    onResize = onResize,
   )
 }

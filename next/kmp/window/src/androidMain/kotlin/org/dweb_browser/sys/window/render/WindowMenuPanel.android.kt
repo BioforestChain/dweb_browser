@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.RichTooltip
 import androidx.compose.material3.RichTooltipColors
@@ -28,13 +27,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.dweb_browser.sys.window.core.WindowController
-import org.dweb_browser.sys.window.render.IconRender
-import org.dweb_browser.sys.window.render.LocalWindowControllerTheme
-import org.dweb_browser.sys.window.render.LocalWindowPadding
-import org.dweb_browser.sys.window.render.WindowControlPanel
-import org.dweb_browser.sys.window.render.WindowMenuPanelByAlert
-import org.dweb_browser.sys.window.render.watchedIsMaximized
-import org.dweb_browser.sys.window.render.watchedState
 
 @Composable
 internal actual fun WindowMenuPanel(
@@ -107,15 +99,7 @@ internal fun WindowMenuPanelByRichTooltip(
             verticalArrangement = Arrangement.spacedBy(8.dp)
           ) {
             WindowControlPanel(win)
-
-            ElevatedButton(onClick = {
-              scope.launch {
-                win.hideMenuPanel()
-                win.close() // 增加关闭窗口
-              }
-            }) {
-              Text("退出应用")
-            }
+            win.ExitAppButton()
           }
         },
       )
