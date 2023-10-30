@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.safeGestures
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.LocalContentColor
@@ -661,7 +662,12 @@ fun WindowController.IconRender(
 fun WindowController.IdRender(
   modifier: Modifier = Modifier, contentColor: Color = LocalContentColor.current
 ) {
-  AutoResizeTextContainer(modifier.fillMaxHeight()) {
+  val minWidth = LocalWindowLimits.current.minWidth
+  AutoResizeTextContainer(
+    modifier
+      .fillMaxHeight()
+      .widthIn(min = minWidth.dp)
+  ) {
     val footerText = state.constants.owner
     val textStyle = MaterialTheme.typography.bodySmall
     AutoSizeText(text = footerText,

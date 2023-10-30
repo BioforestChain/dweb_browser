@@ -4,7 +4,8 @@ import org.dweb_browser.core.module.MicroModule
 import org.dweb_browser.core.module.NativeMicroModule
 import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.UUID
-import org.dweb_browser.sys.window.core.requestMainWindowId
+import org.dweb_browser.sys.window.core.getMainWindowId
+import org.dweb_browser.sys.window.core.getOrOpenMainWindowId
 import org.dweb_browser.sys.window.core.windowInstancesManager
 
 /**
@@ -27,4 +28,5 @@ suspend fun MicroModule.getWindow(wid: UUID) =
   windowInstancesManager.get(wid)?.also { it.state.constants.microModule.value = this }
     ?: throw Exception("fail to got window for $mmid, not an application")
 
-suspend fun NativeMicroModule.requestMainWindow() = getWindow(requestMainWindowId())
+suspend fun NativeMicroModule.getOrOpenMainWindow() = getWindow(getOrOpenMainWindowId())
+suspend fun NativeMicroModule.getMainWindow() = getWindow(getMainWindowId())

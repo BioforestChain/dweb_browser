@@ -39,13 +39,11 @@ fun AutoResizeTextContainer(
   content: @Composable @UiComposable (AutoResizeTextContainerScope.() -> Unit)
 ) {
   BoxWithConstraints(modifier) {
-    val scope = remember {
+    val scope = remember(maxWidth, maxHeight) {
       AutoResizeTextContainerScope(
         maxWidth.value, maxHeight.value, this
       )
     }
-    scope.maxWidth = maxWidth.value
-    scope.maxHeight = maxHeight.value
     scope.content()
   }
 }

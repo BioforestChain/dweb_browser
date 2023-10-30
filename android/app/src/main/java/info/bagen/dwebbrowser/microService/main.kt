@@ -14,6 +14,7 @@ import info.bagen.dwebbrowser.microService.sys.share.ShareNMM
 import info.bagen.dwebbrowser.microService.sys.toast.ToastNMM
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
+import kotlinx.serialization.Serializable
 import org.dweb_browser.browser.download.DownloadNMM
 import org.dweb_browser.browser.jmm.JmmNMM
 import org.dweb_browser.browser.jsProcess.JsProcessNMM
@@ -22,6 +23,7 @@ import org.dweb_browser.browser.nativeui.torch.TorchNMM
 import org.dweb_browser.browser.web.BrowserNMM
 import org.dweb_browser.browser.zip.ZipNMM
 import org.dweb_browser.core.std.dns.DnsNMM
+import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.core.std.dns.nativeFetchAdaptersManager
 import org.dweb_browser.core.std.file.FileNMM
 import org.dweb_browser.core.std.http.HttpNMM

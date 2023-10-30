@@ -29,7 +29,7 @@ import org.dweb_browser.helper.datetimeNow
 import org.dweb_browser.helper.trueAlso
 import org.dweb_browser.sys.window.ext.WindowBottomSheetsController
 import org.dweb_browser.sys.window.ext.createBottomSheets
-import org.dweb_browser.sys.window.ext.requestMainWindow
+import org.dweb_browser.sys.window.ext.getOrOpenMainWindow
 
 /**
  * JS 模块安装 的 控制器
@@ -64,7 +64,7 @@ class JmmInstallerController(
 
   suspend fun openRender(hasNewVersion: Boolean) {
     /// 隐藏主窗口
-    jmmNMM.requestMainWindow().hide()
+    jmmNMM.getOrOpenMainWindow().hide()
     /// 显示抽屉
     val bottomSheets = getView()
     bottomSheets.open()

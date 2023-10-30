@@ -21,7 +21,7 @@ private fun getMainWindowIdWMDeferred(mm: NativeMicroModule) =
   mainWindowIdWM.getOrPut(mm) { CompletableDeferred() }
 
 suspend fun NativeMicroModule.getMainWindowId() = getMainWindowIdWMDeferred(this).await()
-suspend fun NativeMicroModule.requestMainWindowId() =
+suspend fun NativeMicroModule.getOrOpenMainWindowId() =
   if (!hasMainWindow) openMainWindow().id else getMainWindowId()
 
 val NativeMicroModule.hasMainWindow

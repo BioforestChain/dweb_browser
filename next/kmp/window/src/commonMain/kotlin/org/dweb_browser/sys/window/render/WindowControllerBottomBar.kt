@@ -203,16 +203,10 @@ internal fun WindowBottomImmersionThemeBar(
         }
       })
     }) {
-    /// 应用图标
-    Spacer(
-      modifier = Modifier
-        .weight(0.618f)
-        .fillMaxHeight()
-    )
     /// 应用标题
     WindowBottomBarInfoText(
       win,
-      Modifier.weight(1f),
+      Modifier.fillMaxSize(),
     )
   }
 }
