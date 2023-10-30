@@ -693,6 +693,6 @@ fun WindowController.IdRender(
       modifier = Modifier.align(Alignment.Center),
       overflow = TextOverflow.Visible,
       softWrap = false,
-      autoLineHeight = { it * 1.25f })
+      onResize = { lightHeight = fontSize * 1.25f })
   }
 }
