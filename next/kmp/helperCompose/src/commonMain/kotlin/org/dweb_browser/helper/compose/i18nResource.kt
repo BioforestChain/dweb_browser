@@ -5,18 +5,18 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshotFlow
-import androidx.compose.ui.platform.LocalConfiguration
+//import androidx.compose.ui.platform.LocalConfiguration
 
 @Composable
 fun LanguageWatch() {
   val language = LocalLanguage.current
-  val config = LocalConfiguration.current
-  LaunchedEffect(config) {
-    snapshotFlow { config.locales[0] }.collect { locale ->
-      val currentLanguage = locale.language // language zh, toString() zh_CN/zh_HK_#Hant/zh_TW_#Hant
-      language.value = Language.values().find { currentLanguage == it.code } ?: Language.EN
-    }
-  }
+//  val config = LocalConfiguration.current
+//  LaunchedEffect(config) {
+//    snapshotFlow { config.locales[0] }.collect { locale ->
+//      val currentLanguage = locale.language // language zh, toString() zh_CN/zh_HK_#Hant/zh_TW_#Hant
+//      language.value = Language.values().find { currentLanguage == it.code } ?: Language.EN
+//    }
+//  }
 }
 
 @Composable
