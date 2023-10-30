@@ -127,8 +127,10 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
       ).also { controller ->
         ioAsyncScope.launch {
           controller.onDownloadComplete {
+            // 安装完成，卸载之前的，安装新的
             bootstrapContext.dns.uninstall(jmmAppInstallManifest.id)
             bootstrapContext.dns.install(JsMicroModule(jmmAppInstallManifest))
+            // 存储app信息到内存
             store.setApp(
               jmmAppInstallManifest.id, JsMicroModuleDBItem(jmmAppInstallManifest, originUrl)
             )
@@ -171,8 +173,12 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
     }
   }
 
+  /**
+   * 恢复下载任务
+   */
   private suspend fun loadJmmDownloadList(store: JmmStore) {
     store.getAllDownload().map { (key, taskId) ->
+      debugJMM("loadJmmDownloadList", "恢复:$key $taskId")
       downloadTaskIdMap.put(key, taskId)
     }
   }

@@ -10,6 +10,7 @@ import org.dweb_browser.browser.download.DownloadState
 import org.dweb_browser.browser.download.TaskId
 import org.dweb_browser.browser.jmm.JmmInstallerController
 import org.dweb_browser.browser.jmm.JmmNMM
+import org.dweb_browser.browser.jmm.debugJMM
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.helper.compose.noLocalProvidedFor
 import org.dweb_browser.helper.falseAlso
@@ -98,6 +99,11 @@ class JmmManagerViewHelper(
         uiState.downloadStatus.value = JmmStatus.Downloading
       }
 
+      if (this.status.state == DownloadState.Paused) {
+        uiState.downloadSize.value = this.status.current
+        uiState.downloadStatus.value = JmmStatus.Paused
+      }
+
       if (this.status.state == DownloadState.Failed) {
         uiState.downloadSize.value = this.status.current
         uiState.downloadStatus.value = JmmStatus.Failed
@@ -120,7 +126,14 @@ class JmmManagerViewHelper(
    * 打开之后更新状态值，主要是为了退出应用后重新打开时需要
    */
   fun refreshStatus(hasNewVersion: Boolean) = controller.ioAsyncScope.launch {
-    controller.getDownloadingTaskId()?.let { taskId ->
+    debugJMM(
+      "refreshStatus",
+      "是否是恢复 ${controller.downloadTaskId} 是否有新版本:${hasNewVersion}"
+    )
+    controller.downloadTaskId?.let { taskId ->
+      // 继续/恢复 下载，不管什么状态都会推送过来
+      controller.start()
+      // 监听推送的变化
       watchProcess(taskId)
     } ?: if (hasNewVersion) {
       uiState.downloadStatus.value = JmmStatus.NewVersion

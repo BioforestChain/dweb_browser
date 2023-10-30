@@ -121,5 +121,6 @@ class BrowserNMM : NativeMicroModule("web.browser.dweb", "Web Browser") {
   }
 
   override suspend fun _shutdown() {
+    browserServer.close()
   }
 }

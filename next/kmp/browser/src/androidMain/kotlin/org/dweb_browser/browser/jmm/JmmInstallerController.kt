@@ -37,9 +37,9 @@ import org.dweb_browser.sys.window.ext.getOrOpenMainWindow
 class JmmInstallerController(
   private val jmmNMM: JmmNMM,
   val jmmAppInstallManifest: JmmAppInstallManifest,
-  val originUrl: String,
+  private val originUrl: String,
   // 一个jmmManager 只会创建一个task
-  private var downloadTaskId: String?
+  var downloadTaskId: String?
 ) {
   private val openLock = Mutex()
   val viewModel: JmmManagerViewHelper = JmmManagerViewHelper(jmmAppInstallManifest, this)
@@ -85,22 +85,15 @@ class JmmInstallerController(
     }
   }
 
+  /**
+   * 创建任务，如果存在则恢复
+   */
   suspend fun createDownloadTask(metadataUrl: String): PureString {
-    // TODO 先查询当前的状态，如果存在
-    val taskId = downloadTaskId?.let { "&taskId=$it" } ?: ""
-    val fetchUrl = "file://download.browser.dweb/create?url=$metadataUrl$taskId"
+    val fetchUrl = "file://download.browser.dweb/create?url=$metadataUrl"
     val response = jmmNMM.nativeFetch(fetchUrl)
     return response.text().also {
       this.downloadTaskId = it
       downloadStartSignal.emit(it)
-    }
-  }
-
-  suspend fun getDownloadingTaskId(): String? {
-    return downloadTaskId?.let { taskId ->
-      if (jmmNMM.nativeFetch("file://download.browser.dweb/running?taskId=$taskId").boolean()) {
-        taskId
-      } else null
     }
   }
 
@@ -149,6 +142,7 @@ class JmmInstallerController(
       parameters.append("sourcePath", sourcePath)
       parameters.append("targetPath", targetPath)
     }).boolean().trueAlso {
+      // 保存 session（记录安装时间） 和 metadata （app数据源）
       jmmNMM.nativeFetch(PureRequest(buildUrlString("file://file.std.dweb/write") {
         parameters.append("path", "/data/apps/$jmm/usr/sys/metadata.json")
         parameters.append("create", "true")

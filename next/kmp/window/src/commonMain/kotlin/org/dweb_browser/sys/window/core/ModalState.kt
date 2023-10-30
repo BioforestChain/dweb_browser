@@ -391,7 +391,6 @@ class BottomSheetsModal private constructor(
       return
     }
 
-    println("SSSZ start")
     DisposableEffect(Unit) {
       // 发送 open 的信号
       sendCallback(mm, OpenModalCallback(sessionId))

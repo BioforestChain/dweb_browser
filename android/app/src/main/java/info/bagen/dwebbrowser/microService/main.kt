@@ -75,7 +75,7 @@ suspend fun startDwebBrowser(): DnsNMM {
     /// 自定义 httpClient 的缓存
     HttpClient(getKtorClientEngine()) {
       install(HttpTimeout) {
-        requestTimeoutMillis = 10000L
+//        requestTimeoutMillis = 10000L
         connectTimeoutMillis = 5000L
       }
     }.also { client ->

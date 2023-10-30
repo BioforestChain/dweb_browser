@@ -1,8 +1,12 @@
 package org.dweb_browser.browser.download
 
+import io.ktor.http.ContentRange
 import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
+import io.ktor.http.URLBuilder
 import io.ktor.http.fromFilePath
+import io.ktor.http.headers
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.cancel
 import kotlinx.serialization.Serializable
@@ -10,7 +14,6 @@ import kotlinx.serialization.json.Json
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
 import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.core.http.PureRequest
-import org.dweb_browser.core.http.PureResponse
 import org.dweb_browser.core.http.PureStreamBody
 import org.dweb_browser.core.http.router.bind
 import org.dweb_browser.core.ipc.helper.IpcHeaders
@@ -39,14 +42,6 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
     icons = listOf(ImageResource(src = "file:///sys/icons/$mmid.svg", type = "image/svg+xml"))
   }
 
-  /**
-   * 用来记录文件是否被下载完成，用来做断点续传
-   * 1. 下载到一半task state 还在 download 则不会创建新的downloadTask，用之前的继续写入
-   * 2. 已经完成下载了，再次创建个新的Task继续下载
-   * 3. 当前同一url文件，只能等上一个task任务下载完成后，才能继续创建task下载相同的文件，不然同时开多个task下载同一文件到同一个地方是没有意义的
-   */
-  // private val downloadMap = mutableMapOf<String, DownloadTask>()
-
   @Serializable
   data class DownloadTaskParams(
     /** 下载链接 */
@@ -67,22 +62,8 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
       for (task in controller.downloadManagers) {
         task.value.pause()
       }
-      controller.downloadManagers.clear()
     }
     routes(
-      "/running" bind HttpMethod.Get to defineBooleanResponse {
-        request.queryOrNull("taskId")?.let { taskId ->
-          controller.downloadManagers[taskId]?.let { downloadTask ->
-            // 如果状态是正在下载，或者暂停状态，即为正在下载，可以创建下载工程，其余全部忽略
-            if (downloadTask.status.state == DownloadState.Downloading ||
-              downloadTask.status.state == DownloadState.Paused
-            ) {
-              downloadTask.createTaskFactory(controller)
-              true
-            } else false
-          }
-        } ?: false
-      },
       // 开始下载
       "/create" bind HttpMethod.Get to defineStringResponse {
         val mmid = ipc.remote.mmid
@@ -90,7 +71,7 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
         val downloadTask = createTaskFactory(controller, params, mmid)
         debugDownload("/create", "mmid=$mmid, taskId=$downloadTask, params=$params")
         if (params.start) {
-          downloadFactory(controller, downloadTask)
+          controller.downloadFactory(downloadTask)
         }
         downloadTask.id
       },
@@ -99,7 +80,13 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
         val taskId = request.query("taskId")
         debugDownload("/start", "$taskId -> ${controller.downloadManagers[taskId]}")
         val task = controller.downloadManagers[taskId] ?: return@defineBooleanResponse false
-        downloadFactory(controller, task)
+        // 表示只是短暂的暂停，不用从内存中恢复
+        if (task.pauseFlag) {
+          task.paused.resolve(Unit)
+          return@defineBooleanResponse true
+        }
+        // 触发断点逻辑
+        controller.downloadFactory(task)
       },
       // 监控下载进度
       "/watch/progress" bind HttpMethod.Get to defineJsonLineResponse {
@@ -116,16 +103,15 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
       "/pause" bind HttpMethod.Get to defineBooleanResponse {
         val taskId = request.query("taskId")
         val task = controller.downloadManagers[taskId] ?: return@defineBooleanResponse false
-        val readChannel = task.readChannel ?: return@defineBooleanResponse false
-        readChannel.cancel()
+        task.pause()
         true
       },
       // 取消下载
       "/cancel" bind HttpMethod.Get to defineBooleanResponse {
         val taskId = request.query("taskId")
         val task = controller.downloadManagers[taskId] ?: return@defineBooleanResponse false
-        val channel = task.readChannel ?: return@defineBooleanResponse false
-        channel.cancel()
+        task.cancel()
+        controller.downloadManagers.delete(taskId)
         true
       },
     )
@@ -136,34 +122,12 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
     }
   }
 
-  fun DownloadTask.pause() {}
-
   /**
-   * 如果 DownloadNMM 中找到了taskId对应的 DownloadTask,那么就可以针对当前的task进行创建下载链接
+   * 创建新下载任务
    */
-  private suspend fun DownloadTask.createTaskFactory(
-    controller: DownloadController, resp: PureResponse? = null
-  ) {
-    if (this.readChannel != null) return // 如果该对象已存在，表示可以下载，就不知幸下面的操作
-    val response = resp ?: nativeFetch(url)
-    // 直接变成失败
-    if (!response.isOk()) {
-      status.state = DownloadState.Failed
-      status.stateMessage = response.text()
-    } else {
-      // 下载流程初始化成功
-      status.state = DownloadState.Init
-      status.total = response.headers.get("Content-Length")?.toLong() ?: 1L
-      readChannel = response.stream().getReader("downloadTask#${id}")
-    }
-    controller.downloadManagers[id] = this
-    debugDownload("初始化成功！", "$id -> $this")
-  }
-
   private suspend fun createTaskFactory(
     controller: DownloadController, params: DownloadTaskParams, originMmid: MMID
   ): DownloadTask {
-    val response = nativeFetch(params.url)
     // 查看是否创建过相同的task,并且相同的task已经下载完成
     val task = DownloadTask(
       id = randomUUID(),
@@ -172,11 +136,24 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
       originMmid = originMmid,
       originUrl = params.originUrl,
       completeCallbackUrl = params.completeCallbackUrl,
-      mime = mimeFactory(response.headers, params.url),
+      mime = "application/octet-stream",
       filepath = createFlePath(params.url),
     )
-    // task.createTaskFactory(controller, response)
+    recover(task, ContentRange.TailFrom(0L))
+    controller.downloadManagers[task.id] = task
+    debugDownload("初始化成功！", "${task.id} -> $task")
+    return task
+  }
+
+  /**
+   * 恢复(创建)下载，需要重新创建连接🔗
+   */
+  suspend fun recover(task: DownloadTask, range: ContentRange) {
+    val response = nativeFetch(URLBuilder(task.url).also {
+      headers { append(HttpHeaders.Range, range.toString()) }
+    }.buildString())
     // 直接变成失败
+    task.mime = mimeFactory(response.headers, task.url)
     if (!response.isOk()) {
       task.status.state = DownloadState.Failed
       task.status.stateMessage = response.text()
@@ -186,9 +163,34 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
       task.status.total = response.headers.get("Content-Length")?.toLong() ?: 1L
       task.readChannel = response.stream().getReader("downloadTask#${task.id}")
     }
-    controller.downloadManagers[task.id] = task
-    debugDownload("初始化成功！", "${task.id} -> $task")
-    return task
+  }
+
+  /**
+   * 暂停⏸️
+   */
+  fun DownloadTask.pause() {
+    // 暂停并不会删除文件
+    this.status.state = DownloadState.Paused
+    this.pauseFlag = true
+    // 并不需要每次都从内存中恢复
+  }
+
+  /**
+   * 取消下载
+   */
+  suspend fun DownloadTask.cancel() {
+    // 如果有文件,直接删除
+    if (exist(this.filepath)) {
+      remove(this.filepath)
+    }
+    // 修改状态
+    val channel = this.readChannel
+    this.status.state = DownloadState.Canceled
+    this.status.current = 0L
+    channel?.let {
+      it.cancel()
+    }
+    this.readChannel = null
   }
 
   /**
@@ -219,18 +221,26 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
     return "application/octet-stream"
   }
 
-  private suspend fun exist(path: String): Boolean {
+  suspend fun exist(path: String): Boolean {
     val response = nativeFetch("file://file.std.dweb/exist?path=$path")
     return response.boolean()
   }
 
-  private suspend fun info(path: String): FileMetadata {
+  suspend fun info(path: String): FileMetadata {
     val response = nativeFetch("file://file.std.dweb/info?path=$path")
     return Json.decodeFromString(response.text())
   }
 
+  suspend fun remove(filepath: String): Boolean {
+    return nativeFetch(
+      PureRequest(
+        "file://file.std.dweb/remove?path=${filepath}&recursive=true", IpcMethod.DELETE
+      )
+    ).boolean()
+  }
+
   //  追加写入文件，断点续传
-  private suspend fun appendFile(task: DownloadTask, stream: ByteReadChannel) {
+  suspend fun appendFile(task: DownloadTask, stream: ByteReadChannel) {
     nativeFetch(
       PureRequest(
         "file://file.std.dweb/append?path=${task.filepath}&create=true",
@@ -238,22 +248,6 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
         body = PureStreamBody(stream)
       )
     )
-  }
-
-  private suspend fun downloadFactory(controller: DownloadController, task: DownloadTask): Boolean {
-    val stream = task.readChannel ?: return false
-    debugDownload("downloadFactory", task.id)
-    // 已经存在了从断点开始
-    if (exist(task.filepath)) {
-      val current = info(task.filepath).size
-      // 当前进度
-      current?.let {
-        task.status.current = it
-      }
-    }
-    val buffer = controller.middleware(task, stream)
-    appendFile(task, buffer)
-    return true
   }
 
   override suspend fun _shutdown() {
