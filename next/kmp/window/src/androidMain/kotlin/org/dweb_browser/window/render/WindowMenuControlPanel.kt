@@ -109,7 +109,7 @@ fun WindowControlPanel(win: WindowController, modifier: Modifier = Modifier) {
         selected = isCustomColorScheme,
       ) { win.toggleColorScheme() }
     }
-    // 分享应用 ！
+    /*// 分享应用 ！
     item {
       WindowMenuItem(
         iconVector = Icons.Outlined.Share,
@@ -289,7 +289,7 @@ fun WindowControlPanel(win: WindowController, modifier: Modifier = Modifier) {
         labelText = "日志",
         enabled = false,
       )
-    }
+    }*/
   }
 
 }
