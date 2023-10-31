@@ -48,7 +48,7 @@ class JmmInstallerController(
   private val downloadCompleteSignal = Signal<String>()
   val onDownloadComplete = downloadCompleteSignal.toListener()
   private val downloadStartSignal = Signal<TaskId>()
-  val onDownloadStart = downloadCompleteSignal.toListener()
+  val onDownloadStart = downloadStartSignal.toListener()
 
   private val viewDeferred = CompletableDeferred<WindowBottomSheetsController>()
   suspend fun getView() = viewDeferred.await()
@@ -93,7 +93,6 @@ class JmmInstallerController(
     val response = jmmNMM.nativeFetch(fetchUrl)
     return response.text().also {
       this.downloadTaskId = it
-      downloadStartSignal.emit(it)
     }
   }
 
@@ -103,6 +102,10 @@ class JmmInstallerController(
       val readChannel = res.stream().getReader("jmm watchProcess")
       readChannel.consumeEachJsonLine<DownloadTask> {
         it.cb()
+        if (it.status.state == DownloadState.Init) {
+          downloadStartSignal.emit(it.id)
+        }
+
         if (it.status.state == DownloadState.Completed) {
           // 关闭watchProcess
           readChannel.cancel()

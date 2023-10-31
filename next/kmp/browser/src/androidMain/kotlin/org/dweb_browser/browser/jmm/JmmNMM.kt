@@ -3,7 +3,7 @@ package org.dweb_browser.browser.jmm
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLBuilder
-import kotlinx.coroutines.launch
+import org.dweb_browser.browser.download.TaskId
 import org.dweb_browser.browser.web.ui.browser.model.isUrl
 import org.dweb_browser.core.help.types.JmmAppInstallManifest
 import org.dweb_browser.core.help.types.MICRO_MODULE_CATEGORY
@@ -89,8 +89,13 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
         val installMetadata = data.installManifest
         debugJMM("uninstall", "$mmid-${installMetadata.bundle_url} ${installMetadata.version} ")
         uninstall(mmid, installMetadata.version)
-        // 从磁盘中移除
+        // 从磁盘中移除整个
         store.deleteApp(mmid)
+        val taskId = store.getTaskId(mmid)
+        // 从磁盘中移除下载记录
+        if (taskId !== null) {
+          removeTask(taskId)
+        }
         true
       },
       // app详情
@@ -125,21 +130,17 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
       JmmInstallerController(
         this@JmmNMM, jmmAppInstallManifest, originUrl, downloadTaskIdMap[jmmAppInstallManifest.id]
       ).also { controller ->
-        ioAsyncScope.launch {
-          controller.onDownloadComplete {
-            // 安装完成，卸载之前的，安装新的
-            bootstrapContext.dns.uninstall(jmmAppInstallManifest.id)
-            bootstrapContext.dns.install(JsMicroModule(jmmAppInstallManifest))
-            // 存储app信息到内存
-            store.setApp(
-              jmmAppInstallManifest.id, JsMicroModuleDBItem(jmmAppInstallManifest, originUrl)
-            )
-          }
+        controller.onDownloadStart { taskId ->
+          store.saveJMMTask(jmmAppInstallManifest.id, taskId)
         }
-        ioAsyncScope.launch {
-          controller.onDownloadStart { taskId ->
-            store.saveDownload(jmmAppInstallManifest.id, taskId)
-          }
+        controller.onDownloadComplete {
+          // 安装完成，卸载之前的，安装新的
+          bootstrapContext.dns.uninstall(jmmAppInstallManifest.id)
+          bootstrapContext.dns.install(JsMicroModule(jmmAppInstallManifest))
+          // 存储app信息到内存
+          store.setApp(
+            jmmAppInstallManifest.id, JsMicroModuleDBItem(jmmAppInstallManifest, originUrl)
+          )
         }
       }
     }
@@ -164,6 +165,14 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
     ).boolean()
   }
 
+  suspend fun removeTask(taskId: TaskId): Boolean {
+    return nativeFetch(
+      PureRequest(
+        "file://download.browser.dweb/remove?taskId=${taskId}", IpcMethod.DELETE
+      )
+    ).boolean()
+  }
+
   /**
    * 从磁盘中恢复应用
    */
@@ -177,7 +186,7 @@ class JmmNMM : NativeMicroModule("jmm.browser.dweb", "Js MicroModule Management"
    * 恢复下载任务
    */
   private suspend fun loadJmmDownloadList(store: JmmStore) {
-    store.getAllDownload().map { (key, taskId) ->
+    store.getAllJMMTask().map { (key, taskId) ->
       debugJMM("loadJmmDownloadList", "恢复:$key $taskId")
       downloadTaskIdMap.put(key, taskId)
     }

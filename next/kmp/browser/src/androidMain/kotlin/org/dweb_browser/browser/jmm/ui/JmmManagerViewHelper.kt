@@ -131,10 +131,10 @@ class JmmManagerViewHelper(
       "是否是恢复 ${controller.downloadTaskId} 是否有新版本:${hasNewVersion}"
     )
     controller.downloadTaskId?.let { taskId ->
-      // 继续/恢复 下载，不管什么状态都会推送过来
-      controller.start()
       // 监听推送的变化
       watchProcess(taskId)
+      // 继续/恢复 下载，不管什么状态都会推送过来
+      controller.start()
     } ?: if (hasNewVersion) {
       uiState.downloadStatus.value = JmmStatus.NewVersion
     } else if (controller.hasInstallApp()) {

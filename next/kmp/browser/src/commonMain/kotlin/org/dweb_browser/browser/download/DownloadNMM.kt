@@ -94,8 +94,12 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
         val downloadTask = controller.downloadManagers[taskId]
           ?: return@defineJsonLineResponse emit("not Found download task!")
         debugDownload("/watch/progress", "taskId=$taskId")
+        // 给别人的需要给picker地址
+        val pickFilepath =
+          nativeFetch("file://file.std.dweb/picker?path=${downloadTask.filepath}").text()
         downloadTask.onDownload {
-          emit(it)
+          println("xxxxx11 ${it.status.current} ${it.status.state}")
+          emit(it.copy(filepath = pickFilepath))
         }
         downloadTask.downloadSignal.emit(downloadTask)
       },
@@ -111,8 +115,12 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
         val taskId = request.query("taskId")
         val task = controller.downloadManagers[taskId] ?: return@defineBooleanResponse false
         task.cancel()
-        controller.downloadManagers.delete(taskId)
         true
+      },
+      // 移除任务
+      "/remove" bind HttpMethod.Delete to defineEmptyResponse {
+        val taskId = request.query("taskId")
+        controller.downloadManagers.remove(taskId)
       },
     )
     onRenderer {
@@ -137,7 +145,7 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
       originUrl = params.originUrl,
       completeCallbackUrl = params.completeCallbackUrl,
       mime = "application/octet-stream",
-      filepath = createFlePath(params.url),
+      filepath = createFilePath(params.url),
     )
     recover(task, ContentRange.TailFrom(0L))
     controller.downloadManagers[task.id] = task
@@ -196,7 +204,7 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
   /**
    * 创建不重复的文件
    */
-  private suspend fun createFlePath(url: String): String {
+  private suspend fun createFilePath(url: String): String {
     var index = 0
     var path: String
     val fileName = url.substring(url.lastIndexOf("/") + 1)
@@ -204,7 +212,7 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
       path = "/data/download/${index++}_${fileName}"
       val boolean = exist(path)
     } while (boolean)
-    return nativeFetch("file://file.std.dweb/picker?path=${path}").text()
+    return path
   }
 
   private fun mimeFactory(header: IpcHeaders, filePath: String): String {

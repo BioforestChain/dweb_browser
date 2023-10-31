@@ -11,9 +11,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import okio.IOException
 import org.dweb_browser.core.help.types.MMID
-import org.dweb_browser.core.http.PureRequest
-import org.dweb_browser.core.ipc.helper.IpcMethod
-import org.dweb_browser.core.std.dns.nativeFetch
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.Signal
@@ -36,7 +33,7 @@ data class DownloadTask(
   /** 文件的元数据类型，可以用来做“打开文件”时的参考类型 */
   var mime: String,
   /** 文件路径 */
-  val filepath: String,
+  var filepath: String,
   /** 标记当前下载状态 */
   val status: DownloadStateEvent = DownloadStateEvent()
 ) {
@@ -57,9 +54,9 @@ data class DownloadTask(
 
   @Transient
   var pauseFlag = false
-  suspend fun handlePause() {
+  suspend fun pauseWait() {
     if (pauseFlag) {
-      debugDownload("DownloadTask", "下载暂停🚉")
+      debugDownload("DownloadTask", "下载暂停🚉${this.id}  ${this.status.current}")
       // 触发状态更新
       this.downloadSignal.emit(this)
       paused.waitPromise()
@@ -128,16 +125,18 @@ class DownloadController(val mm: DownloadNMM) {
   suspend fun downloadFactory(task: DownloadTask): Boolean {
     if (mm.exist(task.filepath)) {
       // 已经存在了，并且对方支持range 从断点开始
-      val isRange = supportRange(task.url)
-      debugDownload("downloadFactory", "是否支持range: $isRange")
-      if (isRange) {
-        val current = mm.info(task.filepath).size
-        // 已经存在并且下载完成
-        if (current != null) {
-          // 开始断点续传，这是在内存中恢复的，创建了一个新的channel
-          mm.recover(task, ContentRange.TailFrom(current))
-          task.status.current = current
-        }
+      val current = mm.info(task.filepath).size
+      debugDownload("downloadFactory", "是否支持range:$current")
+
+      // 已经存在并且下载完成
+      if (current != null) {
+        // 开始断点续传，这是在内存中恢复的，创建了一个新的channel
+        mm.recover(task, ContentRange.TailFrom(current))
+        task.status.current = current
+        // 恢复状态 改状态为暂停，并且卡住
+        task.status.state = DownloadState.Paused
+        task.pauseFlag = true
+        task.pauseWait()
       }
     }
     // 如果内存中没有，或者对方不支持Range，需要重新下载,否则这个channel是从支持的断点开始
@@ -159,27 +158,24 @@ class DownloadController(val mm: DownloadNMM) {
     // 重要记录点内存状态更新
     downloadManagers[taskId] = downloadTask
     mm.ioAsyncScope.launch {
+      debugDownload("middleware", "id:$taskId current:${downloadTask.status.current}")
       downloadTask.downloadSignal.emit(downloadTask)
       try {
         input.consumeEachArrayRange { byteArray, last ->
           // 处理是否暂停
-          downloadTask.handlePause()
+          downloadTask.pauseWait()
           if (output.isClosedForRead) {
             breakLoop()
             downloadTask.status.state = DownloadState.Canceled
             // 触发取消
             input.cancel()
             downloadTask.downloadSignal.emit(downloadTask)
-            // 内存中删除
-            downloadManagers.delete(taskId)
           } else if (last) {
             output.close()
             input.cancel()
             downloadTask.status.state = DownloadState.Completed
             // 触发完成
             downloadTask.downloadSignal.emit(downloadTask)
-            // 内存中删除
-            downloadManagers.delete(taskId)
           } else {
             downloadTask.status.current += byteArray.size
             // 触发进度更新
@@ -193,16 +189,8 @@ class DownloadController(val mm: DownloadNMM) {
         downloadTask.status.state = DownloadState.Failed
         // 触发失败
         downloadTask.downloadSignal.emit(downloadTask)
-        // 内存中删除
-        downloadManagers.delete(taskId)
       }
     }
     return output
-  }
-
-  private suspend fun supportRange(url: String): Boolean {
-    val headResponse = mm.nativeFetch(PureRequest(url, IpcMethod.HEAD))
-    return headResponse.headers.get("Accept-Ranges") != null
-        || headResponse.headers.get("Content-Range") != null
   }
 }

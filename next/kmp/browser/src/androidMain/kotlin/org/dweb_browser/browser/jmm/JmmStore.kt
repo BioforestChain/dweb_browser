@@ -37,11 +37,19 @@ class JmmStore(microModule: MicroModule) {
   /*****************************************************************************
    * 下载相关的函数
    */
-  suspend fun saveDownload(mmid: MMID, taskId: TaskId) {
+  suspend fun saveJMMTask(mmid: MMID, taskId: TaskId) {
     storeTaskId.set(mmid, taskId)
   }
 
-  suspend fun getAllDownload(): MutableMap<MMID, String> {
+  suspend fun getAllJMMTask(): MutableMap<MMID, String> {
     return storeTaskId.getAll()
+  }
+
+  suspend fun getTaskId(mmid: MMID): String? {
+    return storeTaskId.getOrNull<String>(mmid)
+  }
+
+  suspend fun deleteJMMTask(mmid: MMID): Boolean {
+    return storeTaskId.delete(mmid)
   }
 }
