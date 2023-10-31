@@ -20,13 +20,13 @@ object CommonAppManifestSerializer : PropMetasSerializer<CommonAppManifest>(Comm
 
 @Serializable(with = CommonAppManifestSerializer::class)
 class CommonAppManifest(p: PropMetas.PropValues = P.buildValues()) :
-  PropMetas.Constructor<CommonAppManifest>(p, P),
-  ICommonAppManifest {
+  PropMetas.Constructor<CommonAppManifest>(p, P), ICommonAppManifest {
   companion object {
     internal val P = PropMetas("CommonAppManifest", { CommonAppManifest(it) })
     private val P_id = P.required("id", "")
     private val P_dweb_deeplinks = P.list<DWEB_DEEPLINK>("dweb_deeplinks")
     private val P_dweb_protocols = P.list<DWEB_PROTOCOL>("dweb_protocols")
+    private val P_dweb_permissions = P.list<DwebPermissions>("dweb_permissions")
     private val P_dir = P.optional<String>("dir")
     private val P_lang = P.optional<String>("lang")
     private val P_name = P.required("name", "")
@@ -46,6 +46,7 @@ class CommonAppManifest(p: PropMetas.PropValues = P.buildValues()) :
   override var id by P_id(p)
   override var dweb_deeplinks by P_dweb_deeplinks(p)
   override var dweb_protocols by P_dweb_protocols(p)
+  override var dweb_permissions by P_dweb_permissions(p)
   override var dir by P_dir(p)
   override var lang by P_lang(p)
   override var name by P_name(p)
@@ -62,11 +63,11 @@ class CommonAppManifest(p: PropMetas.PropValues = P.buildValues()) :
   override var version by P_version(p)
 }
 
-
 interface ICommonAppManifest {
   var id: MMID
   var dweb_deeplinks: List<DWEB_DEEPLINK>
   var dweb_protocols: List<DWEB_PROTOCOL>
+  var dweb_permissions: List<DwebPermissions>
   var dir: String?// 文本方向
   var lang: String?
   var name: String// 应用名称
