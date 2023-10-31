@@ -7,6 +7,8 @@ import io.ktor.utils.io.cancel
 import io.ktor.utils.io.close
 import io.ktor.utils.io.core.ByteReadPacket
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import okio.IOException
@@ -14,7 +16,13 @@ import org.dweb_browser.core.help.types.MMID
 import org.dweb_browser.helper.ChangeableMap
 import org.dweb_browser.helper.PromiseOut
 import org.dweb_browser.helper.Signal
+import org.dweb_browser.helper.UUID
 import org.dweb_browser.helper.consumeEachArrayRange
+import org.dweb_browser.sys.window.core.WindowController
+import org.dweb_browser.sys.window.core.constant.WindowMode
+import org.dweb_browser.sys.window.core.helper.setFromManifest
+import org.dweb_browser.sys.window.core.windowAdapterManager
+import org.dweb_browser.sys.window.core.windowInstancesManager
 
 @Serializable
 data class DownloadTask(
@@ -98,23 +106,35 @@ data class DownloadStateEvent(
   var stateMessage: String = ""
 )
 
-class DownloadController(val mm: DownloadNMM) {
-  val store = DownloadStore(mm)
+class DownloadController(private val downloadNMM: DownloadNMM) {
+  private val store = DownloadStore(downloadNMM)
   val downloadManagers: ChangeableMap<TaskId, DownloadTask> = ChangeableMap() // 用于监听下载列表
+  val downloadCompletes: ChangeableMap<TaskId, DownloadTask> = ChangeableMap() // 用于下载完成或者下载失败
+  private var winLock = Mutex(false)
 
   init {
     // 从内存中恢复状态
-    mm.ioAsyncScope.launch {
+    downloadNMM.ioAsyncScope.launch {
       downloadManagers.putAll(store.getAll())
       // 状态改变的时候存储保存到内存
       downloadManagers.onChange {
         debugDownload(
           "DownloadController",
-          "add=${it.adds.size}, del=${it.removes.size}, upd=${it.updates.size}"
+          "downloading add=${it.adds.size}, del=${it.removes.size}, upd=${it.updates.size}"
         )
         it.adds.forEach { key -> store.set(key, it.origin[key]!!) }
         it.removes.forEach { key -> store.delete(key) }
         it.updates.forEach { key -> store.set(key, it.origin[key]!!) }
+      }
+      downloadCompletes.putAll(store.getAllCompletes())
+      downloadCompletes.onChange {
+        debugDownload(
+          "DownloadController",
+          "complete add=${it.adds.size}, del=${it.removes.size}, upd=${it.updates.size}"
+        )
+        it.adds.forEach { key -> store.setComplete(key, it.origin[key]!!) }
+        it.removes.forEach { key -> store.deleteComplete(key) }
+        it.updates.forEach { key -> store.setComplete(key, it.origin[key]!!) }
       }
     }
   }
@@ -123,15 +143,15 @@ class DownloadController(val mm: DownloadNMM) {
    * 执行下载任务 ,可能是断点下载
    */
   suspend fun downloadFactory(task: DownloadTask): Boolean {
-    if (mm.exist(task.filepath)) {
+    if (downloadNMM.exist(task.filepath)) {
       // 已经存在了，并且对方支持range 从断点开始
-      val current = mm.info(task.filepath).size
+      val current = downloadNMM.info(task.filepath).size
       debugDownload("downloadFactory", "是否支持range:$current")
 
       // 已经存在并且下载完成
       if (current != null) {
         // 开始断点续传，这是在内存中恢复的，创建了一个新的channel
-        mm.recover(task, ContentRange.TailFrom(current))
+        downloadNMM.recover(task, ContentRange.TailFrom(current), this)
         task.status.current = current
         // 恢复状态 改状态为暂停，并且卡住
         task.status.state = DownloadState.Paused
@@ -143,7 +163,7 @@ class DownloadController(val mm: DownloadNMM) {
     val stream = task.readChannel ?: return false
     debugDownload("downloadFactory", task.id)
     val buffer = this.middleware(task, stream)
-    mm.appendFile(task, buffer)
+    downloadNMM.appendFile(task, buffer)
     return true
   }
 
@@ -157,7 +177,7 @@ class DownloadController(val mm: DownloadNMM) {
     val taskId = downloadTask.id
     // 重要记录点 存储到硬盘
     downloadManagers[taskId] = downloadTask
-    mm.ioAsyncScope.launch {
+    downloadNMM.ioAsyncScope.launch {
       debugDownload("middleware", "id:$taskId current:${downloadTask.status.current}")
       downloadTask.downloadSignal.emit(downloadTask)
       try {
@@ -171,7 +191,10 @@ class DownloadController(val mm: DownloadNMM) {
             input.cancel()
             downloadTask.downloadSignal.emit(downloadTask)
             // 重要记录点 存储到硬盘
-            downloadManagers[taskId] = downloadTask
+            // downloadManagers[taskId] = downloadTask
+            downloadManagers.remove(taskId)?.let {
+              downloadCompletes[taskId] = it
+            }
           } else if (last) {
             output.close()
             input.cancel()
@@ -179,7 +202,10 @@ class DownloadController(val mm: DownloadNMM) {
             // 触发完成
             downloadTask.downloadSignal.emit(downloadTask)
             // 重要记录点 存储到硬盘
-            downloadManagers[taskId] = downloadTask
+            // downloadManagers[taskId] = downloadTask
+            downloadManagers.remove(taskId)?.let {
+              downloadCompletes[taskId] = it
+            }
           } else {
             downloadTask.status.current += byteArray.size
             // 触发进度更新
@@ -193,8 +219,40 @@ class DownloadController(val mm: DownloadNMM) {
         downloadTask.status.state = DownloadState.Failed
         // 触发失败
         downloadTask.downloadSignal.emit(downloadTask)
+        // 内存中删除
+        downloadManagers.remove(taskId)?.let {
+          downloadCompletes[taskId] = it
+        }
       }
     }
     return output
+  }
+
+  /**
+   * 窗口是单例模式
+   */
+  private var win: WindowController? = null
+  suspend fun renderDownloadWindow(wid: UUID) = winLock.withLock {
+    (windowInstancesManager.get(wid) ?: throw Exception("invalid wid: $wid")).also { newWin ->
+      if (win == newWin) {
+        return@withLock
+      }
+      win = newWin
+      newWin.state.apply {
+        mode = WindowMode.MAXIMIZE
+        setFromManifest(downloadNMM)
+      }
+      /// 提供渲染适配
+      windowAdapterManager.provideRender(wid) { modifier ->
+        Render(modifier, this)
+      }
+      newWin.onClose {
+        winLock.withLock {
+          if (newWin == win) {
+            win = null
+          }
+        }
+      }
+    }
   }
 }

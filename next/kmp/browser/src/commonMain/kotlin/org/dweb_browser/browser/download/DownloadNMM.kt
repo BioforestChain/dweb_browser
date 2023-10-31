@@ -114,6 +114,10 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
         val taskId = request.query("taskId")
         val task = controller.downloadManagers[taskId] ?: return@defineBooleanResponse false
         task.cancel()
+        controller.downloadManagers.remove(taskId)?.let {
+          it.status.state = DownloadState.Canceled
+          controller.downloadCompletes[taskId] = it
+        }
         true
       },
       // 移除任务
@@ -123,6 +127,7 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
       },
     )
     onRenderer {
+      controller.renderDownloadWindow(wid)
       getMainWindow().state.apply {
         setFromManifest(this@DownloadNMM)
       }
@@ -146,7 +151,7 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
       mime = "application/octet-stream",
       filepath = createFilePath(params.url),
     )
-    recover(task, ContentRange.TailFrom(0L))
+    recover(task, ContentRange.TailFrom(0L), controller)
     controller.downloadManagers[task.id] = task
     debugDownload("初始化成功！", "${task.id} -> $task")
     return task
@@ -155,7 +160,7 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
   /**
    * 恢复(创建)下载，需要重新创建连接🔗
    */
-  suspend fun recover(task: DownloadTask, range: ContentRange) {
+  suspend fun recover(task: DownloadTask, range: ContentRange, controller: DownloadController) {
     val response = nativeFetch(URLBuilder(task.url).also {
       headers { append(HttpHeaders.Range, range.toString()) }
     }.buildString())
@@ -164,6 +169,9 @@ class DownloadNMM : NativeMicroModule("download.browser.dweb", "Download") {
     if (!response.isOk()) {
       task.status.state = DownloadState.Failed
       task.status.stateMessage = response.text()
+      controller.downloadManagers.remove(task.id)?.let { // 下载失败，转移到已完成列表
+        controller.downloadCompletes[task.id] = it
+      }
     } else {
       // 下载流程初始化成功
       task.status.state = DownloadState.Init

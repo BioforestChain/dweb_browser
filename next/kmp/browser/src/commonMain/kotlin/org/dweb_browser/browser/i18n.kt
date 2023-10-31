@@ -35,5 +35,8 @@ class BrowserI18nResource {
     val install_button_open = SimpleI18nResource(Language.ZH to "打开")
     val install_button_retry = SimpleI18nResource(Language.ZH to "重新下载")
     val install_button_incompatible = SimpleI18nResource(Language.ZH to "该软件与您的设备不兼容")
+    val no_download_links = SimpleI18nResource(Language.EN to "There are no download links yet", Language.ZH to "暂无下载数据")
+    val manager_downloads = SimpleI18nResource(Language.EN to "Downloads", Language.ZH to "下载")
+    val manager_files = SimpleI18nResource(Language.EN to "Files", Language.ZH to "文件")
   }
 }
